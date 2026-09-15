@@ -2,13 +2,13 @@
 
 > 새 세션은 `CLAUDE.md` → `docs/SPEC.md` → `docs/DECISIONS.md` → 이 파일 → `docs/PLAN.md` 순서로 읽는다. 작업 묶음이 끝날 때마다 이 파일을 고친다.
 
-마지막 갱신: 2026-09-15 (운영자 PC 로컬 세션, Phase 0 2차 검토 반영)
+마지막 갱신: 2026-09-16 (운영자 PC 로컬 세션, Phase 1 통합·배포)
 
 ## 한눈에 보기
 
-- **지금:** 자료 목록·코드 대응표·계획서를 검토 의견대로 고쳐 Phase 0을 마무리했다. 다음은 문서를 공개 저장소에 올리고 사이트의 뼈대를 만드는 Phase 1이다.
-- **운영자 할 일:** 아래 표의 10개이며, 모두 작업을 막지 않는다. 지금 당장 답해야 하는 것은 없다.
-- **다음에 볼 수 있는 결과:** Phase 1이 끝나면 https://songdocomputerpark-lang.github.io/ai-physical-computing/ 에 첫 화면이 뜬다.
+- **지금:** Phase 1(프로젝트 뼈대와 첫 배포)을 마쳤다. https://songdocomputerpark-lang.github.io/ai-physical-computing/ 에 홈, 시작하기·점검, 배우기(견본 차시 1-1-1·V4), 용어사전, 실습실 자리, 사이트 검색, 출처와 라이선스 페이지가 올라가 있다. 다음은 영상처리 실습실을 만드는 Phase 2다.
+- **운영자 할 일:** 아래 표의 12개이며, 모두 작업을 막지 않는다. 지금 해 볼 수 있는 것은 3번(교실 컴퓨터에서 점검 페이지 열기)이다.
+- **다음에 볼 수 있는 결과:** Phase 2가 끝나면 홈의 [카메라로 바로 해보기]에서 웹캠 에지 검출과 슬라이더가 동작한다.
 
 ## 운영자 할 일 (유일한 목록)
 
@@ -26,13 +26,34 @@
 | 8 | 나중에(P1-10 전이면 좋음) | 교과서·수업 자료에서 옮긴 예제 코드(`examples/`)를 MIT(상업적 이용도 허용)로 넓혀도 되나요? | 예/아니오 | CC BY-NC-SA 4.0(콘텐츠와 같은 조건). 넓히기는 나중에도 되지만 먼저 넓게 공개하면 되돌릴 수 없다. CC FAQ는 소프트웨어에 CC 라이선스를 권하지 않는다는 점도 참고 |
 | 9 | P1-03에서 API로 Pages 켜기가 거절될 때만 | 저장소 Settings > Pages > Source에서 "GitHub Actions"를 한 번 골라 주시겠어요? | https://github.com/songdocomputerpark-lang/ai-physical-computing/settings/pages | 워크플로만 만들어 두고 첫 배포 확인은 보류, 나머지 Phase 1 작업은 계속 |
 | 10 | 클라우드 야간 루틴을 다시 쓸 때만 | claude.ai/code에서 GitHub 연결을 해 주시겠어요? | claude.ai/code 설정(야간 루틴 저장 실패 HTTP 401의 원인) | 운영자 PC 로컬 세션으로 작업(O8) |
+| 11 | 나중에 | 개인정보 제보를 공개 이슈 대신 비공개로 받을 연락 창구(예: 사이트 전용 메일)를 둘까요? | 예/아니오(예라면 받을 주소) | 두지 않는다: 이슈 양식과 기여·문의 페이지에 "개인정보는 옮겨 적지 말고 위치만" 안내(GitHub 비공개 보고 기능은 보안 취약점 신고용이라 쓰지 않음) |
+| 12 | 편할 때 | 이 PC에 Playwright 전용 브라우저(Chromium)를 내려받아도 되나요? CI와 같은 브라우저로 로컬 테스트를 돌리게 돼요 | 예/아니오(예라면 받기 직전에 파일 크기를 알려 드림) | 설치된 Microsoft Edge로 로컬 테스트, CI(테스트 워크플로)는 Chromium |
 
 ## 현재 Phase
 
-**Phase 0 완료(2차 검토 반영) → Phase 1 시작 전.** 승인은 운영자가 위임했으므로(DECISIONS O1) 기다리지 않고 Phase 1을 바로 시작한다.
+**Phase 1 완료(2026-09-16) → Phase 2 시작 전.** 완료 기준(PLAN §8.1: P1-03의 HTTPS 200 + P1-01~P1-11 + 스모크 테스트 통과)을 로컬 테스트·배포 실행·테스트 워크플로·실사이트 응답으로 확인했다(아래 완료와 야간 작업 로그). 사람 확인이 필요한 항목(Android Chrome·iPad Safari 실측, 교실 컴퓨터 점검 — 운영자 할 일 3번)은 "확인 필요"로 남기고, 승인 위임(DECISIONS O1)에 따라 기다리지 않고 Phase 2를 시작한다.
 
 ## 완료
 
+- **Phase 1 — 프로젝트 뼈대와 첫 배포(2026-09-15~16):**
+  - P1-01 저장소·첫 커밋, P1-02 Astro 7.3.2 뼈대, P1-03 배포 파이프라인(`deploy.yml`)과 첫 배포, P1-04 출처 등록부·저장소 검사·`/credits/`, 공통 기반(사이트 지도·주소 도우미·디자인 토큰·공통 레이아웃·Pretendard·콘텐츠 규칙·상자 문법·Playwright·Pagefind) — 야간 작업 로그 참고.
+  - P1-05 홈: 큰 버튼 3개(1366×768·375×812에서 스크롤 없이 보이고 Tab으로 닿음, 320×568도 첫 화면 안), 직접 그린 흐름 SVG(동작 줄이기면 멈춘 그림, 움직여도 6초×3회 뒤 정지 + [그림 멈추기]), 카드 4개·원칙 3개.
+  - P1-06 배우기: 목록(대단원 4 > 묶음 > 차시 카드 44장, 준비 중·원고 없음·보충 표시), 대단원 4쪽, 차시 틀(SPEC §7.2 8칸, 성취기준·시간·준비물·난이도 뱃지, 예제 코드, 서버 없이 채점하는 퀴즈, 교사용 접기, 이전·다음), 견본 1-1-1(원고 008~012쪽, 삽화 3장 눈 확인·메타데이터 제거)·V4 틀. 새 md 하나로 목록·페이지가 생기는 실험 통과(`content/lessons/u2/2-1-9.md`를 넣어 확인 뒤 지움). 틀 경고는 빌드를 멈추지 않고(PD-35), 두 md가 같은 주소면 빌드 오류. 자리 표시 `::예제`·`::퀴즈`.
+  - P1-07 용어사전: 26항목(PLAN 20 + 원고 1단원 6), `/glossary/` 색인·항목 앵커·"나오는 차시", 본문 `:용어[…]` → 굵은 링크 + 툴팁(키보드 초점·마우스, Esc, 터치는 바로 이동). 두 단계 구조: remark는 표시 자리만, 페이지를 만들 때 `GlossaryScope`가 사전을 새로 읽음(Astro 콘텐츠 캐시가 CI에서도 되살아나 remark 단계에 풀이를 넣으면 옛 글이 남기 때문, withastro/action v6 `cache` 기본 true 확인). 샘플 차시 1-1-1에서 Tab → 툴팁 → Enter로 `#agent` 이동을 브라우저 테스트로 확인.
+  - P1-08 시작하기 4쪽 + 점검 페이지(10항목 지원·미지원·확인 필요와 한국어 대처, JSPI는 52바이트 시험 모듈 실제 실행, [결과 복사]), 브라우저 권장 환경 안내 `BrowserNotice`(실습실 4곳·학생용·보드 준비).
+  - P1-09 스모크·영역별 브라우저 테스트(데스크톱 1366×768·모바일 375×812), 링크 검사 `npm run check:links`(`scripts/check-links.mjs`), 테스트 워크플로 `.github/workflows/e2e.yml`(push·PR, 단위 테스트·타입 검사·Playwright Chromium·링크 검사, 브라우저 캐시 키 = @playwright/test 버전, 실패 보고서 업로드, 배포를 막지 않음).
+  - P1-10 `LICENSE`(MIT)·`LICENSE-CONTENT.md`(CC BY-NC-SA 4.0)·README·MAINTENANCE·CONTRIBUTING·이슈 양식 3종, 바닥글·기여 페이지에서 라이선스 파일과 제3자 목록 연결.
+  - P1-11 사이트 검색 `/search/`(Pagefind 1.5.2 API로 직접 만든 화면, `?q=`, 10개씩 더 보기, 키보드)와 머리글 검색 상자.
+- **Phase 1에서 Claude가 정한 것(근거는 커밋 메시지·파일 머리말):**
+  - 검색: 기본 UI 대신 API로 화면을 만듦(한국어 문구·디자인 토큰·접근성·코드 크기). 색인에서 뺀 것: 홈·검색·404 페이지, 준비 중 상자(ComingSoon), 교사용·정답 상자(학생 검색 요약에 지도 글·정답이 보이지 않게), 용어 툴팁 글. 낱말 나열은 가운뎃점 대신 쉼표.
+  - 접근성: 마크다운 코드 블록 테마 `github-light-high-contrast`(기본 github-dark 주석 대비 3.05:1 → 모든 코드 글자색 5.04:1 이상, @shikijs/themes 4.4.3 색으로 계산). 점검 페이지 제목을 "학교 네트워크와 브라우저 점검"으로(좁은 화면에서 "·브라우저"로 줄이 바뀌던 문제).
+  - 라이선스 범위: 안내 문서(README·MAINTENANCE·CONTRIBUTING·docs/)도 CC BY-NC-SA 4.0(PD-26에 없던 범위), `src/` 컴포넌트 안 인라인 SVG 그림은 코드와 떼어 쓸 수 없어 MIT, 그림 파일(`public/images/`)은 CC BY-NC-SA 4.0.
+  - 점검 페이지: 창 너비 1024 CSS 픽셀 미만은 "확인 필요", 브라우저 판별은 `userAgentData` 우선(브랜드가 Chromium뿐이면 UA 글자 — CI Chromium 실측), JSPI는 이름 확인 + 실제 실행, Chrome·Edge인데 JSPI가 없으면 업데이트 안내, 휴대폰·태블릿 Web Serial과 Linux Web Bluetooth는 "확인 필요".
+  - `BrowserNotice`는 코드를 실행하거나 보드를 연결하는 페이지(실습실 4곳, 학생용, 보드 준비)에만 두고 학습 페이지·예제 갤러리에는 두지 않음(SPEC §9 "학습 페이지는 전부 읽힘").
+  - 링크 검사는 테스트 워크플로에서만 돌려 배포를 막지 않음(PD-35와 같은 이유: 새 차시의 링크 하나 때문에 배포가 멈추지 않게, 실패는 Actions에 남음).
+  - P1-03 시험 파일 `public/_probe/`와 그 등록부 항목을 지움(응답 형식 확인은 끝났고 Phase 2부터 실제 `.mjs`·`.wasm`이 배포됨).
+  - 홈: h1 "보고, 판단하고, 움직이는 인공지능을 만들어요", [카메라로 바로 해보기]만 주요 버튼, 21rem 미만에서 버튼 설명 숨김, 홈은 검색 색인 제외(다른 페이지 요약이라 결과가 겹침).
+  - 용어: 없는 낱말은 빌드 경고만(PD-35), 서로 다른 두 항목이 같은 이름이면 빌드 오류. 항목별 개별 페이지 없이 한 페이지 + 앵커.
 - Phase 0 산출물: `docs/INVENTORY.md`(자료 20개·코드 158개), `docs/CODE_MAPPING.md`(코드 158개 → 브라우저 실행 매핑, id 누락 없음), `docs/PLAN.md`(정보 구조, 기술 스택, 기술 결정 2건, Phase 1~6 작업 묶음, 위험, 결정 목록 PD-01~PD-37).
 - **2차 검토 반영(2026-09-15):** 검토 지적을 하나씩 근거를 확인해 판정하고 세 문서에 반영했다. 주요 내용:
   - 교육과정: 과목 교육과정의 성취기준 15개를 인천광역시교육청 게시물에서 확인해 반영(INVENTORY §9.2), 차시 대응표 초안(PLAN §2.2, PD-21), 진동 모터를 1차 부품으로(PD-36).
@@ -48,36 +69,34 @@
 
 ## 진행 중
 
-- 없음. 프로젝트 루트는 아직 git 저장소가 아니고 공개 저장소에 파일이 없다.
+- 없음(Phase 1 통합·push·배포 확인까지 끝남).
 
-## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.1, §13)
+## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.2 Phase 2 영상처리 실습실)
 
-1. **P1-01 저장소 연결과 첫 커밋 — 운영자 PC 로컬 세션에서만.** 문서가 운영자 PC에만 있어 클라우드 세션은 할 수 없다.
-   - 먼저 **공개 전 문서 점검**(PD-37): 올릴 파일에서 학교명·기관 계정 경로·사용자 폴더 경로·MAC 주소 형태를 검색하고 결과를 이 파일에 적는다. `docs/SPEC.md`는 6행에 학교명이 있어 운영자 할 일 7번 답 전까지 커밋하지 않는다(SPEC.md는 고치지 않음).
-   - 명령은 PLAN §13 그대로: `git init -b main` → 작성자(C5)·`core.longpaths true`·`core.quotepath false` → `.gitattributes`(텍스트 LF) → **파일 이름을 적어** `git add`(`git add .`·`-A` 금지, 원본 폴더·SPEC.md 제외) → `git status --ignored --short`로 **파일이 있는 원본 폴더 7개**가 `!!`인지 확인(빈 폴더 2개는 git이 보여 주지 않음) → `git ls-files`에 원본 경로 0개 → 커밋 → `origin` 연결 → `git push -u origin main`.
-   - 완료 확인: `gh api repos/songdocomputerpark-lang/ai-physical-computing/contents`에 문서가 보이고 원본 폴더·SPEC.md가 없다. 이후 작업부터 `.agent/lock.json`(`"holder": "local"`)을 쓴다.
-2. **P1-02 Astro 뼈대:** astro 7.3.2 · typescript 6.0.3 · @astrojs/check 0.9.10을 고정 설치 → 가장 작은 빌드 상태 커밋 → 폴더(`content/`, `examples/`, `public/`, `src/`, `scripts/`, `tests/`), `src/config/site.ts`(사이트 이름·저작자·라이선스), `base: '/ai-physical-computing'`, npm 스크립트. 완료: Windows에서 `npm run build`·`npm run check` 통과. **끝나면 `CLAUDE.md`의 "기술 스택"(PLAN §3.1 요약, PD-01~03)·"명령어"(dev/build/check/test) 절을 채운다.**
-3. **P1-03 첫 배포:** 로컬 `gh`로 Pages 켜기(`POST /repos/songdocomputerpark-lang/ai-physical-computing/pages`에 `{"build_type":"workflow"}`만. 거절되면 응답을 기록하고 운영자 할 일 9번) → `.github/workflows/deploy.yml`(권한 `contents: read`·`pages: write`·`id-token: write`, checkout v7 → configure-pages v6 → withastro/action v6 → deploy-pages v5, `paths-ignore`: `.agent/**`, `PROGRESS.md`, Playwright는 넣지 않음) → push → `curl -sSfL https://songdocomputerpark-lang.github.io/ai-physical-computing/`가 200인지 확인(**SPEC Phase 1 완료 기준**). `.mjs`·`.wasm` 응답 형식도 `curl -sI`로 확인.
-4. **P1-04** `sources.yaml` 틀(분류 `category` 포함) + `public/`·`examples/**`·`content/**`와 번들 의존성 전체에서 미등록·중복 매칭이면 빌드 실패 + 저장소 검사(`scripts/check-repo.mjs`, `.githooks/pre-commit`, CI) + `/credits/` 자동 생성(제3자 권리 표기 목록 포함).
-5. **P1-05** 공통 레이아웃·홈(큰 버튼 3개, 흐름 SVG) → 이어서 P1-06~P1-11(PLAN §8.1 표. P1-08 점검 페이지에서 Android Chrome·iPad Safari 실측 기록, P1-10 라이선스 적용 범위·제외 조항, P1-11 사이트 검색).
+1. **P2-01 파이썬 워커:** 모듈 워커에서 Pyodide 314.0.7(jsDelivr) 로드, `print('안녕')` 출력, JSPI 감지와 제한 모드, 정지 1·2단계(PLAN §4.4). Node 테스트에서 `--experimental-wasm-jspi`로 `run_sync`가 도는지 확인해 미해결 1번에 기록.
+2. **P2-02 코드 에디터:** CodeMirror 6 + Python 강조, 자동 저장, 공유 링크(lz-string), [이 컴퓨터에서 내 기록 지우기]. 먼저 브라우저 저장 이름 규칙 공통 파일(`src/lib/storage.ts`)을 만든다: 이름 머리말 `ai-physical-computing:`(지금 `src/lib/capabilities.ts`가 내보냄), 기록 지우기는 이 머리말로 시작하는 이름만 지우고 `localStorage.clear()`는 쓰지 않는다(같은 계정의 다른 GitHub Pages 사이트와 출처를 공유하기 때문, 미해결 13번).
+3. **P2-03 카메라·창 흉내 모듈과 첫 실습 → P2-04 슬라이더 규약:** `playwright.config.ts`의 가짜 카메라 설정 주석을 풀고 합성 영상만 커밋(PD-30). P2-04 완료 = 시나리오 A 자동 테스트.
+4. **P2-05~P2-14:** PLAN §8.2 표 순서. P2-05에서 점검 페이지에 네트워크 [시험하기] 항목을 더하고, P2-14에서 차시 페이지 [실습실에서 열기]의 `?example=` 읽기·임베드와 홈 [카메라로 바로 해보기] 흐름을 잇는다.
+5. Phase 2에서 예제를 처음 넣을 때 PD-33 이관 스크립트(원본 zip에서 옮기고 줄 수·구문 대조)부터 만든다.
+6. 사이트가 "준비하고 있어요", "만들 거예요"라고 약속한 문장(카메라 없는 샘플 영상, 기록 지우기 버튼, 네트워크 [시험하기], 발표 모드 등)은 해당 기능을 만드는 묶음에서 실제 동작에 맞춰 고친다.
 
 **모든 묶음의 공통 규칙(PLAN §8.0):** 커밋은 경로 지정, 예제는 원본 zip에서 옮기고 줄 수·구문 대조(추출 사본 `extracted/flat` 금지), 원고·교안 이미지는 한 장씩 눈 확인 기록, 테스트 랜드마크는 합성만 커밋, 코드를 바꾼 묶음은 push 전 Vitest·Playwright 통과.
 
 ### 클라우드 세션이 이어받을 때의 전제 (모두 갖춰졌을 때만 `docs/OVERNIGHT.md` 절차를 적용)
 
-1. P1-01로 문서가 원격 `main`에 있다(지금은 저장소가 비어 있어 OVERNIGHT §0-2의 `git checkout main`이 실패한다).
+1. P1-01로 문서가 원격 `main`에 있다(2026-09-15 충족).
 2. 운영자 할 일 10번(claude.ai GitHub 연결)이 끝나 저장 실패(HTTP 401)가 해결됐다.
 3. OVERNIGHT §0-1의 종료 시각이 `2026-09-15T23:00:00Z`로 고정되어 있어 이후 실행은 첫 단계에서 끝난다 → 루틴을 다시 켜기 전에 운영자 확인 아래 로컬 세션이 그 줄을 그날 밤 시각으로 고쳐 커밋한다(이번 검토에서는 OVERNIGHT를 고치지 않음).
 4. `docs/SPEC.md`가 원격에 없으면(운영자 할 일 7번 답 전) 클라우드 세션은 SPEC을 읽을 수 없다 → 7번 답 뒤에 켜거나, DECISIONS·PLAN만으로 할 수 있는 묶음으로 제한한다.
 5. OVERNIGHT §1은 코드 위치로 `extracted/flat`을 적지만 줄 끝이 손상돼 있으므로 PLAN PD-33 규칙(원본 zip `originals/`에서 옮김)을 따른다.
-6. Pages가 아직 꺼져 있으면 워크플로만 만들어 두고 여기에 "운영자 PC에서 Pages 켜기 필요"를 적는다(`configure-pages`의 `enablement`는 `GITHUB_TOKEN`으로 안 됨, action.yml 확인).
+6. Pages는 켜져 있다(2026-09-15 운영자 PC의 `gh`로 켬, 충족). 다시 꺼지면 워크플로만 두고 여기에 "운영자 PC에서 Pages 켜기 필요"를 적는다(`configure-pages`의 `enablement`는 `GITHUB_TOKEN`으로 안 됨, action.yml 확인).
 
 ## 미해결 결정·확인 사항 (Claude 몫, 모두 작업을 막지 않음)
 
 | # | 항목 | 지금 기본값 | 언제 |
 |---|---|---|---|
 | 1 | 기술 확인: Node에서 Pyodide `run_sync`(P2-01), tasks-vision 0.10.35 모듈 워커 실행(P2-08). (glob 로더가 루트 `content/`를 읽는 것은 공통 기반 단계에서 실제 빌드로 확인함, 2026-09-16) | PLAN 기본안 | 해당 묶음에서 |
-| 2 | Android Chrome·iPad Safari의 JSPI·Web Serial 실측 | MDN 호환성 표 기준(JSPI 미지원) | P1-08 |
+| 2 | Android Chrome·iPad Safari의 JSPI·Web Serial 실측 | 기기가 없어 P1-08에서 "확인 필요"로 남김. MDN browser-compat-data(2026-09-16)는 `WebAssembly.Suspending`을 chrome_android·safari·safari_ios 모두 false로 적는다. 점검 페이지는 휴대폰·태블릿의 Web Serial도 "확인 필요"로 보인다 | 운영자 할 일 3번 결과가 오면 |
 | 3 | 블록 전용 호환 모드(PD-27) 채택 여부 | 실험 전, 채택 못 하면 §4.6 4번 | P3-06 |
 | 4 | 차시 ↔ 성취기준 대응표 확정(PD-21) | 초안 | P5 차시 작성 때(운영자 할 일 5번 반영) |
 | 5 | opencv·Pillow 휠에 실제로 들어간 라이브러리와 고지 문구(PD-19, FreeType·IJG 등) | 레시피 기준 추정 | P6-04 |
@@ -85,8 +104,13 @@
 | 7 | 진동 모터 사이트 배정 핀 | 스트래핑 핀·차시 사용 핀을 뺀 빈 핀으로 정하고 "실물 확인 전" 표시 | P3-02 |
 | 8 | workbox 사전 캐시 기본값(공식 문서 확인 후 PD-11 설정) | 셸만 사전 캐시 | P2-05 |
 | 9 | 배포 번들 의존성 목록을 얻는 방법(P1-04) | Vite 공식 `build.license`를 브라우저용(client) 환경에만 켜고(Astro가 `.vite/`를 지워서 `dist/bundle-licenses.json`에 둠) 빌드 뒤 `postbuild`가 `sources.yaml`과 대조해 지운다. package-lock 기준은 번들에 안 들어가는 빌드 도구 187개까지 등록해야 해서 뺐다. 한계: JS 청크에 든 모듈만 잡힌다(npm에서 가져온 CSS·글꼴·이미지는 빌드 전 `dependencies` 등록 검사로만 보완), `npx astro build`로 직접 빌드하면 검사가 돌지 않는다, Astro·Vite가 환경 이름·옵션을 바꾸면 목록 파일이 없어져 빌드 실패로 알린다 | P6-04 출처 최종 점검, Astro·Vite를 올릴 때 |
-| 10 | 로컬 브라우저 테스트에 쓰는 브라우저 | Playwright 1.63.0 전용 Chromium(1243)이 이 PC에 없다(예전 1234만 있음). 소프트웨어 내려받기는 직전에 운영자 확인을 받는 규칙이라 받지 않았고, `playwright.config.ts`가 설치된 Microsoft Edge(153.0.4234.32)를 자동으로 고른다(`PW_CHANNEL`로 바꿈). CI는 러너에 Chromium을 설치하면 된다 | P1-09 e2e 워크플로를 만들 때. 운영자가 허락하면 `npx playwright install chromium` 한 번으로 CI와 같은 브라우저 사용 |
-| 11 | Pagefind 한국어 검색 품질 | Pagefind 1.5.2는 한국어(ko) 어간 처리를 하지 않는다(빌드 로그). 조사가 붙은 낱말(예: "픽셀은")이 "픽셀" 검색에 걸리는지는 아직 확인 전. 결과 주소의 base는 pagefind.js를 불러온 주소에서 자동으로 붙는 것을 확인(`tests/e2e/search-index.spec.ts`) | P1-11 |
+| 10 | 로컬 브라우저 테스트에 쓰는 브라우저 | Playwright 1.63.0 전용 Chromium(1243)이 이 PC에 없다. 소프트웨어 내려받기는 직전에 운영자 확인을 받는 규칙이라 받지 않았고, `playwright.config.ts`가 설치된 Microsoft Edge(153.0.4234.32)를 자동으로 고른다(`PW_CHANNEL`로 바꿈). CI는 테스트 워크플로(`e2e.yml`)가 러너에 Chromium을 설치해 쓴다(2026-09-16부터) | 운영자 할 일 12번 답이 오면 `npx playwright install chromium` |
+| 11 | Pagefind 한국어 검색 품질 | 2026-09-16 실측(`tests/e2e/search.spec.ts`): 낱말 앞부분으로 찾는다("서보" → "서보모터", "로그인" → "로그인이"). 조사는 떼어 주지 않는다("픽셀은" 1건, "픽셀" 4건 — 검색 화면에 "조사를 빼고" 안내). 가운뎃점으로 이은 낱말은 한 낱말로 묶인다(나열은 쉼표로). 어떤 낱말과도 맞지 않는 한국어 검색어는 앞부분이 맞는 결과를 보여 줘서 "결과 없음"은 영문으로만 시험한다. 이어 붙은 요소(dt·dd)의 글자가 붙는 문제는 공백으로 해결. 문장 가운데 인라인 `data-pagefind-ignore`(용어 툴팁)는 색인에서 빠진다("행동하면서"로 1-1-1이 나오지 않음 확인). 결과 주소의 base는 pagefind.js 주소에서 자동으로 붙는다 | Pagefind를 올릴 때(P6-04) 다시 확인 |
+| 12 | 용어 표시·상자 문법 경고가 나오는 때 | 사전에 없는 낱말 경고는 페이지를 만들 때 나와 빌드마다 보인다. remark 단계 경고(제목·링크·상자 제목 안 용어, 모르는 상자 이름)는 Astro 콘텐츠 캐시 때문에 그 md가 바뀐 빌드에서만 보인다(결과 HTML은 그 파일만으로 정해져 영향 없음) | P5-02 `check:lessons`에서 캐시와 상관없이 전체 검사 |
+| 13 | 브라우저 저장 이름 규칙 공통 파일(시작하기 요청) | 아직 없음. `src/lib/capabilities.ts`가 머리말 `ai-physical-computing:`과 안내 닫기 기억 이름을 내보낸다 | P2-02 전(다음 할 일 2번) |
+| 14 | 차시 frontmatter `source` 필드(원고·코드만·보충, 배우기 제안) | 만들지 않음. "원고 없음" 딱지는 차례표(`src/components/lesson/curriculum.ts`)에 있는 차시에만 붙는다 | P5에서 차례표 밖 차시가 생길 때 |
+| 15 | 띄어쓰기 사라짐 자동 검사 | Astro 7은 줄바꿈이 든 글자·태그 사이 공백을 지운다. 통합 단계에서 빌드 결과를 훑어 "글자 바로 뒤에 붙은 여는 인라인 태그" 22곳을 찾아 `{' '}`로 고치고 CLAUDE.md에 주의를 적었다. 이 검사를 링크 검사에 넣을지는 미정 | P6 품질 점검, 같은 문제가 다시 나오면 더 이르게 |
+| 16 | 예제 갤러리의 빈 안내 자리 | 조건부 슬롯도 `Astro.slots.has('notice')`가 참이라 갤러리에 빈 `.page-notice`가 생긴다. 전역 CSS(`:has()`)로 높이 0이지만 `:has()`를 모르는 옛 브라우저에서는 16px 틈 | Phase 4 갤러리(P4-11) 작업 때 |
 
 ## 야간 작업 로그
 
@@ -95,4 +119,5 @@
 | 2026-09-15T13:30Z | 로컬 | P1-01 공개 전 문서 점검(PD-37): 올릴 9개 파일에서 학교명(`송도`·"○○고등학교" 형태)·사용자 폴더 경로·AppData·MAC 주소·이메일·전화번호 검색 → 실제 노출 0건(검색어 설명 문장 1건, 일반 계정 경로 예시 `C:/Users/COM` 1건만). 인명은 저작자 표기(박상진·김석전)만. `OVERNIGHT.md`의 고정 종료 시각·`extracted/flat` 안내·Pages 켜기 방법을 PLAN §13.1 6·7번대로 고침 | (첫 커밋) | — |
 | 2026-09-15T14:05Z | 로컬 | P1-03 배포 파이프라인과 첫 배포: `.github/workflows/deploy.yml` 추가. 빌드 작업(checkout v7 → configure-pages v6 → withastro/action v6, 권한 contents·pages 읽기, Node 24, Astro 익명 통계 끔)과 배포 작업(deploy-pages v5, 권한 pages·id-token 쓰기, 환경 github-pages)으로 나눔. 네 액션의 최신 주 버전이 PLAN과 같음을 각 저장소 releases/latest·action.yml로 확인, `enablement`는 쓰지 않음(Pages 이미 켜짐). main push(P1-02 커밋 7a4631f 포함) → 실행 34979015090 성공(빌드 16초, 배포 27초). `curl -sSfL` 홈 HTTPS 200·제목 확인(SPEC의 첫 배포 기준, Phase 1 전체는 P1-04~P1-11 뒤). 시험 파일 `public/_probe/` 응답 형식: `.mjs` = `text/javascript; charset=utf-8`, `.wasm` = `application/wasm`. 크롬 계열 브라우저 창에서 `import()`와 `WebAssembly.instantiateStreaming` 성공 | 3dd1a0a | 실패 없음(재시도 0회). 참고: 끝 슬래시 없는 주소는 301로 `/`가 붙은 주소로 이동, `dist/.gitkeep`이 공개 주소에서 200(P1-04에서 처리) |
 | 2026-09-15T15:15Z | 로컬 | P1-04 출처 등록부·저장소 검사·자동 출처 페이지: `sources.yaml` 6항목(운영자 원고·예제, 자체 제작 그림·시험 파일, Astro, Pretendard 자리. 넓은 항목은 `third-party/` 폴더를 뺌), `npm run build` 앞뒤 출처 검사(`scripts/check-sources.mjs`: 파일·dependencies 등록과 저작자가 다른 중복 매칭 / 빌드 뒤 번들 의존성은 미해결 9번 방식), 저장소 검사(`scripts/check-repo.mjs` + `.githooks/pre-commit`, `npm install`·`npm ci`가 훅을 켬, deploy.yml `저장소 안전 검사` 작업을 배포가 기다림), `/credits/`(라이선스별 묶음·제3자 목록·사이트 라이선스 제외 표시, 본문 컴포넌트 분리), Vitest 37건 추가(총 41건). 확인: `public/`에 미등록 파일 → `npm run build` 종료 코드 1(한국어 오류) → 지우고 0, `.pdf`·6MB 파일 스테이징 → 훅이 커밋을 막음(Git Bash·PowerShell, HEAD 그대로), 실행 34987093979 성공(검사 15초·빌드 24초 병렬, 배포 12초), `/credits/` 200, `/.gitkeep`·`/bundle-licenses.json` 404 | 150130b | 실험 1·2에서 Vite 번들 목록 파일이 남지 않음 → 원인: Astro가 client 환경의 build 설정을 새로 만들고 빌드 결과의 `.vite/`를 지움 → `configEnvironment` 플러그인과 `.vite/` 밖 파일 이름으로 해결. `astro check`가 테스트의 Node 내장 모듈 타입 오류 21건 → `@types/node` 24.13.4 추가로 0건 |
+| 2026-09-15T19:16Z | 로컬 | **Phase 1 통합·배포**: 병렬 제작 5구역(홈·배우기·용어사전·시작하기·기타 문서와 검색)을 합치고 공유 파일 요청을 판단해 반영했다. ① 차시 본문을 `GlossaryScope`로 감싸 용어 툴팁 연결(P1-07 완료 기준) ② 검색 색인 규칙(ComingSoon·교사용·정답 상자에 `data-pagefind-ignore`, 사이트 지도 설명의 가운뎃점 → 쉼표, 출처·용어사전의 붙은 글자 공백) ③ 코드 블록 테마 `github-light-high-contrast`(모든 코드 글자색 대비 5.04:1 이상) ④ 320px 머리글 한 줄(67→65px) ⑤ 바닥글에서 LICENSE·LICENSE-CONTENT.md 연결 ⑥ 실습실 4곳에 브라우저 권장 환경 안내 ⑦ 점검 페이지 제목 "학교 네트워크와 브라우저 점검" ⑧ `public/_probe/` 시험 파일과 등록부 항목 삭제 ⑨ 용어사전 "나오는 차시" 주소를 배우기 규칙으로 ⑩ PLAN의 Silicon Labs 주소·`configure-pages` 설명 수정. 다음 단계로 미룬 요청: 저장 이름 규칙 공통 파일(P2-02, 미해결 13번), 차시 `source` 필드(P5, 미해결 14번). P1-09: 링크 검사 `scripts/check-links.mjs`(`npm run check:links`)와 테스트 워크플로 `.github/workflows/e2e.yml` 추가. 로컬 검증: 빌드 통과, `astro check` 0 오류·0 경고, Vitest 23파일 244건, Playwright 150 통과·66 건너뜀(Edge 153, 2.7분), 링크 검사 사이트 안 주소 1,458개(#위치 188개) 통과, 스크린숏(1366×768·375×812·320×568) 눈 확인. 영역별 경로 지정 커밋 7개 push(a3334c4..6df7f86) → 배포 실행 35010369791 성공(검사 13초·빌드 26초·배포 11초). CI 브라우저 테스트 실패를 고쳐(796f88c) 배포 35012350162와 테스트 35012350102 모두 성공(CI Chromium 151 통과·67 건너뜀 45.6초, 단위 244건, 링크 검사 통과). 실사이트 `curl`: 홈·시작하기·점검·배우기·차시 2개·용어사전·실습실·실물 점검·교사용 자료실·문제 해결·출처·검색·기여 200, 없는 주소 404, 지운 시험 파일 404 | 1582b18, 9f7e136, f808251, e59130a, e3dd225, 8e48c2e, 6df7f86, 796f88c | ① 링크 검사가 404 페이지의 `og:url`(없는 주소 `/404/`)을 찾아냄 → noindex 페이지는 대표 주소를 적지 않게 고침 ② 화면 확인에서 Astro 7이 줄바꿈이 든 글자·태그 사이 공백을 지워 "알리려면문제"처럼 붙은 곳 22개 발견 → `{' '}`로 고치고 CLAUDE.md에 주의 추가 ③ 점검 페이지 제목이 좁은 화면에서 "·브라우저"로 줄이 바뀜 → "와"로 ④ **CI 브라우저 테스트 5건 실패(로컬 Edge에서는 통과)**: Playwright 기본 헤드리스 셸이 브랜드를 `HeadlessChrome`으로 알려 컴퓨터 화면에서도 "확인 필요"와 안내가 뜸(4건) → `HeadlessChrome`을 Chrome으로 판정(단위 테스트 추가), 리눅스 한글 대체 글꼴의 넓은 평균 글자 폭 때문에 검색 입력칸 기본 너비가 칸을 넓혀 375px에서 58px 넘침(1건) → `grid minmax(0, 1fr)`와 입력칸 `width: 100%`. 둘 다 로컬에서 재현(헤드리스 셸 브랜드 실측, 입력칸 크기를 키워 95px 넘침)한 뒤 고쳐서 확인 ⑤ 첫 테스트 실행에서 브라우저 캐시 저장 단계가 실패한 작업이라 건너뛰어짐 → 캐시를 되살리기·저장으로 나눔 ⑥ 병렬 제작 담당들이 띄운 `astro preview` 서버 3개(포트 4330·4336·4339)가 남아 있다. 멈추는 명령이 자동 권한 판정에서 거절돼 그대로 뒀다(테스트 포트 4329와 겹치지 않아 영향 없음, 창을 닫거나 다시 켜면 사라진다) |
 | 2026-09-15T16:40Z | 로컬 | 공통 기반(병렬 제작 5명이 고치지 않을 파일): ① 사이트 지도 `src/config/nav.ts`(PLAN §2.1 주소 19개와 대단원 4개, 머리글 메뉴 6개)와 주소 도우미 `src/lib/url.ts`(`withBase`) ② 디자인 토큰·전역·상자 스타일(파랑 강조색 하나, WCAG 대비 계산값을 주석에 적음: 본문 17.61·링크 5.96·초점 7.01, rem 글자 단계, 움직임 줄이기) ③ Pretendard 1.3.9 **가변 글꼴 다이내믹 서브셋** 자체 호스팅: 공식 태그 v1.3.9 파일 94개를 npm 파일과 크기·SHA-256으로 대조한 뒤 그대로 둠. 고른 근거(CSS의 유니코드 범위로 계산): 머리글·바닥글 글자만 8조각 201KB, 차시 한 편 크기의 글 13~18조각 333~471KB, 긴 문서 23~27조각 602~715KB인데 정적 서브셋 400+700은 늘 525KB이고 2,350자만 담김. 실사이트 홈 실측 woff2 10개 256KB, font-display swap ④ `BaseLayout`(lang ko, OG, 건너뛰기 링크, `data-pagefind-body`, head·notice 슬롯)·머리글(75rem 미만 접는 메뉴, aria-expanded, Esc)·바닥글(버전, 라이선스 두 줄과 제외 문구, 저작자, 출처·저장소·Issues), 부품 ComingSoon·Breadcrumb·Callout·PageLinks와 검색 상자 자리, 자리 페이지 17개와 404, 출처 페이지를 레이아웃으로 감쌈 ⑤ 콘텐츠: `src/content.config.ts`(루트 `content/lessons`·`content/glossary` glob 로더, 시험 파일로 실제 빌드 확인 뒤 지움), `src/config/content-schemas.ts`(PLAN §2.6 필드와 한국어 오류 문장 — 틀리면 `astro sync`가 파일 위치와 함께 한국어로 알림), @astrojs/markdown-remark 7.3.1 unified 처리기 + remark-directive 4.0.0, 상자 문법 10종(`src/lib/remark-boxes.mjs`), 용어 문법 `:용어[말]{항목=id}` 결정과 스텁 ⑥ Playwright 1.63.0 설정·스모크·검색 색인 테스트 ⑦ Pagefind 1.5.2 postbuild 색인(18페이지), 출처 등록부 12항목(Pagefind 화면 파일에 묶인 Svelte 4·bcp-47·adequate-little-templates 포함). 확인: Vitest 84건, `astro check` 오류 0, Playwright 16 통과·4 건너뜀(Edge 153, 데스크톱 1366×768·모바일 375×812, 화면 캡처 눈 확인), 실행 34995787531 성공(검사 14초·빌드 26초·배포 10초), 실사이트 curl(홈 제목·바닥글 문자열, 출처 새 항목, 글꼴 font/woff2, 404 페이지)과 브라우저 창(글꼴 적용, 검색 결과 주소 `/ai-physical-computing/credits/`) | b65d5a1, 42176f1, 3593ee7, d53bc7c, ee6e0ab | `astro check` ts(2367): `as const`로 좁혀진 base를 ''와 비교 → string으로 받아 해결. 예제 경로 `examples/…`가 정규식을 통과 → refine 추가. 상자 안 상자는 **바깥** 상자에 콜론을 더 써야 함(안쪽에 더 쓰면 바깥 상자가 일찍 닫힘, 설명 고침). Pagefind는 baseUrl을 넘기지 않아도 pagefind.js 주소에서 base를 알아냄(처음 테스트 가정이 틀려 고침). **Astro 7 `astro preview`가 AI 에이전트 환경을 알아채 스스로 백그라운드로 떠서 테스트 뒤에도 남음** → `ASTRO_PREVIEW_BACKGROUND`·`--ignore-lock`·서버 재사용 끔으로 해결. Playwright 전용 Chromium 1243 없음 → 내려받지 않고 Edge 사용(미해결 10번) |
