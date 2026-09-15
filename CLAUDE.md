@@ -24,14 +24,26 @@ AI 피지컬 컴퓨팅 오픈랩(가칭) — 2022 개정교육과정 인공지�
 7. 한국어 — UI·문서·오류 설명·커밋 메시지는 한국어, 코드 식별자는 영어.
 
 ## 기술 스택
-(Phase 0에서 확정 후 기록 — 권장안: Astro + TypeScript, Pyodide, MediaPipe Tasks JS, Blockly, Web Serial + esptool-js, mqtt.js, GitHub Actions → Pages)
+확정안 요약. 버전·근거·라이선스 전체는 `docs/PLAN.md` §3.1, 결정 번호(PD)는 부록 A. 버전은 `^` 없이 정확히 고정한다(`.npmrc`의 `save-exact=true`).
+- **설치됨(P1-02):** Astro 7.3.2(정적 출력) + TypeScript 6.0.3 + @astrojs/check 0.9.10(TypeScript 7은 이 검사 도구가 받지 않아 보류), Vitest 5.0.0. Node.js 22.12.0 이상(운영자 PC 24.19.0).
+- **사이트 설정 한 곳:** `src/config/site.ts`(이름·설명·저작자·주소·라이선스·버전) → `astro.config.mjs`가 읽는다. `base: '/ai-physical-computing'`, `trailingSlash: 'always'`(내부 링크는 `import.meta.env.BASE_URL` 뒤에 `/`로 끝나는 경로를 붙인다).
+- **파이썬 실행:** Pyodide 314.0.7(모듈 워커) — jsDelivr 고정 주소 + 같은 사이트 예비본(PD-02), 실행 중 입력 전달은 JSPI 기본(PD-01).
+- **비전 AI:** MediaPipe Tasks Vision 0.10.35 고정(PD-03, 1.0.x는 사용 지표 전송 때문에 쓰지 않음).
+- **블록·에디터:** Blockly 13.3.0(Python 생성기), CodeMirror 6.
+- **ESP32:** Web Serial API + raw REPL 자체 구현, 펌웨어 굽기 esptool-js 0.6.1, 블루투스는 Web Bluetooth.
+- **통신:** MQTT.js 5.15.2(WebSocket), 같은 컴퓨터 탭끼리는 BroadcastChannel(PD-17).
+- **그 밖:** Pagefind 1.5.2(검색), Pretendard 1.3.9(글꼴, 자체 호스팅), 순수 CSS, Playwright 1.63.0(브라우저 테스트), GitHub Actions → GitHub Pages(배포).
+- 아직 설치하지 않은 것은 해당 묶음에서 위 버전으로 설치하고, 배포물에 들어가는 것은 먼저 `sources.yaml`에 등록한다.
+- npm 설치 스크립트 허용 목록은 `package.json`의 `allowScripts`(지금은 esbuild만). 새 경고가 나오면 그 패키지를 확인한 뒤 `npm approve-scripts 이름`.
 
 ## 명령어
-(설정 후 기록)
-- 개발 서버: `npm run dev`
-- 빌드: `npm run build`
-- 테스트: `npm test`
-- 오프라인 배포판: `npm run build:offline`
+프로젝트 루트에서 실행한다. 운영자 PC 셸에는 Node.js가 PATH에 없을 수 있으니 먼저 붙인다 — Git Bash: `export PATH="/c/Program Files/nodejs:$PATH"`, PowerShell: `$env:Path = "C:\Program Files\nodejs;" + $env:Path`.
+- 의존성 설치: `npm ci`(package-lock.json 그대로). 새 패키지는 `npm install 이름@정확한버전`
+- 개발 서버: `npm run dev` → http://localhost:4321/ai-physical-computing/
+- 빌드: `npm run build`(결과는 `dist/`), 빌드 결과 미리 보기: `npm run preview`
+- 타입 검사: `npm run check`(astro check, 오류 0이어야 한다)
+- 단위 테스트: `npm test`(vitest run, `tests/unit/**/*.test.ts`)
+- 오프라인 배포판: `npm run build:offline` — Phase 6에서 추가 예정(아직 없음)
 
 ## 작업 규칙
 - 계획 → 구현 → 실제 브라우저 테스트 → 보고. 한 번에 한 Phase. (승인은 운영자가 위임함 — `docs/DECISIONS.md` O1. 결정은 근거와 함께 기록하고 진행)

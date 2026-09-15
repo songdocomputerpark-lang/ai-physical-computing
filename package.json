@@ -1,0 +1,34 @@
+{
+  "name": "ai-physical-computing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI 피지컬 컴퓨팅 오픈랩(가칭) — 설치 없이 브라우저만으로 인공지능과 피지컬 컴퓨팅(ESP32)을 배우는 무료 교육 사이트",
+  "license": "MIT AND CC-BY-NC-SA-4.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/songdocomputerpark-lang/ai-physical-computing.git"
+  },
+  "homepage": "https://songdocomputerpark-lang.github.io/ai-physical-computing/",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "astro": "7.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "6.0.3",
+    "vitest": "5.0.0"
+  },
+  "allowScripts": {
+    "esbuild": true
+  }
+}

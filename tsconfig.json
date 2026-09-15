@@ -1,0 +1,13 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  // 사이트 코드 폴더만 검사한다. 프로젝트 루트의 원본 자료 폴더(git 제외)까지 훑지 않게 하려고 기본값 "**/*"를 좁혔다.
+  "include": [
+    ".astro/types.d.ts",
+    "src/**/*",
+    "scripts/**/*",
+    "tests/**/*",
+    "astro.config.mjs",
+    "vitest.config.ts"
+  ],
+  "exclude": ["dist"]
+}
