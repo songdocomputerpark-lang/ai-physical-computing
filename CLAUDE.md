@@ -26,6 +26,8 @@ AI 피지컬 컴퓨팅 오픈랩(가칭) — 2022 개정교육과정 인공지�
 ## 기술 스택
 확정안 요약. 버전·근거·라이선스 전체는 `docs/PLAN.md` §3.1, 결정 번호(PD)는 부록 A. 버전은 `^` 없이 정확히 고정한다(`.npmrc`의 `save-exact=true`).
 - **설치됨(P1-02):** Astro 7.3.2(정적 출력) + TypeScript 6.0.3 + @astrojs/check 0.9.10(TypeScript 7은 이 검사 도구가 받지 않아 보류), Vitest 5.0.0, yaml 2.9.1(등록부 읽기, P1-04). Node.js 22.12.0 이상(운영자 PC 24.19.0).
+- **설치됨(공통 기반):** 마크다운 처리기 @astrojs/markdown-remark 7.3.1(unified) + remark-directive 4.0.0 — Astro 7 기본 처리기(Sätteri) 대신 `astro.config.mjs`의 `markdown.processor: unified(...)`로 상자 문법·용어 문법 플러그인을 쓴다. Pagefind 1.5.2(빌드 뒤 `dist/pagefind/` 색인), Pretendard 1.3.9(`public/fonts/pretendard/`, 공식 가변 글꼴 다이내믹 서브셋 파일 그대로), @playwright/test 1.63.0.
+- **공통 기반 파일(병렬 작업자는 고치지 않음):** 사이트 지도 `src/config/nav.ts`, 주소 도우미 `src/lib/url.ts`(`withBase()` — 사이트 안 링크는 이것으로만 만든다), 검색 설정 `src/config/search.ts`, 콘텐츠 규칙 `src/config/content-schemas.ts` + `src/content.config.ts`(루트 `content/lessons`·`content/glossary`), 상자 문법 `src/lib/remark-boxes.mjs`, 용어 문법 `src/lib/remark-glossary.mjs`(스텁), 디자인 토큰·전역 스타일 `src/styles/`, 공통 레이아웃 `src/layouts/`(BaseLayout·머리글·바닥글). 쓰는 부품은 `src/components/common/`(ComingSoon·Breadcrumb·Callout·PageLinks).
 - **출처·저장소 검사(P1-04):** `sources.yaml`(출처 등록부) → 빌드 전후 검사와 `/credits/` 자동 생성. 커밋 전 훅·CI의 저장소 검사(`scripts/check-repo.mjs`, 허용 목록 `scripts/repo-allowlist.yaml`, 이미지 눈 확인 기록 `scripts/image-allowlist.yaml`).
 - **사이트 설정 한 곳:** `src/config/site.ts`(이름·설명·저작자·주소·라이선스·버전) → `astro.config.mjs`가 읽는다. `base: '/ai-physical-computing'`, `trailingSlash: 'always'`(내부 링크는 `import.meta.env.BASE_URL` 뒤에 `/`로 끝나는 경로를 붙인다).
 - **파이썬 실행:** Pyodide 314.0.7(모듈 워커) — jsDelivr 고정 주소 + 같은 사이트 예비본(PD-02), 실행 중 입력 전달은 JSPI 기본(PD-01).
@@ -41,9 +43,11 @@ AI 피지컬 컴퓨팅 오픈랩(가칭) — 2022 개정교육과정 인공지�
 프로젝트 루트에서 실행한다. 운영자 PC 셸에는 Node.js가 PATH에 없을 수 있으니 먼저 붙인다 — Git Bash: `export PATH="/c/Program Files/nodejs:$PATH"`, PowerShell: `$env:Path = "C:\Program Files\nodejs;" + $env:Path`.
 - 의존성 설치: `npm ci`(package-lock.json 그대로). 새 패키지는 `npm install 이름@정확한버전`
 - 개발 서버: `npm run dev` → http://localhost:4321/ai-physical-computing/
-- 빌드: `npm run build`(결과는 `dist/`), 빌드 결과 미리 보기: `npm run preview`
+- 빌드: `npm run build`(결과는 `dist/`), 빌드 결과 미리 보기: `npm run preview` → http://localhost:4321/ai-physical-computing/ . Claude 같은 AI 에이전트 안에서 실행하면 Astro 7이 알아서 백그라운드 서버로 띄우므로, 다 보면 `npx astro preview stop`으로 닫는다(`npm run test:e2e`는 앞에서 돌게 막아 두었다)
 - 타입 검사: `npm run check`(astro check, 오류 0이어야 한다)
 - 단위 테스트: `npm test`(vitest run, `tests/unit/**/*.test.ts`)
+- 브라우저 테스트: `npm run test:e2e`(Playwright, `tests/e2e/`) — `npm run build` 뒤 `astro preview`(포트 4329, `PW_PORT`로 바꿈)를 띄워 데스크톱 1366×768·모바일 375×812로 돈다. 브라우저는 Playwright 전용 Chromium이 설치돼 있으면 그것, 없으면 Windows에서 설치된 Microsoft Edge를 쓴다(`PW_CHANNEL=msedge|chrome|chromium`으로 정함). 같은 폴더에서 동시에 두 번 돌리지 않는다(dist/를 새로 빌드함)
+- 검색 색인만 다시 만들기: `npm run search:index`(`pagefind --site dist`). `npm run build`가 뒤(postbuild)에서 자동으로 돌린다
 - 출처 검사: `npm run check:sources` — `npm run build`가 앞(prebuild)에서 자동으로 돌리고, 뒤(postbuild)에서는 배포 번들 의존성을 검사한다. `npx astro build`로 직접 빌드하면 이 검사가 돌지 않는다
 - 저장소 검사: `npm run check:repo` — 커밋 전 훅(`.githooks/pre-commit`)과 배포 워크플로가 같은 검사를 한다. 훅은 `npm install`·`npm ci`가 `git config core.hooksPath .githooks`로 켠다(확인: `git config --get core.hooksPath`)
 - 오프라인 배포판: `npm run build:offline` — Phase 6에서 추가 예정(아직 없음)
