@@ -1,14 +1,118 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 실습실이 생기면 담당이 실제 화면으로 바꾼다.
-import PageLinks from '../../components/common/PageLinks.astro';
+/**
+ * 실습실 개요(PLAN §2.1 /labs/). 실습실 3개와 예제 갤러리를 카드로 보이고, 각각 언제(어느 Phase에) 열리는지 알린다.
+ * 카드의 한 줄 설명은 사이트 지도(src/config/nav.ts), 열리는 시점은 ./_labs.ts에서 온다.
+ * 할 수 있게 될 일 목록은 각 실습실 페이지에만 둔다(검색 결과에 같은 글이 두 번 나오지 않게).
+ * 실습실이 하나씩 생기면 그 카드의 "준비 중" 표시를 떼고 바로 쓰는 안내로 바꾼다.
+ */
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLabPlan } from './_labs.ts';
 
 const page = getPage('labs');
+const checkPage = getPage('start-check');
+const labs = page.children.map((lab) => ({
+  lab,
+  plan: getLabPlan(lab.id),
+  subPages: lab.children.map((subPage) => ({ subPage, plan: getLabPlan(subPage.id) })),
+}));
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <PageLinks pages={page.children} />
+
+  <div class="labs-intro">
+    <p>실습실은 지금 만들고 있어요. 카드마다 어떤 실습실인지와 언제 열리는지 적어 두었어요.</p>
+    <p>Phase는 사이트를 만드는 순서를 뜻해요. 번호가 작은 실습실부터 차례로 열려요.</p>
+    <p>
+      실습실은 컴퓨터용 Chrome이나 Edge 최신판에서 가장 잘 돼요. 이 컴퓨터에서 쓸 수 있는지는{' '}
+      <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 확인해요.
+    </p>
+  </div>
+
+  <ul class="lab-cards">
+    {
+      labs.map(({ lab, plan, subPages }) => (
+        <li class="lab-card">
+          <h2 class="lab-card__title">
+            <a href={lab.href}>{lab.title}</a>
+          </h2>
+          <p class="lab-card__status" data-pagefind-ignore>
+            <span class="lab-card__badge">준비 중</span>
+            <span>{plan.when}에 열려요</span>
+          </p>
+          <p class="lab-card__description">{lab.description}</p>
+          {subPages.map(({ subPage, plan: subPlan }) => (
+            <p class="lab-card__sub">
+              <a href={subPage.href}>{subPage.title}</a>: {subPage.description}{' '}
+              <span data-pagefind-ignore>({subPlan.when}에 열려요)</span>
+            </p>
+          ))}
+        </li>
+      ))
+    }
+  </ul>
 </BaseLayout>
+
+<style>
+  .labs-intro {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-8);
+  }
+
+  .lab-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lab-card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+  }
+
+  .lab-card__title {
+    font-size: var(--text-xl);
+  }
+
+  .lab-card__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lab-card__badge {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+  }
+
+  .lab-card__description {
+    line-height: var(--leading-snug);
+  }
+
+  .lab-card__sub {
+    padding-block-start: var(--space-3);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+</style>

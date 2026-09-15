@@ -1,15 +1,16 @@
 ---
 /**
- * 머리글 검색 상자 자리(PLAN §8.1 P1-11). 공통 레이아웃 머리글(src/layouts/partials/SiteHeader.astro)이 이 파일을 그대로 넣는다.
- * 검색 담당이 이 파일 안에서 Pagefind 화면으로 바꿔도 된다(파일 이름·위치는 그대로 둔다).
+ * 머리글 검색 상자(PLAN §8.1 P1-11). 공통 레이아웃 머리글(src/layouts/partials/SiteHeader.astro)이 이 파일을 그대로 넣는다.
  *
- * 지금 모양: 자바스크립트 없이도 되는 기본 폼. 검색어를 /search/?q=검색어 로 보낸다.
- * 설정 값(검색 페이지 주소·검색어 이름·Pagefind 폴더)은 src/config/search.ts에 있다.
+ * 자바스크립트 없이도 되는 폼으로 둔다: 검색어를 /search/?q=검색어 로 보내고, 검색 페이지(SearchPage.astro)가 결과를 보여 준다.
+ * 모든 페이지에 검색 코드를 싣지 않으려고 머리글에서는 결과를 바로 보여 주지 않는다(학교 컴퓨터·느린 네트워크 고려).
+ * 폼 이름(aria-label)은 검색 페이지·404 페이지의 검색 폼과 달라서 화면 낭독기의 랜드마크 목록에서 구분된다.
+ * 설정 값(검색 페이지 주소·검색어 이름)은 src/config/search.ts에 있다.
  */
 import { searchConfig } from '../../config/search.ts';
 ---
 
-<form class="header-search" role="search" action={searchConfig.pageHref} method="get">
+<form class="header-search" role="search" aria-label="사이트 검색" action={searchConfig.pageHref} method="get">
   <label class="visually-hidden" for="header-search-input">사이트 검색어</label>
   <input
     id="header-search-input"

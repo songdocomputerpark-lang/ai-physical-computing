@@ -1,16 +1,205 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 문제 해결 담당이 실제 화면으로 바꾼다(오류 사전 Phase 2~, FAQ Phase 5).
+/**
+ * 문제 해결(PLAN §2.1 /help/) — 자주 묻는 질문 초안 5개. 오류 사전은 Phase 2부터 붙인다(P2-06, P5-14).
+ *
+ * 질문마다 id를 붙여 다른 페이지에서 바로 연결할 수 있다. 예: withBase('help/#board-port')
+ * 화면 안내 이름은 공식 도움말 문서에서 확인한 이름을 그대로 쓴다(2026-09-16 확인).
+ * - Chrome 카메라: Google Chrome 고객센터 "Chrome에서 카메라와 마이크 사용"(support.google.com/chrome/answer/2693767?hl=ko)
+ * - Chrome 사이트 데이터: "Chrome에서 쿠키 삭제, 허용, 관리하기"(answer/95647?hl=ko), 시크릿 창: "시크릿 모드로 탐색하기"(answer/95464?hl=ko)
+ * - Windows 카메라: Microsoft 지원 "Windows 카메라, 마이크 및 개인 정보"(support.microsoft.com/ko-kr/windows/privacy/windows-camera-microphone-and-privacy)
+ * - 드라이버 공식 주소와 Windows 자동 설치 가능성: PLAN §8.3 P3-10(2026-09-15 확인)
+ * 실습실이 아직 없어서 "~하게 만들어요", "~할 거예요"로 적은 곳은 해당 기능이 생기면 실제 버튼 이름·동작으로 고친다.
+ * 브라우저 메뉴 이름은 판이 바뀌면 달라질 수 있으니 연 1회 점검(MAINTENANCE.md) 때 다시 확인한다.
+ */
 import ComingSoon from '../../components/common/ComingSoon.astro';
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('help');
+const checkPage = getPage('start-check');
+const boardPage = getPage('start-board');
+const contributePage = getPage('contribute');
+
+const questions = [
+  { id: 'camera', title: '카메라가 켜지지 않아요' },
+  { id: 'browser', title: '어떤 브라우저를 써야 하나요?' },
+  { id: 'board-port', title: '보드를 꽂았는데 연결할 포트가 보이지 않아요' },
+  { id: 'school-network', title: '학교 네트워크에서 실습실이 열리지 않아요' },
+  { id: 'clear-data', title: '공용 컴퓨터에서 내 기록을 지우고 싶어요' },
+] as const;
+const [camera, browser, boardPort, schoolNetwork, clearData] = questions;
 ---
 
-<BaseLayout title={page.title} description={page.description}>
+<BaseLayout title={page.title} description={page.description} width="narrow">
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <ComingSoon what="자주 묻는 질문과 오류 풀이" when="영상처리 실습실을 만드는 단계(Phase 2)">
-    <p>그 뒤로 교과서 내용을 옮기는 단계(Phase 5)까지 계속 늘어나요.</p>
-  </ComingSoon>
+  <p>자주 묻는 질문의 첫 모음이에요. 실습실이 생기면서 답이 더 자세해지고 질문도 늘어나요.</p>
+
+  <nav class="faq-toc" aria-label="질문 목록">
+    <ol>
+      {
+        questions.map((question) => (
+          <li>
+            <a href={`#${question.id}`}>{question.title}</a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  <div class="prose faq">
+    <section aria-labelledby={camera.id}>
+      <h2 id={camera.id}>{camera.title}</h2>
+      <p>
+        실습실은 카메라를 쓰기 전에 브라우저가 카메라를 써도 되는지 물어봐요. 이때 허용해야 영상이 보여요. 허용하지 않았다면
+        아래 순서로 바꿔요.
+      </p>
+      <ol>
+        <li>Chrome 오른쪽 위의 <strong>더보기(⋮)</strong>를 누르고 <strong>설정</strong>으로 가요.</li>
+        <li><strong>개인 정보 보호 및 보안</strong> → <strong>사이트 설정</strong> → <strong>카메라</strong>를 골라요.</li>
+        <li>허용되지 않은 사이트 목록에서 이 사이트 주소를 골라 카메라를 <strong>허용</strong>으로 바꾸고, 페이지를 새로고침해요.</li>
+      </ol>
+      <p>
+        Windows 설정도 확인해요. Windows 11은 <strong>시작 → 설정 → 개인 정보 &amp; 보안 → 카메라</strong>에서{' '}
+        <strong>카메라 액세스</strong>와 <strong>데스크톱 앱이 카메라에 액세스하도록 허용</strong>이 켜져 있어야 브라우저가 카메라를 쓸 수
+        있어요.
+      </p>
+      <p>
+        다른 프로그램(화상 회의 프로그램 등)이 카메라를 쓰고 있거나 카메라 덮개가 닫혀 있어도 영상이 안 보일 수 있어요. 이
+        사이트에는 영상을 받아 저장하는 서버가 없어요.
+      </p>
+    </section>
+
+    <section aria-labelledby={browser.id}>
+      <h2 id={browser.id}>{browser.title}</h2>
+      <p>
+        실습실은 컴퓨터용 Chrome이나 Edge의 최신판을 권해요. 카메라, 보드 연결, 브라우저 안에서 파이썬 실행하기 같은 기능이
+        이 브라우저들에서 가장 잘 돼요.
+      </p>
+      <p>
+        글, 그림, 퀴즈로 된 배우기 페이지는 다른 브라우저나 휴대폰에서도 읽을 수 있어요. 태블릿과 휴대폰은 기기마다 쓸 수 있는
+        실습 기능이 달라요.
+      </p>
+      <p>이 기기에서 무엇이 되는지는 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 자동으로 확인할 수 있어요.</p>
+    </section>
+
+    <section aria-labelledby={boardPort.id}>
+      <h2 id={boardPort.id}>{boardPort.title}</h2>
+      <p>포트는 컴퓨터가 보드와 신호를 주고받는 통로예요. 보드를 꽂아도 브라우저의 포트 선택 창에 보이지 않으면 하나씩 확인해요.</p>
+      <ol>
+        <li>USB 케이블을 바꿔 봐요. 충전만 되는 케이블(충전 전용 케이블)은 데이터가 지나가지 않아서 보드가 보이지 않아요.</li>
+        <li>허브를 거치지 말고 컴퓨터의 USB 구멍에 바로 꽂아요. 다른 구멍에도 꽂아 봐요.</li>
+        <li>
+          보드의 USB 칩에 맞는 드라이버(장치를 쓰게 해 주는 프로그램)가 필요할 수 있어요. 칩이 CH340 계열이면{' '}
+          <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html">WCH 공식 드라이버</a>, CP210x 계열이면{' '}
+          <a href="https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers">Silicon Labs 공식 드라이버</a>를
+          써요. Windows는 인터넷에 연결돼 있으면 자동으로 설치하기도 하지만, 학교 컴퓨터는 관리자 권한이 필요하면 전산 담당
+          선생님께 부탁해요.
+        </li>
+        <li>Thonny 같은 다른 프로그램이 보드에 연결돼 있으면 그 프로그램을 닫고 다시 시도해요.</li>
+      </ol>
+      <p>보드를 처음 연결하는 전체 순서는 <a href={boardPage.href}>{boardPage.title}</a> 페이지에 있어요.</p>
+    </section>
+
+    <section aria-labelledby={schoolNetwork.id}>
+      <h2 id={schoolNetwork.id}>{schoolNetwork.title}</h2>
+      <p>
+        실습실은 처음 열 때 브라우저에서 파이썬을 실행하는 프로그램 같은 큰 파일(수십 MB)을 내려받아요. 느린 네트워크에서는
+        시간이 걸리고, 한 번 받은 파일은 브라우저에 저장해 다음부터 빨라지게 만들 거예요.
+      </p>
+      <p>
+        학교 방화벽(바깥 사이트 접속을 막는 장치)이 파일 배포 서버를 막으면 실습실이 뜨지 않을 수 있어요. 그럴 때는 이 사이트에
+        함께 둔 예비 파일로 자동으로 바꿔 받게 만들 거예요.
+      </p>
+      <p>그래도 안 되면 학교 전산 담당 선생님께 아래 주소의 접속을 허용해 달라고 부탁해요.</p>
+      <ul>
+        <li><code>songdocomputerpark-lang.github.io</code> — 이 사이트</li>
+        <li><code>cdn.jsdelivr.net</code> — 브라우저에서 파이썬을 실행하는 프로그램을 받는 곳</li>
+      </ul>
+      <p>
+        통신 실습실의 공개 메시지 서버(MQTT)는 학교 네트워크에서 막힐 수 있어요. 그래서 인터넷 없이 같은 컴퓨터의 탭끼리
+        주고받는 방법도 함께 둘 거예요. 이 컴퓨터의 상태는 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 확인해요.
+      </p>
+    </section>
+
+    <section aria-labelledby={clearData.id}>
+      <h2 id={clearData.id}>{clearData.title}</h2>
+      <p>
+        이 사이트에는 로그인이 없어요. 실습실에서 쓴 코드와 설정은 서버가 아니라 지금 쓰는 컴퓨터의 브라우저 저장 공간에만
+        남아요. 그래서 여러 사람이 함께 쓰는 컴퓨터에서는 다음 사람이 볼 수 있어요.
+      </p>
+      <p>실습실에 <strong>[이 컴퓨터에서 내 기록 지우기]</strong> 버튼을 넣을 거예요. 수업이 끝나면 이 버튼을 눌러 주세요.</p>
+      <p>브라우저에서 직접 지우려면 Chrome에서 아래 순서를 따라요.</p>
+      <ol>
+        <li>
+          <strong>더보기(⋮) → 설정 → 개인 정보 보호 및 보안 → 서드 파티 쿠키 → 모든 사이트 데이터 및 권한 보기</strong>로 가요.
+        </li>
+        <li>검색 칸에 <code>songdocomputerpark-lang</code>을 넣고, 찾은 사이트의 삭제 아이콘을 눌러 <strong>삭제</strong>해요.</li>
+      </ol>
+      <p>
+        처음부터 <strong>시크릿 창</strong>(더보기 → 새 시크릿 창, 단축키 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>)으로
+        열어도 좋아요. 시크릿 창을 모두 닫으면 Chrome이 이 사이트에 저장된 데이터를 남기지 않아요.
+      </p>
+    </section>
+  </div>
+
+  <div data-pagefind-ignore>
+    <ComingSoon what="오류 메시지 풀이" when="영상처리 실습실을 만드는 단계(Phase 2)">
+      <p>파이썬 오류 풀이부터 시작해서, 교과서 내용을 옮기는 단계(Phase 5)까지 보드(MicroPython) 오류 풀이도 늘려요.</p>
+    </ComingSoon>
+  </div>
+
+  <section class="faq-more" aria-labelledby="help-more">
+    <h2 id="help-more">여기 없는 문제가 있나요?</h2>
+    <p><a href={contributePage.href}>{contributePage.title}</a> 페이지의 방법으로 알려 주시면 이 목록에 더해요.</p>
+  </section>
 </BaseLayout>
+
+<style>
+  .faq-toc {
+    margin-block: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .faq-toc ol {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  /* block으로 두어야 긴 질문이 두 줄로 넘어가도 번호가 첫 줄 옆에 붙는다(inline-block이면 마지막 줄에 붙음). */
+  .faq-toc a {
+    display: block;
+    padding-block: var(--space-1);
+  }
+
+  .faq > section + section {
+    margin-block-start: var(--space-12);
+  }
+
+  .faq h2 {
+    margin-block-start: 0;
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .faq-more {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-10);
+  }
+
+  .faq-more h2 {
+    font-size: var(--text-xl);
+  }
+
+  kbd {
+    padding: 0.05em 0.35em;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+  }
+</style>

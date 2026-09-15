@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2026 박상진·김석전
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial
+portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+적용 범위
+
+이 MIT 라이선스는 이 저장소의 사이트 소프트웨어에 적용돼요.
+- src/, scripts/, tests/ 폴더
+- 사이트가 새로 쓴 그 밖의 소프트웨어: 저장소 뿌리의 설정 파일(astro.config.mjs, playwright.config.ts 등),
+  .github/workflows/, .githooks/, 앞으로 사이트가 새로 쓰는 흉내 모듈
+- src/ 안 컴포넌트에 코드(인라인 SVG)로 그린 아이콘·흐름 그림: 코드와 떼어 쓸 수 없어 이 라이선스를 따라요
+
+학습 자료와 예제(content/, examples/), 그림 파일(public/images/), 안내 문서는 이 라이선스가 아니라
+LICENSE-CONTENT.md의 CC BY-NC-SA 4.0을 따라요.
+
+제외 조항: sources.yaml(출처 등록부)에 개별 항목으로 표기된 제3자 자료와 공개 라이브러리
+(예: third-party/ 폴더의 파일, 글꼴, 검색 도구가 만드는 파일)는 이 라이선스에서 제외되고 각자의 원래 조건을 따라요.
+전체 목록: https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/
+
+Scope: This MIT License applies to the site software in this repository (src/, scripts/, tests/ and other
+software newly written for the site, including drawings written as inline SVG code in src/ components).
+Learning materials and examples (content/, examples/), image files (public/images/) and documentation are
+licensed under CC BY-NC-SA 4.0 (see LICENSE-CONTENT.md). Third-party materials
+and open-source libraries listed individually in sources.yaml are excluded and remain under their original
+terms.

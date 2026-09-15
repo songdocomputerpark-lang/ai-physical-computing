@@ -1,14 +1,15 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 통신 실습실 단계(PLAN §8.4 Phase 4)에서 실제 화면으로 바꾼다.
-import ComingSoon from '../../../components/common/ComingSoon.astro';
-import { getPage } from '../../../config/nav.ts';
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-
-const page = getPage('labs-iot');
+// 통신 실습실 자리 페이지. 통신 실습실 단계(PLAN §8.4 Phase 4)에서 실제 화면으로 바꾼다.
+// 준비 내용은 ../_labs.ts, 틀은 ../_LabPlaceholder.astro에 있다. 주의 상자는 MQTT 안전 규칙(PD-29)을 미리 알린다.
+import Callout from '../../../components/common/Callout.astro';
+import LabPlaceholder from '../_LabPlaceholder.astro';
 ---
 
-<BaseLayout title={page.title} description={page.description}>
-  <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what={page.label} when="통신 실습실을 만드는 단계(Phase 4)" />
-</BaseLayout>
+<LabPlaceholder id="labs-iot">
+  <Callout type="주의" title="공개 메시지 서버에는 개인정보를 보내지 않아요">
+    <p>
+      인터넷(MQTT) 실습에 쓰는 공개 메시지 서버는 누구나 메시지를 보고 보낼 수 있어요. 그래서 이름, 연락처, 사진 같은
+      개인정보는 보내지 않도록 실습 화면에서도 안내할 거예요.
+    </p>
+  </Callout>
+</LabPlaceholder>

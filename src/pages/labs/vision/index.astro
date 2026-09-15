@@ -1,14 +1,15 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 영상처리 실습실 단계(PLAN §8.2 Phase 2)에서 실제 화면으로 바꾼다.
-import ComingSoon from '../../../components/common/ComingSoon.astro';
-import { getPage } from '../../../config/nav.ts';
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-
-const page = getPage('labs-vision');
+// 영상처리 실습실 자리 페이지. 영상처리 실습실 단계(PLAN §8.2 Phase 2)에서 실제 화면으로 바꾼다.
+// 준비 내용은 ../_labs.ts, 틀은 ../_LabPlaceholder.astro에 있다.
+import Callout from '../../../components/common/Callout.astro';
+import LabPlaceholder from '../_LabPlaceholder.astro';
 ---
 
-<BaseLayout title={page.title} description={page.description}>
-  <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what={page.label} when="영상처리 실습실을 만드는 단계(Phase 2)" />
-</BaseLayout>
+<LabPlaceholder id="labs-vision">
+  <Callout type="참고" title="카메라 영상은 어디로 가나요?">
+    <p>
+      이 사이트에는 영상을 받아 저장하는 서버가 없어요. 카메라 영상은 지금 쓰는 컴퓨터의 브라우저 안에서만 처리하도록
+      만들어요.
+    </p>
+  </Callout>
+</LabPlaceholder>

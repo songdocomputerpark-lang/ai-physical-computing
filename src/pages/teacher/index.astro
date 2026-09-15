@@ -1,14 +1,126 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 교사용 자료실 묶음(PLAN §8.5 P5-14)에서 실제 화면으로 바꾼다.
+/**
+ * 교사용 자료실 자리 페이지(PLAN §2.1 /teacher/). 교사용 자료실 묶음(PLAN §8.5 P5-14)에서 실제 자료로 채운다.
+ * 무엇이 올라올지와, 원본 파일 대신 개인정보를 가린 편집본만 올리는 방침(PD-31, SPEC §7.3 이탈은 PLAN §3.2)을 미리 알린다.
+ * 색인 규칙은 실습실 자리 페이지와 같다: 준비 중 상자와 다른 페이지 카드는 사이트 검색에서 뺀다.
+ */
 import ComingSoon from '../../components/common/ComingSoon.astro';
+import PageLinks from '../../components/common/PageLinks.astro';
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('teacher');
+const related = ['start-teacher', 'start-check', 'labs-esp32-check', 'credits'].map((id) => getPage(id));
+
+const plannedMaterials = [
+  {
+    name: '차시별 지도 요약',
+    detail: '차시마다 수업 흐름, 평가 포인트, 학생들이 자주 막히는 곳을 한곳에 모아요.',
+  },
+  {
+    name: '성취기준과 평가 방향 표',
+    detail:
+      '인천광역시교육청이 승인한 과목 교육과정의 성취기준, 차시 연결, 평가 방향을 표로 보여 줘요. 차시 연결은 사이트가 붙인 것이라고 함께 적어요.',
+  },
+  {
+    name: '교과서 원고 정정 목록',
+    detail: '교과서 원고에서 바로잡은 곳을 모아요.',
+  },
+  {
+    name: '"진짜 PC에서 돌리기" 설치 안내',
+    detail: '브라우저 대신 컴퓨터에 파이썬과 편집기를 설치해 원래 코드로 수업할 때 필요한 안내예요.',
+  },
+  {
+    name: '수업 자료 편집본(PDF)',
+    detail: '블루투스 통신 수업 교안과 PyAutoGUI 수업 슬라이드를 개인정보를 가린 편집본으로 올려요.',
+  },
+  {
+    name: '평가 계획서와 운영 계획서',
+    detail: '자료가 들어오는 대로 올려요. 지금은 올릴 자료가 없어요.',
+  },
+];
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <ComingSoon what={page.label} when="교과서 내용을 옮기는 단계(Phase 5)" />
+
+  <div data-pagefind-ignore>
+    <ComingSoon what={page.label} when="교과서 내용을 옮기는 단계(Phase 5)" />
+  </div>
+
+  <section class="teacher-section" aria-labelledby="teacher-planned">
+    <h2 id="teacher-planned">올라올 자료</h2>
+    <p>평가 계획서와 운영 계획서를 뺀 자료는 교과서 내용을 옮기는 단계(Phase 5)에 채워요.</p>
+    <!-- dt·dd처럼 붙어 있는 요소는 사이트 검색 색인에서 글자가 이어 붙어 한 낱말이 되므로 제목(h3)과 문단(p)으로 나눈다. -->
+    <ul class="teacher-materials">
+      {
+        plannedMaterials.map((item) => (
+          <li class="teacher-materials__item">
+            <h3 class="teacher-materials__name">{item.name}</h3>
+            <p class="teacher-materials__detail">{item.detail}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="teacher-section" aria-labelledby="teacher-redacted">
+    <h2 id="teacher-redacted">원본 파일 대신 가린 편집본을 올려요</h2>
+    <p>
+      수업 자료의 원본 파일(PDF, PPTX)은 사이트에 올리지 않아요. 원본에는 학생 얼굴, 컴퓨터 안 파일 경로, 보드의 기기 주소
+      같은 개인정보가 들어 있을 수 있기 때문이에요.
+    </p>
+    <p>
+      대신 이런 부분을 가리고, 파일 속에 숨은 정보(메타데이터)까지 지운 편집본만 올려요. 쪽마다 사람이 눈으로 확인한 기록도
+      남겨요.
+    </p>
+    <p>교과서 원고는 PDF 파일로 올리지 않아요. 내용을 차시 페이지로 옮겨 누구나 읽을 수 있게 해요.</p>
+  </section>
+
+  <section class="teacher-section teacher-section--wide" aria-labelledby="teacher-related" data-pagefind-ignore>
+    <h2 id="teacher-related">지금 볼 수 있는 곳</h2>
+    <PageLinks pages={related} headingLevel={3} />
+  </section>
 </BaseLayout>
+
+<style>
+  .teacher-section {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-10);
+  }
+
+  .teacher-section--wide {
+    max-width: none;
+  }
+
+  .teacher-section h2 {
+    font-size: var(--text-2xl);
+  }
+
+  .teacher-materials {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .teacher-materials__item {
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+  }
+
+  .teacher-materials__name {
+    font-size: var(--text-base);
+  }
+
+  .teacher-materials__detail {
+    margin-block-start: var(--space-1);
+    color: var(--color-text-muted);
+    line-height: var(--leading-snug);
+  }
+</style>

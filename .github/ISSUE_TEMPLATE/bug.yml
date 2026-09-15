@@ -1,0 +1,82 @@
+# 사이트 문제(버그) 알리기 양식 — GitHub 이슈 양식 문법(docs.github.com "Syntax for issue forms", 2026-09-16 확인)
+# 이름(name)은 기여·문의 페이지 목록(src/pages/contribute/_issue-templates.ts)과 같게 둔다.
+# labels의 bug는 저장소에 이미 있는 이름표다(없는 이름표는 붙지 않는다).
+name: 사이트 문제 알리기
+description: 페이지가 열리지 않거나, 버튼·실습실이 제대로 동작하지 않을 때 알려 주세요.
+title: "[문제] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        알려 주셔서 고마워요. **이 글은 누구나 볼 수 있어요.** 이름·연락처·얼굴 사진 같은 개인정보는 적지 마세요.
+        화면 캡처를 올릴 때는 컴퓨터 사용자 이름, 파일 경로, 다른 사람의 얼굴이 보이지 않게 가려 주세요.
+        먼저 [문제 해결](https://songdocomputerpark-lang.github.io/ai-physical-computing/help/) 페이지에 같은 문제가 있는지 확인해 보세요.
+  - type: input
+    id: page
+    attributes:
+      label: 문제가 생긴 페이지 주소
+      description: 브라우저 주소창의 주소를 복사해 붙여 주세요.
+      placeholder: "https://songdocomputerpark-lang.github.io/ai-physical-computing/..."
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 어떤 일이 생겼나요?
+      description: 무엇을 했을 때 어떻게 되었는지 차례대로 적어 주세요. 오류 메시지가 보이면 그대로 붙여 주세요.
+      placeholder: "예: [실행]을 눌렀더니 화면 아래에 빨간 글자로 NameError가 나왔어요."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 원래 어떻게 되어야 했나요?
+      placeholder: "예: 카메라 영상 옆에 흑백 영상이 보여야 해요."
+    validations:
+      required: false
+  - type: dropdown
+    id: device
+    attributes:
+      label: 쓰는 기기
+      options:
+        - Windows 컴퓨터
+        - Mac
+        - 크롬북
+        - Linux 컴퓨터
+        - Android 휴대폰·태블릿
+        - iPhone·iPad
+        - 기타
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 쓰는 브라우저
+      options:
+        - Chrome
+        - Edge
+        - 웨일
+        - Firefox
+        - Safari
+        - 기타
+    validations:
+      required: true
+  - type: dropdown
+    id: board
+    attributes:
+      label: ESP32 보드 연결
+      options:
+        - 보드와 상관없는 문제예요
+        - 가상 보드를 쓰고 있었어요
+        - 실제 ESP32 보드를 연결하고 있었어요
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy-check
+    attributes:
+      label: 올리기 전에 확인해 주세요
+      options:
+        - label: 이 글과 첨부한 캡처에 개인정보(이름·연락처·얼굴·컴퓨터 사용자 이름)가 없어요.
+          required: true

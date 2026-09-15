@@ -1,0 +1,11 @@
+# 이슈 양식 고르기 화면 설정(docs.github.com "Configuring issue templates for your repository", 2026-09-16 확인)
+# blank_issues_enabled: false — 읽기 권한 사용자는 빈 이슈 대신 양식만 보게 한다(개인정보 안내가 든 양식을 거치게).
+#   쓰기 권한 이상(관리자)은 여전히 빈 이슈를 쓸 수 있다. 설정은 기본 브랜치(main)에 올라간 뒤에 적용된다.
+blank_issues_enabled: false
+contact_links:
+  - name: 문제 해결(자주 묻는 질문)
+    url: https://songdocomputerpark-lang.github.io/ai-physical-computing/help/
+    about: 카메라, 브라우저, 보드 연결처럼 자주 막히는 문제의 해결 방법을 먼저 확인해 보세요.
+  - name: 기여·문의 안내
+    url: https://songdocomputerpark-lang.github.io/ai-physical-computing/contribute/
+    about: 알림 양식을 고르는 방법과 개인정보를 안전하게 제보하는 방법을 안내해요.

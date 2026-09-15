@@ -1,14 +1,15 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). ESP32 실습실 단계(PLAN §8.3 Phase 3)에서 실제 화면으로 바꾼다.
-import ComingSoon from '../../../components/common/ComingSoon.astro';
-import { getPage } from '../../../config/nav.ts';
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-
-const page = getPage('labs-esp32');
+// ESP32 실습실 자리 페이지. ESP32 실습실 단계(PLAN §8.3 Phase 3)에서 실제 화면으로 바꾼다.
+// 준비 내용은 ../_labs.ts, 틀은 ../_LabPlaceholder.astro에 있다.
+import Callout from '../../../components/common/Callout.astro';
+import LabPlaceholder from '../_LabPlaceholder.astro';
 ---
 
-<BaseLayout title={page.title} description={page.description}>
-  <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what={page.label} when="ESP32 실습실을 만드는 단계(Phase 3)" />
-</BaseLayout>
+<LabPlaceholder id="labs-esp32">
+  <Callout type="참고" title="보드가 없어도 괜찮아요">
+    <p>
+      모든 실습을 화면 속 가상 보드로 끝까지 할 수 있게 만들어요. 실제 보드가 생기면 같은 코드를 보드에 보내 그대로
+      실행하면 돼요.
+    </p>
+  </Callout>
+</LabPlaceholder>

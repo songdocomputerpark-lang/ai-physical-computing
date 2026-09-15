@@ -1,12 +1,18 @@
 ---
-// 없는 주소로 들어왔을 때 보이는 페이지. GitHub Pages가 사이트의 404.html을 보여 준다.
-// 어느 깊이의 주소에서도 열리므로 링크는 모두 base가 붙은 주소(getPage().href)로 쓴다.
+/**
+ * 없는 주소로 들어왔을 때 보이는 페이지. GitHub Pages가 사이트의 404.html을 404 응답과 함께 보여 준다.
+ * 어느 깊이의 주소에서도 열리므로 링크와 검색 상자 주소는 모두 base가 붙은 주소(getPage().href, searchConfig.pageHref)로 쓴다.
+ * 검색 엔진·사이트 검색 색인에서 뺀다(noindex, searchIndex={false}).
+ * 검색 상자는 자바스크립트 없이도 /search/?q=검색어 로 보낸다.
+ */
 import { getPage } from '../config/nav.ts';
+import { searchConfig } from '../config/search.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const home = getPage('home');
 const search = getPage('search');
 const help = getPage('help');
+const contribute = getPage('contribute');
 ---
 
 <BaseLayout
@@ -18,9 +24,75 @@ const help = getPage('help');
 >
   <h1 class="page-title">페이지를 찾을 수 없어요</h1>
   <p class="lead">주소가 바뀌었거나 아직 없는 페이지예요. 주소를 다시 확인하거나 아래에서 찾아보세요.</p>
-  <ul class="link-list">
-    <li><a href={home.href}>첫 화면으로 가기</a></li>
-    <li><a href={search.href}>{search.title}</a></li>
-    <li><a href={help.href}>{help.title}</a></li>
-  </ul>
+
+  <section class="not-found" aria-labelledby="not-found-search-title">
+    <h2 id="not-found-search-title">사이트에서 찾아보기</h2>
+    <form class="not-found__form" role="search" aria-labelledby="not-found-search-title" action={searchConfig.pageHref} method="get">
+      <label class="not-found__label" for="not-found-search-input">검색어</label>
+      <div class="not-found__row">
+        <input
+          id="not-found-search-input"
+          class="not-found__input"
+          type="search"
+          name={searchConfig.queryParam}
+          autocomplete="off"
+          enterkeyhint="search"
+        />
+        <button class="button button--primary" type="submit">검색</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="not-found" aria-labelledby="not-found-links-title">
+    <h2 id="not-found-links-title">이런 곳으로 가 보세요</h2>
+    <ul class="link-list">
+      <li><a href={home.href}>첫 화면으로 가기</a></li>
+      <li><a href={search.href}>{search.title}</a></li>
+      <li><a href={help.href}>{help.title}</a></li>
+      <li><a href={contribute.href}>고장 난 링크 알리기({contribute.title})</a></li>
+    </ul>
+  </section>
 </BaseLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-8);
+  }
+
+  .not-found h2 {
+    font-size: var(--text-xl);
+  }
+
+  .not-found__form {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .not-found__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .not-found__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .not-found__input {
+    flex: 1 1 14rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .not-found .link-list a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+</style>

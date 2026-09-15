@@ -1,21 +1,164 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 기여·문의 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-10).
-import ComingSoon from '../../components/common/ComingSoon.astro';
+/**
+ * 기여·문의(PLAN §2.1 /contribute/, §8.1 P1-10) — GitHub Issues 안내, 이슈 양식 3가지, 개인정보 제보 방법, 기여물과 사이트의 라이선스.
+ * 이슈 양식 이름·파일은 ./_issue-templates.ts, 라이선스 문구는 src/config/site.ts에서 온다.
+ *
+ * 개인정보 제보를 공개 이슈로 받되 "위치만" 적게 하는 이유: 이 저장소에는 비공개로 받는 창구가 없다.
+ * GitHub의 비공개 보고(private vulnerability reporting)는 꺼져 있고(2026-09-16 API 확인) 보안 취약점 신고용이다(GitHub 공식 문서).
+ * GitHub 계정 나이 기준(13세 이상)은 GitHub Terms of Service B.3에서 확인했다(2026-09-16).
+ */
+import Callout from '../../components/common/Callout.astro';
 import { getPage } from '../../config/nav.ts';
 import { siteConfig } from '../../config/site.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/url.ts';
+import { ISSUE_TEMPLATES, issueChooserUrl, issueTemplateUrl, repositoryFileUrl } from './_issue-templates.ts';
 
 const page = getPage('contribute');
+const helpPage = getPage('help');
+const creditsPage = getPage('credits');
+const { content, software, exclusion } = siteConfig.license;
 ---
 
-<BaseLayout title={page.title} description={page.description}>
+<BaseLayout title={page.title} description={page.description} width="narrow">
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <ComingSoon
-    what="기여·문의 안내"
-    when="사이트 뼈대를 만드는 지금 단계(Phase 1)"
-    links={[{ label: '문제 알리기(GitHub Issues)', href: siteConfig.issuesUrl }]}
-  >
-    <p>그동안 틀린 곳이나 궁금한 점은 아래 링크로 알려 주세요.</p>
-  </ComingSoon>
+
+  <div class="prose contribute">
+    <section aria-labelledby="contribute-issues">
+      <h2 id="contribute-issues">GitHub Issues로 알려 주세요</h2>
+      <p>
+        틀린 곳, 사이트 문제, 필요한 자료는 GitHub Issues(깃허브 이슈)에 글로 남겨 주세요. 이슈는 누구나 볼 수 있는 공개
+        게시판이에요. 막힌 문제라면 먼저 <a href={helpPage.href}>{helpPage.title}</a> 페이지를 확인해 보세요.
+      </p>
+      <p>
+        글을 쓰려면 GitHub 계정이 필요해요. GitHub 이용 약관에 따라 계정은 13세 이상만 만들 수 있으니, 계정이 없는 학생은
+        선생님께 알려 주세요.
+      </p>
+      <p>
+        <a class="button button--primary" href={issueChooserUrl}>이슈 양식 고르기</a>
+      </p>
+    </section>
+
+    <section aria-labelledby="contribute-templates">
+      <h2 id="contribute-templates">알림 양식 3가지</h2>
+      <p>양식에 맞춰 쓰면 무엇을 고쳐야 하는지 빨리 알 수 있어요.</p>
+      <ul class="template-list">
+        {
+          ISSUE_TEMPLATES.map((template) => (
+            <li class="template-list__item">
+              <a class="template-list__link" href={issueTemplateUrl(template)}>
+                {template.name}
+              </a>
+              <p class="template-list__when">{template.when}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="contribute-privacy">
+      <h2 id="contribute-privacy">개인정보를 발견했다면</h2>
+      <Callout type="주의" title="이슈에 개인정보를 옮겨 적지 마세요">
+        <p>
+          이슈는 누구나 볼 수 있어요. 얼굴이 보이는 사진, 이름, 연락처를 발견했다면 그 내용을 옮겨 적거나 캡처해 올리지 말고,
+          페이지 주소와 "세 번째 그림"처럼 위치만 적어 주세요.
+        </p>
+        <p>확인하는 대로 사이트에서 지워요. 제보하는 분의 연락처도 적지 말고, 답은 이슈 댓글로 확인해 주세요.</p>
+      </Callout>
+    </section>
+
+    <section aria-labelledby="contribute-add">
+      <h2 id="contribute-add">자료나 코드를 보태고 싶다면</h2>
+      <p>
+        보태는 방법은 저장소의 <a href={repositoryFileUrl('CONTRIBUTING.md')}>기여 안내(CONTRIBUTING.md)</a>에 적어 두었어요.
+        보내 주신 글, 그림, 예제는 {content.shortName}로, 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
+      </p>
+      <p>
+        교과서나 참고서를 찍은 사진, 출판사나 업체의 그림, 출처를 모르는 이미지는 보내지 마세요. 다른 사람이 만든 공개 자료를 쓰려면
+        출처와 라이선스를 함께 알려 주세요.
+      </p>
+    </section>
+
+    <section aria-labelledby="contribute-license">
+      <h2 id="contribute-license">사이트의 라이선스</h2>
+      <p>라이선스는 자료를 쓰고, 고치고, 나눠 줄 수 있는 조건을 적은 약속이에요.</p>
+      <!-- dt·dd처럼 붙어 있는 요소는 사이트 검색 색인에서 글자가 이어 붙으므로 제목(h3)과 문단(p)으로 나눈다. -->
+      <div class="license-list">
+        <div class="license-list__item">
+          <h3 class="license-list__name">학습 자료와 예제 — {content.shortName}</h3>
+          <p>
+            {content.name}. 적용: {content.appliesTo}.{' '}
+            <a href={repositoryFileUrl('LICENSE-CONTENT.md')}>라이선스 안내(LICENSE-CONTENT.md)</a>
+          </p>
+        </div>
+        <div class="license-list__item">
+          <h3 class="license-list__name">사이트 프로그램 — {software.shortName}</h3>
+          <p>
+            {software.name}. 적용: {software.appliesTo}.{' '}
+            <a href={repositoryFileUrl('LICENSE')}>라이선스 전문(LICENSE)</a>
+          </p>
+        </div>
+      </div>
+      <p>
+        {exclusion} 이런 자료는 출처 등록부(sources.yaml)에 하나씩 적혀 있고,{' '}
+        <a href={withBase('credits/#credits-third-party')}>제3자 권리 표기 자료 목록</a>과{' '}
+        <a href={creditsPage.href}>{creditsPage.title}</a> 페이지에서 확인할 수 있어요.
+      </p>
+    </section>
+  </div>
 </BaseLayout>
+
+<style>
+  .contribute > section + section {
+    margin-block-start: var(--space-10);
+  }
+
+  .contribute h2 {
+    margin-block-start: 0;
+  }
+
+  .template-list {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  .template-list__item {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+  }
+
+  .prose .template-list__item + .template-list__item {
+    margin-block-start: 0;
+  }
+
+  .template-list__link {
+    font-weight: var(--weight-bold);
+  }
+
+  .template-list__when {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .license-list {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .license-list__name {
+    margin-block: 0 var(--space-1);
+    font-size: var(--text-base);
+  }
+
+  .license-list__item p {
+    line-height: var(--leading-snug);
+  }
+</style>

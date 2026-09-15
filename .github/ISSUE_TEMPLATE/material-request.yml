@@ -1,0 +1,59 @@
+# 자료 요청 양식 — GitHub 이슈 양식 문법(docs.github.com "Syntax for issue forms", 2026-09-16 확인)
+# 이름(name)은 기여·문의 페이지 목록(src/pages/contribute/_issue-templates.ts)과 같게 둔다.
+# labels의 enhancement는 저장소에 이미 있는 이름표다.
+name: 자료 요청하기
+description: 이런 예제·설명·수업 자료가 있으면 좋겠다고 알려 주세요.
+title: "[자료 요청] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **이 글은 누구나 볼 수 있어요.** 개인정보는 적지 마세요.
+        교과서·참고서를 찍은 사진, 출판사·업체 그림처럼 다른 사람이 만든 자료 파일은 첨부하지 말고, 공개된 주소만 알려 주세요.
+  - type: textarea
+    id: request
+    attributes:
+      label: 어떤 자료가 필요한가요?
+      placeholder: "예: 서보모터 각도를 슬라이더로 바꿔 보는 예제가 있으면 좋겠어요."
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 관련된 곳
+      options:
+        - I. 영상 처리 인공지능
+        - II. 피지컬 컴퓨팅
+        - III. 인공지능과 피지컬 컴퓨팅
+        - IV. 지능화 사물 개발 프로젝트
+        - 실습실 기능
+        - 교사용 자료
+        - 기타·잘 모르겠어요
+    validations:
+      required: true
+  - type: textarea
+    id: use
+    attributes:
+      label: 어디에 쓰려고 하나요?
+      description: 수업 상황이나 학생 수준을 알려 주시면 알맞게 만들 수 있어요.
+      placeholder: "예: 고1 정보 수업 2차시, 보드가 없는 교실에서 가상 보드로"
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: 참고할 자료 주소(있으면)
+      description: 공식 문서나 공개 라이선스가 붙은 자료의 주소만 적어 주세요.
+    validations:
+      required: false
+  - type: checkboxes
+    id: check
+    attributes:
+      label: 올리기 전에 확인해 주세요
+      options:
+        - label: 다른 사람이 만든 자료 파일(교과서·출판사 그림 등)을 첨부하지 않았어요.
+          required: true
+        - label: 이 글에 개인정보(이름·연락처·얼굴 사진)가 없어요.
+          required: true

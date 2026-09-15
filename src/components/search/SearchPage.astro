@@ -1,0 +1,219 @@
+---
+/**
+ * 사이트 검색 화면(PLAN §8.1 P1-11) — /search/ 페이지가 넣는다. 동작은 ./search-page.ts.
+ *
+ * - 자바스크립트가 되면: 입력을 멈추면 바로 찾고, 주소의 ?q=검색어도 읽는다. 결과는 10개씩 보이고 [결과 더 보기]로 더 본다.
+ * - 자바스크립트가 없으면: 폼이 /search/?q=검색어 로 다시 열릴 뿐 결과는 못 보여 주므로 <noscript> 안내를 보인다.
+ * - 설정 값(Pagefind 폴더·base·검색어 이름)은 src/config/search.ts에서 data- 속성으로 넘긴다.
+ *   화면 코드에서 site.ts를 직접 불러오면 package.json 전체가 브라우저용 코드에 묶이기 때문이다.
+ *
+ * 사이트 검색 색인 규칙(P1-11 결정, 근거는 보고서·PROGRESS.md)
+ * - 색인함: 모든 페이지의 <main> 본문(BaseLayout의 data-pagefind-body)
+ * - 색인 안 함: 검색·404 페이지(searchIndex={false}), 준비 중 상자의 판에 박힌 문장(data-pagefind-ignore),
+ *   교사용 접기와 정답 접기(학생 검색 결과 요약에 교사용 글·정답이 보이지 않게 — 적용은 공통 파일이라 통합 단계에 요청)
+ */
+import { flattenPages, learnUnits } from '../../config/nav.ts';
+import { searchConfig } from '../../config/search.ts';
+import { withBase } from '../../lib/url.ts';
+
+const sections = [...flattenPages(), ...learnUnits].map((page) => ({ path: page.path, label: page.label }));
+/** 처음 화면의 예시 낱말. 사이트에 실제로 있는 낱말만 둔다(차시가 생기면 차시 낱말로 바꾼다). */
+const exampleWords = ['픽셀', '카메라', '라이선스'];
+const exampleHref = (word: string) => withBase(`search/?${searchConfig.queryParam}=${encodeURIComponent(word)}`);
+---
+
+<div
+  class="search-page"
+  data-search-root
+  data-state="idle"
+  data-bundle-path={searchConfig.bundlePath}
+  data-base-url={searchConfig.baseUrl}
+  data-query-param={searchConfig.queryParam}
+  data-sections={JSON.stringify(sections)}
+>
+  <form class="search-page__form" role="search" aria-label="검색어로 찾기" action={searchConfig.pageHref} method="get" data-search-form>
+    <label class="search-page__label" for="search-page-input">검색어</label>
+    <div class="search-page__row">
+      <input
+        id="search-page-input"
+        class="search-page__input"
+        type="search"
+        name={searchConfig.queryParam}
+        autocomplete="off"
+        enterkeyhint="search"
+        spellcheck="false"
+        aria-describedby="search-page-help"
+        data-search-input
+      />
+      <button class="button button--primary" type="submit">검색</button>
+    </div>
+    <p id="search-page-help" class="search-page__help">입력을 멈추면 바로 찾아요. 조사를 빼고 낱말만 짧게 넣으면 더 잘 찾아요.</p>
+  </form>
+
+  <p class="search-page__status" role="status" data-search-status></p>
+
+  <noscript>
+    <p class="search-page__notice">
+      검색은 브라우저의 자바스크립트가 켜져 있어야 동작해요. 머리글 메뉴나 바닥글의 사이트 지도에서 페이지를 찾아보세요.
+    </p>
+  </noscript>
+
+  <div class="search-page__tips" data-search-empty hidden>
+    <p>이렇게 바꿔 찾아보세요.</p>
+    <ul>
+      <li>조사를 빼고 낱말만 넣어요. 예: '카메라가' → '카메라'</li>
+      <li>낱말의 앞부분만 넣어도 찾아요. 예: '서보모터' → '서보'</li>
+      <li>비슷한 다른 낱말로 바꿔 봐요.</li>
+    </ul>
+  </div>
+
+  <section class="search-page__results" aria-labelledby="search-results-title" data-search-results-section hidden>
+    <h2 id="search-results-title" class="visually-hidden">검색 결과</h2>
+    <ol class="search-results" data-search-results></ol>
+    <button class="button button--secondary search-page__more" type="button" data-search-more hidden>결과 더 보기</button>
+  </section>
+
+  <div class="search-page__examples" data-search-suggestions>
+    <p>이런 낱말로 찾아보세요.</p>
+    <ul>
+      {
+        exampleWords.map((word) => (
+          <li>
+            <a href={exampleHref(word)}>{word}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>
+
+<script>
+  import { setupSearchPage } from './search-page.ts';
+
+  document.querySelectorAll<HTMLElement>('[data-search-root]').forEach((root) => {
+    setupSearchPage(root);
+  });
+</script>
+
+<style>
+  .search-page {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .search-page__form {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .search-page__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .search-page__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .search-page__input {
+    flex: 1 1 14rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-lg);
+  }
+
+  .search-page__help,
+  .search-page__tips,
+  .search-page__examples {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .search-page__status:empty {
+    display: none;
+  }
+
+  .search-page__status {
+    font-weight: var(--weight-semibold);
+  }
+
+  .search-page__notice {
+    padding: var(--space-3) var(--space-4);
+    border-inline-start: 4px solid var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+  }
+
+  .search-page__tips ul,
+  .search-page__examples ul {
+    margin-block-start: var(--space-1);
+    padding-inline-start: 1.5em;
+  }
+
+  .search-page__examples ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .search-page__examples a {
+    display: inline-block;
+    padding-block: var(--space-2);
+    font-size: var(--text-base);
+  }
+
+  .search-results {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 결과 항목은 search-page.ts가 만들어 넣으므로 :global()로 스타일을 준다. */
+  .search-results :global(.search-result) {
+    display: grid;
+    gap: var(--space-1);
+    padding-block-end: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-results :global(.search-result__title) {
+    font-size: var(--text-lg);
+  }
+
+  .search-results :global(.search-result__title a) {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+
+  .search-results :global(.search-result__trail) {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .search-results :global(.search-result__excerpt) {
+    line-height: var(--leading-snug);
+  }
+
+  .search-results :global(mark) {
+    padding: 0 0.1em;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-bold);
+  }
+
+  .search-page__more {
+    justify-self: start;
+    margin-block-start: var(--space-4);
+  }
+</style>
