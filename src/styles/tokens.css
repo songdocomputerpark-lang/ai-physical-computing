@@ -108,6 +108,7 @@
 
   /* ── 겹침 순서 ── */
   --z-header: 100;
+  --z-tooltip: 500; /* 용어 풀이 툴팁(src/components/glossary/GlossaryScope.astro): 머리글 위, 건너뛰기 링크 아래 */
   --z-skip-link: 1000;
 }
 

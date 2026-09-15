@@ -29,7 +29,10 @@
 //
 // 만드는 HTML(스타일: src/styles/boxes.css, 같은 HTML을 만드는 컴포넌트: src/components/common/Callout.astro)
 //   <div class="box box--why" data-box="why" role="note"><p class="box__title">왜 이런 결과가 나올까?</p>…</div>
-//   <details class="box box--teacher" data-box="teacher"><summary class="box__title">교사용 안내</summary>…</details>
+//   <details class="box box--teacher" data-box="teacher" data-pagefind-ignore=""><summary class="box__title">교사용 안내</summary>…</details>
+//
+// 사이트 검색 색인(P1-11 결정): 교사용·정답 상자(searchable: false)에는 data-pagefind-ignore를 붙여 Pagefind가 색인하지 않게 한다.
+// 학생이 검색했을 때 결과 요약에 지도 글이나 정답이 보이지 않게 하려는 것이다. 교사용 요약은 교사용 자료실(/teacher/)에서 색인한다.
 //
 // Node.js가 직접 읽으므로(astro.config.mjs) JavaScript(JSDoc 타입 표기)로 쓴다.
 
@@ -42,6 +45,7 @@ import path from 'node:path';
  * @property {string} variant CSS 클래스(box--이름)와 data-box 값
  * @property {string} title 기본 제목
  * @property {boolean} collapsible 접는 상자(<details>)인지
+ * @property {boolean} searchable 사이트 검색(Pagefind) 색인에 넣는지. false면 data-pagefind-ignore를 붙인다
  * @property {string} use 쓰임새와 근거
  */
 
@@ -51,12 +55,12 @@ export const BOX_TYPES = Object.freeze([
   boxType('바꿔보기', ['try'], 'try', '바꿔 보기', false, '값이나 코드를 바꿔 보는 과제 3가지(SPEC §6.1, §7.2 5번)'),
   boxType('도전', ['challenge'], 'challenge', '도전 과제', false, '도전 과제 1~2개(SPEC §7.2 6번)'),
   boxType('힌트', ['hint'], 'hint', '힌트 보기', true, '도전 과제의 힌트 접기(SPEC §7.2 6번)'),
-  boxType('정답', ['answer'], 'answer', '정답과 풀이 보기', true, '문제의 정답과 풀이 접기(대단원 마무리 등)'),
+  boxType('정답', ['answer'], 'answer', '정답과 풀이 보기', true, '문제의 정답과 풀이 접기(대단원 마무리 등)', false),
   boxType('확인', ['check'], 'check', '확인해 보세요', false, '단계 끝 체크리스트(SPEC §7.1)'),
   boxType('오류', ['trouble'], 'trouble', '이런 오류가 나면', false, '예상 오류와 해결 방법(SPEC §7.1)'),
   boxType('주의', ['caution'], 'caution', '주의하세요', false, '안전과 주의(레이저·팬 모터 등, PLAN §10)'),
   boxType('참고', ['note'], 'note', '참고', false, '덧붙이는 설명'),
-  boxType('교사용', ['teacher'], 'teacher', '교사용 안내', true, '지도 요약·평가 포인트·자주 막히는 곳(SPEC §7.2 8번)'),
+  boxType('교사용', ['teacher'], 'teacher', '교사용 안내', true, '지도 요약·평가 포인트·자주 막히는 곳(SPEC §7.2 8번)', false),
 ]);
 
 /**
@@ -66,10 +70,11 @@ export const BOX_TYPES = Object.freeze([
  * @param {string} title
  * @param {boolean} collapsible
  * @param {string} use
+ * @param {boolean} [searchable] 사이트 검색 색인에 넣는지(기본 true)
  * @returns {BoxType}
  */
-function boxType(name, aliases, variant, title, collapsible, use) {
-  return Object.freeze({ name, aliases: Object.freeze(aliases), variant, title, collapsible, use });
+function boxType(name, aliases, variant, title, collapsible, use, searchable = true) {
+  return Object.freeze({ name, aliases: Object.freeze(aliases), variant, title, collapsible, searchable, use });
 }
 
 /** @type {Map<string, BoxType>} */
@@ -153,6 +158,9 @@ function applyBox(node, type) {
 
   /** @type {Record<string, unknown>} */
   const properties = { className: boxClassNames(type), dataBox: type.variant };
+  if (!type.searchable) {
+    properties.dataPagefindIgnore = '';
+  }
   if (type.collapsible) {
     if (Object.hasOwn(attributes, 'open') && attributes.open !== 'false') {
       properties.open = true;

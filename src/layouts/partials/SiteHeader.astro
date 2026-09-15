@@ -264,6 +264,18 @@ const isHome = normalizePagePath(pathname) === '/';
     }
   }
 
+  /*
+   * 아주 좁은 화면(22.5rem = 360px 미만, 예: 320px 휴대폰): 사이트 이름과 [메뉴] 버튼을 한 줄에 둔다.
+   * 줄바꿈(flex-wrap)은 항목의 원래 너비로 정해져서, 이름 칸의 기준 너비를 0으로 두고(flex-basis 0, min-width 0)
+   * 남은 자리를 채우게 한다. 이름이 길면 이름 안에서 줄을 바꿔 [메뉴] 버튼이 둘째 줄로 내려가지 않는다.
+   */
+  @media (max-width: 22.49rem) {
+    .site-header__brand {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
   @media (min-width: 30rem) {
     .site-header__brand {
       font-size: var(--text-lg);

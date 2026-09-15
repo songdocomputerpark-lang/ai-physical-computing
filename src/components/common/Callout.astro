@@ -13,6 +13,7 @@
  *   title  (선택) 제목 글자. 없으면 종류별 기본 제목. 꾸민 제목은 title 슬롯으로 넣는다.
  *   open   (선택) 접는 상자(힌트·정답·교사용)를 처음부터 펼쳐 둔다.
  * 모르는 type을 넣으면 빌드가 멈춘다(오타를 바로 알 수 있게).
+ * 교사용·정답 상자는 마크다운 상자처럼 사이트 검색 색인에서 빠진다(data-pagefind-ignore, P1-11).
  */
 import { BOX_TYPES, boxClassNames, findBoxType } from '../../lib/remark-boxes.mjs';
 
@@ -31,16 +32,17 @@ if (!boxType) {
 }
 const titleText = title ?? boxType.title;
 const hasTitleSlot = Astro.slots.has('title');
+const searchIgnore = boxType.searchable ? undefined : '';
 ---
 
 {
   boxType.collapsible ? (
-    <details class:list={boxClassNames(boxType)} data-box={boxType.variant} open={open}>
+    <details class:list={boxClassNames(boxType)} data-box={boxType.variant} data-pagefind-ignore={searchIgnore} open={open}>
       <summary class="box__title">{hasTitleSlot ? <slot name="title" /> : titleText}</summary>
       <slot />
     </details>
   ) : (
-    <div class:list={boxClassNames(boxType)} data-box={boxType.variant} role="note">
+    <div class:list={boxClassNames(boxType)} data-box={boxType.variant} data-pagefind-ignore={searchIgnore} role="note">
       <p class="box__title">{hasTitleSlot ? <slot name="title" /> : titleText}</p>
       <slot />
     </div>

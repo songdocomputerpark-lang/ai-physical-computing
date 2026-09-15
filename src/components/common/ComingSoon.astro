@@ -16,6 +16,9 @@
  *   links         (선택) 지금 대신 볼 수 있는 곳. href는 withBase()로 만든 주소.
  *   headingLevel  (선택) "준비 중이에요" 제목의 단계 2~4(기본 2). 페이지 제목 <h1> 바로 아래라면 2.
  * slot           (선택) 한두 문장 더 알릴 때.
+ *
+ * 사이트 검색: 이 상자는 여러 자리 페이지에 같은 문장("준비 중이에요 … 에 생겨요")으로 들어가 검색 결과만 늘리므로
+ * data-pagefind-ignore를 붙여 색인하지 않는다(P1-11). 찾아올 낱말은 상자 밖 페이지 설명·목록에 쓴다.
  */
 import { withParticle } from '../../lib/korean.ts';
 
@@ -30,7 +33,7 @@ const { what, when, links = [], headingLevel = 2 } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
 ---
 
-<section class="coming-soon">
+<section class="coming-soon" data-pagefind-ignore>
   <Heading class="coming-soon__title">준비 중이에요</Heading>
   <p class="coming-soon__line">{withParticle(what, '은/는')} {when}에 생겨요.</p>
   <slot />

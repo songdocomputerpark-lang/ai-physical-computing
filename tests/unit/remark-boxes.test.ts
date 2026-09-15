@@ -60,11 +60,19 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
 
   it('접는 상자(교사용)는 details·summary가 되고, {open}을 붙이면 펼쳐져 있다', async () => {
     expect(compact(await render(':::교사용\n지도 포인트\n:::'))).toBe(
-      '<details class="box box--teacher" data-box="teacher"><summary class="box__title">교사용 안내</summary><p>지도 포인트</p></details>',
+      '<details class="box box--teacher" data-box="teacher" data-pagefind-ignore=""><summary class="box__title">교사용 안내</summary><p>지도 포인트</p></details>',
     );
     expect(compact(await render(':::교사용{open}\n지도 포인트\n:::'))).toContain(
-      '<details class="box box--teacher" data-box="teacher" open><summary class="box__title">교사용 안내</summary>',
+      '<details class="box box--teacher" data-box="teacher" data-pagefind-ignore="" open><summary class="box__title">교사용 안내</summary>',
     );
+  });
+
+  it('교사용·정답 상자만 사이트 검색 색인에서 빠진다(data-pagefind-ignore, P1-11)', async () => {
+    const html = compact(await render(':::정답\n2번\n:::\n\n:::힌트\n반복해 보세요.\n:::\n\n:::참고\n덧붙임\n:::'));
+    expect(html).toContain('<details class="box box--answer" data-box="answer" data-pagefind-ignore="">');
+    expect(html).toContain('<details class="box box--hint" data-box="hint">');
+    expect(html).toContain('<div class="box box--note" data-box="note" role="note">');
+    expect(BOX_TYPES.filter((type) => !type.searchable).map((type) => type.name)).toEqual(['정답', '교사용']);
   });
 
   it('영어 이름도 같은 상자가 되고, 대괄호 안 글자(꾸밈 포함)는 제목이 된다', async () => {

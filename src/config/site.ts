@@ -8,6 +8,9 @@
  */
 import packageJson from '../../package.json' with { type: 'json' };
 
+/** 공개 저장소 주소(아래 저장소 링크·이슈·라이선스 파일 주소가 이 값으로 만들어진다) */
+const repositoryUrl = 'https://github.com/songdocomputerpark-lang/ai-physical-computing';
+
 export const siteConfig = {
   /** 사이트 이름. 가칭이다(DECISIONS C4). */
   name: 'AI 피지컬 컴퓨팅 오픈랩',
@@ -24,26 +27,33 @@ export const siteConfig = {
    */
   base: '/ai-physical-computing',
   /** 공개 저장소 */
-  repositoryUrl: 'https://github.com/songdocomputerpark-lang/ai-physical-computing',
+  repositoryUrl,
   /** 문제 알리기·질문(GitHub Issues). 바닥글과 기여·문의 페이지가 쓴다. */
-  issuesUrl: 'https://github.com/songdocomputerpark-lang/ai-physical-computing/issues',
+  issuesUrl: `${repositoryUrl}/issues`,
   /** 사이트 버전. package.json의 version을 그대로 쓴다. */
   version: packageJson.version,
-  /** 라이선스(DECISIONS C3, 적용 범위는 PLAN PD-26). LICENSE 파일들은 P1-10에서 만든다. */
+  /**
+   * 라이선스(DECISIONS C3, 적용 범위는 PLAN PD-26).
+   * 전문은 저장소 뿌리의 LICENSE(MIT)와 LICENSE-CONTENT.md(CC BY-NC-SA 4.0)에 있다(P1-10). 바닥글이 fileUrl로 연결한다.
+   */
   license: {
     software: {
       spdx: 'MIT',
       shortName: 'MIT',
       name: 'MIT 라이선스',
       url: 'https://spdx.org/licenses/MIT.html',
-      appliesTo: '사이트 소프트웨어(src/·scripts/·tests/와 사이트가 새로 쓴 소프트웨어)',
+      /** 저장소의 라이선스 파일 */
+      fileUrl: `${repositoryUrl}/blob/main/LICENSE`,
+      appliesTo: '사이트 소프트웨어(src/·scripts/·tests/와 사이트가 새로 쓴 소프트웨어, 컴포넌트 안에 코드로 그린 그림 포함)',
     },
     content: {
       spdx: 'CC-BY-NC-SA-4.0',
       shortName: 'CC BY-NC-SA 4.0',
       name: '크리에이티브 커먼즈 저작자표시-비영리-동일조건변경허락 4.0 국제',
       url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko',
-      appliesTo: '학습 자료와 예제(content/·examples/, 원본 자료에서 옮긴 예제 코드 포함)와 자체 제작 그림',
+      /** 저장소의 라이선스 안내 파일 */
+      fileUrl: `${repositoryUrl}/blob/main/LICENSE-CONTENT.md`,
+      appliesTo: '학습 자료와 예제(content/·examples/, 원본 자료에서 옮긴 예제 코드 포함)와 그림 파일(public/images/)',
     },
     /**
      * 제3자 자료 제외 문구(PD-26). 출처와 라이선스 페이지 안에서도 쓰므로 그 페이지를 가리키는 말은 넣지 않는다.

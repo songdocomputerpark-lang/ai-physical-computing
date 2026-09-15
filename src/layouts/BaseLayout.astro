@@ -82,7 +82,8 @@ const hasNotice = Astro.slots.has('notice');
     <meta property="og:site_name" content={siteConfig.name} />
     <meta property="og:title" content={isHome ? siteConfig.name : title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonicalUrl} />
+    {/* 검색 엔진에 올리지 않는 페이지(404 등)는 주소가 정해져 있지 않아 대표 주소를 적지 않는다(npm run check:links가 찾아낸 문제). */}
+    {!noindex && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:locale" content="ko_KR" />
     <meta name="twitter:card" content="summary" />
     <!-- 자바스크립트가 되면 html에 js 클래스를 붙인다. 좁은 화면 메뉴를 처음부터 접어 두어 화면이 흔들리지 않게 한다. -->

@@ -9,8 +9,11 @@
  *
  * 새 차시는 content/lessons/u{대단원}/{파일 이름}.md 하나(와 예제 py 하나)를 넣으면 페이지가 생긴다. 코드는 고치지 않는다.
  * 쓰는 약속은 src/components/lesson/lesson-html.ts 머리말에 있다.
+ * 본문의 :용어[…] 표시 자리는 GlossaryScope가 굵은 링크 + 풀이 툴팁으로 바꾼다. 용어사전은 빌드마다 새로 읽으므로
+ * 용어사전만 고쳐도 차시 툴팁이 새 풀이로 바뀐다(src/components/glossary/GlossaryScope.astro, remark-glossary.mjs 머리말).
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
+import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import LessonBody from '../../../components/lesson/LessonBody.astro';
 import LessonMeta from '../../../components/lesson/LessonMeta.astro';
 import LessonPager from '../../../components/lesson/LessonPager.astro';
@@ -94,14 +97,16 @@ const { previous, next } = findNeighbors(lessons, lesson.id);
       <LessonMeta lesson={lesson} />
     </header>
     <LessonToc sections={tocSections} />
-    <LessonBody
-      plan={plan}
-      examples={entry.data.examples}
-      quiz={entry.data.quiz}
-      lab={lesson.lab}
-      lessonId={lesson.id}
-      source={source}
-    />
+    <GlossaryScope id="lesson">
+      <LessonBody
+        plan={plan}
+        examples={entry.data.examples}
+        quiz={entry.data.quiz}
+        lab={lesson.lab}
+        lessonId={lesson.id}
+        source={source}
+      />
+    </GlossaryScope>
     <LessonPager previous={previous} next={next} />
   </article>
 </BaseLayout>

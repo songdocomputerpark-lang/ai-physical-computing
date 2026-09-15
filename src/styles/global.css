@@ -186,6 +186,11 @@ textarea {
   padding-block-start: var(--space-4);
 }
 
+/* 안내가 모두 숨겨졌거나 비어 있으면(예: 권장 브라우저에서 BrowserNotice가 hidden) 위쪽 여백도 없애 빈 틈이 생기지 않게 한다. */
+.page-notice__inner:not(:has(> :not([hidden], script, style))) {
+  padding-block-start: 0;
+}
+
 .page-title {
   margin-block: var(--space-2) var(--space-4);
   font-size: var(--text-3xl);
@@ -296,8 +301,10 @@ textarea {
   background: var(--color-bg-muted);
 }
 
+/* 코드 블록 색은 astro.config.mjs의 Shiki 테마(흰 바탕)가 정한다. 바탕이 페이지와 같아 테두리로 구분한다. */
 .prose pre {
   padding: var(--space-4);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   overflow-x: auto;
   line-height: var(--leading-snug);

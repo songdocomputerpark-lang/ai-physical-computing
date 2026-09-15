@@ -34,6 +34,13 @@ export default defineConfig({
     processor: unified({
       remarkPlugins: [remarkDirective, remarkGlossary, remarkBoxes],
     }),
+    // 마크다운 코드 블록 색(Shiki 테마). Astro 기본값 github-dark는 주석 색(#6A737D)이 바탕(#24292E) 위에서 대비 3.05:1이라
+    // WCAG AA(글자 4.5:1)에 못 미친다. github-light-high-contrast는 코드 글자색이 모두 흰 바탕(#FFFFFF) 위에서 5.04:1 이상이다
+    // (가장 낮은 주석 #66707B 5.04:1, 기본 글자 #0E1116 18.91:1 — 2026-09-16 @shikijs/themes 4.4.3의 색으로 WCAG 상대 휘도 공식 계산).
+    // 바탕이 페이지와 같은 흰색이라 코드 블록 테두리는 src/styles/global.css의 .prose pre가 그린다.
+    shikiConfig: {
+      theme: 'github-light-high-contrast',
+    },
   },
   vite: {
     // 배포 번들(브라우저로 가는 코드)에 실제로 들어간 npm 패키지 목록을 dist/bundle-licenses.json으로 남긴다.

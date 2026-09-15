@@ -15,7 +15,7 @@ const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
 
 <div class="credits">
   <p>
-    이 사이트에 쓰인 자료가 어디서 왔고, 어떤 조건으로 쓸 수 있는지 모아 둔 페이지예요. 목록은 저장소의
+    이 사이트에 쓰인 자료가 어디서 왔고, 어떤 조건으로 쓸 수 있는지 모아 둔 페이지예요. 목록은 저장소의{' '}
     <a href={registryUrl}>출처 등록부(sources.yaml)</a>로 사이트를 만들 때 자동으로 만들어져요.
   </p>
 
@@ -27,11 +27,11 @@ const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
     </p>
     <dl class="credits__licenses">
       <div>
-        <dt><a href={content.url}>{content.shortName}</a></dt>
+        <dt><a href={content.url}>{content.shortName}</a></dt>{' '}
         <dd>{content.name}. 적용: {content.appliesTo}</dd>
       </div>
       <div>
-        <dt><a href={software.url}>{software.shortName}</a></dt>
+        <dt><a href={software.url}>{software.shortName}</a></dt>{' '}
         <dd>{software.name}. 적용: {software.appliesTo}</dd>
       </div>
     </dl>

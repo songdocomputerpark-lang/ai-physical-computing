@@ -1,5 +1,6 @@
 ---
 // 출처 등록부 항목 하나(출처와 라이선스 페이지). 놓이는 곳에 맞춰 제목 단계(h3·h4)를 받는다.
+// dt와 dd 사이의 {' '}: Astro가 태그 사이 줄바꿈을 지워 사이트 검색 색인에서 "분류실행"처럼 글자가 붙으므로 공백을 글자로 넣는다(P1-11).
 import { categoryLabel, formatKoreanDate, isExcluded, type SourceEntry } from '../../lib/credits.ts';
 
 interface Props {
@@ -18,17 +19,17 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
   {isExcluded(entry) && <p class="source-entry__flag">사이트 라이선스에서 제외 — 원래 조건을 따라요</p>}
   <dl class="source-entry__fields">
     <div>
-      <dt>분류</dt>
+      <dt>분류</dt>{' '}
       <dd>{categoryLabel(entry.category)}</dd>
     </div>
     <div>
-      <dt>저작자</dt>
+      <dt>저작자</dt>{' '}
       <dd>{entry.author}</dd>
     </div>
     {
       showLicense && (
         <div>
-          <dt>라이선스</dt>
+          <dt>라이선스</dt>{' '}
           <dd>{entry.license}</dd>
         </div>
       )
@@ -36,19 +37,19 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     {
       entry.rights && (
         <div>
-          <dt>권리 문구(원문 그대로)</dt>
+          <dt>권리 문구(원문 그대로)</dt>{' '}
           <dd class="source-entry__rights">{entry.rights}</dd>
         </div>
       )
     }
     <div>
-      <dt>사용 위치</dt>
+      <dt>사용 위치</dt>{' '}
       <dd>{entry.used_in}</dd>
     </div>
     {
       entry.url && (
         <div>
-          <dt>원래 자료</dt>
+          <dt>원래 자료</dt>{' '}
           <dd>
             <a href={entry.url}>{entry.url}</a>
           </dd>
@@ -58,7 +59,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     {
       entry.paths.length > 0 && (
         <div>
-          <dt>적용 파일(경로 패턴)</dt>
+          <dt>적용 파일(경로 패턴)</dt>{' '}
           <dd>
             <ul class="source-entry__codes">
               {entry.paths.map((pattern) => (
@@ -86,7 +87,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     {
       entry.npm.length > 0 && (
         <div>
-          <dt>npm 패키지</dt>
+          <dt>npm 패키지</dt>{' '}
           <dd>
             <ul class="source-entry__codes">
               {entry.npm.map((packageName) => (
@@ -102,7 +103,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     {
       entry.notice && (
         <div>
-          <dt>고지 전문 파일</dt>
+          <dt>고지 전문 파일</dt>{' '}
           <dd>
             <code>{entry.notice}</code>
           </dd>
@@ -112,7 +113,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     {
       entry.fetched && (
         <div>
-          <dt>가져온 날짜</dt>
+          <dt>가져온 날짜</dt>{' '}
           <dd>
             <time datetime={entry.fetched}>{formatKoreanDate(entry.fetched)}</time>
           </dd>

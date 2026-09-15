@@ -57,7 +57,7 @@ sources:
     author: 박상진·김석전
     license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
     # 옮기는 방법은 PD-33, 사이트 공개 조건은 PD-26
-    used_in: "실습실 예제 코드(examples/). 원본 코드 압축 파일에서 그대로 옮기고, 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
+    used_in: "실습실 예제 코드(examples/). 교과서·수업 자료의 원본 코드 압축 파일에서 옮긴 코드(사이트판 포함)와 사이트가 새로 만든 체험·보충 예제를 사이트에서 CC BY-NC-SA 4.0으로 공개해요."
     paths:
       - examples/**
     exclude_paths:
@@ -74,14 +74,6 @@ sources:
       - public/images/site/**
     exclude_paths:
       - public/images/site/**/third-party/**
-
-  - name: 배포 확인용 시험 파일
-    category: self
-    author: 박상진·김석전
-    license: MIT
-    used_in: GitHub Pages가 .mjs·.wasm 파일을 알맞은 형식으로 보내는지 확인하는 파일
-    paths:
-      - public/_probe/**
 
   # ── 실행 구성요소 ──
   - name: Astro 7.3.2

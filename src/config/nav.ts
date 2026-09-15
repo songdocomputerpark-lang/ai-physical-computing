@@ -10,6 +10,9 @@
  * - 아래 페이지(children)의 path는 위 페이지 path로 시작한다.
  * - 페이지 파일은 같은 경로에 둔다: '/start/student/' → src/pages/start/student/index.astro
  * - 대단원(배우기 아래 I~IV)은 learnUnits에 따로 둔다. 머리글·바닥글에는 나오지 않고 현재 위치 계산과 배우기 화면에서 쓴다.
+ * - description의 낱말 나열은 가운뎃점(·) 대신 쉼표로 쓴다. 사이트 검색(Pagefind)이 "손·얼굴"을 한 낱말로 묶어
+ *   "얼굴"로 찾히지 않기 때문이다(P1-11, 2026-09-16 확인). 짧은 이름(label)의 가운뎃점은 그대로 둔다.
+ *   긴 제목(title)은 좁은 화면에서 가운뎃점 앞에서 줄이 바뀌어 "·브라우저"처럼 보이므로 "와"로 이어 쓴다(예: 학교 네트워크와 브라우저 점검).
  */
 import { normalizePagePath, withBase } from '../lib/url.ts';
 
@@ -98,9 +101,9 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       {
         id: 'start-check',
         label: '점검',
-        title: '학교 네트워크·브라우저 점검',
+        title: '학교 네트워크와 브라우저 점검',
         path: '/start/check/',
-        description: '이 컴퓨터와 학교 네트워크에서 카메라·보드 연결 같은 기능을 쓸 수 있는지 자동으로 확인해요.',
+        description: '이 컴퓨터와 학교 네트워크에서 카메라, 보드 연결 같은 기능을 쓸 수 있는지 자동으로 확인해요.',
       },
     ],
   },
@@ -142,7 +145,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
         id: 'labs-iot',
         label: '통신 실습실',
         path: '/labs/iot/',
-        description: '유선(시리얼)·블루투스·인터넷(MQTT)으로 컴퓨터와 보드가 신호를 주고받아요.',
+        description: '유선(시리얼), 블루투스, 인터넷(MQTT)으로 컴퓨터와 보드가 신호를 주고받아요.',
       },
       {
         id: 'labs-gallery',
@@ -202,7 +205,7 @@ const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
     id: 'learn-u1',
     label: 'I. 영상 처리 인공지능',
     path: '/learn/u1/',
-    description: '카메라 영상에서 손·얼굴·몸의 움직임을 알아채는 프로그램을 만들어요.',
+    description: '카메라 영상에서 손, 얼굴, 몸의 움직임을 알아채는 프로그램을 만들어요.',
   },
   {
     unit: 2,
@@ -210,7 +213,7 @@ const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
     id: 'learn-u2',
     label: 'II. 피지컬 컴퓨팅',
     path: '/learn/u2/',
-    description: 'ESP32 보드로 LED·화면·소리·모터를 움직여요.',
+    description: 'ESP32 보드로 LED, 화면, 소리, 모터를 움직여요.',
   },
   {
     unit: 3,
