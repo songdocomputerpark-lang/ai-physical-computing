@@ -4,7 +4,7 @@
 // 주소는 baseURL 기준 상대 경로('./help/')나 사이트 지도의 href(base 포함)로 연다(앞에 /만 붙이면 base가 빠진다).
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { parse } from 'yaml';
 import { flattenPages, getPage } from '../../src/config/nav.ts';
 import { searchConfig } from '../../src/config/search.ts';
@@ -32,6 +32,31 @@ const OWN_PAGE_IDS = [
   'contribute',
   'search',
 ] as const;
+
+/**
+ * 가로 넘침(px)과, 넘칠 때 화면 오른쪽 끝을 넘는 가장 안쪽 요소 몇 개.
+ * CI(리눅스)에서만 넘치는 경우처럼 로컬에서 재현하기 어려울 때 실패 메시지만 보고 고칠 곳을 찾게 한다.
+ */
+async function horizontalOverflow(page: Page): Promise<{ overflow: number; offenders: string[] }> {
+  return page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    const overflow = document.documentElement.scrollWidth - width;
+    const offenders: string[] = [];
+    if (overflow > 0) {
+      for (const element of document.querySelectorAll('body *')) {
+        const rect = element.getBoundingClientRect();
+        const deeper = [...element.children].some((child) => child.getBoundingClientRect().right > width + 0.5);
+        if (rect.width > 0 && rect.right > width + 0.5 && !deeper) {
+          offenders.push(`${element.tagName.toLowerCase()}.${element.getAttribute('class') ?? ''}(오른쪽 끝 ${Math.round(rect.right)}px)`);
+        }
+        if (offenders.length >= 5) {
+          break;
+        }
+      }
+    }
+    return { overflow, offenders };
+  });
+}
 
 /** 문제 해결 페이지의 질문 id(다른 페이지가 help/#id로 연결한다) */
 const HELP_QUESTION_IDS = ['camera', 'browser', 'board-port', 'school-network', 'clear-data'] as const;
@@ -252,8 +277,8 @@ test.describe('좁은 화면(375px)', () => {
     const paths = ['./labs/', './labs/vision/', './labs/esp32/check/', './teacher/', './help/', './contribute/', './search/?q=카메라', './no-such-page/'];
     for (const pagePath of paths) {
       await page.goto(pagePath);
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow, pagePath).toBeLessThanOrEqual(0);
+      const { overflow, offenders } = await horizontalOverflow(page);
+      expect(overflow, `${pagePath} ${offenders.join(', ')}`).toBeLessThanOrEqual(0);
     }
   });
 });

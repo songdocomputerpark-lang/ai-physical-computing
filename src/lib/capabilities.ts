@@ -254,6 +254,9 @@ const GREASE_BRAND = /not.?a.?brand/iu;
 const CLIENT_HINT_BRANDS: readonly (readonly [RegExp, BrowserBrand])[] = [
   [/^Microsoft Edge$/u, 'edge'],
   [/^Google Chrome$/u, 'chrome'],
+  // 화면 없이 도는 Chrome(자동 테스트 도구 Playwright의 기본 헤드리스 셸 등)은 브랜드를 "HeadlessChrome"으로 알린다.
+  // userAgent 글자 규칙(brandFromUserAgent)처럼 Chrome으로 본다(2026-09-16 헤드리스 셸 실측: Not=A?Brand, HeadlessChrome, Chromium).
+  [/^HeadlessChrome$/u, 'chrome'],
   [/whale/iu, 'whale'],
   [/^Samsung Internet$/u, 'samsung'],
   [/^Opera/u, 'opera'],

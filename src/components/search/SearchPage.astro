@@ -96,13 +96,20 @@ const exampleHref = (word: string) => withBase(`search/?${searchConfig.queryPara
 </script>
 
 <style>
+  /*
+   * 칸 너비를 minmax(0, 1fr)로 두어 안의 요소가 칸을 넓히지 못하게 한다.
+   * 입력칸은 기본 너비(글자 20자 × 글꼴의 평균 글자 폭)를 갖는데, 리눅스처럼 한글 대체 글꼴의 평균 글자 폭이 넓으면
+   * 그 너비가 칸을 넓혀 375px 화면에서 가로로 넘쳤다(2026-09-16 CI에서 58px, 로컬에서 size를 키워 재현).
+   */
   .search-page {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-5);
   }
 
   .search-page__form {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
   }
 
@@ -118,6 +125,8 @@ const exampleHref = (word: string) => withBase(`search/?${searchConfig.queryPara
 
   .search-page__input {
     flex: 1 1 14rem;
+    /* 퍼센트 너비를 주면 입력칸의 기본 너비가 줄바꿈 계산(최소 내용 너비)에 들어가지 않는다(CSS Sizing: 줄어들 수 있는 대체 요소). */
+    width: 100%;
     min-width: 0;
     min-height: var(--target-min);
     padding: var(--space-2) var(--space-3);

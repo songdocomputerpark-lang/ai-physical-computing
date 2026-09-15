@@ -82,9 +82,11 @@ jobs:
         # 브라우저는 @playwright/test 버전마다 정해진 판이 있어서, 설치 캐시 이름에 이 버전을 넣는다(PD-35).
         run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
 
+      # 되살리기(restore)와 저장(save)을 나눠, 브라우저를 처음 설치한 실행에서 테스트가 실패해도 캐시는 저장되게 한다
+      # (actions/cache 한 단계로 쓰면 작업이 실패했을 때 저장 단계를 건너뛴다 — 2026-09-16 첫 실행에서 확인).
       - name: 브라우저 설치 캐시 되살리기
         id: browser-cache
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
@@ -92,6 +94,13 @@ jobs:
       - name: 브라우저(Chromium)와 시스템 패키지 설치
         if: steps.browser-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: 브라우저 설치 캐시 저장(처음 설치했을 때만)
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.browser-cache.outputs.cache-primary-key }}
 
       - name: 시스템 패키지만 설치(브라우저는 캐시에서 되살림)
         if: steps.browser-cache.outputs.cache-hit == 'true'

@@ -169,8 +169,16 @@ describe('브라우저 알아보기(detectBrowser)', () => {
       { brand: 'edge', platform: 'macos', mobile: false, recommended: true },
     ],
     [
-      'Chromium만 알려 주면 userAgent 글자로(CI의 Playwright Chromium)',
+      'Chromium만 알려 주면 userAgent 글자로(브랜드가 Chromium뿐인 빌드)',
       { userAgent: UA.chromeWindows, userAgentData: { brands: [{ brand: 'Chromium' }, { brand: 'Not A(Brand' }], platform: 'Linux', mobile: false } },
+      { brand: 'chrome', platform: 'linux', mobile: false, recommended: true },
+    ],
+    [
+      '헤드리스 Chrome(HeadlessChrome — CI의 Playwright 기본 헤드리스 셸)은 Chrome으로 본다',
+      {
+        userAgent: UA.chromeWindows,
+        userAgentData: { brands: [{ brand: 'Not=A?Brand' }, { brand: 'HeadlessChrome' }, { brand: 'Chromium' }], platform: 'Linux', mobile: false },
+      },
       { brand: 'chrome', platform: 'linux', mobile: false, recommended: true },
     ],
     [

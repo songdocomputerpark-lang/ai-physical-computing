@@ -33,6 +33,8 @@ import { searchConfig } from '../../config/search.ts';
 
   .header-search__input {
     flex: 1 1 auto;
+    /* 퍼센트 너비: 입력칸의 기본 너비(글꼴에 따라 달라짐)가 좁은 화면 메뉴를 넓히지 않게 한다(SearchPage.astro 주석 참고). */
+    width: 100%;
     min-width: 0;
     min-height: var(--target-min);
     padding: var(--space-2) var(--space-3);
