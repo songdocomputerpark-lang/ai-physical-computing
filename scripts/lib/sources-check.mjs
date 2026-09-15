@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { BUILD_OUTPUT_DIR, BUNDLE_LICENSE_FILE } from './bundle-license.mjs';
-import { REGISTRY_FILE, classifyFiles, findEntryByPackage, parseRegistry } from './sources-registry.mjs';
+import { REGISTRY_FILE, classifyFiles, findEntryByPackage, findMatchingEntries, parseRegistry } from './sources-registry.mjs';
 
 /** 파일을 하나하나 등록 검사하는 폴더(배포되거나 사이트가 불러오는 자료가 들어가는 곳, PLAN §9.2) */
 export const CHECKED_ROOTS = Object.freeze(['public', 'examples', 'content']);
@@ -14,6 +14,15 @@ export const CHECKED_ROOTS = Object.freeze(['public', 'examples', 'content']);
  * .gitkeep은 빈 폴더를 git에 남기는 표시이고, 나머지는 운영체제가 만드는 파일이다(.gitignore로 저장소에 안 올라간다).
  */
 export const IGNORED_FILE_NAMES = new Set(['.gitkeep', '.DS_Store', 'Thumbs.db', 'desktop.ini']);
+
+/**
+ * 파일 머리(앞 2KB)에 다른 저작자의 표기가 있는지 볼 텍스트 파일 확장자.
+ * sources.yaml의 넓은 항목(examples/** 등)은 폴더 약속(third-party/)에만 기대므로, 운영자·사이트 항목에 걸린 파일에
+ * 저작권·라이선스 표기가 있으면 "다른 저작자의 파일이 third-party/ 밖에 있는 것 아닌지" 참고로 알린다(2026-09-16 검토 반영).
+ */
+const MARKER_SCAN_EXTENSIONS = new Set(['.py', '.js', '.mjs', '.cjs', '.ts', '.css', '.md', '.txt', '.html', '.svg', '.json', '.yaml', '.yml']);
+const AUTHORSHIP_MARKER = /copyright|\(c\)|©|\blicen[cs]e\b|spdx-license-identifier|@author\b|\bauthor:|all rights reserved/iu;
+const MARKER_SCAN_BYTES = 2048;
 
 /**
  * @typedef {object} CheckResult
@@ -193,15 +202,60 @@ export function checkSourceFiles({ rootDir }) {
   if (errors.length > 0) {
     return failed(errors);
   }
+  const warnings = findAuthorshipMarkers(rootDir, files, entries);
   const packageText = dependencies.names.length > 0 ? `(${dependencies.names.join(', ')})` : '';
   return {
     ok: true,
     errors: [],
-    warnings: [],
+    warnings,
     summary:
       `통과 — 파일 ${files.length}개(${CHECKED_ROOTS.join('·')}), 등록부 항목 ${entries.length}개, ` +
       `배포용 npm 패키지 ${dependencies.names.length}개${packageText}`,
   };
+}
+
+/**
+ * 운영자·사이트 자체 항목(operator·self)에만 걸린 텍스트 파일의 머리에 저작권·라이선스 표기가 있으면 참고로 알린다.
+ * third-party/ 폴더의 파일과, library·third_party 항목에 따로 등록된 파일은 보지 않는다. 빌드는 멈추지 않는다.
+ * @param {string} rootDir
+ * @param {string[]} files
+ * @param {import('./sources-registry.mjs').SourceEntry[]} entries
+ * @returns {string[]}
+ */
+export function findAuthorshipMarkers(rootDir, files, entries) {
+  /** @type {string[]} */
+  const warnings = [];
+  for (const file of files) {
+    if (!MARKER_SCAN_EXTENSIONS.has(path.posix.extname(file).toLowerCase()) || file.split('/').includes('third-party')) {
+      continue;
+    }
+    const matches = findMatchingEntries(file, entries);
+    if (matches.length === 0 || !matches.every(({ entry }) => entry.category === 'operator' || entry.category === 'self')) {
+      continue;
+    }
+    /** @type {string} */
+    let head;
+    try {
+      const handle = fs.openSync(path.join(rootDir, ...file.split('/')), 'r');
+      try {
+        const buffer = Buffer.alloc(MARKER_SCAN_BYTES);
+        const bytesRead = fs.readSync(handle, buffer, 0, MARKER_SCAN_BYTES, 0);
+        head = buffer.subarray(0, bytesRead).toString('utf8');
+      } finally {
+        fs.closeSync(handle);
+      }
+    } catch {
+      continue;
+    }
+    const marker = AUTHORSHIP_MARKER.exec(head);
+    if (marker) {
+      warnings.push(
+        `${file}의 앞부분에 저작권·라이선스 표기("${marker[0]}")가 있어요. 다른 저작자의 파일이면 그 폴더의 third-party/ 폴더로 옮기고 ` +
+          `${REGISTRY_FILE}에 항목을 따로 만들어요(PLAN §8.1 P1-04). 운영자·사이트가 쓴 표기라면 그대로 둬도 돼요.`,
+      );
+    }
+  }
+  return warnings;
 }
 
 /**

@@ -137,6 +137,32 @@ describe('빌드 전 출처 검사(checkSourceFiles)', () => {
     expect(message).toContain('"다른 저작자 예제"');
   });
 
+  it('운영자 항목에 걸린 파일 머리에 저작권·라이선스 표기가 있으면 참고 경고만 낸다(third-party 폴더와 따로 등록한 파일은 제외)', () => {
+    const libraryEntry = `  - name: python_lcd
+    category: library
+    author: Dave Hylands
+    license: MIT
+    url: https://github.com/dhylands/python_lcd
+    used_in: 문자 LCD 라이브러리
+    paths:
+      - examples/esp32/lib/third-party/i2c_lcd.py
+    fetched: 2026-09-15
+`;
+    const result = checkSourceFiles({
+      rootDir: fixture({
+        'sources.yaml': registry(OPERATOR_ENTRY, PROBE_ENTRY, ASTRO_ENTRY, libraryEntry),
+        'examples/esp32/lib/servo.py': '# Copyright (c) 2020 Someone Else\n# MIT License\nclass Servo: pass\n',
+        'examples/esp32/lib/third-party/i2c_lcd.py': '# Copyright (c) Dave Hylands\nclass I2cLcd: pass\n',
+        'examples/vision/u1/1-2-2-gray.py': '# 1-2-2 흑백으로 바꾸기\nprint(2)\n',
+      }),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('examples/esp32/lib/servo.py');
+    expect(result.warnings[0]).toContain('third-party/');
+  });
+
   it('저작자가 같은 두 항목이 겹치는 것은 괜찮다', () => {
     const sameAuthor = `  - name: 사이트가 새로 쓴 예제
     category: self

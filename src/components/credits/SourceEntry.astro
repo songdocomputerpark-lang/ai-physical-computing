@@ -1,7 +1,10 @@
 ---
 // 출처 등록부 항목 하나(출처와 라이선스 페이지). 놓이는 곳에 맞춰 제목 단계(h3·h4)를 받는다.
 // dt와 dd 사이의 {' '}: Astro가 태그 사이 줄바꿈을 지워 사이트 검색 색인에서 "분류실행"처럼 글자가 붙으므로 공백을 글자로 넣는다(P1-11).
+// 사이트 검색 색인(data-pagefind-ignore): 사용 위치·적용 파일·npm·고지 파일 칸은 개발 도구 설명이라 학생 검색어(예: 픽셀)에 걸리면
+// 결과가 흐려지므로 빼고, 이름·분류·저작자·라이선스·권리 문구·원래 자료 주소만 찾히게 둔다(2026-09-16 검토 반영).
 import { categoryLabel, formatKoreanDate, isExcluded, type SourceEntry } from '../../lib/credits.ts';
+import { withBase } from '../../lib/url.ts';
 
 interface Props {
   entry: SourceEntry;
@@ -12,6 +15,8 @@ interface Props {
 
 const { entry, headingLevel, showLicense = false } = Astro.props;
 const Heading = headingLevel === 3 ? 'h3' : 'h4';
+/** public/ 안의 고지 파일은 사이트 주소로 열 수 있으므로 링크로 보인다(MIT 등 "고지를 함께 배포" 조건을 눈으로 확인할 수 있게). */
+const noticeHref = entry.notice?.startsWith('public/') ? withBase(entry.notice.slice('public/'.length)) : undefined;
 ---
 
 <article class="source-entry">
@@ -42,7 +47,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
         </div>
       )
     }
-    <div>
+    <div data-pagefind-ignore>
       <dt>사용 위치</dt>{' '}
       <dd>{entry.used_in}</dd>
     </div>
@@ -58,7 +63,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     }
     {
       entry.paths.length > 0 && (
-        <div>
+        <div data-pagefind-ignore>
           <dt>적용 파일(경로 패턴)</dt>{' '}
           <dd>
             <ul class="source-entry__codes">
@@ -86,7 +91,7 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     }
     {
       entry.npm.length > 0 && (
-        <div>
+        <div data-pagefind-ignore>
           <dt>npm 패키지</dt>{' '}
           <dd>
             <ul class="source-entry__codes">
@@ -102,11 +107,9 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
     }
     {
       entry.notice && (
-        <div>
+        <div data-pagefind-ignore>
           <dt>고지 전문 파일</dt>{' '}
-          <dd>
-            <code>{entry.notice}</code>
-          </dd>
+          <dd>{noticeHref ? <a href={noticeHref}><code>{entry.notice}</code></a> : <code>{entry.notice}</code>}</dd>
         </div>
       )
     }
