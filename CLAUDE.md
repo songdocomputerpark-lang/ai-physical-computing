@@ -32,7 +32,9 @@ AI 피지컬 컴퓨팅 오픈랩(가칭) — 2022 개정교육과정 인공지�
 - **용어 표시:** 새 낱말 = `content/glossary/<영문-이름>.md` 하나. 본문에는 `:용어[낱말]`(조사는 대괄호 밖)을 쓰고, 사전에 없는 낱말은 빌드 경고만 낸다. 마크다운 본문을 보여 주는 페이지는 `GlossaryScope`로 감싼다(용어사전을 빌드마다 새로 읽어 풀이를 붙임 — Astro 콘텐츠 캐시가 remark 결과를 되살리므로 풀이를 remark 단계에서 넣지 않는다).
 - **코드 블록 색:** Shiki 테마 `github-light-high-contrast`(`astro.config.mjs`, 코드 글자색 대비 모두 5.04:1 이상).
 - **.astro 띄어쓰기 주의:** Astro 7은 줄바꿈이 든 글자와 태그 사이 공백을 지운다. 글 뒤에서 줄을 바꿔 `<a>`·`<strong>`·`<code>`를 쓰거나 `</dt>`·`<dd>`처럼 요소를 이어 쓰면 "알리려면문제"처럼 붙으므로, 줄 끝에 `{' '}`를 붙이거나 한 줄에 적는다(2026-09-16 통합 단계에서 22곳 발견·수정).
-- **출처·저장소 검사(P1-04):** `sources.yaml`(출처 등록부) → 빌드 전후 검사와 `/credits/` 자동 생성. 커밋 전 훅·CI의 저장소 검사(`scripts/check-repo.mjs`, 허용 목록 `scripts/repo-allowlist.yaml`, 이미지 눈 확인 기록 `scripts/image-allowlist.yaml`).
+- **출처·저장소 검사(P1-04):** `sources.yaml`(출처 등록부) → 빌드 전후 검사와 `/credits/` 자동 생성(다른 저작자 파일은 `third-party/` 폴더 + 항목 따로, 밖에 두면 참고 경고). 커밋 전 훅·CI의 저장소 검사(`scripts/check-repo.mjs`, 허용 목록 `scripts/repo-allowlist.yaml`, 이미지 눈 확인 기록 `scripts/image-allowlist.yaml` — 추적 파일 전체의 래스터 이미지와 글·코드 파일 안 data: 그림, 개인정보 모양: 사용자·OneDrive 경로·MAC·이메일·전화번호, 학교 이름은 `scripts/privacy-needles.json`에 해시로만 두고 `node scripts/privacy-needle.mjs <이름>`으로 만든다. 문서·주석·커밋 메시지에 학교 전체 이름을 적지 않는다). `git commit --no-verify` 금지(노출 전 관문은 훅뿐).
+- **글꼴 대체:** `src/styles/fonts.css`의 'Pretendard Fallback'(맑은 고딕을 Pretendard 폭·높이에 맞춤)이 글꼴을 받는 동안 보인다. Pretendard 파일은 고치지 않는다.
+- **검색 결과:** 용어사전은 항목 단위(`sub_results`, `src/config/search.ts`의 `anchorPages`). 빌드 뒤 `scripts/prune-pagefind.mjs`가 쓰지 않는 Pagefind 화면 파일을 지운다(다른 라이브러리가 묶여 있어 배포하지 않음).
 - **사이트 설정 한 곳:** `src/config/site.ts`(이름·설명·저작자·주소·라이선스·버전) → `astro.config.mjs`가 읽는다. `base: '/ai-physical-computing'`, `trailingSlash: 'always'`(내부 링크는 `import.meta.env.BASE_URL` 뒤에 `/`로 끝나는 경로를 붙인다).
 - **파이썬 실행:** Pyodide 314.0.7(모듈 워커) — jsDelivr 고정 주소 + 같은 사이트 예비본(PD-02), 실행 중 입력 전달은 JSPI 기본(PD-01).
 - **비전 AI:** MediaPipe Tasks Vision 0.10.35 고정(PD-03, 1.0.x는 사용 지표 전송 때문에 쓰지 않음).
