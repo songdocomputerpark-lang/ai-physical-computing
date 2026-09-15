@@ -124,10 +124,14 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
   });
 });
 
-describe('용어 표시 문법 스텁(src/lib/remark-glossary.mjs)', () => {
-  it(':용어[말]은 지금은 대괄호 안 글자만 남긴다(조사는 대괄호 밖)', async () => {
+// 용어 문법 자체의 자세한 검사는 tests/unit/glossary/remark-glossary.test.ts에 있다.
+describe('용어 표시 문법(src/lib/remark-glossary.mjs)과 함께 쓰기', () => {
+  it(':용어[말]은 remark-boxes가 되돌리지 않는 표시 자리가 된다(조사는 대괄호 밖)', async () => {
     const html = await render(':용어[픽셀]은 작은 점이에요. :용어[화소]{항목=pixel}와 :term[pixel]');
-    expect(html).toContain('<p>픽셀은 작은 점이에요. 화소와 pixel</p>');
+    expect(html).toContain('>픽셀</glossary-term>은 작은 점이에요. ');
+    expect(html).toContain('data-glossary-entry="pixel">화소</glossary-term>와 ');
+    expect(html).toContain('>pixel</glossary-term></p>');
+    expect(html).not.toContain(':용어[');
   });
 
   it('대괄호 없는 :용어는 원래 글자로 남는다', async () => {

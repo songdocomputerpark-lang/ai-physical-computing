@@ -1,15 +1,207 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 용어사전 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-07).
-// 항목은 content/glossary/*.md(src/content.config.ts의 glossary 컬렉션)에 둔다.
-import ComingSoon from '../../components/common/ComingSoon.astro';
+// 용어사전(PLAN §2.1 /glossary/, §8.1 P1-07, SPEC §7.1)
+// - 항목: content/glossary/*.md 한 파일에 한 낱말(frontmatter 규칙은 src/config/content-schemas.ts의 glossarySchema).
+//   새 낱말 = md 파일 하나 추가(코드 수정 없음). 파일 이름이 항목 id이자 주소 뒤 #이름이다. 예: pixel.md → /glossary/#pixel
+// - 차시 본문의 :용어[픽셀]은 이 페이지의 항목으로 이어진다(src/lib/remark-glossary.mjs → GlossaryScope.astro).
+// - 가나다·ABC 색인의 묶음과 순서는 src/components/glossary/glossary.ts의 groupGlossaryEntries가 정한다.
+// - 나오는 차시는 차시 본문에 쓴 :용어[…]를 모아 자동으로 채운다(차시가 아직 없으면 "준비 중이에요").
+import { getCollection } from 'astro:content';
+import Callout from '../../components/common/Callout.astro';
+import GlossaryEntry from '../../components/glossary/GlossaryEntry.astro';
+import { Content as GlossaryExample } from '../../components/glossary/glossary-example.md';
+import GlossaryScope from '../../components/glossary/GlossaryScope.astro';
+import {
+  collectLessonsByEntry,
+  createGlossaryRegistry,
+  findRelatedProblems,
+  groupGlossaryEntries,
+  reportGlossaryProblems,
+} from '../../components/glossary/glossary.ts';
+import { toLessonSummary } from '../../components/lesson/lesson-data.ts';
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('glossary');
+const glossaryEntries = await getCollection('glossary');
+const registry = createGlossaryRegistry(glossaryEntries);
+const entryById = new Map(glossaryEntries.map((entry) => [entry.id, entry] as const));
+const groups = groupGlossaryEntries(registry.entries);
+
+const lessons = await getCollection('lessons', ({ data }) => !data.draft);
+const lessonUsage = collectLessonsByEntry(
+  lessons.map((lesson) => ({
+    id: lesson.id,
+    title: lesson.data.title,
+    label: lesson.data.label,
+    unit: lesson.data.unit,
+    order: lesson.data.order,
+    html: lesson.rendered?.html ?? '',
+    // 차시 주소는 배우기 페이지와 같은 규칙으로 만든다(대단원은 frontmatter unit이 정함).
+    href: toLessonSummary(lesson).href,
+  })),
+  registry,
+);
+reportGlossaryProblems([...findRelatedProblems(registry), ...lessonUsage.problems]);
+
+const frontmatterExample = `---
+title: 픽셀                  # 표제어(꼭 적어요)
+english: Pixel               # 영어 이름. 약자는 풀어 써요(예: Pulse Width Modulation)
+aliases: [화소]              # 같은 뜻의 다른 이름. :용어[화소]도 이 항목으로 이어져요
+summary: 디지털 사진을 이루는 가장 작은 네모 칸이에요.   # 툴팁 한 줄 풀이(100자 안, 꼭 적어요)
+related: [frame, bgr-rgb]    # 함께 보면 좋은 낱말의 파일 이름
+group: 영상 처리             # 묶음 이름
 ---
 
-<BaseLayout title={page.title} description={page.description}>
+조금 더 알기에 들어갈 2~3문장을 적어요.`;
+---
+
+<BaseLayout title={page.title} description={page.description} width="narrow">
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <ComingSoon what={page.label} when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+
+  <section class="glossary-how" aria-labelledby="glossary-how-title">
+    <h2 class="glossary-heading" id="glossary-how-title">풀이 보는 법</h2>
+    <p>
+      차시 글에서 <b>점선 밑줄이 그어진 굵은 낱말</b>은 이 사전에 풀이가 있어요. 마우스를 올리거나 <kbd>Tab</kbd> 키로 옮겨 가면
+      한 줄 풀이가 뜨고, <kbd>Esc</kbd> 키를 누르면 닫혀요. 낱말을 누르면 이 페이지에서 그 낱말의 자세한 풀이로 와요.
+    </p>
+    <Callout type="참고" title="차시 글에서는 이렇게 보여요">
+      <GlossaryScope id="example"><GlossaryExample /></GlossaryScope>
+    </Callout>
+  </section>
+
+  <nav class="glossary-index" aria-labelledby="glossary-index-title">
+    <h2 class="glossary-heading" id="glossary-index-title">가나다·ABC로 찾기</h2>
+    <p class="glossary-index__count">낱말 {registry.entries.length}개</p>
+    <ul class="glossary-index__list">
+      {
+        groups.map((group) => (
+          <li>
+            <a class="glossary-index__link" href={`#${group.anchor}`}>
+              {group.label}
+              <span class="visually-hidden">{` 묶음, 낱말 ${group.entries.length}개`}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    groups.map((group) => (
+      <section class="glossary-group" aria-labelledby={group.anchor}>
+        <h2 class="glossary-group__title" id={group.anchor}>
+          {group.label}
+        </h2>
+        {group.entries.map((item) => {
+          const entry = entryById.get(item.id);
+          return entry && <GlossaryEntry entry={entry} registry={registry} lessons={lessonUsage.byEntry.get(item.id)} />;
+        })}
+        <p class="glossary-group__back">
+          <a href="#glossary-index-title">색인으로 돌아가기</a>
+        </p>
+      </section>
+    ))
+  }
+
+  <div class="glossary-teacher">
+    <Callout type="교사용" title="낱말을 더하거나 고치는 방법">
+      <p>
+        <code>content/glossary/</code> 폴더에 낱말 하나당 마크다운 파일 하나를 넣으면 이 페이지에 저절로 나타나요. 파일 이름은 영문
+        소문자·숫자·하이픈으로 짓고, 그 이름이 주소 뒤 <code>#이름</code>이 돼요(예: <code>pixel.md</code> → <code>#pixel</code>).
+      </p>
+      <pre class="glossary-code"><code>{frontmatterExample}</code></pre>
+      <p>
+        차시 글에는 <code>{':용어[픽셀]'}</code>처럼 쓰고 조사는 대괄호 밖에 붙여요. 보이는 말이 표제어·다른 이름과 다르면{' '}
+        <code>{':용어[화소]{항목=pixel}'}</code>처럼 파일 이름을 적어요. 사전에 없는 낱말을 쓰면 빌드 로그에 경고가 남고 글은 보통
+        글자로 보여요.
+      </p>
+    </Callout>
+  </div>
 </BaseLayout>
+
+<style>
+  .glossary-heading {
+    margin-block-end: var(--space-3);
+    font-size: var(--text-2xl);
+  }
+
+  .glossary-index {
+    margin-block-start: var(--space-10);
+  }
+
+  .glossary-index__count {
+    margin-block-end: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .glossary-index__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 누르는 곳 44px 이상(tokens.css --target-min) */
+  .glossary-index__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--target-min);
+    min-height: var(--target-min);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-accent-hover);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+  }
+
+  .glossary-index__link:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .glossary-group {
+    margin-block-start: var(--space-10);
+  }
+
+  .glossary-group__title {
+    padding-block-end: var(--space-2);
+    border-bottom: 2px solid var(--color-accent-border);
+    color: var(--color-accent-hover);
+    font-size: var(--text-2xl);
+    scroll-margin-top: var(--space-6);
+  }
+
+  .glossary-group__back {
+    font-size: var(--text-sm);
+  }
+
+  .glossary-group__back a {
+    display: inline-block;
+    padding-block: var(--space-2);
+  }
+
+  .glossary-teacher {
+    margin-block-start: var(--space-12);
+  }
+
+  .glossary-code {
+    padding: var(--space-3) var(--space-4);
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    white-space: pre;
+    word-break: normal;
+  }
+</style>

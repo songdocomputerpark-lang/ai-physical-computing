@@ -1,0 +1,115 @@
+---
+/**
+ * 용어 풀이 범위(PLAN §8.1 P1-07, SPEC §7.1) — 감싼 마크다운 본문의 :용어[…] 표시 자리를 굵은 링크 + 풀이 툴팁으로 바꾼다.
+ * 툴팁은 마우스를 올리거나 키보드 초점을 두면 뜨고 Esc로 닫힌다(tooltip.ts). 링크는 용어사전의 그 항목으로 간다.
+ *
+ * 쓰는 법(차시 페이지처럼 마크다운 본문을 보여 주는 곳)
+ *   ---
+ *   import { render } from 'astro:content';
+ *   import GlossaryScope from '../../components/glossary/GlossaryScope.astro';
+ *   const { Content } = await render(lesson);
+ *   ---
+ *   <div class="prose">
+ *     <GlossaryScope><Content /></GlossaryScope>
+ *   </div>
+ *
+ * props
+ *   id    (선택) 범위 이름(영문 소문자·숫자·하이픈). 툴팁 id에 들어간다. 적지 않으면 본문 내용으로 만든다.
+ *         한 페이지 안에서 이름이 겹치면 뒤에 -2, -3을 붙여 id가 겹치지 않게 한다.
+ *   self  (선택) 지금 보여 주는 용어사전 항목 id. 그 항목을 가리키는 :용어[…]는 링크하지 않는다(용어사전 페이지용).
+ *
+ * 규칙
+ * - 범위 하나 안에서 같은 항목은 처음 나온 곳만 굵은 링크 + 툴팁이 되고, 다음부터는 보통 글자다(SPEC §7.1 "첫 등장").
+ * - 용어사전(content/glossary/)에 없는 말은 글자만 보이고 빌드 로그에 경고를 남긴다. 빌드는 멈추지 않는다(PD-35).
+ * - 감싸는 요소를 새로 만들지 않는다. 본문 문단이 .prose의 바로 아래 자식으로 남아 글 간격 스타일이 그대로 먹는다.
+ * - 용어사전은 페이지를 만들 때마다 새로 읽는다(마크다운 HTML 캐시와 상관없이 풀이가 늘 최신 — remark-glossary.mjs 머리말).
+ */
+import { getCollection } from 'astro:content';
+import { applyGlossary, claimScopeKey, createGlossaryRegistry, reportGlossaryProblems, scopeKeyFromContent } from './glossary.ts';
+
+interface Props {
+  id?: string;
+  self?: string;
+}
+
+const { id, self } = Astro.props;
+const html = Astro.slots.has('default') ? await Astro.slots.render('default') : '';
+const registry = createGlossaryRegistry(await getCollection('glossary'));
+const scope = claimScopeKey(Astro.request, id ?? scopeKeyFromContent(html));
+const result = applyGlossary(html, registry, { scope, self });
+reportGlossaryProblems(result.problems);
+---
+
+<Fragment set:html={result.html} />
+
+<style is:global>
+  /*
+   * 용어 링크와 툴팁(HTML은 glossary.ts의 renderGlossaryTerm이 만든다 — 마크다운에서 나온 HTML이라 전역 스타일로 둔다).
+   * 색은 tokens.css 변수만 쓴다. 대비(tokens.css 주석의 계산값): 툴팁 글자 17.61, 영어 이름 7.77, 테두리 3.73, 링크 5.25 이상.
+   */
+
+  /* 굵게 + 점선 밑줄: 보통 링크(실선 밑줄)와 모양으로도 구별한다. 색만으로 알리지 않는다. */
+  .glossary-term__link {
+    font-weight: var(--weight-bold);
+    text-decoration-style: dotted;
+    text-decoration-thickness: 0.1em;
+  }
+
+  .glossary-term__link:hover,
+  .glossary-term__link[data-tooltip='open'] {
+    text-decoration-style: solid;
+  }
+
+  .glossary-term__tip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* tokens.css에 --z-tooltip이 생기면 그 값을 쓴다(머리글 100보다 위, 건너뛰기 링크 1000보다 아래). */
+    z-index: var(--z-tooltip, 500);
+    display: block;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: min(22rem, calc(100vw - 2rem));
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-style: normal;
+    font-weight: var(--weight-regular);
+    letter-spacing: normal;
+    line-height: var(--leading-snug);
+    text-align: start;
+    text-transform: none;
+    white-space: normal;
+  }
+
+  .glossary-term__tip-title {
+    display: block;
+    margin-block-end: var(--space-1);
+    font-weight: var(--weight-bold);
+  }
+
+  .glossary-term__tip-english {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+  }
+
+  .glossary-term__tip-text {
+    display: block;
+  }
+
+  @media print {
+    .glossary-term__tip {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  import { initGlossaryTooltips } from './tooltip.ts';
+
+  initGlossaryTooltips();
+</script>

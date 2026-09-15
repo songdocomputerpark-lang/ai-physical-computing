@@ -1,0 +1,213 @@
+---
+/**
+ * 용어사전 항목 하나(/glossary/ 페이지의 한 칸, PLAN §8.1 P1-07).
+ *   표제어(h3, id = 파일 이름) · 영어 이름 · 묶음 · 한 줄 풀이 · 조금 더 알기(md 본문) · 다른 이름 · 함께 보면 좋은 낱말 · 나오는 차시
+ * 본문 속 :용어[…]는 다른 항목으로 가는 링크·툴팁이 된다(자기 자신을 가리키면 보통 글자).
+ *
+ * props
+ *   entry     getCollection('glossary')의 항목
+ *   registry  createGlossaryRegistry로 만든 찾아보기 표(함께 보면 좋은 낱말의 제목을 찾는다)
+ *   lessons   (선택) 이 낱말이 나오는 차시 링크(collectLessonsByEntry). 없으면 "준비 중이에요"
+ */
+import { render, type CollectionEntry } from 'astro:content';
+import GlossaryScope from './GlossaryScope.astro';
+import { glossaryEntryHref, hasDistinctEnglish, type GlossaryLessonLink, type GlossaryRegistry } from './glossary.ts';
+
+interface Props {
+  entry: CollectionEntry<'glossary'>;
+  registry: GlossaryRegistry;
+  lessons?: readonly GlossaryLessonLink[] | undefined;
+}
+
+const { entry, registry, lessons = [] } = Astro.props;
+const { id, data } = entry;
+const { Content } = await render(entry);
+const hasMore = (entry.body ?? '').trim() !== '';
+const english = hasDistinctEnglish(data) ? data.english : undefined;
+const related = data.related.flatMap((relatedId) => {
+  const found = registry.byId(relatedId);
+  return found && found.id !== id ? [found] : [];
+});
+---
+
+<article class="glossary-entry" aria-labelledby={id}>
+  <div class="glossary-entry__head">
+    <h3 class="glossary-entry__title" id={id}>
+      {data.title}
+      {/* 두 표현식 사이 줄바꿈은 Astro가 지우므로 공백을 글자로 넣는다(화면 낭독기가 "픽셀Pixel"로 붙여 읽지 않게). */}
+      {english && ' '}
+      {english && <span class="glossary-entry__english" lang="en">{english}</span>}
+    </h3>
+    {data.group && <p class="glossary-entry__group">{data.group}</p>}
+  </div>
+
+  <p class="glossary-entry__summary">{data.summary}</p>
+
+  {
+    hasMore && (
+      <div class="glossary-entry__more">
+        <p class="glossary-entry__label">조금 더 알기</p>
+        <div class="glossary-entry__body prose">
+          <GlossaryScope id={`entry-${id}`} self={id}>
+            <Content />
+          </GlossaryScope>
+        </div>
+      </div>
+    )
+  }
+
+  <dl class="glossary-entry__meta">
+    {
+      data.aliases.length > 0 && (
+        <div class="glossary-entry__row">
+          <dt>다른 이름</dt>{' '}
+          <dd>{data.aliases.join(', ')}</dd>
+        </div>
+      )
+    }
+    {
+      related.length > 0 && (
+        <div class="glossary-entry__row">
+          <dt>함께 보면 좋은 낱말</dt>{' '}
+          <dd>
+            <ul class="glossary-entry__links">
+              {related.map((item) => (
+                <li>
+                  <a href={glossaryEntryHref(item.id)}>{item.title}</a>
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )
+    }
+    <div class="glossary-entry__row">
+      <dt>나오는 차시</dt>{' '}
+      <dd>
+        {
+          lessons.length > 0 ? (
+            <ul class="glossary-entry__links">
+              {lessons.map((lesson) => (
+                <li>
+                  <a href={lesson.href}>{lesson.label}</a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <span class="glossary-entry__empty">준비 중이에요</span>
+          )
+        }
+      </dd>
+    </div>
+  </dl>
+</article>
+
+<style>
+  .glossary-entry {
+    padding-block: var(--space-6);
+  }
+
+  .glossary-entry + .glossary-entry {
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* 주소 뒤 #이름으로 온 항목을 알아보기 쉽게(색과 왼쪽 막대를 함께 써서 색만으로 알리지 않는다) */
+  .glossary-entry:has(.glossary-entry__title:target) {
+    margin-inline: calc(-1 * var(--space-4));
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    box-shadow: inset 0.25rem 0 0 var(--color-accent);
+  }
+
+  .glossary-entry__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .glossary-entry__title {
+    font-size: var(--text-xl);
+    scroll-margin-top: var(--space-6);
+  }
+
+  .glossary-entry__english {
+    margin-inline-start: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+  }
+
+  .glossary-entry__group {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+  }
+
+  .glossary-entry__summary {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .glossary-entry__more {
+    margin-block-start: var(--space-4);
+  }
+
+  .glossary-entry__label {
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+  }
+
+  .glossary-entry__body {
+    margin-block-start: var(--space-1);
+  }
+
+  .glossary-entry__meta {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .glossary-entry__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-3);
+  }
+
+  .glossary-entry__row dt {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-semibold);
+  }
+
+  .glossary-entry__row dd {
+    margin: 0;
+  }
+
+  .glossary-entry__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 누르기 쉬운 높이(WCAG 2.2 2.5.8 최소 24px 이상) */
+  .glossary-entry__links a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+
+  .glossary-entry__empty {
+    color: var(--color-text-muted);
+  }
+</style>
