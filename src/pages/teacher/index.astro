@@ -1,0 +1,14 @@
+---
+// 자리 페이지(공통 기반 단계, 2026-09-16). 교사용 자료실 묶음(PLAN §8.5 P5-14)에서 실제 화면으로 바꾼다.
+import ComingSoon from '../../components/common/ComingSoon.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('teacher');
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <ComingSoon what={page.label} when="교과서 내용을 옮기는 단계(Phase 5)" />
+</BaseLayout>

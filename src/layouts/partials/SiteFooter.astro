@@ -1,0 +1,159 @@
+---
+/**
+ * 바닥글(공통 레이아웃의 일부, PLAN §8.1 P1-05·P1-10, PD-26)
+ * - 사이트 지도: src/config/nav.ts의 최상위 페이지와 한 단계 아래 페이지
+ * - 사이트 이름과 버전(package.json), 만든 사람(DECISIONS C2)
+ * - 라이선스 두 줄(학습 자료·예제 CC BY-NC-SA 4.0, 사이트 프로그램 MIT)과 제3자 자료 제외 문구, 출처와 라이선스 링크
+ * - 저장소·문제 알리기(GitHub Issues) 링크
+ * 문구와 주소는 모두 src/config/site.ts에서 온다.
+ */
+import { siteMap } from '../../config/nav.ts';
+import { siteConfig } from '../../config/site.ts';
+import { withBase } from '../../lib/url.ts';
+
+const { content, software, exclusion } = siteConfig.license;
+const sections = siteMap.filter((page) => page.id !== 'home');
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <nav class="site-footer__nav" aria-label="사이트 지도">
+      <ul class="site-footer__sections">
+        {
+          sections.map((section) => (
+            <li class="site-footer__section">
+              <a class="site-footer__section-link" href={section.href}>
+                {section.label}
+              </a>
+              {section.children.length > 0 && (
+                <ul class="site-footer__children">
+                  {section.children.map((child) => (
+                    <li>
+                      <a href={child.href}>{child.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-footer__about">
+      <p class="site-footer__title">
+        {siteConfig.name} <span class="site-footer__version">버전 {siteConfig.version}</span>
+      </p>
+      <p>만든 사람: {siteConfig.author}</p>
+      <ul class="site-footer__licenses">
+        <li>
+          학습 자료와 예제: <a href={content.url} rel="license">{content.shortName}</a>
+        </li>
+        <li>
+          사이트 프로그램: <a href={software.url} rel="license">{software.shortName}</a>
+        </li>
+      </ul>
+      <p>
+        {exclusion} 해당 자료는 <a href={withBase('credits/')}>출처와 라이선스</a>에 모아 두었어요.
+      </p>
+      <ul class="site-footer__links">
+        <li><a href={siteConfig.repositoryUrl}>GitHub 저장소</a></li>
+        <li><a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .site-footer__inner {
+    display: grid;
+    gap: var(--space-8);
+    width: min(100% - 2 * var(--gutter), var(--width-page));
+    margin-inline: auto;
+    padding-block: var(--space-10) var(--space-12);
+  }
+
+  .site-footer ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer__sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: var(--space-6) var(--space-4);
+  }
+
+  .site-footer__section-link {
+    display: inline-block;
+    padding-block: var(--space-1);
+    color: var(--color-text);
+    font-weight: var(--weight-bold);
+  }
+
+  .site-footer__children {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-start: var(--space-1);
+  }
+
+  .site-footer__children a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+
+  .site-footer__about {
+    display: grid;
+    gap: var(--space-2);
+    padding-block-start: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .site-footer__title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+  }
+
+  .site-footer__version {
+    margin-inline-start: var(--space-2);
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+  }
+
+  .site-footer__licenses {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+  }
+
+  .site-footer__links a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+
+  @media (min-width: 64rem) {
+    .site-footer__inner {
+      grid-template-columns: 2fr 1fr;
+      align-items: start;
+    }
+
+    .site-footer__about {
+      padding-block-start: 0;
+      border-top: 0;
+    }
+  }
+</style>

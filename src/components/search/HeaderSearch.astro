@@ -1,0 +1,75 @@
+---
+/**
+ * 머리글 검색 상자 자리(PLAN §8.1 P1-11). 공통 레이아웃 머리글(src/layouts/partials/SiteHeader.astro)이 이 파일을 그대로 넣는다.
+ * 검색 담당이 이 파일 안에서 Pagefind 화면으로 바꿔도 된다(파일 이름·위치는 그대로 둔다).
+ *
+ * 지금 모양: 자바스크립트 없이도 되는 기본 폼. 검색어를 /search/?q=검색어 로 보낸다.
+ * 설정 값(검색 페이지 주소·검색어 이름·Pagefind 폴더)은 src/config/search.ts에 있다.
+ */
+import { searchConfig } from '../../config/search.ts';
+---
+
+<form class="header-search" role="search" action={searchConfig.pageHref} method="get">
+  <label class="visually-hidden" for="header-search-input">사이트 검색어</label>
+  <input
+    id="header-search-input"
+    class="header-search__input"
+    type="search"
+    name={searchConfig.queryParam}
+    placeholder="검색어 입력"
+    autocomplete="off"
+    enterkeyhint="search"
+  />
+  <button class="header-search__button" type="submit">검색</button>
+</form>
+
+<style>
+  .header-search {
+    display: flex;
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .header-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .header-search__input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+  }
+
+  .header-search__button {
+    flex: none;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-accent);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .header-search__button:hover {
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  @media (min-width: 75rem) {
+    .header-search {
+      width: auto;
+    }
+
+    .header-search__input {
+      width: 10rem;
+    }
+  }
+</style>

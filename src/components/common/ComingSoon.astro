@@ -1,0 +1,80 @@
+---
+/**
+ * 준비 중 안내 틀(PLAN §8.1 P1-05) — 아직 없는 페이지·기능에 "무엇이 언제 생기는지"를 한 줄로 알린다.
+ *
+ * 쓰는 법
+ *   <ComingSoon what="영상처리 실습실" when="영상처리 실습실을 만드는 단계(Phase 2)" />
+ *   → 준비 중이에요 / 영상처리 실습실은 영상처리 실습실을 만드는 단계(Phase 2)에 생겨요.
+ *
+ *   <ComingSoon what="오류 풀이" when="…" links={[{ label: '용어사전', href: withBase('glossary/') }]}>
+ *     <p>그동안 아래 페이지를 볼 수 있어요.</p>
+ *   </ComingSoon>
+ *
+ * props
+ *   what          무엇이(이름). 끝소리 받침에 맞춰 "은/는"을 붙인다.
+ *   when          언제(시점을 나타내는 말). 뒤에 "에 생겨요."가 붙는다.
+ *   links         (선택) 지금 대신 볼 수 있는 곳. href는 withBase()로 만든 주소.
+ *   headingLevel  (선택) "준비 중이에요" 제목의 단계 2~4(기본 2). 페이지 제목 <h1> 바로 아래라면 2.
+ * slot           (선택) 한두 문장 더 알릴 때.
+ */
+import { withParticle } from '../../lib/korean.ts';
+
+interface Props {
+  what: string;
+  when: string;
+  links?: readonly { label: string; href: string }[];
+  headingLevel?: 2 | 3 | 4;
+}
+
+const { what, when, links = [], headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+---
+
+<section class="coming-soon">
+  <Heading class="coming-soon__title">준비 중이에요</Heading>
+  <p class="coming-soon__line">{withParticle(what, '은/는')} {when}에 생겨요.</p>
+  <slot />
+  {
+    links.length > 0 && (
+      <ul class="coming-soon__links">
+        {links.map((link) => (
+          <li>
+            <a href={link.href}>{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</section>
+
+<style>
+  .coming-soon {
+    display: grid;
+    gap: var(--space-2);
+    max-width: var(--width-prose);
+    margin-block: var(--space-6);
+    padding: var(--space-5) var(--space-6);
+    border: 2px dashed var(--color-accent-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-accent-soft);
+  }
+
+  .coming-soon__title {
+    color: var(--color-accent-hover);
+    font-size: var(--text-lg);
+  }
+
+  .coming-soon__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .coming-soon__links a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+</style>

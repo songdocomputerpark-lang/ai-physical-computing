@@ -1,0 +1,83 @@
+---
+/**
+ * 현재 위치(빵부스러기) — 홈에서 지금 페이지까지 거쳐 온 길을 보여 준다.
+ *
+ * BaseLayout이 모든 페이지 본문 위에 자동으로 넣으므로 보통은 페이지에서 따로 쓰지 않는다.
+ * - 기본: 지금 주소로 사이트 지도(src/config/nav.ts)에서 길을 찾는다. 예: 홈 › 시작하기 › 학생용
+ * - 사이트 지도에 없는 페이지(차시·용어 항목 등)는 BaseLayout의 breadcrumb에 배열을 넘긴다. 마지막 칸(href 없음)이 지금 페이지다.
+ *     breadcrumb={[
+ *       { label: '홈', href: withBase('') },
+ *       { label: '배우기', href: withBase('learn/') },
+ *       { label: 'I. 영상 처리 인공지능', href: withBase('learn/u1/') },
+ *       { label: '1-2-1 컴퓨터의 눈, 인간을 바라보다' },
+ *     ]}
+ * 칸이 하나(홈)뿐이면 아무것도 그리지 않는다.
+ */
+import { navTrail, type BreadcrumbItem } from '../../config/nav.ts';
+import { normalizePagePath } from '../../lib/url.ts';
+
+interface Props {
+  items?: readonly BreadcrumbItem[] | undefined;
+}
+
+const { items } = Astro.props;
+const here = normalizePagePath(Astro.url.pathname);
+const crumbs: readonly BreadcrumbItem[] =
+  items ??
+  navTrail(Astro.url.pathname).map((page) => ({
+    label: page.label,
+    href: page.path === here ? undefined : page.href,
+  }));
+---
+
+{
+  crumbs.length > 1 && (
+    <nav class="breadcrumb" aria-label="현재 위치">
+      <ol class="breadcrumb__list">
+        {crumbs.map((crumb) => (
+          <li class="breadcrumb__item">
+            {crumb.href ? <a href={crumb.href}>{crumb.label}</a> : <span aria-current="page">{crumb.label}</span>}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .breadcrumb {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .breadcrumb__item {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .breadcrumb__item + .breadcrumb__item::before {
+    margin-inline: var(--space-2);
+    color: var(--color-text-muted);
+    content: '›';
+    content: '›' / '';
+  }
+
+  .breadcrumb a {
+    display: inline-block;
+    padding-block: var(--space-2);
+  }
+
+  .breadcrumb [aria-current='page'] {
+    color: var(--color-text-muted);
+  }
+</style>

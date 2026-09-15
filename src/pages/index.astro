@@ -1,23 +1,20 @@
 ---
-// 임시 홈 화면. P1-05(공통 레이아웃과 홈)에서 교체한다.
+// 임시 홈 화면(공통 기반 단계). 홈 담당(PLAN §8.1 P1-05: 큰 버튼 3개와 "보고 → 판단하고 → 움직인다" 흐름 그림)이 이 파일을 바꾼다.
+import PageLinks from '../components/common/PageLinks.astro';
+import { headerNav } from '../config/nav.ts';
 import { siteConfig } from '../config/site.ts';
-
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<!doctype html>
-<html lang="ko">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={siteConfig.description} />
-    <link rel="canonical" href={canonicalUrl} />
-    <title>{siteConfig.name}</title>
-  </head>
-  <body>
-    <main>
-      <h1>{siteConfig.name}</h1>
-      <p>사이트를 준비하고 있어요.</p>
-    </main>
-  </body>
-</html>
+<BaseLayout title={siteConfig.name} isHome>
+  <h1 class="page-title">{siteConfig.name}</h1>
+  <p class="lead">{siteConfig.description}</p>
+  <p class="home-note">사이트를 준비하고 있어요. 지금은 아래 메뉴를 둘러볼 수 있어요.</p>
+  <PageLinks pages={headerNav} />
+</BaseLayout>
+
+<style>
+  .home-note {
+    margin-block-end: var(--space-6);
+  }
+</style>

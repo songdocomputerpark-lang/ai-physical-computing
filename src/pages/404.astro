@@ -1,0 +1,26 @@
+---
+// 없는 주소로 들어왔을 때 보이는 페이지. GitHub Pages가 사이트의 404.html을 보여 준다.
+// 어느 깊이의 주소에서도 열리므로 링크는 모두 base가 붙은 주소(getPage().href)로 쓴다.
+import { getPage } from '../config/nav.ts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const home = getPage('home');
+const search = getPage('search');
+const help = getPage('help');
+---
+
+<BaseLayout
+  title="페이지를 찾을 수 없어요"
+  description="주소가 바뀌었거나 없는 페이지예요."
+  breadcrumb={false}
+  noindex
+  searchIndex={false}
+>
+  <h1 class="page-title">페이지를 찾을 수 없어요</h1>
+  <p class="lead">주소가 바뀌었거나 아직 없는 페이지예요. 주소를 다시 확인하거나 아래에서 찾아보세요.</p>
+  <ul class="link-list">
+    <li><a href={home.href}>첫 화면으로 가기</a></li>
+    <li><a href={search.href}>{search.title}</a></li>
+    <li><a href={help.href}>{help.title}</a></li>
+  </ul>
+</BaseLayout>

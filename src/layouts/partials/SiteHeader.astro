@@ -1,0 +1,298 @@
+---
+/**
+ * 머리글(공통 레이아웃의 일부) — 사이트 이름, 주 메뉴(src/config/nav.ts의 headerNav), 검색 상자 자리.
+ *
+ * - 넓은 화면(75rem 이상): 주 메뉴와 검색 상자가 한 줄에 보인다.
+ * - 좁은 화면: [메뉴] 버튼 뒤에 메뉴가 접힌다. 버튼은 aria-expanded로 열림 상태를 알리고,
+ *   Enter·Space로 열고 닫으며, 열린 채 Esc를 누르면 닫히고 초점이 버튼으로 돌아온다.
+ *   좁은 화면 메뉴에는 아래 페이지(학생용·보드 준비 등)도 함께 보인다.
+ * - 자바스크립트가 꺼져 있으면 버튼 없이 메뉴가 늘 펼쳐져 있다.
+ * - 검색 상자는 src/components/search/HeaderSearch.astro(검색 담당 파일)를 그대로 넣는다.
+ */
+import HeaderSearch from '../../components/search/HeaderSearch.astro';
+import { headerNav, isCurrentPage, isInSection } from '../../config/nav.ts';
+import { siteConfig } from '../../config/site.ts';
+import { normalizePagePath, withBase } from '../../lib/url.ts';
+
+const pathname = Astro.url.pathname;
+const isHome = normalizePagePath(pathname) === '/';
+---
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href={withBase('')} aria-current={isHome ? 'page' : undefined}>
+      <svg class="site-header__logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect class="site-header__logo-bg" width="64" height="64" rx="14"></rect>
+        <circle class="site-header__logo-stroke" cx="22" cy="32" r="10"></circle>
+        <circle class="site-header__logo-fill" cx="22" cy="32" r="3.5"></circle>
+        <path class="site-header__logo-stroke" d="M34 32h8"></path>
+        <rect class="site-header__logo-fill" x="43" y="22" width="11" height="20" rx="3"></rect>
+      </svg>
+      <span class="site-header__name">{siteConfig.name}</span>
+    </a>
+
+    <button class="site-header__menu-button" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-button>
+      <svg class="site-header__menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 7h16M4 12h16M4 17h16"></path>
+      </svg>
+      메뉴
+    </button>
+
+    <div class="site-header__menu" id="site-menu" data-menu>
+      <nav class="site-nav" aria-label="주 메뉴">
+        <ul class="site-nav__list">
+          {
+            headerNav.map((page) => {
+              const current = isCurrentPage(page, pathname);
+              const active = current || isInSection(page, pathname);
+              return (
+                <li class="site-nav__item">
+                  <a
+                    class="site-nav__link"
+                    href={page.href}
+                    aria-current={current ? 'page' : undefined}
+                    data-active={active ? 'true' : undefined}
+                  >
+                    {page.label}
+                  </a>
+                  {page.children.length > 0 && (
+                    <ul class="site-nav__sublist">
+                      {page.children.map((child) => (
+                        <li>
+                          <a
+                            class="site-nav__sublink"
+                            href={child.href}
+                            aria-current={isCurrentPage(child, pathname) ? 'page' : undefined}
+                          >
+                            {child.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+      <div class="site-header__search">
+        <HeaderSearch />
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // 좁은 화면 메뉴 열고 닫기. 버튼과 접힌 상태는 html의 js 클래스(BaseLayout)가 있을 때만 스타일로 나타난다.
+  const button = document.querySelector<HTMLButtonElement>('[data-menu-button]');
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+
+  if (button && menu) {
+    // 아래 스타일의 75rem 기준과 같게 유지한다.
+    const narrowScreen = window.matchMedia('(max-width: 74.99rem)');
+    const isOpen = () => button.getAttribute('aria-expanded') === 'true';
+    const setOpen = (open: boolean) => {
+      button.setAttribute('aria-expanded', String(open));
+      menu.dataset.open = String(open);
+    };
+
+    button.addEventListener('click', () => {
+      setOpen(!isOpen());
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && narrowScreen.matches && isOpen()) {
+        setOpen(false);
+        button.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: relative;
+    z-index: var(--z-header);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    width: min(100% - 2 * var(--gutter), var(--width-page));
+    margin-inline: auto;
+    padding-block: var(--space-2);
+  }
+
+  .site-header__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    margin-inline-end: auto;
+    color: var(--color-text);
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    text-decoration: none;
+  }
+
+  .site-header__brand:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .site-header__logo {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .site-header__logo-bg {
+    fill: var(--color-accent);
+  }
+
+  .site-header__logo-stroke {
+    fill: none;
+    stroke: var(--color-on-accent);
+    stroke-width: 5;
+    stroke-linecap: round;
+  }
+
+  .site-header__logo-fill {
+    fill: var(--color-on-accent);
+  }
+
+  /* 메뉴 버튼: 자바스크립트가 되는 좁은 화면에서만 보인다(아래 미디어 쿼리) */
+  .site-header__menu-button {
+    display: none;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .site-header__menu-button[aria-expanded='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .site-header__menu-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .site-header__menu {
+    flex-basis: 100%;
+  }
+
+  .site-nav__list,
+  .site-nav__sublist {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__list {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .site-nav__link,
+  .site-nav__sublink {
+    display: flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .site-nav__link {
+    font-weight: var(--weight-semibold);
+  }
+
+  .site-nav__link:hover,
+  .site-nav__sublink:hover {
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+  }
+
+  /* 지금 있는 곳: 색과 밑줄 막대를 함께 써서 색만으로 알리지 않는다. */
+  .site-nav__link[data-active],
+  .site-nav__sublink[aria-current='page'] {
+    background: var(--color-accent-soft);
+    box-shadow: inset 0 -3px 0 var(--color-accent);
+    color: var(--color-accent-hover);
+  }
+
+  .site-nav__sublist {
+    padding-inline-start: var(--space-4);
+  }
+
+  .site-header__search {
+    padding-block: var(--space-2);
+  }
+
+  @media (max-width: 74.99rem) {
+    :global(.js) .site-header__menu-button {
+      display: inline-flex;
+    }
+
+    :global(.js) .site-header__menu:not([data-open='true']) {
+      display: none;
+    }
+
+    .site-header__menu {
+      padding-block: var(--space-2) var(--space-3);
+      border-top: 1px solid var(--color-border);
+    }
+  }
+
+  @media (min-width: 30rem) {
+    .site-header__brand {
+      font-size: var(--text-lg);
+    }
+  }
+
+  @media (min-width: 75rem) {
+    .site-header__inner {
+      flex-wrap: nowrap;
+    }
+
+    .site-header__menu {
+      display: flex;
+      flex-basis: auto;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .site-nav__list {
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    .site-nav__sublist {
+      display: none;
+    }
+
+    .site-header__search {
+      padding-block: 0;
+    }
+  }
+</style>

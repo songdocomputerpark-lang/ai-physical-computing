@@ -25,6 +25,8 @@ export const siteConfig = {
   base: '/ai-physical-computing',
   /** 공개 저장소 */
   repositoryUrl: 'https://github.com/songdocomputerpark-lang/ai-physical-computing',
+  /** 문제 알리기·질문(GitHub Issues). 바닥글과 기여·문의 페이지가 쓴다. */
+  issuesUrl: 'https://github.com/songdocomputerpark-lang/ai-physical-computing/issues',
   /** 사이트 버전. package.json의 version을 그대로 쓴다. */
   version: packageJson.version,
   /** 라이선스(DECISIONS C3, 적용 범위는 PLAN PD-26). LICENSE 파일들은 P1-10에서 만든다. */
@@ -43,8 +45,11 @@ export const siteConfig = {
       url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko',
       appliesTo: '학습 자료와 예제(content/·examples/, 원본 자료에서 옮긴 예제 코드 포함)와 자체 제작 그림',
     },
-    exclusion:
-      '다른 저작자가 만든 자료와 공개 라이브러리(출처와 라이선스 페이지에 따로 표시)는 이 두 라이선스에서 빠지고 원래 조건을 따릅니다.',
+    /**
+     * 제3자 자료 제외 문구(PD-26). 출처와 라이선스 페이지 안에서도 쓰므로 그 페이지를 가리키는 말은 넣지 않는다.
+     * 바닥글은 이 문장 뒤에 출처와 라이선스 페이지 링크를 붙인다.
+     */
+    exclusion: '다른 저작자가 만든 자료와 공개 라이브러리는 이 두 라이선스에서 빠지고, 원래 조건을 따라요.',
   },
 } as const;
 

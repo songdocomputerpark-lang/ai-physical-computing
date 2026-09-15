@@ -1,0 +1,106 @@
+/*
+ * 상자 스타일(PLAN §2.6 상자 문법).
+ * 마크다운 상자(src/lib/remark-boxes.mjs)와 <Callout>(src/components/common/Callout.astro)이 같은 HTML을 만들고 이 스타일을 함께 쓴다.
+ *   <div class="box box--why" data-box="why" role="note"><p class="box__title">…</p>…</div>
+ *   <details class="box box--teacher" data-box="teacher"><summary class="box__title">…</summary>…</details>
+ * 색은 tokens.css 변수만 쓴다(글자 4.5:1, 테두리 3:1 이상 — 값은 tokens.css 주석).
+ * 상자의 뜻은 색만이 아니라 제목 글자로도 전한다.
+ */
+.box {
+  --box-bg: var(--color-bg-subtle);
+  --box-border: var(--color-border-strong);
+  --box-title: var(--color-text);
+
+  margin-block: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--box-border);
+  border-inline-start-width: 0.375rem;
+  border-radius: var(--radius-md);
+  background: var(--box-bg);
+}
+
+.box > * + * {
+  margin-block-start: var(--space-3);
+}
+
+.box > .box {
+  margin-block: var(--space-4) 0;
+}
+
+.box__title {
+  margin: 0;
+  color: var(--box-title);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+}
+
+/* 접는 상자: 제목 줄 전체가 누르는 곳 */
+details.box > summary.box__title {
+  display: list-item;
+  min-height: var(--target-min);
+  margin-block: calc(-1 * var(--space-2));
+  padding-block: var(--space-2);
+  cursor: pointer;
+}
+
+details.box > summary.box__title::marker {
+  color: var(--box-title);
+}
+
+details.box[open] > summary.box__title {
+  margin-block-end: var(--space-2);
+}
+
+/* 배우는 흐름의 상자: 강조색 */
+.box--why,
+.box--try,
+.box--challenge {
+  --box-bg: var(--color-accent-soft);
+  --box-border: var(--color-accent-border);
+  --box-title: var(--color-accent-hover);
+}
+
+.box--hint,
+.box--answer {
+  --box-bg: var(--color-bg);
+  --box-border: var(--color-accent-border);
+  --box-title: var(--color-accent-hover);
+}
+
+.box--teacher {
+  --box-bg: var(--color-bg-subtle);
+  --box-border: var(--color-border-strong);
+  --box-title: var(--color-text);
+}
+
+/* 뜻이 있는 상자: 상태색 */
+.box--check {
+  --box-bg: var(--color-success-bg);
+  --box-border: var(--color-success-border);
+  --box-title: var(--color-success-text);
+}
+
+.box--trouble {
+  --box-bg: var(--color-danger-bg);
+  --box-border: var(--color-danger-border);
+  --box-title: var(--color-danger-text);
+}
+
+.box--caution {
+  --box-bg: var(--color-warning-bg);
+  --box-border: var(--color-warning-border);
+  --box-title: var(--color-warning-text);
+}
+
+.box--note {
+  --box-bg: var(--color-info-bg);
+  --box-border: var(--color-info-border);
+  --box-title: var(--color-info-text);
+}
+
+/* 인쇄할 때는 접힌 상자도 내용이 보이게 제목 표시만 남긴다(브라우저가 닫힌 details 내용을 인쇄하지 않음). */
+@media print {
+  .box {
+    break-inside: avoid;
+  }
+}

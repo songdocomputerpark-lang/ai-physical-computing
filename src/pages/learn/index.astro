@@ -1,0 +1,17 @@
+---
+// 자리 페이지(공통 기반 단계, 2026-09-16). 배우기 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-06).
+// 대단원 목록(learnUnits)은 src/config/nav.ts에 있다.
+import ComingSoon from '../../components/common/ComingSoon.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('learn');
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <ComingSoon what="단원과 차시 목록" when="사이트 뼈대를 만드는 지금 단계(Phase 1)">
+    <p>차시 본문은 교과서 내용을 옮기는 단계(Phase 5)에서 모두 채워요.</p>
+  </ComingSoon>
+</BaseLayout>

@@ -1,0 +1,15 @@
+---
+// 자리 페이지(공통 기반 단계, 2026-09-16). 검색 담당이 Pagefind 검색 화면으로 바꾼다(PLAN §8.1 P1-11).
+// 설정 값(검색어 이름 q, Pagefind 폴더, baseUrl)은 src/config/search.ts에 있다.
+import ComingSoon from '../../components/common/ComingSoon.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('search');
+---
+
+<BaseLayout title={page.title} description={page.description} searchIndex={false}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <ComingSoon what={page.title} when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+</BaseLayout>

@@ -1,0 +1,105 @@
+---
+/**
+ * 페이지 링크 카드 목록 — 사이트 지도(src/config/nav.ts)의 페이지 묶음을 제목과 한 줄 설명으로 보여 준다.
+ *
+ * 쓰는 법
+ *   <PageLinks pages={getPage('start').children} />
+ *   <PageLinks pages={headerNav} headingLevel={3} />
+ *
+ * props
+ *   pages         보여 줄 페이지(NavPage 목록)
+ *   headingLevel  (선택) 카드 제목의 단계 2~4(기본 2)
+ * 카드 전체를 눌러도 이동한다(링크는 제목 글자 하나라서 화면 낭독기에는 한 번만 읽힌다).
+ */
+import type { NavPage } from '../../config/nav.ts';
+
+interface Props {
+  pages: readonly NavPage[];
+  headingLevel?: 2 | 3 | 4;
+}
+
+const { pages, headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+---
+
+<ul class="page-links">
+  {
+    pages.map((page) => (
+      <li class="page-links__item">
+        <Heading class="page-links__title">
+          <a class="page-links__link" href={page.href}>
+            {page.title}
+          </a>
+        </Heading>
+        <p class="page-links__description">{page.description}</p>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .page-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .page-links__item {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .page-links__item:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  .page-links__title {
+    font-size: var(--text-lg);
+  }
+
+  .page-links__link {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .page-links__link:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* 카드 전체를 누르는 곳으로 넓힌다 */
+  .page-links__link::after {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    content: '';
+  }
+
+  .page-links__link:focus-visible {
+    outline: none;
+  }
+
+  .page-links__link:focus-visible::after {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .page-links__description {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+</style>

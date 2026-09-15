@@ -1,0 +1,15 @@
+---
+// 자리 페이지(공통 기반 단계, 2026-09-16). 용어사전 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-07).
+// 항목은 content/glossary/*.md(src/content.config.ts의 glossary 컬렉션)에 둔다.
+import ComingSoon from '../../components/common/ComingSoon.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('glossary');
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <ComingSoon what={page.label} when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+</BaseLayout>

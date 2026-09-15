@@ -1,0 +1,16 @@
+---
+// 자리 페이지(공통 기반 단계, 2026-09-16). 문제 해결 담당이 실제 화면으로 바꾼다(오류 사전 Phase 2~, FAQ Phase 5).
+import ComingSoon from '../../components/common/ComingSoon.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('help');
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <ComingSoon what="자주 묻는 질문과 오류 풀이" when="영상처리 실습실을 만드는 단계(Phase 2)">
+    <p>그 뒤로 교과서 내용을 옮기는 단계(Phase 5)까지 계속 늘어나요.</p>
+  </ComingSoon>
+</BaseLayout>

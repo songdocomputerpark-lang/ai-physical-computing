@@ -1,0 +1,126 @@
+/*
+ * 디자인 토큰(PLAN §8.1 P1-05, SPEC §9) — 색·글자·간격·모서리·움직임 값을 한 곳에 모은 CSS 변수.
+ * 화면 코드는 색이나 크기를 직접 적지 않고 이 변수를 쓴다. 이 파일은 global.css가 불러온다.
+ *
+ * 방향: 밝고 또렷한 교육용 톤. 강조색은 파랑 한 가지(링크·주요 버튼·선택 표시)만 쓰고,
+ * 초록·노랑·빨강 상태색은 뜻이 있는 상자(확인·주의·오류)에만 쓴다. 다크 모드는 넣지 않았다(SPEC §9 선택).
+ *
+ * 명도 대비(WCAG 2.2 AA): 본문 글자 4.5:1 이상, 초점 표시·입력칸 테두리 같은 조작 요소 3:1 이상.
+ * 괄호 안 값은 2026-09-16에 WCAG 상대 휘도 공식으로 계산한 대비다. 색을 바꾸면 다시 계산해 이 주석을 고친다.
+ *
+ * 글자 크기는 rem(브라우저 기본 글자 크기 기준)으로 적는다. 사용자가 브라우저 글자 크기를 키우면 화면 글자도 함께 커진다.
+ */
+:root {
+  /* ── 바탕과 글자 ── */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f6f8fb; /* 바닥글·교사용 상자 바탕 */
+  --color-bg-muted: #edf1f6; /* 표 머리·인라인 코드 바탕 */
+  --color-text: #17191c; /* 대비: bg 17.61, bg-subtle 16.56, bg-muted 15.53 */
+  --color-text-muted: #4a5361; /* 대비: bg 7.77, bg-subtle 7.31, bg-muted 6.85, accent-soft 6.85 */
+  --color-border: #d6dde6; /* 꾸밈 선(뜻을 전하지 않는 구분선에만) */
+  --color-border-strong: #7b8594; /* 입력칸·버튼·카드 테두리. 대비: bg 3.73, bg-subtle 3.51 */
+  --color-selection: #cfdefc; /* 글자 선택 바탕 */
+
+  /* ── 강조색(파랑 한 가지) ── */
+  --color-accent: #1f5bd6; /* 링크·주요 버튼. 대비: bg 5.96, bg-subtle 5.60, bg-muted 5.25, accent-soft 5.25, 흰 글자 5.96 */
+  --color-accent-hover: #1a4cb4; /* 마우스를 올렸을 때·상자 제목. 대비: bg 7.67, 흰 글자 7.67 */
+  --color-accent-active: #163f96; /* 누르는 동안. 대비: 흰 글자 9.61 */
+  --color-accent-soft: #eaf1fe; /* 강조 상자·선택된 메뉴 바탕 */
+  --color-accent-border: #5b87e0; /* 강조 상자 테두리. 대비: bg 3.51, accent-soft 3.09 */
+  --color-on-accent: #ffffff; /* 강조색 위 글자 */
+
+  /* ── 초점 표시(키보드로 이동할 때 보이는 테두리) ── */
+  --color-focus: #0b50c8; /* 대비: bg 7.01, bg-subtle 6.59, bg-muted 6.18, accent-soft 6.18 */
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+
+  /* ── 상태색(뜻이 있는 상자에만) ── */
+  --color-success-text: #15653a; /* 대비: success-bg 6.38 */
+  --color-success-bg: #e8f6ee;
+  --color-success-border: #3b9360; /* 대비: bg 3.80, success-bg 3.41 */
+  --color-warning-text: #7a4a00; /* 대비: warning-bg 6.83 */
+  --color-warning-bg: #fff4d8;
+  --color-warning-border: #b7800f; /* 대비: bg 3.44, warning-bg 3.14 */
+  --color-danger-text: #a3232a; /* 대비: danger-bg 6.49 */
+  --color-danger-bg: #fdecec;
+  --color-danger-border: #d24b4b; /* 대비: bg 4.33, danger-bg 3.79 */
+  --color-info-text: #334155; /* 대비: info-bg 9.45 */
+  --color-info-bg: #f1f5f9;
+  --color-info-border: #6b7a8f; /* 대비: bg 4.37, info-bg 3.99 */
+
+  /* ── 글꼴 ── */
+  /* Pretendard(자체 호스팅, public/fonts/pretendard/)를 먼저 쓰고, 받기 전이나 못 받으면 운영체제 한글 글꼴로 보인다. */
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue',
+    'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', 'Segoe UI Mono', Consolas, 'D2Coding', 'Malgun Gothic',
+    monospace;
+
+  /* ── 글자 크기 단계(브라우저 기본 16px일 때의 크기) ── */
+  --text-xs: 0.8125rem; /* 13px */
+  --text-sm: 0.9375rem; /* 15px */
+  --text-base: 1.0625rem; /* 17px — 본문 */
+  --text-lg: 1.25rem; /* 20px */
+  --text-xl: 1.5rem; /* 24px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: clamp(2rem, 1.6rem + 1.4vw, 2.5rem); /* 32~40px — 페이지 제목 */
+
+  --leading-tight: 1.3; /* 제목 */
+  --leading-snug: 1.5; /* 짧은 글·버튼 */
+  --leading-body: 1.75; /* 한국어 본문 */
+  --tracking-heading: -0.01em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ── 간격 단계 ── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ── 폭·모서리·그림자 ── */
+  --width-prose: 44rem; /* 글 읽기 폭: 한 줄 한글 40자 안팎 */
+  --width-page: 76rem; /* 기본 페이지 폭 */
+  --gutter: clamp(1rem, 4vw, 2rem); /* 화면 가장자리 여백 */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgb(23 25 28 / 0.08);
+  --shadow-md: 0 4px 16px rgb(23 25 28 / 0.1);
+
+  /* ── 누르는 곳 최소 크기(44px, 손가락·마우스 모두 편하게) ── */
+  --target-min: 2.75rem;
+
+  /* ── 움직임 ── */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ── 겹침 순서 ── */
+  --z-header: 100;
+  --z-skip-link: 1000;
+}
+
+/* 운영체제의 "동작 줄이기(애니메이션 줄이기)" 설정을 존중한다. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}
+
+/* 사이트 안 설정으로 움직임을 줄일 때 쓰는 자리(<html data-motion="reduce">). 설정 화면은 아직 없다. */
+:root[data-motion='reduce'] {
+  --duration-fast: 0ms;
+  --duration-base: 0ms;
+}
