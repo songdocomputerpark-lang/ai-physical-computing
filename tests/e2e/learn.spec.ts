@@ -109,7 +109,8 @@ test.describe('차시 페이지', () => {
     const example = page.locator('.lesson-example');
     await expect(example.locator('.lesson-code')).toContainText('photos = [');
     await expect(example.locator('.lesson-code__line').first()).toHaveText(/^# 1-1-1 체험/u);
-    await expect(example.getByRole('link', { name: '실습실에서 열기' })).toHaveAttribute(
+    await expect(example.getByRole('region', { name: /코드, \d+줄$/u })).toHaveCount(1);
+    await expect(example.getByRole('link', { name: '실습실에서 열기(준비 중)' })).toHaveAttribute(
       'href',
       `${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u1/1-1-1-sort-vs-group.py')}`,
     );

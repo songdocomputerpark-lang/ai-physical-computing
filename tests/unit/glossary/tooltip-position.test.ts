@@ -14,20 +14,26 @@ function rect(left: number, top: number, width = 40, height = 24) {
 }
 
 describe('툴팁 위치 계산(src/components/glossary/tooltip-position.ts)', () => {
-  it('아래 자리가 넉넉하면 용어 바로 아래에 왼쪽 끝을 맞춰 놓는다', () => {
+  it('위 자리가 넉넉하면 용어 바로 위에 왼쪽 끝을 맞춰 놓는다(읽던 문장의 다음 줄을 가리지 않게)', () => {
     expect(computeTooltipPosition(rect(100, 200), { width: 200, height: 80 }, PHONE)).toEqual({
-      top: 200 + 24 + TOOLTIP_GAP,
+      top: 200 - TOOLTIP_GAP - 80,
+      left: 100,
+      placement: 'above',
+    });
+  });
+
+  it('위 자리가 모자라면(화면 맨 위 근처의 용어) 용어 아래에 놓는다', () => {
+    expect(computeTooltipPosition(rect(100, 40), { width: 200, height: 80 }, PHONE)).toEqual({
+      top: 40 + 24 + TOOLTIP_GAP,
       left: 100,
       placement: 'below',
     });
   });
 
-  it('아래 자리가 모자라고 위가 더 넓으면 용어 위에 놓는다', () => {
-    expect(computeTooltipPosition(rect(100, 760), { width: 200, height: 80 }, PHONE)).toEqual({
-      top: 760 - TOOLTIP_GAP - 80,
-      left: 100,
-      placement: 'above',
-    });
+  it('위·아래 모두 모자라면 더 넓은 쪽에 놓는다', () => {
+    const tall = { width: 200, height: 700 };
+    expect(computeTooltipPosition(rect(100, 760), tall, PHONE).placement).toBe('above');
+    expect(computeTooltipPosition(rect(100, 30), tall, PHONE).placement).toBe('below');
   });
 
   it('오른쪽·왼쪽 가장자리를 넘으면 여백만큼 안쪽으로 밀어 넣는다', () => {

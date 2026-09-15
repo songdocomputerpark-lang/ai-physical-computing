@@ -56,7 +56,8 @@ const related = data.related.flatMap((relatedId) => {
     )
   }
 
-  <dl class="glossary-entry__meta">
+  {/* 다른 이름·함께 보면 좋은 낱말·나오는 차시는 검색 결과 요약에 "함께 보면 좋은 낱말 픽셀"처럼 라벨이 섞여 뜻이 통하지 않으므로 색인에서 뺀다(2026-09-16 검토 반영). 다른 이름은 별칭이라 찾히게 두고 싶으면 data-pagefind-meta로 옮긴다. */}
+  <dl class="glossary-entry__meta" data-pagefind-ignore>
     {
       data.aliases.length > 0 && (
         <div class="glossary-entry__row">

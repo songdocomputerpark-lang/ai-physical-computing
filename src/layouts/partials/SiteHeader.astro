@@ -282,16 +282,25 @@ const isHome = normalizePagePath(pathname) === '/';
     }
   }
 
+  /*
+   * 넓은 화면: 이름·메뉴·검색이 한 줄. flex-wrap은 그대로 두어(nowrap 아님) 글자만 200%로 키운 브라우저처럼
+   * 한 줄에 다 들어가지 않으면 메뉴 묶음이 다음 줄로 내려가고, 묶음 안에서도 검색 상자가 줄을 바꾼다
+   * (2026-09-16 검토 반영: nowrap이던 때 글자 200%에서 277px 넘쳐 검색 상자가 화면 밖으로 나갔다).
+   */
   @media (min-width: 75rem) {
-    .site-header__inner {
-      flex-wrap: nowrap;
-    }
-
     .site-header__menu {
       display: flex;
-      flex-basis: auto;
+      flex: 0 1 auto;
+      flex-wrap: wrap;
       align-items: center;
-      gap: var(--space-4);
+      gap: var(--space-2) var(--space-4);
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .site-header__search {
+      flex: 1 1 12rem;
+      min-width: 0;
     }
 
     .site-nav__list {

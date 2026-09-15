@@ -30,6 +30,7 @@ const exampleHref = (word: string) => withBase(`search/?${searchConfig.queryPara
   data-base-url={searchConfig.baseUrl}
   data-query-param={searchConfig.queryParam}
   data-sections={JSON.stringify(sections)}
+  data-anchor-pages={JSON.stringify(searchConfig.anchorPages)}
 >
   <form class="search-page__form" role="search" aria-label="검색어로 찾기" action={searchConfig.pageHref} method="get" data-search-form>
     <label class="search-page__label" for="search-page-input">검색어</label>

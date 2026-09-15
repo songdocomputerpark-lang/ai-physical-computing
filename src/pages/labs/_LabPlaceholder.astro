@@ -8,12 +8,20 @@
  *     <Callout type="참고" title="…"><p>…</p></Callout>   ← (선택) 이 실습실만의 안내
  *   </LabPlaceholder>
  *
+ * 화면 순서(2026-09-16 검토 반영: 막다른 길처럼 보이지 않게)
+ *   제목 → 한 줄 설명 → 준비 중 상자(언제 생기는지 + 그동안 볼 수 있는 곳 링크 + 차시에서 넘어온 예제 안내)
+ *   → "준비되면 이런 걸 해요" 목록 → 슬롯 안내 → "그동안 둘러볼 곳" 카드(설명이 있는 큰 카드)
+ *
+ * 차시 페이지의 [실습실에서 열기]는 ?example=파일 경로를 붙여 온다(src/components/lesson/lesson-data.ts의 labLink).
+ * 실습실이 생기기 전까지는 그 값을 읽어 "이 예제는 실습실이 생기면 여기서 열려요"를 보이고 이전 페이지로 돌아갈 수 있게 한다.
+ *
  * 사이트 검색(Pagefind) 색인 규칙
  * - 색인함: 페이지 제목·한 줄 설명·"준비되면 이런 걸 해요" 목록·슬롯 안내 → 이 낱말로 찾아오면 무엇이 생길지 알 수 있다.
  * - 색인 안 함(data-pagefind-ignore): "준비 중이에요 … 에 생겨요" 같은 판에 박힌 문장과 다른 페이지로 가는 카드
  *   → 모든 자리 페이지에 같은 문장이 있어 검색 결과만 늘리기 때문이다.
  *
  * 브라우저 권장 환경 안내: _labs.ts의 browserNotice가 true인 실습실은 BrowserNotice를 안내 자리(notice 슬롯)에 넣는다(SPEC §9).
+ * 자리 페이지 동안은 모두 false다(_labs.ts 주석).
  */
 import BrowserNotice from '../../components/compat/BrowserNotice.astro';
 import ComingSoon from '../../components/common/ComingSoon.astro';
@@ -31,6 +39,7 @@ const { id } = Astro.props;
 const page = getPage(id);
 const plan = getLabPlan(id);
 const related = plan.relatedIds.map((relatedId) => getPage(relatedId));
+const relatedLinks = related.map((relatedPage) => ({ label: relatedPage.title, href: relatedPage.href }));
 ---
 
 <BaseLayout title={page.title} description={page.description}>
@@ -39,7 +48,14 @@ const related = plan.relatedIds.map((relatedId) => getPage(relatedId));
   <p class="lead">{page.description}</p>
 
   <div data-pagefind-ignore>
-    <ComingSoon what={page.label} when={plan.when} />
+    <ComingSoon what={page.label} when={plan.when} links={relatedLinks}>
+      <p class="lab-example" data-lab-example hidden>
+        차시에서 고른 예제 <code data-lab-example-file></code>는 실습실이 생기면 여기서 바로 열려요. 지금은 차시 페이지에서 코드를 읽어
+        볼 수 있어요.{' '}
+        <button type="button" class="lab-example__back" data-lab-example-back hidden>이전 페이지로 돌아가기</button>
+      </p>
+      <p>그동안 아래 페이지를 둘러볼 수 있어요.</p>
+    </ComingSoon>
   </div>
 
   <section class="lab-plan" aria-labelledby="lab-plan-features">
@@ -55,6 +71,32 @@ const related = plan.relatedIds.map((relatedId) => getPage(relatedId));
     <PageLinks pages={related} headingLevel={3} />
   </section>
 </BaseLayout>
+
+<script>
+  // 차시 페이지에서 ?example=파일 경로로 넘어왔으면 그 예제가 어디서 열릴지 알린다(주소 값은 글자로만 넣는다).
+  const note = document.querySelector<HTMLElement>('[data-lab-example]');
+  const example = new URLSearchParams(window.location.search).get('example');
+  if (note && example && /^[\w./-]{1,200}\.py$/u.test(example) && !example.includes('..')) {
+    const file = note.querySelector<HTMLElement>('[data-lab-example-file]');
+    if (file) {
+      file.textContent = `examples/${example}`;
+    }
+    note.hidden = false;
+    const back = note.querySelector<HTMLButtonElement>('[data-lab-example-back]');
+    let cameFromSite = false;
+    try {
+      cameFromSite = document.referrer !== '' && new URL(document.referrer).origin === window.location.origin;
+    } catch {
+      cameFromSite = false;
+    }
+    if (back && cameFromSite && window.history.length > 1) {
+      back.hidden = false;
+      back.addEventListener('click', () => {
+        window.history.back();
+      });
+    }
+  }
+</script>
 
 <style>
   .lab-plan {
@@ -75,5 +117,37 @@ const related = plan.relatedIds.map((relatedId) => getPage(relatedId));
     display: grid;
     gap: var(--space-2);
     padding-inline-start: 1.5em;
+  }
+
+  .lab-example {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    line-height: var(--leading-snug);
+  }
+
+  .lab-example code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    overflow-wrap: anywhere;
+  }
+
+  .lab-example__back {
+    display: inline-block;
+    min-height: var(--target-min);
+    margin-block-start: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-accent-hover);
+    font: inherit;
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .lab-example__back:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
   }
 </style>

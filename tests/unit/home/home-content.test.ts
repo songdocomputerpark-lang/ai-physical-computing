@@ -9,6 +9,7 @@ import {
   toggleLabel,
 } from '../../../src/components/home/flow-motion.ts';
 import {
+  COMING_SOON_BADGE,
   flowFigure,
   homeActions,
   homeFeatures,
@@ -54,6 +55,11 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     expect(homeActions.map((action) => action.variant)).toEqual(['primary', 'secondary', 'secondary']);
   });
 
+  it('아직 자리 페이지로 가는 실습실 버튼 2개에는 "준비 중" 표시가 붙고, 보드 준비 버튼에는 붙지 않는다', () => {
+    expect(homeActions.filter((action) => action.status === 'coming-soon').map((action) => action.id)).toEqual(['camera', 'virtual-board']);
+    expect(COMING_SOON_BADGE).toBe('준비 중');
+  });
+
   it('버튼 식별자가 겹치지 않고, 버튼 설명은 좁은 휴대폰에서도 한 줄에 들어갈 만큼 짧다', () => {
     /**
      * 글자 폭 어림값: 한글 한 글자 = 1, 영문·숫자 = 0.75, 띄어쓰기·문장 부호 = 0.3.
@@ -78,12 +84,14 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     }
   });
 
-  it('제목은 "보고, 판단하고, 움직이는"으로 시작하고, 소개는 한 문장이며 ESP32를 처음 쓸 때 풀이한다', () => {
+  it('제목은 "보고, 판단하고, 움직이는"으로 시작하고, 소개는 한 문장이며 과목 이름과 ESP32 풀이가 있다', () => {
     expect(homeHero.titleLines.join(' ')).toBe('보고, 판단하고, 움직이는 인공지능을 만들어요');
     expect(countSentences(homeHero.lead)).toBe(1);
     expect(homeHero.lead.endsWith('.')).toBe(true);
     expect(homeHero.lead).toMatch(/ESP32 보드\([^)]+\)/u);
     expect(homeHero.lead).toContain('설치 없이');
+    // 첫 화면에서 어떤 과목의 사이트인지 알 수 있게(SPEC §5 "30초 안에 이해", 2026-09-16 검토 반영)
+    expect(homeHero.lead).toContain('인공지능과 피지컬 컴퓨팅');
   });
 });
 

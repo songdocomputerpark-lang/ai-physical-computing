@@ -67,12 +67,11 @@ import { searchConfig } from '../../config/search.ts';
   }
 
   @media (min-width: 75rem) {
-    .header-search {
-      width: auto;
-    }
-
+    /* 넓은 화면에서는 검색 상자가 메뉴 옆 남은 자리(머리글 SiteHeader.astro의 .site-header__search)에 맞춰 줄어든다. 입력칸은 10rem을 바라되 자리가 없으면 더 좁아진다. */
     .header-search__input {
+      flex: 1 1 10rem;
       width: 10rem;
+      max-width: 100%;
     }
   }
 </style>

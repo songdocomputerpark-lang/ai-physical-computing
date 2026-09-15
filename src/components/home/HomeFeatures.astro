@@ -2,7 +2,8 @@
 /**
  * 홈 아래쪽 "이 사이트로 할 수 있는 것" 카드(PLAN §8.1 P1-05). 글과 링크는 home-content.ts에 있다.
  * 카드 전체를 눌러도 이동한다. 링크는 제목 글자 하나라서 화면 낭독기에는 한 번만 읽히고 Tab도 카드마다 한 번이다.
- * 카드 안 작은 칸(들어 있는 것)은 글자일 뿐 링크가 아니다. 아직 없는 페이지(예: 대단원)로 가는 링크를 만들지 않으려는 것이다.
+ * "들어 있는 것"은 쉼표로 이은 보통 글자다. 아직 없는 페이지(예: 대단원)로 가는 링크를 만들지 않으려는 것이고,
+ * 알약 모양 칸은 누를 수 있는 버튼처럼 보여 초보자가 눌러 보므로 쓰지 않는다(2026-09-16 검토 반영).
  */
 import HomeIcon from './HomeIcon.astro';
 import { homeFeatures } from './home-content.ts';
@@ -23,11 +24,7 @@ import { homeFeatures } from './home-content.ts';
             </a>
           </h3>
           <p class="feature__description">{card.description}</p>
-          <ul class="feature__items" role="list">
-            {card.items.map((item) => (
-              <li class="feature__item">{item}</li>
-            ))}
-          </ul>
+          <p class="feature__items">{card.items.join(', ')}</p>
         </li>
       ))
     }
@@ -115,18 +112,7 @@ import { homeFeatures } from './home-content.ts';
   }
 
   .feature__items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .feature__item {
-    padding: 0.125rem var(--space-2);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg-muted);
+    color: var(--color-text-muted);
     font-size: var(--text-xs);
     line-height: var(--leading-snug);
   }

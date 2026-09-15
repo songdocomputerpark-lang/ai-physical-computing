@@ -69,15 +69,17 @@ const panels = examples.map((example, index) => {
         <span class="lesson-example__file">examples/{panel.file}</span>
       </figcaption>
       {/* <pre> 안의 공백은 그대로 보이므로 <pre>와 <code> 사이에 줄바꿈·들여쓰기를 두지 않는다. */}
+      {/* 가로로 스크롤되는 코드 상자는 키보드로도 스크롤할 수 있게 초점을 받는다. 이름은 region 역할에 붙여야 화면 낭독기가 읽는다(일반 요소의 aria-label은 읽지 않을 수 있음). */}
       {panel.rendered ? (
-        <pre class="lesson-code" tabindex="0" aria-label={`${panel.title} 코드, ${panel.rendered.lineCount}줄`}><code set:html={panel.rendered.html} /></pre>
+        <pre class="lesson-code" tabindex="0" role="region" aria-label={`${panel.title} 코드, ${panel.rendered.lineCount}줄`}><code set:html={panel.rendered.html} /></pre>
       ) : (
         <p class="lesson-example__missing">예제 파일을 준비하고 있어요.</p>
       )}
       <div class="lesson-example__actions">
+        {/* 실습실이 아직 자리 페이지라 보조 버튼으로 둔다(P2-14에서 실습실이 생기면 button--primary로 되돌린다). */}
         {panel.link && (
-          <a class="button button--primary" href={panel.link.href}>
-            실습실에서 열기
+          <a class="button button--secondary" href={panel.link.href}>
+            실습실에서 열기(준비 중)
           </a>
         )}
         <p class="lesson-example__note">

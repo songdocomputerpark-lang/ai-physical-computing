@@ -94,8 +94,26 @@ test.describe('사이트 검색(색인과 결과)', () => {
     await page.goto(searchUrl('행동하면서'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
     const hrefs = await collectResultHrefs(page);
-    expect(hrefs).toContain(getPage('glossary').href);
+    // 용어사전 결과는 항목 위치(#id)가 붙은 주소로 나온다.
+    expect(hrefs).toContain(`${getPage('glossary').href}#agent`);
     expect(hrefs).not.toContain(withBase('learn/u1/1-1-1/'));
+  });
+
+  test('용어사전 결과는 그 낱말의 항목으로 바로 이어지고("픽셀 — 용어사전" → #pixel), 요약에 "함께 보면 좋은 낱말" 같은 라벨이 섞이지 않는다', async ({ page }) => {
+    await page.goto(searchUrl('픽셀'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
+    await collectResultHrefs(page);
+    const glossaryHref = `${getPage('glossary').href}#pixel`;
+    const result = resultItems(page).filter({ has: page.locator(`h3 a[href="${glossaryHref}"]`) });
+    await expect(result).toHaveCount(1);
+    await expect(result.locator('.search-result__title')).toHaveText(/^픽셀 .*— 용어사전$/u);
+    await expect(result.locator('.search-result__excerpt')).not.toContainText('함께 보면 좋은 낱말');
+    await expect(result.locator('.search-result__excerpt')).not.toContainText('나오는 차시');
+    await expect(resultItems(page).locator('h3 a', { hasText: '출처와 라이선스' })).toHaveCount(0);
+
+    await result.locator('h3 a').click();
+    await expect(page).toHaveURL(/\/glossary\/#pixel$/u);
+    await expect(page.locator('h3#pixel')).toBeInViewport();
   });
 
   test('검색·404 페이지는 결과에 나오지 않는다', async ({ page }) => {

@@ -8,17 +8,52 @@
  * - 더 받는 코드가 적다: pagefind.js(약 45KB)와 WebAssembly(약 68KB)만 받는다(기본 화면은 pagefind-ui.js 약 120KB가 더 든다).
  *
  * 쓰는 Pagefind API(pagefind.app/docs/api/, 2026-09-16 확인): options({ baseUrl, excerptLength }), init(), search(검색어)
- * → results[].data() → { url, excerpt, meta.title }. excerpt는 Pagefind가 글자를 이스케이프한 뒤 <mark>만 붙인 HTML이다.
+ * → results[].data() → { url, excerpt, meta.title, sub_results[] }. excerpt는 Pagefind가 글자를 이스케이프한 뒤 <mark>만 붙인 HTML이다.
  * 그래도 이 화면은 excerpt를 innerHTML로 넣지 않고 글자와 <mark>만 골라 새로 만든다.
+ * sub_results는 id가 있는 제목(h1~h6) 단위의 결과로 { title(제목 글자), url(#id가 붙은 주소), excerpt }를 준다.
+ * 용어사전처럼 한 페이지에 항목이 많은 페이지(src/config/search.ts의 anchorPages)는 이 값을 써서 항목으로 바로 이어 준다.
  *
  * 화면 상태는 뿌리 요소의 data-state로 알린다(테스트가 기다리는 기준): idle · loading · results · empty · error
  */
+
+/** 제목(id가 있는 h1~h6) 단위의 결과 */
+interface PagefindSubResult {
+  title: string;
+  url: string;
+  excerpt: string;
+}
 
 /** 검색 결과 한 건의 내용(쓰는 필드만) */
 interface PagefindResultData {
   url: string;
   excerpt: string;
   meta?: { title?: string };
+  sub_results?: PagefindSubResult[];
+}
+
+/** 화면에 그릴 결과 한 건 */
+interface ResultView {
+  title: string;
+  url: string;
+  excerpt: string;
+}
+
+/**
+ * 항목 단위 페이지의 결과를 가장 잘 맞는 항목으로 바꾼다.
+ * 제목이 검색어로 시작하는 항목(예: "픽셀" → "픽셀 Pixel")을 먼저 고르고, 없으면 검색어가 든 첫 항목, 그것도 없으면 첫 항목.
+ * 항목이 없으면(제목 앞의 글에서만 맞음) 페이지 결과를 그대로 쓴다. 순수 함수라 단위 테스트가 검사한다.
+ */
+export function pickAnchoredResult(data: PagefindResultData, term: string): ResultView {
+  const pageTitle = data.meta?.title?.trim() || data.url;
+  const anchored = (data.sub_results ?? []).filter((sub) => sub.url.includes('#') && sub.title.trim() !== '');
+  if (anchored.length === 0) {
+    return { title: pageTitle, url: data.url, excerpt: data.excerpt };
+  }
+  const needle = term.trim().toLowerCase();
+  const startsWith = anchored.find((sub) => sub.title.trim().toLowerCase().startsWith(needle));
+  const includes = anchored.find((sub) => sub.title.toLowerCase().includes(needle));
+  const chosen = startsWith ?? includes ?? anchored[0];
+  return { title: `${chosen.title.trim()} — ${pageTitle}`, url: chosen.url, excerpt: chosen.excerpt };
 }
 
 interface PagefindResult {
@@ -64,6 +99,18 @@ function parseSections(json: string | undefined): SectionLabel[] {
   }
 }
 
+function parseStringList(json: string | undefined): string[] {
+  if (!json) {
+    return [];
+  }
+  try {
+    const value: unknown = JSON.parse(json);
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
 /** Pagefind 요약(HTML)에서 글자와 <mark>만 골라 target에 붙인다. 다른 태그는 글자만 남긴다. */
 function appendExcerpt(target: HTMLElement, excerpt: string): void {
   const parsed = new DOMParser().parseFromString(`<body>${excerpt}</body>`, 'text/html');
@@ -96,6 +143,7 @@ export function setupSearchPage(root: HTMLElement): void {
   const baseUrl = root.dataset.baseUrl ?? '/';
   const queryParam = root.dataset.queryParam ?? 'q';
   const sections = parseSections(root.dataset.sections);
+  const anchorPages = parseStringList(root.dataset.anchorPages);
 
   let pagefindPromise: Promise<PagefindApi> | undefined;
   /** 늦게 도착한 옛 검색 결과를 버리기 위한 번호 */
@@ -135,16 +183,22 @@ export function setupSearchPage(root: HTMLElement): void {
     }
   };
 
-  /** 결과 주소의 위 페이지 이름들. 예: /ai-physical-computing/labs/esp32/check/ → "실습실 › ESP32 실습실" */
-  const sectionTrail = (resultUrl: string): string => {
+  /** 결과 주소의 사이트 안 경로(base·#위치 제외). 예: /ai-physical-computing/glossary/#pixel → /glossary/ */
+  const sitePathOf = (resultUrl: string): string | undefined => {
     let path: string;
     try {
       path = new URL(resultUrl, window.location.origin).pathname;
     } catch {
-      return '';
+      return undefined;
     }
-    if (baseUrl !== '/' && path.startsWith(baseUrl)) {
-      path = `/${path.slice(baseUrl.length)}`;
+    return baseUrl !== '/' && path.startsWith(baseUrl) ? `/${path.slice(baseUrl.length)}` : path;
+  };
+
+  /** 결과 주소의 위 페이지 이름들. 예: /ai-physical-computing/labs/esp32/check/ → "실습실 › ESP32 실습실" */
+  const sectionTrail = (resultUrl: string): string => {
+    const path = sitePathOf(resultUrl);
+    if (path === undefined) {
+      return '';
     }
     return sections
       .filter((section) => section.path !== '/' && section.path !== path && path.startsWith(section.path))
@@ -154,14 +208,20 @@ export function setupSearchPage(root: HTMLElement): void {
   };
 
   const buildResultItem = (data: PagefindResultData): HTMLLIElement => {
+    const path = sitePathOf(data.url);
+    const view: ResultView =
+      path !== undefined && anchorPages.includes(path)
+        ? pickAnchoredResult(data, currentTerm)
+        : { title: data.meta?.title?.trim() || data.url, url: data.url, excerpt: data.excerpt };
+
     const item = document.createElement('li');
     item.className = 'search-result';
 
     const heading = document.createElement('h3');
     heading.className = 'search-result__title';
     const link = document.createElement('a');
-    link.href = data.url;
-    link.textContent = data.meta?.title?.trim() || data.url;
+    link.href = view.url;
+    link.textContent = view.title;
     heading.append(link);
     item.append(heading);
 
@@ -175,7 +235,7 @@ export function setupSearchPage(root: HTMLElement): void {
 
     const excerpt = document.createElement('p');
     excerpt.className = 'search-result__excerpt';
-    appendExcerpt(excerpt, data.excerpt);
+    appendExcerpt(excerpt, view.excerpt);
     item.append(excerpt);
     return item;
   };

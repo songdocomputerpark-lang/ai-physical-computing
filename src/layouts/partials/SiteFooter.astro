@@ -136,9 +136,18 @@ const sections = siteMap.filter((page) => page.id !== 'home');
     gap: var(--space-1);
   }
 
-  /* 라이선스 파일 이름(LICENSE-CONTENT.md)이 하이픈에서 두 줄로 나뉘지 않게 한다. 링크 하나는 좁은 화면(320px)에서도 한 줄에 들어간다. */
+  /*
+   * 라이선스 파일 이름(LICENSE-CONTENT.md)이 하이픈에서 두 줄로 나뉘지 않게 한다. 링크 하나는 좁은 화면(320px)에서도 한 줄에 들어간다.
+   * 문장 속 링크도 위아래 여백을 주어 누르는 곳 높이를 24px 이상으로 한다(WCAG 2.2 2.5.8, 2026-09-16 검토 반영: 18px였다).
+   */
   .site-footer__licenses a {
     white-space: nowrap;
+  }
+
+  .site-footer__licenses a,
+  .site-footer__about p a {
+    display: inline-block;
+    padding-block: var(--space-1);
   }
 
   .site-footer__links {

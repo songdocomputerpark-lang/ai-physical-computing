@@ -3,7 +3,9 @@
  * 좌표는 모두 화면(뷰포트) 기준 CSS 픽셀이다(툴팁의 position: fixed와 같은 기준).
  *
  * 규칙
- * - 용어 바로 아래에 놓는다. 아래 자리가 모자라고 위 자리가 더 넓으면 위에 놓는다.
+ * - 용어 바로 위에 놓는다(위 자리가 넉넉할 때). 읽고 있는 문장의 다음 줄을 가리지 않고, 이미 읽은 앞 줄만 가리기 때문이다
+ *   (2026-09-16 검토 반영 — 아래에 놓으면 그 용어가 든 문장의 다음 두 줄이 가려져 Esc를 눌러야 마저 읽을 수 있었다).
+ * - 위 자리가 모자라면 아래에 놓고, 둘 다 모자라면 더 넓은 쪽에 놓는다.
  * - 왼쪽 끝은 용어의 왼쪽 끝에 맞추되, 화면 가장자리에서 margin만큼 안쪽으로 밀어 넣는다(좁은 휴대폰 화면에서 잘리지 않게).
  */
 
@@ -47,7 +49,14 @@ export function computeTooltipPosition(
 ): TooltipPosition {
   const spaceBelow = viewport.height - anchor.bottom - gap - margin;
   const spaceAbove = anchor.top - gap - margin;
-  const placement = tip.height <= spaceBelow || spaceBelow >= spaceAbove ? 'below' : 'above';
+  let placement: TooltipPosition['placement'];
+  if (tip.height <= spaceAbove) {
+    placement = 'above';
+  } else if (tip.height <= spaceBelow) {
+    placement = 'below';
+  } else {
+    placement = spaceAbove >= spaceBelow ? 'above' : 'below';
+  }
   const preferredTop = placement === 'below' ? anchor.bottom + gap : anchor.top - gap - tip.height;
   return {
     top: Math.round(clamp(preferredTop, margin, viewport.height - margin - tip.height)),

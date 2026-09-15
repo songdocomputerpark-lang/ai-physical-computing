@@ -40,7 +40,15 @@ export interface HomeAction {
   readonly icon: HomeIconName;
   /** primary = 파랑으로 채운 버튼(처음 온 학생에게 가장 먼저 권하는 길), secondary = 테두리 버튼 */
   readonly variant: 'primary' | 'secondary';
+  /**
+   * 가는 곳이 아직 자리 페이지면 'coming-soon' — 버튼에 "준비 중" 표시가 붙는다(누르기 전에 알 수 있게, 2026-09-16 검토 반영).
+   * 실습실이 실제로 생기는 묶음(P2-14 영상처리, P3 ESP32)에서 지운다.
+   */
+  readonly status?: 'coming-soon';
 }
+
+/** "준비 중" 표시 글자(HomeHero.astro와 테스트가 함께 쓴다) */
+export const COMING_SOON_BADGE = '준비 중';
 
 /** 흐름 그림 아래 단계 설명 하나 */
 export interface FlowStep {
@@ -57,7 +65,7 @@ export interface HomeFeature {
   readonly title: string;
   readonly href: string;
   readonly description: string;
-  /** 그 페이지에 들어 있는 것(글자로만 보이고 링크는 아니다) */
+  /** 그 페이지에 들어 있는 것(쉼표로 이어 보통 글자로 보인다 — 버튼처럼 보이는 알약 모양은 누를 수 있다고 오해하게 해서 쓰지 않는다) */
   readonly items: readonly string[];
   readonly icon: HomeIconName;
 }
@@ -93,13 +101,16 @@ function feature(
 export const homeHero = Object.freeze({
   /** 페이지 제목(h1). 줄로 나눠 두면 넓은 화면에서 이 자리에서 줄이 바뀐다. 이어 읽으면 한 문장이다. */
   titleLines: Object.freeze(['보고, 판단하고, 움직이는', '인공지능을 만들어요']),
-  /** 한 문장 소개. ESP32는 이 페이지에서 처음 나오는 전문용어라 괄호로 풀이한다. */
-  lead: '설치 없이 브라우저만으로 인공지능과 ESP32 보드(LED·모터를 움직이는 작은 컴퓨터)를 배우고 바로 실습하는 무료 사이트예요.',
+  /**
+   * 한 문장 소개. 어떤 과목의 사이트인지 첫 화면에서 알 수 있게 과목 이름(교육감 승인 과목 "인공지능과 피지컬 컴퓨팅")을 넣는다.
+   * ESP32는 이 페이지에서 처음 나오는 전문용어라 괄호로 풀이한다.
+   */
+  lead: "고등학교 '인공지능과 피지컬 컴퓨팅' 교과서 차례대로, 설치 없이 브라우저만으로 인공지능과 ESP32 보드(LED·모터를 움직이는 작은 컴퓨터)를 배우고 바로 실습하는 무료 사이트예요.",
 });
 
 /**
  * 큰 버튼 3개(SPEC §5). 순서와 이름을 바꾸지 않는다.
- * 아직 준비 중인 곳은 그 페이지가 "준비 중" 틀을 보여 준다(ComingSoon).
+ * 아직 준비 중인 곳은 버튼에 "준비 중" 표시를 붙이고(status), 그 페이지가 "준비 중" 틀을 보여 준다(ComingSoon).
  * ESP32 실습실이 생겨 가상 보드 탭을 따로 열 주소(예: #virtual)가 생기면 두 번째 버튼만 고친다.
  */
 export const homeActions: readonly HomeAction[] = Object.freeze([
@@ -110,6 +121,7 @@ export const homeActions: readonly HomeAction[] = Object.freeze([
     pageId: 'labs-vision',
     icon: 'camera',
     variant: 'primary',
+    status: 'coming-soon',
   }),
   action({
     id: 'virtual-board',
@@ -118,6 +130,7 @@ export const homeActions: readonly HomeAction[] = Object.freeze([
     pageId: 'labs-esp32',
     icon: 'chip',
     variant: 'secondary',
+    status: 'coming-soon',
   }),
   action({
     id: 'real-board',

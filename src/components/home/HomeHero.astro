@@ -10,7 +10,7 @@
  */
 import FlowIllustration from './FlowIllustration.astro';
 import HomeIcon from './HomeIcon.astro';
-import { homeActions, homeHero } from './home-content.ts';
+import { COMING_SOON_BADGE, homeActions, homeHero } from './home-content.ts';
 ---
 
 <section class="hero" aria-labelledby="home-title">
@@ -35,7 +35,12 @@ import { homeActions, homeHero } from './home-content.ts';
                 <HomeIcon name={action.icon} />
               </span>
               <span class="hero__action-text">
-                <span class="hero__action-label">{action.label}</span>{' '}
+                <span class="hero__action-title">
+                  <span class="hero__action-label">{action.label}</span>
+                  {/* 자리 페이지로 가는 버튼은 누르기 전에 알 수 있게 "준비 중"을 붙인다(2026-09-16 검토 반영). 이름·설명과 띄어 읽히게 공백을 글자로 넣는다. */}
+                  {action.status === 'coming-soon' && ' '}
+                  {action.status === 'coming-soon' && <span class="hero__action-badge">{COMING_SOON_BADGE}</span>}
+                </span>{' '}
                 <span class="hero__action-hint">{action.hint}</span>
               </span>
               <span class="hero__action-arrow">
@@ -162,10 +167,35 @@ import { homeActions, homeHero } from './home-content.ts';
     min-width: 0;
   }
 
+  /* 이름과 "준비 중" 표시를 한 줄에 두고, 좁으면 표시만 다음 줄로 내린다. */
+  .hero__action-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.125rem var(--space-2);
+  }
+
   .hero__action-label {
     font-size: var(--text-lg);
     font-weight: var(--weight-bold);
     line-height: var(--leading-tight);
+  }
+
+  /* "준비 중" 표시: 대비 — 파랑 버튼 위 흰 바탕에 accent-hover 글자 7.67, 흰 버튼 위 accent-soft 바탕에 accent-hover 글자 6.7 */
+  .hero__action-badge {
+    flex: none;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .hero__action--primary .hero__action-badge {
+    background: var(--color-bg);
   }
 
   /* 파랑 바탕 위 설명 글자: accent-soft는 accent 위 5.25, accent-hover 위 6.7 대비 */
@@ -200,7 +230,8 @@ import { homeActions, homeHero } from './home-content.ts';
    * 설명 길이 한도는 tests/unit/home/home-content.test.ts가 같은 기준으로 검사한다.
    */
   @media (max-width: 20.99rem) {
-    .hero__action-hint {
+    .hero__action-hint,
+    .hero__action-badge {
       display: none;
     }
 
