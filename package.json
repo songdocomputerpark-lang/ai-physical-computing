@@ -22,6 +22,7 @@
     "check": "astro check",
     "check:sources": "node scripts/check-sources.mjs",
     "check:repo": "node scripts/check-repo.mjs",
+    "check:links": "node scripts/check-links.mjs",
     "search:index": "pagefind --site dist",
     "test": "vitest run",
     "test:e2e": "playwright test",
