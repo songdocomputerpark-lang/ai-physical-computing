@@ -5,7 +5,9 @@ import {
   LARGE_FILE_LIMIT_BYTES,
   buildOriginalNameNeedles,
   checkRepoFiles,
+  findPrivacyNeedles,
   findPrivacyPatterns,
+  hashPrivacyNeedle,
   originalDocumentNamesFromInventory,
   originalFolderNamesFromGitignore,
   runRepoCheck,
@@ -15,15 +17,25 @@ import { makeTempDir, removeDir, writeFiles } from './helpers/fixture.ts';
 
 const CHECK_REPO_CLI = fileURLToPath(new URL('../../scripts/check-repo.mjs', import.meta.url));
 
-// 이 테스트 파일도 저장소 검사를 받는다. 검사에 걸리는 모양(사용자 폴더 경로·MAC 주소)은
+// 이 테스트 파일도 저장소 검사를 받는다. 검사에 걸리는 모양(사용자 폴더 경로·MAC 주소·이메일·전화번호·data: 그림)은
 // 소스에 그대로 쓰지 않고 조각을 이어 붙여 만든다.
 const windowsUserPath = ['C:', 'Users', 'kimteacher', 'Desktop', 'lesson.py'].join('\\');
 const gitBashUserPath = ['', 'c', 'Users', 'kimteacher', 'Desktop'].join('/');
 const genericLabAccountPath = ['C:', 'Users', 'COM', 'Desktop'].join('/');
 const placeholderUserPath = ['C:', 'Users', '<사용자>', 'Desktop'].join('\\');
-const oneDrivePath = ['D:', 'OneDrive - 어느 기관', 'lesson', 'a.txt'].join('\\');
+const oneDriveWord = ['One', 'Drive'].join('');
+const oneDrivePath = ['D:', `${oneDriveWord} - 어느 기관`, 'lesson', 'a.txt'].join('\\');
+const oneDriveInSentence = `파일은 ${oneDriveWord} - 어느 교육청/바탕 화면/수업 폴더에 있어요.`;
 const realLookingMac = ['A4', 'CF', '12', '9B', '3E', '01'].join(':');
 const placeholderMac = Array(6).fill('XX').join(':');
+const realLookingEmail = ['kim.teacher', 'school-example.kr'].join('@');
+const realLookingPhone = ['010', '2345', '6789'].join('-');
+/** 래스터 그림의 data: 주소 앞부분(png) */
+const rasterDataUrl = ['data:', 'image/png;base64,AAAA'].join('');
+const svgDataUrl = ['data:', 'image/svg+xml;utf8,<svg/>'].join('');
+/** 검사용 가짜 비공개 이름(실제 이름이 아니다) */
+const FAKE_SECRET_NAME = '가나다고등학교';
+const NEEDLE_SALT = 'test-salt-0123456789';
 
 function rules(overrides: Partial<RepoRules> = {}): RepoRules {
   const folderNames = ['교과서_안', 'dll 오류', 'materials'];
@@ -136,26 +148,101 @@ describe('저장소 검사 규칙(checkRepoFiles)', () => {
     expect(problems.map((problem) => problem.detail).join('\n')).not.toContain(realLookingMac);
   });
 
+  it('문장 가운데 적힌 OneDrive 경로, 이메일, 전화번호도 찾고, noreply·example·전부 0인 번호는 통과시킨다(2026-09-16 검토 반영)', () => {
+    const problems = checkRepoFiles(
+      [
+        repoFile('docs/notes.md', oneDriveInSentence),
+        repoFile('content/help/contact.md', `문의: ${realLookingEmail}\n전화 ${realLookingPhone}\n`),
+        repoFile('docs/DECISIONS.md', '커밋 작성자: 249858253+someone@users.noreply.github.com, noreply@anthropic.com'),
+        repoFile('tests/unit/link.test.ts', '<a href="mailto:someone@example.com">메일</a> <img srcset="a@2x.webp 2x">'),
+        repoFile('content/help/placeholder.md', '전화번호 예: 010-0000-0000, 버전 2026-09-16, 0.10.35'),
+        repoFile('scripts/lib/check.mjs', `const ${oneDriveWord.toLowerCase()}Rule = '${oneDriveWord} 경로는 지워요';`),
+      ],
+      rules(),
+    );
+    expect(problemKeys(problems)).toEqual(['privacy:docs/notes.md', 'privacy:content/help/contact.md', 'privacy:content/help/contact.md']);
+    const details = problems.map((problem) => problem.detail).join('\n');
+    expect(details).toContain('OneDrive 폴더 경로');
+    expect(details).toContain('이메일 주소 모양');
+    expect(details).toContain('전화번호 모양');
+    expect(details).not.toContain('kim.teacher');
+    expect(details).not.toContain(realLookingPhone);
+  });
+
+  it('UTF-16으로 저장된 글도 읽어서 사용자 폴더 경로를 찾는다(PowerShell 5.1 기본 저장 형식)', () => {
+    const text = `경로: ${windowsUserPath}\n`;
+    const utf16le = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(text, 'utf16le')]);
+    const utf16be = Buffer.concat([Buffer.from([0xfe, 0xff]), Buffer.from(text, 'utf16le').swap16()]);
+    const problems = checkRepoFiles([repoFile('docs/utf16le.md', utf16le), repoFile('docs/utf16be.md', utf16be)], rules());
+    expect(problemKeys(problems)).toEqual(['privacy:docs/utf16le.md', 'privacy:docs/utf16be.md']);
+  });
+
+  it('해시로만 적어 둔 비공개 이름(학교명 등)을 띄어쓰기·조사와 상관없이 찾고, 이름은 알리지 않는다', () => {
+    const needle = hashPrivacyNeedle(FAKE_SECRET_NAME, NEEDLE_SALT);
+    expect(needle).toEqual({ sha256: expect.stringMatching(/^[0-9a-f]{64}$/u), length: 7, script: 'hangul' });
+    expect(hashPrivacyNeedle('가나다 고등학교', NEEDLE_SALT).sha256).toBe(needle.sha256);
+    expect(() => hashPrivacyNeedle('가나다 High', NEEDLE_SALT)).toThrow();
+
+    const privacyNeedles = { salt: NEEDLE_SALT, needles: [{ label: '학교 이름', ...needle }] };
+    expect(findPrivacyNeedles(`첫 줄\n우리 ${FAKE_SECRET_NAME}의 실습실`, privacyNeedles)).toEqual([
+      expect.stringContaining('2번째 줄: 비공개 이름(학교 이름'),
+    ]);
+    expect(findPrivacyNeedles('인천 가나다 고등학교 1학년', privacyNeedles)).toHaveLength(1);
+    // 문장 부호로 나뉜 낱말은 하나로 붙여 보지 않는다.
+    expect(findPrivacyNeedles('가나다·"고등학교" 형태', privacyNeedles)).toEqual([]);
+    expect(findPrivacyNeedles('다른 고등학교 이야기', privacyNeedles)).toEqual([]);
+    expect(findPrivacyNeedles(FAKE_SECRET_NAME, undefined)).toEqual([]);
+
+    const problems = checkRepoFiles([repoFile('content/lessons/u1/intro.md', `${FAKE_SECRET_NAME} 학생들이`)], rules({ privacyNeedles }));
+    expect(problemKeys(problems)).toEqual(['privacy:content/lessons/u1/intro.md']);
+    expect(problems[0].detail).not.toContain(FAKE_SECRET_NAME);
+  });
+
   it('공개 이미지는 눈 확인 기록(reviewed)이 "통과"여야 커밋할 수 있다', () => {
     const imagePath = 'public/images/lessons/u1/pixel.png';
     const files = [
       repoFile(imagePath, PNG_BYTES),
       repoFile('public/images/site/flow.svg', '<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>'),
-      repoFile('public/images/site/photo.svg', '<svg><image href="data:image/png;base64,AAAA"/></svg>'),
+      repoFile('public/images/site/photo.svg', `<svg><image href="${rasterDataUrl}"/></svg>`),
       repoFile('tests/e2e/home.png', PNG_BYTES),
     ];
     expect(problemKeys(checkRepoFiles(files, rules()))).toEqual([
       `image-review:${imagePath}`,
       'image-review:public/images/site/photo.svg',
+      'image-review:tests/e2e/home.png',
     ]);
 
     const reviewed = new Map<string, unknown>([
       [imagePath, { path: imagePath, reviewed: { by: 'claude', date: '2026-09-16', result: '통과 — 얼굴·이름·경로 없음' } }],
       ['public/images/site/photo.svg', { reviewed: { by: 'claude', date: '2026-09-16', result: '문제 있음 — 얼굴' } }],
+      ['tests/e2e/home.png', { reviewed: { by: 'claude', date: '2026-09-16', result: '통과 — 합성 화면' } }],
     ]);
     const problems = checkRepoFiles(files, rules({ imageReviews: reviewed }));
     expect(problemKeys(problems)).toEqual(['image-review:public/images/site/photo.svg']);
     expect(problems[0].detail).toContain('"통과"로 시작하지 않아요');
+  });
+
+  it('폴더에 상관없이 래스터 이미지와, 글·코드 파일 안에 data: 주소로 넣은 래스터 그림도 눈 확인 기록이 있어야 한다(2026-09-16 검토 반영)', () => {
+    const files = [
+      repoFile('.github/banner.jpg', PNG_BYTES),
+      repoFile('root-photo.PNG', PNG_BYTES),
+      repoFile('content/lessons/embedded.md', `![얼굴](${rasterDataUrl})`),
+      repoFile('src/components/Embedded.astro', `<img src="${rasterDataUrl}" alt="">`),
+      repoFile('public/images/site/css-raster.svg', `<svg><style>.a{background:url(${rasterDataUrl})}</style><rect/></svg>`),
+      repoFile('public/images/site/filter.svg', `<svg><filter><feImage xlink:href="${rasterDataUrl}"/></filter></svg>`),
+      repoFile('public/images/site/vector.svg', `<svg><image href="${svgDataUrl}"/></svg>`),
+      repoFile('src/styles/icons.css', `.icon{background:url("${svgDataUrl}")}`),
+    ];
+    const problems = checkRepoFiles(files, rules());
+    expect(problemKeys(problems)).toEqual([
+      'image-review:.github/banner.jpg',
+      'image-review:root-photo.PNG',
+      'image-review:content/lessons/embedded.md',
+      'image-review:src/components/Embedded.astro',
+      'image-review:public/images/site/css-raster.svg',
+      'image-review:public/images/site/filter.svg',
+    ]);
+    expect(problems[2].detail).toContain('data: 주소로 넣은 래스터 그림');
   });
 });
 
@@ -234,5 +321,26 @@ describe('git 인덱스 검사(runRepoCheck, scripts/check-repo.mjs)', () => {
     expect(problemKeys(result.problems).sort()).toEqual(
       ['forbidden:docs/SPEC.md', 'large-file:public/big.bin', 'original-name:content/lessons/u2/2-1-1.md'].sort(),
     );
+  });
+
+  it('scripts/privacy-needles.json의 해시 이름을 읽어 스테이징된 글에서 찾고, 파일 모양이 틀리면 알린다', () => {
+    const rootDir = makeTempDir('apc-repo-');
+    tempDirs.push(rootDir);
+    git(rootDir, 'init', '-q');
+    const needle = hashPrivacyNeedle(FAKE_SECRET_NAME, NEEDLE_SALT);
+    writeFiles(rootDir, {
+      'scripts/privacy-needles.json': JSON.stringify({ salt: NEEDLE_SALT, needles: [{ label: '학교 이름', ...needle }] }),
+      'content/lessons/u1/intro.md': `${FAKE_SECRET_NAME} 학생들이 만든 예제\n`,
+      'content/lessons/u1/other.md': '다른 학교 이야기\n',
+    });
+    git(rootDir, 'add', 'scripts/privacy-needles.json', 'content/lessons/u1/intro.md', 'content/lessons/u1/other.md');
+    const result = runRepoCheck({ rootDir });
+    expect(problemKeys(result.problems)).toEqual(['privacy:content/lessons/u1/intro.md']);
+
+    writeFiles(rootDir, { 'scripts/privacy-needles.json': JSON.stringify({ salt: 'short', needles: 'x' }) });
+    git(rootDir, 'add', 'scripts/privacy-needles.json');
+    git(rootDir, 'rm', '--cached', '-q', 'content/lessons/u1/intro.md');
+    const broken = runRepoCheck({ rootDir });
+    expect(problemKeys(broken.problems)).toEqual(['config:scripts/privacy-needles.json']);
   });
 });

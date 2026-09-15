@@ -5,7 +5,8 @@
 #
 # 액션 버전은 2026-09-16에 각 공식 저장소의 최신 릴리스(releases/latest)로 확인했다.
 #   actions/checkout v7.0.1, actions/setup-node v7.0.0, actions/cache v6.1.0, actions/upload-artifact v7.0.1
-# 주 버전 태그(@v7 등)로 적어서 같은 주 버전의 수정판은 자동으로 받는다.
+# 액션은 그 릴리스의 커밋 SHA로 고정한다(이유와 올리는 법은 deploy.yml 머리말).
+# 풀 리퀘스트(포크 포함)도 저장소 검사(check:repo)를 거친다 — 병합 전에 원본 형식·개인정보 모양을 잡기 위해서다.
 name: 테스트
 
 on:
@@ -39,18 +40,21 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: 저장소 내려받기
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Node.js 준비
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
           cache: npm
 
       - name: 의존성 설치(package-lock.json 그대로)
         run: npm ci
+
+      - name: 저장소 검사(풀 리퀘스트도 병합 전에 검사)
+        run: npm run check:repo
 
       - name: 단위 테스트(Vitest)
         run: npm test
@@ -64,12 +68,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: 저장소 내려받기
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Node.js 준비
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
           cache: npm
@@ -86,7 +90,7 @@ jobs:
       # (actions/cache 한 단계로 쓰면 작업이 실패했을 때 저장 단계를 건너뛴다 — 2026-09-16 첫 실행에서 확인).
       - name: 브라우저 설치 캐시 되살리기
         id: browser-cache
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
@@ -97,7 +101,7 @@ jobs:
 
       - name: 브라우저 설치 캐시 저장(처음 설치했을 때만)
         if: steps.browser-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ${{ steps.browser-cache.outputs.cache-primary-key }}
@@ -118,7 +122,7 @@ jobs:
 
       - name: 실패 보고서 올리기
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-${{ github.run_attempt }}
           path: |
