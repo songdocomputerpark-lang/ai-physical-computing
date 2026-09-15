@@ -1,0 +1,28 @@
+# 원본 자료(운영자 PC에만 있음 — 비공개 저장소 ai-physical-computing-materials에 보관)
+/2022_인피컴_교수,학습운영계획/
+/HW_소스코드/
+/HW설치파일/
+/dll 오류/
+/pyautugoui_소스코드/
+/교과서_소스코드/
+/교과서_안/
+/블루투스통신_소스코드/
+/블루투스통신_수업교안/
+/materials/
+
+# 빌드·의존성
+node_modules/
+dist/
+.astro/
+.cache/
+coverage/
+playwright-report/
+test-results/
+
+# 환경·편집기
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
