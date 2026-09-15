@@ -1,0 +1,130 @@
+---
+/**
+ * 홈 화면용 선 아이콘(자체 제작, 24×24 격자, 선 굵기 2). 뜻은 옆 글자가 전하므로 화면 낭독기에는 숨긴다.
+ *
+ * 쓰는 법
+ *   <span class="icon-box"><HomeIcon name="camera" /></span>
+ * 크기와 색은 감싼 요소가 정한다: 아이콘은 감싼 요소를 가득 채우고, 선 색은 글자 색(currentColor)을 따른다.
+ */
+import type { HomeIconName } from './home-content.ts';
+
+interface Props {
+  name: HomeIconName;
+}
+
+const { name } = Astro.props;
+---
+
+<svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  {
+    name === 'camera' && (
+      <Fragment>
+        <path d="M3 9a2 2 0 0 1 2-2h2.2l1.5-2.2A1.8 1.8 0 0 1 10.2 4h3.6a1.8 1.8 0 0 1 1.5.8L16.8 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <circle cx="12" cy="13" r="3.5" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'chip' && (
+      <Fragment>
+        <rect x="6.5" y="6.5" width="11" height="11" rx="2" />
+        <path d="M9.5 3v3.5M14.5 3v3.5M9.5 17.5V21M14.5 17.5V21M3 9.5h3.5M3 14.5h3.5M17.5 9.5H21M17.5 14.5H21" />
+        <circle class="home-icon__solid" cx="12" cy="12" r="2" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'usb' && (
+      <Fragment>
+        <path d="M9 2.5v4M15 2.5v4" />
+        <rect x="6" y="6.5" width="12" height="7.5" rx="2" />
+        <path d="M12 14v2.5A4.5 4.5 0 0 1 7.5 21H6" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'flag' && (
+      <Fragment>
+        <path d="M5 21V4" />
+        <path d="M5 4.5h12.5L15 8.5l2.5 4H5" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'book' && (
+      <Fragment>
+        <path d="M12 6.8C9.8 5.2 6.8 4.7 3.5 5.2v13c3.3-.5 6.3 0 8.5 1.6 2.2-1.6 5.2-2.1 8.5-1.6v-13c-3.3-.5-6.3 0-8.5 1.6z" />
+        <path d="M12 6.8v13" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'flask' && (
+      <Fragment>
+        <path d="M9 3h6M10 3v6.3l-5.3 9A1.8 1.8 0 0 0 6.2 21h11.6a1.8 1.8 0 0 0 1.5-2.7L14 9.3V3" />
+        <path d="M7.3 15.5h9.4" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'presentation' && (
+      <Fragment>
+        <rect x="3" y="4" width="18" height="12" rx="1.5" />
+        <path d="M12 16v3M8.5 21l3.5-2 3.5 2M7 12.5l3-3 2.5 2.5L17 7.5" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'browser' && (
+      <Fragment>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M3 8.5h18M8.5 14.5l2.3 2.3 4.7-4.8" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'monitor-board' && (
+      <Fragment>
+        <rect x="3" y="4" width="18" height="12.5" rx="2" />
+        <path d="M9 20.5h6M12 16.5v4" />
+        <rect x="8" y="7.5" width="8" height="5.5" rx="1" />
+      </Fragment>
+    )
+  }
+  {
+    name === 'unlock' && (
+      <Fragment>
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8.5 11V7.5a3.5 3.5 0 0 1 6.8-1.2M12 15v2" />
+      </Fragment>
+    )
+  }
+  {name === 'arrow-right' && <path d="M5 12h14M13 6l6 6-6 6" />}
+  {name === 'pause' && <path d="M9 6.5v11M15 6.5v11" />}
+  {
+    name === 'replay' && (
+      <Fragment>
+        <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" />
+        <path d="M4.5 4.5v4h4" />
+      </Fragment>
+    )
+  }
+</svg>
+
+<style>
+  .home-icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .home-icon__solid {
+    fill: currentColor;
+    stroke: none;
+  }
+</style>

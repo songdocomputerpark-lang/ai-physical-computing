@@ -1,20 +1,22 @@
 ---
-// 임시 홈 화면(공통 기반 단계). 홈 담당(PLAN §8.1 P1-05: 큰 버튼 3개와 "보고 → 판단하고 → 움직인다" 흐름 그림)이 이 파일을 바꾼다.
-import PageLinks from '../components/common/PageLinks.astro';
-import { headerNav } from '../config/nav.ts';
+/**
+ * 홈(PLAN §8.1 P1-05, SPEC §5 홈 화면 요구)
+ * - 첫 화면(스크롤 없이): 제목, 한 문장 소개, 큰 버튼 3개, "보고 → 판단하고 → 움직여요" 흐름 그림 — HomeHero
+ * - 스크롤 뒤: 이 사이트로 할 수 있는 것(카드) — HomeFeatures, 설치 없이 브라우저만으로(원칙) — HomePrinciples
+ * 홈의 글과 링크는 src/components/home/home-content.ts 한 곳에서 고친다.
+ *
+ * 사이트 검색 색인에서는 뺀다(searchIndex={false}). 홈 글은 다른 페이지를 짧게 모은 소개라서,
+ * 같은 낱말로 검색하면 실제 페이지와 겹쳐 나와 결과만 길어지기 때문이다.
+ */
+import HomeFeatures from '../components/home/HomeFeatures.astro';
+import HomeHero from '../components/home/HomeHero.astro';
+import HomePrinciples from '../components/home/HomePrinciples.astro';
 import { siteConfig } from '../config/site.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title={siteConfig.name} isHome>
-  <h1 class="page-title">{siteConfig.name}</h1>
-  <p class="lead">{siteConfig.description}</p>
-  <p class="home-note">사이트를 준비하고 있어요. 지금은 아래 메뉴를 둘러볼 수 있어요.</p>
-  <PageLinks pages={headerNav} />
+<BaseLayout title={siteConfig.name} isHome searchIndex={false}>
+  <HomeHero />
+  <HomeFeatures />
+  <HomePrinciples />
 </BaseLayout>
-
-<style>
-  .home-note {
-    margin-block-end: var(--space-6);
-  }
-</style>

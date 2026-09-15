@@ -1,0 +1,133 @@
+---
+/**
+ * 홈 아래쪽 "이 사이트로 할 수 있는 것" 카드(PLAN §8.1 P1-05). 글과 링크는 home-content.ts에 있다.
+ * 카드 전체를 눌러도 이동한다. 링크는 제목 글자 하나라서 화면 낭독기에는 한 번만 읽히고 Tab도 카드마다 한 번이다.
+ * 카드 안 작은 칸(들어 있는 것)은 글자일 뿐 링크가 아니다. 아직 없는 페이지(예: 대단원)로 가는 링크를 만들지 않으려는 것이다.
+ */
+import HomeIcon from './HomeIcon.astro';
+import { homeFeatures } from './home-content.ts';
+---
+
+<section class="features" aria-labelledby="home-features-title">
+  <h2 id="home-features-title" class="features__title">{homeFeatures.heading}</h2>
+  <ul class="features__grid" role="list">
+    {
+      homeFeatures.cards.map((card) => (
+        <li class="feature">
+          <span class="feature__icon">
+            <HomeIcon name={card.icon} />
+          </span>
+          <h3 class="feature__title">
+            <a class="feature__link" href={card.href}>
+              {card.title}
+            </a>
+          </h3>
+          <p class="feature__description">{card.description}</p>
+          <ul class="feature__items" role="list">
+            {card.items.map((item) => (
+              <li class="feature__item">{item}</li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .features__title {
+    margin-block-end: var(--space-6);
+    font-size: var(--text-2xl);
+  }
+
+  .features__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feature {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-6);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .feature:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  .feature__icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  .feature__title {
+    font-size: var(--text-xl);
+  }
+
+  .feature__link {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .feature:hover .feature__link {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* 카드 전체를 누르는 곳으로 넓힌다. 초점 테두리도 카드 둘레에 그린다. */
+  .feature__link::after {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    content: '';
+  }
+
+  .feature__link:focus-visible {
+    outline: none;
+  }
+
+  .feature__link:focus-visible::after {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .feature__description {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .feature__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feature__item {
+    padding: 0.125rem var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+  }
+</style>

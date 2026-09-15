@@ -1,0 +1,942 @@
+---
+/**
+ * 홈 흐름 그림(PLAN §8.1 P1-05, SPEC §5): "AI가 보고 → 판단하고 → 움직인다"를 직접 그린 인라인 SVG 한 장으로 보인다.
+ * 이야기는 시나리오 F(손가락 수 → LED 수)를 줄인 것이다: 카메라가 손가락 두 개를 편 손을 보고 → 인공지능(뇌)이 두 개라고 세고
+ * → ESP32 보드가 LED 다섯 개 가운데 두 개를 켠다.
+ *
+ * 그리는 약속(SPEC §7.1 "일관된 선 굵기·색 팔레트")
+ * - 색은 디자인 토큰(src/styles/tokens.css)만 쓴다: 흰 바탕 + 글자색 윤곽선, 강조는 파랑 한 가지, 작은 부분은 흐린 글자색.
+ * - 선 굵기는 두 가지만: 윤곽선 3, 작은 부분(관절 선·뇌 주름·전선·칩) 2(그림 좌표 기준, 화면 크기에 따라 함께 줄어든다).
+ * - 그림 안에는 글자를 넣지 않는다. 단계 이름·설명은 아래 figcaption(HTML)에 있어 글자 크기 조절·번역·검색이 된다.
+ * - 화면 낭독기는 svg의 title(이름)·desc(설명)와 figcaption 목록을 읽는다.
+ *
+ * 움직임(flow-motion.ts)
+ * - 기본 모습(data-state="static")은 다 그려진 완성 그림이다. 자바스크립트가 없거나 "동작 줄이기" 설정이면 이 모습 그대로 멈춰 있다.
+ * - 움직여도 될 때만 data-state="playing"이 되어 CSS 애니메이션이 붙고, 한 바퀴 6초씩 3번 돈 뒤 완성 그림에서 멈춘다.
+ * - 도는 동안 [그림 멈추기], 멈춘 뒤 [그림 다시 보기] 버튼을 보인다(WCAG 2.2.2).
+ * - 그림 좌표·타이밍을 바꾸면 아래 @keyframes의 이동 거리(px)와 백분율도 함께 고친다.
+ */
+import { FLOW_TOGGLE_LABELS } from './flow-motion.ts';
+import { flowFigure } from './home-content.ts';
+import HomeIcon from './HomeIcon.astro';
+
+const TITLE_ID = 'home-flow-title';
+const DESC_ID = 'home-flow-desc';
+const CLIP_ID = 'home-flow-screen';
+
+/** 펼친 손가락 수 = 세기 칸에서 채워지는 수 = 켜지는 LED 수 */
+const LIT_COUNT = 2;
+/** LED 5개의 가로 위치(그림 좌표) */
+const LED_XS = [492, 521, 550, 579, 608];
+/** 보드 위아래 핀(헤더) 12개씩의 가로 위치 */
+const PIN_XS = Array.from({ length: 12 }, (_, index) => 488 + index * 11);
+/** 판단 단계의 세기 칸 5개 */
+const COUNT_XS = [290, 310, 330, 350, 370];
+/** 뇌 주름 선(왼쪽 반구 4개 + 오른쪽 반구 4개, 좌우 대칭)과 주름 끝의 신호 점 */
+const BRAIN_FOLDS = [
+  'M300 70C292 80 296 92 308 94',
+  'M258 110C270 106 282 112 282 124',
+  'M306 108C296 118 300 132 314 134',
+  'M268 150C278 144 292 148 294 160',
+  'M360 70C368 80 364 92 352 94',
+  'M402 110C390 106 378 112 378 124',
+  'M354 108C364 118 360 132 346 134',
+  'M392 150C382 144 368 148 366 160',
+];
+const FOLD_ENDS = [
+  [308, 94],
+  [282, 124],
+  [314, 134],
+  [294, 160],
+  [352, 94],
+  [378, 124],
+  [346, 134],
+  [366, 160],
+] as const;
+/** 손 관절 점(손목, 엄지 3, 검지 4, 중지 4, 약지 2, 새끼 2). 검지·중지 끝은 따로 동그라미로 표시한다. */
+const HAND_JOINTS = [
+  [114, 222],
+  [88, 210],
+  [103, 200],
+  [117, 191],
+  [98, 162],
+  [93, 136],
+  [90, 117],
+  [86, 98],
+  [116, 158],
+  [119, 132],
+  [122, 112],
+  [124, 92],
+  [130, 162],
+  [132, 147],
+  [140, 172],
+  [143, 161],
+] as const;
+---
+
+<figure class="flow" data-flow data-state="static">
+  <svg class="flow__art" viewBox="0 10 660 230" role="img" aria-labelledby={TITLE_ID} aria-describedby={DESC_ID} focusable="false">
+    <title id={TITLE_ID}>{flowFigure.title}</title>
+    <desc id={DESC_ID}>{flowFigure.description}</desc>
+    <defs>
+      <clipPath id={CLIP_ID}>
+        <rect x="34" y="30" width="152" height="200" rx="16"></rect>
+      </clipPath>
+    </defs>
+
+    <!-- 이음 선: 보고 → 판단하고 → 움직여요. 파란 점(신호)이 따라 움직인다. -->
+    <g>
+      <path class="fl-link" d="M198 138H234"></path>
+      <path class="fl-arrow" d="M235 131l8 7-8 7"></path>
+      <circle class="fl-pulse fl-pulse--1" cx="198" cy="138" r="6"></circle>
+      <path class="fl-link" d="M418 138H442"></path>
+      <path class="fl-arrow" d="M443 131l8 7-8 7"></path>
+      <circle class="fl-pulse fl-pulse--2" cx="418" cy="138" r="6"></circle>
+    </g>
+
+    <!-- 1. 보고: 카메라 화면 속 손(윤곽선 → 채움 → 접은 엄지 → 관절 표시) -->
+    <g>
+      <rect class="fl-surface" x="34" y="30" width="152" height="200" rx="16"></rect>
+      <g clip-path={`url(#${CLIP_ID})`}>
+        <g class="fl-hand-edge">
+          <rect x="83" y="145" width="58" height="116" rx="27"></rect>
+          <path d="M98 162L86 98" stroke-width="21"></path>
+          <path d="M116 158L124 92" stroke-width="21"></path>
+          <path d="M130 162L132 147" stroke-width="20"></path>
+          <path d="M140 172L143 161" stroke-width="18"></path>
+        </g>
+        <g class="fl-hand-fill">
+          <rect x="86" y="148" width="52" height="110" rx="24"></rect>
+          <path d="M98 162L86 98" stroke-width="15"></path>
+          <path d="M116 158L124 92" stroke-width="15"></path>
+          <path d="M130 162L132 147" stroke-width="14"></path>
+          <path d="M140 172L143 161" stroke-width="12"></path>
+        </g>
+        <!-- 접은 엄지: 손바닥 왼쪽 가장자리에 붙은 채 손바닥 위를 가로지른다(채움 다각형 + 윤곽선, 붙은 쪽에는 선을 긋지 않음) -->
+        <g class="fl-hand-fill">
+          <polygon
+            points="86,202.9 114.1,184.2 116.6,183.1 119.4,183.1 121.9,184.2 123.8,186.1 124.9,188.6 124.9,191.4 123.8,193.9 121.9,195.8 86,219.8"
+          ></polygon>
+        </g>
+        <path class="fl-frame" d="M86 202.9L114.1 184.2A7 7 0 0 1 121.9 195.8L86 219.8"></path>
+        <g class="fl-landmarks">
+          <path
+            class="fl-bone"
+            d="M114 222L88 210L103 200L117 191M114 222L98 162L93 136L90 117L86 98M98 162L116 158L130 162L140 172L114 222M116 158L119 132L122 112L124 92M130 162L132 147M140 172L143 161"
+          ></path>
+          {HAND_JOINTS.map(([cx, cy]) => <circle class="fl-joint" cx={cx} cy={cy} r="3.2" />)}
+        </g>
+        <g class="fl-tips">
+          <circle cx="86" cy="98" r="15"></circle>
+          <circle cx="124" cy="92" r="15"></circle>
+        </g>
+        <rect class="fl-scan" x="34" y="33" width="152" height="3"></rect>
+      </g>
+      <rect class="fl-frame" x="34" y="30" width="152" height="200" rx="16"></rect>
+      <circle class="fl-lens" cx="110" cy="30" r="8"></circle>
+      <circle class="fl-lens-dot" cx="110" cy="30" r="3"></circle>
+    </g>
+
+    <!-- 2. 판단하고: 인공지능(위에서 본 뇌, 왼쪽·오른쪽 반구)과 세기 칸 -->
+    <g>
+      <path
+        class="fl-brain"
+        d="M325 70C310 62 286 64 276 76C260 78 250 94 256 106C246 116 246 136 258 144C254 160 268 176 286 172C298 182 318 180 325 170Z"
+      ></path>
+      <path
+        class="fl-brain"
+        d="M335 70C350 62 374 64 384 76C400 78 410 94 404 106C414 116 414 136 402 144C406 160 392 176 374 172C362 182 342 180 335 170Z"
+      ></path>
+      {BRAIN_FOLDS.map((d) => <path class="fl-fold" d={d} />)}
+      {FOLD_ENDS.map(([cx, cy]) => <circle class="fl-node" cx={cx} cy={cy} r="3.5" />)}
+      {
+        COUNT_XS.map((cx, index) => (
+          <circle
+            class:list={['fl-count', index < LIT_COUNT && ['fl-count--on', `fl-count--${index + 1}`]]}
+            cx={cx}
+            cy="214"
+            r="7"
+          />
+        ))
+      }
+    </g>
+
+    <!-- 3. 움직여요: LED 5개와 ESP32 보드 -->
+    <g>
+      {
+        LED_XS.map((x, index) => (
+          <g>
+            {index < LIT_COUNT && <circle class:list={['fl-glow', `fl-glow--${index + 1}`]} cx={x} cy="60" r="18" />}
+            <path class="fl-wire" d={`M${x} 72V96`} />
+            <path
+              class:list={['fl-led', index < LIT_COUNT && ['fl-led--on', `fl-led--${index + 1}`]]}
+              d={`M${x - 9} 71V60a9 9 0 0 1 18 0v11z`}
+            />
+            <path class="fl-led-base" d={`M${x - 12} 72H${x + 12}`} />
+          </g>
+        ))
+      }
+      <rect class="fl-board" x="475" y="96" width="150" height="84" rx="8"></rect>
+      {
+        PIN_XS.map((x) => (
+          <Fragment>
+            <circle class="fl-pin" cx={x} cy="106" r="2.2" />
+            <circle class="fl-pin" cx={x} cy="170" r="2.2" />
+          </Fragment>
+        ))
+      }
+      <rect class="fl-chip" x="495" y="125" width="26" height="26" rx="3"></rect>
+      <rect class="fl-chip" x="538" y="115" width="76" height="46" rx="4"></rect>
+      <path class="fl-antenna" d="M594 123V153H601V123H608V153"></path>
+      <rect class="fl-port" x="461" y="124" width="18" height="28" rx="3"></rect>
+    </g>
+  </svg>
+
+  <figcaption class="flow__caption">
+    <ol class="flow__steps" role="list">
+      {
+        flowFigure.steps.map((step, index) => (
+          <li class="flow__step">
+            <span class="flow__step-head">
+              <span class:list={['flow__num', `flow__num--${index + 1}`]} aria-hidden="true">
+                {index + 1}
+              </span>
+              <span class="flow__label">{step.label}</span>
+            </span>{' '}
+            <span class="flow__detail">{step.detail}</span>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="flow__controls">
+      <button class="flow__toggle" type="button" data-flow-toggle hidden>
+        <span class="flow__toggle-icon flow__toggle-icon--pause"><HomeIcon name="pause" /></span>
+        <span class="flow__toggle-icon flow__toggle-icon--replay"><HomeIcon name="replay" /></span>
+        <span data-flow-toggle-label>{FLOW_TOGGLE_LABELS.replay}</span>
+      </button>
+    </div>
+  </figcaption>
+</figure>
+
+<script>
+  import { canAnimate, nextStateOnToggle, parseFlowState, toggleLabel, type FlowMotionState } from './flow-motion.ts';
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-flow]').forEach((figure) => {
+    const button = figure.querySelector<HTMLButtonElement>('[data-flow-toggle]');
+    const label = figure.querySelector<HTMLElement>('[data-flow-toggle-label]');
+    if (!button || !label) {
+      return;
+    }
+
+    // 멈춤·다시 보기를 여러 번 누를 때 앞 바퀴의 "끝남" 알림을 무시하려고 매번 번호를 올린다.
+    let run = 0;
+
+    const setState = (state: FlowMotionState) => {
+      figure.dataset.state = state;
+      label.textContent = toggleLabel(state);
+    };
+
+    const motionAllowed = () =>
+      canAnimate({ prefersReducedMotion: reducedMotion.matches, siteMotion: document.documentElement.dataset.motion });
+
+    const play = () => {
+      run += 1;
+      const current = run;
+      // 애니메이션을 떼었다가 스타일을 한 번 계산한 뒤 다시 붙여야 처음부터 다시 돈다.
+      setState('ended');
+      void figure.offsetWidth;
+      setState('playing');
+      void figure.offsetWidth;
+      if (typeof figure.getAnimations !== 'function') {
+        return;
+      }
+      const animations = figure.getAnimations({ subtree: true });
+      if (animations.length === 0) {
+        setState('ended');
+        return;
+      }
+      Promise.all(animations.map((animation) => animation.finished)).then(
+        () => {
+          if (run === current) {
+            setState('ended');
+          }
+        },
+        () => {
+          // 멈춤 버튼으로 애니메이션을 떼면 finished가 취소(거부)된다. 이미 상태를 바꿨으니 할 일이 없다.
+        },
+      );
+    };
+
+    const stop = (state: 'paused' | 'static') => {
+      run += 1;
+      setState(state);
+    };
+
+    button.addEventListener('click', () => {
+      if (nextStateOnToggle(parseFlowState(figure.dataset.state)) === 'playing') {
+        play();
+      } else {
+        stop('paused');
+      }
+    });
+
+    // 보는 중에 운영체제의 "동작 줄이기"를 켜면 바로 멈추고 버튼을 숨긴다. 끄면 버튼만 다시 보인다(저절로 돌지 않음).
+    reducedMotion.addEventListener('change', () => {
+      if (motionAllowed()) {
+        button.hidden = false;
+        if (parseFlowState(figure.dataset.state) === 'static') {
+          setState('ended');
+        }
+      } else {
+        stop('static');
+        button.hidden = true;
+      }
+    });
+
+    if (motionAllowed()) {
+      button.hidden = false;
+      play();
+    } else {
+      setState('static');
+    }
+  });
+</script>
+
+<style>
+  .flow {
+    /* 한 바퀴 시간, 도는 횟수, 처음 기다리는 시간. 모두 합쳐 5초가 넘으므로 멈춤 버튼을 둔다(flow-motion.ts). */
+    --flow-cycle: 6s;
+    --flow-runs: 3;
+    --flow-delay: 0.6s;
+
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .flow__art {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── 그림 조각: 흰 바탕 + 윤곽선 3(글자색), 강조는 파랑, 작은 부분은 선 2(흐린 글자색) ── */
+  .fl-surface {
+    fill: var(--color-bg);
+  }
+
+  .fl-frame,
+  .fl-brain,
+  .fl-board,
+  .fl-port,
+  .fl-led,
+  .fl-led-base,
+  .fl-lens {
+    stroke: var(--color-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fl-frame,
+  .fl-led-base {
+    fill: none;
+  }
+
+  .fl-brain,
+  .fl-board,
+  .fl-port,
+  .fl-lens,
+  .fl-led {
+    fill: var(--color-bg);
+  }
+
+  .fl-led--on {
+    fill: var(--color-accent);
+  }
+
+  .fl-lens-dot {
+    fill: var(--color-accent);
+  }
+
+  /*
+   * 손: 굵은 글자색 선을 먼저 긋고 흐린 채움 선을 위에 그어 겉 윤곽 3만 남긴다.
+   * 접은 엄지는 채움 다각형(.fl-hand-fill 안의 polygon)을 깔고 윤곽선(.fl-frame)을 따로 긋는다.
+   */
+  .fl-hand-edge {
+    fill: var(--color-text);
+  }
+
+  .fl-hand-fill {
+    fill: var(--color-bg-muted);
+  }
+
+  .fl-hand-edge path,
+  .fl-hand-fill path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fl-hand-edge path {
+    stroke: var(--color-text);
+  }
+
+  .fl-hand-fill path {
+    stroke: var(--color-bg-muted);
+  }
+
+  .fl-bone {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fl-joint {
+    fill: var(--color-accent);
+  }
+
+  .fl-tips circle {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 3;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .fl-scan {
+    fill: var(--color-accent);
+    opacity: 0;
+  }
+
+  .fl-link {
+    fill: none;
+    stroke: var(--color-border-strong);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 0 8;
+  }
+
+  .fl-arrow {
+    fill: none;
+    stroke: var(--color-border-strong);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fl-pulse {
+    fill: var(--color-accent);
+    opacity: 0;
+  }
+
+  .fl-fold {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fl-node {
+    fill: var(--color-accent);
+  }
+
+  .fl-count {
+    fill: var(--color-bg);
+    stroke: var(--color-border-strong);
+    stroke-width: 2;
+  }
+
+  .fl-count--on {
+    fill: var(--color-accent);
+    stroke: var(--color-accent);
+  }
+
+  .fl-glow {
+    fill: var(--color-accent);
+    opacity: 0.18;
+  }
+
+  .fl-wire,
+  .fl-antenna {
+    fill: none;
+    stroke: var(--color-text-muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fl-chip {
+    fill: var(--color-bg-muted);
+    stroke: var(--color-text-muted);
+    stroke-width: 2;
+  }
+
+  .fl-pin {
+    fill: var(--color-text-muted);
+  }
+
+  /* ── 그림 아래 단계 설명(HTML 글자) ── */
+  .flow__caption {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .flow__steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: center;
+  }
+
+  .flow__step {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: var(--space-1);
+  }
+
+  .flow__step-head {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+  }
+
+  .flow__num {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--radius-full);
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    line-height: 1;
+  }
+
+  .flow__detail {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .flow__controls {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .flow__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .flow__toggle:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .flow__toggle-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .flow[data-state='playing'] .flow__toggle-icon--replay,
+  .flow:not([data-state='playing']) .flow__toggle-icon--pause {
+    display: none;
+  }
+
+  /* ── 움직임: 움직여도 되는 환경에서 data-state="playing"일 때만 붙는다 ── */
+  @media (prefers-reduced-motion: no-preference) {
+    .flow[data-state='playing'] .fl-scan {
+      animation: home-flow-scan var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-landmarks {
+      animation: home-flow-landmarks var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-tips circle {
+      animation: home-flow-tips var(--flow-cycle) var(--ease-standard) var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-pulse--1 {
+      animation: home-flow-pulse-1 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-fold {
+      animation: home-flow-think-line var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-node {
+      animation: home-flow-think-node var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-count--1 {
+      animation: home-flow-count-1 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-count--2 {
+      animation: home-flow-count-2 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-pulse--2 {
+      animation: home-flow-pulse-2 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-led--1 {
+      animation: home-flow-led-1 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-led--2 {
+      animation: home-flow-led-2 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-glow--1 {
+      animation: home-flow-glow-1 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .fl-glow--2 {
+      animation: home-flow-glow-2 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .flow__num--1 {
+      animation: home-flow-step-1 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .flow__num--2 {
+      animation: home-flow-step-2 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+
+    .flow[data-state='playing'] .flow__num--3 {
+      animation: home-flow-step-3 var(--flow-cycle) linear var(--flow-delay) var(--flow-runs) both;
+    }
+  }
+
+  /*
+   * 한 바퀴(6초) 시간표. 0%는 완성 그림, 4%까지 지우고, 다시 차례로 그려 78%에 완성, 100%까지 그대로 둔다.
+   * 그래서 마지막 바퀴가 끝나면 완성 그림으로 멈춘다.
+   *   보고 6~26%(훑는 선, 관절, 손가락 끝) → 신호 29~39% → 판단하고 40~55%(뇌 주름, 세기 칸 2개)
+   *   → 신호 58~68% → 움직여요 70~78%(LED 2개)
+   */
+  @keyframes home-flow-scan {
+    0%,
+    5% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+
+    6% {
+      opacity: 0.9;
+      transform: translateY(0);
+    }
+
+    24% {
+      opacity: 0.9;
+      transform: translateY(190px);
+    }
+
+    26%,
+    100% {
+      opacity: 0;
+      transform: translateY(190px);
+    }
+  }
+
+  @keyframes home-flow-landmarks {
+    0% {
+      opacity: 1;
+    }
+
+    4%,
+    12% {
+      opacity: 0;
+    }
+
+    20%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes home-flow-tips {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    4%,
+    21% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    26%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes home-flow-pulse-1 {
+    0%,
+    29% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+
+    30% {
+      opacity: 1;
+    }
+
+    38% {
+      opacity: 1;
+      transform: translateX(38px);
+    }
+
+    39%,
+    100% {
+      opacity: 0;
+      transform: translateX(38px);
+    }
+  }
+
+  @keyframes home-flow-think-line {
+    0% {
+      stroke: var(--color-accent);
+    }
+
+    4%,
+    40% {
+      stroke: var(--color-border-strong);
+    }
+
+    46%,
+    100% {
+      stroke: var(--color-accent);
+    }
+  }
+
+  @keyframes home-flow-think-node {
+    0% {
+      opacity: 1;
+    }
+
+    4%,
+    41% {
+      opacity: 0;
+    }
+
+    46%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes home-flow-count-1 {
+    0% {
+      fill: var(--color-accent);
+      stroke: var(--color-accent);
+    }
+
+    4%,
+    48% {
+      fill: var(--color-bg);
+      stroke: var(--color-border-strong);
+    }
+
+    50%,
+    100% {
+      fill: var(--color-accent);
+      stroke: var(--color-accent);
+    }
+  }
+
+  @keyframes home-flow-count-2 {
+    0% {
+      fill: var(--color-accent);
+      stroke: var(--color-accent);
+    }
+
+    4%,
+    53% {
+      fill: var(--color-bg);
+      stroke: var(--color-border-strong);
+    }
+
+    55%,
+    100% {
+      fill: var(--color-accent);
+      stroke: var(--color-accent);
+    }
+  }
+
+  @keyframes home-flow-pulse-2 {
+    0%,
+    58% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+
+    59% {
+      opacity: 1;
+    }
+
+    67% {
+      opacity: 1;
+      transform: translateX(26px);
+    }
+
+    68%,
+    100% {
+      opacity: 0;
+      transform: translateX(26px);
+    }
+  }
+
+  @keyframes home-flow-led-1 {
+    0% {
+      fill: var(--color-accent);
+    }
+
+    4%,
+    70% {
+      fill: var(--color-bg);
+    }
+
+    72%,
+    100% {
+      fill: var(--color-accent);
+    }
+  }
+
+  @keyframes home-flow-led-2 {
+    0% {
+      fill: var(--color-accent);
+    }
+
+    4%,
+    75% {
+      fill: var(--color-bg);
+    }
+
+    77%,
+    100% {
+      fill: var(--color-accent);
+    }
+  }
+
+  @keyframes home-flow-glow-1 {
+    0% {
+      opacity: 0.18;
+    }
+
+    4%,
+    70% {
+      opacity: 0;
+    }
+
+    73%,
+    100% {
+      opacity: 0.18;
+    }
+  }
+
+  @keyframes home-flow-glow-2 {
+    0% {
+      opacity: 0.18;
+    }
+
+    4%,
+    75% {
+      opacity: 0;
+    }
+
+    78%,
+    100% {
+      opacity: 0.18;
+    }
+  }
+
+  @keyframes home-flow-step-1 {
+    0% {
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+
+    4% {
+      background-color: var(--color-bg-muted);
+      color: var(--color-text-muted);
+    }
+
+    6%,
+    100% {
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+  }
+
+  @keyframes home-flow-step-2 {
+    0% {
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+
+    4%,
+    38% {
+      background-color: var(--color-bg-muted);
+      color: var(--color-text-muted);
+    }
+
+    40%,
+    100% {
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+  }
+
+  @keyframes home-flow-step-3 {
+    0% {
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+
+    4%,
+    68% {
+      background-color: var(--color-bg-muted);
+      color: var(--color-text-muted);
+    }
+
+    70%,
+    100% {
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+  }
+</style>

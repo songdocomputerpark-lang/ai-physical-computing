@@ -1,0 +1,227 @@
+---
+/**
+ * 홈 첫 화면(PLAN §8.1 P1-05, SPEC §5): 제목, 한 문장 소개, 큰 버튼 3개, 흐름 그림.
+ * 1366×768·375×812 화면에서 스크롤 없이 버튼 3개가 다 보이고 Tab 키만으로 닿아야 한다(tests/e2e/home.spec.ts).
+ *
+ * - 넓은 화면(64rem 이상): 왼쪽에 글과 버튼, 오른쪽에 흐름 그림.
+ * - 좁은 화면: 글 → 버튼 → 그림 순서로 쌓는다. 키가 작은 휴대폰에서도 버튼이 먼저 보이게 하려는 것이다.
+ * - 문서 순서도 글 → 버튼 → 그림이라 Tab 키 초점은 머리글 다음에 버튼 3개로 곧장 온다.
+ * 글과 링크는 home-content.ts에 있다.
+ */
+import FlowIllustration from './FlowIllustration.astro';
+import HomeIcon from './HomeIcon.astro';
+import { homeActions, homeHero } from './home-content.ts';
+---
+
+<section class="hero" aria-labelledby="home-title">
+  <div class="hero__intro">
+    <h1 id="home-title" class="hero__title">
+      {
+        homeHero.titleLines.map((line, index) => (
+          <Fragment>
+            {index > 0 && ' '}
+            <span class="hero__title-line">{line}</span>
+          </Fragment>
+        ))
+      }
+    </h1>
+    <p class="hero__lead">{homeHero.lead}</p>
+    <ul class="hero__actions" role="list">
+      {
+        homeActions.map((action) => (
+          <li>
+            <a class:list={['hero__action', `hero__action--${action.variant}`]} href={action.href} data-home-action={action.id}>
+              <span class="hero__action-icon">
+                <HomeIcon name={action.icon} />
+              </span>
+              <span class="hero__action-text">
+                <span class="hero__action-label">{action.label}</span>{' '}
+                <span class="hero__action-hint">{action.hint}</span>
+              </span>
+              <span class="hero__action-arrow">
+                <HomeIcon name="arrow-right" />
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div class="hero__figure">
+    <FlowIllustration />
+  </div>
+</section>
+
+<style>
+  .hero {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+    padding-block: var(--space-2) var(--space-12);
+  }
+
+  .hero__intro,
+  .hero__figure {
+    min-width: 0;
+  }
+
+  .hero__title {
+    font-size: clamp(var(--text-2xl), 1.2rem + 2.2vw, calc(var(--text-2xl) * 1.45));
+    line-height: var(--leading-tight);
+    letter-spacing: -0.02em;
+  }
+
+  .hero__title-line {
+    display: inline-block;
+  }
+
+  .hero__lead {
+    max-width: 34rem;
+    margin-block-start: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+  }
+
+  .hero__actions {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 30rem;
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 큰 버튼: 아이콘 + 이름 + 한 줄 설명 + 화살표. 누르는 곳은 높이 4rem 이상. */
+  .hero__action {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 4rem;
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .hero__action--primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .hero__action--primary:hover {
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent-hover);
+    color: var(--color-on-accent);
+  }
+
+  .hero__action--primary:active {
+    border-color: var(--color-accent-active);
+    background: var(--color-accent-active);
+  }
+
+  .hero__action--secondary {
+    background: var(--color-bg);
+    color: var(--color-accent-hover);
+  }
+
+  .hero__action--secondary:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .hero__action:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .hero__action-icon {
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+  }
+
+  .hero__action--primary .hero__action-icon {
+    background: var(--color-accent-hover);
+  }
+
+  .hero__action--secondary .hero__action-icon {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  .hero__action-text {
+    display: grid;
+    flex: 1 1 auto;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .hero__action-label {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+  }
+
+  /* 파랑 바탕 위 설명 글자: accent-soft는 accent 위 5.25, accent-hover 위 6.7 대비 */
+  .hero__action--primary .hero__action-hint {
+    color: var(--color-accent-soft);
+  }
+
+  .hero__action--secondary .hero__action-hint {
+    color: var(--color-text-muted);
+  }
+
+  .hero__action-hint {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .hero__action-arrow {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+
+  .hero__action:hover .hero__action-arrow {
+    transform: translateX(0.1875rem);
+  }
+
+  /*
+   * 아주 좁은 화면에서는 버튼 설명 줄을 숨겨 버튼 3개가 첫 화면에 들어가게 한다. 버튼 이름만으로도 갈 곳을 알 수 있다.
+   * 근거(2026-09-16 측정, Pretendard 15px): 설명 칸 폭 = 화면 폭 − 160px, 가장 긴 설명 약 171px.
+   * 21rem(기본 글자 크기에서 336px)보다 좁으면 두 줄로 넘친다. 글자를 크게 키운 브라우저에서는 rem 기준이라 더 넓은 화면에서 숨는다.
+   * 설명 길이 한도는 tests/unit/home/home-content.test.ts가 같은 기준으로 검사한다.
+   */
+  @media (max-width: 20.99rem) {
+    .hero__action-hint {
+      display: none;
+    }
+
+    /* 가장 긴 이름 "카메라로 바로 해보기"가 320px 화면에서 두 줄로 넘치지 않게 한다(15px 측정값으로 환산: 20px일 때 약 166px > 칸 160px, 17px면 약 141px). */
+    .hero__action-label {
+      font-size: var(--text-base);
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .hero__lead {
+      font-size: var(--text-lg);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    /* 오른쪽 그림을 조금 더 넓게: 왼쪽 제목 첫 줄(약 25rem)은 들어가고 그림 속 부품은 커진다. */
+    .hero {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      gap: var(--space-12);
+      padding-block: var(--space-8) var(--space-16);
+    }
+  }
+</style>

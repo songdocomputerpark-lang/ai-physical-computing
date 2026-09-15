@@ -1,0 +1,105 @@
+---
+/**
+ * 홈 맨 아래 "설치 없이, 브라우저만으로" 원칙(PLAN §8.1 P1-05, SPEC §2 절대 원칙 1~3을 짧게).
+ * 권장 브라우저 한 줄과 점검 페이지 링크를 함께 둔다(SPEC §9). 글과 링크는 home-content.ts에 있다.
+ */
+import HomeIcon from './HomeIcon.astro';
+import { homePrinciples } from './home-content.ts';
+
+const { heading, items, browserNote } = homePrinciples;
+---
+
+<section class="principles" aria-labelledby="home-principles-title">
+  <h2 id="home-principles-title" class="principles__title">{heading}</h2>
+  <ul class="principles__list" role="list">
+    {
+      items.map((item) => (
+        <li class="principle">
+          <span class="principle__icon">
+            <HomeIcon name={item.icon} />
+          </span>
+          <h3 class="principle__title">{item.title}</h3>
+          <p class="principle__body">{item.body}</p>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="principles__note">
+    {browserNote.text}{' '}
+    <a href={browserNote.href}>{browserNote.linkLabel}</a>
+  </p>
+</section>
+
+<style>
+  .principles {
+    margin-block-start: var(--space-12);
+    padding: var(--space-8) var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .principles__title {
+    margin-block-end: var(--space-6);
+    font-size: var(--text-2xl);
+  }
+
+  .principles__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-6) var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* align-content: start — 목록 칸 높이가 가장 긴 설명에 맞춰 늘어나도 아이콘·제목 줄이 세 칸 모두 같은 높이에 오게 한다. */
+  .principle {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .principle__icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-accent);
+  }
+
+  .principle__title {
+    font-size: var(--text-lg);
+  }
+
+  .principle__body {
+    grid-column: 1 / -1;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .principles__note {
+    margin-block-start: var(--space-8);
+    padding-block-start: var(--space-5);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .principles__note a {
+    display: inline-block;
+    padding-block: var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  @media (min-width: 48rem) {
+    .principles {
+      padding-inline: var(--space-8);
+    }
+  }
+</style>
