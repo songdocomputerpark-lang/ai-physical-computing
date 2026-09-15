@@ -1,7 +1,11 @@
 // @ts-check
+import { unified } from '@astrojs/markdown-remark';
 import { defineConfig } from 'astro/config';
+import remarkDirective from 'remark-directive';
 import { siteConfig } from './src/config/site.ts';
 import { clientBundleLicensePlugin } from './scripts/lib/bundle-license.mjs';
+import remarkBoxes from './src/lib/remark-boxes.mjs';
+import remarkGlossary from './src/lib/remark-glossary.mjs';
 
 // 주소와 하위 경로는 src/config/site.ts 한 곳에서만 정한다(DECISIONS C7).
 export default defineConfig({
@@ -21,6 +25,15 @@ export default defineConfig({
   trailingSlash: 'always',
   build: {
     format: 'directory',
+  },
+  markdown: {
+    // Astro 7의 기본 처리기(Sätteri) 대신 unified 처리기(@astrojs/markdown-remark)를 쓴다.
+    // 상자 문법(:::교사용)과 용어 표시 문법(:용어[픽셀])에 remark 플러그인이 필요하기 때문이다(PLAN §3.1·§3.2, PD-10).
+    // 플러그인 순서가 중요하다(src/lib/remark-boxes.mjs 머리말):
+    //   remarkDirective(: 문법 읽기) → remarkGlossary(:용어[…]) → remarkBoxes(:::상자, 처리 안 된 지시문을 원래 글자로 되돌림)
+    processor: unified({
+      remarkPlugins: [remarkDirective, remarkGlossary, remarkBoxes],
+    }),
   },
   vite: {
     // 배포 번들(브라우저로 가는 코드)에 실제로 들어간 npm 패키지 목록을 dist/bundle-licenses.json으로 남긴다.

@@ -1,0 +1,48 @@
+---
+/**
+ * 상자 컴포넌트 — 마크다운 상자 문법(src/lib/remark-boxes.mjs)과 똑같은 HTML·스타일을 .astro 페이지에서 쓸 때.
+ *
+ * 쓰는 법
+ *   <Callout type="왜그럴까"><p>임계값보다 밝은 픽셀만 흰색이 되기 때문이에요.</p></Callout>
+ *   <Callout type="teacher" title="지도 포인트" open><p>…</p></Callout>
+ *   <Callout type="주의"><Fragment slot="title">레이저를 <strong>눈에 비추지 않아요</strong></Fragment><p>…</p></Callout>
+ *
+ * props
+ *   type   상자 종류: 왜그럴까·바꿔보기·도전·힌트·정답·확인·오류·주의·참고·교사용
+ *          (영어 이름 why·try·challenge·hint·answer·check·trouble·caution·note·teacher도 된다)
+ *   title  (선택) 제목 글자. 없으면 종류별 기본 제목. 꾸민 제목은 title 슬롯으로 넣는다.
+ *   open   (선택) 접는 상자(힌트·정답·교사용)를 처음부터 펼쳐 둔다.
+ * 모르는 type을 넣으면 빌드가 멈춘다(오타를 바로 알 수 있게).
+ */
+import { BOX_TYPES, boxClassNames, findBoxType } from '../../lib/remark-boxes.mjs';
+
+interface Props {
+  type: string;
+  title?: string;
+  open?: boolean;
+}
+
+const { type: typeName, title, open = false } = Astro.props;
+const boxType = findBoxType(typeName);
+if (!boxType) {
+  throw new Error(
+    `Callout: 모르는 상자 종류 "${typeName}"예요. 쓸 수 있는 이름: ${BOX_TYPES.map((item) => item.name).join(', ')}`,
+  );
+}
+const titleText = title ?? boxType.title;
+const hasTitleSlot = Astro.slots.has('title');
+---
+
+{
+  boxType.collapsible ? (
+    <details class:list={boxClassNames(boxType)} data-box={boxType.variant} open={open}>
+      <summary class="box__title">{hasTitleSlot ? <slot name="title" /> : titleText}</summary>
+      <slot />
+    </details>
+  ) : (
+    <div class:list={boxClassNames(boxType)} data-box={boxType.variant} role="note">
+      <p class="box__title">{hasTitleSlot ? <slot name="title" /> : titleText}</p>
+      <slot />
+    </div>
+  )
+}
