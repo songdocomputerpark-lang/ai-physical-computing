@@ -1,0 +1,18 @@
+# 저장소 검사 허용 목록(scripts/check-repo.mjs가 읽음, PLAN §8.0 PD-32)
+#
+# 저장소 검사는 원본 자료 형식(.pdf .pptx .hwp .hwpx .zip .pyc)과
+# 5MB(5,242,880바이트)를 넘는 파일의 커밋을 막아요.
+# 꼭 올려야 하는 파일만 아래에 경로와 이유를 적어요. 경로 패턴 문법은 sources.yaml과 같아요(** * ?).
+#
+# original_formats: 올려도 되는 원본 형식 파일
+#   - path: public/teacher/bt-handout-redacted.pdf
+#     reason: 블루투스 교안 가린 편집본(PD-31). 쪽별 눈 확인 기록 위치도 함께 적어요.
+#
+# large_files: 5MB를 넘어도 되는 파일(모델·펌웨어·편집본 PDF)
+#   - path: public/models/*.task
+#     reason: MediaPipe 모델(PD-13)
+#     max_mb: 10   # 이보다 크면 여전히 막아요. 적지 않으면 50(GitHub는 50MB가 넘는 파일에 경고해요).
+
+original_formats: []
+
+large_files: []

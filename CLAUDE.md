@@ -25,7 +25,8 @@ AI 피지컬 컴퓨팅 오픈랩(가칭) — 2022 개정교육과정 인공지�
 
 ## 기술 스택
 확정안 요약. 버전·근거·라이선스 전체는 `docs/PLAN.md` §3.1, 결정 번호(PD)는 부록 A. 버전은 `^` 없이 정확히 고정한다(`.npmrc`의 `save-exact=true`).
-- **설치됨(P1-02):** Astro 7.3.2(정적 출력) + TypeScript 6.0.3 + @astrojs/check 0.9.10(TypeScript 7은 이 검사 도구가 받지 않아 보류), Vitest 5.0.0. Node.js 22.12.0 이상(운영자 PC 24.19.0).
+- **설치됨(P1-02):** Astro 7.3.2(정적 출력) + TypeScript 6.0.3 + @astrojs/check 0.9.10(TypeScript 7은 이 검사 도구가 받지 않아 보류), Vitest 5.0.0, yaml 2.9.1(등록부 읽기, P1-04). Node.js 22.12.0 이상(운영자 PC 24.19.0).
+- **출처·저장소 검사(P1-04):** `sources.yaml`(출처 등록부) → 빌드 전후 검사와 `/credits/` 자동 생성. 커밋 전 훅·CI의 저장소 검사(`scripts/check-repo.mjs`, 허용 목록 `scripts/repo-allowlist.yaml`, 이미지 눈 확인 기록 `scripts/image-allowlist.yaml`).
 - **사이트 설정 한 곳:** `src/config/site.ts`(이름·설명·저작자·주소·라이선스·버전) → `astro.config.mjs`가 읽는다. `base: '/ai-physical-computing'`, `trailingSlash: 'always'`(내부 링크는 `import.meta.env.BASE_URL` 뒤에 `/`로 끝나는 경로를 붙인다).
 - **파이썬 실행:** Pyodide 314.0.7(모듈 워커) — jsDelivr 고정 주소 + 같은 사이트 예비본(PD-02), 실행 중 입력 전달은 JSPI 기본(PD-01).
 - **비전 AI:** MediaPipe Tasks Vision 0.10.35 고정(PD-03, 1.0.x는 사용 지표 전송 때문에 쓰지 않음).
@@ -43,6 +44,8 @@ AI 피지컬 컴퓨팅 오픈랩(가칭) — 2022 개정교육과정 인공지�
 - 빌드: `npm run build`(결과는 `dist/`), 빌드 결과 미리 보기: `npm run preview`
 - 타입 검사: `npm run check`(astro check, 오류 0이어야 한다)
 - 단위 테스트: `npm test`(vitest run, `tests/unit/**/*.test.ts`)
+- 출처 검사: `npm run check:sources` — `npm run build`가 앞(prebuild)에서 자동으로 돌리고, 뒤(postbuild)에서는 배포 번들 의존성을 검사한다. `npx astro build`로 직접 빌드하면 이 검사가 돌지 않는다
+- 저장소 검사: `npm run check:repo` — 커밋 전 훅(`.githooks/pre-commit`)과 배포 워크플로가 같은 검사를 한다. 훅은 `npm install`·`npm ci`가 `git config core.hooksPath .githooks`로 켠다(확인: `git config --get core.hooksPath`)
 - 오프라인 배포판: `npm run build:offline` — Phase 6에서 추가 예정(아직 없음)
 
 ## 작업 규칙

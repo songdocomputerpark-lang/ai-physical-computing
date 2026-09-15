@@ -1,0 +1,187 @@
+---
+// 출처 등록부 항목 하나(출처와 라이선스 페이지). 놓이는 곳에 맞춰 제목 단계(h3·h4)를 받는다.
+import { categoryLabel, formatKoreanDate, isExcluded, type SourceEntry } from '../../lib/credits.ts';
+
+interface Props {
+  entry: SourceEntry;
+  headingLevel: 3 | 4;
+  /** 라이선스별 묶음 밖(제3자 목록)에서는 라이선스도 보인다 */
+  showLicense?: boolean;
+}
+
+const { entry, headingLevel, showLicense = false } = Astro.props;
+const Heading = headingLevel === 3 ? 'h3' : 'h4';
+---
+
+<article class="source-entry">
+  <Heading class="source-entry__name">{entry.name}</Heading>
+  {isExcluded(entry) && <p class="source-entry__flag">사이트 라이선스에서 제외 — 원래 조건을 따라요</p>}
+  <dl class="source-entry__fields">
+    <div>
+      <dt>분류</dt>
+      <dd>{categoryLabel(entry.category)}</dd>
+    </div>
+    <div>
+      <dt>저작자</dt>
+      <dd>{entry.author}</dd>
+    </div>
+    {
+      showLicense && (
+        <div>
+          <dt>라이선스</dt>
+          <dd>{entry.license}</dd>
+        </div>
+      )
+    }
+    {
+      entry.rights && (
+        <div>
+          <dt>권리 문구(원문 그대로)</dt>
+          <dd class="source-entry__rights">{entry.rights}</dd>
+        </div>
+      )
+    }
+    <div>
+      <dt>사용 위치</dt>
+      <dd>{entry.used_in}</dd>
+    </div>
+    {
+      entry.url && (
+        <div>
+          <dt>원래 자료</dt>
+          <dd>
+            <a href={entry.url}>{entry.url}</a>
+          </dd>
+        </div>
+      )
+    }
+    {
+      entry.paths.length > 0 && (
+        <div>
+          <dt>적용 파일(경로 패턴)</dt>
+          <dd>
+            <ul class="source-entry__codes">
+              {entry.paths.map((pattern) => (
+                <li>
+                  <code>{pattern}</code>
+                </li>
+              ))}
+            </ul>
+            {entry.exclude_paths.length > 0 && (
+              <>
+                <p class="source-entry__note">다음 경로는 빼요.</p>
+                <ul class="source-entry__codes">
+                  {entry.exclude_paths.map((pattern) => (
+                    <li>
+                      <code>{pattern}</code>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </dd>
+        </div>
+      )
+    }
+    {
+      entry.npm.length > 0 && (
+        <div>
+          <dt>npm 패키지</dt>
+          <dd>
+            <ul class="source-entry__codes">
+              {entry.npm.map((packageName) => (
+                <li>
+                  <code>{packageName}</code>
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )
+    }
+    {
+      entry.notice && (
+        <div>
+          <dt>고지 전문 파일</dt>
+          <dd>
+            <code>{entry.notice}</code>
+          </dd>
+        </div>
+      )
+    }
+    {
+      entry.fetched && (
+        <div>
+          <dt>가져온 날짜</dt>
+          <dd>
+            <time datetime={entry.fetched}>{formatKoreanDate(entry.fetched)}</time>
+          </dd>
+        </div>
+      )
+    }
+  </dl>
+</article>
+
+<style>
+  .source-entry {
+    border: 1px solid #c3c8cf;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+  }
+  .source-entry__name {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+  .source-entry__flag {
+    display: inline-block;
+    margin: 0 0 0.75rem;
+    padding: 0.1rem 0.6rem;
+    border: 1px solid #9a5800;
+    border-radius: 999px;
+    background: #fff4d6;
+    color: #5a3200;
+    font-size: 0.9rem;
+  }
+  .source-entry__fields {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+  }
+  .source-entry__fields > div {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 0.75rem;
+  }
+  dt {
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .source-entry__rights {
+    white-space: pre-line;
+  }
+  .source-entry__codes {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .source-entry__note {
+    margin: 0.4rem 0 0;
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace;
+    font-size: 0.92em;
+  }
+  a:focus-visible {
+    outline: 3px solid #0b57d0;
+    outline-offset: 2px;
+  }
+  @media (max-width: 36rem) {
+    .source-entry__fields > div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

@@ -15,18 +15,25 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "node scripts/check-sources.mjs",
     "build": "astro build",
+    "postbuild": "node scripts/check-sources.mjs --bundle",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "vitest run"
+    "check:sources": "node scripts/check-sources.mjs",
+    "check:repo": "node scripts/check-repo.mjs",
+    "test": "vitest run",
+    "prepare": "node scripts/setup-git-hooks.mjs"
   },
   "dependencies": {
     "astro": "7.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@types/node": "24.13.4",
     "typescript": "6.0.3",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "yaml": "2.9.1"
   },
   "allowScripts": {
     "esbuild": true

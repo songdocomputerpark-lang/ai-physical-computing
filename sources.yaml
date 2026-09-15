@@ -1,0 +1,121 @@
+# 출처 등록부(sources.yaml) — SPEC §8, PLAN §9.2, PD-26
+#
+# 사이트에 들어가는 자료가 어디서 왔고 어떤 조건으로 쓰는지 적는 곳이에요.
+# - npm run build 전에 scripts/check-sources.mjs가 public/·examples/·content/의 모든 파일과
+#   package.json의 dependencies가 여기에 등록됐는지 검사해요. 빌드 뒤에는 배포 번들에 실제로 들어간
+#   npm 패키지(전이 의존성 포함)를 검사해요. 등록되지 않았거나, 한 파일이 저작자가 다른 두 항목에
+#   동시에 걸리면(중복 매칭) 빌드가 실패해요.
+# - 출처와 라이선스 페이지(/credits/)가 이 파일로 자동으로 만들어져요.
+# - 외부 자료·라이브러리는 쓰기 전에 여기에 먼저 등록해요(PLAN §8.0).
+#
+# 필드
+#   name           자료 이름(버전이 있으면 함께). 항목끼리 겹치면 안 돼요.
+#   category       operator    운영자 자체 자료(DECISIONS C1 문구를 license에)
+#                  self        사이트 자체 제작
+#                  stack       실행 구성요소(프레임워크·글꼴·파이썬 엔진 등)
+#                  library     원래 라이선스가 확인된 공개 코드·데이터
+#                  third_party 제3자 권리 표기 자료(원 권리자 보유)
+#                  reference   규격·사실·교육과정 인용
+#                  operator·self는 사이트 라이선스(MIT·CC BY-NC-SA 4.0)를 따르고,
+#                  나머지는 사이트 라이선스에서 빠지고 원래 조건을 따라요(PD-26).
+#   author         저작자(원 제작자). 한 파일이 두 항목에 걸릴 때 이 값이 다르면 오류예요.
+#   license        라이선스 이름. /credits/에서 같은 값끼리 묶여요.
+#   url            원래 자료 주소. library·stack·reference는 꼭 적어요.
+#   used_in        사이트에서 쓰는 곳(PLAN §9.2의 use).
+#   paths          이 항목에 속하는 파일의 경로 패턴(저장소 뿌리 기준, / 구분).
+#                  ** = 폴더 여러 칸, * = 한 칸 안의 글자, ? = 글자 하나. 폴더 전체는 끝에 /**
+#   exclude_paths  paths 가운데 이 항목에서 뺄 경로 패턴.
+#   npm            이 항목에 속하는 npm 패키지 이름. 배포 번들에 들어가는 것만 적어요.
+#                  빌드·검사에만 쓰는 개발 도구(TypeScript, Vitest, yaml 등)는 적지 않아요(PLAN §9.2).
+#   fetched        가져온(또는 확인한) 날짜 YYYY-MM-DD(PLAN §9.2의 retrieved).
+#                  library·third_party·stack·reference는 꼭 적어요.
+#   notice         (선택) 라이선스 고지 전문 파일 경로.
+#   rights         제3자 권리 문구 원문. third_party는 꼭 적어요.
+#
+# 폴더 약속: 아래의 넓은 항목은 모두 third-party/ 폴더를 빼 두었어요.
+# 다른 저작자가 만든 파일은 그 폴더 안의 third-party/ 폴더에 넣고, 파일(또는 라이브러리)마다 항목을 따로 만들어요.
+# 예: examples/esp32/lib/third-party/i2c_lcd.py(PD-26)
+
+sources:
+  # ── 운영자 자체 자료(DECISIONS O2~O5, C1) ──
+  - name: 교과서 원고와 수업 교안의 글·그림·사진
+    category: operator
+    author: 박상진·김석전
+    license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
+    # 사이트 공개 조건은 PD-26(학습 자료 CC BY-NC-SA 4.0)
+    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
+    paths:
+      - content/**
+      - public/images/lessons/**
+    exclude_paths:
+      - content/**/third-party/**
+      - public/images/lessons/**/third-party/**
+    fetched: 2026-09-15
+
+  - name: 교과서·수업 자료의 예제 코드와 사이트판
+    category: operator
+    author: 박상진·김석전
+    license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
+    # 옮기는 방법은 PD-33, 사이트 공개 조건은 PD-26
+    used_in: "실습실 예제 코드(examples/). 원본 코드 압축 파일에서 그대로 옮기고, 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
+    paths:
+      - examples/**
+    exclude_paths:
+      - examples/**/third-party/**
+    fetched: 2026-09-15
+
+  # ── 사이트 자체 제작 ──
+  - name: 사이트가 직접 그린 그림
+    category: self
+    author: 박상진·김석전
+    license: CC BY-NC-SA 4.0
+    used_in: 화면 그림·아이콘·흐름도(public/images/site/)
+    paths:
+      - public/images/site/**
+    exclude_paths:
+      - public/images/site/**/third-party/**
+
+  - name: 배포 확인용 시험 파일
+    category: self
+    author: 박상진·김석전
+    license: MIT
+    used_in: GitHub Pages가 .mjs·.wasm 파일을 알맞은 형식으로 보내는지 확인하는 파일
+    paths:
+      - public/_probe/**
+
+  # ── 실행 구성요소 ──
+  - name: Astro 7.3.2
+    category: stack
+    author: "Fred K. Schott와 withastro(Astro 기여자). 일부 코드: SvelteKit 기여자, Yuxi (Evan) You와 Vite 기여자"
+    license: MIT
+    url: https://github.com/withastro/astro
+    used_in: 사이트를 만드는 틀. 마크다운과 컴포넌트를 HTML 페이지로 바꿔요.
+    npm:
+      - astro
+    fetched: 2026-09-15
+
+  # 글꼴 자리(P1-05에서 자체 호스팅). 라이선스·저작자는 공식 저장소 LICENSE와 npm 레지스트리로 2026-09-15에 확인했어요.
+  # 글꼴 파일을 넣는 단계에서 버전을 다시 확인하고 fetched를 넣은 날로 고쳐요.
+  # 다른 글꼴도 넣게 되면 paths를 public/fonts/pretendard/**로 좁히고 그 글꼴 항목을 따로 만들어요.
+  - name: Pretendard 1.3.9
+    category: stack
+    author: "길형진(Kil Hyung-jin). 바탕이 된 글꼴의 저작권자: Adobe, The Inter Project Authors, The M+ FONTS Project Authors"
+    license: OFL-1.1
+    url: https://github.com/orioncactus/pretendard
+    used_in: 사이트 한글 글꼴(public/fonts/에 넣을 예정)
+    paths:
+      - public/fonts/**
+    npm:
+      - pretendard
+    fetched: 2026-09-15
+
+  # ── 다른 저작자의 자료(library·third_party)를 넣을 때의 예시(파일을 실제로 넣는 단계에서 확인해 채워요) ──
+  # - name: python_lcd(i2c_lcd.py)
+  #   category: library
+  #   author: Dave Hylands
+  #   license: MIT
+  #   url: https://github.com/dhylands/python_lcd
+  #   used_in: ESP32 문자 LCD 라이브러리
+  #   paths:
+  #     - examples/esp32/lib/third-party/i2c_lcd.py
+  #   fetched: YYYY-MM-DD

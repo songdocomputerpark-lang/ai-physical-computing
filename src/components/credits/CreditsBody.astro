@@ -1,0 +1,131 @@
+---
+// 출처와 라이선스 본문(PLAN §8.1 P1-04 ④, §9.2). sources.yaml에서 빌드할 때 자동으로 만든다.
+// 페이지 껍데기(src/pages/credits/index.astro)와 나눠 두었다.
+// 공통 레이아웃(P1-05)이 생기면 껍데기만 그 레이아웃으로 바꾸고 이 본문은 그대로 감싼다.
+// 제목 단계: 페이지 제목(h1)은 껍데기가 맡고, 이 본문은 h2부터 쓴다.
+import registryText from '../../../sources.yaml?raw';
+import { siteConfig } from '../../config/site.ts';
+import { buildCreditsView } from '../../lib/credits.ts';
+import SourceEntry from './SourceEntry.astro';
+
+const view = buildCreditsView(registryText);
+const { software, content, exclusion } = siteConfig.license;
+const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
+---
+
+<div class="credits">
+  <p>
+    이 사이트에 쓰인 자료가 어디서 왔고, 어떤 조건으로 쓸 수 있는지 모아 둔 페이지예요. 목록은 저장소의
+    <a href={registryUrl}>출처 등록부(sources.yaml)</a>로 사이트를 만들 때 자동으로 만들어져요.
+  </p>
+
+  <section aria-labelledby="credits-site-license">
+    <h2 id="credits-site-license">이 사이트의 라이선스</h2>
+    <p>
+      <strong>라이선스</strong>는 자료를 쓰고, 고치고, 나눠 줄 수 있는 조건을 적은 약속이에요. 이 사이트는 자료 종류에
+      따라 두 가지를 써요.
+    </p>
+    <dl class="credits__licenses">
+      <div>
+        <dt><a href={content.url}>{content.shortName}</a></dt>
+        <dd>{content.name}. 적용: {content.appliesTo}</dd>
+      </div>
+      <div>
+        <dt><a href={software.url}>{software.shortName}</a></dt>
+        <dd>{software.name}. 적용: {software.appliesTo}</dd>
+      </div>
+    </dl>
+    <p>{exclusion}</p>
+  </section>
+
+  <section aria-labelledby="credits-third-party">
+    <h2 id="credits-third-party">제3자 권리 표기 자료</h2>
+    <p>
+      원래 권리자가 따로 있는 자료예요. 원래 적혀 있던 권리 문구를 그대로 보여 줘요. 사이트 라이선스가 적용되지 않으니,
+      다시 쓰려면 원래 권리자의 조건을 따라야 해요.
+    </p>
+    {
+      view.thirdParty.length === 0 ? (
+        <p class="credits__empty">지금은 이 목록에 들어갈 자료가 없어요.</p>
+      ) : (
+        <ul class="credits__list">
+          {view.thirdParty.map((entry) => (
+            <li>
+              <SourceEntry entry={entry} headingLevel={3} showLicense />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <section aria-labelledby="credits-by-license">
+    <h2 id="credits-by-license">라이선스별 자료 목록</h2>
+    <p>
+      등록된 자료 {view.entryCount}개를 같은 라이선스끼리 묶었어요. "사이트 라이선스에서 제외" 표시가 붙은 자료는 원래
+      조건을 따라요.
+    </p>
+    {
+      view.licenseGroups.map((group, index) => (
+        <section class="credits__group" aria-labelledby={`credits-license-${index + 1}`}>
+          <h3 id={`credits-license-${index + 1}`}>
+            {group.licenseUrl ? <a href={group.licenseUrl}>{group.license}</a> : group.license}{' '}
+            <span class="credits__count">— 자료 {group.entries.length}개</span>
+          </h3>
+          <ul class="credits__list">
+            {group.entries.map((entry) => (
+              <li>
+                <SourceEntry entry={entry} headingLevel={4} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </section>
+</div>
+
+<style>
+  .credits h2 {
+    margin: 2.5rem 0 0.75rem;
+    font-size: 1.5rem;
+    line-height: 1.35;
+  }
+  .credits h3 {
+    margin: 1.75rem 0 0.75rem;
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+  .credits__licenses {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .credits__licenses dt {
+    font-weight: 700;
+  }
+  .credits__licenses dd {
+    margin: 0.1rem 0 0;
+  }
+  .credits__list {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .credits__count {
+    margin-left: 0.4rem;
+    font-weight: 400;
+    font-size: 1rem;
+  }
+  .credits__empty {
+    padding: 0.75rem 1rem;
+    border-left: 4px solid #6b7280;
+    background: #f3f4f6;
+  }
+  a:focus-visible {
+    outline: 3px solid #0b57d0;
+    outline-offset: 2px;
+  }
+</style>

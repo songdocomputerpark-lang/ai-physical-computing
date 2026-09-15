@@ -1,0 +1,41 @@
+#!/bin/sh
+# 커밋 전 저장소 검사(PLAN §8.0 PD-32)
+#
+# git commit을 하면 먼저 scripts/check-repo.mjs가 스테이징된 내용을 검사한다.
+# 원본 자료 형식·5MB 넘는 파일·원본 파일 이름·개인정보 형태·눈 확인 기록 없는 이미지·docs/SPEC.md가 있으면 커밋을 막는다.
+# 켜기: git config core.hooksPath .githooks (npm install·npm ci가 scripts/setup-git-hooks.mjs로 자동으로 켠다)
+#
+# Windows에서는 Git이 Node.js 설치 폴더를 PATH에 넣지 못하는 경우가 있어(Git Bash·GUI 도구),
+# PATH에 node가 없으면 흔한 설치 위치를 차례로 찾는다.
+
+repo_root=$(git rev-parse --show-toplevel) || exit 1
+cd "$repo_root" || exit 1
+
+node_bin=""
+if command -v node >/dev/null 2>&1; then
+  node_bin=node
+else
+  for candidate in \
+    "${PROGRAMFILES:-}/nodejs/node.exe" \
+    "${ProgramFiles:-}/nodejs/node.exe" \
+    "/c/Program Files/nodejs/node.exe" \
+    "${LOCALAPPDATA:-}/Programs/nodejs/node.exe" \
+    "${NVM_SYMLINK:-}/node.exe" \
+    "${HOME:-}/.volta/bin/node" \
+    "/usr/local/bin/node" \
+    "/opt/homebrew/bin/node"
+  do
+    if [ -f "$candidate" ] && [ -x "$candidate" ]; then
+      node_bin=$candidate
+      break
+    fi
+  done
+fi
+
+if [ -z "$node_bin" ]; then
+  echo "[저장소 검사] Node.js를 찾지 못해서 커밋을 멈췄어요." >&2
+  echo "  Node.js(https://nodejs.org/)를 설치하거나, node 명령이 되는 터미널에서 다시 커밋해 주세요." >&2
+  exit 1
+fi
+
+exec "$node_bin" scripts/check-repo.mjs

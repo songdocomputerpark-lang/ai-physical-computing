@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { siteConfig } from './src/config/site.ts';
+import { clientBundleLicensePlugin } from './scripts/lib/bundle-license.mjs';
 
 // 주소와 하위 경로는 src/config/site.ts 한 곳에서만 정한다(DECISIONS C7).
 export default defineConfig({
@@ -20,5 +21,11 @@ export default defineConfig({
   trailingSlash: 'always',
   build: {
     format: 'directory',
+  },
+  vite: {
+    // 배포 번들(브라우저로 가는 코드)에 실제로 들어간 npm 패키지 목록을 dist/bundle-licenses.json으로 남긴다.
+    // 빌드 뒤 scripts/check-sources.mjs --bundle(npm의 postbuild)이 sources.yaml과 대조하고 지운다(PLAN §8.1 P1-04).
+    // client 환경에만 켜는 이유는 scripts/lib/bundle-license.mjs에 적었다.
+    plugins: [clientBundleLicensePlugin()],
   },
 });
