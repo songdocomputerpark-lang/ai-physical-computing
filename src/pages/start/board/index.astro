@@ -1,14 +1,363 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 시작하기 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-08).
+/**
+ * 보드 준비하기(PLAN §2.1, §8.1 P1-08). 연결 버튼·펌웨어 굽기·연결 테스트는 Phase 3(P3-07~P3-10)에서 이어 붙인다.
+ * - 드라이버는 제조사 공식 페이지 링크로만 안내하고 파일은 올리지 않는다(INVENTORY §2, SPEC 원칙 1의 허용 예외).
+ * - 주소 끝에 #port-not-found를 붙여 열면 "포트 선택 창에 보드가 안 보여요" 안내가 펼쳐진다(실습실의 연결 화면이 이 주소로 연결할 수 있게).
+ */
+import Callout from '../../../components/common/Callout.astro';
 import ComingSoon from '../../../components/common/ComingSoon.astro';
+import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
+import CableFigure from '../../../components/start/CableFigure.astro';
+import KitPartsTable from '../../../components/start/KitPartsTable.astro';
 import { getPage } from '../../../config/nav.ts';
+import { siteConfig } from '../../../config/site.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const page = getPage('start-board');
+const esp32Lab = getPage('labs-esp32');
+const hardwareCheck = getPage('labs-esp32-check');
+const check = getPage('start-check');
+
+/** 드라이버 공식 내려받기 페이지(2026-09-16 응답 200과 페이지 제목 확인). */
+const drivers = [
+  {
+    chip: 'CH340·CH341',
+    maker: 'WCH(Nanjing Qinheng Microelectronics)',
+    label: 'CH341SER.EXE 내려받기 페이지(Windows)',
+    url: 'https://www.wch-ic.com/downloads/CH341SER_EXE.html',
+  },
+  {
+    chip: 'CP210x(CP2102 등)',
+    maker: 'Silicon Labs',
+    label: 'CP210x USB to UART Bridge VCP 드라이버 페이지',
+    url: 'https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers',
+  },
+] as const;
+
+const brlttyBugUrl = 'https://bugs.launchpad.net/ubuntu/+source/brltty/+bug/1958224';
 ---
 
 <BaseLayout title={page.title} description={page.description}>
+  <BrowserNotice slot="notice" />
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what="보드 준비 안내" when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+  <p class="lead">ESP32 보드를 USB 케이블로 컴퓨터에 연결하는 준비를 해요.</p>
+
+  <div class="prose">
+    <Callout type="참고" title="보드가 없어도 괜찮아요">
+      <p>
+        ESP32 실습실의 가상 보드는 실제 보드와 같은 코드로 움직이게 만들어요. 보드가 없으면 가상 보드로 실습하고, 보드가 생기면 이 페이지로
+        돌아와요.
+      </p>
+    </Callout>
+
+    <h2 id="kit-list">준비물</h2>
+    <ul>
+      <li>ESP32 개발 보드(교과서 키트는 확장 보드에 꽂아서 써요)</li>
+      <li>데이터를 주고받을 수 있는 USB 케이블(교과서 키트의 보드는 USB-C 단자예요)</li>
+      <li>컴퓨터용 Chrome이나 Edge 최신판</li>
+      <li>실습할 부품 모듈(차시마다 달라요)</li>
+    </ul>
+
+    <h2 id="kit-parts">키트 부품 이름 맞춰 보기</h2>
+    <p>
+      교과서 키트의 부품 이름과, 다른 회사 부품을 살 때 찾아보는 범용 이름을 나란히 적었어요. 핀 번호는 차시마다 달라서, 실습할 때는 그
+      차시의 배선도를 따라요.
+    </p>
+  </div>
+  <KitPartsTable />
+  <div class="prose">
+    <p class="board-note">
+      표가 화면보다 넓으면 옆으로 밀어서 보세요. "실물 확인 전"은 원고 사진과 코드로만 확인해서, 실제 키트로 한 번 더 확인할 점이에요.
+    </p>
+
+    <h2 id="cable">USB 케이블 확인하기</h2>
+    <Callout type="주의" title="충전 전용 케이블로는 연결되지 않아요">
+      <p>
+        보드에 불이 들어와도 컴퓨터가 보드를 못 알아보면 케이블을 먼저 의심해요. 휴대폰과 컴퓨터 사이에 사진을 옮길 수 있었던 케이블처럼
+        데이터가 오가는 케이블을 써요.
+      </p>
+    </Callout>
+  </div>
+  <CableFigure />
+
+  <div class="prose">
+    <h2 id="connect">보드 연결하기</h2>
+    <ol>
+      <li>보드를 USB 케이블로 컴퓨터에 먼저 꽂아요.</li>
+      <li>
+        ESP32 실습실에서 <strong>[연결]</strong>을 누르면 브라우저가 포트 선택 창을 열어요. 포트는 컴퓨터가 보드와 신호를 주고받는
+        통로예요.
+      </li>
+      <li>목록에서 보드를 고르고 연결을 눌러요.</li>
+    </ol>
+  </div>
+  <ComingSoon
+    what="[연결] 버튼"
+    when="ESP32 실습실을 만드는 단계(Phase 3)"
+    headingLevel={3}
+    links={[{ label: esp32Lab.title, href: esp32Lab.href }]}
+  />
+
+  <section class="board-section" aria-labelledby="port-help-title">
+    <h2 id="port-help-title">연결이 안 될 때</h2>
+    <details class="port-help" id="port-not-found">
+      <summary class="port-help__summary">포트 선택 창에 보드가 안 보여요</summary>
+      <ol class="port-steps">
+        <li class="port-steps__item">
+          <h3>케이블과 연결 확인하기</h3>
+          <ul>
+            <li>충전 전용 케이블이 아닌지 봐요. 다른 케이블로 바꿔 보는 것이 가장 빨라요.</li>
+            <li>USB 허브나 연장선 대신 컴퓨터 본체의 USB 단자에 바로 꽂아요.</li>
+            <li>보드에 전원 표시등이 있다면 켜졌는지 봐요.</li>
+          </ul>
+        </li>
+        <li class="port-steps__item">
+          <h3>다시 꽂고 목록 다시 보기</h3>
+          <ul>
+            <li>포트 선택 창을 닫고, 케이블을 뽑았다가 다시 꽂아요.</li>
+            <li>[연결]을 다시 눌러 목록을 봐요. 보드를 꽂기 전에는 없다가 꽂은 뒤 새로 생긴 항목이 보드예요.</li>
+          </ul>
+        </li>
+        <li class="port-steps__item">
+          <h3>컴퓨터가 보드를 알아보는지 확인하기(Windows)</h3>
+          <ul>
+            <li>시작 단추를 마우스 오른쪽 버튼으로 누르고 <strong>장치 관리자</strong>를 열어요.</li>
+            <li>
+              <strong>포트(COM &amp; LPT)</strong> 아래에 보드를 꽂을 때 새로 생기는 항목(예: COM3)이 있으면 컴퓨터가 보드를 알아본 거예요.
+              포트 선택 창에서 같은 COM 번호를 찾아 골라요.
+            </li>
+            <li>
+              <strong>기타 장치</strong>에 느낌표(!)가 붙은 알 수 없는 장치가 생기면 드라이버가 없는 거예요. 다음 단계로 가요.
+            </li>
+            <li>꽂아도 아무 변화가 없으면 케이블이나 USB 단자 문제일 가능성이 커요. 첫 단계로 돌아가요.</li>
+          </ul>
+        </li>
+        <li class="port-steps__item" id="drivers">
+          <h3>드라이버 설치하기(필요할 때만)</h3>
+          <p>
+            드라이버는 컴퓨터가 장치를 알아보게 해 주는 작은 프로그램이에요. Windows 10·11은 인터넷에 연결되어 있고 자동 설치가 허용되어
+            있으면, 보드를 꽂을 때 드라이버가 저절로 설치되기도 해요.
+          </p>
+          <p>
+            저절로 설치되지 않으면 보드의 USB 칩에 맞는 드라이버를 제조사 공식 페이지에서 받아요. 칩 이름은 USB 단자 근처 작은 칩에 적힌
+            글자(예: CH340, CP2102)나 장치 관리자의 장치 이름에서 볼 수 있어요.
+          </p>
+          <div class="driver-table" role="region" aria-label="드라이버 공식 내려받기 페이지" tabindex="0">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">USB 칩</th>
+                  <th scope="col">만든 회사</th>
+                  <th scope="col">공식 페이지</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  drivers.map((driver) => (
+                    <tr>
+                      <th scope="row">{driver.chip}</th>
+                      <td>{driver.maker}</td>
+                      <td>
+                        <a href={driver.url} rel="noopener">
+                          {driver.label}
+                        </a>
+                      </td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p>학교 컴퓨터에서 설치 권한이 없으면 전산 담당 선생님께 설치를 부탁해요. 이 사이트는 드라이버 파일을 따로 올려 두지 않아요.</p>
+        </li>
+        <li class="port-steps__item" id="linux">
+          <h3>Linux(우분투 등)라면</h3>
+          <ul>
+            <li>
+              포트를 쓸 권한이 필요해요. 터미널에서 <code>sudo usermod -a -G dialout $USER</code>를 실행한 뒤, 로그아웃했다가 다시
+              로그인해요.
+            </li>
+            <li>
+              보드를 꽂자마자 포트가 사라지면, 점자 단말기용 프로그램 brltty가 CH340 같은 USB-시리얼 장치를 잘못 가져가는 경우예요(<a
+                href={brlttyBugUrl}>Ubuntu 버그 기록</a
+              >). 점자 단말기를 쓰지 않는 컴퓨터라면 <code>sudo apt remove brltty</code>로 지운 뒤 보드를 다시 꽂아요. 점자 단말기를 쓰는
+              컴퓨터에서는 지우지 말고 담당자와 상의해요.
+            </li>
+          </ul>
+        </li>
+        <li class="port-steps__item">
+          <h3>그래도 안 되면</h3>
+          <ul>
+            <li>다른 USB 단자나 다른 컴퓨터에 꽂아 봐요. 문제가 보드에 있는지 컴퓨터에 있는지 가를 수 있어요.</li>
+            <li>
+              <a href={check.href}>{check.title}</a> 페이지의 [결과 복사] 글과 함께 <a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a
+              >에 남겨 주세요.
+            </li>
+          </ul>
+        </li>
+      </ol>
+    </details>
+  </section>
+
+  <div class="prose">
+    <h2 id="firmware">펌웨어 굽기와 연결 테스트</h2>
+    <p>
+      펌웨어는 보드에 넣는 기본 프로그램이에요. 이 사이트는 MicroPython 펌웨어를 버튼 한 번으로 보드에 넣고(굽기), 보드의 내장 LED를 깜빡여
+      연결을 확인하게 만들 거예요.
+    </p>
+  </div>
+  <ComingSoon
+    what="펌웨어 굽기와 연결 테스트"
+    when="ESP32 실습실을 만드는 단계(Phase 3)"
+    headingLevel={3}
+    links={[
+      { label: esp32Lab.title, href: esp32Lab.href },
+      { label: hardwareCheck.title, href: hardwareCheck.href },
+    ]}
+  />
+
+  <div class="prose">
+    <h2 id="safety">안전하게 쓰기</h2>
+    <Callout type="주의" title="부품을 다룰 때 지켜요">
+      <ul>
+        <li>레이저 빛을 눈이나 다른 사람 쪽으로 비추지 않아요.</li>
+        <li>팬이 도는 동안 날개에 손대지 않아요.</li>
+        <li>배선을 바꿀 때는 먼저 USB 케이블을 뽑아요.</li>
+        <li>모터나 서보를 여러 개 쓰면 USB 전원이 모자랄 수 있어요. 확장 보드에 전원 스위치가 있다면 켜져 있는지 확인해요.</li>
+      </ul>
+    </Callout>
+  </div>
 </BaseLayout>
+
+<script>
+  // 주소가 #port-not-found(또는 그 안의 #drivers, #linux)로 열리면 안내를 펼친다.
+  const PORT_HELP_TARGETS = ['#port-not-found', '#drivers', '#linux'];
+  const openPortHelp = () => {
+    const details = document.getElementById('port-not-found');
+    if (details instanceof HTMLDetailsElement && PORT_HELP_TARGETS.includes(location.hash)) {
+      details.open = true;
+      document.querySelector(location.hash)?.scrollIntoView();
+    }
+  };
+  openPortHelp();
+  window.addEventListener('hashchange', openPortHelp);
+</script>
+
+<style>
+  .board-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .board-section {
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-12);
+  }
+
+  .board-section > h2 {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-2xl);
+  }
+
+  .port-help {
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+  }
+
+  .port-help__summary {
+    display: flex;
+    align-items: center;
+    min-height: 3.5rem;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg);
+    color: var(--color-accent-hover);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+    list-style-position: inside;
+  }
+
+  .port-help__summary:hover {
+    background: var(--color-accent-soft);
+  }
+
+  .port-help[open] > .port-help__summary {
+    border-bottom: 1px solid var(--color-border);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .port-steps {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: var(--space-5) var(--space-5) var(--space-6) calc(var(--space-5) + 1.5em);
+    counter-reset: none;
+  }
+
+  /* 격자 칸의 최소 너비를 0으로 둔다. 기본값(auto)이면 드라이버 표의 최소 너비만큼 칸이 넓어져 좁은 화면에서 페이지가 옆으로 넘친다. */
+  .port-steps__item {
+    min-width: 0;
+  }
+
+  .port-steps__item::marker {
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-bold);
+  }
+
+  .port-steps__item > h3 {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .port-steps__item > p + p,
+  .port-steps__item > p + div,
+  .port-steps__item > div + p {
+    margin-block-start: var(--space-3);
+  }
+
+  .port-steps__item ul {
+    display: grid;
+    gap: var(--space-2);
+    padding-inline-start: 1.25em;
+  }
+
+  .port-steps code {
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .driver-table {
+    max-width: 100%;
+    margin-block-start: var(--space-3);
+    overflow-x: auto;
+  }
+
+  .driver-table:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .driver-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .driver-table th,
+  .driver-table td {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .driver-table thead th {
+    background: var(--color-bg-muted);
+  }
+</style>

@@ -1,14 +1,456 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 시작하기 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-08).
+/**
+ * 교사용 시작하기(PLAN §2.1, §8.1 P1-08, §10).
+ * - 성취기준·평가 방향 표와 학교 네트워크 체크리스트는 틀만 두고 P5-14·Phase 2·4에서 채운다.
+ * - 개인정보 처리 안내는 초안이다(법률 자문 아님). 외부 연결 표의 사실과 링크는 2026-09-16에 공식 문서로 확인했다:
+ *   GitHub Pages 방문자 IP 기록(GitHub Docs "GitHub Pages란?"), jsDelivr 수집 항목(jsDelivr Privacy Policy, 2023-11-23 시행),
+ *   test.mosquitto.org의 공개 발행·구독 안내, Chrome 음성 인식의 서버 처리(MDN SpeechRecognition).
+ * - 성취기준 영역·코드는 INVENTORY §9.2(인천광역시교육청 게시 교육과정, hwp 원문 대조 전)를 따른다(DECISIONS C8).
+ */
+import Callout from '../../../components/common/Callout.astro';
 import ComingSoon from '../../../components/common/ComingSoon.astro';
 import { getPage } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const page = getPage('start-teacher');
+const check = getPage('start-check');
+const student = getPage('start-student');
+const board = getPage('start-board');
+const teacherRoom = getPage('teacher');
+const learn = getPage('learn');
+
+const toc = [
+  { id: 'class-flow', title: '수업 운영' },
+  { id: 'assessment', title: '평가: 성취기준·평가 방향 표' },
+  { id: 'privacy', title: '개인정보 처리 안내(초안)' },
+  { id: 'shared-pc', title: '여러 사람이 쓰는 컴퓨터' },
+  { id: 'network', title: '학교 네트워크 체크리스트' },
+  { id: 'presentation', title: '발표 모드' },
+] as const;
+
+const lessonFlow = ['학습목표', '왜 배울까', '핵심 개념', '따라하기', '바꿔보기', '도전 과제', '확인 퀴즈', '교사용'];
+
+const curriculumUrl = 'https://www.ice.go.kr/ice/na/ntt/selectNttInfo.do?mi=11997&bbsId=1999&nttSn=3299910';
+const standardAreas = [
+  { area: '(1) 인공지능 영상인식', codes: '[12인피01-01] ~ [12인피01-04]', unit: 'I. 영상 처리 인공지능' },
+  { area: '(2) 피지컬컴퓨팅', codes: '[12인피02-01] ~ [12인피02-04]', unit: 'II. 피지컬 컴퓨팅' },
+  { area: '(3) 인공지능과 피지컬컴퓨팅', codes: '[12인피03-01] ~ [12인피03-03]', unit: 'III. 인공지능과 피지컬 컴퓨팅' },
+  { area: '(4) 문제해결프로젝트', codes: '[12인피04-01] ~ [12인피04-04]', unit: 'IV. 지능화 사물 개발 프로젝트' },
+] as const;
+
+interface Connection {
+  where: string;
+  when: string;
+  what: string;
+  who: string;
+  links: readonly { label: string; url: string }[];
+}
+
+const connections: readonly Connection[] = [
+  {
+    where: 'GitHub Pages(사이트 파일을 보내 주는 곳)',
+    when: '사이트를 열 때마다',
+    what: '접속한 컴퓨터의 IP 주소. GitHub는 보안을 위해 방문자의 IP 주소를 기록하고 보관한다고 안내해요.',
+    who: 'GitHub',
+    links: [
+      { label: 'GitHub Pages 안내(데이터 수집)', url: 'https://docs.github.com/ko/pages/getting-started-with-github-pages/what-is-github-pages' },
+      { label: 'GitHub 일반 개인정보처리방침', url: 'https://docs.github.com/ko/site-policy/privacy-policies/github-general-privacy-statement' },
+    ],
+  },
+  {
+    where: 'jsDelivr(파이썬 실행 파일을 보내 주는 콘텐츠 전송망)',
+    when: '파이썬 실습을 처음 열 때(영상처리 실습실이 생긴 뒤)',
+    what: 'IP 주소, 브라우저 종류와 버전, 요청한 사이트의 도메인',
+    who: 'jsDelivr와 트래픽을 전달하는 전송망 업체',
+    links: [{ label: 'jsDelivr 개인정보처리방침(영어)', url: 'https://github.com/jsdelivr/jsdelivr/blob/master/Privacy%20Policy.md' }],
+  },
+  {
+    where: '공개 MQTT 브로커(선택 기능)',
+    when: '통신 실습실에서 [연결]을 누를 때만(통신 실습실이 생긴 뒤)',
+    what: 'IP 주소와 보낸 메시지. 메시지는 같은 주제(토픽) 이름을 아는 누구나 보고 보낼 수도 있어요.',
+    who: '브로커를 운영하는 회사나 단체(기본 후보: EMQX)',
+    links: [
+      { label: 'EMQ 개인정보처리방침(영어)', url: 'https://www.emqx.com/en/policy/privacy-policy' },
+      { label: 'test.mosquitto.org 이용 안내(영어)', url: 'https://test.mosquitto.org/' },
+    ],
+  },
+  {
+    where: '브라우저의 서버 음성 인식(선택 차시)',
+    when: '선택 차시 "말을 글로 바꾸는 기술"에서, 교사가 설정을 켠 브라우저로 학생이 고를 때만(기본은 꺼짐)',
+    what: '마이크로 말한 음성. Chrome 같은 일부 브라우저는 음성을 서버로 보내 글자로 바꿔요.',
+    who: '브라우저 회사(예: Chrome은 Google)',
+    links: [
+      { label: 'Google 개인정보처리방침', url: 'https://policies.google.com/privacy?hl=ko' },
+      { label: 'MDN 음성 인식 설명(영어)', url: 'https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition' },
+    ],
+  },
+];
+
+const moeGuideUrl =
+  'https://www.moe.go.kr/boardCnts/viewRenew.do?boardID=294&boardSeq=105007&lev=0&searchType=null&statusYN=W&page=1&s=moe&m=020402&opType=N';
+
+interface NetworkItem {
+  item: string;
+  how: string;
+  ifBlocked: string;
+}
+
+const networkChecklist: readonly NetworkItem[] = [
+  {
+    item: '사이트 주소(github.io)가 열리는지',
+    how: '교실 컴퓨터에서 이 페이지가 열리면 통과예요.',
+    ifBlocked: '학교 인터넷 담당자에게 사이트 주소를 알려 주고 문의해요.',
+  },
+  {
+    item: '브라우저 기능(카메라·USB·블루투스·JSPI)',
+    how: '점검 페이지에서 [결과 복사]를 눌러 모아 둬요.',
+    ifBlocked: '결과 표의 줄마다 붙은 대처 안내를 따라요.',
+  },
+  {
+    item: '파이썬 실행 파일(cdn.jsdelivr.net)을 받을 수 있는지',
+    how: '점검 페이지의 [시험하기] 버튼(영상처리 실습실 단계에서 생겨요)',
+    ifBlocked: '같은 사이트의 예비 경로로 바꿔 받게 만들 예정이에요.',
+  },
+  {
+    item: '공개 MQTT 브로커에 접속되는지',
+    how: '점검 페이지의 [시험하기] 버튼(통신 실습실 단계에서 생겨요)',
+    ifBlocked: '인터넷 없이 같은 컴퓨터의 탭끼리 주고받는 통신으로 실습할 수 있게 만들 예정이에요.',
+  },
+  {
+    item: '보드 드라이버를 설치할 권한',
+    how: '보드를 꽂고 장치 관리자에서 포트가 생기는지 봐요(보드 준비 페이지).',
+    ifBlocked: '전산 담당 선생님께 드라이버 설치를 부탁해요.',
+  },
+  {
+    item: '브라우저가 최신판인지',
+    how: '점검 페이지의 JSPI 줄이 "지원"인지 봐요.',
+    ifBlocked: '교실 컴퓨터의 Chrome·Edge 업데이트를 요청해요.',
+  },
+];
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what="교사용 시작 안내" when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+  <p class="lead">수업 전에 확인할 것, 평가와 개인정보 처리 안내, 교실 컴퓨터에서 주의할 점을 모았어요.</p>
+
+  <nav class="teacher-toc" aria-labelledby="teacher-toc-title">
+    <h2 id="teacher-toc-title" class="teacher-toc__title">이 페이지의 내용</h2>
+    <ol>
+      {
+        toc.map((item) => (
+          <li>
+            <a href={`#${item.id}`}>{item.title}</a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  <div class="prose">
+    <h2 id="class-flow">수업 운영</h2>
+    <h3>권장 환경</h3>
+    <ul>
+      <li>학생 한 명에 컴퓨터 한 대, 컴퓨터용 Chrome이나 Edge 최신판</li>
+      <li>브라우저 창 너비 1024 이상(실습실은 코드와 결과를 나란히 보여 줘요)</li>
+      <li>웹캠: 없으면 샘플 영상으로 실습할 수 있게 준비하고 있어요.</li>
+      <li>ESP32 보드: 없으면 가상 보드로 실습할 수 있게 준비하고 있어요.</li>
+    </ul>
+
+    <h3>수업 전 준비</h3>
+    <ol>
+      <li>교실 컴퓨터 한 대에서 <a href={check.href}>{check.title}</a> 페이지를 열고 결과를 확인해요.</li>
+      <li>학생들이 <a href={student.href}>{student.title}</a>의 순서대로 카메라 허락을 한 번 연습하게 해요.</li>
+      <li>보드 수업이라면 <a href={board.href}>{board.title}</a>의 안내대로 케이블과 드라이버를 미리 확인해요.</li>
+    </ol>
+
+    <h3>차시 페이지의 흐름</h3>
+    <p>
+      <a href={learn.href}>배우기</a>의 차시 페이지는 모두 같은 순서로 만들어요. 교사용 칸은 접혀 있어서 학생 화면에서는 필요할 때만 펼쳐 봐요.
+    </p>
+  </div>
+  <ol class="lesson-flow">
+    {lessonFlow.map((step) => <li class="lesson-flow__step">{step}</li>)}
+  </ol>
+
+  <div class="prose">
+    <h2 id="assessment">평가: 성취기준·평가 방향 표</h2>
+    <p>
+      이 과목은 2022 개정 교육과정의 교육감 승인 과목 "인공지능과 피지컬 컴퓨팅"이에요. 성취기준 코드는 <a href={curriculumUrl}
+        >인천광역시교육청이 게시한 과목 교육과정</a
+      >에서 가져왔고, 차시와의 연결은 사이트가 붙여요.
+    </p>
+  </div>
+  <div class="teacher-table" role="region" aria-labelledby="standards-caption" tabindex="0">
+    <table>
+      <caption id="standards-caption">성취기준·평가 방향 표(틀)</caption>
+      <thead>
+        <tr>
+          <th scope="col">영역</th>
+          <th scope="col">성취기준 코드</th>
+          <th scope="col">교과서 대단원</th>
+          <th scope="col">차시별 평가 방향</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          standardAreas.map((row) => (
+            <tr>
+              <th scope="row">{row.area}</th>
+              <td>{row.codes}</td>
+              <td>{row.unit}</td>
+              <td class="teacher-table__pending">준비 중</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>과목 교육과정의 평가 방법 요지(교육청 게시물의 문서 보기 기준, 원문 파일과 대조하기 전이에요):</p>
+    <ul>
+      <li>지필 평가를 줄이고 과정 중심으로 평가해요.</li>
+      <li>프로젝트 수행 과정의 비중을 30% 이상으로 해요.</li>
+      <li>생성형 인공지능의 도움을 받은 부분을 표시하고, 협력 과정의 자료를 함께 내요.</li>
+    </ul>
+  </div>
+  <ComingSoon
+    what="성취기준 15개와 차시 연결, 평가 방향 표"
+    when="차시 페이지를 채우는 단계(Phase 5)"
+    headingLevel={3}
+    links={[{ label: teacherRoom.title, href: teacherRoom.href }]}
+  />
+
+  <div class="prose">
+    <h2 id="privacy">개인정보 처리 안내(초안)</h2>
+    <Callout type="참고" title="사이트 운영자는 개인정보를 모으거나 저장하지 않아요">
+      <p>
+        이 사이트에는 로그인·회원가입이 없고, 운영자가 방문 기록을 받는 서버도 없어요. 방문 통계 도구도 쓰지 않아요.
+      </p>
+    </Callout>
+    <p>
+      다만 사이트를 열거나 일부 기능을 쓰면 브라우저가 아래 회사의 서버에 접속하고, 그 회사가 접속 정보를 처리해요. 사이트 운영자는 이
+      기록을 받지 않아요.
+    </p>
+  </div>
+
+  <div class="teacher-table" role="region" aria-labelledby="connections-caption" tabindex="0">
+    <table class="connections">
+      <caption id="connections-caption">외부로 연결되는 곳과 보내지는 것</caption>
+      <thead>
+        <tr>
+          <th scope="col">연결되는 곳</th>
+          <th scope="col">언제</th>
+          <th scope="col">보내지는 것</th>
+          <th scope="col">처리하는 곳</th>
+          <th scope="col">처리방침·안내</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          connections.map((row) => (
+            <tr>
+              <th scope="row">{row.where}</th>
+              <td>{row.when}</td>
+              <td>{row.what}</td>
+              <td>{row.who}</td>
+              <td>
+                <ul class="connections__links">
+                  {row.links.map((link) => (
+                    <li>
+                      <a href={link.url} rel="noopener">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose">
+    <h3>사이트 안에서만 다루는 것</h3>
+    <ul>
+      <li>카메라 영상과 손·얼굴 좌표: 브라우저 안에서만 다루고 서버로 보내지 않게 만들어요.</li>
+      <li>학생이 쓴 코드와 설정: 그 컴퓨터 브라우저의 저장 공간에만 남아요.</li>
+      <li>사이트 검색: 사이트와 함께 올린 검색 파일로 그 컴퓨터에서 찾아요.</li>
+      <li>글꼴: 사이트에 함께 올린 파일을 받아요. 다른 글꼴 서비스에 접속하지 않아요.</li>
+    </ul>
+    <Callout type="주의" title="서버 음성 인식은 켜기 전에 확인해요">
+      <p>선택 차시의 서버 음성 인식은 기본으로 꺼져 있게 만들어요. 14세 미만 학생이 듣는 수업에서는 켜지 말아 주세요.</p>
+    </Callout>
+    <p>
+      학교에서 학습지원 소프트웨어로 쓰려면 학교의 선정 절차가 필요할 수 있어요. <a href={moeGuideUrl}
+        >교육부 안내(학습지원 소프트웨어 선정 기준, 2025-12-29)</a
+      >를 참고해 학교 기준으로 확인해 주세요. 이 안내는 초안이고 법률 자문이 아니에요.
+    </p>
+
+    <h2 id="shared-pc">여러 사람이 쓰는 컴퓨터</h2>
+    <ul>
+      <li>로그인이 없는 대신, 학생이 쓴 코드와 설정이 그 컴퓨터의 브라우저에 남아요.</li>
+      <li>
+        수업이 끝나면 실습실의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해 주세요. 이 버튼은 실습실과 함께 생겨요.
+      </li>
+      <li>통신 실습에서 쓰는 무작위 이름(접두어)은 기본으로 탭을 닫으면 사라지게 만들어요.</li>
+      <li>
+        코드, 통신 메시지, 블루투스 보드 이름에 학생 이름·학번 같은 개인정보를 넣지 않게 지도해 주세요. 보드 이름은 "ESP32-07"처럼 자리
+        번호로 붙여요.
+      </li>
+    </ul>
+
+    <h2 id="network">학교 네트워크 체크리스트</h2>
+    <p>학교 네트워크가 무엇을 막는지는 학교마다 달라요. 아래 항목을 수업 전에 한 번 확인해 주세요.</p>
+  </div>
+
+  <div class="teacher-table" role="region" aria-labelledby="network-caption" tabindex="0">
+    <table>
+      <caption id="network-caption">학교 네트워크 체크리스트(틀)</caption>
+      <thead>
+        <tr>
+          <th scope="col">확인할 것</th>
+          <th scope="col">확인하는 방법</th>
+          <th scope="col">막혀 있으면</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          networkChecklist.map((row) => (
+            <tr>
+              <th scope="row">{row.item}</th>
+              <td>{row.how}</td>
+              <td>{row.ifBlocked}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose">
+    <h2 id="presentation">발표 모드</h2>
+    <p>발표 모드는 프로젝터로 차시 페이지를 보여 줄 때 글씨를 크게 하고 한 단계씩 넘겨 보는 화면이에요.</p>
+  </div>
+  <ComingSoon
+    what="발표 모드"
+    when="차시 페이지를 채우는 단계(Phase 5)"
+    headingLevel={3}
+    links={[{ label: teacherRoom.title, href: teacherRoom.href }]}
+  />
 </BaseLayout>
+
+<style>
+  .teacher-toc {
+    max-width: var(--width-prose);
+    margin-block: 0 var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .teacher-toc__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .teacher-toc ol {
+    display: grid;
+    gap: var(--space-1);
+    padding-inline-start: 1.5em;
+  }
+
+  .teacher-toc a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+
+  .prose :global(h2) {
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .lesson-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    max-width: var(--width-prose);
+    margin: var(--space-4) 0 var(--space-2);
+    padding: 0;
+    list-style: none;
+    counter-reset: lesson-step;
+  }
+
+  .lesson-flow__step {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    counter-increment: lesson-step;
+  }
+
+  .lesson-flow__step::before {
+    content: counter(lesson-step) '. ';
+  }
+
+  .teacher-table {
+    max-width: 100%;
+    margin-block: var(--space-4);
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .teacher-table:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .teacher-table table {
+    width: 100%;
+    min-width: 40rem;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .teacher-table .connections {
+    min-width: 60rem;
+  }
+
+  .teacher-table caption {
+    padding: var(--space-3);
+    font-weight: var(--weight-bold);
+    text-align: start;
+  }
+
+  .teacher-table th,
+  .teacher-table td {
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .teacher-table thead th {
+    background: var(--color-bg-muted);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+  }
+
+  .teacher-table__pending {
+    color: var(--color-text-muted);
+  }
+
+  .connections__links {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

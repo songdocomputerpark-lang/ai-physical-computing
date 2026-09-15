@@ -1,14 +1,199 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 시작하기 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-08).
+/**
+ * 학생용 시작하기(PLAN §2.1, §8.1 P1-08): ① 브라우저 확인 → ② 카메라 허용 → ③ 첫 실습 3분(Phase 2에서 연결).
+ * 브라우저 권장 환경 안내(BrowserNotice)를 notice 자리에 넣는다.
+ */
+import Callout from '../../../components/common/Callout.astro';
 import ComingSoon from '../../../components/common/ComingSoon.astro';
+import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
+import CameraPermissionFigures from '../../../components/start/CameraPermissionFigures.astro';
+import QuickCheck from '../../../components/start/QuickCheck.astro';
 import { getPage } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const page = getPage('start-student');
+const check = getPage('start-check');
+const board = getPage('start-board');
+const vision = getPage('labs-vision');
+const learn = getPage('learn');
+const glossary = getPage('glossary');
+
+const steps = [
+  { id: 'step-browser', title: '브라우저 확인하기', time: '1분' },
+  { id: 'step-camera', title: '카메라 허용하기', time: '1분' },
+  { id: 'step-first-lab', title: '첫 실습 해 보기', time: '3분' },
+] as const;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
+  <BrowserNotice slot="notice" />
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what="학생용 시작 안내" when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+  <p class="lead">프로그램을 설치하지 않아도 돼요. 아래 세 단계를 차례대로 따라 해요.</p>
+
+  <ol class="student-steps">
+    {
+      steps.map((step, index) => (
+        <li class="student-steps__item">
+          <span class="student-steps__number" aria-hidden="true">
+            {index + 1}
+          </span>
+          <a class="student-steps__link" href={`#${step.id}`}>
+            {step.title}
+          </a>
+          <span class="student-steps__time">약 {step.time}</span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <section class="student-section" aria-labelledby="step-browser">
+    <h2 id="step-browser">① 브라우저 확인하기</h2>
+    <div class="prose">
+      <p>
+        브라우저는 인터넷 페이지를 보여 주는 프로그램이에요. 이 사이트의 실습은 컴퓨터용 Chrome이나 Edge에서 가장 잘 돼요. 아래 세 줄이
+        모두 "지원"인지 봐요.
+      </p>
+    </div>
+    <QuickCheck />
+  </section>
+
+  <section class="student-section" aria-labelledby="step-camera">
+    <h2 id="step-camera">② 카메라 허용하기</h2>
+    <div class="prose">
+      <p>
+        영상처리 실습은 웹캠(컴퓨터에 달린 카메라)의 영상을 써요. 카메라를 켤 때 브라우저가 이 사이트에 카메라를 써도 되는지 물어요.
+      </p>
+    </div>
+    <CameraPermissionFigures />
+    <div class="prose">
+      <p>브라우저마다 창 모양과 버튼 글자가 조금 달라요. "허용"이라는 글자가 들어간 버튼을 고르면 돼요.</p>
+      <Callout type="오류" title="카메라가 켜지지 않을 때">
+        <ul>
+          <li>노트북에 카메라 끄기 키나 가림막이 있다면 열어요.</li>
+          <li>화상 수업 프로그램처럼 카메라를 쓰는 다른 프로그램을 닫은 뒤 새로고침해요.</li>
+          <li>외장 웹캠이라면 USB 선이 꽂혀 있는지 확인해요.</li>
+          <li>그래도 안 되면 <a href={check.href}>{check.title}</a> 페이지에서 카메라 줄을 확인해요.</li>
+        </ul>
+      </Callout>
+      <Callout type="참고" title="카메라 영상은 어디로 가나요?">
+        <p>
+          이 사이트에는 영상을 받는 서버가 없어요. 실습은 카메라 영상을 여러분의 컴퓨터 안에서만 처리하도록 만들어요. 카메라가 없는
+          컴퓨터에서도 샘플 영상으로 실습할 수 있게 준비하고 있어요.
+        </p>
+      </Callout>
+    </div>
+  </section>
+
+  <section class="student-section" aria-labelledby="step-first-lab">
+    <h2 id="step-first-lab">③ 첫 실습 해 보기</h2>
+    <div class="prose">
+      <p>
+        첫 실습에서는 카메라 영상에서 물체의 테두리(에지)를 찾아요. 슬라이더를 움직여 값을 바꾸면 테두리가 달라지는 모습을 바로 볼 수
+        있어요.
+      </p>
+    </div>
+    <ComingSoon
+      what="3분 첫 실습"
+      when="영상처리 실습실을 만드는 단계(Phase 2)"
+      headingLevel={3}
+      links={[
+        { label: vision.title, href: vision.href },
+        { label: learn.title, href: learn.href },
+      ]}
+    />
+  </section>
+
+  <section class="student-section" aria-labelledby="student-next">
+    <h2 id="student-next">다음에 해 볼 것</h2>
+    <ul class="student-next">
+      <li><a href={board.href}>ESP32 보드가 있다면 — {board.title}</a></li>
+      <li><a href={learn.href}>교과서 차례대로 공부하기 — {learn.title}</a></li>
+      <li><a href={glossary.href}>모르는 낱말 찾아보기 — {glossary.title}</a></li>
+    </ul>
+  </section>
 </BaseLayout>
+
+<style>
+  .student-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    gap: var(--space-3);
+    margin: 0 0 var(--space-8);
+    padding: 0;
+    list-style: none;
+  }
+
+  .student-steps__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+  }
+
+  .student-steps__number {
+    display: grid;
+    grid-row: span 2;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+  }
+
+  .student-steps__link {
+    color: var(--color-text);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+  }
+
+  .student-steps__link:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* 칸 전체를 누르는 곳으로 넓힌다 */
+  .student-steps__link::after {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    content: '';
+  }
+
+  .student-steps__link:focus-visible {
+    outline: none;
+  }
+
+  .student-steps__link:focus-visible::after {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .student-steps__time {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .student-section {
+    margin-block-start: var(--space-12);
+  }
+
+  .student-section > h2 {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-2xl);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .student-next {
+    display: grid;
+    gap: var(--space-2);
+    padding-inline-start: 1.25em;
+  }
+</style>

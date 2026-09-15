@@ -1,0 +1,273 @@
+---
+/**
+ * 카메라 허용 안내 그림 2장(직접 그린 SVG, PLAN §8.1 P1-08) — 학생용 시작하기에서 쓴다.
+ * 특정 브라우저 화면을 베끼지 않은 단순한 그림이다. 브라우저마다 창 모양과 버튼 글자가 달라서 그림 아래 설명에도 그 점을 적는다.
+ * 사람 얼굴은 그리지 않는다(PLAN §10). 색은 tokens.css 변수만 쓴다.
+ */
+---
+
+<div class="camera-figures">
+  <figure class="camera-figure">
+    <svg class="camera-figure__svg" viewBox="0 0 480 300" role="img" aria-labelledby="camera-allow-title camera-allow-desc">
+      <title id="camera-allow-title">카메라 허락 창에서 허용 누르기</title>
+      <desc id="camera-allow-desc">
+        브라우저 주소창 아래에 "이 사이트가 카메라를 사용하려고 해요"라는 작은 창이 떠 있어요. 창 안에 차단 버튼과 허용 버튼이 있고, 허용 버튼에 1번 표시가 있어요.
+      </desc>
+      <rect class="f-frame" x="8" y="8" width="464" height="284" rx="14"></rect>
+      <path class="f-bar" d="M8 22a14 14 0 0 1 14-14h436a14 14 0 0 1 14 14v36H8z"></path>
+      <rect class="f-address" x="24" y="18" width="432" height="30" rx="15"></rect>
+      <g class="f-icon">
+        <path d="M36 29h12M36 37h12"></path>
+        <circle cx="41" cy="29" r="2.5"></circle>
+        <circle cx="44" cy="37" r="2.5"></circle>
+      </g>
+      <text class="f-url" x="58" y="38">https://…/ai-physical-computing/</text>
+      <rect class="f-page" x="24" y="66" width="432" height="210" rx="8"></rect>
+
+      <path class="f-popup" d="M42 70l12-12 12 12"></path>
+      <rect class="f-popup" x="30" y="70" width="300" height="140" rx="12"></rect>
+      <g class="f-icon">
+        <rect x="46" y="86" width="24" height="18" rx="4"></rect>
+        <path d="M70 92l8-5v16l-8-5"></path>
+      </g>
+      <text class="f-text" x="88" y="94">이 사이트가 카메라를</text>
+      <text class="f-text" x="88" y="118">사용하려고 해요</text>
+      <rect class="f-block" x="46" y="146" width="118" height="42" rx="8"></rect>
+      <text class="f-block-text" x="105" y="173">차단</text>
+      <rect class="f-allow" x="180" y="146" width="130" height="42" rx="8"></rect>
+      <text class="f-allow-text" x="245" y="173">허용</text>
+      <rect class="f-highlight" x="173" y="139" width="144" height="56" rx="12"></rect>
+      <path class="f-cursor" d="M282 176l0 30 8-8 6 13 6-3-6-13h11z"></path>
+      <circle class="f-badge" cx="326" cy="138" r="15"></circle>
+      <text class="f-badge-text" x="326" y="143">1</text>
+
+      <g class="f-muted-icon">
+        <rect x="368" y="122" width="56" height="42" rx="8"></rect>
+        <path d="M424 136l16-9v32l-16-9"></path>
+      </g>
+      <text class="f-small" x="396" y="190">카메라 켜기</text>
+    </svg>
+    <figcaption class="camera-figure__caption">
+      <strong>① 허용 누르기</strong> — 카메라를 켜면 주소창 근처에 허락을 묻는 창이 떠요. "허용"이라는 글자가 들어간 버튼을 눌러요.
+    </figcaption>
+  </figure>
+
+  <figure class="camera-figure">
+    <svg class="camera-figure__svg" viewBox="0 0 480 300" role="img" aria-labelledby="camera-blocked-title camera-blocked-desc">
+      <title id="camera-blocked-title">실수로 차단했을 때 카메라를 다시 허용하기</title>
+      <desc id="camera-blocked-desc">
+        주소창 왼쪽의 사이트 정보 아이콘에 1번 표시가 있어요. 그 아이콘을 누르면 펼쳐지는 창에서 카메라 칸을 허용으로 바꾸는 곳에 2번 표시가 있고, 새로고침 표시에 3번이 있어요.
+      </desc>
+      <rect class="f-frame" x="8" y="8" width="464" height="284" rx="14"></rect>
+      <path class="f-bar" d="M8 22a14 14 0 0 1 14-14h436a14 14 0 0 1 14 14v36H8z"></path>
+      <rect class="f-address" x="24" y="18" width="432" height="30" rx="15"></rect>
+      <circle class="f-icon-bg" cx="42" cy="33" r="13"></circle>
+      <g class="f-icon">
+        <path d="M36 29h12M36 37h12"></path>
+        <circle cx="41" cy="29" r="2.5"></circle>
+        <circle cx="44" cy="37" r="2.5"></circle>
+      </g>
+      <circle class="f-highlight" cx="42" cy="33" r="18"></circle>
+      <text class="f-url" x="66" y="38">https://…/ai-physical-computing/</text>
+      <rect class="f-page" x="24" y="66" width="432" height="210" rx="8"></rect>
+
+      <rect class="f-popup" x="24" y="62" width="262" height="146" rx="10"></rect>
+      <text class="f-small-strong" x="42" y="88">이 사이트의 권한</text>
+      <g class="f-icon">
+        <rect x="42" y="106" width="22" height="16" rx="4"></rect>
+        <path d="M64 111l7-4v14l-7-4"></path>
+      </g>
+      <text class="f-text" x="80" y="120">카메라</text>
+      <rect class="f-select" x="150" y="100" width="118" height="30" rx="6"></rect>
+      <text class="f-select-text" x="164" y="121">허용</text>
+      <path class="f-icon" d="M246 111l6 6 6-6"></path>
+      <rect class="f-highlight" x="144" y="94" width="130" height="42" rx="9"></rect>
+      <path class="f-divider" d="M40 150h230"></path>
+      <text class="f-small" x="42" y="178">바꾼 뒤 페이지를 새로고침해요</text>
+
+      <g class="f-icon f-reload">
+        <path d="M404 148a28 28 0 1 1-8-20"></path>
+        <path d="M398 116v14h-14"></path>
+      </g>
+      <text class="f-small" x="378" y="206">새로고침</text>
+
+      <circle class="f-badge" cx="22" cy="60" r="15"></circle>
+      <text class="f-badge-text" x="22" y="65">1</text>
+      <circle class="f-badge" cx="290" cy="94" r="15"></circle>
+      <text class="f-badge-text" x="290" y="99">2</text>
+      <circle class="f-badge" cx="436" cy="112" r="15"></circle>
+      <text class="f-badge-text" x="436" y="117">3</text>
+    </svg>
+    <figcaption class="camera-figure__caption">
+      <strong>실수로 "차단"을 눌렀다면</strong> — ① 주소창 왼쪽의 사이트 정보 아이콘을 누르고 ② 카메라를 "허용"으로 바꾼 뒤 ③ 페이지를
+      새로고침해요.
+    </figcaption>
+  </figure>
+</div>
+
+<style>
+  .camera-figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-5);
+    margin-block: var(--space-5);
+  }
+
+  .camera-figure {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+
+  .camera-figure__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    font-family: var(--font-sans);
+  }
+
+  .camera-figure__caption {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .f-frame {
+    fill: var(--color-bg);
+    stroke: var(--color-border-strong);
+    stroke-width: 2;
+  }
+
+  .f-bar {
+    fill: var(--color-bg-muted);
+  }
+
+  .f-address {
+    fill: var(--color-bg);
+    stroke: var(--color-border-strong);
+    stroke-width: 1.5;
+  }
+
+  .f-url {
+    fill: var(--color-text-muted);
+    font-size: 13px;
+  }
+
+  .f-page {
+    fill: var(--color-bg-subtle);
+  }
+
+  .f-popup {
+    fill: var(--color-bg);
+    stroke: var(--color-border-strong);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  .f-text {
+    fill: var(--color-text);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .f-small {
+    fill: var(--color-text-muted);
+    font-size: 14px;
+  }
+
+  .f-small-strong {
+    fill: var(--color-text);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .f-block {
+    fill: var(--color-bg);
+    stroke: var(--color-border-strong);
+    stroke-width: 1.5;
+  }
+
+  .f-block-text,
+  .f-allow-text {
+    font-size: 17px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+
+  .f-block-text {
+    fill: var(--color-text);
+  }
+
+  .f-allow {
+    fill: var(--color-accent);
+  }
+
+  .f-allow-text {
+    fill: var(--color-on-accent);
+  }
+
+  .f-select {
+    fill: var(--color-accent-soft);
+    stroke: var(--color-accent-border);
+    stroke-width: 1.5;
+  }
+
+  .f-select-text {
+    fill: var(--color-accent-hover);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .f-highlight {
+    fill: none;
+    stroke: var(--color-focus);
+    stroke-width: 3;
+    stroke-dasharray: 7 5;
+  }
+
+  .f-cursor {
+    fill: var(--color-text);
+    stroke: var(--color-bg);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  .f-badge {
+    fill: var(--color-focus);
+  }
+
+  .f-badge-text {
+    fill: var(--color-on-accent);
+    font-size: 15px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+
+  .f-icon {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .f-icon-bg {
+    fill: var(--color-accent-soft);
+  }
+
+  .f-muted-icon {
+    fill: none;
+    stroke: var(--color-border-strong);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+  }
+
+  .f-reload {
+    stroke-width: 3;
+  }
+
+  .f-divider {
+    stroke: var(--color-border);
+    stroke-width: 1.5;
+  }
+</style>

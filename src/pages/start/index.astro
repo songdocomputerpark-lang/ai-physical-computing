@@ -1,14 +1,105 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 시작하기 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-08).
+/**
+ * 시작하기 개요(PLAN §2.1, §8.1 P1-08) — 누구인지에 맞는 안내를 고르고, 처음이라면 점검 → 첫 실습 → 보드 순서로 안내한다.
+ */
+import Callout from '../../components/common/Callout.astro';
 import PageLinks from '../../components/common/PageLinks.astro';
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('start');
+const student = getPage('start-student');
+const board = getPage('start-board');
+const teacher = getPage('start-teacher');
+const check = getPage('start-check');
+
+const order = [
+  { step: '점검', page: check, text: '이 컴퓨터와 브라우저로 실습할 수 있는지 자동으로 확인해요.' },
+  { step: '첫 실습', page: student, text: '카메라를 허용하고 첫 실습을 해요.' },
+  { step: '보드 연결(보드가 있을 때)', page: board, text: 'ESP32 보드를 USB로 연결해요.' },
+] as const;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <PageLinks pages={page.children} />
+  <p class="lead">설치할 프로그램은 없어요. 필요한 안내를 골라 시작해요.</p>
+
+  <h2 class="start-heading">어떤 안내가 필요한가요?</h2>
+  <PageLinks pages={page.children} headingLevel={3} />
+
+  <h2 class="start-heading">처음이라면 이 순서로 해요</h2>
+  <ol class="start-order">
+    {
+      order.map((item, index) => (
+        <li class="start-order__item">
+          <span class="start-order__number" aria-hidden="true">
+            {index + 1}
+          </span>
+          <div class="start-order__body">
+            <p class="start-order__step">{item.step}</p>
+            <p>
+              <a href={item.page.href}>{item.page.title}</a> — {item.text}
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="prose">
+    <Callout type="참고" title="하드웨어가 없어도 괜찮아요">
+      <p>
+        보드가 없는 학교도 가상 보드로 피지컬 실습을 끝까지 할 수 있게 만들어요. 실제 보드가 생기면 같은 코드를 그대로 보드에서 실행해요.
+      </p>
+    </Callout>
+    <p>선생님은 <a href={teacher.href}>{teacher.title}</a>에서 수업 운영과 개인정보 처리 안내를 먼저 봐 주세요.</p>
+  </div>
 </BaseLayout>
+
+<style>
+  .start-heading {
+    margin-block: var(--space-10) var(--space-4);
+    font-size: var(--text-2xl);
+  }
+
+  .start-order {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .start-order__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+  }
+
+  .start-order__number {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+  }
+
+  .start-order__body {
+    display: grid;
+    gap: var(--space-1);
+    line-height: var(--leading-snug);
+  }
+
+  .start-order__step {
+    font-weight: var(--weight-bold);
+  }
+</style>

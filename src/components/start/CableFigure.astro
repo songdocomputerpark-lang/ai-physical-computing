@@ -1,0 +1,199 @@
+---
+/**
+ * 데이터 케이블과 충전 전용 케이블 비교 그림(직접 그린 SVG, PLAN §8.1 P1-08, INVENTORY §5.3 S38) — 보드 준비 페이지에서 쓴다.
+ * 브랜드 없는 컴퓨터·보드 모양으로 그렸다. 뜻은 색만이 아니라 ✓·✕ 기호와 글자로도 전한다.
+ */
+---
+
+<figure class="cable-figure">
+  <svg class="cable-figure__svg" viewBox="0 0 480 340" role="img" aria-labelledby="cable-figure-title cable-figure-desc">
+    <title id="cable-figure-title">데이터 케이블과 충전 전용 케이블 비교</title>
+    <desc id="cable-figure-desc">
+      위 그림: 컴퓨터와 ESP32 보드를 잇는 데이터 케이블 안에 전기 선과 데이터 선이 모두 있어서 컴퓨터가 보드를 알아봐요. 아래 그림: 충전 전용 케이블에는 전기 선만 있고 데이터 선이 없어서 포트 목록에 보드가 보이지 않아요.
+    </desc>
+
+    <g>
+      <text class="c-title" x="16" y="28">데이터 케이블</text>
+      <text class="c-ok" x="464" y="28" text-anchor="end">✓ 컴퓨터가 보드를 알아봐요</text>
+      <rect class="c-device" x="16" y="48" width="100" height="64" rx="6"></rect>
+      <rect class="c-screen" x="24" y="56" width="84" height="48" rx="2"></rect>
+      <path class="c-device" d="M8 116h116l-8 10H16z"></path>
+      <text class="c-label" x="66" y="150" text-anchor="middle">컴퓨터</text>
+      <rect class="c-plug" x="116" y="78" width="14" height="22" rx="3"></rect>
+      <rect class="c-cable" x="128" y="64" width="224" height="50" rx="25"></rect>
+      <text class="c-lane-label" x="150" y="86">전기</text>
+      <path class="c-lane c-lane--power" d="M186 81h150"></path>
+      <text class="c-lane-label" x="150" y="106">데이터</text>
+      <path class="c-lane c-lane--data" d="M200 101h136"></path>
+      <rect class="c-plug" x="350" y="76" width="16" height="22" rx="3"></rect>
+      <rect class="c-board" x="364" y="52" width="100" height="62" rx="6"></rect>
+      <rect class="c-chip" x="398" y="68" width="34" height="30" rx="3"></rect>
+      <g class="c-pins">
+        <circle cx="374" cy="60" r="2.5"></circle><circle cx="386" cy="60" r="2.5"></circle><circle cx="398" cy="60" r="2.5"></circle>
+        <circle cx="410" cy="60" r="2.5"></circle><circle cx="422" cy="60" r="2.5"></circle><circle cx="434" cy="60" r="2.5"></circle>
+        <circle cx="446" cy="60" r="2.5"></circle><circle cx="458" cy="60" r="2.5"></circle>
+        <circle cx="374" cy="106" r="2.5"></circle><circle cx="386" cy="106" r="2.5"></circle><circle cx="398" cy="106" r="2.5"></circle>
+        <circle cx="410" cy="106" r="2.5"></circle><circle cx="422" cy="106" r="2.5"></circle><circle cx="434" cy="106" r="2.5"></circle>
+        <circle cx="446" cy="106" r="2.5"></circle><circle cx="458" cy="106" r="2.5"></circle>
+      </g>
+      <text class="c-label" x="414" y="150" text-anchor="middle">ESP32 보드</text>
+    </g>
+
+    <path class="c-divider" d="M16 172h448"></path>
+
+    <g>
+      <text class="c-title" x="16" y="202">충전 전용 케이블</text>
+      <text class="c-bad" x="464" y="202" text-anchor="end">✕ 포트 목록에 안 보여요</text>
+      <rect class="c-device" x="16" y="218" width="100" height="64" rx="6"></rect>
+      <rect class="c-screen" x="24" y="226" width="84" height="48" rx="2"></rect>
+      <path class="c-device" d="M8 286h116l-8 10H16z"></path>
+      <text class="c-label" x="66" y="320" text-anchor="middle">컴퓨터</text>
+      <rect class="c-plug" x="116" y="248" width="14" height="22" rx="3"></rect>
+      <rect class="c-cable" x="128" y="234" width="224" height="50" rx="25"></rect>
+      <text class="c-lane-label" x="150" y="256">전기</text>
+      <path class="c-lane c-lane--power" d="M186 251h150"></path>
+      <text class="c-lane-label c-lane-label--missing" x="150" y="276">데이터</text>
+      <path class="c-lane c-lane--missing" d="M200 271h136"></path>
+      <path class="c-x" d="M259 262l18 18M277 262l-18 18"></path>
+      <rect class="c-plug" x="350" y="246" width="16" height="22" rx="3"></rect>
+      <rect class="c-board" x="364" y="222" width="100" height="62" rx="6"></rect>
+      <rect class="c-chip" x="398" y="238" width="34" height="30" rx="3"></rect>
+      <g class="c-pins">
+        <circle cx="374" cy="230" r="2.5"></circle><circle cx="386" cy="230" r="2.5"></circle><circle cx="398" cy="230" r="2.5"></circle>
+        <circle cx="410" cy="230" r="2.5"></circle><circle cx="422" cy="230" r="2.5"></circle><circle cx="434" cy="230" r="2.5"></circle>
+        <circle cx="446" cy="230" r="2.5"></circle><circle cx="458" cy="230" r="2.5"></circle>
+        <circle cx="374" cy="276" r="2.5"></circle><circle cx="386" cy="276" r="2.5"></circle><circle cx="398" cy="276" r="2.5"></circle>
+        <circle cx="410" cy="276" r="2.5"></circle><circle cx="422" cy="276" r="2.5"></circle><circle cx="434" cy="276" r="2.5"></circle>
+        <circle cx="446" cy="276" r="2.5"></circle><circle cx="458" cy="276" r="2.5"></circle>
+      </g>
+      <text class="c-label" x="414" y="320" text-anchor="middle">ESP32 보드</text>
+    </g>
+  </svg>
+  <figcaption class="cable-figure__caption">
+    휴대폰 충전기에 딸려 온 케이블 중에는 전기만 흐르고 데이터 선이 없는 <strong>충전 전용 케이블</strong>이 있어요. 이 케이블로 연결하면
+    보드에 전원이 들어와도 컴퓨터는 보드를 알아보지 못해요.
+  </figcaption>
+</figure>
+
+<style>
+  .cable-figure {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 36rem;
+    margin-block: var(--space-5);
+  }
+
+  .cable-figure__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    font-family: var(--font-sans);
+  }
+
+  .cable-figure__caption {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .c-title {
+    fill: var(--color-text);
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  .c-ok,
+  .c-bad {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .c-ok {
+    fill: var(--color-success-text);
+  }
+
+  .c-bad {
+    fill: var(--color-danger-text);
+  }
+
+  .c-device {
+    fill: var(--color-bg-muted);
+    stroke: var(--color-border-strong);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .c-screen {
+    fill: var(--color-accent-soft);
+  }
+
+  .c-label {
+    fill: var(--color-text);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .c-plug {
+    fill: var(--color-border-strong);
+  }
+
+  .c-cable {
+    fill: var(--color-bg);
+    stroke: var(--color-border-strong);
+    stroke-width: 2;
+  }
+
+  .c-lane-label {
+    fill: var(--color-text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .c-lane-label--missing {
+    fill: var(--color-text-muted);
+  }
+
+  .c-lane {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .c-lane--power {
+    stroke: var(--color-warning-border);
+  }
+
+  .c-lane--data {
+    stroke: var(--color-accent);
+  }
+
+  .c-lane--missing {
+    stroke: var(--color-border);
+    stroke-dasharray: 6 6;
+  }
+
+  .c-x {
+    fill: none;
+    stroke: var(--color-danger-text);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .c-board {
+    fill: var(--color-success-bg);
+    stroke: var(--color-success-border);
+    stroke-width: 2;
+  }
+
+  .c-chip {
+    fill: var(--color-text);
+  }
+
+  .c-pins {
+    fill: var(--color-success-border);
+  }
+
+  .c-divider {
+    stroke: var(--color-border);
+    stroke-width: 1.5;
+  }
+</style>

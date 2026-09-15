@@ -1,14 +1,68 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 점검 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-08).
+/**
+ * 학교 네트워크·브라우저 점검(PLAN §8.1 P1-08, §5.5, 운영자 할 일 3번).
+ * 지금은 브라우저 기능만 점검한다. 사이트 밖 서버에 접속하는 네트워크 시험은 Phase 2·4에서 [시험하기] 버튼으로 더한다.
+ */
 import ComingSoon from '../../../components/common/ComingSoon.astro';
+import CheckReport from '../../../components/start/CheckReport.astro';
 import { getPage } from '../../../config/nav.ts';
+import { siteConfig } from '../../../config/site.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const page = getPage('start-check');
+const suspendingCompatUrl = 'https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Suspending';
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what="브라우저·네트워크 자동 점검" when="사이트 뼈대를 만드는 지금 단계(Phase 1)" />
+  <p class="lead">
+    이 컴퓨터의 브라우저에서 실습에 필요한 기능이 켜져 있는지 자동으로 확인해요. 점검하는 동안 사이트 밖의 다른 서버에는 접속하지
+    않고, 카메라 허락 창도 띄우지 않아요.
+  </p>
+
+  <h2 class="check-page__heading">점검 결과</h2>
+  <CheckReport />
+
+  <div class="prose">
+    <h2>결과를 보내는 방법</h2>
+    <ol>
+      <li>위의 <strong>[결과 복사]</strong>를 눌러요.</li>
+      <li>
+        학교 전산 담당자나 사이트 운영자에게 메신저나 메일로 붙여 넣어 보내요. 사이트에 바로 알리려면{' '}
+        <a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a>에 남겨 주세요.
+      </li>
+    </ol>
+    <p>복사한 글에는 브라우저 종류, 운영체제, 창 크기와 점검 결과만 들어 있어요. 이름이나 연락처 같은 개인정보는 들어 있지 않아요.</p>
+
+    <h2>교실 컴퓨터를 점검할 때</h2>
+    <ul>
+      <li>학생이 쓰는 컴퓨터에서, 학생이 쓰는 브라우저로 이 페이지를 열어요.</li>
+      <li>학교 태블릿이 있다면 한 대에서도 열어 보세요. 휴대폰과 태블릿은 코드를 실행하는 실습이 제한될 수 있어요.</li>
+      <li>"미지원"이나 "확인 필요"가 있으면 그 줄의 안내를 먼저 따라 한 뒤 <strong>[다시 점검]</strong>을 눌러요.</li>
+    </ul>
+
+    <h2>네트워크 점검</h2>
+    <p>
+      학교 네트워크에서 파이썬 실행 파일을 받는 곳(jsDelivr)과 통신 실습에 쓰는 MQTT 브로커(메시지를 전달하는 중계 서버)에
+      접속되는지는 <strong>[시험하기]</strong> 버튼으로 확인하게 만들 거예요. 버튼을 누를 때만 접속하고, 어디에 접속하는지 버튼 옆에 적어
+      둘게요.
+    </p>
+  </div>
+  <ComingSoon what="네트워크 점검" when="영상처리 실습실(Phase 2)과 통신 실습실(Phase 4)을 만드는 단계" headingLevel={3} />
+
+  <div class="prose">
+    <h2>휴대폰·태블릿 결과(확인 전)</h2>
+    <p>
+      Android 휴대폰의 Chrome과 iPad의 Safari에서는 이 페이지를 실제 기기로 아직 확인하지 않았어요. 공식 호환성 자료(<a
+        href={suspendingCompatUrl}>MDN, 영어</a
+      >)에는 두 브라우저에 JSPI가 없다고 나와 있어요. 이 기기들에서 [결과 복사]한 글을 보내 주시면 안내를 고칠게요.
+    </p>
+  </div>
 </BaseLayout>
+
+<style>
+  .check-page__heading {
+    margin-block-start: var(--space-8);
+    font-size: var(--text-2xl);
+  }
+</style>
