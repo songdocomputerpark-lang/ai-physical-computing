@@ -76,7 +76,8 @@ const hasNotice = Astro.slots.has('notice');
     <!-- 휴대폰 주소 표시줄 색: tokens.css의 --color-accent와 같은 값 -->
     <meta name="theme-color" content="#1f5bd6" />
     <link rel="icon" type="image/svg+xml" href={withBase('images/site/favicon.svg')} />
-    <!-- Pretendard 가변 글꼴(공식 다이내믹 서브셋): 페이지에 쓰인 글자가 든 조각만 받는다. font-display: swap이라 받는 동안에도 글이 보인다. -->
+    <!-- Pretendard 가변 글꼴(공식 다이내믹 서브셋): 페이지에 쓰인 글자가 든 조각만 받는다. font-display: swap이라 받는 동안에도 글이 보이고,
+         그동안은 src/styles/fonts.css의 'Pretendard Fallback'(폭·높이를 맞춘 맑은 고딕)으로 보여 조각이 도착해도 줄이 밀리지 않는다. -->
     <link rel="stylesheet" href={withBase('fonts/pretendard/pretendardvariable-dynamic-subset.css')} />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={siteConfig.name} />

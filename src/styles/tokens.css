@@ -49,9 +49,12 @@
   --color-info-border: #6b7a8f; /* 대비: bg 4.37, info-bg 3.99 */
 
   /* ── 글꼴 ── */
-  /* Pretendard(자체 호스팅, public/fonts/pretendard/)를 먼저 쓰고, 받기 전이나 못 받으면 운영체제 한글 글꼴로 보인다. */
-  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue',
-    'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji',
+  /*
+   * Pretendard(자체 호스팅, public/fonts/pretendard/)를 먼저 쓰고, 받기 전이나 못 받으면 운영체제 한글 글꼴로 보인다.
+   * 'Pretendard Fallback'(fonts.css)은 Windows 맑은 고딕을 Pretendard와 같은 폭·높이로 맞춘 대체 글꼴이라 글꼴이 바뀌어도 줄이 밀리지 않는다.
+   */
+  --font-sans: 'Pretendard Variable', Pretendard, 'Pretendard Fallback', -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+    'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', 'Segoe UI Mono', Consolas, 'D2Coding', 'Malgun Gothic',
     monospace;

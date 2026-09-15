@@ -1,0 +1,43 @@
+/*
+ * 글꼴을 받는 동안 쓰는 대체 글꼴 규칙(SPEC §9 "3G에서도 3초 안에 읽힘", 2026-09-16 검토 반영).
+ *
+ * Pretendard(public/fonts/pretendard/, font-display: swap)는 페이지에 쓰인 글자가 든 조각(woff2)만 받는데, 느린 망에서는
+ * 조각 11~23개가 2~12초에 걸쳐 도착하면서 그때마다 운영체제 글꼴에서 Pretendard로 바뀌어 줄이 흔들렸다.
+ * 이 파일은 Windows 기본 한글 글꼴(맑은 고딕)을 Pretendard와 같은 글자 폭·높이로 맞춘 'Pretendard Fallback'을 정의한다.
+ * 글꼴이 바뀌어도 줄 바꿈이 거의 같아 글이 밀리지 않는다. 글꼴 파일은 받지 않고(local), Pretendard 파일도 고치지 않는다(OFL 예약 이름 조건).
+ *
+ * 값의 근거(2026-09-16 측정·계산, Playwright + Edge 153, 이 PC의 맑은 고딕)
+ * - size-adjust: 사이트 본문 견본을 Pretendard Variable과 맑은 고딕으로 각각 그려 잰 폭의 비율. 맑은 고딕의 한글이 훨씬 넓어
+ *   17px 400에서 한글만 0.853, 한글·영문 섞인 문장 0.868, 20px 700에서 0.848~0.864 → 보통 글자 86%, 굵은 글자 85.5%.
+ * - ascent-override·descent-override: Pretendard의 세로 지표(typoAscender 1950, typoDescender −494, unitsPerEm 2048,
+ *   USE_TYPO_METRICS 켜짐 → 95.21%·24.12%)를 size-adjust로 나눈 값(브라우저는 이 값을 size-adjust를 적용한 크기에 곱한다).
+ *   맑은 고딕(hhea 2229/−495)보다 위쪽이 낮아 같은 줄 높이가 된다.
+ * - line-gap-override 0%: 두 글꼴 모두 lineGap 0.
+ * - 굵기: 맑은 고딕에는 보통·굵게 두 얼굴만 있어 550 이하는 보통, 그 위는 굵게에 맞춘다(Pretendard의 500·600은 그 사이 굵기).
+ * macOS·Linux·Android는 각 운영체제 글꼴 지표를 이 PC에서 잴 수 없어 두지 않았다(P6-02 성능 점검에서 확인). 그 밖의 운영체제는 tokens.css의 뒤 글꼴로 보인다.
+ */
+@font-face {
+  font-family: 'Pretendard Fallback';
+  font-weight: 100 550;
+  src:
+    local('Malgun Gothic'),
+    local('맑은 고딕'),
+    local('MalgunGothic');
+  size-adjust: 86%;
+  ascent-override: 110.71%;
+  descent-override: 28.05%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Pretendard Fallback';
+  font-weight: 551 900;
+  src:
+    local('Malgun Gothic Bold'),
+    local('맑은 고딕 Bold'),
+    local('MalgunGothicBold');
+  size-adjust: 85.5%;
+  ascent-override: 111.36%;
+  descent-override: 28.21%;
+  line-gap-override: 0%;
+}
