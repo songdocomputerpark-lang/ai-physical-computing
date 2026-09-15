@@ -1,0 +1,66 @@
+---
+// 대단원 하나의 목록: 묶음(중단원) 제목과 차시 카드.
+// 목록 계산은 lesson-data.ts의 buildUnitOutline이 한다(차례표와 content/lessons의 md를 합침).
+// 쓰는 법: UnitOutline에 sections(buildUnitOutline 결과)와 headingLevel(배우기 페이지 3, 대단원 페이지 2)을 넘긴다.
+// 주의: 이 머리말을 JSDoc 블록 주석으로 쓰면 Astro 컴파일러가 Props를 찾지 못해 props 타입 검사가 꺼졌다(2026-09-16 확인).
+import LessonCard from './LessonCard.astro';
+import type { OutlineSection } from './lesson-data.ts';
+
+interface Props {
+  sections: readonly OutlineSection[];
+  headingLevel?: 2 | 3;
+}
+
+const { sections, headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+---
+
+<div class="unit-outline">
+  {
+    sections.map((section) => (
+      <section class="unit-outline__section" aria-labelledby={`${section.key}-title`}>
+        <Heading class="unit-outline__title" id={`${section.key}-title`}>
+          {section.title}
+        </Heading>
+        {section.description && <p class="unit-outline__description">{section.description}</p>}
+        <ul class="unit-outline__cards">
+          {section.items.map((item) => (
+            <LessonCard item={item} />
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .unit-outline {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .unit-outline__section {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .unit-outline__title {
+    font-size: var(--text-lg);
+  }
+
+  .unit-outline__description {
+    max-width: var(--width-prose);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .unit-outline__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

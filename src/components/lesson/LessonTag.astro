@@ -1,0 +1,64 @@
+---
+/**
+ * 작은 표시 딱지(차시 카드·범례에서 함께 쓴다).
+ *
+ * 쓰는 법: <LessonTag tone="planned">준비 중</LessonTag>
+ * tone
+ *   planned        준비 중(아직 글이 없는 차시)
+ *   no-manuscript  원고 없음(코드만 있어 사이트가 본문을 쓰는 차시, PLAN §2.3)
+ *   kind           보충·읽기 자료(교과서 차시와 구분, PD-07)
+ *   meta           소요 시간·난이도·교과서 쪽 같은 덧붙임 정보
+ * 뜻은 색만이 아니라 글자로도 전한다. 글자 대비는 모두 4.5:1 이상(tokens.css 계산값).
+ */
+interface Props {
+  tone: 'planned' | 'no-manuscript' | 'kind' | 'meta';
+}
+
+const { tone } = Astro.props;
+---
+
+<span class:list={['lesson-tag', `lesson-tag--${tone}`]}><slot /></span>
+
+<style>
+  .lesson-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.0625rem var(--space-2);
+    border: 1px solid var(--tag-border);
+    border-radius: var(--radius-full);
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    white-space: nowrap;
+  }
+
+  .lesson-tag--planned {
+    --tag-bg: var(--color-bg-muted);
+    --tag-border: var(--color-border-strong);
+    --tag-text: var(--color-text-muted);
+
+    border-style: dashed;
+  }
+
+  .lesson-tag--no-manuscript {
+    --tag-bg: var(--color-warning-bg);
+    --tag-border: var(--color-warning-border);
+    --tag-text: var(--color-warning-text);
+  }
+
+  .lesson-tag--kind {
+    --tag-bg: var(--color-accent-soft);
+    --tag-border: var(--color-accent-border);
+    --tag-text: var(--color-accent-hover);
+  }
+
+  .lesson-tag--meta {
+    --tag-bg: var(--color-bg);
+    --tag-border: var(--color-border);
+    --tag-text: var(--color-text-muted);
+
+    font-weight: var(--weight-medium);
+  }
+</style>

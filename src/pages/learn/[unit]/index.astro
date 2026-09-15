@@ -1,0 +1,44 @@
+---
+/**
+ * 대단원 페이지(/learn/u1/ ~ /learn/u4/) — 한 대단원의 묶음(중단원) > 차시 카드.
+ * 대단원 이름·주소·설명은 사이트 지도(src/config/nav.ts의 learnUnits)에서 온다.
+ */
+import { getCollection } from 'astro:content';
+import LessonLegend from '../../../components/lesson/LessonLegend.astro';
+import UnitOutline from '../../../components/lesson/UnitOutline.astro';
+import { buildUnitOutline, countOutline, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return learnUnits.map((unit) => ({
+    // 사이트 지도의 path(/learn/u1/)에서 주소 조각(u1)을 꺼내 같은 주소를 쓴다.
+    params: { unit: unit.path.split('/').filter(Boolean).at(-1) ?? `u${unit.unit}` },
+    props: { unit },
+  }));
+}
+
+interface Props {
+  unit: LearnUnit;
+}
+
+const { unit } = Astro.props;
+const lessons = publishedLessons(await getCollection('lessons'));
+const sections = buildUnitOutline(unit.unit, lessons);
+const counts = countOutline(sections);
+---
+
+<BaseLayout title={unit.title} description={unit.description}>
+  <h1 class="page-title">{unit.title}</h1>
+  <p class="lead">{unit.description}</p>
+  <p class="unit-count">차시 {counts.ready + counts.planned}개 가운데 {counts.ready}개를 볼 수 있어요.</p>
+  <LessonLegend />
+  <UnitOutline sections={sections} headingLevel={2} />
+</BaseLayout>
+
+<style>
+  .unit-count {
+    margin-block: calc(-1 * var(--space-4)) var(--space-6);
+    font-weight: var(--weight-semibold);
+  }
+</style>

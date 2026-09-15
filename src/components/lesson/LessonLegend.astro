@@ -1,0 +1,65 @@
+---
+/**
+ * 차시 카드 표시 풀이(배우기·대단원 목록 위). 카드의 딱지가 무슨 뜻인지 한 줄씩 알려 준다.
+ */
+import LessonTag from './LessonTag.astro';
+---
+
+<div class="lesson-legend">
+  <p class="lesson-legend__title">카드 표시 알아보기</p>
+  <dl class="lesson-legend__list">
+    <div class="lesson-legend__item">
+      <dt><LessonTag tone="planned">준비 중</LessonTag></dt>
+      <dd>아직 글을 쓰고 있는 차시예요. 누를 수 없어요.</dd>
+    </div>
+    <div class="lesson-legend__item">
+      <dt><LessonTag tone="no-manuscript">원고 없음</LessonTag></dt>
+      <dd>교과서 원고가 없어서 예제 코드를 바탕으로 사이트가 글을 쓰는 차시예요.</dd>
+    </div>
+    <div class="lesson-legend__item">
+      <dt><LessonTag tone="kind">보충</LessonTag></dt>
+      <dd>교과서에는 없지만 이해를 돕도록 사이트가 보탠 차시예요.</dd>
+    </div>
+  </dl>
+</div>
+
+<style>
+  .lesson-legend {
+    margin-block-end: var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .lesson-legend__title {
+    margin-block-end: var(--space-2);
+    font-weight: var(--weight-bold);
+  }
+
+  .lesson-legend__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .lesson-legend__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .lesson-legend__item dt {
+    flex: none;
+    min-width: 5.5rem;
+  }
+
+  .lesson-legend__item dd {
+    flex: 1 1 14rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+</style>

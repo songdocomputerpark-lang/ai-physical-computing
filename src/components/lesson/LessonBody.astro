@@ -1,0 +1,112 @@
+---
+/**
+ * 차시 본문 — lesson-html.ts의 planLessonBody 결과를 칸(section)마다 그리고, 예제·퀴즈 자리에 컴포넌트를 넣는다.
+ * 마크다운에서 나온 HTML에는 컴포넌트 스타일이 닿지 않으므로 본문용 스타일은 :global로 적는다(.lesson-body 안에서만).
+ */
+import type { LessonData } from '../../config/content-schemas.ts';
+import LessonExamples from './LessonExamples.astro';
+import LessonQuiz from './LessonQuiz.astro';
+import type { LabId } from './lesson-data.ts';
+import type { LessonBodyPlan } from './lesson-html.ts';
+
+interface Props {
+  plan: LessonBodyPlan;
+  examples: LessonData['examples'];
+  quiz: LessonData['quiz'];
+  lab?: LabId | undefined;
+  /** 경고·id 앞머리에 쓰는 차시 id(예: u1/1-1-1) */
+  lessonId: string;
+  /** 경고에 적을 차시 파일 경로 */
+  source: string;
+}
+
+const { plan, examples, quiz, lab, lessonId, source } = Astro.props;
+const quizPrefix = `quiz-${lessonId.replace(/[^a-z\d-]/giu, '-')}`;
+---
+
+<div class="lesson-body prose">
+  {
+    plan.intro.map((part) =>
+      part.type === 'html' ? (
+        <Fragment set:html={part.html} />
+      ) : part.slot === 'examples' ? (
+        <LessonExamples examples={examples} lab={lab} source={source} />
+      ) : (
+        <LessonQuiz items={quiz} idPrefix={quizPrefix} />
+      ),
+    )
+  }
+  {
+    plan.sections.map((section) => (
+      <section class="lesson-section" data-section={section.key} aria-labelledby={section.id}>
+        {section.parts.map((part) =>
+          part.type === 'html' ? (
+            <Fragment set:html={part.html} />
+          ) : part.slot === 'examples' ? (
+            <LessonExamples examples={examples} lab={lab} source={source} />
+          ) : (
+            <LessonQuiz items={quiz} idPrefix={quizPrefix} />
+          ),
+        )}
+      </section>
+    ))
+  }
+</div>
+
+<script>
+  import { installCollapsibleHelpers } from './details.ts';
+
+  installCollapsibleHelpers();
+</script>
+
+<style>
+  /* 칸 안의 글 사이 간격(.prose > * + *와 같은 간격을 칸 안에도) */
+  :global(.lesson-body .lesson-section > * + *) {
+    margin-block-start: var(--space-4);
+  }
+
+  :global(.lesson-body .lesson-section > h2 + *) {
+    margin-block-start: var(--space-3);
+  }
+
+  :global(.lesson-body .lesson-section > h3) {
+    margin-block-start: var(--space-8);
+  }
+
+  /* 칸의 ## 제목 앞에 굵은 막대를 둬서 틀의 칸이 눈에 띄게 한다. */
+  :global(.lesson-body .lesson-section > h2) {
+    padding-block-start: var(--space-3);
+    border-top: 3px solid var(--color-accent-soft);
+  }
+
+  /* 표: 차시 본문 폭을 가득 채워 표끼리 너비를 가지런히 맞춘다. 넓으면 global.css의 규칙대로 표만 옆으로 밀어 본다. */
+  :global(.lesson-body table) {
+    width: 100%;
+  }
+
+  :global(.lesson-body td img) {
+    display: block;
+    width: 100%;
+    max-width: 9rem;
+    margin-block-end: var(--space-2);
+  }
+
+  :global(.lesson-body p > img) {
+    display: block;
+    margin-inline: auto;
+  }
+
+  :global(.lesson-body .box h3) {
+    margin-block-start: var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  :global(.lesson-body .box > h3:first-of-type) {
+    margin-block-start: var(--space-2);
+  }
+
+  :global(.lesson-body .box ul),
+  :global(.lesson-body .box ol) {
+    padding-inline-start: 1.25em;
+  }
+</style>

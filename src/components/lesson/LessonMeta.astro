@@ -1,0 +1,178 @@
+---
+/**
+ * 차시 정보 뱃지(SPEC §7.2 머리 칸): 성취기준 코드, 소요 시간, 준비물, 난이도, 가상 보드 가능 여부, 실습실, 교과서 쪽.
+ * - 성취기준이 비어 있으면 "성취기준 코드 확인 중"(DECISIONS C8)
+ * - 소요 시간·난이도·가상 보드·실습실·교과서 쪽은 frontmatter에 적었을 때만 보인다.
+ * - 뜻을 글자로 알린다(난이도 점은 꾸밈이라 화면 낭독기가 읽지 않는다).
+ */
+import {
+  STANDARDS_NOTE,
+  STANDARDS_PENDING_TEXT,
+  difficultyText,
+  formatDuration,
+  labLink,
+  materialsText,
+  pagesText,
+  virtualBoardText,
+  type LessonSummary,
+} from './lesson-data.ts';
+
+interface Props {
+  lesson: LessonSummary;
+}
+
+const { lesson } = Astro.props;
+const duration = formatDuration(lesson.duration);
+const difficulty = difficultyText(lesson.difficulty);
+const virtualBoard = virtualBoardText(lesson.virtualOk);
+const pages = pagesText(lesson.pages);
+const lab = lesson.lab ? labLink(lesson.lab) : undefined;
+const hasStandards = lesson.standards.length > 0;
+---
+
+<div class="lesson-meta">
+  <dl class="lesson-meta__list">
+    <div class="lesson-meta__item" data-meta="standards">
+      <dt>성취기준</dt>
+      <dd>
+        {
+          hasStandards ? (
+            lesson.standards.map((code) => <span class="lesson-meta__code">[{code}]</span>)
+          ) : (
+            <span class="lesson-meta__pending">{STANDARDS_PENDING_TEXT}</span>
+          )
+        }
+      </dd>
+    </div>
+    {
+      duration && (
+        <div class="lesson-meta__item" data-meta="duration">
+          <dt>소요 시간</dt>
+          <dd>{duration}</dd>
+        </div>
+      )
+    }
+    <div class="lesson-meta__item" data-meta="materials">
+      <dt>준비물</dt>
+      <dd>{materialsText(lesson.materials)}</dd>
+    </div>
+    {
+      difficulty && lesson.difficulty && (
+        <div class="lesson-meta__item" data-meta="difficulty">
+          <dt>난이도</dt>
+          <dd>
+            <span class="lesson-meta__dots" aria-hidden="true">
+              {[1, 2, 3].map((step) => (
+                <span class:list={['lesson-meta__dot', { 'lesson-meta__dot--on': step <= (lesson.difficulty ?? 0) }]} />
+              ))}
+            </span>
+            {difficulty}
+          </dd>
+        </div>
+      )
+    }
+    {
+      virtualBoard && (
+        <div class="lesson-meta__item" data-meta="virtual-board">
+          <dt>가상 보드</dt>
+          <dd>{virtualBoard}</dd>
+        </div>
+      )
+    }
+    {
+      lab && (
+        <div class="lesson-meta__item" data-meta="lab">
+          <dt>실습실</dt>
+          <dd>
+            <a href={lab.href}>{lab.label}</a>
+          </dd>
+        </div>
+      )
+    }
+    {
+      pages && (
+        <div class="lesson-meta__item" data-meta="pages">
+          <dt>교과서</dt>
+          <dd>{pages}</dd>
+        </div>
+      )
+    }
+  </dl>
+  {hasStandards && <p class="lesson-meta__note">{STANDARDS_NOTE}</p>}
+</div>
+
+<style>
+  .lesson-meta {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-end: var(--space-6);
+  }
+
+  .lesson-meta__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .lesson-meta__item {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson-meta__item dt {
+    color: var(--color-text-muted);
+  }
+
+  .lesson-meta__item dd {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    margin: 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .lesson-meta__code {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lesson-meta__pending {
+    color: var(--color-warning-text);
+  }
+
+  .lesson-meta__item[data-meta='standards']:has(.lesson-meta__pending) {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+  }
+
+  .lesson-meta__dots {
+    display: inline-flex;
+    gap: 0.1875rem;
+  }
+
+  .lesson-meta__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-full);
+  }
+
+  .lesson-meta__dot--on {
+    background: var(--color-accent);
+  }
+
+  .lesson-meta__note {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+  }
+</style>

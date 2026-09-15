@@ -1,0 +1,103 @@
+---
+/**
+ * 이전·다음 차시 링크. 순서는 대단원 → order(lesson-data.ts의 compareLessons)이고 대단원이 달라도 이어진다.
+ * md가 있는 차시(draft 아님)만 잇는다. 준비 중인 차시는 건너뛴다.
+ */
+import type { LessonSummary } from './lesson-data.ts';
+
+interface Props {
+  previous?: LessonSummary | undefined;
+  next?: LessonSummary | undefined;
+}
+
+const { previous, next } = Astro.props;
+---
+
+<nav class="lesson-pager" aria-label="이전·다음 차시" data-pagefind-ignore>
+  <ul class="lesson-pager__list">
+    <li class="lesson-pager__item lesson-pager__item--previous">
+      {
+        previous ? (
+          <a class="lesson-pager__link" href={previous.href} rel="prev">
+            <span class="lesson-pager__direction">← 이전 차시</span>{' '}
+            <span class="lesson-pager__title">
+              {previous.label} {previous.title}
+            </span>
+          </a>
+        ) : (
+          <span class="lesson-pager__empty">첫 번째 차시예요.</span>
+        )
+      }
+    </li>
+    <li class="lesson-pager__item lesson-pager__item--next">
+      {
+        next ? (
+          <a class="lesson-pager__link" href={next.href} rel="next">
+            <span class="lesson-pager__direction">다음 차시 →</span>{' '}
+            <span class="lesson-pager__title">
+              {next.label} {next.title}
+            </span>
+          </a>
+        ) : (
+          <span class="lesson-pager__empty">마지막으로 준비된 차시예요.</span>
+        )
+      }
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .lesson-pager {
+    margin-block-start: var(--space-12);
+    padding-block-start: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .lesson-pager__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lesson-pager__item--next {
+    text-align: end;
+  }
+
+  .lesson-pager__link {
+    display: grid;
+    gap: var(--space-1);
+    min-height: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+  }
+
+  .lesson-pager__link:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-text);
+  }
+
+  .lesson-pager__direction {
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .lesson-pager__title {
+    font-weight: var(--weight-semibold);
+  }
+
+  .lesson-pager__empty {
+    display: block;
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,173 @@
+---
+/**
+ * 차시 카드 한 장(배우기·대단원 목록). UnitOutline.astro의 <ul> 안에 <li>로 들어간다.
+ *
+ * - md가 있는 차시(status ready): 카드 전체가 차시 페이지 링크. 링크 이름은 "차시 번호 (종류) 제목"
+ * - md가 없는 차시(status planned): 링크 없이 "준비 중" 딱지
+ * - 코드만 있는 차시: "원고 없음" 딱지(PLAN §2.3)
+ */
+import LessonTag from './LessonTag.astro';
+import {
+  difficultyText,
+  formatDuration,
+  kindBadge,
+  outlineBadges,
+  pagesText,
+  type OutlineItem,
+} from './lesson-data.ts';
+
+interface Props {
+  item: OutlineItem;
+}
+
+const { item } = Astro.props;
+const kind = kindBadge(item.kind);
+const badges = outlineBadges(item);
+const facts = item.lesson
+  ? [formatDuration(item.lesson.duration), difficultyText(item.lesson.difficulty)].filter(
+      (text): text is string => text !== undefined,
+    )
+  : [];
+const pages = item.source === 'manuscript' || item.source === 'manuscript-code' ? pagesText(item.pages) : undefined;
+const hasTags = badges.length > 0 || facts.length > 0 || pages !== undefined;
+---
+
+<li class="lesson-card" id={item.key} data-status={item.status}>
+  {
+    item.lesson ? (
+      <a class="lesson-card__heading lesson-card__link" href={item.lesson.href}>
+        <span class="lesson-card__label">{item.label}</span>{' '}
+        {kind && <span class="lesson-card__kind">{kind}</span>}
+        {kind && ' '}
+        <span class="lesson-card__title">{item.title}</span>
+      </a>
+    ) : (
+      <p class="lesson-card__heading">
+        <span class="lesson-card__label">{item.label}</span>{' '}
+        {kind && <span class="lesson-card__kind">{kind}</span>}
+        {kind && ' '}
+        <span class="lesson-card__title">{item.title}</span>
+      </p>
+    )
+  }
+  {
+    hasTags && (
+      <ul class="lesson-card__tags">
+        {badges.map((badge) => (
+          <li>
+            <LessonTag tone={badge.tone}>{badge.text}</LessonTag>
+          </li>
+        ))}
+        {facts.map((text) => (
+          <li>
+            <LessonTag tone="meta">{text}</LessonTag>
+          </li>
+        ))}
+        {pages && (
+          <li>
+            <LessonTag tone="meta">교과서 {pages}</LessonTag>
+          </li>
+        )}
+      </ul>
+    )
+  }
+</li>
+
+<style>
+  .lesson-card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    min-height: 100%;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .lesson-card[data-status='planned'] {
+    border-style: dashed;
+    background: var(--color-bg-subtle);
+  }
+
+  .lesson-card[data-status='ready']:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  .lesson-card__heading {
+    display: block;
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+  }
+
+  .lesson-card[data-status='planned'] .lesson-card__heading {
+    color: var(--color-text-muted);
+  }
+
+  .lesson-card__label {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.01em;
+  }
+
+  .lesson-card[data-status='ready'] .lesson-card__label {
+    color: var(--color-accent-hover);
+  }
+
+  .lesson-card__kind {
+    display: inline-block;
+    margin-inline-end: var(--space-1);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    vertical-align: 0.1em;
+  }
+
+  .lesson-card__link:hover .lesson-card__title {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* 카드 전체를 누르는 곳으로 넓힌다(링크는 하나라서 화면 낭독기는 한 번만 읽는다). */
+  .lesson-card__link::after {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
+    content: '';
+  }
+
+  .lesson-card__link:focus-visible {
+    outline: none;
+  }
+
+  .lesson-card__link:focus-visible::after {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .lesson-card .lesson-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lesson-card .lesson-card__tags li {
+    margin: 0;
+  }
+</style>

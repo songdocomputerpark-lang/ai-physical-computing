@@ -1,17 +1,79 @@
 ---
-// 자리 페이지(공통 기반 단계, 2026-09-16). 배우기 담당이 실제 화면으로 바꾼다(PLAN §8.1 P1-06).
-// 대단원 목록(learnUnits)은 src/config/nav.ts에 있다.
-import ComingSoon from '../../components/common/ComingSoon.astro';
-import { getPage } from '../../config/nav.ts';
+/**
+ * 배우기(PLAN §2.1·§2.2, §8.1 P1-06) — 대단원 > 묶음(중단원) > 차시 카드.
+ *
+ * 카드는 차례표(src/components/lesson/curriculum.ts)와 content/lessons/의 md 파일을 합쳐 만든다.
+ * 새 차시 md를 content/lessons/에 넣으면 코드를 고치지 않아도 여기에 카드가 생긴다(시나리오 E의 축소판).
+ */
+import { getCollection } from 'astro:content';
+import LessonLegend from '../../components/lesson/LessonLegend.astro';
+import UnitOutline from '../../components/lesson/UnitOutline.astro';
+import { buildUnitOutline, countOutline, publishedLessons } from '../../components/lesson/lesson-data.ts';
+import { getPage, learnUnits } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('learn');
+const lessons = publishedLessons(await getCollection('lessons'));
+const units = learnUnits.map((unit) => {
+  const sections = buildUnitOutline(unit.unit, lessons);
+  return { unit, sections, counts: countOutline(sections) };
+});
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">{page.description}</p>
-  <ComingSoon what="단원과 차시 목록" when="사이트 뼈대를 만드는 지금 단계(Phase 1)">
-    <p>차시 본문은 교과서 내용을 옮기는 단계(Phase 5)에서 모두 채워요.</p>
-  </ComingSoon>
+  <p class="lead">{page.description} 카드를 누르면 그 차시로 가요.</p>
+  <LessonLegend />
+  {
+    units.map(({ unit, sections, counts }) => (
+      <section class="learn-unit" aria-labelledby={`${unit.id}-title`}>
+        <header class="learn-unit__header">
+          <h2 class="learn-unit__title" id={`${unit.id}-title`}>
+            <a href={unit.href}>{unit.title}</a>
+          </h2>
+          <p class="learn-unit__description">{unit.description}</p>
+          <p class="learn-unit__count">
+            차시 {counts.ready + counts.planned}개 가운데 {counts.ready}개를 볼 수 있어요.
+          </p>
+        </header>
+        <UnitOutline sections={sections} headingLevel={3} />
+      </section>
+    ))
+  }
 </BaseLayout>
+
+<style>
+  .learn-unit {
+    margin-block-start: var(--space-12);
+    padding-block-start: var(--space-8);
+    border-top: 2px solid var(--color-border);
+  }
+
+  .learn-unit__header {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-end: var(--space-6);
+  }
+
+  .learn-unit__title {
+    font-size: var(--text-2xl);
+  }
+
+  .learn-unit__title a {
+    color: var(--color-text);
+    text-decoration-color: var(--color-accent-border);
+  }
+
+  .learn-unit__title a:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .learn-unit__description {
+    color: var(--color-text-muted);
+  }
+
+  .learn-unit__count {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+</style>
