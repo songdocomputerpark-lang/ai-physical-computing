@@ -42,7 +42,7 @@ export interface HomeAction {
   readonly variant: 'primary' | 'secondary';
   /**
    * 가는 곳이 아직 자리 페이지면 'coming-soon' — 버튼에 "준비 중" 표시가 붙는다(누르기 전에 알 수 있게, 2026-09-16 검토 반영).
-   * 실습실이 실제로 생기는 묶음(P2-14 영상처리, P3 ESP32)에서 지운다.
+   * 실습실이 실제로 생기는 묶음에서 지운다(영상처리는 P2-04에서 지움 — 홈 → 실습실 → 슬라이더까지 이어짐, ESP32는 P3).
    */
   readonly status?: 'coming-soon';
 }
@@ -121,7 +121,6 @@ export const homeActions: readonly HomeAction[] = Object.freeze([
     pageId: 'labs-vision',
     icon: 'camera',
     variant: 'primary',
-    status: 'coming-soon',
   }),
   action({
     id: 'virtual-board',

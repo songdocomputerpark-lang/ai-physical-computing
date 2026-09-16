@@ -4,68 +4,10 @@
 // (흰 에지 픽셀 비율 > 0). 출력 화면에서 q 키 → 정상 종료, [정지] → 1초 안에 멈춤, 카메라 거부 → 샘플 입력으로 자동 전환,
 // 제한 모드(?limited=1)에서 한 장 읽기, 사이트 밖 요청은 jsDelivr뿐(SPEC §2 서버 제로 — 영상이 밖으로 나가지 않는다).
 // 실행: npx playwright test tests/e2e/lab-vision.spec.ts — Pyodide(약 6MB)와 numpy·OpenCV 휠(약 14MB)을 jsDelivr에서 받는다.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { ALLOWED_REMOTE_ORIGINS, STOP_GRACE_MS } from '../../src/lab/runtime/config.ts';
-import { withBase } from '../../src/lib/url.ts';
-import { LOAD_TIMEOUT, labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
-
-const VISION_PATH = withBase('labs/vision/');
-/** OpenCV 휠(10.7MB)까지 받는 시간 */
-const PACKAGES_TIMEOUT = 150_000;
-const FRAME_TIMEOUT = 60_000;
-
-function collectRequests(page: Page): { origins: Set<string>; urls: string[] } {
-  const origins = new Set<string>();
-  const urls: string[] = [];
-  page.on('request', (request) => {
-    const url = request.url();
-    if (/^https?:/u.test(url)) {
-      origins.add(new URL(url).origin);
-      urls.push(url);
-    }
-  });
-  return { origins, urls };
-}
-
-/** 실습실을 열고 파이썬·OpenCV가 준비될 때까지 기다린다. */
-async function openVisionLab(page: Page, query = ''): Promise<void> {
-  const response = await page.goto(`${VISION_PATH}${query}`);
-  expect(response?.status()).toBe(200);
-  await expect(labRoot(page)).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
-  await expect(labRoot(page)).toHaveAttribute('data-vision-packages', 'ready', { timeout: PACKAGES_TIMEOUT });
-  await expect(page.locator('[data-vision-stages]')).toHaveAttribute('data-state', 'done');
-}
-
-/** 출력 창 캔버스에서 밝은(200 초과) 픽셀 비율을 잰다. */
-async function whiteRatio(page: Page, windowName: string): Promise<number> {
-  return page.locator(`canvas[data-vision-window="${windowName}"]`).evaluate((element) => {
-    const canvas = element as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx || canvas.width === 0) {
-      return -1;
-    }
-    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let white = 0;
-    for (let index = 0; index < data.length; index += 4) {
-      if ((data[index] ?? 0) > 200) {
-        white += 1;
-      }
-    }
-    return white / (canvas.width * canvas.height);
-  });
-}
-
-/** 출력 창에 장이 n장 이상 그려질 때까지 기다린다(출력 상태 글의 "n장"). */
-async function waitFrames(page: Page, windowName: string, count: number): Promise<void> {
-  await expect(page.locator(`canvas[data-vision-window="${windowName}"]`)).toBeVisible({ timeout: FRAME_TIMEOUT });
-  await expect
-    .poll(async () => {
-      const text = (await page.locator('[data-vision-output-status]').textContent()) ?? '';
-      const match = /(\d+)장/u.exec(text);
-      return match ? Number(match[1]) : 0;
-    }, { timeout: FRAME_TIMEOUT })
-    .toBeGreaterThanOrEqual(count);
-}
+import { labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
+import { FRAME_TIMEOUT, VISION_PATH, collectRequests, openVisionLab, waitFrames, whiteRatio } from './helpers/vision.ts';
 
 test.describe('영상처리 실습실(가짜 카메라)', () => {
   test.skip(({ isMobile }) => isMobile, '워커·JSPI·카메라 동작은 데스크톱 Chromium에서 확인한다');

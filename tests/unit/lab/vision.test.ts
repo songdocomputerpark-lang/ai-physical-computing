@@ -191,6 +191,7 @@ describe('가짜 카메라용 합성 영상(Y4M)', () => {
     expect(luma.includes(235)).toBe(true);
     expect(luma.includes(16)).toBe(true);
     expect(luma.includes(80)).toBe(true);
+    expect(luma.includes(100)).toBe(true); // 희미한 네모(시나리오 A의 임계값 변화 측정용)
     const chroma = data.subarray(header.length + 6 + 64 * 48, header.length + frameSize);
     expect(chroma.every((value) => value === 128)).toBe(true);
     expect(() => buildY4m({ width: 63, height: 48 })).toThrow(/짝수/u);
@@ -208,5 +209,10 @@ describe('가짜 카메라용 합성 영상(Y4M)', () => {
     };
     expect(at(0)).toBeGreaterThanOrEqual(0);
     expect(at(0.5)).toBeGreaterThan(at(0));
+    // 희미한 네모(밝기 100)는 오른쪽 아래에 고정이고 다른 도형과 겹치지 않는다(모든 장에서 바탕 80과의 차이가 20).
+    for (const t of [0, 0.25, 0.5, 0.75]) {
+      expect(lumaAt(600, 420, t, 640, 480)).toBe(100);
+      expect(lumaAt(520, 420, t, 640, 480)).toBe(80);
+    }
   });
 });

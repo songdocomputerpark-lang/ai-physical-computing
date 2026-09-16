@@ -55,8 +55,9 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     expect(homeActions.map((action) => action.variant)).toEqual(['primary', 'secondary', 'secondary']);
   });
 
-  it('아직 자리 페이지로 가는 실습실 버튼 2개에는 "준비 중" 표시가 붙고, 보드 준비 버튼에는 붙지 않는다', () => {
-    expect(homeActions.filter((action) => action.status === 'coming-soon').map((action) => action.id)).toEqual(['camera', 'virtual-board']);
+  it('아직 자리 페이지로 가는 ESP32 버튼에만 "준비 중" 표시가 붙는다(영상처리 실습실은 P2-04부터 열림, 보드 준비는 안내 페이지)', () => {
+    expect(homeActions.filter((action) => action.status === 'coming-soon').map((action) => action.id)).toEqual(['virtual-board']);
+    expect(homeActions.find((action) => action.id === 'camera')?.status).toBeUndefined();
     expect(COMING_SOON_BADGE).toBe('준비 중');
   });
 

@@ -2,7 +2,9 @@
 //
 // Chromium(Edge 포함)은 --use-fake-device-for-media-stream 과 --use-file-for-fake-video-capture=파일.y4m 으로
 // 진짜 카메라 대신 파일의 영상을 웹캠처럼 준다. 그 파일을 사진이 아닌 "코드로 그린 도형"으로 만든다:
-// 회색 바탕에 천천히 움직이는 흰 네모·검은 원·흰 사선. 회색 변환·에지 검출 결과가 뚜렷하게 나오고 개인정보가 없다.
+// 회색 바탕에 천천히 움직이는 흰 네모·검은 원·흰 사선, 그리고 바탕보다 조금만 밝은 희미한 네모(P2-04 시나리오 A 테스트가
+// 임계값을 낮추면 이 네모의 테두리가 새로 나타나고 올리면 사라지는 것으로 슬라이더 효과를 잰다).
+// 회색 변환·에지 검출 결과가 뚜렷하게 나오고 개인정보가 없다.
 //
 // 파일은 압축이 없는 Y4M(YUV 4:2:0)이라 640×480 16장이 7MB쯤 되므로 저장소에 넣지 않고(PD-30, 5MB 상한)
 // 테스트가 시작할 때 .cache/test-camera/ 에 만든다(tests/e2e/global-setup.ts). 커밋하는 것은 이 스크립트뿐이다.
@@ -24,6 +26,8 @@ export const DEFAULT_OPTIONS = Object.freeze({ width: 640, height: 480, fps: 15,
  * - 흰 네모(밝기 235): 왼쪽에서 오른쪽으로 천천히 움직인다
  * - 검은 원(밝기 16): 위아래로 움직인다
  * - 흰 사선(밝기 235, 두께 6픽셀): 고정 — 어느 장에서든 에지가 있다
+ * - 희미한 네모(밝기 100, 오른쪽 아래 고정): 바탕과 차이가 20뿐이라 Canny 임계값이 낮을 때만 테두리가 나온다
+ *   (기본 blur 5에서 밝기 차이 20의 기울기는 약 70 — threshold 20이면 위 기준 40보다 커서 테두리, 100이면 아래 기준에도 못 미쳐 사라진다)
  * @param {number} x
  * @param {number} y
  * @param {number} t
@@ -51,6 +55,10 @@ export function lumaAt(x, y, t, width, height) {
   const lineY = height - (x * height) / width;
   if (Math.abs(y - lineY) <= 3) {
     return 235;
+  }
+  // 희미한 네모: 오른쪽 아래(사선·원·흰 네모가 지나지 않는 자리)
+  if (x >= width * 0.84 && x < width * 0.97 && y >= height * 0.78 && y < height * 0.95) {
+    return 100;
   }
   return 80;
 }
@@ -90,13 +98,14 @@ export function buildY4m(options = {}) {
 }
 
 /**
- * 파일이 없거나 설정이 바뀌었으면 만든다. 만든 경로를 돌려준다.
+ * 파일이 없거나 내용이 지금 코드가 만드는 것과 다르면 만든다. 만든 경로를 돌려준다.
+ * 크기만 비교하면 도형을 더해도(P2-04의 희미한 네모) 옛 파일이 그대로 쓰여 테스트가 어긋난다 — 2026-09-16 확인. 바이트 전체를 비교한다(7MB, 수 ms).
  * @param {string} outputPath
  * @param {{ width?: number; height?: number; fps?: number; frames?: number }} [options]
  */
 export function ensureTestVideo(outputPath = DEFAULT_OUTPUT, options = {}) {
   const data = buildY4m(options);
-  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size === data.length) {
+  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size === data.length && fs.readFileSync(outputPath).equals(Buffer.from(data.buffer, data.byteOffset, data.byteLength))) {
     return outputPath;
   }
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
