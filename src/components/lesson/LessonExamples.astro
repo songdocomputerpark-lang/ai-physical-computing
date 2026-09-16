@@ -2,8 +2,14 @@
 /**
  * 따라하기 예제(SPEC §7.2 4번) — frontmatter examples의 파일을 빌드할 때 읽어 코드와 [실습실에서 열기]를 보여 준다.
  *
- * 지금(Phase 1)은 실습실 임베드 자리다. 실습실이 생기면(Phase 2 영상처리, Phase 3 ESP32, Phase 4 통신)
- * data-lab·data-example-file을 읽어 이 자리에 실습실을 띄운다. 링크는 실습실 주소 뒤에 ?example=파일 경로를 붙인다.
+ * 실습실 임베드(P2-14, SPEC §7.2 4번 "예제가 미리 로드된 상태"): [이 자리에서 실습실 열기]를 누르면 이 자리에
+ * 실습실 페이지를 <iframe>으로 띄운다(주소 ?example=<파일>&embed=1 — 그 예제가 골라진 채로 열리고, 머리글·바닥글은 숨는다).
+ * **왜 iframe인가(결정 근거):** 차시 한 쪽에 예제가 여럿이라 LabShell을 그대로 여러 개 넣으면 ① 실습실 컨트롤러가
+ * 페이지당 [data-lab] 하나를 전제로 주소(?example=·#code=)를 읽어 서로 간섭하고 ② 파이썬 워커·흉내 모듈이 예제 수만큼 뜨며
+ * ③ 실습실 스크립트(약 400KB)와 오류 사전이 모든 차시 페이지에 실린다. iframe은 문서가 나뉘어 ①②가 생기지 않고,
+ * **누르기 전에는 한 바이트도 받지 않는다**(느린 학교 네트워크·휴대폰에서 차시 읽기가 무거워지지 않는다).
+ * 같은 사이트라 저장(자동 저장·[기록 지우기])과 카메라 권한(allow="camera")도 그대로 동작한다.
+ * 새 탭에서 크게 보고 싶으면 [실습실에서 열기]가 같은 주소를 embed 없이 연다.
  *
  * - 파일 위치: 저장소 뿌리의 examples/ 아래(frontmatter에는 examples/ 뒤의 경로만 적는다, content-schemas.ts)
  * - 줄 번호는 원본 파일과 같게 보인다(PLAN §2.6: 본문이 "7번째 줄"을 가리킬 수 있게). 복사할 때 줄 번호는 따라가지 않는다.
@@ -54,12 +60,15 @@ const panels = examples.map((example, index) => {
     title: example.title ?? `예제 ${index + 1}`,
     rendered: code === undefined ? undefined : codeToHtml(code),
     link: lab ? labLink(lab, example.file) : undefined,
+    // 차시 안에 띄우는 주소(예제 미리 로드 + 머리글·바닥글 숨김). 누르기 전에는 받지 않는다.
+    embedHref: lab ? `${labLink(lab, example.file).href}&embed=1` : undefined,
   };
 });
 ---
 
 {
   panels.map((panel) => (
+    <div class="lesson-example-block">
     <figure class="lesson-example" data-lab={lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
       <figcaption class="lesson-example__caption">
         <span class="lesson-example__eyebrow">따라하기 예제</span>
@@ -76,19 +85,64 @@ const panels = examples.map((example, index) => {
         <p class="lesson-example__missing">예제 파일을 준비하고 있어요.</p>
       )}
       <div class="lesson-example__actions">
-        {/* 실습실이 아직 자리 페이지라 보조 버튼으로 둔다(P2-14에서 실습실이 생기면 button--primary로 되돌린다). */}
+        {panel.link && (
+          <button class="button button--primary" type="button" data-lesson-lab-open data-embed-src={panel.embedHref} data-example-title={panel.title}>
+            이 자리에서 실습실 열기
+          </button>
+        )}
         {panel.link && (
           <a class="button button--secondary" href={panel.link.href}>
-            실습실에서 열기(준비 중)
+            실습실에서 열기
           </a>
         )}
         <p class="lesson-example__note">
-          실습실은 아직 만들고 있어요. 지금은 코드를 한 줄씩 읽어 보고, 실습실이 생기면 이 자리에서 바로 실행해요.
+          [이 자리에서 실습실 열기]를 누르면 이 예제가 올라간 실습실이 바로 아래에 열려요. 처음 한 번은 파이썬을 받느라 조금 걸려요.
         </p>
       </div>
     </figure>
+    {/* 실습실은 글 읽기 폭(44rem)보다 넓게 펴서 편집칸과 결과가 나란히 보이게 한다. 누르기 전에는 비어 있다. */}
+    {panel.link && <div class="lesson-example__lab" data-lesson-lab-slot hidden />}
+    </div>
   ))
 }
+
+<script>
+  /*
+   * [이 자리에서 실습실 열기] — 누른 뒤에야 <iframe>을 만든다(그 전에는 실습실 파일을 하나도 받지 않는다).
+   * 한 차시에 예제가 여럿이면 각 예제 아래에 자기 실습실이 열린다(문서가 나뉘어 서로 간섭하지 않는다).
+   * 다시 누르면 접고, 접어도 iframe은 남겨 두어 다시 열 때 Pyodide를 새로 받지 않는다.
+   */
+  const OPEN_LABEL = '이 자리에서 실습실 열기';
+  const CLOSE_LABEL = '실습실 접기';
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-lesson-lab-open]')) {
+    const slot = button.closest('.lesson-example-block')?.querySelector<HTMLElement>('[data-lesson-lab-slot]');
+    const src = button.dataset.embedSrc;
+    if (!slot || !src) {
+      continue;
+    }
+    button.setAttribute('aria-expanded', 'false');
+    button.addEventListener('click', () => {
+      const open = slot.hasAttribute('hidden');
+      if (open && !slot.querySelector('iframe')) {
+        const frame = document.createElement('iframe');
+        frame.src = src;
+        frame.title = `${button.dataset.exampleTitle ?? '예제'} 실습실`;
+        frame.loading = 'lazy';
+        // 카메라는 같은 사이트 안에서만 쓴다(학생 영상은 브라우저 밖으로 나가지 않는다 — SPEC §2).
+        frame.allow = 'camera';
+        frame.className = 'lesson-example__frame';
+        slot.append(frame);
+      }
+      slot.toggleAttribute('hidden', !open);
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.textContent = open ? CLOSE_LABEL : OPEN_LABEL;
+      if (open) {
+        slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }
+</script>
 
 <style>
   .lesson-example {
@@ -179,5 +233,33 @@ const panels = examples.map((example, index) => {
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /* 실습실 자리: 글 읽기 폭 밖으로 넓게 편다(가운데 정렬된 칸에서 좌우로 나오는 방법). */
+  .lesson-example__lab {
+    --lab-embed-width: min(var(--width-page), calc(100vw - 2 * var(--gutter)));
+
+    width: var(--lab-embed-width);
+    margin-block-start: var(--space-4);
+    margin-inline: calc((100% - var(--lab-embed-width)) / 2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    overflow: hidden;
+  }
+
+  .lesson-example__lab :global(.lesson-example__frame) {
+    display: block;
+    width: 100%;
+    /* 넓은 화면에서는 편집칸과 결과가 나란히 보인다. */
+    height: 46rem;
+    border: 0;
+  }
+
+  /* 좁은 화면에서는 실습실이 세로로 쌓여 더 길어진다. */
+  @media (max-width: 64rem) {
+    .lesson-example__lab :global(.lesson-example__frame) {
+      height: 64rem;
+    }
   }
 </style>
