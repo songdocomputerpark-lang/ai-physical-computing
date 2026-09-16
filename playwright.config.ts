@@ -19,6 +19,7 @@
 import fs from 'node:fs';
 import { chromium, defineConfig, devices } from '@playwright/test';
 import { siteConfig } from './src/config/site.ts';
+import { TEST_VIDEO_PATH } from './tests/e2e/global-setup.ts';
 
 const port = Number(process.env.PW_PORT ?? 4329);
 const baseURL = `http://localhost:${port}${siteConfig.base}/`;
@@ -59,22 +60,25 @@ export default defineConfig({
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  // 테스트 전에 가짜 카메라용 합성 영상을 만든다(.cache/test-camera/synthetic.y4m — 저장소에 넣지 않음, PD-30).
+  globalSetup: './tests/e2e/global-setup.ts',
   use: {
     baseURL,
     locale: 'ko-KR',
     timezoneId: 'Asia/Seoul',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    // Phase 2(영상처리 실습실)에서 카메라 없이 가짜 영상으로 시험할 때 아래 주석을 푼다(PD-14).
-    // 영상 파일은 코드로 만든 합성본만 커밋한다(PD-30). 파일이 없으면 Chromium이 기본 무늬 영상을 보낸다.
-    // permissions: ['camera'],
-    // launchOptions: {
-    //   args: [
-    //     '--use-fake-ui-for-media-stream', // 카메라 허용 창을 자동으로 허용
-    //     '--use-fake-device-for-media-stream', // 진짜 카메라 대신 가짜 장치
-    //     '--use-file-for-fake-video-capture=tests/fixtures/camera/synthetic.y4m', // 가짜 장치가 보낼 영상
-    //   ],
-    // },
+    // 가짜 카메라(PD-14, P2-03): 진짜 카메라 대신 코드로 그린 합성 영상(scripts/gen-test-video.mjs)을 웹캠처럼 준다.
+    // Chromium 실행 인자라 Playwright 전용 Chromium과 설치된 Edge(msedge 채널) 모두에서 된다(2026-09-16 Edge 153에서 확인).
+    // 카메라 허용 창은 자동으로 허용한다(permissions + --use-fake-ui-for-media-stream). 파일이 없으면 Chromium 기본 무늬 영상이 나온다.
+    permissions: ['camera'],
+    launchOptions: {
+      args: [
+        '--use-fake-ui-for-media-stream', // 카메라 허용 창을 자동으로 허용
+        '--use-fake-device-for-media-stream', // 진짜 카메라 대신 가짜 장치
+        `--use-file-for-fake-video-capture=${TEST_VIDEO_PATH}`, // 가짜 장치가 보낼 합성 영상(globalSetup이 만든다)
+      ],
+    },
   },
   projects: [
     {

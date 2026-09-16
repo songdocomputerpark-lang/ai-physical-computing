@@ -113,15 +113,22 @@ test.describe('이 담당의 페이지', () => {
       expect(plan, child.id).toBeDefined();
       const card = cards.filter({ has: page.getByRole('heading', { level: 2, name: child.title }) });
       await expect(card.getByRole('link', { name: child.title, exact: true })).toHaveAttribute('href', child.href);
-      await expect(card).toContainText(`Phase ${plan?.phase}`);
+      // 실제 화면이 열린 실습실(_labs.ts의 open, 2026-09-16부터 영상처리)은 "열림", 나머지는 열리는 Phase를 보인다.
+      if (plan?.open) {
+        await expect(card).toContainText('열림');
+        await expect(card).not.toContainText('준비 중');
+      } else {
+        await expect(card).toContainText(`Phase ${plan?.phase}`);
+      }
       expect((await request.get(child.href)).status(), child.href).toBe(200);
     }
+    await expect(page.locator('.labs-intro')).toContainText(`${getPage('labs-vision').title}은 열렸어요`);
 
     const checkPage = getPage('labs-esp32-check');
     await expect(page.getByRole('link', { name: checkPage.title, exact: true })).toHaveAttribute('href', checkPage.href);
   });
 
-  for (const plan of LAB_PLANS) {
+  for (const plan of LAB_PLANS.filter((candidate) => !candidate.open)) {
     test(`${plan.id}: 준비되면 할 일 목록과 열리는 때를 보여 준다`, async ({ page }) => {
       await page.goto(getPage(plan.id).href);
       // 코드를 실행하거나 보드를 연결하는 실습실만 브라우저 권장 환경 안내(BrowserNotice)를 둔다(SPEC §9).
