@@ -10,3 +10,8 @@ tags:
   - 방향
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-09에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력' + 재생 동작 '고개 돌리기'.
+# 출력 창 'Head Direction Counter' · q로 끝내요.
+# 실습실 실측: 재생 동작에서 Center·Left·Right가 모두 나와 횟수가 늘어나요(기준 10픽셀).

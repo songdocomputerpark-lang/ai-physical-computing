@@ -11,3 +11,9 @@ tags:
   - 설정
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
+# 출력 창 'Hand Tracking' · q 키로 끝내요.
+# 주의: max_num_hands=1, min_detection_confidence=0.5 — 오른쪽 아래 조절 패널에서 실행 중에 값을 바꿔 볼 수 있어요(코드의 숫자는 그대로예요).
+# 주의: waitKey(30)이라 키를 눌렀을 때 반응이 조금 느려요(원본 그대로).

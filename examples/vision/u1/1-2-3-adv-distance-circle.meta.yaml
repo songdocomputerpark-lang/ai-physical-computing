@@ -11,3 +11,8 @@ tags:
   - 원
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
+# 출력 창 'Circle with Distance' · q 키로 끝내요.
+# 주의: 거리에 따라 원이 커지고 작아져요 — 재생 동작 '엄지·검지 핀치'로 보면 잘 보여요.

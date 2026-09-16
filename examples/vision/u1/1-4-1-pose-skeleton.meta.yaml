@@ -10,3 +10,9 @@ tags:
   - pose
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-09에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력' — 자세 코드를 실행하면 자세 동작('손 들기')으로 알아서 바뀌어요.
+# 웹캠으로 하려면 public/models/pose_landmarker_full.task가 있어야 해요(조절 패널의 '저사양 모드'를 켜면 lite 모델).
+# 출력 창 'Pose Tracking' · q로 끝내요.
+# 주의: 화면 밖 다리(무릎·발목)는 visibility가 낮아 그려지지 않아요 — 레거시와 같은 규칙이에요.

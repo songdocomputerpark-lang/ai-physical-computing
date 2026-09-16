@@ -12,3 +12,8 @@ tags:
 packages:
   - opencv-python
   - pillow
+
+# ── 실습실에서 돌릴 때(P2-09에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력' + 재생 동작 '어깨 기울이기'. 출력 창 'Posture Warning System' · q로 끝내요.
+# 한글 글꼴 경로(C:/Windows/Fonts/malgun.ttf)는 브라우저에 없어서, 실습실이 한국어로 알리고 Pillow 기본 글꼴로 그려요(한글은 빈칸으로 보여요).
+# [파일 넣기]로 한글 글꼴 파일(.ttf·.otf)을 넣고 코드의 fontpath를 그 이름으로 바꾸면 글자가 제대로 나와요.

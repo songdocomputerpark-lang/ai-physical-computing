@@ -8,3 +8,8 @@ tags:
   - 그리기 스타일
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
+# 출력 창 'Hand Tracking' · ESC로 끝내요.
+# 주의: draw_landmarks의 네 번째 자리가 점 스타일, 다섯 번째가 선 스타일이에요. 이 예제는 일부러 line_style·circle_style 순서로 넘겨 스타일이 뒤바뀐 결과를 보여 줘요(교안 p17) — 실습실도 그대로 재현해요.

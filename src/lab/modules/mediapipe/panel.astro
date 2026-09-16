@@ -1,0 +1,248 @@
+---
+/**
+ * mediapipe 흉내 모듈의 화면 조각(src/lab/README.md 4.5절). LabShell이 조절 패널 아래 [data-lab-module-panel="mediapipe"]에 hidden으로 그리고,
+ * index.ts의 mount가 showPanel()로 연다. HTML·CSS만 있고 동작은 index.ts가 data-mediapipe-* 표시로 잇는다.
+ *
+ * - 엔진 상태: 지금 쓰는 인식 종류(손·얼굴 그물·얼굴 검출·자세)와 준비 전/준비 중/준비됨/모델 없음/실패(data-state) + 한 줄 설명(aria-live)
+ * - 재생 동작: 재생 입력(합성 좌표)이 돌려줄 동작 고르기 — 손·얼굴·자세 묶음(index.ts가 목록을 채운다)
+ * - 조절 막대: 손 개수·검출 신뢰도·존재 신뢰도·추적 신뢰도 — 코드의 Hands(...) 값에서 시작해 실행 중에 바꿔 보는 값(코드 글자는 바꾸지 않는다)
+ * - 저사양 모드: 자세 모델을 가벼운 것(lite)으로(PD-20)
+ */
+---
+
+<div class="mediapipe" data-mediapipe-panel>
+  <div class="mediapipe__head">
+    <span class="mediapipe__title">인식(mediapipe)</span>
+    <span class="mediapipe__kind" data-mediapipe-solution>손 인식</span>
+    <span class="mediapipe__badge" data-mediapipe-engine data-state="idle">대기</span>
+  </div>
+  <p class="mediapipe__status" data-mediapipe-status role="status" aria-live="polite"></p>
+
+  <div class="mediapipe__row">
+    <label class="mediapipe__label" for="lab-module-mediapipe-sequence">재생 동작</label>
+    <select id="lab-module-mediapipe-sequence" class="lab__select mediapipe__select" data-mediapipe-sequence>
+      <option value="count">손가락 0~5개 펴기</option>
+    </select>
+  </div>
+  <p class="mediapipe__note" data-mediapipe-sequence-note></p>
+  <p class="mediapipe__note">
+    입력 소스를 <strong>재생 입력(합성 좌표)</strong>으로 고르면 카메라 없이도 <code>process()</code>가 이 동작의 좌표를 돌려줘요.
+    사람 영상이 아니라 실습실이 계산한 좌표예요(손 21점·얼굴 478점·자세 33점). 얼굴이나 자세를 찾는 코드를 실행하면 그 종류의 동작으로 알아서 바뀌어요.
+    화면 왼쪽 위의 작은 분홍 세모는{' '}
+    <code>cv2.flip</code>으로 영상을 뒤집었는지 알아보는 표시예요(뒤집으면 좌표도 함께 뒤집어요).
+  </p>
+
+  <fieldset class="mediapipe__options">
+    <legend class="mediapipe__legend">실행 중에 바꿔 보기</legend>
+    <p class="mediapipe__note" data-mediapipe-code-options>코드의 값: 손 2개, 검출 신뢰도 0.50, 추적 신뢰도 0.50, 영상 모드</p>
+    <div class="mediapipe__slider">
+      <label for="lab-module-mediapipe-numhands">손 개수(max_num_hands)</label>
+      <input id="lab-module-mediapipe-numhands" type="range" min="1" max="4" step="1" value="2" data-mediapipe-opt="numHands" />
+      <output for="lab-module-mediapipe-numhands" data-mediapipe-opt-value="numHands">2개</output>
+    </div>
+    <div class="mediapipe__slider">
+      <label for="lab-module-mediapipe-detection">검출 신뢰도(min_detection_confidence)</label>
+      <input id="lab-module-mediapipe-detection" type="range" min="0" max="1" step="0.05" value="0.5" data-mediapipe-opt="minHandDetectionConfidence" />
+      <output for="lab-module-mediapipe-detection" data-mediapipe-opt-value="minHandDetectionConfidence">0.50</output>
+    </div>
+    <div class="mediapipe__slider">
+      <label for="lab-module-mediapipe-presence">손 존재 신뢰도(Tasks에만 있음)</label>
+      <input id="lab-module-mediapipe-presence" type="range" min="0" max="1" step="0.05" value="0.5" data-mediapipe-opt="minHandPresenceConfidence" />
+      <output for="lab-module-mediapipe-presence" data-mediapipe-opt-value="minHandPresenceConfidence">0.50</output>
+    </div>
+    <div class="mediapipe__slider">
+      <label for="lab-module-mediapipe-tracking">추적 신뢰도(min_tracking_confidence)</label>
+      <input id="lab-module-mediapipe-tracking" type="range" min="0" max="1" step="0.05" value="0.5" data-mediapipe-opt="minTrackingConfidence" />
+      <output for="lab-module-mediapipe-tracking" data-mediapipe-opt-value="minTrackingConfidence">0.50</output>
+    </div>
+    <p class="mediapipe__note">
+      막대를 움직이면 다음 <code>process()</code>부터 반영돼요(코드의 숫자는 그대로예요). 코드에 넣으려면{' '}
+      <code>Hands(max_num_hands=1, min_detection_confidence=0.7)</code>처럼 적어요. 막대는 손 인식에만 쓰여요.
+    </p>
+    <div class="mediapipe__check">
+      <input id="lab-module-mediapipe-lowspec" type="checkbox" data-mediapipe-low-spec />
+      <label for="lab-module-mediapipe-lowspec">저사양 모드(자세 모델을 가벼운 것으로)</label>
+    </div>
+    <p class="mediapipe__note">
+      컴퓨터가 느리면 켜세요. <code>Pose()</code>가 더 작은 모델(lite)을 써서 빨라지는 대신 정확도가 조금 떨어져요. 다음 <code>Pose()</code>부터 반영돼요.
+    </p>
+  </fieldset>
+
+  <details class="mediapipe__details">
+    <summary>PC의 mediapipe와 다른 점</summary>
+    <ul class="mediapipe__list">
+      <li>추론은 MediaPipe Tasks Vision(브라우저)이 해요. 모델이 달라 같은 신뢰도에서 결과가 조금 다를 수 있어요.</li>
+      <li>좌표는 같아요: x·y는 0~1(왼쪽 위가 원점), z는 깊이(카메라 쪽이 음수).</li>
+      <li>얼굴 점은 468개예요. <code>FaceMesh(refine_landmarks=True)</code>면 눈동자까지 478개가 돼요.</li>
+      <li>자세는 한 사람만 찾고, 잘 안 보이는 점(visibility 0.5 미만)은 <code>draw_landmarks</code>가 그리지 않아요.</li>
+      <li>Left/Right는 PC와 같이 "거울처럼 뒤집힌 셀카 영상" 기준이에요. 영상을 뒤집지 않으면 좌우가 바뀔 수 있어요.</li>
+      <li>영상·좌표는 이 컴퓨터 밖으로 나가지 않아요. WASM·모델도 이 사이트에서 받아요.</li>
+    </ul>
+  </details>
+</div>
+
+<style>
+  .mediapipe {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .mediapipe__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .mediapipe__title {
+    font-weight: var(--weight-semibold);
+  }
+
+  .mediapipe__kind {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .mediapipe__check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  .mediapipe__check input[type='checkbox'] {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--color-accent);
+  }
+
+  .mediapipe__check input[type='checkbox']:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .mediapipe__badge {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  .mediapipe__badge[data-state='ready'] {
+    border-color: var(--color-success-border);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+
+  .mediapipe__badge[data-state='loading'] {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .mediapipe__badge[data-state='missing-model'],
+  .mediapipe__badge[data-state='failed'] {
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+  }
+
+  .mediapipe__status,
+  .mediapipe__note {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .mediapipe__status:empty,
+  .mediapipe__note:empty {
+    display: none;
+  }
+
+  .mediapipe__note code {
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+  }
+
+  .mediapipe__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .mediapipe__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .mediapipe__select {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+
+  .mediapipe__options {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    min-width: 0;
+  }
+
+  .mediapipe__legend {
+    padding: 0 var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .mediapipe__slider {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-2);
+    align-items: center;
+  }
+
+  .mediapipe__slider label {
+    grid-column: 1 / -1;
+    font-size: var(--text-xs);
+  }
+
+  .mediapipe__slider input[type='range'] {
+    width: 100%;
+    min-width: 0;
+    min-height: var(--target-min);
+    margin: 0;
+    accent-color: var(--color-accent);
+  }
+
+  .mediapipe__slider input[type='range']:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .mediapipe__slider output {
+    min-width: 3.2em;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .mediapipe__details summary {
+    cursor: pointer;
+    font-weight: var(--weight-semibold);
+  }
+
+  .mediapipe__list {
+    margin: var(--space-1) 0 0;
+    padding-inline-start: 1.2em;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+</style>

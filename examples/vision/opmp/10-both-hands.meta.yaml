@@ -8,3 +8,9 @@ tags:
   - 여러 손
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
+# 출력 창 'Hand Tracking' · ESC로 끝내요.
+# 주의: max_num_hands=3이에요. 재생 동작을 '두 손'으로 골라야 Left·Right가 함께 보여요.
+# 주의: 이름표를 모두 (50,50)에 써서 손이 여럿이면 글자가 겹쳐요(원본 그대로).

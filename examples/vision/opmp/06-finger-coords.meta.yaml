@@ -8,3 +8,8 @@ tags:
   - 좌표
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
+# 출력 창 'Hand Tracking' · ESC로 끝내요.
+# 주의: print(landmark)가 매 프레임 x·y·z 세 줄을 찍어 콘솔이 빨리 차요. [콘솔 지우기]로 비우면 돼요.

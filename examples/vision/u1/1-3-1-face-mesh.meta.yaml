@@ -10,3 +10,9 @@ tags:
   - face_mesh
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-09에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력(합성 좌표)' — 카메라가 없어도 돼요(얼굴 코드를 실행하면 얼굴 동작으로 알아서 바뀌어요).
+# 웹캠으로 하려면 public/models/face_landmarker.task가 있어야 해요.
+# 출력 창 'FaceMesh Landmarks' · q로 끝내요.
+# 주의: 468개 점을 하나씩 원으로 그려서 화면이 조금 느려요(원본 그대로).

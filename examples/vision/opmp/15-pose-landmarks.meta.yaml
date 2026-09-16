@@ -8,3 +8,8 @@ tags:
   - pose
 packages:
   - opencv-python
+
+# ── 실습실에서 돌릴 때(P2-09에서 브라우저로 확인, 2026-09-16) ──
+# 필요한 입력: '재생 입력'(자세 동작으로 알아서 바뀌어요).
+# 출력 창 'Pose' · ESC로 끝내요.
+# 주의: 원본 마지막 줄에 오타가 있어요(cv2.destoyAllWindows) — 반복문이 끝난 뒤 AttributeError가 나요. PC에서도 똑같아서 고치지 않았어요.
