@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 320" width="660" height="320" role="img" aria-labelledby="title">
+<title id="title">3×3 평균 필터(블러)가 6×6 입력 격자 위를 한 칸씩 옮겨 다니며 4×4 결과 격자를 채우는 애니메이션. 결과 칸의 값은 겹친 아홉 칸의 평균이다</title>
+<style>
+.win{animation:slide 11.2s steps(1,end) infinite}
+@keyframes slide{0.000%{transform:translate(0px,0px)}6.250%{transform:translate(40px,0px)}12.500%{transform:translate(80px,0px)}18.750%{transform:translate(120px,0px)}25.000%{transform:translate(0px,40px)}31.250%{transform:translate(40px,40px)}37.500%{transform:translate(80px,40px)}43.750%{transform:translate(120px,40px)}50.000%{transform:translate(0px,80px)}56.250%{transform:translate(40px,80px)}62.500%{transform:translate(80px,80px)}68.750%{transform:translate(120px,80px)}75.000%{transform:translate(0px,120px)}81.250%{transform:translate(40px,120px)}87.500%{transform:translate(80px,120px)}93.750%{transform:translate(120px,120px)}100%{transform:translate(120px,120px)}}
+.o0{animation:show0 11.2s linear infinite}
+@keyframes show0{0%,2.490%{opacity:0}2.500%,100%{opacity:1}}
+.o1{animation:show1 11.2s linear infinite}
+@keyframes show1{0%,8.740%{opacity:0}8.750%,100%{opacity:1}}
+.o2{animation:show2 11.2s linear infinite}
+@keyframes show2{0%,14.990%{opacity:0}15.000%,100%{opacity:1}}
+.o3{animation:show3 11.2s linear infinite}
+@keyframes show3{0%,21.240%{opacity:0}21.250%,100%{opacity:1}}
+.o4{animation:show4 11.2s linear infinite}
+@keyframes show4{0%,27.490%{opacity:0}27.500%,100%{opacity:1}}
+.o5{animation:show5 11.2s linear infinite}
+@keyframes show5{0%,33.740%{opacity:0}33.750%,100%{opacity:1}}
+.o6{animation:show6 11.2s linear infinite}
+@keyframes show6{0%,39.990%{opacity:0}40.000%,100%{opacity:1}}
+.o7{animation:show7 11.2s linear infinite}
+@keyframes show7{0%,46.240%{opacity:0}46.250%,100%{opacity:1}}
+.o8{animation:show8 11.2s linear infinite}
+@keyframes show8{0%,52.490%{opacity:0}52.500%,100%{opacity:1}}
+.o9{animation:show9 11.2s linear infinite}
+@keyframes show9{0%,58.740%{opacity:0}58.750%,100%{opacity:1}}
+.o10{animation:show10 11.2s linear infinite}
+@keyframes show10{0%,64.990%{opacity:0}65.000%,100%{opacity:1}}
+.o11{animation:show11 11.2s linear infinite}
+@keyframes show11{0%,71.240%{opacity:0}71.250%,100%{opacity:1}}
+.o12{animation:show12 11.2s linear infinite}
+@keyframes show12{0%,77.490%{opacity:0}77.500%,100%{opacity:1}}
+.o13{animation:show13 11.2s linear infinite}
+@keyframes show13{0%,83.740%{opacity:0}83.750%,100%{opacity:1}}
+.o14{animation:show14 11.2s linear infinite}
+@keyframes show14{0%,89.990%{opacity:0}90.000%,100%{opacity:1}}
+.o15{animation:show15 11.2s linear infinite}
+@keyframes show15{0%,96.240%{opacity:0}96.250%,100%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.win{animation:none;transform:translate(120px,120px)}.o0{animation:none;opacity:1}.o1{animation:none;opacity:1}.o2{animation:none;opacity:1}.o3{animation:none;opacity:1}.o4{animation:none;opacity:1}.o5{animation:none;opacity:1}.o6{animation:none;opacity:1}.o7{animation:none;opacity:1}.o8{animation:none;opacity:1}.o9{animation:none;opacity:1}.o10{animation:none;opacity:1}.o11{animation:none;opacity:1}.o12{animation:none;opacity:1}.o13{animation:none;opacity:1}.o14{animation:none;opacity:1}.o15{animation:none;opacity:1}}
+</style>
+<rect width="660" height="320" fill="#ffffff"/>
+<g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="600" text-anchor="middle">
+<rect x="30" y="40" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="50" y="65" fill="#ffffff">40</text>
+<rect x="70" y="40" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="90" y="65" fill="#ffffff">40</text>
+<rect x="110" y="40" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="130" y="65" fill="#17191c">200</text>
+<rect x="150" y="40" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="170" y="65" fill="#17191c">200</text>
+<rect x="190" y="40" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="210" y="65" fill="#ffffff">40</text>
+<rect x="230" y="40" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="250" y="65" fill="#ffffff">40</text>
+<rect x="30" y="80" width="40" height="40" fill="#3c3c3c" stroke="#d6dde6"/>
+<text x="50" y="105" fill="#ffffff">60</text>
+<rect x="70" y="80" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="90" y="105" fill="#ffffff">40</text>
+<rect x="110" y="80" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="130" y="105" fill="#17191c">200</text>
+<rect x="150" y="80" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="170" y="105" fill="#17191c">200</text>
+<rect x="190" y="80" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="210" y="105" fill="#ffffff">40</text>
+<rect x="230" y="80" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="250" y="105" fill="#ffffff">40</text>
+<rect x="30" y="120" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="50" y="145" fill="#ffffff">40</text>
+<rect x="70" y="120" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="90" y="145" fill="#ffffff">40</text>
+<rect x="110" y="120" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="130" y="145" fill="#17191c">200</text>
+<rect x="150" y="120" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="170" y="145" fill="#17191c">200</text>
+<rect x="190" y="120" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="210" y="145" fill="#ffffff">40</text>
+<rect x="230" y="120" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="250" y="145" fill="#ffffff">40</text>
+<rect x="30" y="160" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="50" y="185" fill="#ffffff">40</text>
+<rect x="70" y="160" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="90" y="185" fill="#ffffff">40</text>
+<rect x="110" y="160" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="130" y="185" fill="#17191c">200</text>
+<rect x="150" y="160" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="170" y="185" fill="#17191c">200</text>
+<rect x="190" y="160" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="210" y="185" fill="#ffffff">40</text>
+<rect x="230" y="160" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="250" y="185" fill="#ffffff">40</text>
+<rect x="30" y="200" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="50" y="225" fill="#ffffff">40</text>
+<rect x="70" y="200" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="90" y="225" fill="#ffffff">40</text>
+<rect x="110" y="200" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="130" y="225" fill="#17191c">200</text>
+<rect x="150" y="200" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="170" y="225" fill="#17191c">200</text>
+<rect x="190" y="200" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="210" y="225" fill="#ffffff">40</text>
+<rect x="230" y="200" width="40" height="40" fill="#f0f0f0" stroke="#d6dde6"/>
+<text x="250" y="225" fill="#17191c">240</text>
+<rect x="30" y="240" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="50" y="265" fill="#ffffff">40</text>
+<rect x="70" y="240" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="90" y="265" fill="#ffffff">40</text>
+<rect x="110" y="240" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="130" y="265" fill="#17191c">200</text>
+<rect x="150" y="240" width="40" height="40" fill="#c8c8c8" stroke="#d6dde6"/>
+<text x="170" y="265" fill="#17191c">200</text>
+<rect x="190" y="240" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="210" y="265" fill="#ffffff">40</text>
+<rect x="230" y="240" width="40" height="40" fill="#282828" stroke="#d6dde6"/>
+<text x="250" y="265" fill="#ffffff">40</text>
+</g>
+<g class="win" style="transform-box:view-box"><rect x="30" y="40" width="120" height="120" fill="#1f5bd6" fill-opacity="0.18" stroke="#1f5bd6" stroke-width="4"/></g>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5361"/></marker></defs>
+<path d="M 310 160 h 110" stroke="#4a5361" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+<rect x="470" y="80" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o0"><rect x="470" y="80" width="40" height="40" fill="#606060" stroke="#d6dde6"/><text x="490" y="105" fill="#ffffff">96</text></g>
+<rect x="510" y="80" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o1"><rect x="510" y="80" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="530" y="105" fill="#17191c">147</text></g>
+<rect x="550" y="80" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o2"><rect x="550" y="80" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="570" y="105" fill="#17191c">147</text></g>
+<rect x="590" y="80" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o3"><rect x="590" y="80" width="40" height="40" fill="#5d5d5d" stroke="#d6dde6"/><text x="610" y="105" fill="#ffffff">93</text></g>
+<rect x="470" y="120" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o4"><rect x="470" y="120" width="40" height="40" fill="#606060" stroke="#d6dde6"/><text x="490" y="145" fill="#ffffff">96</text></g>
+<rect x="510" y="120" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o5"><rect x="510" y="120" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="530" y="145" fill="#17191c">147</text></g>
+<rect x="550" y="120" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o6"><rect x="550" y="120" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="570" y="145" fill="#17191c">147</text></g>
+<rect x="590" y="120" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o7"><rect x="590" y="120" width="40" height="40" fill="#5d5d5d" stroke="#d6dde6"/><text x="610" y="145" fill="#ffffff">93</text></g>
+<rect x="470" y="160" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o8"><rect x="470" y="160" width="40" height="40" fill="#5d5d5d" stroke="#d6dde6"/><text x="490" y="185" fill="#ffffff">93</text></g>
+<rect x="510" y="160" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o9"><rect x="510" y="160" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="530" y="185" fill="#17191c">147</text></g>
+<rect x="550" y="160" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o10"><rect x="550" y="160" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="570" y="185" fill="#17191c">147</text></g>
+<rect x="590" y="160" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o11"><rect x="590" y="160" width="40" height="40" fill="#747474" stroke="#d6dde6"/><text x="610" y="185" fill="#ffffff">116</text></g>
+<rect x="470" y="200" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o12"><rect x="470" y="200" width="40" height="40" fill="#5d5d5d" stroke="#d6dde6"/><text x="490" y="225" fill="#ffffff">93</text></g>
+<rect x="510" y="200" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o13"><rect x="510" y="200" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="530" y="225" fill="#17191c">147</text></g>
+<rect x="550" y="200" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o14"><rect x="550" y="200" width="40" height="40" fill="#939393" stroke="#d6dde6"/><text x="570" y="225" fill="#17191c">147</text></g>
+<rect x="590" y="200" width="40" height="40" fill="#f6f8fb" stroke="#d6dde6"/>
+<g class="o15"><rect x="590" y="200" width="40" height="40" fill="#747474" stroke="#d6dde6"/><text x="610" y="225" fill="#ffffff">116</text></g>
+</g>
+<rect x="470" y="80" width="160" height="160" fill="none" stroke="#7b8594" stroke-width="1.5"/>
+</svg>

@@ -24,7 +24,11 @@ function readLesson(file: string): LessonFile {
 
 const SAMPLES = [
   { file: 'content/lessons/u1/1-1-1.md', standards: ['12인피01-01'], kind: 'textbook' },
+  { file: 'content/lessons/u1/v1.md', standards: [], kind: 'supplement' },
+  { file: 'content/lessons/u1/v2.md', standards: [], kind: 'supplement' },
+  { file: 'content/lessons/u1/v3.md', standards: [], kind: 'supplement' },
   { file: 'content/lessons/u1/v4.md', standards: [], kind: 'supplement' },
+  { file: 'content/lessons/u1/v5.md', standards: [], kind: 'supplement' },
 ] as const;
 
 interface ImageRecord {

@@ -91,7 +91,7 @@ describe('저장소의 자체 제작 영상처리 예제', () => {
   });
 
   it('보충 V4 예제는 @lesson v4로 차시에 붙고 상자 두 개와 슬라이더 세 개가 있다', () => {
-    const source = read('u1/v4-blur-edge.py');
+    const source = read('supplement/v4-blur-edge.py');
     const meta = readExampleMeta(source);
     expect(meta.lesson).toBe('v4');
     expect(hasGuideBoxes(meta)).toBe(true);
