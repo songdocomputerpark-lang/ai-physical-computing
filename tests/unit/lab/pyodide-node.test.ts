@@ -11,7 +11,7 @@ import { PYODIDE_VERSION, YIELD_INTERVAL_MS } from '../../../src/lab/runtime/con
 
 const ROOT = process.cwd();
 const SCRIPT = path.join(ROOT, 'tests', 'unit', 'lab', 'helpers', 'pyodide-node-run.mjs');
-const HELPER = path.join(ROOT, 'src', 'lab', 'runtime', 'apc_runtime.py');
+const HELPER = path.join(ROOT, 'src', 'lab', 'python', 'apc_runtime.py');
 
 const nodeJspi = spawnSync(process.execPath, ['--experimental-wasm-jspi', '-e', 'process.stdout.write(typeof WebAssembly.Suspending)'], {
   encoding: 'utf8',

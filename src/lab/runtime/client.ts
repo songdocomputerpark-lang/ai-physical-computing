@@ -6,6 +6,7 @@
  *   runtime.on('state', ({ state }) => …);           // unloaded → loading → idle → running → stopping → idle
  *   runtime.on('stdout', (text) => console.append(text));
  *   runtime.on('request', (request) => { if (request.kind === 'input') … request.reply('입력한 글자'); });
+ *   runtime.on('event', ({ kind, payload }) => { if (kind === 'window.show') … });   // 파이썬이 기다리지 않고 알린 것(cv2.imshow)
  *   await runtime.load();                              // Pyodide 받기(한 번만, 다시 부르면 같은 약속)
  *   const result = await runtime.run("print('안녕')"); // { outcome: 'ok' | 'error' | 'stopped' | 'killed', … }
  *   await runtime.stop();                              // 1단계: 기다리던 곳에서 KeyboardInterrupt → 1초 안에 안 멈추면 2단계: 워커 재시작
@@ -76,6 +77,9 @@ export interface RuntimeNotice {
 export interface RuntimeProgress {
   readonly stage: 'core' | 'package';
   readonly message: string;
+  /** 패키지 단계의 시작·끝과 패키지 이름(protocol.ts ProgressMessage) */
+  readonly phase?: 'start' | 'done';
+  readonly names?: readonly string[];
 }
 
 /** 파이썬이 대기 지점에서 화면에 부탁한 일 */
@@ -83,10 +87,16 @@ export interface RuntimeRequest {
   readonly requestId: number;
   readonly kind: string;
   readonly payload: unknown;
-  /** 값을 돌려준다(파이썬 쪽 block_on의 결과) */
-  reply(value: unknown): void;
+  /** 값을 돌려준다(파이썬 쪽 block_on의 결과). transfer에 넣은 ArrayBuffer(카메라 프레임)는 복사 없이 워커로 옮긴다. */
+  reply(value: unknown, transfer?: readonly ArrayBuffer[]): void;
   /** 거절한다(파이썬 쪽에 예외로 전해진다) */
   fail(message: string): void;
+}
+
+/** 파이썬이 답을 기다리지 않고 알린 것(cv2.imshow 영상 등, protocol.ts EventMessage) */
+export interface RuntimeEvent {
+  readonly kind: string;
+  readonly payload: unknown;
 }
 
 export interface RuntimeEvents {
@@ -97,6 +107,7 @@ export interface RuntimeEvents {
   stderr: string;
   notice: RuntimeNotice;
   request: RuntimeRequest;
+  event: RuntimeEvent;
   done: RunResult;
 }
 
@@ -211,8 +222,12 @@ export class PythonRuntime {
     this.#emit('state', { state, previous });
   }
 
-  #post(message: ToWorkerMessage): void {
-    this.#worker?.postMessage(message);
+  #post(message: ToWorkerMessage, transfer?: readonly ArrayBuffer[]): void {
+    if (transfer && transfer.length > 0) {
+      this.#worker?.postMessage(message, [...transfer]);
+    } else {
+      this.#worker?.postMessage(message);
+    }
   }
 
   /** 워커를 띄우고 Pyodide를 받는다. 이미 받았거나 받는 중이면 같은 약속을 돌려준다. 실패하면 거부되고 다음 load()가 다시 시도한다. */
@@ -324,7 +339,12 @@ export class PythonRuntime {
   #handleMessage(message: FromWorkerMessage): void {
     switch (message.type) {
       case 'progress':
-        this.#emit('progress', { stage: message.stage, message: message.message });
+        this.#emit('progress', {
+          stage: message.stage,
+          message: message.message,
+          ...(message.phase ? { phase: message.phase } : {}),
+          ...(message.names ? { names: message.names } : {}),
+        });
         return;
       case 'stdout':
         this.#emit('stdout', message.text);
@@ -337,22 +357,25 @@ export class PythonRuntime {
         return;
       case 'request': {
         let answered = false;
-        const answer = (reply: ToWorkerMessage) => {
+        const answer = (reply: ToWorkerMessage, transfer?: readonly ArrayBuffer[]) => {
           if (answered) {
             return;
           }
           answered = true;
-          this.#post(reply);
+          this.#post(reply, transfer);
         };
         this.#emit('request', {
           requestId: message.requestId,
           kind: message.kind,
           payload: message.payload,
-          reply: (value) => answer({ type: 'reply', requestId: message.requestId, ok: true, value }),
+          reply: (value, transfer) => answer({ type: 'reply', requestId: message.requestId, ok: true, value }, transfer),
           fail: (text) => answer({ type: 'reply', requestId: message.requestId, ok: false, error: text }),
         });
         return;
       }
+      case 'event':
+        this.#emit('event', { kind: message.kind, payload: message.payload });
+        return;
       case 'done': {
         for (const name of message.loadedPackages) {
           this.#loadedPackages.add(name);
@@ -504,9 +527,9 @@ export class PythonRuntime {
     this.#sendOrQueue({ type: 'push', channel, value });
   }
 
-  /** 대기 지점(request 이벤트)에 답한다. 이벤트 객체의 reply()와 같다. */
-  reply(requestId: number, value: unknown): void {
-    this.#post({ type: 'reply', requestId, ok: true, value });
+  /** 대기 지점(request 이벤트)에 답한다. 이벤트 객체의 reply()와 같다. transfer는 복사 없이 옮길 ArrayBuffer. */
+  reply(requestId: number, value: unknown, transfer?: readonly ArrayBuffer[]): void {
+    this.#post({ type: 'reply', requestId, ok: true, value }, transfer);
   }
 
   /** 대기 지점을 거절한다(파이썬 쪽에 예외). 이벤트 객체의 fail()과 같다. */

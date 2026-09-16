@@ -1,22 +1,26 @@
 """파이썬 실행기(워커)의 파이썬 쪽 도우미 — PLAN §4.4(PD-01 JSPI), CODE_MAPPING §3.0.
 
 워커(src/lab/runtime/worker.ts)가 Pyodide를 띄운 뒤 JS 다리(bridge.ts)를 `_apc_bridge` 모듈로 등록하고,
-이 파일을 가상 파일시스템에 넣어 불러온 다음 install()을 부른다. 학생 코드가 도는 동안 화면과 값을 주고받는
-규칙은 모두 여기 있고, 흉내 모듈(cv2 창·mediapipe·pyautogui 등, P2-03~)도 이 모듈의 함수만 쓴다.
+이 폴더(src/lab/python/)의 파일을 가상 파일시스템 /apc에 넣어 불러온 다음 install()을 부른다. 학생 코드가 도는 동안
+화면과 값을 주고받는 규칙은 모두 여기 있고, 흉내 모듈(apc_cv2 등, src/lab/python/modules.ts 머리말)도 이 모듈의 함수만 쓴다.
 
 - block_on(promise): JS 약속(Promise)이 끝날 때까지 파이썬을 그 자리에서 멈춘다(pyodide.ffi.run_sync — JSPI).
   기다리는 동안 워커의 이벤트 루프가 돌아서 화면의 메시지([정지], 값)가 들어온다.
   [정지]를 누르면 기다리던 곳에서 바로 KeyboardInterrupt가 난다(정지 1단계). PC에서 Ctrl+C를 누른 것과 같다.
 - sleep(초): time.sleep을 대신한다. 아주 짧은 대기는 모아 두었다가 16ms가 넘을 때만 실제로 기다린다(§3.0 규칙 3).
 - input(안내글): 화면에 입력줄을 부탁하고 Enter까지 기다린다(대기 지점).
-- request(kind, payload): 화면에서만 되는 일(카메라 프레임, 블루투스 등)을 부탁하고 답을 기다린다.
-- get(name, default) / poll(channel): 화면이 보낸 최신 값(슬라이더)·쌓인 값(키 입력)을 기다리지 않고 읽는다.
+- request(kind, payload, raw=False): 화면에서만 되는 일(카메라 프레임, 블루투스 등)을 부탁하고 답을 기다린다.
+  raw=True면 JS 값을 파이썬 값으로 바꾸지 않고 JsProxy 그대로 돌려준다(큰 바이트 배열을 assign_to로 복사할 때).
+- emit(kind, payload, transfer): 답을 기다리지 않고 화면에 알린다(cv2.imshow 영상). 제한 모드에서도 된다.
+  transfer에 넣은 JS ArrayBuffer는 복사 없이 옮겨져 그 뒤 워커 쪽에서는 비어 있다.
+- get(name, default, raw=False) / poll(channel): 화면이 보낸 최신 값(슬라이더)·쌓인 값(키 입력)을 기다리지 않고 읽는다.
   sleep 없는 반복문을 위해 16ms마다 한 번 양보한다(§3.0 규칙 2). 이 함수들이 "입력 확인 지점"이다.
+- register_reset_hook(fn): 실행을 시작할 때마다 부를 함수를 등록한다(흉내 모듈이 창·키 목록을 비우는 데 쓴다).
 - 제한 모드(JSPI 없음, PLAN §4.5): 기다리는 함수(input·request·block_on)는 한국어 안내와 함께 RuntimeError를 낸다.
   time.sleep은 브라우저가 멈춘 채 기다리므로(양보 없음) [정지]는 2단계(다시 시작)로만 된다. 한 번 실행되고 끝나는 코드는 그대로 돈다.
 
 정지 표시·값 저장소·요청 번호는 JS 다리가 가지고 있고, 이 파일은 그것을 파이썬 예외·값으로 바꾸기만 한다.
-JS 쪽 값이 파이썬으로 올 때는 JsProxy이므로 to_py()로 바꿔 돌려준다.
+JS 쪽 값이 파이썬으로 올 때는 JsProxy이므로 to_py()로 바꿔 돌려준다(raw=True가 아니면).
 
 라이선스: 사이트 소프트웨어(MIT, PD-26). Vite가 이 파일을 글자로 묶어(?raw) 워커에 넣는다.
 """
@@ -35,12 +39,14 @@ __all__ = [
     "block_on",
     "can_wait",
     "check_stop",
+    "emit",
     "get",
     "input",
     "install",
     "maybe_yield",
     "notice",
     "poll",
+    "register_reset_hook",
     "request",
     "reset_for_run",
     "sleep",
@@ -60,6 +66,7 @@ CANCELLED_INPUT_MESSAGE = "입력이 취소되었어요."
 _real_sleep = time.sleep
 _real_input = builtins.input
 _pending_sleep_ms = 0.0
+_reset_hooks = []
 
 
 def _to_py(value):
@@ -125,9 +132,16 @@ def sleep(seconds):
         block_on(_bridge.sleep(wait_ms))
 
 
-def request(kind, payload=None):
-    """화면에 kind 일을 부탁하고 답을 기다린다. 흉내 모듈이 쓴다(예: request('camera.read'))."""
-    return _to_py(block_on(_bridge.request(str(kind), _to_js(payload))))
+def request(kind, payload=None, *, raw=False):
+    """화면에 kind 일을 부탁하고 답을 기다린다. 흉내 모듈이 쓴다(예: request('camera.read')). raw=True면 JsProxy 그대로."""
+    value = block_on(_bridge.request(str(kind), _to_js(payload)))
+    return value if raw else _to_py(value)
+
+
+def emit(kind, payload=None, transfer=None):
+    """답을 기다리지 않고 화면에 알린다(예: emit('window.show', {...}, transfer=[data.buffer])). 제한 모드에서도 된다."""
+    buffers = _to_js(list(transfer)) if transfer else None
+    _bridge.emit(str(kind), _to_js(payload), buffers)
 
 
 def input(prompt=""):
@@ -145,13 +159,13 @@ def input(prompt=""):
     return str(_to_py(value))
 
 
-def get(name, default=None):
-    """화면이 보낸 최신 값(예: 슬라이더). 없으면 default. 입력 확인 지점(16ms마다 양보, 정지 확인)."""
+def get(name, default=None, *, raw=False):
+    """화면이 보낸 최신 값(예: 슬라이더). 없으면 default. 입력 확인 지점(16ms마다 양보, 정지 확인). raw=True면 JsProxy 그대로."""
     maybe_yield()
     value = _bridge.get(str(name))
     if value is None:
         return default
-    return _to_py(value)
+    return value if raw else _to_py(value)
 
 
 def poll(channel):
@@ -165,10 +179,21 @@ def notice(text, level="info"):
     _bridge.notice(str(text), str(level))
 
 
+def register_reset_hook(hook) -> None:
+    """실행을 시작할 때마다 부를 함수를 등록한다(같은 함수는 한 번만). 흉내 모듈이 자기 상태를 비우는 데 쓴다."""
+    if hook not in _reset_hooks:
+        _reset_hooks.append(hook)
+
+
 def reset_for_run() -> None:
-    """실행을 시작할 때 모아 둔 짧은 대기를 비운다(워커가 부른다)."""
+    """실행을 시작할 때 모아 둔 짧은 대기를 비우고 등록된 초기화 함수를 부른다(워커가 부른다)."""
     global _pending_sleep_ms
     _pending_sleep_ms = 0.0
+    for hook in list(_reset_hooks):
+        try:
+            hook()
+        except Exception as error:  # 한 모듈의 초기화 실패가 실행을 막지 않게 한다.
+            notice(f"흉내 모듈 초기화 중 오류: {type(error).__name__}: {error}", "warn")
 
 
 def install() -> None:

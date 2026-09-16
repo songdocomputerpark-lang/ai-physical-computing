@@ -7,10 +7,12 @@
  * 1. load: config.ts가 정한 위치(jsDelivr 고정 주소, 나중에 같은 사이트 예비본)에서 차례로 pyodide.mjs를 import(주소)해
  *    loadPyodide({ indexURL })로 띄운다(Pyodide 공식 워커 안내와 같은 방법 — 모듈 워커 필수).
  *    stdout·stderr를 화면으로 흘려보내고(write 처리기, 줄 단위 버퍼), JS 다리(bridge.ts)를 `_apc_bridge`로 등록하고,
- *    파이썬 도우미(apc_runtime.py)를 가상 파일시스템에 넣어 time.sleep·input()을 바꾼다.
+ *    파이썬 쪽 모듈(src/lab/python/*.py — 도우미 apc_runtime.py와 흉내 모듈)을 가상 파일시스템 /apc에 넣어 time.sleep·input()을 바꾼다.
  *    JSPI 감지는 runPythonAsync 안에서 pyodide.ffi.can_run_sync()를 불러 한다(run_sync는 runPythonAsync로 들어온 호출에서만 된다).
  * 2. run: import 문을 분석해 필요한 Pyodide 패키지를 받고(loadPackagesFromImports, 패키지 이름은 pyodide-lock.json 기준),
+ *    받아 둔 패키지의 흉내 모듈을 설치한 뒤(apc_shims.install_available — cv2의 카메라·창 함수 덮어쓰기, P2-03),
  *    새 전역(__name__ == '__main__')으로 runPythonAsync 한다(JSPI 기다리기는 이 경로에서만 된다). 끝나면 done 메시지.
+ *    큰 값(cv2.imshow 영상)은 event 메시지의 transfer 목록으로 복사 없이 화면에 보낸다.
  * 3. stop(정지 1단계): 다리에 정지 표시를 켜 기다리던 곳(sleep·input·request)을 깨우면 파이썬 쪽에서 KeyboardInterrupt가 난다.
  *    양보 없는 계산 반복문은 이 메시지를 받지 못하므로 화면이 1초 뒤 워커를 끝내고 다시 띄운다(정지 2단계, client.ts).
  *    인터럽트 버퍼(pyodide.setInterruptBuffer)는 SharedArrayBuffer가 필요하고 GitHub Pages는 교차 출처 격리 헤더(COOP·COEP)를
@@ -21,7 +23,7 @@
  */
 import type { PyodideAPI } from 'pyodide';
 import type { PyProxy } from 'pyodide/ffi';
-import apcRuntimeSource from './apc_runtime.py?raw';
+import { PYTHON_MODULES, RUNTIME_MODULE_FILE } from '../python/modules.ts';
 import { createBridge, type Bridge } from './bridge.ts';
 import type {
   DoneMessage,
@@ -48,14 +50,17 @@ interface PyodideModule {
   loadPyodide(options?: { indexURL?: string }): Promise<PyodideAPI>;
 }
 
-/** 파이썬 도우미를 두는 가상 파일시스템 폴더. sys.path 맨 앞에 넣어 학생 파일이 가리지 못하게 한다(CODE_MAPPING §3.3). */
+/** 파이썬 쪽 모듈을 두는 가상 파일시스템 폴더. sys.path 맨 앞에 넣어 학생 파일이 가리지 못하게 한다(CODE_MAPPING §3.3). */
 const HELPER_DIR = '/apc';
-const HELPER_FILE = `${HELPER_DIR}/apc_runtime.py`;
 
 const scope = self as unknown as WorkerScope;
 
-function post(message: FromWorkerMessage): void {
-  scope.postMessage(message);
+function post(message: FromWorkerMessage, transfer?: readonly ArrayBuffer[]): void {
+  if (transfer && transfer.length > 0) {
+    scope.postMessage(message, [...transfer]);
+  } else {
+    scope.postMessage(message);
+  }
 }
 
 let pyodide: PyodideAPI | null = null;
@@ -153,11 +158,46 @@ function loadedPackageNames(): string[] {
   return pyodide ? Object.keys(pyodide.loadedPackages).sort() : [];
 }
 
+/**
+ * Pyodide의 패키지 진행 알림("Loading numpy, opencv-python" / "Loaded numpy, opencv-python" — 314.0.7 실측)을
+ * 한국어 안내와 구조(시작·끝, 패키지 이름)로 바꿔 화면에 보낸다. 다른 모양의 알림은 글자만 전한다.
+ */
+export function packageProgress(message: string): { message: string; phase?: 'start' | 'done'; names?: string[] } {
+  if (/^No new packages to load/iu.test(message)) {
+    // 이미 받아 둔 패키지만 쓰는 실행(Pyodide 314.0.7 실측 문구). 화면에는 한국어로 짧게.
+    return { message: '패키지가 이미 준비돼 있어요.' };
+  }
+  const match = /^(Loading|Loaded)\s+(.+?)\s*$/u.exec(message);
+  if (!match) {
+    return { message };
+  }
+  const names = match[2]
+    .split(',')
+    .map((name) => name.trim())
+    .filter((name) => name !== '');
+  const list = names.join(', ');
+  return match[1] === 'Loading'
+    ? { message: `패키지를 받는 중… (${list})`, phase: 'start', names }
+    : { message: `패키지 준비 끝 (${list})`, phase: 'done', names };
+}
+
 function packageCallbacks() {
   return {
-    messageCallback: (message: string) => post({ type: 'progress', stage: 'package' as const, message }),
+    messageCallback: (message: string) => post({ type: 'progress', stage: 'package' as const, ...packageProgress(message) }),
     errorCallback: (message: string) => post({ type: 'notice', level: 'warn' as const, text: `패키지 준비 중 알림: ${message}` }),
   };
+}
+
+/** 받아 둔 패키지의 흉내 모듈을 설치한다(apc_shims.py). 실패해도 실행은 계속하고 콘솔에 알린다. */
+function installShims(): void {
+  if (!pyodide) {
+    return;
+  }
+  try {
+    pyodide.runPython('import apc_shims\napc_shims.install_available()');
+  } catch (error) {
+    post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈을 준비하지 못했어요: ${describeError(error)}` });
+  }
 }
 
 function runtimeInfo(): RuntimeInfo {
@@ -203,7 +243,12 @@ async function load(message: LoadMessage): Promise<void> {
   pyodide.setStderr(makeWriter('stderr', stderrDecoder));
   pyodide.registerJsModule('_apc_bridge', bridge.api);
   pyodide.FS.mkdirTree(HELPER_DIR);
-  pyodide.FS.writeFile(HELPER_FILE, apcRuntimeSource);
+  if (!(RUNTIME_MODULE_FILE in PYTHON_MODULES)) {
+    throw new Error(`파이썬 도우미 ${RUNTIME_MODULE_FILE}이(가) 묶음에 없어요(src/lab/python/).`);
+  }
+  for (const [fileName, source] of Object.entries(PYTHON_MODULES)) {
+    pyodide.FS.writeFile(`${HELPER_DIR}/${fileName}`, source);
+  }
 
   // JSPI(기다리기) 감지: run_sync는 runPythonAsync로 들어온 호출에서만 되므로 그 안에서 can_run_sync()를 부른다.
   const canRunSync = (await pyodide.runPythonAsync(
@@ -267,6 +312,7 @@ async function run(message: RunMessage): Promise<void> {
     if (bridge.api.stopRequested()) {
       outcome = 'stopped';
     } else {
+      installShims();
       pyodide.runPython('import apc_runtime\napc_runtime.reset_for_run()');
       const globals = pyodide.toPy({ __name__: '__main__', __file__: message.filename }) as PyProxy;
       try {

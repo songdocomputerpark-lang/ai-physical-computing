@@ -1,4 +1,4 @@
-// Node.js에서 실제 Pyodide 314.0.7(npm devDependency)을 띄워 파이썬 도우미(src/lab/runtime/apc_runtime.py)와
+// Node.js에서 실제 Pyodide 314.0.7(npm devDependency)을 띄워 파이썬 도우미(src/lab/python/apc_runtime.py)와
 // JS 다리(src/lab/runtime/bridge.ts)를 함께 돌리는 도우미 스크립트(PLAN PD-14, PROGRESS 미해결 1번).
 // tests/unit/lab/pyodide-node.test.ts가 `node --experimental-wasm-jspi 이 파일 <저장소 뿌리>`로 띄우고,
 // 마지막 줄에 찍히는 JSON 한 줄을 읽는다. `--no-experimental-wasm-jspi`로 띄우면 제한 모드(can_run_sync 거짓)의 결과가 나온다
@@ -13,7 +13,7 @@ const rootDir = process.argv[2] ?? process.cwd();
 const require = createRequire(path.join(rootDir, 'package.json'));
 const { loadPyodide } = await import(pathToFileURL(require.resolve('pyodide/pyodide.mjs')).href);
 const { createBridge } = await import(pathToFileURL(path.join(rootDir, 'src', 'lab', 'runtime', 'bridge.ts')).href);
-const helperSource = fs.readFileSync(path.join(rootDir, 'src', 'lab', 'runtime', 'apc_runtime.py'), 'utf8');
+const helperSource = fs.readFileSync(path.join(rootDir, 'src', 'lab', 'python', 'apc_runtime.py'), 'utf8');
 
 const out = { jspiFlag: typeof WebAssembly.Suspending === 'function', steps: {}, escaped: [] };
 const posted = [];

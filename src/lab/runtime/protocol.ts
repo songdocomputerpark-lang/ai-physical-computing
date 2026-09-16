@@ -1,9 +1,24 @@
 /**
- * 파이썬 워커와 화면 사이의 메시지 형식(PLAN §4.4, §8.2 P2-01).
+ * 파이썬 워커와 화면 사이의 메시지 형식(PLAN §4.4, §8.2 P2-01·P2-03).
  *
- * 화면 쪽 API는 client.ts(PythonRuntime), 워커는 worker.ts, 두 쪽이 함께 쓰는 다리 논리는 bridge.ts, 파이썬 쪽은 apc_runtime.py.
+ * 화면 쪽 API는 client.ts(PythonRuntime), 워커는 worker.ts, 두 쪽이 함께 쓰는 다리 논리는 bridge.ts,
+ * 파이썬 쪽은 src/lab/python/(apc_runtime.py와 흉내 모듈).
  * 메시지는 postMessage로 오가므로 구조화 복제가 되는 값(글자·숫자·불리언·배열·평범한 객체·Uint8Array)만 넣는다.
+ * 큰 값(카메라 프레임·출력 영상)은 ArrayBuffer를 transfer 목록에 넣어 복사 없이 옮긴다(P2-03).
  * 타입만 있는 파일이라 실행 코드가 없다.
+ *
+ * 흉내 모듈이 쓰는 요청·이벤트 종류(P2-03, 카메라·창 — src/lab/python/apc_cv2.py ↔ src/lab/vision/vision-lab.ts)
+ *   request 'camera.open'    payload { index }             → reply { ok, width, height, source, fps }
+ *   request 'camera.read'    payload {}                    → reply { width, height, data: Uint8ClampedArray(RGBA) } | null
+ *   request 'camera.set'     payload { prop, value }       → reply boolean(바뀌었는지)
+ *   request 'camera.release' payload {}                    → reply true
+ *   event   'window.show'    payload { name, width, height, data: Uint8Array(RGBA) }   cv2.imshow
+ *   event   'window.open'    payload { name }              cv2.namedWindow
+ *   event   'window.close'   payload { name: string | null } cv2.destroyWindow(이름)·destroyAllWindows(null)
+ *   push    'cv2.keys'       값 int(키 코드)               화면 → cv2.waitKey
+ *   push    'cv2.window'     값 { name, closed: true }     화면에서 창(탭)을 닫음 → cv2.getWindowProperty
+ *   set     'camera.info'    값 { width, height, source }  제한 모드의 VideoCapture가 읽는다
+ *   set     'camera.frame'   값 { width, height, data }    제한 모드의 cap.read()가 읽는다(실행 직전에 한 장)
  */
 
 /**
@@ -132,7 +147,11 @@ export interface ProgressMessage {
   readonly type: 'progress';
   /** core = 파이썬 엔진, package = 패키지 */
   readonly stage: 'core' | 'package';
+  /** 사람이 읽는 한국어 안내 */
   readonly message: string;
+  /** 패키지 단계일 때: 받기 시작(start)·끝(done)과 패키지 이름(pyodide-lock.json 기준). 화면의 단계별 진행 표시가 쓴다(P2-03). */
+  readonly phase?: 'start' | 'done';
+  readonly names?: readonly string[];
 }
 
 export interface ReadyMessage {
@@ -165,7 +184,17 @@ export interface NoticeMessage {
 export interface RequestMessage {
   readonly type: 'request';
   readonly requestId: number;
-  /** 요청 종류. 지금 있는 것: 'input'(payload: { prompt: string }). 흉내 모듈이 종류를 더한다(P2-03~). */
+  /** 요청 종류. 'input'(payload: { prompt: string })은 실습실 틀이, 'camera.*'는 영상처리 실습실이 처리한다(머리말 목록). */
+  readonly kind: string;
+  readonly payload: unknown;
+}
+
+/**
+ * 파이썬이 답을 기다리지 않고 화면에 알리는 것(cv2.imshow의 영상 등). 제한 모드(JSPI 없음)에서도 보낼 수 있다.
+ * 큰 payload(영상 바이트)는 워커가 transfer 목록으로 옮긴다.
+ */
+export interface EventMessage {
+  readonly type: 'event';
   readonly kind: string;
   readonly payload: unknown;
 }
@@ -196,5 +225,6 @@ export type FromWorkerMessage =
   | OutputMessage
   | NoticeMessage
   | RequestMessage
+  | EventMessage
   | DoneMessage
   | TaskResultMessage;

@@ -10,6 +10,7 @@
  *   파이썬 쪽에서 KeyboardInterrupt가 난다. 그래서 sleep·input·카메라 대기 어디서든 1초 안에 멈춘다.
  * - 값은 기다리지 않고 읽는다: set으로 온 최신 값은 get(name), push로 온 값은 poll(channel)이 쌓인 순서대로 돌려준다.
  * - 화면에서만 되는 일은 request(kind, payload)로 부탁한다. 화면이 reply로 답하면 약속이 끝난다.
+ * - 답이 필요 없는 알림(cv2.imshow의 영상)은 emit(kind, payload, transfer)로 보낸다. 기다리지 않으므로 제한 모드에서도 된다(P2-03).
  *
  * 워커 전역(self·postMessage·setTimeout)을 직접 쓰지 않고 host로 받는다. 그래서 Node.js 단위 테스트가 같은 코드를
  * 실제 Pyodide와 함께 돌릴 수 있다(tests/unit/lab/). Node.js가 타입만 지우고 실행하므로 타입 표기만 지우면 도는 문법만 쓴다.
@@ -21,8 +22,8 @@ export const STOP_SIGNAL: Readonly<{ apcStop: true }> = Object.freeze({ apcStop:
 
 /** 다리가 바깥(워커)에 기대는 것 */
 export interface BridgeHost {
-  /** 화면으로 메시지 보내기 */
-  post(message: FromWorkerMessage): void;
+  /** 화면으로 메시지 보내기. transfer에 넣은 ArrayBuffer는 복사하지 않고 옮긴다(옮긴 뒤 워커 쪽에서는 비어 있다). */
+  post(message: FromWorkerMessage, transfer?: readonly ArrayBuffer[]): void;
   /** 지금 시각(밀리초, performance.now()처럼 단조 증가) */
   now(): number;
   /** 파이썬이 기다릴 수 있는지(JSPI, pyodide.ffi.can_run_sync()) */
@@ -52,6 +53,11 @@ export interface BridgeApi {
   poll(channel: string): unknown[];
   /** 콘솔에 사이트 안내(파이썬 출력이 아닌 것)를 보낸다. */
   notice(text: string, level?: NoticeLevel): void;
+  /**
+   * 답을 기다리지 않고 화면에 알린다(cv2.imshow의 영상 등). 제한 모드에서도 된다.
+   * transfer에 넣은 ArrayBuffer(예: payload.data.buffer)는 복사 없이 옮겨진다.
+   */
+  emit(kind: string, payload: unknown, transfer?: readonly ArrayBuffer[] | null): void;
 }
 
 export interface Bridge {
@@ -153,6 +159,10 @@ export function createBridge(host: BridgeHost): Bridge {
     },
     notice(text, level = 'info') {
       host.post({ type: 'notice', level, text: String(text) });
+    },
+    emit(kind, payload, transfer) {
+      const buffers = Array.isArray(transfer) ? transfer.filter((item) => item instanceof ArrayBuffer) : [];
+      host.post({ type: 'event', kind: String(kind), payload }, buffers);
     },
   };
 
