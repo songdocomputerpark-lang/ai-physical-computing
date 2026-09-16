@@ -8,6 +8,7 @@ import {
   findPrivacyNeedles,
   findPrivacyPatterns,
   hashPrivacyNeedle,
+  isPrivacyExceptionPathAllowed,
   originalDocumentNamesFromInventory,
   originalFolderNamesFromGitignore,
   runRepoCheck,
@@ -186,6 +187,21 @@ describe('저장소 검사 규칙(checkRepoFiles)', () => {
     expect(problems[1].detail).toContain('이메일 주소 모양');
     expect(findPrivacyPatterns(noticeText, { skipKinds: ['email'] })).toEqual([]);
     expect(findPrivacyPatterns(noticeText)).toHaveLength(1);
+  });
+
+  it('privacy_exceptions의 path는 public/licenses/ 아래나 package-lock.json만 되고, npm 잠금 파일의 deprecated 안내문 이메일은 예외로 건너뛴다(2026-09-16 병렬 제작 준비)', () => {
+    expect(isPrivacyExceptionPathAllowed('public/licenses/codemirror.txt')).toBe(true);
+    expect(isPrivacyExceptionPathAllowed('public/licenses/*.txt')).toBe(true);
+    expect(isPrivacyExceptionPathAllowed('package-lock.json')).toBe(true);
+    expect(isPrivacyExceptionPathAllowed('package.json')).toBe(false);
+    expect(isPrivacyExceptionPathAllowed('content/help/contact.md')).toBe(false);
+    expect(isPrivacyExceptionPathAllowed('public/images/site/a.svg')).toBe(false);
+    const lockText = `{\n  "node_modules/glob": {\n    "version": "11.1.0",\n    "deprecated": "Old versions are not supported. Contact ${realLookingEmail}"\n  }\n}\n`;
+    const exceptions = [{ path: 'package-lock.json', kinds: ['email'], reason: 'npm이 기록한 다른 패키지의 안내문' }];
+    expect(problemKeys(checkRepoFiles([repoFile('package-lock.json', lockText)], rules()))).toEqual(['privacy:package-lock.json']);
+    expect(problemKeys(checkRepoFiles([repoFile('package-lock.json', lockText)], rules({ privacyExceptions: exceptions })))).toEqual([]);
+    // 예외는 이메일만이라 같은 파일의 전화번호 모양은 그대로 잡힌다.
+    expect(problemKeys(checkRepoFiles([repoFile('package-lock.json', `${lockText}${realLookingPhone}\n`)], rules({ privacyExceptions: exceptions })))).toEqual(['privacy:package-lock.json']);
   });
 
   it('UTF-16으로 저장된 글도 읽어서 사용자 폴더 경로를 찾는다(PowerShell 5.1 기본 저장 형식)', () => {

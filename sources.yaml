@@ -172,15 +172,18 @@ sources:
   # 방문자 브라우저가 불러오는 외부 파일이라 등록해요(PLAN §9.2). 주소는 src/lab/runtime/config.ts 한 곳에서 정해요.
   # npm 패키지 pyodide@314.0.7은 타입 선언(pyodide.d.ts·ffi.d.ts)과 Node.js 단위 테스트(tests/unit/lab/)에만 쓰는
   # devDependency라 배포 번들에 들어가지 않아 npm 목록에 적지 않아요(브라우저 코드는 import type만 써요).
-  # 같은 사이트 예비본(P2-05, PD-13: 빌드 때 받고 커밋하지 않음)을 만들면 그 폴더를 이 항목들의 paths에 더해요.
+  # 같은 사이트 예비본(P2-05, PD-13: 빌드 때 받고 커밋하지 않음)은 public/vendor/pyodide/<버전>/에 둬요(.gitignore, scripts/vendor-assets.mjs).
+  # 그 폴더에는 Pyodide 코어와 함께 numpy·opencv-python 휠도 들어가요 — 파일은 이 항목이 덮고, 각 라이브러리의 고지는 아래 NumPy·OpenCV 항목이 맡아요
+  # (한 파일이 저작자가 다른 두 항목에 걸리면 안 되므로 폴더 패턴은 여기에만 적어요).
   - name: Pyodide 314.0.7
     category: stack
     author: Pyodide contributors
     license: MPL-2.0
     url: https://github.com/pyodide/pyodide
-    used_in: "브라우저 안에서 파이썬을 실행하는 엔진(파이썬 워커 src/lab/runtime/). 브라우저가 https://cdn.jsdelivr.net/pyodide/v314.0.7/full/ 에서 pyodide.mjs, pyodide.asm.mjs, pyodide.asm.wasm, python_stdlib.zip, pyodide-lock.json과 패키지 휠을 받아요. 고치지 않고 그대로 써요(MPL-2.0: 고지와 소스 위치 링크)."
+    used_in: "브라우저 안에서 파이썬을 실행하는 엔진(파이썬 워커 src/lab/runtime/). 브라우저가 https://cdn.jsdelivr.net/pyodide/v314.0.7/full/ 에서 pyodide.mjs, pyodide.asm.mjs, pyodide.asm.wasm, python_stdlib.zip, pyodide-lock.json과 패키지 휠을 받아요. 같은 사이트 예비본(public/vendor/pyodide/, P2-05에서 빌드 때 받음)도 같은 파일이에요. 고치지 않고 그대로 써요(MPL-2.0: 고지와 소스 위치 링크)."
     paths:
       - public/licenses/pyodide.txt
+      - public/vendor/pyodide/**
     notice: public/licenses/pyodide.txt
     fetched: 2026-09-16
 
@@ -305,6 +308,53 @@ sources:
     npm:
       - lz-string
     notice: public/licenses/lz-string.txt
+    fetched: 2026-09-16
+
+  # ── 손·얼굴·자세 인식(PLAN §5.2 PD-02·PD-03, §8.2 P2-08·P2-09) ──
+  # npm 패키지에는 LICENSE 파일이 없고 package.json의 license가 Apache-2.0이에요. 고지 원문은 공식 저장소(google-ai-edge/mediapipe)의
+  # LICENSE(Apache License 2.0)를 옮겼어요(2026-09-16 확인). 1.0.x는 사용 지표를 Google로 보내므로 0.10.35에 고정해요(PD-03).
+  # WebAssembly 파일(wasm/*.js·*.wasm)은 scripts/vendor-assets.mjs가 npm 패키지에서 public/vendor/mediapipe/0.10.35/wasm/으로 복사해
+  # 같은 사이트에서 내보내요(커밋하지 않음). JavaScript 번들(vision_bundle.mjs)은 사이트 코드가 import해 배포 번들에 들어가요(npm 목록).
+  - name: MediaPipe Tasks Vision 0.10.35
+    category: stack
+    author: Google LLC(The MediaPipe Authors)
+    license: Apache-2.0
+    url: https://github.com/google-ai-edge/mediapipe
+    used_in: "손·얼굴·자세 인식 엔진(영상처리 실습실의 mediapipe 흉내 모듈이 브라우저에서 추론할 때 씀, P2-08·P2-09). JavaScript 번들은 사이트에 묶고 WebAssembly 파일은 public/vendor/mediapipe/0.10.35/wasm/에서 받아요. 학생 영상은 이 컴퓨터 밖으로 나가지 않아요."
+    paths:
+      - public/licenses/mediapipe-tasks-vision.txt
+      - public/vendor/mediapipe/**
+    npm:
+      - "@mediapipe/tasks-vision"
+    notice: public/licenses/mediapipe-tasks-vision.txt
+    fetched: 2026-09-16
+
+  # 모델 파일은 저장소에 커밋해요(PD-13, 파일마다 10MB 이하 — 5MB를 넘는 파일은 scripts/repo-allowlist.yaml의 large_files에 경로·이유·max_mb를 적어요).
+  # 파일 이름과 받은 판(버전)·크기·날짜는 파일을 실제로 내려받는 묶음(P2-08 손, P2-09 얼굴·자세)에서 이 주석에 덧붙여요. 지금은 public/models/가 비어 있어요.
+  # 모델 카드(Apache-2.0): https://developers.google.com/mediapipe/solutions/vision/hand_landmarker , …/face_landmarker , …/face_detector , …/pose_landmarker
+  - name: MediaPipe 모델(손·얼굴·자세 랜드마커, 얼굴 검출)
+    category: stack
+    author: Google LLC(The MediaPipe Authors)
+    license: Apache-2.0
+    url: https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker
+    used_in: "손·얼굴·자세 인식 모델 파일(public/models/*.task·*.tflite). 실습실이 같은 사이트에서 받아 브라우저 안에서만 추론해요(P2-08·P2-09, 저사양 모드는 가벼운 자세 모델 PD-20)."
+    paths:
+      - public/models/**
+    notice: public/licenses/mediapipe-tasks-vision.txt
+    fetched: 2026-09-16
+
+  # ── 재방문 캐시 서비스 워커(PLAN §5.3 PD-11, P2-05) ──
+  # workbox-build는 빌드 때만 도는 개발 도구(devDependency)라 npm 목록에 적지 않지만, 만들어진 sw.js 안에 Workbox 실행 코드(MIT)가 들어가
+  # 배포되므로 고지 원문을 실어요(npm 패키지 workbox-build 7.4.1의 LICENSE, 2026-09-16 확인).
+  - name: Workbox 7.4.1
+    category: stack
+    author: Google LLC
+    license: MIT
+    url: https://github.com/GoogleChrome/workbox
+    used_in: "빌드 때 서비스 워커(sw.js)를 만드는 도구. 사이트 공통 셸만 미리 저장하고 Pyodide·모델은 실제로 쓸 때 저장해 두 번째 방문부터 네트워크 없이 실습실이 뜨게 해요(P2-05)."
+    paths:
+      - public/licenses/workbox.txt
+    notice: public/licenses/workbox.txt
     fetched: 2026-09-16
 
   # ── 다른 저작자의 자료(library·third_party)를 넣을 때의 예시(파일을 실제로 넣는 단계에서 확인해 채워요) ──

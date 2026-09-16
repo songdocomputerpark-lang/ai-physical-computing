@@ -13,17 +13,27 @@
 #     reason: MediaPipe 모델(PD-13)
 #     max_mb: 10   # 이보다 크면 여전히 막아요. 적지 않으면 50(GitHub는 50MB가 넘는 파일에 경고해요).
 #
-# privacy_exceptions: 개인정보 모양 검사의 예외. public/licenses/ 아래의 제3자 라이선스 고지 원문만 적을 수 있고,
-#   kinds는 email(저작권 표기에 저작자가 스스로 적은 주소)만 돼요. 운영자·학생의 정보는 어떤 경우에도 예외로 두지 않아요.
+# privacy_exceptions: 개인정보 모양 검사의 예외. public/licenses/ 아래의 제3자 라이선스 고지 원문과 package-lock.json(npm이 기록하는
+#   다른 패키지의 deprecated 안내문)만 적을 수 있고, kinds는 email(저작자가 스스로 적은 공개 주소)만 돼요.
+#   운영자·학생의 정보는 어떤 경우에도 예외로 두지 않아요.
 #   - path: public/licenses/codemirror.txt
 #     kinds: [email]
 #     reason: MIT 라이선스 고지 원문의 저작권 표기(저작자가 공개한 주소). 고지 원문은 고치지 않고 그대로 실어야 해요.
 
 original_formats: []
 
+# MediaPipe 모델(public/models/, PD-13 커밋 대상)은 5MB를 넘는 파일이 있어요(손 랜드마커 약 7.8MB, 자세 랜드마커 lite 약 5.5MB·full 약 9.4MB).
+# 모델을 내려받는 묶음(P2-08 손, P2-09 얼굴·자세)이 파일마다 항목을 더해요 — 패턴이 아니라 파일 경로 하나씩, max_mb는 10 이하(PLAN §5.2).
+# 출처 항목은 sources.yaml "MediaPipe 모델"이 public/models/**를 이미 덮어요. 예:
+#   - path: public/models/hand_landmarker.task
+#     reason: MediaPipe 손 랜드마커 모델(float16 v1, Apache-2.0 모델 카드, PD-13). 사이트가 같은 사이트에서 내보내 학생 브라우저가 외부 모델 서버에 접속하지 않아요.
+#     max_mb: 10
 large_files: []
 
 privacy_exceptions:
   - path: public/licenses/codemirror.txt
     kinds: [email]
     reason: CodeMirror·Lezer·보조 라이브러리의 MIT 라이선스 고지 원문. 저작권 표기에 저작자(Marijn Haverbeke)가 스스로 적은 공개 주소가 있고, MIT 라이선스는 이 표기를 그대로 싣도록 요구해요(2026-09-16 P2-02).
+  - path: package-lock.json
+    kinds: [email]
+    reason: npm이 잠금 파일에 기록하는 다른 패키지의 deprecated 안내문(glob 11.1.0 — workbox-build 7.4.1의 의존성)에 그 패키지 저작자가 스스로 적은 공개 주소가 들어 있어요. 잠금 파일은 npm이 만들고 사람이 고치지 않는 파일이라 그대로 둬요(2026-09-16 병렬 제작 준비).

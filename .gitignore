@@ -15,6 +15,8 @@ node_modules/
 dist/
 .astro/
 .cache/
+# 같은 사이트에서 내보낼 외부 자산(MediaPipe WASM, Pyodide 예비본) — npm run dev·build 앞에서 scripts/vendor-assets.mjs가 npm 패키지·CDN에서 복사한다(PD-02·PD-13)
+/public/vendor/
 coverage/
 playwright-report/
 test-results/

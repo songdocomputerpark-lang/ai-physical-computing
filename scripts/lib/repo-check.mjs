@@ -169,10 +169,24 @@ const PROBLEM_KINDS = Object.freeze({
  * @property {{ path: string, kinds: string[], reason: string }[]} [privacyExceptions] 개인정보 모양 검사 예외(public/licenses/ 아래 고지 원문의 이메일만)
  */
 
-/** privacy_exceptions에 적을 수 있는 검사 종류(지금은 라이선스 고지 원문의 이메일뿐) */
+/** privacy_exceptions에 적을 수 있는 검사 종류(지금은 라이선스 고지 원문·npm 잠금 파일의 이메일뿐) */
 export const PRIVACY_EXCEPTION_KINDS = Object.freeze(['email']);
-/** privacy_exceptions의 경로가 있어야 하는 폴더 */
+/** privacy_exceptions의 경로가 있어야 하는 폴더(다른 저작자의 라이선스 고지 원문) */
 export const PRIVACY_EXCEPTION_ROOT = 'public/licenses/';
+/**
+ * 폴더 밖에서 예외를 둘 수 있는 파일. package-lock.json은 npm이 기록하는 다른 패키지의 deprecated 안내문에 그 패키지 저작자가 스스로 적은
+ * 공개 주소가 들어올 수 있다(2026-09-16 glob 11.1.0 — workbox-build의 의존성). 운영자·학생의 정보는 어떤 경우에도 예외로 두지 않는다.
+ */
+export const PRIVACY_EXCEPTION_FILES = Object.freeze(['package-lock.json']);
+
+/**
+ * privacy_exceptions의 path로 쓸 수 있는 곳인지: public/licenses/ 아래 또는 정해진 파일(package-lock.json)만.
+ * @param {unknown} pattern
+ */
+export function isPrivacyExceptionPathAllowed(pattern) {
+  const text = String(pattern);
+  return text.startsWith(PRIVACY_EXCEPTION_ROOT) || PRIVACY_EXCEPTION_FILES.includes(text);
+}
 
 /** @typedef {{ kind: keyof typeof PROBLEM_KINDS, path: string, detail: string }} RepoProblem */
 
@@ -801,8 +815,11 @@ function readPrivacyExceptions(data, errors) {
       errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: path — ${patternProblem ?? '경로가 없어요.'}` });
       return;
     }
-    if (!String(pattern).startsWith(PRIVACY_EXCEPTION_ROOT)) {
-      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: path는 ${PRIVACY_EXCEPTION_ROOT} 아래의 라이선스 고지 파일만 적을 수 있어요.` });
+    if (!isPrivacyExceptionPathAllowed(pattern)) {
+      errors.push({
+        file: REPO_ALLOWLIST_FILE,
+        message: `${where}: path는 ${PRIVACY_EXCEPTION_ROOT} 아래의 라이선스 고지 파일이나 ${PRIVACY_EXCEPTION_FILES.join(', ')}만 적을 수 있어요.`,
+      });
       return;
     }
     const kinds = Array.isArray(item.kinds) ? item.kinds : [];
