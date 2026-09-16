@@ -107,8 +107,13 @@
 
 ## 진행 중
 
-- 없음. (P2-01 미완성본을 보관했던 원격 브랜치 `wip/phase2-snapshot`은 완성본이 main에 들어가 더 쓰지 않는다 — 지워도 된다.)
+**Phase 2 병렬 제작(P2-05~P2-13) 중간 상태 — 2026-09-16 16:40 KST 중단(운영자 환경 이동).**
 
+- 끝나서 `main`에 있는 것: P2-01 파이썬 워커, P2-02 코드 에디터, P2-03 카메라·창 흉내와 첫 실습, P2-04 조절 값 규약(시나리오 A 자동 테스트 통과), 예제 이관 도구·흉내 모듈 규약·병렬 준비(HEAD `7b39a1d`).
+- 아직 `main`에 없는 중간 결과: 로딩·캐시(`src/lab/loader/`, `src/sw/`, `scripts/fetch-pyodide-fallback.mjs`, `scripts/build-sw.mjs`), 오류 사전(`src/lab/errors/`, `src/pages/help/errors/`, `content/help/`), 보충 예제 V1~V5(`content/lessons/u1/v1~v5.md`, `examples/vision/supplement/`), mediapipe(`src/lab/modules/mediapipe/`, `scripts/gen-landmarks.mjs`), 러너 공통(`src/lab/modules/runtime-extras/`), 가상 데스크톱(`src/lab/modules/desktop/`), 각 구역 테스트. **빌드·테스트로 확인하지 않은 미완성 상태다.**
+- 보관 위치: 운영자 PC 작업 트리 + 원격 브랜치 `wip/phase2-snapshot`(커밋 `318d750`, 파일 100개). 구역별 임시 파일·스크린숏·공유 파일 변경 요청(`.cache/phase2-staging`, `.cache/phase2-requests`)은 git 제외 폴더라 릴리스 `phase2-wip-20260916`에 `phase2-staging.tgz`로 올려 두었다.
+- 이어서 할 때: `wip/phase2-snapshot`을 받아 작업 트리에 풀고(`git checkout wip/phase2-snapshot -- <경로>`), 릴리스의 tgz를 `.cache/`에 풀어 요청 파일을 확인한 뒤, 구역별로 검토·완성 → 통합(P2-14) → 검토 → 수정 순서로 진행한다.
+- 중단 이유 기록: 09-16 10:52 Claude 프로세스 종료, 15:40 사용량 한도, 16:00 Fable 모델 한도(그래서 Opus 5로 교체), 16:40 환경 이동.
 ## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.2 Phase 2 영상처리 실습실)
 
 1. **P2-05 로딩 전략과 캐시:** CDN → 같은 사이트 Pyodide 예비본 자동 전환(`src/lab/runtime/config.ts`의 `PYODIDE_SITE_FALLBACK_READY`·`pyodideIndexUrls()` 자리, "받은 양이 15초 동안 늘지 않으면"), 빌드 때 예비본 내려받기 스크립트(Actions 캐시, PD-13), 단계별 진행률 막대·받은 양(MB)·1분 개념 카드(`VisionIo.astro`의 준비 단계 표시를 다듬음), `workbox-build` 서비스 워커(PD-11, 사전 캐시는 셸만 — 글꼴 조각(`public/fonts/`)을 넣을지 GitHub Pages `max-age=600` 재검증 비용과 함께 정함, PLAN §8.1 구현 메모), 점검 페이지에 네트워크 [시험하기] 항목. Playwright(요청 차단 흉내, 오프라인 모드). 시나리오 A 테스트(`tests/e2e/scenario-a.spec.ts`)의 경과 시간이 지금 값(총 15.7초, 캐시 없는 새 컨텍스트)보다 나빠지지 않는지 본다.
