@@ -184,7 +184,7 @@ git push
 ## 8. 앞으로 채울 것 (Phase 6)
 
 - 사용자 도메인 연결법(`src/config/site.ts`의 `base`를 바꾸는 곳 포함)
-- Pyodide·MediaPipe·펌웨어·npm 패키지 버전 올리기
+- Pyodide·MediaPipe·펌웨어·npm 패키지 버전 올리기(Pyodide 버전과 받는 주소는 `src/lab/runtime/config.ts` 한 곳에서 바꾸고, 바꾼 뒤 `npm test`와 `npm run test:e2e`를 통과시켜요 — 실행 중 기다리기·정지 기능이 Pyodide의 실험 기능(`run_sync`)에 기대기 때문이에요)
 - 1년에 한 번 점검 목록: 브라우저 메뉴 이름(문제 해결 페이지 안내), 공식 링크, 출처 등록부 날짜
 - 오프라인 배포판 만들기(`npm run build:offline`)
 - `CHANGELOG.md`와 사이트 버전 올리기

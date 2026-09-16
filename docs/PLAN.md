@@ -694,6 +694,13 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 
 - **완료 기준:** 시나리오 A 자동 테스트 통과(가짜 카메라). 운영자 PC의 실제 웹캠 확인은 "확인 필요"로 남긴다(DECISIONS §3).
 - **예상 위험:** tasks-vision이 모듈 워커에서 안 돌 수 있음(화면 쪽 추론으로 전환), Tasks 모델과 레거시 결과 차이(임계값을 슬라이더로 드러냄), 저사양 PC 성능, Node 테스트에서 JSPI 조건, 손이 나오는 테스트 영상이 없음(합성 랜드마크 재생 입력으로 단위 테스트와 카메라 없는 PC를 함께 해결 — PD-30, 실물은 운영자).
+- **구현 메모(P2-01, 2026-09-16 — 이 표·§4.4와 실제 구현이 달라진 곳):**
+  - 시험 페이지 주소는 `/labs/dev/runtime/`(`src/pages/labs/dev/runtime/index.astro`). 표의 `_dev/` 자리는 Astro가 `_`로 시작하는 폴더를 페이지로 만들지 않아 주소가 생기지 않는다. noindex·검색 색인 제외·사이트 지도에 없음, `?limited=1`로 제한 모드 시험.
+  - 정지 2단계 유예는 §4.4의 1.5초 대신 1초(`src/lab/runtime/config.ts`의 `STOP_GRACE_MS`, 이 표의 완료 기준 "1초 안에"에 맞춤). 정지 1단계는 인터럽트 버퍼가 아니라 다리(`bridge.ts`)의 정지 신호 경주 — `block_on`이 기다리는 약속과 정지 신호를 경주시켜 [정지]가 오면 그 자리에서 `KeyboardInterrupt`. 인터럽트 버퍼는 SharedArrayBuffer(교차 출처 격리 헤더)가 필요해 GitHub Pages에서 못 쓴다는 §4.2 판단을 Pyodide 공식 문서로 다시 확인했고, 격리된 곳(`crossOriginIsolated`)에서만 덤으로 켠다(미검증).
+  - `time.sleep`·`input()`은 파이썬 도우미(`apc_runtime.py`)가 바꾼다. 가상 시계·`Timer`·BLE IRQ 같은 보드용 규칙은 Phase 3에서 같은 도우미에 더한다.
+  - Pyodide에서 `exit()`(SystemExit)·`KeyboardInterrupt`로 끝난 실행은 `runPythonAsync` 약속의 거부와 별개로 워커의 `unhandledrejection`으로 한 번 더 새어 나온다(코드를 돌리는 asyncio 작업이 두 예외를 결과에 적고도 다시 던짐 — Node의 실제 Pyodide로 확인). 워커가 두 종류만 삼킨다(`worker.ts`의 `isRethrownRunError`).
+  - PD-14의 Node 테스트 조건 확인: Node 24.19.0 `--experimental-wasm-jspi`(V8 옵션, 기본 꺼짐)에서 `pyodide.ffi.can_run_sync()`가 참이고 `run_sync`가 돈다(`tests/unit/lab/pyodide-node.test.ts`). npm `pyodide@314.0.7`은 이 테스트와 타입 선언에만 쓰는 devDependency이고 브라우저는 CDN에서 받는다.
+  - 같은 사이트 예비본 자리(`PYODIDE_SITE_FALLBACK_READY`, `pyodideIndexUrls()`)만 두었고 파일·전환 규칙은 P2-05에서 만든다.
 
 ### 8.3 Phase 3 — ESP32 실습실
 

@@ -2,11 +2,11 @@
 
 > 새 세션은 `CLAUDE.md` → `docs/SPEC.md` → `docs/DECISIONS.md` → 이 파일 → `docs/PLAN.md` 순서로 읽는다. 작업 묶음이 끝날 때마다 이 파일을 고친다.
 
-마지막 갱신: 2026-09-16 (운영자 PC 로컬 세션, Phase 1 검토 반영·재배포)
+마지막 갱신: 2026-09-16 (운영자 PC 로컬 세션, Phase 2 P2-01 파이썬 워커 완료)
 
 ## 한눈에 보기
 
-- **지금:** Phase 1(프로젝트 뼈대와 첫 배포)을 마치고, 세 검토(완료 기준·안전·사용성)의 지적 18건을 판정해 16건을 고쳐 다시 배포했다(2건은 저장소 설정·다른 프로세스 종료라 운영자 할 일 14·16번). https://songdocomputerpark-lang.github.io/ai-physical-computing/ 에 홈, 시작하기·점검, 배우기(견본 차시 1-1-1·V4), 용어사전, 실습실 자리, 사이트 검색, 출처와 라이선스 페이지가 올라가 있다. 다음은 영상처리 실습실을 만드는 Phase 2다.
+- **지금:** Phase 2(영상처리 실습실)의 첫 묶음 P2-01 파이썬 워커를 마쳤다(2026-09-16). 브라우저 안에서 Pyodide 314.0.7이 모듈 워커로 돌고, `print('안녕')` 출력, 정지 1단계(기다리는 곳에서 1초 안에 멈춤), 정지 2단계(계산만 하는 반복문은 파이썬을 다시 시작해 멈춤), `input()` 대기 지점, 제한 모드, numpy 패키지 받기를 개발용 시험 페이지 `/labs/dev/runtime/`에서 브라우저 테스트로 확인했다. 실습실 화면 자체는 아직 자리 페이지이고 다음은 P2-02 코드 에디터다. Phase 1 결과(홈, 시작하기·점검, 배우기(견본 차시 1-1-1·V4), 용어사전, 사이트 검색, 출처와 라이선스)는 https://songdocomputerpark-lang.github.io/ai-physical-computing/ 에 그대로 올라가 있다.
 - **운영자 할 일:** 아래 표의 16개이며, 모두 작업을 막지 않는다. 지금 해 볼 수 있는 것은 3번(교실 컴퓨터에서 점검 페이지 열기), 14번(저장소 룰셋, 5분), 16번(남은 미리 보기 서버 창 닫기, 1분)이다.
 - **다음에 볼 수 있는 결과:** Phase 2가 끝나면 홈의 [카메라로 바로 해보기]에서 웹캠 에지 검출과 슬라이더가 동작한다(그때 버튼의 "준비 중" 표시가 사라진다).
 
@@ -35,7 +35,11 @@
 
 ## 현재 Phase
 
-**Phase 1 완료(2026-09-16, 검토 반영 뒤 재배포) → Phase 2 시작 전.** 완료 기준(PLAN §8.1: P1-03의 HTTPS 200 + P1-01~P1-11 + 스모크 테스트 통과)을 로컬 테스트·배포 실행·테스트 워크플로·실사이트 응답으로 확인했고, 완료 기준 검토(P1-01~P1-11 모두 "충족" 판정, 부속 항목 2개는 이번에 고침 — 출처 등록부 대응과 저장소 검사 우회)와 안전·사용성 검토를 반영했다(아래 완료와 야간 작업 로그). 사람 확인이 필요한 항목(Android Chrome·iPad Safari 실측, 교실 컴퓨터 점검 — 운영자 할 일 3번, 조판 삽화 권리 — 13번)은 "확인 필요"로 남기고, 승인 위임(DECISIONS O1)에 따라 기다리지 않고 Phase 2를 시작한다.
+**Phase 2 영상처리 실습실 진행 중 — P2-01 파이썬 워커 완료(2026-09-16), 다음은 P2-02 코드 에디터.** Phase 1은 완료 기준(PLAN §8.1: P1-03의 HTTPS 200 + P1-01~P1-11 + 스모크 테스트 통과)을 로컬 테스트·배포 실행·테스트 워크플로·실사이트 응답으로 확인하고 세 검토(완료 기준·안전·사용성)를 반영해 2026-09-16에 마쳤다(아래 판정표). 사람 확인이 필요한 항목(Android Chrome·iPad Safari 실측, 교실 컴퓨터 점검 — 운영자 할 일 3번, 조판 삽화 권리 — 13번)은 "확인 필요"로 남기고, 승인 위임(DECISIONS O1)에 따라 기다리지 않고 Phase 2를 진행한다.
+
+| 묶음(Phase 2) | 판정 | 증거 |
+|---|---|---|
+| P2-01 파이썬 워커 | 완료(2026-09-16) | 시험 페이지 `/labs/dev/runtime/`에서 `print('안녕')` 출력, `time.sleep` 반복이 [정지] 뒤 1초 안에 `KeyboardInterrupt`로 멈춤(실측 72ms), `while True: pass`가 1초 뒤 워커 재시작으로 멈추고 다시 실행됨, `input()` 대기 지점에 화면 값 전달, 제한 모드 안내, numpy 받기, `exit()` 정상 종료(콘솔 오류 0건), 허용 주소(jsDelivr) 밖 요청 0건 — Playwright(Edge 153, `tests/e2e/lab-runtime.spec.ts`). Node 실제 Pyodide 테스트(`--experimental-wasm-jspi`)로 `run_sync`·정지·`exit()` 확인 |
 
 | 묶음 | 판정(2026-09-16 검토 + 반영) | 증거 |
 |---|---|---|
@@ -53,6 +57,8 @@
 
 ## 완료
 
+- **Phase 2 — 영상처리 실습실(진행 중):**
+  - P2-01 파이썬 워커(2026-09-16): `src/lab/runtime/` — 설정 `config.ts`(Pyodide 314.0.7 jsDelivr 주소, 같은 사이트 예비본 자리, 정지 유예 1초, 양보 간격 16ms), 메시지 형식 `protocol.ts`, 다리 `bridge.ts`(정지 신호 경주 `raceStop`, 요청·답, 최신 값 `get`·쌓인 값 `poll`), 파이썬 도우미 `apc_runtime.py`(`block_on` = `pyodide.ffi.run_sync`, `time.sleep`·`input()` 대체, 짧은 sleep 모으기, 제한 모드 한국어 안내), 워커 `worker.ts`(모듈 워커에서 `import('…/pyodide.mjs')` → `loadPyodide({ indexURL })`, stdout·stderr 스트리밍, `loadPackagesFromImports`, `__main__` 전역, SystemExit는 정상 종료), 화면 쪽 `client.ts`(`PythonRuntime`: 상태 unloaded→loading→idle→running→stopping, 정지 1단계 메시지 → 1초 안에 안 멈추면 2단계 `Worker.terminate()`·재시작·패키지 다시 받기). 개발용 시험 페이지 `/labs/dev/runtime/`(코드 입력칸·[실행]·[정지]·콘솔·입력줄, `?limited=1`). 브라우저 저장 이름 규칙 `src/lib/storage.ts`(미해결 13번 해결). 출처 등록: Pyodide(MPL-2.0 고지 전문 `public/licenses/pyodide.txt`), CPython 3.14.2(PSF-2.0), NumPy 2.4.6, `/credits/`에 MPL-2.0·PSF-2.0 전문 링크. 확인한 사실: jsDelivr `v314.0.7/full/`에 pyodide.mjs·pyodide.asm.mjs·pyodide.asm.wasm·python_stdlib.zip·pyodide-lock.json이 있고(pyodide.asm.js는 없음) CORS·CORP 허용, 인터럽트 버퍼는 SharedArrayBuffer(COOP·COEP) 필요라 GitHub Pages에서 못 씀(협조적 정지로 대체), `exit()`·`KeyboardInterrupt`는 약속 거부와 별개로 워커 `unhandledrejection`으로 한 번 더 새어 워커가 삼킴. 검증 수치는 야간 작업 로그.
 - **Phase 1 — 프로젝트 뼈대와 첫 배포(2026-09-15~16):**
   - P1-01 저장소·첫 커밋, P1-02 Astro 7.3.2 뼈대, P1-03 배포 파이프라인(`deploy.yml`)과 첫 배포, P1-04 출처 등록부·저장소 검사·`/credits/`, 공통 기반(사이트 지도·주소 도우미·디자인 토큰·공통 레이아웃·Pretendard·콘텐츠 규칙·상자 문법·Playwright·Pagefind) — 야간 작업 로그 참고.
   - P1-05 홈: 큰 버튼 3개(1366×768·375×812에서 스크롤 없이 보이고 Tab으로 닿음, 320×568도 첫 화면 안), 직접 그린 흐름 SVG(동작 줄이기면 멈춘 그림, 움직여도 6초×3회 뒤 정지 + [그림 멈추기]), 카드 4개·원칙 3개.
@@ -93,16 +99,15 @@
 
 ## 진행 중
 
-- **Phase 2 P2-01 파이썬 워커 — 2026-09-16 08:30 KST 중단(운영자 외출).** 미완성 파일이 운영자 PC 작업 트리에 있고, 같은 내용을 원격 브랜치 `wip/phase2-snapshot`(커밋 01e5fa8, 빌드 미확인, main에 넣지 않음)에 보관했다. 재개할 때 이 파일들을 검토해 이어서 완성한다(P2-01 완료 기준은 PLAN §8.2).
+- 없음. (P2-01 미완성본을 보관했던 원격 브랜치 `wip/phase2-snapshot`은 완성본이 main에 들어가 더 쓰지 않는다 — 지워도 된다.)
 
 ## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.2 Phase 2 영상처리 실습실)
 
-1. **P2-01 파이썬 워커:** 모듈 워커에서 Pyodide 314.0.7(jsDelivr) 로드, `print('안녕')` 출력, JSPI 감지와 제한 모드, 정지 1·2단계(PLAN §4.4). Node 테스트에서 `--experimental-wasm-jspi`로 `run_sync`가 도는지 확인해 미해결 1번에 기록.
-2. **P2-02 코드 에디터:** CodeMirror 6 + Python 강조, 자동 저장, 공유 링크(lz-string), [이 컴퓨터에서 내 기록 지우기]. 먼저 브라우저 저장 이름 규칙 공통 파일(`src/lib/storage.ts`)을 만든다: 이름 머리말 `ai-physical-computing:`(지금 `src/lib/capabilities.ts`가 내보냄), 기록 지우기는 이 머리말로 시작하는 이름만 지우고 `localStorage.clear()`는 쓰지 않는다(같은 계정의 다른 GitHub Pages 사이트와 출처를 공유하기 때문, 미해결 13번).
-3. **P2-03 카메라·창 흉내 모듈과 첫 실습 → P2-04 슬라이더 규약:** `playwright.config.ts`의 가짜 카메라 설정 주석을 풀고 합성 영상만 커밋(PD-30). 영상처리 실습실이 실제 화면이 되면 `src/pages/labs/_labs.ts`의 `browserNotice`를 true로 되돌리고(자리 페이지 동안 꺼 둠), 자리 페이지의 `?example=` 안내(`_LabPlaceholder.astro`)는 실제 예제 불러오기로 바꾼다. P2-04 완료 = 시나리오 A 자동 테스트.
-4. **P2-05~P2-14:** PLAN §8.2 표 순서. P2-05에서 점검 페이지에 네트워크 [시험하기] 항목을 더하고 서비스 워커 사전 캐시에 글꼴 조각(`public/fonts/`)을 넣을지 정한다(GitHub Pages `max-age=600` 때문에 재방문마다 조각 재검증 — PLAN §8.1 구현 메모). P2-14에서 차시 페이지 [실습실에서 열기]의 `?example=` 읽기·임베드(버튼을 `button--primary`로, "(준비 중)" 뗌)와 홈 [카메라로 바로 해보기] 흐름을 잇고, 홈 버튼의 `status: 'coming-soon'`(`src/components/home/home-content.ts`)을 지운다.
-5. Phase 2에서 예제를 처음 넣을 때 PD-33 이관 스크립트(원본 zip에서 옮기고 줄 수·구문 대조)부터 만든다. 다른 저작자의 파일은 `third-party/` 폴더에만(넓은 항목이 그 폴더를 빼므로 미등록이면 빌드 실패, 밖에 두면 저작권 표기 경고).
-6. 사이트가 "준비하고 있어요", "만들 거예요"라고 약속한 문장(카메라 없는 샘플 영상, 기록 지우기 버튼, 네트워크 [시험하기], 발표 모드 등)은 해당 기능을 만드는 묶음에서 실제 동작에 맞춰 고친다.
+1. **P2-02 코드 에디터:** CodeMirror 6 + Python 강조, 자동 저장(`src/lib/storage.ts`의 `writeItem`·`readItem`), 공유 링크(lz-string), [이 컴퓨터에서 내 기록 지우기](`clearOurs()` — 이 사이트 이름만 지우고 `localStorage.clear()`는 쓰지 않는다). 실행·정지·콘솔은 `PythonRuntime`(`src/lab/runtime/client.ts`)을 쓰고, 개발용 시험 페이지(`/labs/dev/runtime/`)의 textarea 화면은 에디터가 생기면 그대로 두거나 지운다.
+2. **P2-03 카메라·창 흉내 모듈과 첫 실습 → P2-04 슬라이더 규약:** `playwright.config.ts`의 가짜 카메라 설정 주석을 풀고 합성 영상만 커밋(PD-30). 영상처리 실습실이 실제 화면이 되면 `src/pages/labs/_labs.ts`의 `browserNotice`를 true로 되돌리고(자리 페이지 동안 꺼 둠), 자리 페이지의 `?example=` 안내(`_LabPlaceholder.astro`)는 실제 예제 불러오기로 바꾼다. P2-04 완료 = 시나리오 A 자동 테스트.
+3. **P2-05~P2-14:** PLAN §8.2 표 순서. P2-05에서 점검 페이지에 네트워크 [시험하기] 항목을 더하고 서비스 워커 사전 캐시에 글꼴 조각(`public/fonts/`)을 넣을지 정한다(GitHub Pages `max-age=600` 때문에 재방문마다 조각 재검증 — PLAN §8.1 구현 메모). P2-14에서 차시 페이지 [실습실에서 열기]의 `?example=` 읽기·임베드(버튼을 `button--primary`로, "(준비 중)" 뗌)와 홈 [카메라로 바로 해보기] 흐름을 잇고, 홈 버튼의 `status: 'coming-soon'`(`src/components/home/home-content.ts`)을 지운다.
+4. Phase 2에서 예제를 처음 넣을 때 PD-33 이관 스크립트(원본 zip에서 옮기고 줄 수·구문 대조)부터 만든다. 다른 저작자의 파일은 `third-party/` 폴더에만(넓은 항목이 그 폴더를 빼므로 미등록이면 빌드 실패, 밖에 두면 저작권 표기 경고).
+5. 사이트가 "준비하고 있어요", "만들 거예요"라고 약속한 문장(카메라 없는 샘플 영상, 기록 지우기 버튼, 네트워크 [시험하기], 발표 모드 등)은 해당 기능을 만드는 묶음에서 실제 동작에 맞춰 고친다.
 
 **모든 묶음의 공통 규칙(PLAN §8.0):** 커밋은 경로 지정, 예제는 원본 zip에서 옮기고 줄 수·구문 대조(추출 사본 `extracted/flat` 금지), 원고·교안 이미지는 한 장씩 눈 확인 기록, 테스트 랜드마크는 합성만 커밋, 코드를 바꾼 묶음은 push 전 Vitest·Playwright 통과.
 
@@ -119,7 +124,7 @@
 
 | # | 항목 | 지금 기본값 | 언제 |
 |---|---|---|---|
-| 1 | 기술 확인: Node에서 Pyodide `run_sync`(P2-01), tasks-vision 0.10.35 모듈 워커 실행(P2-08). (glob 로더가 루트 `content/`를 읽는 것은 공통 기반 단계에서 실제 빌드로 확인함, 2026-09-16) | PLAN 기본안 | 해당 묶음에서 |
+| 1 | 기술 확인: tasks-vision 0.10.35 모듈 워커 실행(P2-08). **Node에서 Pyodide `run_sync`는 확인 끝(2026-09-16, P2-01):** Node 24.19.0에서 `--experimental-wasm-jspi`(V8 옵션 이름 그대로, 기본 꺼짐 `--no-experimental-wasm-jspi`)를 주면 `WebAssembly.Suspending`·`promising`이 생기고, 실제 Pyodide 314.0.7에서 `pyodide.ffi.can_run_sync()`가 참이며 `run_sync`로 sleep·input·정지 신호·`exit()`가 설계대로 돈다(`tests/unit/lab/pyodide-node.test.ts`, 플래그 없이는 제한 모드로 돌아 한 번 실행되는 코드만 됨). (glob 로더가 루트 `content/`를 읽는 것은 공통 기반 단계에서 실제 빌드로 확인함, 2026-09-16) | PLAN 기본안 | P2-08에서 |
 | 2 | Android Chrome·iPad Safari의 JSPI·Web Serial 실측 | 기기가 없어 P1-08에서 "확인 필요"로 남김. MDN browser-compat-data(2026-09-16)는 `WebAssembly.Suspending`을 chrome_android·safari·safari_ios 모두 false로 적는다. 점검 페이지는 휴대폰·태블릿의 Web Serial도 "확인 필요"로 보인다 | 운영자 할 일 3번 결과가 오면 |
 | 3 | 블록 전용 호환 모드(PD-27) 채택 여부 | 실험 전, 채택 못 하면 §4.6 4번 | P3-06 |
 | 4 | 차시 ↔ 성취기준 대응표 확정(PD-21) | 초안 | P5 차시 작성 때(운영자 할 일 5번 반영) |
@@ -131,17 +136,19 @@
 | 10 | 로컬 브라우저 테스트에 쓰는 브라우저 | Playwright 1.63.0 전용 Chromium(1243)이 이 PC에 없다. 소프트웨어 내려받기는 직전에 운영자 확인을 받는 규칙이라 받지 않았고, `playwright.config.ts`가 설치된 Microsoft Edge(153.0.4234.32)를 자동으로 고른다(`PW_CHANNEL`로 바꿈). CI는 테스트 워크플로(`e2e.yml`)가 러너에 Chromium을 설치해 쓴다(2026-09-16부터) | 운영자 할 일 12번 답이 오면 `npx playwright install chromium` |
 | 11 | Pagefind 한국어 검색 품질 | 2026-09-16 실측(`tests/e2e/search.spec.ts`): 낱말 앞부분으로 찾는다("서보" → "서보모터", "로그인" → "로그인이"). 조사는 떼어 주지 않는다("픽셀은" 1건, "픽셀" 4건 — 검색 화면에 "조사를 빼고" 안내). 가운뎃점으로 이은 낱말은 한 낱말로 묶인다(나열은 쉼표로). 어떤 낱말과도 맞지 않는 한국어 검색어는 앞부분이 맞는 결과를 보여 줘서 "결과 없음"은 영문으로만 시험한다. 이어 붙은 요소(dt·dd)의 글자가 붙는 문제는 공백으로 해결. 문장 가운데 인라인 `data-pagefind-ignore`(용어 툴팁)는 색인에서 빠진다("행동하면서"로 1-1-1이 나오지 않음 확인). 결과 주소의 base는 pagefind.js 주소에서 자동으로 붙는다. 검토 반영(같은 날): 용어사전은 `sub_results`로 항목 단위 결과("픽셀 Pixel — 용어사전" → `#pixel`), 항목 메타(다른 이름·함께 보면 좋은 낱말·나오는 차시)와 출처 페이지의 사용 위치·경로·npm 칸은 색인 제외 → "픽셀" 결과 4건 → 3건(출처 페이지 빠짐) | Pagefind를 올릴 때(P6-04) 다시 확인 |
 | 12 | 용어 표시·상자 문법 경고가 나오는 때 | 사전에 없는 낱말 경고는 페이지를 만들 때 나와 빌드마다 보인다. remark 단계 경고(제목·링크·상자 제목 안 용어, 모르는 상자 이름)는 Astro 콘텐츠 캐시 때문에 그 md가 바뀐 빌드에서만 보인다(결과 HTML은 그 파일만으로 정해져 영향 없음) | P5-02 `check:lessons`에서 캐시와 상관없이 전체 검사 |
-| 13 | 브라우저 저장 이름 규칙 공통 파일(시작하기 요청) | 아직 없음. `src/lib/capabilities.ts`가 머리말 `ai-physical-computing:`과 안내 닫기 기억 이름을 내보낸다 | P2-02 전(다음 할 일 2번) |
+| 13 | 브라우저 저장 이름 규칙 공통 파일(시작하기 요청) | **해결(2026-09-16 P2-01):** `src/lib/storage.ts` — 머리말 `ai-physical-computing:`, `storageKey`·`readItem`·`writeItem`·`removeItem`·`readJson`·`writeJson`·`listOurKeys`·`clearOurs`(이 사이트 이름만 지우고 `localStorage.clear()`는 쓰지 않음, 저장이 막힌 브라우저에서도 오류로 멈추지 않음). `capabilities.ts`는 같은 값을 다시 내보내고 안내 닫기 기억 이름도 이 규칙으로 만든다 | P2-02가 자동 저장·기록 지우기에 쓴다 |
 | 14 | 차시 frontmatter `source` 필드(원고·코드만·보충, 배우기 제안) | 만들지 않음. "원고 없음" 딱지는 차례표(`src/components/lesson/curriculum.ts`)에 있는 차시에만 붙는다 | P5에서 차례표 밖 차시가 생길 때 |
 | 15 | 띄어쓰기 사라짐 자동 검사 | Astro 7은 줄바꿈이 든 글자·태그 사이 공백을 지운다. 통합 단계에서 빌드 결과를 훑어 "글자 바로 뒤에 붙은 여는 인라인 태그" 22곳을 찾아 `{' '}`로 고치고 CLAUDE.md에 주의를 적었다. 이 검사를 링크 검사에 넣을지는 미정 | P6 품질 점검, 같은 문제가 다시 나오면 더 이르게 |
 | 16 | 예제 갤러리의 빈 안내 자리 | 조건부 슬롯도 `Astro.slots.has('notice')`가 참이라 갤러리에 빈 `.page-notice`가 생긴다. 전역 CSS(`:has()`)로 높이 0이지만 `:has()`를 모르는 옛 브라우저에서는 16px 틈. 2026-09-16부터 실습실 자리 페이지 4곳도 안내를 꺼서 같은 빈 자리가 생긴다 | Phase 4 갤러리(P4-11) 작업 때 |
 | 17 | macOS·Linux·Android용 대체 글꼴 지표 | `src/styles/fonts.css`의 'Pretendard Fallback'은 Windows 맑은 고딕만 맞췄다(이 PC에서 잴 수 있는 글꼴). Apple SD Gothic Neo·Noto Sans CJK KR의 폭·세로 지표는 그 운영체제에서 재야 한다. 그 밖의 운영체제는 지금처럼 운영체제 글꼴로 보이다가 Pretendard로 바뀐다(줄이 조금 밀림) | P6-02 성능 점검(운영자 PC 밖 기기가 있을 때) |
+| 19 | Pyodide에서 `exit()`(SystemExit)·`KeyboardInterrupt`로 끝난 실행이 `runPythonAsync` 약속 거부와 별개로 워커의 `unhandledrejection`으로 한 번 더 새는 현상 | 워커(`src/lab/runtime/worker.ts`)가 두 종류만 삼킨다(브라우저 테스트가 콘솔 오류 0건으로 확인). 원인은 코드를 돌리는 asyncio 작업이 두 예외를 결과에 적고도 다시 던지는 것(asyncio 규칙) | Pyodide 판을 올릴 때 다시 확인(현상이 사라져도 삼키는 코드는 무해) |
 | 18 | Pagefind WebAssembly 파일 속 Rust 크레이트 고지 | 배포하는 `wasm.*.pagefind`에 든 크레이트(라이선스 대부분 MIT/Apache-2.0)는 목록이 없다. Pagefind 저장소의 Cargo.lock으로 확인해 고지할지 P6-04에서 정한다. pagefind.js·pagefind-worker.js에는 다른 라이브러리 표시 없음(grep) | P6-04 출처 최종 점검 |
 
 ## 야간 작업 로그
 
 | UTC 시각 | 세션(로컬·클라우드) | 한 일 | 커밋 | 실패와 원인 |
 |---|---|---|---|---|
+| 2026-09-16T00:30Z | 로컬 | **P2-01 파이썬 워커**(08:30 KST 중단분을 이어서 완성): 작업 트리의 WIP 파일 18개를 `wip/phase2-snapshot`과 대조(모두 같음)한 뒤 하나씩 검토해 고쳤다 — ① `client.ts`: Pyodide 받기에 실패한 뒤 다시 `load()`해도 새 워커를 띄우지 않던 순서 문제(실패 알림이 같은 틱에 오면 약속 기억을 먼저 지운 뒤 덮어씀 → `#beginLoad`가 거부된 뒤에 지움) ② 시험 페이지 타입 오류(`hasJspiApi`에 DOM `WebAssembly`를 직접 넘김 → `envFromWindow`) ③ Node 도우미가 제한 모드에서 정지 신호를 받을 수 없는 반복문을 돌려 멈추던 문제(`needsJspi` 단계 건너뛰기) ④ `exit()`·`KeyboardInterrupt`가 약속 거부와 별개로 워커 밖으로 새는 것(unhandledrejection)을 워커가 삼키고 Node 도우미도 같은 처리 ⑤ task 취소 테스트의 가짜 워커가 답을 보내던 오류 ⑥ 정지 2단계 안내 문구를 `STOP_GRACE_MS`에서 계산. 공식 문서로 확인: Pyodide 워커 안내(모듈 워커만, `import('…/full/pyodide.mjs')`), `run_sync`·`can_run_sync`(JSPI + `runPythonAsync` 안에서만, 실험 기능), 인터럽트 버퍼(SharedArrayBuffer·COOP/COEP 필요), `setStdout({ write })`, `loadPackagesFromImports`(배포 패키지만). jsDelivr `v314.0.7/full/` 파일 5개 200·CORS·CORP 확인(`pyodide.asm.js`는 404), `sys.stdout.line_buffering` 참(줄마다 콘솔로 감). 검증: Vitest 28파일 295건(실제 Pyodide를 띄우는 Node 테스트 3건 포함, 8초), `astro check` 0 오류, `npm run build`(번들 npm 패키지 0개, 워커 청크 14.7KB), Playwright 159 통과·75 건너뜀(Edge 153, 3.3분 — lab-runtime 7건: print·NameError·SyntaxError·`exit()` 뒤 콘솔 오류 0건, 정지 1단계 72ms, 정지 2단계 재시작 뒤 재실행, `input()`, 제한 모드, numpy, 허용 주소 밖 요청 0건), 링크 검사 통과(사이트 안 주소 1,512개) | a17ccc5, 12dde41, 48b45fe + 이 문서 커밋 | 이전 시도(08:30 중단분)의 실패 4건 원인 = 위 ①③⑤와, 새어 나온 KeyboardInterrupt로 Node 도우미가 죽던 것(④) |
 | 2026-09-15T13:30Z | 로컬 | P1-01 공개 전 문서 점검(PD-37): 올릴 9개 파일에서 학교명(지역 이름·"○○고등학교" 형태)·사용자 폴더 경로·AppData·MAC 주소·이메일·전화번호 검색 → 실제 노출 0건(검색어 설명 문장 1건, 일반 계정 경로 예시 `C:/Users/COM` 1건만). 인명은 저작자 표기(박상진·김석전)만. `OVERNIGHT.md`의 고정 종료 시각·`extracted/flat` 안내·Pages 켜기 방법을 PLAN §13.1 6·7번대로 고침 | (첫 커밋) | — |
 | 2026-09-15T14:05Z | 로컬 | P1-03 배포 파이프라인과 첫 배포: `.github/workflows/deploy.yml` 추가. 빌드 작업(checkout v7 → configure-pages v6 → withastro/action v6, 권한 contents·pages 읽기, Node 24, Astro 익명 통계 끔)과 배포 작업(deploy-pages v5, 권한 pages·id-token 쓰기, 환경 github-pages)으로 나눔. 네 액션의 최신 주 버전이 PLAN과 같음을 각 저장소 releases/latest·action.yml로 확인, `enablement`는 쓰지 않음(Pages 이미 켜짐). main push(P1-02 커밋 7a4631f 포함) → 실행 34979015090 성공(빌드 16초, 배포 27초). `curl -sSfL` 홈 HTTPS 200·제목 확인(SPEC의 첫 배포 기준, Phase 1 전체는 P1-04~P1-11 뒤). 시험 파일 `public/_probe/` 응답 형식: `.mjs` = `text/javascript; charset=utf-8`, `.wasm` = `application/wasm`. 크롬 계열 브라우저 창에서 `import()`와 `WebAssembly.instantiateStreaming` 성공 | 3dd1a0a | 실패 없음(재시도 0회). 참고: 끝 슬래시 없는 주소는 301로 `/`가 붙은 주소로 이동, `dist/.gitkeep`이 공개 주소에서 200(P1-04에서 처리) |
 | 2026-09-15T15:15Z | 로컬 | P1-04 출처 등록부·저장소 검사·자동 출처 페이지: `sources.yaml` 6항목(운영자 원고·예제, 자체 제작 그림·시험 파일, Astro, Pretendard 자리. 넓은 항목은 `third-party/` 폴더를 뺌), `npm run build` 앞뒤 출처 검사(`scripts/check-sources.mjs`: 파일·dependencies 등록과 저작자가 다른 중복 매칭 / 빌드 뒤 번들 의존성은 미해결 9번 방식), 저장소 검사(`scripts/check-repo.mjs` + `.githooks/pre-commit`, `npm install`·`npm ci`가 훅을 켬, deploy.yml `저장소 안전 검사` 작업을 배포가 기다림), `/credits/`(라이선스별 묶음·제3자 목록·사이트 라이선스 제외 표시, 본문 컴포넌트 분리), Vitest 37건 추가(총 41건). 확인: `public/`에 미등록 파일 → `npm run build` 종료 코드 1(한국어 오류) → 지우고 0, `.pdf`·6MB 파일 스테이징 → 훅이 커밋을 막음(Git Bash·PowerShell, HEAD 그대로), 실행 34987093979 성공(검사 15초·빌드 24초 병렬, 배포 12초), `/credits/` 200, `/.gitkeep`·`/bundle-licenses.json` 404 | 150130b | 실험 1·2에서 Vite 번들 목록 파일이 남지 않음 → 원인: Astro가 client 환경의 build 설정을 새로 만들고 빌드 결과의 `.vite/`를 지움 → `configEnvironment` 플러그인과 `.vite/` 밖 파일 이름으로 해결. `astro check`가 테스트의 Node 내장 모듈 타입 오류 21건 → `@types/node` 24.13.4 추가로 0건 |
