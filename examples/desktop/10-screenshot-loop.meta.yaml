@@ -1,11 +1,12 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 화면 주기적으로 캡처하기
-description: 2초마다 화면을 찍어 폴더에 5장 저장해요.
+description: 2초마다 가상 모니터를 찍어 screenshots 폴더에 5장 저장해요. 끝까지 10초쯤 걸리고, 다섯 장 모두 '내 파일'에 쌓여요. 같은 이름으로 아주 빠르게 다시 저장하면 0.5초에 한 번만 실제로 저장해요.
 source_id: f016
 tags:
   - pyautogui
   - 캡처
   - 반복
+  - 파일
 packages:
   - pillow

@@ -1,9 +1,10 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 마우스 옮기고 클릭하기
-description: 커서를 천천히 옮긴 뒤 클릭, 더블 클릭, 오른쪽 클릭을 해요.
+description: 커서를 1초 동안 천천히 옮긴 뒤 클릭, 더블 클릭, 오른쪽 클릭을 해요. 오른쪽 클릭에서 바탕 화면 메뉴가 열려요.
 source_id: f018
 tags:
   - pyautogui
   - 마우스
+  - 클릭
 packages: []

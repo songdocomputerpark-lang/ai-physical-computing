@@ -1,9 +1,10 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 키보드로 글자 치기
-description: 5초 뒤 hello, world!를 10번 치고 Ctrl+S를 눌러요(가상 메모장).
+description: 5초 기다린 뒤 hello, world!를 10번 치고 Ctrl+S를 눌러요. 끝까지 30초쯤 걸리니 중간에 [정지]를 눌러도 돼요.
 source_id: f020
 tags:
   - pyautogui
   - 키보드
+  - 메모장
 packages: []

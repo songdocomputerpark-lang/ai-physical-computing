@@ -1,8 +1,10 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 웹 페이지 열기
-description: 웹 브라우저로 주소를 열어요(가상 브라우저 창).
+description: webbrowser.open으로 주소를 열면 가상 데스크톱에 가상 브라우저 창이 떠요. 진짜 인터넷에는 가지 않고 "가상 브라우저에서만 열려요"라고 알려 줘요(우리 사이트 주소라면 진짜로 여는 링크도 함께 나와요).
 source_id: f023
 tags:
   - webbrowser
+  - 가상 데스크톱
+  - 가상 브라우저
 packages: []

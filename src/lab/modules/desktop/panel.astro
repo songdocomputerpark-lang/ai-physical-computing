@@ -1,0 +1,360 @@
+---
+/**
+ * 가상 데스크톱의 화면 조각(src/lab/README.md 4.5) — LabShell이 [data-lab-module-panel="desktop"] 안에 hidden으로 그려 두고,
+ * index.ts가 코드에 pyautogui가 보이거나 파이썬이 desktop.open을 보낼 때 showPanel()로 연다. placement 'wide'라 전체 폭 줄에 있다.
+ *
+ * 이 파일은 HTML·CSS만 그리고 동작은 index.ts가 data-desktop-* 표시로 찾아 잇는다.
+ * 캔버스는 tabindex=0이라 키보드로 닿고(초점 테두리), 캔버스 글자는 읽어 주지 못하므로 커서 위치·마지막 동작·메모장 글을
+ * 옆의 글(aria-live)로 함께 둔다. 사진·상표 없이 캔버스에 도형과 글자만 그린다(SPEC §6.1·§8).
+ */
+import { SCREEN_PRESETS } from './model.ts';
+import { GAMES } from './games.ts';
+---
+
+<div class="desktop" data-desktop>
+  <div class="desktop__head">
+    <p class="desktop__title">
+      <strong>가상 데스크톱</strong>{' '}
+      <span class="desktop__badge">pyautogui</span>
+    </p>
+    <p class="desktop__cursor" data-desktop-cursor aria-live="off">커서 (960, 540) · 모니터 1920×1080</p>
+  </div>
+
+  <div class="desktop__controls">
+    <label class="desktop__control" for="lab-module-desktop-screen">모니터 크기</label>
+    <select id="lab-module-desktop-screen" class="lab__select desktop__select" data-desktop-screen>
+      {SCREEN_PRESETS.map((preset) => <option value={`${preset.width}x${preset.height}`}>{preset.label}</option>)}
+    </select>
+    <label class="desktop__check" for="lab-module-desktop-trail">
+      <input id="lab-module-desktop-trail" type="checkbox" data-desktop-trail checked />
+      <span>커서가 지나간 길 보기</span>
+    </label>
+    <button type="button" class="lab-button lab-button--small" data-desktop-corner>모서리로(안전장치)</button>
+    <button type="button" class="lab-button lab-button--small" data-desktop-reset>처음 상태로</button>
+  </div>
+
+  <div class="desktop__controls">
+    <label class="desktop__control" for="lab-module-desktop-game">미니게임</label>
+    <select id="lab-module-desktop-game" class="lab__select desktop__select desktop__select--game" data-desktop-game-select>
+      {GAMES.map((game) => <option value={game.id}>{game.label}</option>)}
+    </select>
+    <button type="button" class="lab-button lab-button--small" data-desktop-game-open>미니게임 열기</button>
+    <button type="button" class="lab-button lab-button--small" data-desktop-browser-open>웹 브라우저 열기</button>
+    <span class="desktop__score" data-desktop-game-text aria-live="polite"></span>
+  </div>
+
+  <div class="desktop__stage" data-desktop-stage>
+    <canvas
+      class="desktop__canvas"
+      data-desktop-canvas
+      tabindex="0"
+      role="img"
+      aria-label="가상 모니터 — 파이썬 코드가 움직이는 커서와 창이 보여요. 아래 글에 마지막 동작과 메모장 내용이 함께 나와요."
+    ></canvas>
+  </div>
+
+  <p class="desktop__action" data-desktop-action aria-live="polite" role="status"></p>
+
+  <p class="desktop__link" data-desktop-browser-link hidden>
+    가상 브라우저가 연 주소는 우리 사이트예요:{' '}
+    <a data-desktop-browser-href href="#" target="_blank" rel="noopener">진짜 브라우저에서 열기</a>
+  </p>
+
+  <details class="desktop__more">
+    <summary>메모장 글·내 파일 보기</summary>
+    <p class="desktop__label">메모장에 들어간 글</p>
+    <pre class="desktop__notepad" data-desktop-notepad aria-label="가상 메모장에 들어간 글"></pre>
+    <p class="desktop__label">내 파일(가상 데스크톱에서 저장한 것)</p>
+    <p class="desktop__files" data-desktop-files>아직 저장한 파일이 없어요.</p>
+    <ul class="desktop__filelist" data-desktop-file-list></ul>
+  </details>
+
+  <p class="desktop__note">
+    진짜 마우스·키보드 대신 이 <strong>가상 모니터</strong>가 움직여요. 코드를 그대로 진짜 PC에서 돌리면 진짜 마우스가 움직여요.{' '}
+    직접 눌러 보고 글자를 쳐 볼 수도 있어요(캔버스를 한 번 누르면 키보드가 들어가요). 화면 왼쪽 위 모서리 (0, 0)은{' '}
+    <code>FAILSAFE</code> 자리예요 — 커서가 그곳에 있으면 다음 <code>pyautogui</code> 함수에서 멈춰요.{' '}
+    <code>webbrowser.open(주소)</code>는 <strong>가상 브라우저 창</strong>을 열어요(진짜 인터넷에 가지 않아요).{' '}
+    <code>pyautogui.press('space')</code>는 <strong>미니게임</strong>으로 가요 — 게임 창이 없으면 열어 줘요.
+  </p>
+</div>
+
+<style>
+  .desktop {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  /* 실습실 틀의 부품과 같은 모양(LabShell.astro의 .lab-button·.lab__select는 그 파일에만 적용되는 범위 스타일이라 여기서 다시 적는다). */
+  .desktop .lab-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    cursor: pointer;
+  }
+
+  .desktop .lab-button:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .desktop .lab-button:focus-visible,
+  .desktop__select:focus-visible,
+  .desktop__check input:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .desktop__select {
+    flex: 0 1 22rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    max-width: 100%;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .desktop__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .desktop__title,
+  .desktop__cursor,
+  .desktop__action,
+  .desktop__note,
+  .desktop__files,
+  .desktop__label {
+    margin: 0;
+  }
+
+  .desktop__badge {
+    padding: 0.1em 0.5em;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .desktop__cursor {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .desktop__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  .desktop__control {
+    font-weight: var(--weight-semibold);
+  }
+
+  .desktop__check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--target-min);
+  }
+
+  .desktop__check input {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .desktop__stage {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .desktop__canvas {
+    display: block;
+    width: 100%;
+    height: var(--desktop-height, auto);
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: #24405f;
+    /* 세로로 미는 손짓은 브라우저에 맡겨 페이지가 스크롤되게 두고(작은 화면에서 캔버스가 스크롤을 가두면 안 된다),
+       가로로 끄는 손짓과 누르기만 가상 데스크톱이 가져간다. 마우스는 영향을 받지 않는다. */
+    touch-action: pan-y;
+    cursor: crosshair;
+  }
+
+  .desktop__canvas:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .desktop__action {
+    min-height: 1.5em;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+  }
+
+  .desktop__action:empty::before {
+    content: '코드를 실행하면 여기에 무슨 일이 일어났는지 적어요.';
+    color: var(--color-text-muted);
+  }
+
+  .desktop__more {
+    font-size: var(--text-sm);
+  }
+
+  .desktop__more summary {
+    min-height: var(--target-min);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .desktop__label {
+    margin-block-start: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .desktop__notepad {
+    max-height: 9rem;
+    margin: 0;
+    padding: var(--space-2);
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .desktop__notepad:empty::before {
+    content: '(아직 없어요)';
+    color: var(--color-text-muted);
+  }
+
+  .desktop__select--game {
+    flex: 0 1 14rem;
+  }
+
+  .desktop__score {
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .desktop__link {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .desktop__link[hidden] {
+    display: none;
+  }
+
+  .desktop__filelist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 파일 카드는 index.ts가 만들므로 Astro의 범위 표시가 붙지 않는다 → :global()로 적되 목록 안으로만 좁힌다. */
+  .desktop__filelist :global(.desktop__file) {
+    display: grid;
+    gap: var(--space-1);
+    width: 10rem;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+  }
+
+  .desktop__filelist :global(.desktop__file img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+  }
+
+  .desktop__filelist :global(.desktop__file-name) {
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .desktop__filelist :global(.desktop__file-size) {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  /* 카드 안 [내려받기]는 실습실 단추와 같은 모양(LabShell의 .lab-button은 그 파일 범위라 여기서 다시 적는다) */
+  .desktop__filelist :global(.lab-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .desktop__filelist :global(.lab-button:hover) {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .desktop__filelist :global(.lab-button:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .desktop__note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .desktop__note code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+</style>
