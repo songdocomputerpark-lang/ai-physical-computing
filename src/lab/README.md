@@ -172,6 +172,8 @@ export default manifest;
 
 - `apc_runtime`의 `request`·`emit`·`get`·`poll`·`drain`·`sleep`·`maybe_yield`·`check_stop`·`notice`·`register_reset_hook`·`register_tick_hook`만 써요. `js`·`_apc_bridge`를 직접 만지지 않아요.
 - 진짜 패키지를 덮어쓰는 모듈은 `install()`(멱등 — 두 번 불려도 한 번만)을 두고 manifest의 `shims`에 적어요. `install()`은 실행 직전 **동기 진입점**에서 불려요.
+- **`shims`를 쓰지 않는 경우(P2-12·P2-13에서 나온 규약 예외):** Pyodide에 **아예 없는 패키지**(`speech_recognition`)나 **표준 라이브러리를 가리는 것**(`webbrowser`)은 `shims`에 적지 않고 **그 패키지 이름 그대로 `.py` 파일**을 모듈 폴더에 둬요. 워커가 `/apc`(sys.path 맨 앞)에 넣으므로 학생 코드의 `import speech_recognition as sr`가 내려받기 없이 그 파일을 불러요. `shims`는 **이미 받아 둔 진짜 패키지**를 덮어쓸 때만(`cv2`·`mediapipe`처럼) 써요 — `install_available()`이 그 패키지가 있을 때만 `install()`을 부르기 때문이에요.
+- **실행이 끝날 때 한 번 할 일**은 `register_finish_hook(fn)`으로 등록해요(워커가 `unbind_run_globals`를 부를 때 한 번, 동기 진입점이라 양보 금지). 마지막 줄에서 파일을 저장하고 끝나는 코드처럼 틱 훅으로는 잡히지 않는 것에 써요.
 - **동기 진입점 규칙(PROGRESS 미해결 25번):** `install()`, `register_reset_hook` 함수, `register_tick_hook` 함수 안에서는 양보하는 함수(`sleep`·`request`·`input`·`block_on`·`get`·`poll`)를 부르지 않아요. 쌓인 값을 버릴 때는 `drain(channel)`. 어기면 `RuntimeError: Cannot stack switch…`가 나요.
 - 요청 답을 큰 바이트 배열로 받을 때는 `request(kind, payload, raw=True)`로 JsProxy를 받아 `assign_to`로 numpy에 복사해요(`apc_cv2.py`의 `_frame_to_bgr` 참고).
 - 파일 맨 위 docstring에 학생 코드에서 쓰는 법을 적어요(`hello/apc_hello.py`).
@@ -206,19 +208,28 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 
 ```bash
 npm ci                                    # 처음 한 번(설치 스크립트는 esbuild만 허용됨)
-npm run dev -- --port 4404                # 내 포트(아래 표). predev가 public/vendor/에 MediaPipe WASM을 복사해요
-PW_BASE_URL=http://localhost:4404/ai-physical-computing/ npx playwright test tests/e2e/module-hands.spec.ts --project=desktop
+ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 4404 --ignore-lock   # 내 포트(아래 표). predev가 public/vendor/에 자산을 복사해요
+PW_BASE_URL=http://localhost:4404/ai-physical-computing/ npx playwright test tests/e2e/module-hands.spec.ts --project=desktop --output=.cache/pw-mediapipe
 ```
+
+**같은 작업 폴더를 여럿이 쓸 때 부딪히는 것(2026-09-16 실측):**
+
+- Astro 7은 **한 작업 폴더에 개발 서버를 하나만** 띄워요(`Another astro dev server is already running.`). 포트를 나눠도 서버는 하나뿐이니, 먼저 띄운 사람의 주소를 `PW_BASE_URL`로 함께 쓰거나 `--ignore-lock`(잠금 파일 `.astro/dev.json`을 읽지도 쓰지도 않음)으로 나란히 띄워요. Windows에서 `--ignore-lock` 없이 두 번째 서버를 띄우면 `EPERM: operation not permitted, unlink '.astro/dev.json'`으로 죽어요.
+- `npx playwright test`에는 **`--output=<내 폴더>`**를 꼭 붙여요. 붙이지 않으면 공유 `test-results/`를 다른 사람이 지우면서 `browserContext.close: ENOENT … .playwright-artifacts-N` 같은 가짜 실패가 나요.
+- 다른 사람이 `src/`를 저장하면 내 테스트 페이지가 Vite HMR로 통째로 새로고침돼 실행 중이던 코드가 끊길 수 있어요(재시도하면 통과). 빌드 결과로 도는 `npm run test:e2e`에는 없는 문제예요.
+- 개발 서버로 `/labs/vision/`을 처음 열면 Vite가 그때그때 옮기느라 40초를 넘길 수 있어요 — 그 페이지를 쓰는 검사에는 `test.describe.configure({ timeout: … })`가 필요해요.
+
+실제로 만들어진 폴더는 아래와 같아요(2026-09-16 P2-05~P2-14 통합 뒤 — 처음 배정과 이름이 다른 곳이 있어요).
 
 | 작업 | 포트 | 모듈 폴더 / 파일 | 페이지·저장 이름 |
 |---|---|---|---|
-| A 로딩·캐시(P2-05) | 4401 | `src/lab/modules/loading/`(진행률·예비본 전환 화면), `scripts/vendor-assets.mjs`에 Pyodide 예비본 단계 | 점검 페이지 항목은 `src/components/start/`(공유 아님) |
-| B 오류 사전(P2-06) | 4402 | `src/lab/modules/errors/`(콘솔 한국어 풀이) | `module:errors:*` |
-| C 보충 V1~V5(P2-07) | 4403 | `examples/vision/u1/v1-*.py … v5-*.py`, `content/lessons/u1/v1.md …`, `public/images/lessons/u1/` | — |
-| D mediapipe 손 → 얼굴·자세(P2-08→09) | 4404 | `src/lab/modules/hands/`, `faces/`, `pose/`(또는 하나 `mediapipe/`), `public/models/*.task` + `scripts/repo-allowlist.yaml` large_files | `module:mediapipe:*` |
-| E 러너 공통(P2-10) | 4405 | `src/lab/modules/runner/`(가상 파일 `mask.png`, 글꼴 연결, 이름 가림 경고) | `module:runner:*` |
-| F 가상 데스크톱 ①→②(P2-11→12) | 4406 | `src/lab/modules/desktop/`(placement `'wide'`), `examples/desktop/` 사이드카 | `module:desktop:*` |
-| G 음성(P2-13) | 4407 | `src/lab/modules/speech/` | `module:speech:*`(설정은 `ctx.storageName`) |
+| A 로딩·캐시(P2-05) | 4401 | `src/lab/modules/loading/`(진행률·1분 개념 카드·미리 받기), `src/lab/loader/`, `src/sw/sw.js`, `scripts/{fetch-pyodide-fallback,build-sw}.mjs` | 점검 페이지 부품 `src/components/start/network-check/` |
+| B 오류 사전(P2-06) | 4402 | `src/lab/modules/errors/`, `src/lab/errors/`, `content/help/errors/errors.yaml`, `src/pages/help/errors/` | — |
+| C 보충 V1~V5(P2-07) | 4403 | `examples/vision/supplement/v1-*.py … v5-*.py`, `content/lessons/u1/v1.md … v5.md`, `public/images/lessons/supplement/` | — |
+| D mediapipe 손·얼굴·자세(P2-08·09) | 4404 | `src/lab/modules/mediapipe/`(한 폴더로 합침), `scripts/gen-landmarks.mjs`, `public/models/*.task`(운영자가 내려받음) | `module:mediapipe:*` |
+| E 러너 공통(P2-10) | 4405 | `src/lab/modules/runtime-extras/`(가상 파일 `mask.png`, 글꼴 연결, 이름 가림 경고, 콘솔 접기) | `module:runtime-extras:*` |
+| F 가상 데스크톱(P2-11·12) | 4406 | `src/lab/modules/desktop/`(placement `'wide'`, `pyautogui.py`·`webbrowser.py`), `examples/desktop/` 사이드카 | `module:desktop:*` |
+| G 음성(P2-13) | 4407 | `src/lab/modules/speech/`(`speech_recognition.py`), `src/pages/settings/`, `src/components/settings/` | `module:speech:*` |
 
 - 자기 spec만 돌려요(`tests/e2e/module-<id>.spec.ts`). 공유 spec(`lab-*.spec.ts`, `scenario-a.spec.ts`)을 고치지 않아요. 브라우저 테스트는 테스트마다 새 브라우저 문맥이라 localStorage가 섞이지 않지만, 페이지 안 저장 이름은 `ctx.storageName`으로 모듈별로 나눠요.
 - 개발 서버에는 검색 색인(Pagefind)이 없어 `search*.spec.ts`는 돌지 않아요. 첫 응답이 느리니(Vite 변환) 기다리는 시간은 `LOAD_TIMEOUT`(90초)·`PACKAGES_TIMEOUT`(150초)을 그대로 써요.

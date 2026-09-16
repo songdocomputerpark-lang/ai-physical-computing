@@ -129,6 +129,30 @@ git push
   - 카메라·창 코드는 PC용 그대로 써요(`cv2.VideoCapture(0)`, `cap.read()`, `cv2.imshow`, `cv2.waitKey(1) & 0xFF == ord('q')`). 실습실이 웹캠이나 샘플 입력을 연결해요.
   - **조절 막대 만들기:** 값을 정하는 줄 끝에 `# @slider 최소 최대 간격`을 붙이면(예: `threshold = 100  # @slider 0 255 1`) 실습실 오른쪽 아래 조절 패널에 슬라이더가 생겨요. `mode = "edge"  # @select edge blur gray`는 고르기 상자, `show = True  # @toggle`은 켜기·끄기예요. 들여쓰기 없는 줄에서만 되고, 규약 앞뒤에 적은 말은 설명으로 보여요. 슬라이더를 움직이면 코드의 숫자가 함께 바뀌고 실행 중이면 다음 프레임부터 반영돼요. 잘못 쓰면 패널에 한국어 경고가 나와요(`src/lab/README.md` 1절).
 
+  - **예제를 더하면 스모크 테스트가 한 번 돌려 봐요:** `npm run test:e2e`의 `tests/e2e/examples-smoke.spec.ts`가 옮긴 예제 전부를 실습실에서 한 번씩 실행해 파이썬 오류로 끝나지 않는지 봐요. 원본이 **일부러 오류로 끝나는 예제**(오류 읽기 연습)는 사이드카에 이렇게 적어 두면 그대로 통과해요.
+
+    ```yaml
+    smoke:
+      outcome: error        # ok | stopped | error (적지 않으면 "오류만 아니면 통과")
+      error: AttributeError # 콘솔에 보여야 하는 오류 이름
+      input: replay         # sample | replay | webcam (적지 않으면 tags로 고름)
+      seconds: 6            # 지켜보는 시간(기본 3.5초)
+      skip: "왜 지금은 안 돌리는지"
+    ```
+
+## 2-1. 오류 풀이 항목 더하기
+
+실습실에서 파이썬 오류가 나면 콘솔 위에 "오류 풀이" 카드가 열리고, 같은 글이 [문제 해결 → 파이썬 오류 사전](https://songdocomputerpark-lang.github.io/ai-physical-computing/help/errors/)에도 나와요. 항목은 **파일 하나**에 모여 있어 코드를 고치지 않고 더할 수 있어요.
+
+1. 실습실 콘솔이나 카드의 **마지막 줄**(예: `NameError: name 'total' is not defined`)을 그대로 적어 둬요.
+2. `content/help/errors/errors.yaml`의 `entries:` 끝에 항목 하나를 더해요. 꼭 필요한 것은 `id`·`group`·`title`·`meaning`·`fix`와 `types`(예외 종류) 또는 `patterns`(메시지 정규식) 가운데 하나예요. 필드 설명은 그 파일 맨 위에 있어요.
+3. `npx vitest run tests/unit/errors`로 형식 검사를 돌려요(빌드도 같은 검사를 하고, 틀리면 어디가 틀렸는지 한국어로 알려 줘요).
+4. 끝이에요. 새 항목은 사전 페이지와 실습실 카드에 함께 나와요.
+
+같은 오류에 여러 항목이 맞으면 점수(종류 2 + 메시지 패턴 4 + 트레이스백 패턴 4 + `priority`)가 높은 항목이 뽑혀요. 학생이 읽는 글이라 영문 이름 뒤에 조사 자리(`{name:을/를}`)는 쓰지 않아요("을(를)"로 보여요).
+
+Pyodide 판을 올렸다면 `node --experimental-wasm-jspi tests/unit/errors/helpers/pyodide-traceback-run.mjs . --write`로 채집본(`tests/unit/errors/fixtures/tracebacks.json`)을 다시 만든 뒤 테스트를 돌려요.
+
 ## 3. 그림 넣기와 출처 등록
 
 1. **위치:** 차시 그림은 `public/images/lessons/u대단원번호/`, 사이트가 직접 그린 그림은 `public/images/site/`에 둬요. 파일 이름은 영문 소문자·숫자·하이픈으로 써요.
@@ -154,6 +178,13 @@ git push
 - 빌드하면 출처와 라이선스 페이지(`/credits/`)가 자동으로 바뀌어요.
 - npm 패키지를 새로 넣을 때는 ① `npm install 이름@정확한버전`으로 설치하고 ② `sources.yaml`에 항목을 만들고(라이선스는 `node_modules/이름/LICENSE`로 확인) ③ 라이선스가 고지를 요구하면(MIT 등) 고지 원문을 `public/licenses/이름.txt`로 옮겨 `notice`에 적어요. `npm run build`가 끝나면 번들에 함께 들어간 다른 패키지 이름을 알려 주니, 그 패키지도 항목에 더해요(전이 의존성).
 - 고지 원문에 저작자 이메일이 있으면 저장소 검사(커밋 전 훅)가 막아요. 그 파일만 `scripts/repo-allowlist.yaml`의 `privacy_exceptions`에 경로·`kinds: [email]`·이유를 적어요(`public/licenses/` 아래 파일과 `package-lock.json`만 허용돼요 — 잠금 파일은 npm이 다른 패키지의 deprecated 안내문을 그대로 기록하는데 거기에 그 패키지 저작자의 공개 주소가 들어올 수 있어요. 운영자·학생 정보는 어떤 경우에도 예외로 두지 않아요).
+
+## 4-1. 로딩·캐시와 오프라인(P2-05)
+
+- **같은 사이트 예비본:** 학교 네트워크가 jsDelivr를 막아도 실습이 열리게, 빌드가 `public/vendor/pyodide/<판>/`에 파이썬 파일 7개(25.9MB)를 채워요(`npm run pyodide:fallback`, `npm run build` 앞에서 자동). 저장소에는 넣지 않아요. Pyodide 판을 올리면 `src/lab/loader/pyodide-files.ts`의 표(이름·크기·SHA-256)도 함께 고쳐야 해요 — 안 고치면 스크립트와 단위 테스트가 막아요.
+- **서비스 워커:** `npm run build` 뒤 `dist/sw.js`가 생겨요(`npm run sw`로 따로도 만들 수 있어요). 캐시 이름·용량 한도·사전 캐시 예산은 `src/lab/loader/constants.ts` 한 곳이에요. 사전 캐시가 예산(700KB)을 넘으면 빌드가 멈춰요.
+- **수업 전 교실 컴퓨터 준비:** 영상처리 실습실 준비 패널의 **[이 컴퓨터에 실습 파일 미리 받기]**를 한 번 누르면 약 26MB를 받아 두어 수업 중에는 인터넷 없이도 실습실이 열려요.
+- **문제가 생기면:** 주소 끝에 `?sw=off`를 붙여 열면 서비스 워커 등록을 풀고 이 사이트 캐시를 모두 지워요. 다시 켜려면 `?sw=on`.
 
 ## 5. 배포 확인
 
