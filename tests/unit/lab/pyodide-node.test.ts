@@ -1,5 +1,7 @@
 // 실제 Pyodide 314.0.7을 Node.js에서 띄워 파이썬 도우미(apc_runtime.py)와 다리(bridge.ts)를 검사한다(PLAN PD-14, PROGRESS 미해결 1번).
-// JSPI는 Node 24에서 --experimental-wasm-jspi 플래그로 켜므로 Node를 따로 띄운다(tests/unit/lab/helpers/pyodide-node-run.mjs).
+// JSPI는 V8 옵션 --experimental-wasm-jspi로 켜고 --no-experimental-wasm-jspi로 끄므로 Node를 따로 띄운다
+// (tests/unit/lab/helpers/pyodide-node-run.mjs). 기본값은 Node 판마다 다르다(운영자 PC의 24.19.0은 꺼짐, CI의 24.20.0은 켜짐 —
+// 2026-09-16 테스트 워크플로 실행 35040170394에서 확인). 그래서 두 경우 모두 플래그를 명시한다.
 // 플래그를 모르는 Node나 pyodide 패키지가 없는 곳에서는 건너뛴다. Pyodide를 띄우는 데 2초 안팎이 걸린다.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -16,6 +18,11 @@ const nodeJspi = spawnSync(process.execPath, ['--experimental-wasm-jspi', '-e', 
   timeout: 20_000,
 });
 const nodeHasJspi = nodeJspi.status === 0 && nodeJspi.stdout === 'function';
+const nodeNoJspi = spawnSync(process.execPath, ['--no-experimental-wasm-jspi', '-e', 'process.stdout.write(typeof WebAssembly.Suspending)'], {
+  encoding: 'utf8',
+  timeout: 20_000,
+});
+const nodeCanDisableJspi = nodeNoJspi.status === 0 && nodeNoJspi.stdout === 'undefined';
 const pyodideInstalled = fs.existsSync(path.join(ROOT, 'node_modules', 'pyodide', 'pyodide.mjs'));
 
 interface StepRecord {
@@ -137,8 +144,8 @@ describe.runIf(pyodideInstalled)('Node.js의 실제 Pyodide', () => {
     120_000,
   );
 
-  it('플래그 없이 띄우면 can_run_sync가 거짓이라 제한 모드가 되고, 한 번 실행되는 코드는 그대로 돈다', () => {
-    const out = runNode([]);
+  it.runIf(nodeCanDisableJspi)('JSPI를 끄고(--no-experimental-wasm-jspi) 띄우면 can_run_sync가 거짓이라 제한 모드가 되고, 한 번 실행되는 코드는 그대로 돈다', () => {
+    const out = runNode(['--no-experimental-wasm-jspi']);
     expect(out.jspiFlag).toBe(false);
     expect(out.canRunSync).toBe(false);
     const steps = out.steps;

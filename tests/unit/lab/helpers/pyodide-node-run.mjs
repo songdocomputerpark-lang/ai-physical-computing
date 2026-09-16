@@ -1,8 +1,9 @@
 // Node.js에서 실제 Pyodide 314.0.7(npm devDependency)을 띄워 파이썬 도우미(src/lab/runtime/apc_runtime.py)와
 // JS 다리(src/lab/runtime/bridge.ts)를 함께 돌리는 도우미 스크립트(PLAN PD-14, PROGRESS 미해결 1번).
 // tests/unit/lab/pyodide-node.test.ts가 `node --experimental-wasm-jspi 이 파일 <저장소 뿌리>`로 띄우고,
-// 마지막 줄에 찍히는 JSON 한 줄을 읽는다. 플래그 없이 띄우면 제한 모드(can_run_sync 거짓)의 결과가 나온다.
-// 제한 모드에서는 끝나지 않는 단계(정지를 기다리는 반복문)를 건너뛰고 결과에 skipped로 적는다.
+// 마지막 줄에 찍히는 JSON 한 줄을 읽는다. `--no-experimental-wasm-jspi`로 띄우면 제한 모드(can_run_sync 거짓)의 결과가 나온다
+// (JSPI 기본값은 Node 판마다 달라 두 경우 모두 플래그를 명시한다). 제한 모드에서는 끝나지 않는 단계(정지를 기다리는 반복문)를
+// 건너뛰고 결과에 skipped로 적는다.
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
