@@ -11,7 +11,8 @@
  *    JSPI 감지는 runPythonAsync 안에서 pyodide.ffi.can_run_sync()를 불러 한다(run_sync는 runPythonAsync로 들어온 호출에서만 된다).
  * 2. run: import 문을 분석해 필요한 Pyodide 패키지를 받고(loadPackagesFromImports, 패키지 이름은 pyodide-lock.json 기준),
  *    받아 둔 패키지의 흉내 모듈을 설치한 뒤(apc_shims.install_available — cv2의 카메라·창 함수 덮어쓰기, P2-03),
- *    새 전역(__name__ == '__main__')으로 runPythonAsync 한다(JSPI 기다리기는 이 경로에서만 된다). 끝나면 done 메시지.
+ *    새 전역(__name__ == '__main__')을 조절 패널 값의 목적지로 도우미에 알리고(apc_runtime.bind_run_globals, P2-04)
+ *    runPythonAsync 한다(JSPI 기다리기는 이 경로에서만 된다). 끝나면 done 메시지.
  *    큰 값(cv2.imshow 영상)은 event 메시지의 transfer 목록으로 복사 없이 화면에 보낸다.
  * 3. stop(정지 1단계): 다리에 정지 표시를 켜 기다리던 곳(sleep·input·request)을 깨우면 파이썬 쪽에서 KeyboardInterrupt가 난다.
  *    양보 없는 계산 반복문은 이 메시지를 받지 못하므로 화면이 1초 뒤 워커를 끝내고 다시 띄운다(정지 2단계, client.ts).
@@ -188,6 +189,29 @@ function packageCallbacks() {
   };
 }
 
+/**
+ * 조절 패널 값(P2-04)을 넣을 전역 사전 — 학생 코드의 globals() — 을 파이썬 도우미에 알린다.
+ * 학생 이름 공간(globals)에서 식 하나만 돌려 다른 이름(import한 모듈 등)이 남지 않게 한다. 실패해도 실행은 계속한다(조절 값만 안 들어간다).
+ */
+function bindParamGlobals(globals: PyProxy): void {
+  if (!pyodide) {
+    return;
+  }
+  try {
+    pyodide.runPython('__import__("apc_runtime").bind_run_globals(globals())', { globals });
+  } catch (error) {
+    post({ type: 'notice', level: 'warn', text: `조절 패널 값을 코드에 잇지 못했어요: ${describeError(error)}` });
+  }
+}
+
+function unbindParamGlobals(): void {
+  try {
+    pyodide?.runPython('import apc_runtime\napc_runtime.unbind_run_globals()');
+  } catch {
+    // 실행이 끝난 뒤라 넘어간다(다음 실행의 reset_for_run이 다시 비운다).
+  }
+}
+
 /** 받아 둔 패키지의 흉내 모듈을 설치한다(apc_shims.py). 실패해도 실행은 계속하고 콘솔에 알린다. */
 function installShims(): void {
   if (!pyodide) {
@@ -315,6 +339,7 @@ async function run(message: RunMessage): Promise<void> {
       installShims();
       pyodide.runPython('import apc_runtime\napc_runtime.reset_for_run()');
       const globals = pyodide.toPy({ __name__: '__main__', __file__: message.filename }) as PyProxy;
+      bindParamGlobals(globals);
       try {
         await pyodide.runPythonAsync(message.code, { globals, filename: message.filename, dedent: false });
       } catch (caught) {
@@ -333,6 +358,7 @@ async function run(message: RunMessage): Promise<void> {
           error = { type: 'JavaScriptError', message: describeError(caught), traceback: String(caught) };
         }
       } finally {
+        unbindParamGlobals();
         globals.destroy();
         flushStreams();
       }

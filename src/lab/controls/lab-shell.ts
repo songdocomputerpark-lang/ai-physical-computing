@@ -10,7 +10,10 @@
  *   const lab = await getLabController(document.querySelector('[data-lab]'));
  *   lab.on('done', (result) => …);                       // 실행이 끝났을 때(RunResult)
  *   lab.onRequest('camera.read', (request) => request.reply(frame));  // 파이썬 apc_runtime.request('camera.read', …)
- *   lab.runtime.setValue('threshold', 100);               // 슬라이더 값(P2-04)
+ *   lab.replaceCode(from, to, '120', 'param');            // 코드 한 구간만 바꿔 쓰기(조절 패널, src/lab/params/panel.ts)
+ *
+ * 조절 패널(P2-04)은 LabShell.astro가 mountLabShell 뒤에 mountParamPanel(root, lab)으로 붙인다(코드의 # @slider 규약 → 패널,
+ * 값 변경 → 코드 글자 바꿔 쓰기 + 실행 중이면 runtime.pushEvent('lab.params', …)).
  *
  * 시작할 때 코드를 정하는 순서
  *   1. 주소 # 뒤에 공유 링크 코드(code=)가 있으면 그 코드(예제는 ex= 값). 주소의 #은 지워 새로고침하면 자동 저장본이 열린다.
@@ -58,7 +61,8 @@ export const LAB_READY_EVENT = 'apc:lab-ready';
 
 export type ConsoleKind = 'stdout' | 'stderr' | 'notice' | 'input';
 
-export type CodeSource = 'edit' | 'example' | 'share' | 'restore' | 'reset' | 'set' | 'records-cleared';
+/** 코드가 바뀐 까닭. param = 조절 패널이 값 글자를 바꿔 씀(P2-04) */
+export type CodeSource = 'edit' | 'example' | 'share' | 'restore' | 'reset' | 'set' | 'records-cleared' | 'param';
 
 export interface LabEvents {
   /** 코드가 바뀜(사용자 편집 포함) */
@@ -90,6 +94,11 @@ export interface LabController {
   getCode(): string;
   /** 코드를 넣는다. save가 false면 자동 저장하지 않는다(기본 true). */
   setCode(code: string, options?: { save?: boolean }): void;
+  /**
+   * 코드의 한 구간(from부터 to 앞까지)만 바꿔 쓴다(커서·되돌리기 유지, 자동 저장됨). 'code' 이벤트의 source는 기본 'edit',
+   * 조절 패널은 'param'을 넘긴다. 범위가 코드 밖이면 false.
+   */
+  replaceCode(from: number, to: number, insert: string, source?: CodeSource): boolean;
   run(): Promise<RunResult | null>;
   stop(): Promise<StopResult>;
   /** 예제 원래 코드로(확인 없이) */
@@ -188,6 +197,8 @@ class LabShellController implements LabController {
   readonly #cleanups: (() => void)[] = [];
   #autosave: Autosave;
   #suppressAutosave = false;
+  /** replaceCode가 넘긴 까닭(에디터 onChange가 'code' 이벤트에 쓴다) */
+  #changeSource: CodeSource | null = null;
   #runCount = 0;
   #fontSizePx = DEFAULT_FONT_SIZE_PX;
   #pendingInput: RuntimeRequest | null = null;
@@ -287,6 +298,15 @@ class LabShellController implements LabController {
     }
     if (!save) {
       this.#emit('code', { code, source: 'set' });
+    }
+  }
+
+  replaceCode(from: number, to: number, insert: string, source: CodeSource = 'edit'): boolean {
+    this.#changeSource = source;
+    try {
+      return this.editor.replaceRange(from, to, insert);
+    } finally {
+      this.#changeSource = null;
     }
   }
 
@@ -442,7 +462,7 @@ class LabShellController implements LabController {
   #handleChange(code: string): void {
     if (!this.#suppressAutosave) {
       this.#autosave.update(code);
-      this.#emit('code', { code, source: 'edit' });
+      this.#emit('code', { code, source: this.#changeSource ?? 'edit' });
     }
   }
 

@@ -19,6 +19,8 @@ const out = { jspiFlag: typeof WebAssembly.Suspending === 'function', steps: {},
 const posted = [];
 let stdout = '';
 let jspi = false;
+/** 조절 패널 흉내(P2-04): input() 안내글 → 답하기 직전에 'lab.params' 채널에 쌓을 값 목록 */
+const paramPushes = new Map();
 
 // 워커(src/lab/runtime/worker.ts)의 error·unhandledrejection 처리와 같은 역할이다. SystemExit·KeyboardInterrupt로 끝난 실행은
 // runPythonAsync 약속이 거부되는 것과 별개로 처리되지 않은 오류로 한 번 더 새어 나온다(asyncio Task가 결과에 적고도 다시 던짐).
@@ -51,11 +53,15 @@ out.loadMs = Date.now() - startedAt;
 const bridge = createBridge({
   post: (message) => {
     posted.push(message);
-    // 화면 흉내: input 요청에는 10ms 뒤 '민수'로 답하고, camera.read 요청은 거절한다.
+    // 화면 흉내: input 요청에는 10ms 뒤 '민수'로 답하고(답하기 전에 안내글에 걸린 조절 값을 쌓는다), camera.read 요청은 거절한다.
     if (message.type === 'request') {
       setTimeout(() => {
-        if (message.kind === 'input') bridge.resolveRequest(message.requestId, '민수');
-        else bridge.rejectRequest(message.requestId, `화면이 "${message.kind}" 요청을 처리하지 못해요.`);
+        if (message.kind === 'input') {
+          for (const update of paramPushes.get(message.payload?.prompt ?? '') ?? []) {
+            bridge.pushEvent('lab.params', update);
+          }
+          bridge.resolveRequest(message.requestId, '민수');
+        } else bridge.rejectRequest(message.requestId, `화면이 "${message.kind}" 요청을 처리하지 못해요.`);
       }, 10);
     }
   },
@@ -80,15 +86,22 @@ bridge.setLimited(!jspi);
 
 /**
  * 학생 코드처럼 runPythonAsync로 실행하고 결과·예외·걸린 시간을 적는다.
- * needsJspi: 정지 신호로만 끝나는 코드. 기다리기가 없는 제한 모드에서는 끝나지 않으므로 건너뛴다.
+ * needsJspi: 정지 신호나 화면의 답(input)으로만 끝나는 코드. 기다리기가 없는 제한 모드에서는 끝나지 않거나 뜻이 없어 건너뛴다.
+ * bindGlobals: 워커(src/lab/runtime/worker.ts)처럼 새 전역 사전으로 돌리고 조절 패널 값의 목적지로 도우미에 알린다(P2-04).
+ * setup: 실행 준비(reset_for_run·bind) 뒤, 코드를 돌리기 직전에 부른다(실행 중에 들어와야 하는 값을 넣는 곳).
  */
-async function step(name, code, { stopAfterMs, needsJspi = false } = {}) {
+async function step(name, code, { stopAfterMs, needsJspi = false, bindGlobals = false, setup } = {}) {
   if (needsJspi && !jspi) {
-    out.steps[name] = { skipped: '제한 모드(JSPI 없음)에서는 정지 신호를 받지 못해 끝나지 않는 코드' };
+    out.steps[name] = { skipped: '제한 모드(JSPI 없음)에서는 정지 신호·화면의 답을 받지 못해 끝나지 않는 코드' };
     return;
   }
   bridge.beginRun();
   pyodide.runPython('import apc_runtime\napc_runtime.reset_for_run()');
+  const globals = bindGlobals ? pyodide.toPy({ __name__: '__main__' }) : null;
+  if (globals) {
+    pyodide.runPython('__import__("apc_runtime").bind_run_globals(globals())', { globals });
+  }
+  setup?.();
   const before = stdout.length;
   const escapedBefore = out.escaped.length;
   const t0 = performance.now();
@@ -98,13 +111,17 @@ async function step(name, code, { stopAfterMs, needsJspi = false } = {}) {
   }
   const record = { ms: 0 };
   try {
-    const value = await pyodide.runPythonAsync(code, { filename: 'main.py', dedent: false });
+    const value = await pyodide.runPythonAsync(code, { filename: 'main.py', dedent: false, ...(globals ? { globals } : {}) });
     record.value = value && typeof value.toJs === 'function' ? value.toJs() : value;
   } catch (error) {
     record.errorType = error && error.type;
     record.errorMessage = String(error.message ?? error).trim().split('\n').slice(-1)[0];
   } finally {
     clearTimeout(timer);
+    if (globals) {
+      pyodide.runPython('import apc_runtime\napc_runtime.unbind_run_globals()');
+      globals.destroy();
+    }
     record.ms = Math.round(performance.now() - t0);
     record.stopped = bridge.endRun().stopped;
     record.stdout = stdout.slice(before);
@@ -130,6 +147,43 @@ await step(
   'get_and_poll',
   "import apc_runtime\n[apc_runtime.get('threshold'), apc_runtime.get('none', '기본'), apc_runtime.poll('keys'), apc_runtime.poll('keys')]",
 );
+// 조절 패널 값(P2-04): input()에서 기다리는 동안 화면이 쌓은 값이 약속이 끝난 뒤(block_on) 전역 변수에 들어간다.
+// 형 이름대로 바꾸고(int는 반올림), 예약어·변수 이름이 아닌 것·사전이 아닌 것은 버리며, 바꿀 수 없는 값은 콘솔에 알린다.
+paramPushes.set('1', [{ name: 'threshold', value: 120, type: 'int' }]);
+paramPushes.set('2', [
+  { name: 'threshold', value: 7.6, type: 'int' },
+  { name: 'ratio', value: 0.25, type: 'float' },
+  { name: 'mode', value: 'blur', type: 'str' },
+  { name: 'show', value: 0, type: 'bool' },
+  { name: 'for', value: 1, type: 'int' },
+  { name: 'bad name', value: 1, type: 'int' },
+  { name: 'broken', value: 'abc', type: 'int' },
+  'garbage',
+]);
+await step(
+  'params_apply',
+  [
+    'threshold = 100',
+    'ratio = 1.0',
+    'mode = "edge"',
+    'show = True',
+    "input('1')",
+    'first = threshold',
+    "input('2')",
+    "[first, threshold, ratio, mode, show, type(threshold).__name__, type(ratio).__name__, 'for' in globals(), 'broken' in globals()]",
+  ].join('\n'),
+  { needsJspi: true, bindGlobals: true },
+);
+// 실행 전에 쌓인 값은 버린다(코드에 적힌 값이 시작값 — 패널이 코드도 함께 고쳐 둔다).
+bridge.pushEvent('lab.params', { name: 'threshold', value: 55, type: 'int' });
+await step('params_stale_dropped', "threshold = 1\ninput('x')\nthreshold", { needsJspi: true, bindGlobals: true });
+// 전역 사전을 잇지 않은 실행에는 값을 넣지 않는다(쌓인 값은 버린다).
+await step('params_without_bind', "threshold = 1\ninput('1')\nthreshold", { needsJspi: true });
+// get()도 입력 확인 지점이라 양보 없이(제한 모드에서도) 값이 들어간다.
+await step('params_get_checkpoint', "import apc_runtime\nthreshold = 1\napc_runtime.get('nothing')\nthreshold", {
+  bindGlobals: true,
+  setup: () => bridge.pushEvent('lab.params', { name: 'threshold', value: 3, type: 'int' }),
+});
 await step(
   'catch_keyboard_interrupt',
   "import time\ntry:\n    while True:\n        time.sleep(0.02)\nexcept KeyboardInterrupt as e:\n    result = 'caught ' + str(e)\nresult",
@@ -145,6 +199,7 @@ await step('limited_sleep', 'import time\nt0 = time.time()\ntime.sleep(0.02)\nro
 await step('limited_input', "input('x')");
 bridge.setLimited(!jspi);
 out.pendingRequests = bridge.pendingRequestCount();
-out.noticeCount = posted.filter((message) => message.type === 'notice').length;
+out.notices = posted.filter((message) => message.type === 'notice').map((message) => message.text);
+out.noticeCount = out.notices.length;
 process.stdout.write(`\n${JSON.stringify(out)}\n`);
 process.exit(0);

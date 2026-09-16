@@ -19,6 +19,8 @@
  *   push    'cv2.window'     값 { name, closed: true }     화면에서 창(탭)을 닫음 → cv2.getWindowProperty
  *   set     'camera.info'    값 { width, height, source }  제한 모드의 VideoCapture가 읽는다
  *   set     'camera.frame'   값 { width, height, data }    제한 모드의 cap.read()가 읽는다(실행 직전에 한 장)
+ * 조절 패널(P2-04, src/lab/params/panel.ts ↔ apc_runtime.sync_params)
+ *   push    'lab.params'     값 { name, value, type: 'int'|'float'|'str'|'bool' }   실행 중 바꾼 조절 값 → 다음 입력 확인 지점에서 학생 코드의 전역 변수에
  */
 
 /**

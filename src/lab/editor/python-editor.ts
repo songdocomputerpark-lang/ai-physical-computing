@@ -64,6 +64,8 @@ export interface PythonEditor {
   getValue(): string;
   /** 코드를 통째로 바꾼다(되돌리기 기록에는 남는다). */
   setValue(code: string): void;
+  /** 코드의 한 구간(from부터 to 앞까지)만 바꾼다. 커서·되돌리기는 그대로 이어진다(조절 패널이 값 숫자를 바꿔 쓸 때). 범위가 틀리면 false. */
+  replaceRange(from: number, to: number, insert: string): boolean;
   focus(): void;
   hasFocus(): boolean;
   setFontSize(px: number): void;
@@ -137,6 +139,14 @@ export function createPythonEditor(options: PythonEditorOptions): PythonEditor {
         return;
       }
       view.dispatch({ changes: { from: 0, to: current.length, insert: code }, selection: { anchor: 0 } });
+    },
+    replaceRange: (from, to, insert) => {
+      const length = view.state.doc.length;
+      if (!Number.isInteger(from) || !Number.isInteger(to) || from < 0 || to < from || to > length) {
+        return false;
+      }
+      view.dispatch({ changes: { from, to, insert } });
+      return true;
     },
     focus: () => view.focus(),
     hasFocus: () => view.hasFocus,

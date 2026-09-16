@@ -16,8 +16,14 @@
 - get(name, default, raw=False) / poll(channel): 화면이 보낸 최신 값(슬라이더)·쌓인 값(키 입력)을 기다리지 않고 읽는다.
   sleep 없는 반복문을 위해 16ms마다 한 번 양보한다(§3.0 규칙 2). 이 함수들이 "입력 확인 지점"이다.
 - register_reset_hook(fn): 실행을 시작할 때마다 부를 함수를 등록한다(흉내 모듈이 창·키 목록을 비우는 데 쓴다).
+- 조절 패널 값 반영(P2-04, 슬라이더 규약): 화면의 조절 패널(src/lab/params/panel.ts)이 값을 바꾸면 'lab.params' 채널에
+  {name, value, type}을 쌓는다(runtime.pushEvent). sync_params()가 입력 확인 지점(block_on이 끝난 뒤, maybe_yield)마다 그 값을
+  실행 중인 학생 코드의 전역 변수에 넣는다. 그 전역 사전은 워커가 코드를 돌리기 직전에 bind_run_globals(globals())로 알려 준다.
+  값은 "바뀔 때 한 번"만 넣으므로(쌓인 값을 꺼내 씀) 학생 코드가 반복문 안에서 같은 변수를 스스로 바꾸는 것을 방해하지 않는다.
+  실행 전에 쌓인 값은 bind_run_globals가 버린다(코드에 적힌 값이 시작값이다 — 패널이 코드의 숫자도 함께 고쳐 둔다).
 - 제한 모드(JSPI 없음, PLAN §4.5): 기다리는 함수(input·request·block_on)는 한국어 안내와 함께 RuntimeError를 낸다.
   time.sleep은 브라우저가 멈춘 채 기다리므로(양보 없음) [정지]는 2단계(다시 시작)로만 된다. 한 번 실행되고 끝나는 코드는 그대로 돈다.
+  조절 값은 get·poll 같은 입력 확인 지점에서 들어온다(양보하지 않아도 넣을 수 있다).
 
 정지 표시·값 저장소·요청 번호는 JS 다리가 가지고 있고, 이 파일은 그것을 파이썬 예외·값으로 바꾸기만 한다.
 JS 쪽 값이 파이썬으로 올 때는 JsProxy이므로 to_py()로 바꿔 돌려준다(raw=True가 아니면).
@@ -26,6 +32,7 @@ JS 쪽 값이 파이썬으로 올 때는 JsProxy이므로 to_py()로 바꿔 돌�
 """
 
 import builtins
+import keyword
 import sys
 import time
 
@@ -35,7 +42,9 @@ import _apc_bridge as _bridge
 import js
 
 __all__ = [
+    "PARAMS_CHANNEL",
     "YIELD_INTERVAL_MS",
+    "bind_run_globals",
     "block_on",
     "can_wait",
     "check_stop",
@@ -52,10 +61,15 @@ __all__ = [
     "reset_for_run",
     "sleep",
     "stop_requested",
+    "sync_params",
+    "unbind_run_globals",
 ]
 
 # 양보 간격(밀리초). src/lab/runtime/config.ts의 YIELD_INTERVAL_MS와 같아야 한다.
 YIELD_INTERVAL_MS = 16
+
+# 조절 패널 값이 쌓이는 채널. src/lab/params/parse.ts의 PARAMS_CHANNEL과 같아야 한다.
+PARAMS_CHANNEL = "lab.params"
 
 STOP_MESSAGE = "[정지] 버튼으로 멈췄어요."
 LIMITED_MESSAGE = (
@@ -68,6 +82,16 @@ _real_sleep = time.sleep
 _real_input = builtins.input
 _pending_sleep_ms = 0.0
 _reset_hooks = []
+# 실행 중인 학생 코드의 전역 사전(globals()). 워커가 bind_run_globals로 넣고 실행이 끝나면 unbind_run_globals로 비운다.
+_run_globals = None
+
+# 조절 값의 형 이름(src/lab/params/parse.ts의 ParamValueType) → 파이썬 값으로 바꾸는 함수
+_PARAM_CONVERTERS = {
+    "int": lambda value: int(round(float(value))),
+    "float": float,
+    "str": str,
+    "bool": bool,
+}
 
 
 def _to_py(value):
@@ -97,13 +121,15 @@ def check_stop() -> None:
 
 
 def block_on(promise):
-    """JS 약속이 끝날 때까지 기다렸다가 그 값을 돌려준다. [정지]가 오면 KeyboardInterrupt, 약속이 실패하면 JsException."""
+    """JS 약속이 끝날 때까지 기다렸다가 그 값을 돌려준다. [정지]가 오면 KeyboardInterrupt, 약속이 실패하면 JsException.
+    기다리는 동안 화면이 보낸 조절 값은 약속이 끝난 뒤 전역 변수에 넣는다(sync_params)."""
     check_stop()
     if not can_wait():
         raise RuntimeError(LIMITED_MESSAGE)
     result = run_sync(_bridge.raceStop(promise))
     if _bridge.isStopSignal(result):
         raise KeyboardInterrupt(STOP_MESSAGE)
+    sync_params()
     return result
 
 
@@ -118,9 +144,10 @@ def _sync_allowed() -> bool:
 
 
 def maybe_yield() -> None:
-    """sleep 없는 반복문을 위해 마지막 양보 뒤 16ms가 지났으면 한 번 양보한다. 정지도 확인한다.
+    """sleep 없는 반복문을 위해 마지막 양보 뒤 16ms가 지났으면 한 번 양보한다. 정지도 확인하고 조절 값도 넣는다(양보 없이도).
     동기 진입점(워커의 runPython — reset_for_run 등)에서 불리면 양보하지 않고 넘어간다."""
     check_stop()
+    sync_params()
     if can_wait() and _bridge.msSinceYield() >= YIELD_INTERVAL_MS and _sync_allowed():
         block_on(_bridge.sleep(0))
 
@@ -203,10 +230,55 @@ def register_reset_hook(hook) -> None:
         _reset_hooks.append(hook)
 
 
+# ── 조절 패널 값(P2-04) ──
+
+
+def bind_run_globals(namespace) -> None:
+    """워커가 학생 코드를 돌리기 직전에 부른다(runPython('…bind_run_globals(globals())', {globals}) — 동기 진입점).
+    조절 값을 넣을 전역 사전을 기억하고, 실행 전에 쌓인 값은 버린다(코드에 적힌 값이 시작값)."""
+    global _run_globals
+    _run_globals = namespace if isinstance(namespace, dict) else None
+    drain(PARAMS_CHANNEL)
+
+
+def unbind_run_globals() -> None:
+    """실행이 끝나면 워커가 부른다. 그 뒤에 온 값은 다음 실행에서 버려진다."""
+    global _run_globals
+    _run_globals = None
+
+
+def _convert_param(value, type_name):
+    convert = _PARAM_CONVERTERS.get(str(type_name)) if type_name is not None else None
+    return convert(value) if convert else value
+
+
+def sync_params() -> int:
+    """조절 패널에서 바꾼 값을 실행 중인 학생 코드의 전역 변수에 넣는다. 넣은 개수를 돌려준다.
+    입력 확인 지점(block_on이 끝난 뒤, maybe_yield)마다 불린다. 양보하지 않으므로 동기 진입점에서 불려도 안전하다.
+    이름이 파이썬 변수 이름이 아니거나 예약어면 버리고, 값을 바꿀 수 없으면 콘솔에 알린다."""
+    updates = _bridge.poll(PARAMS_CHANNEL)
+    if _run_globals is None or len(updates) == 0:
+        return 0
+    applied = 0
+    for update in _to_py(updates):
+        if not isinstance(update, dict):
+            continue
+        name = str(update.get("name", ""))
+        if not name.isidentifier() or keyword.iskeyword(name):
+            continue
+        try:
+            _run_globals[name] = _convert_param(update.get("value"), update.get("type"))
+            applied += 1
+        except (TypeError, ValueError) as error:
+            notice(f"조절 값 {name}을(를) 넣지 못했어요: {error}", "warn")
+    return applied
+
+
 def reset_for_run() -> None:
     """실행을 시작할 때 모아 둔 짧은 대기를 비우고 등록된 초기화 함수를 부른다(워커가 부른다)."""
     global _pending_sleep_ms
     _pending_sleep_ms = 0.0
+    unbind_run_globals()
     for hook in list(_reset_hooks):
         try:
             hook()

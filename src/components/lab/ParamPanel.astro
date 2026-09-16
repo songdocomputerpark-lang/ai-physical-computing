@@ -1,0 +1,197 @@
+---
+/**
+ * 조절 패널의 HTML·CSS(PLAN §8.2 P2-04, SPEC §6.1 "오른쪽 아래 파라미터 슬라이더 패널").
+ *
+ * LabShell의 panel 슬롯 기본 내용이라 모든 실습실(영상처리·ESP32·통신·개발용 시험 페이지)에 들어간다. 동작은
+ * src/lab/params/panel.ts(mountParamPanel)가 data-lab-params* 표시로 찾아 잇고, 조절 요소(슬라이더·선택 상자·토글)는
+ * 그 스크립트가 코드의 규약 주석(src/lab/params/parse.ts 머리말, src/lab/README.md)을 읽어 만든다.
+ * 이 파일은 안내 글·빈 상태·경고 목록·도움말과 모양만 그린다.
+ */
+---
+
+<div class="params" data-lab-params data-count="0" data-warnings="0">
+  <p class="params__note" data-lab-params-note>값을 바꾸면 코드의 숫자도 함께 바뀌어요. 실행 중이면 다음 프레임부터 반영돼요.</p>
+  <div class="params__list" data-lab-params-list role="group" aria-label="조절 값"></div>
+  <p class="params__empty" data-lab-params-empty>
+    코드에서 값을 정하는 줄 끝에 <code># @slider 최소 최대 간격</code>을 붙이면 여기에 조절 막대가 생겨요. 예:{' '}
+    <code>threshold = 100  # @slider 0 255 1</code>
+  </p>
+  <ul class="params__warnings" data-lab-params-warnings aria-label="조절 값 규약 경고" hidden></ul>
+  <details class="params__help">
+    <summary>조절 값 쓰는 법</summary>
+    <dl class="params__help-list">
+      <div>
+        <dt><code>threshold = 100  # @slider 0 255 1</code></dt>
+        <dd>숫자 조절 막대. 최소 최대 간격 순서예요(간격을 빼면 1). 하나라도 소수점이 있으면 소수 값이 돼요.</dd>
+      </div>
+      <div>
+        <dt><code>mode = "edge"  # @select edge blur gray</code></dt>
+        <dd>고르기 상자. 값은 따옴표로 감싼 글자이고, 뒤에 고를 낱말을 띄어서 적어요.</dd>
+      </div>
+      <div>
+        <dt><code>show_fps = True  # @toggle</code></dt>
+        <dd>켜기·끄기. 값은 True 또는 False예요.</dd>
+      </div>
+    </dl>
+    <p class="params__help-note">
+      들여쓰기 없는 줄(맨 바깥)에서만 돼요. 규약 앞뒤에 적은 말은 설명으로 보여요:{' '}
+      <code># @slider 0 255 1 테두리로 볼 밝기 차이</code>
+    </p>
+  </details>
+</div>
+
+<style>
+  .params {
+    display: grid;
+    gap: var(--space-3);
+    min-height: 10rem;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .params__note,
+  .params__empty,
+  .params__help-note {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .params__empty code,
+  .params__help code,
+  .params__help-note code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    white-space: pre;
+  }
+
+  .params__list {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .params__list:empty {
+    display: none;
+  }
+
+  /* 조절 요소는 panel.ts가 만든다(:global). */
+  .params__list :global(.param) {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .params__list :global(.param__head),
+  .params__list :global(.param__toggle) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .params__list :global(.param__name) {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-semibold);
+  }
+
+  .params__list :global(.param__label),
+  .params__list :global(.param__minmax) {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .params__list :global(.param__row) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .params__list :global(.param__range) {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: var(--target-min);
+    margin: 0;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+  }
+
+  .params__list :global(.param__range:focus-visible),
+  .params__list :global(.param__checkbox:focus-visible),
+  .params__list :global(.param__select:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .params__list :global(.param__value),
+  .params__list :global(.param__state) {
+    min-width: 3.5em;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--weight-semibold);
+    text-align: end;
+  }
+
+  .params__list :global(.param__toggle) {
+    cursor: pointer;
+  }
+
+  .params__list :global(.param__checkbox) {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+  }
+
+  .params__warnings {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 1.1em);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .params__help {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .params__help summary {
+    min-height: 2rem;
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .params__help-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+  }
+
+  .params__help-list dt {
+    overflow-x: auto;
+  }
+
+  .params__help-list dd {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .params__help-note {
+    margin-block-start: var(--space-2);
+  }
+</style>

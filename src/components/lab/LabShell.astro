@@ -9,7 +9,7 @@
  * 쓰는 법
  *   <LabShell labId="vision" examples={examples}>
  *     <div slot="io">카메라 입력·출력 캔버스</div>       ← P2-03이 넣는다(없으면 자리 상자)
- *     <div slot="panel">슬라이더 조절 패널</div>        ← P2-04가 넣는다(없으면 자리 상자)
+ *     <div slot="panel">다른 조절 패널</div>            ← (선택) 없으면 코드의 # @slider 규약으로 만드는 조절 패널(ParamPanel, P2-04)
  *     <section slot="after">실습실 아래에 둘 것</section> ← (선택) 개발용 정보 등
  *   </LabShell>
  *
@@ -28,6 +28,7 @@ import { assertValidExamples, type LabExample } from '../../lab/controls/example
 import { TAB_HINT } from '../../lab/editor/python-editor.ts';
 import { STOP_GRACE_MS } from '../../lab/runtime/config.ts';
 import ClearRecordsButton from './ClearRecordsButton.astro';
+import ParamPanel from './ParamPanel.astro';
 
 interface Props {
   labId: string;
@@ -140,17 +141,7 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
 
     <section class="lab__panel" aria-labelledby={ids.panelHeading}>
       <Heading id={ids.panelHeading} class="lab__heading">조절 패널</Heading>
-      {
-        hasPanel ? (
-          <slot name="panel" />
-        ) : (
-          <div class="lab__placeholder">
-            <p>
-              코드 속 <code># @slider</code> 주석으로 만드는 슬라이더가 들어올 자리예요.
-            </p>
-          </div>
-        )
-      }
+      {hasPanel ? <slot name="panel" /> : <ParamPanel />}
     </section>
 
     <section class="lab__console" aria-labelledby={ids.consoleHeading}>
@@ -203,9 +194,14 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
 
 <script>
   import { mountLabShell } from '../../lab/controls/lab-shell.ts';
+  import { mountParamPanel } from '../../lab/params/panel.ts';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-lab]')) {
-    mountLabShell(root);
+    const lab = mountLabShell(root);
+    if (lab) {
+      // 조절 패널(코드의 # @slider 규약, P2-04). panel 슬롯을 다른 것으로 채운 페이지에는 [data-lab-params]가 없어 null이다.
+      mountParamPanel(root, lab);
+    }
   }
 </script>
 

@@ -47,6 +47,7 @@ interface RunOutput {
   escaped: string[];
   pendingRequests: number;
   noticeCount: number;
+  notices: string[];
 }
 
 function runNode(flags: string[]): RunOutput {
@@ -70,6 +71,9 @@ describe('파이썬 도우미 파일', () => {
     expect(source).toContain('time.sleep = sleep');
     expect(source).toContain('builtins.input = input');
     expect(source).toContain('KeyboardInterrupt');
+    // 조절 패널 값(P2-04): 워커가 부르는 bind/unbind와 입력 확인 지점의 sync_params
+    expect(source).toContain('def bind_run_globals');
+    expect(source).toContain('def sync_params');
   });
 });
 
@@ -115,6 +119,17 @@ describe.runIf(pyodideInstalled)('Node.js의 실제 Pyodide', () => {
       expect(steps.request_rejected.escaped).toEqual([]);
 
       expect(steps.get_and_poll.value).toEqual([120, '기본', [113, 27], []]);
+
+      // 조절 패널 값(P2-04): input()에서 기다리는 동안 쌓인 값이 약속이 끝난 뒤 전역 변수에 들어가고, 형 이름대로 바뀐다
+      // (int 7.6 → 8, float, str, bool). 예약어·변수 이름 아님·사전 아님은 버리고, 바꿀 수 없는 값은 콘솔에 알린다.
+      expect(steps.params_apply.errorType, steps.params_apply.errorMessage).toBeUndefined();
+      expect(steps.params_apply.value).toEqual([120, 8, 0.25, 'blur', false, 'int', 'float', false, false]);
+      expect(out.notices.filter((text) => text.includes('조절 값 broken'))).toHaveLength(1);
+      // 실행 전에 쌓인 값은 버려지고(코드의 값이 시작값), 전역 사전을 잇지 않은 실행에는 넣지 않는다.
+      expect(steps.params_stale_dropped.value).toBe(1);
+      expect(steps.params_without_bind.value).toBe(1);
+      // get() 같은 입력 확인 지점에서도(양보 없이) 들어간다.
+      expect(steps.params_get_checkpoint.value).toBe(3);
       // 학생 코드가 KeyboardInterrupt를 잡으면 새어 나오는 오류도 없다.
       expect(steps.catch_keyboard_interrupt.value).toBe('caught [정지] 버튼으로 멈췄어요.');
       expect(steps.catch_keyboard_interrupt.stopped).toBe(true);
@@ -158,6 +173,9 @@ describe.runIf(pyodideInstalled)('Node.js의 실제 Pyodide', () => {
     expect(steps.limited_print.value).toBe(2);
     expect(steps.input_roundtrip.errorType).toBe('RuntimeError');
     expect(steps.request_rejected.errorType).toBe('RuntimeError');
+    // 조절 값은 기다리는 곳이 없어도 get·poll 같은 입력 확인 지점에서 들어간다(제한 모드의 "다음 실행 때 반영"은 코드에 적힌 값으로).
+    expect(steps.params_apply.skipped).toBeTruthy();
+    expect(steps.params_get_checkpoint.value).toBe(3);
     // sleep은 진짜로 기다리지만(양보 없음) 정지 요청은 못 받는다 → 브라우저에서는 정지 2단계가 맡는다.
     expect(Number(steps.limited_sleep.value)).toBeGreaterThanOrEqual(15);
     // exit()는 제한 모드에서도 같다.
