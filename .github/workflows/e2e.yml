@@ -65,7 +65,8 @@ jobs:
   e2e:
     name: 브라우저 테스트·링크 검사
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Phase 2에서 실습실 검사가 크게 늘었다(예제 스모크 49개 3분 + 실습실별 Pyodide·OpenCV). 로컬 3워커 23분 → CI 2워커는 더 걸린다.
+    timeout-minutes: 60
     steps:
       - name: 저장소 내려받기
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

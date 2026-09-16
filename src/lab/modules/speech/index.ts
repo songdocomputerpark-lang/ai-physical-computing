@@ -70,7 +70,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const lastText = panel?.querySelector<HTMLElement>('[data-speech-last]') ?? null;
 
   let serverAllowed = isServerSpeechAllowed();
-  let onDevice: OnDeviceStatus = ctor ? 'unknown' : 'unsupported';
+  let onDevice: OnDeviceStatus = ctor ? 'unchecked' : 'unsupported';
+  let onDeviceAsked = false;
   let modes: SpeechMode[] = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed });
   let mode: SpeechMode = DEFAULT_SPEECH_MODE;
   let select: HTMLSelectElement | null = null;
@@ -390,16 +391,32 @@ function mount(context: LabModuleContext): LabModuleHandle {
   context.setValue('speech.text', input?.value.trim() ?? '');
   context.showPanel();
 
-  // 온디바이스 가능 여부는 물어보는 데 시간이 걸릴 수 있어 붙인 뒤에 확인한다(음성을 보내지 않고 가능 여부만 묻는다).
-  void checkOnDevice(ctor).then((result) => {
-    onDevice = result;
-    modes = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed });
-    const previous = mode;
-    mode = modes.includes(previous) ? previous : restoreMode();
-    renderModes();
-    renderMode();
-    renderOnDevice();
-  });
+  /*
+   * 기기 안 인식이 되는지는 **학생이 이 패널을 건드릴 때** 물어본다(음성은 보내지 않고 가능 여부만).
+   * 페이지를 열자마자 물어보지 않는 까닭: 기기 안 음성 인식 서비스가 없는 Chromium 계열(예: Playwright가 쓰는 Chromium,
+   * 일부 리눅스 빌드)에서 그 API를 부르면 브라우저가 "No binder found for interface media.mojom.OnDeviceSpeechRecognition"로
+   * **탭을 통째로 죽인다**(2026-09-16 CI에서 확인 — 실습실 검사 80건이 Page crashed로 실패). 음성을 쓰지 않는 학생은
+   * 그 API를 아예 부르지 않게 하고, 물어보는 시점도 학생이 고르는 순간으로 미룬다(PROGRESS 미해결 38번).
+   */
+  function askOnDevice(): void {
+    if (onDeviceAsked || !ctor) {
+      return;
+    }
+    onDeviceAsked = true;
+    void checkOnDevice(ctor).then((result) => {
+      onDevice = result;
+      modes = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed });
+      const previous = mode;
+      mode = modes.includes(previous) ? previous : restoreMode();
+      renderModes();
+      renderMode();
+      renderOnDevice();
+    });
+  }
+
+  panel?.addEventListener('pointerdown', askOnDevice, { once: true });
+  panel?.addEventListener('focusin', askOnDevice, { once: true });
+  panel?.addEventListener('keydown', askOnDevice, { once: true });
 
   const settingsLink = panel?.querySelector<HTMLAnchorElement>('[data-speech-settings-link]') ?? null;
   if (settingsLink) {
@@ -413,6 +430,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
       skipButton?.removeEventListener('click', onSkip);
       micButton?.removeEventListener('click', onMic);
       document.removeEventListener(RECORDS_CLEARED_EVENT, onRecordsCleared);
+      panel?.removeEventListener('pointerdown', askOnDevice);
+      panel?.removeEventListener('focusin', askOnDevice);
+      panel?.removeEventListener('keydown', askOnDevice);
       stopRecognition();
       pending = null;
     },

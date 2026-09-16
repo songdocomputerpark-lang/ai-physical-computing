@@ -46,7 +46,7 @@ export function mountSpeechSetting(root: HTMLElement | null): SpeechSettingHandl
   const ctor = speechRecognitionCtor(typeof window === 'undefined' ? null : window);
 
   let allowed = isServerSpeechAllowed();
-  let status: OnDeviceStatus = ctor ? 'unknown' : 'unsupported';
+  let status: OnDeviceStatus = ctor ? 'unchecked' : 'unsupported';
 
   function renderToggle(): void {
     if (toggle) {
@@ -105,8 +105,9 @@ export function mountSpeechSetting(root: HTMLElement | null): SpeechSettingHandl
   document.addEventListener(RECORDS_CLEARED_EVENT, onCleared);
 
   renderToggle();
+  // 처음에는 "확인 전"으로 두고 [다시 확인]을 눌렀을 때만 브라우저에 물어본다.
+  // 기기 안 음성 인식 서비스가 없는 Chromium 계열에서는 그 API를 부르는 것만으로 탭이 죽기 때문이다(PROGRESS 미해결 38번).
   renderStatus();
-  void refreshStatus();
 
   return {
     get allowed() {

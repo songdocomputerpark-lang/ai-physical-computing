@@ -17,6 +17,13 @@ const nodeJspi = spawnSync(process.execPath, ['--experimental-wasm-jspi', '-e', 
   timeout: 20_000,
 });
 const nodeHasJspi = nodeJspi.status === 0 && nodeJspi.stdout === 'function';
+// Node 판에 따라 JSPI가 기본으로 켜져 있어 --no-experimental-wasm-jspi로도 끄지 못한다(CI Node 24.20+에서 확인).
+// 그때는 "제한 모드" 검사를 건너뛴다 — 켜진 채로 돌리면 기다릴 수 있어서 기대와 다른 결과가 나온다.
+const nodeNoJspi = spawnSync(process.execPath, ['--no-experimental-wasm-jspi', '-e', 'process.stdout.write(typeof WebAssembly.Suspending)'], {
+  encoding: 'utf8',
+  timeout: 20_000,
+});
+const nodeCanDisableJspi = nodeNoJspi.status === 0 && nodeNoJspi.stdout === 'undefined';
 const pyodideInstalled = fs.existsSync(path.join(ROOT, 'node_modules', 'pyodide', 'pyodide.mjs'));
 const fixtureExists = fs.existsSync(path.join(ROOT, 'tests', 'fixtures', 'landmarks', 'hands.json'));
 
@@ -374,7 +381,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 
   });
 });
 
-describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 흉내 모듈 — 제한 모드(JSPI 없음)', () => {
+describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists || !nodeCanDisableJspi)('mediapipe 흉내 모듈 — 제한 모드(JSPI 없음)', () => {
   const out = run(false);
 
   it('JSPI 없이도 import·상수는 그대로 되고 process()는 손 없음(None)으로 답하며 한국어로 안내한다', () => {

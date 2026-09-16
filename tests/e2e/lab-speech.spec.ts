@@ -172,7 +172,9 @@ test.describe('사이트 설정(교사용)', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('사이트 설정');
     await expect(setting).toContainText('14세 미만');
     await expect(setting).toContainText('브라우저 회사');
-    // 온디바이스 확인 결과가 보인다(가짜 브라우저는 "안 됨").
+    // 온디바이스는 **누를 때만** 물어본다(페이지를 열자마자 묻지 않는다 — PROGRESS 미해결 38번).
+    await expect(setting).toHaveAttribute('data-ondevice', 'unchecked');
+    await setting.locator('[data-ondevice-check]').click();
     await expect(setting).toHaveAttribute('data-ondevice', 'unavailable', { timeout: 15_000 });
     await expect(setting.locator('[data-ondevice-status]')).toContainText('안 됨');
 
@@ -206,10 +208,15 @@ test.describe('사이트 설정(교사용)', () => {
     await fakeSpeechRecognition(page, 'available');
     await page.goto(SETTINGS_PATH);
     const setting = page.locator('[data-speech-setting]');
+    await expect(setting).toHaveAttribute('data-ondevice', 'unchecked');
+    await setting.locator('[data-ondevice-check]').click();
     await expect(setting).toHaveAttribute('data-ondevice', 'available', { timeout: 15_000 });
     await expect(setting.locator('[data-ondevice-status]')).toContainText('밖으로 나가지 않아요');
 
     await openSpeechLab(page, F044);
+    // 실습실도 학생이 패널을 건드릴 때 물어본다.
+    await expect(panel(page)).toHaveAttribute('data-speech-ondevice', 'unchecked');
+    await panel(page).locator('[data-speech-input]').click();
     await expect(panel(page)).toHaveAttribute('data-speech-ondevice', 'available', { timeout: 30_000 });
     await expect(panel(page).locator('option[value="ondevice"]')).toHaveCount(1);
     // 교사가 켜지 않았으므로 서버 인식은 여전히 없다.
