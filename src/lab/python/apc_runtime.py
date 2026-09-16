@@ -29,7 +29,7 @@ import builtins
 import sys
 import time
 
-from pyodide.ffi import JsProxy, run_sync, to_js
+from pyodide.ffi import JsProxy, can_run_sync, run_sync, to_js
 
 import _apc_bridge as _bridge
 import js
@@ -39,6 +39,7 @@ __all__ = [
     "block_on",
     "can_wait",
     "check_stop",
+    "drain",
     "emit",
     "get",
     "input",
@@ -106,10 +107,21 @@ def block_on(promise):
     return result
 
 
+def _sync_allowed() -> bool:
+    """지금 이 자리에서 run_sync(스택 전환)를 쓸 수 있는지. JSPI가 있어도 runPython(동기)으로 들어온 호출 안에서는 안 된다
+    (Pyodide: "Cannot stack switch because the Python entrypoint was a synchronous function" — 2026-09-16 실사이트 첫 실행에서 확인).
+    can_run_sync()는 호출 문맥까지 본다."""
+    try:
+        return bool(can_run_sync())
+    except Exception:
+        return False
+
+
 def maybe_yield() -> None:
-    """sleep 없는 반복문을 위해 마지막 양보 뒤 16ms가 지났으면 한 번 양보한다. 정지도 확인한다."""
+    """sleep 없는 반복문을 위해 마지막 양보 뒤 16ms가 지났으면 한 번 양보한다. 정지도 확인한다.
+    동기 진입점(워커의 runPython — reset_for_run 등)에서 불리면 양보하지 않고 넘어간다."""
     check_stop()
-    if can_wait() and _bridge.msSinceYield() >= YIELD_INTERVAL_MS:
+    if can_wait() and _bridge.msSinceYield() >= YIELD_INTERVAL_MS and _sync_allowed():
         block_on(_bridge.sleep(0))
 
 
@@ -171,6 +183,12 @@ def get(name, default=None, *, raw=False):
 def poll(channel):
     """화면이 쌓아 보낸 값(예: 키 입력)을 순서대로 모두 꺼낸다. 없으면 빈 리스트. 입력 확인 지점."""
     maybe_yield()
+    return list(_to_py(_bridge.poll(str(channel))))
+
+
+def drain(channel):
+    """poll과 같지만 양보·정지 확인을 하지 않는다(입력 확인 지점이 아님). 흉내 모듈의 초기화 함수(reset_for_run, 동기 진입점)에서
+    이전 실행에 쌓인 값을 버릴 때 쓴다."""
     return list(_to_py(_bridge.poll(str(channel))))
 
 

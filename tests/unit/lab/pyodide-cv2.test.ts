@@ -51,6 +51,8 @@ interface RunOutput {
   notices: string[];
   reads: number;
   released?: number;
+  /** 동기 진입점(runPython)에서 poll·get을 불렀을 때 'ok' 또는 오류 마지막 줄 */
+  syncEntrypointPoll: string;
   pendingRequests: number;
 }
 
@@ -116,6 +118,8 @@ describe.runIf(pyodideInstalled && nodeHasJspi)('Node.js의 실제 Pyodide + ope
       expect(out.steps.window_props.events.map((event) => event.kind)).toContain('window.open');
       expect(out.steps.window_closed.value).toBe(0); // 실행 중에 화면에서 창을 닫으면 0.0
       expect(out.steps.stale_keys_cleared.value).toBe(-1); // 실행 전에 들어온 키는 reset_for_run이 비운다
+      // 초기화 함수는 동기 진입점(runPython)에서 양보를 시도하지 않는다 — 시도하면 "Cannot stack switch" 오류가 알림으로 새어 나온다(2026-09-16 실사이트에서 발견).
+      expect(out.notices.filter((text) => text.includes('흉내 모듈 초기화 중 오류'))).toEqual([]);
       expect(out.steps.waitkey_queue.value).toEqual([27, 100, -1, -1]);
       expect(out.steps.waitkey_zero_stops.errorType).toBe('KeyboardInterrupt');
       expect(out.steps.waitkey_zero_stops.stopped).toBe(true);
@@ -151,6 +155,8 @@ describe.runIf(pyodideInstalled && nodeHasJspi)('Node.js의 실제 Pyodide + ope
       expect(out.steps.limited_read.events.some((event) => event.kind === 'window.show' && event.name === 'limited')).toBe(true);
       expect(out.steps.limited_waitkey_zero.errorType).toBe('RuntimeError');
       expect(out.steps.limited_waitkey_zero.errorMessage).toContain('JSPI');
+      // 동기 진입점에서 poll·get이 불려도(마지막 양보 뒤 16ms 넘게 지난 뒤) 양보를 시도하지 않는다.
+      expect(out.syncEntrypointPoll).toBe('ok');
       expect(out.pendingRequests).toBe(0);
     },
     300_000,

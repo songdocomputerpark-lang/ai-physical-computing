@@ -408,12 +408,13 @@ def pollKey():
 
 
 def reset_for_run():
-    """실행을 시작할 때 창 목록·키 큐를 비운다(apc_runtime.reset_for_run이 부른다)."""
+    """실행을 시작할 때 창 목록·키 큐와 실행 전에 쌓인 화면 값을 비운다(apc_runtime.reset_for_run이 부른다).
+    워커가 동기(runPython)로 부르므로 양보하는 poll 대신 drain을 쓴다(양보를 시도하면 JSPI가 스택 전환을 거부한다)."""
     _windows.clear()
     _last_show.clear()
     _key_queue.clear()
-    apc_runtime.poll(KEY_CHANNEL)
-    apc_runtime.poll(WINDOW_CHANNEL)
+    apc_runtime.drain(KEY_CHANNEL)
+    apc_runtime.drain(WINDOW_CHANNEL)
 
 
 def install():

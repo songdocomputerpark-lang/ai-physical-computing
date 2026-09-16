@@ -165,8 +165,13 @@ out.patched = pyodide.runPython(
  * setup: 실행 준비(reset_for_run — 흉내 모듈이 이전 실행의 키·창 목록을 비운다) 뒤, 코드를 돌리기 직전에 부른다.
  *        키 입력처럼 "실행 중에" 들어와야 하는 값은 여기서 넣는다(실행 전에 넣으면 reset_for_run이 지운다 — 설계대로).
  */
-async function step(name, code, { stopAfterMs, setup } = {}) {
+async function step(name, code, { stopAfterMs, setup, resetDelayMs = 0 } = {}) {
   bridge.beginRun();
+  if (resetDelayMs > 0) {
+    // 워커에서는 beginRun 뒤 패키지 받기가 끝난 다음(수 초 뒤) reset_for_run이 동기(runPython)로 불린다.
+    // 마지막 양보 뒤 16ms가 지난 상태를 흉내 내 초기화 함수가 양보를 시도하지 않는지(JSPI 스택 전환 거부 오류) 본다.
+    await new Promise((resolve) => setTimeout(resolve, resetDelayMs));
+  }
   pyodide.runPython('import apc_runtime\napc_runtime.reset_for_run()');
   setup?.();
   const before = stdout.length;
@@ -226,8 +231,9 @@ if (jspi) {
     { setup: () => bridge.pushEvent('cv2.window', { name: 'w', closed: true }) },
   );
   // 실행 전에 들어온 키·창 이벤트는 reset_for_run이 비운다(이전 실행의 값이 새 실행에 새지 않게).
+  // 마지막 양보 뒤 40ms가 지난 뒤 동기 진입점에서 초기화해도 오류 없이(양보 시도 없이) 비워야 한다.
   bridge.pushEvent('cv2.keys', 113);
-  await step('stale_keys_cleared', 'import cv2\ncv2.pollKey()');
+  await step('stale_keys_cleared', 'import cv2\ncv2.pollKey()', { resetDelayMs: 40 });
   // 실행 중에 들어온 키는 순서대로 나온다.
   await step('waitkey_queue', 'import cv2\n[cv2.waitKey(0), cv2.waitKey(5), cv2.waitKey(5), cv2.pollKey()]', {
     setup: () => {
@@ -304,6 +310,19 @@ await step(
 );
 await step('limited_waitkey_zero', 'import cv2\ncv2.waitKey(0)');
 bridge.setLimited(!jspi);
+
+// 동기 진입점(runPython)에서 입력 확인 지점(poll → maybe_yield)이 불려도 양보를 시도하지 않아야 한다.
+// 워커는 실행 준비(reset_for_run)를 runPython으로 부르고, 그 앞의 패키지 받기 때문에 마지막 양보 뒤 16ms가 넘게 지나 있다.
+// 양보를 시도하면 Pyodide가 "Cannot stack switch because the Python entrypoint was a synchronous function"을 낸다(2026-09-16 실사이트 첫 실행에서 발견).
+bridge.beginRun();
+await new Promise((resolve) => setTimeout(resolve, 40));
+try {
+  pyodide.runPython("import apc_runtime\napc_runtime.poll('sync-check')\napc_runtime.get('sync-check')");
+  out.syncEntrypointPoll = 'ok';
+} catch (error) {
+  out.syncEntrypointPoll = String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0];
+}
+bridge.endRun();
 
 out.pendingRequests = bridge.pendingRequestCount();
 finish();
