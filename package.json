@@ -38,6 +38,7 @@
     "@astrojs/check": "0.9.10",
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.4",
+    "pyodide": "314.0.7",
     "typescript": "6.0.3",
     "vitest": "5.0.0",
     "yaml": "2.9.1"

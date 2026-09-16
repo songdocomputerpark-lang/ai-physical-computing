@@ -167,6 +167,47 @@ sources:
     notice: public/fonts/pretendard/LICENSE.txt
     fetched: 2026-09-16
 
+  # ── 파이썬 실행기(PLAN §4·§5, PD-01·PD-02, P2-01) ──
+  # 학생 브라우저가 jsDelivr의 Pyodide 공식 배포 경로에서 파일을 직접 받아요. 사이트 배포물에는 들어가지 않지만
+  # 방문자 브라우저가 불러오는 외부 파일이라 등록해요(PLAN §9.2). 주소는 src/lab/runtime/config.ts 한 곳에서 정해요.
+  # npm 패키지 pyodide@314.0.7은 타입 선언(pyodide.d.ts·ffi.d.ts)과 Node.js 단위 테스트(tests/unit/lab/)에만 쓰는
+  # devDependency라 배포 번들에 들어가지 않아 npm 목록에 적지 않아요(브라우저 코드는 import type만 써요).
+  # 같은 사이트 예비본(P2-05, PD-13: 빌드 때 받고 커밋하지 않음)을 만들면 그 폴더를 이 항목들의 paths에 더해요.
+  - name: Pyodide 314.0.7
+    category: stack
+    author: Pyodide contributors
+    license: MPL-2.0
+    url: https://github.com/pyodide/pyodide
+    used_in: "브라우저 안에서 파이썬을 실행하는 엔진(파이썬 워커 src/lab/runtime/). 브라우저가 https://cdn.jsdelivr.net/pyodide/v314.0.7/full/ 에서 pyodide.mjs, pyodide.asm.mjs, pyodide.asm.wasm, python_stdlib.zip, pyodide-lock.json과 패키지 휠을 받아요. 고치지 않고 그대로 써요(MPL-2.0: 고지와 소스 위치 링크)."
+    paths:
+      - public/licenses/pyodide.txt
+    notice: public/licenses/pyodide.txt
+    fetched: 2026-09-16
+
+  - name: CPython 3.14.2(Pyodide 안)
+    category: stack
+    author: Python Software Foundation
+    license: PSF-2.0
+    url: https://github.com/python/cpython/blob/v3.14.2/LICENSE
+    used_in: "파이썬 언어 자체(Pyodide 314.0.7의 pyodide.asm.wasm과 python_stdlib.zip 안). 브라우저가 Pyodide와 함께 받아요."
+    paths:
+      - public/licenses/cpython.txt
+    notice: public/licenses/cpython.txt
+    fetched: 2026-09-16
+
+  # 라이선스 표기는 PyPI 메타데이터(license_expression)의 값이에요. NumPy 자체는 BSD-3-Clause이고 나머지는 휠에 묶인 구성요소라
+  # 그 고지 전문은 휠 안의 파일로 확인해 P6-04에서 더해요(PROGRESS 미해결 5번).
+  - name: NumPy 2.4.6(Pyodide 패키지)
+    category: stack
+    author: NumPy Developers
+    license: BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0
+    url: https://pypi.org/project/numpy/2.4.6/
+    used_in: "배열 계산(영상 처리 예제의 바탕). 학생 코드가 import numpy를 쓰면 워커가 Pyodide 배포 휠(numpy-2.4.6)을 jsDelivr에서 받아요. 파이썬 실행기 시험 페이지(/labs/dev/runtime/)의 패키지 시험에도 써요."
+    paths:
+      - public/licenses/numpy.txt
+    notice: public/licenses/numpy.txt
+    fetched: 2026-09-16
+
   # ── 다른 저작자의 자료(library·third_party)를 넣을 때의 예시(파일을 실제로 넣는 단계에서 확인해 채워요) ──
   # - name: python_lcd(i2c_lcd.py)
   #   category: library

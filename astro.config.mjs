@@ -47,5 +47,11 @@ export default defineConfig({
     // 빌드 뒤 scripts/check-sources.mjs --bundle(npm의 postbuild)이 sources.yaml과 대조하고 지운다(PLAN §8.1 P1-04).
     // client 환경에만 켜는 이유는 scripts/lib/bundle-license.mjs에 적었다.
     plugins: [clientBundleLicensePlugin()],
+    // 파이썬 워커(src/lab/runtime/worker.ts)는 모듈 워커다(Pyodide 314는 클래식 워커를 지원하지 않는다, PLAN §4.4).
+    // Vite 기본 워커 형식(iife)은 워커 안의 import()를 다루지 못하므로 ES 모듈로 만든다.
+    // 워커는 Pyodide를 실행 중에 import(주소)로 받는다(주소는 src/lab/runtime/config.ts 한 곳).
+    worker: {
+      format: 'es',
+    },
   },
 });
