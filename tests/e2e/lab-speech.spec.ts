@@ -214,9 +214,9 @@ test.describe('사이트 설정(교사용)', () => {
     await expect(setting.locator('[data-ondevice-status]')).toContainText('밖으로 나가지 않아요');
 
     await openSpeechLab(page, F044);
-    // 실습실도 학생이 패널을 건드릴 때 물어본다.
+    // 실습실도 학생이 확인 단추를 눌렀을 때만 물어본다.
     await expect(panel(page)).toHaveAttribute('data-speech-ondevice', 'unchecked');
-    await panel(page).locator('[data-speech-input]').click();
+    await panel(page).locator('[data-speech-ondevice-check]').click();
     await expect(panel(page)).toHaveAttribute('data-speech-ondevice', 'available', { timeout: 30_000 });
     await expect(panel(page).locator('option[value="ondevice"]')).toHaveCount(1);
     // 교사가 켜지 않았으므로 서버 인식은 여전히 없다.

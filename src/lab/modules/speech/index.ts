@@ -67,6 +67,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const micButton = panel?.querySelector<HTMLButtonElement>('[data-speech-mic]') ?? null;
   const skipButton = panel?.querySelector<HTMLButtonElement>('[data-speech-skip]') ?? null;
   const onDeviceText = panel?.querySelector<HTMLElement>('[data-speech-ondevice]') ?? null;
+  const onDeviceCheck = panel?.querySelector<HTMLButtonElement>('[data-speech-ondevice-check]') ?? null;
   const lastText = panel?.querySelector<HTMLElement>('[data-speech-last]') ?? null;
 
   let serverAllowed = isServerSpeechAllowed();
@@ -111,6 +112,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   function renderOnDevice(): void {
     textOf(onDeviceText, `내 기기 안 인식: ${onDeviceLabel(onDevice)} — ${describeOnDevice(onDevice)}`);
+    if (onDeviceCheck) {
+      // 아직 물어보지 않았고 물어볼 수 있을 때만 버튼을 보인다.
+      onDeviceCheck.hidden = !(ctor !== null && onDevice === 'unchecked');
+    }
     if (panel) {
       panel.dataset.speechOndevice = onDevice;
       panel.dataset.speechServerAllowed = serverAllowed ? 'yes' : 'no';
@@ -414,9 +419,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     });
   }
 
-  panel?.addEventListener('pointerdown', askOnDevice, { once: true });
-  panel?.addEventListener('focusin', askOnDevice, { once: true });
-  panel?.addEventListener('keydown', askOnDevice, { once: true });
+  onDeviceCheck?.addEventListener('click', askOnDevice);
 
   const settingsLink = panel?.querySelector<HTMLAnchorElement>('[data-speech-settings-link]') ?? null;
   if (settingsLink) {
@@ -430,9 +433,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       skipButton?.removeEventListener('click', onSkip);
       micButton?.removeEventListener('click', onMic);
       document.removeEventListener(RECORDS_CLEARED_EVENT, onRecordsCleared);
-      panel?.removeEventListener('pointerdown', askOnDevice);
-      panel?.removeEventListener('focusin', askOnDevice);
-      panel?.removeEventListener('keydown', askOnDevice);
+      onDeviceCheck?.removeEventListener('click', askOnDevice);
       stopRecognition();
       pending = null;
     },

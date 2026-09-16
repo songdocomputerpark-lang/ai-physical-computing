@@ -118,7 +118,7 @@ export function describeOnDevice(status: OnDeviceStatus): string {
     case 'unsupported':
       return '이 브라우저에는 음성 인식 기능이 없어요. 글자 입력 방식으로 실습해요.';
     case 'unchecked':
-      return '아직 확인하지 않았어요. [다시 확인]을 누르면 브라우저에 물어봐요(음성은 보내지 않아요).';
+      return '아직 확인하지 않았어요. 확인 단추를 누르면 브라우저에 물어봐요(음성은 보내지 않아요).';
     case 'unknown':
     default:
       return '이 브라우저는 기기 안 인식이 되는지 알려 주지 않아요(확인하려면 Chrome이나 Edge 최신판이 필요해요).';

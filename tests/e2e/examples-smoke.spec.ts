@@ -22,7 +22,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import YAML from 'yaml';
 import { parseExampleSidecar } from '../../src/lab/controls/example-sidecar.ts';
 import { exampleIdFromFile } from '../../src/lab/vision/examples.ts';
@@ -90,27 +90,54 @@ test.describe('이관 예제 스모크(실습실에서 한 번씩 실행)', () =
   test.skip(({ isMobile }) => Boolean(isMobile), '같은 파이썬·같은 흉내 모듈이라 데스크톱에서 한 번만 돌린다.');
   test.describe.configure({ timeout: 20 * 60_000 });
 
-  test('예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page }) => {
+  test('예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page, context }) => {
     expect(cases.length, '이관 목록(scripts/examples-manifest.yaml)에서 예제를 읽지 못했어요').toBeGreaterThan(40);
 
+    // 한 페이지에서 49개를 이어 돌리면 예제마다 남긴 것(창·캔버스·인식 엔진)이 쌓여 메모리가 는다.
+    // 저사양 CI에서는 그러다 탭이 죽으므로(2026-09-16 확인) 몇 개마다 페이지를 새로 연다(Pyodide는 브라우저 캐시에서 온다).
+    const RELOAD_EVERY = 10;
+    let activePage = page;
     const pageErrors: string[] = [];
-    page.on('pageerror', (error) => pageErrors.push(error.message));
+    const watchErrors = (target: Page) => target.on('pageerror', (error) => pageErrors.push(error.message));
+    watchErrors(activePage);
 
-    await openVisionLab(page);
-    const root = labRoot(page);
-    const select = page.locator('[data-lab-example-select]');
-    const loadButton = page.locator('[data-lab-example-load]');
-    const runButton = page.getByRole('button', { name: '실행', exact: true });
-    const stopButton = page.locator('[data-lab-stop]');
-    const consoleBox = page.locator('[data-lab-console]');
+    const parts = () => ({
+      root: labRoot(activePage),
+      select: activePage.locator('[data-lab-example-select]'),
+      loadButton: activePage.locator('[data-lab-example-load]'),
+      runButton: activePage.getByRole('button', { name: '실행', exact: true }),
+      stopButton: activePage.locator('[data-lab-stop]'),
+      consoleBox: activePage.locator('[data-lab-console]'),
+    });
+
+    /** 실습실을 새 페이지로 다시 연다(탭이 죽었을 때도 이 길로 되살린다). */
+    async function reopenLab(): Promise<void> {
+      if (!activePage.isClosed()) {
+        await activePage.close().catch(() => undefined);
+      }
+      activePage = await context.newPage();
+      watchErrors(activePage);
+      await openVisionLab(activePage);
+    }
+
+    await openVisionLab(activePage);
 
     const failures: string[] = [];
     let ran = 0;
+    let sinceReload = 0;
 
     for (const item of cases) {
       if (item.skip) {
         continue;
       }
+      if (sinceReload >= RELOAD_EVERY) {
+        sinceReload = 0;
+        await reopenLab();
+      }
+      sinceReload += 1;
+      const { root, select, loadButton, runButton, stopButton, consoleBox } = parts();
+      const page = activePage;
+      try {
       // 입력 소스를 예제에 맞게 고른다(재생 입력은 카메라 없이 손·얼굴·자세 좌표를 준다).
       const options = await select.locator('option').evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
       if (!options.includes(item.id)) {
@@ -176,6 +203,12 @@ test.describe('이관 예제 스모크(실습실에서 한 번씩 실행)', () =
         failures.push(`${item.file}(${item.title}): 결과가 ${item.outcome}이어야 하는데 ${outcome}이에요 — ${tail}`);
       } else if (item.error && !consoleText.includes(item.error)) {
         failures.push(`${item.file}(${item.title}): 콘솔에 ${item.error}이(가) 없어요 — ${tail}`);
+      }
+      } catch (error) {
+        // 어느 예제에서 멈췄는지 남기고, 페이지를 되살려 남은 예제를 계속 본다.
+        failures.push(`${item.file}(${item.title}): 실행 도중 멈췄어요 — ${error instanceof Error ? error.message : String(error)}`);
+        sinceReload = 0;
+        await reopenLab();
       }
     }
 

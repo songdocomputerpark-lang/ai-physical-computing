@@ -44,6 +44,8 @@
   <p class="speech__last" data-speech-last aria-live="polite"></p>
 
   <p class="speech__ondevice" data-speech-ondevice></p>
+  {/* 기기 안 인식이 되는지는 **누를 때만** 물어본다(브라우저에 따라 그 API를 부르는 것만으로 탭이 죽는 일이 있다 — PROGRESS 미해결 38번). */}
+  <button type="button" class="lab-button lab-button--small" data-speech-ondevice-check hidden>기기 안 인식 되는지 확인</button>
   <p class="speech__settings">
     마이크로 말하는 방법은 교사가{' '}
     <a href="" data-speech-settings-link>사이트 설정</a>에서 정해요. 14세 미만 학생 수업에서는 서버 인식을 켜지 않아요.
