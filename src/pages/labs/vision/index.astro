@@ -1,15 +1,164 @@
 ---
-// 영상처리 실습실 자리 페이지. 영상처리 실습실 단계(PLAN §8.2 Phase 2)에서 실제 화면으로 바꾼다.
-// 준비 내용은 ../_labs.ts, 틀은 ../_LabPlaceholder.astro에 있다.
+/**
+ * 영상처리 실습실(PLAN §2.1 /labs/vision/, §8.2 P2-03, SPEC §6.1).
+ *
+ * 실습실 공통 틀(src/components/lab/LabShell.astro)에 카메라 입력·출력 칸(src/components/lab/VisionIo.astro)을 넣고,
+ * 화면 논리(src/lab/vision/vision-lab.ts)가 파이썬의 cv2 카메라·창 흉내(src/lab/python/apc_cv2.py)와 잇는다.
+ *
+ * 예제 목록: examples/vision/ 아래의 .py 파일을 빌드 때 모두 읽어(import.meta.glob) 목록으로 만든다(src/lab/vision/examples.ts).
+ * 새 예제는 .py 파일 하나를 그 폴더에 두면 [예제 불러오기]에 들어간다(원칙 6). 차시 페이지의 [실습실에서 열기]가 붙이는
+ * ?example=vision/…py 는 LabShell이 읽어 그 예제를 고른다. 조절 패널(슬라이더)은 P2-04, 로딩 진행률 막대·1분 개념 카드는 P2-05.
+ *
+ * 사이트 검색: 실습실 틀 안의 조작 글은 색인에서 빠지고(LabShell의 data-pagefind-ignore), 이 페이지의 소개·개념 글만 색인된다.
+ * 브라우저 권장 환경 안내(BrowserNotice)는 코드를 실행하는 실습실이라 켠다(SPEC §9, _labs.ts browserNotice).
+ */
+import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import Callout from '../../../components/common/Callout.astro';
-import LabPlaceholder from '../_LabPlaceholder.astro';
+import LabShell from '../../../components/lab/LabShell.astro';
+import VisionIo from '../../../components/lab/VisionIo.astro';
+import { getPage } from '../../../config/nav.ts';
+import { visionExamplesFromFiles } from '../../../lab/vision/examples.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getPage('labs-vision');
+const checkPage = getPage('start-check');
+const studentPage = getPage('start-student');
+
+// 저장소 뿌리의 examples/vision/ 아래 .py 파일 전부(빌드 때 글자로 읽는다).
+const exampleFiles = import.meta.glob<string>('/examples/vision/**/*.py', { query: '?raw', eager: true, import: 'default' });
+const examples = visionExamplesFromFiles(exampleFiles);
 ---
 
-<LabPlaceholder id="labs-vision">
-  <Callout type="참고" title="카메라 영상은 어디로 가나요?">
+<BaseLayout title={page.title} description={page.description} width="wide">
+  <BrowserNotice slot="notice" />
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+
+  <div class="vision-intro">
     <p>
-      이 사이트에는 영상을 받아 저장하는 서버가 없어요. 카메라 영상은 지금 쓰는 컴퓨터의 브라우저 안에서만 처리하도록
-      만들어요.
+      웹캠(카메라) 영상을 파이썬 코드로 바꿔 봐요. 사진은 작은 점(픽셀)마다 밝기를 적은 숫자예요. 코드가 그 숫자를 바꾸면 회색
+      사진이 되기도 하고, 테두리(에지)만 남은 사진이 되기도 해요.
     </p>
-  </Callout>
-</LabPlaceholder>
+    <ol class="vision-intro__steps">
+      <li>[실행]을 누르면 파이썬과 OpenCV가 준비된 뒤 예제가 돌아요. 브라우저가 카메라 사용을 물으면 "허용"을 눌러요.</li>
+      <li>카메라가 없거나 허용하지 않으면 실습실이 직접 그린 샘플 입력으로 똑같이 실습해요. 내 그림 파일을 넣을 수도 있어요.</li>
+      <li>출력 화면을 누른 뒤 <kbd>q</kbd> 키를 치면(또는 화면의 [q] 버튼) 예제가 끝나요. 코드를 고쳐 다시 [실행]해 봐요.</li>
+    </ol>
+  </div>
+
+  <LabShell labId="vision" examples={examples}>
+    <VisionIo slot="io" />
+  </LabShell>
+
+  <section class="vision-concepts" aria-labelledby="vision-concepts-heading">
+    <h2 id="vision-concepts-heading" class="vision-concepts__heading">1분 개념</h2>
+    <dl class="vision-concepts__list">
+      <div class="vision-concept">
+        <dt>픽셀</dt>
+        <dd>사진을 이루는 아주 작은 점. 점마다 색이나 밝기가 숫자로 적혀 있어요. 640×480 사진에는 점이 307,200개 있어요.</dd>
+      </div>
+      <div class="vision-concept">
+        <dt>회색(흑백) 사진</dt>
+        <dd>색을 빼고 밝기만 남긴 사진. 점마다 0(검정)부터 255(흰색)까지 숫자 하나만 있어서 계산이 간단해져요.</dd>
+      </div>
+      <div class="vision-concept">
+        <dt>에지(테두리)</dt>
+        <dd>옆 점과 밝기가 크게 달라지는 곳. 물체의 윤곽이 여기에 나타나요. 첫 실습의 threshold 값은 "얼마나 크게 달라져야 테두리로 볼지"예요.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="vision-help" aria-labelledby="vision-help-heading">
+    <h2 id="vision-help-heading" class="vision-concepts__heading">잘 안 될 때</h2>
+    <Callout type="참고" title="카메라 영상은 어디로 가나요?">
+      <p>
+        이 사이트에는 영상을 받아 저장하는 서버가 없어요. 카메라 영상과 파이썬 실행은 모두 지금 쓰는 컴퓨터의 브라우저 안에서만
+        처리돼요. [공유 링크]에도 코드만 담기고 영상은 담기지 않아요.
+      </p>
+    </Callout>
+    <Callout type="오류" title="카메라가 켜지지 않거나 화면이 검게 나와요">
+      <ul>
+        <li>브라우저 주소 표시줄의 카메라 아이콘에서 이 사이트를 "허용"으로 바꾼 뒤 다시 [실행]해요.</li>
+        <li>화상 수업 프로그램처럼 카메라를 쓰는 다른 프로그램을 닫아요.</li>
+        <li>카메라가 없으면 입력 소스를 "샘플 입력"으로 골라도 실습은 똑같이 돼요.</li>
+        <li>
+          파이썬이 준비되지 않으면 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 브라우저와 네트워크를 확인해요. 처음 준비할
+          때 약 20MB를 받아서 학교 네트워크에서는 1분 안팎 걸릴 수 있어요.
+        </li>
+        <li>처음이라면 <a href={studentPage.href}>{studentPage.title}</a>의 순서대로 따라 해요.</li>
+      </ul>
+    </Callout>
+  </section>
+</BaseLayout>
+
+<script>
+  import { mountVisionLab } from '../../../lab/vision/vision-lab.ts';
+
+  mountVisionLab(document.querySelector<HTMLElement>('[data-lab]')).catch((error: unknown) => {
+    console.error('영상처리 실습실을 준비하지 못했어요.', error);
+  });
+</script>
+
+<style>
+  .vision-intro {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-6);
+    line-height: var(--leading-body);
+  }
+
+  .vision-intro p {
+    margin: 0;
+  }
+
+  .vision-intro__steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .vision-intro kbd {
+    padding: 0 0.35em;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  .vision-concepts,
+  .vision-help {
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-8);
+  }
+
+  .vision-concepts__heading {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .vision-concepts__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .vision-concept {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    line-height: var(--leading-snug);
+  }
+
+  .vision-concept dt {
+    margin-block-end: var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .vision-concept dd {
+    margin: 0;
+  }
+</style>

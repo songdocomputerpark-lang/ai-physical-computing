@@ -4,7 +4,6 @@
  * 브라우저 권장 환경 안내(BrowserNotice)를 notice 자리에 넣는다.
  */
 import Callout from '../../../components/common/Callout.astro';
-import ComingSoon from '../../../components/common/ComingSoon.astro';
 import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import CameraPermissionFigures from '../../../components/start/CameraPermissionFigures.astro';
 import QuickCheck from '../../../components/start/QuickCheck.astro';
@@ -77,8 +76,8 @@ const steps = [
       </Callout>
       <Callout type="참고" title="카메라 영상은 어디로 가나요?">
         <p>
-          이 사이트에는 영상을 받는 서버가 없어요. 실습은 카메라 영상을 여러분의 컴퓨터 안에서만 처리하도록 만들어요. 카메라가 없는
-          컴퓨터에서도 샘플 영상으로 실습할 수 있게 준비하고 있어요.
+          이 사이트에는 영상을 받는 서버가 없어요. 실습은 카메라 영상을 여러분의 컴퓨터 안에서만 처리해요. 카메라가 없거나 허용하지
+          않은 컴퓨터에서는 실습실이 직접 그린 샘플 입력으로 똑같이 실습할 수 있어요.
         </p>
       </Callout>
     </div>
@@ -88,19 +87,18 @@ const steps = [
     <h2 id="step-first-lab">③ 첫 실습 해 보기</h2>
     <div class="prose">
       <p>
-        첫 실습에서는 카메라 영상에서 물체의 테두리(에지)를 찾아요. 슬라이더를 움직여 값을 바꾸면 테두리가 달라지는 모습을 바로 볼 수
-        있어요.
+        첫 실습에서는 카메라 영상에서 물체의 테두리(에지)를 찾아요. 실습실에서 [실행]을 누르면 파이썬과 OpenCV를 준비한 뒤 예제가
+        돌아요(처음 한 번은 약 20MB를 받아요). 출력 화면을 누르고 <kbd>q</kbd> 키를 치면 끝나요.
+      </p>
+      <p>
+        <a class="button button--primary" href={vision.href}>{vision.title}에서 첫 실습 열기</a>
+      </p>
+      <p>
+        슬라이더를 움직여 값을 바꾸면 테두리가 달라지는 모습을 보는 조절 패널은 다음 작업에서 더해요. 그 전까지는 코드의{' '}
+        <code>threshold</code> 숫자를 직접 고쳐 다시 [실행]해 봐요. 배운 내용을 차례대로 보려면 <a href={learn.href}>{learn.title}</a>로
+        가요.
       </p>
     </div>
-    <ComingSoon
-      what="3분 첫 실습"
-      when="영상처리 실습실을 만드는 단계(Phase 2)"
-      headingLevel={3}
-      links={[
-        { label: vision.title, href: vision.href },
-        { label: learn.title, href: learn.href },
-      ]}
-    />
   </section>
 
   <section class="student-section" aria-labelledby="student-next">

@@ -212,6 +212,8 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
 <style>
   .lab {
     display: grid;
+    /* 열 폭을 화면 폭에 맞춘다. 기본값(auto)이면 조작 줄의 내용 폭(긴 예제 제목의 선택 상자)만큼 열이 커져 좁은 화면이 옆으로 넘친다(2026-09-16 P2-03 375px 확인). */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
     margin-block-end: var(--space-10);
   }
@@ -223,11 +225,14 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
     gap: var(--space-2) var(--space-3);
   }
 
+  /* 예제 제목이 길어도 좁은 화면에서 선택 상자가 줄어들게 한다(min-width 0이 없으면 플렉스 항목이 내용 폭만큼 커져 화면이 옆으로 넘친다 — 2026-09-16 P2-03 375px 확인). */
   .lab__examples {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
+    min-width: 0;
+    max-width: 100%;
     padding-inline-start: var(--space-2);
     border-inline-start: 1px solid var(--color-border);
   }
@@ -237,6 +242,8 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
   }
 
   .lab__select {
+    flex: 1 1 8rem;
+    min-width: 0;
     min-height: var(--target-min);
     max-width: 100%;
     padding: var(--space-2) var(--space-3);

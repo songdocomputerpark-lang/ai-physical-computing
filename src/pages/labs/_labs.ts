@@ -31,10 +31,16 @@ export interface LabPlan {
    * 받게 해서다(2026-09-16 검토 반영). 예제 카드를 읽는 갤러리는 늘 false.
    */
   readonly browserNotice: boolean;
+  /**
+   * 실제 화면이 열렸는지. true면 실습실 개요(/labs/)의 카드가 "준비 중" 대신 "열림"을 보이고, 자리 페이지 틀(_LabPlaceholder.astro)은
+   * 쓰지 않는다(그 실습실 페이지가 직접 화면을 그린다). features·when은 개요 카드와 검색용으로 남겨 둔다.
+   */
+  readonly open?: boolean;
 }
 
 export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
   {
+    // 2026-09-16 P2-03에서 실제 화면이 됨(src/pages/labs/vision/index.astro). 슬라이더(P2-04)·손·얼굴(P2-08·09)·가상 컴퓨터(P2-11)는 이어서 더한다.
     id: 'labs-vision',
     phase: 2,
     when: '사이트를 만드는 두 번째 단계(Phase 2)',
@@ -45,7 +51,8 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
       '화면 속 가상 컴퓨터에서 손동작으로 마우스와 키보드를 움직여 봐요.',
     ],
     relatedIds: ['start-student', 'start-check', 'glossary'],
-    browserNotice: false,
+    browserNotice: true,
+    open: true,
   },
   {
     id: 'labs-esp32',

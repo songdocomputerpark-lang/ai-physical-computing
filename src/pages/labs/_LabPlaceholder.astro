@@ -21,7 +21,8 @@
  *   → 모든 자리 페이지에 같은 문장이 있어 검색 결과만 늘리기 때문이다.
  *
  * 브라우저 권장 환경 안내: _labs.ts의 browserNotice가 true인 실습실은 BrowserNotice를 안내 자리(notice 슬롯)에 넣는다(SPEC §9).
- * 자리 페이지 동안은 모두 false다(_labs.ts 주석).
+ * 자리 페이지 동안은 false다(_labs.ts 주석). 실제 화면이 된 실습실(_labs.ts의 open, 2026-09-16부터 영상처리)은 이 틀을 쓰지 않는다.
+ * ?example= 안내는 아직 자리 페이지인 실습실(ESP32·통신)로 차시가 링크할 수 있어 그대로 둔다.
  */
 import BrowserNotice from '../../components/compat/BrowserNotice.astro';
 import ComingSoon from '../../components/common/ComingSoon.astro';

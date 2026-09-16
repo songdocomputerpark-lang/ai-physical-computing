@@ -7,6 +7,7 @@
  */
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withParticle } from '../../lib/korean.ts';
 import { getLabPlan } from './_labs.ts';
 
 const page = getPage('labs');
@@ -16,6 +17,12 @@ const labs = page.children.map((lab) => ({
   plan: getLabPlan(lab.id),
   subPages: lab.children.map((subPage) => ({ subPage, plan: getLabPlan(subPage.id) })),
 }));
+// 실제 화면이 열린 실습실(_labs.ts의 open)은 "준비 중" 대신 "열림"으로 보인다.
+const openLabTitles = labs.filter(({ plan }) => plan.open).map(({ lab }) => lab.title);
+const introLine =
+  openLabTitles.length === 0
+    ? '실습실은 지금 만들고 있어요. 카드마다 어떤 실습실인지와 언제 열리는지 적어 두었어요.'
+    : `${withParticle(openLabTitles.join(', '), '은/는')} 열렸어요. 나머지 실습실은 만들고 있고, 카드마다 언제 열리는지 적어 두었어요.`;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
@@ -23,7 +30,7 @@ const labs = page.children.map((lab) => ({
   <p class="lead">{page.description}</p>
 
   <div class="labs-intro">
-    <p>실습실은 지금 만들고 있어요. 카드마다 어떤 실습실인지와 언제 열리는지 적어 두었어요.</p>
+    <p>{introLine}</p>
     <p>Phase는 사이트를 만드는 순서를 뜻해요. 번호가 작은 실습실부터 차례로 열려요.</p>
     <p>
       실습실은 컴퓨터용 Chrome이나 Edge 최신판에서 가장 잘 돼요. 이 컴퓨터에서 쓸 수 있는지는{' '}
@@ -38,10 +45,19 @@ const labs = page.children.map((lab) => ({
           <h2 class="lab-card__title">
             <a href={lab.href}>{lab.title}</a>
           </h2>
-          <p class="lab-card__status" data-pagefind-ignore>
-            <span class="lab-card__badge">준비 중</span>
-            <span>{plan.when}에 열려요</span>
-          </p>
+          {
+            plan.open ? (
+              <p class="lab-card__status" data-pagefind-ignore>
+                <span class="lab-card__badge lab-card__badge--open">열림</span>
+                <span>지금 바로 쓸 수 있어요</span>
+              </p>
+            ) : (
+              <p class="lab-card__status" data-pagefind-ignore>
+                <span class="lab-card__badge">준비 중</span>
+                <span>{plan.when}에 열려요</span>
+              </p>
+            )
+          }
           <p class="lab-card__description">{lab.description}</p>
           {subPages.map(({ subPage, plan: subPlan }) => (
             <p class="lab-card__sub">
@@ -103,6 +119,13 @@ const labs = page.children.map((lab) => ({
     background: var(--color-accent-soft);
     color: var(--color-accent-hover);
     font-weight: var(--weight-semibold);
+  }
+
+  /* 열린 실습실: 초록 상태색(success-bg 위 success-text 대비 6.38) */
+  .lab-card__badge--open {
+    border-color: var(--color-success-border);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
   }
 
   .lab-card__description {
