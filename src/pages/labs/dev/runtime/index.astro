@@ -1,0 +1,474 @@
+---
+/**
+ * 파이썬 실행기 시험 페이지(개발용, PLAN §8.2 P2-01).
+ *
+ * 영상처리 실습실의 실제 화면은 P2-03이 만든다. 이 페이지는 파이썬 워커(src/lab/runtime/)가 브라우저에서 제대로 도는지
+ * 사람과 브라우저 테스트(tests/e2e/lab-runtime.spec.ts)가 확인하는 곳이다: 코드 입력칸, [실행], [정지], 콘솔, input() 입력줄.
+ * - 사이트 지도(src/config/nav.ts)에 없고, 검색 엔진과 사이트 검색 색인에서 뺀다(noindex, searchIndex=false).
+ * - 주소가 /labs/dev/runtime/인 이유: Astro는 이름이 _로 시작하는 파일·폴더를 페이지로 만들지 않아(create-manifest.js)
+ *   PLAN에 적힌 src/pages/labs/_dev/ 자리에 두면 주소가 생기지 않는다.
+ * - ?limited=1 을 붙이면 JSPI가 있어도 제한 모드(PLAN §4.5)로 동작해 안내와 오류 문구를 볼 수 있다.
+ * 테스트가 읽는 값: 뿌리의 data-state·data-jspi·data-limited·data-outcome·data-stop-ms·data-run-count.
+ */
+import BrowserNotice from '../../../../components/compat/BrowserNotice.astro';
+import Callout from '../../../../components/common/Callout.astro';
+import { getPage } from '../../../../config/nav.ts';
+import { PYODIDE_CDN_INDEX_URL, PYODIDE_VERSION, STOP_GRACE_MS } from '../../../../lab/runtime/config.ts';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../../lib/url.ts';
+
+const title = '파이썬 실행기 시험(개발용)';
+const labs = getPage('labs');
+const breadcrumb = [{ label: '홈', href: withBase('') }, { label: labs.label, href: labs.href }, { label: title }];
+
+/** 시험용 코드. 첫 항목이 처음에 입력칸에 들어간다. */
+const samples = [
+  { id: 'hello', label: '인사 출력', code: "print('안녕')\n" },
+  {
+    id: 'sleep-loop',
+    label: '기다리는 반복(정지 1단계)',
+    code: "import time\n\ncount = 0\nwhile True:\n    count += 1\n    print('돌고 있어요', count)\n    time.sleep(0.5)\n",
+  },
+  { id: 'busy-loop', label: '계산만 하는 반복(정지 2단계)', code: 'while True:\n    pass\n' },
+  { id: 'input', label: 'input()으로 한 줄 받기', code: "name = input('이름: ')\nprint('안녕, ' + name)\n" },
+  { id: 'numpy', label: 'numpy 패키지 불러오기', code: 'import numpy as np\n\nprint(np.arange(3).sum())\n' },
+  { id: 'error', label: '오류 내기(NameError)', code: 'print(undefined_name)\n' },
+] as const;
+---
+
+<BaseLayout title={title} description="파이썬 워커가 브라우저에서 도는지 확인하는 개발용 페이지" breadcrumb={breadcrumb} noindex searchIndex={false}>
+  <BrowserNotice slot="notice" />
+  <h1 class="page-title">{title}</h1>
+  <p class="lead">
+    영상처리 실습실을 만들기 전에 파이썬 실행기(워커)가 이 브라우저에서 도는지 확인하는 페이지예요. 사이트 메뉴에는 없어요.
+  </p>
+
+  <div class="runtime" data-runtime data-state="unloaded" data-jspi="pending" data-limited="pending" data-outcome="" data-run-count="0" data-stop-ms="">
+    <section class="runtime__status" aria-labelledby="runtime-status-heading">
+      <h2 id="runtime-status-heading" class="runtime__heading">상태</h2>
+      <dl class="runtime__facts">
+        <div>
+          <dt>실행기</dt>
+          <dd><span role="status" aria-live="polite" data-runtime-status>아직 시작하지 않았어요.</span></dd>
+        </div>
+        <div>
+          <dt>JSPI(파이썬 기다리기 기능)</dt>
+          <dd data-runtime-jspi>확인 중이에요.</dd>
+        </div>
+        <div>
+          <dt>파이썬 엔진</dt>
+          <dd data-runtime-engine>Pyodide {PYODIDE_VERSION} — {PYODIDE_CDN_INDEX_URL}</dd>
+        </div>
+        <div>
+          <dt>진행</dt>
+          <dd data-runtime-progress aria-live="polite">—</dd>
+        </div>
+      </dl>
+      <div data-runtime-limited-notice hidden>
+        <Callout type="주의" title="제한 모드로 실행해요">
+          <p>
+            이 브라우저에는 JSPI가 없어서(또는 시험용으로 껐어요) 입력이나 카메라를 기다리는 코드는 실행할 수 없어요. 한 번 실행되고
+            끝나는 코드는 돌아요. [정지]는 파이썬을 다시 시작하는 방식(정지 2단계)으로만 돼요.
+          </p>
+        </Callout>
+      </div>
+    </section>
+
+    <section class="runtime__editor" aria-labelledby="runtime-code-heading">
+      <h2 id="runtime-code-heading" class="runtime__heading">코드</h2>
+      <div class="runtime__samples">
+        <label for="runtime-sample">시험 코드 고르기</label>
+        <select id="runtime-sample" data-runtime-sample>
+          {samples.map((sample) => <option value={sample.id}>{sample.label}</option>)}
+        </select>
+        <button type="button" class="button button--secondary" data-runtime-fill>코드 넣기</button>
+      </div>
+      <label class="runtime__label" for="runtime-code">파이썬 코드</label>
+      <textarea id="runtime-code" class="runtime__code" data-runtime-code rows="8" spellcheck="false" autocomplete="off">{samples[0].code}</textarea>
+      <div class="runtime__actions">
+        <button type="button" class="button button--primary" data-runtime-run>실행</button>
+        <button type="button" class="button button--secondary" data-runtime-stop disabled>정지</button>
+        <button type="button" class="button button--secondary" data-runtime-clear>콘솔 지우기</button>
+      </div>
+      <p class="runtime__hint">
+        [정지]를 누르면 기다리는 곳(time.sleep, input)에서 바로 멈춰요. {STOP_GRACE_MS / 1000}초 안에 멈추지 않으면 파이썬을 다시
+        시작해요.
+      </p>
+    </section>
+
+    <section class="runtime__output" aria-labelledby="runtime-console-heading">
+      <h2 id="runtime-console-heading" class="runtime__heading">콘솔</h2>
+      <pre class="runtime__console" data-runtime-console aria-label="콘솔 출력" tabindex="0"></pre>
+      <form class="runtime__input" data-runtime-input-form hidden>
+        <label class="runtime__input-label" for="runtime-input" data-runtime-input-label>입력</label>
+        <input id="runtime-input" type="text" data-runtime-input autocomplete="off" />
+        <button type="submit" class="button button--primary">입력</button>
+      </form>
+      <p class="runtime__result" role="status" aria-live="polite" data-runtime-result></p>
+    </section>
+  </div>
+
+  <div class="prose runtime__notes">
+    <h2>이 페이지가 확인하는 것</h2>
+    <ul>
+      <li>
+        파이썬 엔진(Pyodide)을 jsDelivr에서 받아 워커에서 띄우고 <code>print()</code> 결과가 콘솔에 나오는지.
+      </li>
+      <li>
+        [정지] 1단계: <code>time.sleep</code>이나 <code>input()</code>에서 기다리던 코드가 바로 멈추는지(KeyboardInterrupt).
+      </li>
+      <li>[정지] 2단계: 계산만 하는 반복문이 파이썬을 다시 시작하는 방식으로 멈추고, 그 뒤에 다시 실행되는지.</li>
+      <li>JSPI가 없는 브라우저의 제한 모드 안내(주소 뒤에 <code>?limited=1</code>).</li>
+    </ul>
+  </div>
+</BaseLayout>
+
+<script>
+  import { PythonRuntime, type RunResult, type RuntimeRequest } from '../../../../lab/runtime/client.ts';
+  import type { RuntimeState } from '../../../../lab/runtime/protocol.ts';
+  import { envFromWindow, hasJspiApi } from '../../../../lib/capabilities.ts';
+
+  const SAMPLE_CODES: Record<string, string> = {
+    hello: "print('안녕')\n",
+    'sleep-loop': "import time\n\ncount = 0\nwhile True:\n    count += 1\n    print('돌고 있어요', count)\n    time.sleep(0.5)\n",
+    'busy-loop': 'while True:\n    pass\n',
+    input: "name = input('이름: ')\nprint('안녕, ' + name)\n",
+    numpy: 'import numpy as np\n\nprint(np.arange(3).sum())\n',
+    error: 'print(undefined_name)\n',
+  };
+
+  const STATE_TEXT: Record<RuntimeState, string> = {
+    unloaded: '아직 시작하지 않았어요.',
+    loading: '파이썬을 준비하는 중이에요…',
+    idle: '준비됐어요. [실행]을 누르세요.',
+    running: '실행 중이에요.',
+    stopping: '멈추는 중이에요…',
+    failed: '파이썬을 준비하지 못했어요.',
+  };
+
+  const MAX_CONSOLE_NODES = 2000;
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-runtime]')) {
+    const statusText = root.querySelector<HTMLElement>('[data-runtime-status]');
+    const jspiText = root.querySelector<HTMLElement>('[data-runtime-jspi]');
+    const engineText = root.querySelector<HTMLElement>('[data-runtime-engine]');
+    const progressText = root.querySelector<HTMLElement>('[data-runtime-progress]');
+    const limitedNotice = root.querySelector<HTMLElement>('[data-runtime-limited-notice]');
+    const codeField = root.querySelector<HTMLTextAreaElement>('[data-runtime-code]');
+    const sampleSelect = root.querySelector<HTMLSelectElement>('[data-runtime-sample]');
+    const fillButton = root.querySelector<HTMLButtonElement>('[data-runtime-fill]');
+    const runButton = root.querySelector<HTMLButtonElement>('[data-runtime-run]');
+    const stopButton = root.querySelector<HTMLButtonElement>('[data-runtime-stop]');
+    const clearButton = root.querySelector<HTMLButtonElement>('[data-runtime-clear]');
+    const consoleBox = root.querySelector<HTMLElement>('[data-runtime-console]');
+    const inputForm = root.querySelector<HTMLFormElement>('[data-runtime-input-form]');
+    const inputLabel = root.querySelector<HTMLElement>('[data-runtime-input-label]');
+    const inputField = root.querySelector<HTMLInputElement>('[data-runtime-input]');
+    const resultText = root.querySelector<HTMLElement>('[data-runtime-result]');
+    if (!codeField || !runButton || !stopButton || !consoleBox) {
+      continue;
+    }
+
+    const forceLimited = new URLSearchParams(window.location.search).get('limited') === '1';
+    const pageJspi = hasJspiApi(envFromWindow(window).WebAssembly);
+    const runtime = new PythonRuntime({ forceLimited });
+    let runCount = 0;
+    let pendingInput: RuntimeRequest | null = null;
+
+    function append(text: string, kind: 'stdout' | 'stderr' | 'notice' | 'input'): void {
+      if (!consoleBox) return;
+      const span = document.createElement('span');
+      span.className = `runtime__line runtime__line--${kind}`;
+      span.textContent = text;
+      consoleBox.append(span);
+      while (consoleBox.childNodes.length > MAX_CONSOLE_NODES) {
+        consoleBox.firstChild?.remove();
+      }
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    function setJspiText(): void {
+      const worker = runtime.info ? (runtime.info.jspi ? '있음' : '없음') : '확인 중';
+      const limited = runtime.info?.limited ? ' — 제한 모드' : '';
+      if (jspiText) {
+        jspiText.textContent = `화면 쪽: ${pageJspi ? '있음' : '없음'} · 워커 쪽(can_run_sync): ${worker}${limited}`;
+      }
+    }
+
+    function hideInput(): void {
+      pendingInput = null;
+      if (inputForm) inputForm.hidden = true;
+    }
+
+    function showResult(result: RunResult): void {
+      const stopNote = result.stopMs !== undefined ? ` [정지]까지 ${Math.round(result.stopMs)}ms` : '';
+      let text: string;
+      switch (result.outcome) {
+        case 'ok':
+          text = result.exitCode === undefined ? '실행이 끝났어요.' : `exit()로 끝났어요(종료 코드 ${result.exitCode ?? '없음'}).`;
+          break;
+        case 'stopped':
+          text = `멈췄어요(KeyboardInterrupt).${stopNote}`;
+          break;
+        case 'killed':
+          text = `파이썬을 다시 시작했어요(정지 2단계).${stopNote}`;
+          break;
+        default:
+          text = `오류로 끝났어요: ${result.error?.message ?? '알 수 없는 오류'}`;
+          if (result.error?.traceback) {
+            append(`${result.error.traceback}\n`, 'stderr');
+          }
+      }
+      if (resultText) resultText.textContent = text;
+      root.dataset.outcome = result.outcome;
+      root.dataset.stopMs = result.stopMs === undefined ? '' : String(Math.round(result.stopMs));
+    }
+
+    runtime.on('state', ({ state }) => {
+      root.dataset.state = state;
+      if (statusText) statusText.textContent = STATE_TEXT[state];
+      runButton.disabled = state !== 'idle';
+      stopButton.disabled = state !== 'running';
+      if (state !== 'running') hideInput();
+    });
+    runtime.on('ready', (info) => {
+      root.dataset.jspi = info.jspi ? 'yes' : 'no';
+      root.dataset.limited = info.limited ? 'yes' : 'no';
+      setJspiText();
+      if (engineText) engineText.textContent = `Pyodide ${info.pyodideVersion} · Python ${info.pythonVersion} — ${info.indexUrl}`;
+      if (limitedNotice) limitedNotice.hidden = !info.limited;
+      if (progressText) progressText.textContent = '준비 끝';
+    });
+    runtime.on('progress', ({ message }) => {
+      if (progressText) progressText.textContent = message;
+    });
+    runtime.on('stdout', (text) => append(text, 'stdout'));
+    runtime.on('stderr', (text) => append(text, 'stderr'));
+    runtime.on('notice', ({ level, text }) => append(`[${level === 'error' ? '오류' : level === 'warn' ? '알림' : '안내'}] ${text}\n`, 'notice'));
+    runtime.on('done', (result) => {
+      hideInput();
+      showResult(result);
+    });
+    runtime.on('request', (request) => {
+      if (request.kind !== 'input') {
+        request.fail(`이 페이지는 "${request.kind}" 요청을 처리하지 못해요.`);
+        return;
+      }
+      pendingInput = request;
+      const payload = request.payload as { prompt?: string } | null;
+      const prompt = typeof payload?.prompt === 'string' && payload.prompt.trim() !== '' ? payload.prompt : '입력';
+      if (inputLabel) inputLabel.textContent = prompt;
+      if (inputForm) inputForm.hidden = false;
+      if (inputField) {
+        inputField.value = '';
+        inputField.focus();
+      }
+    });
+
+    inputForm?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const request = pendingInput;
+      if (!request || !inputField) return;
+      const value = inputField.value;
+      append(`${value}\n`, 'input');
+      hideInput();
+      request.reply(value);
+    });
+
+    runButton.addEventListener('click', () => {
+      if (runtime.state !== 'idle') return;
+      runCount += 1;
+      root.dataset.runCount = String(runCount);
+      root.dataset.outcome = '';
+      root.dataset.stopMs = '';
+      if (resultText) resultText.textContent = '';
+      append(`── 실행 ${runCount} ──\n`, 'notice');
+      void runtime.run(codeField.value).catch((error: unknown) => {
+        append(`[오류] ${error instanceof Error ? error.message : String(error)}\n`, 'notice');
+      });
+    });
+    stopButton.addEventListener('click', () => {
+      void runtime.stop();
+    });
+    clearButton?.addEventListener('click', () => {
+      consoleBox.replaceChildren();
+      if (resultText) resultText.textContent = '';
+    });
+    fillButton?.addEventListener('click', () => {
+      const code = SAMPLE_CODES[sampleSelect?.value ?? ''];
+      if (code !== undefined) {
+        codeField.value = code;
+        codeField.focus();
+      }
+    });
+
+    setJspiText();
+    runtime.load().catch(() => {
+      // 실패 안내는 notice 이벤트와 상태 글이 보여 준다.
+    });
+    window.addEventListener('pagehide', () => runtime.dispose());
+  }
+</script>
+
+<style>
+  .runtime {
+    display: grid;
+    gap: var(--space-6);
+    margin-block-end: var(--space-10);
+  }
+
+  .runtime__heading {
+    margin-block-end: var(--space-3);
+    font-size: var(--text-xl);
+  }
+
+  .runtime__facts {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+  }
+
+  .runtime__facts > div {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .runtime__facts dt {
+    font-weight: var(--weight-semibold);
+  }
+
+  .runtime__facts dd {
+    overflow-wrap: anywhere;
+  }
+
+  .runtime__samples {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block-end: var(--space-3);
+  }
+
+  .runtime__samples select {
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .runtime__label {
+    display: block;
+    margin-block-end: var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .runtime__code {
+    display: block;
+    width: 100%;
+    min-height: 12rem;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    resize: vertical;
+    tab-size: 4;
+  }
+
+  .runtime__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-3);
+  }
+
+  .button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .runtime__hint {
+    margin-block-start: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .runtime__console {
+    min-height: 12rem;
+    max-height: 24rem;
+    margin: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    white-space: pre-wrap;
+    overflow: auto;
+    overflow-wrap: anywhere;
+  }
+
+  .runtime__line--stderr {
+    color: var(--color-danger-text);
+  }
+
+  .runtime__line--notice {
+    color: var(--color-text-muted);
+  }
+
+  .runtime__line--input {
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+  }
+
+  .runtime__input {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block-start: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+  }
+
+  .runtime__input-label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .runtime__input input {
+    flex: 1 1 12rem;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+  }
+
+  .runtime__result {
+    min-height: 1.5em;
+    margin-block-start: var(--space-3);
+    font-weight: var(--weight-semibold);
+  }
+
+  .runtime__notes {
+    margin-block-start: var(--space-8);
+  }
+
+  @media (max-width: 39.99rem) {
+    .runtime__facts > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-1);
+    }
+  }
+</style>
