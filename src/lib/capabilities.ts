@@ -11,8 +11,8 @@
  * 2. 허락을 묻는 창(카메라·포트 선택)을 띄우지 않고, 사이트 밖 서버에 접속하지 않는다.
  * 3. 결과는 지원·미지원·확인 필요 세 가지다. 지원이 아니면 한국어 대처 안내를 붙인다.
  * 4. 브라우저 전역 객체를 직접 읽지 않고 CapabilityEnv로 받는다. 그래서 단위 테스트가 가짜 navigator로 검사할 수 있다.
- * 5. Node.js가 이 파일을 직접 불러 JSPI를 실제로 시험할 수 있게(tests/unit/start/) 다른 파일을 import하지 않고,
- *    타입 표기만 지우면 그대로 도는 문법만 쓴다(enum·namespace 금지).
+ * 5. Node.js가 이 파일을 직접 불러 JSPI를 실제로 시험할 수 있게(tests/unit/start/) 저장 이름 규칙(./storage.ts, 같은 규칙으로 쓴 파일)
+ *    말고는 다른 파일을 import하지 않고, 타입 표기만 지우면 그대로 도는 문법만 쓴다(enum·namespace 금지).
  *
  * 근거(2026-09-16 확인)
  * - JSPI의 새 API는 WebAssembly.Suspending(생성자)과 WebAssembly.promising(함수)이다
@@ -29,6 +29,8 @@
  *   getAvailability()는 블루투스 어댑터가 없거나 설정·정책으로 막히면 false다(MDN Bluetooth.getAvailability).
  * - 카메라 장치: enumerateDevices()는 허락 전에는 장치 이름(label) 없이 종류만 알려 준다(MDN MediaDevices.enumerateDevices).
  */
+
+import { STORAGE_KEY_PREFIX, storageKey, type StorageLike } from './storage.ts';
 
 /** 점검 결과: 지원 · 미지원 · 확인 필요 */
 export type CheckStatus = 'supported' | 'unsupported' | 'unknown';
@@ -107,12 +109,16 @@ export function getCheckItem(id: CheckId): CheckItem {
 /** 실습실을 넉넉하게 볼 수 있는 창 너비(CSS 픽셀). 이보다 좁으면 "확인 필요"로 알린다(Claude 결정, 보고서에 근거). */
 export const RECOMMENDED_MIN_WIDTH = 1024;
 
-/** 이 사이트가 브라우저 저장 공간에 쓰는 이름의 머리말. 같은 github.io 주소를 쓰는 다른 사이트의 값과 섞이지 않게 붙인다. */
-export const STORAGE_KEY_PREFIX = 'ai-physical-computing:';
+/**
+ * 이 사이트가 브라우저 저장 공간에 쓰는 이름의 머리말. 규칙과 읽기·쓰기·지우기 도우미는 src/lib/storage.ts 한 곳에 있다
+ * (2026-09-16 P2-01에서 옮김). 여기서는 전에 쓰던 이름을 그대로 내보낸다.
+ */
+export { STORAGE_KEY_PREFIX };
+export type { StorageLike };
 /** 저장 공간 점검에 잠깐 썼다가 지우는 이름 */
-export const STORAGE_TEST_KEY = `${STORAGE_KEY_PREFIX}storage-test`;
+export const STORAGE_TEST_KEY = storageKey('storage-test');
 /** 브라우저 권장 환경 안내를 닫았다는 표시(값은 닫은 안내 종류) */
-export const BROWSER_NOTICE_DISMISS_KEY = `${STORAGE_KEY_PREFIX}browser-notice-dismissed`;
+export const BROWSER_NOTICE_DISMISS_KEY = storageKey('browser-notice-dismissed');
 
 /** 비동기 점검(JSPI 시험, 장치 목록 등)을 기다리는 최대 시간(밀리초) */
 export const DEFAULT_CHECK_TIMEOUT_MS = 3000;
@@ -146,12 +152,6 @@ export interface NavigatorLike {
   readonly bluetooth?: {
     readonly getAvailability?: () => Promise<boolean>;
   } | null;
-}
-
-export interface StorageLike {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
 }
 
 export interface WebAssemblyLike {
