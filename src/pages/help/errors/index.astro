@@ -1,0 +1,283 @@
+---
+/**
+ * 파이썬 오류 사전(PLAN §2.1 /help/ 아래, §8.2 P2-06) — 실습실 카드와 **같은 데이터**로 자동으로 만든다.
+ *
+ * 데이터: content/help/errors/errors.yaml(항목을 더하면 이 페이지와 실습실 카드에 함께 나온다. 코드 수정 없음).
+ * 글의 {자리}({name}·{line} 같은 것)는 항목의 보기(example)로 채워 실제로 보이는 문장 그대로 보여 준다(explain.ts의 entryPreview).
+ * 항목마다 제목에 id를 두어 실습실 카드의 [오류 사전에서 더 보기] 링크가 /help/errors/#name-error처럼 바로 그 항목으로 온다.
+ * 검색: 이 페이지는 색인에 넣고, src/config/search.ts의 anchorPages에 '/help/errors/'가 있어 항목 단위 결과(sub_results)로 보인다.
+ */
+import Callout from '../../../components/common/Callout.astro';
+import { getPage } from '../../../config/nav.ts';
+import { errorCatalog } from '../../../lab/errors/catalog-data.ts';
+import { entriesByGroup } from '../../../lab/errors/catalog-schema.ts';
+import { entryPreview } from '../../../lab/errors/explain.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getPage('help-errors');
+const helpPage = getPage('help');
+const contributePage = getPage('contribute');
+const visionLab = getPage('labs-vision');
+
+const title = page.title;
+const description = page.description;
+
+const groups = entriesByGroup(errorCatalog).filter((group) => group.entries.length > 0);
+const items = groups.map((group) => ({
+  group: group.group,
+  entries: group.entries.map((entry) => ({ entry, preview: entryPreview(entry) })),
+}));
+const total = errorCatalog.entries.length;
+
+---
+
+<BaseLayout title={title} description={description} width="narrow">
+  <h1 class="page-title">{title}</h1>
+  <p class="lead">{description}</p>
+
+  <section class="errors-how" aria-labelledby="errors-how-title">
+    <h2 id="errors-how-title">오류 메시지 읽는 법</h2>
+    <p>
+      코드가 오류로 끝나면 실습실 콘솔에 <b>트레이스백</b>이라는 글이 나와요. 영어라서 길어 보이지만 읽는 순서만 알면 쉬워요.
+    </p>
+    <ol>
+      <li><b>맨 아래 줄부터</b> 읽어요. <code>NameError: name 'total' is not defined</code>처럼 <b>오류 종류: 무엇이 잘못됐는지</b>가 적혀 있어요.</li>
+      <li>
+        그 위의 <code>File "main.py", line 5</code>에서 <b>내 코드의 몇 번째 줄</b>인지 알 수 있어요. <code>main.py</code>가 내가 쓴 코드예요.
+      </li>
+      <li>그 아래에 붙은 <code>^^^^</code> 표시는 그 줄에서 파이썬이 막힌 자리예요.</li>
+    </ol>
+    <p>
+      <a href={visionLab.href}>{visionLab.label}</a>에서는 이 일을 실습실이 대신 해 줘요. 코드가 오류로 끝나면 콘솔 위에{' '}
+      <b>오류 풀이 카드</b>가 열려 아래와 같은 한국어 설명과 고치는 방법을 보여 주고, 편집칸에서 그 줄을 붉게 표시해요.
+    </p>
+    <Callout type="참고" title="오류는 고장이 아니에요">
+      <p>
+        오류 메시지는 파이썬이 "여기를 이렇게 고쳐 줘"라고 알려 주는 쪽지예요. 프로그램을 만드는 사람은 하루에도 여러 번 봐요.
+        메시지를 읽고 한 곳씩 고치면 돼요.
+      </p>
+    </Callout>
+  </section>
+
+  <nav class="errors-index" aria-labelledby="errors-index-title">
+    <h2 id="errors-index-title">묶음으로 찾기</h2>
+    <p class="errors-index__count">오류 풀이 {total}개</p>
+    <ul class="errors-index__groups">
+      {
+        items.map(({ group, entries }) => (
+          <li>
+            <a class="errors-index__group" href={`#${group.id}`}>{group.title}</a>
+            <ul class="errors-index__list">
+              {entries.map(({ entry, preview }) => (
+                <li>
+                  <a href={`#${entry.id}`}>{preview.title}</a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    items.map(({ group, entries }) => (
+      <section class="errors-group" aria-labelledby={group.id}>
+        <h2 class="errors-group__title" id={group.id}>{group.title}</h2>
+        <p class="errors-group__desc">{group.description}</p>
+        {entries.map(({ entry, preview }) => (
+          <article class="errors-entry">
+            <h3 class="errors-entry__title" id={entry.id}>{preview.title}</h3>
+            {entry.types.length > 0 && (
+              <p class="errors-entry__types">
+                오류 종류:{' '}
+                {entry.types.map((name, index) => (
+                  <>
+                    {index > 0 && <span aria-hidden="true">, </span>}
+                    <code>{name}</code>
+                  </>
+                ))}
+              </p>
+            )}
+            <p class="errors-entry__meaning">{preview.meaning}</p>
+            {preview.why.length > 0 && (
+              <>
+                <h4 class="errors-entry__subtitle">왜 났을까요</h4>
+                <ul>{preview.why.map((line) => <li>{line}</li>)}</ul>
+              </>
+            )}
+            <h4 class="errors-entry__subtitle">이렇게 고쳐요</h4>
+            <ol>{preview.fix.map((line) => <li>{line}</li>)}</ol>
+            {preview.mistakes.length > 0 && (
+              <>
+                <h4 class="errors-entry__subtitle">자주 하는 실수</h4>
+                <ul>{preview.mistakes.map((line) => <li>{line}</li>)}</ul>
+              </>
+            )}
+            {entry.example && (
+              <>
+                <h4 class="errors-entry__subtitle">이런 코드에서 나요</h4>
+                <pre class="errors-entry__code"><code>{entry.example.code}</code></pre>
+                <p class="errors-entry__message"><code>{entry.example.error}</code></p>
+              </>
+            )}
+            {entry.cases.length > 0 && (
+              <>
+                <h4 class="errors-entry__subtitle">교과서·교안에서는</h4>
+                <ul>{entry.cases.map((line) => <li>{line}</li>)}</ul>
+              </>
+            )}
+          </article>
+        ))}
+      </section>
+    ))
+  }
+
+  <section class="errors-more" aria-labelledby="errors-more-title">
+    <h2 id="errors-more-title">여기 없는 오류가 있나요?</h2>
+    <p>
+      실습실 카드에 "사전에 아직 없는 오류"라고 나오면 알려 주세요.{' '}
+      <a href={contributePage.href}>{contributePage.title}</a> 페이지의 방법으로 오류 메시지 마지막 줄을 붙여 주시면 이 사전에
+      더해요. 선생님은 <code>content/help/errors/errors.yaml</code> 파일에 항목을 하나 더하면 이 페이지와 실습실 카드에 함께
+      나와요.
+    </p>
+    <p><a href={helpPage.href}>{helpPage.title}</a> 페이지에는 카메라·보드·네트워크 문제의 답이 있어요.</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .errors-how {
+    margin-block-end: var(--space-10);
+  }
+
+  .errors-how ol {
+    padding-inline-start: 1.4em;
+  }
+
+  .errors-how li + li {
+    margin-block-start: var(--space-2);
+  }
+
+  .errors-index {
+    margin-block-end: var(--space-12);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .errors-index h2 {
+    margin-block: 0 var(--space-1);
+    font-size: var(--text-lg);
+  }
+
+  .errors-index__count {
+    margin-block: 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .errors-index__groups {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .errors-index__group {
+    display: block;
+    font-weight: var(--weight-semibold);
+  }
+
+  .errors-index__list {
+    display: grid;
+    gap: var(--space-1);
+    margin-block: var(--space-2) 0;
+    padding-inline-start: 1.2em;
+    font-size: var(--text-sm);
+  }
+
+  .errors-index a {
+    display: block;
+    padding-block: var(--space-1);
+  }
+
+  .errors-group + .errors-group {
+    margin-block-start: var(--space-12);
+  }
+
+  .errors-group__title {
+    padding-block-end: var(--space-2);
+    border-block-end: 2px solid var(--color-accent-border);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .errors-group__desc {
+    color: var(--color-text-muted);
+  }
+
+  .errors-entry {
+    margin-block-start: var(--space-8);
+    padding-block-end: var(--space-6);
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .errors-entry__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .errors-entry__types {
+    margin-block: 0 var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .errors-entry__meaning {
+    margin-block: 0 var(--space-3);
+  }
+
+  .errors-entry__subtitle {
+    margin-block: var(--space-4) var(--space-1);
+    font-size: var(--text-base);
+  }
+
+  .errors-entry ul,
+  .errors-entry ol {
+    margin-block: 0;
+    padding-inline-start: 1.4em;
+  }
+
+  .errors-entry li + li {
+    margin-block-start: var(--space-1);
+  }
+
+  .errors-entry__code {
+    overflow-x: auto;
+    margin-block: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .errors-entry__message {
+    margin-block: 0;
+    font-size: var(--text-sm);
+  }
+
+  .errors-entry__message code {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border-inline-start: 4px solid var(--color-danger-border);
+    background: var(--color-danger-bg);
+  }
+
+  .errors-more {
+    margin-block-start: var(--space-12);
+  }
+</style>

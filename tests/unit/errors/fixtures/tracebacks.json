@@ -1,0 +1,278 @@
+{
+  "pyodideVersion": "314.0.7",
+  "pythonVersion": "3.14.2",
+  "collectedAt": "2026-09-16",
+  "cases": {
+    "name-error": {
+      "code": "x = 1\nprint(total)\n",
+      "type": "NameError",
+      "message": "NameError: name 'total' is not defined",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(total)\n          ^^^^^\nNameError: name 'total' is not defined"
+    },
+    "name-error-typo": {
+      "code": "result = 10\nprint(resutl)\n",
+      "type": "NameError",
+      "message": "NameError: name 'resutl' is not defined. Did you mean: 'result'?",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(resutl)\n          ^^^^^^\nNameError: name 'resutl' is not defined. Did you mean: 'result'?"
+    },
+    "name-error-in-function": {
+      "code": "def show():\n    return total + 1\n\n\nprint('시작')\nshow()\n",
+      "type": "NameError",
+      "message": "NameError: name 'total' is not defined",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 6, in <module>\n    show()\n    ~~~~^^\n  File \"main.py\", line 2, in show\n    return total + 1\n           ^^^^^\nNameError: name 'total' is not defined"
+    },
+    "indentation-expected": {
+      "code": "if True:\nprint('안녕')\n",
+      "type": "IndentationError",
+      "message": "IndentationError: expected an indented block after 'if' statement on line 1",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 2\n    print('안녕')\n    ^^^^^\nIndentationError: expected an indented block after 'if' statement on line 1"
+    },
+    "indentation-unexpected": {
+      "code": "x = 1\n  y = 2\n",
+      "type": "IndentationError",
+      "message": "IndentationError: unexpected indent",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 2\n    y = 2\nIndentationError: unexpected indent"
+    },
+    "indentation-mismatch": {
+      "code": "def f():\n    x = 1\n     y = 2\n    return x\n",
+      "type": "IndentationError",
+      "message": "IndentationError: unexpected indent",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 3\n    y = 2\nIndentationError: unexpected indent"
+    },
+    "syntax-assign-compare": {
+      "code": "x = 1\nif x = 1:\n    print('one')\n",
+      "type": "SyntaxError",
+      "message": "SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 2\n    if x = 1:\n       ^^^^^\nSyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?"
+    },
+    "syntax-missing-colon": {
+      "code": "x = 1\nif x == 1\n    print('one')\n",
+      "type": "SyntaxError",
+      "message": "SyntaxError: expected ':'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 2\n    if x == 1\n             ^\nSyntaxError: expected ':'"
+    },
+    "syntax-unclosed": {
+      "code": "print('안녕'\nprint('다음')\n",
+      "type": "SyntaxError",
+      "message": "SyntaxError: '(' was never closed",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 1\n    print('안녕'\n         ^\nSyntaxError: '(' was never closed"
+    },
+    "syntax-print": {
+      "code": "print '안녕'\n",
+      "type": "SyntaxError",
+      "message": "SyntaxError: Missing parentheses in call to 'print'. Did you mean print(...)?",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 1\n    print '안녕'\n    ^^^^^^^^^^\nSyntaxError: Missing parentheses in call to 'print'. Did you mean print(...)?"
+    },
+    "syntax-invalid-character": {
+      "code": "x = 1\nprint(‘안녕’)\n",
+      "type": "SyntaxError",
+      "message": "SyntaxError: invalid character '‘' (U+2018)",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n          ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"main.py\", line 2\n    print(‘안녕’)\n          ^\nSyntaxError: invalid character '‘' (U+2018)"
+    },
+    "type-error-str-int": {
+      "code": "count = 3\nprint('개수: ' + count)\n",
+      "type": "TypeError",
+      "message": "TypeError: can only concatenate str (not \"int\") to str",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print('개수: ' + count)\n          ~~~~~~~~~^~~~~~~\nTypeError: can only concatenate str (not \"int\") to str"
+    },
+    "type-error-none": {
+      "code": "value = None\nprint(value + 1)\n",
+      "type": "TypeError",
+      "message": "TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(value + 1)\n          ~~~~~~^~~\nTypeError: unsupported operand type(s) for +: 'NoneType' and 'int'"
+    },
+    "type-error-args": {
+      "code": "def draw(x, y):\n    return x + y\n\n\ndraw(1)\n",
+      "type": "TypeError",
+      "message": "TypeError: draw() missing 1 required positional argument: 'y'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 5, in <module>\n    draw(1)\n    ~~~~^^^\nTypeError: draw() missing 1 required positional argument: 'y'"
+    },
+    "type-error-not-subscriptable": {
+      "code": "value = None\nprint(value[0])\n",
+      "type": "TypeError",
+      "message": "TypeError: 'NoneType' object is not subscriptable",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(value[0])\n          ~~~~~^^^\nTypeError: 'NoneType' object is not subscriptable"
+    },
+    "attribute-error-none": {
+      "code": "frame = None\nprint(frame.shape)\n",
+      "type": "AttributeError",
+      "message": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(frame.shape)\n          ^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'shape'"
+    },
+    "attribute-error-list": {
+      "code": "nums = [1, 2, 3]\nnums.push(4)\n",
+      "type": "AttributeError",
+      "message": "AttributeError: 'list' object has no attribute 'push'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    nums.push(4)\n    ^^^^^^^^^\nAttributeError: 'list' object has no attribute 'push'"
+    },
+    "index-error": {
+      "code": "nums = [1, 2, 3]\nprint(nums[5])\n",
+      "type": "IndexError",
+      "message": "IndexError: list index out of range",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(nums[5])\n          ~~~~^^^\nIndexError: list index out of range"
+    },
+    "key-error": {
+      "code": "scores = {'국어': 90}\nprint(scores['수학'])\n",
+      "type": "KeyError",
+      "message": "KeyError: '수학'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(scores['수학'])\n          ~~~~~~^^^^^^^^\nKeyError: '수학'"
+    },
+    "value-error-int": {
+      "code": "value = int('스물')\n",
+      "type": "ValueError",
+      "message": "ValueError: invalid literal for int() with base 10: '스물'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    value = int('스물')\n            ~~~^^^^^^^^\nValueError: invalid literal for int() with base 10: '스물'"
+    },
+    "value-error-unpack": {
+      "code": "a, b = [1, 2, 3]\n",
+      "type": "ValueError",
+      "message": "ValueError: too many values to unpack (expected 2, got 3)",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    a, b = [1, 2, 3]\n    ^^^^\nValueError: too many values to unpack (expected 2, got 3)"
+    },
+    "zero-division": {
+      "code": "total = 0\nprint(10 / total)\n",
+      "type": "ZeroDivisionError",
+      "message": "ZeroDivisionError: division by zero",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    print(10 / total)\n          ~~~^~~~~~~\nZeroDivisionError: division by zero"
+    },
+    "module-not-found": {
+      "code": "import cv3\n",
+      "type": "ModuleNotFoundError",
+      "message": "ModuleNotFoundError: No module named 'cv3'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    import cv3\nModuleNotFoundError: No module named 'cv3'"
+    },
+    "module-not-found-site": {
+      "code": "import mediapipe as mp\n",
+      "type": "ModuleNotFoundError",
+      "message": "ModuleNotFoundError: No module named 'mediapipe'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    import mediapipe as mp\nModuleNotFoundError: No module named 'mediapipe'"
+    },
+    "file-not-found": {
+      "code": "with open('mask.png', 'rb') as f:\n    data = f.read()\n",
+      "type": "FileNotFoundError",
+      "message": "FileNotFoundError: [Errno 44] No such file or directory: 'mask.png'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    with open('mask.png', 'rb') as f:\n         ~~~~^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 44] No such file or directory: 'mask.png'"
+    },
+    "recursion-error": {
+      "code": "def count(n):\n    return count(n + 1)\n\n\ncount(1)\n",
+      "type": "RecursionError",
+      "message": "RecursionError: maximum recursion depth exceeded",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 5, in <module>\n    count(1)\n    ~~~~~^^^\n  File \"main.py\", line 2, in count\n    return count(n + 1)\n  File \"main.py\", line 2, in count\n    return count(n + 1)\n  File \"main.py\", line 2, in count\n    return count(n + 1)\n  [Previous line repeated 992 more times]\nRecursionError: maximum recursion depth exceeded"
+    },
+    "assertion-error": {
+      "code": "value = 1\nassert value == 2, '값이 달라요'\n",
+      "type": "AssertionError",
+      "message": "AssertionError: 값이 달라요",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 2, in <module>\n    assert value == 2, '값이 달라요'\n           ^^^^^^^^^^\nAssertionError: 값이 달라요"
+    },
+    "unbound-local": {
+      "code": "total = 0\n\n\ndef add():\n    total = total + 1\n    return total\n\n\nadd()\n",
+      "type": "UnboundLocalError",
+      "message": "UnboundLocalError: cannot access local variable 'total' where it is not associated with a value",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 9, in <module>\n    add()\n    ~~~^^\n  File \"main.py\", line 5, in add\n    total = total + 1\n            ^^^^^\nUnboundLocalError: cannot access local variable 'total' where it is not associated with a value"
+    },
+    "eof-error": {
+      "code": "name = input('이름: ')\n",
+      "type": "EOFError",
+      "message": "EOFError: EOF when reading a line",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    name = input('이름: ')\n           ~~~~~^^^^^^^^^^\nEOFError: EOF when reading a line"
+    },
+    "chained-context": {
+      "code": "try:\n    1 / 0\nexcept ZeroDivisionError:\n    raise ValueError('값이 이상해요')\n",
+      "type": "ValueError",
+      "message": "ValueError: 값이 이상해요",
+      "traceback": "Traceback (most recent call last):\n  File \"main.py\", line 2, in <module>\n    1 / 0\n    ~~^~~\nZeroDivisionError: division by zero\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 4, in <module>\n    raise ValueError('값이 이상해요')\nValueError: 값이 이상해요"
+    },
+    "chained-cause": {
+      "code": "try:\n    {'a': 1}['b']\nexcept KeyError as error:\n    raise RuntimeError('처리 실패') from error\n",
+      "type": "RuntimeError",
+      "message": "RuntimeError: 처리 실패",
+      "traceback": "Traceback (most recent call last):\n  File \"main.py\", line 2, in <module>\n    {'a': 1}['b']\n    ~~~~~~~~^^^^^\nKeyError: 'b'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 4, in <module>\n    raise RuntimeError('처리 실패') from error\nRuntimeError: 처리 실패"
+    },
+    "keyboard-interrupt": {
+      "code": "raise KeyboardInterrupt\n",
+      "type": "KeyboardInterrupt",
+      "message": "KeyboardInterrupt",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    raise KeyboardInterrupt\nKeyboardInterrupt"
+    },
+    "site-frame-between": {
+      "code": "import apc_probe\n\n\ndef step():\n    return 1 / 0\n\n\napc_probe.run(step)\n",
+      "type": "ZeroDivisionError",
+      "message": "ZeroDivisionError: division by zero",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 8, in <module>\n    apc_probe.run(step)\n    ~~~~~~~~~~~~~^^^^^^\n  File \"/apc/apc_probe.py\", line 3, in run\n    return callback()\n  File \"main.py\", line 5, in step\n    return 1 / 0\n           ~~^~~\nZeroDivisionError: division by zero"
+    },
+    "stop-iteration": {
+      "code": "values = iter([1])\nnext(values)\nnext(values)\n",
+      "type": "RuntimeError",
+      "message": "RuntimeError: coroutine raised StopIteration",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 3, in <module>\n    next(values)\n    ~~~~^^^^^^^^\nStopIteration\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\nRuntimeError: coroutine raised StopIteration"
+    },
+    "cv2-empty-image": {
+      "code": "import cv2\n\nframe = None\ngray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)\n",
+      "type": "error",
+      "message": "cv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/imgproc/src/color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cvtColor'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 4, in <module>\n    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)\ncv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/imgproc/src/color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cvtColor'"
+    },
+    "cv2-empty-imread": {
+      "code": "import cv2\n\nimage = cv2.imread('없는파일.png')\ngray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\ncv2.imshow('gray', gray)\n",
+      "type": "error",
+      "message": "cv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/imgproc/src/color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cvtColor'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 4, in <module>\n    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\ncv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/imgproc/src/color.cpp:199: error: (-215:Assertion failed) !_src.empty() in function 'cvtColor'"
+    },
+    "cv2-channels": {
+      "code": "import cv2\nimport numpy as np\n\ncolor = np.zeros((48, 64, 3), dtype=np.uint8)\ngray = np.zeros((48, 64), dtype=np.uint8)\nmixed = cv2.bitwise_and(color, gray)\n",
+      "type": "error",
+      "message": "cv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/core/src/arithm.cpp:214: error: (-209:Sizes of input arguments do not match) The operation is neither 'array op array' (where arrays have the same size and type), nor 'array op scalar', nor 'scalar op array' in function 'binary_op'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 6, in <module>\n    mixed = cv2.bitwise_and(color, gray)\ncv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/core/src/arithm.cpp:214: error: (-209:Sizes of input arguments do not match) The operation is neither 'array op array' (where arrays have the same size and type), nor 'array op scalar', nor 'scalar op array' in function 'binary_op'"
+    },
+    "cv2-channels-add": {
+      "code": "import cv2\nimport numpy as np\n\ncolor = np.zeros((48, 64, 3), dtype=np.uint8)\ngray = np.zeros((48, 64), dtype=np.uint8)\nmixed = cv2.addWeighted(color, 0.5, gray, 0.5, 0)\n",
+      "type": "error",
+      "message": "cv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/core/src/arithm.cpp:665: error: (-209:Sizes of input arguments do not match) The operation is neither 'array op array' (where arrays have the same size and the same number of channels), nor 'array op scalar', nor 'scalar op array' in function 'arithm_op'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 6, in <module>\n    mixed = cv2.addWeighted(color, 0.5, gray, 0.5, 0)\ncv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/core/src/arithm.cpp:665: error: (-209:Sizes of input arguments do not match) The operation is neither 'array op array' (where arrays have the same size and the same number of channels), nor 'array op scalar', nor 'scalar op array' in function 'arithm_op'"
+    },
+    "cv2-kernel-odd": {
+      "code": "import cv2\nimport numpy as np\n\nimage = np.zeros((48, 64, 3), dtype=np.uint8)\nblur = cv2.GaussianBlur(image, (4, 4), 0)\n",
+      "type": "error",
+      "message": "cv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/imgproc/src/smooth.dispatch.cpp:294: error: (-215:Assertion failed) ksize.width > 0 && ksize.width % 2 == 1 && ksize.height > 0 && ksize.height % 2 == 1 in function 'createGaussianKernels'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 5, in <module>\n    blur = cv2.GaussianBlur(image, (4, 4), 0)\ncv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/imgproc/src/smooth.dispatch.cpp:294: error: (-215:Assertion failed) ksize.width > 0 && ksize.width % 2 == 1 && ksize.height > 0 && ksize.height % 2 == 1 in function 'createGaussianKernels'"
+    },
+    "cv2-bad-argument": {
+      "code": "import cv2\nimport numpy as np\n\nimage = np.zeros((48, 64, 3), dtype=np.uint8)\ncv2.line(image, (1.5, 2), (30, 40), (255, 0, 0), 2)\n",
+      "type": "error",
+      "message": ">  - Can't parse 'pt1'. Sequence item with index 0 has a wrong type",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 5, in <module>\n    cv2.line(image, (1.5, 2), (30, 40), (255, 0, 0), 2)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ncv2.error: OpenCV(4.11.0) :-1: error: (-5:Bad argument) in function 'line'\n> Overload resolution failed:\n>  - Can't parse 'pt1'. Sequence item with index 0 has a wrong type\n>  - Can't parse 'pt1'. Sequence item with index 0 has a wrong type"
+    },
+    "cv2-size-mismatch": {
+      "code": "import cv2\nimport numpy as np\n\nbig = np.zeros((48, 64, 3), dtype=np.uint8)\nsmall = np.zeros((24, 32, 3), dtype=np.uint8)\nmixed = cv2.add(big, small)\n",
+      "type": "error",
+      "message": "cv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/core/src/arithm.cpp:665: error: (-209:Sizes of input arguments do not match) The operation is neither 'array op array' (where arrays have the same size and the same number of channels), nor 'array op scalar', nor 'scalar op array' in function 'arithm_op'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 6, in <module>\n    mixed = cv2.add(big, small)\ncv2.error: OpenCV(4.11.0) /home/runner/work/pyodide-recipes/pyodide-recipes/packages/opencv-python/build/opencv-python-4.11.0.86/opencv/modules/core/src/arithm.cpp:665: error: (-209:Sizes of input arguments do not match) The operation is neither 'array op array' (where arrays have the same size and the same number of channels), nor 'array op scalar', nor 'scalar op array' in function 'arithm_op'"
+    },
+    "attribute-error-module": {
+      "code": "import cv2\n\ncv2.destoyAllWindows()\n",
+      "type": "AttributeError",
+      "message": "AttributeError: module 'cv2' has no attribute 'destoyAllWindows'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 3, in <module>\n    cv2.destoyAllWindows()\n    ^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'cv2' has no attribute 'destoyAllWindows'"
+    },
+    "import-error": {
+      "code": "from cv2 import imread2\n",
+      "type": "ImportError",
+      "message": "ImportError: cannot import name 'imread2' from 'cv2' (/lib/python3.14/site-packages/cv2/__init__.py)",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 1, in <module>\n    from cv2 import imread2\nImportError: cannot import name 'imread2' from 'cv2' (/lib/python3.14/site-packages/cv2/__init__.py)"
+    },
+    "os-error-font": {
+      "code": "from PIL import ImageFont\n\nfont = ImageFont.truetype('없는글꼴.ttf', 30)\n",
+      "type": "OSError",
+      "message": "OSError: cannot open resource",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 3, in <module>\n    font = ImageFont.truetype('없는글꼴.ttf', 30)\n           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/PIL/ImageFont.py\", line 864, in truetype\n    return freetype(font)\n  File \"/lib/python3.14/site-packages/PIL/ImageFont.py\", line 861, in freetype\n    return FreeTypeFont(font, size, index, encoding, layout_engine)\n  File \"/lib/python3.14/site-packages/PIL/ImageFont.py\", line 277, in __init__\n    self.font = core.getfont(\n                ~~~~~~~~~~~~^\n        font, size, index, encoding, layout_engine=layout_engine\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nOSError: cannot open resource"
+    },
+    "numpy-shape": {
+      "code": "import numpy as np\n\na = np.zeros((2, 3))\nb = np.zeros((4, 5))\nprint(a + b)\n",
+      "type": "ValueError",
+      "message": "ValueError: operands could not be broadcast together with shapes (2,3) (4,5)",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 619, in eval_code_async\n    await CodeRunner(\n    ...<10 lines>...\n    .run_async(globals, locals)\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 420, in run_async\n    coroutine = eval(self.code, globals, locals)\n  File \"main.py\", line 5, in <module>\n    print(a + b)\n          ~~^~~\nValueError: operands could not be broadcast together with shapes (2,3) (4,5)"
+    }
+  },
+  "skipped": null
+}

@@ -1,0 +1,221 @@
+---
+/**
+ * 오류 풀이 카드의 화면 조각(PLAN §8.2 P2-06, 규약은 src/lab/README.md 4절).
+ *
+ * LabShell이 [data-lab-module-panel="errors"] 안에 그려 두고(hidden, placement 'wide'라 콘솔 바로 위 전체 폭)
+ * index.ts가 실행이 오류로 끝났을 때 내용을 채우고 showPanel()로 연다. 이 파일은 HTML·CSS만 그린다.
+ *
+ * 오류 사전 데이터(content/help/errors/errors.yaml)는 빌드 때 JSON으로 바꿔 아래 <script type="application/json">에 심는다.
+ * 화면 쪽은 그것을 읽으므로 실행 중에 파일을 따로 받지 않는다(사이트 밖 요청 0건 규칙).
+ * 심는 것은 카드가 쓰는 만큼만 남긴 사전(errorCardCatalogJson — 보기 코드·교과서 사례는 사전 페이지에만 있다).
+ *
+ * 단추 모양: LabShell.astro의 .lab-button은 그 컴포넌트에만 걸리는 Astro 범위 스타일이라(여기 요소에는 다른 data-astro-cid가 붙는다)
+ * 모듈 패널에는 닿지 않는다. 그래서 사이트 전역 클래스(.button.button--secondary, src/styles/global.css)를 쓰고 크기만 여기서 맞춘다.
+ */
+import { errorCardCatalogJson } from '../../errors/catalog-data.ts';
+import { DICTIONARY_PATH } from '../../errors/explain.ts';
+import { withBase } from '../../../lib/url.ts';
+
+const dictionaryHref = withBase(DICTIONARY_PATH);
+---
+
+<script is:inline type="application/json" data-errors-catalog set:html={errorCardCatalogJson} />
+
+<div class="errors" data-errors-card hidden aria-live="polite">
+  <div class="errors__head">
+    <span class="errors__badge" data-errors-type>오류</span>
+    <h3 class="errors__title" data-errors-title></h3>
+    <button type="button" class="button button--secondary errors__button errors__close" data-errors-close>닫기</button>
+  </div>
+
+  <p class="errors__where" data-errors-where hidden>
+    <span data-errors-where-text></span>
+    <button type="button" class="button button--secondary errors__button" data-errors-goto>그 줄로 가기</button>
+  </p>
+
+  <p class="errors__meaning" data-errors-meaning></p>
+
+  <div class="errors__cols">
+    <section class="errors__box" data-errors-why-box hidden>
+      <h4 class="errors__subtitle">왜 났을까요</h4>
+      <ul class="errors__list" data-errors-why></ul>
+    </section>
+    <section class="errors__box" data-errors-fix-box hidden>
+      <h4 class="errors__subtitle">이렇게 고쳐요</h4>
+      <ol class="errors__list" data-errors-fix></ol>
+    </section>
+    <section class="errors__box" data-errors-mistakes-box hidden>
+      <h4 class="errors__subtitle">자주 하는 실수</h4>
+      <ul class="errors__list" data-errors-mistakes></ul>
+    </section>
+  </div>
+
+  <details class="errors__details" data-errors-details hidden>
+    <summary class="errors__summary">파이썬이 알려 준 내용 보기</summary>
+    <pre class="errors__traceback" data-errors-traceback tabindex="0"></pre>
+    <p class="errors__note" data-errors-hidden-note hidden></p>
+  </details>
+
+  <p class="errors__more">
+    <a href={dictionaryHref} data-errors-link>오류 사전에서 더 보기</a>
+  </p>
+</div>
+
+<style>
+  .errors {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-danger-border);
+    border-inline-start: 5px solid var(--color-danger-border);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-bg);
+    line-height: var(--leading-snug);
+  }
+
+  .errors[hidden] {
+    display: none;
+  }
+
+  .errors__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  /* 바탕은 danger-border(#d24b4b)가 아니라 danger-text(#a3232a) — 흰 글자 대비 7.42:1(AA 4.5 이상, border 색은 4.33이라 작은 글자에 모자람) */
+  .errors__badge {
+    padding: 0.1em 0.6em;
+    border-radius: var(--radius-full);
+    background: var(--color-danger-text);
+    color: var(--color-on-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* 실습실 조작 줄의 작은 단추와 비슷한 크기. 높이는 손가락 기준(--target-min 2.75rem)을 지킨다. */
+  .errors__button {
+    flex: 0 0 auto;
+    padding-block: var(--space-1);
+    padding-inline: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .errors__title {
+    flex: 1 1 12rem;
+    min-width: 0;
+    margin: 0;
+    color: var(--color-danger-text);
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+  }
+
+  /* 제목이 길어도 [닫기]는 오른쪽 끝에 둔다 */
+  .errors__close {
+    margin-inline-start: auto;
+  }
+
+  .errors__where {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .errors__meaning {
+    margin: 0;
+    font-size: var(--text-base);
+  }
+
+  .errors__cols {
+    display: grid;
+    gap: var(--space-3) var(--space-5);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+
+  .errors__box {
+    min-width: 0;
+  }
+
+  .errors__box[hidden] {
+    display: none;
+  }
+
+  .errors__subtitle {
+    margin: 0 0 var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .errors__list {
+    margin: 0;
+    padding-inline-start: 1.3em;
+    font-size: var(--text-sm);
+  }
+
+  .errors__list li + li {
+    margin-block-start: var(--space-1);
+  }
+
+  .errors__list code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  /* min-width: 0이 없으면 grid 칸이 긴 트레이스백 줄(max-content)만큼 넓어져 좁은 화면이 옆으로 밀린다(375px에서 638px 확인, 2026-09-16). */
+  .errors__details {
+    min-width: 0;
+    font-size: var(--text-sm);
+  }
+
+  .errors__details[hidden] {
+    display: none;
+  }
+
+  .errors__summary {
+    cursor: pointer;
+    padding-block: var(--space-1);
+  }
+
+  .errors__summary:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .errors__traceback {
+    overflow-x: auto;
+    max-width: 100%;
+    margin: var(--space-2) 0 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+    white-space: pre;
+  }
+
+  .errors__traceback:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .errors__note {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .errors__note[hidden] {
+    display: none;
+  }
+
+  .errors__more {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+</style>
