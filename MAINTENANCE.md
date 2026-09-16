@@ -144,6 +144,8 @@ git push
 - 외부 자료는 쓰기 **전에** 등록해요. 적는 필드와 예시는 `sources.yaml` 맨 위 설명에 있어요.
 - 분류(`category`)가 `operator`(운영자 자료)·`self`(사이트 자체 제작)면 사이트 라이선스를 따르고, 나머지(`library`·`third_party`·`stack`·`reference`)는 사이트 라이선스에서 빠지고 원래 조건을 따라요.
 - 빌드하면 출처와 라이선스 페이지(`/credits/`)가 자동으로 바뀌어요.
+- npm 패키지를 새로 넣을 때는 ① `npm install 이름@정확한버전`으로 설치하고 ② `sources.yaml`에 항목을 만들고(라이선스는 `node_modules/이름/LICENSE`로 확인) ③ 라이선스가 고지를 요구하면(MIT 등) 고지 원문을 `public/licenses/이름.txt`로 옮겨 `notice`에 적어요. `npm run build`가 끝나면 번들에 함께 들어간 다른 패키지 이름을 알려 주니, 그 패키지도 항목에 더해요(전이 의존성).
+- 고지 원문에 저작자 이메일이 있으면 저장소 검사(커밋 전 훅)가 막아요. 그 파일만 `scripts/repo-allowlist.yaml`의 `privacy_exceptions`에 경로·`kinds: [email]`·이유를 적어요(`public/licenses/` 아래 파일만 허용돼요).
 
 ## 5. 배포 확인
 
@@ -184,7 +186,7 @@ git push
 ## 8. 앞으로 채울 것 (Phase 6)
 
 - 사용자 도메인 연결법(`src/config/site.ts`의 `base`를 바꾸는 곳 포함)
-- Pyodide·MediaPipe·펌웨어·npm 패키지 버전 올리기(Pyodide 버전과 받는 주소는 `src/lab/runtime/config.ts` 한 곳에서 바꾸고, 바꾼 뒤 `npm test`와 `npm run test:e2e`를 통과시켜요 — 실행 중 기다리기·정지 기능이 Pyodide의 실험 기능(`run_sync`)에 기대기 때문이에요)
+- Pyodide·MediaPipe·펌웨어·npm 패키지 버전 올리기(Pyodide 버전과 받는 주소는 `src/lab/runtime/config.ts` 한 곳에서 바꾸고, 바꾼 뒤 `npm test`와 `npm run test:e2e`를 통과시켜요 — 실행 중 기다리기·정지 기능이 Pyodide의 실험 기능(`run_sync`)에 기대기 때문이에요). 코드 에디터(CodeMirror 6, `@codemirror/*`·`@lezer/*`)와 공유 링크(lz-string)는 `package.json`의 버전을 바꾼 뒤 `sources.yaml`의 버전 표기와 `public/licenses/codemirror.txt`의 패키지 목록도 같이 고치고, Esc 뒤 Tab으로 편집칸을 나가는 동작이 그대로인지 `tests/e2e/lab-editor.spec.ts`로 확인해요.
 - 1년에 한 번 점검 목록: 브라우저 메뉴 이름(문제 해결 페이지 안내), 공식 링크, 출처 등록부 날짜
 - 오프라인 배포판 만들기(`npm run build:offline`)
 - `CHANGELOG.md`와 사이트 버전 올리기

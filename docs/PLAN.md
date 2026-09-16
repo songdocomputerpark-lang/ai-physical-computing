@@ -701,6 +701,13 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
   - Pyodide에서 `exit()`(SystemExit)·`KeyboardInterrupt`로 끝난 실행은 `runPythonAsync` 약속의 거부와 별개로 워커의 `unhandledrejection`으로 한 번 더 새어 나온다(코드를 돌리는 asyncio 작업이 두 예외를 결과에 적고도 다시 던짐 — Node의 실제 Pyodide로 확인). 워커가 두 종류만 삼킨다(`worker.ts`의 `isRethrownRunError`).
   - PD-14의 Node 테스트 조건 확인: Node 24.19.0 `--experimental-wasm-jspi`(V8 옵션, 기본 꺼짐)에서 `pyodide.ffi.can_run_sync()`가 참이고 `run_sync`가 돈다(`tests/unit/lab/pyodide-node.test.ts`). npm `pyodide@314.0.7`은 이 테스트와 타입 선언에만 쓰는 devDependency이고 브라우저는 CDN에서 받는다.
   - 같은 사이트 예비본 자리(`PYODIDE_SITE_FALLBACK_READY`, `pyodideIndexUrls()`)만 두었고 파일·전환 규칙은 P2-05에서 만든다.
+- **구현 메모(P2-02, 2026-09-16 — 이 표·§3.1과 실제 구현이 달라진 곳):**
+  - CodeMirror 6는 `codemirror`(basicSetup) 패키지 대신 필요한 패키지만 정확한 버전으로 설치했다(@codemirror/state 6.7.5, view 6.43.12, language 6.12.4, commands 6.11.1, lang-python 6.2.1, @lezer/highlight 1.2.3; 번들에 함께 들어가는 전이 의존성은 sources.yaml에 따로 등록). 자동 완성·검색 창은 넣지 않았다(초보자에게 낯설고 번들이 커짐). 구문 색은 차시 코드 블록의 Shiki 테마와 같은 값(`src/lab/editor/theme.ts`).
+  - 키보드 함정 대책: Tab은 들여쓰기이고 Esc 뒤 Tab으로 나간다(CodeMirror 6 내장 tab focus mode 2초, `@codemirror/view` 소스로 확인). 안내 문장을 편집칸에 `aria-describedby`로 붙였다.
+  - 공유 링크는 `#code=<lz-string>&ex=<예제 id>`. `URLSearchParams`가 압축값의 `+`를 공백으로 바꾸므로 직접 나눠 읽는다. 열면 주소의 #을 지운다(새로고침 뒤에는 자동 저장본). 길이 한계 2,000자 경고·16,000자 상한(근거는 PROGRESS 미해결 20번).
+  - 자동 저장 이름은 예제별 `editor:<실습실>:<예제 id>`(예제가 없으면 `scratch`), 마지막 예제는 `editor:<실습실>:last-example`, 글자 크기는 사이트 공통 `editor:font-size`. [이 컴퓨터에서 내 기록 지우기]는 localStorage와 sessionStorage에서 머리말 이름만 지운다(§10 "브라우저 저장"의 MQTT 접두어·대시보드 배치도 같은 규칙으로 저장하면 함께 지워진다).
+  - [이 컴퓨터에서 내 기록 지우기] 버튼은 실습실 아래뿐 아니라 문제 해결·교사용 페이지에도 두었다(자리 페이지 단계에서도 약속 문장이 거짓이 되지 않게).
+  - 실습실 화면 틀(`src/components/lab/LabShell.astro`)은 표의 P2-03·P2-04·P2-14가 그대로 쓴다: `io`·`panel` 슬롯에 카메라 화면·슬라이더 패널을 넣고, 페이지 스크립트는 `getLabController()`로 컨트롤러를 받아 `onRequest('camera.read', …)`·`runtime.setValue()`를 쓴다. 예제 목록은 `LabExample[]`(`src/lab/controls/examples.ts`) — 새 차시의 .py 파일을 목록에 넘기는 일만 남긴다(원칙 6).
 
 ### 8.3 Phase 3 — ESP32 실습실
 
