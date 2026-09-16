@@ -17,6 +17,7 @@ import Callout from '../../../components/common/Callout.astro';
 import LabShell from '../../../components/lab/LabShell.astro';
 import VisionIo from '../../../components/lab/VisionIo.astro';
 import { getPage } from '../../../config/nav.ts';
+import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
 import { visionExamplesFromFiles } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -24,9 +25,11 @@ const page = getPage('labs-vision');
 const checkPage = getPage('start-check');
 const studentPage = getPage('start-student');
 
-// 저장소 뿌리의 examples/vision/ 아래 .py 파일 전부(빌드 때 글자로 읽는다).
-const exampleFiles = import.meta.glob<string>('/examples/vision/**/*.py', { query: '?raw', eager: true, import: 'default' });
-const examples = visionExamplesFromFiles(exampleFiles);
+// 저장소 뿌리의 examples/vision/(영상처리·손·얼굴·자세)과 examples/desktop/(pyautogui 가상 데스크톱, PLAN §2.5) 아래 .py 파일 전부(빌드 때 글자로 읽는다).
+// 원본에서 옮긴 예제의 제목·설명은 옆의 사이드카(<이름>.meta.yaml, src/lab/controls/example-sidecar.ts — 빌드 전용)에서 읽는다.
+const exampleFiles = import.meta.glob<string>(['/examples/vision/**/*.py', '/examples/desktop/**/*.py'], { query: '?raw', eager: true, import: 'default' });
+const sidecarFiles = import.meta.glob<string>(['/examples/vision/**/*.meta.yaml', '/examples/desktop/**/*.meta.yaml'], { query: '?raw', eager: true, import: 'default' });
+const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles));
 ---
 
 <BaseLayout title={page.title} description={page.description} width="wide">

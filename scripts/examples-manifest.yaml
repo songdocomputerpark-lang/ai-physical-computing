@@ -1,0 +1,778 @@
+# 예제 이관 목록과 기록(PLAN §8.0 PD-33) — scripts/import-examples.mjs가 읽고 기록을 적어요.
+#
+# 원본 자료(교과서·교안 코드 압축 파일)의 어떤 파일을 examples/의 어디로 옮겼는지, 옮긴 결과가 원본과 같은지(줄 수·SHA-256·구문)를 한 곳에 적어요.
+# 원본 코드 파일은 줄 끝(CRLF → LF)만 바꾸고 한 글자도 고치지 않아요(줄 번호가 교과서와 같아야 해요, PD-10). 제목·설명은 코드 파일이 아니라
+# 옆의 사이드카(<이름>.meta.yaml)에 적어요 — 처음 옮길 때 아래 meta로 만들고, 그 뒤로는 사이드카를 직접 고쳐요(스크립트가 덮어쓰지 않아요).
+#
+# 필드
+#   materials_root  원본 폴더 위치(저장소 뿌리 기준). 운영자 PC는 "."(원본 폴더들이 저장소 뿌리에 있음, git 제외).
+#                   클라우드·다른 PC는 --materials <폴더>로 비공개 자료 저장소의 originals/를 가리켜요.
+#   sources         원본 zip의 짧은 이름 → 경로(materials_root 기준). 코드 id·경로는 docs/CODE_MAPPING.md §2와 같아요.
+#   examples[]      id(CODE_MAPPING 코드 id), source(sources 이름 또는 낱개 파일이면 file), member(zip 안 경로 또는 파일 경로),
+#                   target(examples/ 아래 대상 경로: 영문 소문자·숫자·하이픈, PD-09), author(operator | third_party — third_party는 third-party/ 폴더 아래),
+#                   expect_syntax_error(원본 결함으로 구문 오류가 나는 파일만 true, 예: f074), meta(사이드카 씨앗: title·description·lesson·page·tags·packages)
+#   기록(스크립트가 씀)  lines(줄 수)·sha256(옮긴 파일)·syntax(ok | error-expected)·syntax_checker(python-ast | node-light)·imported(날짜)
+#
+# 확인: node scripts/import-examples.mjs --verify (원본 없이 기록과 대조, npm test에도 들어 있음)
+
+materials_root: .
+
+sources:
+  textbook: 교과서_소스코드/2026.02.03. 인피컴_강의준비.zip
+  opmp: 교과서_소스코드/opmp.zip
+  pg: pyautugoui_소스코드/pg (1).zip
+  bt-opmp: 블루투스통신_소스코드/3.(응용)(값을 던짐)-한개의 값을 던지는 경우/opencvmediapipe_블루투스.zip
+  bt-thonny-send: 블루투스통신_소스코드/3.(응용)(값을 던짐)-한개의 값을 던지는 경우/thonny_블루투스.zip
+  bt-thonny-recv: 블루투스통신_소스코드/3.(응용)(값을 받음)-한개의 값을 받는 경우/thonny_블루투스.zip
+  hw: HW_소스코드/마이크로파이썬_라이브러리__.zip
+
+examples:
+  # ── 교과서 1단원 영상 처리 인공지능(f026~f045, CODE_MAPPING §2.1) → examples/vision/u1/ ──
+  # 파일 이름은 "<차시>-<주제>" 또는 심화면 "<차시>-adv-<주제>". 사이트판 수정이 필요한 파일(f026·f039·f041)은 원본을 그대로 두고
+  # 사이트판을 따로 만든다(PD-10 — 원본 파일과 사이트판 파일을 둘 다 둠).
+  - id: f026
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.1. 인공지능과 인식/2. 인공지능 영상 인식 기술의 원리/[고등] 1-1-2_기본 실습 코드(p17).py"
+    target: examples/vision/u1/1-1-2-hands-first.py
+    author: operator
+    meta:
+      title: "1-1-2 기본 실습: 손 관절 점 그리기(첫 손 인식)"
+      description: "웹캠 영상에서 손을 찾아 관절 점과 이음선을 그려요. 원본은 색 변환 없이 인식해요(교사용 참고)."
+      lesson: 1-1-2
+      page: 17
+      tags: [ 손, mediapipe ]
+    lines: 30
+    sha256: 7ee3c6da62ab844e9402cc00240927cc40a89a7ca576452b9ecf5a53de0dbf62
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f027
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.1. 인공지능과 인식/3. 인공지능 인식 개발 환경/[고등] 1-1-3_기본 실습 코드(p23).py"
+    target: examples/vision/u1/1-1-3-camera-view.py
+    author: operator
+    meta:
+      title: "1-1-3 기본 실습: 카메라 화면 띄우기(프로그램 틀)"
+      description: "불러오기, 설정, 초기화, 함수, 실행 영역으로 나눈 카메라 프로그램의 기본 틀이에요."
+      lesson: 1-1-3
+      page: 23
+      tags: [ 카메라, 프로그램 틀 ]
+    lines: 31
+    sha256: ae8cbd697d89ae383037c81a01cddcc81cdf76db2578d60b5766051c2779e4a5
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f028
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/1. 컴퓨터의 눈, 인간을 바라보다/[고등] 1-2-1_기본 실습 코드(p28).py"
+    target: examples/vision/u1/1-2-1-webcam-flip.py
+    author: operator
+    meta:
+      title: "1-2-1 기본 실습: 웹캠 영상 좌우 반전"
+      description: "웹캠이 열렸는지 확인하고 영상을 거울처럼 좌우로 뒤집어 보여 줘요. q 키로 끝나요."
+      lesson: 1-2-1
+      page: 28
+      tags: [ 카메라, flip ]
+    lines: 23
+    sha256: 20c34a78c14204edc497c579c8c3c85d3986a0e66a11fd3193dba7dd6254b656
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f029
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/1. 컴퓨터의 눈, 인간을 바라보다/[고등] 1-2-1_심화 실습 코드(p30).py"
+    target: examples/vision/u1/1-2-1-adv-hand-settings.py
+    author: operator
+    meta:
+      title: "1-2-1 심화 실습: 손 인식 설정 바꿔 보기"
+      description: "손 개수와 인식 신뢰도 설정을 바꿔 가며 손 관절을 그려요."
+      lesson: 1-2-1
+      page: 30
+      tags: [ 손, mediapipe, 설정 ]
+    lines: 34
+    sha256: d70f191d151f3083c6ae3cb53c0d71f0496a829920bc92d5edb6427a41f88e2a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f030
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/2. 검지로 여는 디지털 스케치/[고등] 1-2-2_기본 실습 코드(p36).py"
+    target: examples/vision/u1/1-2-2-finger-sketch.py
+    author: operator
+    meta:
+      title: "1-2-2 기본 실습: 검지로 허공에 그리기"
+      description: "검지 끝의 위치를 이어서 화면 위 도화지에 선을 그려요."
+      lesson: 1-2-2
+      page: 36
+      tags: [ 손, 그리기, numpy ]
+    lines: 61
+    sha256: 15ea8b6415cd8009fd5921cc31efaead22e769aadd7897532785e6098f37e29a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f031
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/2. 검지로 여는 디지털 스케치/[고등] 1-2-2_심화 실습 코드(p38).py"
+    target: examples/vision/u1/1-2-2-adv-sketch-keys.py
+    author: operator
+    meta:
+      title: "1-2-2 심화 실습: d 키로 그리기 켜고 끄기"
+      description: "d 키를 누를 때만 그리고, 키로 그림을 지우는 기능을 더했어요."
+      lesson: 1-2-2
+      page: 38
+      tags: [ 손, 그리기, 키 입력 ]
+    lines: 70
+    sha256: 760c6be26fefb0f19ae2e7a1badb67f1294b7b91dce3ce2c82e9740fbce24d03
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f032
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/3. 손끝 사이의 거리, 컴퓨터가 알아채다/[고등] 1-2-3_기본 실습 코드(p45).py"
+    target: examples/vision/u1/1-2-3-finger-distance.py
+    author: operator
+    meta:
+      title: "1-2-3 기본 실습: 엄지와 검지 사이 거리 재기"
+      description: "엄지 끝과 검지 끝의 거리를 픽셀로 계산해 화면에 적어요."
+      lesson: 1-2-3
+      page: 45
+      tags: [ 손, 거리, math ]
+    lines: 47
+    sha256: cbb5a895238c3ca2164590fdaff72f066441ea29d1d59ae5be38a192ed43bd97
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f033
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/3. 손끝 사이의 거리, 컴퓨터가 알아채다/[고등] 1-2-3_심화 실습 코드(p48).py"
+    target: examples/vision/u1/1-2-3-adv-distance-circle.py
+    author: operator
+    meta:
+      title: "1-2-3 심화 실습: 손가락 거리로 원 크기 바꾸기"
+      description: "두 손가락 사이가 멀어질수록 큰 원을 그려요."
+      lesson: 1-2-3
+      page: 48
+      tags: [ 손, 거리, 원 ]
+    lines: 62
+    sha256: 63b21e59e9a255773a6161c697f2079d9c5a2a71f4e7ccbba8184d2b8f57ce29
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f034
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.3. 페이스매시/1. AI는 나의 방향을 알고 있다.(방향을 감지하는 인공지능)/[고등] 1-3-1_기본 실습 코드(p55).py"
+    target: examples/vision/u1/1-3-1-face-mesh.py
+    author: operator
+    meta:
+      title: "1-3-1 기본 실습: 얼굴 메시 점 찍기"
+      description: "얼굴의 468개 점을 찾아 화면에 찍어요."
+      lesson: 1-3-1
+      page: 55
+      tags: [ 얼굴, face_mesh ]
+    lines: 39
+    sha256: 2cd4b60f7462ace93f1089fed255ea2033168234eb30652ca782e206020491a7
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f035
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.3. 페이스매시/1. AI는 나의 방향을 알고 있다.(방향을 감지하는 인공지능)/[고등] 1-3-1_심화 실습 코드(p58).py"
+    target: examples/vision/u1/1-3-1-adv-head-direction.py
+    author: operator
+    meta:
+      title: "1-3-1 심화 실습: 고개 방향 알아내기"
+      description: "코와 두 눈 가운데의 위치를 비교해 고개가 왼쪽, 오른쪽, 가운데 어디를 향하는지 세어요."
+      lesson: 1-3-1
+      page: 58
+      tags: [ 얼굴, 방향 ]
+    lines: 77
+    sha256: 3d44fbe9a0437f06464f5c9f9329c5b3ab142dfef268eb97d72908cc75dd5709
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f036
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.3. 페이스매시/2. AI는 나의 하품을 파악한다(하품의 순간을 포착하는 인공지능)/1.3.2. 하품감지_기본과제(p65).py"
+    target: examples/vision/u1/1-3-2-yawn-mouth.py
+    author: operator
+    meta:
+      title: "1-3-2 기본 과제: 입 주변 점으로 하품 알아채기"
+      description: "입 주변 6개 점의 위치로 입이 얼마나 벌어졌는지 봐요."
+      lesson: 1-3-2
+      page: 65
+      tags: [ 얼굴, 하품 ]
+    lines: 45
+    sha256: ab7bbceec27d7b3381f3f3b9981b2ef6d1a45c0da97455a72f0c71b1a0efaa0a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f037
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.3. 페이스매시/2. AI는 나의 하품을 파악한다(하품의 순간을 포착하는 인공지능)/1.3.2._하품감지_심화과제(p68).py"
+    target: examples/vision/u1/1-3-2-adv-yawn-mar.py
+    author: operator
+    meta:
+      title: "1-3-2 심화 과제: 입 모양 비율(MAR)로 하품 세기"
+      description: "입의 세로와 가로 길이 비율이 여러 장 동안 크면 하품으로 세어요."
+      lesson: 1-3-2
+      page: 68
+      tags: [ 얼굴, 하품, MAR ]
+    lines: 98
+    sha256: 514375ab88b2c83537d7015781f52d314a0a220cc67ac5a50ce8df43cc0fabe0
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f038
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.3. 페이스매시/3. 내 얼굴에 맞춤 필터 만들기(인공지능 필터로 바꾸는 내 얼굴)/[고등] 1-3-3_기본 실습 코드(p75).py"
+    target: examples/vision/u1/1-3-3-face-box.py
+    author: operator
+    meta:
+      title: "1-3-3 기본 실습: 얼굴 둘레에 상자 그리기"
+      description: "얼굴 가장자리 점 네 개로 얼굴을 감싸는 상자를 그려요."
+      lesson: 1-3-3
+      page: 75
+      tags: [ 얼굴, 상자 ]
+    lines: 47
+    sha256: 6f940b49482fca9cd7139099044ac7c7901a69acb037b936f2187570cb9b226e
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f039
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.3. 페이스매시/3. 내 얼굴에 맞춤 필터 만들기(인공지능 필터로 바꾸는 내 얼굴)/[고등] 1-3-3_심화 실습 코드(p78).py"
+    target: examples/vision/u1/1-3-3-adv-face-mask.py
+    author: operator
+    meta:
+      title: "1-3-3 심화 실습: 얼굴에 마스크 그림 씌우기"
+      description: "투명한 배경의 마스크 그림(mask.png)을 얼굴 크기에 맞춰 얹어요. 사이트가 만든 mask.png를 써요."
+      lesson: 1-3-3
+      page: 78
+      tags: [ 얼굴, 필터, 이미지 합성 ]
+    lines: 77
+    sha256: d55882b7f678439f85268e5e44d76284b192616076dae232bb82bde4042cfc3d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f040
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/1. 몸으로 말해요! 동작 감지 인공지능/[고등] 1-4-1_기본 실습 코드(p85).PY"
+    target: examples/vision/u1/1-4-1-pose-skeleton.py
+    author: operator
+    meta:
+      title: "1-4-1 기본 실습: 몸의 뼈대 그리기"
+      description: "어깨, 팔꿈치, 무릎 같은 몸의 점을 찾아 뼈대처럼 이어 그려요."
+      lesson: 1-4-1
+      page: 85
+      tags: [ 자세, pose ]
+    lines: 41
+    sha256: 1c48a6b3359ecdb7f0256677fd0408580e17a889072f4f8be2edd17953f38d26
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f041
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/1. 몸으로 말해요! 동작 감지 인공지능/[고등] 1-4-1_심화 실습 코드(p88).py"
+    target: examples/vision/u1/1-4-1-adv-raise-hand.py
+    author: operator
+    meta:
+      title: "1-4-1 심화 실습: 왼손 들기 알아채기"
+      description: "왼쪽 손목이 기준선보다 위에 있으면 성공이라고 알려 줘요."
+      lesson: 1-4-1
+      page: 88
+      tags: [ 자세, 판정 ]
+    lines: 59
+    sha256: fb38b56474af549ac93478f813f1f294f469c1164de06ff11551a25c2a7da76b
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f042
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/2. 균형 잡힌 자세를 도와주는 인공지능/[고등] 1-4-2_기본 실습 코드(p95).py"
+    target: examples/vision/u1/1-4-2-shoulder-balance.py
+    author: operator
+    meta:
+      title: "1-4-2 기본 실습: 어깨 높이 비교하기"
+      description: "양쪽 어깨의 높이 차이를 재서 몸이 기울었는지 봐요."
+      lesson: 1-4-2
+      page: 95
+      tags: [ 자세, 균형 ]
+    lines: 64
+    sha256: 5708fa23181f773c5946c5a86bf98c4d92acd629092bff4e8c4495d89c269603
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f043
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/2. 균형 잡힌 자세를 도와주는 인공지능/[고등] 1-4-2_심화 실습 코드(p99).py"
+    target: examples/vision/u1/1-4-2-adv-posture-korean.py
+    author: operator
+    meta:
+      title: "1-4-2 심화 실습: 한글로 자세 안내 쓰기"
+      description: "어깨 기울기에 따라 한글 안내문을 영상 위에 써요(글꼴은 실습실이 연결해 줘요)."
+      lesson: 1-4-2
+      page: 99
+      tags: [ 자세, 한글, Pillow ]
+      packages: [ opencv-python, pillow ]
+    lines: 79
+    sha256: 70c483bcddfe6f927f6df2c2d93a8791143488e8ca9d6875e52fcbf8fe5fd7f9
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f044
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/3. 말을 글로 바꾸는 기술/[고등] 1-4-3_기본 실습 코드(p105).py"
+    target: examples/vision/u1/1-4-3-speech-once.py
+    author: operator
+    meta:
+      title: "1-4-3 기본 실습: 말을 글로 바꾸기"
+      description: "5초 동안 말한 것을 글자로 바꿔 보여 줘요(사이트는 글자 입력 방식이 기본이에요)."
+      lesson: 1-4-3
+      page: 105
+      tags: [ 음성, speech_recognition ]
+      packages: []
+    lines: 27
+    sha256: c904050602656d4cbb0460039c4c2380c17d8ffe2259e44b0fc37efb3ec40425
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f045
+    source: textbook
+    member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/3. 말을 글로 바꾸는 기술/[고등] 1-4-3_심화 실습 코드(p108).py"
+    target: examples/vision/u1/1-4-3-adv-speech-keywords.py
+    author: operator
+    meta:
+      title: "1-4-3 심화 실습: 말로 시작, 정지, 종료하기"
+      description: "말한 낱말에 '시작', '정지', '종료'가 들어 있으면 프로그램 상태를 바꿔요."
+      lesson: 1-4-3
+      page: 108
+      tags: [ 음성, 키워드 ]
+      packages: []
+    lines: 65
+    sha256: 797cfeb4eb73b15ae3b3b72b72032320380743f9752641be0c294b5b8866dbdc
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+
+  # ── opmp.zip OpenCV·MediaPipe 입문 계단(f118~f136, CODE_MAPPING §2.5, BT 교안 p7~35) → examples/vision/opmp/ ──
+  # 파일 이름 앞의 두 자리 숫자는 zip 파일의 번호(= 계단 순서)라 [예제 불러오기] 목록도 그 순서로 보인다.
+  - id: f128
+    source: opmp
+    member: "1_opencv로 캠 화면 띄우기.py"
+    target: examples/vision/opmp/01-cam-window.py
+    author: operator
+    meta:
+      title: "계단 1: 캠 화면 띄우기"
+      description: "웹캠 영상을 창에 보여 주고 ESC 키로 끝내요."
+      tags: [ 카메라 ]
+    lines: 12
+    sha256: 22862414ed3774f57dcfc35c533a4350bb42b9249d2ca3f2026ba974a01177a5
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f129
+    source: opmp
+    member: "2_캠 화면 사이즈 변경.py"
+    target: examples/vision/opmp/02-cam-size.py
+    author: operator
+    meta:
+      title: "계단 2: 캠 화면 크기 바꾸기"
+      description: "카메라에 너비를 부탁하고 실제로 받은 크기를 읽어요."
+      tags: [ 카메라, 해상도 ]
+    lines: 15
+    sha256: 33379cbfa1ee46109aba10b0a5b1f9d1559bd6eee6dfe1da6089987a541c677b
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f130
+    source: opmp
+    member: "3_mediapipe의 Hands모델 사용하기.py"
+    target: examples/vision/opmp/03-hands-model.py
+    author: operator
+    meta:
+      title: "계단 3: MediaPipe Hands 모델 쓰기"
+      description: "손 하나를 찾아 관절 점과 이음선을 기본 모양으로 그려요."
+      tags: [ 손, mediapipe ]
+    lines: 28
+    sha256: 990c790ce4b95ebd842297e08c40bc3ff94c9c04f10dac152a6146bd0cb0929d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f131
+    source: opmp
+    member: "4_자유자재로꾸미기.py"
+    target: examples/vision/opmp/04-drawing-style.py
+    author: operator
+    meta:
+      title: "계단 4: 선과 점 꾸미기"
+      description: "선 색과 두께, 점 색과 크기를 정해서 손 뼈대를 그려요."
+      tags: [ 손, 그리기 스타일 ]
+    lines: 40
+    sha256: 0ffdcc0baf8325e51b2ab7cb34b296553dbed6197a05256a52c3e1c35d9fec82
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f132
+    source: opmp
+    member: "5_손가락 반전.py"
+    target: examples/vision/opmp/05-flip.py
+    author: operator
+    meta:
+      title: "계단 5: 영상 좌우 반전"
+      description: "영상을 거울처럼 뒤집은 뒤 손을 인식해요."
+      tags: [ 손, flip ]
+    lines: 41
+    sha256: 50c3eaa6c881686ddf91bb9fb57da6030cccc681ec9ac0dd47d99a94b5ced94c
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f133
+    source: opmp
+    member: "6_손가락 좌표 확인하기.py"
+    target: examples/vision/opmp/06-finger-coords.py
+    author: operator
+    meta:
+      title: "계단 6: 손가락 좌표 확인하기"
+      description: "검지 끝(8번 점)의 x, y, z 값을 콘솔에 출력해요."
+      tags: [ 손, 좌표 ]
+    lines: 43
+    sha256: 7756ef09351bbd342f31a5f219667b082ffef4c18d1a19f41c3be66f2fe680e1
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f134
+    source: opmp
+    member: "7_화면상의 손가락 위치 정확하게 출력하기.py"
+    target: examples/vision/opmp/07-finger-pixels.py
+    author: operator
+    meta:
+      title: "계단 7: 화면 위 손가락 위치(픽셀) 출력하기"
+      description: "0~1 사이 좌표에 화면 크기를 곱해 픽셀 위치로 바꿔요."
+      tags: [ 손, 픽셀 좌표 ]
+    lines: 45
+    sha256: 33052c3ebfb3b18a6c32255e2ea2f851a326f4b4cee761c12a6be752c6070744
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f135
+    source: opmp
+    member: "8_손가락 랜드마크에 점 그리기(검지손가락 인식).py"
+    target: examples/vision/opmp/08-finger-circle.py
+    author: operator
+    meta:
+      title: "계단 8: 검지 끝에 원 그리기"
+      description: "검지 끝 위치에 큰 원을 그려 손가락이 어디를 가리키는지 보여 줘요."
+      tags: [ 손, 원 ]
+    lines: 46
+    sha256: 89850dbf2cba0cba10260096e9f00a81ac0d4337fdd66d7f95a045c0157e7c28
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f136
+    source: opmp
+    member: "9_접혀있는 손가락 감지하여 출력하기.py"
+    target: examples/vision/opmp/09-folded-fingers.py
+    author: operator
+    meta:
+      title: "계단 9: 접힌 손가락 알아채기"
+      description: "손가락마다 끝과 뿌리의 위치를 비교해 접혔는지 펴졌는지 글자로 써요."
+      tags: [ 손, 손가락 판별 ]
+    lines: 63
+    sha256: c3eafe74743cd38a045ac3cabd327672f9dda8f68127ce1e5a50ae2d7fd4b8f7
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f118
+    source: opmp
+    member: "10_동시에 출력하기.py"
+    target: examples/vision/opmp/10-both-hands.py
+    author: operator
+    meta:
+      title: "계단 10: 여러 손 동시에 보기"
+      description: "손을 최대 3개까지 찾아 왼손, 오른손 이름표와 접힌 손가락을 함께 써요."
+      tags: [ 손, 여러 손 ]
+    lines: 80
+    sha256: 828616a506dfbaf1ad394b80f8103135ba0fbecc9e891c56e656f1cc46512594
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f119
+    source: opmp
+    member: "11_facemesh_landmakr점 띄우기.py"
+    target: examples/vision/opmp/11-facemesh-points.py
+    author: operator
+    meta:
+      title: "계단 11: 얼굴 메시 점 띄우기"
+      description: "얼굴의 점들을 그물처럼 이어 그려요. 창을 닫거나 ESC로 끝나요."
+      tags: [ 얼굴, face_mesh ]
+    lines: 29
+    sha256: 675520790ac5d6dc8cc9243dfbcd2008c4855d0f23f700364f37b5e698d36d7f
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f120
+    source: opmp
+    member: "12_얼굴에 랜드마크 번호 띄우기.py"
+    target: examples/vision/opmp/12-facemesh-numbers.py
+    author: operator
+    meta:
+      title: "계단 12: 얼굴 점에 번호 붙이기"
+      description: "얼굴 점 5개마다 번호를 적어 어떤 번호가 어디인지 찾아봐요."
+      tags: [ 얼굴, 랜드마크 번호 ]
+    lines: 42
+    sha256: d85dae8b9a9307ca08dc2f29f92335672dbe6c8384569ef578eaef0cc6696f4a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f121
+    source: opmp
+    member: "13_입술을 감지하여 입을 열면 키보드 동작.py"
+    target: examples/vision/opmp/13-mouth-open-key.py
+    author: operator
+    meta:
+      title: "계단 13: 입을 벌리면 키보드 누르기"
+      description: "윗입술과 아랫입술 사이가 벌어지면 스페이스 키를 눌러요(가상 데스크톱)."
+      tags: [ 얼굴, 입, pyautogui ]
+    lines: 55
+    sha256: a16815f2b680b9001733b74e0e81898b996ad01c09777c540ea7f91b5fa907ed
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f122
+    source: opmp
+    member: "14_눈의 상대거리를 이용해 감은 눈 확인.py"
+    target: examples/vision/opmp/14-eye-closed.py
+    author: operator
+    meta:
+      title: "계단 14: 눈을 감았는지 알아채기"
+      description: "눈꺼풀 사이 거리와 눈 가로 길이의 비율로 눈이 감겼는지 봐요."
+      tags: [ 얼굴, 눈 ]
+    lines: 65
+    sha256: 09a0037f715a8599beab683aa3891a8a8420a73d2b181fc21def71cb03ef9a42
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f123
+    source: opmp
+    member: "15_포즈 랜드마크 그려보기.py"
+    target: examples/vision/opmp/15-pose-landmarks.py
+    author: operator
+    meta:
+      title: "계단 15: 자세 점 그려 보기"
+      description: "몸의 점을 찾아 뼈대를 그려요. 마지막 줄의 오타는 원본 그대로예요(오류 읽기 연습)."
+      tags: [ 자세, pose ]
+    lines: 39
+    sha256: f3865844bed78e4533c9acb1de97f86f3f1cb459d2f622a40219d6d56cd3329c
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f124
+    source: opmp
+    member: "16_0_deque.py"
+    target: examples/vision/opmp/16-deque.py
+    author: operator
+    meta:
+      title: "계단 16: deque 연습(파이썬 기초)"
+      description: "길이가 정해진 줄(deque)에 값을 넣으면 오래된 값부터 밀려나는 것을 봐요. 카메라가 필요 없어요."
+      tags: [ 파이썬 기초, deque ]
+      packages: []
+    lines: 29
+    sha256: f5acaab0929da0c623f4f4a2b5e6aa519e06422f78239b2d5862da10847c3a66
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f125
+    source: opmp
+    member: "17_코 끝 위치 출력하기.py"
+    target: examples/vision/opmp/17-nose-position.py
+    author: operator
+    meta:
+      title: "계단 17: 코 끝 위치 출력하기"
+      description: "코 끝(1번 점)의 화면 위치를 콘솔에 출력해요. 줄마다 한국어 설명이 있어요."
+      tags: [ 얼굴, 코 ]
+    lines: 31
+    sha256: ebb0ae86d1c1a61f074fcd449199df3e9b19d8fa664d6bbbaeb219562332a580
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f126
+    source: opmp
+    member: "18_코 끝의 움직임 방향 감지하기.py"
+    target: examples/vision/opmp/18-nose-direction.py
+    author: operator
+    meta:
+      title: "계단 18: 코 끝이 움직인 방향 알아채기"
+      description: "최근 30장의 코 끝 위치를 모아 왼쪽, 오른쪽 어느 쪽으로 움직였는지 판단해요."
+      tags: [ 얼굴, 코, deque ]
+    lines: 44
+    sha256: 92a27f51e77d824b483d527ea71fdd07f39ceef765ddfc3ac3fa449a490d1211
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f127
+    source: opmp
+    member: "19_코 끝으로 마우스 컨트롤 하기.py"
+    target: examples/vision/opmp/19-nose-mouse.py
+    author: operator
+    meta:
+      title: "계단 19: 코 끝으로 마우스 움직이기"
+      description: "코 끝 위치를 화면 크기에 맞춰 마우스 커서를 옮겨요(가상 데스크톱)."
+      tags: [ 얼굴, 코, pyautogui ]
+    lines: 82
+    sha256: 41a41af68afd03c752051d74880babd720581a40da839dd83e049ab9d89c118d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+
+  # ── pyautogui 예제(pg.zip, f016~f025, CODE_MAPPING §2.6) → examples/desktop/ ──
+  # 가상 데스크톱(P2-11·P2-12)에서 돈다. 파일 이름의 두 자리 숫자는 zip 파일의 번호(= 슬라이드 순서).
+  - id: f017
+    source: pg
+    member: "1_화면크기,마우스위치.py"
+    target: examples/desktop/01-screen-size.py
+    author: operator
+    meta:
+      title: "화면 크기와 마우스 위치 알아보기"
+      description: "가상 모니터의 크기와 지금 커서 위치를 출력해요."
+      tags: [ pyautogui, 마우스 ]
+      packages: []
+    lines: 8
+    sha256: 40177ccc85e4cc4e2c67655f402be611eead0aeef6d0b9e1de0d42e868b59536
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f018
+    source: pg
+    member: "2_마우스 이동 및 클릭.py"
+    target: examples/desktop/02-mouse-move-click.py
+    author: operator
+    meta:
+      title: "마우스 옮기고 클릭하기"
+      description: "커서를 천천히 옮긴 뒤 클릭, 더블 클릭, 오른쪽 클릭을 해요."
+      tags: [ pyautogui, 마우스 ]
+      packages: []
+    lines: 10
+    sha256: d6856576eb514e523d3e5714f5c5c744a6a2d4dcfc1617d09f50564b3a2dc8fb
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f019
+    source: pg
+    member: "3_마우스드래그.py"
+    target: examples/desktop/03-mouse-drag.py
+    author: operator
+    meta:
+      title: "마우스 드래그하기"
+      description: "지금 위치에서 (400, 400)까지 2초 동안 끌어요."
+      tags: [ pyautogui, 드래그 ]
+      packages: []
+    lines: 4
+    sha256: 60e614e9c6ac71b39e93a4ad61c3c548a9cc58f0c56429a9d3272a4eef42271c
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f020
+    source: pg
+    member: "4_키 입력.py"
+    target: examples/desktop/04-typewrite.py
+    author: operator
+    meta:
+      title: "키보드로 글자 치기"
+      description: "5초 뒤 hello, world!를 10번 치고 Ctrl+S를 눌러요(가상 메모장)."
+      tags: [ pyautogui, 키보드 ]
+      packages: []
+    lines: 10
+    sha256: 386bb092fd7f16a9f6534e217749235898f43b2109568cd0b67a27c689f500e1
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f021
+    source: pg
+    member: "5_원 그리기.py"
+    target: examples/desktop/05-draw-circle.py
+    author: operator
+    meta:
+      title: "커서로 원 그리기"
+      description: "각도를 5도씩 바꾸며 커서를 원 둘레로 옮겨요."
+      tags: [ pyautogui, math ]
+      packages: []
+    lines: 10
+    sha256: f099e8c7478cddaf614c605c751d70092fdbb74f8c6e7e6dafb7195d1d4f5d99
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f022
+    source: pg
+    member: "6_별 그리기.py"
+    target: examples/desktop/06-draw-star.py
+    author: operator
+    meta:
+      title: "드래그로 별 그리기"
+      description: "세 번의 드래그를 다섯 번 되풀이해요. 왜 별이 안 되는지 생각해 봐요."
+      tags: [ pyautogui, 드래그 ]
+      packages: []
+    lines: 12
+    sha256: e1bae334bbf8b0a4b4cf0b47285f9d36407e9e4520ab19ac33cb1c20b0b974f5
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f023
+    source: pg
+    member: "7_웹페이지열기.py"
+    target: examples/desktop/07-open-webpage.py
+    author: operator
+    meta:
+      title: "웹 페이지 열기"
+      description: "웹 브라우저로 주소를 열어요(가상 브라우저 창)."
+      tags: [ webbrowser ]
+      packages: []
+    lines: 6
+    sha256: 954639d4915d56ff48c3e0f3d6e042bae4a6573680e0bf9edb388605fcab0f93
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f024
+    source: pg
+    member: "8_웹페이지 검색자동화.py"
+    target: examples/desktop/08-web-search.py
+    author: operator
+    meta:
+      title: "웹 검색 자동으로 하기"
+      description: "검색어를 치고 Enter를 눌러요. 마지막 줄의 enter 함수는 원본 오류예요(오류 읽기 연습)."
+      tags: [ webbrowser, pyautogui ]
+      packages: []
+    lines: 9
+    sha256: ecf17b2cc0fae73e429a89a77e6b81619dd574154c2d95439d3dca811659621c
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f025
+    source: pg
+    member: "9_화면캡처.py"
+    target: examples/desktop/09-screenshot.py
+    author: operator
+    meta:
+      title: "화면 캡처하기"
+      description: "화면을 찍어 그림 파일로 저장해요."
+      tags: [ pyautogui, 캡처 ]
+      packages: [ pillow ]
+    lines: 5
+    sha256: 71cbb55960c9520bb2e09ba622395de96b9825bbe80e746dee4c47c4813a6f86
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16
+  - id: f016
+    source: pg
+    member: "10_화면 주기적으로 캡처.py"
+    target: examples/desktop/10-screenshot-loop.py
+    author: operator
+    meta:
+      title: "화면 주기적으로 캡처하기"
+      description: "2초마다 화면을 찍어 폴더에 5장 저장해요."
+      tags: [ pyautogui, 캡처, 반복 ]
+      packages: [ pillow ]
+    lines: 16
+    sha256: bc34e535f9cd833bb340068240ad64a25fc82a4a8b40963768ffcf738690456a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-16

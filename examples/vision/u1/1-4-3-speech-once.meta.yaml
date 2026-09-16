@@ -1,0 +1,11 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "1-4-3 기본 실습: 말을 글로 바꾸기"
+description: 5초 동안 말한 것을 글자로 바꿔 보여 줘요(사이트는 글자 입력 방식이 기본이에요).
+lesson: 1-4-3
+page: 105
+source_id: f044
+tags:
+  - 음성
+  - speech_recognition
+packages: []

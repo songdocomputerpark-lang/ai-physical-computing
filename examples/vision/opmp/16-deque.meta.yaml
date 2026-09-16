@@ -1,0 +1,9 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "계단 16: deque 연습(파이썬 기초)"
+description: 길이가 정해진 줄(deque)에 값을 넣으면 오래된 값부터 밀려나는 것을 봐요. 카메라가 필요 없어요.
+source_id: f124
+tags:
+  - 파이썬 기초
+  - deque
+packages: []

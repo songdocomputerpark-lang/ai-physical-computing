@@ -26,6 +26,8 @@ export interface LabExample {
   readonly description?: string;
   /** 실행 전에 미리 받을 Pyodide 패키지 이름(선택) */
   readonly packages?: readonly string[];
+  /** [예제 불러오기] 선택 상자에서 묶어 보일 이름(선택, optgroup). 같은 이름끼리 목록 순서대로 묶인다. */
+  readonly group?: string;
 }
 
 /** 예제 id 모양 */

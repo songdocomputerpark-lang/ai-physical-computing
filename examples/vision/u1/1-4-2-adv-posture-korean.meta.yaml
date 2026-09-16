@@ -1,0 +1,14 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "1-4-2 심화 실습: 한글로 자세 안내 쓰기"
+description: 어깨 기울기에 따라 한글 안내문을 영상 위에 써요(글꼴은 실습실이 연결해 줘요).
+lesson: 1-4-2
+page: 99
+source_id: f043
+tags:
+  - 자세
+  - 한글
+  - Pillow
+packages:
+  - opencv-python
+  - pillow

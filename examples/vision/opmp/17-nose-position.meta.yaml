@@ -1,0 +1,10 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "계단 17: 코 끝 위치 출력하기"
+description: 코 끝(1번 점)의 화면 위치를 콘솔에 출력해요. 줄마다 한국어 설명이 있어요.
+source_id: f125
+tags:
+  - 얼굴
+  - 코
+packages:
+  - opencv-python

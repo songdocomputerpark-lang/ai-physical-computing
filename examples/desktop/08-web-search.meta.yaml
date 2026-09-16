@@ -1,0 +1,9 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: 웹 검색 자동으로 하기
+description: 검색어를 치고 Enter를 눌러요. 마지막 줄의 enter 함수는 원본 오류예요(오류 읽기 연습).
+source_id: f024
+tags:
+  - webbrowser
+  - pyautogui
+packages: []

@@ -1,0 +1,11 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "계단 13: 입을 벌리면 키보드 누르기"
+description: 윗입술과 아랫입술 사이가 벌어지면 스페이스 키를 눌러요(가상 데스크톱).
+source_id: f121
+tags:
+  - 얼굴
+  - 입
+  - pyautogui
+packages:
+  - opencv-python

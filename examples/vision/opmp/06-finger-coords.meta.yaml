@@ -1,0 +1,10 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "계단 6: 손가락 좌표 확인하기"
+description: 검지 끝(8번 점)의 x, y, z 값을 콘솔에 출력해요.
+source_id: f133
+tags:
+  - 손
+  - 좌표
+packages:
+  - opencv-python

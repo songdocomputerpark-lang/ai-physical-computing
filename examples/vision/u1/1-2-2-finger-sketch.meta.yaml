@@ -1,0 +1,13 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "1-2-2 기본 실습: 검지로 허공에 그리기"
+description: 검지 끝의 위치를 이어서 화면 위 도화지에 선을 그려요.
+lesson: 1-2-2
+page: 36
+source_id: f030
+tags:
+  - 손
+  - 그리기
+  - numpy
+packages:
+  - opencv-python
