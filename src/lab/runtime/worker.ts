@@ -24,7 +24,7 @@
  */
 import type { PyodideAPI } from 'pyodide';
 import type { PyProxy } from 'pyodide/ffi';
-import { PYTHON_MODULES, RUNTIME_MODULE_FILE } from '../python/modules.ts';
+import { PYTHON_MODULES, RUNTIME_MODULE_FILE, SHIM_TABLE } from '../python/modules.ts';
 import { createBridge, type Bridge } from './bridge.ts';
 import type {
   DoneMessage,
@@ -287,6 +287,15 @@ async function load(message: LoadMessage): Promise<void> {
   )) as unknown;
   jspiAvailable = canRunSync === true;
   bridge.setLimited(message.forceLimited || !jspiAvailable);
+
+  // 흉내 모듈 폴더(src/lab/modules/<id>/manifest.ts)가 선언한 shims를 등록표에 더한다(실행 직전 installShims가 읽는다).
+  if (Object.keys(SHIM_TABLE).length > 0) {
+    try {
+      pyodide.runPython(`import json, apc_shims\napc_shims.register_shims(json.loads(${JSON.stringify(JSON.stringify(SHIM_TABLE))}))`);
+    } catch (error) {
+      post({ type: 'notice', level: 'warn', text: `흉내 모듈 표를 등록하지 못했어요: ${describeError(error)}` });
+    }
+  }
 
   // 교차 출처 격리(COOP·COEP)가 있는 곳에서만 인터럽트 버퍼를 덤으로 켠다(GitHub Pages에서는 늘 거짓, 머리말 3).
   if (scope.crossOriginIsolated === true && typeof SharedArrayBuffer === 'function') {

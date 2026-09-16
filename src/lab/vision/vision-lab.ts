@@ -37,6 +37,16 @@ export const WINDOW_CHANNEL = 'cv2.window';
 export const CAMERA_INFO_NAME = 'camera.info';
 export const CAMERA_FRAME_NAME = 'camera.frame';
 
+/** VisionLab이 만들어졌을 때 뿌리 요소에 보내는 이름(getVisionLab이 기다린다) */
+export const VISION_READY_EVENT = 'apc:vision-ready';
+
+/**
+ * 카메라 프레임 훅(흉내 모듈이 ctx.vision().onFrame으로 등록, src/lab/README.md 4절). 파이썬 cap.read()에 답하기 직전에 불린다.
+ * frame.data는 답한 뒤 워커로 옮겨져(transfer) 비므로, 훅은 그 자리에서 읽고 보관하려면 복사한다(new Uint8ClampedArray(frame.data)).
+ * 훅이 오래 걸리면 파이썬에 가는 프레임이 늦어진다(추론은 파이썬이 request로 넘긴 배열로 한다 — CODE_MAPPING §3.2).
+ */
+export type FrameHook = (frame: VisionFrame, info: { readonly sourceId: string; readonly now: number }) => void;
+
 /** 단계별 진행 표시의 단계 이름(P2-05가 진행률 막대로 바꾼다) */
 export type LoadStage = 'core' | 'numpy' | 'opencv';
 export type StageState = 'pending' | 'active' | 'done' | 'failed';
@@ -117,6 +127,7 @@ export class VisionLab {
   readonly #inputMeter = new FpsMeter();
   readonly #cleanups: (() => void)[] = [];
   readonly #grabCanvas: HTMLCanvasElement;
+  readonly #frameHooks = new Set<FrameHook>();
   #source: OpenedSource | null = null;
   #sourceId: string;
   #opening: Promise<OpenedSource> | null = null;
@@ -166,6 +177,17 @@ export class VisionLab {
       return;
     }
     this.lab.runtime.pushEvent(KEY_CHANNEL, code);
+  }
+
+  /**
+   * 카메라 프레임 훅을 등록한다(흉내 모듈용, FrameHook 설명 참고). 파이썬 cap.read()에 답하기 직전마다 불리고, 돌려주는 함수로 푼다.
+   * 훅 안의 오류는 콘솔(console.error)에만 적고 프레임 전달은 계속한다.
+   */
+  onFrame(hook: FrameHook): () => void {
+    this.#frameHooks.add(hook);
+    return () => {
+      this.#frameHooks.delete(hook);
+    };
   }
 
   /** 입력 소스를 고른다(연 소스가 있으면 닫는다). */
@@ -627,6 +649,16 @@ export class VisionLab {
       const now = performance.now();
       this.#throttle.mark(now);
       this.#inputMeter.tick(now);
+      if (this.#frameHooks.size > 0) {
+        const info = { sourceId: this.#sourceId, now };
+        for (const hook of this.#frameHooks) {
+          try {
+            hook(frame, info);
+          } catch (error) {
+            console.error('카메라 프레임 훅에서 오류가 났어요.', error);
+          }
+        }
+      }
       request.reply({ width: frame.width, height: frame.height, data: frame.data }, [frame.data.buffer as ArrayBuffer]);
     };
     if (delay <= 0) {
@@ -704,8 +736,29 @@ export function mountVisionLab(root: HTMLElement | null): Promise<VisionLab> {
     if (!elements) {
       throw new Error('영상처리 실습실 화면 요소(data-vision-output-tabs·data-vision-output-stage)가 없어요.');
     }
-    return new VisionLab(root, lab, elements);
+    const vision = new VisionLab(root, lab, elements);
+    root.dispatchEvent(new CustomEvent(VISION_READY_EVENT, { detail: { vision } }));
+    return vision;
   });
   mounted.set(root, promise);
   return promise;
+}
+
+/**
+ * 흉내 모듈·페이지 스크립트가 VisionLab을 받는 방법(아직 안 만들어졌으면 만들어질 때까지 기다린다 — getLabController와 같은 방식).
+ * 영상처리 실습실이 아닌 뿌리에서는 영원히 기다리므로, 모듈은 ctx.vision()(src/lab/modules/host.ts — data-vision-io가 없으면 null)을 쓴다.
+ */
+export function getVisionLab(root: HTMLElement | null): Promise<VisionLab> {
+  return new Promise((resolve, reject) => {
+    if (!root) {
+      reject(new Error('영상처리 실습실 뿌리 요소([data-lab])를 찾지 못했어요.'));
+      return;
+    }
+    const existing = mounted.get(root);
+    if (existing) {
+      existing.then(resolve, reject);
+      return;
+    }
+    root.addEventListener(VISION_READY_EVENT, (event) => resolve((event as CustomEvent<{ vision: VisionLab }>).detail.vision), { once: true });
+  });
 }

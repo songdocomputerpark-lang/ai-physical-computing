@@ -16,6 +16,8 @@
 - get(name, default, raw=False) / poll(channel): 화면이 보낸 최신 값(슬라이더)·쌓인 값(키 입력)을 기다리지 않고 읽는다.
   sleep 없는 반복문을 위해 16ms마다 한 번 양보한다(§3.0 규칙 2). 이 함수들이 "입력 확인 지점"이다.
 - register_reset_hook(fn): 실행을 시작할 때마다 부를 함수를 등록한다(흉내 모듈이 창·키 목록을 비우는 데 쓴다).
+- register_tick_hook(fn): 입력 확인 지점(block_on이 끝난 뒤·maybe_yield)마다 부를 함수를 등록한다(흉내 모듈이 화면에서 온 결과를
+  자기 상태에 옮기거나 가상 타이머 콜백을 돌리는 데 쓴다, src/lab/README.md 4절). 훅 안에서는 양보하는 함수를 부르지 않는다.
 - 조절 패널 값 반영(P2-04, 슬라이더 규약): 화면의 조절 패널(src/lab/params/panel.ts)이 값을 바꾸면 'lab.params' 채널에
   {name, value, type}을 쌓는다(runtime.pushEvent). sync_params()가 입력 확인 지점(block_on이 끝난 뒤, maybe_yield)마다 그 값을
   실행 중인 학생 코드의 전역 변수에 넣는다. 그 전역 사전은 워커가 코드를 돌리기 직전에 bind_run_globals(globals())로 알려 준다.
@@ -57,6 +59,7 @@ __all__ = [
     "notice",
     "poll",
     "register_reset_hook",
+    "register_tick_hook",
     "request",
     "reset_for_run",
     "sleep",
@@ -82,6 +85,8 @@ _real_sleep = time.sleep
 _real_input = builtins.input
 _pending_sleep_ms = 0.0
 _reset_hooks = []
+_tick_hooks = []
+_in_tick_hooks = False
 # 실행 중인 학생 코드의 전역 사전(globals()). 워커가 bind_run_globals로 넣고 실행이 끝나면 unbind_run_globals로 비운다.
 _run_globals = None
 
@@ -130,6 +135,7 @@ def block_on(promise):
     if _bridge.isStopSignal(result):
         raise KeyboardInterrupt(STOP_MESSAGE)
     sync_params()
+    _run_tick_hooks()
     return result
 
 
@@ -147,9 +153,12 @@ def maybe_yield() -> None:
     """sleep 없는 반복문을 위해 마지막 양보 뒤 16ms가 지났으면 한 번 양보한다. 정지도 확인하고 조절 값도 넣는다(양보 없이도).
     동기 진입점(워커의 runPython — reset_for_run 등)에서 불리면 양보하지 않고 넘어간다."""
     check_stop()
-    sync_params()
     if can_wait() and _bridge.msSinceYield() >= YIELD_INTERVAL_MS and _sync_allowed():
+        # 실제로 양보한다. 조절 값 반영·틱 훅은 block_on이 약속이 끝난 뒤 한 번 처리한다(여기서 또 부르면 한 지점에서 두 번 불린다).
         block_on(_bridge.sleep(0))
+    else:
+        sync_params()
+        _run_tick_hooks()
 
 
 def sleep(seconds):
@@ -228,6 +237,32 @@ def register_reset_hook(hook) -> None:
     """실행을 시작할 때마다 부를 함수를 등록한다(같은 함수는 한 번만). 흉내 모듈이 자기 상태를 비우는 데 쓴다."""
     if hook not in _reset_hooks:
         _reset_hooks.append(hook)
+
+
+def register_tick_hook(hook) -> None:
+    """입력 확인 지점(block_on이 끝난 뒤·maybe_yield)마다 부를 함수를 등록한다(같은 함수는 한 번만).
+    흉내 모듈이 화면에서 온 값(poll·get은 양보 없이 drain·_bridge로 읽기)을 자기 상태에 옮기거나 가상 타이머 콜백을 돌리는 데 쓴다.
+    훅 안에서는 양보하는 함수(sleep·request·input·block_on·get·poll)를 부르지 않는다 — 동기 진입점 규칙(PROGRESS 미해결 25번)과
+    같은 이유이고, 훅이 도는 동안 다시 훅이 불리지도 않는다. 오류는 콘솔 알림으로 바꾸고 실행은 계속한다."""
+    if hook not in _tick_hooks:
+        _tick_hooks.append(hook)
+
+
+def _run_tick_hooks() -> None:
+    global _in_tick_hooks
+    if _in_tick_hooks or len(_tick_hooks) == 0:
+        return
+    _in_tick_hooks = True
+    try:
+        for hook in list(_tick_hooks):
+            try:
+                hook()
+            except KeyboardInterrupt:
+                raise
+            except Exception as error:  # 한 모듈의 훅 오류가 실행을 막지 않게 한다.
+                notice(f"흉내 모듈 훅 오류: {type(error).__name__}: {error}", "warn")
+    finally:
+        _in_tick_hooks = False
 
 
 # ── 조절 패널 값(P2-04) ──

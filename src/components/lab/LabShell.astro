@@ -26,9 +26,19 @@
 import Callout from '../common/Callout.astro';
 import { assertValidExamples, type LabExample } from '../../lab/controls/examples.ts';
 import { TAB_HINT } from '../../lab/editor/python-editor.ts';
+import { folderNameOf, modulesForLab } from '../../lab/modules/manifests.ts';
+import type { ModulePlacement } from '../../lab/modules/types.ts';
 import { STOP_GRACE_MS } from '../../lab/runtime/config.ts';
 import ClearRecordsButton from './ClearRecordsButton.astro';
 import ParamPanel from './ParamPanel.astro';
+
+/**
+ * 흉내 모듈 폴더의 화면 조각(src/lab/modules/<id>/panel.astro, 자동 발견 — src/lab/README.md 4절).
+ * 이 실습실(labId)에 붙는 모듈의 것만 그려 두고(hidden), 모듈의 index.ts가 mount 때 showPanel()로 연다.
+ * placement 'panel'은 조절 패널 아래(오른쪽 열), 'wide'는 입력·출력과 콘솔 사이 전체 폭.
+ */
+const panelComponents = import.meta.glob<{ default: (props: Record<string, never>) => unknown }>('../../lab/modules/*/panel.astro', { eager: true });
+const modulePanelsById = new Map(Object.entries(panelComponents).map(([globPath, loaded]) => [folderNameOf(globPath), loaded.default]));
 
 interface Props {
   labId: string;
@@ -61,6 +71,25 @@ const hasIo = Astro.slots.has('io');
 const hasPanel = Astro.slots.has('panel');
 // JSON 안의 <를 유니코드로 바꿔 </script>가 스크립트를 끊지 못하게 한다.
 const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
+
+// [예제 불러오기] 선택 상자: group이 있는 예제는 같은 이름끼리 optgroup으로 묶는다(목록 순서 유지, 없는 것은 그대로).
+const exampleGroups: { label: string | null; items: LabExample[] }[] = [];
+for (const example of examples) {
+  const label = example.group ?? null;
+  const last = exampleGroups[exampleGroups.length - 1];
+  if (last && last.label === label) {
+    last.items.push(example);
+  } else {
+    exampleGroups.push({ label, items: [example] });
+  }
+}
+
+// 이 실습실에 붙는 흉내 모듈의 panel.astro(있는 것만), 위치별로 나눈다.
+const modulePanels = modulesForLab(labId)
+  .filter((manifest) => modulePanelsById.has(manifest.id))
+  .map((manifest) => ({ id: manifest.id, title: manifest.title, placement: (manifest.placement ?? 'panel') as ModulePlacement, Component: modulePanelsById.get(manifest.id)! }));
+const sidePanels = modulePanels.filter((panel) => panel.placement === 'panel');
+const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 ---
 
 <div
@@ -88,7 +117,15 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
       <label class="lab__examples-label" for={ids.exampleSelect}>예제</label>
       <select id={ids.exampleSelect} class="lab__select" data-lab-example-select disabled={examples.length === 0}>
         {examples.length === 0 && <option value="">예제가 아직 없어요</option>}
-        {examples.map((example) => <option value={example.id}>{example.title}</option>)}
+        {
+          exampleGroups.map((group) =>
+            group.label === null ? (
+              group.items.map((example) => <option value={example.id}>{example.title}</option>)
+            ) : (
+              <optgroup label={group.label}>{group.items.map((example) => <option value={example.id}>{example.title}</option>)}</optgroup>
+            ),
+          )
+        }
       </select>
       <button type="button" class="lab-button" data-lab-example-load disabled={examples.length === 0}>예제 불러오기</button>
     </div>
@@ -142,7 +179,26 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
     <section class="lab__panel" aria-labelledby={ids.panelHeading}>
       <Heading id={ids.panelHeading} class="lab__heading">조절 패널</Heading>
       {hasPanel ? <slot name="panel" /> : <ParamPanel />}
+      {
+        sidePanels.map(({ id, title, Component }) => (
+          <section class="lab__module" data-lab-module-panel={id} aria-label={title} hidden>
+            <Component />
+          </section>
+        ))
+      }
     </section>
+
+    {
+      widePanels.length > 0 && (
+        <div class="lab__modules">
+          {widePanels.map(({ id, title, Component }) => (
+            <section class="lab__module lab__module--wide" data-lab-module-panel={id} aria-label={title} hidden>
+              <Component />
+            </section>
+          ))}
+        </div>
+      )
+    }
 
     <section class="lab__console" aria-labelledby={ids.consoleHeading}>
       <div class="lab__section-head">
@@ -194,6 +250,7 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
 
 <script>
   import { mountLabShell } from '../../lab/controls/lab-shell.ts';
+  import { mountLabModules } from '../../lab/modules/host.ts';
   import { mountParamPanel } from '../../lab/params/panel.ts';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-lab]')) {
@@ -201,6 +258,8 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
     if (lab) {
       // 조절 패널(코드의 # @slider 규약, P2-04). panel 슬롯을 다른 것으로 채운 페이지에는 [data-lab-params]가 없어 null이다.
       mountParamPanel(root, lab);
+      // 흉내 모듈 폴더(src/lab/modules/<id>/)의 화면 쪽 — 이 실습실에 붙는 모듈만 따로 받아 붙인다. 실패해도 실습실은 그대로 돈다.
+      void mountLabModules(root, lab);
     }
   }
 </script>
@@ -323,6 +382,7 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
       'editor'
       'io'
       'panel'
+      'modules'
       'console';
     gap: var(--space-4);
   }
@@ -330,12 +390,37 @@ const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
   @media (min-width: 64rem) {
     .lab__grid {
       grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto auto auto auto;
       grid-template-areas:
         'editor io'
         'editor panel'
+        'modules modules'
         'console console';
     }
+  }
+
+  /* 흉내 모듈의 화면 조각(src/lab/modules/<id>/panel.astro). placement 'wide'는 전체 폭 줄, 'panel'은 조절 패널 아래. hidden이면 자리도 없다. */
+  .lab__modules {
+    display: grid;
+    grid-area: modules;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .lab__modules:not(:has(.lab__module:not([hidden]))) {
+    display: none;
+  }
+
+  .lab__module {
+    min-width: 0;
+  }
+
+  .lab__panel > .lab__module {
+    margin-block-start: var(--space-3);
+  }
+
+  .lab__module[hidden] {
+    display: none;
   }
 
   .lab__editor {

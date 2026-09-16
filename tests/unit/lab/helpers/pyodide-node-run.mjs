@@ -140,12 +140,18 @@ await step('sleep_type_error', 'import time\ntime.sleep("a")');
 await step('input_roundtrip', "name = input('이름: ')\nprint('안녕, ' + name)\nname");
 await step('input_stops', "input('기다림: ')", { stopAfterMs: 5, needsJspi: true });
 await step('request_rejected', "import apc_runtime\napc_runtime.request('camera.read', {'w': 1})");
+// 최신 값(set)은 실행 전에 넣어도 남고, 쌓이는 값(push)은 실행이 시작될 때(bridge.beginRun) 버려지므로 실행 중(setup)에 넣는다.
 bridge.setValue('threshold', 120);
-bridge.pushEvent('keys', 113);
-bridge.pushEvent('keys', 27);
+bridge.pushEvent('keys', 1);
 await step(
   'get_and_poll',
   "import apc_runtime\n[apc_runtime.get('threshold'), apc_runtime.get('none', '기본'), apc_runtime.poll('keys'), apc_runtime.poll('keys')]",
+  {
+    setup: () => {
+      bridge.pushEvent('keys', 113);
+      bridge.pushEvent('keys', 27);
+    },
+  },
 );
 // 조절 패널 값(P2-04): input()에서 기다리는 동안 화면이 쌓은 값이 약속이 끝난 뒤(block_on) 전역 변수에 들어간다.
 // 형 이름대로 바꾸고(int는 반올림), 예약어·변수 이름이 아닌 것·사전이 아닌 것은 버리며, 바꿀 수 없는 값은 콘솔에 알린다.

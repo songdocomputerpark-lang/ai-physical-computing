@@ -146,6 +146,20 @@ describe('화면에 부탁하기(request)와 답(reply)', () => {
 });
 
 describe('값 저장소(set·get, push·poll)와 안내', () => {
+  it('beginRun은 실행 전에 쌓인 값(push)을 버리고 최신 값(set)은 남긴다', () => {
+    const bridge = createBridge({ post: () => undefined, now: () => 0, canRunSync: () => true });
+    bridge.setValue('camera.info', { ok: true });
+    bridge.pushEvent('hello.clicks', 1);
+    bridge.pushEvent('cv2.keys', 113);
+    bridge.beginRun();
+    expect(bridge.api.poll('hello.clicks')).toEqual([]);
+    expect(bridge.api.poll('cv2.keys')).toEqual([]);
+    expect(bridge.api.get('camera.info')).toEqual({ ok: true });
+    bridge.pushEvent('hello.clicks', 2);
+    expect(bridge.api.poll('hello.clicks')).toEqual([2]);
+    bridge.endRun();
+  });
+
   it('get은 최신 값, poll은 쌓인 값을 순서대로 꺼내고 비운다', () => {
     const bridge = createBridge(makeHost().host);
     expect(bridge.api.get('threshold')).toBeUndefined();

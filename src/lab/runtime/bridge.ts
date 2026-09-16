@@ -62,7 +62,7 @@ export interface BridgeApi {
 
 export interface Bridge {
   readonly api: BridgeApi;
-  /** 실행을 시작할 때: 정지 표시·대기 목록을 비우고 양보 시각을 지금으로 맞춘다. */
+  /** 실행을 시작할 때: 정지 표시·대기 목록과 실행 전에 쌓인 값(push 채널)을 비우고 양보 시각을 지금으로 맞춘다. 최신 값(set)은 남긴다. */
   beginRun(): void;
   /** 실행이 끝날 때: 남은 요청을 취소하고 정지 표시를 지운다. 이번 실행에 [정지]가 눌렸었는지 돌려준다. */
   endRun(): { stopped: boolean };
@@ -173,6 +173,10 @@ export function createBridge(host: BridgeHost): Bridge {
       stopRequested = false;
       stopWaiters.clear();
       cancelPendingRequests(RUN_ENDED_MESSAGE);
+      // 실행 전에 쌓인 값(push)은 모두 버린다: 이전 실행의 키 입력·조절 값·모듈 채널이 새 실행에 새지 않게. 최신 값(set — camera.info 같은
+      // 실행 직전 준비 값)은 남긴다. 흉내 모듈의 초기화 함수(register_reset_hook)의 drain은 이중 안전장치가 된다 — 학생 코드가 처음 import하는
+      // 모듈은 첫 실행의 reset_for_run 뒤에야 초기화 함수를 등록하므로, 여기서 비우지 않으면 실행 전 값이 첫 실행에 들어간다(2026-09-16 hello 모듈 브라우저 테스트에서 발견).
+      queues.clear();
       markYield();
     },
     endRun() {

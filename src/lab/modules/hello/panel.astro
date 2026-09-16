@@ -1,0 +1,81 @@
+---
+/**
+ * 모듈 뼈대 예시 "hello"의 화면 조각(src/lab/README.md 4절). LabShell이 [data-lab-module-panel="hello"] 안에 그려 두고(hidden),
+ * index.ts의 mount가 showPanel()로 연다. 이 파일은 HTML·CSS만 그리고 동작은 index.ts가 data-hello-* 표시로 찾아 잇는다.
+ * 실습실 틀의 부품 클래스(lab-button, lab__select 등)와 디자인 토큰(src/styles/)을 그대로 쓴다.
+ */
+---
+
+<div class="hello">
+  <p class="hello__note">
+    모듈 뼈대 예시예요. 코드에서 <code>import apc_hello</code> 뒤 <code>apc_hello.greet("이름")</code>, <code>apc_hello.wave()</code>,{' '}
+    <code>apc_hello.name()</code>, <code>apc_hello.clicks()</code>를 써 보세요.
+  </p>
+  <div class="hello__row">
+    <label class="hello__label" for="lab-module-hello-name">이름(파이썬 apc_hello.name())</label>
+    <input id="lab-module-hello-name" class="hello__input" type="text" data-hello-name autocomplete="off" placeholder="예: 세계" />
+  </div>
+  <div class="hello__row">
+    <button type="button" class="lab-button lab-button--small" data-hello-click>누르기(apc_hello.clicks())</button>
+    <span class="hello__stat">손 흔든 횟수 <strong data-hello-waves data-count="0">0</strong></span>
+  </div>
+  <p class="hello__last" data-hello-last aria-live="polite"></p>
+</div>
+
+<style>
+  .hello {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .hello__note,
+  .hello__last {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  .hello__note code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  .hello__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .hello__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .hello__input {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .hello__input:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .hello__stat strong {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hello__last:empty {
+    display: none;
+  }
+</style>
