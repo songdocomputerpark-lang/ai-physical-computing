@@ -4,7 +4,7 @@
 #
 # 액션 버전은 2026-09-15에 각 공식 저장소의 최신 릴리스와 action.yml로 확인했다.
 #   actions/checkout v7.0.1, actions/configure-pages v6.0.0, withastro/action v6.1.3, actions/deploy-pages v5.0.1
-#   actions/setup-node v7.0.0(저장소 검사 작업, 2026-09-16 확인)
+#   actions/setup-node v7.0.0(저장소 검사 작업, 2026-09-16 확인), actions/cache v6.1.0(Pyodide 예비본 캐시, 2026-09-16 확인)
 # 액션은 태그가 아니라 그 릴리스의 커밋 SHA로 고정한다(2026-09-16 검토 반영). 태그는 누군가 옮길 수 있지만 SHA는 바꿀 수 없어서,
 # 배포 권한(pages·id-token 쓰기)을 가진 작업이 바뀐 액션 코드를 받는 일을 막는다. 주석의 버전이 그 SHA의 릴리스다.
 # 버전을 올릴 때는 각 저장소의 릴리스 노트와 action.yml을 확인한 뒤 새 릴리스 태그의 SHA를 적는다
@@ -86,6 +86,16 @@ jobs:
         # enablement는 쓰지 않는다. Pages는 이미 켜 두었고(2026-09-15, PD-12),
         # 이 옵션은 GITHUB_TOKEN이 아닌 별도 토큰이 있어야 동작한다(action.yml 설명).
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Pyodide 예비본 캐시(빌드가 public/vendor/pyodide/에 넣을 원본)
+        # 휠 2개(numpy 3.0MB, OpenCV 10.7MB)는 node_modules/pyodide에 없어서 빌드 때 jsDelivr에서 받는다.
+        # 캐시해 두면 그 시간이 없어지고 jsDelivr에 덜 기댄다. 표(이름·크기·SHA-256)가 바뀌면 = Pyodide 판이 바뀌면 키가 바뀐다.
+        # restore-keys로 옛 캐시가 와도 안전하다: 폴더가 판별로 나뉘고 스크립트가 크기·SHA-256을 대조해 다르면 다시 받는다.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/pyodide-fallback
+          key: pyodide-fallback-${{ hashFiles('src/lab/loader/pyodide-files.ts') }}
+          restore-keys: pyodide-fallback-
 
       - name: 설치·빌드·결과 올리기
         # package-lock.json을 보고 npm을 골라 설치 → npm run build → dist/를 Pages용 결과물로 올린다.

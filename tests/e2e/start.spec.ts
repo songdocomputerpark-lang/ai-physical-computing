@@ -186,7 +186,8 @@ test.describe('점검 페이지', () => {
     await page.goto(getPage('start-check').href);
     await waitForCheckReport(page);
 
-    await page.getByRole('button', { name: '결과 복사' }).click();
+    // 점검 페이지에는 [결과 복사]가 둘이다(브라우저 점검·네트워크 점검, P2-05) — 브라우저 점검 쪽만 누른다.
+    await page.locator('[data-check-copy]').click();
     await expect(page.locator('[data-check-copy-status]')).toContainText('복사했어요');
     // Windows 클립보드는 줄바꿈을 \r\n으로 바꿔 돌려주므로 \n으로 맞춰 비교한다.
     const copied = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/gu, '\n');

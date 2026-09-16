@@ -76,7 +76,7 @@ describe('실습실 목록과 사이드카 합치기', () => {
     expect(exampleGroupKey('vision/a.py')).toBe('vision');
     expect(exampleGroupKey('desktop/a.py')).toBe('desktop');
     expect(exampleGroupLabel('없는-묶음')).toBe('없는-묶음');
-    expect(EXAMPLE_GROUPS.map((group) => group.key)).toEqual(['vision', 'vision/u1', 'vision/opmp', 'desktop']);
+    expect(EXAMPLE_GROUPS.map((group) => group.key)).toEqual(['vision', 'vision/supplement', 'vision/u1', 'vision/opmp', 'desktop']);
   });
 
   it('저장소의 옮긴 예제마다 사이드카가 있고 제목이 채워져 있다', () => {

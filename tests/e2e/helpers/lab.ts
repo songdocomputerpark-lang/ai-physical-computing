@@ -23,11 +23,43 @@ export async function editorText(page: Page): Promise<string> {
   return page.locator('[data-lab-editor] .cm-line').evaluateAll((lines) => lines.map((line) => line.textContent ?? '').join('\n'));
 }
 
-/** 에디터 코드를 통째로 바꾼다(contenteditable에 fill). */
+/** 끝의 빈 줄을 뗀다(에디터가 마지막에 줄바꿈을 하나 더 두는 일이 있다). */
+function trimTrailingNewlines(text: string): string {
+  return text.replace(/\n+$/u, '');
+}
+
+/** 실제로 편집칸에 들어 있는 글(자리 글 `.cm-placeholder`는 뺀다 — 코드를 비우면 그 자리에 보인다) */
+async function editorDocText(page: Page): Promise<string> {
+  return page.locator('[data-lab-editor] .cm-line').evaluateAll((lines) =>
+    lines
+      .map((line) => {
+        const clone = line.cloneNode(true) as HTMLElement;
+        for (const placeholder of clone.querySelectorAll('.cm-placeholder')) {
+          placeholder.remove();
+        }
+        return clone.textContent ?? '';
+      })
+      .join('\n'),
+  );
+}
+
+/**
+ * 에디터 코드를 통째로 바꾼다.
+ * fill()은 모바일 프로젝트(Pixel 5 흉내)에서 앞 코드를 지우지 못하고 뒤에 붙는 일이 있다(2026-09-16 실측).
+ * CodeMirror가 스스로 처리하는 키(선택 모두 → 지움 → 붙여넣기)로 넣고, 들어간 글을 확인한 뒤 돌아온다.
+ */
 export async function setEditorCode(page: Page, code: string): Promise<void> {
   const content = editorContent(page);
-  await content.click();
-  await content.fill(code);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await content.click();
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.insertText(code);
+    if (trimTrailingNewlines(await editorDocText(page)) === trimTrailingNewlines(code)) {
+      return;
+    }
+  }
+  expect(trimTrailingNewlines(await editorDocText(page)), '편집칸에 코드를 넣지 못했어요').toBe(trimTrailingNewlines(code));
 }
 
 /** 실습실이 준비될 때까지(Pyodide 받기) 기다린 뒤 페이지를 연다. */

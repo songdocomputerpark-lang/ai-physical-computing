@@ -110,10 +110,13 @@ test.describe('차시 페이지', () => {
     await expect(example.locator('.lesson-code')).toContainText('photos = [');
     await expect(example.locator('.lesson-code__line').first()).toHaveText(/^# 1-1-1 체험/u);
     await expect(example.getByRole('region', { name: /코드, \d+줄$/u })).toHaveCount(1);
-    await expect(example.getByRole('link', { name: '실습실에서 열기(준비 중)' })).toHaveAttribute(
+    await expect(example.getByRole('link', { name: '실습실에서 열기', exact: true })).toHaveAttribute(
       'href',
       `${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u1/1-1-1-sort-vs-group.py')}`,
     );
+    // 실습실 임베드(P2-14)는 누르기 전에는 만들어지지 않는다.
+    await expect(example.getByRole('button', { name: '이 자리에서 실습실 열기' })).toBeVisible();
+    await expect(page.locator('iframe')).toHaveCount(0);
 
     for (const image of await page.locator('.lesson-body img').all()) {
       await image.scrollIntoViewIfNeeded();
@@ -124,18 +127,19 @@ test.describe('차시 페이지', () => {
     const pager = page.getByRole('navigation', { name: '이전·다음 차시' });
     await expect(pager).toContainText('첫 번째 차시예요.');
     await pager.getByRole('link', { name: /다음 차시/u }).click();
-    await expect(page).toHaveURL(new RegExp(`${withBase('learn/u1/v4/')}$`, 'u'));
+    // 보충 차시 V1~V5(order 3.1~3.5)가 1-1-1 다음에 온다.
+    await expect(page).toHaveURL(new RegExp(`${withBase('learn/u1/v1/')}$`, 'u'));
   });
 
-  test('보충 V4: 성취기준이 비면 "성취기준 코드 확인 중", 제목에 "보충", 이전 차시는 1-1-1', async ({ page }) => {
+  test('보충 V4: 성취기준이 비면 "성취기준 코드 확인 중", 제목에 "보충", 이전 차시는 V3', async ({ page }) => {
     await page.goto('./learn/u1/v4/');
     await expect(page).toHaveTitle(/^V4 \(보충\) 블러와 에지 \| /u);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/V4\s+보충\s+블러와 에지/u);
     await expect(page.locator('[data-meta="standards"]')).toHaveText(/성취기준\s*성취기준 코드 확인 중/u);
     await expect(page.locator('[data-meta="materials"]')).toContainText('웹캠(없으면 샘플 이미지)');
     await expect(
-      page.getByRole('navigation', { name: '이전·다음 차시' }).getByRole('link', { name: /이전 차시.*1-1-1/u }),
-    ).toHaveAttribute('href', withBase('learn/u1/1-1-1/'));
+      page.getByRole('navigation', { name: '이전·다음 차시' }).getByRole('link', { name: /이전 차시.*V3/u }),
+    ).toHaveAttribute('href', withBase('learn/u1/v3/'));
   });
 
   test('확인 퀴즈: 키보드로 오답을 확인하면 "다시 생각해 보세요", 정답이면 "정답이에요!"와 풀이', async ({ page }) => {

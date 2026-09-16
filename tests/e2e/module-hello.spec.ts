@@ -54,6 +54,11 @@ test.describe('흉내 모듈 뼈대(hello)', () => {
     expect(response?.status()).toBe(200);
     await expect(labRoot(page)).toHaveAttribute('data-state', /idle|loading|unloaded/u);
     await expect(page.locator('[data-lab-module-panel="hello"]')).toHaveCount(0);
-    await expect(labRoot(page)).toHaveAttribute('data-lab-modules', '', { timeout: 30_000 });
+    // 영상처리 실습실에는 다른 흉내 모듈(loading·errors·mediapipe·runtime-extras·desktop·speech)이 붙는다.
+    // 여기서 보는 것은 "hello는 붙지 않는다"뿐이다.
+    await expect
+      .poll(async () => await labRoot(page).getAttribute('data-lab-modules'), { timeout: 30_000 })
+      .not.toBeNull();
+    expect((await labRoot(page).getAttribute('data-lab-modules')) ?? '').not.toMatch(/hello/u);
   });
 });

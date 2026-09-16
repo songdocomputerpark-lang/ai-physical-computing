@@ -59,7 +59,7 @@ async function horizontalOverflow(page: Page): Promise<{ overflow: number; offen
 }
 
 /** 문제 해결 페이지의 질문 id(다른 페이지가 help/#id로 연결한다) */
-const HELP_QUESTION_IDS = ['camera', 'browser', 'board-port', 'school-network', 'clear-data'] as const;
+const HELP_QUESTION_IDS = ['camera', 'browser', 'speech', 'board-port', 'school-network', 'clear-data'] as const;
 
 test.describe('사이트 지도의 모든 페이지', () => {
   test.skip(({ isMobile }) => isMobile, '페이지 내용은 화면 크기와 상관없어 데스크톱에서 한 번만 확인한다');
@@ -152,7 +152,7 @@ test.describe('이 담당의 페이지', () => {
     await expect(page.getByRole('main')).toContainText('원본 파일(PDF, PPTX)은 사이트에 올리지 않아요');
   });
 
-  test('문제 해결은 질문 5개를 목록과 함께 보이고, 목록 링크가 그 질문으로 간다', async ({ page }) => {
+  test('문제 해결은 질문 목록과 오류 사전 링크를 보이고, 목록 링크가 그 질문으로 간다', async ({ page }) => {
     await page.goto('./help/');
     const toc = page.getByRole('navigation', { name: '질문 목록' });
     await expect(toc.getByRole('link')).toHaveCount(HELP_QUESTION_IDS.length);
@@ -164,6 +164,9 @@ test.describe('이 담당의 페이지', () => {
     await toc.locator('a[href="#board-port"]').click();
     await expect(page).toHaveURL(/#board-port$/u);
     await expect(page.locator('h2[id="board-port"]')).toBeInViewport();
+
+    // 오류 사전으로 가는 길(P2-14에서 "준비 중" 상자를 링크로 바꿈)
+    await expect(page.getByRole('main').getByRole('link', { name: '파이썬 오류 사전' })).toHaveAttribute('href', withBase('help/errors/'));
   });
 
   test('기여·문의는 이슈 양식 3가지·개인정보 안내·라이선스 파일·제3자 목록을 연결한다', async ({ page }) => {

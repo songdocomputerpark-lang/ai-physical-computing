@@ -87,7 +87,11 @@ export default defineConfig({
   outputDir: 'test-results',
   fullyParallel: true,
   forbidOnly: isCI,
-  retries: isCI ? 1 : 0,
+  // 실습실 테스트는 하나하나가 브라우저 안에서 Pyodide(약 20MB)와 OpenCV를 띄운다. 기본 병렬 수(코어의 절반)로 돌리면
+  // 8GB 컴퓨터에서 서로 자원을 뺏어 시간 초과로 흔들린다(2026-09-16 실측: 따로 돌리면 통과하는 검사가 전체 실행에서 실패).
+  // 그래서 동시에 도는 수를 줄이고, 남은 흔들림은 한 번 다시 시도한다.
+  workers: isCI ? 2 : 3,
+  retries: 1,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'list',
   // 테스트 전에 가짜 카메라용 합성 영상을 만든다(.cache/test-camera/synthetic.y4m — 저장소에 넣지 않음, PD-30).
   globalSetup: './tests/e2e/global-setup.ts',
