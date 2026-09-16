@@ -1,0 +1,315 @@
+---
+/**
+ * 학교 네트워크 점검 — [시험하기]를 눌렀을 때만 접속한다(PLAN §5.5, §8.2 P2-05, SPEC §2 서버 제로).
+ *
+ * 규칙
+ * - 페이지를 열기만 해서는 **아무 곳에도 접속하지 않는다**. 단추를 눌러야 아래 항목마다 파일 하나를 받아 본다.
+ * - 어디에 접속하는지 항목마다 주소를 그대로 적는다(학생·전산 담당자가 보고 판단할 수 있게).
+ * - 판정은 src/lab/loader/probe.ts가 한다: 접속됨 / 연결은 되지만 데이터가 멈춤(막힘) / 접속 못 함 / 파일 대신 안내 페이지(HTML).
+ * - 결과에는 개인정보가 들어가지 않는다(주소·걸린 시간·받은 바이트만). [결과 복사]로 한 번에 복사한다.
+ *
+ * 쓰는 곳: 시작하기 > 점검 페이지(src/pages/start/check/index.astro)의 "네트워크 점검" 자리.
+ * 테스트가 읽는 값: 뿌리 [data-network-check]의 data-state(idle|running|done), 항목 [data-network-item="<id>"]의 data-status.
+ */
+import { NETWORK_CHECK_ITEMS } from './items.ts';
+---
+
+<div class="network-check" data-network-check data-state="idle">
+  <p class="network-check__intro">
+    아래 <strong>[시험하기]</strong>를 누르면 그때만 각 주소에 접속해서 파일이 받아지는지 확인해요. 누르기 전에는 아무 곳에도
+    접속하지 않아요. 카메라나 마이크도 쓰지 않아요.
+  </p>
+
+  <div class="network-check__actions">
+    <button type="button" class="button button--primary" data-network-run>시험하기</button>
+    <button type="button" class="button button--secondary" data-network-copy disabled>결과 복사</button>
+    <p class="network-check__status" role="status" aria-live="polite" data-network-status></p>
+  </div>
+
+  <ul class="network-check__list">
+    {
+      NETWORK_CHECK_ITEMS.map((item) => (
+        <li class="network-check__item" data-network-item={item.id} data-status="pending">
+          <div class="network-check__head">
+            <span class="network-check__label">{item.label}</span>
+            <span class="status-badge">
+              <span class="status-badge__icon" aria-hidden="true" data-network-icon>
+                …
+              </span>
+              <span data-network-result>아직 시험하지 않았어요</span>
+            </span>
+          </div>
+          <p class="network-check__why">{item.why}</p>
+          {
+            /* 아직 만들지 않은 항목(skip)은 접속할 주소가 없으므로 주소 줄을 보여 주지 않는다. */
+            !item.skip && (
+              <p class="network-check__where">
+                접속하는 곳: <code>{item.display}</code>
+              </p>
+            )
+          }
+          <p class="network-check__detail" data-network-detail />
+          <p class="network-check__advice" data-network-advice hidden />
+        </li>
+      ))
+    }
+  </ul>
+
+  <details class="network-check__raw" data-pagefind-ignore>
+    <summary>복사될 내용 보기</summary>
+    <label class="visually-hidden" for="network-check-text">복사될 네트워크 점검 결과</label>
+    <textarea id="network-check-text" class="network-check__textarea" rows="10" readonly data-network-text></textarea>
+  </details>
+</div>
+
+<script>
+  import { NETWORK_CHECK_ITEMS, formatNetworkReport, networkItemUrl, statusOf, type NetworkStatus } from './items.ts';
+  import { NETWORK_CHECK_TIMEOUT_MS } from '../../../lab/loader/constants.ts';
+  import { describeProbe, probeUrl } from '../../../lab/loader/probe.ts';
+
+  const ICONS: Record<NetworkStatus, string> = { ok: '✓', blocked: '✕', unknown: '!', pending: '…' };
+  const LABELS: Record<NetworkStatus, string> = { ok: '연결됨', blocked: '막힘', unknown: '확인 필요', pending: '아직 시험하지 않았어요' };
+
+  async function copyText(text: string): Promise<boolean> {
+    try {
+      if (window.isSecureContext && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // 아래 방법으로 한 번 더
+    }
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.insetInlineStart = '-9999px';
+    document.body.append(field);
+    try {
+      field.select();
+      return document.execCommand('copy');
+    } catch {
+      return false;
+    } finally {
+      field.remove();
+    }
+  }
+
+  function setup(root: HTMLElement) {
+    const runButton = root.querySelector<HTMLButtonElement>('[data-network-run]');
+    const copyButton = root.querySelector<HTMLButtonElement>('[data-network-copy]');
+    const status = root.querySelector<HTMLElement>('[data-network-status]');
+    const textField = root.querySelector<HTMLTextAreaElement>('[data-network-text]');
+    if (!runButton || !copyButton || !status || !textField) {
+      return;
+    }
+
+    const run = async () => {
+      runButton.disabled = true;
+      copyButton.disabled = true;
+      root.dataset.state = 'running';
+      status.textContent = '접속해 보는 중이에요…';
+      const lines: { id: string; label: string; status: NetworkStatus; text: string }[] = [];
+
+      for (const item of NETWORK_CHECK_ITEMS) {
+        const row = root.querySelector<HTMLElement>(`[data-network-item="${item.id}"]`);
+        const result = row?.querySelector<HTMLElement>('[data-network-result]');
+        const icon = row?.querySelector<HTMLElement>('[data-network-icon]');
+        const detail = row?.querySelector<HTMLElement>('[data-network-detail]');
+        const advice = row?.querySelector<HTMLElement>('[data-network-advice]');
+        if (row) {
+          row.dataset.status = 'running';
+        }
+        if (result) {
+          result.textContent = '시험하는 중…';
+        }
+        if (item.skip) {
+          // 아직 만들지 않은 항목(Phase 4 통신 실습실)은 접속하지 않고 자리만 보여 준다.
+          if (row) {
+            row.dataset.status = 'unknown';
+          }
+          if (icon) {
+            icon.textContent = ICONS.unknown;
+          }
+          if (result) {
+            result.textContent = LABELS.unknown;
+          }
+          if (detail) {
+            detail.textContent = item.skip;
+          }
+          lines.push({ id: item.id, label: item.label, status: 'unknown', text: item.skip });
+          continue;
+        }
+        const outcome = await probeUrl(networkItemUrl(item, location.origin), {
+          method: item.method ?? 'GET',
+          stallMs: NETWORK_CHECK_TIMEOUT_MS,
+        });
+        const state = statusOf(outcome.status);
+        const text = describeProbe(outcome);
+        if (row) {
+          row.dataset.status = state;
+        }
+        if (icon) {
+          icon.textContent = ICONS[state];
+        }
+        if (result) {
+          result.textContent = LABELS[state];
+        }
+        if (detail) {
+          detail.textContent = text;
+        }
+        if (advice) {
+          advice.textContent = state === 'ok' ? '' : item.advice;
+          advice.hidden = state === 'ok';
+        }
+        lines.push({ id: item.id, label: item.label, status: state, text });
+      }
+
+      root.dataset.state = 'done';
+      const blocked = lines.filter((line) => line.status === 'blocked').length;
+      status.textContent = blocked === 0 ? '모두 연결됐어요.' : `${blocked}개가 막혀 있어요. 아래 대처를 읽어 주세요.`;
+      textField.value = formatNetworkReport(lines, { origin: location.origin, when: new Date() });
+      runButton.disabled = false;
+      copyButton.disabled = false;
+    };
+
+    runButton.addEventListener('click', () => void run());
+    copyButton.addEventListener('click', async () => {
+      const copied = await copyText(textField.value);
+      status.textContent = copied ? '결과를 복사했어요. 메신저나 메일에 붙여 넣어 주세요.' : '복사하지 못했어요. 아래 "복사될 내용 보기"에서 직접 골라 복사해 주세요.';
+    });
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-network-check]')) {
+    setup(root);
+  }
+</script>
+
+<style>
+  .network-check {
+    display: grid;
+    gap: var(--space-4);
+    margin-block: var(--space-4);
+  }
+
+  .network-check__intro {
+    margin: 0;
+    line-height: var(--leading-body);
+  }
+
+  /* 결과 뱃지(글자·기호를 함께 써서 색만으로 알리지 않는다 — CheckReport.astro와 같은 모양) */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0.125rem var(--space-2);
+    border: 1px solid var(--color-info-border);
+    border-radius: var(--radius-full);
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+  }
+
+  .status-badge__icon {
+    font-weight: var(--weight-bold);
+  }
+
+  [data-status='ok'] .status-badge {
+    border-color: var(--color-success-border);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+
+  [data-status='blocked'] .status-badge {
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+  }
+
+  [data-status='unknown'] .status-badge {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+  }
+
+  .network-check__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .network-check__status {
+    margin: 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .network-check__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .network-check__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .network-check__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .network-check__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .network-check__why,
+  .network-check__where,
+  .network-check__detail,
+  .network-check__advice {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .network-check__where,
+  .network-check__detail {
+    color: var(--color-text-muted);
+  }
+
+  .network-check__where code {
+    font-family: var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+
+  .network-check__detail:empty {
+    display: none;
+  }
+
+  .network-check__advice {
+    font-weight: var(--weight-semibold);
+  }
+
+  .network-check__item[data-status='blocked'] {
+    border-color: var(--color-danger-border);
+  }
+
+  .network-check__textarea {
+    width: 100%;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+</style>
