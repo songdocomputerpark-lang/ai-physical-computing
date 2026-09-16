@@ -117,9 +117,11 @@ git push
 
 ## 2. 예제 코드 옮기기와 실습실 예제 더하기
 
-- 교과서·수업 자료의 예제는 원본 압축 파일에서 줄 끝만 바꿔 그대로 옮기고, 원본과 줄 수·문법을 대조해요(`docs/PLAN.md` PD-33).
-- 옮기는 스크립트는 예제를 처음 넣는 단계(Phase 2~4)에서 만들어요(아직 없음). 코드 추출 사본은 줄 끝이 망가져 있어 쓰지 않아요.
-- 고친 줄에는 끝에 `# [사이트판] 고친 이유` 주석을 붙여 줄 번호가 밀리지 않게 해요(PD-10).
+- 교과서·수업 자료의 예제는 원본 압축 파일에서 줄 끝만 바꿔 그대로 옮기고, 원본과 줄 수·문법을 대조해요(`docs/PLAN.md` PD-33). 코드 추출 사본은 줄 끝이 망가져 있어 쓰지 않아요.
+- **옮기는 도구:** `scripts/examples-manifest.yaml`의 `examples:`에 항목(코드 id, zip 이름, zip 안 경로, 대상 경로 `examples/…py`, 저작자 `operator`/`third_party`, 사이드카 씨앗 `meta`)을 적고 `npm run examples:import`(운영자 PC — 원본 폴더가 저장소 뿌리에 있음. 다른 컴퓨터는 `npm run examples:import -- --materials <원본 폴더>`)를 실행해요. 줄 끝을 LF로 바꿔 쓰고, 파이썬 3의 `ast.parse`로 문법을 확인하고, 줄 수·SHA-256을 목록에 기록해요. 원본 결함으로 문법 오류가 나는 파일(f074)은 `expect_syntax_error: true`. `npm run examples:verify`(원본 없이 기록과 대조)는 `npm test`에 들어 있어 기록과 다르게 고친 파일을 잡아요. 자세한 규칙은 `src/lab/README.md` 6절.
+- **옮긴 예제의 제목·설명:** 코드 파일에는 머리말을 넣지 않고(줄 번호 보존) 옆의 **사이드카** `<이름>.meta.yaml`에 적어요(`title`·`description`·`lesson`·`page`·`tags`·`packages`). 처음 한 번은 도구가 만들고 그 뒤로는 손으로 고쳐요(도구가 덮어쓰지 않아요). 다른 저작자의 파일은 `third-party/` 폴더 아래에만 두고 `sources.yaml`에 항목을 따로 만들어요.
+- 옮긴 코드 파일은 고치지 않아요. 사이트판이 필요하면 파일을 따로 두고(`…-site.py`, PD-10), 한 줄 안에서 고칠 때는 끝에 `# [사이트판] 고친 이유` 주석을 붙여 줄 번호가 밀리지 않게 해요.
+- **흉내 모듈(import mediapipe·pyautogui 같은 것) 더하기:** `src/lab/modules/<id>/` 폴더 하나(`manifest.ts`·`index.ts`·`apc_<이름>.py`·`panel.astro`)를 두면 등록 파일을 고치지 않아도 실습실이 찾아요. 규약·훅·테스트 방법·금지 사항은 `src/lab/README.md` 4절, 예시는 `src/lab/modules/hello/`.
 - **영상처리 실습실 예제 더하기:** `examples/vision/` 아래에 `.py` 파일 하나를 두면 실습실의 [예제 불러오기] 목록에 저절로 들어가요(코드 수정 없음).
   - 첫 줄 주석(`# 첫 실습: …`)이 목록에 보이는 제목, 둘째 줄 주석이 한 줄 설명이에요. `# @slider`·`# @lesson` 같은 규약 주석은 설명으로 쓰지 않아요. 사이트가 만든 예제의 머리말 규약 전체(`# @lesson 차시`, `# @tags 낱말`, 코드 끝의 "바꿔볼 것 3가지"·"왜 이런 결과가 나올까" 상자)는 `src/lab/README.md` 2절에 있어요. 원본 자료에서 옮긴 예제에는 머리말을 넣지 않아요(줄 번호를 지키려고).
   - 파일 이름(영문 소문자·숫자·하이픈)이 예제 id가 되고, 하위 폴더가 있으면 `폴더-파일` 순으로 이어요(`u1/v4-blur-edge.py` → `u1-v4-blur-edge`).
@@ -151,7 +153,7 @@ git push
 - 분류(`category`)가 `operator`(운영자 자료)·`self`(사이트 자체 제작)면 사이트 라이선스를 따르고, 나머지(`library`·`third_party`·`stack`·`reference`)는 사이트 라이선스에서 빠지고 원래 조건을 따라요.
 - 빌드하면 출처와 라이선스 페이지(`/credits/`)가 자동으로 바뀌어요.
 - npm 패키지를 새로 넣을 때는 ① `npm install 이름@정확한버전`으로 설치하고 ② `sources.yaml`에 항목을 만들고(라이선스는 `node_modules/이름/LICENSE`로 확인) ③ 라이선스가 고지를 요구하면(MIT 등) 고지 원문을 `public/licenses/이름.txt`로 옮겨 `notice`에 적어요. `npm run build`가 끝나면 번들에 함께 들어간 다른 패키지 이름을 알려 주니, 그 패키지도 항목에 더해요(전이 의존성).
-- 고지 원문에 저작자 이메일이 있으면 저장소 검사(커밋 전 훅)가 막아요. 그 파일만 `scripts/repo-allowlist.yaml`의 `privacy_exceptions`에 경로·`kinds: [email]`·이유를 적어요(`public/licenses/` 아래 파일만 허용돼요).
+- 고지 원문에 저작자 이메일이 있으면 저장소 검사(커밋 전 훅)가 막아요. 그 파일만 `scripts/repo-allowlist.yaml`의 `privacy_exceptions`에 경로·`kinds: [email]`·이유를 적어요(`public/licenses/` 아래 파일과 `package-lock.json`만 허용돼요 — 잠금 파일은 npm이 다른 패키지의 deprecated 안내문을 그대로 기록하는데 거기에 그 패키지 저작자의 공개 주소가 들어올 수 있어요. 운영자·학생 정보는 어떤 경우에도 예외로 두지 않아요).
 
 ## 5. 배포 확인
 
