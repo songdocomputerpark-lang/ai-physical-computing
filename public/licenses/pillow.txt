@@ -1,0 +1,38 @@
+Pillow 12.2.0(Pyodide 패키지 pillow) — 라이선스 고지(https://github.com/python-pillow/Pillow, https://pypi.org/project/pillow/12.2.0/)
+이 사이트의 가상 데스크톱 실습에서 pyautogui.screenshot()이 돌려주는 그림(PIL.Image)에 쓰는 Pillow는 Pyodide 314.0.7이 배포하는 휠(pillow-12.2.0, jsDelivr)을 그대로 받아요.
+사이트는 휠을 고치지 않고, 흉내 모듈(src/lab/modules/desktop/pyautogui.py)이 화면에서 받은 RGBA 바이트를 PIL.Image.frombytes로 감싸 학생 코드에 넘겨요.
+Pillow의 라이선스는 MIT-CMU(HPND 계열)예요. 아래는 배포 휠 pillow-12.2.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl 안의
+pillow-12.2.0.dist-info/licenses/LICENSE 원문이에요. 휠 안에 함께 묶인 구성요소(libjpeg·libpng·zlib·FreeType 등)의 고지는
+같은 사이트 예비본으로 재배포할 때(PLAN PD-19, P2-05·P6-04) 더해요. (2026-09-16)
+
+
+The Python Imaging Library (PIL) is
+
+    Copyright © 1997-2011 by Secret Labs AB
+    Copyright © 1995-2011 by Fredrik Lundh and contributors
+
+Pillow is the friendly PIL fork. It is
+
+    Copyright © 2010 by Jeffrey 'Alex' Clark and contributors
+
+Like PIL, Pillow is licensed under the open source MIT-CMU License:
+
+By obtaining, using, and/or copying this software and/or its associated
+documentation, you agree that you have read, understood, and will comply
+with the following terms and conditions:
+
+Permission to use, copy, modify and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appears in all copies, and that
+both that copyright notice and this permission notice appear in supporting
+documentation, and that the name of Secret Labs AB or the author not be
+used in advertising or publicity pertaining to distribution of the software
+without specific, written prior permission.
+
+SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.

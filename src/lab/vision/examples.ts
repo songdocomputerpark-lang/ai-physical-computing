@@ -38,6 +38,7 @@ export const VISION_PACKAGES: readonly string[] = Object.freeze(['opencv-python'
  */
 export const EXAMPLE_GROUPS: readonly { readonly key: string; readonly label: string }[] = Object.freeze([
   { key: 'vision', label: '첫 실습·사이트 예제' },
+  { key: 'vision/supplement', label: '보충 계단 V1~V5(사진은 숫자다 → 윤곽선)' },
   { key: 'vision/u1', label: '1단원 교과서 실습' },
   { key: 'vision/opmp', label: 'OpenCV·MediaPipe 계단(교안)' },
   { key: 'desktop', label: '가상 데스크톱(pyautogui)' },

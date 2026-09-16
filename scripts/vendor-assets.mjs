@@ -3,6 +3,8 @@
 // - MediaPipe Tasks Vision 0.10.35의 WebAssembly 파일(node_modules/@mediapipe/tasks-vision/wasm/*)을 public/vendor/mediapipe/0.10.35/wasm/에 둔다.
 //   FilesetResolver.forVisionTasks(withBase('vendor/mediapipe/0.10.35/wasm'))로 불러오면 학생 브라우저가 CDN 대신 이 사이트에서 받는다(PD-02).
 //   버전은 package.json의 설치 버전에서 읽어 폴더 이름에 넣는다(캐시 우선 규칙, PLAN §5.3).
+// - Pretendard 정적 글꼴 한 개(node_modules/pretendard/dist/public/static/Pretendard-Regular.otf)를 public/vendor/pretendard/에 둔다.
+//   Pyodide의 Pillow(FreeType)가 woff2를 열지 못해서, 실습실이 PIL로 한글을 그릴 때 쓸 .otf 한 개가 필요하다(P2-10, f043).
 // - public/vendor/는 저장소에 넣지 않는다(.gitignore). npm run dev·npm run build 앞(predev·prebuild)에서 자동으로 돈다. 이미 같은 크기·수정 시각이면 건너뛴다.
 // - 출처 등록: sources.yaml의 "MediaPipe Tasks Vision" 항목이 public/vendor/mediapipe/**를 덮는다. 같은 사이트 Pyodide 예비본(P2-05)도
 //   public/vendor/pyodide/<버전>/에 두면 되고(Pyodide 항목이 덮음), 그 내려받기 단계는 이 파일에 더한다.
@@ -24,6 +26,10 @@ function assetJobs() {
     throw new Error('@mediapipe/tasks-vision 패키지가 없어요. npm ci(또는 npm install)를 먼저 실행해요.');
   }
   const version = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')).version;
+  const pretendardDir = path.join(rootDir, 'node_modules', 'pretendard');
+  if (!fs.existsSync(path.join(pretendardDir, 'package.json'))) {
+    throw new Error('pretendard 패키지가 없어요. npm ci(또는 npm install)를 먼저 실행해요.');
+  }
   return [
     {
       name: `MediaPipe Tasks Vision ${version} WebAssembly`,
@@ -31,6 +37,14 @@ function assetJobs() {
       to: path.join(rootDir, 'public', 'vendor', 'mediapipe', version, 'wasm'),
       // 시각 파일만(SIMD·비SIMD 둘 다 — 브라우저가 고른다). 오디오·텍스트 태스크는 이 패키지에 없다.
       files: ['vision_wasm_internal.js', 'vision_wasm_internal.wasm', 'vision_wasm_nosimd_internal.js', 'vision_wasm_nosimd_internal.wasm'],
+    },
+    {
+      // 파이썬 쪽 PIL이 한글을 그릴 때 쓰는 정적 글꼴 한 개(공식 배포 파일 그대로, 고치지 않음 — OFL-1.1).
+      // 찾는 주소는 src/lab/modules/runtime-extras/assets.ts의 SITE_FONT_CANDIDATES.
+      name: 'Pretendard 정적 글꼴(PIL 글꼴 경로 연결용)',
+      from: path.join(pretendardDir, 'dist', 'public', 'static'),
+      to: path.join(rootDir, 'public', 'vendor', 'pretendard'),
+      files: ['Pretendard-Regular.otf'],
     },
   ];
 }

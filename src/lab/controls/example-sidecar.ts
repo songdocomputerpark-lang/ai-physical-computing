@@ -16,6 +16,8 @@
  *   source_id    이관 기록 id(scripts/examples-manifest.yaml, 예: f026)
  *   tags         갤러리·검색용 낱말 목록
  *   packages     실행 전에 미리 받을 Pyodide 패키지 이름(pyodide-lock.json 기준). 적지 않으면 실습실 기본값
+ *   smoke        예제 스모크 테스트(tests/e2e/examples-smoke.spec.ts)가 기대하는 결과. 이 파서는 읽지 않고 그 테스트만 본다.
+ *                input(sample|replay|webcam)·outcome(ok|stopped|error)·error(오류 이름)·seconds(지켜보는 시간)·skip(건너뛰는 이유)
  */
 import YAML from 'yaml';
 

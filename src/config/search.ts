@@ -39,5 +39,5 @@ export const searchConfig = {
    * 검색 화면은 이 페이지의 결과를 Pagefind의 sub_results(id가 있는 제목 단위 결과)로 바꿔 "픽셀 — 용어사전"처럼 제목을 붙이고
    * /glossary/#pixel처럼 항목 위치로 이어 준다(2026-09-16 검토 반영: 전에는 결과가 용어사전 맨 위로만 갔다).
    */
-  anchorPages: ['/glossary/'],
+  anchorPages: ['/glossary/', '/help/errors/'],
 } as const;

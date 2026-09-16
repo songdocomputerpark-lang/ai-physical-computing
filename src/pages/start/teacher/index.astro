@@ -19,6 +19,8 @@ const student = getPage('start-student');
 const board = getPage('start-board');
 const teacherRoom = getPage('teacher');
 const learn = getPage('learn');
+const settings = getPage('settings');
+const visionLab = getPage('labs-vision');
 
 const toc = [
   { id: 'class-flow', title: '수업 운영' },
@@ -162,6 +164,11 @@ const networkChecklist: readonly NetworkItem[] = [
       <li>교실 컴퓨터 한 대에서 <a href={check.href}>{check.title}</a> 페이지를 열고 결과를 확인해요.</li>
       <li>학생들이 <a href={student.href}>{student.title}</a>의 순서대로 카메라 허락을 한 번 연습하게 해요.</li>
       <li>보드 수업이라면 <a href={board.href}>{board.title}</a>의 안내대로 케이블과 드라이버를 미리 확인해요.</li>
+      <li>
+        <strong>교실 컴퓨터마다 한 번:</strong> <a href={visionLab.href}>{visionLab.title}</a>을 열고 준비 패널의{' '}
+        <strong>[이 컴퓨터에 실습 파일 미리 받기]</strong>를 눌러요. 약 26MB를 받아 두면 수업 중에는 인터넷이 느리거나 끊겨도
+        실습실이 바로 열려요.
+      </li>
     </ol>
 
     <h3>차시 페이지의 흐름</h3>
@@ -281,7 +288,10 @@ const networkChecklist: readonly NetworkItem[] = [
       <li>글꼴: 사이트에 함께 올린 파일을 받아요. 다른 글꼴 서비스에 접속하지 않아요.</li>
     </ul>
     <Callout type="주의" title="서버 음성 인식은 켜기 전에 확인해요">
-      <p>선택 차시의 서버 음성 인식은 기본으로 꺼져 있게 만들어요. 14세 미만 학생이 듣는 수업에서는 켜지 말아 주세요.</p>
+      <p>
+        선택 차시의 서버 음성 인식은 기본으로 꺼져 있어요. 14세 미만 학생이 듣는 수업에서는 켜지 말아 주세요. 켜고 끄는 곳은{' '}
+        <a href={settings.href}>{settings.title}</a>이고, 켠 값은 그 컴퓨터의 브라우저에만 저장돼요.
+      </p>
     </Callout>
     <p>
       학교에서 학습지원 소프트웨어로 쓰려면 학교의 선정 절차가 필요할 수 있어요. <a href={moeGuideUrl}

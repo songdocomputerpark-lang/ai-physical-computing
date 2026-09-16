@@ -296,7 +296,14 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     font-weight: var(--weight-semibold);
   }
 
-  .lab__select {
+  /*
+   * 실습실 부품 클래스(lab-button·lab__select)는 :global()로 적는다.
+   * Astro 범위 스타일은 이 파일의 요소에만 붙는 표시(data-astro-cid-…)로 좁혀지는데,
+   * 슬롯(VisionIo)과 흉내 모듈 패널(src/lab/modules/<id>/panel.astro)은 다른 파일이라 그 표시가 없어
+   * 같은 클래스를 써도 모양을 못 받았다(2026-09-16 실측: 모듈 패널 버튼 28.5px vs 실습실 버튼 36px).
+   * 이 규칙은 LabShell이 있는 페이지에만 실리므로 사이트 다른 곳에는 영향이 없다.
+   */
+  :global(.lab__select) {
     flex: 1 1 8rem;
     min-width: 0;
     min-height: var(--target-min);
@@ -307,7 +314,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     background: var(--color-bg);
   }
 
-  .lab-button {
+  :global(.lab-button) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -323,21 +330,21 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     cursor: pointer;
   }
 
-  .lab-button:hover {
+  :global(.lab-button:hover) {
     border-color: var(--color-accent);
     background: var(--color-accent-soft);
     color: var(--color-accent-hover);
   }
 
-  .lab-button--small {
+  :global(.lab-button--small) {
     min-height: 2.25rem;
     padding: var(--space-1) var(--space-3);
     font-size: var(--text-sm);
   }
 
   .button:disabled,
-  .lab-button:disabled,
-  .lab__select:disabled {
+  :global(.lab-button:disabled),
+  :global(.lab__select:disabled) {
     opacity: 0.55;
     cursor: not-allowed;
   }

@@ -58,6 +58,7 @@ __all__ = [
     "maybe_yield",
     "notice",
     "poll",
+    "register_finish_hook",
     "register_reset_hook",
     "register_tick_hook",
     "request",
@@ -86,7 +87,10 @@ _real_input = builtins.input
 _pending_sleep_ms = 0.0
 _reset_hooks = []
 _tick_hooks = []
+_finish_hooks = []
 _in_tick_hooks = False
+# 학생 코드를 돌리는 동안만 True(bind_run_globals ~ unbind_run_globals). 마무리 훅을 실행이 끝날 때만 부르려고 쓴다.
+_run_bound = False
 # 실행 중인 학생 코드의 전역 사전(globals()). 워커가 bind_run_globals로 넣고 실행이 끝나면 unbind_run_globals로 비운다.
 _run_globals = None
 
@@ -268,17 +272,35 @@ def _run_tick_hooks() -> None:
 # ── 조절 패널 값(P2-04) ──
 
 
+def register_finish_hook(hook) -> None:
+    """실행이 끝날 때(워커가 unbind_run_globals를 부를 때) 한 번 부를 함수를 등록한다(같은 함수는 한 번만).
+    흉내 모듈이 마지막 상태를 화면에 올릴 때 쓴다(예: 마지막 줄에서 저장하고 끝나는 코드의 파일).
+    동기 진입점이라 양보하는 함수(sleep·request·input·block_on·get·poll)를 쓰지 않는다 — PROGRESS 미해결 25번.
+    오류는 콘솔 알림으로 바꾸고 나머지 훅은 계속 돈다."""
+    if hook not in _finish_hooks:
+        _finish_hooks.append(hook)
+
+
 def bind_run_globals(namespace) -> None:
     """워커가 학생 코드를 돌리기 직전에 부른다(runPython('…bind_run_globals(globals())', {globals}) — 동기 진입점).
     조절 값을 넣을 전역 사전을 기억하고, 실행 전에 쌓인 값은 버린다(코드에 적힌 값이 시작값)."""
-    global _run_globals
+    global _run_globals, _run_bound
     _run_globals = namespace if isinstance(namespace, dict) else None
+    _run_bound = True
     drain(PARAMS_CHANNEL)
 
 
 def unbind_run_globals() -> None:
-    """실행이 끝나면 워커가 부른다. 그 뒤에 온 값은 다음 실행에서 버려진다."""
-    global _run_globals
+    """실행이 끝나면 워커가 부른다. 그 뒤에 온 값은 다음 실행에서 버려진다.
+    실행 중이었을 때만 마무리 훅(register_finish_hook)을 부른다 — reset_for_run이 부를 때는 돌지 않는다."""
+    global _run_globals, _run_bound
+    if _run_bound:
+        _run_bound = False
+        for hook in list(_finish_hooks):
+            try:
+                hook()
+            except Exception as error:  # noqa: BLE001 — 마무리 훅의 오류로 실행 결과를 바꾸지 않는다
+                notice(f"실행 마무리 훅 오류: {type(error).__name__}: {error}", "warn")
     _run_globals = None
 
 

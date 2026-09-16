@@ -88,8 +88,16 @@ const hasNotice = Astro.slots.has('notice');
     <meta property="og:locale" content="ko_KR" />
     <meta name="twitter:card" content="summary" />
     <!-- 자바스크립트가 되면 html에 js 클래스를 붙인다. 좁은 화면 메뉴를 처음부터 접어 두어 화면이 흔들리지 않게 한다. -->
+    <!-- 주소에 ?embed=1이 있으면 차시 페이지 안(iframe)에 넣은 것이다 — 머리글·바닥글·소개 글을 숨긴다(P2-14, global.css의 html[data-embed]). -->
     <script is:inline>
       document.documentElement.classList.add('js');
+      try {
+        if (new URLSearchParams(location.search).get('embed') === '1') {
+          document.documentElement.dataset.embed = '1';
+        }
+      } catch {
+        // 주소를 못 읽어도 페이지는 그대로 보인다.
+      }
     </script>
     <slot name="head" />
   </head>
@@ -114,5 +122,11 @@ const hasNotice = Astro.slots.has('notice');
       </div>
     </div>
     <SiteFooter />
+    {/* 오프라인 준비(PD-11, P2-05). 실패해도 사이트는 그대로 돈다. 주소에 ?sw=off를 붙이면 등록을 풀고 이 사이트 캐시를 지운다. */}
+    <script>
+      import { registerServiceWorker } from '../lab/loader/sw-client.ts';
+
+      void registerServiceWorker();
+    </script>
   </body>
 </html>

@@ -153,6 +153,9 @@ sources:
   # 모두 npm 패키지 pretendard@1.3.9 안의 같은 파일과 크기·SHA-256이 같아요(2026-09-16 확인. npm 패키지는 대조에만 썼고 의존성이 아니라 npm 목록에 적지 않아요).
   # 다이내믹 서브셋을 고른 이유와 페이지별 내려받는 크기는 PROGRESS.md 야간 작업 로그에 적었어요.
   # 다른 글꼴을 넣게 되면 그 글꼴 폴더와 항목을 따로 만들어요.
+  # 정적 글꼴 한 개(P2-10·P2-14): Pyodide의 Pillow(FreeType)가 woff2를 열지 못해서(2026-09-16 Node 실제 Pyodide로 확인: 92조각 모두 unknown file format),
+  # 실습실이 PIL로 한글을 그릴 때 쓸 Pretendard-Regular.otf(1,574,352바이트)를 빌드 때 npm 패키지 pretendard@1.3.9(devDependency)에서
+  # public/vendor/pretendard/로 복사해요(scripts/vendor-assets.mjs, 저장소에는 넣지 않음 — .gitignore). 파일은 고치지 않아요.
   # 저작자: 라이선스 파일(v1.3.9 LICENSE)의 저작권 표기는 길형진 한 사람이고,
   # 바탕 글꼴은 Pretendard README(v1.3.9)가 밝힌 Inter·본고딕(Source Han Sans)·M PLUS 1p예요(2026-09-16 확인).
   # 글꼴을 받는 동안 쓰는 대체 글꼴 규칙(src/styles/fonts.css의 'Pretendard Fallback')은 사이트 코드이고 글꼴 파일을 고치지 않아요.
@@ -161,9 +164,10 @@ sources:
     author: "길형진(Kil Hyung-jin). 바탕 글꼴(Pretendard README 표기): Inter, 본고딕(Source Han Sans), M PLUS 1p"
     license: OFL-1.1
     url: https://github.com/orioncactus/pretendard
-    used_in: "사이트 한글 글꼴(가변 글꼴 다이내믹 서브셋, public/fonts/pretendard/). 페이지에 쓰인 글자가 든 조각만 내려받아요."
+    used_in: "사이트 한글 글꼴(가변 글꼴 다이내믹 서브셋, public/fonts/pretendard/). 페이지에 쓰인 글자가 든 조각만 내려받아요. 실습실의 파이썬(PIL)이 영상 위에 한글을 그릴 때는 같은 글꼴의 정적 파일(public/vendor/pretendard/Pretendard-Regular.otf)을 써요."
     paths:
       - public/fonts/pretendard/**
+      - public/vendor/pretendard/**
     notice: public/fonts/pretendard/LICENSE.txt
     fetched: 2026-09-16
 
@@ -214,7 +218,9 @@ sources:
   # OpenCV(P2-03 영상처리 실습실). 라이선스는 OpenCV 저장소 태그 4.11.0의 LICENSE(Apache-2.0)로 확인했고 원문을 notice 파일에 옮겼어요.
   # Pyodide의 opencv-python 휠에는 창 백엔드(GTK·Qt·Win32)가 없어 cv2.imshow·waitKey·VideoCapture(0)이 동작하지 않으므로
   # 사이트 흉내 모듈(src/lab/python/apc_cv2.py)이 파이썬 쪽에서 그 이름만 덮어써요(2026-09-16 Node.js의 실제 Pyodide로 확인).
-  # 휠 안의 FFmpeg 4.4.1(LGPL-2.1+) 고지는 같은 사이트 예비본으로 재배포할 때(PD-19, P2-05·P6-04) 더해요(PROGRESS 미해결 5번).
+  # 휠 안의 FFmpeg 4.4.1(LGPL-2.1+) 고지는 같은 사이트 예비본으로 재배포할 때 더해요(PD-19, PROGRESS 미해결 5번).
+  # → P2-05에서 더했어요: 사이트가 예비본(public/vendor/pyodide/)으로 휠을 그대로 재배포하므로, 휠 안의 LICENSE-3RD-PARTY.txt 원문을
+  #   public/licenses/opencv-3rd-party.txt로 함께 배포해요(FFmpeg 4.4.1 LGPL-2.1+ 전문 포함). 휠은 한 바이트도 고치지 않아요.
   - name: OpenCV 4.11.0(Pyodide 패키지 opencv-python 4.11.0.86)
     category: stack
     author: OpenCV team(opencv.org)과 기여자
@@ -223,7 +229,22 @@ sources:
     used_in: "영상 처리 라이브러리(cv2). 영상처리 실습실(/labs/vision/)이 준비될 때 워커가 Pyodide 배포 휠(opencv_python-4.11.0.86, numpy 포함)을 jsDelivr에서 받아요. 카메라·창 함수만 사이트 흉내 모듈이 덮어쓰고 휠은 그대로 써요."
     paths:
       - public/licenses/opencv.txt
+      - public/licenses/opencv-3rd-party.txt
     notice: public/licenses/opencv.txt
+    fetched: 2026-09-16
+
+  # Pillow(P2-11 가상 데스크톱의 pyautogui.screenshot()). 버전·라이선스는 Pyodide 314.0.7이 배포하는 휠
+  # pillow-12.2.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl 안의 pillow-12.2.0.dist-info/licenses/LICENSE로 확인했어요.
+  # 휠 안에 함께 묶인 구성요소(libjpeg·libpng·zlib·FreeType 등) 고지는 같은 사이트 예비본 재배포 때(PD-19, P6-04) 더해요.
+  - name: Pillow 12.2.0(Pyodide 패키지 pillow)
+    category: stack
+    author: Jeffrey A. Clark and contributors, Secret Labs AB, Fredrik Lundh
+    license: MIT-CMU
+    url: https://github.com/python-pillow/Pillow/blob/12.2.0/LICENSE
+    used_in: "그림 다루기(PIL). 가상 데스크톱 실습의 pyautogui.screenshot()이 화면에서 받은 RGBA를 PIL.Image로 만들어 학생 코드에 돌려주고(examples/desktop/09·10), 1단원 f043이 영상 위에 한글을 쓸 때도 써요. 예제 사이드카의 packages: [pillow]로 실행 전에 jsDelivr에서 받아요. 휠은 고치지 않고 그대로 써요."
+    paths:
+      - public/licenses/pillow.txt
+    notice: public/licenses/pillow.txt
     fetched: 2026-09-16
 
   # ── 코드 에디터·공유 링크(PLAN §3.1, §8.2 P2-02) ──
@@ -330,7 +351,15 @@ sources:
     fetched: 2026-09-16
 
   # 모델 파일은 저장소에 커밋해요(PD-13, 파일마다 10MB 이하 — 5MB를 넘는 파일은 scripts/repo-allowlist.yaml의 large_files에 경로·이유·max_mb를 적어요).
-  # 파일 이름과 받은 판(버전)·크기·날짜는 파일을 실제로 내려받는 묶음(P2-08 손, P2-09 얼굴·자세)에서 이 주석에 덧붙여요. 지금은 public/models/가 비어 있어요.
+  # 파일 이름과 받은 판(버전)·크기·날짜는 파일을 실제로 내려받은 사람이 이 주석에 덧붙여요. **2026-09-16 현재 public/models/는 비어 있어요**
+  #   — 파일 내려받기는 운영자 몫이라(결정 위임의 예외) P2-08·P2-09는 코드만 넣고 파일은 두지 않았어요. 없으면 실습실이 '모델 없음'을 한국어로 알리고
+  #   합성 재생 입력으로 실습을 이어요(사이트는 깨지지 않아요). 받을 파일(모두 버전 경로 float16/1, 주소 앞은 https://storage.googleapis.com/mediapipe-models/):
+  #     hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task            7,819,105B  MD5 15318430ea3851670fe9914116a9cfad
+  #     face_landmarker/face_landmarker/float16/1/face_landmarker.task            3,758,596B  MD5 b0e7274907a1644404fef66b28dd6d85
+  #     pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task  9,398,198B  MD5 83879689d373d143be094c972355e48e
+  #     pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task  5,777,746B  MD5 04a75ddf7c811ac7a1a4523266dd7d88
+  #     face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite  229,746B  MD5 a3dd6ec31725290770b97cec0cbf94c9
+  #   5MB가 넘는 네 개는 scripts/repo-allowlist.yaml의 large_files에 미리 적어 두었어요(파일만 두면 커밋돼요).
   # 모델 카드(Apache-2.0): https://developers.google.com/mediapipe/solutions/vision/hand_landmarker , …/face_landmarker , …/face_detector , …/pose_landmarker
   - name: MediaPipe 모델(손·얼굴·자세 랜드마커, 얼굴 검출)
     category: stack

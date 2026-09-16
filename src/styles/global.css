@@ -181,6 +181,23 @@ textarea {
   outline: none;
 }
 
+/*
+ * 차시 페이지 안에 넣은 실습실(iframe, 주소에 ?embed=1 — P2-14).
+ * 머리글·바닥글·건너뛰기 링크·현재 위치는 바깥 페이지에 이미 있으므로 숨기고, 위아래 여백만 줄인다.
+ * 페이지 안의 소개 글은 각 페이지가 data-embed-hide로 표시한다(실습실 틀은 그대로 보인다).
+ */
+:root[data-embed] .site-header,
+:root[data-embed] .site-footer,
+:root[data-embed] .skip-link,
+:root[data-embed] .breadcrumb,
+:root[data-embed] [data-embed-hide] {
+  display: none;
+}
+
+:root[data-embed] .page {
+  padding-block: var(--space-2) var(--space-4);
+}
+
 .page-notice__inner {
   width: min(100% - 2 * var(--gutter), var(--width-page));
   margin-inline: auto;
@@ -337,6 +354,18 @@ textarea {
 
 .prose img {
   border-radius: var(--radius-md);
+}
+
+/* 차시 본문 그림(figure) — 그림 아래 설명은 본문과 구분되게 작고 흐린 글씨로 */
+.prose figure > img {
+  display: block;
+}
+
+.prose figcaption {
+  margin-block-start: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--color-text-muted);
 }
 
 .prose hr {

@@ -16,12 +16,16 @@ export const PYODIDE_CDN_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODID
 
 /**
  * 같은 사이트 예비본 경로(PD-02·PD-13). 빌드 때 필요한 파일만 받아 배포물에 넣고 저장소에는 커밋하지 않는다.
- * 예비본 파일과 내려받기 스크립트는 P2-05에서 만든다. 그때까지는 후보 목록(pyodideIndexUrls)에 넣지 않는다.
+ * 예비본은 `scripts/fetch-pyodide-fallback.mjs`(prebuild)가 `public/vendor/pyodide/<버전>/`에 넣는다(P2-05).
  */
 export const PYODIDE_SITE_INDEX_PATH = withBase(`vendor/pyodide/${PYODIDE_VERSION}/`);
 
-/** 같은 사이트 예비본이 배포물에 있는지. P2-05에서 true로 바꾼다. */
-export const PYODIDE_SITE_FALLBACK_READY = false;
+/**
+ * 같은 사이트 예비본이 배포물에 있는지(P2-05에서 켬).
+ * 켜지면 첫 방문에 서비스 워커가 아직 페이지를 맡기 전이라도 워커가 CDN → 같은 사이트 순서로 시도한다.
+ * 그 뒤부터는 서비스 워커가 파일 하나 단위로 바꿔 준다(두 겹).
+ */
+export const PYODIDE_SITE_FALLBACK_READY = true;
 
 /**
  * 워커가 차례로 시도할 Pyodide 위치. 앞의 것이 실패하면 다음 것을 쓴다(P2-05에서 "받은 양이 15초 동안 늘지 않으면"도 더한다).

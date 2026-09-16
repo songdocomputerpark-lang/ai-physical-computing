@@ -32,7 +32,7 @@ export interface CreditsView {
   entryCount: number;
 }
 
-/** 라이선스 이름 → 전문 주소. 주소가 열리는지 확인한 것만 적는다(2026-09-15, MPL-2.0·PSF-2.0은 2026-09-16). */
+/** 라이선스 이름 → 전문 주소. 주소가 열리는지 확인한 것만 적는다(2026-09-15, MPL-2.0·PSF-2.0은 2026-09-16, MIT-CMU·LGPL-2.1-or-later는 2026-09-16 P2-14). */
 const LICENSE_URLS: Readonly<Partial<Record<string, string>>> = {
   MIT: siteConfig.license.software.url,
   'CC BY-NC-SA 4.0': siteConfig.license.content.url,
@@ -41,6 +41,8 @@ const LICENSE_URLS: Readonly<Partial<Record<string, string>>> = {
   ISC: 'https://spdx.org/licenses/ISC.html',
   'MPL-2.0': 'https://spdx.org/licenses/MPL-2.0.html',
   'PSF-2.0': 'https://spdx.org/licenses/PSF-2.0.html',
+  'MIT-CMU': 'https://spdx.org/licenses/MIT-CMU.html',
+  'LGPL-2.1-or-later': 'https://spdx.org/licenses/LGPL-2.1-or-later.html',
 };
 
 /** 분류의 화면 이름 */

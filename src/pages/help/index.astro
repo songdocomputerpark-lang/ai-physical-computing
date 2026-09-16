@@ -11,24 +11,28 @@
  * 실습실이 아직 없어서 "~하게 만들어요", "~할 거예요"로 적은 곳은 해당 기능이 생기면 실제 버튼 이름·동작으로 고친다.
  * 브라우저 메뉴 이름은 판이 바뀌면 달라질 수 있으니 연 1회 점검(MAINTENANCE.md) 때 다시 확인한다.
  */
-import ComingSoon from '../../components/common/ComingSoon.astro';
 import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../config/nav.ts';
+import { errorCatalog } from '../../lab/errors/catalog-data.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('help');
 const checkPage = getPage('start-check');
 const boardPage = getPage('start-board');
 const contributePage = getPage('contribute');
+const errorsPage = getPage('help-errors');
+const settingsPage = getPage('settings');
+const errorCount = errorCatalog.entries.length;
 
 const questions = [
   { id: 'camera', title: '카메라가 켜지지 않아요' },
   { id: 'browser', title: '어떤 브라우저를 써야 하나요?' },
+  { id: 'speech', title: '마이크가 없거나 마이크를 쓰고 싶지 않아요' },
   { id: 'board-port', title: '보드를 꽂았는데 연결할 포트가 보이지 않아요' },
   { id: 'school-network', title: '학교 네트워크에서 실습실이 열리지 않아요' },
   { id: 'clear-data', title: '공용 컴퓨터에서 내 기록을 지우고 싶어요' },
 ] as const;
-const [camera, browser, boardPort, schoolNetwork, clearData] = questions;
+const [camera, browser, speech, boardPort, schoolNetwork, clearData] = questions;
 ---
 
 <BaseLayout title={page.title} description={page.description} width="narrow">
@@ -82,6 +86,20 @@ const [camera, browser, boardPort, schoolNetwork, clearData] = questions;
         실습 기능이 달라요.
       </p>
       <p>이 기기에서 무엇이 되는지는 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 자동으로 확인할 수 있어요.</p>
+    </section>
+
+    <section aria-labelledby={speech.id}>
+      <h2 id={speech.id}>{speech.title}</h2>
+      <p>
+        괜찮아요. 음성 실습(1-4-3)은 <strong>글자 입력이 기본</strong>이에요. 실습실 오른쪽 패널의 칸에 문장을 적고
+        <strong>[보내기]</strong>를 누르면 그 문장이 파이썬의 <code>recognize_google()</code> 결과가 돼요. 마이크는 켜지지 않고,
+        아무것도 바깥으로 나가지 않아요.
+      </p>
+      <p>
+        마이크로 말하는 방법은 교사가{' '}
+        <a href={settingsPage.href}>{settingsPage.title}</a>에서 켰을 때만 선택지로 보여요. 기기 안에서 처리하는 인식을
+        지원하는 브라우저라면 그 방법도 함께 보여요.
+      </p>
     </section>
 
     <section aria-labelledby={boardPort.id}>
@@ -148,11 +166,15 @@ const [camera, browser, boardPort, schoolNetwork, clearData] = questions;
     </section>
   </div>
 
-  <div data-pagefind-ignore>
-    <ComingSoon what="오류 메시지 풀이" when="영상처리 실습실을 만드는 단계(Phase 2)">
-      <p>파이썬 오류 풀이부터 시작해서, 교과서 내용을 옮기는 단계(Phase 5)까지 보드(MicroPython) 오류 풀이도 늘려요.</p>
-    </ComingSoon>
-  </div>
+  <section class="faq-more" aria-labelledby="help-errors-link">
+    <h2 id="help-errors-link">파이썬 오류 사전</h2>
+    <p>
+      실습실에서 코드가 오류로 끝나면 영어로 된 메시지가 나와요.{' '}
+      <a href={errorsPage.href}>{errorsPage.title}</a>에서 자주 나는 오류 {errorCount}가지의 뜻과 고치는 방법을 한국어로 볼 수 있어요.
+      실습실은 같은 풀이를 콘솔 위 카드로도 보여 줘요.
+    </p>
+    <p>보드(MicroPython) 오류 풀이는 교과서 내용을 옮기는 단계(Phase 5)에서 늘려요.</p>
+  </section>
 
   <section class="faq-more" aria-labelledby="help-more">
     <h2 id="help-more">여기 없는 문제가 있나요?</h2>

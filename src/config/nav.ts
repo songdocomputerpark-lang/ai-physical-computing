@@ -168,6 +168,14 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
     path: '/help/',
     description: '자주 묻는 질문과 오류 메시지 풀이를 모았어요.',
     inHeader: true,
+    children: [
+      {
+        id: 'help-errors',
+        label: '파이썬 오류 사전',
+        path: '/help/errors/',
+        description: '실습실에서 자주 나는 파이썬 오류 메시지를 한국어로 풀이하고, 고치는 방법을 알려 줘요.',
+      },
+    ],
   },
   {
     id: 'glossary',
@@ -175,6 +183,12 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
     path: '/glossary/',
     description: '처음 보는 낱말의 뜻을 쉽게 풀어 두었어요.',
     inHeader: true,
+  },
+  {
+    id: 'settings',
+    label: '사이트 설정',
+    path: '/settings/',
+    description: '이 컴퓨터의 브라우저에만 저장되는 설정이에요. 음성 인식처럼 교사가 정할 것을 여기에서 켜고 꺼요.',
   },
   {
     id: 'credits',
