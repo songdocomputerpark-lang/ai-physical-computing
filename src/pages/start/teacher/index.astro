@@ -9,6 +9,7 @@
  */
 import Callout from '../../../components/common/Callout.astro';
 import ComingSoon from '../../../components/common/ComingSoon.astro';
+import ClearRecordsButton from '../../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -292,7 +293,9 @@ const networkChecklist: readonly NetworkItem[] = [
     <ul>
       <li>로그인이 없는 대신, 학생이 쓴 코드와 설정이 그 컴퓨터의 브라우저에 남아요.</li>
       <li>
-        수업이 끝나면 실습실의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해 주세요. 이 버튼은 실습실과 함께 생겨요.
+        수업이 끝나면 실습실 아래의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해 주세요. 이 사이트가 그 브라우저에 저장한
+        코드와 설정만 지워요(다른 사이트의 기록은 그대로). 교사용 컴퓨터에서는 아래 버튼으로 바로 지울 수 있어요.
+        <ClearRecordsButton id="teacher-clear-records" hint={false} />
       </li>
       <li>통신 실습에서 쓰는 무작위 이름(접두어)은 기본으로 탭을 닫으면 사라지게 만들어요.</li>
       <li>

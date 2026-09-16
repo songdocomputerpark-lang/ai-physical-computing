@@ -12,6 +12,7 @@
  * 브라우저 메뉴 이름은 판이 바뀌면 달라질 수 있으니 연 1회 점검(MAINTENANCE.md) 때 다시 확인한다.
  */
 import ComingSoon from '../../components/common/ComingSoon.astro';
+import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
@@ -128,7 +129,11 @@ const [camera, browser, boardPort, schoolNetwork, clearData] = questions;
         이 사이트에는 로그인이 없어요. 실습실에서 쓴 코드와 설정은 서버가 아니라 지금 쓰는 컴퓨터의 브라우저 저장 공간에만
         남아요. 그래서 여러 사람이 함께 쓰는 컴퓨터에서는 다음 사람이 볼 수 있어요.
       </p>
-      <p>실습실에 <strong>[이 컴퓨터에서 내 기록 지우기]</strong> 버튼을 넣을 거예요. 수업이 끝나면 이 버튼을 눌러 주세요.</p>
+      <p>
+        수업이 끝나면 실습실 아래(또는 바로 여기)의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 눌러 주세요. 이 사이트가 이
+        브라우저에 저장한 코드와 설정만 지우고, 다른 사이트의 기록은 건드리지 않아요.
+      </p>
+      <ClearRecordsButton id="help-clear-records" />
       <p>브라우저에서 직접 지우려면 Chrome에서 아래 순서를 따라요.</p>
       <ol>
         <li>

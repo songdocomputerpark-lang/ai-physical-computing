@@ -190,7 +190,8 @@ test.describe('머리글 검색 상자', () => {
 
     await expect(page.getByRole('heading', { level: 1, name: getPage('search').title })).toBeVisible();
     await expect(pageSearchbox(page)).toHaveValue('서보');
-    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
+    // 실습실 테스트(Pyodide 받기)가 같은 시간에 돌면 검색 색인 준비가 기본 5초를 넘길 수 있어 조금 더 기다린다(2026-09-16 P2-02 전체 실행에서 1건 실패).
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
     await expect(resultItems(page).first()).toBeVisible();
   });
 });

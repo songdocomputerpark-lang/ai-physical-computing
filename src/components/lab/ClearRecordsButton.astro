@@ -1,0 +1,199 @@
+---
+/**
+ * [이 컴퓨터에서 내 기록 지우기] 버튼(PLAN §8.2 P2-02, §10 "브라우저 저장", SPEC 원칙 2).
+ *
+ * 누르면 확인 대화(<dialog>)가 뜨고, [지우기]를 누르면 이 사이트가 브라우저 저장 공간(localStorage·sessionStorage)에 남긴
+ * 기록(자동 저장 코드, 글자 크기, 통신 실습의 이름 등)만 지운다(src/lab/controls/records.ts → src/lib/storage.ts의 clearOurs).
+ * 다른 사이트의 기록은 건드리지 않는다. 끝나면 document에 apc:records-cleared(detail.removed = 지운 개수)를 보내
+ * 같은 페이지의 실습실(LabShell)이 편집칸을 예제 원래 코드로 되돌린다.
+ *
+ * 쓰는 법
+ *   <ClearRecordsButton />                 ← 실습실 아래(LabShell), 도움말·교사용 페이지
+ *   <ClearRecordsButton hint={false} />    ← 공용 PC 안내 문장 없이 버튼만
+ * props
+ *   hint  (선택) "여러 사람이 함께 쓰는 컴퓨터에서는 수업이 끝날 때 눌러 주세요" 안내를 보일지(기본 true)
+ *   id    (선택) 대화 상자 id의 바탕. 한 페이지에 둘 이상 넣을 때만 다르게 준다.
+ * 테스트가 읽는 값: data-state(idle·confirming·done), data-removed(지운 개수), 상태 글([data-clear-records-status]).
+ */
+import { CLEAR_RECORDS_CONFIRM_TEXT, CLEAR_RECORDS_HINT, CLEAR_RECORDS_LABEL } from '../../lab/controls/records.ts';
+
+interface Props {
+  hint?: boolean;
+  id?: string;
+}
+
+const { hint = true, id = 'clear-records' } = Astro.props;
+const titleId = `${id}-title`;
+---
+
+<div class="clear-records" data-clear-records data-state="idle" data-removed="">
+  <button type="button" class="clear-records__button" data-clear-records-open>
+    <svg class="clear-records__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 7h14M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3"></path>
+    </svg>
+    {CLEAR_RECORDS_LABEL}
+  </button>
+  {hint && <p class="clear-records__hint">{CLEAR_RECORDS_HINT}</p>}
+  <p class="clear-records__status" role="status" aria-live="polite" data-clear-records-status></p>
+
+  <dialog class="clear-records__dialog" data-clear-records-dialog aria-labelledby={titleId}>
+    <h2 id={titleId} class="clear-records__dialog-title">{CLEAR_RECORDS_LABEL}</h2>
+    <p>{CLEAR_RECORDS_CONFIRM_TEXT}</p>
+    <p class="clear-records__dialog-note">지우는 것은 이 사이트의 기록뿐이에요. 다른 사이트의 기록과 브라우저 설정은 그대로예요.</p>
+    <div class="clear-records__dialog-actions">
+      <button type="button" class="button button--primary" data-clear-records-confirm>지우기</button>
+      <button type="button" class="button button--secondary" data-clear-records-cancel>취소</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  import { RECORDS_CLEARED_EVENT, clearAllRecords, describeCleared } from '../../lab/controls/records.ts';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-clear-records]')) {
+    const openButton = root.querySelector<HTMLButtonElement>('[data-clear-records-open]');
+    const dialog = root.querySelector<HTMLDialogElement>('[data-clear-records-dialog]');
+    const confirmButton = root.querySelector<HTMLButtonElement>('[data-clear-records-confirm]');
+    const cancelButton = root.querySelector<HTMLButtonElement>('[data-clear-records-cancel]');
+    const status = root.querySelector<HTMLElement>('[data-clear-records-status]');
+    if (!openButton || !dialog || !confirmButton) {
+      continue;
+    }
+    const canShowModal = typeof dialog.showModal === 'function';
+
+    const finish = () => {
+      const removed = clearAllRecords();
+      root.dataset.removed = String(removed);
+      root.dataset.state = 'done';
+      if (status) {
+        status.textContent = describeCleared(removed);
+      }
+      document.dispatchEvent(new CustomEvent(RECORDS_CLEARED_EVENT, { detail: { removed } }));
+      openButton.focus();
+    };
+    const close = () => {
+      if (canShowModal) {
+        if (dialog.open) dialog.close();
+      } else {
+        dialog.removeAttribute('open');
+      }
+      if (root.dataset.state === 'confirming') {
+        root.dataset.state = 'idle';
+      }
+    };
+
+    openButton.addEventListener('click', () => {
+      if (status) {
+        status.textContent = '';
+      }
+      root.dataset.state = 'confirming';
+      if (canShowModal) {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+      confirmButton.focus();
+    });
+    confirmButton.addEventListener('click', () => {
+      close();
+      finish();
+    });
+    cancelButton?.addEventListener('click', () => {
+      close();
+      openButton.focus();
+    });
+    dialog.addEventListener('cancel', () => {
+      // Esc로 닫을 때(showModal)
+      root.dataset.state = 'idle';
+    });
+  }
+</script>
+
+<style>
+  .clear-records {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+
+  .clear-records__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    cursor: pointer;
+  }
+
+  .clear-records__button:hover {
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+  }
+
+  .clear-records__icon {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .clear-records__hint,
+  .clear-records__status {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .clear-records__status:empty {
+    display: none;
+  }
+
+  .clear-records__status {
+    color: var(--color-success-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .clear-records__dialog {
+    width: min(100% - 2rem, 28rem);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    color: var(--color-text);
+    line-height: var(--leading-snug);
+  }
+
+  .clear-records__dialog::backdrop {
+    background: rgb(23 25 28 / 0.45);
+  }
+
+  .clear-records__dialog-title {
+    margin-block: 0 var(--space-3);
+    font-size: var(--text-lg);
+  }
+
+  .clear-records__dialog-note {
+    margin-block: var(--space-2) 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .clear-records__dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-5);
+  }
+</style>

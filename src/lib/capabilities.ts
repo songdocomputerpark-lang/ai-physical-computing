@@ -682,7 +682,7 @@ export function checkLocalStorage(env: CapabilityEnv): CheckResult {
     'local-storage',
     'supported',
     '이 컴퓨터의 브라우저에 기록을 저장할 수 있어요.',
-    '여러 사람이 쓰는 컴퓨터에서는 수업이 끝날 때 기록을 지워 주세요. 기록 지우기 버튼은 실습실과 함께 생겨요.',
+    '여러 사람이 쓰는 컴퓨터에서는 수업이 끝날 때 실습실 아래나 문제 해결 페이지의 [이 컴퓨터에서 내 기록 지우기]를 눌러 주세요.',
   );
 }
 
