@@ -8,7 +8,9 @@
 // 4) public/ examples/ content/ src/ 안의 원본 파일 이름(원본 zip·PDF·폴더 이름)
 // 5) 모든 추적 텍스트 파일(UTF-16으로 저장된 파일 포함)의 개인정보 형태: 사용자 폴더 경로, OneDrive 경로,
 //    MAC 주소(자리표시자 제외), 이메일 주소(noreply·example 계열 제외), 전화번호 모양,
-//    그리고 scripts/privacy-needles.json에 해시로만 적어 둔 비공개 이름(학교명 등, PD-37)
+//    그리고 scripts/privacy-needles.json에 해시로만 적어 둔 비공개 이름(학교명 등, PD-37).
+//    예외는 하나뿐이다: public/licenses/ 아래의 제3자 라이선스 고지 원문(저작권 표기에 저작자가 스스로 적은 주소가 들어 있음)은
+//    scripts/repo-allowlist.yaml의 privacy_exceptions에 경로·이유를 적으면 이메일 모양 검사만 건너뛴다(2026-09-16 P2-02, CodeMirror MIT 고지).
 // 6) 추적 파일 어디에 있든 래스터 이미지의 눈 확인 기록(scripts/image-allowlist.yaml의 reviewed).
 //    글·코드 파일(SVG·마크다운·Astro·CSS 등) 안에 data: 주소로 넣은 래스터 그림도 그 파일의 기록이 있어야 한다.
 //
@@ -164,7 +166,13 @@ const PROBLEM_KINDS = Object.freeze({
  * @property {string[]} originalFolderNames .gitignore의 원본 자료 폴더 이름
  * @property {string[]} originalNameNeedles 찾을 원본 이름
  * @property {PrivacyNeedleSet} [privacyNeedles] 해시로 적어 둔 비공개 이름(없으면 검사하지 않는다)
+ * @property {{ path: string, kinds: string[], reason: string }[]} [privacyExceptions] 개인정보 모양 검사 예외(public/licenses/ 아래 고지 원문의 이메일만)
  */
+
+/** privacy_exceptions에 적을 수 있는 검사 종류(지금은 라이선스 고지 원문의 이메일뿐) */
+export const PRIVACY_EXCEPTION_KINDS = Object.freeze(['email']);
+/** privacy_exceptions의 경로가 있어야 하는 폴더 */
+export const PRIVACY_EXCEPTION_ROOT = 'public/licenses/';
 
 /** @typedef {{ kind: keyof typeof PROBLEM_KINDS, path: string, detail: string }} RepoProblem */
 
@@ -320,9 +328,11 @@ function isPlaceholderUserName(name) {
 /**
  * 텍스트에서 개인정보 형태를 찾는다. 찾은 값은 로그(공개 CI 기록 포함)에 다시 퍼지지 않게 가려서 알린다.
  * @param {string} text
+ * @param {{ skipKinds?: readonly string[] }} [options] 건너뛸 검사 종류(PRIVACY_EXCEPTION_KINDS 가운데)
  * @returns {string[]}
  */
-export function findPrivacyPatterns(text) {
+export function findPrivacyPatterns(text, options = {}) {
+  const skipKinds = new Set(options.skipKinds ?? []);
   /** @type {string[]} */
   const findings = [];
   const userDirectoryRules = [
@@ -346,9 +356,11 @@ export function findPrivacyPatterns(text) {
       findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양(${match[0].slice(0, 2)}${match[1]}…, 나머지는 가려서 표시)`);
     }
   }
-  for (const match of text.matchAll(EMAIL_ADDRESS)) {
-    if (!isPlaceholderEmail(match[1], match[2])) {
-      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 이메일 주소 모양(…@${match[2].split('.').slice(-1)[0]}, 앞부분은 가려서 표시)`);
+  if (!skipKinds.has('email')) {
+    for (const match of text.matchAll(EMAIL_ADDRESS)) {
+      if (!isPlaceholderEmail(match[1], match[2])) {
+        findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 이메일 주소 모양(…@${match[2].split('.').slice(-1)[0]}, 앞부분은 가려서 표시)`);
+      }
     }
   }
   for (const match of text.matchAll(PHONE_NUMBER)) {
@@ -566,7 +578,10 @@ export function checkRepoFiles(files, rules) {
       }
     }
     if (text !== null) {
-      for (const finding of [...findPrivacyPatterns(text), ...findPrivacyNeedles(text, rules.privacyNeedles)]) {
+      // 예외(privacy_exceptions)는 public/licenses/ 아래 고지 원문의 이메일 모양만 건너뛴다. 비공개 이름(needles)은 늘 검사한다.
+      const exception = (rules.privacyExceptions ?? []).find((item) => matchesGlob(filePath, item.path));
+      const patternFindings = findPrivacyPatterns(text, exception ? { skipKinds: exception.kinds } : {});
+      for (const finding of [...patternFindings, ...findPrivacyNeedles(text, rules.privacyNeedles)]) {
         problems.push({ kind: 'privacy', path: filePath, detail: finding });
       }
     }
@@ -706,8 +721,11 @@ export function loadRepoRules(rootDir) {
 
   const repoAllowlist = parseYamlObject(readOptional(REPO_ALLOWLIST_FILE), REPO_ALLOWLIST_FILE, errors);
   for (const key of Object.keys(repoAllowlist)) {
-    if (key !== 'original_formats' && key !== 'large_files') {
-      errors.push({ file: REPO_ALLOWLIST_FILE, message: `모르는 이름 "${key}"예요. original_formats, large_files만 써요.` });
+    if (key !== 'original_formats' && key !== 'large_files' && key !== 'privacy_exceptions') {
+      errors.push({
+        file: REPO_ALLOWLIST_FILE,
+        message: `모르는 이름 "${key}"예요. original_formats, large_files, privacy_exceptions만 써요.`,
+      });
     }
   }
   const originalFormatAllowed = readAllowEntries(repoAllowlist, 'original_formats', errors).map(({ path: pattern, reason }) => ({
@@ -715,6 +733,7 @@ export function loadRepoRules(rootDir) {
     reason,
   }));
   const largeFileAllowed = readAllowEntries(repoAllowlist, 'large_files', errors);
+  const privacyExceptions = readPrivacyExceptions(repoAllowlist, errors);
 
   const imageAllowlist = parseYamlObject(readOptional(IMAGE_ALLOWLIST_FILE), IMAGE_ALLOWLIST_FILE, errors);
   /** @type {Map<string, unknown>} */
@@ -750,9 +769,54 @@ export function loadRepoRules(rootDir) {
       originalFolderNames,
       originalNameNeedles: buildOriginalNameNeedles(originalFolderNames, documentNames),
       privacyNeedles,
+      privacyExceptions,
     },
     errors,
   };
+}
+
+/**
+ * privacy_exceptions 항목을 읽는다. 경로는 public/licenses/ 아래여야 하고(제3자 라이선스 고지 원문만),
+ * kinds는 PRIVACY_EXCEPTION_KINDS 가운데서만 고르며, reason(이유)이 있어야 한다.
+ * @param {Record<string, any>} data
+ * @param {{ file: string, message: string }[]} errors
+ * @returns {{ path: string, kinds: string[], reason: string }[]}
+ */
+function readPrivacyExceptions(data, errors) {
+  const value = data.privacy_exceptions;
+  if (value === undefined || value === null) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    errors.push({ file: REPO_ALLOWLIST_FILE, message: 'privacy_exceptions는 목록으로 적어요.' });
+    return [];
+  }
+  /** @type {{ path: string, kinds: string[], reason: string }[]} */
+  const entries = [];
+  value.forEach((item, index) => {
+    const where = `privacy_exceptions의 ${index + 1}번째 항목`;
+    const pattern = isPlainObject(item) ? item.path : undefined;
+    const patternProblem = validateGlob(pattern);
+    if (!isPlainObject(item) || patternProblem) {
+      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: path — ${patternProblem ?? '경로가 없어요.'}` });
+      return;
+    }
+    if (!String(pattern).startsWith(PRIVACY_EXCEPTION_ROOT)) {
+      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: path는 ${PRIVACY_EXCEPTION_ROOT} 아래의 라이선스 고지 파일만 적을 수 있어요.` });
+      return;
+    }
+    const kinds = Array.isArray(item.kinds) ? item.kinds : [];
+    if (kinds.length === 0 || !kinds.every((kind) => typeof kind === 'string' && PRIVACY_EXCEPTION_KINDS.includes(kind))) {
+      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: kinds는 ${PRIVACY_EXCEPTION_KINDS.join(', ')} 가운데서 목록으로 적어요.` });
+      return;
+    }
+    if (typeof item.reason !== 'string' || item.reason.trim() === '') {
+      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: reason(예외를 두는 이유)을 적어요.` });
+      return;
+    }
+    entries.push({ path: /** @type {string} */ (pattern), kinds: [...kinds], reason: item.reason.trim() });
+  });
+  return entries;
 }
 
 /**

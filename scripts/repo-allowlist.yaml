@@ -12,7 +12,18 @@
 #   - path: public/models/*.task
 #     reason: MediaPipe 모델(PD-13)
 #     max_mb: 10   # 이보다 크면 여전히 막아요. 적지 않으면 50(GitHub는 50MB가 넘는 파일에 경고해요).
+#
+# privacy_exceptions: 개인정보 모양 검사의 예외. public/licenses/ 아래의 제3자 라이선스 고지 원문만 적을 수 있고,
+#   kinds는 email(저작권 표기에 저작자가 스스로 적은 주소)만 돼요. 운영자·학생의 정보는 어떤 경우에도 예외로 두지 않아요.
+#   - path: public/licenses/codemirror.txt
+#     kinds: [email]
+#     reason: MIT 라이선스 고지 원문의 저작권 표기(저작자가 공개한 주소). 고지 원문은 고치지 않고 그대로 실어야 해요.
 
 original_formats: []
 
 large_files: []
+
+privacy_exceptions:
+  - path: public/licenses/codemirror.txt
+    kinds: [email]
+    reason: CodeMirror·Lezer·보조 라이브러리의 MIT 라이선스 고지 원문. 저작권 표기에 저작자(Marijn Haverbeke)가 스스로 적은 공개 주소가 있고, MIT 라이선스는 이 표기를 그대로 싣도록 요구해요(2026-09-16 P2-02).

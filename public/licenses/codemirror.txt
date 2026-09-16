@@ -1,0 +1,38 @@
+CodeMirror 6와 함께 받는 라이브러리 — MIT 라이선스 고지(https://github.com/codemirror/dev , https://github.com/lezer-parser/lezer)
+이 사이트의 실습실 코드 에디터는 CodeMirror 6(코드 편집), Lezer(구문 분석·강조)와 같은 저작자의 보조 라이브러리로 동작해요.
+아래는 npm 패키지의 LICENSE 파일에서 옮긴 고지 원문이에요(2026-09-16). 저작권 표기는 패키지마다 연도만 다르고 허가 조항은 같아서, 표기를 모두 적고 조항은 한 번 적었어요.
+
+패키지와 저작권 표기(각 패키지 LICENSE 원문)
+- @codemirror/state 6.7.5: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @codemirror/view 6.43.12: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @codemirror/language 6.12.4: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @codemirror/commands 6.11.1: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @codemirror/lang-python 6.2.1: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @codemirror/autocomplete 6.20.3: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @lezer/common 1.5.2: Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @lezer/highlight 1.2.3: Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @lezer/lr 1.4.10: Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @lezer/python 1.1.19: Copyright (C) 2020 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- style-mod 4.1.3: Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- w3c-keyname 2.2.8: Copyright (C) 2016 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+- @marijn/find-cluster-break 1.0.4: Copyright (C) 2024 by Marijn Haverbeke <marijn@haverbeke.berlin>
+
+허가 조항(모든 패키지 공통, @codemirror/state LICENSE 원문)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

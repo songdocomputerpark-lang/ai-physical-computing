@@ -169,6 +169,25 @@ describe('저장소 검사 규칙(checkRepoFiles)', () => {
     expect(details).not.toContain(realLookingPhone);
   });
 
+  it('privacy_exceptions는 public/licenses/ 고지 원문의 이메일 모양만 건너뛰고, 다른 파일·다른 모양은 그대로 잡는다(2026-09-16 P2-02)', () => {
+    const noticeText = `MIT License\n\nCopyright (C) 2018 by Someone <${realLookingEmail}> and others\n`;
+    const exceptions = [{ path: 'public/licenses/*.txt', kinds: ['email'], reason: '라이선스 고지 원문' }];
+    const problems = checkRepoFiles(
+      [
+        repoFile('public/licenses/editor.txt', `${noticeText}전화 ${realLookingPhone}\n`),
+        repoFile('public/licenses/other.md', noticeText),
+        repoFile('content/help/contact.md', noticeText),
+      ],
+      rules({ privacyExceptions: exceptions }),
+    );
+    // 예외 파일에서는 이메일만 빠지고 전화번호는 잡힌다. 패턴 밖 파일은 이메일도 잡힌다.
+    expect(problemKeys(problems)).toEqual(['privacy:public/licenses/editor.txt', 'privacy:public/licenses/other.md', 'privacy:content/help/contact.md']);
+    expect(problems[0].detail).toContain('전화번호 모양');
+    expect(problems[1].detail).toContain('이메일 주소 모양');
+    expect(findPrivacyPatterns(noticeText, { skipKinds: ['email'] })).toEqual([]);
+    expect(findPrivacyPatterns(noticeText)).toHaveLength(1);
+  });
+
   it('UTF-16으로 저장된 글도 읽어서 사용자 폴더 경로를 찾는다(PowerShell 5.1 기본 저장 형식)', () => {
     const text = `경로: ${windowsUserPath}\n`;
     const utf16le = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(text, 'utf16le')]);
