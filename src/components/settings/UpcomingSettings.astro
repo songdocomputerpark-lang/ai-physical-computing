@@ -1,0 +1,102 @@
+---
+/**
+ * 사이트 설정 페이지의 "앞으로 생길 설정" 자리(P2-13에서 설정 페이지를 만들며 함께 둔 자리 — PLAN §8.2).
+ *
+ * 아직 만들지 않은 설정은 **조작할 수 없는 자리**로만 보여 준다: 눌러도 아무 일이 없는 가짜 스위치를 두면
+ * 학생·교사가 바꿨다고 생각하게 되기 때문이다(SPEC §2 초보자 우선). 지금 같은 일을 할 수 있는 곳이 있으면 함께 적는다.
+ * 검색 결과에 "준비 중" 문장이 섞이지 않게 data-pagefind-ignore를 붙인다(src/config/search.ts 규칙).
+ */
+const upcoming = [
+  {
+    title: '글자 크기',
+    note: '사이트 전체 글자를 크게 보는 설정이에요.',
+    now: '지금은 실습실 코드 칸의 [A−] [A+] 버튼으로 코드 글자 크기를 바꿀 수 있어요. 브라우저 확대(Ctrl와 + 키)도 그대로 돼요.',
+  },
+  {
+    title: '동작 줄이기',
+    note: '움직이는 표시를 줄이는 설정이에요.',
+    now: '지금은 운영체제·브라우저의 "동작 줄이기" 설정을 사이트가 그대로 따라요.',
+  },
+  {
+    title: '실습실 입력 기억하기',
+    note: '실습실을 열 때마다 고르던 입력(웹캠·샘플 그림)을 기억하는 설정이에요.',
+    now: '지금은 실습실을 열 때마다 골라요. 카메라는 [입력 끄기]로 언제든 끌 수 있어요.',
+  },
+] as const;
+---
+
+<section class="upcoming" id="upcoming" data-pagefind-ignore>
+  <h2 class="upcoming__title">앞으로 생길 설정</h2>
+  <p class="upcoming__lead">아직 만들지 않은 설정이에요. 자리만 먼저 잡아 두었어요.</p>
+  <ul class="upcoming__list">
+    {
+      upcoming.map((item) => (
+        <li class="upcoming__item">
+          <p class="upcoming__item-title">
+            {item.title}
+            <span class="upcoming__badge">준비 중</span>
+          </p>
+          <p class="upcoming__note">{item.note}</p>
+          <p class="upcoming__now">{item.now}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .upcoming {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .upcoming__title,
+  .upcoming__lead {
+    margin: 0;
+  }
+
+  .upcoming__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .upcoming__item {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .upcoming__item-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .upcoming__badge {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular, 400);
+  }
+
+  .upcoming__note,
+  .upcoming__now {
+    margin: 0;
+  }
+
+  .upcoming__now {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

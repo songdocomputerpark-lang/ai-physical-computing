@@ -1,0 +1,78 @@
+---
+/**
+ * 사이트 설정(/settings/, 교사용) — P2-13에서 만들었다(PLAN §8.2 표, §10 개인정보, PD-08).
+ *
+ * 왜 있나: 선택 차시 1-4-3의 "서버 음성 인식"은 학생 음성이 브라우저 회사 서버로 전송되므로 기본으로 꺼 두고,
+ * 교사가 **그 컴퓨터의 브라우저에서** 켰을 때만 실습실에 선택지가 생기게 한다(PLAN §10 "음성(1-4-3)").
+ * 로그인·서버가 없는 사이트라 설정은 그 브라우저의 저장 공간(localStorage)에만 남는다(src/lib/storage.ts 규칙).
+ *
+ * 사이트 지도(src/config/nav.ts)의 'settings' 항목이다(P2-14 통합에서 등록). 머리글 주 메뉴에는 넣지 않고
+ * 바닥글 사이트 지도·현재 위치(빵부스러기)·전체 페이지 검사(tests/e2e/pages.spec.ts)에서만 쓴다.
+ */
+import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
+import SpeechSetting from '../../components/settings/SpeechSetting.astro';
+import UpcomingSettings from '../../components/settings/UpcomingSettings.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('settings');
+const title = page.title;
+const description = page.description;
+const teacherPage = getPage('start-teacher');
+---
+
+<BaseLayout title={title} description={description} width="narrow">
+  <h1 class="page-title">{title}</h1>
+  <p class="lead">{description}</p>
+
+  <p>
+    이 사이트에는 로그인도, 설정을 모아 두는 서버도 없어요. 여기에서 바꾼 값은 <strong>지금 쓰는 컴퓨터의 이 브라우저</strong>에만 저장되고,
+    다른 컴퓨터나 다른 브라우저에는 따라가지 않아요. 수업을 하는 컴퓨터마다 한 번씩 정해 주세요.
+  </p>
+
+  <div class="settings-list">
+    <SpeechSetting />
+
+    <UpcomingSettings />
+
+    <section class="settings-records">
+      <h2>이 컴퓨터에 남은 기록</h2>
+      <p>
+        학생이 쓴 코드, 글자 크기, 위에서 정한 설정은 이 브라우저에만 남아요. 여러 사람이 함께 쓰는 컴퓨터라면 수업이 끝날 때 지워 주세요.
+        누르면 "서버 음성 인식 허용"도 꺼짐(기본값)으로 돌아가요.
+      </p>
+      <ClearRecordsButton id="settings-clear-records" hint={false} />
+    </section>
+  </div>
+
+  <p class="settings-more">
+    개인정보가 어디로 가는지 정리한 표와 수업 준비 안내는 <a href={teacherPage.href}>{teacherPage.title}</a> 페이지에 있어요.
+  </p>
+</BaseLayout>
+
+<style>
+  /* .page-title·.lead는 전역 스타일(src/styles/global.css)에 있다. 여기서는 이 페이지에만 있는 칸만 꾸민다. */
+  .settings-list {
+    display: grid;
+    gap: var(--space-6);
+    margin-block: var(--space-6);
+  }
+
+  .settings-records {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .settings-records h2,
+  .settings-records p {
+    margin: 0;
+  }
+
+  .settings-more {
+    color: var(--color-text-muted);
+  }
+</style>

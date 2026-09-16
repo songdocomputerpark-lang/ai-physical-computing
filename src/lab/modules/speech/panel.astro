@@ -1,0 +1,182 @@
+---
+/**
+ * 음성 인식 흉내 모듈의 화면 조각(P2-13, src/lab/README.md 4.5). LabShell이 [data-lab-module-panel="speech"] 안에 hidden으로 그려 두고,
+ * index.ts의 mount가 showPanel()로 연다. 이 파일은 HTML·CSS만 그리고 동작은 index.ts가 data-speech-* 표시로 찾아 잇는다.
+ *
+ * **고르기 상자(방식 선택)는 여기에 없다.** index.ts가 지금 고를 수 있는 방식만 만들어 넣는다 —
+ * "서버 인식"은 교사가 사이트 설정에서 켠 브라우저에서만 생기고, 꺼져 있으면 DOM에 아예 없다(§10, PD-08).
+ */
+---
+
+<div class="speech" data-speech-panel data-speech-state="idle" data-speech-mode-value="text">
+  <p class="speech__intro">
+    선택 차시 "말을 글로 바꾸는 기술"에서 코드가 <code>r.listen(...)</code>에 닿으면 여기서 한 마디를 받아요. 기본은{' '}
+    <strong>글자 입력</strong>이라 마이크가 없어도 실습할 수 있어요.
+  </p>
+
+  <div class="speech__row">
+    <label class="speech__label" for="lab-module-speech-mode">받는 방법</label>
+    <span class="speech__field" data-speech-mode-field></span>
+  </div>
+  <p class="speech__note" data-speech-note></p>
+
+  <p class="speech__status" data-speech-status aria-live="polite"></p>
+
+  <form class="speech__form" data-speech-form>
+    <label class="speech__label" for="lab-module-speech-input">말 대신 적을 문장</label>
+    <div class="speech__row">
+      <input
+        id="lab-module-speech-input"
+        class="speech__input"
+        type="text"
+        data-speech-input
+        autocomplete="off"
+        placeholder="예: 시작"
+      />
+      <button type="submit" class="lab-button lab-button--small" data-speech-send>보내기</button>
+    </div>
+    <div class="speech__row">
+      <button type="button" class="lab-button lab-button--small" data-speech-mic hidden>말하기 시작</button>
+      <button type="button" class="lab-button lab-button--small" data-speech-skip>안 들린 것으로 보내기</button>
+    </div>
+  </form>
+
+  <p class="speech__last" data-speech-last aria-live="polite"></p>
+
+  <p class="speech__ondevice" data-speech-ondevice></p>
+  <p class="speech__settings">
+    마이크로 말하는 방법은 교사가{' '}
+    <a href="" data-speech-settings-link>사이트 설정</a>에서 정해요. 14세 미만 학생 수업에서는 서버 인식을 켜지 않아요.
+  </p>
+</div>
+
+<style>
+  .speech {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .speech__intro,
+  .speech__note,
+  .speech__status,
+  .speech__last,
+  .speech__ondevice,
+  .speech__settings {
+    margin: 0;
+  }
+
+  .speech__note,
+  .speech__ondevice,
+  .speech__settings {
+    color: var(--color-text-muted);
+  }
+
+  .speech__intro code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  .speech__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .speech__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .speech__field {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+
+  /* 고르기 상자는 index.ts가 만들어 넣으므로(서버 인식 선택지를 DOM에 아예 두지 않으려고) :global로 꾸민다. */
+  .speech__field :global(select) {
+    width: 100%;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .speech__field :global(select:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* 실습실 틀(LabShell)의 .lab-button은 그 컴포넌트 안에서만 꾸며지므로(Astro 범위 스타일) 이 조각의 버튼은 여기서 꾸민다. */
+  .speech button {
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    line-height: var(--leading-snug);
+    cursor: pointer;
+  }
+
+  .speech button:hover {
+    background: var(--color-bg-subtle);
+  }
+
+  .speech button:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .speech button[hidden] {
+    display: none;
+  }
+
+  .speech__form {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .speech__input {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font: inherit;
+  }
+
+  .speech__input:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .speech__status {
+    font-weight: var(--weight-semibold);
+  }
+
+  .speech__last:empty,
+  .speech__note:empty,
+  .speech__status:empty {
+    display: none;
+  }
+
+  /* 파이썬이 한 마디를 기다리는 동안은 상자 테두리로 알린다(글만으로는 놓치기 쉬워서). */
+  .speech[data-speech-state='listening'] {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  }
+</style>
