@@ -413,13 +413,109 @@ sources:
     notice: public/licenses/workbox.txt
     fetched: 2026-09-16
 
-  # ── 다른 저작자의 자료(library·third_party)를 넣을 때의 예시(파일을 실제로 넣는 단계에서 확인해 채워요) ──
-  # - name: python_lcd(i2c_lcd.py)
-  #   category: library
-  #   author: Dave Hylands
-  #   license: MIT
-  #   url: https://github.com/dhylands/python_lcd
-  #   used_in: ESP32 문자 LCD 라이브러리
-  #   paths:
-  #     - examples/esp32/lib/third-party/i2c_lcd.py
-  #   fetched: YYYY-MM-DD
+  # ── ESP32 실습실(PLAN §8.3 Phase 3) — 병렬 제작 준비(2026-09-17)에서 미리 설치·등록 ──
+  # 여섯 구역(P3-03~P3-10)이 sources.yaml을 고치지 않고 일할 수 있게, 그 구역이 쓸 패키지·파일 자리를 먼저 적었어요(src/lab/README.md 5절).
+  # 아직 파일이 없는 paths는 검사에서 아무것도 걸리지 않을 뿐 오류가 아니에요.
+  #
+  # Blockly(P3-06 블록 모드). npm 패키지 blockly@13.3.0은 dependencies가 없고, peer 의존성 jsdom은 Node에서만 쓰는 것이라
+  # (package.json "browser": { "jsdom": false }) 브라우저 번들에는 blockly 하나만 들어가요. 효과음·커서 그림(media)은
+  # scripts/vendor-assets.mjs가 public/vendor/blockly/<버전>/media/로 복사해 같은 사이트에서 내보내요(커밋하지 않음 — .gitignore).
+  # 라이선스는 npm 패키지 LICENSE(Apache-2.0 전문)와 공식 저장소 RaspberryPiFoundation/blockly로 확인했어요(2026-09-17). 4조 (a)에 따라 전문을 함께 배포해요.
+  - name: Blockly 13.3.0
+    category: stack
+    author: "Google LLC와 Blockly 기여자(지금은 Raspberry Pi Foundation이 관리 — npm 패키지 README). 파일 하나: Massachusetts Institute of Technology"
+    license: Apache-2.0
+    url: https://github.com/RaspberryPiFoundation/blockly
+    used_in: "ESP32 실습실 블록 모드(P3-06): 블록 편집기, 블록을 파이썬(MicroPython) 코드로 바꾸는 생성기, 한국어 메시지(blockly/msg/ko). 효과음·커서 그림은 같은 사이트의 public/vendor/blockly/13.3.0/media/에서 받아요. 고치지 않고 그대로 써요."
+    paths:
+      - public/licenses/blockly.txt
+      - public/vendor/blockly/**
+    npm:
+      - blockly
+    notice: public/licenses/blockly.txt
+    fetched: 2026-09-17
+
+  # esptool-js(P3-09 펌웨어 굽기). 번들에 함께 들어가는 의존성 pako·tslib·atob-lite는 저작자가 달라 항목을 따로 뒀어요(npm 메타데이터·LICENSE 확인 2026-09-17).
+  # 패키지 안의 플래셔 스텁(lib/targets/stub_flasher/*.json)은 esptool.py v4.6.1에서 옮긴 GPL-2.0-or-later 프로그램이에요(esptool-js v0.6.1의
+  # src/targets/stub_flasher/README.md, 2026-09-17 확인 — PLAN §9.4 B의 "Apache-2.0 또는 MIT"는 틀린 기록이라 고쳤어요). SPEC §8 허용 목록 밖이라
+  # 사이트에 싣지 않아요(PLAN PD-38): astro.config.mjs의 esptoolStubGuardPlugin(scripts/lib/esptool-stub-guard.mjs)이 스텁 JSON을 번들에서 빼고,
+  # 굽기는 보드의 ROM 부트로더와 직접 주고받아요.
+  - name: esptool-js 0.6.1
+    category: stack
+    author: Espressif Systems (Shanghai) Co. Ltd.
+    license: Apache-2.0
+    url: https://github.com/espressif/esptool-js
+    used_in: "보드 준비 페이지의 [펌웨어 굽기](P3-09): Web Serial로 연결한 ESP32의 ROM 부트로더와 주고받으며 MicroPython 펌웨어를 보드에 써요. 패키지 안의 플래셔 스텁(GPL-2.0-or-later)은 싣지 않아요(PD-38)."
+    paths:
+      - public/licenses/esptool-js.txt
+    npm:
+      - esptool-js
+    notice: public/licenses/esptool-js.txt
+    fetched: 2026-09-17
+
+  - name: pako 2.2.0
+    category: stack
+    author: "Vitaly Puzrin, Andrei Tuputcyn(Andrey Tupitsin). zlib에서 옮긴 부분: Jean-loup Gailly, Mark Adler"
+    license: MIT AND Zlib
+    url: https://github.com/nodeca/pako
+    used_in: "esptool-js가 펌웨어를 압축(deflate)해 보드로 보낼 때 쓰는 라이브러리(esptool-js의 의존성, 배포 번들에 함께 묶임). 고지는 LICENSE(MIT)와 소스 머리말의 zlib 라이선스 원문이에요."
+    paths:
+      - public/licenses/pako.txt
+    npm:
+      - pako
+    notice: public/licenses/pako.txt
+    fetched: 2026-09-17
+
+  - name: tslib 2.8.1
+    category: stack
+    author: Microsoft Corporation
+    license: 0BSD
+    url: https://github.com/microsoft/tslib
+    used_in: "esptool-js가 쓰는 TypeScript 실행 도우미 함수(esptool-js의 의존성, 배포 번들에 함께 묶임)."
+    paths:
+      - public/licenses/tslib.txt
+    npm:
+      - tslib
+    notice: public/licenses/tslib.txt
+    fetched: 2026-09-17
+
+  - name: atob-lite 2.0.0
+    category: stack
+    author: Hugh Kennedy
+    license: MIT
+    url: https://github.com/hughsk/atob-lite
+    used_in: "esptool-js가 base64 글자를 바이트로 바꿀 때 쓰는 작은 라이브러리(esptool-js의 의존성, 배포 번들에 함께 묶임)."
+    paths:
+      - public/licenses/atob-lite.txt
+    npm:
+      - atob-lite
+    notice: public/licenses/atob-lite.txt
+    fetched: 2026-09-17
+
+  # ── 보드 라이브러리(examples/esp32/lib/ — ESP32 실습실이 가상 보드의 /board/lib/에 넣고, 실물 보드 [보드에 저장]이 함께 올려요) ──
+  # 운영자 원고에서 복원한 라이브러리(servo_library.py, P3-03)는 위 "예제 코드" 항목(examples/**)이 덮어요.
+  # 다른 저작자의 파일은 examples/esp32/lib/third-party/에만 두고 파일마다 항목을 따로 둬요(PD-26, O5 — 원래 저작권·출처 주석은 지우지 않음).
+  # python_lcd 라이선스는 공식 저장소 LICENSE(MIT, "Copyright (c) 2013 Dave Hylands")로 확인했어요(2026-09-17). 자료판 f011에는 MIT 고지가 빠져 있어
+  # 사이트 배포본이 고지를 더해요(CODE_MAPPING §5.2, PLAN §6.5 — P3-04 구역 B가 파일을 만들어요).
+  - name: python_lcd(i2c_lcd.py 사이트 배포본)
+    category: library
+    author: Dave Hylands
+    license: MIT
+    url: https://github.com/dhylands/python_lcd
+    used_in: "문자 LCD(16×2, I2C) 라이브러리 i2c_lcd.py(examples/esp32/lib/third-party/i2c_lcd.py). 교과서 자료 f011(python_lcd의 lcd_api.py와 I2C 구현을 합친 수정본)에 MIT 고지와 move_to 별칭 한 줄을 더한 사이트판이에요(PLAN §6.5). 가상 보드와 실물 보드에 같은 파일을 써요."
+    paths:
+      - examples/esp32/lib/third-party/i2c_lcd.py
+    fetched: 2026-09-17
+
+  # 팬 모터 라이브러리(P3-05 구역 C): 원고 169쪽 스크린숏의 PWM판을 복원한 파일. 같은 계열 공개 글(TechToTinker 034, George Bantique, 2021-05-08)의
+  # GORILLACELL_DCMOTORS 코드로 보여(추정, CODE_MAPPING §5.2 — 글에 라이선스 표기 없음 확인 2026-09-15) 제3자 자료로 둬요(PLAN §6.5·§9.4 A).
+  - name: TechToTinker MicroPython TechNotes 계열 부품 라이브러리(gorillacell_dcmotors.py)
+    category: third_party
+    author: George Bantique(TechToTinker)
+    license: 원 권리자 보유 — 운영자 사용 허락(O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
+    url: https://techtotinker.com/034-micropython-technotes-dc-motors-gear-motor-and-fan-motor/
+    used_in: "팬 모터 라이브러리 gorillacell_dcmotors.py(examples/esp32/lib/third-party/gorillacell_dcmotors.py) — 교과서 원고 169쪽 스크린숏의 PWM판(1000Hz, rotate(direction, speed=100))을 복원한 사이트판. 가상 보드와 실물 보드에 같은 파일을 써요."
+    rights: "TechToTinker 글(034 - MicroPython TechNotes: DC Motors)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요."
+    paths:
+      - examples/esp32/lib/third-party/gorillacell_dcmotors.py
+    fetched: 2026-09-15

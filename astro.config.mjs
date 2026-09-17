@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import remarkDirective from 'remark-directive';
 import { siteConfig } from './src/config/site.ts';
 import { clientBundleLicensePlugin } from './scripts/lib/bundle-license.mjs';
+import { esptoolStubGuardPlugin } from './scripts/lib/esptool-stub-guard.mjs';
 import remarkBoxes from './src/lib/remark-boxes.mjs';
 import remarkGlossary from './src/lib/remark-glossary.mjs';
 
@@ -46,7 +47,14 @@ export default defineConfig({
     // 배포 번들(브라우저로 가는 코드)에 실제로 들어간 npm 패키지 목록을 dist/bundle-licenses.json으로 남긴다.
     // 빌드 뒤 scripts/check-sources.mjs --bundle(npm의 postbuild)이 sources.yaml과 대조하고 지운다(PLAN §8.1 P1-04).
     // client 환경에만 켜는 이유는 scripts/lib/bundle-license.mjs에 적었다.
-    plugins: [clientBundleLicensePlugin()],
+    // esptool-js 안의 플래셔 스텁(GPL-2.0-or-later)은 싣지 않는다(PLAN PD-38): 스텁 JSON import를 "싣지 않아요" 오류 모듈로 바꾼다.
+    plugins: [clientBundleLicensePlugin(), esptoolStubGuardPlugin()],
+    // 의존성 미리 묶기(개발 서버)는 위 플러그인을 거치지 않으므로 esptool-js는 빼서 빌드와 같게 돌게 한다.
+    // esptool-js가 쓰는 CommonJS 패키지 atob-lite만 따로 미리 묶는다(ESM인 pako·tslib는 그대로 된다). 근거는 scripts/lib/esptool-stub-guard.mjs 머리말.
+    optimizeDeps: {
+      exclude: ['esptool-js'],
+      include: ['esptool-js > atob-lite'],
+    },
     // 파이썬 워커(src/lab/runtime/worker.ts)는 모듈 워커다(Pyodide 314는 클래식 워커를 지원하지 않는다, PLAN §4.4).
     // Vite 기본 워커 형식(iife)은 워커 안의 import()를 다루지 못하므로 ES 모듈로 만든다.
     // 워커는 Pyodide를 실행 중에 import(주소)로 받는다(주소는 src/lab/runtime/config.ts 한 곳).
