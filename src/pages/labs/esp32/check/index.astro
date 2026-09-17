@@ -1,15 +1,64 @@
 ---
-// 실물 점검 도우미 자리 페이지. 실물 점검 도우미 묶음(PLAN §8.3 P3-11)에서 실제 화면으로 바꾼다.
-// 준비 내용은 ../../_labs.ts, 틀은 ../../_LabPlaceholder.astro에 있다.
+/**
+ * 실물 점검 도우미(PLAN §8.3 P3-11, 부록 B-2 Phase 3 항목 = PROGRESS 운영자 할 일 2번).
+ *
+ * 누가 쓰나: ESP32 키트 보드를 가진 선생님. 가상 보드·모의 시리얼로 확인한 것은 실물의 증거가 아니라서(src/lab/README.md 7.8),
+ * 항목마다 [보드에 보내기]로 실물에 코드를 보내고 눈으로 본 것을 예/아니오로 답한 뒤 [결과 복사]로 PROGRESS.md에 붙인다.
+ * 화면·항목·복사 글은 src/components/lab/check/BoardCheckHelper.astro와 src/lab/esp32/check/(items·report·wiring-figure·check-page).
+ * /start/teacher/의 "수업 준비 순서"에서 이 페이지로 온다.
+ */
 import Callout from '../../../../components/common/Callout.astro';
-import LabPlaceholder from '../../_LabPlaceholder.astro';
+import BrowserNotice from '../../../../components/compat/BrowserNotice.astro';
+import BoardCheckHelper from '../../../../components/lab/check/BoardCheckHelper.astro';
+import { getPage } from '../../../../config/nav.ts';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { CHECK_ITEMS, totalMinutes, wiringItems } from '../../../../lab/esp32/check/items.ts';
+
+const page = getPage('labs-esp32-check');
+const esp32Lab = getPage('labs-esp32');
+const boardPage = getPage('start-board');
+const teacherPage = getPage('start-teacher');
+const wiringCount = wiringItems().length;
 ---
 
-<LabPlaceholder id="labs-esp32-check">
-  <Callout type="참고" title="누가 쓰나요?">
-    <p>
-      ESP32 키트 보드를 가진 선생님이 사이트 예제가 실제 보드에서도 똑같이 움직이는지 확인할 때 써요. 선을 이어야 하는
-      항목에는 배선 그림도 함께 보여 줄 거예요.
-    </p>
-  </Callout>
-</LabPlaceholder>
+<BaseLayout title={page.title} description={page.description}>
+  <BrowserNotice slot="notice" />
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">
+    가지고 있는 ESP32 키트가 사이트 예제대로 움직이는지 항목 {CHECK_ITEMS.length}개로 하나씩 확인해요. 전체 예상 {totalMinutes()}분(추정)이고 나눠서 해도 돼요.
+  </p>
+
+  <div class="prose">
+    <h2 id="how">쓰는 법</h2>
+    <ol>
+      <li>보드를 USB 케이블로 꽂고 아래 [보드 연결]을 눌러 보드를 골라요.</li>
+      <li>항목마다 [보드에 보내기]를 누르면 그 항목의 시험 코드가 실물 보드에서 돌아요.</li>
+      <li>보드를 눈으로 보고 "LED가 켜졌나요?"처럼 묻는 질문에 예/아니오로 답해요. 값이 나오면 메모에 적어 주세요.</li>
+      <li>선을 꽂아야 하는 항목 {wiringCount}개에는 배선 그림이 함께 보여요. 그림대로 꽂은 뒤 보내요.</li>
+      <li>다 하거나 그만할 때 [결과 복사]를 눌러 <code>PROGRESS.md</code>의 "운영자 할 일 2번" 아래에 붙여 주세요.</li>
+    </ol>
+
+    <Callout type="주의" title="보드가 하나뿐이면 다른 프로그램을 닫아요">
+      <p>
+        보드 포트는 한 번에 프로그램 하나만 쓸 수 있어요. Thonny·아두이노 IDE나 <a href={esp32Lab.href}>{esp32Lab.title}</a>의 [실제 보드] 탭이 같은 보드를 열어 두었으면
+        연결이 되지 않아요. 먼저 그쪽 연결을 끊어 주세요.
+      </p>
+    </Callout>
+
+    <Callout type="참고" title="처음 연결하는 보드라면">
+      <p>
+        케이블·드라이버·펌웨어는 <a href={boardPage.href}>{boardPage.title}</a>에서 먼저 준비해요. 준비가 끝난 보드로 이 도우미를 쓰면 빨라요.
+        수업 준비 전체 순서는 <a href={teacherPage.href}>{teacherPage.title}</a>에 있어요.
+      </p>
+    </Callout>
+
+    <Callout type="참고" title="왜 사람이 봐야 하나요?">
+      <p>
+        사이트는 가상 보드와 가짜 USB 포트로 자동 검사를 하지만, 실물 LED가 켜지는지·소리가 나는지·서보가 몇 도를 가리키는지는
+        사람이 봐야 알 수 있어요. 여기서 "아니오"가 나온 항목은 사이트가 고쳐야 하는 곳이에요.
+      </p>
+    </Callout>
+  </div>
+
+  <BoardCheckHelper />
+</BaseLayout>

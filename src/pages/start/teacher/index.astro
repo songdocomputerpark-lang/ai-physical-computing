@@ -17,6 +17,7 @@ const page = getPage('start-teacher');
 const check = getPage('start-check');
 const student = getPage('start-student');
 const board = getPage('start-board');
+const boardCheck = getPage('labs-esp32-check');
 const teacherRoom = getPage('teacher');
 const learn = getPage('learn');
 const settings = getPage('settings');
@@ -121,13 +122,19 @@ const networkChecklist: readonly NetworkItem[] = [
   },
   {
     item: '보드 드라이버를 설치할 권한',
-    how: '보드를 꽂고 장치 관리자에서 포트가 생기는지 봐요(보드 준비 페이지).',
-    ifBlocked: '전산 담당 선생님께 드라이버 설치를 부탁해요.',
+    how: '보드를 꽂고 보드 준비 페이지의 [보드 연결]을 눌러 봐요(포트가 안 보이면 장치 관리자 그림 안내로 이어져요).',
+    ifBlocked: '보드 준비 페이지의 "전산 담당 선생님께 부탁하기" 글(start/board/#it-request)을 [부탁 글 복사]로 복사해 보내요.',
   },
   {
     item: '브라우저가 최신판인지',
     how: '점검 페이지의 JSPI 줄이 "지원"인지 봐요.',
     ifBlocked: '교실 컴퓨터의 Chrome·Edge 업데이트를 요청해요.',
+  },
+  {
+    item: '교실 화면 공유 프로그램의 가상 카메라',
+    how: '영상처리 실습실에서 [실행] → 카메라 허용 → 미리 보기에 실제 영상이 보이는지 봐요.',
+    ifBlocked:
+      '미리 보기가 검은색이면 장치 관리자 → 카메라 → 가상 카메라(예: EShare Virtual Camera)를 "디바이스 사용 안 함"으로 바꾸고 브라우저를 다시 열어요(운영자 컴퓨터에서 확인한 해결 방법). 화면 공유를 쓸 때는 다시 켜요.',
   },
 ];
 ---
@@ -164,6 +171,11 @@ const networkChecklist: readonly NetworkItem[] = [
       <li>교실 컴퓨터 한 대에서 <a href={check.href}>{check.title}</a> 페이지를 열고 결과를 확인해요.</li>
       <li>학생들이 <a href={student.href}>{student.title}</a>의 순서대로 카메라 허락을 한 번 연습하게 해요.</li>
       <li>보드 수업이라면 <a href={board.href}>{board.title}</a>의 안내대로 케이블과 드라이버를 미리 확인해요.</li>
+      <li>
+        <strong>키트를 처음 쓸 때 한 번:</strong> <a href={boardCheck.href}>{boardCheck.title}</a>에서 항목마다 [보드에 보내기]를 눌러
+        가지고 있는 키트가 사이트 예제대로 움직이는지 확인해요(전체 예상 2시간쯤, 나눠서 해도 돼요). 다른 점이 있으면 [결과 복사]로
+        알려 주면 사이트를 고쳐요.
+      </li>
       <li>
         <strong>교실 컴퓨터마다 한 번:</strong> <a href={visionLab.href}>{visionLab.title}</a>을 열고 준비 패널의{' '}
         <strong>[이 컴퓨터에 실습 파일 미리 받기]</strong>를 눌러요. 약 26MB를 받아 두면 수업 중에는 인터넷이 느리거나 끊겨도

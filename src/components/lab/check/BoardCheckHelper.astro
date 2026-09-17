@@ -1,0 +1,364 @@
+---
+/**
+ * 실물 점검 도우미 화면(PLAN §8.3 P3-11) — 연결 칸 · 진행률 · [결과 복사] · 항목 목록 · 콘솔 자리.
+ * 항목 카드는 스크립트가 그린다(src/lab/esp32/check/check-page.ts — 목록은 src/lab/esp32/check/items.ts).
+ * 이 화면은 실물 보드가 있는 선생님용이라 검색 색인에서 빼고(data-pagefind-ignore), 브라우저가 Web Serial을 못 하면 안내만 보인다.
+ */
+import '../../../styles/board-drawing.css';
+import { withBase } from '../../../lib/url.ts';
+import ClearRecordsButton from '../ClearRecordsButton.astro';
+
+const boardPageHref = withBase('start/board/');
+const labHref = withBase('labs/esp32/');
+---
+
+<section class="board-check" aria-labelledby="board-check-heading" data-board-check data-pagefind-ignore>
+  <h2 id="board-check-heading" class="board-check__heading">보드 연결</h2>
+
+  <div class="board-check__connect">
+    <p class="board-check__status" role="status" data-check-status>
+      <strong data-check-status-title>보드를 연결할 준비가 됐어요</strong>
+      <span data-check-status-detail>[보드 연결]을 누르면 포트 선택 창이 열려요.</span>
+    </p>
+    <div class="board-check__actions" data-check-actions></div>
+    <div class="board-check__info" data-check-info hidden></div>
+    <ul class="board-check__connect-notes" data-check-notes hidden></ul>
+    <p class="board-check__hint">
+      포트 선택 창에 보드가 안 보이면{' '}
+      <a href={`${boardPageHref}#port-not-found`}>보드 준비 페이지의 "연결이 안 될 때" 안내</a>를, MicroPython이 없다고 나오면{' '}
+      <a href={`${boardPageHref}#firmware`} data-check-release-port>펌웨어 굽기 안내</a>를 보세요. 보드 없이 코드만 보고 싶으면{' '}
+      <a href={labHref}>ESP32 실습실</a>의 [가상 보드]에서 같은 코드를 실행할 수 있어요.
+    </p>
+  </div>
+
+  <div class="board-check__summary">
+    <p class="board-check__progress" role="status" data-check-progress></p>
+    <button type="button" class="lab-button" data-check-copy>결과 복사</button>
+  </div>
+  <label class="board-check__report-label" for="board-check-report">복사할 글(PROGRESS.md에 붙여 주세요)</label>
+  <textarea id="board-check-report" class="board-check__report" rows="8" readonly data-check-report hidden></textarea>
+
+  <h2 class="board-check__heading">확인할 것</h2>
+  <ol class="board-check__items" data-check-items></ol>
+
+  <h2 class="board-check__heading">보드가 보낸 글</h2>
+  <pre class="board-check__console" role="log" aria-label="보드가 보낸 글" data-check-console></pre>
+  <form class="board-check__input" data-check-input hidden>
+    <label for="board-check-input-field">보드로 보낼 한 줄(input)</label>
+    <input id="board-check-input-field" type="text" autocomplete="off" data-check-input-field />
+    <button type="submit" class="lab-button">보내기</button>
+  </form>
+
+  <div class="board-check__records">
+    <p class="board-check__hint">답은 이 컴퓨터의 브라우저에만 남아요(서버로 보내지 않아요). 공용 컴퓨터에서는 끝나고 지워 주세요.</p>
+    <ClearRecordsButton id="board-check-clear" />
+  </div>
+</section>
+
+<script>
+  import { mountBoardCheck } from '../../../lab/esp32/check/check-page.ts';
+
+  const root = document.querySelector<HTMLElement>('[data-board-check]');
+  if (root) {
+    mountBoardCheck(root);
+  }
+</script>
+
+<!--
+  항목 카드는 스크립트가 만들므로(check-page.ts) Astro의 범위 스타일(data-astro-cid-…)이 닿지 않는다.
+  그래서 is:global로 쓰고 모든 선택자를 .board-check 아래로 두어 이 화면에만 적용한다.
+-->
+<style is:global>
+  .board-check {
+    display: grid;
+    /* 긴 코드 줄·보드 그림이 열을 늘려 페이지가 가로로 넘치지 않게(grid 기본 열은 max-content까지 자란다) */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+    /* 16진수·핀 번호가 "0×20"처럼 보이지 않게(Pretendard 문맥 대체) */
+    font-variant-ligatures: none;
+  }
+
+  .board-check__heading {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .board-check__connect,
+  .board-check__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .board-check__status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: var(--space-3);
+    border-inline-start: 4px solid var(--color-border-strong);
+  }
+
+  .board-check__status[data-tone='success'] {
+    border-inline-start-color: var(--color-success);
+  }
+
+  .board-check__status[data-tone='warning'] {
+    border-inline-start-color: var(--color-warning);
+  }
+
+  .board-check__status[data-tone='danger'] {
+    border-inline-start-color: var(--color-danger);
+  }
+
+  .board-check__actions,
+  .board-check__controls,
+  .board-check__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .board-check__summary {
+    justify-content: space-between;
+  }
+
+  .board-check__progress {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .board-check__info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .board-check__connect-notes,
+  .board-check__expect,
+  .board-check__pins,
+  .board-check__issues {
+    margin: 0;
+    padding-inline-start: 1.2em;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .board-check__issues {
+    color: var(--color-text);
+  }
+
+  .board-check__hint {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .board-check__items {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .board-check__item-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: baseline;
+  }
+
+  .board-check__item-title {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .board-check__badge {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  .board-check__item[data-verdict='yes'] .board-check__badge {
+    border-color: var(--color-success);
+    color: var(--color-success);
+  }
+
+  .board-check__item[data-verdict='different'] .board-check__badge {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+  }
+
+  .board-check__minutes {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .board-check__why,
+  .board-check__prepare,
+  .board-check__result {
+    margin: 0;
+  }
+
+  .board-check__prepare {
+    padding: var(--space-2);
+    border-inline-start: 4px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+  }
+
+  .board-check__figure {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .board-check__figure svg {
+    display: block;
+    width: 100%;
+    max-width: 34rem;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+  }
+
+  .board-check__figure-title {
+    font-weight: 700;
+    font-size: var(--text-sm);
+  }
+
+  .board-check__code pre,
+  .board-check__console,
+  .board-check__output {
+    margin: 0;
+    padding: var(--space-2);
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .board-check__console {
+    min-height: 8rem;
+    max-height: 18rem;
+    overflow-y: auto;
+  }
+
+  /* 항목이 찍은 값(반복문이면 줄이 많다) — 높이를 묶고 안에서 스크롤 */
+  .board-check__output {
+    max-height: 12rem;
+    overflow-y: auto;
+  }
+
+  .board-check__console span[data-kind='notice'] {
+    color: var(--color-accent-strong);
+  }
+
+  .board-check__console span[data-kind='input'] {
+    color: var(--color-text-muted);
+  }
+
+  .board-check__questions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .board-check__question {
+    margin: 0;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+  }
+
+  .board-check__question legend {
+    float: left;
+    width: 100%;
+    margin-block-end: var(--space-1);
+    padding-inline: 0;
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  .board-check__question legend + * {
+    clear: both;
+  }
+
+  .board-check__answer {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-inline-end: var(--space-3);
+  }
+
+  .board-check__note {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+  }
+
+  .board-check__note input {
+    min-height: 2.75rem;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+  }
+
+  .board-check__input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .board-check__input input {
+    flex: 1 1 12rem;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+  }
+
+  .board-check__report {
+    width: 100%;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .board-check__report[hidden] + .board-check__heading,
+  .board-check__report-label:has(+ .board-check__report[hidden]) {
+    display: none;
+  }
+
+  .board-check__records {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+</style>
