@@ -30,7 +30,7 @@
     "check:repo": "node scripts/check-repo.mjs",
     "check:links": "node scripts/check-links.mjs",
     "search:index": "pagefind --site dist && node scripts/prune-pagefind.mjs",
-    "test": "vitest run",
+    "test": "vitest run && vitest run --config tests/unit/firmware/vitest.container.config.mjs",
     "test:e2e": "playwright test",
     "prepare": "node scripts/setup-git-hooks.mjs"
   },

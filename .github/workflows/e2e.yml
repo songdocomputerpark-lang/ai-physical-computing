@@ -94,11 +94,11 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+          key: playwright-chromium-webkit-${{ runner.os }}-${{ steps.playwright.outputs.version }}
 
-      - name: 브라우저(Chromium)와 시스템 패키지 설치
+      - name: 브라우저(Chromium·WebKit)와 시스템 패키지 설치
         if: steps.browser-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: 브라우저 설치 캐시 저장(처음 설치했을 때만)
         if: steps.browser-cache.outputs.cache-hit != 'true'
@@ -109,7 +109,7 @@ jobs:
 
       - name: 시스템 패키지만 설치(브라우저는 캐시에서 되살림)
         if: steps.browser-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+        run: npx playwright install-deps chromium webkit
 
       - name: Pyodide 예비본 캐시(빌드가 public/vendor/pyodide/에 넣을 원본)
         # 휠 2개(numpy 3.0MB, OpenCV 10.7MB)는 node_modules/pyodide에 없어서 빌드 때 jsDelivr에서 받는다.

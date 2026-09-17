@@ -277,6 +277,11 @@ textarea {
 /* ── 글 읽기(마크다운 본문 등) ── */
 .prose {
   max-width: var(--width-prose);
+  /*
+   * (P3-04 통합) Pretendard는 숫자 사이의 x를 곱하기 기호로 그린다(문맥 대체) — I2C 주소 "0x20"이 "0×20"으로 보였다.
+   * 한글·영문 합자가 거의 없는 사이트라 본문 합자를 끄는 편이 안전하다(Edge 캡처로 전후 확인).
+   */
+  font-variant-ligatures: none;
 }
 
 .prose > * + * {

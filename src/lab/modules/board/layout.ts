@@ -151,7 +151,7 @@ export interface LayoutDefinition {
   readonly size: { readonly width: number; readonly height: number };
   readonly pins: readonly { readonly role: string }[];
   readonly anchors?: Readonly<Record<string, Point>>;
-  readonly power?: { readonly gnd: Point; readonly vcc: Point } | false;
+  readonly power?: { readonly gnd: Point; readonly vcc?: Point | false } | false;
 }
 
 export interface LayoutInstance {
@@ -228,13 +228,14 @@ export function partAnchors(definition: LayoutDefinition): Record<string, Point>
   return anchors;
 }
 
-/** 부품 전원 다리 자리(부품 그림 안). power가 false면 null, 없으면 아랫변 가운데 양옆 */
-export function partPowerLegs(definition: LayoutDefinition): { gnd: Point; vcc: Point } | null {
+/** 부품 전원 다리 자리(부품 그림 안). power가 false면 null, vcc가 false면 GND만, 없으면 아랫변 가운데 양옆 */
+export function partPowerLegs(definition: LayoutDefinition): { gnd: Point; vcc: Point | null } | null {
   if (definition.power === false) {
     return null;
   }
   if (definition.power) {
-    return { gnd: definition.power.gnd, vcc: definition.power.vcc };
+    const vcc = definition.power.vcc;
+    return { gnd: definition.power.gnd, vcc: vcc === false || vcc === undefined ? null : vcc };
   }
   const middle = Math.round(definition.size.width / 2);
   return { gnd: { x: middle - 9, y: definition.size.height }, vcc: { x: middle + 9, y: definition.size.height } };
@@ -462,12 +463,13 @@ export function planBoardDrawing(instances: readonly LayoutInstance[], definitio
       continue;
     }
     const gnd = { x: part.x + legs.gnd.x, y: part.y + legs.gnd.y };
-    const vcc = { x: part.x + legs.vcc.x, y: part.y + legs.vcc.y };
-    wires.push(
-      { key: `leg:${entry.instance.id}:gnd`, kind: 'gnd', instanceId: entry.instance.id, role: null, gpio: null, color: WIRE_COLOR_GND, points: [gnd, { x: gnd.x, y: gndRailY }] },
-      { key: `leg:${entry.instance.id}:vcc`, kind: 'vcc', instanceId: entry.instance.id, role: null, gpio: null, color: WIRE_COLOR_VCC, points: [vcc, { x: vcc.x, y: vccRailY }] },
-    );
-    junctions.push({ x: gnd.x, y: gndRailY }, { x: vcc.x, y: vccRailY });
+    wires.push({ key: `leg:${entry.instance.id}:gnd`, kind: 'gnd', instanceId: entry.instance.id, role: null, gpio: null, color: WIRE_COLOR_GND, points: [gnd, { x: gnd.x, y: gndRailY }] });
+    junctions.push({ x: gnd.x, y: gndRailY });
+    if (legs.vcc) {
+      const vcc = { x: part.x + legs.vcc.x, y: part.y + legs.vcc.y };
+      wires.push({ key: `leg:${entry.instance.id}:vcc`, kind: 'vcc', instanceId: entry.instance.id, role: null, gpio: null, color: WIRE_COLOR_VCC, points: [vcc, { x: vcc.x, y: vccRailY }] });
+      junctions.push({ x: vcc.x, y: vccRailY });
+    }
   }
 
   const minY = topDrafts.length > 0 ? TOP_LANE_START_Y - (topDrafts.length - 1) * LANE_GAP - 8 : PCB.y - 8;

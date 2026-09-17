@@ -27,6 +27,10 @@ playwright-report/
 test-results/
 blob-report/
 
+# 파이썬 로컬 실행 부산물(부품 폴더의 .py를 로컬 파이썬으로 문법만 확인해도 생긴다 — 저장소 검사가 .pyc를 막는다)
+__pycache__/
+*.pyc
+
 # 환경·편집기
 .env
 .env.*

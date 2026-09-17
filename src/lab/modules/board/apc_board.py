@@ -43,7 +43,8 @@
      장치 상태는 set_device_state(배선 id, 부품 id, 상태)로 알리면 16ms마다 핀 상태와 함께 'board.device' 이벤트로 나간다(최신 값만).
      화면 조작(부품 조작 칸·송신 패널)이 보낸 'board.device.input'은 on_device_input(배선 id, 처리 함수)로 받는다(입력 확인 지점에서, 양보 금지).
    - 아직 없는 모듈: neopixel·i2c_lcd·ssd1306·sh1106·servo_library·gorillacell_dcmotors는 파일이 생기기 전까지 한국어 안내가 든
-     ModuleNotFoundError로 멈춘다(NOT_YET_MODULES — 파일이 생기면 저절로 그 파일이 import된다).
+     ModuleNotFoundError로 멈춘다(NOT_YET_MODULES — 파일이 생기면 저절로 그 파일이 import된다). P3-11 통합에서 이 여섯 개는
+     모두 파일이 생겼지만(부품 폴더·examples/esp32/lib), 파일이 빠지면 예전 안내로 돌아가는 안전망이라 표는 그대로 둔다.
    - 블록 전용 호환 모드(PD-27, P3-06): JSPI가 없는 브라우저에서 블록 생성기의 실행판이 `await wait_ns_async(ns)`로 기다린다
      (apc_runtime.sleep_async — runPythonAsync의 최상위 await, 기다리는 동안 입력·[정지]를 받는다).
 
@@ -1160,7 +1161,10 @@ def wait_ns(total_ns):
     """가상 시계로 total_ns만큼 잔다(time.sleep*). 자는 동안 Timer가 울릴 시각마다 깨어 콜백을 돌리고,
     핀 인터럽트가 걸려 있으면 20ms 조각으로 나눠 자며 입력을 반영한다. [정지]면 KeyboardInterrupt."""
     board = BOARD
-    board.flush()
+    # (P3-11) 16ms 안의 변화는 합친다 — 실제로 기다리기 직전에는 대기 전 훅(_before_wait)이 보내고, 기다리지 않는 짧은 sleep은
+    # 틱 훅(_tick)이 16ms마다 보낸다. 늘 보내면 `duty(i); sleep(0.001)` 반복문(f060)이 board.state를 초당 수백 개 보낸다.
+    if _host_monotonic() - board.last_flush >= FLUSH_INTERVAL_S:
+        board.flush()
     apc_runtime.check_stop()
     total = max(0, int(total_ns))
     end = board.clock.now_ns() + total
@@ -1207,7 +1211,8 @@ async def wait_ns_async(total_ns):
     가상 시계만큼 잔다. wait_ns와 같은 일(Timer·핀 인터럽트·화면 입력·[정지])을 하고 기다리기는 apc_runtime.sleep_async로 한다.
     사이트의 블록 생성기가 만든 실행판(화면에 보이는 코드는 time.sleep)이 `await apc_board.wait_ns_async(ns)`로 부른다 — 학생 코드용 이름이 아니다."""
     board = BOARD
-    board.flush()
+    if _host_monotonic() - board.last_flush >= FLUSH_INTERVAL_S:  # wait_ns와 같은 16ms 규칙
+        board.flush()
     apc_runtime.check_stop()
     total = max(0, int(total_ns))
     end = board.clock.now_ns() + total

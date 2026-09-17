@@ -33,6 +33,8 @@ import {
 /** 패널 위 안내 글 */
 export const PARAM_NOTE_NORMAL = '값을 바꾸면 코드의 숫자도 함께 바뀌어요. 실행 중이면 코드가 그 값을 다음에 쓸 때부터 반영돼요.';
 export const PARAM_NOTE_LIMITED = '이 브라우저(제한 모드)에서는 바꾼 값이 코드에 적혀서 다음 [실행] 때 반영돼요.';
+/** (P3-07) 실행 대상(실제 보드)이 끼워진 동안 — 돌고 있는 보드에는 조절 값이 전해지지 않는다 */
+export const PARAM_NOTE_TARGET = '값을 바꾸면 코드의 숫자도 함께 바뀌어요. 실제 보드에서는 다음 [실행] 때 반영돼요.';
 
 export interface ParamPanelElements {
   readonly root: HTMLElement;
@@ -100,6 +102,9 @@ class ParamPanelController implements ParamPanel {
   #params: readonly ParamSpec[] = [];
   #warnings: readonly ParamWarning[] = [];
   #running = false;
+
+  /** 파이썬 실행기가 제한 모드(JSPI 없음)인지 — 안내 글 고르기 */
+  #limited = false;
   #disposed = false;
 
   constructor(lab: LabController, elements: ParamPanelElements) {
@@ -112,7 +117,10 @@ class ParamPanelController implements ParamPanel {
       lab.on('code', () => this.refresh()),
       lab.on('state', ({ state }) => {
         this.#running = state === 'running';
+        this.#renderNote();
       }),
+      lab.on('run', () => this.#renderNote()),
+      lab.on('done', () => this.#renderNote()),
       lab.runtime.on('ready', (info) => this.#setNote(info.limited)),
     );
     this.#setNote(lab.runtime.info?.limited ?? false);
@@ -193,11 +201,21 @@ class ParamPanelController implements ParamPanel {
   }
 
   #setNote(limited: boolean): void {
+    this.#limited = limited;
+    this.#renderNote();
+  }
+
+  /** 안내 글: 실행 대상(실제 보드) > 제한 모드 > 보통 */
+  #renderNote(): void {
     const note = this.#elements.note;
-    if (note) {
-      note.textContent = limited ? PARAM_NOTE_LIMITED : PARAM_NOTE_NORMAL;
-      note.dataset.limited = limited ? 'yes' : 'no';
+    if (!note) {
+      return;
     }
+    const limited = this.#limited;
+    const target = this.#lab.runTarget !== null;
+    note.textContent = target ? PARAM_NOTE_TARGET : limited ? PARAM_NOTE_LIMITED : PARAM_NOTE_NORMAL;
+    note.dataset.limited = limited ? 'yes' : 'no';
+    note.dataset.runTarget = target ? 'yes' : 'no';
   }
 
   #renderWarnings(warnings: readonly ParamWarning[]): void {

@@ -49,15 +49,26 @@ describe('보통 REPL', () => {
     expect(await host.readUntil('>>> ')).toBe('\r\n0\r\n1\r\n>>> ');
   });
 
-  it('input()은 호스트가 보낸 줄을 되울리며 받는다', async () => {
+  /*
+   * (P3-11) 실물 readline(v1.29.0 shared/readline/readline.c)은 32~126 글자만 줄에 넣고 되울린다 — 한글 바이트(0x80 이상)는
+   * 버리고 되울리지도 않아서 실물 보드의 input()에 한글을 보내면 빈 글자가 된다. 모의 보드도 그 규칙을 따른다.
+   */
+  it('input()은 호스트가 보낸 줄을 되울리며 받고, 한글은 실물처럼 빠진다', async () => {
     const { host } = await connect();
     await host.write("name = input('이름? ')\r");
     // 되울린 줄에도 "이름? "이 있으므로 줄바꿈 뒤의 진짜 물음까지 읽는다
     expect(await host.readText("')\r\n이름? ")).toBe("name = input('이름? ')\r\n이름? ");
-    await host.write('철수\r');
-    expect(await host.readText('>>> ')).toBe('철수\r\n>>> ');
+    await host.write('Kim\r');
+    expect(await host.readText('>>> ')).toBe('Kim\r\n>>> ');
     await host.write('print(name)\r');
-    expect(await host.readText('>>> ')).toBe('print(name)\r\n철수\r\n>>> ');
+    expect(await host.readText('>>> ')).toBe('print(name)\r\nKim\r\n>>> ');
+    // 한글만 보내면 실물처럼 아무 글자도 들어가지 않는다(되울림도 없다)
+    await host.write("name = input('이름? ')\r");
+    expect(await host.readText("')\r\n이름? ")).toBe("name = input('이름? ')\r\n이름? ");
+    await host.write('철수\r');
+    expect(await host.readText('>>> ')).toBe('\r\n>>> ');
+    await host.write('print(len(name))\r');
+    expect(await host.readText('>>> ')).toBe('print(len(name))\r\n0\r\n>>> ');
   });
 
   it('오류는 MicroPython 모양 트레이스백', async () => {

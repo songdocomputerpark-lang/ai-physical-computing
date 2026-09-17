@@ -14,6 +14,7 @@
  * data-lab-reveal-on-run-min: 함께 못 넣을 때 꼭 보여야 하는 칸(보드 그림) — src/lab/README.md 4.3.
  * 사이트 검색 색인은 LabShell 뿌리에서 이미 뺀다.
  */
+import '../../styles/board-drawing.css';
 ---
 
 <div class="board-io" data-board-io data-board-phase="stopped" data-lab-reveal-on-run>
@@ -42,7 +43,10 @@
         <h3 id="board-controls-heading" class="board-io__heading">부품 조작</h3>
         <div class="board-io__controls-list" data-board-controls-list></div>
       </section>
-      <p class="board-io__hint">누를 수 있는 부품(BOOT 버튼·터치 센서)은 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있어요.</p>
+      <p class="board-io__hint">
+        누를 수 있는 부품(BOOT 버튼·터치 센서)은 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있어요. 4채널 터치 센서는
+        그림 아래 "부품 조작" 칸의 [패드] 단추(Space·Enter를 누르고 있기)와 값 막대(화살표 키)로 조작해요.
+      </p>
       <details class="board-io__legend">
         <summary>그림 읽는 법</summary>
         <ul>
@@ -50,6 +54,7 @@
           <li>핀에 흰 고리가 생기면 코드가 쓰는 핀이고, 노랗게 빛나면 지금 1(HIGH)인 핀이에요. 핀에 마우스를 올리면 설명이 나와요.</li>
           <li>색 선은 신호선(핀 번호와 부품을 이음), 검은 선은 GND(0V), 빨간 선은 3V3(3.3V 전원)이에요. 브레드보드 아래 두 줄(레일)이 부품에 전원을 나눠 줘요.</li>
           <li>교과서 키트의 확장 보드를 쓰면 부품 케이블을 그림의 핀 번호와 같은 3색 헤더(GND 검정·VCC 빨강·신호 노랑)에 꽂아요.</li>
+          <li>버저·MP3 모듈이 있는 예제는 그림 위 [소리 켜짐/꺼짐] 단추로 소리를 켜고 꺼요. 소리는 [실행]을 누른 뒤에만 나요.</li>
         </ul>
       </details>
     </section>
@@ -158,6 +163,8 @@
   }
 
   .board-io__practice {
+    /* (P3-04·P3-05) Pretendard는 숫자 사이의 x를 곱하기 기호로 그린다 — 실습 방법 글의 16진수(0x03)가 0×03으로 보이지 않게 합자를 끈다 */
+    font-variant-ligatures: none;
     padding: var(--space-2) var(--space-3);
     border-inline-start: 4px solid var(--color-accent);
     border-radius: var(--radius-md);
@@ -220,106 +227,7 @@
     max-height: none;
   }
 
-  .board-io__stage :global(.board-drawing__module) {
-    fill: #2b2f36;
-    font-family: var(--font-mono);
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  .board-io__stage :global(.board-drawing__caption) {
-    fill: #374151;
-    font-size: 11px;
-  }
-
-  .board-io__stage :global(.board-drawing__small) {
-    fill: #e8eef6;
-    font-family: var(--font-mono);
-    font-size: 7.5px;
-    font-weight: 700;
-  }
-
-  .board-io__stage :global(.board-drawing__pin-label) {
-    fill: #ffffff;
-    font-family: var(--font-mono);
-    font-size: 8.5px;
-    font-weight: 700;
-  }
-
-  .board-io__stage :global(.board-drawing__pin-label--power) {
-    fill: #ffd9a0;
-    font-size: 7.5px;
-  }
-
-  .board-io__stage :global(.board-drawing__bb-label) {
-    fill: #57534e;
-    font-size: 8px;
-  }
-
-  .board-io__stage :global(.board-drawing__rail-label) {
-    fill: #1f2937;
-    font-family: var(--font-mono);
-    font-size: 8px;
-    font-weight: 700;
-  }
-
-  .board-io__stage :global(.board-drawing__rail-label--vcc) {
-    fill: #991b1b;
-  }
-
-  .board-io__stage :global(.board-part__label) {
-    fill: #ffffff;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 700;
-  }
-
-  .board-io__stage :global(.board-part__label--small) {
-    font-size: 8px;
-  }
-
-  .board-io__stage :global(.board-part__title) {
-    fill: #ffffff;
-    font-size: 9px;
-    font-weight: 700;
-  }
-
-  .board-io__stage :global(.board-part__state) {
-    fill: #e8eef6;
-    font-size: 9.5px;
-  }
-
-  .board-io__stage :global(.board-part--interactive) {
-    cursor: pointer;
-    touch-action: none;
-    outline: none;
-  }
-
-  .board-io__stage :global(.board-part__focus),
-  .board-io__stage :global(.board-part__focus-outer) {
-    fill: none;
-    stroke: transparent;
-  }
-
-  .board-io__stage :global(.board-part__focus) {
-    stroke-width: 2.5;
-  }
-
-  .board-io__stage :global(.board-part__focus-outer) {
-    stroke-width: 5;
-  }
-
-  /*
-   * SVG 요소에는 브라우저 초점 테두리가 잘 안 보여 두 겹 테두리를 직접 그린다(프로그램으로 옮긴 초점에도 보이게 :focus).
-   * 대비(계산값): 짙은 기판(#1f3b4d) 위 노랑(#ffd24a) 8.1:1, 밝은 브레드보드(#f4efe3) 위 짙은 선(#111827) 15.9:1.
-   */
-  .board-io__stage :global(.board-part--interactive:focus .board-part__focus) {
-    stroke: #ffd24a;
-  }
-
-  .board-io__stage :global(.board-part--interactive:focus .board-part__focus-outer) {
-    stroke: #111827;
-  }
+  /* 보드 그림 글자·부품 모양은 공용 파일 src/styles/board-drawing.css(점검 도우미도 같은 그림을 쓴다 — P3-11) */
 
   .board-io__issues {
     display: grid;

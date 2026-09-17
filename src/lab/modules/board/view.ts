@@ -93,7 +93,10 @@ export function visualSummary(definition: PartDefinition, instance: PartInstance
     .map((gpio) => `GPIO${gpio}`)
     .join('·');
   let state = '';
-  if (typeof visual.lit === 'boolean') {
+  if (typeof visual.summary === 'string' && visual.summary.trim() !== '') {
+    // (P3-03) 부품이 스스로 만든 상태 글 — 서보 각도·버저 Hz·팬 방향·패드 값처럼 lit·on·pressed로 말할 수 없는 것
+    state = visual.summary.trim();
+  } else if (typeof visual.lit === 'boolean') {
     state = visual.lit ? (typeof visual.brightness === 'number' && visual.brightness < 100 ? `켜짐(밝기 ${visual.brightness}%)` : '켜짐') : '꺼짐';
   } else if (typeof visual.on === 'boolean') {
     state = visual.on ? (typeof visual.strength === 'number' && visual.strength < 100 ? `진동 중(세기 ${visual.strength}%)` : '진동 중') : '멈춤';

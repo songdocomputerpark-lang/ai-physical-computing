@@ -13,8 +13,11 @@
  * 5. (병렬 제작 준비 2026-09-17) 보드 라이브러리: examples/esp32/lib/의 .py(i2c_lcd.py 등 — board-library-files.ts)를 파이썬이 준비될 때마다
  *    워커의 /board/lib/에 써 넣어 학생 코드가 `from i2c_lcd import I2cLcd`처럼 import하게 한다(실물 보드에 파일을 올린 것과 같게).
  * 6. (병렬 제작 준비 2026-09-17) 소리: 배선에 소리 부품(정의 sound: true)이 있으면 [소리 켜기/끄기] 단추를 보이고, [실행] 때 AudioContext를 깨운다(board-audio.ts).
+ * 7. (P3-06 블록 모드) 예제 목록에 없는 코드의 배선: 블록 모드가 실습실 뿌리에 알린 배선(data-board-wiring-override 속성 — src/lab/blocks/board-link.ts)이
+ *    있으면 예제 배선 대신 그것을 그린다(블록이 쓰는 터치 센서·버저 등). 속성 하나만 믿고(보드는 따로 기억하지 않음) apc:board-wiring 이벤트·예제 바뀜에 다시 그린다.
  * 영상처리 실습실에는 붙지 않는다(manifest labs ['esp32']). io 슬롯이 없는 페이지(차시 임베드 등)에서는 조용히 아무것도 하지 않는다.
  */
+import { BOARD_WIRING_EVENT, readAnnouncedWiring } from '../../blocks/board-link.ts';
 import { BOARD_LIBRARIES, BOARD_LIBRARY_DIR } from '../../esp32/board-library-files.ts';
 import type { RunResult } from '../../runtime/client.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
@@ -164,7 +167,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     if (!practiceBox || !practiceSteps) {
       return;
     }
-    const steps = examplePractice(context.lab.currentExample);
+    // 블록 모드가 배선을 알린 동안에는 예제의 실습 방법이 지금 코드와 맞지 않으므로 숨긴다
+    const steps = readAnnouncedWiring(context.root) ? [] : examplePractice(context.lab.currentExample);
     practiceSteps.replaceChildren(
       ...steps.map((step) => {
         const item = document.createElement('li');
@@ -176,7 +180,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
   };
 
   const applyWiring = () => {
-    const resolved = resolveWiring([...onboardWiring(PART_DEFINITIONS), ...exampleWiring(context.lab.currentExample)], PART_DEFINITIONS);
+    const entries = readAnnouncedWiring(context.root) ?? exampleWiring(context.lab.currentExample);
+    const resolved = resolveWiring([...onboardWiring(PART_DEFINITIONS), ...entries], PART_DEFINITIONS);
     instances = resolved.instances;
     unknown = resolved.unknown;
     const liveIds = new Set(instances.map((instance) => instance.id));
@@ -255,6 +260,10 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     view.update(snapshot, devices);
   });
   context.onLab('example', () => applyWiring());
+  // 블록 모드(src/lab/blocks/board-link.ts)가 배선을 알리거나 거둘 때
+  const onWiringAnnounced = () => applyWiring();
+  context.root.addEventListener(BOARD_WIRING_EVENT, onWiringAnnounced);
+  cleanups.push(() => context.root.removeEventListener(BOARD_WIRING_EVENT, onWiringAnnounced));
 
   applyWiring();
   io.dataset.boardReady = 'yes';

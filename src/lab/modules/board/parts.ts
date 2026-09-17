@@ -115,8 +115,12 @@ export function validatePartDefinitions(
         }
       }
     }
-    if (definition.power !== undefined && definition.power !== false && !(isPoint(definition.power?.gnd) && isPoint(definition.power?.vcc))) {
-      errors.push(`${where}: power는 { gnd: { x, y }, vcc: { x, y } } 또는 false로 적어요.`);
+    if (
+      definition.power !== undefined &&
+      definition.power !== false &&
+      !(isPoint(definition.power?.gnd) && (definition.power?.vcc === false || definition.power?.vcc === undefined || isPoint(definition.power?.vcc)))
+    ) {
+      errors.push(`${where}: power는 { gnd: { x, y }, vcc: { x, y } }(또는 vcc: false로 GND만) 또는 false로 적어요.`);
     }
     if (definition.defaultPinsNotice !== undefined && (typeof definition.defaultPinsNotice !== 'string' || definition.defaultPinsNotice.trim() === '')) {
       errors.push(`${where}: defaultPinsNotice는 안내 한 문장(글)으로 적어요.`);

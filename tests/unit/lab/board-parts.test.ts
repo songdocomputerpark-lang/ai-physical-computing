@@ -202,18 +202,28 @@ describe('배선(resolveWiring)', () => {
     expect(resolved.instances.map((instance) => instance.id)).toEqual(['onboard-led', 'strap', 'touch', 'motor', 'buzzer', 'flash', 'hidden', 'rgb2']);
   });
 
-  it("'board.wiring' 값: 아는 부품은 이름·핀·방향, 모르는 부품은 known false와 적힌 핀(사이드카 f052의 LCD)", () => {
+  it("'board.wiring' 값: 아는 부품은 이름·핀·방향(사이드카 f052의 터치·LCD), 모르는 부품은 known false와 적힌 핀", () => {
     const resolved = resolveWiring([
       { part: 'touch-digital', pin: 17 },
       { part: 'lcd-i2c', id: 'lcd', pins: { sda: 21, scl: 22 }, label: '문자 LCD(16×2)' },
+      { part: 'mystery-sensor', id: 'mystery', pins: { sig: 4 }, label: '이름 모를 센서' },
     ]);
-    expect(texts(resolved.issues)).toContain('부품 "문자 LCD(16×2)"은(는) 가상 보드에 아직 없어서');
+    expect(texts(resolved.issues)).toContain('부품 "이름 모를 센서"은(는) 가상 보드에 아직 없어서');
+    expect(texts(resolved.issues)).not.toContain('문자 LCD(16×2)');
     const value = wiringValue(resolved.instances, resolved.unknown);
     expect(value.parts).toEqual(
       expect.arrayContaining([
         { part: 'touch-digital', id: 'touch-digital', label: '터치 센서', pins: { sig: 17 }, directions: { sig: 'in' }, known: true },
         { part: 'builtin-led', id: 'builtin-led', label: '내장 LED', pins: { led: 2 }, directions: { led: 'out' }, known: true },
-        { part: 'lcd-i2c', id: 'lcd', label: '문자 LCD(16×2)', pins: { sda: 21, scl: 22 }, known: false },
+        {
+          part: 'lcd-i2c',
+          id: 'lcd',
+          label: '문자 LCD(16×2)',
+          pins: { sda: 21, scl: 22 },
+          directions: { sda: 'out', scl: 'out' },
+          known: true,
+        },
+        { part: 'mystery-sensor', id: 'mystery', label: '이름 모를 센서', pins: { sig: 4 }, known: false },
       ]),
     );
   });

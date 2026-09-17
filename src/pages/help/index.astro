@@ -26,13 +26,14 @@ const errorCount = errorCatalog.entries.length;
 
 const questions = [
   { id: 'camera', title: '카메라가 켜지지 않아요' },
+  { id: 'camera-black', title: '카메라는 켜졌는데 화면이 까맣게만 보여요' },
   { id: 'browser', title: '어떤 브라우저를 써야 하나요?' },
   { id: 'speech', title: '마이크가 없거나 마이크를 쓰고 싶지 않아요' },
   { id: 'board-port', title: '보드를 꽂았는데 연결할 포트가 보이지 않아요' },
   { id: 'school-network', title: '학교 네트워크에서 실습실이 열리지 않아요' },
   { id: 'clear-data', title: '공용 컴퓨터에서 내 기록을 지우고 싶어요' },
 ] as const;
-const [camera, browser, speech, boardPort, schoolNetwork, clearData] = questions;
+const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData] = questions;
 ---
 
 <BaseLayout title={page.title} description={page.description} width="narrow">
@@ -72,6 +73,29 @@ const [camera, browser, speech, boardPort, schoolNetwork, clearData] = questions
       <p>
         다른 프로그램(화상 회의 프로그램 등)이 카메라를 쓰고 있거나 카메라 덮개가 닫혀 있어도 영상이 안 보일 수 있어요. 이
         사이트에는 영상을 받아 저장하는 서버가 없어요.
+      </p>
+    </section>
+
+    <section aria-labelledby={cameraBlack.id}>
+      <h2 id={cameraBlack.id}>{cameraBlack.title}</h2>
+      <p>
+        상태 줄에는 "카메라를 켰어요"가 보이고 fps도 올라가는데 미리 보기와 결과 창이 모두 검은색이면, 브라우저가 고른 카메라
+        장치가 검은 영상을 보내는 거예요. 아래 순서로 확인해요.
+      </p>
+      <ol>
+        <li>노트북의 카메라 가림막과 카메라 끄기 키(Fn + 카메라 그림)를 확인해요.</li>
+        <li>화상 회의·카메라 앱이 카메라를 쓰고 있으면 그 프로그램을 닫아요.</li>
+        <li>
+          교실 화면 공유 프로그램(EShare 등)의 <strong>가상 카메라</strong>가 깔려 있으면 Chrome·Edge가 실제 카메라를 못 찾을 수 있어요
+          (운영자 컴퓨터에서 실제로 겪고 해결한 문제예요). <strong>장치 관리자 → 카메라 → 'EShare Virtual Camera'에서 마우스 오른쪽 버튼
+          → 디바이스 사용 안 함</strong> → 브라우저를 모두 닫고 다시 열어요. 화면 공유를 쓸 때는 다시 <strong>디바이스 사용</strong>으로
+          바꿔요(관리자 권한이 필요할 수 있어요).
+        </li>
+        <li>Windows 카메라 앱에서는 보이는데 브라우저에서만 검은색이면 3번이 가장 흔한 까닭이에요.</li>
+      </ol>
+      <p>
+        그래도 안 되면 실습실 입력 칸에서 입력 소스를 <strong>샘플</strong>이나 <strong>내 그림 파일</strong>로 바꿔 실습을 이어 갈 수
+        있어요. 카메라가 없어도 모든 실습을 끝까지 할 수 있어요.
       </p>
     </section>
 
@@ -117,7 +141,10 @@ const [camera, browser, speech, boardPort, schoolNetwork, clearData] = questions
         </li>
         <li>Thonny 같은 다른 프로그램이 보드에 연결돼 있으면 그 프로그램을 닫고 다시 시도해요.</li>
       </ol>
-      <p>보드를 처음 연결하는 전체 순서는 <a href={boardPage.href}>{boardPage.title}</a> 페이지에 있어요.</p>
+      <p>
+        보드를 처음 연결하는 전체 순서와 장치 관리자 그림, 전산 담당 선생님께 보낼 부탁 글은{' '}
+        <a href={`${boardPage.href}#port-not-found`}>{boardPage.title} 페이지의 "연결이 안 될 때" 안내</a>에 있어요.
+      </p>
     </section>
 
     <section aria-labelledby={schoolNetwork.id}>

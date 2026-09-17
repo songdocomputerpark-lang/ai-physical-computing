@@ -230,9 +230,12 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
         <button type="submit" class="button button--primary">입력</button>
       </form>
       <p class="lab__result" role="status" aria-live="polite" data-lab-result></p>
-      <p class="lab__hint">
+      <p class="lab__hint" data-lab-stop-hint="runtime">
         [정지]를 누르면 기다리는 곳(time.sleep, input)에서 바로 멈춰요. {STOP_GRACE_MS / 1000}초 안에 멈추지 않으면 파이썬을 다시
         시작해요.
+      </p>
+      <p class="lab__hint" data-lab-stop-hint="target">
+        [정지]를 누르면 연결한 보드에 멈춤 신호(Ctrl-C)를 보내요. 멈추지 않으면 입력·출력 칸의 [보드 되찾기]를 눌러요.
       </p>
     </section>
   </div>
@@ -583,6 +586,15 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /*
+   * (P3-07·P3-08) [정지] 안내는 지금 실행 대상에 맞는 것만 보인다 — 실습실 뿌리의 data-run-target은 셸(lab-shell.ts)이 적는다.
+   * 실제 보드는 Ctrl-C를 되풀이해 보내고 파이썬을 다시 시작하지 않으므로 파이썬 실행기 안내가 맞지 않다.
+   */
+  .lab[data-run-target]:not([data-run-target='']) [data-lab-stop-hint='runtime'],
+  .lab:is(:not([data-run-target]), [data-run-target='']) [data-lab-stop-hint='target'] {
+    display: none;
   }
 
   /* 편집칸 위에 두는 안내(Tab 키) — 아래 여백만 준다 */

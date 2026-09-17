@@ -4,7 +4,8 @@
  * 보드 라이브러리는 학생 코드가 import하는 사이트 제공 파일이다: i2c_lcd.py(P3-04, third-party/), servo_library.py(P3-03, 운영자 원고 복원),
  * gorillacell_dcmotors.py(P3-05, third-party/) 등. 한 파일을 두 곳이 같이 쓴다.
  * - 가상 보드: 보드 모듈(src/lab/modules/board/index.ts)이 파이썬이 준비될 때마다 워커의 /board/lib/<파일 이름>에 써 넣는다(sys.path에 있음).
- * - 실물 보드(P3-08 [보드에 저장]): librariesNeededBy(코드)로 코드가 부르는 라이브러리를 골라 main.py와 함께 보드에 올린다.
+ * - 실물 보드(P3-08): [실행]은 코드가 부르는 라이브러리가 보드에 없을 때만 먼저 올리고, [보드에 저장]은 main.py와 함께 올린다(src/lab/serial/board-files.ts).
+ *   자리는 보드 뿌리(/i2c_lcd.py) — 교과서가 Thonny로 저장하는 자리이고, ESP32 sys.path가 ['', '.frozen', '/lib']라 /lib에 두면 뿌리의 옛 파일에 가려진다.
  * 규칙(검사 — boardLibrariesFromFiles가 오류를 던져 빌드가 멈춘다): 파일 이름 = import 이름(영문 소문자로 시작, 소문자·숫자·밑줄),
  * 폴더(third-party/ 포함)가 달라도 파일 이름은 하나뿐, 사이트 흉내 모듈 이름(apc_로 시작)·가상 보드 붙박이 이름(machine·micropython 등)과 겹치면 안 된다.
  * 이 파일은 glob을 쓰지 않는다(Node 테스트·Playwright에서도 import) — 파일 묶음은 board-library-files.ts.
@@ -25,7 +26,11 @@ export interface BoardLibrary {
 /** 라이브러리 폴더(examples/ 뒤) */
 export const BOARD_LIBRARY_PREFIX = 'esp32/lib/';
 
-/** 보드 라이브러리가 쓸 수 없는 이름(가상 보드 붙박이 모듈·MicroPython 내장 모듈과 겹치면 학생 코드가 엉뚱한 파일을 받는다) */
+/**
+ * 보드 라이브러리가 쓸 수 없는 이름(가상 보드 붙박이 모듈·MicroPython 내장 모듈과 겹치면 학생 코드가 엉뚱한 파일을 받는다).
+ * 실물 보드에서는 보드 뿌리의 파일이 펌웨어에 굳혀 둔(frozen) 모듈보다 먼저 불리므로, ESP32_GENERIC v1.29.0이 굳혀 둔 이름
+ * (ports/esp32/boards/manifest.py: asyncio·aioespnow·dht·ds18x20·neopixel·onewire·umqtt·upysh와 bundle-networking 묶음)도 막는다.
+ */
 export const RESERVED_LIBRARY_NAMES: readonly string[] = Object.freeze([
   'machine',
   'micropython',
@@ -49,6 +54,19 @@ export const RESERVED_LIBRARY_NAMES: readonly string[] = Object.freeze([
   'select',
   'socket',
   'framebuf',
+  // 펌웨어에 굳혀 둔(frozen) 모듈 — 보드 뿌리에 같은 이름을 올리면 그 파일이 먼저 불린다(ports/esp32/boards/manifest.py v1.29.0)
+  'asyncio',
+  'aioespnow',
+  'dht',
+  'ds18x20',
+  'onewire',
+  'umqtt',
+  'upysh',
+  'ntptime',
+  'webrepl',
+  'webrepl_setup',
+  'inisetup',
+  'requests',
 ]);
 
 const NAME_PATTERN = /^[a-z][a-z0-9_]*$/u;
@@ -88,7 +106,7 @@ export function boardLibrariesFromFiles(files: Readonly<Record<string, string>>)
     }
     const existing = seen.get(name);
     if (existing) {
-      errors.push(`examples/${file}: 파일 이름 ${fileName}이(가) examples/${existing}와(과) 겹쳐요. 보드에는 폴더 없이 한곳(/lib)에 올라가므로 이름이 하나여야 해요.`);
+      errors.push(`examples/${file}: 파일 이름 ${fileName}이(가) examples/${existing}와(과) 겹쳐요. 보드에는 폴더 없이 한곳(보드 뿌리 /)에 올라가므로 이름이 하나여야 해요.`);
       continue;
     }
     seen.set(name, file);

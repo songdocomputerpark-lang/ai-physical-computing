@@ -1,7 +1,7 @@
 /**
  * 이관 예제 전부(scripts/examples-manifest.yaml 기준)를 실습실에서 한 번씩 돌려 보는 스모크 테스트(P2-14, P3-01에서 실습실별로 나눔).
  *
- * 왜: 옮긴 예제(2026-09-17 기준 57개)는 원본 코드를 한 글자도 고치지 않고 옮긴 것이라(PD-10·PD-33), 흉내 모듈이 하나라도 어긋나면
+ * 왜: 옮긴 예제(2026-09-18 기준 97개 — 영상처리 57·ESP32 40)는 원본 코드를 한 글자도 고치지 않고 옮긴 것이라(PD-10·PD-33), 흉내 모듈이 하나라도 어긋나면
  * 학생 화면에서 영어 트레이스백이 난다. 사람이 하나하나 눌러 볼 수 없으니 한 번에 돌려 결과를 대조한다.
  *
  * 실습실별로 돈다(P3-01): examples/esp32/ 아래 예제는 ESP32 실습실(가상 보드 — machine·time 흉내는 이 실습실 워커에만 있다),
@@ -38,6 +38,13 @@ import { openVisionLab } from './helpers/vision.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..');
 const MANIFEST = path.join(REPO_ROOT, 'scripts', 'examples-manifest.yaml');
+
+/*
+ * 조작 하나에 주는 제한 시간(P3-11). 개발 서버에 대고 돌리면 다른 창에서 파일을 저장할 때 Vite가 페이지를 새로 고쳐
+ * [정지] 단추가 잠깐 비활성이 되는데, 제한 시간이 없으면 테스트 전체 제한(20분)까지 기다리다 남은 예제를 못 본다.
+ * 여기서 실패하면 catch가 reopenLab()으로 페이지를 되살려 다음 예제를 이어 본다(빌드 결과·CI에서는 새로 고침이 없다).
+ */
+const ACTION_TIMEOUT = 15_000;
 const REPLAY_TAGS = ['손', '얼굴', '자세', 'mediapipe', '랜드마크', '포즈'];
 const DEFAULT_WATCH_MS = 3500;
 
@@ -208,13 +215,13 @@ async function runSmoke(page: Page, context: BrowserContext, lab: SmokeLab, item
       }
       await lab.prepare(page, item);
 
-      await select.selectOption(item.id);
-      await loadButton.click();
+      await select.selectOption(item.id, { timeout: ACTION_TIMEOUT });
+      await loadButton.click({ timeout: ACTION_TIMEOUT });
       await expect(root).toHaveAttribute('data-example', item.id);
 
       await page.locator('[data-lab-console-clear]').click().catch(() => undefined);
       const runsBefore = Number((await root.getAttribute('data-run-count')) ?? '0');
-      await runButton.click();
+      await runButton.click({ timeout: ACTION_TIMEOUT });
       await expect.poll(async () => Number((await root.getAttribute('data-run-count')) ?? '0'), { timeout: 30_000 }).toBeGreaterThan(runsBefore);
 
       // 스스로 끝나면 그때까지만 기다리고, 반복문이면 지켜본 뒤 [정지].
@@ -244,7 +251,7 @@ async function runSmoke(page: Page, context: BrowserContext, lab: SmokeLab, item
         .catch(() => false);
 
       if (!finished) {
-        await stopButton.click();
+        await stopButton.click({ timeout: ACTION_TIMEOUT });
       }
       await expect(root).toHaveAttribute('data-state', 'idle', { timeout: 30_000 });
       const outcome = (await root.getAttribute('data-outcome')) ?? '';

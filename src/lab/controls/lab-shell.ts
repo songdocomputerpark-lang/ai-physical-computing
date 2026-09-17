@@ -154,6 +154,17 @@ export interface LabController {
   on<K extends keyof LabEvents>(event: K, listener: LabListener<K>): () => void;
   /** 파이썬의 request(kind) 처리기. 같은 kind는 마지막 것만 남는다. 'input'은 셸이 처리한다. */
   onRequest(kind: string, handler: RequestHandler): () => void;
+  /**
+   * (P3-05) input() 입력줄을 보이고 학생이 적은 한 줄을 기다린다 — 실행 대상의 ctx.prompt와 같은 입력줄·같은 되울림(콘솔에 input으로).
+   * 실행 대상이 실행 중이거나, 실행 대상이 없고 이 페이지의 파이썬이 실행 중일 때만 연다(보드 콘솔 모듈이 파이썬을 멈추지 않고 입력을 받을 때).
+   * 실행이 끝나거나 [정지]하면 null, 실행 중이 아니면 바로 null.
+   */
+  prompt(label: string): Promise<string | null>;
+  /**
+   * (P3-06) [실행] 때 파이썬 실행기에 보낼 코드를 바꾼다(편집칸·공유 링크·내려받기·실제 보드에는 영향 없음).
+   * 블록 전용 호환 모드(PD-27)가 줄 수가 같은 실행판을 보낼 때 쓴다. null이면 편집칸 코드를 그대로 보낸다.
+   */
+  setRunCodeTransform(transform: ((code: string) => string | null) | null): void;
   /** (병렬 제작 준비 2026-09-17) 지금 [실행]을 받는 실행 대상. null이면 이 페이지의 파이썬 실행기 */
   readonly runTarget: LabRunTarget | null;
   /** 실행 대상을 끼운다(null이면 뗀다). 실행 중이면 오류를 던진다 — [정지]한 뒤에 바꾼다 */
@@ -259,6 +270,9 @@ class LabShellController implements LabController {
   /** [실행] 단추의 원래 글자 */
   #runLabel = '실행';
   #disposed = false;
+  /** (P3-06) [실행] 때 파이썬 실행기로 보낼 코드를 바꾸는 함수(setRunCodeTransform) */
+  #runCodeTransform: ((code: string) => string | null) | null = null;
+
   /** 실행 대상(setRunTarget)과, 그 대상이 돌고 있는 동안의 기록·input 줄 약속 */
   #runTarget: LabRunTarget | null = null;
   #targetRun: { readonly startedAt: number; stopRequestedAt: number | null } | null = null;
@@ -402,7 +416,8 @@ class LabShellController implements LabController {
     const code = this.getCode();
     this.#beginRun(code, null);
     try {
-      return await this.runtime.run(code, this.#example?.packages ? { packages: this.#example.packages } : {});
+      const sent = this.#runCodeTransform?.(code) ?? code;
+      return await this.runtime.run(sent, this.#example?.packages ? { packages: this.#example.packages } : {});
     } catch (error) {
       this.appendConsole(`[오류] ${error instanceof Error ? error.message : String(error)}\n`, 'notice');
       return null;
@@ -445,6 +460,14 @@ class LabShellController implements LabController {
 
   get runTarget(): LabRunTarget | null {
     return this.#runTarget;
+  }
+
+  prompt(label: string): Promise<string | null> {
+    return this.#promptForTarget(label);
+  }
+
+  setRunCodeTransform(transform: ((code: string) => string | null) | null): void {
+    this.#runCodeTransform = transform;
   }
 
   setRunTarget(target: LabRunTarget | null): void {
@@ -517,7 +540,9 @@ class LabShellController implements LabController {
 
   #promptForTarget(label: string): Promise<string | null> {
     const { inputForm, inputLabel, inputField } = this.#elements;
-    if (!this.#targetRun || !inputForm || !inputField) {
+    // 실행 대상이 돌고 있거나(그 대상의 ctx.prompt), 대상이 없고 이 페이지의 파이썬이 돌고 있을 때(보드 콘솔 input)만 연다
+    const running = this.#targetRun !== null || (this.#runTarget === null && this.runtime.state === 'running');
+    if (!running || !inputForm || !inputField) {
       return Promise.resolve(null);
     }
     this.#resolveTargetPrompt(null);
@@ -839,6 +864,7 @@ class LabShellController implements LabController {
           stopButton.disabled = state !== 'running';
           if (state !== 'running') {
             this.#hideInput();
+            this.#resolveTargetPrompt(null);
           }
         }
         this.#emit('state', { state });
@@ -887,6 +913,7 @@ class LabShellController implements LabController {
       }),
       runtime.on('done', (result) => {
         this.#hideInput();
+        this.#resolveTargetPrompt(null);
         this.#showResult(result);
         this.#emit('done', result);
       }),

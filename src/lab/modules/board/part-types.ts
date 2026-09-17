@@ -162,9 +162,9 @@ export interface PartDefinition {
   readonly anchors?: Readonly<Record<string, PartPoint>>;
   /**
    * (바깥 부품) 전원(GND·VCC) 다리가 나오는 자리. 적지 않으면 그림 아랫변 가운데 양옆(가운데 − 9 = GND, 가운데 + 9 = VCC — layout.ts partPowerLegs).
-   * false면 전원선을 그리지 않는다
+   * false면 전원선을 아예 그리지 않고, vcc: false면 GND만 그린다(자기 USB로 전원을 받는 USB-UART 변환기처럼 VCC를 잇지 않는 부품 — P3-05).
    */
-  readonly power?: { readonly gnd: PartPoint; readonly vcc: PartPoint } | false;
+  readonly power?: { readonly gnd: PartPoint; readonly vcc?: PartPoint | false } | false;
   /**
    * (선택) 이 부품을 defaultPins 그대로 이었을 때 배선 목록에 보일 안내 한 문장(수준 info). 원고에 핀 번호가 없어 사이트가 정한 핀처럼
    * 알아 둘 것을 적는다(예: 진동 모터 — PD-36 "사이트 배정, 실물 확인 전").

@@ -21,7 +21,7 @@
 import { withBase } from '../../../lib/url.ts';
 import { readItem, writeItem } from '../../../lib/storage.ts';
 import { revealElement } from '../../controls/reveal.ts';
-import { CONCEPT_CARDS, cardCounterText, nextCardIndex } from '../../loader/cards.ts';
+import { cardCounterText, cardsForLab, nextCardIndex } from '../../loader/cards.ts';
 import {
   CARD_INTERVAL_MS,
   LOADING_STAGE_EVENT,
@@ -318,12 +318,13 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }),
   );
 
-  // ── 1분 개념 카드 ──
+  // ── 1분 개념 카드(실습실에 맞는 묶음 — 영상처리는 사진·에지, ESP32는 핀·MicroPython) ──
+  const cards = cardsForLab(context.labId);
   let cardIndex = 0;
   let cardTimer: ReturnType<typeof setInterval> | null = null;
   const showCard = (index: number) => {
-    cardIndex = nextCardIndex(index, 0);
-    const card = CONCEPT_CARDS[cardIndex];
+    cardIndex = nextCardIndex(index, 0, cards.length);
+    const card = cards[cardIndex];
     if (!card) {
       return;
     }
@@ -359,7 +360,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       }
     }
     if (cardCounter) {
-      cardCounter.textContent = cardCounterText(cardIndex);
+      cardCounter.textContent = cardCounterText(cardIndex, cards.length);
     }
     if (cardsBox) {
       cardsBox.dataset.card = card.id;
@@ -376,10 +377,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
     if (reducedMotion()) {
       return;
     }
-    cardTimer = setInterval(() => showCard(nextCardIndex(cardIndex, 1)), CARD_INTERVAL_MS);
+    cardTimer = setInterval(() => showCard(nextCardIndex(cardIndex, 1, cards.length)), CARD_INTERVAL_MS);
   };
   const step = (by: number) => {
-    showCard(nextCardIndex(cardIndex, by));
+    showCard(nextCardIndex(cardIndex, by, cards.length));
     startCardTimer();
   };
   prevButton?.addEventListener('click', () => step(-1));

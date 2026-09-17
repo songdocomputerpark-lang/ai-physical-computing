@@ -1,0 +1,113 @@
+/*
+ * 가상 ESP32 보드 그림의 글자·부품 모양(P3-01·P3-02에서 만들고 P3-11에서 공용 파일로 옮김).
+ *
+ * 왜 따로 있나: 보드 그림은 스크립트가 SVG로 그리므로(src/lab/modules/board/board-drawing.ts·view.ts, 부품의 render)
+ * Astro 컴포넌트의 범위 스타일(data-astro-cid-…)이 닿지 않는다. 그림을 쓰는 곳이 두 군데라(ESP32 실습실의 입력·출력 칸,
+ * 실물 점검 도우미의 배선 그림) 같은 값을 두 번 적지 않게 이 파일로 모았다.
+ *
+ * 선택자는 SVG 뿌리 클래스(.board-stage__svg — createBoardDrawing이 붙인다) 아래로만 둔다. 쓰는 곳:
+ *   src/components/lab/BoardIo.astro(실습실), src/components/lab/check/BoardCheckHelper.astro(점검 도우미)
+ * 그림 크기·[그림 크게 보기]처럼 쓰는 곳마다 다른 것은 그 컴포넌트에 둔다.
+ * 글자 크기는 보기 영역(viewBox) 단위다(418×166 → 폭 1.3배면 핀 번호 8.5단위가 약 11px).
+ */
+
+.board-stage__svg .board-drawing__module {
+  fill: #2b2f36;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.board-stage__svg .board-drawing__caption {
+  fill: #374151;
+  font-size: 11px;
+}
+
+.board-stage__svg .board-drawing__small {
+  fill: #e8eef6;
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+}
+
+.board-stage__svg .board-drawing__pin-label {
+  fill: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+}
+
+.board-stage__svg .board-drawing__pin-label--power {
+  fill: #ffd9a0;
+  font-size: 7.5px;
+}
+
+.board-stage__svg .board-drawing__bb-label {
+  fill: #57534e;
+  font-size: 8px;
+}
+
+.board-stage__svg .board-drawing__rail-label {
+  fill: #1f2937;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.board-stage__svg .board-drawing__rail-label--vcc {
+  fill: #991b1b;
+}
+
+.board-stage__svg .board-part__label {
+  fill: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.board-stage__svg .board-part__label--small {
+  font-size: 8px;
+}
+
+.board-stage__svg .board-part__title {
+  fill: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.board-stage__svg .board-part__state {
+  fill: #e8eef6;
+  font-size: 9.5px;
+}
+
+.board-stage__svg .board-part--interactive {
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.board-stage__svg .board-part__focus,
+.board-stage__svg .board-part__focus-outer {
+  fill: none;
+  stroke: transparent;
+}
+
+.board-stage__svg .board-part__focus {
+  stroke-width: 2.5;
+}
+
+.board-stage__svg .board-part__focus-outer {
+  stroke-width: 5;
+}
+
+/*
+ * SVG 요소에는 브라우저 초점 테두리가 잘 안 보여 두 겹 테두리를 직접 그린다(프로그램으로 옮긴 초점에도 보이게 :focus).
+ * 대비(계산값): 짙은 기판(#1f3b4d) 위 노랑(#ffd24a) 8.1:1, 밝은 브레드보드(#f4efe3) 위 짙은 선(#111827) 15.9:1.
+ */
+.board-stage__svg .board-part--interactive:focus .board-part__focus {
+  stroke: #ffd24a;
+}
+
+.board-stage__svg .board-part--interactive:focus .board-part__focus-outer {
+  stroke: #111827;
+}

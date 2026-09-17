@@ -453,6 +453,14 @@ export class MicroPythonDevice implements SerialDevice {
       }
       return;
     }
+    /*
+     * (P3-11) 실물 readline(v1.29.0 shared/readline/readline.c)은 32~126 글자만 줄에 넣고 되울린다 — 그 밖(0x80 이상의 한글 바이트,
+     * 제어 글자)은 버리고 되울리지도 않는다. 그래서 실물 보드에서는 한글 input()이 빈 글자가 된다(사이트가 보내기 전에 걸러 안내).
+     * Tab(9)은 자동 완성이라 줄에 들어가지 않는다.
+     */
+    if (byte < 0x20 || byte > 0x7e) {
+      return;
+    }
     this.lastInputEnd = 0;
     waiter.buffer.push(byte);
     this.emit(Uint8Array.of(byte));
@@ -515,12 +523,27 @@ export class MicroPythonDevice implements SerialDevice {
         return false;
       }
       if (error instanceof ResetSignal) {
-        // 실물은 리셋하느라 raw 모드의 끝 표시(\x04)를 보내지 못한다 — 호스트는 부팅 글·배너로 리셋을 알아챈다
+        /*
+         * (P3-11) 실물 순서: machine.soft_reset()은 raw 모드의 끝 표시 두 개(\x04\x04)를 먼저 보내고 나서 리셋한다
+         * (shared/runtime/pyexec.c parse_compile_execute의 EXEC_FLAG_PRINT_EOF 두 자리 → ports/esp32/main.c의 소프트 리셋).
+         * 하드 리셋은 보드가 곧바로 다시 켜져 끝 표시를 보내지 못한다 — 호스트는 부팅 글·배너로 알아챈다.
+         */
+        if (options.rawFraming && error.kind === 'soft') {
+          this.emit('\x04\x04');
+        }
         void (error.kind === 'hard' ? this.hardReset('software') : this.softReset());
         return false;
       }
       if (error instanceof PyException && error.type === 'SystemExit') {
-        // parse_compile_execute: SystemExit는 트레이스백 없이 보통 끝(값이 None이면 PYEXEC_NORMAL_EXIT)
+        /*
+         * parse_compile_execute: SystemExit는 트레이스백 없이 끝나고 PYEXEC_FORCED_EXIT를 돌려준다 → raw REPL 고리가 끝나
+         * ESP32 main.c가 소프트 리셋한다(Thonny에서 sys.exit()을 하면 "MPY: soft reboot"이 보이는 까닭).
+         */
+        if (options.rawFraming) {
+          this.emit('\x04\x04');
+          void this.softReset();
+          return false;
+        }
         ok = true;
       } else if (error instanceof PyException) {
         ok = false;

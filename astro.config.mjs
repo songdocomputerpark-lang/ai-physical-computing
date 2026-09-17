@@ -44,6 +44,9 @@ export default defineConfig({
     },
   },
   vite: {
+    // 병렬 제작: 한 작업 폴더에 개발 서버가 여럿이면 node_modules/.vite/deps를 함께 써서 504(Outdated Optimize Dep)가 되풀이된다.
+    // APC_VITE_CACHE_DIR을 서버마다 다르게 주면 미리 묶기 폴더가 나뉜다(src/lab/README.md 5.1). 값이 없으면 지금과 같다.
+    ...(process.env.APC_VITE_CACHE_DIR ? { cacheDir: process.env.APC_VITE_CACHE_DIR } : {}),
     // 배포 번들(브라우저로 가는 코드)에 실제로 들어간 npm 패키지 목록을 dist/bundle-licenses.json으로 남긴다.
     // 빌드 뒤 scripts/check-sources.mjs --bundle(npm의 postbuild)이 sources.yaml과 대조하고 지운다(PLAN §8.1 P1-04).
     // client 환경에만 켜는 이유는 scripts/lib/bundle-license.mjs에 적었다.

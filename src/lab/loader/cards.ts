@@ -6,6 +6,7 @@
  * - 용어는 용어사전 항목으로 이어 준다(링크는 withBase로 만든다 — 하위 경로가 빠지지 않게).
  * - 카드 순서 = 첫 실습(에지 검출)에서 실제로 일어나는 순서: 픽셀 → 회색 → 흐리게 → 에지 → 임계값.
  * - 여기 글을 고치면 tests/unit/loading/cards.test.ts의 길이·링크 검사가 함께 지킨다.
+ * - (P3-11) 실습실마다 읽을 거리가 다르다: 영상처리는 사진·에지, ESP32는 핀·MicroPython. cardsForLab(labId)로 고른다.
  */
 import { withBase } from '../../lib/url.ts';
 
@@ -79,6 +80,65 @@ export const CONCEPT_CARDS: readonly ConceptCard[] = Object.freeze([
 ]);
 
 /** 다음 카드 번호(마지막 다음은 처음). step이 음수면 이전 카드. */
+/** ESP32 실습실에서 파이썬 엔진(12.9MB)을 받는 동안 읽는 카드 — 보드 개념 순서: 마이크로컨트롤러 → 핀 → MicroPython → PWM */
+export const BOARD_CONCEPT_CARDS: readonly ConceptCard[] = Object.freeze([
+  {
+    id: 'board-brain',
+    title: 'ESP32는 아주 작은 컴퓨터예요',
+    body: [
+      '손가락 두 개만 한 보드 안에 계산하는 칩과 저장 공간이 들어 있어요.',
+      '화면도 키보드도 없지만, 파이썬 코드를 넣으면 LED·버저·모터를 스스로 움직여요.',
+    ],
+    link: { href: withBase('glossary/#microcontroller'), text: '용어사전: 마이크로컨트롤러' },
+  },
+  {
+    id: 'board-pin',
+    title: '핀은 보드와 부품을 잇는 문이에요',
+    body: [
+      '보드 양쪽에 번호가 적힌 금속 다리(핀)가 줄지어 있어요.',
+      '코드에서 Pin(2)처럼 번호를 부르면 그 문으로 전기를 내보내거나 값을 읽어요.',
+      '핀마다 할 수 있는 일이 조금씩 달라서, 예제의 배선 그림에 적힌 번호를 그대로 써요.',
+    ],
+    code: 'led = Pin(2, Pin.OUT)',
+    link: { href: withBase('glossary/#gpio'), text: '용어사전: GPIO' },
+  },
+  {
+    id: 'board-micropython',
+    title: 'MicroPython은 보드용 파이썬이에요',
+    body: [
+      '컴퓨터에서 쓰는 파이썬을 작은 보드에 맞게 줄인 것이에요.',
+      'print·if·for는 똑같고, 대신 machine처럼 보드만 가진 모듈이 있어요.',
+      '가상 보드와 실물 보드가 같은 코드를 돌리는 까닭이에요.',
+    ],
+    link: { href: withBase('glossary/#micropython'), text: '용어사전: MicroPython' },
+  },
+  {
+    id: 'board-digital',
+    title: '핀이 아는 값은 0과 1이에요',
+    body: [
+      '디지털 핀은 0(0V, 꺼짐)과 1(3.3V, 켜짐) 두 가지만 내보내요.',
+      '버튼을 읽을 때도 눌렸는지 아닌지를 0·1로 알려 줘요.',
+    ],
+    code: 'print(button.value())  # 0 또는 1',
+    link: { href: withBase('glossary/#sensor'), text: '용어사전: 센서' },
+  },
+  {
+    id: 'board-pwm',
+    title: '빠르게 켜고 끄면 밝기가 돼요',
+    body: [
+      '0과 1만 낼 수 있어도, 1초에 수천 번 켜고 끄면 눈에는 중간 밝기로 보여요.',
+      '켜진 시간의 비율(duty)을 바꾸면 LED 밝기·버저 소리·서보 각도를 정할 수 있어요.',
+    ],
+    code: 'PWM(Pin(27), freq=1000, duty=512)',
+    link: { href: withBase('glossary/#pwm'), text: '용어사전: PWM' },
+  },
+]);
+
+/** 이 실습실에서 보여 줄 카드(모르는 실습실은 영상처리 카드) */
+export function cardsForLab(labId: string): readonly ConceptCard[] {
+  return labId === 'esp32' ? BOARD_CONCEPT_CARDS : CONCEPT_CARDS;
+}
+
 export function nextCardIndex(index: number, step = 1, count = CONCEPT_CARDS.length): number {
   if (count <= 0) {
     return 0;

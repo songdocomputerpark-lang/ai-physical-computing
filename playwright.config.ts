@@ -122,6 +122,17 @@ export default defineConfig({
       name: 'mobile',
       use: { ...devices['Pixel 5'], viewport: { width: 375, height: 812 }, channel },
     },
+    /*
+     * JSPI 없는 브라우저(Safari 계열) — 블록 전용 호환 모드(PD-27)만 본다(P3-06).
+     * 가짜 카메라 인자·camera 권한은 Chromium 전용이라 이 프로젝트에서는 비운다. CI가 `playwright install webkit`으로 받는다.
+     * 로컬(운영자 PC)에 WebKit이 없으면 그 검사는 돌지 않는다(spec이 프로젝트 이름으로 건너뛴다).
+     */
+    {
+      name: 'webkit',
+      testMatch: /esp32-blocks\.spec\.ts/u,
+      grep: /WebKit\(JSPI 없는 브라우저\)/u,
+      use: { ...devices['Desktop Safari'], viewport: { width: 1366, height: 768 }, permissions: [], launchOptions: { args: [] } },
+    },
   ],
   // PW_BASE_URL이 있으면(병렬 제작: 각자 띄운 개발 서버) 서버를 띄우지 않는다.
   ...(external

@@ -2,13 +2,19 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { CONCEPT_CARDS, cardCounterText, nextCardIndex } from '../../../src/lab/loader/cards.ts';
+import { BOARD_CONCEPT_CARDS, CONCEPT_CARDS, cardCounterText, cardsForLab, nextCardIndex } from '../../../src/lab/loader/cards.ts';
 import { NETWORK_CHECK_ITEMS, formatNetworkReport, networkItemUrl, statusOf } from '../../../src/components/start/network-check/items.ts';
 import { BASE_PATH } from '../../../src/lib/url.ts';
 
 const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
 
-describe('1분 개념 카드', () => {
+// 실습실마다 카드 묶음이 다르다(P3-11) — 두 묶음 모두 같은 규칙을 지킨다
+const CARD_SETS = [
+  ['영상처리', CONCEPT_CARDS],
+  ['ESP32', BOARD_CONCEPT_CARDS],
+] as const;
+
+describe.each(CARD_SETS)('1분 개념 카드(%s)', (_name, CONCEPT_CARDS) => {
   it('3~5장이고 id가 겹치지 않는다', () => {
     expect(CONCEPT_CARDS.length).toBeGreaterThanOrEqual(3);
     expect(CONCEPT_CARDS.length).toBeLessThanOrEqual(5);
@@ -40,6 +46,15 @@ describe('1분 개념 카드', () => {
       const slug = card.link.href.split('#')[1]!;
       expect(fs.existsSync(path.join(rootDir, 'content', 'glossary', `${slug}.md`)), `용어사전에 ${slug}이(가) 없어요`).toBe(true);
     }
+  });
+
+});
+
+describe('1분 개념 카드 공통', () => {
+  it('실습실에 맞는 묶음을 고른다(ESP32는 보드 카드, 나머지는 영상처리 카드)', () => {
+    expect(cardsForLab('esp32')).toBe(BOARD_CONCEPT_CARDS);
+    expect(cardsForLab('vision')).toBe(CONCEPT_CARDS);
+    expect(cardsForLab('dev')).toBe(CONCEPT_CARDS);
   });
 
   it('카드 번호는 처음과 끝이 이어진다', () => {
