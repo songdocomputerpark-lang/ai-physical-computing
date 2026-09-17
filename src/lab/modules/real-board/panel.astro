@@ -1,0 +1,21 @@
+---
+/**
+ * 실제 보드 모듈의 화면 조각(src/lab/README.md 4.5). LabShell이 ESP32 실습실의 [data-lab-module-panel="real-board"] 안에 그려 두고(hidden),
+ * index.ts가 mount 때 이 칸을 입력·출력 칸의 가상 보드([data-board-io]) 바로 위로 옮겨 탭으로 쓴다(가상 보드 칸이 없으면 제자리).
+ * 탭·실제 보드 칸 부품은 src/components/lab/real-board/에 있어 페이지가 io 슬롯에 직접 넣을 수도 있다(PROGRESS·보고서의 공유 파일 요청 참고).
+ */
+import BoardTargetTabs from '../../../components/lab/real-board/BoardTargetTabs.astro';
+import RealBoardPanel from '../../../components/lab/real-board/RealBoardPanel.astro';
+---
+
+<div class="real-board-module" data-real-board-module>
+  <BoardTargetTabs />
+  <RealBoardPanel />
+</div>
+
+<style>
+  .real-board-module {
+    display: grid;
+    min-width: 0;
+  }
+</style>

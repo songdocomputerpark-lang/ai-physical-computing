@@ -1,0 +1,119 @@
+---
+/**
+ * [가상 보드] / [실제 보드] 탭(SPEC §6.2 "대상: [가상 보드] / [실제 보드] 탭. 같은 코드가 두 곳에서 돈다", PLAN §8.3 P3-07).
+ * HTML·CSS만 그리고 동작(고르기·키보드·실행 대상 바꾸기)은 흉내 모듈 src/lab/modules/real-board/index.ts가 data-board-target-* 표시로 찾아 잇는다.
+ *
+ * 탭 모양은 WAI-ARIA Authoring Practices "Tabs"(자동 활성화): role=tablist 안 role=tab 단추, 고른 탭만 tabindex=0,
+ * ←·→·Home·End로 옮기면 바로 고른다. [가상 보드] 탭이 가리키는 칸(aria-controls)은 가상 보드 칸([data-board-io])이라 모듈이 붙일 때 이어 준다.
+ * 색만으로 고른 탭을 알리지 않는다: 굵은 글씨 + 아래 굵은 선 + aria-selected.
+ *
+ * props
+ *   idPrefix  탭·칸 id 앞부분(기본 board-target). 한 페이지에 하나만 둔다.
+ */
+interface Props {
+  idPrefix?: string;
+}
+
+const { idPrefix = 'board-target' } = Astro.props;
+const ids = {
+  virtualTab: `${idPrefix}-tab-virtual`,
+  realTab: `${idPrefix}-tab-real`,
+  realPanel: `${idPrefix}-panel-real`,
+  hint: `${idPrefix}-hint`,
+};
+---
+
+<div class="board-target" data-board-target>
+  <div class="board-target__row">
+    <span class="board-target__label" id={`${idPrefix}-label`}>코드를 실행할 곳</span>
+    <div class="board-target__tabs" role="tablist" aria-labelledby={`${idPrefix}-label`} data-board-target-tablist>
+      <button type="button" class="board-target__tab" role="tab" id={ids.virtualTab} aria-selected="true" tabindex="0" data-board-target-tab="virtual">가상 보드</button>
+      <button type="button" class="board-target__tab" role="tab" id={ids.realTab} aria-selected="false" tabindex="-1" aria-controls={ids.realPanel} data-board-target-tab="real">
+        실제 보드
+      </button>
+    </div>
+  </div>
+  <p class="board-target__hint" id={ids.hint} data-board-target-hint>같은 코드를 화면 속 가상 보드나 USB로 연결한 실제 ESP32에서 실행해요.</p>
+</div>
+
+<style>
+  .board-target {
+    display: grid;
+    gap: var(--space-1);
+    margin-block: var(--space-2) var(--space-3);
+  }
+
+  .board-target__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .board-target__label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .board-target__tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+
+  .board-target__tab {
+    min-height: var(--target-min);
+    min-width: 7.5rem;
+    padding: var(--space-2) var(--space-4);
+    border: 0;
+    border-block-end: 3px solid transparent;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-tight);
+    cursor: pointer;
+  }
+
+  .board-target__tab + .board-target__tab {
+    border-inline-start: 1px solid var(--color-border-strong);
+  }
+
+  .board-target__tab:hover {
+    background: var(--color-accent-soft);
+  }
+
+  .board-target__tab[aria-selected='true'] {
+    border-block-end-color: var(--color-accent-hover);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-bold);
+  }
+
+  .board-target__tab:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width) - 2px);
+  }
+
+  .board-target__hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  @media (max-width: 30rem) {
+    .board-target__tabs {
+      display: flex;
+      inline-size: 100%;
+    }
+
+    .board-target__tab {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>
