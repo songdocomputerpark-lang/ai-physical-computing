@@ -278,6 +278,6 @@ describe('데이터 형식 검사', () => {
   });
 
   it('YAML이 망가지면 파일 이름과 함께 알려 준다', () => {
-    expect(() => loadCatalogFromYaml('entries: [\n  - id: a\n   bad indent')).toThrowError(new RegExp(CATALOG_FILE.replace(/[/.]/gu, '\\$&'), 'u'));
+    expect(() => loadCatalogFromYaml('entries: [\n  - id: a\n   bad indent')).toThrow(new RegExp(CATALOG_FILE.replace(/[/.]/gu, '\\$&'), 'u'));
   });
 });
