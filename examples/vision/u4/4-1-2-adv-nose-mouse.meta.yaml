@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-1-2 심화: 코 위치로 마우스 커서 움직이기"
+description: 처음 30장 동안 코의 기준 위치를 잡고, 코가 움직인 만큼 마우스 커서를 옮겨요. r 키로 기준을 다시 잡아요.
+lesson: 4-1-2
+page: 226
+source_id: f095
+tags:
+  - 얼굴
+  - 코
+  - pyautogui
+packages:
+  - opencv-python
+
+# ── 실습실에서 돌릴 때(2026-09-17 이관, 브라우저로 확인 — tests/e2e/lab-textbook-u3-u4.spec.ts) ──
+# 필요한 입력: '재생 입력' + 재생 동작 '고개 돌리기'. 커서는 가상 데스크톱(1920×1080) 안에서만 움직여요.
+# 출력 창 'Nose Mouse Control' · r로 기준점 다시 잡기, q로 끝내요. 기준점은 처음 30장(실습실은 초당 15장 안팎이라 약 2초) 동안 잡아요.
+# 주의: 원본은 pyautogui.FAILSAFE = False라 진짜 PC에서 돌리면 커서를 멈추기 어려워요 — 내려받아 돌릴 때는 OpenCV 창을 누른 뒤 q를 눌러요.

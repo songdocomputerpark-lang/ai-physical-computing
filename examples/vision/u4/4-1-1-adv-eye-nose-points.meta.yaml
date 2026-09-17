@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-1-1 심화 과제: 눈과 코에 점 찍기"
+description: 특징점 6번(원본 주석에서는 인중)과 두 눈 가운데(468·473번)에 빨간 점을 찍어요. 468·473번은 refine_landmarks=True일 때만 있어요.
+lesson: 4-1-1
+page: 219
+source_id: f094
+tags:
+  - 얼굴
+  - mediapipe
+  - face_mesh
+packages:
+  - opencv-python
+
+# ── 실습실에서 돌릴 때(2026-09-17 이관, 브라우저로 확인 — tests/e2e/lab-textbook-u3-u4.spec.ts) ──
+# 필요한 입력: '재생 입력' + 재생 동작 '고개 돌리기'. 출력 창 'Camera Feed' · q로 끝내요.
+# 468·473번은 refine_landmarks=True일 때만 있는 점이라, 그 줄을 False로 바꾸면 원본 PC와 똑같이 IndexError가 나요(바꿔 보기 좋은 곳).
+# 주의: 합성 얼굴은 교재가 쓰는 번호(6·468·473 등)만 실제처럼 놓여 있어요. 6번이 '인중'인지 '코'인지는 원본 주석끼리도 달라요(CODE_MAPPING §2.4).

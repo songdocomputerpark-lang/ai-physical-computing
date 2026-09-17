@@ -1,0 +1,14 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-1-1 동작 테스트: 웹캠 켜기"
+description: 웹캠 영상을 창에 띄워 카메라가 되는지 확인해요. q 키로 끝나요.
+lesson: 4-1-1
+page: 216
+source_id: f092
+tags:
+  - 카메라
+packages:
+  - opencv-python
+
+# ── 실습실에서 돌릴 때(2026-09-17 이관, 브라우저로 확인 — tests/e2e/lab-textbook-u3-u4.spec.ts) ──
+# 필요한 입력: 웹캠, 또는 카메라가 없으면 '샘플 입력'. 출력 창 'Camera Feed' · q로 끝내요.

@@ -776,3 +776,139 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+
+  # ── 교과서 3단원 3-1-4 PC 쪽(f090·f091, CODE_MAPPING §2.3) → examples/vision/u3/ ──
+  # 손 인식(mediapipe 흉내) + 가상 데스크톱(pyautogui 흉내)으로 돈다. 3단원의 나머지 PC 쪽 예제 f084·f085는 serial(pyserial)을 써서
+  # 시리얼 흉내(가상 UART 선·Web Serial)가 생기는 Phase 3·4에서 옮긴다(2026-09-17 Phase 2 검토 반영).
+  - id: f090
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/4. 손과 동작으로 컴퓨터 제어하기/기본실습_손동작으로 스크린숏촬영하기(p203).py"
+    target: examples/vision/u3/3-1-4-hand-screenshot.py
+    author: operator
+    meta:
+      title: "3-1-4 기본 실습: 손동작으로 화면 캡처하기"
+      description: "엄지 끝이 검지 끝보다 위로 올라가면 화면을 찍어 그림 파일로 저장해요(사이트에서는 가상 데스크톱 화면을 찍어요)."
+      lesson: 3-1-4
+      page: 203
+      tags: [ 손, mediapipe, pyautogui, 캡처 ]
+      packages: [ opencv-python, pillow ]
+    lines: 48
+    sha256: e7c140b5a8d6514cc4af455ec828591b91e4935038dfee5183d269721fda8f82
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f091
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/4. 손과 동작으로 컴퓨터 제어하기/심화실습_손가락으로 마우스 커서조종하는 프로그램 만들기(p205).py"
+    target: examples/vision/u3/3-1-4-adv-finger-mouse.py
+    author: operator
+    meta:
+      title: "3-1-4 심화 실습: 검지로 마우스 커서 움직이기"
+      description: "검지 끝 위치를 화면 크기에 맞춰 바꿔 마우스 커서를 옮겨요(사이트에서는 가상 데스크톱의 커서가 움직여요)."
+      lesson: 3-1-4
+      page: 205
+      tags: [ 손, mediapipe, pyautogui, 마우스 ]
+    lines: 55
+    sha256: 406885c5d75c7a6d846913689e5fe2cf19d2e259656b9d2c79c6727ae7798136
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+
+  # ── 교과서 4단원 4-1-1~4-1-3 PC 쪽(f092~f097, CODE_MAPPING §2.4) → examples/vision/u4/ ──
+  # 원고 없이 코드만 있는 차시라 쪽 번호는 파일 이름의 (p…) 값이에요. 얼굴 그물(mediapipe 흉내)과 가상 데스크톱으로 돈다.
+  - id: f092
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/1. AI의 눈, 내 얼굴 인식/4.1.1_01_동작테스트(p216).py"
+    target: examples/vision/u4/4-1-1-camera-test.py
+    author: operator
+    meta:
+      title: "4-1-1 동작 테스트: 웹캠 켜기"
+      description: "웹캠 영상을 창에 띄워 카메라가 되는지 확인해요. q 키로 끝나요."
+      lesson: 4-1-1
+      page: 216
+      tags: [ 카메라 ]
+    lines: 23
+    sha256: 652833ef073398cb305b1ddd0697212a227a8bb97fd8ced088e4868b130e094f
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f093
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/1. AI의 눈, 내 얼굴 인식/4.1.1_02_기본_그물망표시(p217).py"
+    target: examples/vision/u4/4-1-1-face-mesh-net.py
+    author: operator
+    meta:
+      title: "4-1-1 기본 과제: 얼굴에 그물망 그리기"
+      description: "얼굴 특징점을 찾아 초록색 그물망으로 이어 그려요(with 문으로 FaceMesh를 써요)."
+      lesson: 4-1-1
+      page: 217
+      tags: [ 얼굴, mediapipe, face_mesh ]
+    lines: 55
+    sha256: d4eb08bfc70b0abf2ebc4722ecb541baf15f7759001c3909ab45fb6450108b14
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f094
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/1. AI의 눈, 내 얼굴 인식/4.1.1_03_심화_눈코 특징점찍기(p219).py"
+    target: examples/vision/u4/4-1-1-adv-eye-nose-points.py
+    author: operator
+    meta:
+      title: "4-1-1 심화 과제: 눈과 코에 점 찍기"
+      description: "특징점 6번(원본 주석에서는 인중)과 두 눈 가운데(468·473번)에 빨간 점을 찍어요. 468·473번은 refine_landmarks=True일 때만 있어요."
+      lesson: 4-1-1
+      page: 219
+      tags: [ 얼굴, mediapipe, face_mesh ]
+    lines: 56
+    sha256: c029b168ced21bc876e3095ee892f788765c456074f97770f3c6e716ef346a5b
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f095
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/2. 눈길 따라 움직이는 마우스 커서 🖱/4.1.2_02_심화_코좌표 마우스 추적_주석처리 버전(p226).py"
+    target: examples/vision/u4/4-1-2-adv-nose-mouse.py
+    author: operator
+    meta:
+      title: "4-1-2 심화: 코 위치로 마우스 커서 움직이기"
+      description: "처음 30장 동안 코의 기준 위치를 잡고, 코가 움직인 만큼 마우스 커서를 옮겨요. r 키로 기준을 다시 잡아요."
+      lesson: 4-1-2
+      page: 226
+      tags: [ 얼굴, 코, pyautogui ]
+    lines: 204
+    sha256: 98d0f96e20319e4d96ed94aad856d4e856c5db5075cdd49068b52a0687416791
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f096
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/3. 윙크 한방에 더블클릭! 😉/4.1.3_01_기본_눈깜박임 표시하기_V2(p234).py"
+    target: examples/vision/u4/4-1-3-blink-ear.py
+    author: operator
+    meta:
+      title: "4-1-3 기본: 눈 깜박임 표시하기(EAR)"
+      description: "눈의 세로·가로 길이 비율(EAR)을 계산해 눈을 감았는지 화면에 적어요. 커서는 코 위치로 부드럽게 움직여요."
+      lesson: 4-1-3
+      page: 234
+      tags: [ 얼굴, 눈깜박임, pyautogui ]
+    lines: 235
+    sha256: 222e47a994746693326543d95b3bcaa7bbf984b477435904e1feb634c0f1470f
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f097
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/3. 윙크 한방에 더블클릭! 😉/4.1.3_02_심화_마우스 클릭제어(p240).py"
+    target: examples/vision/u4/4-1-3-adv-blink-click.py
+    author: operator
+    meta:
+      title: "4-1-3 심화: 윙크로 더블클릭, 두 눈으로 오른쪽 클릭"
+      description: "왼쪽 눈만 감으면 더블클릭, 두 눈을 감으면 오른쪽 클릭을 해요(사이트에서는 가상 데스크톱에서 눌려요)."
+      lesson: 4-1-3
+      page: 240
+      tags: [ 얼굴, 눈깜박임, pyautogui, 클릭 ]
+    lines: 274
+    sha256: 6c6ddff968e3f389d182fc6a5cbe6312bae7787bb75098ea7e6c781acdff6d45
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17

@@ -1,8 +1,8 @@
 /**
  * 이관 예제 전부(scripts/examples-manifest.yaml 기준)를 실습실에서 한 번씩 돌려 보는 스모크 테스트(P2-14).
  *
- * 왜: 예제 49개는 원본 코드를 한 글자도 고치지 않고 옮긴 것이라(PD-10·PD-33), 흉내 모듈이 하나라도 어긋나면
- * 학생 화면에서 영어 트레이스백이 난다. 사람이 49개를 눌러 볼 수 없으니 한 번에 돌려 결과를 대조한다.
+ * 왜: 옮긴 예제(2026-09-17 기준 57개)는 원본 코드를 한 글자도 고치지 않고 옮긴 것이라(PD-10·PD-33), 흉내 모듈이 하나라도 어긋나면
+ * 학생 화면에서 영어 트레이스백이 난다. 사람이 하나하나 눌러 볼 수 없으니 한 번에 돌려 결과를 대조한다.
  *
  * 무엇을 보나(예제 하나마다)
  *   1. [예제 불러오기]로 코드를 올리고 [실행] → 잠깐 기다린 뒤 [정지]
@@ -18,6 +18,8 @@
  *     skip: "이유"                      (지금은 돌리지 않는 예제. 이유를 반드시 적는다)
  *
  * 돌리는 법: npx playwright test tests/e2e/examples-smoke.spec.ts --project=desktop
+ * 몇 개만: SMOKE_ONLY=f090,f095 npx playwright test tests/e2e/examples-smoke.spec.ts --project=desktop
+ *   (코드 id(f…)나 examples/ 뒤 경로의 일부를 쉼표로 — 새로 옮긴 예제만 먼저 볼 때. 전체 실행에서는 쓰지 않는다)
  * (모바일에서는 건너뛴다 — 같은 파이썬·같은 흉내 모듈이라 결과가 같고 시간만 두 배로 든다.)
  */
 import fs from 'node:fs';
@@ -35,6 +37,8 @@ const REPLAY_TAGS = ['손', '얼굴', '자세', 'mediapipe', '랜드마크', '�
 const DEFAULT_WATCH_MS = 3500;
 
 interface SmokeCase {
+  /** 코드 id(CODE_MAPPING, 예: f090) */
+  sourceId: string;
   /** examples/ 뒤의 경로. 실습실 ?example= 값과 같다. */
   file: string;
   id: string;
@@ -56,7 +60,7 @@ function smokeSettings(sidecarPath: string): Record<string, unknown> {
 }
 
 function readCases(): SmokeCase[] {
-  const manifest = YAML.parse(fs.readFileSync(MANIFEST, 'utf8')) as { examples?: { target?: string }[] };
+  const manifest = YAML.parse(fs.readFileSync(MANIFEST, 'utf8')) as { examples?: { id?: string; target?: string }[] };
   const cases: SmokeCase[] = [];
   for (const entry of manifest.examples ?? []) {
     const target = entry.target;
@@ -70,6 +74,7 @@ function readCases(): SmokeCase[] {
     const tags = sidecar?.tags ?? [];
     const guessed = tags.some((tag) => REPLAY_TAGS.includes(tag)) ? 'replay' : 'sample';
     cases.push({
+      sourceId: typeof entry.id === 'string' ? entry.id : '',
       file,
       id: exampleIdFromFile(file),
       title: sidecar?.title ?? file,
@@ -83,17 +88,31 @@ function readCases(): SmokeCase[] {
   return cases;
 }
 
-const cases = readCases();
+/** SMOKE_ONLY(쉼표로 나눈 코드 id나 경로 일부)가 있으면 그 예제만 */
+function onlySelected(all: SmokeCase[]): SmokeCase[] {
+  const wanted = (process.env.SMOKE_ONLY ?? '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '');
+  if (wanted.length === 0) {
+    return all;
+  }
+  return all.filter((item) => wanted.some((part) => item.sourceId === part || item.file.includes(part)));
+}
+
+const allCases = readCases();
+const cases = onlySelected(allCases);
 
 test.describe('이관 예제 스모크(실습실에서 한 번씩 실행)', () => {
-  // 예제 49개를 한 페이지에서 이어 돌린다(Pyodide·OpenCV는 한 번만 받는다).
+  // 예제를 한 페이지에서 이어 돌린다(Pyodide·OpenCV는 한 번만 받는다).
   test.skip(({ isMobile }) => Boolean(isMobile), '같은 파이썬·같은 흉내 모듈이라 데스크톱에서 한 번만 돌린다.');
   test.describe.configure({ timeout: 20 * 60_000 });
 
   test('예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page, context }) => {
-    expect(cases.length, '이관 목록(scripts/examples-manifest.yaml)에서 예제를 읽지 못했어요').toBeGreaterThan(40);
+    expect(allCases.length, '이관 목록(scripts/examples-manifest.yaml)에서 예제를 읽지 못했어요').toBeGreaterThan(40);
+    expect(cases.length, 'SMOKE_ONLY에 맞는 예제가 없어요').toBeGreaterThan(0);
 
-    // 한 페이지에서 49개를 이어 돌리면 예제마다 남긴 것(창·캔버스·인식 엔진)이 쌓여 메모리가 는다.
+    // 한 페이지에서 수십 개를 이어 돌리면 예제마다 남긴 것(창·캔버스·인식 엔진)이 쌓여 메모리가 는다.
     // 저사양 CI에서는 그러다 탭이 죽으므로(2026-09-16 확인) 몇 개마다 페이지를 새로 연다(Pyodide는 브라우저 캐시에서 온다).
     const RELOAD_EVERY = 10;
     let activePage = page;

@@ -1,0 +1,20 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "3-1-4 기본 실습: 손동작으로 화면 캡처하기"
+description: 엄지 끝이 검지 끝보다 위로 올라가면 화면을 찍어 그림 파일로 저장해요(사이트에서는 가상 데스크톱 화면을 찍어요).
+lesson: 3-1-4
+page: 203
+source_id: f090
+tags:
+  - 손
+  - mediapipe
+  - pyautogui
+  - 캡처
+packages:
+  - opencv-python
+  - pillow
+
+# ── 실습실에서 돌릴 때(2026-09-17 Phase 2 검토 반영으로 이관, 브라우저로 확인 — tests/e2e/lab-textbook-u3-u4.spec.ts) ──
+# 필요한 입력: '재생 입력' + 재생 동작 '손가락 0~5개 펴기'. 찍는 화면은 진짜 PC 화면이 아니라 이 페이지의 가상 데스크톱이에요.
+# 출력 창 'Hand Gesture Screenshot' · q로 끝내요. 엄지 끝이 검지 끝보다 올라가 있는 동안에는 장마다 screenshot.png를 덮어써요
+# (가상 데스크톱이 같은 이름을 0.5초 안에 다시 저장하면 앞 그림을 돌려주고 한 번 알려요 — 원고 p204의 "5초 대기"는 waitKey(5), 5밀리초예요).
