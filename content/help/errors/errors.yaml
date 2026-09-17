@@ -43,6 +43,9 @@ groups:
   - id: modules
     title: 모듈·파일 오류
     description: import할 모듈이나 열 파일이 없을 때 나는 오류예요.
+  - id: board
+    title: ESP32 보드(가상 보드) 오류
+    description: machine·time 같은 보드용 파이썬(MicroPython)에서 나는 오류예요. 실물 ESP32에서도 같은 문구로 나요.
   - id: lab
     title: 실습실 안내(정지·제한 모드·준비)
     description: 오류가 아니라 실습실이 멈추거나 준비되지 않았을 때의 안내예요.
@@ -995,6 +998,127 @@ entries:
       error: "OSError: cannot open resource"
     cases:
       - "교과서 1-4-2 심화(p99, 한글 글자 그리기)의 malgun.ttf 경로는 사이트가 한글 글꼴로 연결해요. 다른 경로를 쓰면 이 오류가 나요."
+
+  # ── ESP32 보드(가상 보드, P3-01) — 문구는 MicroPython v1.29.0 ESP32 포트와 같다(ports/esp32/machine_pin.c·machine_timer.c, extmod/modtime.c) ──
+  - id: board-invalid-pin
+    group: board
+    title: ESP32에 없는 핀 번호예요
+    types: [ValueError]
+    patterns:
+      - "(?:^|: )invalid pin$"
+    priority: 3
+    meaning: "Pin()에 넣은 번호의 핀이 ESP32에 없어요. invalid pin은 '올바르지 않은 핀'이라는 뜻이에요."
+    why:
+      - "ESP32에서 쓸 수 있는 GPIO 번호는 0~23, 25~27, 32~39예요. 24번, 28~31번, 40번 넘는 번호는 없어요."
+      - "Pin('D2')처럼 글자나 Pin(2.0)처럼 소수로 적어도 이 오류가 나요. 번호는 정수로 적어요."
+    fix:
+      - "{line}번째 줄의 핀 번호를 보드에 적힌 GPIO 번호와 비교해요. 보드의 'D2'는 Pin(2)예요."
+      - "예제의 배선 그림에 적힌 핀 번호와 코드의 번호가 같은지 확인해요."
+    mistakes:
+      - "Pin(24, Pin.OUT)처럼 없는 번호를 쓰는 것"
+      - "Pin('2')처럼 번호를 따옴표로 감싸는 것"
+    example:
+      code: |
+        from machine import Pin
+        led = Pin(24, Pin.OUT)
+      error: "ValueError: invalid pin"
+      line: 2
+
+  - id: board-input-only-pin
+    group: board
+    title: 34~39번 핀은 입력만 돼요
+    types: [ValueError]
+    patterns:
+      - "(?:^|: )pin can only be input$"
+    priority: 3
+    meaning: "34~39번 핀을 출력(Pin.OUT)으로 정하려고 했어요. 이 핀들은 값을 읽기만 하고 내보낼 수 없어요."
+    why:
+      - "ESP32의 34~39번 핀은 입력 전용으로 만들어져서 LED·버저처럼 전기를 보내야 하는 부품을 움직일 수 없어요. 보드 안의 풀업·풀다운 저항도 없어요."
+    fix:
+      - "LED 같은 출력 부품은 0~33번 가운데 비어 있는 핀(예: 2, 4, 5, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33)에 이어요."
+      - "34~39번 핀은 버튼·센서 값을 읽는 Pin(34, Pin.IN)이나 아날로그 값을 읽는 데 써요."
+    example:
+      code: |
+        from machine import Pin
+        led = Pin(34, Pin.OUT)
+      error: "ValueError: pin can only be input"
+      line: 2
+
+  - id: board-timer-id
+    group: board
+    title: 그 번호의 하드웨어 타이머가 없어요
+    types: [ValueError]
+    patterns:
+      - "Timer\\((?<id>-?\\d+)\\) doesn't exist"
+    priority: 3
+    meaning: "Timer({id})를 만들려고 했지만 ESP32의 하드웨어 타이머는 0~3번, 네 개뿐이에요."
+    why:
+      - "ESP32 보드에는 하드웨어 타이머가 4개 있어요. 번호는 0부터 세므로 4 이상은 없어요."
+    fix:
+      - "{line}번째 줄의 번호를 0~3 가운데 하나로 바꿔요. 이미 쓰는 번호와 겹치지 않게 해요."
+      - "번호를 적지 않은 Timer()나 Timer(-1)은 가상 타이머라 개수 걱정 없이 쓸 수 있어요."
+    example:
+      code: |
+        from machine import Timer
+        t = Timer(4)
+      error: "ValueError: Timer(4) doesn't exist, there are only 4 hardware timers"
+      line: 2
+
+  - id: board-timer-period
+    group: board
+    title: 타이머 간격이 0이에요
+    types: [ValueError]
+    patterns:
+      - "Timer period is too short for this timer"
+    priority: 3
+    meaning: "timer.init()의 period(밀리초)가 0이거나 freq(1초에 몇 번)가 너무 커서 타이머가 울릴 간격이 없어요."
+    fix:
+      - "{line}번째 줄의 period를 1 이상으로 적어요. 예: timer.init(period=500, mode=Timer.PERIODIC, callback=blink)"
+      - "freq로 적었다면 0보다 크고 너무 크지 않은 값(예: freq=2)으로 바꿔요."
+    example:
+      code: |
+        from machine import Timer
+        Timer(0).init(period=0, callback=print)
+      error: "ValueError: Timer period is too short for this timer"
+      line: 2
+
+  - id: board-ticks-overflow
+    group: board
+    title: ticks_add에 더한 값이 너무 커요
+    types: [OverflowError]
+    patterns:
+      - "ticks interval overflow"
+    priority: 3
+    meaning: "time.ticks_add(시각, 차이)의 차이가 너무 커서(약 ±6.2일 넘게) ticks 값으로 나타낼 수 없어요."
+    why:
+      - "ticks_ms() 값은 약 12.4일마다 0으로 돌아가요. 그래서 한 번에 더하거나 뺄 수 있는 차이는 그 절반보다 작아야 해요."
+    fix:
+      - "{line}번째 줄에서 더하는 값을 줄여요. 긴 시간을 재려면 time.time()(초)을 써요."
+    example:
+      code: |
+        import time
+        later = time.ticks_add(time.ticks_ms(), 2**29)
+      error: "OverflowError: ticks interval overflow"
+      line: 2
+
+  - id: board-not-emulated
+    group: board
+    title: 가상 보드에 아직 없는 기능이에요
+    types: [ImportError, ModuleNotFoundError]
+    patterns:
+      - "가상 보드에 아직 없어요"
+      - "가상 보드의 블루투스는 아직"
+    priority: 4
+    meaning: "실물 ESP32에는 있지만 이 사이트의 가상 보드가 아직 흉내 내지 않는 기능을 썼어요."
+    why:
+      - "가상 보드는 교과서 차시에 나오는 부품부터 차례로 흉내를 더하고 있어요. PWM(밝기·소리·서보), ADC(아날로그 값), I2C 화면, UART, 블루투스는 이어서 더해져요."
+    fix:
+      - "오류 메시지에 적힌 이름을 확인하고, 지금은 그 줄을 빼고 나머지를 먼저 실습해요."
+      - "실물 ESP32 보드가 있으면 같은 코드를 실물 보드에서 확인할 수 있어요."
+    example:
+      code: |
+        from machine import Pin, PWM
+      error: "ImportError: machine.PWM은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요). 가상 보드에 부품을 더하는 다음 단계에서 들어와요."
 
   # ── 실습실 안내 ──
   - id: keyboard-interrupt

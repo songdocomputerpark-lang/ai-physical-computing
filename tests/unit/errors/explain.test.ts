@@ -218,6 +218,39 @@ describe('정지·다시 시작', () => {
     expect(explanation?.location?.line).toBe(5);
   });
 
+  it('가상 ESP32 보드 오류(P3-01): 실물과 같은 문구에 보드 풀이가 붙고, 학생 코드 줄을 가리킨다', () => {
+    const board = (line: number, code: string, last: string) =>
+      [
+        'Traceback (most recent call last):',
+        `  File "main.py", line ${line}, in <module>`,
+        `    ${code}`,
+        '  File "/apc/machine.py", line 150, in __new__',
+        '    gpio = apc_board.find_pin(id)',
+        last,
+      ].join('\n');
+    const cases: [string, string, string, string][] = [
+      ['ValueError', 'led = Pin(24, Pin.OUT)', 'ValueError: invalid pin', 'board-invalid-pin'],
+      ['ValueError', 'led = Pin(34, Pin.OUT)', 'ValueError: pin can only be input', 'board-input-only-pin'],
+      ['ValueError', 't = Timer(4)', "ValueError: Timer(4) doesn't exist, there are only 4 hardware timers", 'board-timer-id'],
+      ['ValueError', 'Timer(0).init(period=0)', 'ValueError: Timer period is too short for this timer', 'board-timer-period'],
+      ['OverflowError', 'time.ticks_add(0, 2**29)', 'OverflowError: ticks interval overflow', 'board-ticks-overflow'],
+      ['ImportError', 'from machine import PWM', 'ImportError: machine.PWM은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요).', 'board-not-emulated'],
+      ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth' (가상 보드의 블루투스는 아직 흉내 내지 않아요)", 'board-not-emulated'],
+      // 영상처리 실습실(보드 흉내 없음)의 import machine은 예전처럼 "실습실을 옮기세요" 풀이
+      ['ModuleNotFoundError', 'import machine', "ModuleNotFoundError: No module named 'machine'", 'module-not-found-site'],
+      // 보드와 상관없는 ValueError는 원래 풀이
+      ['ValueError', "int('x')", "ValueError: invalid literal for int() with base 10: 'x'", 'value-error-int'],
+    ];
+    for (const [type, code, last, entryId] of cases) {
+      const explanation = explain(catalog, { outcome: 'error', error: { type, message: last, traceback: board(2, code, last) } });
+      expect(explanation?.entry.id, last).toBe(entryId);
+      expect(explanation?.location?.line, last).toBe(2);
+    }
+    const timer = explain(catalog, { outcome: 'error', error: { type: 'ValueError', message: cases[2]![2], traceback: board(3, cases[2]![1], cases[2]![2]) } });
+    expect(timer?.meaning).toContain('Timer(4)');
+    expect(timer?.fix.join('\n')).toContain('3번째 줄');
+  });
+
   it('카메라 프레임을 못 받은 흉내 모듈 오류는 카메라 항목으로 간다', () => {
     const traceback = [
       'Traceback (most recent call last):',

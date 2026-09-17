@@ -33,6 +33,12 @@ export interface LabExample {
    * 실습실 위에 "이 예제가 나오는 차시" 링크가 생겨, 차시에서 [실습실에서 열기]로 넘어온 학생이 되돌아갈 수 있다(2026-09-17 검토 반영).
    */
   readonly lesson?: { readonly href: string; readonly label: string };
+  /**
+   * ESP32 실습실 예제의 배선(선택, PD-05 "예제별 배선"). 가상 보드가 이 부품들을 그리고 파이썬에 알린다
+   * (src/lab/modules/board/part-types.ts WiringEntry — 보드에 붙은 내장 LED·BOOT 버튼은 적지 않아도 늘 있다).
+   * 차시 md의 parts·사이드카에서 채우는 일은 P3-02가 한다.
+   */
+  readonly parts?: readonly { readonly part: string; readonly id: string; readonly pins?: Readonly<Record<string, number>>; readonly label?: string }[];
 }
 
 /** 예제 id 모양 */
