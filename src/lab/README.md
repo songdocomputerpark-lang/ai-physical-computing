@@ -87,7 +87,7 @@ packages: [opencv-python]                       # 실행 전에 미리 받을 Py
 ```
 
 - 읽기: `controls/example-sidecar.ts`의 `readExampleSidecars(import.meta.glob('/examples/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' }))` → `{ '/examples/vision/u1/a.py': ExampleSidecar }`. **빌드 전용**이에요(YAML 파서 `yaml`을 쓰므로 `.astro` 프런트매터·Node 테스트에서만 import, 브라우저 코드에서는 금지 — 번들에 들어가면 출처 검사가 실패해요).
-- 실습실 목록(`vision/examples.ts`의 `visionExamplesFromFiles(files, sidecars)`)은 사이드카 → 머리말 → 파일 이름 순서로 제목을 정하고, 폴더별 묶음(`EXAMPLE_GROUPS`: `vision`, `vision/u1`, `vision/opmp`, `desktop`)으로 `<optgroup>`을 만들어요. 새 폴더는 그 표에 한 줄을 더하면 이름이 붙고, 더하지 않아도 맨 뒤에 폴더 이름 그대로 보여요.
+- 실습실 목록(`vision/examples.ts`의 `visionExamplesFromFiles(files, sidecars)`)은 사이드카 → 머리말 → 파일 이름 순서로 제목을 정하고, 폴더별 묶음(`EXAMPLE_GROUPS`: `vision`, `vision/supplement`, `vision/u1`, `vision/u3`, `vision/u4`, `vision/opmp`, `desktop`)으로 `<optgroup>`을 만들어요. 새 폴더는 그 표에 한 줄을 더하면 이름이 붙고, 더하지 않아도 맨 뒤에 폴더 이름 그대로 보여요.
 - 사이트가 만든 예제(머리말 있는 파일)에도 사이드카를 둘 수 있어요(사이드카가 우선). 보통은 필요 없어요.
 
 ---
@@ -168,7 +168,7 @@ export default manifest;
 - 실행 시작(`ctx.onLab('run')`)에 화면 값을 다시 `setValue`해 두면 정지 2단계(워커 재시작)로 값이 사라져도 복구돼요(hello 예시).
 - 무거운 라이브러리(MediaPipe Tasks 등)는 index.ts 맨 위에서 import하지 말고 **처음 필요할 때 `await import()`** 해요 — index.ts 자체가 실습실마다 따로 받는 청크지만, 모듈이 붙는 순간 그 청크를 받기 때문이에요.
 - **패널은 쓸 때만 연다(2026-09-17 Phase 2 검토 반영, 절대 원칙 4 "한 페이지 한 개념"):** 예전에는 모듈마다 mount에서 `showPanel()`을 불러 에지 검출 첫 실습 아래로 인식·음성·파일 패널이 줄줄이 이어졌어요. 이제는 `const gate = showPanelWhenUsed(ctx, /mediapipe/u)`처럼 코드에 이름이 보이면 열고, 파이썬이 실제로 요청을 보내면 핸들러 첫 줄에서 `gate.show()`로 못 박아요(코드를 고쳐도 닫히지 않음). 실행 전에 조작해야 하는 패널(파일 넣기)은 그 조작의 흔한 코드 모양으로 열어요(`runtime-extras/files.ts`의 `WORK_FILE_USE_PATTERN`).
-- **학생에게 방금 생긴 것을 보여 줄 때**는 `revealElement(요소)`(`controls/reveal.ts`)를 써요 — 이미 충분히 보이면 움직이지 않고, 움직임 줄이기 설정이면 부드럽게 넘기지 않아요. 실습실 틀은 [실행] 때 io 슬롯의 `[data-lab-reveal-on-run]`(없으면 입력·출력 칸 전체)을, 오류 모듈은 풀이 카드를 이것으로 보여요. 편집칸을 스크롤할 일이 있으면 페이지까지 움직이는 CodeMirror `scrollIntoView` 대신 편집칸 안에서만(`errors/highlight.ts`의 `scrollLineInsideEditor`) 움직여요 — 방금 옮긴 화면을 되돌리지 않게.
+- **학생에게 방금 생긴 것을 보여 줄 때**는 `revealElement(요소)`(`controls/reveal.ts`)를 써요 — 이미 충분히 보이면 움직이지 않고, 움직임 줄이기 설정이면 부드럽게 넘기지 않아요. 두 칸을 함께 보여야 하면 `revealTogether([넓은 칸, 좁은 칸], 둘째 칸, { slack })`. 실습실 틀은 [실행] 때 io 슬롯의 `[data-lab-reveal-on-run]`(넓은 결과 칸, 없으면 입력·출력 칸 전체)·`[data-lab-reveal-on-run-min]`(꼭 보여야 하는 최소 칸)과 첫 조절 막대(`[data-lab-param]`)를 함께 보이고, 오류 모듈은 풀이 카드를 보여요. **Phase 3 보드 그림 io 슬롯도 결과 부분에 이 두 표시를 달아요.** 편집칸을 스크롤할 일이 있으면 페이지까지 움직이는 CodeMirror `scrollIntoView` 대신 편집칸 안에서만(`errors/highlight.ts`의 `scrollLineInsideEditor`) 움직여요 — 방금 옮긴 화면을 되돌리지 않게.
 - 조작 줄 아래 안내 줄에 한 줄로 알릴 것이 있으면 `ctx.lab.showMessage('…')`(오류로 끝났을 때 오류 모듈이 쓰는 자리). 학생이 읽는 글에는 "정지 2단계"·밀리초 같은 안쪽 용어를 넣지 않아요.
 
 ### 4.4 *.py — 파이썬 쪽 규칙
