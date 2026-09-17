@@ -7,7 +7,7 @@
 | `runtime/` | 파이썬 워커(Pyodide)와 화면 쪽 API `PythonRuntime`(`client.ts`), 메시지 형식(`protocol.ts`), 다리(`bridge.ts`), 설정 한 곳(`config.ts`) |
 | `python/` | 워커 안에서 도는 붙박이 파이썬 모듈: 도우미 `apc_runtime.py`, 등록표 `apc_shims.py`, cv2 흉내 `apc_cv2.py`(폴더 규약 이전에 만든 것), 묶는 코드 `modules.ts` |
 | `modules/` | **흉내 모듈 폴더**(4절): `<id>/manifest.ts` + `index.ts` + `*.py` + `panel.astro?`. 자동 발견(`manifests.ts`·`host.ts`). 예시 `hello/`. 가상 ESP32 보드는 `board/`(7절 — 부품은 `board/parts/<부품>/`) |
-| `esp32/` | ESP32 실습실 예제 목록 만들기(`examples.ts` — `examples/esp32/**/*.py`, 보드 라이브러리 폴더 `esp32/lib/` 제외) |
+| `esp32/` | ESP32 실습실 예제 목록 만들기(`examples.ts` — `examples/esp32/**/*.py`, 보드 라이브러리 폴더 `esp32/lib/` 제외, 차시 md·사이드카·머리말의 배선을 `LabExample.parts`로) |
 | `editor/` | 코드 에디터(CodeMirror 6) |
 | `controls/` | 실습실 공통 조작(`lab-shell.ts` 컨트롤러, 예제 목록 `examples.ts`, 예제 머리말 읽기 `example-meta.ts`, 사이드카 읽기 `example-sidecar.ts`(빌드 전용), 자동 저장·공유 링크·내려받기) |
 | `params/` | 조절 패널: 규약 파서 `parse.ts`, 화면 논리 `panel.ts` |
@@ -31,7 +31,7 @@ show_fps = True     # @toggle                  True 또는 False
 - **값 모양:** 숫자·따옴표 글자·`True`/`False` 하나여야 해요. `100 + 1`처럼 식이면 안 돼요(패널이 그 자리 글자를 바꿔 쓰기 때문).
 - **설명:** 규약 앞이나 뒤에 적은 말은 패널에 설명으로 보여요. `threshold = 100  # @slider 0 255 1 테두리로 볼 밝기 차이`
 - **틀리면:** 숫자가 아닌 값, 최소 > 최대, 간격 0, 범위·선택지 밖의 값, 겹치는 이름, 모르는 규약 이름 등은 패널의 경고 목록에 한국어로 보이고 그 줄만 건너뛰어요. 실행은 그대로 돼요.
-- **값을 바꾸면:** ① 코드의 그 숫자(글자)가 함께 바뀌어요 — 그래서 [공유 링크]·[.py 내려받기]·다음 [실행]에 그 값이 그대로 담겨요. ② 실행 중이면 **다음 입력 확인 지점**(`cap.read()`, `cv2.waitKey()`, `time.sleep()`, `apc_runtime.get/poll`)에서 파이썬 전역 변수에 들어가요 → 다음 프레임부터 반영돼요. 값은 "바뀔 때 한 번"만 들어가므로, 코드가 반복문 안에서 같은 변수를 스스로 바꿔도 패널이 매번 되돌리지 않아요.
+- **값을 바꾸면:** ① 코드의 그 숫자(글자)가 함께 바뀌어요 — 그래서 [공유 링크]·[.py 내려받기]·다음 [실행]에 그 값이 그대로 담겨요. ② 실행 중이면 **다음 입력 확인 지점**(`cap.read()`, `cv2.waitKey()`, `time.sleep()`, `apc_runtime.get/poll`)에서 파이썬 전역 변수에 들어가요 → 코드가 그 값을 다음에 쓸 때(영상처리는 다음 프레임, 가상 보드는 다음 반복)부터 반영돼요. 패널 안내 글도 실습실에 상관없이 "실행 중이면 코드가 그 값을 다음에 쓸 때부터 반영돼요"예요(P3-02). 값은 "바뀔 때 한 번"만 들어가므로, 코드가 반복문 안에서 같은 변수를 스스로 바꿔도 패널이 매번 되돌리지 않아요.
 - **제한 모드(JSPI 없는 브라우저):** 코드에 적히므로 다음 [실행] 때 반영돼요(패널이 안내를 보여요).
 - **알려진 빈틈:** [실행]을 누른 직후 패키지를 받는 동안 바꾼 값은 코드에는 적히지만 그 실행에는 안 들어갈 수 있어요(도우미가 실행 준비 때 쌓인 값을 버려요). 다시 움직이면 돼요.
 
@@ -53,6 +53,7 @@ show_fps = True     # @toggle                  True 또는 False
 # 영상을 회색으로 바꾸고 … 흰 선으로 그려요.       ← ② 둘째 주석 줄 = 한 줄 설명 (선택)
 # @lesson v4                                       ← ③ 붙는 차시 (선택): content/lessons/ 파일 이름(slug). 여러 차시면 md 쪽에서 연결
 # @tags 에지, 회색, Canny                          ← ④ 갤러리·검색용 낱말 (선택, 쉼표)
+# @part touch-digital 17                           ← ⑦ (ESP32 예제) 배선 한 줄 — 부품 하나에 한 줄 (선택, 7.4절)
 # 그 밖의 안내 주석은 자유롭게                      ← 셋째 줄부터의 보통 주석은 화면 어디에도 안 보임(코드 안에서만)
 import cv2
 ...코드...
@@ -63,11 +64,13 @@ import cv2
 # 3. …
 # ── 왜 이런 결과가 나올까 ──                       ← ⑥ 안내 상자. 줄마다 문장 하나
 # Canny는 …
+# ── 실습 방법 ──                                   ← ⑧ (선택, P3-02) 실습실에서 무엇을 누르고 무엇을 보는지 단계. 줄마다 한 단계(번호는 떼어 줘요)
+# 1. [실행]을 눌러요.
 ```
 
 - 머리말은 파일 맨 위의 **이어진 주석 줄**이에요. 첫 코드 줄(`import cv2`)에서 끝나요. `# @slider` 같은 규약 줄은 제목·설명으로 쓰지 않아요.
 - 안내 상자는 파일 어디든 둘 수 있지만, 학생이 코드를 먼저 보게 **코드 끝**에 두는 것을 권해요. 제목 줄의 `──` 장식은 없어도 돼요. 상자는 첫 코드 줄이나 다음 상자 제목에서 끝나요.
-- 실습실 [예제 불러오기] 목록은 ①②만 써요(`vision/examples.ts`). 예제 갤러리(P4-11)와 차시 임베드(P2-14)는 `controls/example-meta.ts`의 `readExampleMeta(파일 글자)`로 ①~⑥을 모두 읽어요: `{ title, description, lesson, tags, tryIdeas, why }`. `hasGuideBoxes(meta)`가 상자 둘이 다 있는지 알려 줘요.
+- 실습실 [예제 불러오기] 목록은 ①②만 써요(`vision/examples.ts`). 예제 갤러리(P4-11)와 차시 임베드(P2-14)는 `controls/example-meta.ts`의 `readExampleMeta(파일 글자)`로 ①~⑦을 모두 읽어요: `{ title, description, lesson, tags, parts, tryIdeas, why, practice }`. `hasGuideBoxes(meta)`가 상자 둘이 다 있는지 알려 줘요. ⑦ `# @part`는 ESP32 실습실 목록(`esp32/examples.ts`)이 배선으로, ⑧ "실습 방법" 상자는 ESP32 실습실이 보드 그림 위 "이 예제 실습 방법"으로 써요(7.4절).
 - 새 예제 = `.py` 파일 하나예요. 코드 수정 없이 목록에 들어가요(`MAINTENANCE.md` §2).
 
 ---
@@ -85,6 +88,16 @@ page: 28                                        # 교과서 쪽(선택)
 source_id: f028                                 # 이관 기록 id(scripts/examples-manifest.yaml)
 tags: [카메라, flip]                            # 갤러리·검색용 낱말(선택)
 packages: [opencv-python]                       # 실행 전에 미리 받을 Pyodide 패키지(적지 않으면 실습실 기본값 opencv-python)
+# (ESP32 예제만) 배선 — 7.4절. 틀린 줄은 빼고 빌드 경고만 내요
+parts:
+  - { part: touch-digital, pin: 17 }
+  - { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: "문자 LCD(16×2)" }
+# (선택) 예제 스모크 테스트가 기대하는 결과 — tests/e2e/examples-smoke.spec.ts 머리말
+smoke: { outcome: error, error: ImportError }
+# (선택) 실습 방법 — 옮긴 예제는 코드에 상자를 넣을 수 없어 여기에(ESP32 실습실이 보드 그림 위에 보여요)
+practice:
+  - "[실행]을 누르면 콘솔에 Touch value: 0이 0.2초마다 나와요."
+  - "보드 아래 터치 센서를 마우스나 손가락으로 누르고 있어요."
 ```
 
 - 읽기: `controls/example-sidecar.ts`의 `readExampleSidecars(import.meta.glob('/examples/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' }))` → `{ '/examples/vision/u1/a.py': ExampleSidecar }`. **빌드 전용**이에요(YAML 파서 `yaml`을 쓰므로 `.astro` 프런트매터·Node 테스트에서만 import, 브라우저 코드에서는 금지 — 번들에 들어가면 출처 검사가 실패해요).
@@ -261,7 +274,7 @@ npm run examples:import -- --materials <원본 폴더>   # 다른 컴퓨터: 비
 npm run examples:verify              # 원본 없이 기록과 대조(sha256·줄 수·LF·사이드카) — npm test에도 들어 있어요
 ```
 
-- 새 항목은 `scripts/examples-manifest.yaml`의 `examples:`에 `id`(CODE_MAPPING 코드 id)·`source`(zip 이름)·`member`(zip 안 경로)·`target`(`examples/…py`)·`author`(`operator` | `third_party`)·`meta`(사이드카 씨앗)를 적고 스크립트를 돌려요. 다른 저작자 파일은 `third-party/` 폴더 아래로만(PD-26). 원본 결함으로 구문 오류가 나는 파일(f074)은 `expect_syntax_error: true`.
+- 새 항목은 `scripts/examples-manifest.yaml`의 `examples:`에 `id`(CODE_MAPPING 코드 id)·`source`(zip 이름)·`member`(zip 안 경로)·`target`(`examples/…py`)·`author`(`operator` | `third_party`)·`meta`(사이드카 씨앗 — ESP32 예제는 배선 `parts`와 스모크 기대 `smoke`도 씨앗에 적으면 사이드카로 옮겨요)를 적고 스크립트를 돌려요. 다른 저작자 파일은 `third-party/` 폴더 아래로만(PD-26). 원본 결함으로 구문 오류가 나는 파일(f074)은 `expect_syntax_error: true`.
 - 구문 검사는 이 컴퓨터의 파이썬 3(`python`·`python3`·`py -3`)의 `ast.parse`로 하고, 없으면 Node의 가벼운 검사만 해요(기록에 `syntax_checker`로 남아요).
 - 옮긴 파일은 고치지 않아요. 사이트판 수정이 필요하면 파일을 따로 두고(PD-10) 차시 md·사이드카에 적어요.
 
@@ -275,15 +288,17 @@ ESP32 실습실(`/labs/esp32/`, LabShell `labId="esp32"`)의 가상 보드는 �
 src/lab/modules/board/
 ├─ manifest.ts            id board, labs ['esp32'], shims { time: 'apc_board' }(실행 직전마다 install), 이름 5개(7.3)
 ├─ index.ts               화면 쪽: 배선 → 보드 그림(view.ts) → 입력·상태 메시지 잇기
-├─ state.ts · parts.ts    순수 논리: 메시지 모양·스냅샷 / 부품 레지스트리·배선 검사·입력 값 계산
-├─ view.ts · svg.ts       DOM: 보드 그림·부품 배치·핀 표, 입력 부품의 마우스·터치·키보드 공통 처리
-├─ part-types.ts          부품 정의(PartDefinition)의 모양
+├─ state.ts · parts.ts    순수 논리: 메시지 모양·스냅샷·출력 세기 / 부품 레지스트리·배선 검사(WiringIssue)·입력 값 계산
+├─ layout.ts              순수 논리: 30핀 개발 보드 핀 머리 표·보드에 붙은 부품 자리·배선도 계획(부품 자리·선 꺾은점·브레드보드 레일)
+├─ wiring-spec.ts         순수 논리: 차시 md·사이드카·머리말 # @part의 배선 글 → WiringEntry
+├─ view.ts · board-drawing.ts · svg.ts   DOM: 보드·핀 머리 강조·브레드보드·선 그리기 / 부품 배치·핀 표·[그림 크게 보기], 입력 부품의 마우스·터치·키보드 공통 처리
+├─ part-types.ts          부품 정의(PartDefinition)·배선 한 줄(WiringEntry)·배선 검사 결과(WiringIssue)의 모양
 ├─ machine.py · micropython.py   학생이 import하는 이름 그대로(파일 이름 = import 이름)
 ├─ apc_board.py           보드 핵심: 핀·가상 시계·Timer·콜백·import 훅·확장 불러오기
 ├─ apc_board_time.py      MicroPython판 time
 └─ parts/<부품 id>/       부품 하나 = 폴더 하나(7.5): part.ts (+ apc_part_*.py·드라이버 .py)
 ```
-화면 틀: `src/components/lab/BoardIo.astro`(io 슬롯 — `[data-board-io]`에 `data-lab-reveal-on-run`, 보드 그림 칸에 `data-lab-reveal-on-run-min`). 예제: `examples/esp32/*.py`(사이트 예제 3개, 원본 이관 예제는 P3-02부터 `examples/esp32/u2/…`).
+화면 틀: `src/components/lab/BoardIo.astro`(io 슬롯 — `[data-board-io]`에 `data-lab-reveal-on-run`, 보드 그림 칸에 `data-lab-reveal-on-run-min`, [그림 크게 보기]·배선 목록·"그림 읽는 법"). 예제: `examples/esp32/*.py`(사이트 예제 4개 — 진동 알림 `04-touch-vibration-alert.py` 포함), 원본 이관 예제 `examples/esp32/u2/`(f046·f052·f053)·`examples/esp32/hw/`(f015)와 사이드카.
 
 ### 7.1 파이썬 API(가상 보드가 지금 흉내 내는 것)
 
@@ -317,6 +332,7 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 - **[정지]·다시 시작**: 부품을 꺼진 모습으로 되돌린다(스냅샷 phase `stopped`). 스스로 끝나거나 오류로 끝나면 마지막 모습을 남긴다(실물과 같음). 다음 [실행]은 보드를 새로 켠다(핀·Timer·시계 초기화).
 - **실물과 다른 점**(P3-00 차이 표 12번, 실습실 페이지 "가상 보드와 실물 보드가 다른 점"): 콜백이 바이트코드 사이 어디서나가 아니라 입력 확인 지점에서만 돈다. 양보 없는 계산 반복문은 [정지] 2단계(파이썬 다시 시작)로만 멈춘다.
 - **핀 안내**(콘솔 `[알림]`, 실행마다 한 번): 떠 있는 입력 핀 읽기(가상은 0), 6~11번(플래시) 출력, 1·3번(UART0) 출력, 20번(모듈 핀 아님), 34~39번 쓰기·풀업, 출력 핀을 부품이 반대 값으로 누름(합선).
+- **배선과 코드 맞춰 보기**(P3-02, 콘솔 `[알림]`, 핀마다 실행에 한 번 — 화면이 `board.wiring`을 넣은 실행에서만): 값을 보내는 부품(터치 센서·버튼)이 이어진 핀을 `Pin.OUT`으로 정함, 보드가 움직이는 부품(LED·진동 모터)이 이어진 핀을 `Pin.IN`으로 정함, 그 핀을 출력으로 정하지 않고 `on()`·`value(1)`, 배선에 부품이 없는 핀을 출력으로 정함, 떠 있는 핀을 읽을 때 배선도에도 부품이 없음. 실물처럼 오류는 내지 않는다(실물도 코드는 돈다). 가상 보드가 아직 모르는 부품의 핀(`known: false`)은 알리지 않는다.
 
 ### 7.3 메시지 형식(워커 ↔ 화면, 이름은 모두 `board.`)
 
@@ -324,26 +340,53 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 
 | 이름 | 방향·종류 | 값 |
 |---|---|---|
-| `board.state` | 파이썬 → 화면, 이벤트 | `{ v: 1, reason: 'reset'\|'change'\|'idle'\|'end', phase: 'run'\|'idle'\|'end', seq, t_us, pins: [{ id, mode: 'in'\|'out'\|'open_drain'\|'off'\|'out_only'\|'other'\|null, pull: 'up'\|'down'\|'both'\|null, out: 0\|1, level: 0\|1, driven, irq }], timers }` — 늘 **핀 전체 목록**(이번 실행에서 코드가 만진 핀). 보내는 때: 실행 시작(reset), 파이썬이 실제로 기다리기 직전(대기 전 훅), 마지막으로 보낸 뒤 16ms가 지난 쓰기, 코드가 끝난 뒤 대기 시작(idle), 실행 끝(end). 16ms 안의 변화는 합쳐진다(PLAN §7.2 규칙 5 "상태는 최신 값만") |
+| `board.state` | 파이썬 → 화면, 이벤트 | `{ v: 1, reason: 'reset'\|'change'\|'idle'\|'end', phase: 'run'\|'idle'\|'end', seq, t_us, pins: [{ id, mode: 'in'\|'out'\|'open_drain'\|'off'\|'out_only'\|'other'\|null, pull: 'up'\|'down'\|'both'\|null, out: 0\|1, level: 0\|1, driven, irq, duty?: 0~1, freq?: Hz }], timers }` — `duty`·`freq`는 그 핀에 PWM이 켜져 있을 때만(P3-02에서 자리만 정함 — P3-03 PWM 흉내가 채우면 `state.ts outputStrength`로 LED 밝기·진동 모터 세기가 따라온다). 늘 **핀 전체 목록**(이번 실행에서 코드가 만진 핀). 보내는 때: 실행 시작(reset), 파이썬이 실제로 기다리기 직전(대기 전 훅), 마지막으로 보낸 뒤 16ms가 지난 쓰기, 코드가 끝난 뒤 대기 시작(idle), 실행 끝(end). 16ms 안의 변화는 합쳐진다(PLAN §7.2 규칙 5 "상태는 최신 값만") |
 | `board.inputs` | 화면 → 파이썬, 최신 값(`setValue`) | `{ pins: { '0': 'pullup', '17': 1 } }` — 입력 부품이 지금 핀을 누르는 값 전체. 실행 시작 때(초기화 훅이 `peek`) 읽는다. [실행] 직전에 다시 넣는다(정지 2단계 대비) |
 | `board.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ pin: 0, drive: 0\|1\|'pullup'\|'pulldown'\|null }` — 실행 중에 바뀐 핀 하나. 눌렀다 뗀 것도 빠짐없이 순서대로(§7.2 규칙 5 "이벤트는 대기열") |
-| `board.wiring` | 화면 → 파이썬, 최신 값 | `{ parts: [{ part: 'builtin-led', id: 'builtin-led', pins: { led: 2 } }] }` — 이 예제의 배선(보드에 붙은 부품 포함). 부품 흉내·배선 검사가 읽는다 |
+| `board.wiring` | 화면 → 파이썬, 최신 값 | `{ parts: [{ part: 'touch-digital', id: 'touch-digital', label: '터치 센서', pins: { sig: 17 }, directions: { sig: 'in' }, known: true }, { part: 'lcd-i2c', id: 'lcd', label: '문자 LCD(16×2)', pins: { sda: 21, scl: 22 }, known: false }] }` — 이 예제의 배선(보드에 붙은 부품 포함, `parts.ts wiringValue`). 가상 보드가 아직 모르는 부품은 `known: false`와 적힌 핀만. 부품 흉내·파이썬 배선 안내(7.2)가 읽는다 |
 | `board.device` | 파이썬 → 화면, 이벤트 | 부품 흉내의 상태(부품 단계가 쓴다 — 권장 모양 `{ part, id, state }`) |
 
 `drive` 뜻: `0`·`1` = 부품이 핀을 세게 누름(버튼이 GND에 닿음, 센서 모듈 출력), `'pullup'`·`'pulldown'` = 약하게 끌어당김(보드의 BOOT 버튼 풀업), `null` = 연결 없음. 핀 전압은 세게 누름 > 출력 > 약한 끌어당김 > 내부 풀업·풀다운 > 떠 있음(0) 순서로 정한다.
 화면 쪽 테스트 표시: `[data-board-io]`의 `data-board-ready`·`data-board-phase`·`data-board-seq`·`data-board-reason`, 부품 `[data-board-part="<배선 id>"]`의 `data-part`·`data-visual-<이름>`·`aria-pressed`, 핀 표 `[data-board-pin="<GPIO>"]`의 `data-mode`·`data-level`·`data-driven`.
 
-### 7.4 배선(PD-05 예제별 배선)
+### 7.4 배선(PD-05 예제별 배선)과 배선도(P3-02)
 
-- 보드에 붙은 부품(`onboard: true` — 지금 `builtin-led` GPIO2·`boot-button` GPIO0)은 배선에 적지 않아도 늘 있고 핀이 고정된다.
-- 예제의 부품은 `LabExample.parts`(`[{ part, id, pins, label? }]`)로 넘긴다. 차시 md `parts`·사이드카에서 채우는 일은 P3-02가 한다(`src/lab/esp32/examples.ts`가 옮겨 담는 자리).
-- `parts.ts`의 `resolveWiring`이 없는 부품·겹치는 id·ESP32에 없는 핀·입력 전용 핀(34~39)의 출력 부품·한 핀의 입력 부품 둘을 한국어로 알리고(보드 그림 아래 목록), 스트래핑 핀 안내는 P3-02가 같은 자리에 더한다(`STRAPPING_GPIOS`).
+- 보드에 붙은 부품(`onboard: true` — `builtin-led` GPIO2·`boot-button` GPIO0)은 배선에 적지 않아도 늘 있고 핀이 고정된다.
+- **배선을 적는 곳 세 가지**(한 예제에 여럿이면 앞의 것만 — `esp32/examples.ts`, 모양 맞추기는 `wiring-spec.ts`):
+  1. 차시 md frontmatter `examples: [{ file: esp32/u2/2-1-2-adv-touch-check.py, parts: [{ type: touch_digital, pin: 17 }] }]` — PLAN §2.6의 `type`·밑줄 이름도 받는다(`touch_digital` → `touch-digital`, 스키마는 `src/config/content-schemas.ts`의 `partSchema`). 실습실 페이지가 `wiringByFile`로 넘긴다.
+  2. 사이드카 `parts: [{ part: touch-digital, pin: 17 }]`(원본에서 옮긴 예제 — 이관 목록의 `meta.parts`로 처음 만든다).
+  3. 예제 파일 머리말 `# @part touch-digital 17` · `# @part rgb-led r=27 g=32 b=33 as rgb`(사이트가 만든 예제 — 새 예제 = .py 하나).
+- **한 줄의 칸**: `part`(또는 `type`) 부품 id — 필수 / `id` 배선 안 이름(없으면 부품 id, 겹치면 `-2`·`-3`) / `pin` 핀이 하나뿐인 부품의 GPIO(`17`·`"GPIO17"`도 받음) / `pins` 역할 → GPIO / `label` 화면 이름(가상 보드가 아직 모르는 부품의 안내 문장에 쓴다). 틀린 줄은 빼고 빌드 경고만(PD-35).
+- **배선 검사**(`parts.ts resolveWiring` → `WiringIssue { level, code, text, gpio? }`, 그림 아래 목록에 "오류:·주의:·참고:" 글과 함께 오류 → 주의 → 참고 순서로 보인다 — 색만으로 알리지 않음):
+
+| code | 수준 | 언제 |
+|---|---|---|
+| `unknown-part` | 주의 | 가상 보드에 아직 없는 부품(그림 없음, 파이썬에는 `known: false`로 핀만) |
+| `bad-id` | 오류 | 배선 이름이 규칙에 안 맞거나 겹침 |
+| `pin-shorthand` | 오류 | 핀이 여러 개인 부품을 `pin` 하나로 적음 |
+| `unknown-role` | 주의 | 부품에 없는 역할을 `pins`에 적음 |
+| `missing-pin` · `invalid-gpio` | 오류 | 핀 번호가 없거나 ESP32에 없는 번호 |
+| `onboard-fixed` | 참고 | 보드에 붙은 부품의 핀을 다른 번호로 적음(고정 핀을 씀) |
+| `input-only-output` | 오류 | 34~39번(입력 전용)에 출력 부품 |
+| `not-on-header` | 주의(6~11번은 오류) | 30핀 보드의 핀 머리가 없는 GPIO(0·6~11·20·37·38) — 선을 긋지 못함 |
+| `shared-input` | 오류 | 한 핀에 입력 부품 둘 |
+| `input-output-same-pin` | 오류 | 한 핀에 입력 부품과 출력 부품 |
+| `shared-output` | 참고 | 한 핀에 출력 부품 여럿(같은 신호를 함께 받음 — f110의 GPIO2 버저 + 내장 LED) |
+| `strapping` | 주의 | 스트래핑 핀(0·2·5·12·15 — Espressif GPIO 문서)에 **바깥** 부품 |
+| `site-assigned` | 참고 | 부품의 `defaultPinsNotice`(사이트가 정한 기본 핀을 그대로 씀 — 진동 모터 GPIO19) |
+
+- **파이썬 쪽 배선 안내**(코드가 배선과 어긋나게 핀을 씀)는 7.2절 끝.
+- **배선도 그리기**(`layout.ts planBoardDrawing` → `board-drawing.ts`): 보드는 교과서 키트와 같은 30핀 개발 보드(원고 118쪽 사진의 핀 순서 — 위 줄 5V·GND·13·12·14·27·26·25·33·32·35·34·39(VN)·36(VP)·EN, 아래 줄 3V3·GND·15·2·4·16·17·5·18·19·21·RX·TX·22·23)를 사이트가 그린 것이고, 스트래핑 핀에 ▲ 표시(GPIO0은 BOOT 버튼 그림에). 바깥 부품이 있으면 보드 아래 **브레드보드**에 한 줄로 놓고, 핀 머리에서 부품 윗변 신호 자리까지 꺾은선(아래 줄 핀은 보드 밑으로, 위 줄 핀은 보드 위와 오른쪽을 돌아), 보드 3V3·GND에서 레일로, 부품 아랫변 전원 다리에서 레일로 선을 긋는다(닿는 점에 동그라미). 세로선은 칸을 나눠 겹쳐 그려지지 않고(핀 머리 x ≡ 6, 부품 신호 자리 x ≡ 15 — 18로 나눈 나머지), 흔한 배선은 엇갈리지 않게 줄 순서를 정한다(`board-layout.test.ts`). 핀 머리는 코드가 쓰면 흰 고리(`data-used`), 1(HIGH)이면 노란 빛(`data-high`), 마우스를 올리면 설명(같은 내용이 핀 표에 글자로).
+- **이 예제 실습 방법**: `LabExample.practice`(사이드카 `practice` → 머리말 "── 실습 방법 ──" 상자)가 있으면 보드 그림 위 `[data-board-practice]`에 단계 목록으로 보인다 — 가상 부품을 어떻게 누르고 무엇을 보면 되는지 예제마다 적는다(사이트 예제 4개·옮긴 예제 4개 모두 3단계).
+- **[그림 크게 보기]**: 그림을 48rem으로 펴 가로로 밀어 본다(휴대폰 375px에서 핀 번호가 약 15px). 고른 값은 `module:board:zoom`에 기억한다([이 컴퓨터에서 내 기록 지우기] 대상).
 
 ### 7.5 부품 하나 = 폴더 하나 — `modules/board/parts/<부품 id>/`
 
 ```
-parts/builtin-led/part.ts     출력 부품 본보기(핀 상태 → 모습)
-parts/boot-button/part.ts     입력 부품 본보기(누름 → 핀 누르는 값)
+parts/builtin-led/part.ts     출력 부품 본보기(핀 상태 → 모습·밝기) — 보드에 붙음
+parts/boot-button/part.ts     입력 부품 본보기(누름 → 핀 누르는 값) — 보드에 붙음
+parts/touch-digital/part.ts   바깥 입력 부품(누르는 동안 1, 기본 GPIO17 — PD-34)
+parts/vibration-motor/part.ts 바깥 출력 부품(떨림·세기·움직임 줄이기, 기본 GPIO19 사이트 배정 — PD-36)
 parts/<새 부품>/
 ├─ part.ts                    default export PartDefinition(필수)
 ├─ apc_part_<이름>.py         (선택) 핀만으로 안 되는 부품의 파이썬 흉내(I2C 장치 등) — 보드가 첫 실행 직전에 불러온다
@@ -358,15 +401,19 @@ parts/<새 부품>/
 | `onboard?` | 개발 보드에 붙은 부품이면 true(핀이 `defaultPins`로 고정, 배선에 늘 들어감) |
 | `pins` | `[{ role, label, direction: 'out'\|'in' }]` — role은 배선 표 `pins`의 열쇠. out = 보드가 움직임(LED), in = 부품이 값을 줌(버튼) |
 | `defaultPins?` | role → GPIO(onboard는 필수) |
-| `size` | 그림 크기(SVG 단위). 보드에 붙은 부품의 자리는 `view.ts`의 `ONBOARD_ANCHORS`, 바깥 부품은 보드 오른쪽 칸에 차례로 놓인다(P3-02가 배선도 배치로 바꿀 수 있음) |
-| `interaction?` | 입력 부품: `{ kind: 'momentary'\|'toggle', label, drive(active, role) → PinDrive }`. **마우스·터치·키보드는 `view.ts`가 공통으로 처리**한다 — momentary는 누르고 있는 동안(Space·Enter를 누르고 있는 동안, 초점을 잃으면 뗌), toggle은 누를 때마다. 부품은 `role="button"`·`tabindex=0`·`aria-pressed`를 받는다 |
-| `visual(context)` | **순수 함수**: `{ snapshot, instance, active, reducedMotion }` → `{ lit: true }`처럼 모습 값. `state.ts`의 `isDrivenHigh(snapshot, gpio)`를 쓰면 [정지] 뒤 꺼짐까지 맞는다. 보드 화면이 `data-visual-<이름>` 속성으로 적는다 |
-| `render(target, { svg, instance, definition })` | `target`(`<g>`) 안에 사이트가 직접 그린 SVG(브랜드 중립, 다른 저작물 그림 금지)를 한 번 그리고, 모습 값이 바뀔 때 부를 함수를 돌려준다. 색만으로 알리지 않게 글자(켜짐·누름)도 함께. 움직이는 그림은 `reducedMotion`이면 표시등으로. 누르는 부품은 투명하게 칠한 사각형(`fill="transparent"`)으로 누르는 자리를 24px 이상 |
+| `size` | 그림 크기(SVG 단위). 보드에 붙은 부품의 자리는 `layout.ts`의 `ONBOARD_ANCHORS`(기판 왼쪽 칸), 바깥 부품은 배선도 계획이 브레드보드에 놓는다(7.4) |
+| `anchors?` | (바깥 부품) 신호선이 닿는 자리 role → `{ x, y }`(부품 그림 기준). x는 **18의 배수 + 9**(검사함). 없으면 윗변에 pins 순서대로 9·27·45… |
+| `power?` | (바깥 부품) 전원 다리 자리 `{ gnd: { x, y }, vcc: { x, y } }` 또는 `false`(전원선 없음). 없으면 아랫변 가운데 양옆 |
+| `defaultPinsNotice?` | 기본 핀(`defaultPins`)을 그대로 이었을 때 배선 목록에 보일 안내 한 문장(수준 참고, code `site-assigned`) |
+| `interaction?` | 입력 부품: `{ kind: 'momentary'\|'toggle', label, drive(active, role) → PinDrive }`. **마우스·터치·키보드는 `view.ts`가 공통으로 처리**한다 — momentary는 누르고 있는 동안(Space·Enter를 누르고 있는 동안, 초점을 잃으면 뗌), toggle은 누를 때마다. 부품은 `role="button"`·`tabindex=0`·`aria-pressed`를 받고, 누르는 자리(그림 전체 투명 사각형)와 두 겹 초점 테두리(짙은 선 + 노란 선 — 기판·브레드보드 어디서나 보임)도 `view.ts`가 붙인다(P3-02 — 부품 그림에서 그리지 않는다) |
+| `visual(context)` | **순수 함수**: `{ snapshot, instance, active, reducedMotion }` → `{ lit: true, brightness: 100 }`처럼 모습 값. `state.ts`의 `outputStrength(snapshot, gpio)`(0~1 — HIGH 출력 1, PWM이면 duty)나 `isDrivenHigh`를 쓰면 [정지] 뒤 꺼짐까지 맞는다. 보드 화면이 `data-visual-<이름>` 속성으로 적고, `lit`·`brightness`·`on`·`strength`·`pressed`는 화면 낭독기 이름에도 넣는다 |
+| `render(target, { svg, instance, definition })` | `target`(`<g>`) 안에 사이트가 직접 그린 SVG(브랜드 중립, 다른 저작물 그림 금지)를 한 번 그리고, 모습 값이 바뀔 때 부를 함수를 돌려준다. 색만으로 알리지 않게 글자(켜짐·누름·진동 중)도 함께, 핀 번호 글(`IO17` — `instance.pins`)도. 움직이는 그림은 Web Animations(`element.animate`)로 켜고 끄며 `reducedMotion`이면 움직이지 않는다(진동 모터 본보기) |
 | `python?` | 파이썬 부품 흉내 모듈 이름(`apc_part_<이름>`, 같은 폴더에 있어야 함 — `board-parts.test.ts`가 확인) |
 
 - **자동 발견:** `parts.ts`가 `import.meta.glob('./parts/*/part.ts', { eager: true })`로 찾고 `validatePartDefinitions`로 검사한다(어기면 `board-parts.test.ts`가 실패하고, 브라우저에서는 보드 모듈이 오류를 내며 뜨지 않는다). `.py`는 `python/modules.ts`가 모듈 폴더의 하위 폴더까지 찾아 ESP32 실습실 워커의 `/apc`에 넣는다.
 - **파이썬 부품 흉내:** `apc_part_<이름>.py`는 `apc_board.register_part('<부품 id>', factory)`로 자기를 등록한다(`factory(배선 항목) → 장치`). 보드는 `/apc`의 `apc_board_*.py`·`apc_part_*.py`를 첫 실행 직전(`install()`) 한 번 불러온다. 상태를 화면에 알릴 때는 `apc_runtime.emit('board.device', { part, id, state })`, 실물과 같은 OSError는 `apc_board.board_oserror(19)`(`OSError: [Errno 19] ENODEV`). 핀은 `apc_board.find_pin(값)`·`BOARD.read(gpio)`·`BOARD.write(gpio, v)`·`BOARD.configure(…)`로 다룬다.
-- **단위 테스트:** `tests/unit/lab/board-parts.test.ts`에 그 부품의 `visual`·`interaction.drive` 검사를 더한다(DOM 없이). 파이썬 흉내가 있으면 `tests/unit/lab/helpers/pyodide-board-run.mjs`에 단계를 더하고 `pyodide-board.test.ts`에서 확인한다. 화면은 `tests/e2e/lab-esp32.spec.ts`처럼 `data-visual-*`를 읽는다.
+- **단위 테스트(P3-02 규칙 — 부품 하나 = 테스트 파일 하나):** `tests/unit/lab/board-part-<부품 id>.test.ts`를 새로 만들어 그 부품의 `visual`·`interaction.drive`·기본 핀·배선 줄임 표기를 검사한다(DOM 없이, 스냅샷 도우미 `tests/unit/lab/helpers/board-snapshot.ts`). 여러 사람이 부품을 동시에 더해도 같은 파일을 고치지 않게 — `board-parts.test.ts`는 레지스트리·배선 검사만 보고, 부품 폴더마다 이 파일이 있는지 확인한다. 파이썬 흉내가 있으면 `tests/unit/lab/helpers/pyodide-board-run.mjs`에 단계를 더하고 `pyodide-board.test.ts`에서 확인한다. 화면은 `tests/e2e/lab-esp32-parts.spec.ts`처럼 `data-visual-*`를 읽는다.
+- **부품 id 약속(사이드카·차시 md가 먼저 쓰는 이름):** `touch-digital`(sig)·`vibration-motor`(sig)·`lcd-i2c`(sda·scl — f052 사이드카가 이미 씀, P3-04가 이 이름으로 만들면 f052 배선이 저절로 그려진다). 다음 묶음의 제안(그 묶음이 바꾸면 사이드카도 함께): `rgb-led`(r·g·b), `laser`(sig), `buzzer`(sig), `servo`(sig), `fan-motor`(ina·inb), `touch-analog-4ch`(sig), `oled-i2c`(sda·scl), `neopixel-ring`(din), `mp3-player`(tx·rx — 모듈 쪽 이름).
 
 ### 7.6 machine에 주변장치 더하기 — `apc_board_*.py` 확장
 
@@ -377,13 +424,14 @@ PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 
 | 층 | 어떻게 |
 |---|---|
 | 파이썬(실제 Pyodide) | `tests/unit/lab/pyodide-board.test.ts` + `helpers/pyodide-board-run.mjs` — ESP32 실습실 워커와 같은 파일·순서(beginRun → install_available → reset_for_run → bind → 코드 → run_idle). 입력은 `inputs`(실행 전)·`during`(시각)·`onMark`(파이썬이 `emit('board.device', {'mark': …})`한 뒤 — 부하에 흔들리지 않게), `stopAfterMs`·`idle`. 동기 진입점 검사 포함. `--limited`로 제한 모드 |
-| 순수 논리 | `board-state.test.ts`(메시지 읽기·스냅샷·입력 값), `board-parts.test.ts`(부품 정의 검사·배선·부품 visual/drive), `python-modules.test.ts`(실습실별 파일·shims), `esp32-examples.test.ts`(예제 목록) |
-| 브라우저 | `tests/e2e/lab-esp32.spec.ts`(LED 상태 메시지, BOOT 버튼 마우스·키보드, Timer 대기, OpenCV 안 받음, dev 실습실에 machine 없음). 예제 스모크(`examples-smoke.spec.ts`)는 실습실별로 돌아 `examples/esp32/` 이관 예제를 ESP32 실습실에서 실행한다 |
+| 순수 논리 | `board-state.test.ts`(메시지 읽기·스냅샷·입력 값·출력 세기), `board-parts.test.ts`(부품 정의 검사·배선 검사), `board-part-<부품 id>.test.ts`(부품마다), `board-layout.test.ts`(핀 머리 표·배선도 계획 — 선 겹침·엇갈림), `board-wiring-spec.test.ts`(배선 글 세 모양), `python-modules.test.ts`(실습실별 파일·shims), `esp32-examples.test.ts`(예제 목록·배선 우선순위·이관 예제 사이드카) |
+| 브라우저 | `tests/e2e/lab-esp32.spec.ts`(LED 상태 메시지, BOOT 버튼 마우스·키보드, Timer 대기, OpenCV 안 받음, dev 실습실에 machine 없음), `tests/e2e/lab-esp32-parts.spec.ts`(P3-02: f046·f015·f052·f053·진동 알림 예제, 터치 센서 마우스·키보드·터치 화면, 진동 모터·움직임 줄이기, 배선 오류 화면·파이썬, [그림 크게 보기] — 배선을 일부러 틀리게 볼 때는 `page.route`로 실습실 HTML의 예제 목록 JSON만 바꾼다). 예제 스모크(`examples-smoke.spec.ts`)는 실습실별로 돌아 `examples/esp32/` 이관 예제를 ESP32 실습실에서 실행한다 |
 | 개발 서버로 | `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx --ignore-lock` 뒤 `PW_BASE_URL=http://localhost:44xx/ai-physical-computing/ npx playwright test tests/e2e/lab-esp32.spec.ts --project=desktop --output=<저장소 밖 폴더>`(5절) |
 
 ### 7.8 금지·주의
 
-- 부품 그림은 사이트가 직접 그린 브랜드 중립 SVG만(업체 로고·Fritzing 등 SA 그림 금지). 보드·부품 사진을 쓰려면 `scripts/image-allowlist.yaml` 눈 확인 절차.
+- 부품 그림은 사이트가 직접 그린 브랜드 중립 SVG만(업체 로고·Fritzing 등 SA 그림 금지). 보드·부품 사진을 쓰려면 `scripts/image-allowlist.yaml` 눈 확인 절차. 보드 그림은 키트와 같은 핀 순서를 따르되 업체 이름·실크 문구는 넣지 않는다.
+- 부품 그림 글자는 SVG 단위 8px 이상(데스크톱 실습실 폭에서 약 11px, 휴대폰은 [그림 크게 보기]로 약 15px)으로 쓰고, 그림 안 글자 색은 짙은 기판·모듈 위 흰색 계열로 대비를 지킨다.
 - 가상 보드가 실물보다 너그러우면 안 된다: 범위 밖 값에는 실물과 같은 예외를 내고(문구는 MicroPython 그대로), 한국어 풀이는 오류 사전 `board` 묶음(`content/help/errors/errors.yaml`)에 더한다. 흉내 낼 수 없는 차이는 콘솔 안내·교사용 접기로.
 - 보드 초기화·틱·대기 전·마무리 훅에서는 양보하지 않는다(`peek`·`drain`·`emit`·`notice`만). 콜백은 입력 확인 지점에서만 부른다.
 - CPython `time`·`sys.modules`를 바꾸지 않는다(import 훅만). Pyodide의 `errno` 번호를 보드 오류에 쓰지 않는다(`board_oserror`).

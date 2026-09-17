@@ -129,7 +129,7 @@ git push
   - 차시 본문에 실습실 주소를 손으로 적을 때(`…/labs/vision/?example=vision/u1/…py`)는 경로를 정확히 적어요. 없는 파일이면 실습실이 첫 예제를 열면서 "링크에 적힌 예제를 찾지 못했어요"라고 알리고, `npm run check:links`가 `example-not-found`로 잡아요.
   - 새 하위 폴더(예: `examples/vision/u5/`)를 만들면 [예제 불러오기] 목록의 묶음 이름을 `src/lab/vision/examples.ts`의 `EXAMPLE_GROUPS`에 한 줄 더해요(안 더하면 폴더 이름 그대로 맨 뒤에 묶여요).
   - 카메라·창 코드는 PC용 그대로 써요(`cv2.VideoCapture(0)`, `cap.read()`, `cv2.imshow`, `cv2.waitKey(1) & 0xFF == ord('q')`). 실습실이 웹캠이나 샘플 입력을 연결해요.
-  - **조절 막대 만들기:** 값을 정하는 줄 끝에 `# @slider 최소 최대 간격`을 붙이면(예: `threshold = 100  # @slider 0 255 1`) 실습실 오른쪽 아래 조절 패널에 슬라이더가 생겨요. `mode = "edge"  # @select edge blur gray`는 고르기 상자, `show = True  # @toggle`은 켜기·끄기예요. 들여쓰기 없는 줄에서만 되고, 규약 앞뒤에 적은 말은 설명으로 보여요. 슬라이더를 움직이면 코드의 숫자가 함께 바뀌고 실행 중이면 다음 프레임부터 반영돼요. 잘못 쓰면 패널에 한국어 경고가 나와요(`src/lab/README.md` 1절).
+  - **조절 막대 만들기:** 값을 정하는 줄 끝에 `# @slider 최소 최대 간격`을 붙이면(예: `threshold = 100  # @slider 0 255 1`) 실습실 오른쪽 아래 조절 패널에 슬라이더가 생겨요. `mode = "edge"  # @select edge blur gray`는 고르기 상자, `show = True  # @toggle`은 켜기·끄기예요. 들여쓰기 없는 줄에서만 되고, 규약 앞뒤에 적은 말은 설명으로 보여요. 슬라이더를 움직이면 코드의 숫자가 함께 바뀌고 실행 중이면 코드가 그 값을 다음에 쓸 때(영상처리는 다음 프레임, 가상 보드는 다음 반복)부터 반영돼요. 잘못 쓰면 패널에 한국어 경고가 나와요(`src/lab/README.md` 1절).
 
   - **예제를 더하면 스모크 테스트가 한 번 돌려 봐요:** `npm run test:e2e`의 `tests/e2e/examples-smoke.spec.ts`가 옮긴 예제 전부를 실습실에서 한 번씩 실행해 파이썬 오류로 끝나지 않는지 봐요. 원본이 **일부러 오류로 끝나는 예제**(오류 읽기 연습)는 사이드카에 이렇게 적어 두면 그대로 통과해요.
 
@@ -143,6 +143,14 @@ git push
     ```
 
     새로 옮긴 예제만 먼저 돌려 보려면 코드 id를 적어요: `SMOKE_ONLY=f090,f091 npx playwright test tests/e2e/examples-smoke.spec.ts --project=desktop`(개발 서버에 대고 돌릴 때는 앞에 `PW_BASE_URL=http://localhost:4321/ai-physical-computing/`).
+
+- **ESP32 실습실 예제 더하기(가상 보드):** `examples/esp32/` 아래에 `.py` 파일 하나를 두면 [예제 불러오기] 목록에 들어가요(원본에서 옮긴 교과서 예제는 `examples/esp32/u2/` 같은 단원 폴더와 사이드카). 보드에 붙은 내장 LED(GPIO2)·BOOT 버튼(GPIO0) 말고 **바깥 부품을 쓰면 배선을 적어요** — 그러면 보드 아래에 부품과 선(배선도)이 그려지고, 코드가 배선과 다르게 핀을 쓰면 실습실이 한국어로 알려 줘요.
+  - 사이트가 만든 예제: 파일 머리말에 부품 하나당 한 줄 `# @part touch-digital 17`(핀이 여러 개인 부품은 `# @part rgb-led r=27 g=32 b=33`).
+  - 원본에서 옮긴 예제: 사이드카에 `parts: [{ part: touch-digital, pin: 17 }]`(이관 목록 `meta`에 적어 두면 도구가 사이드카로 옮겨요).
+  - 차시 파일(frontmatter)의 `examples:` 항목에 `parts: [{ type: touch_digital, pin: 17 }]`처럼 적으면 그것이 가장 먼저 쓰여요.
+  - 지금 가상 보드가 아는 부품 이름: `touch-digital`(터치 센서, 기본 17번), `vibration-motor`(진동 모터, 기본 19번 — 원고에 핀이 없어 사이트가 정한 핀). 아직 없는 부품을 적으면 "가상 보드에 아직 없어요"라는 주의가 보이고 그 부품은 그려지지 않아요. 부품 이름·검사 목록 전체는 `src/lab/README.md` 7.4·7.5절이에요.
+  - **실습 방법**도 적어 두면 보드 그림 위에 "이 예제 실습 방법"으로 보여요: 사이트가 만든 예제는 코드 끝에 `# ── 실습 방법 ──` 상자(줄마다 한 단계), 옮긴 예제는 사이드카에 `practice: ["[실행]을 눌러요.", "터치 센서를 누르고 있어요."]`.
+  - 새 부품은 `src/lab/modules/board/parts/<부품 이름>/part.ts` 폴더 하나와 테스트 파일 `tests/unit/lab/board-part-<부품 이름>.test.ts`로 더해요(등록 파일 수정 없음).
 
 ## 2-1. 오류 풀이 항목 더하기
 
