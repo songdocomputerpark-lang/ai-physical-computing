@@ -156,9 +156,9 @@ export default manifest;
 | `ctx.onEvent(kind, payload => …)` | 파이썬이 기다리지 않고 알린 것 | `apc_runtime.emit(kind, payload, transfer=[…])` |
 | `ctx.setValue(name, value)` | 최신 값 하나(덮어씀) | `apc_runtime.get(name, default)` |
 | `ctx.pushEvent(channel, value)` | 쌓이는 값(순서대로) | `apc_runtime.poll(channel)`(꺼내면 비움) |
-| `ctx.onLab('run' \| 'done' \| 'code' \| 'example' \| 'state', fn)` | 실습실 조작 이벤트(`LabController.on`과 같음) | — |
+| `ctx.onLab('run' \| 'run-pending' \| 'done' \| 'code' \| 'example' \| 'state' \| 'records-cleared', fn)` | 실습실 조작 이벤트(`LabController.on`과 같음). `run-pending`은 파이썬을 받는 동안 [실행]을 눌러 예약했을 때(준비가 끝나면 `run`이 따로 와요) | — |
 | `ctx.vision()` → `VisionLab \| null` | 영상처리 실습실이면 `vision.onFrame((frame, {sourceId, now}) => …)`(cap.read 답 직전, frame.data는 답한 뒤 워커로 옮겨져 비므로 보관하려면 복사), `vision.grabFrame()`, `vision.windows`, `vision.sendKey()` | — |
-| `ctx.panel`, `ctx.showPanel()`, `ctx.hidePanel()` | `panel.astro`가 그려진 요소(처음엔 hidden) | — |
+| `ctx.panel`, `ctx.showPanel()`, `ctx.hidePanel()` | `panel.astro`가 그려진 요소(처음엔 hidden). **mount에서 무조건 열지 말고** `showPanelWhenUsed(ctx, /이름/)`(`modules/panel-when-used.ts`)로 코드가 그 모듈을 쓸 때만 열어요 | — |
 | `ctx.storageName('설정')` → `ai-physical-computing:module:<id>:설정` | 브라우저 저장 이름(`src/lib/storage.ts` 규칙 — [이 컴퓨터에서 내 기록 지우기]가 함께 지움) | — |
 | `ctx.notice('글')` | 콘솔 안내 줄 | `apc_runtime.notice(text, level)` |
 | `ctx.lab`, `ctx.runtime`, `ctx.root`, `ctx.labId`, `ctx.manifest` | 컨트롤러·실행기·뿌리 요소 | — |
@@ -167,6 +167,9 @@ export default manifest;
 - `mount`는 `{ dispose() }`를 돌려줄 수 있어요. ctx로 등록한 훅은 dispose 때 알아서 풀리고, 직접 붙인 DOM 이벤트만 풀어요.
 - 실행 시작(`ctx.onLab('run')`)에 화면 값을 다시 `setValue`해 두면 정지 2단계(워커 재시작)로 값이 사라져도 복구돼요(hello 예시).
 - 무거운 라이브러리(MediaPipe Tasks 등)는 index.ts 맨 위에서 import하지 말고 **처음 필요할 때 `await import()`** 해요 — index.ts 자체가 실습실마다 따로 받는 청크지만, 모듈이 붙는 순간 그 청크를 받기 때문이에요.
+- **패널은 쓸 때만 연다(2026-09-17 Phase 2 검토 반영, 절대 원칙 4 "한 페이지 한 개념"):** 예전에는 모듈마다 mount에서 `showPanel()`을 불러 에지 검출 첫 실습 아래로 인식·음성·파일 패널이 줄줄이 이어졌어요. 이제는 `const gate = showPanelWhenUsed(ctx, /mediapipe/u)`처럼 코드에 이름이 보이면 열고, 파이썬이 실제로 요청을 보내면 핸들러 첫 줄에서 `gate.show()`로 못 박아요(코드를 고쳐도 닫히지 않음). 실행 전에 조작해야 하는 패널(파일 넣기)은 그 조작의 흔한 코드 모양으로 열어요(`runtime-extras/files.ts`의 `WORK_FILE_USE_PATTERN`).
+- **학생에게 방금 생긴 것을 보여 줄 때**는 `revealElement(요소)`(`controls/reveal.ts`)를 써요 — 이미 충분히 보이면 움직이지 않고, 움직임 줄이기 설정이면 부드럽게 넘기지 않아요. 실습실 틀은 [실행] 때 io 슬롯의 `[data-lab-reveal-on-run]`(없으면 입력·출력 칸 전체)을, 오류 모듈은 풀이 카드를 이것으로 보여요. 편집칸을 스크롤할 일이 있으면 페이지까지 움직이는 CodeMirror `scrollIntoView` 대신 편집칸 안에서만(`errors/highlight.ts`의 `scrollLineInsideEditor`) 움직여요 — 방금 옮긴 화면을 되돌리지 않게.
+- 조작 줄 아래 안내 줄에 한 줄로 알릴 것이 있으면 `ctx.lab.showMessage('…')`(오류로 끝났을 때 오류 모듈이 쓰는 자리). 학생이 읽는 글에는 "정지 2단계"·밀리초 같은 안쪽 용어를 넣지 않아요.
 
 ### 4.4 *.py — 파이썬 쪽 규칙
 
@@ -189,7 +192,8 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 | 순수 논리 | Vitest. manifest 검사는 `validateManifests`에 가짜 묶음을 넘겨요 | `tests/unit/lab/modules.test.ts` |
 | 파이썬 쪽 | Node의 실제 Pyodide(`--experimental-wasm-jspi`)로 도우미 스크립트를 띄워 JSON 한 줄을 읽어요. 붙박이 + 모듈 폴더의 .py를 /apc에 쓰고, 화면 흉내가 요청에 답해요. **동기 진입점 검사**(`reset_for_run`을 40ms 뒤 동기로 부름)를 꼭 넣어요 | `tests/unit/lab/pyodide-hello.test.ts` + `helpers/pyodide-hello-run.mjs`(복사해서 시작) |
 | 브라우저 | Playwright. 자기 실습실 페이지를 열고 `data-lab-modules`에 id가 있는지, 패널이 보이는지, 코드를 실행해 요청·이벤트가 오가는지 | `tests/e2e/module-hello.spec.ts` |
-| 네트워크 | 학생 영상·음성이 밖으로 나가지 않는지: `collectRequests(page)`(`tests/e2e/helpers/vision.ts`)로 사이트 자신과 `ALLOWED_REMOTE_ORIGINS`(jsDelivr) 밖 요청이 0건 | `tests/e2e/lab-vision.spec.ts` |
+| 네트워크 | 학생 영상·음성이 밖으로 나가지 않는지: `collectRequests(page)`(`tests/e2e/helpers/vision.ts` — 페이지가 아니라 **문맥 단위**로 들어 서비스 워커가 낸 요청까지 봐요)로 사이트 자신과 `ALLOWED_REMOTE_ORIGINS`(jsDelivr) 밖 요청이 0건 | `tests/e2e/lab-vision.spec.ts` |
+| 준비 중 [실행] | Playwright의 `click()`은 단추가 켜질 때까지 기다려 줘서 "준비 중에 누른 클릭"을 못 잡아요. 준비 중 흐름을 볼 때는 `context.route`로 `pyodide.asm.wasm`을 몇 초 늦추고 `data-lab-run-pending`을 확인해요 | `tests/e2e/lab-loading.spec.ts` |
 
 ### 4.7 금지 사항
 
@@ -217,6 +221,7 @@ PW_BASE_URL=http://localhost:4404/ai-physical-computing/ npx playwright test tes
 - Astro 7은 **한 작업 폴더에 개발 서버를 하나만** 띄워요(`Another astro dev server is already running.`). 포트를 나눠도 서버는 하나뿐이니, 먼저 띄운 사람의 주소를 `PW_BASE_URL`로 함께 쓰거나 `--ignore-lock`(잠금 파일 `.astro/dev.json`을 읽지도 쓰지도 않음)으로 나란히 띄워요. Windows에서 `--ignore-lock` 없이 두 번째 서버를 띄우면 `EPERM: operation not permitted, unlink '.astro/dev.json'`으로 죽어요.
 - `npx playwright test`에는 **`--output=<내 폴더>`**를 꼭 붙여요. 붙이지 않으면 공유 `test-results/`를 다른 사람이 지우면서 `browserContext.close: ENOENT … .playwright-artifacts-N` 같은 가짜 실패가 나요.
 - 다른 사람이 `src/`를 저장하면 내 테스트 페이지가 Vite HMR로 통째로 새로고침돼 실행 중이던 코드가 끊길 수 있어요(재시도하면 통과). 빌드 결과로 도는 `npm run test:e2e`에는 없는 문제예요.
+- 개발 서버에 대고 돌릴 때는 `--output`을 **저장소 밖**(예: 운영체제 임시 폴더)에 두는 편이 안전해요. 저장소 안(`.cache/…`)에 두면 실패한 검사의 추적 파일(`traces/resources/*.html`)이 생길 때마다 개발 서버의 감시기가 그 파일을 알아채고(`[watch] .cache/…html`), 그 무렵 실습실 검사들이 파이썬 준비(`loading`)에서 90초씩 멈췄어요(2026-09-17 관찰 — 같은 검사는 빌드 결과에서는 통과).
 - 개발 서버로 `/labs/vision/`을 처음 열면 Vite가 그때그때 옮기느라 40초를 넘길 수 있어요 — 그 페이지를 쓰는 검사에는 `test.describe.configure({ timeout: … })`가 필요해요.
 
 실제로 만들어진 폴더는 아래와 같아요(2026-09-16 P2-05~P2-14 통합 뒤 — 처음 배정과 이름이 다른 곳이 있어요).
