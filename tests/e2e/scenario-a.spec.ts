@@ -37,18 +37,32 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
     await button.click();
     await expect(page).toHaveURL((url) => url.pathname === VISION_PATH);
 
-    // 2. 실습실: 파이썬·OpenCV가 준비되고 첫 예제가 편집칸에 들어 있다.
-    await waitVisionReady(page);
-    const readyMs = elapsed();
+    // 2. 실습실: 첫 예제가 편집칸에 들어 있다. 학생은 준비를 기다리지 않고 바로 [실행]을 누른다
+    //    (2026-09-17 검토 반영: 전에는 파이썬을 받는 동안 [실행]이 꺼져 있어 첫 클릭이 소리 없이 사라졌다 — Playwright의 click()은
+    //    단추가 켜질 때까지 기다려 주므로 이 검사가 그 문제를 못 잡았다. 이제는 눌러 두면 준비가 끝나는 대로 실행된다).
     await expect(labRoot(page)).toHaveAttribute('data-example', 'first-edge');
     const slider = page.locator('[data-lab-param="threshold"] input[type="range"]');
     await expect(slider).toHaveValue('100');
     await expect(page.locator('[data-lab-param="blur_size"] input[type="range"]')).toHaveValue('5');
+    const runButton = page.locator('[data-lab-run]');
+    await expect(runButton, '파이썬을 받는 동안에도 [실행]을 누를 수 있어요').toBeEnabled({ timeout: 10_000 });
+    const stateAtClick = (await labRoot(page).getAttribute('data-state')) ?? '';
+    await runButton.click();
+    const pendingAtClick = (await runButton.getAttribute('data-lab-run-pending')) === 'yes';
+    if (stateAtClick === 'loading' || stateAtClick === 'unloaded') {
+      // 아직 준비 중이었다면 눌러 둔 것이 예약되고, 무엇을 기다리는지 글로 알린다(이미 준비가 끝났으면 곧바로 실행돼 예약 표시가 없다).
+      await expect.poll(async () => pendingAtClick || Number((await labRoot(page).getAttribute('data-run-count')) ?? '0') > 0).toBe(true);
+    }
+    await waitVisionReady(page);
+    const readyMs = elapsed();
 
-    // 3. [실행] → 웹캠(가짜 카메라)의 에지 결과가 출력 창에 그려진다.
-    await page.getByRole('button', { name: '실행', exact: true }).click();
+    // 3. 눌러 둔 [실행]이 돌아 웹캠(가짜 카메라)의 에지 결과가 출력 창에 그려진다. 결과 칸이 화면 안으로 옮겨져 있고,
+    //    결과 바로 아래의 조절 막대(threshold)까지 1366×768 한 화면에 들어온다(설명을 읽지 않아도 찾게).
+    await expect(labRoot(page)).toHaveAttribute('data-run-count', '1', { timeout: 60_000 });
     await waitFrames(page, 'edges', 4);
     const edgeMs = elapsed();
+    await expect(page.locator('canvas[data-vision-window="edges"]')).toBeInViewport();
+    await expect(page.locator('[data-lab-param="threshold"]')).toBeInViewport();
     expect(await whiteRatio(page, 'edges')).toBeGreaterThan(0);
     const base = await averageWhiteRatio(page, 'edges');
 
@@ -72,7 +86,8 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
 
     const totalMs = elapsed();
     const seconds = (ms: number) => (ms / 1000).toFixed(1);
-    const summary = `[scenario-a] 홈 → 실습실 준비 ${seconds(readyMs)}초 → 첫 에지 ${seconds(edgeMs)}초 → 슬라이더 효과 ${seconds(sliderMs)}초 (총 ${seconds(totalMs)}초) · 흰 픽셀 비율 100:${(base * 100).toFixed(2)}% → 20:${(low * 100).toFixed(2)}% → 100:${(back * 100).toFixed(2)}%`;
+    const clickNote = pendingAtClick ? '준비 중에 [실행]을 눌러 예약' : `[실행]을 누를 때 상태 ${stateAtClick || '알 수 없음'}`;
+    const summary = `[scenario-a] 홈 → 실습실 준비 ${seconds(readyMs)}초 → 첫 에지 ${seconds(edgeMs)}초 → 슬라이더 효과 ${seconds(sliderMs)}초 (총 ${seconds(totalMs)}초, ${clickNote}) · 흰 픽셀 비율 100:${(base * 100).toFixed(2)}% → 20:${(low * 100).toFixed(2)}% → 100:${(back * 100).toFixed(2)}%`;
     console.log(summary);
     test.info().annotations.push({ type: 'scenario-a', description: summary });
     expect(totalMs).toBeLessThan(SCENARIO_LIMIT_MS);

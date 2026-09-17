@@ -1,7 +1,8 @@
 // 파일 패널의 순수 논리(src/lab/modules/runtime-extras/files.ts) — 목록 합치기·크기 글·파일 형식(P2-10).
 // DOM을 만지는 [내려받기]·[파일 넣기]는 tests/e2e/lab-runner.spec.ts가 본다.
+import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { KIND_LABELS, formatBytes, isImageFile, mergeFileEntries, mimeTypeFor, type KnownBytes } from '../../../src/lab/modules/runtime-extras/files.ts';
+import { KIND_LABELS, formatBytes, isImageFile, mergeFileEntries, mimeTypeFor, usesWorkFiles, type KnownBytes } from '../../../src/lab/modules/runtime-extras/files.ts';
 
 function known(parts: Partial<Record<keyof KnownBytes, Record<string, number[]>>> = {}): KnownBytes {
   const toMap = (record: Record<string, number[]> | undefined) =>
@@ -77,5 +78,47 @@ describe('크기 글과 파일 형식', () => {
     expect(mimeTypeFor('이름없음')).toBe('application/octet-stream');
     expect(isImageFile('a.png')).toBe(true);
     expect(isImageFile('a.py')).toBe(false);
+  });
+});
+
+describe('파일 패널을 열 코드인지(usesWorkFiles, 2026-09-17 검토 반영)', () => {
+  it('작업 폴더 파일을 읽고 쓰는 흔한 모양을 알아본다', () => {
+    const using = [
+      'mask = cv2.imread("mask.png", cv2.IMREAD_UNCHANGED)',
+      "cv2.imwrite('결과.png', img)",
+      "with open('메모.txt', encoding='utf-8') as f:",
+      "print(open('a.txt').read())",
+      "font = ImageFont.truetype('C:/Windows/Fonts/malgun.ttf', 30)",
+      "pyautogui.screenshot('shot.png')",
+      "img = Image.open('사진.jpg')",
+      "pil_img.save('out.png')",
+      "np.save('a.npy', arr)",
+      "cap = cv2.VideoCapture('영상.mp4')",
+      "cap = cv2.VideoCapture(r'C:/영상.mp4')",
+      "print(os.listdir('.'))",
+    ];
+    for (const code of using) {
+      expect(usesWorkFiles(code), code).toBe(true);
+    }
+  });
+
+  it('파일을 쓰지 않는 코드(에지 검출 첫 실습, 웹캠, 가상 브라우저)에서는 열지 않는다', () => {
+    const notUsing = [
+      ['import cv2', 'cap = cv2.VideoCapture(0)', 'edges = cv2.Canny(gray, threshold, threshold * 2)', 'cv2.imshow("edges", edges)'].join('\n'),
+      "webbrowser.open('https://www.google.com')",
+      'hands = mp.solutions.hands.Hands()',
+      "print('open 이라는 낱말만 있어요')",
+      'reopen(x)',
+    ];
+    for (const code of notUsing) {
+      expect(usesWorkFiles(code), code).toBe(false);
+    }
+  });
+
+  it('교과서 f039(가면 씌우기)와 사이트 첫 실습 파일로 확인한다', () => {
+    const root = new URL('../../../examples/vision/', import.meta.url);
+    const read = (name: string) => fs.readFileSync(new URL(name, root), 'utf8');
+    expect(usesWorkFiles(read('u1/1-3-3-adv-face-mask.py'))).toBe(true);
+    expect(usesWorkFiles(read('first-edge.py'))).toBe(false);
   });
 });

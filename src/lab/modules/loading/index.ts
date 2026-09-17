@@ -20,6 +20,7 @@
  */
 import { withBase } from '../../../lib/url.ts';
 import { readItem, writeItem } from '../../../lib/storage.ts';
+import { revealElement } from '../../controls/reveal.ts';
 import { CONCEPT_CARDS, cardCounterText, nextCardIndex } from '../../loader/cards.ts';
 import {
   CARD_INTERVAL_MS,
@@ -137,6 +138,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   const setCollapsed = (value: boolean) => {
     collapsed = value;
+    if (value) {
+      // 첫 준비 동안 맨 위(조작 줄 바로 아래)에 올려 둔 이 패널을 제자리(입력·출력 아래)로 돌린다(LabShell.astro의 data-loading-intro).
+      // 준비가 끝나 접힐 때나 학생이 [접기]를 누를 때 한 번 — 그 뒤로는 다시 올리지 않는다(화면이 오르내리지 않게).
+      root.dataset.loadingIntro = 'no';
+    }
     if (panel) {
       const box = panel.querySelector<HTMLElement>('[data-loading-panel]');
       if (box) {
@@ -602,6 +608,17 @@ function mount(context: LabModuleContext): LabModuleHandle {
       }
     });
   }
+
+  // 파이썬을 받는 동안 학생이 [실행]을 눌러 두면(예약) 이 패널을 화면 안으로 옮긴다: 기다리는 동안 진행률 막대와 1분 개념 카드가
+  // 보여야 "얼마나 더 기다리는지"를 안다(2026-09-17 검토 반영 — 전에는 패널이 문서 y≈3,300px에 있어 한 번도 보이지 않았다).
+  // 'nearest'로 옮겨 [실행] 단추("준비되면 실행돼요…")가 되도록 함께 보이게 한다.
+  cleanups.push(
+    context.onLab('run-pending', () => {
+      if (panel && !panel.hidden && !collapsed) {
+        revealElement(panel, { block: 'nearest' });
+      }
+    }),
+  );
 
   // 기록 지우기를 누르면 저장해 둔 "미리 받음" 표시도 지워진다(clearOurs가 머리말 이름을 지운다) — 단추 글자만 되돌린다.
   cleanups.push(

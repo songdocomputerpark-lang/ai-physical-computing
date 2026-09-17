@@ -335,12 +335,15 @@ export class VisionLab {
       this.selectSource('sample');
       this.#setInputState('opening');
       const opened = await sample.open();
-      this.#attach(opened, sample);
+      // 왜 샘플로 바뀌었는지를 남긴 채로 붙인다(예전에는 #attach의 기본 문구가 이유를 덮어써서, 실수로 "차단"을 누른 학생이
+      // 되돌리는 방법을 화면에서 볼 수 없었다 — 2026-09-17 검토 반영).
+      this.#attach(opened, sample, failure.message);
       return opened;
     }
   }
 
-  #attach(opened: OpenedSource, source: VisionSource): void {
+  /** @param fallbackReason 다른 소스를 못 열어 이 소스로 바꿔 연 까닭(있으면 안내 글 앞에 그대로 남긴다) */
+  #attach(opened: OpenedSource, source: VisionSource, fallbackReason?: string): void {
     this.#source = opened;
     this.#throttle.reset();
     this.#inputMeter.reset();
@@ -360,7 +363,12 @@ export class VisionLab {
       this.grabFrame();
     }
     this.#setInputState('open');
-    if (source.kind === 'webcam') {
+    if (fallbackReason) {
+      // 이유 문장(sources.ts)은 "…샘플 입력으로 실습해요."로 끝나므로, 덧붙이는 말은 "무엇을 해 두었고 어떻게 되돌리는지"만 적는다.
+      this.#showInputMessage(
+        `${fallbackReason} 입력 소스를 '샘플 입력'으로 바꿔 두었어요. 카메라를 고친 뒤에는 입력 소스에서 '웹캠(카메라)'을 고르고 [입력 켜기]를 누르면 돼요.`,
+      );
+    } else if (source.kind === 'webcam') {
       this.#showInputMessage('카메라를 켰어요.');
     } else if (source.kind === 'sample') {
       this.#showInputMessage('샘플 입력(실습실이 그린 도형)으로 실습해요.');

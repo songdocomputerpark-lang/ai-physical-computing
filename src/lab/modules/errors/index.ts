@@ -18,6 +18,7 @@ import { withBase } from '../../../lib/url.ts';
 import { catalogFromJson, type ErrorCatalog } from '../../errors/catalog-schema.ts';
 import { consoleSummary, explain, shortenMessage, type Explanation } from '../../errors/explain.ts';
 import { clearHighlight, ERROR_LINE_EVENT, highlightLine, type ErrorLineDetail } from '../../errors/highlight.ts';
+import { revealElement } from '../../controls/reveal.ts';
 import type { RunResult } from '../../runtime/client.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
@@ -206,6 +207,16 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     }
     card.hidden = false;
     context.showPanel();
+    /*
+     * 오류 카드는 실습실 아래쪽(1366×768에서 문서 y≈2,900, 375×812에서 y≈4,600)에 열린다. 그냥 두면 첫 화면에는
+     * "실패했다"는 말이 한 마디도 없어서 학생이 "눌렀는데 아무 일도 안 난다"로 읽는다(2026-09-17 검토 반영).
+     * 그래서 ① 조작 줄 아래 안내 줄에 무엇이 났는지 적고 ② 카드가 화면 밖이면 카드로 내려 준다. 정지는 오류가 아니라 그대로 둔다.
+     */
+    if (result.outcome === 'error') {
+      const where = explanation.locationText === null ? '' : ` — ${explanation.locationText}`;
+      lab.showMessage(`오류로 끝났어요: ${explanation.typeLabel}${where}. 아래 풀이 카드에 고치는 방법이 있어요.`);
+      revealElement(card);
+    }
   };
 
   const onDone = (result: RunResult): void => {

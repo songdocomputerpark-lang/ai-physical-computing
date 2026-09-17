@@ -28,6 +28,11 @@ export interface LabExample {
   readonly packages?: readonly string[];
   /** [예제 불러오기] 선택 상자에서 묶어 보일 이름(선택, optgroup). 같은 이름끼리 목록 순서대로 묶인다. */
   readonly group?: string;
+  /**
+   * 이 예제가 나오는 차시(선택). 예제 머리말 `# @lesson v4`나 사이드카 lesson 값을 페이지가 실제 차시 주소로 바꿔 넣는다.
+   * 실습실 위에 "이 예제가 나오는 차시" 링크가 생겨, 차시에서 [실습실에서 열기]로 넘어온 학생이 되돌아갈 수 있다(2026-09-17 검토 반영).
+   */
+  readonly lesson?: { readonly href: string; readonly label: string };
 }
 
 /** 예제 id 모양 */

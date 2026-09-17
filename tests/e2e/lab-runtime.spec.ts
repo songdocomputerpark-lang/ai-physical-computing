@@ -91,7 +91,7 @@ test.describe('파이썬 실행기(개발용 시험 페이지)', () => {
     // 실측값을 기록에 남긴다(PROGRESS 판정표). 목록 보고서(list)에 그대로 찍힌다.
     console.log(`[lab-runtime] 정지 1단계: [정지]부터 멈출 때까지 ${stopMs}ms`);
     test.info().annotations.push({ type: 'stop-1-ms', description: String(stopMs) });
-    await expect(page.locator('[data-lab-result]')).toContainText('멈췄어요(KeyboardInterrupt)');
+    await expect(page.locator('[data-lab-result]')).toHaveText('[정지]를 눌러 멈췄어요(KeyboardInterrupt).');
     await expect(labRoot(page)).toHaveAttribute('data-state', 'idle');
 
     await runCode(page, "print('다시')\n");
@@ -108,7 +108,10 @@ test.describe('파이썬 실행기(개발용 시험 페이지)', () => {
     await page.getByRole('button', { name: '정지', exact: true }).click();
     expect(await waitDone(page, STOP_GRACE_MS + 5_000)).toBe('killed');
     await expect(page.locator('[data-lab-console]')).toContainText('파이썬을 다시 시작했어요');
-    await expect(page.locator('[data-lab-result]')).toContainText('정지 2단계');
+    // 결과 줄은 학생이 읽는 문장이라 "정지 2단계" 같은 사이트 안쪽 용어와 밀리초를 넣지 않는다(2026-09-17 검토 반영).
+    await expect(page.locator('[data-lab-result]')).toContainText('멈추지 않아서 파이썬을 다시 시작했어요');
+    await expect(page.locator('[data-lab-result]')).not.toContainText('정지 2단계');
+    await expect(page.locator('[data-lab-result]')).not.toContainText('ms');
     await expect(labRoot(page)).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
 
     await runCode(page, "print('재시작 뒤')\n");

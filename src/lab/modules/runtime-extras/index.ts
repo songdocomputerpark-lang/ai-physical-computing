@@ -9,13 +9,27 @@
  * 3. 저장 파일: 파이썬이 event 'runtime-extras.file_saved'로 보낸 바이트를 기억해 파일 패널에 [내려받기]로 보이고, 'runtime-extras.files' 목록으로 패널을 맞춘다.
  * 4. 이름 가림: 넣는 파일 이름이 라이브러리 이름(cv2.py 등)이면 넣지 않고 한국어로 알린다(shadow.ts). 파이썬 쪽의 경고는 콘솔에 온다.
  * 5. 콘솔 오래된 줄 접기(console-fold.ts).
+ * 6. 파일 패널은 **파일을 쓸 때만** 연다(2026-09-17 Phase 2 검토 반영, 절대 원칙 4 "한 페이지 한 개념"): 코드에 파일을 읽고 쓰는 모양
+ *    (files.ts의 WORK_FILE_USE_PATTERN — imread·open·save·truetype…)이 보이거나, 코드가 파일을 저장했거나, 학생이 [파일 넣기]를 썼거나,
+ *    파이썬이 글꼴을 부탁하면 연다. 에지 검출 첫 실습에는 보이지 않는다. 가상 파일(mask.png)은 패널과 상관없이 늘 작업 폴더에 들어간다.
  * 브라우저 테스트 tests/e2e/lab-runner.spec.ts, 순수 논리 단위 테스트 tests/unit/runtime-extras/.
  */
+import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import { MASK_FILE_NAME, SITE_FONT_CANDIDATES, SITE_FONT_FILE, SITE_FONT_FS_PATH, SITE_FONT_LABEL, WORK_DIR } from './assets.ts';
 import { buildMaskPng } from './mask.ts';
 import { mountConsoleFold } from './console-fold.ts';
-import { KIND_LABELS, downloadBytes, formatBytes, isImageFile, mergeFileEntries, mimeTypeFor, type FileEntry, type ListedFile } from './files.ts';
+import {
+  KIND_LABELS,
+  WORK_FILE_USE_PATTERN,
+  downloadBytes,
+  formatBytes,
+  isImageFile,
+  mergeFileEntries,
+  mimeTypeFor,
+  type FileEntry,
+  type ListedFile,
+} from './files.ts';
 import manifest from './manifest.ts';
 import { reservedModuleNames, sanitizeUploadName, shadowRefusedMessage, shadowedName } from './shadow.ts';
 
@@ -241,6 +255,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
     render();
   };
 
+  // 0. 파일 패널은 파일을 쓸 때만 연다(머리말 6번). 한 번 쓰였으면(저장·넣기·글꼴) 그 뒤로는 닫지 않는다.
+  const panelGate = showPanelWhenUsed(context, WORK_FILE_USE_PATTERN);
+
   // 1. 준비될 때마다 파일 넣기(처음 + 정지 2단계 뒤 다시 뜰 때)
   cleanups.push(runtime.on('ready', () => void ensureAssets()));
   if (runtime.info) {
@@ -249,6 +266,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   // 2. 글꼴 부탁
   context.onRequest(REQUEST_FONT, (request) => {
+    panelGate.show();
     ensureSiteFont().then(
       (path) => request.reply({ path, label: SITE_FONT_LABEL, file: SITE_FONT_FILE }),
       (error: unknown) => request.fail(describe(error)),
@@ -262,6 +280,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       return;
     }
     saved.set(data.name, data.data);
+    panelGate.show();
     render();
     if (!noticedSaved.has(data.name)) {
       noticedSaved.add(data.name);
@@ -333,6 +352,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
           refused.push(message);
         }
       }
+      if (added.length > 0 || refused.length > 0) {
+        // 넣은 파일(또는 넣지 못한 까닭)을 학생이 바로 볼 수 있게 패널을 연다.
+        panelGate.show();
+      }
       const addedText = added.length > 0 ? `${added.join(', ')} 파일을 작업 폴더에 넣었어요.` : '';
       setStatus([addedText, ...refused].filter((text) => text !== '').join(' '));
       render();
@@ -344,7 +367,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   setBusy(runtime.state === 'running' || runtime.state === 'stopping');
   render();
-  context.showPanel();
+  // 패널 열기는 맨 위의 panelGate(showPanelWhenUsed)가 맡는다 — 여기서 무조건 열지 않는다.
 
   return {
     dispose() {

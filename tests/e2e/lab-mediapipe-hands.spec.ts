@@ -87,10 +87,16 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
   });
 
   test('모듈이 영상처리 실습실에 붙고, 패널과 재생 입력 선택지가 생긴다', async ({ page }) => {
-    await openVisionLab(page);
+    await openVisionLab(page, '?example=vision/first-edge.py');
     await expect(labRoot(page)).toHaveAttribute('data-lab-modules', /(^|\s)mediapipe(\s|$)/u);
 
+    // 에지 검출 첫 실습처럼 mediapipe를 쓰지 않는 코드에서는 인식 패널이 닫혀 있다(2026-09-17 검토 반영 — 한 페이지 한 개념).
     const panel = page.locator('[data-lab-module-panel="mediapipe"]');
+    await expect(panel).toBeHidden();
+    // 손 인식 예제를 불러오면 열린다.
+    await page.locator('[data-lab-example-select]').selectOption('u1-1-1-2-hands-first');
+    await page.locator('[data-lab-example-load]').click();
+    await expect(labRoot(page)).toHaveAttribute('data-example', 'u1-1-1-2-hands-first');
     await expect(panel).toBeVisible();
     await expect(panel.locator('[data-mediapipe-engine]')).toHaveText('대기');
     // 재생 동작은 손 4개 + 얼굴 3개 + 자세 2개(P2-09에서 늘어남), 묶음(optgroup)으로 보인다

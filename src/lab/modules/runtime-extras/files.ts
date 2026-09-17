@@ -13,6 +13,22 @@ export const KIND_LABELS: Readonly<Record<FileKind, string>> = Object.freeze({
   other: '작업 폴더',
 });
 
+/**
+ * 코드가 작업 폴더의 파일을 쓰는 흔한 모양(파일 패널을 열지 정할 때, 2026-09-17 Phase 2 검토 반영 — "한 페이지 한 개념").
+ * 에지 검출 첫 실습처럼 파일을 쓰지 않는 예제에서는 파일 패널을 닫아 두고, 아래 모양이 코드에 보이면 연다.
+ * - 맨 이름 open(…)(webbrowser.open·Image.open 같은 점 뒤 open은 따로 본다), Image.open(…)
+ * - cv2.imread·imwrite, ImageFont.truetype, pyautogui.screenshot, os.listdir, numpy loadtxt·savetxt·load·save
+ * - 그림·표 저장 .save(…)·.to_csv(…)·read_csv(…), 파일 경로를 준 VideoCapture('영상.mp4'), 사이트 파일 이름 mask.png
+ * 틀려도 해가 작다: 놓치면 코드가 파일을 저장하거나 [파일 넣기]를 쓰는 순간 패널이 열린다(index.ts).
+ */
+export const WORK_FILE_USE_PATTERN =
+  /(?<![.\w])open\s*\(|\bImage\s*\.\s*open\s*\(|\b(?:imread|imwrite|truetype|screenshot|listdir|loadtxt|savetxt|read_csv)\s*\(|\bnp\s*\.\s*(?:load|save)\s*\(|\.(?:save|to_csv)\s*\(|VideoCapture\s*\(\s*(?:[rbuf]{0,2})['"]|\bmask\.png\b/u;
+
+/** 이 코드가 작업 폴더의 파일을 쓰는지(WORK_FILE_USE_PATTERN) */
+export function usesWorkFiles(code: string): boolean {
+  return WORK_FILE_USE_PATTERN.test(code);
+}
+
 /** 항목 정렬 순서: 코드가 저장한 것(내려받을 것)이 맨 위 */
 const KIND_ORDER: Readonly<Record<FileKind, number>> = Object.freeze({ saved: 0, uploaded: 1, provided: 2, other: 3 });
 

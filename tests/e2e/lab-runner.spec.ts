@@ -22,7 +22,7 @@
 import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { SITE_FONT_FILE } from '../../src/lab/modules/runtime-extras/assets.ts';
-import { labRoot, openLabAndWaitReady, runCode, waitDone } from './helpers/lab.ts';
+import { labRoot, openLabAndWaitReady, runCode, setEditorCode, waitDone } from './helpers/lab.ts';
 import { collectRequests } from './helpers/vision.ts';
 
 /** OpenCV·Pillow 휠까지 받는 시간 */
@@ -50,14 +50,12 @@ test.describe('러너 공통(가상 파일·input()·콘솔 접기·글꼴)', ()
     const requests = collectRequests(page);
     await openLabAndWaitReady(page);
 
-    // 모듈이 붙고 파일 패널이 열렸다. 사이트 파일 mask.png가 작업 폴더에 들어가 있다(그림이라 작은 미리 보기도 보인다).
+    // 모듈은 붙었지만 파일을 쓰지 않는 코드(시험 페이지 첫 예제)에서는 파일 패널이 닫혀 있다(2026-09-17 검토 반영 — 한 페이지 한 개념).
     await expect(labRoot(page)).toHaveAttribute('data-lab-modules', /\bruntime-extras\b/u);
-    await expect(filesPanel(page)).toBeVisible();
-    await expect(fileItem(page, 'mask.png')).toBeVisible();
-    await expect(fileItem(page, 'mask.png')).toHaveAttribute('data-kind', 'provided');
-    await expect(fileItem(page, 'mask.png').locator('img.file__thumb')).toHaveCount(1);
+    await expect(filesPanel(page)).toBeHidden();
 
-    await runCode(
+    // 코드가 파일을 읽는 모양(imread)이 되면 실행 전에 패널이 열린다. 사이트 파일 mask.png가 작업 폴더에 들어가 있다(그림이라 작은 미리 보기도 보인다).
+    await setEditorCode(
       page,
       [
         'import cv2',
@@ -68,6 +66,11 @@ test.describe('러너 공통(가상 파일·input()·콘솔 접기·글꼴)', ()
         'print("저장 끝")',
       ].join('\n'),
     );
+    await expect(filesPanel(page)).toBeVisible();
+    await expect(fileItem(page, 'mask.png')).toBeVisible();
+    await expect(fileItem(page, 'mask.png')).toHaveAttribute('data-kind', 'provided');
+    await expect(fileItem(page, 'mask.png').locator('img.file__thumb')).toHaveCount(1);
+    await page.getByRole('button', { name: '실행', exact: true }).click();
     expect(await waitDone(page, PACKAGES_TIMEOUT)).toBe('ok');
     // f039가 쓰는 모양 그대로: 세로 500 × 가로 400, 알파 채널 있음(가면 안은 불투명, 모서리는 투명)
     await expect(consoleBox(page)).toContainText('가면 (500, 400, 4) 255 0');
@@ -194,8 +197,9 @@ test.describe('러너 공통(가상 파일·input()·콘솔 접기·글꼴)', ()
       { name: 'cv2.py', mimeType: 'text/x-python', buffer: Buffer.from('VALUE = 1\n', 'utf8') },
     ]);
 
-    // 넣은 파일은 목록에 "내가 넣음"으로, 가리는 파일은 거절 안내로
+    // 넣은 파일은 목록에 "내가 넣음"으로, 가리는 파일은 거절 안내로. 파일을 넣으면 코드와 상관없이 패널이 열린다.
     await expect(fileItem(page, '내메모.txt')).toHaveAttribute('data-kind', 'uploaded');
+    await expect(filesPanel(page)).toBeVisible();
     await expect(fileItem(page, 'cv2.py')).toHaveCount(0);
     await expect(consoleBox(page)).toContainText("'cv2.py'은(는) 파이썬 라이브러리 이름 'cv2'과(와) 같아서");
     await expect(filesPanel(page).locator('[data-runtime-extras-status]')).toContainText('my_cv2.py');
@@ -316,7 +320,8 @@ test.describe('러너 공통 — 좁은 화면(375px)', () => {
   test.describe.configure({ timeout: 180_000 });
 
   test('파일 패널이 넘치지 않고 [파일 넣기]가 손가락으로 누를 만큼 크다', async ({ page }) => {
-    const response = await page.goto('labs/vision/', { timeout: 120_000 });
+    // 파일 패널은 코드가 파일을 쓸 때만 열리므로 mask.png를 읽는 교과서 예제(f039)로 연다.
+    const response = await page.goto(`labs/vision/?example=${encodeURIComponent('vision/u1/1-3-3-adv-face-mask.py')}`, { timeout: 120_000 });
     expect(response?.status()).toBe(200);
     const panel = filesPanel(page);
     await expect(panel).toBeVisible({ timeout: 60_000 }); // 모듈이 붙으면 열린다(파이썬을 다 받기 전에도)
@@ -324,10 +329,11 @@ test.describe('러너 공통 — 좁은 화면(375px)', () => {
       overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
     }));
     expect(metrics.overflow).toBe(0);
-    // [파일 넣기]는 실습실의 다른 작은 버튼([콘솔 지우기])과 같은 크기이고, 손가락 최소 크기(24px, WCAG 2.2 목표 크기)보다 크다.
+    // [파일 넣기]는 실습실의 다른 작은 버튼([콘솔 지우기])과 같은 크기이고, 좁은 화면에서는 손가락으로 누르기 좋은 44px이다
+    // (WCAG 2.5.5 권장 44×44 — 2026-09-17 검토 반영 전에는 36px이었다).
     const uploadBox = await panel.locator('[data-runtime-extras-upload]').boundingBox();
     const clearBox = await page.locator('[data-lab-console-clear]').boundingBox();
-    expect(uploadBox?.height ?? 0).toBeGreaterThanOrEqual(24);
+    expect(uploadBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     expect(uploadBox?.height ?? 0).toBeGreaterThanOrEqual(clearBox?.height ?? 0);
     const panelBox = await panel.boundingBox();
     expect((panelBox?.width ?? 0) <= 375).toBe(true);

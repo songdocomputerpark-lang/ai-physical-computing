@@ -1014,11 +1014,11 @@ entries:
         while True:
             print('돌고 있어요')
             time.sleep(0.5)
-      error: "멈췄어요(KeyboardInterrupt). [정지]까지 72ms"
+      error: "[정지]를 눌러 멈췄어요(KeyboardInterrupt)."
 
   - id: forced-restart
     group: lab
-    title: "1초 안에 멈추지 않아서 파이썬을 다시 시작했어요(정지 2단계)"
+    title: "1초 안에 멈추지 않아서 파이썬을 다시 시작했어요"
     types: [ForcedRestart]
     meaning: "[정지]를 눌렀지만 코드가 기다리는 곳 없이 계산만 계속해서, 실습실이 파이썬을 통째로 끝내고 다시 띄웠어요."
     why:
@@ -1035,7 +1035,7 @@ entries:
       code: |
         while True:
             pass
-      error: "파이썬을 다시 시작했어요(정지 2단계). [정지]까지 1002ms"
+      error: "1초 안에 멈추지 않아서 파이썬을 다시 시작했어요. 잠깐 뒤에 다시 실행할 수 있어요."
 
   - id: limited-mode
     group: lab

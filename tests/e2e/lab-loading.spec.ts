@@ -40,12 +40,14 @@ function loadingPanel(page: Page) {
 
 test.describe('준비 진행률과 1분 개념 카드', () => {
   test('실습실에 진행률 패널·단계·1분 개념 카드가 보이고, 준비가 끝나면 접힌다', async ({ page }) => {
+    // 준비(파이썬·OpenCV 받기)가 끝날 때까지 지켜보므로 기본 30초로는 모자랄 수 있다(전체 실행 중 부하가 크면 준비에 30초 넘게 걸림).
+    test.setTimeout(4 * 60_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
 
     await page.goto(VISION_PATH);
     const panel = loadingPanel(page);
-    await expect(panel).toBeVisible();
+    await expect(panel).toBeVisible({ timeout: 30_000 });
     await expect(labRoot(page)).toHaveAttribute('data-loading-phase', /loading|ready/u, { timeout: LOAD_TIMEOUT });
 
     // 단계 줄: ① 파이썬 엔진 → ② numpy → ③ OpenCV
@@ -78,6 +80,42 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'false');
 
     expect(errors).toEqual([]);
+  });
+
+  test('준비하는 동안 준비 패널이 편집칸 위에 있고, 그때 누른 [실행]은 예약됐다가 준비가 끝나면 돈다(2026-09-17 검토 반영)', async ({ page, context }) => {
+    test.skip(test.info().project.name === 'mobile', '배치 순서는 데스크톱에서 잰다(모바일은 같은 규칙으로 세로로 쌓인다).');
+    // 빠른 회선·캐시에서도 "준비 중"인 때를 확실히 잡으려고 파이썬 엔진 파일을 몇 초 늦게 준다(워커·서비스 워커 요청도 문맥 경로 규칙을 따른다).
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      await route.continue();
+    });
+    await page.goto(VISION_PATH);
+    const root = labRoot(page);
+    await expect(root).toHaveAttribute('data-state', /unloaded|loading/u);
+    await expect(root).toHaveAttribute('data-loading-intro', 'yes');
+    // 준비 패널(진행률·1분 개념 카드)이 편집칸보다 위에 있다(전에는 편집칸·입력/출력 아래라 문서 y≈3,300px였다).
+    // 패널은 모듈 스크립트가 붙은 뒤에 열리므로 보일 때까지 기다렸다가 잰다.
+    await expect(loadingPanel(page)).toBeVisible({ timeout: 30_000 });
+    const panelBox = await loadingPanel(page).boundingBox();
+    const editorBox = await page.locator('[data-lab-editor]').boundingBox();
+    expect(panelBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(editorBox?.y ?? 0);
+
+    // 준비 중에도 [실행]을 누를 수 있고, 누르면 예약된 것을 글로 알리며 준비 패널이 화면 안으로 온다.
+    const run = page.locator('[data-lab-run]');
+    await expect(run).toBeEnabled();
+    await run.click();
+    await expect(run).toHaveAttribute('data-lab-run-pending', 'yes');
+    await expect(run).toHaveText('준비되면 실행돼요…');
+    await expect(page.locator('[data-lab-message]')).toContainText('준비가 끝나면 바로 실행할게요');
+    await expect(loadingPanel(page)).toBeInViewport();
+
+    // 준비가 끝나면 눌러 둔 실행이 한 번 돌고, 준비 패널은 제자리(아래)로 가며, 결과 칸이 화면 안으로 옮겨진다.
+    await expect(root).toHaveAttribute('data-run-count', '1', { timeout: PACKAGES_TIMEOUT });
+    await expect(run).not.toHaveAttribute('data-lab-run-pending', 'yes');
+    await expect(root).toHaveAttribute('data-loading-intro', 'no');
+    await expect(page.locator('[data-lab-reveal-on-run]')).toBeInViewport();
+    await page.locator('[data-lab-stop]').click();
+    await expect(root).toHaveAttribute('data-outcome', /^(stopped|killed|ok|error)$/u, { timeout: 30_000 });
   });
 
   test('주소에 ?sw=off를 붙이면 오프라인 준비를 끈다(비상구)', async ({ page }) => {
@@ -197,6 +235,58 @@ test.describe('서비스 워커(캐시·오프라인·예비 경로)', () => {
     expect(result.controlled).toBe(true);
     expect(result.ok).toBe(true);
     expect(result.bytes).toBe(PYODIDE_MJS_BYTES);
+  });
+
+  test('크기는 같은데 내용이 다른 파이썬 엔진 파일은 서비스 워커가 버리고 예비본을 쓴다(SHA-256 대조, 2026-09-17 검토 반영)', async ({ page, context }) => {
+    test.skip(!(await hasServiceWorkerFile(page)), '개발 서버에는 sw.js가 없어요(빌드 뒤에 만들어져요).');
+    test.skip(!(await hasSiteFallback(page)), '같은 사이트 Pyodide 예비본이 없어요(prebuild에 fetch-pyodide-fallback.mjs를 넣어 주세요).');
+
+    await page.goto(VISION_PATH);
+    await expect(labRoot(page)).toHaveAttribute('data-loading-sw', /ready|controlled/u, { timeout: 20_000 });
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready;
+      for (const name of await window.caches.keys()) {
+        if (name.startsWith('apc-pyodide-')) {
+          await window.caches.delete(name);
+        }
+      }
+    });
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          if (navigator.serviceWorker.controller) {
+            resolve();
+            return;
+          }
+          navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true });
+          setTimeout(() => resolve(), 10_000);
+        }),
+    );
+
+    // 차단 장비·중간자가 **같은 크기로** 바꿔치기한 파일을 흉내 낸다(크기만 보면 통과하던 경우). 워커에서 그대로 실행되는 코드라 막아야 한다.
+    const forged = Buffer.alloc(PYODIDE_MJS_BYTES, 0x20);
+    Buffer.from('/* forged */ export const forged = true;\n').copy(forged);
+    await context.route(`https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`, (route) =>
+      route.fulfill({ status: 200, contentType: 'text/javascript', headers: { 'access-control-allow-origin': '*' }, body: forged }),
+    );
+
+    const result = await page.evaluate(async ({ version, sitePath }) => {
+      const hex = async (buffer: ArrayBuffer) =>
+        [...new Uint8Array(await crypto.subtle.digest('SHA-256', buffer))].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      const response = await fetch(`https://cdn.jsdelivr.net/pyodide/v${version}/full/pyodide.mjs`);
+      const body = await response.arrayBuffer();
+      const site = await (await fetch(sitePath, { cache: 'no-store' })).arrayBuffer();
+      return {
+        ok: response.ok,
+        bytes: body.byteLength,
+        forged: new TextDecoder().decode(body.slice(0, 12)) === '/* forged */',
+        sameAsSite: (await hex(body)) === (await hex(site)),
+      };
+    }, { version: PYODIDE_VERSION, sitePath: withBase(`vendor/pyodide/${PYODIDE_VERSION}/pyodide.mjs`) });
+    expect(result.ok).toBe(true);
+    expect(result.bytes).toBe(PYODIDE_MJS_BYTES);
+    expect(result.forged, '바꿔치기한 파일이 그대로 학생에게 전달됐어요').toBe(false);
+    expect(result.sameAsSite).toBe(true);
   });
 
   test('jsDelivr가 막혀도 같은 사이트 예비본으로 실습실이 열린다', async ({ page, context }) => {

@@ -103,7 +103,8 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
   });
 
   test('재생 동작 목록에 손·얼굴·자세 묶음이 있고 저사양 모드를 켤 수 있다', async ({ page }) => {
-    await openVisionLab(page);
+    // 인식 패널은 코드가 mediapipe를 쓸 때만 열리므로(2026-09-17 검토 반영) 얼굴 그물 예제(f034)로 연다.
+    await openVisionLab(page, '?example=vision/u1/1-3-1-face-mesh.py');
     const panel = page.locator('[data-lab-module-panel="mediapipe"]');
     await expect(panel).toBeVisible();
     await expect(panel.locator('[data-mediapipe-sequence] optgroup')).toHaveCount(3);

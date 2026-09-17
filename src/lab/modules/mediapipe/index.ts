@@ -30,6 +30,7 @@
 import { readItem, writeItem } from '../../../lib/storage.ts';
 import type { RuntimeRequest } from '../../runtime/client.ts';
 import type { VisionLab } from '../../vision/vision-lab.ts';
+import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import {
   FaceDetectionEngine,
@@ -558,12 +559,19 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
     }
   };
 
+  // 패널은 코드가 mediapipe를 쓸 때만 연다(에지 검출 첫 실습에는 필요 없다 — 2026-09-17 검토 반영).
+  const panelGate = showPanelWhenUsed(context, /\bmediapipe\b|\bmp\s*\.\s*solutions\b/u);
+
   context.onRequest(REQUEST_OPEN, (request) => {
+    panelGate.show();
     void handleOpen(request).catch((error: unknown) => {
       request.fail(`인식 엔진을 준비하지 못했어요: ${error instanceof Error ? error.message : String(error)}`);
     });
   });
-  context.onRequest(REQUEST_DETECT, handleDetect);
+  context.onRequest(REQUEST_DETECT, (request) => {
+    panelGate.show();
+    handleDetect(request);
+  });
 
   context.onLab('run', () => {
     noticed.clear();
@@ -572,12 +580,18 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
     delete context.root.dataset.mediapipeMirrored;
   });
 
-  const onSourceChange = () => renderStatus();
   const sourceSelect = context.root.querySelector<HTMLSelectElement>('[data-vision-source-select]');
+  const onSourceChange = () => {
+    renderStatus();
+    // 입력 소스를 '재생 입력'으로 고르면 어떤 동작(손·얼굴·자세)을 재생할지 고르는 칸이 이 패널에 있으므로, 코드가 아직 mediapipe를 안 써도 연다.
+    if (sourceSelect?.value === REPLAY_SOURCE_ID) {
+      panelGate.show();
+    }
+  };
   sourceSelect?.addEventListener('change', onSourceChange);
   cleanups.push(() => sourceSelect?.removeEventListener('change', onSourceChange));
 
-  context.showPanel();
+  // 패널은 showPanelWhenUsed(위)가 코드에 mediapipe가 보일 때만 연다 — 여기서 무조건 열지 않는다.
   return {
     dispose() {
       for (const cleanup of cleanups.splice(0)) {

@@ -59,6 +59,8 @@ test.describe('코드 에디터(개발용 시험 페이지)', () => {
     expect(url.startsWith(`${pageUrl.origin}${pageUrl.pathname}#code=`)).toBe(true);
     expect(url).toContain('&ex=hello');
     await expect(page.locator('[data-lab-share-note]')).toContainText('자.');
+    // 코드에 적은 개인정보는 링크를 받는 사람에게 모두 보인다는 주의가 창 안에 있다(2026-09-17 검토 반영).
+    await expect(dialog).toContainText('코드에 적은 이름·학번·비밀번호는 링크를 받는 사람이 모두 볼 수 있어요');
     await page.getByRole('button', { name: '닫기', exact: true }).click();
     await expect(dialog).toBeHidden();
 
@@ -146,7 +148,8 @@ test.describe('코드 에디터(개발용 시험 페이지)', () => {
   test('키보드만으로: Tab은 들여쓰기, Esc 뒤 Tab은 편집칸 밖으로, Tab·Enter로 [실행]과 [정지]', async ({ page }) => {
     test.setTimeout(180_000);
     await openLabAndWaitReady(page);
-    await setEditorCode(page, "import time\nwhile True:\n    print('키보드')\n    time.sleep(0.1)\n");
+    const KEYBOARD_CODE = "import time\nwhile True:\n    print('키보드')\n    time.sleep(0.1)\n";
+    await setEditorCode(page, KEYBOARD_CODE);
 
     // 편집칸 끝에서 Tab → 4칸 들여쓰기가 들어간다(초점은 그대로).
     await editorContent(page).click();
@@ -160,6 +163,41 @@ test.describe('코드 에디터(개발용 시험 페이지)', () => {
     await expect(editorContent(page)).not.toBeFocused();
     const focusedOutside = await page.evaluate(() => !document.activeElement?.closest('.cm-editor'));
     expect(focusedOutside).toBe(true);
+
+    // 키보드로 지나가는 학생: 앞 칸에서 Tab으로 편집칸에 **막 들어왔을 때**는 Tab 한 번으로 그대로 지나가고 코드가 바뀌지 않는다
+    // (2026-09-17 검토 반영 — 전에는 Tab을 누를 때마다 첫 줄에 공백 4칸이 조용히 들어갔다).
+    const before = await editorText(page);
+    await page.locator('[data-lab-font-larger]').focus();
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).not.toBeFocused();
+    expect(await editorText(page)).toBe(before);
+    // 들어온 뒤 글을 쓰기 시작하면(다른 키를 누르면) Tab은 다시 들여쓰기다.
+    await page.locator('[data-lab-font-larger]').focus();
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).toBeFocused();
+    await page.keyboard.press('Control+End');
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).toBeFocused();
+    const afterTyping = await editorText(page);
+    expect(afterTyping.length).toBeGreaterThan(before.length);
+    // Tab으로 들어온 뒤 마우스로 편집칸을 누르고 Tab을 치면 들여쓰기다(지나가기는 마우스·떠남에서 꺼진다).
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Tab');
+    await page.locator('[data-lab-font-larger]').focus();
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).toBeFocused();
+    await editorContent(page).locator('.cm-line').first().click();
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).toBeFocused();
+    expect((await editorText(page)).length).toBeGreaterThan(afterTyping.length);
+    // 방금 첫 줄을 들여 써서 실행하면 IndentationError가 나므로, 실행 단계 전에 코드를 처음 것으로 되돌린다.
+    await setEditorCode(page, KEYBOARD_CODE);
+    // 다음 단계는 편집칸 밖에서 Tab으로 [실행]을 찾으므로 Esc 뒤 Tab으로 편집칸에서 나온다(안에 있으면 Tab이 들여쓰기라 영영 못 나간다).
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Tab');
+    await expect(editorContent(page)).not.toBeFocused();
 
     // 페이지 맨 앞부터 Tab만 눌러 [실행]에 닿아 Enter.
     await page.keyboard.press('Control+Home');

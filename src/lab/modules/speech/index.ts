@@ -13,6 +13,7 @@
 import { withBase } from '../../../lib/url.ts';
 import { RECORDS_CLEARED_EVENT } from '../../controls/records.ts';
 import type { RuntimeRequest } from '../../runtime/client.ts';
+import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
 import { DEFAULT_SPEECH_MODE, isServerSpeechAllowed, isSpeechMode, readSpeechMode, saveSpeechMode, type SpeechMode } from './settings.ts';
@@ -221,7 +222,21 @@ function mount(context: LabModuleContext): LabModuleHandle {
     instance.interimResults = false;
     instance.maxAlternatives = 1;
     if (mode === 'ondevice') {
+      /*
+       * "기기 안에서만" 약속은 이 속성 하나에 달려 있다. 자바스크립트는 모르는 속성에 값을 넣어도 조용히 성공하므로,
+       * 정적 available()만 구현하고 인스턴스 속성은 무시하는 엔진에서는 그대로 **서버 인식**으로 시작될 수 있다.
+       * 그 결과가 "학생 음성이 브라우저 회사 서버로 전송"이라 대입한 값을 확인하고, 아니면 아예 시작하지 않는다(2026-09-17 검토 반영).
+       */
       instance.processLocally = true;
+      if (instance.processLocally !== true) {
+        answer({
+          ok: false,
+          mode,
+          failure: 'request',
+          message: '이 브라우저에서 기기 안 인식을 켜지 못했어요. 음성이 밖으로 나갈 수 있어서 시작하지 않았어요 — 글자 입력으로 바꿔 주세요.',
+        });
+        return;
+      }
     }
     let got = false;
     instance.onresult = (event) => {
@@ -369,7 +384,13 @@ function mount(context: LabModuleContext): LabModuleHandle {
   };
   document.addEventListener(RECORDS_CLEARED_EVENT, onRecordsCleared);
 
-  context.onRequest('speech.listen', onListenRequest);
+  // 패널은 코드가 speech_recognition을 쓸 때만 연다(영상처리 첫 실습에는 필요 없다 — 2026-09-17 검토 반영).
+  const panelGate = showPanelWhenUsed(context, /\bspeech_recognition\b|\bsr\s*\.\s*Recognizer\b/u);
+
+  context.onRequest('speech.listen', (request) => {
+    panelGate.show();
+    onListenRequest(request);
+  });
 
   context.onLab('run', () => {
     // 정지 2단계(워커 재시작)로 값이 사라질 수 있어 실행마다 다시 넣는다. 제한 모드는 이 값으로 listen()이 돈다.
@@ -394,7 +415,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
   setState('idle');
   textOf(status, IDLE_TEXT);
   context.setValue('speech.text', input?.value.trim() ?? '');
-  context.showPanel();
+  // 패널 열기는 위의 showPanelWhenUsed가 맡는다(여기서 무조건 열지 않는다).
 
   /*
    * 기기 안 인식이 되는지는 **학생이 이 패널을 건드릴 때** 물어본다(음성은 보내지 않고 가능 여부만).
