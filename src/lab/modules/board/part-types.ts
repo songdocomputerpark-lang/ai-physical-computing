@@ -8,7 +8,7 @@
  *   단위 테스트      tests/unit/lab/board-part-<부품 id>.test.ts 파일 하나에 visual·interaction.drive 같은 순수 함수 검사를 둔다(P3-02 규칙 —
  *                   여러 사람이 부품을 동시에 더해도 같은 테스트 파일을 고치지 않게).
  */
-import type { BoardSnapshot, PinDrive } from './state.ts';
+import type { BoardSnapshot, PartDeviceState, PinDrive } from './state.ts';
 import type { svgElement } from './svg.ts';
 
 /** 부품 핀 하나(배선 표 pins의 열쇠가 role) */
@@ -88,12 +88,51 @@ export interface PartVisualContext {
   readonly active: boolean;
   /** 움직임 줄이기 설정(떨림·깜빡임 대신 표시등) */
   readonly reducedMotion: boolean;
+  /**
+   * (병렬 제작 준비 2026-09-17) 파이썬 부품 흉내가 이 배선 id로 보낸 마지막 상태('board.device' — apc_board.set_device_state)와 받은 순서 번호.
+   * 없으면 undefined. 실행 시작(reset) 때 비워진다. 문자 LCD 글자·네오픽셀 색처럼 핀 전압만으로 안 보이는 모습에 쓴다.
+   * visual은 글자·숫자·참거짓만 돌려주므로, 큰 값(OLED 화면 비트)은 visual에 순서 번호(frame: device.seq)만 넣고 render의 update가 extra.device에서 읽는다.
+   */
+  readonly device?: PartDeviceState;
+}
+
+/** 모습이 바뀔 때 render가 돌려준 함수에 visual과 함께 넘기는 값(병렬 제작 준비 2026-09-17) */
+export interface PartUpdateExtra {
+  readonly snapshot: BoardSnapshot;
+  /** PartVisualContext.device와 같은 값 */
+  readonly device?: PartDeviceState;
+  readonly reducedMotion: boolean;
 }
 
 export interface PartRenderContext {
   readonly instance: PartInstance;
   readonly definition: PartDefinition;
   readonly svg: typeof svgElement;
+}
+
+/**
+ * 부품 조작 칸(HTML)이 쓰는 도구(병렬 제작 준비 2026-09-17). 4채널 아날로그 터치의 패드·값 막대, UART 송신 패널처럼 SVG 한 번 누르기(interaction)로
+ * 모자란 조작은 보드 그림 아래 "부품 조작" 칸에 HTML(단추·막대·입력칸)로 그린다 — 키보드·화면 낭독기가 기본으로 된다.
+ */
+export interface PartControlApi {
+  readonly instance: PartInstance;
+  readonly definition: PartDefinition;
+  /**
+   * 이 부품의 입력 핀(role, direction 'in')이 핀을 누르는 값을 정한다: 0·1(세게), 'pullup'·'pulldown'(약하게), analogDrive(mv)(아날로그 전압),
+   * null(뗌 — interaction이 있으면 그 값으로 돌아감). 실행 중이면 파이썬이 다음 입력 확인 지점에서 받는다(board.input).
+   */
+  setDrive(role: string, drive: PinDrive): void;
+  /** 파이썬 부품 흉내에 값을 보낸다('board.device.input' {id: 배선 id, data} — 쌓이는 값, 실행 중일 때만 파이썬이 받음) */
+  sendToDevice(data: unknown): void;
+  /** 이 부품이 쓸 브라우저 저장 이름(module:board:<부품 id>:<이름> — [이 컴퓨터에서 내 기록 지우기]가 함께 지움) */
+  storageName(name: string): string;
+}
+
+export interface PartControlHandle {
+  /** 모습이 바뀔 때(visual이 달라질 때만) */
+  update?(visual: PartVisual, extra: PartUpdateExtra): void;
+  /** 배선이 바뀌거나 페이지를 떠날 때 */
+  destroy?(): void;
 }
 
 /** 부품 그림 안의 한 점(부품 그림 왼쪽 위 기준, SVG 단위) */
@@ -134,8 +173,18 @@ export interface PartDefinition {
   readonly interaction?: PartInteraction;
   /** 파이썬 쪽 부품 흉내 모듈 이름(apc_part_<이름>) — 같은 폴더에 그 .py가 있어야 한다 */
   readonly python?: string;
+  /**
+   * (병렬 제작 준비 2026-09-17) 소리를 내는 부품(버저·MP3 모듈)이면 true — 배선에 이런 부품이 있으면 보드 그림 위에 [소리 켜기/끄기] 단추가 보인다.
+   * 소리는 board-audio.ts의 getBoardAudio()로 낸다(페이지에 AudioContext 하나, 끄면 주 음량 0).
+   */
+  readonly sound?: boolean;
   /** 보드 상태 → 모습(순수 함수 — 단위 테스트한다) */
   visual(context: PartVisualContext): PartVisual;
-  /** target 안에 그림을 한 번 그리고, 모습이 바뀔 때마다 부를 함수를 돌려준다(DOM) */
-  render(target: SVGGElement, context: PartRenderContext): (visual: PartVisual) => void;
+  /** target 안에 그림을 한 번 그리고, 모습이 바뀔 때마다 부를 함수를 돌려준다(DOM). 두 번째 값(extra)에 장치 상태·스냅샷이 온다 */
+  render(target: SVGGElement, context: PartRenderContext): (visual: PartVisual, extra: PartUpdateExtra) => void;
+  /**
+   * (선택, 병렬 제작 준비 2026-09-17) 보드 그림 아래 "부품 조작" 칸에 이 부품의 HTML 조작 요소를 그린다(host는 이 부품 전용 칸, 제목은 보드 화면이 붙임).
+   * 키보드로 닿고 이름이 있는 요소(button·input type=range·label)만 쓰고, 색만으로 알리지 않는다. 돌려준 update는 모습이 바뀔 때 불린다.
+   */
+  controls?(host: HTMLElement, api: PartControlApi): PartControlHandle | void;
 }

@@ -5,7 +5,7 @@
  *
  * 파이썬 → 화면: 이벤트 'board.state'(핀 상태 묶음, 늘 전체 목록)
  *   { v: 1, reason: 'reset' | 'change' | 'idle' | 'end', phase: 'run' | 'idle' | 'end', seq, t_us,
- *     pins: [{ id: 2, mode: 'in' | 'out' | 'open_drain' | 'off' | 'out_only' | 'other' | null, pull: 'up' | 'down' | 'both' | null,
+ *     pins: [{ id: 2, mode: 'in' | 'out' | 'open_drain' | 'off' | 'out_only' | 'pwm' | 'other' | null, pull: 'up' | 'down' | 'both' | null,
  *              out: 0 | 1, level: 0 | 1, driven: boolean, irq: boolean, duty?: 0~1, freq?: Hz }], timers: 켜진 Timer 수 }
  *   - duty·freq(선택, P3-02에서 자리만 정함)는 그 핀에 PWM이 켜져 있을 때만 온다: duty = 켜진 시간 비율(0~1, duty(512)면 512/1023),
  *     freq = 주파수(Hz). PWM을 흉내 내는 묶음(P3-03 apc_board_pwm.py)이 채우면 LED 밝기·진동 모터 세기가 따라 바뀐다(outputStrength).
@@ -17,7 +17,14 @@
  *   pushEvent 'board.input'  { pin: 0, drive: 0 | 1 | 'pullup' | 'pulldown' | null }  실행 중에 바뀐 것 하나(쌓이는 값 — 눌렀다 뗀 것도 빠짐없이,
  *                            PLAN §7.2 규칙 5의 "이벤트 메시지는 대기열")
  *   setValue 'board.wiring'  { parts: [{ part: 'builtin-led', id: 'led', pins: { led: 2 } }] }  이 예제의 배선(부품 흉내·배선 검사가 읽는다)
- * drive 값: 0·1 = 부품이 핀을 세게 누름(버튼을 눌러 GND에 닿음 등), 'pullup'·'pulldown' = 약하게 끌어당김(보드의 BOOT 버튼 풀업 저항), null = 연결 없음.
+ * drive 값: 0·1 = 부품이 핀을 세게 누름(버튼을 눌러 GND에 닿음 등), 'pullup'·'pulldown' = 약하게 끌어당김(보드의 BOOT 버튼 풀업 저항),
+ *   { mv: 0~3300 } = 부품이 거는 아날로그 전압(가변저항·아날로그 터치 — ADC가 읽음, 디지털로 읽으면 1.65V 문턱), null = 연결 없음.
+ *
+ * 부품 장치(병렬 제작 준비 2026-09-17 — P3-03~P3-05가 보드 핵심을 고치지 않게 둔 자리, README 7.3)
+ *   파이썬 → 화면 이벤트 'board.device'  { v: 1, id: 배선 id, part: 부품 id, state: 부품마다 정한 값 }  — 문자 LCD 글자·네오픽셀 색·MP3 트랙처럼
+ *     핀 전압만으로 안 보이는 상태. 최신 값만(16ms 병합). 실행 시작(board.state reason 'reset') 때 화면이 비운다.
+ *   화면 → 파이썬 pushEvent 'board.device.input'  { id: 배선 id, data: 부품마다 정한 값 }  — 송신 패널처럼 부품 조작 칸이 파이썬 부품 흉내에 보내는 값(쌓이는 값).
+ *   PWM(board.state 핀 항목): mode 'pwm'·duty(0~1)·freq(Hz) — 파이썬 BOARD.set_pwm이 채운다.
  *
  * 이 메시지는 워커 ↔ 화면 사이의 "핀 전압" 모양이라 PLAN §7(브릿지: UART·BLE·MQTT로 오가는 글자 한 줄)과 겹치지 않는다. 브릿지 통로는
  * Phase 4에서 'board.uart.*'·'board.ble.*'처럼 따로 이름을 더한다.
@@ -28,6 +35,12 @@ export const BOARD_EVENT_DEVICE = 'board.device';
 export const BOARD_CHANNEL_INPUTS = 'board.inputs';
 export const BOARD_CHANNEL_INPUT = 'board.input';
 export const BOARD_CHANNEL_WIRING = 'board.wiring';
+export const BOARD_CHANNEL_DEVICE_INPUT = 'board.device.input';
+
+/** 보드 전원 전압(밀리볼트) — apc_board.py의 BOARD_MAX_MV와 같다 */
+export const BOARD_MAX_MV = 3300;
+/** 아날로그 전압을 디지털로 읽을 때 1로 보는 문턱(밀리볼트) — apc_board.py의 DIGITAL_HIGH_MV와 같다 */
+export const DIGITAL_HIGH_MV = 1650;
 
 /** ESP32(ESP32_GENERIC, MicroPython v1.29.0)에 있는 GPIO 번호 — apc_board.py의 VALID_GPIOS와 같다 */
 export const VALID_GPIOS: readonly number[] = Object.freeze([
@@ -49,7 +62,7 @@ export function isValidGpio(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && VALID_GPIOS.includes(value);
 }
 
-export type PinMode = 'in' | 'out' | 'open_drain' | 'off' | 'out_only' | 'other';
+export type PinMode = 'in' | 'out' | 'open_drain' | 'off' | 'out_only' | 'pwm' | 'other';
 export type PinPull = 'up' | 'down' | 'both';
 export type BoardPhase = 'stopped' | 'run' | 'idle' | 'end';
 export type StateReason = 'reset' | 'change' | 'idle' | 'end';
@@ -88,7 +101,7 @@ export interface BoardStateEvent {
 
 export const EMPTY_SNAPSHOT: BoardSnapshot = Object.freeze({ seq: 0, phase: 'stopped', tUs: 0, pins: new Map(), timers: 0 });
 
-const PIN_MODES: readonly PinMode[] = ['in', 'out', 'open_drain', 'off', 'out_only', 'other'];
+const PIN_MODES: readonly PinMode[] = ['in', 'out', 'open_drain', 'off', 'out_only', 'pwm', 'other'];
 const PIN_PULLS: readonly PinPull[] = ['up', 'down', 'both'];
 const REASONS: readonly StateReason[] = ['reset', 'change', 'idle', 'end'];
 
@@ -194,15 +207,62 @@ export function outputStrength(snapshot: BoardSnapshot, gpio: number): number {
 
 // ── 입력(화면 → 파이썬) ──
 
-export type PinDrive = 0 | 1 | 'pullup' | 'pulldown' | null;
+/** 부품이 핀에 거는 아날로그 전압(밀리볼트 0~3300) — 가변저항·아날로그 터치(ADC로 읽음) */
+export interface AnalogDrive {
+  readonly mv: number;
+}
+
+export type PinDrive = 0 | 1 | 'pullup' | 'pulldown' | AnalogDrive | null;
 
 export interface InputChange {
   readonly pin: number;
   readonly drive: PinDrive;
 }
 
+/** 아날로그 전압 값을 만든다(0~3300으로 자르고 정수로 반올림) */
+export function analogDrive(mv: number): AnalogDrive {
+  const value = Number.isFinite(mv) ? Math.round(Math.min(BOARD_MAX_MV, Math.max(0, mv))) : 0;
+  return { mv: value };
+}
+
+export function isAnalogDrive(value: unknown): value is AnalogDrive {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as { mv?: unknown }).mv === 'number' &&
+    Number.isFinite((value as { mv: number }).mv)
+  );
+}
+
 export function isPinDrive(value: unknown): value is PinDrive {
-  return value === 0 || value === 1 || value === 'pullup' || value === 'pulldown' || value === null;
+  return value === 0 || value === 1 || value === 'pullup' || value === 'pulldown' || value === null || isAnalogDrive(value);
+}
+
+/** 두 누르는 값이 같은지(아날로그 전압은 값으로 비교) */
+export function sameDrive(a: PinDrive | undefined, b: PinDrive | undefined): boolean {
+  const left = a ?? null;
+  const right = b ?? null;
+  if (isAnalogDrive(left) || isAnalogDrive(right)) {
+    return isAnalogDrive(left) && isAnalogDrive(right) && left.mv === right.mv;
+  }
+  return left === right;
+}
+
+/** 누르는 값을 디지털로 읽었을 때(0·1) — 아날로그 전압은 1.65V 문턱, 약한 끌어당김은 그 방향, 연결 없음은 null */
+export function digitalLevelOf(drive: PinDrive): 0 | 1 | null {
+  if (drive === 0 || drive === 1) {
+    return drive;
+  }
+  if (isAnalogDrive(drive)) {
+    return drive.mv >= DIGITAL_HIGH_MV ? 1 : 0;
+  }
+  if (drive === 'pullup') {
+    return 1;
+  }
+  if (drive === 'pulldown') {
+    return 0;
+  }
+  return null;
 }
 
 /** 입력 부품들이 누르는 값 표 → 'board.inputs' 값 */
@@ -210,7 +270,7 @@ export function inputsValue(drives: ReadonlyMap<number, PinDrive>): { pins: Reco
   const pins: Record<string, Exclude<PinDrive, null>> = {};
   for (const [gpio, drive] of [...drives.entries()].sort(([a], [b]) => a - b)) {
     if (drive !== null) {
-      pins[String(gpio)] = drive;
+      pins[String(gpio)] = isAnalogDrive(drive) ? { mv: drive.mv } : drive;
     }
   }
   return { pins };
@@ -222,11 +282,48 @@ export function inputChanges(before: ReadonlyMap<number, PinDrive>, after: Reado
   const pins = new Set([...before.keys(), ...after.keys()]);
   for (const pin of [...pins].sort((a, b) => a - b)) {
     const next = after.get(pin) ?? null;
-    if ((before.get(pin) ?? null) !== next) {
-      changes.push({ pin, drive: next });
+    if (!sameDrive(before.get(pin), next)) {
+      changes.push({ pin, drive: isAnalogDrive(next) ? { mv: next.mv } : next });
     }
   }
   return changes;
+}
+
+// ── 부품 장치(파이썬 부품 흉내 ↔ 화면, 병렬 제작 준비 2026-09-17) ──
+
+/** 'board.device' 이벤트 하나 */
+export interface BoardDeviceEvent {
+  /** 배선 id(PartInstance.id) */
+  readonly id: string;
+  /** 부품 id */
+  readonly part: string;
+  /** 부품마다 정한 상태 값(JSON 값 — 파이썬 bytes는 Uint8Array로 온다) */
+  readonly state: unknown;
+}
+
+/** 화면이 들고 있는 부품 장치 상태 하나: 받은 순서 번호(같은 배선 id에서 1부터)와 마지막 상태 */
+export interface PartDeviceState {
+  readonly seq: number;
+  readonly state: unknown;
+}
+
+/** 파이썬이 보낸 'board.device' 값을 읽는다. id·part가 없으면 null(P3-01의 시험용 {mark} 같은 다른 모양도 null) */
+export function parseDeviceEvent(payload: unknown): BoardDeviceEvent | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  const raw = payload as Record<string, unknown>;
+  if (typeof raw.id !== 'string' || raw.id === '' || typeof raw.part !== 'string' || raw.part === '') {
+    return null;
+  }
+  return { id: raw.id, part: raw.part, state: raw.state ?? null };
+}
+
+/** 장치 상태 표에 이벤트 하나를 반영한 새 표(같은 id면 순서 번호를 1 올린다) */
+export function applyDeviceEvent(previous: ReadonlyMap<string, PartDeviceState>, event: BoardDeviceEvent): Map<string, PartDeviceState> {
+  const next = new Map(previous);
+  next.set(event.id, { seq: (previous.get(event.id)?.seq ?? 0) + 1, state: event.state });
+  return next;
 }
 
 // ── 사람이 읽는 글(핀 표·화면 낭독기) ──
@@ -237,6 +334,7 @@ const MODE_TEXT: Readonly<Record<PinMode, string>> = Object.freeze({
   open_drain: '출력(오픈 드레인)',
   off: '꺼짐',
   out_only: '출력(읽기 꺼짐)',
+  pwm: 'PWM 출력',
   other: '기타',
 });
 

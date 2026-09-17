@@ -2,9 +2,18 @@
 // 파이썬 apc_board.py가 보내는 'board.state' 모양을 읽고, 입력 부품 값을 'board.inputs'·'board.input' 모양으로 만드는지 본다.
 import { describe, expect, it } from 'vitest';
 import {
+  BOARD_MAX_MV,
+  DIGITAL_HIGH_MV,
   EMPTY_SNAPSHOT,
   VALID_GPIOS,
+  analogDrive,
+  applyDeviceEvent,
   applyStateEvent,
+  digitalLevelOf,
+  isAnalogDrive,
+  isPinDrive,
+  parseDeviceEvent,
+  sameDrive,
   describePin,
   inputChanges,
   inputsValue,
@@ -116,6 +125,59 @@ describe('입력 부품 값', () => {
       { pin: 4, drive: null },
       { pin: 17, drive: null },
     ]);
+  });
+});
+
+describe('아날로그 전압 입력과 PWM 모드(병렬 제작 준비 2026-09-17)', () => {
+  it('아날로그 전압은 0~3300mV 정수로 자르고, 값으로 비교하며, 디지털로 읽으면 1.65V 문턱이다', () => {
+    expect(analogDrive(-5)).toEqual({ mv: 0 });
+    expect(analogDrive(5000)).toEqual({ mv: BOARD_MAX_MV });
+    expect(analogDrive(687.6)).toEqual({ mv: 688 });
+    expect(analogDrive(Number.NaN)).toEqual({ mv: 0 });
+    expect(isAnalogDrive({ mv: 1 })).toBe(true);
+    expect(isPinDrive({ mv: 1535 })).toBe(true);
+    expect(isPinDrive({ mv: "1" })).toBe(false);
+    expect(sameDrive({ mv: 688 }, { mv: 688 })).toBe(true);
+    expect(sameDrive({ mv: 688 }, { mv: 689 })).toBe(false);
+    expect(sameDrive({ mv: 0 }, 0)).toBe(false);
+    expect(sameDrive(undefined, null)).toBe(true);
+    expect(digitalLevelOf({ mv: DIGITAL_HIGH_MV - 1 })).toBe(0);
+    expect(digitalLevelOf({ mv: DIGITAL_HIGH_MV })).toBe(1);
+    expect(digitalLevelOf('pullup')).toBe(1);
+    expect(digitalLevelOf(null)).toBeNull();
+  });
+
+  it("아날로그 값도 'board.inputs'·'board.input'로 나가고, 같은 전압이면 변화로 치지 않는다", () => {
+    const before = new Map<number, PinDrive>([[32, { mv: 688 }]]);
+    const same = new Map<number, PinDrive>([[32, { mv: 688 }]]);
+    const after = new Map<number, PinDrive>([[32, { mv: 1535 }]]);
+    expect(inputsValue(after)).toEqual({ pins: { 32: { mv: 1535 } } });
+    expect(inputChanges(before, same)).toEqual([]);
+    expect(inputChanges(before, after)).toEqual([{ pin: 32, drive: { mv: 1535 } }]);
+    expect(inputChanges(after, new Map())).toEqual([{ pin: 32, drive: null }]);
+  });
+
+  it("PWM 핀은 mode 'pwm'로 읽고 표에는 'PWM 출력', 세기는 duty다", () => {
+    const parsed = parseStateEvent(event({ pins: [{ id: 15, mode: 'pwm', out: 0, level: 1, driven: true, duty: 0.5, freq: 262 }] }));
+    expect(parsed?.pins[0]).toMatchObject({ id: 15, mode: 'pwm', duty: 0.5, freq: 262 });
+    const snapshot = applyStateEvent(EMPTY_SNAPSHOT, parsed!);
+    expect(outputStrength(snapshot, 15)).toBe(0.5);
+    expect(describePin(parsed!.pins[0]!)).toBe('GPIO15 PWM 출력 1 (HIGH)');
+  });
+});
+
+describe('부품 장치 상태(board.device, 병렬 제작 준비 2026-09-17)', () => {
+  it('id·part가 있는 값만 읽고, 같은 배선 id는 순서 번호를 올려 최신 상태로 바꾼다', () => {
+    expect(parseDeviceEvent({ mark: 'ready' })).toBeNull();
+    expect(parseDeviceEvent({ id: 'lcd' })).toBeNull();
+    const first = parseDeviceEvent({ v: 1, id: 'lcd', part: 'lcd-i2c', state: { lines: ['Hello', ''] } });
+    expect(first).toEqual({ id: 'lcd', part: 'lcd-i2c', state: { lines: ['Hello', ''] } });
+    const one = applyDeviceEvent(new Map(), first!);
+    const two = applyDeviceEvent(one, { id: 'lcd', part: 'lcd-i2c', state: { lines: ['Count: 1', ''] } });
+    expect(one.get('lcd')).toEqual({ seq: 1, state: { lines: ['Hello', ''] } });
+    expect(two.get('lcd')).toEqual({ seq: 2, state: { lines: ['Count: 1', ''] } });
+    expect(one.get('lcd')?.seq).toBe(1);
+    expect(parseDeviceEvent({ id: 'ring', part: 'neopixel-ring' })).toEqual({ id: 'ring', part: 'neopixel-ring', state: null });
   });
 });
 

@@ -8,11 +8,27 @@
 //  6. 배선 오류: 화면 검사(스트래핑 핀·한 핀에 입력·출력 부품·입력 전용 핀·아직 없는 부품)와 파이썬 검사(입력 부품 핀을 출력으로·출력 부품 핀을 입력으로·
 //     부품 없는 핀을 출력으로)가 한국어로 보인다.
 //  7. [그림 크게 보기]: 좁은 화면에서 그림을 넓게 펴 가로로 밀어 보고(페이지는 넘치지 않음), 고른 값을 기억한다.
+import fs from 'node:fs';
+import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { LOAD_TIMEOUT, labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
+
+/**
+ * 문자 LCD(P3-04 구역 B)가 가상 보드에 생겼는지 — 부품 폴더 parts/lcd-i2c/ 또는 SoftI2C 확장(apc_board_i2c.py)이 있으면 true.
+ * "P3-04 전" 모습을 보는 검사는 그때 건너뛴다(병렬 제작 준비 2026-09-17 — 부품 구역이 이 공유 spec을 고치지 않아도 되게).
+ */
+function lcdEmulated(): boolean {
+  const boardDir = path.join(process.cwd(), 'src', 'lab', 'modules', 'board');
+  if (fs.existsSync(path.join(boardDir, 'parts', 'lcd-i2c', 'part.ts'))) {
+    return true;
+  }
+  const walk = (dir: string): boolean =>
+    fs.readdirSync(dir, { withFileTypes: true }).some((entry) => (entry.isDirectory() ? walk(path.join(dir, entry.name)) : entry.name === 'apc_board_i2c.py'));
+  return walk(boardDir);
+}
 
 function board(page: Page) {
   return page.locator('[data-board-io]');
@@ -206,6 +222,7 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
 
   test('f052: 문자 LCD는 아직 없는 부품이라 "주의"가 보이고, 2번 줄에서 한국어 안내가 든 ImportError로 끝난다(P3-04 전)', async ({ page }) => {
     test.skip(test.info().project.name === 'mobile', '데스크톱에서 한 번만 본다.');
+    test.skip(lcdEmulated(), '문자 LCD·SoftI2C 흉내(P3-04)가 생겨 f052가 끝까지 도는 것은 그 구역의 spec이 확인해요.');
     await openExample(page, 'esp32/u2/2-1-2-adv-touch-lcd-counter.py');
     const warning = page.locator('[data-board-problems] li[data-code="unknown-part"]');
     await expect(warning).toHaveAttribute('data-level', 'warning');
@@ -291,7 +308,8 @@ test.describe('ESP32 실습실 — 배선 오류를 한국어로 알린다(P3-02
               { part: 'touch-digital', pin: 5 },
               { part: 'vibration-motor', pin: 5 },
               { part: 'vibration-motor', id: 'motor-2', pin: 34 },
-              { part: 'lcd-i2c', pins: { sda: 21, scl: 22 }, label: '문자 LCD' },
+              // 아직 없는 부품: 앞으로도 생기지 않을 시험용 이름(부품 구역이 부품을 더해도 이 검사가 바뀌지 않게)
+              { part: 'demo-not-emulated', pins: { sda: 21, scl: 22 }, label: '시험용 모듈 XY' },
             ];
           }
           return `${open}${JSON.stringify(examples).replace(/</gu, '\\u003c')}${close}`;
@@ -307,7 +325,7 @@ test.describe('ESP32 실습실 — 배선 오류를 한국어로 알린다(P3-02
     await expect(problems.locator('li[data-code="input-output-same-pin"]')).toContainText('오류: GPIO5에 값을 보내는 부품(터치 센서)과 보드가 움직이는 부품(진동 모터)이 함께 이어져 있어요');
     await expect(problems.locator('li[data-code="input-only-output"]')).toContainText('34~39번은 입력 전용이라 부품을 움직일 수 없어요');
     await expect(problems.locator('li[data-code="strapping"]')).toContainText('주의: GPIO5은(는) 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요');
-    await expect(problems.locator('li[data-code="unknown-part"]')).toContainText('"문자 LCD"은(는) 가상 보드에 아직 없어서');
+    await expect(problems.locator('li[data-code="unknown-part"]')).toContainText('"시험용 모듈 XY"은(는) 가상 보드에 아직 없어서');
     // 오류가 주의보다 먼저 보인다
     const levels = await problems.locator('li').evaluateAll((items) => items.map((item) => item.getAttribute('data-level')));
     expect(levels.indexOf('warning')).toBeGreaterThan(levels.lastIndexOf('error'));

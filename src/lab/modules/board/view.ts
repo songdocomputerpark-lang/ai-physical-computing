@@ -13,14 +13,16 @@
  * 접근성: 입력 부품은 role="button"·tabindex=0·aria-pressed이고 Space·Enter를 누르고 있는 동안 눌린다(초점을 잃으면 뗀다).
  * 누르는 자리(부품 그림 전체의 투명 사각형 — WCAG 2.5.8 24px 이상)와 두 겹 초점 테두리(짙은 기판·밝은 브레드보드 어디서나 보이게)는 여기서 붙인다.
  * 출력 부품은 role="img"와 상태가 든 이름(예: "내장 LED(GPIO2): 켜짐")을 갖는다. 핀 값은 표에 글자(1 (HIGH))로도 있다 — 색만으로 알리지 않는다.
+ * 부품 조작 칸(병렬 제작 준비 2026-09-17): 부품 정의에 controls가 있으면 [data-board-controls] 안에 그 부품 전용 칸(section[data-board-part-controls="<배선 id>"],
+ * 제목 "<부품 이름> 조작")을 만들어 controls(host, api)를 부른다(HTML 단추·막대 — 키보드·화면 낭독기가 기본으로 된다). 조작 칸이 없으면 영역을 숨긴다.
  * [그림 크게 보기]는 그림을 넓게 펴고 가로로 밀어 보게 한다(휴대폰에서 핀 번호가 작을 때). 고른 값은 이 컴퓨터에 기억한다(기록 지우기 대상).
  */
 import { readItem, writeItem } from '../../../lib/storage.ts';
 import { createBoardDrawing } from './board-drawing.ts';
 import { planBoardDrawing, type BoardDrawingPlan } from './layout.ts';
-import type { PartDefinition, PartInstance, PartVisual, WiringIssue } from './part-types.ts';
+import type { PartControlApi, PartControlHandle, PartDefinition, PartInstance, PartUpdateExtra, PartVisual, WiringIssue } from './part-types.ts';
 import { partsByGpio } from './parts.ts';
-import { levelText, modeText, phaseText, type BoardSnapshot } from './state.ts';
+import { levelText, modeText, phaseText, type BoardSnapshot, type PartDeviceState } from './state.ts';
 import { svgElement } from './svg.ts';
 
 export interface BoardViewElements {
@@ -34,6 +36,8 @@ export interface BoardViewElements {
   readonly zoomButton?: HTMLButtonElement | null;
   /** 바깥 부품이 없을 때 보이는 한 줄 안내 */
   readonly wiringEmpty?: HTMLElement | null;
+  /** 부품 조작 칸 영역([data-board-controls] — 안의 [data-board-controls-list]에 부품마다 칸을 넣는다) */
+  readonly controls?: HTMLElement | null;
 }
 
 export interface BoardViewOptions {
@@ -43,11 +47,14 @@ export interface BoardViewOptions {
   readonly reducedMotion?: () => boolean;
   /** 그림 크기 선택을 기억할 저장 이름(없으면 기억하지 않음) */
   readonly zoomStorageName?: string;
+  /** 부품 조작 칸에 넘길 도구를 만든다(index.ts — 누르는 값·파이썬 부품에 보내기). 없으면 조작 칸을 그리지 않는다 */
+  controlApi?(instance: PartInstance, definition: PartDefinition): PartControlApi;
 }
 
 export interface BoardView {
   setWiring(instances: readonly PartInstance[], issues: readonly WiringIssue[]): void;
-  update(snapshot: BoardSnapshot): void;
+  /** 스냅샷과 부품 장치 상태(배선 id → 마지막 'board.device')로 부품 모습·핀 표를 고친다 */
+  update(snapshot: BoardSnapshot, devices?: ReadonlyMap<string, PartDeviceState>): void;
   readonly activeIds: ReadonlySet<string>;
   /** 마지막으로 그린 배선 계획(테스트·디버깅) */
   readonly plan: BoardDrawingPlan | null;
@@ -100,9 +107,11 @@ interface MountedPart {
   readonly instance: PartInstance;
   readonly definition: PartDefinition;
   readonly element: SVGGElement;
-  readonly apply: (visual: PartVisual) => void;
+  readonly apply: (visual: PartVisual, extra: PartUpdateExtra) => void;
   visual: PartVisual | undefined;
   cleanup: (() => void)[];
+  /** 부품 조작 칸(있으면) */
+  controls: { readonly host: HTMLElement; readonly handle: PartControlHandle | null } | null;
 }
 
 function readZoom(name: string | undefined): BoardZoom {
@@ -123,6 +132,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
   let mounted: MountedPart[] = [];
   let instances: readonly PartInstance[] = [];
   let snapshot: BoardSnapshot | null = null;
+  let devices: ReadonlyMap<string, PartDeviceState> = new Map();
   let lastPinsKey = '';
   let plan: BoardDrawingPlan | null = null;
 
@@ -178,7 +188,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
     if (interaction) {
       element.append(svgElement('rect', { x: 0, y: 0, width: definition.size.width, height: definition.size.height, rx: 5, fill: 'transparent', class: 'board-part__hit' }));
     }
-    const part: MountedPart = { instance, definition, element, apply, visual: undefined, cleanup: [] };
+    const part: MountedPart = { instance, definition, element, apply, visual: undefined, cleanup: [], controls: null };
     if (interaction) {
       element.setAttribute('role', 'button');
       element.setAttribute('tabindex', '0');
@@ -260,6 +270,51 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
     return part;
   };
 
+  const controlsList = elements.controls?.querySelector<HTMLElement>('[data-board-controls-list]') ?? elements.controls ?? null;
+
+  /** 부품 조작 칸을 만든다(정의에 controls가 있고 index.ts가 도구를 줄 때만) */
+  const mountControls = (part: MountedPart) => {
+    const { definition, instance } = part;
+    if (!definition.controls || !options.controlApi || !controlsList) {
+      return;
+    }
+    const host = document.createElement('section');
+    host.className = 'board-part-controls';
+    host.dataset.boardPartControls = instance.id;
+    host.dataset.part = definition.id;
+    const headingId = `board-part-controls-${instance.id}`;
+    host.setAttribute('aria-labelledby', headingId);
+    const heading = document.createElement('h4');
+    heading.className = 'board-part-controls__heading';
+    heading.id = headingId;
+    heading.textContent = `${instance.label} 조작`;
+    host.append(heading);
+    controlsList.append(host);
+    let handle: PartControlHandle | null = null;
+    try {
+      handle = definition.controls(host, options.controlApi(instance, definition)) ?? null;
+    } catch (error) {
+      const note = document.createElement('p');
+      note.className = 'board-io__note';
+      note.textContent = `이 부품의 조작 칸을 만들지 못했어요: ${error instanceof Error ? error.message : String(error)}`;
+      host.append(note);
+    }
+    part.controls = { host, handle };
+  };
+
+  const destroyControls = (part: MountedPart) => {
+    if (!part.controls) {
+      return;
+    }
+    try {
+      part.controls.handle?.destroy?.();
+    } catch {
+      // 조작 칸 정리에 실패해도 칸은 지운다.
+    }
+    part.controls.host.remove();
+    part.controls = null;
+  };
+
   const renderPins = (current: BoardSnapshot) => {
     const connected = partsByGpio(instances, options.definitions);
     drawing.updatePins(current, connected);
@@ -312,6 +367,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
         for (const cleanup of part.cleanup.splice(0)) {
           cleanup();
         }
+        destroyControls(part);
         part.element.remove();
       }
       mounted = [];
@@ -332,7 +388,11 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
         const part = mountPart(instance, { x: placed.x, y: placed.y });
         if (part) {
           mounted.push(part);
+          mountControls(part);
         }
+      }
+      if (elements.controls) {
+        elements.controls.hidden = !mounted.some((part) => part.controls !== null);
       }
       stage.dataset.boardExternal = String(plan.breadboard !== null);
       if (elements.wiringEmpty) {
@@ -355,11 +415,14 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
       }
       lastPinsKey = '';
       if (snapshot) {
-        view.update(snapshot);
+        view.update(snapshot, devices);
       }
     },
-    update(next) {
+    update(next, nextDevices) {
       snapshot = next;
+      if (nextDevices) {
+        devices = nextDevices;
+      }
       stage.dataset.boardPhase = next.phase;
       if (elements.phaseText) {
         const text = phaseText(next);
@@ -372,12 +435,20 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
         if (part.definition.interaction) {
           part.element.setAttribute('aria-pressed', String(isActive));
         }
-        const visual = part.definition.visual({ snapshot: next, instance: part.instance, active: isActive, reducedMotion: reducedMotion() });
+        const device = devices.get(part.instance.id);
+        const motion = reducedMotion();
+        const visual = part.definition.visual({ snapshot: next, instance: part.instance, active: isActive, reducedMotion: motion, ...(device ? { device } : {}) });
         if (!visualChanged(part.visual, visual)) {
           continue;
         }
         part.visual = visual;
-        part.apply(visual);
+        const extra: PartUpdateExtra = { snapshot: next, reducedMotion: motion, ...(device ? { device } : {}) };
+        part.apply(visual, extra);
+        try {
+          part.controls?.handle?.update?.(visual, extra);
+        } catch {
+          // 조작 칸 갱신 실패가 보드 그림을 멈추지 않게 한다.
+        }
         for (const [name, value] of Object.entries(visual)) {
           part.element.setAttribute(`data-visual-${name.replace(/[A-Z]/gu, (letter) => `-${letter.toLowerCase()}`)}`, String(value));
         }
@@ -398,6 +469,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
         for (const cleanup of part.cleanup.splice(0)) {
           cleanup();
         }
+        destroyControls(part);
       }
       for (const cleanup of cleanups.splice(0)) {
         cleanup();

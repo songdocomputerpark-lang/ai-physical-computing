@@ -21,7 +21,10 @@
     <section class="board-io__board" aria-labelledby="board-io-heading">
       <div class="board-io__head">
         <h3 id="board-io-heading" class="board-io__heading">가상 보드와 배선도</h3>
-        <button type="button" class="lab-button lab-button--small" data-board-zoom aria-pressed="false">그림 크게 보기</button>
+        <div class="board-io__head-actions">
+          <button type="button" class="lab-button lab-button--small" data-board-sound aria-pressed="true" hidden>소리 켜짐</button>
+          <button type="button" class="lab-button lab-button--small" data-board-zoom aria-pressed="false">그림 크게 보기</button>
+        </div>
       </div>
       <div class="board-io__practice" data-board-practice hidden>
         <p class="board-io__practice-title">이 예제 실습 방법</p>
@@ -35,6 +38,10 @@
         이 예제는 보드에 붙은 부품(내장 LED·BOOT 버튼)만 써요. 터치 센서처럼 바깥 부품을 쓰는 예제를 고르면 보드 아래에 배선도가 그려져요.
       </p>
       <ul class="board-io__issues" data-board-problems aria-label="배선 확인" hidden></ul>
+      <section class="board-io__controls" data-board-controls aria-labelledby="board-controls-heading" hidden>
+        <h3 id="board-controls-heading" class="board-io__heading">부품 조작</h3>
+        <div class="board-io__controls-list" data-board-controls-list></div>
+      </section>
       <p class="board-io__hint">누를 수 있는 부품(BOOT 버튼·터치 센서)은 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있어요.</p>
       <details class="board-io__legend">
         <summary>그림 읽는 법</summary>
@@ -107,6 +114,47 @@
   .board-io__heading {
     margin: 0;
     font-size: var(--text-base);
+  }
+
+  .board-io__head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .board-io__head-actions [hidden] {
+    display: none;
+  }
+
+  /* 부품 조작 칸(병렬 제작 준비 2026-09-17): 부품마다 section.board-part-controls — 안의 단추·막대는 부품의 controls()가 그린다 */
+  .board-io__controls {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .board-io__controls[hidden] {
+    display: none;
+  }
+
+  .board-io__controls-list {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .board-io__controls-list :global(.board-part-controls) {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-io__controls-list :global(.board-part-controls__heading) {
+    margin: 0;
+    font-size: var(--text-sm);
   }
 
   .board-io__practice {

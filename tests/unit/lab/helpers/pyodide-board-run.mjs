@@ -1,5 +1,6 @@
 // Node.js에서 실제 Pyodide 314.0.7로 가상 ESP32 보드 모듈(src/lab/modules/board/)의 파이썬 쪽을 검사하는 도우미 스크립트(PLAN §8.3 P3-01, PD-14).
 // tests/unit/lab/pyodide-board.test.ts가 `node --experimental-wasm-jspi 이 파일 <저장소 뿌리>`로 띄우고 마지막 줄의 JSON 한 줄을 읽는다.
+// 부품·기능별 단계는 `--steps=tests/unit/lab/helpers/board-steps/<이름>.mjs`로 따로 돌린다(TS 쪽 도구 helpers/pyodide-board.ts의 runBoardSteps).
 //
 // ESP32 실습실 워커(src/lab/runtime/worker.ts, labId 'esp32')와 같은 순서로 준비한다:
 //   다리 등록 → 붙박이 .py(src/lab/python/) + ESP32 실습실에 붙는 모듈 폴더(manifest labs가 '*' 또는 'esp32')의 .py(하위 폴더 포함)를 /apc에 쓰기
@@ -167,8 +168,23 @@ async function step(name, code, options = {}) {
   record.stdout = stdout;
   record.stderr = stderr;
   record.events = out.events.slice(eventsBefore).filter((event) => event.kind === 'board.state').map((event) => event.payload);
+  record.devices = out.events.slice(eventsBefore).filter((event) => event.kind === 'board.device').map((event) => event.payload);
   record.notices = out.notices.slice(noticesBefore);
   out.steps[name] = record;
+}
+
+// --steps=<파일>: 공유 단계 대신 그 파일(기본 내보내기 async ({ step, bridge, pyodide, out, rootDir }) => void)의 단계만 돌린다(병렬 제작 준비 2026-09-17).
+// 부품 구역은 tests/unit/lab/helpers/board-steps/<이름>.mjs를 새로 만들어 이 도우미를 고치지 않는다(README 7.9).
+const stepsArg = process.argv.find((arg) => arg.startsWith('--steps='));
+if (stepsArg) {
+  const stepsFile = path.resolve(rootDir, stepsArg.slice('--steps='.length));
+  const { default: runSteps } = await import(pathToFileURL(stepsFile).href);
+  if (typeof runSteps !== 'function') {
+    throw new Error(`단계 파일 ${stepsFile}의 기본 내보내기가 함수가 아니에요.`);
+  }
+  await runSteps({ step, bridge, pyodide, out, rootDir });
+  out.stderr = stderr;
+  finish();
 }
 
 if (limitedOnly) {
@@ -399,7 +415,7 @@ await step(
     'import micropython, ustruct, struct, umachine, machine, uerrno, errno, usys, sys',
     'X = const(5)',
     'r = [X, ustruct is struct, umachine is machine, usys is sys, errno.ENODEV, uerrno.ETIMEDOUT, errno.errorcode[19], errno is uerrno]',
-    'for statement in ["import bluetooth", "import ubluetooth", "import umicropython", "from machine import PWM", "machine.UART", "machine.nothing_here"]:',
+    'for statement in ["import bluetooth", "import ubluetooth", "import umicropython", "from machine import DAC", "machine.I2S", "machine.nothing_here"]:',
     '    try:',
     '        exec(statement)',
     '        r.append("no error")',

@@ -73,6 +73,7 @@ __all__ = [
     "reset_for_run",
     "run_idle",
     "sleep",
+    "sleep_async",
     "stop_requested",
     "sync_params",
     "unbind_run_globals",
@@ -196,6 +197,23 @@ def sleep(seconds):
         wait_ms = _pending_sleep_ms
         _pending_sleep_ms = 0.0
         block_on(_bridge.sleep(wait_ms))
+
+
+async def sleep_async(seconds):
+    """(병렬 제작 준비 2026-09-17) 블록 전용 호환 모드(PLAN PD-27 — P3-06)용 sleep: JSPI가 없어도 runPythonAsync의 최상위 await로 기다린다.
+    sleep과 같은 일(정지 확인·대기 전 훅·조절 값·틱 훅)을 하고, 기다리기만 JS 약속(_bridge.sleep)을 await한다 — 기다리는 동안 워커가
+    화면 메시지(입력·[정지])를 받는다. 학생이 쓰는 이름이 아니라 사이트 생성기가 만든 실행판이 부른다(가상 보드는 apc_board.wait_ns_async)."""
+    check_stop()
+    if not isinstance(seconds, (int, float)):
+        raise TypeError(f"'{type(seconds).__name__}' object cannot be interpreted as an integer or float")
+    if seconds < 0:
+        raise ValueError("sleep length must be non-negative")
+    _run_wait_hooks()
+    result = await _bridge.raceStop(_bridge.sleep(float(seconds) * 1000.0))
+    if _bridge.isStopSignal(result):
+        raise KeyboardInterrupt(STOP_MESSAGE)
+    sync_params()
+    _run_tick_hooks()
 
 
 def request(kind, payload=None, *, raw=False):

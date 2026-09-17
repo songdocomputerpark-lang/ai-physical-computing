@@ -15,7 +15,8 @@
  * 이름(모두 "board."로 시작, 모양은 README 7절)
  * - 이벤트(파이썬 → 화면): board.state(핀 상태 묶음 — 실행 시작·바뀜·코드가 끝난 뒤 대기·끝), board.device(부품 흉내의 상태, 부품 단계에서 씀)
  * - 채널(화면 → 파이썬): board.inputs(최신 값: 입력 부품이 핀을 어떻게 누르는지 전체 — 실행 시작 때 읽음),
- *   board.input(쌓이는 값: 실행 중에 바뀐 입력 하나씩 — 입력 확인 지점에서 반영), board.wiring(최신 값: 이 예제의 배선)
+ *   board.input(쌓이는 값: 실행 중에 바뀐 입력 하나씩 — 입력 확인 지점에서 반영), board.wiring(최신 값: 이 예제의 배선),
+ *   board.device.input(쌓이는 값: 부품 조작 칸이 파이썬 부품 흉내에 보내는 값 {id, data} — 병렬 제작 준비 2026-09-17)
  */
 import type { LabModuleManifest } from '../types.ts';
 
@@ -27,7 +28,7 @@ const manifest: LabModuleManifest = {
   packages: [],
   requestKinds: [],
   eventKinds: ['board.state', 'board.device'],
-  channels: ['board.inputs', 'board.input', 'board.wiring'],
+  channels: ['board.inputs', 'board.input', 'board.wiring', 'board.device.input'],
   placement: 'panel',
 };
 

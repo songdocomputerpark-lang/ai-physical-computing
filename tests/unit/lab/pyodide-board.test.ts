@@ -1,6 +1,7 @@
 // 가상 ESP32 보드 모듈의 파이썬 쪽(src/lab/modules/board/: machine.py·apc_board.py·apc_board_time.py·micropython.py)을
 // Node.js의 실제 Pyodide 314.0.7로 검사한다(PLAN §8.3 P3-01 "흉내 모듈 단위 테스트 통과", PD-14).
 // JSPI는 --experimental-wasm-jspi로 켠 별도 프로세스에서 돈다(tests/unit/lab/helpers/pyodide-board-run.mjs — ESP32 실습실 워커와 같은 순서).
+// 부품 단계 확장 자리(PWM·아날로그·부품 장치·아직 없는 모듈)는 pyodide-board-extension-points.test.ts(단계 파일 helpers/board-steps/extension-points.mjs).
 // 기대값은 MicroPython v1.29.0 ESP32 포트 소스(machine_pin.c·machine_timer.c·extmod/modtime.c·shared/timeutils)로 확인한 실물 동작이다.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -22,7 +23,7 @@ interface StateEvent {
   phase: string;
   seq: number;
   t_us: number;
-  pins: { id: number; mode?: string | null; pull?: string | null; out: number; level: number; driven: boolean; irq: boolean }[];
+  pins: { id: number; mode?: string | null; pull?: string | null; out: number; level: number; driven: boolean; irq: boolean; duty?: number; freq?: number }[];
   timers: number;
 }
 
@@ -34,6 +35,7 @@ interface StepRecord {
   stdout: string;
   stderr: string;
   events: StateEvent[];
+  devices?: { v?: number; id?: string; part?: string; state?: unknown }[];
   notices: string[];
   idleStartedMs?: number;
 }
@@ -236,8 +238,9 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
     expect(value[8]).toMatch(/^ModuleNotFoundError: No module named 'bluetooth' \(가상 보드의 블루투스는 아직/u);
     expect(value[9]).toMatch(/^ModuleNotFoundError: No module named 'ubluetooth'/u);
     expect(value[10]).toBe("ModuleNotFoundError: No module named 'umicropython'");
-    expect(value[11]).toMatch(/^ImportError: machine\.PWM은\(는\) 가상 보드에 아직 없어요/u);
-    expect(value[12]).toMatch(/^ImportError: machine\.UART은\(는\) 가상 보드에 아직 없어요/u);
+    // 부품 구역(P3-03~P3-05)이 PWM·UART 같은 이름을 더해도 흔들리지 않게, 이 단계에서 흉내 낼 계획이 없는 이름(DAC·I2S)으로 본다
+    expect(value[11]).toBe('ImportError: machine.DAC은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요). 이 기능은 실물 보드에서 확인해요.');
+    expect(value[12]).toMatch(/^ImportError: machine\.I2S은\(는\) 가상 보드에 아직 없어요/u);
     expect(value[13]).toBe("AttributeError: module 'machine' has no attribute 'nothing_here'");
     expect(value[14]).toBe('schedule queue full');
     expect(value[15]).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);

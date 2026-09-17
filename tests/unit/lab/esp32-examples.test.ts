@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { readExampleMeta } from '../../../src/lab/controls/example-meta.ts';
 import { readExampleSidecars } from '../../../src/lab/controls/example-sidecar.ts';
 import { validateExamples } from '../../../src/lab/controls/examples.ts';
-import { resolveWiring } from '../../../src/lab/modules/board/parts.ts';
+import { PART_DEFINITIONS, resolveWiring } from '../../../src/lab/modules/board/parts.ts';
 import { esp32ExampleFileFromPath, esp32ExampleIdFromFile, esp32ExamplesFromFiles } from '../../../src/lab/esp32/examples.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
@@ -133,8 +133,10 @@ describe('ESP32 실습실 예제 목록', () => {
     }
     const counter = byFile('esp32/u2/2-1-2-adv-touch-lcd-counter.py');
     expect(counter?.parts?.map((entry) => entry.part)).toEqual(['touch-digital', 'lcd-i2c']);
-    // 문자 LCD는 P3-04에서 더해지므로 지금은 "아직 없는 부품" 주의 하나만
-    expect(resolveWiring(counter?.parts ?? []).issues.map((issue) => [issue.level, issue.code])).toEqual([['warning', 'unknown-part']]);
+    // 문자 LCD(lcd-i2c)는 P3-04 구역이 부품 폴더를 더하기 전까지 "아직 없는 부품" 주의 하나, 더한 뒤에는 배선 문제 없음
+    // (병렬 제작 준비 2026-09-17 — 부품 구역이 이 공유 테스트를 고치지 않아도 되게 두 경우를 모두 받는다)
+    const counterIssues = resolveWiring(counter?.parts ?? []).issues.map((issue) => [issue.level, issue.code]);
+    expect(counterIssues).toEqual(PART_DEFINITIONS.has('lcd-i2c') ? [] : [['warning', 'unknown-part']]);
     expect(resolveWiring(byFile('esp32/u2/2-1-2-adv-touch-check.py')?.parts ?? []).issues).toEqual([]);
     for (const [examplePath, sidecar] of Object.entries(sidecars)) {
       expect(files[examplePath], examplePath + '의 사이드카에 짝이 되는 .py 파일이 없어요').toBeDefined();

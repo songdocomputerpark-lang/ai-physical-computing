@@ -16,7 +16,9 @@ import {
   resolveWiring,
   validatePartDefinitions,
   wiringValue,
+  withControlDrive,
 } from '../../../src/lab/modules/board/parts.ts';
+import { wiringHasSound } from '../../../src/lab/modules/board/index.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const PARTS_DIR = path.join(ROOT, 'src', 'lab', 'modules', 'board', 'parts');
@@ -72,6 +74,7 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
         './parts/f/part.ts': { default: part({ id: 'f', python: 'apc_part_missing' }) },
         './parts/g/part.ts': { default: undefined as never },
         './parts/h/part.ts': { default: part({ id: 'h', anchors: { sig: { x: 10, y: 0 }, nope: { x: 9, y: 0 } }, power: { gnd: { x: 1 } } as never, defaultPinsNotice: '' }) },
+        './parts/i/part.ts': { default: part({ id: 'i', sound: 'yes' as never, controls: {} as never }) },
       },
       { f: [] },
     );
@@ -91,6 +94,8 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
     expect(text).toMatch(/anchors의 "nope"이\(가\) pins에 없어요/u);
     expect(text).toMatch(/power는 \{ gnd/u);
     expect(text).toMatch(/defaultPinsNotice는 안내 한 문장/u);
+    expect(text).toContain('i/part.ts: sound는 true 또는 false');
+    expect(text).toContain('i/part.ts: controls는 (host, api)');
   });
 });
 
@@ -225,6 +230,35 @@ describe('배선(resolveWiring)', () => {
         [17, 1],
       ]),
     );
+  });
+
+  it('부품 조작 칸(controls)이 정한 값: interaction 대신 그 값, 아날로그 전압은 센 값, null이면 지운다(병렬 제작 준비)', () => {
+    const analogPad = part({ id: 'pad', pins: [{ role: 'sig', label: '신호', direction: 'in' }], defaultPins: { sig: 32 }, controls: () => undefined });
+    const definitions = new Map<string, PartDefinition>([...PART_DEFINITIONS.entries(), ['pad', analogPad]]);
+    const { instances } = resolveWiring([{ part: 'touch-digital', pin: 17 }, { part: 'pad', id: 'pad' }], definitions);
+    // 조작 칸이 아직 값을 정하지 않은 조작 칸 부품(interaction 없음)은 핀을 누르지 않는다
+    expect(new Map(inputDrives(instances, new Set(), definitions)).has(32)).toBe(false);
+    let controls = withControlDrive(new Map(), 'pad', 'sig', { mv: 1535 });
+    controls = withControlDrive(controls, 'touch-digital', 'sig', 1);
+    const drives = inputDrives(instances, new Set(), definitions, controls);
+    expect(drives.get(32)).toEqual({ mv: 1535 });
+    // 조작 칸 값이 interaction 값(떼면 0)보다 앞선다
+    expect(drives.get(17)).toBe(1);
+    // BOOT 버튼(풀업)과 같은 핀이면 아날로그 전압(센 값)이 이긴다
+    const shared = withControlDrive(new Map(), 'pad', 'sig', { mv: 100 });
+    const { instances: onZero } = resolveWiring([{ part: 'pad', id: 'pad', pin: 0 }], definitions);
+    expect(inputDrives(onZero, new Set(), definitions, shared).get(0)).toEqual({ mv: 100 });
+    // null이면 그 역할을 지우고, 역할이 없으면 부품 칸도 지운다
+    const cleared = withControlDrive(controls, 'pad', 'sig', null);
+    expect(cleared.has('pad')).toBe(false);
+    expect(controls.get('pad')?.get('sig')).toEqual({ mv: 1535 });
+  });
+
+  it('소리 부품(sound: true)이 배선에 있으면 [소리 켜기/끄기] 단추가 보인다', () => {
+    const buzzer = part({ id: 'beeper', sound: true });
+    const definitions = new Map<string, PartDefinition>([...PART_DEFINITIONS.entries(), ['beeper', buzzer]]);
+    expect(wiringHasSound(resolveWiring([], definitions).instances, definitions)).toBe(false);
+    expect(wiringHasSound(resolveWiring([{ part: 'beeper', pin: 15 }], definitions).instances, definitions)).toBe(true);
   });
 
   it('예제의 배선 표(LabExample.parts)를 읽는다', () => {

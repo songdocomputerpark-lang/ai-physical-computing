@@ -133,6 +133,12 @@ export function validatePartDefinitions(
         errors.push(`${where}: interaction이 있는 부품은 direction 'in' 핀이 하나 이상 있어야 해요.`);
       }
     }
+    if (definition.sound !== undefined && typeof definition.sound !== 'boolean') {
+      errors.push(`${where}: sound는 true 또는 false로 적어요(소리를 내는 부품이면 true).`);
+    }
+    if (definition.controls !== undefined && typeof definition.controls !== 'function') {
+      errors.push(`${where}: controls는 (host, api) => { update?, destroy? } 함수예요.`);
+    }
     if (definition.python !== undefined) {
       if (!PART_PYTHON_PATTERN.test(definition.python)) {
         errors.push(`${where}: python은 apc_part_로 시작하는 파이썬 모듈 이름이에요(지금: ${definition.python}).`);
@@ -414,19 +420,33 @@ export function wiringValue(
 }
 
 function strength(drive: PinDrive): number {
-  return drive === 0 || drive === 1 ? 2 : drive === null ? 0 : 1;
+  if (drive === null) {
+    return 0;
+  }
+  return drive === 'pullup' || drive === 'pulldown' ? 1 : 2;
 }
 
-/** 입력 부품들이 지금 핀을 어떻게 누르는지(GPIO → drive). 한 핀에 여럿이면 센 값(0·1)이 약한 값(풀업·풀다운)을 이긴다. */
+/**
+ * 부품 조작 칸(controls)이 정한 누르는 값: 배선 id → (핀 역할 → drive). null은 "정하지 않음"(interaction 값으로 돌아감)이라 표에 넣지 않는다.
+ * (병렬 제작 준비 2026-09-17 — 4채널 아날로그 터치의 패드·값 막대처럼 누르기 한 번으로 안 되는 입력)
+ */
+export type ControlDrives = ReadonlyMap<string, ReadonlyMap<string, PinDrive>>;
+
+/**
+ * 입력 부품들이 지금 핀을 어떻게 누르는지(GPIO → drive). 한 핀에 여럿이면 센 값(0·1·아날로그 전압)이 약한 값(풀업·풀다운)을 이긴다.
+ * 부품 조작 칸이 정한 값(controlDrives)이 있으면 그 역할은 interaction 값 대신 그 값을 쓴다.
+ */
 export function inputDrives(
   instances: readonly PartInstance[],
   activeIds: ReadonlySet<string>,
   definitions: ReadonlyMap<string, PartDefinition> = PART_DEFINITIONS,
+  controlDrives: ControlDrives = new Map(),
 ): Map<number, PinDrive> {
   const drives = new Map<number, PinDrive>();
   for (const instance of instances) {
     const definition = definitions.get(instance.part);
-    if (!definition?.interaction) {
+    const controlled = controlDrives.get(instance.id);
+    if (!definition || (!definition.interaction && !controlled)) {
       continue;
     }
     for (const pin of definition.pins) {
@@ -437,7 +457,15 @@ export function inputDrives(
       if (gpio === undefined) {
         continue;
       }
-      const drive = definition.interaction.drive(activeIds.has(instance.id), pin.role);
+      const fromControls = controlled?.get(pin.role);
+      let drive: PinDrive;
+      if (fromControls !== undefined && fromControls !== null) {
+        drive = fromControls;
+      } else if (definition.interaction) {
+        drive = definition.interaction.drive(activeIds.has(instance.id), pin.role);
+      } else {
+        continue;
+      }
       const current = drives.get(gpio) ?? null;
       if (strength(drive) >= strength(current)) {
         drives.set(gpio, drive);
@@ -445,6 +473,23 @@ export function inputDrives(
     }
   }
   return drives;
+}
+
+/** 부품 조작 칸이 정한 값 표에 하나를 반영한 새 표(drive가 null이면 그 역할을 지운다) */
+export function withControlDrive(previous: ControlDrives, instanceId: string, role: string, drive: PinDrive): Map<string, Map<string, PinDrive>> {
+  const next = new Map<string, Map<string, PinDrive>>([...previous.entries()].map(([id, roles]) => [id, new Map(roles)]));
+  const roles = next.get(instanceId) ?? new Map<string, PinDrive>();
+  if (drive === null) {
+    roles.delete(role);
+  } else {
+    roles.set(role, drive);
+  }
+  if (roles.size === 0) {
+    next.delete(instanceId);
+  } else {
+    next.set(instanceId, roles);
+  }
+  return next;
 }
 
 /** GPIO → 그 핀에 이어진 부품 이름들(핀 표의 "연결" 칸) */

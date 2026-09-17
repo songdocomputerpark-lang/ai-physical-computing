@@ -33,6 +33,20 @@
    입력으로 정하거나 출력으로 정하지 않고 값을 씀, 배선에 부품이 없는 핀을 출력으로 정함. 실물처럼 오류를 내지는 않는다(실물도 코드는 돈다).
    배선을 받지 못한 실행(단위 테스트의 일부 단계)에서는 알리지 않는다.
 
+9. 부품 단계(P3-03~P3-05) 확장 자리(병렬 제작 준비 2026-09-17 — 여러 구역이 이 파일을 고치지 않게 미리 둔 것, README 7.6·7.9):
+   - PWM: BOARD.set_pwm(gpio, duty 0~1, freq Hz)·clear_pwm(gpio)·pwm_of(gpio). PWM이 켜진 핀은 모드와 상관없이 전기를 내보내고
+     board.state 핀 항목에 mode 'pwm'·duty·freq가 실린다(화면 state.ts outputStrength가 LED 밝기·진동 세기로). Pin(…, 인자)로 핀을 다시 정하면
+     실물처럼 PWM 출력이 끊긴다(v1.29.0 machine_pin.c의 init이 늘 esp_rom_gpio_pad_select_gpio — 2026-09-17 확인).
+   - 아날로그 입력: 화면이 핀에 {'mv': 0~3300}(AnalogDrive)을 걸면 BOARD.read_millivolts(gpio)가 그 전압을 돌려준다(ADC 흉내가 쓴다).
+     디지털로 읽으면 DIGITAL_HIGH_MV(1.65V) 문턱으로 0·1.
+   - 부품 장치: register_part로 등록한 factory를 이번 실행의 배선마다 한 번 불러 wired_devices()로 돌려준다(실행마다 새로).
+     장치 상태는 set_device_state(배선 id, 부품 id, 상태)로 알리면 16ms마다 핀 상태와 함께 'board.device' 이벤트로 나간다(최신 값만).
+     화면 조작(부품 조작 칸·송신 패널)이 보낸 'board.device.input'은 on_device_input(배선 id, 처리 함수)로 받는다(입력 확인 지점에서, 양보 금지).
+   - 아직 없는 모듈: neopixel·i2c_lcd·ssd1306·sh1106·servo_library·gorillacell_dcmotors는 파일이 생기기 전까지 한국어 안내가 든
+     ModuleNotFoundError로 멈춘다(NOT_YET_MODULES — 파일이 생기면 저절로 그 파일이 import된다).
+   - 블록 전용 호환 모드(PD-27, P3-06): JSPI가 없는 브라우저에서 블록 생성기의 실행판이 `await wait_ns_async(ns)`로 기다린다
+     (apc_runtime.sleep_async — runPythonAsync의 최상위 await, 기다리는 동안 입력·[정지]를 받는다).
+
 동기 진입점 규칙(PROGRESS 미해결 25번): _reset·_tick·_before_wait·_finish 훅에서는 양보하는 함수(sleep·request·get·poll)를 부르지 않는다
 (peek·drain·emit·notice만). 콜백은 학생 코드 자리(입력 확인 지점·대기 훅)에서만 돌린다.
 
@@ -42,6 +56,7 @@
 
 import builtins
 import importlib
+import math
 import os
 import struct
 import sys
@@ -55,13 +70,18 @@ import apc_runtime
 __all__ = [
     "BOARD",
     "BOARD_LIB_DIR",
+    "BOARD_MAX_MV",
+    "CHANNEL_DEVICE_INPUT",
     "CHANNEL_INPUT",
     "CHANNEL_INPUTS",
     "CHANNEL_WIRING",
+    "DIGITAL_HIGH_MV",
     "EVENT_DEVICE",
     "EVENT_STATE",
+    "NOT_YET_MODULES",
     "VALID_GPIOS",
     "WORK_DIR",
+    "AnalogDrive",
     "board_oserror",
     "check_point",
     "find_pin",
@@ -72,11 +92,16 @@ __all__ = [
     "mktime_2000",
     "mp_float",
     "mp_int",
+    "on_device_input",
+    "part_factory",
     "register_board_module",
     "register_machine_export",
     "register_part",
+    "set_device_state",
     "struct_time_2000",
     "wait_ns",
+    "wait_ns_async",
+    "wired_devices",
 ]
 
 # ── 화면 쪽(manifest.ts·state.ts)과 같아야 하는 이름 ──
@@ -85,7 +110,15 @@ EVENT_DEVICE = "board.device"
 CHANNEL_INPUTS = "board.inputs"
 CHANNEL_INPUT = "board.input"
 CHANNEL_WIRING = "board.wiring"
+CHANNEL_DEVICE_INPUT = "board.device.input"
 STATE_VERSION = 1
+DEVICE_VERSION = 1
+
+#: 보드 전원 전압(밀리볼트) — ESP32 GPIO·ADC의 3.3V
+BOARD_MAX_MV = 3300
+#: 아날로그 전압이 걸린 핀을 디지털로 읽을 때 1로 보는 문턱(밀리볼트). 실물 ESP32의 입력 문턱은 데이터시트의 VIH(0.75×VDD)와
+#: VIL(0.25×VDD) 사이에서 정해지지 않아 들쭉날쭉하고, 가상 보드는 가운데(1.65V)를 문턱으로 단순하게 둔다.
+DIGITAL_HIGH_MV = 1650
 
 #: 학생 파일이 있는 작업 폴더(Pyodide 기본 현재 폴더)와, 사이트가 보드 라이브러리(i2c_lcd.py 등, P3-04)를 넣을 폴더
 WORK_DIR = "/home/pyodide"
@@ -374,7 +407,7 @@ class Clock:
 
 
 class PinState:
-    __slots__ = ("gpio", "mode", "pull", "out", "drive", "hold", "irq_handler", "irq_trigger", "irq_wake")
+    __slots__ = ("gpio", "mode", "pull", "out", "drive", "hold", "irq_handler", "irq_trigger", "irq_wake", "pwm")
 
     def __init__(self, gpio):
         self.gpio = gpio
@@ -386,6 +419,29 @@ class PinState:
         self.irq_handler = None
         self.irq_trigger = 0
         self.irq_wake = None
+        self.pwm = None  # None = PWM 아님, (duty 0~1, freq Hz) = PWM 출력 중(set_pwm)
+
+
+class AnalogDrive:
+    """부품이 핀에 거는 아날로그 전압(밀리볼트 0~3300) — 화면의 {'mv': 1234}(가변저항·아날로그 터치 같은 부품, P3-03).
+    ADC 흉내는 BOARD.read_millivolts(gpio)로 읽고, 디지털로 읽으면 DIGITAL_HIGH_MV 문턱으로 0·1이 된다."""
+
+    __slots__ = ("mv",)
+
+    def __init__(self, mv):
+        self.mv = min(float(BOARD_MAX_MV), max(0.0, float(mv)))
+
+    def __eq__(self, other):
+        return isinstance(other, AnalogDrive) and other.mv == self.mv
+
+    def __hash__(self):
+        return hash(("mv", self.mv))
+
+    def __repr__(self):
+        return f"AnalogDrive({self.mv:g}mV)"
+
+    def level(self):
+        return 1 if self.mv >= DIGITAL_HIGH_MV else 0
 
 
 class TimerCore:
@@ -422,6 +478,11 @@ class Board:
         self.warned = set()
         self.in_callback = False
         self.callback_errors = set()
+        # 부품 장치(P3-03~ 확장 자리): 배선 id → (부품 id, 상태), 화면에 아직 안 보낸 배선 id, 이번 실행의 장치 목록, 화면 조작을 받을 함수
+        self.device_states = {}
+        self.dirty_devices = set()
+        self.devices = None
+        self.device_input_handlers = {}
 
     # ── 실행 시작·끝 ──
 
@@ -445,6 +506,13 @@ class Board:
         self.wiring_known = isinstance(raw_wiring, dict)
         self.wired = wired_pins(self.wiring)
         apc_runtime.drain(CHANNEL_INPUT)  # 실행 전에 쌓인 입력 변화는 위 상태에 이미 들어 있다
+        apc_runtime.drain(CHANNEL_DEVICE_INPUT)  # 실행 전에 보낸 부품 조작(송신 패널 등)은 실물처럼 사라진다
+        self.device_states = {}
+        self.dirty_devices = set()
+        self.devices = None
+        self.device_input_handlers = {}
+        # 화면이 실행 사이에 /board/lib에 넣은 라이브러리(i2c_lcd.py 등)를 import가 찾게 파일 목록 캐시를 비운다(양보 없음)
+        importlib.invalidate_caches()
         self.seq = 0
         self.dirty = True
         self.flush("reset")
@@ -469,27 +537,40 @@ class Board:
         return state
 
     def output_enabled(self, state):
-        """핀이 지금 전기를 내보내는지(OUT, 또는 OPEN_DRAIN에서 0을 낼 때)"""
-        if state is None or state.mode is None or not (state.mode & MODE_DEF_OUTPUT):
+        """핀이 지금 전기를 내보내는지(PWM 출력 중, OUT, 또는 OPEN_DRAIN에서 0을 낼 때)"""
+        if state is None:
+            return False
+        if state.pwm is not None:
+            return True
+        if state.mode is None or not (state.mode & MODE_DEF_OUTPUT):
             return False
         return not (state.mode & MODE_DEF_OD) or state.out == 0
 
+    def output_level(self, state):
+        """전기를 내보내는 핀의 값(0·1): PWM이면 켜진 시간이 있을 때 1, 아니면 출력 값"""
+        if state.pwm is not None:
+            return 1 if state.pwm[0] > 0 else 0
+        return state.out
+
     def pad_level(self, gpio, *, warn=False):
-        """핀의 실제 전압(0·1). 부품이 세게 누르는 값(0·1) > 출력 > 부품의 약한 풀업·풀다운 > 내부 풀업·풀다운 > 떠 있음(0)."""
+        """핀의 실제 전압(0·1). 부품이 세게 누르는 값(0·1·아날로그 전압) > 출력 > 부품의 약한 풀업·풀다운 > 내부 풀업·풀다운 > 떠 있음(0)."""
         state = self.pins.get(gpio)
         drive = self.drives.get(gpio)
         if self.output_enabled(state):
-            if drive in (0, 1) and drive != state.out:
+            out = self.output_level(state)
+            if drive in (0, 1) and drive != out:
                 if warn:
                     self.warn_once(
                         ("short", gpio),
-                        f"{gpio}번 핀: 출력으로 {state.out}을 내보내는 동안 연결된 부품이 이 핀을 {drive}로 누르고 있어요(합선). "
+                        f"{gpio}번 핀: 출력으로 {out}을 내보내는 동안 연결된 부품이 이 핀을 {drive}로 누르고 있어요(합선). "
                         "실물 보드에서는 핀이 상할 수 있어요. 이 핀을 입력(Pin.IN)으로 바꾸거나 부품을 다른 핀에 이어요.",
                     )
                 return drive
-            return state.out
+            return out
         if drive in (0, 1):
             return drive
+        if isinstance(drive, AnalogDrive):
+            return drive.level()
         if drive == "pullup":
             return 1
         if drive == "pulldown":
@@ -526,11 +607,75 @@ class Board:
         """이 핀을 읽는 것이 바깥 세상(부품·버튼)을 보는 것인지 — 그렇다면 입력 확인 지점이다(출력 중인 핀 읽기는 빠른 길)."""
         return not self.output_enabled(self.pins.get(gpio))
 
-    def configure(self, gpio, mode=None, pull=-1, value=None, drive=None, hold=None):
-        """Pin(id, mode, pull, *, value, drive, hold)·pin.init(…) — machine_pin_obj_init_helper와 같은 순서(값 → 세기 → 모드 → 풀 → 유지)."""
+    def read_millivolts(self, gpio):
+        """핀 전압(밀리볼트, 0~3300) — ADC 흉내(apc_board_adc.py, P3-03)가 읽는다. 입력 확인 지점(check_point)은 부르는 쪽이 먼저 지난다.
+        순서는 pad_level과 같다: 출력(부품이 반대 값으로 세게 누르면 그 값, PWM이면 켜진 시간 비율만큼의 평균 전압) > 부품의 아날로그 전압·
+        세게 누르는 값(0·1) > 부품의 약한 풀업·풀다운 > 내부 풀업·풀다운 > 떠 있음(0 — 실물은 들쭉날쭉)."""
+        state = self.pins.get(gpio)
+        drive = self.drives.get(gpio)
+        if self.output_enabled(state):
+            if drive in (0, 1) and drive != self.output_level(state):
+                return float(drive * BOARD_MAX_MV)
+            if state.pwm is not None:
+                return float(state.pwm[0] * BOARD_MAX_MV)
+            return float(state.out * BOARD_MAX_MV)
+        if isinstance(drive, AnalogDrive):
+            return drive.mv
+        if drive in (0, 1):
+            return float(drive * BOARD_MAX_MV)
+        if drive == "pullup":
+            return float(BOARD_MAX_MV)
+        if drive == "pulldown":
+            return 0.0
+        pull = state.pull if state is not None else None
+        if pull and gpio < FIRST_INPUT_ONLY_GPIO:
+            if pull & PULL_UP:
+                return float(BOARD_MAX_MV)
+            if pull & PULL_DOWN:
+                return 0.0
+        return 0.0
+
+    def set_pwm(self, gpio, duty=None, freq=None):
+        """PWM 확장(apc_board_pwm.py, P3-03)이 핀의 PWM 출력을 켜거나 바꾼다. duty = 켜진 시간 비율(0~1), freq = 주파수(Hz, 정수).
+        None인 값은 그대로 둔다. 실물 LEDC처럼 핀 모드와 상관없이 전기를 내보낸다. 값 검사·오류 문구(MicroPython 그대로)는 확장이 맡는다.
+        바뀌면 board.state 핀 항목에 mode 'pwm'·duty·freq가 실린다(화면 state.ts outputStrength)."""
         state = self.state(gpio)
         before = self.pad_level(gpio)
-        previous = (state.mode, state.pull, state.out)
+        current_duty, current_freq = state.pwm if state.pwm is not None else (0.0, 0)
+        new_duty = current_duty if duty is None else min(1.0, max(0.0, float(duty)))
+        new_freq = current_freq if freq is None else int(freq)
+        previous = state.pwm
+        state.pwm = (new_duty, new_freq)
+        after = self.pad_level(gpio)
+        if after != before:
+            self.edge(gpio, before, after)
+        if previous != state.pwm or after != before:
+            self.mark_dirty()
+
+    def clear_pwm(self, gpio):
+        """PWM 출력을 끈다(PWM.deinit() 등). 핀은 PWM 전의 모드·값으로 돌아간다."""
+        state = self.pins.get(gpio)
+        if state is None or state.pwm is None:
+            return
+        before = self.pad_level(gpio)
+        state.pwm = None
+        after = self.pad_level(gpio)
+        if after != before:
+            self.edge(gpio, before, after)
+        self.mark_dirty()
+
+    def pwm_of(self, gpio):
+        """PWM 출력 중이면 (duty 0~1, freq Hz), 아니면 None"""
+        state = self.pins.get(gpio)
+        return None if state is None else state.pwm
+
+    def configure(self, gpio, mode=None, pull=-1, value=None, drive=None, hold=None):
+        """Pin(id, mode, pull, *, value, drive, hold)·pin.init(…) — machine_pin_obj_init_helper와 같은 순서(값 → 세기 → 모드 → 풀 → 유지).
+        실물의 init은 늘 핀을 GPIO 기능으로 되돌리므로(esp_rom_gpio_pad_select_gpio) 켜져 있던 PWM 출력이 끊긴다."""
+        state = self.state(gpio)
+        before = self.pad_level(gpio)
+        previous = (state.mode, state.pull, state.out, state.pwm)
+        state.pwm = None
         if value is not None:
             if gpio >= FIRST_INPUT_ONLY_GPIO:
                 self.warn_input_only_write(gpio)
@@ -562,7 +707,7 @@ class Board:
         after = self.pad_level(gpio)
         if after != before:
             self.edge(gpio, before, after)
-        if previous != (state.mode, state.pull, state.out) or after != before:
+        if previous != (state.mode, state.pull, state.out, state.pwm) or after != before:
             self.mark_dirty()
 
     def write(self, gpio, value):
@@ -623,7 +768,7 @@ class Board:
     # ── 화면에서 온 입력 ──
 
     def apply_input(self, event):
-        """{'pin': 0, 'drive': 0 | 1 | 'pullup' | 'pulldown' | None} 하나를 반영한다(버튼을 누름·뗌)."""
+        """{'pin': 0, 'drive': 0 | 1 | 'pullup' | 'pulldown' | {'mv': 0~3300} | None} 하나를 반영한다(버튼을 누름·뗌, 아날로그 전압을 바꿈)."""
         if not isinstance(event, dict):
             return
         gpio = event.get("pin")
@@ -644,6 +789,58 @@ class Board:
     def drain_inputs(self):
         for event in apc_runtime.drain(CHANNEL_INPUT):
             self.apply_input(event)
+
+    # ── 부품 장치(P3-03~ 확장 자리) ──
+
+    def wired_devices(self, part_id=None):
+        """이번 실행의 부품 장치 [(배선 항목, 장치)]. register_part로 등록한 factory를 배선(board.wiring)의 부품마다 처음 부를 때 한 번 만든다
+        (실행마다 새로 — reset이 비운다). part_id를 주면 그 부품만. 배선 항목: {'part','id','label','pins':{role: GPIO},'directions','known'}."""
+        if self.devices is None:
+            self.devices = []
+            load_extensions()
+            for entry in self.wiring:
+                factory = _parts.get(entry["part"])
+                if factory is None:
+                    continue
+                try:
+                    device = factory(entry)
+                except Exception as error:  # noqa: BLE001 — 부품 하나를 못 만들어도 보드는 돈다
+                    self.warn_once(
+                        ("device-error", entry["id"]),
+                        f"가상 부품 {entry['label']}을(를) 준비하지 못했어요({type(error).__name__}: {error}). 사이트 문제라면 오류 알리기로 알려 주세요.",
+                    )
+                    continue
+                if device is not None:
+                    self.devices.append((entry, device))
+        return [(entry, device) for entry, device in self.devices if part_id is None or entry["part"] == part_id]
+
+    def set_device_state(self, device_id, part, state):
+        """부품 흉내가 화면에 보일 상태를 알린다(최신 값만 — 16ms 안의 변화는 합쳐져 'board.device' 이벤트 하나로 나간다).
+        device_id = 배선 id(entry['id']), part = 부품 id, state = JSON으로 보낼 수 있는 값(사전·목록·글자·숫자·bytes → Uint8Array)."""
+        key = str(device_id)
+        self.device_states[key] = (str(part), state)
+        self.dirty_devices.add(key)
+        if _host_monotonic() - self.last_flush >= FLUSH_INTERVAL_S:
+            self.flush()
+
+    def on_device_input(self, device_id, handler):
+        """화면이 이 배선 id의 부품에 보낸 값('board.device.input' {id, data})을 받을 함수 handler(data)를 등록한다(실행마다 — reset이 비운다).
+        입력 확인 지점에서 불리므로 양보하는 함수(sleep·get·poll·request)를 부르지 않는다. 실행 중이 아닐 때 보낸 값은 사라진다(실물 UART와 같음)."""
+        self.device_input_handlers[str(device_id)] = handler
+
+    def drain_device_inputs(self):
+        for event in apc_runtime.drain(CHANNEL_DEVICE_INPUT):
+            if not isinstance(event, dict):
+                continue
+            handler = self.device_input_handlers.get(str(event.get("id")))
+            if handler is None:
+                continue
+            try:
+                handler(event.get("data"))
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception as error:  # noqa: BLE001 — 부품 흉내의 오류가 학생 코드를 멈추지 않게
+                self.warn_once(("device-input-error", str(event.get("id"))), f"가상 부품이 화면 조작을 처리하지 못했어요({type(error).__name__}: {error}).")
 
     # ── 타이머·콜백 ──
 
@@ -725,8 +922,9 @@ class Board:
         return self.has_irq_handlers()
 
     def service(self, run_callbacks):
-        """입력 확인 지점에서 하는 일: 화면 입력 반영 → 레벨 인터럽트 → 울릴 타이머 → (학생 코드 자리면) 콜백 실행"""
+        """입력 확인 지점에서 하는 일: 화면 입력 반영(핀·부품 조작) → 레벨 인터럽트 → 울릴 타이머 → (학생 코드 자리면) 콜백 실행"""
         self.drain_inputs()
+        self.drain_device_inputs()
         self.service_level_irqs()
         self.service_timers()
         if run_callbacks:
@@ -740,16 +938,24 @@ class Board:
             self.flush()
 
     def flush(self, reason="change"):
-        if not self.dirty:
+        """모아 둔 변화를 화면에 보낸다: 핀이 바뀌었으면 'board.state'(핀 전체 목록) 하나, 그다음 바뀐 부품마다 'board.device' 하나(최신 상태)."""
+        if not self.dirty and not self.dirty_devices:
             return
-        self.dirty = False
-        self.seq += 1
         self.last_flush = _host_monotonic()
-        apc_runtime.emit(EVENT_STATE, self.snapshot(reason))
+        if self.dirty:
+            self.dirty = False
+            self.seq += 1
+            apc_runtime.emit(EVENT_STATE, self.snapshot(reason))
+        if self.dirty_devices:
+            keys = sorted(self.dirty_devices)
+            self.dirty_devices = set()
+            for key in keys:
+                part, state = self.device_states[key]
+                apc_runtime.emit(EVENT_DEVICE, {"v": DEVICE_VERSION, "id": key, "part": part, "state": state})
 
     def pin_entry(self, gpio):
         state = self.pins[gpio]
-        return {
+        entry = {
             "id": gpio,
             "mode": mode_name(state.mode),
             "pull": pull_name(state.pull),
@@ -758,6 +964,11 @@ class Board:
             "driven": self.output_enabled(state),
             "irq": state.irq_handler is not None and bool(state.irq_trigger),
         }
+        if state.pwm is not None:
+            entry["mode"] = "pwm"
+            entry["duty"] = round(state.pwm[0], 6)
+            entry["freq"] = state.pwm[1]
+        return entry
 
     def snapshot(self, reason):
         return {
@@ -847,8 +1058,16 @@ def pull_name(pull):
 
 
 def normalize_drive(value):
+    """화면이 보낸 누르는 값 → 0·1·'pullup'·'pulldown'·AnalogDrive·None"""
     if isinstance(value, bool):
         return int(value)
+    if isinstance(value, AnalogDrive):
+        return value
+    if isinstance(value, dict):
+        mv = value.get("mv")
+        if isinstance(mv, (int, float)) and not isinstance(mv, bool) and math.isfinite(mv):
+            return AnalogDrive(mv)
+        return None
     if value in (0, 1, "pullup", "pulldown"):
         return value
     return None
@@ -971,6 +1190,47 @@ def check_point():
     BOARD.service(run_callbacks=True)
 
 
+async def _sleep_virtual_async(ns):
+    clock = BOARD.clock
+    before = clock.now_ns()
+    clock.begin_wait(before + ns)
+    try:
+        await apc_runtime.sleep_async(ns / 1_000_000_000)
+    except BaseException:
+        clock.end_wait()
+        raise
+    clock.anchor(before + ns)
+
+
+async def wait_ns_async(total_ns):
+    """(병렬 제작 준비 2026-09-17) 블록 전용 호환 모드(PLAN PD-27 — P3-06)용 wait_ns: JSPI가 없어도 runPythonAsync의 최상위 await로
+    가상 시계만큼 잔다. wait_ns와 같은 일(Timer·핀 인터럽트·화면 입력·[정지])을 하고 기다리기는 apc_runtime.sleep_async로 한다.
+    사이트의 블록 생성기가 만든 실행판(화면에 보이는 코드는 time.sleep)이 `await apc_board.wait_ns_async(ns)`로 부른다 — 학생 코드용 이름이 아니다."""
+    board = BOARD
+    board.flush()
+    apc_runtime.check_stop()
+    total = max(0, int(total_ns))
+    end = board.clock.now_ns() + total
+    board.service(run_callbacks=True)
+    if total == 0:
+        await apc_runtime.sleep_async(0)
+        board.service(run_callbacks=True)
+        return
+    while True:
+        now = board.clock.now_ns()
+        remaining = end - now
+        if remaining <= 0:
+            break
+        chunk = remaining
+        due = board.next_timer_due_ns()
+        if due is not None:
+            chunk = min(chunk, max(0, due - now))
+        if board.has_irq_handlers():
+            chunk = min(chunk, IRQ_SLICE_NS)
+        await _sleep_virtual_async(chunk)
+        board.service(run_callbacks=True)
+
+
 # ───────────────────────── 훅(apc_runtime) ─────────────────────────
 
 
@@ -980,7 +1240,7 @@ def _reset():
 
 def _tick():
     BOARD.service(run_callbacks=False)
-    if BOARD.dirty and _host_monotonic() - BOARD.last_flush >= FLUSH_INTERVAL_S:
+    if (BOARD.dirty or BOARD.dirty_devices) and _host_monotonic() - BOARD.last_flush >= FLUSH_INTERVAL_S:
         BOARD.flush()
 
 
@@ -1062,6 +1322,21 @@ def part_factory(part_id):
     return _parts.get(str(part_id))
 
 
+def wired_devices(part_id=None):
+    """이번 실행의 부품 장치 [(배선 항목, 장치)] — Board.wired_devices(I2C 버스·UART가 자기 핀에 이어진 장치를 찾을 때)"""
+    return BOARD.wired_devices(part_id)
+
+
+def set_device_state(device_id, part, state):
+    """부품 상태를 화면에 알린다 — Board.set_device_state('board.device' {v, id, part, state}, 16ms 병합)"""
+    BOARD.set_device_state(device_id, part, state)
+
+
+def on_device_input(device_id, handler):
+    """화면 조작('board.device.input' {id, data})을 받을 함수를 등록한다 — Board.on_device_input(실행마다, 양보 금지)"""
+    BOARD.on_device_input(device_id, handler)
+
+
 def load_extensions():
     """/apc의 apc_board_*.py·apc_part_*.py를 한 번씩 불러온다(자기를 등록하게). 동기 진입점에서 불러도 양보하지 않는다."""
     global _extensions_loaded
@@ -1079,6 +1354,32 @@ def load_extensions():
                 importlib.import_module(file_name[:-3])
             except Exception as error:  # noqa: BLE001 — 확장 하나의 오류가 보드 전체를 막지 않게
                 apc_runtime.notice(f"가상 보드 확장 {file_name}을(를) 불러오지 못했어요: {type(error).__name__}: {error}", "warn")
+
+
+#: 실물 펌웨어에 들어 있거나(firmware) 사이트가 부품 라이브러리로 주는데(library) 가상 보드에 아직 없는 모듈(병렬 제작 준비 2026-09-17).
+#: 학생 코드가 import했는데 파일이 없으면 한국어 안내가 든 ModuleNotFoundError를 낸다. 부품 구역이 같은 이름의 파일(부품 폴더의 .py 또는
+#: examples/esp32/lib/의 라이브러리)을 더하면 그 파일이 그대로 import되므로 이 표를 고치지 않아도 된다. 안내 문구에는 오류 사전
+#: board-not-emulated가 찾는 "가상 보드에 아직 없어요"가 들어 있다.
+NOT_YET_MODULES = {
+    "neopixel": "firmware",
+    "i2c_lcd": "library",
+    "ssd1306": "library",
+    "sh1106": "library",
+    "servo_library": "library",
+    "gorillacell_dcmotors": "library",
+}
+
+
+def not_yet_module_message(name):
+    if NOT_YET_MODULES.get(name) == "firmware":
+        return (
+            f"No module named '{name}' (가상 보드에 아직 없어요 — 실물 ESP32 펌웨어에는 들어 있는 모듈이에요. "
+            "가상 보드에 부품을 더하는 다음 단계에서 들어와요.)"
+        )
+    return (
+        f"No module named '{name}' (가상 보드에 아직 없어요 — 사이트가 주는 부품 라이브러리 {name}.py는 가상 보드에 부품을 더하는 "
+        "다음 단계에서 들어와요. 실물 보드에서는 이 파일을 보드에 올려야 import할 수 있어요.)"
+    )
 
 
 def _bluetooth_placeholder(name):
@@ -1125,6 +1426,13 @@ def _board_import(name, globals=None, locals=None, fromlist=(), level=0):  # noq
         alias = U_ALIASES.get(name)
         if alias is not None:
             return _host_import(alias, globals, locals, fromlist, 0)
+        if name in NOT_YET_MODULES:
+            try:
+                return _host_import(name, globals, locals, fromlist, level)
+            except ModuleNotFoundError as error:
+                if error.name != name:
+                    raise
+                raise ModuleNotFoundError(not_yet_module_message(name), name=name) from None
     return _host_import(name, globals, locals, fromlist, level)
 
 
