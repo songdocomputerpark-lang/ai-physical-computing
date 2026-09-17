@@ -91,6 +91,12 @@ describe('서비스 워커 설정 새기기', () => {
     expect(config.cachePrefix).toBe(CACHE_PREFIX);
     expect(config.pyodide.cacheName).toBe(pyodideCacheName(PYODIDE_VERSION));
     expect(Object.keys(config.pyodide.sizes)).toHaveLength(PYODIDE_FALLBACK_FILES.length);
+    // 서비스 워커가 받은 파이썬 엔진 파일을 크기뿐 아니라 SHA-256으로도 대조한다(빌드 스크립트와 같은 표, 2026-09-17 검토 반영).
+    expect(config.pyodide.hashes).toEqual(Object.fromEntries(PYODIDE_FALLBACK_FILES.map((file) => [file.name, file.sha256])));
+    for (const hash of Object.values(config.pyodide.hashes as Record<string, string>)) {
+      expect(hash).toMatch(/^[0-9a-f]{64}$/u);
+    }
+    expect(swSource).toContain("reason: 'hash'");
     expect(config.messages).toEqual({ ...SW_MESSAGE });
     expect(config.base).toBe(BASE_PATH);
     // 용량 정리 때 코어 파일은 마지막까지 남긴다.
