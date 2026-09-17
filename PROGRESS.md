@@ -168,7 +168,7 @@
 - **끝난 검토:** `review:safety`(안전·저작권·개인정보). 결과를 `.cache/phase3-reviews/finished-reviews.md`에 옮겨 두었다(git 제외, 이 노트북). 재개하면 이 검토자는 캐시에서 돌아오므로 다시 돌지 않는다. 판정 대부분 통과, **못 지킨 것 2가지**: ① [보드에 저장]이 확인 창·백업 없이 `main.py`를 덮어씀 ② 저장소 검사 우회 구멍.
 - **멈춘 검토 2명:** `review:criteria`, `review:ux` — 결과 전에 멈췄으므로 재개하면 처음부터 다시 돈다(약 40분). 커밋은 하지 않는 단계라 잃는 것은 시간뿐이다.
 - **다음:** 워크플로 재개 → 검토 2명 다시 → `fix:final`이 세 검토 결과를 반영 → Phase 3 완료 → Phase 4 워크플로 새로 작성.
-- **push가 멈추는 문제(주의):** 이 PC의 Git Credential Manager(`credential.helper=manager`)가 `credential-manager get`에서 응답 없이 멈춰 push가 진행되지 않았다(07시 무렵 두 번). `gh`는 정상 로그인 상태(keyring, scopes repo·workflow)라 **`git -c credential.helper='!gh auth git-credential' push origin main`으로 우회해 올렸다**(45328d5). 다시 멈추면 이 방법을 쓰고, 멈춘 `git.exe`·`git credential-manager` 프로세스는 종료한다.
+- **push가 멈췄던 일(원인 확인·해결됨):** 07시 무렵 두 번, Git Credential Manager(`credential.helper=manager`)가 `credential-manager get`에서 응답 없이 멈춰 push가 진행되지 않았다. **원인은 GCM이 운영자의 승인을 기다리고 있었던 것**이고(그 창은 Claude 화면에 보이지 않는다), 운영자가 승인한 뒤(07:25) 기본 설정 그대로 `git fetch` 0.6초·`git push` 정상으로 돌아왔다. 멈춘 동안에는 `gh` 로그인(keyring, scopes repo·workflow)으로 `git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main`처럼 우회해 올렸다(45328d5·b85e7d0). **다시 멈추면 먼저 운영자에게 승인 창을 확인해 달라고 하고**, 급하면 위 우회 명령을 쓴다. 멈춘 `git.exe`·`git credential-manager` 프로세스는 종료해도 된다.
 
 ## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.3 Phase 3 ESP32 실습실)
 
