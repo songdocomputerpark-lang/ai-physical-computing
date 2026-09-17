@@ -43,19 +43,31 @@ async function answerWithText(page: Page, text: string): Promise<void> {
 /**
  * 가짜 음성 인식을 창에 심는다(진짜 마이크 없이 선택지 규칙만 보려고).
  * availability: SpeechRecognition.available()이 돌려줄 값. null이면 그 정적 메서드가 없는 옛 브라우저.
+ * ignoreProcessLocally: 참이면 정적 available()은 있지만 인스턴스의 processLocally 대입을 무시하는 엔진(늘 false)을 흉내 낸다.
+ * start()가 불린 횟수는 window.__apcFakeSpeechStarts에 센다.
  */
-async function fakeSpeechRecognition(page: Page, availability: string | null): Promise<void> {
-  await page.addInitScript((status) => {
+async function fakeSpeechRecognition(page: Page, availability: string | null, options: { ignoreProcessLocally?: boolean } = {}): Promise<void> {
+  await page.addInitScript(({ status, ignoreProcessLocally }) => {
+    const counter = window as unknown as { __apcFakeSpeechStarts: number };
+    counter.__apcFakeSpeechStarts = 0;
     class FakeSpeechRecognition {
       lang = '';
       continuous = false;
       interimResults = false;
       maxAlternatives = 1;
-      processLocally = false;
+      storedProcessLocally = false;
+      get processLocally(): boolean {
+        return ignoreProcessLocally ? false : this.storedProcessLocally;
+      }
+      set processLocally(value: boolean) {
+        this.storedProcessLocally = value;
+      }
       onresult: unknown = null;
       onerror: unknown = null;
       onend: unknown = null;
-      start(): void {}
+      start(): void {
+        counter.__apcFakeSpeechStarts += 1;
+      }
       stop(): void {}
       abort(): void {}
       static available(): Promise<string> {
@@ -71,7 +83,7 @@ async function fakeSpeechRecognition(page: Page, availability: string | null): P
     }
     Object.defineProperty(window, 'SpeechRecognition', { value: FakeSpeechRecognition, configurable: true });
     Object.defineProperty(window, 'webkitSpeechRecognition', { value: FakeSpeechRecognition, configurable: true });
-  }, availability);
+  }, { status: availability, ignoreProcessLocally: options.ignoreProcessLocally === true });
 }
 
 test.describe('음성 인식 흉내(글자 입력 방식)', () => {
@@ -209,9 +221,13 @@ test.describe('사이트 설정(교사용)', () => {
     await page.goto(SETTINGS_PATH);
     const setting = page.locator('[data-speech-setting]');
     await expect(setting).toHaveAttribute('data-ondevice', 'unchecked');
+    // 누르기 전에는 "확인하는 중"이 아니라 "확인 전"이고 단추는 [확인]이다(2026-09-17 검토 반영). 한 번 물어본 뒤에는 [다시 확인].
+    await expect(setting.locator('[data-ondevice-status]')).toContainText('확인 전');
+    await expect(setting.locator('[data-ondevice-check]')).toHaveText('확인');
     await setting.locator('[data-ondevice-check]').click();
     await expect(setting).toHaveAttribute('data-ondevice', 'available', { timeout: 15_000 });
     await expect(setting.locator('[data-ondevice-status]')).toContainText('밖으로 나가지 않아요');
+    await expect(setting.locator('[data-ondevice-check]')).toHaveText('다시 확인');
 
     await openSpeechLab(page, F044);
     // 실습실도 학생이 확인 단추를 눌렀을 때만 물어본다.
@@ -221,6 +237,23 @@ test.describe('사이트 설정(교사용)', () => {
     await expect(panel(page).locator('option[value="ondevice"]')).toHaveCount(1);
     // 교사가 켜지 않았으므로 서버 인식은 여전히 없다.
     await expect(panel(page).locator('option[value="server"]')).toHaveCount(0);
+  });
+
+  test('기기 안 인식을 골라도 브라우저가 processLocally를 받아들이지 않으면 인식을 시작하지 않는다(음성이 밖으로 나가지 않게)', async ({ page }) => {
+    // 2026-09-17 검토 반영: 모르는 속성에 값을 넣어도 자바스크립트는 조용히 성공하므로, 대입한 값이 실제로 참인지 확인하고 아니면 시작하지 않는다.
+    await fakeSpeechRecognition(page, 'available', { ignoreProcessLocally: true });
+    await openSpeechLab(page, F044);
+    await panel(page).locator('[data-speech-ondevice-check]').click();
+    await expect(panel(page)).toHaveAttribute('data-speech-ondevice', 'available', { timeout: 30_000 });
+    await panel(page).locator('[data-speech-mode-select]').selectOption('ondevice');
+    await expect(panel(page)).toHaveAttribute('data-speech-mode-value', 'ondevice');
+
+    await startRun(page);
+    // 파이썬(f044)은 원본 그대로 RequestError를 받아 "서버 요청 실패."를 찍고 끝난다. 화면에는 까닭이 한국어로 남는다.
+    expect(await waitDone(page, 120_000)).toBe('ok');
+    await expect(page.locator('[data-lab-console]')).toContainText('서버 요청 실패.');
+    await expect(panel(page)).toContainText('기기 안 인식을 켜지 못했어요');
+    expect(await page.evaluate(() => (window as unknown as { __apcFakeSpeechStarts: number }).__apcFakeSpeechStarts)).toBe(0);
   });
 
   test('[이 컴퓨터에서 내 기록 지우기]를 누르면 서버 음성 인식 허용도 꺼짐으로 돌아간다', async ({ page }) => {

@@ -66,8 +66,12 @@ test.describe('오류 풀이 카드', () => {
     await runCode(page, NAME_ERROR_CODE);
     expect(await waitDone(page)).toBe('error');
 
-    // ① 카드가 열리고 사전의 name-error 항목이 붙는다
+    // ① 카드가 열리고 사전의 name-error 항목이 붙는다. 조작 줄 아래 안내 줄에도 "오류로 끝났다"가 적히고,
+    //    카드가 첫 화면 밖이면 화면이 카드로 내려간다(2026-09-17 검토 반영 — 전에는 카드가 문서 y≈2,900px에 열려 보이지 않았다).
     await expect(card(page)).toBeVisible();
+    await expect(page.locator('[data-lab-message]')).toContainText('오류로 끝났어요: NameError');
+    await expect(page.locator('[data-lab-message]')).toContainText('2번째 줄');
+    await expect(card(page)).toBeInViewport();
     await expect(card(page)).toHaveAttribute('data-errors-entry', 'name-error');
     await expect(card(page)).toHaveAttribute('data-errors-kind', 'error');
     await expect(card(page)).toHaveAttribute('data-errors-line', '2');
@@ -209,9 +213,45 @@ test.describe('오류 사전 페이지', () => {
     // 긴 오류 메시지·보기 코드가 있어도 페이지가 옆으로 넘치지 않는다(코드 상자 안에서만 좌우 스크롤)
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
-    // 실습실 카드가 보내는 주소로 열면 그 항목이 화면에 보인다
+    // 실습실 카드가 보내는 주소로 열면 그 항목이 화면에 보이고, 그 항목의 설명(왜·고치는 법)이 펼쳐져 있다
     await page.goto(`${withBase('help/errors/')}#index-error`);
     await expect(page.locator('h3#index-error')).toBeInViewport();
+    await expect(page.locator('[data-errors-entry-item="index-error"] [data-errors-more]')).toHaveAttribute('open', '');
+  });
+
+  test('항목 설명은 접혀 있고, 찾기 칸으로 오류 이름·낱말을 거를 수 있다(2026-09-17 검토 반영)', async ({ page }) => {
+    await page.goto(withBase('help/errors/'));
+    const entries = page.locator('article.errors-entry');
+    const total = await entries.count();
+    // 처음에는 모든 항목의 설명이 접혀 있어 쪽이 짧다(47항목을 다 펼치면 데스크톱 38,899px이었다).
+    await expect(page.locator('[data-errors-more][open]')).toHaveCount(0);
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(height, '쪽 높이').toBeLessThan(test.info().project.name === 'mobile' ? 30_000 : 20_000);
+
+    // 오류 이름으로 찾으면 그 항목만 남고, 하나뿐이면 설명이 펼쳐진다.
+    const finder = page.getByRole('searchbox', { name: '오류 이름이나 낱말로 찾기' });
+    await expect(finder).toBeVisible();
+    await finder.fill('ZeroDivisionError');
+    await expect(page.locator('article.errors-entry:visible')).toHaveCount(1);
+    await expect(page.locator('article.errors-entry:visible [data-errors-more]')).toHaveAttribute('open', '');
+    await expect(page.locator('[data-errors-find-count]')).toHaveText(`${total}개 가운데 1개를 찾았어요.`);
+
+    // 한국어 낱말로도 찾고, 없으면 한국어로 알린다. 칸을 비우면 모두 돌아온다.
+    await finder.fill('들여쓰기');
+    expect(await page.locator('article.errors-entry:visible').count()).toBeGreaterThanOrEqual(1);
+    await finder.fill('zzzz없는낱말');
+    await expect(page.locator('article.errors-entry:visible')).toHaveCount(0);
+    await expect(page.locator('[data-errors-find-count]')).toContainText('맞는 풀이가 없어요');
+    await finder.fill('');
+    await expect(page.locator('article.errors-entry:visible')).toHaveCount(total);
+
+    // 접힌 설명은 눌러서 펼친다(자바스크립트 없이도 되는 <details>).
+    const nameError = page.locator('[data-errors-entry-item="name-error"]');
+    await nameError.getByText('왜 났는지와 고치는 법 보기').click();
+    await expect(nameError.locator('[data-errors-more]')).toHaveAttribute('open', '');
+    await expect(nameError).toContainText('이렇게 고쳐요');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 
   test('실습실 카드의 링크로 사전 항목까지 이어진다', async ({ page }) => {

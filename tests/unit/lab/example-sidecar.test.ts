@@ -76,7 +76,7 @@ describe('실습실 목록과 사이드카 합치기', () => {
     expect(exampleGroupKey('vision/a.py')).toBe('vision');
     expect(exampleGroupKey('desktop/a.py')).toBe('desktop');
     expect(exampleGroupLabel('없는-묶음')).toBe('없는-묶음');
-    expect(EXAMPLE_GROUPS.map((group) => group.key)).toEqual(['vision', 'vision/supplement', 'vision/u1', 'vision/opmp', 'desktop']);
+    expect(EXAMPLE_GROUPS.map((group) => group.key)).toEqual(['vision', 'vision/supplement', 'vision/u1', 'vision/u3', 'vision/u4', 'vision/opmp', 'desktop']);
   });
 
   it('저장소의 옮긴 예제마다 사이드카가 있고 제목이 채워져 있다', () => {
@@ -99,7 +99,11 @@ describe('실습실 목록과 사이드카 합치기', () => {
     const sidecars = readExampleSidecars(raw);
     const examples = visionExamplesFromFiles(files, sidecars);
     expect(validateExamples(examples)).toEqual([]);
-    expect(examples.length).toBeGreaterThanOrEqual(52);
+    // 이관 57개(1단원 20·3단원 2·4단원 6·opmp 19·pyautogui 10) + 사이트판 2 + 사이트 예제(첫 실습·1-1-1 체험·보충 V1~V5) = 66
+    expect(examples.length).toBeGreaterThanOrEqual(66);
+    // 3·4단원 PC 쪽 예제(2026-09-17 이관)도 [예제 불러오기] 목록의 제 묶음에 들어간다.
+    expect(examples.find((example) => example.file === 'vision/u3/3-1-4-hand-screenshot.py')?.group).toBe('3단원 교과서 실습(손으로 컴퓨터 조작)');
+    expect(examples.find((example) => example.file === 'vision/u4/4-1-3-adv-blink-click.py')?.group).toBe('4단원 프로젝트 실습(얼굴로 마우스 조작)');
     expect(examples[0]?.id).toBe('first-edge');
     for (const [examplePath, sidecar] of Object.entries(sidecars)) {
       expect(files[examplePath], `${examplePath}의 사이드카에 짝이 되는 .py 파일이 없어요`).toBeDefined();

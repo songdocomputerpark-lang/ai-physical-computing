@@ -133,6 +133,31 @@ describe('링크 검사(checkLinks)', () => {
     expect(message).toContain('사이트 주소 앞부분(/demo/)이 빠졌어요');
   });
 
+  it('실습실 주소의 ?example= 값이 examples/에 없는 파일이면 찾아낸다(2026-09-17 검토 반영 — 실습실은 조용히 첫 예제를 열기 때문)', () => {
+    const examplesDir = makeTempDir('link-check-examples-');
+    tempDirs.push(examplesDir);
+    writeFiles(examplesDir, { 'vision/u1/1-2-1-adv-hand-settings.py': 'print(1)\n' });
+    const dist = makeDist({
+      'index.html': page(
+        [
+          '<a href="/demo/labs/vision/?example=vision%2Fu1%2F1-2-1-adv-hand-settings.py">있는 예제</a>',
+          '<a href="/demo/labs/vision/?example=vision/u1/1-2-1-adv-hand-settings.py&embed=1">임베드</a>',
+          '<a href="/demo/labs/vision/?example=vision/u1/renamed.py">이름이 바뀐 예제</a>',
+          '<a href="/demo/labs/vision/?example=../package.json">폴더 밖</a>',
+          '<a href="/demo/labs/vision/?example=">빈 값</a>',
+        ].join(''),
+      ),
+      'labs/vision/index.html': page('<h1>영상처리 실습실</h1>'),
+    });
+    const report = checkLinks(dist, site, { examplesDir });
+    expect(report.examples).toBe(4);
+    expect(report.problems.map((problem) => [problem.ref, problem.kind, problem.target])).toEqual([
+      ['/demo/labs/vision/?example=vision/u1/renamed.py', 'example-not-found', 'examples/vision/u1/renamed.py'],
+      ['/demo/labs/vision/?example=../package.json', 'example-not-found', 'examples/../package.json'],
+    ]);
+    expect(formatLinkReport(report, site)).toContain('?example= 값이 examples/ 아래에 없는 파일이에요');
+  });
+
   it('404 페이지의 상대 주소와 CSS가 가리키는 없는 파일을 찾아낸다', () => {
     const dist = makeDist({
       'index.html': page('<p>홈</p>'),

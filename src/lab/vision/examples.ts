@@ -40,6 +40,8 @@ export const EXAMPLE_GROUPS: readonly { readonly key: string; readonly label: st
   { key: 'vision', label: '첫 실습·사이트 예제' },
   { key: 'vision/supplement', label: '보충 계단 V1~V5(사진은 숫자다 → 윤곽선)' },
   { key: 'vision/u1', label: '1단원 교과서 실습' },
+  { key: 'vision/u3', label: '3단원 교과서 실습(손으로 컴퓨터 조작)' },
+  { key: 'vision/u4', label: '4단원 프로젝트 실습(얼굴로 마우스 조작)' },
   { key: 'vision/opmp', label: 'OpenCV·MediaPipe 계단(교안)' },
   { key: 'desktop', label: '가상 데스크톱(pyautogui)' },
 ]);
@@ -94,14 +96,32 @@ function groupOrder(key: string): number {
   return index < 0 ? EXAMPLE_GROUPS.length : index;
 }
 
+/** 실습실 위 "이 예제가 나오는 차시" 링크 한 개(주소는 base 포함, label은 화면 글자) */
+export interface ExampleLessonLink {
+  readonly href: string;
+  readonly label: string;
+}
+
+/**
+ * 예제 → 차시 링크를 찾는 표. 페이지가 content/lessons/에서 만들어 넘긴다.
+ * - byFile: 차시 frontmatter의 examples[].file(그 차시가 실제로 싣는 예제) → 그 차시. 가장 확실해서 먼저 본다.
+ * - bySlug: 사이드카 lesson 값이나 머리말 `# @lesson v4`의 차시 이름 → 그 차시(차시 md가 아직 그 예제를 싣지 않았을 때).
+ */
+export interface ExampleLessonLinks {
+  readonly byFile?: Readonly<Record<string, ExampleLessonLink>>;
+  readonly bySlug?: Readonly<Record<string, ExampleLessonLink>>;
+}
+
 /**
  * import.meta.glob 결과({ '/examples/vision/first-edge.py': '소스', … })를 예제 목록으로 바꾼다.
  * sidecars는 같은 glob 경로 열쇠로 미리 읽은 사이드카({ '/examples/vision/u1/a.py': 사이드카 }, readExampleSidecars).
  * 읽는 폴더(vision/·desktop/) 밖의 항목과 .py가 아닌 항목은 건너뛴다.
+ * lessons를 주면 예제마다 차시 링크(lesson)를 붙인다 — 실습실이 "이 예제가 나오는 차시"로 되돌아가는 길을 보인다(2026-09-17 검토 반영).
  */
 export function visionExamplesFromFiles(
   files: Readonly<Record<string, string>>,
   sidecars: Readonly<Record<string, ExampleSidecar>> = {},
+  lessons: ExampleLessonLinks = {},
 ): LabExample[] {
   const examples: LabExample[] = [];
   for (const [globPath, source] of Object.entries(files)) {
@@ -111,10 +131,13 @@ export function visionExamplesFromFiles(
     }
     const id = exampleIdFromFile(file);
     const sidecar = sidecars[globPath] ?? sidecars[globPath.replace(/\\/gu, '/')] ?? null;
-    const header = readExampleHeader(source);
-    const title = sidecar?.title ?? header.title ?? id;
-    const description = sidecar?.description ?? header.description ?? null;
+    const meta = readExampleMeta(source);
+    const title = sidecar?.title ?? meta.title ?? id;
+    const description = sidecar?.description ?? meta.description ?? null;
     const packages = sidecar?.packages ?? VISION_PACKAGES;
+    // 그 예제를 싣는 차시(frontmatter examples) → 없으면 사이드카 lesson·머리말 # @lesson이 가리키는 차시. 차시가 아직 없으면 링크를 만들지 않는다.
+    const lessonSlug = sidecar?.lesson ?? meta.lesson ?? null;
+    const lesson = lessons.byFile?.[file] ?? (lessonSlug === null ? null : (lessons.bySlug?.[lessonSlug] ?? null));
     examples.push({
       id,
       title,
@@ -123,6 +146,7 @@ export function visionExamplesFromFiles(
       ...(description ? { description } : {}),
       packages,
       group: exampleGroupLabel(exampleGroupKey(file)),
+      ...(lesson ? { lesson } : {}),
     });
   }
   examples.sort((a, b) => {

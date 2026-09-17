@@ -6,6 +6,12 @@
  * 글의 {자리}({name}·{line} 같은 것)는 항목의 보기(example)로 채워 실제로 보이는 문장 그대로 보여 준다(explain.ts의 entryPreview).
  * 항목마다 제목에 id를 두어 실습실 카드의 [오류 사전에서 더 보기] 링크가 /help/errors/#name-error처럼 바로 그 항목으로 온다.
  * 검색: 이 페이지는 색인에 넣고, src/config/search.ts의 anchorPages에 '/help/errors/'가 있어 항목 단위 결과(sub_results)로 보인다.
+ *
+ * 긴 쪽을 둘러보기 쉽게(2026-09-17 Phase 2 검토 반영 — 47항목을 다 펼치면 데스크톱 38,899px, 휴대폰 53,655px였다):
+ * - 항목은 제목·오류 종류·한 줄 뜻만 보이고, "왜 났을까요·이렇게 고쳐요·자주 하는 실수·보기 코드"는 <details>로 접는다
+ *   (자바스크립트 없이도 눌러서 펼친다). 접힌 글도 HTML에 있어 사이트 검색 색인은 그대로다.
+ * - 주소의 #항목으로 오면(실습실 카드의 [오류 사전에서 더 보기], 검색 결과) 그 항목을 펼친다.
+ * - 맨 위 찾기 칸: 오류 이름(NameError)·한국어 낱말로 항목을 거른다. 하나만 남으면 펼친다. 자바스크립트가 꺼져 있으면 칸이 보이지 않는다.
  */
 import Callout from '../../../components/common/Callout.astro';
 import { getPage } from '../../../config/nav.ts';
@@ -34,6 +40,21 @@ const total = errorCatalog.entries.length;
 <BaseLayout title={title} description={description} width="narrow">
   <h1 class="page-title">{title}</h1>
   <p class="lead">{description}</p>
+
+  <div class="errors-find" role="search" data-errors-find hidden data-pagefind-ignore>
+    <label class="errors-find__label" for="errors-find-input">오류 이름이나 낱말로 찾기</label>
+    <input
+      id="errors-find-input"
+      class="errors-find__input"
+      type="search"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="예: NameError, 들여쓰기, 카메라"
+      data-errors-find-input
+      aria-describedby="errors-find-count"
+    />
+    <p id="errors-find-count" class="errors-find__count" aria-live="polite" data-errors-find-count>오류 풀이 {total}개</p>
+  </div>
 
   <section class="errors-how" aria-labelledby="errors-how-title">
     <h2 id="errors-how-title">오류 메시지 읽는 법</h2>
@@ -66,14 +87,9 @@ const total = errorCatalog.entries.length;
       {
         items.map(({ group, entries }) => (
           <li>
-            <a class="errors-index__group" href={`#${group.id}`}>{group.title}</a>
-            <ul class="errors-index__list">
-              {entries.map(({ entry, preview }) => (
-                <li>
-                  <a href={`#${entry.id}`}>{preview.title}</a>
-                </li>
-              ))}
-            </ul>
+            <a class="errors-index__group" href={`#${group.id}`}>
+              {group.title} <span class="errors-index__group-count">({entries.length}개)</span>
+            </a>
           </li>
         ))
       }
@@ -82,11 +98,15 @@ const total = errorCatalog.entries.length;
 
   {
     items.map(({ group, entries }) => (
-      <section class="errors-group" aria-labelledby={group.id}>
+      <section class="errors-group" aria-labelledby={group.id} data-errors-group>
         <h2 class="errors-group__title" id={group.id}>{group.title}</h2>
         <p class="errors-group__desc">{group.description}</p>
         {entries.map(({ entry, preview }) => (
-          <article class="errors-entry">
+          <article
+            class="errors-entry"
+            data-errors-entry-item={entry.id}
+            data-errors-search={[entry.id, preview.title, ...entry.types, preview.meaning, ...preview.mistakes].join(' ')}
+          >
             <h3 class="errors-entry__title" id={entry.id}>{preview.title}</h3>
             {entry.types.length > 0 && (
               <p class="errors-entry__types">
@@ -100,6 +120,8 @@ const total = errorCatalog.entries.length;
               </p>
             )}
             <p class="errors-entry__meaning">{preview.meaning}</p>
+            <details class="errors-entry__more" data-errors-more>
+              <summary class="errors-entry__summary">왜 났는지와 고치는 법 보기</summary>
             {preview.why.length > 0 && (
               <>
                 <h4 class="errors-entry__subtitle">왜 났을까요</h4>
@@ -127,6 +149,7 @@ const total = errorCatalog.entries.length;
                 <ul>{entry.cases.map((line) => <li>{line}</li>)}</ul>
               </>
             )}
+            </details>
           </article>
         ))}
       </section>
@@ -145,7 +168,127 @@ const total = errorCatalog.entries.length;
   </section>
 </BaseLayout>
 
+<script>
+  /**
+   * ① 주소의 #항목으로 오면 그 항목의 설명을 펼친다 ② 찾기 칸으로 항목을 거른다.
+   * 자바스크립트가 없어도 쪽은 그대로 읽힌다(접힌 설명은 눌러서 펼침, 찾기 칸은 숨은 채).
+   */
+  function normalize(text: string): string {
+    return text.toLowerCase().replace(/\s+/gu, '');
+  }
+
+  const entries = [...document.querySelectorAll<HTMLElement>('[data-errors-entry-item]')];
+  const groups = [...document.querySelectorAll<HTMLElement>('[data-errors-group]')];
+  const indexes = new Map(entries.map((entry) => [entry, normalize(entry.dataset.errorsSearch ?? '')]));
+
+  function openFromHash(): void {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id === '') {
+      return;
+    }
+    const heading = document.getElementById(id);
+    const more = heading?.closest('[data-errors-entry-item]')?.querySelector<HTMLDetailsElement>('[data-errors-more]');
+    if (more && !more.open) {
+      more.open = true;
+    }
+  }
+  openFromHash();
+  window.addEventListener('hashchange', openFromHash);
+
+  const finder = document.querySelector<HTMLElement>('[data-errors-find]');
+  const input = document.querySelector<HTMLInputElement>('[data-errors-find-input]');
+  const count = document.querySelector<HTMLElement>('[data-errors-find-count]');
+  if (finder && input && count) {
+    finder.hidden = false;
+    const total = entries.length;
+    const apply = () => {
+      const query = normalize(input.value);
+      let shown = 0;
+      for (const entry of entries) {
+        const match = query === '' || (indexes.get(entry) ?? '').includes(query);
+        entry.hidden = !match;
+        if (match) {
+          shown += 1;
+        }
+      }
+      for (const group of groups) {
+        group.hidden = query !== '' && group.querySelector('[data-errors-entry-item]:not([hidden])') === null;
+      }
+      finder.dataset.shown = String(shown);
+      if (query === '') {
+        count.textContent = `오류 풀이 ${total}개`;
+        return;
+      }
+      count.textContent =
+        shown === 0 ? '맞는 풀이가 없어요. 오류 이름(예: NameError)이나 다른 낱말로 찾아봐요.' : `${total}개 가운데 ${shown}개를 찾았어요.`;
+      if (shown === 1) {
+        const more = entries.find((entry) => !entry.hidden)?.querySelector<HTMLDetailsElement>('[data-errors-more]');
+        if (more) {
+          more.open = true;
+        }
+      }
+    };
+    input.addEventListener('input', apply);
+    // 뒤로 가기로 돌아왔을 때 브라우저가 칸의 글자를 되살려 두는 경우
+    if (input.value !== '') {
+      apply();
+    }
+  }
+</script>
+
 <style>
+  .errors-find {
+    display: grid;
+    gap: var(--space-2);
+    margin-block: 0 var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .errors-find[hidden] {
+    display: none;
+  }
+
+  .errors-find__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .errors-find__input {
+    inline-size: 100%;
+    min-block-size: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .errors-find__count {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .errors-group[hidden],
+  .errors-entry[hidden] {
+    display: none;
+  }
+
+  .errors-entry__more {
+    margin-block-start: var(--space-2);
+  }
+
+  .errors-entry__summary {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
   .errors-how {
     margin-block-end: var(--space-10);
   }
@@ -179,7 +322,7 @@ const total = errorCatalog.entries.length;
 
   .errors-index__groups {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-1);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -190,12 +333,9 @@ const total = errorCatalog.entries.length;
     font-weight: var(--weight-semibold);
   }
 
-  .errors-index__list {
-    display: grid;
-    gap: var(--space-1);
-    margin-block: var(--space-2) 0;
-    padding-inline-start: 1.2em;
-    font-size: var(--text-sm);
+  .errors-index__group-count {
+    color: var(--color-text-muted);
+    font-weight: normal;
   }
 
   .errors-index a {

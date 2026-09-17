@@ -12,13 +12,15 @@
  * 사이트 검색: 실습실 틀 안의 조작 글은 색인에서 빠지고(LabShell의 data-pagefind-ignore), 이 페이지의 소개·개념 글만 색인된다.
  * 브라우저 권장 환경 안내(BrowserNotice)는 코드를 실행하는 실습실이라 켠다(SPEC §9, _labs.ts browserNotice).
  */
+import { getCollection } from 'astro:content';
 import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import Callout from '../../../components/common/Callout.astro';
 import LabShell from '../../../components/lab/LabShell.astro';
 import VisionIo from '../../../components/lab/VisionIo.astro';
+import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { getPage } from '../../../config/nav.ts';
 import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
-import { visionExamplesFromFiles } from '../../../lab/vision/examples.ts';
+import { visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const page = getPage('labs-vision');
@@ -29,7 +31,26 @@ const studentPage = getPage('start-student');
 // 원본에서 옮긴 예제의 제목·설명은 옆의 사이드카(<이름>.meta.yaml, src/lab/controls/example-sidecar.ts — 빌드 전용)에서 읽는다.
 const exampleFiles = import.meta.glob<string>(['/examples/vision/**/*.py', '/examples/desktop/**/*.py'], { query: '?raw', eager: true, import: 'default' });
 const sidecarFiles = import.meta.glob<string>(['/examples/vision/**/*.meta.yaml', '/examples/desktop/**/*.meta.yaml'], { query: '?raw', eager: true, import: 'default' });
-const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles));
+
+// 예제를 싣는 차시(frontmatter examples[].file)와 예제 머리말 `# @lesson v4`(또는 사이드카 lesson)를 실제 차시 주소로 바꿔 넘긴다
+// → 실습실 위에 "이 예제가 나오는 차시" 링크가 생긴다. 차시에서 [실습실에서 열기]로 넘어온 학생이 되돌아갈 길이 없었다(2026-09-17 검토 반영).
+const lessonEntries = (await getCollection('lessons')).filter((entry) => !entry.data.draft);
+const summaries = new Map(publishedLessons(lessonEntries).map((lesson) => [lesson.id, lesson]));
+const byFile: Record<string, ExampleLessonLink> = {};
+const bySlug: Record<string, ExampleLessonLink> = {};
+for (const entry of lessonEntries) {
+  const lesson = summaries.get(entry.id);
+  if (!lesson) {
+    continue;
+  }
+  const kindLabel = lesson.kind === 'supplement' ? `${KIND_LABELS.supplement} ` : '';
+  const link = { href: lesson.href, label: `${kindLabel}${lesson.label} ${lesson.title}` };
+  bySlug[lesson.slug] = link;
+  for (const example of entry.data.examples) {
+    byFile[example.file] ??= link;
+  }
+}
+const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug });
 ---
 
 <BaseLayout title={page.title} description={page.description} width="wide">
