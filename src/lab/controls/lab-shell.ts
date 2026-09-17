@@ -11,6 +11,7 @@
  *   lab.on('done', (result) => …);                       // 실행이 끝났을 때(RunResult)
  *   lab.onRequest('camera.read', (request) => request.reply(frame));  // 파이썬 apc_runtime.request('camera.read', …)
  *   lab.replaceCode(from, to, '120', 'param');            // 코드 한 구간만 바꿔 쓰기(조절 패널, src/lab/params/panel.ts)
+ *   lab.setRunTarget({ label: '실제 보드', run, stop });   // [실행]·[정지]를 실제 보드로(LabRunTarget, 병렬 제작 준비 2026-09-17), null이면 되돌림
  *
  * 조절 패널(P2-04)은 LabShell.astro가 mountLabShell 뒤에 mountParamPanel(root, lab)으로 붙인다(코드의 # @slider 규약 → 패널,
  * 값 변경 → 코드 글자 바꿔 쓰기 + 실행 중이면 runtime.pushEvent('lab.params', …)).
@@ -22,7 +23,7 @@
  * 자동 저장은 코드가 바뀔 때마다(손을 멈춘 뒤 0.4초) 예제별 이름으로 저장하고 "저장됨"을 보인다.
  * [이 컴퓨터에서 내 기록 지우기](ClearRecordsButton)가 끝나면 document의 apc:records-cleared를 받아 예제 원래 코드·기본 글자 크기로 돌아간다.
  *
- * 테스트가 읽는 값(뿌리 요소의 data-*): state·jspi·limited·outcome·run-count·stop-ms·save-state·example·share-loaded·
+ * 테스트가 읽는 값(뿌리 요소의 data-*): state·run-target(실행 대상 이름, 없으면 빈 값)·jspi·limited·outcome·run-count·stop-ms·save-state·example·share-loaded·
  * example-missing(?example= 파일을 못 찾음)·loading-intro(첫 준비 중이면 yes — 준비 패널이 맨 위, LabShell.astro).
  * [실행] 단추의 data-lab-run-pending=yes는 "파이썬을 받는 동안 눌러 둠(준비되면 실행)"이다.
  *
@@ -84,8 +85,8 @@ export interface LabEvents {
    * 화면 안으로 옮겨, 기다리는 학생이 진행률과 1분 개념 카드를 보게 한다(2026-09-17 검토 반영).
    */
   'run-pending': { code: string };
-  /** 실행을 보내기 직전 */
-  run: { code: string; runCount: number };
+  /** 실행을 보내기 직전. target은 실행 대상 이름(setRunTarget — 예: '실제 보드'), 이 페이지의 파이썬 실행기면 null */
+  run: { code: string; runCount: number; target: string | null };
   /** 실행이 끝남(정지·오류 포함) */
   done: RunResult;
   /** 실행기 상태 */
@@ -98,6 +99,33 @@ export interface LabEvents {
 
 type LabListener<K extends keyof LabEvents> = (payload: LabEvents[K]) => void;
 type RequestHandler = (request: RuntimeRequest) => void;
+
+/**
+ * (병렬 제작 준비 2026-09-17) [실행]·[정지]를 이 페이지의 파이썬 실행기 대신 받는 실행 대상 — 실제 보드(P3-07·P3-08,
+ * SPEC §6.2 "[가상 보드]/[실제 보드] 탭 — 같은 코드가 두 곳에서 돈다"). 흉내 모듈·페이지가 lab.setRunTarget(대상)으로 끼우고 null로 뗀다.
+ * 끼운 동안 [실행]은 파이썬 준비(로딩)를 기다리지 않고 대상의 run을 부르며, 콘솔 머리줄·'run'·'done' 이벤트(오류 풀이 카드)·결과 줄·
+ * input() 입력줄·[정지] 단추는 보통 실행과 같게 흐른다. 뿌리 요소의 data-state는 대상의 idle·running·stopping, data-run-target은 대상 이름.
+ */
+export interface LabRunTarget {
+  /** 상태 글에 쓰는 이름(예: '실제 보드' → "실제 보드에서 실행 중이에요.") */
+  readonly label: string;
+  /**
+   * 코드를 실행하고 끝나면 결과를 돌려준다: 정상 'ok', [정지] 'stopped', 오류 'error' + error{type, message(마지막 줄), traceback(전체)}.
+   * 트레이스백은 셸이 콘솔에 한 번 적으므로 write로 따로 적지 않는다. 약속이 거절되면 셸이 오류 결과(RunTargetError)로 바꾼다.
+   */
+  run(code: string, context: LabRunContext): Promise<RunResult>;
+  /** [정지]를 눌렀을 때 — run이 돌려준 약속이 곧 'stopped'로 끝나게 한다(실제 보드: Ctrl-C) */
+  stop(): Promise<void> | void;
+}
+
+export interface LabRunContext {
+  /** 이번 실행 번호(콘솔 "── 실행 N ──"과 같다) */
+  readonly runCount: number;
+  /** 콘솔에 쓴다(보드 출력은 stdout, 사이트 안내는 notice) */
+  write(text: string, kind?: ConsoleKind): void;
+  /** input() 입력줄을 보이고 학생이 적은 한 줄을 기다린다(셸이 그 줄을 콘솔에 input으로 적는다). 실행이 끝나거나 [정지]면 null */
+  prompt(label: string): Promise<string | null>;
+}
 
 export interface LabController {
   readonly root: HTMLElement;
@@ -126,6 +154,10 @@ export interface LabController {
   on<K extends keyof LabEvents>(event: K, listener: LabListener<K>): () => void;
   /** 파이썬의 request(kind) 처리기. 같은 kind는 마지막 것만 남는다. 'input'은 셸이 처리한다. */
   onRequest(kind: string, handler: RequestHandler): () => void;
+  /** (병렬 제작 준비 2026-09-17) 지금 [실행]을 받는 실행 대상. null이면 이 페이지의 파이썬 실행기 */
+  readonly runTarget: LabRunTarget | null;
+  /** 실행 대상을 끼운다(null이면 뗀다). 실행 중이면 오류를 던진다 — [정지]한 뒤에 바꾼다 */
+  setRunTarget(target: LabRunTarget | null): void;
   dispose(): void;
 }
 
@@ -227,6 +259,10 @@ class LabShellController implements LabController {
   /** [실행] 단추의 원래 글자 */
   #runLabel = '실행';
   #disposed = false;
+  /** 실행 대상(setRunTarget)과, 그 대상이 돌고 있는 동안의 기록·input 줄 약속 */
+  #runTarget: LabRunTarget | null = null;
+  #targetRun: { readonly startedAt: number; stopRequestedAt: number | null } | null = null;
+  #targetPromptResolve: ((value: string | null) => void) | null = null;
 
   constructor(root: HTMLElement, elements: ShellElements) {
     this.root = root;
@@ -346,6 +382,9 @@ class LabShellController implements LabController {
   }
 
   async run(): Promise<RunResult | null> {
+    if (this.#runTarget) {
+      return this.#runOnTarget(this.#runTarget);
+    }
     /*
      * 파이썬을 받는 동안(unloaded·loading) 누른 [실행]은 버리지 않고 예약한다. 느린 학교 네트워크에서는 준비에 몇 분이 걸려서
      * (PLAN §5.1 Fast 3G 계산값 약 3.6분) 예전처럼 단추를 꺼 두면 학생의 첫 클릭이 아무 반응 없이 사라졌다(2026-09-17 검토 반영).
@@ -361,6 +400,17 @@ class LabShellController implements LabController {
       return null;
     }
     const code = this.getCode();
+    this.#beginRun(code, null);
+    try {
+      return await this.runtime.run(code, this.#example?.packages ? { packages: this.#example.packages } : {});
+    } catch (error) {
+      this.appendConsole(`[오류] ${error instanceof Error ? error.message : String(error)}\n`, 'notice');
+      return null;
+    }
+  }
+
+  /** 실행을 시작할 때 파이썬 실행기·실행 대상이 함께 하는 일: 번호·결과 지우기·콘솔 머리줄·'run' 이벤트·결과 칸으로 화면 옮기기 */
+  #beginRun(code: string, target: string | null): void {
     this.#runCount += 1;
     this.root.dataset.runCount = String(this.#runCount);
     this.root.dataset.outcome = '';
@@ -373,7 +423,7 @@ class LabShellController implements LabController {
     // 첫 준비 동안 맨 위로 올려 둔 준비 패널(LabShell.astro의 data-loading-intro)을 제자리로 돌린 뒤에 화면 위치를 잰다.
     this.root.dataset.loadingIntro = 'no';
     this.appendConsole(`── 실행 ${this.#runCount} ──\n`, 'notice');
-    this.#emit('run', { code, runCount: this.#runCount });
+    this.#emit('run', { code, runCount: this.#runCount, target });
     // 결과가 첫 화면 밖이면(검토 실측: 1366×768에서 출력 제목 y≈678, 375×812에서 y≈2,056) 결과 칸으로 화면을 옮긴다.
     // io 슬롯이 결과 부분에 data-lab-reveal-on-run(넓은 칸)·data-lab-reveal-on-run-min(꼭 보여야 하는 최소 칸)을 달아 두었으면 그것을,
     // 없으면 입력·출력 칸 전체를 본다(영상처리 실습실: 출력 칸 전체 → 출력 화면 틀).
@@ -384,16 +434,145 @@ class LabShellController implements LabController {
     const wide = ioSection?.querySelector('[data-lab-reveal-on-run]') ?? ioSection;
     const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
     revealTogether([wide, narrow], this.root.querySelector('[data-lab-param]'), { slack: 40, block: 'center' });
-    try {
-      return await this.runtime.run(code, this.#example?.packages ? { packages: this.#example.packages } : {});
-    } catch (error) {
-      this.appendConsole(`[오류] ${error instanceof Error ? error.message : String(error)}\n`, 'notice');
-      return null;
-    }
   }
 
   stop(): Promise<StopResult> {
+    if (this.#targetRun && this.#runTarget) {
+      return this.#stopTarget(this.#runTarget);
+    }
     return this.runtime.stop();
+  }
+
+  get runTarget(): LabRunTarget | null {
+    return this.#runTarget;
+  }
+
+  setRunTarget(target: LabRunTarget | null): void {
+    if (target === this.#runTarget) {
+      return;
+    }
+    if (this.#targetRun || this.runtime.state === 'running' || this.runtime.state === 'stopping') {
+      throw new Error('실행 중에는 실행 대상을 바꿀 수 없어요. [정지]한 뒤에 바꿔요.');
+    }
+    this.#runTarget = target;
+    if (target && this.#pendingRun) {
+      // 파이썬을 기다리며 눌러 둔 [실행]은 대상이 바뀌었으니 취소한다(학생이 대상을 보고 다시 누른다).
+      this.#pendingRun = false;
+    }
+    this.#renderTargetState();
+  }
+
+  async #runOnTarget(target: LabRunTarget): Promise<RunResult | null> {
+    if (this.#targetRun) {
+      return null;
+    }
+    const code = this.getCode();
+    const startedAt = performance.now();
+    this.#targetRun = { startedAt, stopRequestedAt: null };
+    this.#renderTargetState();
+    this.#beginRun(code, target.label);
+    let result: RunResult;
+    try {
+      result = await target.run(code, {
+        runCount: this.#runCount,
+        write: (text, kind = 'stdout') => this.appendConsole(text, kind),
+        prompt: (label) => this.#promptForTarget(label),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result = {
+        runId: this.#runCount,
+        outcome: 'error',
+        error: { type: 'RunTargetError', message: `${target.label}에서 실행하지 못했어요: ${message}`, traceback: '' },
+        durationMs: performance.now() - startedAt,
+      };
+    }
+    const run = this.#targetRun;
+    this.#targetRun = null;
+    this.#resolveTargetPrompt(null);
+    if (run && run.stopRequestedAt !== null && result.stopMs === undefined) {
+      result = { ...result, stopMs: performance.now() - run.stopRequestedAt };
+    }
+    this.#hideInput();
+    this.#showResult(result);
+    this.#emit('done', result);
+    this.#renderTargetState();
+    return result;
+  }
+
+  async #stopTarget(target: LabRunTarget): Promise<StopResult> {
+    const run = this.#targetRun;
+    if (run && run.stopRequestedAt === null) {
+      run.stopRequestedAt = performance.now();
+      this.#renderTargetState();
+    }
+    this.#resolveTargetPrompt(null);
+    try {
+      await target.stop();
+    } catch (error) {
+      this.appendConsole(`[오류] ${target.label}을(를) 멈추지 못했어요: ${error instanceof Error ? error.message : String(error)}\n`, 'notice');
+    }
+    return 'stopped';
+  }
+
+  #promptForTarget(label: string): Promise<string | null> {
+    const { inputForm, inputLabel, inputField } = this.#elements;
+    if (!this.#targetRun || !inputForm || !inputField) {
+      return Promise.resolve(null);
+    }
+    this.#resolveTargetPrompt(null);
+    return new Promise<string | null>((resolve) => {
+      this.#targetPromptResolve = resolve;
+      this.#pendingInput = {
+        requestId: -1,
+        kind: 'input',
+        payload: { prompt: label },
+        reply: (value) => this.#resolveTargetPrompt(String(value)),
+        fail: () => this.#resolveTargetPrompt(null),
+      };
+      if (inputLabel) {
+        inputLabel.textContent = label.trim() !== '' ? label : '입력';
+      }
+      inputForm.hidden = false;
+      inputField.value = '';
+      inputField.focus();
+    });
+  }
+
+  #resolveTargetPrompt(value: string | null): void {
+    const resolve = this.#targetPromptResolve;
+    this.#targetPromptResolve = null;
+    resolve?.(value);
+  }
+
+  /** 실행 대상이 있으면 그 상태(idle·running·stopping)로, 없으면 파이썬 실행기 상태로 상태 글·단추·data-state를 그린다 */
+  #renderTargetState(): void {
+    const { stopButton, statusText } = this.#elements;
+    const target = this.#runTarget;
+    const run = this.#targetRun;
+    this.root.dataset.runTarget = target?.label ?? '';
+    if (target && run) {
+      const stopping = run.stopRequestedAt !== null;
+      this.root.dataset.state = stopping ? 'stopping' : 'running';
+      if (statusText) {
+        statusText.textContent = stopping ? `${withParticle(target.label, '을/를')} 멈추는 중이에요…` : `${target.label}에서 실행 중이에요.`;
+      }
+      stopButton.disabled = stopping;
+    } else if (target) {
+      this.root.dataset.state = 'idle';
+      if (statusText) {
+        statusText.textContent = `${target.label}에서 실행할 수 있어요. [실행]을 누르세요.`;
+      }
+      stopButton.disabled = true;
+    } else {
+      const state = this.runtime.state;
+      this.root.dataset.state = state;
+      if (statusText) {
+        statusText.textContent = STATE_TEXT[state];
+      }
+      stopButton.disabled = state !== 'running';
+    }
+    this.#renderRunButton();
   }
 
   reset(): void {
@@ -479,6 +658,7 @@ class LabShellController implements LabController {
       return;
     }
     this.#disposed = true;
+    this.#resolveTargetPrompt(null);
     for (const cleanup of this.#cleanups.splice(0)) {
       cleanup();
     }
@@ -586,6 +766,13 @@ class LabShellController implements LabController {
   #renderRunButton(): void {
     const { runButton } = this.#elements;
     const state = this.runtime.state;
+    if (this.#runTarget) {
+      // 실행 대상(실제 보드)은 파이썬 준비를 기다리지 않는다 — 대상이 도는 동안만 끈다.
+      runButton.textContent = this.#runLabel;
+      delete runButton.dataset.labRunPending;
+      runButton.disabled = this.#targetRun !== null;
+      return;
+    }
     if (this.#pendingRun) {
       runButton.textContent = '준비되면 실행돼요…';
       runButton.disabled = true;
@@ -640,14 +827,19 @@ class LabShellController implements LabController {
     this.#renderRunButton();
     this.#cleanups.push(
       runtime.on('state', ({ state }) => {
-        this.root.dataset.state = state;
-        if (statusText) {
-          statusText.textContent = STATE_TEXT[state];
-        }
-        this.#renderRunButton();
-        stopButton.disabled = state !== 'running';
-        if (state !== 'running') {
-          this.#hideInput();
+        // 실행 대상(setRunTarget)을 끼운 동안에는 상태 글·단추·data-state를 대상이 정한다(파이썬은 뒤에서 준비만 이어 간다).
+        if (this.#runTarget) {
+          this.#renderTargetState();
+        } else {
+          this.root.dataset.state = state;
+          if (statusText) {
+            statusText.textContent = STATE_TEXT[state];
+          }
+          this.#renderRunButton();
+          stopButton.disabled = state !== 'running';
+          if (state !== 'running') {
+            this.#hideInput();
+          }
         }
         this.#emit('state', { state });
         if (state === 'idle' && this.#pendingRun) {
