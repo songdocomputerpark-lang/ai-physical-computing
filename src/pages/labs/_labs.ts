@@ -56,7 +56,7 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
   },
   {
     // 2026-09-17 P3-01에서 실제 화면이 됨(src/pages/labs/esp32/index.astro — 가상 보드의 핀·시계·Timer, 내장 LED·BOOT 버튼).
-    // 부품(P3-02~P3-05)·블록(P3-06)·실제 보드 연결(P3-07~)은 이어서 더한다. 실물 점검 도우미(labs-esp32-check)는 P3-11까지 자리 페이지다.
+    // 부품(P3-02~P3-05)·블록(P3-06)·실제 보드 연결·저장(P3-07·P3-08)까지 들어왔다. 실물 점검 도우미(labs-esp32-check)도 P3-11에서 열렸다.
     id: 'labs-esp32',
     phase: 3,
     when: '사이트를 만드는 세 번째 단계(Phase 3)',
@@ -79,7 +79,10 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
       '[결과 복사]로 모든 답을 한 번에 복사해 알려 줄 수 있어요.',
     ],
     relatedIds: ['start-board', 'labs-esp32', 'start-teacher'],
-    browserNotice: false,
+    // 2026-09-18 P3-11에서 실제 화면이 됐다(src/pages/labs/esp32/check/index.astro — 항목 22개·배선 그림·[결과 복사]).
+    // 실물 보드를 USB로 연결하므로 브라우저 권장 환경 안내를 둔다(SPEC §9).
+    browserNotice: true,
+    open: true,
   },
   {
     id: 'labs-iot',

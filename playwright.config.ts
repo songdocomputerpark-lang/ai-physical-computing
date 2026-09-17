@@ -25,7 +25,7 @@
  * 조절 패널이 미리 보기와 같게 돈다). 주소는 사이트 하위 경로(/ai-physical-computing/)와 끝의 /까지 적는다.
  */
 import fs from 'node:fs';
-import { chromium, defineConfig, devices } from '@playwright/test';
+import { chromium, defineConfig, devices, webkit } from '@playwright/test';
 import { siteConfig } from './src/config/site.ts';
 import { TEST_VIDEO_PATH } from './tests/e2e/global-setup.ts';
 
@@ -53,6 +53,19 @@ function externalBaseUrl(): string | null {
 
 const external = externalBaseUrl();
 const baseURL = external ?? `http://localhost:${port}${siteConfig.base}/`;
+
+/**
+ * WebKit(Safari 계열)이 이 컴퓨터에 설치돼 있는지. 블록 전용 호환 모드(PD-27)를 JSPI 없는 브라우저에서 보는 검사만 이 프로젝트로 돈다.
+ * 없으면 프로젝트를 만들지 않는다 — 없는 브라우저를 띄우려다 "Executable doesn't exist"로 실패하지 않게(2026-09-18 실측).
+ * CI는 `npx playwright install --with-deps chromium webkit`으로 받으므로 늘 돈다.
+ */
+function webkitInstalled(): boolean {
+  try {
+    return fs.existsSync(webkit.executablePath());
+  } catch {
+    return false;
+  }
+}
 
 /** 브라우저 배포판(channel)을 고른다. undefined면 Playwright 전용 Chromium이다. */
 function pickChannel(): string | undefined {
@@ -125,14 +138,18 @@ export default defineConfig({
     /*
      * JSPI 없는 브라우저(Safari 계열) — 블록 전용 호환 모드(PD-27)만 본다(P3-06).
      * 가짜 카메라 인자·camera 권한은 Chromium 전용이라 이 프로젝트에서는 비운다. CI가 `playwright install webkit`으로 받는다.
-     * 로컬(운영자 PC)에 WebKit이 없으면 그 검사는 돌지 않는다(spec이 프로젝트 이름으로 건너뛴다).
+     * WebKit이 설치돼 있지 않은 컴퓨터에서는 프로젝트 자체를 만들지 않는다(위 webkitInstalled).
      */
-    {
-      name: 'webkit',
-      testMatch: /esp32-blocks\.spec\.ts/u,
-      grep: /WebKit\(JSPI 없는 브라우저\)/u,
-      use: { ...devices['Desktop Safari'], viewport: { width: 1366, height: 768 }, permissions: [], launchOptions: { args: [] } },
-    },
+    ...(webkitInstalled()
+      ? [
+          {
+            name: 'webkit',
+            testMatch: /esp32-blocks\.spec\.ts/u,
+            grep: /WebKit\(JSPI 없는 브라우저\)/u,
+            use: { ...devices['Desktop Safari'], viewport: { width: 1366, height: 768 }, permissions: [], launchOptions: { args: [] } },
+          },
+        ]
+      : []),
   ],
   // PW_BASE_URL이 있으면(병렬 제작: 각자 띄운 개발 서버) 서버를 띄우지 않는다.
   ...(external

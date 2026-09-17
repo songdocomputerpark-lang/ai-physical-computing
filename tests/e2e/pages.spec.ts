@@ -59,7 +59,7 @@ async function horizontalOverflow(page: Page): Promise<{ overflow: number; offen
 }
 
 /** 문제 해결 페이지의 질문 id(다른 페이지가 help/#id로 연결한다) */
-const HELP_QUESTION_IDS = ['camera', 'browser', 'speech', 'board-port', 'school-network', 'clear-data'] as const;
+const HELP_QUESTION_IDS = ['camera', 'camera-black', 'browser', 'speech', 'board-port', 'school-network', 'clear-data'] as const;
 
 test.describe('사이트 지도의 모든 페이지', () => {
   test.skip(({ isMobile }) => isMobile, '페이지 내용은 화면 크기와 상관없어 데스크톱에서 한 번만 확인한다');

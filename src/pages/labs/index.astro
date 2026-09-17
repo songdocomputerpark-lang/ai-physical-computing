@@ -62,7 +62,7 @@ const introLine =
           {subPages.map(({ subPage, plan: subPlan }) => (
             <p class="lab-card__sub">
               <a href={subPage.href}>{subPage.title}</a>: {subPage.description}{' '}
-              <span data-pagefind-ignore>({subPlan.when}에 열려요)</span>
+              <span data-pagefind-ignore>({subPlan.open ? '지금 바로 쓸 수 있어요' : `${subPlan.when}에 열려요`})</span>
             </p>
           ))}
         </li>

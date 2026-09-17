@@ -223,10 +223,15 @@ test.describe('오류 사전 페이지', () => {
     await page.goto(withBase('help/errors/'));
     const entries = page.locator('article.errors-entry');
     const total = await entries.count();
-    // 처음에는 모든 항목의 설명이 접혀 있어 쪽이 짧다(47항목을 다 펼치면 데스크톱 38,899px이었다).
+    /*
+     * 처음에는 모든 항목의 설명이 접혀 있어 쪽이 짧다(47항목을 다 펼치면 데스크톱 38,899px이었다).
+     * 사전은 계속 늘어나므로(2026-09-18 Phase 3 항목으로 47 → 101개, 접힌 높이 데스크톱 23,795px = 항목당 약 236px)
+     * 항목 수에 비례한 한도로 본다 — 접힘이 풀리면 항목당 800px이 넘어 곧 걸린다.
+     */
     await expect(page.locator('[data-errors-more][open]')).toHaveCount(0);
     const height = await page.evaluate(() => document.documentElement.scrollHeight);
-    expect(height, '쪽 높이').toBeLessThan(test.info().project.name === 'mobile' ? 30_000 : 20_000);
+    const perEntry = test.info().project.name === 'mobile' ? 400 : 300;
+    expect(height, `쪽 높이(항목 ${total}개)`).toBeLessThan(total * perEntry);
 
     // 오류 이름으로 찾으면 그 항목만 남고, 하나뿐이면 설명이 펼쳐진다.
     const finder = page.getByRole('searchbox', { name: '오류 이름이나 낱말로 찾기' });

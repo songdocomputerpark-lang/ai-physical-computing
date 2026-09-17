@@ -123,19 +123,37 @@ describe('오류 사전 데이터', () => {
     expect(card.entries.every((entry) => entry.example === null && entry.cases.length === 0)).toBe(true);
     // 되읽어도 형식 검사를 통과한다(화면 쪽이 catalogFromJson으로 읽는 길).
     expect(catalogFromJson(cardJson.replace(/\\u003c/gu, '<'))?.entries.length).toBe(catalog.entries.length);
-    // 같은 오류에 같은 항목·같은 글이 나온다(뺀 필드는 항목을 고르는 데 쓰지 않는다).
+    /*
+     * 같은 오류에 같은 항목·같은 글이 나온다(뺀 필드는 항목을 고르는 데 쓰지 않는다).
+     * **JSON으로 심었다가 되읽은 사전으로도** 본다 — 실습실 카드가 실제로 쓰는 길이다(2026-09-18: 이 길에서만
+     * 트레이스백 조건이 사라져 학생의 일반 IndexError에 네오픽셀 풀이가 붙었다 — catalog-schema.ts가 두 이름을 모두 받는다).
+     */
+    const restoredCard = catalogFromJson(cardJson.replace(/\\u003c/gu, '<'));
+    expect(restoredCard).not.toBeNull();
     const cases: { type: string; message: string; traceback: string }[] = [
       { type: 'NameError', message: "NameError: name 'total' is not defined", traceback: 'Traceback (most recent call last):\n  File "main.py", line 2, in <module>\n    print(total)\nNameError: name \'total\' is not defined' },
       { type: 'ZeroDivisionError', message: 'ZeroDivisionError: division by zero', traceback: 'Traceback (most recent call last):\n  File "main.py", line 1, in <module>\n    print(1 / 0)\nZeroDivisionError: division by zero' },
       { type: 'ModuleNotFoundError', message: "ModuleNotFoundError: No module named 'pyautogui'", traceback: 'Traceback (most recent call last):\n  File "main.py", line 1, in <module>\n    import pyautogui\nModuleNotFoundError: No module named \'pyautogui\'' },
+      // 트레이스백 조건이 살아 있어야 맞는 항목이 나온다: 학생 코드의 목록 IndexError는 index-error,
+      { type: 'IndexError', message: 'IndexError: list index out of range', traceback: 'Traceback (most recent call last):\n  File "main.py", line 2, in <module>\n    print(nums[5])\nIndexError: list index out of range' },
+      // 네오픽셀 드라이버 안에서 난 것은 네오픽셀 풀이
+      {
+        type: 'IndexError',
+        message: 'IndexError: tuple index out of range',
+        traceback: 'Traceback (most recent call last):\n  File "main.py", line 4, in <module>\n  File "/apc/neopixel.py", line 40, in __setitem__\nIndexError: tuple index out of range',
+      },
     ];
     for (const error of cases) {
       const full = explain(catalog, { outcome: 'error', error });
       const slim = explain(card, { outcome: 'error', error });
-      expect(slim?.entry.id, error.type).toBe(full?.entry.id);
-      expect(slim?.meaning, error.type).toBe(full?.meaning);
-      expect(slim?.fix, error.type).toEqual(full?.fix);
+      const fromJson = explain(restoredCard, { outcome: 'error', error });
+      expect(slim?.entry.id, error.message).toBe(full?.entry.id);
+      expect(slim?.meaning, error.message).toBe(full?.meaning);
+      expect(slim?.fix, error.message).toEqual(full?.fix);
+      expect(fromJson?.entry.id, `JSON 되읽기: ${error.message}`).toBe(full?.entry.id);
     }
+    expect(explain(catalog, { outcome: 'error', error: cases[3]! })?.entry.id).toBe('index-error');
+    expect(explain(catalog, { outcome: 'error', error: cases[4]! })?.entry.id).toBe('board-neopixel-color-count');
   });
 
   it('JSON으로 심었다가 되읽어도 같다(화면 쪽이 읽는 길)', () => {

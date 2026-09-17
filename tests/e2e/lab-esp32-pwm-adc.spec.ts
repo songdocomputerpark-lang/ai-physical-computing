@@ -197,7 +197,8 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
     await expect(controls.getByRole('heading')).toHaveText('4채널 터치 센서 조작');
     await expect(controls.locator('[data-touch4-pad]')).toHaveCount(4);
     const touch = part(page, 'touch-analog-4ch');
-    await expect(touch).toHaveAttribute('aria-label', /4채널 터치 센서\(GPIO32\): 뗌/u);
+    // (P3-11) 부품이 만든 상태 글(visual.summary)이 화면 낭독기 이름에 들어간다 — 패드 번호·값까지 읽어 준다
+    await expect(touch).toHaveAttribute('aria-label', /4채널 터치 센서\(GPIO32\): 패드 누르지 않음 · 값 0/u);
     await run(page);
     await expect(consoleBox(page)).toContainText('ADC: 0 → No touch', { timeout: 30_000 });
 

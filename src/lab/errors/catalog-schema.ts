@@ -206,7 +206,12 @@ function normalizeEntry(raw: unknown, index: number, groupIds: ReadonlySet<strin
     }
   }
   const patterns = textList(raw.patterns, where, 'patterns', problems);
-  const tracebackPatterns = textList(raw.traceback_patterns, where, 'traceback_patterns', problems);
+  /*
+   * 데이터 파일은 traceback_patterns(YAML), JSON으로 다시 읽을 때는 tracebackPatterns(실습실 카드가 쓰는 길 —
+   * catalogJson → catalogFromJson)라 두 이름을 모두 받는다. 2026-09-18에 한쪽만 받아 카드 사전에서 트레이스백
+   * 조건이 사라지고, 학생의 일반 IndexError에 네오픽셀 풀이가 붙는 것을 브라우저 테스트가 찾았다.
+   */
+  const tracebackPatterns = textList(raw.traceback_patterns ?? raw.tracebackPatterns, where, 'traceback_patterns', problems);
   compilePatterns(patterns, where, 'patterns', problems);
   compilePatterns(tracebackPatterns, where, 'traceback_patterns', problems);
   const fallback = raw.fallback === true;
