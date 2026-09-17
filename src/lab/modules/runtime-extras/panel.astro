@@ -192,6 +192,13 @@
     cursor: pointer;
   }
 
+  /* 좁은 화면에서는 손가락으로 누르기 좋게 44px(LabShell.astro의 같은 규칙은 이 파일의 범위 스타일보다 약해서 여기서도 적는다 — 2026-09-17 검토 반영) */
+  @media (max-width: 48rem) {
+    .files :global(.lab-button) {
+      min-height: var(--target-min);
+    }
+  }
+
   .files :global(.lab-button:hover) {
     border-color: var(--color-accent);
     background: var(--color-accent-soft);

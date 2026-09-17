@@ -54,3 +54,70 @@ export function revealElement(element: Element | null | undefined, options: Reve
   }
   return true;
 }
+
+export interface RevealTogetherOptions {
+  /** 화면 위쪽에 남길 여백(px, 기본 8) */
+  margin?: number;
+  /** 옮긴 뒤 칸이 조금 늘어나도(첫 결과가 오며 안내 줄이 생김) 함께 보이도록 남겨 둘 여유(px, 기본 0) */
+  slack?: number;
+  /** 둘을 함께 보일 수 없어 첫 칸만 보일 때 화면 어디에 붙일지(기본 'start') */
+  block?: ScrollLogicalPosition;
+}
+
+/**
+ * 두 칸을 한 화면에 함께 보이게 옮긴다 — 예: [실행] 뒤 결과 창과 그 결과를 바꾸는 첫 조절 막대(시나리오 A: 결과를 보면서 막대를 움직인다).
+ * primary는 후보 여러 개를 줄 수 있다(넓은 것부터: 출력 칸 전체 → 출력 화면만). 둘째 칸과 합친 높이가 화면에 들어가는 첫 후보를 쓴다.
+ * - 그 후보와 둘째 칸이 이미 보이면(여유 포함) 움직이지 않는다.
+ * - 어느 후보도 둘째 칸과 함께 화면에 들어가지 않으면(아주 좁은 화면 등) 마지막 후보만 revealElement로 보인다.
+ * - 둘째 칸이 없거나 숨어 있으면 첫 후보만 보인다.
+ * 1366×768에서 첫 실습의 출력 칸 전체(제목~키 단추, 입력 칸 높이만큼 늘어남)는 threshold 막대와 함께 들어가지 않지만 출력 화면(캔버스 틀)은 들어간다
+ * (2026-09-17 브라우저 실측: 출력 칸 317~889, 캔버스 틀 393~609, 막대 978~1,091). 375×812에서는 출력 칸 전체와 막대가 함께 들어간다.
+ */
+export function revealTogether(
+  primary: Element | null | undefined | readonly (Element | null | undefined)[],
+  secondary: Element | null | undefined,
+  options: RevealTogetherOptions = {},
+): boolean {
+  const candidates = (Array.isArray(primary) ? primary : [primary]).filter((element): element is Element => Boolean(element));
+  const first = candidates[0];
+  const last = candidates[candidates.length - 1];
+  if (!first || !last) {
+    return false;
+  }
+  const fallbackOptions: RevealOptions = options.block ? { block: options.block } : {};
+  if (!secondary || typeof window === 'undefined') {
+    return revealElement(first, fallbackOptions);
+  }
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  const second = secondary.getBoundingClientRect();
+  if (viewportHeight === 0 || (second.width === 0 && second.height === 0)) {
+    return revealElement(first, fallbackOptions);
+  }
+  const margin = options.margin ?? 8;
+  const slack = options.slack ?? 0;
+  for (const candidate of candidates) {
+    const box = candidate.getBoundingClientRect();
+    if (box.width === 0 && box.height === 0) {
+      continue;
+    }
+    const top = Math.min(box.top, second.top);
+    const bottom = Math.max(box.bottom, second.bottom);
+    if (bottom - top + margin + slack > viewportHeight) {
+      continue;
+    }
+    if (top >= 0 && bottom + slack <= viewportHeight) {
+      return false;
+    }
+    if (typeof window.scrollTo !== 'function') {
+      return false;
+    }
+    const target = Math.max(0, Math.round((window.scrollY || 0) + top - margin));
+    try {
+      window.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    } catch {
+      window.scrollTo(0, target);
+    }
+    return true;
+  }
+  return revealElement(last, fallbackOptions);
+}

@@ -3,7 +3,7 @@
 // - src/lab/modules/panel-when-used.ts: 흉내 모듈 패널을 "코드가 그 모듈을 쓸 때만" 연다(한 페이지 한 개념).
 // 실제 화면 위치·스크롤은 브라우저 테스트(lab-vision·lab-errors·lab-mediapipe-hands)가 본다.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isMostlyVisible, revealElement } from '../../../src/lab/controls/reveal.ts';
+import { isMostlyVisible, revealElement, revealTogether } from '../../../src/lab/controls/reveal.ts';
 import { showPanelWhenUsed } from '../../../src/lab/modules/panel-when-used.ts';
 import type { LabModuleContext } from '../../../src/lab/modules/types.ts';
 
@@ -65,6 +65,69 @@ describe('화면 안으로 옮기기(reveal.ts)', () => {
     expect(revealElement(null)).toBe(false);
     expect(revealElement(undefined)).toBe(false);
     expect(revealElement(fakeElement(3000, 100).element)).toBe(false); // window 없음(Node)
+  });
+});
+
+describe('두 칸을 함께 보이기(revealTogether)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubWindow(scrollY: number, reduce = false) {
+    const scrolls: ScrollToOptions[] = [];
+    vi.stubGlobal('window', {
+      innerHeight: 768,
+      scrollY,
+      matchMedia: () => ({ matches: reduce }),
+      scrollTo: (options: ScrollToOptions) => {
+        scrolls.push(options);
+      },
+    });
+    vi.stubGlobal('document', { documentElement: { clientHeight: 768 } });
+    return scrolls;
+  }
+
+  it('출력 창은 보이지만 조절 막대가 화면 밖이면(1366×768 첫 실습) 둘이 함께 들어오게 옮긴다', () => {
+    const scrolls = stubWindow(400);
+    const output = fakeElement(285, 420); // 이미 화면 안
+    const slider = fakeElement(900, 70); // 화면 밖
+    expect(revealTogether(output.element, slider.element, { slack: 60 })).toBe(true);
+    expect(scrolls).toEqual([{ top: 400 + 285 - 8, behavior: 'smooth' }]);
+    expect(output.calls).toEqual([]); // 첫 칸만 보이는 길(scrollIntoView)은 쓰지 않음
+  });
+
+  it('넓은 후보(출력 칸 전체)가 막대와 함께 안 들어가면 좁은 후보(출력 화면 틀)로 맞춘다 — 1366×768 실측값', () => {
+    const scrolls = stubWindow(399);
+    const wide = fakeElement(317, 571); // 출력 칸 전체(입력 칸 높이만큼 늘어남)
+    const narrow = fakeElement(393, 217); // 출력 화면 틀
+    const slider = fakeElement(978, 113); // threshold 막대
+    expect(revealTogether([wide.element, narrow.element], slider.element, { slack: 40, block: 'center' })).toBe(true);
+    expect(scrolls).toEqual([{ top: 399 + 393 - 8, behavior: 'smooth' }]);
+    // 375×812처럼 넓은 후보가 들어가면 넓은 후보를 쓴다
+    const scrollsMobile = stubWindow(1237);
+    vi.stubGlobal('window', { ...(globalThis.window as object), innerHeight: 812 });
+    expect(revealTogether([fakeElement(1977, 466).element, fakeElement(2051, 257).element], fakeElement(2528, 113).element, { slack: 40 })).toBe(true);
+    expect(scrollsMobile).toEqual([{ top: 1237 + 1977 - 8, behavior: 'smooth' }]);
+  });
+
+  it('둘 다 이미 보이면 움직이지 않고, 둘째 칸이 없으면 첫 칸만 본다', () => {
+    const scrolls = stubWindow(0);
+    expect(revealTogether(fakeElement(100, 300).element, fakeElement(450, 60).element, { slack: 60 })).toBe(false);
+    expect(scrolls).toEqual([]);
+    const far = fakeElement(2900, 400);
+    expect(revealTogether(far.element, null)).toBe(true);
+    expect(far.calls).toEqual([{ behavior: 'smooth', block: 'start' }]);
+  });
+
+  it('둘을 합쳐 화면보다 크면 첫 칸만 보이고, 움직임 줄이기면 부드럽게 넘기지 않는다', () => {
+    const scrolls = stubWindow(0, true);
+    const output = fakeElement(1200, 500);
+    expect(revealTogether(output.element, fakeElement(1900, 70).element, { slack: 60 })).toBe(true);
+    expect(scrolls).toEqual([]);
+    expect(output.calls).toEqual([{ behavior: 'auto', block: 'start' }]);
+    const scrolls2 = stubWindow(100, true);
+    expect(revealTogether(fakeElement(900, 300).element, fakeElement(1250, 60).element)).toBe(true);
+    expect(scrolls2).toEqual([{ top: 100 + 900 - 8, behavior: 'auto' }]);
   });
 });
 

@@ -105,6 +105,13 @@ import { GAMES } from './games.ts';
     cursor: pointer;
   }
 
+  /* 좁은 화면에서는 손가락으로 누르기 좋게 44px(LabShell.astro의 같은 규칙보다 이 범위 스타일이 강해서 여기서도 적는다 — 2026-09-17 검토 반영) */
+  @media (max-width: 48rem) {
+    .desktop .lab-button {
+      min-height: var(--target-min);
+    }
+  }
+
   .desktop .lab-button:hover {
     border-color: var(--color-accent);
     background: var(--color-accent-soft);

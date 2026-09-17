@@ -10,8 +10,8 @@
 // 실행: npx playwright test tests/e2e/scenario-a.spec.ts — Pyodide(약 6MB)와 numpy·OpenCV 휠(약 14MB)을 jsDelivr에서 받는다.
 import { expect, test } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
-import { editorContent, labRoot } from './helpers/lab.ts';
-import { VISION_PATH, averageWhiteRatio, framesShown, waitFrames, waitVisionReady, whiteRatio } from './helpers/vision.ts';
+import { LOAD_TIMEOUT, editorContent, labRoot } from './helpers/lab.ts';
+import { PACKAGES_TIMEOUT, VISION_PATH, averageWhiteRatio, framesShown, waitFrames, whiteRatio } from './helpers/vision.ts';
 
 /** 희미한 네모의 테두리(324픽셀 = 640×480의 0.105%)가 생기고 사라질 때 평균 비율이 이만큼은 달라져야 한다(계산값의 절반). */
 const MIN_RATIO_CHANGE = 0.0005;
@@ -53,12 +53,13 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
       // 아직 준비 중이었다면 눌러 둔 것이 예약되고, 무엇을 기다리는지 글로 알린다(이미 준비가 끝났으면 곧바로 실행돼 예약 표시가 없다).
       await expect.poll(async () => pendingAtClick || Number((await labRoot(page).getAttribute('data-run-count')) ?? '0') > 0).toBe(true);
     }
-    await waitVisionReady(page);
+    // 준비가 끝나는 순간 눌러 둔 [실행]이 바로 시작되므로 "준비 끝(idle)"은 잠깐만 지나간다 — waitVisionReady(idle 기다리기)를 쓰지 않고
+    // 실행 횟수가 1이 되는 때(= 파이썬 준비가 끝나 실행이 시작된 때)를 준비 끝으로 잰다.
+    await expect(labRoot(page)).toHaveAttribute('data-run-count', '1', { timeout: LOAD_TIMEOUT + PACKAGES_TIMEOUT });
     const readyMs = elapsed();
 
     // 3. 눌러 둔 [실행]이 돌아 웹캠(가짜 카메라)의 에지 결과가 출력 창에 그려진다. 결과 칸이 화면 안으로 옮겨져 있고,
     //    결과 바로 아래의 조절 막대(threshold)까지 1366×768 한 화면에 들어온다(설명을 읽지 않아도 찾게).
-    await expect(labRoot(page)).toHaveAttribute('data-run-count', '1', { timeout: 60_000 });
     await waitFrames(page, 'edges', 4);
     const edgeMs = elapsed();
     await expect(page.locator('canvas[data-vision-window="edges"]')).toBeInViewport();

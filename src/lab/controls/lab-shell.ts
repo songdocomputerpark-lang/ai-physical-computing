@@ -28,7 +28,7 @@
  *
  * 학생이 헤매지 않게 하는 규칙(2026-09-17 Phase 2 검토 반영)
  * - 파이썬을 받는 동안에도 [실행]을 누를 수 있다. 누르면 "준비되면 실행돼요…"로 바뀌고 준비가 끝나면 저절로 실행한다.
- * - 실행을 시작하면 입력·출력 칸이 첫 화면 밖일 때 그 칸으로 화면을 옮긴다(reveal.ts, 움직임 줄이기면 바로 옮김).
+ * - 실행을 시작하면 결과 칸(과 조절 막대가 있으면 첫 막대)이 첫 화면 밖일 때 그쪽으로 화면을 옮긴다(reveal.ts, 움직임 줄이기면 바로 옮김).
  * - 예제에 차시 정보(lesson)가 있으면 조작 줄 아래에 "이 예제가 나오는 차시" 링크를 보인다(차시에서 넘어온 학생이 돌아갈 길).
  */
 import { canStepFontSize, readFontSize, saveFontSize, stepFontSize, DEFAULT_FONT_SIZE_PX } from '../editor/font-size.ts';
@@ -42,7 +42,7 @@ import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatu
 import { downloadTextFile } from './download.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
-import { revealElement } from './reveal.ts';
+import { revealTogether } from './reveal.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash } from './share-link.ts';
 
 /** 실행기 상태를 사람 말로 */
@@ -242,7 +242,8 @@ class LabShellController implements LabController {
     const queryFile = new URLSearchParams(window.location.search).get('example');
     const queryExample = findExampleByFile(this.examples, queryFile);
     // 주소에 ?example=이 있는데 그런 파일이 없으면 조용히 다른 예제를 열지 않고 한 번 알린다(공유 링크가 망가졌을 때와 같은 방식).
-    const missingQueryFile = queryFile !== null && queryFile !== '' && queryExample === null;
+    // findExampleByFile은 못 찾으면 undefined를 돌려준다(null이 아님 — 2026-09-17 브라우저 테스트에서 이 비교가 늘 거짓이던 것을 발견).
+    const missingQueryFile = queryFile !== null && queryFile !== '' && queryExample === undefined;
     const initial =
       findExample(this.examples, share?.example) ??
       queryExample ??
@@ -372,11 +373,16 @@ class LabShellController implements LabController {
     this.root.dataset.loadingIntro = 'no';
     this.appendConsole(`── 실행 ${this.#runCount} ──\n`, 'notice');
     this.#emit('run', { code, runCount: this.#runCount });
-    // 결과가 첫 화면 밖이면(1366×768에서 출력 제목 y≈678, 375×812에서 y≈2,056) 결과 칸으로 내려 준다.
-    // io 슬롯이 결과 부분에 data-lab-reveal-on-run을 달아 두었으면 그 부분을(영상처리 실습실은 출력 창 — 그래야 1366×768에서도 375×812에서도
-    // 결과 바로 아래의 조절 막대까지 한 화면에 들어온다), 없으면 입력·출력 칸 전체를 보인다.
+    // 결과가 첫 화면 밖이면(검토 실측: 1366×768에서 출력 제목 y≈678, 375×812에서 y≈2,056) 결과 칸으로 화면을 옮긴다.
+    // io 슬롯이 결과 부분에 data-lab-reveal-on-run(넓은 칸)·data-lab-reveal-on-run-min(꼭 보여야 하는 최소 칸)을 달아 두었으면 그것을,
+    // 없으면 입력·출력 칸 전체를 본다(영상처리 실습실: 출력 칸 전체 → 출력 화면 틀).
+    // 조절 막대(@slider 등)가 있으면 결과와 첫 조절 막대를 한 화면에 함께 보인다 — 결과를 보면서 막대를 움직이게(시나리오 A 3단계).
+    // 출력이 이미 보여도 막대가 화면 밖이면 옮긴다(1366×768 첫 실습에서 그랬다). 함께 못 넣으면 결과만 화면 가운데에 보인다.
+    // 여유 40px: 첫 결과가 오면 입력 칸에 "카메라를 켰어요"·전달 속도 줄이 생겨 막대가 조금 내려간다.
     const ioSection = this.#elements.ioSection;
-    revealElement(ioSection?.querySelector('[data-lab-reveal-on-run]') ?? ioSection);
+    const wide = ioSection?.querySelector('[data-lab-reveal-on-run]') ?? ioSection;
+    const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
+    revealTogether([wide, narrow], this.root.querySelector('[data-lab-param]'), { slack: 40, block: 'center' });
     try {
       return await this.runtime.run(code, this.#example?.packages ? { packages: this.#example.packages } : {});
     } catch (error) {

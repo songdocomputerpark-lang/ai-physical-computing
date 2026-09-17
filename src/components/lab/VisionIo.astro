@@ -60,14 +60,14 @@
     <p class="vision-io__privacy">영상은 이 컴퓨터 밖으로 나가지 않아요. 파이썬도 이 브라우저 안에서 돌아요.</p>
   </section>
 
-  {/* data-lab-reveal-on-run: [실행]을 누를 때 실습실 틀(lab-shell.ts)이 화면 안으로 옮기는 칸 — 출력 창과 바로 아래 조절 막대가 한 화면에 들어온다. */}
+  {/* data-lab-reveal-on-run: [실행]을 누를 때 실습실 틀(lab-shell.ts)이 화면 안으로 옮기는 칸. 출력 칸 전체와 첫 조절 막대가 한 화면에 안 들어가면(1366×768) 출력 화면 틀(data-lab-reveal-on-run-min)과 막대를 함께 보인다. */}
   <section class="vision-io__output" aria-labelledby="vision-output-heading" data-lab-reveal-on-run>
     <h3 id="vision-output-heading" class="vision-io__heading">출력(cv2.imshow)</h3>
     <div class="vision-output__bar">
       <div class="vision-tabs" data-vision-output-tabs hidden></div>
       <button type="button" class="lab-button lab-button--small" data-vision-output-close hidden>창 닫기</button>
     </div>
-    <div class="vision-stage-box" data-vision-output-stage tabindex="0" role="group" aria-label="출력 화면. 초점이 있을 때 누른 키가 cv2.waitKey로 전달돼요.">
+    <div class="vision-stage-box" data-vision-output-stage data-lab-reveal-on-run-min tabindex="0" role="group" aria-label="출력 화면. 초점이 있을 때 누른 키가 cv2.waitKey로 전달돼요.">
       <p class="vision-stage-box__empty" data-vision-output-empty>
         코드가 <code>cv2.imshow()</code>로 보여 주는 영상이 여기에 나와요.
       </p>
@@ -305,6 +305,13 @@
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
     cursor: pointer;
+  }
+
+  /* 좁은 화면에서는 출력 창 탭도 손가락 크기(44px)로 — 2026-09-17 검토 반영 */
+  @media (max-width: 48rem) {
+    .vision-tabs :global(.vision-tab) {
+      min-height: var(--target-min);
+    }
   }
 
   .vision-tabs :global(.vision-tab--active) {
