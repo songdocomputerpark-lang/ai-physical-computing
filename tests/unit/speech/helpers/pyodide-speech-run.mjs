@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { finishJson } from '../../helpers/finish-json.mjs';
 
 const rootDir = process.argv[2] ?? process.cwd();
 const require = createRequire(path.join(rootDir, 'package.json'));
@@ -33,8 +34,8 @@ process.on('unhandledRejection', (reason) => {
 });
 
 function finish() {
-  process.stdout.write(`\n${JSON.stringify(out)}\n`);
-  process.exit(0);
+  // 결과 JSON이 파이프 버퍼(64KB)보다 크면 다 나가기 전에 끝나 버린다 → 공통 함수로 기다린 뒤 끝낸다.
+  finishJson(out);
 }
 
 const pyodide = await loadPyodide();

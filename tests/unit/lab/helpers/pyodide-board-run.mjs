@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { finishJson } from '../../helpers/finish-json.mjs';
 
 const rootDir = path.resolve(process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : process.cwd());
 const limitedOnly = process.argv.includes('--limited');
@@ -35,8 +36,8 @@ process.on('unhandledRejection', (reason) => {
 });
 
 function finish() {
-  process.stdout.write(`\n${JSON.stringify(out)}\n`);
-  process.exit(0);
+  // 결과 JSON이 파이프 버퍼(64KB)보다 크면 다 나가기 전에 끝나 버린다 → 공통 함수로 기다린 뒤 끝낸다.
+  finishJson(out);
 }
 
 // ── ESP32 실습실에 붙는 모듈 폴더 고르기(manifest.ts의 labs·shims를 글자로 읽는다 — Vite 없이) ──

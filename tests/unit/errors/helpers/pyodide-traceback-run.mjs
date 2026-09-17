@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { finishJson } from '../../helpers/finish-json.mjs';
 
 // 절대 경로로 바꾼다("." 같은 상대 경로를 그대로 createRequire에 넘기면 ERR_INVALID_ARG_VALUE로 멈춘다).
 const rootDir = path.resolve(process.argv[2] ?? process.cwd());
@@ -198,7 +199,8 @@ if (write) {
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
   process.stdout.write(`${target}에 ${Object.keys(out.cases).length}개를 썼어요.\n`);
+  process.exit(0);
 } else {
-  process.stdout.write(`\n${JSON.stringify(out)}\n`);
+  // 결과 JSON이 파이프 버퍼(64KB)보다 크면 다 나가기 전에 끝나 버린다 → 공통 함수로 기다린 뒤 끝낸다.
+  finishJson(out);
 }
-process.exit(0);

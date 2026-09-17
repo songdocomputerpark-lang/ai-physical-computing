@@ -94,7 +94,14 @@ export function runBoard(extra: readonly string[] = []): BoardRunResult {
     throw new Error(`도우미 스크립트 실패(${result.status}): ${result.stderr.slice(-2000)}`);
   }
   const lines = result.stdout.trim().split('\n');
-  return JSON.parse(lines[lines.length - 1] ?? '{}') as BoardRunResult;
+  const last = lines[lines.length - 1] ?? '{}';
+  try {
+    return JSON.parse(last) as BoardRunResult;
+  } catch (error) {
+    // 글이 중간에서 끊겼으면 도우미 스크립트가 결과를 다 내보내기 전에 끝난 것이다(tests/unit/helpers/finish-json.mjs 머리말 참고).
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`도우미 스크립트의 결과 JSON을 읽지 못했어요(${last.length}자, ${reason}). 마지막 40자: ${JSON.stringify(last.slice(-40))}`);
+  }
 }
 
 /** 단계 파일(저장소 뿌리 기준 경로) 하나만 돌린다. limited: true면 JSPI 없는 브라우저처럼(제한 모드 — 블록 전용 호환 모드 시험) */
