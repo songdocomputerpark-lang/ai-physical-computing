@@ -31,7 +31,7 @@ import {
 } from './parse.ts';
 
 /** 패널 위 안내 글 */
-export const PARAM_NOTE_NORMAL = '값을 바꾸면 코드의 숫자도 함께 바뀌어요. 실행 중이면 다음 프레임부터 반영돼요.';
+export const PARAM_NOTE_NORMAL = '값을 바꾸면 코드의 숫자도 함께 바뀌어요. 실행 중이면 코드가 그 값을 다음에 쓸 때부터 반영돼요.';
 export const PARAM_NOTE_LIMITED = '이 브라우저(제한 모드)에서는 바꾼 값이 코드에 적혀서 다음 [실행] 때 반영돼요.';
 
 export interface ParamPanelElements {
