@@ -121,7 +121,10 @@ export interface PartDefinition {
    * x는 18의 배수 + 9로 적는다 — 배선도가 보드 핀 머리(18 간격)와 겹치지 않게 선을 긋는 칸이다(layout.ts).
    */
   readonly anchors?: Readonly<Record<string, PartPoint>>;
-  /** (바깥 부품) 전원(GND·VCC) 다리가 나오는 자리. 적지 않으면 그림 아랫변 x = 9(GND)·27(VCC). false면 전원선을 그리지 않는다 */
+  /**
+   * (바깥 부품) 전원(GND·VCC) 다리가 나오는 자리. 적지 않으면 그림 아랫변 가운데 양옆(가운데 − 9 = GND, 가운데 + 9 = VCC — layout.ts partPowerLegs).
+   * false면 전원선을 그리지 않는다
+   */
   readonly power?: { readonly gnd: PartPoint; readonly vcc: PartPoint } | false;
   /**
    * (선택) 이 부품을 defaultPins 그대로 이었을 때 배선 목록에 보일 안내 한 문장(수준 info). 원고에 핀 번호가 없어 사이트가 정한 핀처럼
