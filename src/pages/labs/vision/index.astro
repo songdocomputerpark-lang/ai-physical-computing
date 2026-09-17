@@ -20,7 +20,7 @@ import VisionIo from '../../../components/lab/VisionIo.astro';
 import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { getPage } from '../../../config/nav.ts';
 import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
-import { visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
+import { VISION_PACKAGES, visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const page = getPage('labs-vision');
@@ -71,7 +71,7 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
     </ol>
   </div>
 
-  <LabShell labId="vision" examples={examples}>
+  <LabShell labId="vision" examples={examples} pyodidePackages={VISION_PACKAGES}>
     <VisionIo slot="io" />
   </LabShell>
 

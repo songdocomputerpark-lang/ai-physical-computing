@@ -123,6 +123,43 @@ export function pyodidePrefetchUrls(): string[] {
   return PYODIDE_FALLBACK_FILES.map((file) => pyodideCdnUrl(file.name));
 }
 
+/** 표에 있는 패키지가 함께 받는 패키지(pyodide-lock.json의 depends — opencv-python은 numpy에 기댄다) */
+export const PACKAGE_DEPENDENCIES: Readonly<Record<string, readonly string[]>> = Object.freeze({ 'opencv-python': ['numpy'] });
+
+/**
+ * 실습실이 쓰는 패키지만큼의 예비본 파일: 파이썬 엔진(코어 5개) + 그 패키지와 기대는 패키지의 휠(P3-01, PD-04).
+ * packages가 null이면 예비본 전체(예전 동작 — 실습실이 LabShell pyodidePackages를 적지 않은 경우). ESP32 실습실은 []라 코어만.
+ */
+export function pyodideFilesFor(packages: readonly string[] | null): PyodideFile[] {
+  if (packages === null) {
+    return [...PYODIDE_FALLBACK_FILES];
+  }
+  const wanted = new Set<string>();
+  const add = (name: string) => {
+    if (wanted.has(name)) {
+      return;
+    }
+    wanted.add(name);
+    for (const dependency of PACKAGE_DEPENDENCIES[name] ?? []) {
+      add(dependency);
+    }
+  };
+  for (const name of packages) {
+    add(name);
+  }
+  return PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core' || (file.package !== undefined && wanted.has(file.package)));
+}
+
+/** pyodideFilesFor의 CDN 주소 목록 */
+export function pyodidePrefetchUrlsFor(packages: readonly string[] | null): string[] {
+  return pyodideFilesFor(packages).map((file) => pyodideCdnUrl(file.name));
+}
+
+/** pyodideFilesFor의 원본 크기 합 */
+export function pyodidePrefetchBytesFor(packages: readonly string[] | null): number {
+  return pyodideFilesFor(packages).reduce((sum, file) => sum + file.size, 0);
+}
+
 /** 바이트를 사람이 읽는 글자로: 118KB, 2.9MB, 13.5MB */
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) {

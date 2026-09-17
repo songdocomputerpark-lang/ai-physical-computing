@@ -14,6 +14,9 @@
  *    새 전역(__name__ == '__main__')을 조절 패널 값의 목적지로 도우미에 알리고(apc_runtime.bind_run_globals, P2-04)
  *    runPythonAsync 한다(JSPI 기다리기는 이 경로에서만 된다). 끝나면 done 메시지.
  *    큰 값(cv2.imshow 영상)은 event 메시지의 transfer 목록으로 복사 없이 화면에 보낸다.
+ *    학생 코드가 오류 없이 끝나면 apc_runtime.run_idle()을 한 번 더 기다린다 — 가상 보드의 Timer·핀 인터럽트처럼 실물에서는
+ *    코드가 끝나도 계속 도는 것이 있으면 [정지]까지 이어 간다(P3-01, PLAN §4.4 "스크립트가 끝난 뒤의 대기"). 대기 훅이 없는 실습실은 곧바로 끝난다.
+ *    load 메시지에 labId가 있으면 그 실습실에 붙는 흉내 모듈 폴더의 파이썬 파일·shims만 넣는다(python/modules.ts pythonModulesForLab).
  * 3. stop(정지 1단계): 다리에 정지 표시를 켜 기다리던 곳(sleep·input·request)을 깨우면 파이썬 쪽에서 KeyboardInterrupt가 난다.
  *    양보 없는 계산 반복문은 이 메시지를 받지 못하므로 화면이 1초 뒤 워커를 끝내고 다시 띄운다(정지 2단계, client.ts).
  *    인터럽트 버퍼(pyodide.setInterruptBuffer)는 SharedArrayBuffer가 필요하고 GitHub Pages는 교차 출처 격리 헤더(COOP·COEP)를
@@ -24,7 +27,7 @@
  */
 import type { PyodideAPI } from 'pyodide';
 import type { PyProxy } from 'pyodide/ffi';
-import { PYTHON_MODULES, RUNTIME_MODULE_FILE, SHIM_TABLE } from '../python/modules.ts';
+import { RUNTIME_MODULE_FILE, pythonModulesForLab, shimTableForLab } from '../python/modules.ts';
 import { createBridge, type Bridge } from './bridge.ts';
 import type {
   DoneMessage,
@@ -53,6 +56,13 @@ interface PyodideModule {
 
 /** 파이썬 쪽 모듈을 두는 가상 파일시스템 폴더. sys.path 맨 앞에 넣어 학생 파일이 가리지 못하게 한다(CODE_MAPPING §3.3). */
 const HELPER_DIR = '/apc';
+
+/**
+ * 학생 코드가 끝난 뒤 흉내 모듈의 "계속 돌 일"을 이어 가는 코드(apc_runtime.run_idle, P3-01). 식 하나라 학생 전역에 이름을 남기지 않는다.
+ * 파일 이름은 트레이스백에서 학생 코드(main.py)와 구별되게 따로 둔다.
+ */
+const IDLE_CODE = '__import__("apc_runtime").run_idle()';
+const IDLE_FILENAME = '<board-idle>';
 
 const scope = self as unknown as WorkerScope;
 
@@ -267,10 +277,13 @@ async function load(message: LoadMessage): Promise<void> {
   pyodide.setStderr(makeWriter('stderr', stderrDecoder));
   pyodide.registerJsModule('_apc_bridge', bridge.api);
   pyodide.FS.mkdirTree(HELPER_DIR);
-  if (!(RUNTIME_MODULE_FILE in PYTHON_MODULES)) {
+  // 이 실습실(labId)에 붙는 흉내 모듈의 파일만 넣는다(없으면 모두). 가상 보드의 machine.py가 영상처리 실습실에 새지 않게(P3-01).
+  const pythonModules = pythonModulesForLab(message.labId);
+  const shimTable = shimTableForLab(message.labId);
+  if (!(RUNTIME_MODULE_FILE in pythonModules)) {
     throw new Error(`파이썬 도우미 ${RUNTIME_MODULE_FILE}이(가) 묶음에 없어요(src/lab/python/).`);
   }
-  for (const [fileName, source] of Object.entries(PYTHON_MODULES)) {
+  for (const [fileName, source] of Object.entries(pythonModules)) {
     pyodide.FS.writeFile(`${HELPER_DIR}/${fileName}`, source);
   }
 
@@ -289,9 +302,9 @@ async function load(message: LoadMessage): Promise<void> {
   bridge.setLimited(message.forceLimited || !jspiAvailable);
 
   // 흉내 모듈 폴더(src/lab/modules/<id>/manifest.ts)가 선언한 shims를 등록표에 더한다(실행 직전 installShims가 읽는다).
-  if (Object.keys(SHIM_TABLE).length > 0) {
+  if (Object.keys(shimTable).length > 0) {
     try {
-      pyodide.runPython(`import json, apc_shims\napc_shims.register_shims(json.loads(${JSON.stringify(JSON.stringify(SHIM_TABLE))}))`);
+      pyodide.runPython(`import json, apc_shims\napc_shims.register_shims(json.loads(${JSON.stringify(JSON.stringify(shimTable))}))`);
     } catch (error) {
       post({ type: 'notice', level: 'warn', text: `흉내 모듈 표를 등록하지 못했어요: ${describeError(error)}` });
     }
@@ -351,6 +364,8 @@ async function run(message: RunMessage): Promise<void> {
       bindParamGlobals(globals);
       try {
         await pyodide.runPythonAsync(message.code, { globals, filename: message.filename, dedent: false });
+        // 코드가 끝나도 흉내 모듈이 계속 돌려야 할 일(가상 보드의 Timer·핀 인터럽트)이 있으면 [정지]까지 이어 간다. 없으면 곧바로 끝난다.
+        await pyodide.runPythonAsync(IDLE_CODE, { globals, filename: IDLE_FILENAME, dedent: false });
       } catch (caught) {
         if (isPythonError(caught)) {
           const info = pythonErrorInfo(caught);

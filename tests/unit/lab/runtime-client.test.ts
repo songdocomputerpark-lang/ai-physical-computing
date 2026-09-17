@@ -125,7 +125,7 @@ function standardBehavior(info: RuntimeInfo = INFO): Behavior {
   };
 }
 
-function makeRuntime(behavior: Behavior = standardBehavior(), options: { stopGraceMs?: number; forceLimited?: boolean } = {}) {
+function makeRuntime(behavior: Behavior = standardBehavior(), options: { stopGraceMs?: number; forceLimited?: boolean; labId?: string } = {}) {
   const workers: FakeWorker[] = [];
   const runtime = new PythonRuntime({
     createWorker: () => {
@@ -136,6 +136,7 @@ function makeRuntime(behavior: Behavior = standardBehavior(), options: { stopGra
     indexUrls: ['https://cdn.example.test/pyodide/'],
     stopGraceMs: options.stopGraceMs ?? STOP_GRACE_MS,
     forceLimited: options.forceLimited,
+    ...(options.labId ? { labId: options.labId } : {}),
   });
   const states: RuntimeState[] = [];
   const notices: RuntimeNotice[] = [];
@@ -163,6 +164,12 @@ describe('준비(load)', () => {
     expect(states).toEqual(['loading', 'idle']);
     await runtime.load();
     expect(workers).toHaveLength(1);
+  });
+
+  it('실습실 id를 주면 load 메시지에 담아 워커가 그 실습실의 흉내 모듈만 넣게 한다(P3-01)', async () => {
+    const { runtime, workers } = makeRuntime(standardBehavior(), { labId: 'esp32' });
+    await runtime.load();
+    expect(workers[0].sent[0]).toEqual({ type: 'load', indexUrls: ['https://cdn.example.test/pyodide/'], packages: [], forceLimited: false, labId: 'esp32' });
   });
 
   it('제한 모드로 준비되면 한국어 안내를 알린다', async () => {

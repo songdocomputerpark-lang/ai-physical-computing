@@ -49,6 +49,8 @@ export interface RuntimeOptions {
   readonly stopGraceMs?: number;
   /** 시험용: JSPI가 있어도 제한 모드로 */
   readonly forceLimited?: boolean;
+  /** 이 실행기를 쓰는 실습실 id(LabShell의 labId). 워커가 그 실습실에 붙는 흉내 모듈의 파이썬 파일만 넣는다(protocol.ts LoadMessage.labId). */
+  readonly labId?: string;
 }
 
 export interface RunOptions {
@@ -150,6 +152,7 @@ export class PythonRuntime {
   readonly #indexUrls: readonly string[];
   readonly #stopGraceMs: number;
   readonly #forceLimited: boolean;
+  readonly #labId: string | undefined;
   readonly #listeners = new Map<keyof RuntimeEvents, Set<Listener<keyof RuntimeEvents>>>();
   readonly #loadedPackages = new Set<string>();
   readonly #tasks = new Map<number, PendingTask>();
@@ -170,6 +173,7 @@ export class PythonRuntime {
     this.#indexUrls = options.indexUrls ?? pyodideIndexUrls(typeof location !== 'undefined' ? location.origin : undefined);
     this.#stopGraceMs = options.stopGraceMs ?? STOP_GRACE_MS;
     this.#forceLimited = options.forceLimited ?? false;
+    this.#labId = options.labId;
   }
 
   get state(): RuntimeState {
@@ -332,6 +336,7 @@ export class PythonRuntime {
         indexUrls: this.#indexUrls,
         packages: [...this.#loadedPackages],
         forceLimited: this.#forceLimited,
+        ...(this.#labId ? { labId: this.#labId } : {}),
       } satisfies ToWorkerMessage);
     });
   }

@@ -18,6 +18,11 @@
 - register_reset_hook(fn): 실행을 시작할 때마다 부를 함수를 등록한다(흉내 모듈이 창·키 목록을 비우는 데 쓴다).
 - register_tick_hook(fn): 입력 확인 지점(block_on이 끝난 뒤·maybe_yield)마다 부를 함수를 등록한다(흉내 모듈이 화면에서 온 결과를
   자기 상태에 옮기거나 가상 타이머 콜백을 돌리는 데 쓴다, src/lab/README.md 4절). 훅 안에서는 양보하는 함수를 부르지 않는다.
+- register_wait_hook(fn): 파이썬이 실제로 기다리기 직전(block_on이 약속을 기다리기 전·제한 모드의 sleep 전)마다 부를 함수를 등록한다
+  (가상 보드가 모아 둔 핀 상태를 기다리기 전에 화면에 보내는 데 쓴다 — Phase 3 P3-01). 양보 금지.
+- register_idle_hook(fn) / run_idle(): 학생 코드가 끝까지 돈 뒤에도 흉내 모듈이 "계속 돌 일"(가상 보드의 Timer·핀 인터럽트)이
+  있으면 워커가 run_idle()로 이어 간다. fn()은 할 일이 있으면 한 번 기다린 뒤 True, 없으면 False. [정지]로 끝난다(P3-01).
+- peek(name, default): get과 같지만 양보·정지 확인을 하지 않는다(초기화 함수·틱 훅 같은 동기 진입점에서 최신 값을 읽을 때).
 - 조절 패널 값 반영(P2-04, 슬라이더 규약): 화면의 조절 패널(src/lab/params/panel.ts)이 값을 바꾸면 'lab.params' 채널에
   {name, value, type}을 쌓는다(runtime.pushEvent). sync_params()가 입력 확인 지점(block_on이 끝난 뒤, maybe_yield)마다 그 값을
   실행 중인 학생 코드의 전역 변수에 넣는다. 그 전역 사전은 워커가 코드를 돌리기 직전에 bind_run_globals(globals())로 알려 준다.
@@ -57,12 +62,16 @@ __all__ = [
     "install",
     "maybe_yield",
     "notice",
+    "peek",
     "poll",
     "register_finish_hook",
+    "register_idle_hook",
     "register_reset_hook",
     "register_tick_hook",
+    "register_wait_hook",
     "request",
     "reset_for_run",
+    "run_idle",
     "sleep",
     "stop_requested",
     "sync_params",
@@ -88,7 +97,10 @@ _pending_sleep_ms = 0.0
 _reset_hooks = []
 _tick_hooks = []
 _finish_hooks = []
+_wait_hooks = []
+_idle_hooks = []
 _in_tick_hooks = False
+_in_wait_hooks = False
 # 학생 코드를 돌리는 동안만 True(bind_run_globals ~ unbind_run_globals). 마무리 훅을 실행이 끝날 때만 부르려고 쓴다.
 _run_bound = False
 # 실행 중인 학생 코드의 전역 사전(globals()). 워커가 bind_run_globals로 넣고 실행이 끝나면 unbind_run_globals로 비운다.
@@ -135,6 +147,7 @@ def block_on(promise):
     check_stop()
     if not can_wait():
         raise RuntimeError(LIMITED_MESSAGE)
+    _run_wait_hooks()
     result = run_sync(_bridge.raceStop(promise))
     if _bridge.isStopSignal(result):
         raise KeyboardInterrupt(STOP_MESSAGE)
@@ -175,6 +188,7 @@ def sleep(seconds):
         raise ValueError("sleep length must be non-negative")
     if not can_wait():
         # 제한 모드: CPython 그대로(브라우저가 멈춘 채 기다린다). [정지]는 2단계로만 된다.
+        _run_wait_hooks()
         _real_sleep(seconds)
         return
     _pending_sleep_ms += float(seconds) * 1000.0
@@ -214,6 +228,15 @@ def input(prompt=""):
 def get(name, default=None, *, raw=False):
     """화면이 보낸 최신 값(예: 슬라이더). 없으면 default. 입력 확인 지점(16ms마다 양보, 정지 확인). raw=True면 JsProxy 그대로."""
     maybe_yield()
+    value = _bridge.get(str(name))
+    if value is None:
+        return default
+    return value if raw else _to_py(value)
+
+
+def peek(name, default=None, *, raw=False):
+    """get과 같지만 양보·정지 확인·틱 훅을 하지 않는다(입력 확인 지점이 아님). 흉내 모듈의 초기화 함수·틱 훅(동기 진입점)에서
+    화면이 실행 직전에 넣어 둔 최신 값(예: 가상 보드의 배선·입력 상태)을 읽을 때 쓴다."""
     value = _bridge.get(str(name))
     if value is None:
         return default
@@ -267,6 +290,66 @@ def _run_tick_hooks() -> None:
                 notice(f"흉내 모듈 훅 오류: {type(error).__name__}: {error}", "warn")
     finally:
         _in_tick_hooks = False
+
+
+def register_wait_hook(hook) -> None:
+    """파이썬이 실제로 기다리기 직전(block_on이 약속을 기다리기 전, 제한 모드 sleep 전)마다 부를 함수를 등록한다(같은 함수는 한 번만).
+    흉내 모듈이 모아 둔 상태(가상 보드의 핀 변화 등)를 기다리기 전에 화면에 보내는 데 쓴다 — 기다리는 동안 화면이 그 상태를 그릴 수 있게.
+    훅 안에서는 양보하는 함수(sleep·request·input·block_on·get·poll)를 부르지 않는다(emit·notice·drain·peek는 된다).
+    훅이 도는 동안 다시 훅이 불리지 않고, 오류는 콘솔 알림으로 바꾸고 기다리기는 계속한다."""
+    if hook not in _wait_hooks:
+        _wait_hooks.append(hook)
+
+
+def _run_wait_hooks() -> None:
+    global _in_wait_hooks
+    if _in_wait_hooks or len(_wait_hooks) == 0:
+        return
+    _in_wait_hooks = True
+    try:
+        for hook in list(_wait_hooks):
+            try:
+                hook()
+            except KeyboardInterrupt:
+                raise
+            except Exception as error:  # 한 모듈의 훅 오류가 기다리기를 막지 않게 한다.
+                notice(f"흉내 모듈 대기 전 훅 오류: {type(error).__name__}: {error}", "warn")
+    finally:
+        _in_wait_hooks = False
+
+
+def register_idle_hook(hook) -> None:
+    """학생 코드가 끝까지 돈 뒤에도 흉내 모듈이 "계속 돌 일"이 있는지 물을 함수를 등록한다(같은 함수는 한 번만).
+    가상 보드의 Timer·핀 인터럽트처럼 실물에서는 코드가 끝나도 계속 도는 것을 흉내 내는 데 쓴다(PLAN §4.4 "스크립트가 끝난 뒤의 대기").
+    hook()은 할 일이 있으면 기다리기(sleep 등)를 한 번 한 뒤 True를, 없으면 False를 돌려준다. run_idle()이 비동기 진입점에서 부르므로
+    이 훅에서는 기다려도 된다."""
+    if hook not in _idle_hooks:
+        _idle_hooks.append(hook)
+
+
+def run_idle() -> None:
+    """워커가 학생 코드가 오류 없이 끝난 뒤 부른다(runPythonAsync — 비동기 진입점). 등록된 대기 훅 가운데 하나라도 True를 돌려주는 동안
+    되풀이한다. 할 일이 없으면 곧바로 끝난다(영상처리 실습실처럼 대기 훅이 없으면 아무 일도 하지 않는다). [정지]를 누르면 KeyboardInterrupt로 끝난다.
+    오류를 낸 훅은 콘솔에 알리고 빼서 같은 알림이 되풀이되지 않게 한다."""
+    if len(_idle_hooks) == 0:
+        return
+    while True:
+        check_stop()
+        busy = False
+        for hook in list(_idle_hooks):
+            try:
+                if hook():
+                    busy = True
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception as error:  # noqa: BLE001 — 훅 하나의 오류로 실행 결과를 바꾸지 않는다
+                notice(f"흉내 모듈 대기 훅 오류: {type(error).__name__}: {error}", "warn")
+                if hook in _idle_hooks:
+                    _idle_hooks.remove(hook)
+        if not busy:
+            return
+        # 훅이 기다리지 않고 True만 돌려줘도 브라우저가 멈추지 않게 한 번 양보한다(16ms 규칙).
+        maybe_yield()
 
 
 # ── 조절 패널 값(P2-04) ──

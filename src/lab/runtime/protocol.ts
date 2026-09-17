@@ -79,6 +79,12 @@ export interface LoadMessage {
   readonly packages: readonly string[];
   /** 시험용: JSPI가 있어도 제한 모드처럼 동작 */
   readonly forceLimited: boolean;
+  /**
+   * 이 워커를 쓰는 실습실(LabShell의 labId: vision, esp32, dev …). 있으면 워커가 그 실습실에 붙는 흉내 모듈 폴더(manifest.labs)의
+   * 파이썬 파일과 shims만 /apc에 넣는다 — 가상 보드의 machine.py·time 흉내가 영상처리 실습실에 새지 않게(P3-01, PD-04).
+   * 없으면 예전처럼 모든 모듈을 넣는다(단위 테스트·시험용).
+   */
+  readonly labId?: string;
 }
 
 export interface RunMessage {

@@ -235,7 +235,8 @@ class LabShellController implements LabController {
     this.#runLabel = elements.runButton.textContent?.trim() || '실행';
     this.examples = readExamples(root);
     const forceLimited = new URLSearchParams(window.location.search).get('limited') === '1';
-    this.runtime = new PythonRuntime({ forceLimited });
+    // labId를 넘기면 워커가 이 실습실에 붙는 흉내 모듈의 파이썬 파일만 넣는다(가상 보드의 machine·time 흉내는 ESP32 실습실에만, P3-01).
+    this.runtime = new PythonRuntime({ forceLimited, labId: this.labId });
 
     // 1. 시작 코드와 예제 정하기(파일 머리말의 순서)
     const share = hasShareHash(window.location.hash) ? parseShareHash(window.location.hash) : null;

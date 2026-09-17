@@ -37,10 +37,10 @@ import {
 } from '../../loader/constants.ts';
 import { probeUrl } from '../../loader/probe.ts';
 import {
-  PYODIDE_FALLBACK_TOTAL_BYTES,
   formatBytes,
   pyodideCdnUrl,
-  pyodidePrefetchUrls,
+  pyodidePrefetchBytesFor,
+  pyodidePrefetchUrlsFor,
   pyodideSiteUrl,
 } from '../../loader/pyodide-files.ts';
 import {
@@ -125,6 +125,14 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const setRootData = (name: string, value: string) => {
     root.dataset[`loading${name[0]!.toUpperCase()}${name.slice(1)}`] = value;
   };
+
+  // 이 실습실이 쓰는 Pyodide 패키지(LabShell pyodidePackages → data-lab-packages). 적지 않은 실습실은 null(예비본 전체 — 예전 동작).
+  // ESP32 실습실은 빈 목록이라 [미리 받기]·캐시 채우기가 파이썬 엔진만 받는다 — 쓰지 않는 OpenCV·numpy(13.7MB)를 받지 않게(PD-04, P3-01).
+  const labPackages: readonly string[] | null =
+    root.dataset.labPackages === undefined ? null : root.dataset.labPackages.split(/\s+/u).filter((name) => name !== '');
+  const prefetchBytes = pyodidePrefetchBytesFor(labPackages);
+  /** 캐시에 넣어 둘 패키지: 실습실 패키지 + 이번 방문에 실제로 받은 패키지(학생 코드의 import로 받은 것) */
+  const warmPackages = (): readonly string[] | null => (labPackages === null ? null : [...labPackages, ...runtime.loadedPackages]);
   setRootData('phase', 'idle');
   setRootData('sw', 'registering');
   setRootData('warm', 'idle');
@@ -478,7 +486,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
     warmed = true;
     setRootData('warm', 'running');
-    const result = await warmCache([...usedSiteFiles(), ...pyodidePrefetchUrls()]);
+    const result = await warmCache([...usedSiteFiles(), ...pyodidePrefetchUrlsFor(warmPackages())]);
     if (disposed) {
       return;
     }
@@ -579,10 +587,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   // ── [이 컴퓨터에 실습 파일 미리 받기] ──
   if (prefetchButton) {
-    const already = readItem(PREFETCH_DONE_NAME) === manifest.id + ':' + PYODIDE_FALLBACK_TOTAL_BYTES;
+    const already = readItem(PREFETCH_DONE_NAME) === manifest.id + ':' + prefetchBytes;
     prefetchButton.textContent = already
-      ? `실습 파일 다시 받아 두기(${formatBytes(PYODIDE_FALLBACK_TOTAL_BYTES)})`
-      : `이 컴퓨터에 실습 파일 미리 받기(${formatBytes(PYODIDE_FALLBACK_TOTAL_BYTES)})`;
+      ? `실습 파일 다시 받아 두기(${formatBytes(prefetchBytes)})`
+      : `이 컴퓨터에 실습 파일 미리 받기(${formatBytes(prefetchBytes)})`;
     prefetchButton.addEventListener('click', async () => {
       if (!navigator.serviceWorker?.controller) {
         if (prefetchStatus) {
@@ -594,7 +602,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       if (prefetchStatus) {
         prefetchStatus.textContent = '실습 파일을 받는 중이에요… 창을 닫지 마세요.';
       }
-      const result = await prefetchFiles(pyodidePrefetchUrls(), 10 * 60_000);
+      const result = await prefetchFiles(pyodidePrefetchUrlsFor(labPackages), 10 * 60_000);
       prefetchButton.disabled = false;
       if (prefetchStatus) {
         prefetchStatus.textContent = result
@@ -604,7 +612,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
           : '받기를 끝내지 못했어요. 다시 눌러 주세요.';
       }
       if (result && result.failed === 0) {
-        writeItem(PREFETCH_DONE_NAME, manifest.id + ':' + PYODIDE_FALLBACK_TOTAL_BYTES);
+        writeItem(PREFETCH_DONE_NAME, manifest.id + ':' + prefetchBytes);
       }
     });
   }
@@ -624,7 +632,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
   cleanups.push(
     context.onLab('records-cleared', () => {
       if (prefetchButton) {
-        prefetchButton.textContent = `이 컴퓨터에 실습 파일 미리 받기(${formatBytes(PYODIDE_FALLBACK_TOTAL_BYTES)})`;
+        prefetchButton.textContent = `이 컴퓨터에 실습 파일 미리 받기(${formatBytes(prefetchBytes)})`;
       }
       if (prefetchStatus) {
         prefetchStatus.textContent = '';

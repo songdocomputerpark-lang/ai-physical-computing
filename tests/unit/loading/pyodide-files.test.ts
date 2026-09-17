@@ -15,7 +15,10 @@ import {
   packageWheelSize,
   parsePyodideUrl,
   pyodideCdnUrl,
+  pyodideFilesFor,
+  pyodidePrefetchBytesFor,
   pyodidePrefetchUrls,
+  pyodidePrefetchUrlsFor,
   pyodideSiteUrl,
   twinPyodideUrl,
 } from '../../../src/lab/loader/pyodide-files.ts';
@@ -95,6 +98,18 @@ describe('주소 다루기', () => {
   it('미리 받기 목록은 표 전체(CDN 주소)다', () => {
     expect(pyodidePrefetchUrls()).toHaveLength(PYODIDE_FALLBACK_FILES.length);
     expect(pyodidePrefetchUrls()[0]).toContain('cdn.jsdelivr.net');
+  });
+
+  it('실습실이 쓰는 패키지만큼만 고른다: ESP32(가상 보드)는 파이썬 엔진만, 영상처리는 OpenCV와 기대는 numpy까지(P3-01, PD-04)', () => {
+    const core = PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core');
+    expect(pyodideFilesFor([]).map((file) => file.name)).toEqual(core.map((file) => file.name));
+    expect(pyodidePrefetchBytesFor([])).toBe(PYODIDE_CORE_BYTES);
+    expect(pyodidePrefetchUrlsFor([]).some((url) => url.endsWith('.whl'))).toBe(false);
+    expect(pyodideFilesFor(['opencv-python']).map((file) => file.name)).toEqual(PYODIDE_FALLBACK_FILES.map((file) => file.name));
+    expect(pyodideFilesFor(['numpy']).map((file) => file.package ?? file.kind)).toEqual(['core', 'core', 'core', 'core', 'core', 'numpy']);
+    expect(pyodidePrefetchBytesFor(null)).toBe(PYODIDE_FALLBACK_TOTAL_BYTES);
+    // 표에 없는 패키지는 휠이 없으니 코어만
+    expect(pyodideFilesFor(['pillow'])).toHaveLength(core.length);
   });
 
   it('찾기 도우미', () => {
