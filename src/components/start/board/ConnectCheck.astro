@@ -1,0 +1,76 @@
+---
+/**
+ * 보드 준비 페이지의 [보드 연결](연결 확인) — PLAN §8.3 P3-10 "보드를 먼저 꽂고 [연결] → [포트 선택 창에 보드가 안 보여요]",
+ * SPEC §5 보드 준비 "연결 테스트", 시나리오 C(보드 준비 → 드라이버 안내 → 펌웨어 굽기 → 예제 실행 → 실제 LED).
+ *
+ * 누르면: 포트 선택 창 → MicroPython이 있는지 확인 → 있으면 보드의 내장 LED(GPIO2)를 세 번 깜빡이고 연결을 닫는다.
+ * 결과 글과 다음에 갈 곳(연결이 안 될 때 안내 · 3단계 펌웨어 굽기 · 4단계 첫 예제)은 connect-check.ts가 connect-view.ts로 채운다.
+ * 처음 HTML은 스크립트가 뜨기 전 모습이다. 연결 코드(구역 E src/lab/serial/)는 [보드 연결]을 누른 뒤에야 받는다.
+ *
+ * props
+ *   portHelpHref      "연결이 안 될 때" 안내(기본 #port-not-found — 선택 창을 닫으면 펼친다)
+ *   firmwareHref      펌웨어 굽기 자리(기본 #firmware)
+ *   firstExampleHref  첫 예제 자리(기본 #first-example)
+ *   headingLevel      제목 단계(기본 3)
+ */
+import { getPage } from '../../../config/nav.ts';
+import './board-page.css';
+
+interface Props {
+  portHelpHref?: string;
+  firmwareHref?: string;
+  firstExampleHref?: string;
+  headingLevel?: 3 | 4;
+}
+
+const { portHelpHref = '#port-not-found', firmwareHref = '#firmware', firstExampleHref = '#first-example', headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h3' | 'h4';
+const checkPage = getPage('start-check');
+---
+
+<section
+  class="connect-check"
+  aria-labelledby="connect-check-title"
+  data-connect-check
+  data-phase="idle"
+  data-tone="neutral"
+  data-support="checking"
+  data-port-help-href={portHelpHref}
+  data-firmware-href={firmwareHref}
+  data-first-example-href={firstExampleHref}
+  data-check-page-href={checkPage.href}
+  data-pagefind-ignore
+>
+  <Heading class="connect-check__title" id="connect-check-title">보드 연결 확인</Heading>
+  <p class="connect-check__lead">
+    보드를 꽂았으면 [보드 연결]을 눌러요. 포트를 고르면 보드에 MicroPython이 있는지 확인하고, 있으면 보드의 내장 LED를 세 번 깜빡인 뒤 연결을 닫아요. 보드에 저장된 파일은 바꾸지 않아요.
+  </p>
+  <div class="connect-check__actions">
+    <button type="button" class="button button--primary button--large" data-connect-start>보드 연결</button>
+  </div>
+  <div class="connect-check__status" tabindex="-1" data-connect-status>
+    <p class="connect-check__status-title" role="status" aria-live="polite" data-connect-title>아직 연결하지 않았어요</p>
+    <p class="connect-check__status-detail" data-connect-detail>보드를 USB 케이블로 컴퓨터에 꽂고 [보드 연결]을 눌러요.</p>
+    <ol class="connect-check__steps" data-connect-steps hidden></ol>
+    <dl class="connect-check__info" data-connect-info hidden></dl>
+    <ul class="connect-check__notes" data-connect-notes hidden></ul>
+    <p class="connect-check__links" data-connect-links hidden></p>
+    <details class="connect-check__led-help" data-connect-led-help hidden>
+      <summary>LED가 깜빡이지 않았어요</summary>
+      <ul data-connect-led-help-list></ul>
+    </details>
+  </div>
+  <details class="connect-check__log-box">
+    <summary>자세한 기록(선생님께 보여 줄 때)</summary>
+    <pre class="connect-check__log" data-connect-log></pre>
+  </details>
+  <noscript>
+    <p class="connect-check__noscript">보드 연결 확인은 자바스크립트가 켜진 컴퓨터용 Chrome이나 Edge에서 돼요.</p>
+  </noscript>
+</section>
+
+<script>
+  import { mountAllConnectChecks } from './connect-check.ts';
+
+  mountAllConnectChecks();
+</script>

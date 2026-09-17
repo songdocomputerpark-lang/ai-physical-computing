@@ -1,0 +1,68 @@
+MicroPython ESP32_GENERIC v1.29.0 펌웨어 고지 (AI 피지컬 컴퓨팅 오픈랩)
+====================================================================
+
+이 폴더에는 보드 준비 페이지의 [펌웨어 굽기]가 ESP32 보드에 넣는 MicroPython 공식 펌웨어
+ESP32_GENERIC-20260824-v1.29.0.bin 을 둡니다(고치지 않은 공식 파일 그대로).
+
+- 공식 파일: https://micropython.org/resources/firmware/ESP32_GENERIC-20260824-v1.29.0.bin
+- 공식 내려받기·설치 안내: https://micropython.org/download/ESP32_GENERIC/
+- 크기 1,790,544바이트, SHA-256 e67ad6015a0a504c1fec9aa9bbf589d0432ed28e62546f4f8dd8a147f8bd95f6
+  (공식 페이지에 해시 표기가 없어, 운영자가 공식 주소에서 받은 파일로 잰 값), 굽는 위치 0x1000
+- 소스 코드: https://github.com/micropython/micropython/tree/v1.29.0
+
+[상태] 이 고지는 초안입니다(2026-09-18). 펌웨어 파일을 이 폴더에 올리기 전에, 파일에 실제로 들어간
+제3자 구성요소 목록과 각 고지 전문을 공식 소스(아래 3절의 문서)와 대조해 채웁니다.
+
+
+1. MicroPython (MIT License) — MicroPython v1.29.0 저장소의 LICENSE 파일 그대로
+--------------------------------------------------------------------------------
+
+The MIT License (MIT)
+
+Copyright (c) 2013-2026 Damien P. George
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+2. MicroPython 저장소 안의 제3자 코드 (ESP32 포트 빌드에 쓰이는 것)
+------------------------------------------------------------------
+
+MicroPython LICENSE 파일은 저장소의 제3자 코드와 라이선스를 폴더별로 요약합니다. 그 가운데
+ESP32 빌드 설정(ports/esp32/esp32_common.cmake, v1.29.0)이 빌드에 넣는 것으로 확인한 항목입니다.
+
+- lib/littlefs — BSD-3-Clause (LittleFS 파일 시스템)
+- lib/oofatfs — BSD-1-Clause (FAT 파일 시스템)
+- lib/berkeley-db-1.xx — BSD-4-Clause (ESP32 빌드에서 기본으로 켜지는 btree 모듈)
+- ports/esp32/ppp_set_auth.c — Apache-2.0
+
+각 파일의 원래 저작권·라이선스 문구는 소스 파일 머리말과 MicroPython LICENSE 파일을 따릅니다.
+
+
+3. ESP-IDF v5.5.2 (Apache-2.0)와 그 안의 제3자 구성요소
+-------------------------------------------------------
+
+이 펌웨어는 Espressif의 ESP-IDF v5.5.2로 빌드되었습니다(파일 안 앱 정보로 확인).
+ESP-IDF의 원래 코드는 Copyright (C) Espressif Systems, Apache License 2.0입니다.
+ESP-IDF 문서 "Copyrights and Licenses"(docs/en/COPYRIGHT.rst, v5.5.2)가 펌웨어에 들어갈 수 있는
+제3자 라이브러리로 적은 것: Newlib(BSD), Xtensa 헤더(MIT), FreeRTOS(MIT), lwIP(BSD),
+wpa_supplicant(BSD), Mbed TLS(Apache-2.0), mynewt-nimble(Apache-2.0), FatFs(BSD 계열),
+TLSF 할당기(BSD-3-Clause) 등.
+
+- ESP-IDF 라이선스: https://github.com/espressif/esp-idf/blob/v5.5.2/LICENSE
+- ESP-IDF 저작권·라이선스 목록: https://github.com/espressif/esp-idf/blob/v5.5.2/docs/en/COPYRIGHT.rst

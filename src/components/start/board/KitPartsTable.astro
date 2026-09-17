@@ -1,0 +1,99 @@
+---
+/**
+ * 키트 모듈명 ↔ 범용 부품 대응표(SPEC §6.2, PLAN §8.1 P1-08 → §8.3 P3-10) — 보드 준비 페이지에서 쓴다.
+ * 줄 데이터와 근거는 kit-parts.ts 머리말. 표 이름("키트 부품 이름과 범용 부품 이름")과 줄 수는 tests/e2e/start.spec.ts가 읽는다.
+ */
+import { KIT_PARTS } from './kit-parts.ts';
+---
+
+<div class="kit-table" role="region" aria-labelledby="kit-table-caption" tabindex="0">
+  <table>
+    <caption id="kit-table-caption">키트 부품 이름과 범용 부품 이름({KIT_PARTS.length}가지)</caption>
+    <thead>
+      <tr>
+        <th scope="col">키트·원고 표기</th>
+        <th scope="col">범용 부품 이름</th>
+        <th scope="col">연결 방식</th>
+        <th scope="col">교과서 예제의 핀(예)</th>
+        <th scope="col">쓰는 차시</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        KIT_PARTS.map((part) => (
+          <tr>
+            <th scope="row">{part.kitName}</th>
+            <td>
+              {part.generic}
+              {/* 줄바꿈은 Astro가 지우므로 공백을 글자로 넣는다(화면 낭독기·검색 색인에서 "실드)실물"처럼 붙지 않게). */}
+              {part.unconfirmed && ' '}
+              {part.unconfirmed && <span class="kit-table__unconfirmed">실물 확인 전: {part.unconfirmed}</span>}
+            </td>
+            <td>{part.connection}</td>
+            <td>{part.pins}</td>
+            <td>{part.lessons}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .kit-table {
+    max-width: 100%;
+    margin-block: var(--space-4) var(--space-2);
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .kit-table:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  table {
+    width: 100%;
+    min-width: 56rem;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  caption {
+    padding: var(--space-3);
+    font-weight: var(--weight-bold);
+    text-align: start;
+  }
+
+  th,
+  td {
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: var(--color-bg-muted);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+  }
+
+  tbody th {
+    font-weight: var(--weight-semibold);
+  }
+
+  .kit-table__unconfirmed {
+    display: block;
+    width: fit-content;
+    margin-block-start: var(--space-1);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+</style>

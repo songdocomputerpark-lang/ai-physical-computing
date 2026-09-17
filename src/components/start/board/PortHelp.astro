@@ -1,0 +1,390 @@
+---
+/**
+ * "포트 선택 창에 보드가 안 보여요" 안내 — 보드 준비 페이지의 접힌 상자(details#port-not-found). PLAN §8.3 P3-10 연결 흐름
+ * "[연결] → [포트 선택 창에 보드가 안 보여요] → ① 충전 전용 케이블 점검 ② 장치 관리자(포트 목록) 확인 그림 ③ 드라이버 공식 링크".
+ *
+ * 순서: ① 케이블·USB 단자 → ② 장치 관리자(그림 DeviceManagerFigure) → ③ 드라이버(자동 설치 근거·공식 링크·하드웨어 ID 보조 정보·
+ * 관리자 권한이 없으면 전산 담당에게 부탁 글) → Linux(dialout·brltty·snap Chromium) → 그래도 안 되면(점검 결과·문제 알리기).
+ * 사이트 밖 주소와 확인 날짜·근거는 links.ts 머리말. 드라이버 파일은 올리지 않는다.
+ *
+ * 주소로 여는 법(다른 페이지·실습실·굽기 화면이 쓴다): #port-not-found(상자를 펼침), #check-cable, #device-manager, #drivers,
+ * #it-request(전산 담당 부탁 글), #hardware-id, #linux, #still-not-working. 같은 #위치 링크를 다시 눌러도 펼친다.
+ * 안에는 접는 상자(details)를 두지 않는다 — tests/e2e/start.spec.ts가 details#port-not-found 안의 summary를 하나로 보고 키보드로 접고 편다.
+ * tests/e2e/start.spec.ts가 읽는 것: details#port-not-found(처음엔 접힘), 요약 글 "포트 선택 창에 보드가 안 보여요"(페이지에 하나뿐),
+ * CH341SER.EXE·CP210x 링크, dialout·brltty 명령, "Windows 10·11".
+ */
+import { getPage } from '../../../config/nav.ts';
+import { siteConfig } from '../../../config/site.ts';
+import DeviceManagerFigure from './DeviceManagerFigure.astro';
+import { DRIVER_LINKS, HARDWARE_ID_HINTS, LINUX_REFERENCES, WINDOWS_UPDATE_EVIDENCE } from './links.ts';
+
+const check = getPage('start-check');
+const windowsDriver = DRIVER_LINKS.find((item) => item.id === 'wch-windows')!;
+const silabsDriver = DRIVER_LINKS.find((item) => item.id === 'silabs')!;
+const driverFor = (id: string) => DRIVER_LINKS.find((item) => item.id === id)!;
+
+const itRequestText = [
+  '[ESP32 보드 드라이버 설치 부탁]',
+  '- 필요한 곳: (교실 이름) 컴퓨터 (대수)대',
+  '- 장치: ESP32 개발 보드(USB-시리얼 칩 CH340)',
+  `- 드라이버: WCH CH341SER.EXE(공식 페이지 ${windowsDriver.url})`,
+  `  보드 칩이 CP210x라면 Silicon Labs CP210x VCP 드라이버(공식 페이지 ${silabsDriver.url})`,
+  '- 확인 방법: 보드를 USB로 꽂고 장치 관리자 > 포트(COM & LPT)에 "USB-SERIAL CH340 (COM 번호)"가 보이면 됩니다.',
+  '- 쓰는 곳: 웹 브라우저(Chrome·Edge)의 보드 연결 기능(Web Serial). 다른 프로그램은 설치하지 않습니다.',
+].join('\n');
+---
+
+<details class="port-help" id="port-not-found">
+  <summary class="port-help__summary">포트 선택 창에 보드가 안 보여요</summary>
+  <ol class="port-steps">
+    <li class="port-steps__item">
+      <h3 id="check-cable">케이블과 USB 단자 확인하기</h3>
+      <ul>
+        <li>충전만 되는 케이블(충전 전용 케이블)은 데이터가 지나가지 않아요. 다른 케이블로 바꿔 보는 것이 가장 빨라요(<a href="#cable">케이블 그림 보기</a>).</li>
+        <li>USB 허브나 연장선 대신 컴퓨터 본체의 USB 단자에 바로 꽂아요.</li>
+        <li>보드에 전원 표시등이 있다면 켜졌는지 봐요.</li>
+        <li>포트 선택 창을 닫고, 케이블을 뽑았다가 다시 꽂은 뒤 [보드 연결]을 다시 눌러요. 꽂기 전에는 없다가 꽂은 뒤 새로 생긴 항목이 보드예요.</li>
+      </ul>
+    </li>
+    <li class="port-steps__item">
+      <h3 id="device-manager">컴퓨터가 보드를 알아보는지 확인하기(Windows 장치 관리자)</h3>
+      <ul>
+        <li>시작 단추를 마우스 오른쪽 버튼으로 누르고 <strong>장치 관리자</strong>를 열어요.</li>
+        <li>보드를 뽑았다가 다시 꽂으면서 목록이 어떻게 바뀌는지 봐요. 아래 그림의 세 모습 가운데 어느 것인지 찾아요.</li>
+      </ul>
+      <DeviceManagerFigure />
+      <ul>
+        <li>
+          <strong>포트(COM &amp; LPT)</strong> 아래에 새 이름(예: USB-SERIAL CH340 (COM3))이 생기면 컴퓨터가 보드를 알아본 거예요. 포트 선택 창에서 같은 COM 번호를 골라요.
+        </li>
+        <li><strong>기타 장치</strong> 아래에 느낌표(!)가 붙은 장치가 생기면 드라이버가 없는 거예요. 다음 단계로 가요.</li>
+        <li>꽂아도 목록이 전혀 바뀌지 않으면 케이블이나 USB 단자 문제일 가능성이 커요. 첫 단계로 돌아가요.</li>
+      </ul>
+    </li>
+    <li class="port-steps__item" id="drivers">
+      <h3>드라이버 설치하기(필요할 때만)</h3>
+      <p>
+        드라이버는 컴퓨터가 장치를 알아보게 해 주는 작은 프로그램이에요. Windows 10·11은 인터넷에 연결되어 있고 드라이버 자동 설치가 허용되어 있으면, 보드를 꽂을 때 Windows 업데이트가 드라이버를 저절로 설치하기도 해요. 잠시 기다린 뒤 장치 관리자를 다시 봐요.
+      </p>
+      <p>
+        저절로 설치되지 않으면 보드의 USB 칩에 맞는 드라이버를 만든 회사의 공식 페이지에서 받아요. 교과서 키트의 USB 칩은 CH340이에요. 칩 이름은 USB 단자 근처 작은 칩에 적힌 글자(예: CH340, CP2102)나 장치 관리자의 장치 이름에서 볼 수 있어요.
+      </p>
+      <div class="driver-table" role="region" aria-label="드라이버 공식 내려받기 페이지" tabindex="0">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">USB 칩</th>
+              <th scope="col">운영체제</th>
+              <th scope="col">만든 회사의 공식 페이지</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              DRIVER_LINKS.map((driver) => (
+                <tr data-driver={driver.id}>
+                  <th scope="row">{driver.chip}</th>
+                  <td>{driver.os}</td>
+                  <td>
+                    <a href={driver.url} rel="noopener">
+                      {driver.label}
+                    </a>{' '}
+                    <span class="driver-table__maker">({driver.maker})</span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="port-help__small">
+        이 사이트는 드라이버 파일을 따로 올려 두지 않아요. 근거(선생님용): {
+          WINDOWS_UPDATE_EVIDENCE.map((item, index) => (
+            <Fragment>
+              {index > 0 && ', '}
+              <a href={item.url} rel="noopener">{item.label}</a>
+            </Fragment>
+          ))
+        }.
+      </p>
+      <div class="port-help__box" id="it-request">
+        <h4 class="port-help__box-title">관리자 권한이 없으면: 전산 담당 선생님께 부탁하기</h4>
+        <p>드라이버 설치에는 컴퓨터 관리자 권한이 필요해요. 학교 컴퓨터처럼 권한이 없거나, 학교 컴퓨터 정책·인터넷 차단 때문에 저절로 설치되지 않으면 아래 글에 교실 이름과 대수를 채워 전산 담당 선생님께 보내요.</p>
+        <pre class="port-help__request" data-it-request-text>{itRequestText}</pre>
+        <p class="port-help__copy">
+          <button type="button" class="button button--secondary" data-it-request-copy>부탁 글 복사</button>
+          <span class="port-help__copy-status" role="status" aria-live="polite" data-it-request-status></span>
+        </p>
+      </div>
+      <div class="port-help__box" id="hardware-id">
+        <h4 class="port-help__box-title">칩 이름을 모를 때: 하드웨어 ID로 찾기(참고)</h4>
+        <p>장치 관리자에서 느낌표가 붙은 장치를 두 번 눌러 [자세히] 탭을 열고, 속성에서 [하드웨어 ID]를 골라요. 값에 들어 있는 번호로 칩을 알 수 있어요. 번호는 드라이버를 고를 때 보는 참고일 뿐이에요.</p>
+        <ul>
+          {
+            HARDWARE_ID_HINTS.map((hint) => (
+              <li>
+                <code>{hint.id}</code>: {hint.chip} → {driverFor(hint.driver).label}
+              </li>
+            ))
+          }
+          <li>표에 없는 번호라면 보드를 산 곳의 안내를 봐요.</li>
+        </ul>
+      </div>
+    </li>
+    <li class="port-steps__item" id="linux">
+      <h3>Linux(우분투 등)라면</h3>
+      <ul>
+        <li>
+          포트를 쓸 권한이 필요해요. 터미널에서 <code>sudo usermod -a -G dialout $USER</code>를 실행한 뒤, 로그아웃했다가 다시 로그인해요.
+        </li>
+        <li>
+          보드를 꽂자마자 포트가 사라지면, 점자 단말기용 프로그램 brltty가 CH340 같은 USB-시리얼 장치를 잘못 가져가는 경우예요. <code>sudo dmesg | grep brltty</code>에 "claimed by ch341 while 'brltty'" 같은 줄이 보이면 그 경우예요(<a href={LINUX_REFERENCES.brlttyBug.url} rel="noopener">{LINUX_REFERENCES.brlttyBug.label}</a>). 점자 단말기를 쓰지 않는 컴퓨터라면 <code>sudo apt remove brltty</code>로 지운 뒤 보드를 다시 꽂아요. 점자 단말기를 쓰는 컴퓨터에서는 지우지 말고 담당자와 상의해요.
+        </li>
+        <li>
+          우분투에 기본으로 들어 있는 Chromium은 snap 꾸러미라서 보드 포트를 쓰는 권한이 처음에 꺼져 있어요. 터미널에서 <code>sudo snap connect chromium:raw-usb</code>를 실행하고 Chromium을 다시 열어요(<a href={LINUX_REFERENCES.snapChromiumBug.url} rel="noopener">{LINUX_REFERENCES.snapChromiumBug.label}</a>, <a href={LINUX_REFERENCES.snapRawUsb.url} rel="noopener">{LINUX_REFERENCES.snapRawUsb.label}</a>). Google Chrome이나 Microsoft Edge를 설치해 쓰면 이 설정은 필요 없어요.
+        </li>
+      </ul>
+    </li>
+    <li class="port-steps__item" id="still-not-working">
+      <h3>그래도 안 되면</h3>
+      <ul>
+        <li>다른 USB 단자나 다른 컴퓨터에 꽂아 봐요. 문제가 보드에 있는지 컴퓨터에 있는지 가를 수 있어요.</li>
+        <li>
+          <a href={check.href}>{check.title}</a> 페이지의 [결과 복사] 글과 함께 <a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a>에 남겨 주세요.
+        </li>
+      </ul>
+    </li>
+  </ol>
+  <p class="port-help__back"><a href="#connect">다 확인했으면 2단계 [보드 연결]로 돌아가기</a></p>
+</details>
+
+<script>
+  // 주소가 #port-not-found(또는 그 안의 #위치)로 열리거나 그곳을 가리키는 링크를 누르면 안내를 펼친다.
+  const INNER_TARGETS = ['check-cable', 'device-manager', 'drivers', 'it-request', 'hardware-id', 'linux', 'still-not-working'];
+
+  const openFor = (hash: string, scroll: boolean) => {
+    const id = decodeURIComponent(hash.replace(/^#/u, ''));
+    const details = document.getElementById('port-not-found');
+    if (!(details instanceof HTMLDetailsElement) || (id !== 'port-not-found' && !INNER_TARGETS.includes(id))) {
+      return;
+    }
+    details.open = true;
+    if (scroll) {
+      document.getElementById(id)?.scrollIntoView();
+    }
+  };
+
+  openFor(location.hash, true);
+  window.addEventListener('hashchange', () => openFor(location.hash, true));
+  // 이미 같은 #위치에 있으면 링크를 눌러도 hashchange가 오지 않으므로 누를 때도 펼친다(브라우저가 스크롤한다)
+  document.addEventListener('click', (event) => {
+    const anchor = event.target instanceof Element ? event.target.closest('a[href*="#"]') : null;
+    if (!(anchor instanceof HTMLAnchorElement)) {
+      return;
+    }
+    const url = new URL(anchor.href, location.href);
+    if (url.pathname === location.pathname && url.hash) {
+      openFor(url.hash, false);
+    }
+  });
+
+  // 전산 담당 부탁 글 복사
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-it-request-copy]');
+  const requestText = document.querySelector<HTMLElement>('[data-it-request-text]');
+  const copyStatus = document.querySelector<HTMLElement>('[data-it-request-status]');
+  copyButton?.addEventListener('click', async () => {
+    const text = requestText?.textContent ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      if (copyStatus) {
+        copyStatus.textContent = '복사했어요. 메신저나 메일에 붙여 넣어요.';
+      }
+    } catch {
+      // 클립보드를 쓸 수 없으면 글을 골라 두어 Ctrl+C로 복사하게 한다
+      if (requestText) {
+        const range = document.createRange();
+        range.selectNodeContents(requestText);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      if (copyStatus) {
+        copyStatus.textContent = '글을 골라 두었어요. Ctrl+C를 눌러 복사해요.';
+      }
+    }
+  });
+</script>
+
+<style>
+  .port-help {
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+  }
+
+  .port-help__summary {
+    display: flex;
+    align-items: center;
+    min-height: 3.5rem;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg);
+    color: var(--color-accent-hover);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+    list-style-position: inside;
+  }
+
+  .port-help__summary:hover {
+    background: var(--color-accent-soft);
+  }
+
+  /* summary를 flex로 두면 기본 펼침 표시(▸)가 사라지므로 직접 그린다(펼치면 90도 돌림) */
+  .port-help__summary::before {
+    flex: none;
+    width: 0;
+    height: 0;
+    margin-inline-end: var(--space-3);
+    border-block: 0.4em solid transparent;
+    border-inline-start: 0.55em solid currentColor;
+    content: '';
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .port-help[open] > .port-help__summary::before {
+    transform: rotate(90deg);
+  }
+
+  .port-help[open] > .port-help__summary {
+    border-bottom: 1px solid var(--color-border);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .port-steps {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: var(--space-5) var(--space-5) var(--space-4) calc(var(--space-5) + 1.5em);
+  }
+
+  /* 격자 칸의 최소 너비를 0으로 둔다. 기본값(auto)이면 드라이버 표·그림의 최소 너비만큼 칸이 넓어져 좁은 화면에서 페이지가 옆으로 넘친다. */
+  .port-steps__item {
+    min-width: 0;
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .port-steps__item::marker {
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-bold);
+  }
+
+  .port-steps__item > h3 {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .port-steps__item > * + * {
+    margin-block-start: var(--space-3);
+  }
+
+  .port-steps__item ul {
+    display: grid;
+    gap: var(--space-2);
+    padding-inline-start: 1.25em;
+  }
+
+  .port-steps code {
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .port-help__small {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .port-help__box {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .port-help__box > * + * {
+    margin-block-start: var(--space-2);
+  }
+
+  .port-help__box-title {
+    font-size: var(--text-base);
+  }
+
+  .port-help__request {
+    margin: 0;
+    padding: var(--space-3);
+    overflow-x: auto;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .port-help__copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .port-help__copy-status {
+    color: var(--color-success-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .port-help__back {
+    margin: 0;
+    padding: 0 var(--space-5) var(--space-5);
+    font-weight: var(--weight-semibold);
+  }
+
+  .driver-table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .driver-table:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .driver-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .driver-table th,
+  .driver-table td {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .driver-table thead th {
+    background: var(--color-bg-muted);
+  }
+
+  .driver-table__maker {
+    color: var(--color-text-muted);
+  }
+</style>

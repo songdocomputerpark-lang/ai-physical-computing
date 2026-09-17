@@ -1,0 +1,479 @@
+/*
+ * 펌웨어 굽기 화면 모양(src/lab/firmware/markup.ts가 그린 HTML) — PLAN §8.3 P3-09.
+ * 색·간격은 디자인 토큰(src/styles/tokens.css)만 쓴다. 상태는 색과 함께 글자("끝·진행 중")로도 보인다(SPEC §9).
+ * HTML을 글자로 만들어 넣으므로 Astro의 범위 스타일 대신 fw 머리말 클래스로 이 화면에만 건다.
+ * 페이지의 글 읽기 틀(.prose — 목록 들여쓰기·제목 여백) 안에 놓여도 모양이 같도록 선택자를 모두 .fw 아래에 둔다.
+ */
+
+.fw {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--width-prose);
+  margin-block: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+
+.fw [hidden] {
+  display: none !important;
+}
+
+.fw > * {
+  margin: 0;
+}
+
+.fw .fw__title {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.fw .fw__facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.fw .fw__fact {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.fw .fw__fact dt {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-semibold);
+}
+
+.fw .fw__fact dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.fw .fw__notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-info-border);
+  border-radius: var(--radius-md);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+}
+
+.fw .fw__notice p {
+  margin: 0;
+}
+
+.fw .fw__notice p + p {
+  margin-block-start: var(--space-2);
+}
+
+.fw .fw__notice--warning {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.fw .fw__notice-title {
+  font-weight: var(--weight-bold);
+}
+
+.fw .fw__run {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.fw .fw__options {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fw .fw__check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.fw .fw__check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  flex: none;
+  accent-color: var(--color-accent);
+}
+
+.fw .fw__check input:disabled + span {
+  color: var(--color-text-muted);
+}
+
+.fw .fw__hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.fw .fw__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* 누를 수 없는 단추는 흐리게(실습실 틀 LabShell과 같은 값) */
+.fw .button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fw .fw__warning {
+  margin: 0;
+  color: var(--color-warning-text);
+  font-weight: var(--weight-semibold);
+}
+
+.fw .fw__stages {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: fw-stage;
+}
+
+.fw .fw-stage {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  counter-increment: fw-stage;
+}
+
+.fw .fw-stage__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.fw .fw-stage__mark::before {
+  content: counter(fw-stage);
+}
+
+.fw .fw-stage__body {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.fw .fw-stage__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.fw .fw-stage__name {
+  font-weight: var(--weight-semibold);
+}
+
+.fw .fw-stage__state {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.fw .fw-stage__detail {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.fw .fw-stage[data-stage-state='active'] {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}
+
+.fw .fw-stage[data-stage-state='active'] .fw-stage__mark {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.fw .fw-stage[data-stage-state='active'] .fw-stage__state {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.fw .fw-stage[data-stage-state='done'] .fw-stage__mark {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.fw .fw-stage[data-stage-state='done'] .fw-stage__mark::before {
+  content: '✓';
+}
+
+.fw .fw-stage[data-stage-state='done'] .fw-stage__state {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.fw .fw-stage[data-stage-state='skipped'] {
+  border-style: dashed;
+}
+
+.fw .fw-stage[data-stage-state='skipped'] .fw-stage__mark::before {
+  content: '–';
+}
+
+.fw .fw-stage[data-stage-state='failed'] {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+.fw .fw-stage[data-stage-state='failed'] .fw-stage__mark {
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+}
+
+.fw .fw-stage[data-stage-state='failed'] .fw-stage__mark::before {
+  content: '!';
+}
+
+.fw .fw-stage[data-stage-state='failed'] .fw-stage__state {
+  background: var(--color-danger-text);
+  color: var(--color-on-accent);
+}
+
+.fw .fw-stage__progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.fw .fw-progress {
+  width: min(100%, 18rem);
+  height: 0.875rem;
+  accent-color: var(--color-accent);
+}
+
+.fw .fw-stage__progress-text {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.fw .fw__result {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4);
+  border: 2px solid var(--color-success-border);
+  border-radius: var(--radius-md);
+  background: var(--color-success-bg);
+  color: var(--color-text);
+}
+
+.fw .fw__result:focus-visible,
+.fw .fw__result:focus {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.fw .fw__result p {
+  margin: 0;
+}
+
+.fw .fw__result ol {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+
+.fw .fw__result li + li {
+  margin: 0;
+}
+
+.fw .fw__result-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.fw .fw__result--done .fw__result-title {
+  color: var(--color-success-text);
+}
+
+.fw .fw__result--error {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+.fw .fw__result--error .fw__result-title {
+  color: var(--color-danger-text);
+}
+
+.fw .fw__result--error[data-tone='notice'] {
+  border-color: var(--color-info-border);
+  background: var(--color-info-bg);
+}
+
+.fw .fw__result--error[data-tone='notice'] .fw__result-title {
+  color: var(--color-info-text);
+}
+
+.fw .fw__help-link {
+  font-weight: var(--weight-semibold);
+}
+
+/* 끝 상자의 [ESP32 실습실로 가기]와 "보드 연결 다시 확인하기"(보드 준비 페이지에서만) */
+.fw .fw__done-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.fw .fw__raw > summary,
+.fw .fw__manual > summary,
+.fw .fw__log-box > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--target-min);
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+}
+
+/* summary를 flex로 두면 기본 펼침 표시(▸)가 사라지므로 직접 그린다(펼치면 90도 돌림) */
+.fw .fw__raw > summary::before,
+.fw .fw__manual > summary::before,
+.fw .fw__log-box > summary::before {
+  flex: none;
+  width: 0;
+  height: 0;
+  margin-inline-end: var(--space-2);
+  border-block: 0.35em solid transparent;
+  border-inline-start: 0.5em solid currentColor;
+  content: '';
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.fw .fw__raw[open] > summary::before,
+.fw .fw__manual[open] > summary::before,
+.fw .fw__log-box[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.fw .fw__raw pre,
+.fw .fw__log {
+  max-height: 16rem;
+  margin: 0;
+  padding: var(--space-3);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.fw .fw__manual {
+  border-top: 1px solid var(--color-border);
+  padding-block-start: var(--space-2);
+}
+
+.fw .fw__manual-body {
+  display: grid;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.fw .fw__manual-body > * {
+  margin: 0;
+}
+
+.fw .fw__manual-body > .fw__manual-title {
+  margin-block-start: var(--space-2);
+  font-size: var(--text-base);
+}
+
+.fw .fw__manual-body ol,
+.fw .fw__manual-body ul {
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: 1.25em;
+}
+
+.fw .fw__manual-body li + li {
+  margin: 0;
+}
+
+.fw .fw__code {
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.fw .fw__file-info {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fw .fw__file-info > div {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.fw .fw__file-info dt {
+  color: var(--color-text-muted);
+}
+
+.fw .fw__file-info dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.fw .fw__hash {
+  word-break: break-all;
+}
+
+@media (max-width: 30rem) {
+  .fw {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .fw .fw__fact,
+  .fw .fw__file-info > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .fw .fw__actions .button {
+    width: 100%;
+  }
+}

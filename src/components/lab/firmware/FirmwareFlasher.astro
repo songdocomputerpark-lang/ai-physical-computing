@@ -1,0 +1,69 @@
+---
+/**
+ * 펌웨어 굽기 화면(PLAN §8.3 P3-09, SPEC §6.2 "[펌웨어 굽기] 원클릭, 진행률, 지원 브라우저가 아니면 안내").
+ *
+ * 쓰는 곳: 보드 준비 페이지(src/pages/start/board/index.astro)의 "3단계: 보드에 MicroPython 굽기" 자리(#firmware).
+ *   import FirmwareFlasher from '../../../components/lab/firmware/FirmwareFlasher.astro';
+ *   <FirmwareFlasher headingLevel={3} labHref={첫 예제 주소} checkHref="#connect" />
+ *
+ * props
+ *   headingLevel  제목 단계(기본 3 — 페이지의 <h2> 아래). 선생님용 접힘 안의 소제목은 한 단계 아래.
+ *   title         제목 글(기본 "펌웨어 굽기", null이면 제목 없이 aria-label)
+ *   labHref       끝났을 때 [ESP32 실습실로 가기] 주소(기본 /labs/esp32/ — 보드 준비 페이지는 첫 예제 주소를 넘긴다)
+ *   portHelpHref  "포트 선택 창에 보드가 안 보여요" 주소(기본 보드 준비 페이지의 #port-not-found)
+ *   checkHref     (선택) 끝났을 때 "이 페이지에서 보드 연결 다시 확인하기" 링크 주소(보드 준비 페이지의 #connect). 없으면 그리지 않는다
+ *   idPrefix      id 앞머리(한 페이지에 둘 넣을 때만)
+ *
+ * 펌웨어 정보는 public/firmware/manifest.json(첫 항목)을 빌드할 때 읽어 HTML에 심는다(src/lab/firmware/manifest-file.ts).
+ * HTML은 src/lab/firmware/markup.ts, 움직임은 src/lab/firmware/controller.ts, 굽기 순서는 flasher.ts(esptool-js는 누른 뒤에만 받는다).
+ * 같은 페이지의 [보드 연결](연결 확인)이 포트를 열어 두었으면 굽기 전에 닫게 한다(src/lab/firmware/port-release.ts).
+ * 화면 안 글은 검색 색인에서 뺀다(data-pagefind-ignore) — 찾아올 낱말은 페이지의 제목·본문에 쓴다.
+ */
+import { renderFirmwareFlasherHtml } from '../../../lab/firmware/markup.ts';
+import { readFirmwareManifestFile } from '../../../lab/firmware/manifest-file.ts';
+import { withBase } from '../../../lib/url.ts';
+import './firmware-flasher.css';
+
+interface Props {
+  headingLevel?: 2 | 3 | 4;
+  title?: string | null;
+  labHref?: string;
+  portHelpHref?: string;
+  checkHref?: string | null;
+  idPrefix?: string;
+}
+
+const {
+  headingLevel = 3,
+  title = '펌웨어 굽기',
+  labHref = withBase('labs/esp32/'),
+  portHelpHref = withBase('start/board/#port-not-found'),
+  checkHref = null,
+  idPrefix = 'firmware',
+} = Astro.props;
+
+const { files } = readFirmwareManifestFile();
+const first = files[0]!;
+const html = renderFirmwareFlasherHtml({
+  firmware: first.info,
+  fileUrl: withBase(first.info.path),
+  noticeUrl: first.info.noticePath !== null && first.noticePresent ? withBase(first.info.noticePath) : null,
+  fileAtBuild: first.present,
+  labHref,
+  portHelpHref,
+  checkHref,
+  title,
+  headingLevel,
+  idPrefix,
+});
+---
+
+<div class="fw-host" data-pagefind-ignore>
+  <Fragment set:html={html} />
+</div>
+
+<script>
+  import { mountAllFirmwareFlashers } from '../../../lab/firmware/controller.ts';
+
+  mountAllFirmwareFlashers();
+</script>

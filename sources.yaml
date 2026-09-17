@@ -378,9 +378,10 @@ sources:
     fetched: 2026-09-16
 
   # 모델 파일은 저장소에 커밋해요(PD-13, 파일마다 10MB 이하 — 5MB를 넘는 파일은 scripts/repo-allowlist.yaml의 large_files에 경로·이유·max_mb를 적어요).
-  # 파일 이름과 받은 판(버전)·크기·날짜는 파일을 실제로 내려받은 사람이 이 주석에 덧붙여요. **2026-09-16 현재 public/models/는 비어 있어요**
-  #   — 파일 내려받기는 운영자 몫이라(결정 위임의 예외) P2-08·P2-09는 코드만 넣고 파일은 두지 않았어요. 없으면 실습실이 '모델 없음'을 한국어로 알리고
-  #   합성 재생 입력으로 실습을 이어요(사이트는 깨지지 않아요). 받을 파일(모두 버전 경로 float16/1, 주소 앞은 https://storage.googleapis.com/mediapipe-models/):
+  # **2026-09-18(P3-11 통합): 운영자가 공식 주소에서 받아 MD5를 검증한 파일 5개를 public/models/에 넣었어요**(운영자 할 일 17번 완료 —
+  #   파일 내려받기는 운영자 몫이라 Claude는 받지 않고, 운영자가 검증 스크립트를 직접 돌린 뒤 .cache/models-staging/에 둔 것을 옮겼어요.
+  #   옮긴 뒤 크기·MD5를 다시 대조해 아래 값과 모두 같음을 확인했어요). 모델이 없어도 실습실은 '모델 없음'을 한국어로 알리고 합성 재생 입력으로 이어져요.
+  #   받은 파일(모두 버전 경로 float16/1, 주소 앞은 https://storage.googleapis.com/mediapipe-models/):
   #     hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task            7,819,105B  MD5 15318430ea3851670fe9914116a9cfad
   #     face_landmarker/face_landmarker/float16/1/face_landmarker.task            3,758,596B  MD5 b0e7274907a1644404fef66b28dd6d85
   #     pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task  9,398,198B  MD5 83879689d373d143be094c972355e48e
@@ -397,7 +398,32 @@ sources:
     paths:
       - public/models/**
     notice: public/licenses/mediapipe-tasks-vision.txt
-    fetched: 2026-09-16
+    fetched: 2026-09-17
+
+  # ── 펌웨어 굽기(PLAN §8.3 P3-09·P3-10, PD-38) ──
+  - name: 펌웨어 굽기 목록(public/firmware/manifest.json)
+    category: self
+    author: 박상진·김석전
+    license: MIT
+    used_in: "보드 준비 페이지의 [펌웨어 굽기](P3-09)가 빌드할 때 읽는 펌웨어 정보(판·파일 경로·크기·SHA-256·굽는 위치·공식 주소). 사이트가 만든 데이터예요."
+    paths:
+      - public/firmware/manifest.json
+
+  # MicroPython ESP32 펌웨어(P3-09). 공식 파일을 고치지 않고 같은 사이트에서 내보내요(PLAN PD-02·PD-13 — micropython.org 응답에 CORS 허용
+  # 헤더가 없어 학생 브라우저가 직접 받지 못해요). 파일 정보(2026-09-18 공식 내려받기 페이지 확인):
+  #   /resources/firmware/ESP32_GENERIC-20260824-v1.29.0.bin, v1.29.0(2026-08-24), 설치 위치 0x1000.
+  # 공식 페이지에 해시 표기가 없어 운영자가 2026-09-17에 받아 검증한 파일로 잰 값을 적어요(P3-11 통합에서 옮긴 뒤 다시 대조):
+  #   1,790,544바이트, SHA-256 e67ad6015a0a504c1fec9aa9bbf589d0432ed28e62546f4f8dd8a147f8bd95f6.
+  - name: MicroPython ESP32_GENERIC v1.29.0 펌웨어
+    category: stack
+    author: "Damien P. George와 MicroPython 기여자. 펌웨어 안의 ESP-IDF v5.5.2 등 제3자 구성요소는 각 저작자(고지 파일)"
+    license: MIT
+    url: https://micropython.org/download/ESP32_GENERIC/
+    used_in: "보드 준비 페이지의 [펌웨어 굽기](P3-09)가 ESP32 보드에 굽는 공식 펌웨어(public/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin)와 그 고지(NOTICE.txt). 고치지 않고 그대로 배포해요."
+    paths:
+      - public/firmware/v1.29.0/**
+    notice: public/firmware/v1.29.0/NOTICE.txt
+    fetched: 2026-09-17
 
   # ── 재방문 캐시 서비스 워커(PLAN §5.3 PD-11, P2-05) ──
   # workbox-build는 빌드 때만 도는 개발 도구(devDependency)라 npm 목록에 적지 않지만, 만들어진 sw.js 안에 Workbox 실행 코드(MIT)가 들어가

@@ -1,31 +1,34 @@
----
 /**
- * 키트 모듈명 ↔ 범용 부품 대응표(SPEC §6.2, PLAN §8.1 P1-08).
- * 근거: docs/INVENTORY.md §4.1 부품 목록(원고·교안 사진과 코드에서 읽은 표기)과 §4.2 핀 불일치, §10.5 실물 미확정 목록.
+ * 키트 모듈명 ↔ 범용 부품 대응표의 줄(SPEC §6.2 "특정 키트를 쓰는 학교를 위해 키트 모듈명 ↔ 범용 부품 대응표", PLAN §8.3 P3-10).
+ * 보드 준비 페이지(src/pages/start/board/)의 KitPartsTable.astro가 이 목록을 그린다. 줄을 고칠 때는 이 목록만 고친다.
+ *
+ * 근거: docs/INVENTORY.md §4.1 부품 목록(원고·교안 사진과 코드에서 읽은 표기)·§4.2 핀 불일치·§10.5 실물 미확정 목록,
+ * PLAN 부록 A PD-36(진동 모터 GPIO19 — 원고에 핀이 없어 사이트가 정함, P3-02), PD-34(디지털 터치 GPIO17).
  * - "키트·원고 표기"는 교과서 원고와 수업 교안에 적힌 이름이다. 범용 이름은 다른 회사 부품을 살 때 찾아보는 이름이다.
- * - 핀 번호는 차시마다 달라서(PD-05) 예만 적었다. 실습할 때는 그 차시의 배선도를 따른다.
- * - 실물로 확인하지 못한 사실에는 "실물 확인 전"을 붙였다(DECISIONS §3, 운영자 할 일 2번).
- * 줄을 고칠 때는 이 목록만 고친다.
+ * - 핀 번호는 차시마다 달라서(PD-05) 예만 적었다. 실습할 때는 그 차시의 배선도(ESP32 실습실 보드 그림)를 따른다.
+ * - 실물로 확인하지 못한 사실에는 unconfirmed를 적는다 → 화면에 "실물 확인 전"(DECISIONS §3, 운영자 할 일 2번·PLAN 부록 B-2).
+ * P1-08의 src/components/start/KitPartsTable.astro에서 옮기며 진동 모터 줄을 P3-02 결정(GPIO19)에 맞췄다(2026-09-18).
  */
-interface KitPart {
+
+export interface KitPart {
   /** 키트·원고에 적힌 이름 */
-  kitName: string;
+  readonly kitName: string;
   /** 범용 부품 이름 */
-  generic: string;
+  readonly generic: string;
   /** 연결 방식 */
-  connection: string;
+  readonly connection: string;
   /** 교과서 예제에서 쓴 핀(예) */
-  pins: string;
+  readonly pins: string;
   /** 쓰는 차시(사이트 차시 번호) */
-  lessons: string;
+  readonly lessons: string;
   /** 실물로 확인하지 못한 점(없으면 비움) */
-  unconfirmed?: string;
+  readonly unconfirmed?: string;
 }
 
-const parts: KitPart[] = [
+export const KIT_PARTS: readonly KitPart[] = Object.freeze([
   {
     kitName: 'ESP32 개발 보드(모듈 표기 ESP-WROOM-32)',
-    generic: 'ESP32 개발 보드(ESP-WROOM-32 모듈)',
+    generic: 'ESP32 개발 보드(ESP-WROOM-32 모듈, 30핀)',
     connection: 'USB-C 케이블(프로그램 올리기·전원)',
     pins: '내장 LED GPIO2, BOOT 버튼 GPIO0',
     lessons: '2-1-1부터 보드를 쓰는 모든 차시',
@@ -133,10 +136,10 @@ const parts: KitPart[] = [
   {
     kitName: 'Vibration Motor 진동모터',
     generic: '진동 모터 모듈(3핀: GND·VCC·신호)',
-    connection: '디지털 출력 또는 PWM',
-    pins: '원고에 핀이 없어 사이트가 정할 예정',
-    lessons: '2-2-1(새 예제 예정)',
-    unconfirmed: '사이트가 정할 핀으로 움직이는지',
+    connection: '디지털 출력(켜기·끄기) 또는 PWM(세기)',
+    pins: 'GPIO19(원고에 핀이 없어 사이트가 정한 핀)',
+    lessons: '2-2-1(사이트 새 예제)',
+    unconfirmed: 'GPIO19에 꽂았을 때 실제로 떨리는지',
   },
   {
     kitName: 'USB to UART Converter',
@@ -146,97 +149,4 @@ const parts: KitPart[] = [
     lessons: '3-1-2',
     unconfirmed: '칩 종류와 TX·RX 연결 방향',
   },
-];
----
-
-<div class="kit-table" role="region" aria-labelledby="kit-table-caption" tabindex="0">
-  <table>
-    <caption id="kit-table-caption">키트 부품 이름과 범용 부품 이름({parts.length}가지)</caption>
-    <thead>
-      <tr>
-        <th scope="col">키트·원고 표기</th>
-        <th scope="col">범용 부품 이름</th>
-        <th scope="col">연결 방식</th>
-        <th scope="col">교과서 예제의 핀(예)</th>
-        <th scope="col">쓰는 차시</th>
-      </tr>
-    </thead>
-    <tbody>
-      {
-        parts.map((part) => (
-          <tr>
-            <th scope="row">{part.kitName}</th>
-            <td>
-              {part.generic}
-              {/* 줄바꿈은 Astro가 지우므로 공백을 글자로 넣는다(화면 낭독기·검색 색인에서 "실드)실물"처럼 붙지 않게). */}
-              {part.unconfirmed && ' '}
-              {part.unconfirmed && <span class="kit-table__unconfirmed">실물 확인 전: {part.unconfirmed}</span>}
-            </td>
-            <td>{part.connection}</td>
-            <td>{part.pins}</td>
-            <td>{part.lessons}</td>
-          </tr>
-        ))
-      }
-    </tbody>
-  </table>
-</div>
-
-<style>
-  .kit-table {
-    max-width: 100%;
-    margin-block: var(--space-4) var(--space-2);
-    overflow-x: auto;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-  }
-
-  .kit-table:focus-visible {
-    outline: var(--focus-ring-width) solid var(--color-focus);
-    outline-offset: var(--focus-ring-offset);
-  }
-
-  table {
-    width: 100%;
-    min-width: 56rem;
-    border-collapse: collapse;
-    font-size: var(--text-sm);
-    line-height: var(--leading-snug);
-  }
-
-  caption {
-    padding: var(--space-3);
-    font-weight: var(--weight-bold);
-    text-align: start;
-  }
-
-  th,
-  td {
-    padding: var(--space-2) var(--space-3);
-    border-top: 1px solid var(--color-border);
-    text-align: start;
-    vertical-align: top;
-  }
-
-  thead th {
-    background: var(--color-bg-muted);
-    font-weight: var(--weight-semibold);
-    white-space: nowrap;
-  }
-
-  tbody th {
-    font-weight: var(--weight-semibold);
-  }
-
-  .kit-table__unconfirmed {
-    display: block;
-    width: fit-content;
-    margin-block-start: var(--space-1);
-    padding: 0 var(--space-2);
-    border-radius: var(--radius-sm);
-    background: var(--color-warning-bg);
-    color: var(--color-warning-text);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-  }
-</style>
+]);

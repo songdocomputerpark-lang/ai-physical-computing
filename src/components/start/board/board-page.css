@@ -1,0 +1,215 @@
+/*
+ * 보드 준비 페이지 [보드 연결](연결 확인) 모양 — ConnectCheck.astro. PLAN §8.3 P3-10.
+ * 결과 글·목록·링크는 스크립트(connect-check.ts)가 만들어 넣어 Astro의 범위 스타일이 닿지 않으므로, connect-check 머리말 클래스로 이 화면에만 건다.
+ * 색·간격은 디자인 토큰(src/styles/tokens.css)만 쓰고, 상태는 색과 함께 글(제목)로도 알린다(SPEC §9).
+ */
+
+.connect-check {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--width-prose);
+  margin-block: var(--space-6);
+  padding: var(--space-5);
+  border: 2px solid var(--color-accent-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+
+.connect-check [hidden] {
+  display: none !important;
+}
+
+.connect-check > * {
+  margin: 0;
+}
+
+.connect-check .connect-check__title {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.connect-check .connect-check__lead {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.connect-check .connect-check__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.connect-check .button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.connect-check .connect-check__status {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 4px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+  line-height: var(--leading-snug);
+}
+
+.connect-check .connect-check__status:focus-visible,
+.connect-check .connect-check__status:focus {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.connect-check .connect-check__status > * {
+  margin: 0;
+}
+
+.connect-check .connect-check__status-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.connect-check[data-tone='progress'] .connect-check__status {
+  border-inline-start-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.connect-check[data-tone='success'] .connect-check__status {
+  border-inline-start-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.connect-check[data-tone='success'] .connect-check__status-title {
+  color: var(--color-success-text);
+}
+
+.connect-check[data-tone='warning'] .connect-check__status {
+  border-inline-start-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+}
+
+.connect-check[data-tone='warning'] .connect-check__status-title {
+  color: var(--color-warning-text);
+}
+
+.connect-check[data-tone='danger'] .connect-check__status {
+  border-inline-start-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+.connect-check[data-tone='danger'] .connect-check__status-title {
+  color: var(--color-danger-text);
+}
+
+.connect-check .connect-check__steps,
+.connect-check .connect-check__notes {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+
+.connect-check .connect-check__steps li + li,
+.connect-check .connect-check__notes li + li {
+  margin: 0;
+}
+
+.connect-check .connect-check__info {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.connect-check .connect-check__info-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.connect-check .connect-check__info-row dt {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-semibold);
+}
+
+.connect-check .connect-check__info-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.connect-check .connect-check__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+}
+
+.connect-check .connect-check__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  font-weight: var(--weight-semibold);
+}
+
+.connect-check .connect-check__led-help > summary,
+.connect-check .connect-check__log-box > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--target-min);
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+}
+
+.connect-check .connect-check__led-help > summary::before,
+.connect-check .connect-check__log-box > summary::before {
+  flex: none;
+  width: 0;
+  height: 0;
+  margin-inline-end: var(--space-2);
+  border-block: 0.35em solid transparent;
+  border-inline-start: 0.5em solid currentColor;
+  content: '';
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.connect-check .connect-check__led-help[open] > summary::before,
+.connect-check .connect-check__log-box[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.connect-check .connect-check__led-help ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+
+.connect-check .connect-check__log {
+  max-height: 14rem;
+  margin: 0;
+  padding: var(--space-3);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.connect-check .connect-check__noscript {
+  color: var(--color-warning-text);
+  font-weight: var(--weight-semibold);
+}
+
+@media (max-width: 30rem) {
+  .connect-check {
+    padding: var(--space-4);
+  }
+
+  .connect-check .connect-check__info-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$comment": "펌웨어 굽기 화면(P3-09)이 쓰는 펌웨어 목록. 첫 항목이 기본 펌웨어예요. 고치는 법과 필드 설명은 src/lab/firmware/manifest.ts 머리말. 파일(.bin)은 path 위치(public/ 아래)에 두고, 없으면 화면이 '펌웨어 파일 준비 중'을 보여요. size·sha256은 운영자가 공식 주소에서 받은 파일로 잰 값이에요(2026-09-17 운영자 확인 — 공식 페이지에는 해시 표기가 없음).",
+  "schema": 1,
+  "firmware": [
+    {
+      "id": "micropython-esp32-generic",
+      "title": "MicroPython",
+      "board": "ESP32_GENERIC",
+      "chip": "ESP32",
+      "version": "1.29.0",
+      "releaseDate": "2026-08-24",
+      "path": "firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin",
+      "size": 1790544,
+      "sha256": "e67ad6015a0a504c1fec9aa9bbf589d0432ed28e62546f4f8dd8a147f8bd95f6",
+      "offset": "0x1000",
+      "minFlashSize": "4MB",
+      "license": "MIT",
+      "notice": "firmware/v1.29.0/NOTICE.txt",
+      "sourceUrl": "https://micropython.org/resources/firmware/ESP32_GENERIC-20260824-v1.29.0.bin",
+      "downloadPage": "https://micropython.org/download/ESP32_GENERIC/",
+      "checked": "2026-09-18",
+      "hashSource": "공식 페이지에 해시 표기가 없어, 운영자가 2026-09-17에 공식 주소에서 받은 파일로 잰 값이에요(파일 머리: ESP32 이미지·세그먼트 3개·DIO·4MB·ESP-IDF v5.5.2, 2026-09-18 확인)."
+    }
+  ]
+}
