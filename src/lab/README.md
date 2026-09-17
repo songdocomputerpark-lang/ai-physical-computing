@@ -1,13 +1,14 @@
 # 실습실 코드 안내 (`src/lab/`)
 
-실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절)을 적어요.
+실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절 — 부품 제작 체크리스트 7.9, 확장 자리 7.10), **모의 시리얼(실제 보드 없이 Web Serial 흐름 시험)**(8절)을 적어요.
 
 | 폴더 | 하는 일 |
 |---|---|
 | `runtime/` | 파이썬 워커(Pyodide)와 화면 쪽 API `PythonRuntime`(`client.ts`), 메시지 형식(`protocol.ts`), 다리(`bridge.ts`), 설정 한 곳(`config.ts`) |
 | `python/` | 워커 안에서 도는 붙박이 파이썬 모듈: 도우미 `apc_runtime.py`, 등록표 `apc_shims.py`, cv2 흉내 `apc_cv2.py`(폴더 규약 이전에 만든 것), 묶는 코드 `modules.ts` |
 | `modules/` | **흉내 모듈 폴더**(4절): `<id>/manifest.ts` + `index.ts` + `*.py` + `panel.astro?`. 자동 발견(`manifests.ts`·`host.ts`). 예시 `hello/`. 가상 ESP32 보드는 `board/`(7절 — 부품은 `board/parts/<부품>/`) |
-| `esp32/` | ESP32 실습실 예제 목록 만들기(`examples.ts` — `examples/esp32/**/*.py`, 보드 라이브러리 폴더 `esp32/lib/` 제외, 차시 md·사이드카·머리말의 배선을 `LabExample.parts`로) |
+| `esp32/` | ESP32 실습실 예제 목록 만들기(`examples.ts` — `examples/esp32/**/*.py`, 보드 라이브러리 폴더 `esp32/lib/` 제외, 차시 md·사이드카·머리말의 배선을 `LabExample.parts`로), 보드 라이브러리 목록(`board-libraries.ts`·`board-library-files.ts`, 7.10) |
+| `serial/` | Web Serial 타입(`web-serial.d.ts`)과 **모의 시리얼**(`mock/` — 8절, 테스트 도구라 배포 번들에 없음). 실제 보드 연결 코드(P3-07·P3-08)도 이 폴더에 둔다 |
 | `editor/` | 코드 에디터(CodeMirror 6) |
 | `controls/` | 실습실 공통 조작(`lab-shell.ts` 컨트롤러, 예제 목록 `examples.ts`, 예제 머리말 읽기 `example-meta.ts`, 사이드카 읽기 `example-sidecar.ts`(빌드 전용), 자동 저장·공유 링크·내려받기) |
 | `params/` | 조절 패널: 규약 파서 `parse.ts`, 화면 논리 `panel.ts` |
@@ -227,6 +228,57 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 
 ## 5. 여러 사람이 동시에 만들 때 — 검증 환경과 포트
 
+### 5.1 Phase 3 병렬 제작(P3-03~P3-10, 2026-09-17 준비) — 구역·포트·공유 파일
+
+여섯 구역이 동시에 만들어요. **공유 파일은 고치지 않고**(필요하면 보고서의 "공유 파일 변경 요청"에 파일·바꿀 내용·이유를 적어요 — 통합 때 반영), 자기 구역의 **새 파일·새 폴더**만 만들어요.
+
+| 구역 | 포트 | 만드는 것(PLAN §8.3) | 자기 파일·폴더(새로 만듦) | 자기 테스트 |
+|---|---|---|---|---|
+| A PWM·ADC 부품(P3-03) | 4501 | RGB LED 밝기, 버저(소리), 서보(프로필 2종 PD-15), 팬(진리표·속도), 4채널 아날로그 터치, `servo_library.py` 복원 | `src/lab/modules/board/parts/{rgb-led,laser,buzzer,servo,fan-motor,touch-analog-4ch}/`, `src/lab/modules/board/ext/{pwm,adc}/apc_board_{pwm,adc}.py`, `examples/esp32/lib/servo_library.py` | `tests/unit/lab/board-part-<부품>.test.ts`, `tests/unit/lab/helpers/board-steps/<이름>.mjs` + `tests/unit/lab/pyodide-board-<이름>.test.ts`, `tests/e2e/lab-esp32-pwm-adc.spec.ts` |
+| B I2C 표시 장치(P3-04) | 4502 | 바이트 수준 문자 LCD(PCF8574 → HD44780), OLED(두 이름 `ssd1306`·`sh1106`), RTC, `i2c_lcd.py` 배포본, 주소 없음 `OSError` | `parts/{lcd-i2c,oled-i2c}/`, `ext/{i2c,rtc}/apc_board_{i2c,rtc}.py`, `examples/esp32/lib/third-party/i2c_lcd.py`(등록부 항목 있음) | 같은 모양, `tests/e2e/lab-esp32-i2c-display.spec.ts` |
+| C 네오픽셀·UART·MP3·콘솔 입력(P3-05) | 4503 | 네오픽셀(`write` 때만), UART 링버퍼·송신 패널, DFPlayer 프레임·합성 음원(PD-16), `gorillacell_dcmotors.py` PWM판 복원 | `parts/{neopixel-ring,mp3-player,…}/`(`neopixel.py`는 부품 폴더에), `ext/uart/apc_board_uart.py`, `examples/esp32/lib/third-party/gorillacell_dcmotors.py`(등록부 항목 있음) | 같은 모양, `tests/e2e/lab-esp32-neopixel-uart-mp3.spec.ts` |
+| D Blockly 블록 모드(P3-06) | 4504 | 블록 ↔ 코드 보기, 사용자 정의 블록, 블록 전용 호환 모드(PD-27) 실험 | `src/lab/modules/blocks/`(ESP32 실습실 흉내 모듈 폴더 — `panel.astro`로 화면), `src/lab/blocks/` | `tests/unit/blocks/**`, `tests/e2e/lab-esp32-blocks.spec.ts` |
+| E 실제 보드 ① 연결·raw REPL(P3-07) → ② 실행·저장(P3-08) | 4505 | Web Serial 연결·배너 판별·raw REPL·raw-paste, [실행]·[정지]·[보드에 저장] | `src/lab/serial/`(`mock/`·`web-serial.d.ts` 밖), `src/lab/modules/realboard/`(패널) | `tests/unit/serial/<이름>.test.ts`(모의 시리얼 8절), `tests/e2e/lab-esp32-real-board.spec.ts` |
+| F 펌웨어 굽기(P3-09) → 보드 준비 페이지(P3-10) | 4506 | esptool-js ROM 굽기(PD-38), 진행률·한국어 오류, 보드 준비 페이지 연결 흐름 | `src/lab/flash/`, 보드 준비 페이지 `src/pages/start/board/**`·`src/components/start/board/`(새 폴더)·`src/components/start/{KitPartsTable,CableFigure}.astro`(이 구역만 고침), `tests/e2e/helpers/serial-plugins/<이름>.ts`(ROM 부트로더 흉내 플러그인) | `tests/unit/flash/**`, `tests/e2e/board-flash.spec.ts`, `tests/e2e/start.spec.ts`의 보드 준비 페이지 검사(이 구역만 고침) |
+
+**공유 파일(고치지 않음 — 요청):** `package.json`·`package-lock.json`·`astro.config.mjs`·`sources.yaml`·`playwright.config.ts`·`vitest.config.ts`·`tsconfig.json`, `scripts/**`(특히 `scripts/examples-manifest.yaml`), `.github/**`, `src/lib/**`·`src/config/**`·`src/styles/**`·`src/layouts/**`, `src/lab/runtime/**`·`src/lab/python/**`·`src/lab/controls/**`·`src/lab/editor/**`·`src/lab/params/**`·`src/lab/errors/**`·`src/lab/modules/{manifests,host,types}.ts`·`src/lab/esp32/**`, `src/components/lab/**`, `src/pages/labs/esp32/index.astro`, **보드 핵심** `src/lab/modules/board/`의 `parts/<내 부품>/`·`ext/<내 기능>/` 밖 전부(`apc_board.py`·`machine.py`·`index.ts`·`view.ts`·`state.ts`·`parts.ts`·`part-types.ts`·`board-audio.ts` …), `content/help/errors/errors.yaml`(항목은 7.9의 모양으로 요청), 모의 시리얼 `src/lab/serial/mock/**`·`src/lab/serial/web-serial.d.ts`·`tests/e2e/helpers/serial.ts`, 공유 테스트 도구 `tests/unit/lab/helpers/{pyodide-board-run.mjs,pyodide-board.ts,board-snapshot.ts}`·`tests/e2e/helpers/{lab,vision}.ts`, 기존 spec·테스트 파일 전부(`lab-esp32*.spec.ts`·`examples-smoke.spec.ts` 등), 문서 `CLAUDE.md`·`PROGRESS.md`·`MAINTENANCE.md`·`docs/**`·이 README.
+**예제 사이드카:** 파일 하나는 주인 구역만 고쳐요(아래 표). 다른 구역의 부품이 함께 있어야 끝까지 도는 예제는 주인이 자기 몫만 확인하고, `smoke:`·"준비 중" 문장은 통합 때 함께 맞춰요(보고서에 적기).
+
+| 주인 | 예제(코드 id — `examples/esp32/` 뒤 경로) | 함께 필요한 구역 |
+|---|---|---|
+| A | f059 `u2/2-1-3-adv-touch4-check`, f060 `u2/2-1-4-rgb-pwm-fade`, f061 `u2/2-1-4-rgb-check`, f062 `u2/2-1-4-laser-rgb`(원본 결함 TypeError 그대로), f063 `u2/2-1-4-laser-check`, f067 `u2/2-2-1-buzzer-check`, f068 `u2/2-2-1-buzzer-scale`, f069 `u2/2-2-1-adv-touch-buzzer`, f073 `u2/2-2-3-fan-direction`, f078~f080 `u2/2-2-4-servo-{angles,sweep,two}` | — |
+| A | f058 `u2/2-1-3-adv-touch4-oled-rgb` | B(OLED) |
+| A | f081 `u2/2-2-4-servo-keyboard` | C(콘솔 입력) |
+| B | f047·f048·f050 `u2/2-1-2-lcd-{text-check,number-check,count}`, f051 `u2/2-1-2-lcd-rtc-clock`(RTC), f052 `u2/2-1-2-adv-touch-lcd-counter`(P3-02 사이드카 — "준비 중" 문장 지우기), f054·f055·f057 `u2/2-1-3-oled-{text-check,number-check,triangle-dots}`, f144 `bt/b5-lcd-hello` | — |
+| B | f049 `u2/2-1-2-lcd-keyboard-check`, f056 `u2/2-1-3-oled-keyboard-check` | C(콘솔 입력) |
+| C | f064·f065 `u2/2-1-5-neopixel-{check,rainbow}`, f070·f071 `u2/2-2-2-mp3-{check,announcement}`, f001 `hw/uart2-rgb-text`, f007 `hw/uart2-rgb-bytes`, f074 `u2/2-2-3-fan-library`(원본 결함 SyntaxError 그대로) | A(RGB LED — f001·f007) |
+| C | f066 `u2/2-1-5-adv-touch4-mood-light`, f072 `u2/2-2-2-adv-touch4-mp3-player` | A(4채널 터치) |
+| C | f075~f077 `u2/2-2-3-fan-{speed,keyboard,keyboard-speed}` | A(팬 모터 부품) |
+
+```bash
+npm ci                                                               # 처음 한 번
+ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 4501 --ignore-lock      # 내 포트(위 표). 에이전트 안에서는 ASTRO_DEV_BACKGROUND=1이 꼭 필요
+PW_BASE_URL=http://localhost:4501/ai-physical-computing/ npx playwright test tests/e2e/lab-esp32-pwm-adc.spec.ts --project=desktop --output=<저장소 밖 폴더>
+npx vitest run tests/unit/lab/board-part-buzzer.test.ts tests/unit/lab/pyodide-board-buzzer.test.ts
+```
+
+**한 작업 폴더에 개발 서버 여럿(2026-09-17 Astro 7.3.2로 다시 확인):**
+
+- `--ignore-lock`을 붙인 서버는 잠금 파일(`.astro/dev.json`)을 읽지도 쓰지도 않아 **같은 폴더에서 나란히 뜨고**, 두 서버(4500·4501)에 각각 spec을 동시에 돌려 모두 통과했어요. 붙이지 않은 서버가 먼저 떠 있으면 다음 서버(붙이지 않은 것)는 `Another astro dev server is already running.`으로 멈춰요.
+- AI 에이전트 안에서 `--ignore-lock`은 **`ASTRO_DEV_BACKGROUND=1`과 함께만** 돼요(없으면 Astro가 백그라운드로 띄우려다 "`--ignore-lock` cannot be used together with an auto-detected AI agent environment" 오류 — `node_modules/astro/dist/cli/dev/index.js`).
+- 새 서버가 뜰 때 콘텐츠 저장소(`.astro/`)를 다시 만들어 먼저 뜬 서버의 페이지가 한 번 새로 고쳐질 수 있어요. 새 패키지(Blockly 등)를 처음 import하는 페이지는 Vite가 의존성을 다시 묶느라 `504 (Outdated Optimize Dep)` 뒤 저절로 새로 고쳐요 — 기다리면 돼요.
+- **끄기:** `--ignore-lock` 서버는 `astro dev stop`이 찾지 못해요. 에이전트의 백그라운드 작업을 멈춰도 Windows에서는 node 프로세스가 남으니 `Get-NetTCPConnection -LocalPort 4501 -State Listen`으로 PID를 찾아 `Stop-Process -Id <PID>`로 꺼요(끈 뒤 포트가 비었는지 다시 확인).
+
+**미리 설치·등록된 것(쓰기만 해요):**
+
+- **Blockly 13.3.0**(Apache-2.0, `sources.yaml` 등록·`public/licenses/blockly.txt`): `import * as Blockly from 'blockly/core'`, `import 'blockly/blocks'`, `import { pythonGenerator } from 'blockly/python'`, 한국어 `import * as Ko from 'blockly/msg/ko'` → `Blockly.setLocale(Ko)`(개발 서버·Edge에서 `text_print` 블록 → `print('안녕')` 생성과 한국어 메시지 확인). 소리·커서 파일은 `scripts/vendor-assets.mjs`가 `public/vendor/blockly/13.3.0/media/`로 복사 → `inject(…, { media: blocklyMediaPath() })`(`src/lab/vendor-paths.ts`). 큰 묶음이라 블록 모드를 열 때 `import()`로 늦게 받아요.
+- **esptool-js 0.6.1**(Apache-2.0): 패키지 안의 **플래셔 스텁은 GPL-2.0-or-later**(esptool v4.6.1 `flasher_stub` — esptool-js 저장소 `src/targets/stub_flasher/README.md`)라 싣지 않아요(PLAN PD-38). 스텁 JSON을 import하는 길(`ESPLoader.main()`·`runStub()`)을 부르면 빌드·개발 서버가 그 모듈을 한국어 오류를 던지는 모듈로 바꿔요(`scripts/lib/esptool-stub-guard.mjs`). ROM 부트로더와 직접(`detectChip` → 쓰기) 구워요. 의존성 `pako`·`tslib`·`atob-lite`도 등록됨.
+- **@types/w3c-web-serial 1.0.8**(타입만): `src/lab/serial/web-serial.d.ts`가 불러와 `SerialPort`·`navigator.serial` 타입을 어디서나 import 없이 써요.
+- **esbuild 0.28.2**(devDependency): 모의 시리얼을 브라우저에 끼울 때 묶는 데만 써요(8절).
+- **펌웨어 파일은 받지 않아요**(인터넷에서 파일 내려받기 금지): F 구역은 받을 곳·크기·SHA-256을 조사해 요청으로 남기고, 테스트는 `page.route`로 가짜 응답을 주거나 테스트 안에서 만든 임시 파일을 써요. `public/firmware/`에는 파일을 넣지 않아요(넣으려면 `sources.yaml` 등록이 먼저 — 공유 파일).
+
+### 5.2 Phase 2 병렬 제작 때의 기록(P2-05~P2-13)
+
 병렬 제작 단계(PLAN §8.2 P2-05~P2-13)에서는 각자 **자기 작업 폴더**에서 개발 서버를 띄우고 **자기 spec만** 돌려요. 공유 파일(`package.json`·`package-lock.json`·`astro.config.mjs`·`sources.yaml`·`playwright.config.ts`·`src/lab/runtime/**`·`src/lab/editor/**`·`src/lab/params/**`·`src/components/lab/LabShell*`·`src/pages/labs/vision/index.astro`·`src/lib/**`·`.github/**`)은 고치지 않고, 필요한 것은 통합 담당에게 보고해요.
 
 ```bash
@@ -286,7 +338,7 @@ ESP32 실습실(`/labs/esp32/`, LabShell `labId="esp32"`)의 가상 보드는 �
 
 ```
 src/lab/modules/board/
-├─ manifest.ts            id board, labs ['esp32'], shims { time: 'apc_board' }(실행 직전마다 install), 이름 5개(7.3)
+├─ manifest.ts            id board, labs ['esp32'], shims { time: 'apc_board' }(실행 직전마다 install), 이름 6개(7.3)
 ├─ index.ts               화면 쪽: 배선 → 보드 그림(view.ts) → 입력·상태 메시지 잇기
 ├─ state.ts · parts.ts    순수 논리: 메시지 모양·스냅샷·출력 세기 / 부품 레지스트리·배선 검사(WiringIssue)·입력 값 계산
 ├─ layout.ts              순수 논리: 30핀 개발 보드 핀 머리 표·보드에 붙은 부품 자리·배선도 계획(부품 자리·선 꺾은점·브레드보드 레일)
@@ -316,10 +368,11 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 | u-이름 | `utime`·`umachine`·`ustruct`·`usys`·`uerrno`·`ujson`·`urandom`·`uos`·`uarray`·`ucollections`·`ubinascii`·`uio`·`ure`·`uhashlib`·`uheapq`·`uselect`·`usocket`·`uplatform` → 원래 모듈(실물의 "확장 가능한 붙박이 모듈 + usys" 규칙) |
 | `errno`(= `uerrno`) | MicroPython 목록 22개를 ESP32(newlib) 번호로: ENOENT 2·EIO 5·EAGAIN 11·ENOMEM 12·ENODEV 19·EINVAL 22·EOPNOTSUPP 95·ETIMEDOUT 116 …, `errorcode` 사전(Pyodide의 errno 번호와 다르다) |
 | `bluetooth`·`ubluetooth` | 자리만: import하면 `ModuleNotFoundError("No module named 'bluetooth' (가상 보드의 블루투스는 아직 흉내 내지 않아요 …)")` — Phase 4가 `register_board_module`로 채운다 |
+| 아직 없는 부품 모듈(병렬 제작 준비 2026-09-17) | `apc_board.NOT_YET_MODULES`의 `neopixel`(펌웨어 내장)·`i2c_lcd`·`ssd1306`·`sh1106`·`servo_library`·`gorillacell_dcmotors`(사이트 라이브러리)는 파일이 생기기 전까지 `ModuleNotFoundError("No module named 'neopixel' (가상 보드에 아직 없어요 — …)")`(오류 사전 `board-not-emulated`). 부품 구역이 같은 이름의 파일(부품 폴더의 `.py` 또는 `examples/esp32/lib/`)을 더하면 그 파일이 그대로 import되므로 표를 고치지 않는다 |
 
 **학생 코드만 MicroPython판을 받는다:** `apc_board.install()`이 `builtins.__import__`에 훅을 걸어, import하는 쪽이 학생 코드(`__main__`, 작업 폴더 `/home/pyodide/`, 보드 라이브러리 폴더 `/board/lib/`의 파일)일 때만 `time`·`utime`·`errno`·`bluetooth`·u-이름을 바꿔 준다. 표준 라이브러리·Pyodide가 import하는 `time`은 진짜 CPython time 그대로다(C 코드의 `PyImport_Import`는 `sys.modules`를 돌려주므로 영향 없음). `sys.modules['time']`을 바꾸지 않는다. `importlib.import_module('time')`은 진짜를 받는다(드문 경우 — 차이로 둠).
 
-**보드 라이브러리 폴더 `/board/lib/`:** `sys.path` 끝에 있다. P3-04가 사이트 제공 라이브러리(`i2c_lcd.py` 등)를 이 폴더에 넣는다(학생 작업 폴더의 같은 이름 파일이 먼저).
+**보드 라이브러리 폴더 `/board/lib/`:** `sys.path` 끝에 있다(학생 작업 폴더의 같은 이름 파일이 먼저). `examples/esp32/lib/**/*.py`(사이트 제공 라이브러리 — `i2c_lcd.py`·`servo_library.py`·`gorillacell_dcmotors.py` …)를 보드 모듈 화면(`index.ts`)이 파이썬이 준비될 때마다 이 폴더에 써 넣고(`[data-board-io]`의 `data-board-libraries` = 넣은 수), 실행 시작마다 `importlib.invalidate_caches()`로 새 파일을 찾게 한다. 같은 파일을 실물 보드 [보드에 저장](P3-08)이 `librariesNeededBy(코드)`로 골라 함께 올린다(`src/lab/esp32/board-libraries.ts`).
 
 ### 7.2 가상 시계·입력 확인 지점·콜백
 
@@ -340,11 +393,12 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 
 | 이름 | 방향·종류 | 값 |
 |---|---|---|
-| `board.state` | 파이썬 → 화면, 이벤트 | `{ v: 1, reason: 'reset'\|'change'\|'idle'\|'end', phase: 'run'\|'idle'\|'end', seq, t_us, pins: [{ id, mode: 'in'\|'out'\|'open_drain'\|'off'\|'out_only'\|'other'\|null, pull: 'up'\|'down'\|'both'\|null, out: 0\|1, level: 0\|1, driven, irq, duty?: 0~1, freq?: Hz }], timers }` — `duty`·`freq`는 그 핀에 PWM이 켜져 있을 때만(P3-02에서 자리만 정함 — P3-03 PWM 흉내가 채우면 `state.ts outputStrength`로 LED 밝기·진동 모터 세기가 따라온다). 늘 **핀 전체 목록**(이번 실행에서 코드가 만진 핀). 보내는 때: 실행 시작(reset), 파이썬이 실제로 기다리기 직전(대기 전 훅), 마지막으로 보낸 뒤 16ms가 지난 쓰기, 코드가 끝난 뒤 대기 시작(idle), 실행 끝(end). 16ms 안의 변화는 합쳐진다(PLAN §7.2 규칙 5 "상태는 최신 값만") |
+| `board.state` | 파이썬 → 화면, 이벤트 | `{ v: 1, reason: 'reset'\|'change'\|'idle'\|'end', phase: 'run'\|'idle'\|'end', seq, t_us, pins: [{ id, mode: 'in'\|'out'\|'open_drain'\|'off'\|'out_only'\|'pwm'\|'other'\|null, pull: 'up'\|'down'\|'both'\|null, out: 0\|1, level: 0\|1, driven, irq, duty?: 0~1, freq?: Hz }], timers }` — `mode: 'pwm'`·`duty`·`freq`는 그 핀에 PWM이 켜져 있을 때만(`BOARD.set_pwm` — 7.10, `state.ts outputStrength`로 LED 밝기·진동 모터 세기가 따라온다). 늘 **핀 전체 목록**(이번 실행에서 코드가 만진 핀). 보내는 때: 실행 시작(reset), 파이썬이 실제로 기다리기 직전(대기 전 훅), 마지막으로 보낸 뒤 16ms가 지난 쓰기, 코드가 끝난 뒤 대기 시작(idle), 실행 끝(end). 16ms 안의 변화는 합쳐진다(PLAN §7.2 규칙 5 "상태는 최신 값만") |
 | `board.inputs` | 화면 → 파이썬, 최신 값(`setValue`) | `{ pins: { '0': 'pullup', '17': 1 } }` — 입력 부품이 지금 핀을 누르는 값 전체. 실행 시작 때(초기화 훅이 `peek`) 읽는다. [실행] 직전에 다시 넣는다(정지 2단계 대비) |
-| `board.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ pin: 0, drive: 0\|1\|'pullup'\|'pulldown'\|null }` — 실행 중에 바뀐 핀 하나. 눌렀다 뗀 것도 빠짐없이 순서대로(§7.2 규칙 5 "이벤트는 대기열") |
+| `board.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ pin: 0, drive: 0\|1\|'pullup'\|'pulldown'\|{ mv: 0~3300 }\|null }` — 실행 중에 바뀐 핀 하나. 눌렀다 뗀 것도 빠짐없이 순서대로(§7.2 규칙 5 "이벤트는 대기열"). `{ mv }`는 아날로그 전압(`state.ts analogDrive(mv)` — 가변저항·4채널 터치, 디지털로 읽으면 1.65V 문턱). `board.inputs`의 값도 같은 모양 |
 | `board.wiring` | 화면 → 파이썬, 최신 값 | `{ parts: [{ part: 'touch-digital', id: 'touch-digital', label: '터치 센서', pins: { sig: 17 }, directions: { sig: 'in' }, known: true }, { part: 'lcd-i2c', id: 'lcd', label: '문자 LCD(16×2)', pins: { sda: 21, scl: 22 }, known: false }] }` — 이 예제의 배선(보드에 붙은 부품 포함, `parts.ts wiringValue`). 가상 보드가 아직 모르는 부품은 `known: false`와 적힌 핀만. 부품 흉내·파이썬 배선 안내(7.2)가 읽는다 |
-| `board.device` | 파이썬 → 화면, 이벤트 | 부품 흉내의 상태(부품 단계가 쓴다 — 권장 모양 `{ part, id, state }`) |
+| `board.device` | 파이썬 → 화면, 이벤트 | `{ v: 1, id: 배선 id, part: 부품 id, state }` — 부품 흉내의 상태(`apc_board.set_device_state(id, part, state)`, 16ms마다 핀 상태 다음에 바뀐 부품만·최신 값만). 화면은 `state.ts parseDeviceEvent`·`applyDeviceEvent`로 모으고 부품 `visual`·`render`·`controls`에 `device: { seq, state }`로 넘긴다. 실행 시작(reset)에 비워진다(`data-board-devices`·`data-board-device-last`) |
+| `board.device.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ id: 배선 id, data }` — 부품 조작 칸(송신 패널 등)이 부품 흉내에 보내는 값(`PartControlApi.sendToDevice(data)`). 파이썬은 `apc_board.on_device_input(id, handler)`로 입력 확인 지점에서 받는다(실행 전에 보낸 값은 버림 — 실물 UART와 같음) |
 
 `drive` 뜻: `0`·`1` = 부품이 핀을 세게 누름(버튼이 GND에 닿음, 센서 모듈 출력), `'pullup'`·`'pulldown'` = 약하게 끌어당김(보드의 BOOT 버튼 풀업), `null` = 연결 없음. 핀 전압은 세게 누름 > 출력 > 약한 끌어당김 > 내부 풀업·풀다운 > 떠 있음(0) 순서로 정한다.
 화면 쪽 테스트 표시: `[data-board-io]`의 `data-board-ready`·`data-board-phase`·`data-board-seq`·`data-board-reason`, 부품 `[data-board-part="<배선 id>"]`의 `data-part`·`data-visual-<이름>`·`aria-pressed`, 핀 표 `[data-board-pin="<GPIO>"]`의 `data-mode`·`data-level`·`data-driven`.
@@ -406,9 +460,11 @@ parts/<새 부품>/
 | `power?` | (바깥 부품) 전원 다리 자리 `{ gnd: { x, y }, vcc: { x, y } }` 또는 `false`(전원선 없음). 없으면 아랫변 가운데 양옆 |
 | `defaultPinsNotice?` | 기본 핀(`defaultPins`)을 그대로 이었을 때 배선 목록에 보일 안내 한 문장(수준 참고, code `site-assigned`) |
 | `interaction?` | 입력 부품: `{ kind: 'momentary'\|'toggle', label, drive(active, role) → PinDrive }`. **마우스·터치·키보드는 `view.ts`가 공통으로 처리**한다 — momentary는 누르고 있는 동안(Space·Enter를 누르고 있는 동안, 초점을 잃으면 뗌), toggle은 누를 때마다. 부품은 `role="button"`·`tabindex=0`·`aria-pressed`를 받고, 누르는 자리(그림 전체 투명 사각형)와 두 겹 초점 테두리(짙은 선 + 노란 선 — 기판·브레드보드 어디서나 보임)도 `view.ts`가 붙인다(P3-02 — 부품 그림에서 그리지 않는다) |
-| `visual(context)` | **순수 함수**: `{ snapshot, instance, active, reducedMotion }` → `{ lit: true, brightness: 100 }`처럼 모습 값. `state.ts`의 `outputStrength(snapshot, gpio)`(0~1 — HIGH 출력 1, PWM이면 duty)나 `isDrivenHigh`를 쓰면 [정지] 뒤 꺼짐까지 맞는다. 보드 화면이 `data-visual-<이름>` 속성으로 적고, `lit`·`brightness`·`on`·`strength`·`pressed`는 화면 낭독기 이름에도 넣는다 |
-| `render(target, { svg, instance, definition })` | `target`(`<g>`) 안에 사이트가 직접 그린 SVG(브랜드 중립, 다른 저작물 그림 금지)를 한 번 그리고, 모습 값이 바뀔 때 부를 함수를 돌려준다. 색만으로 알리지 않게 글자(켜짐·누름·진동 중)도 함께, 핀 번호 글(`IO17` — `instance.pins`)도. 움직이는 그림은 Web Animations(`element.animate`)로 켜고 끄며 `reducedMotion`이면 움직이지 않는다(진동 모터 본보기) |
+| `visual(context)` | **순수 함수**: `{ snapshot, instance, active, reducedMotion, device? }` → `{ lit: true, brightness: 100 }`처럼 모습 값(`device`는 이 배선 id의 마지막 `board.device` 상태 `{ seq, state }` — 큰 값(OLED 화면 비트)은 visual에 `frame: device.seq`만 넣고 render가 읽는다). `state.ts`의 `outputStrength(snapshot, gpio)`(0~1 — HIGH 출력 1, PWM이면 duty)나 `isDrivenHigh`를 쓰면 [정지] 뒤 꺼짐까지 맞는다. 보드 화면이 `data-visual-<이름>` 속성으로 적고, `lit`·`brightness`·`on`·`strength`·`pressed`는 화면 낭독기 이름에도 넣는다 |
+| `render(target, { svg, instance, definition })` | `target`(`<g>`) 안에 사이트가 직접 그린 SVG(브랜드 중립, 다른 저작물 그림 금지)를 한 번 그리고, 모습 값이 바뀔 때 부를 함수 `(visual, extra) => void`를 돌려준다(`extra = { snapshot, device?, reducedMotion }`). 색만으로 알리지 않게 글자(켜짐·누름·진동 중)도 함께, 핀 번호 글(`IO17` — `instance.pins`)도. 움직이는 그림은 Web Animations(`element.animate`)로 켜고 끄며 `reducedMotion`이면 움직이지 않는다(진동 모터 본보기) |
 | `python?` | 파이썬 부품 흉내 모듈 이름(`apc_part_<이름>`, 같은 폴더에 있어야 함 — `board-parts.test.ts`가 확인) |
+| `sound?` | (병렬 제작 준비 2026-09-17) 소리를 내는 부품(버저·MP3)이면 `true` — 배선에 있으면 보드 그림 위에 [소리 켜짐/꺼짐] 단추가 보인다(`[data-board-sound]`, 상태는 `[data-board-io]`의 `data-board-sound-state`). 소리는 `board-audio.ts`의 `getBoardAudio()` — `context()`(AudioContext, 처음 부를 때 만듦)·`destination()`(주 음량 노드 — 여기에 잇는다)·`enabled`·`onChange`. [실행]을 누를 때 보드 모듈이 `resume()`한다(브라우저 자동 재생 규칙) |
+| `controls?(host, api)` | (병렬 제작 준비 2026-09-17) 보드 그림 아래 "부품 조작" 칸(`[data-board-controls]`)에 이 부품의 HTML 조작 요소(단추·`input type=range`·label)를 그린다 — SVG 한 번 누르기(`interaction`)로 모자란 조작(4채널 터치 패드·값 막대, UART 송신 패널). `api.setDrive(role, drive)`(입력 핀을 누르는 값 — 0·1·`'pullup'`·`analogDrive(mv)`·null), `api.sendToDevice(data)`(`board.device.input`), `api.storageName(name)`(`module:board:<부품>:<이름>`). 돌려준 `{ update?(visual, extra), destroy?() }`를 모습이 바뀔 때·배선이 바뀔 때 부른다. 키보드로 닿고 이름이 있는 요소만, 색만으로 알리지 않는다 |
 
 - **자동 발견:** `parts.ts`가 `import.meta.glob('./parts/*/part.ts', { eager: true })`로 찾고 `validatePartDefinitions`로 검사한다(어기면 `board-parts.test.ts`가 실패하고, 브라우저에서는 보드 모듈이 오류를 내며 뜨지 않는다). `.py`는 `python/modules.ts`가 모듈 폴더의 하위 폴더까지 찾아 ESP32 실습실 워커의 `/apc`에 넣는다.
 - **파이썬 부품 흉내:** `apc_part_<이름>.py`는 `apc_board.register_part('<부품 id>', factory)`로 자기를 등록한다(`factory(배선 항목) → 장치`). 보드는 `/apc`의 `apc_board_*.py`·`apc_part_*.py`를 첫 실행 직전(`install()`) 한 번 불러온다. 상태를 화면에 알릴 때는 `apc_runtime.emit('board.device', { part, id, state })`, 실물과 같은 OSError는 `apc_board.board_oserror(19)`(`OSError: [Errno 19] ENODEV`). 핀은 `apc_board.find_pin(값)`·`BOARD.read(gpio)`·`BOARD.write(gpio, v)`·`BOARD.configure(…)`로 다룬다.
@@ -417,13 +473,13 @@ parts/<새 부품>/
 
 ### 7.6 machine에 주변장치 더하기 — `apc_board_*.py` 확장
 
-PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 이름**은 `modules/board/`(또는 그 하위 폴더)에 `apc_board_<이름>.py`를 두고 `apc_board.register_machine_export('PWM', PWM)`로 등록한다. `machine.py`는 import할 때 확장을 불러와 그 이름을 내보내고(`from machine import PWM`), 여러 사람이 동시에 `machine.py`를 고치지 않아도 된다. 규칙: 확장은 `machine`을 import하지 않는다(순환), `apc_board`·`apc_runtime`과 표준 라이브러리만. 등록하면 `machine.py`의 "아직 없는 이름" 안내(`_NOT_YET`)는 자동으로 가려진다. `time`·`bluetooth` 같은 **모듈 통째**는 `apc_board.register_board_module('bluetooth', 모듈)`(학생 코드의 import에만 적용).
+PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 이름**은 `modules/board/ext/<기능>/apc_board_<기능>.py`(병렬 제작 준비 2026-09-17 — 구역마다 새 폴더, 파일은 워커의 `/apc`로 평평하게 들어가므로 이름은 저장소 전체에서 하나)를 두고 `apc_board.register_machine_export('PWM', PWM)`로 등록한다. `machine.py`는 import할 때 확장을 불러와 그 이름을 내보내고(`from machine import PWM`), 여러 사람이 동시에 `machine.py`를 고치지 않아도 된다. 규칙: 확장은 `machine`을 import하지 않는다(순환), `apc_board`·`apc_runtime`과 표준 라이브러리만. 등록하면 `machine.py`의 "아직 없는 이름" 안내(`_NOT_YET`)는 자동으로 가려진다. `time`·`bluetooth` 같은 **모듈 통째**는 `apc_board.register_board_module('bluetooth', 모듈)`(학생 코드의 import에만 적용).
 
 ### 7.7 테스트 방법
 
 | 층 | 어떻게 |
 |---|---|
-| 파이썬(실제 Pyodide) | `tests/unit/lab/pyodide-board.test.ts` + `helpers/pyodide-board-run.mjs` — ESP32 실습실 워커와 같은 파일·순서(beginRun → install_available → reset_for_run → bind → 코드 → run_idle). 입력은 `inputs`(실행 전)·`during`(시각)·`onMark`(파이썬이 `emit('board.device', {'mark': …})`한 뒤 — 부하에 흔들리지 않게), `stopAfterMs`·`idle`. 동기 진입점 검사 포함. `--limited`로 제한 모드 |
+| 파이썬(실제 Pyodide) | `tests/unit/lab/pyodide-board.test.ts` + `helpers/pyodide-board-run.mjs` — ESP32 실습실 워커와 같은 파일·순서(beginRun → install_available → reset_for_run → bind → 코드 → run_idle). 입력은 `inputs`(실행 전)·`during`(시각)·`onMark`(파이썬이 `emit('board.device', {'mark': …})`한 뒤 — 부하에 흔들리지 않게)·`wiring`(배선), `stopAfterMs`·`idle`. 동기 진입점 검사 포함. `--limited`로 제한 모드. **부품·기능마다 단계 파일을 따로(병렬 제작 준비 2026-09-17):** `tests/unit/lab/helpers/board-steps/<이름>.mjs`(기본 내보내기 `async ({ step, bridge, pyodide, out }) => { await step('이름', 코드, 옵션) }`) + `tests/unit/lab/pyodide-board-<이름>.test.ts`에서 `runBoardSteps('tests/unit/lab/helpers/board-steps/<이름>.mjs')`·`stepOf(out, '이름')`(`helpers/pyodide-board.ts`). 본보기 `extension-points.mjs`·`async-wait.mjs`(`{ limited: true }`) |
 | 순수 논리 | `board-state.test.ts`(메시지 읽기·스냅샷·입력 값·출력 세기), `board-parts.test.ts`(부품 정의 검사·배선 검사), `board-part-<부품 id>.test.ts`(부품마다), `board-layout.test.ts`(핀 머리 표·배선도 계획 — 선 겹침·엇갈림), `board-wiring-spec.test.ts`(배선 글 세 모양), `python-modules.test.ts`(실습실별 파일·shims), `esp32-examples.test.ts`(예제 목록·배선 우선순위·이관 예제 사이드카) |
 | 브라우저 | `tests/e2e/lab-esp32.spec.ts`(LED 상태 메시지, BOOT 버튼 마우스·키보드, Timer 대기, OpenCV 안 받음, dev 실습실에 machine 없음), `tests/e2e/lab-esp32-parts.spec.ts`(P3-02: f046·f015·f052·f053·진동 알림 예제, 터치 센서 마우스·키보드·터치 화면, 진동 모터·움직임 줄이기, 배선 오류 화면·파이썬, [그림 크게 보기] — 배선을 일부러 틀리게 볼 때는 `page.route`로 실습실 HTML의 예제 목록 JSON만 바꾼다). 예제 스모크(`examples-smoke.spec.ts`)는 실습실별로 돌아 `examples/esp32/` 이관 예제를 ESP32 실습실에서 실행한다 |
 | 개발 서버로 | `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx --ignore-lock` 뒤 `PW_BASE_URL=http://localhost:44xx/ai-physical-computing/ npx playwright test tests/e2e/lab-esp32.spec.ts --project=desktop --output=<저장소 밖 폴더>`(5절) |
@@ -435,4 +491,143 @@ PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 
 - 가상 보드가 실물보다 너그러우면 안 된다: 범위 밖 값에는 실물과 같은 예외를 내고(문구는 MicroPython 그대로), 한국어 풀이는 오류 사전 `board` 묶음(`content/help/errors/errors.yaml`)에 더한다. 흉내 낼 수 없는 차이는 콘솔 안내·교사용 접기로.
 - 보드 초기화·틱·대기 전·마무리 훅에서는 양보하지 않는다(`peek`·`drain`·`emit`·`notice`만). 콜백은 입력 확인 지점에서만 부른다.
 - CPython `time`·`sys.modules`를 바꾸지 않는다(import 훅만). Pyodide의 `errno` 번호를 보드 오류에 쓰지 않는다(`board_oserror`).
-- 부품·확장의 메시지는 `board.state`·`board.input`·`board.inputs`·`board.wiring`·`board.device` 다섯 이름으로 한다 — 새 이름이 꼭 필요하면 `manifest.ts`에 먼저 적는다(보드 모듈 담당과 상의).
+- 부품·확장의 메시지는 `board.state`·`board.input`·`board.inputs`·`board.wiring`·`board.device`·`board.device.input` 여섯 이름으로 한다 — 새 이름이 꼭 필요하면 `manifest.ts`에 먼저 적는다(공유 파일 — 요청).
+
+### 7.9 부품 제작 체크리스트(구역 A·B·C — 병렬 제작 준비 2026-09-17)
+
+부품 하나를 "끝났다"고 보고하기 전에 모두 확인해요. 브라우저에서 확인하지 않은 것은 "완료"라고 적지 않고, 실물 보드가 있어야 알 수 있는 것은 "확인 필요"(부록 B-2·운영자 할 일 2번)로 적어요.
+
+**1. 폴더와 이름**
+
+- [ ] `src/lab/modules/board/parts/<부품 id>/part.ts` — id는 폴더 이름과 같은 영문 소문자·숫자·하이픈. 7.5의 약속 id(`rgb-led` r·g·b, `laser` sig, `buzzer` sig, `servo` sig, `fan-motor` ina·inb, `touch-analog-4ch` sig, `lcd-i2c` sda·scl, `oled-i2c` sda·scl, `neopixel-ring` din, `mp3-player` tx·rx)를 쓰면 사이드카·차시 md의 배선이 저절로 그려져요. 바꾸면 보고서에 적어요.
+- [ ] 파이썬 파일 이름은 저장소 전체에서 하나(워커 `/apc`에 폴더 없이 들어가요): 부품 흉내 `apc_part_<이름>.py`, 학생이 import하는 이름 그대로인 드라이버(`neopixel.py`·`ssd1306.py`·`sh1106.py`)는 부품 폴더에, machine 확장은 `ext/<기능>/apc_board_<기능>.py`(7.6). 같은 이름을 흉내(`/apc`)와 보드 라이브러리(`examples/esp32/lib/`)에 함께 두지 않아요(`board-libraries.test.ts`가 막아요).
+- [ ] 보드 라이브러리(`examples/esp32/lib/*.py`)는 실물 보드에도 그대로 올라가요 — MicroPython에서 도는 코드만. 다른 저작자 파일은 `third-party/` 아래 + 원래 저작권 주석 유지. 등록부 항목이 이미 있는 것: `third-party/i2c_lcd.py`(B)·`third-party/gorillacell_dcmotors.py`(C), 운영자 원고 복원 `servo_library.py`(A — `examples/**` 항목이 덮음). 그 밖의 새 제3자 파일(예: 실물용 `ssd1306.py` 드라이버)은 받을 곳·라이선스를 적어 요청해요.
+
+**2. 배선 데이터**
+
+- [ ] `pins`(role·label·direction), 바깥 부품이면 `anchors`(x = 18의 배수 + 9)·`power`. 원고에 핀이 없어 사이트가 정한 핀이면 `defaultPins` + `defaultPinsNotice`("실물 확인 전")와 보고서의 미해결 항목.
+- [ ] 주인인 예제(5.1 표)의 사이드카 `parts:`를 원고 코드의 핀 그대로(PD-05) 적고 `resolveWiring`에 오류가 없게. 원고 그대로인 스트래핑 핀 주의(f058 GPIO12·5)는 남기고 교사용 안내를 요청해요.
+- [ ] 사이드카 `practice:` 3단계(가상 부품을 어떻게 누르고 무엇을 보는지), description의 "…아직 준비 중이라 지금은 실행하면 멈춰요." 문장 지우기, `smoke:`를 실제 결과로(원본 결함 예제 f062 TypeError·f074 SyntaxError는 그대로).
+
+**3. 실물과 같은 동작**
+
+- [ ] 이름·기본값·범위·오류 문구는 MicroPython v1.29.0 ESP32 포트 소스로 확인하고 파일 이름을 머리말·보고서에 적어요. 범위 밖 값은 실물과 같은 예외(duty 범위 밖 `ValueError`, I2C 주소 없음 `apc_board.board_oserror(19)` → `OSError: [Errno 19] ENODEV`) — 가상이 실물보다 너그러우면 안 돼요. 흉내 낼 수 없는 차이는 콘솔 안내(`BOARD.warn_once`, 실행마다 한 번).
+- [ ] 입력 확인 지점 규칙(7.2): 훅에서 양보하지 않기, 콜백은 입력 확인 지점에서만. 많은 호출(OLED `pixel` 729번)은 파이썬 안에서 모았다가 `show()` 때 `set_device_state` 한 번.
+- [ ] 소리(버저·MP3): `sound: true` + `getBoardAudio().destination()`에 잇기, [소리 꺼짐]이면 들리지 않게, [정지]·다시 실행 때 소리가 남지 않게. 음원 파일은 두지 않아요(PD-16 합성음).
+
+**4. 화면·접근성·키보드**
+
+- [ ] 그림은 사이트가 직접 그린 브랜드 중립 SVG(7.8). 모습은 `data-visual-<이름>`, 색만으로 알리지 않고 글자도(켜짐·밝기 40%·90°), 핀 번호 글 `IO<번호>`.
+- [ ] 누르는 부품은 `interaction`(마우스·터치·키보드는 `view.ts`가 붙임), 그 밖의 조작은 `controls`(label 있는 `button`·`input type=range` — Tab으로 닿고 값은 글자로도). 움직이는 그림은 `reducedMotion`이면 멈춤.
+- [ ] 휴대폰 375px에서 페이지가 가로로 넘치지 않아요([그림 크게 보기] 포함).
+
+**5. 테스트(자기 파일만 — 5.1 표)**
+
+- [ ] `tests/unit/lab/board-part-<부품 id>.test.ts`: `visual`·`interaction.drive`·`controls` 없이도 되는 순수 함수·기본 핀·배선 줄임 표기(파일이 없으면 `board-parts.test.ts`가 실패해요).
+- [ ] 파이썬 흉내·확장이 있으면 `tests/unit/lab/helpers/board-steps/<이름>.mjs` + `tests/unit/lab/pyodide-board-<이름>.test.ts`(7.7): 예제 원본 코드 그대로, 실물과 같은 오류, [정지]. 공유 도우미 `pyodide-board-run.mjs`는 고치지 않아요.
+- [ ] 브라우저 `tests/e2e/lab-esp32-<구역>.spec.ts`: `?example=<파일>`로 열어 [실행] → `data-visual-*`·콘솔, 키보드 조작 한 번. 이관 예제는 `SMOKE_ONLY=f060,f061 npx playwright test tests/e2e/examples-smoke.spec.ts --project=desktop`(개발 서버면 `PW_BASE_URL`).
+- [ ] `npm run check`(오류 0)·`npm test`·자기 spec 결과를 명령과 함께 보고서에 적어요.
+
+**6. 오류 사전 항목은 요청으로** — `content/help/errors/errors.yaml`은 공유 파일이에요. 보고서의 "공유 파일 변경 요청"에 아래 모양 그대로 적으면 통합 때 `board` 묶음의 구역 자리 표시(`# ▼ 구역 A …`) 아래에 넣어요. 영어 마지막 줄 문구를 `patterns`에, 학생 글은 고1이 읽는 "~해요" 문장으로(필드 설명은 그 파일 머리말). 아래는 모양을 보여 주는 보기예요(아직 들어 있지 않음).
+
+```yaml
+  - id: board-i2c-no-device            # board-<부품 또는 기능>-<뜻>
+    group: board
+    title: I2C 장치가 대답하지 않아요    # 60자 이하
+    types: [OSError]
+    patterns:
+      - "\\[Errno 19\\] ENODEV"
+    priority: 3
+    meaning: "SDA·SCL 선에 이어진 장치가 대답하지 않았어요. ENODEV는 '장치가 없다'는 뜻이에요."
+    why:
+      - "SDA와 SCL 선이 바뀌었거나, 코드에 적은 주소(0x27 등)와 장치 주소가 달라요."
+    fix:
+      - "{line}번째 줄 근처의 핀 번호가 배선도의 SDA·SCL과 같은지 확인해요."
+      - "i2c.scan()으로 찾은 주소를 코드에 적어요."
+    example:
+      code: |
+        from machine import Pin, SoftI2C
+        i2c = SoftI2C(sda=Pin(21), scl=Pin(22))
+        i2c.writeto(0x27, b'\x00')
+      error: "OSError: [Errno 19] ENODEV"
+      line: 3
+```
+
+### 7.10 확장 자리 한눈에(병렬 제작 준비 2026-09-17)
+
+부품·블록·실제 보드 구역이 보드 핵심·실습실 공통 코드를 고치지 않고 쓰도록 미리 만든 자리예요. 모두 테스트로 확인했어요(오른쪽 칸).
+
+| 필요한 것 | 파이썬 쪽 | 화면 쪽 | 확인 |
+|---|---|---|---|
+| PWM 세기 | `apc_board.BOARD.set_pwm(gpio, duty 0~1, freq Hz)`·`clear_pwm(gpio)`·`pwm_of(gpio)` — 값 검사·MicroPython 오류 문구는 PWM 확장이 맡음. `Pin(…, 인자)`로 다시 정하면 실물처럼 끊김 | 핀 항목 `mode 'pwm'`·`duty`·`freq` → `outputStrength(snapshot, gpio)`, 핀 표 "PWM 출력" | `pyodide-board-extension-points`(pwm_core), `lab-esp32-extension-points.spec` |
+| 아날로그 입력 | `BOARD.read_millivolts(gpio)`(0~3300 — ADC 확장이 `read()` 0~4095·`read_u16`·감쇠로 환산), `BOARD_MAX_MV`·`DIGITAL_HIGH_MV` | `analogDrive(mv)`를 `interaction.drive`나 `controls`의 `api.setDrive(role, …)`로 | analog_inputs |
+| 부품 장치(LCD·OLED·네오픽셀·MP3) | `register_part(부품 id, factory)` → 실행마다 `wired_devices(부품 id)` = `[(배선 항목, 장치)]`, `set_device_state(배선 id, 부품 id, 상태)`, `on_device_input(배선 id, 처리 함수)` | `visual`·`render`의 `device`(`{ seq, state }`), `data-board-devices` | device_core·device_new_run |
+| 조작 칸(4채널 터치·송신 패널) | `on_device_input` | `controls(host, api)` — `setDrive`·`sendToDevice`·`storageName` | `board-parts.test`(검사), view |
+| 소리 | — | `sound: true` + `getBoardAudio()`(`context`·`destination`·`enabled`·`onChange`), [소리 켜짐] 단추 | `board-audio.test`, extension-points spec |
+| 보드 라이브러리 | `/board/lib`(sys.path — 실행 시작마다 캐시 비움) | `examples/esp32/lib/**/*.py`를 저절로 넣음, 실물 저장은 `librariesNeededBy(코드)` | `board-libraries.test`, not_yet_and_board_lib |
+| 아직 없는 모듈 안내 | `NOT_YET_MODULES`(파일이 생기면 저절로 그 파일) | 오류 사전 `board-not-emulated` | not_yet_and_board_lib |
+| machine 이름 더하기 | `ext/<기능>/apc_board_<기능>.py`에서 `register_machine_export(이름, 값)` | — | P3-01 |
+| 블록 전용 호환 모드(D, PD-27) | JSPI 없이 `runPythonAsync` 최상위 await: `await apc_board.wait_ns_async(ns)`(Timer·핀 인터럽트·입력·[정지]), `await apc_runtime.sleep_async(초)` — 생성기가 만든 실행판만 부름(화면 코드는 `time.sleep`) | 블록 모듈이 실행판을 만듦(브라우저 확인은 D 구역) | `pyodide-board-async-wait`(제한 모드, Node) |
+| 실행 대상(E — 실제 보드) | — | `lab.setRunTarget({ label, run(code, ctx), stop() })`: [실행]·[정지]가 대상으로, `ctx.write(글, kind)`·`ctx.prompt(안내)`(공통 입력줄), 결과는 `RunResult`(오류면 `error.traceback` — 셸이 콘솔에 한 번 적고 오류 풀이 카드가 읽음), `'run'` 이벤트 `target` 이름, 뿌리 `data-run-target`·`data-state`(대상의 idle·running·stopping). 실행 중에는 바꿀 수 없음(오류) | `tests/e2e/lab-run-target.spec.ts`(Edge) |
+| 모의 시리얼(E·F·통합) | — | 8절 | `tests/unit/serial/*`, `tests/e2e/serial-mock.spec.ts` |
+
+---
+
+## 8. 모의 시리얼 — 실제 보드 없이 Web Serial 흐름 시험(`src/lab/serial/mock/`)
+
+실제 보드 연결(P3-07·P3-08)·펌웨어 굽기(P3-09)·실물 점검 도우미(P3-11)가 보드 없이 테스트하도록 `navigator.serial`·`SerialPort`와 USB 너머의 MicroPython 보드를 흉내 내요. **테스트 도구**라 사이트 페이지는 import하지 않아요(배포 번들에 없음). 흉내에서 된다는 것이 실물에서 된다는 증거는 아니에요 — 실물은 부록 B-2(운영자 할 일 2번).
+
+| 파일 | 하는 일 |
+|---|---|
+| `mock-port.ts` `MockSerialPort` | SerialPort: `open`(인자 검사·못 열면 NetworkError, 결과는 다음 작업 차례)·`readable`/`writable`(진짜 ReadableStream·WritableStream, 장치 출력은 64바이트 조각)·`setSignals`/`getSignals`·`close`(잠긴 스트림이면 TypeError)·`forget`·`getInfo`(기본 CH340 `1a86:7523`, `USB_IDS.cp2102` `10c4:ea60`). 테스트 조작 `unplug()`·`plug()`, 기록 `writtenText()`·`deliveredText()`·`signalLog`·`openLog` |
+| `fake-serial.ts` `FakeSerial`·`installFakeSerial` | navigator.serial: `requestPort`(사용자 조작이 없으면 SecurityError·필터 TypeError·고른 포트 없으면 NotFoundError·다음 선택 `chooseNext`)·`getPorts`·connect/disconnect 이벤트(`event.target` = 포트) |
+| `micropython-device.ts` `MicroPythonDevice` | 보드: 보통 REPL(배너·되울림·Ctrl-A/B/C/D/E·붙여넣기 모드)·raw REPL·raw-paste(창 128, 흐름 제어를 어긴 바이트 수 `flowControlOverrun`)·소프트/하드 리셋(boot.py → main.py)·`input()`·Ctrl-C·실행 중 받은 바이트는 끝난 뒤 REPL이 이어 읽음·자동 리셋 회로(DTR·RTS → 리셋·다운로드 모드)·`scripts`(정한 응답)·`mini-python.ts` |
+| `mini-python.ts` | 도구·수업 코드에 흔한 작은 파이썬(대입·if/while/for·try·with open·print·input·글자 메서드·format·os·time·sys·machine.Pin·ubinascii) + MicroPython 모양 오류 글(`name 'x' isn't defined`·`divide by zero`·`[Errno 2] ENOENT`). 모르는 문장(def·class·lambda·f-string …)은 `NotImplementedError: mock board can't run: …`(옵션 `unknownStatement: 'ignore'`면 건너뜀) — 그런 코드는 `scripts`로 응답을 정해요 |
+| `device.ts` | 장치 약속 `SerialDevice`와 `SilentDevice`(응답 없음 — 펌웨어 없는 보드)·`TextDevice`(다른 펌웨어)·`EchoDevice` |
+| `config.ts` | 설정(JSON) → 한 벌 `createSerialMock` + 조작 도구 `createSerialMockController` |
+| `browser-entry.ts` | 브라우저에 끼우기 `bootSerialMock(plugins)` → `window.__apcSerialMock` |
+
+### 8.1 규약 근거(2026-09-17 원문 확인)
+
+- MicroPython `shared/runtime/pyexec.c`: raw REPL에 들어가면 `raw REPL; CTRL-B to exit\r\n>`. 코드 + `\x04` → `OK` + 출력 + `\x04` + 오류 트레이스백 + `\x04` + `>`. 빈 코드 + `\x04` → `OK\r\n` + 소프트 리셋(raw 그대로). raw-paste `\x05A\x01` → `R\x01` + 창 크기 2바이트(little endian — `MICROPY_REPL_STDIN_BUFFER_MAX` 256의 절반 128) + `\x01`, 창만큼 받을 때마다 `\x01`, 호스트의 `\x04` → `\x04`(받음). `\x05` 뒤가 `A`가 아니면 `R\x00`. SystemExit는 트레이스백 없이 끝. 트레이스백 줄 `File "<stdin>", line N, in <module>`(구문 오류는 `, in …` 없음). 보통 REPL Ctrl-C → `\r\n>>> `, Ctrl-E → `\r\npaste mode; Ctrl-C to cancel, Ctrl-D to finish\r\n=== `.
+- ESP32 포트: 소프트 리셋 `MPY: soft reboot`, 보통 REPL일 때만 main.py, 배너 `MicroPython v1.29.0 on 2026-08-24; Generic ESP32 module with ESP32` + `Type "help()" for more information.`
+- WICG Web Serial 명세의 open·readable·writable·close·setSignals·getSignals·requestPort·forget 알고리즘과 오류 이름. 선이 빠지면 읽기가 `NetworkError`("The device has been lost." — esptool-js도 이 문장을 찾음)로 끝나고 포트는 opened 그대로라 `close()`가 성공해요. `setSignals`의 멤버가 하나도 없으면 TypeError.
+- esptool-js 0.6.1 `lib/reset.js` ClassicReset(D0·R1·100ms·D1·R0·50ms·D0)과 `lib/webserial.js`(setRTS 뒤 setDTR을 한 번 더 — usbser.sys 우회, open에 dataBits 등을 undefined로 넘김)를 모의 포트가 그대로 받아요 — 다운로드 모드 진입까지 확인(`mock-micropython.test.ts`, Edge `serial-mock.spec.ts`).
+
+### 8.2 Node 테스트(Vitest)
+
+```ts
+import { FakeSerial, MicroPythonDevice, MockSerialPort, installFakeSerial } from '../../../src/lab/serial/mock/index.ts';
+const device = new MicroPythonDevice({ files: { 'main.py': "print('hi')\n" }, scripts: [{ match: '^import esp32', output: 'ok\n' }] });
+const port = new MockSerialPort({ device });          // 만들면 USB 전원이 들어와 부팅 — 포트를 열기 전 출력은 실물처럼 사라진다
+const serial = new FakeSerial({ ports: [port], requireUserActivation: false });
+const restore = installFakeSerial(serial);             // navigator.serial 자리에(Node 22+), 끝나면 restore()
+// 내 연결 코드가 navigator.serial.requestPort() → open → raw REPL … 을 하게 두고 device·port 기록으로 확인
+```
+
+- 기준 호스트: `tests/unit/serial/helpers/raw-repl-host.ts`(pyboard.py와 같은 순서 — `enterRawRepl`·`exec`(raw-paste 흐름 제어)) — 내 구현과 비교할 때 import해요.
+- 관찰: `device.mode`(off·reset-held·booting·friendly·paste·raw·raw-paste·running·bootloader), `executed`(via friendly·paste·raw·raw-paste·boot.py·main.py), `flowControlOverrun`, `hardResets`·`softResets`, `pins`, `files.snapshot()`.
+- 조절: `timeScale: 0.01`(sleep 100배 빠르게), `bootDelayMs`(부팅 중 받은 바이트는 사라짐 — 리셋 직후 바로 보내는 코드 시험), `rawPaste: false`(옛 펌웨어), `SilentDevice`(응답 없는 보드 → [펌웨어 굽기] 안내), `openError: 'NetworkError'`(다른 프로그램이 쓰는 포트), `deliveryDelayMs`·`chunkSize`(느린·잘게 오는 USB), `port.unplug()`(선 뽑기), `device.addScript({ match, output, error, delayMs, untilInterrupt, run })`, `device.setBootloaderHandler((bytes, io, device) => …)`.
+
+### 8.3 브라우저 테스트(Playwright)
+
+```ts
+import { ESP32_USB_FILTERS, installSerialMock, serialMock, utf8Text } from './helpers/serial.ts';
+await installSerialMock(page, { ports: [{ id: 'board', micropython: { files: { 'main.py': '…' }, scripts: [{ match: 'esp32', output: 'ok\n' }] } }] });
+await page.goto(withBase('labs/esp32/'));                       // installSerialMock은 goto 전에
+await page.getByRole('button', { name: '보드 연결' }).click();   // requestPort는 클릭 안에서만 된다
+const board = serialMock(page);                                  // 기본 포트 id 'board'
+await expect.poll(() => board.mode()).toBe('raw');
+expect(utf8Text(await board.deliveredText())).toContain('MicroPython v1.29.0');
+await board.unplug();                                            // 선 뽑기 → "연결이 끊겼어요" 흐름
+```
+
+- 설정(JSON): `ports[]` — `id`·`label`·`usb`(`'ch340'`·`'cp2102'`·`{ usbVendorId, usbProductId }`)·`granted`(처음부터 허락 → getPorts)·`plugged`·`device`(`'micropython'`·`'silent'`·`'text'`·`'echo'`·`'none'`)·`text`·`micropython`(8.2의 옵션 — `scripts[].match`는 정규식 글자)·`openError`·`chunkSize`·`deliveryDelayMs`, 그리고 `requireUserActivation`.
+- 조작 도구 `serialMock(page)`: `mode`·`writtenText`·`deliveredText`(0~255 글자 — 한글은 `utf8Text`)·`files`·`setFile`·`executed`·`pins`·`signals`·`openLog`·`isOpen`·`requests`·`chooseNext(id | null)`(null = 학생이 선택 창을 닫음)·`plug`·`unplug`·`send`·`reset('hard'|'soft')`·`addScript`·`flowControlOverrun`·`hardResets`·`softResets`.
+- 함수가 필요한 흉내(ROM 부트로더 응답 등)는 **플러그인**: `tests/e2e/helpers/serial-plugins/<이름>.ts`(기본 내보내기 `({ kit, controller, config }) => void`, 브라우저에서 돌므로 Node 모듈 금지)를 `installSerialMock(page, 설정, { plugins: ['tests/e2e/helpers/serial-plugins/<이름>.ts'] })`로 넣어요. 본보기 `bootloader-echo.ts`.
+- 문서가 새로 열릴 때마다 새 보드예요(새로 고침·이동·iframe마다).
+- **Playwright의 `page.evaluate`는 사용자 조작이 있는 것으로 돌아요**(requestPort가 통과) → "클릭 없이 부르면 SecurityError"는 `page.addInitScript`처럼 evaluate 밖에서 시험해요(`tests/e2e/serial-mock.spec.ts`).
+
+### 8.4 흉내 내지 않는 것
+
+보통 REPL의 자동 들여쓰기·탭 완성·기록, raw-paste 도중 구문 오류로 일찍 끝내기(코드를 다 받은 뒤 검사), 실제 ROM 부팅 글 전체, ESP32 ROM 부트로더 규약(SLIP·SYNC·FLASH_* — 필요하면 F 구역 플러그인), USB 드라이버·포트 이름·버퍼 넘침(BufferOverrunError), 한 번의 `setSignals` 안에서 선이 차례로 바뀌는 순간(한꺼번에 바뀐 것으로 봄), mini-python 밖의 문법. 이런 차이는 실물 점검 목록(부록 B-2)으로 확인해요.
