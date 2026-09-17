@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 2-2-4 서보모터 2개 함께 움직이기
-description: 서보모터 2개(25·26번)를 0도와 180도로 1초마다 번갈아 돌려요. 가상 보드의 서보모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요.
+description: 서보모터 2개(25·26번)를 0도와 180도로 1초마다 번갈아 돌려요. rotate마다 0.5초 기다려서 서보 2가 서보 1보다 0.5초 늦게 움직여요(원고의 "동시에"와 달라요 — 교사용 참고).
 lesson: 2-2-4
 page: 177
 source_id: f080
@@ -9,6 +9,16 @@ tags:
   - 서보모터
   - 라이브러리
 packages: []
-smoke:
-  outcome: error
-  error: ModuleNotFoundError
+parts:
+  - part: servo
+    id: servo-1
+    pin: 25
+    label: 서보모터 1
+  - part: servo
+    id: servo-2
+    pin: 26
+    label: 서보모터 2
+practice:
+  - "[실행]을 눌러요."
+  - "서보모터 1(IO25)이 먼저 돌고 0.5초 뒤에 서보모터 2(IO26)가 따라 도는지 두 그림을 함께 봐요."
+  - "[정지]를 누르면 두 서보 모두 \"신호 없음\"으로 바뀌어요."

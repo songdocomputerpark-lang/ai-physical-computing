@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-4 기본: 레이저와 RGB LED 번갈아 켜기(원본 파일)"
-description: 레이저를 켤 때 빨강, 끌 때 파랑 LED를 켜려는 코드예요. 원본 파일은 값 2개를 받는 set_color에 값 3개를 넘겨 첫 반복에서 TypeError로 멈춰요(실물 보드도 같아요 — 원고 147쪽은 값 3개를 받아요).
+description: 레이저를 켤 때 빨강, 끌 때 파랑 LED를 켜려는 코드예요. 원본 파일은 값 2개를 받는 set_color에 값 3개를 넘겨 첫 반복에서 TypeError로 멈춰요(실물 보드도 같아요 — 원고 147쪽은 g = Pin(32) 줄이 있고 값 3개를 받아요). 원고처럼 고친 파일은 같은 이름의 "(사이트판)" 예제예요.
 lesson: 2-1-4
 page: 146
 source_id: f062
@@ -10,6 +10,18 @@ tags:
   - RGB LED
   - 함수
 packages: []
+parts:
+  - part: rgb-led
+    pins:
+      r: 27
+      g: 32
+      b: 33
+  - part: laser
+    pin: 21
 smoke:
   outcome: error
   error: TypeError
+practice:
+  - "[실행]을 누르면 레이저가 켜진 뒤 18번 줄에서 TypeError로 멈춰요. 오류 풀이 카드를 읽어 봐요."
+  - "set_color(r_on, b_on)은 값을 2개 받는데 set_color(1, 0, 0)처럼 3개를 넘겨서예요. 원고 147쪽처럼 g = Pin(32, Pin.OUT)과 g.value(g_on)을 더해 고쳐요."
+  - "고친 뒤 [실행]하면 레이저가 켜질 때 빨강, 꺼질 때 파랑이 1초마다 번갈아 켜져요(고친 코드는 \"(사이트판)\" 예제). 실물 레이저는 눈에 비추지 않아요."

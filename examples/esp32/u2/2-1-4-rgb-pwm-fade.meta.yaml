@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-4 기본: RGB LED 빨강 밝기를 PWM으로 천천히 바꾸기"
-description: PWM 값(duty)을 0부터 1023까지 올렸다 내려 빨간 LED가 서서히 밝아졌다 어두워져요. 가상 보드의 PWM은 아직 준비 중이라 지금은 실행하면 멈춰요.
+description: PWM 값(duty)을 0부터 1023까지 올렸다 내려 빨간 LED가 사이렌처럼 서서히 밝아졌다 어두워져요(한 번 오르내리는 데 약 2초).
 lesson: 2-1-4
 page: 144
 source_id: f060
@@ -10,6 +10,13 @@ tags:
   - PWM
   - 밝기
 packages: []
-smoke:
-  outcome: error
-  error: ImportError
+parts:
+  - part: rgb-led
+    pins:
+      r: 27
+      g: 32
+      b: 33
+practice:
+  - "[실행]을 누르면 RGB LED가 빨강으로 서서히 밝아졌다가 다시 어두워지기를 되풀이해요."
+  - "RGB LED 그림의 \"R IO27\" 옆 숫자(%)와 핀 상태 표의 GPIO27 \"PWM 출력\"을 함께 봐요."
+  - "[정지]를 누르면 LED가 꺼진 모습으로 돌아가요."
