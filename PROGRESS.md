@@ -161,6 +161,15 @@
 - **실사이트 확인(2026-09-18):** `/`·`/labs/esp32/`·`/labs/esp32/check/`·`/start/board/`·`/help/errors/`·`/firmware/manifest.json`·`/models/hand_landmarker.task`가 모두 200이고, GitHub Pages 주소로 **시나리오 B**(블록판 16.3초·BOOT 버튼판 11.3초)와 **점검 도우미 브라우저 검사 4건**(모의 포트로 항목 22개 끝까지 32.4초)이 통과했다.
 - **실물 확인은 모두 남아 있다:** 부록 B-2 4~6·9~30번(운영자 할 일 2번). 도우미가 항목마다 안내하고 [결과 복사]로 붙일 글을 만들어 준다. 모의 시리얼·가상 보드에서 되는 것은 실물의 증거가 아니다.
 
+### 2026-09-18 07시 15분 — 운영자 계정 전환으로 정지 (검토 단계 도중)
+
+운영자가 사용량 한도 때문에 **다른 Claude 계정으로 갈아타기로** 해서, 검토 3명 중 1명이 끝난 자리에서 워크플로(`wf_86bbf998-bc6`)를 멈췄다. 이어받는 순서는 `docs/HANDOFF.md`, 멈춘 자리의 자동 기록은 `.cache/resume/STATE.md`(10분마다 갱신).
+
+- **끝난 검토:** `review:safety`(안전·저작권·개인정보). 결과를 `.cache/phase3-reviews/finished-reviews.md`에 옮겨 두었다(git 제외, 이 노트북). 재개하면 이 검토자는 캐시에서 돌아오므로 다시 돌지 않는다. 판정 대부분 통과, **못 지킨 것 2가지**: ① [보드에 저장]이 확인 창·백업 없이 `main.py`를 덮어씀 ② 저장소 검사 우회 구멍.
+- **멈춘 검토 2명:** `review:criteria`, `review:ux` — 결과 전에 멈췄으므로 재개하면 처음부터 다시 돈다(약 40분). 커밋은 하지 않는 단계라 잃는 것은 시간뿐이다.
+- **다음:** 워크플로 재개 → 검토 2명 다시 → `fix:final`이 세 검토 결과를 반영 → Phase 3 완료 → Phase 4 워크플로 새로 작성.
+- **push가 멈추는 문제(주의):** 이 PC의 Git Credential Manager(`credential.helper=manager`)가 `credential-manager get`에서 응답 없이 멈춰 push가 진행되지 않았다(07시 무렵 두 번). `gh`는 정상 로그인 상태(keyring, scopes repo·workflow)라 **`git -c credential.helper='!gh auth git-credential' push origin main`으로 우회해 올렸다**(45328d5). 다시 멈추면 이 방법을 쓰고, 멈춘 `git.exe`·`git credential-manager` 프로세스는 종료한다.
+
 ## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.3 Phase 3 ESP32 실습실)
 
 1. ~~**P3-00 (실험) MicroPython WASM 포트**~~ **끝남(2026-09-17): PD-04 유지** — 판정·근거는 미해결 42, 비교·다시 볼 조건·**가상 보드가 지킬 MicroPython 차이 표 14항목**(ticks 넘침 2**30·epoch 2000·단정밀도 float·errno 번호·u-이름·`const` 등)은 PLAN §8.3 P3-00 구현 메모. P3-01은 그 표의 "흉내" 항목을 보드 흉내 모듈 단위 테스트로 확인한다. 협조적 정지(`bridge.ts`)·동기 진입점 규칙(미해결 25)·흉내 모듈 폴더 규약은 Pyodide를 그대로 쓰므로 바뀌지 않는다.

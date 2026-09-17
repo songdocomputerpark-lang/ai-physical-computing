@@ -38,6 +38,9 @@ git rev-list --left-right --count main...origin/main
 - `node_modules`·`dist`·`.astro`·`public/vendor`는 git 제외다. `npm ci` 한 번이면 다시 생긴다(`predev`·`prebuild`가 `public/vendor/`를 채운다).
 - **절전 방지:** 앱의 keep-awake(`session_idle`)를 켜고, 이 노트북의 도우미 `%TEMP%\claude_keep_awake.ps1`을 숨김 창으로 실행한다(12시간 동안 대기 절전을 막는다. 덮개를 닫으면 그래도 잠든다).
 - 커밋 전 훅은 `npm ci`가 `git config core.hooksPath .githooks`로 켠다. 확인: `git config --get core.hooksPath`.
+- **세션 설정:** 모델 **Opus 5**, 노력 **max**, Ultracode 켬(작업은 Workflow로). 워크플로 에이전트도 `effort: 'max'`.
+- **push가 멈추면:** 이 PC의 Git Credential Manager가 `credential-manager get`에서 멈추는 일이 있다(2026-09-18 확인). 멈춘 `git.exe`·`git credential-manager` 프로세스를 끝내고 `git -c credential.helper='!gh auth git-credential' push origin main`으로 올린다(`gh`는 이미 로그인돼 있다). 커밋은 이미 로컬에 있으니 잃는 것은 없다.
+- **자동 기록·절전 방지 도우미**는 계정을 바꿔도 이 노트북에서 계속 돌지만, 노트북을 껐다 켰으면 다시 띄운다(0번, 2번).
 
 ---
 
