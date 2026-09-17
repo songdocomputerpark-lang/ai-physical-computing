@@ -4,12 +4,13 @@
 //  2. Pin(2, Pin.OUT).on()을 실행하면 파이썬이 보낸 상태 메시지(board.state)로 내장 LED가 켜지고 핀 표에 GPIO2 = 1이 보인다.
 //  3. BOOT 버튼을 마우스로·키보드(Space)로 누르고 있는 동안 파이썬의 Pin(0).value()가 0이 된다(화면 입력 → board.input).
 //  4. Timer 예제는 코드가 끝난 뒤에도 LED가 깜빡이고(board.state phase idle) [정지]로 멈춘다 — 멈추면 LED가 꺼진 모습.
+//     사이트 예제 01(첫 화면 예제 — 깜빡이기와 interval 조절 막대)·02(BOOT 버튼으로 LED)도 파일 그대로 돌려 본다.
 //  5. 가상 보드는 OpenCV·numpy를 받지 않고(PD-04, 준비 모듈의 캐시 채우기 포함), 허용 주소 밖 요청이 없다.
 //  6. 보드 흉내는 ESP32 실습실에만 있다: 개발용 시험 페이지에서는 import machine이 없는 모듈이고 time에 sleep_ms가 없다.
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
-import { LOAD_TIMEOUT, labRoot, openLabAndWaitReady, runCode, waitDone } from './helpers/lab.ts';
+import { LOAD_TIMEOUT, editorContent, labRoot, openLabAndWaitReady, runCode, waitDone } from './helpers/lab.ts';
 import { collectRequests } from './helpers/vision.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
@@ -169,6 +170,58 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await page.locator('[data-lab-stop]').click();
     expect(await waitDone(page, 30_000)).toBe('stopped');
     await expect(led).toHaveAttribute('data-visual-lit', 'false');
+  });
+
+  test('사이트 예제 01·02가 고치지 않고 돈다: LED가 깜빡이고 interval 막대로 빨라지며, BOOT 버튼을 누르는 동안 LED가 켜진다', async ({ page }) => {
+    test.skip(test.info().project.name === 'mobile', '예제 동작은 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openEsp32Lab(page);
+    const led = part(page, 'builtin-led');
+
+    // ① 01-first-blink(실습실을 처음 열면 올라오는 예제): sleep(interval)마다 LED를 켰다 끈다
+    await expect(labRoot(page)).toHaveAttribute('data-example', '01-first-blink');
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    await expect(board(page)).toHaveAttribute('data-board-phase', 'run', { timeout: 60_000 });
+    for (const lit of ['true', 'false', 'true']) {
+      await expect(led).toHaveAttribute('data-visual-lit', lit, { timeout: 10_000 });
+    }
+    // 조절 막대 interval 0.5 → 0.1: 코드의 숫자가 바뀌고, 돌고 있는 반복문이 다음 sleep부터 더 자주 켜고 끈다.
+    // 켜고 끌 때마다 board.state를 보내므로(README 7.3) 같은 시간 동안 순서 번호가 는 양으로 빠르기를 잰다 — 정해진 시간 창에 기대지 않고 빨라질 때까지 되풀이해 본다.
+    const seqIncrease = async (ms: number): Promise<number> => {
+      const start = Number(await board(page).getAttribute('data-board-seq'));
+      await page.waitForTimeout(ms);
+      return Number(await board(page).getAttribute('data-board-seq')) - start;
+    };
+    const slow = await seqIncrease(1_500);
+    await page.locator('[data-lab-param="interval"] input[type="range"]').fill('0.1');
+    await expect(editorContent(page)).toContainText('interval = 0.1');
+    await expect.poll(() => seqIncrease(1_500), { timeout: 20_000, intervals: [0] }).toBeGreaterThanOrEqual(slow + 5);
+    await page.getByRole('button', { name: '정지', exact: true }).click();
+    expect(await waitDone(page, 30_000)).toBe('stopped');
+    await expect(led).toHaveAttribute('data-visual-lit', 'false');
+
+    // ② 02-boot-button-led: sleep_ms(20)마다 BOOT 버튼(GPIO0)을 읽어, 누르고 있는 동안만 LED를 켠다
+    await page.locator('[data-lab-example-select]').selectOption('02-boot-button-led');
+    await page.locator('[data-lab-example-load]').click();
+    await expect(labRoot(page)).toHaveAttribute('data-example', '02-boot-button-led');
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    await expect(board(page)).toHaveAttribute('data-board-phase', 'run', { timeout: 60_000 });
+    await expect(page.locator('[data-board-pin="0"]')).toHaveAttribute('data-level', '1', { timeout: 10_000 });
+    await expect(led).toHaveAttribute('data-visual-lit', 'false');
+    const boot = part(page, 'boot-button');
+    await boot.hover(); // 스크롤이 멈춘 뒤 버튼 한가운데로 옮긴다([실행] 뒤 결과 칸으로 화면이 옮겨 갈 수 있음)
+    await page.mouse.down();
+    await expect(boot).toHaveAttribute('aria-pressed', 'true');
+    await expect(led).toHaveAttribute('data-visual-lit', 'true', { timeout: 10_000 });
+    await expect(page.locator('[data-board-pin="0"]')).toHaveAttribute('data-level', '0');
+    await page.mouse.up();
+    await expect(led).toHaveAttribute('data-visual-lit', 'false', { timeout: 10_000 });
+    await page.getByRole('button', { name: '정지', exact: true }).click();
+    expect(await waitDone(page, 30_000)).toBe('stopped');
+
+    expect(await consoleText(page)).not.toMatch(/Traceback|Error/u);
+    expect(errors).toEqual([]);
   });
 
   test('좁은 화면(375px)에서도 가로로 넘치지 않는다', async ({ page }) => {
