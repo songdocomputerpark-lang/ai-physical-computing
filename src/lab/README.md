@@ -590,6 +590,12 @@ PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 
 | 블록 전용 호환 모드(D, PD-27) | JSPI 없이 `runPythonAsync` 최상위 await: `await apc_board.wait_ns_async(ns)`(Timer·핀 인터럽트·입력·[정지]), `await apc_runtime.sleep_async(초)` — 생성기가 만든 실행판만 부름(화면 코드는 `time.sleep`) | 블록 모듈이 실행판을 만듦(브라우저 확인은 D 구역) | `pyodide-board-async-wait`(제한 모드, Node) |
 | 실행 대상(E — 실제 보드) | — | `lab.setRunTarget({ label, run(code, ctx), stop() })`: [실행]·[정지]가 대상으로, `ctx.write(글, kind)`·`ctx.prompt(안내)`(공통 입력줄), 결과는 `RunResult`(오류면 `error.traceback` — 셸이 콘솔에 한 번 적고 오류 풀이 카드가 읽음), `'run'` 이벤트 `target` 이름, 뿌리 `data-run-target`·`data-state`(대상의 idle·running·stopping). 실행 중에는 바꿀 수 없음(오류) | `tests/e2e/lab-run-target.spec.ts`(Edge) |
 | 모의 시리얼(E·F·통합) | — | 8절 | `tests/unit/serial/*`, `tests/e2e/serial-mock.spec.ts` |
+| I2C 장치(다음 I2C 부품, P3-04) | 부품 장치에 `i2c_address`(7비트, 필수)·`i2c_start(read)`(False면 NACK)·`i2c_write(data)` → ACK한 바이트 수·`i2c_read(count)`·`i2c_stop()`·`i2c_hint(data)`(선택 — 가상 전용 설명 통로, 드라이버가 `bus._apc_hint(addr, data)`). 배선 역할 `scl`·`sda` 핀이 같은 버스에 매달린다. 도우미 `apc_board_i2c.wired_i2c_devices()`·`i2c_devices_on(scl, sda)` | `board.device` 상태 | `tests/unit/board-i2c/pyodide-i2c-{bus-lcd,oled}.test.ts` |
+| 가상 직렬 선(UART 부품, P3-05) | `apc_board_uart.deliver(gpio, data, settings=None, at_ns=None)` → 받은 UART 수(부품 TX → 보드 RX). 장치에 `SERIAL_RX_ROLE`('rx')·`serial_receive(data, info)`·`serial_settings()`. `uart_on_rx_pin(gpio)`·`uart_on_tx_pin(gpio)` → `{baudrate, bits, parity, stop}`, `SERIAL_DEFAULT`(9600 8N1), 설정이 다르면 `reframe`이 비트 단위로 깨뜨림 | 부품 `controls`의 `api.sendToDevice` | `tests/unit/board-uart/pyodide-{uart,mp3}.test.ts` |
+| 네오픽셀 신호(P3-05) | `machine.bitstream(pin, 0, timing, buf)` → 장치에 `BITSTREAM_ROLE`('din')·`receive_bitstream(data, timing)` | — | `tests/unit/board-uart/pyodide-neopixel.test.ts` |
+| 보드 콘솔 `input()`(P3-05) | `src/lab/modules/board-console/`가 ESP32 실습실 `builtins.input`을 바꾼다(기다리는 동안 Timer·UART가 돈다) | 이벤트 `board-console.prompt {id, prompt}`, 채널 `board-console.line {id, value}`·`{id, cancelled: true}`·`board-console.ready`, 실습실 틀의 공개 `lab.prompt` | `tests/unit/board-uart/{board-console,pyodide-board-console}.test.ts` |
+| [실행] 코드 바꾸기(D, P3-06) | — | `lab.setRunCodeTransform(fn \| null)`: [실행] 때 파이썬에 보낼 코드만 바꾼다(편집칸·공유 링크·내려받기·실제 보드에는 영향 없음) | `tests/unit/blocks/rules.test.ts`, `tests/e2e/esp32-blocks.spec.ts` |
+| 예제 목록에 없는 코드의 배선(D, P3-06) | — | 실습실 뿌리 속성 `data-board-wiring-override`(WiringEntry[] JSON)와 이벤트 `apc:board-wiring`(`src/lab/blocks/board-link.ts`) → 보드 모듈이 예제 배선 대신 그린다 | `tests/unit/blocks/board-link.test.ts`, `tests/e2e/scenario-b.spec.ts` |
 
 ---
 
@@ -645,6 +651,11 @@ const restore = installFakeSerial(serial);             // navigator.serial 자�
 - 기준 호스트: `tests/unit/serial/helpers/raw-repl-host.ts`(pyboard.py와 같은 순서 — `enterRawRepl`·`exec`(raw-paste 흐름 제어)) — 내 구현과 비교할 때 import해요.
 - 관찰: `device.mode`(off·reset-held·booting·friendly·paste·raw·raw-paste·running·bootloader), `executed`(via friendly·paste·raw·raw-paste·boot.py·main.py), `flowControlOverrun`, `hardResets`·`softResets`, `pins`, `files.snapshot()`.
 - 조절: `timeScale: 0.01`(sleep 100배 빠르게), `bootDelayMs`(부팅 중 받은 바이트는 사라짐 — 리셋 직후 바로 보내는 코드 시험), `rawPaste: false`(옛 펌웨어), `SilentDevice`(응답 없는 보드 → [펌웨어 굽기] 안내), `openError: 'NetworkError'`(다른 프로그램이 쓰는 포트), `deliveryDelayMs`·`chunkSize`(느린·잘게 오는 USB), `port.unplug()`(선 뽑기), `device.addScript({ match, output, error, delayMs, untilInterrupt, run })`, `device.setBootloaderHandler((bytes, io, device) => …)`.
+
+**멈춤 신호를 삼키는 프로그램 흉내(P3-08 되찾기 시험, 2026-09-18):** `scripts`의 `run`으로 만들되 **보드가 리셋되면 끝나게** 짠다 —
+`ctx.device.hardResets + softResets`가 바뀌거나 `ctx.device.mode === 'off'`가 되면 반복을 끝낸다. 그러지 않으면 보드가 다시 켜져도 옛 반복이
+타이머를 남겨 새 실행의 Ctrl-C를 가로챈다. 본보기는 `tests/unit/serial/real-board-recovery.test.ts`의 `SWALLOW_SCRIPT`이고, 브라우저에서는
+`page.evaluate`로 `window.__apcSerialMock.device('board').addScript({ match, run })`처럼 붙인다(`tests/e2e/esp32-real-board-run.spec.ts`).
 
 ### 8.3 브라우저 테스트(Playwright)
 

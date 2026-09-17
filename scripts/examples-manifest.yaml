@@ -1014,6 +1014,8 @@ examples:
   # ImportError·ModuleNotFoundError(한국어 안내)로 멈춘다. 기능을 더한 구역은 같은 커밋에서 smoke와 설명의 "준비 중" 문장을 지운다(P3-02 f052와 같은 걸림돌).
   # 원본 결함(실물에서도 같은 오류): f062(set_color에 값 3개 → TypeError), f074(줄마다 원고 줄 번호 글자 → SyntaxError, expect_syntax_error).
   # 사이트판(PD-10)이 필요한 파일은 원본을 그대로 두고 담당 구역이 …-site.py를 따로 만든다(f058·f059 판정 구간, f062, f064 write(), f074 줄 번호).
+  # 2026-09-18: f058·f059·f062 사이트판은 P3-03(구역 A), f074 사이트판은 P3-05(구역 C)에서 만들었다. 사이트판은 이관 기록이 아니라 이 목록에 없고(examples:verify 대상 아님)
+  # 구역의 단위·브라우저 테스트가 지킨다.
   - id: f047
     source: textbook
     member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p127)출력테스트_문자(p127).py"
