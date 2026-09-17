@@ -12,6 +12,7 @@
  * - code: 예제 원래 코드. [초기화]가 이 코드로 되돌린다.
  * - packages: 실행 전에 미리 받을 Pyodide 패키지 이름(pyodide-lock.json 기준, 예: opencv-python). import 문 분석과 별개다.
  */
+import type { WiringEntry } from '../modules/board/part-types.ts';
 
 export interface LabExample {
   /** 영문 소문자·숫자·하이픈 식별자. 저장 이름·공유 링크(ex=)에 쓴다. */
@@ -34,11 +35,13 @@ export interface LabExample {
    */
   readonly lesson?: { readonly href: string; readonly label: string };
   /**
-   * ESP32 실습실 예제의 배선(선택, PD-05 "예제별 배선"). 가상 보드가 이 부품들을 그리고 파이썬에 알린다
+   * ESP32 실습실 예제의 배선(선택, PD-05 "예제별 배선"). 가상 보드가 이 부품들을 그리고 선을 긋고 파이썬에 알린다
    * (src/lab/modules/board/part-types.ts WiringEntry — 보드에 붙은 내장 LED·BOOT 버튼은 적지 않아도 늘 있다).
-   * 차시 md의 parts·사이드카에서 채우는 일은 P3-02가 한다.
+   * 페이지가 차시 md frontmatter → 사이드카 → 예제 머리말 `# @part` 순서로 채운다(src/lab/esp32/examples.ts, README 7.4).
    */
-  readonly parts?: readonly { readonly part: string; readonly id: string; readonly pins?: Readonly<Record<string, number>>; readonly label?: string }[];
+  readonly parts?: readonly WiringEntry[];
+  /** 실습 방법 단계(선택, P3-02): 사이드카 practice → 머리말 "실습 방법" 상자. ESP32 실습실이 보드 그림 위에 보인다 */
+  readonly practice?: readonly string[];
 }
 
 /** 예제 id 모양 */

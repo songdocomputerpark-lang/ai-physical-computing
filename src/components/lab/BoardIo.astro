@@ -1,12 +1,15 @@
 ---
 /**
- * ESP32 실습실의 입력·출력 칸 — 가상 보드 그림과 핀 상태 표(PLAN §8.3 P3-01, SPEC §6.2 "가상 보드").
- * LabShell의 io 슬롯에 넣는다. HTML·CSS만 그리고, 그림·동작은 흉내 모듈 src/lab/modules/board/(index.ts·view.ts)가 data-board-* 표시로 찾아 잇는다.
+ * ESP32 실습실의 입력·출력 칸 — 가상 보드 그림·배선도와 핀 상태 표(PLAN §8.3 P3-01·P3-02, SPEC §6.2 "가상 보드").
+ * LabShell의 io 슬롯에 넣는다. HTML·CSS만 그리고, 그림·동작은 흉내 모듈 src/lab/modules/board/(index.ts·view.ts·board-drawing.ts)가
+ * data-board-* 표시로 찾아 잇는다.
  *
  *   <LabShell labId="esp32" examples={examples}>
  *     <BoardIo slot="io" />
  *   </LabShell>
  *
+ * 배치: 칸 폭(컨테이너 쿼리)이 넓으면 그림과 핀 표를 나란히, 좁으면(데스크톱 실습실의 오른쪽 열, 휴대폰) 그림 → 핀 표 순서로 쌓는다.
+ * 그림은 칸 폭에 맞추고, [그림 크게 보기]를 누르면 넓게 펴서 가로로 밀어 본다(휴대폰에서 핀 번호가 작을 때 — PROGRESS 미해결 50).
  * data-lab-reveal-on-run: [실행]을 누를 때 실습실 틀(lab-shell.ts)이 화면 안으로 옮기는 결과 칸(보드와 핀 표 전체),
  * data-lab-reveal-on-run-min: 함께 못 넣을 때 꼭 보여야 하는 칸(보드 그림) — src/lab/README.md 4.3.
  * 사이트 검색 색인은 LabShell 뿌리에서 이미 뺀다.
@@ -14,50 +17,73 @@
 ---
 
 <div class="board-io" data-board-io data-board-phase="stopped" data-lab-reveal-on-run>
-  <section class="board-io__board" aria-labelledby="board-io-heading">
-    <h3 id="board-io-heading" class="board-io__heading">가상 보드</h3>
-    <p class="board-io__phase" data-board-phase-text role="status" aria-live="polite">보드가 멈춰 있어요. [실행]을 누르면 보드를 새로 켜고 코드를 돌려요.</p>
-    <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-lab-reveal-on-run-min>
-      <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
-    </div>
-    <ul class="board-io__problems" data-board-problems hidden></ul>
-    <p class="board-io__hint">
-      BOOT 버튼은 마우스로 누르고 있거나, Tab 키로 버튼에 간 뒤 Space를 누르고 있어요. 누르는 동안 GPIO0이 0으로 읽혀요.
-    </p>
-  </section>
+  <div class="board-io__layout">
+    <section class="board-io__board" aria-labelledby="board-io-heading">
+      <div class="board-io__head">
+        <h3 id="board-io-heading" class="board-io__heading">가상 보드와 배선도</h3>
+        <button type="button" class="lab-button lab-button--small" data-board-zoom aria-pressed="false">그림 크게 보기</button>
+      </div>
+      <div class="board-io__practice" data-board-practice hidden>
+        <p class="board-io__practice-title">이 예제 실습 방법</p>
+        <ol class="board-io__practice-steps" data-board-practice-steps></ol>
+      </div>
+      <p class="board-io__phase" data-board-phase-text role="status" aria-live="polite">보드가 멈춰 있어요. [실행]을 누르면 보드를 새로 켜고 코드를 돌려요.</p>
+      <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-board-zoom-level="fit" data-lab-reveal-on-run-min>
+        <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
+      </div>
+      <p class="board-io__note" data-board-wiring-empty hidden>
+        이 예제는 보드에 붙은 부품(내장 LED·BOOT 버튼)만 써요. 터치 센서처럼 바깥 부품을 쓰는 예제를 고르면 보드 아래에 배선도가 그려져요.
+      </p>
+      <ul class="board-io__issues" data-board-problems aria-label="배선 확인" hidden></ul>
+      <p class="board-io__hint">누를 수 있는 부품(BOOT 버튼·터치 센서)은 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있어요.</p>
+      <details class="board-io__legend">
+        <summary>그림 읽는 법</summary>
+        <ul>
+          <li><span class="board-io__legend-mark" aria-hidden="true">▲</span> 표시는 스트래핑 핀(GPIO 0·2·5·12·15)이에요. 보드 전원을 켤 때 부팅 방식을 정하는 핀이라 바깥 부품을 이으면 실물 보드가 켜지지 않을 수 있어요.</li>
+          <li>핀에 흰 고리가 생기면 코드가 쓰는 핀이고, 노랗게 빛나면 지금 1(HIGH)인 핀이에요. 핀에 마우스를 올리면 설명이 나와요.</li>
+          <li>색 선은 신호선(핀 번호와 부품을 이음), 검은 선은 GND(0V), 빨간 선은 3V3(3.3V 전원)이에요. 브레드보드 아래 두 줄(레일)이 부품에 전원을 나눠 줘요.</li>
+          <li>교과서 키트의 확장 보드를 쓰면 부품 케이블을 그림의 핀 번호와 같은 3색 헤더(GND 검정·VCC 빨강·신호 노랑)에 꽂아요.</li>
+        </ul>
+      </details>
+    </section>
 
-  <section class="board-io__pins" aria-labelledby="board-pins-heading">
-    <h3 id="board-pins-heading" class="board-io__heading">핀 상태</h3>
-    <div class="board-io__table-wrap">
-      <table class="board-pins">
-        <caption class="board-pins__caption">코드가 쓴 핀의 모드와 값(1 = HIGH 3.3V, 0 = LOW 0V)</caption>
-        <thead>
-          <tr>
-            <th scope="col">핀</th>
-            <th scope="col">모드</th>
-            <th scope="col">값</th>
-            <th scope="col">연결된 부품</th>
-          </tr>
-        </thead>
-        <tbody data-board-pin-rows></tbody>
-      </table>
-    </div>
-    <p class="board-io__note" data-board-pins-empty>아직 코드가 쓴 핀이 없어요. [실행]하면 여기에 핀이 나타나요.</p>
-    <p class="board-io__note">가상 보드는 실물 ESP32와 같은 MicroPython 코드를 브라우저 안에서 돌려요. 보드가 없어도 모든 실습을 할 수 있어요.</p>
-  </section>
+    <section class="board-io__pins" aria-labelledby="board-pins-heading">
+      <h3 id="board-pins-heading" class="board-io__heading">핀 상태</h3>
+      <div class="board-io__table-wrap">
+        <table class="board-pins">
+          <caption class="board-pins__caption">코드가 쓴 핀의 모드와 값(1 = HIGH 3.3V, 0 = LOW 0V)</caption>
+          <thead>
+            <tr>
+              <th scope="col">핀</th>
+              <th scope="col">모드</th>
+              <th scope="col">값</th>
+              <th scope="col">연결된 부품</th>
+            </tr>
+          </thead>
+          <tbody data-board-pin-rows></tbody>
+        </table>
+      </div>
+      <p class="board-io__note" data-board-pins-empty>아직 코드가 쓴 핀이 없어요. [실행]하면 여기에 핀이 나타나요.</p>
+      <p class="board-io__note">가상 보드는 실물 ESP32와 같은 MicroPython 코드를 브라우저 안에서 돌려요. 보드가 없어도 모든 실습을 할 수 있어요.</p>
+    </section>
+  </div>
 </div>
 
 <style>
   .board-io {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-4);
+    container-type: inline-size;
     margin-block-start: var(--space-3);
   }
 
-  @media (min-width: 48rem) {
-    .board-io {
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  .board-io__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  @container (min-width: 52rem) {
+    .board-io__layout {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
       align-items: start;
     }
   }
@@ -70,9 +96,42 @@
     min-width: 0;
   }
 
+  .board-io__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
   .board-io__heading {
     margin: 0;
     font-size: var(--text-base);
+  }
+
+  .board-io__practice {
+    padding: var(--space-2) var(--space-3);
+    border-inline-start: 4px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-io__practice[hidden] {
+    display: none;
+  }
+
+  .board-io__practice-title {
+    margin: 0 0 var(--space-1);
+    font-weight: 700;
+  }
+
+  .board-io__practice-steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.4em;
   }
 
   .board-io__phase {
@@ -84,6 +143,7 @@
   .board-io__stage {
     min-height: 12rem;
     padding: var(--space-2);
+    overflow: auto;
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
     background: var(--color-bg-subtle);
@@ -99,7 +159,17 @@
     display: block;
     width: 100%;
     height: auto;
-    max-height: 24rem;
+    max-height: 40rem;
+  }
+
+  /*
+   * 그림 크게 보기: 칸보다 넓게 펴고(가로로 밀어 보기) 높이 제한을 푼다(전역 규칙의 svg max-width: 100%도 푼다).
+   * 그림 폭 48rem(768px)이면 보기 영역 418~430 단위가 약 1.8배라, 휴대폰 375px에서도 핀 번호 글자(8.5 단위)가 약 15px로 보인다(계산값).
+   */
+  .board-io__stage[data-board-zoom-level='large'] :global(.board-stage__svg) {
+    width: max(100%, 48rem);
+    max-width: none;
+    max-height: none;
   }
 
   .board-io__stage :global(.board-drawing__module) {
@@ -110,20 +180,65 @@
   }
 
   .board-io__stage :global(.board-drawing__caption) {
-    fill: #4a5361;
+    fill: #374151;
     font-size: 11px;
+  }
+
+  .board-io__stage :global(.board-drawing__small) {
+    fill: #e8eef6;
+    font-family: var(--font-mono);
+    font-size: 7.5px;
+    font-weight: 700;
+  }
+
+  .board-io__stage :global(.board-drawing__pin-label) {
+    fill: #ffffff;
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    font-weight: 700;
+  }
+
+  .board-io__stage :global(.board-drawing__pin-label--power) {
+    fill: #ffd9a0;
+    font-size: 7.5px;
+  }
+
+  .board-io__stage :global(.board-drawing__bb-label) {
+    fill: #57534e;
+    font-size: 8px;
+  }
+
+  .board-io__stage :global(.board-drawing__rail-label) {
+    fill: #1f2937;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+  }
+
+  .board-io__stage :global(.board-drawing__rail-label--vcc) {
+    fill: #991b1b;
   }
 
   .board-io__stage :global(.board-part__label) {
     fill: #ffffff;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .board-io__stage :global(.board-part__label--small) {
+    font-size: 8px;
+  }
+
+  .board-io__stage :global(.board-part__title) {
+    fill: #ffffff;
+    font-size: 9px;
     font-weight: 700;
   }
 
   .board-io__stage :global(.board-part__state) {
     fill: #e8eef6;
-    font-size: 10px;
+    font-size: 9.5px;
   }
 
   .board-io__stage :global(.board-part--interactive) {
@@ -132,30 +247,58 @@
     outline: none;
   }
 
-  .board-io__stage :global(.board-part__focus) {
+  .board-io__stage :global(.board-part__focus),
+  .board-io__stage :global(.board-part__focus-outer) {
     fill: none;
     stroke: transparent;
+  }
+
+  .board-io__stage :global(.board-part__focus) {
     stroke-width: 2.5;
   }
 
-  /* SVG 요소에는 브라우저 초점 테두리가 잘 안 보여 노란 테두리를 직접 그린다(프로그램으로 옮긴 초점에도 보이게 :focus). 대비: 짙은 기판(#1f3b4d) 위 노랑(#ffd24a) 8.1:1(계산값) */
+  .board-io__stage :global(.board-part__focus-outer) {
+    stroke-width: 5;
+  }
+
+  /*
+   * SVG 요소에는 브라우저 초점 테두리가 잘 안 보여 두 겹 테두리를 직접 그린다(프로그램으로 옮긴 초점에도 보이게 :focus).
+   * 대비(계산값): 짙은 기판(#1f3b4d) 위 노랑(#ffd24a) 8.1:1, 밝은 브레드보드(#f4efe3) 위 짙은 선(#111827) 15.9:1.
+   */
   .board-io__stage :global(.board-part--interactive:focus .board-part__focus) {
     stroke: #ffd24a;
   }
 
-  .board-io__problems {
+  .board-io__stage :global(.board-part--interactive:focus .board-part__focus-outer) {
+    stroke: #111827;
+  }
+
+  .board-io__issues {
+    display: grid;
+    gap: var(--space-1);
     margin: 0;
-    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 1em);
-    border: 1px solid var(--color-warning-border);
-    border-radius: var(--radius-md);
-    background: var(--color-warning-bg);
-    color: var(--color-warning-text);
+    padding: 0;
+    list-style: none;
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
   }
 
-  .board-io__problems[hidden] {
+  .board-io__issues[hidden] {
     display: none;
+  }
+
+  .board-io__issues :global(li) {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .board-io__issues :global(li[data-level='error']),
+  .board-io__issues :global(li[data-level='warning']) {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
   }
 
   .board-io__hint,
@@ -168,6 +311,27 @@
 
   .board-io__note[hidden] {
     display: none;
+  }
+
+  .board-io__legend {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-io__legend summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .board-io__legend ul {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-2) 0 0;
+    padding-inline-start: 1.2em;
+  }
+
+  .board-io__legend-mark {
+    color: #92400e;
   }
 
   .board-io__table-wrap {

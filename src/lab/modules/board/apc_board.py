@@ -28,6 +28,10 @@
    돌려준 값이 아니라 sys.modules를 쓰므로 영향을 받지 않는다(CPython 소스 확인).
 7. 확장: /apc의 apc_board_*.py(machine의 PWM·ADC·UART 같은 주변장치, P3-03~)와 apc_part_*.py(부품 흉내, parts/<부품>/)를
    첫 실행 직전(install) 한 번 불러온다. 확장은 register_machine_export·register_board_module·register_part로 자기를 등록하고 machine을 import하지 않는다.
+8. 배선과 코드 맞춰 보기(P3-02): 화면이 넣은 배선('board.wiring' — 부품·핀·방향)과 코드가 핀을 쓰는 모양이 어긋나면 실행마다 핀 하나에 한 번
+   콘솔에 한국어로 알린다 — 값을 보내는 부품(터치 센서·버튼)이 이어진 핀을 출력으로 정함, 보드가 움직이는 부품(LED·진동 모터)이 이어진 핀을
+   입력으로 정하거나 출력으로 정하지 않고 값을 씀, 배선에 부품이 없는 핀을 출력으로 정함. 실물처럼 오류를 내지는 않는다(실물도 코드는 돈다).
+   배선을 받지 못한 실행(단위 테스트의 일부 단계)에서는 알리지 않는다.
 
 동기 진입점 규칙(PROGRESS 미해결 25번): _reset·_tick·_before_wait·_finish 훅에서는 양보하는 함수(sleep·request·get·poll)를 부르지 않는다
 (peek·drain·emit·notice만). 콜백은 학생 코드 자리(입력 확인 지점·대기 훅)에서만 돌린다.
@@ -409,6 +413,8 @@ class Board:
         self.pending = deque()
         self.drives = {}
         self.wiring = []
+        self.wiring_known = False
+        self.wired = {}
         self.dirty = False
         self.seq = 0
         self.phase = "stopped"
@@ -434,7 +440,10 @@ class Board:
         self.clock.reset()
         self.phase = "run"
         self.drives = parse_drives(apc_runtime.peek(CHANNEL_INPUTS, None))
-        self.wiring = parse_wiring(apc_runtime.peek(CHANNEL_WIRING, None))
+        raw_wiring = apc_runtime.peek(CHANNEL_WIRING, None)
+        self.wiring = parse_wiring(raw_wiring)
+        self.wiring_known = isinstance(raw_wiring, dict)
+        self.wired = wired_pins(self.wiring)
         apc_runtime.drain(CHANNEL_INPUT)  # 실행 전에 쌓인 입력 변화는 위 상태에 이미 들어 있다
         self.seq = 0
         self.dirty = True
@@ -492,10 +501,17 @@ class Board:
             if pull & PULL_DOWN:
                 return 0
         if warn and state is not None and state.mode is not None and (state.mode & MODE_DEF_INPUT):
+            outputs = self.wired_labels(gpio, "out")
+            if outputs:
+                hint = f" 이 핀에는 {outputs}이(가) 이어져 있는데, 이 부품은 값을 보내지 않고 보드가 움직이는 부품이에요."
+            elif self.wiring_known and gpio not in self.wired:
+                hint = " 이 예제의 배선도에도 이 핀에 이은 부품이 없어요. 코드의 핀 번호가 배선도와 같은지 확인해요."
+            else:
+                hint = ""
             self.warn_once(
                 ("floating", gpio),
                 f"{gpio}번 핀을 읽었지만 아무 부품도 연결되지 않았고 풀업·풀다운도 없어요(떠 있는 핀). "
-                "실물에서는 0과 1이 들쭉날쭉하게 읽히고, 가상 보드는 0으로 읽어요. 부품을 잇거나 Pin(번호, Pin.IN, Pin.PULL_UP)처럼 풀업을 켜요.",
+                "실물에서는 0과 1이 들쭉날쭉하게 읽히고, 가상 보드는 0으로 읽어요. 부품을 잇거나 Pin(번호, Pin.IN, Pin.PULL_UP)처럼 풀업을 켜요." + hint,
             )
         return 0
 
@@ -531,6 +547,7 @@ class Board:
             state.mode = mode_value
             if mode_value & MODE_DEF_OUTPUT:
                 self.warn_special_output(gpio)
+            self.check_mode_against_wiring(gpio, mode_value)
         if pull != -1:
             bits = 0 if pull is None else mp_int(pull)
             if bits and gpio >= FIRST_INPUT_ONLY_GPIO:
@@ -555,6 +572,14 @@ class Board:
             self.warn_input_only_write(gpio)
             return
         new = 1 if value else 0
+        if self.wiring_known and not self.output_enabled(state) and (state.mode is None or not (state.mode & MODE_DEF_OUTPUT)):
+            outputs = self.wired_labels(gpio, "out")
+            if outputs:
+                self.warn_once(
+                    ("write-without-output", gpio),
+                    f"{gpio}번 핀에 {outputs}이(가) 이어져 있지만 핀을 출력(Pin.OUT)으로 정하지 않아서 값을 써도 신호가 나가지 않아요. "
+                    f"Pin({gpio}, Pin.OUT)으로 정해요.",
+                )
         if state.out == new:
             return
         before = self.pad_level(gpio)
@@ -747,6 +772,38 @@ class Board:
 
     # ── 안내 ──
 
+    def wired_labels(self, gpio, direction=None):
+        """그 핀에 이어진 (가상 보드가 아는) 부품 이름들을 "터치 센서, BOOT 버튼"처럼. direction을 주면 그 방향('in'·'out') 핀만"""
+        names = [entry["label"] for entry in self.wired.get(gpio, ()) if entry["known"] and (direction is None or entry["direction"] == direction)]
+        return ", ".join(dict.fromkeys(names))
+
+    def check_mode_against_wiring(self, gpio, mode_value):
+        """Pin(…, mode)가 배선과 맞는지(P3-02): 입력 부품 핀을 출력으로, 출력 부품 핀을 입력으로, 부품 없는 핀을 출력으로 정하면 한 번 알린다."""
+        if not self.wiring_known:
+            return
+        if mode_value & MODE_DEF_OUTPUT:
+            inputs = self.wired_labels(gpio, "in")
+            if inputs:
+                self.warn_once(
+                    ("wired-input-as-output", gpio),
+                    f"{gpio}번 핀에는 {inputs}(값을 보내는 부품)이(가) 이어져 있는데 출력(Pin.OUT)으로 정했어요. "
+                    f"부품이 보내는 값을 읽으려면 Pin({gpio}, Pin.IN)으로 정해요. 실물에서는 핀과 부품이 서로 다른 값을 내면 부딪혀(합선) 상할 수 있어요.",
+                )
+            elif gpio not in self.wired:
+                self.warn_once(
+                    ("unwired-output", gpio),
+                    f"{gpio}번 핀을 출력으로 정했는데, 이 예제의 배선도에는 {gpio}번 핀에 이은 부품이 없어요. "
+                    "핀 값은 핀 상태 표에 보이지만 화면에서 움직이는 부품은 없어요. 코드의 핀 번호가 배선도와 같은지 확인해요.",
+                )
+        elif mode_value & MODE_DEF_INPUT:
+            outputs = self.wired_labels(gpio, "out")
+            if outputs and not self.wired_labels(gpio, "in"):
+                self.warn_once(
+                    ("wired-output-as-input", gpio),
+                    f"{gpio}번 핀에는 {outputs}(보드가 움직이는 부품)이(가) 이어져 있는데 입력(Pin.IN)으로 정했어요. "
+                    f"부품을 움직이려면 Pin({gpio}, Pin.OUT)으로 정해요.",
+                )
+
     def warn_once(self, key, text):
         if key in self.warned:
             return
@@ -815,7 +872,8 @@ def parse_drives(value):
 
 
 def parse_wiring(value):
-    """화면의 배선 {'parts': [{'part': 'builtin-led', 'id': 'led', 'pins': {'led': 2}}, …]} → 목록(모르는 모양은 버림)"""
+    """화면의 배선 {'parts': [{'part': 'touch-digital', 'id': 'touch', 'label': '터치 센서', 'pins': {'sig': 17},
+    'directions': {'sig': 'in'}, 'known': True}, …]} → 목록(모르는 모양은 버림, 빠진 label·directions·known은 기본값)"""
     parts = value.get("parts") if isinstance(value, dict) else None
     if not isinstance(parts, list):
         return []
@@ -823,8 +881,28 @@ def parse_wiring(value):
     for item in parts:
         if isinstance(item, dict) and isinstance(item.get("part"), str) and isinstance(item.get("id"), str):
             pins = item.get("pins") if isinstance(item.get("pins"), dict) else {}
-            result.append({"part": item["part"], "id": item["id"], "pins": {str(role): gpio for role, gpio in pins.items() if isinstance(gpio, int)}})
+            directions = item.get("directions") if isinstance(item.get("directions"), dict) else {}
+            label = item.get("label") if isinstance(item.get("label"), str) and item.get("label") else item["part"]
+            result.append(
+                {
+                    "part": item["part"],
+                    "id": item["id"],
+                    "label": label,
+                    "pins": {str(role): gpio for role, gpio in pins.items() if isinstance(gpio, int) and not isinstance(gpio, bool)},
+                    "directions": {str(role): direction for role, direction in directions.items() if direction in ("in", "out")},
+                    "known": item.get("known") is not False,
+                }
+            )
     return result
+
+
+def wired_pins(wiring):
+    """배선 목록 → {GPIO: [{'label', 'direction'('in'|'out'|None), 'known'}]} — 코드와 배선을 맞춰 볼 때 쓴다"""
+    wired = {}
+    for entry in wiring:
+        for role, gpio in entry["pins"].items():
+            wired.setdefault(gpio, []).append({"label": entry["label"], "direction": entry["directions"].get(role), "known": entry["known"]})
+    return wired
 
 
 BOARD = Board()

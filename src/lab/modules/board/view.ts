@@ -1,17 +1,24 @@
 /**
- * 가상 보드 화면(DOM) — 보드 그림·부품·핀 표를 그리고 입력 부품의 마우스·터치·키보드 조작을 공통으로 처리한다(PLAN §8.3 P3-01).
- * HTML 틀은 src/components/lab/BoardIo.astro(ESP32 실습실 io 슬롯), 상태 모양은 state.ts, 부품은 parts/<부품>/part.ts.
+ * 가상 보드 화면(DOM) — 보드 그림·배선도·부품·핀 표를 그리고 입력 부품의 마우스·터치·키보드 조작을 공통으로 처리한다(PLAN §8.3 P3-01·P3-02).
+ * HTML 틀은 src/components/lab/BoardIo.astro(ESP32 실습실 io 슬롯), 상태 모양은 state.ts, 자리 계산은 layout.ts, 보드·선 그리기는
+ * board-drawing.ts, 부품은 parts/<부품>/part.ts.
  *
  * 테스트가 읽는 값
- *   [data-board-stage]의 data-board-phase(stopped·run·idle·end)
+ *   [data-board-stage]의 data-board-phase(stopped·run·idle·end)·data-board-zoom-level(fit|large)·data-board-external(바깥 부품 있음)
  *   부품 [data-board-part="<배선 id>"]: data-part(부품 id), data-visual-<이름>(부품 visual 값), 입력 부품은 aria-pressed
+ *   핀 머리·선·브레드보드: board-drawing.ts 머리말
+ *   배선 목록 [data-board-problems] > li[data-level][data-code]
  *   핀 표 행 [data-board-pin="<GPIO>"]: data-mode·data-level(0|1)·data-driven(true|false)
  *
  * 접근성: 입력 부품은 role="button"·tabindex=0·aria-pressed이고 Space·Enter를 누르고 있는 동안 눌린다(초점을 잃으면 뗀다).
+ * 누르는 자리(부품 그림 전체의 투명 사각형 — WCAG 2.5.8 24px 이상)와 두 겹 초점 테두리(짙은 기판·밝은 브레드보드 어디서나 보이게)는 여기서 붙인다.
  * 출력 부품은 role="img"와 상태가 든 이름(예: "내장 LED(GPIO2): 켜짐")을 갖는다. 핀 값은 표에 글자(1 (HIGH))로도 있다 — 색만으로 알리지 않는다.
- * 보드 그림은 사이트가 직접 그린 브랜드 중립 도형이다(P3-02가 핀 머리·배선도를 더한다).
+ * [그림 크게 보기]는 그림을 넓게 펴고 가로로 밀어 보게 한다(휴대폰에서 핀 번호가 작을 때). 고른 값은 이 컴퓨터에 기억한다(기록 지우기 대상).
  */
-import type { PartDefinition, PartInstance, PartVisual } from './part-types.ts';
+import { readItem, writeItem } from '../../../lib/storage.ts';
+import { createBoardDrawing } from './board-drawing.ts';
+import { planBoardDrawing, type BoardDrawingPlan } from './layout.ts';
+import type { PartDefinition, PartInstance, PartVisual, WiringIssue } from './part-types.ts';
 import { partsByGpio } from './parts.ts';
 import { levelText, modeText, phaseText, type BoardSnapshot } from './state.ts';
 import { svgElement } from './svg.ts';
@@ -23,6 +30,10 @@ export interface BoardViewElements {
   readonly pinsEmpty: HTMLElement | null;
   readonly phaseText: HTMLElement | null;
   readonly problems: HTMLElement | null;
+  /** [그림 크게 보기] 단추(aria-pressed) */
+  readonly zoomButton?: HTMLButtonElement | null;
+  /** 바깥 부품이 없을 때 보이는 한 줄 안내 */
+  readonly wiringEmpty?: HTMLElement | null;
 }
 
 export interface BoardViewOptions {
@@ -30,26 +41,23 @@ export interface BoardViewOptions {
   /** 입력 부품의 눌림이 바뀔 때(눌린 배선 id 모음) */
   onActiveChange(activeIds: ReadonlySet<string>): void;
   readonly reducedMotion?: () => boolean;
+  /** 그림 크기 선택을 기억할 저장 이름(없으면 기억하지 않음) */
+  readonly zoomStorageName?: string;
 }
 
 export interface BoardView {
-  setWiring(instances: readonly PartInstance[], problems: readonly string[]): void;
+  setWiring(instances: readonly PartInstance[], issues: readonly WiringIssue[]): void;
   update(snapshot: BoardSnapshot): void;
   readonly activeIds: ReadonlySet<string>;
+  /** 마지막으로 그린 배선 계획(테스트·디버깅) */
+  readonly plan: BoardDrawingPlan | null;
   destroy(): void;
 }
 
-/** 보드 그림 크기(SVG 단위) */
-export const BOARD_WIDTH = 330;
-export const BOARD_HEIGHT = 214;
-/** 보드에 붙은 부품의 자리(부품 그림 왼쪽 위) */
-export const ONBOARD_ANCHORS: Readonly<Record<string, { readonly x: number; readonly y: number }>> = Object.freeze({
-  'builtin-led': { x: 40, y: 46 },
-  'boot-button': { x: 40, y: 110 },
-});
-/** 바깥 부품을 놓는 칸 */
-const EXTERNAL_COLUMN_X = BOARD_WIDTH + 16;
-const EXTERNAL_GAP = 14;
+export type BoardZoom = 'fit' | 'large';
+
+/** 배선 목록의 수준 글(색만으로 알리지 않게 앞에 붙인다) */
+export const ISSUE_LEVEL_TEXT: Readonly<Record<WiringIssue['level'], string>> = Object.freeze({ error: '오류', warning: '주의', info: '참고' });
 
 function reducedMotionDefault(): boolean {
   try {
@@ -57,30 +65,6 @@ function reducedMotionDefault(): boolean {
   } catch {
     return false;
   }
-}
-
-/** 브랜드 중립 개발 보드 그림(PCB·금속 모듈·USB·핀 머리) */
-function drawBoard(): SVGGElement {
-  const group = svgElement('g', { class: 'board-drawing', 'aria-hidden': 'true' });
-  group.append(
-    svgElement('rect', { x: 8, y: 22, width: 314, height: 170, rx: 10, fill: '#1f3b4d', stroke: '#0f2230', 'stroke-width': 2 }),
-    // USB 단자(왼쪽 끝)
-    svgElement('rect', { x: 0, y: 92, width: 30, height: 30, rx: 3, fill: '#c3c9d1', stroke: '#6b7480', 'stroke-width': 1.2 }),
-    svgElement('rect', { x: 4, y: 100, width: 16, height: 14, rx: 2, fill: '#8a939f' }),
-    // 금속 덮개 모듈(오른쪽)
-    svgElement('rect', { x: 150, y: 48, width: 150, height: 118, rx: 5, fill: '#cfd5dc', stroke: '#8a939f', 'stroke-width': 1.5 }),
-    svgElement('text', { x: 225, y: 104, 'text-anchor': 'middle', class: 'board-drawing__module' }, ['ESP32']),
-    svgElement('text', { x: 225, y: 124, 'text-anchor': 'middle', class: 'board-drawing__caption' }, ['가상 보드']),
-  );
-  // 핀 머리(위·아래 두 줄)
-  for (let index = 0; index < 19; index += 1) {
-    const x = 18 + index * 16;
-    group.append(
-      svgElement('rect', { x, y: 27, width: 9, height: 9, rx: 1.5, fill: '#e8c46a', stroke: '#8a6d1f', 'stroke-width': 0.8 }),
-      svgElement('rect', { x, y: 178, width: 9, height: 9, rx: 1.5, fill: '#e8c46a', stroke: '#8a6d1f', 'stroke-width': 0.8 }),
-    );
-  }
-  return group;
 }
 
 function visualChanged(before: PartVisual | undefined, after: PartVisual): boolean {
@@ -96,11 +80,19 @@ function visualChanged(before: PartVisual | undefined, after: PartVisual): boole
   return false;
 }
 
-function visualSummary(definition: PartDefinition, instance: PartInstance, visual: PartVisual): string {
+/** 출력 부품의 화면 낭독기 이름: "진동 모터(GPIO19): 진동 중 — 설명" */
+export function visualSummary(definition: PartDefinition, instance: PartInstance, visual: PartVisual): string {
   const pins = Object.values(instance.pins)
     .map((gpio) => `GPIO${gpio}`)
     .join('·');
-  const state = typeof visual.lit === 'boolean' ? (visual.lit ? '켜짐' : '꺼짐') : typeof visual.pressed === 'boolean' ? (visual.pressed ? '누름' : '뗌') : '';
+  let state = '';
+  if (typeof visual.lit === 'boolean') {
+    state = visual.lit ? (typeof visual.brightness === 'number' && visual.brightness < 100 ? `켜짐(밝기 ${visual.brightness}%)` : '켜짐') : '꺼짐';
+  } else if (typeof visual.on === 'boolean') {
+    state = visual.on ? (typeof visual.strength === 'number' && visual.strength < 100 ? `진동 중(세기 ${visual.strength}%)` : '진동 중') : '멈춤';
+  } else if (typeof visual.pressed === 'boolean') {
+    state = visual.pressed ? '누름' : '뗌';
+  }
   return `${instance.label}(${pins})${state ? `: ${state}` : ''} — ${definition.description}`;
 }
 
@@ -113,6 +105,17 @@ interface MountedPart {
   cleanup: (() => void)[];
 }
 
+function readZoom(name: string | undefined): BoardZoom {
+  if (!name) {
+    return 'fit';
+  }
+  try {
+    return readItem(name) === 'large' ? 'large' : 'fit';
+  } catch {
+    return 'fit';
+  }
+}
+
 export function createBoardView(elements: BoardViewElements, options: BoardViewOptions): BoardView {
   const { stage } = elements;
   const reducedMotion = options.reducedMotion ?? reducedMotionDefault;
@@ -120,18 +123,32 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
   let mounted: MountedPart[] = [];
   let instances: readonly PartInstance[] = [];
   let snapshot: BoardSnapshot | null = null;
-  let lastPinsHtml = '';
+  let lastPinsKey = '';
+  let plan: BoardDrawingPlan | null = null;
 
-  const svg = svgElement('svg', {
-    class: 'board-stage__svg',
-    viewBox: `0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`,
-    role: 'group',
-    'aria-label': '가상 ESP32 보드',
-    focusable: 'false',
-  });
-  const partsLayer = svgElement('g', { class: 'board-parts' });
-  svg.append(drawBoard(), partsLayer);
-  stage.replaceChildren(svg);
+  const drawing = createBoardDrawing();
+  stage.replaceChildren(drawing.svg);
+  const cleanups: (() => void)[] = [];
+
+  // [그림 크게 보기]
+  const zoomButton = elements.zoomButton ?? null;
+  const setZoom = (zoom: BoardZoom, remember: boolean) => {
+    stage.dataset.boardZoomLevel = zoom;
+    zoomButton?.setAttribute('aria-pressed', String(zoom === 'large'));
+    if (remember && options.zoomStorageName) {
+      try {
+        writeItem(options.zoomStorageName, zoom);
+      } catch {
+        // 저장 공간을 못 쓰면 이번 방문에만 적용한다.
+      }
+    }
+  };
+  setZoom(readZoom(options.zoomStorageName), false);
+  if (zoomButton) {
+    const onZoom = () => setZoom(stage.dataset.boardZoomLevel === 'large' ? 'fit' : 'large', true);
+    zoomButton.addEventListener('click', onZoom);
+    cleanups.push(() => zoomButton.removeEventListener('click', onZoom));
+  }
 
   const notify = () => options.onActiveChange(new Set(active));
 
@@ -141,14 +158,27 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
       return null;
     }
     const element = svgElement('g', {
-      class: `board-part board-part--${definition.id}`,
+      class: `board-part board-part--${definition.id}${definition.onboard ? ' board-part--onboard' : ''}`,
       transform: `translate(${position.x} ${position.y})`,
       'data-board-part': instance.id,
       'data-part': definition.id,
     });
-    const apply = definition.render(element, { instance, definition, svg: svgElement });
-    const part: MountedPart = { instance, definition, element, apply, visual: undefined, cleanup: [] };
     const interaction = definition.interaction;
+    if (interaction) {
+      const { width, height } = definition.size;
+      // 누르는 자리(그림 전체)와 초점 테두리 두 겹: 짙은 바깥 선 + 노란 안쪽 선(대비: 짙은 기판 위 노랑 8.1:1, 밝은 브레드보드 위 짙은 선 12:1 — 계산값)
+      element.append(
+        svgElement('rect', { x: -3, y: -3, width: width + 6, height: height + 6, rx: 7, class: 'board-part__focus-outer' }),
+        svgElement('rect', { x: -3, y: -3, width: width + 6, height: height + 6, rx: 7, class: 'board-part__focus' }),
+      );
+    }
+    const content = svgElement('g', { class: 'board-part__content' });
+    element.append(content);
+    const apply = definition.render(content, { instance, definition, svg: svgElement });
+    if (interaction) {
+      element.append(svgElement('rect', { x: 0, y: 0, width: definition.size.width, height: definition.size.height, rx: 5, fill: 'transparent', class: 'board-part__hit' }));
+    }
+    const part: MountedPart = { instance, definition, element, apply, visual: undefined, cleanup: [] };
     if (interaction) {
       element.setAttribute('role', 'button');
       element.setAttribute('tabindex', '0');
@@ -191,7 +221,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
         try {
           element.setPointerCapture(event.pointerId);
         } catch {
-          // 포인터 붙잡기를 못 해도 pointerup·pointerleave로 뗀다.
+          // 포인터 붙잡기를 못 해도 pointerup·pointercancel로 뗀다.
         }
         press();
       });
@@ -226,22 +256,23 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
     } else {
       element.setAttribute('role', 'img');
     }
-    partsLayer.append(element);
+    drawing.partsLayer.append(element);
     return part;
   };
 
   const renderPins = (current: BoardSnapshot) => {
+    const connected = partsByGpio(instances, options.definitions);
+    drawing.updatePins(current, connected);
     const { pinRows, pinsEmpty } = elements;
     if (!pinRows) {
       return;
     }
-    const connected = partsByGpio(instances, options.definitions);
     const pins = [...current.pins.values()].sort((a, b) => a.id - b.id);
     const key = JSON.stringify([current.phase, pins, [...connected.entries()]]);
-    if (key === lastPinsHtml) {
+    if (key === lastPinsKey) {
       return;
     }
-    lastPinsHtml = key;
+    lastPinsKey = key;
     const rows = pins.map((pin) => {
       const row = document.createElement('tr');
       row.dataset.boardPin = String(pin.id);
@@ -273,7 +304,10 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
     get activeIds() {
       return active;
     },
-    setWiring(nextInstances, problems) {
+    get plan() {
+      return plan;
+    },
+    setWiring(nextInstances, issues) {
       for (const part of mounted) {
         for (const cleanup of part.cleanup.splice(0)) {
           cleanup();
@@ -287,36 +321,39 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
           active.delete(id);
         }
       }
-      let externalY = 24;
-      let width = BOARD_WIDTH;
-      for (const instance of nextInstances) {
-        const definition = options.definitions.get(instance.part);
-        if (!definition) {
+      plan = planBoardDrawing(nextInstances, options.definitions);
+      drawing.applyPlan(plan);
+      const byId = new Map(nextInstances.map((instance) => [instance.id, instance]));
+      for (const placed of plan.parts) {
+        const instance = byId.get(placed.id);
+        if (!instance) {
           continue;
         }
-        const anchor = definition.onboard ? ONBOARD_ANCHORS[definition.id] : undefined;
-        const position = anchor ?? { x: EXTERNAL_COLUMN_X, y: externalY };
-        if (!anchor) {
-          externalY += definition.size.height + EXTERNAL_GAP;
-          width = Math.max(width, EXTERNAL_COLUMN_X + definition.size.width + 8);
-        }
-        const part = mountPart(instance, position);
+        const part = mountPart(instance, { x: placed.x, y: placed.y });
         if (part) {
           mounted.push(part);
         }
       }
-      svg.setAttribute('viewBox', `0 0 ${width} ${Math.max(BOARD_HEIGHT, externalY)}`);
+      stage.dataset.boardExternal = String(plan.breadboard !== null);
+      if (elements.wiringEmpty) {
+        elements.wiringEmpty.hidden = plan.breadboard !== null;
+      }
       if (elements.problems) {
         elements.problems.replaceChildren(
-          ...problems.map((problem) => {
+          ...issues.map((issue) => {
             const item = document.createElement('li');
-            item.textContent = problem;
+            item.dataset.level = issue.level;
+            item.dataset.code = issue.code;
+            const badge = document.createElement('strong');
+            badge.className = 'board-io__issue-level';
+            badge.textContent = `${ISSUE_LEVEL_TEXT[issue.level]}: `;
+            item.append(badge, issue.text);
             return item;
           }),
         );
-        elements.problems.hidden = problems.length === 0;
+        elements.problems.hidden = issues.length === 0;
       }
-      lastPinsHtml = '';
+      lastPinsKey = '';
       if (snapshot) {
         view.update(snapshot);
       }
@@ -362,8 +399,11 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
           cleanup();
         }
       }
+      for (const cleanup of cleanups.splice(0)) {
+        cleanup();
+      }
       mounted = [];
-      svg.remove();
+      drawing.svg.remove();
     },
   };
   return view;

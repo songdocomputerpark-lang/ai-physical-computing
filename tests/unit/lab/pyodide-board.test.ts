@@ -257,6 +257,22 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
     expect(notices[4]).toContain('UART0');
   });
 
+  it('배선과 코드가 어긋나면(입력 부품 핀을 출력으로·출력 부품 핀을 입력으로·출력으로 정하지 않고 쓰기·부품 없는 핀) 핀마다 한 번씩 한국어로 알린다(P3-02)', () => {
+    const record = step('wiring_notices');
+    expect(record.value).toBe('done');
+    expect(record.errorType).toBeUndefined();
+    const notices = record.notices;
+    expect(notices).toHaveLength(5);
+    expect(notices[0]).toContain('17번 핀에는 터치 센서(값을 보내는 부품)이(가) 이어져 있는데 출력(Pin.OUT)으로 정했어요');
+    expect(notices[1]).toContain('19번 핀에는 진동 모터(보드가 움직이는 부품)이(가) 이어져 있는데 입력(Pin.IN)으로 정했어요');
+    expect(notices[2]).toContain('19번 핀에 진동 모터이(가) 이어져 있지만 핀을 출력(Pin.OUT)으로 정하지 않아서');
+    expect(notices[3]).toContain('18번 핀을 출력으로 정했는데, 이 예제의 배선도에는 18번 핀에 이은 부품이 없어요');
+    expect(notices[4]).toContain('4번 핀을 읽었지만');
+    expect(notices[4]).toContain('배선도에도 이 핀에 이은 부품이 없어요');
+    // 배선을 받지 못한 실행(앞 단계 warnings)에는 배선 안내가 없다
+    expect(step('warnings').notices.some((text) => text.includes('배선도'))).toBe(false);
+  });
+
   it('board.state 이벤트: 실행 시작(reset) → 기다리기 전의 변화 → 끝(end), 순서 번호·가상 시각이 늘어나기만 한다', () => {
     const events = step('state_events').events;
     expect(events[0]).toMatchObject({ reason: 'reset', phase: 'run', seq: 1, pins: [] });

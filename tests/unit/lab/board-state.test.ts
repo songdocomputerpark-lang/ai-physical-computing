@@ -9,7 +9,9 @@ import {
   inputChanges,
   inputsValue,
   isDrivenHigh,
+  isStrappingGpio,
   isValidGpio,
+  outputStrength,
   parseStateEvent,
   phaseText,
   stoppedSnapshot,
@@ -31,6 +33,14 @@ describe('board.state 읽기', () => {
       { id: 0, mode: 'in', pull: 'up', out: 0, level: 1, driven: false, irq: false },
     ]);
     expect(parsed).toMatchObject({ reason: 'change', phase: 'run', seq: 2, tUs: 1000, timers: 0 });
+  });
+
+  it('PWM 자리(duty 0~1·freq Hz)는 있을 때만 읽고, 범위 밖 duty는 0~1로 자르며 이상한 freq는 버린다(P3-02에서 자리만 정함)', () => {
+    const parsed = parseStateEvent(event({ pins: [{ ...PIN2_ON, duty: 1.5, freq: 1000 }, { id: 4, mode: 'out', out: 1, level: 1, driven: true, duty: 0.25, freq: -5 }] }));
+    expect(parsed?.pins[0]).toMatchObject({ id: 2, duty: 1, freq: 1000 });
+    expect(parsed?.pins[1]).toMatchObject({ id: 4, duty: 0.25 });
+    expect(parsed?.pins[1]).not.toHaveProperty('freq');
+    expect(parseStateEvent(event({}))?.pins[0]).not.toHaveProperty('duty');
   });
 
   it('모양이 틀리면 null, ESP32에 없는 핀은 버린다', () => {
@@ -59,6 +69,22 @@ describe('board.state 읽기', () => {
     expect(isDrivenHigh(stoppedSnapshot(on), 2)).toBe(false);
     const inputHigh = applyStateEvent(EMPTY_SNAPSHOT, parseStateEvent(event({ reason: 'reset', seq: 1, pins: [{ id: 2, mode: 'in', level: 1, driven: false }] }))!);
     expect(isDrivenHigh(inputHigh, 2)).toBe(false);
+  });
+});
+
+describe('출력 세기(outputStrength) — LED 밝기·진동 모터 세기', () => {
+  it('실행 중 HIGH 출력은 1, LOW·입력·[정지]는 0, PWM이면 duty', () => {
+    const snap = (pins: Record<string, unknown>[]) => applyStateEvent(EMPTY_SNAPSHOT, parseStateEvent(event({ reason: 'reset', seq: 1, pins }))!);
+    expect(outputStrength(snap([PIN2_ON]), 2)).toBe(1);
+    expect(outputStrength(snap([{ ...PIN2_ON, out: 0, level: 0 }]), 2)).toBe(0);
+    expect(outputStrength(snap([{ id: 2, mode: 'in', level: 1, driven: false }]), 2)).toBe(0);
+    expect(outputStrength(stoppedSnapshot(snap([PIN2_ON])), 2)).toBe(0);
+    expect(outputStrength(snap([{ ...PIN2_ON, duty: 0.3 }]), 2)).toBeCloseTo(0.3);
+    expect(outputStrength(snap([]), 2)).toBe(0);
+  });
+
+  it('스트래핑 핀(0·2·5·12·15)', () => {
+    expect([0, 2, 5, 12, 15, 4, 19].map(isStrappingGpio)).toEqual([true, true, true, true, true, false, false]);
   });
 });
 

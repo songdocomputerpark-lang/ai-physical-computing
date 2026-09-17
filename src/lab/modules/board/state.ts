@@ -6,7 +6,9 @@
  * 파이썬 → 화면: 이벤트 'board.state'(핀 상태 묶음, 늘 전체 목록)
  *   { v: 1, reason: 'reset' | 'change' | 'idle' | 'end', phase: 'run' | 'idle' | 'end', seq, t_us,
  *     pins: [{ id: 2, mode: 'in' | 'out' | 'open_drain' | 'off' | 'out_only' | 'other' | null, pull: 'up' | 'down' | 'both' | null,
- *              out: 0 | 1, level: 0 | 1, driven: boolean, irq: boolean }], timers: 켜진 Timer 수 }
+ *              out: 0 | 1, level: 0 | 1, driven: boolean, irq: boolean, duty?: 0~1, freq?: Hz }], timers: 켜진 Timer 수 }
+ *   - duty·freq(선택, P3-02에서 자리만 정함)는 그 핀에 PWM이 켜져 있을 때만 온다: duty = 켜진 시간 비율(0~1, duty(512)면 512/1023),
+ *     freq = 주파수(Hz). PWM을 흉내 내는 묶음(P3-03 apc_board_pwm.py)이 채우면 LED 밝기·진동 모터 세기가 따라 바뀐다(outputStrength).
  *   - reason 'reset'은 실행 시작(보드를 새로 켬), 'idle'은 코드가 끝났지만 Timer·인터럽트가 계속 돎, 'end'는 실행 끝.
  *   - pins에는 이번 실행에서 코드가 한 번이라도 만진 핀만 있다. level은 핀의 실제 전압(부품이 누르는 값·출력·풀업 반영), driven은 핀이 전기를 내보내는지.
  *   - 같은 16ms 안의 변화는 합쳐져 마지막 상태만 온다(PLAN §7.2 규칙 5의 "상태 메시지는 최신 값만"과 같은 뜻).
@@ -33,8 +35,15 @@ export const VALID_GPIOS: readonly number[] = Object.freeze([
 ]);
 /** 입력 전용 핀(34~39) */
 export const FIRST_INPUT_ONLY_GPIO = 34;
-/** 부팅 방식을 정하는 스트래핑 핀(Espressif GPIO 문서) — 배선 검사(P3-02)가 쓴다 */
+/**
+ * 부팅 방식을 정하는 스트래핑 핀 — Espressif ESP-IDF GPIO 문서(ESP32, v6.1): "GPIO0, GPIO2, GPIO5, GPIO12 (MTDI), and GPIO15 (MTDO) are
+ * strapping pins"(2026-09-17 확인). 배선 검사(parts.ts)가 바깥 부품을 이 핀에 이으면 주의를 알리고, 보드 그림(layout.ts)이 ▲ 표시를 단다.
+ */
 export const STRAPPING_GPIOS: readonly number[] = Object.freeze([0, 2, 5, 12, 15]);
+
+export function isStrappingGpio(gpio: number): boolean {
+  return STRAPPING_GPIOS.includes(gpio);
+}
 
 export function isValidGpio(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && VALID_GPIOS.includes(value);
@@ -53,6 +62,10 @@ export interface BoardPinState {
   readonly level: 0 | 1;
   readonly driven: boolean;
   readonly irq: boolean;
+  /** PWM 켜진 시간 비율(0~1). PWM이 아니면 없다 */
+  readonly duty?: number;
+  /** PWM 주파수(Hz). PWM이 아니면 없다 */
+  readonly freq?: number;
 }
 
 export interface BoardSnapshot {
@@ -107,6 +120,8 @@ export function parseStateEvent(payload: unknown): BoardStateEvent | null {
     if (!isValidGpio(pin.id)) {
       continue;
     }
+    const duty = typeof pin.duty === 'number' && Number.isFinite(pin.duty) ? Math.min(1, Math.max(0, pin.duty)) : null;
+    const freq = typeof pin.freq === 'number' && Number.isFinite(pin.freq) && pin.freq > 0 ? pin.freq : null;
     pins.push({
       id: pin.id,
       mode: PIN_MODES.includes(pin.mode as PinMode) ? (pin.mode as PinMode) : null,
@@ -115,6 +130,8 @@ export function parseStateEvent(payload: unknown): BoardStateEvent | null {
       level: bit(pin.level),
       driven: pin.driven === true,
       irq: pin.irq === true,
+      ...(duty === null ? {} : { duty }),
+      ...(freq === null ? {} : { freq }),
     });
   }
   return {
@@ -158,6 +175,21 @@ export function isLive(snapshot: BoardSnapshot): boolean {
 export function isDrivenHigh(snapshot: BoardSnapshot, gpio: number): boolean {
   const pin = snapshot.pins.get(gpio);
   return isLive(snapshot) && pin !== undefined && pin.driven && pin.level === 1;
+}
+
+/**
+ * 출력 부품이 받는 세기(0~1): 보드가 멈췄거나 핀이 전기를 내보내지 않으면 0, PWM이면 duty(켜진 시간 비율), 아니면 1(HIGH)·0(LOW).
+ * LED 밝기·진동 모터 세기처럼 "얼마나"를 보여 주는 부품이 쓴다(P3-02). PWM 값은 P3-03이 board.state의 duty로 채운다.
+ */
+export function outputStrength(snapshot: BoardSnapshot, gpio: number): number {
+  const pin = snapshot.pins.get(gpio);
+  if (!isLive(snapshot) || pin === undefined || !pin.driven) {
+    return 0;
+  }
+  if (pin.duty !== undefined) {
+    return pin.duty;
+  }
+  return pin.level === 1 ? 1 : 0;
 }
 
 // ── 입력(화면 → 파이썬) ──

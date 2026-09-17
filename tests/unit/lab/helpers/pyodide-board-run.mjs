@@ -439,6 +439,38 @@ await step('state_events', ['from machine import Pin', 'import time', 'led = Pin
   wiring: { parts: [{ part: 'builtin-led', id: 'led', pins: { led: 2 } }, { part: 'boot-button', id: 'boot', pins: { sig: 0 } }] },
 });
 
+// 배선과 코드 맞춰 보기(P3-02): 화면이 넣은 배선(board.wiring — 부품 이름·핀·방향, 모르는 부품은 known false)과 코드가 핀을 쓰는 모양이 어긋나면
+// 핀 하나에 한 번씩 알린다. 모르는 부품(LCD)의 핀과 보드 부품을 맞게 쓴 핀은 알리지 않는다.
+await step(
+  'wiring_notices',
+  [
+    'from machine import Pin',
+    'Pin(17, Pin.OUT)',
+    'Pin(19, Pin.IN)',
+    'm = Pin(19)',
+    'm.on()',
+    'Pin(18, Pin.OUT).on()',
+    'Pin(21, Pin.OUT)',
+    'Pin(2, Pin.OUT).on()',
+    'Pin(0, Pin.IN).value()',
+    'Pin(4, Pin.IN).value()',
+    'Pin(17, Pin.OUT)',
+    '"done"',
+  ].join('\n'),
+  {
+    inputs: { pins: { 0: 'pullup', 17: 0 } },
+    wiring: {
+      parts: [
+        { part: 'builtin-led', id: 'builtin-led', label: '내장 LED', pins: { led: 2 }, directions: { led: 'out' }, known: true },
+        { part: 'boot-button', id: 'boot-button', label: 'BOOT 버튼', pins: { sig: 0 }, directions: { sig: 'in' }, known: true },
+        { part: 'touch-digital', id: 'touch', label: '터치 센서', pins: { sig: 17 }, directions: { sig: 'in' }, known: true },
+        { part: 'vibration-motor', id: 'motor', label: '진동 모터', pins: { sig: 19 }, directions: { sig: 'out' }, known: true },
+        { part: 'lcd-i2c', id: 'lcd', label: '문자 LCD', pins: { sda: 21, scl: 22 }, known: false },
+      ],
+    },
+  },
+);
+
 // 동기 진입점 규칙: reset_for_run(보드 초기화 훅 포함)을 마지막 양보 뒤 16ms가 지난 뒤 동기 runPython으로 불러도 스택 전환 오류가 없어야 한다.
 await new Promise((resolve) => setTimeout(resolve, 40));
 try {

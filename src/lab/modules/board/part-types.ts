@@ -1,11 +1,12 @@
 /**
- * 가상 보드 부품 레지스트리의 모양(PLAN §8.3 P3-01, src/lab/README.md 7절). 타입만 있는 파일이라 실행 코드가 없다.
+ * 가상 보드 부품 레지스트리의 모양(PLAN §8.3 P3-01·P3-02, src/lab/README.md 7절). 타입만 있는 파일이라 실행 코드가 없다.
  *
  * 부품 하나 = src/lab/modules/board/parts/<부품 id>/ 폴더 하나
  *   part.ts          default export PartDefinition(아래) — 이름·핀·그림·상태 반영·조작. 등록 파일 수정 없이 parts.ts가 찾는다.
  *   apc_part_*.py    (선택) 파이썬 쪽 부품 흉내(I2C 장치·네오픽셀처럼 핀만으로 안 되는 부품). /apc에 들어가고 보드가 처음 쓸 때 불러온다.
  *   <학생 import 이름>.py (선택) 학생이 import하는 드라이버 이름 그대로(neopixel.py·ssd1306.py 등 — 저장소 전체에서 이름이 하나)
- *   단위 테스트      tests/unit/lab/board-parts.test.ts에 visual·interaction.drive 같은 순수 함수 검사를 더한다.
+ *   단위 테스트      tests/unit/lab/board-part-<부품 id>.test.ts 파일 하나에 visual·interaction.drive 같은 순수 함수 검사를 둔다(P3-02 규칙 —
+ *                   여러 사람이 부품을 동시에 더해도 같은 테스트 파일을 고치지 않게).
  */
 import type { BoardSnapshot, PinDrive } from './state.ts';
 import type { svgElement } from './svg.ts';
@@ -30,15 +31,20 @@ export interface PartInteraction {
   drive(active: boolean, role: string): PinDrive;
 }
 
-/** 배선 표 한 줄(예제의 parts, 'board.wiring'으로 파이썬에도 간다) */
+/**
+ * 배선 표 한 줄(예제의 parts — 차시 md frontmatter·사이드카·예제 머리말 `# @part`에서 온다, README 7.4).
+ * 적는 모양 세 가지는 wiring-spec.ts가 이 모양으로 맞춘다.
+ */
 export interface WiringEntry {
-  /** 부품 id(폴더 이름) */
+  /** 부품 id(폴더 이름). 예: 'touch-digital' */
   readonly part: string;
-  /** 이 배선에서 부품을 부르는 이름(영문 소문자·숫자·하이픈, 배선 안에서 하나) */
-  readonly id: string;
+  /** 이 배선에서 부품을 부르는 이름(영문 소문자·숫자·하이픈, 배선 안에서 하나). 적지 않으면 부품 id(겹치면 -2, -3…) */
+  readonly id?: string;
   /** role → GPIO 번호. 적지 않은 role은 부품의 defaultPins */
   readonly pins?: Readonly<Record<string, number>>;
-  /** 화면에 보일 이름(선택) */
+  /** 핀이 하나뿐인 부품의 줄임 표기: pin: 17 = pins: { <그 핀의 role>: 17 } */
+  readonly pin?: number;
+  /** 화면에 보일 이름(선택). 가상 보드가 아직 모르는 부품이면 안내 문장에 이 이름을 쓴다. */
   readonly label?: string;
 }
 
@@ -48,6 +54,28 @@ export interface PartInstance {
   readonly id: string;
   readonly pins: Readonly<Record<string, number>>;
   readonly label: string;
+  /** pins가 모두 부품의 defaultPins에서 왔는지(배선이 핀을 따로 적지 않음) — 사이트 배정 핀 안내(notice)에 쓴다 */
+  readonly usesDefaultPins: boolean;
+}
+
+/** 가상 보드가 아직 모르는 부품(다음 묶음에서 더해질 부품) — 그림은 없고, 적힌 핀만 파이썬에 알린다(배선 없는 핀 안내를 하지 않게) */
+export interface UnknownPartEntry {
+  readonly part: string;
+  readonly id: string;
+  readonly label: string;
+  readonly pins: Readonly<Record<string, number>>;
+}
+
+/** 배선 검사가 찾은 것 하나. 보드 그림 아래 목록에 수준 글("오류"·"주의"·"참고")과 함께 보인다(색만으로 알리지 않음). */
+export interface WiringIssue {
+  /** error = 이대로는 실물에서 안 되거나 부품을 못 그림, warning = 되지만 조심할 것, info = 알아 두면 좋은 것 */
+  readonly level: 'error' | 'warning' | 'info';
+  /** 테스트·문서가 읽는 종류 이름(README 7.4 표) */
+  readonly code: string;
+  /** 학생이 읽는 한국어 문장 */
+  readonly text: string;
+  /** 관련 GPIO(있으면) */
+  readonly gpio?: number;
 }
 
 /** 부품의 모습(그림이 읽는 값). 보드 화면이 data-visual-<이름> 속성으로도 적어 브라우저 테스트가 읽는다. */
@@ -68,6 +96,12 @@ export interface PartRenderContext {
   readonly svg: typeof svgElement;
 }
 
+/** 부품 그림 안의 한 점(부품 그림 왼쪽 위 기준, SVG 단위) */
+export interface PartPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface PartDefinition {
   /** 폴더 이름과 같은 id(영문 소문자·숫자·하이픈) */
   readonly id: string;
@@ -82,6 +116,18 @@ export interface PartDefinition {
   readonly defaultPins?: Readonly<Record<string, number>>;
   /** 그림 크기(SVG 단위) */
   readonly size: { readonly width: number; readonly height: number };
+  /**
+   * (바깥 부품) 신호선이 닿는 자리: role → 부품 그림 안의 점. 적지 않으면 그림 윗변에 pins 순서대로 x = 9, 27, 45…(18 간격)에 둔다.
+   * x는 18의 배수 + 9로 적는다 — 배선도가 보드 핀 머리(18 간격)와 겹치지 않게 선을 긋는 칸이다(layout.ts).
+   */
+  readonly anchors?: Readonly<Record<string, PartPoint>>;
+  /** (바깥 부품) 전원(GND·VCC) 다리가 나오는 자리. 적지 않으면 그림 아랫변 x = 9(GND)·27(VCC). false면 전원선을 그리지 않는다 */
+  readonly power?: { readonly gnd: PartPoint; readonly vcc: PartPoint } | false;
+  /**
+   * (선택) 이 부품을 defaultPins 그대로 이었을 때 배선 목록에 보일 안내 한 문장(수준 info). 원고에 핀 번호가 없어 사이트가 정한 핀처럼
+   * 알아 둘 것을 적는다(예: 진동 모터 — PD-36 "사이트 배정, 실물 확인 전").
+   */
+  readonly defaultPinsNotice?: string;
   readonly interaction?: PartInteraction;
   /** 파이썬 쪽 부품 흉내 모듈 이름(apc_part_<이름>) — 같은 폴더에 그 .py가 있어야 한다 */
   readonly python?: string;

@@ -1,13 +1,12 @@
-// 가상 보드 부품 레지스트리(src/lab/modules/board/parts.ts)와 부품 폴더(parts/<부품>/part.ts)의 순수 함수 단위 테스트 — P3-01.
-// 새 부품을 더하면 이 파일에 그 부품의 visual·interaction.drive 검사를 더한다(src/lab/README.md 7절).
+// 가상 보드 부품 레지스트리(src/lab/modules/board/parts.ts)의 순수 함수 단위 테스트 — P3-01·P3-02.
+// 부품 하나하나의 visual·interaction.drive 검사는 부품마다 따로 둔다: tests/unit/lab/board-part-<부품 id>.test.ts(README 7.5 — 여러 사람이
+// 부품을 동시에 더해도 이 파일을 함께 고치지 않게). 이 파일은 레지스트리 검사와 배선 검사(resolveWiring)만 본다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { exampleWiring, snapshotAfterRun } from '../../../src/lab/modules/board/index.ts';
-import type { PartDefinition } from '../../../src/lab/modules/board/part-types.ts';
-import bootButton from '../../../src/lab/modules/board/parts/boot-button/part.ts';
-import builtinLed from '../../../src/lab/modules/board/parts/builtin-led/part.ts';
+import { exampleWiring } from '../../../src/lab/modules/board/index.ts';
+import type { PartDefinition, WiringIssue } from '../../../src/lab/modules/board/part-types.ts';
 import {
   PART_DEFINITIONS,
   inputDrives,
@@ -18,10 +17,10 @@ import {
   validatePartDefinitions,
   wiringValue,
 } from '../../../src/lab/modules/board/parts.ts';
-import { EMPTY_SNAPSHOT, applyStateEvent, parseStateEvent, type BoardSnapshot } from '../../../src/lab/modules/board/state.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const PARTS_DIR = path.join(ROOT, 'src', 'lab', 'modules', 'board', 'parts');
+const UNIT_DIR = path.join(ROOT, 'tests', 'unit', 'lab');
 
 function part(overrides: Partial<PartDefinition> & { id: string }): PartDefinition {
   return {
@@ -35,12 +34,19 @@ function part(overrides: Partial<PartDefinition> & { id: string }): PartDefiniti
   };
 }
 
-function snapshotWith(pins: Record<string, unknown>[], phase = 'run'): BoardSnapshot {
-  return applyStateEvent(EMPTY_SNAPSHOT, parseStateEvent({ reason: 'reset', phase, seq: 1, t_us: 0, pins, timers: 0 })!);
+const button = (id: string, gpio?: number) =>
+  part({ id, pins: [{ role: 'sig', label: '신호', direction: 'in' }], ...(gpio === undefined ? {} : { defaultPins: { sig: gpio } }), interaction: { kind: 'momentary', label: '버튼', drive: (active) => (active ? 1 : 0) } });
+
+function codes(issues: readonly WiringIssue[]): string[] {
+  return issues.map((issue) => issue.code);
+}
+
+function texts(issues: readonly WiringIssue[]): string {
+  return issues.map((issue) => issue.text).join('\n');
 }
 
 describe('부품 정의 검사(validatePartDefinitions)', () => {
-  it('실제 부품 폴더는 모두 규칙에 맞고, python에 적은 .py가 그 폴더에 있다', () => {
+  it('실제 부품 폴더는 모두 규칙에 맞고, python에 적은 .py가 그 폴더에 있으며, 부품마다 단위 테스트 파일이 있다', () => {
     const folders = fs.readdirSync(PARTS_DIR, { withFileTypes: true }).filter((entry) => entry.isDirectory());
     const pythonFiles = Object.fromEntries(folders.map((folder) => [folder.name, fs.readdirSync(path.join(PARTS_DIR, folder.name)).filter((name) => name.endsWith('.py'))]));
     const modules = Object.fromEntries([...PART_DEFINITIONS.values()].map((definition) => [`./parts/${definition.id}/part.ts`, { default: definition }]));
@@ -48,6 +54,11 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
     // 폴더마다 part.ts가 있고 레지스트리에 들어 있다(등록 파일 없이 자동 발견)
     expect([...PART_DEFINITIONS.keys()].sort()).toEqual(folders.map((folder) => folder.name).sort());
     expect(partFolderOf('./parts/builtin-led/part.ts')).toBe('builtin-led');
+    // README 7.5 규칙: 부품 하나 = 단위 테스트 파일 하나
+    for (const folder of folders) {
+      expect(fs.existsSync(path.join(UNIT_DIR, `board-part-${folder.name}.test.ts`)), `tests/unit/lab/board-part-${folder.name}.test.ts`).toBe(true);
+    }
+    expect([...PART_DEFINITIONS.keys()]).toEqual(expect.arrayContaining(['boot-button', 'builtin-led', 'touch-digital', 'vibration-motor']));
   });
 
   it('틀린 정의를 한국어로 알린다', () => {
@@ -60,6 +71,7 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
         './parts/e/part.ts': { default: part({ id: 'e', interaction: { kind: 'hold' as never, label: 'x', drive: () => 0 }, defaultPins: { other: 24 } }) },
         './parts/f/part.ts': { default: part({ id: 'f', python: 'apc_part_missing' }) },
         './parts/g/part.ts': { default: undefined as never },
+        './parts/h/part.ts': { default: part({ id: 'h', anchors: { sig: { x: 10, y: 0 }, nope: { x: 9, y: 0 } }, power: { gnd: { x: 1 } } as never, defaultPinsNotice: '' }) },
       },
       { f: [] },
     );
@@ -75,13 +87,18 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
     expect(text).toMatch(/"other"이\(가\) pins에 없어요/u);
     expect(text).toMatch(/apc_part_missing.py가 그 부품 폴더에 없어요/u);
     expect(text).toMatch(/g\/part.ts: default export/u);
+    expect(text).toMatch(/anchors의 "sig" x\(10\)는 18의 배수 \+ 9/u);
+    expect(text).toMatch(/anchors의 "nope"이\(가\) pins에 없어요/u);
+    expect(text).toMatch(/power는 \{ gnd/u);
+    expect(text).toMatch(/defaultPinsNotice는 안내 한 문장/u);
   });
 });
 
 describe('배선(resolveWiring)', () => {
-  it('보드에 붙은 부품(내장 LED GPIO2·BOOT 버튼 GPIO0)은 적지 않아도 들어가고 핀이 고정된다', () => {
+  it('보드에 붙은 부품(내장 LED GPIO2·BOOT 버튼 GPIO0)은 적지 않아도 들어가고 핀이 고정되며, 스트래핑 핀이어도 주의를 내지 않는다', () => {
     const resolved = resolveWiring([]);
-    expect(resolved.problems).toEqual([]);
+    expect(resolved.issues).toEqual([]);
+    expect(resolved.unknown).toEqual([]);
     expect(resolved.instances.map((instance) => [instance.part, instance.pins])).toEqual(
       expect.arrayContaining([
         ['builtin-led', { led: 2 }],
@@ -91,13 +108,32 @@ describe('배선(resolveWiring)', () => {
     expect(onboardWiring().map((entry) => entry.part).sort()).toEqual(['boot-button', 'builtin-led']);
     const moved = resolveWiring([{ part: 'builtin-led', id: 'led', pins: { led: 5 } }]);
     expect(moved.instances.find((instance) => instance.part === 'builtin-led')?.pins).toEqual({ led: 2 });
-    expect(moved.problems.join('\n')).toContain('GPIO2로 정해져 있어요');
+    expect(moved.issues).toEqual([expect.objectContaining({ level: 'info', code: 'onboard-fixed', gpio: 2 })]);
+    expect(texts(moved.issues)).toContain('GPIO2로 정해져 있어요');
+  });
+
+  it('P3-02 예제 배선: 터치 센서(pin 줄임 표기)·진동 모터(기본 핀 19 — 사이트 배정 안내), 이름을 적지 않으면 부품 id(겹치면 -2)', () => {
+    const resolved = resolveWiring([
+      { part: 'touch-digital', pin: 17 },
+      { part: 'vibration-motor', pin: 19 },
+      { part: 'touch-digital', pin: 4 },
+    ]);
+    const external = resolved.instances.filter((instance) => !['builtin-led', 'boot-button'].includes(instance.part));
+    expect(external.map((instance) => [instance.id, instance.pins, instance.usesDefaultPins])).toEqual([
+      ['touch-digital', { sig: 17 }, true],
+      ['vibration-motor', { sig: 19 }, true],
+      ['touch-digital-2', { sig: 4 }, false],
+    ]);
+    expect(resolved.issues).toEqual([expect.objectContaining({ level: 'info', code: 'site-assigned' })]);
+    expect(texts(resolved.issues)).toContain('GPIO19는 원고에 핀 번호가 없어서 사이트가 정한 핀');
+    // 진동 모터를 다른 핀에 옮기면 사이트 배정 안내는 나오지 않는다
+    expect(codes(resolveWiring([{ part: 'vibration-motor', pins: { sig: 13 } }]).issues)).toEqual([]);
   });
 
   it('없는 부품·겹치는 이름·없는 핀·입력 전용 핀의 출력 부품·한 핀의 입력 부품 둘을 알린다', () => {
     const definitions = new Map<string, PartDefinition>([
       ['led-x', part({ id: 'led-x' })],
-      ['btn', part({ id: 'btn', pins: [{ role: 'sig', label: '신호', direction: 'in' }], interaction: { kind: 'momentary', label: '버튼', drive: (active) => (active ? 1 : 0) } })],
+      ['btn', button('btn')],
     ]);
     const resolved = resolveWiring(
       [
@@ -106,55 +142,93 @@ describe('배선(resolveWiring)', () => {
         { part: 'led-x', id: 'a', pins: { sig: 26 } },
         { part: 'led-x', id: 'b', pins: { sig: 24 } },
         { part: 'led-x', id: 'c', pins: { sig: 34 } },
-        { part: 'btn', id: 'd', pins: { sig: 17 } },
-        { part: 'btn', id: 'e', pins: { sig: 17 } },
+        { part: 'btn', id: 'd', pins: { sig: 18 } },
+        { part: 'btn', id: 'e', pins: { sig: 18 } },
       ],
       definitions,
     );
-    const text = resolved.problems.join('\n');
-    expect(text).toContain('"nope"을(를) 가상 보드가 아직 몰라요');
+    const text = texts(resolved.issues);
+    expect(text).toContain('부품 "nope"은(는) 가상 보드에 아직 없어서 그림에 그리지 못했어요');
     expect(text).toContain('"a"이(가) 규칙에 맞지 않거나 겹쳐요');
     expect(text).toContain('24은(는) ESP32에 없는 GPIO');
     expect(text).toContain('34~39번은 입력 전용');
-    expect(text).toContain('GPIO17에 입력 부품 두 개(d, e)');
+    expect(text).toContain('GPIO18에 입력 부품 두 개(d, e)');
     expect(resolved.instances.map((instance) => instance.id)).toEqual(['a', 'c', 'd', 'e']);
-    expect(wiringValue(resolved.instances).parts[0]).toEqual({ part: 'led-x', id: 'a', pins: { sig: 25 } });
-    expect(partsByGpio(resolved.instances, definitions).get(17)).toEqual(['btn 부품', 'btn 부품']);
+    // 오류가 주의보다 앞에 온다
+    expect(resolved.issues.map((issue) => issue.level)).toEqual([...resolved.issues.map((issue) => issue.level)].sort((x, y) => ['error', 'warning', 'info'].indexOf(x) - ['error', 'warning', 'info'].indexOf(y)));
+    expect(resolved.unknown).toEqual([{ part: 'nope', id: 'n', label: 'nope', pins: {} }]);
+    expect(partsByGpio(resolved.instances, definitions).get(18)).toEqual(['btn 부품', 'btn 부품']);
+  });
+
+  it('스트래핑 핀의 바깥 부품(주의)·한 핀의 입력·출력 부품(오류)·한 핀의 출력 부품 여럿(참고)·핀 머리가 없는 핀·줄임 표기와 역할 오류', () => {
+    const definitions = new Map<string, PartDefinition>([
+      ['led-x', part({ id: 'led-x' })],
+      ['btn', button('btn')],
+      ['rgb', part({ id: 'rgb', pins: ['r', 'g', 'b'].map((role) => ({ role, label: role.toUpperCase(), direction: 'out' as const })) })],
+      ['onboard-led', part({ id: 'onboard-led', onboard: true, defaultPins: { sig: 2 } })],
+    ]);
+    const resolved = resolveWiring(
+      [
+        { part: 'led-x', id: 'strap', pins: { sig: 12 } },
+        { part: 'btn', id: 'touch', pin: 17 },
+        { part: 'led-x', id: 'motor', pin: 17 },
+        { part: 'led-x', id: 'buzzer', pin: 2 },
+        { part: 'led-x', id: 'flash', pin: 7 },
+        { part: 'led-x', id: 'hidden', pin: 37 },
+        { part: 'rgb', id: 'rgb1', pin: 27 },
+        { part: 'rgb', id: 'rgb2', pins: { r: 27, g: 32, b: 33, w: 25 } },
+      ],
+      definitions,
+    );
+    const byCode = (code: string) => resolved.issues.filter((issue) => issue.code === code);
+    expect(byCode('strapping').map((issue) => [issue.level, issue.gpio])).toEqual([
+      ['warning', 2],
+      ['warning', 12],
+    ]);
+    expect(byCode('strapping')[1]?.text).toContain('GPIO12은(는) 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요. 여기에 led-x 부품을(를) 이으면 실물 보드가 켜지지 않거나');
+    expect(byCode('input-output-same-pin')).toEqual([expect.objectContaining({ level: 'error', gpio: 17 })]);
+    expect(byCode('shared-output')).toEqual([expect.objectContaining({ level: 'info', gpio: 2 })]);
+    expect(byCode('not-on-header').map((issue) => [issue.level, issue.gpio])).toEqual([
+      ['error', 7],
+      ['warning', 37],
+    ]);
+    expect(byCode('pin-shorthand')[0]?.text).toContain('핀이 여러 개(r·g·b)');
+    expect(byCode('unknown-role')[0]?.text).toContain('"w" 핀이 없어서');
+    expect(resolved.instances.map((instance) => instance.id)).toEqual(['onboard-led', 'strap', 'touch', 'motor', 'buzzer', 'flash', 'hidden', 'rgb2']);
+  });
+
+  it("'board.wiring' 값: 아는 부품은 이름·핀·방향, 모르는 부품은 known false와 적힌 핀(사이드카 f052의 LCD)", () => {
+    const resolved = resolveWiring([
+      { part: 'touch-digital', pin: 17 },
+      { part: 'lcd-i2c', id: 'lcd', pins: { sda: 21, scl: 22 }, label: '문자 LCD(16×2)' },
+    ]);
+    expect(texts(resolved.issues)).toContain('부품 "문자 LCD(16×2)"은(는) 가상 보드에 아직 없어서');
+    const value = wiringValue(resolved.instances, resolved.unknown);
+    expect(value.parts).toEqual(
+      expect.arrayContaining([
+        { part: 'touch-digital', id: 'touch-digital', label: '터치 센서', pins: { sig: 17 }, directions: { sig: 'in' }, known: true },
+        { part: 'builtin-led', id: 'builtin-led', label: '내장 LED', pins: { led: 2 }, directions: { led: 'out' }, known: true },
+        { part: 'lcd-i2c', id: 'lcd', label: '문자 LCD(16×2)', pins: { sda: 21, scl: 22 }, known: false },
+      ]),
+    );
   });
 
   it('입력 부품이 핀을 누르는 값: 센 값(0·1)이 약한 값(풀업)을 이긴다', () => {
-    const { instances } = resolveWiring([]);
-    expect([...inputDrives(instances, new Set()).entries()]).toEqual([[0, 'pullup']]);
-    expect([...inputDrives(instances, new Set(['boot-button'])).entries()]).toEqual([[0, 0]]);
+    const { instances } = resolveWiring([{ part: 'touch-digital', pin: 17 }]);
+    expect([...inputDrives(instances, new Set()).entries()].sort(([a], [b]) => a - b)).toEqual([
+      [0, 'pullup'],
+      [17, 0],
+    ]);
+    expect(new Map(inputDrives(instances, new Set(['boot-button', 'touch-digital'])))).toEqual(
+      new Map<number, number | string>([
+        [0, 0],
+        [17, 1],
+      ]),
+    );
   });
 
   it('예제의 배선 표(LabExample.parts)를 읽는다', () => {
     expect(exampleWiring(null)).toEqual([]);
     expect(exampleWiring({ parts: [{ part: 'builtin-led', id: 'led' }] })).toEqual([{ part: 'builtin-led', id: 'led' }]);
-  });
-});
-
-describe('부품: 내장 LED(builtin-led)', () => {
-  const instance = { part: 'builtin-led', id: 'builtin-led', pins: { led: 2 }, label: '내장 LED' };
-  it('GPIO2가 출력으로 1이면 켜지고, 입력 모드·0·[정지]면 꺼진다', () => {
-    const on = snapshotWith([{ id: 2, mode: 'out', out: 1, level: 1, driven: true, irq: false }]);
-    expect(builtinLed.visual({ snapshot: on, instance, active: false, reducedMotion: false })).toEqual({ lit: true });
-    expect(builtinLed.visual({ snapshot: snapshotWith([{ id: 2, mode: 'out', out: 0, level: 0, driven: true }]), instance, active: false, reducedMotion: false })).toEqual({ lit: false });
-    expect(builtinLed.visual({ snapshot: snapshotWith([{ id: 2, mode: 'in', out: 1, level: 0, driven: false }]), instance, active: false, reducedMotion: false })).toEqual({ lit: false });
-    expect(builtinLed.visual({ snapshot: snapshotAfterRun(on, { outcome: 'stopped' }), instance, active: false, reducedMotion: false })).toEqual({ lit: false });
-    expect(builtinLed.visual({ snapshot: snapshotAfterRun(on, { outcome: 'killed' }), instance, active: false, reducedMotion: false })).toEqual({ lit: false });
-    expect(builtinLed.visual({ snapshot: snapshotAfterRun({ ...on, phase: 'end' }, { outcome: 'ok' }), instance, active: false, reducedMotion: false })).toEqual({ lit: true });
-    expect(builtinLed.visual({ snapshot: EMPTY_SNAPSHOT, instance, active: false, reducedMotion: false })).toEqual({ lit: false });
-  });
-});
-
-describe('부품: BOOT 버튼(boot-button)', () => {
-  it('누르면 GPIO0을 0으로, 떼면 풀업(평소 1) — 누르고 있는 동안만(momentary)', () => {
-    expect(bootButton.interaction?.kind).toBe('momentary');
-    expect(bootButton.interaction?.drive(true, 'sig')).toBe(0);
-    expect(bootButton.interaction?.drive(false, 'sig')).toBe('pullup');
-    const instance = { part: 'boot-button', id: 'boot-button', pins: { sig: 0 }, label: 'BOOT 버튼' };
-    expect(bootButton.visual({ snapshot: EMPTY_SNAPSHOT, instance, active: true, reducedMotion: false })).toEqual({ pressed: true });
-    expect(bootButton.visual({ snapshot: EMPTY_SNAPSHOT, instance, active: false, reducedMotion: false })).toEqual({ pressed: false });
   });
 });
