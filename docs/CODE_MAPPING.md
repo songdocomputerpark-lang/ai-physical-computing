@@ -574,7 +574,7 @@ Pyodide `opencv-python`(314.0.7 기준 4.11.0.86)은 **실물**을 쓰고 아래
 | `from micropython import const` | `const(x)` = x |
 | `import ustruct` / `import ubluetooth` | `struct`·`bluetooth` 별칭. 연구 결과 반영: u-접두 이름은 아직 지원되지만 앞으로 제거 예고 → 사이트 새 예제는 접두어 없는 이름을 쓰고, 자료 원본의 u-이름도 받아 준다 |
 | `neopixel.NeoPixel(Pin(23), 16)`, `np[i] = (r, g, b)`, `np.write()` | 버퍼는 대입 때, 화면은 `write()` 때만 갱신. 튜플 길이·인덱스 오류는 원고 오류표처럼 `ValueError`·`IndexError` |
-| `bytes + str` 결합 | MicroPython은 bytes/bytearray에 버퍼 객체(str 포함)를 더할 수 있어 f009가 실물에서는 도는 것으로 추정되지만, CPython에서는 TypeError → mock으로 흉내 내지 않고 f009만 가상 보드용 판을 쓴다(§2.8) |
+| `bytes + str` 결합 | MicroPython은 bytes/bytearray에 버퍼 객체(str 포함)를 더할 수 있어 f009가 실물에서는 도는 것으로 추정되지만, CPython에서는 TypeError → mock으로 흉내 내지 않고 f009만 가상 보드용 판을 쓴다(§2.8). **2026-09-17 P3-00에서 v1.29.0 소스로 확인:** 왼쪽이 bytes면 오른쪽을 버퍼 프로토콜로 읽고 str도 버퍼 프로토콜을 가진다(`py/objstr.c`·`py/objstrunicode.c`). 가상 보드가 지킬 나머지 차이(ticks 넘침·epoch·단정밀도 float·errno 번호 등)는 PLAN §8.3 P3-00 차이 표 |
 
 #### 3.8.3 가상 주변장치
 
@@ -688,10 +688,12 @@ Claude 결정: **저수준 mock 하나**(`bluetooth`/`ubluetooth` 모듈)를 만
 | 존재·사용법 | `ports/webassembly`가 `micropython.mjs` + `micropython.wasm`을 만들고 `loadMicroPython()` → `mp.runPython(...)`, `runPythonAsync`의 최상위 await, `js` 모듈로 JS 호출 | 확인됨(README) |
 | 라이선스 | MicroPython 저장소 LICENSE가 "따로 표시가 없으면 저장소 모든 파일에 MIT" | 확인됨 |
 | 한계 | README: "MicroPython 실행이 브라우저를 멈추게 한다", **브라우저에서는 인터럽트가 구현되지 않았다**. 워커 실행·`machine` mock에 대한 언급 없음 | 확인됨 |
-| 장점(추정) | `bytes + str`, `const`, u-모듈, `sleep_ms` 등 실물 의미가 같아 f009 같은 차이가 사라지고, Pyodide보다 가벼울 가능성 | 추정 |
+| 장점(추정) | `bytes + str`, `const`, u-모듈, `sleep_ms` 등 실물 의미가 같아 f009 같은 차이가 사라지고, Pyodide보다 가벼울 가능성 | 추정 → 2026-09-17 일부 확인: 크기는 npm판 `micropython.mjs` 110,120 + `micropython.wasm` 449,553바이트로 작다. 단 웹어셈블리 포트는 배정밀도 float·epoch 1970이라 ESP32(단정밀도·epoch 2000)와의 차이가 다 사라지지는 않는다 |
 | 판단 | 정지 버튼(인터럽트 미구현)과 동기 입력 문제를 워커 종료로 풀어야 해 1차 구현 기본값으로는 권하지 않는다. PLAN에서 Phase 3 착수 전 실험 항목으로 둔다(Claude 권장) | — |
 
 출처: https://github.com/micropython/micropython/blob/master/ports/webassembly/README.md
+
+**2026-09-17 P3-00 판정 — PD-04 유지.** v1.29.0 태그 소스로 다시 확인한 결과 npm판(`@micropython/micropython-webassembly-pyscript` 1.29.0-6, PyScript판)에는 JSPI·ASYNCIFY가 없어 `time.sleep`이 바쁜 대기이고(`mphalport.c`), `input()`이 읽을 표준 입력이 없으며(`mphalport.h`), README는 여전히 "브라우저에서는 인터럽트가 구현되지 않았다"고 적는다. JSPI를 더하는 PR(#19594)과 협조적 양보 PR(#19427)은 열려 있으나 병합 전이다. 근거·비교·다시 볼 조건·가상 보드가 지킬 차이 표는 PLAN §8.3 P3-00 구현 메모.
 
 ---
 
