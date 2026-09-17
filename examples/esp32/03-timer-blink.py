@@ -14,6 +14,10 @@ timer = Timer(0)  # 0번 타이머
 timer.init(period=300, mode=Timer.PERIODIC, callback=blink)  # 300밀리초마다 blink를 불러 줘요.
 print("타이머를 켰어요. 멈추려면 [정지]를 누르세요.")
 
+# ── 실습 방법 ──
+# 1. [실행]을 눌러요. 콘솔에 "타이머를 켰어요"가 나와요.
+# 2. 코드가 끝났는데도 내장 LED가 계속 깜빡이는지 봐요.
+# 3. [정지]를 눌러 타이머를 멈춰요.
 # ── 바꿔볼 것 3가지 ──
 # 1. period를 100이나 1000으로 바꾸고 다시 [실행]해 봐요.
 # 2. mode=Timer.PERIODIC을 mode=Timer.ONE_SHOT으로 바꾸면 어떻게 될까요?

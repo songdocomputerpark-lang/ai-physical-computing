@@ -7,17 +7,22 @@
  *   # 영상을 회색으로 바꾼 뒤 …                        ← 규약이 아닌 둘째 주석 줄 = 한 줄 설명(선택)
  *   # @lesson v4                                       ← 붙는 차시(선택): content/lessons/ 파일 이름(slug)
  *   # @tags 에지, 회색, Canny                          ← 갤러리·검색용 낱말(선택, 쉼표)
+ *   # @part touch-digital 17                          ← (ESP32 예제) 배선 한 줄 — 부품 하나에 한 줄(선택, src/lab/README.md 7.4)
  * 안내 상자 = 파일 어디든(보통 코드 끝) 제목 줄로 시작하는 주석 묶음
  *   # ── 바꿔볼 것 3가지 ──
  *   # 1. threshold를 30까지 내려 봐요. …               ← 줄마다 항목 하나(번호는 떼어 준다)
  *   # ── 왜 이런 결과가 나올까 ──
  *   # Canny는 …                                        ← 줄마다 문장 하나
+ *   # ── 실습 방법 ──                                   ← (선택, P3-02) 실습실에서 무엇을 누르고 무엇을 보는지 차례 — 줄마다 한 단계(번호는 떼어 준다)
+ *   # 1. [실행]을 눌러요.
  * 상자는 첫 코드 줄이나 다음 상자 제목에서 끝난다. 제목 줄의 ─·=·- 장식은 몇 개든 된다(없어도 된다).
  *
  * 원본 자료에서 옮긴 예제(PD-33)에는 머리말·상자를 넣지 않는다(줄 번호 보존, PD-10) → 제목·설명은 차시 md의 examples 항목이 준다.
  * 이 함수는 사이트가 만든 예제(자체 제작)에서 갤러리(P4-11)·차시 임베드(P2-14)·실습실 예제 목록(src/lab/vision/examples.ts)이 읽는다.
  * 조절 값 규약(# @slider 등)은 여기서 읽지 않는다 — src/lab/params/parse.ts.
  */
+
+import { parsePartDirective } from '../modules/board/wiring-spec.ts';
 
 export interface ExampleMeta {
   /** 규약이 아닌 첫 주석 줄. 머리말이 없으면 null */
@@ -28,19 +33,24 @@ export interface ExampleMeta {
   readonly lesson: string | null;
   /** # @tags 값(쉼표로 나눔, 빈 것 제외) */
   readonly tags: readonly string[];
+  /** # @part 줄마다 배선 한 줄의 사전(모양 검사 전 — src/lab/modules/board/wiring-spec.ts normalizeWiringSpecs로 맞춘다). 읽지 못한 줄은 뺀다 */
+  readonly parts: readonly Record<string, unknown>[];
   /** "바꿔볼 것 3가지" 상자의 항목(번호를 뗀 문장) */
   readonly tryIdeas: readonly string[];
   /** "왜 이런 결과가 나올까" 상자의 줄 */
   readonly why: readonly string[];
+  /** "실습 방법" 상자의 단계(번호를 뗀 문장). ESP32 실습실이 보드 그림 위에 보인다(P3-02) */
+  readonly practice: readonly string[];
 }
 
 export const TRY_SECTION_TITLE = '바꿔볼 것 3가지';
 export const WHY_SECTION_TITLE = '왜 이런 결과가 나올까';
+export const PRACTICE_SECTION_TITLE = '실습 방법';
 
 /** 규약 주석(# @이름 …). 제목·설명으로 쓰지 않는다. */
 const DIRECTIVE_LINE = /^#\s*@([A-Za-z][A-Za-z0-9_]*)\s*(.*)$/u;
 /** 상자 제목 줄: # ── 바꿔볼 것 3가지 ── (장식은 선택) */
-const SECTION_TITLE = new RegExp(`^#\\s*[─━═=~-]*\\s*(${TRY_SECTION_TITLE}|${WHY_SECTION_TITLE})\\s*[─━═=~-]*\\s*$`, 'u');
+const SECTION_TITLE = new RegExp(`^#\\s*[─━═=~-]*\\s*(${TRY_SECTION_TITLE}|${WHY_SECTION_TITLE}|${PRACTICE_SECTION_TITLE})\\s*[─━═=~-]*\\s*$`, 'u');
 /** 차시 slug 모양(PD-09) */
 const LESSON_SLUG = /^[a-z0-9][a-z0-9-]*$/u;
 
@@ -55,6 +65,7 @@ export function readExampleMeta(source: string): ExampleMeta {
   let description: string | null = null;
   let lesson: string | null = null;
   const tags: string[] = [];
+  const parts: Record<string, unknown>[] = [];
 
   // 머리말: 앞쪽 빈 줄을 건너뛴 뒤 이어진 주석 줄
   let index = 0;
@@ -82,6 +93,11 @@ export function readExampleMeta(source: string): ExampleMeta {
             tags.push(trimmed);
           }
         }
+      } else if (name === 'part') {
+        const part = parsePartDirective(rest);
+        if (part) {
+          parts.push(part);
+        }
       }
       continue;
     }
@@ -99,7 +115,8 @@ export function readExampleMeta(source: string): ExampleMeta {
   // 안내 상자: 파일 어디든
   const tryIdeas: string[] = [];
   const why: string[] = [];
-  let current: 'try' | 'why' | null = null;
+  const practice: string[] = [];
+  let current: 'try' | 'why' | 'practice' | null = null;
   for (const line of lines) {
     if (!line.startsWith('#')) {
       current = null;
@@ -107,7 +124,7 @@ export function readExampleMeta(source: string): ExampleMeta {
     }
     const heading = SECTION_TITLE.exec(line);
     if (heading) {
-      current = heading[1] === TRY_SECTION_TITLE ? 'try' : 'why';
+      current = heading[1] === TRY_SECTION_TITLE ? 'try' : heading[1] === PRACTICE_SECTION_TITLE ? 'practice' : 'why';
       continue;
     }
     if (current === null) {
@@ -119,12 +136,14 @@ export function readExampleMeta(source: string): ExampleMeta {
     }
     if (current === 'try') {
       tryIdeas.push(text.replace(/^\d+[.)]\s*/u, ''));
+    } else if (current === 'practice') {
+      practice.push(text.replace(/^\d+[.)]\s*/u, ''));
     } else {
       why.push(text);
     }
   }
 
-  return { title, description, lesson, tags, tryIdeas, why };
+  return { title, description, lesson, tags, parts, tryIdeas, why, practice };
 }
 
 /** 예제에 두 상자가 다 있는지(SPEC §6.1 규칙을 검사·경고할 때) */

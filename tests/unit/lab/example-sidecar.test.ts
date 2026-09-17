@@ -35,6 +35,19 @@ describe('사이드카 읽기', () => {
     expect(parseExampleSidecar('')).toMatchObject({ title: null, packages: null });
   });
 
+  it('ESP32 예제의 parts(배선)는 맞춘 모양으로 읽고, 틀린 줄은 빼고 까닭을 남긴다. 적지 않으면 칸이 없다', () => {
+    const sidecar = parseExampleSidecar(['title: 터치', 'parts:', '  - { part: touch-digital, pin: 17 }', '  - { type: lcd_i2c, id: lcd, pins: { sda: 21, scl: 22 } }', '  - { pin: 4 }'].join('\n'));
+    expect(sidecar.parts).toEqual([
+      { part: 'touch-digital', pin: 17 },
+      { part: 'lcd-i2c', id: 'lcd', pins: { sda: 21, scl: 22 } },
+    ]);
+    expect(sidecar.partErrors).toEqual([expect.stringContaining('사이드카 parts 3번째: 부품 이름(part)을 적어요')]);
+    expect('parts' in parseExampleSidecar('title: 제목\n')).toBe(false);
+    // 실습 방법(P3-02): 글 목록, 적지 않으면 칸이 없다
+    expect(parseExampleSidecar('title: 제목\npractice:\n  - "[실행]을 눌러요."\n  - 터치 센서를 눌러요.\n').practice).toEqual(['[실행]을 눌러요.', '터치 센서를 눌러요.']);
+    expect('practice' in parseExampleSidecar('title: 제목\n')).toBe(false);
+  });
+
   it('사이드카 경로를 예제 경로로 바꾸고 묶음으로 읽는다', () => {
     expect(examplePathForSidecar('/examples/vision/u1/a.meta.yaml')).toBe('/examples/vision/u1/a.py');
     expect(examplePathForSidecar('/examples/vision/u1/a.yaml')).toBeNull();

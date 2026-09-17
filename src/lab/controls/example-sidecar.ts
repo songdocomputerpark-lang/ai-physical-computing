@@ -16,10 +16,15 @@
  *   source_id    이관 기록 id(scripts/examples-manifest.yaml, 예: f026)
  *   tags         갤러리·검색용 낱말 목록
  *   packages     실행 전에 미리 받을 Pyodide 패키지 이름(pyodide-lock.json 기준). 적지 않으면 실습실 기본값
+ *   parts        (ESP32 예제) 배선 목록 — [{ part: touch-digital, pin: 17 }] 모양(src/lab/modules/board/wiring-spec.ts, README 7.4).
+ *                틀린 줄은 빼고 까닭을 partErrors에 모은다(빌드는 경고만 — PD-35)
+ *   practice     (선택) 실습 방법 — 실습실에서 무엇을 누르고 무엇을 보는지 단계 목록(ESP32 실습실이 보드 그림 위에 보인다, P3-02)
  *   smoke        예제 스모크 테스트(tests/e2e/examples-smoke.spec.ts)가 기대하는 결과. 이 파서는 읽지 않고 그 테스트만 본다.
  *                input(sample|replay|webcam)·outcome(ok|stopped|error)·error(오류 이름)·seconds(지켜보는 시간)·skip(건너뛰는 이유)
  */
 import YAML from 'yaml';
+import type { WiringEntry } from '../modules/board/part-types.ts';
+import { normalizeWiringSpecs } from '../modules/board/wiring-spec.ts';
 
 export const SIDECAR_SUFFIX = '.meta.yaml';
 
@@ -32,6 +37,12 @@ export interface ExampleSidecar {
   readonly tags: readonly string[];
   /** 적지 않았으면 null(실습실 기본값을 쓴다), 적었으면 그 목록(빈 목록 포함) */
   readonly packages: readonly string[] | null;
+  /** 배선(적지 않았으면 이 칸이 없다 — ESP32 예제만 씀). 모양이 틀린 줄은 뺐다 */
+  readonly parts?: readonly WiringEntry[] | null;
+  /** parts에서 뺀 줄의 까닭(한국어) */
+  readonly partErrors?: readonly string[];
+  /** 실습 방법 단계(적지 않았으면 이 칸이 없다) */
+  readonly practice?: readonly string[];
 }
 
 const LESSON_SLUG = /^[a-z0-9][a-z0-9-]*$/u;
@@ -60,6 +71,7 @@ export function parseExampleSidecar(source: string): ExampleSidecar {
   const data = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
   const lesson = text(data.lesson);
   const page = typeof data.page === 'number' && Number.isInteger(data.page) && data.page > 0 ? data.page : null;
+  const wiring = data.parts === undefined ? null : normalizeWiringSpecs(data.parts, '사이드카');
   return {
     title: text(data.title),
     description: text(data.description),
@@ -68,6 +80,8 @@ export function parseExampleSidecar(source: string): ExampleSidecar {
     sourceId: text(data.source_id),
     tags: stringList(data.tags),
     packages: Array.isArray(data.packages) ? stringList(data.packages) : null,
+    ...(wiring === null ? {} : { parts: wiring.entries, partErrors: wiring.errors }),
+    ...(Array.isArray(data.practice) ? { practice: stringList(data.practice) } : {}),
   };
 }
 

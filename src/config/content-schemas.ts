@@ -30,11 +30,21 @@ export const ENTRY_ID_PATTERN = /^[a-z\d]+(?:-[a-z\d]+)*$/u;
 /** 용어 한 줄 풀이(툴팁) 최대 글자 수 */
 export const GLOSSARY_SUMMARY_MAX = 100;
 
-/** 가상 보드 배선의 부품 하나(PD-05). type 말고 다른 값(여러 핀 등)은 Phase 3 가상 보드가 정해 더 적는다. */
-const partSchema = z.looseObject({
-  type: z.string().min(1, { error: '부품 종류(type)를 적어요. 예: builtin_led' }),
-  pin: z.union([z.number().int().nonnegative(), z.string().min(1)]).optional(),
-});
+/**
+ * 가상 보드 배선의 부품 하나(PD-05, P3-02 — src/lab/README.md 7.4). 부품 이름은 part(부품 폴더 이름, 예: touch-digital) 또는
+ * PLAN §2.6 예시의 type(예: touch_digital — 밑줄은 하이픈으로 읽음). 핀이 하나인 부품은 pin, 여러 개면 pins: { 역할: 핀 번호 }.
+ * 부품 이름이 가상 보드에 있는지·핀이 맞는지는 실습실 화면이 검사해 한국어로 알린다(여기서는 모양만 본다 — 빌드를 멈추지 않게, PD-35).
+ */
+const partSchema = z
+  .looseObject({
+    part: z.string().min(1).optional(),
+    type: z.string().min(1).optional(),
+    id: z.string().min(1).optional(),
+    pin: z.union([z.number().int().nonnegative(), z.string().min(1)]).optional(),
+    pins: z.record(z.string(), z.union([z.number().int().nonnegative(), z.string().min(1)])).optional(),
+    label: z.string().min(1).optional(),
+  })
+  .refine((value) => Boolean(value.part ?? value.type), { error: '부품 이름(part)을 적어요. 예: { part: touch-digital, pin: 17 }' });
 
 /** 차시에 붙는 예제 하나. 제목·배선은 py 파일이 아니라 차시 md에 적는다(PLAN §2.6). */
 const EXAMPLE_FILE_ERROR = 'examples/ 뒤의 경로를 영문 소문자·숫자·_·-와 .py로 적어요. 예: esp32/u2/2-1-1-touch-led.py';

@@ -7,13 +7,24 @@
  * - 제목·설명: 사이드카(<이름>.meta.yaml) → 파일 머리말(첫 주석 줄·둘째 줄) → 파일 이름
  * - packages: 가상 보드는 Pyodide 코어만 쓴다(PD-04) — 미리 받을 패키지가 없다
  * - 묶음: ESP32_EXAMPLE_GROUPS(폴더별). esp32/lib/ 아래(보드 라이브러리 i2c_lcd.py 등, P3-04)는 예제가 아니라 목록에 넣지 않는다.
- * - parts: 사이드카나 차시 md의 배선(P3-02가 채움)
+ * - parts(배선, P3-02): 차시 md frontmatter의 examples[].parts(페이지가 wiringByFile로 넘김) → 사이드카 parts → 파일 머리말 `# @part` 순서로
+ *   처음 찾은 곳만 쓴다(src/lab/README.md 7.4). 틀린 줄은 빼고 까닭을 onWarning으로 알린다(빌드 경고만 — PD-35).
+ * - practice(실습 방법, P3-02): 사이드카 practice → 머리말 "── 실습 방법 ──" 상자. 보드 그림 위에 "이 예제 실습 방법"으로 보인다.
  * 이 파일은 빌드(페이지)에서만 쓴다 — yaml 같은 빌드 전용 패키지는 import하지 않고 사이드카는 페이지가 미리 읽어 넘긴다.
  */
 import { readExampleMeta } from '../controls/example-meta.ts';
 import type { ExampleSidecar } from '../controls/example-sidecar.ts';
 import type { LabExample } from '../controls/examples.ts';
+import type { WiringEntry } from '../modules/board/part-types.ts';
+import { normalizeWiringSpecs } from '../modules/board/wiring-spec.ts';
 import type { ExampleLessonLinks } from '../vision/examples.ts';
+
+export interface Esp32ExampleOptions {
+  /** 차시 md frontmatter가 정한 배선: examples/ 뒤 경로(esp32/u2/a.py) → 배선 목록(이미 맞춘 모양) */
+  readonly wiringByFile?: Readonly<Record<string, readonly WiringEntry[]>>;
+  /** 배선 글을 읽다 뺀 줄의 까닭(페이지가 빌드 경고로 찍는다) */
+  onWarning?(text: string): void;
+}
 
 export const ESP32_EXAMPLES_DIR = 'esp32';
 
@@ -71,6 +82,7 @@ export function esp32ExamplesFromFiles(
   files: Readonly<Record<string, string>>,
   sidecars: Readonly<Record<string, ExampleSidecar>> = {},
   lessons: ExampleLessonLinks = {},
+  options: Esp32ExampleOptions = {},
 ): LabExample[] {
   const examples: LabExample[] = [];
   for (const [globPath, source] of Object.entries(files)) {
@@ -84,6 +96,23 @@ export function esp32ExamplesFromFiles(
     const description = sidecar?.description ?? meta.description ?? null;
     const lessonSlug = sidecar?.lesson ?? meta.lesson ?? null;
     const lesson = lessons.byFile?.[file] ?? (lessonSlug === null ? null : (lessons.bySlug?.[lessonSlug] ?? null));
+    let parts: readonly WiringEntry[] = [];
+    const fromLesson = options.wiringByFile?.[file];
+    if (fromLesson && fromLesson.length > 0) {
+      parts = fromLesson;
+    } else if (sidecar?.parts && sidecar.parts.length > 0) {
+      parts = sidecar.parts;
+      for (const error of sidecar.partErrors ?? []) {
+        options.onWarning?.(`examples/${file}: ${error}`);
+      }
+    } else if (meta.parts.length > 0) {
+      const normalized = normalizeWiringSpecs(meta.parts, `examples/${file} 머리말 # @part`);
+      parts = normalized.entries;
+      for (const error of normalized.errors) {
+        options.onWarning?.(error);
+      }
+    }
+    const practice = sidecar?.practice && sidecar.practice.length > 0 ? sidecar.practice : meta.practice;
     examples.push({
       id,
       title: sidecar?.title ?? meta.title ?? id,
@@ -93,6 +122,8 @@ export function esp32ExamplesFromFiles(
       ...(sidecar?.packages && sidecar.packages.length > 0 ? { packages: sidecar.packages } : {}),
       group: groupLabel(esp32ExampleGroupKey(file)),
       ...(lesson ? { lesson } : {}),
+      ...(parts.length > 0 ? { parts } : {}),
+      ...(practice.length > 0 ? { practice } : {}),
     });
   }
   examples.sort((a, b) => {

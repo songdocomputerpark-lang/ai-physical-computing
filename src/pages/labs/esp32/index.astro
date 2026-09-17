@@ -8,7 +8,9 @@
  *
  * 예제 목록: examples/esp32/ 아래 .py(보드 라이브러리 폴더 esp32/lib/ 제외)를 빌드 때 모두 읽는다(src/lab/esp32/examples.ts).
  * 새 예제는 .py 파일 하나를 그 폴더에 두면 [예제 불러오기]에 들어간다(원칙 6).
- * 블록 모드(P3-06)·실제 보드 연결(P3-07~)·배선도(P3-02)는 이어서 더한다.
+ * 배선도(P3-02): 예제마다 차시 md frontmatter의 examples[].parts → 사이드카 parts → 머리말 `# @part` 순서로 배선을 정해(README 7.4)
+ * LabExample.parts로 넘기면 가상 보드가 부품을 놓고 선을 긋는다. 배선 글이 틀린 줄은 빼고 빌드 경고만 낸다(PD-35).
+ * 블록 모드(P3-06)·실제 보드 연결(P3-07~)은 이어서 더한다.
  */
 import { getCollection } from 'astro:content';
 import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
@@ -19,6 +21,8 @@ import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson
 import { getPage } from '../../../config/nav.ts';
 import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
 import { esp32ExamplesFromFiles } from '../../../lab/esp32/examples.ts';
+import type { WiringEntry } from '../../../lab/modules/board/part-types.ts';
+import { normalizeWiringSpecs } from '../../../lab/modules/board/wiring-spec.ts';
 import type { ExampleLessonLink } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -35,7 +39,19 @@ const lessonEntries = (await getCollection('lessons')).filter((entry) => !entry.
 const summaries = new Map(publishedLessons(lessonEntries).map((lesson) => [lesson.id, lesson]));
 const byFile: Record<string, ExampleLessonLink> = {};
 const bySlug: Record<string, ExampleLessonLink> = {};
+const wiringByFile: Record<string, WiringEntry[]> = {};
+const warnWiring = (text: string) => console.warn(`[ESP32 실습실 배선] ${text}`);
 for (const entry of lessonEntries) {
+  // 차시 md의 배선(examples[].parts)은 차시 링크와 상관없이 읽는다(차시가 목록에 아직 안 보여도 예제 배선은 맞게).
+  for (const example of entry.data.examples) {
+    if (example.parts.length > 0 && wiringByFile[example.file] === undefined) {
+      const normalized = normalizeWiringSpecs(example.parts, `content/lessons/${entry.id}.md examples(${example.file})`);
+      normalized.errors.forEach(warnWiring);
+      if (normalized.entries.length > 0) {
+        wiringByFile[example.file] = normalized.entries;
+      }
+    }
+  }
   const lesson = summaries.get(entry.id);
   if (!lesson) {
     continue;
@@ -47,7 +63,7 @@ for (const entry of lessonEntries) {
     byFile[example.file] ??= link;
   }
 }
-const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug });
+const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug }, { wiringByFile, onWarning: warnWiring });
 ---
 
 <BaseLayout title={page.title} description={page.description} width="wide">
@@ -62,8 +78,11 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
     </p>
     <ol class="esp32-intro__steps">
       <li>[실행]을 누르면 파이썬이 준비된 뒤 가상 보드가 코드를 돌려요. 코드가 핀을 바꾸면 보드 그림과 "핀 상태" 표가 함께 바뀌어요.</li>
-      <li>BOOT 버튼은 마우스로 누르고 있거나, Tab 키로 버튼에 간 뒤 Space를 누르고 있으면 눌려요.</li>
-      <li>지금 가상 보드에는 내장 LED와 BOOT 버튼이 있어요. 터치 센서, 버저, 서보모터, 문자 화면(LCD) 같은 부품은 차례로 더해져요.</li>
+      <li>BOOT 버튼·터치 센서는 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있으면 눌려요.</li>
+      <li>
+        예제마다 쓰는 부품과 선(배선도)이 보드 아래에 그려져요. 지금은 내장 LED·BOOT 버튼·터치 센서·진동 모터를 쓸 수 있고, 버저·서보모터·문자
+        화면(LCD) 같은 부품은 차례로 더해져요.
+      </li>
     </ol>
   </div>
 

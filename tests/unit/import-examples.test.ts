@@ -322,6 +322,15 @@ describe('이관(importExamples)', () => {
     const entry = { id: 'f905', source: 'demo', member: 'x/[고등] 1-2-1_기본 실습 코드(p28).py', target: 'examples/vision/u1/1-2-1-a.py', author: 'operator' as const };
     expect(defaultSidecar(entry)).toMatchObject({ title: '1-2-1 기본 실습 코드(p28)', lesson: '1-2-1', page: 28, source_id: 'f905', packages: ['opencv-python'] });
     expect(defaultSidecar({ ...entry, target: 'examples/desktop/a.py', meta: { title: '제목', packages: [] } })).toMatchObject({ title: '제목', packages: [] });
+    // ESP32 예제의 배선·스모크 기대 결과는 씨앗에 있을 때만 그대로 옮긴다(P3-02)
+    const esp32 = defaultSidecar({
+      ...entry,
+      target: 'examples/esp32/u2/a.py',
+      meta: { title: '터치', parts: [{ part: 'touch-digital', pin: 17 }], smoke: { outcome: 'error', error: 'ImportError' }, practice: ['[실행]을 눌러요.'] },
+    });
+    expect(esp32).toMatchObject({ packages: [], parts: [{ part: 'touch-digital', pin: 17 }], smoke: { outcome: 'error', error: 'ImportError' }, practice: ['[실행]을 눌러요.'] });
+    expect('parts' in defaultSidecar(entry)).toBe(false);
+    expect('smoke' in defaultSidecar(entry)).toBe(false);
     const converted = convertOriginal(Buffer.from(CRLF_SOURCE, 'utf8'), entry, { python: null });
     expect(converted).toMatchObject({ lines: 4, originalLines: 4, syntax: 'ok', problems: [] });
   });

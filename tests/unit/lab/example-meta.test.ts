@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { TRY_SECTION_TITLE, WHY_SECTION_TITLE, hasGuideBoxes, readExampleMeta } from '../../../src/lab/controls/example-meta.ts';
+import { PRACTICE_SECTION_TITLE, TRY_SECTION_TITLE, WHY_SECTION_TITLE, hasGuideBoxes, readExampleMeta } from '../../../src/lab/controls/example-meta.ts';
 import { parseParams } from '../../../src/lab/params/parse.ts';
 
 const ROOT = process.cwd();
@@ -15,13 +15,15 @@ describe('예제 머리말 메타데이터', () => {
       description: '영상을 회색으로 바꿔요.',
       lesson: 'v4',
       tags: ['에지', '회색', 'Canny'],
+      parts: [],
       tryIdeas: [],
       why: [],
+      practice: [],
     });
   });
 
   it('머리말이 없으면(원본에서 옮긴 예제) 모두 비어 있고, 첫 코드 줄 뒤의 주석은 머리말이 아니다', () => {
-    expect(readExampleMeta('import cv2\n# 나중 주석\n# @lesson v4\n')).toEqual({ title: null, description: null, lesson: null, tags: [], tryIdeas: [], why: [] });
+    expect(readExampleMeta('import cv2\n# 나중 주석\n# @lesson v4\n')).toEqual({ title: null, description: null, lesson: null, tags: [], parts: [], tryIdeas: [], why: [], practice: [] });
     expect(readExampleMeta('')).toMatchObject({ title: null, description: null });
   });
 
@@ -29,6 +31,17 @@ describe('예제 머리말 메타데이터', () => {
     expect(readExampleMeta('# 제목\n# @lesson V4\n').lesson).toBeNull();
     expect(readExampleMeta('# 제목\n# @lesson 1-2-1\n').lesson).toBe('1-2-1');
     expect(readExampleMeta('# 제목\n# @lesson\n').lesson).toBeNull();
+  });
+
+  it('ESP32 예제의 # @part 줄마다 배선 한 줄을 읽고(모양 검사 전), 읽지 못한 줄은 뺀다 — 제목·설명으로도 쓰지 않는다', () => {
+    const meta = readExampleMeta(['# 진동 알림', '# @part touch-digital 17', '# @part vibration-motor 19', '# @part rgb-led r=27 g=32 b=33 as rgb', '# @part 17 틀림 틀림', '# 설명', 'from machine import Pin', '# @part laser 18'].join('\n'));
+    expect(meta.title).toBe('진동 알림');
+    expect(meta.description).toBe('설명');
+    expect(meta.parts).toEqual([
+      { part: 'touch-digital', pin: '17' },
+      { part: 'vibration-motor', pin: '19' },
+      { part: 'rgb-led', pins: { r: '27', g: '32', b: '33' }, id: 'rgb' },
+    ]);
   });
 
   it('CRLF 줄 끝과 앞쪽 빈 줄이 있어도 같다', () => {
@@ -60,6 +73,14 @@ describe('안내 상자(바꿔볼 것 3가지·왜 이런 결과가 나올까)',
     expect(meta.why).toEqual(['첫 문장.', '둘째 문장.']);
     expect(hasGuideBoxes(meta)).toBe(true);
     expect(hasGuideBoxes(readExampleMeta('# 제목\n'))).toBe(false);
+  });
+
+  it('"실습 방법" 상자(P3-02)는 단계마다 한 줄, 번호를 떼고 다음 상자 제목에서 끝난다', () => {
+    const meta = readExampleMeta(
+      ['# 제목', 'x = 1', `# ── ${PRACTICE_SECTION_TITLE} ──`, '# 1. [실행]을 눌러요.', '# 2) 터치 센서를 누르고 있어요.', `# ── ${TRY_SECTION_TITLE} ──`, '# 1. 바꿔요.', ''].join('\n'),
+    );
+    expect(meta.practice).toEqual(['[실행]을 눌러요.', '터치 센서를 누르고 있어요.']);
+    expect(meta.tryIdeas).toEqual(['바꿔요.']);
   });
 
   it('상자가 머리말 바로 뒤에 오면 머리말은 그 앞에서 끝난다', () => {

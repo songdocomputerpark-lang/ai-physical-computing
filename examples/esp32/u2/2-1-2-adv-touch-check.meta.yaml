@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "2-1-2 심화 동작 테스트: 터치 센서 값 읽기"
+description: 터치 센서(GPIO17)를 누르고 있으면 1, 떼면 0이 0.2초마다 콘솔에 나와요.
+lesson: 2-1-2
+page: 130
+source_id: f053
+tags:
+  - 터치 센서
+  - 입력
+packages: []
+parts:
+  - part: touch-digital
+    pin: 17
+practice:
+  - "[실행]을 누르면 콘솔에 Touch value: 0이 0.2초마다 나와요."
+  - "보드 아래 터치 센서를 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space를 누르고 있어요."
+  - "누르는 동안 1, 떼면 다시 0이 나오는지 봐요. 보드 그림의 17번 핀도 함께 빛나요."

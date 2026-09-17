@@ -1,0 +1,16 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "보드 확인: BOOT 버튼을 누르는 동안 내장 LED 켜기"
+description: BOOT 버튼(GPIO0)을 누르고 있으면 내장 LED(GPIO2)가 켜져요. 이 버튼은 누르면 0으로 읽혀서 == 0으로 확인해요.
+lesson: 2-1-1
+source_id: f015
+tags:
+  - 버튼
+  - 입력
+  - LED
+  - BOOT
+packages: []
+practice:
+  - "[실행]을 눌러요."
+  - "보드의 BOOT 버튼을 마우스로 누르고 있거나, Tab 키로 버튼에 간 뒤 Enter나 Space를 누르고 있어요."
+  - "누르고 있는 동안 내장 LED가 켜지고, 떼면 꺼지는지 봐요."

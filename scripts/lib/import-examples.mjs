@@ -8,7 +8,7 @@
 //    - 없으면 Node의 가벼운 검사(괄호 짝·따옴표·들여쓰기 섞임)만.
 //    원본 결함으로 구문 오류가 나는 파일(f074, CODE_MAPPING §2.2)은 항목에 expect_syntax_error: true를 적어 두면 통과한다.
 // 4. examples/<대상 경로>에 쓰고, 항목에 기록(lines·sha256·syntax·syntax_checker·imported)을 적어 목록 파일을 다시 저장한다(주석 보존).
-// 5. 같은 이름의 사이드카(<대상>.meta.yaml — 제목·설명·차시·쪽·태그·패키지)가 없으면 항목의 meta로 만든다. 있으면 건드리지 않는다.
+// 5. 같은 이름의 사이드카(<대상>.meta.yaml — 제목·설명·차시·쪽·태그·패키지, ESP32 예제면 배선 parts·스모크 기대 smoke)가 없으면 항목의 meta로 만든다. 있으면 건드리지 않는다.
 //    원본 코드 파일에는 머리말을 넣지 않는다(src/lab/README.md 2절). 사이트는 사이드카를 읽는다(src/lab/controls/example-sidecar.ts).
 // 6. --verify: 원본 없이(CI·다른 컴퓨터) examples/의 파일이 기록(sha256·줄 수)과 같은지 본다. tests/unit/import-examples.test.ts가 저장소에 대고 돌린다.
 //
@@ -418,6 +418,16 @@ export function defaultSidecar(entry) {
   sidecar.source_id = entry.id;
   sidecar.tags = Array.isArray(meta.tags) ? meta.tags : [];
   sidecar.packages = Array.isArray(meta.packages) ? meta.packages : folder === 'vision' ? ['opencv-python'] : [];
+  // ESP32 예제의 배선(src/lab/README.md 7.4)·예제 스모크 기대 결과(tests/e2e/examples-smoke.spec.ts)·실습 방법은 씨앗에 있으면 그대로 옮긴다(P3-02).
+  if (Array.isArray(meta.parts)) {
+    sidecar.parts = meta.parts;
+  }
+  if (meta.smoke && typeof meta.smoke === 'object' && !Array.isArray(meta.smoke)) {
+    sidecar.smoke = meta.smoke;
+  }
+  if (Array.isArray(meta.practice)) {
+    sidecar.practice = meta.practice;
+  }
   return sidecar;
 }
 

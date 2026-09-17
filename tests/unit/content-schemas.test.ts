@@ -77,6 +77,26 @@ describe('차시 frontmatter 규칙(lessonSchema)', () => {
     expect(lessonSchema.safeParse({ ...PLAN_EXAMPLE, examples: [{ file: 'esp32/lib/third-party/i2c_lcd.py' }] }).success).toBe(true);
   });
 
+  it('예제 배선(parts)은 PLAN §2.6의 type·pin과 사이드카 모양의 part·id·pins·label을 모두 받고, 부품 이름이 없으면 실패한다', () => {
+    const data = lessonSchema.parse({
+      ...PLAN_EXAMPLE,
+      examples: [
+        {
+          file: 'esp32/u2/2-1-2-adv-touch-lcd-counter.py',
+          parts: [
+            { part: 'touch-digital', pin: 17 },
+            { part: 'lcd-i2c', id: 'lcd', pins: { sda: 21, scl: 22 }, label: '문자 LCD' },
+          ],
+        },
+      ],
+    });
+    expect(data.examples[0]?.parts).toHaveLength(2);
+    expect(lessonSchema.parse({ ...PLAN_EXAMPLE, examples: [{ file: 'esp32/01-first-blink.py' }] }).examples[0]?.parts).toEqual([]);
+    const missing = lessonSchema.safeParse({ ...PLAN_EXAMPLE, examples: [{ file: 'esp32/a.py', parts: [{ pin: 17 }] }] });
+    expect(missing.success).toBe(false);
+    expect(issueMessages(missing)).toContain('부품 이름(part)을 적어요');
+  });
+
   it('규칙에 없는 필드를 더 적어도 빌드를 멈추지 않고 값을 남긴다', () => {
     const data = lessonSchema.parse({ ...PLAN_EXAMPLE, hero_image: 'u2/touch.svg' });
     expect((data as Record<string, unknown>).hero_image).toBe('u2/touch.svg');
