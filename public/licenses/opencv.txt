@@ -1,8 +1,8 @@
 OpenCV 4.11.0(Pyodide 패키지 opencv-python 4.11.0.86) — 라이선스 고지(https://github.com/opencv/opencv, https://pypi.org/project/opencv-python/4.11.0.86/)
-이 사이트의 영상처리 실습에서 쓰는 OpenCV(cv2)는 Pyodide 314.0.7이 배포하는 휠(opencv_python-4.11.0.86, jsDelivr)을 그대로 받아요.
+이 사이트의 영상처리 실습에서 쓰는 OpenCV(cv2)는 Pyodide 314.0.7이 배포하는 휠(opencv_python-4.11.0.86)을 그대로 써요. 보통은 브라우저가 jsDelivr에서 받고, 학교 네트워크가 그곳을 막을 때를 대비해 같은 파일을 이 사이트(vendor/pyodide/314.0.7/)에도 올려 둬요.
 카메라·창 함수(cv2.VideoCapture, imshow, waitKey, namedWindow 등)만 사이트의 흉내 모듈(src/lab/python/apc_cv2.py)이 파이썬 쪽에서 덮어쓰고, 휠 파일 자체는 고치지 않아요.
 OpenCV의 라이선스는 Apache License 2.0이에요. 아래는 OpenCV 저장소(태그 4.11.0)의 LICENSE 원문이에요.
-휠 안에 함께 묶인 구성요소(FFmpeg 4.4.1 LGPL-2.1+ 등)의 고지는 같은 사이트 예비본으로 재배포할 때(PLAN PD-19, P2-05·P6-04) 더해요. (2026-09-16)
+휠을 같은 사이트에서 재배포하므로 휠 안의 다른 고지도 함께 실어요: 휠 패키징(opencv-python)의 MIT 원문은 licenses/opencv-python.txt, 함께 묶인 구성요소(FFmpeg 4.4.1 LGPL-2.1+ 등)의 원문은 licenses/opencv-3rd-party.txt예요. (2026-09-17)
 
 
                                  Apache License

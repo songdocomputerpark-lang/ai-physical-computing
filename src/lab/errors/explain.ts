@@ -216,7 +216,8 @@ export function explain(catalog: ErrorCatalog | null, input: ExplainInput): Expl
     return {
       kind,
       entry: candidate.entry,
-      typeLabel: input.outcome === 'stopped' ? '정지' : '정지 2단계',
+      // 카드 머리의 종류 이름은 학생이 읽는 말로 쓴다(사이트 안쪽 용어 "정지 2단계"는 쓰지 않는다 — 2026-09-17 검토 반영).
+      typeLabel: input.outcome === 'stopped' ? '정지' : '파이썬 다시 시작',
       title: fillTemplate(candidate.entry.title, vars),
       meaning: fillTemplate(candidate.entry.meaning, vars),
       why: candidate.entry.why.map((line) => fillTemplate(line, vars)),

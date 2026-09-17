@@ -59,6 +59,10 @@ export function mountSpeechSetting(root: HTMLElement | null): SpeechSettingHandl
   function renderStatus(): void {
     setText(statusText, `${onDeviceLabel(status)} — ${describeOnDevice(status)}`);
     root!.dataset.ondevice = status;
+    if (checkButton) {
+      // 아직 물어보지 않았으면 [확인], 한 번이라도 물어봤으면 [다시 확인](실습실 패널의 단추와 같은 낱말).
+      checkButton.textContent = status === 'unchecked' ? '확인' : '다시 확인';
+    }
     if (installButton) {
       installButton.hidden = !(status === 'downloadable' || status === 'downloading');
     }

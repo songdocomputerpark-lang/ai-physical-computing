@@ -48,9 +48,14 @@ import { withBase } from '../../lib/url.ts';
     브라우저가 기기 안에서 한국어를 알아들을 수 있으면, 음성을 밖으로 보내지 않고도 말하기 실습을 할 수 있어요. 이 확인은 가능한지만 물어보고
     음성을 보내지 않아요.
   </p>
-  <p class="setting__status" data-ondevice-status aria-live="polite">확인하는 중이에요…</p>
+  {/*
+    정적 HTML의 첫 글자는 "확인 전"이어야 한다. 이 확인은 [확인] 단추를 눌렀을 때만 일어나므로(기기 안 음성 인식 서비스가 없는
+    Chromium 계열에서는 부르는 것만으로 탭이 죽는다 — PROGRESS 미해결 38번), "확인하는 중"으로 두면 자바스크립트가 꺼졌거나
+    늦게 뜨는 교실 PC에서 영원히 그 글자가 남는다(2026-09-17 검토 반영). 단추 이름도 누르기 전에는 [확인]이다.
+  */}
+  <p class="setting__status" data-ondevice-status aria-live="polite">확인 전이에요 — [확인]을 누르면 브라우저에 물어봐요.</p>
   <div class="setting__buttons">
-    <button type="button" class="setting__button" data-ondevice-check>다시 확인</button>
+    <button type="button" class="setting__button" data-ondevice-check>확인</button>
     <button type="button" class="setting__button" data-ondevice-install hidden>한국어 음성 팩 준비하기</button>
   </div>
   <p class="setting__hint">

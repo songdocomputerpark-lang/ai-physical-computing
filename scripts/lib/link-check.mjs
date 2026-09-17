@@ -13,6 +13,7 @@
 // - no-trailing-slash  페이지 주소 끝에 /가 없다(astro.config.mjs의 trailingSlash 'always' 정책, GitHub Pages가 301로 한 번 더 이동시킴)
 // - anchor-not-found   #위치가 그 페이지에 없다
 // - relative-in-404    404 페이지의 상대 주소(404 페이지는 어느 깊이의 주소에서도 보이므로 상대 주소가 깨진다)
+// - example-not-found  실습실 주소의 ?example=<examples/ 아래 경로> 값이 실제 예제 파일이 아니다(실습실이 조용히 다른 예제를 연다)
 // 건너뛰는 것: 다른 사이트 주소, mailto:·tel:·javascript:·data:·blob:, 자바스크립트가 실행 중에 만드는 주소(검색 결과 등),
 // <script>·<style> 안의 글자와 HTML 주석
 //
@@ -28,7 +29,7 @@ import path from 'node:path';
  */
 
 /**
- * @typedef {'base-missing' | 'not-found' | 'no-trailing-slash' | 'anchor-not-found' | 'relative-in-404'} LinkProblemKind
+ * @typedef {'base-missing' | 'not-found' | 'no-trailing-slash' | 'anchor-not-found' | 'relative-in-404' | 'example-not-found'} LinkProblemKind
  */
 
 /**
@@ -45,6 +46,7 @@ import path from 'node:path';
  * @property {number} stylesheets  검사한 CSS 파일 수
  * @property {number} internal     확인한 사이트 안 주소 수(같은 주소도 적힌 곳마다 센다)
  * @property {number} anchors      그 가운데 #위치까지 확인한 수
+ * @property {number} examples     실습실 주소의 ?example= 값까지 확인한 수
  * @property {number} external     건너뛴 다른 사이트 주소 수
  * @property {LinkProblem[]} problems
  */
@@ -257,13 +259,15 @@ function safeDecode(value) {
  * @param {SiteAddress} site
  * @returns {LinkReport}
  */
-export function checkLinks(distDir, site) {
+export function checkLinks(distDir, site, options = {}) {
+  // ?example= 값이 가리키는 예제 파일은 dist/에 복사되지 않으므로 저장소의 examples/ 폴더에서 찾는다.
+  const examplesDir = options.examplesDir ?? path.join(distDir, '..', 'examples');
   const files = listFiles(distDir);
   const fileSet = new Set(files);
   /** @type {Map<string, Set<string>>} */
   const idCache = new Map();
   /** @type {LinkReport} */
-  const report = { pages: 0, stylesheets: 0, internal: 0, anchors: 0, external: 0, problems: [] };
+  const report = { pages: 0, stylesheets: 0, internal: 0, anchors: 0, examples: 0, external: 0, problems: [] };
   const basePrefix = `${site.base}/`;
 
   /** @param {string} file */
@@ -333,6 +337,18 @@ export function checkLinks(distDir, site) {
       return;
     }
 
+    // 실습실 주소의 ?example=<examples/ 아래 경로>는 차시 md가 손으로 적는 값이라, 예제 파일 이름이 바뀌면
+    // 링크는 200인데 학생에게 다른 예제가 열린다(lab-shell.ts는 못 찾으면 첫 예제로 대신 연다). 빌드 때 여기서 잡는다.
+    const exampleRef = url.searchParams.get('example');
+    if (exampleRef !== null && exampleRef !== '' && target.endsWith('.html')) {
+      report.examples += 1;
+      const parts = exampleRef.split('/');
+      const unsafe = parts.length === 0 || parts.some((part) => part === '' || part === '.' || part === '..');
+      if (unsafe || !fs.existsSync(path.join(examplesDir, ...parts))) {
+        report.problems.push({ file, ref, kind: 'example-not-found', target: `examples/${exampleRef}` });
+      }
+    }
+
     const anchor = safeDecode(url.hash.slice(1));
     if (anchor === '' || anchor.startsWith(':~:') || !target.endsWith('.html')) {
       return;
@@ -370,6 +386,7 @@ const PROBLEM_MESSAGES = {
   'no-trailing-slash': () => '페이지 주소는 끝에 /를 붙여요(사이트 규칙). 예: …/credits/',
   'anchor-not-found': () => '주소 뒤 #위치(id)가 그 페이지에 없어요. 제목의 id나 #이름의 철자를 확인해요.',
   'relative-in-404': () => '404 페이지는 어느 주소에서나 보이므로 상대 주소가 깨져요. withBase()로 만든 주소를 써요.',
+  'example-not-found': () => '실습실 주소의 ?example= 값이 examples/ 아래에 없는 파일이에요. 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 파일 경로를 고쳐요.',
 };
 
 /**
@@ -381,7 +398,7 @@ const PROBLEM_MESSAGES = {
 export function formatLinkReport(report, site) {
   const summary =
     `HTML ${report.pages}개와 CSS ${report.stylesheets}개에서 사이트 안 주소 ${report.internal}개` +
-    `(#위치 ${report.anchors}개 포함)를 확인했어요. 다른 사이트 주소 ${report.external}개는 건너뛰었어요.`;
+    `(#위치 ${report.anchors}개, 실습실 예제 ${report.examples}개 포함)를 확인했어요. 다른 사이트 주소 ${report.external}개는 건너뛰었어요.`;
   if (report.problems.length === 0) {
     return `[링크 검사] 통과 — ${summary}`;
   }

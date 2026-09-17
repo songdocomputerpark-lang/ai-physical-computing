@@ -110,8 +110,12 @@ export function checkPrecacheBudget(entries, limits = { maxFileBytes: PRECACHE_M
 /** 서비스 워커에 새겨 넣을 설정. buildId가 바뀌면 브라우저가 새 판으로 본다. */
 export function buildConfig(precache) {
   const sizes = {};
+  const hashes = {};
   for (const file of PYODIDE_FALLBACK_FILES) {
     sizes[file.name] = file.size;
+    // 크기만으로는 "다른 파일"을 못 걸러낸다. 학생 브라우저가 실행하는 코드(pyodide.asm.mjs 등)라서
+    // 빌드 스크립트와 같은 SHA-256을 서비스 워커에도 새겨 넣는다(2026-09-17 검토 반영, PLAN §5.4).
+    hashes[file.name] = file.sha256;
   }
   const config = {
     buildId: '',
@@ -148,6 +152,7 @@ export function buildConfig(precache) {
       sitePath: PYODIDE_SITE_INDEX_PATH,
       cacheName: pyodideCacheName(PYODIDE_VERSION),
       sizes,
+      hashes,
       // 용량 정리 때 마지막까지 남기는 파일(파이썬 엔진 코어) — 휠부터 지운다.
       keepPaths: PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core').map((file) => `${PYODIDE_SITE_INDEX_PATH}${file.name}`),
     },

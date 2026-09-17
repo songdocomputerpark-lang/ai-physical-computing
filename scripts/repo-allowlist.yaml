@@ -54,3 +54,6 @@ privacy_exceptions:
   - path: public/licenses/opencv-3rd-party.txt
     kinds: [email]
     reason: opencv-python 휠 안 LICENSE-3RD-PARTY.txt 원문(FFmpeg·libpng·FreeType 등 구성요소 저작자 표기의 공개 주소). 같은 사이트 예비본으로 휠을 재배포하므로 고지 원문을 고치지 않고 그대로 실어요(PD-19, 2026-09-16 P2-05).
+  - path: public/licenses/numpy-3rd-party.txt
+    kinds: [email]
+    reason: numpy 휠 안 dist-info/licenses/ 고지 원문 16개(pocketfft·PCG·Mersenne Twister·libdivide 등 구성요소 저작자가 스스로 적은 공개 주소). opencv와 같은 까닭으로 휠을 재배포하므로 원문을 고치지 않고 그대로 실어요(PD-19, 2026-09-17 P2 검토 반영).

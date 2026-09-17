@@ -105,6 +105,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   data-stop-ms=""
   data-save-state="idle"
   data-example=""
+  data-loading-intro="yes"
   data-pagefind-ignore
 >
   <script is:inline type="application/json" data-lab-examples set:html={examplesJson} />
@@ -139,11 +140,20 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   </p>
   <p class="lab__message" role="status" aria-live="polite" data-lab-message></p>
 
+  {/*
+    지금 예제가 어느 차시에서 나오는지(예제 머리말 # @lesson / 사이드카 lesson). 차시에서 [실습실에서 열기]로 넘어온 학생이
+    돌아갈 길이 화면에 하나도 없었다(2026-09-17 검토 반영). 차시 안 임베드에서는 같은 쪽이라 숨긴다.
+  */}
+  <p class="lab__lesson" data-lab-lesson data-embed-hide hidden>
+    이 예제가 나오는 차시:{' '}
+    <a class="lab__lesson-link" data-lab-lesson-link href="">차시</a>
+  </p>
+
   <div data-lab-limited hidden>
     <Callout type="주의" title="제한 모드로 실행해요">
       <p>
         이 브라우저에는 JSPI(파이썬 기다리기 기능)가 없어서 입력이나 카메라를 기다리는 코드는 실행할 수 없어요. 한 번 실행되고
-        끝나는 코드는 돌아요. [정지]는 파이썬을 다시 시작하는 방식(정지 2단계)으로만 돼요.
+        끝나는 코드는 돌아요. [정지]를 누르면 파이썬을 다시 시작하는 방식으로만 멈춰요.
       </p>
     </Callout>
   </div>
@@ -159,11 +169,15 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
         </div>
         <span class="lab__save" data-lab-save aria-live="polite"></span>
       </div>
+      {/*
+        Tab 안내는 편집칸 **위**에 둔다. 아래에 있으면 키보드만 쓰는 학생이 편집칸에 들어간 뒤에야 읽게 된다(2026-09-17 검토 반영).
+        Tab으로 막 들어온 편집칸은 Tab 한 번으로 지나가고, 글을 쓰기 시작하면 Tab이 들여쓰기다(python-editor.ts 머리말).
+      */}
+      <p id={ids.editorHint} class="lab__hint lab__hint--before" data-lab-editor-hint>{TAB_HINT}</p>
       <div class="lab__editor-host" data-lab-editor data-label="파이썬 코드"></div>
-      <p id={ids.editorHint} class="lab__hint" data-lab-editor-hint>{TAB_HINT}</p>
     </section>
 
-    <section class="lab__io" aria-labelledby={ids.ioHeading}>
+    <section class="lab__io" data-lab-io aria-labelledby={ids.ioHeading}>
       <Heading id={ids.ioHeading} class="lab__heading">입력과 출력</Heading>
       {
         hasIo ? (
@@ -231,6 +245,9 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     <input id={ids.shareUrl} class="lab-dialog__url" type="text" readonly data-lab-share-url />
     <p class="lab-dialog__note" data-lab-share-note></p>
     <p class="lab-dialog__note">코드만 담겨요. 카메라 영상이나 입력한 글자는 들어가지 않아요.</p>
+    <p class="lab-dialog__note lab-dialog__note--warn">
+      대신 <strong>코드에 적은 이름·학번·비밀번호는 링크를 받는 사람이 모두 볼 수 있어요.</strong> 지우고 공유해 주세요.
+    </p>
     <div class="lab-dialog__actions">
       <button type="button" class="button button--primary" data-lab-share-copy>복사</button>
       <button type="button" class="button button--secondary" data-lab-dialog-close>닫기</button>
@@ -342,6 +359,26 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     font-size: var(--text-sm);
   }
 
+  /*
+   * 손가락으로 누르는 화면에서는 작은 단추도 44px로 키운다(WCAG 2.5.5 권장 44×44, 2.5.8 최소 24×24).
+   * 휴대폰 학생이 예제를 끝내는 유일한 길인 출력 창 키 단추 [q][d][r][ESC]와 [입력 켜기]·[파일 넣기]·[← 이전]이 모두
+   * 높이 36px이었다(2026-09-17 검토 실측). 접기 제목(<summary>)과 체크상자도 함께 키운다.
+   */
+  @media (max-width: 48rem) {
+    :global(.lab-button--small) {
+      min-height: var(--target-min);
+    }
+
+    .lab :global(summary) {
+      padding-block: var(--space-2);
+    }
+
+    .lab :global(input[type='checkbox']) {
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
+    }
+  }
+
   .button:disabled,
   :global(.lab-button:disabled),
   :global(.lab__select:disabled) {
@@ -382,6 +419,16 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     display: none;
   }
 
+  .lab__lesson {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lab__lesson[hidden] {
+    display: none;
+  }
+
   .lab__grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -402,6 +449,33 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
         'editor io'
         'editor panel'
         'modules modules'
+        'console console';
+    }
+  }
+
+  /*
+   * 처음 파이썬을 받는 동안(data-loading-intro="yes")에는 전체 폭 모듈 줄(modules)을 맨 위로 올린다. 준비 진행률 막대와
+   * "1분 개념" 카드가 거기 있는데, 평소 자리(편집칸·입력/출력 아래)는 문서 y≈3,300px이라 기다리는 학생 화면에 한 번도
+   * 보이지 않았다(2026-09-17 검토 반영). 실행기 상태(data-state)가 아니라 따로 둔 표시를 쓰는 까닭: OpenCV 같은 패키지는
+   * 실행기가 idle이 된 뒤에 받고, 정지 2단계로 워커를 다시 띄울 때도 state가 loading으로 돌아가 오류 카드·가상 데스크톱까지
+   * 맨 위로 튀어 오르기 때문이다. 표시는 준비 패널이 접힐 때(loading 모듈)나 [실행]을 누를 때(lab-shell.ts) no가 되고
+   * 그 뒤로는 제자리다. 준비에 실패하면 yes로 남아 실패 안내가 맨 위에 보인다.
+   */
+  .lab[data-loading-intro='yes'] .lab__grid {
+    grid-template-areas:
+      'modules'
+      'editor'
+      'io'
+      'panel'
+      'console';
+  }
+
+  @media (min-width: 64rem) {
+    .lab[data-loading-intro='yes'] .lab__grid {
+      grid-template-areas:
+        'modules modules'
+        'editor io'
+        'editor panel'
         'console console';
     }
   }
@@ -505,6 +579,11 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /* 편집칸 위에 두는 안내(Tab 키) — 아래 여백만 준다 */
+  .lab__hint--before {
+    margin: 0 0 var(--space-2);
   }
 
   .lab__placeholder {
@@ -636,6 +715,11 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     margin-block: var(--space-2) 0;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
+  }
+
+  /* 개인정보 주의는 흐린 글씨로 두지 않는다(학생이 [복사] 전에 읽어야 하는 문장). */
+  .lab-dialog__note--warn {
+    color: var(--color-text);
   }
 
   .lab-dialog__actions {

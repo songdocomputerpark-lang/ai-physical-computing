@@ -183,7 +183,7 @@ describe('정지·다시 시작', () => {
   it('정지 2단계는 다시 시작 풀이를 보여 준다', () => {
     const explanation = explain(catalog, { outcome: 'killed' });
     expect(explanation?.entry.id).toBe('forced-restart');
-    expect(explanation?.typeLabel).toBe('정지 2단계');
+    expect(explanation?.typeLabel).toBe('파이썬 다시 시작');
     expect(explanation?.fix.length).toBeGreaterThan(0);
   });
 

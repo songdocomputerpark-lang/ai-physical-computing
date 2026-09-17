@@ -101,7 +101,7 @@ const panels = examples.map((example, index) => {
       </div>
     </figure>
     {/* 실습실은 글 읽기 폭(44rem)보다 넓게 펴서 편집칸과 결과가 나란히 보이게 한다. 누르기 전에는 비어 있다. */}
-    {panel.link && <div class="lesson-example__lab" data-lesson-lab-slot hidden />}
+    {panel.link && <div class="lesson-example__lab" data-lesson-lab-slot data-lab-href={panel.link.href} hidden />}
     </div>
   ))
 }
@@ -115,6 +115,30 @@ const panels = examples.map((example, index) => {
   const OPEN_LABEL = '이 자리에서 실습실 열기';
   const CLOSE_LABEL = '실습실 접기';
 
+  /**
+   * 실습실 아래 줄: [실습실 접기]와 [실습실을 크게 열기]. 실습실(iframe) 안을 스크롤하다 보면 차시 본문으로 돌아오는 단추가
+   * 화면 위로 사라져 있어서, 틀 바로 아래에도 같은 단추를 둔다(2026-09-17 검토 반영 — 휴대폰에서 틀 안 스크롤에 갇히던 문제).
+   */
+  function buildLabBar(toggle: () => void, labHref: string | undefined): HTMLElement {
+    const bar = document.createElement('div');
+    bar.className = 'lesson-example__lab-bar';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'button button--secondary';
+    close.textContent = CLOSE_LABEL;
+    close.dataset.lessonLabClose = '';
+    close.addEventListener('click', toggle);
+    bar.append(close);
+    if (labHref) {
+      const link = document.createElement('a');
+      link.className = 'button button--secondary';
+      link.href = labHref;
+      link.textContent = '실습실을 크게 열기';
+      bar.append(link);
+    }
+    return bar;
+  }
+
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-lesson-lab-open]')) {
     const slot = button.closest('.lesson-example-block')?.querySelector<HTMLElement>('[data-lesson-lab-slot]');
     const src = button.dataset.embedSrc;
@@ -122,7 +146,7 @@ const panels = examples.map((example, index) => {
       continue;
     }
     button.setAttribute('aria-expanded', 'false');
-    button.addEventListener('click', () => {
+    const toggle = () => {
       const open = slot.hasAttribute('hidden');
       if (open && !slot.querySelector('iframe')) {
         const frame = document.createElement('iframe');
@@ -132,15 +156,20 @@ const panels = examples.map((example, index) => {
         // 카메라는 같은 사이트 안에서만 쓴다(학생 영상은 브라우저 밖으로 나가지 않는다 — SPEC §2).
         frame.allow = 'camera';
         frame.className = 'lesson-example__frame';
-        slot.append(frame);
+        slot.append(frame, buildLabBar(toggle, slot.dataset.labHref));
       }
       slot.toggleAttribute('hidden', !open);
       button.setAttribute('aria-expanded', open ? 'true' : 'false');
       button.textContent = open ? CLOSE_LABEL : OPEN_LABEL;
       if (open) {
         slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else {
+        // 아래 줄의 [실습실 접기]로 접었으면 읽던 예제 자리로 돌아온다(접힌 틀 높이만큼 화면이 튀지 않게).
+        button.scrollIntoView({ block: 'nearest' });
+        button.focus({ preventScroll: true });
       }
-    });
+    };
+    button.addEventListener('click', toggle);
   }
 </script>
 
@@ -251,15 +280,29 @@ const panels = examples.map((example, index) => {
   .lesson-example__lab :global(.lesson-example__frame) {
     display: block;
     width: 100%;
-    /* 넓은 화면에서는 편집칸과 결과가 나란히 보인다. */
-    height: 46rem;
+    /* 넓은 화면에서는 편집칸과 결과가 나란히 보인다. 화면보다 높으면 틀 안과 밖을 함께 스크롤하게 되므로 화면 높이를 넘지 않게 한다. */
+    height: min(46rem, calc(100vh - 4rem));
     border: 0;
   }
 
-  /* 좁은 화면에서는 실습실이 세로로 쌓여 더 길어진다. */
+  /*
+   * 좁은 화면(휴대폰): 틀이 화면보다 크면 손가락으로 밀 때마다 틀 안만 움직여 차시 본문으로 빠져나오기 어렵다(2026-09-17 검토:
+   * 375×812에서 틀 341×1024). 화면의 80%까지만 쓰고(주소창이 접히고 펴져도 흔들리지 않는 svh, 모르는 브라우저는 vh),
+   * 남은 20%를 밀면 본문이 움직인다. 긴 실습은 아래 줄의 [실습실을 크게 열기]로 연다.
+   */
   @media (max-width: 64rem) {
     .lesson-example__lab :global(.lesson-example__frame) {
-      height: 64rem;
+      height: 80vh;
+      height: 80svh;
     }
+  }
+
+  .lesson-example__lab :global(.lesson-example__lab-bar) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
   }
 </style>

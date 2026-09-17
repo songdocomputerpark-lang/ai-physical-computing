@@ -22,17 +22,27 @@
  * 자동 저장은 코드가 바뀔 때마다(손을 멈춘 뒤 0.4초) 예제별 이름으로 저장하고 "저장됨"을 보인다.
  * [이 컴퓨터에서 내 기록 지우기](ClearRecordsButton)가 끝나면 document의 apc:records-cleared를 받아 예제 원래 코드·기본 글자 크기로 돌아간다.
  *
- * 테스트가 읽는 값(뿌리 요소의 data-*): state·jspi·limited·outcome·run-count·stop-ms·save-state·example·share-loaded.
+ * 테스트가 읽는 값(뿌리 요소의 data-*): state·jspi·limited·outcome·run-count·stop-ms·save-state·example·share-loaded·
+ * example-missing(?example= 파일을 못 찾음)·loading-intro(첫 준비 중이면 yes — 준비 패널이 맨 위, LabShell.astro).
+ * [실행] 단추의 data-lab-run-pending=yes는 "파이썬을 받는 동안 눌러 둠(준비되면 실행)"이다.
+ *
+ * 학생이 헤매지 않게 하는 규칙(2026-09-17 Phase 2 검토 반영)
+ * - 파이썬을 받는 동안에도 [실행]을 누를 수 있다. 누르면 "준비되면 실행돼요…"로 바뀌고 준비가 끝나면 저절로 실행한다.
+ * - 실행을 시작하면 입력·출력 칸이 첫 화면 밖일 때 그 칸으로 화면을 옮긴다(reveal.ts, 움직임 줄이기면 바로 옮김).
+ * - 예제에 차시 정보(lesson)가 있으면 조작 줄 아래에 "이 예제가 나오는 차시" 링크를 보인다(차시에서 넘어온 학생이 돌아갈 길).
  */
 import { canStepFontSize, readFontSize, saveFontSize, stepFontSize, DEFAULT_FONT_SIZE_PX } from '../editor/font-size.ts';
 import { createPythonEditor, type PythonEditor } from '../editor/python-editor.ts';
 import { PythonRuntime, type RunResult, type RuntimeRequest, type StopResult } from '../runtime/client.ts';
+import { STOP_GRACE_MS } from '../runtime/config.ts';
 import type { RuntimeState } from '../runtime/protocol.ts';
+import { withParticle } from '../../lib/korean.ts';
 import { readItem, writeItem } from '../../lib/storage.ts';
 import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatus } from './autosave.ts';
 import { downloadTextFile } from './download.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
+import { revealElement } from './reveal.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash } from './share-link.ts';
 
 /** 실행기 상태를 사람 말로 */
@@ -124,6 +134,8 @@ interface ShellElements {
   downloadButton: HTMLButtonElement | null;
   editorHost: HTMLElement;
   editorHint: HTMLElement | null;
+  /** 입력·출력 칸([data-lab-io]). [실행] 뒤 결과가 첫 화면 밖이면 여기로 옮긴다. */
+  ioSection: HTMLElement | null;
   fontSmaller: HTMLButtonElement | null;
   fontLarger: HTMLButtonElement | null;
   fontSizeText: HTMLElement | null;
@@ -131,6 +143,9 @@ interface ShellElements {
   statusText: HTMLElement | null;
   progressText: HTMLElement | null;
   messageText: HTMLElement | null;
+  /** "이 예제가 나오는 차시" 줄과 그 링크 */
+  lessonBox: HTMLElement | null;
+  lessonLink: HTMLAnchorElement | null;
   limitedNotice: HTMLElement | null;
   consoleBox: HTMLElement;
   consoleClear: HTMLButtonElement | null;
@@ -202,12 +217,17 @@ class LabShellController implements LabController {
   #runCount = 0;
   #fontSizePx = DEFAULT_FONT_SIZE_PX;
   #pendingInput: RuntimeRequest | null = null;
+  /** 파이썬을 받는 동안 누른 [실행] — 준비가 끝나면 바로 실행한다 */
+  #pendingRun = false;
+  /** [실행] 단추의 원래 글자 */
+  #runLabel = '실행';
   #disposed = false;
 
   constructor(root: HTMLElement, elements: ShellElements) {
     this.root = root;
     this.#elements = elements;
     this.labId = root.dataset.labId ?? 'lab';
+    this.#runLabel = elements.runButton.textContent?.trim() || '실행';
     this.examples = readExamples(root);
     const forceLimited = new URLSearchParams(window.location.search).get('limited') === '1';
     this.runtime = new PythonRuntime({ forceLimited });
@@ -215,9 +235,12 @@ class LabShellController implements LabController {
     // 1. 시작 코드와 예제 정하기(파일 머리말의 순서)
     const share = hasShareHash(window.location.hash) ? parseShareHash(window.location.hash) : null;
     const queryFile = new URLSearchParams(window.location.search).get('example');
+    const queryExample = findExampleByFile(this.examples, queryFile);
+    // 주소에 ?example=이 있는데 그런 파일이 없으면 조용히 다른 예제를 열지 않고 한 번 알린다(공유 링크가 망가졌을 때와 같은 방식).
+    const missingQueryFile = queryFile !== null && queryFile !== '' && queryExample === null;
     const initial =
       findExample(this.examples, share?.example) ??
-      findExampleByFile(this.examples, queryFile) ??
+      queryExample ??
       findExample(this.examples, root.dataset.initialExample) ??
       findExample(this.examples, readItem(lastExampleStorageName(this.labId))) ??
       this.examples[0] ??
@@ -253,6 +276,7 @@ class LabShellController implements LabController {
     });
     this.#applyFontSize(false);
     this.#renderExampleSelect();
+    this.#renderLessonLink();
     // 공유 링크로 열었을 때는 보이는 코드가 저장본이 아니므로 "저장됨"을 보이지 않는다(고치면 그때 저장된다).
     this.#setSaveState(source === 'restore' ? 'saved' : 'idle');
     if (share) {
@@ -265,6 +289,10 @@ class LabShellController implements LabController {
       } else {
         this.showMessage('공유 링크가 망가져 있어서 코드를 읽지 못했어요. 링크를 보낸 사람에게 다시 받아 주세요.');
       }
+    } else if (missingQueryFile) {
+      root.dataset.exampleMissing = queryFile ?? '';
+      const opened = this.#example ? withParticle(`'${this.#example.title}' 예제`, '으로/로') : '빈 편집칸으로';
+      this.showMessage(`링크에 적힌 예제(${queryFile})를 찾지 못해서 ${opened} 열었어요. 예제 목록에서 골라 주세요.`);
     }
     this.#emit('code', { code: doc, source });
     this.#emit('example', { example: this.#example });
@@ -311,6 +339,16 @@ class LabShellController implements LabController {
   }
 
   async run(): Promise<RunResult | null> {
+    /*
+     * 파이썬을 받는 동안(unloaded·loading) 누른 [실행]은 버리지 않고 예약한다. 느린 학교 네트워크에서는 준비에 몇 분이 걸려서
+     * (PLAN §5.1 Fast 3G 계산값 약 3.6분) 예전처럼 단추를 꺼 두면 학생의 첫 클릭이 아무 반응 없이 사라졌다(2026-09-17 검토 반영).
+     */
+    if (this.runtime.state === 'unloaded' || this.runtime.state === 'loading') {
+      this.#pendingRun = true;
+      this.#renderRunButton();
+      this.showMessage('파이썬을 준비하는 중이에요. 준비가 끝나면 바로 실행할게요.');
+      return null;
+    }
     if (this.runtime.state !== 'idle') {
       return null;
     }
@@ -322,8 +360,14 @@ class LabShellController implements LabController {
     if (this.#elements.resultText) {
       this.#elements.resultText.textContent = '';
     }
+    // 지난 실행이 남긴 안내(예: "오류로 끝났어요: NameError …")는 새 실행과 맞지 않으니 지운다.
+    this.showMessage('');
+    // 첫 준비 동안 맨 위로 올려 둔 준비 패널(LabShell.astro의 data-loading-intro)을 제자리로 돌린 뒤에 화면 위치를 잰다.
+    this.root.dataset.loadingIntro = 'no';
     this.appendConsole(`── 실행 ${this.#runCount} ──\n`, 'notice');
     this.#emit('run', { code, runCount: this.#runCount });
+    // 결과가 첫 화면 밖이면(1366×768에서 출력 제목 y≈678, 375×812에서 y≈2,056) 결과 칸으로 내려 준다.
+    revealElement(this.#elements.ioSection);
     try {
       return await this.runtime.run(code, this.#example?.packages ? { packages: this.#example.packages } : {});
     } catch (error) {
@@ -361,6 +405,7 @@ class LabShellController implements LabController {
     if (this.#elements.exampleSelect) {
       this.#elements.exampleSelect.value = example.id;
     }
+    this.#renderLessonLink();
     this.#emit('example', { example });
     this.#emit('code', { code: this.getCode(), source: 'example' });
     this.showMessage(restored !== null ? `"${example.title}" 예제의 저장된 코드를 불러왔어요.` : `"${example.title}" 예제를 불러왔어요.`);
@@ -502,6 +547,40 @@ class LabShellController implements LabController {
     }
   }
 
+  /** "이 예제가 나오는 차시" 줄(예제에 lesson 값이 있을 때만) */
+  #renderLessonLink(): void {
+    const { lessonBox, lessonLink } = this.#elements;
+    if (!lessonBox || !lessonLink) {
+      return;
+    }
+    const lesson = this.#example?.lesson;
+    if (!lesson) {
+      lessonBox.hidden = true;
+      return;
+    }
+    lessonLink.href = lesson.href;
+    lessonLink.textContent = lesson.label;
+    lessonBox.hidden = false;
+  }
+
+  /**
+   * [실행] 단추의 글자와 눌림 여부. 파이썬을 받는 동안에도 누를 수 있고(예약), 예약된 뒤에는 무엇을 기다리는지 글자로 알린다.
+   * 실행 중·멈추는 중·준비 실패일 때만 끈다.
+   */
+  #renderRunButton(): void {
+    const { runButton } = this.#elements;
+    const state = this.runtime.state;
+    if (this.#pendingRun) {
+      runButton.textContent = '준비되면 실행돼요…';
+      runButton.disabled = true;
+      runButton.dataset.labRunPending = 'yes';
+      return;
+    }
+    runButton.textContent = this.#runLabel;
+    delete runButton.dataset.labRunPending;
+    runButton.disabled = state === 'running' || state === 'stopping' || state === 'failed';
+  }
+
   #hideInput(): void {
     this.#pendingInput = null;
     if (this.#elements.inputForm) {
@@ -510,17 +589,20 @@ class LabShellController implements LabController {
   }
 
   #showResult(result: RunResult): void {
-    const stopNote = result.stopMs !== undefined ? ` [정지]까지 ${Math.round(result.stopMs)}ms` : '';
+    /*
+     * 결과 줄은 학생이 읽는 문장이라 사이트 안쪽 용어("정지 2단계")와 경과 밀리초를 넣지 않는다(2026-09-17 검토 반영).
+     * 그 값이 필요한 테스트·개발자는 뿌리 요소의 data-outcome·data-stop-ms를 읽는다.
+     */
     let text: string;
     switch (result.outcome) {
       case 'ok':
         text = result.exitCode === undefined ? '실행이 끝났어요.' : `exit()로 끝났어요(종료 코드 ${result.exitCode ?? '없음'}).`;
         break;
       case 'stopped':
-        text = `멈췄어요(KeyboardInterrupt).${stopNote}`;
+        text = '[정지]를 눌러 멈췄어요(KeyboardInterrupt).';
         break;
       case 'killed':
-        text = `파이썬을 다시 시작했어요(정지 2단계).${stopNote}`;
+        text = `${STOP_GRACE_MS / 1000}초 안에 멈추지 않아서 파이썬을 다시 시작했어요. 잠깐 뒤에 다시 실행할 수 있어요.`;
         break;
       default:
         text = `오류로 끝났어요: ${result.error?.message ?? '알 수 없는 오류'}`;
@@ -536,20 +618,43 @@ class LabShellController implements LabController {
   }
 
   #wireRuntime(): void {
-    const { runButton, stopButton, statusText, progressText, limitedNotice } = this.#elements;
+    const { stopButton, statusText, progressText, limitedNotice } = this.#elements;
     const runtime = this.runtime;
+    // HTML은 [실행]을 꺼 둔 채로 오지만, 파이썬을 받는 동안에도 미리 누를 수 있어야 하므로 여기서 한 번 다시 그린다.
+    this.#renderRunButton();
     this.#cleanups.push(
       runtime.on('state', ({ state }) => {
         this.root.dataset.state = state;
         if (statusText) {
           statusText.textContent = STATE_TEXT[state];
         }
-        runButton.disabled = state !== 'idle';
+        this.#renderRunButton();
         stopButton.disabled = state !== 'running';
         if (state !== 'running') {
           this.#hideInput();
         }
         this.#emit('state', { state });
+        if (state === 'idle' && this.#pendingRun) {
+          /*
+           * 준비되는 동안 눌러 둔 [실행]을 이제 실행한다. 바로 부르지 않고 한 박자(setTimeout 0) 미룬다:
+           * 실행기는 state 'idle' 바로 뒤에 'ready'를 알리고, 영상처리 실습실은 그때 OpenCV 미리 받기(loadPackages)를 워커에 보낸다.
+           * 실행을 먼저 보내면 워커가 "실행 중에는 패키지를 불러올 수 없어요"로 미리 받기를 거절해 콘솔에 헷갈리는 안내가 남는다
+           * (실행 쪽 패키지 받기는 Pyodide의 패키지 잠금을 기다렸다가 이어진다 — 2026-09-17 확인).
+           */
+          this.#pendingRun = false;
+          this.#renderRunButton();
+          window.setTimeout(() => {
+            if (this.#disposed || this.runtime.state !== 'idle') {
+              return;
+            }
+            void this.run();
+            this.showMessage('준비가 끝나서 눌러 둔 [실행]을 시작했어요.');
+          }, 0);
+        } else if (state === 'failed' && this.#pendingRun) {
+          this.#pendingRun = false;
+          this.#renderRunButton();
+          this.showMessage('파이썬을 준비하지 못해서 실행하지 못했어요. 잠시 뒤 새로고침해 주세요.');
+        }
       }),
       runtime.on('ready', (info) => {
         this.root.dataset.jspi = info.jspi ? 'yes' : 'no';
@@ -814,6 +919,7 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     downloadButton: query(root, '[data-lab-download]'),
     editorHost,
     editorHint: query(root, '[data-lab-editor-hint]'),
+    ioSection: query(root, '[data-lab-io]'),
     fontSmaller: query(root, '[data-lab-font-smaller]'),
     fontLarger: query(root, '[data-lab-font-larger]'),
     fontSizeText: query(root, '[data-lab-font-size]'),
@@ -821,6 +927,8 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     statusText: query(root, '[data-lab-status]'),
     progressText: query(root, '[data-lab-progress]'),
     messageText: query(root, '[data-lab-message]'),
+    lessonBox: query(root, '[data-lab-lesson]'),
+    lessonLink: query(root, '[data-lab-lesson-link]'),
     limitedNotice: query(root, '[data-lab-limited]'),
     consoleBox,
     consoleClear: query(root, '[data-lab-console-clear]'),

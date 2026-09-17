@@ -10,6 +10,11 @@
 /블루투스통신_수업교안/
 /materials/
 
+# 전체 요구사항 문서(6행에 학교 이름·직위가 있어 공개 저장소에 올리지 않는다 — 운영자 할 일 7번).
+# 저장소 검사(scripts/lib/repo-check.mjs의 FORBIDDEN_TRACKED_FILES)가 한 번 더 막지만, 그건 커밋을 시도한 뒤에 걸리는 관문이라
+# 실수로 스테이징되는 일 자체를 여기서 먼저 막는다(2026-09-17 검토 반영).
+/docs/SPEC.md
+
 # 빌드·의존성
 node_modules/
 dist/

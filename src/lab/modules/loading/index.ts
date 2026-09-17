@@ -137,6 +137,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   const setCollapsed = (value: boolean) => {
     collapsed = value;
+    if (value) {
+      // 첫 준비 동안 맨 위(조작 줄 바로 아래)에 올려 둔 이 패널을 제자리(입력·출력 아래)로 돌린다(LabShell.astro의 data-loading-intro).
+      // 준비가 끝나 접힐 때나 학생이 [접기]를 누를 때 한 번 — 그 뒤로는 다시 올리지 않는다(화면이 오르내리지 않게).
+      root.dataset.loadingIntro = 'no';
+    }
     if (panel) {
       const box = panel.querySelector<HTMLElement>('[data-loading-panel]');
       if (box) {

@@ -9,10 +9,16 @@ export const VISION_PATH = withBase('labs/vision/');
 export const PACKAGES_TIMEOUT = 150_000;
 export const FRAME_TIMEOUT = 60_000;
 
+/**
+ * "허용 주소 밖 요청 0건"(SPEC §2)을 재는 도구. **문맥(BrowserContext) 단위**로 듣는다 — page.on('request')는
+ * 서비스 워커가 스스로 내는 요청을 보지 못해서, 사이트가 SW에서 새 출처로 나가도 잡히지 않는다
+ * (2026-09-17 실사이트 실측: 문맥 59건 / 페이지 56건, 차이 3건이 모두 서비스 워커의 요청이었다).
+ * tests/e2e/first-visit.spec.ts가 쓰는 방식과 같다.
+ */
 export function collectRequests(page: Page): { origins: Set<string>; urls: string[] } {
   const origins = new Set<string>();
   const urls: string[] = [];
-  page.on('request', (request) => {
+  page.context().on('request', (request) => {
     const url = request.url();
     if (/^https?:/u.test(url)) {
       origins.add(new URL(url).origin);

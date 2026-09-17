@@ -127,8 +127,11 @@ export async function registerServiceWorker(options: { readonly search?: string 
       message: controlled ? '' : '처음 방문이라 다음부터 더 빨라져요.',
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return { state: 'failed', registration: null, message: `오프라인 준비를 켜지 못했어요(${message}). 실습은 그대로 돼요.` };
+    // 브라우저가 주는 실패 사유는 영어 문장이라(예: "A bad HTTP response code (404) was received when fetching the script.")
+    // 학생 화면에는 넣지 않는다. 화면에는 loading 모듈의 SW_NOTES.failed(한국어)를 쓰고, 원문은 개발자 콘솔에만 남긴다
+    // (시크릿 창·학교 정책·보안 연결 아님처럼 교실에서 실제로 일어나는 실패에서도 영어가 새지 않게 — 2026-09-17 검토 반영).
+    console.debug('[apc] 서비스 워커 등록 실패:', error);
+    return { state: 'failed', registration: null, message: '' };
   }
 }
 

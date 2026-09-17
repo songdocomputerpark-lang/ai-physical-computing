@@ -219,13 +219,49 @@ function cdnLooksDown() {
   return Date.now() < cdnDownUntil;
 }
 
+/** 받은 조각을 이어 붙여 바이트 한 덩어리로 만든다(해시 계산용). */
+function mergeChunks(chunks, total) {
+  if (chunks.length === 1) {
+    return chunks[0];
+  }
+  const merged = new Uint8Array(total);
+  let at = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, at);
+    at += chunk.byteLength;
+  }
+  return merged;
+}
+
+/** SHA-256을 16진수 글자로. 이 환경에 crypto.subtle이 없으면 null. */
+async function sha256Hex(bytes) {
+  const subtle = self.crypto && self.crypto.subtle;
+  if (!subtle || typeof subtle.digest !== 'function') {
+    return null;
+  }
+  try {
+    const digest = await subtle.digest('SHA-256', bytes);
+    let hex = '';
+    for (const byte of new Uint8Array(digest)) {
+      hex += byte.toString(16).padStart(2, '0');
+    }
+    return hex;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * 주소 하나를 끝까지 받는다(멈춤 감지 + 진행률 알림). 몸통을 모두 메모리에 모은 뒤 새 응답으로 만든다.
  * 스트리밍을 포기하는 대신, 중간에 멈춰도 다른 위치로 통째로 바꿀 수 있다(PLAN §5.4).
- * 돌려주는 값: { ok: true, response, bytes } 또는 { ok: false, reason: 'stalled'|'error'|'http'|'blocked'|'short' }
+ * 돌려주는 값: { ok: true, response, bytes } 또는 { ok: false, reason: 'stalled'|'error'|'http'|'blocked'|'short'|'hash' }
+ *
+ * expectedSha256을 주면 받은 바이트 전체의 SHA-256을 대조한다(표에 적힌 Pyodide 파일만). 크기만 보면 "잘렸는지"는 알아도
+ * "다른 파일인지"는 모르는데, pyodide.asm.mjs·pyodide.mjs는 워커에서 그대로 실행되는 코드라 한 번 더 확인한다
+ * (빌드 스크립트 scripts/fetch-pyodide-fallback.mjs가 쓰는 값과 같은 표 — src/lab/loader/pyodide-files.ts, 2026-09-17).
  */
 async function downloadBuffered(url, options) {
-  const { expectedTotal, from, stallMs } = options;
+  const { expectedTotal, expectedSha256, from, stallMs } = options;
   const controller = new AbortController();
   let stalled = false;
   let timer = null;
@@ -292,10 +328,22 @@ async function downloadBuffered(url, options) {
       // 표에서 아는 크기와 다르면 잘린 파일이나 다른 파일이다(차단 장비가 보낸 안내문 등).
       return { ok: false, reason: 'short', received };
     }
-    const body = new Blob(chunks);
+    let body = chunks;
+    if (expectedSha256) {
+      const merged = mergeChunks(chunks, received);
+      const actual = await sha256Hex(merged);
+      if (actual === null) {
+        // crypto.subtle이 없는 환경(보안 연결이 아닌 곳)은 서비스 워커가 아예 등록되지 않는다. 그래도 대조를 건너뛰었음을 남긴다.
+        console.debug('[apc-sw] SHA-256을 확인할 수 없는 환경이라 크기만 대조했어요:', url);
+      } else if (actual !== expectedSha256) {
+        return { ok: false, reason: 'hash', received, sha256: actual };
+      }
+      body = [merged];
+    }
+    const blob = new Blob(body);
     const headers = cleanHeaders(response.headers);
     headers.set(SIZE_HEADER, String(received));
-    return { ok: true, bytes: received, response: new Response(body, { status: 200, statusText: 'OK', headers }) };
+    return { ok: true, bytes: received, response: new Response(blob, { status: 200, statusText: 'OK', headers }) };
   } catch (error) {
     disarm();
     return { ok: false, reason: stalled ? 'stalled' : 'error', message: String((error && error.message) || error) };
@@ -311,6 +359,7 @@ async function handlePyodide(request, info) {
     return hit;
   }
   const expectedTotal = PYODIDE.sizes[info.name] || 0;
+  const expectedSha256 = (PYODIDE.hashes && PYODIDE.hashes[info.name]) || '';
   const cdnUrl = pyodideCdnUrl(info.name);
   const siteUrl = pyodideSiteUrl(info.name);
   // 보통은 요청이 온 쪽부터 쓰되, 방금 CDN이 막혔다면 예비 경로부터 쓴다.
@@ -318,14 +367,14 @@ async function handlePyodide(request, info) {
   const second = first.from === 'cdn' ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
 
   let usedFrom = first.from;
-  let outcome = await downloadBuffered(first.url, { expectedTotal, from: first.from, stallMs: TIMING.stallMs });
+  let outcome = await downloadBuffered(first.url, { expectedTotal, expectedSha256, from: first.from, stallMs: TIMING.stallMs });
   if (!outcome.ok) {
     if (first.from === 'cdn') {
       cdnDownUntil = Date.now() + TIMING.cdnDownTtlMs;
     }
     void postDownload(request.url, 'fallback', second.from, 0, expectedTotal || null);
     usedFrom = second.from;
-    outcome = await downloadBuffered(second.url, { expectedTotal, from: second.from, stallMs: TIMING.stallMs });
+    outcome = await downloadBuffered(second.url, { expectedTotal, expectedSha256, from: second.from, stallMs: TIMING.stallMs });
   }
   if (!outcome.ok) {
     void postDownload(request.url, 'error', first.from, 0, expectedTotal || null);
@@ -540,19 +589,21 @@ async function fillCache(urls, mode) {
           continue;
         }
         const expectedTotal = PYODIDE.sizes[info.name] || 0;
+        const expectedSha256 = (PYODIDE.hashes && PYODIDE.hashes[info.name]) || '';
         let outcome = await downloadBuffered(url, {
           expectedTotal,
+          expectedSha256,
           from: info.from,
           stallMs: TIMING.stallMs,
           cacheMode: mode === 'warm' ? 'force-cache' : 'default',
         });
         if (!outcome.ok && mode === 'warm') {
           // 브라우저 캐시에 없으면 그냥 받는다.
-          outcome = await downloadBuffered(url, { expectedTotal, from: info.from, stallMs: TIMING.stallMs });
+          outcome = await downloadBuffered(url, { expectedTotal, expectedSha256, from: info.from, stallMs: TIMING.stallMs });
         }
         if (!outcome.ok) {
           const twin = info.from === 'cdn' ? pyodideSiteUrl(info.name) : pyodideCdnUrl(info.name);
-          outcome = await downloadBuffered(twin, { expectedTotal, from: info.from === 'cdn' ? 'site' : 'cdn', stallMs: TIMING.stallMs });
+          outcome = await downloadBuffered(twin, { expectedTotal, expectedSha256, from: info.from === 'cdn' ? 'site' : 'cdn', stallMs: TIMING.stallMs });
         }
         if (outcome.ok) {
           await cache.put(key, outcome.response.clone());
