@@ -1,13 +1,26 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "보드 확인: UART로 받은 글자(1~4)로 RGB LED 색 바꾸기"
-description: UART2(9600bps, TX 17·RX 16)로 받은 첫 글자가 1~4이면 RGB LED(23·25·26번)의 색을 바꿔요. 가상 보드의 UART는 아직 준비 중이라 지금은 실행하면 멈춰요.
-source_id: f001
+description: "UART2(9600bps, TX 17·RX 16)로 받은 첫 글자가 1~4이면 RGB LED(23·25·26번)의 색을 바꿔요. 부품 조작 칸의 시리얼 창이 컴퓨터 쪽 역할을 해요."
+source_id: "f001"
 tags:
   - UART
   - RGB LED
   - 통신
 packages: []
+parts:
+  - part: uart
+    pins:
+      rx: 17
+      tx: 16
+  - part: rgb-led
+    pins:
+      r: 23
+      g: 25
+      b: 26
+practice:
+  - '[실행]을 눌러요. 보드가 보낸 hello world가 부품 조작 칸의 "보드가 보낸 글자"에 나와요.'
+  - '"보낼 글자" 칸에 1을 적고 [보내기]를 누르면 RGB LED가 흰색으로 켜지고 콘솔에 49가 찍혀요. 2는 빨강, 3은 초록, 4는 파랑이에요.'
+  - '보내는 모양을 "바이트 값"으로 바꿔 1을 보내면 색이 바뀌지 않아요. 글자 1은 바이트 값 49라서 그래요.'
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped

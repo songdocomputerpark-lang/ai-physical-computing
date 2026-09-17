@@ -1,15 +1,23 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
-title: 2-2-3 키보드로 팬 켜고 끄기
-description: 콘솔 입력줄에 1을 적으면 팬이 돌고, 0이면 멈추고, q면 프로그램이 끝나요. 가상 보드의 팬 모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요.
-lesson: 2-2-3
+title: "2-2-3 키보드로 팬 켜고 끄기"
+description: "콘솔 입력줄에 1을 적으면 팬이 돌고, 0이면 멈추고, q면 프로그램이 끝나요."
+lesson: "2-2-3"
 page: 171
-source_id: f076
+source_id: "f076"
 tags:
   - 팬 모터
   - 라이브러리
   - 입력
 packages: []
+parts:
+  - part: fan-motor
+    pins:
+      ina: 25
+      inb: 26
+practice:
+  - "[실행]을 누르면 콘솔 아래 입력줄에 입력(1/0/q): 가 나와요."
+  - "1을 적고 Enter를 누르면 팬 그림이 정회전(시계 방향)으로 돌고, 0을 적으면 멈춰요."
+  - "q를 적으면 팬을 멈추고 프로그램을 끝내요."
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

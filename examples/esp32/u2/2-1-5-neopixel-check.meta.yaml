@@ -1,14 +1,20 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-5 출력 테스트: 네오픽셀 16개 켜고 끄기(원본 파일)"
-description: 네오픽셀 링 16개를 빨갛게 채웠다가 하나씩 꺼요. 원본은 첫 반복에 write()가 없어 불이 차례로 켜지지 않고 한꺼번에 켜져요(교사용 참고). 가상 보드의 네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요.
-lesson: 2-1-5
+description: "네오픽셀 링 16개를 빨갛게 채웠다가 하나씩 꺼요. 원본은 첫 반복에 write()가 없어 불이 차례로 켜지지 않고, 둘째 반복의 첫 write()에서 15개가 한꺼번에 켜져요(교사용 참고)."
+lesson: "2-1-5"
 page: 149
-source_id: f064
+source_id: "f064"
 tags:
   - 네오픽셀
   - 출력
 packages: []
+parts:
+  - part: neopixel
+    pin: 23
+practice:
+  - "[실행]을 눌러요."
+  - "처음 1.6초 동안은 링이 그대로예요. 첫 반복문은 색을 정하기만 하고 np.write()로 보내지 않기 때문이에요(실물 링도 같아요)."
+  - "둘째 반복문의 np.write()에서 빨간 LED 15개가 한꺼번에 켜지고, 15번부터 0번까지 0.1초마다 하나씩 꺼지는지 봐요."
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

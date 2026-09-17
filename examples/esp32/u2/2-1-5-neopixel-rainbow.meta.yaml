@@ -1,15 +1,21 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-5 기본: 네오픽셀 무지개 색 채우기"
-description: 빨강·주황·노랑·초록·파랑·남색·보라를 한 칸씩 채우며 무지개 색을 번갈아 보여 줘요. 가상 보드의 네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요.
-lesson: 2-1-5
+description: "빨강·주황·노랑·초록·파랑·남색·보라를 한 칸씩 채우며 무지개 색을 번갈아 보여 줘요."
+lesson: "2-1-5"
 page: 150
-source_id: f065
+source_id: "f065"
 tags:
   - 네오픽셀
   - 색
   - 반복
 packages: []
+parts:
+  - part: neopixel
+    pin: 23
+practice:
+  - "[실행]을 눌러요."
+  - "0번 LED(12시)부터 시계 방향으로 빨강이 한 칸씩 채워지고, 다음 색은 15번부터 거꾸로 채워지며 주황·노랑·초록·파랑·남색·보라가 이어지는지 봐요."
+  - "그림의 LED에 마우스를 올리면 (빨강, 초록, 파랑) 값이 보여요. np[i]=(255,94,0)의 숫자를 바꿔 [실행]하고 색이 어떻게 달라지는지 봐요."
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

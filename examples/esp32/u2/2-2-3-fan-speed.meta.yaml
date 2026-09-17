@@ -1,15 +1,23 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
-title: 2-2-3 팬 회전 속도 제어하기
-description: 라이브러리의 speed 값(30, 70)으로 팬 속도를 바꾸고 2초씩 멈춰요. 가상 보드의 팬 모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요.
-lesson: 2-2-3
+title: "2-2-3 팬 회전 속도 제어하기"
+description: "라이브러리의 speed 값(30, 70)으로 팬 속도를 바꾸고 2초씩 멈춰요."
+lesson: "2-2-3"
 page: 170
-source_id: f075
+source_id: "f075"
 tags:
   - 팬 모터
   - 라이브러리
   - PWM
 packages: []
+parts:
+  - part: fan-motor
+    pins:
+      ina: 25
+      inb: 26
+practice:
+  - "[실행]을 눌러요."
+  - "팬이 2초 멈춤 → 속도 30으로 2초 → 속도 70으로 2초를 되풀이하는지 팬 그림과 핀 상태 표의 GPIO25로 봐요."
+  - "speed=70을 speed=100으로 바꿔 [실행]하고 팬이 더 빨리 도는지 봐요."
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

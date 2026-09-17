@@ -1,15 +1,23 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-2-2 기본: 10초마다 안내 방송 재생하기"
-description: MP3 모듈의 볼륨을 정하고 10초마다 1번 곡을 재생해요. 가상 보드의 UART·MP3 모듈은 아직 준비 중이라 지금은 실행하면 멈춰요.
-lesson: 2-2-2
+description: "MP3 모듈의 볼륨을 10으로 정하고 1번 곡을 트는 일을 11초(1초 + 10초)마다 되풀이해요."
+lesson: "2-2-2"
 page: 163
-source_id: f071
+source_id: "f071"
 tags:
   - MP3
   - UART
   - 반복
 packages: []
+parts:
+  - part: mp3
+    pins:
+      rx: 17
+      tx: 16
+practice:
+  - "[실행]을 눌러요(소리는 [소리 켜짐]일 때 나요)."
+  - '1초 뒤 MP3 모듈 그림의 볼륨이 10/30으로 바뀌고 1번 곡이 나오며, 콘솔에 "안내 방송 출력"이 11초마다 찍히는지 봐요.'
+  - "14번 줄 send_cmd의 마지막 값(볼륨 10)을 25로 바꿔 [실행]하고 볼륨 글과 소리가 커지는지 봐요."
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped

@@ -1,15 +1,23 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-5 심화: 4채널 터치 버튼으로 무드등 색 바꾸기"
-description: 터치 버튼 1~3을 누르면 네오픽셀 전체가 빨강·초록·파랑으로, 4를 누르면 꺼져요. 가상 보드의 아날로그 입력(ADC)·네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요.
-lesson: 2-1-5
+description: "터치 버튼 1~3을 누르면 네오픽셀 전체가 빨강·초록·파랑으로, 4를 누르면 꺼져요."
+lesson: "2-1-5"
 page: 151
-source_id: f066
+source_id: "f066"
 tags:
   - 네오픽셀
   - 아날로그 터치
   - ADC
 packages: []
+parts:
+  - part: neopixel
+    pin: 23
+  - part: touch-analog-4ch
+    pin: 32
+practice:
+  - "[실행]을 눌러요."
+  - "부품 조작 칸의 [패드 1]~[패드 3]을 누르면 네오픽셀 전체가 빨강·초록·파랑으로, [패드 4]를 누르면 꺼져요. 콘솔에 ADC 값과 버튼 이름이 나와요."
+  - "패드를 누르지 않을 때의 값 막대를 600쯤으로 옮기면 Button 1의 범위(500~800)라 빨강이 되는지 봐요."
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped
