@@ -199,6 +199,7 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 | 브라우저 | Playwright. 자기 실습실 페이지를 열고 `data-lab-modules`에 id가 있는지, 패널이 보이는지, 코드를 실행해 요청·이벤트가 오가는지 | `tests/e2e/module-hello.spec.ts` |
 | 네트워크 | 학생 영상·음성이 밖으로 나가지 않는지: `collectRequests(page)`(`tests/e2e/helpers/vision.ts` — 페이지가 아니라 **문맥 단위**로 들어 서비스 워커가 낸 요청까지 봐요)로 사이트 자신과 `ALLOWED_REMOTE_ORIGINS`(jsDelivr) 밖 요청이 0건 | `tests/e2e/lab-vision.spec.ts` |
 | 준비 중 [실행] | Playwright의 `click()`은 단추가 켜질 때까지 기다려 줘서 "준비 중에 누른 클릭"을 못 잡아요. 준비 중 흐름을 볼 때는 `context.route`로 `pyodide.asm.wasm`을 몇 초 늦추고 `data-lab-run-pending`을 확인해요 | `tests/e2e/lab-loading.spec.ts` |
+| 실행 중 화면 입력 | 파이썬이 `time.sleep(0.8)` 같은 **정해진 시간 창 안에** 누르기를 받기를 바라지 말고, 받을 때까지 짧게(0.1초) 확인하며 넉넉한 한도(15초)까지 기다리게 써요. CI의 느린 모바일 화면에서는 콘솔 글을 알아채고 단추를 누르기까지 0.8초를 넘기기도 해요(2026-09-17 `module-hello` 모바일 실패 — 로컬에서 화면 CPU를 10배 느리게 하면 재현). 가상 보드처럼 반복문이 스스로 도는 코드는 `expect.poll`로 콘솔·`data-*`가 바뀔 때까지 기다려요 | `tests/e2e/module-hello.spec.ts`(`during` 반복), `tests/e2e/lab-esp32.spec.ts` |
 
 ### 4.7 금지 사항
 
