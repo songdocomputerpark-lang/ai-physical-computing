@@ -170,6 +170,15 @@
 - **다음:** 워크플로 재개 → 검토 2명 다시 → `fix:final`이 세 검토 결과를 반영 → Phase 3 완료 → Phase 4 워크플로 새로 작성.
 - **push가 멈췄던 일(원인 확인·해결됨):** 07시 무렵 두 번, Git Credential Manager(`credential.helper=manager`)가 `credential-manager get`에서 응답 없이 멈춰 push가 진행되지 않았다. **원인은 GCM이 운영자의 승인을 기다리고 있었던 것**이고(그 창은 Claude 화면에 보이지 않는다), 운영자가 승인한 뒤(07:25) 기본 설정 그대로 `git fetch` 0.6초·`git push` 정상으로 돌아왔다. 멈춘 동안에는 `gh` 로그인(keyring, scopes repo·workflow)으로 `git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main`처럼 우회해 올렸다(45328d5·b85e7d0). **다시 멈추면 먼저 운영자에게 승인 창을 확인해 달라고 하고**, 급하면 위 우회 명령을 쓴다. 멈춘 `git.exe`·`git credential-manager` 프로세스는 종료해도 된다.
 
+### 2026-09-18 07시 40분 — 새 계정·새 세션에서 이어받음 (검토 재개)
+
+운영자가 다른 Claude 아이디로 로그인해 "사이트 작업 재개"라고 했고, `docs/HANDOFF.md` 순서대로 이어받았다. 환경은 그대로였다(`node_modules`·`public/vendor`·원본 추출본·커밋 전 훅·절전 방지·10분 자동 기록 모두 살아 있음). 작업 트리 깨끗, `main` = `origin/main`.
+
+- **통째 재개는 실패했고 즉시 멈췄다.** `resumeFromRunId: 'wf_86bbf998-bc6'`로 그대로 재개하니, 끝나서 **이미 커밋·배포까지 된** `build:E2`(실제 보드 실행·저장)와 `build:F2`(보드 준비 페이지)가 **새 캐시 열쇠로 다시 돌기 시작**했다. 이어 붙인 단계라 프롬프트 안에 앞 단계 결과 JSON이 박혀 있어 열쇠가 달라진 탓이다. 바로 `TaskStop`했고 **작업 트리는 손대기 전이라 깨끗했다**(확인함). 이 실측은 `docs/HANDOFF.md` 4번 "주의"에 적었다(커밋 bec08b5).
+- **대신 남은 일만 담은 워크플로를 새로 썼다 — `wf_db55fe07-fd6`.** 끝난 14단계 결과는 진행 기록의 `journal.jsonl`에서 꺼냈고, 옛 스크립트의 머리(`COMMON`까지)와 args를 글자 그대로 옮겨 에이전트가 받는 맥락이 달라지지 않게 했다. 구성: 검토 `criteria`·`ux` 2명 병렬(포트 4611·4612) → `fix:final`. 앞 세션에서 끝난 `safety` 검토 결과는 스크립트에 상수로 박아 넘겼으므로 세 검토가 모두 수정 단계에 들어간다.
+- **이 워크플로는 통째 재개해도 안전하다**(이어 붙인 제작 단계가 없고, `fix:final`은 중간에 멈췄다 다시 시작되는 것을 전제로 쓰여 있다). 재개에 필요한 것은 모두 제자리에 두었다 — 스크립트 사본 2곳(세션 `workflows\scripts\`, 안전 사본 `.cacheesume\`), args는 `.cacheesume\RESUME-ARGS.json`, 자동 기록 `.cacheesume\STATE.md`가 run id·스크립트 경로·단계별 시각을 10분마다 갱신한다.
+- push는 정상으로 돌아왔다(깃 인증 승인 창 안 뜸, bec08b5).
+
 ## 다음 할 일 (순서대로 — `docs/PLAN.md` §8.3 Phase 3 ESP32 실습실)
 
 1. ~~**P3-00 (실험) MicroPython WASM 포트**~~ **끝남(2026-09-17): PD-04 유지** — 판정·근거는 미해결 42, 비교·다시 볼 조건·**가상 보드가 지킬 MicroPython 차이 표 14항목**(ticks 넘침 2**30·epoch 2000·단정밀도 float·errno 번호·u-이름·`const` 등)은 PLAN §8.3 P3-00 구현 메모. P3-01은 그 표의 "흉내" 항목을 보드 흉내 모듈 단위 테스트로 확인한다. 협조적 정지(`bridge.ts`)·동기 진입점 규칙(미해결 25)·흉내 모듈 폴더 규약은 Pyodide를 그대로 쓰므로 바뀌지 않는다.
