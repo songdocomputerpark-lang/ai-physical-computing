@@ -1,0 +1,218 @@
+---
+/**
+ * ESP32 실습실의 입력·출력 칸 — 가상 보드 그림과 핀 상태 표(PLAN §8.3 P3-01, SPEC §6.2 "가상 보드").
+ * LabShell의 io 슬롯에 넣는다. HTML·CSS만 그리고, 그림·동작은 흉내 모듈 src/lab/modules/board/(index.ts·view.ts)가 data-board-* 표시로 찾아 잇는다.
+ *
+ *   <LabShell labId="esp32" examples={examples}>
+ *     <BoardIo slot="io" />
+ *   </LabShell>
+ *
+ * data-lab-reveal-on-run: [실행]을 누를 때 실습실 틀(lab-shell.ts)이 화면 안으로 옮기는 결과 칸(보드와 핀 표 전체),
+ * data-lab-reveal-on-run-min: 함께 못 넣을 때 꼭 보여야 하는 칸(보드 그림) — src/lab/README.md 4.3.
+ * 사이트 검색 색인은 LabShell 뿌리에서 이미 뺀다.
+ */
+---
+
+<div class="board-io" data-board-io data-board-phase="stopped" data-lab-reveal-on-run>
+  <section class="board-io__board" aria-labelledby="board-io-heading">
+    <h3 id="board-io-heading" class="board-io__heading">가상 보드</h3>
+    <p class="board-io__phase" data-board-phase-text role="status" aria-live="polite">보드가 멈춰 있어요. [실행]을 누르면 보드를 새로 켜고 코드를 돌려요.</p>
+    <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-lab-reveal-on-run-min>
+      <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
+    </div>
+    <ul class="board-io__problems" data-board-problems hidden></ul>
+    <p class="board-io__hint">
+      BOOT 버튼은 마우스로 누르고 있거나, Tab 키로 버튼에 간 뒤 Space를 누르고 있어요. 누르는 동안 GPIO0이 0으로 읽혀요.
+    </p>
+  </section>
+
+  <section class="board-io__pins" aria-labelledby="board-pins-heading">
+    <h3 id="board-pins-heading" class="board-io__heading">핀 상태</h3>
+    <div class="board-io__table-wrap">
+      <table class="board-pins">
+        <caption class="board-pins__caption">코드가 쓴 핀의 모드와 값(1 = HIGH 3.3V, 0 = LOW 0V)</caption>
+        <thead>
+          <tr>
+            <th scope="col">핀</th>
+            <th scope="col">모드</th>
+            <th scope="col">값</th>
+            <th scope="col">연결된 부품</th>
+          </tr>
+        </thead>
+        <tbody data-board-pin-rows></tbody>
+      </table>
+    </div>
+    <p class="board-io__note" data-board-pins-empty>아직 코드가 쓴 핀이 없어요. [실행]하면 여기에 핀이 나타나요.</p>
+    <p class="board-io__note">가상 보드는 실물 ESP32와 같은 MicroPython 코드를 브라우저 안에서 돌려요. 보드가 없어도 모든 실습을 할 수 있어요.</p>
+  </section>
+</div>
+
+<style>
+  .board-io {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-block-start: var(--space-3);
+  }
+
+  @media (min-width: 48rem) {
+    .board-io {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .board-io__board,
+  .board-io__pins {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .board-io__heading {
+    margin: 0;
+    font-size: var(--text-base);
+  }
+
+  .board-io__phase {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-io__stage {
+    min-height: 12rem;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .board-io__loading {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .board-io__stage :global(.board-stage__svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 24rem;
+  }
+
+  .board-io__stage :global(.board-drawing__module) {
+    fill: #2b2f36;
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .board-io__stage :global(.board-drawing__caption) {
+    fill: #4a5361;
+    font-size: 11px;
+  }
+
+  .board-io__stage :global(.board-part__label) {
+    fill: #ffffff;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .board-io__stage :global(.board-part__state) {
+    fill: #e8eef6;
+    font-size: 10px;
+  }
+
+  .board-io__stage :global(.board-part--interactive) {
+    cursor: pointer;
+    touch-action: none;
+    outline: none;
+  }
+
+  .board-io__stage :global(.board-part__focus) {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 2.5;
+  }
+
+  /* SVG 요소에는 브라우저 초점 테두리가 잘 안 보여 노란 테두리를 직접 그린다(프로그램으로 옮긴 초점에도 보이게 :focus). 대비: 짙은 기판(#1f3b4d) 위 노랑(#ffd24a) 8.1:1(계산값) */
+  .board-io__stage :global(.board-part--interactive:focus .board-part__focus) {
+    stroke: #ffd24a;
+  }
+
+  .board-io__problems {
+    margin: 0;
+    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 1em);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-io__problems[hidden] {
+    display: none;
+  }
+
+  .board-io__hint,
+  .board-io__note {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-io__note[hidden] {
+    display: none;
+  }
+
+  .board-io__table-wrap {
+    overflow-x: auto;
+  }
+
+  .board-pins {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-pins__caption {
+    margin-block-end: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    text-align: start;
+  }
+
+  .board-pins th,
+  .board-pins td {
+    padding: var(--space-1) var(--space-2);
+    border-block-end: 1px solid var(--color-border);
+    text-align: start;
+    white-space: nowrap;
+  }
+
+  .board-pins thead th {
+    background: var(--color-bg-muted);
+  }
+
+  .board-pins :global(.board-pins__dot) {
+    display: inline-block;
+    width: 0.65em;
+    height: 0.65em;
+    margin-inline-end: 0.4em;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    vertical-align: baseline;
+  }
+
+  .board-pins :global(.board-pins__dot--high) {
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent);
+  }
+</style>

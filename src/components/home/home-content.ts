@@ -123,13 +123,13 @@ export const homeActions: readonly HomeAction[] = Object.freeze([
     variant: 'primary',
   }),
   action({
+    // 2026-09-17 P3-01에서 ESP32 실습실(가상 보드)이 열려 "준비 중" 표시를 뗐다.
     id: 'virtual-board',
     label: '가상 ESP32 켜보기',
     hint: '보드가 없어도 화면에서 해요',
     pageId: 'labs-esp32',
     icon: 'chip',
     variant: 'secondary',
-    status: 'coming-soon',
   }),
   action({
     id: 'real-board',

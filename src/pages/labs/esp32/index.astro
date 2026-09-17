@@ -1,15 +1,131 @@
 ---
-// ESP32 실습실 자리 페이지. ESP32 실습실 단계(PLAN §8.3 Phase 3)에서 실제 화면으로 바꾼다.
-// 준비 내용은 ../_labs.ts, 틀은 ../_LabPlaceholder.astro에 있다.
+/**
+ * ESP32 실습실(PLAN §2.1 /labs/esp32/, §8.3 P3-01, SPEC §6.2 "가상 보드").
+ *
+ * 실습실 공통 틀(src/components/lab/LabShell.astro)에 가상 보드 칸(src/components/lab/BoardIo.astro)을 넣고, 흉내 모듈
+ * src/lab/modules/board/(labs ['esp32'])가 파이썬의 machine·time 흉내(machine.py·apc_board.py)와 잇는다.
+ * 가상 보드는 Pyodide 코어만 쓴다(PD-04) — OpenCV·numpy를 받지 않는다(LabShell pyodidePackages={[]}: 준비 모듈의 미리 받기도 파이썬 엔진만).
+ *
+ * 예제 목록: examples/esp32/ 아래 .py(보드 라이브러리 폴더 esp32/lib/ 제외)를 빌드 때 모두 읽는다(src/lab/esp32/examples.ts).
+ * 새 예제는 .py 파일 하나를 그 폴더에 두면 [예제 불러오기]에 들어간다(원칙 6).
+ * 블록 모드(P3-06)·실제 보드 연결(P3-07~)·배선도(P3-02)는 이어서 더한다.
+ */
+import { getCollection } from 'astro:content';
+import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import Callout from '../../../components/common/Callout.astro';
-import LabPlaceholder from '../_LabPlaceholder.astro';
+import BoardIo from '../../../components/lab/BoardIo.astro';
+import LabShell from '../../../components/lab/LabShell.astro';
+import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { getPage } from '../../../config/nav.ts';
+import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
+import { esp32ExamplesFromFiles } from '../../../lab/esp32/examples.ts';
+import type { ExampleLessonLink } from '../../../lab/vision/examples.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getPage('labs-esp32');
+const boardPage = getPage('start-board');
+const checkPage = getPage('start-check');
+const errorsPage = getPage('help-errors');
+
+const exampleFiles = import.meta.glob<string>('/examples/esp32/**/*.py', { query: '?raw', eager: true, import: 'default' });
+const sidecarFiles = import.meta.glob<string>('/examples/esp32/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' });
+
+// 예제를 싣는 차시로 돌아가는 링크(영상처리 실습실과 같은 규칙 — frontmatter examples[].file → 사이드카·머리말 @lesson)
+const lessonEntries = (await getCollection('lessons')).filter((entry) => !entry.data.draft);
+const summaries = new Map(publishedLessons(lessonEntries).map((lesson) => [lesson.id, lesson]));
+const byFile: Record<string, ExampleLessonLink> = {};
+const bySlug: Record<string, ExampleLessonLink> = {};
+for (const entry of lessonEntries) {
+  const lesson = summaries.get(entry.id);
+  if (!lesson) {
+    continue;
+  }
+  const kindLabel = lesson.kind === 'supplement' ? `${KIND_LABELS.supplement} ` : '';
+  const link = { href: lesson.href, label: `${kindLabel}${lesson.label} ${lesson.title}` };
+  bySlug[lesson.slug] = link;
+  for (const example of entry.data.examples) {
+    byFile[example.file] ??= link;
+  }
+}
+const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug });
 ---
 
-<LabPlaceholder id="labs-esp32">
-  <Callout type="참고" title="보드가 없어도 괜찮아요">
+<BaseLayout title={page.title} description={page.description} width="wide">
+  <BrowserNotice slot="notice" />
+  <h1 class="page-title" data-embed-hide>{page.title}</h1>
+  <p class="lead" data-embed-hide>{page.description}</p>
+
+  <div class="esp32-intro" data-embed-hide>
     <p>
-      모든 실습을 화면 속 가상 보드로 끝까지 할 수 있게 만들어요. 실제 보드가 생기면 같은 코드를 보드에 보내 그대로
-      실행하면 돼요.
+      ESP32는 LED, 버저, 서보모터 같은 부품을 움직이는 작은 컴퓨터예요. 보드가 없어도 화면 속 가상 보드가 실물 보드와 같은 파이썬 코드(보드용
+      파이썬인 MicroPython)를 돌려요.
     </p>
-  </Callout>
-</LabPlaceholder>
+    <ol class="esp32-intro__steps">
+      <li>[실행]을 누르면 파이썬이 준비된 뒤 가상 보드가 코드를 돌려요. 코드가 핀을 바꾸면 보드 그림과 "핀 상태" 표가 함께 바뀌어요.</li>
+      <li>BOOT 버튼은 마우스로 누르고 있거나, Tab 키로 버튼에 간 뒤 Space를 누르고 있으면 눌려요.</li>
+      <li>지금 가상 보드에는 내장 LED와 BOOT 버튼이 있어요. 터치 센서, 버저, 서보모터, 문자 화면(LCD) 같은 부품은 차례로 더해져요.</li>
+    </ol>
+  </div>
+
+  <LabShell labId="esp32" examples={examples} pyodidePackages={[]}>
+    <BoardIo slot="io" />
+  </LabShell>
+
+  <section class="esp32-help" aria-labelledby="esp32-help-heading" data-embed-hide>
+    <h2 id="esp32-help-heading" class="esp32-help__heading">알아 두면 좋아요</h2>
+    <Callout type="참고" title="보드가 없어도 괜찮아요">
+      <p>
+        모든 실습을 화면 속 가상 보드로 끝까지 할 수 있게 만들어요. 실제 보드를 USB 선으로 연결해 같은 코드를 보내는 기능은 보드 연결 단계에서
+        더해져요. 그동안 <a href={boardPage.href}>{boardPage.title}</a>에서 준비할 것을 볼 수 있어요.
+      </p>
+    </Callout>
+    <Callout type="주의" title="가상 보드와 실물 보드가 다른 점">
+      <ul>
+        <li>
+          실물 보드는 Timer와 핀 인터럽트 함수를 코드 어디서나 끼워 넣어 부르지만, 가상 보드는 time.sleep 같은 기다리는 줄과 버튼을 읽는 줄에서 불러요.
+          기다리는 줄 없이 계산만 되풀이하면 [정지]가 늦게 먹을 수 있어요.
+        </li>
+        <li>실물 보드는 소수를 짧게(8자리 안팎) 보여 줘요. 소수를 출력할 때는 round(값, 2)처럼 자릿수를 정해 두면 두 곳의 결과가 같아요.</li>
+        <li>가상 보드는 실행할 때마다 보드를 새로 켠 것처럼 핀과 시계(ticks_ms)가 처음 상태에서 시작해요.</li>
+      </ul>
+    </Callout>
+    <Callout type="오류" title="코드가 오류로 끝났어요">
+      <p>
+        오류가 나면 콘솔 위에 한국어 풀이 카드가 나와요. "invalid pin"처럼 보드에서만 나는 오류도 풀이가 있어요.{' '}
+        <a href={errorsPage.href}>{errorsPage.title}</a>에서 모든 풀이를 볼 수 있어요. 파이썬이 준비되지 않으면{' '}
+        <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 브라우저와 네트워크를 확인해요.
+      </p>
+    </Callout>
+  </section>
+</BaseLayout>
+
+<style>
+  .esp32-intro {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-6);
+    line-height: var(--leading-body);
+  }
+
+  .esp32-intro p {
+    margin: 0;
+  }
+
+  .esp32-intro__steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .esp32-help {
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-8);
+  }
+
+  .esp32-help__heading {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-xl);
+  }
+</style>

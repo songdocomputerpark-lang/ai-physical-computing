@@ -122,7 +122,8 @@ test.describe('이 담당의 페이지', () => {
       }
       expect((await request.get(child.href)).status(), child.href).toBe(200);
     }
-    await expect(page.locator('.labs-intro')).toContainText(`${getPage('labs-vision').title}은 열렸어요`);
+    // 열린 실습실 이름을 쉼표로 이어 알린다(P2-03 영상처리, P3-01 ESP32).
+    await expect(page.locator('.labs-intro')).toContainText(`${getPage('labs-vision').title}, ${getPage('labs-esp32').title}은 열렸어요`);
 
     const checkPage = getPage('labs-esp32-check');
     await expect(page.getByRole('link', { name: checkPage.title, exact: true })).toHaveAttribute('href', checkPage.href);
