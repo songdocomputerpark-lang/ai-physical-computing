@@ -128,7 +128,8 @@ test.describe('가상 데스크톱 ②(가상 브라우저·미니게임·내 �
     const canvas = page.locator('[data-desktop-canvas]');
     await canvas.click({ position: { x: 5, y: 5 } });
     await canvas.press('Space');
-    expect(Number((await desktop.getAttribute('data-desktop-game-presses')) ?? '0')).toBe(1);
+    // 누른 횟수는 키 처리 뒤에 표시가 바뀌므로 기다리며 확인한다(바로 한 번 읽으면 CI 모바일에서 가끔 0이었다 — 2026-09-17 1 flaky의 원인).
+    await expect(desktop).toHaveAttribute('data-desktop-game-presses', '1');
 
     // 코드로 계속 눌러 띠 안에 올려 둔다 — 움직임 줄이기에서는 느리게 움직이므로 더 오래 누른다
     expect(
