@@ -1,0 +1,12 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "2-1-4 출력 테스트: RGB LED 빨강·초록·파랑 차례로 켜기"
+description: RGB LED의 세 핀(27·32·33번)을 0.2초씩 차례로 켜고 꺼요.
+lesson: 2-1-4
+page: 143
+source_id: f061
+tags:
+  - RGB LED
+  - Pin
+  - 출력
+packages: []

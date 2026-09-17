@@ -1,0 +1,12 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: 2-2-3 팬 모터 정회전·역회전·정지
+description: INA(25번)·INB(26번) 핀 값을 바꿔 팬을 2초씩 정회전, 역회전, 정지해요.
+lesson: 2-2-3
+page: 168
+source_id: f073
+tags:
+  - 팬 모터
+  - Pin
+  - 출력
+packages: []

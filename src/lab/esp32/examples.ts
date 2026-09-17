@@ -37,6 +37,7 @@ export const ESP32_EXAMPLE_GROUPS: readonly { readonly key: string; readonly lab
   { key: 'esp32/u2', label: '2단원 교과서 실습(피지컬 컴퓨팅)' },
   { key: 'esp32/u3', label: '3단원 교과서 실습(통신)' },
   { key: 'esp32/u4', label: '4단원 프로젝트 실습' },
+  { key: 'esp32/bt', label: '블루투스 통신 수업교안 실습' },
   { key: 'esp32/hw', label: '부품 라이브러리 시험 코드' },
 ]);
 

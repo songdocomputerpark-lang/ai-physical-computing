@@ -1,0 +1,16 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "2-1-2 기본 2: 보드 시계(RTC) 시각을 LCD에 보이기"
+description: 보드 안 시계(RTC)를 맞춘 뒤 1초마다 지금 시각을 LCD에 보여 줘요. 가상 보드의 문자 LCD·RTC는 아직 준비 중이라 지금은 실행하면 멈춰요.
+lesson: 2-1-2
+page: 129
+source_id: f051
+tags:
+  - LCD
+  - I2C
+  - RTC
+  - 시계
+packages: []
+smoke:
+  outcome: error
+  error: ImportError

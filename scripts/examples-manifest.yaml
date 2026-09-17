@@ -1006,3 +1006,617 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+
+  # ── 교과서 2단원 P3-03~P3-05 예제(병렬 제작 준비 2026-09-17, PLAN §8.3 완료 기준의 코드 id 전부) → examples/esp32/u2/·hw/·bt/ ──
+  # 6구역이 이 목록 파일(공유 파일)을 고치지 않게 한 번에 옮겼다. 사이드카는 제목·설명·차시·쪽·태그와 "옮긴 날의" 스모크 결과만 적었고,
+  # 배선(parts)·실습 방법(practice)은 그 부품을 만드는 구역이 채운다(담당표: src/lab/README.md 7.9).
+  # smoke 칸은 옮긴 날의 실제 결과다: 가상 보드에 아직 없는 기능(PWM·ADC·SoftI2C·UART·neopixel·부품 라이브러리)을 쓰는 예제는 그 줄에서
+  # ImportError·ModuleNotFoundError(한국어 안내)로 멈춘다. 기능을 더한 구역은 같은 커밋에서 smoke와 설명의 "준비 중" 문장을 지운다(P3-02 f052와 같은 걸림돌).
+  # 원본 결함(실물에서도 같은 오류): f062(set_color에 값 3개 → TypeError), f074(줄마다 원고 줄 번호 글자 → SyntaxError, expect_syntax_error).
+  # 사이트판(PD-10)이 필요한 파일은 원본을 그대로 두고 담당 구역이 …-site.py를 따로 만든다(f058·f059 판정 구간, f062, f064 write(), f074 줄 번호).
+  - id: f047
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p127)출력테스트_문자(p127).py"
+    target: examples/esp32/u2/2-1-2-lcd-text-check.py
+    author: operator
+    meta:
+      title: "2-1-2 출력 테스트: 문자 LCD에 글자 쓰기"
+      description: "SoftI2C로 문자 LCD(주소 0x20)에 연결해 첫 줄에 Hello LCD!를 써요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-2
+      page: 127
+      tags: [ LCD, I2C, 출력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 40
+    sha256: cd2b7f648c96d9e484c1b33c78d5ee2a8d36e6bb0920e1395b8108ce3d9dd2ce
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f048
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p127)출력테스트_숫자(p127).py"
+    target: examples/esp32/u2/2-1-2-lcd-number-check.py
+    author: operator
+    meta:
+      title: "2-1-2 출력 테스트: 문자 LCD에 숫자 쓰기"
+      description: "숫자 123을 글자로 바꿔 LCD에 number: 123으로 보여 줘요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-2
+      page: 127
+      tags: [ LCD, I2C, 출력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 12
+    sha256: 2ef82c0d906d311ec809c17f8f634b0063b97082b483d8af6a658a88913d0500
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f049
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p127)출력테스트_키보드(p127).py"
+    target: examples/esp32/u2/2-1-2-lcd-keyboard-check.py
+    author: operator
+    meta:
+      title: "2-1-2 출력 테스트: 키보드로 받은 이름을 LCD에 쓰기"
+      description: "콘솔 입력줄에 이름을 적으면 LCD에 Hello, 이름을 보여 줘요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-2
+      page: 127
+      tags: [ LCD, I2C, 입력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 13
+    sha256: 052dae9f2e479d90c6de77319cc84f4b8d42e8726b518ccc53b533ef57741d61
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f050
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p128)기본1(p128).py"
+    target: examples/esp32/u2/2-1-2-lcd-count.py
+    author: operator
+    meta:
+      title: "2-1-2 기본 1: 문자 LCD에 0부터 5까지 세기"
+      description: "1초마다 화면을 지우고 Count: 0부터 Count: 5까지 차례로 보여 줘요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-2
+      page: 128
+      tags: [ LCD, I2C, 반복 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 15
+    sha256: f5834a8f0da147c5ddec780dcafc43c49bffae65f2875bf7834e7dc60e349b40
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f051
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p129)기본2(p129).py"
+    target: examples/esp32/u2/2-1-2-lcd-rtc-clock.py
+    author: operator
+    meta:
+      title: "2-1-2 기본 2: 보드 시계(RTC) 시각을 LCD에 보이기"
+      description: "보드 안 시계(RTC)를 맞춘 뒤 1초마다 지금 시각을 LCD에 보여 줘요. 가상 보드의 문자 LCD·RTC는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-2
+      page: 129
+      tags: [ LCD, I2C, RTC, 시계 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 23
+    sha256: 3e7943bd99d0a62e70f3e6a6d6b962480c6aa22cce5fb9f216619df99c948c90
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f054
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p135)출력테스트_문자(p135).py"
+    target: examples/esp32/u2/2-1-3-oled-text-check.py
+    author: operator
+    meta:
+      title: "2-1-3 출력 테스트: OLED에 글자 쓰기"
+      description: "OLED 화면(128×64)을 지우고 두 줄의 글자를 써요. 가상 보드의 OLED는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-3
+      page: 135
+      tags: [ OLED, I2C, 출력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 19
+    sha256: adcabbeb0c4742dd337f0d7abdc51c07d0251bba58f185763aef6ac2f0b67470
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f055
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p135)출력테스트_숫자(p135).py"
+    target: examples/esp32/u2/2-1-3-oled-number-check.py
+    author: operator
+    meta:
+      title: "2-1-3 출력 테스트: OLED에 숫자 쓰기"
+      description: "숫자 123을 글자로 바꿔 OLED에 number: 123으로 보여 줘요. 가상 보드의 OLED는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-3
+      page: 135
+      tags: [ OLED, I2C, 출력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 16
+    sha256: d9f29fb13309cae19894d1af3726c8729a06f22718f7541e2baba5a1713adbd0
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f056
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p135)출력테스트_키보드(p135).py"
+    target: examples/esp32/u2/2-1-3-oled-keyboard-check.py
+    author: operator
+    meta:
+      title: "2-1-3 출력 테스트: 키보드로 받은 이름을 OLED에 쓰기"
+      description: "콘솔 입력줄에 이름을 적으면 OLED에 Hello,와 이름을 두 줄로 보여 줘요. 가상 보드의 OLED는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-3
+      page: 135
+      tags: [ OLED, I2C, 입력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 16
+    sha256: d9f0d38c9ade5be1a1faf6146a1ce584df0461d7e9f597205a1e57413a096eee
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f057
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p136)기본(p136).py"
+    target: examples/esp32/u2/2-1-3-oled-triangle-dots.py
+    author: operator
+    meta:
+      title: "2-1-3 기본: OLED에 점으로 삼각형 무늬 그리기"
+      description: "점(pixel)을 되풀이해 찍어 시에르핀스키 삼각형 무늬를 그려요. 가상 보드의 OLED는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-3
+      page: 136
+      tags: [ OLED, I2C, 재귀 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 27
+    sha256: 2424700e5c51142fcf4094fb6b26941e8120e92c1fd87e7c768fca32faa92c90
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f058
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p137)심화(p137).py"
+    target: examples/esp32/u2/2-1-3-adv-touch4-oled-rgb.py
+    author: operator
+    meta:
+      title: "2-1-3 심화: 4채널 터치 버튼으로 OLED 글자와 RGB LED 색 바꾸기"
+      description: "아날로그 터치 값을 읽어 누른 버튼을 OLED에 보이고 RGB LED 색을 바꿔요. 원본의 판정 구간은 원고 139쪽 측정값과 맞지 않아요(교사용 참고). 가상 보드의 아날로그 입력(ADC)·PWM·OLED는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-3
+      page: 137
+      tags: [ 아날로그 터치, ADC, OLED, RGB LED, PWM ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 62
+    sha256: 0f2ea85cb49c7bace26cf40afe0fce3020c861fab877ca41561a5f456b554219
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f059
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p137)심화_4채널 터치센서 동작 테스트(p137).py"
+    target: examples/esp32/u2/2-1-3-adv-touch4-check.py
+    author: operator
+    meta:
+      title: "2-1-3 심화 동작 테스트: 4채널 터치 센서 값 읽기"
+      description: "터치 버튼을 누르면 아날로그 값(0~4095)과 버튼 번호를 0.2초마다 콘솔에 보여 줘요. 원본의 판정 구간은 서로 겹쳐요(교사용 참고). 가상 보드의 아날로그 입력(ADC)은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-3
+      page: 137
+      tags: [ 아날로그 터치, ADC, 입력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 27
+    sha256: 8369f065c46d57440e9641195cf603a5a02c4d5229bb9df8d4010a5330c49757
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f060
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p143)기본_RGB LED(p143).py"
+    target: examples/esp32/u2/2-1-4-rgb-pwm-fade.py
+    author: operator
+    meta:
+      title: "2-1-4 기본: RGB LED 빨강 밝기를 PWM으로 천천히 바꾸기"
+      description: "PWM 값(duty)을 0부터 1023까지 올렸다 내려 빨간 LED가 서서히 밝아졌다 어두워져요. 가상 보드의 PWM은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-4
+      page: 144
+      tags: [ RGB LED, PWM, 밝기 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 27
+    sha256: 3843187c7a9e6c62952025377c84264125445a3db4b2bad96317f88cdf434d1b
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f061
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p143)출력테스트_RGB LED(p143).py"
+    target: examples/esp32/u2/2-1-4-rgb-check.py
+    author: operator
+    meta:
+      title: "2-1-4 출력 테스트: RGB LED 빨강·초록·파랑 차례로 켜기"
+      description: "RGB LED의 세 핀(27·32·33번)을 0.2초씩 차례로 켜고 꺼요."
+      lesson: 2-1-4
+      page: 143
+      tags: [ RGB LED, Pin, 출력 ]
+    lines: 15
+    sha256: 8943f855645fb327eff28e6a373a6f270efd13c1e795eab124a0280aa808ef2d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f062
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p146)기본_레이저(p146).py"
+    target: examples/esp32/u2/2-1-4-laser-rgb.py
+    author: operator
+    meta:
+      title: "2-1-4 기본: 레이저와 RGB LED 번갈아 켜기(원본 파일)"
+      description: "레이저를 켤 때 빨강, 끌 때 파랑 LED를 켜려는 코드예요. 원본 파일은 값 2개를 받는 set_color에 값 3개를 넘겨 첫 반복에서 TypeError로 멈춰요(실물 보드도 같아요 — 원고 147쪽은 값 3개를 받아요)."
+      lesson: 2-1-4
+      page: 146
+      tags: [ 레이저, RGB LED, 함수 ]
+      smoke: { outcome: error, error: TypeError }
+    lines: 24
+    sha256: 005d6beba0f249f2a63be6bdf6dd34d3ef6b8e9c76fcbb1eb4464656721f30fc
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f063
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/1. 디스플레이 장치 제어/(p146)출력테스트_레이저(p146).py"
+    target: examples/esp32/u2/2-1-4-laser-check.py
+    author: operator
+    meta:
+      title: "2-1-4 출력 테스트: 레이저 1초마다 켜고 끄기"
+      description: "레이저 모듈(21번 핀)을 1초마다 켜고 꺼요. 실물 레이저는 눈에 비추지 않아요."
+      lesson: 2-1-4
+      page: 144
+      tags: [ 레이저, Pin, 출력 ]
+    lines: 10
+    sha256: 062b6521c2e35cb27af578dbf62b3f9134b25c55f43bb6c9cf1ed274b412019d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f064
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p149)출력테스트(p149).py"
+    target: examples/esp32/u2/2-1-5-neopixel-check.py
+    author: operator
+    meta:
+      title: "2-1-5 출력 테스트: 네오픽셀 16개 켜고 끄기(원본 파일)"
+      description: "네오픽셀 링 16개를 빨갛게 채웠다가 하나씩 꺼요. 원본은 첫 반복에 write()가 없어 불이 차례로 켜지지 않고 한꺼번에 켜져요(교사용 참고). 가상 보드의 네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-5
+      page: 149
+      tags: [ 네오픽셀, 출력 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 16
+    sha256: 2c6023277f7e15a8104f00f5cabd13c27c47456d54423635d079617defbe8ebf
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f065
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p150)기본(p150).py"
+    target: examples/esp32/u2/2-1-5-neopixel-rainbow.py
+    author: operator
+    meta:
+      title: "2-1-5 기본: 네오픽셀 무지개 색 채우기"
+      description: "빨강·주황·노랑·초록·파랑·남색·보라를 한 칸씩 채우며 무지개 색을 번갈아 보여 줘요. 가상 보드의 네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-5
+      page: 150
+      tags: [ 네오픽셀, 색, 반복 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 38
+    sha256: 7265d39d16c7b05534521f60b07d2450847363ce6dcd90d0c9b5f24425b0fe11
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f066
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p151)심화(p151).py"
+    target: examples/esp32/u2/2-1-5-adv-touch4-mood-light.py
+    author: operator
+    meta:
+      title: "2-1-5 심화: 4채널 터치 버튼으로 무드등 색 바꾸기"
+      description: "터치 버튼 1~3을 누르면 네오픽셀 전체가 빨강·초록·파랑으로, 4를 누르면 꺼져요. 가상 보드의 아날로그 입력(ADC)·네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-5
+      page: 151
+      tags: [ 네오픽셀, 아날로그 터치, ADC ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 56
+    sha256: 51b3bf74271110b0ca8d8d907f85dbc02a0c64e8fc33c11af022cbc448dbc784
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f067
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p157)출력테스트_버저(p157).py"
+    target: examples/esp32/u2/2-2-1-buzzer-check.py
+    author: operator
+    meta:
+      title: "2-2-1 출력 테스트: 버저 1초마다 울리기"
+      description: "버저 핀(15번)을 1초마다 켜고 꺼서 소리를 냈다 멈춰요."
+      lesson: 2-2-1
+      page: 157
+      tags: [ 버저, Pin, 소리 ]
+    lines: 11
+    sha256: c10ba08fd8178bbc12d6ae7d0c2ae272d06fdcea246d76e89cccad43e5b33cb5
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f068
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p158)기본(p158).py"
+    target: examples/esp32/u2/2-2-1-buzzer-scale.py
+    author: operator
+    meta:
+      title: "2-2-1 기본: 버저로 도레미파솔라시도 연주하기"
+      description: "PWM 주파수를 음마다 바꿔 도부터 높은 도까지 0.5초씩 연주해요. 가상 보드의 PWM은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-1
+      page: 158
+      tags: [ 버저, PWM, 소리, 음계 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 20
+    sha256: ef331ed82c43cc3fd20329d74495034fd43f05a1fd9a0526e4d1ae599ae4b9f9
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f069
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p159)심화(p159).py"
+    target: examples/esp32/u2/2-2-1-adv-touch-buzzer.py
+    author: operator
+    meta:
+      title: "2-2-1 심화: 터치하면 버저 짧게 울리기"
+      description: "터치 센서(17번)를 누르는 순간 버저(15번)가 0.5초 울려요."
+      lesson: 2-2-1
+      page: 159
+      tags: [ 버저, 터치 센서, 입력 ]
+    lines: 24
+    sha256: 2b0c5dd42df97d16c9539a7672602b91720248683cd91e480ca827cfa6744d9a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f070
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p161)출력테스트_MP3(p161).py"
+    target: examples/esp32/u2/2-2-2-mp3-check.py
+    author: operator
+    meta:
+      title: "2-2-2 출력 테스트: MP3 모듈로 첫 곡 재생하기"
+      description: "UART로 MP3 모듈에 명령 바이트를 보내 1번 곡을 5초 재생하고 멈춰요. 가상 보드의 UART·MP3 모듈은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-2
+      page: 162
+      tags: [ MP3, UART, 소리 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 24
+    sha256: 1b4bfdae0f6e1b3eabf36602d2c5e0d84bc29e695338b14cbb50310326faeeff
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f071
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p163)기본(p163).py"
+    target: examples/esp32/u2/2-2-2-mp3-announcement.py
+    author: operator
+    meta:
+      title: "2-2-2 기본: 10초마다 안내 방송 재생하기"
+      description: "MP3 모듈의 볼륨을 정하고 10초마다 1번 곡을 재생해요. 가상 보드의 UART·MP3 모듈은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-2
+      page: 163
+      tags: [ MP3, UART, 반복 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 19
+    sha256: 381bd59b362eb257ba3ca4021533d637ee77b5323986f515ba9c1916f4c5ebe7
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f072
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p164)심화(p164).py"
+    target: examples/esp32/u2/2-2-2-adv-touch4-mp3-player.py
+    author: operator
+    meta:
+      title: "2-2-2 심화: 터치 버튼으로 다음 곡·정지 고르기"
+      description: "터치 버튼 1은 다음 곡, 버튼 2는 정지예요. 아날로그 값을 0.1초마다 콘솔에 보여 줘요. 가상 보드의 아날로그 입력(ADC)·UART·MP3 모듈은 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-2
+      page: 164
+      tags: [ MP3, UART, 아날로그 터치, ADC ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 62
+    sha256: 4d8bfd6a036896dd814086b6c712f01b9741b7b865a0789bef1deecc79531930
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f073
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p168)팬모터 정회전 역회전 정지(p168).py"
+    target: examples/esp32/u2/2-2-3-fan-direction.py
+    author: operator
+    meta:
+      title: "2-2-3 팬 모터 정회전·역회전·정지"
+      description: "INA(25번)·INB(26번) 핀 값을 바꿔 팬을 2초씩 정회전, 역회전, 정지해요."
+      lesson: 2-2-3
+      page: 168
+      tags: [ 팬 모터, Pin, 출력 ]
+    lines: 24
+    sha256: 07420804617265faf9e0625d429912fd846e3c2c10830fd9f937f7c684eba9a2
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f074
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p169)라이브러리 활용하여 팬 모터 제어하기(p169).py"
+    target: examples/esp32/u2/2-2-3-fan-library.py
+    author: operator
+    expect_syntax_error: true
+    meta:
+      title: "2-2-3 라이브러리로 팬 모터 제어하기(원본 파일)"
+      description: "gorillacell_dcmotors 라이브러리로 팬을 돌리려는 코드예요. 원본 파일은 줄마다 원고의 줄 번호가 글자로 들어 있어 1번 줄에서 SyntaxError가 나요(교사용 참고 — 사이트판은 줄 번호를 뺀 파일)."
+      lesson: 2-2-3
+      page: 169
+      tags: [ 팬 모터, 라이브러리 ]
+      smoke: { outcome: error, error: SyntaxError }
+    lines: 13
+    sha256: 4ab07170abcc9c2444fd7d2f4e1bcf96ea46fb714a1604792547783952037d26
+    syntax: error-expected
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f075
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p170)회전 속도 제어하기(p170).py"
+    target: examples/esp32/u2/2-2-3-fan-speed.py
+    author: operator
+    meta:
+      title: "2-2-3 팬 회전 속도 제어하기"
+      description: "라이브러리의 speed 값(30, 70)으로 팬 속도를 바꾸고 2초씩 멈춰요. 가상 보드의 팬 모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-3
+      page: 170
+      tags: [ 팬 모터, 라이브러리, PWM ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 14
+    sha256: 16aed266498d2228bcd303fbf3ca5741a9be6a2115357d005c3e737398a9e497
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f076
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p171)키보드 활용하기(p171).py"
+    target: examples/esp32/u2/2-2-3-fan-keyboard.py
+    author: operator
+    meta:
+      title: "2-2-3 키보드로 팬 켜고 끄기"
+      description: "콘솔 입력줄에 1을 적으면 팬이 돌고, 0이면 멈추고, q면 프로그램이 끝나요. 가상 보드의 팬 모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-3
+      page: 171
+      tags: [ 팬 모터, 라이브러리, 입력 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 23
+    sha256: ad86db3cc0279d5f98d02718d24570e179c63f2b004b00aa8b62db2d304b5692
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f077
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p172)키보로 회전 속도 조절하기(p172).py"
+    target: examples/esp32/u2/2-2-3-fan-keyboard-speed.py
+    author: operator
+    meta:
+      title: "2-2-3 키보드로 팬 속도 고르기"
+      description: "콘솔 입력줄에 1(약풍)·2(중풍)·0(정지)을 적어 팬 속도를 골라요. 가상 보드의 팬 모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-3
+      page: 172
+      tags: [ 팬 모터, 라이브러리, 입력 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 18
+    sha256: 2977c8cec5fdabcec37082e6ef54414bb1660c821f4d212ec55ed8923796c74f
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f078
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p175)서보모터 제어하기(p175).py"
+    target: examples/esp32/u2/2-2-4-servo-angles.py
+    author: operator
+    meta:
+      title: "2-2-4 서보모터 0°·90°·180°로 돌리기"
+      description: "서보모터(25번)를 0도, 90도, 180도로 차례로 돌려요. 가상 보드의 서보모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-4
+      page: 175
+      tags: [ 서보모터, 라이브러리, PWM ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 14
+    sha256: a83e1a9a273ff7cbd14190f0287f34f8f40b2c79d425232d952d9b60b113d3be
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f079
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p176)서보모터 제어하기(p176).py"
+    target: examples/esp32/u2/2-2-4-servo-sweep.py
+    author: operator
+    meta:
+      title: "2-2-4 서보모터 1도씩 왕복하기"
+      description: "서보모터를 0도에서 180도까지 1도씩 돌렸다가 되돌아와요. 라이브러리가 돌릴 때마다 0.5초씩 기다려 한 번 왕복에 3분쯤 걸려요(교사용 참고). 가상 보드의 서보모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-4
+      page: 176
+      tags: [ 서보모터, 라이브러리, 반복 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 13
+    sha256: 9232cd894fbc09180012dac392b75b40c8e828911aca2f7711a9d423646804cf
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f080
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p177)서보모터 2개 사용하기(p177).py"
+    target: examples/esp32/u2/2-2-4-servo-two.py
+    author: operator
+    meta:
+      title: "2-2-4 서보모터 2개 함께 움직이기"
+      description: "서보모터 2개(25·26번)를 0도와 180도로 1초마다 번갈아 돌려요. 가상 보드의 서보모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-4
+      page: 177
+      tags: [ 서보모터, 라이브러리 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 15
+    sha256: d78e6d259033824950ead42edd4a68a27da47f15d2d064161bcbdb8214e462a6
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f081
+    source: textbook
+    member: "2. 피지컬 컴퓨팅/2. 출력 장치 제어/(p178)키보드로 서보모터 제어하기(p178).py"
+    target: examples/esp32/u2/2-2-4-servo-keyboard.py
+    author: operator
+    meta:
+      title: "2-2-4 키보드로 서보모터 각도 바꾸기"
+      description: "90도에서 시작해 콘솔 입력줄에 1을 적으면 180도, 2를 적으면 0도로 돌려요. 가상 보드의 서보모터 라이브러리는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-2-4
+      page: 178
+      tags: [ 서보모터, 라이브러리, 입력 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 20
+    sha256: 4c49d531148bacbb3af4dd0696ac7598a3fa3da474150c403748205e92a25515
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f001
+    source: hw
+    member: 1_UART2AI.py
+    target: examples/esp32/hw/uart2-rgb-text.py
+    author: operator
+    meta:
+      title: "보드 확인: UART로 받은 글자(1~4)로 RGB LED 색 바꾸기"
+      description: "UART2(9600bps, TX 17·RX 16)로 받은 첫 글자가 1~4이면 RGB LED(23·25·26번)의 색을 바꿔요. 가상 보드의 UART는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      tags: [ UART, RGB LED, 통신 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 46
+    sha256: f9864fb1eb836eea0d3f9068e8f678b41116a93bc6a5707b19a7af46e5da4335
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+  - id: f007
+    source: hw
+    member: UART2AI_TM.py
+    target: examples/esp32/hw/uart2-rgb-bytes.py
+    author: operator
+    meta:
+      title: "보드 확인: UART로 받은 바이트 값(1~4)으로 RGB LED 색 바꾸기"
+      description: "글자 '1'이 아니라 바이트 값 1~4를 받아 RGB LED 색을 바꿔요(글자를 보내면 반응하지 않아요). 가상 보드의 UART는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      tags: [ UART, RGB LED, 통신, 바이트 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 46
+    sha256: a4da92b8339fdefedae4fbcead6058e2834c3b6d93fd7ddf17a18beb95e1524d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17
+
+  # ── 블루투스 통신 수업교안 BT-B5(f144, CODE_MAPPING §2.7) → examples/esp32/bt/ ──
+  # 교안 p49~57의 LCD 첫 실습. 교과서 2-1-2 출력 테스트(f047)와 거의 같은 코드라 같은 차시(2-1-2)에 붙인다.
+  - id: f144
+    source: bt-thonny-send
+    member: 7_lcd.py
+    target: examples/esp32/bt/b5-lcd-hello.py
+    author: operator
+    meta:
+      title: "블루투스 교안: 문자 LCD에 Hello world 쓰기"
+      description: "I2C 문자 LCD(주소 0x20) 첫 줄에 Hello world를 써요. 교과서 2-1-2 출력 테스트와 거의 같은 코드예요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요."
+      lesson: 2-1-2
+      tags: [ LCD, I2C, 출력 ]
+      smoke: { outcome: error, error: ImportError }
+    lines: 40
+    sha256: a9399cb40bbfae083f0c39c1d77ed0cf22eae3f8fe228a1ca7ac44f5f347ff1e
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-17

@@ -1,0 +1,15 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "2-1-5 기본: 네오픽셀 무지개 색 채우기"
+description: 빨강·주황·노랑·초록·파랑·남색·보라를 한 칸씩 채우며 무지개 색을 번갈아 보여 줘요. 가상 보드의 네오픽셀은 아직 준비 중이라 지금은 실행하면 멈춰요.
+lesson: 2-1-5
+page: 150
+source_id: f065
+tags:
+  - 네오픽셀
+  - 색
+  - 반복
+packages: []
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

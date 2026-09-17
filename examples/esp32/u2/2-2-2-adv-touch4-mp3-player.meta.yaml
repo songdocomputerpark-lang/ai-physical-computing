@@ -1,0 +1,16 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "2-2-2 심화: 터치 버튼으로 다음 곡·정지 고르기"
+description: 터치 버튼 1은 다음 곡, 버튼 2는 정지예요. 아날로그 값을 0.1초마다 콘솔에 보여 줘요. 가상 보드의 아날로그 입력(ADC)·UART·MP3 모듈은 아직 준비 중이라 지금은 실행하면 멈춰요.
+lesson: 2-2-2
+page: 164
+source_id: f072
+tags:
+  - MP3
+  - UART
+  - 아날로그 터치
+  - ADC
+packages: []
+smoke:
+  outcome: error
+  error: ImportError

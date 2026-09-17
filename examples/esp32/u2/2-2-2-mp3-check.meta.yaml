@@ -1,0 +1,15 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "2-2-2 출력 테스트: MP3 모듈로 첫 곡 재생하기"
+description: UART로 MP3 모듈에 명령 바이트를 보내 1번 곡을 5초 재생하고 멈춰요. 가상 보드의 UART·MP3 모듈은 아직 준비 중이라 지금은 실행하면 멈춰요.
+lesson: 2-2-2
+page: 162
+source_id: f070
+tags:
+  - MP3
+  - UART
+  - 소리
+packages: []
+smoke:
+  outcome: error
+  error: ImportError
