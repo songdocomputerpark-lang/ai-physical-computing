@@ -44,8 +44,8 @@ groups:
     title: 모듈·파일 오류
     description: import할 모듈이나 열 파일이 없을 때 나는 오류예요.
   - id: board
-    title: ESP32 보드(가상 보드) 오류
-    description: machine·time 같은 보드용 파이썬(MicroPython)에서 나는 오류예요. 실물 ESP32에서도 같은 문구로 나요.
+    title: ESP32 보드(가상 보드·실물 보드) 오류
+    description: machine·time 같은 보드용 파이썬(MicroPython)과 부품(LCD·서보·네오픽셀 등)에서 나는 오류예요. 가상 보드와 실물 ESP32에서 같은 문구로 나요.
   - id: lab
     title: 실습실 안내(정지·제한 모드·준비)
     description: 오류가 아니라 실습실이 멈추거나 준비되지 않았을 때의 안내예요.
@@ -1119,6 +1119,17 @@ entries:
       code: |
         from machine import Pin, PWM
       error: "ImportError: machine.PWM은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요). 가상 보드에 부품을 더하는 다음 단계에서 들어와요."
+
+  # ── ESP32 보드 — Phase 3 병렬 제작 자리(2026-09-17 준비, src/lab/README.md 5.1·7.9) ──
+  # 구역들은 이 파일을 직접 고치지 않고 보고서의 "공유 파일 변경 요청"에 항목을 적어 보내요(모양은 README 7.9의 6번).
+  # 통합할 때 아래 구역 표시 바로 밑에 순서대로 넣어요. 모두 group: board(실물 MicroPython과 가상 보드가 같은 문구를 내므로 한 묶음).
+  # 실제 보드 연결·굽기처럼 파이썬 트레이스백이 아닌 안내(포트 선택 창·드라이버·케이블)가 묶음 하나로 필요하면 첫 항목과 함께 새 묶음을 요청해요
+  # (묶음은 항목이 하나 이상이어야 사전 검사를 통과해요 — tests/unit/errors/catalog.test.ts).
+  # ▼ 구역 A(P3-03 PWM·ADC 부품 — duty·freq 범위, ADC 감쇠·핀, 서보·팬) 항목 자리
+  # ▼ 구역 B(P3-04 I2C 표시 장치 — I2C 장치 없음 ENODEV, LCD·OLED, RTC) 항목 자리
+  # ▼ 구역 C(P3-05 네오픽셀·UART·MP3 — 네오픽셀 색 값·개수, UART 번호·핀, MP3 프레임) 항목 자리
+  # ▼ 구역 E(P3-07·P3-08 실제 보드 — 보드에서 온 트레이스백: 메모리 부족·파일 없음 등) 항목 자리
+  # ▼ 구역 F(P3-09·P3-10 펌웨어 굽기·보드 준비) 항목 자리
 
   # ── 실습실 안내 ──
   - id: keyboard-interrupt
