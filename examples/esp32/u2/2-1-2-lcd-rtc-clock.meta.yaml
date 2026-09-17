@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-2 기본 2: 보드 시계(RTC) 시각을 LCD에 보이기"
-description: 보드 안 시계(RTC)를 맞춘 뒤 1초마다 지금 시각을 LCD에 보여 줘요. 가상 보드의 문자 LCD·RTC는 아직 준비 중이라 지금은 실행하면 멈춰요.
+description: "보드 안 시계(RTC)를 2025년 6월 21일 11:00:00으로 맞춘 뒤 1초마다 지금 시각을 LCD에 보여 줘요. 맞출 때 요일 칸(6)은 쓰이지 않아 읽으면 토요일인 5가 나와요. 가상 보드는 [실행]할 때마다 보드를 새로 켜서 시계도 처음부터 맞춰요(교사용 참고)."
 lesson: 2-1-2
 page: 129
 source_id: f051
@@ -11,6 +11,16 @@ tags:
   - RTC
   - 시계
 packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped
+practice:
+  - "[실행]을 누르면 LCD에 Time: 11:00:00이 나오고 1초마다 초가 올라가요."
+  - "rtc.datetime((2025, 6, 21, 6, 11, 0, 0, 0))의 11(시)과 0(분)을 지금 시각으로 바꿔 [실행]해요."
+  - "끝나는 줄이 없어서 다 봤으면 [정지]를 눌러요. 다시 [실행]하면 코드에 적은 시각부터 새로 세요."

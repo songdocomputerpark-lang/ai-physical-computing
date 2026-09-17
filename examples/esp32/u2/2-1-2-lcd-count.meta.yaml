@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-2 기본 1: 문자 LCD에 0부터 5까지 세기"
-description: "1초마다 화면을 지우고 Count: 0부터 Count: 5까지 차례로 보여 줘요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요."
+description: "1초마다 화면을 지우고 Count: 0부터 Count: 5까지 차례로 보여 줘요. 교과서 코드 자료의 i2c_lcd.py에는 move_to가 없어(같은 일은 setcursor) 사이트판 라이브러리에 이름을 하나 더 붙였어요 — 실물 보드에도 사이트판 i2c_lcd.py를 넣어요(교사용 참고)."
 lesson: 2-1-2
 page: 128
 source_id: f050
@@ -10,6 +10,17 @@ tags:
   - I2C
   - 반복
 packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: ok
+  seconds: 10
+practice:
+  - "[실행]을 누르면 LCD에 Count: 0이 나오고 1초마다 숫자가 1씩 올라가요."
+  - "Count: 5까지 보이면 코드가 끝나요(약 6초)."
+  - "lcd.move_to(0, 0)을 lcd.move_to(3, 1)로 바꿔 [실행]하면 글자가 둘째 줄 넷째 칸부터 나와요."

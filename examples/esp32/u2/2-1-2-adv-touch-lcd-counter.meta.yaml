@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-2 심화: 터치할 때마다 LCD 숫자 올리기"
-description: 터치 센서를 누를 때마다 문자 LCD의 Counter 숫자가 1씩 올라가요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 2번 줄에서 멈춰요.
+description: "터치 센서를 누를 때마다 문자 LCD의 Counter 숫자가 1씩 올라가요."
 lesson: 2-1-2
 page: 130
 source_id: f052
@@ -20,9 +20,8 @@ parts:
       scl: 22
     label: 문자 LCD(16×2)
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped
 practice:
-  - "가상 보드의 문자 LCD는 아직 준비 중이라, 지금은 [실행]하면 2번 줄(SoftI2C)에서 멈춰요."
-  - "터치 센서를 누르는 동안 1이 되는 것은 \"2-1-2 심화 동작 테스트: 터치 센서 값 읽기\" 예제로 먼저 해 봐요."
-  - "문자 LCD가 더해지면 터치할 때마다 LCD의 Counter 숫자가 1씩 올라가요."
+  - "[실행]을 누르면 LCD에 Counter: 0이 나와요."
+  - "보드 아래 터치 센서를 눌렀다 떼요(Tab 키로 옮겨 Space를 눌러도 돼요). 누를 때마다 Counter 숫자가 1씩 올라가요."
+  - "누르고 있는 동안에는 숫자가 더 올라가지 않는 까닭을 prev_touch 줄에서 찾아봐요. 다 했으면 [정지]를 눌러요."

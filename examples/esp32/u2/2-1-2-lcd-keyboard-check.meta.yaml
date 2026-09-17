@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-2 출력 테스트: 키보드로 받은 이름을 LCD에 쓰기"
-description: 콘솔 입력줄에 이름을 적으면 LCD에 Hello, 이름을 보여 줘요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요.
+description: "콘솔 입력줄에 이름을 적으면 LCD에 Hello, 이름을 보여 줘요. 문자 LCD에는 한글 글꼴이 없어 영어로 적어요."
 lesson: 2-1-2
 page: 127
 source_id: f049
@@ -10,6 +10,16 @@ tags:
   - I2C
   - 입력
 packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped
+practice:
+  - "[실행]을 누르면 콘솔 아래 입력줄에 name: 이 나와요."
+  - "입력줄에 이름을 영어로 적고 Enter를 누르면 LCD에 Hello, 이름이 나와요(문자 LCD에는 한글 글꼴이 없어요)."
+  - "Hello, 와 이름을 합쳐 16글자가 넘으면 둘째 줄로 이어지는지 봐요."

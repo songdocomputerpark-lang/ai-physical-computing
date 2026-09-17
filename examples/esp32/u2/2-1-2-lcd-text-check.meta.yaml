@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-2 출력 테스트: 문자 LCD에 글자 쓰기"
-description: SoftI2C로 문자 LCD(주소 0x20)에 연결해 첫 줄에 Hello LCD!를 써요. 가상 보드의 문자 LCD는 아직 준비 중이라 지금은 실행하면 멈춰요.
+description: "SoftI2C로 문자 LCD(주소 0x20)에 연결해 첫 줄에 Hello LCD!를 써요."
 lesson: 2-1-2
 page: 127
 source_id: f047
@@ -10,6 +10,16 @@ tags:
   - I2C
   - 출력
 packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: ok
+practice:
+  - "[실행]을 눌러요. 보드 그림 옆 문자 LCD(16×2)의 불이 켜지고 첫 줄에 Hello LCD!가 나오는지 봐요."
+  - "putstr 안의 글자를 16글자보다 길게 바꿔 [실행]해요. 17번째 글자부터 둘째 줄로 넘어가요."
+  - "코드 아래 ''' 안의 줄(예: lcd.show_cursor(), lcd.backlight_off())을 putstr 줄 아래로 옮겨 [실행]하고 LCD가 어떻게 바뀌는지 봐요."

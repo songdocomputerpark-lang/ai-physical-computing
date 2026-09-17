@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "2-1-3 출력 테스트: 키보드로 받은 이름을 OLED에 쓰기"
-description: 콘솔 입력줄에 이름을 적으면 OLED에 Hello,와 이름을 두 줄로 보여 줘요. 가상 보드의 OLED는 아직 준비 중이라 지금은 실행하면 멈춰요.
+description: "콘솔 입력줄에 이름을 적으면 OLED에 Hello,와 이름을 두 줄로 보여 줘요. OLED 글꼴에는 한글이 없어 영어로 적어요."
 lesson: 2-1-3
 page: 135
 source_id: f056
@@ -10,6 +10,16 @@ tags:
   - I2C
   - 입력
 packages: []
+parts:
+  - part: oled-i2c
+    id: oled
+    pins:
+      sda: 21
+      scl: 22
+    label: OLED(128×64)
 smoke:
-  outcome: error
-  error: ImportError
+  outcome: stopped
+practice:
+  - "[실행]을 누르면 콘솔 아래 입력줄에 name: 이 나와요."
+  - "이름을 영어로 적고 Enter를 누르면 OLED에 Hello,와 이름이 두 줄로 나와요(OLED 글꼴에는 한글이 없어요)."
+  - "oled.text(name, 0, 10)의 10을 30으로 바꿔 [실행]하고 두 줄 사이가 넓어지는지 봐요."
