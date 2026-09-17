@@ -165,6 +165,26 @@ git push
 
 Pyodide 판을 올렸다면 `node --experimental-wasm-jspi tests/unit/errors/helpers/pyodide-traceback-run.mjs . --write`로 채집본(`tests/unit/errors/fixtures/tracebacks.json`)을 다시 만든 뒤 테스트를 돌려요.
 
+## 2-2. 가상 보드에 부품 더하기 — 폴더 하나
+
+ESP32 실습실의 가상 보드에 부품(센서·LED·화면 등)을 더할 때는 **폴더 하나**만 만들면 돼요. 등록 파일을 고칠 필요가 없어요(사이트가 폴더를 저절로 찾아요).
+
+1. `src/lab/modules/board/parts/<부품 id>/part.ts`를 만들어요. 부품 id는 영문 소문자·하이픈이고(예: `touch-digital`), 파일은 부품 정의 하나를 내보내요 — 이름·설명·핀 역할·크기·그림(`render`)·모습 값(`visual`)이에요. 칸 설명과 본보기는 `src/lab/README.md` 7.5·7.9에 있어요.
+2. 부품이 파이썬 쪽에서 할 일이 있으면(예: I2C 주소에 대답하기) 같은 폴더에 `apc_part_<이름>.py`를 두고 정의의 `python` 칸에 적어요. 학생이 `import`하는 드라이버(예: `neopixel.py`)도 같은 폴더에 둬요.
+3. 그림은 **직접 그린 SVG**만 써요(업체 이름·로고·제품 사진 금지). 색만으로 알리지 않고 글자도 함께 적어요(예: "켜짐"·"꺼짐").
+4. `tests/unit/lab/board-part-<부품 id>.test.ts`를 만들어요. 이 파일이 없으면 `npm test`가 막아요(도우미 `tests/unit/lab/helpers/board-snapshot.ts`).
+5. `npx vitest run tests/unit/lab/board-parts.test.ts`로 규칙 검사를 돌리고, 예제 사이드카의 `parts:`에 부품을 적어 실습실에서 눈으로 봐요.
+6. 실물 보드로 확인할 것이 있으면(핀 번호·극성·소리) `docs/PLAN.md` 부록 B-2에 줄을 더하고 `src/lab/esp32/check/items.ts`에 점검 항목을 더해요(아래 2-3).
+
+## 2-3. 실물 점검 도우미에 항목 더하기
+
+[실물 점검 도우미](https://songdocomputerpark-lang.github.io/ai-physical-computing/labs/esp32/check/)는 키트 보드가 사이트 예제대로 움직이는지 선생님이 하나씩 확인하는 화면이에요. 항목은 **파일 하나**에 모여 있어요.
+
+1. `src/lab/esp32/check/items.ts`의 `CHECK_ITEMS`에 항목 하나를 더해요: `id`·`b2`(부록 B-2 번호)·`title`·`why`·`minutes`(예상 시간, 추정)·`wiring`(배선, 없으면 `[]`)·`code`(보낼 코드)·`questions`(예/아니오로 답할 것).
+2. `code`는 **실물 MicroPython에서 도는 코드만** 써요(사이트 흉내 이름 금지). 끝없는 반복(`while True`)을 쓰지 않고, 눈으로 볼 시간이 필요하면 `seconds`로 지켜본 뒤 [정지]가 되게 해요.
+3. `wiring`은 예제 사이드카의 `parts:`와 같은 모양이라, 적으면 배선 그림이 저절로 그려져요.
+4. `npx vitest run tests/unit/esp32-check`로 규칙 검사(코드·글·배선·라이브러리)를 돌려요.
+
 ## 3. 그림 넣기와 출처 등록
 
 1. **위치:** 차시 그림은 `public/images/lessons/u대단원번호/`, 사이트가 직접 그린 그림은 `public/images/site/`에 둬요. 파일 이름은 영문 소문자·숫자·하이픈으로 써요.
@@ -204,6 +224,30 @@ Pyodide 판을 올렸다면 `node --experimental-wasm-jspi tests/unit/errors/hel
 - **기본은 글자 입력이에요.** 음성 예제(`speech_recognition`)를 실행하면 말 대신 문장을 적어 보내요. 마이크 권한 창이 갑자기 뜨지 않아요.
 - **내 기기 안 인식:** 브라우저가 기기 안에서 한국어를 알아들을 수 있는지는 실습실 음성 패널의 [기기 안 인식 되는지 확인]이나 [사이트 설정](https://songdocomputerpark-lang.github.io/ai-physical-computing/settings/)의 [확인]을 **눌렀을 때만** 물어봐요. 그 기능이 없는 일부 크로미움 계열 브라우저는 물어보는 것만으로 탭이 오류로 닫혀서(PROGRESS 미해결 38번) 페이지를 열 때 저절로 묻지 않아요. 되는 브라우저면 "기기 안 인식" 선택지가 생기고, 그 방식은 음성을 밖으로 보내지 않아요 — 브라우저가 이 설정을 받아들이지 않으면 인식을 시작하지 않고 글자 입력으로 바꾸라고 알려요.
 - **서버 인식:** 교사가 그 브라우저에서 `/settings/`의 "서버 음성 인식 허용"을 켤 때만 선택지가 생겨요(음성이 브라우저 회사 서버로 가요). 14세 미만 학생 수업에서는 켜지 않아요. [이 컴퓨터에서 내 기록 지우기]를 누르면 다시 꺼져요.
+
+## 4-3. 블록 모드에 블록 더하기(P3-06)
+
+ESP32 실습실 코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 코드를 만들 수 있어요. 새 블록은 세 곳에 한 줄씩 더하면 돼요.
+
+1. `src/lab/blocks/blocks.ts`에 블록 모양(한국어 `message0`·`tooltip`)을 더해요.
+2. `src/lab/blocks/codegen.ts`에 그 블록이 만들 파이썬 한 줄을 더해요. **기다리기·반복은 생성기의 `waitLine()`·`whileHeader()`·`forHeader()`만 써요**(블록 전용 호환 모드의 실행판이 저절로 따라오고 줄 수가 같아야 해요).
+3. `src/lab/blocks/toolbox.ts`의 칸에 블록 이름을 더해요. 바깥 부품을 쓰는 블록이면 `src/lab/blocks/catalog.ts`의 부품 표에 한 줄(부품 폴더 id·기본 핀·변수 이름·설정 줄)을 더해요.
+4. `npx vitest run tests/unit/blocks`로 검사해요 — 도구 상자의 모든 블록에 한국어 글·코드 함수가 있는지, 만든 코드가 파이썬으로 컴파일되는지, 두 판의 줄 수가 같은지, 부품 폴더가 있는지를 봐요.
+
+## 4-4. 펌웨어 판 올리기(P3-09)
+
+1. https://micropython.org/download/ESP32_GENERIC/ 에서 새 `.bin`을 받아 `public/firmware/v<판>/`에 둬요(옛 판 폴더는 지워요).
+2. `public/firmware/manifest.json`의 `version`·`releaseDate`·`path`·`size`·`sha256`(PowerShell `Get-FileHash -Algorithm SHA256`)·`sourceUrl`·`checked`를 고쳐요.
+3. `NOTICE.txt`를 새 판 폴더로 옮겨 판·해시를 고치고, `sources.yaml` 항목의 `paths`·`notice`·`fetched`를 고쳐요.
+4. `src/lab/serial/banner.ts`의 `SITE_FIRMWARE_VERSION`도 같은 판으로 고쳐요(실습실이 "옛 펌웨어예요"를 알리는 기준이에요).
+5. `npx vitest run tests/unit/firmware/` → `npm run build` → 보드 한 대로 [펌웨어 굽기 시작]을 확인해요.
+
+## 4-5. 보드 준비 페이지 고치기(P3-10)
+
+1. 드라이버·근거 주소가 바뀌면 `src/components/start/board/links.ts`만 고치고 머리말의 확인 기록·`LINKS_CHECKED_ON`을 바꿔요(`tests/e2e/start.spec.ts`도 이 주소를 읽어요).
+2. 키트 부품 이름은 `src/components/start/board/kit-parts.ts`만 고쳐요(줄 수를 바꾸면 `tests/e2e/start.spec.ts`의 16줄 검사와 `start-board-data.test.ts`도 함께).
+3. "포트 선택 창에 보드가 안 보여요" 안내(`PortHelp.astro`) 안에는 `<details>`를 넣지 않아요. 그 글과 "충전 전용 케이블로는 연결되지 않아요"는 페이지에 한 번만 써요(브라우저 테스트가 하나로 셈).
+4. `npx vitest run tests/unit/firmware/` → `npx vitest run --config tests/unit/firmware/vitest.container.config.mjs` → `npx playwright test tests/e2e/start.spec.ts tests/e2e/start-board.spec.ts`.
 
 ## 5. 배포 확인
 

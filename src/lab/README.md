@@ -234,12 +234,12 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 
 | 구역 | 포트 | 만드는 것(PLAN §8.3) | 자기 파일·폴더(새로 만듦) | 자기 테스트 |
 |---|---|---|---|---|
-| A PWM·ADC 부품(P3-03) | 4501 | RGB LED 밝기, 버저(소리), 서보(프로필 2종 PD-15), 팬(진리표·속도), 4채널 아날로그 터치, `servo_library.py` 복원 | `src/lab/modules/board/parts/{rgb-led,laser,buzzer,servo,fan-motor,touch-analog-4ch}/`, `src/lab/modules/board/ext/{pwm,adc}/apc_board_{pwm,adc}.py`, `examples/esp32/lib/servo_library.py` | `tests/unit/lab/board-part-<부품>.test.ts`, `tests/unit/lab/helpers/board-steps/<이름>.mjs` + `tests/unit/lab/pyodide-board-<이름>.test.ts`, `tests/e2e/lab-esp32-pwm-adc.spec.ts` |
-| B I2C 표시 장치(P3-04) | 4502 | 바이트 수준 문자 LCD(PCF8574 → HD44780), OLED(두 이름 `ssd1306`·`sh1106`), RTC, `i2c_lcd.py` 배포본, 주소 없음 `OSError` | `parts/{lcd-i2c,oled-i2c}/`, `ext/{i2c,rtc}/apc_board_{i2c,rtc}.py`, `examples/esp32/lib/third-party/i2c_lcd.py`(등록부 항목 있음) | 같은 모양, `tests/e2e/lab-esp32-i2c-display.spec.ts` |
-| C 네오픽셀·UART·MP3·콘솔 입력(P3-05) | 4503 | 네오픽셀(`write` 때만), UART 링버퍼·송신 패널, DFPlayer 프레임·합성 음원(PD-16), `gorillacell_dcmotors.py` PWM판 복원 | `parts/{neopixel-ring,mp3-player,…}/`(`neopixel.py`는 부품 폴더에), `ext/uart/apc_board_uart.py`, `examples/esp32/lib/third-party/gorillacell_dcmotors.py`(등록부 항목 있음) | 같은 모양, `tests/e2e/lab-esp32-neopixel-uart-mp3.spec.ts` |
-| D Blockly 블록 모드(P3-06) | 4504 | 블록 ↔ 코드 보기, 사용자 정의 블록, 블록 전용 호환 모드(PD-27) 실험 | `src/lab/modules/blocks/`(ESP32 실습실 흉내 모듈 폴더 — `panel.astro`로 화면), `src/lab/blocks/` | `tests/unit/blocks/**`, `tests/e2e/lab-esp32-blocks.spec.ts` |
-| E 실제 보드 ① 연결·raw REPL(P3-07) → ② 실행·저장(P3-08) | 4505 | Web Serial 연결·배너 판별·raw REPL·raw-paste, [실행]·[정지]·[보드에 저장] | `src/lab/serial/`(`mock/`·`web-serial.d.ts` 밖), `src/lab/modules/realboard/`(패널) | `tests/unit/serial/<이름>.test.ts`(모의 시리얼 8절), `tests/e2e/lab-esp32-real-board.spec.ts` |
-| F 펌웨어 굽기(P3-09) → 보드 준비 페이지(P3-10) | 4506 | esptool-js ROM 굽기(PD-38), 진행률·한국어 오류, 보드 준비 페이지 연결 흐름 | `src/lab/flash/`, 보드 준비 페이지 `src/pages/start/board/**`·`src/components/start/board/`(새 폴더)·`src/components/start/{KitPartsTable,CableFigure}.astro`(이 구역만 고침), `tests/e2e/helpers/serial-plugins/<이름>.ts`(ROM 부트로더 흉내 플러그인) | `tests/unit/flash/**`, `tests/e2e/board-flash.spec.ts`, `tests/e2e/start.spec.ts`의 보드 준비 페이지 검사(이 구역만 고침) |
+| A PWM·ADC 부품(P3-03) | 4501 | RGB LED 밝기, 버저(소리), 서보(프로필 2종 PD-15), 팬(진리표·속도), 4채널 아날로그 터치, `servo_library.py` 복원 | `src/lab/modules/board/parts/{rgb-led,laser,buzzer,servo,fan-motor,touch-analog-4ch}/`, `src/lab/modules/board/ext/{pwm,adc}/apc_board_{pwm,adc}.py`, `examples/esp32/lib/servo_library.py` | `tests/unit/lab/board-part-{rgb-led,laser,buzzer,servo,fan-motor,touch-analog-4ch}.test.ts`, `tests/unit/board-pwm/`, `tests/unit/lab/helpers/board-steps/pwm-adc.mjs` + `tests/unit/lab/pyodide-board-pwm-adc.test.ts`, `tests/e2e/lab-esp32-pwm-adc.spec.ts` |
+| B I2C 표시 장치(P3-04) | 4502 | 바이트 수준 문자 LCD(PCF8574 → HD44780), OLED(두 이름 `ssd1306`·`sh1106`), RTC, `i2c_lcd.py` 배포본, 주소 없음 `OSError` | `parts/{lcd-i2c,oled-i2c}/`(`framebuf.py`·`ssd1306.py`·`sh1106.py`도 부품 폴더에), `ext/{i2c,rtc}/apc_board_{i2c,rtc}.py`, `examples/esp32/lib/third-party/i2c_lcd.py`(등록부 항목 있음) | `tests/unit/lab/board-part-{lcd-i2c,oled-i2c}.test.ts`, `tests/unit/board-i2c/**`(Pyodide 단계는 `steps/*.mjs`), `tests/e2e/esp32-i2c.spec.ts` |
+| C 네오픽셀·UART·MP3·콘솔 입력(P3-05) | 4503 | 네오픽셀(`write` 때만), UART 링버퍼·송신 패널, DFPlayer 프레임·합성 음원(PD-16), `gorillacell_dcmotors.py` PWM판 복원 | `parts/{neopixel,uart,mp3}/`(machine 확장 `apc_board_bitstream.py`·`apc_board_uart.py`도 **부품 폴더 안**), `src/lab/modules/board-console/`, `examples/esp32/lib/third-party/gorillacell_dcmotors.py`(등록부 항목 있음) | `tests/unit/lab/board-part-{neopixel,uart,mp3}.test.ts`, `tests/unit/board-uart/**`, `tests/e2e/esp32-uart.spec.ts` |
+| D Blockly 블록 모드(P3-06) | 4504 | 블록 ↔ 코드 보기, 사용자 정의 블록, 블록 전용 호환 모드(PD-27) 실험 | `src/lab/modules/blocks/`(ESP32 실습실 흉내 모듈 폴더 — `panel.astro`로 화면), `src/lab/blocks/`, `src/components/lab/blocks/BlocksPanel.astro` | `tests/unit/blocks/**`, `tests/e2e/esp32-blocks.spec.ts`, `tests/e2e/scenario-b.spec.ts`(도구 `tests/e2e/helpers/blocks.ts`) |
+| E 실제 보드 ① 연결·raw REPL(P3-07) → ② 실행·저장(P3-08) | 4505 | Web Serial 연결·배너 판별·raw REPL·raw-paste, [실행]·[정지]·[보드에 저장] | `src/lab/serial/`(`mock/`·`web-serial.d.ts` 밖), `src/lab/modules/real-board/`(패널), `src/components/lab/real-board/` | `tests/unit/serial/real-board-*.test.ts`(모의 시리얼 8절), `tests/e2e/esp32-real-board.spec.ts`·`esp32-real-board-run.spec.ts` |
+| F 펌웨어 굽기(P3-09) → 보드 준비 페이지(P3-10) | 4506 | esptool-js ROM 굽기(PD-38), 진행률·한국어 오류, 보드 준비 페이지 연결 흐름 | `src/lab/firmware/`(+ `mock/esp32-rom.ts`·`serial-plugin.ts`), `src/components/lab/firmware/`, `public/firmware/`, 보드 준비 페이지 `src/pages/start/board/**`·`src/components/start/board/`(키트 표는 이 폴더로 옮겼다)·`src/components/start/CableFigure.astro` | `tests/unit/firmware/**`(Container 테스트는 `*.container-test.ts` — 따로 설정), `tests/e2e/esp32-firmware.spec.ts`·`start-board.spec.ts`, `tests/e2e/start.spec.ts`의 보드 준비 페이지 검사 |
 
 **공유 파일(고치지 않음 — 요청):** `package.json`·`package-lock.json`·`astro.config.mjs`·`sources.yaml`·`playwright.config.ts`·`vitest.config.ts`·`tsconfig.json`, `scripts/**`(특히 `scripts/examples-manifest.yaml`), `.github/**`, `src/lib/**`·`src/config/**`·`src/styles/**`·`src/layouts/**`, `src/lab/runtime/**`·`src/lab/python/**`·`src/lab/controls/**`·`src/lab/editor/**`·`src/lab/params/**`·`src/lab/errors/**`·`src/lab/modules/{manifests,host,types}.ts`·`src/lab/esp32/**`, `src/components/lab/**`, `src/pages/labs/esp32/index.astro`, **보드 핵심** `src/lab/modules/board/`의 `parts/<내 부품>/`·`ext/<내 기능>/` 밖 전부(`apc_board.py`·`machine.py`·`index.ts`·`view.ts`·`state.ts`·`parts.ts`·`part-types.ts`·`board-audio.ts` …), `content/help/errors/errors.yaml`(항목은 7.9의 모양으로 요청), 모의 시리얼 `src/lab/serial/mock/**`·`src/lab/serial/web-serial.d.ts`·`tests/e2e/helpers/serial.ts`, 공유 테스트 도구 `tests/unit/lab/helpers/{pyodide-board-run.mjs,pyodide-board.ts,board-snapshot.ts}`·`tests/e2e/helpers/{lab,vision}.ts`, 기존 spec·테스트 파일 전부(`lab-esp32*.spec.ts`·`examples-smoke.spec.ts` 등), 문서 `CLAUDE.md`·`PROGRESS.md`·`MAINTENANCE.md`·`docs/**`·이 README.
 **예제 사이드카:** 파일 하나는 주인 구역만 고쳐요(아래 표). 다른 구역의 부품이 함께 있어야 끝까지 도는 예제는 주인이 자기 몫만 확인하고, `smoke:`·"준비 중" 문장은 통합 때 함께 맞춰요(보고서에 적기).
@@ -268,6 +268,7 @@ npx vitest run tests/unit/lab/board-part-buzzer.test.ts tests/unit/lab/pyodide-b
 - AI 에이전트 안에서 `--ignore-lock`은 **`ASTRO_DEV_BACKGROUND=1`과 함께만** 돼요(없으면 Astro가 백그라운드로 띄우려다 "`--ignore-lock` cannot be used together with an auto-detected AI agent environment" 오류 — `node_modules/astro/dist/cli/dev/index.js`).
 - 새 서버가 뜰 때 콘텐츠 저장소(`.astro/`)를 다시 만들어 먼저 뜬 서버의 페이지가 한 번 새로 고쳐질 수 있어요. 새 패키지(Blockly 등)를 처음 import하는 페이지는 Vite가 의존성을 다시 묶느라 `504 (Outdated Optimize Dep)` 뒤 저절로 새로 고쳐요 — 기다리면 돼요.
 - **끄기:** `--ignore-lock` 서버는 `astro dev stop`이 찾지 못해요. 에이전트의 백그라운드 작업을 멈춰도 Windows에서는 node 프로세스가 남으니 `Get-NetTCPConnection -LocalPort 4501 -State Listen`으로 PID를 찾아 `Stop-Process -Id <PID>`로 꺼요(끈 뒤 포트가 비었는지 다시 확인).
+- **의존성 미리 묶기 폴더 나누기(2026-09-18 실측):** 서버 여럿이 `node_modules/.vite/deps`를 함께 쓰면 뒤에 뜬 서버가 다시 묶어 앞 서버의 `@codemirror_*.js`가 `504 (Outdated Optimize Dep)`를 되풀이하고 실습실이 `data-state="unloaded"`에 멈춰요(새로 고쳐도 같아요). `APC_VITE_CACHE_DIR=.cache/vite-450x`를 서버마다 다르게 주면 폴더가 나뉘어 생기지 않아요(`astro.config.mjs`가 이 환경 변수를 읽어요, 값이 없으면 지금과 같음).
 
 **미리 설치·등록된 것(쓰기만 해요):**
 
@@ -362,13 +363,20 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 | `pin.value([x])` · `pin([x])` · `on()` · `off()` · `toggle()` | 쓰기는 모드와 상관없이 출력 값을 적는다(출력이 꺼져 있으면 핀 전압은 그대로). **바깥을 보는 읽기**(출력 중이 아닌 핀)는 입력 확인 지점 |
 | `pin.irq(handler=None, trigger=IRQ_FALLING\|IRQ_RISING, wake=None)` | 핀 전압이 바뀌면 콜백 대기열에 `handler(pin)`. handler None이면 끔. 돌려주는 IRQ 객체: `irq()`로 한 번 부르기, `trigger([값])`. wake(잠자기 깨우기)는 흉내 내지 않고 안내 |
 | `machine.Timer(id=-1)` · `init(*, mode=PERIODIC, callback, period=ms, tick_hz=1000, freq, hard=False)` · `deinit()` · `value()` | 0~3은 하드웨어 타이머(같은 번호는 같은 객체), 음수는 가상 타이머, 4 이상은 `ValueError("Timer(4) doesn't exist, there are only 4 hardware timers")`. 위치 인자 → `TypeError('extra positional arguments given')`, hard → `ValueError`, 주기 0 → `ValueError('Timer period is too short for this timer')`. `Timer.PERIODIC` 1·`ONE_SHOT` 0. repr은 실물 소스의 뒤바뀐 조건까지 같음(`mode=ONE_SHOT`로 찍힘) |
-| 그 밖의 `machine` 이름(PWM·ADC·SoftI2C·I2C·UART·RTC·time_pulse_us …) | 쓰면 `ImportError('machine.PWM은(는) 가상 보드에 아직 없어요…')`(오류 사전 `board-not-emulated`). 부품 단계가 확장 파일로 더한다(7.6) |
+| `machine.PWM(dest, freq=, duty=, duty_u16=, duty_ns=, invert=, lightsleep=)` · `init`·`deinit`·`freq([v])`·`duty([v])`·`duty_u16([v])`·`duty_ns([v])` | 범위·기본값(5000Hz·50%)·오류 문구는 실물 소스 그대로(`duty must be from 0 to 1023` 등). 주파수마다 해상도·나눗수로 되계산해 읽는다(`freq(1000)` → 998). LEDC 채널 16·타이머 8(넘치면 `RuntimeError('out of PWM channels:16')`), 34~39번은 `OSError (-258, 'ESP_ERR_INVALID_ARG')` + 한국어 안내, `deinit` 뒤 `RuntimeError('PWM is inactive')`. Pin으로 다시 정하면 신호가 끊긴다. 자세한 것은 `ext/pwm/apc_board_pwm.py` 머리말 |
+| `machine.ADC(dest, *, atten)` · `init`·`read`·`read_u16`·`read_uv`·`atten`·`width`·`deinit` | 핀 32~39(ADC1)·0·2·4·12~15·25~27(ADC2), 기본 `ATTN_11DB`·`WIDTH_12BIT`, 그 밖은 `invalid pin`·`invalid attenuation`·`invalid bit-width`. 값은 화면이 핀에 건 전압(`{ mv }`)을 끝 전압(3300·1750·1250·950mV)으로 곧게 나눈 것이고, 읽을 때마다 입력 확인 지점이 돈다. `adc.block()`·ADCBlock은 흉내 내지 않는다 |
+| `machine.SoftI2C(scl, sda, *, freq=400000, timeout=50000)` · `machine.I2C(id=0, *, scl, sda, …)` | `scan`·`writeto`·`readfrom`·`readfrom_into`·`writevto`·`readfrom_mem(_into)`·`writeto_mem`, SoftI2C만 `start`·`stop`·`readinto`·`write`. 대답 없는 주소는 `OSError: [Errno 19] ENODEV` + 콘솔에 까닭 한 줄. 하드웨어 I2C 0·1번은 기본 핀(SCL 18·SDA 19 / 25·26)이고 기본 동작은 `OSError('I2C operation not supported')`, `I2C(2)`는 ValueError. 두 핀은 오픈 드레인 + 부품 풀업(핀 표 "출력(오픈 드레인)" 1), 버스 함수마다 입력 확인 지점 1번 |
+| `machine.RTC()` · `datetime([8칸])` · `init(8칸)` · `memory([bytes])` | `time.time()`·`localtime()`과 같은 시계(맞추면 time도 바뀐다). 맞출 때 요일 칸은 쓰이지 않고, `init`은 (년, 월, 일, 시, 분, 초, _, 마이크로초) 순서다. 칸 수가 틀리면 `ValueError('requested length 8 but object has length N')`, 사용자 메모리 2048바이트. 실행마다 보드를 새로 켜므로 맞춘 시각은 다음 [실행]에서 처음으로 |
+| `machine.UART(id, baudrate=115200, bits=8, parity=None, stop=1, *, tx, rx, txbuf, rxbuf, timeout, …)` | 번호 0~2(그 밖 `ValueError('UART(3) does not exist')`), UART0은 REPL이라 버퍼·irq 불가. `read`·`readline`·`readinto`·`write`·`any`·`sendbreak`·`flush`·`irq`·`deinit`, repr의 나누개 속도(115200 → 115201), 받을 칸은 rxbuf+128까지 쌓이고 바이트 도착 시각까지 맞춘다. 속도·비트가 다르면 `reframe`이 비트 단위로 글자를 깨뜨린다. tx를 34~39번으로 정하면 `OSError: [Errno 1] EPERM: ESP_FAIL` |
+| `machine.bitstream(pin, 0, timing, buf)` · `neopixel.NeoPixel(pin, n, bpp=3, timing=1)` | 네오픽셀 신호. 드라이버는 micropython-lib 0.1.0과 같은 동작(GRB 차례 `ORDER=(1,0,2,3)`, `write()`를 불러야 반영, 0~255 밖은 아래 8비트, 소수는 TypeError). 신호 시간(ns)은 흉내 내지 않는다 |
+| `framebuf` · `ssd1306`(`SSD1306_I2C`) · `sh1106`(`SH1106_I2C`) · `i2c_lcd`(`I2cLcd`) | 화면 드라이버. `framebuf`는 `extmod/modframebuf.c`와 같은 계산(형식 7개·선·네모·타원·다각형·blit·scroll·8×8 글자 칸, 글꼴은 사이트가 그린 5×8 점 무늬), OLED 드라이버는 SSD1306 명령 바이트를 I2C로 보내고 가상 OLED가 해석한다(두 이름 한 흉내). `i2c_lcd`는 보드 라이브러리(사이트 배포본)이고 가상 LCD가 PCF8574 → HD44780 바이트를 해석한다 |
+| 그 밖의 `machine` 이름(SPI·DAC·WDT·deepsleep·time_pulse_us …) | 쓰면 `ImportError('machine.PWM은(는) 가상 보드에 아직 없어요…')`(오류 사전 `board-not-emulated`). 부품 단계가 확장 파일로 더한다(7.6) |
 | `time`(= `utime`) | `sleep(초)`(1000배 단정밀도 → 밀리초로 버림, 음수는 ValueError), `sleep_ms`·`sleep_us`(정수만, 음수·0 이하는 기다리지 않음), `ticks_ms`·`ticks_us`·`ticks_cpu`(가상 시각 `& (2**30-1)` — ticks_cpu는 실물의 CPU 사이클 대신 µs), `ticks_diff(a,b)`=`((a-b+2**29) & (2**30-1)) - 2**29`, `ticks_add`(±2**29 이상이면 `OverflowError('ticks interval overflow')`), `time()`·`time_ns()`(2000년 기준), `localtime`=`gmtime`(같은 함수, 8칸, 요일은 월요일=0), `mktime`(8·9칸, 넘친 값 넘김). CPython에만 있는 이름(perf_counter 등)은 없다 |
 | `micropython` | `const(x)`=x, `schedule(f, arg)`(대기열 8개, 넘치면 `RuntimeError('schedule queue full')`), `opt_level`·`alloc_emergency_exception_buf`·`heap_lock`/`unlock`/`locked`·`kbd_intr`(하는 일 없음), `mem_info`·`qstr_info`·`stack_use`(안내만), `native`·`viper` 장식자. `umicropython`은 실물처럼 없음 |
 | u-이름 | `utime`·`umachine`·`ustruct`·`usys`·`uerrno`·`ujson`·`urandom`·`uos`·`uarray`·`ucollections`·`ubinascii`·`uio`·`ure`·`uhashlib`·`uheapq`·`uselect`·`usocket`·`uplatform` → 원래 모듈(실물의 "확장 가능한 붙박이 모듈 + usys" 규칙) |
 | `errno`(= `uerrno`) | MicroPython 목록 22개를 ESP32(newlib) 번호로: ENOENT 2·EIO 5·EAGAIN 11·ENOMEM 12·ENODEV 19·EINVAL 22·EOPNOTSUPP 95·ETIMEDOUT 116 …, `errorcode` 사전(Pyodide의 errno 번호와 다르다) |
 | `bluetooth`·`ubluetooth` | 자리만: import하면 `ModuleNotFoundError("No module named 'bluetooth' (가상 보드의 블루투스는 아직 흉내 내지 않아요 …)")` — Phase 4가 `register_board_module`로 채운다 |
-| 아직 없는 부품 모듈(병렬 제작 준비 2026-09-17) | `apc_board.NOT_YET_MODULES`의 `neopixel`(펌웨어 내장)·`i2c_lcd`·`ssd1306`·`sh1106`·`servo_library`·`gorillacell_dcmotors`(사이트 라이브러리)는 파일이 생기기 전까지 `ModuleNotFoundError("No module named 'neopixel' (가상 보드에 아직 없어요 — …)")`(오류 사전 `board-not-emulated`). 부품 구역이 같은 이름의 파일(부품 폴더의 `.py` 또는 `examples/esp32/lib/`)을 더하면 그 파일이 그대로 import되므로 표를 고치지 않는다 |
+| 아직 없는 부품 모듈(병렬 제작 준비 2026-09-17) | `apc_board.NOT_YET_MODULES`의 `neopixel`(펌웨어 내장)·`i2c_lcd`·`ssd1306`·`sh1106`·`servo_library`·`gorillacell_dcmotors`(사이트 라이브러리)는 파일이 생기기 전까지 `ModuleNotFoundError("No module named 'neopixel' (가상 보드에 아직 없어요 — …)")`(오류 사전 `board-not-emulated`). 부품 구역이 같은 이름의 파일(부품 폴더의 `.py` 또는 `examples/esp32/lib/`)을 더하면 그 파일이 그대로 import되므로 표를 고치지 않는다. **P3-11 통합에서 여섯 이름 모두 파일이 생겼다**(표는 파일이 빠졌을 때의 안전망으로 남는다) |
 
 **학생 코드만 MicroPython판을 받는다:** `apc_board.install()`이 `builtins.__import__`에 훅을 걸어, import하는 쪽이 학생 코드(`__main__`, 작업 폴더 `/home/pyodide/`, 보드 라이브러리 폴더 `/board/lib/`의 파일)일 때만 `time`·`utime`·`errno`·`bluetooth`·u-이름을 바꿔 준다. 표준 라이브러리·Pyodide가 import하는 `time`은 진짜 CPython time 그대로다(C 코드의 `PyImport_Import`는 `sys.modules`를 돌려주므로 영향 없음). `sys.modules['time']`을 바꾸지 않는다. `importlib.import_module('time')`은 진짜를 받는다(드문 경우 — 차이로 둠).
 
@@ -469,7 +477,19 @@ parts/<새 부품>/
 - **자동 발견:** `parts.ts`가 `import.meta.glob('./parts/*/part.ts', { eager: true })`로 찾고 `validatePartDefinitions`로 검사한다(어기면 `board-parts.test.ts`가 실패하고, 브라우저에서는 보드 모듈이 오류를 내며 뜨지 않는다). `.py`는 `python/modules.ts`가 모듈 폴더의 하위 폴더까지 찾아 ESP32 실습실 워커의 `/apc`에 넣는다.
 - **파이썬 부품 흉내:** `apc_part_<이름>.py`는 `apc_board.register_part('<부품 id>', factory)`로 자기를 등록한다(`factory(배선 항목) → 장치`). 보드는 `/apc`의 `apc_board_*.py`·`apc_part_*.py`를 첫 실행 직전(`install()`) 한 번 불러온다. 상태를 화면에 알릴 때는 `apc_runtime.emit('board.device', { part, id, state })`, 실물과 같은 OSError는 `apc_board.board_oserror(19)`(`OSError: [Errno 19] ENODEV`). 핀은 `apc_board.find_pin(값)`·`BOARD.read(gpio)`·`BOARD.write(gpio, v)`·`BOARD.configure(…)`로 다룬다.
 - **단위 테스트(P3-02 규칙 — 부품 하나 = 테스트 파일 하나):** `tests/unit/lab/board-part-<부품 id>.test.ts`를 새로 만들어 그 부품의 `visual`·`interaction.drive`·기본 핀·배선 줄임 표기를 검사한다(DOM 없이, 스냅샷 도우미 `tests/unit/lab/helpers/board-snapshot.ts`). 여러 사람이 부품을 동시에 더해도 같은 파일을 고치지 않게 — `board-parts.test.ts`는 레지스트리·배선 검사만 보고, 부품 폴더마다 이 파일이 있는지 확인한다. 파이썬 흉내가 있으면 `tests/unit/lab/helpers/pyodide-board-run.mjs`에 단계를 더하고 `pyodide-board.test.ts`에서 확인한다. 화면은 `tests/e2e/lab-esp32-parts.spec.ts`처럼 `data-visual-*`를 읽는다.
-- **부품 id 약속(사이드카·차시 md가 먼저 쓰는 이름):** `touch-digital`(sig)·`vibration-motor`(sig)·`lcd-i2c`(sda·scl — f052 사이드카가 이미 씀, P3-04가 이 이름으로 만들면 f052 배선이 저절로 그려진다). 다음 묶음의 제안(그 묶음이 바꾸면 사이드카도 함께): `rgb-led`(r·g·b), `laser`(sig), `buzzer`(sig), `servo`(sig), `fan-motor`(ina·inb), `touch-analog-4ch`(sig), `oled-i2c`(sda·scl), `neopixel-ring`(din), `mp3-player`(tx·rx — 모듈 쪽 이름).
+- **부품 id(P3-11 통합에서 확정 — 사이드카·차시 md가 이 이름으로 배선을 적는다):** `touch-digital`(sig)·`vibration-motor`(sig)·`rgb-led`(r·g·b)·`laser`(sig)·`buzzer`(sig)·`servo`(sig)·`fan-motor`(ina·inb)·`touch-analog-4ch`(sig)·`lcd-i2c`(sda·scl)·`oled-i2c`(sda·scl)·`neopixel`(din)·`uart`(rx·tx)·`mp3`(rx·tx — 모듈 쪽 이름). 병렬 제작 준비 때 적었던 `neopixel-ring`·`mp3-player`는 쓰지 않는다(구역 C가 짧은 이름으로 만들었고, 그 이름을 쓴 사이드카·차시는 없었다).
+
+**지금 있는 부품(P3-11 통합 기준 15개):** 보드에 붙은 `builtin-led`(IO2, 밝기는 PWM duty)·`boot-button`(IO0, 누르면 0),
+`touch-digital`(sig, 기본 17 — 누르는 동안 1)·`vibration-motor`(sig, 기본 19 — 사이트 배정, 실물 확인 전),
+`rgb-led`(r·g·b, 기본 핀 없음 — 1이면 켜짐)·`laser`(sig)·`buzzer`(sig, `sound: true`)·`servo`(sig, 프로필 mg90s·servo40)·
+`fan-motor`(ina·inb, 기본 25·26)·`touch-analog-4ch`(sig, 기본 32 — 조작 칸의 [패드 1~4]),
+`lcd-i2c`(sda·scl, 기본 21·22, 주소 0x20 — 글자 칸을 DOM `<tspan data-lcd-cell>`으로)·`oled-i2c`(sda·scl, 주소 0x3C — 켜진 점은 `<path data-oled-pixels>` 하나),
+`neopixel`(din, 기본 23 — 16구 링)·`uart`(rx·tx, 기본 17·16 — USB-UART 변환기와 컴퓨터 시리얼 창, 전원은 `power: { gnd, vcc: false }`로 GND만)·
+`mp3`(rx·tx, 기본 17·16 — DFPlayer, `sound: true`).
+
+부품이 스스로 만든 상태 글은 `visual.summary`에 담는다 — 화면 낭독기 이름의 상태 자리에 그대로 쓰이므로(서보 각도·버저 Hz·팬 방향처럼
+`lit`·`on`·`pressed`로 말할 수 없는 것) 부품이 DOM 속성을 직접 건드리지 않아도 된다. 보드 그림 글자·부품 글자 크기는 공용 CSS
+`src/styles/board-drawing.css`에 있다(스크립트가 그린 SVG라 컴포넌트 범위 스타일이 닿지 않는다 — 실습실과 실물 점검 도우미가 함께 쓴다).
 
 ### 7.6 machine에 주변장치 더하기 — `apc_board_*.py` 확장
 
@@ -499,7 +519,7 @@ PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 
 
 **1. 폴더와 이름**
 
-- [ ] `src/lab/modules/board/parts/<부품 id>/part.ts` — id는 폴더 이름과 같은 영문 소문자·숫자·하이픈. 7.5의 약속 id(`rgb-led` r·g·b, `laser` sig, `buzzer` sig, `servo` sig, `fan-motor` ina·inb, `touch-analog-4ch` sig, `lcd-i2c` sda·scl, `oled-i2c` sda·scl, `neopixel-ring` din, `mp3-player` tx·rx)를 쓰면 사이드카·차시 md의 배선이 저절로 그려져요. 바꾸면 보고서에 적어요.
+- [ ] `src/lab/modules/board/parts/<부품 id>/part.ts` — id는 폴더 이름과 같은 영문 소문자·숫자·하이픈. 7.5의 확정 id(`rgb-led` r·g·b, `laser` sig, `buzzer` sig, `servo` sig, `fan-motor` ina·inb, `touch-analog-4ch` sig, `lcd-i2c` sda·scl, `oled-i2c` sda·scl, `neopixel` din, `uart` rx·tx, `mp3` rx·tx)를 쓰면 사이드카·차시 md의 배선이 저절로 그려져요. 바꾸면 보고서에 적어요.
 - [ ] 파이썬 파일 이름은 저장소 전체에서 하나(워커 `/apc`에 폴더 없이 들어가요): 부품 흉내 `apc_part_<이름>.py`, 학생이 import하는 이름 그대로인 드라이버(`neopixel.py`·`ssd1306.py`·`sh1106.py`)는 부품 폴더에, machine 확장은 `ext/<기능>/apc_board_<기능>.py`(7.6). 같은 이름을 흉내(`/apc`)와 보드 라이브러리(`examples/esp32/lib/`)에 함께 두지 않아요(`board-libraries.test.ts`가 막아요).
 - [ ] 보드 라이브러리(`examples/esp32/lib/*.py`)는 실물 보드에도 그대로 올라가요 — MicroPython에서 도는 코드만. 다른 저작자 파일은 `third-party/` 아래 + 원래 저작권 주석 유지. 등록부 항목이 이미 있는 것: `third-party/i2c_lcd.py`(B)·`third-party/gorillacell_dcmotors.py`(C), 운영자 원고 복원 `servo_library.py`(A — `examples/**` 항목이 덮음). 그 밖의 새 제3자 파일(예: 실물용 `ssd1306.py` 드라이버)은 받을 곳·라이선스를 적어 요청해요.
 
@@ -573,6 +593,23 @@ PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 
 
 ---
 
+### 7.11 블록 모드(P3-06) — 새 블록 더하기
+
+ESP32 실습실 코드 칸 제목 아래 [블록]·[코드] 전환이 있고, [블록]을 누를 때만 Blockly를 `import()`한다(코드 모드만 쓰면 받지 않는다).
+
+- **새 블록 = 세 곳에 한 줄:** `src/lab/blocks/blocks.ts`(블록 JSON — 한국어 `message0`·`tooltip`) + `codegen.ts`(그 블록이 만들 파이썬) +
+  `toolbox.ts`(도구 상자 칸). 바깥 부품을 쓰는 블록이면 `catalog.ts`의 `PART_KIND_LIST`에 한 줄(보드 부품 폴더 id `boardPart`·기본 핀·변수 이름·설정 줄).
+- **기다리기·반복은 생성기 함수로만:** `waitLine()`·`whileHeader()`·`forHeader()`를 써야 블록 전용 호환 모드의 실행판이 저절로 따라오고 **두 판의 줄 수가 같다**
+  (트레이스백 줄 번호가 화면 코드와 맞는 까닭). 줄 수가 달라지는 코드를 만들지 않는다.
+- **화면 코드 머리말:** 첫 줄 `# 블록으로 만든 코드`, 다음 줄들 `# @part <부품 id> <핀>`(예제 사이드카의 배선 문법). 실물 보드에서는 주석일 뿐이다.
+- **배선 알림:** 블록이 쓰는 부품은 실습실 뿌리 속성 `data-board-wiring-override`(WiringEntry[] JSON)와 이벤트 `apc:board-wiring`으로 알리고
+  (`src/lab/blocks/board-link.ts`), 보드 모듈이 예제 배선 대신 그것을 그린다. 코드 모드에서는 블록에서 온 코드의 머리말을 읽는다.
+- **호환 모드(PD-27):** 실행기가 제한 모드이고 편집칸이 생성 코드와 글자까지 같을 때만 실행판을 보낸다(`compat.ts` + 실습실 틀의 `lab.setRunCodeTransform`).
+  고친 코드는 제한 모드 그대로다. 실행판의 기다리기는 `src/lab/modules/blocks/apc_blocks.py`(`await apc_board.wait_ns_async`).
+- **저장·주소:** `module:blocks:{workspace,mode,generated,converted}`, `?blocks=1`로 열면 블록 모드(차시 링크용), `?example=`·`#code=`로 열면 코드 모드.
+- **테스트:** `tests/unit/blocks/`(도구 상자의 모든 블록에 한국어 글·코드 함수가 있는지, 만든 코드가 파이썬으로 컴파일되는지, 두 판의 줄 수가 같은지,
+  부품 폴더가 있는지, 블록 색이 흰 글자와 대비 4.5:1 이상인지) + `tests/e2e/esp32-blocks.spec.ts`·`scenario-b.spec.ts`(도구 `tests/e2e/helpers/blocks.ts`).
+
 ## 8. 모의 시리얼 — 실제 보드 없이 Web Serial 흐름 시험(`src/lab/serial/mock/`)
 
 실제 보드 연결(P3-07·P3-08)·펌웨어 굽기(P3-09)·실물 점검 도우미(P3-11)가 보드 없이 테스트하도록 `navigator.serial`·`SerialPort`와 USB 너머의 MicroPython 보드를 흉내 내요. **테스트 도구**라 사이트 페이지는 import하지 않아요(배포 번들에 없음). 흉내에서 된다는 것이 실물에서 된다는 증거는 아니에요 — 실물은 부록 B-2(운영자 할 일 2번).
@@ -630,4 +667,43 @@ await board.unplug();                                            // 선 뽑기 �
 
 ### 8.4 흉내 내지 않는 것
 
-보통 REPL의 자동 들여쓰기·탭 완성·기록, raw-paste 도중 구문 오류로 일찍 끝내기(코드를 다 받은 뒤 검사), 실제 ROM 부팅 글 전체, ESP32 ROM 부트로더 규약(SLIP·SYNC·FLASH_* — 필요하면 F 구역 플러그인), USB 드라이버·포트 이름·버퍼 넘침(BufferOverrunError), 한 번의 `setSignals` 안에서 선이 차례로 바뀌는 순간(한꺼번에 바뀐 것으로 봄), mini-python 밖의 문법. 이런 차이는 실물 점검 목록(부록 B-2)으로 확인해요.
+보통 REPL의 자동 들여쓰기·탭 완성·기록, raw-paste 도중 구문 오류로 일찍 끝내기(코드를 다 받은 뒤 검사), 실제 ROM 부팅 글 전체, USB 드라이버·포트 이름·버퍼 넘침(BufferOverrunError), 한 번의 `setSignals` 안에서 선이 차례로 바뀌는 순간(한꺼번에 바뀐 것으로 봄), mini-python 밖의 문법, 보드의 `hashlib.sha256`(없어서 [보드에 저장]의 "같은 파일 건너뜀" 갈래는 `scripts`의 정한 응답으로 시험해요). 이런 차이는 실물 점검 목록(부록 B-2)으로 확인해요.
+
+**ROM 부트로더는 흉내 낸다(P3-09):** `src/lab/firmware/mock/esp32-rom.ts`가 SLIP·SYNC 8번 응답·READ/WRITE_REG·SPI 사용자 명령 RDID·SPI_ATTACH(8바이트)·SPI_SET_PARAMS·FLASH_BEGIN/DATA·FLASH_DEFL_BEGIN/DATA(0x400 블록, pako로 풀어 플래시에 씀)·SPI_FLASH_MD5(ASCII)·CHANGE_BAUDRATE를 받고, 스텁 전용 명령에는 오류로 답해요(PD-38 — 스텁을 싣지 않으므로 그 길이 막힌 것을 테스트가 지켜요). Playwright 플러그인은 `src/lab/firmware/mock/serial-plugin.ts`이고, `globalThis.__APC_ESP32_BOARD_OPTIONS__ = { <포트 id>: { firmware: 'none' } }`이면 펌웨어가 지워진 보드처럼 굽기 전까지 REPL 대답을 막고 `invalid header: 0xffffffff`를 되풀이해요(모의 보드 파일은 고치지 않고 받기·내보내기만 감쌈).
+
+**P3-11에서 실물과 더 맞춘 것:** ① `input()`의 줄 읽기는 실물 `readline`처럼 32~126 글자만 줄에 넣고 되울려요(0x80 이상의 한글 바이트는 버려요 — 실물 보드의 한글 input()이 빈 글자가 되는 까닭). ② raw REPL에서 `sys.exit()`·`machine.soft_reset()`은 실물 순서로 `\x04\x04` → `MPY: soft reboot` → boot.py → raw 알림을 보내요(둘은 같은 바이트라 사이트가 구별할 수 없고, 오류 없이 끝난 실행에 `softReboot` 표지가 붙어요).
+
+## 8.5 실제 보드 연결·실행·저장(P3-07·P3-08)
+
+실습실 입력·출력 칸 위의 [가상 보드]/[실제 보드] 탭이 `lab.setRunTarget`으로 같은 [실행]·[정지]·콘솔·입력줄·오류 풀이 카드를 실제 보드로 보낸다.
+파일은 `src/lab/serial/`(사이트 코드)과 `src/lab/modules/real-board/`(화면)·`src/components/lab/real-board/`(HTML)다.
+
+- **연결 상태 기계** `BoardConnection`: `unsupported`·`idle`·`choosing`·`opening`·`checking`·`ready`·`running`·`no-micropython`·`busy`·`writing`·`recovering`·`lost`·`error`.
+  `connect()`·`reconnect()`·`openPort(port)`·`check()`·`restartBoard()`·`run(code, handlers)`·`stop()`·`sendInput(bytes)`·`save(code, options)`·
+  `disableAutorun(file?)`·`recover()`·`disconnect()`·`dispose()`·`subscribe(listener)`·`snapshot`. **한 포트에 주인은 하나**다(다른 탭·Thonny가 열어 두면 못 연다).
+- **판별:** Ctrl-C → Ctrl-C·Enter → Ctrl-B(리셋 없이 배너)로 7가지를 가른다 — `micropython`·`other-python`·`no-firmware`·`download-mode`·`busy`·`other-output`·`silent`.
+  포트 선택 창은 거르지 않고, USB 칩 이름은 `usb-chips.ts` `describePortInfo`가 VID·PID로 만든다(보조 정보).
+- **실행:** 실행마다 raw REPL 소프트 리셋 → raw-paste(안 되면 보통 raw). [정지]는 Ctrl-C를 0.5초 간격으로 최대 6번. 기다림 값은 `raw-repl.ts` `DEFAULT_REPL_TIMING` 한 곳.
+- **파일:** `board-files.ts` — mpremote `fs_writefile` 방식(256바이트씩 `w(b'…')`), 임시 이름(`<경로>.part`)에 쓰고 크기를 확인한 뒤 제자리로, SHA256이 같으면 건너뜀.
+  자리는 **보드 뿌리**(`/main.py`·`/i2c_lcd.py`). [실행]은 코드가 부르는 사이트 라이브러리가 없을 때만 올린다(`provisionLibraries`).
+- **input():** `board-input.ts` — `prepareBoardInputLine(글)`이 실물 readline이 받는 32~126 글자 + `\r`만 남기고(한글은 빼고 안내, 250자 상한),
+  `InputEchoFilter`가 보드 되울림을 한 번 걸러 콘솔에 두 번 보이지 않게 한다.
+- **되찾기:** `board-recovery.ts` + `BoardConnection.recover()` — Ctrl-C 되풀이 → RTS로 다시 켜며 되풀이 → EN 버튼 안내. [boot.py 끄기]는 파일을 지우지 않고 `boot_off.py`로 이름만 바꾼다.
+- **호환 안내:** `compat.ts` `findRealBoardCompatIssues(code)` — 실물에서 안 되는 여섯 모양을 줄 번호와 함께 알린다(막지 않음).
+- **화면 표시(테스트가 읽는 것):** `[data-real-board]`의 `data-real-board-state`·`tone`·`verdict`·`problem`·`recovery`·`autorun`·`saved-state`,
+  단추 `[data-real-board-action="connect|reconnect|check|restart|choose|disconnect|save|recover|disable-autorun"]`. 글 만들기는 `modules/real-board/status-text.ts`(순수 함수).
+- **패널 예외:** [가상 보드]/[실제 보드] 탭은 코드와 상관없이 늘 보여야 해서 `real-board` 모듈은 mount에서 `showPanel()`을 바로 부르고
+  패널을 입력·출력 칸의 가상 보드 위로 옮긴다(4절 "패널은 쓸 때만 연다"의 예외).
+
+## 8.6 실물 점검 도우미(P3-11) — 항목 더하기
+
+`/labs/esp32/check/`는 키트 보드가 사이트 예제대로 움직이는지 선생님이 확인하는 화면이다(부록 B-2 Phase 3 항목 = 운영자 할 일 2번).
+항목 하나 = `src/lab/esp32/check/items.ts`의 `CHECK_ITEMS` 한 줄이고, 그 파일만 고치면 화면·복사 글·테스트가 따라온다.
+
+- **칸:** `id`·`b2`(부록 B-2 번호)·`title`·`why`·`minutes`(추정)·`wiring`(사이드카 `parts`와 같은 모양)·`prepare`(사람이 먼저 할 일)·`code`·`seconds`(지켜볼 시간)·
+  `questions`(예/아니오)·`expect`(콘솔에서 읽을 값 안내)·`libraries`(쓰는 보드 라이브러리).
+- **코드 규칙:** 실물 MicroPython 이름만(사이트 흉내 이름 금지), 끝없는 반복 금지, 눈으로 볼 시간은 `seconds`로.
+- **배선 그림:** `wiring-figure.ts`가 가상 보드 그림을 **꺼진 모습으로 한 장** 그린다(누를 수 없다). 예제 배선도와 같은 자리·같은 색이다.
+- **판정·복사 글:** `report.ts` — 질문이 모두 예면 "예(같음)", 하나라도 아니오면 "다름", 답이 없으면 "아직". [결과 복사]는 PROGRESS에 붙일 마크다운 표를 만든다.
+- **저장:** `board-check:answers`(이 컴퓨터의 브라우저에만, [기록 지우기]가 함께 지운다).
+- **테스트:** `tests/unit/esp32-check/`(항목 규칙·복사 글) + `tests/e2e/esp32-board-check.spec.ts`(모의 포트로 항목 전체를 끝까지 — 실물의 증거는 아니다).
