@@ -1,12 +1,13 @@
 # 실습실 코드 안내 (`src/lab/`)
 
-실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절), **원본 예제 이관 도구**(6절)를 적어요.
+실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절)을 적어요.
 
 | 폴더 | 하는 일 |
 |---|---|
 | `runtime/` | 파이썬 워커(Pyodide)와 화면 쪽 API `PythonRuntime`(`client.ts`), 메시지 형식(`protocol.ts`), 다리(`bridge.ts`), 설정 한 곳(`config.ts`) |
 | `python/` | 워커 안에서 도는 붙박이 파이썬 모듈: 도우미 `apc_runtime.py`, 등록표 `apc_shims.py`, cv2 흉내 `apc_cv2.py`(폴더 규약 이전에 만든 것), 묶는 코드 `modules.ts` |
-| `modules/` | **흉내 모듈 폴더**(4절): `<id>/manifest.ts` + `index.ts` + `*.py` + `panel.astro?`. 자동 발견(`manifests.ts`·`host.ts`). 예시 `hello/` |
+| `modules/` | **흉내 모듈 폴더**(4절): `<id>/manifest.ts` + `index.ts` + `*.py` + `panel.astro?`. 자동 발견(`manifests.ts`·`host.ts`). 예시 `hello/`. 가상 ESP32 보드는 `board/`(7절 — 부품은 `board/parts/<부품>/`) |
+| `esp32/` | ESP32 실습실 예제 목록 만들기(`examples.ts` — `examples/esp32/**/*.py`, 보드 라이브러리 폴더 `esp32/lib/` 제외) |
 | `editor/` | 코드 에디터(CodeMirror 6) |
 | `controls/` | 실습실 공통 조작(`lab-shell.ts` 컨트롤러, 예제 목록 `examples.ts`, 예제 머리말 읽기 `example-meta.ts`, 사이드카 읽기 `example-sidecar.ts`(빌드 전용), 자동 저장·공유 링크·내려받기) |
 | `params/` | 조절 패널: 규약 파서 `parse.ts`, 화면 논리 `panel.ts` |
@@ -100,7 +101,7 @@ packages: [opencv-python]                       # 실행 전에 미리 받을 Py
 src/lab/modules/hands/                 ← 폴더 이름 = 모듈 id(영문 소문자·숫자·하이픈)
 ├─ manifest.ts     순수 데이터: id, title, labs, shims, requestKinds, eventKinds, channels, packages, placement
 ├─ index.ts        화면 쪽: default export { manifest, mount(ctx) } — 요청·이벤트·패널·프레임 훅을 잇는다
-├─ apc_hands.py    파이썬 쪽: 워커가 /apc에 써 준다. import 이름 = 파일 이름(저장소 전체에서 하나)
+├─ apc_hands.py    파이썬 쪽: 워커가 /apc에 써 준다. import 이름 = 파일 이름(저장소 전체에서 하나). 하위 폴더의 .py도 찾는다(보드 부품 폴더)
 ├─ panel.astro     (선택) 화면 조각. LabShell이 그 실습실 페이지에 hidden으로 그려 두고 ctx.panel로 넘긴다
 └─ (테스트) tests/unit/lab/pyodide-<id>.test.ts + helpers/pyodide-<id>-run.mjs, tests/e2e/module-<id>.spec.ts
 ```
@@ -173,7 +174,11 @@ export default manifest;
 
 ### 4.4 *.py — 파이썬 쪽 규칙
 
-- `apc_runtime`의 `request`·`emit`·`get`·`poll`·`drain`·`sleep`·`maybe_yield`·`check_stop`·`notice`·`register_reset_hook`·`register_tick_hook`만 써요. `js`·`_apc_bridge`를 직접 만지지 않아요.
+- `apc_runtime`의 `request`·`emit`·`get`·`peek`·`poll`·`drain`·`sleep`·`maybe_yield`·`check_stop`·`notice`·`register_reset_hook`·`register_tick_hook`·`register_wait_hook`·`register_finish_hook`·`register_idle_hook`만 써요. `js`·`_apc_bridge`를 직접 만지지 않아요.
+  - `peek(name, default)`: `get`과 같지만 양보·정지 확인을 하지 않아요 — 초기화 함수(동기 진입점)에서 화면이 실행 직전에 넣어 둔 최신 값을 읽을 때(P3-01).
+  - `register_wait_hook(fn)`: 파이썬이 **실제로 기다리기 직전**(block_on이 약속을 기다리기 전·제한 모드 sleep 전)마다 불려요. 모아 둔 상태를 기다리기 전에 화면에 보낼 때(가상 보드의 핀 상태). 양보 금지.
+  - `register_idle_hook(fn)`: 학생 코드가 **오류 없이 끝난 뒤** 워커가 `run_idle()`로 불러요. `fn()`이 True를 돌려주는 동안(스스로 한 번 기다린 뒤) [정지]까지 되풀이해요 — 가상 보드의 Timer·핀 인터럽트처럼 실물에서는 코드가 끝나도 계속 도는 것. 대기 훅이 없는 실습실은 곧바로 끝나요.
+- **실습실마다 넣는 파일이 달라요(P3-01):** 워커는 load 메시지의 `labId`로 그 실습실에 붙는 모듈 폴더(manifest `labs`)의 `.py`와 `shims`만 `/apc`에 넣어요(`python/modules.ts`의 `pythonModulesForLab`·`shimTableForLab`). 그래서 다른 실습실 모듈의 파일은 import되지 않아요 — 시험하려면 그 실습실 페이지(또는 manifest `labs`에 `dev`)에서 해요.
 - 진짜 패키지를 덮어쓰는 모듈은 `install()`(멱등 — 두 번 불려도 한 번만)을 두고 manifest의 `shims`에 적어요. `install()`은 실행 직전 **동기 진입점**에서 불려요.
 - **`shims`를 쓰지 않는 경우(P2-12·P2-13에서 나온 규약 예외):** Pyodide에 **아예 없는 패키지**(`speech_recognition`)나 **표준 라이브러리를 가리는 것**(`webbrowser`)은 `shims`에 적지 않고 **그 패키지 이름 그대로 `.py` 파일**을 모듈 폴더에 둬요. 워커가 `/apc`(sys.path 맨 앞)에 넣으므로 학생 코드의 `import speech_recognition as sr`가 내려받기 없이 그 파일을 불러요. `shims`는 **이미 받아 둔 진짜 패키지**를 덮어쓸 때만(`cv2`·`mediapipe`처럼) 써요 — `install_available()`이 그 패키지가 있을 때만 `install()`을 부르기 때문이에요.
 - **실행이 끝날 때 한 번 할 일**은 `register_finish_hook(fn)`으로 등록해요(워커가 `unbind_run_globals`를 부를 때 한 번, 동기 진입점이라 양보 금지). 마지막 줄에서 파일을 저장하고 끝나는 코드처럼 틱 훅으로는 잡히지 않는 것에 써요.
@@ -197,7 +202,7 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 
 ### 4.7 금지 사항
 
-- 등록 파일을 손으로 고치지 않아요: `python/modules.ts`, `modules/manifests.ts`, `modules/host.ts`, `LabShell.astro`, `worker.ts`는 폴더를 자동으로 찾아요. 여기에 모듈 이름을 적어야 한다면 규약이 깨진 거예요.
+- 등록 파일을 손으로 고치지 않아요: `python/modules.ts`, `modules/manifests.ts`, `modules/host.ts`, `LabShell.astro`, `worker.ts`는 폴더를 자동으로 찾아요. 여기에 모듈 이름을 적어야 한다면 규약이 깨진 거예요. 가상 보드의 부품도 같아요: `board/parts.ts`·`board/manifest.ts`·`board/view.ts`에 부품 이름을 적지 않아요(7절).
 - 다른 모듈의 이름(요청·이벤트·채널·`apc_*` 파일 이름)을 쓰지 않아요. 한 패키지를 두 모듈이 덮어쓰지 않아요.
 - 화면 밖으로 데이터를 보내지 않아요(원칙 2): 외부 주소 요청 금지. 모델·WASM은 같은 사이트(`public/vendor/`, `public/models/`)에서 받아요(PD-02). 학생 영상·랜드마크를 `localStorage`·공유 링크에 넣지 않아요(PLAN §10).
 - 원작 게임·실제 포털 화면을 흉내 내지 않아요(SPEC §6.1·§8). 얼굴 식별(누군지 알아보기) 기능을 넣지 않아요.
@@ -258,3 +263,127 @@ npm run examples:verify              # 원본 없이 기록과 대조(sha256·�
 - 새 항목은 `scripts/examples-manifest.yaml`의 `examples:`에 `id`(CODE_MAPPING 코드 id)·`source`(zip 이름)·`member`(zip 안 경로)·`target`(`examples/…py`)·`author`(`operator` | `third_party`)·`meta`(사이드카 씨앗)를 적고 스크립트를 돌려요. 다른 저작자 파일은 `third-party/` 폴더 아래로만(PD-26). 원본 결함으로 구문 오류가 나는 파일(f074)은 `expect_syntax_error: true`.
 - 구문 검사는 이 컴퓨터의 파이썬 3(`python`·`python3`·`py -3`)의 `ast.parse`로 하고, 없으면 Node의 가벼운 검사만 해요(기록에 `syntax_checker`로 남아요).
 - 옮긴 파일은 고치지 않아요. 사이트판 수정이 필요하면 파일을 따로 두고(PD-10) 차시 md·사이드카에 적어요.
+
+---
+
+## 7. 가상 ESP32 보드 — 보드 모듈 `modules/board/`와 부품 레지스트리(P3-01)
+
+ESP32 실습실(`/labs/esp32/`, LabShell `labId="esp32"`)의 가상 보드는 흉내 모듈 폴더 하나(`src/lab/modules/board/`, manifest `labs: ['esp32']`)예요. 실행 엔진은 영상처리 실습실과 같은 Pyodide 러너이고(PD-04, PLAN §8.3 P3-00 판정), OpenCV·numpy는 받지 않아요(워커는 실습실에 붙는 모듈 파일만 넣고, 준비 모듈의 [미리 받기]·캐시 채우기도 LabShell `pyodidePackages={[]}`라 파이썬 엔진만).
+
+```
+src/lab/modules/board/
+├─ manifest.ts            id board, labs ['esp32'], shims { time: 'apc_board' }(실행 직전마다 install), 이름 5개(7.3)
+├─ index.ts               화면 쪽: 배선 → 보드 그림(view.ts) → 입력·상태 메시지 잇기
+├─ state.ts · parts.ts    순수 논리: 메시지 모양·스냅샷 / 부품 레지스트리·배선 검사·입력 값 계산
+├─ view.ts · svg.ts       DOM: 보드 그림·부품 배치·핀 표, 입력 부품의 마우스·터치·키보드 공통 처리
+├─ part-types.ts          부품 정의(PartDefinition)의 모양
+├─ machine.py · micropython.py   학생이 import하는 이름 그대로(파일 이름 = import 이름)
+├─ apc_board.py           보드 핵심: 핀·가상 시계·Timer·콜백·import 훅·확장 불러오기
+├─ apc_board_time.py      MicroPython판 time
+└─ parts/<부품 id>/       부품 하나 = 폴더 하나(7.5): part.ts (+ apc_part_*.py·드라이버 .py)
+```
+화면 틀: `src/components/lab/BoardIo.astro`(io 슬롯 — `[data-board-io]`에 `data-lab-reveal-on-run`, 보드 그림 칸에 `data-lab-reveal-on-run-min`). 예제: `examples/esp32/*.py`(사이트 예제 3개, 원본 이관 예제는 P3-02부터 `examples/esp32/u2/…`).
+
+### 7.1 파이썬 API(가상 보드가 지금 흉내 내는 것)
+
+MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pin.h`·`machine_timer.c`·`modtime.c`, `extmod/modtime.c`, `shared/timeutils/timeutils.c`, `py/modmicropython.c`·`objmodule.c`, 2026-09-17 확인)와 같은 이름·값·오류 문구예요.
+
+| 이름 | 동작 |
+|---|---|
+| `machine.Pin(id, mode=None, pull=-1, *, value, drive, hold)` | id는 0~23·25~27·32~39(그 밖·bool·소수·글자는 `ValueError('invalid pin')`). 34~39에 출력 모드면 `ValueError('pin can only be input')`. 번호만 주면 설정을 바꾸지 않고, `Pin(2) is Pin(2)`. 상수 IN 1·OUT 3·OPEN_DRAIN 7·PULL_DOWN 1·PULL_UP 2·IRQ_RISING 1·IRQ_FALLING 2·WAKE_LOW 4·WAKE_HIGH 5·DRIVE_0~3. repr `Pin(2, mode=Pin.OUT)`(ESP-IDF 5.5 모양) |
+| `pin.value([x])` · `pin([x])` · `on()` · `off()` · `toggle()` | 쓰기는 모드와 상관없이 출력 값을 적는다(출력이 꺼져 있으면 핀 전압은 그대로). **바깥을 보는 읽기**(출력 중이 아닌 핀)는 입력 확인 지점 |
+| `pin.irq(handler=None, trigger=IRQ_FALLING\|IRQ_RISING, wake=None)` | 핀 전압이 바뀌면 콜백 대기열에 `handler(pin)`. handler None이면 끔. 돌려주는 IRQ 객체: `irq()`로 한 번 부르기, `trigger([값])`. wake(잠자기 깨우기)는 흉내 내지 않고 안내 |
+| `machine.Timer(id=-1)` · `init(*, mode=PERIODIC, callback, period=ms, tick_hz=1000, freq, hard=False)` · `deinit()` · `value()` | 0~3은 하드웨어 타이머(같은 번호는 같은 객체), 음수는 가상 타이머, 4 이상은 `ValueError("Timer(4) doesn't exist, there are only 4 hardware timers")`. 위치 인자 → `TypeError('extra positional arguments given')`, hard → `ValueError`, 주기 0 → `ValueError('Timer period is too short for this timer')`. `Timer.PERIODIC` 1·`ONE_SHOT` 0. repr은 실물 소스의 뒤바뀐 조건까지 같음(`mode=ONE_SHOT`로 찍힘) |
+| 그 밖의 `machine` 이름(PWM·ADC·SoftI2C·I2C·UART·RTC·time_pulse_us …) | 쓰면 `ImportError('machine.PWM은(는) 가상 보드에 아직 없어요…')`(오류 사전 `board-not-emulated`). 부품 단계가 확장 파일로 더한다(7.6) |
+| `time`(= `utime`) | `sleep(초)`(1000배 단정밀도 → 밀리초로 버림, 음수는 ValueError), `sleep_ms`·`sleep_us`(정수만, 음수·0 이하는 기다리지 않음), `ticks_ms`·`ticks_us`·`ticks_cpu`(가상 시각 `& (2**30-1)` — ticks_cpu는 실물의 CPU 사이클 대신 µs), `ticks_diff(a,b)`=`((a-b+2**29) & (2**30-1)) - 2**29`, `ticks_add`(±2**29 이상이면 `OverflowError('ticks interval overflow')`), `time()`·`time_ns()`(2000년 기준), `localtime`=`gmtime`(같은 함수, 8칸, 요일은 월요일=0), `mktime`(8·9칸, 넘친 값 넘김). CPython에만 있는 이름(perf_counter 등)은 없다 |
+| `micropython` | `const(x)`=x, `schedule(f, arg)`(대기열 8개, 넘치면 `RuntimeError('schedule queue full')`), `opt_level`·`alloc_emergency_exception_buf`·`heap_lock`/`unlock`/`locked`·`kbd_intr`(하는 일 없음), `mem_info`·`qstr_info`·`stack_use`(안내만), `native`·`viper` 장식자. `umicropython`은 실물처럼 없음 |
+| u-이름 | `utime`·`umachine`·`ustruct`·`usys`·`uerrno`·`ujson`·`urandom`·`uos`·`uarray`·`ucollections`·`ubinascii`·`uio`·`ure`·`uhashlib`·`uheapq`·`uselect`·`usocket`·`uplatform` → 원래 모듈(실물의 "확장 가능한 붙박이 모듈 + usys" 규칙) |
+| `errno`(= `uerrno`) | MicroPython 목록 22개를 ESP32(newlib) 번호로: ENOENT 2·EIO 5·EAGAIN 11·ENOMEM 12·ENODEV 19·EINVAL 22·EOPNOTSUPP 95·ETIMEDOUT 116 …, `errorcode` 사전(Pyodide의 errno 번호와 다르다) |
+| `bluetooth`·`ubluetooth` | 자리만: import하면 `ModuleNotFoundError("No module named 'bluetooth' (가상 보드의 블루투스는 아직 흉내 내지 않아요 …)")` — Phase 4가 `register_board_module`로 채운다 |
+
+**학생 코드만 MicroPython판을 받는다:** `apc_board.install()`이 `builtins.__import__`에 훅을 걸어, import하는 쪽이 학생 코드(`__main__`, 작업 폴더 `/home/pyodide/`, 보드 라이브러리 폴더 `/board/lib/`의 파일)일 때만 `time`·`utime`·`errno`·`bluetooth`·u-이름을 바꿔 준다. 표준 라이브러리·Pyodide가 import하는 `time`은 진짜 CPython time 그대로다(C 코드의 `PyImport_Import`는 `sys.modules`를 돌려주므로 영향 없음). `sys.modules['time']`을 바꾸지 않는다. `importlib.import_module('time')`은 진짜를 받는다(드문 경우 — 차이로 둠).
+
+**보드 라이브러리 폴더 `/board/lib/`:** `sys.path` 끝에 있다. P3-04가 사이트 제공 라이브러리(`i2c_lcd.py` 등)를 이 폴더에 넣는다(학생 작업 폴더의 같은 이름 파일이 먼저).
+
+### 7.2 가상 시계·입력 확인 지점·콜백
+
+- **가상 시각** = 실행 시작(보드를 새로 켠 것처럼 0) 뒤 학생 코드가 **계산한 실제 시간** + **sleep한 양**. sleep이 실제로 기다린 시간(브라우저 타이머가 늦는 만큼)은 세지 않으므로 `ticks_diff`가 실물처럼 "잔 만큼"이다. 짧은 sleep은 `apc_runtime.sleep`이 16ms씩 모아 기다려도 ticks는 바로 늘어난다(f060의 `sleep(0.001)` 반복). sleep 도중에 도는 틱 훅은 그 sleep이 끝날 시각을 넘지 않는다(Timer 주기 건너뛰기·시각 거꾸로 방지).
+- **RTC(`time.time()`)**: 실행을 시작할 때 이 컴퓨터의 현지 시각에서 출발한다(Thonny가 연결할 때 시계를 맞추는 것과 같게 — 실물의 전원 직후 값은 부록 B-2 6번).
+- **입력 확인 지점**: `time.sleep*`, 출력 중이 아닌 핀의 `value()` 읽기, `ticks_*()`. 여기서 ① 16ms마다 한 번 양보해 [정지]·화면 입력을 받고 ② 화면 입력(`board.input`)을 핀에 반영해 인터럽트 콜백을 대기열에 넣고 ③ 울릴 Timer를 대기열에 넣고 ④ 대기열의 콜백을 부른다. `input()`을 기다리는 동안에는 콜백이 돌지 않는다(끝나면 이어서).
+- **Timer**: sleep 도중에는 울릴 시각마다 깨어 제시간(가상 시각)에 부른다. 계산만 하는 반복문 동안 밀린 주기는 한 번만 부른다(실물은 대기열이 넘치면 버림). 콜백 안에서는 다른 콜백이 끼어들지 않는다. 핀 인터럽트가 걸려 있으면 긴 sleep을 20ms 조각으로 나눠 입력에 20ms 안에 반응한다.
+- **콜백 오류**: 실물처럼 트레이스백(학생 코드 줄만)을 보여 주고 프로그램은 계속 돈다(안내 한 번).
+- **코드가 끝난 뒤**: Timer나 핀 인터럽트가 남아 있으면 `run_idle`로 [정지]까지 계속 돈다(`board.state` phase `idle`, 콘솔 안내). 오류·`exit()`로 끝나면 이어 돌지 않는다.
+- **[정지]·다시 시작**: 부품을 꺼진 모습으로 되돌린다(스냅샷 phase `stopped`). 스스로 끝나거나 오류로 끝나면 마지막 모습을 남긴다(실물과 같음). 다음 [실행]은 보드를 새로 켠다(핀·Timer·시계 초기화).
+- **실물과 다른 점**(P3-00 차이 표 12번, 실습실 페이지 "가상 보드와 실물 보드가 다른 점"): 콜백이 바이트코드 사이 어디서나가 아니라 입력 확인 지점에서만 돈다. 양보 없는 계산 반복문은 [정지] 2단계(파이썬 다시 시작)로만 멈춘다.
+- **핀 안내**(콘솔 `[알림]`, 실행마다 한 번): 떠 있는 입력 핀 읽기(가상은 0), 6~11번(플래시) 출력, 1·3번(UART0) 출력, 20번(모듈 핀 아님), 34~39번 쓰기·풀업, 출력 핀을 부품이 반대 값으로 누름(합선).
+
+### 7.3 메시지 형식(워커 ↔ 화면, 이름은 모두 `board.`)
+
+모양의 기준은 `state.ts` 머리말과 `apc_board.py`예요. PLAN §7 브릿지(UART·BLE·MQTT로 오가는 글자 한 줄)와 겹치지 않는 "핀 전압" 통로이고, 브릿지는 Phase 4가 `board.uart.*`·`board.ble.*`처럼 따로 더해요.
+
+| 이름 | 방향·종류 | 값 |
+|---|---|---|
+| `board.state` | 파이썬 → 화면, 이벤트 | `{ v: 1, reason: 'reset'\|'change'\|'idle'\|'end', phase: 'run'\|'idle'\|'end', seq, t_us, pins: [{ id, mode: 'in'\|'out'\|'open_drain'\|'off'\|'out_only'\|'other'\|null, pull: 'up'\|'down'\|'both'\|null, out: 0\|1, level: 0\|1, driven, irq }], timers }` — 늘 **핀 전체 목록**(이번 실행에서 코드가 만진 핀). 보내는 때: 실행 시작(reset), 파이썬이 실제로 기다리기 직전(대기 전 훅), 마지막으로 보낸 뒤 16ms가 지난 쓰기, 코드가 끝난 뒤 대기 시작(idle), 실행 끝(end). 16ms 안의 변화는 합쳐진다(PLAN §7.2 규칙 5 "상태는 최신 값만") |
+| `board.inputs` | 화면 → 파이썬, 최신 값(`setValue`) | `{ pins: { '0': 'pullup', '17': 1 } }` — 입력 부품이 지금 핀을 누르는 값 전체. 실행 시작 때(초기화 훅이 `peek`) 읽는다. [실행] 직전에 다시 넣는다(정지 2단계 대비) |
+| `board.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ pin: 0, drive: 0\|1\|'pullup'\|'pulldown'\|null }` — 실행 중에 바뀐 핀 하나. 눌렀다 뗀 것도 빠짐없이 순서대로(§7.2 규칙 5 "이벤트는 대기열") |
+| `board.wiring` | 화면 → 파이썬, 최신 값 | `{ parts: [{ part: 'builtin-led', id: 'builtin-led', pins: { led: 2 } }] }` — 이 예제의 배선(보드에 붙은 부품 포함). 부품 흉내·배선 검사가 읽는다 |
+| `board.device` | 파이썬 → 화면, 이벤트 | 부품 흉내의 상태(부품 단계가 쓴다 — 권장 모양 `{ part, id, state }`) |
+
+`drive` 뜻: `0`·`1` = 부품이 핀을 세게 누름(버튼이 GND에 닿음, 센서 모듈 출력), `'pullup'`·`'pulldown'` = 약하게 끌어당김(보드의 BOOT 버튼 풀업), `null` = 연결 없음. 핀 전압은 세게 누름 > 출력 > 약한 끌어당김 > 내부 풀업·풀다운 > 떠 있음(0) 순서로 정한다.
+화면 쪽 테스트 표시: `[data-board-io]`의 `data-board-ready`·`data-board-phase`·`data-board-seq`·`data-board-reason`, 부품 `[data-board-part="<배선 id>"]`의 `data-part`·`data-visual-<이름>`·`aria-pressed`, 핀 표 `[data-board-pin="<GPIO>"]`의 `data-mode`·`data-level`·`data-driven`.
+
+### 7.4 배선(PD-05 예제별 배선)
+
+- 보드에 붙은 부품(`onboard: true` — 지금 `builtin-led` GPIO2·`boot-button` GPIO0)은 배선에 적지 않아도 늘 있고 핀이 고정된다.
+- 예제의 부품은 `LabExample.parts`(`[{ part, id, pins, label? }]`)로 넘긴다. 차시 md `parts`·사이드카에서 채우는 일은 P3-02가 한다(`src/lab/esp32/examples.ts`가 옮겨 담는 자리).
+- `parts.ts`의 `resolveWiring`이 없는 부품·겹치는 id·ESP32에 없는 핀·입력 전용 핀(34~39)의 출력 부품·한 핀의 입력 부품 둘을 한국어로 알리고(보드 그림 아래 목록), 스트래핑 핀 안내는 P3-02가 같은 자리에 더한다(`STRAPPING_GPIOS`).
+
+### 7.5 부품 하나 = 폴더 하나 — `modules/board/parts/<부품 id>/`
+
+```
+parts/builtin-led/part.ts     출력 부품 본보기(핀 상태 → 모습)
+parts/boot-button/part.ts     입력 부품 본보기(누름 → 핀 누르는 값)
+parts/<새 부품>/
+├─ part.ts                    default export PartDefinition(필수)
+├─ apc_part_<이름>.py         (선택) 핀만으로 안 되는 부품의 파이썬 흉내(I2C 장치 등) — 보드가 첫 실행 직전에 불러온다
+└─ <드라이버>.py              (선택) 학생이 import하는 이름 그대로(neopixel.py·ssd1306.py — 저장소 전체에서 이름 하나)
+```
+
+`PartDefinition`(`part-types.ts`):
+
+| 칸 | 뜻 |
+|---|---|
+| `id`·`title`·`description` | 폴더 이름과 같은 id(영문 소문자·숫자·하이픈), 한국어 이름·한 줄 설명(화면 낭독기) |
+| `onboard?` | 개발 보드에 붙은 부품이면 true(핀이 `defaultPins`로 고정, 배선에 늘 들어감) |
+| `pins` | `[{ role, label, direction: 'out'\|'in' }]` — role은 배선 표 `pins`의 열쇠. out = 보드가 움직임(LED), in = 부품이 값을 줌(버튼) |
+| `defaultPins?` | role → GPIO(onboard는 필수) |
+| `size` | 그림 크기(SVG 단위). 보드에 붙은 부품의 자리는 `view.ts`의 `ONBOARD_ANCHORS`, 바깥 부품은 보드 오른쪽 칸에 차례로 놓인다(P3-02가 배선도 배치로 바꿀 수 있음) |
+| `interaction?` | 입력 부품: `{ kind: 'momentary'\|'toggle', label, drive(active, role) → PinDrive }`. **마우스·터치·키보드는 `view.ts`가 공통으로 처리**한다 — momentary는 누르고 있는 동안(Space·Enter를 누르고 있는 동안, 초점을 잃으면 뗌), toggle은 누를 때마다. 부품은 `role="button"`·`tabindex=0`·`aria-pressed`를 받는다 |
+| `visual(context)` | **순수 함수**: `{ snapshot, instance, active, reducedMotion }` → `{ lit: true }`처럼 모습 값. `state.ts`의 `isDrivenHigh(snapshot, gpio)`를 쓰면 [정지] 뒤 꺼짐까지 맞는다. 보드 화면이 `data-visual-<이름>` 속성으로 적는다 |
+| `render(target, { svg, instance, definition })` | `target`(`<g>`) 안에 사이트가 직접 그린 SVG(브랜드 중립, 다른 저작물 그림 금지)를 한 번 그리고, 모습 값이 바뀔 때 부를 함수를 돌려준다. 색만으로 알리지 않게 글자(켜짐·누름)도 함께. 움직이는 그림은 `reducedMotion`이면 표시등으로. 누르는 부품은 투명하게 칠한 사각형(`fill="transparent"`)으로 누르는 자리를 24px 이상 |
+| `python?` | 파이썬 부품 흉내 모듈 이름(`apc_part_<이름>`, 같은 폴더에 있어야 함 — `board-parts.test.ts`가 확인) |
+
+- **자동 발견:** `parts.ts`가 `import.meta.glob('./parts/*/part.ts', { eager: true })`로 찾고 `validatePartDefinitions`로 검사한다(어기면 `board-parts.test.ts`가 실패하고, 브라우저에서는 보드 모듈이 오류를 내며 뜨지 않는다). `.py`는 `python/modules.ts`가 모듈 폴더의 하위 폴더까지 찾아 ESP32 실습실 워커의 `/apc`에 넣는다.
+- **파이썬 부품 흉내:** `apc_part_<이름>.py`는 `apc_board.register_part('<부품 id>', factory)`로 자기를 등록한다(`factory(배선 항목) → 장치`). 보드는 `/apc`의 `apc_board_*.py`·`apc_part_*.py`를 첫 실행 직전(`install()`) 한 번 불러온다. 상태를 화면에 알릴 때는 `apc_runtime.emit('board.device', { part, id, state })`, 실물과 같은 OSError는 `apc_board.board_oserror(19)`(`OSError: [Errno 19] ENODEV`). 핀은 `apc_board.find_pin(값)`·`BOARD.read(gpio)`·`BOARD.write(gpio, v)`·`BOARD.configure(…)`로 다룬다.
+- **단위 테스트:** `tests/unit/lab/board-parts.test.ts`에 그 부품의 `visual`·`interaction.drive` 검사를 더한다(DOM 없이). 파이썬 흉내가 있으면 `tests/unit/lab/helpers/pyodide-board-run.mjs`에 단계를 더하고 `pyodide-board.test.ts`에서 확인한다. 화면은 `tests/e2e/lab-esp32.spec.ts`처럼 `data-visual-*`를 읽는다.
+
+### 7.6 machine에 주변장치 더하기 — `apc_board_*.py` 확장
+
+PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 이름**은 `modules/board/`(또는 그 하위 폴더)에 `apc_board_<이름>.py`를 두고 `apc_board.register_machine_export('PWM', PWM)`로 등록한다. `machine.py`는 import할 때 확장을 불러와 그 이름을 내보내고(`from machine import PWM`), 여러 사람이 동시에 `machine.py`를 고치지 않아도 된다. 규칙: 확장은 `machine`을 import하지 않는다(순환), `apc_board`·`apc_runtime`과 표준 라이브러리만. 등록하면 `machine.py`의 "아직 없는 이름" 안내(`_NOT_YET`)는 자동으로 가려진다. `time`·`bluetooth` 같은 **모듈 통째**는 `apc_board.register_board_module('bluetooth', 모듈)`(학생 코드의 import에만 적용).
+
+### 7.7 테스트 방법
+
+| 층 | 어떻게 |
+|---|---|
+| 파이썬(실제 Pyodide) | `tests/unit/lab/pyodide-board.test.ts` + `helpers/pyodide-board-run.mjs` — ESP32 실습실 워커와 같은 파일·순서(beginRun → install_available → reset_for_run → bind → 코드 → run_idle). 입력은 `inputs`(실행 전)·`during`(시각)·`onMark`(파이썬이 `emit('board.device', {'mark': …})`한 뒤 — 부하에 흔들리지 않게), `stopAfterMs`·`idle`. 동기 진입점 검사 포함. `--limited`로 제한 모드 |
+| 순수 논리 | `board-state.test.ts`(메시지 읽기·스냅샷·입력 값), `board-parts.test.ts`(부품 정의 검사·배선·부품 visual/drive), `python-modules.test.ts`(실습실별 파일·shims), `esp32-examples.test.ts`(예제 목록) |
+| 브라우저 | `tests/e2e/lab-esp32.spec.ts`(LED 상태 메시지, BOOT 버튼 마우스·키보드, Timer 대기, OpenCV 안 받음, dev 실습실에 machine 없음). 예제 스모크(`examples-smoke.spec.ts`)는 실습실별로 돌아 `examples/esp32/` 이관 예제를 ESP32 실습실에서 실행한다 |
+| 개발 서버로 | `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx --ignore-lock` 뒤 `PW_BASE_URL=http://localhost:44xx/ai-physical-computing/ npx playwright test tests/e2e/lab-esp32.spec.ts --project=desktop --output=<저장소 밖 폴더>`(5절) |
+
+### 7.8 금지·주의
+
+- 부품 그림은 사이트가 직접 그린 브랜드 중립 SVG만(업체 로고·Fritzing 등 SA 그림 금지). 보드·부품 사진을 쓰려면 `scripts/image-allowlist.yaml` 눈 확인 절차.
+- 가상 보드가 실물보다 너그러우면 안 된다: 범위 밖 값에는 실물과 같은 예외를 내고(문구는 MicroPython 그대로), 한국어 풀이는 오류 사전 `board` 묶음(`content/help/errors/errors.yaml`)에 더한다. 흉내 낼 수 없는 차이는 콘솔 안내·교사용 접기로.
+- 보드 초기화·틱·대기 전·마무리 훅에서는 양보하지 않는다(`peek`·`drain`·`emit`·`notice`만). 콜백은 입력 확인 지점에서만 부른다.
+- CPython `time`·`sys.modules`를 바꾸지 않는다(import 훅만). Pyodide의 `errno` 번호를 보드 오류에 쓰지 않는다(`board_oserror`).
+- 부품·확장의 메시지는 `board.state`·`board.input`·`board.inputs`·`board.wiring`·`board.device` 다섯 이름으로 한다 — 새 이름이 꼭 필요하면 `manifest.ts`에 먼저 적는다(보드 모듈 담당과 상의).

@@ -813,6 +813,18 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 | 13 | 메모리 | 보드 RAM이 작아 큰 리스트·문자열은 `MemoryError` | 브라우저 메모리(안 남) | 안내: 교사용 접기 |
 | 14 | `sys` | `sys.platform == 'esp32'`, `sys.implementation.name == 'micropython'`, `sys.stdout` 바꾸기 불가 | 실측 `'emscripten'`, `'cpython'` | 바꾸지 않는다(Pyodide 내부가 씀). 자료 예제는 쓰지 않음 |
 
+- **구현 메모(P3-01 가상 보드 핵심, 2026-09-17):** 규약 전체(파이썬 API 표·메시지 형식·부품 폴더·테스트)는 `src/lab/README.md` 7절, 판단 근거는 `PROGRESS.md` 미해결 43~50.
+  - **실습실·엔진(PD-04):** `/labs/esp32/`는 `LabShell labId="esp32"` + io 슬롯 `BoardIo.astro`(보드 그림·핀 표). 워커 파일은 영상처리 실습실과 같지만 페이지마다 따로 뜨고, `load` 메시지에 `labId`를 실어 **그 실습실에 붙는 흉내 모듈의 `.py`·shims만** `/apc`에 쓴다(`src/lab/python/modules.ts`의 `pythonModulesForLab`·`shimTableForLab` — labId가 없으면 예전처럼 전부). ESP32 실습실은 `pyodidePackages={[]}`라 준비 모듈의 캐시 채우기·[미리 받기]가 파이썬 엔진 파일만 받는다("준비 끝 · 12.9MB", `pyodideFilesFor`). → 보드의 `machine.py`·`time` 훅이 영상처리 실습실에 들어가지 않고, ESP32 실습실은 opencv·numpy 요청이 0건이다(`tests/e2e/lab-esp32.spec.ts`).
+  - **러너 변경(최소):** `apc_runtime.py`에 `peek`(양보 없이 최신 값 읽기)·`register_wait_hook`(파이썬이 실제로 기다리기 직전)·`register_idle_hook`/`run_idle`(코드가 끝난 뒤 할 일이 남으면 [정지]까지)을 더했고, 워커는 학생 코드가 오류 없이 끝나면 같은 실행 안에서 `run_idle()`을 부른다(훅이 없으면 곧바로 끝나 영상처리 실습실은 그대로 — Vitest·Playwright 전체로 확인). 흉내 모듈은 여전히 `apc_runtime` 함수에만 기댄다(P3-00 "다시 볼 조건" ①의 전제).
+  - **`time` 결정(차이 표 1·3번):** `sys.modules['time']`을 바꾸지 않고 `builtins.__import__` 훅으로 **학생 코드**(`__main__`, `/home/pyodide/`·`/board/lib/`의 파일)가 import할 때만 MicroPython판 `time`·`utime`(`apc_board_time.py`)을 준다. 같은 훅이 `errno`·`uerrno`(newlib 번호, 차이 표 10번)·`bluetooth`·`ubluetooth`(자리 안내)·u-이름(차이 표 5번)을 맡는다. `machine`·`micropython`은 Pyodide에 없는 이름이라 파일 이름 그대로 둔다. `time`은 CPython 붙박이 모듈이라 파일로 가릴 수 없고, 진짜 모듈의 `time()`·`localtime()`을 바꾸면 표준 라이브러리가 깨질 수 있으며, C 코드의 `PyImport_Import`는 `sys.modules`를 보므로 훅의 영향을 받지 않는다.
+  - **가상 시계:** 가상 시각 = 실행 시작 뒤 학생 코드가 계산한 실제 시간 + sleep한 양(기다린 실제 시간·브라우저 타이머 늦음은 빼고, sleep이 끝나면 기준점을 다시 잡는다). sleep 도중 틱 훅이 보는 시각은 그 sleep의 끝을 넘지 않는다(넘으면 Timer 주기를 건너뛰고 `ticks_us`가 거꾸로 가는 것을 Node 실측으로 발견). 실행마다 0에서 시작하고, RTC(`time.time()`)는 PC 현지 시각에서 출발한다(Thonny 연결과 같게, 실물 전원 직후 값은 부록 B-2 6번).
+  - **입력 확인 지점·콜백(차이 표 12번):** `time.sleep*`, 출력 중이 아닌 핀의 `value()` 읽기, `ticks_*()`. Timer·핀 인터럽트 콜백은 이 지점에서만 대기열(깊이 8)로 돌고, sleep 중에는 Timer가 울릴 시각마다 깨며 인터럽트가 있으면 20ms 조각으로 잔다. 콜백 오류는 트레이스백을 보이고 계속 돈다. 코드가 끝나도 Timer·인터럽트가 남으면 [정지]까지 돈다(phase `idle`). [정지]면 부품을 꺼진 모습으로, 스스로 끝나거나 오류면 마지막 모습을 남긴다.
+  - **화면으로 보내는 핀 상태:** 바뀐 것을 모아 ① 실제로 기다리기 직전 ② 마지막 전송 뒤 16ms가 지난 쓰기 ③ 시작·대기 시작·끝에 `board.state`(핀 전체 목록)로 보낸다 — 16ms 안에 켰다 끈 펄스는 합쳐져 화면에 안 보인다(§7.2 규칙 5 "상태는 최신 값만"). 입력은 `board.inputs`(최신 값, 실행 시작 때 읽음) + `board.input`(쌓이는 값, 눌렀다 뗀 것도 순서대로).
+  - **부품 레지스트리:** `src/lab/modules/board/parts/<부품 id>/part.ts`(+ 선택 `apc_part_*.py`) — 흉내 모듈 폴더가 아니라 **보드 모듈 안의 부품 폴더**다. 부품은 보드 핀 상태를 함께 읽는 보드의 일부라, 모듈 폴더로 두면 부품마다 manifest·메시지 이름이 생기고 모듈끼리 핀 상태를 나눌 통로가 없으며 부품 수만큼 청크를 받는다. `import.meta.glob`이 찾고 메시지는 보드 이름 다섯 개를 함께 써서 부품을 더해도 등록 파일·manifest를 고치지 않는다. 이번 묶음의 부품은 보드에 붙은 내장 LED(GPIO2)·BOOT 버튼(GPIO0, 마우스·터치·Space/Enter 누르고 있기) 두 개. `machine`의 주변장치(PWM·ADC·I2C·UART·RTC)는 `apc_board_<이름>.py` + `register_machine_export`로 더하고, 아직 없는 이름은 `ImportError` + 한국어 안내(오류 사전 `board-not-emulated`).
+  - **오류 사전:** `errors.yaml`에 `board` 묶음과 풀이 6개(`invalid pin`·`pin can only be input`·Timer 번호·Timer 주기·ticks 넘침·아직 없는 기능). 문구는 MicroPython 그대로 내고 풀이만 한국어.
+  - **예제:** 사이트 예제 3개(`examples/esp32/01-first-blink.py`·`02-boot-button-led.py`·`03-timer-blink.py`, 머리말 규약). 원본 이관은 P3-02부터(`examples/esp32/u2/…`) — 예제 스모크(`examples-smoke.spec.ts`)를 실습실별로 나눠 두어 옮기면 ESP32 실습실에서 돈다.
+  - **다음 묶음에 남긴 것:** P3-02 — 디지털 터치·진동 모터 부품, 차시 md `parts` → `LabExample.parts`(자리만 있음) → 배선도 배치, 스트래핑 핀 안내(`STRAPPING_GPIOS`), f046·f015·f052·f053 이관. P3-03~ — `RTC`(`time.time()`과 같은 시계)·PWM·ADC 확장. 호환 경고(차이 표 9번)는 P3-08과 함께. 실물 확인 항목은 부록 B-2 16번.
+
 ### 8.4 Phase 4 — 통신 실습실
 
 **산출물:** 브릿지 핵심, 같은 페이지 가상 보드 연결, 가상 BLE와 `ESP32BLE.py` 원본 실행, Web Bluetooth·Web Serial 데이터 포트, MQTT와 가상 Wi-Fi·MQTT 흉내, 같은 컴퓨터 탭 통로, 대시보드, 시나리오 F 예제, 4단원 통합 화면, ESP32 통신 템플릿 3종과 통신 블록, 예제 갤러리.
@@ -1228,6 +1240,7 @@ P1-01 첫 공개 커밋 전에 고쳐야 할 모순은 2차 검토(2026-09-15)�
 | 12 | 수동 버저에 켜기만 줄 때 소리, GPIO2 버저가 내장 LED에 주는 영향, 진동 모터 사이트 배정 핀 동작 | Phase 3 끝 | 도우미(f067, f110, 진동 예제) | 15분 |
 | 13 | 스트래핑 핀(GPIO 12·5·15·2)에 부품을 단 예제로 전원을 넣었을 때 부팅 | Phase 3 끝 | 도우미(f058, f113) | 10분 |
 | 14 | 서보 duty 23/73/124와 40/77/115의 실제 각도, RGB LED 공통 극성 | Phase 3 끝 | 도우미 + 각도 눈금 그림(f078, f106, f061) | 15분 |
+| 16 | 가상 보드(P3-01)가 흉내 낸 기본 동작: `print(Pin(2, Pin.OUT))`의 모양, BOOT 버튼(GPIO0) 읽기 값(평소 1·누르면 0), 아무것도 잇지 않은 입력 핀의 값, 계산만 하는 반복문 중 Timer 콜백이 끼어드는지(가상은 입력 확인 지점에서만), 콜백 오류 뒤에도 Timer가 계속 도는지, 스크립트가 끝나거나 오류로 멈춘 뒤에도 Timer가 도는지 | Phase 3 끝 | 도우미 [보드에 보내기] 5회(배선 없음) | 10분 |
 | 8 | UART2 결선 방향(사이트판 `tx=17, rx=16`으로 레이저가 켜지는지) | Phase 4 | 도우미 + 변환기 배선 그림(f082) | 20분 |
 | 15 | Web Bluetooth로 실제 보드와 송수신, 동시 쓰기 오류 조건 | Phase 4 | 도우미(f089 + f086) | 20분 |
 
