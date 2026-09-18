@@ -23,6 +23,8 @@
  * 부품 장치(병렬 제작 준비 2026-09-17 — P3-03~P3-05가 보드 핵심을 고치지 않게 둔 자리, README 7.3)
  *   파이썬 → 화면 이벤트 'board.device'  { v: 1, id: 배선 id, part: 부품 id, state: 부품마다 정한 값 }  — 문자 LCD 글자·네오픽셀 색·MP3 트랙처럼
  *     핀 전압만으로 안 보이는 상태. 최신 값만(16ms 병합). 실행 시작(board.state reason 'reset') 때 화면이 비운다.
+ *   파이썬 → 화면 이벤트 'board.notice'  { v: 1, code, level: 'warning', text, gpio? }  — 코드가 배선과 어긋나게 핀을 쓸 때
+ *     apc_board.warn_once가 콘솔 안내와 함께 보낸다. 화면(index.ts)이 보드 그림 아래 "배선 확인" 칸에 넣는다(실행마다 비운다).
  *   화면 → 파이썬 pushEvent 'board.device.input'  { id: 배선 id, data: 부품마다 정한 값 }  — 송신 패널처럼 부품 조작 칸이 파이썬 부품 흉내에 보내는 값(쌓이는 값).
  *   PWM(board.state 핀 항목): mode 'pwm'·duty(0~1)·freq(Hz) — 파이썬 BOARD.set_pwm이 채운다.
  *
@@ -32,6 +34,7 @@
 
 export const BOARD_EVENT_STATE = 'board.state';
 export const BOARD_EVENT_DEVICE = 'board.device';
+export const BOARD_EVENT_NOTICE = 'board.notice';
 export const BOARD_CHANNEL_INPUTS = 'board.inputs';
 export const BOARD_CHANNEL_INPUT = 'board.input';
 export const BOARD_CHANNEL_WIRING = 'board.wiring';
@@ -317,6 +320,27 @@ export function parseDeviceEvent(payload: unknown): BoardDeviceEvent | null {
     return null;
   }
   return { id: raw.id, part: raw.part, state: raw.state ?? null };
+}
+
+/** 실행 중 안내('board.notice') — 코드가 배선과 어긋나게 핀을 쓸 때 파이썬이 보낸다 */
+export interface BoardNoticeEvent {
+  readonly code: string;
+  readonly level: 'error' | 'warning' | 'info';
+  readonly text: string;
+  readonly gpio?: number;
+}
+
+export function parseNoticeEvent(payload: unknown): BoardNoticeEvent | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  const raw = payload as Record<string, unknown>;
+  if (typeof raw.text !== 'string' || raw.text.trim() === '' || typeof raw.code !== 'string' || raw.code === '') {
+    return null;
+  }
+  const level = raw.level === 'error' || raw.level === 'info' ? raw.level : 'warning';
+  const gpio = typeof raw.gpio === 'number' && Number.isInteger(raw.gpio) ? raw.gpio : undefined;
+  return { code: raw.code, level, text: raw.text, ...(gpio === undefined ? {} : { gpio }) };
 }
 
 /** 장치 상태 표에 이벤트 하나를 반영한 새 표(같은 id면 순서 번호를 1 올린다) */

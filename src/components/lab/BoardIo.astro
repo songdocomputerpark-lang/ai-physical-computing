@@ -32,9 +32,16 @@ import '../../styles/board-drawing.css';
         <ol class="board-io__practice-steps" data-board-practice-steps></ol>
       </div>
       <p class="board-io__phase" data-board-phase-text role="status" aria-live="polite">보드가 멈춰 있어요. [실행]을 누르면 보드를 새로 켜고 코드를 돌려요.</p>
-      <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-board-zoom-level="fit" data-lab-reveal-on-run-min>
-        <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
+      {/*
+        칸보다 그림이 넓으면(휴대폰 기본 화면, [그림 크게 보기]) 옆으로 밀어 봐야 한다 — 그 사실을 오른쪽 그늘과 아래 한 줄로 알린다
+        (2026-09-18 검토 반영: 375px에서 크게 보기를 누르면 보드 왼쪽 40%만 보이고 더 볼 수 있다는 표시가 없어 그림이 깨진 줄 알았다).
+      */}
+      <div class="board-io__stage-wrap" data-board-stage-wrap data-board-overflow="no">
+        <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-board-zoom-level="fit" data-lab-reveal-on-run-min>
+          <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
+        </div>
       </div>
+      <p class="board-io__scroll-hint" data-board-scroll-hint hidden>그림이 칸보다 넓어요 — 옆으로 밀어 보세요.</p>
       <p class="board-io__note" data-board-wiring-empty hidden>
         이 예제는 보드에 붙은 부품(내장 LED·BOOT 버튼)만 써요. 터치 센서처럼 바깥 부품을 쓰는 예제를 고르면 보드 아래에 배선도가 그려져요.
       </p>
@@ -195,6 +202,33 @@ import '../../styles/board-drawing.css';
     line-height: var(--leading-snug);
   }
 
+  /* 그림 칸을 감싸는 틀 — 오른쪽 그늘(더 볼 것이 있다는 표시)을 여기에 그린다(칸 안에 그리면 그늘도 함께 밀린다) */
+  .board-io__stage-wrap {
+    position: relative;
+  }
+
+  .board-io__stage-wrap[data-board-overflow='yes']::after {
+    content: '';
+    position: absolute;
+    inset-block: 1px;
+    inset-inline-end: 1px;
+    width: 2.5rem;
+    border-end-end-radius: var(--radius-md);
+    border-start-end-radius: var(--radius-md);
+    background: linear-gradient(to left, var(--color-bg-subtle), transparent);
+    pointer-events: none;
+  }
+
+  .board-io__scroll-hint {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .board-io__scroll-hint[hidden] {
+    display: none;
+  }
+
   .board-io__stage {
     min-height: 12rem;
     padding: var(--space-2);
@@ -210,9 +244,16 @@ import '../../styles/board-drawing.css';
     font-size: var(--text-sm);
   }
 
+  /*
+   * min-width 32rem(512px): 보드가 없는 학생에게 유일한 결과 화면인데, 375px 휴대폰에서 칸 너비에 맞추면 배율이 0.77이 되어
+   * 핀 번호가 6.6px, 부품 상태 글자가 7.4px로 읽을 수 없었다(2026-09-18 브라우저 실측). 512px이면 배율 1.22로 핀 번호 약 10px,
+   * 부품 이름 약 11px이 된다. 넘치는 만큼은 칸 안에서 옆으로 밀어 보고, 넘친다는 사실은 오른쪽 그늘과 아래 한 줄로 알린다.
+   * 데스크톱(칸 약 580px)에서는 100%가 이미 512px보다 넓어 아무것도 달라지지 않는다.
+   */
   .board-io__stage :global(.board-stage__svg) {
     display: block;
     width: 100%;
+    min-width: 32rem;
     height: auto;
     max-height: 40rem;
   }

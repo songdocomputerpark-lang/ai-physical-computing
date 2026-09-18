@@ -32,6 +32,8 @@
    콘솔에 한국어로 알린다 — 값을 보내는 부품(터치 센서·버튼)이 이어진 핀을 출력으로 정함, 보드가 움직이는 부품(LED·진동 모터)이 이어진 핀을
    입력으로 정하거나 출력으로 정하지 않고 값을 씀, 배선에 부품이 없는 핀을 출력으로 정함. 실물처럼 오류를 내지는 않는다(실물도 코드는 돈다).
    배선을 받지 못한 실행(단위 테스트의 일부 단계)에서는 알리지 않는다.
+   같은 글을 'board.notice' 이벤트로도 보내 보드 그림 아래 "배선 확인" 칸에 넣는다(2026-09-18 검토 반영 — 콘솔은 결과 칸보다
+   688px 아래여서 정작 필요한 학생이 못 봤다).
 
 9. 부품 단계(P3-03~P3-05) 확장 자리(병렬 제작 준비 2026-09-17 — 여러 구역이 이 파일을 고치지 않게 미리 둔 것, README 7.6·7.9):
    - PWM: BOARD.set_pwm(gpio, duty 0~1, freq Hz)·clear_pwm(gpio)·pwm_of(gpio). PWM이 켜진 핀은 모드와 상관없이 전기를 내보내고
@@ -108,12 +110,14 @@ __all__ = [
 # ── 화면 쪽(manifest.ts·state.ts)과 같아야 하는 이름 ──
 EVENT_STATE = "board.state"
 EVENT_DEVICE = "board.device"
+EVENT_NOTICE = "board.notice"
 CHANNEL_INPUTS = "board.inputs"
 CHANNEL_INPUT = "board.input"
 CHANNEL_WIRING = "board.wiring"
 CHANNEL_DEVICE_INPUT = "board.device.input"
 STATE_VERSION = 1
 DEVICE_VERSION = 1
+NOTICE_VERSION = 1
 
 #: 보드 전원 전압(밀리볼트) — ESP32 GPIO·ADC의 3.3V
 BOARD_MAX_MV = 3300
@@ -1021,6 +1025,14 @@ class Board:
             return
         self.warned.add(key)
         apc_runtime.notice(text, "warn")
+        # 같은 글을 보드 그림 아래 "배선 확인" 칸에도 보낸다(2026-09-18 검토 반영 — 콘솔은 결과 칸보다 한참 아래라
+        # 코드와 배선이 어긋났다는 가장 쓸모 있는 안내를 학생이 못 봤다). 화면 쪽은 index.ts가 받아 [data-board-problems]에 넣는다.
+        code = key[0] if isinstance(key, tuple) and key else str(key)
+        gpio = key[1] if isinstance(key, tuple) and len(key) > 1 and isinstance(key[1], int) else None
+        payload = {"v": NOTICE_VERSION, "code": str(code), "level": "warning", "text": str(text)}
+        if gpio is not None:
+            payload["gpio"] = gpio
+        apc_runtime.emit(EVENT_NOTICE, payload)
 
     def warn_input_only_write(self, gpio):
         self.warn_once(

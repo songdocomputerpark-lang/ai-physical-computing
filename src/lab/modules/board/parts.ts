@@ -11,6 +11,7 @@
  *
  * 배선 검사(resolveWiring, P3-02) — 찾은 것은 WiringIssue(수준·종류·한국어 문장)로 보드 그림 아래 목록에 보인다. 종류 표는 README 7.4.
  */
+import { withParticle } from '../../../lib/korean.ts';
 import { headerPinForGpio } from './layout.ts';
 import type { PartDefinition, PartInstance, UnknownPartEntry, WiringEntry, WiringIssue } from './part-types.ts';
 import { FIRST_INPUT_ONLY_GPIO, isStrappingGpio, isValidGpio, type PinDrive } from './state.ts';
@@ -196,7 +197,7 @@ function missingHeaderReason(gpio: number): { level: WiringIssue['level']; reaso
   if (gpio === 20) {
     return { level: 'warning', reason: 'GPIO20은 이 보드(ESP32-WROOM-32 모듈)의 핀으로 나와 있지 않아요' };
   }
-  return { level: 'warning', reason: `GPIO${gpio}은(는) 30핀 개발 보드의 핀 머리에 나와 있지 않아요` };
+  return { level: 'warning', reason: `${withParticle(`GPIO${gpio}`, '은/는')} 30핀 개발 보드의 핀 머리에 나와 있지 않아요` };
 }
 
 /** 한국어 목록 이음: "터치 센서, 진동 모터" */
@@ -230,7 +231,7 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
         issues.push({
           level: 'error',
           code: 'bad-id',
-          text: `배선의 이름 "${entry.id}"이(가) 규칙에 맞지 않거나 겹쳐요(영문 소문자·숫자·하이픈, 배선 안에서 하나).`,
+          text: `${withParticle(`배선의 이름 "${entry.id}"`, '이/가')} 규칙에 맞지 않거나 겹쳐요(영문 소문자·숫자·하이픈, 배선 안에서 하나).`,
         });
         return null;
       }
@@ -252,7 +253,7 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
       issues.push({
         level: 'warning',
         code: 'unknown-part',
-        text: `이 예제에 쓰는 부품 "${label}"은(는) 가상 보드에 아직 없어서 그림에 그리지 못했어요. 이 부품을 쓰는 코드는 부품이 더해진 뒤에 끝까지 돌아요.`,
+        text: `${withParticle(`이 예제에 쓰는 부품 "${label}"`, '은/는')} 가상 보드에 아직 없어서 그림에 그리지 못했어요. 이 부품을 쓰는 코드는 부품이 더해진 뒤에 끝까지 돌아요.`,
       });
       const id = takeId(entry);
       const pins: Record<string, number> = { ...(entry.pins ?? {}) };
@@ -274,7 +275,7 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
       issues.push({
         level: 'error',
         code: 'pin-shorthand',
-        text: `${definition.title}(${id})은(는) 핀이 여러 개(${definition.pins.map((pin) => pin.role).join('·')})라 pin 하나로 적을 수 없어요. pins: { ${definition.pins[0]?.role}: 번호, … }처럼 역할마다 적어요.`,
+        text: `${withParticle(`${definition.title}(${id})`, '은/는')} 핀이 여러 개(${definition.pins.map((pin) => pin.role).join('·')})라 pin 하나로 적을 수 없어요. pins: { ${definition.pins[0]?.role}: 번호, … }처럼 역할마다 적어요.`,
       });
       continue;
     }
@@ -295,7 +296,7 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
         issues.push({
           level: 'info',
           code: 'onboard-fixed',
-          text: `${definition.title}은(는) 보드에 붙어 있어 ${pin.label} 핀이 GPIO${fixed}로 정해져 있어요(배선의 GPIO${wanted}는 쓰지 않아요).`,
+          text: `${withParticle(definition.title, '은/는')} 보드에 붙어 있어 ${pin.label} 핀이 GPIO${fixed}로 정해져 있어요(배선의 GPIO${wanted}는 쓰지 않아요).`,
           gpio: fixed,
         });
         gpio = fixed;
@@ -306,7 +307,7 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
         continue;
       }
       if (!isValidGpio(gpio)) {
-        issues.push({ level: 'error', code: 'invalid-gpio', text: `${definition.title}(${id})의 ${pin.label} 핀 번호 ${String(gpio)}은(는) ESP32에 없는 GPIO예요.` });
+        issues.push({ level: 'error', code: 'invalid-gpio', text: `${definition.title}(${id})의 ${pin.label} 핀 번호 ${withParticle(String(gpio), '은/는')} ESP32에 없는 GPIO예요.` });
         usable = false;
         continue;
       }
@@ -385,7 +386,7 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
       issues.push({
         level: 'warning',
         code: 'strapping',
-        text: `GPIO${gpio}은(는) 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요. 여기에 ${names(external)}을(를) 이으면 실물 보드가 켜지지 않거나 코드를 올리지 못할 수 있어요(가상 보드는 그대로 돌아요). 가능하면 다른 핀을 써요.`,
+        text: `${withParticle(`GPIO${gpio}`, '은/는')} 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요. 여기에 ${withParticle(names(external), '을/를')} 이으면 실물 보드가 켜지지 않거나 코드를 올리지 못할 수 있어요(가상 보드는 그대로 돌아요). 가능하면 다른 핀을 써요.`,
         gpio,
       });
     }

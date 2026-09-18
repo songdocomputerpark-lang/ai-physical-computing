@@ -200,7 +200,13 @@ const definition: PartDefinition = {
     slider.type = 'range';
     slider.min = '0';
     slider.max = String(RAW12_MAX);
-    slider.step = '1';
+    /*
+     * 한 칸 45: 화살표 키만 쓰는 학생이 판정 구간(500~800, 1000~1700 …)에 닿을 수 있어야 한다(2026-09-18 검토 반영 —
+     * step 1이면 500까지 화살표를 500번 눌러야 했다). 45면 열두 번 안팎이고, 가장 좁은 구간(300)보다 촘촘해 어느 구간도 건너뛰지 않는다.
+     * 45로 정한 까닭: 4095를 정확히 나눈다(4095 = 45 × 91). 나누어떨어지지 않는 칸(예: 50)이면 HTML이 값을 칸에 맞춰 내림해
+     * End 키로도 끝값 4095에 닿지 못한다.
+     */
+    slider.step = '45';
     slider.value = String(session.input.rest);
     slider.dataset.touch4Rest = '';
     slider.style.width = '100%';
@@ -227,7 +233,7 @@ const definition: PartDefinition = {
       if (slider.value !== String(rest)) {
         slider.value = String(rest);
       }
-      caption.textContent = `패드를 누르지 않을 때의 값(직접 정하기): ${rest}`;
+      caption.textContent = `패드를 누르지 않을 때의 값(직접 정하기): ${rest} — 화살표 키는 45씩, Home·End는 끝값이에요`;
       slider.setAttribute('aria-valuetext', `${rest}(0부터 ${RAW12_MAX}까지)`);
       host.dataset.touch4Value = String(touch4Raw(current));
     };

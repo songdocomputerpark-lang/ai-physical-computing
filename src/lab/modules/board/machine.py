@@ -306,3 +306,13 @@ def __getattr__(name):
     if name in _NOT_YET:
         raise ImportError(_not_emulated_message(name, _NOT_YET[name]))
     raise AttributeError(f"module 'machine' has no attribute '{name}'")
+
+
+def __dir__():
+    """dir(machine)이 실물에 있는 이름만 보이게 한다(2026-09-18 검토 반영).
+
+    모듈 전역에는 사이트 안쪽 이름(apc_board)이 들어 있어 dir()이 그대로 보여 주고, 반대로 아직 흉내 내지 않은
+    실물 이름(reset·freq·unique_id …)은 보이지 않았다. 여기 있는 이름을 부르면 _NOT_YET 안내(ImportError + 한국어)가 나오므로
+    학생이 "이름은 있는데 가상 보드가 아직 흉내 내지 않는다"를 바로 안다.
+    """
+    return sorted(set(__all__) | set(_NOT_YET))

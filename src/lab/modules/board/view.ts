@@ -32,8 +32,12 @@ export interface BoardViewElements {
   readonly pinsEmpty: HTMLElement | null;
   readonly phaseText: HTMLElement | null;
   readonly problems: HTMLElement | null;
-  /** [그림 크게 보기] 단추(aria-pressed) */
+  /** [그림 크게 보기] 단추(aria-pressed·글자가 [원래 크기로]로 바뀐다) */
   readonly zoomButton?: HTMLButtonElement | null;
+  /** 그림 칸을 감싸는 틀 — 그림이 칸보다 넓으면 data-board-overflow="yes"(오른쪽 그늘) */
+  readonly stageWrap?: HTMLElement | null;
+  /** "옆으로 밀어 보세요" 한 줄 */
+  readonly scrollHint?: HTMLElement | null;
   /** 바깥 부품이 없을 때 보이는 한 줄 안내 */
   readonly wiringEmpty?: HTMLElement | null;
   /** 부품 조작 칸 영역([data-board-controls] — 안의 [data-board-controls-list]에 부품마다 칸을 넣는다) */
@@ -53,6 +57,11 @@ export interface BoardViewOptions {
 
 export interface BoardView {
   setWiring(instances: readonly PartInstance[], issues: readonly WiringIssue[]): void;
+  /**
+   * 실행 중에 파이썬이 알린 안내('board.notice' — 코드가 배선과 어긋나게 핀을 씀)를 배선 문제 칸에 함께 보인다.
+   * 배선을 다시 그리거나 실행을 새로 시작하면 빈 목록으로 지운다(2026-09-18 검토 반영).
+   */
+  setRunIssues(issues: readonly WiringIssue[]): void;
   /** 스냅샷과 부품 장치 상태(배선 id → 마지막 'board.device')로 부품 모습·핀 표를 고친다 */
   update(snapshot: BoardSnapshot, devices?: ReadonlyMap<string, PartDeviceState>): void;
   readonly activeIds: ReadonlySet<string>;
@@ -65,6 +74,8 @@ export type BoardZoom = 'fit' | 'large';
 
 /** 배선 목록의 수준 글(색만으로 알리지 않게 앞에 붙인다) */
 export const ISSUE_LEVEL_TEXT: Readonly<Record<WiringIssue['level'], string>> = Object.freeze({ error: '오류', warning: '주의', info: '참고' });
+/** 문제 칸에 보이는 차례(심한 것부터) */
+const ISSUE_LEVEL_ORDER: Readonly<Record<WiringIssue['level'], number>> = Object.freeze({ error: 0, warning: 1, info: 2 });
 
 function reducedMotionDefault(): boolean {
   try {
@@ -138,16 +149,36 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
   let devices: ReadonlyMap<string, PartDeviceState> = new Map();
   let lastPinsKey = '';
   let plan: BoardDrawingPlan | null = null;
+  /** 배선에서 나온 문제(setWiring)와 실행 중 파이썬이 알린 문제(setRunIssues) */
+  let wiringIssues: readonly WiringIssue[] = [];
+  let runIssues: readonly WiringIssue[] = [];
 
   const drawing = createBoardDrawing();
   stage.replaceChildren(drawing.svg);
   const cleanups: (() => void)[] = [];
 
-  // [그림 크게 보기]
+  /*
+   * 그림이 칸보다 넓은지 알린다(2026-09-18 검토 반영). 휴대폰 기본 화면은 글자를 읽을 수 있게 그림을 32rem 아래로 줄이지 않고,
+   * [그림 크게 보기]는 48rem으로 편다 — 둘 다 좁은 화면에서는 칸 밖으로 넘치므로 "옆으로 밀어 보세요"와 오른쪽 그늘을 보인다.
+   */
+  const updateOverflow = () => {
+    const overflow = stage.scrollWidth - stage.clientWidth > 4;
+    if (elements.stageWrap) {
+      elements.stageWrap.dataset.boardOverflow = overflow ? 'yes' : 'no';
+    }
+    if (elements.scrollHint) {
+      elements.scrollHint.hidden = !overflow;
+    }
+  };
+
+  // [그림 크게 보기] ↔ [원래 크기로]
   const zoomButton = elements.zoomButton ?? null;
   const setZoom = (zoom: BoardZoom, remember: boolean) => {
     stage.dataset.boardZoomLevel = zoom;
-    zoomButton?.setAttribute('aria-pressed', String(zoom === 'large'));
+    if (zoomButton) {
+      zoomButton.setAttribute('aria-pressed', String(zoom === 'large'));
+      zoomButton.textContent = zoom === 'large' ? '원래 크기로' : '그림 크게 보기';
+    }
     if (remember && options.zoomStorageName) {
       try {
         writeItem(options.zoomStorageName, zoom);
@@ -155,6 +186,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
         // 저장 공간을 못 쓰면 이번 방문에만 적용한다.
       }
     }
+    updateOverflow();
   };
   setZoom(readZoom(options.zoomStorageName), false);
   if (zoomButton) {
@@ -162,6 +194,32 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
     zoomButton.addEventListener('click', onZoom);
     cleanups.push(() => zoomButton.removeEventListener('click', onZoom));
   }
+  if (typeof ResizeObserver === 'function') {
+    const observer = new ResizeObserver(() => updateOverflow());
+    observer.observe(stage);
+    cleanups.push(() => observer.disconnect());
+  }
+
+  /** 배선 문제 칸: 배선에서 나온 것 + 실행 중 파이썬이 알린 것(심한 것부터) */
+  const renderProblems = () => {
+    if (!elements.problems) {
+      return;
+    }
+    const all = [...wiringIssues, ...runIssues].sort((a, b) => ISSUE_LEVEL_ORDER[a.level] - ISSUE_LEVEL_ORDER[b.level]);
+    elements.problems.replaceChildren(
+      ...all.map((issue) => {
+        const item = document.createElement('li');
+        item.dataset.level = issue.level;
+        item.dataset.code = issue.code;
+        const badge = document.createElement('strong');
+        badge.className = 'board-io__issue-level';
+        badge.textContent = `${ISSUE_LEVEL_TEXT[issue.level]}: `;
+        item.append(badge, issue.text);
+        return item;
+      }),
+    );
+    elements.problems.hidden = all.length === 0;
+  };
 
   const notify = () => options.onActiveChange(new Set(active));
 
@@ -401,25 +459,16 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
       if (elements.wiringEmpty) {
         elements.wiringEmpty.hidden = plan.breadboard !== null;
       }
-      if (elements.problems) {
-        elements.problems.replaceChildren(
-          ...issues.map((issue) => {
-            const item = document.createElement('li');
-            item.dataset.level = issue.level;
-            item.dataset.code = issue.code;
-            const badge = document.createElement('strong');
-            badge.className = 'board-io__issue-level';
-            badge.textContent = `${ISSUE_LEVEL_TEXT[issue.level]}: `;
-            item.append(badge, issue.text);
-            return item;
-          }),
-        );
-        elements.problems.hidden = issues.length === 0;
-      }
+      wiringIssues = issues;
+      renderProblems();
       lastPinsKey = '';
       if (snapshot) {
         view.update(snapshot, devices);
       }
+    },
+    setRunIssues(issues) {
+      runIssues = issues;
+      renderProblems();
     },
     update(next, nextDevices) {
       snapshot = next;

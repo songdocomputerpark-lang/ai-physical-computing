@@ -5,7 +5,8 @@
  * 1. ESP32 실습실의 io 슬롯(src/components/lab/BoardIo.astro의 [data-board-io])에 보드 그림·배선도·부품·핀 표를 그린다(view.ts).
  * 2. 배선: 보드에 붙은 부품(내장 LED·BOOT 버튼) + 지금 예제의 parts(LabExample.parts — 차시 md·사이드카·머리말 `# @part`)를 검사해
  *    (parts.ts resolveWiring) 부품을 놓고 선을 긋고, 찾은 것(오류·주의·참고)을 그림 아래 목록에 보인다. [실행] 직전에 'board.wiring'으로
- *    파이썬에 알린다(파이썬은 코드가 배선과 맞지 않게 핀을 쓰면 콘솔에 한국어로 알린다 — apc_board.py).
+ *    파이썬에 알린다(파이썬은 코드가 배선과 맞지 않게 핀을 쓰면 콘솔과 'board.notice' 이벤트로 한국어로 알리고, 이 모듈이 그 글을
+ *    그림 아래 배선 문제 칸에도 넣는다 — apc_board.py).
  * 3. 입력: 학생이 입력 부품을 누르거나 부품 조작 칸(controls)을 움직이면 핀을 누르는 값 표를 다시 계산해 'board.inputs'(최신 값 — 실행 시작 때
  *    파이썬이 읽음)를 고치고, 바뀐 핀을 'board.input'(쌓이는 값 — 실행 중 입력 확인 지점에서 반영)으로 보낸다. 실행 전에 누르고 있던 것도 [실행] 때 전해진다.
  * 4. 출력: 파이썬의 'board.state' 이벤트(핀 상태 묶음)와 'board.device' 이벤트(부품 장치 상태 — 문자 LCD 글자 등)를 받아 부품 모습·핀 머리 강조·핀 표를
@@ -18,19 +19,22 @@
  * 영상처리 실습실에는 붙지 않는다(manifest labs ['esp32']). io 슬롯이 없는 페이지(차시 임베드 등)에서는 조용히 아무것도 하지 않는다.
  */
 import { BOARD_WIRING_EVENT, readAnnouncedWiring } from '../../blocks/board-link.ts';
+import { readExampleMeta } from '../../controls/example-meta.ts';
 import { BOARD_LIBRARIES, BOARD_LIBRARY_DIR } from '../../esp32/board-library-files.ts';
 import type { RunResult } from '../../runtime/client.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import { getBoardAudio } from './board-audio.ts';
 import manifest from './manifest.ts';
-import type { PartControlApi, PartDefinition, PartInstance, UnknownPartEntry, WiringEntry } from './part-types.ts';
+import type { PartControlApi, PartDefinition, PartInstance, UnknownPartEntry, WiringEntry, WiringIssue } from './part-types.ts';
 import { PART_DEFINITIONS, inputDrives, onboardWiring, resolveWiring, wiringValue, withControlDrive, type ControlDrives } from './parts.ts';
+import { normalizeWiringSpecs } from './wiring-spec.ts';
 import {
   BOARD_CHANNEL_DEVICE_INPUT,
   BOARD_CHANNEL_INPUT,
   BOARD_CHANNEL_INPUTS,
   BOARD_CHANNEL_WIRING,
   BOARD_EVENT_DEVICE,
+  BOARD_EVENT_NOTICE,
   BOARD_EVENT_STATE,
   EMPTY_SNAPSHOT,
   applyDeviceEvent,
@@ -38,6 +42,7 @@ import {
   inputChanges,
   inputsValue,
   parseDeviceEvent,
+  parseNoticeEvent,
   parseStateEvent,
   stoppedSnapshot,
   type BoardSnapshot,
@@ -67,6 +72,25 @@ export function snapshotAfterRun(snapshot: BoardSnapshot, result: Pick<RunResult
 /** 배선에 소리 부품(정의 sound: true)이 있는지 */
 export function wiringHasSound(instances: readonly PartInstance[], definitions: ReadonlyMap<string, PartDefinition> = PART_DEFINITIONS): boolean {
   return instances.some((instance) => definitions.get(instance.part)?.sound === true);
+}
+
+/**
+ * 편집칸 코드 머리말의 `# @part` 줄을 배선으로 읽는다(2026-09-18 검토 반영).
+ *
+ * 왜: 코드 모드에서 부품을 붙일 길이 "예제를 불러오는 것"뿐이었다. 빈 칸에서 직접 쓴 코드나 예제의 핀을 바꾼 코드에서는
+ * 터치 센서·LCD·서보를 누를 수도 볼 수도 없었다(보드에 붙은 내장 LED·BOOT 버튼만 됐다).
+ * 예제를 **그대로** 불러온 상태에서는 예제 배선(차시 md → 사이드카 → 머리말 순서로 이미 정해진 것)을 그대로 쓴다 —
+ * 그래야 사이드카가 머리말보다 앞선다는 규약(README 7.4)이 깨지지 않는다. 학생이 코드를 고쳤을 때만 머리말을 다시 읽는다.
+ */
+export function wiringFromEditorCode(code: string, example: { readonly code?: string } | null | undefined): WiringEntry[] | null {
+  if (example && typeof example.code === 'string' && example.code === code) {
+    return null;
+  }
+  const { parts } = readExampleMeta(code);
+  if (parts.length === 0) {
+    return null;
+  }
+  return normalizeWiringSpecs(parts, '편집칸 코드 머리말 # @part').entries;
 }
 
 function mount(context: LabModuleContext): LabModuleHandle | void {
@@ -127,6 +151,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
       phaseText: io.querySelector<HTMLElement>('[data-board-phase-text]'),
       problems: io.querySelector<HTMLElement>('[data-board-problems]'),
       zoomButton: io.querySelector<HTMLButtonElement>('[data-board-zoom]'),
+      stageWrap: io.querySelector<HTMLElement>('[data-board-stage-wrap]'),
+      scrollHint: io.querySelector<HTMLElement>('[data-board-scroll-hint]'),
       wiringEmpty: io.querySelector<HTMLElement>('[data-board-wiring-empty]'),
       controls: io.querySelector<HTMLElement>('[data-board-controls]'),
     },
@@ -180,13 +206,16 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
   };
 
   const applyWiring = () => {
-    const entries = readAnnouncedWiring(context.root) ?? exampleWiring(context.lab.currentExample);
+    const entries =
+      readAnnouncedWiring(context.root) ?? wiringFromEditorCode(context.lab.getCode(), context.lab.currentExample) ?? exampleWiring(context.lab.currentExample);
     const resolved = resolveWiring([...onboardWiring(PART_DEFINITIONS), ...entries], PART_DEFINITIONS);
     instances = resolved.instances;
     unknown = resolved.unknown;
     const liveIds = new Set(instances.map((instance) => instance.id));
     controlDrives = new Map([...controlDrives.entries()].filter(([id]) => liveIds.has(id)));
+    runIssues = [];
     view.setWiring(instances, resolved.issues);
+    view.setRunIssues(runIssues);
     drives = inputDrives(instances, view.activeIds, PART_DEFINITIONS, controlDrives);
     context.setValue(BOARD_CHANNEL_WIRING, wiringValue(instances, unknown, PART_DEFINITIONS));
     context.setValue(BOARD_CHANNEL_INPUTS, inputsValue(drives));
@@ -214,6 +243,21 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     io.dataset.boardSeq = String(snapshot.seq);
     io.dataset.boardReason = event.reason;
     view.update(snapshot, devices);
+  });
+
+  /*
+   * 실행 중 안내('board.notice'): 코드가 배선과 어긋나게 핀을 쓰면 파이썬이 콘솔과 함께 여기로도 보낸다.
+   * 콘솔은 결과 칸보다 한참 아래여서, 아무것도 움직이지 않는 보드를 보는 학생에게 정작 필요한 안내가 닿지 않았다(2026-09-18 검토 반영).
+   */
+  let runIssues: WiringIssue[] = [];
+  context.onEvent(BOARD_EVENT_NOTICE, (payload) => {
+    const notice = parseNoticeEvent(payload);
+    if (!notice || runIssues.some((issue) => issue.code === notice.code && issue.gpio === notice.gpio)) {
+      return;
+    }
+    runIssues = [...runIssues, { level: notice.level, code: notice.code, text: notice.text, ...(notice.gpio === undefined ? {} : { gpio: notice.gpio }) }];
+    view.setRunIssues(runIssues);
+    io.dataset.boardRunIssues = String(runIssues.length);
   });
 
   context.onEvent(BOARD_EVENT_DEVICE, (payload) => {
@@ -250,6 +294,10 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
   // [실행] 직전: 배선과 지금 누르고 있는 입력을 다시 넣는다(정지 2단계로 워커가 새로 뜨면 최신 값이 사라지므로 — README 4.3).
   // 사용자가 [실행]을 누른 순간이라 멈춰 있던 소리(AudioContext)도 깨운다(자동 재생 정책).
   context.onLab('run', () => {
+    // 지난 실행의 안내는 이번 코드와 맞지 않는다
+    runIssues = [];
+    view.setRunIssues(runIssues);
+    io.dataset.boardRunIssues = '0';
     context.setValue(BOARD_CHANNEL_WIRING, wiringValue(instances, unknown, PART_DEFINITIONS));
     context.setValue(BOARD_CHANNEL_INPUTS, inputsValue(drives));
     audio.resume();
@@ -260,6 +308,19 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     view.update(snapshot, devices);
   });
   context.onLab('example', () => applyWiring());
+  /*
+   * 편집칸의 `# @part` 머리말이 바뀌면 배선도를 다시 그린다. 머리말이 바뀐 때만 다시 그려(글자마다 다시 그리지 않게)
+   * 코드를 치는 동안 그림이 깜빡이지 않는다.
+   */
+  let lastPartsKey = '';
+  context.onLab('code', ({ code }) => {
+    const key = JSON.stringify(readExampleMeta(code).parts);
+    if (key === lastPartsKey) {
+      return;
+    }
+    lastPartsKey = key;
+    applyWiring();
+  });
   // 블록 모드(src/lab/blocks/board-link.ts)가 배선을 알리거나 거둘 때
   const onWiringAnnounced = () => applyWiring();
   context.root.addEventListener(BOARD_WIRING_EVENT, onWiringAnnounced);

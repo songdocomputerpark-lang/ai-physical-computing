@@ -155,7 +155,7 @@ describe('배선(resolveWiring)', () => {
     const text = texts(resolved.issues);
     expect(text).toContain('부품 "nope"은(는) 가상 보드에 아직 없어서 그림에 그리지 못했어요');
     expect(text).toContain('"a"이(가) 규칙에 맞지 않거나 겹쳐요');
-    expect(text).toContain('24은(는) ESP32에 없는 GPIO');
+    expect(text).toContain('24는 ESP32에 없는 GPIO');
     expect(text).toContain('34~39번은 입력 전용');
     expect(text).toContain('GPIO18에 입력 부품 두 개(d, e)');
     expect(resolved.instances.map((instance) => instance.id)).toEqual(['a', 'c', 'd', 'e']);
@@ -190,7 +190,7 @@ describe('배선(resolveWiring)', () => {
       ['warning', 2],
       ['warning', 12],
     ]);
-    expect(byCode('strapping')[1]?.text).toContain('GPIO12은(는) 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요. 여기에 led-x 부품을(를) 이으면 실물 보드가 켜지지 않거나');
+    expect(byCode('strapping')[1]?.text).toContain('GPIO12는 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요. 여기에 led-x 부품을 이으면 실물 보드가 켜지지 않거나');
     expect(byCode('input-output-same-pin')).toEqual([expect.objectContaining({ level: 'error', gpio: 17 })]);
     expect(byCode('shared-output')).toEqual([expect.objectContaining({ level: 'info', gpio: 2 })]);
     expect(byCode('not-on-header').map((issue) => [issue.level, issue.gpio])).toEqual([
@@ -208,7 +208,7 @@ describe('배선(resolveWiring)', () => {
       { part: 'lcd-i2c', id: 'lcd', pins: { sda: 21, scl: 22 }, label: '문자 LCD(16×2)' },
       { part: 'mystery-sensor', id: 'mystery', pins: { sig: 4 }, label: '이름 모를 센서' },
     ]);
-    expect(texts(resolved.issues)).toContain('부품 "이름 모를 센서"은(는) 가상 보드에 아직 없어서');
+    expect(texts(resolved.issues)).toContain('부품 "이름 모를 센서"는 가상 보드에 아직 없어서');
     expect(texts(resolved.issues)).not.toContain('문자 LCD(16×2)');
     const value = wiringValue(resolved.instances, resolved.unknown);
     expect(value.parts).toEqual(

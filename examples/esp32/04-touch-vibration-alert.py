@@ -5,6 +5,7 @@
 # @part touch-digital 17
 # @part vibration-motor 19
 # 진동 모터의 19번 핀은 원고에 핀 번호가 없어 사이트가 정한 핀이에요(실물 키트에서 확인 전). 다른 핀에 꽂았다면 19를 그 번호로 바꿔요.
+# 이때 위의 "# @part vibration-motor 19" 줄도 같은 번호로 바꿔야 화면 속 배선도와 진동 모터가 따라와요.
 from machine import Pin
 from time import sleep
 

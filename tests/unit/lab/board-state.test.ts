@@ -1,6 +1,7 @@
 // 가상 ESP32 보드 화면 쪽 상태 논리(src/lab/modules/board/state.ts) 단위 테스트 — P3-01.
 // 파이썬 apc_board.py가 보내는 'board.state' 모양을 읽고, 입력 부품 값을 'board.inputs'·'board.input' 모양으로 만드는지 본다.
 import { describe, expect, it } from 'vitest';
+import { wiringFromEditorCode } from '../../../src/lab/modules/board/index.ts';
 import {
   BOARD_MAX_MV,
   DIGITAL_HIGH_MV,
@@ -9,6 +10,7 @@ import {
   analogDrive,
   applyDeviceEvent,
   applyStateEvent,
+  parseNoticeEvent,
   digitalLevelOf,
   isAnalogDrive,
   isPinDrive,
@@ -194,5 +196,32 @@ describe('핀 번호·글', () => {
     expect(describePin({ id: 0, mode: 'in', pull: 'up', out: 0, level: 0, driven: false, irq: true })).toBe('GPIO0 입력 · 풀업 0 (LOW) · 인터럽트');
     expect(phaseText({ ...EMPTY_SNAPSHOT, phase: 'idle', timers: 1 })).toContain('Timer 1개');
     expect(phaseText(EMPTY_SNAPSHOT)).toContain('[실행]');
+  });
+});
+
+describe("실행 중 안내('board.notice')와 편집칸 머리말 배선(2026-09-18 검토 반영)", () => {
+  it('parseNoticeEvent는 코드·글이 있어야 받고, level 기본은 warning이다', () => {
+    expect(parseNoticeEvent({ v: 1, code: 'unwired-output', level: 'warning', text: '18번 핀을 출력으로 정했는데…', gpio: 18 })).toEqual({
+      code: 'unwired-output',
+      level: 'warning',
+      text: '18번 핀을 출력으로 정했는데…',
+      gpio: 18,
+    });
+    expect(parseNoticeEvent({ code: 'floating', text: '떠 있는 핀' })).toEqual({ code: 'floating', level: 'warning', text: '떠 있는 핀' });
+    expect(parseNoticeEvent({ code: 'x', text: '   ' })).toBeNull();
+    expect(parseNoticeEvent({ text: '코드 없음' })).toBeNull();
+    expect(parseNoticeEvent(null)).toBeNull();
+  });
+
+  it('wiringFromEditorCode: 예제를 그대로 불러온 코드는 예제 배선을 쓰고, 고친 코드는 머리말 # @part를 다시 읽는다', () => {
+    const code = ['# @part touch-digital 17', 'from machine import Pin', 'print(Pin(17).value())'].join('\n');
+    // 예제 코드와 글자까지 같으면 null(예제 배선을 그대로 쓴다 — 사이드카가 머리말보다 앞선다는 규약)
+    expect(wiringFromEditorCode(code, { code })).toBeNull();
+    // 학생이 고쳤으면 머리말을 다시 읽는다
+    expect(wiringFromEditorCode(code, { code: 'print(1)' })).toEqual([{ part: 'touch-digital', pin: 17 }]);
+    // 빈 칸에서 직접 쓴 코드(예제 없음)도 읽는다
+    expect(wiringFromEditorCode(code, null)).toEqual([{ part: 'touch-digital', pin: 17 }]);
+    // 머리말이 없으면 null
+    expect(wiringFromEditorCode('print(1)', null)).toBeNull();
   });
 });

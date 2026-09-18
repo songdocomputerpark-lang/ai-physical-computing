@@ -81,3 +81,25 @@ def native(function):
 
 def viper(function):
     return function
+
+
+#: 실물 micropython 모듈에 있는 이름(v1.29.0 py/modmicropython.c) — dir()이 사이트 안쪽 이름(apc_board 등)을 보여 주지 않게 한다
+__all__ = [
+    "const",
+    "opt_level",
+    "alloc_emergency_exception_buf",
+    "heap_lock",
+    "heap_unlock",
+    "heap_locked",
+    "kbd_intr",
+    "schedule",
+    "mem_info",
+    "qstr_info",
+    "stack_use",
+    "native",
+    "viper",
+]
+
+
+def __dir__():
+    return sorted(__all__)

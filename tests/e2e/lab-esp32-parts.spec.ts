@@ -324,7 +324,7 @@ test.describe('ESP32 실습실 — 배선 오류를 한국어로 알린다(P3-02
     await expect(problems).toBeVisible();
     await expect(problems.locator('li[data-code="input-output-same-pin"]')).toContainText('오류: GPIO5에 값을 보내는 부품(터치 센서)과 보드가 움직이는 부품(진동 모터)이 함께 이어져 있어요');
     await expect(problems.locator('li[data-code="input-only-output"]')).toContainText('34~39번은 입력 전용이라 부품을 움직일 수 없어요');
-    await expect(problems.locator('li[data-code="strapping"]')).toContainText('주의: GPIO5은(는) 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요');
+    await expect(problems.locator('li[data-code="strapping"]')).toContainText('주의: GPIO5는 전원을 켤 때 부팅 방식을 정하는 스트래핑 핀이에요');
     await expect(problems.locator('li[data-code="unknown-part"]')).toContainText('"시험용 모듈 XY"은(는) 가상 보드에 아직 없어서');
     // 오류가 주의보다 먼저 보인다
     const levels = await problems.locator('li').evaluateAll((items) => items.map((item) => item.getAttribute('data-level')));
@@ -351,6 +351,21 @@ test.describe('ESP32 실습실 — 배선 오류를 한국어로 알린다(P3-02
     expect(text).toContain('끝');
     // 입력 모드로 on()을 부른 진동 모터는 떨지 않는다(실물처럼 신호가 나가지 않음)
     await expect(part(page, 'vibration-motor')).toHaveAttribute('data-visual-on', 'false');
+    /*
+     * 같은 안내가 보드 그림 아래 "배선 확인" 칸에도 있어야 한다(2026-09-18 검토 반영 — 콘솔은 결과 칸보다 한참 아래여서
+     * 아무것도 움직이지 않는 그림을 보는 학생에게 닿지 않았다). 메시지 이름은 board.notice.
+     */
+    const problems = page.locator('[data-board-problems]');
+    await expect(board(page)).toHaveAttribute('data-board-run-issues', '4');
+    await expect(problems.locator('li[data-code="wired-input-as-output"]')).toContainText('17번 핀에는 터치 센서');
+    await expect(problems.locator('li[data-code="wired-output-as-input"]')).toContainText('19번 핀에는 진동 모터');
+    await expect(problems.locator('li[data-code="unwired-output"]')).toContainText('18번 핀을 출력으로 정했는데');
+    // 실행을 새로 시작하면 지난 실행의 안내는 지워진다
+    await setEditorCode(page, "print('다시')");
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    expect(await waitDone(page, 60_000)).toBe('ok');
+    await expect(board(page)).toHaveAttribute('data-board-run-issues', '0');
+    await expect(problems.locator('li[data-code="unwired-output"]')).toHaveCount(0);
   });
 });
 
@@ -360,21 +375,29 @@ test.describe('ESP32 실습실 — [그림 크게 보기](P3-02)', () => {
     await page.goto(ESP32_PATH);
     await expect(board(page)).toHaveAttribute('data-board-ready', 'yes', { timeout: 60_000 });
     const stage = page.locator('[data-board-stage]');
-    const button = page.getByRole('button', { name: '그림 크게 보기' });
+    const button = page.locator('[data-board-zoom]');
     await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(button).toHaveText('그림 크게 보기');
     const fitWidth = await stage.locator('svg').evaluate((svg) => svg.getBoundingClientRect().width);
+    // 기본 화면에서도 글자를 읽을 수 있게 32rem(512px) 아래로 줄이지 않는다(2026-09-18 검토 반영 — 칸에 맞추면 핀 번호가 6.6px였다).
+    expect(fitWidth).toBeGreaterThanOrEqual(500);
+    // 넘치는 만큼은 칸 안에서 밀어 보고, 넘친다는 것을 그늘과 한 줄로 알린다.
+    expect(await stage.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    await expect(page.locator('[data-board-stage-wrap]')).toHaveAttribute('data-board-overflow', 'yes');
+    await expect(page.locator('[data-board-scroll-hint]')).toBeVisible();
     await button.click();
     await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(button).toHaveText('원래 크기로');
     await expect(stage).toHaveAttribute('data-board-zoom-level', 'large');
     const largeWidth = await stage.locator('svg').evaluate((svg) => svg.getBoundingClientRect().width);
-    expect(largeWidth).toBeGreaterThan(fitWidth * 1.8);
+    expect(largeWidth).toBeGreaterThan(fitWidth * 1.4);
     expect(await stage.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     await page.reload();
     await expect(board(page)).toHaveAttribute('data-board-ready', 'yes', { timeout: 60_000 });
     await expect(page.locator('[data-board-stage]')).toHaveAttribute('data-board-zoom-level', 'large');
-    await page.getByRole('button', { name: '그림 크게 보기' }).click();
+    await page.locator('[data-board-zoom]').click();
     await expect(page.locator('[data-board-stage]')).toHaveAttribute('data-board-zoom-level', 'fit');
   });
 });
