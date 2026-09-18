@@ -24,7 +24,7 @@ import { errorMessage } from '../../serial/errors.ts';
 import { detectSerialSupport } from '../../serial/support.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
-import { ACTION_LABELS, describeRealBoard, saveNoticeText, type RealBoardAction } from './status-text.ts';
+import { ACTION_LABELS, describeRealBoard, numberText, saveNoticeText, type RealBoardAction } from './status-text.ts';
 
 export type BoardTargetKind = 'virtual' | 'real';
 
@@ -139,7 +139,13 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     realPanel.dataset.realBoardProblem = snapshot.problem?.code ?? '';
     realPanel.dataset.realBoardRecovery = snapshot.recoveryStage ?? '';
     realPanel.dataset.realBoardAutorun = snapshot.autorun && !snapshot.autorun.disabledAs ? snapshot.autorun.file : '';
-    realPanel.dataset.realBoardSavedState = snapshot.lastSave ? (snapshot.lastSave.ok ? 'ok' : 'failed') : '';
+    realPanel.dataset.realBoardSavedState = snapshot.lastSave
+      ? snapshot.lastSave.ok
+        ? 'ok'
+        : snapshot.lastSave.error.name === 'BoardSaveCancelled'
+          ? 'cancelled'
+          : 'failed'
+      : '';
     realTab.dataset.realBoardState = snapshot.state;
     if (title && title.textContent !== view.title) {
       title.textContent = view.title;
@@ -167,7 +173,7 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
       const report = snapshot.lastSave ?? null;
       if (view.saved && report !== renderedSave) {
         renderedSave = report;
-        savedBox.dataset.realBoardSavedState = view.saved.tone === 'success' ? 'ok' : 'failed';
+        savedBox.dataset.realBoardSavedState = view.saved.tone === 'success' ? 'ok' : view.saved.tone === 'info' ? 'cancelled' : 'failed';
         savedTitle.textContent = view.saved.title;
         const list = (host: HTMLElement, texts: readonly string[]) =>
           host.replaceChildren(
@@ -335,7 +341,21 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     }
     const before = connection.snapshot.lastSave ?? null;
     try {
-      await connection.save(code, { libraries: BOARD_LIBRARIES, usesInput: usesInput(code) });
+      await connection.save(code, {
+        libraries: BOARD_LIBRARIES,
+        usesInput: usesInput(code),
+        /*
+         * 보드에 이미 있는 파일을 바꿔 쓰기 전에 한 번 묻는다(2026-09-18 검토 반영). 되돌릴 방법이 없고, 교사가 수업용
+         * main.py를 넣어 둔 공용 키트 보드에서 학생이 누르면 그 파일이 곧바로 사라졌다. 내용이 같은 파일은 묻지 않는다
+         * (saveFilesToBoard가 해시로 건너뛴다).
+         */
+        confirmOverwrite: (request) =>
+          window.confirm(
+            request.kind === 'main'
+              ? `보드에 이미 ${request.path}이(가) 있어요(${numberText(request.boardSize)}바이트). 이 코드(${numberText(request.newSize)}바이트)로 바꿀까요?\n보드의 예전 코드는 되돌릴 수 없어요.`
+              : `보드의 라이브러리 ${request.path}을(를) 사이트판으로 바꿀까요?\n보드에 있던 파일은 되돌릴 수 없어요.`,
+          ),
+      });
     } catch (error) {
       const after = connection.snapshot.lastSave ?? null;
       if (after === null || after === before) {

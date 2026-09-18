@@ -1,7 +1,8 @@
 // ESP32 실습실 [실제 보드] 실행·저장 브라우저 테스트(PLAN §8.3 P3-08 실제 보드 ② 실행·저장). 실제 보드 대신 모의 시리얼(tests/e2e/helpers/serial.ts)을 쓴다 —
-// 모의 보드에서 된다는 것은 실물의 증거가 아니다(부록 B-2 7번·운영자 할 일 2번).
+// 모의 보드에서 된다는 것은 실물의 증거가 아니다(부록 B-2 19번·운영자 할 일 2번).
 // 확인하는 것
 //  1. [보드에 저장]: 편집칸 코드를 main.py로(mpremote fs_writefile 방식 — 256바이트씩 w(b'…')), 코드가 부르는 사이트 라이브러리를 보드 뿌리에 함께, 결과 상자·콘솔 안내.
+//     보드에 이미 있는 파일을 바꿔 쓸 때는 먼저 물어보고, "아니요"면 파일이 그대로 남는다(2026-09-18 검토 반영).
 //  2. 실행 중 input(): 코드가 도는 동안 셸 입력줄에 적은 줄이 보드 input()으로 가고, 보드의 되울림은 콘솔에 두 번 보이지 않는다. 한글은 빼고 알린다.
 //  3. boot.py가 끝나지 않는 반복인 보드: [실행]의 소프트 리셋에서 기다려도 끝나지 않으면 Ctrl-C로 멈추고 코드를 보낸다 → 안내와 [boot.py 끄기],
 //     두 번째 실행은 곧바로 멈춘다, 끄면 boot_off.py.
@@ -69,6 +70,9 @@ function consoleBox(page: Page) {
 async function openLab(page: Page, config?: SerialMockConfig): Promise<string[]> {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  // 보드에 있던 파일을 바꿔 쓰기 전 확인 창(2026-09-18 검토 반영) — Playwright는 기본으로 창을 닫아 "아니요"가 되므로 여기서 "예"를 누른다.
+  // 아래 "바꾸기 전에 물어본다" 검사는 이 처리기를 제 것으로 바꿔 무엇을 묻는지 본다.
+  page.on('dialog', (dialog) => void dialog.accept());
   await installSerialMock(page, config ?? {});
   const response = await page.goto(ESP32_PATH);
   expect(response?.status()).toBe(200);
@@ -137,6 +141,37 @@ test.describe('ESP32 실습실 — 실제 보드 ② 실행·저장(모의 시�
     // 저장한 뒤에도 같은 [실행]이 된다
     await run(page, "print('run after save')", 'ok');
     await expect(consoleBox(page)).toContainText('run after save');
+    expect(errors).toEqual([]);
+  });
+
+  test('[보드에 저장]: 보드에 있던 main.py를 바꾸기 전에 물어보고, "아니요"면 그대로 둔다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '저장 흐름은 데스크톱에서 본다.');
+    const errors = await openLab(page);
+    await chooseRealAndConnect(page);
+    const saveButton = realPanel(page).getByRole('button', { name: '보드에 저장' });
+    // 1) 보드가 비어 있으면 묻지 않는다
+    const asked: string[] = [];
+    page.removeAllListeners('dialog');
+    page.on('dialog', (dialog) => {
+      asked.push(dialog.message());
+      void dialog.dismiss();
+    });
+    await setEditorCode(page, "print('처음 저장')\n");
+    await saveButton.click();
+    await expect(realPanel(page)).toHaveAttribute('data-real-board-saved-state', 'ok', { timeout: BOARD_TIMEOUT });
+    expect(asked).toEqual([]);
+    const board = serialMock(page);
+    expect((await board.files())['main.py']).toBe("print('처음 저장')\n");
+
+    // 2) 이미 있는 main.py를 바꿀 때는 묻고, 닫으면(=아니요) 보드 파일이 그대로다
+    await setEditorCode(page, "print('바꾼 코드')\n");
+    await saveButton.click();
+    await expect(realPanel(page)).toHaveAttribute('data-real-board-saved-state', 'cancelled', { timeout: BOARD_TIMEOUT });
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toContain('보드에 이미 main.py');
+    expect(asked[0]).toContain('되돌릴 수 없어요');
+    expect((await board.files())['main.py']).toBe("print('처음 저장')\n");
+    await expect(realPanel(page)).toHaveAttribute('data-real-board-state', 'ready');
     expect(errors).toEqual([]);
   });
 

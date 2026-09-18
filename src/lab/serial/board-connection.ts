@@ -28,7 +28,15 @@
  *   되찾으면 판별(Ctrl-B 배너)로 ready. 멈춘 트레이스백이 boot.py·main.py 것이면 autorun으로 알려 [boot.py 끄기](이름 바꾸기)를 보인다.
  */
 import { compareWithSiteFirmware, isEsp32Machine, type MicroPythonBanner, type ProbeVerdict } from './banner.ts';
-import { BoardFileError, planBoardSave, saveFilesToBoard, type BoardSaveProgress, type BoardSaveResult } from './board-files.ts';
+import {
+  BoardFileError,
+  BoardSaveCancelled,
+  planBoardSave,
+  saveFilesToBoard,
+  type BoardOverwriteRequest,
+  type BoardSaveProgress,
+  type BoardSaveResult,
+} from './board-files.ts';
 import { disableAutorunCommand, parseRenamed, type AutorunFile } from './board-recovery.ts';
 import {
   BoardBusyError,
@@ -155,6 +163,11 @@ export interface SaveOptions {
   readonly libraries?: readonly BoardLibrary[];
   /** main.py가 input()을 기다리는 코드인지(저장 결과 안내용) */
   readonly usesInput?: boolean;
+  /**
+   * 보드에 이미 있는 **다른 내용의** 파일을 바꿔 쓰기 직전에 부른다. false를 돌려주면 그 파일부터 저장을 멈춘다(BoardSaveCancelled).
+   * 화면이 확인 창을 띄우는 자리다(2026-09-18 검토 반영 — main.py를 확인 없이 덮어썼고 되돌릴 방법이 없었다).
+   */
+  readonly confirmOverwrite?: (request: BoardOverwriteRequest) => boolean | Promise<boolean>;
 }
 
 export const DEFAULT_BAUD_RATE = 115200;
@@ -460,6 +473,7 @@ export class BoardConnection {
         (tools) =>
           saveFilesToBoard(tools, plan, {
             mainUsesInput: options.usesInput === true,
+            ...(options.confirmOverwrite ? { confirmOverwrite: options.confirmOverwrite } : {}),
             onProgress: (progress) => {
               this.#task = { kind: 'save', progress };
               this.#emit();
@@ -485,7 +499,7 @@ export class BoardConnection {
           message: errorMessage(error),
         },
       };
-      if (error instanceof BoardFileError || error instanceof ReplStoppedError) {
+      if (error instanceof BoardFileError || error instanceof BoardSaveCancelled || error instanceof ReplStoppedError) {
         if (this.#channel === channel) {
           this.#set('ready');
         }

@@ -1,7 +1,7 @@
 // boot.py 무한 반복·멈추지 않는 보드 되찾기(P3-08 실제 보드 ② — PLAN §8.3 "boot.py 무한 반복에 막혔을 때 Ctrl-C 반복으로 되찾기")를 모의 시리얼 보드로 확인한다.
 // 모의 보드(src/lab/serial/mock/)는 raw REPL 소프트 리셋에서 boot.py를 돌리고(main.py는 건너뜀), RTS로 EN을 누르면 다시 켜진다(자동 리셋 회로).
 // "맨 except로 KeyboardInterrupt를 삼키는 반복"은 정한 응답(scripts)으로 만든다 — 반복에 들어가기 전(preMs)에만 Ctrl-C가 듣고, 보드가 리셋되면 끝난다.
-// 실물의 부팅 시간·Ctrl-C가 떨어지는 자리는 다르다 — 부록 B-2 7번.
+// 실물의 부팅 시간·Ctrl-C가 떨어지는 자리는 다르다 — 부록 B-2 19~21번.
 import { afterEach, describe, expect, it } from 'vitest';
 import { FakeSerial, MicroPythonDevice, MockSerialPort, type MicroPythonDeviceOptions, type MockScript, type SerialDevice } from '../../../src/lab/serial/mock/index.ts';
 import { BoardConnection } from '../../../src/lab/serial/board-connection.ts';
@@ -59,6 +59,8 @@ function fakeContext(): LabRunContext & { text(kind?: string): string } {
   const lines: { text: string; kind: string }[] = [];
   return {
     runCount: 1,
+    // 상태 줄 바꾸기(ctx.setStatus)는 이 검사에서 쓰지 않는다 — 화면이 없다
+    setStatus() {},
     write(text: string, kind = 'stdout') {
       lines.push({ text, kind });
     },

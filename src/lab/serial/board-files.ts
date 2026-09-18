@@ -70,6 +70,16 @@ export class BoardFileError extends Error {
   }
 }
 
+/** 학생이 "바꾸지 않을래요"를 골라 [보드에 저장]을 멈춤(오류가 아니라 취소) */
+export class BoardSaveCancelled extends Error {
+  override readonly name = 'BoardSaveCancelled';
+  readonly path: string;
+  constructor(path: string) {
+    super(`보드의 ${path}을(를) 바꾸지 않고 저장을 멈췄어요.`);
+    this.path = path;
+  }
+}
+
 const SAFE_PATH = /^[A-Za-z0-9_][A-Za-z0-9_.-]*(?:\/[A-Za-z0-9_][A-Za-z0-9_.-]*)*$/u;
 
 /** 보드에 쓸 수 있는 경로 모양인지(영문·숫자·밑줄·점·하이픈, 따옴표·빈칸·..·앞의 / 없음) */
@@ -349,11 +359,31 @@ export interface BoardSaveResult {
   readonly mainUsesInput: boolean;
 }
 
-/** 계획대로 파일을 올린다(보드 파일이 이미 같으면 건너뛴다). 오류는 BoardFileError(보드 오류)·연결 오류를 그대로 던진다 */
+/** [보드에 저장]이 보드의 파일을 바꿔 쓰기 직전에 사람에게 묻는 일(confirmOverwrite) */
+export interface BoardOverwriteRequest {
+  /** 바꿔 쓸 파일 이름(보드 뿌리) */
+  readonly path: string;
+  readonly kind: 'main' | 'library';
+  /** 지금 보드에 있는 파일 크기(바이트) */
+  readonly boardSize: number;
+  /** 새로 쓸 크기(바이트) */
+  readonly newSize: number;
+}
+
+/**
+ * 계획대로 파일을 올린다(보드 파일이 이미 같으면 건너뛴다). 오류는 BoardFileError(보드 오류)·연결 오류를 그대로 던진다.
+ * confirmOverwrite를 주면 보드에 이미 있는 **다른 내용의** 파일을 바꿔 쓰기 직전에 묻고, false면 BoardSaveCancelled를 던진다
+ * (2026-09-18 검토 반영 — 공용 키트 보드의 main.py가 확인 창 없이 사라졌다. 되돌릴 방법이 없다).
+ */
 export async function saveFilesToBoard(
   runner: ReplCommandRunner,
   plan: readonly BoardFilePlanItem[],
-  options: { readonly onProgress?: (progress: BoardSaveProgress) => void; readonly now?: () => number; readonly mainUsesInput?: boolean } = {},
+  options: {
+    readonly onProgress?: (progress: BoardSaveProgress) => void;
+    readonly now?: () => number;
+    readonly mainUsesInput?: boolean;
+    readonly confirmOverwrite?: (request: BoardOverwriteRequest) => boolean | Promise<boolean>;
+  } = {},
 ): Promise<BoardSaveResult> {
   const now = options.now ?? (() => Date.now());
   const startedAt = now();
@@ -374,6 +404,12 @@ export async function saveFilesToBoard(
       files.push({ path: item.path, kind: item.kind, size: item.bytes.length, status: 'same', replaced: false, thirdParty: item.thirdParty });
       options.onProgress?.({ ...base, phase: 'check', written: item.bytes.length, doneBytes });
       continue;
+    }
+    if (info.exists && options.confirmOverwrite) {
+      const ok = await options.confirmOverwrite({ path: item.path, kind: item.kind, boardSize: info.size, newSize: item.bytes.length });
+      if (!ok) {
+        throw new BoardSaveCancelled(item.path);
+      }
     }
     const before = doneBytes;
     await writeBoardFile(runner, item.path, item.bytes, (written) => {

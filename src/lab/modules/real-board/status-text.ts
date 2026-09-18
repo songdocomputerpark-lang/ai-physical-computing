@@ -22,7 +22,8 @@ export interface RealBoardLink {
 }
 
 export interface RealBoardSavedBox {
-  readonly tone: 'success' | 'danger';
+  /** info = 학생이 확인 창에서 "아니요"를 골라 바꾸지 않음(잘못된 일이 아님) */
+  readonly tone: 'success' | 'danger' | 'info';
   readonly title: string;
   readonly items: readonly string[];
   readonly tips: readonly string[];
@@ -76,7 +77,7 @@ const STAGE_TEXT: Readonly<Record<ExecStage, string>> = Object.freeze({
   stopping: '멈추는 중이에요…',
 });
 
-const numberText = (value: number) => value.toLocaleString('ko-KR');
+export const numberText = (value: number) => value.toLocaleString('ko-KR');
 
 function supportNotes(support: SerialSupport): string[] {
   const notes: string[] = [];
@@ -141,6 +142,15 @@ export function describeSave(report: BoardSaveReport | null | undefined): RealBo
     return { tone: 'success', title: '보드에 저장했어요', items, tips };
   }
   const error = report.error;
+  // 학생이 확인 창에서 "아니요"를 골라 멈춘 것은 잘못된 일이 아니다(2026-09-18 검토 반영) — 빨간 실패 상자로 보이지 않게.
+  if (error.name === 'BoardSaveCancelled') {
+    return {
+      tone: 'info',
+      title: '보드의 파일을 바꾸지 않았어요',
+      items: [error.message],
+      tips: ['보드에 있던 코드는 그대로예요. 바꾸려면 [보드에 저장]을 다시 누르고 확인 창에서 [확인]을 눌러요.'],
+    };
+  }
   const tips: string[] = [];
   switch (error.code) {
     case 'no-space':
@@ -162,7 +172,7 @@ export function describeSave(report: BoardSaveReport | null | undefined): RealBo
 /** 저장 결과를 콘솔 안내 한 줄로([안내]는 콘솔이 붙인다) */
 export function saveNoticeText(report: BoardSaveReport): string {
   if (!report.ok) {
-    return `보드에 저장하지 못했어요: ${report.error.message}`;
+    return report.error.name === 'BoardSaveCancelled' ? report.error.message : `보드에 저장하지 못했어요: ${report.error.message}`;
   }
   const parts = report.result.files.map((file) => {
     if (file.status === 'same') {

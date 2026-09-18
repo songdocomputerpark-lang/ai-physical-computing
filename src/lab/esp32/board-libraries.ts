@@ -172,3 +172,22 @@ export function librariesNeededBy(code: string, libraries: readonly BoardLibrary
   }
   return libraries.filter((library) => needed.has(library.name));
 }
+
+/**
+ * 가상 보드에만 있는 드라이버 이름 → 학생이 읽는 파일 이름(2026-09-18 검토 반영).
+ *
+ * 가상 보드는 OLED 드라이버를 부품 폴더(src/lab/modules/board/parts/oled-i2c/)의 흉내로 주지만, 실물 보드에는 그 파일이 없고
+ * ESP32_GENERIC v1.29.0 펌웨어에도 들어 있지 않다. 사이트가 실물용 ssd1306.py를 아직 배포하지 않아(PROGRESS 미해결 64)
+ * OLED 예제는 [실제 보드]에서 ImportError로 끝난다 — 그 사실을 실행 전에 한국어로 알린다.
+ * 사이트가 examples/esp32/lib/에 그 이름의 파일을 두면 보드 라이브러리가 되어 저절로 올라가므로 이 표에서 빼면 된다.
+ */
+export const VIRTUAL_ONLY_MODULES: Readonly<Record<string, string>> = Object.freeze({
+  ssd1306: 'ssd1306.py',
+  sh1106: 'sh1106.py',
+});
+
+/** 이 코드가 부르는 "가상 보드에만 있는" 모듈 이름(사이트가 보드 라이브러리로 주는 것은 뺀다) */
+export function virtualOnlyModulesUsedBy(code: string, libraries: readonly BoardLibrary[]): string[] {
+  const provided = new Set(libraries.map((library) => library.name));
+  return importedModuleNames(code).filter((name) => name in VIRTUAL_ONLY_MODULES && !provided.has(name));
+}

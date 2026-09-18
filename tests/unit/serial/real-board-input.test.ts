@@ -1,6 +1,6 @@
 // 실제 보드 실행 중 input()에 한 줄 보내기(P3-08 실제 보드 ② — PLAN §8.3 "실행 중 input() 전달 시험")를 모의 시리얼 보드로 확인한다.
 // 보드 쪽 규약: MicroPython v1.29.0 readline(32~126 글자만 넣음, '\r'이 줄 끝, 되울림 + "\r\n") — 모의 보드는 글자를 되울리고 \r·\n에서 줄을 끝낸다.
-// 모의 보드에서 된다는 것은 실물의 증거가 아니다(부록 B-2 7번).
+// 모의 보드에서 된다는 것은 실물의 증거가 아니다(부록 B-2 19번).
 import { afterEach, describe, expect, it } from 'vitest';
 import { FakeSerial, MicroPythonDevice, MockSerialPort, type MicroPythonDeviceOptions } from '../../../src/lab/serial/mock/index.ts';
 import { BoardConnection } from '../../../src/lab/serial/board-connection.ts';
@@ -39,6 +39,8 @@ function inputContext(answers: (string | (() => Promise<string | null>))[]) {
   const context: LabRunContext & { text(kind?: string): string; prompts: string[]; close(): void } = {
     runCount: 1,
     prompts,
+    // 상태 줄 바꾸기(ctx.setStatus)는 이 검사에서 쓰지 않는다 — 화면이 없다
+    setStatus() {},
     write(text: string, kind = 'stdout') {
       lines.push({ text, kind });
     },

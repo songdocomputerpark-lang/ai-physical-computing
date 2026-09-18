@@ -66,6 +66,10 @@ const portHelpHref = withBase('start/board/#port-not-found');
     </div>
   </dl>
   <ul class="real-board__notes" data-real-board-notes hidden></ul>
+  {/*
+    [보드에 저장]이 하는 일 가운데 되돌릴 수 없는 것 하나는 접힌 칸이 아니라 늘 보이는 자리에 적는다(2026-09-18 검토 반영).
+  */}
+  <p class="real-board__warn">[보드에 저장]은 보드의 main.py를 편집칸 코드로 바꿔요. 보드에 있던 코드는 되돌릴 수 없어서, 바꾸기 전에 한 번 물어봐요.</p>
   <div class="real-board__guide" data-real-board-guide hidden>
     <p class="real-board__guide-title" data-real-board-guide-title></p>
     <ol class="real-board__guide-steps" data-real-board-guide-steps></ol>
@@ -94,7 +98,7 @@ const portHelpHref = withBase('start/board/#port-not-found');
   <details class="real-board__help">
     <summary>[보드에 저장]은 무엇을 하나요?</summary>
     <ul>
-      <li>편집칸의 코드를 보드의 main.py로 저장해요. 보드에 있던 main.py는 이 코드로 바뀌어요.</li>
+      <li>편집칸의 코드를 보드의 main.py로 저장해요. 보드에 있던 main.py는 이 코드로 바뀌고, 바꾸기 전에 한 번 물어봐요.</li>
       <li>코드가 쓰는 사이트 라이브러리(i2c_lcd.py 등)도 보드에 함께 올려요. 보드에 이미 같은 파일이 있으면 그대로 둬요.</li>
       <li>저장한 뒤 USB를 다시 꽂거나 보드의 EN(RST) 버튼을 누르면 main.py가 저절로 실행돼요. 컴퓨터 없이 전원만 넣어도 돼요.</li>
       <li>교과서 3단원과 블루투스 교안은 Thonny로 boot.py에 저장하지만, 이 사이트는 main.py에 저장해요. 전원을 켜면 똑같이 저절로 실행돼요.</li>
@@ -211,6 +215,16 @@ const portHelpHref = withBase('start/board/#port-not-found');
     overflow-wrap: anywhere;
   }
 
+  .real-board__warn {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-inline-start: 4px solid var(--color-warning-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-warning-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
   .real-board__notes {
     display: grid;
     gap: var(--space-1);
@@ -288,6 +302,12 @@ const portHelpHref = withBase('start/board/#port-not-found');
   .real-board__saved[data-real-board-saved-state='failed'] {
     border-color: var(--color-danger-border);
     background: var(--color-danger-bg);
+  }
+
+  /* 학생이 "아니요"를 골라 바꾸지 않은 것은 실패가 아니다 */
+  .real-board__saved[data-real-board-saved-state='cancelled'] {
+    border-color: var(--color-info-border);
+    background: var(--color-info-bg);
   }
 
   .real-board__saved[hidden] {

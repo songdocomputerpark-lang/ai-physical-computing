@@ -16,10 +16,11 @@
  * - 호환 안내: CPython에서만 되는 모양(ljust·[::-1] …)이 있으면 실행 전에 줄 번호와 함께 안내한다(compat.ts).
  * - boot.py가 끝나지 않아 Ctrl-C로 멈춘 뒤 실행했으면 한 번 안내한다.
  */
+import { withParticle } from '../../lib/korean.ts';
 import type { LabRunContext, LabRunTarget } from '../controls/lab-shell.ts';
 import type { RunResult } from '../runtime/client.ts';
 import type { PythonErrorInfo } from '../runtime/protocol.ts';
-import { librariesNeededBy, type BoardLibrary } from '../esp32/board-libraries.ts';
+import { VIRTUAL_ONLY_MODULES, librariesNeededBy, virtualOnlyModulesUsedBy, type BoardLibrary } from '../esp32/board-libraries.ts';
 import type { BoardConnection } from './board-connection.ts';
 import { BoardFileError, provisionLibraries, type LibraryProvision } from './board-files.ts';
 import { BOARD_INPUT_LABEL, InputEchoFilter, prepareBoardInputLine } from './board-input.ts';
@@ -208,6 +209,12 @@ export function errorToRunResult(error: unknown, runId: number, durationMs: numb
   return { result: { ...base, outcome: 'error', error: siteError('RunTargetError', `실제 보드에서 실행하지 못했어요: ${errorMessage(error)}`) }, notice: null };
 }
 
+/** 사이트가 실물용 파일을 주지 못하는 모듈 안내(가상 보드에만 있는 드라이버 — PROGRESS 미해결 64) */
+export function virtualOnlyModuleNotice(name: string): string {
+  const file = VIRTUAL_ONLY_MODULES[name] ?? `${name}.py`;
+  return `이 코드가 쓰는 ${withParticle(name, '은/는')} 가상 보드에만 있어요. 실제 보드에서 돌리려면 ${file} 파일을 Thonny 같은 도구로 보드에 먼저 올려야 해요(사이트가 아직 이 파일을 주지 않아요). [가상 보드] 탭에서는 그대로 돌아요.`;
+}
+
 export function createRealBoardRunTarget(connection: BoardConnection, options: RealBoardRunTargetOptions = {}): LabRunTarget {
   const now = options.now ?? (() => (typeof performance !== 'undefined' ? performance.now() : Date.now()));
   const connectOnRun = options.connectOnRun !== false;
@@ -235,7 +242,13 @@ export function createRealBoardRunTarget(connection: BoardConnection, options: R
         // 클릭 처리기 안에서 곧바로 선택 창을 연다(requestPort는 사용자 조작 안에서만 된다 — connect()는 await 전에 부른다)
         const connecting = connection.connect();
         notice(RUN_NOTICES.connectFirst);
-        await connecting;
+        // 아직 아무것도 실행되지 않았다 — 상태 줄에 "실행 중"이라고 적으면 선택 창을 못 본 학생이 멈춘 줄 안다(2026-09-18 검토 반영)
+        context.setStatus('포트 선택 창에서 보드를 고르는 중이에요.');
+        try {
+          await connecting;
+        } finally {
+          context.setStatus(null);
+        }
       }
       if (!connection.isOpen) {
         const state = connection.state;
@@ -249,6 +262,13 @@ export function createRealBoardRunTarget(connection: BoardConnection, options: R
       }
       if (connection.state === 'recovering') {
         return fail('BoardInUse', '보드를 되찾는 중이에요.', RUN_NOTICES.recovering);
+      }
+      /*
+       * 사이트가 실물용 파일을 주지 못하는 모듈(지금은 OLED 드라이버 ssd1306·sh1106 — PROGRESS 미해결 64).
+       * 가상 보드에서는 돌고 실제 보드에서는 ImportError로 끝나므로, 그 까닭을 실행 전에 알린다(2026-09-18 검토 반영).
+       */
+      for (const name of virtualOnlyModulesUsedBy(code, libraries)) {
+        notice(virtualOnlyModuleNotice(name));
       }
       for (const issue of findRealBoardCompatIssues(code)) {
         notice(`실물 보드에서는 안 될 수 있어요 — ${issue.line}번째 줄: ${issue.text}`);

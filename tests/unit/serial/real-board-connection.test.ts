@@ -48,6 +48,8 @@ function fakeContext(runCount = 1): LabRunContext & { lines: { text: string; kin
   return {
     runCount,
     lines,
+    // 상태 줄 바꾸기(ctx.setStatus)는 이 검사에서 쓰지 않는다 — 화면이 없다
+    setStatus() {},
     write(text: string, kind = 'stdout') {
       lines.push({ text, kind });
     },

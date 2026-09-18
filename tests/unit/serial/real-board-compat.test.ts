@@ -31,6 +31,9 @@ describe('findRealBoardCompatIssues', () => {
       '# back = word[::-1]',
       "label = '{:<8}'.format(name)",
       'matrix = [[1, 2], [3, 4]]',
+      // 사전이 든 목록은 자르기가 아니다(2026-09-18 검토 반영 — 글자 안을 비우면 [{'':255,'':0,'':0}]이 되어 옛 규칙이 잘못 지적했다)
+      "colors = [{'r': 255, 'g': 0, 'b': 0}]",
+      "tracks = [{'name': 'a', 'num': 1}]",
       "doc = '''",
       'a[::2] 설명',
       "'''",
