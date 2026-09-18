@@ -785,6 +785,8 @@ interface BridgeChannel {
 | `direct` | 같은 탭 안에서 잇는다(`createDirectPair`·`createDirectHub`). 브라우저 API를 하나도 쓰지 않아 단위 테스트가 이것으로 규칙을 확인한다 | 한 화면 모드(P4-02·P4-09), 테스트 |
 | `tab` | 같은 컴퓨터의 다른 탭(BroadcastChannel, PD-17). 채널 이름은 `ai-physical-computing:bridge:<접두어>` | 탭 통로(P4-02·P4-06·P4-07) |
 
+상대가 없어도 조용히 보내야 하는 쪽(대시보드처럼 듣는 사람이 없을 수 있는 방송)은 `requirePeer: false`로 연다 — 그래야 보낼 때마다 오류 안내가 나오지 않는다.
+
 화면의 [보내기] 패널이 통로를 바꿀 때는 `bridge.setChannel(새 통로)`를 쓴다 — 보낼 차례에 남아 있던 것이 그대로 새 통로로 나가고, 받는 길도 함께 옮겨진다. 옛 통로는 닫지 않으므로 필요하면 부른 쪽이 닫는다.
 
 `tab` 통로는 BroadcastChannel에 상대를 세는 기능이 없어서 **인사로 안다**: 열 때 `bridge.hello` → 받은 쪽이 `bridge.here`로 답 → 그 뒤 2초마다 `bridge.here`, 6초 동안 소식이 없으면 목록에서 뺌, 닫을 때 `bridge.bye`. `requirePeer`(기본 참)면 상대가 없을 때 보내기가 `BridgeNoPeerError`를 던지고, 그 전에 `discoveryMs`(기본 500ms)만큼 한 번 더 기다려 본다(막 열린 탭이 답할 시간).
