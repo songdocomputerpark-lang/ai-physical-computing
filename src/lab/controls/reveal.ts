@@ -62,6 +62,11 @@ export interface RevealTogetherOptions {
   slack?: number;
   /** 둘을 함께 보일 수 없어 첫 칸만 보일 때 화면 어디에 붙일지(기본 'start') */
   block?: ScrollLogicalPosition;
+  /**
+   * 함께 보일 수 없을 때 대신 보일 칸(기본: primary의 마지막 후보). 둘째 칸이 더 중요할 때 준다 —
+   * 예: 콘솔에 결과가 나왔다는 알림은 보드 그림과 함께 보이면 좋지만, 못 넣으면 알림을 보여야 한다(2026-09-18 검토 반영).
+   */
+  fallback?: Element | null;
 }
 
 /**
@@ -119,5 +124,5 @@ export function revealTogether(
     }
     return true;
   }
-  return revealElement(last, fallbackOptions);
+  return revealElement(options.fallback ?? last, fallbackOptions);
 }

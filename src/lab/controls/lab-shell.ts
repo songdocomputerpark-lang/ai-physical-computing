@@ -777,6 +777,15 @@ class LabShellController implements LabController {
       this.#elements.consoleNewBadge.hidden = false;
       this.#elements.consoleNewBadge.textContent = `새 출력 ${this.#consoleNewLines}줄`;
     }
+    if (first) {
+      /*
+       * 알림은 결과 칸 맨 아래(핀 표 다음)에 있어 [실행] 뒤 화면 위치에서는 접힌 곳 아래일 수 있다.
+       * 결과 칸의 꼭 보여야 하는 부분(보드 그림)과 알림을 **함께** 보이고, 한 화면에 못 넣으면 알림을 보인다
+       * (결과가 print()뿐인 실행에서는 알림이 곧 결과다 — 2026-09-18 검토 반영).
+       */
+      const narrow = this.#elements.ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
+      revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: ioOutputBox });
+    }
   }
 
   #resetConsoleOutputNotice(): void {

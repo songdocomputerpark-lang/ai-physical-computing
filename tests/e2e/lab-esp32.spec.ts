@@ -254,6 +254,10 @@ test.describe('콘솔이 화면 밖일 때 결과 칸이 알린다(2026-09-18 �
     await expect(page.locator('[data-lab-io-output-head]')).toHaveText('콘솔에 결과가 나왔어요.');
     await expect(page.locator('[data-lab-io-output-text]')).toContainText('셋째 줄');
     await expect(page.locator('[data-lab-console-new]')).toContainText('새 출력');
+    // 알림은 DOM에 있는 것으로 끝이 아니라 **화면 안에** 있어야 한다(결과가 print()뿐이면 이 알림이 곧 결과다)
+    await expect
+      .poll(() => notice.evaluate((element) => { const box = element.getBoundingClientRect(); return box.top < window.innerHeight && box.bottom > 0; }), { timeout: 10_000 })
+      .toBe(true);
     // [콘솔 보기 ↓]를 누르면 콘솔이 화면에 들어오고 알림은 사라진다
     await page.locator('[data-lab-console-jump]').click();
     await expect.poll(async () => consoleBox.evaluate((element) => element.getBoundingClientRect().top < window.innerHeight), { timeout: 10_000 }).toBe(true);
