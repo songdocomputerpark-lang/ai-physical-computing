@@ -15,7 +15,7 @@
  *   보내기 직전에 discoveryMs만큼 한 번 더 기다려 본다(막 열린 탭이 답할 시간).
  */
 import { BridgeClosedError, BridgeNoPeerError } from '../messages.ts';
-import type { BridgeChannel, BridgeChannelEvents, BridgeChannelState, BridgeEnvelope, BridgeParty, BridgeSendOptions } from '../types.ts';
+import type { BridgeChannel, BridgeChannelEvents, BridgeChannelState, BridgeParty, BridgeSendOptions } from '../types.ts';
 import type { BridgeScheduler } from '../outbox.ts';
 import { systemScheduler } from '../outbox.ts';
 import { BridgeChannelEmitter } from './emitter.ts';
@@ -191,7 +191,7 @@ class TabChannel implements BridgeChannel {
     if (envelope.to !== undefined && envelope.to !== this.from) {
       return;
     }
-    this.emitter.emit('message', envelope satisfies BridgeEnvelope);
+    this.emitter.emit('message', envelope);
   }
 
   /** 상대가 나타날 때까지 기다린다(최대 ms). 이미 있으면 바로 참. */

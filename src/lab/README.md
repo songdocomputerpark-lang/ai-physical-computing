@@ -775,6 +775,7 @@ interface BridgeChannel {
 
 - **이름(`from`)에 개인정보를 넣지 않는다.** 학생 이름·학번·기기 주소가 아니라 자리 이름을 쓴다: `pc`·`board`·`phone`·`dash`(`BRIDGE_PARTY_LABELS`).
 - 봉투(`BridgeEnvelope`)는 `{ v: 1, type, from, to?, port?, baud?, bytes, at }`이고 **바이트만 싣는다**. 인사 봉투에는 내용이 실리지 않는다.
+- 통로는 인사 봉투만 걸러 내고 **나머지는 그대로 올려 준다.** 한 접두어에 여러 줄기(예: `bridge.data`와 `uart.data`)를 함께 쓰면 받는 쪽이 `envelope.type`을 보고 가른다.
 - 통로가 닫혔으면 `BridgeClosedError`, 상대가 없다고 알 수 있으면 `BridgeNoPeerError`를 던진다. 둘 다 한국어 문장이 들어 있다.
 
 붙박이 통로 둘
