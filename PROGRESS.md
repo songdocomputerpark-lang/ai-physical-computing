@@ -187,6 +187,15 @@
 - **이 워크플로는 통째 재개해도 안전하다**(이어 붙인 제작 단계가 없고, `fix:final`은 중간에 멈췄다 다시 시작되는 것을 전제로 쓰여 있다). 재개에 필요한 것은 모두 제자리에 두었다 — 스크립트 사본 2곳(세션 `workflows\scripts\`, 안전 사본 `.cache\resume\`), args는 `.cache\resume\RESUME-ARGS.json`, 자동 기록 `.cache\resume\STATE.md`가 run id·스크립트 경로·단계별 시각을 10분마다 갱신한다.
 - push는 정상으로 돌아왔다(깃 인증 승인 창 안 뜸, bec08b5).
 
+### 2026-09-19 00시 05분 — Phase 4 진행 위치 (한도 대비 기록)
+
+워크플로 `wf_26c7dddc-2bf`. **Core 2단계는 커밋·push 끝**(HEAD ba93a0e, origin과 같음). 2026-09-18 15시 26분에 한도로 15개 단계가 한꺼번에 죽었다가 21시 55분에 재개했고, 재개 뒤 **Build 8단계가 모두 끝났다**.
+
+- **끝난 구역(보고는 `.cache/phase4-notes/`):** A 영상처리↔보드, B 가상 BLE, B2 Web Bluetooth, C Web Serial 데이터 포트, D MQTT·탭 통로, D2 대시보드, E 통신 템플릿·블록, F 예제 갤러리. 공유 파일 변경 요청 6건이 `.cache/phase4-requests/`에 있다(ble·gallery·mqtt·serialport·templates·vision).
+- **지금 도는 것:** G 시나리오 F 예제, H 4단원 통합 화면. 그다음 통합 → 검토 3 → 수정.
+- **커밋 안 된 작업 79개 파일**(구역은 커밋하지 않는다 — 통합 단계가 커밋). **`git clean`·`git checkout .` 금지.** 만일에 대비해 `.cache/resume/phase4-wip-snapshot.tar.gz`(199항목)에 사본을 떠 두었고 목록은 같은 폴더의 `phase4-wip-files.txt`다.
+- **끊겨도 싸게 이어진다:** 끝난 8단계는 워크플로 캐시에 결과가 있어 재개하면 즉시 돌아온다. 재개 방법은 `docs/HANDOFF.md` 4번(run id·스크립트 사본·args 위치).
+
 ## 다음 할 일 (순서대로 — 끝난 Phase 3은 `docs/PLAN.md` §8.3, 다음 Phase 4는 §8.4)
 
 1. ~~**P3-00 (실험) MicroPython WASM 포트**~~ **끝남(2026-09-17): PD-04 유지** — 판정·근거는 미해결 42, 비교·다시 볼 조건·**가상 보드가 지킬 MicroPython 차이 표 14항목**(ticks 넘침 2**30·epoch 2000·단정밀도 float·errno 번호·u-이름·`const` 등)은 PLAN §8.3 P3-00 구현 메모. P3-01은 그 표의 "흉내" 항목을 보드 흉내 모듈 단위 테스트로 확인한다. 협조적 정지(`bridge.ts`)·동기 진입점 규칙(미해결 25)·흉내 모듈 폴더 규약은 Pyodide를 그대로 쓰므로 바뀌지 않는다.
