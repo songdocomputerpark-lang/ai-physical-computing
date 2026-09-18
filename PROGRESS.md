@@ -196,6 +196,26 @@
 - **커밋 안 된 작업 79개 파일**(구역은 커밋하지 않는다 — 통합 단계가 커밋). **`git clean`·`git checkout .` 금지.** 만일에 대비해 `.cache/resume/phase4-wip-snapshot.tar.gz`(199항목)에 사본을 떠 두었고 목록은 같은 폴더의 `phase4-wip-files.txt`다.
 - **끊겨도 싸게 이어진다:** 끝난 8단계는 워크플로 캐시에 결과가 있어 재개하면 즉시 돌아온다. 재개 방법은 `docs/HANDOFF.md` 4번(run id·스크립트 사본·args 위치).
 
+### 2026-09-19 00시 30분 — 운영자 요청으로 작업 정지 (내일 이어서)
+
+Phase 4 워크플로 `wf_26c7dddc-2bf`를 멈췄다. 돌던 두 단계(G 시나리오 F 예제, H 4단원 통합 화면)는 결과 전이라 재개하면 처음부터 다시 돈다. 남은 개발 서버와 에이전트 프로세스는 모두 정리했다(4300~4800 포트에 듣는 서버 없음).
+
+**어디까지 됐나 (10단계 끝)**
+
+- Core: P4-01 통신 브릿지 핵심, 병렬 준비 — **커밋·push 끝**(origin과 같음).
+- Build 8개: A 영상처리↔보드, B 가상 BLE, B2 Web Bluetooth, C Web Serial 데이터 포트, D MQTT·탭 통로, D2 대시보드, E 통신 템플릿·블록, F 예제 갤러리 — **워크플로 캐시에 결과가 있어 재개하면 즉시 돌아온다.** 보고 8개는 `.cache/phase4-notes/`, 공유 파일 변경 요청 6건은 `.cache/phase4-requests/`.
+- 남은 것: G·H → 통합(요청 판단·전체 검증·시나리오 D·F·커밋·배포) → 적대적 검토 3 → 수정.
+
+**작업이 날아가지 않게 해 둔 것 (세 겹)**
+
+1. **원격 백업 가지 `wip/phase4-20260919`**(커밋 `2ca339e`) — 구역이 만든 파일 190개·27,500줄을 올렸다. `main`에는 넣지 않았고 배포·테스트 워크플로는 `main` push에서만 도니 사이트에 영향이 없다. 이 노트북이 통째로 없어져도 여기서 되살린다.
+2. **이 컴퓨터 사본** `.cache/resume/phase4-wip-snapshot.tar.gz`(223항목, 목록 `phase4-wip-files.txt`)와 `.cache/resume/phase4-notes`·`phase4-requests` 복사본.
+3. **작업 폴더의 파일 89개 그대로**(커밋 안 됨 — 통합 단계가 커밋할 몫). **`git clean`·`git checkout .` 금지.**
+
+**백업에서 뺀 파일 1개:** `tests/unit/mqtt/brokers.test.ts`. 저장소 검사가 64번째 줄을 이메일 주소 모양으로 보고 막았다(아이디·비밀번호가 들어간 wss 주소라 골뱅이표가 들어간다) — "아이디·비밀번호가 든 주소는 막는다"를 확인하는 **시험용 값이라 실제 개인정보가 아닌 가짜 양성**이다. 허용 목록(`scripts/repo-allowlist.yaml`의 `privacy_exceptions`)에 넣을지는 맥락을 아는 통합 단계가 정한다. 파일 자체는 작업 폴더와 위 2번 사본에 그대로 있다.
+
+**내일 이어받기:** `docs/HANDOFF.md` 4번대로 `Workflow({scriptPath: ".cache/resume/phase4-comm-lab-wf_26c7dddc-2bf.js" 또는 세션 사본, resumeFromRunId: "wf_26c7dddc-2bf", args: .cache/resume/RESUME-ARGS.json})`. 끝난 10단계는 캐시에서 돌아온다.
+
 ## 다음 할 일 (순서대로 — 끝난 Phase 3은 `docs/PLAN.md` §8.3, 다음 Phase 4는 §8.4)
 
 1. ~~**P3-00 (실험) MicroPython WASM 포트**~~ **끝남(2026-09-17): PD-04 유지** — 판정·근거는 미해결 42, 비교·다시 볼 조건·**가상 보드가 지킬 MicroPython 차이 표 14항목**(ticks 넘침 2**30·epoch 2000·단정밀도 float·errno 번호·u-이름·`const` 등)은 PLAN §8.3 P3-00 구현 메모. P3-01은 그 표의 "흉내" 항목을 보드 흉내 모듈 단위 테스트로 확인한다. 협조적 정지(`bridge.ts`)·동기 진입점 규칙(미해결 25)·흉내 모듈 폴더 규약은 Pyodide를 그대로 쓰므로 바뀌지 않는다.

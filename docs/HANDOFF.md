@@ -71,11 +71,11 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 | Phase 2 영상처리 실습실 | `wf_a1aac702-2a9` | `workflows\scripts\phase2-vision-lab-wf_a1aac702-2a9.js` | 완료 |
 | Phase 3 ESP32 실습실 | `wf_86bbf998-bc6` | `workflows\scripts\phase3-esp32-lab-wf_86bbf998-bc6.js` | 제작·통합까지 끝(검토 도중 정지) |
 | Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
-| **Phase 4 통신 실습실** | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | **지금 도는 것**(2026-09-18 11:34 시작) |
+| **Phase 4 통신 실습실** | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | **멈춤**(2026-09-19 00:30, 10단계 끝) — 이어서 할 것 |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
 
-### 지금 도는 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-18 11:34 시작)
+### 이어서 할 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-19 00:30 운영자 요청으로 정지)
 
 PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) → Build 6구역 병렬(A 영상처리↔보드 4701 / B 가상 BLE→Web Bluetooth 4702 / C 데이터 포트 4703 / D MQTT→대시보드 4704 / E 통신 템플릿·블록 4705 / F 예제 갤러리 4706) → Build2(G 시나리오 F 4707 / H 4단원 통합 화면 4708) → 통합 → 적대적 검토 3(4711~4713) → 수정·배포.
 
@@ -83,6 +83,14 @@ PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) �
 
 - 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js`, 안전 사본 `.cache\resume\phase4-comm-lab-wf_26c7dddc-2bf.js`.
 - args는 `.cache\resume\RESUME-ARGS.json`(Phase 3과 같은 세 값).
+
+**2026-09-19 00:30 정지 시점 — 그냥 재개하면 된다**
+
+- 끝난 10단계(Core 2 + Build 8)는 **워크플로 캐시에 결과가 있어 즉시 돌아온다.** 다시 도는 것은 G 시나리오 F·H 4단원 통합 화면부터다.
+- 작업 폴더에 **커밋 안 된 파일 89개**가 있다(구역이 만든 것). 이것이 정상이다 — 통합 단계가 커밋한다. **`git clean`·`git checkout .` 금지.**
+- 잃어버렸을 때 되살리는 곳 두 군데: 원격 가지 `wip/phase4-20260919`(커밋 2ca339e, 190개 파일)와 이 컴퓨터의 `.cache/resume/phase4-wip-snapshot.tar.gz`(223항목).
+- 구역 보고 8개는 `.cache/phase4-notes/`, 공유 파일 변경 요청 6건은 `.cache/phase4-requests/` — 통합 단계가 읽는다. 사본은 `.cache/resume/` 아래에도 있다.
+- 알려진 것 하나: `tests/unit/mqtt/brokers.test.ts` 64번째 줄의 시험용 주소를 저장소 검사가 이메일 모양으로 막는다(가짜 양성). 통합 단계가 허용 목록에 넣을지 정한다.
 
 **Build 구역이 도는 중에 끊겼으면 (지금이 그 구간이다)**
 
