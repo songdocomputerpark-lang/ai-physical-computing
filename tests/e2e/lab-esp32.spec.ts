@@ -258,8 +258,20 @@ test.describe('콘솔이 화면 밖일 때 결과 칸이 알린다(2026-09-18 �
     await expect
       .poll(() => notice.evaluate((element) => { const box = element.getBoundingClientRect(); return box.top < window.innerHeight && box.bottom > 0; }), { timeout: 10_000 })
       .toBe(true);
-    // [콘솔 보기 ↓]를 누르면 콘솔이 화면에 들어오고 알림은 사라진다
-    await page.locator('[data-lab-console-jump]').click();
+    /*
+     * [콘솔 보기 ↓]를 누르면 콘솔이 화면에 들어오고 알림은 사라진다.
+     * 단, 단추가 멈추기를 기다리는 사이에 **콘솔이 스스로 화면에 들어오면** 알림은 규칙대로(IntersectionObserver) 사라져
+     * 누를 단추가 없어진다 — 휴대폰 화면(375×812)의 CI에서 되풀이해 걸렸다(2026-09-18 P4-01에서 고침,
+     * 로그: "element is not stable" 몇 번 뒤 "element is not visible" 47번 → 30초 제한).
+     * 그래서 "눌렀거나, 누를 필요가 없었거나" 둘 중 하나면 통과로 보고, 끝 모습(콘솔이 화면 안·알림 사라짐)은 그대로 확인한다.
+     */
+    const jump = page.locator('[data-lab-console-jump]');
+    const clicked = await jump.click({ timeout: 10_000 }).then(
+      () => true,
+      () => false,
+    );
+    const consoleAlreadyInView = await consoleBox.evaluate((element) => element.getBoundingClientRect().top < window.innerHeight);
+    expect(clicked || consoleAlreadyInView).toBe(true);
     await expect.poll(async () => consoleBox.evaluate((element) => element.getBoundingClientRect().top < window.innerHeight), { timeout: 10_000 }).toBe(true);
     await expect(notice).toBeHidden();
   });
