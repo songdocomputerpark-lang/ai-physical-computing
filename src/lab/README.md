@@ -1,6 +1,6 @@
 # 실습실 코드 안내 (`src/lab/`)
 
-실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절 — 부품 제작 체크리스트 7.9, 확장 자리 7.10), **모의 시리얼(실제 보드 없이 Web Serial 흐름 시험)**(8절), **통신 브릿지(기기와 기기 사이로 글자 한 줄을 보내는 다리)**(9절)를 적어요.
+실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절 — Phase 3 구역 5.1, **Phase 4 구역 5.2**), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절 — 부품 제작 체크리스트 7.9, 확장 자리 7.10), **모의 시리얼(실제 보드 없이 Web Serial 흐름 시험)**(8절), **통신 브릿지(기기와 기기 사이로 글자 한 줄을 보내는 다리)**(9절)를 적어요.
 
 | 폴더 | 하는 일 |
 |---|---|
@@ -12,7 +12,9 @@
 | `editor/` | 코드 에디터(CodeMirror 6) |
 | `controls/` | 실습실 공통 조작(`lab-shell.ts` 컨트롤러, 예제 목록 `examples.ts`, 예제 머리말 읽기 `example-meta.ts`, 사이드카 읽기 `example-sidecar.ts`(빌드 전용), 자동 저장·공유 링크·내려받기) |
 | `params/` | 조절 패널: 규약 파서 `parse.ts`, 화면 논리 `panel.ts` |
-| `vision/` | 영상처리 실습실 화면(카메라·샘플 입력, 출력 창, 예제 목록 만들기 `examples.ts`, 프레임 훅 `vision-lab.ts`) |
+| `vision/` | 영상처리 실습실 화면(카메라·샘플 입력, 출력 창, 예제 목록 만들기 `examples.ts` — PC 전용 라이브러리 폴더 `vision/lib/` 제외, 프레임 훅 `vision-lab.ts`) |
+| `bridge/` | **통신 브릿지**(9절): 메시지 규칙·보낼 차례·받는 차례·통로 등록표. 쓰는 쪽은 `bridge/index.ts`에서만 가져와요 |
+| `gallery/` | 예제 갤러리(P4-11)가 읽을 **태그 규약** `facets.ts`(단원·난이도·가상 보드 가능·통신 방식·부품·낱말) |
 
 ---
 
@@ -279,7 +281,75 @@ npx vitest run tests/unit/lab/board-part-buzzer.test.ts tests/unit/lab/pyodide-b
 - **esbuild 0.28.2**(devDependency): 모의 시리얼을 브라우저에 끼울 때 묶는 데만 써요(8절).
 - **펌웨어 파일은 받지 않아요**(인터넷에서 파일 내려받기 금지): F 구역은 받을 곳·크기·SHA-256을 조사해 요청으로 남기고, 테스트는 `page.route`로 가짜 응답을 주거나 테스트 안에서 만든 임시 파일을 써요. `public/firmware/`에는 파일을 넣지 않아요(넣으려면 `sources.yaml` 등록이 먼저 — 공유 파일).
 
-### 5.2 Phase 2 병렬 제작 때의 기록(P2-05~P2-13)
+### 5.2 Phase 4 병렬 제작(P4-02~P4-11, 2026-09-18 준비) — 구역·포트·공유 파일
+
+여섯 구역(A~F)이 동시에 만들고, 앞 구역이 끝나야 되는 둘(G·H)은 2차로 붙어요. **공유 파일은 고치지 않고**(필요하면 요청 — 아래 "공유 파일 변경 요청"),
+자기 구역의 **새 파일·새 폴더**만 만들어요. 통신 규칙의 헌법은 `docs/PLAN.md` §7이고, 브릿지 코드 약속은 이 문서 **9절**이에요.
+
+| 구역 | 포트 | 만드는 것(PLAN §8.4) | 자기 파일·폴더(새로 만듦) | 자기 테스트 |
+|---|---|---|---|---|
+| A 영상처리 → 가상 보드(P4-02) | 4701 | [보내기] 패널, PC 쪽 `serial` 흉내, PC 쪽 `bluetooth`·`bluetooth_lib` 대체, 새 예제용 `bridge` 모듈, 한 화면에 영상처리 + 가상 보드 | `src/lab/modules/send-panel/`(영상처리 실습실 흉내 모듈 — `serial.py`·`bluetooth.py`·`bluetooth_lib.py`·`bridge.py`는 **파일 이름이 곧 import 이름**이라 이 폴더에 둬요), `src/components/lab/send/` | `tests/unit/lab/module-send-panel.test.ts`, `tests/unit/lab/pyodide-send-panel.test.ts`, `tests/e2e/lab-send-panel.spec.ts` |
+| B 가상 BLE(P4-03) | 4702 | `ubluetooth` 저수준 흉내 위에서 `ESP32BLE.py` **원본 실행**(상태 LED 깜빡임까지), `esp32_ble_util` 가상판, 보드 쪽 송신 패널, 가상 스마트폰 앱 패널(f002) | `src/lab/modules/board/ext/ble/`(자리·설명 있음 — `apc_board_ble.py`), `src/lab/modules/board/parts/ble/`(화면·조작 칸), `examples/esp32/lib/third-party/esp32_ble_util.py`(등록부 항목 요청) | `tests/unit/board-ble/**`(Pyodide 단계는 `tests/unit/lab/helpers/board-steps/ble.mjs`), `tests/unit/lab/board-part-ble.test.ts`, `tests/e2e/esp32-ble.spec.ts` |
+| C 실제 기기 연결(P4-04 Web Bluetooth → P4-05 Web Serial 데이터 포트) | 4703 | 선택 창(`namePrefix` + NUS `optionalServices`), 응답 있는 쓰기 직렬 대기열, 알림 받기, 교실 이름 규칙 안내 / USB-UART 변환기를 **두 번째 포트**로 열기·포트 이름표·(실험) USB 한 개로 보내기 | `src/lab/ble/`(Web Bluetooth), `src/lab/modules/real-ble/`, `src/lab/serial/data-port.ts`+`src/lab/modules/data-port/`, `src/components/lab/ble/` | `tests/unit/ble/**`(가짜 `navigator.bluetooth`), `tests/unit/serial/data-port-*.test.ts`(모의 시리얼 8절), `tests/e2e/esp32-ble-real.spec.ts`·`lab-data-port.spec.ts` |
+| D MQTT·탭 통로(P4-06) | 4704 | MQTT.js 5.15.2 통로(`registerBridgeChannel`), 브로커 목록·무작위 접두어·공개 브로커 경고(PD-29), 가상 보드 `network.WLAN`·`umqtt.simple` 흉내, BroadcastChannel 통로 붙이기 | `src/lab/modules/mqtt/`, `src/lab/mqtt/`, `src/lab/modules/board/ext/network/`(자리·설명 있음 — `apc_board_network.py`·`apc_board_umqtt.py`) | `tests/unit/mqtt/**`, `tests/unit/board-network/**`, `tests/e2e/lab-mqtt.spec.ts`(두 페이지) |
+| E 대시보드(P4-07) | 4705 | 게이지·실시간 그래프·스위치·텍스트 로그 위젯, 끌어다 배치(배치는 localStorage) → **시나리오 D** | `src/pages/labs/iot/`(사이트 지도에 이미 있는 주소), `src/lab/dashboard/`, `src/components/lab/dashboard/` | `tests/unit/dashboard/**`, `tests/e2e/dashboard.spec.ts`·`scenario-d.spec.ts` |
+| F 통신 템플릿·통신 블록(P4-10) | 4706 | MicroPython 템플릿 3종(UART 에코 / BLE 알림 / umqtt 발행·구독 — 실제 보드용 수신은 LED·LCD 표시만, 허용 목록·길이 검사 기본), Blockly 통신 블록과 Python 생성기 | `examples/esp32/comm/*.py`(사이트가 만든 예제라 머리말 규약 2절), `src/lab/blocks/comm/`(새 블록 묶음), `src/lab/modules/blocks/`의 **새 파일만** | `tests/unit/blocks/comm-*.test.ts`, `tests/e2e/esp32-comm-templates.spec.ts` |
+| **2차** G 시나리오 F·4단원 통합(P4-08·P4-09) | 4707 | 손가락 개수 송신 + 네오픽셀 N개 수신 예제(카메라 없이 합성 랜드마크만으로 통과 — PD-30), 카메라 + 가상 데스크톱 + 가상 보드 한 화면·성능 측정 | `examples/vision/supplement/c3-*.py`·`examples/esp32/comm/c3-*.py`, `src/components/lab/combined/` | `tests/e2e/scenario-f.spec.ts`, `tests/e2e/lab-textbook-u4-combined.spec.ts` |
+| **2차** H 예제 갤러리(P4-11) | 4708 | `examples/`와 차시 frontmatter에서 카드·태그를 빌드 때 자동 생성, 태그 필터·검색 연동, 카드에서 실습실로 불러오기 | `src/pages/examples/`, `src/components/gallery/`, `src/lab/gallery/`의 **새 파일만**(`facets.ts`는 있음) | `tests/unit/gallery/**`, `tests/e2e/examples-gallery.spec.ts` |
+
+- **A·B가 먼저 끝나야** G가 시작돼요(짝 예제가 양쪽에서 돌아야 시나리오 F·4단원 통합을 볼 수 있어요). H는 태그 규약(아래 ⑤)만 있으면 언제든 시작할 수 있어요.
+- C는 **실물 기기가 있어야 끝까지 확인**돼요. 화면 흐름·오류 안내까지만 자동 테스트로 보고, 실제 송수신은 "확인 필요"로 남겨 부록 B와 운영자 할 일에 적어요.
+
+**공유 파일(고치지 않음 — 요청):** `package.json`·`package-lock.json`·`astro.config.mjs`·`sources.yaml`·`playwright.config.ts`·`vitest.config.ts`·`tsconfig.json`,
+`scripts/**`(특히 `scripts/examples-manifest.yaml`), `.github/**`, `src/lib/**`·`src/config/**`·`src/styles/**`·`src/layouts/**`,
+**브릿지 핵심** `src/lab/bridge/**`(새 통로는 `registerBridgeChannel`로 끼워요 — 9.6), `src/lab/runtime/**`·`src/lab/python/**`·`src/lab/controls/**`·`src/lab/editor/**`·`src/lab/params/**`·`src/lab/errors/**`·`src/lab/loader/**`·`src/lab/modules/{manifests,host,types,panel-when-used}.ts`·`src/lab/esp32/**`·`src/lab/vision/**`·`src/lab/gallery/facets.ts`,
+`src/components/lab/**`(LabShell·BoardIo·VisionIo 등), `src/pages/labs/{vision,esp32}/index.astro`,
+**보드 핵심** `src/lab/modules/board/`의 `parts/<내 부품>/`·`ext/<내 기능>/` 밖 전부, 다른 구역의 흉내 모듈 폴더, `content/help/errors/errors.yaml`,
+모의 시리얼 `src/lab/serial/mock/**`·`tests/e2e/helpers/**`, 기존 spec·테스트 파일 전부, 문서 `CLAUDE.md`·`PROGRESS.md`·`MAINTENANCE.md`·`docs/**`·이 README.
+
+**공유 파일 변경 요청:** 고쳐야 할 것이 있으면 직접 고치지 말고 `.cache/phase4-requests/<구역>-<짧은 이름>.md`에 **파일·바꿀 내용·이유·영향 범위**를 적고 보고서에도 한 줄 남겨요(통합 담당이 반영해요).
+오류 사전 항목은 `content/help/errors/errors.yaml`의 "▼ 구역 … 항목 자리" 표시 아래에 넣을 YAML 덩어리를 그대로 요청에 적어요(모양은 7.9의 6번).
+
+**예제 사이드카 주인(파일 하나는 주인 구역만 고쳐요):**
+
+| 주인 | 예제(코드 id — `examples/` 뒤 경로) | 함께 필요한 구역 |
+|---|---|---|
+| A | f084 `vision/u3/3-1-2-uart-key-send`, f085 `vision/u3/3-1-2-adv-face-uart`, f089 `vision/u3/3-1-3-hand-ble-xy`, f158 `vision/bt/b11-finger-xy-send`, f082 `esp32/u3/3-1-2-uart-laser`, f083 `esp32/u3/3-1-2-uart-laser-boot` | — |
+| B | f086 `esp32/u3/3-1-3-ble-xy-rgb`, f098·f099 `esp32/u4/4-1-4-*`, f105·f106 `esp32/u4/4-2-1-*`, f109~f113 `esp32/u4/4-2-2-*`, f115 `esp32/u4/4-2-3-*`, f137·f147~f149·f157 `esp32/bt/*`, f002 `esp32/hw/ble-dabble-rgb` | A(f002·f148의 RGB LED는 이미 있음), G(짝 맞추기) |
+| C | — (실제 기기 흐름만) | — |
+| D | — | — |
+| G | f100 `vision/u4/4-1-4-adv-face-ble-tx`, f104 `vision/u4/4-2-1-face-mouse-ble-tx`, f114 `vision/u4/4-2-3-face-mouse-ble-tx-lib` | A·B |
+
+- 사이드카의 `smoke:`는 **지금 나는 결과 그대로**예요. 자기 구역이 흉내를 더해 결과가 바뀌면 그 자리에서 고치고 보고서에 적어요.
+- 사이드카에 **갤러리 태그**(`unit`·`difficulty`·`virtual_ok`·`comm`)를 채우는 것도 주인 구역 몫이에요(아래 ⑤).
+- `examples/` 폴더에서 **예제가 아닌 것**: `esp32/lib/`(보드 라이브러리 — 보드에 올라가요)와 `vision/lib/`(PC에서 돌릴 때만 쓰는 원본 — 실습실 목록·스모크에 안 나와요).
+
+```bash
+npm ci                                                               # 처음 한 번
+APC_VITE_CACHE_DIR=.cache/vite-4701 ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 4701 --ignore-lock
+PW_BASE_URL=http://localhost:4701/ai-physical-computing/ npx playwright test tests/e2e/lab-send-panel.spec.ts --project=desktop --output=<저장소 밖 폴더>
+npx vitest run tests/unit/lab/module-send-panel.test.ts
+```
+
+한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법)은 **5.1의 설명 그대로**예요.
+
+**이번 Phase에서 미리 열어 둔 자리(고치지 않고 쓰기만 해요, 2026-09-18):**
+
+1. **보드 이벤트 `board.uart.tx`** — 보드가 시리얼 선으로 내보낸 바이트를 화면에 알리는 이름을 보드 manifest에 넣어 두었어요(`apc_board.EVENT_UART_TX`).
+   보드 → PC 방향은 `board.device` 상태(최근 꼬리)가 아니라 이 이벤트로 보내요(PLAN §8.4 설계 메모 ②). 쓰는 곳은 A(UART 부품)와 D(탭 통로)예요.
+2. **machine 확장 자리** `ext/ble/`·`ext/network/` — 폴더와 설명(README.md)이 있어요. `apc_board.install()`이 `bluetooth`·`ubluetooth`·`network`를 **한국어 자리 안내**로 먼저 등록하고
+   그다음에 확장을 부르므로, 확장이 같은 이름을 다시 등록하면 확장이 이겨요. `NOT_YET_MODULES`에는 `umqtt`·`esp32_ble_util`이 들어 있어요(파일이 생기면 저절로 그 파일이 import돼요).
+3. **통신 패널 자리는 새로 만들지 않았어요** — 흉내 모듈의 `panel.astro`가 이미 `placement: 'panel'`(오른쪽 조절 패널)과 `'wide'`(콘솔 위 전체 폭) 두 자리에 들어가요(4.5절).
+   [보내기] 패널·대시보드 위젯은 그 자리를 쓰고, `LabShell.astro`·`BoardIo.astro`는 고치지 않아요. 패널은 **코드가 그 모듈을 쓸 때만** 열어요(`showPanelWhenUsed`).
+4. **오류 사전 통신 묶음** `comm` — `content/help/errors/errors.yaml`에 묶음과 첫 항목 네 개(PC 쪽 모듈 준비 중 / `ESP32BLE_LIB` 이름 / 받을 쪽 없음 / 통로 닫힘)가 있어요.
+   구역 항목은 "▼ 구역 …" 자리 표시 아래에 넣도록 요청해요.
+5. **예제 갤러리 태그 규약** `src/lab/gallery/facets.ts` — 단원(`unit`)·난이도(`difficulty`)·가상 보드 가능(`virtual_ok`)·통신 방식(`comm`)·부품(`parts`)·낱말(`tags`)을
+   **차시 md frontmatter와 예제 사이드카에 같은 이름으로** 적어요(칸마다 차시가 먼저, 없으면 사이드카). 통신 방식은 `uart`·`ble`·`wifi`·`mqtt`·`tab` 다섯 가지고,
+   **모르면 적지 않아요**(빈 값은 "해당 없음"이 아니라 "아직 모름"이라 갤러리가 그 필터에서 빼요). 부품은 배선(`parts`)에서 저절로 나오니 따로 적지 않아요.
+6. **MQTT.js 5.15.2**(MIT, `sources.yaml`·`public/licenses/mqtt.txt`) — 설치돼 있어요. 브라우저는 `package.json` exports의 browser 조건으로 **미리 묶인 한 파일**을 받아서
+   번들에 들어가는 npm 패키지는 `mqtt` 하나예요(esbuild로 확인). 실습실에 붙인 뒤 `npm run build`의 번들 출처 검사로 다시 확인해요.
+
+### 5.3 Phase 2 병렬 제작 때의 기록(P2-05~P2-13)
 
 병렬 제작 단계(PLAN §8.2 P2-05~P2-13)에서는 각자 **자기 작업 폴더**에서 개발 서버를 띄우고 **자기 spec만** 돌려요. 공유 파일(`package.json`·`package-lock.json`·`astro.config.mjs`·`sources.yaml`·`playwright.config.ts`·`src/lab/runtime/**`·`src/lab/editor/**`·`src/lab/params/**`·`src/components/lab/LabShell*`·`src/pages/labs/vision/index.astro`·`src/lib/**`·`.github/**`)은 고치지 않고, 필요한 것은 통합 담당에게 보고해요.
 

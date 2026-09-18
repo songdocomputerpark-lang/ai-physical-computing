@@ -905,6 +905,17 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
   ④ 속도를 그대로 넘기면 보드와 다를 때 `reframe`이 실물처럼 글자를 깨뜨려 "속도 불일치" 실습이 된다. f083의 `readline()`은 `timeout` 0이라 줄바꿈이 없어도 지금까지 온 바이트를 준다(가상 UART 테스트로 확인).
   ⑤ 원고 f082·f083의 `tx=16, rx=17`은 배선 그림(변환기 TX → 16)과 반대라 가상 보드가 안내를 낸다 — 통신 실습실 사이트판은 INVENTORY §4.4대로 `tx=17, rx=16`을 쓴다.
 
+- **구현 메모(병렬 제작 준비, 2026-09-18): 여섯 구역 앞에 열어 둔 자리.** 구역·포트(A 4701 … F 4706, 2차 G 4707·H 4708)·공유 파일·예제 사이드카 주인·검증 명령은 `src/lab/README.md` **5.2**에 있다. 준비 단계가 미리 한 것:
+  - **예제 30개 이관**(PD-33): 3단원 f082~f089, 4단원 f098~f116, 교안 f137·f147~f149·f157·f158, HW f002. 보드 쪽은 `examples/esp32/{u3,u4,bt,hw}/`, 컴퓨터 쪽은 `examples/vision/{u3,u4,bt}/`,
+    라이브러리는 `examples/esp32/lib/third-party/`(ESP32BLE.py·mg90s_servo.py — 보드에 올라감)와 새 폴더 `examples/vision/lib/`(bluetooth.py·bluetooth_lib.py — PC 전용 원본, 실습실 목록·스모크에서 뺀다).
+    사본(f101·f102·f103·f107·f117)은 옮기지 않았다(§2.5 "사본은 하나만"). 사이드카 `smoke:`는 지금 나는 결과 그대로다.
+  - **개인정보 예외:** 옮긴 코드 5개(f089·f100·f104·f114·f158)에 박혀 있던 BLE 주소를 같은 글자 수의 `XX:XX:XX:XX:XX:XX`로 가렸다(이관 도구 `privacy: [mac]`, PROGRESS 미해결 130).
+    원본을 고치지 않는다는 PD-10의 유일한 예외가 개인정보다(DECISIONS). 브라우저는 주소로 연결하지 않으므로(§7.3) 학습에도 값이 필요 없다.
+  - **확장 자리:** 보드 이벤트 `board.uart.tx`(설계 메모 ②), machine 확장 자리 `ext/ble/`·`ext/network/`(안내 README 포함 — `install()`이 `bluetooth`·`ubluetooth`·`network`를 한국어 자리 안내로 먼저 등록하고 확장이 덮어쓴다),
+    `NOT_YET_MODULES`에 `umqtt`·`esp32_ble_util`, 오류 사전 `comm` 묶음(항목 4개 + 구역 자리), 예제 갤러리 태그 규약 `src/lab/gallery/facets.ts`(단원·난이도·가상 보드 가능·통신 방식·부품·낱말 — 차시 md가 먼저, 없으면 사이드카).
+    **통신 패널은 새 슬롯을 만들지 않았다** — 흉내 모듈 `panel.astro`의 `placement: 'panel'|'wide'` 자리를 그대로 쓴다.
+  - **MQTT.js 5.15.2**(MIT, 공식 저장소 LICENSE.md로 확인) 설치·등록. 브라우저는 미리 묶인 한 파일을 받아 번들 npm 패키지가 `mqtt` 하나라서, 고지 `public/licenses/mqtt.txt`에 의존성 44개 원문을 모았다(PROGRESS 미해결 131).
+
 **산출물:** 브릿지 핵심, 같은 페이지 가상 보드 연결, 가상 BLE와 `ESP32BLE.py` 원본 실행, Web Bluetooth·Web Serial 데이터 포트, MQTT와 가상 Wi-Fi·MQTT 흉내, 같은 컴퓨터 탭 통로, 대시보드, 시나리오 F 예제, 4단원 통합 화면, ESP32 통신 템플릿 3종과 통신 블록, 예제 갤러리.
 
 | 묶음 | 할 일 | 완료 기준 | 검증 방법 |
