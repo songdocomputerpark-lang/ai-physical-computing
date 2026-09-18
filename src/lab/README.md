@@ -725,3 +725,154 @@ await board.unplug();                                            // 선 뽑기 �
 - **판정·복사 글:** `report.ts` — 질문이 모두 예면 "예(같음)", 하나라도 아니오면 "다름", 답이 없으면 "아직". [결과 복사]는 PROGRESS에 붙일 마크다운 표를 만든다.
 - **저장:** `board-check:answers`(이 컴퓨터의 브라우저에만, [기록 지우기]가 함께 지운다).
 - **테스트:** `tests/unit/esp32-check/`(항목 규칙·복사 글) + `tests/e2e/esp32-board-check.spec.ts`(모의 포트로 항목 전체를 끝까지 — 실물의 증거는 아니다).
+
+---
+
+## 9. 통신 브릿지 — `src/lab/bridge/`(P4-01)
+
+"브릿지"는 **영상처리 실습실이 알아낸 값(손가락 개수·좌표·클릭)을 ESP32로 보내는 다리**다. 규칙은 `docs/PLAN.md` §7(특히 §7.2 PD-06·§7.4 PD-29·§7.6)이 헌법이고, 이 절은 그것을 코드로 옮긴 결과와 **Phase 4 여섯 구역이 지켜야 할 약속**이다. 규칙 하나하나에 단위 테스트가 있다(`tests/unit/bridge/`).
+
+### 9.0 세 층과 파일
+
+```
+ 보내는 쪽(영상처리·대시보드·블록)                통로                    받는 쪽(가상 보드·실제 보드·다른 탭)
+ ────────────────────────────────────  ──────────────────────  ────────────────────────────────
+ bridge.send('355,152')   ─▶ ① 메시지   ─▶ ② 보낼 차례        ─▶ ③ 통로 ─▶ (같은 바이트)
+ bridge.event('DATA,…,1,0')  message.ts     outbox.ts               channels/
+ bridge.sendBytes(b)         모양·길이·끝 문자  초당 10회·병합·보존     direct / tab / (mqtt·ble·serial 자리)
+ bridge.receive()         ◀─ 받는 차례 inbox.ts(줄 모으기·허용 목록) ◀─┘
+```
+
+| 파일 | 하는 일 |
+|---|---|
+| `types.ts` | 값 모양 한 곳(`BridgeMessage`·`BridgeEnvelope`·`BridgeChannel`·`BridgeChannelFactory`). DOM·워커를 모른다 |
+| `messages.ts` | **학생이 보는 한국어 문장과 오류 종류 전부**(`bridgeText`, `BridgeError`·`BridgeClosedError`·`BridgeNoPeerError`). 문장을 여기 밖에서 쓰지 않는다 |
+| `message.ts` | 메시지 만들기·모양 판정·길이 검사(§7.2-1·2·3·7·8) |
+| `outbox.ts` | 언제 보내나(§7.2-4·5, §7.6-①~⑤). 시계·타이머를 인자로 받는다 |
+| `inbox.ts` | 받은 바이트를 줄로 모으고 거른다(§7.7, PD-29) |
+| `prefix.ts` | 무작위 접두어 12글자(PD-29) |
+| `bridge.ts` | 셋을 묶은 `Bridge`(`send`·`event`·`sendBytes`·`receive`) |
+| `channels/` | 통로 구현과 등록표. `direct`(같은 탭)·`tab`(BroadcastChannel) 붙박이 + `registry.ts`(MQTT·BLE·Web Serial 자리) |
+| `index.ts` | **공개 자리 — 쓰는 쪽은 `src/lab/bridge/index.ts`에서만 가져온다** |
+
+### 9.1 통로 약속(`BridgeChannel`)
+
+보내기·받기·닫기와 "누가 보냈는지"만 있는 작은 약속이라 구현을 갈아 끼울 수 있다.
+
+```ts
+interface BridgeChannel {
+  readonly id: string;            // 'direct' | 'tab' | 'mqtt' | 'ble' | 'serial'
+  readonly label: string;         // 화면에 보일 한국어 이름
+  readonly from: BridgeParty;     // 이 끝의 이름 — "누가 보냈는지"
+  readonly state: 'open' | 'closed';
+  readonly peers: readonly BridgeParty[];   // 지금 보이는 상대(모르면 빈 목록)
+  readonly knowsPeers: boolean;
+  send(bytes: Uint8Array, options?: { to?; port?; baud?; type? }): Promise<void>;
+  on('message' | 'peers' | 'close', listener): () => void;   // 돌려주는 함수로 그만 듣는다
+  close(reason?: string): void;
+}
+```
+
+- **이름(`from`)에 개인정보를 넣지 않는다.** 학생 이름·학번·기기 주소가 아니라 자리 이름을 쓴다: `pc`·`board`·`phone`·`dash`(`BRIDGE_PARTY_LABELS`).
+- 봉투(`BridgeEnvelope`)는 `{ v: 1, type, from, to?, port?, baud?, bytes, at }`이고 **바이트만 싣는다**. 인사 봉투에는 내용이 실리지 않는다.
+- 통로가 닫혔으면 `BridgeClosedError`, 상대가 없다고 알 수 있으면 `BridgeNoPeerError`를 던진다. 둘 다 한국어 문장이 들어 있다.
+
+붙박이 통로 둘
+
+| id | 무엇 | 쓰는 곳 |
+|---|---|---|
+| `direct` | 같은 탭 안에서 잇는다(`createDirectPair`·`createDirectHub`). 브라우저 API를 하나도 쓰지 않아 단위 테스트가 이것으로 규칙을 확인한다 | 한 화면 모드(P4-02·P4-09), 테스트 |
+| `tab` | 같은 컴퓨터의 다른 탭(BroadcastChannel, PD-17). 채널 이름은 `ai-physical-computing:bridge:<접두어>` | 탭 통로(P4-02·P4-06·P4-07) |
+
+`tab` 통로는 BroadcastChannel에 상대를 세는 기능이 없어서 **인사로 안다**: 열 때 `bridge.hello` → 받은 쪽이 `bridge.here`로 답 → 그 뒤 2초마다 `bridge.here`, 6초 동안 소식이 없으면 목록에서 뺌, 닫을 때 `bridge.bye`. `requirePeer`(기본 참)면 상대가 없을 때 보내기가 `BridgeNoPeerError`를 던지고, 그 전에 `discoveryMs`(기본 500ms)만큼 한 번 더 기다려 본다(막 열린 탭이 답할 시간).
+
+채널 이름 앞의 `ai-physical-computing:bridge:`는 PD-29의 "고정 루트"가 아니다 — BroadcastChannel은 **같은 출처 안에서만** 통하고 이름이 밖에서 보이지 않는다. 이 사이트는 같은 계정의 다른 GitHub Pages 사이트와 출처를 나눠 쓰므로(`src/lib/storage.ts`와 같은 사정) 다른 사이트의 채널과 섞이지 않게 사이트 이름을 붙였다.
+
+### 9.2 메시지 규칙(§7.2) — 어디에 있고 어떤 테스트가 지키나
+
+| 규칙 | 구현 | 테스트 |
+|---|---|---|
+| 1 모양 세 가지(명령 한 글자 / 값 목록 / 머리말+필드) | `classifyText` → `shape`·`category`·`mergeKey` | `message.test.ts` "규칙 1" |
+| 2 끝 문자 `\n` 한 개 | `textMessage(text)`(이미 있으면 더 붙이지 않음, `terminator: ''`로 끌 수 있음) | "규칙 2" |
+| 3 끝 문자까지 20바이트(`BRIDGE_MAX_BYTES`) | `inspectBytes` → `warnings`에 `too-long` **경고만**(실물처럼 잘리는 것을 보여 주려고 막지 않는다, §7.7) | "규칙 3" |
+| 4 최대 초당 10회(`BRIDGE_MIN_INTERVAL_MS` 100ms) | `BridgeOutbox` — 넘친 것은 **버리지 않고** 차례에서 병합 | `outbox.test.ts` "규칙 4" |
+| 4 값이 바뀔 때만 | `skipUnchangedState`(기본 꺼짐. `bridge.send()`는 켠다) | "값이 바뀔 때만" |
+| 5 상태는 최신 값 / 이벤트는 대기열 | `category` + `mergeKey`(이벤트는 `null`이라 절대 안 바뀜) | "규칙 5" |
+| 6 같은 문자열을 모든 통로에 | 통로는 바이트만 받는다 — 메시지 층이 통로를 모른다 | `channels.test.ts` |
+| 7 원시 바이트(끝 문자 없음) | `rawMessage(bytes)`·`bridge.sendBytes` | "규칙 7·8" |
+| 8 원본 PC 코드는 고치지 않는다 | `rawMessage`는 바이트를 **복사만** 한다(한 바이트도 더하거나 빼지 않음). 글자로 읽히면 모양만 알아본다 | "규칙 7·8" |
+
+상태와 이벤트를 가르는 기준(자료 기준 — `docs/CODE_MAPPING.md` §6.1)
+
+- `DATA,mx,my,d,r` **5필드에서 4·5번째(클릭 표시)가 1이면 이벤트**다. 윙크 한 번이 사라지면 안 된다(§7.6-③).
+- 그 밖의 좌표·개수·명령 한 글자는 상태다. `bridge.event(text)`로 보내면 모양과 상관없이 이벤트가 된다.
+- 손가락 개수 `3`은 한 글자지만 **명령이 아니라 값**이라 다음 개수 `4`와 같은 자리다(`values:1`).
+- 글자로 읽히더라도 제어 문자가 섞였으면(f007의 `0x03`, MP3 명령의 `0x06`) 글이 아니라 원시 바이트로 본다.
+
+### 9.3 보낼 차례(`BridgeOutbox`)와 §7.6 병합 규칙
+
+```ts
+const outbox = new BridgeOutbox((message) => channel.send(message.bytes), { scheduler, onWarn, onSend, onError });
+outbox.send(textMessage('355,152'));   // 'queued' | 'merged' | 'skipped' | 'dropped'
+```
+
+| §7.6 | 뜻 | 구현 |
+|---|---|---|
+| ① 한 번에 하나만 쓴다 | 앞 보내기 약속이 풀려야 다음이 나간다 | `inFlight` |
+| ② 머리말·필드 수가 같으면 바꿔 끼운다 | 차례의 **그 자리에서** 값만 바뀐다(순서 그대로) | `mergeKey = fields:<머리말>:<필드 수>` |
+| ③ 클릭 표시가 1인 DATA 5필드는 안 바꾼다 | 이벤트라 `mergeKey`가 `null` | `classifyText` |
+| ④ 같은 한 글자 명령은 합친다 | `command:<글자>`라 **같은 글자끼리만** — `a` 뒤의 `b`는 둘 다 나간다 | `classifyText` |
+| ⑤ 콘솔에 `Sent: …` | `onSend(message, line)` + `sentLineOf` | `outbox.ts` |
+
+- 병합은 **차례에 남아 있는 것끼리만** 한다. 이미 나간 값과 견주는 "값이 바뀔 때만"은 `skipUnchangedState`로 따로 켠다 — 원본 PC 코드를 돌릴 때는 꺼 둔다(보낸 것이 조용히 사라지면 원본과 달라 보인다).
+- 차례가 `maxQueue`(기본 64)를 넘으면 **바꿔 끼울 수 있는 상태부터** 버리고 한국어로 알린다. 이벤트는 마지막까지 지킨다.
+- 시계는 `BridgeScheduler`(`now`·`setTimeout`·`clearTimeout`)로 갈아 끼운다. 테스트는 `tests/unit/bridge/helpers/fake.ts`의 `FakeScheduler`를 쓴다.
+
+### 9.4 받는 차례(`BridgeInbox`)와 거르기(PD-29)
+
+- **줄로 모은다**: 끝 문자가 올 때까지 이어 붙인다(실물 UART 링버퍼처럼 누적 — 두 글자가 한꺼번에 오면 한 덩어리). `\r\n`은 `\r`을 뗀다. 끝 문자를 기다리지 않으려면 `raw: true`.
+- **거르기**: `allow`(허용 명령 목록)와 `maxBytes`(기본 20). 목록 밖·너무 긴 줄은 버리고 `onRejected`로 한국어 이유를 준다. 순수 함수 `checkInbound(text, policy)`를 파이썬 템플릿 쪽과 같은 규칙으로 쓴다.
+- **실제 보드로 가는 MQTT 수신은 `allow`를 반드시 준다**(PD-29). 레이저·모터·서보를 움직이는 명령은 공개 브로커 통로에 두지 않는다.
+
+### 9.5 접두어(PD-29)
+
+`createPrefix()` → 헷갈리는 글자(l·1·O·0)를 뺀 **무작위 12글자**. 고정 루트를 쓰지 않는다. `ensurePrefix()`는 이 탭(`sessionStorage`)에 적어 두고, [이 접두어 고정]은 `pinPrefix()`로 이 컴퓨터(`localStorage`, 저장 이름 `bridge:prefix` — [기록 지우기]가 함께 지운다)에 남긴다. 친구 접두어는 `parsePrefix()`가 다듬고 틀리면 한국어 이유를 준다.
+
+### 9.6 새 통로 더하기 — MQTT·BLE·Web Serial이 끼워질 자리
+
+**`channels/registry.ts`를 고치지 않는다.** 자기 폴더(예: `src/lab/modules/mqtt/`)에서 등록한다.
+
+```ts
+registerBridgeChannel({
+  id: 'mqtt',                       // 저장소 전체에서 하나. 두 번 등록하면 오류
+  label: '공개 브로커(MQTT)',        // 화면에 보일 한국어 이름
+  notice: bridgeText.publicBrokerNotice(),   // 화면에 늘 보일 경고(§7.4)
+  available: () => true,            // 이 브라우저에서 쓸 수 있나
+  open: async (options) => { /* { from, prefix, type, extra } → BridgeChannel */ },
+});
+```
+
+체크리스트
+
+1. `BridgeChannel`의 칸을 모두 채운다(상대를 셀 수 없으면 `knowsPeers = false`, `peers = []`).
+2. 실패는 **`messages.ts`의 오류 종류**로 던진다(새 문장이 필요하면 `bridgeText`에 함수를 더한다 — 통로 파일에 한국어 문장을 적지 않는다).
+3. 봉투는 `makeEnvelope`·`parseEnvelope`로 만들고 읽는다. 받은 값은 **믿지 않고 검사**한다(깨진 봉투는 버린다).
+4. 통로가 바이트를 자르거나 이어 붙이면(BLE 20바이트, UART 속도 불일치) **실물과 같게** 자르고 콘솔에 알린다(§7.7).
+5. 단위 테스트는 `tests/unit/bridge/channels.test.ts`와 같은 모양으로 — 가짜 전송로를 넣고 "보낸 바이트가 그대로 간다 / 닫으면 오류 / 상대가 없으면 오류"를 확인한다.
+
+### 9.7 금지·주의
+
+- **통로 이름·토픽·봉투에 개인정보를 넣지 않는다**(학생 이름·학번·얼굴·BLE 주소). 실제 기기 주소는 문서·테스트·로그에도 적지 않는다(자리표시자만).
+- 공개 브로커 통로는 `notice`를 화면에 **늘** 보이게 한다. 움직이는 장치(레이저·팬·서보)를 공개 브로커 수신에 잇지 않는다(PD-29).
+- 한국어 문장은 `messages.ts` 한 곳에만 쓴다. 같은 상황에 두 문구가 생기면 학생이 다른 문제로 읽는다.
+- `examples/`의 원본 예제 코드를 고쳐 브릿지에 맞추지 않는다(PD-10·§7.2-8). 맞추는 쪽은 흉내 모듈이다.
+- 브릿지는 **보드 메시지(`board.*`)와 다른 층**이다. 핀 전압은 `board.state`, 기기 사이 글자 한 줄은 브릿지다. 보드 모듈에 새 메시지 이름이 필요하면 7.3·manifest 규약을 따른다.
+
+### 9.8 테스트
+
+| 층 | 어떻게 | 파일 |
+|---|---|---|
+| 규칙 | Vitest, 가짜 시계 | `tests/unit/bridge/{message,outbox,inbox,prefix}.test.ts` |
+| 통로 | Vitest, 가짜 BroadcastChannel(`FakeBroadcastHub`) | `tests/unit/bridge/channels.test.ts` |
+| 전체 | 자료의 실제 메시지(f084·f085·f089·f104·f007)로 §7.5 보기 다섯 가지 | `tests/unit/bridge/bridge.test.ts` |
+| 브라우저 | 두 탭이 서로의 가상 LED를 켜는지(P4-06·P4-07에서) | `tests/e2e/`(다음 묶음) |
