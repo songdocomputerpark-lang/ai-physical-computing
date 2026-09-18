@@ -79,15 +79,24 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
     <ol class="esp32-intro__steps">
       <li>[실행]을 누르면 파이썬이 준비된 뒤 가상 보드가 코드를 돌려요. 코드가 핀을 바꾸면 보드 그림과 "핀 상태" 표가 함께 바뀌어요.</li>
       <li>BOOT 버튼·터치 센서는 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있으면 눌려요.</li>
-      <li>
-        예제마다 쓰는 부품과 선(배선도)이 보드 아래에 그려져요. 내장 LED·BOOT 버튼·터치 센서·진동 모터·RGB LED·레이저·버저·서보모터·팬 모터·4채널
-        터치 센서·문자 화면(LCD)·OLED·네오픽셀 링·MP3 모듈·USB-UART 변환기를 쓸 수 있어요.
-      </li>
-      <li>
-        코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 같은 코드를 만들 수 있고, 입력·출력 칸 위의 [실제 보드]를 누르면 USB로 연결한 실물 보드에
-        같은 코드를 보낼 수 있어요.
-      </li>
     </ol>
+    {/*
+      나머지 두 가지는 접어 둔다 — 1366×768에서 첫 화면이 안내 글로 가득 차고 코드 칸과 보드 그림이 접힌 곳 아래로 밀렸다
+      (2026-09-18 검토 반영).
+    */}
+    <details class="esp32-intro__more">
+      <summary>무엇을 더 할 수 있나요?</summary>
+      <ul>
+        <li>
+          예제마다 쓰는 부품과 선(배선도)이 보드 아래에 그려져요. 내장 LED·BOOT 버튼·터치 센서·진동 모터·RGB LED·레이저·버저·서보모터·팬 모터·4채널
+          터치 센서·문자 화면(LCD)·OLED·네오픽셀 링·MP3 모듈·USB-UART 변환기를 쓸 수 있어요.
+        </li>
+        <li>
+          코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 같은 코드를 만들 수 있고, 입력·출력 칸 위의 [실제 보드]를 누르면 USB로 연결한 실물 보드에
+          같은 코드를 보낼 수 있어요.
+        </li>
+      </ul>
+    </details>
   </div>
 
   <LabShell labId="esp32" examples={examples} pyodidePackages={[]}>
@@ -136,6 +145,26 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
   }
 
   .esp32-intro__steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .esp32-intro__more > summary {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .esp32-intro__more > summary:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .esp32-intro__more ul {
     display: grid;
     gap: var(--space-1);
     margin: 0;
