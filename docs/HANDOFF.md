@@ -68,18 +68,18 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 |---|---|---|---|
 | Phase 2 영상처리 실습실 | `wf_a1aac702-2a9` | `workflows\scripts\phase2-vision-lab-wf_a1aac702-2a9.js` | 완료 |
 | Phase 3 ESP32 실습실 | `wf_86bbf998-bc6` | `workflows\scripts\phase3-esp32-lab-wf_86bbf998-bc6.js` | 제작·통합까지 끝(검토 도중 정지) |
-| Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | **지금 도는 것** — 검토 2명 → 수정 |
+| Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
 
-### 지금 도는 것 — `wf_db55fe07-fd6` (2026-09-18 07:38 시작)
+### 끝난 것 — `wf_db55fe07-fd6` (2026-09-18 07:38 → 11:23, Phase 3 마무리)
 
 Phase 3의 **남은 일만** 담은 작은 워크플로다: 적대적 검토 `criteria`(완료 기준 재현)·`ux`(초보자 사용성) 2명이 병렬(포트 4611·4612)로 돌고, 그다음 `fix:final`이 **검토 3명 결과를 모두 받아** 반영 → 전체 검증 → 커밋·push·배포 → `PROGRESS.md` 갱신까지 한다. 앞 세션에서 이미 끝난 `safety` 검토 결과는 스크립트 안에 `SAFETY` 상수로 박혀 있으므로 다시 돌지 않는다. 제작(P3-00~P3-10)과 통합(P3-11)은 이미 `main`에 커밋·배포돼 있어 이 워크플로에 들어 있지 않다.
 
 **이 워크플로는 통째로 재개해도 안전하다** — 위 "주의"의 `build:E2` 사고와 달리, 여기에는 이어 붙인 제작 단계가 없다. 검토 2명은 서로 이어지지 않고 프롬프트가 상수뿐이라 캐시가 그대로 살고, `fix:final`은 프롬프트 자체가 "중간에 멈췄다가 다시 시작될 수 있으니 `git diff`로 이미 고친 것을 대조하고 나머지를 이어서 하라"고 지시하므로 처음부터 다시 돌아도 잃는 것은 시간뿐이고 이미 된 커밋을 망가뜨리지 않는다.
 
-- 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js`, 그리고 안전 사본 `.cacheesume\phase3-review-fix-wf_db55fe07-fd6.js`(git 제외, 세션 폴더가 지워져도 남는다).
-- args 세 값은 `.cacheesume\RESUME-ARGS.json`에 **글자 그대로** 적어 두었다. 그대로 복사해 쓴다.
+- 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js`, 그리고 안전 사본 `.cache\resume\phase3-review-fix-wf_db55fe07-fd6.js`(git 제외, 세션 폴더가 지워져도 남는다).
+- args 세 값은 `.cache\resume\RESUME-ARGS.json`에 **글자 그대로** 적어 두었다. 그대로 복사해 쓴다.
 - 재개: 진행 기록 `subagents\workflows\wf_db55fe07-fd6`를 새 세션의 같은 자리로 복사 → `Workflow({scriptPath: "<위 스크립트>", resumeFromRunId: "wf_db55fe07-fd6", args: <RESUME-ARGS.json 내용>})`.
 
 **이어받는 순서**
@@ -99,7 +99,7 @@ Phase 3의 **남은 일만** 담은 작은 워크플로다: 적대적 검토 `cr
 - 중간에 멈춘 단계가 이미 커밋까지 했으면, 그 단계 프롬프트에 "이미 커밋됨(커밋 해시 나열) — 처음부터 다시 만들지 말고 완료 기준만 확인하고 빠진 것만 보완" 주의를 넣고 재개한다.
 - 에이전트 안에서 개발 서버는 `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx`로 띄운다. 한 폴더에 서버는 하나만 뜬다.
 
-**Phase가 끝났으면 다음 Phase 워크플로를 새로 쓴다.** 남은 것은 Phase 4 통신 실습실(`docs/PLAN.md` §8.4, 11개), Phase 5 교육과정 콘텐츠 이관(§8.5, 14개), Phase 6 품질·유지보수(§8.6, 8개). 지금까지 쓴 틀은 **Core 순차 단계 → 병렬 구역(구역마다 고칠 파일을 못 박고 포트 4501~4507, `PW_BASE_URL`로 각자 시험) → 통합 → 적대적 검토 3명 → 수정·배포**이고, 에이전트는 `effort: 'max'`, 공통 프롬프트에 **파일 내려받기 금지**(외부 파일은 운영자만 받는다)를 넣는다.
+**다음은 Phase 4다(Phase 3은 2026-09-18 검토 반영까지 끝났다 — 남은 것은 운영자의 실물 보드 확인뿐).** Phase가 끝났으면 다음 Phase 워크플로를 새로 쓴다. 남은 것은 Phase 4 통신 실습실(`docs/PLAN.md` §8.4, 11개), Phase 5 교육과정 콘텐츠 이관(§8.5, 14개), Phase 6 품질·유지보수(§8.6, 8개). 지금까지 쓴 틀은 **Core 순차 단계 → 병렬 구역(구역마다 고칠 파일을 못 박고 포트 4501~4507, `PW_BASE_URL`로 각자 시험) → 통합 → 적대적 검토 3명 → 수정·배포**이고, 에이전트는 `effort: 'max'`, 공통 프롬프트에 **파일 내려받기 금지**(외부 파일은 운영자만 받는다)를 넣는다.
 
 ---
 
