@@ -424,7 +424,7 @@ export function hashPrivacyNeedle(word, salt) {
   if (chars.length === 0 || script === null) {
     throw new Error('비공개 이름은 한글만으로, 또는 영문·숫자만으로 이루어진 낱말 하나여야 해요(공백은 무시).');
   }
-  return { sha256: createHash('sha256').update(`${salt} ${chars.join('')}`).digest('hex'), length: chars.length, script };
+  return { sha256: createHash('sha256').update(`${salt}\0${chars.join('')}`).digest('hex'), length: chars.length, script };
 }
 
 /**
@@ -451,7 +451,7 @@ export function findPrivacyNeedles(text, needleSet) {
       }
       const start = position - needle.length + 1;
       const window = chars.slice(start, position + 1).join('');
-      const hash = createHash('sha256').update(`${needleSet.salt} ${window}`).digest('hex');
+      const hash = createHash('sha256').update(`${needleSet.salt}\0${window}`).digest('hex');
       if (hash === needle.sha256) {
         findings.push(
           `${lineNumberAt(text, offsets[start] ?? 0)}번째 줄: 비공개 이름(${needle.label}, ${PRIVACY_NEEDLES_FILE}의 ${index + 1}번째 항목 — 이름은 표시하지 않아요)`,

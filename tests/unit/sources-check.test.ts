@@ -79,6 +79,39 @@ describe('빌드 전 출처 검사(checkSourceFiles)', () => {
     expect(result.summary).toContain('배포용 npm 패키지 1개(astro)');
   });
 
+  it('고지 파일(notice)이 아직 초안이면 실패한다(2026-09-18 검토 반영 — 초안 고지가 배포되던 구멍)', () => {
+    const withNotice = `  - name: 어떤 펌웨어
+    category: stack
+    author: 어느 저작자
+    license: MIT
+    url: https://example.invalid/
+    used_in: 굽기용 펌웨어
+    paths:
+      - public/firmware.bin
+      - public/NOTICE.txt
+    notice: public/NOTICE.txt
+    fetched: 2026-09-18
+`;
+    const draft = checkSourceFiles({
+      rootDir: fixture({
+        'sources.yaml': registry(OPERATOR_ENTRY, PROBE_ENTRY, ASTRO_ENTRY, withNotice),
+        'public/firmware.bin': 'x',
+        'public/NOTICE.txt': '[상태] 이 고지는 초안입니다. 전문을 채웁니다.\n',
+      }),
+    });
+    expect(draft.ok).toBe(false);
+    expect(draft.errors.join('\n')).toContain('아직 다 쓰지 않은(초안) 고지 파일 1개');
+
+    const filled = checkSourceFiles({
+      rootDir: fixture({
+        'sources.yaml': registry(OPERATOR_ENTRY, PROBE_ENTRY, ASTRO_ENTRY, withNotice),
+        'public/firmware.bin': 'x',
+        'public/NOTICE.txt': 'MIT License 전문…\n',
+      }),
+    });
+    expect(filled.errors).toEqual([]);
+  });
+
   it('public/에 등록되지 않은 파일이 있으면 실패한다', () => {
     const result = checkSourceFiles({ rootDir: fixture({ 'public/unregistered.txt': '?' }) });
     expect(result.ok).toBe(false);

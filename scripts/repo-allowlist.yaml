@@ -29,8 +29,8 @@ original_formats: []
 #     reason: MediaPipe 손 랜드마커 모델(float16 v1, Apache-2.0 모델 카드, PD-13). 사이트가 같은 사이트에서 내보내 학생 브라우저가 외부 모델 서버에 접속하지 않아요.
 #     max_mb: 10
 large_files:
-  # MediaPipe 모델(P2-08·P2-09). 파일은 아직 저장소에 없다 — 운영자가 아래 주소에서 받아 public/models/에 두면 그때부터 이 항목이 쓰인다
-  # (Claude는 파일 내려받기를 하지 않는다). 받는 곳·크기·MD5는 .cache/phase2-requests/mediapipe.md 1번과 sources.yaml "MediaPipe 모델" 항목 주석에 있다.
+  # MediaPipe 모델(P2-08·P2-09). 2026-09-18에 운영자가 공식 주소에서 받아 검증한 파일 5개가 public/models/에 들어 있다(이미 배포 중).
+  # 크기·MD5는 sources.yaml "MediaPipe 모델" 항목 주석에 있다. 판을 올릴 때는 실제 크기를 다시 재고 max_mb를 함께 고친다.
   - path: public/models/hand_landmarker.task
     max_mb: 8
     reason: MediaPipe 손 랜드마커 모델(float16/1, Apache-2.0 모델 카드, 7.46MB). 같은 사이트에서 내보내야 학생 브라우저가 외부 모델 서버에 접속하지 않는다(PD-02·PD-03, PD-13).

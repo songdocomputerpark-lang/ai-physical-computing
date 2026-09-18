@@ -13,6 +13,7 @@ on:
   push:
     branches: [main]
     # 진행 기록(PROGRESS.md)과 작업 잠금(.agent/)만 바뀐 push는 코드가 같아서 돌리지 않는다(deploy.yml과 같음).
+    # 저장소 안전 검사(개인정보 모양·원본 형식)는 경로에 상관없이 repo-check.yml이 따로 돌린다(2026-09-18 검토 반영).
     paths-ignore:
       - '.agent/**'
       - 'PROGRESS.md'

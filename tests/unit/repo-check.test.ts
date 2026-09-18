@@ -1,4 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
@@ -377,5 +378,15 @@ describe('git 인덱스 검사(runRepoCheck, scripts/check-repo.mjs)', () => {
     git(rootDir, 'rm', '--cached', '-q', 'content/lessons/u1/intro.md');
     const broken = runRepoCheck({ rootDir });
     expect(problemKeys(broken.problems)).toEqual(['config:scripts/privacy-needles.json']);
+  });
+
+  // 2026-09-18 검토 반영: 검사 스크립트 본문에 리터럴 NUL 바이트(해시 소금 구분자)가 있어 grep·ripgrep이 바이너리로 보고 내용을 건너뛰었다.
+  // 개인정보 노출을 막는 유일한 관문이라 코드 검색에서 보여야 한다 — 해시 입력 바이트는 같으므로 '\0' 이스케이프로 적는다.
+  it('검사 스크립트 본문에는 리터럴 NUL 바이트가 없다(코드 검색에서 바이너리로 보이지 않게)', () => {
+    const files = ['../../scripts/lib/repo-check.mjs', '../../scripts/check-repo.mjs', '../../scripts/privacy-needle.mjs'];
+    for (const file of files) {
+      const bytes = readFileSync(fileURLToPath(new URL(file, import.meta.url)));
+      expect({ file, nul: bytes.includes(0) }).toEqual({ file, nul: false });
+    }
   });
 });

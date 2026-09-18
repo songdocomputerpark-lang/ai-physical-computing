@@ -23,6 +23,11 @@ export const IGNORED_FILE_NAMES = new Set(['.gitkeep', '.DS_Store', 'Thumbs.db',
 const MARKER_SCAN_EXTENSIONS = new Set(['.py', '.js', '.mjs', '.cjs', '.ts', '.css', '.md', '.txt', '.html', '.svg', '.json', '.yaml', '.yml']);
 const AUTHORSHIP_MARKER = /copyright|\(c\)|©|\blicen[cs]e\b|spdx-license-identifier|@author\b|\bauthor:|all rights reserved/iu;
 const MARKER_SCAN_BYTES = 2048;
+/**
+ * 고지 파일(sources.yaml의 notice)이 아직 다 쓰이지 않았다는 표시. 2026-09-18 검토 반영:
+ * 펌웨어 고지가 "이 고지는 초안입니다 … 파일을 올리기 전에 채웁니다"라고 적힌 채 1.79MB 바이너리와 함께 배포되고 있었다.
+ */
+const DRAFT_NOTICE_PATTERN = /이 고지는 초안|\[상태\][^\n]*초안|\bTODO\b|\bFIXME\b/u;
 
 /**
  * @typedef {object} CheckResult
@@ -155,6 +160,31 @@ export function checkSourceFiles({ rootDir }) {
         `고지 파일(notice)을 찾지 못한 항목 ${missingNotices.length}개`,
         missingNotices.map((entry) => `- "${entry.name}": ${entry.notice}`),
         '파일을 그 경로에 두거나 notice 경로를 고쳐요.',
+      ),
+    );
+  }
+
+  /*
+   * 고지 파일이 스스로 "초안"이라고 적은 채 배포되는 일을 막는다(2026-09-18 검토 반영).
+   * 펌웨어 고지가 "파일을 올리기 전에 채웁니다"라고 적힌 채 1.79MB 바이너리와 함께 실사이트에 나가 있었다 —
+   * 프로젝트가 스스로 세운 관문을 통과하지 못한 상태였고, /credits/로 들어온 교사가 그 문장을 먼저 읽었다.
+   */
+  const draftNotices = entries.filter((entry) => {
+    if (!entry.notice) {
+      return false;
+    }
+    const file = path.join(rootDir, entry.notice);
+    if (!fs.existsSync(file)) {
+      return false; // 위에서 이미 알렸다
+    }
+    return DRAFT_NOTICE_PATTERN.test(fs.readFileSync(file, 'utf8'));
+  });
+  if (draftNotices.length > 0) {
+    errors.push(
+      formatBlock(
+        `아직 다 쓰지 않은(초안) 고지 파일 ${draftNotices.length}개`,
+        draftNotices.map((entry) => `- "${entry.name}": ${entry.notice}`),
+        '고지 전문을 채운 뒤 "초안"·TODO 표시를 지워요. 다 채우기 전에는 그 파일을 배포하지 않아요.',
       ),
     );
   }

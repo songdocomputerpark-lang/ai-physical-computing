@@ -15,6 +15,7 @@ on:
   push:
     branches: [main]
     # 진행 기록(PROGRESS.md)과 작업 잠금(.agent/)만 바뀐 push는 사이트 내용이 같아서 배포하지 않는다.
+    # 그 push에서도 저장소 안전 검사는 repo-check.yml이 따로 돌린다(2026-09-18 검토 반영 — PROGRESS.md가 검사 없이 공개되던 구멍).
     paths-ignore:
       - '.agent/**'
       - 'PROGRESS.md'
