@@ -12,7 +12,7 @@
  * 원본 코드가 보낸 바이트는 `sendBytes`로 들어와 **한 바이트도 바뀌지 않고** 나간다(§7.2-8).
  */
 import { BridgeInbox, type BridgeInboundPolicy } from './inbox.ts';
-import { rawMessage, sentLineOf, textMessage } from './message.ts';
+import { rawMessage, textMessage } from './message.ts';
 import { BridgeError } from './messages.ts';
 import { BridgeOutbox, type BridgeScheduler, type BridgeSendResult } from './outbox.ts';
 import type { BridgeChannel, BridgeEnvelope, BridgeMessage, BridgeParty, BridgeSendOptions, BridgeWarning } from './types.ts';
@@ -46,7 +46,7 @@ export interface BridgeOptions {
 }
 
 export class Bridge {
-  readonly channel: BridgeChannel;
+  private current: BridgeChannel;
   private readonly options: BridgeOptions;
   private readonly outbox: BridgeOutbox;
   private readonly box: BridgeInbox;
@@ -54,7 +54,7 @@ export class Bridge {
   private lastEnvelope: BridgeEnvelope | null = null;
 
   constructor(channel: BridgeChannel, options: BridgeOptions = {}) {
-    this.channel = channel;
+    this.current = channel;
     this.options = options;
     this.box = new BridgeInbox({
       ...(options.inbound ?? {}),
@@ -66,7 +66,8 @@ export class Bridge {
       },
       ...(options.onRejected === undefined ? {} : { onRejected: options.onRejected }),
     });
-    this.outbox = new BridgeOutbox((message) => this.channel.send(message.bytes, options.send ?? {}), {
+    // 보낼 차례는 **지금 쓰는 통로**로 쓴다 — setChannel로 갈아 끼워도 남아 있던 것이 새 통로로 나간다.
+    this.outbox = new BridgeOutbox((message) => this.current.send(message.bytes, options.send ?? {}), {
       ...(options.minIntervalMs === undefined ? {} : { minIntervalMs: options.minIntervalMs }),
       skipUnchangedState: options.skipUnchangedState ?? false,
       ...(options.scheduler === undefined ? {} : { scheduler: options.scheduler }),
@@ -79,20 +80,43 @@ export class Bridge {
         options.onError?.(error, message);
       },
     });
+    this.listen();
+  }
+
+  /** 지금 쓰는 통로 */
+  get channel(): BridgeChannel {
+    return this.current;
+  }
+
+  private listen(): void {
     this.offs.push(
-      this.channel.on('message', (envelope) => {
+      this.current.on('message', (envelope) => {
         this.lastEnvelope = envelope;
         this.box.push(envelope.bytes);
       }),
     );
-    if (options.onPeers !== undefined) {
-      this.offs.push(this.channel.on('peers', options.onPeers));
+    if (this.options.onPeers !== undefined) {
+      this.offs.push(this.current.on('peers', this.options.onPeers));
     }
+  }
+
+  /**
+   * 통로를 갈아 끼운다(화면의 [보내기] 패널에서 통로를 고를 때 — §7.6 "통로는 코드에 적지 않는다").
+   * 보낼 차례에 남아 있던 것은 그대로 새 통로로 나간다. 옛 통로는 닫지 않으므로 필요하면 부른 쪽이 닫는다.
+   */
+  setChannel(channel: BridgeChannel): void {
+    for (const off of this.offs) {
+      off();
+    }
+    this.offs.length = 0;
+    this.current = channel;
+    this.listen();
+    this.options.onPeers?.(channel.peers);
   }
 
   /** 지금 이 통로에 보이는 상대 */
   get peers(): readonly BridgeParty[] {
-    return this.channel.peers;
+    return this.current.peers;
   }
 
   /** 아직 나가지 않고 차례에서 기다리는 메시지 */
@@ -163,7 +187,7 @@ export class Bridge {
     this.outbox.close();
     this.box.clear();
     if (closeChannel) {
-      this.channel.close();
+      this.current.close();
     }
   }
 }
@@ -172,5 +196,3 @@ export class Bridge {
 export function createBridge(channel: BridgeChannel, options: BridgeOptions = {}): Bridge {
   return new Bridge(channel, options);
 }
-
-export { sentLineOf };

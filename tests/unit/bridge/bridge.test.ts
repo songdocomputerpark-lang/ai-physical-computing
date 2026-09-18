@@ -169,6 +169,27 @@ describe('되돌아오는 길(보드 → 브라우저)과 거르기', () => {
     expect(warnings.some((warning) => warning.code === 'closed')).toBe(true);
   });
 
+  it('통로를 갈아 끼워도 같은 코드가 돌고, 밀려 있던 것은 새 통로로 나간다(§7.6 "통로는 코드에 적지 않는다")', async () => {
+    const { pc, raw, clock } = pair();
+    pc.send('1,1'); // 첫 통로로 바로 나감
+    pc.send('2,2'); // 아직 차례에서 기다린다
+
+    const [nextNear, nextFar] = createDirectPair({ a: 'pc', b: 'board' });
+    const moved: string[] = [];
+    nextFar.on('message', (envelope) => moved.push(textOf(envelope.bytes)));
+    pc.setChannel(nextNear);
+    expect(pc.channel).toBe(nextNear);
+
+    await clock.advance(200);
+    expect(raw).toEqual(['1,1\n']);
+    expect(moved).toEqual(['2,2\n']);
+
+    // 받는 길도 새 통로로 바뀐다
+    await nextFar.send(bytes('ok\n'));
+    await flush();
+    expect(pc.receive()).toBe('ok');
+  });
+
   it('reset()은 보낼 것과 받은 것을 모두 버린다(실행을 새로 시작할 때)', async () => {
     const { pc, boardChannel, clock } = pair();
     pc.send('1,1');
