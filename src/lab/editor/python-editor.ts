@@ -14,6 +14,11 @@
  * 키보드로 지나가던 학생이 Tab을 누를 때마다 첫 줄에 공백 4칸이 조용히 들어갔다. 글을 쓰거나 화살표로 움직인 뒤의 Tab은 그대로
  * 들여쓰기이고, 마우스로 누른 편집칸의 Tab도 들여쓰기다(편집칸을 떠나거나 마우스로 누르면 "지나가기"를 끈다).
  *
+ * 줄바꿈(2026-09-18 검토 반영): 긴 줄은 칸 너비에서 **접어서** 보인다(EditorView.lineWrapping). 사이트가 초보자용으로 넣은
+ * 주석("── 실습 방법 ──", "바꿔볼 것 3가지", "왜 이런 결과가 나올까")이 한 줄에 60~80자라, 접지 않으면 데스크톱에서 38%·휴대폰에서
+ * 69%가 칸 밖으로 잘려 나갔고 가로 스크롤 막대도 생기지 않아 잘린 줄인지조차 몰랐다(브라우저 실측). 줄 번호는 접어도 그대로 한 줄에
+ * 하나이므로 원본 줄 번호(오류 강조·조절 패널이 쓰는 값)는 달라지지 않는다.
+ *
  *   const editor = createPythonEditor({ parent, doc: "print('안녕')\n", onChange: (code) => autosave.update(code), onRun });
  *   editor.getValue() / editor.setValue(code) / editor.focus() / editor.setFontSize(17) / editor.destroy()
  */
@@ -134,6 +139,8 @@ export function createPythonEditor(options: PythonEditorOptions): PythonEditor {
     EditorState.tabSize.of(INDENT_UNIT.length),
     python(),
     syntaxHighlighting(pythonHighlightStyle),
+    // 긴 줄은 칸 너비에서 접는다(머리말) — 예제의 한국어 안내 주석이 잘려 보이지 않게.
+    EditorView.lineWrapping,
     editorTheme,
     placeholder(options.placeholder ?? DEFAULT_PLACEHOLDER),
     EditorView.contentAttributes.of(contentAttributes),

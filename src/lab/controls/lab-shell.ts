@@ -43,7 +43,7 @@ import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatu
 import { downloadTextFile } from './download.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
-import { revealTogether } from './reveal.ts';
+import { isMostlyVisible, revealElement, revealTogether } from './reveal.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash } from './share-link.ts';
 
 /** 실행기 상태를 사람 말로 */
@@ -66,6 +66,21 @@ export const SAVE_TEXT: Readonly<Record<AutosaveStatus, string>> = Object.freeze
 
 /** 콘솔에 남기는 줄 수 상한(오래된 줄부터 버린다) */
 export const MAX_CONSOLE_LINES = 2000;
+/** 콘솔이 화면 밖일 때 결과 칸에 비춰 주는 마지막 줄 수 */
+export const CONSOLE_TAIL_LINES = 3;
+
+/** 다음 화면 그리기에 한 번만 — requestAnimationFrame이 없는 대역(테스트·옛 브라우저)에서는 타이머로 */
+function requestFrame(callback: () => void): number {
+  return typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => callback()) : (setTimeout(callback, 16) as unknown as number);
+}
+
+function cancelFrame(handle: number): void {
+  if (typeof cancelAnimationFrame === 'function') {
+    cancelAnimationFrame(handle);
+  } else {
+    clearTimeout(handle);
+  }
+}
 
 /** 컨트롤러가 만들어졌을 때 뿌리 요소에 보내는 이름 */
 export const LAB_READY_EVENT = 'apc:lab-ready';
@@ -125,6 +140,11 @@ export interface LabRunContext {
   write(text: string, kind?: ConsoleKind): void;
   /** input() 입력줄을 보이고 학생이 적은 한 줄을 기다린다(셸이 그 줄을 콘솔에 input으로 적는다). 실행이 끝나거나 [정지]면 null */
   prompt(label: string): Promise<string | null>;
+  /**
+   * 상태 줄의 글을 이번 실행 동안만 바꾼다(null이면 기본 글 "<대상>에서 실행 중이에요."로 되돌림). 2026-09-18 검토 반영:
+   * 실제 보드가 포트 선택 창을 여는 동안에는 아직 아무것도 실행되지 않았는데 "실행 중"이라고 적혀, 창을 못 본 학생이 멈춘 줄 알았다.
+   */
+  setStatus(text: string | null): void;
 }
 
 export interface LabController {
@@ -194,9 +214,18 @@ interface ShellElements {
   /** "이 예제가 나오는 차시" 줄과 그 링크 */
   lessonBox: HTMLElement | null;
   lessonLink: HTMLAnchorElement | null;
+  /** 예제 한 줄 설명(사이드카 description) 자리 */
+  exampleDescription: HTMLElement | null;
   limitedNotice: HTMLElement | null;
   consoleBox: HTMLElement;
   consoleClear: HTMLButtonElement | null;
+  /** 콘솔이 화면 밖일 때 결과 칸에 뜨는 "결과가 나왔어요" 알림(2026-09-18 검토 반영) */
+  ioOutputBox: HTMLElement | null;
+  ioOutputHead: HTMLElement | null;
+  ioOutputCount: HTMLElement | null;
+  ioOutputText: HTMLElement | null;
+  consoleJump: HTMLButtonElement | null;
+  consoleNewBadge: HTMLElement | null;
   inputForm: HTMLFormElement | null;
   inputLabel: HTMLElement | null;
   inputField: HTMLInputElement | null;
@@ -263,6 +292,13 @@ class LabShellController implements LabController {
   /** replaceCode가 넘긴 까닭(에디터 onChange가 'code' 이벤트에 쓴다) */
   #changeSource: CodeSource | null = null;
   #runCount = 0;
+  /** 콘솔이 화면 밖인 동안 쌓인 출력의 마지막 줄들과 줄 수(결과 칸 알림에 쓴다) */
+  readonly #consoleTail: string[] = [];
+  #consoleNewLines = 0;
+  /** 콘솔이 화면에 보이는지(null = 아직 재지 않음 — 처음 출력 때 한 번 재고 그 뒤로는 IntersectionObserver가 고친다) */
+  #consoleVisible: boolean | null = null;
+  /** 알림 글자 쓰기를 모으는 화면 그리기 예약 */
+  #consoleNoticeFrame: number | null = null;
   #fontSizePx = DEFAULT_FONT_SIZE_PX;
   #pendingInput: RuntimeRequest | null = null;
   /** 파이썬을 받는 동안 누른 [실행] — 준비가 끝나면 바로 실행한다 */
@@ -277,6 +313,8 @@ class LabShellController implements LabController {
   #runTarget: LabRunTarget | null = null;
   #targetRun: { readonly startedAt: number; stopRequestedAt: number | null } | null = null;
   #targetPromptResolve: ((value: string | null) => void) | null = null;
+  /** 실행 대상이 이번 실행 동안만 바꾼 상태 글(ctx.setStatus) */
+  #targetStatusText: string | null = null;
 
   constructor(root: HTMLElement, elements: ShellElements) {
     this.root = root;
@@ -334,6 +372,7 @@ class LabShellController implements LabController {
     this.#applyFontSize(false);
     this.#renderExampleSelect();
     this.#renderLessonLink();
+    this.#renderExampleDescription();
     // 공유 링크로 열었을 때는 보이는 코드가 저장본이 아니므로 "저장됨"을 보이지 않는다(고치면 그때 저장된다).
     this.#setSaveState(source === 'restore' ? 'saved' : 'idle');
     if (share) {
@@ -435,6 +474,8 @@ class LabShellController implements LabController {
     }
     // 지난 실행이 남긴 안내(예: "오류로 끝났어요: NameError …")는 새 실행과 맞지 않으니 지운다.
     this.showMessage('');
+    // 지난 실행의 "콘솔에 결과가 나왔어요" 알림도 지운다(이번 실행의 출력이 오면 다시 뜬다).
+    this.#resetConsoleOutputNotice();
     // 첫 준비 동안 맨 위로 올려 둔 준비 패널(LabShell.astro의 data-loading-intro)을 제자리로 돌린 뒤에 화면 위치를 잰다.
     this.root.dataset.loadingIntro = 'no';
     this.appendConsole(`── 실행 ${this.#runCount} ──\n`, 'notice');
@@ -492,6 +533,7 @@ class LabShellController implements LabController {
     const code = this.getCode();
     const startedAt = performance.now();
     this.#targetRun = { startedAt, stopRequestedAt: null };
+    this.#targetStatusText = null;
     this.#renderTargetState();
     this.#beginRun(code, target.label);
     let result: RunResult;
@@ -500,6 +542,10 @@ class LabShellController implements LabController {
         runCount: this.#runCount,
         write: (text, kind = 'stdout') => this.appendConsole(text, kind),
         prompt: (label) => this.#promptForTarget(label),
+        setStatus: (text) => {
+          this.#targetStatusText = text;
+          this.#renderTargetState();
+        },
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -512,6 +558,7 @@ class LabShellController implements LabController {
     }
     const run = this.#targetRun;
     this.#targetRun = null;
+    this.#targetStatusText = null;
     this.#resolveTargetPrompt(null);
     if (run && run.stopRequestedAt !== null && result.stopMs === undefined) {
       result = { ...result, stopMs: performance.now() - run.stopRequestedAt };
@@ -580,7 +627,9 @@ class LabShellController implements LabController {
       const stopping = run.stopRequestedAt !== null;
       this.root.dataset.state = stopping ? 'stopping' : 'running';
       if (statusText) {
-        statusText.textContent = stopping ? `${withParticle(target.label, '을/를')} 멈추는 중이에요…` : `${target.label}에서 실행 중이에요.`;
+        statusText.textContent = stopping
+          ? `${withParticle(target.label, '을/를')} 멈추는 중이에요…`
+          : (this.#targetStatusText ?? `${target.label}에서 실행 중이에요.`);
       }
       stopButton.disabled = stopping;
     } else if (target) {
@@ -626,6 +675,7 @@ class LabShellController implements LabController {
       this.#elements.exampleSelect.value = example.id;
     }
     this.#renderLessonLink();
+    this.#renderExampleDescription();
     this.#emit('example', { example });
     this.#emit('code', { code: this.getCode(), source: 'example' });
     this.showMessage(restored !== null ? `"${example.title}" 예제의 저장된 코드를 불러왔어요.` : `"${example.title}" 예제를 불러왔어요.`);
@@ -642,6 +692,10 @@ class LabShellController implements LabController {
       box.firstChild?.remove();
     }
     box.scrollTop = box.scrollHeight;
+    // 콘솔이 화면 밖이면 결과 칸에 "결과가 나왔어요"를 띄운다(실행 머리줄 '── 실행 N ──'은 빼고 진짜 출력만).
+    if (kind !== 'notice' || !text.startsWith('── 실행 ')) {
+      this.#noteConsoleOutput(text);
+    }
   }
 
   clearConsole(): void {
@@ -649,6 +703,113 @@ class LabShellController implements LabController {
     if (this.#elements.resultText) {
       this.#elements.resultText.textContent = '';
     }
+    this.#resetConsoleOutputNotice();
+  }
+
+  /**
+   * 콘솔에 새 출력이 생겼다는 것을 결과 칸에서 알린다(2026-09-18 검토 반영).
+   *
+   * 왜: 실습실은 세로로 길어 콘솔이 결과 칸보다 688px(1366×768)·696px(375×812) 아래에 있다. 결과가 print()뿐인 예제에서
+   * [실행]을 눌러도 화면에는 아무 변화가 없어 학생이 "안 된다"로 읽었다. 화면을 저절로 콘솔로 내리면 이번에는 보드 그림이
+   * 화면 밖으로 나가므로(둘은 한 화면에 들어가지 않는다) 옮기지 않고, 결과 칸 아래에 마지막 줄을 비춰 주고 [콘솔 보기]를 둔다.
+   * 콘솔이 이미 보이면 아무것도 하지 않는다.
+   */
+  #noteConsoleOutput(text: string): void {
+    const { ioOutputBox, consoleBox } = this.#elements;
+    if (!ioOutputBox || typeof window === 'undefined') {
+      return;
+    }
+    /*
+     * 콘솔이 보이는지는 처음 한 번만 잰다(getBoundingClientRect는 배치를 다시 계산한다 — 초당 수백 줄이 오는 실행에서
+     * 줄마다 재면 느려진다). 그 뒤로는 아래 IntersectionObserver가 값을 고쳐 준다.
+     */
+    if (this.#consoleVisible === null) {
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      this.#consoleVisible = viewportHeight > 0 ? isMostlyVisible(consoleBox, viewportHeight) : true;
+    }
+    if (this.#consoleVisible) {
+      if (this.#consoleNewLines > 0) {
+        this.#resetConsoleOutputNotice();
+      }
+      return;
+    }
+    let added = 0;
+    for (const line of text.split('\n')) {
+      if (line.trim() !== '') {
+        this.#consoleTail.push(line);
+        added += 1;
+      }
+    }
+    if (added === 0) {
+      return;
+    }
+    this.#consoleNewLines += added;
+    while (this.#consoleTail.length > CONSOLE_TAIL_LINES) {
+      this.#consoleTail.shift();
+    }
+    // 글자 쓰기는 한 화면 그리기에 한 번만 모아 한다(줄마다 DOM을 고치지 않게).
+    if (this.#consoleNoticeFrame === null) {
+      this.#consoleNoticeFrame = requestFrame(() => {
+        this.#consoleNoticeFrame = null;
+        this.#renderConsoleOutputNotice();
+      });
+    }
+  }
+
+  #renderConsoleOutputNotice(): void {
+    const { ioOutputBox } = this.#elements;
+    if (!ioOutputBox || this.#consoleNewLines === 0) {
+      return;
+    }
+    const first = ioOutputBox.hidden;
+    ioOutputBox.hidden = false;
+    if (first && this.#elements.ioOutputHead) {
+      // 화면 낭독기에는 실행마다 한 번만 알린다(줄마다 읽어 주면 시끄럽다).
+      this.#elements.ioOutputHead.textContent = '콘솔에 결과가 나왔어요.';
+    }
+    if (this.#elements.ioOutputCount) {
+      this.#elements.ioOutputCount.textContent = `(${this.#consoleNewLines}줄)`;
+    }
+    if (this.#elements.ioOutputText) {
+      this.#elements.ioOutputText.textContent = this.#consoleTail.join('\n');
+    }
+    if (this.#elements.consoleNewBadge) {
+      this.#elements.consoleNewBadge.hidden = false;
+      this.#elements.consoleNewBadge.textContent = `새 출력 ${this.#consoleNewLines}줄`;
+    }
+  }
+
+  #resetConsoleOutputNotice(): void {
+    this.#consoleTail.length = 0;
+    this.#consoleNewLines = 0;
+    if (this.#consoleNoticeFrame !== null) {
+      cancelFrame(this.#consoleNoticeFrame);
+      this.#consoleNoticeFrame = null;
+    }
+    if (this.#elements.ioOutputBox) {
+      this.#elements.ioOutputBox.hidden = true;
+    }
+    if (this.#elements.ioOutputHead) {
+      this.#elements.ioOutputHead.textContent = '';
+    }
+    if (this.#elements.ioOutputText) {
+      this.#elements.ioOutputText.textContent = '';
+    }
+    if (this.#elements.consoleNewBadge) {
+      this.#elements.consoleNewBadge.hidden = true;
+    }
+  }
+
+  /** [콘솔 보기]: 콘솔로 화면을 옮기고 초점을 준다(키보드만 쓰는 학생도 바로 읽게). */
+  #jumpToConsole(): void {
+    const box = this.#elements.consoleBox;
+    revealElement(box.closest('.lab__console') ?? box, { block: 'start' });
+    try {
+      box.focus({ preventScroll: true });
+    } catch {
+      box.focus();
+    }
+    this.#resetConsoleOutputNotice();
   }
 
   showMessage(text: string): void {
@@ -782,6 +943,17 @@ class LabShellController implements LabController {
     lessonLink.href = lesson.href;
     lessonLink.textContent = lesson.label;
     lessonBox.hidden = false;
+  }
+
+  /** 지금 예제의 한 줄 설명(사이드카 description)을 조작 줄 아래에 보인다 */
+  #renderExampleDescription(): void {
+    const box = this.#elements.exampleDescription;
+    if (!box) {
+      return;
+    }
+    const description = this.#example?.description?.trim() ?? '';
+    box.textContent = description;
+    box.hidden = description === '';
   }
 
   /**
@@ -995,6 +1167,23 @@ class LabShellController implements LabController {
       this.showMessage(ok ? `${exampleFileName(this.#example)} 파일로 내려받아요.` : '이 브라우저에서는 파일 내려받기를 시작하지 못했어요.');
     });
     listen(e.consoleClear, 'click', () => this.clearConsole());
+    listen(e.consoleJump, 'click', () => this.#jumpToConsole());
+    // 학생이 스스로 콘솔까지 내려오면 "결과가 나왔어요" 알림을 거둔다(알림이 할 일을 다 했다).
+    if (typeof IntersectionObserver === 'function') {
+      const observer = new IntersectionObserver(
+        () => {
+          // 판정은 알림을 띄울 때와 같은 규칙(isMostlyVisible)으로 — 다른 규칙을 쓰면 알림이 떴다 사라졌다 한다.
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+          this.#consoleVisible = viewportHeight > 0 ? isMostlyVisible(e.consoleBox, viewportHeight) : true;
+          if (this.#consoleVisible) {
+            this.#resetConsoleOutputNotice();
+          }
+        },
+        { threshold: [0, 0.25, 0.5, 1] },
+      );
+      observer.observe(e.consoleBox);
+      this.#cleanups.push(() => observer.disconnect());
+    }
     listen(e.fontSmaller, 'click', () => {
       this.#fontSizePx = stepFontSize(this.#fontSizePx, -1);
       this.#applyFontSize(true);
@@ -1164,9 +1353,16 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     messageText: query(root, '[data-lab-message]'),
     lessonBox: query(root, '[data-lab-lesson]'),
     lessonLink: query(root, '[data-lab-lesson-link]'),
+    exampleDescription: query(root, '[data-lab-example-description]'),
     limitedNotice: query(root, '[data-lab-limited]'),
     consoleBox,
     consoleClear: query(root, '[data-lab-console-clear]'),
+    ioOutputBox: query(root, '[data-lab-io-output]'),
+    ioOutputHead: query(root, '[data-lab-io-output-head]'),
+    ioOutputCount: query(root, '[data-lab-io-output-count]'),
+    ioOutputText: query(root, '[data-lab-io-output-text]'),
+    consoleJump: query(root, '[data-lab-console-jump]'),
+    consoleNewBadge: query(root, '[data-lab-console-new]'),
     inputForm: query(root, '[data-lab-input-form]'),
     inputLabel: query(root, '[data-lab-input-label]'),
     inputField: query(root, '[data-lab-input]'),

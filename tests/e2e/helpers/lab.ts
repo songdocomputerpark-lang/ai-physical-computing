@@ -18,9 +18,31 @@ export function editorContent(page: Page): Locator {
   return page.locator('[data-lab-editor] .cm-content');
 }
 
-/** 에디터에 보이는 코드(줄을 \n으로 이음. 끝 줄바꿈은 CodeMirror가 빈 줄로 보여 마지막에 \n이 붙는다) */
+/**
+ * 편집칸에 들어 있는 코드 전체.
+ *
+ * DOM(.cm-line)만 읽으면 안 된다 — CodeMirror 6은 **화면에 보이는 줄만** DOM에 두고 나머지 자리는 빈 칸으로 채운다(가상 스크롤).
+ * 편집칸이 긴 줄을 접기 시작한 뒤로는(2026-09-18 검토 반영) 같은 예제가 1.5배쯤 길어져 30줄짜리 예제에서도 가운데 줄이 DOM에서 빠졌다.
+ * 그래서 CodeMirror가 DOM 요소에 걸어 둔 tile로 EditorView를 찾아 문서 글자를 그대로 읽는다(EditorView.findFromDOM이 쓰는 길과 같다).
+ * 그 길이 막히면(CodeMirror 판이 바뀌면) 예전처럼 DOM 줄을 이어 붙인다.
+ */
 export async function editorText(page: Page): Promise<string> {
-  return page.locator('[data-lab-editor] .cm-line').evaluateAll((lines) => lines.map((line) => line.textContent ?? '').join('\n'));
+  return page.evaluate(() => {
+    const content = document.querySelector('[data-lab-editor] .cm-content') as (Element & { cmTile?: { root?: { view?: { state?: { doc?: unknown } } } } }) | null;
+    const doc = content?.cmTile?.root?.view?.state?.doc;
+    if (doc !== undefined && doc !== null) {
+      const text = String(doc);
+      if (text !== '[object Object]') {
+        return text;
+      }
+    }
+    return [...document.querySelectorAll('[data-lab-editor] .cm-line')].map((line) => line.textContent ?? '').join('\n');
+  });
+}
+
+/** 편집칸 코드에 이 글이 들어올 때까지 기다린다(가상 스크롤과 상관없이 문서 글자로 본다) */
+export async function expectEditorToContain(page: Page, text: string, timeout = 10_000): Promise<void> {
+  await expect.poll(() => editorText(page), { timeout }).toContain(text);
 }
 
 /** 끝의 빈 줄을 뗀다(에디터가 마지막에 줄바꿈을 하나 더 두는 일이 있다). */
@@ -30,17 +52,7 @@ function trimTrailingNewlines(text: string): string {
 
 /** 실제로 편집칸에 들어 있는 글(자리 글 `.cm-placeholder`는 뺀다 — 코드를 비우면 그 자리에 보인다) */
 async function editorDocText(page: Page): Promise<string> {
-  return page.locator('[data-lab-editor] .cm-line').evaluateAll((lines) =>
-    lines
-      .map((line) => {
-        const clone = line.cloneNode(true) as HTMLElement;
-        for (const placeholder of clone.querySelectorAll('.cm-placeholder')) {
-          placeholder.remove();
-        }
-        return clone.textContent ?? '';
-      })
-      .join('\n'),
-  );
+  return editorText(page);
 }
 
 /**

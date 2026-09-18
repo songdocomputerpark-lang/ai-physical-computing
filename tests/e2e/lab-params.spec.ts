@@ -3,7 +3,7 @@
 // 키보드(화살표)·화면 낭독기 값(aria-valuetext)·잘못된 규약의 한국어 경고·제한 모드 안내도 본다.
 // 카메라 영상 픽셀이 실제로 달라지는 것은 tests/e2e/scenario-a.spec.ts.
 import { expect, test } from '@playwright/test';
-import { editorContent, labRoot, openLabAndWaitReady, setEditorCode, waitDone } from './helpers/lab.ts';
+import { expectEditorToContain, labRoot, openLabAndWaitReady, setEditorCode, waitDone } from './helpers/lab.ts';
 
 const PARAMS_CODE = [
   'threshold = 100  # @slider 0 255 1 테두리 기준',
@@ -47,21 +47,21 @@ test.describe('조절 패널(코드의 # @slider 규약)', () => {
     await expect(slider).toHaveValue('101');
     await expect(slider).toHaveAttribute('aria-valuetext', '101 (0부터 255까지)');
     await expect(threshold).toHaveAttribute('data-value', '101');
-    await expect(editorContent(page)).toContainText('threshold = 101  # @slider 0 255 1 테두리 기준');
+    await expectEditorToContain(page, 'threshold = 101  # @slider 0 255 1 테두리 기준');
     await page.keyboard.press('ArrowLeft');
-    await expect(editorContent(page)).toContainText('threshold = 100  # @slider');
+    await expectEditorToContain(page, 'threshold = 100  # @slider');
     await slider.fill('42');
-    await expect(editorContent(page)).toContainText('threshold = 42  # @slider');
+    await expectEditorToContain(page, 'threshold = 42  # @slider');
     // 소수 슬라이더는 자릿수대로 적힌다.
     await page.locator('[data-lab-param="ratio"] input[type="range"]').fill('0.7');
-    await expect(editorContent(page)).toContainText('ratio = 0.7  # @slider 0 1 0.1');
+    await expectEditorToContain(page, 'ratio = 0.7  # @slider 0 1 0.1');
     // 선택 상자와 토글은 따옴표·True/False를 지킨다.
     await page.locator('[data-lab-param="mode"] select').selectOption('blur');
-    await expect(editorContent(page)).toContainText('mode = "blur"  # @select edge blur gray');
+    await expectEditorToContain(page, 'mode = "blur"  # @select edge blur gray');
     const toggle = page.locator('[data-lab-param="show_fps"] input[type="checkbox"]');
     await expect(toggle).toBeChecked();
     await toggle.uncheck();
-    await expect(editorContent(page)).toContainText('show_fps = False  # @toggle fps 보이기');
+    await expectEditorToContain(page, 'show_fps = False  # @toggle fps 보이기');
     await expect(page.locator('[data-lab-param="show_fps"]')).toHaveAttribute('data-value', 'False');
     // 코드를 직접 고치면 패널이 따라온다(값만 바뀐 요소는 그대로, 규약을 지우면 요소가 사라진다).
     await setEditorCode(page, 'threshold = 7  # @slider 0 255 1 테두리 기준\nprint(threshold)\n');
@@ -79,13 +79,13 @@ test.describe('조절 패널(코드의 # @slider 규약)', () => {
     await page.getByRole('button', { name: '실행', exact: true }).click();
     await expect(page.locator('[data-lab-console]')).toContainText('값 100', { timeout: 30_000 });
     await page.locator('[data-lab-param="threshold"] input[type="range"]').fill('120');
-    await expect(editorContent(page)).toContainText('threshold = 120');
+    await expectEditorToContain(page, 'threshold = 120');
     await expect(page.locator('[data-lab-console]')).toContainText('값 120', { timeout: 10_000 });
     await page.getByRole('button', { name: '정지', exact: true }).click();
     expect(await waitDone(page, 10_000)).toBe('stopped');
     // 멈춘 뒤에도 패널은 코드와 같은 값을 보이고 조작할 수 있다.
     await page.locator('[data-lab-param="threshold"] input[type="range"]').fill('30');
-    await expect(editorContent(page)).toContainText('threshold = 30');
+    await expectEditorToContain(page, 'threshold = 30');
   });
 
   test('제한 모드(?limited=1)에서는 "다음 [실행] 때 반영" 안내가 보이고 값은 코드에 적힌다', async ({ page }) => {
@@ -95,7 +95,7 @@ test.describe('조절 패널(코드의 # @slider 규약)', () => {
     await expect(page.locator('[data-lab-params-note]')).toContainText('다음 [실행] 때 반영');
     await setEditorCode(page, "gain = 3  # @slider 0 10 1\nprint('gain', gain)\n");
     await page.locator('[data-lab-param="gain"] input[type="range"]').fill('8');
-    await expect(editorContent(page)).toContainText('gain = 8');
+    await expectEditorToContain(page, 'gain = 8');
     await page.getByRole('button', { name: '실행', exact: true }).click();
     expect(await waitDone(page, 30_000)).toBe('ok');
     await expect(page.locator('[data-lab-console]')).toContainText('gain 8');

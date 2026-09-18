@@ -7,10 +7,11 @@
 //     사이트 예제 01(첫 화면 예제 — 깜빡이기와 interval 조절 막대)·02(BOOT 버튼으로 LED)도 파일 그대로 돌려 본다.
 //  5. 가상 보드는 OpenCV·numpy를 받지 않고(PD-04, 준비 모듈의 캐시 채우기 포함), 허용 주소 밖 요청이 없다.
 //  6. 보드 흉내는 ESP32 실습실에만 있다: 개발용 시험 페이지에서는 import machine이 없는 모듈이고 time에 sleep_ms가 없다.
+//  7. 콘솔이 화면 밖일 때 결과 칸이 "콘솔에 결과가 나왔어요"와 마지막 줄·[콘솔 보기 ↓]를 보인다(2026-09-18 검토 반영).
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
-import { LOAD_TIMEOUT, editorContent, labRoot, openLabAndWaitReady, runCode, waitDone } from './helpers/lab.ts';
+import { expectEditorToContain, labRoot, LOAD_TIMEOUT, openLabAndWaitReady, runCode, waitDone } from './helpers/lab.ts';
 import { collectRequests } from './helpers/vision.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
@@ -195,7 +196,7 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     };
     const slow = await seqIncrease(1_500);
     await page.locator('[data-lab-param="interval"] input[type="range"]').fill('0.1');
-    await expect(editorContent(page)).toContainText('interval = 0.1');
+    await expectEditorToContain(page, 'interval = 0.1');
     await expect.poll(() => seqIncrease(1_500), { timeout: 20_000, intervals: [0] }).toBeGreaterThanOrEqual(slow + 5);
     await page.getByRole('button', { name: '정지', exact: true }).click();
     expect(await waitDone(page, 30_000)).toBe('stopped');
@@ -230,6 +231,33 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await expect(board(page)).toHaveAttribute('data-board-ready', 'yes', { timeout: 60_000 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
+  });
+});
+
+/*
+ * 결과가 print()뿐인 예제에서 학생이 "아무 일도 일어나지 않았다"로 읽던 것(2026-09-18 검토 반영, 치명).
+ * 콘솔은 결과 칸보다 688px(데스크톱)·696px(휴대폰) 아래에 있어 [실행] 뒤에도 화면에 없다.
+ */
+test.describe('콘솔이 화면 밖일 때 결과 칸이 알린다(2026-09-18 검토 반영)', () => {
+  test('print()만 하는 코드를 실행하면 결과 칸에 마지막 줄과 [콘솔 보기]가 뜨고, 누르면 콘솔이 화면에 들어온다', async ({ page }) => {
+    await page.goto(ESP32_PATH);
+    await expect(labRoot(page)).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    const notice = page.locator('[data-lab-io-output]');
+    await expect(notice).toBeHidden();
+    // 화면 맨 위에서 시작한다(콘솔은 첫 화면 밖)
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const consoleBox = page.locator('[data-lab-console]');
+    expect(await consoleBox.evaluate((element) => element.getBoundingClientRect().top > window.innerHeight)).toBe(true);
+    await runCode(page, ["print('첫 줄')", "print('둘째 줄')", "print('셋째 줄')"].join('\n'));
+    expect(await waitDone(page, 60_000)).toBe('ok');
+    await expect(notice).toBeVisible();
+    await expect(page.locator('[data-lab-io-output-head]')).toHaveText('콘솔에 결과가 나왔어요.');
+    await expect(page.locator('[data-lab-io-output-text]')).toContainText('셋째 줄');
+    await expect(page.locator('[data-lab-console-new]')).toContainText('새 출력');
+    // [콘솔 보기 ↓]를 누르면 콘솔이 화면에 들어오고 알림은 사라진다
+    await page.locator('[data-lab-console-jump]').click();
+    await expect.poll(async () => consoleBox.evaluate((element) => element.getBoundingClientRect().top < window.innerHeight), { timeout: 10_000 }).toBe(true);
+    await expect(notice).toBeHidden();
   });
 });
 

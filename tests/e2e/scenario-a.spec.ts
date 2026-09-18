@@ -10,7 +10,7 @@
 // 실행: npx playwright test tests/e2e/scenario-a.spec.ts — Pyodide(약 6MB)와 numpy·OpenCV 휠(약 14MB)을 jsDelivr에서 받는다.
 import { expect, test } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
-import { LOAD_TIMEOUT, editorContent, labRoot } from './helpers/lab.ts';
+import { expectEditorToContain, labRoot, LOAD_TIMEOUT } from './helpers/lab.ts';
 import { PACKAGES_TIMEOUT, VISION_PATH, averageWhiteRatio, framesShown, waitFrames, whiteRatio } from './helpers/vision.ts';
 
 /** 희미한 네모의 테두리(324픽셀 = 640×480의 0.105%)가 생기고 사라질 때 평균 비율이 이만큼은 달라져야 한다(계산값의 절반). */
@@ -70,7 +70,7 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
     // 4. 슬라이더를 20으로 → 코드의 숫자도 바뀌고, 다음 프레임부터 희미한 네모의 테두리가 나타나 흰 픽셀이 는다.
     let shown = await framesShown(page);
     await slider.fill('20');
-    await expect(editorContent(page)).toContainText('threshold = 20');
+    await expectEditorToContain(page, 'threshold = 20');
     await expect(slider).toHaveAttribute('aria-valuetext', '20 (0부터 255까지)');
     await waitFrames(page, 'edges', shown + 3);
     const sliderMs = elapsed();
@@ -80,7 +80,7 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
     // 5. 다시 100으로 → 테두리가 다시 사라진다(두 방향 모두 반영).
     shown = await framesShown(page);
     await slider.fill('100');
-    await expect(editorContent(page)).toContainText('threshold = 100');
+    await expectEditorToContain(page, 'threshold = 100');
     await waitFrames(page, 'edges', shown + 3);
     const back = await averageWhiteRatio(page, 'edges');
     expect(back, `threshold 100 again: ${back} < 20: ${low}`).toBeLessThan(low - MIN_RATIO_CHANGE);
