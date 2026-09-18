@@ -184,6 +184,7 @@ export default manifest;
 - 무거운 라이브러리(MediaPipe Tasks 등)는 index.ts 맨 위에서 import하지 말고 **처음 필요할 때 `await import()`** 해요 — index.ts 자체가 실습실마다 따로 받는 청크지만, 모듈이 붙는 순간 그 청크를 받기 때문이에요.
 - **패널은 쓸 때만 연다(2026-09-17 Phase 2 검토 반영, 절대 원칙 4 "한 페이지 한 개념"):** 예전에는 모듈마다 mount에서 `showPanel()`을 불러 에지 검출 첫 실습 아래로 인식·음성·파일 패널이 줄줄이 이어졌어요. 이제는 `const gate = showPanelWhenUsed(ctx, /mediapipe/u)`처럼 코드에 이름이 보이면 열고, 파이썬이 실제로 요청을 보내면 핸들러 첫 줄에서 `gate.show()`로 못 박아요(코드를 고쳐도 닫히지 않음). 실행 전에 조작해야 하는 패널(파일 넣기)은 그 조작의 흔한 코드 모양으로 열어요(`runtime-extras/files.ts`의 `WORK_FILE_USE_PATTERN`).
 - **학생에게 방금 생긴 것을 보여 줄 때**는 `revealElement(요소)`(`controls/reveal.ts`)를 써요 — 이미 충분히 보이면 움직이지 않고, 움직임 줄이기 설정이면 부드럽게 넘기지 않아요. 두 칸을 함께 보여야 하면 `revealTogether([넓은 칸, 좁은 칸], 둘째 칸, { slack })`. 실습실 틀은 [실행] 때 io 슬롯의 `[data-lab-reveal-on-run]`(넓은 결과 칸, 없으면 입력·출력 칸 전체)·`[data-lab-reveal-on-run-min]`(꼭 보여야 하는 최소 칸)과 첫 조절 막대(`[data-lab-param]`)를 함께 보이고, 오류 모듈은 풀이 카드를 보여요. **Phase 3 보드 그림 io 슬롯도 결과 부분에 이 두 표시를 달아요.** 편집칸을 스크롤할 일이 있으면 페이지까지 움직이는 CodeMirror `scrollIntoView` 대신 편집칸 안에서만(`errors/highlight.ts`의 `scrollLineInsideEditor`) 움직여요 — 방금 옮긴 화면을 되돌리지 않게.
+- **콘솔은 화면 밖이라고 보고 만든다(2026-09-18 검토 반영):** 실습실은 세로로 길어 콘솔이 결과 칸보다 688px(1366×768)·696px(375×812) 아래에 있어요. 결과가 `print()`뿐인 실행에서 학생이 "아무 일도 없다"로 읽지 않게, 실습실 틀이 콘솔에 새 출력이 오면 결과 칸 아래에 마지막 3줄과 [콘솔 보기 ↓]를 띄우고(`[data-lab-io-output]`) 콘솔 제목에 "새 출력 N줄" 배지를 붙여요. 콘솔이 화면에 들어오면(IntersectionObserver) 저절로 사라져요. 모듈이 중요한 결과를 콘솔에만 쓰지 않도록 할 때 이 장치를 믿어도 돼요.
 - 조작 줄 아래 안내 줄에 한 줄로 알릴 것이 있으면 `ctx.lab.showMessage('…')`(오류로 끝났을 때 오류 모듈이 쓰는 자리). 학생이 읽는 글에는 "정지 2단계"·밀리초 같은 안쪽 용어를 넣지 않아요.
 
 ### 4.4 *.py — 파이썬 쪽 규칙
@@ -406,6 +407,7 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 | `board.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ pin: 0, drive: 0\|1\|'pullup'\|'pulldown'\|{ mv: 0~3300 }\|null }` — 실행 중에 바뀐 핀 하나. 눌렀다 뗀 것도 빠짐없이 순서대로(§7.2 규칙 5 "이벤트는 대기열"). `{ mv }`는 아날로그 전압(`state.ts analogDrive(mv)` — 가변저항·4채널 터치, 디지털로 읽으면 1.65V 문턱). `board.inputs`의 값도 같은 모양 |
 | `board.wiring` | 화면 → 파이썬, 최신 값 | `{ parts: [{ part: 'touch-digital', id: 'touch-digital', label: '터치 센서', pins: { sig: 17 }, directions: { sig: 'in' }, known: true }, { part: 'lcd-i2c', id: 'lcd', label: '문자 LCD(16×2)', pins: { sda: 21, scl: 22 }, known: false }] }` — 이 예제의 배선(보드에 붙은 부품 포함, `parts.ts wiringValue`). 가상 보드가 아직 모르는 부품은 `known: false`와 적힌 핀만. 부품 흉내·파이썬 배선 안내(7.2)가 읽는다 |
 | `board.device` | 파이썬 → 화면, 이벤트 | `{ v: 1, id: 배선 id, part: 부품 id, state }` — 부품 흉내의 상태(`apc_board.set_device_state(id, part, state)`, 16ms마다 핀 상태 다음에 바뀐 부품만·최신 값만). 화면은 `state.ts parseDeviceEvent`·`applyDeviceEvent`로 모으고 부품 `visual`·`render`·`controls`에 `device: { seq, state }`로 넘긴다. 실행 시작(reset)에 비워진다(`data-board-devices`·`data-board-device-last`) |
+| `board.notice` | 파이썬 → 화면, 이벤트 | `{ v: 1, code, level: 'warning', text, gpio? }` — 코드가 배선과 어긋나게 핀을 쓸 때 `apc_board.warn_once`가 콘솔 안내와 **함께** 보낸다(2026-09-18 검토 반영). 화면(`modules/board/index.ts`)이 같은 글을 보드 그림 아래 "배선 확인" 칸(`[data-board-problems]`)에 넣는다 — 콘솔은 결과 칸보다 688px 아래여서 정작 필요한 학생이 못 봤다. 실행을 새로 시작하거나 배선을 다시 그리면 비운다(`data-board-run-issues`) |
 | `board.device.input` | 화면 → 파이썬, 쌓이는 값(`pushEvent`) | `{ id: 배선 id, data }` — 부품 조작 칸(송신 패널 등)이 부품 흉내에 보내는 값(`PartControlApi.sendToDevice(data)`). 파이썬은 `apc_board.on_device_input(id, handler)`로 입력 확인 지점에서 받는다(실행 전에 보낸 값은 버림 — 실물 UART와 같음) |
 
 `drive` 뜻: `0`·`1` = 부품이 핀을 세게 누름(버튼이 GND에 닿음, 센서 모듈 출력), `'pullup'`·`'pulldown'` = 약하게 끌어당김(보드의 BOOT 버튼 풀업), `null` = 연결 없음. 핀 전압은 세게 누름 > 출력 > 약한 끌어당김 > 내부 풀업·풀다운 > 떠 있음(0) 순서로 정한다.
@@ -440,7 +442,8 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 - **파이썬 쪽 배선 안내**(코드가 배선과 어긋나게 핀을 씀)는 7.2절 끝.
 - **배선도 그리기**(`layout.ts planBoardDrawing` → `board-drawing.ts`): 보드는 교과서 키트와 같은 30핀 개발 보드(원고 118쪽 사진의 핀 순서 — 위 줄 5V·GND·13·12·14·27·26·25·33·32·35·34·39(VN)·36(VP)·EN, 아래 줄 3V3·GND·15·2·4·16·17·5·18·19·21·RX·TX·22·23)를 사이트가 그린 것이고, 스트래핑 핀에 ▲ 표시(GPIO0은 BOOT 버튼 그림에). 바깥 부품이 있으면 보드 아래 **브레드보드**에 한 줄로 놓고, 핀 머리에서 부품 윗변 신호 자리까지 꺾은선(아래 줄 핀은 보드 밑으로, 위 줄 핀은 보드 위와 오른쪽을 돌아), 보드 3V3·GND에서 레일로, 부품 아랫변 전원 다리에서 레일로 선을 긋는다(닿는 점에 동그라미). 세로선은 칸을 나눠 겹쳐 그려지지 않고(핀 머리 x ≡ 6, 부품 신호 자리 x ≡ 15 — 18로 나눈 나머지), 흔한 배선은 엇갈리지 않게 줄 순서를 정한다(`board-layout.test.ts`). 핀 머리는 코드가 쓰면 흰 고리(`data-used`), 1(HIGH)이면 노란 빛(`data-high`), 마우스를 올리면 설명(같은 내용이 핀 표에 글자로).
 - **이 예제 실습 방법**: `LabExample.practice`(사이드카 `practice` → 머리말 "── 실습 방법 ──" 상자)가 있으면 보드 그림 위 `[data-board-practice]`에 단계 목록으로 보인다 — 가상 부품을 어떻게 누르고 무엇을 보면 되는지 예제마다 적는다(사이트 예제 4개·옮긴 예제 4개 모두 3단계).
-- **[그림 크게 보기]**: 그림을 48rem으로 펴 가로로 밀어 본다(휴대폰 375px에서 핀 번호가 약 15px). 고른 값은 `module:board:zoom`에 기억한다([이 컴퓨터에서 내 기록 지우기] 대상).
+- **편집칸에서 고친 코드의 배선**(2026-09-18 검토 반영): 배선은 예제 단위(PD-05)이지만, **학생이 예제 코드를 고쳤거나 빈 칸에서 직접 쓴 코드**에서는 편집칸 머리말의 `# @part` 줄을 다시 읽어 배선도를 그린다(`modules/board/index.ts` `wiringFromEditorCode` — 머리말이 바뀔 때만 다시 그린다). 예제를 **그대로** 불러온 상태에서는 예제 배선(차시 md → 사이드카 → 머리말 순서로 이미 정해진 것)을 그대로 써서 "사이드카가 머리말보다 앞선다"는 규약이 깨지지 않는다. 블록 모드는 그보다 앞서는 `data-board-wiring-override`로 알린다(7.11).
+- **[그림 크게 보기] ↔ [원래 크기로]**: 그림을 48rem으로 펴 가로로 밀어 본다(휴대폰 375px에서 핀 번호가 약 15px). 고른 값은 `module:board:zoom`에 기억한다([이 컴퓨터에서 내 기록 지우기] 대상). 기본 화면에서도 그림을 **32rem(512px) 아래로 줄이지 않는다** — 375px 휴대폰에서 칸에 맞추면 배율이 0.77이 되어 핀 번호가 6.6px로 읽히지 않았다(2026-09-18 실측). 넘치면 칸 오른쪽 그늘(`[data-board-stage-wrap]`의 `data-board-overflow`)과 "옆으로 밀어 보세요" 한 줄(`[data-board-scroll-hint]`)로 알린다.
 
 ### 7.5 부품 하나 = 폴더 하나 — `modules/board/parts/<부품 id>/`
 
@@ -700,9 +703,12 @@ await board.unplug();                                            // 선 뽑기 �
 - **input():** `board-input.ts` — `prepareBoardInputLine(글)`이 실물 readline이 받는 32~126 글자 + `\r`만 남기고(한글은 빼고 안내, 250자 상한),
   `InputEchoFilter`가 보드 되울림을 한 번 걸러 콘솔에 두 번 보이지 않게 한다.
 - **되찾기:** `board-recovery.ts` + `BoardConnection.recover()` — Ctrl-C 되풀이 → RTS로 다시 켜며 되풀이 → EN 버튼 안내. [boot.py 끄기]는 파일을 지우지 않고 `boot_off.py`로 이름만 바꾼다.
-- **호환 안내:** `compat.ts` `findRealBoardCompatIssues(code)` — 실물에서 안 되는 여섯 모양을 줄 번호와 함께 알린다(막지 않음).
+- **호환 안내:** `compat.ts` `findRealBoardCompatIssues(code)` — 실물에서 안 되는 여섯 모양을 줄 번호와 함께 알린다(막지 않음). 자르기(`slice-step`) 규칙은 대괄호 안에 중괄호·쉼표가 있으면 건너뛴다(2026-09-18 검토 반영 — `colors = [{'r':255,'g':0,'b':0}]`처럼 자르기가 없는 흔한 줄을 지적했다).
+- **사이트가 실물용 파일을 주지 못하는 모듈:** `esp32/board-libraries.ts`의 `VIRTUAL_ONLY_MODULES`(지금은 OLED 드라이버 `ssd1306`·`sh1106`). 가상 보드에서는 부품 폴더의 흉내로 돌지만 실물에는 그 파일이 없어서 [실제 보드] [실행] 전에 한국어로 알린다(`virtualOnlyModuleNotice`). `examples/esp32/lib/`에 같은 이름의 파일을 두면 보드 라이브러리가 되어 저절로 올라가므로 표에서 빼면 된다(PROGRESS 미해결 64).
+- **[보드에 저장] 덮어쓰기 확인:** `saveFilesToBoard`의 `confirmOverwrite`(→ `BoardConnection.save`의 같은 이름 칸)가 **보드에 이미 있는 다른 내용의 파일**을 바꿔 쓰기 직전에 한 번 묻는다. "아니요"면 `BoardSaveCancelled`로 그 파일부터 멈추고 결과 상자가 파랑 "바꾸지 않았어요"(`data-real-board-saved-state="cancelled"`)가 된다. 내용이 같은 파일은 해시로 건너뛰므로 묻지 않는다(2026-09-18 검토 반영 — 공용 키트 보드의 `main.py`가 확인 없이 사라졌다).
 - **화면 표시(테스트가 읽는 것):** `[data-real-board]`의 `data-real-board-state`·`tone`·`verdict`·`problem`·`recovery`·`autorun`·`saved-state`,
   단추 `[data-real-board-action="connect|reconnect|check|restart|choose|disconnect|save|recover|disable-autorun"]`. 글 만들기는 `modules/real-board/status-text.ts`(순수 함수).
+- **실행 대상이 상태 줄을 잠깐 바꾸기:** `LabRunContext.setStatus(글 | null)` — 실제 보드가 포트 선택 창을 여는 동안처럼 아직 아무것도 실행되지 않았을 때 "실행 중이에요" 대신 무엇을 기다리는지 적는다. `null`이면 기본 글로 돌아가고, 실행이 끝나면 저절로 지워진다(2026-09-18 검토 반영).
 - **패널 예외:** [가상 보드]/[실제 보드] 탭은 코드와 상관없이 늘 보여야 해서 `real-board` 모듈은 mount에서 `showPanel()`을 바로 부르고
   패널을 입력·출력 칸의 가상 보드 위로 옮긴다(4절 "패널은 쓸 때만 연다"의 예외).
 
@@ -714,6 +720,7 @@ await board.unplug();                                            // 선 뽑기 �
 - **칸:** `id`·`b2`(부록 B-2 번호)·`title`·`why`·`minutes`(추정)·`wiring`(사이드카 `parts`와 같은 모양)·`prepare`(사람이 먼저 할 일)·`code`·`seconds`(지켜볼 시간)·
   `questions`(예/아니오)·`expect`(콘솔에서 읽을 값 안내)·`libraries`(쓰는 보드 라이브러리).
 - **코드 규칙:** 실물 MicroPython 이름만(사이트 흉내 이름 금지), 끝없는 반복 금지, 눈으로 볼 시간은 `seconds`로.
+- **안전 안내:** 움직이거나 빛을 내는 부품(팬·서보·레이저)은 `prepare` 끝에 한 줄로 적는다. 화면 머리의 "안전하게 쓰기" 칸(`BoardCheckHelper.astro`)은 `/start/board/`와 같은 문구이고, 부품이 늘어도 그 칸은 그대로 쓴다(2026-09-18 검토 반영).
 - **배선 그림:** `wiring-figure.ts`가 가상 보드 그림을 **꺼진 모습으로 한 장** 그린다(누를 수 없다). 예제 배선도와 같은 자리·같은 색이다.
 - **판정·복사 글:** `report.ts` — 질문이 모두 예면 "예(같음)", 하나라도 아니오면 "다름", 답이 없으면 "아직". [결과 복사]는 PROGRESS에 붙일 마크다운 표를 만든다.
 - **저장:** `board-check:answers`(이 컴퓨터의 브라우저에만, [기록 지우기]가 함께 지운다).

@@ -163,6 +163,10 @@ git push
 
 같은 오류에 여러 항목이 맞으면 점수(종류 2 + 메시지 패턴 4 + 트레이스백 패턴 4 + `priority`)가 높은 항목이 뽑혀요. 학생이 읽는 글이라 영문 이름 뒤에 조사 자리(`{name:을/를}`)는 쓰지 않아요("을(를)"로 보여요).
 
+**고칠 것이 없는 안내**(예: [정지]로 멈춤)는 항목에 `level: notice`를 적어요. 그러면 카드와 사전이 빨간 오류 상자 대신 파란 안내 상자로 그려요 — 고1은 글보다 색을 먼저 읽어서, 정상 종료를 빨간 카드로 보여 주면 고장으로 오해해요.
+
+**항목 수를 문서에 적을 때**는 `content/help/errors/errors.yaml`의 `entries`(풀이)·`groups`(묶음) 길이를 세요. 사전 페이지 맨 위에도 "오류 풀이 N개"로 나와요.
+
 Pyodide 판을 올렸다면 `node --experimental-wasm-jspi tests/unit/errors/helpers/pyodide-traceback-run.mjs . --write`로 채집본(`tests/unit/errors/fixtures/tracebacks.json`)을 다시 만든 뒤 테스트를 돌려요.
 
 ## 2-2. 가상 보드에 부품 더하기 — 폴더 하나
@@ -175,6 +179,7 @@ ESP32 실습실의 가상 보드에 부품(센서·LED·화면 등)을 더할 �
 4. `tests/unit/lab/board-part-<부품 id>.test.ts`를 만들어요. 이 파일이 없으면 `npm test`가 막아요(도우미 `tests/unit/lab/helpers/board-snapshot.ts`).
 5. `npx vitest run tests/unit/lab/board-parts.test.ts`로 규칙 검사를 돌리고, 예제 사이드카의 `parts:`에 부품을 적어 실습실에서 눈으로 봐요.
 6. 실물 보드로 확인할 것이 있으면(핀 번호·극성·소리) `docs/PLAN.md` 부록 B-2에 줄을 더하고 `src/lab/esp32/check/items.ts`에 점검 항목을 더해요(아래 2-3).
+7. 실물 보드에서 학생이 `import`할 드라이버 파일이 필요하면(예: OLED의 `ssd1306.py`) `examples/esp32/lib/`에 그 파일을 두세요. 부품 폴더 안의 드라이버는 **가상 보드에만** 있어서, [실제 보드]에서는 사이트가 "이 파일을 보드에 먼저 올려야 해요"라고만 알려요(`src/lab/esp32/board-libraries.ts`의 `VIRTUAL_ONLY_MODULES`).
 
 ## 2-3. 실물 점검 도우미에 항목 더하기
 
@@ -183,7 +188,8 @@ ESP32 실습실의 가상 보드에 부품(센서·LED·화면 등)을 더할 �
 1. `src/lab/esp32/check/items.ts`의 `CHECK_ITEMS`에 항목 하나를 더해요: `id`·`b2`(부록 B-2 번호)·`title`·`why`·`minutes`(예상 시간, 추정)·`wiring`(배선, 없으면 `[]`)·`code`(보낼 코드)·`questions`(예/아니오로 답할 것).
 2. `code`는 **실물 MicroPython에서 도는 코드만** 써요(사이트 흉내 이름 금지). 끝없는 반복(`while True`)을 쓰지 않고, 눈으로 볼 시간이 필요하면 `seconds`로 지켜본 뒤 [정지]가 되게 해요.
 3. `wiring`은 예제 사이드카의 `parts:`와 같은 모양이라, 적으면 배선 그림이 저절로 그려져요.
-4. `npx vitest run tests/unit/esp32-check`로 규칙 검사(코드·글·배선·라이브러리)를 돌려요.
+4. 움직이거나 빛을 내는 부품(팬·서보·레이저)이면 `prepare` 끝에 안전 안내를 한 줄 적어요(예: "팬이 도는 동안 날개에 손대지 않고, 프로펠러 주변을 비워 둬요.").
+5. `npx vitest run tests/unit/esp32-check`로 규칙 검사(코드·글·배선·라이브러리)를 돌려요.
 
 ## 3. 그림 넣기와 출처 등록
 
@@ -252,7 +258,7 @@ ESP32 실습실 코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 
 ## 5. 배포 확인
 
 - **Actions** 탭의 "사이트 배포"는 저장소 안전 검사와 빌드를 나란히 돌린 뒤 배포해요. 세 작업이 모두 초록색이면 성공이에요.
-- `PROGRESS.md`나 `.agent/`만 바꾼 push는 배포를 돌리지 않아요.
+- `PROGRESS.md`나 `.agent/`만 바꾼 push는 배포와 "테스트"를 돌리지 않아요. 대신 **"저장소 검사"** 워크플로가 경로에 상관없이 늘 돌아 개인정보 모양·원본 형식을 봐요(그 파일들도 push하면 곧바로 공개 저장소에 올라가니까요).
 - **"테스트"** 워크플로(단위 테스트·타입 검사·브라우저 테스트·링크 검사)는 배포와 따로 돌아요. 여기서 빨간 X가 나도 사이트는 배포되지만, 무엇이 깨졌는지 알려 주니 확인해요. 실패하면 실행 화면 아래 결과물(playwright-report)에 화면 기록이 남아요.
 - 사이트 첫 화면: https://songdocomputerpark-lang.github.io/ai-physical-computing/
 
