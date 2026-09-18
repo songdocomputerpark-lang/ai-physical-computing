@@ -69,8 +69,18 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 | Phase 2 영상처리 실습실 | `wf_a1aac702-2a9` | `workflows\scripts\phase2-vision-lab-wf_a1aac702-2a9.js` | 완료 |
 | Phase 3 ESP32 실습실 | `wf_86bbf998-bc6` | `workflows\scripts\phase3-esp32-lab-wf_86bbf998-bc6.js` | 제작·통합까지 끝(검토 도중 정지) |
 | Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
+| **Phase 4 통신 실습실** | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | **지금 도는 것**(2026-09-18 11:34 시작) |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
+
+### 지금 도는 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-18 11:34 시작)
+
+PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) → Build 6구역 병렬(A 영상처리↔보드 4701 / B 가상 BLE→Web Bluetooth 4702 / C 데이터 포트 4703 / D MQTT→대시보드 4704 / E 통신 템플릿·블록 4705 / F 예제 갤러리 4706) → Build2(G 시나리오 F 4707 / H 4단원 통합 화면 4708) → 통합 → 적대적 검토 3(4711~4713) → 수정·배포.
+
+**이 워크플로는 통째 재개해도 안전하게 설계했다.** 오늘 겪은 사고(프롬프트에 앞 단계 결과 JSON을 박으면 캐시 열쇠가 달라져 끝난 단계가 다시 돈다)를 막으려고, **모든 단계가 보고를 `.cache/phase4-notes/<id>.md`에 적고 다음 단계는 그 폴더를 읽는다.** 프롬프트가 상수라 캐시 열쇠가 변하지 않는다. 검토자 지적은 `.cache/phase4-reviews/`, 구역 요청은 `.cache/phase4-requests/`에 쌓인다 — 세 폴더가 곧 작업 기록이니 이어받을 때 먼저 읽는다.
+
+- 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js`, 안전 사본 `.cacheesume\phase4-comm-lab-wf_26c7dddc-2bf.js`.
+- args는 `.cacheesume\RESUME-ARGS.json`(Phase 3과 같은 세 값).
 
 ### 끝난 것 — `wf_db55fe07-fd6` (2026-09-18 07:38 → 11:23, Phase 3 마무리)
 
