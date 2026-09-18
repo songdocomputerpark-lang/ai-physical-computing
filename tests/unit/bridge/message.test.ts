@@ -46,6 +46,35 @@ describe('§7.2 규칙 1 — 메시지 모양 세 가지', () => {
   });
 });
 
+describe('자료에 있는 메시지가 각각 어떻게 판정되나(CODE_MAPPING §6.1 U1~U5·B1~B6·D1)', () => {
+  const cases: Array<[string, string, string, string]> = [
+    // [무엇, 보내는 글, 모양, 갈래]
+    ['U1·U2·B2 레이저 켜기/끄기(f084·f085·f140)', 'a', 'command', 'state'],
+    ['B1 한 글자(f138)', 'c', 'command', 'state'],
+    ['U3 색 번호(f001)', '3', 'values', 'state'],
+    ['R1 보드 콘솔 입력(f049)', '1', 'values', 'state'],
+    ['R1 콘솔에서 끝내기', 'q', 'command', 'state'],
+    ['B3 검지 좌표(f089 = f158)', '355,152', 'values', 'state'],
+    ['B4 코 좌표(f100)', 'DATA,120,80', 'fields', 'state'],
+    ['B5 얼굴 마우스 보통 프레임(f104)', 'DATA,1920,1080,0,0', 'fields', 'state'],
+    ['B5 윙크(왼쪽 클릭)', 'DATA,1930,1075,1,0', 'fields', 'event'],
+    ['B5 오른쪽 클릭', 'DATA,1920,1080,0,1', 'fields', 'event'],
+    ['U5 시작 인사(f001·f007)', 'hello world', 'other', 'state'],
+  ];
+
+  it.each(cases)('%s → %s', (_what, text, shape, category) => {
+    const found = classifyText(text);
+    expect(found.shape).toBe(shape);
+    expect(found.category).toBe(category);
+  });
+
+  it('이진 프레임은 글이 아니라 바이트로 본다(B6 스마트폰 앱, D1 MP3 명령)', () => {
+    expect(rawMessage(Uint8Array.of(0xff, 0x02, 0x01, 0x01)).shape).toBe('bytes'); // 0xFF는 UTF-8이 아니다
+    expect(rawMessage(Uint8Array.of(0x7e, 0xff, 0x06, 0x03, 0x00, 0x00, 0x01, 0xef)).shape).toBe('bytes');
+    expect(rawMessage(Uint8Array.of(0x01)).shape).toBe('bytes'); // U4 원시 바이트(f007)
+  });
+});
+
 describe('§7.2 규칙 2 — 끝 문자 \\n 한 개', () => {
   it('보낼 때 \\n을 한 개 붙인다', () => {
     expect(textOf(textMessage('a').bytes)).toBe('a\n');
