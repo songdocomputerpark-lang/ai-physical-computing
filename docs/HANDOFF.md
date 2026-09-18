@@ -79,8 +79,8 @@ PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) �
 
 **이 워크플로는 통째 재개해도 안전하게 설계했다.** 오늘 겪은 사고(프롬프트에 앞 단계 결과 JSON을 박으면 캐시 열쇠가 달라져 끝난 단계가 다시 돈다)를 막으려고, **모든 단계가 보고를 `.cache/phase4-notes/<id>.md`에 적고 다음 단계는 그 폴더를 읽는다.** 프롬프트가 상수라 캐시 열쇠가 변하지 않는다. 검토자 지적은 `.cache/phase4-reviews/`, 구역 요청은 `.cache/phase4-requests/`에 쌓인다 — 세 폴더가 곧 작업 기록이니 이어받을 때 먼저 읽는다.
 
-- 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js`, 안전 사본 `.cacheesume\phase4-comm-lab-wf_26c7dddc-2bf.js`.
-- args는 `.cacheesume\RESUME-ARGS.json`(Phase 3과 같은 세 값).
+- 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js`, 안전 사본 `.cache\resume\phase4-comm-lab-wf_26c7dddc-2bf.js`.
+- args는 `.cache\resume\RESUME-ARGS.json`(Phase 3과 같은 세 값).
 
 ### 끝난 것 — `wf_db55fe07-fd6` (2026-09-18 07:38 → 11:23, Phase 3 마무리)
 
