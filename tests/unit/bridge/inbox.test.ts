@@ -49,6 +49,17 @@ describe('줄 모으기 — 실물 UART처럼 누적한다', () => {
     expect(inbox.take()).toBe('가나');
   });
 
+  it('받는 차례가 여럿이어도 서로의 중간 글자를 건드리지 않는다', () => {
+    const first = new BridgeInbox();
+    const second = new BridgeInbox();
+    const source = bytes('가나\n');
+    first.push(source.slice(0, 4)); // 한 글자 반만 왔다
+    second.push(bytes('b\n')); // 그 사이에 다른 차례가 받는다
+    first.push(source.slice(4));
+    expect(second.take()).toBe('b');
+    expect(first.take()).toBe('가나');
+  });
+
   it('너무 많이 쌓이면 오래된 줄부터 버린다', () => {
     const inbox = new BridgeInbox({ maxLines: 2 });
     inbox.push(bytes('1\n2\n3\n'));

@@ -15,8 +15,6 @@
 import { BRIDGE_MAX_BYTES, bridgeText, bridgeWarning, byteLengthOf } from './messages.ts';
 import type { BridgeWarning } from './types.ts';
 
-const decoder = new TextDecoder('utf-8');
-
 /** 받아도 되는지 정하는 규칙 */
 export interface BridgeInboundPolicy {
   /** 이 글만 받는다(빈 목록이나 없음이면 모두 받는다). 앞뒤 공백을 뗀 글과 견준다 */
@@ -66,6 +64,8 @@ export interface BridgeInboxOptions extends BridgeInboundPolicy {
 export class BridgeInbox {
   private readonly options: BridgeInboxOptions;
   private readonly lines: string[] = [];
+  /** 받는 차례마다 따로 둔다 — 여러 글자 UTF-8이 두 번에 나뉘어 올 때의 중간 상태를 다른 차례와 섞으면 글자가 깨진다 */
+  private readonly decoder = new TextDecoder('utf-8');
   private tail = '';
 
   constructor(options: BridgeInboxOptions = {}) {
@@ -84,7 +84,7 @@ export class BridgeInbox {
 
   /** 통로에서 온 바이트를 넣는다. 끝 문자가 나오면 줄이 된다. */
   push(bytes: Uint8Array | string): void {
-    const text = typeof bytes === 'string' ? bytes : decoder.decode(bytes, { stream: true });
+    const text = typeof bytes === 'string' ? bytes : this.decoder.decode(bytes, { stream: true });
     if (this.options.raw === true) {
       this.accept(text);
       return;

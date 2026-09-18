@@ -54,7 +54,9 @@ export function getBridgeChannelFactory(id: string): BridgeChannelFactory | null
 export async function openBridgeChannel(id: string, options: BridgeChannelOpenOptions): Promise<BridgeChannel> {
   const factory = getBridgeChannelFactory(id);
   if (factory === null) {
-    throw new Error(`"${id}" 통로를 찾지 못했어요. 등록된 통로: ${Array.from(registry.keys()).join(', ') || '없음'}`);
+    const known = Array.from(registry.keys());
+    const hint = known.length === 0 ? '붙박이 통로를 먼저 등록해요 — registerBuiltinChannels()' : `등록된 통로: ${known.join(', ')}`;
+    throw new Error(`"${id}" 통로를 찾지 못했어요. ${hint}`);
   }
   return factory.open(options);
 }
