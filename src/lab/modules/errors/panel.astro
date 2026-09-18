@@ -77,6 +77,20 @@ const dictionaryHref = withBase(DICTIONARY_PATH);
     display: none;
   }
 
+  /* "오류가 아니에요" 항목(level: notice — [정지] 등)은 중립 파랑 안내 상자로(2026-09-18 검토 반영) */
+  .errors[data-errors-level='notice'] {
+    border-color: var(--color-info-border);
+    background: var(--color-info-bg);
+  }
+
+  .errors[data-errors-level='notice'] .errors__badge {
+    background: var(--color-info-text);
+  }
+
+  .errors[data-errors-level='notice'] .errors__title {
+    color: var(--color-info-text);
+  }
+
   .errors__head {
     display: flex;
     flex-wrap: wrap;

@@ -166,6 +166,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     const { card } = elements;
     card.dataset.errorsEntry = explanation.entry.id;
     card.dataset.errorsKind = explanation.kind;
+    // 오류가 아닌 항목([정지] 등)은 빨강이 아니라 파랑 안내 상자로 그린다(2026-09-18 검토 반영 — 색을 먼저 읽는 학생이 정상 종료를 고장으로 오해했다).
+    card.dataset.errorsLevel = explanation.entry.level;
     card.dataset.errorsMatched = explanation.matched;
     card.dataset.errorsLine = explanation.location ? String(explanation.location.line) : '';
     if (elements.type) {

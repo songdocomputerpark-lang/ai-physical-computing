@@ -62,6 +62,7 @@ export const BUILTIN_FALLBACK_ENTRY: ErrorEntry = Object.freeze({
   id: 'unknown',
   group: 'lab',
   title: '실행이 오류로 끝났어요',
+  level: 'error',
   types: [],
   patterns: [],
   tracebackPatterns: [],

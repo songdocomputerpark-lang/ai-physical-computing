@@ -105,9 +105,13 @@ const total = errorCatalog.entries.length;
           <article
             class="errors-entry"
             data-errors-entry-item={entry.id}
+            data-errors-level={entry.level}
             data-errors-search={[entry.id, preview.title, ...entry.types, preview.meaning, ...preview.mistakes].join(' ')}
           >
-            <h3 class="errors-entry__title" id={entry.id}>{preview.title}</h3>
+            <h3 class="errors-entry__title" id={entry.id}>
+              {preview.title}
+              {entry.level === 'notice' && !preview.title.includes('오류가 아니에요') && <span class="errors-entry__badge">오류가 아니에요</span>}
+            </h3>
             {entry.types.length > 0 && (
               <p class="errors-entry__types">
                 오류 종류:{' '}
@@ -275,6 +279,19 @@ const total = errorCatalog.entries.length;
   .errors-group[hidden],
   .errors-entry[hidden] {
     display: none;
+  }
+
+  /* "오류가 아니에요" 항목(level: notice — [정지] 등)임을 제목 옆에 적는다(2026-09-18 검토 반영) */
+  .errors-entry__badge {
+    margin-inline-start: var(--space-2);
+    padding: 0.1em 0.6em;
+    border-radius: var(--radius-full);
+    background: var(--color-info-text);
+    color: var(--color-on-accent);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    vertical-align: middle;
+    white-space: nowrap;
   }
 
   .errors-entry__more {

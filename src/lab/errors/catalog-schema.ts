@@ -45,10 +45,19 @@ export interface ErrorExample {
   readonly line: number | null;
 }
 
+/**
+ * 항목이 "오류"인지 "안내"인지(2026-09-18 검토 반영). [정지]로 멈춘 것처럼 고칠 것이 없는 항목까지 빨간 오류 카드로 보여 주면
+ * 고1은 글보다 색을 먼저 읽어 정상 종료를 고장으로 오해한다. level: notice면 카드·사전이 파랑 안내 상자와 중립 배지로 그린다.
+ */
+export type ErrorLevel = 'error' | 'notice';
+export const ERROR_LEVELS: readonly ErrorLevel[] = Object.freeze(['error', 'notice']);
+
 export interface ErrorEntry {
   readonly id: string;
   readonly group: string;
   readonly title: string;
+  /** 'error'(기본) 또는 'notice'(오류가 아닌 안내 — [정지] 등) */
+  readonly level: ErrorLevel;
   /** 비어 있으면 종류를 보지 않는다(패턴만으로 맞춤) */
   readonly types: readonly string[];
   /** 오류 메시지(마지막 줄의 ": " 뒤 + 이어진 줄)에 맞출 정규식 원문 */
@@ -233,10 +242,19 @@ function normalizeEntry(raw: unknown, index: number, groupIds: ReadonlySet<strin
   if (fix.length === 0) {
     problems.push(`${where}: fix(고치는 법)를 한 가지 이상 적어요.`);
   }
+  let level: ErrorLevel = 'error';
+  if (raw.level !== undefined && raw.level !== null) {
+    if (typeof raw.level === 'string' && (ERROR_LEVELS as readonly string[]).includes(raw.level)) {
+      level = raw.level as ErrorLevel;
+    } else {
+      problems.push(`${where}: level은 ${ERROR_LEVELS.join(' 또는 ')}예요(지금: ${JSON.stringify(raw.level)}).`);
+    }
+  }
   const entry: ErrorEntry = {
     id: id ?? `entry-${index}`,
     group: group ?? '',
     title: title ?? '',
+    level,
     types,
     patterns,
     tracebackPatterns,
