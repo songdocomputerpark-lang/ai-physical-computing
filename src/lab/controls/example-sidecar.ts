@@ -19,10 +19,13 @@
  *   parts        (ESP32 예제) 배선 목록 — [{ part: touch-digital, pin: 17 }] 모양(src/lab/modules/board/wiring-spec.ts, README 7.4).
  *                틀린 줄은 빼고 까닭을 partErrors에 모은다(빌드는 경고만 — PD-35)
  *   practice     (선택) 실습 방법 — 실습실에서 무엇을 누르고 무엇을 보는지 단계 목록(ESP32 실습실이 보드 그림 위에 보인다, P3-02)
+ *   unit·difficulty·virtual_ok·comm   예제 갤러리(P4-11) 태그 — 단원 1~4, 난이도 1~3, 하드웨어 없이 되나, 통신 방식 목록.
+ *                규약과 합치는 규칙은 src/lab/gallery/facets.ts(차시 md가 먼저, 없으면 사이드카). 모르면 적지 않는다
  *   smoke        예제 스모크 테스트(tests/e2e/examples-smoke.spec.ts)가 기대하는 결과. 이 파서는 읽지 않고 그 테스트만 본다.
  *                input(sample|replay|webcam)·outcome(ok|stopped|error)·error(오류 이름)·seconds(지켜보는 시간)·skip(건너뛰는 이유)
  */
 import YAML from 'yaml';
+import { normalizeCommKinds } from '../gallery/facets.ts';
 import type { WiringEntry } from '../modules/board/part-types.ts';
 import { normalizeWiringSpecs } from '../modules/board/wiring-spec.ts';
 
@@ -43,6 +46,16 @@ export interface ExampleSidecar {
   readonly partErrors?: readonly string[];
   /** 실습 방법 단계(적지 않았으면 이 칸이 없다) */
   readonly practice?: readonly string[];
+  /** 갤러리 태그(P4-11, src/lab/gallery/facets.ts) — 모르면 null·빈 목록 */
+  readonly unit: number | null;
+  readonly difficulty: number | null;
+  readonly virtualOk: boolean | null;
+  readonly comm: readonly string[];
+}
+
+/** 정수 칸 읽기(범위 밖·정수가 아니면 null) */
+function intInRange(value: unknown, min: number, max: number): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max ? value : null;
 }
 
 const LESSON_SLUG = /^[a-z0-9][a-z0-9-]*$/u;
@@ -82,6 +95,10 @@ export function parseExampleSidecar(source: string): ExampleSidecar {
     packages: Array.isArray(data.packages) ? stringList(data.packages) : null,
     ...(wiring === null ? {} : { parts: wiring.entries, partErrors: wiring.errors }),
     ...(Array.isArray(data.practice) ? { practice: stringList(data.practice) } : {}),
+    unit: intInRange(data.unit, 1, 4),
+    difficulty: intInRange(data.difficulty, 1, 3),
+    virtualOk: typeof data.virtual_ok === 'boolean' ? data.virtual_ok : null,
+    comm: normalizeCommKinds(data.comm),
   };
 }
 

@@ -81,6 +81,7 @@ __all__ = [
     "DIGITAL_HIGH_MV",
     "EVENT_DEVICE",
     "EVENT_STATE",
+    "EVENT_UART_TX",
     "NOT_YET_MODULES",
     "VALID_GPIOS",
     "WORK_DIR",
@@ -111,6 +112,9 @@ __all__ = [
 EVENT_STATE = "board.state"
 EVENT_DEVICE = "board.device"
 EVENT_NOTICE = "board.notice"
+#: 보드가 시리얼 선으로 내보낸 바이트(화면이 탭 통로·브릿지로 넘긴다) — Phase 4 준비 2026-09-18, PLAN §8.4 설계 메모 ②.
+#: 보내는 쪽은 UART 부품(parts/uart/)이고 모양은 {"id": 배선 id, "port": UART 번호, "bytes": [..], "baud": 속도}다.
+EVENT_UART_TX = "board.uart.tx"
 CHANNEL_INPUTS = "board.inputs"
 CHANNEL_INPUT = "board.input"
 CHANNEL_WIRING = "board.wiring"
@@ -1384,6 +1388,9 @@ NOT_YET_MODULES = {
     "sh1106": "library",
     "servo_library": "library",
     "gorillacell_dcmotors": "library",
+    # 통신 실습실(Phase 4) 자리 — 파일이 생기면 저절로 그 파일이 import된다.
+    "umqtt": "firmware",  # 펌웨어에 굳혀 둔 umqtt.simple — P4-06이 흉내를 더한다
+    "esp32_ble_util": "library",  # micropython 저장소 examples/bluetooth의 BLESimplePeripheral — P4-03이 더한다
 }
 
 
@@ -1403,6 +1410,19 @@ def _bluetooth_placeholder(name):
     def factory():
         raise ModuleNotFoundError(
             f"No module named '{name}' (가상 보드의 블루투스는 아직 흉내 내지 않아요 — 통신 실습실을 만드는 단계에서 더해져요. "
+            "실물 ESP32에는 있는 모듈이에요.)",
+            name=name,
+        )
+
+    return factory
+
+
+def _network_placeholder(name):
+    """와이파이(network.WLAN) 자리 — Phase 4 준비 2026-09-18. 확장 ext/network/apc_board_network.py가 같은 이름을 다시 등록하면 그것이 이긴다."""
+
+    def factory():
+        raise ModuleNotFoundError(
+            f"No module named '{name}' (가상 보드의 와이파이는 아직 흉내 내지 않아요 — 통신 실습실을 만드는 단계에서 더해져요. "
             "실물 ESP32에는 있는 모듈이에요.)",
             name=name,
         )
@@ -1467,7 +1487,8 @@ def install():
     register_board_module("uerrno", _board_modules["errno"])
     register_board_module("bluetooth", _bluetooth_placeholder("bluetooth"))
     register_board_module("ubluetooth", _bluetooth_placeholder("ubluetooth"))
-    load_extensions()  # apc_board_time.py가 time·utime을 등록한다
+    register_board_module("network", _network_placeholder("network"))
+    load_extensions()  # 확장(ext/ble·ext/network)이 위 자리 안내를 진짜 흉내로 바꿀 수 있고, apc_board_time.py가 time·utime을 등록한다
     _host_import = builtins.__import__
     builtins.__import__ = _board_import
     try:

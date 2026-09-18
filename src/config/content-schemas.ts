@@ -6,6 +6,7 @@
 //   필드를 정식으로 늘리거나 이름을 바꿀 때는 이 파일과 테스트를 함께 고친다.
 // - 오류 문장은 차시를 쓰는 선생님이 읽는다. 무엇을 어떻게 고치면 되는지 한국어로 적는다.
 import { z } from 'astro/zod';
+import { EXAMPLE_COMM_KINDS } from '../lab/gallery/facets.ts';
 
 /** 콘텐츠 폴더(프로젝트 뿌리 기준). glob 로더의 base로 쓴다(PLAN §2.6: 루트 content/). */
 export const CONTENT_DIRS = Object.freeze({
@@ -114,6 +115,16 @@ export const lessonSchema = z.looseObject({
   materials: z.array(z.string().min(1)).default([]),
   /** 가상 보드만으로 끝까지 할 수 있는지 */
   virtual_ok: z.boolean().optional(),
+  /** 이 차시가 쓰는 통신 방식(예제 갤러리 태그, P4-11 — src/lab/gallery/facets.ts). 통신을 쓰지 않으면 적지 않는다 */
+  comm: z
+    .array(
+      z.enum(EXAMPLE_COMM_KINDS, {
+        error: `통신 방식(comm)은 ${EXAMPLE_COMM_KINDS.join('·')} 가운데 골라 적어요. 통신을 쓰지 않는 차시는 적지 않아요.`,
+      }),
+    )
+    .default([]),
+  /** 목록·검색·갤러리에서 쓰는 자유 낱말 */
+  tags: z.array(z.string().min(1)).default([]),
   /** 난이도 1~3 */
   difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   /** 따라하기에 쓰는 실습실 */

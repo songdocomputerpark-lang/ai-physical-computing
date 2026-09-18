@@ -14,7 +14,8 @@
  *
  * 이름(모두 "board."로 시작, 모양은 README 7절)
  * - 이벤트(파이썬 → 화면): board.state(핀 상태 묶음 — 실행 시작·바뀜·코드가 끝난 뒤 대기·끝), board.device(부품 흉내의 상태, 부품 단계에서 씀),
- *   board.notice(코드와 배선이 어긋났다는 안내 — 보드 그림 아래 "배선 확인" 칸, 2026-09-18 검토 반영)
+ *   board.notice(코드와 배선이 어긋났다는 안내 — 보드 그림 아래 "배선 확인" 칸, 2026-09-18 검토 반영),
+ *   board.uart.tx(보드가 시리얼 선으로 내보낸 바이트 — 화면이 탭 통로·브릿지로 넘긴다. Phase 4 준비 2026-09-18, PLAN §8.4 설계 메모 ②)
  * - 채널(화면 → 파이썬): board.inputs(최신 값: 입력 부품이 핀을 어떻게 누르는지 전체 — 실행 시작 때 읽음),
  *   board.input(쌓이는 값: 실행 중에 바뀐 입력 하나씩 — 입력 확인 지점에서 반영), board.wiring(최신 값: 이 예제의 배선),
  *   board.device.input(쌓이는 값: 부품 조작 칸이 파이썬 부품 흉내에 보내는 값 {id, data} — 병렬 제작 준비 2026-09-17)
@@ -28,7 +29,7 @@ const manifest: LabModuleManifest = {
   shims: { time: 'apc_board' },
   packages: [],
   requestKinds: [],
-  eventKinds: ['board.state', 'board.device', 'board.notice'],
+  eventKinds: ['board.state', 'board.device', 'board.notice', 'board.uart.tx'],
   channels: ['board.inputs', 'board.input', 'board.wiring', 'board.device.input'],
   placement: 'panel',
 };
