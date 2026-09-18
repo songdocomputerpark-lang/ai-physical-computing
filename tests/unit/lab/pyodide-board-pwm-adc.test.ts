@@ -150,9 +150,17 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
     /*
      * board.state는 16ms 안의 변화를 합쳐 보내므로(P3-11 apc_board.wait_ns) 값이 한 칸씩 다 오지는 않는다 —
      * "줄지 않고 올라가 100%에 거의 닿은 뒤 내려간다"와 "한 칸이 1/1024"만 본다.
+     *
+     * 원본은 `while True`라 [정지]까지 오르내림을 여러 번 되풀이한다. 그래서 **첫 오름 구간**만 보고 판단한다 —
+     * 가장 큰 값을 통째로 찾으면(`indexOf(max)`) 그 값이 첫 회차에서 병합에 삼켜졌을 때 둘째 회차를 가리켜
+     * "오름 구간"에 내림이 섞이고, 어느 회차에서 잡히느냐는 컴퓨터가 얼마나 바쁜지에 달려 CI에서 재현 가능하게 실패했다
+     * (2026-09-18 P4-01에서 고침 — 같은 파일 f068이 이미 적어 둔 "16ms 병합은 CPU 여유에 달렸다"와 같은 까닭).
      */
-    const peak = Math.max(...duties);
-    const top = duties.indexOf(peak);
+    let top = 0;
+    while (top + 1 < duties.length && (duties[top + 1] ?? 0) >= (duties[top] ?? 0)) {
+      top += 1;
+    }
+    const peak = duties[top] ?? 0;
     expect(peak).toBeGreaterThan(0.9);
     expect(top).toBeGreaterThan(0);
     const rising = duties.slice(0, top + 1);
