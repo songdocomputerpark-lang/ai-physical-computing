@@ -5,6 +5,7 @@
  * 그래서 새 예제는 examples/vision/(또는 examples/desktop/) 아래에 .py 파일 하나를 두는 것으로 [예제 불러오기] 목록에 들어간다(원칙 6).
  *
  * 읽는 폴더(VISION_EXAMPLE_DIRS): vision/(영상처리·손·얼굴·자세), desktop/(pyautogui 가상 데스크톱 — PLAN §2.5는 영상처리 실습실 예제로 둔다).
+ * 그 안의 lib/(VISION_LIBRARY_DIRS)는 예제가 아니라 PC 전용 라이브러리 원본이라 목록에서 뺀다.
  *
  * 파일에서 읽는 것
  * - id: 파일 이름(확장자 없이). 영문 소문자·숫자·하이픈만(PD-09). 폴더가 있으면 "폴더-파일"로 잇는다(vision/u1/v4-blur-edge.py → u1-v4-blur-edge,
@@ -29,6 +30,13 @@ export const VISION_EXAMPLE_DIRS: readonly string[] = Object.freeze(['vision', '
 /** 예전 이름(다른 코드가 참고하던 값) */
 export const VISION_EXAMPLES_DIR = 'vision';
 
+/**
+ * 예제가 아닌 폴더(PC에서 돌릴 때만 쓰는 라이브러리 원본, Phase 4 준비 2026-09-18).
+ * 사이트 안에서는 흉내 모듈이 같은 이름을 대신하므로(예: PC용 `bluetooth` = bleak 래퍼, CODE_MAPPING §2.3 f088) 실습실 목록에 넣지 않는다.
+ * ESP32 실습실의 esp32/lib/(보드 라이브러리)와 같은 자리다 — src/lab/esp32/examples.ts ESP32_LIBRARY_DIR.
+ */
+export const VISION_LIBRARY_DIRS: readonly string[] = Object.freeze(['vision/lib/', 'desktop/lib/']);
+
 /** 영상처리 예제가 실행 전에 미리 받는 Pyodide 패키지(pyodide-lock.json 기준 이름. opencv-python이 numpy를 함께 받는다) */
 export const VISION_PACKAGES: readonly string[] = Object.freeze(['opencv-python']);
 
@@ -43,6 +51,7 @@ export const EXAMPLE_GROUPS: readonly { readonly key: string; readonly label: st
   { key: 'vision/u3', label: '3단원 교과서 실습(손으로 컴퓨터 조작)' },
   { key: 'vision/u4', label: '4단원 프로젝트 실습(얼굴로 마우스 조작)' },
   { key: 'vision/opmp', label: 'OpenCV·MediaPipe 계단(교안)' },
+  { key: 'vision/bt', label: '블루투스 통신 수업교안 실습(컴퓨터 쪽)' },
   { key: 'desktop', label: '가상 데스크톱(pyautogui)' },
 ]);
 
@@ -53,7 +62,8 @@ export function exampleFileFromPath(globPath: string): string | null {
     const marker = `/${dir}/`;
     const at = normalized.lastIndexOf(marker);
     if (at >= 0) {
-      return normalized.slice(at + 1);
+      const file = normalized.slice(at + 1);
+      return VISION_LIBRARY_DIRS.some((libraryDir) => file.startsWith(libraryDir)) ? null : file;
     }
   }
   return null;

@@ -1,0 +1,23 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-1 심화: DATA 5칸을 받아 LCD에 좌표와 클릭 수 쓰기"
+description: 보드 쪽 코드예요. "DATA,mx,my,d,r" 다섯 칸을 받아 LCD 첫 줄에 좌표, 둘째 줄에 클릭 횟수를 써요. 둘째 줄이 19글자라 넘친 3칸이 첫 줄 앞을 덮는 원본 그대로의 모습도 볼 수 있어요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+lesson: 4-2-1
+page: 270
+source_id: f105
+tags:
+  - 블루투스
+  - BLE
+  - LCD
+  - I2C
+packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

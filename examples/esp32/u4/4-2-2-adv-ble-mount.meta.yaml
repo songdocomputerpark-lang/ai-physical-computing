@@ -1,0 +1,15 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-2 심화: 거치대에 맞춘 서보 각도 범위(원본 파일)"
+description: 앞 예제와 같지만 거치대에 맞춰 서보가 도는 범위를 좁혔어요. 원본 파일 1번 줄이 자료에 없는 이름 ESP32BLE_LIB을 import해서 실물 보드에서도 ImportError로 멈춰요 — 사이트판은 그 한 줄을 ESP32BLE로 고쳐요(PLAN §6.5). 가상 보드도 옛 이름을 받아 주지 않아요.
+lesson: 4-2-2
+source_id: f111
+tags:
+  - 블루투스
+  - BLE
+  - 서보모터
+  - 거치대
+packages: []
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-1-4 심화: 코 좌표를 0.5초마다 DATA,x,y로 보내기"
+description: 컴퓨터 쪽 코드예요. 얼굴 그물에서 코 좌표를 찾아 0.5초마다 "DATA,x,y"로 보드에 보내요. 짝은 보드 쪽 4-1-4 예제예요. 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02).
+lesson: 4-1-4
+page: 254
+source_id: f100
+tags:
+  - 얼굴
+  - mediapipe
+  - 블루투스
+  - BLE
+  - 브릿지
+packages:
+  - opencv-python
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

@@ -1,0 +1,20 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "보드 확인: 스마트폰 앱이 보낸 프레임으로 RGB LED 켜기"
+description: 스마트폰 앱이 블루투스로 보내는 이진 프레임(FF 02 01 01 …)을 받아 그 안에 1·2·3이 있으면 RGB LED 색을 바꿔요. 사이트는 이 프레임을 만들어 보내는 "가상 스마트폰 앱 패널"을 P4-03에서 붙여요. 지금은 이 파일이 부르는 esp32_ble_util이 아직 없어서 ModuleNotFoundError로 멈춰요.
+source_id: f002
+tags:
+  - 블루투스
+  - BLE
+  - RGB LED
+  - 스마트폰
+packages: []
+parts:
+  - part: rgb-led
+    pins:
+      r: 25
+      g: 26
+      b: 27
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

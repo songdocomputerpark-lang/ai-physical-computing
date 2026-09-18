@@ -22,6 +22,10 @@ describe('사이드카 읽기', () => {
       sourceId: 'f028',
       tags: ['카메라', 'flip'],
       packages: [],
+      unit: null,
+      difficulty: null,
+      virtualOk: null,
+      comm: [],
     });
     expect(parseExampleSidecar('title: ""\nlesson: "Bad Slug"\npage: -1\npackages: 글자\n')).toEqual({
       title: null,
@@ -31,6 +35,10 @@ describe('사이드카 읽기', () => {
       sourceId: null,
       tags: [],
       packages: null,
+      unit: null,
+      difficulty: null,
+      virtualOk: null,
+      comm: [],
     });
     expect(parseExampleSidecar('')).toMatchObject({ title: null, packages: null });
   });
@@ -89,7 +97,7 @@ describe('실습실 목록과 사이드카 합치기', () => {
     expect(exampleGroupKey('vision/a.py')).toBe('vision');
     expect(exampleGroupKey('desktop/a.py')).toBe('desktop');
     expect(exampleGroupLabel('없는-묶음')).toBe('없는-묶음');
-    expect(EXAMPLE_GROUPS.map((group) => group.key)).toEqual(['vision', 'vision/supplement', 'vision/u1', 'vision/u3', 'vision/u4', 'vision/opmp', 'desktop']);
+    expect(EXAMPLE_GROUPS.map((group) => group.key)).toEqual(['vision', 'vision/supplement', 'vision/u1', 'vision/u3', 'vision/u4', 'vision/opmp', 'vision/bt', 'desktop']);
   });
 
   it('저장소의 옮긴 예제마다 사이드카가 있고 제목이 채워져 있다', () => {

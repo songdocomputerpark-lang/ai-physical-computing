@@ -1,0 +1,9 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "보드 라이브러리: mg90s_servo.py(서보모터)"
+description: 각도(0~180도)를 PWM 폭으로 바꿔 서보모터를 돌리는 라이브러리예요. rotate(각도)만 부르면 돼요. 4단원과 교안 서보 예제가 이 파일을 import해요(2단원은 다른 라이브러리 servo_library.py를 써요).
+source_id: f108
+tags:
+  - 서보모터
+  - 라이브러리
+packages: []

@@ -3,6 +3,8 @@
 // 하는 일
 // 1. 목록 파일(scripts/examples-manifest.yaml)의 항목마다 원본 zip 멤버(또는 낱개 원본 파일)를 메모리에서 읽는다(zip-read.mjs).
 // 2. 줄 끝만 CRLF → LF로 바꾼다. 그 밖에는 한 바이트도 고치지 않는다(BOM·끝 줄바꿈·공백 그대로 — 줄 번호가 교과서와 같아야 한다, PD-10).
+//    **유일한 예외는 개인정보다**(DECISIONS 저작권 예외): 항목에 privacy: [mac]을 적으면 기기 주소(MAC·BLE)를 같은 글자 수의
+//    자리표시자 XX:XX:XX:XX:XX:XX로 바꾼다(줄·칸 위치 그대로). 적지 않았는데 주소가 있으면 옮기기가 멈춘다(안전망).
 // 3. 원본과 옮긴 글의 줄 수가 같은지(원본은 파이썬의 줄 규칙 \r\n·\r·\n 모두, 옮긴 글은 \n) 확인하고, 파이썬 구문을 검사한다:
 //    - 이 컴퓨터에 파이썬 3이 있으면 `python -c "ast.parse(...)"`(정확한 검사, 실행은 하지 않음),
 //    - 없으면 Node의 가벼운 검사(괄호 짝·따옴표·들여쓰기 섞임)만.
@@ -32,7 +34,27 @@ export const THIRD_PARTY_SEGMENT = 'third-party';
 
 /** 대상 경로 규칙(PD-09): examples/ 아래, 영문 소문자·숫자·하이픈·밑줄 폴더와 .py 파일 */
 const TARGET_PATTERN = /^examples\/(?:[a-z0-9][a-z0-9_-]*\/)+[a-z0-9][a-z0-9_-]*\.py$/u;
+/**
+ * 보드 라이브러리 폴더(examples/esp32/lib/) 안은 **파일 이름이 곧 import 이름**이라 대문자를 허용한다(Phase 4 준비 2026-09-18).
+ * 예: ESP32BLE.py — 학생 코드가 `import ESP32BLE`로 부르므로 소문자로 바꾸면 원본도 실물 보드도 돌지 않는다.
+ * 폴더 이름은 그대로 소문자만 쓴다(PD-09). 같은 규칙이 src/lab/esp32/board-libraries.ts에도 있다.
+ */
+export const BOARD_LIBRARY_TARGET_PREFIX = 'examples/esp32/lib/';
+const LIBRARY_TARGET_PATTERN = /^examples\/esp32\/lib\/(?:[a-z0-9][a-z0-9_-]*\/)*[A-Za-z0-9][A-Za-z0-9_-]*\.py$/u;
 const ID_PATTERN = /^[a-z][a-z0-9-]*$/u;
+
+/** 대상 경로가 규칙에 맞나(보드 라이브러리 폴더는 대문자 파일 이름을 허용) */
+export function isValidTarget(target) {
+  return target.startsWith(BOARD_LIBRARY_TARGET_PREFIX) ? LIBRARY_TARGET_PATTERN.test(target) : TARGET_PATTERN.test(target);
+}
+
+/**
+ * 기기 주소(MAC·BLE) 모양과 자리표시자 — 개인정보라 공개 저장소에 실제 값을 두지 않는다(PLAN §10, DECISIONS 저작권 예외).
+ * 자리표시자는 글자 수가 같아(17자) 줄·칸 위치가 원본과 같다. 구분 기호(: 또는 -)는 원본 그대로 둔다.
+ * scripts/lib/repo-check.mjs의 MAC 검사와 같은 모양이다(X는 16진수가 아니라서 자리표시자는 걸리지 않는다).
+ */
+const DEVICE_ADDRESS = /(?<![0-9A-Fa-f:-])[0-9A-Fa-f]{2}([:-])[0-9A-Fa-f]{2}(?:\1[0-9A-Fa-f]{2}){4}(?![0-9A-Fa-f:-])/gu;
+export const PRIVACY_KINDS = Object.freeze(['mac']);
 
 /**
  * @typedef {object} ManifestExample
@@ -42,6 +64,7 @@ const ID_PATTERN = /^[a-z][a-z0-9-]*$/u;
  * @property {string} target        저장소 기준 대상 경로(examples/…py)
  * @property {'operator' | 'third_party'} author
  * @property {boolean} [expect_syntax_error] 원본 결함으로 구문 오류가 나는 파일(f074)
+ * @property {string[]} [privacy]   가릴 개인정보 종류(지금은 mac만 — BLE·MAC 주소를 XX:XX:XX:XX:XX:XX로)
  * @property {Record<string, unknown>} [meta] 사이드카를 처음 만들 때 쓸 제목·설명 등
  * @property {number} [lines]        기록: 줄 수
  * @property {string} [sha256]       기록: 옮긴 파일의 SHA-256
@@ -88,6 +111,29 @@ export function countLfLines(text) {
   }
   const parts = text.split('\n');
   return text.endsWith('\n') ? parts.length - 1 : parts.length;
+}
+
+/**
+ * 기기 주소(MAC·BLE)를 자리표시자로 바꾼다. 글자 수가 같아 줄 수·칸 위치가 그대로다.
+ * 원본 코드를 고치지 않는 것이 원칙(PD-10)이지만 **개인정보는 유일한 예외**다(DECISIONS 저작권 예외, PLAN §10).
+ * 자료의 BLE 주소는 교안 화면과 같은 실제 기기 주소라 공개 저장소에 두지 않는다 — 브라우저는 주소로 연결하지 않으므로(Web Bluetooth 선택 창)
+ * 학습에도 값이 필요 없다(PLAN §7.3 "MAC 주소로는 연결할 수 없다").
+ * @param {string} text
+ * @returns {{ text: string, count: number }}
+ */
+export function redactDeviceAddresses(text) {
+  let count = 0;
+  const redacted = text.replace(DEVICE_ADDRESS, (_match, separator) => {
+    count += 1;
+    return ['XX', 'XX', 'XX', 'XX', 'XX', 'XX'].join(separator);
+  });
+  return { text: redacted, count };
+}
+
+/** 글에 기기 주소(MAC·BLE) 모양이 남아 있나 */
+export function hasDeviceAddress(text) {
+  DEVICE_ADDRESS.lastIndex = 0;
+  return DEVICE_ADDRESS.test(text);
 }
 
 /** @param {Buffer | string} data */
@@ -330,8 +376,11 @@ export function parseManifest(text) {
       errors.push(`${label}: member는 zip 안 경로(또는 원본 파일 경로)를 /로 적어요.`);
     }
     const target = typeof entry.target === 'string' ? entry.target : '';
-    if (!TARGET_PATTERN.test(target)) {
-      errors.push(`${label}: target "${target}"은(는) examples/ 아래 영문 소문자·숫자·하이픈 경로의 .py 파일이어야 해요(예: examples/vision/u1/1-2-1-webcam-flip.py).`);
+    if (!isValidTarget(target)) {
+      errors.push(
+        `${label}: target "${target}"은(는) examples/ 아래 영문 소문자·숫자·하이픈 경로의 .py 파일이어야 해요(예: examples/vision/u1/1-2-1-webcam-flip.py). ` +
+          `보드 라이브러리(${BOARD_LIBRARY_TARGET_PREFIX} 아래)만 파일 이름에 대문자를 쓸 수 있어요(파일 이름이 곧 import 이름이라서).`,
+      );
     } else if (seenTargets.has(target)) {
       errors.push(`${label}: target이 앞의 항목과 겹쳐요.`);
     }
@@ -351,6 +400,21 @@ export function parseManifest(text) {
     if (entry.expect_syntax_error !== undefined && typeof entry.expect_syntax_error !== 'boolean') {
       errors.push(`${label}: expect_syntax_error는 true 또는 false로 적어요.`);
     }
+    /** @type {string[]} */
+    const privacy = [];
+    if (entry.privacy !== undefined) {
+      if (!Array.isArray(entry.privacy)) {
+        errors.push(`${label}: privacy는 가릴 개인정보 종류 목록으로 적어요(지금은 mac만). 예: privacy: [mac]`);
+      } else {
+        for (const kind of entry.privacy) {
+          if (typeof kind !== 'string' || !PRIVACY_KINDS.includes(kind)) {
+            errors.push(`${label}: privacy에는 ${PRIVACY_KINDS.join('·')}만 적을 수 있어요(지금: ${JSON.stringify(kind)}).`);
+          } else if (!privacy.includes(kind)) {
+            privacy.push(kind);
+          }
+        }
+      }
+    }
     if (entry.meta !== undefined && (entry.meta === null || typeof entry.meta !== 'object' || Array.isArray(entry.meta))) {
       errors.push(`${label}: meta는 title·description 등을 가진 사전으로 적어요.`);
     }
@@ -360,6 +424,7 @@ export function parseManifest(text) {
       member,
       target,
       author,
+      ...(privacy.length > 0 ? { privacy } : {}),
       ...(entry.expect_syntax_error === true ? { expect_syntax_error: true } : {}),
       ...(entry.meta && typeof entry.meta === 'object' ? { meta: /** @type {Record<string, unknown>} */ (entry.meta) } : {}),
       ...(typeof entry.lines === 'number' ? { lines: entry.lines } : {}),
@@ -490,10 +555,22 @@ export function convertOriginal(original, entry, options = {}) {
     text = new TextDecoder('utf-8', { fatal: true }).decode(original);
   } catch {
     problems.push('원본이 UTF-8이 아니에요(CP949 등). 원본 인코딩을 확인한 뒤 옮겨요 — 파이썬 3은 UTF-8 소스만 그대로 읽어요.');
-    return { text: '', lines: 0, originalLines: 0, sha256: '', syntax: 'error', syntaxChecker: 'none', syntaxMessage: null, problems };
+    return { text: '', lines: 0, originalLines: 0, redacted: 0, sha256: '', syntax: 'error', syntaxChecker: 'none', syntaxMessage: null, problems };
   }
   const originalLines = countPythonLines(text);
-  const { text: converted, loneCr } = normalizeLineEndings(text);
+  const { text: lineFixed, loneCr } = normalizeLineEndings(text);
+  // 개인정보 가리기(PD-10의 유일한 예외). 선언한 종류만 가리고, 선언하지 않았는데 주소가 있으면 옮기기를 멈춘다.
+  const wantsMacRedaction = (entry.privacy ?? []).includes('mac');
+  const { text: converted, count: redacted } = wantsMacRedaction ? redactDeviceAddresses(lineFixed) : { text: lineFixed, count: 0 };
+  if (wantsMacRedaction && redacted === 0) {
+    problems.push('privacy: [mac]이라고 적었는데 원본에 기기 주소(MAC·BLE) 모양이 없어요. 항목에서 그 줄을 빼요.');
+  }
+  if (!wantsMacRedaction && hasDeviceAddress(lineFixed)) {
+    problems.push(
+      '원본에 기기 주소(MAC·BLE) 모양이 있어요. 공개 저장소에 실제 기기 주소를 두지 않으므로 항목에 privacy: [mac]을 적어 ' +
+        'XX:XX:XX:XX:XX:XX로 가려요(글자 수가 같아 줄·칸 위치는 그대로예요).',
+    );
+  }
   const lines = countLfLines(converted);
   if (loneCr > 0) {
     problems.push(`원본에 홀로 있는 CR(\\r)이 ${loneCr}개 있어요. 파이썬은 이것도 줄 끝으로 보므로 줄 번호가 어긋나요 — 원본을 확인해요.`);
@@ -517,6 +594,7 @@ export function convertOriginal(original, entry, options = {}) {
     text: converted,
     lines,
     originalLines,
+    redacted,
     sha256: sha256Hex(Buffer.from(converted, 'utf8')),
     syntax,
     syntaxChecker: check.checker,
@@ -596,6 +674,9 @@ export function importExamples(options) {
         map.set('sha256', converted.sha256);
         map.set('syntax', converted.syntax);
         map.set('syntax_checker', converted.syntaxChecker);
+        if (converted.redacted > 0) {
+          map.set('redacted', converted.redacted);
+        }
         map.set('imported', today);
       }
     }

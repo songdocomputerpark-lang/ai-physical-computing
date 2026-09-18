@@ -1,0 +1,37 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-2 기본: 서보 2개와 RGB LED로 클릭 알려 주기"
+description: 보드 쪽 코드예요. 받은 좌표로 서보를 움직이고, 더블클릭이면 초록·오른쪽 클릭이면 빨강 LED를 켜요. 클릭 표시는 한 프레임만 1이라 LED가 잠깐만 켜지거나 아예 못 받을 수도 있어요(원본 그대로예요). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+lesson: 4-2-2
+page: 278
+source_id: f109
+tags:
+  - 블루투스
+  - BLE
+  - 서보모터
+  - RGB LED
+  - LCD
+packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+  - part: servo
+    id: servo-x
+    pin: 25
+    label: 서보모터 X
+  - part: servo
+    id: servo-y
+    pin: 26
+    label: 서보모터 Y
+  - part: rgb-led
+    pins:
+      r: 27
+      g: 32
+      b: 33
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

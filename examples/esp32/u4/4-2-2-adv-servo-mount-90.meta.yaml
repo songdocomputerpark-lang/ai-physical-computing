@@ -1,0 +1,24 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-2 심화: 거치대를 조립하기 전에 서보를 90도로 맞추기"
+description: 서보모터 2개를 90도(가운데)로 돌려 두고 끝나요. 거치대를 조립하기 전에 한 번 돌리는 코드라 블루투스는 쓰지 않아요. [정지]를 누를 때까지 90도 신호가 그대로 나가요.
+lesson: 4-2-2
+source_id: f112
+tags:
+  - 서보모터
+  - 거치대
+packages: []
+parts:
+  - part: servo
+    id: servo-x
+    pin: 25
+    label: 서보모터 X
+  - part: servo
+    id: servo-y
+    pin: 26
+    label: 서보모터 Y
+smoke:
+  outcome: ok
+practice:
+  - "[실행]을 누르면 서보모터 2개가 모두 90도를 가리켜요."
+  - 핀 표에서 IO25·IO26이 "PWM 출력"이고 펄스 폭이 같은지 봐요.

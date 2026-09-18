@@ -1,0 +1,31 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-1 심화: 받은 좌표로 서보모터 2개 움직이기"
+description: 보드 쪽 코드예요. 받은 마우스 좌표를 각도로 바꿔 서보모터 X·Y를 움직이고 LCD에도 써요. 보내는 쪽 화면 크기를 3840×2160으로 가정한 계산이에요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+lesson: 4-2-1
+page: 272
+source_id: f106
+tags:
+  - 블루투스
+  - BLE
+  - 서보모터
+  - LCD
+packages: []
+parts:
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+  - part: servo
+    id: servo-x
+    pin: 25
+    label: 서보모터 X
+  - part: servo
+    id: servo-y
+    pin: 26
+    label: 서보모터 Y
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

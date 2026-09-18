@@ -9,10 +9,13 @@
 #                   클라우드·다른 PC는 --materials <폴더>로 비공개 자료 저장소의 originals/를 가리켜요.
 #   sources         원본 zip의 짧은 이름 → 경로(materials_root 기준). 코드 id·경로는 docs/CODE_MAPPING.md §2와 같아요.
 #   examples[]      id(CODE_MAPPING 코드 id), source(sources 이름 또는 낱개 파일이면 file), member(zip 안 경로 또는 파일 경로),
-#                   target(examples/ 아래 대상 경로: 영문 소문자·숫자·하이픈, PD-09), author(operator | third_party — third_party는 third-party/ 폴더 아래),
+#                   target(examples/ 아래 대상 경로: 영문 소문자·숫자·하이픈, PD-09 — 보드 라이브러리 examples/esp32/lib/ 아래만 파일 이름에 대문자를 써요:
+#                   파일 이름이 곧 import 이름이라서예요(ESP32BLE.py)), author(operator | third_party — third_party는 third-party/ 폴더 아래),
 #                   expect_syntax_error(원본 결함으로 구문 오류가 나는 파일만 true, 예: f074), meta(사이드카 씨앗: title·description·lesson·page·tags·packages,
 #                   ESP32 예제는 배선 parts(src/lab/README.md 7.4)와 스모크 기대 결과 smoke(tests/e2e/examples-smoke.spec.ts)도)
-#   기록(스크립트가 씀)  lines(줄 수)·sha256(옮긴 파일)·syntax(ok | error-expected)·syntax_checker(python-ast | node-light)·imported(날짜)
+#                   privacy(가릴 개인정보 종류 — 지금은 [mac]만: 코드에 박힌 기기 주소(BLE·MAC)를 같은 글자 수의 XX:XX:XX:XX:XX:XX로 바꿔요.
+#                   원본을 고치지 않는다는 규칙의 **유일한 예외**예요(DECISIONS 저작권 예외, PLAN §10). 적지 않았는데 주소가 있으면 이관이 멈춰요)
+#   기록(스크립트가 씀)  lines(줄 수)·sha256(옮긴 파일)·syntax(ok | error-expected)·syntax_checker(python-ast | node-light)·redacted(가린 개수)·imported(날짜)
 #
 # 확인: node scripts/import-examples.mjs --verify (원본 없이 기록과 대조, npm test에도 들어 있음)
 
@@ -1622,3 +1625,567 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+  # ══ Phase 4 통신 예제(2026-09-18 P4 병렬 제작 준비) ══
+  # 교과서 3단원 통신(f082~f089)·4단원 프로젝트(f098~f116)·블루투스 교안(f137·f147~f149·f157·f158)·HW(f002).
+  # 나눈 기준: 보드에서 도는 코드는 examples/esp32/{u3,u4,bt,hw}/, 컴퓨터(영상처리 실습실)에서 도는 코드는 examples/vision/{u3,u4,bt}/,
+  # 학생 코드가 import하는 라이브러리는 examples/esp32/lib/third-party/(보드에 올라감)와 examples/vision/lib/(PC 전용 — 실습실 목록에 안 나옴).
+  #
+  # 같은 내용의 사본은 한 번만 옮긴다(PLAN §2.5 "사본은 하나만"). 옮기지 않은 사본:
+  #   f101(4단원 ESP32BLE(p251).py) = f146 = f153 = f087 — 같은 파일. 보드 라이브러리 ESP32BLE.py 하나로 쓴다.
+  #   f102·f107(bluetooth.py) = f088 — 같은 파일. PC 라이브러리 bluetooth.py 하나로 쓴다(f116 bluetooth_lib.py는 이름이 달라 따로 둔다).
+  #   f103(i2c_lcd(p252).py) = f011 — examples/esp32/lib/third-party/i2c_lcd.py(MIT 고지를 더한 사이트판, P3-04)를 그대로 쓴다.
+  #   f117(mg90s_servo.py) = f012 = f108 — 보드 라이브러리 mg90s_servo.py 하나로 쓴다.
+  #
+  # smoke는 "지금(2026-09-18) 나는 결과 그대로"다. 채울 구역은 사이드카 설명에 적었다:
+  #   ModuleNotFoundError(ubluetooth) → P4-03 가상 BLE / ModuleNotFoundError(serial·bluetooth) → P4-02 PC 쪽 흉내 모듈.
+
+  # ── 3단원 3.1.2 시리얼 통신(f082~f085) ──
+  - id: f082
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/2. 인공지능 모델과 시리얼 통신/4. UART 시리얼 통신 코드 작성 및 저장(p190).py"
+    target: examples/esp32/u3/3-1-2-uart-laser.py
+    author: operator
+    meta:
+      title: "3-1-2 기본: UART로 받은 a·b로 레이저 켜고 끄기(원본 파일)"
+      description: "컴퓨터가 USB-UART 변환기로 보낸 글자 a·b를 UART2로 받아 레이저를 켜고 꺼요. 원본 파일은 import time만 하고 sleep(1)을 불러서 a나 b를 처음 받는 순간 NameError로 멈춰요(실물 보드도 같아요 — 원고 190쪽은 from time import sleep이에요). 핀도 원고 배선 그림과 반대예요(코드 tx=16·rx=17, 그림은 변환기 TX → GPIO16)."
+      lesson: 3-1-2
+      page: 190
+      tags: [ UART, 시리얼, 레이저, 통신 ]
+      parts:
+        - { part: uart, pins: { rx: 16, tx: 17 } }
+        - { part: laser, pin: 18 }
+      smoke: { outcome: stopped }
+      practice:
+        - "[실행]을 누르면 보드가 UART2를 열고 글자가 오기를 기다려요(아무 일도 일어나지 않는 것이 정상이에요)."
+        - "부품 조작 칸의 시리얼 창에서 속도를 115200으로 맞추고 a를 보내면 18번 줄에서 NameError로 멈춰요 — 원본 파일의 결함이에요."
+        - "from time import sleep으로 고친 뒤 a를 보내면 레이저가 켜지고, b를 보내면 꺼져요. 실물 레이저는 눈에 비추지 않아요."
+    lines: 15
+    sha256: fd6a67c3263cb2e01afb35650ba060a1e625d09fa87981177b9f61f1ff074b4a
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f083
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/2. 인공지능 모델과 시리얼 통신/5.마이크로파이썬 devide boot.py로 파일저장(p191).py"
+    target: examples/esp32/u3/3-1-2-uart-laser-boot.py
+    author: operator
+    meta:
+      title: "3-1-2 기본: 같은 코드를 보드에 저장해 자동 실행하기(원본 파일)"
+      description: "앞 예제와 같은 코드를 boot.py로 저장해 보드에 전원이 들어오면 저절로 돌게 하는 차시예요. 원본 파일은 4번 줄이 Pin(18, PinOUT)이라 실행하자마자 NameError로 멈춰요(실물 보드도 같아요 — 원고 191쪽은 Pin.OUT이에요). 사이트 [보드에 저장]은 main.py에 저장해요."
+      lesson: 3-1-2
+      page: 191
+      tags: [ UART, 시리얼, 레이저, 보드에 저장 ]
+      parts:
+        - { part: uart, pins: { rx: 16, tx: 17 } }
+        - { part: laser, pin: 18 }
+      smoke: { outcome: error, error: NameError }
+      practice:
+        - "[실행]을 누르면 4번 줄에서 NameError로 멈춰요. 오류 풀이 카드를 읽어 봐요."
+        - "PinOUT을 Pin.OUT으로 고치면 앞 예제와 같이 돌아요."
+    lines: 15
+    sha256: fe41f7b7506a744dc7a8aa2d4f5755ab680ad5165512cb6b8aab94fa46e3dbc6
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f084
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/2. 인공지능 모델과 시리얼 통신/기본실습 Local Python 실행하기(p192).py"
+    target: examples/vision/u3/3-1-2-uart-key-send.py
+    author: operator
+    meta:
+      title: "3-1-2 기본: 컴퓨터에서 키보드로 a·b를 시리얼로 보내기"
+      description: "컴퓨터 쪽 코드예요. 입력한 글자 a·b를 시리얼(pyserial)로 보드에 보내고 q로 끝내요. 짝은 보드 쪽 3-1-2 예제예요. 지금은 사이트에 PC 쪽 serial 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02에서 들어와요)."
+      lesson: 3-1-2
+      page: 192
+      tags: [ UART, 시리얼, 통신, 브릿지 ]
+      packages: []
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 22
+    sha256: 328e71e8a4543b1c242a1a2f820ce9367d1278d244c6e877e7d453fa55c8e10f
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f085
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/2. 인공지능 모델과 시리얼 통신/심화실습 Face Detection 사용하기(p193).py"
+    target: examples/vision/u3/3-1-2-adv-face-uart.py
+    author: operator
+    meta:
+      title: "3-1-2 심화: 얼굴이 보이면 a, 사라지면 b를 시리얼로 보내기"
+      description: "컴퓨터 쪽 코드예요. 카메라에서 얼굴을 찾아 상태가 바뀔 때만 a·b를 보드에 보내요(원고 187쪽의 \"값이 바뀔 때만\" 규칙을 지키는 예제예요). 지금은 PC 쪽 serial 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02)."
+      lesson: 3-1-2
+      page: 193
+      tags: [ 얼굴, mediapipe, UART, 시리얼, 브릿지 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 48
+    sha256: 9aba5cb2b96717a72e4f93d657be4ee86b2068ae5e6ad77dd59605ce7d2489b1
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+
+  # ── 3단원 3.1.3 블루투스 통신(f086~f089) ──
+  - id: f086
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/5. ESP32boot.py 실행코드 만들기(p196).py"
+    target: examples/esp32/u3/3-1-3-ble-xy-rgb.py
+    author: operator
+    meta:
+      title: "3-1-3 기본: 블루투스로 받은 손끝 좌표로 RGB LED 색 바꾸기"
+      description: "보드 쪽 코드예요. 블루투스로 받은 \"x,y\"를 쉼표로 나눠 x가 100보다 작으면 빨강, y가 100보다 작으면 초록, 그 밖에는 파랑을 1초씩 켜요. 짝은 컴퓨터 쪽 3-1-3 예제예요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03에서 들어와요)."
+      lesson: 3-1-3
+      page: 196
+      tags: [ 블루투스, BLE, RGB LED, 통신 ]
+      parts:
+        - { part: rgb-led, pins: { r: 25, g: 26, b: 27 } }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 54
+    sha256: b9352654db464a43ce1986bf0a0fcbc062c88e132f998c3e3d968907b0747989
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f087
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/ESP32BLE.py"
+    target: examples/esp32/lib/third-party/ESP32BLE.py
+    author: third_party
+    meta:
+      title: "보드 라이브러리: ESP32BLE.py(블루투스 주변기기)"
+      description: "ESP32를 블루투스 주변기기로 만드는 라이브러리예요. init(이름)으로 광고를 시작하고 read()로 받은 글자를, send()로 보낼 글자를 다뤄요. 3·4단원과 교안의 모든 BLE 예제가 이 파일을 import해요. 가상 보드는 /board/lib/에, 실물 보드는 [보드에 저장]이 함께 올려요."
+      tags: [ 블루투스, BLE, 라이브러리 ]
+      packages: []
+    lines: 79
+    sha256: b57af3bf7bfdec4c0ee0c3166d4c6f04216aaabbdfe7c04ae3be992e187bd97d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f088
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/bluetooth.py"
+    target: examples/vision/lib/bluetooth.py
+    author: operator
+    meta:
+      title: "PC 라이브러리: bluetooth.py(진짜 컴퓨터에서 돌릴 때만)"
+      description: "컴퓨터가 보드에 블루투스로 연결하는 라이브러리 원본이에요(bleak·스레드를 써요). 브라우저에서는 돌지 않아서 사이트가 같은 이름의 흉내 모듈로 대신하고(Web Bluetooth, P4-02), 이 파일은 \"진짜 PC에서 돌리기\"용 원본으로만 둬요. 실습실 예제 목록에는 나오지 않아요."
+      tags: [ 블루투스, BLE, 라이브러리, PC ]
+      packages: []
+    lines: 78
+    sha256: be1b0c8982839a09d62a2c3b0eb929ad2039db8478fd1d99b3a9ab7e1d6ca0e2
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f089
+    source: textbook
+    member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/기본실습 영상처리로 인한 손끝 좌표를 블루투스로 ESP32에보내기(p198).py"
+    target: examples/vision/u3/3-1-3-hand-ble-xy.py
+    author: operator
+    privacy: [ mac ]
+    meta:
+      title: "3-1-3 기본: 손끝 좌표를 블루투스로 보드에 보내기"
+      description: "컴퓨터 쪽 코드예요. 검지 끝 좌표를 \"x,y\"로 만들어 매 프레임 보드에 보내요. 짝은 보드 쪽 3-1-3 예제예요. 원본의 기기 주소는 개인정보라 XX:XX:XX:XX:XX:XX로 가렸어요 — 브라우저는 주소가 아니라 [BLE 연결] 선택 창으로 고르니 값이 없어도 돼요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02)."
+      lesson: 3-1-3
+      page: 198
+      tags: [ 손, mediapipe, 블루투스, BLE, 브릿지 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 71
+    sha256: 7293e174d771a552b5de823d3da05250614708ca5bae7f8a104d5659b2450b9e
+    syntax: ok
+    syntax_checker: python-ast
+    redacted: 1
+    imported: 2026-09-18
+
+  # ── 4단원 4.1.4 블루투스로 데이터 전송(f098~f100) ──
+  - id: f098
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/4. 보이지 않는 연결, 블루투스로 데이터 전송 🚀/4.1.4_01_MAC_address_test(p251).py"
+    target: examples/esp32/u4/4-1-4-ble-address-check.py
+    author: operator
+    meta:
+      title: "4-1-4 기본: 보드의 블루투스 주소 확인하기"
+      description: "보드 쪽 코드예요. 블루투스를 켜고 보드 주소를 콘솔에 찍어요. 브라우저는 주소로 연결하지 않고 [BLE 연결] 선택 창에서 광고 이름으로 고르니, 사이트 차시는 \"광고 이름 확인하기\"로 바꿔 설명해요(PLAN §7.3). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-1-4
+      page: 251
+      tags: [ 블루투스, BLE, 주소 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 10
+    sha256: e10fb236f60931de10c4f1bb589e92ebb90fb141754e7ae294976afae4122d1c
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f099
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/4. 보이지 않는 연결, 블루투스로 데이터 전송 🚀/4.1.4_02_기본_ESP32_ble_Rx_test(p252).py"
+    target: examples/esp32/u4/4-1-4-ble-lcd-rx.py
+    author: operator
+    meta:
+      title: "4-1-4 기본: 블루투스로 받은 DATA,x,y를 LCD에 쓰기"
+      description: "보드 쪽 코드예요. 받은 한 줄을 쉼표로 나눠 칸이 3개이고 머리말이 DATA이면 x·y를 문자 LCD에 써요(머리말과 칸 수로 검사하는 첫 예제예요). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-1-4
+      page: 252
+      tags: [ 블루투스, BLE, LCD, I2C ]
+      parts:
+        - { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: "문자 LCD(16×2)" }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 39
+    sha256: 98935ad964e4da7538c516519d51d60648a940a1714c5b867c5004e68c5022cf
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f100
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/4. 보이지 않는 연결, 블루투스로 데이터 전송 🚀/4.1.4_03_심화_영상처리_ble_Tx_test(p254).py"
+    target: examples/vision/u4/4-1-4-adv-face-ble-tx.py
+    author: operator
+    privacy: [ mac ]
+    meta:
+      title: "4-1-4 심화: 코 좌표를 0.5초마다 DATA,x,y로 보내기"
+      description: "컴퓨터 쪽 코드예요. 얼굴 그물에서 코 좌표를 찾아 0.5초마다 \"DATA,x,y\"로 보드에 보내요. 짝은 보드 쪽 4-1-4 예제예요. 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02)."
+      lesson: 4-1-4
+      page: 254
+      tags: [ 얼굴, mediapipe, 블루투스, BLE, 브릿지 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 46
+    sha256: f9a32267fa7f2fcf05c220e59ca4365a4852b3028f86a8d5fc3a2d0b939a64b0
+    syntax: ok
+    syntax_checker: python-ast
+    redacted: 1
+    imported: 2026-09-18
+
+  # ── 4단원 4.2.1~4.2.3 물리적 피드백(f104~f116) ──
+  - id: f104
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/1. 데이터, 하드웨어를 깨우다!/4.2.1_01_기본_영상처리_BLE_DATA_TX_파이널(p261).py"
+    target: examples/vision/u4/4-2-1-face-mouse-ble-tx.py
+    author: operator
+    privacy: [ mac ]
+    meta:
+      title: "4-2-1 기본: 얼굴 마우스 좌표와 클릭을 블루투스로 보내기(최종판)"
+      description: "컴퓨터 쪽 코드예요. 코로 마우스를 움직이고 눈을 오래 감으면 더블클릭·오른쪽 클릭을 하면서, 좌표와 클릭 표시를 \"DATA,mx,my,d,r\"로 보드에 보내요. 4단원에서 가장 무거운 예제예요(카메라 + 얼굴 그물 + 가상 데스크톱 + 블루투스). 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02·P4-09)."
+      lesson: 4-2-1
+      page: 261
+      tags: [ 얼굴, mediapipe, 마우스, 블루투스, BLE, 브릿지 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 275
+    sha256: cf12a9c6138031b12b81d943574bd84475ccb31f24bf097caacec405e93e0787
+    syntax: ok
+    syntax_checker: python-ast
+    redacted: 1
+    imported: 2026-09-18
+  - id: f105
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/1. 데이터, 하드웨어를 깨우다!/4.2.1_02_심화_ESP32_BLE_DATA_RX(p270).py"
+    target: examples/esp32/u4/4-2-1-adv-ble-data-lcd.py
+    author: operator
+    meta:
+      title: "4-2-1 심화: DATA 5칸을 받아 LCD에 좌표와 클릭 수 쓰기"
+      description: "보드 쪽 코드예요. \"DATA,mx,my,d,r\" 다섯 칸을 받아 LCD 첫 줄에 좌표, 둘째 줄에 클릭 횟수를 써요. 둘째 줄이 19글자라 넘친 3칸이 첫 줄 앞을 덮는 원본 그대로의 모습도 볼 수 있어요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-2-1
+      page: 270
+      tags: [ 블루투스, BLE, LCD, I2C ]
+      parts:
+        - { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: "문자 LCD(16×2)" }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 43
+    sha256: 4eb8cfef3688f0973eac4dfd310ff2ad449d82511d3a20c21260b18f7fabae31
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f106
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/1. 데이터, 하드웨어를 깨우다!/4.2.1_03_심화_ESP32_BLE_serv(p272).py"
+    target: examples/esp32/u4/4-2-1-adv-ble-servo-lcd.py
+    author: operator
+    meta:
+      title: "4-2-1 심화: 받은 좌표로 서보모터 2개 움직이기"
+      description: "보드 쪽 코드예요. 받은 마우스 좌표를 각도로 바꿔 서보모터 X·Y를 움직이고 LCD에도 써요. 보내는 쪽 화면 크기를 3840×2160으로 가정한 계산이에요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-2-1
+      page: 272
+      tags: [ 블루투스, BLE, 서보모터, LCD ]
+      parts:
+        - { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: "문자 LCD(16×2)" }
+        - { part: servo, id: servo-x, pin: 25, label: "서보모터 X" }
+        - { part: servo, id: servo-y, pin: 26, label: "서보모터 Y" }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 55
+    sha256: 11574afb07745cf360479861acf07530892628281869653b6794f6455a698ac0
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f108
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/1. 데이터, 하드웨어를 깨우다!/mg90s_servo.py"
+    target: examples/esp32/lib/third-party/mg90s_servo.py
+    author: third_party
+    meta:
+      title: "보드 라이브러리: mg90s_servo.py(서보모터)"
+      description: "각도(0~180도)를 PWM 폭으로 바꿔 서보모터를 돌리는 라이브러리예요. rotate(각도)만 부르면 돼요. 4단원과 교안 서보 예제가 이 파일을 import해요(2단원은 다른 라이브러리 servo_library.py를 써요)."
+      tags: [ 서보모터, 라이브러리 ]
+      packages: []
+    lines: 12
+    sha256: d8f792c1e02733f4e797604e8245b8c1a4565b59c7c78b432368f881de814298
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f109
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.2_01_기본_ESP32_BLE_servo_RGB(p278).py"
+    target: examples/esp32/u4/4-2-2-ble-servo-rgb.py
+    author: operator
+    meta:
+      title: "4-2-2 기본: 서보 2개와 RGB LED로 클릭 알려 주기"
+      description: "보드 쪽 코드예요. 받은 좌표로 서보를 움직이고, 더블클릭이면 초록·오른쪽 클릭이면 빨강 LED를 켜요. 클릭 표시는 한 프레임만 1이라 LED가 잠깐만 켜지거나 아예 못 받을 수도 있어요(원본 그대로예요). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-2-2
+      page: 278
+      tags: [ 블루투스, BLE, 서보모터, RGB LED, LCD ]
+      parts:
+        - { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: "문자 LCD(16×2)" }
+        - { part: servo, id: servo-x, pin: 25, label: "서보모터 X" }
+        - { part: servo, id: servo-y, pin: 26, label: "서보모터 Y" }
+        - { part: rgb-led, pins: { r: 27, g: 32, b: 33 } }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 75
+    sha256: cb9437ee745caf075f93b1971c5ef93b035feabf5c616a4c6e3d7476a6f5d797
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f110
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.2_02_심화_ESP32_BLE_servo_RGB_laser_buzzer(p281).py"
+    target: examples/esp32/u4/4-2-2-adv-ble-servo-rgb-laser-buzzer.py
+    author: operator
+    meta:
+      title: "4-2-2 심화: 서보·RGB·레이저·버저로 한꺼번에 알려 주기(원본 파일)"
+      description: "보드 쪽 코드예요. 클릭에 맞춰 LED·레이저·버저로 알려 줘요. 원본 파일은 레이저를 끄는 부분이 주석 처리돼 있어 한 번 켜지면 계속 켜져 있어요(실물에서는 눈 보호를 위해 주석을 풀어 쓰는 사이트판을 따로 둬요 — PLAN PD-23). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-2-2
+      page: 281
+      tags: [ 블루투스, BLE, 서보모터, RGB LED, 레이저, 버저 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 102
+    sha256: 40856307804315ee69acb70acb50dc64f600a9f83fab5ff98f8bfe051aa39986
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f111
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.2_03_심화_ESP32_BLE_servo_RGB_laser_buzzer_mount.py"
+    target: examples/esp32/u4/4-2-2-adv-ble-mount.py
+    author: operator
+    meta:
+      title: "4-2-2 심화: 거치대에 맞춘 서보 각도 범위(원본 파일)"
+      description: "앞 예제와 같지만 거치대에 맞춰 서보가 도는 범위를 좁혔어요. 원본 파일 1번 줄이 자료에 없는 이름 ESP32BLE_LIB을 import해서 실물 보드에서도 ImportError로 멈춰요 — 사이트판은 그 한 줄을 ESP32BLE로 고쳐요(PLAN §6.5). 가상 보드도 옛 이름을 받아 주지 않아요."
+      lesson: 4-2-2
+      tags: [ 블루투스, BLE, 서보모터, 거치대 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 103
+    sha256: 552b95d6047bee5f17c1d88eefd0b18c46f262f9bb8c44df721cde6509dedbfc
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f112
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.2_04_심화_ESP32_BLE_servo_mount_90.py"
+    target: examples/esp32/u4/4-2-2-adv-servo-mount-90.py
+    author: operator
+    meta:
+      title: "4-2-2 심화: 거치대를 조립하기 전에 서보를 90도로 맞추기"
+      description: "서보모터 2개를 90도(가운데)로 돌려 두고 끝나요. 거치대를 조립하기 전에 한 번 돌리는 코드라 블루투스는 쓰지 않아요. [정지]를 누를 때까지 90도 신호가 그대로 나가요."
+      lesson: 4-2-2
+      tags: [ 서보모터, 거치대 ]
+      parts:
+        - { part: servo, id: servo-x, pin: 25, label: "서보모터 X" }
+        - { part: servo, id: servo-y, pin: 26, label: "서보모터 Y" }
+      smoke: { outcome: ok }
+      practice:
+        - "[실행]을 누르면 서보모터 2개가 모두 90도를 가리켜요."
+        - "핀 표에서 IO25·IO26이 \"PWM 출력\"이고 펄스 폭이 같은지 봐요."
+    lines: 11
+    sha256: 1119454da99ebbd19458393c5042a1e1e70ec6d6dbf948fe733b54d9868c1ffe
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f113
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.2_05_탐구_ESP32_RGB_buzzer.py"
+    target: examples/esp32/u4/4-2-2-explore-rgb-buzzer.py
+    author: operator
+    meta:
+      title: "4-2-2 탐구: 타이머로 LED를 저절로 끄기(원본 파일)"
+      description: "보드 쪽 코드예요. LED를 켠 시각을 적어 두었다가 2초가 지나면 저절로 꺼요(앞 예제들의 \"LED가 잠깐만 켜진다\" 문제를 푸는 방법이에요). 원본 파일은 1번 줄 이름이 ESP32BLE_LIB이고 레이저를 끄는 코드가 아예 없어요 — 사이트판에서 둘 다 고쳐요(PLAN PD-23). 빨강 LED 핀(GPIO12)이 ESP32BLE.py의 상태 LED와 겹치는 것도 사이트판에서 고쳐요."
+      lesson: 4-2-2
+      tags: [ 블루투스, BLE, RGB LED, 버저, 타이머 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 82
+    sha256: 2b6a602f646d41415b8532371c6efdd4027f16ca3f98a928f02ae9d9c5716c5f
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f114
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.3_01_기본_영상처리_BLE_DATA_TX_파이널.py"
+    target: examples/vision/u4/4-2-3-face-mouse-ble-tx-lib.py
+    author: operator
+    privacy: [ mac ]
+    meta:
+      title: "4-2-3 기본: 얼굴 마우스 보내기(라이브러리 이름만 다른 판)"
+      description: "4-2-1 최종판과 거의 같고 부르는 라이브러리 이름만 bluetooth_lib로 달라요(2줄 차이). 왜 이름을 바꿨는지는 자료에 적혀 있지 않아요 — 보드 안에 있는 bluetooth 모듈과 헷갈리지 않으려고 한 것으로 보여요. 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02)."
+      lesson: 4-2-2
+      tags: [ 얼굴, mediapipe, 마우스, 블루투스, BLE, 브릿지 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 275
+    sha256: d26455a75c90e60a0ea98adf19b3d4fde23162fa89556f4fb79e9518c0996a2d
+    syntax: ok
+    syntax_checker: python-ast
+    redacted: 1
+    imported: 2026-09-18
+  - id: f115
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.3_02_기본_ESP32_BLE_servo_RGB_laser_buzzer.py"
+    target: examples/esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer.py
+    author: operator
+    meta:
+      title: "4-2-3 기본: 받는 쪽 최종판(서보·RGB·레이저·버저)"
+      description: "앞 4-2-2 심화와 거의 같고 서보 각도를 바꾸는 계산 2줄만 달라요. 레이저를 끄는 부분이 주석 처리된 것도 같아요(사이트판에서 주석을 풀어요 — PLAN PD-23). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      lesson: 4-2-2
+      tags: [ 블루투스, BLE, 서보모터, RGB LED, 레이저, 버저 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 103
+    sha256: 95b2b0df8d2f3d6f85f15e95c5c3502c942962051e5f078c81b2459f9472ff64
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f116
+    source: textbook
+    member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/bluetooth_lib.py"
+    target: examples/vision/lib/bluetooth_lib.py
+    author: operator
+    meta:
+      title: "PC 라이브러리: bluetooth_lib.py(진짜 컴퓨터에서 돌릴 때만)"
+      description: "bluetooth.py와 내용이 같고 파일 이름만 달라요(4-2-3 예제가 이 이름으로 불러요). 브라우저에서는 돌지 않아서 사이트가 같은 이름의 흉내 모듈로 대신해요(P4-02). 실습실 예제 목록에는 나오지 않아요."
+      tags: [ 블루투스, BLE, 라이브러리, PC ]
+      packages: []
+    lines: 78
+    sha256: be1b0c8982839a09d62a2c3b0eb929ad2039db8478fd1d99b3a9ab7e1d6ca0e2
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+
+  # ── 블루투스 통신 수업교안(f137·f147~f149·f157·f158) ──
+  # 파일 이름의 b숫자는 교안 실습 순서예요(b5는 앞서 옮긴 LCD 실습 f144).
+  - id: f137
+    source: file
+    member: "블루투스통신_소스코드/1. (기초)(값을 받음)토니(블루투스통신)/#ESP32BLE.py 파일을 ESP32에 업로드 후 실행.txt"
+    target: examples/esp32/bt/b1-ble-receive-print.py
+    author: operator
+    meta:
+      title: "블루투스 교안: 받은 값을 콘솔에 찍어 보기"
+      description: "보드 쪽 첫 블루투스 실습이에요. 0.1초마다 받은 값이 있는지 보고 있으면 콘솔에 찍어요. 원본은 확장자가 .txt이고 파일 이름이 곧 \"ESP32BLE.py를 먼저 올리라\"는 안내예요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      tags: [ 블루투스, BLE, 통신 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 12
+    sha256: f49a14f71f36925ce58a0bad726bb644b2b0e57f155655dc231b34e88a4ddab5
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f147
+    source: bt-thonny-send
+    member: finger_lcd.py
+    target: examples/esp32/bt/b7-finger-lcd.py
+    author: operator
+    meta:
+      title: "블루투스 교안: 손가락 위치를 LCD에 left·right로 쓰기"
+      description: "보드 쪽 코드예요. 받은 글자가 a면 left, b면 right를 LCD에 1초 보여 주고 지워요. 짝은 컴퓨터 쪽 손가락 예제예요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      tags: [ 블루투스, BLE, LCD, I2C ]
+      parts:
+        - { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: "문자 LCD(16×2)" }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 38
+    sha256: 0b83335ba1f41f4cf776dc317b799e14a1a162c8205b4ab6c24d3c8ea38dbef3
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f148
+    source: bt-thonny-send
+    member: finger_rgb.py
+    target: examples/esp32/bt/b8-finger-rgb.py
+    author: operator
+    meta:
+      title: "블루투스 교안: 손가락 위치로 RGB LED 켜기(원본 파일)"
+      description: "보드 쪽 코드예요. a면 빨강, c면 초록을 1초씩 깜빡여요. 원본 파일은 빨강 LED 핀(GPIO12)이 ESP32BLE.py가 쓰는 상태 LED와 같아서 연결이 끊긴 동안 저절로 깜빡여요 — 사이트판은 27·32·33번으로 옮겨요(교안 83쪽 화면도 고치는 중이에요). b를 처리하는 분기도 없어 파랑은 쓰이지 않아요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      tags: [ 블루투스, BLE, RGB LED ]
+      parts:
+        - { part: rgb-led, pins: { r: 12, g: 5, b: 4 } }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 38
+    sha256: 3ec9342e439555ae055590b7016729f8019115f0c7c24781a230f3e5c5cec3e1
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f149
+    source: bt-thonny-send
+    member: finger_servo.py
+    target: examples/esp32/bt/b9-finger-servo.py
+    author: operator
+    meta:
+      title: "블루투스 교안: 손가락 위치로 서보모터 돌리기"
+      description: "보드 쪽 코드예요. a면 0도, b면 180도로 서보를 돌려요. 쓰지 않는 i2c_lcd도 import해서, 실물 보드에 그 파일이 없으면 ImportError가 나요([보드에 저장]은 필요한 라이브러리를 함께 올려요). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      tags: [ 블루투스, BLE, 서보모터 ]
+      parts:
+        - { part: servo, pin: 32, label: "서보모터" }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 33
+    sha256: 97675aaffa0a53cafb55d65d8bc13d193f3deebd46c43159b23a55e74ea5c934
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f157
+    source: file
+    member: "블루투스통신_소스코드/4.(응용(값을 받음)-두개의 값을 받는 경우/1_thonny 두개의 값을 받는 경우.py"
+    target: examples/esp32/bt/b10-two-values-rgb.py
+    author: operator
+    meta:
+      title: "블루투스 교안: 값 두 개(x,y)를 받아 RGB LED 켜기"
+      description: "보드 쪽 코드예요. 받은 \"x,y\"를 나눠 x가 100보다 작으면 빨강, y가 100보다 작으면 초록, 그 밖에는 파랑을 켜요. 교과서 3-1-3 예제의 이전 판이라 핀만 달라요(27·32·33). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03)."
+      tags: [ 블루투스, BLE, RGB LED, 통신 ]
+      parts:
+        - { part: rgb-led, pins: { r: 27, g: 32, b: 33 } }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 52
+    sha256: 122fa69b5592aadc7ff6758dd90330de2e02f831bba7b23247c0e7d52cd9eb8d
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18
+  - id: f158
+    source: file
+    member: "블루투스통신_소스코드/4.(응용)(값을 던짐)vscode-두개의 값을 던지는 경우/1_op,mp 손가락제어 두개의 값 던지는 경우.py"
+    target: examples/vision/bt/b11-finger-xy-send.py
+    author: operator
+    privacy: [ mac ]
+    meta:
+      title: "블루투스 교안: 손끝 좌표 두 개를 보드에 보내기"
+      description: "컴퓨터 쪽 코드예요. 검지 끝의 x·y를 \"x,y\"로 만들어 보드에 보내요. 교과서 3-1-3 컴퓨터 쪽 예제의 원형이라 주석만 달라요. 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02)."
+      tags: [ 손, mediapipe, 블루투스, BLE, 브릿지 ]
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 68
+    sha256: 0035081ad6a8b350b14bfdf41f947116a0cfe8242f62401fc220646d5e9d79a6
+    syntax: ok
+    syntax_checker: python-ast
+    redacted: 1
+    imported: 2026-09-18
+
+  # ── HW 라이브러리 zip(f002) ──
+  - id: f002
+    source: hw
+    member: Dabble_tester_v2.py
+    target: examples/esp32/hw/ble-dabble-rgb.py
+    author: operator
+    meta:
+      title: "보드 확인: 스마트폰 앱이 보낸 프레임으로 RGB LED 켜기"
+      description: "스마트폰 앱이 블루투스로 보내는 이진 프레임(FF 02 01 01 …)을 받아 그 안에 1·2·3이 있으면 RGB LED 색을 바꿔요. 사이트는 이 프레임을 만들어 보내는 \"가상 스마트폰 앱 패널\"을 P4-03에서 붙여요. 지금은 이 파일이 부르는 esp32_ble_util이 아직 없어서 ModuleNotFoundError로 멈춰요."
+      tags: [ 블루투스, BLE, RGB LED, 스마트폰 ]
+      parts:
+        - { part: rgb-led, pins: { r: 25, g: 26, b: 27 } }
+      smoke: { outcome: error, error: ModuleNotFoundError }
+    lines: 61
+    sha256: a38fd727989a77b2790a7c4df17b6fc965be070ca130839be73a1ed01aecb3ab
+    syntax: ok
+    syntax_checker: python-ast
+    imported: 2026-09-18

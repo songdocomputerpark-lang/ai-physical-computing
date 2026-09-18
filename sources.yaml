@@ -80,11 +80,12 @@ sources:
     author: 박상진·김석전
     license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
     # 옮기는 방법은 PD-33, 사이트 공개 조건은 PD-26
-    used_in: "실습실 예제 코드(examples/). 교과서·수업 자료의 원본 코드 압축 파일에서 옮긴 코드(사이트판 포함)와 사이트가 새로 만든 체험·보충 예제를 사이트에서 CC BY-NC-SA 4.0으로 공개해요."
+    used_in: "실습실 예제 코드(examples/). 교과서·수업 자료의 원본 코드 압축 파일에서 옮긴 코드(사이트판 포함)와 사이트가 새로 만든 체험·보충 예제를 사이트에서 CC BY-NC-SA 4.0으로 공개해요. 다른 저작자의 파일이 있는 third-party/ 폴더에서도 **설명 파일(사이드카 .meta.yaml)은 사이트가 쓴 글**이라 이 항목에 들어가요."
     paths:
       - examples/**
     exclude_paths:
-      - examples/**/third-party/**
+      # 코드 파일만 뺀다 — 같은 폴더의 사이드카(.meta.yaml)는 사이트가 쓴 설명이라 이 항목에 남는다(2026-09-18 Phase 4 준비).
+      - examples/**/third-party/**/*.py
     fetched: 2026-09-15
 
   # ── 사이트 자체 제작 ──
@@ -545,3 +546,31 @@ sources:
     paths:
       - examples/esp32/lib/third-party/gorillacell_dcmotors.py
     fetched: 2026-09-15
+
+  # 블루투스 주변기기 라이브러리(Phase 4 통신 실습실): 교과서 자료 f087 = f101 = f146 = f153이 모두 같은 파일이에요(원본 그대로 옮김).
+  # 공개 글(TechToTinker 025, George Bantique)과 구조가 같고 2black0/MicroPython-ESP32-BLE(MIT) 구현과도 거의 같아요(CODE_MAPPING §5.2 — 부분 확인).
+  # 파일에는 저작권·라이선스 주석이 없어(직접 확인) 표기가 확인된 쪽으로 단정하지 않고 "원 권리자 보유"로 둬요.
+  # 운영자 할 일: 2black0 저장소의 LICENSE와 대조해 MIT가 맞으면 MIT 고지를 더한 사이트판으로 바꾸기(PLAN §6.5, INVENTORY §8).
+  - name: TechToTinker MicroPython TechNotes 계열 부품 라이브러리(ESP32BLE.py)
+    category: third_party
+    author: George Bantique(TechToTinker)
+    license: 원 권리자 보유 — 운영자 사용 허락(O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
+    url: https://techtotinker.com/025-micropython-technotes-bluetooth-low-energy/
+    used_in: "블루투스(BLE) 주변기기 라이브러리 ESP32BLE.py(examples/esp32/lib/third-party/ESP32BLE.py). 교과서 3·4단원과 블루투스 교안의 BLE 예제가 모두 이 파일을 import해요 — 가상 보드는 /board/lib/에 넣고, 실물 보드는 [보드에 저장]이 함께 올려요."
+    rights: "TechToTinker 글(025 - MicroPython TechNotes: Bluetooth Low Energy)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요."
+    paths:
+      - examples/esp32/lib/third-party/ESP32BLE.py
+    fetched: 2026-09-18
+
+  # 서보모터 라이브러리(Phase 4 통신 실습실): 교과서 자료 f012 = f108 = f117이 모두 같은 파일이에요(원본 그대로 옮김).
+  # 4단원·블루투스 교안의 서보 예제가 이 파일을 import해요(2단원은 원고에서 복원한 servo_library.py를 써요 — 두 라이브러리는 각도↔PWM 환산이 달라요, PD-15).
+  - name: TechToTinker MicroPython TechNotes 계열 부품 라이브러리(mg90s_servo.py)
+    category: third_party
+    author: George Bantique(TechToTinker)
+    license: 원 권리자 보유 — 운영자 사용 허락(O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
+    url: https://techtotinker.com/037-micropython-technotes-servo-motor/
+    used_in: "서보모터 라이브러리 mg90s_servo.py(examples/esp32/lib/third-party/mg90s_servo.py) — 각도를 PWM duty로 바꿔요(0도 = 23, 180도 = 124). 가상 보드와 실물 보드에 같은 파일을 써요."
+    rights: "TechToTinker 글(037 - MicroPython TechNotes: Servo Motor)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요."
+    paths:
+      - examples/esp32/lib/third-party/mg90s_servo.py
+    fetched: 2026-09-18

@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "3-1-2 심화: 얼굴이 보이면 a, 사라지면 b를 시리얼로 보내기"
+description: 컴퓨터 쪽 코드예요. 카메라에서 얼굴을 찾아 상태가 바뀔 때만 a·b를 보드에 보내요(원고 187쪽의 "값이 바뀔 때만" 규칙을 지키는 예제예요). 지금은 PC 쪽 serial 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02).
+lesson: 3-1-2
+page: 193
+source_id: f085
+tags:
+  - 얼굴
+  - mediapipe
+  - UART
+  - 시리얼
+  - 브릿지
+packages:
+  - opencv-python
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

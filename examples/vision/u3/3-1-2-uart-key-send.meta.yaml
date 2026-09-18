@@ -1,0 +1,16 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "3-1-2 기본: 컴퓨터에서 키보드로 a·b를 시리얼로 보내기"
+description: 컴퓨터 쪽 코드예요. 입력한 글자 a·b를 시리얼(pyserial)로 보드에 보내고 q로 끝내요. 짝은 보드 쪽 3-1-2 예제예요. 지금은 사이트에 PC 쪽 serial 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02에서 들어와요).
+lesson: 3-1-2
+page: 192
+source_id: f084
+tags:
+  - UART
+  - 시리얼
+  - 통신
+  - 브릿지
+packages: []
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

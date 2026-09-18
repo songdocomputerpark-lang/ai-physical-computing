@@ -32,7 +32,10 @@ describe('보드 라이브러리 목록', () => {
     expect(() =>
       boardLibrariesFromFiles({ '/examples/esp32/lib/a.py': '', '/examples/esp32/lib/third-party/a.py': '' }),
     ).toThrow(/a.py이\(가\) examples\/esp32\/lib\/a.py와\(과\) 겹쳐요/u);
-    expect(() => boardLibrariesFromFiles({ '/examples/esp32/lib/Servo-Lib.py': '' })).toThrow(/영문 소문자로 시작/u);
+    // 파일 이름 = import 이름이라 대문자는 받지만(ESP32BLE.py), 하이픈처럼 파이썬 식별자가 아닌 글자는 막는다(2026-09-18 Phase 4 준비).
+    expect(() => boardLibrariesFromFiles({ '/examples/esp32/lib/Servo-Lib.py': '' })).toThrow(/영문·밑줄로 시작/u);
+    expect(boardLibrariesFromFiles({ '/examples/esp32/lib/third-party/ESP32BLE.py': '' })[0]?.name).toBe('ESP32BLE');
+    expect(() => boardLibrariesFromFiles({ '/examples/esp32/lib/Machine.py': '' })).toThrow(/이미 쓰는 이름/u);
     expect(() => boardLibrariesFromFiles({ '/examples/esp32/lib/machine.py': '' })).toThrow(/이미 쓰는 이름/u);
     expect(() => boardLibrariesFromFiles({ '/examples/esp32/lib/apc_board.py': '' })).toThrow(/이미 쓰는 이름/u);
   });

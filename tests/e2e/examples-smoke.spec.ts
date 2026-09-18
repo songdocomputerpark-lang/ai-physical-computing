@@ -90,8 +90,8 @@ function readCases(): SmokeCase[] {
     }
     const file = target.slice('examples/'.length);
     const lab = smokeLabOf(file);
-    if (lab === 'esp32' && file.startsWith('esp32/lib/')) {
-      continue; // 보드 라이브러리는 예제가 아니다(실습실 목록에도 없다)
+    if (file.startsWith('esp32/lib/') || file.startsWith('vision/lib/') || file.startsWith('desktop/lib/')) {
+      continue; // 라이브러리는 예제가 아니다(실습실 목록에도 없다 — 보드 라이브러리·PC 전용 라이브러리 원본)
     }
     const sidecarPath = path.join(REPO_ROOT, target.replace(/\.py$/u, '.meta.yaml'));
     const sidecar = fs.existsSync(sidecarPath) ? parseExampleSidecar(fs.readFileSync(sidecarPath, 'utf8')) : null;

@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-3 기본: 얼굴 마우스 보내기(라이브러리 이름만 다른 판)"
+description: 4-2-1 최종판과 거의 같고 부르는 라이브러리 이름만 bluetooth_lib로 달라요(2줄 차이). 왜 이름을 바꿨는지는 자료에 적혀 있지 않아요 — 보드 안에 있는 bluetooth 모듈과 헷갈리지 않으려고 한 것으로 보여요. 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02).
+lesson: 4-2-2
+source_id: f114
+tags:
+  - 얼굴
+  - mediapipe
+  - 마우스
+  - 블루투스
+  - BLE
+  - 브릿지
+packages:
+  - opencv-python
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

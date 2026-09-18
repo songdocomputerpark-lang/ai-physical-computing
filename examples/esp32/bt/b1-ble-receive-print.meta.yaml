@@ -1,0 +1,13 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "블루투스 교안: 받은 값을 콘솔에 찍어 보기"
+description: 보드 쪽 첫 블루투스 실습이에요. 0.1초마다 받은 값이 있는지 보고 있으면 콘솔에 찍어요. 원본은 확장자가 .txt이고 파일 이름이 곧 "ESP32BLE.py를 먼저 올리라"는 안내예요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+source_id: f137
+tags:
+  - 블루투스
+  - BLE
+  - 통신
+packages: []
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

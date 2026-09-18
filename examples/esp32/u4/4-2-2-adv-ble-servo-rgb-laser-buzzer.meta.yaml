@@ -1,0 +1,18 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "4-2-2 심화: 서보·RGB·레이저·버저로 한꺼번에 알려 주기(원본 파일)"
+description: 보드 쪽 코드예요. 클릭에 맞춰 LED·레이저·버저로 알려 줘요. 원본 파일은 레이저를 끄는 부분이 주석 처리돼 있어 한 번 켜지면 계속 켜져 있어요(실물에서는 눈 보호를 위해 주석을 풀어 쓰는 사이트판을 따로 둬요 — PLAN PD-23). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+lesson: 4-2-2
+page: 281
+source_id: f110
+tags:
+  - 블루투스
+  - BLE
+  - 서보모터
+  - RGB LED
+  - 레이저
+  - 버저
+packages: []
+smoke:
+  outcome: error
+  error: ModuleNotFoundError

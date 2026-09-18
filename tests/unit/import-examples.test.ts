@@ -13,9 +13,12 @@ import {
   defaultSidecar,
   findPython,
   importExamples,
+  hasDeviceAddress,
+  isValidTarget,
   nodeLightSyntaxCheck,
   normalizeLineEndings,
   parseManifest,
+  redactDeviceAddresses,
   sha256Hex,
   sidecarPathFor,
   verifyExamples,
@@ -334,6 +337,49 @@ describe('이관(importExamples)', () => {
     const converted = convertOriginal(Buffer.from(CRLF_SOURCE, 'utf8'), entry, { python: null });
     expect(converted).toMatchObject({ lines: 4, originalLines: 4, syntax: 'ok', problems: [] });
   });
+
+  // ── Phase 4 준비(2026-09-18): 보드 라이브러리 이름과 기기 주소 가리기 ──
+
+  it('보드 라이브러리 폴더만 파일 이름에 대문자를 쓸 수 있다(파일 이름 = import 이름)', () => {
+    expect(isValidTarget('examples/esp32/lib/third-party/ESP32BLE.py')).toBe(true);
+    expect(isValidTarget('examples/esp32/lib/servo_library.py')).toBe(true);
+    expect(isValidTarget('examples/esp32/u4/Big-Name.py')).toBe(false);
+    expect(isValidTarget('examples/vision/u3/3-1-3-hand-ble-xy.py')).toBe(true);
+    const manifest = parseManifest(`
+sources: { demo: a.zip }
+examples:
+  - { id: f901, source: demo, member: a.py, target: examples/esp32/u4/Big-Name.py, author: operator }
+`);
+    expect(manifest.errors.join(' ')).toMatch(/보드 라이브러리.*만 파일 이름에 대문자/u);
+  });
+
+  it('기기 주소(MAC·BLE)는 같은 글자 수의 자리표시자로 바꾸고, 선언하지 않으면 이관을 멈춘다', () => {
+    // 주소 모양은 **글자를 이어 붙여** 만든다 — 이 파일에 주소 모양을 그대로 적으면 저장소 검사(scripts/check-repo.mjs)가 막는다.
+    const fakeAddress = ['1a', '2B', '3c', '4D', '5e', '6F'].join(':');
+    const dashAddress = ['11', '22', '33', '44', '55', '66'].join('-');
+    const line = `ble = init("${fakeAddress}")
+`;
+    const redacted = redactDeviceAddresses(line);
+    expect(redacted.count).toBe(1);
+    expect(redacted.text).toBe(`ble = init("XX:XX:XX:XX:XX:XX")
+`);
+    expect(redacted.text.length).toBe(line.length); // 칸 위치가 그대로라 줄·칸 설명이 어긋나지 않는다
+    expect(hasDeviceAddress(redacted.text)).toBe(false);
+    expect(redactDeviceAddresses(`mac = "${dashAddress}"`).text).toBe('mac = "XX-XX-XX-XX-XX-XX"'); // 구분 기호는 원본 그대로
+    expect(redactDeviceAddresses('version = 1.2.3.4.5.6').count).toBe(0);
+
+    const entry = { id: 'f902', source: 'demo', member: 'a.py', target: 'examples/vision/u3/a.py', author: 'operator' as const };
+    const guarded = convertOriginal(Buffer.from(line, 'utf8'), entry, { python: null });
+    expect(guarded.problems.join(' ')).toMatch(/privacy: \[mac\]/u);
+    const allowed = convertOriginal(Buffer.from(line, 'utf8'), { ...entry, privacy: ['mac'] }, { python: null });
+    expect(allowed.problems).toEqual([]);
+    expect(allowed.redacted).toBe(1);
+    expect(allowed.text).not.toMatch(/[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}/u);
+    // 가릴 것이 없는데 적으면 알려 준다(잘못 붙인 항목을 찾게)
+    expect(convertOriginal(Buffer.from('x = 1', 'utf8'), { ...entry, privacy: ['mac'] }, { python: null }).problems.join(' ')).toMatch(
+      /기기 주소.*모양이 없어요/u,
+    );
+  });
 });
 
 describe('저장소의 기록과 실제 examples/ 파일', () => {
@@ -343,6 +389,14 @@ describe('저장소의 기록과 실제 examples/ 파일', () => {
     expect(result.ok).toBe(true);
     expect(result.checked).toBe(result.total);
     expect(result.total).toBeGreaterThanOrEqual(49);
+  });
+
+  it('옮긴 예제 파일 어디에도 기기 주소(MAC·BLE)가 남아 있지 않다', () => {
+    const manifest = parseManifest(fs.readFileSync(path.join(ROOT, 'scripts', 'examples-manifest.yaml'), 'utf8'));
+    for (const entry of manifest.examples) {
+      const text = fs.readFileSync(path.join(ROOT, ...entry.target.split('/')), 'utf8');
+      expect(hasDeviceAddress(text), entry.target).toBe(false);
+    }
   });
 
   it('옮긴 예제 파일에는 머리말(제목 주석)이 없고 CR이 없다 — 줄 번호 보존', () => {

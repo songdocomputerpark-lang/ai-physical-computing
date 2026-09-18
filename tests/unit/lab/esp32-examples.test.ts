@@ -31,7 +31,7 @@ describe('ESP32 실습실 예제 목록', () => {
         '/examples/esp32/lib/third-party/i2c_lcd.py': 'class I2cLcd: pass\n',
       },
       {
-        '/examples/esp32/u2/2-1-2-touch.py': { title: '2-1-2 터치 센서', description: null, lesson: null, page: null, sourceId: 'f052', tags: [], packages: null },
+        '/examples/esp32/u2/2-1-2-touch.py': { title: '2-1-2 터치 센서', description: null, lesson: null, page: null, sourceId: 'f052', tags: [], packages: null, unit: null, difficulty: null, virtualOk: null, comm: [] },
       },
     );
     expect(examples.map((example) => [example.id, example.title, example.group])).toEqual([

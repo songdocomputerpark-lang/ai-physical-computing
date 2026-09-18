@@ -1,0 +1,11 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
+title: "PC 라이브러리: bluetooth_lib.py(진짜 컴퓨터에서 돌릴 때만)"
+description: bluetooth.py와 내용이 같고 파일 이름만 달라요(4-2-3 예제가 이 이름으로 불러요). 브라우저에서는 돌지 않아서 사이트가 같은 이름의 흉내 모듈로 대신해요(P4-02). 실습실 예제 목록에는 나오지 않아요.
+source_id: f116
+tags:
+  - 블루투스
+  - BLE
+  - 라이브러리
+  - PC
+packages: []
