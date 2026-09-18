@@ -196,6 +196,20 @@ export class FakeStorage implements KeyedStorageLike {
   }
 }
 
+/** 조건이 참이 될 때까지 진짜 시간을 조금씩 기다린다(진짜 브라우저 API를 쓰는 검사에서만) */
+export async function waitUntil(check: () => boolean, limitMs = 2000): Promise<boolean> {
+  const started = Date.now();
+  while (Date.now() - started < limitMs) {
+    if (check()) {
+      return true;
+    }
+    await new Promise((resolve) => {
+      setTimeout(resolve, 10);
+    });
+  }
+  return check();
+}
+
 /** 글자를 바이트로(테스트에서 자주 쓴다) */
 export function bytes(text: string): Uint8Array {
   return new TextEncoder().encode(text);

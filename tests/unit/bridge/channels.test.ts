@@ -14,6 +14,7 @@ import {
   createDirectPair,
   createTabChannel,
   getBridgeChannelFactory,
+  isTabChannelAvailable,
   listBridgeChannels,
   openBridgeChannel,
   parseEnvelope,
@@ -22,7 +23,7 @@ import {
   type BridgeChannel,
   type BridgeEnvelope,
 } from '../../../src/lab/bridge/index.ts';
-import { FakeBroadcastHub, FakeScheduler, bytes, flush, textOf } from './helpers/fake.ts';
+import { FakeBroadcastHub, FakeScheduler, bytes, flush, textOf, waitUntil } from './helpers/fake.ts';
 
 function collect(channel: BridgeChannel): BridgeEnvelope[] {
   const got: BridgeEnvelope[] = [];
@@ -193,6 +194,30 @@ describe('같은 컴퓨터 탭 통로(PD-17)', () => {
     expect(got[0]).toMatchObject({ type: 'uart.data', from: 'pc', port: 'usb-uart', baud: 115200 });
     pc.close();
     board.close();
+  });
+
+  it('진짜 BroadcastChannel에서도 인사와 봉투가 그대로 오간다(가짜가 아니라 실제 API)', async () => {
+    // Node 18+와 브라우저에 있는 전역 BroadcastChannel을 그대로 쓴다(구조화 복제까지 실제로 거친다).
+    expect(isTabChannelAvailable()).toBe(true);
+    const prefix = 'npqrstuvwxyz';
+    const pc = createTabChannel({ from: 'pc', prefix });
+    const board = createTabChannel({ from: 'board', prefix });
+    try {
+      const arrived = new Promise<BridgeEnvelope>((resolve) => {
+        board.on('message', resolve);
+      });
+      expect(await waitUntil(() => pc.peers.length > 0)).toBe(true);
+      expect(pc.peers).toEqual(['board']);
+
+      await pc.send(bytes('355,152\n'), { port: 'usb-uart', baud: 115200 });
+      const envelope = await arrived;
+      expect(textOf(envelope.bytes)).toBe('355,152\n');
+      expect(envelope.bytes).toBeInstanceOf(Uint8Array);
+      expect(envelope).toMatchObject({ v: 1, from: 'pc', port: 'usb-uart', baud: 115200 });
+    } finally {
+      pc.close();
+      board.close();
+    }
   });
 
   it('깨진 봉투는 버린다', async () => {
