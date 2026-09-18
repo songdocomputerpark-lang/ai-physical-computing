@@ -207,7 +207,9 @@ export default async function pwmAdcSteps({ step, bridge, pyodide, rootDir }) {
   );
 
   // 교과서 f060(RGB LED 빨강 밝기 서서히): 원본 그대로 돌리며 핀 27의 duty가 오르내린다
-  await step('textbook_f060_fade', exampleCode(rootDir, 'esp32/u2/2-1-4-rgb-pwm-fade.py'), { stopAfterMs: 2600 });
+  // 2,600ms였을 때, 컴퓨터가 바쁘면 1,024칸을 다 올라간 뒤 내려오기 전에 [정지]가 걸려 검사가 재현 가능하게 실패했다
+  // (2026-09-18 검토 반영 — 흉내가 틀린 것이 아니라 실제 시간이 모자란 것이다). 올라가고 내려오는 구간이 함께 들어오게 늘린다.
+  await step('textbook_f060_fade', exampleCode(rootDir, 'esp32/u2/2-1-4-rgb-pwm-fade.py'), { stopAfterMs: 4500 });
 
   // 교과서 f068(버저 음계): 원본 그대로 — 8음을 0.5초씩, 마지막에 deinit
   await step('textbook_f068_scale', exampleCode(rootDir, 'esp32/u2/2-2-1-buzzer-scale.py'));

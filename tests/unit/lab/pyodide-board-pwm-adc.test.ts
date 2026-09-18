@@ -10,6 +10,9 @@ import { boardPyodideReady, runBoardSteps, stepOf, type BoardStateEvent, type Bo
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 
+/** PWM()을 주파수 없이 만들었을 때의 기본 주파수(Hz) — src/lab/modules/board/ext/pwm/apc_board_pwm.py의 PWM_FREQ와 같다 */
+const PWM_DEFAULT_FREQ = 5000;
+
 /** 단계의 board.state에서 한 핀의 항목 차례(없는 이벤트는 뺌) */
 function pinTrail(events: readonly BoardStateEvent[], gpio: number) {
   return events.flatMap((event) => event.pins.filter((pin) => pin.id === gpio).map((pin) => ({ ...pin, reason: event.reason, tMs: Math.round(event.t_us / 1000) })));
@@ -156,8 +159,12 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
     expect(rising.every((duty, index) => index === 0 || duty >= (rising[index - 1] ?? 0))).toBe(true);
     expect(new Set(rising).size).toBeGreaterThan(20);
     expect(rising.every((duty) => Math.abs(duty * 1024 - Math.round(duty * 1024)) < 0.01 || duty === 1)).toBe(true);
-    // 꼭대기(1023 → 100%) 뒤에는 내려간다
-    expect(duties.slice(top + 1).some((duty) => duty < peak)).toBe(true);
+    /*
+     * 꼭대기(1023 → 100%) 뒤에는 내려간다. [정지]가 꼭대기에서 바로 걸리면 뒤 상태가 없을 수 있으므로(실제 시간에 달림)
+     * "뒤 상태가 있으면 내려간다"로 본다 — 단계의 stopAfterMs를 넉넉히 두어 보통은 내림 구간이 들어온다(2026-09-18 검토 반영).
+     */
+    const after = duties.slice(top + 1);
+    expect(after.length === 0 || after.some((duty) => duty < peak)).toBe(true);
     expect(pinTrail(record.events, 32).every((pin) => pin.duty === 0 && pin.freq === 5000)).toBe(true);
   });
 
@@ -168,7 +175,13 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
     const tones = pinTrail(record.events, 15)
       .filter((pin) => pin.mode === 'pwm')
       .map((pin) => [pin.freq, pin.duty]);
-    expect(tones).toEqual([262, 294, 330, 349, 392, 440, 494, 523].map((freq) => [freq, 0.5]));
+    /*
+     * PWM(Pin(15))을 만든 순간의 기본값(5000Hz·50% — 실물 MicroPython과 같다)이 freq(262) 앞에 한 번 실려 올 수 있다.
+     * board.state는 16ms 안의 변화를 합쳐 보내므로 그 상태가 삼켜지느냐가 컴퓨터가 얼마나 바쁜지에 달려 있다
+     * (2026-09-18 검토 반영 — 같은 파일 f060 검사가 적어 둔 16ms 병합 규칙을 여기에도 똑같이 적용한다). 있어도 없어도 통과시킨다.
+     */
+    const played = tones[0]?.[0] === PWM_DEFAULT_FREQ ? tones.slice(1) : tones;
+    expect(played).toEqual([262, 294, 330, 349, 392, 440, 494, 523].map((freq) => [freq, 0.5]));
     const end = record.events.at(-1)?.pins.find((pin) => pin.id === 15);
     expect(end?.mode ?? null).toBeNull();
     expect(end).toMatchObject({ driven: false, level: 0 });
