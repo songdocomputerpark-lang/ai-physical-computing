@@ -51,6 +51,8 @@ git rev-list --left-right --count main...origin/main
 | `docs/SPEC.md` | 요구사항 전문 | 운영자에게 파일을 요청한다(공개 저장소에 올리지 않는다) |
 | 프로젝트 루트의 원본 폴더들 | 교과서 원고·예제·사진 원본(**읽기 전용**) | 비공개 저장소 `songdocomputerpark-lang/ai-physical-computing-materials`의 `originals/`·`extracted/` |
 | `.cache/phase3-requests/*.md` | 운영자 실물 확인 결과와 메인 세션 요청(웹캠, 모델·펌웨어) | 이미 반영됨. 남은 항목은 `PROGRESS.md` 미해결 121번 |
+| `.cache/phase4-notes/`, `.cache/phase4-requests/`, `.cache/phase4-reviews/` | **Phase 4의 작업 기억.** 단계마다 자기 보고를 여기 적고 다음 단계가 읽는다(프롬프트에 앞 단계 결과를 박지 않으려고 이렇게 했다). 구역 요청과 검토 지적도 여기 쌓인다 | 그 단계들을 다시 돌려야 한다. 워크플로 진행 기록의 `journal.jsonl`에도 같은 내용이 있으니 거기서 꺼내 파일로 되살릴 수 있다 |
+| 커밋 안 된 작업 파일(구역이 만드는 중) | Build 구역은 **커밋하지 않는다**(통합 단계가 커밋한다). 그래서 구역이 도는 동안 새 파일이 git 추적 밖에 쌓인다 — `.cache/resume/STATE.md`가 목록을 적어 둔다 | **`git clean`을 절대 돌리지 않는다.** 지우면 그 구역의 작업이 사라진다 |
 | `.cache/models-staging`, `.cache/firmware-staging` | 운영자가 내려받아 검증한 모델 5개·펌웨어 1개 원본 | 이미 `public/models/`·`public/firmware/`에 배치·등록됨. 다시 받으려면 검증 스크립트를 만들어 운영자에게 실행을 부탁한다 |
 | `%LOCALAPPDATA%\Temp\claude\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\e6855a12-1c8a-4ecc-8918-e3c58d3d247a\scratchpad\mat` | 원본 자료 추출본(`manifest.json`, 코드 색인 `code_index.tsv` f001~f158, `groups/`, `pdftext/`, 그림 폴더들). 워크플로 args의 `mat` | 비공개 저장소 `extracted/`에서 다시 만든다. `flat/`은 줄바꿈이 깨져 있어 쓰지 않는다 |
 | `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\memory\` | 메모리(진행 상태·결정 위임·저작권·배포 대상·다운로드 권한) | 이 문서와 `PROGRESS.md`로 대신할 수 있다 |
@@ -81,6 +83,14 @@ PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) �
 
 - 스크립트 사본 2개: 세션 폴더의 `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js`, 안전 사본 `.cache\resume\phase4-comm-lab-wf_26c7dddc-2bf.js`.
 - args는 `.cache\resume\RESUME-ARGS.json`(Phase 3과 같은 세 값).
+
+**Build 구역이 도는 중에 끊겼으면 (지금이 그 구간이다)**
+
+1. 끝난 단계(Core 두 개)는 **이미 커밋·push되어 있다** — 잃는 것이 없다. 구역들은 커밋하지 않으므로 만든 파일이 git 추적 밖에 남아 있다.
+2. 재개하면 **끝나지 않은 구역은 처음부터 다시 돈다**(결과를 못 남겼으니 캐시가 없다). 그 구역이 이미 만든 파일은 디스크에 그대로이므로, 다시 도는 에이전트가 자기 폴더를 읽고 이어서 만든다. 파일을 미리 지우지 않는다.
+3. 재개 전에 `git status`로 무엇이 있는지 보고, `.cache/phase4-notes/`의 `.md`를 읽어 어디까지 갔는지 파악한다. 이 두 가지가 곧 작업 기억이다.
+4. **`git clean`·`git checkout .`으로 작업 트리를 비우지 않는다.** 구역의 미완성 작업이 사라진다.
+5. 재개 명령은 위와 같다(`resumeFromRunId: "wf_26c7dddc-2bf"`). Core 두 단계는 캐시에서 즉시 돌아온다.
 
 ### 끝난 것 — `wf_db55fe07-fd6` (2026-09-18 07:38 → 11:23, Phase 3 마무리)
 
