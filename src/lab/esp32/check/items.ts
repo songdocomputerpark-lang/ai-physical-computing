@@ -349,7 +349,7 @@ export const CHECK_ITEMS: readonly CheckItem[] = Object.freeze([
     why: '사이트가 쓰는 두 프로필(23/73/124와 40/77/115)이 실제로 몇 도를 가리키는지 봐요.',
     minutes: 8,
     wiring: [{ part: 'servo', pin: 13 }],
-    prepare: '서보모터 신호선을 GPIO13에 꽂고, 서보 팔이 가리키는 각도를 종이 눈금과 비교해요.',
+    prepare: '서보모터 신호선을 GPIO13에 꽂고, 서보 팔이 움직일 공간을 비워 둔 뒤, 팔이 가리키는 각도를 종이 눈금과 비교해요.',
     code: [
       'from machine import Pin, PWM',
       'import time',
@@ -483,7 +483,7 @@ export const CHECK_ITEMS: readonly CheckItem[] = Object.freeze([
     why: '두 입력 핀(25·26)으로 정회전·역회전·멈춤이 되는지, 속도 30%에서도 도는지 봐요.',
     minutes: 5,
     wiring: [{ part: 'fan-motor', pins: { ina: 25, inb: 26 } }],
-    prepare: '팬 모터 모듈의 INA를 GPIO25, INB를 GPIO26에 꽂고 모듈 전원을 켜요.',
+    prepare: '팬 모터 모듈의 INA를 GPIO25, INB를 GPIO26에 꽂고 모듈 전원을 켜요. 팬이 도는 동안 날개에 손대지 않고, 프로펠러 주변을 비워 둬요.',
     libraries: ['gorillacell_dcmotors'],
     code: [
       'from gorillacell_dcmotors import GORILLACELL_DCMOTORS',

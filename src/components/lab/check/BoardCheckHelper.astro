@@ -38,6 +38,21 @@ const labHref = withBase('labs/esp32/');
   <label class="board-check__report-label" for="board-check-report">복사할 글(PROGRESS.md에 붙여 주세요)</label>
   <textarea id="board-check-report" class="board-check__report" rows="8" readonly data-check-report hidden></textarea>
 
+  {/*
+    부품을 실제로 움직이는 페이지인데 안전 안내가 한 줄도 없었다(2026-09-18 검토 반영). /start/board/ "안전하게 쓰기"와 같은 문구를
+    여기에도 둔다 — 도우미만 열어 항목 22개를 돌리는 선생님이 그 절을 한 번도 보지 않기 때문이다.
+  */}
+  <details class="board-check__safety" open>
+    <summary>안전하게 쓰기</summary>
+    <ul>
+      <li>레이저 빛을 눈이나 다른 사람 쪽으로 비추지 않아요.</li>
+      <li>팬이 도는 동안 날개에 손대지 않고, 프로펠러 주변을 비워 둬요.</li>
+      <li>서보모터는 팔이 움직일 공간을 비워 둬요.</li>
+      <li>배선을 바꿀 때는 먼저 USB 케이블을 뽑아요.</li>
+      <li>모터나 서보를 여러 개 쓰면 USB 전원이 모자랄 수 있어요. 확장 보드에 전원 스위치가 있다면 켜져 있는지 확인해요.</li>
+    </ul>
+  </details>
+
   <h2 class="board-check__heading">확인할 것</h2>
   <ol class="board-check__items" data-check-items></ol>
 
@@ -160,6 +175,36 @@ const labHref = withBase('labs/esp32/');
     margin: 0;
     font-size: var(--text-sm);
     color: var(--color-text-muted);
+  }
+
+  .board-check__safety {
+    margin-block-end: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-warning-border);
+    border-inline-start: 5px solid var(--color-warning-border);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+  }
+
+  .board-check__safety > summary {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .board-check__safety > summary:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .board-check__safety ul {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.3em;
+    line-height: var(--leading-snug);
   }
 
   .board-check__items {
