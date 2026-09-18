@@ -1,0 +1,8 @@
+# 예제 갤러리 태그만 적는 사이드카(P4-11 — src/lab/gallery/facets.ts).
+# 제목·설명·배선·실습 방법은 사이트가 만든 예제라 .py 머리말에 있어요(src/lab/README.md 2절). 여기에는 갤러리 칸만 적어요.
+# 보충 차시 C1 md가 생기면(Phase 5) 차시 frontmatter가 먼저고, 여기 값은 그 다음이에요.
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - uart

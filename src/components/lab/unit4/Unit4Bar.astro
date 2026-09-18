@@ -1,0 +1,123 @@
+---
+/**
+ * 4단원 통합 화면의 조작 줄과 성능 칸(PLAN §8.4 P4-09). 화면 논리는 src/lab/unit4/unit4-page.ts가 맡고 여기는 HTML·CSS만 그린다.
+ *
+ * 테스트가 읽는 값: [data-unit4]의 data-unit4-phase·data-unit4-samples·data-unit4-screen·data-unit4-connected,
+ * 단추 [data-unit4-run]·[data-unit4-stop]·[data-unit4-copy], 글 [data-unit4-status]·[data-unit4-perf]·[data-unit4-screen-note].
+ */
+import { UNIT4_SCREEN } from '../../../lab/unit4/config.ts';
+import { PAIRS } from '../../../lab/unit4/examples.ts';
+---
+
+<section class="unit4-bar" data-unit4 data-unit4-phase="idle" data-unit4-samples="0" aria-labelledby="unit4-bar-heading">
+  <h2 id="unit4-bar-heading" class="unit4-bar__heading">한 화면에서 함께 돌리기</h2>
+  <p class="unit4-bar__lead">
+    왼쪽은 <strong>컴퓨터</strong>(카메라·얼굴 그물·가상 모니터), 오른쪽은 <strong>ESP32 보드</strong>(LCD·서보 2개·RGB LED·레이저·버저)예요.
+    두 칸은 각각 파이썬을 따로 돌리고, 사이는 블루투스로 이어져요.
+  </p>
+
+  <div class="unit4-bar__buttons">
+    <button type="button" class="button button--primary" data-unit4-run>함께 실행</button>
+    <button type="button" class="button button--secondary" data-unit4-stop disabled>함께 정지</button>
+  </div>
+
+  <p class="unit4-bar__status" data-unit4-status role="status">
+    [함께 실행]을 누르면 보드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.
+  </p>
+  <p class="unit4-bar__note" data-unit4-screen-note>
+    가상 모니터를 {UNIT4_SCREEN.width}×{UNIT4_SCREEN.height}로 맞춰요.
+  </p>
+
+  <details class="unit4-bar__pairs">
+    <summary>짝이 맞는 예제 고르기</summary>
+    <p class="unit4-bar__note">
+      두 칸의 [예제 불러오기]에서 아래 짝으로 골라요. 컴퓨터 코드가 보내는 글은 늘{' '}
+      <code>DATA,x,y,더블클릭,오른쪽클릭</code>이고, 보드 코드가 그것을 읽어요.
+    </p>
+    <ul class="unit4-bar__pair-list">
+      {
+        PAIRS.map((pair) => (
+          <li>
+            <strong>{pair.label}</strong>
+            <span class="unit4-bar__pair-files">
+              <code>{pair.pc}</code> → <code>{pair.board}</code>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </details>
+
+  <div class="unit4-bar__perf">
+    <h3 class="unit4-bar__perf-heading">성능(이 컴퓨터에서 잰 값)</h3>
+    <p class="unit4-bar__perf-text" data-unit4-perf role="status">아직 잰 값이 없어요. [함께 실행]을 누르면 재기 시작해요.</p>
+    <button type="button" class="lab-button" data-unit4-copy>측정 기록 복사</button>
+    <p class="unit4-bar__note" data-unit4-copied role="status"></p>
+  </div>
+</section>
+
+<style>
+  .unit4-bar {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    margin-block-end: var(--space-5);
+  }
+
+  .unit4-bar__heading {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .unit4-bar__lead,
+  .unit4-bar__status,
+  .unit4-bar__note,
+  .unit4-bar__perf-text {
+    margin: 0;
+    line-height: var(--leading-body);
+  }
+
+  .unit4-bar__note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .unit4-bar__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .unit4-bar__pair-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding-inline-start: 1.2em;
+  }
+
+  .unit4-bar__pair-files {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .unit4-bar__perf {
+    display: grid;
+    gap: var(--space-2);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .unit4-bar__perf-heading {
+    margin: 0;
+    font-size: var(--text-base);
+  }
+
+  .unit4-bar__perf .lab-button {
+    justify-self: start;
+  }
+</style>

@@ -1,10 +1,15 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-2 기본: 같은 코드를 보드에 저장해 자동 실행하기(원본 파일)"
-description: 앞 예제와 같은 코드를 boot.py로 저장해 보드에 전원이 들어오면 저절로 돌게 하는 차시예요. 원본 파일은 4번 줄이 Pin(18, PinOUT)이라 실행하자마자 NameError로 멈춰요(실물 보드도 같아요 — 원고 191쪽은 Pin.OUT이에요). 사이트 [보드에 저장]은 main.py에 저장해요.
+description: 앞 예제와 같은 코드를 boot.py로 저장해 보드에 전원이 들어오면 저절로 돌게 하는 차시예요. 원본 파일은 4번 줄이 Pin(18, PinOUT)이라 실행하자마자 NameError로 멈춰요(실물 보드도 같아요 — 원고 191쪽은 Pin.OUT이에요). 고친 뒤에는 앞 예제와 똑같이 컴퓨터가 보낸 a·b로 레이저가 켜지고 꺼져요. 사이트 [보드에 저장]은 main.py에 저장해요.
 lesson: 3-1-2
 page: 191
 source_id: f083
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - uart
 tags:
   - UART
   - 시리얼
@@ -12,6 +17,7 @@ tags:
   - 보드에 저장
 packages: []
 parts:
+  # 앞 예제(f082)와 같은 까닭으로 배선을 원본 코드(tx=16·rx=17)에 맞췄어요 — 이유는 3-1-2-uart-laser.meta.yaml에 적어 두었어요.
   - part: uart
     pins:
       rx: 16
@@ -23,4 +29,4 @@ smoke:
   error: NameError
 practice:
   - "[실행]을 누르면 4번 줄에서 NameError로 멈춰요. 오류 풀이 카드를 읽어 봐요."
-  - PinOUT을 Pin.OUT으로 고치면 앞 예제와 같이 돌아요.
+  - PinOUT을 Pin.OUT으로 고치면 앞 예제와 같이 돌아요 — 영상처리 실습실의 3-1-2 예제가 보낸 a·b가 그대로 와요.

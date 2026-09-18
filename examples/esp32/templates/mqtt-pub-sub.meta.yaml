@@ -1,0 +1,7 @@
+# 예제 갤러리 태그만 적는 사이드카(P4-11 — src/lab/gallery/facets.ts). 제목·설명은 .py 머리말에 있어요.
+# virtual_ok는 아직 적지 않아요 — 가상 보드의 network·umqtt 흉내(P4-06)가 들어오면 true로 적어요.
+unit: 3
+difficulty: 3
+comm:
+  - wifi
+  - mqtt

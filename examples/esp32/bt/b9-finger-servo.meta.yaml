@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "블루투스 교안: 손가락 위치로 서보모터 돌리기"
-description: 보드 쪽 코드예요. a면 0도, b면 180도로 서보를 돌려요. 쓰지 않는 i2c_lcd도 import해서, 실물 보드에 그 파일이 없으면 ImportError가 나요([보드에 저장]은 필요한 라이브러리를 함께 올려요). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+description: 보드 쪽 코드예요. a면 0도, b면 180도로 서보를 돌려요. 쓰지 않는 i2c_lcd도 import해서, 실물 보드에 그 파일이 없으면 ImportError가 나요([보드에 저장]은 필요한 라이브러리를 함께 올려요).
 source_id: f149
 tags:
   - 블루투스
@@ -9,9 +9,19 @@ tags:
   - 서보모터
 packages: []
 parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
   - part: servo
     pin: 32
     label: 서보모터
+practice:
+  - "[실행] → [연결]을 눌러요."
+  - "[a]를 누르면 서보가 0도로 돌아요."
+  - "[b]를 누르면 180도로 돌아요. 그림 아래 각도와 펄스 폭도 함께 봐요."
+difficulty: 2
+virtual_ok: true
+comm:
+  - ble
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

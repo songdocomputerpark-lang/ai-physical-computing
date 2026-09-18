@@ -1,0 +1,578 @@
+---
+/**
+ * 대시보드 화면(P4-07, 시나리오 D) — 연결 줄 + 위젯 판 + 가상 보드 자리.
+ *
+ * 이 파일은 **HTML과 CSS만** 그린다. 움직임은 `src/lab/dashboard/dashboard-page.ts`(`mountDashboard`)가
+ * `data-dash-*` 표시를 찾아 잇는다. 위젯은 자바스크립트가 만들기 때문에 스타일은 `is:global`로 둔다
+ * (범위 스타일은 스크립트가 만든 요소에 닿지 않는다 — 보드 그림 CSS를 공용 파일로 뺀 것과 같은 까닭, P3-11).
+ *
+ * 중계 서버 목록은 설정 한 곳(`src/lab/mqtt/brokers.ts`)에서 가져와 그린다.
+ */
+import { MQTT_BROKERS } from '../../../lab/mqtt/brokers.ts';
+import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
+---
+
+<section class="dash" data-dash-page data-dash-state="idle" data-dash-via="" data-dash-mode-value="tab" data-dash-ready="no">
+  <div class="dash__step">
+    <h2 class="dash__step-title">1. 통로를 고르고 연결해요</h2>
+
+    <p class="dash__warning" data-dash-warning data-dash-level="info" aria-live="polite"></p>
+
+    <div class="dash__row">
+      <label class="dash__label" for="dash-mode">통로</label>
+      <select id="dash-mode" class="dash__select" data-dash-mode>
+        <option value="tab">같은 컴퓨터 탭(인터넷 없이)</option>
+        <option value="broker">공개 중계 서버</option>
+        <option value="auto">중계 서버 먼저, 안 되면 탭</option>
+      </select>
+    </div>
+
+    <div class="dash__row">
+      <label class="dash__label" for="dash-broker">중계 서버</label>
+      <select id="dash-broker" class="dash__select" data-dash-broker>
+        {MQTT_BROKERS.map((broker) => <option value={broker.id}>{broker.label}{broker.url === '' ? '' : ` — ${broker.url}`}</option>)}
+      </select>
+    </div>
+
+    <div class="dash__row" data-dash-broker-url-row hidden>
+      <label class="dash__label" for="dash-broker-url">서버 주소</label>
+      <input
+        id="dash-broker-url"
+        class="dash__input dash__input--wide"
+        type="text"
+        data-dash-broker-url
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="wss://broker.example.org:8084/mqtt"
+      />
+    </div>
+
+    <p class="dash__note" data-dash-broker-note></p>
+
+    <div class="dash__row">
+      <span class="dash__label" id="dash-prefix-label">통신 접두어</span>
+      <code class="dash__prefix" data-dash-prefix aria-labelledby="dash-prefix-label"></code>
+      <button type="button" class="button button--secondary dash__small" data-dash-new-prefix>새로 만들기</button>
+      <button type="button" class="button button--secondary dash__small" data-dash-pin aria-pressed="false">이 접두어 고정</button>
+    </div>
+
+    <div class="dash__row">
+      <label class="dash__label" for="dash-friend">친구 접두어</label>
+      <input
+        id="dash-friend"
+        class="dash__input"
+        type="text"
+        data-dash-friend
+        autocomplete="off"
+        spellcheck="false"
+        maxlength="12"
+        placeholder="예: 7kq2m9xd4hpt"
+      />
+      <button type="button" class="button button--secondary dash__small" data-dash-friend-apply>맞추기</button>
+    </div>
+
+    <div class="dash__row">
+      <button type="button" class="button button--primary dash__small" data-dash-connect>연결</button>
+      <button type="button" class="button button--secondary dash__small" data-dash-disconnect disabled>끊기</button>
+      <span class="dash__state" data-dash-state-text aria-live="polite">아직 연결하지 않았어요</span>
+      <span class="dash__state" data-dash-count></span>
+    </div>
+
+    <p class="dash__hint" data-dash-hint aria-live="polite" hidden></p>
+  </div>
+
+  <div class="dash__step">
+    <h2 class="dash__step-title">2. 위젯을 놓아요</h2>
+    <div class="dash__row">
+      <span class="dash__label" id="dash-add-label">위젯 추가</span>
+      {
+        WIDGET_KINDS.map((info) => (
+          <button type="button" class="button button--secondary dash__small" data-dash-add={info.kind} title={info.description}>
+            + {info.label}
+          </button>
+        ))
+      }
+      <button type="button" class="button button--secondary dash__small" data-dash-reset>배치 되돌리기</button>
+    </div>
+    <p class="dash__help" id="dash-keyboard-help" data-dash-help>
+      위젯 제목(손잡이)을 끌어서 옮겨요. 키보드로는 손잡이에서 <kbd>방향키</kbd>로 옮기고,{' '}
+      <kbd>Shift</kbd>+<kbd>방향키</kbd>로 크기를 바꿔요. 배치는 이 컴퓨터에만 저장돼요.
+    </p>
+    <p class="dash__announce" data-dash-announce role="status" aria-live="polite"></p>
+
+    <noscript>
+      <p class="dash__note">
+        이 브라우저에서 자바스크립트가 꺼져 있어요. 대시보드 위젯은 자바스크립트로 그리기 때문에 아래 판이 비어 있어요.
+        설정에서 자바스크립트를 켜고 새로 고쳐 주세요.
+      </p>
+    </noscript>
+
+    <div class="dash__grid" data-dash-grid data-dash-count="0" role="group" aria-label="위젯 판"></div>
+  </div>
+
+  <div class="dash__step">
+    <h2 class="dash__step-title">3. 값을 보내는 보드를 열어요</h2>
+    <p class="dash__note">
+      아래 단추를 누르면 이 자리에서 <strong>가상 ESP32 보드</strong>가 열려요(누르기 전에는 실습실 파일을 받지 않아요).
+      실습실에서 [실행]을 누르면 보드가 0~100 사이 값을 보내고, 위의 그래프·게이지에 바로 나타나요.
+      스위치를 누르면 보드의 파란 LED가 켜져요. 다른 탭에서 ESP32 실습실을 열고 접두어를 맞춰도 똑같이 돼요.
+    </p>
+    <button type="button" class="button button--secondary" data-dash-open-lab aria-expanded="false">이 자리에서 가상 보드 열기</button>
+    <div class="dash__lab-slot" data-dash-lab-slot hidden></div>
+  </div>
+</section>
+
+<style is:global>
+  .dash {
+    display: grid;
+    gap: var(--space-6);
+    margin-block: var(--space-6);
+  }
+
+  .dash__step {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  /* 격자 칸 기본값(min-width: auto)이면 안쪽 내용만큼 넓어져 휴대폰 화면 밖으로 삐져나간다. */
+  .dash > *,
+  .dash__step > * {
+    min-width: 0;
+  }
+
+  .dash__step-title {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+  }
+
+  .dash__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .dash__label {
+    min-width: 6rem;
+    font-weight: var(--weight-semibold);
+  }
+
+  .dash__select {
+    flex: 1 1 14rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font: inherit;
+  }
+
+  .dash__input {
+    flex: 1 1 10rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+  }
+
+  .dash__input--wide {
+    flex: 1 1 16rem;
+  }
+
+  .dash__small {
+    min-height: var(--target-min);
+    padding-block: var(--space-1);
+    font-size: var(--text-sm);
+  }
+
+  .dash__prefix {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+
+  .dash__warning {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .dash__warning[data-dash-level='warn'] {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .dash__note,
+  .dash__hint,
+  .dash__help,
+  .dash__announce,
+  .dash__state {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .dash__note:empty,
+  .dash__announce:empty {
+    display: none;
+  }
+
+  .dash__help kbd {
+    padding: 0 0.25rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  /* ── 위젯 판 ───────────────────────────────────────────────────────────── */
+  .dash__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--dash-cols, 12), minmax(0, 1fr));
+    grid-auto-rows: var(--dash-row, 3.25rem);
+    gap: var(--space-3);
+    min-height: 12rem;
+    padding: var(--space-2);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  /* 위젯을 모두 지웠을 때(판이 비었을 때) 무엇을 하면 되는지 알려 준다. */
+  .dash__grid:empty::after {
+    content: '위젯이 하나도 없어요. 위의 [위젯 추가]를 눌러 원하는 위젯을 놓아요.';
+    align-self: center;
+    justify-self: center;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .dash-widget {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .dash-widget[data-dash-dragging='true'] {
+    box-shadow: var(--shadow-md);
+    outline: 2px solid var(--color-accent);
+  }
+
+  .dash-widget__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-muted);
+  }
+
+  .dash-widget__grab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2rem;
+    padding: 0.125rem var(--space-1);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: var(--weight-semibold);
+    text-align: left;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .dash-widget__grab:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg);
+  }
+
+  .dash-widget__grab-icon {
+    color: var(--color-text-muted);
+  }
+
+  .dash-widget__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dash-widget__kind {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .dash-widget__small {
+    min-height: 2rem;
+    padding: 0.125rem var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-xs);
+    cursor: pointer;
+  }
+
+  .dash-widget__small:hover {
+    background: var(--color-bg-muted);
+  }
+
+  .dash-widget__body {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-1);
+    min-height: 0;
+    padding: var(--space-2);
+    overflow: hidden;
+  }
+
+  .dash-widget__canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .dash-widget__last,
+  .dash-widget__hint,
+  .dash-widget__scale {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    text-align: center;
+  }
+
+  .dash-widget__last:empty {
+    display: none;
+  }
+
+  .dash-widget__value {
+    margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    line-height: 1;
+  }
+
+  .dash-widget__gauge {
+    width: 100%;
+    max-width: 11rem;
+    min-height: 0;
+  }
+
+  .dash-gauge__track {
+    fill: none;
+    stroke: var(--color-border);
+    stroke-width: 10;
+    stroke-linecap: round;
+  }
+
+  .dash-gauge__value {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: d var(--duration-base) var(--ease-standard);
+  }
+
+  .dash-gauge__needle {
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition:
+      x2 var(--duration-base) var(--ease-standard),
+      y2 var(--duration-base) var(--ease-standard);
+  }
+
+  .dash-switch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+    font: inherit;
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .dash-switch__knob {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+    transition: background var(--duration-base) var(--ease-standard);
+  }
+
+  .dash-switch[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+  }
+
+  .dash-switch[aria-pressed='true'] .dash-switch__knob {
+    background: var(--color-accent);
+  }
+
+  .dash-widget__log {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: var(--space-1);
+    overflow-y: auto;
+    list-style: none;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .dash-widget__log:empty::after {
+    content: '아직 온 메시지가 없어요.';
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+  }
+
+  .dash-widget__log-item {
+    padding: 0.05rem 0;
+    word-break: break-all;
+  }
+
+  .dash-widget__settings {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+  }
+
+  .dash-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .dash-field__label {
+    flex: 0 0 5.5rem;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  .dash-field__input {
+    flex: 1 1 6rem;
+    min-width: 0;
+    min-height: 2rem;
+    padding: 0.125rem var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .dash-field__hint {
+    flex: 1 1 100%;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .dash-widget__resize {
+    position: absolute;
+    right: 0.125rem;
+    bottom: 0.125rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: nwse-resize;
+    touch-action: none;
+  }
+
+  .dash-widget__resize:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg-muted);
+  }
+
+  .dash-widget__grab:focus-visible,
+  .dash-widget__small:focus-visible,
+  .dash-widget__resize:focus-visible,
+  .dash-switch:focus-visible,
+  .dash__input:focus-visible,
+  .dash__select:focus-visible,
+  .dash-field__input:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* ── 가상 보드 자리 ────────────────────────────────────────────────────── */
+  .dash__lab-slot {
+    margin-top: var(--space-3);
+  }
+
+  .dash-lab__frame {
+    width: 100%;
+    height: min(80vh, 46rem);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  /* 좁은 화면(휴대폰): 격자 대신 한 줄에 하나씩, 읽는 순서(DOM 순서)대로 보여 준다. */
+  @media (max-width: 48rem) {
+    .dash__grid {
+      grid-template-columns: 1fr;
+      grid-auto-rows: auto;
+    }
+
+    .dash-widget {
+      grid-column: 1 / -1 !important;
+      grid-row: auto !important;
+      min-height: 11rem;
+    }
+
+    .dash__label {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    .dash__select,
+    .dash__input,
+    .dash__input--wide {
+      flex: 1 1 100%;
+    }
+  }
+</style>

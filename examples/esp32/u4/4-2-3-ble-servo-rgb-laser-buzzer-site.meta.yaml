@@ -1,0 +1,51 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 사이트판(PLAN PD-10·PD-23): 원본 파일은 그대로 두고 고친 줄에 "# [사이트판]"을 붙인 파일이에요. 사람이 직접 고쳐요.
+title: "4-2-3: 마우스로 서보·LED·레이저·버저 움직이기(사이트판 — 레이저 끄기)"
+description: 앞 4-2-2 심화와 거의 같고 서보 각도를 바꾸는 계산 2줄만 달라요. 원본 파일에서 주석 처리돼 있던 레이저 끄기 세 줄(99·100·101번째 줄)의 주석만 풀었어요. 값이 오지 않는 동안에는 레이저가 꺼져요. 줄 번호는 원본과 같고, 실물 레이저는 눈에 비추지 않아요.
+lesson: 4-2-2
+source_id: f115
+tags:
+  - 블루투스
+  - BLE
+  - 레이저
+  - 서보모터
+  - 사이트판
+packages: []
+parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+  - part: servo
+    id: servo-x
+    pin: 25
+    label: 서보모터 X
+  - part: servo
+    id: servo-y
+    pin: 26
+    label: 서보모터 Y
+  - part: rgb-led
+    pins:
+      r: 27
+      g: 32
+      b: 33
+  - part: laser
+    pin: 18
+  - part: buzzer
+    pin: 2
+practice:
+  - '[실행] → [연결] → 모양 "DATA,x,y,클릭,오른쪽", 범위 "화면 좌표"를 골라요.'
+  - x·y를 바꿔 보내며 서보 두 개가 어떻게 도는지 보고, 보내기를 멈추면 레이저가 꺼지는지도 봐요.
+  - "[클릭 보내기]로 LED·레이저·버저가 함께 반응하는 것을 봐요. 다 봤으면 [정지]를 눌러요."
+unit: 4
+difficulty: 3
+virtual_ok: true
+comm:
+  - ble
+smoke:
+  outcome: stopped

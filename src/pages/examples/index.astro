@@ -1,0 +1,62 @@
+---
+/**
+ * 예제 갤러리 페이지(PLAN §2.1 "예제 갤러리", §8.4 P4-11).
+ *
+ * 화면은 모두 src/components/examples/ExampleGallery.astro가 그린다 — 이 파일은 제목·소개·현재 위치만 정한다.
+ * 그래서 사이트 지도의 주소를 바꿀 때(아래 참고) 옮길 것이 이 얇은 파일 하나뿐이다.
+ *
+ * **주소 참고(통합 담당에게):** 사이트 지도(src/config/nav.ts)에는 예제 갤러리가 `/labs/gallery/`로 적혀 있고 지금 그 자리에는
+ * 준비 중 자리 페이지가 있다. Phase 4 구역 나눔에서 갤러리 담당의 폴더가 `src/pages/examples/`로 정해져(`.cache/phase4-notes/core-prep.md` 4절)
+ * 실제 화면은 이 주소에 먼저 만들었다. 통합 때 둘 중 하나로 합친다 — 자세한 내용과 그대로 붙일 수 있는 변경안은
+ * `.cache/phase4-requests/gallery.md`에 적어 두었다.
+ *   ① (권함) `src/pages/labs/gallery/index.astro`가 이 파일과 같은 내용을 그리게 하고 이 파일을 지운다(사이트 지도 그대로).
+ *   ② 사이트 지도의 갤러리 주소를 `/examples/`로 옮기고 `/labs/gallery/` 자리 페이지를 지운다.
+ * 어느 쪽이든 고치는 것은 `<BaseLayout>` 겉면뿐이고, 카드·거르기·검색은 ExampleGallery.astro 안에서 그대로 움직인다.
+ */
+import ExampleGallery from '../../components/examples/ExampleGallery.astro';
+import { getPage } from '../../config/nav.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const page = getPage('labs-gallery');
+const home = getPage('home');
+const labs = getPage('labs');
+const visionLab = getPage('labs-vision');
+const esp32Lab = getPage('labs-esp32');
+const learn = getPage('learn');
+
+// 사이트 지도의 주소(/labs/gallery/)와 지금 이 페이지의 주소(/examples/)가 달라서 현재 위치를 직접 적는다.
+const breadcrumb = [
+  { label: home.label, href: home.href },
+  { label: labs.label, href: labs.href },
+  { label: page.label },
+];
+---
+
+<BaseLayout title={page.title} description={page.description} breadcrumb={breadcrumb}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+
+  <div class="examples-intro">
+    <p>
+      사이트에 있는 실습 예제를 한자리에 모았어요. 위쪽에서 낱말로 찾거나 태그(대단원, 통신 방식, 부품 …)를 골라 좁힌 다음,
+      카드의 [실습실에서 열기]를 누르면 그 예제가 <a href={visionLab.href}>{visionLab.label}</a> 또는{' '}
+      <a href={esp32Lab.href}>{esp32Lab.label}</a>에 그대로 올라와요. 바로 [실행]해 보고 코드를 고쳐 봐도 돼요.
+    </p>
+    <p>
+      차시 차례대로 공부하고 싶으면 <a href={learn.href}>{learn.label}</a>로 가요. 예제 카드에 차시 이름이 있으면 그 차시에서
+      무엇을 배우는 예제인지 함께 읽을 수 있어요.
+    </p>
+  </div>
+
+  <ExampleGallery />
+</BaseLayout>
+
+<style>
+  .examples-intro {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-6);
+    line-height: var(--leading-body);
+  }
+</style>

@@ -1,0 +1,10 @@
+---
+/**
+ * 실제 블루투스 모듈의 화면 조각(src/lab/README.md 4.5). LabShell이 [data-lab-module-panel="web-bluetooth"] 안에
+ * hidden으로 그려 두고, index.ts가 코드에 블루투스가 보일 때 showPanel()로 연다.
+ * 내용은 src/components/lab/ble/BlePanel.astro에 있다(페이지가 직접 넣을 수도 있게 부품으로 나눠 두었다).
+ */
+import BlePanel from '../../../components/lab/ble/BlePanel.astro';
+---
+
+<BlePanel />

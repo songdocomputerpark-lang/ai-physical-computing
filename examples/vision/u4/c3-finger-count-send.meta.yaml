@@ -1,0 +1,17 @@
+# 사이트가 만든 예제라 제목·설명·실습 방법·안내 상자는 .py 머리말에 있어요(src/lab/README.md 2절).
+# 여기에는 갤러리 태그(P4-11)만 적어요. 제목은 짝 예제(examples/esp32/u4/c3-neopixel-count-rx.py)와 나란히 보이도록 함께 적어 두고,
+# 고칠 때는 .py 머리말 첫 줄과 같게 맞춰요(사이드카가 먼저 쓰여요).
+# 보충 차시 C3 md가 정식으로 들어오면(Phase 5) 차시 frontmatter가 먼저고, 여기 값은 그 다음이에요.
+title: "보충 C3 컴퓨터 쪽: 편 손가락 개수를 세어 보드로 보내기"
+lesson: c3
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  # 통로는 코드에 적지 않고 [보내기] 패널에서 고른다(§7.6). 기본은 같은 컴퓨터 탭이라 tab으로 적어요
+  # (src/lab/gallery/infer.ts도 `import bridge`를 tab으로 읽어요). 짝 예제는 보드 쪽에서 UART로 받아요.
+  - tab
+tags:
+  - 손가락 개수
+  - 통신
+  - 시나리오 F

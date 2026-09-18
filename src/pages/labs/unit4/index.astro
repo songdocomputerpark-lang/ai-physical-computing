@@ -1,0 +1,201 @@
+---
+/**
+ * 4단원 통합 화면(PLAN §2.1 /labs/unit4/, §8.4 P4-09, SPEC §7 통신).
+ *
+ * 한 문서에 실습실 틀(LabShell)을 **둘** 둔다 — 왼쪽은 영상처리(labId "vision": 카메라·얼굴 그물·가상 데스크톱),
+ * 오른쪽은 ESP32(labId "esp32": 가상 보드의 LCD·서보 2·RGB·레이저·버저·블루투스). LabShell.astro의 스크립트가
+ * `[data-lab]`을 모두 찾아 따로 붙이므로 둘은 각자 파이썬 워커를 쓰고 서로를 건드리지 않는다(워커 두 벌 + MediaPipe —
+ * PLAN 예상 위험 25번이라 이 페이지가 성능을 재고 보고한다).
+ *
+ * 컴퓨터 → 보드 길: 학생 코드의 `bluetooth.init(...).send("DATA,x,y,d,r")`
+ *   → 흉내 모듈 ble-pc(src/lab/modules/ble-pc/) → P4-01 브릿지(초당 10회·상태 병합·클릭 이벤트 보존)
+ *   → 창 이벤트 `apc:ble-write` → 가상 보드의 BLE 특성(P4-03) → 보드 코드의 `ESP32BLE.read()`.
+ * 두 칸이 **같은 문서**에 있어서 창 이벤트로 닿는다(iframe·다른 탭이 아니다).
+ *
+ * 가상 모니터 해상도는 3840×2160으로 맞춘다(PD-22) — 보드 코드가 `map(mouse_x, 0, 3840, 0, 180)`을 쓰기 때문이다.
+ *
+ * 예제 목록은 두 실습실의 것을 그대로 쓴다(원칙 6: 새 .py 하나면 목록에 들어온다). 처음 고르는 짝만 정한다.
+ */
+import { getCollection } from 'astro:content';
+import Callout from '../../../components/common/Callout.astro';
+import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
+import BoardIo from '../../../components/lab/BoardIo.astro';
+import LabShell from '../../../components/lab/LabShell.astro';
+import VisionIo from '../../../components/lab/VisionIo.astro';
+import Unit4Bar from '../../../components/lab/unit4/Unit4Bar.astro';
+import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { getPage } from '../../../config/nav.ts';
+import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
+import { esp32ExamplesFromFiles } from '../../../lab/esp32/examples.ts';
+import type { WiringEntry } from '../../../lab/modules/board/part-types.ts';
+import { normalizeWiringSpecs } from '../../../lab/modules/board/wiring-spec.ts';
+import { defaultBoardExampleId, defaultPcExampleId } from '../../../lab/unit4/examples.ts';
+import { VISION_PACKAGES, visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const title = '4단원 통합 실습실';
+const description = '카메라·가상 모니터·가상 ESP32 보드를 한 화면에서 함께 돌려 보는 4단원 실습실이에요. 얼굴로 움직인 좌표가 블루투스로 보드에 닿아요.';
+const visionPage = getPage('labs-vision');
+const esp32Page = getPage('labs-esp32');
+const checkPage = getPage('start-check');
+
+const visionFiles = import.meta.glob<string>(['/examples/vision/**/*.py', '/examples/desktop/**/*.py'], { query: '?raw', eager: true, import: 'default' });
+const visionSidecars = import.meta.glob<string>(['/examples/vision/**/*.meta.yaml', '/examples/desktop/**/*.meta.yaml'], { query: '?raw', eager: true, import: 'default' });
+const esp32Files = import.meta.glob<string>('/examples/esp32/**/*.py', { query: '?raw', eager: true, import: 'default' });
+const esp32Sidecars = import.meta.glob<string>('/examples/esp32/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' });
+
+// 차시 링크·배선은 두 실습실 페이지와 같은 규칙으로 만든다(같은 예제가 같은 배선·같은 링크를 갖게).
+const lessonEntries = (await getCollection('lessons')).filter((entry) => !entry.data.draft);
+const summaries = new Map(publishedLessons(lessonEntries).map((lesson) => [lesson.id, lesson]));
+const byFile: Record<string, ExampleLessonLink> = {};
+const bySlug: Record<string, ExampleLessonLink> = {};
+const wiringByFile: Record<string, WiringEntry[]> = {};
+const warnWiring = (text: string) => console.warn(`[4단원 통합 화면 배선] ${text}`);
+for (const entry of lessonEntries) {
+  for (const example of entry.data.examples) {
+    if (example.parts.length > 0 && wiringByFile[example.file] === undefined) {
+      const normalized = normalizeWiringSpecs(example.parts, `content/lessons/${entry.id}.md examples(${example.file})`);
+      normalized.errors.forEach(warnWiring);
+      if (normalized.entries.length > 0) {
+        wiringByFile[example.file] = normalized.entries;
+      }
+    }
+  }
+  const lesson = summaries.get(entry.id);
+  if (!lesson) {
+    continue;
+  }
+  const kindLabel = lesson.kind === 'supplement' ? `${KIND_LABELS.supplement} ` : '';
+  const link = { href: lesson.href, label: `${kindLabel}${lesson.label} ${lesson.title}` };
+  bySlug[lesson.slug] = link;
+  for (const example of entry.data.examples) {
+    byFile[example.file] ??= link;
+  }
+}
+
+const pcExamples = visionExamplesFromFiles(visionFiles, readExampleSidecars(visionSidecars), { byFile, bySlug });
+const boardExamples = esp32ExamplesFromFiles(esp32Files, readExampleSidecars(esp32Sidecars), { byFile, bySlug }, { wiringByFile });
+---
+
+<BaseLayout title={title} description={description} width="wide">
+  <BrowserNotice slot="notice" />
+  <h1 class="page-title" data-embed-hide>{title}</h1>
+  <p class="lead" data-embed-hide>{description}</p>
+
+  <div class="unit4-intro" data-embed-hide>
+    <ol class="unit4-intro__steps">
+      <li>[함께 실행]을 누르면 보드 코드가 먼저 돌고, 블루투스가 이어진 뒤 컴퓨터 코드가 돌아요.</li>
+      <li>카메라가 없어도 돼요. 왼쪽 입력에서 "재생 입력"이나 "샘플 입력"을 고르면 얼굴 좌표가 저절로 움직여요.</li>
+      <li>
+        한 칸씩 따로 보고 싶으면 <a href={visionPage.href}>{visionPage.title}</a>과{' '}
+        <a href={esp32Page.href}>{esp32Page.title}</a>을 다른 탭에서 열어요.
+      </li>
+    </ol>
+  </div>
+
+  <Unit4Bar />
+
+  <div class="unit4-grid">
+    <section class="unit4-pane" aria-labelledby="unit4-pc-heading">
+      <h2 id="unit4-pc-heading" class="unit4-pane__heading">컴퓨터 쪽 — 카메라와 가상 모니터</h2>
+      <LabShell labId="vision" examples={pcExamples} initialExampleId={defaultPcExampleId()} pyodidePackages={VISION_PACKAGES} headingLevel={3}>
+        <VisionIo slot="io" />
+      </LabShell>
+    </section>
+
+    <section class="unit4-pane" aria-labelledby="unit4-board-heading">
+      <h2 id="unit4-board-heading" class="unit4-pane__heading">보드 쪽 — 가상 ESP32</h2>
+      <LabShell labId="esp32" examples={boardExamples} initialExampleId={defaultBoardExampleId()} pyodidePackages={[]} headingLevel={3}>
+        <BoardIo slot="io" />
+      </LabShell>
+    </section>
+  </div>
+
+  <section class="unit4-help" aria-labelledby="unit4-help-heading" data-embed-hide>
+    <h2 id="unit4-help-heading" class="unit4-help__heading">잘 안 될 때</h2>
+    <Callout type="참고" title="컴퓨터가 버거워해요">
+      <ul>
+        <li>이 화면은 파이썬을 <strong>두 벌</strong> 돌려요. 다른 탭과 화상 수업 프로그램을 닫으면 훨씬 빨라져요.</li>
+        <li>왼쪽 입력을 "샘플 입력"이나 "재생 입력"으로 바꾸면 카메라를 켜지 않아 더 가벼워요.</li>
+        <li>그래도 느리면 두 실습실을 다른 탭에서 따로 열어 실습해도 돼요. 코드와 결과는 똑같아요.</li>
+      </ul>
+    </Callout>
+    <Callout type="오류" title="좌표가 보드에 닿지 않아요">
+      <ul>
+        <li>보드 칸이 먼저 [실행] 중이어야 해요. 블루투스 조작 칸의 [연결]이 눌려 있는지 봐요.</li>
+        <li>콘솔에 <code>Unable to send data: Not connected.</code>가 보이면 아직 이어지지 않은 거예요.</li>
+        <li>
+          파이썬이 준비되지 않으면 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 브라우저와 네트워크를 확인해요.
+        </li>
+      </ul>
+    </Callout>
+    <Callout type="주의" title="기기 주소는 적지 않아요">
+      <p>
+        브라우저는 블루투스 기기 주소로 연결하지 않아요. 교과서 코드의{' '}
+        <code>XX:XX:XX:XX:XX:XX</code> 자리는 그대로 두고, 화면에서 고른 보드가 상대가 돼요. 실제 보드를 쓸 때만 보드 이름(자리
+        번호)으로 골라요.
+      </p>
+    </Callout>
+  </section>
+</BaseLayout>
+
+<script>
+  import { mountVisionLab } from '../../../lab/vision/vision-lab.ts';
+  import { mountUnit4Page } from '../../../lab/unit4/unit4-page.ts';
+
+  const visionRoot = document.querySelector<HTMLElement>('[data-lab][data-lab-id="vision"]');
+  mountVisionLab(visionRoot).catch((error: unknown) => {
+    console.error('4단원 통합 화면의 카메라 칸을 준비하지 못했어요.', error);
+  });
+  mountUnit4Page(document.querySelector<HTMLElement>('[data-unit4]')).catch((error: unknown) => {
+    console.error('4단원 통합 화면을 준비하지 못했어요.', error);
+  });
+</script>
+
+<style>
+  .unit4-intro {
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-5);
+  }
+
+  .unit4-intro__steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+    line-height: var(--leading-body);
+  }
+
+  .unit4-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  /* 두 칸을 나란히 두는 것은 넓은 화면에서만 — 좁으면 위아래로 쌓여도 순서(컴퓨터 → 보드)가 그대로다. */
+  @media (min-width: 90rem) {
+    .unit4-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
+  .unit4-pane {
+    min-width: 0;
+  }
+
+  .unit4-pane__heading {
+    margin-block: 0 var(--space-3);
+    font-size: var(--text-lg);
+  }
+
+  .unit4-help {
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-8);
+  }
+
+  .unit4-help__heading {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-xl);
+  }
+</style>

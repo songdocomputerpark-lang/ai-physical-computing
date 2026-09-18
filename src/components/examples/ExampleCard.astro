@@ -1,0 +1,114 @@
+---
+/**
+ * 예제 갤러리 카드 한 장(P4-11). `ExampleGallery.astro`의 목록(<ul>) 안에 <li>로 들어간다.
+ *
+ * - 카드 값(단원·통신·부품·난이도·가상 보드·찾기 글자)은 **이 요소의 data-*에만** 둔다.
+ *   화면 쪽(src/lab/gallery/gallery-page.ts)이 그 값을 읽어 거르므로, 같은 값을 JSON으로 한 번 더 싣지 않는다.
+ * - 제목에 위치 이름(id)을 두어 사이트 검색이 항목 단위 결과(sub_results)로 보일 수 있게 한다(src/config/search.ts anchorPages).
+ * - [실습실에서 열기]는 차시의 [실습실에서 열기]와 같은 `?example=` 규칙이다(src/lab/gallery/cards.ts labExampleHref).
+ *   카드가 100장이 넘으므로 링크 이름에 예제 제목을 넣어(aria-label) 화면 낭독기의 링크 목록에서 구분되게 한다.
+ * - **모양(CSS)은 ExampleGallery.astro의 전역 스타일에 있다**(이 컴포넌트에 범위 스타일을 두면 Astro가 요소마다 붙이는
+ *   표시(data-astro-cid-…)로 페이지가 50KB 넘게 커진다 — 목록이 길어져도 첫 화면이 느려지지 않게 하려는 규칙).
+ */
+import type { GalleryCard } from '../../lab/gallery/cards.ts';
+import { EXAMPLE_COMM_LABELS, EXAMPLE_DIFFICULTY_LABELS } from '../../lab/gallery/facets.ts';
+import GalleryTag from './GalleryTag.astro';
+
+interface Props {
+  card: GalleryCard;
+  /** 부품 id → 한국어 이름 */
+  partLabels: Readonly<Record<string, string>>;
+}
+
+const { card, partLabels } = Astro.props;
+const { facets } = card;
+const virtualValue = facets.virtualOk === null ? undefined : facets.virtualOk ? 'yes' : 'no';
+const facts = [
+  card.page === null ? null : `교과서 ${card.page}쪽`,
+  `${card.lines}줄`,
+  card.sourceId === null ? null : `자료 코드 ${card.sourceId}`,
+].filter((text): text is string => text !== null);
+---
+
+<li
+  class="gallery-card"
+  data-gallery-card
+  data-card-id={card.id}
+  data-file={card.file}
+  data-lab={card.lab}
+  data-unit={facets.unit === null ? undefined : String(facets.unit)}
+  data-difficulty={facets.difficulty === null ? undefined : String(facets.difficulty)}
+  data-virtual={virtualValue}
+  data-comm={facets.comm.length > 0 ? facets.comm.join(' ') : undefined}
+  data-parts={facets.parts.length > 0 ? facets.parts.join(' ') : undefined}
+  data-keywords={card.keywords}
+>
+  <h3 class="gallery-card__title" id={card.anchor}>{card.title}</h3>
+  {card.description && <p class="gallery-card__description">{card.description}</p>}
+
+  <ul class="gallery-card__tags">
+    <li><GalleryTag tone="lab">{card.labLabel}</GalleryTag></li>
+    {facets.unit !== null && (
+      <li>
+        <GalleryTag tone="unit">{`${facets.unit}단원`}</GalleryTag>
+      </li>
+    )}
+    {facets.comm.map((kind) => (
+      <li>
+        <GalleryTag tone="comm">{EXAMPLE_COMM_LABELS[kind] ?? kind}</GalleryTag>
+      </li>
+    ))}
+    {facets.parts.map((part) => (
+      <li>
+        <GalleryTag tone="part" prefix="부품">{partLabels[part] ?? part}</GalleryTag>
+      </li>
+    ))}
+    {facets.difficulty !== null && (
+      <li>
+        <GalleryTag tone="meta">{`난이도 ${EXAMPLE_DIFFICULTY_LABELS[facets.difficulty] ?? facets.difficulty}`}</GalleryTag>
+      </li>
+    )}
+    {facets.virtualOk === true && (
+      <li>
+        <GalleryTag tone="virtual">하드웨어 없이 가능</GalleryTag>
+      </li>
+    )}
+    {facets.tags.map((tag) => (
+      <li>
+        <GalleryTag tone="word">{tag}</GalleryTag>
+      </li>
+    ))}
+  </ul>
+
+  <p class="gallery-card__facts"><code class="gallery-card__file">{`examples/${card.file}`}</code>{facts.length > 0 && ` · ${facts.join(' · ')}`}</p>
+
+  {
+    card.compare && (
+      <div class="gallery-card__compare">
+        <p class="gallery-card__compare-label">{`비교해 보기 — ${card.compare.note}`}</p>
+        <p class="gallery-card__compare-links">
+          {card.compare.others.map((other) => (
+            <a href={`#${other.anchor}`} data-gallery-jump>
+              {other.title}
+            </a>
+          ))}
+        </p>
+      </div>
+    )
+  }
+
+  {
+    card.sameCode.length > 0 && (
+      <p class="gallery-card__same">{`코드가 똑같은 파일: ${card.sameCode.map((file) => `examples/${file}`).join(', ')}`}</p>
+    )
+  }
+
+  <p class="gallery-card__actions">
+    <a class="gallery-card__open" href={card.labHref} aria-label={`${card.title} — 실습실에서 열기`}>실습실에서 열기</a>
+    {card.lesson && (
+      <a class="gallery-card__lesson" href={card.lesson.href} aria-label={`${card.lesson.label} 차시 보기`}>
+        {card.lesson.label}
+      </a>
+    )}
+  </p>
+</li>

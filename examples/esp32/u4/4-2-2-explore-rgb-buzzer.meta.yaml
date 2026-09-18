@@ -11,6 +11,38 @@ tags:
   - 버저
   - 타이머
 packages: []
+parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+  - part: servo
+    id: servo-x
+    pin: 32
+    label: 서보모터 X
+  - part: servo
+    id: servo-y
+    pin: 26
+    label: 서보모터 Y
+  - part: rgb-led
+    pins:
+      r: 12
+      g: 5
+      b: 4
+  - part: laser
+    pin: 27
+  - part: buzzer
+    pin: 2
+unit: 4
+difficulty: 3
+virtual_ok: true
+comm:
+  - ble
 smoke:
   outcome: error
   error: ModuleNotFoundError

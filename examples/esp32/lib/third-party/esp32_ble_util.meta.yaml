@@ -1,0 +1,10 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 이 파일은 P4-03(가상 BLE)에서 사람이 만들었어요(이관 도구가 만든 사이드카가 아니에요).
+title: "보드 라이브러리: esp32_ble_util.py(블루투스 주변기기 — 공식 예제판)"
+description: MicroPython 공식 예제(examples/bluetooth)의 광고 데이터 만들기와 BLESimplePeripheral을 합친 라이브러리예요. 스마트폰 앱과 주고받는 보드 확인 예제(hw/ble-dabble-rgb.py)가 이 파일을 import해요. 이름을 bytes로 바꾸는 한 줄만 사이트판으로 고쳤어요(가상 보드에서 bytes + str 오류가 나서예요).
+source_id: f009
+tags:
+  - 블루투스
+  - BLE
+  - 라이브러리
+packages: []

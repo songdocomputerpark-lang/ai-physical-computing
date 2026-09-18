@@ -1,10 +1,15 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-2 심화: 얼굴이 보이면 a, 사라지면 b를 시리얼로 보내기"
-description: 컴퓨터 쪽 코드예요. 카메라에서 얼굴을 찾아 상태가 바뀔 때만 a·b를 보드에 보내요(원고 187쪽의 "값이 바뀔 때만" 규칙을 지키는 예제예요). 지금은 PC 쪽 serial 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02).
+description: 컴퓨터 쪽 코드예요. 카메라에서 얼굴을 찾아 상태가 바뀔 때만 a·b를 보드에 보내요(원고 187쪽의 "값이 바뀔 때만" 규칙을 지키는 예제예요). 아래 [보내기] 패널에서 가상 보드를 먼저 열어야 이어지고, 열지 않고 [실행]하면 6번 줄에서 SerialException으로 멈춰요. 카메라가 없으면 입력 소스를 "재생 입력"으로 골라도 똑같이 실습할 수 있어요. 맨 끝 줄 ser.close()는 원본의 오타라서 q로 끝낼 때 NameError가 나요(uart.close()가 맞아요).
 lesson: 3-1-2
 page: 193
 source_id: f085
+unit: 3
+difficulty: 3
+virtual_ok: true
+comm:
+  - uart
 tags:
   - 얼굴
   - mediapipe
@@ -15,4 +20,10 @@ packages:
   - opencv-python
 smoke:
   outcome: error
-  error: ModuleNotFoundError
+  error: SerialException
+  seconds: 9
+practice:
+  - 아래 [보내기] 패널에서 보드 예제로 "3-1-2 기본"을 고르고 [한 화면에 가상 보드 열기]를 누른 뒤, 보드 쪽 [실행]을 먼저 눌러요.
+  - 카메라가 없으면 입력 소스를 "재생 입력"으로 골라요(사람을 찍은 자료가 아니라 계산으로 만든 얼굴이에요).
+  - 이 화면에서 [실행]을 누르면 얼굴이 보일 때 a, 사라질 때 b가 한 번씩 나가요. 콘솔의 Sent: 줄과 가상 보드의 레이저를 함께 봐요.
+  - 매 프레임 보내지 않고 "상태가 바뀔 때만" 보내는 것이 원고 187쪽 규칙이에요. detected != face_present 줄을 지우면 어떻게 되는지 이야기해 봐요.
