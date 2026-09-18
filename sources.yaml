@@ -506,6 +506,25 @@ sources:
     notice: public/licenses/tslib.txt
     fetched: 2026-09-17
 
+  # MQTT 클라이언트(Phase 4 통신 실습실 P4-06). 공식 저장소 LICENSE.md로 MIT를 확인했어요(2026-09-18,
+  # https://github.com/mqttjs/MQTT.js — "Copyright (c) 2015-2016 MQTT.js contributors", "Copyright 2011-2014 by Adam Rudd").
+  # 브라우저는 package.json exports의 browser 조건으로 **미리 묶인 한 파일**(dist/mqtt.esm.js, 약 360KB)을 받아요 —
+  # 그 파일 안에 mqtt-packet·readable-stream·ws·lru-cache·rfdc·number-allocator·worker-timers·debug·buffer·ieee754 등의 코드가 함께 들어 있어서
+  # 고지 파일(public/licenses/mqtt.txt)에 의존성 44개의 라이선스 원문을 모두 모았어요(설치한 패키지의 LICENSE 파일 그대로).
+  # 실제로 번들에 들어간 목록은 빌드 뒤 dist/bundle-licenses.json이 알려 줘요 — P4-06이 실습실에 붙인 뒤 다시 확인해요(PLAN P6-04).
+  - name: MQTT.js 5.15.2
+    category: stack
+    author: MQTT.js contributors, Adam Rudd
+    license: MIT
+    url: https://github.com/mqttjs/MQTT.js
+    used_in: "통신 실습실의 MQTT 통로(P4-06) — 브라우저에서 공개 브로커에 WebSocket(wss)으로 잇고 토픽에 발행·구독해요. 백엔드는 없고(절대 원칙 2) 학교망이 막으면 같은 컴퓨터 탭 통로로 대신해요."
+    paths:
+      - public/licenses/mqtt.txt
+    npm:
+      - mqtt
+    notice: public/licenses/mqtt.txt
+    fetched: 2026-09-18
+
   - name: atob-lite 2.0.0
     category: stack
     author: Hugh Kennedy
