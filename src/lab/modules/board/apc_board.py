@@ -1463,13 +1463,15 @@ def _board_import(name, globals=None, locals=None, fromlist=(), level=0):  # noq
         alias = U_ALIASES.get(name)
         if alias is not None:
             return _host_import(alias, globals, locals, fromlist, 0)
-        if name in NOT_YET_MODULES:
+        # 점이 든 이름(from umqtt.simple import …)도 맨 앞 이름으로 본다 — 학생이 보는 안내가 같아야 한다(Phase 4 준비 2026-09-18).
+        head = name.partition(".")[0]
+        if head in NOT_YET_MODULES:
             try:
                 return _host_import(name, globals, locals, fromlist, level)
             except ModuleNotFoundError as error:
-                if error.name != name:
+                if error.name not in (name, head):
                     raise
-                raise ModuleNotFoundError(not_yet_module_message(name), name=name) from None
+                raise ModuleNotFoundError(not_yet_module_message(head), name=error.name or head) from None
     return _host_import(name, globals, locals, fromlist, level)
 
 

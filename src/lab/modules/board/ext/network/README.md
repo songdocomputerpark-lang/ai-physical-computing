@@ -10,8 +10,23 @@ Phase 4 준비(2026-09-18)에서 **자리만** 만들어 둔 폴더예요. 채�
 | `apc_board_umqtt.py`(또는 `umqtt/` 꾸러미) | `umqtt.simple.MQTTClient` 흉내 — `connect`·`publish`·`subscribe`·`set_callback`·`check_msg`·`wait_msg` |
 
 `apc_board.py`의 `load_extensions()`가 `/apc`의 `apc_board_*.py`를 한 번씩 import해요 — 등록 파일을 고치지 않아도 파일을 두면 들어와요.
-`umqtt`는 점이 든 이름(`umqtt.simple`)이라 파일 하나로는 안 돼요. `register_board_module('umqtt', 꾸러미 모듈)`로 등록하고
-그 모듈에 `simple` 속성을 달아 `from umqtt.simple import MQTTClient`가 되게 해요(`apc_board.NOT_YET_MODULES`의 `umqtt` 줄은 그대로 둬요 — 안전망이에요).
+
+**`umqtt`는 점이 든 이름(`umqtt.simple`)이라 한 줄로는 안 돼요.** 교과서·템플릿이 쓰는 두 모양을 모두 받으려면 둘 다 해요.
+
+```python
+import sys, types
+import apc_board
+
+umqtt = types.ModuleType("umqtt")
+simple = types.ModuleType("umqtt.simple")
+simple.MQTTClient = MQTTClient          # 아래에서 만든 흉내 클래스
+umqtt.simple = simple
+sys.modules.setdefault("umqtt", umqtt)          # from umqtt.simple import MQTTClient
+sys.modules.setdefault("umqtt.simple", simple)  # (파이썬이 점이 든 이름을 sys.modules에서 찾아요)
+apc_board.register_board_module("umqtt", umqtt) # import umqtt (학생 코드 전용 import 훅)
+```
+
+`apc_board.NOT_YET_MODULES`의 `umqtt` 줄은 **그대로 둬요** — 확장이 빠졌을 때 한국어로 알리는 안전망이고, 점이 든 이름도 맨 앞 이름으로 봐요.
 
 ## 지켜야 할 것(PLAN §7.4, PD-29)
 
