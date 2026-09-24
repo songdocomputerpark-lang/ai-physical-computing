@@ -85,6 +85,9 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
     open: true,
   },
   {
+    // 2026-09-24 Phase 4 통합에서 실제 화면이 됨(src/pages/labs/iot/index.astro). 통신 실습은 두 실습실이 짝을 이뤄 돌기 때문에
+    // 이 페이지는 코드를 직접 돌리지 않고, 통신 계단(유선 → 블루투스 → 와이파이·MQTT → 대시보드)과 AI → 피지컬 브릿지 예제로 가는 길을 모은다.
+    // 코드를 실행하지 않는 안내 페이지라 브라우저 권장 환경 안내는 두지 않는다(실행하는 곳 — 대시보드·두 실습실 — 에 있다).
     id: 'labs-iot',
     phase: 4,
     when: '사이트를 만드는 네 번째 단계(Phase 4)',
@@ -96,8 +99,38 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
     ],
     relatedIds: ['labs-vision', 'labs-esp32', 'start-check'],
     browserNotice: false,
+    open: true,
   },
   {
+    // 2026-09-18 P4-07에서 실제 화면이 됨(대시보드 — 시나리오 D). 2026-09-24 통합에서 통신 실습실 아래(/labs/iot/dashboard/)로 옮겼다.
+    id: 'labs-iot-dashboard',
+    phase: 4,
+    when: '사이트를 만드는 네 번째 단계(Phase 4)',
+    features: [
+      '보드가 보낸 값을 실시간 그래프와 게이지로 봐요.',
+      '스위치를 눌러 보드의 LED를 켜고 꺼요.',
+      '위젯을 끌어서(또는 방향키로) 원하는 자리에 놓아요.',
+    ],
+    relatedIds: ['labs-esp32', 'labs-iot', 'help-errors'],
+    browserNotice: true,
+    open: true,
+  },
+  {
+    // 2026-09-24 P4-09에서 실제 화면이 됨(src/pages/labs/unit4/index.astro — 영상처리 칸 + ESP32 칸 한 화면, [함께 실행], 성능 재기).
+    id: 'labs-unit4',
+    phase: 4,
+    when: '사이트를 만드는 네 번째 단계(Phase 4)',
+    features: [
+      '카메라로 찾은 얼굴 좌표로 가상 모니터의 마우스를 움직이고, 그 좌표를 블루투스로 가상 ESP32 보드에 보내요.',
+      '보드는 LCD, 서보모터 2개, RGB LED, 레이저, 버저로 반응해요.',
+      '[함께 실행] 한 번으로 보드 코드, 블루투스 연결, 컴퓨터 코드가 차례로 돌아가요.',
+    ],
+    relatedIds: ['labs-vision', 'labs-esp32', 'start-check'],
+    browserNotice: true,
+    open: true,
+  },
+  {
+    // 2026-09-24 Phase 4 통합에서 실제 화면이 됨(P4-11 — src/pages/labs/gallery/index.astro, 화면은 src/components/examples/).
     id: 'labs-gallery',
     phase: 4,
     when: '사이트를 만드는 네 번째 단계(Phase 4)',
@@ -108,6 +141,7 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
     ],
     relatedIds: ['learn', 'labs'],
     browserNotice: false,
+    open: true,
   },
 ]);
 

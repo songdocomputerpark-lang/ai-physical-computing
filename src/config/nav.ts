@@ -146,6 +146,20 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
         label: '통신 실습실',
         path: '/labs/iot/',
         description: '유선(시리얼), 블루투스, 인터넷(MQTT)으로 컴퓨터와 보드가 신호를 주고받아요.',
+        children: [
+          {
+            id: 'labs-iot-dashboard',
+            label: '대시보드',
+            path: '/labs/iot/dashboard/',
+            description: '보드가 보낸 값을 그래프와 게이지로 보고, 스위치를 눌러 보드의 LED를 켜요.',
+          },
+        ],
+      },
+      {
+        id: 'labs-unit4',
+        label: '4단원 통합 실습실',
+        path: '/labs/unit4/',
+        description: '카메라, 가상 모니터, 가상 ESP32 보드를 한 화면에서 함께 돌려요. 얼굴로 움직인 마우스 좌표가 블루투스로 보드에 닿아요.',
       },
       {
         id: 'labs-gallery',

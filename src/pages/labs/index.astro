@@ -1,6 +1,7 @@
 ---
 /**
- * 실습실 개요(PLAN §2.1 /labs/). 실습실 3개와 예제 갤러리를 카드로 보이고, 각각 언제(어느 Phase에) 열리는지 알린다.
+ * 실습실 개요(PLAN §2.1 /labs/). 사이트 지도의 실습실 아래 페이지(영상처리·ESP32·통신·4단원 통합 실습실과 예제 갤러리 — 2026-09-24 Phase 4 통합)를
+ * 카드로 보이고, 아직 열리지 않은 것은 언제(어느 Phase에) 열리는지 알린다. 모두 열렸으면 "모두 열렸어요"로 알린다.
  * 카드의 한 줄 설명은 사이트 지도(src/config/nav.ts), 열리는 시점은 ./_labs.ts에서 온다.
  * 할 수 있게 될 일 목록은 각 실습실 페이지에만 둔다(검색 결과에 같은 글이 두 번 나오지 않게).
  * 실습실이 하나씩 생기면 그 카드의 "준비 중" 표시를 떼고 바로 쓰는 안내로 바꾼다.
@@ -19,10 +20,14 @@ const labs = page.children.map((lab) => ({
 }));
 // 실제 화면이 열린 실습실(_labs.ts의 open)은 "준비 중" 대신 "열림"으로 보인다.
 const openLabTitles = labs.filter(({ plan }) => plan.open).map(({ lab }) => lab.title);
+// 아래 페이지(실물 점검 도우미·대시보드)까지 모두 열렸으면 "나머지는 만들고 있어요"·Phase 안내를 빼고 모두 열렸다고 알린다(2026-09-24 Phase 4 통합).
+const allOpen = labs.every(({ plan, subPages }) => plan.open === true && subPages.every(({ plan: subPlan }) => subPlan.open === true));
 const introLine =
   openLabTitles.length === 0
     ? '실습실은 지금 만들고 있어요. 카드마다 어떤 실습실인지와 언제 열리는지 적어 두었어요.'
-    : `${withParticle(openLabTitles.join(', '), '은/는')} 열렸어요. 나머지 실습실은 만들고 있고, 카드마다 언제 열리는지 적어 두었어요.`;
+    : allOpen
+      ? `${withParticle(openLabTitles.join(', '), '이/가')} 모두 열렸어요. 카드를 눌러 들어가요.`
+      : `${withParticle(openLabTitles.join(', '), '은/는')} 열렸어요. 나머지 실습실은 만들고 있고, 카드마다 언제 열리는지 적어 두었어요.`;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
@@ -31,7 +36,7 @@ const introLine =
 
   <div class="labs-intro">
     <p>{introLine}</p>
-    <p>Phase는 사이트를 만드는 순서를 뜻해요. 번호가 작은 실습실부터 차례로 열려요.</p>
+    {!allOpen && <p>Phase는 사이트를 만드는 순서를 뜻해요. 번호가 작은 실습실부터 차례로 열려요.</p>}
     <p>
       실습실은 컴퓨터용 Chrome이나 Edge 최신판에서 가장 잘 돼요. 이 컴퓨터에서 쓸 수 있는지는{' '}
       <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 확인해요.

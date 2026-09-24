@@ -9,6 +9,7 @@ import { parse } from 'yaml';
 import { flattenPages, getPage } from '../../src/config/nav.ts';
 import { searchConfig } from '../../src/config/search.ts';
 import { siteConfig } from '../../src/config/site.ts';
+import { withParticle } from '../../src/lib/korean.ts';
 import { withBase } from '../../src/lib/url.ts';
 import {
   ISSUE_TEMPLATE_DIR,
@@ -26,6 +27,8 @@ const OWN_PAGE_IDS = [
   'labs-esp32',
   'labs-esp32-check',
   'labs-iot',
+  'labs-iot-dashboard',
+  'labs-unit4',
   'labs-gallery',
   'teacher',
   'help',
@@ -102,7 +105,7 @@ test.describe('이 담당의 페이지', () => {
     });
   }
 
-  test('실습실 개요는 실습실 3개와 예제 갤러리를 카드로 보이고, 열리는 Phase를 알린다', async ({ page, request }) => {
+  test('실습실 개요는 사이트 지도의 실습실을 모두 카드로 보이고, 열렸는지(아니면 열리는 Phase)를 알린다', async ({ page, request }) => {
     const labs = getPage('labs');
     await page.goto(labs.href);
     const cards = page.locator('.lab-card');
@@ -122,8 +125,13 @@ test.describe('이 담당의 페이지', () => {
       }
       expect((await request.get(child.href)).status(), child.href).toBe(200);
     }
-    // 열린 실습실 이름을 쉼표로 이어 알린다(P2-03 영상처리, P3-01 ESP32).
-    await expect(page.locator('.labs-intro')).toContainText(`${getPage('labs-vision').title}, ${getPage('labs-esp32').title}은 열렸어요`);
+    // 열린 실습실 이름을 쉼표로 이어 알린다(P2-03 영상처리, P3-01 ESP32, P4 통신·4단원 통합·갤러리). 아래 페이지까지 모두 열렸으면 "모두 열렸어요"(2026-09-24 Phase 4 통합).
+    const openPlans = labs.children.map((child) => LAB_PLANS.find((candidate) => candidate.id === child.id));
+    const openTitles = labs.children.filter((_child, index) => openPlans[index]?.open).map((child) => child.title);
+    const allOpen = [...labs.children, ...labs.children.flatMap((child) => child.children)].every((child) => LAB_PLANS.find((candidate) => candidate.id === child.id)?.open);
+    await expect(page.locator('.labs-intro')).toContainText(
+      allOpen ? `${withParticle(openTitles.join(', '), '이/가')} 모두 열렸어요` : `${withParticle(openTitles.join(', '), '은/는')} 열렸어요`,
+    );
 
     const checkPage = getPage('labs-esp32-check');
     await expect(page.getByRole('link', { name: checkPage.title, exact: true })).toHaveAttribute('href', checkPage.href);

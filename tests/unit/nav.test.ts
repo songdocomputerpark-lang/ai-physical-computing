@@ -12,7 +12,7 @@ import {
   siteMap,
 } from '../../src/config/nav.ts';
 
-/** PLAN §2.1 사이트 지도의 주소(대단원 제외) */
+/** PLAN §2.1 사이트 지도의 주소(대단원 제외). Phase 4 통합(2026-09-24)에서 대시보드(통신 실습실 아래)와 4단원 통합 실습실을 더했다 */
 const PLAN_PATHS = [
   '/',
   '/start/',
@@ -26,6 +26,8 @@ const PLAN_PATHS = [
   '/labs/esp32/',
   '/labs/esp32/check/',
   '/labs/iot/',
+  '/labs/iot/dashboard/',
+  '/labs/unit4/',
   '/labs/gallery/',
   '/teacher/',
   '/help/',
@@ -53,8 +55,10 @@ describe('사이트 지도(src/config/nav.ts)', () => {
       '영상처리 실습실',
       'ESP32 실습실',
       '통신 실습실',
+      '4단원 통합 실습실',
       '예제 갤러리',
     ]);
+    expect(getPage('labs-iot').children.map((page) => page.label)).toEqual(['대시보드']);
   });
 
   it('모든 링크(href)는 base가 붙고 /로 끝나며, 설명과 제목이 있다', () => {
