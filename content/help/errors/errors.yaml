@@ -2443,7 +2443,7 @@ entries:
     why:
       - "공개 중계 서버는 누구나 쓰는 시험용이라 쉬는 때가 있고, 학교망이 그 포트를 막기도 해요."
       - "브라우저는 wss://로 시작하는 주소로만 MQTT를 쓸 수 있어요. 코드에 적은 이름(broker.emqx.io)은 화면이 고른 wss:// 주소로 바꿔서 붙어요."
-      - "보통은 이 오류 대신 화면이 스스로 \"같은 컴퓨터 탭\" 통로로 바꿔요. 그 통로까지 쓸 수 없는 브라우저일 때만 여기까지 와요."
+      - "MQTT 칸의 통로를 \"공개 중계 서버\"로 골랐으면 몰래 다른 통로로 바꾸지 않고 이 오류로 알려요(다른 컴퓨터와 이어지는 줄 알고 기다리지 않게). \"중계 서버 먼저, 안 되면 탭\"을 고르면 이 오류 대신 같은 컴퓨터 탭 통로로 바꿔요."
     fix:
       - "MQTT 칸에서 통로를 \"같은 컴퓨터 탭(인터넷 없이)\"으로 바꿔요. 받을 화면을 다른 탭에 열어 두면 그대로 실습할 수 있어요."
       - "다른 중계 서버를 골라 [연결]을 다시 눌러 봐요."
@@ -2501,6 +2501,81 @@ entries:
       - "지금 쓰는 접두어는 MQTT 칸에 보여요. 친구와 맞출 때는 그 칸의 [맞추기]를 써요."
     cases:
       - "통신 템플릿 3을 고쳐 쓰면서 접두어 변수를 토픽 앞에 붙였을 때 나요."
+
+  - id: comm-mqtt-real-no-prefix
+    group: comm
+    title: 토픽 앞에 통신 접두어가 없어서 실제 보드로 보내지 않았어요
+    types: [MqttNoPrefix]
+    priority: 6
+    meaning: "이 코드는 실제 보드에서 공개 중계 서버에 붙는데, 토픽 앞에 우리 반 통신 접두어(무작위 12글자)가 없어요. 그래서 사이트가 코드를 보드로 보내지 않고 멈췄어요."
+    why:
+      - "가상 보드에서는 사이트가 토픽 앞에 접두어를 붙여 줘요. 실제 보드는 코드에 적힌 글자 그대로 공개 중계 서버에 붙어요."
+      - "접두어 없이 esp32-01/rx 같은 토픽을 쓰면, 같은 코드를 올린 모든 보드와 한 토픽을 나눠 써요. 모르는 사람이 내 보드에 명령을 보낼 수도 있어요."
+    fix:
+      - "입력·출력 칸 아래 MQTT 칸의 [코드에 접두어 적기]를 눌러요. 코드의 PREFIX = \"\" 줄에 지금 접두어가 들어가요."
+      - "직접 적으려면 MQTT 칸의 통신 접두어(12글자)를 PREFIX = \"…\" 따옴표 안에 적어요. 친구 보드와 주고받을 때는 두 코드에 같은 접두어를 적어요."
+      - "그다음 [실행]이나 [보드에 저장]을 다시 눌러요."
+    example:
+      code: |
+        from umqtt.simple import MQTTClient
+
+        PREFIX = ""
+        client = MQTTClient("esp32-01", "broker.emqx.io")
+      error: "MqttNoPrefix: 토픽 앞에 통신 접두어가 없어서 실제 보드로 보내지 않았어요."
+      line: 3
+    cases:
+      - "통신 템플릿 3(mqtt-pub-sub)이나 대시보드 예제를 [실제 보드] 탭에서 처음 실행할 때 나요. 가상 보드에서는 나지 않아요."
+
+  - id: comm-wifi-not-connected-yet
+    group: comm
+    title: 와이파이가 연결되기 전에 중계 서버에 붙으려 했어요
+    types: [OSError]
+    patterns:
+      - "와이파이가 아직 연결되지 않아서"
+    priority: 7
+    meaning: "wlan.connect()는 연결을 시작만 해요. 연결이 끝나기 전에 client.connect()를 불러서 중계 서버에 붙지 못했어요."
+    why:
+      - "실제 보드는 와이파이에 붙는 데 몇 초가 걸려요. 가상 보드도 실물처럼 0.5초쯤 기다려야 붙어요."
+    fix:
+      - "wlan.connect(...) 다음 줄에 while not wlan.isconnected(): time.sleep(0.1)을 넣어 연결을 기다려요."
+      - "통신 템플릿 3의 wifi_connect() 함수를 쓰면 기다리기가 들어 있어요."
+    example:
+      code: |
+        import network
+        from umqtt.simple import MQTTClient
+
+        wlan = network.WLAN(network.STA_IF)
+        wlan.active(True)
+        wlan.connect("classroom-wifi", "my-password")
+        client = MQTTClient("esp32-01", "broker.emqx.io")
+        client.connect()
+      error: "OSError: 와이파이가 아직 연결되지 않아서 중계 서버에 붙지 못했어요. wlan.connect() 뒤에 while not wlan.isconnected(): time.sleep(0.1)로 연결을 기다린 다음 client.connect()를 불러요."
+      line: 8
+    cases:
+      - "와이파이 연결 블록 바로 아래에 MQTT 연결을 직접 적었을 때 나요(블록 모드의 [와이파이에 연결하기]는 기다리기가 들어 있어요)."
+
+  - id: comm-mqtt-callback-missing
+    group: comm
+    title: 받을 함수를 정하기 전에 받기로 했어요(set_callback)
+    types: [AssertionError]
+    patterns:
+      - "Subscribe callback is not set"
+    priority: 6
+    meaning: "client.subscribe()로 토픽을 받기로 했는데, 메시지가 오면 부를 함수를 아직 정하지 않았어요."
+    why:
+      - "umqtt는 메시지가 오면 set_callback()으로 정한 함수를 불러요. 정한 함수가 없으면 받기(subscribe)를 할 수 없어요. 실제 보드의 umqtt.simple과 같은 오류예요."
+    fix:
+      - "client.connect() 앞이나 뒤, client.subscribe(...)보다 위에 client.set_callback(받을_함수)를 적어요."
+      - "받을 함수는 def on_message(topic, msg): 처럼 토픽과 메시지 두 값을 받아요."
+    example:
+      code: |
+        from umqtt.simple import MQTTClient
+
+        client = MQTTClient("esp32-01", "broker.emqx.io")
+        client.connect()
+        client.subscribe(b"esp32-01/rx")
+      error: "AssertionError: Subscribe callback is not set"
+      line: 5
 
   - id: comm-no-peer
     group: comm

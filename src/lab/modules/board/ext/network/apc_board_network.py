@@ -13,8 +13,11 @@
 - 학교 와이파이 비밀번호를 사이트가 알 수 없고, 알아서도 안 된다(개인정보·보안). 가상 보드는 **브라우저가 이미 인터넷에
   연결돼 있다**는 사실을 그대로 쓰므로, 와이파이 연결 단계는 "코드 모양을 익히는 자리"다. 실물 보드에서는 같은 코드가
   진짜로 공유기에 붙는다(비밀번호가 틀리면 그때는 실패한다).
-- 그래서 `connect()`는 바로 연결된 상태가 되고 `isconnected()`가 True를 돌려준다. `while not wlan.isconnected()` 반복문이
-  실물처럼 돌다가 곧 빠져나온다.
+- 그래서 연결은 늘 성공한다. 다만 **실물처럼 `connect()`는 곧바로 끝나지 않는다**(2026-09-25 Phase 4 검토 반영): 가상 시계로
+  `CONNECT_DELAY_NS`(0.5초) 동안은 `isconnected()`가 False·`status()`가 STAT_CONNECTING이고, 그 뒤에 연결된다. 전에는 곧바로 True라
+  기다리지 않는 코드(connect 바로 뒤 MQTT 연결)가 가상에서만 돌았다 — 실물은 그 자리에서 중계 서버 주소를 찾지 못해 OSError가 난다.
+  `while not wlan.isconnected(): time.sleep(0.1)` 반복문(MicroPython 공식 ESP32 빠른 참조의 do_connect와 같은 모양)이 실물처럼 돌다가 빠져나온다.
+- 와이파이가 아직 연결되지 않았는데 MQTT `client.connect()`를 부르면 umqtt 흉내가 한국어 OSError를 낸다(`wifi_pending()`).
 
 흉내 낸 함수(MicroPython v1.29 `network` 문서의 WLAN 항목 기준)
     WLAN(interface_id) · active([is_active]) · connect(ssid, key) · disconnect() · isconnected()
@@ -51,6 +54,12 @@ STAT_HANDSHAKE_TIMEOUT = 204
 #: 가상 보드가 받았다고 알려 줄 주소(사설 주소 — 실제 기기 주소가 아니다)
 _VIRTUAL_IFCONFIG = ("192.168.0.77", "255.255.255.0", "192.168.0.1", "192.168.0.1")
 
+#: connect()부터 연결되기까지의 가상 시간(나노초) — 실물처럼 곧바로 연결되지 않는다(머리말)
+CONNECT_DELAY_NS = 500_000_000
+
+#: 이번 실행에서 만든 STA(공유기에 붙는 쪽) 인터페이스 — MQTT 흉내가 "와이파이가 아직 연결 중인가"를 본다. 실행마다 비운다.
+_stations = []
+
 _hostname = "esp32-virtual"
 _country = "KR"
 
@@ -63,6 +72,10 @@ class WLAN:
         self._active = False
         self._connected = False
         self._ssid = ""
+        #: connect()를 부른 뒤 연결될 가상 시각(나노초). 연결 중이 아니면 None
+        self._connect_at = None
+        if self.interface_id == STA_IF:
+            _stations.append(self)
 
     def active(self, is_active=None):
         """켜고 끄기. 인자가 없으면 지금 상태를 돌려준다(MicroPython과 같다)."""
@@ -71,25 +84,42 @@ class WLAN:
         self._active = bool(is_active)
         if not self._active:
             self._connected = False
+            self._connect_at = None
         return self._active
 
     def connect(self, ssid=None, key=None, **kwargs):
-        """공유기에 붙는다. 가상 보드는 바로 연결된다(위 설명 참고)."""
+        """공유기에 붙기 시작한다. 가상 보드는 늘 성공하지만 실물처럼 곧바로 연결되지는 않는다(CONNECT_DELAY_NS 뒤 — 머리말)."""
         if not self._active:
             # 실물도 active(True) 전에는 붙지 않는다. 학생이 빠뜨리기 쉬운 자리라 대신 켜 주고 알려 준다.
             self._active = True
             apc_runtime.notice("가상 보드가 wlan.active(True)를 대신 켰어요. 실물 보드에서는 connect() 앞에 꼭 넣어야 해요.", "warn")
         self._ssid = "" if ssid is None else str(ssid)
-        self._connected = True
-        apc_runtime.emit(EVENT_WIFI, {"connected": True, "ssid": self._ssid, "ip": _VIRTUAL_IFCONFIG[0], "virtual": True})
+        if not self._connected:
+            self._connect_at = apc_board.BOARD.clock.now_ns() + CONNECT_DELAY_NS
         return None
+
+    def _settle(self):
+        """연결될 시각이 지났으면 연결된 상태로 바꾸고 화면에 알린다(가상 와이파이 표시)."""
+        if self._connected or self._connect_at is None:
+            return
+        if apc_board.BOARD.clock.now_ns() >= self._connect_at:
+            self._connect_at = None
+            self._connected = True
+            apc_runtime.emit(EVENT_WIFI, {"connected": True, "ssid": self._ssid, "ip": _VIRTUAL_IFCONFIG[0], "virtual": True})
+
+    def connecting(self):
+        """connect()를 불렀지만 아직 연결되지 않았나(MQTT 흉내가 본다)."""
+        self._settle()
+        return self._connect_at is not None and not self._connected
 
     def disconnect(self):
         self._connected = False
+        self._connect_at = None
         apc_runtime.emit(EVENT_WIFI, {"connected": False, "ssid": self._ssid, "virtual": True})
         return None
 
     def isconnected(self):
+        self._settle()
         return self._connected
 
     def status(self, param=None):
@@ -98,7 +128,10 @@ class WLAN:
             return -55
         if param is not None:
             raise ValueError("unknown status param")
-        return STAT_GOT_IP if self._connected else STAT_IDLE
+        self._settle()
+        if self._connected:
+            return STAT_GOT_IP
+        return STAT_CONNECTING if self._connect_at is not None else STAT_IDLE
 
     def ifconfig(self, config=None):
         """(ip, subnet, gateway, dns). 인자를 주면 그대로 받아 둔다(가상이라 바뀌는 것은 없다)."""
@@ -144,6 +177,24 @@ class WLAN:
             (b"classroom-wifi", b"\x02\x00\x00\x00\x00\x01", 1, -52, 3, False),
             (b"apc-lab", b"\x02\x00\x00\x00\x00\x02", 6, -70, 3, False),
         ]
+
+
+def wifi_pending():
+    """이번 실행의 코드가 와이파이에 붙기 시작했는데 아직 연결되지 않았나(umqtt 흉내가 connect() 앞에서 본다)."""
+    return any(station.connecting() for station in _stations)
+
+
+def wifi_used():
+    """이번 실행의 코드가 공유기에 붙는 인터페이스(STA_IF)를 만들었나."""
+    return len(_stations) > 0
+
+
+def _reset():
+    """실행이 시작될 때 지난 실행의 인터페이스 기록을 비운다(동기 진입점 — 양보하지 않는다)."""
+    del _stations[:]
+
+
+apc_runtime.register_reset_hook(_reset)
 
 
 def hostname(name=None):

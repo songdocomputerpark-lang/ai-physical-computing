@@ -18,6 +18,7 @@
 import { withBase } from '../../../lib/url.ts';
 import { revealElement } from '../../controls/reveal.ts';
 import { BOARD_LIBRARIES } from '../../esp32/board-library-files.ts';
+import { REAL_BOARD_MQTT_TEXT, mqttPrefixProblem } from '../../mqtt/index.ts';
 import { BoardConnection, type BoardConnectionSnapshot, type BoardSaveReport } from '../../serial/board-connection.ts';
 import { REAL_BOARD_TARGET_LABEL, createRealBoardRunTarget, usesInput } from '../../serial/board-run-target.ts';
 import { errorMessage } from '../../serial/errors.ts';
@@ -337,6 +338,13 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     }
     if (labBusy()) {
       say('실행 중에는 보드에 저장할 수 없어요. [정지]한 뒤에 저장해요.');
+      return;
+    }
+    // 통신 접두어가 없는 MQTT 코드는 main.py로 남기지 않는다 — 수업 뒤에도 전원만 넣으면 모두가 나눠 쓰는 토픽에 붙는다(PD-29, 2026-09-25 검토 반영)
+    const mqttProblem = mqttPrefixProblem(code);
+    if (mqttProblem !== null) {
+      say(REAL_BOARD_MQTT_TEXT.noPrefixShort());
+      context.notice(mqttProblem);
       return;
     }
     const before = connection.snapshot.lastSave ?? null;

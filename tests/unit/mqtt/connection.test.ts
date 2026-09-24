@@ -54,11 +54,11 @@ describe('통로 고르기', () => {
     expect(connection.where).toBe('wss://broker.example:8084/mqtt');
   });
 
-  it('중계 서버가 안 되면 한국어로 알리고 같은 컴퓨터 탭으로 바꾼다(PD-17)', async () => {
+  it('"중계 서버 먼저, 안 되면 탭"(auto)은 중계 서버가 안 되면 한국어로 알리고 같은 컴퓨터 탭으로 바꾼다(PD-17)', async () => {
     const hub = new FakeBroadcastHub();
     const notices: string[] = [];
     const connection = makeConnection(hub, {
-      mode: 'broker',
+      mode: 'auto',
       brokerUrl: 'wss://broker.example:8084/mqtt',
       openBroker: (_options: BrokerTransportOptions) => Promise.reject(new Error('중계 서버 wss://broker.example:8084/mqtt에 연결하지 못했어요(막힘).')),
     });
@@ -69,7 +69,25 @@ describe('통로 고르기', () => {
     expect(result.via).toBe('tab');
     expect(notices.join('\n')).toContain('연결하지 못했어요');
     expect(notices.join('\n')).toContain('같은 컴퓨터 탭 통로로 바꿨어요');
+    expect(notices.join('\n')).toContain('다른 컴퓨터와는 안 돼요');
     expect(connection.state).toBe('open');
+  });
+
+  it('"공개 중계 서버"(broker)만 고르면 안 될 때 몰래 탭으로 바꾸지 않고 한국어로 실패를 알린다(2026-09-25 검토 반영)', async () => {
+    const hub = new FakeBroadcastHub();
+    const notices: string[] = [];
+    const connection = makeConnection(hub, {
+      mode: 'broker',
+      brokerUrl: 'wss://broker.example:8084/mqtt',
+      openBroker: (_options: BrokerTransportOptions) => Promise.reject(new Error('중계 서버 wss://broker.example:8084/mqtt에 연결하지 못했어요(막힘).')),
+    });
+    connection.on('notice', (text) => notices.push(text));
+
+    await expect(connection.connect()).rejects.toThrow(/공개 중계 서버 .*연결하지 못했어요/u);
+    expect(connection.state).toBe('closed');
+    expect(connection.via).toBeNull();
+    expect(notices.join('\n')).not.toContain('같은 컴퓨터 탭 통로로 바꿨어요');
+    expect(notices.join('\n')).toContain('[같은 컴퓨터 탭]으로 바꾸고');
   });
 
   it('연결하지 않고 보내면 한국어 오류', async () => {

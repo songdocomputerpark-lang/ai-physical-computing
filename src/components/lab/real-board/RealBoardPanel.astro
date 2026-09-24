@@ -93,6 +93,10 @@ const portHelpHref = withBase('start/board/#port-not-found');
       <li>[정지]는 보드에 Ctrl-C를 보내요. 오류는 보드가 보낸 MicroPython 문구 그대로 콘솔에 보이고, 풀이 카드가 함께 나와요.</li>
       <li>input()으로 글자를 받는 코드는, 코드가 도는 동안 콘솔 아래 입력줄에 적고 Enter를 누르면 보드로 보내요. 보드의 input()은 영어·숫자·기호만 받아요(한글은 빠져요).</li>
       <li>보드는 소수를 짧게(8자리 안팎) 보여 줘요. round(값, 2)처럼 자릿수를 정하면 가상 보드와 결과가 같아요.</li>
+      <li>
+        와이파이·MQTT 코드는 보드가 <strong>보드의 와이파이로 코드에 적은 중계 서버에 직접</strong> 붙어요. MQTT 칸의 통로·[연결]은 가상 보드에만 쓰여요.
+        공개 중계 서버는 누구나 보고 보낼 수 있어서, 토픽 앞에 통신 접두어가 없는 MQTT 코드는 실제 보드로 보내지 않아요(MQTT 칸의 [코드에 접두어 적기]).
+      </li>
     </ul>
   </details>
   <details class="real-board__help">

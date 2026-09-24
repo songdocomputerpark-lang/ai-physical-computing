@@ -21,6 +21,7 @@ import type { LabRunContext, LabRunTarget } from '../controls/lab-shell.ts';
 import type { RunResult } from '../runtime/client.ts';
 import type { PythonErrorInfo } from '../runtime/protocol.ts';
 import { VIRTUAL_ONLY_MODULES, librariesNeededBy, virtualOnlyModulesUsedBy, type BoardLibrary } from '../esp32/board-libraries.ts';
+import { MQTT_NO_PREFIX_ERROR, REAL_BOARD_MQTT_TEXT, mqttPrefixProblem, usesMqtt } from '../mqtt/index.ts';
 import type { BoardConnection } from './board-connection.ts';
 import { BoardFileError, provisionLibraries, type LibraryProvision } from './board-files.ts';
 import { BOARD_INPUT_LABEL, InputEchoFilter, prepareBoardInputLine } from './board-input.ts';
@@ -238,6 +239,15 @@ export function createRealBoardRunTarget(connection: BoardConnection, options: R
       if (!connection.supported) {
         return fail('BoardUnsupported', '이 브라우저에서는 실제 보드를 연결할 수 없어요.', RUN_NOTICES.unsupported);
       }
+      /*
+       * MQTT 코드에 통신 접두어가 없으면 보내지 않는다(PLAN §7.4 PD-29 — 2026-09-25 Phase 4 검토 반영). 가상 보드는 통로가 접두어를
+       * 붙여 주지만 실제 보드는 코드 글자 그대로 공개 중계 서버에 붙어, 같은 코드를 올린 모든 보드와 한 토픽을 나눠 쓰게 된다.
+       * 포트 선택 창을 열기 전에 본다(코드만 보면 알 수 있다).
+       */
+      const mqttProblem = mqttPrefixProblem(code);
+      if (mqttProblem !== null) {
+        return fail(MQTT_NO_PREFIX_ERROR, REAL_BOARD_MQTT_TEXT.noPrefixShort(), mqttProblem);
+      }
       if (!connection.isOpen && connectOnRun && (connection.state === 'idle' || connection.state === 'lost' || connection.state === 'error')) {
         // 클릭 처리기 안에서 곧바로 선택 창을 연다(requestPort는 사용자 조작 안에서만 된다 — connect()는 await 전에 부른다)
         const connecting = connection.connect();
@@ -272,6 +282,9 @@ export function createRealBoardRunTarget(connection: BoardConnection, options: R
       }
       for (const issue of findRealBoardCompatIssues(code)) {
         notice(`실물 보드에서는 안 될 수 있어요 — ${issue.line}번째 줄: ${issue.text}`);
+      }
+      if (usesMqtt(code)) {
+        notice(REAL_BOARD_MQTT_TEXT.publicBroker());
       }
       const inputWanted = usesInput(code);
       if (inputWanted) {

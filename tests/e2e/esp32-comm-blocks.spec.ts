@@ -37,11 +37,15 @@ const SHARED_PREFIX = 'testprefix22';
 function mqttSenderCode(text: string): string {
   return [
     'import network',
+    'import time',
     'from umqtt.simple import MQTTClient',
     '',
     'wlan = network.WLAN(network.STA_IF)',
     'wlan.active(True)',
     "wlan.connect('my-wifi', 'my-password')",
+    // 실물처럼 연결을 기다린다(가상 와이파이도 connect() 뒤 곧바로 붙지 않는다 — 2026-09-25 검토 반영)
+    'while not wlan.isconnected():',
+    '    time.sleep(0.1)',
     '',
     "client = MQTTClient('pc-01', 'broker.emqx.io', port=1883)",
     'client.connect()',

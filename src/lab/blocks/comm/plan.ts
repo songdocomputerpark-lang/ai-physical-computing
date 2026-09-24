@@ -198,6 +198,10 @@ const RECIPES: Readonly<Record<CommFamily, CommRecipe>> = Object.freeze({
       const allow = COMM_MQTT.allow.map((command) => quote(command)).join(', ') + (COMM_MQTT.allow.length === 1 ? ',' : '');
       const lines = [
         `MQTT_BROKER = ${quote(COMM_MQTT.broker)}`,
+        // 우리 반 통신 접두어(PD-29, 2026-09-25 Phase 4 검토 반영) — 비어 있으면 가상 보드는 통로가 붙여 주고, 실제 보드로는 보내지 않는다.
+        // 실제 보드는 [코드로 바꾸기] 뒤 MQTT 칸의 [코드에 접두어 적기]로 채운다(src/lab/mqtt/real-board-guard.ts).
+        '# 실제 보드: [코드로 바꾸기] 뒤 MQTT 칸의 [코드에 접두어 적기]로 채워요(가상 보드는 비워 둬도 돼요)',
+        "MQTT_PREFIX = ''",
         `MQTT_ALLOW = (${allow})`,
         `MQTT_MAX_BYTES = ${COMM_MQTT.maxBytes}`,
         `${COMM_NAMES.mqttClient} = None`,
@@ -220,10 +224,10 @@ const RECIPES: Readonly<Record<CommFamily, CommRecipe>> = Object.freeze({
         '        return',
         `    ${COMM_NAMES.mqttMessage} = text`,
         '',
-        // 토픽은 짧게(`esp32-01/rx`) — 우리 반 접두어는 통로가 앞에 붙인다(COMM_MQTT 머리말)
+        // 토픽은 접두어가 비었으면 짧게(`esp32-01/rx` — 가상 통로가 접두어를 앞에 붙인다), 채웠으면 `<접두어>/esp32-01/rx`(실제 보드)
         `def ${COMM_NAMES.mqttConnect}(device):`,
         `    global ${COMM_NAMES.mqttClient}, ${COMM_NAMES.mqttTopic}`,
-        `    ${COMM_NAMES.mqttTopic} = device`,
+        `    ${COMM_NAMES.mqttTopic} = MQTT_PREFIX + '/' + device if MQTT_PREFIX else device`,
         `    ${COMM_NAMES.mqttClient} = MQTTClient(device, MQTT_BROKER, port=${COMM_MQTT.port})`,
         `    ${COMM_NAMES.mqttClient}.set_callback(${COMM_NAMES.mqttOnMessage})`,
         `    ${COMM_NAMES.mqttClient}.connect()`,
@@ -254,6 +258,7 @@ export const COMM_RESERVED_WORDS: readonly string[] = Object.freeze([
   'network',
   'wlan',
   'MQTT_BROKER',
+  'MQTT_PREFIX',
   'MQTT_ALLOW',
   'MQTT_MAX_BYTES',
 ]);

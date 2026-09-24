@@ -9,6 +9,7 @@
 // 개발 서버로 시험할 때는 다른 사람이 저장소 파일을 고치면 Vite가 페이지를 새로 고쳐 고른 값이 처음으로 돌아간다).
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
+import { createPrefix } from '../../src/lab/bridge/index.ts';
 import { labRoot, LOAD_TIMEOUT, setEditorCode } from './helpers/lab.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
@@ -68,6 +69,9 @@ function boardCode(name: string, mine: string, other: string): string {
     'wlan = network.WLAN(network.STA_IF)',
     'wlan.active(True)',
     'wlan.connect("classroom-wifi", "1234")',
+    // 실물처럼 연결을 기다린다(가상 와이파이도 connect() 뒤 곧바로 붙지 않는다 — 2026-09-25 검토 반영)
+    'while not wlan.isconnected():',
+    '    time.sleep(0.1)',
     '',
     'led = Pin(2, Pin.OUT)',
     '',
@@ -206,17 +210,20 @@ test.describe('MQTT와 같은 컴퓨터 탭 통로', () => {
     await expect(panel(page).locator('[data-mqtt-prefix]')).toHaveText(FRIEND_PREFIX);
   });
 
-  test('중계 서버에 연결되지 않으면 한국어로 알리고 탭 통로로 바꾼다', async ({ page }) => {
+  test('"중계 서버 먼저, 안 되면 탭"은 중계 서버에 연결되지 않으면 한국어로 알리고 탭 통로로 바꾼다', async ({ page }) => {
     await fixPrefix(page);
     await openLab(page);
     await setEditorCode(page, ['from umqtt.simple import MQTTClient', 'print("준비")'].join('\n'));
     await expect(panel(page)).toBeVisible();
 
     // 일부러 닿을 수 없는 주소를 넣는다(브라우저가 막는 포트라 바로 실패한다).
-    const choice = { mode: 'broker', brokerId: 'custom', url: 'wss://127.0.0.1:9/mqtt' } as const;
+    const choice = { mode: 'auto', brokerId: 'custom', url: 'wss://127.0.0.1:9/mqtt' } as const;
     await chooseBroker(page, choice);
-    await expect(panel(page)).toHaveAttribute('data-mqtt-mode-value', 'broker');
+    await expect(panel(page)).toHaveAttribute('data-mqtt-mode-value', 'auto');
     await expect(panel(page).locator('[data-mqtt-warning]')).toContainText('누구나 보고, 누구나 보낼 수도 있어요');
+    // [연결] 바로 아래에도 짧은 경고가 늘 보인다(§7.4 "연결 버튼 옆" — 2026-09-25 검토 반영)
+    await expect(panel(page).locator('[data-mqtt-connect-warning]')).toBeVisible();
+    await expect(panel(page).locator('[data-mqtt-connect-warning]')).toContainText('누구나 보고 보낼 수 있어요');
 
     expect(await connectAndWait(page, choice, 'tab')).toBe('tab');
     await expect(logBox(page)).toContainText('연결하지 못했어요');
@@ -224,8 +231,26 @@ test.describe('MQTT와 같은 컴퓨터 탭 통로', () => {
     await expect(panel(page).locator('[data-mqtt-state-text]')).toContainText('연결됨');
   });
 
-  test('공개 중계 서버로 두 탭이 서로의 가상 LED를 켠다(안 되면 외부 요인으로 기록)', async ({ page }, testInfo: TestInfo) => {
+  test('"공개 중계 서버"만 고르면 연결되지 않을 때 탭으로 몰래 바꾸지 않고 실패를 알린다', async ({ page }) => {
     await fixPrefix(page);
+    await openLab(page);
+    await setEditorCode(page, ['from umqtt.simple import MQTTClient', 'print("준비")'].join('\n'));
+    await expect(panel(page)).toBeVisible();
+
+    const choice = { mode: 'broker', brokerId: 'custom', url: 'wss://127.0.0.1:9/mqtt' } as const;
+    await chooseBroker(page, choice);
+    await panel(page).getByRole('button', { name: '연결', exact: true }).click();
+    await expect(logBox(page)).toContainText('공개 중계 서버 wss://127.0.0.1:9/mqtt에 연결하지 못했어요', { timeout: 60_000 });
+    await expect(panel(page)).toHaveAttribute('data-mqtt-state', 'closed');
+    await expect(panel(page)).toHaveAttribute('data-mqtt-via', '');
+    await expect(logBox(page)).not.toContainText('같은 컴퓨터 탭 통로로 바꿨어요');
+  });
+
+  test('공개 중계 서버로 두 탭이 서로의 가상 LED를 켠다(안 되면 외부 요인으로 기록)', async ({ page }, testInfo: TestInfo) => {
+    // 공개 서버에 나가는 시험은 실행마다 새 무작위 접두어를 쓴다(PD-29 "고정 루트 없이" — 2026-09-25 검토 반영: 저장소에 적힌 고정 접두어면
+    // 저장소를 읽은 누구나 그 토픽에 on을 보내 이 시험을 거짓으로 통과시키거나 흔들 수 있다). 탭 통로 시험은 밖으로 나가지 않아 고정이어도 된다.
+    const publicPrefix = createPrefix();
+    await fixPrefix(page, publicPrefix);
     const second = await page.context().newPage();
     await openLab(page);
     await openLab(second);
@@ -237,7 +262,7 @@ test.describe('MQTT와 같은 컴퓨터 탭 통로', () => {
     const viaA = await connectAndWait(page, emqx, 'broker');
     const viaB = await connectAndWait(second, emqx, 'broker');
     if (viaA !== 'broker' || viaB !== 'broker') {
-      const reason = `공개 중계 서버에 연결하지 못했어요(학교망 차단 또는 서버 사정). 화면은 안내와 함께 탭 통로로 바꿨어요. via=${viaA}/${viaB}`;
+      const reason = `공개 중계 서버에 연결하지 못했어요(학교망 차단 또는 서버 사정). 화면은 한국어로 실패를 알렸어요. via=${viaA}/${viaB}`;
       testInfo.annotations.push({ type: '외부 요인', description: reason });
       await second.close();
       test.skip(true, reason);
@@ -273,7 +298,7 @@ test.describe('MQTT와 같은 컴퓨터 탭 통로', () => {
     }
 
     const text = (await logBox(page).textContent()) ?? '';
-    expect(text).toContain(`${PREFIX}/`);
+    expect(text).toContain(`${publicPrefix}/`);
 
     await stopCode(page);
     await stopCode(second);

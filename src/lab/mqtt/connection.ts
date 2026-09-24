@@ -16,7 +16,11 @@ import { openBrokerTransport, type BrokerTransportOptions } from './broker-trans
 import { openTabTransport, type TabMqttTransportOptions } from './tab-transport.ts';
 import { previewBytes, type MqttPublishOptions, type MqttTransport, type MqttVia } from './transport.ts';
 
-/** 어떤 통로를 쓸지: 'tab' 같은 컴퓨터 탭만 · 'broker' 중계 서버(안 되면 탭으로) · 'auto' 중계 서버를 먼저 해 보고 안 되면 탭 */
+/**
+ * 어떤 통로를 쓸지: 'tab' 같은 컴퓨터 탭만 · 'broker' 공개 중계 서버만(안 되면 **실패로 알린다**) · 'auto' 중계 서버를 먼저 해 보고 안 되면 탭.
+ * 2026-09-25 Phase 4 검토 반영: 전에는 'broker'도 안 되면 탭으로 몰래 바뀌어, 친구 컴퓨터와 하려던 학생이 이어지지 않는 까닭을 못 봤다
+ * (화면 선택지 "공개 중계 서버"와 "중계 서버 먼저, 안 되면 탭"이 똑같이 움직였다). 이제 막히지 않는 길이 필요하면 'auto'를 고른다.
+ */
 export type MqttMode = 'tab' | 'broker' | 'auto';
 
 /** 연결 상태 */
@@ -213,6 +217,13 @@ export class MqttConnection {
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
         this.notice(reason);
+        if (mode === 'broker') {
+          // 공개 중계 서버만 고른 학생에게는 몰래 탭으로 바꾸지 않고 실패를 알린다(무엇을 하면 되는지 함께 — 머리말 MqttMode).
+          this.setState('closed');
+          const failed = mqttText.brokerFailed(url);
+          this.notice(failed);
+          throw new MqttConnectError(failed);
+        }
         this.notice(mqttText.switchedToTab(url));
       }
     }

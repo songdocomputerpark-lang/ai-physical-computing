@@ -111,8 +111,11 @@ class BrokerTransport implements MqttTransport {
     if (!this.open) {
       return Promise.reject(new MqttError('closed', mqttText.notConnected()));
     }
+    // 부른 쪽이 무엇을 주든 공개 중계 서버에는 늘 QoS 0·retain 끔으로 보낸다(PLAN §7.4 — 값이 서버에 남아 다음 사람에게 가지 않게).
+    // 2026-09-25 Phase 4 검토 반영: 전에는 학생 코드의 retain=True가 그대로 서버에 나갔다(PUBLISH 머리 0x31).
+    void options;
     return new Promise((resolve, reject) => {
-      this.client.publish(topic, bytes, { qos: options.qos ?? 0, retain: options.retain ?? false }, (error) => {
+      this.client.publish(topic, bytes, { qos: 0, retain: false }, (error) => {
         if (error) {
           reject(new MqttError('publish-failed', mqttText.connectFailed(this.where, reasonOf(error))));
           return;

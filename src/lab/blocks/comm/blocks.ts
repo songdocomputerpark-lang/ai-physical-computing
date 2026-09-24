@@ -78,7 +78,9 @@ export const COMM_BLOCK_DEFINITIONS: readonly BlockJson[] = Object.freeze([
     previousStatement: null,
     nextStatement: null,
     style: COMM_BLOCK_STYLE,
-    tooltip: '교실 와이파이에 연결해요(최대 10초 기다려요). 비밀번호는 다른 사람에게 알려 주지 않아요. 코드: wifi_connect(\'my-wifi\', \'my-password\')',
+    // 코드는 이 컴퓨터에 자동 저장된다 — 학교 공용 PC에 실제 비밀번호가 남지 않게 지우는 길을 함께 알린다(2026-09-25 Phase 4 검토 반영)
+    tooltip:
+      '교실 와이파이에 연결해요(최대 10초 기다려요). 가상 보드는 비밀번호가 필요 없어요. 실제 비밀번호를 적었으면 코드가 이 컴퓨터에 자동 저장되니 수업 뒤 [이 컴퓨터에서 내 기록 지우기]를 눌러요. 코드: wifi_connect(\'my-wifi\', \'my-password\')',
   },
   {
     type: 'apc_comm_mqtt_connect',

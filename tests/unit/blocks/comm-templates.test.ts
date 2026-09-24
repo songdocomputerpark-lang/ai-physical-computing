@@ -15,6 +15,7 @@ import { readExampleMeta } from '../../../src/lab/controls/example-meta.ts';
 import { parseExampleSidecar } from '../../../src/lab/controls/example-sidecar.ts';
 import { esp32ExampleIdFromFile } from '../../../src/lab/esp32/examples.ts';
 import { normalizeWiringSpecs } from '../../../src/lab/modules/board/wiring-spec.ts';
+import { findPrefixValue, mqttPrefixProblem } from '../../../src/lab/mqtt/index.ts';
 
 const REPO = process.cwd();
 const TEMPLATE_DIR = path.join(REPO, 'examples', 'esp32', 'templates');
@@ -203,13 +204,22 @@ describe('통신 템플릿 파일', () => {
     expect(source).toContain(`port=${COMM_MQTT.port}`);
     expect(source).toContain(`ALLOW = ("${COMM_MQTT.allow.join('", "')}")`);
     expect(source).toContain(`MAX_BYTES = ${COMM_MQTT.maxBytes}`);
-    // 토픽은 `esp32-01/rx`처럼 짧게 — 우리 반 접두어는 통로(src/lab/mqtt/topics.ts)가 붙인다.
-    // 코드에 또 적으면 접두어가 두 번 붙어 대시보드(deviceRxTopic)와 어긋난다(2026-09-18 가상 보드에서 확인).
-    expect(source).toContain('TOPIC_RX = DEVICE + "/rx"');
-    expect(source).toContain('TOPIC_TX = DEVICE + "/tx"');
+    // 토픽은 PREFIX가 비어 있으면 `esp32-01/rx`처럼 짧게(가상 보드는 통로 — src/lab/mqtt/topics.ts — 가 접두어를 붙인다),
+    // 채우면 `<접두어>/esp32-01/rx`(실제 보드용 — 가상 통로는 이미 그 접두어로 시작하면 한 번 더 붙이지 않는다). 2026-09-25 검토 반영:
+    // 전에는 PREFIX 칸이 없어 실제 보드에 그대로 올리면 접두어 없는 전국 공용 토픽으로 나갔다.
+    expect(source).toContain('PREFIX = ""');
+    expect(source).toContain('BASE = PREFIX + "/" + DEVICE if PREFIX else DEVICE');
+    expect(source).toContain('TOPIC_RX = BASE + "/rx"');
+    expect(source).toContain('TOPIC_TX = BASE + "/tx"');
     expect(source).toContain('client.subscribe(TOPIC_RX)');
     expect(source).toContain('client.publish(TOPIC_TX');
-    expect(codeLines(source)).not.toMatch(/PREFIX|xxxxxxxxxxxx/u);
+    expect(codeLines(source)).not.toMatch(/xxxxxxxxxxxx/u);
+    // 비어 있는 PREFIX로는 실제 보드에 보내지 않고, [코드에 접두어 적기]가 채우면 보낸다(src/lab/mqtt/real-board-guard.ts)
+    expect(mqttPrefixProblem(source)).not.toBeNull();
+    const found = findPrefixValue(source);
+    expect(found).not.toBeNull();
+    const filled = `${source.slice(0, found!.from)}7kq2m9xd4hpt${source.slice(found!.to)}`;
+    expect(mqttPrefixProblem(filled)).toBeNull();
     // 사이트 이름 같은 고정 루트를 앞에 붙이지 않는다
     expect(source).not.toMatch(/"apc\/|'apc\//u);
     // 움직이거나 위험한 장치는 공개 브로커 통로에 잇지 않는다(주석 설명은 빼고 코드 줄만 본다)

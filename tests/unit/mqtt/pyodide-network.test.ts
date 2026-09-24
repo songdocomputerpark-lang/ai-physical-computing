@@ -15,16 +15,29 @@ describe.skipIf(!boardPyodideReady)('가상 보드 network·umqtt 흉내(실제 
     expect(out.files).toEqual(expect.arrayContaining(['apc_board_network.py', 'apc_board_umqtt.py']));
   }, 240_000);
 
-  it('network.WLAN은 늘 연결에 성공한다(PLAN §6.3)', () => {
+  it('network.WLAN은 늘 연결에 성공하지만, connect() 바로 뒤에는 연결 중이다(PLAN §6.3, 2026-09-25 검토 반영)', () => {
     const step = stepOf(out, 'network_wlan');
     expect(step.errorMessage).toBeUndefined();
-    expect(step.value).toEqual([true, true, '192.168.0.77', true, 2, 'esp32-virtual', true]);
+    // [active, 곧바로 isconnected, 연결 중 상태, 기다렸나, 기다린 뒤 isconnected, ip, STAT_GOT_IP, scan 수, hostname, rssi]
+    expect(step.value).toEqual([true, false, true, true, true, '192.168.0.77', true, 2, 'esp32-virtual', true]);
   });
 
   it('active(True)를 빠뜨리면 대신 켜 주고 콘솔로 알린다', () => {
     const step = stepOf(out, 'network_without_active');
-    expect(step.value).toEqual([true, true]);
+    // connect() 바로 뒤라 아직 연결 중(False) — 실물과 같다
+    expect(step.value).toEqual([true, false]);
     expect(step.notices.join('\n')).toContain('wlan.active(True)');
+  });
+
+  it('와이파이가 연결 중인데 MQTT connect()를 부르면 한국어 OSError(실물은 중계 서버 주소를 못 찾는다)', () => {
+    const step = stepOf(out, 'umqtt_connect_before_wifi');
+    expect(String(step.value)).toContain('와이파이가 아직 연결되지 않아서');
+    expect(String(step.value)).toContain('isconnected');
+  });
+
+  it('set_callback 없이 subscribe하면 umqtt.simple과 같은 AssertionError', () => {
+    const step = stepOf(out, 'umqtt_subscribe_without_callback');
+    expect(step.value).toBe('Subscribe callback is not set');
   });
 
   it('umqtt.simple을 두 모양으로 import할 수 있고, 연결 전에 보내면 한국어 오류', () => {

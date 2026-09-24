@@ -24,8 +24,13 @@
   이름이 같아도 실제 주소·포트는 화면이 고른 것이다. 학교망이 막으면 **같은 컴퓨터 탭 통로**로 스스로 바뀐다(PD-17).
 - 토픽 앞에는 이 수업의 **무작위 접두어**가 붙는다(PD-29 — 공개 서버에서 남의 메시지와 섞이지 않게). 콜백에는 학생이
   쓴 토픽 그대로 돌려준다.
-- QoS는 0, retain은 쓰지 않는다(PLAN §7.4).
-- 실제 보드로 보내는 길에는 화면이 **허용 명령 목록과 길이 검사**를 건다(PD-29: 레이저·모터는 공개 서버에 잇지 않는다).
+- QoS는 0, retain은 쓰지 않는다(PLAN §7.4). 코드가 `retain=True`를 줘도 화면이 끄고 보내며 콘솔에 한 번 까닭을 알린다
+  (2026-09-25 Phase 4 검토 반영 — 전에는 retain이 공개 서버에 그대로 나갔다).
+- 받는 쪽 거르기(허용 명령 목록·길이 검사 — PD-29)는 **보드 코드가 한다**(템플릿 `examples/esp32/templates/mqtt-pub-sub.py`의
+  command_of). 사이트가 실제 보드 대신 걸러 주는 길은 없다 — 그래서 템플릿·통신 블록이 그 검사를 코드에 넣어 둔다.
+- `subscribe()`는 `set_callback()` 뒤에만 된다(micropython-lib umqtt.simple과 같은 `AssertionError: Subscribe callback is not set`).
+- 와이파이에 붙기 시작했는데 아직 연결되지 않았으면 `connect()`가 한국어 OSError를 낸다(실물은 중계 서버 주소를 찾지 못한다 —
+  `apc_board_network.wifi_pending()`). 와이파이 코드가 아예 없으면 가상 보드는 그대로 붙되 "실물은 와이파이가 먼저"를 한 번 알린다.
 
 규칙(src/lab/README.md 4.4): `apc_runtime`의 request·poll·drain·sleep·notice만 쓰고, 이 파일을 불러올 때(동기 진입점)는 양보하지 않는다.
 라이선스: 사이트 소프트웨어(MIT, PD-26). umqtt.simple의 코드를 옮기지 않고 **API 모양만** 같게 새로 썼다.
@@ -37,6 +42,11 @@ import types
 import apc_board
 import apc_runtime
 
+try:
+    import apc_board_network as _network
+except ImportError:  # 확장 파일이 없는 시험 환경
+    _network = None
+
 REQUEST_CONNECT = "mqtt.connect"
 REQUEST_PUBLISH = "mqtt.publish"
 REQUEST_SUBSCRIBE = "mqtt.subscribe"
@@ -47,6 +57,9 @@ CHANNEL_INBOX = "mqtt.inbox"
 #: 이 통은 **모듈 하나에 하나**다 — 화면 연결도 탭마다 하나(src/lab/mqtt/session.ts)라 통도 하나면 맞다.
 #: 한 코드에서 MQTTClient를 둘 만들면 먼저 check_msg를 부른 쪽이 가져간다(교과서 예제는 하나만 쓴다).
 _inbox = []
+
+#: 이번 실행에서 "실물은 와이파이가 먼저" 안내를 했나(실행마다 한 번)
+_wifi_noticed = [False]
 
 
 class MQTTException(Exception):
@@ -139,6 +152,17 @@ class MQTTClient:
 
     def connect(self, clean_session=True, timeout=None):
         """중계 서버(또는 같은 컴퓨터 탭 통로)에 붙는다. umqtt처럼 0을 돌려준다(이어 쓰던 session 없음)."""
+        if _network is not None and _network.wifi_pending():
+            raise OSError(
+                "와이파이가 아직 연결되지 않아서 중계 서버에 붙지 못했어요. "
+                "wlan.connect() 뒤에 while not wlan.isconnected(): time.sleep(0.1)로 연결을 기다린 다음 client.connect()를 불러요."
+            )
+        if _network is not None and not _network.wifi_used() and not _wifi_noticed[0]:
+            _wifi_noticed[0] = True
+            apc_runtime.notice(
+                "가상 보드는 와이파이 없이도 MQTT에 붙어요. 실물 보드는 network.WLAN으로 와이파이에 먼저 연결해야 client.connect()가 돼요.",
+                "warn",
+            )
         answer = _ask(
             REQUEST_CONNECT,
             {
@@ -188,7 +212,8 @@ class MQTTClient:
         return None
 
     def subscribe(self, topic, qos=0):
-        """이 토픽을 받기로 한다."""
+        """이 토픽을 받기로 한다. 받은 메시지를 넘길 함수(set_callback)가 먼저 있어야 한다(umqtt.simple과 같다)."""
+        assert self.cb is not None, "Subscribe callback is not set"
         self._check_connected()
         _ask(REQUEST_SUBSCRIBE, {"topic": _text(topic), "qos": int(qos or 0)})
         return None
@@ -228,6 +253,7 @@ class MQTTClient:
 def _reset():
     """실행이 시작될 때 지난 실행에서 온 메시지를 버린다(동기 진입점 — drain만 쓴다)."""
     _inbox.clear()
+    _wifi_noticed[0] = False
     apc_runtime.drain(CHANNEL_INBOX)
 
 

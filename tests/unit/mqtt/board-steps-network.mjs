@@ -4,15 +4,22 @@
 // "요청이 실제로 나간다 · 거절이 한국어 오류로 바뀐다"까지 확인하고, 주고받는 흐름은 브라우저 테스트(tests/e2e/mqtt.spec.ts)가 본다.
 
 export default async function networkSteps({ step, bridge }) {
-  // ① network.WLAN — 가상 와이파이는 늘 연결에 성공한다(PLAN §6.3).
+  // ① network.WLAN — 가상 와이파이는 늘 연결에 성공하지만, 실물처럼 connect() 뒤 곧바로는 아니다(2026-09-25 검토 반영 — 연결 중 0.5초).
   await step(
     'network_wlan',
     [
       'import network',
+      'import time',
       'wlan = network.WLAN(network.STA_IF)',
       'a = wlan.active(True)',
       'wlan.connect("classroom-wifi", "pw")',
-      '[a, wlan.isconnected(), wlan.ifconfig()[0], wlan.status() == network.STAT_GOT_IP, len(wlan.scan()), network.hostname(), wlan.status("rssi") < 0]',
+      'first = wlan.isconnected()',
+      'connecting = wlan.status() == network.STAT_CONNECTING',
+      'n = 0',
+      'while not wlan.isconnected():',
+      '    time.sleep(0.1)',
+      '    n = n + 1',
+      '[a, first, connecting, n > 0, wlan.isconnected(), wlan.ifconfig()[0], wlan.status() == network.STAT_GOT_IP, len(wlan.scan()), network.hostname(), wlan.status("rssi") < 0]',
     ].join('\n'),
   );
 
@@ -20,6 +27,41 @@ export default async function networkSteps({ step, bridge }) {
   await step(
     'network_without_active',
     ['import network', 'wlan = network.WLAN(network.STA_IF)', 'wlan.connect("classroom-wifi", "pw")', '[wlan.active(), wlan.isconnected()]'].join('\n'),
+  );
+
+  // ②-1 와이파이가 연결 중인데 MQTT connect()를 부르면 한국어 OSError(실물은 중계 서버 주소를 찾지 못한다 — 2026-09-25 검토 반영).
+  await step(
+    'umqtt_connect_before_wifi',
+    [
+      'import network',
+      'from umqtt.simple import MQTTClient',
+      'wlan = network.WLAN(network.STA_IF)',
+      'wlan.active(True)',
+      'wlan.connect("classroom-wifi", "pw")',
+      'client = MQTTClient("board-01", "broker.emqx.io")',
+      'try:',
+      '    client.connect()',
+      '    r = "connected"',
+      'except OSError as error:',
+      '    r = str(error)',
+      'r',
+    ].join('\n'),
+  );
+
+  // ②-2 set_callback 없이 subscribe하면 micropython-lib umqtt.simple과 같은 AssertionError.
+  await step(
+    'umqtt_subscribe_without_callback',
+    [
+      'from umqtt.simple import MQTTClient',
+      'client = MQTTClient("board-01", "broker.emqx.io")',
+      'client._connected = True',
+      'try:',
+      '    client.subscribe(b"led")',
+      '    r = "subscribed"',
+      'except AssertionError as error:',
+      '    r = str(error)',
+      'r',
+    ].join('\n'),
   );
 
   // ③ umqtt.simple import 두 모양 + 연결 전에 보내면 한국어 오류.

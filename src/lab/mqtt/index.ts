@@ -35,3 +35,4 @@ export { MqttConnection, type MqttConnectionEvents, type MqttConnectionOptions, 
 export { getMqttSession, peekMqttSession, resetMqttSession } from './session.ts';
 export { MQTT_CHANNEL_ID, MQTT_DATA_TYPE, envelopeTextOf, forgetMqttChannelRegistration, registerMqttChannel, type MqttChannelExtra } from './channel.ts';
 export { readMqttSettings, writeMqttSettings, type MqttSettings } from './settings.ts';
+export { MQTT_NO_PREFIX_ERROR, REAL_BOARD_MQTT_TEXT, findPrefixValue, hasTopicPrefix, mqttPrefixProblem, usesMqtt } from './real-board-guard.ts';

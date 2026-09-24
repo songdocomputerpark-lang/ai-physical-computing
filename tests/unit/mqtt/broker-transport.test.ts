@@ -121,6 +121,13 @@ describe('보내기·받기', () => {
     expect(client.published).toEqual([{ topic: '7kq2m9xd4hpt/led', message: 'on', qos: 0, retain: false }]);
   });
 
+  it('부른 쪽이 retain·QoS를 달라고 해도 공개 중계 서버에는 retain 끔·QoS 0으로 보낸다(2026-09-25 검토 — 값이 서버에 남지 않게)', async () => {
+    const client = new FakeClient();
+    const transport = await openBrokerTransport({ prefix: '7kq2m9xd4hpt', url: URL_OK, connectFn: connectFnOf(client) });
+    await transport.publish('7kq2m9xd4hpt/temp', toBytes('42'), { retain: true, qos: 1 });
+    expect(client.published).toEqual([{ topic: '7kq2m9xd4hpt/temp', message: '42', qos: 0, retain: false }]);
+  });
+
   it('브로커가 보낸 메시지를 바이트로 올려 준다', async () => {
     const client = new FakeClient();
     const transport = await openBrokerTransport({ prefix: '7kq2m9xd4hpt', url: URL_OK, connectFn: connectFnOf(client) });

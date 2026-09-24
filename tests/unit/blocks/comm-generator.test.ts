@@ -12,6 +12,7 @@ import { createBlocksKit, type BlocksKit } from '../../../src/lab/blocks/kit.ts'
 import type { SerializedWorkspace } from '../../../src/lab/blocks/presets.ts';
 import { BLOCK_COLOURS, BLOCK_TEXT_COLOUR, contrastRatio } from '../../../src/lab/blocks/theme.ts';
 import { buildToolbox } from '../../../src/lab/blocks/toolbox.ts';
+import { mqttPrefixProblem } from '../../../src/lab/mqtt/index.ts';
 
 const require = createRequire(import.meta.url);
 let cached: BlocksKit | null = null;
@@ -159,7 +160,11 @@ describe('통신 블록 예시 → 코드', () => {
     expect(code).toContain('    if len(payload) > MQTT_MAX_BYTES:');
     expect(code).toContain('    if text not in MQTT_ALLOW:');
     expect(code).toContain("wifi_connect('my-wifi', 'my-password')");
-    // 토픽에 접두어를 적지 않는다 — 통로가 붙인다(코드에 또 적으면 두 번 붙어 대시보드와 어긋난다)
+    // 접두어 칸은 비어 있다 — 가상 보드는 통로가 붙이고, 실제 보드는 [코드에 접두어 적기]로 채워야 보낸다(2026-09-25 검토 반영)
+    expect(code).toContain("MQTT_PREFIX = ''");
+    expect(code).toContain("    mqtt_topic = MQTT_PREFIX + '/' + device if MQTT_PREFIX else device");
+    expect(mqttPrefixProblem(code)).not.toBeNull();
+    expect(mqttPrefixProblem(code.replace("MQTT_PREFIX = ''", "MQTT_PREFIX = '7kq2m9xd4hpt'"))).toBeNull();
     expect(code).toContain("mqtt_connect('esp32-01')");
     expect(code).toContain("    client.subscribe(mqtt_topic + '/rx')");
     expect(code).toContain("    client.publish(mqtt_topic + '/tx', str(횟수))");
