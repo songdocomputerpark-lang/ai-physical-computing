@@ -1,0 +1,277 @@
+---
+/**
+ * 실제 보드와 잇는 블루투스 칸(P4-04, 규약은 src/lab/README.md 4.5). HTML·CSS만 그리고 움직임은
+ * `src/lab/modules/web-bluetooth/index.ts`가 `data-ble-real-*` 표시로 찾아 잇는다.
+ * LabShell이 [data-lab-module-panel="web-bluetooth"] 안에 hidden으로 그려 두고, 코드가 블루투스를 쓸 때 연다.
+ *
+ * 무엇을 보여 주나
+ *  ① [블루투스 보드 연결] — 누르면 브라우저 선택 창이 열린다(사용자 조작 안에서만 열 수 있다).
+ *  ② 교실에서 내 보드 고르는 법(이름 규칙) — 모두 "ESP32"면 고를 수 없으니 자리 번호를 붙인다(PLAN §7.3).
+ *  ③ 이름 앞부분·[가까운 기기 모두 보기] — 선택 창에 보이는 기기를 좁힌다.
+ *  ④ 주고받은 것과 보내기 — 보드의 ESP32BLE.read()가 받는 값(한 번에 20바이트).
+ *  ⑤ 이 브라우저에서 안 될 때(아이폰·Firefox 등) 한국어 안내와 가상 블루투스로 이어 가기.
+ *
+ * 개인정보: 기기 주소는 어디에도 적지 않는다(브라우저가 주지도 않는다). 이름 칸 옆에 "이름·학번 대신 자리 번호" 안내를 붙인다.
+ * 접근성: 상태·문제·기록에 aria-live, 모든 조작에 label, 색만으로 알리지 않는다(글로도 적는다).
+ */
+import { DEFAULT_NAME_PREFIX, NAME_MAX_BYTES, bleText, initLineFor, suggestBoardName } from '../../../lab/ble/index.ts';
+---
+
+<section class="ble-real" data-ble-real data-ble-real-state="idle" aria-label="블루투스로 실제 보드 연결">
+  <header class="ble-real__head">
+    <h3 class="ble-real__title">블루투스로 실제 보드 연결</h3>
+    <span class="ble-real__badge" data-ble-real-badge>연결 전</span>
+  </header>
+
+  <p class="ble-real__intro">{bleText.intro()}</p>
+
+  <div class="ble-real__row">
+    <button type="button" class="lab-button lab-button--small" data-ble-real-action="connect">블루투스 보드 연결</button>
+    <button type="button" class="lab-button lab-button--small" data-ble-real-action="reconnect" hidden>다시 연결</button>
+    <button type="button" class="lab-button lab-button--small" data-ble-real-action="disconnect" hidden>연결 끊기</button>
+  </div>
+
+  <p class="ble-real__status" data-ble-real-status aria-live="polite">{bleText.state('idle', '')}</p>
+  <p class="ble-real__note" data-ble-real-device hidden></p>
+
+  <div class="ble-real__problem" data-ble-real-problem role="alert" hidden>
+    <p class="ble-real__problem-text" data-ble-real-problem-text></p>
+    <p class="ble-real__problem-advice" data-ble-real-problem-advice></p>
+  </div>
+
+  <div class="ble-real__unsupported" data-ble-real-unsupported hidden>
+    <p class="ble-real__problem-text" data-ble-real-unsupported-text>{bleText.state('unsupported', '')}</p>
+    <p class="ble-real__problem-advice" data-ble-real-unsupported-advice></p>
+    <p class="ble-real__problem-advice" data-ble-real-fallback></p>
+    <button type="button" class="lab-button lab-button--small" data-ble-real-action="virtual" hidden>가상 블루투스로 계속하기</button>
+  </div>
+
+  <div class="ble-real__chooser">
+    <div class="ble-real__row">
+      <label class="ble-real__label" for="lab-ble-prefix">보드 이름 앞부분</label>
+      <input
+        id="lab-ble-prefix"
+        class="ble-real__input"
+        type="text"
+        value={DEFAULT_NAME_PREFIX}
+        maxlength={NAME_MAX_BYTES}
+        autocomplete="off"
+        spellcheck="false"
+        data-ble-real-prefix
+      />
+      <label class="ble-real__check">
+        <input type="checkbox" data-ble-real-accept-all />
+        가까운 기기 모두 보기
+      </label>
+    </div>
+    <p class="ble-real__note">{bleText.prefixHint()}</p>
+    <p class="ble-real__warn" data-ble-real-name-issues role="status" hidden></p>
+  </div>
+
+  <div class="ble-real__classroom" data-ble-real-classroom>
+    <h4 class="ble-real__subtitle">교실에서 내 보드 고르기</h4>
+    <p class="ble-real__note">{bleText.classroomRule()}</p>
+    <p class="ble-real__note">{bleText.classroomPrivacy()}</p>
+    <div class="ble-real__row">
+      <label class="ble-real__label" for="lab-ble-seat">내 자리 번호</label>
+      <input id="lab-ble-seat" class="ble-real__input ble-real__input--narrow" type="number" min="1" max="99" value="7" data-ble-real-seat />
+      <code class="ble-real__code" data-ble-real-init-line>{initLineFor(suggestBoardName(7))}</code>
+    </div>
+    <p class="ble-real__note">이 줄을 보드 코드에 적으면 선택 창에 내 번호가 보여요.</p>
+  </div>
+
+  <div class="ble-real__log">
+    <div class="ble-real__row ble-real__row--between">
+      <h4 class="ble-real__subtitle">주고받은 것</h4>
+      <span class="ble-real__count" data-ble-real-counts>{bleText.counts(0, 0, 0)}</span>
+      <button type="button" class="lab-button lab-button--small" data-ble-real-action="clear">기록 지우기</button>
+    </div>
+    <pre class="ble-real__lines" data-ble-real-log aria-live="polite">아직 주고받은 것이 없어요.</pre>
+    <p class="ble-real__hex">
+      마지막 값(16진수): <code data-ble-real-hex>—</code>
+    </p>
+  </div>
+
+  <form class="ble-real__send" data-ble-real-form>
+    <label class="ble-real__label" for="lab-ble-text">보드로 보내기</label>
+    <div class="ble-real__row">
+      <input id="lab-ble-text" class="ble-real__input" type="text" value="a" autocomplete="off" data-ble-real-text />
+      <label class="ble-real__check">
+        <input type="checkbox" data-ble-real-newline checked />
+        줄바꿈 붙이기
+      </label>
+      <button type="submit" class="lab-button lab-button--small" data-ble-real-action="send">보내기</button>
+    </div>
+    <p class="ble-real__note">{bleText.sendHint()}</p>
+    <p class="ble-real__warn" data-ble-real-warning role="status" hidden></p>
+  </form>
+</section>
+
+<style>
+  .ble-real {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    min-width: 0;
+  }
+
+  .ble-real__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .ble-real__title {
+    margin: 0;
+    font-size: var(--text-base);
+  }
+
+  .ble-real__subtitle {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .ble-real__badge {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .ble-real[data-ble-real-state='open'] .ble-real__badge {
+    border-color: var(--color-success-border);
+    color: var(--color-success-text);
+  }
+
+  .ble-real[data-ble-real-state='error'] .ble-real__badge,
+  .ble-real[data-ble-real-state='unsupported'] .ble-real__badge {
+    border-color: var(--color-danger-border);
+    color: var(--color-danger-text);
+  }
+
+  .ble-real__intro,
+  .ble-real__status,
+  .ble-real__note,
+  .ble-real__hex,
+  .ble-real__warn,
+  .ble-real__problem-text,
+  .ble-real__problem-advice {
+    margin: 0;
+  }
+
+  .ble-real__note,
+  .ble-real__hex,
+  .ble-real__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .ble-real__status {
+    font-weight: 600;
+  }
+
+  .ble-real__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .ble-real__row--between {
+    justify-content: space-between;
+  }
+
+  .ble-real__label {
+    font-weight: 600;
+  }
+
+  .ble-real__input {
+    flex: 1 1 8rem;
+    min-width: 6rem;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .ble-real__input--narrow {
+    flex: 0 0 5rem;
+    min-width: 4rem;
+  }
+
+  .ble-real__check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .ble-real__problem,
+  .ble-real__unsupported {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-danger-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+  }
+
+  .ble-real__unsupported button {
+    justify-self: start;
+  }
+
+  .ble-real__warn {
+    color: var(--color-warning-text);
+    font-size: var(--text-xs);
+  }
+
+  .ble-real__classroom {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+  }
+
+  .ble-real__code {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    overflow-wrap: anywhere;
+  }
+
+  .ble-real__log {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .ble-real__lines {
+    margin: 0;
+    padding: var(--space-2);
+    max-height: 9rem;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .ble-real__send {
+    display: grid;
+    gap: var(--space-1);
+  }
+</style>
