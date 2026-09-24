@@ -849,12 +849,18 @@ class LabShellController implements LabController {
     }
     if (first) {
       /*
-       * 알림은 결과 칸 맨 아래(핀 표 다음)에 있어 [실행] 뒤 화면 위치에서는 접힌 곳 아래일 수 있다.
-       * 결과 칸의 꼭 보여야 하는 부분(보드 그림)과 알림을 **함께** 보이고, 한 화면에 못 넣으면 **보드 그림을** 보인다
-       * (2026-09-25 Phase 4 검토 반영 — 전에는 알림 쪽으로 옮겨 LED·네오픽셀 링이 화면 밖으로 밀려, 원인과 결과를 한 화면에서 못 봤다).
-       * 알림은 결과 칸 안에서 화면 아래쪽에 붙어 떠 있으므로(LabShell.astro .lab__io-output의 position: sticky) 그래도 보인다.
+       * 알림은 처음에 결과 칸 맨 아래(핀 표 다음)에 있어 [실행] 뒤 화면 위치에서는 접힌 곳 아래일 수 있다.
+       * io 슬롯이 `[data-lab-io-output-anchor]`로 자리를 알려 주면(보드 그림 바로 아래·출력 화면 바로 아래) 알림을 그 뒤로 옮겨,
+       * 꼭 보여야 하는 칸(보드 그림)과 알림이 한 화면에 함께 들어오게 한다. 그래도 못 넣으면 **보드 그림을** 보인다
+       * (2026-09-25 Phase 4 검토 반영 — 전에는 알림 쪽으로 옮겨 LED·네오픽셀 링이 화면 밖으로 밀렸다. 알림을 화면 아래에 붙여 띄우는
+       * 방법(sticky)은 휴대폰에서 보드 조작 칸(4채널 터치 패드)을 덮어 손가락이 닿지 않아 쓰지 않는다 — 리눅스 CI에서 드러남).
        */
-      const narrow = this.#elements.ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
+      const ioSection = this.#elements.ioSection;
+      const anchor = ioSection?.querySelector<HTMLElement>('[data-lab-io-output-anchor]') ?? null;
+      if (anchor !== null && anchor.nextElementSibling !== ioOutputBox) {
+        anchor.after(ioOutputBox);
+      }
+      const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
       revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox });
     }
   }

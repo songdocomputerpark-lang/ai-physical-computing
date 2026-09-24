@@ -12,6 +12,7 @@
  * 그림은 칸 폭에 맞추고, [그림 크게 보기]를 누르면 넓게 펴서 가로로 밀어 본다(휴대폰에서 핀 번호가 작을 때 — PROGRESS 미해결 50).
  * data-lab-reveal-on-run: [실행]을 누를 때 실습실 틀(lab-shell.ts)이 화면 안으로 옮기는 결과 칸(보드와 핀 표 전체),
  * data-lab-reveal-on-run-min: 함께 못 넣을 때 꼭 보여야 하는 칸(보드 그림) — src/lab/README.md 4.3.
+ * data-lab-io-output-anchor: 실습실 틀의 "콘솔에 결과가 나왔어요" 알림이 처음 뜰 때 옮겨 갈 자리(이 요소 바로 뒤 = 보드 그림 바로 아래).
  * 사이트 검색 색인은 LabShell 뿌리에서 이미 뺀다.
  */
 import '../../styles/board-drawing.css';
@@ -41,7 +42,7 @@ import '../../styles/board-drawing.css';
           <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
         </div>
       </div>
-      <p class="board-io__scroll-hint" data-board-scroll-hint hidden>그림이 칸보다 넓어요 — 옆으로 밀어 보세요.</p>
+      <p class="board-io__scroll-hint" data-board-scroll-hint data-lab-io-output-anchor hidden>그림이 칸보다 넓어요 — 옆으로 밀어 보세요.</p>
       <p class="board-io__note" data-board-wiring-empty hidden>
         이 예제는 보드에 붙은 부품(내장 LED·BOOT 버튼)만 써요. 터치 센서처럼 바깥 부품을 쓰는 예제를 고르면 보드 아래에 배선도가 그려져요.
       </p>
