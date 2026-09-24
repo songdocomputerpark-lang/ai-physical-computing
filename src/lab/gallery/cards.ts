@@ -19,7 +19,7 @@ import type { ExampleSidecar } from '../controls/example-sidecar.ts';
 import type { LabExample } from '../controls/examples.ts';
 import { galleryFacetsOf, partIdsOf, type FacetSource, type GalleryFacets } from './facets.ts';
 import { GALLERY_LAB_IDS, GALLERY_LAB_LABELS, normalizeKeywords, type GalleryLabId } from './filters.ts';
-import { commKindsFromCode, unitFromExampleFile } from './infer.ts';
+import { commKindsFromCode, unitFromExampleFile, virtualOkByRule } from './infer.ts';
 import { SITE_VERSION_GROUP, siteVersionPairs, variantGroupsBySourceId, type VariantGroup } from './variants.ts';
 
 /** 차시 md 하나에서 갤러리가 쓰는 값(페이지가 `getCollection('lessons')`으로 만들어 넘긴다) */
@@ -253,7 +253,7 @@ export function buildGallery(
     const facets: GalleryFacets = Object.freeze({
       unit,
       difficulty: merged.difficulty,
-      virtualOk: merged.virtualOk,
+      virtualOk: merged.virtualOk ?? virtualOkByRule(input.lab),
       comm: Object.freeze(comm),
       parts: Object.freeze(parts),
       tags: merged.tags,
@@ -366,6 +366,7 @@ export function buildGallery(
   const commCounts = new Map<string, number>();
   const partCounts = new Map<string, number>();
   const difficultyCounts = new Map<string, number>();
+  let difficultyFilled = 0;
   let virtualOkCount = 0;
   for (const card of finalCards) {
     pushOption(labCounts, card.lab);
@@ -374,6 +375,7 @@ export function buildGallery(
     }
     if (card.facets.difficulty !== null) {
       pushOption(difficultyCounts, String(card.facets.difficulty));
+      difficultyFilled += 1;
     }
     if (card.facets.virtualOk === true) {
       virtualOkCount += 1;
@@ -401,7 +403,8 @@ export function buildGallery(
     },
     {
       key: 'difficulty',
-      legend: '난이도',
+      // 난이도는 사람이 적은 예제에만 있다 — 적은 수를 칸 이름에 밝혀 "쉬움 6개뿐"으로 오해하지 않게(2026-09-25 Phase 4 검토 반영)
+      legend: difficultyFilled < finalCards.length ? `난이도(적어 둔 예제 ${difficultyFilled}개만)` : '난이도',
       options: optionsFrom(difficultyCounts, ['1', '2', '3'], (value) => difficultyLabels[Number(value)] ?? value),
     },
     {

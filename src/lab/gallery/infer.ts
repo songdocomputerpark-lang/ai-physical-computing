@@ -14,6 +14,7 @@
  * 이 파일은 순수 함수뿐이고 브라우저 번들에도 들어갈 수 있으니 빌드 전용 패키지를 import하지 않는다.
  */
 import { EXAMPLE_COMM_KINDS } from './facets.ts';
+import type { GalleryLabId } from './filters.ts';
 
 /** `examples/` 뒤 경로에서 대단원 번호(1~4)를 읽는다. 폴더에 u1~u4가 없으면 null(= 아직 모름). */
 export function unitFromExampleFile(file: string): number | null {
@@ -93,6 +94,18 @@ export function commKindsFromCode(code: string): string[] {
     }
   }
   return EXAMPLE_COMM_KINDS.filter((kind) => found.has(kind));
+}
+
+/**
+ * 3. 하드웨어 없이 끝까지 되나(virtual_ok) — 사이드카·차시 md에 적지 않았을 때의 사이트 규칙(2026-09-25 Phase 4 검토 반영).
+ *    두 실습실의 예제는 **모두** 하드웨어 없이 된다: 영상처리 실습실은 샘플 영상·재생 입력·가상 데스크톱으로, ESP32 실습실은
+ *    가상 보드로(절대 원칙 3 "하드웨어 없어도 100%"). 옮겨 온 ESP32 예제는 예제 스모크(tests/e2e/examples-smoke.spec.ts)가 가상
+ *    보드에서 한 번씩 돌려 기대 결과(원본 그대로의 오류 포함 — 실물에서도 같다)를 확인한다. 전에는 적은 예제만 세어 "하드웨어 없이
+ *    되는 예제 37개"(152개 가운데)로 보여, 하드웨어 없는 학교가 나머지는 못 한다고 읽었다.
+ *    실물에서만 되는 예제가 생기면 그 사이드카에 `virtual_ok: false`를 적는다(적은 값이 이긴다).
+ */
+export function virtualOkByRule(lab: GalleryLabId): boolean {
+  return lab === 'vision' || lab === 'esp32';
 }
 
 /** 규칙 설명(문서·테스트가 읽는다). 화면에는 쓰지 않는다. */

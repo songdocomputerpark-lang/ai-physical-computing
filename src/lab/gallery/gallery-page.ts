@@ -6,6 +6,8 @@
  * ② 몇 개가 보이는지 알리고(화면 낭독기도 듣도록 aria-live),
  * ③ 고른 것을 주소에 실어(?unit=2&comm=ble) 링크로 나눌 수 있게 하고,
  * ④ "비교해 보기"로 건너뛸 카드가 거르기에 걸려 숨어 있으면 거르기를 먼저 푼다.
+ * ⑤ 고를 때마다 칸마다의 개수를 **지금 조건으로** 다시 센다 — "그 값을 고르면 몇 개가 되나"(2026-09-25 Phase 4 검토 반영:
+ *    "쉬움 6 + 4단원 23"을 고르면 1개만 남는데 개수는 그대로라 헷갈렸다). 0개가 되는 값은 흐리게 보인다(data-empty).
  *
  * 카드 값은 카드 요소의 `data-*`에만 있다(같은 값을 JSON으로 한 번 더 싣지 않는다 — 목록이 길어져도 받는 양이 늘지 않게).
  * 화면을 건드리는 것은 카드의 `hidden` 속성뿐이라, 예제가 수백 개가 되어도 거르기 한 번은 속성 바꾸기 몇 번으로 끝난다.
@@ -52,6 +54,24 @@ function readCard(element: HTMLElement): CardEntry {
     parts: list(element.dataset.parts),
     keywords: element.dataset.keywords ?? '',
   };
+}
+
+/** 지금 조건에서 한 칸만 그 값 하나로 바꾼 조건(그 값을 고르면 몇 개가 되나 세는 데 쓴다) */
+function withOnly(state: GalleryFilterState, key: string, value: string): GalleryFilterState {
+  switch (key) {
+    case 'lab':
+      return { ...state, lab: [value] };
+    case 'unit':
+      return { ...state, unit: [Number(value)] };
+    case 'comm':
+      return { ...state, comm: [value] };
+    case 'parts':
+      return { ...state, parts: [value] };
+    case 'difficulty':
+      return { ...state, difficulty: [Number(value)] };
+    default:
+      return state;
+  }
 }
 
 /** 거르기 단추(체크박스)에서 지금 고른 값을 읽는다. */
@@ -118,7 +138,31 @@ export function mountGallery(root: HTMLElement | null): GalleryController | null
   const emptyBox = root.querySelector<HTMLElement>('[data-gallery-empty]');
   const resetButtons = [...root.querySelectorAll<HTMLElement>('[data-gallery-reset]')];
   const partIds = [...new Set(cards.flatMap((card) => card.parts))];
+  const chipInputs = [...root.querySelectorAll<HTMLInputElement>('input[data-gallery-filter]')];
+  const virtualInput = root.querySelector<HTMLInputElement>('[data-gallery-virtual]');
   let visible = cards.length;
+
+  /** 칸마다의 개수를 지금 조건으로 다시 센다(카드 수백 장 × 값 수십 개라도 한 번에 몇 밀리초) */
+  const renderCounts = (state: GalleryFilterState): void => {
+    const count = (trial: GalleryFilterState): number => cards.reduce((sum, card) => sum + (matchesFilter(card, trial) ? 1 : 0), 0);
+    const write = (input: HTMLInputElement, value: number): void => {
+      const chip = input.closest<HTMLElement>('label');
+      const badge = chip?.querySelector<HTMLElement>('[data-gallery-chip-count]');
+      const text = `${value}개`;
+      if (badge && badge.textContent !== text) {
+        badge.textContent = text;
+      }
+      if (chip) {
+        chip.dataset.empty = value === 0 && !input.checked ? 'yes' : 'no';
+      }
+    };
+    for (const input of chipInputs) {
+      write(input, count(withOnly(state, input.dataset.galleryFilter ?? '', input.value)));
+    }
+    if (virtualInput) {
+      write(virtualInput, count({ ...state, virtualOnly: true }));
+    }
+  };
 
   const render = (state: GalleryFilterState): void => {
     visible = 0;
@@ -149,6 +193,7 @@ export function mountGallery(root: HTMLElement | null): GalleryController | null
     }
     root.dataset.galleryVisible = String(visible);
     root.dataset.galleryFiltered = filtering ? 'yes' : 'no';
+    renderCounts(state);
   };
 
   const syncUrl = (state: GalleryFilterState): void => {

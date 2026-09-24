@@ -106,6 +106,13 @@ test.describe('예제 갤러리', () => {
     const hrefs = await page.$$eval('.gallery-card__open', (links) => links.map((link) => link.getAttribute('href') ?? ''));
     expect(hrefs).toHaveLength(files.length);
     expect(hrefs.every((href) => href.includes('?example='))).toBe(true);
+
+    // 두 실습실 예제는 모두 하드웨어 없이 된다(사이트 규칙 — 2026-09-25 Phase 4 검토 반영: 전에는 "하드웨어 없이 되는 예제 37개"로 보였다).
+    // 거르는 것이 없는 단추 대신 한 줄 안내를 보이고, 카드마다 같은 딱지를 달지 않는다.
+    await expect(page.locator('[data-gallery-all-virtual]')).toBeVisible();
+    await expect(page.locator('[data-gallery-virtual]')).toHaveCount(0);
+    const virtualValues = await page.$$eval('[data-gallery-card]', (list) => [...new Set(list.map((card) => (card as HTMLElement).dataset.virtual ?? ''))]);
+    expect(virtualValues).toEqual(['yes']);
   });
 
   test('태그를 고르면 그 예제만 남고 주소에 실린다', async ({ page }) => {
@@ -121,6 +128,12 @@ test.describe('예제 갤러리', () => {
     expect([...new Set(units)]).toEqual(['2']);
     await expect(page.locator('[data-gallery-count]')).toContainText(`예제 ${files.length}개를 골랐어요`);
     expect(page.url()).toContain('unit=2');
+    // 다른 칸의 개수도 지금 조건으로 다시 센다 — 2단원에는 영상처리 예제가 없으니 그 값은 0개로 흐리게 보인다(2026-09-25 Phase 4 검토 반영)
+    const visionChip = page.locator('label.gallery-chip').filter({ has: page.locator('input[data-gallery-filter="lab"][value="vision"]') });
+    await expect(visionChip.locator('[data-gallery-chip-count]')).toHaveText('0개');
+    await expect(visionChip).toHaveAttribute('data-empty', 'yes');
+    const esp32Chip = page.locator('label.gallery-chip').filter({ has: page.locator('input[data-gallery-filter="lab"][value="esp32"]') });
+    await expect(esp32Chip.locator('[data-gallery-chip-count]')).toHaveText(`${files.length}개`);
 
     // 칸이 다르면 모두 맞아야 한다: 2단원 + 영상처리 실습실 → 영상처리에는 2단원 예제가 없다.
     await chip(page, '실습실', /^영상처리 실습실/u).check();

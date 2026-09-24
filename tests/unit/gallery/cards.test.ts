@@ -240,13 +240,29 @@ describe('묶음과 거르기 칸', () => {
     expect(byKey.difficulty).toBeUndefined();
   });
 
-  it('하드웨어 없이 되는 예제 수를 따로 센다', () => {
-    const { virtualOkCount } = buildGallery([
+  it('하드웨어 없이 되는 예제 수를 따로 센다 — 적지 않은 예제는 사이트 규칙(두 실습실 모두 가상으로 됨)으로 참, 적은 거짓은 그대로', () => {
+    const { virtualOkCount, cards } = buildGallery([
       input('esp32', { id: 'a', file: 'esp32/u2/a.py' }, { virtualOk: true }),
       input('esp32', { id: 'b', file: 'esp32/u2/b.py', code: '# b\n' }, { virtualOk: false }),
       input('esp32', { id: 'c', file: 'esp32/u2/c.py', code: '# c\n' }),
+      input('vision', { id: 'd', file: 'vision/u1/d.py', code: '# d\n' }),
     ]);
-    expect(virtualOkCount).toBe(1);
+    expect(virtualOkCount).toBe(3);
+    expect(Object.fromEntries(cards.map((card) => [card.file, card.facets.virtualOk]))).toEqual({
+      'esp32/u2/a.py': true,
+      'esp32/u2/b.py': false,
+      'esp32/u2/c.py': true,
+      'vision/u1/d.py': true,
+    });
+  });
+
+  it('난이도를 일부만 적었으면 칸 이름에 적은 수를 밝힌다', () => {
+    const { facetGroups } = buildGallery([
+      input('esp32', { id: 'a', file: 'esp32/u2/a.py' }, { difficulty: 1 }),
+      input('esp32', { id: 'b', file: 'esp32/u2/b.py', code: '# b\n' }),
+    ]);
+    const difficulty = facetGroups.find((group) => group.key === 'difficulty');
+    expect(difficulty?.legend).toBe('난이도(적어 둔 예제 1개만)');
   });
 
   it('파일 경로가 없는 예제는 넣지 않는다(실습실 자리 코드 등)', () => {

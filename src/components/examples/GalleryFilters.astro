@@ -49,7 +49,7 @@ const { groups, virtualOkCount, total } = Astro.props;
                 <label class="gallery-chip">
                   <input type="checkbox" data-gallery-filter={group.key} value={option.value} />
                   <span class="gallery-chip__text">{option.label}</span>
-                  <span class="gallery-chip__count">{`${option.count}개`}</span>
+                  <span class="gallery-chip__count" data-gallery-chip-count>{`${option.count}개`}</span>
                 </label>
               </li>
             ))}
@@ -59,14 +59,23 @@ const { groups, virtualOkCount, total } = Astro.props;
     }
 
     {
-      virtualOkCount > 0 && (
+      /* 모든 예제가 하드웨어 없이 되면 거르기 단추 대신 그 사실을 한 줄로 알린다(거르는 것이 없는 단추는 헷갈린다) */
+      virtualOkCount > 0 && virtualOkCount < total && (
         <div class="gallery-filters__virtual">
           <label class="gallery-chip">
             <input type="checkbox" data-gallery-virtual />
             <span class="gallery-chip__text">하드웨어 없이 되는 예제만</span>
-            <span class="gallery-chip__count">{`${virtualOkCount}개`}</span>
+            <span class="gallery-chip__count" data-gallery-chip-count>{`${virtualOkCount}개`}</span>
           </label>
         </div>
+      )
+    }
+    {
+      virtualOkCount > 0 && virtualOkCount === total && (
+        <p class="gallery-filters__virtual-note" data-gallery-all-virtual>
+          여기 있는 예제는 모두 하드웨어 없이 해 볼 수 있어요. 영상처리는 샘플 영상과 재생 입력으로, ESP32는 가상 보드로 끝까지 돌아가요.
+          실제 보드가 있으면 같은 코드를 보드로 보내면 돼요.
+        </p>
       )
     }
 
@@ -75,7 +84,14 @@ const { groups, virtualOkCount, total } = Astro.props;
     </div>
   </form>
 
-  <p class="gallery-filters__count" data-gallery-count role="status" aria-live="polite">{`예제 ${total}개가 모두 보여요.`}</p>
+  {/*
+    고른 결과 개수 — 거르기 칸이 길어(휴대폰 약 1,500px) 고른 뒤 결과가 화면 밖이면 아무 변화가 없는 것처럼 보였다. 칸을 보는 동안
+    화면 아래에 붙어 떠 있고, [결과 보기]로 첫 카드로 건너뛴다(2026-09-25 Phase 4 검토 반영).
+  */}
+  <div class="gallery-filters__footer">
+    <p class="gallery-filters__count" data-gallery-count role="status" aria-live="polite">{`예제 ${total}개가 모두 보여요.`}</p>
+    <a class="gallery-filters__jump" href="#gallery-results" data-gallery-results-jump>결과 보기</a>
+  </div>
 </div>
 
 <style>
@@ -223,10 +239,58 @@ const { groups, virtualOkCount, total } = Astro.props;
     background: var(--color-accent-soft);
   }
 
+  /* 이 조건으로는 하나도 없는 값(고르면 결과가 0개) — 흐리게만 보이고 고를 수는 있다 */
+  .gallery-chip[data-empty='yes'] {
+    border-style: dashed;
+    color: var(--color-text-muted);
+  }
+
+  .gallery-filters__virtual-note {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-inline-start: 4px solid var(--color-success-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  /* 고른 결과 개수 줄 — 거르기 칸을 보는 동안 화면 아래에 붙어 있다 */
+  .gallery-filters__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-3);
+    margin-block-start: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+  }
+
   .gallery-filters__count {
     margin: 0;
-    margin-block-start: var(--space-3);
-    color: var(--color-text-muted);
+    color: var(--color-text);
     font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .gallery-filters__jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .gallery-filters__jump:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
   }
 </style>

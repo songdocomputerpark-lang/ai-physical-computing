@@ -109,9 +109,16 @@ const inputs: GalleryExampleInput[] = [
   ...esp32Examples.map((example) => ({ lab: 'esp32' as const, example, sidecar: sidecarByFile.get(example.file ?? '') ?? null })),
 ];
 
-const partLabels = Object.fromEntries([...PART_DEFINITIONS].map(([id, definition]) => [id, definition.title]));
+const partLabels: Record<string, string> = Object.fromEntries([...PART_DEFINITIONS].map(([id, definition]) => [id, definition.title]));
+// 부품 칸의 블루투스는 "통신 방식 · 블루투스(BLE)"와 이름이 같아 어느 쪽을 골라야 할지 헷갈렸다 — 부품 쪽은 보드 그림의 부품임을 밝힌다
+// (2026-09-25 Phase 4 검토 반영. 보드 그림의 이름표는 그대로 둔다).
+if (partLabels['ble'] !== undefined) {
+  partLabels['ble'] = '블루투스 부품(상태 LED)';
+}
 const gallery = buildGallery(inputs, { byFile, bySlug }, { partLabels, commLabels: EXAMPLE_COMM_LABELS, difficultyLabels: EXAMPLE_DIFFICULTY_LABELS });
 gallery.notes.forEach(warn);
+// 모든 예제가 하드웨어 없이 되면 카드마다 같은 딱지를 달지 않는다(거르기 칸 위 한 줄 안내로 충분하다)
+const allVirtual = gallery.cards.length > 0 && gallery.virtualOkCount === gallery.cards.length;
 ---
 
 <div class="gallery" data-gallery>
@@ -122,6 +129,7 @@ gallery.notes.forEach(warn);
   */}
   <GalleryFilters groups={gallery.facetGroups} virtualOkCount={gallery.virtualOkCount} total={gallery.cards.length} />
 
+  <span id="gallery-results" class="gallery__anchor" tabindex="-1"></span>
   <p class="gallery__empty" data-gallery-empty data-pagefind-ignore="all" hidden>
     고른 조건에 맞는 예제가 없어요. 조건을 하나 지우거나 [고른 것 모두 지우기]를 눌러 봐요.
   </p>
@@ -136,7 +144,7 @@ gallery.notes.forEach(warn);
         </h2>
         <ul class="gallery-section__cards">
           {section.cards.map((card) => (
-            <ExampleCard card={card} partLabels={partLabels} />
+            <ExampleCard card={card} partLabels={partLabels} showVirtualTag={!allVirtual} />
           ))}
         </ul>
       </section>
@@ -177,6 +185,15 @@ gallery.notes.forEach(warn);
   .gallery {
     min-width: 0;
     overflow-wrap: anywhere;
+  }
+
+  /* [결과 보기]가 건너오는 자리(첫 카드 묶음 바로 위) */
+  .gallery__anchor {
+    display: block;
+  }
+
+  .gallery__anchor:focus {
+    outline: none;
   }
 
   .gallery__empty {

@@ -18,9 +18,11 @@ interface Props {
   card: GalleryCard;
   /** 부품 id → 한국어 이름 */
   partLabels: Readonly<Record<string, string>>;
+  /** "하드웨어 없이 가능" 딱지를 보이나(모든 예제가 하드웨어 없이 되면 갤러리가 거짓을 넘긴다 — 기본 참) */
+  showVirtualTag?: boolean;
 }
 
-const { card, partLabels } = Astro.props;
+const { card, partLabels, showVirtualTag = true } = Astro.props;
 const { facets } = card;
 const virtualValue = facets.virtualOk === null ? undefined : facets.virtualOk ? 'yes' : 'no';
 const facts = [
@@ -68,7 +70,7 @@ const facts = [
         <GalleryTag tone="meta">{`난이도 ${EXAMPLE_DIFFICULTY_LABELS[facets.difficulty] ?? facets.difficulty}`}</GalleryTag>
       </li>
     )}
-    {facets.virtualOk === true && (
+    {facets.virtualOk === true && showVirtualTag && (
       <li>
         <GalleryTag tone="virtual">하드웨어 없이 가능</GalleryTag>
       </li>
