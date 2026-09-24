@@ -22,7 +22,12 @@
  *  6. 성능 재기(perf.ts) — 컴퓨터 코드가 도는 동안 0.5초마다 입력·출력·화면 fps, 긴 작업, 보낸 줄, 힙을 모으고 [측정 기록 복사]로 마크다운 표.
  *
  * 테스트가 읽는 값: `[data-unit4]`의 data-unit4-phase(idle·prepare·board·link·pc·running·stopping), data-unit4-samples,
- * data-unit4-screen(3840x2160), data-unit4-connected, data-unit4-ids(푼 id 수), data-unit4-address(주소 값을 넣은 칸), data-unit4-ready.
+ * data-unit4-screen(3840x2160), data-unit4-connected, data-unit4-ids(푼 id 수), data-unit4-address(주소 값을 넣은 칸), data-unit4-ready,
+ * 떠 있는 상태 줄 [data-unit4-float](상태 줄이 화면 밖이고 알릴 글이 있을 때만 보임).
+ *
+ * 느린 학교망(2026-09-25 Phase 4 검토 반영): 준비 단계 글에 두 칸의 받는 양·지난 시간을 싣고(각 칸 준비 모듈이 뿌리에 적는
+ * data-loading-text), 컴퓨터 칸이 OpenCV를 아직 받는 중이면 다 받을 때까지 기다린 뒤 컴퓨터 코드를 돌린다 — 전에는 받는 동안에도
+ * "두 칸이 함께 돌고 있어요"라고 했다. [함께 실행] 뒤 화면이 아래 칸으로 내려가도 상태 글이 보이게 화면 위에 한 줄을 띄운다.
  */
 import { findExample, findExampleByFile } from '../controls/examples.ts';
 import { getLabController, type LabController } from '../controls/lab-shell.ts';
@@ -63,6 +68,10 @@ export const MAX_SAMPLES = 3600;
 export const UNIT4_TEXT = Object.freeze({
   idle: '[함께 실행]을 누르면 보드 코드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.',
   prepare: '파이썬을 준비하고 있어요(컴퓨터 칸·보드 칸 두 곳). 준비가 끝나면 바로 시작해요…',
+  /** 준비 단계 글의 앞머리(뒤에 두 칸의 받는 양·지난 시간이 붙는다 — prepareText) */
+  preparing: '파이썬을 준비하고 있어요',
+  /** 컴퓨터 칸이 OpenCV를 받는 동안(보드는 이미 돌고 있다) */
+  pcPackages: '컴퓨터 칸이 카메라 처리 도구(OpenCV)를 받고 있어요. 다 받으면 컴퓨터 코드를 시작해요',
   board: '보드 코드를 실행하고 있어요…',
   link: '가상 보드와 블루투스로 잇고 있어요…',
   pc: '컴퓨터 코드를 실행하고 있어요…',
@@ -209,6 +218,10 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     copy: root.querySelector<HTMLButtonElement>('[data-unit4-copy]'),
     copied: root.querySelector<HTMLElement>('[data-unit4-copied]'),
     report: root.querySelector<HTMLTextAreaElement>('[data-unit4-report]'),
+    float: root.querySelector<HTMLElement>('[data-unit4-float]'),
+    floatText: root.querySelector<HTMLElement>('[data-unit4-float-text]'),
+    floatTop: root.querySelector<HTMLButtonElement>('[data-unit4-float-top]'),
+    floatClose: root.querySelector<HTMLButtonElement>('[data-unit4-float-close]'),
   };
   const visionSelect = visionRoot.querySelector<HTMLSelectElement>('[data-vision-source-select]');
 
@@ -231,8 +244,33 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   let generation = 0;
   let statusOverride: string | null = null;
   let disposed = false;
+  /** 준비 단계를 시작한 때(지난 시간을 보여 준다) */
+  let prepareStartedAt = 0;
+  /** 준비 단계가 컴퓨터 칸 OpenCV만 기다리는 중인가(보드는 돌고 있다) */
+  let waitingPcPackages = false;
+  /** 준비 단계 동안 1초마다 글을 새로 쓴다(지난 시간) */
+  let prepareTick: number | null = null;
 
   // ── 상태 글·단추 ──
+
+  /** 한 칸의 준비 상황 한마디(준비 모듈이 뿌리에 적어 둔 받는 양 — 없으면 짧은 말) */
+  const loadingLine = (labRoot: HTMLElement, lab: LabController): string => {
+    const text = (labRoot.dataset.loadingText ?? '').trim();
+    const packagesLoading = labRoot.dataset.visionPackages === 'loading';
+    if (isReady(lab) && !packagesLoading) {
+      return '준비 끝';
+    }
+    return text !== '' && !text.startsWith('준비 끝') ? text : '받는 중…';
+  };
+
+  const prepareText = (): string => {
+    const seconds = prepareStartedAt === 0 ? 0 : Math.floor((performance.now() - prepareStartedAt) / 1000);
+    const elapsed = seconds >= 1 ? ` · ${seconds}초` : '';
+    if (waitingPcPackages) {
+      return `${UNIT4_TEXT.pcPackages} — ${loadingLine(visionRoot, pc)}${elapsed}`;
+    }
+    return `${UNIT4_TEXT.preparing} — 컴퓨터 칸: ${loadingLine(visionRoot, pc)}, 보드 칸: ${loadingLine(boardRoot, board)}${elapsed}. 준비가 끝나면 바로 시작해요.`;
+  };
 
   const describeRunning = (): string => {
     if (!isRunning(boardRoot)) {
@@ -264,17 +302,83 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
       text = statusOverride;
     } else if (phase === 'running') {
       text = describeRunning();
+    } else if (phase === 'prepare') {
+      text = prepareText();
     } else {
       text = UNIT4_TEXT[phase];
     }
     if (elements.status && elements.status.textContent !== text) {
       elements.status.textContent = text;
     }
+    renderFloat(text);
   };
 
+  // ── 떠 있는 상태 줄(상태 글이 화면 밖일 때) ──
+  let statusVisible = true;
+  let floatDismissed: string | null = null;
+  /** 떠 있는 줄에 굳이 띄우지 않는 글(처음 안내·멈춤) */
+  const quietTexts = new Set<string>([UNIT4_TEXT.idle, UNIT4_TEXT.stopped]);
+  function renderFloat(text: string): void {
+    const float = elements.float;
+    if (!float) {
+      return;
+    }
+    const wanted = !statusVisible && !quietTexts.has(text) && floatDismissed !== text;
+    if (elements.floatText && elements.floatText.textContent !== text) {
+      elements.floatText.textContent = text;
+    }
+    float.dataset.phase = phase;
+    if (float.hidden === wanted) {
+      float.hidden = !wanted;
+    }
+  }
+  if (elements.status && typeof IntersectionObserver === 'function') {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        statusVisible = entry.isIntersecting;
+      }
+      render();
+    });
+    observer.observe(elements.status);
+    cleanups.push(() => observer.disconnect());
+  }
+  listen(elements.floatTop, 'click', () => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    root.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    const target = elements.stop && !elements.stop.disabled ? elements.stop : elements.run;
+    target?.focus({ preventScroll: true });
+  });
+  listen(elements.floatClose, 'click', () => {
+    floatDismissed = elements.floatText?.textContent ?? null;
+    render();
+  });
+
+  // 두 칸의 준비 모듈이 받는 양을 바꾸면 준비 글도 바꾼다
+  const loadingObserver = new MutationObserver(() => {
+    if (phase === 'prepare') {
+      render();
+    }
+  });
+  for (const labRoot of [visionRoot, boardRoot]) {
+    loadingObserver.observe(labRoot, { attributes: true, attributeFilter: ['data-loading-text', 'data-vision-packages'] });
+  }
+  cleanups.push(() => loadingObserver.disconnect());
+
   const setPhase = (next: Unit4Phase, override: string | null = null) => {
+    if (next === 'prepare' && phase !== 'prepare') {
+      prepareStartedAt = performance.now();
+    }
+    if (next !== 'prepare') {
+      waitingPcPackages = false;
+    }
     phase = next;
     statusOverride = override;
+    if (phase === 'prepare' && prepareTick === null) {
+      prepareTick = window.setInterval(() => render(), 1000);
+    } else if (phase !== 'prepare' && prepareTick !== null) {
+      window.clearInterval(prepareTick);
+      prepareTick = null;
+    }
     render();
   };
 
@@ -578,7 +682,24 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
         setPhase('pc', UNIT4_TEXT.noBle);
       }
 
-      // ④ 컴퓨터 코드
+      // ④ 컴퓨터 코드 — 카메라 처리 도구(OpenCV)를 아직 받는 중이면 다 받을 때까지 기다린다. 받는 동안 [실행]하면 코드는 "도는 중"인데
+      // 카메라가 켜지지 않아 학생이 "[함께 실행]을 눌렀는데?" 하게 된다(2026-09-25 Phase 4 검토 반영).
+      if (visionRoot.dataset.visionPackages === 'loading') {
+        const linkedText = statusOverride;
+        waitingPcPackages = true;
+        setPhase('prepare');
+        waitingPcPackages = true;
+        render();
+        await waitFor(() => visionRoot.dataset.visionPackages !== 'loading', PYTHON_READY_MS, () => cancelled() || boardEnded);
+        if (cancelled()) {
+          return;
+        }
+        if (boardEnded) {
+          setPhase('idle', boardRoot.dataset.outcome === 'error' ? UNIT4_TEXT.boardError : UNIT4_TEXT.boardSlow);
+          return;
+        }
+        setPhase('pc', linkedText);
+      }
       applyScreenOnce();
       const done = pc.run();
       setPhase('running', null);
@@ -700,6 +821,10 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
       }
       disposed = true;
       generation += 1;
+      if (prepareTick !== null) {
+        window.clearInterval(prepareTick);
+        prepareTick = null;
+      }
       if (sampleTimer !== null) {
         window.clearInterval(sampleTimer);
         sampleTimer = null;

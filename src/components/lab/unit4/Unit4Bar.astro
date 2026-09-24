@@ -41,6 +41,17 @@ const { pairs } = Astro.props;
   <p class="unit4-bar__status" data-unit4-status role="status" aria-live="polite">
     [함께 실행]을 누르면 보드 코드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.
   </p>
+  {/*
+    떠 있는 상태 줄 — 위 상태 글이 화면 밖일 때(아래 두 칸을 보는 동안) 화면 위에 같은 글을 한 줄로 띄운다. 글은 위 상태 글이
+    이미 읽어 주므로 낭독기에는 숨기고, 단추만 읽힌다(2026-09-25 Phase 4 검토 반영: 실행하면 화면이 1,596px 내려가 "[연결]을 눌러요"를 놓쳤다).
+  */}
+  <div class="unit4-float" data-unit4-float hidden>
+    <span class="unit4-float__text" data-unit4-float-text aria-hidden="true"></span>
+    <span class="unit4-float__actions">
+      <button type="button" class="lab-button lab-button--small" data-unit4-float-top>조작 줄 보기</button>
+      <button type="button" class="lab-button lab-button--small" data-unit4-float-close aria-label="떠 있는 상태 줄 닫기">닫기</button>
+    </span>
+  </div>
   {/* 두 칸이 길어서(특히 좁은 화면에서는 위아래로 쌓인다) 보고 싶은 결과로 바로 옮겨 가는 단추 */}
   <div class="unit4-bar__jumps" role="group" aria-labelledby="unit4-jumps-label">
     <span id="unit4-jumps-label" class="unit4-bar__jumps-label">바로 가기</span>
@@ -130,6 +141,50 @@ const { pairs } = Astro.props;
 
   .unit4-bar__status {
     font-weight: var(--weight-semibold);
+  }
+
+  .unit4-float {
+    position: fixed;
+    inset-block-start: var(--space-2);
+    inset-inline: var(--space-3);
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-3);
+    max-inline-size: 60rem;
+    margin-inline: auto;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-inline-start-width: 4px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    box-shadow: var(--shadow-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  .unit4-float[hidden] {
+    display: none;
+  }
+
+  .unit4-float__text {
+    flex: 1 1 18rem;
+    min-width: 0;
+  }
+
+  .unit4-float__actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  @media print {
+    .unit4-float {
+      display: none;
+    }
   }
 
   .unit4-bar__note {

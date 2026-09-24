@@ -442,6 +442,17 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
     // 사이트판은 값이 올 때 켜고 안 오면 끈다(PD-23) — 켜진 순간이 한 번은 보인다
     expect([...lit]).toContain('true');
 
+    // 상태 글이 화면 밖이면(아래 보드 칸을 보는 동안) 화면 위에 같은 글이 한 줄 떠 있다(2026-09-25 Phase 4 검토 반영 — 사용성 I6)
+    await page.locator('[data-board-io]').scrollIntoViewIfNeeded();
+    await expect(bar(page).locator('[data-unit4-status]')).not.toBeInViewport();
+    const float = bar(page).locator('[data-unit4-float]');
+    await expect(float).toBeVisible();
+    await expect(float).toBeInViewport();
+    await expect(float.locator('[data-unit4-float-text]')).toContainText('두 칸이 함께 돌고 있어요');
+    await float.getByRole('button', { name: '조작 줄 보기' }).click();
+    await expect(bar(page).locator('[data-unit4-status]')).toBeInViewport();
+    await expect(float).toBeHidden();
+
     // 가상 모니터 커서가 가운데(1920, 1080)에서 움직였다
     await expect(pcLab(page).locator('[data-desktop-cursor]')).toContainText('3840×2160');
     await expect.poll(async () => (await pcLab(page).locator('[data-desktop-cursor]').textContent()) ?? '', { timeout: 20_000 }).not.toContain('(1920, 1080)');
