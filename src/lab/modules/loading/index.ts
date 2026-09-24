@@ -207,6 +207,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
     setRootData('phase', snapshot.phase);
     setRootData('percent', snapshot.percent === null ? '' : String(snapshot.percent));
     setRootData('source', snapshot.source);
+    // 받는 중인 단계와 양("OpenCV 3.2MB / 9.8MB") — 4단원 통합 화면의 상태 줄이 두 칸의 진행을 함께 보여 줄 때 읽는다(2026-09-25 Phase 4 검토 반영)
+    setRootData('text', snapshot.text);
     if (titleText) {
       titleText.textContent =
         snapshot.phase === 'ready' ? '실습 준비가 끝났어요' : snapshot.phase === 'failed' ? '파이썬을 받지 못했어요' : '파이썬을 준비하고 있어요';

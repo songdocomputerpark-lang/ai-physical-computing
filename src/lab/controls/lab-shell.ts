@@ -29,6 +29,9 @@
  *
  * 학생이 헤매지 않게 하는 규칙(2026-09-17 Phase 2 검토 반영)
  * - 파이썬을 받는 동안에도 [실행]을 누를 수 있다. 누르면 "준비되면 실행돼요…"로 바뀌고 준비가 끝나면 저절로 실행한다.
+ * - (2026-09-25 Phase 4 검토 반영) 파이썬이 준비된 뒤 모듈이 워커에 넣는 파일(보드 라이브러리 i2c_lcd.py·mask.png 등)은
+ *   holdRun(약속)으로 알린다. [실행]은 그 약속이 모두 끝난 뒤에 코드를 보낸다(최대 RUN_HOLD_MAX_MS) — 예약 실행이
+ *   라이브러리보다 먼저 워커에 닿아 "가상 보드에 아직 없어요"라는 거짓 오류로 멈추던 것을 막는다.
  * - 실행을 시작하면 결과 칸(과 조절 막대가 있으면 첫 막대)이 첫 화면 밖일 때 그쪽으로 화면을 옮긴다(reveal.ts, 움직임 줄이기면 바로 옮김).
  * - 예제에 차시 정보(lesson)가 있으면 조작 줄 아래에 "이 예제가 나오는 차시" 링크를 보인다(차시에서 넘어온 학생이 돌아갈 길).
  */
@@ -84,6 +87,12 @@ function cancelFrame(handle: number): void {
 
 /** 컨트롤러가 만들어졌을 때 뿌리 요소에 보내는 이름 */
 export const LAB_READY_EVENT = 'apc:lab-ready';
+
+/**
+ * [실행]이 holdRun 약속을 기다리는 최대 시간(밀리초). 넘으면 기다리지 않고 실행한다 — 모듈 하나가 멈춰도 실습실이 막히지 않게.
+ * 보드 라이브러리 6개(약 60KB)를 워커에 쓰는 데는 수십 ms, 가상 파일(mask.png) 그리기는 수백 ms면 끝난다(2026-09-25 실측).
+ */
+export const RUN_HOLD_MAX_MS = 8000;
 
 export type ConsoleKind = 'stdout' | 'stderr' | 'notice' | 'input';
 
@@ -185,6 +194,12 @@ export interface LabController {
    * 블록 전용 호환 모드(PD-27)가 줄 수가 같은 실행판을 보낼 때 쓴다. null이면 편집칸 코드를 그대로 보낸다.
    */
   setRunCodeTransform(transform: ((code: string) => string | null) | null): void;
+  /**
+   * (2026-09-25 Phase 4 검토 반영) [실행] 전에 끝나야 하는 준비 작업을 알린다 — 파이썬이 준비될 때마다 모듈이 워커에 넣는
+   * 파일(보드 라이브러리·가상 파일)과 흉내 모듈 붙이기. 이 페이지의 파이썬으로 실행할 때(실행 대상이 없을 때) [실행]·예약 실행은
+   * 알린 약속이 모두 끝난 뒤에 코드를 보낸다(최대 RUN_HOLD_MAX_MS). 약속이 실패해도 실행은 한다(실패 안내는 그 모듈이 한다).
+   */
+  holdRun(task: Promise<unknown>): void;
   /** (병렬 제작 준비 2026-09-17) 지금 [실행]을 받는 실행 대상. null이면 이 페이지의 파이썬 실행기 */
   readonly runTarget: LabRunTarget | null;
   /** 실행 대상을 끼운다(null이면 뗀다). 실행 중이면 오류를 던진다 — [정지]한 뒤에 바꾼다 */
@@ -303,6 +318,12 @@ class LabShellController implements LabController {
   #pendingInput: RuntimeRequest | null = null;
   /** 파이썬을 받는 동안 누른 [실행] — 준비가 끝나면 바로 실행한다 */
   #pendingRun = false;
+  /** holdRun으로 알린, 아직 끝나지 않은 준비 작업 */
+  readonly #runHolds = new Set<Promise<unknown>>();
+  /** [실행]이 준비 작업을 기다리는 중(단추는 예약과 같은 모습) */
+  #holdWaiting = false;
+  /** 기다리는 동안 [정지]·실행 대상 바꾸기가 있었으면 그 실행을 버린다 */
+  #holdCancelled = false;
   /** [실행] 단추의 원래 글자 */
   #runLabel = '실행';
   #disposed = false;
@@ -449,8 +470,20 @@ class LabShellController implements LabController {
       this.#emit('run-pending', { code: this.getCode() });
       return null;
     }
-    if (this.runtime.state !== 'idle') {
+    if (this.runtime.state !== 'idle' || this.#holdWaiting) {
       return null;
+    }
+    if (this.#runHolds.size > 0) {
+      // 파이썬은 준비됐지만 모듈이 워커에 넣는 파일(보드 라이브러리·가상 파일)이 아직이다 — 끝난 뒤에 코드를 보낸다.
+      this.#holdWaiting = true;
+      this.#holdCancelled = false;
+      this.#renderRunButton();
+      await this.#settleRunHolds();
+      this.#holdWaiting = false;
+      this.#renderRunButton();
+      if (this.#holdCancelled || this.#disposed || this.#runTarget || this.runtime.state !== 'idle') {
+        return null;
+      }
     }
     const code = this.getCode();
     this.#beginRun(code, null);
@@ -496,7 +529,40 @@ class LabShellController implements LabController {
     if (this.#targetRun && this.#runTarget) {
       return this.#stopTarget(this.#runTarget);
     }
+    if (this.#holdWaiting) {
+      // 준비 작업을 기다리던 [실행]은 아직 코드를 보내지 않았다 — 그 실행을 버린다.
+      this.#holdCancelled = true;
+    }
     return this.runtime.stop();
+  }
+
+  holdRun(task: Promise<unknown>): void {
+    const tracked = task.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.#runHolds.add(tracked);
+    void tracked.then(() => {
+      this.#runHolds.delete(tracked);
+    });
+  }
+
+  /** holdRun 약속이 모두 끝날 때까지(기다리는 동안 새로 알린 것까지) 기다린다. RUN_HOLD_MAX_MS를 넘으면 그만 기다린다. */
+  async #settleRunHolds(): Promise<void> {
+    const deadline = Date.now() + RUN_HOLD_MAX_MS;
+    while (this.#runHolds.size > 0) {
+      const left = deadline - Date.now();
+      if (left <= 0) {
+        this.root.dataset.runHoldTimedOut = 'yes';
+        return;
+      }
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, left);
+      });
+      await Promise.race([Promise.all([...this.#runHolds]), timeout]);
+      clearTimeout(timer);
+    }
   }
 
   get runTarget(): LabRunTarget | null {
@@ -522,6 +588,10 @@ class LabShellController implements LabController {
     if (target && this.#pendingRun) {
       // 파이썬을 기다리며 눌러 둔 [실행]은 대상이 바뀌었으니 취소한다(학생이 대상을 보고 다시 누른다).
       this.#pendingRun = false;
+    }
+    if (target && this.#holdWaiting) {
+      // 준비 작업을 기다리던 [실행]도 같다.
+      this.#holdCancelled = true;
     }
     this.#renderTargetState();
   }
@@ -780,11 +850,12 @@ class LabShellController implements LabController {
     if (first) {
       /*
        * 알림은 결과 칸 맨 아래(핀 표 다음)에 있어 [실행] 뒤 화면 위치에서는 접힌 곳 아래일 수 있다.
-       * 결과 칸의 꼭 보여야 하는 부분(보드 그림)과 알림을 **함께** 보이고, 한 화면에 못 넣으면 알림을 보인다
-       * (결과가 print()뿐인 실행에서는 알림이 곧 결과다 — 2026-09-18 검토 반영).
+       * 결과 칸의 꼭 보여야 하는 부분(보드 그림)과 알림을 **함께** 보이고, 한 화면에 못 넣으면 **보드 그림을** 보인다
+       * (2026-09-25 Phase 4 검토 반영 — 전에는 알림 쪽으로 옮겨 LED·네오픽셀 링이 화면 밖으로 밀려, 원인과 결과를 한 화면에서 못 봤다).
+       * 알림은 결과 칸 안에서 화면 아래쪽에 붙어 떠 있으므로(LabShell.astro .lab__io-output의 position: sticky) 그래도 보인다.
        */
       const narrow = this.#elements.ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
-      revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: ioOutputBox });
+      revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox });
     }
   }
 
@@ -979,7 +1050,7 @@ class LabShellController implements LabController {
       runButton.disabled = this.#targetRun !== null;
       return;
     }
-    if (this.#pendingRun) {
+    if (this.#pendingRun || this.#holdWaiting) {
       runButton.textContent = '준비되면 실행돼요…';
       runButton.disabled = true;
       runButton.dataset.labRunPending = 'yes';

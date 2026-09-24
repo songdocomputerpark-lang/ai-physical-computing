@@ -9,19 +9,34 @@
  * show()로 못 박아 코드를 고쳐도 닫히지 않는다. 실행 중에는 닫지 않는다(코드를 고치는 중일 수 있다).
  * 오류 풀이(errors)·가상 데스크톱(desktop)은 이미 같은 방식이고, 러너 공통(runtime-extras)은 **실행 전에**
  * [파일 넣기]로 파일을 넣어야 해서 늘 열어 둔다.
+ *
+ * 조건 하나 더(options.also): 코드만으로는 모자랄 때 쓴다. 예) ESP32 실습실의 USB 데이터 포트 칸은 코드가 UART를 써도
+ * [실제 보드] 탭일 때만 연다 — 가상 보드는 선(브릿지)으로 이어지므로 실물 포트 단추가 필요 없는데, 보이면 눌러 보게 된다
+ * (2026-09-25 Phase 4 검토 반영). 그 조건이 실습실 뿌리 속성에 달려 있으면 watchAttributes에 적어 바뀔 때 다시 판정한다.
  */
 import type { LabModuleContext } from './types.ts';
 
-export interface PanelWhenUsed {
-  /** 파이썬이 실제로 썼다 — 이제부터 계속 연다 */
-  show(): void;
+export interface PanelWhenUsedOptions {
+  /** 코드 조건과 함께 참이어야 연다(없으면 코드 조건만) */
+  readonly also?: () => boolean;
+  /** 실습실 뿌리의 이 속성들이 바뀌면 다시 판정한다(예: 'data-run-target') */
+  readonly watchAttributes?: readonly string[];
 }
 
-export function showPanelWhenUsed(context: LabModuleContext, pattern: RegExp): PanelWhenUsed {
+export interface PanelWhenUsed {
+  /** 파이썬이 실제로 썼다(또는 학생이 그 칸을 조작했다) — 이제부터 계속 연다 */
+  show(): void;
+  /** 지금 코드로 다시 판정한다(조건이 바뀌었을 때) */
+  refresh(): void;
+  /** 속성 지켜보기를 푼다(모듈 dispose에서) */
+  dispose(): void;
+}
+
+export function showPanelWhenUsed(context: LabModuleContext, pattern: RegExp, options: PanelWhenUsedOptions = {}): PanelWhenUsed {
   let forced = false;
 
   const sync = (code: string): void => {
-    if (forced || pattern.test(code)) {
+    if (forced || (pattern.test(code) && (options.also?.() ?? true))) {
       context.showPanel();
       return;
     }
@@ -32,12 +47,25 @@ export function showPanelWhenUsed(context: LabModuleContext, pattern: RegExp): P
   };
 
   context.onLab('code', ({ code }) => sync(code));
+  let observer: MutationObserver | null = null;
+  const watched = options.watchAttributes ?? [];
+  if (watched.length > 0 && typeof MutationObserver === 'function') {
+    observer = new MutationObserver(() => sync(context.lab.getCode()));
+    observer.observe(context.root, { attributes: true, attributeFilter: [...watched] });
+  }
   sync(context.lab.getCode());
 
   return {
     show() {
       forced = true;
       context.showPanel();
+    },
+    refresh() {
+      sync(context.lab.getCode());
+    },
+    dispose() {
+      observer?.disconnect();
+      observer = null;
     },
   };
 }

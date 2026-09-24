@@ -183,6 +183,8 @@ export function mountLabModules(root: HTMLElement, lab: LabController, manifests
     return mounted;
   });
   mountedByRoot.set(root, promise);
+  // 모듈이 붙기 전에 [실행]이 코드를 보내면 배선·라이브러리·조작 칸이 없는 채로 돈다 — 붙을 때까지 [실행]을 잡아 둔다(lab-shell holdRun).
+  lab.holdRun(promise);
   return promise;
 }
 

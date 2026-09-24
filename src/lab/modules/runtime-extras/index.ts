@@ -258,10 +258,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
   // 0. 파일 패널은 파일을 쓸 때만 연다(머리말 6번). 한 번 쓰였으면(저장·넣기·글꼴) 그 뒤로는 닫지 않는다.
   const panelGate = showPanelWhenUsed(context, WORK_FILE_USE_PATTERN);
 
-  // 1. 준비될 때마다 파일 넣기(처음 + 정지 2단계 뒤 다시 뜰 때)
-  cleanups.push(runtime.on('ready', () => void ensureAssets()));
+  // 1. 준비될 때마다 파일 넣기(처음 + 정지 2단계 뒤 다시 뜰 때). [실행]은 이 파일이 들어간 뒤에 코드를 보낸다(lab.holdRun) —
+  //    먼저 실행되면 실행 중에 나타난 mask.png를 "코드가 저장한 파일"로 알렸다(2026-09-25 Phase 4 검토 반영).
+  cleanups.push(runtime.on('ready', () => context.lab.holdRun(ensureAssets())));
   if (runtime.info) {
-    void ensureAssets();
+    context.lab.holdRun(ensureAssets());
   }
 
   // 2. 글꼴 부탁

@@ -286,9 +286,16 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     }
     io.dataset.boardLibraries = String(written);
   };
-  cleanups.push(runtime.on('ready', () => void writeLibraries()));
+  /*
+   * [실행]은 라이브러리를 다 넣은 뒤에 코드를 보낸다(lab.holdRun — 2026-09-25 Phase 4 검토 반영). 준비 중에 눌러 둔 [실행]이
+   * 뒤쪽 라이브러리(i2c_lcd.py 등) 쓰기보다 먼저 워커에 닿아 "가상 보드에 아직 없어요"라는 거짓 오류로 멈췄다.
+   */
+  const writeLibrariesBeforeRun = () => {
+    context.lab.holdRun(writeLibraries());
+  };
+  cleanups.push(runtime.on('ready', writeLibrariesBeforeRun));
   if (runtime.state === 'idle') {
-    void writeLibraries();
+    writeLibrariesBeforeRun();
   }
 
   // [실행] 직전: 배선과 지금 누르고 있는 입력을 다시 넣는다(정지 2단계로 워커가 새로 뜨면 최신 값이 사라지므로 — README 4.3).

@@ -114,8 +114,33 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     await expect(run).not.toHaveAttribute('data-lab-run-pending', 'yes');
     await expect(root).toHaveAttribute('data-loading-intro', 'no');
     await expect(page.locator('[data-lab-reveal-on-run]')).toBeInViewport();
+    // 사이트가 넣는 작업 파일(mask.png)은 예약 실행보다 먼저 들어간다 — 늦게 들어가면 "코드가 'mask.png'을(를) 저장했어요"로
+    // 학생 코드가 만든 파일처럼 보였다(2026-09-25 Phase 4 검토 반영, 실습실 틀의 holdRun).
+    await expect(page.locator('[data-lab-console]')).not.toContainText("'mask.png'");
     await page.locator('[data-lab-stop]').click();
     await expect(root).toHaveAttribute('data-outcome', /^(stopped|killed|ok|error)$/u, { timeout: 30_000 });
+  });
+
+  // 2026-09-25 Phase 4 검토 반영(사용성 C1 — 실사이트 재현): 준비 중에 누른 [실행]이 보드 라이브러리(i2c_lcd 등)를 다 넣기 전에 돌아
+  // `ImportError: no module named 'i2c_lcd'`로 거짓 오류가 났다. 실습실 틀이 모듈의 "준비 뒤 할 일"(holdRun)을 기다린 뒤에 보낸다.
+  test('준비 중에 누른 [실행]은 보드 라이브러리를 다 넣은 뒤에 돈다(ESP32 문자 LCD 예제가 거짓 ImportError 없이 끝난다)', async ({ page, context }) => {
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      await route.continue();
+    });
+    await page.goto(`${withBase('labs/esp32/')}?example=${encodeURIComponent('esp32/u2/2-1-2-lcd-text-check.py')}`);
+    const root = labRoot(page);
+    await expect(root).toHaveAttribute('data-state', /unloaded|loading/u);
+    const run = page.locator('[data-lab-run]');
+    await expect(run).toBeEnabled({ timeout: 30_000 });
+    await run.click();
+    await expect(run).toHaveAttribute('data-lab-run-pending', 'yes');
+    await expect(root).toHaveAttribute('data-run-count', '1', { timeout: LOAD_TIMEOUT });
+    await expect(root).toHaveAttribute('data-outcome', /^(ok|error|stopped)$/u, { timeout: 60_000 });
+    const consoleText = (await page.locator('[data-lab-console]').textContent()) ?? '';
+    expect(consoleText).not.toContain('ImportError');
+    expect(consoleText).not.toContain('i2c_lcd');
+    await expect(root).toHaveAttribute('data-outcome', 'ok');
   });
 
   test('주소에 ?sw=off를 붙이면 오프라인 준비를 끈다(비상구)', async ({ page }) => {
