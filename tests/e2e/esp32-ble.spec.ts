@@ -173,10 +173,12 @@ test.describe('가상 블루투스(BLE)', () => {
     await openExample(page, 'esp32/bt/b7-finger-lcd.py');
     await run(page);
     await connect(page);
+    // 원본은 글자를 1초만 보여 주고 지운다(sleep(1) 뒤 lcd.clear()) — 기본 간격(점점 1초까지 벌어짐)으로 보면 그 1초를 놓칠 수 있어
+    // 0.1초마다 본다(2026-09-24 CI에서 한 번 놓침).
     await blePanel(page).locator('[data-ble-command="a"]').click();
-    await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('left');
+    await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000, intervals: [100] }).toContain('left');
     await blePanel(page).locator('[data-ble-command="b"]').click();
-    await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('right');
+    await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000, intervals: [100] }).toContain('right');
     await stop(page);
   });
 
@@ -271,8 +273,9 @@ test.describe('가상 블루투스 — 사이트판 예제', () => {
     await expect.poll(async () => lcdRow(page, 0), { timeout: 30_000 }).toContain('BLE Waiting');
     await connect(page);
     await sendCoordinate(page, 'data5');
-    // 값이 왔다(LCD가 좌표로 바뀜)
-    await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('X:');
+    // 값이 왔다(LCD가 좌표로 바뀜). 둘째 줄의 19글자가 넘쳐 첫 줄 앞 3칸(X:와 첫 숫자)을 덮는 원본 그대로라(CODE_MAPPING f105 비고)
+    // 'X:'는 잠깐만 보인다 — 끝 상태에도 남는 'Y:'로 본다(2026-09-24 CI에서 'X:'를 놓침, unit4.spec.ts와 같은 방법).
+    await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('Y:');
     // 그런데 레이저는 계속 켜져 있지 않다 — 주석을 푼 else 분기가 끈다
     await expect.poll(async () => part(page, 'laser').getAttribute('data-visual-lit'), { timeout: 10_000 }).toBe('false');
     await stop(page);
@@ -297,7 +300,7 @@ test.describe('가상 블루투스 — 사이트판 예제', () => {
       await expect.poll(async () => lcdRow(page, 0), { timeout: 30_000 }).toContain('BLE Waiting');
       await connect(page);
       await sendCoordinate(page, 'data5');
-      await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('X:');
+      await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('Y:'); // 'X:'는 둘째 줄이 덮는다(위 f110 검사와 같음)
       await expect(part(page, 'laser')).toHaveAttribute('data-visual-lit', 'false', { timeout: 10_000 });
       expect(await consoleText(page), file).not.toContain('Traceback');
       await stop(page);
