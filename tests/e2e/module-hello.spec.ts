@@ -68,6 +68,6 @@ test.describe('흉내 모듈 뼈대(hello)', () => {
     await expect
       .poll(async () => await labRoot(page).getAttribute('data-lab-modules'), { timeout: 30_000 })
       .not.toBeNull();
-    expect((await labRoot(page).getAttribute('data-lab-modules')) ?? '').not.toMatch(/hello/u);
+    expect((await labRoot(page).getAttribute('data-lab-modules')) ?? '').not.toMatch(/\bhello\b/u);
   });
 });

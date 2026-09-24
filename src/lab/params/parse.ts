@@ -382,7 +382,7 @@ export function paramSpecKey(param: ParamSpec): string {
     case 'slider':
       return `slider:${param.name}:${param.valueType}:${param.min}:${param.max}:${param.step}:${param.decimals}:${param.label}`;
     case 'select':
-      return `select:${param.name}:${param.options.join(' ')}:${param.label}`;
+      return `select:${param.name}:${param.options.join('\u0000')}:${param.label}`;
     case 'toggle':
       return `toggle:${param.name}:${param.label}`;
   }
