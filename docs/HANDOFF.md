@@ -38,7 +38,7 @@ git rev-list --left-right --count main...origin/main
 - `node_modules`·`dist`·`.astro`·`public/vendor`는 git 제외다. `npm ci` 한 번이면 다시 생긴다(`predev`·`prebuild`가 `public/vendor/`를 채운다).
 - **절전 방지:** 앱의 keep-awake(`session_idle`)를 켜고, 이 노트북의 도우미 `%TEMP%\claude_keep_awake.ps1`을 숨김 창으로 실행한다(12시간 동안 대기 절전을 막는다. 덮개를 닫으면 그래도 잠든다).
 - 커밋 전 훅은 `npm ci`가 `git config core.hooksPath .githooks`로 켠다. 확인: `git config --get core.hooksPath`.
-- **세션 설정:** 모델 **Opus 5**, 노력 **max**, Ultracode 켬(작업은 Workflow로). 워크플로 에이전트도 `effort: 'max'`.
+- **세션 설정:** 모델 **Opus 5.5**(2026-09-24부터, 그 전은 Opus 5), 노력 **max**, Ultracode 켬(작업은 Workflow로). 워크플로 에이전트도 `effort: 'max'`.
 - **push가 멈추면:** 이 PC의 Git Credential Manager가 `credential-manager get`에서 멈추는 일이 있다(2026-09-18). 그 창은 **운영자 화면에만 보이므로 먼저 "깃 승인 창이 떠 있는지" 물어본다** — 승인하면 바로 정상으로 돌아온다. 급하면 멈춘 `git.exe`·`git credential-manager` 프로세스를 끝내고 `git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main`으로 올린다(`gh`는 이미 로그인돼 있다). 커밋은 이미 로컬에 있으니 잃는 것은 없다.
 - **자동 기록·절전 방지 도우미**는 계정을 바꿔도 이 노트북에서 계속 돌지만, 노트북을 껐다 켰으면 다시 띄운다(0번, 2번).
 
@@ -71,11 +71,11 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 | Phase 2 영상처리 실습실 | `wf_a1aac702-2a9` | `workflows\scripts\phase2-vision-lab-wf_a1aac702-2a9.js` | 완료 |
 | Phase 3 ESP32 실습실 | `wf_86bbf998-bc6` | `workflows\scripts\phase3-esp32-lab-wf_86bbf998-bc6.js` | 제작·통합까지 끝(검토 도중 정지) |
 | Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
-| **Phase 4 통신 실습실** | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | **멈춤**(2026-09-19 00:30, 10단계 끝) — 이어서 할 것 |
+| **Phase 4 통신 실습실** | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | **도는 중**(2026-09-24 17:50 재개 — 10단계 캐시, G·H부터) |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
 
-### 이어서 할 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-19 00:30 운영자 요청으로 정지)
+### 지금 도는 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-19 00:30 정지 → 2026-09-24 17:50 재개)
 
 PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) → Build 6구역 병렬(A 영상처리↔보드 4701 / B 가상 BLE→Web Bluetooth 4702 / C 데이터 포트 4703 / D MQTT→대시보드 4704 / E 통신 템플릿·블록 4705 / F 예제 갤러리 4706) → Build2(G 시나리오 F 4707 / H 4단원 통합 화면 4708) → 통합 → 적대적 검토 3(4711~4713) → 수정·배포.
 
@@ -123,6 +123,7 @@ Phase 3의 **남은 일만** 담은 작은 워크플로다: 적대적 검토 `cr
 - 그래서 **검토·수정만 남은 자리에서는 통째 재개하지 말고, 끝난 결과를 꺼내 작은 이어받기 워크플로를 새로 쓴다.** 끝난 단계의 결과는 진행 기록 폴더의 `journal.jsonl`에 들어 있다(`started`의 `key`→`label`을 이어 붙여 `result`를 찾는다). 옛 스크립트의 머리(=`meta` 아래 `PRJ`~`brief`, 줄 12~63)를 **그대로** 복사하고 args도 그대로 주면 `COMMON`이 글자까지 같아지므로 에이전트가 받는 맥락이 달라지지 않는다. 남은 단계만 붙이고, 끝난 검토 결과는 상수로 박아 수정 단계에 넘긴다(`phase3-review-fix.js`가 그 예다).
 - args는 **글자까지 똑같이** 준다. `prj`·`mat`·`matrepo`가 한 글자라도 다르면 `COMMON`이 바뀌어 모든 캐시가 무효가 된다. 확실하지 않으면 진행 기록의 아무 `agent-*.jsonl` 첫 줄에서 실제로 쓰인 경로를 꺼내 쓴다.
 - 스크립트 파일은 **LF 줄바꿈**을 유지한다. CRLF가 섞이면 승인 창이 "control characters" 때문에 거절한다.
+- **재개가 캐시를 맞혔는지 확인하는 법:** 캐시에서 돌아온 단계는 `journal.jsonl`에 아무 줄도 더하지 않고, 재개해도 `launched` 줄이 새로 생기지 않는다. 그래서 파일 전체를 세면 옛 기록까지 섞여 "전부 다시 돈다"로 잘못 보인다(2026-09-24 실측). **재개 직전 파일 크기를 적어 두고, 그 뒤에 붙은 줄만 본다** — 새 `started`가 안 끝난 단계뿐이면 정상이다.
 - 스크립트의 **COMMON(공통 프롬프트)을 건드리면 모든 에이전트의 캐시가 무효가 된다.** 주의 문구는 *다시 돌릴 단계의 프롬프트에만* 넣는다.
 - 중간에 멈춘 단계가 이미 커밋까지 했으면, 그 단계 프롬프트에 "이미 커밋됨(커밋 해시 나열) — 처음부터 다시 만들지 말고 완료 기준만 확인하고 빠진 것만 보완" 주의를 넣고 재개한다.
 - 에이전트 안에서 개발 서버는 `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx`로 띄운다. 한 폴더에 서버는 하나만 뜬다.
@@ -137,7 +138,7 @@ Phase 3의 **남은 일만** 담은 작은 워크플로다: 적대적 검토 `cr
 - `git add .`·`git add -A`·`git commit -a`·`git commit --no-verify` 금지. main 강제 push·역사 고치기 금지. 노출 전 관문은 커밋 전 훅 하나뿐이다.
 - 원본 자료 폴더는 **읽기 전용**이고 공개 저장소에 올리지 않는다. 개인정보(얼굴·이름·연락처)는 공개하지 않는다.
 - 외부 파일 내려받기는 Claude가 직접 하지 않는다. 공식 출처·크기·해시를 조사해 **검증까지 들어간 PowerShell 스크립트**를 만들고 운영자에게 실행을 부탁한다. 받은 파일은 `.cache/…-staging`에 두고 작업이 끝난 뒤 제자리로 옮긴다.
-- 커밋 메시지는 한국어로 "무엇을 왜", 끝에 `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+- 커밋 메시지는 한국어로 "무엇을 왜", 끝에 그때 모델 이름의 서명(2026-09-24부터 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`). 워크플로 공통 프롬프트(COMMON)에 옛 서명이 박혀 있어도 COMMON은 고치지 말고(캐시가 다 날아간다) 커밋하는 단계의 프롬프트에만 덮어쓰는 줄을 넣는다.
 - **승인·선택은 운영자가 위임했다**(`docs/DECISIONS.md` O1). 원본 자료·사진·공동 저자 자료·업체 공개 라이브러리 사용도 이미 허락됐다(O2~O5). 다시 묻지 말고 근거를 기록하고 진행한다. 예외는 사실 확인, 외부 공개, 파일 내려받기다.
 
 ---
