@@ -153,6 +153,40 @@ describe('교재 예제의 판정이 재생 입력에서 바뀐다', () => {
     expect(Math.max(...noseX) - Math.min(...noseX)).toBeGreaterThan(0.08);
   });
 
+  it('윙크·두 눈 감기: 4단원 얼굴 마우스(f104)의 EAR 0.1 판정이 0.4초 넘게 이어져 더블클릭 → 오른쪽 클릭 차례로 나온다', () => {
+    // f104 calculate_ear와 같은 계산(640×480 정수 픽셀). LEFT_EYE_POINTS = 사진 왼쪽 눈(33쪽), RIGHT_EYE_POINTS = 263쪽.
+    const LEFT_EYE_POINTS = [33, 160, 158, 133, 153, 144];
+    const RIGHT_EYE_POINTS = [362, 385, 387, 263, 373, 380];
+    const ear = (landmarks: readonly (readonly number[])[], points: readonly number[]) => {
+      const p = points.map((index) => [Math.trunc(landmarks[index]![0]! * 640), Math.trunc(landmarks[index]![1]! * 480)] as const);
+      const dist = (a: readonly [number, number], b: readonly [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+      return (dist(p[1]!, p[5]!) + dist(p[2]!, p[4]!)) / (2 * dist(p[0]!, p[3]!));
+    };
+    const faces = first('face-wink');
+    const state = faces.map((face) => {
+      const left = ear(face.landmarks, LEFT_EYE_POINTS) <= 0.1;
+      const right = ear(face.landmarks, RIGHT_EYE_POINTS) <= 0.1;
+      return left && right ? 'both' : left ? 'left' : right ? 'right' : 'open';
+    });
+    // 이어진 구간(같은 상태가 몇 장 이어지나) — 15fps라 0.4초는 6장
+    const runs: { state: string; frames: number }[] = [];
+    for (const value of state) {
+      const last = runs[runs.length - 1];
+      if (last && last.state === value) last.frames += 1;
+      else runs.push({ state: value, frames: 1 });
+    }
+    const closedRuns = runs.filter((run) => run.state !== 'open');
+    expect(closedRuns.map((run) => run.state)).toEqual(['left', 'both']);
+    for (const run of closedRuns) {
+      expect(run.frames / 15, run.state).toBeGreaterThan(0.6);
+    }
+    expect(state[0]).toBe('open');
+    expect(state[state.length - 1]).toBe('open');
+    // 코가 움직여 마우스도 움직인다
+    const noseX = faces.map((face) => face.landmarks[1]![0]);
+    expect(Math.max(...noseX) - Math.min(...noseX)).toBeGreaterThan(0.03);
+  });
+
   it('고개를 돌려도 입은 다물고 눈은 뜬 채다(다른 판정이 끼어들지 않는다)', () => {
     const faces = first('face-turn');
     expect(faces.every((face) => mouthAspectRatio(face.landmarks) < 0.4)).toBe(true);
@@ -167,7 +201,7 @@ describe('되풀이 가능·픽스처와 같음', () => {
     expect(a).toEqual(b);
   });
 
-  it('동작 3개가 15fps로 이어진다', () => {
+  it('동작 4개가 15fps로 이어진다', () => {
     const sequences = generateFaceSequences();
     expect(sequences.map((sequence) => sequence.id)).toEqual([...FACE_SEQUENCE_IDS]);
     for (const sequence of sequences) {

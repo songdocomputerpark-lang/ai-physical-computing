@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { REPLAY_SEQUENCE_IDS } from '../../src/lab/modules/mediapipe/sequences.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
 import { labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 import { FRAME_TIMEOUT, collectRequests, openVisionLab, waitFrames } from './helpers/vision.ts';
@@ -100,7 +101,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     await expect(panel).toBeVisible();
     await expect(panel.locator('[data-mediapipe-engine]')).toHaveText('대기');
     // 재생 동작은 손 4개 + 얼굴 3개 + 자세 2개(P2-09에서 늘어남), 묶음(optgroup)으로 보인다
-    await expect(panel.locator('[data-mediapipe-sequence] option')).toHaveCount(9);
+    await expect(panel.locator('[data-mediapipe-sequence] option')).toHaveCount(REPLAY_SEQUENCE_IDS.length);
     await expect(panel.locator('[data-mediapipe-sequence] optgroup[label="손"] option')).toHaveCount(4);
     await expect(panel).toContainText('사람 영상이 아니라');
 

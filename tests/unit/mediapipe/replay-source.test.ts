@@ -117,7 +117,7 @@ describe('재생 입력 소스', () => {
     expect(source.listSequences().map((item) => item.id)).toEqual([...REPLAY_SEQUENCE_IDS]);
     expect(source.listSequences()[0]!.frames).toBe(generateHandSequence('count').frames.length);
     expect(source.listSequences().map((item) => item.kind)).toEqual([
-      'hands', 'hands', 'hands', 'hands', 'face', 'face', 'face', 'pose', 'pose',
+      'hands', 'hands', 'hands', 'hands', 'face', 'face', 'face', 'face', 'pose', 'pose',
     ]);
     expect(source.sequenceKind).toBe('hands');
   });

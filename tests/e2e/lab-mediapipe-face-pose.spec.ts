@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { REPLAY_SEQUENCE_IDS } from '../../src/lab/modules/mediapipe/sequences.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
 import { labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 import { FRAME_TIMEOUT, collectRequests, openVisionLab, waitFrames } from './helpers/vision.ts';
@@ -108,7 +109,7 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
     const panel = page.locator('[data-lab-module-panel="mediapipe"]');
     await expect(panel).toBeVisible();
     await expect(panel.locator('[data-mediapipe-sequence] optgroup')).toHaveCount(3);
-    await expect(panel.locator('[data-mediapipe-sequence] option')).toHaveCount(9);
+    await expect(panel.locator('[data-mediapipe-sequence] option')).toHaveCount(REPLAY_SEQUENCE_IDS.length);
     await expect(panel.locator('[data-mediapipe-solution]')).toHaveText('손 인식');
     await expect(panel).toContainText('얼굴 478점');
 

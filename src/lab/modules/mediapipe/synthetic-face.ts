@@ -468,7 +468,7 @@ export interface FaceSequence {
   readonly frames: readonly SyntheticFaceFrame[];
 }
 
-export const FACE_SEQUENCE_IDS = ['face-blink', 'face-yawn', 'face-turn'] as const;
+export const FACE_SEQUENCE_IDS = ['face-blink', 'face-yawn', 'face-turn', 'face-wink'] as const;
 export type FaceSequenceId = (typeof FACE_SEQUENCE_IDS)[number];
 
 export const FACE_SEQUENCE_INFO: Readonly<Record<FaceSequenceId, { readonly label: string; readonly description: string; readonly seconds: number }>> =
@@ -476,6 +476,14 @@ export const FACE_SEQUENCE_INFO: Readonly<Record<FaceSequenceId, { readonly labe
     'face-blink': { label: '눈 깜빡이기', description: '두 눈을 2초에 한 번 감았다 떠요(눈 감김 판정 예제용).', seconds: 4 },
     'face-yawn': { label: '입 벌리기(하품)', description: '입을 크게 벌렸다 닫아요(하품·입 벌림 판정 예제용).', seconds: 5 },
     'face-turn': { label: '고개 돌리기', description: '고개를 왼쪽·오른쪽으로 천천히 돌려요(코 위치·고개 방향 예제용).', seconds: 6 },
+    // 4단원 얼굴 마우스(f097·f104·f114)의 클릭: 한쪽 눈을 0.4초(LONG_BLINK_THRESHOLD) 넘게 감았다 뜨면 더블클릭, 두 눈이면 오른쪽 클릭.
+    // face-blink는 눈이 완전히 감긴 때가 짧아(EAR 0.1 아래가 0.4초보다 짧다) 클릭이 나오지 않아서, 1초 넘게 감는 동작을 따로 둔다
+    // (2026-09-24 Phase 4 통합 — 구역 H 요청 6. 카메라 없는 교실에서도 클릭으로 켜지는 LED·버저를 볼 수 있게).
+    'face-wink': {
+      label: '윙크·두 눈 감기(클릭)',
+      description: '사진 왼쪽 눈을 1초쯤 감았다 뜨고(윙크), 조금 뒤 두 눈을 1초쯤 감았다 떠요(4단원 얼굴 마우스의 더블클릭·오른쪽 클릭 예제용).',
+      seconds: 6,
+    },
   });
 
 const REST: FacePose = Object.freeze({ cx: 0.5, cy: 0.48, size: 0.62, yaw: 0, roll: 0, blink: [0, 0] as const, mouthOpen: 0 });
@@ -485,6 +493,14 @@ function pulse(t: number, from: number, to: number): number {
   if (t <= from || t >= to) return 0;
   const u = (t - from) / (to - from);
   return u < 0.5 ? smoothstep(u * 2) : smoothstep((1 - u) * 2);
+}
+
+/** 0에서 1로 올라가 머물렀다 0으로 내려오는 값(오르내리는 가장자리 edge초는 부드럽게) — 눈을 "오래 감는" 동작용 */
+function plateau(t: number, from: number, to: number, edge: number): number {
+  if (t <= from || t >= to) return 0;
+  if (t < from + edge) return smoothstep((t - from) / edge);
+  if (t > to - edge) return smoothstep((to - t) / edge);
+  return 1;
 }
 
 function blinkFrame(t: number, seconds: number): SyntheticFaceFrame {
@@ -504,10 +520,20 @@ function turnFrame(t: number, seconds: number): SyntheticFaceFrame {
   return { faces: [face({ ...REST, yaw, roll: 3 * Math.sin((4 * Math.PI * t) / seconds) })] };
 }
 
+function winkFrame(t: number, seconds: number): SyntheticFaceFrame {
+  // 코가 천천히 오가서 마우스도 움직이고, 0.8~2.0초에 사진 왼쪽 눈(33쪽 — 예제의 LEFT_EYE_POINTS)만, 3.4~4.6초에 두 눈을 감는다.
+  // 두 클릭 사이가 1초(예제의 click_delay)보다 넉넉히 멀고, 감은 동안(완전히 감긴 약 1초)이 0.4초보다 길다.
+  const yaw = 10 * Math.sin((2 * Math.PI * t) / seconds);
+  const both = plateau(t, 3.4, 4.6, 0.12);
+  const left = Math.max(plateau(t, 0.8, 2.0, 0.12), both);
+  return { faces: [face({ ...REST, yaw, blink: [left, both] })] };
+}
+
 const BUILDERS: Readonly<Record<FaceSequenceId, (t: number, seconds: number) => SyntheticFaceFrame>> = Object.freeze({
   'face-blink': blinkFrame,
   'face-yawn': yawnFrame,
   'face-turn': turnFrame,
+  'face-wink': winkFrame,
 });
 
 export function generateFaceSequence(id: FaceSequenceId): FaceSequence {
