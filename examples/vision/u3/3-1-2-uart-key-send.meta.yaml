@@ -1,10 +1,15 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-2 기본: 컴퓨터에서 키보드로 a·b를 시리얼로 보내기"
-description: 컴퓨터 쪽 코드예요. 입력한 글자 a·b를 시리얼(pyserial)로 보드에 보내고 q로 끝내요. 짝은 보드 쪽 3-1-2 예제예요. 지금은 사이트에 PC 쪽 serial 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02에서 들어와요).
+description: 컴퓨터 쪽 코드예요. 입력한 글자 a·b를 시리얼(pyserial)로 보드에 보내고 q로 끝내요. 짝은 보드 쪽 3-1-2 예제고, 아래 [보내기] 패널에서 가상 보드를 먼저 열어야 이어져요. 보드 화면을 열지 않고 [실행]하면 4번 줄에서 SerialException으로 멈춰요(실물에서 USB-UART 변환기를 꽂지 않은 것과 같아요). 코드에 적은 포트 이름(COM10)은 브라우저에서 쓰지 않고, 패널에서 고른 통로가 상대예요.
 lesson: 3-1-2
 page: 192
 source_id: f084
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - uart
 tags:
   - UART
   - 시리얼
@@ -13,4 +18,10 @@ tags:
 packages: []
 smoke:
   outcome: error
-  error: ModuleNotFoundError
+  error: SerialException
+  seconds: 9
+practice:
+  - 아래 [보내기] 패널에서 보드 예제로 "3-1-2 기본"을 고르고 [한 화면에 가상 보드 열기]를 눌러요(다른 탭에서 보려면 [ESP32 실습실 새 탭에서 열기]).
+  - 보드 화면이 뜨면 보드 쪽 [실행]을 먼저 눌러요. 보드가 꺼져 있을 때 온 글자는 실물처럼 사라져요.
+  - 이 화면에서 [실행]을 누르고 입력줄에 a를 적으면 가상 보드의 레이저(GPIO18)가 켜져요. b는 끄기, q는 끝내기예요.
+  - 보드 쪽 원본 파일은 a를 받은 다음 줄에서 NameError로 멈춰요(원본의 결함이에요 — 보드 예제 설명을 읽어 봐요).

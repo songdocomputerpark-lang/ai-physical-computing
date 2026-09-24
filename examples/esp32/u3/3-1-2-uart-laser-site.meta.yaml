@@ -1,0 +1,33 @@
+# 예제 설명(사이드카). 사이트판(PD-10 — PROGRESS 미해결 75): 원본(3-1-2-uart-laser.py, f082)과 줄 번호를 맞추려고 파이썬 파일에는 머리말을 넣지 않고,
+# 고친 줄 끝에만 `# [사이트판]`을 붙였어요. 제목·설명·배선·실습 방법은 여기에 적어요(src/lab/README.md 3절).
+# 이관 목록(scripts/examples-manifest.yaml)에 없는 파일이라 예제 스모크 대신 tests/e2e/bridge-vision-board.spec.ts의 "사이트판" 검사가 지켜요.
+title: "3-1-2 기본: UART로 받은 a·b로 레이저 켜고 끄기(사이트판 — sleep·핀 고침)"
+description: 원본 파일에서 두 줄만 고친 판이에요. ① 2번 줄을 from time import sleep으로(원본은 import time만 해서 sleep(1)에서 NameError) ② 5번 줄의 핀을 원고 배선 그림·다른 예제와 같은 교차 결선(tx=17, rx=16)으로 바꿔서, a·b를 받을 때마다 레이저가 켜지고 꺼져요. 원본 파일과 나란히 놓고 무엇이 다른지 비교해 봐요.
+lesson: 3-1-2
+page: 190
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - uart
+tags:
+  - UART
+  - 시리얼
+  - 레이저
+  - 통신
+  - 사이트판
+packages: []
+parts:
+  # 원고 배선 그림 그대로: 변환기 TX → GPIO16(보드 RX), 변환기 RX → GPIO17(보드 TX). 코드의 UART(2, tx=17, rx=16)과 짝이 맞아요.
+  - part: uart
+    pins:
+      rx: 17
+      tx: 16
+  - part: laser
+    pin: 18
+practice:
+  - "[실행]을 누르면 보드가 UART2를 열고 글자가 오기를 기다려요(아무 일도 일어나지 않는 것이 정상이에요)."
+  - 영상처리 실습실의 3-1-2 예제를 열고 그 화면의 [보내기] 패널로 이 화면을 열면, 컴퓨터 코드가 보낸 a·b로 레이저가 켜지고 꺼져요.
+  - 부품 조작 칸의 시리얼 창에서 속도를 115200으로 맞추고 a·b를 보내도 돼요. 실물 레이저는 눈에 비추지 않아요.
+smoke:
+  outcome: stopped

@@ -1,10 +1,15 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-2 기본: UART로 받은 a·b로 레이저 켜고 끄기(원본 파일)"
-description: 컴퓨터가 USB-UART 변환기로 보낸 글자 a·b를 UART2로 받아 레이저를 켜고 꺼요. 원본 파일은 import time만 하고 sleep(1)을 불러서 a나 b를 처음 받는 순간 NameError로 멈춰요(실물 보드도 같아요 — 원고 190쪽은 from time import sleep이에요). 핀도 원고 배선 그림과 반대예요(코드 tx=16·rx=17, 그림은 변환기 TX → GPIO16).
+description: 컴퓨터가 USB-UART 변환기로 보낸 글자 a·b를 UART2로 받아 레이저를 켜고 꺼요. 짝은 영상처리 실습실의 3-1-2 예제예요(그 화면의 [보내기] 패널이 이 화면을 열어 줘요). 원본 파일은 import time만 하고 sleep(1)을 불러서 a나 b를 처음 받는 순간 NameError로 멈춰요(실물 보드도 같아요 — 원고 190쪽은 from time import sleep이에요). 핀도 원고 배선 그림과 반대예요(코드 tx=16·rx=17, 그림은 변환기 TX → GPIO16). 사이트는 원본 코드를 고치지 않고 배선 쪽을 코드에 맞춰 그려서, 원본 그대로 글자가 오가게 했어요.
 lesson: 3-1-2
 page: 190
 source_id: f082
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - uart
 tags:
   - UART
   - 시리얼
@@ -12,6 +17,9 @@ tags:
   - 통신
 packages: []
 parts:
+  # 원고 배선 그림은 변환기 TX → GPIO16, RX → GPIO17(= 부품 기본값 tx 16·rx 17)이지만, 원본 코드가 UART(2, tx=16, rx=17)로
+  # 반대로 적어서 그대로 두면 보드가 한 글자도 받지 못해요. 원본 코드를 고치지 않기로 한 규칙(PD-10)을 지키려고 배선을 코드에 맞췄어요.
+  # 원고 그림대로 tx=17·rx=16을 쓰는 사이트판은 3-1-2-uart-laser-site.py예요(PLAN §8.4 설계 메모 ⑤, INVENTORY §4.4 — 2026-09-24 통합).
   - part: uart
     pins:
       rx: 16
@@ -22,5 +30,6 @@ smoke:
   outcome: stopped
 practice:
   - "[실행]을 누르면 보드가 UART2를 열고 글자가 오기를 기다려요(아무 일도 일어나지 않는 것이 정상이에요)."
-  - 부품 조작 칸의 시리얼 창에서 속도를 115200으로 맞추고 a를 보내면 18번 줄에서 NameError로 멈춰요 — 원본 파일의 결함이에요.
+  - 부품 조작 칸의 시리얼 창에서 속도를 115200으로 맞추고 a를 보내면 레이저가 켜졌다가 12번 줄에서 NameError로 멈춰요 — 원본 파일의 결함이에요(두 줄을 고친 "(사이트판)" 예제는 계속 켜고 꺼요).
+  - 영상처리 실습실의 3-1-2 예제를 열고 그 화면의 [보내기] 패널로 이 화면을 열면, 컴퓨터 코드가 보낸 a·b가 그대로 와요.
   - from time import sleep으로 고친 뒤 a를 보내면 레이저가 켜지고, b를 보내면 꺼져요. 실물 레이저는 눈에 비추지 않아요.

@@ -1,0 +1,276 @@
+---
+/**
+ * [보내기] 패널 — 영상처리 실습실과 가상 보드를 잇는 선의 화면 조각(P4-02, PLAN §7.6 "통로는 코드에 적지 않고 화면에서 고른다").
+ * 흉내 모듈 vision-bridge의 panel.astro가 이 부품 하나만 그리고, 움직임은 src/lab/modules/vision-bridge/index.ts가
+ * data-bridge-* 표시로 찾아 잇는다(이 파일은 HTML·CSS만).
+ *
+ * 두 실습실이 같은 패널을 쓴다 — 영상처리 실습실은 data-bridge-role="pc", ESP32 실습실은 "board"이고,
+ * 자리(.bridge__pc-only·.bridge__board-only)가 역할에 따라 보이고 숨는다.
+ *
+ * 접근성: 조작마다 이름표가 있고, 상태 줄은 role="status"(바뀔 때만 읽어 줌), 오류 줄은 role="alert".
+ * 실습실 틀의 부품 클래스(lab-button·lab__select)와 디자인 토큰(src/styles/)을 그대로 쓴다.
+ */
+---
+
+<div class="bridge" data-bridge-panel data-bridge-role="pc" data-bridge-state="closed">
+  <p class="bridge__intro">
+    컴퓨터(영상처리 실습실)와 가상 ESP32 보드를 <strong>가상 USB-UART 변환기</strong>로 잇는 칸이에요. 파이썬 코드의{' '}
+    <code>serial.Serial(...)</code>이나 <code>bridge.send(...)</code>가 여기서 고른 통로로 나가요.
+  </p>
+
+  <p class="bridge__notice" data-bridge-notice></p>
+
+
+  <div class="bridge__row">
+    <label class="bridge__label" for="lab-bridge-channel">통로</label>
+    <select id="lab-bridge-channel" class="lab__select" data-bridge-channel></select>
+    <p class="bridge__status" role="status" data-bridge-status>아직 잇지 않았어요.</p>
+  </div>
+
+  <div class="bridge__row bridge__row--prefix">
+    <span class="bridge__label" id="lab-bridge-prefix-label">통신 접두어</span>
+    <code class="bridge__prefix" data-bridge-prefix aria-labelledby="lab-bridge-prefix-label">-</code>
+    <button type="button" class="lab-button lab-button--small" data-bridge-new-prefix>새로 만들기</button>
+    <label class="bridge__check">
+      <input type="checkbox" data-bridge-pin />
+      <span>이 컴퓨터에 고정</span>
+    </label>
+  </div>
+
+  <details class="bridge__details">
+    <summary>친구(다른 화면) 접두어 맞추기</summary>
+    <div class="bridge__row">
+      <label class="bridge__label" for="lab-bridge-prefix-input">접두어 12글자</label>
+      <input
+        id="lab-bridge-prefix-input"
+        class="bridge__input"
+        type="text"
+        inputmode="text"
+        autocomplete="off"
+        spellcheck="false"
+        maxlength="12"
+        placeholder="예: 7kq2m9xd4hpt"
+        data-bridge-prefix-input
+      />
+      <button type="button" class="lab-button lab-button--small" data-bridge-prefix-apply>맞추기</button>
+    </div>
+    <p class="bridge__hint">
+      두 화면이 같은 접두어를 써야 서로의 글자가 가요. 아래 [ESP32 실습실 새 탭에서 열기]로 열면 접두어가 저절로 맞아요.
+    </p>
+  </details>
+
+  <div class="bridge__row bridge__pc-only">
+    <label class="bridge__label" for="lab-bridge-board-example">보드에서 열 예제</label>
+    <select id="lab-bridge-board-example" class="lab__select" data-bridge-board-example></select>
+    <button type="button" class="lab-button lab-button--small" data-bridge-open-frame>한 화면에 가상 보드 열기</button>
+    <button type="button" class="lab-button lab-button--small" data-bridge-open-tab>ESP32 실습실 새 탭에서 열기</button>
+  </div>
+
+  <div class="bridge__frame" data-bridge-frame-host hidden>
+    <div class="bridge__frame-head">
+      <span class="bridge__label">한 화면 모드 — 아래가 ESP32 실습실이에요(같은 탭).</span>
+      <button type="button" class="lab-button lab-button--small" data-bridge-close-frame>보드 화면 닫기</button>
+    </div>
+  </div>
+
+  <form class="bridge__send" data-bridge-send-form novalidate>
+    <label class="bridge__label" for="lab-bridge-send">손으로 보내기</label>
+    <div class="bridge__row">
+      <input
+        id="lab-bridge-send"
+        class="bridge__input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        enterkeyhint="send"
+        placeholder="예: a"
+        data-bridge-send-input
+      />
+      <select class="lab__select" data-bridge-send-ending aria-label="끝에 붙일 문자">
+        <option value="none">끝 문자 없음</option>
+        <option value="lf">줄바꿈 \n</option>
+      </select>
+      <button type="submit" class="lab-button" data-bridge-send>보내기</button>
+    </div>
+    <p class="bridge__hint bridge__pc-only">보드가 <code>uart.readline()</code>으로 읽는 예제라면 줄바꿈을 붙여 보내요.</p>
+    <p class="bridge__hint bridge__board-only">여기서 보낸 글자는 컴퓨터 코드의 <code>uart.read()</code>·<code>readline()</code>으로 가요.</p>
+  </form>
+
+  <p class="bridge__error" role="alert" data-bridge-error hidden></p>
+
+  <div class="bridge__log-box">
+    <span class="bridge__label">주고받은 글</span>
+    <ul class="bridge__log" data-bridge-log aria-live="off"></ul>
+  </div>
+</div>
+
+<style>
+  .bridge {
+    display: grid;
+    /* 칸 폭을 패널 폭에 묶는다 — 긴 선택지(통로 이름·보드 예제 제목)가 칸을 넓혀 휴대폰 화면 밖으로 밀어내지 않게(2026-09-24 통합, 375px에서 488px로 넘쳤음) */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    /* Pretendard는 숫자 사이의 x를 곱하기 기호로 바꿔 그린다 — 접두어·16진수가 그대로 보이게 끈다 */
+    font-variant-ligatures: none;
+  }
+
+  .bridge__intro,
+  .bridge__hint,
+  .bridge__status,
+  .bridge__notice,
+  .bridge__error {
+    margin: 0;
+  }
+
+  .bridge__intro,
+  .bridge__hint {
+    color: var(--color-text-muted);
+  }
+
+  .bridge__notice {
+    padding: var(--space-1) var(--space-2);
+    border-inline-start: 3px solid var(--color-border-strong);
+    background: var(--color-bg-subtle);
+  }
+
+  .bridge__notice:empty {
+    display: none;
+  }
+
+  .bridge__status {
+    font-weight: var(--weight-semibold);
+  }
+
+  .bridge__error {
+    color: var(--color-danger-text);
+  }
+
+  .bridge__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* 선택 상자는 글이 길어도 줄 폭을 넘지 않는다(넘치는 글은 상자 안에서 잘리고, 펼치면 전부 보인다) */
+  .bridge__row .lab__select {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .bridge__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .bridge__prefix {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+
+  .bridge__check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .bridge__input {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+  }
+
+  .bridge__input:focus-visible,
+  .bridge__details summary:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .bridge__details summary {
+    cursor: pointer;
+    font-weight: var(--weight-semibold);
+  }
+
+  .bridge__send {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .bridge__frame {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .bridge__frame-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .bridge__frame :global(iframe) {
+    width: 100%;
+    /* 보드 쪽을 [실행]하면 iframe 안 화면이 콘솔 알림 쪽으로 옮겨 가 링·부품 그림이 가려질 때가 있어(구역 G 관찰) 창 높이의 80%까지 키운다 */
+    min-height: max(32rem, min(80vh, 48rem));
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .bridge__log-box {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .bridge__log {
+    max-height: 9rem;
+    margin: 0;
+    padding: var(--space-1) var(--space-2);
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    list-style: none;
+  }
+
+  .bridge__log:empty::after {
+    content: '아직 주고받은 글이 없어요.';
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+  }
+
+  .bridge__log li {
+    overflow-wrap: anywhere;
+  }
+
+  .bridge__log li[data-way='in'] {
+    color: var(--color-text);
+  }
+
+  .bridge__log li[data-way='out'] {
+    color: var(--color-text-muted);
+  }
+
+  /* 역할에 따라 보이는 자리 */
+  .bridge[data-bridge-role='board'] .bridge__pc-only,
+  .bridge[data-bridge-role='pc'] .bridge__board-only {
+    display: none;
+  }
+</style>

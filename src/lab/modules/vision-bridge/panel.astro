@@ -1,0 +1,10 @@
+---
+/**
+ * 흉내 모듈 vision-bridge의 화면 조각(src/lab/README.md 4.5). LabShell이 [data-lab-module-panel="vision-bridge"] 안에
+ * 그려 두고(hidden), index.ts의 mount가 코드에서 시리얼·UART를 쓸 때 연다(showPanelWhenUsed).
+ * 실제 markup은 src/components/lab/bridge/BridgePanel.astro 하나다(영상처리 실습실과 ESP32 실습실이 같은 패널을 쓴다).
+ */
+import BridgePanel from '../../../components/lab/bridge/BridgePanel.astro';
+---
+
+<BridgePanel />

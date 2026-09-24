@@ -1638,6 +1638,10 @@ examples:
   #
   # smoke는 "지금(2026-09-18) 나는 결과 그대로"다. 채울 구역은 사이드카 설명에 적었다:
   #   ModuleNotFoundError(ubluetooth) → P4-03 가상 BLE / ModuleNotFoundError(serial·bluetooth) → P4-02 PC 쪽 흉내 모듈.
+  # 2026-09-24 Phase 4 통합: 아래 meta는 **옮긴 날의 기록**으로 남긴다(사이드카가 있으면 meta는 쓰이지 않는다 — 도구는 사이드카를 덮어쓰지 않는다).
+  #   지금의 설명·배선·실습 방법·스모크 기대 결과는 각 사이드카(<이름>.meta.yaml)가 정답이다 — 흉내가 들어와 대부분 stopped(끝까지 돎)로 바뀌었다.
+  #   사이트판(PD-10)은 이 목록에 없다(examples:verify 대상 아님): P4-03(구역 B)의 블루투스 사이트판 5개(f148 핀 겹침, f110·f111·f115 레이저 끄기 주석 해제,
+  #   f113 이름·핀·레이저 끄기)는 tests/e2e/esp32-ble.spec.ts, 통합의 3-1-2 사이트판(f082 sleep·핀)은 tests/e2e/bridge-vision-board.spec.ts가 지킨다.
 
   # ── 3단원 3.1.2 시리얼 통신(f082~f085) ──
   - id: f082

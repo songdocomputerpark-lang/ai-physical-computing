@@ -10,6 +10,9 @@ rx(변환기가 받는 핀) ← 보드 TX(17), tx(변환기가 보내는 핀) �
   (apc_board_uart.deliver — 그 핀을 RX로 쓰는 UART의 받을 칸에 쌓인다). 받는 UART가 없으면 한 번 알린다.
 - 속도: 패널에서 '자동'(보드 UART와 같게 — 실물 시리얼 프로그램은 직접 맞춰야 함) 또는 9600·115200bps를 고른다. 다르면 가상 선이 비트 단위로 깨뜨린다.
 - 실행 전에 보낸 것은 사라진다(보드가 켜지기 전에 보낸 글자를 받을 곳이 없음 — apc_board.on_device_input 규칙).
+- 보드가 선으로 내보낸 바이트는 이벤트 'board.uart.tx' {id, port, bytes, baud}로도 화면에 알린다(PLAN §8.4 설계 메모 ② —
+  영상처리 실습실의 serial 흉내·bridge 모듈로 가는 선(src/lab/modules/vision-bridge/)이 받는다. 2026-09-24 Phase 4 통합).
+  상태의 rxTail(최근 512바이트)은 화면 칸 그리기용이고, 16ms 병합 사이에 512바이트를 넘게 와도 이벤트에는 빠짐없이 실린다.
 
 화면에 보내는 상태('board.device' state): {v, choice: 'auto'|9600|…, baud: 지금 쓰는 속도(자동이고 이어진 UART가 없으면 null), boardBaud,
 rxTotal(보드에서 받은 바이트 수), rxTail(최근 받은 바이트 목록, 최대 512), txTotal(보낸 바이트 수), lastSend{bytes, reached}|null, mismatch(속도가 달랐는지)}
@@ -18,6 +21,7 @@ rxTotal(보드에서 받은 바이트 수), rxTail(최근 받은 바이트 목�
 
 import apc_board
 import apc_board_uart
+import apc_runtime
 
 __all__ = ["BAUD_CHOICES", "PART_ID", "RX_TAIL", "UsbUartBridge"]
 
@@ -74,6 +78,12 @@ class UsbUartBridge:
         if len(self.rx_tail) > RX_TAIL:
             del self.rx_tail[: len(self.rx_tail) - RX_TAIL]
         self.mismatch = not info.get("matched", True)
+        if data:
+            # 보드 → 컴퓨터(탭 통로·한 화면 모드). 속도가 달라 깨진 바이트도 그대로 싣는다(실물 변환기도 깨진 글자를 컴퓨터로 넘긴다).
+            apc_runtime.emit(
+                apc_board.EVENT_UART_TX,
+                {"id": self.id, "port": PART_ID, "bytes": list(data), "baud": int(self.serial_settings().get("baudrate", 0))},
+            )
         self.publish()
 
     # ── 화면 송신 패널 ──
