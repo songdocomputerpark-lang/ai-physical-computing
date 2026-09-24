@@ -909,7 +909,7 @@ entries:
       - "pyautogui(마우스·키보드 조작), mediapipe(손·얼굴 인식), speech_recognition(음성 인식), serial·bluetooth(보드 통신), machine(보드 핀)은 브라우저 안에서는 그대로 돌 수 없어요. 그래서 실습실 화면이 대신 일하고 파이썬에는 같은 이름의 흉내 모듈을 줘요."
       - "지금 연 실습실 페이지에 그 흉내 모듈이 붙어 있지 않으면(또는 아직 준비 중이면) 이 오류가 나요."
     fix:
-      - "이 모듈을 쓰는 예제는 그 모듈이 붙은 실습실에서 열어요: 손·얼굴·자세(mediapipe)와 가상 데스크톱(pyautogui)은 영상처리 실습실, 보드(machine·serial·bluetooth)는 ESP32·통신 실습실."
+      - "이 모듈을 쓰는 예제는 그 모듈이 붙은 실습실에서 열어요: 손·얼굴·자세(mediapipe)·가상 데스크톱(pyautogui)·컴퓨터 쪽 통신(serial·bluetooth)은 영상처리 실습실, 보드(machine·neopixel·ESP32BLE)는 ESP32 실습실이에요."
       - "그 실습실에서도 같은 오류가 나면 아직 준비 중인 모듈이에요. 실습실 안내나 문제 해결 페이지를 확인해요."
       - "진짜 PC에서 돌리려면 [.py 내려받기]로 코드를 받아 pip install {module}로 설치한 뒤 실행해요."
     example:
@@ -1128,7 +1128,7 @@ entries:
     priority: 4
     meaning: "실물 ESP32에는 있지만 이 사이트의 가상 보드가 아직 흉내 내지 않는 기능을 썼어요."
     why:
-      - "가상 보드는 교과서 차시에 나오는 부품부터 차례로 흉내를 더하고 있어요. PWM(밝기·소리·서보), ADC(아날로그 값), I2C 화면(LCD·OLED), UART, 네오픽셀은 이미 돼요. 블루투스(통신 실습실)는 이어서 더해져요."
+      - "가상 보드는 교과서 차시에 나오는 부품부터 차례로 흉내를 더해 왔어요. PWM(밝기·소리·서보), ADC(아날로그 값), I2C 화면(LCD·OLED), UART, 네오픽셀, 블루투스(BLE 주변기기), 와이파이(network)와 MQTT(umqtt.simple)는 이미 돼요. 교과서 예제가 쓰지 않는 기능(DAC·SPI·I2S·깊은 잠자기 등)은 실물 보드에서 확인해요."
     fix:
       - "오류 메시지에 적힌 이름을 확인하고, 지금은 그 줄을 빼고 나머지를 먼저 실습해요."
       - "실물 ESP32 보드가 있으면 같은 코드를 실물 보드에서 확인할 수 있어요."
@@ -2055,35 +2055,103 @@ entries:
     cases:
       - "3-1-4 심화(p205, 손가락으로 마우스 커서 조종)에서 손이 화면 가장자리로 가면 나요. 가상 데스크톱도 PC와 같게 동작해요."
 
-  # ── 통신(브릿지·BLE·와이파이·MQTT) — Phase 4 병렬 제작 자리(2026-09-18 준비, src/lab/README.md 5.2) ──
-  # 구역들은 이 파일을 직접 고치지 않고 보고서의 "공유 파일 변경 요청"에 항목을 적어 보내요(모양은 README 7.9의 6번).
-  # 통합할 때 아래 구역 표시 바로 밑에 순서대로 넣어요. 모두 group: comm.
-  # ▼ 구역 A(P4-02 영상처리 → 가상 보드) · B(P4-03 가상 BLE) · C(P4-04 Web Bluetooth) · D(P4-05 Web Serial) · E(P4-06 MQTT·탭 통로) · F(P4-07 대시보드) 항목 자리
+  # ── 통신(브릿지·UART·블루투스·와이파이·MQTT) — Phase 4(2026-09-24 통합, src/lab/README.md 5.2·9절) ──
+  # 모두 group: comm. 차례: 컴퓨터 쪽 모듈 → 시리얼(UART) → 블루투스 → USB 데이터 포트 → MQTT → 브릿지 공통(받을 쪽 없음·통로 닫힘).
+  # level: notice 항목은 파이썬 예외가 아니라 화면·콘솔 안내라서 실습실 오류 카드에는 거의 뜨지 않고, 사전 페이지(/help/errors/)에서
+  # 학생이 화면에 뜬 문장으로 찾아 읽는 풀이예요(사전은 항목 단위로 검색 색인에 들어가요 — src/config/search.ts의 anchorPages).
 
   - id: comm-pc-module-not-yet
     group: comm
-    title: 컴퓨터 쪽 통신 모듈이 아직 준비 중이에요
+    title: 이 실습실에는 컴퓨터 쪽 통신 흉내가 없어요
     types: [ModuleNotFoundError, ImportError]
     patterns:
-      # 뒤에 괄호 설명이 붙는 것은 가상 보드가 낸 안내라 board-not-emulated가 맡아요(ESP32 실습실의 bluetooth·network).
-      - "No module named '(?<name>serial|bluetooth|bluetooth_lib)'(?! [(])"
+      # 뒤에 괄호 설명이 붙는 것은 가상 보드가 낸 안내라 board-not-emulated·comm-bridge-on-board가 맡아요(ESP32 실습실의 bluetooth·network·bridge).
+      - "No module named '(?<name>serial|bluetooth|bluetooth_lib|bridge)'(?! [(])"
     priority: 5
-    meaning: "교과서 코드가 컴퓨터에서 쓰는 통신 라이브러리({name})를 불렀는데, 영상처리 실습실에는 아직 그 흉내가 없어요."
+    meaning: "교과서 코드가 컴퓨터에서 쓰는 통신 라이브러리({name})를 불렀는데, 이 실습실에는 그 흉내가 붙어 있지 않아요."
     why:
-      - "진짜 컴퓨터에서는 pyserial(serial)이나 bleak를 쓴 bluetooth.py를 설치해서 써요. 브라우저에는 그 라이브러리가 없어서, 사이트가 같은 이름·같은 사용법의 흉내 모듈을 대신 넣어 줘요."
-      - "그 흉내 모듈은 통신 실습실을 만드는 단계에서 들어와요. 그때가 되면 같은 코드가 한 글자도 고치지 않고 돌아요."
+      - "진짜 컴퓨터에서는 pyserial(serial)이나 bleak를 쓴 bluetooth.py를 설치해서 써요. 브라우저에는 그 라이브러리가 없어서, 사이트가 같은 이름·같은 사용법의 흉내를 영상처리 실습실과 4단원 통합 실습실에만 넣어 줘요."
     fix:
-      - "지금은 이 예제의 통신 부분을 빼고 카메라·인식 부분만 먼저 실습해요."
-      - "보드 쪽 짝 예제(ESP32 실습실)는 따로 열어 볼 수 있어요."
+      - "이 코드는 영상처리 실습실에서 돌려요. 보드와 블루투스로 이어 보려면 4단원 통합 실습실에서 보드 칸과 함께 돌려요."
+      - "진짜 컴퓨터에서 돌리려면 [.py 내려받기]로 코드를 받아 pip install pyserial(또는 bleak)로 설치한 뒤 실행해요."
+    example:
+      code: |
+        import bluetooth
+
+        b = bluetooth.init("XX:XX:XX:XX:XX:XX")
+      error: "ModuleNotFoundError: No module named 'bluetooth'"
+      line: 1
+    cases:
+      - "개발용 시험 페이지처럼 통신 흉내가 붙지 않은 실습실에서 3-1-2·3-1-3·4-1-4·4-2 컴퓨터 쪽 코드를 돌릴 때 나요."
+
+  - id: comm-serial-no-peer
+    group: comm
+    title: 보드 화면을 먼저 열어야 시리얼이 이어져요
+    types: [SerialException]
+    patterns:
+      - "ESP32 실습실 탭을 찾지 못했어요"
+    priority: 6
+    meaning: "컴퓨터 코드가 시리얼 포트를 열려고 했는데, 글자를 받을 가상 보드 화면이 아직 없어요."
+    why:
+      - "실물에서는 USB-UART 변환기를 컴퓨터에 꽂아야 포트가 생겨요. 사이트에서는 ESP32 실습실 화면이 그 변환기 자리예요."
+      - "브라우저는 포트 이름(COM10)으로 상대를 찾지 않아요. 아래 [보내기] 패널에서 고른 통로가 상대예요."
+    fix:
+      - "[보내기] 패널의 [한 화면에 가상 보드 열기]를 누르면 이 화면 안에 ESP32 실습실이 열려요."
+      - "다른 탭에서 보려면 [ESP32 실습실 새 탭에서 열기]를 눌러요. 접두어가 저절로 맞아요."
+      - "이미 두 화면을 열었다면 두 화면의 통신 접두어 12글자가 같은지 봐요. 다르면 \"친구(다른 화면) 접두어 맞추기\"에 적어요."
+    mistakes:
+      - "보드 화면을 열기만 하고 보드 쪽 [실행]을 누르지 않으면 글자는 가지만 보드가 꺼져 있어서 아무 일도 일어나지 않아요(실물과 같아요)."
+      - "사생활 보호 창(시크릿 창)에서 두 탭을 따로 열면 서로 다른 브라우저처럼 보여 이어지지 않을 수 있어요."
     example:
       code: |
         import serial
 
         uart = serial.Serial("COM10", 115200)
-      error: "ModuleNotFoundError: No module named 'serial'"
+      error: "serial.SerialException: ESP32 실습실 탭을 찾지 못했어요. …"
+      line: 3
+    cases:
+      - "3-1-2 기본(p192)·심화(p193)에서 보드 화면을 열지 않고 [실행]하면 나요."
+
+  - id: comm-serial-write-str
+    group: comm
+    title: 시리얼로는 글자가 아니라 바이트를 보내요
+    types: [TypeError]
+    patterns:
+      - "unicode strings are not supported, please encode to bytes"
+    priority: 6
+    meaning: "uart.write()에 글자(문자열)를 그대로 넣었어요. 시리얼 선에는 바이트만 흘러요."
+    why:
+      - "글자는 컴퓨터마다 다른 방식으로 바이트가 될 수 있어서, pyserial은 '어떻게 바꿀지'를 사람이 정하게 해요."
+      - "진짜 pyserial도 같은 자리에서 같은 오류를 내요(사이트 흉내가 아니라 원래 규칙이에요)."
+    fix:
+      - "글자 뒤에 .encode('utf-8')을 붙여요. 예: uart.write('a'.encode('utf-8'))"
+      - "짧은 영어 글자는 앞에 b를 붙여도 돼요. 예: uart.write(b'a')"
+    example:
+      code: |
+        uart.write("a")
+      error: "TypeError: unicode strings are not supported, please encode to bytes: 'a'"
       line: 1
     cases:
-      - "3-1-2 기본·심화(p192·p193), 3-1-3 기본(p198), 4-1-4 심화(p254), 4-2-1·4-2-3 최종판이 모두 이 줄에서 멈춰요."
+      - "3-1-2 기본(p192)의 uart.write(key.encode('utf-8'))에서 .encode를 빼면 나요."
+
+  - id: comm-bridge-on-board
+    group: comm
+    title: bridge는 컴퓨터(영상처리 실습실) 쪽 모듈이에요
+    types: [ModuleNotFoundError, ImportError]
+    patterns:
+      - "No module named 'bridge' [(]"
+    priority: 6
+    meaning: "ESP32 실습실(보드)에서 bridge를 불렀어요. bridge는 컴퓨터가 보드로 글자를 보낼 때 쓰는 사이트 모듈이라 보드에는 없어요(실물 MicroPython도 같아요)."
+    why:
+      - "보드는 컴퓨터가 보낸 줄을 받는 쪽이에요. 받는 방법은 선(UART)이나 블루투스예요."
+    fix:
+      - "이 코드는 영상처리 실습실에 붙여 넣어 실행해요."
+      - "보드 쪽은 uart.readline()(UART)이나 ESP32BLE.read()(블루투스)로 받아요 — 보충 C3 보드 쪽 예제를 열어 봐요."
+    example:
+      code: |
+        import bridge
+      error: "ModuleNotFoundError: No module named 'bridge' (bridge는 컴퓨터(영상처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요. …)"
+      line: 1
 
   - id: comm-esp32ble-lib-name
     group: comm
@@ -2099,6 +2167,7 @@ entries:
     fix:
       - "맨 위의 import ESP32BLE_LIB을 import ESP32BLE로 고쳐요."
       - "아래에서 ESP32BLE_LIB.init(…)·ESP32BLE_LIB.read()처럼 쓰는 곳도 ESP32BLE로 함께 고쳐요."
+      - "고친 파일이 필요하면 [예제 불러오기]에서 같은 이름의 \"(사이트판)\" 예제를 골라요(4-2-2 심화·4-2-2 탐구)."
     example:
       code: |
         import ESP32BLE_LIB
@@ -2109,6 +2178,330 @@ entries:
     cases:
       - "4-2-2 심화(거치대 판)와 4-2-2 탐구(타이머로 LED 끄기) 두 파일이 이 이름을 써요."
 
+  - id: comm-ble-not-connected
+    group: comm
+    title: 연결된 상대 기기가 없는데 블루투스로 보냈어요
+    types: [OSError]
+    patterns:
+      - "\\[Errno 128\\] ENOTCONN"
+    priority: 5
+    meaning: "보드가 블루투스로 값을 보내려고 했는데, 이어져 있는 상대 기기(스마트폰·컴퓨터)가 아직 없어요."
+    why:
+      - "블루투스는 전화처럼 먼저 연결이 돼야 값을 보낼 수 있어요. 보드가 [실행]하자마자 자기를 알리기 시작하지만(광고), 누군가 골라서 연결하기 전까지는 받을 상대가 없어요."
+      - "실물 ESP32도 이때 같은 오류를 내요. 가상 보드가 봐주지 않는 까닭이에요."
+    fix:
+      - "보드 그림 아래 \"블루투스(BLE) 조작\" 칸에서 [연결]을 먼저 눌러요. 스마트폰이라면 앱에서 보드 이름(예: ESP32-01)을 골라요."
+      - "연결 전에도 코드가 멈추지 않게 하려면 보내는 줄을 try/except OSError로 감싸고 안내를 한 번만 찍어요(통신 템플릿 2가 그렇게 해요)."
+    example:
+      code: |
+        import ESP32BLE
+
+        ble = ESP32BLE.init("ESP32-01")
+        ble.send("COUNT,1")
+      error: "OSError: [Errno 128] ENOTCONN"
+      line: 4
+    cases:
+      - "통신 템플릿 2(ble-notify)의 try를 지웠을 때, 3-1-3·4-1-4의 보드 쪽 예제를 연결 없이 돌렸을 때 나요."
+
+  - id: comm-ble-truncated
+    group: comm
+    title: 블루투스로 온 값이 20바이트에서 잘렸어요 — 오류가 아니라 안내예요
+    level: notice
+    patterns:
+      - "앞 20바이트만 남고 잘렸어요"
+      - "블루투스 특성 한 칸은 기본 20바이트"
+    priority: 6
+    meaning: "블루투스 특성(값을 담는 칸) 하나는 기본 크기가 20바이트예요. 그보다 긴 값을 보내면 앞 20바이트만 남아요."
+    why:
+      - "블루투스 규격이 그래요. 실물 ESP32도 똑같이 앞부분만 남기고 버려요(MicroPython 공식 문서: \"Characteristics and descriptors have a default maximum size of 20 bytes.\")."
+      - "사이트가 일부러 막지 않고 실물처럼 잘리는 것을 보여 줘요. 잘린 값 때문에 int() 변환이 실패하는 일이 자주 생겨요."
+    fix:
+      - "보내는 글을 짧게 해요. 좌표라면 \"DATA,1920,1080,0,0\"처럼 19바이트 안으로 줄여요."
+      - "더 길게 받아야 하면 코드에서 칸을 늘려요: ble.gatts_set_buffer(받는 핸들, 64)."
+    example:
+      code: |
+        # 상대 기기가 26글자를 보냈을 때
+        print(ble.read())
+      error: "블루투스로 온 값이 26바이트여서 앞 20바이트만 남고 잘렸어요."
+
+  - id: comm-ble-no-part
+    group: comm
+    title: 블루투스를 켰는데 화면에 조작 칸이 없어요
+    level: notice
+    patterns:
+      - "화면에 블루투스 칸이 없어요"
+    priority: 6
+    meaning: "코드는 블루투스를 켰는데 배선에 블루투스 칸이 없어서, 상대 기기(스마트폰·컴퓨터)가 되어 값을 보낼 곳이 화면에 없어요."
+    why:
+      - "블루투스 무선은 ESP32 안에 들어 있어 선이 필요 없지만, 사이트는 \"상대 기기\" 조작 칸을 배선 표를 보고 그려요."
+      - "실습실 예제를 목록에서 고르면 배선이 함께 들어와서 이 안내가 나오지 않아요. 코드를 직접 붙여 넣었을 때 나와요."
+    fix:
+      - "코드 맨 위에 # @part ble 12 줄을 넣어요(12는 ESP32BLE.py가 연결 상태를 보여 주는 LED 핀이에요)."
+      - "또는 [예제 불러오기]에서 블루투스 예제를 골라요."
+    example:
+      code: |
+        import bluetooth
+        ble = bluetooth.BLE()
+        ble.active(True)
+      error: "블루투스를 켰지만 화면에 블루투스 칸이 없어요."
+
+  - id: comm-ble-not-supported
+    group: comm
+    title: 가상 보드의 블루투스가 흉내 내지 않는 기능이에요
+    types: [AttributeError]
+    patterns:
+      - "'BLE' object has no attribute"
+    priority: 5
+    meaning: "가상 보드의 블루투스는 주변기기 노릇(광고하기·연결 받기·특성 읽고 쓰기·알림 보내기)만 흉내 내요. 스캔·페어링·중앙 장치 노릇은 아직 없어요."
+    why:
+      - "교과서와 교안의 블루투스 예제는 모두 보드가 주변기기가 되고 스마트폰·컴퓨터가 찾아와 연결하는 모양이에요. 그 부분부터 흉내 냈어요."
+      - "실물 ESP32에는 gap_scan 같은 함수가 있어요. 실물 보드에서는 그대로 돌아요."
+    fix:
+      - "예제와 같은 함수(active·irq·gatts_register_services·gatts_read·gatts_notify·gap_advertise·config)만 써요."
+      - "스캔이 꼭 필요하면 실물 보드에서 확인해요."
+    example:
+      code: |
+        import bluetooth
+        bluetooth.BLE().gap_scan(2000)
+      error: "AttributeError: 'BLE' object has no attribute 'gap_scan' (가상 보드의 블루투스는 주변기기(광고·연결 받기·특성 읽고 쓰기)만 흉내 내요. …)"
+      line: 2
+
+  - id: comm-ble-browser-unsupported
+    group: comm
+    title: 이 브라우저에는 블루투스로 기기를 연결하는 기능이 없어요
+    level: notice
+    patterns:
+      - "블루투스로 기기를 연결하는 기능이 없어요"
+      - "아이폰·아이패드는 브라우저 종류와 상관없이"
+    priority: 6
+    meaning: "실제 보드와 블루투스로 잇는 기능(Web Bluetooth)은 크롬 계열 브라우저에만 있어요. 이 브라우저에는 없어요."
+    why:
+      - "아이폰·아이패드는 어떤 브라우저를 써도 이 기능이 없어요(사파리 기반이라서요). 파이어폭스에도 없어요."
+      - "컴퓨터용 Chrome·Edge, 안드로이드 Chrome에는 있어요. 리눅스 Chrome은 실험 기능을 켜야 해요."
+    fix:
+      - "블루투스 실습은 컴퓨터용 Chrome이나 Edge로 열어요."
+      - "지금 브라우저로 계속하려면 [가상 블루투스로 계속하기]를 눌러요 — 가상 보드의 블루투스 칸에서 같은 코드로 똑같이 실습할 수 있어요."
+    example:
+      code: |
+        # 실습실 블루투스 칸에서 [블루투스 보드 연결]을 눌렀을 때
+      error: "이 브라우저에는 블루투스로 기기를 연결하는 기능이 없어요."
+
+  - id: comm-ble-chooser-empty
+    group: comm
+    title: 블루투스 선택 창에 내 보드가 보이지 않아요
+    level: notice
+    patterns:
+      - "보드를 고르지 않았어요"
+      - "선택 창에 보드가 안 보이면"
+    priority: 5
+    meaning: "브라우저가 연 기기 선택 창에서 보드를 고르지 않았거나, 이름이 맞는 보드가 목록에 없었어요."
+    why:
+      - "선택 창에는 이름 앞부분이 맞는 기기만 보여요(기본 ESP32). 보드 코드가 다른 이름으로 광고하면 안 보여요."
+      - "보드가 블루투스 코드를 돌리고 있어야 광고를 해요. 코드를 실행하기 전에는 아무 이름도 보이지 않아요."
+      - "이미 다른 컴퓨터·스마트폰과 이어져 있는 보드는 새 연결을 받지 않아요(한 번에 한 곳)."
+    fix:
+      - "보드에서 블루투스 예제를 먼저 [실행]하고, 상태 LED가 깜빡이는지 봐요."
+      - "칸의 '보드 이름 앞부분'을 보드 코드의 이름과 맞춰요(예: ESP32-07이면 ESP32나 ESP32-07)."
+      - "그래도 안 보이면 [가까운 기기 모두 보기]를 켜고 다시 눌러요."
+    example:
+      code: |
+        ble = ESP32BLE.init("ESP32-07")
+      error: "보드를 고르지 않았어요."
+
+  - id: comm-ble-no-uart-service
+    group: comm
+    title: 고른 기기에서 블루투스 UART 서비스를 찾지 못했어요
+    patterns:
+      - "블루투스 UART 서비스를 찾지 못했어요"
+      - "No Services matching UUID"
+    priority: 5
+    meaning: "블루투스로 이어지기는 했는데, 그 기기에 글자를 주고받는 통로(Nordic UART 서비스)가 없어요."
+    why:
+      - "이어폰·마우스처럼 다른 기기를 골랐을 수 있어요."
+      - "보드에서 ESP32BLE.py를 쓰는 코드가 아직 실행되기 전이면 서비스가 만들어지지 않아요. 전원만 켠 보드도 그래요."
+    fix:
+      - "보드에서 블루투스 예제를 [실행]한 뒤에 연결해요."
+      - "선택 창에서 내 보드 이름(예: ESP32-07)을 골랐는지 다시 봐요."
+    example:
+      code: |
+        # 실습실 블루투스 칸에서 다른 기기를 골랐을 때
+      error: "고른 기기에서 블루투스 UART 서비스를 찾지 못했어요."
+
+  - id: comm-serial-port-closed
+    group: comm
+    title: USB 데이터 포트가 아직 열려 있지 않아요
+    types: [BridgeClosed, SerialException]
+    patterns:
+      - "USB 데이터 포트"
+      - "데이터 포트가 열려 있지 않아요"
+    priority: 6
+    meaning: "코드가 USB-UART 변환기로 글자를 보내려 했는데, 그 포트를 아직 열지 않았어요."
+    why:
+      - "브라우저는 사이트가 마음대로 USB 포트를 열지 못하게 해요. 학생이 단추를 눌러 포트를 골라 줘야 열려요."
+      - "코드를 보내는 보드 포트와 데이터가 오가는 변환기 포트는 서로 다른 포트예요. 보드가 연결돼 있어도 변환기는 따로 열어야 해요."
+    fix:
+      - "실습실의 [USB 데이터 포트] 칸에서 [데이터 포트 연결]을 누르고 목록에서 변환기를 골라요."
+      - "'연결됨'으로 바뀐 뒤에 다시 [실행]을 눌러요."
+      - "변환기가 없으면 [보내기] 패널에서 통로를 '같은 컴퓨터 탭'으로 바꿔요(선 없이 가상 보드와 이어져요)."
+    mistakes:
+      - "선택 창에서 보드 포트(코드를 보내는 쪽)를 고르는 것 — 그러면 '이 페이지가 이미 쓰고 있어요'가 떠요."
+      - "Thonny·아두이노 시리얼 모니터를 켜 둔 채로 여는 것 — 한 포트는 한 프로그램만 열 수 있어요."
+    example:
+      code: |
+        import serial
+
+        uart = serial.Serial('COM10', 115200)
+        uart.write(b'a')
+      error: "BridgeClosed: USB 데이터 포트가 닫혀 있어서 보내지 못했어요. 연결을 다시 해 보세요."
+      line: 4
+    cases:
+      - "3-1-2 기본·심화(p192·p193)를 실제 변환기로 돌릴 때 가장 먼저 만나는 안내예요."
+
+  - id: comm-serial-wrong-port
+    group: comm
+    level: notice
+    title: 변환기 대신 보드 포트를 골랐어요
+    patterns:
+      - "이 페이지가 이미 쓰고 있어요"
+    priority: 7
+    meaning: "고른 포트를 이 페이지가 이미 쓰고 있어요. 코드를 보내는 보드 포트를 데이터 포트로 고른 거예요."
+    why:
+      - "USB 선이 두 개예요. ① 보드 포트 — 코드를 보내고 결과를 받는 곳 ② 변환기 포트 — 글자 데이터가 오가는 곳."
+      - "한 포트는 한 번만 열 수 있어서, 이미 연 포트를 또 열면 브라우저가 막아요. 고장이 아니에요."
+    fix:
+      - "[데이터 포트 연결]을 다시 누르고 다른 포트를 골라요(보드와 변환기는 칩 이름이 다를 때가 많아요)."
+      - "어느 것이 어느 것인지 헷갈리면 연결한 뒤 [포트 이름표]에 '변환기'처럼 적어 둬요."
+      - "포트가 하나뿐이면 [실제 보드] 탭에서 [연결 끊기]를 먼저 눌러요."
+    example:
+      code: |
+        import serial
+
+        uart = serial.Serial('COM10', 115200)
+      error: "그 포트는 이 페이지가 이미 쓰고 있어요(코드를 보내는 보드 포트일 거예요)."
+      line: 3
+
+  - id: comm-mqtt-not-connected
+    group: comm
+    title: MQTT에 아직 연결하지 않았어요
+    types: [OSError]
+    patterns:
+      - "아직 연결하지 않았어요"
+    priority: 6
+    meaning: "연결을 하기 전에 메시지를 보내거나 받으려고 했어요."
+    why:
+      - "MQTT는 전화와 비슷해요. 먼저 중계 서버(또는 같은 컴퓨터 탭 통로)에 붙고 나서야 보내고 받을 수 있어요."
+      - "connect()를 부르기 전에 publish()·subscribe()를 쓰면 이 오류가 나요. 연결이 끊긴 뒤에 보낼 때도 같아요."
+    fix:
+      - "client = MQTTClient(…) 다음 줄에 client.connect()를 넣어요."
+      - "MQTT 칸의 상태 줄이 \"연결됨\"인지 보고, 아니면 [연결]을 눌러요."
+      - "실행 도중에 끊겼다면 [연결]을 다시 누르거나 통로를 \"같은 컴퓨터 탭(인터넷 없이)\"으로 바꿔요."
+    example:
+      code: |
+        from umqtt.simple import MQTTClient
+
+        client = MQTTClient("board-01", "broker.emqx.io")
+        client.publish(b"led", b"on")
+      error: "OSError: MQTT에 아직 연결하지 않았어요. client.connect()를 먼저 불러요."
+      line: 4
+    cases:
+      - "통신 템플릿 3(mqtt-pub-sub)이나 보충 C1·C2의 MQTT 실습에서 connect()를 빠뜨렸을 때 나요."
+
+  - id: comm-mqtt-bad-topic
+    group: comm
+    title: 토픽 이름을 쓸 수 없어요
+    types: [OSError]
+    patterns:
+      - "토픽 \"(?<topic>[^\"]*)\"는 쓸 수 없어요"
+      - "토픽이 (?<length>\\d+)글자라"
+    priority: 6
+    meaning: "메시지를 보낼 주소(토픽) 이름이 규칙에 맞지 않아요."
+    why:
+      - "토픽은 메시지를 넣는 서랍 이름이에요. 비어 있으면 안 되고, 줄바꿈이나 널 문자를 넣을 수 없어요."
+      - "이 사이트는 토픽을 96글자까지만 받아요. 길면 학생도 읽기 어렵고 화면 기록에서도 잘려요."
+      - "토픽 앞에는 이 수업의 통신 접두어가 저절로 붙어요. 내가 적는 것은 뒤쪽 짧은 이름이에요(예: esp32-01/rx)."
+    fix:
+      - "led, temp, esp32-01/rx처럼 짧은 영문 이름으로 바꿔요."
+      - "b\"led\"처럼 바이트로 적어도 되고 \"led\"처럼 글자로 적어도 돼요."
+    example:
+      code: |
+        from umqtt.simple import MQTTClient
+
+        client = MQTTClient("board-01", "broker.emqx.io")
+        client.connect()
+        client.publish(b"", b"on")
+      error: "OSError: 토픽 \"\"는 쓸 수 없어요. 비어 있지 않은 글자여야 하고, 줄바꿈이나 널 문자는 넣을 수 없어요."
+      line: 5
+
+  - id: comm-mqtt-connect-failed
+    group: comm
+    title: 중계 서버에 연결하지 못했어요
+    types: [OSError]
+    patterns:
+      - "중계 서버 (?<url>\\S+?)에 연결하지 못했어요"
+    priority: 6
+    meaning: "MQTT 중계 서버({url})에 붙으려 했는데 되지 않았어요."
+    why:
+      - "공개 중계 서버는 누구나 쓰는 시험용이라 쉬는 때가 있고, 학교망이 그 포트를 막기도 해요."
+      - "브라우저는 wss://로 시작하는 주소로만 MQTT를 쓸 수 있어요. 코드에 적은 이름(broker.emqx.io)은 화면이 고른 wss:// 주소로 바꿔서 붙어요."
+      - "보통은 이 오류 대신 화면이 스스로 \"같은 컴퓨터 탭\" 통로로 바꿔요. 그 통로까지 쓸 수 없는 브라우저일 때만 여기까지 와요."
+    fix:
+      - "MQTT 칸에서 통로를 \"같은 컴퓨터 탭(인터넷 없이)\"으로 바꿔요. 받을 화면을 다른 탭에 열어 두면 그대로 실습할 수 있어요."
+      - "다른 중계 서버를 골라 [연결]을 다시 눌러 봐요."
+      - "크롬이나 엣지 최신판에서 열어요(탭끼리 이야기하는 기능이 필요해요)."
+    example:
+      code: |
+        from umqtt.simple import MQTTClient
+
+        client = MQTTClient("board-01", "broker.emqx.io")
+        client.connect()
+      error: "OSError: 중계 서버 wss://broker.emqx.io:8084/mqtt에 연결하지 못했어요(8초 동안 답이 없음). 학교망이 막았거나 서버가 쉬는 중일 수 있어요."
+      line: 4
+    cases:
+      - "학교망이 WebSocket을 막는 교실에서 나요. 이때도 실습은 \"같은 컴퓨터 탭\" 통로로 끝까지 할 수 있어요."
+
+  - id: comm-mqtt-connect-first
+    group: comm
+    title: MQTT에 연결하기 전에 보내거나 받으려고 했어요
+    types: [AttributeError]
+    patterns:
+      - "'NoneType' object has no attribute '(?<name>check_msg|publish|subscribe|set_callback)'"
+    priority: 6
+    meaning: "아직 중계 서버에 연결하지 않았는데 client.{name}() 줄에서 주고받으려고 했어요. 연결하기 전에는 client가 비어 있어요(None)."
+    why:
+      - "MQTT는 ① 연결하고 ② 구독하고 ③ 주고받는 차례로 써요. 연결이 없으면 보낼 곳도, 받을 곳도 정해지지 않아요."
+      - "블록으로 만들었다면 [MQTT 브로커에 연결하기] 블록이 반복 블록 안에 들어가 있을 때가 많아요. 그러면 첫 바퀴에서 아직 연결이 끝나지 않은 채로 다음 블록이 돌아요."
+    fix:
+      - "[MQTT 브로커에 연결하기] 블록을 반복 블록 바깥, 맨 위로 옮겨요(한 번만 연결해요)."
+      - "코드로 썼다면 client.connect()와 client.subscribe(...)가 while True:보다 위에 있는지 봐요."
+    example:
+      code: |
+        from umqtt.simple import MQTTClient
+
+        client = None
+        while True:
+            client.check_msg()
+      error: "AttributeError: 'NoneType' object has no attribute 'check_msg'"
+      line: 5
+    cases:
+      - "통신 템플릿 3(mqtt-pub-sub)을 반씩 지워 쓰다가 연결 줄을 같이 지웠을 때 나요."
+
+  - id: comm-mqtt-topic-prefix-twice
+    group: comm
+    title: 토픽에는 접두어를 적지 않아요
+    level: notice
+    patterns:
+      - "토픽 \"(?<prefix>[a-z2-9]{12})/[a-z2-9]{12}/"
+    priority: 4
+    meaning: "토픽 앞에 우리 반 접두어가 두 번 붙었어요. 접두어는 사이트가 붙여 주니 코드에는 적지 않아요."
+    why:
+      - "공개 중계 서버는 온 세상이 함께 쓰는 곳이라, 토픽 앞에 우리 반 접두어(무작위 12글자)를 붙여 다른 사람 메시지와 섞이지 않게 해요. 가상 보드에서는 그 일을 사이트가 해요."
+      - "코드에도 접두어를 적으면 앞에 두 번 붙어서, 같은 접두어를 쓰는 친구 화면이나 대시보드와 토픽이 어긋나요."
+    fix:
+      - "토픽을 esp32-01/rx처럼 짧게 적어요(접두어 없이 내 보드 이름부터)."
+      - "지금 쓰는 접두어는 MQTT 칸에 보여요. 친구와 맞출 때는 그 칸의 [맞추기]를 써요."
+    cases:
+      - "통신 템플릿 3을 고쳐 쓰면서 접두어 변수를 토픽 앞에 붙였을 때 나요."
+
   - id: comm-no-peer
     group: comm
     title: 받을 쪽을 찾지 못했어요
@@ -2116,18 +2509,21 @@ entries:
     priority: 4
     meaning: "보낼 통로는 열렸는데 받아 줄 상대(다른 탭이나 보드)가 보이지 않아요."
     why:
-      - "같은 컴퓨터 탭 통로는 **같은 브라우저의 다른 탭**에 받는 화면이 열려 있어야 해요. 탭을 닫으면 6초 안에 목록에서 빠져요."
-      - "접두어가 서로 다르면 같은 컴퓨터라도 통하지 않아요."
+      - "같은 컴퓨터 탭 통로는 같은 브라우저에 받는 화면(ESP32 실습실)이 열려 있어야 해요. 탭을 닫으면 6초 안에 목록에서 빠져요."
+      - "두 화면의 통신 접두어(12글자)가 서로 다르면 같은 컴퓨터라도 통하지 않아요."
     fix:
-      - "받을 화면(예: ESP32 실습실)을 다른 탭에 열어요."
-      - "두 탭의 통신 접두어가 같은지 보고, 다르면 [친구 접두어 입력]으로 맞춰요."
-      - "대시보드처럼 듣는 사람이 없어도 계속 보내는 화면이라면 \"상대가 없어도 보내기\"로 바꿔요."
+      - "[보내기] 패널의 [한 화면에 가상 보드 열기]를 누르면 이 화면 안에 ESP32 실습실이 열리고 접두어도 저절로 맞아요."
+      - "다른 탭에서 보려면 [ESP32 실습실 새 탭에서 열기]를 눌러요. 받는 쪽 보드 코드를 먼저 [실행]한 뒤 이 화면을 다시 [실행]해요."
+      - "이미 두 화면을 열었다면 두 화면의 접두어가 같은지 보고, 다르면 \"친구(다른 화면) 접두어 맞추기\"에 적어 맞춰요."
     example:
       code: |
+        import bridge
+
         bridge.send("3")
-      error: "BridgeNoPeer: 같은 컴퓨터 탭에서 받을 쪽을 찾지 못했어요. …"
+      error: "bridge.BridgeNoPeer: ESP32 실습실 탭을 찾지 못했어요. [보내기] 패널의 [ESP32 실습실 새 탭에서 열기]나 [한 화면에 가상 보드 열기]를 누른 뒤 다시 [실행]해요. …"
+      line: 3
     cases:
-      - "두 탭 실습(시나리오 D·F)에서 받는 탭을 아직 열지 않았을 때 나요."
+      - "두 화면 실습(시나리오 D·F, 보충 C3)에서 받는 화면을 아직 열지 않았을 때 나요."
 
   - id: comm-closed
     group: comm
@@ -2136,7 +2532,7 @@ entries:
     priority: 4
     meaning: "연결이 끊긴 뒤에 보내려고 했어요."
     why:
-      - "블루투스·시리얼은 선이 빠지거나 보드 전원이 꺼지면 끊겨요. 공개 브로커(MQTT)는 인터넷이 끊기거나 학교망이 막으면 끊겨요."
+      - "블루투스·시리얼은 선이 빠지거나 보드 전원이 꺼지면 끊겨요. 공개 중계 서버(MQTT)는 인터넷이 끊기거나 학교망이 막으면 끊겨요."
       - "받는 탭을 닫아도 탭 통로가 닫혀요."
     fix:
       - "연결 단추를 다시 눌러 연결해요."

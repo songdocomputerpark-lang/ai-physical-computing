@@ -251,6 +251,40 @@ describe('정지·다시 시작', () => {
     expect(timer?.fix.join('\n')).toContain('3번째 줄');
   });
 
+  it('통신 오류(Phase 4): 흉내 모듈이 내는 문구마다 통신 묶음의 맞는 풀이가 붙는다', () => {
+    const trace = (line: number, code: string, last: string, inner = '/apc/serial.py') =>
+      ['Traceback (most recent call last):', `  File "main.py", line ${line}, in <module>`, `    ${code}`, `  File "${inner}", line 90, in open`, '    raise error', last].join('\n');
+    const cases: [string, string, string, string][] = [
+      // 컴퓨터 쪽 시리얼(P4-02): 받을 보드 화면 없음 / 글자를 그대로 씀
+      ['SerialException', "uart = serial.Serial('COM10', 115200)", 'serial.SerialException: ESP32 실습실 탭을 찾지 못했어요. [보내기] 패널의 …', 'comm-serial-no-peer'],
+      ['TypeError', "uart.write('a')", "TypeError: unicode strings are not supported, please encode to bytes: 'a'", 'comm-serial-write-str'],
+      // 새 예제용 bridge 모듈(P4-08): 받을 쪽 없음 / 보드(ESP32 실습실)에서 import
+      ['BridgeNoPeer', 'bridge.send("3")', 'bridge.BridgeNoPeer: ESP32 실습실 탭을 찾지 못했어요. …', 'comm-no-peer'],
+      ['ModuleNotFoundError', 'import bridge', "ModuleNotFoundError: No module named 'bridge' (bridge는 컴퓨터(영상처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요.)", 'comm-bridge-on-board'],
+      // 흉내가 붙지 않은 실습실의 컴퓨터 쪽 모듈
+      ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth'", 'comm-pc-module-not-yet'],
+      // 가상 BLE(P4-03): 연결 없이 알림 / 흉내 내지 않는 함수
+      ['OSError', 'ble.send("COUNT,1")', 'OSError: [Errno 128] ENOTCONN', 'comm-ble-not-connected'],
+      ['AttributeError', 'bluetooth.BLE().gap_scan(2000)', "AttributeError: 'BLE' object has no attribute 'gap_scan' (가상 보드의 블루투스는 …)", 'comm-ble-not-supported'],
+      // MQTT(P4-06·P4-10)
+      ['OSError', 'client.publish(b"led", b"on")', 'OSError: MQTT에 아직 연결하지 않았어요. client.connect()를 먼저 불러요.', 'comm-mqtt-not-connected'],
+      ['OSError', 'client.publish(b"", b"on")', 'OSError: 토픽 ""는 쓸 수 없어요. 비어 있지 않은 글자여야 하고, 줄바꿈이나 널 문자는 넣을 수 없어요.', 'comm-mqtt-bad-topic'],
+      ['OSError', 'client.connect()', 'OSError: 중계 서버 wss://broker.emqx.io:8084/mqtt에 연결하지 못했어요(8초 동안 답이 없음).', 'comm-mqtt-connect-failed'],
+      ['AttributeError', 'client.check_msg()', "AttributeError: 'NoneType' object has no attribute 'check_msg'", 'comm-mqtt-connect-first'],
+      // 통신과 상관없는 OSError·AttributeError는 원래 풀이
+      ['AttributeError', 'x.upper()', "AttributeError: 'NoneType' object has no attribute 'upper'", 'attribute-error-none'],
+    ];
+    for (const [type, code, last, entryId] of cases) {
+      const explanation = explain(catalog, { outcome: 'error', error: { type, message: last, traceback: trace(4, code, last) } });
+      expect(explanation?.entry.id, last).toBe(entryId);
+      expect(explanation?.location?.line, last).toBe(4);
+    }
+    const connectFirst = explain(catalog, { outcome: 'error', error: { type: 'AttributeError', message: cases[10]![2], traceback: trace(5, cases[10]![1], cases[10]![2]) } });
+    expect(connectFirst?.meaning).toContain('client.check_msg()');
+    const failed = explain(catalog, { outcome: 'error', error: { type: 'OSError', message: cases[9]![2], traceback: trace(5, cases[9]![1], cases[9]![2]) } });
+    expect(failed?.meaning).toContain('wss://broker.emqx.io:8084/mqtt');
+  });
+
   it('카메라 프레임을 못 받은 흉내 모듈 오류는 카메라 항목으로 간다', () => {
     const traceback = [
       'Traceback (most recent call last):',
