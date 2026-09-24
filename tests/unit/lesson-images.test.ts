@@ -228,6 +228,7 @@ describe('차시 그림 목록(parseImageManifest)', () => {
       ['  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, from: { source: U1, page: 52, image: 5 } }', '52쪽'],
       ['  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, from: { source: PPT, page: 3, image: 5 } }', 'picture'],
       ['  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, from: { source: U1, page: 14, image: 5 }, colour: red }', '모르는 칸'],
+      ['  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, origin: 사이트가 그린 도해, file: public/images/lessons/1-1-2/a.svg }', '래스터 그림'],
       ['  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, from: { source: U1, page: 14, image: 5 }, third_party: Stock Co }', 'third_party'],
       ['  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, from: { source: U1, page: 14, image: 5 }, reviewed: { by: claude, date: 2026-09-25, result: 문제 있음 } }', '통과'],
     ];

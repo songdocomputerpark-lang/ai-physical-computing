@@ -445,6 +445,8 @@ function buildEntry(raw, index, errors) {
   }
   if (raw.origin !== undefined && typeof raw.file !== 'string') {
     errors.push(`${label}: origin 그림은 file(저장소 경로)을 직접 적어요.`);
+  } else if (raw.origin !== undefined && !['.webp', '.png', '.jpg', '.jpeg', '.gif'].includes(path.posix.extname(raw.file).toLowerCase())) {
+    errors.push(`${label}: 목록에는 래스터 그림(webp·png·jpg·gif)만 적어요. 사이트가 그린 SVG는 적지 않아요(sources.yaml "사이트가 직접 그린 그림" 항목이 맡아요).`);
   }
   const maxWidth = raw.max_width ?? DEFAULTS.maxWidth;
   if (!Number.isInteger(maxWidth) || maxWidth < 160 || maxWidth > 2400) {

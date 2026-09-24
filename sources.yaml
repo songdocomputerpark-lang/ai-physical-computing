@@ -51,7 +51,9 @@ sources:
       - content/**/third-party/**
       - public/images/lessons/**/third-party/**
       # 차시 폴더 안이라도 사이트가 코드로 그린 설명 도해는 아래 "사이트가 직접 그린 그림" 항목이 맡아요.
-      # 규칙: 차시 그림 폴더에 사이트가 그린 SVG를 둘 때는 supplement/ 같은 전용 하위 폴더에 넣고 두 항목을 함께 고쳐요.
+      # 규칙(2026-09-25 P5-01): 원고 이미지 추출 도구는 WebP만 만들므로, 차시 그림 폴더의 SVG는 모두 사이트가 그린 그림이에요.
+      # 차시마다 폴더가 따로라(public/images/lessons/<차시>/) 구역이 이 파일을 고치지 않아도 되게 확장자로 나눠요.
+      - public/images/lessons/**/*.svg
       - public/images/lessons/supplement/**
       # 원고를 조판한 출판사·삽화가의 삽화는 아래 제3자 항목(운영자 확인 전)
       - public/images/lessons/u1/1-1-1-recognition.webp
@@ -122,13 +124,14 @@ sources:
     category: self
     author: 박상진·김석전
     license: CC BY-NC-SA 4.0
-    used_in: "화면 그림·아이콘·흐름도(public/images/site/)와 보충 차시 V1~V5의 설명 도해(public/images/lessons/supplement/ — 원고에서 옮긴 그림이 아니라 사이트가 도형·글자로 그린 SVG예요)."
+    used_in: "화면 그림·아이콘·흐름도(public/images/site/), 보충 차시 V1~V5의 설명 도해(public/images/lessons/supplement/), 차시 그림 폴더에 둔 SVG 도해(public/images/lessons/<차시>/*.svg — INVENTORY §5.3 S-번호). 원고에서 옮긴 그림이 아니라 사이트가 도형·글자로 그린 SVG예요."
     paths:
       - public/images/site/**
       - public/images/lessons/supplement/**
+      - public/images/lessons/**/*.svg
     exclude_paths:
       - public/images/site/**/third-party/**
-      - public/images/lessons/supplement/**/third-party/**
+      - public/images/lessons/**/third-party/**
 
   # MediaPipe(Apache-2.0)에서 옮긴 표·그리기 규칙이 사이트 코드(src/) 안에도 있어요. src/는 출처 검사 대상(public·examples·content) 밖이라
   # 파일 안 고지만으로는 /credits/에 보이지 않아서 항목을 따로 뒀어요. 이 파일들은 ?raw import로 배포 번들에 들어가 학생에게 그대로 전달돼요.
