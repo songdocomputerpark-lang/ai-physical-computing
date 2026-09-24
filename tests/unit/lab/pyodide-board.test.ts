@@ -232,11 +232,13 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
     expect(record.ms).toBeLessThan(500);
   });
 
-  it('micropython.const·u-이름·errno(실물 번호)·bluetooth 자리 안내·아직 없는 machine 이름·schedule 대기열(8개)', () => {
+  it('micropython.const·u-이름·errno(실물 번호)·bluetooth 흉내·아직 없는 machine 이름·schedule 대기열(8개)', () => {
     const value = step('const_aliases_errno').value as unknown[];
     expect(value.slice(0, 8)).toEqual([5, true, true, true, 19, 116, 'ENODEV', true]);
-    expect(value[8]).toMatch(/^ModuleNotFoundError: No module named 'bluetooth' \(가상 보드의 블루투스는 아직/u);
-    expect(value[9]).toMatch(/^ModuleNotFoundError: No module named 'ubluetooth'/u);
+    // bluetooth·ubluetooth는 Phase 4 P4-03에서 보드 확장(ext/ble/apc_board_ble.py)이 자리 안내를 덮어써서 이제 import된다(2026-09-24 통합).
+    // 확장 파일이 빠지면 자리 안내("가상 보드의 블루투스는 아직 …")로 돌아간다 — 그 안전망은 apc_board.py install()에 그대로 있다.
+    expect(value[8]).toBe('no error');
+    expect(value[9]).toBe('no error');
     expect(value[10]).toBe("ModuleNotFoundError: No module named 'umicropython'");
     // 부품 구역(P3-03~P3-05)이 PWM·UART 같은 이름을 더해도 흔들리지 않게, 이 단계에서 흉내 낼 계획이 없는 이름(DAC·I2S)으로 본다
     expect(value[11]).toBe('ImportError: machine.DAC은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요). 이 기능은 실물 보드에서 확인해요.');

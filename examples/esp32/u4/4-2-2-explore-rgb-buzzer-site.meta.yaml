@@ -1,0 +1,54 @@
+# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 사이트판(PLAN PD-10·PD-23): 원본 파일은 그대로 두고 고친 줄에 "# [사이트판]"을 붙인 파일이에요. 사람이 직접 고쳐요.
+# 이 파일만 줄이 늘어요(원본 82줄 → 사이트판 92줄 — PD-10 ②, 그래서 원본 파일도 그대로 둬요).
+# 원본 → 사이트판 줄 대응: 원본 20줄 뒤에 laser_time 한 줄(사이트판 21줄), check_leds 함수 뒤에 check_laser 일곱 줄(사이트판 37~43줄),
+# 원본 42줄(check_leds 호출) 뒤에 한 줄(사이트판 51줄), 원본 46줄(laser.value(1)) 뒤에 한 줄(사이트판 56줄). 그 밖의 줄은 번호만 밀리고 내용이 같아요.
+title: "4-2-2 탐구: 타이머로 LED와 레이저를 저절로 끄기(사이트판)"
+description: 원본 파일은 1·8번째 줄이 자료에 없는 이름 ESP32BLE_LIB을 부르고, 레이저를 끄는 코드가 아예 없어서 한 번 켜지면 계속 켜져 있어요. 빨강 LED도 ESP32BLE.py의 상태 LED(GPIO12)와 같은 핀이에요. 이 파일은 셋을 모두 고쳤어요 — 이름을 ESP32BLE로, 빨강을 25번으로, 그리고 LED를 끄는 것과 같은 방식(check_laser)으로 마지막 수신에서 2초가 지나면 레이저를 꺼요. 고친 줄에는 [사이트판]이라고 적었어요.
+lesson: 4-2-2
+source_id: f113
+tags:
+  - 블루투스
+  - BLE
+  - 레이저
+  - 타이머
+  - 사이트판
+packages: []
+parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+  - part: servo
+    id: servo-x
+    pin: 32
+    label: 서보모터 X
+  - part: servo
+    id: servo-y
+    pin: 26
+    label: 서보모터 Y
+  - part: rgb-led
+    pins:
+      r: 25
+      g: 5
+      b: 4
+  - part: laser
+    pin: 27
+  - part: buzzer
+    pin: 2
+practice:
+  - '[실행] → [연결] → 모양 "DATA,x,y,클릭,오른쪽", 범위 "화면 좌표"를 골라요.'
+  - "[클릭 보내기]를 누르면 초록 LED와 레이저가 켜지고, 2초가 지나면 둘 다 저절로 꺼져요."
+  - check_leds와 check_laser가 하는 일이 어떻게 같은지 코드에서 찾아봐요. 다 봤으면 [정지]를 눌러요.
+unit: 4
+difficulty: 3
+virtual_ok: true
+comm:
+  - ble
+smoke:
+  outcome: stopped

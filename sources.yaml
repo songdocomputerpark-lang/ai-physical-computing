@@ -553,6 +553,20 @@ sources:
       - examples/esp32/lib/third-party/i2c_lcd.py
     fetched: 2026-09-17
 
+  # 블루투스 주변기기 라이브러리(Phase 4 통신 실습실, P4-03): micropython 저장소 examples/bluetooth의 ble_advertising.py와
+  # ble_simple_peripheral.py를 한 파일로 합치고 demo()를 뺀 교과서 자료 f009를 옮긴 사이트판이에요(PLAN §6.5, CODE_MAPPING §2.8).
+  # 라이선스는 공식 저장소 LICENSE 원문으로 확인했어요(MIT, "Copyright (c) 2013-2026 Damien P. George" — 2026-09-18 P4-03 구역 확인).
+  # 자료판에는 고지가 빠져 있어 사이트판이 고지를 더했고, 이름을 bytes로 바꾸는 한 줄만 고쳤어요(가상 보드의 bytes + str, `# [사이트판]` 주석).
+  - name: MicroPython 공식 예제(esp32_ble_util.py 사이트 배포본)
+    category: library
+    author: Damien P. George and contributors(micropython/micropython)
+    license: MIT
+    url: https://github.com/micropython/micropython/tree/master/examples/bluetooth
+    used_in: "블루투스 주변기기 라이브러리 esp32_ble_util.py(examples/esp32/lib/third-party/esp32_ble_util.py). 스마트폰 앱과 주고받는 보드 확인 예제(examples/esp32/hw/ble-dabble-rgb.py, 코드 id f002)가 이 파일을 import해요. 가상 보드는 /board/lib/에 넣고, 실물 보드는 [보드에 저장]이 함께 올려요."
+    paths:
+      - examples/esp32/lib/third-party/esp32_ble_util.py
+    fetched: 2026-09-18
+
   # 팬 모터 라이브러리(P3-05 구역 C): 원고 169쪽 스크린숏의 PWM판을 복원한 파일. 같은 계열 공개 글(TechToTinker 034, George Bantique, 2021-05-08)의
   # GORILLACELL_DCMOTORS 코드로 보여(추정, CODE_MAPPING §5.2 — 글에 라이선스 표기 없음 확인 2026-09-15) 제3자 자료로 둬요(PLAN §6.5·§9.4 A).
   - name: TechToTinker MicroPython TechNotes 계열 부품 라이브러리(gorillacell_dcmotors.py)

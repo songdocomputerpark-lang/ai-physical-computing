@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "블루투스 교안: 손가락 위치로 RGB LED 켜기(원본 파일)"
-description: 보드 쪽 코드예요. a면 빨강, c면 초록을 1초씩 깜빡여요. 원본 파일은 빨강 LED 핀(GPIO12)이 ESP32BLE.py가 쓰는 상태 LED와 같아서 연결이 끊긴 동안 저절로 깜빡여요 — 사이트판은 27·32·33번으로 옮겨요(교안 83쪽 화면도 고치는 중이에요). b를 처리하는 분기도 없어 파랑은 쓰이지 않아요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+description: 보드 쪽 코드예요. a면 빨강, c면 초록을 1초씩 깜빡여요. 원본 파일은 빨강 LED 핀(GPIO12)이 ESP32BLE.py가 쓰는 상태 LED와 같아서 연결이 끊긴 동안 저절로 깜빡여요 — 핀을 옮긴 사이트판(b8-finger-rgb-site.py)도 함께 있어요. b를 처리하는 분기가 없어 파랑은 쓰이지 않아요.
 source_id: f148
 tags:
   - 블루투스
@@ -9,11 +9,21 @@ tags:
   - RGB LED
 packages: []
 parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
   - part: rgb-led
     pins:
       r: 12
       g: 5
       b: 4
+practice:
+  - "[실행] → [연결]을 눌러요(연결 전에는 빨간 LED가 저절로 깜빡여요 — 상태 LED와 핀이 같기 때문이에요)."
+  - "[a]를 누르면 빨강이, [c]를 누르면 초록이 1초 켜졌다 꺼져요."
+  - 핀을 옮긴 사이트판을 불러와 같은 조작을 해 보고 무엇이 달라지는지 견줘 봐요.
+difficulty: 2
+virtual_ok: true
+comm:
+  - ble
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

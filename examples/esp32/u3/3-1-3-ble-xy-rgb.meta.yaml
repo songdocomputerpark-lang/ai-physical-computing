@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-3 기본: 블루투스로 받은 손끝 좌표로 RGB LED 색 바꾸기"
-description: 보드 쪽 코드예요. 블루투스로 받은 "x,y"를 쉼표로 나눠 x가 100보다 작으면 빨강, y가 100보다 작으면 초록, 그 밖에는 파랑을 1초씩 켜요. 짝은 컴퓨터 쪽 3-1-3 예제예요. 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03에서 들어와요).
+description: 보드 쪽 코드예요. 블루투스로 받은 "x,y"를 쉼표로 나눠 x가 100보다 작으면 빨강, y가 100보다 작으면 초록, 그 밖에는 파랑을 1초씩 켜요. 짝은 컴퓨터 쪽 3-1-3 예제예요.
 lesson: 3-1-3
 page: 196
 source_id: f086
@@ -12,11 +12,22 @@ tags:
   - 통신
 packages: []
 parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
   - part: rgb-led
     pins:
       r: 25
       g: 26
       b: 27
+practice:
+  - '[실행]을 누르고 보드 그림 아래 "블루투스(BLE) 조작" 칸에서 [연결]을 눌러요.'
+  - '"좌표 보내기"에서 모양을 "x,y"로 두고 x를 50쯤으로 내린 뒤 [좌표 보내기]를 눌러요 — 빨간 LED가 1초 켜져요.'
+  - x와 y를 모두 100보다 크게 해서 보내면 파란 LED가 켜져요. 콘솔에 받은 값도 찍혀요.
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - ble
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped

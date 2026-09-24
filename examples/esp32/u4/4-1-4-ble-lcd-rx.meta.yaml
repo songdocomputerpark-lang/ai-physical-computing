@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "4-1-4 기본: 블루투스로 받은 DATA,x,y를 LCD에 쓰기"
-description: 보드 쪽 코드예요. 받은 한 줄을 쉼표로 나눠 칸이 3개이고 머리말이 DATA이면 x·y를 문자 LCD에 써요(머리말과 칸 수로 검사하는 첫 예제예요). 가상 보드의 블루투스는 아직 없어서 ModuleNotFoundError로 멈춰요(P4-03).
+description: 보드 쪽 코드예요. 받은 한 줄을 쉼표로 나눠 칸이 3개이고 머리말이 DATA이면 x·y를 문자 LCD에 써요(머리말과 칸 수로 검사하는 첫 예제예요).
 lesson: 4-1-4
 page: 252
 source_id: f099
@@ -12,12 +12,23 @@ tags:
   - I2C
 packages: []
 parts:
+  - part: ble
+    pin: 12
+    label: 블루투스(BLE)
   - part: lcd-i2c
     id: lcd
     pins:
       sda: 21
       scl: 22
     label: 문자 LCD(16×2)
+practice:
+  - '[실행] → "블루투스(BLE) 조작" 칸에서 [연결]을 눌러요. LCD에 BLE Waiting...이 보여요.'
+  - '"좌표 보내기"에서 모양을 "DATA,x,y"로 바꾸고 [좌표 보내기]를 눌러요 — LCD에 X:…  Y:…가 나와요.'
+  - 모양을 "x,y"로 바꿔 보내면 LCD가 그대로예요. 머리말과 칸 수가 다르면 버리기 때문이에요.
+unit: 4
+difficulty: 2
+virtual_ok: true
+comm:
+  - ble
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  outcome: stopped
