@@ -39,5 +39,6 @@ export const searchConfig = {
    * 검색 화면은 이 페이지의 결과를 Pagefind의 sub_results(id가 있는 제목 단위 결과)로 바꿔 "픽셀 — 용어사전"처럼 제목을 붙이고
    * /glossary/#pixel처럼 항목 위치로 이어 준다(2026-09-16 검토 반영: 전에는 결과가 용어사전 맨 위로만 갔다).
    */
-  anchorPages: ['/glossary/', '/help/errors/'],
+  // 예제 갤러리(P4-11)도 카드 제목(h3#ex-<실습실>-<예제 id>)마다 항목 결과를 낸다(2026-09-24 Phase 4 통합).
+  anchorPages: ['/glossary/', '/help/errors/', '/labs/gallery/'],
 } as const;

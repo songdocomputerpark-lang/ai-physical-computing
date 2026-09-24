@@ -116,6 +116,19 @@ test.describe('사이트 검색(색인과 결과)', () => {
     await expect(page.locator('h3#pixel')).toBeInViewport();
   });
 
+  test('예제 갤러리 결과는 그 예제 카드로 바로 이어진다("… — 예제 갤러리" → #ex-…, 2026-09-24 Phase 4 통합)', async ({ page }) => {
+    await page.goto(searchUrl('손가락 개수'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
+    await collectResultHrefs(page);
+    const cardHref = `${getPage('labs-gallery').href}#ex-vision-u4-c3-finger-count-send`;
+    const result = resultItems(page).filter({ has: page.locator(`h3 a[href="${cardHref}"]`) });
+    await expect(result).toHaveCount(1);
+    await expect(result.locator('.search-result__title')).toHaveText(/— 예제 갤러리$/u);
+    await result.locator('h3 a').click();
+    await expect(page).toHaveURL(/\/labs\/gallery\/#ex-vision-u4-c3-finger-count-send$/u);
+    await expect(page.locator('h3#ex-vision-u4-c3-finger-count-send')).toBeInViewport();
+  });
+
   test('검색·404 페이지는 결과에 나오지 않는다', async ({ page }) => {
     await page.goto(searchUrl('검색'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', /^(?:results|empty)$/u);
@@ -143,9 +156,11 @@ test.describe('사이트 검색 화면', () => {
   });
 
   test('맞는 글이 없으면 그렇다고 알리고 바꿔 찾는 방법을 보여 준다', async ({ page }) => {
-    await page.goto(searchUrl('zqxwvu'));
+    // 없는 낱말은 한글로 고른다. 영어 한 글자(x·y·z·q)로 시작하는 말은 Pagefind가 그 한 글자 낱말(예제 갤러리의 "x, y, z 값", 키 [q])에
+    // 앞부분으로 맞춰 결과가 생긴다(2026-09-24 Phase 4 통합에서 갤러리가 들어오며 "zqxwvu"가 갤러리에 걸리는 것을 확인).
+    await page.goto(searchUrl('뷁쿍퓽'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'empty');
-    await expect(page.getByRole('status')).toHaveText('"zqxwvu"에 맞는 글을 찾지 못했어요.');
+    await expect(page.getByRole('status')).toHaveText('"뷁쿍퓽"에 맞는 글을 찾지 못했어요.');
     await expect(page.getByText('조사를 빼고 낱말만 넣어요.', { exact: false })).toBeVisible();
     await expect(page.locator('[data-search-results-section]')).toBeHidden();
   });

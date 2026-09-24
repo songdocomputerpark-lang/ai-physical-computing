@@ -1,7 +1,47 @@
 ---
-// 예제 갤러리 자리 페이지. 예제 갤러리 묶음(PLAN §8.4 P4-11)에서 실제 화면으로 바꾼다.
-// 준비 내용은 ../_labs.ts, 틀은 ../_LabPlaceholder.astro에 있다.
-import LabPlaceholder from '../_LabPlaceholder.astro';
+/**
+ * 예제 갤러리 페이지(PLAN §2.1 "예제 갤러리", §8.4 P4-11).
+ *
+ * 화면은 모두 src/components/examples/ExampleGallery.astro가 그린다 — 이 파일은 제목·소개만 정한다.
+ * 주소는 사이트 지도(src/config/nav.ts)의 /labs/gallery/ 그대로다. P4-11 구역은 /examples/에 먼저 만들었고,
+ * 2026-09-24 Phase 4 통합에서 이 자리(준비 중 자리 페이지였던 곳)로 옮겼다(.cache/phase4-requests/gallery.md 1번 ①안).
+ * 현재 위치(빵부스러기)는 사이트 지도에 있는 주소라 BaseLayout이 만든다.
+ */
+import ExampleGallery from '../../../components/examples/ExampleGallery.astro';
+import { getPage } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getPage('labs-gallery');
+const visionLab = getPage('labs-vision');
+const esp32Lab = getPage('labs-esp32');
+const learn = getPage('learn');
 ---
 
-<LabPlaceholder id="labs-gallery" />
+<BaseLayout title={page.title} description={page.description}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+
+  <div class="examples-intro">
+    <p>
+      사이트에 있는 실습 예제를 한자리에 모았어요. 위쪽에서 낱말로 찾거나 태그(대단원, 통신 방식, 부품 …)를 골라 좁힌 다음,
+      카드의 [실습실에서 열기]를 누르면 그 예제가 <a href={visionLab.href}>{visionLab.label}</a> 또는{' '}
+      <a href={esp32Lab.href}>{esp32Lab.label}</a>에 그대로 올라와요. 바로 [실행]해 보고 코드를 고쳐 봐도 돼요.
+    </p>
+    <p>
+      차시 차례대로 공부하고 싶으면 <a href={learn.href}>{learn.label}</a>로 가요. 예제 카드에 차시 이름이 있으면 그 차시에서
+      무엇을 배우는 예제인지 함께 읽을 수 있어요.
+    </p>
+  </div>
+
+  <ExampleGallery />
+</BaseLayout>
+
+<style>
+  .examples-intro {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-6);
+    line-height: var(--leading-body);
+  }
+</style>

@@ -1,0 +1,30 @@
+---
+/**
+ * 예제 카드에 붙는 작은 딱지(P4-11). 차시 카드의 딱지(src/components/lesson/LessonTag.astro)와 모양을 맞췄다.
+ *
+ * 쓰는 법: <GalleryTag tone="unit">2단원</GalleryTag>
+ * tone
+ *   lab      어느 실습실에서 열리는지
+ *   unit     대단원
+ *   comm     통신 방식(시리얼·블루투스·MQTT …)
+ *   part     가상 보드 부품
+ *   virtual  하드웨어 없이 끝까지 되는 예제
+ *   meta     난이도·교과서 쪽처럼 덧붙임 정보
+ *   word     사이드카·차시에 적은 자유 낱말
+ * 뜻은 색만이 아니라 글자로도 전한다. 글자만으로 무엇인지 알기 어려운 딱지(부품 이름)에는 prefix로 앞말을 붙인다.
+ *
+ * **모양(CSS)은 이 파일이 아니라 ExampleGallery.astro의 전역 스타일에 있다.** 딱지가 카드마다 여러 개라
+ * 범위 스타일을 쓰면 Astro가 요소마다 붙이는 표시(data-astro-cid-…)만으로 페이지가 수십 KB 커지기 때문이다(P4-11 측정).
+ */
+interface Props {
+  tone: 'lab' | 'unit' | 'comm' | 'part' | 'virtual' | 'meta' | 'word';
+  /** 화면 낭독기에만 읽히는 앞말. 예: "부품" */
+  prefix?: string;
+}
+
+const { tone, prefix } = Astro.props;
+---
+
+<span class:list={['gallery-tag', `gallery-tag--${tone}`]}>
+  {prefix && <span class="visually-hidden">{`${prefix} `}</span>}<slot />
+</span>
