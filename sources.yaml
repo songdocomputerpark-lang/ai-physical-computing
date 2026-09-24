@@ -43,7 +43,7 @@ sources:
     author: 박상진·김석전
     license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
     # 사이트 공개 조건은 PD-26(학습 자료 CC BY-NC-SA 4.0)
-    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
+    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/ — 원고 이미지 추출 도구로 꺼낸 그림과 차시마다 따로인 그림 목록 content/lessons/**/*.images.yaml). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
     paths:
       - content/**
       - public/images/lessons/**
@@ -60,20 +60,49 @@ sources:
     fetched: 2026-09-15
 
   # ── 제3자 권리 표기 자료(PD-26: 사이트 라이선스에서 제외, /credits/ 제3자 목록에 보임) ──
-  # 원고 PDF는 출판사가 조판한 파일이고, 이 삽화 3장의 이름표(XMP 제목)는 출판 편집 삽화 표기예요(INVENTORY §5.2: 중학교판 삽화 재사용 추정).
-  # 운영자 허락(O2·O4)은 사용 허락이지 삽화가·출판사 창작물을 CC BY-NC-SA 4.0으로 다시 허락할 권리가 아니라서(PLAN §9.1),
-  # 권리 귀속이 확인될 때까지 제3자 자료로 둬요(2026-09-16 검토 반영, 운영자 할 일 13번). 저자 창작물로 확인되면 위 원고 항목으로 되돌려요.
-  - name: 교과서 원고 009쪽 삽화 3장(인식·학습·추론 예시)
+  # 원고에서 꺼낸 제3자 권리 그림은 public/images/lessons/<차시 폴더>/third-party/<키>/에 두고, 아래 항목이 키 폴더를 차시와 상관없이 덮어요.
+  # 원고 이미지 추출 도구(npm run images:extract, P5-01)가 원본 그림의 XMP 권리 표기(제작자·권리 문구·이름표)를 읽어 third_party 키를 요구해요.
+  # 새 권리자가 나오면 도구가 알려 주는 모양대로 항목을 하나 더하고 paths에 public/images/lessons/*/third-party/<키>/**를 적어요.
+  #
+  # 원고 PDF는 출판사가 조판한 파일이고, 이름표(XMP 제목)가 "인피컴_…(삽)"·"인피컴_…(컷)"인 그림은 출판 편집 삽화·컷이에요
+  # (INVENTORY §5.2: 중학교판 삽화 재사용 추정). 운영자 허락(O2·O4)은 사용 허락이지 삽화가·출판사 창작물을 CC BY-NC-SA 4.0으로
+  # 다시 허락할 권리가 아니라서(PLAN §9.1), 권리 귀속이 확인될 때까지 제3자 자료로 둬요(2026-09-16 검토 반영, 운영자 할 일 13번).
+  # 저자 창작물로 확인되면 위 원고 항목으로 되돌려요.
+  - name: 교과서 원고의 출판 편집 삽화·컷(조판 때 넣은 그림)
     category: third_party
     author: "원 권리자 미확인 — 교과서 원고를 조판한 출판사 또는 삽화가(운영자 확인 전). 원고 저자: 박상진·김석전"
     license: 원 권리자 보유 — 운영자 사용 허락(O2·O4), 사이트 CC BY-NC-SA 4.0 적용 제외
-    used_in: "차시 1-1-1 핵심 개념 표의 그림 3장(public/images/lessons/u1/1-1-1-recognition·learning·reasoning.webp). 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S06)으로 바꿔요."
-    rights: "원고 이미지 이름표(XMP 제목) 표기: 인피컴_고1-1-1-05(삽), 인피컴_중1-1-1-02(삽) — 출판 편집 삽화. 별도의 저작권 문구는 없음(2026-09-16 확인)."
+    used_in: "차시 그림 가운데 출판사가 조판할 때 넣은 삽화·컷: 1-1-1 핵심 개념 표의 인식·학습·추론 그림 3장(public/images/lessons/u1/1-1-1-*.webp)과 차시 그림 폴더의 third-party/publisher/(예: 1-1-2 CNN 단계 그림, 손 랜드마크 그림). 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S-번호)으로 바꿔요."
+    rights: "원고 그림 이름표(XMP 제목)가 '인피컴_…(삽)'·'인피컴_…(컷)' 모양인 출판 편집 삽화·컷 — 별도의 저작권 문구는 없음. 예: 009쪽 인피컴_고1-1-1-01(삽)·인피컴_중1-1-1-02(삽)·인피컴_중1-1-1-03(삽), 014쪽 인피컴_고1-1-1-05(삽), 016쪽 인피컴_고1-1-04(컷)(2026-09-25 원고 이미지 추출 도구로 다시 확인)."
     paths:
       - public/images/lessons/u1/1-1-1-recognition.webp
       - public/images/lessons/u1/1-1-1-learning.webp
       - public/images/lessons/u1/1-1-1-reasoning.webp
-    fetched: 2026-09-16
+      - public/images/lessons/*/third-party/publisher/**
+    fetched: 2026-09-25
+
+  # 원고 010쪽 쇼핑 로봇 그림(놓인 그래픽의 XMP: 제작자 Visual Generation Inc., 제목 Untitled-6). INVENTORY §5.2 첫 줄의 스톡 제작자 표기 그림.
+  - name: Visual Generation Inc. 스톡 벡터 그림(교과서 원고 010쪽)
+    category: third_party
+    author: Visual Generation Inc.
+    license: 원 권리자 보유 — 운영자 사용 허락(O4), 사이트 CC BY-NC-SA 4.0 적용 제외
+    url: https://www.vige.co/
+    used_in: "원고에 실린 스톡 벡터 그림(public/images/lessons/*/third-party/visual-generation/ — 1-1-1 쇼핑 로봇 그림). 교체가 필요해지면 사이트가 그린 그림(INVENTORY §5.3 S08)으로 바꿔요."
+    rights: "Copyright © 2022 of Visual Generation Inc. All rights reserved. You may use this content within the terms of the purchased license.(원고 그림 XMP의 권리 문구 원문)"
+    paths:
+      - public/images/lessons/*/third-party/visual-generation/**
+    fetched: 2026-09-25
+
+  # 원고 018쪽 석고상 사진(그림 XMP: 제작자 BASHTA, 권리 BASHTA). INVENTORY §5.2 첫 줄의 스톡 제작자 표기 그림.
+  - name: BASHTA 스톡 사진(교과서 원고 018쪽 석고상)
+    category: third_party
+    author: BASHTA
+    license: 원 권리자 보유 — 운영자 사용 허락(O4), 사이트 CC BY-NC-SA 4.0 적용 제외
+    used_in: "원고 018쪽 학습 활동의 석고상 사진(public/images/lessons/*/third-party/bashta/ — 1-1-2 특징 추출 기법 그림). 교체가 필요해지면 사이트가 그린 그림(INVENTORY §5.3 S12)으로 바꿔요."
+    rights: "BASHTA(원고 그림 XMP의 제작자·권리 칸 원문). 그림 제목: Gypsum copy of ancient statue Venus head isolated on white background. Plaster sculpture woman face."
+    paths:
+      - public/images/lessons/*/third-party/bashta/**
+    fetched: 2026-09-25
 
   - name: 교과서·수업 자료의 예제 코드와 사이트판
     category: operator

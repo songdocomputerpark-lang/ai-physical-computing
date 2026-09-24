@@ -1,0 +1,171 @@
+# 차시 1-1-2 "인공지능 영상 인식 기술의 원리"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-1-2
+# 결과는 public/images/lessons/1-1-2/ 아래 WebP(메타데이터 없음). 쪽 좌표·그림 번호 고르기: npm run images:show -- U1 14
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+#
+# 원고 013·015·016쪽은 얼굴이 있어 제외 쪽이에요(scripts/image-exclusions.yaml, INVENTORY §6). 016쪽의 손 그림·손 사진만
+# region으로 잘라 privacy_override를 적어 꺼냈고, 도구의 엄격 얼굴 검사(하나라도 나오면 멈춤)를 통과했어요.
+# 015쪽의 강아지·고양이 사진(객체 감지)·백로 사진(이미지 분류), 016쪽의 엄지 든 손 사진(동작 인식)·자세 랜드마크 그림도 같은
+# 방법으로 해 봤지만(2026-09-25), 엄격 얼굴 검사가 동물 얼굴·주먹 마디·머리 점 무늬를 얼굴로 보고 멈춰 꺼내지 않았어요 — 그 그림은
+# 사이트가 그린 그림(INVENTORY §5.3 S13·S14·S15)으로 대신해요. 제외 쪽의 엄격 검사는 끄는 방법이 없어요.
+
+images:
+  - name: cnn-stages
+    use: 1-1-2 핵심 개념 "딥러닝 기반의 인공지능 영상 인식 기술" — CNN이 초기·중간·최종 단계로 특징을 쌓는 과정 그림(원고 014쪽)
+    alt: 고양이 그림을 입력으로 받아 초기 단계에서 선과 모서리 같은 단순한 특징을, 중간 단계에서 눈·코·귀 같은 부분을 찾고, 최종 단계에서 고양이라고 예측하는 CNN 단계 그림
+    from:
+      source: U1
+      page: 14
+      region: [62, 476, 528, 712]
+    third_party: publisher
+    file: public/images/lessons/1-1-2/third-party/publisher/cnn-stages.webp
+    width: 960
+    height: 486
+    bytes: 33200
+    sha256: "9cd61995013dbeae9f98fcf3c9780cf781b128e7cd8a153e2594d9042c898433"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-1-05(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — CNN 단계 도식(최종·중간·초기 단계 설명 상자, 고양이 그림, 특징 조각 그림, 예측 결과 "고양이"). 사람 없음. 이름·화면 속 경로·파일명·기기 주소·학교명 없음. 출판 편집 삽화라 제3자 항목(publisher)
+  - name: hand-landmarks
+    use: 1-1-2 핵심 개념 "랜드마크" — 손 랜드마크 21점 그림(원고 016쪽 랜드마크 상자의 첫째 그림)
+    alt: 손바닥 모양을 따라 손목과 손가락 마디에 번호가 붙은 점 21개를 선으로 이은 손 랜드마크 그림
+    from:
+      source: U1
+      page: 16
+      region: [116, 595, 201, 683]
+      dpi: 300
+    third_party: publisher
+    privacy_override: 016쪽 윗부분의 얼굴 사진 카드들을 빼고, 아래 랜드마크 상자의 손 랜드마크 선 그림만 잘라 꺼냄(사람 사진 없음)
+    file: public/images/lessons/1-1-2/third-party/publisher/hand-landmarks.webp
+    width: 355
+    height: 367
+    bytes: 7698
+    sha256: "5afc4433ab5b3eee0366b85f3cf0804018f7d243d06937b0749118ee3a119677"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-04(컷))
+      excluded_page: 제외 쪽(face) — privacy_override로 일부만 꺼냄
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 손 랜드마크 0~20번 점과 초록 선 그림만 있음(016쪽 윗부분의 인물 사진 카드는 영역 밖). 사람 사진·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: hand-landmark-photo
+    use: 1-1-2 핵심 개념 "MediaPipe의 주요 기능과 활용" — 손 랜드마크 감지 기능 카드의 사진(원고 016쪽 첫째 카드)
+    alt: 달걀을 쥔 손 사진 위에 손가락 마디마다 점이 찍히고 점들이 선으로 이어진 손 랜드마크 감지 예시
+    from:
+      source: U1
+      page: 16
+      region: [208, 66, 285, 146]
+      dpi: 300
+    third_party: publisher
+    privacy_override: 016쪽 얼굴 랜드마크 카드(인물 얼굴 사진 2장)와 자세 추적 카드(인물 사진)를 빼고, 손 랜드마크 감지 카드의 손 사진만 잘라 꺼냄
+    file: public/images/lessons/1-1-2/third-party/publisher/hand-landmark-photo.webp
+    width: 322
+    height: 334
+    bytes: 8246
+    sha256: "091a538aa8af3414ad3b8db3582446a452b7852d14f0c45840c5c0024730e1d8"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-03(컷))
+      excluded_page: 제외 쪽(face) — privacy_override로 일부만 꺼냄
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 달걀을 쥔 손 사진과 파란 랜드마크 점·흰 선만 있음(016쪽 얼굴 랜드마크·자세 추적 카드는 영역 밖). 왼쪽 끝에 카드 제목 칸의 보라색 조각이 조금 보임. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: hand-tracking-result
+    use: 1-1-2 따라하기 — MediaPipe 실시간 손 인식 코드를 돌린 결과 화면 예시(원고 017쪽)
+    alt: 프로그램 창 속 편 손바닥 위에 손가락 마디마다 빨간 점이 찍히고 점들이 흰 선으로 이어진 손 인식 결과 화면
+    from:
+      source: U1
+      page: 17
+      region: [384, 216, 522, 349]
+      dpi: 300
+    file: public/images/lessons/1-1-2/hand-tracking-result.webp
+    width: 576
+    height: 555
+    bytes: 15340
+    sha256: "984c9e096c35d4c5820cdfce52d26b1624e8c140e508def2280510371f6a758f"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 프로그램 창(제목 표시줄의 빨강·노랑·초록 점) 속 편 손바닥과 빨간 랜드마크 점·흰 선만 있음. 원고에서 창 왼쪽을 덮던 마스코트·말풍선은 영역 밖으로 뺌. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: feature-statue
+    use: 1-1-2 학습 활동 "특징 추출 기법" — 밝기 차이로 경계선을 찾는 예시 사진(원고 018쪽 석고상)
+    alt: 밝은 조각 면과 그림자의 밝기 차이로 윤곽이 드러나는 여성 두상 석고상 사진
+    from:
+      source: U1
+      page: 18
+      image: 696
+    third_party: bashta
+    file: public/images/lessons/1-1-2/third-party/bashta/feature-statue.webp
+    width: 207
+    height: 317
+    bytes: 5426
+    sha256: "9a65dae295fa461ad6635f7bd7631ca68e1c7f14b25a8589084e0d1133f4d819"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[22, 51, 117, 117], [70, 156, 128, 128]]
+      rights: 제작자 BASHTA, 권리 문구 BASHTA
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 여성 두상 석고상(조각) 사진. OpenCV가 얼굴로 본 두 곳은 조각의 얼굴과 턱·목 부분이라 실존 인물이 아님. 이름·화면 속 경로·파일명·기기 주소·학교명 없음. 제3자 권리 사진(BASHTA)
+  - name: feature-zebra
+    use: 1-1-2 학습 활동 "특징 추출 기법" — 반복되는 무늬로 질감을 찾는 예시 사진(원고 018쪽 얼룩말)
+    alt: 검은 줄무늬와 흰 줄무늬가 몸 전체에 되풀이되는 얼룩말이 풀밭에 서 있는 사진
+    from:
+      source: U1
+      page: 18
+      image: 697
+    file: public/images/lessons/1-1-2/feature-zebra.webp
+    width: 504
+    height: 319
+    bytes: 38058
+    sha256: "62e8688e1ed6ac79667dc6284bf71d46a162e022f5c905bdcfca42537ffb2474"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[115, 201, 23, 23]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 풀밭의 얼룩말 사진(뒤에 흐리게 다른 동물 한 마리). OpenCV가 얼굴로 본 [115, 201, 23, 23]은 얼룩말 엉덩이 쪽 줄무늬로 얼굴이 아님. 사람·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: feature-bicycle
+    use: 1-1-2 학습 활동 "특징 추출 기법" — 선과 모서리로 윤곽·형태를 찾는 예시 사진(원고 018쪽 자전거)
+    alt: 둥근 바퀴와 곧은 몸체 선이 뚜렷한 흰색 자전거가 붉은 벽돌 벽 앞에 서 있는 사진
+    from:
+      source: U1
+      page: 18
+      image: 698
+    file: public/images/lessons/1-1-2/feature-bicycle.webp
+    width: 504
+    height: 319
+    bytes: 57358
+    sha256: "2c978d89a4f7c2f19ce2132448a392b78a3dfee1c297280b6c5205452f466eef"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 벽돌 벽 앞의 흰색 자전거 사진(왼쪽 창문 안에도 자전거가 비침). 사람·글자·이름·화면 속 경로·파일명·기기 주소·학교명 없음
