@@ -408,7 +408,7 @@ PW_BASE_URL=http://localhost:4404/ai-physical-computing/ npx playwright test tes
 - 자기 spec만 돌려요(`tests/e2e/module-<id>.spec.ts`). 공유 spec(`lab-*.spec.ts`, `scenario-a.spec.ts`)을 고치지 않아요. 브라우저 테스트는 테스트마다 새 브라우저 문맥이라 localStorage가 섞이지 않지만, 페이지 안 저장 이름은 `ctx.storageName`으로 모듈별로 나눠요.
 - 개발 서버에는 검색 색인(Pagefind)이 없어 `search*.spec.ts`는 돌지 않아요. 첫 응답이 느리니(Vite 변환) 기다리는 시간은 `LOAD_TIMEOUT`(90초)·`PACKAGES_TIMEOUT`(150초)을 그대로 써요.
 - 새 npm 패키지가 필요하면 설치하지 말고 통합 담당에게 이름·정확한 버전·라이선스·근거를 보고해요(`sources.yaml`·`package.json`은 공유 파일). 미리 설치된 것: `@mediapipe/tasks-vision` 0.10.35(Apache-2.0, WASM은 `public/vendor/mediapipe/0.10.35/wasm/`), `workbox-build` 7.4.1(MIT, devDependency).
-- 원고·교안 이미지를 넣을 때는 `scripts/image-allowlist.yaml`에 눈 확인 기록을 함께 커밋해요(PD-32). 5MB를 넘는 파일은 `scripts/repo-allowlist.yaml`의 `large_files`에 경로·이유·`max_mb`(10 이하).
+- 원고·교안 이미지는 원고 이미지 추출 도구로 꺼내고(차시 그림 목록 `content/lessons/<단원>/<차시>.images.yaml` → `npm run images:extract -- <차시>`, P5-01 — `MAINTENANCE.md` 3-1), 그 목록의 눈 확인 기록(`reviewed`)을 그림과 함께 커밋해요(PD-32). 차시 밖 그림의 기록은 `scripts/image-allowlist.yaml`. 5MB를 넘는 파일은 `scripts/repo-allowlist.yaml`의 `large_files`에 경로·이유·`max_mb`(10 이하).
 - 커밋은 경로 지정(`git add <경로>`), 메시지는 한국어 "무엇을 왜" + `Co-Authored-By` 줄, `--no-verify` 금지.
 
 ---

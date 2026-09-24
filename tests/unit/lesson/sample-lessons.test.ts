@@ -1,9 +1,11 @@
 // 견본 차시 두 개(PLAN §8.1 P1-06: 1-1-1 원고 일부, 보충 V4 틀)와 그 그림·예제 파일을 검사한다.
 // 모든 차시에 적용하는 엄격한 틀 검사는 P5-02 check:lessons가 맡는다(PD-35). 여기서는 견본만 본다.
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
 import { describe, expect, it } from 'vitest';
+import { readImageRecords } from '../../../scripts/lib/lesson-images.mjs';
 import { LESSON_MARKERS, LESSON_SECTIONS, sectionKeyFromHeading } from '../../../src/components/lesson/lesson-html.ts';
 import { lessonSchema } from '../../../src/config/content-schemas.ts';
 
@@ -36,11 +38,8 @@ interface ImageRecord {
   reviewed?: { by?: string; date?: string; result?: string };
 }
 
-const imageReviews = new Map<string, ImageRecord>(
-  ((parse(fs.readFileSync('scripts/image-allowlist.yaml', 'utf8')) as { images?: ImageRecord[] }).images ?? []).map(
-    (item): [string, ImageRecord] => [item.path, item],
-  ),
-);
+// 눈 확인 기록은 두 곳에 있다: 차시마다 따로인 그림 목록(content/lessons/**/*.images.yaml, P5-01)과 옛 공용 기록(scripts/image-allowlist.yaml).
+const imageReviews = readImageRecords('.').records as unknown as Map<string, ImageRecord>;
 
 describe.each(SAMPLES)('견본 차시 $file', (sample) => {
   const lesson = readLesson(sample.file);
@@ -86,15 +85,12 @@ describe.each(SAMPLES)('견본 차시 $file', (sample) => {
 });
 
 describe('차시 그림 폴더(public/images/lessons/)', () => {
-  it('모든 그림에 눈 확인 기록이 있다(PD-32)', () => {
-    const walk = (directory: string): string[] =>
-      fs.existsSync(directory)
-        ? fs.readdirSync(directory, { withFileTypes: true }).flatMap((dirent) => {
-            const full = `${directory}/${dirent.name}`;
-            return dirent.isDirectory() ? walk(full) : [full];
-          })
-        : [];
-    const images = walk('public/images/lessons').filter((file) => /\.(?:png|jpe?g|gif|webp|avif)$/iu.test(file));
+  // git이 추적하는 그림만 본다. 여러 구역이 한 폴더에서 일할 때 다른 구역이 막 꺼내 아직 눈으로 보지 않은 그림 때문에
+  // 내 테스트가 깨지지 않게 하려는 것이다 — 기록 없는 그림의 커밋은 저장소 검사(커밋 전 훅·CI)가 막는다(2026-09-25 P5-01).
+  it('git이 추적하는 모든 차시 그림에 눈 확인 기록이 있다(PD-32)', () => {
+    const images = execFileSync('git', ['ls-files', '-z', '--', 'public/images/lessons'], { encoding: 'utf8' })
+      .split('\0')
+      .filter((file) => /\.(?:png|jpe?g|gif|webp|avif)$/iu.test(file));
     expect(images.length).toBeGreaterThan(0);
     for (const image of images) {
       const review = imageReviews.get(image)?.reviewed;

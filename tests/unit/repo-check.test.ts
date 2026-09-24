@@ -15,6 +15,7 @@ import {
   runRepoCheck,
   type RepoRules,
 } from '../../scripts/lib/repo-check.mjs';
+import { sha256Hex } from '../../scripts/lib/lesson-images.mjs';
 import { makeTempDir, removeDir, writeFiles } from './helpers/fixture.ts';
 
 const CHECK_REPO_CLI = fileURLToPath(new URL('../../scripts/check-repo.mjs', import.meta.url));
@@ -280,7 +281,63 @@ describe('저장소 검사 규칙(checkRepoFiles)', () => {
     ]);
     expect(problems[2].detail).toContain('data: 주소로 넣은 래스터 그림');
   });
+
+  // 2026-09-25 P5-01: 차시 그림 목록의 기록에는 도구가 적은 sha256이 있어, 눈으로 본 뒤 그림이 바뀌면 다시 보게 한다.
+  it('기록에 sha256이 있으면 그림 내용과 같아야 한다', () => {
+    const imagePath = 'public/images/lessons/1-1-2/a.webp';
+    const bytes = cleanWebp();
+    const record = (sha256: string) =>
+      new Map<string, unknown>([[imagePath, { reviewed: { by: 'claude', date: '2026-09-25', result: '통과 — 사람 없음' }, sha256, recordFile: 'content/lessons/u1/1-1-2.images.yaml' }]]);
+    expect(checkRepoFiles([repoFile(imagePath, bytes)], rules({ imageReviews: record(sha256Hex(bytes)) }))).toEqual([]);
+    const problems = checkRepoFiles([repoFile(imagePath, bytes)], rules({ imageReviews: record('0'.repeat(64)) }));
+    expect(problemKeys(problems)).toEqual([`image-review:${imagePath}`]);
+    expect(problems[0].detail).toContain('sha256');
+    expect(problems[0].detail).toContain('content/lessons/u1/1-1-2.images.yaml');
+  });
+
+  it('그림 안에 메타데이터(WebP EXIF, PNG 글 조각, JPEG APP1)가 남았거나 확인할 수 없는 형식이면 막는다', () => {
+    const reviewedAll = (paths: string[]) =>
+      new Map<string, unknown>(paths.map((item) => [item, { reviewed: { by: 'claude', date: '2026-09-25', result: '통과 — 사람 없음' } }]));
+    const files = [
+      repoFile('public/images/lessons/x/clean.webp', cleanWebp()),
+      repoFile('public/images/lessons/x/exif.webp', cleanWebp(riffChunk('EXIF', Buffer.from('Exif..')))),
+      repoFile('public/images/lessons/x/text.png', pngWithText()),
+      repoFile('public/images/lessons/x/camera.jpg', Buffer.from([0xff, 0xd8, 0xff, 0xe1, 0x00, 0x08, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, 0xff, 0xd9])),
+      repoFile('public/images/lessons/x/phone.heic', Buffer.from('ftypheic')),
+    ];
+    const problems = checkRepoFiles(files, rules({ imageReviews: reviewedAll(files.map((file) => file.path)) }));
+    expect(problemKeys(problems)).toEqual([
+      'image-metadata:public/images/lessons/x/exif.webp',
+      'image-metadata:public/images/lessons/x/text.png',
+      'image-metadata:public/images/lessons/x/camera.jpg',
+      'image-metadata:public/images/lessons/x/phone.heic',
+    ]);
+    expect(problems.map((problem) => problem.detail).join('\n')).toContain('WebP EXIF 조각');
+  });
 });
+
+/** 64×32 손실 WebP(메타데이터 없음). 조각을 더 넣으면 그 뒤에 붙는다. */
+function riffChunk(type: string, payload: Buffer): Buffer {
+  const header = Buffer.alloc(8);
+  header.write(type, 0, 'latin1');
+  header.writeUInt32LE(payload.length, 4);
+  return Buffer.concat([header, payload, payload.length % 2 ? Buffer.alloc(1) : Buffer.alloc(0)]);
+}
+function cleanWebp(...extra: Buffer[]): Buffer {
+  const body = Buffer.concat([Buffer.from('WEBP', 'latin1'), riffChunk('VP8 ', Buffer.from([0, 0, 0, 0x9d, 0x01, 0x2a, 0x40, 0x00, 0x20, 0x00])), ...extra]);
+  const header = Buffer.alloc(8);
+  header.write('RIFF', 0, 'latin1');
+  header.writeUInt32LE(body.length, 4);
+  return Buffer.concat([header, body]);
+}
+function pngWithText(): Buffer {
+  const chunk = (type: string, data: Buffer) => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(data.length);
+    return Buffer.concat([length, Buffer.from(type, 'latin1'), data, Buffer.alloc(4)]);
+  };
+  return Buffer.concat([PNG_BYTES.subarray(0, 8), chunk('IHDR', Buffer.alloc(13)), chunk('tEXt', Buffer.from('Software tool')), chunk('IEND', Buffer.alloc(0))]);
+}
 
 describe('원본 이름 목록 만들기', () => {
   it('.gitignore의 "원본 자료" 묶음에서만 폴더 이름을 읽는다', () => {
@@ -399,6 +456,48 @@ describe('git 인덱스 검사(runRepoCheck, scripts/check-repo.mjs)', () => {
     expect(problemKeys(result.problems).sort()).toEqual(
       ['forbidden:docs/SPEC.md', 'large-file:public/big.bin', 'original-name:content/lessons/u2/2-1-1.md'].sort(),
     );
+  });
+
+  it('눈 확인 기록은 스테이징된 기록 파일(차시 그림 목록 + 옛 공용 기록)에서 읽는다 — 디스크에만 있는 기록은 통하지 않는다(P5-01)', () => {
+    const rootDir = makeTempDir('apc-repo-');
+    tempDirs.push(rootDir);
+    git(rootDir, 'init', '-q');
+    const image = cleanWebp();
+    const manifest = [
+      'images:',
+      '  - name: a',
+      '    use: 시험',
+      '    alt: 시험 그림이에요 여덟 글자',
+      '    from: { source: U1, page: 14, region: [0, 0, 10, 10] }',
+      '    file: public/images/lessons/t-1/a.webp',
+      `    sha256: "${sha256Hex(image)}"`,
+      '    reviewed: { by: claude, date: 2026-09-25, result: "통과 — 사람 없음" }',
+      '',
+    ].join('\n');
+    writeFiles(rootDir, {
+      'public/images/lessons/t-1/a.webp': image,
+      'public/images/site/b.png': PNG_BYTES,
+      'content/lessons/u1/t-1.images.yaml': manifest,
+      'scripts/image-allowlist.yaml': 'images:\n  - path: public/images/site/b.png\n    reviewed: { by: claude, date: 2026-09-25, result: "통과 — 사이트 그림" }\n',
+    });
+    git(rootDir, 'add', 'public/images/lessons/t-1/a.webp', 'public/images/site/b.png');
+    // 기록 파일을 스테이징하지 않았다 → 두 그림 모두 기록 없음
+    expect(problemKeys(runRepoCheck({ rootDir }).problems).sort()).toEqual([
+      'image-review:public/images/lessons/t-1/a.webp',
+      'image-review:public/images/site/b.png',
+    ]);
+    git(rootDir, 'add', 'content/lessons/u1/t-1.images.yaml', 'scripts/image-allowlist.yaml');
+    expect(runRepoCheck({ rootDir }).problems).toEqual([]);
+
+    // 같은 그림의 기록이 두 곳에 있으면 형식 오류로 알린다
+    writeFiles(rootDir, {
+      'scripts/image-allowlist.yaml':
+        'images:\n  - path: public/images/site/b.png\n    reviewed: { by: claude, date: 2026-09-25, result: "통과 — 사이트 그림" }\n  - path: public/images/lessons/t-1/a.webp\n    reviewed: { by: claude, date: 2026-09-25, result: "통과 — 겹친 기록" }\n',
+    });
+    git(rootDir, 'add', 'scripts/image-allowlist.yaml');
+    const duplicated = runRepoCheck({ rootDir });
+    expect(problemKeys(duplicated.problems)).toEqual(['config:scripts/image-allowlist.yaml']);
+    expect(duplicated.problems[0].detail).toContain('한 곳에만');
   });
 
   it('scripts/privacy-needles.json의 해시 이름을 읽어 스테이징된 글에서 찾고, 파일 모양이 틀리면 알린다', () => {

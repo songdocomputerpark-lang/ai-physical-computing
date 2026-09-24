@@ -11,8 +11,13 @@
 //    그리고 scripts/privacy-needles.json에 해시로만 적어 둔 비공개 이름(학교명 등, PD-37).
 //    예외는 하나뿐이다: public/licenses/ 아래의 제3자 라이선스 고지 원문(저작권 표기에 저작자가 스스로 적은 주소가 들어 있음)은
 //    scripts/repo-allowlist.yaml의 privacy_exceptions에 경로·이유를 적으면 이메일 모양 검사만 건너뛴다(2026-09-16 P2-02, CodeMirror MIT 고지).
-// 6) 추적 파일 어디에 있든 래스터 이미지의 눈 확인 기록(scripts/image-allowlist.yaml의 reviewed).
+// 6) 추적 파일 어디에 있든 래스터 이미지의 눈 확인 기록(reviewed). 기록은 두 곳에서 모은다(P5-01, 2026-09-25):
+//    차시마다 따로인 그림 목록 content/lessons/**/*.images.yaml(원고 이미지 추출 도구가 file·sha256을 적는다)과
+//    옛 공용 기록 scripts/image-allowlist.yaml(차시 밖 그림). 둘 다 git 인덱스(커밋될 내용)에서 읽으므로 기록을 스테이징하지
+//    않으면 통과하지 못한다. 기록에 sha256이 있으면 그림 내용과 같아야 한다(눈으로 본 뒤 그림이 바뀌면 다시 봐야 한다).
 //    글·코드 파일(SVG·마크다운·Astro·CSS 등) 안에 data: 주소로 넣은 래스터 그림도 그 파일의 기록이 있어야 한다.
+// 7) 래스터 이미지 안의 메타데이터(PLAN §9.3 4번): WebP의 EXIF·XMP·ICC 조각, PNG의 eXIf·tEXt·iTXt·zTXt·iCCP·tIME,
+//    JPEG의 APP1(EXIF·XMP)·APP2(ICC)·APP13(IPTC)·주석, GIF의 주석·XMP. 확인할 수 없는 형식(avif·tif·heic)도 막는다.
 //
 // 이 파일의 주석에는 검사에 걸리는 실제 모양(경로·주소·이름)을 적지 않는다. 이 파일도 검사 대상이기 때문이다.
 
@@ -22,9 +27,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseDocument } from 'yaml';
 import { matchesGlob, validateGlob } from './glob.mjs';
+import {
+  LEGACY_IMAGE_ALLOWLIST,
+  MANIFEST_SUFFIX,
+  collectImageRecords,
+  inspectImageMetadata,
+  isUncheckableRaster,
+  reviewedProblem,
+  sha256Hex,
+} from './lesson-images.mjs';
 
 export const REPO_ALLOWLIST_FILE = 'scripts/repo-allowlist.yaml';
-export const IMAGE_ALLOWLIST_FILE = 'scripts/image-allowlist.yaml';
+/** 옛 공용 눈 확인 기록(차시 밖 그림). 원고에서 꺼낸 차시 그림의 기록은 각 차시의 그림 목록(P5-01) */
+export const IMAGE_ALLOWLIST_FILE = LEGACY_IMAGE_ALLOWLIST;
 export const PRIVACY_NEEDLES_FILE = 'scripts/privacy-needles.json';
 export const FORBIDDEN_TRACKED_FILES = Object.freeze(['docs/SPEC.md']);
 export const ORIGINAL_FORMAT_EXTENSIONS = Object.freeze(['.pdf', '.pptx', '.hwp', '.hwpx', '.zip', '.pyc']);
@@ -149,8 +164,16 @@ const PROBLEM_KINDS = Object.freeze({
   'image-review': {
     title: '눈 확인 기록이 없는 이미지',
     fix:
-      `이미지를 한 장씩 열어 얼굴·이름·경로·파일명·기기 주소·학교명이 없는지 보고 ${IMAGE_ALLOWLIST_FILE}에 reviewed(by·date·result)를 적어요. ` +
+      '이미지를 한 장씩 열어 얼굴·이름·경로·파일명·기기 주소·학교명이 없는지 보고 reviewed(by·date·result)를 적은 뒤 기록 파일도 함께 스테이징해요. ' +
+      `원고에서 꺼낸 차시 그림은 그 차시의 그림 목록(content/lessons/<단원>/<차시>${MANIFEST_SUFFIX}), 차시 밖 그림은 ${IMAGE_ALLOWLIST_FILE}에 적어요. ` +
+      '그림이 바뀌어 sha256이 기록과 다르면 다시 보고 기록해요(npm run images:extract가 sha256을 새로 적어요). ' +
       '글·코드 파일 안에 data: 주소로 넣은 그림은 되도록 파일로 빼서 public/images/에 두고 그 파일을 기록해요.',
+  },
+  'image-metadata': {
+    title: '메타데이터가 남은 이미지',
+    fix:
+      '그림에 촬영 기기·작업 PC 경로·원본 파일 이름 같은 정보가 따라올 수 있어요. 원고 그림은 npm run images:extract로 다시 꺼내고(픽셀만 WebP로 다시 인코딩), ' +
+      '다른 그림은 편집기에서 메타데이터 없이 다시 저장해요. avif·tif·heic는 WebP·PNG·JPEG로 바꿔요.',
   },
   'nul-text': {
     title: 'NUL 바이트가 든 글 파일',
@@ -190,7 +213,7 @@ const PROBLEM_KINDS = Object.freeze({
  * @typedef {object} RepoRules
  * @property {{ path: string, reason: string }[]} originalFormatAllowed
  * @property {{ path: string, reason: string, maxMb: number }[]} largeFileAllowed
- * @property {Map<string, unknown>} imageReviews 이미지 경로 → 기록
+ * @property {Map<string, unknown>} imageReviews 이미지 경로 → 기록({ reviewed, sha256?, recordFile? }). runRepoCheck가 git 인덱스의 기록 파일에서 모은다
  * @property {string[]} originalFolderNames .gitignore의 원본 자료 폴더 이름
  * @property {string[]} originalNameNeedles 찾을 원본 이름
  * @property {PrivacyNeedleSet} [privacyNeedles] 해시로 적어 둔 비공개 이름(없으면 검사하지 않는다)
@@ -546,25 +569,21 @@ function findOriginalName(content, text, needles) {
 }
 
 /**
+ * 눈 확인 기록 하나를 검사한다. 기록에 sha256이 있으면 그림 내용과도 견준다.
  * @param {unknown} record
+ * @param {Buffer | null} content
  * @returns {string | null}
  */
-function describeReviewProblem(record) {
+function describeReviewProblem(record, content) {
   if (!isPlainObject(record)) {
     return '눈 확인 기록이 없어요';
   }
-  const reviewed = record.reviewed;
-  if (!isPlainObject(reviewed)) {
-    return 'reviewed 기록이 없어요';
+  const problem = reviewedProblem(record.reviewed);
+  if (problem) {
+    return problem;
   }
-  if (typeof reviewed.by !== 'string' || reviewed.by.trim() === '') {
-    return 'reviewed.by(확인한 사람)가 없어요';
-  }
-  if (typeof reviewed.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(reviewed.date)) {
-    return 'reviewed.date가 YYYY-MM-DD 모양의 날짜가 아니에요';
-  }
-  if (typeof reviewed.result !== 'string' || !reviewed.result.trim().startsWith('통과')) {
-    return 'reviewed.result가 "통과"로 시작하지 않아요';
+  if (typeof record.sha256 === 'string' && content && sha256Hex(content) !== record.sha256) {
+    return '눈으로 확인한 뒤에 그림이 바뀌었어요(sha256이 기록과 달라요). 다시 보고 기록해요';
   }
   return null;
 }
@@ -623,10 +642,23 @@ export function checkRepoFiles(files, rules) {
     }
     const embeddedRaster = text !== null && EMBEDDED_RASTER.test(text);
     if (RASTER_IMAGE_EXTENSIONS.has(extension) || embeddedRaster) {
-      const problem = describeReviewProblem(rules.imageReviews.get(filePath));
+      const record = rules.imageReviews.get(filePath);
+      const problem = describeReviewProblem(record, RASTER_IMAGE_EXTENSIONS.has(extension) ? file.content : null);
       if (problem) {
         const where = embeddedRaster ? '글·코드 파일 안에 data: 주소로 넣은 래스터 그림이 있는데 ' : '';
-        problems.push({ kind: 'image-review', path: filePath, detail: `${where}${problem}(${IMAGE_ALLOWLIST_FILE}).` });
+        const recordFile =
+          isPlainObject(record) && typeof record.recordFile === 'string' ? record.recordFile : `차시 그림 목록(*${MANIFEST_SUFFIX}) 또는 ${IMAGE_ALLOWLIST_FILE}`;
+        problems.push({ kind: 'image-review', path: filePath, detail: `${where}${problem}(${recordFile}).` });
+      }
+    }
+    if (RASTER_IMAGE_EXTENSIONS.has(extension) && file.content) {
+      if (isUncheckableRaster(extension)) {
+        problems.push({ kind: 'image-metadata', path: filePath, detail: `${extension}는 메타데이터를 확인할 수 없는 형식이에요.` });
+      } else {
+        const inspected = inspectImageMetadata(file.content);
+        if (inspected.problems.length > 0) {
+          problems.push({ kind: 'image-metadata', path: filePath, detail: `${inspected.problems.join(', ')}이(가) 남아 있어요.` });
+        }
       }
     }
 
@@ -797,25 +829,10 @@ export function loadRepoRules(rootDir) {
   const largeFileAllowed = readAllowEntries(repoAllowlist, 'large_files', errors);
   const privacyExceptions = readPrivacyExceptions(repoAllowlist, errors);
 
-  const imageAllowlist = parseYamlObject(readOptional(IMAGE_ALLOWLIST_FILE), IMAGE_ALLOWLIST_FILE, errors);
+  // 눈 확인 기록(imageReviews)은 여기서 읽지 않는다. runRepoCheck가 git 인덱스의 기록 파일(옛 공용 기록 + 차시 그림 목록)에서
+  // 모은다(collectImageRecords) — 디스크에만 있고 스테이징하지 않은 기록이 커밋을 통과시키지 않게(2026-09-25 P5-01).
   /** @type {Map<string, unknown>} */
   const imageReviews = new Map();
-  if (imageAllowlist.images !== undefined && imageAllowlist.images !== null) {
-    if (!Array.isArray(imageAllowlist.images)) {
-      errors.push({ file: IMAGE_ALLOWLIST_FILE, message: 'images는 목록으로 적어요.' });
-    } else {
-      imageAllowlist.images.forEach((item, index) => {
-        if (!isPlainObject(item) || typeof item.path !== 'string' || item.path.trim() === '' || /[*?]/u.test(item.path)) {
-          errors.push({
-            file: IMAGE_ALLOWLIST_FILE,
-            message: `images의 ${index + 1}번째 항목: path에 이미지 하나의 정확한 경로를 적어요(패턴 없이, 한 장씩 확인).`,
-          });
-          return;
-        }
-        imageReviews.set(item.path.normalize('NFC'), item);
-      });
-    }
-  }
 
   const originalFolderNames = originalFolderNamesFromGitignore(readOptional('.gitignore') ?? '');
   const documentNames = [
@@ -961,6 +978,9 @@ export function readIndexFiles(rootDir) {
 export function runRepoCheck({ rootDir }) {
   const { rules, errors } = loadRepoRules(rootDir);
   const files = readIndexFiles(rootDir);
+  const imageRecords = collectImageRecords(files);
+  rules.imageReviews = imageRecords.records;
+  errors.push(...imageRecords.errors);
   const problems = checkRepoFiles(files, rules);
   for (const error of errors) {
     problems.push({ kind: 'config', path: error.file, detail: error.message });

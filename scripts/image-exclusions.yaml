@@ -1,0 +1,84 @@
+# 원고 이미지 추출 도구(scripts/extract-lesson-images.mjs)가 꺼내지 않는 쪽 — PLAN §9.3 2번, INVENTORY §5.1·§6, 운영자 할 일 4·7번
+#
+# 여기에 적힌 쪽은 차시 그림 목록(content/lessons/**/<차시>.images.yaml)에 적어도 도구가 꺼내지 않고 멈춰요(기본 거부).
+# - override: never   어떤 경우에도 꺼내지 않아요(표지 학교명, 홍보 이미지 속 인물, 쓰지 않기로 한 화면).
+# - override: region  얼굴·경로·기기 주소가 없는 부분만 쪽 좌표(region)로 잘라 꺼낼 수 있어요. 이때 그림 항목에
+#                     privacy_override(무엇을 잘라 냈는지)를 적어야 하고, kind가 face인 쪽은 꺼낸 그림에서 얼굴 검출이
+#                     하나라도 나오면 도구가 그림을 지우고 멈춰요(엄격 검사). 그 뒤에도 사람이 한 장씩 눈으로 확인해요.
+#                     그림 번호(image)로 꺼내는 방법은 쓸 수 없어요 — 쪽에서 가려진 부분(카드 뒤에 숨은 사진 등)까지 나오기 때문이에요.
+# - kind: face(얼굴) · path(화면 속 기관 경로·사적인 파일 이름) · device-address(블루투스 기기 주소) ·
+#         school-name(학교명) · classroom(학급 게시물 화면) · content(학교 배포물로 알맞지 않은 문구)
+# - pages: 교과서 원고(U1·U2A·U2B·U2C·U3)는 인쇄 쪽 번호, 블루투스 교안(BT)은 PDF 쪽 번호(p).
+#   한 쪽이 여러 항목에 걸리면 모두 합쳐 봐요(never가 하나라도 있으면 never, face가 하나라도 있으면 엄격 얼굴 검사).
+#
+# 이 파일은 차시를 쓰는 구역이 고치지 않아요. 운영자가 할 일 4번(얼굴이 본인인지)·7번(학교명 공개)에 답했을 때만 고치고,
+# 줄을 뺄 때는 tests/unit/lesson-images.test.ts의 기준 목록도 함께 고쳐야 해요(실수로 빠지지 않게 테스트가 지켜요).
+
+exclusions:
+  # ── 얼굴 ──
+  - source: U1
+    pages: [13, 15, 16, 33]
+    kind: face
+    override: region
+    reason: 교복 차림 청소년·증명사진 형태 인물·스마트폰 화면 속 인물의 얼굴(실존 여부 미확인). 같은 쪽의 손·동물·풍경 컷만 쓸 수 있어요.
+  - source: U1
+    pages: [29, 34, 35, 37, 40]
+    kind: face
+    override: region
+    reason: 실행 화면 캡처 속 성인 얼굴(운영자 할 일 4번 — 답이 오기 전까지 공개하지 않음). 손만 잘라 쓰거나 사이트가 그린 그림으로 대체해요.
+  - source: U3
+    pages: [194, 200, 202, 204, 206]
+    kind: face
+    override: region
+    reason: 실행 화면 속 인물 얼굴(운영자 할 일 4번). 손만 잘라 쓰거나 사이트가 그린 그림으로 대체해요.
+  - source: BT
+    pages: [9, 84, 91]
+    kind: face
+    override: region
+    reason: 웹캠 창 속 성인 얼굴(운영자 할 일 4번). p91은 바탕화면 아이콘 이름·작업표시줄 날짜도 보여요.
+  - source: BT
+    pages: [5]
+    kind: face
+    override: never
+    reason: MediaPipe 홍보 이미지 속 인물 2명의 얼굴(외부 홍보 이미지라 본인 확인 대상도 아님). 사이트가 그린 그림(S13 등)으로 대체해요.
+
+  # ── 화면 속 기관 경로·사적인 파일 이름 ──
+  - source: BT
+    pages: [6, 51, 58, 72, 74, 75, 91]
+    kind: path
+    override: region
+    reason: 기관 계정 클라우드 폴더 경로, 사적인 폴더·파일 이름이 보이는 화면. 그 부분을 뺀 영역만 쓸 수 있어요.
+  - source: U2B
+    pages: [156]
+    kind: path
+    override: region
+    reason: 학교명으로 보이는 폴더 경로와 작업 파일 목록이 보이는 캡처.
+
+  # ── 기기 주소 ──
+  - source: U3
+    pages: [197, 198]
+    kind: device-address
+    override: region
+    reason: 블루투스 기기 주소(MAC)가 보이는 콘솔 화면. 주소가 없는 영역만 쓸 수 있어요(예제는 XX:XX:XX:XX:XX:XX 자리표시자).
+  - source: BT
+    pages: [72, 75, 76, 80]
+    kind: device-address
+    override: region
+    reason: 블루투스 기기 주소(MAC)가 보이는 화면.
+
+  # ── 학교명·학급 게시물·부적절한 문구 ──
+  - source: BT
+    pages: [1]
+    kind: school-name
+    override: never
+    reason: 표지의 학교명(운영자 할 일 7번 — 답이 오기 전까지 공개하지 않음). 표지 그림은 쓸 필요가 없어요.
+  - source: BT
+    pages: [71, 73, 79, 82, 86, 89]
+    kind: classroom
+    override: never
+    reason: 학급 게시물(클래스룸) 화면. 사이트에 필요 없어 쓰지 않아요.
+  - source: U1
+    pages: [21]
+    kind: content
+    override: never
+    reason: 누리집 캡처 상단의 정치적 문구 배너(학교 배포물로 알맞지 않음). 설치 화면이라 사이트에 필요도 없어요.
