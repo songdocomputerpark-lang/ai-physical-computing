@@ -515,7 +515,9 @@ sources:
   - name: MQTT.js 5.15.2
     category: stack
     author: MQTT.js contributors, Adam Rudd
-    license: MIT
+    # 번들에 함께 묶인 구성요소까지(2026-09-25 Phase 4 검토 반영 — @jspm/core는 Apache-2.0, ieee754는 BSD-3-Clause, inherits·split2는 ISC,
+    # lru-cache는 BlueOak-1.0.0, tslib는 0BSD). 구성은 번들 파일의 원본 표시 "// node_modules/…"로 확인한다(고지 파일 머리말).
+    license: MIT AND Apache-2.0 AND BSD-3-Clause AND ISC AND BlueOak-1.0.0 AND 0BSD
     url: https://github.com/mqttjs/MQTT.js
     used_in: "통신 실습실의 MQTT 통로(P4-06) — 브라우저에서 공개 브로커에 WebSocket(wss)으로 잇고 토픽에 발행·구독해요. 백엔드는 없고(절대 원칙 2) 학교망이 막으면 같은 컴퓨터 탭 통로로 대신해요."
     paths:
@@ -590,7 +592,7 @@ sources:
     license: 원 권리자 보유 — 운영자 사용 허락(O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
     url: https://techtotinker.com/025-micropython-technotes-bluetooth-low-energy/
     used_in: "블루투스(BLE) 주변기기 라이브러리 ESP32BLE.py(examples/esp32/lib/third-party/ESP32BLE.py). 교과서 3·4단원과 블루투스 교안의 BLE 예제가 모두 이 파일을 import해요 — 가상 보드는 /board/lib/에 넣고, 실물 보드는 [보드에 저장]이 함께 올려요."
-    rights: "TechToTinker 글(025 - MicroPython TechNotes: Bluetooth Low Energy)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요."
+    rights: "TechToTinker 글(025 - MicroPython TechNotes: Bluetooth Low Energy)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요. 2026-09-25 검토 대조(공식 저장소 읽기만): 2black0/MicroPython-ESP32-BLE의 LICENSE는 MIT \"Copyright (c) 2021 Ardy Seto\"이고 Project/main.py가 같은 뼈대(NUS 서비스 등록, irq 1·2·3, advertiser()의 광고 머리, send()의 줄바꿈)예요. 다만 클래스 이름(BLE ↔ ESP32_BLE)·상태 LED 핀(2 ↔ 12)·깜빡임 주기가 달라 파생인지 단정하지 못했어요 — 운영자 확인 전까지 이 항목 그대로 두고, 확인되면 MIT 고지를 더한 사이트판으로 바꿔요(PROGRESS 운영자 할 일)."
     paths:
       - examples/esp32/lib/third-party/ESP32BLE.py
     fetched: 2026-09-18

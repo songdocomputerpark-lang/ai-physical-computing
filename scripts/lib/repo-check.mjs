@@ -60,6 +60,28 @@ const LINUX_HOME_DIR = /(?<![\w.~%:-])\/home\/([^\\\/\s"'`<>|?*:;,()[\]{}]+)/gu;
 const ONEDRIVE_DIR = /(?<![A-Za-z0-9])OneDrive(?: ?- ?[^\\/\r\n]{1,80}?)?[\\/]/giu;
 const MAC_ADDRESS = /(?<![0-9A-Fa-f:-])[0-9A-Fa-f]{2}([:-])[0-9A-Fa-f]{2}(?:\1[0-9A-Fa-f]{2}){4}(?![0-9A-Fa-f:-])/gu;
 const ALLOWED_MAC_ADDRESSES = new Set(['00:00:00:00:00:00', 'ff:ff:ff:ff:ff:ff', '00-00-00-00-00-00', 'ff-ff-ff-ff-ff-ff']);
+/*
+ * 콜론·붙임표 말고 기기 주소가 적히는 다른 모양(2026-09-25 Phase 4 검토 반영 — 실물 확인 결과를 붙여 넣을 때 새는 구멍).
+ * MicroPython의 wlan.config('mac')·ble.config('mac')는 bytes를 돌려주고, 학생·교사는 그 print 결과나 16진수를 그대로 옮겨 적는다.
+ *  - bytes 글자 하나가 \xHH 정확히 6개로만 된 것(print 결과 모양 — b 뒤 따옴표 안에 \x와 16진수 두 자리가 여섯 번)
+ *  - 점 모양(16진수 네 자리씩 셋을 점으로 이은 것)
+ *  - 같은 줄 앞쪽에 주소 낱말(맥 주소·addr·bssid·주소)이 있을 때만: 구분자 없는 16진수 12자리, 두 자리씩 빈칸으로 띄운 여섯 묶음,
+ *    0x로 시작하는 수 여섯 개를 담은 bytes([…]) — 이 셋은 I2C 명령·MP3 프레임 같은 흔한 6바이트와 헷갈리기 때문이다.
+ * 이 설명에 예시 값을 그대로 적지 않는다(검사가 이 파일 자신을 잡는다 — 예시는 tests/unit/repo-check.test.ts에서 조각을 이어 만든다).
+ */
+const MAC_BYTES_ESCAPE = /\bb(['"])((?:\\x[0-9A-Fa-f]{2}){6})\1/gu;
+const MAC_DOTTED = /(?<![0-9A-Fa-f.])[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}(?![0-9A-Fa-f.])/gu;
+const MAC_NEAR_WORD =
+  /(?:mac|addr|bssid|주소)[^\n]{0,40}?(?:(?<![0-9A-Fa-f])([0-9A-Fa-f]{12}|[0-9A-Fa-f]{2}(?: [0-9A-Fa-f]{2}){5})(?![0-9A-Fa-f])|(\bbytes\(\s*\[\s*0x[0-9A-Fa-f]{1,2}(?:\s*,\s*0x[0-9A-Fa-f]{1,2}){5}\s*,?\s*\]\s*\)))/giu;
+/**
+ * 자리표시자로 보는 값: 여섯 바이트가 모두 00이거나 모두 FF, 또는 사이트가 만든 가상 기기 주소 02:00:00:00:00:xx
+ * (첫 바이트 02 = "직접 정한 주소" 표시 — 실제 기기에 붙는 번호가 아니다. 가상 보드 network·bluetooth 흉내가 쓴다).
+ * @param {string} text
+ */
+function isPlaceholderMacValue(text) {
+  const digits = text.replace(/\\x|0x|[^0-9A-Fa-f]/giu, '').toLowerCase();
+  return /^0+$/u.test(digits) || /^f+$/u.test(digits) || /^0200000000[0-9a-f]{2}$/u.test(digits);
+}
 /** 이메일 주소 모양(사용자@도메인.최상위) */
 const EMAIL_ADDRESS = /(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+)@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})(?![A-Za-z0-9-])/gu;
 /**
@@ -129,6 +151,12 @@ const PROBLEM_KINDS = Object.freeze({
     fix:
       `이미지를 한 장씩 열어 얼굴·이름·경로·파일명·기기 주소·학교명이 없는지 보고 ${IMAGE_ALLOWLIST_FILE}에 reviewed(by·date·result)를 적어요. ` +
       '글·코드 파일 안에 data: 주소로 넣은 그림은 되도록 파일로 빼서 public/images/에 두고 그 파일을 기록해요.',
+  },
+  'nul-text': {
+    title: 'NUL 바이트가 든 글 파일',
+    fix:
+      '글·코드 파일(이진 확장자가 아닌 파일)의 앞부분에 NUL 바이트가 있으면 개인정보 검사가 그 파일을 이진 파일로 보고 건너뛰어요. ' +
+      '이진 파일이면 알맞은 확장자로 저장하고, 글 파일이면 NUL 바이트를 지워요(코드에서 NUL이 필요하면 이스케이프 글자로 적어요).',
   },
   config: {
     title: '허용 목록 형식 오류',
@@ -370,6 +398,22 @@ export function findPrivacyPatterns(text, options = {}) {
       findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양(${match[0].slice(0, 2)}${match[1]}…, 나머지는 가려서 표시)`);
     }
   }
+  for (const match of text.matchAll(MAC_BYTES_ESCAPE)) {
+    if (!isPlaceholderMacValue(match[2] ?? '')) {
+      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양 — bytes 글자(\\x 여섯 개, 값은 가려서 표시)`);
+    }
+  }
+  for (const match of text.matchAll(MAC_DOTTED)) {
+    if (!isPlaceholderMacValue(match[0])) {
+      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양 — 점 모양(값은 가려서 표시)`);
+    }
+  }
+  for (const match of text.matchAll(MAC_NEAR_WORD)) {
+    const value = match[1] ?? match[2] ?? '';
+    if (!isPlaceholderMacValue(value)) {
+      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양 — 주소 낱말 옆의 여섯 바이트(값은 가려서 표시)`);
+    }
+  }
   if (!skipKinds.has('email')) {
     for (const match of text.matchAll(EMAIL_ADDRESS)) {
       if (!isPlaceholderEmail(match[1], match[2])) {
@@ -573,6 +617,10 @@ export function checkRepoFiles(files, rules) {
 
     // 래스터 이미지는 저장소 어디에 있든(tests/·.github/·뿌리 포함) 눈 확인 기록이 있어야 한다. 공개 저장소라 폴더가 어디든 보이기 때문이다.
     const text = file.content ? decodeTextContent(filePath, file.content) : null;
+    if (file.content && text === null && !BINARY_EXTENSIONS.has(extension)) {
+      // 이진 확장자가 아닌데 글로 읽지 못했다 = 앞부분에 NUL이 있다. 예전에는 조용히 건너뛰어 개인정보 검사를 피하는 구멍이 됐다(2026-09-25 검토 반영).
+      problems.push({ kind: 'nul-text', path: filePath, detail: '앞부분 8000바이트 안에 NUL 바이트가 있어 글로 읽지 못했어요.' });
+    }
     const embeddedRaster = text !== null && EMBEDDED_RASTER.test(text);
     if (RASTER_IMAGE_EXTENSIONS.has(extension) || embeddedRaster) {
       const problem = describeReviewProblem(rules.imageReviews.get(filePath));

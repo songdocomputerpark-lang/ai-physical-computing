@@ -301,6 +301,48 @@ describe('원본 이름 목록 만들기', () => {
   it('findPrivacyPatterns는 줄 번호를 알려 준다', () => {
     expect(findPrivacyPatterns(`첫 줄\n둘째 줄 ${realLookingMac}`)).toEqual([expect.stringContaining('2번째 줄: MAC 주소 모양')]);
   });
+
+  // 2026-09-25 Phase 4 검토 반영(S8): 콜론·붙임표 말고도 기기 주소가 적히는 모양 — MicroPython config('mac')의 bytes print 결과 등.
+  it('bytes 글자·점·주소 낱말 옆 12자리·빈칸·bytes([0x…]) 모양의 기기 주소도 찾고, 흔한 6바이트와 가상 주소는 통과시킨다', () => {
+    const pairs = ['02', '11', '22', '33', '44', '55'];
+    const escape = ['b"', ...pairs.map((pair) => ['\\', 'x', pair].join('')), '"'].join('');
+    const dotted = ['0211', '2233', '4455'].join('.');
+    const bare = pairs.join('');
+    const spaced = pairs.join(' ');
+    const list = `bytes([${pairs.map((pair) => `0x${pair}`).join(', ')}])`;
+    const found = {
+      escape: findPrivacyPatterns(`print(${escape})`),
+      dotted: findPrivacyPatterns(`기록 ${dotted}`),
+      bare: findPrivacyPatterns(`mac = "${bare}"`),
+      spaced: findPrivacyPatterns(`보드 주소: ${spaced}`),
+      list: findPrivacyPatterns(`addr = ${list}`),
+    };
+    for (const [shape, findings] of Object.entries(found)) {
+      expect({ shape, count: findings.length }).toEqual({ shape, count: 1 });
+      expect(findings[0]).toContain('MAC 주소 모양');
+      expect(findings.join('\n')).not.toContain(bare);
+    }
+    // 주소 낱말이 없는 6바이트(I2C 명령·MP3 프레임·16진수 기록)와 사이트 가상 주소(02:00:00:00:00:xx), 전부 0·FF는 통과
+    const virtual = ['b"', ...['02', '00', '00', '00', '00', '01'].map((pair) => ['\\', 'x', pair].join('')), '"'].join('');
+    const zeros = ['b"', ...Array(6).fill(['\\', 'x', '00'].join('')), '"'].join('');
+    expect(findPrivacyPatterns(`i2c.writeto(0x3C, ${list})`)).toEqual([]);
+    expect(findPrivacyPatterns(`받은 바이트 ${spaced}`)).toEqual([]);
+    expect(findPrivacyPatterns(`return ${virtual}`)).toEqual([]);
+    expect(findPrivacyPatterns(`mac = ${zeros}`)).toEqual([]);
+    expect(findPrivacyPatterns(`sha256 ${'0123456789abcdef'.repeat(4)}`)).toEqual([]);
+  });
+
+  it('이진 확장자가 아닌 파일의 앞부분에 NUL이 있으면 건너뛰지 않고 알린다(개인정보 검사를 피하는 구멍)', () => {
+    const nul = String.fromCharCode(0);
+    const problems = checkRepoFiles(
+      [
+        repoFile('docs/notes.md', `기록${nul}${realLookingMac}`),
+        repoFile('public/models/a.bin', `x${nul}y`),
+      ],
+      rules(),
+    );
+    expect(problemKeys(problems)).toEqual(['nul-text:docs/notes.md']);
+  });
 });
 
 describe('git 인덱스 검사(runRepoCheck, scripts/check-repo.mjs)', () => {
