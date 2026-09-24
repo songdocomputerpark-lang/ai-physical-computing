@@ -10,6 +10,18 @@ import { withParticle } from '../../../lib/korean.ts';
 import { baudLabel } from './baud-rates.ts';
 import type { DataPortState } from './data-port.ts';
 
+/**
+ * 이름표에 "이/가"를 붙인다. "데이터 포트(CP210x)"처럼 괄호로 끝나면 괄호 앞 낱말에 붙인다 → "데이터 포트가(CP210x)"
+ * (괄호 안이 영어라 끝소리를 몰라 "이(가)"로 적히던 것 — 2026-09-25 Phase 4 검토 반영).
+ */
+export function subjectOf(labelText: string): string {
+  const match = /^(.*[^\s(])\s*(\([^()]*\))$/u.exec(labelText);
+  if (match !== null && match[1] !== undefined && match[2] !== undefined) {
+    return `${withParticle(match[1], '이/가')}${match[2]}`;
+  }
+  return withParticle(labelText, '이/가');
+}
+
 export const dataPortText = {
   /** 통로 목록·패널에 늘 보이는 안내(공개 브로커 경고와 같은 자리) */
   channelNotice(): string {
@@ -32,7 +44,7 @@ export const dataPortText = {
         return '포트를 여는 중이에요.';
       case 'open':
         // 이름표는 학생이 적는 글("자리 3", "변환기")이라 조사를 골라 붙인다(src/lib/korean.ts)
-        return `${withParticle(labelText, '이/가')} ${baudLabel(baudRate)}로 열려 있어요.`;
+        return `${subjectOf(labelText)} ${baudLabel(baudRate)}로 열려 있어요.`;
       case 'closing':
         return '포트를 닫는 중이에요.';
       case 'error':

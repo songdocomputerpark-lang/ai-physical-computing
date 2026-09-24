@@ -16,7 +16,9 @@ ESP32 실습실의 USB-UART 변환기 부품 → 보드 UART2. 반대 방향은 
 속도(baudrate)는 그대로 실려 가서 보드와 다르면 **실물처럼 글자가 깨진다**(속도 불일치 실습, §8.4 설계 메모 ④).
 
 규칙(PROGRESS 미해결 25번): 초기화 함수(_reset)는 동기 진입점이라 양보하는 함수(get·poll·sleep·request)를 쓰지 않고 drain만 쓴다.
-라이선스: 사이트 소프트웨어(MIT, PD-26). pyserial 자체를 옮겨 오지 않고 **같은 사용법만** 흉내 낸다.
+라이선스: 사이트 소프트웨어(MIT, PD-26). pyserial 자체를 옮겨 오지 않고 **같은 사용법만** 흉내 낸다 — 이름·상수·오류 문구는
+진짜와 같게 맞추되 코드는 새로 적었다(to_bytes도 2026-09-25 새로 적음: 전에는 pyserial 3.5의 같은 함수와 분기 차례까지 같았다.
+pyserial은 (C) 2001-2020 Chris Liechti, BSD-3-Clause).
 """
 
 import apc_runtime
@@ -79,15 +81,13 @@ class PortNotOpenError(SerialException):
 
 
 def to_bytes(seq):
-    """pyserial 3.5 serialutil.to_bytes와 같다 — str을 주면 TypeError로 "bytes로 바꿔서 주세요"라고 알려 준다."""
-    if isinstance(seq, bytes):
-        return seq
-    if isinstance(seq, bytearray):
-        return bytes(seq)
-    if isinstance(seq, memoryview):
-        return seq.tobytes()
+    """보낼 값을 bytes로 바꾼다. 진짜 pyserial처럼 str은 받지 않는다 — 오류 문구만 pyserial과 똑같이 맞춰
+    학생이 문구로 찾아봐도 같은 답(.encode()로 바꾸기)을 찾게 한다. 동작은 사이트가 새로 적었다(2026-09-25 Phase 4 검토 반영)."""
     if isinstance(seq, str):
         raise TypeError("unicode strings are not supported, please encode to bytes: {!r}".format(seq))
+    if isinstance(seq, (bytes, bytearray, memoryview)):
+        return bytes(seq)
+    # 정수 목록 같은 나머지는 bytearray를 거쳐 바꾼다(0~255 밖이면 ValueError — 진짜와 같다)
     return bytes(bytearray(seq))
 
 

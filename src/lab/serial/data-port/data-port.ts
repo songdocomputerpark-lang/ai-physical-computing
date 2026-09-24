@@ -102,7 +102,7 @@ const PROBLEM_TEXT: Readonly<Record<DataPortProblemCode, { text: string; advice:
   },
   'port-in-use': {
     text: '그 포트는 이 페이지가 이미 쓰고 있어요(코드를 보내는 보드 포트일 거예요).',
-    advice: '데이터 포트는 **다른** 포트예요. 변환기를 꽂은 쪽을 골라요. 포트가 하나뿐이면 [실제 보드] 탭에서 [연결 끊기]를 먼저 눌러요.',
+    advice: '데이터 포트는 보드 포트와 다른 포트예요. 변환기를 꽂은 쪽을 골라요. 포트가 하나뿐이면 [실제 보드] 탭에서 [연결 끊기]를 먼저 눌러요.',
   },
   'port-busy': {
     text: '다른 프로그램이 그 포트를 쓰고 있어요.',

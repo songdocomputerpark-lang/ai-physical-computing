@@ -192,7 +192,14 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
   );
 
   // 패널은 코드가 시리얼을 쓸 때만 연다. 다른 모듈이 열고 싶으면 창 이벤트로 알린다.
-  const gate = showPanelWhenUsed(context, DATA_PORT_CODE_PATTERN);
+  // ESP32 실습실은 [실제 보드] 탭일 때만 연다 — 가상 보드의 UART는 선(브릿지)으로 이어져 실물 포트 단추가 필요 없는데,
+  // 보이면 누를 필요 없는 [데이터 포트 연결]을 눌러 보게 된다(2026-09-25 Phase 4 검토 반영). 이미 연결했으면 그대로 둔다.
+  const realTargetOnly = context.labId === 'esp32';
+  const gate = showPanelWhenUsed(context, DATA_PORT_CODE_PATTERN, {
+    also: () => !realTargetOnly || (context.root.dataset.runTarget ?? '') !== '' || ['choosing', 'opening', 'open'].includes(connection.snapshot.state),
+    watchAttributes: realTargetOnly ? ['data-run-target'] : [],
+  });
+  cleanups.push(() => gate.dispose());
   listen(window, DATA_PORT_SHOW_EVENT, () => gate.show());
 
   if (connectButton) {
