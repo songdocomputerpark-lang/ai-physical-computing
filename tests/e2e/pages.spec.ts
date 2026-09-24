@@ -293,7 +293,7 @@ test.describe('좁은 화면(375px)', () => {
   test.skip(({ isMobile }) => !isMobile, '모바일 화면에서만 확인한다');
 
   test('이 담당의 페이지가 화면보다 넓어지지 않는다', async ({ page }) => {
-    const paths = ['./labs/', './labs/vision/', './labs/esp32/check/', './teacher/', './help/', './contribute/', './search/?q=카메라', './no-such-page/'];
+    const paths = ['./labs/', './labs/vision/', './labs/esp32/check/', './labs/iot/', './teacher/', './help/', './contribute/', './search/?q=카메라', './no-such-page/'];
     for (const pagePath of paths) {
       await page.goto(pagePath);
       const { overflow, offenders } = await horizontalOverflow(page);

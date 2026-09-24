@@ -197,7 +197,23 @@ test.describe('좁은 화면', () => {
   test('가로로 넘치지 않는다', async ({ page }) => {
     test.skip(test.info().project.name !== 'mobile', '좁은 화면에서만 본다.');
     await openGallery(page);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow).toBeLessThanOrEqual(0);
+    // 넘치면 화면 오른쪽 끝을 넘는 가장 안쪽 요소를 함께 알린다 — CI(리눅스 글꼴)에서만 넘친 적이 있어(2026-09-24 통합, 10px)
+    // 로컬에서 재현하기 어렵다. 실패 메시지만 보고 고칠 곳을 찾게 한다(pages.spec.ts의 horizontalOverflow와 같은 방법).
+    const { overflow, offenders } = await page.evaluate(() => {
+      const width = document.documentElement.clientWidth;
+      const found: string[] = [];
+      for (const element of document.querySelectorAll('body *')) {
+        const rect = element.getBoundingClientRect();
+        const deeper = [...element.children].some((child) => child.getBoundingClientRect().right > width + 0.5);
+        if (rect.width > 0 && rect.right > width + 0.5 && !deeper) {
+          found.push(`${element.tagName.toLowerCase()}.${element.getAttribute('class') ?? ''}(오른쪽 끝 ${Math.round(rect.right)}px) "${(element.textContent ?? '').trim().slice(0, 40)}"`);
+        }
+        if (found.length >= 5) {
+          break;
+        }
+      }
+      return { overflow: document.documentElement.scrollWidth - width, offenders: found };
+    });
+    expect(overflow, `넘치는 요소: ${offenders.join(' | ')}`).toBeLessThanOrEqual(0);
   });
 });

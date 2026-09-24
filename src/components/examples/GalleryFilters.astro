@@ -104,6 +104,8 @@ const { groups, virtualOkCount, total } = Astro.props;
 
   .gallery-filters__search {
     display: grid;
+    /* 칸 폭을 상자 폭에 묶는다 — 글 입력칸의 기본 폭(글자 20개)은 글꼴마다 달라, 리눅스 CI(한글 대체 글꼴이 넓음)에서 375px 화면을 10px 넘겼다(2026-09-24 통합 CI) */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-1);
     max-width: 32rem;
   }
@@ -114,6 +116,8 @@ const { groups, virtualOkCount, total } = Astro.props;
   }
 
   .gallery-filters__input {
+    width: 100%;
+    min-width: 0;
     min-height: var(--target-min);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);
@@ -130,6 +134,8 @@ const { groups, virtualOkCount, total } = Astro.props;
   }
 
   .gallery-filters__group {
+    /* fieldset은 기본으로 내용보다 좁아지지 않는다(min-inline-size: min-content) — 좁은 화면에서 칸을 밀어내지 않게 푼다 */
+    min-inline-size: 0;
     margin: 0;
     padding: 0;
     border: 0;
@@ -152,6 +158,7 @@ const { groups, virtualOkCount, total } = Astro.props;
   }
 
   .gallery-chip {
+    max-width: 100%;
     display: inline-flex;
     gap: var(--space-2);
     align-items: center;
