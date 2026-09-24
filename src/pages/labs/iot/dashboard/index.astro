@@ -1,0 +1,94 @@
+---
+/**
+ * 대시보드(P4-07, 시나리오 D) — 보드가 보낸 값을 그래프·게이지로 보고, 스위치로 보드를 움직이는 화면.
+ *
+ * 화면은 `src/components/lab/dashboard/DashboardBoard.astro`, 움직임은 `src/lab/dashboard/`(`mountDashboard`).
+ * 값은 MQTT 통로(`src/lab/mqtt/`)로 오간다: 기본은 **같은 컴퓨터 탭**이라 인터넷이 없어도 실습이 끝까지 된다(PD-17).
+ *
+ * 주소는 통신 실습실 아래 `/labs/iot/dashboard/`다(2026-09-24 Phase 4 통합 — SPEC §6.3 "통신 실습실"의 마지막 계단이 대시보드라서
+ * 사이트 지도에서 통신 실습실의 아래 페이지로 두었다). 제목·설명·현재 위치는 사이트 지도(`src/config/nav.ts`)의 `labs-iot-dashboard`에서 온다.
+ */
+import Callout from '../../../../components/common/Callout.astro';
+import BrowserNotice from '../../../../components/compat/BrowserNotice.astro';
+import ClearRecordsButton from '../../../../components/lab/ClearRecordsButton.astro';
+import DashboardBoard from '../../../../components/lab/dashboard/DashboardBoard.astro';
+import { labLink } from '../../../../components/lesson/lesson-data.ts';
+import { getPage } from '../../../../config/nav.ts';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+
+const page = getPage('labs-iot-dashboard');
+const title = page.title;
+const description = page.description;
+const iot = getPage('labs-iot');
+const esp32 = getPage('labs-esp32');
+const errors = getPage('help-errors');
+// 직접 짜 보는 보드 코드: 통신 템플릿 3(와이파이 + MQTT — 같은 토픽 esp32-01/tx·rx, 허용 명령 on·off·blink, 2026-09-24 통합)
+const mqttTemplate = labLink('esp32', 'esp32/templates/mqtt-pub-sub.py');
+---
+
+<BaseLayout title={title} description={description} width="wide">
+  <BrowserNotice slot="notice" />
+  <h1 class="page-title">{title}</h1>
+  <p class="lead">
+    보드가 보낸 값이 <strong>실시간 그래프</strong>와 <strong>게이지</strong>로 보이고, <strong>스위치</strong>를 누르면 보드의 LED가 켜져요.
+    오고 간 메시지는 <strong>텍스트 로그</strong>에 그대로 쌓여요. 하드웨어가 없어도 가상 보드로 끝까지 해 볼 수 있어요.
+  </p>
+
+  <div class="prose" data-embed-hide>
+    <Callout type="주의" title="공개 중계 서버에는 개인정보를 보내지 않아요">
+      <p>
+        공개 중계 서버(MQTT)는 <strong>누구나 보고, 누구나 보낼 수도 있어요.</strong> 이름, 연락처, 사진 같은 개인정보를 보내지 말고,
+        레이저나 모터처럼 움직이는 장치는 연결하지 마세요. 수업에서는 인터넷이 필요 없는 <strong>[같은 컴퓨터 탭]</strong>으로 먼저 해 보면 돼요.
+      </p>
+    </Callout>
+  </div>
+
+  <DashboardBoard />
+
+  <div class="prose" data-embed-hide>
+    <h2 id="how">이렇게 해 봐요</h2>
+    <ol>
+      <li><strong>연결</strong>: 통로를 [같은 컴퓨터 탭]으로 두고 [연결]을 눌러요.</li>
+      <li><strong>보드 열기</strong>: [이 자리에서 가상 보드 열기]를 누르고, 실습실에서 [실행]을 눌러요.</li>
+      <li><strong>보기</strong>: 그래프와 게이지에 값이 들어오고, 로그에 주고받은 줄이 쌓여요.</li>
+      <li><strong>보내기</strong>: 스위치를 누르면 보드의 파란 LED(GPIO2)가 켜지고, 다시 누르면 꺼져요.</li>
+      <li><strong>직접 짜 보기</strong>: 보드 코드를 스스로 고쳐 보려면 ESP32 실습실에서 <a href={mqttTemplate.href}>통신 템플릿 3(와이파이 + MQTT)</a>을 열어요. 같은 토픽을 써서 이 대시보드와 그대로 주고받아요.</li>
+      <li><strong>두 탭으로</strong>: 새 탭에서 <a href={esp32.href}>{esp32.title}</a>을 열고, 이 화면의 통신 접두어를 그 탭의 MQTT 칸 [친구 접두어]에 넣어 맞추면 탭끼리도 똑같이 돼요.</li>
+    </ol>
+
+    <h2 id="topics">토픽 이름</h2>
+    <p>
+      토픽은 <code>esp32-01/tx</code>(보드 → 대시보드), <code>esp32-01/rx</code>(대시보드 → 보드)처럼 짧게 적어요.
+      가상 보드에서는 우리 반 통신 접두어(무작위 12글자)를 사이트가 앞에 붙여 줘요. 실제 보드는 스스로 붙이지 못하므로, 실물과 함께 쓸 때는
+      코드의 토픽 앞에 이 화면의 접두어를 적어요(예: <code>접두어12글자/esp32-01/tx</code>). 이미 접두어로 시작하는 토픽은 가상 보드도 한 번 더 붙이지 않아요.
+      값이 <code>DATA,120,80</code>처럼 여러 개면 위젯 [설정]의 "몇 번째 값"으로 골라요.
+    </p>
+    <p>
+      보드 없이 <strong>대시보드끼리만</strong> 주고받는 값은 <code>dash/온도</code>처럼 <code>dash/</code>로 시작하는 토픽을 써요.
+      한 위젯이 여러 토픽을 보려면 <code>+</code>(한 칸)와 <code>#</code>(그 아래 전부)을 쓸 수 있어요. 예: <code>esp32-01/#</code>
+    </p>
+    <p>
+      영상처리 실습실의 [보내기] 패널이 같은 접두어로 보낸 값은 <code>bridge/pc</code> 토픽으로 들어와요(가상 보드가 보낸 값은{' '}
+      <code>bridge/board</code>). 손가락 개수처럼 카메라가 알아낸 값을 그래프로 보고 싶을 때 위젯 [설정]에 이 토픽을 적어요.
+    </p>
+
+    <h2 id="keyboard">키보드로 옮기기</h2>
+    <p>
+      위젯 제목(손잡이)에서 <kbd>Tab</kbd>으로 이동한 뒤 <kbd>방향키</kbd>로 자리를 옮기고, <kbd>Shift</kbd>+<kbd>방향키</kbd>로 크기를 바꿔요.
+      마우스로 끌어서 옮겨도 결과는 같아요. 배치는 이 컴퓨터에만 저장돼요.
+    </p>
+    <p>값이 들어오지 않거나 오류가 보이면 <a href={errors.href}>{errors.title}</a>에서 메시지를 찾아봐요.</p>
+    <p>유선(시리얼)·블루투스·MQTT를 차례로 해 보는 실습은 <a href={iot.href}>{iot.title}</a>에 모여 있어요.</p>
+
+    <ClearRecordsButton />
+  </div>
+</BaseLayout>
+
+<script>
+  import { mountDashboard } from '../../../../lab/dashboard/index.ts';
+
+  const root = document.querySelector<HTMLElement>('[data-dash-page]');
+  if (root !== null) {
+    mountDashboard(root);
+  }
+</script>
