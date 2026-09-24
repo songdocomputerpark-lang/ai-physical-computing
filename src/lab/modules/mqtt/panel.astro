@@ -1,0 +1,281 @@
+---
+/**
+ * MQTT 통신 패널(P4-06, src/lab/README.md 4.5). LabShell이 [data-lab-module-panel="mqtt"] 안에 hidden으로 그려 두고,
+ * index.ts의 mount가 코드에 umqtt·network가 보일 때 showPanel()로 연다(placement 'wide' — 콘솔 위 전체 폭).
+ * 이 파일은 HTML·CSS만 그리고 동작은 index.ts가 data-mqtt-* 표시로 찾아 잇는다.
+ *
+ * 화면에 **늘** 보이는 것(PLAN §7.4, PD-29): 통로 안내 글. 공개 중계 서버를 고르면 "누구나 보고 보낼 수도 있어요" 경고로 바뀐다.
+ * 중계 서버 목록은 설정 한 곳(src/lab/mqtt/brokers.ts)에서 가져와 그린다 — 주소를 바꿀 때 이 파일을 고치지 않는다.
+ */
+import { getPage } from '../../../config/nav.ts';
+import { MQTT_BROKERS } from '../../mqtt/brokers.ts';
+
+// 대시보드는 통신 실습실 아래 페이지다(/labs/iot/dashboard/ — 사이트 지도 labs-iot-dashboard, 2026-09-24 통합).
+const dashboardHref = getPage('labs-iot-dashboard').href;
+---
+
+{/* 뿌리에는 상태만 적는다 — data-mqtt-mode는 아래 고르기 상자의 표시라 이름이 겹치지 않게 뿌리는 data-mqtt-mode-value를 쓴다. */}
+<div class="mqtt" data-mqtt-panel data-mqtt-state="idle" data-mqtt-via="" data-mqtt-mode-value="tab">
+  <p class="mqtt__intro">
+    MQTT는 여러 기기가 <strong>중계 서버</strong>를 거쳐 짧은 메시지를 주고받는 방법이에요. 코드에서{' '}
+    <code>from umqtt.simple import MQTTClient</code>를 쓰면 여기에서 통로를 고를 수 있어요. 기본은{' '}
+    <strong>같은 컴퓨터 탭</strong>이라 인터넷이 없어도 실습할 수 있어요.
+  </p>
+
+  <p class="mqtt__warning" data-mqtt-warning data-mqtt-level="info" aria-live="polite"></p>
+
+  {/* 값을 그림으로 보고 스위치로 보드를 움직이려면 대시보드(P4-07)를 연다. 새 탭이라 통신 접두어가 다를 수 있어 맞추는 법을 함께 적는다. */}
+  <p class="mqtt__note">
+    보내는 값을 그래프로 보려면{' '}
+    <a href={dashboardHref} target="_blank" rel="noopener" data-mqtt-dashboard-link>대시보드를 새 탭에서 열어요</a>. 두 탭의 통신 접두어가 다르면 대시보드의
+    [친구 접두어] 칸에 아래 접두어를 넣고 [맞추기]를 눌러요.
+  </p>
+
+  <div class="mqtt__grid">
+    <div class="mqtt__row">
+      <label class="mqtt__label" for="lab-module-mqtt-mode">통로</label>
+      <select id="lab-module-mqtt-mode" class="lab__select mqtt__select" data-mqtt-mode>
+        <option value="tab">같은 컴퓨터 탭(인터넷 없이)</option>
+        <option value="broker">공개 중계 서버</option>
+        <option value="auto">중계 서버 먼저, 안 되면 탭</option>
+      </select>
+    </div>
+
+    <div class="mqtt__row">
+      <label class="mqtt__label" for="lab-module-mqtt-broker">중계 서버</label>
+      <select id="lab-module-mqtt-broker" class="lab__select mqtt__select" data-mqtt-broker>
+        {MQTT_BROKERS.map((broker) => <option value={broker.id}>{broker.label}{broker.url === '' ? '' : ` — ${broker.url}`}</option>)}
+      </select>
+    </div>
+
+    <div class="mqtt__row" data-mqtt-broker-url-row hidden>
+      <label class="mqtt__label" for="lab-module-mqtt-broker-url">서버 주소</label>
+      <input
+        id="lab-module-mqtt-broker-url"
+        class="mqtt__input mqtt__input--wide"
+        type="text"
+        data-mqtt-broker-url
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="wss://broker.example.org:8084/mqtt"
+      />
+    </div>
+
+    <p class="mqtt__note" data-mqtt-broker-note></p>
+
+    <div class="mqtt__row">
+      <span class="mqtt__label" id="lab-module-mqtt-prefix-label">통신 접두어</span>
+      <code class="mqtt__prefix" data-mqtt-prefix aria-labelledby="lab-module-mqtt-prefix-label"></code>
+      <button type="button" class="lab-button lab-button--small" data-mqtt-new-prefix>새로 만들기</button>
+      <button type="button" class="lab-button lab-button--small" data-mqtt-pin aria-pressed="false">이 접두어 고정</button>
+    </div>
+
+    <div class="mqtt__row">
+      <label class="mqtt__label" for="lab-module-mqtt-friend">친구 접두어</label>
+      <input
+        id="lab-module-mqtt-friend"
+        class="mqtt__input"
+        type="text"
+        data-mqtt-friend
+        autocomplete="off"
+        spellcheck="false"
+        maxlength="12"
+        placeholder="예: 7kq2m9xd4hpt"
+      />
+      <button type="button" class="lab-button lab-button--small" data-mqtt-friend-apply>맞추기</button>
+    </div>
+
+    <div class="mqtt__row">
+      <label class="mqtt__label" for="lab-module-mqtt-device">보드 이름</label>
+      <input
+        id="lab-module-mqtt-device"
+        class="mqtt__input"
+        type="text"
+        data-mqtt-device
+        autocomplete="off"
+        spellcheck="false"
+        maxlength="16"
+        placeholder="esp32-01"
+      />
+      <span class="mqtt__hint-inline">이름·학번 대신 자리 번호를 써요.</span>
+    </div>
+
+    <div class="mqtt__row">
+      <button type="button" class="lab-button lab-button--small" data-mqtt-connect>연결</button>
+      <button type="button" class="lab-button lab-button--small" data-mqtt-disconnect disabled>끊기</button>
+      <span class="mqtt__state" data-mqtt-state-text aria-live="polite">아직 연결하지 않았어요</span>
+    </div>
+  </div>
+
+  <p class="mqtt__wifi" data-mqtt-wifi data-mqtt-wifi-on="false" aria-live="polite"></p>
+  <p class="mqtt__hint" data-mqtt-hint aria-live="polite" hidden></p>
+
+  <h3 class="mqtt__log-title">주고받은 기록</h3>
+  <ul class="mqtt__log" data-mqtt-log aria-live="polite"></ul>
+</div>
+
+<style>
+  .mqtt {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .mqtt__intro,
+  .mqtt__note,
+  .mqtt__hint,
+  .mqtt__wifi {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  .mqtt__intro code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  .mqtt__warning {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+  }
+
+  .mqtt__warning[data-mqtt-level='warn'] {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .mqtt__grid {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  /* 격자 칸은 기본값(min-width: auto)이면 안쪽 내용만큼 넓어져 휴대폰 화면 밖으로 삐져나간다. */
+  .mqtt > *,
+  .mqtt__grid > * {
+    min-width: 0;
+  }
+
+  .mqtt__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .mqtt__label {
+    min-width: 6rem;
+    font-weight: var(--weight-semibold);
+  }
+
+  .mqtt__select {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+
+  .mqtt__input {
+    flex: 1 1 10rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+  }
+
+  .mqtt__input--wide {
+    flex: 1 1 16rem;
+  }
+
+  /* 휴대폰 화면(약 480px 아래): 이름표를 한 줄 위로 올리고 고르기 상자·입력칸을 한 줄 전체로 쓴다.
+     이렇게 하지 않으면 이름표(6rem) + 고르기 상자(12rem) + 단추가 한 줄에 다 들어가지 못해 패널이 화면 밖으로 넘친다
+     (2026-09-18 375×812 실제 브라우저에서 [맞추기] 단추가 화면 밖으로 밀려 눌리지 않던 것을 고침). */
+  @media (max-width: 30rem) {
+    .mqtt__label {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    .mqtt__select,
+    .mqtt__input,
+    .mqtt__input--wide {
+      flex: 1 1 100%;
+    }
+  }
+
+  .mqtt__input:focus-visible,
+  .mqtt__select:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .mqtt__prefix {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: 1em;
+    letter-spacing: 0.04em;
+  }
+
+  .mqtt__hint-inline,
+  .mqtt__state {
+    color: var(--color-text-muted);
+  }
+
+  .mqtt__hint:empty,
+  .mqtt__wifi:empty,
+  .mqtt__note:empty {
+    display: none;
+  }
+
+  .mqtt__log-title {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .mqtt__log {
+    max-height: 9rem;
+    margin: 0;
+    padding: var(--space-2);
+    overflow-y: auto;
+    list-style: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .mqtt__log:empty::after {
+    content: '아직 주고받은 메시지가 없어요.';
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+  }
+
+  .mqtt__log-item {
+    margin: 0;
+    padding: 0.1rem 0;
+    word-break: break-all;
+  }
+
+  .mqtt__log-item[data-mqtt-log-kind='sent'] {
+    color: var(--color-text);
+  }
+
+  .mqtt__log-item[data-mqtt-log-kind='ignored'] {
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+  }
+</style>
