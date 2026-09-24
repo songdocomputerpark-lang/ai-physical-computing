@@ -123,8 +123,8 @@ describe('실습실 목록과 사이드카 합치기', () => {
     // 이관 57개(1단원 20·3단원 2·4단원 6·opmp 19·pyautogui 10) + 사이트판 2 + 사이트 예제(첫 실습·1-1-1 체험·보충 V1~V5) = 66
     expect(examples.length).toBeGreaterThanOrEqual(66);
     // 3·4단원 PC 쪽 예제(2026-09-17 이관)도 [예제 불러오기] 목록의 제 묶음에 들어간다.
-    expect(examples.find((example) => example.file === 'vision/u3/3-1-4-hand-screenshot.py')?.group).toBe('3단원 교과서 실습(손으로 컴퓨터 조작)');
-    expect(examples.find((example) => example.file === 'vision/u4/4-1-3-adv-blink-click.py')?.group).toBe('4단원 프로젝트 실습(얼굴로 마우스 조작)');
+    expect(examples.find((example) => example.file === 'vision/u3/3-1-4-hand-screenshot.py')?.group).toBe('3단원 교과서 실습(보드로 보내기·손으로 컴퓨터 조작)');
+    expect(examples.find((example) => example.file === 'vision/u4/4-1-3-adv-blink-click.py')?.group).toBe('4단원 프로젝트 실습(얼굴·손으로 조작하고 보드로 보내기)');
     expect(examples[0]?.id).toBe('first-edge');
     for (const [examplePath, sidecar] of Object.entries(sidecars)) {
       expect(files[examplePath], `${examplePath}의 사이드카에 짝이 되는 .py 파일이 없어요`).toBeDefined();

@@ -71,6 +71,9 @@ export interface VisionLabElements {
   readonly outputClose: HTMLButtonElement | null;
   readonly screenKeys: HTMLElement | null;
   readonly stageList: HTMLElement | null;
+  /** "이 예제 실습 방법" 상자와 단계 목록(2026-09-24 Phase 4 통합 — 없으면 그리지 않는다) */
+  readonly practiceBox?: HTMLElement | null;
+  readonly practiceSteps?: HTMLElement | null;
 }
 
 interface CameraOpenPayload {
@@ -115,6 +118,8 @@ export function readVisionElements(root: HTMLElement): VisionLabElements | null 
     outputClose: q(root, '[data-vision-output-close]'),
     screenKeys: q(root, '[data-vision-screen-keys]'),
     stageList: q(root, '[data-vision-stages]'),
+    practiceBox: q(root, '[data-vision-practice]'),
+    practiceSteps: q(root, '[data-vision-practice-steps]'),
   };
 }
 
@@ -155,9 +160,29 @@ export class VisionLab {
     this.#renderSourceSelect();
     this.#wireControls();
     this.#wireRuntime();
+    this.#cleanups.push(lab.on('example', () => this.#renderPractice()));
+    this.#renderPractice();
     this.#renderStages();
     this.#setInputState('closed');
     this.#statusTimer = setInterval(() => this.#renderInputStatus(), 500);
+  }
+
+  /** "이 예제 실습 방법" 상자(예제의 practice 단계 — 없으면 숨긴다) */
+  #renderPractice(): void {
+    const box = this.#elements.practiceBox ?? null;
+    const list = this.#elements.practiceSteps ?? null;
+    if (box === null || list === null) {
+      return;
+    }
+    const steps = (this.lab.currentExample?.practice ?? []).filter((step) => typeof step === 'string' && step.trim() !== '');
+    list.replaceChildren(
+      ...steps.map((step) => {
+        const item = document.createElement('li');
+        item.textContent = step;
+        return item;
+      }),
+    );
+    box.hidden = steps.length === 0;
   }
 
   /** 지금 고른 입력 소스 id(webcam·sample·file·…) */

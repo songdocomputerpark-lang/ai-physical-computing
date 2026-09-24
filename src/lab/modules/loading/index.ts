@@ -52,7 +52,7 @@ import {
   warmCache,
   type ServiceWorkerState,
 } from '../../loader/sw-client.ts';
-import { LoadingTracker, type StageSnapshot } from '../../loader/stages.ts';
+import { LoadingTracker, stageIdForUrl, type StageSnapshot } from '../../loader/stages.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
 
@@ -310,8 +310,14 @@ function mount(context: LabModuleContext): LabModuleHandle {
   cleanups.push(() => root.removeEventListener(LOADING_STAGE_EVENT, onStageEvent));
 
   // ── 서비스 워커의 파일 받기 메시지 ──
+  // 서비스 워커 메시지는 문서 전체로 온다. 한 문서에 실습실이 둘이면(4단원 통합 화면) 옆 실습실이 받는 OpenCV·모델 메시지까지 이 패널에 들어와,
+  // 파이썬 엔진만 쓰는 ESP32 칸이 끝나지 않는 "numpy·OpenCV 받는 중"을 보였다(2026-09-24 통합 화면 확인). 패키지 목록이 빈 실습실은 엔진 파일만 센다.
+  const coreOnly = labPackages !== null && labPackages.length === 0;
   cleanups.push(
     onDownload((message: DownloadMessage) => {
+      if (coreOnly && stageIdForUrl(message.url, origin) !== 'core') {
+        return;
+      }
       noteActivity();
       tracker.download(message);
       scheduleRender();

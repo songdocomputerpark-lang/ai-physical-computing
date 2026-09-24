@@ -18,6 +18,12 @@
 ---
 
 <div class="vision-io" data-vision-io>
+  {/* 이 예제 실습 방법(사이드카 practice·머리말 "실습 방법" 상자) — 두 화면이 짝을 이루는 통신 예제에서 어느 화면을 먼저 열지 알려 준다. 없으면 숨는다. */}
+  <div class="vision-io__practice" data-vision-practice hidden>
+    <p class="vision-io__practice-title">이 예제 실습 방법</p>
+    <ol class="vision-io__practice-steps" data-vision-practice-steps></ol>
+  </div>
+
   <section class="vision-io__input" aria-labelledby="vision-input-heading">
     <h3 id="vision-input-heading" class="vision-io__heading">입력</h3>
 
@@ -93,6 +99,34 @@
     .vision-io {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
+  }
+
+  /* 실습 방법 상자는 두 칸(입력·출력)을 가로질러 맨 위에 둔다(ESP32 실습실 보드 그림 위 상자와 같은 모양) */
+  .vision-io__practice {
+    grid-column: 1 / -1;
+    font-variant-ligatures: none;
+    padding: var(--space-2) var(--space-3);
+    border-inline-start: 4px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .vision-io__practice[hidden] {
+    display: none;
+  }
+
+  .vision-io__practice-title {
+    margin: 0 0 var(--space-1);
+    font-weight: 700;
+  }
+
+  .vision-io__practice-steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.4em;
   }
 
   .vision-io__input,

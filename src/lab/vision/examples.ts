@@ -15,6 +15,7 @@
  * - file: examples/ 아래 경로(vision/first-edge.py). 차시 페이지의 [실습실에서 열기]가 붙이는 ?example= 값과 같다.
  * - packages: 사이드카에 적지 않았으면 opencv-python(numpy 포함)을 미리 받는다(영상처리 예제 기본값).
  * - group: [예제 불러오기] 선택 상자의 묶음 이름(폴더별, EXAMPLE_GROUPS). 묶음 순서도 이 표가 정한다.
+ * - practice(실습 방법): 사이드카 practice → 머리말 "── 실습 방법 ──" 상자(ESP32 목록과 같은 규칙). 입력·출력 칸 위에 "이 예제 실습 방법"으로 보인다.
  * 순서: 묶음(EXAMPLE_GROUPS 순서) → 파일 이름(숫자는 크기순). 사이트 예제(first-edge)가 맨 앞이다.
  *
  * 이 파일은 브라우저 번들(vision-lab.ts가 VISION_PACKAGES를 씀)에도 들어가므로 yaml 같은 빌드 전용 패키지를 import하지 않는다 —
@@ -48,8 +49,8 @@ export const EXAMPLE_GROUPS: readonly { readonly key: string; readonly label: st
   { key: 'vision', label: '첫 실습·사이트 예제' },
   { key: 'vision/supplement', label: '보충 계단 V1~V5(사진은 숫자다 → 윤곽선)' },
   { key: 'vision/u1', label: '1단원 교과서 실습' },
-  { key: 'vision/u3', label: '3단원 교과서 실습(손으로 컴퓨터 조작)' },
-  { key: 'vision/u4', label: '4단원 프로젝트 실습(얼굴로 마우스 조작)' },
+  { key: 'vision/u3', label: '3단원 교과서 실습(보드로 보내기·손으로 컴퓨터 조작)' },
+  { key: 'vision/u4', label: '4단원 프로젝트 실습(얼굴·손으로 조작하고 보드로 보내기)' },
   { key: 'vision/opmp', label: 'OpenCV·MediaPipe 계단(교안)' },
   { key: 'vision/bt', label: '블루투스 통신 수업교안 실습(컴퓨터 쪽)' },
   { key: 'desktop', label: '가상 데스크톱(pyautogui)' },
@@ -148,6 +149,8 @@ export function visionExamplesFromFiles(
     // 그 예제를 싣는 차시(frontmatter examples) → 없으면 사이드카 lesson·머리말 # @lesson이 가리키는 차시. 차시가 아직 없으면 링크를 만들지 않는다.
     const lessonSlug = sidecar?.lesson ?? meta.lesson ?? null;
     const lesson = lessons.byFile?.[file] ?? (lessonSlug === null ? null : (lessons.bySlug?.[lessonSlug] ?? null));
+    // 실습 방법(P3-02 규약과 같게): 사이드카 practice → 머리말 "── 실습 방법 ──" 상자. 입력·출력 칸 위(VisionIo)에 보인다(2026-09-24 Phase 4 통합).
+    const practice = sidecar?.practice && sidecar.practice.length > 0 ? sidecar.practice : meta.practice;
     examples.push({
       id,
       title,
@@ -157,6 +160,7 @@ export function visionExamplesFromFiles(
       packages,
       group: exampleGroupLabel(exampleGroupKey(file)),
       ...(lesson ? { lesson } : {}),
+      ...(practice.length > 0 ? { practice } : {}),
     });
   }
   examples.sort((a, b) => {
