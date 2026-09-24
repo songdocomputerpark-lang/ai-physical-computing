@@ -158,6 +158,38 @@ describe('링크 검사(checkLinks)', () => {
     expect(formatLinkReport(report, site)).toContain('?example= 값이 examples/ 아래에 없는 파일이에요');
   });
 
+  it('?example= 예제를 싣지 않는 실습실로 열면 찾아낸다(통신 차시의 보드 쪽 예제가 영상처리 실습실로 가던 것 — P4-08·2026-09-24 통합)', () => {
+    const examplesDir = makeTempDir('link-check-examples-');
+    tempDirs.push(examplesDir);
+    writeFiles(examplesDir, {
+      'vision/u4/c3-finger-count-send.py': 'print(1)\n',
+      'esp32/u4/c3-neopixel-count-rx.py': 'print(1)\n',
+      'desktop/01-screen-size.py': 'print(1)\n',
+    });
+    const dist = makeDist({
+      'index.html': page(
+        [
+          '<a href="/demo/labs/vision/?example=vision%2Fu4%2Fc3-finger-count-send.py">맞음</a>',
+          '<a href="/demo/labs/vision/?example=desktop/01-screen-size.py">맞음(가상 데스크톱)</a>',
+          '<a href="/demo/labs/esp32/?example=esp32/u4/c3-neopixel-count-rx.py&embed=1">맞음(보드)</a>',
+          '<a href="/demo/labs/vision/?example=esp32%2Fu4%2Fc3-neopixel-count-rx.py&embed=1">보드 예제를 영상처리로</a>',
+          '<a href="/demo/labs/esp32/?example=vision/u4/c3-finger-count-send.py">컴퓨터 예제를 보드로</a>',
+          '<a href="/demo/labs/unit4/?example=esp32/u4/c3-neopixel-count-rx.py">두 칸 화면은 검사하지 않음</a>',
+        ].join(''),
+      ),
+      'labs/vision/index.html': page('<h1>영상처리 실습실</h1>'),
+      'labs/esp32/index.html': page('<h1>ESP32 실습실</h1>'),
+      'labs/unit4/index.html': page('<h1>4단원 통합 실습실</h1>'),
+    });
+    const report = checkLinks(dist, site, { examplesDir });
+    expect(report.examples).toBe(6);
+    expect(report.problems.map((problem) => [problem.ref, problem.kind])).toEqual([
+      ['/demo/labs/vision/?example=esp32%2Fu4%2Fc3-neopixel-count-rx.py&embed=1', 'example-wrong-lab'],
+      ['/demo/labs/esp32/?example=vision/u4/c3-finger-count-send.py', 'example-wrong-lab'],
+    ]);
+    expect(formatLinkReport(report, site)).toContain('예제를 싣지 않는 실습실로 열어요');
+  });
+
   it('404 페이지의 상대 주소와 CSS가 가리키는 없는 파일을 찾아낸다', () => {
     const dist = makeDist({
       'index.html': page('<p>홈</p>'),

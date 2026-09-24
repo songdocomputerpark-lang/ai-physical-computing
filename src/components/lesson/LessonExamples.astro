@@ -19,7 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { LessonData } from '../../config/content-schemas.ts';
-import { labLink, type LabId } from './lesson-data.ts';
+import { labLink, labOfExampleFile, type LabId } from './lesson-data.ts';
 
 interface Props {
   examples: LessonData['examples'];
@@ -54,14 +54,18 @@ const panels = examples.map((example, index) => {
   } catch {
     console.warn(`[차시 틀] ${source}: 예제 파일 examples/${example.file}이(가) 없어요. 파일을 넣거나 frontmatter examples를 고쳐요.`);
   }
+  // 예제마다 도는 실습실이 다르다(통신 차시는 컴퓨터 쪽 vision/ + 보드 쪽 esp32/ 한 쌍 — P4-08에서 발견, 2026-09-24 통합에서 고침).
+  // frontmatter lab은 "따라하기에 쓰는 실습실"이라 한쪽만 맞는다 → 파일 경로의 첫 칸이 먼저, 모르면 frontmatter lab.
+  const exampleLab = labOfExampleFile(example.file) ?? lab;
   return {
     key: `example-${index + 1}`,
     file: example.file,
     title: example.title ?? `예제 ${index + 1}`,
     rendered: code === undefined ? undefined : codeToHtml(code),
-    link: lab ? labLink(lab, example.file) : undefined,
+    link: exampleLab ? labLink(exampleLab, example.file) : undefined,
     // 차시 안에 띄우는 주소(예제 미리 로드 + 머리글·바닥글 숨김). 누르기 전에는 받지 않는다.
-    embedHref: lab ? `${labLink(lab, example.file).href}&embed=1` : undefined,
+    embedHref: exampleLab ? `${labLink(exampleLab, example.file).href}&embed=1` : undefined,
+    lab: exampleLab,
   };
 });
 ---
@@ -69,7 +73,7 @@ const panels = examples.map((example, index) => {
 {
   panels.map((panel) => (
     <div class="lesson-example-block">
-    <figure class="lesson-example" data-lab={lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
+    <figure class="lesson-example" data-lab={panel.lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
       <figcaption class="lesson-example__caption">
         <span class="lesson-example__eyebrow">따라하기 예제</span>
         <span class="lesson-example__title" id={`${panel.key}-title`}>

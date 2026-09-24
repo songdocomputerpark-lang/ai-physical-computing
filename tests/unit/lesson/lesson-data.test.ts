@@ -10,6 +10,7 @@ import {
   formatDuration,
   kindBadge,
   labLink,
+  labOfExampleFile,
   lessonBreadcrumb,
   lessonDocumentTitle,
   lessonSlug,
@@ -203,6 +204,16 @@ describe('뱃지·표시 문장', () => {
     expect(link.label).toBe(getPage('labs-vision').label);
     expect(link.href).toBe(`${getPage('labs-vision').href}?example=vision%2Fu1%2Fv4-blur-edge.py`);
     expect(labLink('esp32').href).toBe(getPage('labs-esp32').href);
+  });
+
+  it('예제마다 경로의 첫 칸으로 실습실을 고른다(통신 차시의 보드 쪽 예제가 영상처리 실습실로 가지 않게 — P4-08)', () => {
+    expect(labOfExampleFile('esp32/u4/c3-neopixel-count-rx.py')).toBe('esp32');
+    expect(labOfExampleFile('vision/u4/c3-finger-count-send.py')).toBe('vision');
+    expect(labOfExampleFile('desktop/01-screen-size.py')).toBe('vision');
+    expect(labOfExampleFile('other/a.py')).toBeUndefined();
+    expect(labLink(labOfExampleFile('esp32/u3/3-1-2-uart-laser.py')!, 'esp32/u3/3-1-2-uart-laser.py').href).toBe(
+      `${getPage('labs-esp32').href}?example=esp32%2Fu3%2F3-1-2-uart-laser.py`,
+    );
   });
 
   it('차시 현재 위치는 홈 › 배우기 › 대단원 › 차시(마지막 칸은 링크 없음)', () => {

@@ -14,6 +14,8 @@
 // - anchor-not-found   #위치가 그 페이지에 없다
 // - relative-in-404    404 페이지의 상대 주소(404 페이지는 어느 깊이의 주소에서도 보이므로 상대 주소가 깨진다)
 // - example-not-found  실습실 주소의 ?example=<examples/ 아래 경로> 값이 실제 예제 파일이 아니다(실습실이 조용히 다른 예제를 연다)
+// - example-wrong-lab  ?example= 파일은 있는데 그 예제를 싣지 않는 실습실로 연다(영상처리 실습실에 esp32/ 예제, ESP32 실습실에 vision/ 예제 —
+//                      실습실은 목록에서 못 찾아 조용히 첫 예제를 연다. 통신 차시의 컴퓨터 쪽·보드 쪽 한 쌍에서 생기기 쉽다, P4-08·2026-09-24 통합)
 // 건너뛰는 것: 다른 사이트 주소, mailto:·tel:·javascript:·data:·blob:, 자바스크립트가 실행 중에 만드는 주소(검색 결과 등),
 // <script>·<style> 안의 글자와 HTML 주석
 //
@@ -29,7 +31,7 @@ import path from 'node:path';
  */
 
 /**
- * @typedef {'base-missing' | 'not-found' | 'no-trailing-slash' | 'anchor-not-found' | 'relative-in-404' | 'example-not-found'} LinkProblemKind
+ * @typedef {'base-missing' | 'not-found' | 'no-trailing-slash' | 'anchor-not-found' | 'relative-in-404' | 'example-not-found' | 'example-wrong-lab'} LinkProblemKind
  */
 
 /**
@@ -50,6 +52,15 @@ import path from 'node:path';
  * @property {number} external     건너뛴 다른 사이트 주소 수
  * @property {LinkProblem[]} problems
  */
+
+/**
+ * 실습실 페이지(dist/ 기준) → 그 실습실이 목록에 싣는 예제 폴더(examples/ 뒤 첫 칸). 표에 없는 페이지(4단원 통합 실습실처럼
+ * 두 실습실을 함께 싣는 화면)는 검사하지 않는다. 폴더 규칙은 src/lab/vision/examples.ts(VISION_EXAMPLE_DIRS)·src/lab/esp32/examples.ts와 같다.
+ */
+const LAB_EXAMPLE_ROOTS = new Map([
+  ['labs/vision/index.html', ['vision', 'desktop']],
+  ['labs/esp32/index.html', ['esp32']],
+]);
 
 /** 404 페이지로 쓰이는 파일(GitHub Pages는 사이트 뿌리의 404.html을 없는 주소마다 보여 준다) */
 const NOT_FOUND_PAGE = '404.html';
@@ -346,6 +357,11 @@ export function checkLinks(distDir, site, options = {}) {
       const unsafe = parts.length === 0 || parts.some((part) => part === '' || part === '.' || part === '..');
       if (unsafe || !fs.existsSync(path.join(examplesDir, ...parts))) {
         report.problems.push({ file, ref, kind: 'example-not-found', target: `examples/${exampleRef}` });
+      } else {
+        const roots = LAB_EXAMPLE_ROOTS.get(target);
+        if (roots !== undefined && !roots.includes(parts[0] ?? '')) {
+          report.problems.push({ file, ref, kind: 'example-wrong-lab', target: `examples/${exampleRef}` });
+        }
       }
     }
 
@@ -387,6 +403,8 @@ const PROBLEM_MESSAGES = {
   'anchor-not-found': () => '주소 뒤 #위치(id)가 그 페이지에 없어요. 제목의 id나 #이름의 철자를 확인해요.',
   'relative-in-404': () => '404 페이지는 어느 주소에서나 보이므로 상대 주소가 깨져요. withBase()로 만든 주소를 써요.',
   'example-not-found': () => '실습실 주소의 ?example= 값이 examples/ 아래에 없는 파일이에요. 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 파일 경로를 고쳐요.',
+  'example-wrong-lab': () =>
+    '?example= 예제를 싣지 않는 실습실로 열어요(esp32/ 예제는 ESP32 실습실, vision/·desktop/ 예제는 영상처리 실습실). 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 링크의 실습실 주소를 고쳐요(차시는 LessonExamples가 예제 경로로 실습실을 고른다).',
 };
 
 /**

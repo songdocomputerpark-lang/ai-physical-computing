@@ -460,6 +460,22 @@ export function lessonDocumentTitle(lesson: Pick<LessonSummary, 'label' | 'title
 }
 
 /** 실습실 링크. 예제 파일을 주면 ?example=로 붙인다(실습실이 Phase 2~4에서 읽는다). */
+/**
+ * examples/ 뒤 경로의 첫 칸으로 그 예제가 도는 실습실을 고른다(esp32/ → ESP32, vision/·desktop/ → 영상처리). 모르면 undefined.
+ * 통신 차시는 컴퓨터 쪽(vision/)과 보드 쪽(esp32/) 예제를 한 쌍으로 싣기 때문에, frontmatter의 lab 하나로 모든 예제를 열면
+ * 한쪽이 틀린 실습실로 간다(P4-08에서 발견, 2026-09-24 통합에서 고침). 예제 갤러리(src/lab/gallery/cards.ts)도 같은 규칙이다.
+ */
+export function labOfExampleFile(file: string): LabId | undefined {
+  const head = file.split('/')[0];
+  if (head === 'esp32') {
+    return 'esp32';
+  }
+  if (head === 'vision' || head === 'desktop') {
+    return 'vision';
+  }
+  return undefined;
+}
+
 export function labLink(lab: LabId, exampleFile?: string): { label: string; href: string } {
   const page = getPage(`labs-${lab}`);
   return {
