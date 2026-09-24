@@ -1,0 +1,253 @@
+---
+/**
+ * 4단원 통합 화면의 조작 줄(PLAN §8.4 P4-09) — [함께 실행]·[함께 정지]·입력 고르기·상태 글·짝 예제·성능 칸.
+ * 화면 논리는 src/lab/unit4/unit4-page.ts가 맡고 여기는 HTML·CSS만 그린다.
+ *
+ * props
+ *   pairs  짝 예제 목록(페이지가 두 실습실 목록에 **둘 다 있는** 짝만 넘긴다 — 파일이 빠지면 그 짝도 조용히 빠진다)
+ *
+ * 테스트가 읽는 값: [data-unit4]의 data-unit4-phase·data-unit4-samples·data-unit4-screen·data-unit4-connected·data-unit4-ids·data-unit4-address,
+ * 단추 [data-unit4-run]·[data-unit4-stop]·[data-unit4-copy]·[data-unit4-pair], 입력 select[data-unit4-input],
+ * 글 [data-unit4-status]·[data-unit4-perf]·[data-unit4-screen-note]·[data-unit4-pair-status]·textarea[data-unit4-report].
+ */
+import { UNIT4_SCREEN } from '../../../lab/unit4/config.ts';
+import type { Unit4PairView } from '../../../lab/unit4/examples.ts';
+
+interface Props {
+  pairs: readonly Unit4PairView[];
+}
+
+const { pairs } = Astro.props;
+---
+
+<section class="unit4-bar" data-unit4 data-unit4-phase="idle" data-unit4-samples="0" aria-labelledby="unit4-bar-heading">
+  <h2 id="unit4-bar-heading" class="unit4-bar__heading">한 화면에서 함께 돌리기</h2>
+  <p class="unit4-bar__lead">
+    <strong>컴퓨터 칸</strong>은 카메라로 얼굴을 찾아 가상 모니터의 마우스를 움직이고, 그 좌표를 블루투스로 <strong>보드 칸</strong>에
+    보내요. 보드는 LCD·서보 2개·RGB LED·레이저·버저로 반응해요. 두 칸은 파이썬을 따로 돌려요.
+  </p>
+
+  <div class="unit4-bar__controls">
+    <button type="button" class="button button--primary" data-unit4-run>함께 실행</button>
+    <button type="button" class="button button--secondary" data-unit4-stop disabled>함께 정지</button>
+    <span class="unit4-bar__input">
+      <label class="unit4-bar__input-label" for="unit4-input">카메라 입력</label>
+      <select id="unit4-input" class="lab__select unit4-bar__select" data-unit4-input>
+        <option value="">(준비 중)</option>
+      </select>
+    </span>
+  </div>
+
+  <p class="unit4-bar__status" data-unit4-status role="status" aria-live="polite">
+    [함께 실행]을 누르면 보드 코드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.
+  </p>
+  {/* 두 칸이 길어서(특히 좁은 화면에서는 위아래로 쌓인다) 보고 싶은 결과로 바로 옮겨 가는 단추 */}
+  <div class="unit4-bar__jumps" role="group" aria-labelledby="unit4-jumps-label">
+    <span id="unit4-jumps-label" class="unit4-bar__jumps-label">바로 가기</span>
+    <button type="button" class="lab-button lab-button--small" data-unit4-jump="output">카메라 결과</button>
+    <button type="button" class="lab-button lab-button--small" data-unit4-jump="desktop">가상 모니터</button>
+    <button type="button" class="lab-button lab-button--small" data-unit4-jump="board">보드 그림</button>
+  </div>
+  <p class="unit4-bar__note" data-unit4-screen-note>
+    가상 모니터를 {UNIT4_SCREEN.width}×{UNIT4_SCREEN.height}로 맞춰요. 4단원 보드 코드가 이 크기를 가정하고 서보 각도를 계산해요.
+  </p>
+  <p class="unit4-bar__note">
+    카메라가 없거나 컴퓨터가 버거우면 입력을 <strong>재생 입력(합성 좌표)</strong>으로 바꿔요. 사람 영상 없이 사이트가 만든 얼굴이 고개를 돌려요.
+    클릭(LED·버저)을 보려면 컴퓨터 칸의 재생 동작을 <strong>"윙크·두 눈 감기(클릭)"</strong>로 골라요 — 합성 얼굴이 왼쪽 눈을 감으면 더블클릭,
+    두 눈을 감으면 우클릭이 보드로 가요. 보드 칸 블루투스 조작 칸의 [클릭 보내기]로도 확인할 수 있어요.
+  </p>
+
+  <details class="unit4-bar__more">
+    <summary>짝 예제 바꾸기</summary>
+    <p class="unit4-bar__note">
+      컴퓨터 코드가 보내는 글과 보드 코드가 읽는 글이 같은 것끼리 짝이에요. 4-2는 늘 <code>DATA,x,y,더블클릭,오른쪽클릭</code>을 보내요.
+    </p>
+    <ul class="unit4-bar__pairs">
+      {
+        pairs.map((pair) => (
+          <li class="unit4-bar__pair">
+            <button
+              type="button"
+              class="lab-button lab-button--small"
+              data-unit4-pair
+              data-unit4-pair-pc={pair.pcId}
+              data-unit4-pair-board={pair.boardId}
+              aria-label={`${pair.label} 짝 불러오기`}
+            >
+              이 짝 불러오기
+            </button>
+            <span class="unit4-bar__pair-text">
+              <strong>{pair.label}</strong>
+              <span class="unit4-bar__pair-note">{pair.note}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="unit4-bar__note" data-unit4-pair-status role="status" aria-live="polite"></p>
+  </details>
+
+  <details class="unit4-bar__more">
+    <summary>성능 재기(이 컴퓨터에서 잰 값)</summary>
+    <p class="unit4-bar__note">
+      컴퓨터 칸이 도는 동안 0.5초마다 재요. 카메라 → 파이썬은 가장 많이 1초에 15장, 보드로 보내는 줄은 가장 많이 1초에 10줄이에요(사이트가
+      일부러 막아요). 화면 그리기가 1초에 30장 아래로 떨어지면 컴퓨터가 버거운 거예요. 메모리는 이 탭의 자바스크립트만 재요 — 파이썬 두 벌까지
+      합친 값은 브라우저 작업 관리자(Shift+Esc)에서 봐요.
+    </p>
+    <p class="unit4-bar__perf" data-unit4-perf aria-live="off">아직 잰 값이 없어요. [함께 실행]을 누르면 재기 시작해요.</p>
+    <div class="unit4-bar__copy">
+      <button type="button" class="lab-button lab-button--small" data-unit4-copy>측정 기록 복사</button>
+      <span class="unit4-bar__note" data-unit4-copied role="status" aria-live="polite"></span>
+    </div>
+    <label class="unit4-bar__report-label" for="unit4-report">측정 기록(표)</label>
+    <textarea id="unit4-report" class="unit4-bar__report" data-unit4-report readonly rows="6" spellcheck="false"></textarea>
+  </details>
+</section>
+
+<style>
+  .unit4-bar {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    margin-block-end: var(--space-5);
+  }
+
+  .unit4-bar__heading {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .unit4-bar__lead,
+  .unit4-bar__status,
+  .unit4-bar__note,
+  .unit4-bar__perf {
+    margin: 0;
+    line-height: var(--leading-body);
+  }
+
+  .unit4-bar__status {
+    font-weight: var(--weight-semibold);
+  }
+
+  .unit4-bar__note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .unit4-bar__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .unit4-bar__jumps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .unit4-bar__jumps-label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .unit4-bar__input {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .unit4-bar__input-label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .unit4-bar__select {
+    max-width: 100%;
+  }
+
+  .unit4-bar__more {
+    border-block-start: 1px solid var(--color-border);
+    padding-block-start: var(--space-2);
+  }
+
+  /* 접는 칸 — 사이트 접는 상자(src/styles/boxes.css)와 같이 list-item으로 두어 펼침 표시(▶)가 보이게 한다 */
+  .unit4-bar__more > summary {
+    display: list-item;
+    min-block-size: var(--target-min);
+    padding-block: var(--space-2);
+    box-sizing: border-box;
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .unit4-bar__more > summary:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .unit4-bar__more > :not(summary) + :not(summary) {
+    margin-block-start: var(--space-2);
+  }
+
+  .unit4-bar__pairs {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .unit4-bar__pair {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .unit4-bar__pair-text {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 16rem;
+  }
+
+  .unit4-bar__pair-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .unit4-bar__copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .unit4-bar__report-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .unit4-bar__report {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    resize: vertical;
+  }
+</style>

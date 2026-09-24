@@ -1,10 +1,15 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-3 기본: 손끝 좌표를 블루투스로 보드에 보내기"
-description: 컴퓨터 쪽 코드예요. 검지 끝 좌표를 "x,y"로 만들어 매 프레임 보드에 보내요. 짝은 보드 쪽 3-1-3 예제예요. 원본의 기기 주소는 개인정보라 XX:XX:XX:XX:XX:XX로 가렸어요 — 브라우저는 주소가 아니라 [BLE 연결] 선택 창으로 고르니 값이 없어도 돼요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02).
+description: 컴퓨터 쪽 코드예요. 검지 끝 좌표를 "x,y"로 만들어 매 프레임 보드에 보내요. 짝은 보드 쪽 3-1-3 예제예요 — 컴퓨터 칸과 보드 칸이 한 화면에 있는 "4단원 통합 실습실"에서 [짝 예제 바꾸기]의 "(3단원) 3-1-3"을 고르면 이어져요. 영상처리 실습실에서만 돌리면 이을 보드가 없어 좌표를 보내지 않아요. 원본의 기기 주소는 개인정보라 XX:XX:XX:XX:XX:XX로 가렸어요 — 브라우저는 주소로 연결하지 않으니 값이 없어도 돼요.
 lesson: 3-1-3
 page: 198
 source_id: f089
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - ble
 tags:
   - 손
   - mediapipe
@@ -13,6 +18,10 @@ tags:
   - 브릿지
 packages:
   - opencv-python
+practice:
+  - 4단원 통합 실습실의 [짝 예제 바꾸기]에서 "(3단원) 3-1-3" 짝을 불러오고 [함께 실행]을 눌러요.
+  - 카메라가 없으면 입력을 "재생 입력(합성 좌표)"으로 바꿔요. 합성 손의 검지 끝 좌표가 "x,y"로 나가요.
+  - 보드 칸 콘솔의 "Received finger_x: …"와 RGB LED를 봐요. 보드는 한 번에 2초씩 켜고 끄느라 그사이에 온 좌표는 마지막 것만 읽어요.
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  input: replay
+  outcome: stopped

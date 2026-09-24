@@ -1,0 +1,304 @@
+---
+/**
+ * 4단원 통합 화면(PLAN §8.4 P4-09, §7.5 예시 4, CODE_MAPPING §6.1 B4·B5, SPEC §7 통신).
+ *
+ * 한 문서에 실습실 틀(LabShell)을 **둘** 둔다 — 컴퓨터 칸은 영상처리(labId "vision": 카메라·얼굴 그물·가상 데스크톱),
+ * 보드 칸은 ESP32(labId "esp32": 가상 보드의 LCD·서보 2·RGB·레이저·버저·블루투스). LabShell.astro의 스크립트가
+ * `[data-lab]`을 모두 찾아 따로 붙이므로 둘은 각자 파이썬 워커를 쓰고 서로를 건드리지 않는다(워커 두 벌 + MediaPipe —
+ * PLAN §11 위험 25번이라 이 페이지가 성능을 재고, 잰 값은 `.cache/phase4-notes/zone-h-unit4.md`에 있다).
+ *
+ * 컴퓨터 → 보드 길: 학생 코드의 `bluetooth.init(...).send("DATA,x,y,d,r")`
+ *   → 흉내 모듈 ble-pc(src/lab/modules/ble-pc/) → P4-01 브릿지(초당 10회·상태 병합·클릭 이벤트 보존)
+ *   → 창 이벤트 `apc:ble-write` → 가상 보드의 BLE 특성(P4-03) → 보드 코드의 `ESP32BLE.read()`.
+ * 두 칸이 **같은 문서**에 있어서 창 이벤트로 닿는다(iframe·다른 탭이 아니다). 그래서 이 연결은 이 화면에서만 된다.
+ *
+ * 가상 모니터 해상도는 3840×2160으로 맞춘다(PD-22) — 보드 코드가 `map(mouse_x, 0, 3840, 0, 180)`을 쓰기 때문이다(unit4-page.ts).
+ *
+ * 예제 목록은 두 실습실의 **4단원 폴더**(examples/vision/u4/, examples/esp32/u4/)에, 같은 블루투스 길을 쓰는 3단원 3-1-3·블루투스 교안의
+ * 짝 두 쌍만 더해 싣는다 — 새 4단원 .py 하나면 목록에 들어온다(원칙 6). 전체 목록(약 150개·예제 코드 약 290KB)을 싣지 않는 까닭은
+ * 이 화면이 파이썬을 두 벌 띄우는 가장 무거운 페이지라서다(src/lab/unit4/examples.ts).
+ *
+ * 제목·설명·현재 위치는 사이트 지도(src/config/nav.ts)의 `labs-unit4`에서 온다(2026-09-24 Phase 4 통합에서 지도에 넣었다).
+ */
+import { getCollection } from 'astro:content';
+import Callout from '../../../components/common/Callout.astro';
+import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
+import BoardIo from '../../../components/lab/BoardIo.astro';
+import LabShell from '../../../components/lab/LabShell.astro';
+import VisionIo from '../../../components/lab/VisionIo.astro';
+import Unit4Bar from '../../../components/lab/unit4/Unit4Bar.astro';
+import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { getPage } from '../../../config/nav.ts';
+import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
+import { esp32ExamplesFromFiles } from '../../../lab/esp32/examples.ts';
+import type { WiringEntry } from '../../../lab/modules/board/part-types.ts';
+import { normalizeWiringSpecs } from '../../../lab/modules/board/wiring-spec.ts';
+import { ADDRESS_STASH_KEY } from '../../../lab/unit4/config.ts';
+import { defaultBoardExampleId, defaultPcExampleId, pairViews } from '../../../lab/unit4/examples.ts';
+import { VISION_PACKAGES, visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const navPage = getPage('labs-unit4');
+const title = navPage.title;
+const description = navPage.description;
+const visionPage = getPage('labs-vision');
+const esp32Page = getPage('labs-esp32');
+const checkPage = getPage('start-check');
+
+// 4단원 폴더 + 같은 블루투스 길을 쓰는 다른 단원의 짝 두 쌍(src/lab/unit4/examples.ts UNIT4_*_GLOB·UNIT4_EXTRA_*_FILES와 같은 글자 —
+// import.meta.glob은 글자 그대로만 받는다. 어긋나면 tests/e2e/unit4.spec.ts가 잡는다)
+const visionFiles = import.meta.glob<string>(
+  ['/examples/vision/u4/**/*.py', '/examples/vision/u3/3-1-3-hand-ble-xy.py', '/examples/vision/bt/b11-finger-xy-send.py'],
+  { query: '?raw', eager: true, import: 'default' },
+);
+const visionSidecars = import.meta.glob<string>(
+  ['/examples/vision/u4/**/*.meta.yaml', '/examples/vision/u3/3-1-3-hand-ble-xy.meta.yaml', '/examples/vision/bt/b11-finger-xy-send.meta.yaml'],
+  { query: '?raw', eager: true, import: 'default' },
+);
+const esp32Files = import.meta.glob<string>(
+  ['/examples/esp32/u4/**/*.py', '/examples/esp32/u3/3-1-3-ble-xy-rgb.py', '/examples/esp32/bt/b10-two-values-rgb.py'],
+  { query: '?raw', eager: true, import: 'default' },
+);
+const esp32Sidecars = import.meta.glob<string>(
+  ['/examples/esp32/u4/**/*.meta.yaml', '/examples/esp32/u3/3-1-3-ble-xy-rgb.meta.yaml', '/examples/esp32/bt/b10-two-values-rgb.meta.yaml'],
+  { query: '?raw', eager: true, import: 'default' },
+);
+
+// 차시 링크·배선은 두 실습실 페이지와 같은 규칙으로 만든다(같은 예제가 같은 배선·같은 링크를 갖게).
+const lessonEntries = (await getCollection('lessons')).filter((entry) => !entry.data.draft);
+const summaries = new Map(publishedLessons(lessonEntries).map((lesson) => [lesson.id, lesson]));
+const byFile: Record<string, ExampleLessonLink> = {};
+const bySlug: Record<string, ExampleLessonLink> = {};
+const wiringByFile: Record<string, WiringEntry[]> = {};
+const warnWiring = (text: string) => console.warn(`[4단원 통합 화면 배선] ${text}`);
+for (const entry of lessonEntries) {
+  for (const example of entry.data.examples) {
+    if (example.parts.length > 0 && wiringByFile[example.file] === undefined) {
+      const normalized = normalizeWiringSpecs(example.parts, `content/lessons/${entry.id}.md examples(${example.file})`);
+      normalized.errors.forEach(warnWiring);
+      if (normalized.entries.length > 0) {
+        wiringByFile[example.file] = normalized.entries;
+      }
+    }
+  }
+  const lesson = summaries.get(entry.id);
+  if (!lesson) {
+    continue;
+  }
+  const kindLabel = lesson.kind === 'supplement' ? `${KIND_LABELS.supplement} ` : '';
+  const link = { href: lesson.href, label: `${kindLabel}${lesson.label} ${lesson.title}` };
+  bySlug[lesson.slug] = link;
+  for (const example of entry.data.examples) {
+    byFile[example.file] ??= link;
+  }
+}
+
+const pcExamples = visionExamplesFromFiles(visionFiles, readExampleSidecars(visionSidecars), { byFile, bySlug });
+const boardExamples = esp32ExamplesFromFiles(esp32Files, readExampleSidecars(esp32Sidecars), { byFile, bySlug }, { wiringByFile, onWarning: warnWiring });
+
+// 짝 예제: 두 목록에 모두 있는 것만(파일이 빠지면 그 짝도 빠진다 — 빌드는 멈추지 않고 경고만)
+const pcIds = new Set(pcExamples.map((example) => example.id));
+const boardIds = new Set(boardExamples.map((example) => example.id));
+const { views: pairs, missing } = pairViews(pcIds, boardIds);
+for (const pair of missing) {
+  console.warn(`[4단원 통합 화면] 짝 예제 "${pair.label}"의 파일이 없어 목록에서 뺐어요: ${pair.pc} · ${pair.board}`);
+}
+const initialPc = pcIds.has(defaultPcExampleId()) ? defaultPcExampleId() : undefined;
+const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExampleId() : undefined;
+---
+
+<BaseLayout title={title} description={description} width="wide">
+  <BrowserNotice slot="notice" />
+  {/*
+    두 실습실 틀은 주소의 공유 링크(#code=)와 ?example=을 스스로 읽는다. 한 문서에 틀이 둘이면 먼저 붙은 칸이 공유 링크를 차지하고
+    (보드 칸에서 만든 링크의 코드가 컴퓨터 칸에 들어감), ?example=은 그 파일이 없는 칸이 "찾지 못했어요"를 띄운다.
+    그래서 틀의 스크립트(모듈 — 문서를 다 읽은 뒤에 돈다)보다 먼저 두 값을 맡겨 두고 주소에서 지운다.
+    unit4-page.ts가 두 칸이 준비되면 맞는 칸에 넣는다(src/lab/unit4/address.ts).
+  */}
+  <script is:inline define:vars={{ stashKey: ADDRESS_STASH_KEY }}>
+    try {
+      var stash = {};
+      var hash = window.location.hash || '';
+      if (/(?:^#?|&)code=/.test(hash)) {
+        stash.hash = hash;
+      }
+      var params = new URLSearchParams(window.location.search);
+      var example = params.get('example');
+      if (example) {
+        stash.example = example;
+        params.delete('example');
+      }
+      if (stash.hash !== undefined || stash.example !== undefined) {
+        window[stashKey] = stash;
+        var query = params.toString();
+        window.history.replaceState(window.history.state, '', window.location.pathname + (query ? '?' + query : ''));
+      }
+    } catch (error) {
+      // 주소를 못 읽으면 실습실 틀의 기본 동작 그대로 간다.
+    }
+  </script>
+
+  <h1 class="page-title" data-embed-hide>{title}</h1>
+  <p class="lead" data-embed-hide>{description}</p>
+
+  <Unit4Bar pairs={pairs} />
+
+  <div class="unit4-grid">
+    <section class="unit4-pane" aria-labelledby="unit4-pc-heading">
+      <h2 id="unit4-pc-heading" class="unit4-pane__heading">컴퓨터 칸 — 카메라와 가상 모니터</h2>
+      <LabShell labId="vision" examples={pcExamples} initialExampleId={initialPc} pyodidePackages={VISION_PACKAGES} headingLevel={3}>
+        <VisionIo slot="io" />
+      </LabShell>
+    </section>
+
+    <section class="unit4-pane" aria-labelledby="unit4-board-heading">
+      <h2 id="unit4-board-heading" class="unit4-pane__heading">보드 칸 — 가상 ESP32</h2>
+      <LabShell labId="esp32" examples={boardExamples} initialExampleId={initialBoard} pyodidePackages={[]} headingLevel={3}>
+        <BoardIo slot="io" />
+      </LabShell>
+    </section>
+  </div>
+
+  <section class="unit4-help" aria-labelledby="unit4-help-heading" data-embed-hide>
+    <h2 id="unit4-help-heading" class="unit4-help__heading">잘 안 될 때</h2>
+    <Callout type="오류" title="좌표가 보드에 닿지 않아요">
+      <ul>
+        <li>보드 칸이 먼저 돌고 있어야 해요. [함께 실행]은 보드 코드를 먼저 돌리고 블루투스 [연결]까지 눌러 줘요.</li>
+        <li>
+          컴퓨터 칸 콘솔에 "블루투스로 이을 보드를 아직 찾지 못했어요"가 보이면 아직 이어지지 않은 거예요. 보드 칸의 블루투스 조작 칸에서
+          [연결]을 누르면 그다음 장부터 좌표가 나가요.
+        </li>
+        <li>
+          자료의 컴퓨터 코드는 얼굴(3단원·교안 짝은 손)이 보일 때만 좌표를 보내요. 출력 칸에 얼굴이나 손이 잡혔는지(점과 선) 먼저 봐요.
+        </li>
+        <li>
+          파이썬이 준비되지 않으면 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 브라우저와 네트워크를 확인해요.
+        </li>
+      </ul>
+    </Callout>
+    <Callout type="참고" title="컴퓨터가 버거워해요">
+      <ul>
+        <li>이 화면은 파이썬을 <strong>두 벌</strong> 돌려요. 다른 탭과 화상 수업 프로그램을 닫으면 훨씬 빨라져요.</li>
+        <li>입력을 "재생 입력(합성 좌표)"으로 바꾸면 카메라와 얼굴 인식 모델을 쓰지 않아 가장 가벼워요.</li>
+        <li>
+          두 칸을 오래 함께 돌리면 메모리를 조금씩 더 써요. 느려지면 [함께 정지]를 누르고 페이지를 새로 고쳐요. 고친 코드는 이 컴퓨터에 자동 저장돼
+          있어요.
+        </li>
+        <li>
+          그래도 느리면 한 쪽씩 따로 해 봐요 — 컴퓨터 쪽은 <a href={visionPage.href}>{visionPage.title}</a>에서, 보드 쪽은{' '}
+          <a href={esp32Page.href}>{esp32Page.title}</a>의 블루투스 조작 칸([좌표 보내기]·[클릭 보내기])으로요. 두 칸을 블루투스로 잇는
+          것은 이 화면에서만 돼요.
+        </li>
+      </ul>
+    </Callout>
+    <Callout type="참고" title="서보가 조금만 움직여요">
+      <p>
+        4단원 보드 코드는 마우스 좌표가 0~3840(가로)·0~2160(세로)라고 보고 각도를 계산해요. 가상 데스크톱 칸의 [모니터 크기]가
+        3840×2160인지 봐요. 1920×1080이면 서보가 절반까지만 움직여요.
+      </p>
+    </Callout>
+    <Callout type="주의" title="기기 주소는 적지 않아요 · 레이저는 눈에 비추지 않아요">
+      <ul>
+        <li>
+          브라우저는 블루투스 기기 주소로 연결하지 않아요. 교과서 코드의 <code>XX:XX:XX:XX:XX:XX</code> 자리는 그대로 두면 돼요. 이 화면의 컴퓨터
+          코드는 같은 화면의 가상 보드와 이어져요.
+        </li>
+        <li>실물로 만들 때는 레이저 끄기가 들어 있는 "(사이트판)" 보드 코드를 쓰고, 레이저를 사람 눈에 비추지 않아요.</li>
+      </ul>
+    </Callout>
+  </section>
+</BaseLayout>
+
+<script>
+  import { mountVisionLab } from '../../../lab/vision/vision-lab.ts';
+  import { mountUnit4Page } from '../../../lab/unit4/unit4-page.ts';
+
+  const visionRoot = document.querySelector<HTMLElement>('[data-lab][data-lab-id="vision"]');
+  mountVisionLab(visionRoot).catch((error: unknown) => {
+    console.error('4단원 통합 화면의 카메라 칸을 준비하지 못했어요.', error);
+  });
+  mountUnit4Page(document.querySelector<HTMLElement>('[data-unit4]')).catch((error: unknown) => {
+    console.error('4단원 통합 화면을 준비하지 못했어요.', error);
+  });
+</script>
+
+<style>
+  .unit4-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  /*
+   * 넓은 화면(64rem 이상)에서는 두 칸을 나란히 둔다 — 그래야 카메라 결과와 보드 그림을 한 화면에서 함께 본다.
+   * 칸 하나가 화면 반쪽이라, 실습실 틀의 안쪽 두 줄 배치(편집칸 | 입력·출력)는 너무 좁아진다(보드 그림 최소 폭 32rem).
+   * 그래서 이 화면의 두 틀은 늘 한 줄로 쌓고(편집칸 → 입력·출력 → 조절 패널 → 넓은 모듈 → 콘솔 — DOM 차례 그대로라 키보드 차례와 같다),
+   * 편집칸은 짧게 해서 입력·출력 칸이 빨리 보이게 한다. 코드를 길게 읽고 고칠 때는 각 실습실 페이지를 쓴다.
+   */
+  @media (min-width: 64rem) {
+    .unit4-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--space-5);
+      align-items: start;
+    }
+  }
+
+  .unit4-pane {
+    min-width: 0;
+  }
+
+  .unit4-pane__heading {
+    margin-block: 0 var(--space-3);
+    font-size: var(--text-lg);
+  }
+
+  /*
+   * 실습실 틀(LabShell.astro)의 범위 스타일을 이 화면에서만 덮는다. 틀의 선택자는 `.lab__grid[data-astro-cid-…]`(점수 0,2,0),
+   * 준비 중 규칙은 `.lab[data-loading-intro='yes'][…] .lab__grid[…]`(0,5,0)라서 앞에 `.unit4-grid > .unit4-pane`을 붙여 늘 이긴다.
+   */
+  .unit4-grid > .unit4-pane :global(.lab .lab__grid),
+  .unit4-grid > .unit4-pane :global(.lab[data-loading-intro] .lab__grid) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      'editor'
+      'io'
+      'panel'
+      'modules'
+      'console';
+  }
+
+  /* 처음 파이썬을 받는 동안에는 준비 칸(넓은 모듈 줄)을 맨 위로 — 실습실 틀의 규칙(LabShell.astro)을 한 줄 배치로 옮긴 것 */
+  .unit4-grid > .unit4-pane :global(.lab[data-loading-intro='yes'] .lab__grid) {
+    grid-template-areas:
+      'modules'
+      'editor'
+      'io'
+      'panel'
+      'console';
+  }
+
+  .unit4-grid > .unit4-pane :global(.lab .lab__editor-host) {
+    height: clamp(12rem, 34vh, 26rem);
+    min-height: 12rem;
+  }
+
+  /*
+   * 실제 ESP32와 Web Bluetooth로 잇는 칸(web-bluetooth 모듈)은 이 화면에서 숨긴다. 이 화면의 컴퓨터 코드(bluetooth 흉내)는
+   * 같은 화면의 가상 보드로만 보내서, 여기서 실제 보드를 이어도 학생 코드의 좌표가 그 보드로 가지 않는다(헛걸음이 된다).
+   * 실제 보드 블루투스 칸은 영상처리·ESP32 실습실 페이지에 그대로 있다.
+   */
+  .unit4-grid > .unit4-pane :global([data-lab-module-panel='web-bluetooth']) {
+    display: none;
+  }
+
+  .unit4-help {
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-8);
+  }
+
+  .unit4-help__heading {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-xl);
+  }
+</style>

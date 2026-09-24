@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "4-1-4 심화: 코 좌표를 0.5초마다 DATA,x,y로 보내기"
-description: 컴퓨터 쪽 코드예요. 얼굴 그물에서 코 좌표를 찾아 0.5초마다 "DATA,x,y"로 보드에 보내요. 짝은 보드 쪽 4-1-4 예제예요. 기기 주소는 개인정보라 가렸어요. 지금은 PC 쪽 bluetooth 흉내가 없어서 ModuleNotFoundError로 멈춰요(P4-02).
+description: 컴퓨터 쪽 코드예요. 얼굴 그물에서 코 좌표(카메라 화면의 점 위치)를 찾아 0.5초마다 "DATA,x,y"로 보드에 보내요. 짝은 보드 쪽 4-1-4 기본 예제예요 — "4단원 통합 실습실"에서 둘을 함께 돌리면 보드 LCD에 좌표가 나와요. 영상처리 실습실에서만 돌리면 이을 보드가 없어 좌표를 보내지 않아요. 기기 주소는 개인정보라 가렸어요.
 lesson: 4-1-4
 page: 254
 source_id: f100
@@ -13,6 +13,16 @@ tags:
   - 브릿지
 packages:
   - opencv-python
+practice:
+  - 4단원 통합 실습실의 [짝 예제 바꾸기]에서 "4-1-4" 짝을 불러오고 [함께 실행]을 눌러요.
+  - 콘솔에 0.5초마다 "Sent: DATA,x,y"가 찍히고 보드 LCD의 X·Y가 바뀌는 것을 봐요.
+  - 좌표는 카메라 화면 기준이에요(4-2의 마우스 좌표와 달라요). 고개를 돌리면 X가 크게 바뀌어요.
+unit: 4
+difficulty: 2
+virtual_ok: true
+comm:
+  - ble
 smoke:
-  outcome: error
-  error: ModuleNotFoundError
+  input: replay
+  outcome: stopped
+  seconds: 5
