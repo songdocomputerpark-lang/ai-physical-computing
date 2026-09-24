@@ -26,6 +26,8 @@ import { BRIDGE_DATA_TYPE } from './direct.ts';
 export const TAB_CHANNEL_ID = 'tab';
 /** PLAN §8.4 설계 메모 ②의 UART 통로 봉투 type */
 export const TAB_UART_DATA_TYPE = 'uart.data';
+/** 선의 한 끝이 실행 상태를 알리는 봉투 type — 정의는 envelope.ts(데이터로 읽는 쪽이 가벼운 파일에서 가져가게) */
+export { TAB_UART_STATUS_TYPE } from './envelope.ts';
 /** 채널 이름 머리말 */
 export const TAB_CHANNEL_NAME_PREFIX = 'ai-physical-computing:bridge:';
 

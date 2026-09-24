@@ -18,6 +18,30 @@ import { ensurePrefix } from '../prefix.ts';
 
 const registry = new Map<string, BridgeChannelFactory>();
 
+/**
+ * 등록표가 바뀌면 알릴 곳(2026-09-25 Phase 4 검토 반영). 흉내 모듈은 서로 차례를 모른 채 따로 붙어서(host.ts의 Promise.all),
+ * [보내기] 패널이 목록을 **붙을 때 한 번만** 만들면 뒤에 붙은 통로(블루투스·USB 데이터 포트)가 빠졌다. 패널은 이 알림으로 목록을 다시 그린다.
+ */
+const changeListeners = new Set<() => void>();
+
+/** 통로가 새로 등록될 때마다 부른다. 돌려주는 함수를 부르면 그만 듣는다. */
+export function onBridgeChannelsChanged(listener: () => void): () => void {
+  changeListeners.add(listener);
+  return () => {
+    changeListeners.delete(listener);
+  };
+}
+
+function notifyChanged(): void {
+  for (const listener of [...changeListeners]) {
+    try {
+      listener();
+    } catch (error) {
+      console.error('[브릿지] 통로 목록 알림 처리 중 오류', error);
+    }
+  }
+}
+
 /** 같은 탭 직접 연결 묶음(접두어별로 하나) */
 const directHubs = new Map<string, DirectHub>();
 
@@ -37,6 +61,7 @@ export function registerBridgeChannel(factory: BridgeChannelFactory): void {
     throw new Error(`통로 id "${factory.id}"가 이미 등록돼 있어요. 통로 id는 저장소 전체에서 하나여야 해요.`);
   }
   registry.set(factory.id, factory);
+  notifyChanged();
 }
 
 /** 등록된 통로 목록(등록한 차례대로). onlyAvailable이 참이면 이 브라우저에서 쓸 수 있는 것만. */

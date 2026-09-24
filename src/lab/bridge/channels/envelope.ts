@@ -74,6 +74,17 @@ export function makeEnvelope(fields: {
 }
 
 /** 인사·작별 봉투인가 */
+/**
+ * 선의 한 끝이 실행 상태('idle'·'running')를 알리는 봉투 type(2026-09-25 Phase 4 검토 반영 — 보드 탭 [실행] 전 안내).
+ * 실습 데이터가 아니므로 **받는 쪽이 데이터로 읽지 않는다**(대시보드 listenBridge·Bridge가 isSignalType으로 거른다).
+ */
+export const TAB_UART_STATUS_TYPE = 'uart.status';
+
+/** 데이터가 아닌 알림 봉투인가(데이터로 읽는 쪽이 거를 때 쓴다) */
+export function isSignalType(type: string): boolean {
+  return type === TAB_UART_STATUS_TYPE;
+}
+
 export function isPresenceType(type: string): boolean {
   return type === BRIDGE_HELLO_TYPE || type === BRIDGE_HERE_TYPE || type === BRIDGE_BYE_TYPE;
 }

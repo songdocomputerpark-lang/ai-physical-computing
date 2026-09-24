@@ -170,6 +170,24 @@ export function rawMessage(bytes: Uint8Array, options: RawMessageOptions = {}): 
   });
 }
 
+/**
+ * **바이트 흐름** 조각(보드의 UART가 내보낸 것 → 컴퓨터)을 메시지로 만든다(2026-09-25 Phase 4 검토 반영).
+ * 시리얼 선은 글자 줄이 아니라 바이트가 차례로 흐르는 길이라, 모양을 판정해 합치면(§7.6 병합) 줄이 사라진다
+ * (보드가 `0\n`…`4\n`을 따로 쓰면 `values:1`로 합쳐져 1·2·3이 없어졌다). 그래서 이 메시지는 **절대 합치지 않고**(이벤트, mergeKey 없음)
+ * 20바이트·줄바꿈 알림도 붙이지 않는다(20바이트는 블루투스 특성의 한도이고 UART에는 없다). 조각을 이어 붙이는 일은 보내는 쪽
+ * (`BridgeOutbox.replaceTail`)이 한다.
+ */
+export function streamMessage(bytes: Uint8Array): BridgeMessage {
+  return Object.freeze({
+    bytes: new Uint8Array(bytes),
+    text: null,
+    category: 'event' as BridgeCategory,
+    shape: 'bytes' as BridgeShape,
+    mergeKey: null,
+    warnings: Object.freeze([]),
+  });
+}
+
 /** 메시지를 콘솔 한 줄로(§7.6 규칙 ⑤ — 원본 코드처럼 `Sent: …`) */
 export function sentLineOf(message: BridgeMessage): string {
   if (message.text !== null) {

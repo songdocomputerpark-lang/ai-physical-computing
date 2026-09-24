@@ -21,6 +21,7 @@ import {
   BridgeOutbox,
   TAB_CHANNEL_ID,
   TAB_UART_DATA_TYPE,
+  TAB_UART_STATUS_TYPE,
   bridgeText,
   createPrefix,
   ensurePrefix,
@@ -32,6 +33,7 @@ import {
   pinPrefix,
   rawMessage,
   registerBuiltinChannels,
+  streamMessage,
   unpinPrefix,
   writeSessionPrefix,
   type BridgeCategory,
@@ -51,6 +53,16 @@ export const DEFAULT_PORT_LABEL = 'uart';
 export const PREFIX_QUERY_NAME = 'bridge';
 /** 상대가 나타나기를 기다리는 기본 시간(밀리초) — 한 화면 모드의 iframe이 뜨는 데 쓰는 시간 */
 export const PEER_WAIT_MS = 4000;
+/**
+ * 끝의 실행 상태를 알리는 봉투 type(2026-09-25 Phase 4 검토 반영). 보드 탭이 [실행] 전인데 컴퓨터 탭이 글자를 보내면
+ * 보드 탭 콘솔에만 안내가 있어, 컴퓨터 탭은 "이어졌어요"만 보였다. 보드 쪽이 'idle'을 되알리면 컴퓨터 쪽도 안내한다.
+ * 바이트 줄기('uart.data')와 섞이지 않게 type을 따로 두고, **같은 컴퓨터 탭 통로에서만** 보낸다(MQTT·블루투스·실물 포트에는
+ * 바이트만 흘러야 한다 — 받는 쪽 코드가 이 글자를 데이터로 읽으면 안 된다).
+ */
+export const UART_STATUS_TYPE = TAB_UART_STATUS_TYPE;
+
+/** 끝의 실행 상태: 'idle' = [실행] 전(받은 글자가 사라진다), 'running' = 도는 중 */
+export type PeerRunState = 'idle' | 'running';
 
 /** 선을 지나온 바이트 한 덩어리 */
 export interface UartFrame {
@@ -138,6 +150,7 @@ export class BridgeLink {
   private readonly statusListeners = new Set<(status: LinkStatus) => void>();
   private readonly sentListeners = new Set<(line: string, message: BridgeMessage) => void>();
   private readonly warnListeners = new Set<(warning: BridgeWarning) => void>();
+  private readonly peerStateListeners = new Set<(state: PeerRunState, from: BridgeParty) => void>();
   private channel: BridgeChannel | null = null;
   private offMessage: (() => void) | null = null;
   private offPeers: (() => void) | null = null;
@@ -148,6 +161,8 @@ export class BridgeLink {
   private sent = 0;
   private received = 0;
   private opening: Promise<LinkStatus> | null = null;
+  /** sendStream이 마지막으로 차례에 넣은 조각(아직 안 나갔으면 다음 조각을 여기에 이어 붙인다) */
+  private streamTail: BridgeMessage | null = null;
 
   constructor(options: BridgeLinkOptions) {
     this.options = options;
@@ -222,6 +237,25 @@ export class BridgeLink {
   onWarn(listener: (warning: BridgeWarning) => void): () => void {
     this.warnListeners.add(listener);
     return () => this.warnListeners.delete(listener);
+  }
+
+  /** 상대 끝이 실행 상태를 알려 올 때(UART_STATUS_TYPE) */
+  onPeerState(listener: (state: PeerRunState, from: BridgeParty) => void): () => void {
+    this.peerStateListeners.add(listener);
+    return () => this.peerStateListeners.delete(listener);
+  }
+
+  /**
+   * 이 끝의 실행 상태를 상대에게 알린다. 같은 컴퓨터 탭 통로가 열려 있고 상대가 보일 때만 보내고(기다리지 않는다),
+   * 보내지 못해도 조용히 넘어간다 — 안내를 돕는 신호일 뿐 실습 데이터가 아니다.
+   */
+  sendState(state: PeerRunState): boolean {
+    const channel = this.channel;
+    if (channel === null || this.linkState !== 'open' || this.channelId !== TAB_CHANNEL_ID || !this.hasPeer) {
+      return false;
+    }
+    void channel.send(new TextEncoder().encode(state), { type: UART_STATUS_TYPE }).catch(() => undefined);
+    return true;
   }
 
   /** 통로를 연다(이미 열려 있으면 그대로). 통로 id를 주면 그 통로로 바꿔 연다. */
@@ -350,8 +384,39 @@ export class BridgeLink {
     return this.outbox.send(message);
   }
 
+  /**
+   * **바이트 흐름**을 보낸다 — 보드의 UART가 내보낸 바이트(보드 → 컴퓨터). 원본 PC 코드용 병합(§7.6)을 하지 않는다:
+   * 실물 UART·pyserial은 바이트를 잃지도 순서를 바꾸지도 않는다(2026-09-25 Phase 4 검토 반영 — 전에는 보드가 `0\n`…`4\n`을
+   * 따로 쓰면 값 모양으로 합쳐져 1·2·3줄이 사라졌다). 초당 10회 차례는 그대로 쓰되, 아직 나가지 않은 앞 조각에 이어 붙여
+   * 한 덩어리로 보낸다(속도·선 이름표가 같을 때만).
+   */
+  sendStream(bytes: Uint8Array, meta: { baud?: number; port?: string } = {}): BridgeSendResult {
+    const baud = meta.baud ?? 0;
+    const port = meta.port ?? DEFAULT_PORT_LABEL;
+    const tail = this.streamTail;
+    if (tail !== null) {
+      const tailMeta = this.metaOf.get(tail);
+      if (tailMeta !== undefined && tailMeta.baud === baud && tailMeta.port === port) {
+        const joinedBytes = new Uint8Array(tail.bytes.length + bytes.length);
+        joinedBytes.set(tail.bytes, 0);
+        joinedBytes.set(bytes, tail.bytes.length);
+        const joined = streamMessage(joinedBytes);
+        this.metaOf.set(joined, { baud, port });
+        if (this.outbox.replaceTail(tail, joined)) {
+          this.streamTail = joined;
+          return 'merged';
+        }
+      }
+    }
+    const message = streamMessage(bytes);
+    this.metaOf.set(message, { baud, port });
+    this.streamTail = message;
+    return this.outbox.send(message);
+  }
+
   /** 보낼 차례에 남은 것을 버린다(실행을 새로 시작할 때) */
   reset(): void {
+    this.streamTail = null;
     this.outbox.clear();
     this.sent = 0;
     this.received = 0;
@@ -367,11 +432,21 @@ export class BridgeLink {
     this.statusListeners.clear();
     this.sentListeners.clear();
     this.warnListeners.clear();
+    this.peerStateListeners.clear();
   }
 
   private attach(channel: BridgeChannel): void {
     this.channel = channel;
     this.offMessage = channel.on('message', (envelope) => {
+      if (envelope.type === UART_STATUS_TYPE) {
+        const text = envelope.bytes instanceof Uint8Array ? new TextDecoder().decode(envelope.bytes) : '';
+        if (text === 'idle' || text === 'running') {
+          for (const listener of this.peerStateListeners) {
+            listener(text, envelope.from);
+          }
+        }
+        return;
+      }
       if (envelope.type !== UART_ENVELOPE_TYPE) {
         // 같은 접두어의 다른 줄기(브릿지 새 예제 등)는 그냥 둔다.
         return;

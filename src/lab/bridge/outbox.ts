@@ -5,12 +5,18 @@
  * 규칙이 어떻게 들어갔나
  * - §7.2-4 초당 10회: 보내고 나서 100ms(BRIDGE_MIN_INTERVAL_MS)가 지나야 다음이 나간다. **넘친 메시지는 버리지 않고**
  *   차례에서 기다렸다가 병합된다(밀린 상태 메시지는 최신 값 하나로 줄어든다).
- * - §7.2-5 상태는 최신 값 / 이벤트는 보존: 같은 자리(mergeKey)의 상태 메시지는 **그 자리에서** 새 값으로 바뀌고,
+ * - §7.2-5 상태는 최신 값 / 이벤트는 보존: 같은 자리(mergeKey)의 상태 메시지는 새 값 하나로 줄고 **차례 맨 뒤로** 간다.
  *   이벤트(mergeKey === null)는 절대 바뀌지 않아 차례대로 한 번씩 나간다.
  * - §7.6-① 한 번에 하나만 쓴다: 앞 보내기가 끝나야(약속이 풀려야) 다음이 나간다.
  * - §7.6-② 머리말·필드 수가 같으면 바꿔 끼운다 / ③ 클릭 표시가 1인 DATA 5필드는 안 바꾼다 / ④ 같은 한 글자 명령은 합친다
- *   → 셋 다 message.ts의 mergeKey 하나로 표현된다. 여기서는 "같은 열쇠면 그 자리에서 바꾼다"만 한다.
+ *   → 셋 다 message.ts의 mergeKey 하나로 표현된다.
  * - §7.6-⑤ 콘솔에 `Sent: …`: onSend로 알려 주고, 화면이 sentLineOf로 한 줄을 만든다.
+ *
+ * 바꿔 끼우는 자리(2026-09-25 Phase 4 검토 반영 — 전에는 "같은 열쇠면 차례 어디에 있든 그 자리에서" 바꿨다)
+ * - 값·필드(§7.6-②, `values:`·`fields:`): 옛 값을 빼고 새 값을 **맨 뒤에** 넣는다. 그 자리에서 바꾸면 앞에 기다리던 클릭 이벤트보다
+ *   새 좌표가 먼저 나가, 보드가 마지막에 본 좌표가 이벤트의 옛 좌표가 됐다(§7.2-5 "상태는 최신 값" 위반).
+ * - 명령 한 글자·그 밖의 글(§7.6-④, `command:`·`other:`): **차례 맨 뒤가 같은 글일 때만** 합친다("직전과 같으면"). 전에는
+ *   a·b·a·b를 잇달아 보내면 마지막 b가 앞의 b 자리로 끼어들어 a·b·a만 나가고 레이저가 켜진 채로 끝났다.
  *
  * 바꿔 끼우기는 **차례에 남아 있는 것끼리만** 한다(CODE_MAPPING §6.4 "대기 중 메시지를 최신값으로 병합").
  * 이미 나간 값과 비교해 "안 바뀌었으면 건너뛰기"(§7.2-4 "값이 바뀔 때만")는 skipUnchangedState로 따로 켠다 —
@@ -130,15 +136,28 @@ export class BridgeOutbox {
       }
     }
 
-    // §7.6-②③④ 차례에 같은 자리(mergeKey)가 있으면 **그 자리에서** 새 값으로 바꾼다. 이벤트(null)는 찾지 않는다.
+    // §7.6-②③④ 같은 자리(mergeKey) 메시지를 새 값 하나로 줄인다(머리말 설명). 이벤트(null)는 찾지 않는다.
     if (message.mergeKey !== null) {
-      const index = this.queue.findIndex((waiting) => waiting.mergeKey === message.mergeKey);
-      if (index >= 0) {
-        const replaced = this.queue[index] as BridgeMessage;
-        this.queue[index] = message;
-        this.hooks.onMerge?.(message, replaced);
-        this.pump();
-        return 'merged';
+      if (message.shape === 'command' || message.shape === 'other') {
+        // ④ "직전과 같으면 합친다" — 차례 맨 뒤가 같은 글일 때만(a·b·a·b는 네 개 모두 나간다).
+        const last = this.queue[this.queue.length - 1];
+        if (last !== undefined && last.mergeKey === message.mergeKey) {
+          this.queue[this.queue.length - 1] = message;
+          this.hooks.onMerge?.(message, last);
+          this.pump();
+          return 'merged';
+        }
+      } else {
+        // ② 값·필드는 최신 값 하나만 남기되 맨 뒤로 옮긴다 — 앞에 기다리던 클릭 이벤트가 먼저 나가고, 보드가 마지막에 보는 값이 최신 값이다.
+        const index = this.queue.findIndex((waiting) => waiting.mergeKey === message.mergeKey);
+        if (index >= 0) {
+          const replaced = this.queue[index] as BridgeMessage;
+          this.queue.splice(index, 1);
+          this.queue.push(message);
+          this.hooks.onMerge?.(message, replaced);
+          this.pump();
+          return 'merged';
+        }
       }
     }
 
@@ -220,6 +239,19 @@ export class BridgeOutbox {
       this.timer = null;
       this.pump();
     }, ms);
+  }
+
+  /**
+   * 차례 **맨 뒤**에 있는 메시지를 다른 메시지로 바꾼다(아직 나가지 않았을 때만 참). 바이트 흐름(보드 UART → 컴퓨터)을
+   * 이어 붙일 때 쓴다 — 초당 10회로 나가는 동안 온 조각을 앞 조각에 붙여 한 덩어리로 보내 순서도 바이트도 잃지 않는다.
+   */
+  replaceTail(current: BridgeMessage, next: BridgeMessage): boolean {
+    if (this.closed || this.queue.length === 0 || this.queue[this.queue.length - 1] !== current) {
+      return false;
+    }
+    this.queue[this.queue.length - 1] = next;
+    this.pump();
+    return true;
   }
 
   /** 차례에 남은 것을 모두 버린다(실행을 멈출 때). 보낸 기록은 남는다. */

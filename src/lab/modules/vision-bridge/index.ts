@@ -11,14 +11,21 @@
  * 그래서 학생이 보는 코드와 동작이 두 모드에서 똑같다(§7.2 규칙 6).
  *
  * 테스트가 읽는 값: 패널 뿌리 [data-bridge-panel]의 data-bridge-role·data-bridge-state·data-bridge-peers·
- * data-bridge-sent·data-bridge-received, 실습실 뿌리의 data-bridge-frame(한 화면 모드 on/off).
+ * data-bridge-sent·data-bridge-received·data-bridge-board-run(컴퓨터 쪽이 아는 보드 실행 상태 idle·running),
+ * 실습실 뿌리의 data-bridge-frame(한 화면 모드 on/off), 보드 쪽 역할 띠 [data-bridge-role-band]의 data-running·data-peer.
+ *
+ * 실행 상태 되알림(2026-09-25 Phase 4 검토 반영): 보드 쪽은 컴퓨터 쪽이 나타날 때·[실행]이 시작되고 끝날 때·돌지 않는데 글자가
+ * 왔을 때 'idle'·'running'을 알린다(link.sendState — 같은 컴퓨터 탭 통로에서만). 컴퓨터 쪽은 상태 줄에 적고, 코드가 도는 중에
+ * 'idle'을 받으면 콘솔에도 한 번 안내한다 — 전에는 "보드가 아직 돌지 않아요"가 보드 탭 콘솔에만 있었다.
  */
-import { listBridgeChannels } from '../../bridge/index.ts';
+import { listBridgeChannels, onBridgeChannelsChanged } from '../../bridge/index.ts';
+import { registerMqttChannel } from '../../mqtt/index.ts';
 import { withBase } from '../../../lib/url.ts';
+import { revealElement } from '../../controls/reveal.ts';
 import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import { deviceInputFor, newBytesFrom, readUartDevice, readUartTxEvent } from './board-uart.ts';
-import { PREFIX_QUERY_NAME, dropBridgeLink, getBridgeLink, type LinkStatus, type UartFrame } from './link.ts';
+import { PREFIX_QUERY_NAME, dropBridgeLink, getBridgeLink, type LinkStatus, type PeerRunState, type UartFrame } from './link.ts';
 import manifest from './manifest.ts';
 
 /** 보드 쪽 부품 흉내에 값을 넣는 채널(board 모듈이 정한 이름 — manifest.ts 머리말) */
@@ -66,6 +73,21 @@ const PC_USE_PATTERN = /\bimport\s+serial\b|\bserial\s*\.\s*Serial\b|\blist_port
 const BOARD_USE_PATTERN = /\bUART\s*\(|\bimport\s+serial\b/u;
 /** 주고받은 글 목록에 남길 줄 수 */
 const LOG_LIMIT = 40;
+/**
+ * 통로를 고르면 그 통로의 연결 칸을 연다(칸 모듈이 듣는 창 이벤트 — src/lab/ble/channel.ts BLE_SHOW_EVENT, data-port 모듈 머리말).
+ * 두 칸은 코드에 그 이름이 없으면 닫혀 있어서, 원본 f084(시리얼)를 연 학생이 "블루투스(실제 보드)"를 골라도 [연결] 단추를 찾을 수 없었다
+ * (2026-09-25 Phase 4 검토 반영). 이름만 적어 두고 모듈을 import하지 않는다 — 그 모듈이 이 실습실에 없으면 아무 일도 없다.
+ */
+const CHANNEL_PANEL: Readonly<Record<string, { event: string; panel: string }>> = Object.freeze({
+  ble: { event: 'apc:web-bluetooth-show', panel: 'web-bluetooth' },
+  serial: { event: 'apc:data-port-show', panel: 'data-port' },
+});
+/** 보드가 돌지 않는데 글자가 올 때 'idle'을 되알리는 최소 간격(밀리초) — 글자마다 보내지 않게 */
+const IDLE_ECHO_MS = 2000;
+
+/** 컴퓨터 쪽 콘솔에 남기는 안내(보드 쪽이 돌지 않는다고 알려 왔을 때) */
+export const BOARD_NOT_RUNNING_NOTICE =
+  '가상 보드(ESP32 실습실)가 돌고 있지 않아요. 보드 쪽 화면에서 [실행]을 눌러야 보낸 글자를 받아요(보드가 꺼져 있을 때 온 글자는 실물처럼 사라져요).';
 
 /** ESP32 실습실 주소를 만든다(한 화면 모드는 ?embed=1로 머리글·바닥글을 숨긴다 — P2-14와 같은 방식) */
 export function boardLabUrl(options: { prefix: string; example?: string; embed?: boolean }): string {
@@ -131,6 +153,45 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const sendInput = find<HTMLInputElement>('[data-bridge-send-input]');
   const endingSelect = find<HTMLSelectElement>('[data-bridge-send-ending]');
   const logList = find<HTMLElement>('[data-bridge-log]');
+  const roleBand = find<HTMLElement>('[data-bridge-role-band]');
+  /** 컴퓨터 쪽이 아는 보드의 실행 상태(보드가 알려 온 것. 모르면 null) */
+  let boardRun: PeerRunState | null = null;
+  /** 주소에 ?bridge=가 있으면 선의 한 끝으로 열린 화면이다(새 탭·한 화면 모드) */
+  const openedAsPeer = typeof location !== 'undefined' && location.search.includes(`${PREFIX_QUERY_NAME}=`);
+  const embedded = typeof document !== 'undefined' && document.documentElement.hasAttribute('data-embed');
+  const boardRunning = (): boolean => context.runtime.state === 'running' || context.runtime.state === 'stopping';
+
+  /** 보드 쪽 역할 띠: 조작 줄 위로 옮겨 보인다(보드 쪽 화면을 ?bridge=로 열었을 때만) */
+  function renderRoleBand(status: LinkStatus): void {
+    if (roleBand === null || role !== 'board' || !openedAsPeer) {
+      return;
+    }
+    if (roleBand.hidden) {
+      const toolbar = context.root.querySelector('[data-lab-toolbar]');
+      if (toolbar !== null && toolbar.parentElement !== null) {
+        toolbar.parentElement.insertBefore(roleBand, toolbar);
+      }
+      const who = roleBand.querySelector('[data-bridge-role-who]');
+      if (who !== null) {
+        who.textContent = embedded ? '이 칸은 보드 쪽이에요' : '이 탭은 보드 쪽이에요';
+      }
+      roleBand.hidden = false;
+    }
+    const running = boardRunning();
+    const peer = status.state === 'open' && status.peers.length > 0;
+    roleBand.dataset.running = running ? 'yes' : 'no';
+    roleBand.dataset.peer = peer ? 'yes' : 'no';
+    const runText = roleBand.querySelector('[data-bridge-role-run]');
+    const nextRun = running ? '보드가 돌고 있어요. 컴퓨터 쪽이 보낸 글자를 받아요.' : '먼저 [실행]을 눌러 두어요. 그래야 컴퓨터 쪽이 보낸 글자를 받아요.';
+    if (runText !== null && runText.textContent !== nextRun) {
+      runText.textContent = nextRun;
+    }
+    const peerText = roleBand.querySelector('[data-bridge-role-peer-text]');
+    const nextPeer = peer ? '컴퓨터 쪽(영상처리 실습실)과 이어졌어요.' : '컴퓨터 쪽(영상처리 실습실)을 기다려요.';
+    if (peerText !== null && peerText.textContent !== nextPeer) {
+      peerText.textContent = nextPeer;
+    }
+  }
 
   const showError = (text: string | null): void => {
     if (errorText === null) {
@@ -163,7 +224,13 @@ function mount(context: LabModuleContext): LabModuleHandle {
         ? `${status.label} 통로를 열고 컴퓨터(영상처리 실습실)를 기다려요.`
         : `${status.label} 통로를 열었어요. ESP32 실습실 화면을 열면 이어져요.`;
     }
-    return role === 'board' ? '컴퓨터(영상처리 실습실)와 이어졌어요.' : '가상 ESP32 보드와 이어졌어요.';
+    if (role === 'board') {
+      return '컴퓨터(영상처리 실습실)와 이어졌어요.';
+    }
+    if (boardRun === 'idle') {
+      return '가상 ESP32 보드와 이어졌지만, 보드가 돌고 있지 않아요. 보드 쪽 화면에서 [실행]을 눌러요.';
+    }
+    return boardRun === 'running' ? '가상 ESP32 보드와 이어졌어요. 보드가 돌고 있어요.' : '가상 ESP32 보드와 이어졌어요.';
   };
 
   const render = (status: LinkStatus): void => {
@@ -174,7 +241,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
       root.dataset.bridgeSent = String(status.sentBytes);
       root.dataset.bridgeReceived = String(status.receivedBytes);
       root.dataset.bridgePrefix = status.prefix;
+      root.dataset.bridgeBoardRun = boardRun ?? '';
     }
+    renderRoleBand(status);
     if (statusText !== null) {
       const text = statusLine(status);
       if (statusText.textContent !== text) {
@@ -197,18 +266,51 @@ function mount(context: LabModuleContext): LabModuleHandle {
   };
 
   // ── 통로 목록·접두어 ──
-  if (channelSelect !== null) {
-    for (const factory of listBridgeChannels(true)) {
-      // 같은 탭 직접 연결(direct)은 화면에서 고를 것이 아니다(한 화면 모드도 탭 통로를 쓴다 — 머리말).
-      if (factory.id === 'direct') {
-        continue;
-      }
-      const option = document.createElement('option');
-      option.value = factory.id;
-      option.textContent = factory.label;
-      channelSelect.append(option);
+  // MQTT 통로도 두 실습실 모두에서 고를 수 있게 한다(PLAN §7.6 "같은 코드로 가상 보드·실제 보드·MQTT" — 2026-09-25 Phase 4 검토 반영:
+  // 전에는 MQTT 모듈이 붙는 ESP32 실습실에만 있어 영상처리 실습실의 [보내기] 패널에는 MQTT가 없었다). 두 번 불러도 한 번만 등록된다.
+  registerMqttChannel();
+  /**
+   * 통로 목록을 (다시) 그린다. 흉내 모듈이 붙는 차례는 매번 달라서(블루투스·USB 데이터 포트가 이 패널보다 늦게 붙을 수 있다)
+   * 등록표가 바뀔 때마다, 그리고 목록을 열기 전(초점)에 다시 그린다 — 고른 값은 그대로 둔다(2026-09-25 Phase 4 검토 반영).
+   */
+  const renderChannelOptions = (): void => {
+    if (channelSelect === null) {
+      return;
     }
+    const wanted = listBridgeChannels(true).filter((factory) => factory.id !== 'direct');
+    const current = JSON.stringify([...channelSelect.options].map((option) => [option.value, option.textContent ?? '']));
+    const next = JSON.stringify(wanted.map((factory) => [factory.id, factory.label]));
+    if (current === next) {
+      return;
+    }
+    const selected = link.status.channelId;
+    channelSelect.replaceChildren(
+      // 같은 탭 직접 연결(direct)은 화면에서 고를 것이 아니다(한 화면 모드도 탭 통로를 쓴다 — 머리말).
+      ...wanted.map((factory) => {
+        const option = document.createElement('option');
+        option.value = factory.id;
+        option.textContent = factory.label;
+        return option;
+      }),
+    );
+    if ([...channelSelect.options].some((option) => option.value === selected)) {
+      channelSelect.value = selected;
+    }
+    if (root !== null) {
+      root.dataset.bridgeChannels = wanted.map((factory) => factory.id).join(' ');
+    }
+  };
+  if (channelSelect !== null) {
+    renderChannelOptions();
+    cleanups.push(onBridgeChannelsChanged(renderChannelOptions));
+    listen(channelSelect, 'focus', renderChannelOptions);
     listen(channelSelect, 'change', () => {
+      const wanted = CHANNEL_PANEL[channelSelect.value];
+      if (wanted !== undefined) {
+        window.dispatchEvent(new CustomEvent(wanted.event));
+        // 칸이 열린 다음 그 칸으로 옮겨 [연결] 단추가 보이게 한다(이미 보이면 움직이지 않는다)
+        requestAnimationFrame(() => revealElement(context.root.querySelector(`[data-lab-module-panel="${wanted.panel}"]`), { block: 'nearest' }));
+      }
       void link.connect(channelSelect.value).then(render);
     });
   }
@@ -270,11 +372,23 @@ function mount(context: LabModuleContext): LabModuleHandle {
     frame.src = url;
     frame.title = 'ESP32 실습실(한 화면 모드)';
     frame.dataset.bridgeFrameView = '';
+    /*
+     * 한 화면 모드의 보드 틀은 [보내기] 패널(실습실 아래쪽 넓은 줄)이 아니라 **입력·출력 칸 바로 아래**에 둔다 — 카메라 결과와
+     * 가상 보드가 가까이 있어야 손가락을 펴면 링이 켜지는 것을 함께 본다(2026-09-25 Phase 4 검토 반영: 둘이 2,300px 떨어져 있었다).
+     */
+    const ioSection = context.root.querySelector<HTMLElement>('[data-lab-io]');
+    const ioNotice = ioSection?.querySelector('[data-lab-io-output]') ?? null;
+    if (ioSection !== null && frameHost.parentElement !== ioSection) {
+      ioSection.insertBefore(frameHost, ioNotice);
+      frameHost.dataset.bridgeFramePlace = 'io';
+    }
     frameHost.hidden = false;
     frameHost.append(frame);
     context.root.dataset.bridgeFrame = 'on';
     panelGate.show();
     void link.connect().then(render);
+    const reduce = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    frameHost.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
   };
   if (openFrameButton !== null) {
     listen(openFrameButton, 'click', openFrame);
@@ -323,6 +437,27 @@ function mount(context: LabModuleContext): LabModuleHandle {
   // ── ESP32 실습실 쪽 잇기 ──
   if (role === 'board') {
     let instanceId: string | null = null;
+    let lastPeers = 0;
+    let lastIdleEcho = -Infinity;
+    const runState = (): PeerRunState => (boardRunning() ? 'running' : 'idle');
+    offs.push(
+      // 컴퓨터 쪽이 새로 보이면 지금 상태를 알린다(한 화면 모드는 iframe이 뜨자마자 'idle'을 받아 상태 줄에 적는다).
+      link.onStatus((status) => {
+        if (status.peers.length > lastPeers) {
+          link.sendState(runState());
+        }
+        lastPeers = status.peers.length;
+      }),
+      // [실행]이 시작되고 끝날 때
+      context.runtime.on('state', ({ state, previous }) => {
+        const wasRunning = previous === 'running' || previous === 'stopping';
+        const isRunning = state === 'running' || state === 'stopping';
+        if (wasRunning !== isRunning) {
+          link.sendState(isRunning ? 'running' : 'idle');
+        }
+        renderRoleBand(link.status);
+      }),
+    );
     let seenTotal = 0;
     let sawTxEvent = false;
     let warnedNoUart = false;
@@ -351,7 +486,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
           const next = newBytesFrom(seenTotal, reading);
           seenTotal = next.total;
           if (next.bytes.length > 0) {
-            link.sendBytes(next.bytes, { baud: reading.baud });
+            // 보드 → 컴퓨터는 바이트 흐름이다 — 합치지 않고 이어 붙여 보낸다(link.sendStream, 2026-09-25 Phase 4 검토 반영).
+            link.sendStream(next.bytes, { baud: reading.baud });
             addLog('out', next.bytes);
           }
           if (next.missed > 0 && !warnedMissed) {
@@ -367,7 +503,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
           }
           sawTxEvent = true;
           instanceId = tx.id;
-          link.sendBytes(tx.bytes, { baud: tx.baud });
+          link.sendStream(tx.bytes, { baud: tx.baud });
           addLog('out', tx.bytes);
           return;
         }
@@ -391,12 +527,49 @@ function mount(context: LabModuleContext): LabModuleHandle {
         }
         // 화면 → 파이썬 부품 흉내(board 모듈이 정한 채널). 보드가 도는 동안 보낸 것만 받는다(실물과 같다).
         context.runtime.pushEvent(BOARD_DEVICE_INPUT, deviceInputFor(uartInstanceId(), frameIn.bytes, frameIn.baud));
-        if (context.runtime.state !== 'running' && !warnedNoUart) {
-          warnedNoUart = true;
-          context.notice('컴퓨터가 글자를 보냈지만 보드가 아직 돌지 않아요. ESP32 실습실에서 [실행]을 먼저 눌러요(보드가 꺼져 있을 때 온 글자는 실물처럼 사라져요).');
+        if (context.runtime.state !== 'running') {
+          // 보낸 쪽(컴퓨터 탭)에도 알린다 — 그쪽 화면에는 "이어졌어요"만 보인다(2026-09-25 Phase 4 검토 반영).
+          const now = Date.now();
+          if (now - lastIdleEcho >= IDLE_ECHO_MS) {
+            lastIdleEcho = now;
+            link.sendState('idle');
+          }
+          if (!warnedNoUart) {
+            warnedNoUart = true;
+            context.notice('컴퓨터가 글자를 보냈지만 보드가 아직 돌지 않아요. ESP32 실습실에서 [실행]을 먼저 눌러요(보드가 꺼져 있을 때 온 글자는 실물처럼 사라져요).');
+          }
         }
       }),
     );
+  }
+
+  // ── 컴퓨터 쪽: 보드가 알려 온 실행 상태 ──
+  if (role === 'pc') {
+    let noticedThisRun = false;
+    offs.push(
+      link.onPeerState((state, from) => {
+        if (from !== 'board') {
+          return;
+        }
+        boardRun = state;
+        render(link.status);
+        const pcRunning = context.runtime.state === 'running';
+        if (state === 'idle' && pcRunning && !noticedThisRun) {
+          noticedThisRun = true;
+          context.notice(BOARD_NOT_RUNNING_NOTICE);
+        }
+      }),
+      link.onStatus((status) => {
+        // 보드가 사라지면 알던 상태도 버린다
+        if (boardRun !== null && !status.peers.includes('board')) {
+          boardRun = null;
+          render(status);
+        }
+      }),
+    );
+    context.onLab('run', () => {
+      noticedThisRun = false;
+    });
   }
 
   // 예제의 "실습 방법"은 이 패널이 아니라 입력·출력 칸 위(영상처리 — VisionIo)와 보드 그림 위(ESP32 — BoardIo)에 보인다
@@ -416,7 +589,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     autoConnect(context.lab.getCode());
   });
   // 주소로 접두어를 받았으면(한 화면 모드의 iframe·[새 탭에서 열기]) 코드와 상관없이 바로 연다.
-  if (typeof location !== 'undefined' && location.search.includes(`${PREFIX_QUERY_NAME}=`)) {
+  if (openedAsPeer) {
     panelGate.show();
     void link.connect().then(render);
   } else {

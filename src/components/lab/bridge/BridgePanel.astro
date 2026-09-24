@@ -13,9 +13,14 @@
 ---
 
 <div class="bridge" data-bridge-panel data-bridge-role="pc" data-bridge-state="closed">
-  <p class="bridge__intro">
+  <p class="bridge__intro bridge__pc-only">
     컴퓨터(영상처리 실습실)와 가상 ESP32 보드를 <strong>가상 USB-UART 변환기</strong>로 잇는 칸이에요. 파이썬 코드의{' '}
     <code>serial.Serial(...)</code>이나 <code>bridge.send(...)</code>가 여기서 고른 통로로 나가요.
+  </p>
+  {/* 보드 쪽 탭의 소개글은 따로(2026-09-25 Phase 4 검토 반영 — 보드 탭에도 컴퓨터 쪽 문장이 보여 어느 탭이 무엇인지 헷갈렸다) */}
+  <p class="bridge__intro bridge__board-only">
+    이 탭은 <strong>보드 쪽</strong>이에요. 영상처리 실습실 탭(컴퓨터 쪽)이 보낸 글자가 가상 USB-UART 변환기로 들어와 보드 코드의{' '}
+    <code>uart.readline()</code>으로 가요. 이 탭에서 먼저 [실행]을 눌러 두어야 보낸 글자를 받아요.
   </p>
 
   <p class="bridge__notice" data-bridge-notice></p>
@@ -102,6 +107,20 @@
     <span class="bridge__label">주고받은 글</span>
     <ul class="bridge__log" data-bridge-log aria-live="off"></ul>
   </div>
+</div>
+
+{/*
+  역할 띠 — 주소에 ?bridge=가 붙어 열린 **보드 쪽 화면**(새 탭·한 화면 모드)에서만 보인다. index.ts가 실습실 조작 줄 위로 옮긴다
+  (2026-09-25 Phase 4 검토 반영: 보드 탭이 자기 역할을 알리지 않아, 학생이 보드 탭 [실행]을 잊은 채 컴퓨터 탭만 돌렸다).
+  data-running(yes·no)·data-peer(yes·no)는 테스트도 읽는다.
+*/}
+<div class="bridge-role" data-bridge-role-band data-running="no" data-peer="no" hidden>
+  <strong class="bridge-role__who" data-bridge-role-who>이 탭은 보드 쪽이에요</strong>
+  <span class="bridge-role__item" data-bridge-role-run>먼저 [실행]을 눌러 두어요. 그래야 컴퓨터 쪽이 보낸 글자를 받아요.</span>
+  <span class="bridge-role__item bridge-role__peer" role="status">
+    <span class="bridge-role__dot" aria-hidden="true"></span>
+    <span data-bridge-role-peer-text>컴퓨터 쪽(영상처리 실습실)을 기다려요.</span>
+  </span>
 </div>
 
 <style>
@@ -266,6 +285,54 @@
 
   .bridge__log li[data-way='out'] {
     color: var(--color-text-muted);
+  }
+
+  /* 역할 띠(보드 쪽 화면 — 실습실 조작 줄 위로 옮겨진다) */
+  .bridge-role {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    margin-block-end: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-inline-start-width: 4px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .bridge-role[hidden] {
+    display: none;
+  }
+
+  .bridge-role__who {
+    color: var(--color-accent-hover);
+  }
+
+  .bridge-role[data-running='no'] [data-bridge-role-run] {
+    font-weight: var(--weight-semibold);
+  }
+
+  .bridge-role__peer {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .bridge-role__dot {
+    display: inline-block;
+    inline-size: 0.7rem;
+    block-size: 0.7rem;
+    border: 2px solid var(--color-border-strong);
+    border-radius: 50%;
+    background: var(--color-bg);
+  }
+
+  .bridge-role[data-peer='yes'] .bridge-role__dot {
+    border-color: var(--color-success-border);
+    background: var(--color-success-border);
   }
 
   /* 역할에 따라 보이는 자리 */

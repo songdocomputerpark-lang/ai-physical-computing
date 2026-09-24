@@ -16,6 +16,7 @@ import {
   getBridgeChannelFactory,
   isTabChannelAvailable,
   listBridgeChannels,
+  onBridgeChannelsChanged,
   openBridgeChannel,
   parseEnvelope,
   registerBridgeChannel,
@@ -271,6 +272,19 @@ describe('통로 등록표 — 나중에 MQTT·BLE·Web Serial이 끼워질 자�
     clearBridgeChannels();
     registerBuiltinChannels();
     await expect(openBridgeChannel('mqtt', { from: 'pc' })).rejects.toThrow(/direct, tab/u);
+  });
+
+  // 2026-09-25 Phase 4 검토 반영: [보내기] 패널이 목록을 mount 때 한 번만 만들어, 늦게 붙은 모듈의 통로(블루투스·USB 데이터 포트)가 빠졌다.
+  it('통로가 더해지면 듣는 쪽에 알린다(목록을 다시 그리게)', () => {
+    clearBridgeChannels();
+    const seen: string[][] = [];
+    const off = onBridgeChannelsChanged(() => seen.push(listBridgeChannels().map((factory) => factory.id)));
+    registerBuiltinChannels();
+    registerBridgeChannel({ id: 'ble', label: '블루투스', available: () => true, open: () => Promise.reject(new Error('x')) });
+    off();
+    registerBridgeChannel({ id: 'serial', label: 'USB', available: () => true, open: () => Promise.reject(new Error('x')) });
+    expect(seen.at(-1)).toEqual(['direct', 'tab', 'ble']);
+    expect(seen.length).toBeGreaterThanOrEqual(2);
   });
 
   it('쓸 수 없는 통로는 목록에서 뺄 수 있다', () => {

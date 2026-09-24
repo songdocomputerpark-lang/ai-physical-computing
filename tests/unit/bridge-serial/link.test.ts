@@ -160,9 +160,45 @@ describe('두 끝을 잇는다(진짜 BroadcastChannel)', () => {
     pc.sendBytes(encode('3\n'), { baud: 0, category: 'state' }); // 바로 나감
     pc.sendBytes(encode('4\n'), { baud: 0, category: 'state' }); // 차례에 남음
     pc.sendBytes(encode('4\n'), { baud: 0, category: 'event' }); // 이벤트 — 같은 모양이어도 합치지 않음
-    pc.sendBytes(encode('5\n'), { baud: 0, category: 'state' }); // 차례의 상태 '4'를 그 자리에서 바꿔 끼움
+    pc.sendBytes(encode('5\n'), { baud: 0, category: 'state' }); // 차례의 상태 '4'를 빼고 맨 뒤로(최신 값이 마지막에 닿게)
     const got = await collecting;
-    expect(got.map(text)).toEqual(['3\n', '5\n', '4\n']);
+    expect(got.map(text)).toEqual(['3\n', '4\n', '5\n']);
+  });
+
+  it('원본 PC 코드가 a·b·a·b를 잇달아 쓰면 보드는 네 글자를 모두 차례대로 받는다(마지막 뜻이 b)', async () => {
+    const prefix = 'cbcdefghijkp';
+    const pc = link('pc', prefix, { minIntervalMs: 40 });
+    const board = link('board', prefix);
+    await pc.connect();
+    await board.connect();
+    await pc.waitForPeer(2000);
+
+    const collecting = frames(board, 500);
+    for (const letter of ['a', 'b', 'a', 'b']) {
+      pc.sendBytes(new TextEncoder().encode(letter), { baud: 115_200 });
+    }
+    const got = await collecting;
+    expect(got.map(text).join('')).toBe('abab');
+  });
+
+  it('보드 → 컴퓨터 바이트 흐름(sendStream)은 합치지 않고 이어 붙여 한 바이트도 잃지 않는다', async () => {
+    const prefix = 'cbcdefghijkq';
+    const pc = link('pc', prefix);
+    const board = link('board', prefix, { minIntervalMs: 60 });
+    await pc.connect();
+    await board.connect();
+    await board.waitForPeer(2000);
+
+    const collecting = frames(pc, 600);
+    // 보드가 uart.write(str(i) + chr(10))를 i = 0~4 따로 다섯 번(2026-09-25 검토: 전에는 1·2·3줄이 값 모양으로 합쳐져 사라졌다)
+    for (let index = 0; index < 5; index += 1) {
+      board.sendStream(new TextEncoder().encode(`${index}\n`), { baud: 9600 });
+    }
+    const got = await collecting;
+    expect(got.map(text).join('')).toBe('0\n1\n2\n3\n4\n');
+    expect(got.every((frame) => frame.baud === 9600 && frame.from === 'board')).toBe(true);
+    // 첫 조각은 바로 나가고, 나머지 넷은 한 덩어리로 이어 붙어 나간다(초당 10회 차례는 그대로)
+    expect(got.length).toBe(2);
   });
 
   it('접두어가 다르면 통하지 않는다', async () => {
@@ -200,6 +236,32 @@ describe('두 끝을 잇는다(진짜 BroadcastChannel)', () => {
     const arriving = nextFrame(board);
     pc.sendBytes(new TextEncoder().encode('c'), { baud: 115_200 });
     expect(text(await arriving)).toBe('c');
+  });
+
+  // 2026-09-25 Phase 4 검토 반영: 보드 탭이 [실행] 전인데 컴퓨터 탭이 보내면, 컴퓨터 탭에는 "이어졌어요"만 보였다.
+  it('실행 상태(idle·running)를 상대에게 알리고, 데이터 줄기(onFrame)에는 섞이지 않는다', async () => {
+    const prefix = 'kbcdefghijkm';
+    const pc = link('pc', prefix);
+    const board = link('board', prefix);
+    await pc.connect();
+    await board.connect();
+    expect(await board.waitForPeer(2000)).toBe(true);
+
+    const states: string[] = [];
+    pc.onPeerState((state, from) => states.push(`${from}:${state}`));
+    const dataFrames = frames(pc, 400);
+    expect(board.sendState('idle')).toBe(true);
+    expect(board.sendState('running')).toBe(true);
+    expect(await dataFrames).toEqual([]);
+    expect(states).toEqual(['board:idle', 'board:running']);
+  });
+
+  it('상대가 없거나 탭 통로가 아니면 실행 상태를 보내지 않는다(기다리지 않는다)', async () => {
+    const lonely = link('board', 'mbcdefghijkm');
+    await lonely.connect();
+    expect(lonely.sendState('idle')).toBe(false);
+    const closed = link('board', 'nbcdefghijkm');
+    expect(closed.sendState('idle')).toBe(false);
   });
 
   it('접두어 모양이 틀리면 바꾸지 않고 한국어 까닭을 남긴다', async () => {

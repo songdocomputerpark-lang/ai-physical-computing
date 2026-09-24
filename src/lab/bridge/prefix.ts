@@ -140,3 +140,31 @@ export function ensurePrefix(stores: PrefixStores = {}, random: RandomBytes = de
   writeSessionPrefix(prefix, stores);
   return prefix;
 }
+
+/**
+ * 주소에서 통신 접두어를 받는 이름들(2026-09-25 Phase 4 검토 반영). 다른 화면을 새 탭으로 열 때 접두어를 함께 넘겨
+ * 학생이 무작위 12글자를 눈으로 보고 옮겨 적지 않게 한다.
+ * - `prefix` — MQTT 칸 ↔ 대시보드 링크(`/labs/iot/dashboard/?prefix=…`, `/labs/esp32/?example=…&prefix=…`)
+ * - `bridge` — 영상처리 [보내기] 패널이 여는 보드 화면(`/labs/esp32/?bridge=…` — 보드 쪽 [보내기] 패널도 함께 연다)
+ */
+export const PREFIX_QUERY_NAMES = ['prefix', 'bridge'] as const;
+
+/** 주소 글자(`?prefix=…` 또는 `?bridge=…`)에서 통신 접두어를 읽는다. 없거나 모양이 틀리면 null */
+export function prefixFromQuery(search: string | null | undefined): string | null {
+  if (typeof search !== 'string' || search === '') {
+    return null;
+  }
+  let params: URLSearchParams;
+  try {
+    params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+  } catch {
+    return null;
+  }
+  for (const name of PREFIX_QUERY_NAMES) {
+    const value = params.get(name)?.trim().toLowerCase() ?? '';
+    if (isValidPrefix(value)) {
+      return value;
+    }
+  }
+  return null;
+}

@@ -29,6 +29,7 @@ const PREFIX_SITE = 'zaneabridge7';
 const PREFIX_SPEED = 'zaneabridge4';
 const PREFIX_BACK = 'zaneabridge5';
 const PREFIX_FACE = 'zaneabridge6';
+const PREFIX_IDLE = 'zaneabridge8';
 
 /**
  * 실습실 두 곳을 한 검사에서 띄운다 — 개발 서버(Vite가 그때그때 옮김)에서는 첫 화면이 느려서 넉넉하게 본다(README 5.2).
@@ -256,6 +257,62 @@ test.describe('영상처리 ↔ 가상 보드 시리얼 선(P4-02)', () => {
     await expect(page.locator('[data-lab-console]')).toContainText("받은 줄: b'hello");
     await stopRun(board);
     await board.close();
+  });
+
+  // 2026-09-25 Phase 4 검토 반영(사용성 I5): 보드 탭이 자기 역할을 알리지 않고, 보드 탭 [실행]을 잊으면 컴퓨터 탭은 "이어졌어요"만 보였다.
+  test('보드 탭: 역할 띠를 보이고, [실행] 전에 컴퓨터 탭이 보내면 컴퓨터 탭에도 "보드가 돌고 있지 않아요"를 알린다', async ({ page, context }) => {
+    const board = await openSecondTab(context, `?example=${encodeURIComponent(BOARD_LASER_SITE)}&bridge=${PREFIX_IDLE}`);
+    const band = board.locator('[data-bridge-role-band]');
+    await expect(band).toBeVisible();
+    await expect(band).toContainText('이 탭은 보드 쪽이에요');
+    await expect(band).toHaveAttribute('data-running', 'no');
+    // 역할 띠는 조작 줄 바로 위에 있다(화면 맨 위에서 보인다)
+    const bandBox = await band.boundingBox();
+    const toolbarBox = await board.locator('[data-lab-toolbar]').boundingBox();
+    expect(bandBox && toolbarBox && bandBox.y < toolbarBox.y).toBe(true);
+    // 가상 보드의 UART는 선으로 이어지므로, 실물용 USB 데이터 포트 칸은 [실제 보드] 탭을 고르기 전에는 열리지 않는다
+    await expect(board.locator('[data-lab-module-panel="data-port"]')).toBeHidden();
+
+    await openVision(page, `?example=${encodeURIComponent(PC_KEY_SEND)}&bridge=${PREFIX_IDLE}`);
+    await waitPeer(page);
+    await expect(band).toHaveAttribute('data-peer', 'yes', { timeout: 30_000 });
+    // 보드가 컴퓨터 쪽을 알아보면 지금 상태(idle)를 알려 준다 → 컴퓨터 탭 상태 줄
+    await expect(bridgePanel(page)).toHaveAttribute('data-bridge-board-run', 'idle', { timeout: 30_000 });
+    await expect(page.locator('[data-bridge-status]')).toContainText('보드가 돌고 있지 않아요');
+
+    // 보드 [실행] 전에 컴퓨터 코드가 a를 보내면 컴퓨터 탭 콘솔에도 안내가 나온다(전에는 보드 탭 콘솔에만 있었다)
+    await clickRun(page);
+    await typeInput(page, 'a');
+    await expect(page.locator('[data-lab-console]')).toContainText('가상 보드(ESP32 실습실)가 돌고 있지 않아요', { timeout: 30_000 });
+
+    // 보드를 [실행]하면 띠와 컴퓨터 탭 상태가 바뀌고, 그다음 보낸 a는 레이저를 켠다
+    await clickRun(board);
+    await expect(band).toHaveAttribute('data-running', 'yes', { timeout: 60_000 });
+    await expect(bridgePanel(page)).toHaveAttribute('data-bridge-board-run', 'running', { timeout: 30_000 });
+    await typeInput(page, 'a');
+    await expect(pinRow(board, 18)).toHaveAttribute('data-level', '1', { timeout: 60_000 });
+
+    await typeInput(page, 'q');
+    expect(await waitDone(page, 30_000)).toBe('ok');
+    await stopRun(board);
+    expect(await waitDone(board, 30_000)).toBe('stopped');
+    await board.close();
+  });
+
+  test('[보내기] 패널 통로 목록: 모듈이 붙는 차례와 상관없이 탭·USB 데이터 포트·MQTT가 모두 있다', async ({ page }) => {
+    await openVision(page, `?example=${encodeURIComponent(PC_KEY_SEND)}`);
+    const select = page.locator('[data-bridge-channel]');
+    await expect(bridgePanel(page)).toBeVisible();
+    // 목록을 열기 전(초점)에도 다시 그린다 — 늦게 붙은 모듈의 통로가 빠지지 않게
+    await select.focus();
+    await expect(bridgePanel(page)).toHaveAttribute('data-bridge-channels', /\btab\b/u);
+    const channels = ((await bridgePanel(page).getAttribute('data-bridge-channels')) ?? '').split(' ');
+    expect(channels).toEqual(expect.arrayContaining(['tab', 'mqtt']));
+    // USB 데이터 포트·블루투스(실제 보드)는 그 브라우저에 기능이 있을 때만(Edge 데스크톱은 둘 다 있다)
+    const serialSupported = await page.evaluate(() => 'serial' in navigator);
+    if (serialSupported) {
+      expect(channels).toContain('serial');
+    }
   });
 
   test('원본 f085(얼굴 → a·b)도 고치지 않고 열려 시리얼 포트를 연다', async ({ page, context }) => {

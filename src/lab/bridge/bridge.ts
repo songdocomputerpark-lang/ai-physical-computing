@@ -11,6 +11,7 @@
  * 파이썬 쪽 `bridge` 모듈(P4-02)과 원본 코드 흉내(`serial`·`bluetooth`)가 모두 이 네 가지로 이어진다.
  * 원본 코드가 보낸 바이트는 `sendBytes`로 들어와 **한 바이트도 바뀌지 않고** 나간다(§7.2-8).
  */
+import { isSignalType } from './channels/envelope.ts';
 import { BridgeInbox, type BridgeInboundPolicy } from './inbox.ts';
 import { rawMessage, textMessage } from './message.ts';
 import { BridgeError } from './messages.ts';
@@ -91,6 +92,10 @@ export class Bridge {
   private listen(): void {
     this.offs.push(
       this.current.on('message', (envelope) => {
+        if (isSignalType(envelope.type)) {
+          // 실행 상태 알림은 데이터가 아니다(TAB_UART_STATUS_TYPE)
+          return;
+        }
         this.lastEnvelope = envelope;
         this.box.push(envelope.bytes);
       }),
