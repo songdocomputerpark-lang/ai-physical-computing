@@ -1,0 +1,252 @@
+---
+/**
+ * USB 데이터 포트 칸(P4-05, 규약은 src/lab/README.md 4.5). HTML·CSS만 그리고 동작은 `src/lab/modules/data-port/index.ts`가
+ * `data-data-port-*` 표시로 찾아 잇는다. LabShell이 [data-lab-module-panel="data-port"] 안에 hidden으로 그려 둔다.
+ *
+ * 무엇을 보여 주나
+ *  ① [데이터 포트 연결]·[연결 끊기]와 통신 속도 — 보드 REPL 포트(코드 보내는 곳)와 **다른 두 번째 포트**를 연다.
+ *  ② 포트 이름표(사람이 어느 선인지 알아보게) + 칩·USB 번호(보조 정보).
+ *  ③ 받은 바이트(글자·16진수) — 속도가 다르면 글자가 깨져 보이는 것까지 실물과 같다.
+ *  ④ 시험 보내기(배선·방향 확인용 a·b 한 글자).
+ *  ⑤ (실험) USB 한 개로 보내기 — 접은 칸. 기본으로 쓰지 않는 까닭과 보드에 올릴 템플릿.
+ *
+ * 접근성: 상태·문제·받은 줄에 aria-live, 모든 조작에 label, 색으로만 알리지 않는다(글로도 적는다).
+ */
+import { DATA_PORT_BAUD_RATES, DEFAULT_DATA_PORT_BAUD } from '../../../lab/serial/data-port/baud-rates.ts';
+import { DATA_PORT_LABEL_MAX } from '../../../lab/serial/data-port/port-labels.ts';
+import { SINGLE_USB_SUMMARY, SINGLE_USB_TEMPLATE } from '../../../lab/serial/data-port/single-usb.ts';
+import { dataPortText } from '../../../lab/serial/data-port/text.ts';
+---
+
+<section class="data-port" data-data-port data-data-port-state="idle" aria-label="USB 데이터 포트">
+  <header class="data-port__head">
+    <h3 class="data-port__title">USB 데이터 포트</h3>
+    <span class="data-port__badge" data-data-port-badge>연결 전</span>
+  </header>
+
+  <p class="data-port__intro">
+    USB-UART 변환기를 꽂은 포트를 <strong>두 번째 포트</strong>로 열어요. 코드를 보내는 보드 포트는 그대로 두고, 이 포트로는{' '}
+    <strong>데이터</strong>만 오가요.
+  </p>
+
+  <div class="data-port__row">
+    <button type="button" class="lab-button lab-button--small" data-data-port-action="connect">데이터 포트 연결</button>
+    <button type="button" class="lab-button lab-button--small" data-data-port-action="disconnect" hidden>연결 끊기</button>
+    <label class="data-port__label" for="lab-data-port-baud">통신 속도</label>
+    <select id="lab-data-port-baud" class="lab__select" data-data-port-baud>
+      {DATA_PORT_BAUD_RATES.map((item) => (
+        <option value={item.rate} selected={item.rate === DEFAULT_DATA_PORT_BAUD}>
+          {item.label}
+          {item.note === '' ? '' : ` — ${item.note}`}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <p class="data-port__status" data-data-port-status aria-live="polite">{dataPortText.state('idle', '데이터 포트', DEFAULT_DATA_PORT_BAUD)}</p>
+
+  <div class="data-port__problem" data-data-port-problem role="alert" hidden>
+    <p class="data-port__problem-text" data-data-port-problem-text></p>
+    <p class="data-port__problem-advice" data-data-port-problem-advice></p>
+  </div>
+
+  <div class="data-port__port" data-data-port-info hidden>
+    <div class="data-port__row">
+      <label class="data-port__label" for="lab-data-port-label">포트 이름표</label>
+      <input
+        id="lab-data-port-label"
+        class="data-port__input"
+        type="text"
+        maxlength={DATA_PORT_LABEL_MAX}
+        placeholder="예: 변환기"
+        autocomplete="off"
+        data-data-port-label
+      />
+    </div>
+    <p class="data-port__note">{dataPortText.labelHint()}</p>
+    <p class="data-port__chip" data-data-port-chip></p>
+    <p class="data-port__note">{dataPortText.labelLimit()}</p>
+  </div>
+
+  <div class="data-port__log">
+    <div class="data-port__row data-port__row--between">
+      <h4 class="data-port__subtitle">주고받은 것</h4>
+      <span class="data-port__count" data-data-port-count>받은 0바이트 · 보낸 0바이트</span>
+      <button type="button" class="lab-button lab-button--small" data-data-port-action="clear">기록 지우기</button>
+    </div>
+    <pre class="data-port__lines" data-data-port-lines aria-live="polite">아직 받은 것이 없어요.</pre>
+    <p class="data-port__hex">
+      마지막 바이트(16진수): <code data-data-port-hex>—</code>
+    </p>
+  </div>
+
+  <form class="data-port__send" data-data-port-form>
+    <label class="data-port__label" for="lab-data-port-text">시험 보내기</label>
+    <div class="data-port__row">
+      <input id="lab-data-port-text" class="data-port__input" type="text" value="a" autocomplete="off" data-data-port-text />
+      <label class="data-port__check">
+        <input type="checkbox" data-data-port-newline checked />
+        줄바꿈 붙이기
+      </label>
+      <button type="submit" class="lab-button lab-button--small" data-data-port-action="send">보내기</button>
+    </div>
+    <p class="data-port__note">{dataPortText.testSendHint()}</p>
+  </form>
+
+  <details class="data-port__experiment" data-data-port-experiment>
+    <summary>(실험) USB 선 하나로 보내기</summary>
+    <p class="data-port__note">{SINGLE_USB_SUMMARY}</p>
+    <p class="data-port__note">
+      변환기가 없으면 보드에 아래 코드를 올려 두고 실습실 입력줄로 <code>a</code>·<code>b</code>를 보내 볼 수 있어요. 아직 실물
+      확인 전이라 기본 통로로는 쓰지 않아요.
+    </p>
+    <pre class="data-port__code" data-data-port-template>{SINGLE_USB_TEMPLATE}</pre>
+    <button type="button" class="lab-button lab-button--small" data-data-port-action="template">편집칸에 이 코드 넣기</button>
+  </details>
+</section>
+
+<style>
+  .data-port {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    min-width: 0;
+  }
+
+  .data-port__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .data-port__title {
+    margin: 0;
+    font-size: var(--text-base);
+  }
+
+  .data-port__subtitle {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .data-port__badge {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .data-port[data-data-port-state='open'] .data-port__badge {
+    border-color: var(--color-success-border);
+    color: var(--color-success-text);
+  }
+
+  .data-port[data-data-port-state='error'] .data-port__badge {
+    border-color: var(--color-danger-border);
+    color: var(--color-danger-text);
+  }
+
+  .data-port__intro,
+  .data-port__status,
+  .data-port__note,
+  .data-port__chip,
+  .data-port__hex,
+  .data-port__problem-text,
+  .data-port__problem-advice {
+    margin: 0;
+  }
+
+  .data-port__note,
+  .data-port__chip,
+  .data-port__hex,
+  .data-port__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .data-port__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .data-port__row--between {
+    justify-content: space-between;
+  }
+
+  .data-port__label {
+    font-weight: 600;
+  }
+
+  .data-port__input {
+    flex: 1 1 8rem;
+    min-width: 6rem;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .data-port__check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .data-port__problem {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-danger-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+  }
+
+  .data-port__log {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .data-port__lines,
+  .data-port__code {
+    margin: 0;
+    padding: var(--space-2);
+    max-height: 9rem;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .data-port__send {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .data-port__experiment {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .data-port__experiment summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+</style>

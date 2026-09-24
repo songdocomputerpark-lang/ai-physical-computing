@@ -1,0 +1,10 @@
+---
+/**
+ * USB 데이터 포트 모듈의 화면 조각(src/lab/README.md 4.5). LabShell이 [data-lab-module-panel="data-port"] 안에 hidden으로 그려 두고,
+ * index.ts가 코드에 시리얼이 보일 때 showPanel()로 연다. 내용은 src/components/lab/data-port/DataPortPanel.astro에 있다
+ * (페이지가 io 슬롯에 직접 넣을 수도 있게 부품으로 나눠 두었다).
+ */
+import DataPortPanel from '../../../components/lab/data-port/DataPortPanel.astro';
+---
+
+<DataPortPanel />
