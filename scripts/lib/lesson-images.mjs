@@ -652,40 +652,51 @@ export function thirdPartyEntryTemplate(key) {
 }
 
 /**
- * 원본 그림의 권리 표기(도구가 알려 준 rights 목록)로 third_party가 필요한지 본다.
+ * 원본 그림의 제작자 칸이 운영자 자신(원고·교안 저자)이면 제3자가 아니다. 교안 PDF의 작성자 칸이 로마자로 적혀 있다(INVENTORY §2).
+ * 비교는 소문자·공백 무시.
+ */
+export const OPERATOR_CREATORS = Object.freeze(['박상진', '김석전', 'seok jeon kim']);
+
+/**
+ * @param {Record<string, string>} info
+ */
+function isOperatorCreator(info) {
+  const creator = (info.creator ?? '').toLowerCase().replace(/\s+/gu, '');
+  const rights = (info.rights ?? '').toLowerCase().replace(/\s+/gu, '');
+  const names = OPERATOR_CREATORS.map((name) => name.toLowerCase().replace(/\s+/gu, ''));
+  return creator !== '' && names.includes(creator) && (rights === '' || names.includes(rights));
+}
+
+/**
+ * 원본 그림의 권리 표기(도구가 알려 준 rights 목록)로 그 그림을 쓸 수 있는지, third_party가 필요한지 본다.
+ * - 출판 편집 삽화·컷(이름표 "…(삽)"·"…(컷)") → third_party: publisher(운영자 할 일 13번 기본값)
+ * - 출판사가 아닌 제3자(스톡 작가·판매 사이트) 표기 → 쓰지 않는다(결정 C11, docs/DECISIONS.md). 스톡 사용권은 출판사가 교과서용으로
+ *   산 것이라 웹사이트로 넘어오지 않는다. C11이 거둬지면(운영자가 웹 사용 라이선스를 알려 주면) 이 규칙을 되돌린다.
+ * - 제작자가 운영자 자신이면 제3자가 아니다.
  * @param {{ info: Record<string, string>, publisher: boolean, id: string }[]} hits
  * @param {string | undefined} thirdParty
  * @returns {string | null}
  */
 export function rightsProblem(hits, thirdParty) {
-  if (hits.length === 0) {
+  const others = hits.filter((hit) => hit.publisher || !isOperatorCreator(hit.info));
+  if (others.length === 0) {
     return null;
   }
-  const holders = new Set(hits.map((hit) => (hit.publisher ? 'publisher' : `${hit.info.creator ?? ''}|${hit.info.rights ?? ''}`)));
-  const describe = hits
-    .map((hit) => (hit.publisher ? `출판 편집 삽화(이름표 ${hit.info.title})` : `제작자 ${hit.info.creator ?? '(없음)'}, 권리 문구 ${hit.info.rights ?? '(없음)'}`))
-    .join(' / ');
-  if (holders.size > 1) {
-    return `꺼내는 영역에 권리자가 다른 그림이 함께 들어 있어요(${describe}). region을 나눠 그림마다 따로 꺼내요.`;
+  const describe = (/** @type {typeof hits} */ list) =>
+    list
+      .map((hit) => (hit.publisher ? `출판 편집 삽화(이름표 ${hit.info.title})` : `제작자 ${hit.info.creator ?? '(없음)'}, 권리 문구 ${hit.info.rights ?? '(없음)'}`))
+      .join(' / ');
+  const stock = others.filter((hit) => !hit.publisher);
+  if (stock.length > 0) {
+    return (
+      `원본 그림에 출판사가 아닌 권리자의 표기가 있어요(${describe(stock)}). 결정 C11(docs/DECISIONS.md) — 스톡 그림은 사이트에 쓰지 않아요. ` +
+      '사이트가 그린 SVG로 바꾸거나 빼요(스톡 그림이 영역 가장자리에 조금 걸린 것이면 region을 좁혀요).'
+    );
   }
-  if (!thirdParty) {
-    const suggestion = hits[0].publisher ? 'publisher' : slugifyHolder(hits[0].info.creator ?? hits[0].info.credit ?? 'stock');
-    return `원본 그림에 권리 표기가 있어요(${describe}). 제3자 권리 그림이라 third_party: ${suggestion}을(를) 적어요(운영자 할 일 13번 기본값, PLAN §9.2).`;
-  }
-  if (hits[0].publisher && thirdParty !== 'publisher') {
-    return `출판 편집 삽화(${describe})는 third_party: publisher로 적어요.`;
+  if (thirdParty !== 'publisher') {
+    return `원본 그림이 출판 편집 삽화·컷이에요(${describe(others)}). third_party: publisher를 적어요(운영자 할 일 13번 기본값, PLAN §9.2).`;
   }
   return null;
-}
-
-/** @param {string} text */
-function slugifyHolder(text) {
-  const slug = text
-    .toLowerCase()
-    .replace(/\b(?:inc|ltd|llc|co|corp)\b\.?/gu, '')
-    .replace(/[^a-z0-9]+/gu, '-')
-    .replace(/^-+|-+$/gu, '');
-  return slug || 'stock';
 }
 
 // ─────────────────────────────── 그림 파일의 메타데이터 ───────────────────────────────

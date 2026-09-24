@@ -5,53 +5,13 @@
 # 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 # reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
 #
-# 이 차시의 표 속 삽화 3장(원고 009쪽, public/images/lessons/u1/1-1-1-*.webp)은 도구가 생기기 전에 손으로 꺼낸 그림이라
-# 기록이 scripts/image-allowlist.yaml에 있어요.
+# 원고 009쪽 표 속 삽화 3장은 도구가 생기기 전에 손으로 꺼낸 판(public/images/lessons/u1/1-1-1-*.webp, 기록은 scripts/image-allowlist.yaml)을
+# 1-1-1.md가 아직 써요. 아래 recognition·learning·reasoning은 같은 삽화를 도구로 다시 꺼낸 판이에요 — 1-1-1.md를 이 경로로 바꾸면
+# 옛 판 3장과 그 기록(scripts/image-allowlist.yaml), sources.yaml "출판 편집 삽화·컷" 항목의 옛 경로 3줄을 함께 지워요.
+# 원고 010쪽 쇼핑 로봇 그림(Visual Generation Inc. 스톡)은 결정 C11(docs/DECISIONS.md)로 쓰지 않아요 — 사이트가 그린 그림(S08)으로 대신해요.
+# 원고 008쪽 중단원 여는 그림은 INVENTORY §5.2가 "스톡 추정(표기 없음)"으로 적은 그림이라 샘플에서 뺐어요(절대 원칙 5 "애매하면 직접 만든다", C11의 근거와 같음).
 
 images:
-  - name: unit-opener
-    use: 1-1-1 맨 위 장식 그림 — 원고 008쪽 중단원 "01 인공지능과 인식" 여는 쪽의 그림(태블릿을 든 학생과 태양광 패널)
-    decorative: true
-    alt: ""
-    from:
-      source: U1
-      page: 8
-      region: [0, 560, 336, 779]
-    file: public/images/lessons/1-1-1/unit-opener.webp
-    width: 960
-    height: 626
-    bytes: 22888
-    sha256: "31e1856ae4ffb786ee21c0d7a1d820de2fd95666da4812c679f514b18f16fb81"
-    checks:
-      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
-      faces: 0
-      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-    reviewed:
-      by: claude
-      date: 2026-09-25
-      result: 통과 — 평면 그림(태블릿을 든 사람, 해, 태양광 패널, 나무)과 왼쪽 쪽 여백의 연두색 띠. 사람은 눈·볼만 점으로 그린 그림 인물이라 실존 인물 사진이 아님. 글자·이름·화면 속 경로·파일명·기기 주소·학교명 없음
-  - name: shopping-robot
-    use: 1-1-1 핵심 개념 "기존 응용 프로그램과 인공지능 응용 프로그램" — 온라인 쇼핑몰의 추천 시스템 예시 그림(원고 010쪽)
-    alt: 쇼핑몰 화면이 켜진 태블릿에서 로봇이 나와 쇼핑백을 건네고, 옆에서 사람이 태블릿으로 물건을 고르는 그림
-    from:
-      source: U1
-      page: 10
-      region: [210, 248, 505, 443]
-    third_party: visual-generation
-    file: public/images/lessons/1-1-1/third-party/visual-generation/shopping-robot.webp
-    width: 903
-    height: 597
-    bytes: 36634
-    sha256: "0a925f2d3855b653e9f1b8cab4f92acd14030307ca6555b2ace68f7d3162110c"
-    checks:
-      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
-      faces: 0
-      rights: 제작자 Visual Generation Inc., 권리 문구 Copyright © 2022 of Visual Generation Inc. All rights reserved. You may use this content within the terms of the purchased license.
-      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-    reviewed:
-      by: claude
-      date: 2026-09-25
-      result: 통과 — 벡터 그림(쇼핑몰 화면이 켜진 태블릿에서 나온 로봇, 쇼핑백, 태블릿을 든 사람). 사람은 이목구비 없는 그림 인물. 글자·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 제3자 권리 그림(Visual Generation Inc.)이라 sources.yaml 제3자 항목에 이어 둠
   - name: agent-car
     use: 1-1-1 핵심 개념 "에이전트" — 자율주행 자동차로 본 에이전트의 구성 요소 그림(원고 011쪽 "에이전트의 특징")
     alt: 자율주행 자동차 운전석에서 본 도로 그림 둘레에 지능적 처리, 센서, 액추에이터, 환경, 목표 다섯 가지 구성 요소의 설명 상자가 붙어 있는 그림
@@ -73,3 +33,72 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 운전석에서 본 도로 벡터 그림과 원고의 설명 상자 5개(지능적 처리, 센서, 액추에이터, 환경, 목표). OpenCV가 얼굴로 본 [606, 473, 57, 57]은 오른쪽 아래 좌석 무늬로 얼굴이 아니고, 도로의 보행자는 작은 그림 인물. 이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: recognition
+    use: 1-1-1 핵심 개념 "인공지능과 사람의 지능" 표의 "인식" 예시 그림(원고 009쪽)
+    alt: 스마트폰에 대고 말하는 학생 그림
+    from:
+      source: U1
+      page: 9
+      image: 18
+    third_party: publisher
+    file: public/images/lessons/1-1-1/third-party/publisher/recognition.webp
+    width: 415
+    height: 415
+    bytes: 12014
+    sha256: "c21da4f5182234754d2a9f44a25e81de2df5562268feee91ee15d14f654c7b32"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-1-01(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 스마트폰에 대고 말하는 학생을 평면으로 그린 출판 편집 삽화(눈·입을 선으로 그린 그림 인물이라 실존 인물 사진이 아님). 글자·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: learning
+    use: 1-1-1 핵심 개념 "인공지능과 사람의 지능" 표의 "학습" 예시 그림(원고 009쪽)
+    alt: 강아지와 고양이 그림을 보고 배운 인공지능이 새 그림을 강아지와 고양이로 나누는 그림
+    from:
+      source: U1
+      page: 9
+      region: [260, 590, 396, 695]
+      dpi: 288
+    max_width: 420
+    third_party: publisher
+    file: public/images/lessons/1-1-1/third-party/publisher/learning.webp
+    width: 420
+    height: 324
+    bytes: 9792
+    sha256: "18aa851edaf80d1551abe1b48a1852000c907971c0833b8ceb6e48d87f30caea"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_중1-1-1-02(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 강아지·고양이 얼굴 아이콘, AI 뇌 그림, 화살표, 체크 표시만 있는 출판 편집 삽화. 표 테두리 선·본문 글자 없음. 사람·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: reasoning
+    use: 1-1-1 핵심 개념 "인공지능과 사람의 지능" 표의 "추론" 예시 그림(원고 009쪽)
+    alt: 도로 상황을 살피며 달리는 자율주행 자동차 그림
+    from:
+      source: U1
+      page: 9
+      image: 20
+    max_width: 420
+    third_party: publisher
+    file: public/images/lessons/1-1-1/third-party/publisher/reasoning.webp
+    width: 420
+    height: 416
+    bytes: 17374
+    sha256: "dcdda784e11f806616a6c7d0f50551114b28a215e40f1cb8f18410ad89536cc8"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_중1-1-1-03(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 도로를 달리는 자율주행 자동차와 표지판·트럭 그림(출판 편집 삽화). 번호판은 0000 무늬. 사람·이름·화면 속 경로·파일명·기기 주소·학교명 없음

@@ -10,6 +10,7 @@
 # 015쪽의 강아지·고양이 사진(객체 감지)·백로 사진(이미지 분류), 016쪽의 엄지 든 손 사진(동작 인식)·자세 랜드마크 그림도 같은
 # 방법으로 해 봤지만(2026-09-25), 엄격 얼굴 검사가 동물 얼굴·주먹 마디·머리 점 무늬를 얼굴로 보고 멈춰 꺼내지 않았어요 — 그 그림은
 # 사이트가 그린 그림(INVENTORY §5.3 S13·S14·S15)으로 대신해요. 제외 쪽의 엄격 검사는 끄는 방법이 없어요.
+# 018쪽 석고상 사진(BASHTA 스톡)은 결정 C11(docs/DECISIONS.md)로 쓰지 않아요 — 사이트가 그린 그림(S12)으로 대신해요.
 
 images:
   - name: cnn-stages
@@ -105,29 +106,6 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 프로그램 창(제목 표시줄의 빨강·노랑·초록 점) 속 편 손바닥과 빨간 랜드마크 점·흰 선만 있음. 원고에서 창 왼쪽을 덮던 마스코트·말풍선은 영역 밖으로 뺌. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
-  - name: feature-statue
-    use: 1-1-2 학습 활동 "특징 추출 기법" — 밝기 차이로 경계선을 찾는 예시 사진(원고 018쪽 석고상)
-    alt: 밝은 조각 면과 그림자의 밝기 차이로 윤곽이 드러나는 여성 두상 석고상 사진
-    from:
-      source: U1
-      page: 18
-      image: 696
-    third_party: bashta
-    file: public/images/lessons/1-1-2/third-party/bashta/feature-statue.webp
-    width: 207
-    height: 317
-    bytes: 5426
-    sha256: "9a65dae295fa461ad6635f7bd7631ca68e1c7f14b25a8589084e0d1133f4d819"
-    checks:
-      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
-      faces: 2
-      face_boxes: [[22, 51, 117, 117], [70, 156, 128, 128]]
-      rights: 제작자 BASHTA, 권리 문구 BASHTA
-      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-    reviewed:
-      by: claude
-      date: 2026-09-25
-      result: 통과 — 여성 두상 석고상(조각) 사진. OpenCV가 얼굴로 본 두 곳은 조각의 얼굴과 턱·목 부분이라 실존 인물이 아님. 이름·화면 속 경로·파일명·기기 주소·학교명 없음. 제3자 권리 사진(BASHTA)
   - name: feature-zebra
     use: 1-1-2 학습 활동 "특징 추출 기법" — 반복되는 무늬로 질감을 찾는 예시 사진(원고 018쪽 얼룩말)
     alt: 검은 줄무늬와 흰 줄무늬가 몸 전체에 되풀이되는 얼룩말이 풀밭에 서 있는 사진

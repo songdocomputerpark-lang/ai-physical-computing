@@ -74,7 +74,7 @@ sources:
     category: third_party
     author: "원 권리자 미확인 — 교과서 원고를 조판한 출판사 또는 삽화가(운영자 확인 전). 원고 저자: 박상진·김석전"
     license: 원 권리자 보유 — 운영자 사용 허락(O2·O4), 사이트 CC BY-NC-SA 4.0 적용 제외
-    used_in: "차시 그림 가운데 출판사가 조판할 때 넣은 삽화·컷: 1-1-1 핵심 개념 표의 인식·학습·추론 그림 3장(public/images/lessons/u1/1-1-1-*.webp)과 차시 그림 폴더의 third-party/publisher/(예: 1-1-2 CNN 단계 그림, 손 랜드마크 그림). 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S-번호)으로 바꿔요."
+    used_in: "차시 그림 가운데 출판사가 조판할 때 넣은 삽화·컷: 1-1-1 핵심 개념 표의 인식·학습·추론 그림 3장(도구 이전 판 public/images/lessons/u1/1-1-1-*.webp와 도구로 다시 꺼낸 판 public/images/lessons/1-1-1/third-party/publisher/)과 차시 그림 폴더의 third-party/publisher/(예: 1-1-2 CNN 단계 그림, 손 랜드마크 그림). 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S-번호)으로 바꿔요."
     rights: "원고 그림 이름표(XMP 제목)가 '인피컴_…(삽)'·'인피컴_…(컷)' 모양인 출판 편집 삽화·컷 — 별도의 저작권 문구는 없음. 예: 009쪽 인피컴_고1-1-1-01(삽)·인피컴_중1-1-1-02(삽)·인피컴_중1-1-1-03(삽), 014쪽 인피컴_고1-1-1-05(삽), 016쪽 인피컴_고1-1-04(컷)(2026-09-25 원고 이미지 추출 도구로 다시 확인)."
     paths:
       - public/images/lessons/u1/1-1-1-recognition.webp
@@ -83,28 +83,9 @@ sources:
       - public/images/lessons/*/third-party/publisher/**
     fetched: 2026-09-25
 
-  # 원고 010쪽 쇼핑 로봇 그림(놓인 그래픽의 XMP: 제작자 Visual Generation Inc., 제목 Untitled-6). INVENTORY §5.2 첫 줄의 스톡 제작자 표기 그림.
-  - name: Visual Generation Inc. 스톡 벡터 그림(교과서 원고 010쪽)
-    category: third_party
-    author: Visual Generation Inc.
-    license: 원 권리자 보유 — 운영자 사용 허락(O4), 사이트 CC BY-NC-SA 4.0 적용 제외
-    url: https://www.vige.co/
-    used_in: "원고에 실린 스톡 벡터 그림(public/images/lessons/*/third-party/visual-generation/ — 1-1-1 쇼핑 로봇 그림). 교체가 필요해지면 사이트가 그린 그림(INVENTORY §5.3 S08)으로 바꿔요."
-    rights: "Copyright © 2022 of Visual Generation Inc. All rights reserved. You may use this content within the terms of the purchased license.(원고 그림 XMP의 권리 문구 원문)"
-    paths:
-      - public/images/lessons/*/third-party/visual-generation/**
-    fetched: 2026-09-25
-
-  # 원고 018쪽 석고상 사진(그림 XMP: 제작자 BASHTA, 권리 BASHTA). INVENTORY §5.2 첫 줄의 스톡 제작자 표기 그림.
-  - name: BASHTA 스톡 사진(교과서 원고 018쪽 석고상)
-    category: third_party
-    author: BASHTA
-    license: 원 권리자 보유 — 운영자 사용 허락(O4), 사이트 CC BY-NC-SA 4.0 적용 제외
-    used_in: "원고 018쪽 학습 활동의 석고상 사진(public/images/lessons/*/third-party/bashta/ — 1-1-2 특징 추출 기법 그림). 교체가 필요해지면 사이트가 그린 그림(INVENTORY §5.3 S12)으로 바꿔요."
-    rights: "BASHTA(원고 그림 XMP의 제작자·권리 칸 원문). 그림 제목: Gypsum copy of ancient statue Venus head isolated on white background. Plaster sculpture woman face."
-    paths:
-      - public/images/lessons/*/third-party/bashta/**
-    fetched: 2026-09-25
+  # 원고 속 스톡 그림(원본 권리 표기가 출판사가 아닌 스톡 작가·판매 사이트 — 예: 010쪽 Visual Generation Inc., 018쪽 BASHTA,
+  # 141쪽 rancz, 155쪽 Firuz Mukhtarov, 173쪽 Chris Putnam)은 결정 C11(docs/DECISIONS.md, 2026-09-25)로 사이트에 쓰지 않아 항목이 없어요.
+  # 원고 이미지 추출 도구가 그런 그림을 꺼내지 않고 멈춰요. 사이트가 그린 그림(INVENTORY §5.3)으로 바꾸거나 빼요.
 
   - name: 교과서·수업 자료의 예제 코드와 사이트판
     category: operator

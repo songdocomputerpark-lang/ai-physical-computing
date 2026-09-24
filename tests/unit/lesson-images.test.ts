@@ -312,16 +312,21 @@ describe('sources.yaml과 잇기(checkSourcesLink)·권리 표기(rightsProblem)
     expect(checkSourcesLink('public/images/lessons/supplement/a.webp', registry.entries)).toContain('operator');
   });
 
-  it('원본 그림의 권리 표기를 보고 third_party를 요구한다', () => {
+  it('출판 편집 삽화는 third_party: publisher를 요구하고, 스톡 그림은 결정 C11대로 쓰지 않는다', () => {
     const publisher = { id: 'placed MC0', publisher: true, info: { title: '인피컴_고1-1-1-05(삽)' } };
     const stock = { id: 'image 696', publisher: false, info: { creator: 'Visual Generation Inc.', rights: 'Copyright' } };
+    const operator = { id: 'image 9', publisher: false, info: { creator: 'seok jeon kim' } };
     expect(rightsProblem([], undefined)).toBeNull();
     expect(rightsProblem([publisher], undefined)).toContain('third_party: publisher');
-    expect(rightsProblem([stock], undefined)).toContain('third_party: visual-generation');
     expect(rightsProblem([publisher], 'publisher')).toBeNull();
-    expect(rightsProblem([publisher], 'bashta')).toContain('publisher');
-    expect(rightsProblem([stock], 'visual-generation')).toBeNull();
-    expect(rightsProblem([publisher, stock], 'publisher')).toContain('권리자가 다른 그림');
+    expect(rightsProblem([publisher], 'visual-generation')).toContain('third_party: publisher');
+    // 스톡(출판사가 아닌 권리자)은 third_party를 적어도 쓰지 않는다(C11)
+    expect(rightsProblem([stock], undefined)).toContain('C11');
+    expect(rightsProblem([stock], 'visual-generation')).toContain('C11');
+    expect(rightsProblem([publisher, stock], 'publisher')).toContain('C11');
+    // 제작자가 운영자 자신이면 제3자가 아니다
+    expect(rightsProblem([operator], undefined)).toBeNull();
+    expect(rightsProblem([{ ...operator, info: { creator: 'Seok Jeon Kim', rights: 'Other Agency' } }], undefined)).toContain('C11');
   });
 });
 
