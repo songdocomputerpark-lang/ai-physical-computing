@@ -106,6 +106,12 @@ describe.skipIf(!boardPyodideReady)('가상 블루투스(BLE) — 실제 Pyodide
     expect(step.stdout).toContain('New connection 0');
   });
 
+  it('다시 연결해도 원본 ESP32BLE.send()가 닿는다(연결 번호는 비어 있는 가장 작은 번호 — 상대 하나면 늘 0)', () => {
+    const step = stepOf(out, 'esp32ble_reconnect_send');
+    expect(step.errorType).toBeUndefined();
+    expect(step.value).toEqual([['one\n', 'two\n'], []]);
+  });
+
   it('배선에 블루투스 칸이 없어도 코드는 돌고, 콘솔로 칸을 여는 법을 알린다', () => {
     const step = stepOf(out, 'ble_without_part');
     expect(step.errorType).toBeUndefined();

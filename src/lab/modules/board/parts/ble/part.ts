@@ -32,6 +32,8 @@ import {
   phoneAppFrame,
   previewOf,
   rangeById,
+  BLE_STARVED_MS,
+  bleStarvedText,
   type BleDeviceState,
   type CoordinateShape,
   type LineEnding,
@@ -198,12 +200,25 @@ const definition: PartDefinition = {
       const connected = visual.connected === true;
       const advertising = visual.advertising === true;
       const brightness = typeof visual.brightness === 'number' ? visual.brightness : 0;
-      led.setAttribute('fill', visual.lit === true ? '#fbbf24' : '#374151');
-      led.setAttribute('opacity', visual.lit === true ? String(0.45 + 0.55 * (brightness / 100)) : '1');
+      /*
+       * 움직임 줄이기: ESP32BLE.py는 광고하는 동안 상태 LED를 0.1초마다 켰다 껐다 한다(초당 약 5번). 진동 모터·팬 부품처럼
+       * 깜빡이는 동안에는 고정된 빛과 "깜빡이는 중" 글로 보인다(2026-09-25 Phase 4 검토 반영). 핀 값(data-visual-lit)은 그대로 바뀐다.
+       */
+      const reduceMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      const steadyBlink = reduceMotion && advertising && !connected;
+      if (steadyBlink) {
+        led.setAttribute('fill', '#fbbf24');
+        led.setAttribute('opacity', '0.6');
+      } else {
+        led.setAttribute('fill', visual.lit === true ? '#fbbf24' : '#374151');
+        led.setAttribute('opacity', visual.lit === true ? String(0.45 + 0.55 * (brightness / 100)) : '1');
+      }
       waves.setAttribute('opacity', connected ? '1' : advertising ? '0.55' : '0.15');
       const name = typeof visual.name === 'string' ? visual.name : '';
       nameText.textContent = name === '' ? '' : `이름 ${name}`;
-      state.textContent = typeof visual.summary === 'string' ? visual.summary : '멈춤';
+      const summaryText = typeof visual.summary === 'string' ? visual.summary : '멈춤';
+      // 부품 그림이 좁아(126) 짧게 — 광고 중에 LED가 깜빡이는 것을 글로 알린다
+      state.textContent = steadyBlink ? '광고·깜빡임' : summaryText;
       target.parentElement?.setAttribute(
         'aria-description',
         `${String(visual.summary ?? '')}. 보드가 받은 값 ${String(visual.rx ?? 0)}개, 보드가 보낸 값 ${String(visual.tx ?? 0)}개`,
@@ -221,6 +236,17 @@ const definition: PartDefinition = {
     let state: BleDeviceState | null = null;
     let sent = 0;
     let lastTxTotal = 0;
+    /**
+     * 보낸 값·[연결]이 보드에 닿았는지 지켜보는 타이머(2026-09-25 Phase 4 검토 반영). BLE_STARVED_MS가 지나도 받은 수·연결 수가
+     * 그대로면 보드 코드가 쉬지 않는 반복문이라 값을 넣을 틈이 없는 것 — 까닭과 고칠 방법을 조작 칸에 적는다.
+     */
+    let starvedTimer: ReturnType<typeof setTimeout> | null = null;
+    const clearStarved = () => {
+      if (starvedTimer !== null) {
+        clearTimeout(starvedTimer);
+        starvedTimer = null;
+      }
+    };
     const lines: string[] = [];
 
     host.style.gap = 'var(--space-2)';
@@ -376,6 +402,25 @@ const definition: PartDefinition = {
       warning.hidden = message === null;
     };
 
+    /** 보낸 것(what)이 BLE_STARVED_MS 안에 보드에 닿는지 지켜본다 — 닿지 않으면 "받을 틈이 없어요" */
+    const watchDelivery = (what: 'write' | 'connect') => {
+      clearStarved();
+      const rxBefore = state?.rxTotal ?? 0;
+      const connectionsBefore = state?.connections.length ?? 0;
+      starvedTimer = setTimeout(() => {
+        starvedTimer = null;
+        if (!isRunning(phase)) {
+          return;
+        }
+        const reached = what === 'write' ? (state?.rxTotal ?? 0) > rxBefore : (state?.connections.length ?? 0) > connectionsBefore;
+        // 블루투스를 켜지 않은 코드(active(False))라서 안 닿은 것은 다른 까닭이다 — 켜진 채 안 닿을 때만 알린다.
+        if (!reached && state?.active === true) {
+          showWarning(bleStarvedText());
+          host.dataset.bleStarved = 'true';
+        }
+      }, BLE_STARVED_MS);
+    };
+
     function send(bytes: readonly number[]): void {
       if (!isRunning(phase)) {
         showWarning('먼저 [실행]을 눌러요. 보드가 코드를 돌리는 동안 보낸 값만 보드가 받아요.');
@@ -384,6 +429,7 @@ const definition: PartDefinition = {
       const { warning: tooLong, text } = previewOf(bytes);
       showWarning(tooLong);
       api.sendToDevice({ kind: 'write', bytes: [...bytes] });
+      watchDelivery('write');
       sent += 1;
       appendLog(logLine('send', bytes));
       host.dataset.bleSent = String(sent);
@@ -432,6 +478,7 @@ const definition: PartDefinition = {
       }
       showWarning(null);
       api.sendToDevice({ kind: 'connect' });
+      watchDelivery('connect');
     });
     listen(disconnectButton, 'click', () => {
       if (!isRunning(phase)) {
@@ -490,6 +537,8 @@ const definition: PartDefinition = {
           log.value = '';
           sent = 0;
           lastTxTotal = 0;
+          clearStarved();
+          delete host.dataset.bleStarved;
           showWarning(null);
         }
         phase = nextPhase;
@@ -502,6 +551,7 @@ const definition: PartDefinition = {
         render();
       },
       destroy() {
+        clearStarved();
         for (const cleanup of cleanups.splice(0)) {
           cleanup();
         }

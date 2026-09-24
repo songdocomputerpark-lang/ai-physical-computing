@@ -37,13 +37,20 @@ export function hasWebBluetooth(scope: { readonly navigator?: { readonly bluetoo
   return bluetoothApi(scope) !== null;
 }
 
-/** 지원하지 않는 환경에 맞춘 한 줄(iOS·Firefox를 이름으로 짚어 준다) */
-export function unsupportedAdvice(browserName: string, ios: boolean, firefox: boolean): string {
+/**
+ * 지원하지 않는 환경에 맞춘 한 줄(iOS·Firefox를 이름으로 짚어 준다).
+ * recommended: 사이트가 권하는 컴퓨터용 Chrome·Edge인데 기능이 없는 경우 — 브라우저 탓이 아니라 꺼져 있거나 학교 설정으로 막힌 것이라
+ * "Chrome이나 Edge에서 해 주세요"라고 하면 모순이다(2026-09-25 Phase 4 검토 반영 — Edge에서 "Edge에는 기능이 없어요 … Edge에서 해 주세요"가 떴다).
+ */
+export function unsupportedAdvice(browserName: string, ios: boolean, firefox: boolean, recommended = false): string {
   if (ios) {
     return '아이폰·아이패드는 브라우저 종류와 상관없이 블루투스로 기기를 연결할 수 없어요.';
   }
   if (firefox) {
     return 'Firefox에는 블루투스로 기기를 연결하는 기능이 없어요.';
+  }
+  if (recommended) {
+    return `${browserName}는 보통 블루투스로 기기를 연결할 수 있는데, 지금은 그 기능이 꺼져 있거나 학교 설정으로 막혀 있어요. 선생님께 알려 주세요.`;
   }
   return `${browserName}에는 블루투스로 기기를 연결하는 기능이 없어요.`;
 }
@@ -57,10 +64,15 @@ export async function detectBleSupport(env: CapabilityEnv = envFromWindow()): Pr
   const check = await checkWebBluetooth(env, browser);
   const ios = browser.platform === 'ios';
   const firefox = browser.brand === 'firefox';
-  const advice = check.status === 'unsupported' ? `${unsupportedAdvice(browser.name, ios, firefox)} ${check.advice}` : check.advice;
+  const recommended = isRecommendedBrowser(browser);
+  let advice = check.advice;
+  if (check.status === 'unsupported') {
+    // 권하는 브라우저면 "권하는 브라우저에서 해 주세요"(check.advice)를 붙이지 않는다 — 지금 그 브라우저다
+    advice = recommended && !ios && !firefox ? unsupportedAdvice(browser.name, ios, firefox, true) : `${unsupportedAdvice(browser.name, ios, firefox)} ${check.advice}`;
+  }
   return Object.freeze({
     level: check.status,
-    recommended: isRecommendedBrowser(browser),
+    recommended,
     browserName: browser.name,
     mobile: browser.mobile,
     ios,

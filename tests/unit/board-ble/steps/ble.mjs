@@ -214,6 +214,38 @@ export default async function bleSteps({ step, bridge, pyodide, rootDir }) {
     stopAfterMs: 700,
   });
 
+  // ⑥-2 다시 연결해도 원본 ESP32BLE.send()(연결 번호 0으로 보냄)가 닿는다 — 가상 보드는 비어 있는 가장 작은 번호를 준다
+  //      (2026-09-25 검토 반영: 1씩 늘리면 두 번째 연결이 1번이 되어 send가 ENOTCONN으로 멈췄다).
+  await step(
+    'esp32ble_reconnect_send',
+    [
+      'import ESP32BLE, time, apc_runtime, apc_board_ble',
+      'sent = []',
+      'apc_board_ble.on_notify(lambda data: sent.append(bytes(data)))',
+      'ble = ESP32BLE.init("ESP32-07")',
+      "apc_runtime.emit('board.device', {'mark': 'connect'})",
+      'time.sleep_ms(60)',
+      'ble.send("one")',
+      "apc_runtime.emit('board.device', {'mark': 'disconnect'})",
+      'time.sleep_ms(60)',
+      "apc_runtime.emit('board.device', {'mark': 'connect'})",
+      'time.sleep_ms(60)',
+      'errors = []',
+      'try:',
+      '    ble.send("two")',
+      'except OSError as error:',
+      '    errors.append(str(error))',
+      '[[item.decode() for item in sent], errors]',
+    ].join('\n'),
+    {
+      wiring: WIRING,
+      onMark: (mark) => {
+        if (mark === 'connect') connect();
+        else if (mark === 'disconnect') disconnect();
+      },
+    },
+  );
+
   // ⑦ 배선에 블루투스 칸이 없으면 콘솔로 알린다(그래도 코드는 돈다 — 실물도 무선은 보드 안에 있다).
   await step(
     'ble_without_part',

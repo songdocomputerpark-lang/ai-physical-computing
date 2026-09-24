@@ -231,6 +231,13 @@ import { DEFAULT_NAME_PREFIX, NAME_MAX_BYTES, bleText, initLineFor, suggestBoard
     justify-self: start;
   }
 
+  /* 권하는 브라우저인데 블루투스가 꺼졌거나 막힌 경우 — 고칠 것이 없는 안내라 파랑(안내) 상자 */
+  .ble-real__unsupported[data-kind='blocked'] {
+    border-color: var(--color-info-border);
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+  }
+
   .ble-real__warn {
     color: var(--color-warning-text);
     font-size: var(--text-xs);

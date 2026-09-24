@@ -70,6 +70,19 @@ describe('지원하지 않는 환경 안내', () => {
     expect(unsupportedAdvice('어떤 브라우저', false, false)).toContain('어떤 브라우저');
   });
 
+  it('권하는 Edge·Chrome인데 기능이 없으면 "그 브라우저에서 해 주세요"라고 모순되게 말하지 않고 꺼짐·막힘을 알린다', async () => {
+    const support = await detectBleSupport({
+      isSecureContext: true,
+      navigator: {
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0',
+      },
+    });
+    expect(support.level).toBe('unsupported');
+    expect(support.recommended).toBe(true);
+    expect(support.advice).toContain('학교 설정으로 막혀');
+    expect(support.advice).not.toContain('에서 해 주세요');
+  });
+
   it('navigator.bluetooth가 없으면 unsupported로 판정하고 한국어 안내를 준다', async () => {
     const support = await detectBleSupport({
       isSecureContext: true,

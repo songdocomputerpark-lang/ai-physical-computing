@@ -332,8 +332,12 @@ class _Radio:
         """상대 기기(스마트폰·컴퓨터)가 연결했다 — IRQ 1"""
         if not self.active or not self.connectable:
             return None
-        conn = self.next_conn
-        self.next_conn += 1
+        # 비어 있는 가장 작은 연결 번호를 준다 — 상대가 하나면 다시 연결해도 늘 0이다(2026-09-25 Phase 4 검토 반영:
+        # 1씩 늘리면 두 번째 연결이 1번이 되어, 0번으로 보내는 원본 ESP32BLE.send()가 ENOTCONN으로 멈췄다. 실물 번호는 부록 B-2 31번에서 확인).
+        conn = 0
+        while conn in self.connections:
+            conn += 1
+        self.next_conn = conn + 1
         self.connections.append(conn)
         self.advertising = False  # 실물도 연결되면 광고를 멈춘다
         self.fire(EVENT_CENTRAL_CONNECT, (conn, _ADDR_TYPE_PUBLIC, bytes(_new_address())))
@@ -599,8 +603,9 @@ class BLE:
         if len(payload) > limit:
             apc_board.BOARD.warn_once(
                 ("ble-notify-truncated", str(value.handle)),
-                f"보드가 보낸 값이 {len(payload)}바이트여서 앞 {limit}바이트만 갔어요. 블루투스는 한 번에 "
-                f"MTU({RADIO.mtu})에서 3을 뺀 만큼만 보낼 수 있어요(실물도 같아요).",
+                f"보드가 보낸 값이 {len(payload)}바이트여서 앞 {limit}바이트만 갔어요. 블루투스 알림은 한 번에 "
+                f"MTU({RADIO.mtu})에서 3을 뺀 만큼만 보낼 수 있어요. 가상 보드는 기본 MTU {RADIO.mtu}로 흉내 내요 — "
+                "실물은 연결할 때 컴퓨터·스마트폰과 MTU를 더 크게 정하면 잘리지 않을 수 있어요.",
             )
             payload = payload[:limit]
         RADIO.notified(payload)

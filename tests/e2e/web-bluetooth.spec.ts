@@ -129,6 +129,33 @@ test.describe('실제 블루투스 연결 화면', () => {
     await expect(panel(page)).toHaveAttribute('data-ble-real-state', 'idle');
   });
 
+  // 2026-09-25 Phase 4 검토 반영(완료 기준 지적 5): 영상처리 실습실의 원본 f089(bluetooth.init(...).send)가 같은 문서의 가상 보드에만 보내,
+  // 블루투스 칸에서 실제 보드를 이어도 좌표가 가지 않았다(부록 B-2 15번을 해 볼 수 없었다). 가상 보드가 없으면 이어진 실제 보드로 보낸다.
+  test('영상처리 실습실의 원본 f089: 블루투스 칸으로 이은 보드(가짜 블루투스)에 검지 좌표가 닿는다', async ({ page }) => {
+    test.skip(test.info().project.name === 'mobile', 'OpenCV·손 인식까지 받는 무거운 검사라 데스크톱에서만 본다.');
+    test.setTimeout(420_000);
+    await installBleMock(page, { devices: [{ name: 'ESP32-07' }] });
+    const response = await page.goto(`${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u3/3-1-3-hand-ble-xy.py')}`);
+    expect(response?.status()).toBe(200);
+    await expect(labRoot(page)).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    await expect(labRoot(page)).toHaveAttribute('data-vision-packages', 'ready', { timeout: 240_000 });
+
+    await expect(panel(page)).toBeVisible({ timeout: 30_000 });
+    await connectButton(page).click();
+    await expect(panel(page)).toHaveAttribute('data-ble-real-state', 'open', { timeout: 10_000 });
+
+    // 카메라 없이 재생 입력(PD-30)으로 손을 만든다
+    await page.locator('[data-vision-source-select]').selectOption('replay');
+    await expect(labRoot(page)).toHaveAttribute('data-vision-source', 'replay');
+    await page.getByRole('button', { name: '실행', exact: true }).first().click();
+
+    await expect(labRoot(page)).toHaveAttribute('data-ble-pc-target', 'real', { timeout: 60_000 });
+    await expect.poll(() => bleMock(page).writtenText(), { timeout: 120_000 }).toMatch(/\d+,\d+/u);
+    await expect(page.locator('[data-lab-console]')).toContainText('Sent:');
+    await page.getByRole('button', { name: '정지', exact: true }).first().click();
+    await expect(labRoot(page)).toHaveAttribute('data-outcome', /^(stopped|killed)$/u, { timeout: 30_000 });
+  });
+
   test('선택 창을 닫으면 무엇을 확인할지 한국어로 알려 준다', async ({ page }) => {
     await installBleMock(page, { chooser: 'cancel' });
     await openBleLab(page);

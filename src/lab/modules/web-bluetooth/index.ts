@@ -235,6 +235,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
       }
       if (unsupported) {
         unsupported.hidden = false;
+        // 권하는 브라우저인데 기능이 꺼진·막힌 경우는 학생이 고칠 것이 없는 안내라 파랑(안내) 상자로(2026-09-25 Phase 4 검토 반영)
+        unsupported.dataset.kind = support.recommended && support.level === 'unsupported' ? 'blocked' : 'browser';
       }
       textOf(unsupportedText, support.summary);
       textOf(unsupportedAdviceNode, support.advice);

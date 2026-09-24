@@ -234,3 +234,18 @@ export function logLine(direction: 'send' | 'receive', bytes: readonly number[])
   const arrow = direction === 'send' ? '→ 보냄' : '← 보드가 보냄';
   return `${arrow}  ${bytesText(bytes)}`;
 }
+
+/** 보낸 값·[연결]이 이만큼(밀리초) 지나도 보드에 닿지 않으면 "받을 틈이 없어요" 안내를 띄운다 */
+export const BLE_STARVED_MS = 3000;
+
+/**
+ * 조작 칸이 보낸 값(또는 [연결])이 보드에 닿지 않을 때의 안내(2026-09-25 Phase 4 검토 반영).
+ * 가상 보드는 파이썬이 쉬는 자리(입력 확인 지점 — sleep·sleep_ms·ticks 등, README 7.2)에서만 블루투스 값을 넣는다.
+ * 그래서 `while True: data = ble.read()`처럼 쉬지 않는 반복문은 가상 보드에서 값을 받지 못하고, 학생은 까닭을 알 수 없었다.
+ */
+export function bleStarvedText(): string {
+  return (
+    '보드 코드가 블루투스 값을 받을 틈이 없어요. 가상 보드는 반복문 안의 time.sleep(0.05)처럼 잠깐 쉬는 줄에서 값을 넣어 줘요 — ' +
+    '반복문 안에 쉬는 줄을 넣어 봐요. 쉬지 않는 반복문은 [정지]도 1초 뒤 파이썬을 다시 시작해서 멈춰요.'
+  );
+}
