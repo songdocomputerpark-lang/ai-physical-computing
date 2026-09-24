@@ -27,10 +27,16 @@ export interface DashboardViewOptions {
   readonly helpId: string;
   /** 저장 공간(테스트가 가짜를 넣는다) */
   readonly storage?: StorageSource;
-  /** 스위치를 눌렀다 — 페이지가 통로로 보낸다 */
-  onToggle?(spec: WidgetSpec, on: boolean): void;
+  /**
+   * 스위치를 눌렀다 — 페이지가 통로로 보낸다. false(또는 false로 풀리는 약속)를 돌려주면 보내지 못한 것이라 스위치 모양을 바꾸지 않는다.
+   */
+  onToggle?(spec: WidgetSpec, on: boolean): unknown;
+  /** 스위치가 보내지 못했을 때 위젯 안에 적을 까닭 */
+  switchProblem?(): string;
   /** 화면 아래 안내 줄에 적을 글 */
   onStatus?(text: string): void;
+  /** 위젯을 모두 지웠을 때 초점을 옮길 곳(예: [위젯 추가] 단추) */
+  fallbackFocus?(): HTMLElement | null;
 }
 
 interface DragState {
@@ -82,15 +88,21 @@ export class DashboardView {
     const active = document.activeElement;
     widgets.forEach((widget, index) => {
       let view = this.#views.get(widget.id);
+      let created = false;
       if (view === undefined) {
         view = createWidgetView(widget, this.#handlers(), this.#options.helpId);
         this.#views.set(widget.id, view);
+        created = true;
       } else {
         view.update(widget);
       }
       const current = this.#options.grid.children[index];
       if (current !== view.element) {
         this.#options.grid.insertBefore(view.element, current ?? null);
+      }
+      if (created) {
+        // 판에 붙은 뒤에 한 번 더 그린다(그래프 캔버스는 붙어야 크기가 생긴다 — widgets.ts ResizeObserver와 같은 까닭)
+        view.redraw();
       }
     });
     // 순서가 정말 바뀌어 초점이 풀렸으면 되돌려 준다(방향키로 계속 옮길 수 있게).
@@ -105,10 +117,9 @@ export class DashboardView {
     return {
       onChange: (spec: WidgetSpec): void => this.updateWidget(spec),
       onRemove: (id: string): void => this.removeWidget(id),
-      onToggle: (spec: WidgetSpec, on: boolean): void => {
-        this.#options.onToggle?.(spec, on);
-      },
-      onGrabKey: (id: string, event: KeyboardEvent): boolean => this.#onKey(id, event),
+      onToggle: (spec: WidgetSpec, on: boolean): unknown => this.#options.onToggle?.(spec, on),
+      switchProblem: (): string => this.#options.switchProblem?.() ?? '',
+      onGrabKey: (id: string, event: KeyboardEvent, from: 'grab' | 'resize'): boolean => this.#onKey(id, event, from),
       onGrabPointer: (id: string, event: PointerEvent): void => this.#startDrag(id, event, 'move'),
       onResizePointer: (id: string, event: PointerEvent): void => this.#startDrag(id, event, 'resize'),
     };
@@ -172,14 +183,23 @@ export class DashboardView {
     return true;
   }
 
-  /** 위젯을 지운다 */
+  /** 위젯을 지운다. 초점은 다음(없으면 앞) 위젯의 손잡이로, 위젯이 하나도 없으면 fallbackFocus로 옮긴다 */
   removeWidget(id: string): void {
     const target = this.#board.widgets.find((widget) => widget.id === id);
     if (target === undefined) {
       return;
     }
+    // 지운 단추가 사라지면 초점이 body로 떨어져 키보드 학생이 처음부터 Tab을 다시 눌러야 했다(2026-09-25 Phase 4 검토 반영)
+    const order = sortForReading(this.#board.widgets).map((widget) => widget.id);
+    const index = order.indexOf(id);
+    const nextId = order[index + 1] ?? order[index - 1] ?? null;
+    const hadFocus = this.#views.get(id)?.element.contains(document.activeElement) ?? false;
     this.#setBoard(this.#board.widgets.filter((widget) => widget.id !== id));
     this.#status(dashText.removed(target.title));
+    if (hadFocus) {
+      const nextGrab = nextId === null ? null : this.#views.get(nextId)?.element.querySelector<HTMLElement>('[data-dash-grab]');
+      (nextGrab ?? this.#options.fallbackFocus?.() ?? null)?.focus();
+    }
   }
 
   /** 배치를 처음 모습으로 */
@@ -209,6 +229,11 @@ export class DashboardView {
     return taken;
   }
 
+  /** 위젯(스위치) 아래 한 줄 알림을 적는다 — 보드가 받았는지 등. 그런 위젯이 없으면 아무것도 하지 않는다 */
+  noteWidget(id: string, text: string, level: 'info' | 'warn' = 'info'): void {
+    this.#views.get(id)?.note(text, level);
+  }
+
   /** 모든 위젯의 값 기억을 비운다(새 실습을 시작할 때) */
   clearValues(): void {
     for (const view of this.#views.values()) {
@@ -224,7 +249,7 @@ export class DashboardView {
   }
 
   // ── 키보드 ───────────────────────────────────────────────────────────────
-  #onKey(id: string, event: KeyboardEvent): boolean {
+  #onKey(id: string, event: KeyboardEvent, from: 'grab' | 'resize' = 'grab'): boolean {
     const deltas: Record<string, [number, number]> = {
       ArrowLeft: [-1, 0],
       ArrowRight: [1, 0],
@@ -240,13 +265,15 @@ export class DashboardView {
       return false;
     }
     const [dx, dy] = delta;
-    const change = event.shiftKey ? resizeWidget(this.#board.widgets, id, dx, dy) : moveWidget(this.#board.widgets, id, dx, dy);
+    // 크기 단추에서는 방향키만으로, 손잡이에서는 Shift+방향키로 크기를 바꾼다(2026-09-25 Phase 4 검토 반영)
+    const sizing = event.shiftKey || from === 'resize';
+    const change = sizing ? resizeWidget(this.#board.widgets, id, dx, dy) : moveWidget(this.#board.widgets, id, dx, dy);
     if (!change.changed) {
       this.#status(dashText.edge());
       return true;
     }
     this.#setBoard(change.widgets);
-    this.#status(event.shiftKey ? dashText.resized(widget.title, change.rect.w, change.rect.h) : dashText.moved(widget.title, change.rect.x, change.rect.y));
+    this.#status(sizing ? dashText.resized(widget.title, change.rect.w, change.rect.h) : dashText.moved(widget.title, change.rect.x, change.rect.y));
     // 다시 그린 뒤에도 같은 단추에 초점이 남게 한다(요소를 그대로 쓰므로 초점은 유지된다).
     return true;
   }

@@ -1,0 +1,11 @@
+# 예제 갤러리 태그를 적는 사이드카(P4-11 — src/lab/gallery/facets.ts). 사이트가 만든 예제라 설명·실습 방법·안내 상자는 .py 머리말에 있어요
+# (src/lab/README.md 2절). title은 ESP32 예제 사이드카에 반드시 있어야 해서 .py 머리말 첫 줄과 같게 적었어요 — 고칠 때는 두 곳을 함께 고쳐요.
+# 대시보드(/labs/iot/dashboard/)의 [이 자리에서 가상 보드 열기]가 이 예제를 연다(src/lab/dashboard/demo-code.ts — 2026-09-25 Phase 4 검토 반영:
+# 전에는 공유 링크 코드로 열어 예제 이름이 "첫 실습: 내장 LED 깜빡이기"로 보였다).
+title: "통신 템플릿 4: 대시보드와 주고받기 — 0~100 값을 보내고 스위치로 LED 켜기"
+unit: 3
+difficulty: 2
+virtual_ok: true
+comm:
+  - wifi
+  - mqtt

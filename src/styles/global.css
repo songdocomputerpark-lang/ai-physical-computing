@@ -274,6 +274,26 @@ textarea {
   font-size: var(--text-lg);
 }
 
+/*
+ * 꺼진 단추는 켜진 단추와 달라 보여야 한다(2026-09-25 Phase 4 검토 반영 — 대시보드의 꺼진 [끊기]가 켜진 단추와 똑같이 보였다).
+ * 실습실 단추(.lab-button:disabled — LabShell.astro)와 같은 흐림·커서를 쓰고, 마우스를 올려도 색이 바뀌지 않게 한다.
+ */
+.button:disabled,
+.button[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.button--secondary:disabled:hover {
+  border-color: var(--color-accent);
+  background: var(--color-bg);
+  color: var(--color-accent);
+}
+
+.button--primary:disabled:hover {
+  background: var(--color-accent);
+}
+
 /* ── 글 읽기(마크다운 본문 등) ── */
 .prose {
   max-width: var(--width-prose);

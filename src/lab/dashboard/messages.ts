@@ -72,4 +72,40 @@ export const dashText = {
   twoTabs(): string {
     return '다른 탭에서 ESP32 실습실을 열고 접두어를 맞추면, 그 탭의 가상 보드 값이 여기에 그려져요.';
   },
+  /** 같은 컴퓨터 탭으로 연결했을 때(2026-09-25 Phase 4 검토 반영 — 어느 통로로 이어졌는지 사실대로) */
+  connectedTab(): string {
+    return '연결했어요(같은 컴퓨터 탭). 이 컴퓨터의 다른 탭이나 아래 가상 보드에서 같은 접두어로 보내면 위젯에 값이 들어와요.';
+  },
+  /** 공개 중계 서버로 연결했을 때 */
+  connectedBroker(): string {
+    return '공개 중계 서버에 연결했어요. 같은 접두어를 쓰는 다른 컴퓨터·보드의 값도 들어와요 — 누구나 볼 수 있으니 개인정보는 보내지 않아요.';
+  },
+  /** [이 자리에서 가상 보드 열기]가 탭 통로 [연결]까지 해 줬을 때(인터넷이 필요 없어 저절로 잇는다) */
+  autoConnected(): string {
+    return '가상 보드를 열면서 [연결]도 해 두었어요(같은 컴퓨터 탭). 아래 가상 보드에서 [실행]을 누르면 값이 들어와요.';
+  },
+  /** 가상 보드는 열었는데 대시보드는 아직 연결 전(공개 중계 서버를 고른 경우 — 저절로 잇지 않는다) */
+  labNeedsConnect(): string {
+    return '위 1단계의 [연결]을 눌러야 보드가 보낸 값이 그래프에 들어와요.';
+  },
+  /** 스위치를 눌렀지만 보내지 못해 모양을 그대로 둘 때 */
+  switchNotSent(reason: string): string {
+    return `보내지 못해서 스위치를 그대로 뒀어요. ${reason}`;
+  },
+  /** 이 자리에 연 가상 보드의 LED가 스위치를 따라 바뀌었을 때(보드 그림이 화면 밖이어도 스위치 옆에서 알 수 있게) */
+  frameLed(on: boolean): string {
+    return `아래 가상 보드가 받았어요 — LED ${on ? '켜짐' : '꺼짐'}`;
+  },
+  /** 몇 초가 지나도 아래 가상 보드의 LED가 바뀌지 않을 때 */
+  frameLedMissed(): string {
+    return '아래 가상 보드의 LED가 바뀌지 않았어요. 가상 보드에서 [실행]을 눌렀는지 봐요.';
+  },
+  /** 접두어 [복사] */
+  prefixCopied(prefix: string): string {
+    return `통신 접두어 ${prefix}를 복사했어요. 같이 실습하는 화면의 [친구 접두어]에 붙여 넣어요.`;
+  },
+  /** 복사가 막혔을 때 */
+  copyBlocked(prefix: string): string {
+    return `이 브라우저는 복사를 막았어요. 접두어 ${prefix}를 직접 적어요.`;
+  },
 } as const;

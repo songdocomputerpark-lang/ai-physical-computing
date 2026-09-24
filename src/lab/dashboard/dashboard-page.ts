@@ -20,17 +20,18 @@ import {
   openBridgeChannel,
   parsePrefix,
   pinPrefix,
+  prefixFromQuery,
   registerBuiltinChannels,
   TAB_CHANNEL_ID,
   unpinPrefix,
   writeSessionPrefix,
   type BridgeChannel,
 } from '../bridge/index.ts';
-import { encodeShareCode } from '../controls/share-link.ts';
 import {
   brokerById,
   checkBrokerUrl,
   CUSTOM_BROKER_ID,
+  defaultBrokerUrl,
   getMqttSession,
   mqttText,
   readMqttSettings,
@@ -39,7 +40,8 @@ import {
   type MqttConnection,
   type MqttMode,
 } from '../mqtt/index.ts';
-import { DASHBOARD_DEMO_CODE } from './demo-code.ts';
+import { COMMAND_TOPIC } from './defaults.ts';
+import { DASHBOARD_DEMO_FILE } from './demo-code.ts';
 import { DashboardView } from './grid-view.ts';
 import { dashText } from './messages.ts';
 import { createMqttSource, listenBridge } from './source.ts';
@@ -51,9 +53,17 @@ export interface DashboardPage {
   dispose(): void;
 }
 
-/** ESP32 실습실을 대시보드 옆에 여는 주소(예제 코드를 공유 링크로 담아서) */
-export function embedLabSrc(code: string = DASHBOARD_DEMO_CODE): string {
-  return `${withBase('labs/esp32/')}?embed=1#code=${encodeShareCode(code)}`;
+/**
+ * ESP32 실습실을 대시보드 옆에 여는 주소 — 대시보드 예제(통신 템플릿 4)를 `?example=`로 연다(2026-09-25 Phase 4 검토 반영:
+ * 전에는 공유 링크 코드로 열어 실습실 예제 이름이 코드와 달랐다). 같은 탭 안의 틀이라 통신 접두어(sessionStorage)는 그대로 이어진다.
+ */
+export function embedLabSrc(file: string = DASHBOARD_DEMO_FILE): string {
+  return `${withBase('labs/esp32/')}?example=${encodeURIComponent(file)}&embed=1`;
+}
+
+/** 두 탭 실습: 새 탭의 ESP32 실습실을 같은 예제·같은 접두어로 여는 주소(`?prefix=` — MQTT 모듈이 읽는다) */
+export function labTabHref(base: string, prefix: string, file: string = DASHBOARD_DEMO_FILE): string {
+  return `${base}?example=${encodeURIComponent(file)}&prefix=${encodeURIComponent(prefix)}`;
 }
 
 /** 대시보드 페이지를 켠다. 뿌리 요소는 `[data-dash-page]`. */
@@ -86,35 +96,104 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
   const openLabButton = find<HTMLButtonElement>('open-lab');
   const labSlot = find<HTMLElement>('lab-slot');
   const countText = find<HTMLElement>('count');
+  const connectWarning = find<HTMLElement>('connect-warning');
+  const copyPrefixButton = find<HTMLButtonElement>('copy-prefix');
+  const checkNote = find<HTMLElement>('check-note');
+  const labLink = root.querySelector<HTMLAnchorElement>('[data-dash-lab-link]');
+  const labHint = find<HTMLElement>('lab-hint');
 
   const settings = readMqttSettings();
-  const session = getMqttSession({ prefix: ensurePrefix(), mode: settings.mode, brokerUrl: settings.brokerUrl });
+  // ESP32 실습실 MQTT 칸의 "대시보드를 새 탭에서" 링크로 열렸으면(?prefix=… — 2026-09-25 Phase 4 검토 반영) 그 접두어를 이 탭에서 쓴다.
+  const urlPrefix = typeof location === 'undefined' ? null : prefixFromQuery(location.search);
+  if (urlPrefix !== null) {
+    writeSessionPrefix(urlPrefix);
+  }
+  const session = getMqttSession({ prefix: urlPrefix ?? ensurePrefix(), mode: settings.mode, brokerUrl: settings.brokerUrl });
   const source = createMqttSource(session);
   let received = 0;
 
-  const showHint = (text: string): void => {
+  /** 1단계 안내 줄. level 'warn'이면 경고 모양(중계 서버 실패·탭 전환 — 다음 안내가 올 때까지 남는다) */
+  const showHint = (text: string, level: 'info' | 'warn' = 'info'): void => {
     if (hint !== null) {
       hint.textContent = text;
       hint.hidden = text === '';
+      hint.dataset.dashLevel = level;
     }
+  };
+
+  const showLabHint = (text: string): void => {
+    if (labHint !== null) {
+      labHint.textContent = text;
+      labHint.hidden = text === '';
+    }
+  };
+
+  /**
+   * 이 자리에 연 가상 보드(같은 출처 iframe)의 내장 LED가 스위치를 따라 바뀌는지 보고 스위치 아래에 알린다(2026-09-25 Phase 4 검토 반영).
+   * 1366×768에서는 위젯 판과 아래 가상 보드가 한 화면에 들어가지 않아, 스위치를 눌러도 LED가 켜졌는지 보이지 않았다.
+   * 대시보드 예제(통신 템플릿 4)의 명령 토픽 스위치일 때만 본다(다른 토픽은 LED와 상관이 없을 수 있다).
+   */
+  let ledWatch: ReturnType<typeof setInterval> | null = null;
+  const stopLedWatch = (): void => {
+    if (ledWatch !== null) {
+      clearInterval(ledWatch);
+      ledWatch = null;
+    }
+  };
+  const watchFrameLed = (spec: WidgetSpec, on: boolean): void => {
+    const frame = labSlot?.querySelector<HTMLIFrameElement>('iframe') ?? null;
+    if (frame === null || labSlot?.hidden === true || spec.topic !== COMMAND_TOPIC) {
+      return;
+    }
+    stopLedWatch();
+    const started = Date.now();
+    ledWatch = setInterval(() => {
+      let lit: string | undefined;
+      try {
+        lit = frame.contentDocument?.querySelector<HTMLElement>('[data-board-part="builtin-led"]')?.dataset.visualLit;
+      } catch {
+        lit = undefined;
+      }
+      if (lit === (on ? 'true' : 'false')) {
+        stopLedWatch();
+        view.noteWidget(spec.id, dashText.frameLed(on), 'info');
+        return;
+      }
+      if (Date.now() - started > 4000) {
+        stopLedWatch();
+        view.noteWidget(spec.id, dashText.frameLedMissed(), 'warn');
+      }
+    }, 200);
   };
 
   const view = new DashboardView({
     grid,
     announce,
     helpId: help?.id ?? 'dash-keyboard-help',
-    onStatus: (text) => showHint(text),
-    onToggle: (spec: WidgetSpec, on: boolean) => {
+    // 위젯 옮기기·크기 알림은 판 아래 알림 칸(announce) 한 곳에만 적는다 — 1단계 안내 줄에도 적으면 낭독기가 두 번 읽고
+    // 연결 안내를 덮어썼다(2026-09-25 Phase 4 검토 반영). 1단계 안내 줄은 연결·보내기 이야기만 한다.
+    onToggle: (spec: WidgetSpec, on: boolean): Promise<boolean> | boolean => {
       const text = on ? spec.onText : spec.offText;
       if (session.state !== 'open') {
-        showHint(dashText.needConnect());
-        return;
+        // 보내지 못하면 스위치 모양을 바꾸지 않는다(위젯이 까닭을 스위치 옆에 적는다 — widgets.ts)
+        showHint(dashText.needConnect(), 'warn');
+        return false;
       }
-      void source
-        .send(spec.topic, text)
-        .then(() => showHint(dashText.switchSent(spec.topic, text)))
-        .catch((error: unknown) => showHint(error instanceof Error ? error.message : String(error)));
+      return source.send(spec.topic, text).then(
+        () => {
+          showHint(dashText.switchSent(spec.topic, text));
+          watchFrameLed(spec, on);
+          return true;
+        },
+        (error: unknown) => {
+          showHint(error instanceof Error ? error.message : String(error), 'warn');
+          return false;
+        },
+      );
     },
+    switchProblem: () => dashText.needConnect(),
+    // 위젯을 모두 지우면 초점을 [위젯 추가]의 첫 단추로(초점이 body로 떨어지지 않게)
+    fallbackFocus: () => root.querySelector<HTMLElement>('[data-dash-add]'),
   });
 
   const syncPrefix = (): void => {
@@ -125,6 +204,10 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
       const pinned = isPinned();
       pinButton.textContent = pinned ? '고정 풀기' : '이 접두어 고정';
       pinButton.setAttribute('aria-pressed', pinned ? 'true' : 'false');
+    }
+    // 두 탭 실습 링크: 새 탭의 ESP32 실습실이 이 접두어로 열린다(12글자를 옮겨 적지 않게)
+    if (labLink !== null) {
+      labLink.href = labTabHref(labLink.dataset.dashLabBase ?? withBase('labs/esp32/'), session.prefix);
     }
   };
 
@@ -142,10 +225,19 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
       };
       stateText.textContent = labels[session.state] ?? session.state;
     }
+    // 이어져 있으면 실제 통로(via)를, 아니면 고른 통로(mode)를 따른다 — 중계 서버 대신 탭으로 이어졌는데 공개 서버 경고를 보이지 않게(I4)
+    const broker = session.state === 'open' ? session.via === 'broker' : mode !== 'tab';
     if (warning !== null) {
-      const broker = mode !== 'tab';
       warning.textContent = broker ? mqttText.brokerWarning() : mqttText.tabNotice();
       warning.dataset.dashLevel = broker ? 'warn' : 'info';
+    }
+    if (connectWarning !== null) {
+      // [연결] 바로 아래(§7.4 "연결 버튼 옆에 늘 표시") — 공개 중계 서버를 고른 동안 늘 보인다
+      connectWarning.textContent = mode !== 'tab' ? mqttText.connectWarning() : '';
+      connectWarning.hidden = mode === 'tab';
+    }
+    if (session.state === 'open') {
+      showLabHint('');
     }
     if (brokerSelect !== null) {
       brokerSelect.disabled = mode === 'tab';
@@ -161,7 +253,7 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
     }
   };
 
-  const cleanups: Array<() => void> = [];
+  const cleanups: Array<() => void> = [stopLedWatch];
 
   /** 어느 통로로 왔든 메시지 하나를 위젯들에 넘긴다 */
   const deliver = (message: SourceMessage): void => {
@@ -230,23 +322,47 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
   };
   cleanups.push(closeBridge);
 
-  const connect = async (): Promise<void> => {
+  /**
+   * [연결]. 끝난 뒤 안내 줄에는 **실제로 어떻게 이어졌는지**를 남긴다(2026-09-25 Phase 4 검토 반영 — 전에는 중계 서버 실패·탭 전환 안내를
+   * 끝의 "연결했어요"가 덮어써, 친구 컴퓨터와 하려던 학생이 이어지지 않는 까닭을 못 봤다). auto는 [이 자리에서 가상 보드 열기]가 부른 것.
+   */
+  const connect = async (options: { auto?: boolean } = {}): Promise<void> => {
     if (connectButton !== null) {
       connectButton.disabled = true;
     }
+    const mode = session.mode;
     try {
-      await session.connect();
+      const result = await session.connect();
       await listen();
       await openBridge();
-      showHint('연결했어요. 다른 탭이나 아래 가상 보드에서 같은 접두어로 보내면 위젯에 값이 들어와요.');
+      if (result.via === 'tab' && mode !== 'tab') {
+        showHint(mqttText.switchedToTab(settingsBrokerUrl()), 'warn');
+        if (checkNote !== null) {
+          checkNote.hidden = false;
+        }
+      } else {
+        showHint(options.auto === true ? dashText.autoConnected() : result.via === 'broker' ? dashText.connectedBroker() : dashText.connectedTab());
+        if (checkNote !== null) {
+          checkNote.hidden = true;
+        }
+      }
     } catch (error) {
-      showHint(error instanceof Error ? error.message : String(error));
+      showHint(error instanceof Error ? error.message : String(error), 'warn');
+      if (checkNote !== null && mode !== 'tab') {
+        checkNote.hidden = false;
+      }
     } finally {
       if (connectButton !== null) {
         connectButton.disabled = false;
       }
       syncState();
     }
+  };
+
+  /** 지금 고른 중계 서버 주소(안내 글에 쓴다) */
+  const settingsBrokerUrl = (): string => {
+    const saved = readMqttSettings();
+    return saved.brokerUrl === '' ? defaultBrokerUrl() : saved.brokerUrl;
   };
 
   const onConnect = (): void => {
@@ -340,6 +456,21 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
   pinButton?.addEventListener('click', onPin);
   cleanups.push(() => pinButton?.removeEventListener('click', onPin));
 
+  // [복사] — 다른 탭·다른 컴퓨터에 접두어를 옮길 때(2026-09-25 Phase 4 검토 반영)
+  const onCopyPrefix = (): void => {
+    const prefix = session.prefix;
+    if (!navigator.clipboard?.writeText) {
+      showHint(dashText.copyBlocked(prefix));
+      return;
+    }
+    navigator.clipboard.writeText(prefix).then(
+      () => showHint(dashText.prefixCopied(prefix)),
+      () => showHint(dashText.copyBlocked(prefix)),
+    );
+  };
+  copyPrefixButton?.addEventListener('click', onCopyPrefix);
+  cleanups.push(() => copyPrefixButton?.removeEventListener('click', onCopyPrefix));
+
   const onFriend = (): void => {
     const parsed = parsePrefix(friendInput?.value ?? '');
     if (!parsed.ok) {
@@ -385,7 +516,19 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
     openLabButton.setAttribute('aria-expanded', open ? 'true' : 'false');
     openLabButton.textContent = open ? '가상 보드 접기' : '이 자리에서 가상 보드 열기';
     if (open) {
-      labSlot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      // 학생이 1단계 [연결]을 빼먹으면 보드가 보내는 값이 아무 데도 닿지 않았다(2026-09-25 Phase 4 검토 반영).
+      // 같은 컴퓨터 탭이면 인터넷이 필요 없으니 [연결]까지 해 주고, 공개 중계 서버면(학생이 고르는 일) 무엇을 누를지 알린다.
+      if (session.state !== 'open') {
+        if (session.mode === 'tab') {
+          void connect({ auto: true });
+        } else {
+          showLabHint(dashText.labNeedsConnect());
+        }
+      }
+      const reduce = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      labSlot.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    } else {
+      showLabHint('');
     }
   };
   openLabButton?.addEventListener('click', onOpenLab);

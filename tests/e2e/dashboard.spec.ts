@@ -10,11 +10,11 @@
 // 연결이 풀린다. 그래서 [연결]은 connectDashboard로 세 번까지 다시 누른다(공개 브로커가 한 번에 안 붙는 교실에도 도움이 된다).
 import { expect, test, type FrameLocator, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
-import { DASHBOARD_DEMO_CODE } from '../../src/lab/dashboard/demo-code.ts';
-import { labRoot, LOAD_TIMEOUT, setEditorCode } from './helpers/lab.ts';
+import { labRoot, LOAD_TIMEOUT } from './helpers/lab.ts';
 
 const DASHBOARD_PATH = withBase('labs/iot/dashboard/');
-const ESP32_PATH = withBase('labs/esp32/');
+/** 대시보드 실습 예제(통신 템플릿 4 — src/lab/dashboard/demo-code.ts DASHBOARD_DEMO_FILE)의 실습실 예제 id */
+const DEMO_EXAMPLE_ID = 'templates-dashboard-demo';
 /** 시험용 고정 접두어(PD-29의 글자만 — l·1·O·0 없음) */
 const PREFIX = 'dashtest2345';
 const FRIEND_PREFIX = 'dashfriend34';
@@ -70,10 +70,8 @@ async function fixPrefix(page: Page, prefix: string): Promise<void> {
   );
 }
 
-/** ESP32 실습실을 열고 가상 보드가 준비될 때까지 기다린다 */
-async function openLab(page: Page): Promise<void> {
-  const response = await page.goto(ESP32_PATH);
-  expect(response?.status()).toBe(200);
+/** 열린 ESP32 실습실 탭의 가상 보드가 준비될 때까지 기다린다 */
+async function waitLab(page: Page): Promise<void> {
   await expect(labRoot(page)).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
   await expect(page.locator('[data-board-io]')).toHaveAttribute('data-board-ready', 'yes', { timeout: 60_000 });
 }
@@ -100,6 +98,8 @@ test.describe('대시보드 — 시나리오 D', () => {
     await page.locator('[data-dash-open-lab]').click();
     const frame = labFrame(page);
     await expect(frame.locator('[data-lab]')).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    // 틀 안 실습실은 대시보드 예제(통신 템플릿 4)를 예제로 연다 — 예제 이름이 코드와 같다(2026-09-25 검토 반영)
+    await expect(frame.locator('[data-lab]')).toHaveAttribute('data-example', DEMO_EXAMPLE_ID);
 
     // 같은 탭이라 통신 접두어(sessionStorage)가 그대로 이어진다.
     await expect(frame.locator('[data-mqtt-prefix]')).toHaveText(prefix, { timeout: 30_000 });
@@ -126,27 +126,20 @@ test.describe('대시보드 — 시나리오 D', () => {
     expect(errors).toEqual([]);
   });
 
-  test('두 탭: 다른 탭의 가상 보드 값이 대시보드에 흐르고 스위치가 그 보드의 LED를 켠다', async ({ page }) => {
+  test('두 탭: [새 탭에서 ESP32 실습실 열기]가 같은 예제·같은 접두어로 열고, 그 보드 값이 흐르고 스위치가 LED를 켠다', async ({ page }) => {
     await fixPrefix(page, PREFIX);
-    const labTab = await page.context().newPage();
-    await labTab.addInitScript(
-      ([key, value]) => {
-        try {
-          window.sessionStorage.setItem(key as string, value as string);
-        } catch {
-          // 저장이 막힌 브라우저
-        }
-      },
-      [PREFIX_STORAGE_KEY, PREFIX],
-    );
-
-    await openLab(labTab);
-    await setEditorCode(labTab, DASHBOARD_DEMO_CODE);
-    await expect(labTab.locator('[data-mqtt-prefix]')).toHaveText(PREFIX);
-
     await openDashboard(page);
     await expect(page.locator('[data-dash-prefix]')).toHaveText(PREFIX);
     await connectDashboard(page);
+
+    // 링크에 대시보드 예제와 지금 접두어가 실린다 — 학생이 12글자를 옮겨 적지 않는다(2026-09-25 검토 반영)
+    const link = page.locator('[data-dash-lab-link]');
+    await expect(link).toHaveAttribute('href', new RegExp(`example=esp32%2Ftemplates%2Fdashboard-demo\\.py&prefix=${PREFIX}$`, 'u'));
+    await expect(link).toHaveAttribute('target', '_blank');
+    const [labTab] = await Promise.all([page.context().waitForEvent('page'), link.click()]);
+    await waitLab(labTab);
+    await expect(labRoot(labTab)).toHaveAttribute('data-example', DEMO_EXAMPLE_ID);
+    await expect(labTab.locator('[data-mqtt-prefix]')).toHaveText(PREFIX, { timeout: 30_000 });
 
     await labTab.getByRole('button', { name: '실행', exact: true }).click();
 
@@ -214,10 +207,43 @@ test.describe('대시보드 — 시나리오 D', () => {
     await sender.close();
   });
 
-  test('연결하지 않고 스위치를 누르면 무엇을 할지 알려 준다', async ({ page }) => {
+  test('연결하지 않고 스위치를 누르면 무엇을 할지 알려 주고, 스위치는 켜진 모양이 되지 않는다', async ({ page }) => {
     await openDashboard(page);
     await page.locator('[data-dash-switch]').click();
     await expect(page.locator('[data-dash-hint]')).toContainText('[연결]');
+    // 보내지 못했으니 모양을 그대로 두고, 까닭을 스위치 위젯 안에도 적는다(휴대폰에서는 1단계 안내 줄이 화면 밖 — 2026-09-25 검토 반영)
+    await expect(page.locator('[data-dash-switch]')).toHaveAttribute('aria-pressed', 'false');
+    await expect(widget(page, 'switch-1').locator('[data-dash-switch-problem]')).toContainText('[연결]');
+    await expect(widget(page, 'switch-1').locator('[data-dash-switch-problem]')).toBeInViewport();
+  });
+
+  test('통로가 같은 컴퓨터 탭이면 [이 자리에서 가상 보드 열기]가 [연결]까지 해 준다', async ({ page }) => {
+    await openDashboard(page);
+    await expect(page4(page)).toHaveAttribute('data-dash-state', 'idle');
+    await page.locator('[data-dash-open-lab]').click();
+    await expect(page4(page)).toHaveAttribute('data-dash-state', 'open', { timeout: 20_000 });
+    await expect(page4(page)).toHaveAttribute('data-dash-via', 'tab');
+    await expect(page.locator('[data-dash-hint]')).toContainText('[연결]도 해 두었어요');
+  });
+
+  test('공개 중계 서버를 고르면 [연결] 바로 아래에 경고가 늘 보이고, 막히면 탭으로 몰래 바꾸지 않고 알린다', async ({ page }) => {
+    // 공개 서버에는 실제로 나가지 않는다 — WebSocket을 곧바로 닫는 가짜 서버(문서를 열기 전에 건다)
+    await page.routeWebSocket(/.*/u, (ws) => {
+      ws.close();
+    });
+    await openDashboard(page);
+    await page.locator('[data-dash-mode]').selectOption('broker');
+    await expect(page.locator('[data-dash-connect-warning]')).toBeVisible();
+    await expect(page.locator('[data-dash-connect-warning]')).toContainText('누구나 보고 보낼 수 있어요');
+    // 휴대폰에서도 [연결]을 누르는 자리에서 경고가 함께 보인다(§7.4 "연결 버튼 옆")
+    await page.locator('[data-dash-connect]').scrollIntoViewIfNeeded();
+    await expect(page.locator('[data-dash-connect-warning]')).toBeInViewport();
+
+    await page.locator('[data-dash-connect]').click();
+    await expect(page.locator('[data-dash-hint]')).toContainText('연결하지 못했어요', { timeout: 60_000 });
+    await expect(page.locator('[data-dash-hint]')).toHaveAttribute('data-dash-level', 'warn');
+    await expect(page4(page)).not.toHaveAttribute('data-dash-via', 'tab');
+    await expect(page.locator('[data-dash-check-note]')).toBeVisible();
   });
 
   test('키보드로 위젯을 옮기고 크기를 바꾸면 새로 고쳐도 남는다', async ({ page }) => {

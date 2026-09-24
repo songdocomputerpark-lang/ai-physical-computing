@@ -9,7 +9,7 @@
  *   한 번 더 붙는다(`src/lab/mqtt/connection.ts`의 `resubscribe`).
  * - 보내는 글은 §7.2 규칙대로 **UTF-8 글자 한 줄**이다. 끝 문자는 붙이지 않는다(받는 쪽이 `strip()` 한다).
  */
-import type { BridgeChannel, BridgeEnvelope } from '../bridge/index.ts';
+import { isSignalType, type BridgeChannel, type BridgeEnvelope } from '../bridge/index.ts';
 import { prefixFilter, type MqttConnection } from '../mqtt/index.ts';
 import type { DashboardSource, SourceMessage } from './types.ts';
 
@@ -50,6 +50,10 @@ export function bridgeLinesOf(bytes: Uint8Array): string[] {
  */
 export function listenBridge(channel: BridgeChannel, listener: (message: SourceMessage) => void): () => void {
   return channel.on('message', (envelope: BridgeEnvelope) => {
+    if (isSignalType(envelope.type)) {
+      // 선의 실행 상태 알림('uart.status')은 데이터가 아니다 — 위젯에 "idle" 같은 글이 들어가지 않게 거른다.
+      return;
+    }
     const topic = bridgeTopicOf(envelope.from);
     for (const text of bridgeLinesOf(envelope.bytes)) {
       listener({ topic, text, at: envelope.at === 0 ? Date.now() : envelope.at });

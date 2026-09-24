@@ -96,6 +96,32 @@ describe('키보드로 옮기기·크기 바꾸기', () => {
     expect(widgetEl(grid, 'log-1').dataset.dashH).toBe('4');
   });
 
+  // 2026-09-25 Phase 4 검토 반영: [크기 바꾸기] 단추에서 방향키를 누르면 크기가 아니라 자리가 바뀌었다.
+  it('[크기 바꾸기] 단추에서는 Shift 없이 방향키도 크기를 바꾼다(자리는 그대로)', () => {
+    const { grid, announce } = setup();
+    const before = widgetEl(grid, 'switch-1');
+    const x = before.dataset.dashX;
+    const w = Number(before.dataset.dashW);
+    const resize = before.querySelector<HTMLElement>('[data-dash-resize]') as HTMLElement;
+    press(resize, 'ArrowLeft');
+    const after = widgetEl(grid, 'switch-1');
+    expect(after.dataset.dashX).toBe(x);
+    expect(Number(after.dataset.dashW)).toBe(w - 1);
+    expect(announce?.textContent).toContain('크기를');
+  });
+
+  it('위젯을 지우면 초점이 다음 위젯 손잡이로 간다(body로 떨어지지 않는다)', () => {
+    const { grid } = setup();
+    const remove = widgetEl(grid, 'gauge-1').querySelector<HTMLButtonElement>('[data-dash-remove]');
+    expect(remove, '[지우기] 단추가 있어야 해요').not.toBeNull();
+    (remove as HTMLButtonElement).focus();
+    (remove as HTMLButtonElement).click();
+    expect(grid.querySelector('[data-dash-widget="gauge-1"]')).toBeNull();
+    const focused = document.activeElement as HTMLElement | null;
+    expect(focused?.matches('[data-dash-grab]')).toBe(true);
+    expect(focused?.closest<HTMLElement>('[data-dash-widget]')?.dataset.dashWidget).toBe('switch-1');
+  });
+
   it('저장을 막은 브라우저에서는 한 번만 알려 준다', () => {
     const blocked = (): never => {
       throw new Error('저장이 막혔어요');
@@ -150,6 +176,27 @@ describe('스위치', () => {
     expect(toggles).toEqual([{ spec: expect.objectContaining({ id: 'switch-1', onText: 'on' }), on: true }]);
     button.click();
     expect(toggles[1]?.on).toBe(false);
+  });
+
+  // 2026-09-25 Phase 4 검토 반영: 연결 전에 누르면 스위치가 켜진 모양이 되고, 안내는 화면 밖 1단계 칸에만 떴다.
+  it('보내지 못하면(onToggle이 false) 모양을 그대로 두고 까닭을 스위치 위젯 안에 보인다', () => {
+    document.body.innerHTML = '<div data-dash-grid></div><p data-dash-announce></p>';
+    const grid = document.querySelector<HTMLElement>('[data-dash-grid]') as HTMLElement;
+    const view = new DashboardView({
+      grid,
+      announce: document.querySelector<HTMLElement>('[data-dash-announce]'),
+      helpId: 'h',
+      storage: new FakeStorage(),
+      onToggle: () => false,
+      switchProblem: () => '먼저 위쪽 [연결]을 눌러요.',
+    });
+    const button = widgetEl(grid, 'switch-1').querySelector<HTMLButtonElement>('[data-dash-switch]') as HTMLButtonElement;
+    button.click();
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+    const problem = widgetEl(grid, 'switch-1').querySelector<HTMLElement>('[data-dash-switch-problem]');
+    expect(problem?.hidden).toBe(false);
+    expect(problem?.textContent).toContain('[연결]');
+    view.dispose();
   });
 
   it('같은 토픽에 다른 탭이 보낸 말이 오면 모습을 맞춘다(두 탭이 같은 상태를 보게)', () => {

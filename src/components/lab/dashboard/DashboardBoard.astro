@@ -10,6 +10,12 @@
  */
 import { MQTT_BROKERS } from '../../../lab/mqtt/brokers.ts';
 import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
+import { DASHBOARD_DEMO_FILE } from '../../../lab/dashboard/demo-code.ts';
+import { getPage } from '../../../config/nav.ts';
+
+// 두 탭 실습 링크의 뿌리 주소 — 스크립트가 ?example=과 지금 접두어(?prefix=)를 붙인다(dashboard-page.ts syncPrefix)
+const esp32Href = getPage('labs-esp32').href;
+const checkHref = getPage('start-check').href;
 ---
 
 <section class="dash" data-dash-page data-dash-state="idle" data-dash-via="" data-dash-mode-value="tab" data-dash-ready="no">
@@ -52,6 +58,7 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
     <div class="dash__row">
       <span class="dash__label" id="dash-prefix-label">통신 접두어</span>
       <code class="dash__prefix" data-dash-prefix aria-labelledby="dash-prefix-label"></code>
+      <button type="button" class="button button--secondary dash__small" data-dash-copy-prefix>복사</button>
       <button type="button" class="button button--secondary dash__small" data-dash-new-prefix>새로 만들기</button>
       <button type="button" class="button button--secondary dash__small" data-dash-pin aria-pressed="false">이 접두어 고정</button>
     </div>
@@ -72,13 +79,19 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
     </div>
 
     <div class="dash__row">
-      <button type="button" class="button button--primary dash__small" data-dash-connect>연결</button>
+      <button type="button" class="button button--primary dash__small" data-dash-connect aria-describedby="dash-connect-warning">연결</button>
       <button type="button" class="button button--secondary dash__small" data-dash-disconnect disabled>끊기</button>
       <span class="dash__state" data-dash-state-text aria-live="polite">아직 연결하지 않았어요</span>
       <span class="dash__state" data-dash-count></span>
     </div>
+    {/* [연결] 바로 아래 경고(PLAN §7.4 "연결 버튼 옆에 늘 표시") — 공개 중계 서버를 골랐으면 늘 보인다(2026-09-25 Phase 4 검토 반영) */}
+    <p class="dash__connect-warning" id="dash-connect-warning" data-dash-connect-warning hidden></p>
 
     <p class="dash__hint" data-dash-hint aria-live="polite" hidden></p>
+    {/* 중계 서버에 못 붙었을 때만 보이는 점검 링크(학교망이 막았는지 확인하는 곳) */}
+    <p class="dash__note" data-dash-check-note hidden>
+      <a href={checkHref}>학교 네트워크 점검(시작하기 → 점검 페이지)</a>에서 공개 중계 서버가 열리는지 확인할 수 있어요.
+    </p>
   </div>
 
   <div class="dash__step">
@@ -95,8 +108,13 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
       <button type="button" class="button button--secondary dash__small" data-dash-reset>배치 되돌리기</button>
     </div>
     <p class="dash__help" id="dash-keyboard-help" data-dash-help>
-      위젯 제목(손잡이)을 끌어서 옮겨요. 키보드로는 손잡이에서 <kbd>방향키</kbd>로 옮기고,{' '}
-      <kbd>Shift</kbd>+<kbd>방향키</kbd>로 크기를 바꿔요. 배치는 이 컴퓨터에만 저장돼요.
+      <span class="dash__help-wide">
+        위젯 제목(손잡이)을 끌어서 옮겨요. 키보드로는 손잡이에서 <kbd>방향키</kbd>로 옮기고,{' '}
+        <kbd>Shift</kbd>+<kbd>방향키</kbd>로 크기를 바꿔요(크기 단추에서는 <kbd>방향키</kbd>만으로). 배치는 이 컴퓨터에만 저장돼요.
+      </span>
+      <span class="dash__help-narrow">
+        좁은 화면에서는 위젯이 한 줄에 하나씩 쌓여요. 손잡이에서 <kbd>↑</kbd>·<kbd>↓</kbd>로 차례를 바꿔요. 배치는 이 컴퓨터에만 저장돼요.
+      </span>
     </p>
     <p class="dash__announce" data-dash-announce role="status" aria-live="polite"></p>
 
@@ -113,11 +131,23 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
   <div class="dash__step">
     <h2 class="dash__step-title">3. 값을 보내는 보드를 열어요</h2>
     <p class="dash__note">
-      아래 단추를 누르면 이 자리에서 <strong>가상 ESP32 보드</strong>가 열려요(누르기 전에는 실습실 파일을 받지 않아요).
-      실습실에서 [실행]을 누르면 보드가 0~100 사이 값을 보내고, 위의 그래프·게이지에 바로 나타나요.
-      스위치를 누르면 보드의 파란 LED가 켜져요. 다른 탭에서 ESP32 실습실을 열고 접두어를 맞춰도 똑같이 돼요.
+      아래 단추를 누르면 이 자리에서 <strong>가상 ESP32 보드</strong>가 열려요(누르기 전에는 실습실 파일을 받지 않아요). 통로가 [같은 컴퓨터 탭]이면
+      [연결]도 함께 해 줘요. 실습실에서 [실행]을 누르면 보드가 0~100 사이 값을 보내고, 위의 그래프·게이지에 바로 나타나요.
+      스위치를 누르면 보드의 파란 LED가 켜져요.
     </p>
-    <button type="button" class="button button--secondary" data-dash-open-lab aria-expanded="false">이 자리에서 가상 보드 열기</button>
+    <div class="dash__row">
+      <button type="button" class="button button--secondary" data-dash-open-lab aria-expanded="false">이 자리에서 가상 보드 열기</button>
+      {/* 두 탭으로: 새 탭의 ESP32 실습실이 같은 예제와 같은 접두어로 열린다(스크립트가 ?prefix=를 붙인다 — 2026-09-25 Phase 4 검토 반영) */}
+      <a
+        class="button button--secondary"
+        href={`${esp32Href}?example=${encodeURIComponent(DASHBOARD_DEMO_FILE)}`}
+        data-dash-lab-link
+        data-dash-lab-base={esp32Href}
+        target="_blank"
+        rel="noopener">새 탭에서 ESP32 실습실 열기</a
+      >
+    </div>
+    <p class="dash__note dash__lab-hint" data-dash-lab-hint role="status" hidden></p>
     <div class="dash__lab-slot" data-dash-lab-slot hidden></div>
   </div>
 </section>
@@ -215,6 +245,33 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
     background: var(--color-warning-bg);
     color: var(--color-warning-text);
     font-weight: var(--weight-semibold);
+  }
+
+  /* [연결] 바로 아래 짧은 경고(공개 중계 서버 — 휴대폰에서도 연결하는 순간 보이게) */
+  .dash__connect-warning {
+    margin: 0;
+    padding: var(--space-1) var(--space-3);
+    border-inline-start: 4px solid var(--color-warning-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* 중계 서버에 못 붙었을 때의 안내 줄은 경고 모양으로(덮어쓰지 않고 남는다 — dashboard-page.ts) */
+  .dash__hint[data-dash-level='warn'] {
+    padding: var(--space-1) var(--space-3);
+    border-inline-start: 4px solid var(--color-warning-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* 키보드 도움말: 넓은 화면(격자)과 좁은 화면(한 줄에 하나씩 쌓임)의 글이 다르다 */
+  .dash__help-narrow {
+    display: none;
   }
 
   .dash__note,
@@ -444,6 +501,29 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
     background: var(--color-accent);
   }
 
+  .dash-switch[aria-busy='true'] {
+    cursor: progress;
+  }
+
+  /* 스위치가 보내지 못했을 때 위젯 안에 까닭을 적는 줄 */
+  .dash-widget__problem {
+    margin: 0;
+    color: var(--color-warning-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    text-align: center;
+  }
+
+  .dash-widget__problem:empty {
+    display: none;
+  }
+
+  /* 보드가 받았다는 되알림(아래 가상 보드의 LED 상태)은 경고가 아니라 안내 색 */
+  .dash-widget__problem[data-level='info'] {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+  }
+
   .dash-widget__log {
     width: 100%;
     height: 100%;
@@ -562,6 +642,24 @@ import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
       grid-column: 1 / -1 !important;
       grid-row: auto !important;
       min-height: 11rem;
+    }
+
+    /* 쌓인 화면에서는 크기·가로 자리가 보이는 변화가 없어 크기 단추를 숨기고 도움말도 바꾼다(2026-09-25 Phase 4 검토 반영) */
+    .dash-widget__resize {
+      display: none;
+    }
+
+    /* 휴대폰에서 칸 안쪽 여백을 줄여 가상 보드 틀(iframe)이 조금이라도 넓게 — 307px 틀 안에서 실습실이 1px 넘쳤다(2026-09-25 검토) */
+    .dash__step {
+      padding: var(--space-3) var(--space-2);
+    }
+
+    .dash__help-wide {
+      display: none;
+    }
+
+    .dash__help-narrow {
+      display: inline;
     }
 
     .dash__label {

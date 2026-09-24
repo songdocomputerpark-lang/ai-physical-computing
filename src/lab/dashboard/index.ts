@@ -45,5 +45,5 @@ export { bridgeLinesOf, bridgeTopicOf, createMqttSource, decodeText, listenBridg
 export { dashText } from './messages.ts';
 export { createWidgetView, type WidgetHandlers, type WidgetView } from './widgets.ts';
 export { DashboardView, type DashboardViewOptions } from './grid-view.ts';
-export { DASHBOARD_DEMO_CODE, DEMO_COMMAND_TOPIC, DEMO_VALUE_TOPIC } from './demo-code.ts';
-export { embedLabSrc, mountDashboard, type DashboardPage } from './dashboard-page.ts';
+export { DASHBOARD_DEMO_FILE, DEMO_COMMAND_TOPIC, DEMO_VALUE_TOPIC } from './demo-code.ts';
+export { embedLabSrc, labTabHref, mountDashboard, type DashboardPage } from './dashboard-page.ts';

@@ -22,18 +22,26 @@ import { axisRange, formatValue, logLine, parseNumber, Series, widgetWants } fro
 /** 로그 위젯이 들고 있는 줄 수 */
 const LOG_LIMIT = 60;
 
-/** 게이지 SVG 크기(viewBox 단위) */
-const GAUGE_VIEW = { width: 120, height: 78, cx: 60, cy: 62, radius: 44 } as const;
+/**
+ * 게이지 SVG 크기(viewBox 단위). 원호는 12시에서 ±125도라 양끝이 가운데보다 아래로 내려간다 — 끝점 y = cy + r·cos(55°) ≈ 87,
+ * 선 두께 절반(5)까지 더해 높이 94는 있어야 끝이 잘리지 않는다(2026-09-25 Phase 4 검토 반영 — 높이 78이라 0·100 근처가 잘렸다).
+ */
+const GAUGE_VIEW = { width: 120, height: 96, cx: 60, cy: 62, radius: 44 } as const;
 
 export interface WidgetHandlers {
   /** 설정이 바뀌었다(제목·토픽·눈금) */
   onChange(spec: WidgetSpec): void;
   /** 이 위젯을 지운다 */
   onRemove(id: string): void;
-  /** 스위치를 눌렀다(켜기면 true) */
-  onToggle(spec: WidgetSpec, on: boolean): void;
-  /** 손잡이에서 키를 눌렀다(옮기기·크기) — 처리했으면 true */
-  onGrabKey(id: string, event: KeyboardEvent): boolean;
+  /**
+   * 스위치를 눌렀다(켜기면 true). false(또는 false로 풀리는 약속)를 돌려주면 보내지 못한 것이라 스위치 모양을 바꾸지 않는다
+   * (2026-09-25 Phase 4 검토 반영 — 전에는 연결 전에도 켜진 모양이 됐다). 그 밖의 값은 보낸 것으로 본다.
+   */
+  onToggle(spec: WidgetSpec, on: boolean): unknown;
+  /** 스위치가 보내지 못했을 때 위젯 안에 적을 까닭 */
+  switchProblem?(): string;
+  /** 손잡이·크기 단추에서 키를 눌렀다(옮기기·크기) — 처리했으면 true. from이 'resize'면 방향키만으로 크기를 바꾼다 */
+  onGrabKey(id: string, event: KeyboardEvent, from: 'grab' | 'resize'): boolean;
   /** 손잡이를 끌기 시작했다 */
   onGrabPointer(id: string, event: PointerEvent): void;
   /** 모서리를 끌어 크기를 바꾸기 시작했다 */
@@ -51,6 +59,8 @@ export interface WidgetView {
   redraw(): void;
   /** 값 기억을 비운다 */
   clear(): void;
+  /** (스위치) 스위치 아래 한 줄 알림 — 보내지 못한 까닭(warn)·보드가 받았는지(info). 빈 글이면 지운다 */
+  note(text: string, level?: 'info' | 'warn'): void;
   dispose(): void;
 }
 
@@ -148,6 +158,7 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
   let logList: HTMLElement | null = null;
   let switchButton: HTMLButtonElement | null = null;
   let switchState: HTMLElement | null = null;
+  let switchProblem: HTMLElement | null = null;
   let gaugeValuePath: SVGPathElement | null = null;
   let gaugeNeedle: SVGLineElement | null = null;
   let gaugeScale: HTMLElement | null = null;
@@ -179,7 +190,8 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     svg.append(track, gaugeValuePath, gaugeNeedle);
     valueText = el('p', 'dash-widget__value', '—');
     valueText.dataset.dashValue = '';
-    valueText.setAttribute('role', 'status');
+    // 값마다 낭독기가 읽지 않게 알림 칸(role=status)으로 두지 않는다 — 초당 몇 번씩 알림이 쏟아졌다(2026-09-25 Phase 4 검토 반영).
+    // 지금 값은 이 글을 읽으면 된다(Tab·가상 커서로 위젯에 가면 들린다).
     gaugeScale = el('p', 'dash-widget__scale', `${widget.min} ~ ${widget.max}`);
     body.append(svg, valueText, gaugeScale);
   } else if (widget.kind === 'switch') {
@@ -187,17 +199,26 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     switchButton.type = 'button';
     switchButton.dataset.dashSwitch = '';
     switchButton.setAttribute('aria-pressed', 'false');
+    // 토글 단추의 이름은 바뀌지 않게 위젯 제목으로 고정하고, 상태는 aria-pressed와 보이는 글(켜짐·꺼짐)로 알린다
+    // (이름이 켜기↔끄기로 바뀌면 낭독기가 "끄기, 눌림"처럼 모순되게 읽었다 — 2026-09-25 Phase 4 검토 반영).
+    switchButton.setAttribute('aria-label', widget.title);
     const knob = el('span', 'dash-switch__knob');
     knob.setAttribute('aria-hidden', 'true');
-    const label = el('span', 'dash-switch__label', '켜기');
+    const label = el('span', 'dash-switch__label', '꺼짐');
+    label.setAttribute('aria-hidden', 'true');
     switchButton.append(knob, label);
     switchState = el('p', 'dash-widget__hint', `${widget.topic} → ${widget.onText} / ${widget.offText}`);
     switchState.dataset.dashSwitchState = '';
-    body.append(switchButton, switchState);
+    switchProblem = el('p', 'dash-widget__problem', '');
+    switchProblem.dataset.dashSwitchProblem = '';
+    switchProblem.dataset.level = 'warn';
+    switchProblem.setAttribute('role', 'status');
+    body.append(switchButton, switchState, switchProblem);
   } else {
     logList = el('ul', 'dash-widget__log');
     logList.dataset.dashLog = '';
-    logList.setAttribute('aria-live', 'polite');
+    // 메시지마다 낭독기가 읽지 않게 알림 칸으로 두지 않는다(값이 흐르면 초당 몇 번씩 읽었다 — 2026-09-25 Phase 4 검토 반영)
+    logList.setAttribute('aria-live', 'off');
     logList.setAttribute('aria-label', `${widget.title} 목록`);
     body.append(logList);
   }
@@ -247,6 +268,14 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
 
   root.append(bar, body, settings, resize);
 
+  // 그래프는 캔버스가 판에 붙어 크기를 얻은 뒤에 그려야 보인다 — 만들 때(크기 0) 한 번 그리고 말면 첫 화면이 빈 흰 칸이었다
+  // (2026-09-25 Phase 4 검토 반영). 크기가 바뀔 때마다 다시 그린다(창 크기·위젯 크기 바꾸기 포함).
+  if (canvas !== null && typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(() => paintChart());
+    observer.observe(canvas);
+    cleanups.push(() => observer.disconnect());
+  }
+
   // ── 조작 ────────────────────────────────────────────────────────────────
   const onSettingsClick = (): void => {
     const open = settings.hidden;
@@ -283,14 +312,20 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
   }
 
   const onGrabKeyDown = (event: KeyboardEvent): void => {
-    if (handlers.onGrabKey(spec.id, event)) {
+    if (handlers.onGrabKey(spec.id, event, 'grab')) {
+      event.preventDefault();
+    }
+  };
+  // 크기 단추(⤡)에서는 방향키만으로 크기를 바꾼다 — 이름이 "크기 바꾸기"인 단추에서 방향키가 위치를 옮겼다(2026-09-25 Phase 4 검토 반영)
+  const onResizeKeyDown = (event: KeyboardEvent): void => {
+    if (handlers.onGrabKey(spec.id, event, 'resize')) {
       event.preventDefault();
     }
   };
   grab.addEventListener('keydown', onGrabKeyDown);
-  resize.addEventListener('keydown', onGrabKeyDown);
+  resize.addEventListener('keydown', onResizeKeyDown);
   cleanups.push(() => grab.removeEventListener('keydown', onGrabKeyDown));
-  cleanups.push(() => resize.removeEventListener('keydown', onGrabKeyDown));
+  cleanups.push(() => resize.removeEventListener('keydown', onResizeKeyDown));
 
   const onGrabPointerDown = (event: PointerEvent): void => handlers.onGrabPointer(spec.id, event);
   grab.addEventListener('pointerdown', onGrabPointerDown);
@@ -303,10 +338,42 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
   let switchOn = false;
   if (switchButton !== null) {
     const button = switchButton;
-    const onSwitchClick = (): void => {
-      switchOn = !switchOn;
+    /** 보낸 결과에 따라 모양을 바꾼다 — 보내지 못했으면(false) 그대로 두고 위젯 안에 까닭을 적는다 */
+    const settle = (wanted: boolean, result: unknown): void => {
+      if (result === false) {
+        if (switchProblem !== null) {
+          switchProblem.textContent = handlers.switchProblem?.() ?? '';
+          switchProblem.dataset.level = 'warn';
+        }
+        return;
+      }
+      if (switchProblem !== null) {
+        switchProblem.textContent = '';
+      }
+      switchOn = wanted;
       applySwitch();
-      handlers.onToggle(spec, switchOn);
+    };
+    const onSwitchClick = (): void => {
+      if (button.getAttribute('aria-busy') === 'true') {
+        return;
+      }
+      const wanted = !switchOn;
+      const result = handlers.onToggle(spec, wanted);
+      if (result instanceof Promise) {
+        button.setAttribute('aria-busy', 'true');
+        result.then(
+          (value: unknown) => {
+            button.removeAttribute('aria-busy');
+            settle(wanted, value);
+          },
+          () => {
+            button.removeAttribute('aria-busy');
+            settle(wanted, false);
+          },
+        );
+        return;
+      }
+      settle(wanted, result);
     };
     button.addEventListener('click', onSwitchClick);
     cleanups.push(() => button.removeEventListener('click', onSwitchClick));
@@ -319,7 +386,7 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     switchButton.setAttribute('aria-pressed', switchOn ? 'true' : 'false');
     const label = switchButton.querySelector('.dash-switch__label');
     if (label !== null) {
-      label.textContent = switchOn ? '끄기' : '켜기';
+      label.textContent = switchOn ? '켜짐' : '꺼짐';
     }
     root.dataset.dashOn = switchOn ? 'true' : 'false';
   }
@@ -394,6 +461,7 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
       root.setAttribute('aria-label', `${next.title} ${kindLabel(next.kind)} 위젯`);
       resize.setAttribute('aria-label', `${next.title} 크기 바꾸기`);
       logList?.setAttribute('aria-label', `${next.title} 목록`);
+      switchButton?.setAttribute('aria-label', next.title);
       root.dataset.dashX = String(next.x);
       root.dataset.dashY = String(next.y);
       root.dataset.dashW = String(next.w);
@@ -448,6 +516,13 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
       if (spec.kind === 'chart') {
         paintChart();
       }
+    },
+    note(text: string, level: 'info' | 'warn' = 'info'): void {
+      if (switchProblem === null) {
+        return;
+      }
+      switchProblem.textContent = text;
+      switchProblem.dataset.level = level;
     },
     clear(): void {
       series.clear();
