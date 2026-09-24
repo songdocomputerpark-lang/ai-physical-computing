@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BOARD_CONCEPT_CARDS, CONCEPT_CARDS, cardCounterText, cardsForLab, nextCardIndex } from '../../../src/lab/loader/cards.ts';
 import { NETWORK_CHECK_ITEMS, formatNetworkReport, networkItemUrl, statusOf } from '../../../src/components/start/network-check/items.ts';
+import { MQTT_BROKERS } from '../../../src/lab/mqtt/brokers.ts';
 import { BASE_PATH } from '../../../src/lib/url.ts';
 
 const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
@@ -80,20 +81,24 @@ describe('네트워크 점검 항목', () => {
     }
   });
 
-  it('접속하는 곳은 jsDelivr와 이 사이트뿐이다(SPEC §2 서버 제로)', () => {
-    for (const item of NETWORK_CHECK_ITEMS.filter((entry) => !entry.skip)) {
+  it('파일을 받는 곳은 jsDelivr와 이 사이트뿐이다(SPEC §2 서버 제로)', () => {
+    for (const item of NETWORK_CHECK_ITEMS.filter((entry) => !entry.skip && !entry.websocket)) {
       const url = networkItemUrl(item, 'https://songdocomputerpark-lang.github.io');
       const origin = new URL(url).origin;
       expect(['https://cdn.jsdelivr.net', 'https://songdocomputerpark-lang.github.io']).toContain(origin);
     }
   });
 
-  it('아직 만들지 않은 항목(MQTT)은 접속하지 않는다', () => {
-    const mqtt = NETWORK_CHECK_ITEMS.find((item) => item.id === 'mqtt-broker')!;
-    expect(mqtt.skip).toBeTruthy();
-    expect(mqtt.url).toBeUndefined();
-    expect(mqtt.path).toBeUndefined();
-    expect(() => networkItemUrl(mqtt, 'https://x.test')).toThrow();
+  it('공개 중계 서버(MQTT)는 확인된 wss:// 주소에 연결만 해 본다(파일을 받지 않는다 — 2026-09-24 Phase 4 통합)', () => {
+    const brokers = NETWORK_CHECK_ITEMS.filter((item) => item.websocket);
+    expect(brokers.length).toBeGreaterThan(0);
+    const verified = new Set(MQTT_BROKERS.filter((broker) => broker.verified).map((broker) => broker.url));
+    for (const item of brokers) {
+      expect(verified.has(item.websocket!.url), item.id).toBe(true);
+      expect(item.url, item.id).toBeUndefined();
+      expect(item.path, item.id).toBeUndefined();
+      expect(() => networkItemUrl(item, 'https://x.test'), item.id).toThrow();
+    }
   });
 
   it('살핌 결과를 점검 표시로 바꾼다', () => {

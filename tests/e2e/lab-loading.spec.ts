@@ -322,12 +322,22 @@ test.describe('네트워크 점검(시작하기 > 점검)', () => {
     // 점검 페이지는 이 작업 구역 밖이라 통합 때 부품을 붙인다(.cache/phase2-requests/loading.md 요청 2번).
     // 붙기 전에는 같은 부품을 올린 임시 페이지로 시험할 수 있게 주소만 바꿔 준다: PW_CHECK_PATH=labs/dev/network/
     const checkPage = withBase(process.env.PW_CHECK_PATH ?? 'start/check/');
+    // 공개 중계 서버(MQTT) 항목은 WebSocket으로 연결만 해 본다(2026-09-24 Phase 4 통합). 시험에서는 진짜 서버에 붙지 않고
+    // Playwright가 연결을 가로채 열어 준다 — 메시지가 하나도 오가지 않는지(연결만 하고 닫는지)도 여기서 본다.
+    // 가로채기는 **문서를 열기 전에** 건다: Playwright는 새 문서에 넣는 스크립트로 WebSocket을 바꾸므로, 연 뒤에 걸면
+    // 그 문서의 연결은 진짜 서버로 나간다(2026-09-24 통합 검사에서 실제로 그렇게 나간 것을 보고 고침).
+    const sockets: string[] = [];
+    const socketMessages: string[] = [];
+    await page.routeWebSocket(/^wss:\/\/(?:broker\.emqx\.io|test\.mosquitto\.org)/u, (socket) => {
+      sockets.push(socket.url());
+      socket.onMessage((message) => socketMessages.push(String(message)));
+    });
     const response = await page.goto(checkPage);
     expect(response?.status()).toBe(200);
     const root = page.locator('[data-network-check]');
     test.skip((await root.count()) === 0, '점검 페이지에 네트워크 항목이 아직 붙지 않았어요(.cache/phase2-requests/loading.md 요청 2번).');
 
-    // 누르기 전에는 사이트 밖으로 나가는 요청이 없다.
+    // 누르기 전에는 사이트 밖으로 나가는 요청이 없다(파일 요청과 WebSocket 모두).
     const outside: string[] = [];
     page.on('request', (request) => {
       const url = request.url();
@@ -337,14 +347,19 @@ test.describe('네트워크 점검(시작하기 > 점검)', () => {
     });
     await page.waitForTimeout(1500);
     expect(outside).toEqual([]);
+    expect(sockets).toEqual([]);
 
     await expect(root).toHaveAttribute('data-state', 'idle');
     await page.getByRole('button', { name: '시험하기' }).click();
     await expect(root).toHaveAttribute('data-state', 'done', { timeout: 60_000 });
     await expect(page.locator('[data-network-item="pyodide-cdn"]')).toHaveAttribute('data-status', /ok|blocked|unknown/u);
     await expect(page.locator('[data-network-item="pyodide-site"]')).toHaveAttribute('data-status', /ok|unknown/u);
-    await expect(page.locator('[data-network-item="mqtt-broker"]')).toHaveAttribute('data-status', 'unknown');
-    // 누른 뒤에는 jsDelivr에만 나갔다(그 밖의 사이트로는 나가지 않는다).
+    for (const id of ['mqtt-emqx', 'mqtt-mosquitto']) {
+      await expect(page.locator(`[data-network-item="${id}"]`)).toHaveAttribute('data-status', 'ok');
+    }
+    expect(sockets.map((url) => new URL(url).host).sort()).toEqual(['broker.emqx.io:8084', 'test.mosquitto.org:8081']);
+    expect(socketMessages).toEqual([]);
+    // 누른 뒤에도 파일은 jsDelivr에서만 받았다(그 밖의 사이트로는 나가지 않는다).
     expect(outside.every((url) => url.startsWith('https://cdn.jsdelivr.net/'))).toBe(true);
 
     const report = await page.locator('[data-network-text]').inputValue();
