@@ -71,11 +71,18 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 | Phase 2 영상처리 실습실 | `wf_a1aac702-2a9` | `workflows\scripts\phase2-vision-lab-wf_a1aac702-2a9.js` | 완료 |
 | Phase 3 ESP32 실습실 | `wf_86bbf998-bc6` | `workflows\scripts\phase3-esp32-lab-wf_86bbf998-bc6.js` | 제작·통합까지 끝(검토 도중 정지) |
 | Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
-| **Phase 4 통신 실습실** | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | **도는 중**(2026-09-24 17:50 재개 — 10단계 캐시, G·H부터) |
+| Phase 4 통신 실습실 | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | 완료(2026-09-25 05시) |
+| **Phase 5 교육과정 콘텐츠** | `wf_c17f072d-499` | `workflows\scripts\phase5-content-wf_c17f072d-499.js` | **도는 중**(2026-09-25 06:03 시작) |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
 
-### 지금 도는 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-19 00:30 정지 → 2026-09-24 17:50 재개)
+### 지금 도는 것 — `wf_c17f072d-499` Phase 5 교육과정 콘텐츠 (2026-09-25 06:03 시작)
+
+PLAN §8.5 P5-01~P5-14. Core(P5-01 원고 이미지 추출 도구 → P5-02 차시 틀·check:lessons·기준 차시 1-1-1) → Build 6구역(A I단원 앞·보충 V 4801 / B I단원 1-2 → B2 1-3 4802 / C I단원 1-4·마무리 4803 / D II단원 2-1 → D2 2-2·마무리 4804 / E III단원 → E2 보충 P1·C1~C3 4805 / F IV단원 4-1 → F2 4-2·프로젝트 4806) → Build2(G 교사용 자료실 4807 / H 가린 편집본 PDF 4808) → 통합 → 검토 3(완료 기준·원고 대조 / 개인정보·저작권·이미지 / 고1 읽기·수업 흐름, 4811~4813) → 수정.
+
+**Phase 4와 같은 재개 안전 설계**(보고는 `.cache/phase5-notes/`, 요청 `.cache/phase5-requests/`, 검토 `.cache/phase5-reviews/` — 프롬프트는 상수). 커밋 서명은 처음부터 Opus 5.5. 구역은 커밋하지 않으므로 도는 동안 커밋 안 된 파일이 쌓인다 — **`git clean` 금지.** 스크립트 사본은 세션 폴더와 `.cache/resume/phase5-content-wf_c17f072d-499.js`, args는 `.cache/resume/RESUME-ARGS.json`.
+
+### 끝난 것 — `wf_26c7dddc-2bf` Phase 4 통신 실습실 (2026-09-19 00:30 정지 → 2026-09-24 17:50 재개 → 2026-09-25 05시 완료)
 
 PLAN §8.4 P4-01~P4-11. 구성: Core(P4-01 브릿지 핵심 → 병렬 준비) → Build 6구역 병렬(A 영상처리↔보드 4701 / B 가상 BLE→Web Bluetooth 4702 / C 데이터 포트 4703 / D MQTT→대시보드 4704 / E 통신 템플릿·블록 4705 / F 예제 갤러리 4706) → Build2(G 시나리오 F 4707 / H 4단원 통합 화면 4708) → 통합 → 적대적 검토 3(4711~4713) → 수정·배포.
 
