@@ -14,6 +14,7 @@ export const BLOCK_COLOURS: Readonly<Record<string, string>> = Object.freeze({
   apc_sound_blocks: '#be185d', // 소리(자홍)
   apc_motion_blocks: '#6d28d9', // 움직임(보라)
   apc_display_blocks: '#475569', // 화면(청회색)
+  apc_comm_blocks: '#155e9c', // 통신(짙은 파랑, P4-10) — 보드(#1f5bd6)보다 어둡게. src/lab/blocks/comm/blocks.ts COMM_BLOCK_COLOUR와 같은 값
   apc_wait_blocks: '#a16207', // 기다리기(겨자)
   loop_blocks: '#15803d', // 반복·조건(초록)
   logic_blocks: '#15803d',

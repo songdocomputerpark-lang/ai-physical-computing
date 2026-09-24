@@ -10,7 +10,11 @@
  * 블록 모드에서는 원래 편집칸이 "블록이 만든 코드"를 읽기 전용으로 보여 주는 칸이 된다(블록 = 코드, 높이를 줄인다 — 아래 :global 규칙).
  * HTML·CSS만 그린다. 실습실 부품 클래스(lab-button·lab__select, LabShell.astro의 :global 규칙)와 사이트 전역 .button을 쓴다.
  */
+import { COMM_BLOCK_PRESETS } from '../../../lab/blocks/comm/index.ts';
 import { BLOCK_PRESETS, DEFAULT_PRESET_ID } from '../../../lab/blocks/presets.ts';
+
+// [예시 불러오기] 목록: 기본 예시 + 통신 예시 3개(P4-10 — 통신 템플릿과 같은 일을 하는 블록 짜임). 찾기는 mode-ui.ts가 두 목록을 차례로 본다.
+const presets = [...BLOCK_PRESETS, ...COMM_BLOCK_PRESETS];
 ---
 
 <div class="blocks" data-blocks data-blocks-mode="code" data-blocks-ready="no">
@@ -27,7 +31,7 @@ import { BLOCK_PRESETS, DEFAULT_PRESET_ID } from '../../../lab/blocks/presets.ts
       <div class="blocks-area__presets">
         <label class="blocks-area__label" for="lab-blocks-preset">블록 예시</label>
         <select id="lab-blocks-preset" class="lab__select" data-blocks-preset>
-          {BLOCK_PRESETS.map((preset) => <option value={preset.id} selected={preset.id === DEFAULT_PRESET_ID}>{preset.title}</option>)}
+          {presets.map((preset) => <option value={preset.id} selected={preset.id === DEFAULT_PRESET_ID}>{preset.title}</option>)}
         </select>
         <button type="button" class="lab-button lab-button--small" data-blocks-preset-load>예시 불러오기</button>
       </div>

@@ -44,6 +44,7 @@ import type { GeneratedProgram } from './generator.ts';
 import type { BlocksKit } from './kit.ts';
 import { loadBlocksKit } from './loader.ts';
 import { BLOCKS_STORAGE, initialMode, isEditingKey, needsConvertConfirm, type BlocksMode } from './mode-rules.ts';
+import { findCommPreset } from './comm/index.ts';
 import { DEFAULT_PRESET_ID, findPreset } from './presets.ts';
 
 /** 작업판 JSON을 저장하는 간격(밀리초) */
@@ -521,7 +522,8 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
     void convertToCode();
   });
   listen(elements.presetLoad, 'click', async () => {
-    const preset = findPreset(elements.presetSelect?.value);
+    // 기본 예시 → 통신 예시(P4-10) 차례로 찾는다(BlocksPanel.astro가 두 목록을 이어 그린다)
+    const preset = findPreset(elements.presetSelect?.value) ?? findCommPreset(elements.presetSelect?.value);
     if (!preset || !kit || !workspace) {
       return;
     }

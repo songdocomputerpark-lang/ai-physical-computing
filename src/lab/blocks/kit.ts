@@ -8,6 +8,7 @@
 import type { BlocklyModules, Workspace } from './blockly-types.ts';
 import { STANDARD_BLOCK_TYPES, registerBlocks } from './blocks.ts';
 import { customBlockCode, standardBlockOverrides } from './codegen.ts';
+import { installCommBlocks, withCommCategory } from './comm/index.ts';
 import { createGeneratorClass, type GeneratedProgram, type MicroPythonGenerator } from './generator.ts';
 import { defineBlocksTheme } from './theme.ts';
 import { buildToolbox, type ToolboxDefinitionJson } from './toolbox.ts';
@@ -44,13 +45,15 @@ export function createBlocksKit(modules: BlocklyModules): BlocksKit {
     table[type] = code;
   }
   Object.assign(table, standardBlockOverrides(python), customBlockCode(python.Order));
+  // 통신 블록(P4-10) — 블록 정의·코드 함수·예약어를 한 번에 붙인다(두 번 불러도 한 번만 들어간다). 도구 상자에는 "화면" 다음에 "통신" 칸 하나.
+  installCommBlocks({ Blockly, python, forBlock: table, generator });
 
   const kit: BlocksKit = {
     Blockly,
     libraryBlocks,
     python,
     generator,
-    toolbox: buildToolbox(),
+    toolbox: withCommCategory(buildToolbox()),
     theme: defineBlocksTheme(Blockly),
     generate: (workspace) => generator.generateProgram(workspace),
   };

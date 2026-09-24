@@ -1,0 +1,10 @@
+# 예제 갤러리 태그를 적는 사이드카(P4-11 — src/lab/gallery/facets.ts). 사이트가 만든 예제라 설명·배선·실습 방법·안내 상자는 .py 머리말에 있어요
+# (src/lab/README.md 2절). title은 ESP32 예제 사이드카에 반드시 있어야 해서(tests/unit/lab/esp32-examples.test.ts) .py 머리말 첫 줄과 같게 적었어요 —
+# 고칠 때는 두 곳을 함께 고쳐요(사이드카가 먼저 쓰여요). 보충 차시 C1·C2 md가 생기면(Phase 5) 차시 frontmatter가 먼저예요.
+title: "통신 템플릿 3: 와이파이 + MQTT — 값을 보내고(발행) 명령을 받기(구독)"
+unit: 3
+difficulty: 3
+virtual_ok: true
+comm:
+  - wifi
+  - mqtt

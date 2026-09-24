@@ -1,7 +1,7 @@
 // ESP32 실습실 블록 모드(PLAN §8.3 P3-06, SPEC §6.2 "블록 ↔ 텍스트", PD-27 블록 전용 호환 모드) 브라우저 테스트.
 // 시나리오 B 전체 흐름(블록 끌어 놓기 → 가상 터치 → 코드 한 줄 수정)은 scenario-b.spec.ts에 있다. 여기서는 모드 전환·저장·안내·접근성·호환 모드를 본다.
 //  1. 처음은 코드 모드: [블록]·[코드] 전환 단추만 보이고 Blockly(압축 전 약 0.8MB, gzip 약 0.2MB)를 받지 않는다. [블록]을 누르면 그때 받는다.
-//  2. 블록 모드: 한국어 도구 상자 10칸, 처음 예시(내장 LED 깜빡이기)의 코드가 편집칸에 보이고, 편집칸은 읽기 전용(고치려 하면 안내).
+//  2. 블록 모드: 한국어 도구 상자 11칸(Phase 4 통합에서 "통신" 칸이 "화면" 다음에 들어옴), 처음 예시(내장 LED 깜빡이기)의 코드가 편집칸에 보이고, 편집칸은 읽기 전용(고치려 하면 안내).
 //  3. 블록의 드롭다운(켜기 → 끄기)을 바꾸면 코드가 바로 바뀐다(블록 = 코드).
 //  4. 새로고침해도 블록 모드·작업판이 그대로, ?example= 주소로 열면 코드 모드. [코드로 바꾸기]는 예제 칸에 고쳐 둔 코드가 있으면 먼저 묻는다.
 //  5. 한 핀을 두 부품이 쓰면(레이저 21 + LCD SDA 21) 한국어 주의가 보인다.
@@ -100,7 +100,7 @@ test.describe('ESP32 실습실 블록 모드', () => {
 
     await switchToBlocks(page);
     expect(blocklyRequests.length).toBeGreaterThan(0);
-    await expect(page.locator('[data-blocks-workspace] .blocklyToolboxCategory')).toHaveText(['보드', '센서', '빛', '소리', '움직임', '화면', '반복·조건', '기다리기', '계산', '변수']);
+    await expect(page.locator('[data-blocks-workspace] .blocklyToolboxCategory')).toHaveText(['보드', '센서', '빛', '소리', '움직임', '화면', '통신', '반복·조건', '기다리기', '계산', '변수']);
     await expect.poll(() => editorCode(page)).toBe(BLINK_CODE);
     await expect(blocksRoot(page)).toHaveAttribute('data-blocks-block-count', '5');
     await expect(page.locator('[data-blocks-area]')).toContainText('블록이 만든 코드');
