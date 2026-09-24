@@ -1,6 +1,6 @@
 # 실습실 코드 안내 (`src/lab/`)
 
-실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절 — Phase 3 구역 5.1, **Phase 4 구역 5.2**), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절 — 부품 제작 체크리스트 7.9, 확장 자리 7.10), **모의 시리얼(실제 보드 없이 Web Serial 흐름 시험)**(8절), **통신 브릿지(기기와 기기 사이로 글자 한 줄을 보내는 다리)**(9절)를 적어요.
+실습실(영상처리·ESP32·통신)이 함께 쓰는 브라우저 쪽 코드와 파이썬 쪽 모듈을 모아 둔 곳이에요. 큰 흐름은 `docs/PLAN.md` §4(JSPI 실행 설계)·§8.2(Phase 2 묶음)·§8.3(Phase 3 묶음), 파일 위치는 `CLAUDE.md` "기술 스택" 절에 있어요. 이 문서는 **예제 파일을 쓰는 사람(교사·기여자)이 지켜야 할 규약**(1~3절), **흉내 모듈을 폴더 하나로 더하는 규약**(4절), **여러 사람이 동시에 만들 때의 검증 환경**(5절 — Phase 3 구역 5.1, **Phase 4 구역 5.2**), **원본 예제 이관 도구**(6절), **가상 ESP32 보드와 부품을 더하는 규약**(7절 — 부품 제작 체크리스트 7.9, 확장 자리 7.10), **모의 시리얼(실제 보드 없이 Web Serial 흐름 시험)**(8절), **통신 브릿지(기기와 기기 사이로 글자 한 줄을 보내는 다리)**(9절)와 그 위의 **통신 실습 모듈**(9.9~9.16 — MQTT·대시보드·컴퓨터 쪽 흉내·가상 BLE·실제 기기 연결·시나리오 F·4단원 통합 화면·예제 갤러리, Phase 4 통합 2026-09-24)을 적어요.
 
 | 폴더 | 하는 일 |
 |---|---|
@@ -8,13 +8,18 @@
 | `python/` | 워커 안에서 도는 붙박이 파이썬 모듈: 도우미 `apc_runtime.py`, 등록표 `apc_shims.py`, cv2 흉내 `apc_cv2.py`(폴더 규약 이전에 만든 것), 묶는 코드 `modules.ts` |
 | `modules/` | **흉내 모듈 폴더**(4절): `<id>/manifest.ts` + `index.ts` + `*.py` + `panel.astro?`. 자동 발견(`manifests.ts`·`host.ts`). 예시 `hello/`. 가상 ESP32 보드는 `board/`(7절 — 부품은 `board/parts/<부품>/`) |
 | `esp32/` | ESP32 실습실 예제 목록 만들기(`examples.ts` — `examples/esp32/**/*.py`, 보드 라이브러리 폴더 `esp32/lib/` 제외, 차시 md·사이드카·머리말의 배선을 `LabExample.parts`로), 보드 라이브러리 목록(`board-libraries.ts`·`board-library-files.ts`, 7.10) |
-| `serial/` | Web Serial 타입(`web-serial.d.ts`)과 **모의 시리얼**(`mock/` — 8절, 테스트 도구라 배포 번들에 없음). 실제 보드 연결 코드(P3-07·P3-08)도 이 폴더에 둔다 |
+| `serial/` | Web Serial 타입(`web-serial.d.ts`)과 **모의 시리얼**(`mock/` — 8절, 테스트 도구라 배포 번들에 없음). 실제 보드 연결 코드(P3-07·P3-08)와 **USB 데이터 포트**(`data-port/` — P4-05, 9.13)도 이 폴더에 둔다 |
 | `editor/` | 코드 에디터(CodeMirror 6) |
 | `controls/` | 실습실 공통 조작(`lab-shell.ts` 컨트롤러, 예제 목록 `examples.ts`, 예제 머리말 읽기 `example-meta.ts`, 사이드카 읽기 `example-sidecar.ts`(빌드 전용), 자동 저장·공유 링크·내려받기) |
 | `params/` | 조절 패널: 규약 파서 `parse.ts`, 화면 논리 `panel.ts` |
 | `vision/` | 영상처리 실습실 화면(카메라·샘플 입력, 출력 창, 예제 목록 만들기 `examples.ts` — PC 전용 라이브러리 폴더 `vision/lib/` 제외, 프레임 훅 `vision-lab.ts`) |
 | `bridge/` | **통신 브릿지**(9절): 메시지 규칙·보낼 차례·받는 차례·통로 등록표. 쓰는 쪽은 `bridge/index.ts`에서만 가져와요 |
-| `gallery/` | 예제 갤러리(P4-11)가 읽을 **태그 규약** `facets.ts`(단원·난이도·가상 보드 가능·통신 방식·부품·낱말) |
+| `mqtt/` | **MQTT·같은 컴퓨터 탭 통로**(P4-06, 9.9): 중계 서버 목록·토픽 규칙(PD-29)·통로 `mqtt`·이 탭의 연결 하나(`session.ts`) |
+| `dashboard/` | **대시보드**(P4-07, 9.10): 위젯 네 가지·격자 배치·저장·그래프·게이지(라이브러리 없이) |
+| `ble/` | **실제 보드 Web Bluetooth**(P4-04, 9.13): 연결·응답 있는 쓰기 차례·통로 `ble`·교실 이름 규칙·가짜 블루투스(`mock/`, 8.7) |
+| `blocks/` | 블록 모드(P3-06, 7.11)와 **통신 블록**(`comm/` — P4-10, 9.14) |
+| `unit4/` | **4단원 통합 화면**(P4-09, 9.15): 두 실습실 한 문서·[함께 실행]·성능 재기 |
+| `gallery/` | **예제 갤러리**(P4-11, 9.16): 태그 규약 `facets.ts`(단원·난이도·가상 보드 가능·통신 방식·부품·낱말)와 빌드 때 카드를 만드는 `cards.ts`·거르기 `filters.ts`·규칙으로 읽기 `infer.ts`·비교 `variants.ts`·화면 `gallery-page.ts` |
 
 ---
 
@@ -184,7 +189,7 @@ export default manifest;
 - `mount`는 `{ dispose() }`를 돌려줄 수 있어요. ctx로 등록한 훅은 dispose 때 알아서 풀리고, 직접 붙인 DOM 이벤트만 풀어요.
 - 실행 시작(`ctx.onLab('run')`)에 화면 값을 다시 `setValue`해 두면 정지 2단계(워커 재시작)로 값이 사라져도 복구돼요(hello 예시).
 - 무거운 라이브러리(MediaPipe Tasks 등)는 index.ts 맨 위에서 import하지 말고 **처음 필요할 때 `await import()`** 해요 — index.ts 자체가 실습실마다 따로 받는 청크지만, 모듈이 붙는 순간 그 청크를 받기 때문이에요.
-- **패널은 쓸 때만 연다(2026-09-17 Phase 2 검토 반영, 절대 원칙 4 "한 페이지 한 개념"):** 예전에는 모듈마다 mount에서 `showPanel()`을 불러 에지 검출 첫 실습 아래로 인식·음성·파일 패널이 줄줄이 이어졌어요. 이제는 `const gate = showPanelWhenUsed(ctx, /mediapipe/u)`처럼 코드에 이름이 보이면 열고, 파이썬이 실제로 요청을 보내면 핸들러 첫 줄에서 `gate.show()`로 못 박아요(코드를 고쳐도 닫히지 않음). 실행 전에 조작해야 하는 패널(파일 넣기)은 그 조작의 흔한 코드 모양으로 열어요(`runtime-extras/files.ts`의 `WORK_FILE_USE_PATTERN`).
+- **패널은 쓸 때만 연다(2026-09-17 Phase 2 검토 반영, 절대 원칙 4 "한 페이지 한 개념"):** 예전에는 모듈마다 mount에서 `showPanel()`을 불러 에지 검출 첫 실습 아래로 인식·음성·파일 패널이 줄줄이 이어졌어요. 이제는 `const gate = showPanelWhenUsed(ctx, /\bmediapipe\b/u)`처럼 코드에 이름이 보이면 열고, 파이썬이 실제로 요청을 보내면 핸들러 첫 줄에서 `gate.show()`로 못 박아요(코드를 고쳐도 닫히지 않음). 실행 전에 조작해야 하는 패널(파일 넣기)은 그 조작의 흔한 코드 모양으로 열어요(`runtime-extras/files.ts`의 `WORK_FILE_USE_PATTERN`).
 - **학생에게 방금 생긴 것을 보여 줄 때**는 `revealElement(요소)`(`controls/reveal.ts`)를 써요 — 이미 충분히 보이면 움직이지 않고, 움직임 줄이기 설정이면 부드럽게 넘기지 않아요. 두 칸을 함께 보여야 하면 `revealTogether([넓은 칸, 좁은 칸], 둘째 칸, { slack })`. 실습실 틀은 [실행] 때 io 슬롯의 `[data-lab-reveal-on-run]`(넓은 결과 칸, 없으면 입력·출력 칸 전체)·`[data-lab-reveal-on-run-min]`(꼭 보여야 하는 최소 칸)과 첫 조절 막대(`[data-lab-param]`)를 함께 보이고, 오류 모듈은 풀이 카드를 보여요. **Phase 3 보드 그림 io 슬롯도 결과 부분에 이 두 표시를 달아요.** 편집칸을 스크롤할 일이 있으면 페이지까지 움직이는 CodeMirror `scrollIntoView` 대신 편집칸 안에서만(`errors/highlight.ts`의 `scrollLineInsideEditor`) 움직여요 — 방금 옮긴 화면을 되돌리지 않게.
 - **콘솔은 화면 밖이라고 보고 만든다(2026-09-18 검토 반영):** 실습실은 세로로 길어 콘솔이 결과 칸보다 688px(1366×768)·696px(375×812) 아래에 있어요. 결과가 `print()`뿐인 실행에서 학생이 "아무 일도 없다"로 읽지 않게, 실습실 틀이 콘솔에 새 출력이 오면 결과 칸 아래에 마지막 3줄과 [콘솔 보기 ↓]를 띄우고(`[data-lab-io-output]`) 콘솔 제목에 "새 출력 N줄" 배지를 붙여요. 콘솔이 화면에 들어오면(IntersectionObserver) 저절로 사라져요. 모듈이 중요한 결과를 콘솔에만 쓰지 않도록 할 때 이 장치를 믿어도 돼요.
 - 조작 줄 아래 안내 줄에 한 줄로 알릴 것이 있으면 `ctx.lab.showMessage('…')`(오류로 끝났을 때 오류 모듈이 쓰는 자리). 학생이 읽는 글에는 "정지 2단계"·밀리초 같은 안쪽 용어를 넣지 않아요.
@@ -281,10 +286,30 @@ npx vitest run tests/unit/lab/board-part-buzzer.test.ts tests/unit/lab/pyodide-b
 - **esbuild 0.28.2**(devDependency): 모의 시리얼을 브라우저에 끼울 때 묶는 데만 써요(8절).
 - **펌웨어 파일은 받지 않아요**(인터넷에서 파일 내려받기 금지): F 구역은 받을 곳·크기·SHA-256을 조사해 요청으로 남기고, 테스트는 `page.route`로 가짜 응답을 주거나 테스트 안에서 만든 임시 파일을 써요. `public/firmware/`에는 파일을 넣지 않아요(넣으려면 `sources.yaml` 등록이 먼저 — 공유 파일).
 
-### 5.2 Phase 4 병렬 제작(P4-02~P4-11, 2026-09-18 준비) — 구역·포트·공유 파일
+### 5.2 Phase 4 병렬 제작(P4-02~P4-11, 2026-09-18 준비 → 2026-09-24 통합) — 구역·포트·공유 파일
 
 여섯 구역(A~F)이 동시에 만들고, 앞 구역이 끝나야 되는 둘(G·H)은 2차로 붙어요. **공유 파일은 고치지 않고**(필요하면 요청 — 아래 "공유 파일 변경 요청"),
 자기 구역의 **새 파일·새 폴더**만 만들어요. 통신 규칙의 헌법은 `docs/PLAN.md` §7이고, 브릿지 코드 약속은 이 문서 **9절**이에요.
+
+**실제로 만든 것(2026-09-24 통합 기준 — 준비 때 계획한 폴더 이름과 다른 곳이 있어 이 표가 정답이다):**
+
+| 구역(실행 이름) | 포트 | 묶음 | 만든 파일·폴더 | 테스트 |
+|---|---|---|---|---|
+| A vision | 4701 | P4-02 | `src/lab/modules/serial-pc/`(PC 쪽 `serial.py` 흉내 — **파일 이름이 곧 import 이름**), `src/lab/modules/vision-bridge/`(두 실습실을 잇는 선 `link.ts`·보드 쪽 `board-uart.ts`·[보내기] 패널 논리), `src/components/lab/bridge/` | `tests/unit/bridge-serial/**`, `tests/e2e/bridge-vision-board.spec.ts` |
+| B ble(가상) | 4702 | P4-03 | `modules/board/ext/ble/apc_board_ble.py`, `modules/board/parts/ble/`, `examples/esp32/lib/third-party/esp32_ble_util.py`(사이트판), 블루투스 사이트판 예제 5개 | `tests/unit/board-ble/{ble-state,pyodide-ble}.test.ts`, `tests/unit/lab/board-part-ble.test.ts`, `tests/e2e/esp32-ble.spec.ts` |
+| B ble(실제) | 4702 | P4-04 | `src/lab/ble/`, `src/lab/modules/web-bluetooth/`, `src/components/lab/ble/` | `tests/unit/board-ble/web-bluetooth-*.test.ts`, `tests/e2e/web-bluetooth.spec.ts` |
+| C serialport | 4703 | P4-05 | `src/lab/serial/data-port/`, `src/lab/modules/data-port/`, `src/components/lab/data-port/` | `tests/unit/serial/data-port-*.test.ts`, `tests/e2e/data-port.spec.ts` |
+| D mqtt | 4704 | P4-06·P4-07 | `src/lab/mqtt/`, `src/lab/modules/mqtt/`, `modules/board/ext/network/`, `src/lab/dashboard/`, `src/components/lab/dashboard/`, 페이지 `src/pages/labs/iot/dashboard/`(통합에서 `/labs/dashboard/` → 통신 실습실 아래로) | `tests/unit/{mqtt,dashboard}/**`, `tests/e2e/{mqtt,dashboard}.spec.ts` |
+| E templates | 4705 | P4-10 | `examples/esp32/templates/`(통신 템플릿 3종), `src/lab/blocks/comm/` | `tests/unit/blocks/comm-*.test.ts`, `tests/e2e/esp32-comm-blocks.spec.ts` |
+| F gallery | 4706 | P4-11 | `src/lab/gallery/`의 새 파일, `src/components/examples/`, 페이지 `src/pages/labs/gallery/`(통합에서 `/examples/` → 사이트 지도 주소로) | `tests/unit/gallery/**`, `tests/e2e/examples-gallery.spec.ts` |
+| **2차** G scenario-f | 4707 | P4-08 | `src/lab/modules/vision-bridge/finger-count/bridge.py`(새 예제용 `bridge` 모듈), `examples/{vision,esp32}/u4/c3-*.py`, 보충 C3 초안 `content/lessons/supplement/c3.md`(`draft: true`) | `tests/unit/bridge-serial/pyodide-bridge.test.ts`, `tests/e2e/scenario-f.spec.ts` |
+| **2차** H unit4 | 4708 | P4-09 | `src/pages/labs/unit4/`, `src/lab/unit4/`, `src/components/lab/unit4/`, (구역 밖을 통합이 받아들임) `src/lab/modules/ble-pc/`(PC 쪽 `bluetooth`·`bluetooth_lib` 흉내) | `tests/e2e/unit4.spec.ts` |
+
+통합(2026-09-24)이 더한 것: 통신 실습실 안내 페이지 `src/pages/labs/iot/index.astro`(9.9 앞 "한눈에"), 사이트 지도의 대시보드·4단원 통합 실습실, 오류 사전 `comm` 묶음 21항목,
+3-1-2 사이트판(`examples/esp32/u3/3-1-2-uart-laser-site.py`), 보드 이벤트 `board.uart.tx`를 실제로 보내는 줄(`apc_part_uart.py`), 영상처리 예제의 실습 방법 칸(`VisionIo`),
+재생 입력 "윙크·두 눈 감기(클릭)"(`face-wink`), 점검 페이지의 중계 서버 연결 시험, 링크 검사 `example-wrong-lab`. 까닭은 `docs/PLAN.md` §8.4 "통합 구현 메모".
+
+**준비 때 계획한 표(기록):**
 
 | 구역 | 포트 | 만드는 것(PLAN §8.4) | 자기 파일·폴더(새로 만듦) | 자기 테스트 |
 |---|---|---|---|---|
@@ -550,15 +575,17 @@ parts/<새 부품>/
 - **자동 발견:** `parts.ts`가 `import.meta.glob('./parts/*/part.ts', { eager: true })`로 찾고 `validatePartDefinitions`로 검사한다(어기면 `board-parts.test.ts`가 실패하고, 브라우저에서는 보드 모듈이 오류를 내며 뜨지 않는다). `.py`는 `python/modules.ts`가 모듈 폴더의 하위 폴더까지 찾아 ESP32 실습실 워커의 `/apc`에 넣는다.
 - **파이썬 부품 흉내:** `apc_part_<이름>.py`는 `apc_board.register_part('<부품 id>', factory)`로 자기를 등록한다(`factory(배선 항목) → 장치`). 보드는 `/apc`의 `apc_board_*.py`·`apc_part_*.py`를 첫 실행 직전(`install()`) 한 번 불러온다. 상태를 화면에 알릴 때는 `apc_runtime.emit('board.device', { part, id, state })`, 실물과 같은 OSError는 `apc_board.board_oserror(19)`(`OSError: [Errno 19] ENODEV`). 핀은 `apc_board.find_pin(값)`·`BOARD.read(gpio)`·`BOARD.write(gpio, v)`·`BOARD.configure(…)`로 다룬다.
 - **단위 테스트(P3-02 규칙 — 부품 하나 = 테스트 파일 하나):** `tests/unit/lab/board-part-<부품 id>.test.ts`를 새로 만들어 그 부품의 `visual`·`interaction.drive`·기본 핀·배선 줄임 표기를 검사한다(DOM 없이, 스냅샷 도우미 `tests/unit/lab/helpers/board-snapshot.ts`). 여러 사람이 부품을 동시에 더해도 같은 파일을 고치지 않게 — `board-parts.test.ts`는 레지스트리·배선 검사만 보고, 부품 폴더마다 이 파일이 있는지 확인한다. 파이썬 흉내가 있으면 `tests/unit/lab/helpers/pyodide-board-run.mjs`에 단계를 더하고 `pyodide-board.test.ts`에서 확인한다. 화면은 `tests/e2e/lab-esp32-parts.spec.ts`처럼 `data-visual-*`를 읽는다.
-- **부품 id(P3-11 통합에서 확정 — 사이드카·차시 md가 이 이름으로 배선을 적는다):** `touch-digital`(sig)·`vibration-motor`(sig)·`rgb-led`(r·g·b)·`laser`(sig)·`buzzer`(sig)·`servo`(sig)·`fan-motor`(ina·inb)·`touch-analog-4ch`(sig)·`lcd-i2c`(sda·scl)·`oled-i2c`(sda·scl)·`neopixel`(din)·`uart`(rx·tx)·`mp3`(rx·tx — 모듈 쪽 이름). 병렬 제작 준비 때 적었던 `neopixel-ring`·`mp3-player`는 쓰지 않는다(구역 C가 짧은 이름으로 만들었고, 그 이름을 쓴 사이드카·차시는 없었다).
+- **부품 id(P3-11 통합에서 확정 — 사이드카·차시 md가 이 이름으로 배선을 적는다):** `touch-digital`(sig)·`vibration-motor`(sig)·`rgb-led`(r·g·b)·`laser`(sig)·`buzzer`(sig)·`servo`(sig)·`fan-motor`(ina·inb)·`touch-analog-4ch`(sig)·`lcd-i2c`(sda·scl)·`oled-i2c`(sda·scl)·`neopixel`(din)·`uart`(rx·tx)·`mp3`(rx·tx — 모듈 쪽 이름)·`ble`(led — Phase 4 P4-03, 보드 안 블루투스 무선과 `ESP32BLE.py`의 상태 LED). 병렬 제작 준비 때 적었던 `neopixel-ring`·`mp3-player`는 쓰지 않는다(구역 C가 짧은 이름으로 만들었고, 그 이름을 쓴 사이드카·차시는 없었다).
 
-**지금 있는 부품(P3-11 통합 기준 15개):** 보드에 붙은 `builtin-led`(IO2, 밝기는 PWM duty)·`boot-button`(IO0, 누르면 0),
+**지금 있는 부품(Phase 4 통합 기준 16개 — P3-11의 15개 + `ble`):** 보드에 붙은 `builtin-led`(IO2, 밝기는 PWM duty)·`boot-button`(IO0, 누르면 0),
 `touch-digital`(sig, 기본 17 — 누르는 동안 1)·`vibration-motor`(sig, 기본 19 — 사이트 배정, 실물 확인 전),
 `rgb-led`(r·g·b, 기본 핀 없음 — 1이면 켜짐)·`laser`(sig)·`buzzer`(sig, `sound: true`)·`servo`(sig, 프로필 mg90s·servo40)·
 `fan-motor`(ina·inb, 기본 25·26)·`touch-analog-4ch`(sig, 기본 32 — 조작 칸의 [패드 1~4]),
 `lcd-i2c`(sda·scl, 기본 21·22, 주소 0x20 — 글자 칸을 DOM `<tspan data-lcd-cell>`으로)·`oled-i2c`(sda·scl, 주소 0x3C — 켜진 점은 `<path data-oled-pixels>` 하나),
 `neopixel`(din, 기본 23 — 16구 링)·`uart`(rx·tx, 기본 17·16 — USB-UART 변환기와 컴퓨터 시리얼 창, 전원은 `power: { gnd, vcc: false }`로 GND만)·
-`mp3`(rx·tx, 기본 17·16 — DFPlayer, `sound: true`).
+`mp3`(rx·tx, 기본 17·16 — DFPlayer, `sound: true`),
+`ble`(led, 기본 12 — 보드 안 블루투스와 `ESP32BLE.py`의 연결 상태 LED. 선은 필요 없지만 상태 LED 핀이 스트래핑 핀이라 배선 검사가 "주의"를 낸다 — 자료의 실제 사정이라 그대로 둔다.
+조작 칸이 상대 기기(스마트폰·컴퓨터) 노릇: [연결]·[연결 끊기]·글자 보내기·a·b·c·좌표·가상 스마트폰 앱 단추·주고받은 기록. 다른 모듈은 창 이벤트 `apc:ble-write`(detail `{bytes}`)로 값을 넣고 `apc:ble-notify`로 보드 알림을 받는다 — 상수 `parts/ble/part.ts`의 `BLE_WRITE_EVENT`·`BLE_NOTIFY_EVENT`).
 
 부품이 스스로 만든 상태 글은 `visual.summary`에 담는다 — 화면 낭독기 이름의 상태 자리에 그대로 쓰이므로(서보 각도·버저 Hz·팬 방향처럼
 `lit`·`on`·`pressed`로 말할 수 없는 것) 부품이 DOM 속성을 직접 건드리지 않아도 된다. 보드 그림 글자·부품 글자 크기는 공용 CSS
@@ -669,6 +696,9 @@ PWM·ADC·SoftI2C·UART·RTC·time_pulse_us처럼 부품이 아닌 **machine의 
 | 보드 콘솔 `input()`(P3-05) | `src/lab/modules/board-console/`가 ESP32 실습실 `builtins.input`을 바꾼다(기다리는 동안 Timer·UART가 돈다) | 이벤트 `board-console.prompt {id, prompt}`, 채널 `board-console.line {id, value}`·`{id, cancelled: true}`·`board-console.ready`, 실습실 틀의 공개 `lab.prompt` | `tests/unit/board-uart/{board-console,pyodide-board-console}.test.ts` |
 | [실행] 코드 바꾸기(D, P3-06) | — | `lab.setRunCodeTransform(fn \| null)`: [실행] 때 파이썬에 보낼 코드만 바꾼다(편집칸·공유 링크·내려받기·실제 보드에는 영향 없음) | `tests/unit/blocks/rules.test.ts`, `tests/e2e/esp32-blocks.spec.ts` |
 | 예제 목록에 없는 코드의 배선(D, P3-06) | — | 실습실 뿌리 속성 `data-board-wiring-override`(WiringEntry[] JSON)와 이벤트 `apc:board-wiring`(`src/lab/blocks/board-link.ts`) → 보드 모듈이 예제 배선 대신 그린다 | `tests/unit/blocks/board-link.test.ts`, `tests/e2e/scenario-b.spec.ts` |
+| 블루투스(Phase 4 P4-03) | `ext/ble/apc_board_ble.py` — `bluetooth`·`ubluetooth` 저수준(주변기기 노릇만, 20바이트 특성, `gatts_notify` 연결 없으면 `OSError [Errno 128] ENOTCONN`), 가상 무선 `RADIO`(`connect`·`write_from_peer` — 연결이 없으면 먼저 연결), `on_notify(함수)`. 코드가 끝나도 블루투스가 켜져 있으면 [정지]까지(`register_idle_hook`) | 부품 `ble`의 조작 칸, 창 이벤트 `apc:ble-write`·`apc:ble-notify` | `tests/unit/board-ble/pyodide-ble.test.ts`, `tests/e2e/esp32-ble.spec.ts` |
+| 와이파이·MQTT(Phase 4 P4-06) | `ext/network/apc_board_network.py`(`network.WLAN` — 늘 연결 성공)·`apc_board_umqtt.py`(`umqtt.simple.MQTTClient` — 화면의 거절을 MicroPython과 같은 자리인 `OSError`로) | 모듈 `src/lab/modules/mqtt/`(요청 `mqtt.connect`·`publish`·`subscribe`·`disconnect`, 이벤트 `mqtt.wifi`, 채널 `mqtt.inbox`) | `tests/unit/mqtt/pyodide-network.test.ts`, `tests/e2e/mqtt.spec.ts` |
+| 보드 → 컴퓨터 UART 바이트(Phase 4) | `apc_part_uart.py`의 `serial_receive`가 이벤트 `board.uart.tx` `{id, port, bytes, baud}`를 보낸다(2026-09-24 통합) | `vision-bridge` 보드 쪽이 받아 선(탭 통로)으로 컴퓨터에 넘긴다. 이벤트가 오기 전에는 부품 상태의 `rxTail`로 받는다 | `tests/e2e/bridge-vision-board.spec.ts`("보드 → 컴퓨터") |
 
 ---
 
@@ -796,6 +826,15 @@ await board.unplug();                                            // 선 뽑기 �
 - **저장:** `board-check:answers`(이 컴퓨터의 브라우저에만, [기록 지우기]가 함께 지운다).
 - **테스트:** `tests/unit/esp32-check/`(항목 규칙·복사 글) + `tests/e2e/esp32-board-check.spec.ts`(모의 포트로 항목 전체를 끝까지 — 실물의 증거는 아니다).
 
+## 8.7 가짜 블루투스 — 실제 기기 없이 Web Bluetooth 흐름 시험(`src/lab/ble/mock/`, P4-04)
+
+Node 단위 테스트: `new BleConnection({ bluetooth: createMockBluetooth({ devices: [{ name: 'ESP32-07', echo: true }] }) })`.
+브라우저 테스트: `browser-entry.ts`를 esbuild로 묶어 `page.addInitScript`로 넣는다(`tests/e2e/web-bluetooth.spec.ts`의 `installBleMock`).
+설정 `globalThis.__APC_BLE_MOCK_CONFIG__`(`devices`·`chooser: 'first'|'cancel'`·`unsupported: true`),
+조작·확인 `globalThis.__APC_BLE_MOCK__`(`writtenText`·`receivedText`·`notify`·`drop`·`calls`·`maxConcurrentWrites`·`connectCount`·`notifying`).
+`calls()`는 선택 창을 부른 순간의 `navigator.userActivation.isActive`를 함께 남긴다 — **권한 요청이 클릭 안에서 났는지**를 검사가 본다.
+흉내 내지 않는 것: 스캔·페어링 창·MTU 협상·여러 기기 동시 연결. 모의는 실물의 증거가 아니다(부록 B-2 15번).
+
 ---
 
 ## 9. 통신 브릿지 — `src/lab/bridge/`(P4-01)
@@ -852,8 +891,8 @@ interface BridgeChannel {
 
 | id | 무엇 | 쓰는 곳 |
 |---|---|---|
-| `direct` | 같은 탭 안에서 잇는다(`createDirectPair`·`createDirectHub`). 브라우저 API를 하나도 쓰지 않아 단위 테스트가 이것으로 규칙을 확인한다 | 한 화면 모드(P4-02·P4-09), 테스트 |
-| `tab` | 같은 컴퓨터의 다른 탭(BroadcastChannel, PD-17). 채널 이름은 `ai-physical-computing:bridge:<접두어>` | 탭 통로(P4-02·P4-06·P4-07) |
+| `direct` | 같은 탭 **같은 문서** 안에서 잇는다(`createDirectPair`·`createDirectHub`). 브라우저 API를 하나도 쓰지 않아 단위 테스트가 이것으로 규칙을 확인한다 | 테스트, 한 문서 안에서 두 쪽을 잇는 곳(4단원 통합 화면의 컴퓨터 쪽 `bluetooth` 흉내 — P4-09) |
+| `tab` | 같은 컴퓨터의 다른 탭·**같은 출처의 iframe**(BroadcastChannel, PD-17). 채널 이름은 `ai-physical-computing:bridge:<접두어>` | 탭 통로와 한 화면 모드(P4-02·P4-06·P4-07·P4-08) — iframe은 같은 출처의 다른 문서라 `direct`로는 닿지 않는다 |
 
 상대가 없어도 조용히 보내야 하는 쪽(대시보드처럼 듣는 사람이 없을 수 있는 방송)은 `requirePeer: false`로 연다 — 그래야 보낼 때마다 오류 안내가 나오지 않는다.
 
@@ -927,6 +966,14 @@ registerBridgeChannel({
 });
 ```
 
+**등록된 통로(2026-09-24 통합 기준 — [보내기] 패널의 통로 고르기 상자에 저절로 들어간다):**
+
+| id | 이름 | 등록하는 곳 | 성질 |
+|---|---|---|---|
+| `mqtt` | 공개 중계 서버(MQTT) | `src/lab/mqtt/channel.ts` `registerMqttChannel` | `notice` = 공개 브로커 경고(늘 보임). 실제 보드로 가는 수신에는 `extra.inbound`(허용 목록·20바이트)를 준다 |
+| `ble` | 블루투스(실제 보드) | `src/lab/ble/channel.ts` `registerBleChannel` | `knowsPeers = true`(이어져 있으면 상대는 `board` 하나), 연결 전 보내기는 `BridgeClosedError`. **20바이트를 넘어도 통로가 자르지 않는다** — 자르는 쪽은 실물 보드(§7.7) |
+| `serial` | USB 데이터 포트 | `src/lab/serial/data-port/channel.ts` `registerDataPortChannel` | 봉투 type `uart.data`(탭 통로와 같음), `from`은 늘 `board`, `baud`를 싣는다. `knowsPeers = false` — 선 반대쪽에 누가 듣는지 브라우저가 알 수 없다. 포트가 닫혀 있으면 `BridgeClosedError` |
+
 체크리스트
 
 1. `BridgeChannel`의 칸을 모두 채운다(상대를 셀 수 없으면 `knowsPeers = false`, `peers = []`).
@@ -940,6 +987,9 @@ registerBridgeChannel({
 - **통로 이름·토픽·봉투에 개인정보를 넣지 않는다**(학생 이름·학번·얼굴·BLE 주소). 실제 기기 주소는 문서·테스트·로그에도 적지 않는다(자리표시자만).
 - 공개 브로커 통로는 `notice`를 화면에 **늘** 보이게 한다. 움직이는 장치(레이저·팬·서보)를 공개 브로커 수신에 잇지 않는다(PD-29).
 - 한국어 문장은 `messages.ts` 한 곳에만 쓴다. 같은 상황에 두 문구가 생기면 학생이 다른 문제로 읽는다.
+  이 규칙의 범위는 **브릿지 핵심과 통로 공통 문장**(닫힘·상대 없음·길이·공개 브로커 경고)이다. 통로 구현 폴더는 자기 화면·안내 문장을 **자기 폴더의 한 파일**에 모은다 —
+  `src/lab/mqtt/messages.ts`(`mqttText`)·`src/lab/ble/text.ts`(`bleText`)·`src/lab/serial/data-port/text.ts`(`dataPortText`)·`src/lab/dashboard/messages.ts`(`dashText`).
+  같은 상황의 문장은 `bridgeText`를 불러 쓴다(2026-09-24 통합 판단 — 구역 요청 "통로 이름을 bridgeText로 옮기기"는 이 규칙으로 대신했다).
 - `examples/`의 원본 예제 코드를 고쳐 브릿지에 맞추지 않는다(PD-10·§7.2-8). 맞추는 쪽은 흉내 모듈이다.
 - 브릿지는 **보드 메시지(`board.*`)와 다른 층**이다. 핀 전압은 `board.state`, 기기 사이 글자 한 줄은 브릿지다. 보드 모듈에 새 메시지 이름이 필요하면 7.3·manifest 규약을 따른다.
 
@@ -950,4 +1000,75 @@ registerBridgeChannel({
 | 규칙 | Vitest, 가짜 시계 | `tests/unit/bridge/{message,outbox,inbox,prefix}.test.ts` |
 | 통로 | Vitest, 가짜 BroadcastChannel(`FakeBroadcastHub`) | `tests/unit/bridge/channels.test.ts` |
 | 전체 | 자료의 실제 메시지(f084·f085·f089·f104·f007)로 §7.5 보기 다섯 가지 | `tests/unit/bridge/bridge.test.ts` |
-| 브라우저 | 두 탭이 서로의 가상 LED를 켜는지(P4-06·P4-07에서) | `tests/e2e/`(다음 묶음) |
+| 브라우저 | 두 탭·한 화면이 서로의 가상 보드를 움직이는지(진짜 BroadcastChannel) | `tests/e2e/{bridge-vision-board,mqtt,dashboard,scenario-f,unit4}.spec.ts` |
+
+### 9.9 MQTT·같은 컴퓨터 탭 통로 — `src/lab/mqtt/`(P4-06)
+
+- **가져오는 곳은 `src/lab/mqtt/index.ts` 하나**(안쪽 파일을 직접 가져오지 않는다): `registerMqttChannel`·`getMqttSession`·`peekMqttSession`·`deviceRxTopic`·`deviceTxTopic`·`dashTopic`·`prefixFilter`·`MQTT_BROKERS`·`checkBrokerUrl`·`readMqttSettings`·`writeMqttSettings`·`mqttText`.
+- **연결은 탭 하나에 하나**(`session.ts`) — ESP32 실습실의 MQTT 칸·대시보드·[보내기] 패널이 같은 연결을 나눠 쓴다. 방식은 두 가지: 공개 중계 서버(`broker-transport.ts`, MQTT.js를 **누를 때만** `import('mqtt')`) 또는 같은 컴퓨터 탭(`tab-transport.ts`, BroadcastChannel — 인터넷이 없어도 된다). 서버에 못 붙으면 탭 통로로 스스로 바꾼다(`mqttText.switchedToTab`).
+- **토픽 규칙(PD-29, `topics.ts`)**: 늘 `<접두어 12글자>/<장치>/<rx|tx>`·`<접두어>/dash/<위젯>`. 가상 보드는 코드의 토픽 앞에 접두어를 붙이고, **이미 접두어로 시작하면 한 번 더 붙이지 않는다**(실제 보드 코드는 접두어를 직접 적는다 — 템플릿 `examples/esp32/templates/mqtt-pub-sub.py` 주석). 고정 뿌리 토픽은 없다.
+- **공개 중계 서버 목록** `brokers.ts`의 `MQTT_BROKERS`(`verified`가 참인 주소만 기본값·점검 페이지 연결 시험에 쓴다). 브라우저는 `wss://`만(`checkBrokerUrl`).
+- **실제 보드로 가는 수신**은 통로의 `extra.inbound`(허용 목록·20바이트)로 거른다 — LED·LCD만 움직이는 값. 움직이는 장치(레이저·팬·서보)를 공개 중계 서버 수신에 잇지 않는다.
+- 보드 쪽 흉내(`network`·`umqtt.simple`)는 7.10 표. 화면 모듈은 `src/lab/modules/mqtt/`(ESP32 실습실, 코드에 `umqtt`·`network`가 보일 때만 칸이 열림).
+- 테스트: `tests/unit/mqtt/**`(토픽·설정·세션·탭 통로·파이썬 흉내), `tests/e2e/mqtt.spec.ts`(두 탭이 서로의 가상 LED를 켠다, 공개 서버는 `page.routeWebSocket` 흉내 — 인터넷 없이).
+
+### 9.10 대시보드 — `src/lab/dashboard/`(P4-07)
+
+- 페이지 `/labs/iot/dashboard/`(`src/pages/labs/iot/dashboard/index.astro` — 통합에서 통신 실습실 아래로 옮김), 판 전체는 `mountDashboard(뿌리)`, 위젯 판만 쓸 때는 `new DashboardView({ grid, announce, helpId, onToggle, onStatus })` + `view.receive(message)`.
+- 위젯 네 가지(`WIDGET_KINDS` — 그래프·게이지·스위치·기록). **새 위젯 = `defaults.ts` 표 한 줄 + `widgets.ts`의 몸통·받기 한 갈래**(저장·배치·키보드 옮기기는 따라온다). 그래프·게이지는 라이브러리 없이 SVG로 그린다(`chart.ts`·`gauge.ts`).
+- 값이 오는 곳(`source.ts`): 같은 MQTT 연결(`createMqttSource(getMqttSession())`) 또는 브릿지(`listenBridge(channel, …)` → 토픽 `bridge/<보낸 쪽>`). 가상 보드 예제 코드는 `DASHBOARD_DEMO_CODE`(같은 페이지의 iframe ESP32 실습실).
+- 배치 저장은 `readBoard()`·`writeBoard()`(저장 이름 `BOARD_STORAGE_NAME` — [이 컴퓨터에서 내 기록 지우기]가 함께 지움). 문장은 `dashText` 한 곳.
+- 테스트: `tests/unit/dashboard/**`, `tests/e2e/dashboard.spec.ts`(시나리오 D — 대시보드에서 스위치를 누르면 가상 보드 LED가 켜지고, 보드 값이 그래프에 쌓인다).
+
+### 9.11 컴퓨터 쪽 흉내 — `serial`·`bluetooth`·`bridge`(P4-02·P4-08·P4-09)
+
+영상처리 실습실(컴퓨터 쪽)의 파이썬이 원고 그대로 `import serial`·`import bluetooth`를 하면 아래 흉내가 받는다. **파일 이름이 곧 import 이름**이다(Pyodide에 없는 패키지 — shims 표를 쓰지 않는다).
+
+| 흉내 | 파이썬 파일 | 화면 쪽 | 통로 |
+|---|---|---|---|
+| pyserial(`serial.Serial`) | `modules/serial-pc/serial.py` | `modules/serial-pc/index.ts` — 요청 `serial-pc.open` → `{ok, label, notices, error?, reason?: 'closed'|'no-peer'}`, 이벤트 `serial-pc.tx {bytes, baud, category?}` | `vision-bridge`의 선(`getBridgeLink`) — [보내기] 패널이 고른 통로(같은 컴퓨터 탭·USB 데이터 포트·블루투스·MQTT) |
+| `bridge`(사이트가 만든 새 예제용) | `modules/vision-bridge/finger-count/bridge.py` | 위와 같은 `serial-pc.tx`(`category` — 값은 `state`, 클릭은 `event`) | 위와 같음. `bridge.send(글)`은 **바뀔 때만** 보내고, 끝 문자는 `\n` 하나, 20바이트 넘으면 안내 |
+| 블루투스(`bluetooth`·`bluetooth_lib`) | `modules/ble-pc/{bluetooth,bluetooth_lib}.py` | `modules/ble-pc/index.ts` — 요청 `ble-pc.open`, 이벤트 `ble-pc.tx`, 채널 `ble-pc.rx`·`ble-pc.info` | 같은 **문서**의 가상 보드 블루투스 칸(창 이벤트 `apc:ble-write`/`apc:ble-notify`, `direct` 통로). 다른 탭·실제 보드로 넓히는 일은 남김(PROGRESS 미해결) |
+
+- 영상처리 ↔ 가상 보드 짝(`vision-bridge/index.ts`의 `BOARD_EXAMPLES`·`BOARD_PAIR_OF`): 3-1-2 키 보내기·얼굴 UART → **3-1-2 사이트판**(`esp32/u3/3-1-2-uart-laser-site.py`, 기본), C3 손가락 개수 → `esp32/u4/c3-neopixel-count-rx.py`. 보드 쪽이 UART 부품 없이 `ble` 부품만 그렸으면 받은 바이트를 `apc:ble-write`로 넣는다(`c3-neopixel-count-rx-ble.py`).
+- 한 화면 모드: [한 화면에 가상 보드 열기]가 같은 출처 iframe으로 ESP32 실습실을 열고, 두 문서는 `tab` 통로로 잇는다(접두어는 주소 `?bridge=`).
+- 테스트: `tests/unit/bridge-serial/**`(링크·보드 UART·실제 Pyodide `serial`·`bridge` 흉내), `tests/e2e/bridge-vision-board.spec.ts`, `tests/e2e/scenario-f.spec.ts`.
+
+### 9.12 가상 BLE — 보드 쪽(P4-03)
+
+7.5의 부품 `ble`와 7.10의 블루투스 줄을 본다. 사이트판 예제(원본이 가상 보드에서 멈추는 까닭을 한 줄씩 고친 것 — 파일 이름 `…-site.py`, 머리말 없음·줄 수 같음·고친 줄 끝 `# [사이트판]`)와
+보드 라이브러리 `examples/esp32/lib/third-party/esp32_ble_util.py`(MicroPython 공식 예제 MIT, `sources.yaml`)가 함께 간다. 테스트 `tests/unit/board-ble/**`·`tests/e2e/esp32-ble.spec.ts`.
+
+### 9.13 실제 기기 잇기 — Web Bluetooth(P4-04)·USB 데이터 포트(P4-05)
+
+| | Web Bluetooth `src/lab/ble/` + 모듈 `web-bluetooth` | USB 데이터 포트 `src/lab/serial/data-port/` + 모듈 `data-port` |
+|---|---|---|
+| 가져오는 곳 | `src/lab/ble/index.ts` | `src/lab/serial/data-port/index.ts` |
+| 통로 id | `ble`(9.6 표) | `serial`(9.6 표) |
+| 칸이 열리는 때 | 코드에 `ESP32BLE`·`bluetooth`·`ubluetooth`·`bluetooth_lib`(`BLE_CODE_PATTERN`) 또는 창 이벤트 `apc:web-bluetooth-show` | 코드에 `import serial`·`serial.Serial`·`machine.UART`·`UART(`(`DATA_PORT_CODE_PATTERN`) 또는 `apc:data-port-show` |
+| 권한 요청 | [연결] 단추 클릭 안에서만(가짜 블루투스가 `userActivation`을 기록해 검사) | [데이터 포트 연결] 단추 클릭 안에서만 |
+| 교실 규칙 | 보드 이름 `ESP32-07`처럼 자리 번호(`checkBoardName`·`suggestBoardName`) — 주소로 연결하지 않는다 | 보드 REPL 포트로 한 줄 보낼 때 제어 바이트 검사(`checkSingleUsbLine`), 속도·이름표 저장(`module:data-port:*`) |
+| 문장 | `bleText`(`text.ts`) | `dataPortText`(`text.ts`) |
+| 테스트 | `tests/unit/board-ble/web-bluetooth-*.test.ts`, `tests/e2e/web-bluetooth.spec.ts`(가짜 블루투스 8.7) | `tests/unit/serial/data-port-*.test.ts`, `tests/e2e/data-port.spec.ts`(모의 시리얼 8절) |
+
+실물로 확인할 것은 부록 B-2(블루투스 15번·UART 8번 등) — 모의 통과는 실물의 증거가 아니다.
+
+### 9.14 통신 템플릿·통신 블록(P4-10)
+
+- 템플릿 `examples/esp32/templates/{uart-echo,ble-notify,mqtt-pub-sub}.py` — 베껴 쓰는 뼈대(머리말 있음, 사이드카 `title`은 머리말 첫 줄과 같게 — `tests/unit/blocks/comm-templates.test.ts`). 예제 목록 묶음 "통신 템플릿(베껴 쓰는 뼈대 코드)".
+- 블록: `src/lab/blocks/comm/index.ts`에서 `installCommBlocks({ Blockly, python, forBlock, generator })`(두 번 불러도 한 번)·`withCommCategory(도구 상자)`·`COMM_BLOCK_PRESETS`·`findCommPreset`. 블록 모드(`kit.ts`·`BlocksPanel.astro`·`mode-ui.ts`)가 통합에서 이것을 부른다. 색은 `theme.ts`의 `apc_comm_blocks`.
+- 기본값 한 곳: `COMM_UART`(tx 17·rx 16·9600)·`COMM_BLE_NAME`·`COMM_MQTT`·`COMM_WIFI`·`COMM_TOOLBOX_BROKER_NOTE` — 차시·대시보드가 같은 값을 쓴다.
+- 테스트 `tests/unit/blocks/comm-*.test.ts`, `tests/e2e/esp32-comm-blocks.spec.ts`.
+
+### 9.15 4단원 통합 화면 — `/labs/unit4/`(P4-09)
+
+- 한 문서에 영상처리 실습실과 ESP32 실습실(가상 보드)을 함께 둔다(`src/pages/labs/unit4/`, 화면 논리 `src/lab/unit4/`, 가져오는 곳 `index.ts`). 두 번째 뿌리의 id는 `dedupeIdsWithin`으로 꼬리를 붙여 겹치지 않게 한다.
+- 짝 예제 표 `examples.ts`의 `PAIRS`(4단원 폴더 밖 예제는 `UNIT4_EXTRA_*`와 페이지 glob에도). [함께 실행]은 보드 코드 → 블루투스 광고 기다리기 → [연결] → 컴퓨터 코드 차례로 돌린다. 한 문서에 실습실 틀이 둘이라 주소의 공유 링크(`#code=`)·`?example=`은 페이지 머리의 인라인 스크립트가 먼저 맡아 두고, `address.ts`의 규칙으로 맞는 칸에 넣는다(`takeAddressStash`·`sideForExampleId`·`guessSideFromCode`).
+- 성능: `perf.ts`의 `summarize(samples)` → `reportMarkdown(…)`(fps·메모리 표). 오래 켜 두면 렌더러 메모리가 느는 것은 PROGRESS 미해결.
+- 카메라 없이: 재생 입력(동작 10개 — 얼굴 `face-wink` "윙크·두 눈 감기(클릭)"가 클릭을 만든다). 테스트 `tests/e2e/unit4.spec.ts`.
+
+### 9.16 예제 갤러리 — `/labs/gallery/`(P4-11)
+
+- 카드·태그는 빌드 때 `src/lab/gallery/cards.ts`의 `buildGallery`가 만든다. **새 예제 `.py` 하나로 카드가 생기고**, 태그 차례는 차시 md → 사이드카(`unit`·`difficulty`·`virtual_ok`·`comm`·`tags`) → 사이트 규칙(`infer.ts` — 폴더 이름의 단원, import 줄의 통신 방식).
+- 거르기·낱말 찾기(`filters.ts`)는 빌드와 브라우저가 같은 함수를 쓰고, 고른 것이 주소(`?comm=ble` 등)에 실린다. 사본은 한 장으로 합치고 변형은 "비교해 보기"로 잇는다(`variants.ts`).
+- 검색 색인은 카드 단위(`src/config/search.ts`의 `anchorPages`에 `/labs/gallery/`). 테스트 `tests/unit/gallery/**`, `tests/e2e/examples-gallery.spec.ts`.

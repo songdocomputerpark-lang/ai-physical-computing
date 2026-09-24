@@ -255,6 +255,35 @@ ESP32 실습실 코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 
 3. "포트 선택 창에 보드가 안 보여요" 안내(`PortHelp.astro`) 안에는 `<details>`를 넣지 않아요. 그 글과 "충전 전용 케이블로는 연결되지 않아요"는 페이지에 한 번만 써요(브라우저 테스트가 하나로 셈).
 4. `npx vitest run tests/unit/firmware/` → `npx vitest run --config tests/unit/firmware/vitest.container.config.mjs` → `npx playwright test tests/e2e/start.spec.ts tests/e2e/start-board.spec.ts`.
 
+## 4-6. 통신 실습 더하기 — 예제·대시보드 위젯·통신 블록(Phase 4)
+
+통신 실습은 **컴퓨터 쪽**(영상처리 실습실)과 **보드 쪽**(ESP32 실습실) 두 화면이 짝을 이뤄요. 규약 전체는 `src/lab/README.md` 9절이에요.
+
+**통신 예제 더하기**
+
+1. 컴퓨터 쪽 예제는 `examples/vision/…`, 보드 쪽 예제는 `examples/esp32/…`에 `.py` 하나씩 둬요(2절과 같은 규칙 — 목록·갤러리에 저절로 들어가요). 한 차시에 두 쪽 예제를 함께 적어도 돼요. 차시의 [실습실에서 열기]는 **파일의 첫 폴더**(`vision/`·`esp32/`)로 실습실을 골라요. 틀린 실습실로 가는 링크는 `npm run check:links`가 `example-wrong-lab`으로 잡아요.
+2. 보드 쪽 배선: USB-UART 변환기는 `# @part uart rx=17 tx=16`(원고 배선 그림과 같은 교차 결선 — 코드는 `UART(2, tx=17, rx=16)`), 블루투스는 `# @part ble 12`(무선은 보드 안, 12번은 `ESP32BLE.py`의 상태 LED)예요.
+3. 갤러리 거르기용 태그를 사이드카나 차시에 적어요: `comm: [uart]`(uart·ble·wifi·mqtt·tab), `unit`, `difficulty`(1~3), `virtual_ok: true`(가상 보드로 끝까지 되면).
+4. 사이트가 새로 쓰는 컴퓨터 쪽 예제는 `import bridge`로 보내요 — `bridge.send(값)`(값이 바뀔 때만 보내요), `bridge.event("클릭")`(한 번 일어난 일 — 합쳐지지 않아요), `bridge.send_bytes(바이트)`, 받기는 `bridge.receive()`. **통로(같은 컴퓨터 탭·블루투스·USB·MQTT)는 코드에 적지 않고** 화면의 [보내기] 패널에서 골라요. 원본에서 옮긴 예제의 `import serial`·`import bluetooth`는 그대로 둬요(사이트의 흉내가 받아요).
+5. [보내기] 패널의 "한 화면에 가상 보드 열기" 목록에 보드 예제를 올리려면 `src/lab/modules/vision-bridge/index.ts`의 `BOARD_EXAMPLES`에 한 줄, 컴퓨터 쪽 예제를 열 때 먼저 고를 짝은 `BOARD_PAIR_OF`에 한 줄 더해요. 4단원 통합 화면(`/labs/unit4/`)에 짝을 보이려면 `src/lab/unit4/examples.ts`의 `PAIRS`에 한 줄이에요.
+6. **MQTT 토픽**은 짧게(`esp32-01/rx`) 적어요. 가상 보드는 우리 반 접두어(무작위 12글자)를 앞에 붙여 줘요. **실물 보드는 붙이지 못하니** 실물에 올릴 코드에는 토픽 앞에 대시보드·MQTT 칸의 접두어를 직접 적어요(템플릿 `examples/esp32/templates/mqtt-pub-sub.py` 주석). 실물 보드가 공개 중계 서버에서 받는 코드는 **LED·LCD 표시만**, 허용 목록과 20바이트 검사를 넣어요. 레이저·팬·서보처럼 움직이는 장치는 공개 중계 서버 수신에 잇지 않아요(PD-29).
+7. 학생 얼굴·이름·기기 주소(블루투스 주소 등)는 예제·사이드카·화면 찍기에 넣지 않아요. 주소가 꼭 보여야 하면 `XX:XX:XX:XX:XX:XX`로 적어요.
+8. 확인: 예제 스모크(사이드카 `smoke`)가 한 번씩 돌려 봐요. 두 화면이 이어지는지는 `tests/e2e/bridge-vision-board.spec.ts`·`scenario-f.spec.ts`를 본떠 검사를 더해요(같은 접두어 `?bridge=<12글자>`로 두 탭을 열어요 — 글자는 l·o·0·1을 빼고 골라요).
+
+**대시보드 위젯 더하기**(`/labs/iot/dashboard/`)
+
+1. `src/lab/dashboard/defaults.ts`의 `WIDGET_KINDS` 표에 한 줄(종류 이름·한국어 이름·설명·기본 크기)을 더해요.
+2. `src/lab/dashboard/widgets.ts`의 `createWidgetView`에 그 종류의 몸통 그리기와 값 받기 한 갈래를 더해요. 저장·끌어 옮기기·키보드로 옮기기는 저절로 따라와요.
+3. 화면 글은 `src/lab/dashboard/messages.ts`(`dashText`) 한 곳에만 적어요. 그래프·게이지처럼 그림이면 라이브러리 없이 SVG로 그려요(`chart.ts`·`gauge.ts` 참고). 색만으로 알리지 않고 글자도 함께 보여요.
+4. `npx vitest run tests/unit/dashboard` → `npx playwright test tests/e2e/dashboard.spec.ts --project=desktop`.
+
+**통신 블록 더하기**(ESP32 실습실 블록 모드의 "통신" 칸)
+
+1. 블록 모양(한국어 글·도움말)은 `src/lab/blocks/comm/blocks.ts`, 만들 파이썬 줄은 `src/lab/blocks/comm/codegen.ts`, 도구 상자 칸은 `src/lab/blocks/comm/toolbox.ts`에 더해요. 기다리기·반복 규칙은 4-3과 같아요.
+2. 핀·속도·보드 이름·중계 서버 같은 기본값은 `src/lab/blocks/comm/plan.ts`의 `COMM_UART`·`COMM_BLE_NAME`·`COMM_MQTT`·`COMM_WIFI` 한 곳에서 가져다 써요(차시 글·대시보드와 값이 어긋나지 않게). 부품이 필요한 블록은 같은 파일의 부품 계획에 한 줄을 더해요 — 여러 블록이 함께 쓰는 부품 표 `src/lab/blocks/catalog.ts`는 고치지 않아요.
+3. 미리 만든 블록 묶음(예제 불러오기 목록)은 `src/lab/blocks/comm/presets.ts`의 `COMM_BLOCK_PRESETS`에 더해요.
+4. `npx vitest run tests/unit/blocks` → `npx playwright test tests/e2e/esp32-comm-blocks.spec.ts --project=desktop`.
+
 ## 5. 배포 확인
 
 - **Actions** 탭의 "사이트 배포"는 저장소 안전 검사와 빌드를 나란히 돌린 뒤 배포해요. 세 작업이 모두 초록색이면 성공이에요.
