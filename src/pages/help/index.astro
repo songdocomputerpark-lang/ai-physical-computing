@@ -151,11 +151,11 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
       <h2 id={schoolNetwork.id}>{schoolNetwork.title}</h2>
       <p>
         실습실은 처음 열 때 브라우저에서 파이썬을 실행하는 프로그램 같은 큰 파일(수십 MB)을 내려받아요. 느린 네트워크에서는
-        시간이 걸리고, 한 번 받은 파일은 브라우저에 저장해 다음부터 빨라지게 만들 거예요.
+        시간이 걸리고, 한 번 받은 파일은 브라우저에 저장해 두어 다음부터 빨라져요.
       </p>
       <p>
         학교 방화벽(바깥 사이트 접속을 막는 장치)이 파일 배포 서버를 막으면 실습실이 뜨지 않을 수 있어요. 그럴 때는 이 사이트에
-        함께 둔 예비 파일로 자동으로 바꿔 받게 만들 거예요.
+        함께 둔 예비 파일로 저절로 바꿔 받아요.
       </p>
       <p>그래도 안 되면 학교 전산 담당 선생님께 아래 주소의 접속을 허용해 달라고 부탁해요.</p>
       <ul>
@@ -163,8 +163,8 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
         <li><code>cdn.jsdelivr.net</code> — 브라우저에서 파이썬을 실행하는 프로그램을 받는 곳</li>
       </ul>
       <p>
-        통신 실습실의 공개 메시지 서버(MQTT)는 학교 네트워크에서 막힐 수 있어요. 그래서 인터넷 없이 같은 컴퓨터의 탭끼리
-        주고받는 방법도 함께 둘 거예요. 이 컴퓨터의 상태는 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 확인해요.
+        통신 실습의 공개 메시지 서버(MQTT)는 학교 네트워크에서 막힐 수 있어요. 그래서 기본 통로는 인터넷 없이 같은 컴퓨터의
+        탭끼리 주고받는 "같은 컴퓨터 탭"이에요. 이 컴퓨터의 상태는 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 확인해요.
       </p>
     </section>
 
