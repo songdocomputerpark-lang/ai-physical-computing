@@ -84,6 +84,13 @@ test.describe('발표 모드', () => {
     await choice.focus();
     await page.keyboard.press('Space');
     await expect(choice).toBeChecked();
+    // 틀린 답을 확인하면 고른 보기가 오답 색(빨강 바탕 #fdecec)이 된다.
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
+    await expect(items.nth(2).getByRole('status')).toContainText('다시 생각해 보세요.');
+    await expect(items.nth(2).locator('label', { hasText: '센서' })).toHaveCSS('background-color', 'rgb(253, 236, 236)');
+    await page.keyboard.press('Shift+Tab');
+    await expect(choice).toBeFocused();
     await page.keyboard.press('ArrowRight');
     await expect(items.nth(2).getByRole('radio', { name: '액추에이터' })).toBeChecked();
     await expect(status(page)).toHaveText(`${total} / ${total} · 확인 퀴즈 (3/3)`);
@@ -92,6 +99,8 @@ test.describe('발표 모드', () => {
     await expect(items.nth(2).getByRole('button', { name: '답 확인하기' })).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(items.nth(2).getByRole('status')).toContainText('정답이에요!');
+    // 채점한 보기는 "고른 보기"의 파란색이 아니라 정답 색(초록 바탕 #e8f6ee)으로 바뀐다(색과 함께 "정답" 글자도).
+    await expect(items.nth(2).locator('label', { hasText: '액추에이터' })).toHaveCSS('background-color', 'rgb(232, 246, 238)');
 
     await page.keyboard.press('Home');
     await expect(status(page)).toHaveText(/^1 \/ /u);

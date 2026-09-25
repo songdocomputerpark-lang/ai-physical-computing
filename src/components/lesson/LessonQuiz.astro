@@ -185,13 +185,14 @@ const { items, idPrefix } = Astro.props;
     color: var(--color-text-muted);
   }
 
-  /* 채점 표시: 색과 함께 글자("정답"·"고른 답")로도 알린다. 글자는 피드백 칸이 이미 읽어 주므로 화면 낭독기에서는 뺀다. */
-  .quiz__choice[data-result='correct'] {
+  /* 채점 표시: 색과 함께 글자("정답"·"고른 답")로도 알린다. 글자는 피드백 칸이 이미 읽어 주므로 화면 낭독기에서는 뺀다.
+     .quiz를 앞에 붙여 "고른 보기" 색(:has(:checked))보다 앞서게 한다 — 붙이지 않으면 채점한 보기도 파랗게 남았다(2026-09-25 P5-02 화면 확인). */
+  .quiz .quiz__choice[data-result='correct'] {
     border-color: var(--color-success-border);
     background: var(--color-success-bg);
   }
 
-  .quiz__choice[data-result='wrong'] {
+  .quiz .quiz__choice[data-result='wrong'] {
     border-color: var(--color-danger-border);
     background: var(--color-danger-bg);
   }
