@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
-  it('상자 종류 11개의 이름(한국어·영어)이 겹치지 않고 모두 찾아진다', () => {
+  it('상자 종류 12개의 이름(한국어·영어)이 겹치지 않고 모두 찾아진다', () => {
     const names = BOX_TYPES.flatMap((type) => [type.name, ...type.aliases]);
     expect(new Set(names).size).toBe(names.length);
     expect(BOX_TYPES.map((type) => type.name)).toEqual([
@@ -41,6 +41,7 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
       '오류',
       '주의',
       '참고',
+      '더알아보기',
       '교사용',
     ]);
     for (const type of BOX_TYPES) {
@@ -63,6 +64,7 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
     );
     expect(html).toContain(`<p class="box__title">생성형 AI 활용 탐구</p><p>두 번째</p><p class="box__note">`);
     expect(GENAI_NOTE).toContain('생성형 AI의 도움을 받은 부분을 표시해요');
+    expect(GENAI_NOTE).toContain('개인정보는 AI에게 보내지 않아요');
     expect(html.match(/box__note/gu)).toHaveLength(2);
     expect(BOX_TYPES.filter((type) => type.note).map((type) => type.name)).toEqual(['생성형AI']);
   });

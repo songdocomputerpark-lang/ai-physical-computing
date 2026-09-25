@@ -99,6 +99,13 @@ details.box[open] > summary.box__title {
   --box-title: var(--color-info-text);
 }
 
+/* 더 알아보기(접는 참고): 본문 줄기 밖의 표·설명. 참고 상자와 같은 색에, 접혀 있어 한 쪽이 짧아진다 */
+.box--more {
+  --box-bg: var(--color-bg);
+  --box-border: var(--color-info-border);
+  --box-title: var(--color-info-text);
+}
+
 /* 상자 끝에 늘 붙는 안내(생성형 AI 활용 탐구의 "도움 받은 부분 표시" — remark-boxes.mjs의 GENAI_NOTE) */
 .box__note {
   padding-block-start: var(--space-3);
