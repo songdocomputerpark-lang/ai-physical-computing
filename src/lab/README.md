@@ -237,6 +237,8 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 
 ## 5. 여러 사람이 동시에 만들 때 — 검증 환경과 포트
 
+지금(Phase 5 교육과정 콘텐츠)의 구역·포트·차시 파일 표는 **5.4**예요. 5.1(Phase 3)·5.2(Phase 4)·5.3(Phase 2)은 그때의 기록이고, 한 폴더에 개발 서버를 여럿 띄우는 요령은 5.1에 있어요.
+
 ### 5.1 Phase 3 병렬 제작(P3-03~P3-10, 2026-09-17 준비) — 구역·포트·공유 파일
 
 여섯 구역이 동시에 만들어요. **공유 파일은 고치지 않고**(필요하면 보고서의 "공유 파일 변경 요청"에 파일·바꿀 내용·이유를 적어요 — 통합 때 반영), 자기 구역의 **새 파일·새 폴더**만 만들어요.
@@ -410,6 +412,51 @@ PW_BASE_URL=http://localhost:4404/ai-physical-computing/ npx playwright test tes
 - 새 npm 패키지가 필요하면 설치하지 말고 통합 담당에게 이름·정확한 버전·라이선스·근거를 보고해요(`sources.yaml`·`package.json`은 공유 파일). 미리 설치된 것: `@mediapipe/tasks-vision` 0.10.35(Apache-2.0, WASM은 `public/vendor/mediapipe/0.10.35/wasm/`), `workbox-build` 7.4.1(MIT, devDependency).
 - 원고·교안 이미지는 원고 이미지 추출 도구로 꺼내고(차시 그림 목록 `content/lessons/<단원>/<차시>.images.yaml` → `npm run images:extract -- <차시>`, P5-01 — `MAINTENANCE.md` 3-1), 그 목록의 눈 확인 기록(`reviewed`)을 그림과 함께 커밋해요(PD-32). 차시 밖 그림의 기록은 `scripts/image-allowlist.yaml`. 5MB를 넘는 파일은 `scripts/repo-allowlist.yaml`의 `large_files`에 경로·이유·`max_mb`(10 이하).
 - 커밋은 경로 지정(`git add <경로>`), 메시지는 한국어 "무엇을 왜" + `Co-Authored-By` 줄, `--no-verify` 금지.
+
+### 5.4 Phase 5 병렬 제작(P5-03~P5-14, 2026-09-25 준비) — 구역·포트·차시 파일·공유 파일
+
+교과서 차시를 구역이 나눠 써요. 공통 틀(P5-01 원고 이미지 추출 도구, P5-02 차시 틀·검사·기준 차시)은 먼저 끝났어요.
+**구역은 자기 차시 파일(md)·그림 목록·그림 폴더·새 예제만 만들고 고쳐요.** 공유 파일은 고치지 않고 요청해요(아래).
+
+- **쓰는 법:** `MAINTENANCE.md` 1절(설정 칸·8칸·상자·용어·그림·퀴즈·교사용·검사 규칙 표)과 3-1절(원고 그림). **본보기는 기준 차시 `content/lessons/u1/1-1-1.md`** — 문장 수준, 상자 쓰는 법, 퀴즈 모양, 교사용 접기 내용을 여기에 맞춰요.
+- **구역의 완료 기준:** ① `npm run check:lessons -- <내 차시 번호들>` 오류 0(참고는 괜찮지만 줄일 수 있으면 줄여요) ② 원고 그림을 꺼냈으면 `npm run images:check` 통과·한 장씩 눈 확인 기록 ③ 개발 서버에서 내 차시를 **직접 열어** 8칸·그림·퀴즈(키보드로 한 문항)·교사용 접기·발표 모드(→로 끝까지)를 눈으로 확인 ④ `npm run check` 0오류, `npx vitest run tests/unit/lesson/`(견본 차시 V1~V5를 고친 A는 `sample-lessons.test.ts` 포함) 통과.
+- **성취기준:** frontmatter `standards`는 PLAN §2.2 대응표(`src/config/standards.ts`의 `LESSON_STANDARDS`)와 **똑같이**. 해설과 다시 대조해 바꿔야 하면 고치지 말고 요청해요(근거 문장과 함께).
+- **원고 없는 차시**(1-3-1~1-4-3, 4-1-1~4-2-2 — 차례표 원천 `code-only`)는 코드·주석·교안·대단원 마무리 문항으로 본문을 새로 쓰고, "원고 없음: 사이트가 코드 기준으로 쓴 본문" 표시는 교사용 접기에 저절로 붙어요. 사실(API 이름·핀·쪽·코드 id)은 코드·실습실에서 확인한 것만 적어요.
+- **개인정보:** 얼굴이 나온 쪽은 공개하지 않아요(운영자 할 일 4번 기본값 — 손만 잘라 쓰거나 사이트가 그린 그림). 제외 쪽은 도구가 막아요(`scripts/image-exclusions.yaml`). 학교 전체 이름은 차시·주석·커밋 메시지 어디에도 적지 않아요.
+- **스톡 그림 금지(결정 C11)** — 표기가 없어도 스톡으로 보이면(INVENTORY §5.2 "스톡 추정") 사이트가 그린 SVG로 바꿔요(기준 차시가 011쪽 그림을 S07로 바꾼 것처럼).
+
+| 구역 | 포트 | 묶음(PLAN §8.5) | 차시 파일(`content/lessons/` 뒤) | 새 그림 폴더(`public/images/lessons/` 뒤) | 원고(인쇄 쪽) |
+|---|---|---|---|---|---|
+| A I단원 01·보충 | 4801 | P5-03(1-1-1 제외)·P5-04 | `u1/1-1-2.md`·`u1/1-1-3.md`, 보충 본문 완성 `u1/v1.md`~`u1/v5.md` | `1-1-2/`(샘플 6장 있음 — 목록 `u1/1-1-2.images.yaml`)·`1-1-3/`·`v1/`~`v5/`(V1~V5의 옛 SVG는 `supplement/`에 그대로) | U1 013~023 |
+| B I단원 02·03 | 4802 | P5-05·P5-06 | `u1/1-2-1.md`~`u1/1-2-3.md`, `u1/1-3-1.md`~`u1/1-3-3.md`(원고 없음) | `1-2-1/`~`1-2-3/`·`1-3-1/`~`1-3-3/` | U1 024~051 |
+| C I단원 04·마무리, III단원 보충 | 4803 | P5-07·P5-12 | `u1/1-4-1.md`~`u1/1-4-3.md`(원고 없음, 1-4-3은 선택 차시), `u1/review.md`(I 마무리, 정답 294쪽), `u3/c1.md`·`u3/c2.md`, C3 초안 `supplement/c3.md` → `u3/c3.md`로 옮기고(`git mv` — 주소는 그대로 `/learn/u3/c3/`) `draft: true`를 풀어요 | `1-4-1/`~`1-4-3/`·`u1-review/`(목록에 `folder: u1-review`)·`c1/`~`c3/` | U1 112~113·294 |
+| D II단원 01 | 4804 | P5-08·P5-09 | `u2/2-1-1.md`~`u2/2-1-3.md`, `u2/2-1-r.md`(읽기 자료, `kind: reading`), `u2/2-1-4.md`·`u2/2-1-5.md` | `2-1-1/`~`2-1-5/`·`2-1-r/` | U2A 114~153 |
+| E II단원 02·마무리 | 4805 | P5-10 | `u2/2-2-1.md`~`u2/2-2-4.md`, `u2/review.md`(II 마무리 — 정답·해설 새로 씀) | `2-2-1/`~`2-2-4/`·`u2-review/` | U2B 154~167·U2C 166~181 |
+| F III단원 | 4806 | P5-11 | `u3/3-1-1.md`~`u3/3-1-4.md`, `u3/p1.md`(보충 P1 — PyAutoGUI), `u3/review.md`(III 마무리 — 정답·해설 새로 씀) | `3-1-1/`~`3-1-4/`·`p1/`·`u3-review/` | U3 182~209, BT 교안, PPT |
+| **2차** G IV단원 | 4807 | P5-13 | `u4/4-1-1.md`~`u4/4-2-2.md`(모두 원고 없음), IV단원 프로젝트 안내(교사용 — 12인피04-02~04-04의 문제 정의·팀 역할·사회적 영향 점검 틀, "영상인식에 따른 개인정보·윤리 문제가 생기는 주제는 피하기")는 `u4/project.md`(`kind: reading`)로 쓰고 차례표 한 줄을 요청 | `4-1-1/`~`4-2-2/`·`project/` | 없음(코드 `examples/vision/u4/`·`examples/esp32/u4/`) |
+| **2차** H 교사용 자료실·문제 해결 | 4808 | P5-14 | `src/pages/teacher/**`·`src/components/teacher/`(새로), FAQ(`src/pages/help/` 안 새 페이지), 가린 편집본 PDF(`public/teacher/handouts/` — 파일 이름은 `src/components/lesson/handouts.ts`와 같게, 저장소 검사 허용 목록은 요청) | — | BT 교안·PPT(편집본 쪽마다 눈 확인) |
+
+- **2차 구역**은 1차가 끝난 뒤에 시작해요: G는 B(페이스 매시)·F(블루투스)의 낱말과 설명을 이어 쓰고, H는 모든 차시의 교사용 접기·`src/config/standards.ts`를 읽어 차시별 지도 요약 모음·성취기준·평가 방향 표를 만들어요. 마지막에 `npm run check:lessons -- --complete`(차례표의 차시가 모두 있어야 통과)가 Phase 5 완료 기준이에요.
+- **예제:** 교과서·교안 예제는 이미 `examples/`에 있어요(`docs/CODE_MAPPING.md`의 코드 id ↔ 파일). 옮긴 코드 파일은 고치지 않아요(PD-10 사이트판 규칙). 새 체험 예제는 `examples/<실습실>/<단원>/<차시>-<이름>.py`에 머리말 규약(2절)대로 새로 써요. **자기 차시가 쓰는 예제의 사이드카**(`*.meta.yaml`의 title·description·lesson·practice·tags·difficulty)는 고쳐도 되고, `smoke`·`parts`를 바꾸면 `SMOKE_ONLY=<코드 id> npx playwright test tests/e2e/examples-smoke.spec.ts`로 확인해 보고서에 적어요. 배선은 되도록 차시 md `examples[].parts`에 적어요(사이드카보다 먼저 읽혀요).
+
+**공유 파일(고치지 않음 — 요청):**
+차시 틀 `src/components/lesson/**`(`curriculum.ts` 차례표 포함)·`src/pages/learn/**`, 설정 `src/config/**`(`nav.ts`·`standards.ts`·`content-schemas.ts`)·`src/lib/**`(`remark-boxes.mjs`·`remark-glossary.mjs`)·`src/styles/**`·`src/layouts/**`,
+**용어사전 `content/glossary/**`(새 용어는 요청 — 통합이 넣어요. 그전까지 `:용어[…]`는 글자만 보이고 검사는 참고만 남겨요)**, `sources.yaml`, `scripts/**`(`image-exclusions.yaml`·`image-allowlist.yaml`·`examples-manifest.yaml`·검사 도구), `package.json`·`package-lock.json`·`astro.config.mjs`·`.github/**`,
+**다른 구역의 차시 md·그림 목록·그림 폴더**, 원본에서 옮긴 예제 코드 파일, 기존 테스트·spec 전부(`learn.spec.ts`·`lesson-template.spec.ts`·`sample-lessons.test.ts` …), 문서 `CLAUDE.md`·`PROGRESS.md`·`MAINTENANCE.md`·`docs/**`·이 README.
+
+**공유 파일 변경 요청:** `.cache/phase5-requests/<구역>-<짧은 이름>.md`에 **파일·바꿀 내용·이유·영향 범위**를 적고 보고서에도 한 줄 남겨요(통합이 반영해요).
+
+- 새 용어: 넣을 파일 이름과 frontmatter를 그대로 적어요 — `content/glossary/영문-이름.md`: `title`·`english`(있으면)·`aliases`·`summary`(100자 안, 고1 눈높이 한 문장)·`related`·`group` + 본문 2~3문장.
+- 차례표·성취기준 대응표·제외 쪽·출처 등록부는 바꿀 줄과 근거(원고 쪽·해설 문장·운영자 답)를 적어요.
+
+```bash
+npm ci                                                                                     # 처음 한 번
+APC_VITE_CACHE_DIR=.cache/vite-4801 ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 4801 --ignore-lock   # 내 포트(위 표)
+npm run check:lessons -- 1-1-2 1-1-3                                                       # 내 차시만(개발 서버 기록에도 [차시 틀] 경고가 보여요)
+PW_BASE_URL=http://localhost:4801/ai-physical-computing/ npx playwright test tests/e2e/lesson-template.spec.ts --project=desktop --output=<저장소 밖 폴더>
+```
+
+한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법 — 포트로 PID를 찾아 `Stop-Process`)은 **5.1의 설명 그대로**예요. `npm test`는 모든 구역의 그림 목록·견본 차시를 함께 검사하므로(P5-01 노트), 넘기기 전에 `npm run images:check`와 `npx vitest run tests/unit/lesson/`을 먼저 돌려요.
 
 ---
 
