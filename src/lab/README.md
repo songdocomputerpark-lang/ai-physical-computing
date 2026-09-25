@@ -238,7 +238,7 @@ HTML·CSS만 그리고 동작은 index.ts가 `data-<id>-*` 표시로 찾아 잇�
 
 ## 5. 여러 사람이 동시에 만들 때 — 검증 환경과 포트
 
-지금(Phase 5 교육과정 콘텐츠)의 구역·포트·차시 파일 표는 **5.4**예요. 5.1(Phase 3)·5.2(Phase 4)·5.3(Phase 2)은 그때의 기록이고, 한 폴더에 개발 서버를 여럿 띄우는 요령은 5.1에 있어요.
+지금(Phase 6 품질과 유지보수)의 구역·포트·파일 표는 **5.5**예요. 5.4(Phase 5)·5.1(Phase 3)·5.2(Phase 4)·5.3(Phase 2)은 그때의 기록이고, 한 폴더에 개발 서버를 여럿 띄우는 요령은 5.1에 있어요.
 
 ### 5.1 Phase 3 병렬 제작(P3-03~P3-10, 2026-09-17 준비) — 구역·포트·공유 파일
 
@@ -459,6 +459,56 @@ PW_BASE_URL=http://localhost:4801/ai-physical-computing/ npx playwright test tes
 ```
 
 한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법 — 포트로 PID를 찾아 `Stop-Process`)은 **5.1의 설명 그대로**예요. `npm test`는 모든 구역의 그림 목록·견본 차시를 함께 검사하므로(P5-01 노트), 넘기기 전에 `npm run images:check`와 `npx vitest run tests/unit/lesson/`을 먼저 돌려요.
+
+### 5.5 Phase 6 병렬 제작(P6-02~P6-07·실습실 잔여 미해결, 2026-09-26 준비) — 구역·포트·파일·공유 자리
+
+마지막 Phase(품질과 유지보수, `docs/PLAN.md` §8.6)는 여섯 구역이 동시에 다듬어요. **구역은 아래 표의 "만들고 고칠 수 있는 파일"만 만들고 고쳐요** — 두 구역이 같은 파일을 고치지 않게 겹치지 않게 나눴어요. 표에 없는 파일(공유 파일)은 고치지 않고 요청해요(아래). 준비 때 연 자리·기준 측정값의 자세한 기록은 `.cache/phase6-notes/core-p6-prep.md`예요.
+
+| 구역 | 포트 | 할 일(PLAN §8.6 · PROGRESS 미해결) | 만들고 고칠 수 있는 파일 | 자기 검사 |
+|---|---|---|---|---|
+| A 성능 | 4901 | P6-02(느린 3G에서 학습 페이지 3초 안, 무거운 라이브러리는 실습실에서만), 157 통신 모듈 지연 로딩, 190 원고 그림 width·height, 174 차시 번호 줄바꿈 | `src/lib/rehype-lesson-polish.mjs`(준비 때 연 자리 — 출력이 바뀌면 판 번호 `REHYPE_LESSON_POLISH_VERSION`을 올린다, 머리말), `src/lab/modules/{host,manifests,types,panel-when-used}.ts`, 통신 모듈의 manifest `src/lab/modules/{ble-pc,data-port,serial-pc,vision-bridge,web-bluetooth,mqtt}/manifest.ts`, `src/lab/loader/{stages,probe}.ts`, `tests/e2e/perf*.spec.ts`, `scripts/perf-*.mjs`, `tests/unit/perf/**`, `tests/unit/lab/modules.test.ts`, `tests/unit/loading/{stages,probe}.test.ts` | `npm run perf:measure`(`tests/e2e/perf*.spec.ts`를 desktop·워커 1로), `npx vitest run tests/unit/perf tests/unit/lab/modules.test.ts` |
+| B 접근성 | 4902 | P6-03(axe 심각 0, 키보드만, 대비 AA, 200% 확대, 움직임 줄이기 — 터치 말풍선·더알아보기·그림 크게 보기·발표 모드 포함), 바닥글 판 표기 | `src/components/**`(`credits/` 빼고), `src/styles/**`, `src/layouts/**`, `src/pages/**`의 화면 마크업(`credits/**`·`labs/unit4/**`·`contribute/_issue-templates.ts` 빼고 — 실습실 논리 `src/lab/**`는 고치지 않음), `tests/e2e/a11y*.spec.ts`, 마크업을 바꿔 깨진 기존 검사만(`tests/e2e/{smoke,pages,home,learn,lesson-template,lesson-embed,glossary,start,teacher,search}.spec.ts`, `tests/unit/{home,glossary,teacher,start}/**`, `tests/unit/lesson/{lesson-html,lesson-rules,details,present,quiz,teacher-info}.test.ts`) | `npm run test:a11y`(`tests/e2e/a11y*.spec.ts`, 두 화면 크기) |
+| C 출처·라이선스 → 개인정보 | 4903 | P6-04(sources.yaml 누락 0·고지 전문·휠 구성요소·LGPL 대응 자료 목록·번들 전이 의존성), 183 편집본 PDF 안 표기, 189 키트 업체 그림, 160 기기 주소 모양 → P6-05 개인정보 최종 점검(스크립트 + 사람 눈) | `sources.yaml`, `public/licenses/**`, `LICENSE`·`LICENSE-CONTENT.md`, `public/firmware/v1.29.0/NOTICE.txt`, `src/pages/credits/**`, `src/components/credits/**`, `src/lib/credits.ts`, `scripts/check-sources.mjs`, `scripts/lib/{sources-check,sources-registry,bundle-license}.mjs`, `scripts/check-repo.mjs`, `scripts/lib/repo-check.mjs`, `scripts/repo-allowlist.yaml`, `scripts/privacy-needle.mjs`·`scripts/privacy-needles.json`, `scripts/image-exclusions.yaml`·`scripts/image-allowlist.yaml`, 그림 목록 `content/lessons/**/*.images.yaml`과 그림 파일 `public/images/**`, `scripts/redact-handouts.py`·`scripts/handout-redactions.yaml`·`public/teacher/handouts/**`, 그 검사(`tests/unit/{sources-check,repo-check,credits,lesson-images}.test.ts`, 새 `tests/e2e/credits*.spec.ts`) | `npm run check:sources`, `npm run check:repo`, `npm run images:check`, `npm run handouts:check`, `npm run build`(번들 검사) |
+| D 유지보수 문서 | 4904 | P6-06(MAINTENANCE: 판 올리기·연 1회 점검·빌드 실패 대처·도메인 연결 / CONTRIBUTING / Issue·PR 양식 / CHANGELOG) | `MAINTENANCE.md`, `CONTRIBUTING.md`, `CHANGELOG.md`(새), `README.md`, `.github/ISSUE_TEMPLATE/**`, `.github/pull_request_template.md`(새), `src/pages/contribute/_issue-templates.ts`(양식 이름 목록 — 양식 파일과 같게), `docs/` 아래 **새** 안내 문서 | 문서대로 한 번 따라 해 보기(개발 서버 4904) |
+| E 오프라인 배포판(**2차 — Build2**) | 4905 | P6-07(`npm run build:offline` — §5.6, zip 안 miniserve·시작 스크립트, 인터넷 없이 첫 실습·가상 보드·같은 컴퓨터 탭 통신) | `scripts/build-offline.mjs`(지금은 "아직 없어요" 자리), `scripts/lib/offline-*`, `scripts/offline/**`, `scripts/fetch-pyodide-fallback.mjs`, `scripts/build-sw.mjs`, `src/sw/**`, `src/lab/loader/{pyodide-files,constants,sw-client}.ts`, `src/lab/runtime/config.ts`, `tests/e2e/offline*.spec.ts`, `tests/unit/offline/**`, `tests/unit/loading/{build-sw,pyodide-files,sw-client}.test.ts` | `npm run build:offline` 결과로 `tests/e2e/offline*.spec.ts` |
+| F 실습실 잔여 미해결 | 4906 | 175 `buzzer.py` 사이트판, 176 RGB LED 색 이름, 177 MP3 긴 `sleep`, 178 저장 창 기본 이름, 179 `?pair=`, 180 예제별 난이도·태그, 182 움직임 줄이기 검사 흔들림, 185 퀴즈 보기 | `src/lab/modules/board/**`, `src/lab/modules/desktop/**`, `src/lab/esp32/{examples,board-libraries,board-library-files}.ts`, `src/lab/unit4/**`, `src/pages/labs/unit4/**`, `src/lab/gallery/**`, `src/config/content-schemas.ts`, `examples/**`(사이드카 포함), `scripts/examples-manifest.yaml`(175의 f008 이관), `content/lessons/**/*.md`(위 미해결에 딸린 문장과 퀴즈 보기만 — 그림 목록은 C), 그 기능의 검사(`tests/unit/lab/{board-*,pyodide-board*,gallery-facets,esp32-examples,example-sidecar}.test.ts`, `tests/unit/{board-pwm,board-i2c,board-uart,board-ble,pyautogui,gallery}/**`, `tests/unit/content-schemas.test.ts`, `tests/unit/lesson/sample-lessons.test.ts`, `tests/e2e/{lab-esp32*,esp32-i2c,esp32-uart,esp32-ble,lab-desktop*,unit4,examples-gallery}.spec.ts`) | 그 기능의 spec + `SMOKE_ONLY=<코드 id> npx playwright test tests/e2e/examples-smoke.spec.ts`, `npm run check:lessons -- <차시>` |
+| 검토 | 4911~4913 | 적대적 검토 3명(완료 기준·안전/저작권·사용성) | 고치지 않음(보고만) | — |
+
+**공유 파일(고치지 않음 — 요청):** `package.json`·`package-lock.json`, `astro.config.mjs`, `src/config/{site,nav,search,standards}.ts`, `src/lib/**`(`rehype-lesson-polish.mjs`는 A — 목록 `markdown-plugins.mjs`·주소 도우미 `url.ts`는 공유), 표에 없는 `src/lab/**`(runtime·python·controls·editor·params·errors·bridge·mqtt·ble·serial·dashboard·blocks·vision, `loader/cards.ts`, `esp32/check/`, 나머지 흉내 모듈), 표에 없는 `scripts/**`(`check-lessons.mjs`·`lib/check-lessons.mjs`·`check-links.mjs`·`lib/link-check.mjs`·`search-index.mjs`·`prune-pagefind.mjs`·`run-e2e-group.mjs`·`vendor-assets.mjs`·`import-examples.mjs`·`extract-lesson-images.mjs` …), `playwright.config.ts`·`vitest.config.ts`·`tsconfig.json`·`.gitignore`, `content/glossary/**`·`content/help/**`·`content/teacher/**`, `.github/workflows/**`, 문서 `CLAUDE.md`·`PROGRESS.md`·`docs/{PLAN,DECISIONS,HANDOFF,SPEC,INVENTORY,CODE_MAPPING,OVERNIGHT}.md`·이 README, 표에 없는 기존 검사 전부(`tests/e2e/{first-visit,examples-smoke,scenario-a,scenario-b,scenario-f,…}.spec.ts`, `tests/unit/build-env.test.ts` …).
+
+**공유 파일 변경 요청:** `.cache/phase6-requests/<구역>.md`(예: `A.md`)에 **파일·바꿀 내용(그대로 붙일 글)·이유·영향 범위**를 적고 구역 보고서에도 한 줄 남겨요 — 통합이 반영해요. 예: 판 번호 올리기(`package.json` version — D의 CHANGELOG와 B의 바닥글), 새 npm 명령, 사이트 지도(`nav.ts`), 새 용어, 워크플로.
+
+**준비 때 연 자리(쓰기만 해요):**
+
+- **빌드 환경 변수 — 값은 `src/config/site.ts` 한 곳에서만 읽어요**(`resolveBuildSettings()`, 머리말).
+  - `APC_BASE`: 이번 빌드의 사이트 하위 경로. 없으면 공개 사이트와 같은 `/ai-physical-computing`, `/`면 사이트 뿌리(오프라인판). 브라우저 번들에는 `astro.config.mjs`가 `vite.define`으로 `__APC_BASE__`를 새겨요. 따라가는 곳: `withBase()`·`stripBase()`·`BASE_PATH`(`src/lib/url.ts`), Astro `base`, 서비스 워커 설정(`scripts/build-sw.mjs` → `sw.js`의 `base`), Pyodide 예비본 주소(`src/lab/runtime/config.ts`), MediaPipe·Blockly 자산 주소, 링크 검사, Playwright `baseURL`. **전체 주소(대표 주소 `canonical`·`og:url`, `absoluteUrl()`)는 늘 공개 사이트**(`siteConfig.publicBase`)예요 — 오프라인판에서도 공개 사이트의 같은 쪽을 가리켜요.
+  - `APC_OUT_DIR`: 빌드 결과 폴더(저장소 뿌리 기준). 없으면 `dist`. Astro가 빌드 전에 이 폴더를 **비우므로** `dist`·`dist-이름`(예: `dist-offline` — git 제외에 넣어 둠)·`.cache/` 아래만 받아요. 따라가는 곳: Astro `outDir`·`astro preview`, 번들 의존성 검사(`check-sources.mjs --bundle`), 검색 색인(`scripts/search-index.mjs` — Pagefind를 그 폴더에 돌리고 `prune-pagefind.mjs`로 정리), `build-sw.mjs`, `check-links.mjs`.
+  - Git Bash는 `/`로 시작하는 값을 Windows 경로(`C:/Program Files/Git/`)로 바꿔요(2026-09-26 실측) — `MSYS_NO_PATHCONV=1`을 앞에 붙이거나 PowerShell(`$env:APC_BASE='/'`)에서, 또는 Node의 `child_process` `env`로 넘겨요. 바뀐 값은 site.ts가 알아보고 한국어 오류로 멈춰요.
+  - 확인(2026-09-26, Edge): `MSYS_NO_PATHCONV=1 APC_BASE=/ APC_OUT_DIR=.cache/phase6-prep/offline-site npm run build` → 같은 환경 변수로 `npm run check:links` 통과(사이트 안 주소 8,023개), `astro preview`로 띄워 `lab-loading`(서비스 워커·jsDelivr 막힘 → 같은 사이트 예비본·두 번째 방문 인터넷 없이)·`smoke`·`lab-esp32` spec 23개 통과.
+- **마크다운 출력 다듬기 자리** `src/lib/rehype-lesson-polish.mjs`(지금은 아무것도 안 함) — 목록 `src/lib/markdown-plugins.mjs`에 `[플러그인, { version }]`으로 등록돼 빌드와 `npm run check:lessons`가 함께 써요. Shiki 코드 색 **뒤**, Astro 그림 처리·제목 id **앞**에 돌고, 모든 마크다운(차시·용어사전·교사용 문서)에 돌아요(`file.path`로 골라요). 판 번호를 올리면 Astro 콘텐츠 캐시가 비워져요(`npx astro sync`에서 "Astro config changed → Clearing content store" 확인). 줄바꿈 막기 클래스 `.nowrap`은 `src/styles/global.css`에 미리 있어요.
+- **npm 명령 자리:** `npm run build:offline`(→ `scripts/build-offline.mjs`, 지금은 "아직 없어요"와 종료 코드 1), `npm run test:a11y`(→ `node scripts/run-e2e-group.mjs a11y`), `npm run perf:measure`(→ `node scripts/run-e2e-group.mjs perf --project=desktop --workers=1`). 무리 명령은 `tests/e2e/<무리>*.spec.ts`가 없으면 "아직 없어요"(종료 코드 0), 있으면 Playwright에 그 파일들과 뒤 인자를 넘기고 환경 변수 `APC_E2E_GROUP=<무리>`를 줘요 — 무리 파일은 `npm run test:e2e`(CI 포함)에서도 함께 도니, 전체 실행에서 빼려면 spec이 `test.skip(process.env.APC_E2E_GROUP !== 'perf', …)`처럼 스스로 빠져요. `npm run search:index`도 이제 `scripts/search-index.mjs`예요.
+- **미리 설치:** `@axe-core/playwright` **4.13.0**(devDependency, MPL-2.0 — 함께 오는 `axe-core` 4.13.0도 MPL-2.0, 설치 스크립트 없음). 배포물에 들어가지 않는 개발 도구라 `sources.yaml`에 등록하지 않아요(PLAN §9.2 "등록하지 않는 것"). 쓰는 법: `import AxeBuilder from '@axe-core/playwright'` → `await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()`(Playwright 테스트 안에서 도는 것을 임시 spec으로 확인).
+
+**기준 측정(2026-09-26, 이 준비 커밋의 빌드 — 나중에 비교용, Edge 154·1366×768):**
+
+| 무엇 | 값 |
+|---|---|
+| `npm run build` | 14초(출처 검사 파일 814개·항목 38개, 번들 의존성 20개 통과, 83쪽, Pagefind 79쪽) |
+| `dist/` | 104,127,349바이트(파일 654개·HTML 83개) — `vendor/` 51.0MB(Pyodide 예비본 27.2·MediaPipe 22.3·Pretendard 1.6), `models/` 27.0MB, `teacher/` 6.6MB, `_astro/` 3.6MB, `fonts/` 3.0MB, `firmware/` 1.8MB, `images/` 1.7MB, `pagefind/` 1.5MB |
+| `first-visit.spec.ts` | 홈만(사전 캐시 포함) 0.34MB·28건 / 홈 → 첫 에지 20.07MB(사이트 1.14 + jsDelivr 18.94)·290건, 실습실 1.0초 → 준비 끝 8.1초 → 첫 에지 9.6초 / Fast 3G 실측 홈 4.3초 → 실습실 화면 5.2초 → 준비 끝 11.0초 |
+| 차시 `/learn/u1/1-1-1/` 첫 방문 | 0.60MB·43건(글꼴 496KB·그림 41KB·CSS 21KB·JS 11KB·HTML 18KB), FCP 396ms / **Fast 3G**: FCP 1,540ms, DOMContentLoaded 6,193ms |
+| 무거운 차시 Fast 3G | 1-1-2: 0.59MB, FCP 1,560ms, DCL 5,726ms / 4-1-3: 0.52MB, FCP 1,596ms, DCL 5,598ms |
+| 실습실 첫 방문(준비 끝까지) | 영상처리 19.81MB(사이트 0.88 + jsDelivr 18.93)·98건·준비 4.8초 / ESP32 6.97MB(사이트 1.01 + jsDelivr 5.96)·103건·준비 3.0초 |
+| axe(`@axe-core/playwright` 4.13.0, WCAG 2.0·2.1·2.2 A/AA 태그 + 전체 규칙) | 홈 0 · 차시 1-1-1 0 · 교사용 자료실 0 · 영상처리 실습실 **2**(serious: `aria-prohibited-attr` — `pre.lab-console`의 aria-label, `scrollable-region-focusable` — CodeMirror `.cm-scroller`) · ESP32 실습실 **1**(serious: `aria-prohibited-attr` 같은 곳). critical 0 |
+
+```bash
+npm ci                                                                                        # 처음 한 번(@axe-core/playwright 포함)
+APC_VITE_CACHE_DIR=.cache/vite-4902 ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 4902 --ignore-lock    # 내 포트(위 표)
+PW_BASE_URL=http://localhost:4902/ai-physical-computing/ npm run test:a11y -- --project=desktop        # 무리 명령에도 Playwright 인자를 뒤에 붙여요
+PW_BASE_URL=http://localhost:4901/ai-physical-computing/ npm run perf:measure                          # 성능은 되도록 빌드 결과(npm run preview)로 — 개발 서버는 느려요
+```
+
+한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법 — 포트로 PID를 찾아 `Stop-Process`)은 **5.1의 설명 그대로**예요. 빌드(`npm run build`)·전체 브라우저 테스트는 `dist/`를 새로 만들므로 한 폴더에서 두 구역이 동시에 돌리지 않아요 — 자기 결과 폴더가 필요하면 `APC_OUT_DIR=dist-<구역>`을 줘요(미리 보기도 같은 환경 변수로). 이 PC는 메모리 8GB라 전체 브라우저 테스트는 `--workers=2`.
 
 ---
 
