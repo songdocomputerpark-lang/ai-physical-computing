@@ -5,7 +5,9 @@
  * - 키보드: 용어 링크에 초점이 오면 바로 뜨고, 초점이 떠나면 닫힌다.
  * - 마우스: 올리고 잠깐(SHOW_DELAY_MS) 머물면 뜬다. 툴팁 위로 옮겨도 닫히지 않는다(hoverable).
  * - Esc: 초점이나 마우스를 옮기지 않고도 닫는다(dismissible). 초점을 다시 주거나, 마우스를 밖으로 뺐다가 다시 올리면 또 뜬다.
- * - 터치: 누르면 바로 용어사전으로 간다(툴팁을 띄우지 않는다).
+ * - 터치: 처음 누르면 풀이 말풍선을 띄우고(아래에 "한 번 더 누르면 용어사전에서 자세히 봐요"), 한 번 더 누르면 용어사전으로 간다.
+ *   다른 곳을 누르면 닫힌다(2026-09-25 Phase 5 검토 사소 11 — 휴대폰에서 누르자마자 용어사전으로 넘어가 읽던 차시를 떠났다).
+ *   누를 때 링크가 초점을 받아도(안드로이드) 말풍선은 click이 연다 — 초점으로 먼저 열리면 첫 누름에 바로 넘어가 버리기 때문이다.
  * - 링크를 누르면 닫는다. 스크롤·화면 크기가 바뀌면 위치를 다시 맞추고, 용어가 화면 밖으로 나가면 닫는다.
  * 툴팁 글은 HTML에 미리 들어 있고(hidden) 링크의 aria-describedby가 가리킨다. 그래서 화면 낭독기는 이 스크립트 없이도 풀이를 읽는다.
  *
@@ -38,6 +40,12 @@ let dismissedLink: HTMLAnchorElement | null = null;
 let showTimer: number | undefined;
 let hideTimer: number | undefined;
 let frame: number | undefined;
+/** 마지막으로 누른 포인터 종류(touch·mouse·pen) — click이 터치에서 왔는지 안다 */
+let lastPointerType = '';
+/** 터치로 누르기 시작한 용어(그 누름으로 초점이 와도 focusin이 말풍선을 열지 않게) */
+let touchPressedLink: HTMLAnchorElement | null = null;
+/** 누르기 시작할 때 이미 열려 있던 말풍선의 용어(두 번째 누름인지 안다) */
+let openAtPress: HTMLAnchorElement | null = null;
 
 function closestElement<T extends Element>(target: EventTarget | null, selector: string): T | null {
   return target instanceof Element ? target.closest<T>(selector) : null;
@@ -116,6 +124,7 @@ function closeTooltip(): void {
     return;
   }
   open.tip.hidden = true;
+  delete open.tip.dataset.openedBy;
   delete open.link.dataset.tooltip;
   open = null;
 }
@@ -127,6 +136,9 @@ function onFocusIn(event: FocusEvent): void {
   }
   focusedLink = link;
   dismissedLink = null;
+  if (link === touchPressedLink) {
+    return; // 터치로 누른 순간의 초점 — 말풍선은 click이 연다
+  }
   openTooltip(link);
 }
 
@@ -208,9 +220,42 @@ function onKeyDown(event: KeyboardEvent): void {
   closeTooltip();
 }
 
+function onPointerDown(event: PointerEvent): void {
+  lastPointerType = event.pointerType;
+  if (event.pointerType !== 'touch') {
+    touchPressedLink = null;
+    return;
+  }
+  const link = closestElement<HTMLAnchorElement>(event.target, LINK_SELECTOR);
+  touchPressedLink = link;
+  openAtPress = open?.link ?? null;
+  // 용어·말풍선이 아닌 곳을 누르면 닫는다.
+  if (open && !link && !closestElement(event.target, TIP_SELECTOR)) {
+    closeTooltip();
+  }
+}
+
 function onClick(event: MouseEvent): void {
   const link = closestElement<HTMLAnchorElement>(event.target, LINK_SELECTOR);
-  if (!link || open?.link !== link) {
+  if (!link) {
+    return;
+  }
+  if (lastPointerType === 'touch') {
+    touchPressedLink = null;
+    if (openAtPress !== link) {
+      // 첫 누름: 넘어가지 않고 풀이 말풍선을 띄운다.
+      event.preventDefault();
+      dismissedLink = null;
+      openTooltip(link);
+      if (open?.link === link) {
+        open.tip.dataset.openedBy = 'touch';
+      }
+      openAtPress = null;
+      return;
+    }
+    openAtPress = null;
+  }
+  if (open?.link !== link) {
     return;
   }
   dismissedLink = link;
@@ -228,6 +273,7 @@ export function initGlossaryTooltips(): void {
   document.addEventListener('pointerover', onPointerOver);
   document.addEventListener('pointerout', onPointerOut);
   document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('pointerdown', onPointerDown, { capture: true, passive: true });
   document.addEventListener('click', onClick);
   window.addEventListener('scroll', schedulePlace, { capture: true, passive: true });
   window.addEventListener('resize', schedulePlace, { passive: true });

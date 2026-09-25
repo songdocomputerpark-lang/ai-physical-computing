@@ -101,6 +101,15 @@ reportGlossaryProblems(result.problems);
     display: block;
   }
 
+  /* 터치로 연 말풍선: 한 번 더 누르면 용어사전으로 간다는 안내(tooltip.ts — 휴대폰에서 누르자마자 넘어가지 않게) */
+  .glossary-term__tip[data-opened-by='touch']::after {
+    display: block;
+    margin-block-start: var(--space-2);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+    content: '용어를 한 번 더 누르면 용어사전에서 자세히 봐요.';
+  }
+
   @media print {
     .glossary-term__tip {
       display: none !important;

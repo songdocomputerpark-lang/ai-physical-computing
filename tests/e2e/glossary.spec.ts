@@ -212,10 +212,22 @@ test.describe('용어 툴팁', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/1-1-1/u);
   });
 
-  test('터치 화면에서 용어를 누르면 바로 그 항목으로 간다', async ({ page, isMobile }) => {
+  test('터치 화면에서 용어를 처음 누르면 풀이 말풍선이 뜨고, 한 번 더 누르면 그 항목으로 간다', async ({ page, isMobile }) => {
     test.skip(!isMobile, '터치는 모바일 화면에서 확인한다');
     await page.goto('./glossary/');
     const term = exampleBox(page).getByRole('link', { name: '센서', exact: true });
+    await term.tap();
+    // 첫 누름: 넘어가지 않고 말풍선(2026-09-25 Phase 5 검토 사소 11)
+    await expect(term).toHaveAttribute('data-tooltip', 'open');
+    const tipId = await term.getAttribute('aria-describedby');
+    await expect(page.locator(`[id="${tipId}"]`)).toBeVisible();
+    await expect(page).not.toHaveURL(/#sensor$/u);
+    // 다른 곳을 누르면 닫히고, 다시 누르면 또 뜬다
+    await page.locator('h1').tap();
+    await expect(term).not.toHaveAttribute('data-tooltip', 'open');
+    await term.tap();
+    await expect(term).toHaveAttribute('data-tooltip', 'open');
+    // 두 번째 누름: 용어사전 항목으로
     await term.tap();
     await expect(page).toHaveURL(/\/glossary\/#sensor$/u);
     await expect(page.locator('h3#sensor')).toBeInViewport();
