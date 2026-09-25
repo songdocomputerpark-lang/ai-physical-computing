@@ -1246,7 +1246,7 @@ examples:
     author: operator
     meta:
       title: "2-1-4 기본: 레이저와 RGB LED 번갈아 켜기(원본 파일)"
-      description: "레이저를 켤 때 빨강, 끌 때 파랑 LED를 켜려는 코드예요. 원본 파일은 값 2개를 받는 set_color에 값 3개를 넘겨 첫 반복에서 TypeError로 멈춰요(실물 보드도 같아요 — 원고 147쪽은 값 3개를 받아요)."
+      description: "레이저를 켤 때 빨강, 끌 때 파랑 LED를 켜려는 코드예요. 원본 파일은 값 2개를 받는 set_color에 값 3개를 넘겨 첫 반복에서 TypeError로 멈춰요(실물 보드도 같아요 — 원고 146쪽은 값 3개를 받아요)."
       lesson: 2-1-4
       page: 146
       tags: [ 레이저, RGB LED, 함수 ]
@@ -1752,16 +1752,44 @@ examples:
     member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/ESP32BLE.py"
     target: examples/esp32/lib/third-party/ESP32BLE.py
     author: third_party
+    # 라이선스 고지(DECISIONS C12, 2026-09-25): 파생 여부는 확인하지 못했지만 구조가 비슷한 공개 구현의 MIT 고지를 원본 앞에 함께 싣는다.
+    notice: |
+      # [사이트가 붙인 고지] 아래 코드는 교과서·수업 자료의 ESP32BLE.py를 한 글자도 고치지 않고 옮겼어요.
+      # 구조가 비슷한 공개 구현 2black0/MicroPython-ESP32-BLE(https://github.com/2black0/MicroPython-ESP32-BLE)의
+      # MIT 고지를 함께 실어요. 이 파일이 그 구현에서 왔는지는 확인하지 못했어요 — 만약 그렇다면 지켜야 할 고지를
+      # 빠뜨리지 않으려는 것이에요(AI 피지컬 컴퓨팅 오픈랩, DECISIONS C12).
+      #
+      # MIT License
+      #
+      # Copyright (c) 2021 Ardy Seto
+      #
+      # Permission is hereby granted, free of charge, to any person obtaining a copy
+      # of this software and associated documentation files (the "Software"), to deal
+      # in the Software without restriction, including without limitation the rights
+      # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+      # copies of the Software, and to permit persons to whom the Software is
+      # furnished to do so, subject to the following conditions:
+      #
+      # The above copyright notice and this permission notice shall be included in all
+      # copies or substantial portions of the Software.
+      #
+      # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+      # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+      # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+      # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+      # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+      # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+      # SOFTWARE.
     meta:
       title: "보드 라이브러리: ESP32BLE.py(블루투스 주변기기)"
       description: "ESP32를 블루투스 주변기기로 만드는 라이브러리예요. init(이름)으로 광고를 시작하고 read()로 받은 글자를, send()로 보낼 글자를 다뤄요. 3·4단원과 교안의 모든 BLE 예제가 이 파일을 import해요. 가상 보드는 /board/lib/에, 실물 보드는 [보드에 저장]이 함께 올려요."
       tags: [ 블루투스, BLE, 라이브러리 ]
       packages: []
-    lines: 79
-    sha256: b57af3bf7bfdec4c0ee0c3166d4c6f04216aaabbdfe7c04ae3be992e187bd97d
+    lines: 105
+    sha256: 74349641368d2dfb1dd36b1c381337339bc6339a7009535e7cfab78e32e5e8cb
     syntax: ok
     syntax_checker: python-ast
-    imported: 2026-09-18
+    imported: 2026-09-25
   - id: f088
     source: textbook
     member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/bluetooth.py"

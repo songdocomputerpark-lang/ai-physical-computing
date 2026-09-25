@@ -380,6 +380,52 @@ examples:
       /기기 주소.*모양이 없어요/u,
     );
   });
+
+  // ── Phase 5 통합(2026-09-25): 라이선스 고지 머리말(DECISIONS C12) — 원본 코드 앞에만 붙이고 코드 줄은 그대로 ──
+
+  it('notice(주석 줄만)는 원본 앞에 붙고, 줄 수는 원본 + 고지 줄 수이며 코드 줄은 한 글자도 바뀌지 않는다', () => {
+    const entry = {
+      id: 'f903',
+      source: 'demo',
+      member: 'ESP32BLE.py',
+      target: 'examples/esp32/lib/third-party/ESP32BLE.py',
+      author: 'third_party' as const,
+      notice: '# MIT License\n#\n# Copyright (c) 2000 Someone\n',
+    };
+    const converted = convertOriginal(Buffer.from(CRLF_SOURCE, 'utf8'), entry, { python: null });
+    expect(converted.problems).toEqual([]);
+    expect(converted.lines).toBe(converted.originalLines + 3);
+    expect(converted.text.startsWith('# MIT License\n#\n# Copyright (c) 2000 Someone\n')).toBe(true);
+    expect(converted.text.slice('# MIT License\n#\n# Copyright (c) 2000 Someone\n'.length)).toBe(CRLF_SOURCE.replace(/\r\n/gu, '\n'));
+
+    const manifest = parseManifest(`
+sources: { demo: a.zip }
+examples:
+  - id: f904
+    source: demo
+    member: a.py
+    target: examples/esp32/lib/third-party/a.py
+    author: third_party
+    notice: |
+      # 고지 한 줄
+      import os
+`);
+    expect(manifest.errors.join(' ')).toMatch(/notice는 .*#로 시작하는 주석/u);
+    const ok = parseManifest(`
+sources: { demo: a.zip }
+examples:
+  - id: f905
+    source: demo
+    member: a.py
+    target: examples/esp32/lib/third-party/a.py
+    author: third_party
+    notice: |
+      # 고지 한 줄
+      # 고지 두 줄
+`);
+    expect(ok.errors).toEqual([]);
+    expect(ok.examples[0]?.notice).toBe('# 고지 한 줄\n# 고지 두 줄\n');
+  });
 });
 
 describe('저장소의 기록과 실제 examples/ 파일', () => {

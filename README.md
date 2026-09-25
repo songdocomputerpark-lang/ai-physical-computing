@@ -80,7 +80,8 @@ push와 풀 리퀘스트마다 "테스트" 워크플로(단위 테스트·타입
 | 대상 | 라이선스 |
 |---|---|
 | 사이트 프로그램(`src/`·`scripts/`·`tests/`와 사이트가 새로 쓴 소프트웨어, 컴포넌트 안에 코드로 그린 그림 포함) | MIT — [LICENSE](LICENSE) |
-| 학습 자료와 예제(`content/`·`examples/`, 원본 자료에서 옮긴 예제 코드 포함), 그림 파일(`public/images/`), 안내 문서 | CC BY-NC-SA 4.0 — [LICENSE-CONTENT.md](LICENSE-CONTENT.md) |
+| 실습 예제 코드(`examples/` — 교과서·수업 자료에서 옮긴 예제 코드와 사이트판, 사이트가 쓴 예제. `third-party/` 폴더의 다른 저작자 파일은 제외) | MIT — [LICENSE](LICENSE)(운영자 결정 O13, 2026-09-25) |
+| 학습 자료(`content/`), 그림 파일(`public/images/`), 가린 편집본 교안(`public/teacher/handouts/`), 안내 문서 | CC BY-NC-SA 4.0 — [LICENSE-CONTENT.md](LICENSE-CONTENT.md) |
 
 **제외 조항:** `sources.yaml`에 개별 표기된 제3자 자료와 공개 라이브러리(`third-party/` 폴더의 파일, 글꼴 등)는 이 두 라이선스에서 제외되고 각자의 원래 조건을 따라요.
 목록은 사이트의 [출처와 라이선스](https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/) 페이지와 [제3자 권리 표기 자료 목록](https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/#credits-third-party)에 있어요.

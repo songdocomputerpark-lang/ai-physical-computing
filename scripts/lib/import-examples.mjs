@@ -5,6 +5,8 @@
 // 2. 줄 끝만 CRLF → LF로 바꾼다. 그 밖에는 한 바이트도 고치지 않는다(BOM·끝 줄바꿈·공백 그대로 — 줄 번호가 교과서와 같아야 한다, PD-10).
 //    **유일한 예외는 개인정보다**(DECISIONS 저작권 예외): 항목에 privacy: [mac]을 적으면 기기 주소(MAC·BLE)를 같은 글자 수의
 //    자리표시자 XX:XX:XX:XX:XX:XX로 바꾼다(줄·칸 위치 그대로). 적지 않았는데 주소가 있으면 옮기기가 멈춘다(안전망).
+//    **두 번째 예외는 라이선스 고지다**(DECISIONS C12): 항목에 notice(주석 줄만 — 모두 #로 시작)를 적으면 원본 코드 **앞에** 그대로 붙인다.
+//    원본 코드 줄은 한 글자도 바뀌지 않고, 줄 수는 원본 + 고지 줄 수가 된다(보드 라이브러리처럼 차시가 줄 번호를 인용하지 않는 파일에만 쓴다).
 // 3. 원본과 옮긴 글의 줄 수가 같은지(원본은 파이썬의 줄 규칙 \r\n·\r·\n 모두, 옮긴 글은 \n) 확인하고, 파이썬 구문을 검사한다:
 //    - 이 컴퓨터에 파이썬 3이 있으면 `python -c "ast.parse(...)"`(정확한 검사, 실행은 하지 않음),
 //    - 없으면 Node의 가벼운 검사(괄호 짝·따옴표·들여쓰기 섞임)만.
@@ -65,6 +67,7 @@ export const PRIVACY_KINDS = Object.freeze(['mac']);
  * @property {'operator' | 'third_party'} author
  * @property {boolean} [expect_syntax_error] 원본 결함으로 구문 오류가 나는 파일(f074)
  * @property {string[]} [privacy]   가릴 개인정보 종류(지금은 mac만 — BLE·MAC 주소를 XX:XX:XX:XX:XX:XX로)
+ * @property {string} [notice]      원본 코드 앞에 붙일 라이선스 고지(주석 줄만, DECISIONS C12 — 예: ESP32BLE.py)
  * @property {Record<string, unknown>} [meta] 사이드카를 처음 만들 때 쓸 제목·설명 등
  * @property {number} [lines]        기록: 줄 수
  * @property {string} [sha256]       기록: 옮긴 파일의 SHA-256
@@ -415,6 +418,15 @@ export function parseManifest(text) {
         }
       }
     }
+    let notice;
+    if (entry.notice !== undefined) {
+      const noticeLines = typeof entry.notice === 'string' ? entry.notice.replace(/\r\n/gu, '\n').replace(/\n+$/u, '').split('\n') : [];
+      if (noticeLines.length === 0 || noticeLines.some((line) => !line.startsWith('#'))) {
+        errors.push(`${label}: notice는 원본 앞에 붙일 라이선스 고지예요. 모든 줄을 #로 시작하는 주석으로 적어요(코드 줄은 넣지 않아요).`);
+      } else {
+        notice = `${noticeLines.join('\n')}\n`;
+      }
+    }
     if (entry.meta !== undefined && (entry.meta === null || typeof entry.meta !== 'object' || Array.isArray(entry.meta))) {
       errors.push(`${label}: meta는 title·description 등을 가진 사전으로 적어요.`);
     }
@@ -425,6 +437,7 @@ export function parseManifest(text) {
       target,
       author,
       ...(privacy.length > 0 ? { privacy } : {}),
+      ...(notice !== undefined ? { notice } : {}),
       ...(entry.expect_syntax_error === true ? { expect_syntax_error: true } : {}),
       ...(entry.meta && typeof entry.meta === 'object' ? { meta: /** @type {Record<string, unknown>} */ (entry.meta) } : {}),
       ...(typeof entry.lines === 'number' ? { lines: entry.lines } : {}),
@@ -571,14 +584,18 @@ export function convertOriginal(original, entry, options = {}) {
         'XX:XX:XX:XX:XX:XX로 가려요(글자 수가 같아 줄·칸 위치는 그대로예요).',
     );
   }
-  const lines = countLfLines(converted);
+  // 라이선스 고지(C12)는 원본 코드 앞에만 붙인다 — 원본 코드 줄은 그대로이고, 줄 수는 고지 줄 수만큼 는다.
+  const noticeText = entry.notice ?? '';
+  const noticeLines = countLfLines(noticeText);
+  const finalText = `${noticeText}${converted}`;
+  const lines = countLfLines(finalText);
   if (loneCr > 0) {
     problems.push(`원본에 홀로 있는 CR(\\r)이 ${loneCr}개 있어요. 파이썬은 이것도 줄 끝으로 보므로 줄 번호가 어긋나요 — 원본을 확인해요.`);
   }
-  if (originalLines !== lines) {
-    problems.push(`줄 수가 달라요: 원본 ${originalLines}줄, 옮긴 글 ${lines}줄.`);
+  if (originalLines + noticeLines !== lines) {
+    problems.push(`줄 수가 달라요: 원본 ${originalLines}줄${noticeLines > 0 ? ` + 고지 ${noticeLines}줄` : ''}, 옮긴 글 ${lines}줄.`);
   }
-  const check = checkPythonSyntax(converted, options);
+  const check = checkPythonSyntax(finalText, options);
   let syntax = 'ok';
   if (!check.ok) {
     if (entry.expect_syntax_error) {
@@ -591,11 +608,11 @@ export function convertOriginal(original, entry, options = {}) {
     problems.push('expect_syntax_error: true인데 구문 오류가 없어요. 항목에서 그 줄을 지워요.');
   }
   return {
-    text: converted,
+    text: finalText,
     lines,
     originalLines,
     redacted,
-    sha256: sha256Hex(Buffer.from(converted, 'utf8')),
+    sha256: sha256Hex(Buffer.from(finalText, 'utf8')),
     syntax,
     syntaxChecker: check.checker,
     syntaxMessage: check.message,

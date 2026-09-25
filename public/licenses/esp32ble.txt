@@ -1,0 +1,27 @@
+ESP32BLE.py(블루투스 주변기기 라이브러리) — 함께 싣는 MIT 라이선스 고지(https://github.com/2black0/MicroPython-ESP32-BLE)
+이 사이트의 ESP32 실습실이 가상 보드와 실물 보드([보드에 저장])에 올려 주는 ESP32BLE.py는 교과서·수업 자료의 파일을 그대로 옮긴 것이에요.
+이 파일과 구조가 비슷한 공개 구현 2black0/MicroPython-ESP32-BLE가 MIT 라이선스로 공개되어 있어요. ESP32BLE.py가 그 구현에서 왔는지는
+확인하지 못했지만(운영자 답 "모름", 2026-09-25), 만약 그렇다면 지켜야 할 고지를 빠뜨리지 않으려고 아래 고지를 함께 실어요(DECISIONS C12).
+같은 고지를 ESP32BLE.py 파일 맨 앞 주석에도 넣었어요. 저작권 줄은 그 저장소의 LICENSE 파일에서 확인한 것이에요(2026-09-25 Phase 4 검토 대조).
+
+MIT License
+
+Copyright (c) 2021 Ardy Seto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

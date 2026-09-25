@@ -1,6 +1,7 @@
-# 학습 자료·예제 라이선스 — CC BY-NC-SA 4.0
+# 학습 자료 라이선스 — CC BY-NC-SA 4.0
 
-「AI 피지컬 컴퓨팅 오픈랩」(가칭)의 학습 자료와 예제는 **크리에이티브 커먼즈 저작자표시-비영리-동일조건변경허락 4.0 국제(CC BY-NC-SA 4.0)** 라이선스로 공개해요.
+「AI 피지컬 컴퓨팅 오픈랩」(가칭)의 학습 자료는 **크리에이티브 커먼즈 저작자표시-비영리-동일조건변경허락 4.0 국제(CC BY-NC-SA 4.0)** 라이선스로 공개해요.
+실습 예제 코드(`examples/`)는 2026-09-25부터 **MIT**로 넓혀 공개해요(운영자 결정 O13 — 아래 "예제 코드는 MIT").
 
 - 저작자: 박상진·김석전
 - 라이선스 요약(한국어): https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko
@@ -14,11 +15,15 @@
 | 대상 | 들어 있는 것 |
 |---|---|
 | `content/` | 차시 본문·용어사전 같은 학습 자료. 교과서 원고와 수업 교안에서 옮긴 글·그림을 포함해요. |
-| `examples/` | 실습 예제 코드. 교과서·수업 자료에서 옮긴 예제 코드와 그 사이트판, 사이트가 새로 쓴 예제를 포함해요. |
-| `public/images/` | 차시 그림(`public/images/lessons/`)과 사이트가 직접 그린 그림 파일(`public/images/site/`). `src/` 컴포넌트 안에 코드(인라인 SVG)로 그린 그림은 사이트 프로그램에 속해 MIT를 따라요. |
+| `public/images/` | 차시 그림(`public/images/lessons/` — 교과서 원고에서 꺼낸 그림과 출판사가 조판 때 넣은 삽화·컷(운영자 결정 O10) 포함)과 사이트가 직접 그린 그림 파일(`public/images/site/`). `src/` 컴포넌트 안에 코드(인라인 SVG)로 그린 그림은 사이트 프로그램에 속해 MIT를 따라요. |
+| `public/teacher/handouts/` | 교사용 자료실의 가린 편집본 교안(PDF). 블루투스 통신 수업 교안과 PyAutoGUI 수업 슬라이드에서 개인정보를 지운 판이에요. |
 | 안내 문서 | `README.md`, `MAINTENANCE.md`, `CONTRIBUTING.md`, `docs/` 폴더의 문서 |
 
 사이트 프로그램(`src/`, `scripts/`, `tests/`와 사이트가 새로 쓴 소프트웨어)은 [LICENSE](LICENSE)의 MIT 라이선스를 따라요.
+
+## 예제 코드는 MIT
+
+`examples/`의 실습 예제 코드(교과서·수업 자료에서 옮긴 예제 코드와 그 사이트판, 사이트가 새로 쓴 체험·보충 예제, 예제 옆의 설명 파일 `.meta.yaml`)는 [LICENSE](LICENSE)의 **MIT** 라이선스로 공개해요(운영자 결정 O13, 2026-09-25). 수업·동아리·교재 제작 등 어디에든 고쳐 쓰고 나눠 줄 수 있고, 지켜야 할 것은 저작권 표시와 MIT 허락 문장을 함께 두는 것뿐이에요. 단, `third-party/` 폴더에 둔 다른 저작자의 파일(예: `examples/esp32/lib/third-party/i2c_lcd.py`)은 각자의 원래 조건을 따라요(`sources.yaml`과 출처 페이지).
 
 ## 제외되는 자료
 
@@ -53,4 +58,4 @@
 
 ## English summary
 
-Learning materials and examples in this repository (`content/`, `examples/`, `public/images/`) and its documentation are licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode) by 박상진·김석전. Site software is licensed under the MIT License (see `LICENSE`). Third-party materials and open-source libraries listed individually in `sources.yaml` are excluded and remain under their original terms.
+Learning materials in this repository (`content/`, `public/images/`, `public/teacher/handouts/`) and its documentation are licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode) by 박상진·김석전. Site software and the example code in `examples/` (since 2026-09-25) are licensed under the MIT License (see `LICENSE`). Third-party materials and open-source libraries listed individually in `sources.yaml` are excluded and remain under their original terms.

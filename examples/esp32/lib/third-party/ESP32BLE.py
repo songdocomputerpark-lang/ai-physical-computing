@@ -1,3 +1,29 @@
+# [사이트가 붙인 고지] 아래 코드는 교과서·수업 자료의 ESP32BLE.py를 한 글자도 고치지 않고 옮겼어요.
+# 구조가 비슷한 공개 구현 2black0/MicroPython-ESP32-BLE(https://github.com/2black0/MicroPython-ESP32-BLE)의
+# MIT 고지를 함께 실어요. 이 파일이 그 구현에서 왔는지는 확인하지 못했어요 — 만약 그렇다면 지켜야 할 고지를
+# 빠뜨리지 않으려는 것이에요(AI 피지컬 컴퓨팅 오픈랩, DECISIONS C12).
+#
+# MIT License
+#
+# Copyright (c) 2021 Ardy Seto
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 from machine import Pin, Timer
 from time import sleep_ms
 import ubluetooth

@@ -86,14 +86,14 @@ const { content, software, exclusion } = siteConfig.license;
       <!-- dt·dd처럼 붙어 있는 요소는 사이트 검색 색인에서 글자가 이어 붙으므로 제목(h3)과 문단(p)으로 나눈다. -->
       <div class="license-list">
         <div class="license-list__item">
-          <h3 class="license-list__name">학습 자료와 예제 — {content.shortName}</h3>
+          <h3 class="license-list__name">학습 자료 — {content.shortName}</h3>
           <p>
             {content.name}. 적용: {content.appliesTo}.{' '}
             <a href={repositoryFileUrl('LICENSE-CONTENT.md')}>라이선스 안내(LICENSE-CONTENT.md)</a>
           </p>
         </div>
         <div class="license-list__item">
-          <h3 class="license-list__name">사이트 프로그램 — {software.shortName}</h3>
+          <h3 class="license-list__name">사이트 프로그램과 예제 코드 — {software.shortName}</h3>
           <p>
             {software.name}. 적용: {software.appliesTo}.{' '}
             <a href={repositoryFileUrl('LICENSE')}>라이선스 전문(LICENSE)</a>

@@ -43,10 +43,11 @@ sources:
     author: 박상진·김석전
     license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
     # 사이트 공개 조건은 PD-26(학습 자료 CC BY-NC-SA 4.0)
-    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/ — 원고 이미지 추출 도구로 꺼낸 그림과 차시마다 따로인 그림 목록 content/lessons/**/*.images.yaml). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
+    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/ — 원고 이미지 추출 도구로 꺼낸 그림과 차시마다 따로인 그림 목록 content/lessons/**/*.images.yaml). 출판사가 조판 때 넣은 삽화·컷(원고 그림 이름표 '인피컴_…(삽)'·'인피컴_…(컷)' — 예: 1-1-1의 인식·학습·추론 그림, 1-1-2의 CNN 단계·손 랜드마크 그림, 1-1-3의 개발 환경 삽화)도 운영자 결정 O10(2026-09-25)으로 이 항목이 덮어요. 교사용 자료실의 가린 편집본 PDF(public/teacher/handouts/ — 블루투스 통신 수업 교안·PyAutoGUI 수업 슬라이드에서 개인정보를 지우고 쪽마다 눈으로 확인한 판, PD-31, 도구 scripts/redact-handouts.py·기록 scripts/handout-redactions.yaml). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
     paths:
       - content/**
       - public/images/lessons/**
+      - public/teacher/handouts/*.pdf
     exclude_paths:
       - content/**/third-party/**
       - public/images/lessons/**/third-party/**
@@ -55,27 +56,14 @@ sources:
       # 차시마다 폴더가 따로라(public/images/lessons/<차시>/) 구역이 이 파일을 고치지 않아도 되게 확장자로 나눠요.
       - public/images/lessons/**/*.svg
       - public/images/lessons/supplement/**
-      # 원고를 조판한 출판사·삽화가의 삽화는 third-party/publisher/ 폴더에 두고 아래 제3자 항목이 맡아요(운영자 확인 전).
     fetched: 2026-09-15
 
   # ── 제3자 권리 표기 자료(PD-26: 사이트 라이선스에서 제외, /credits/ 제3자 목록에 보임) ──
-  # 원고에서 꺼낸 제3자 권리 그림은 public/images/lessons/<차시 폴더>/third-party/<키>/에 두고, 아래 항목이 키 폴더를 차시와 상관없이 덮어요.
-  # 원고 이미지 추출 도구(npm run images:extract, P5-01)가 원본 그림의 XMP 권리 표기(제작자·권리 문구·이름표)를 읽어 third_party 키를 요구해요.
-  # 새 권리자가 나오면 도구가 알려 주는 모양대로 항목을 하나 더하고 paths에 public/images/lessons/*/third-party/<키>/**를 적어요.
-  #
-  # 원고 PDF는 출판사가 조판한 파일이고, 이름표(XMP 제목)가 "인피컴_…(삽)"·"인피컴_…(컷)"인 그림은 출판 편집 삽화·컷이에요
-  # (INVENTORY §5.2: 중학교판 삽화 재사용 추정). 운영자 허락(O2·O4)은 사용 허락이지 삽화가·출판사 창작물을 CC BY-NC-SA 4.0으로
-  # 다시 허락할 권리가 아니라서(PLAN §9.1), 권리 귀속이 확인될 때까지 제3자 자료로 둬요(2026-09-16 검토 반영, 운영자 할 일 13번).
-  # 저자 창작물로 확인되면 위 원고 항목으로 되돌려요.
-  - name: 교과서 원고의 출판 편집 삽화·컷(조판 때 넣은 그림)
-    category: third_party
-    author: "원 권리자 미확인 — 교과서 원고를 조판한 출판사 또는 삽화가(운영자 확인 전). 원고 저자: 박상진·김석전"
-    license: 원 권리자 보유 — 운영자 사용 허락(O2·O4), 사이트 CC BY-NC-SA 4.0 적용 제외
-    used_in: "차시 그림 가운데 출판사가 조판할 때 넣은 삽화·컷 — 차시 그림 폴더의 third-party/publisher/: 1-1-1 핵심 개념 표의 인식·학습·추론 그림 3장(public/images/lessons/1-1-1/third-party/publisher/), 1-1-2 CNN 단계 그림·손 랜드마크 그림 등. 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S-번호)으로 바꿔요."
-    rights: "원고 그림 이름표(XMP 제목)가 '인피컴_…(삽)'·'인피컴_…(컷)' 모양인 출판 편집 삽화·컷 — 별도의 저작권 문구는 없음. 예: 009쪽 인피컴_고1-1-1-01(삽)·인피컴_중1-1-1-02(삽)·인피컴_중1-1-1-03(삽), 014쪽 인피컴_고1-1-1-05(삽), 016쪽 인피컴_고1-1-04(컷)(2026-09-25 원고 이미지 추출 도구로 다시 확인)."
-    paths:
-      - public/images/lessons/*/third-party/publisher/**
-    fetched: 2026-09-25
+  # 원고에서 꺼낸 제3자 권리 그림은 public/images/lessons/<차시 폴더>/third-party/<키>/에 두고, 그 키 폴더를 덮는 항목을 따로 만들어요.
+  # 원고 이미지 추출 도구(npm run images:extract, P5-01)가 원본 그림의 XMP 권리 표기(제작자·권리 문구·이름표)를 읽어 알려 줘요.
+  # 지금 차시 그림 가운데 제3자 그림은 없어요:
+  # - 출판사가 조판 때 넣은 삽화·컷(이름표 "인피컴_…(삽)"·"인피컴_…(컷)")은 운영자가 "다 넣어도 됨"이라고 답해(운영자 할 일 13번, DECISIONS O10,
+  #   2026-09-25) 위 원고 항목(운영자 자체 자료, 사이트 CC BY-NC-SA 4.0)으로 옮겼어요. 전에 third-party/publisher/에 있던 7장은 차시 그림 폴더로 옮겼어요.
 
   # 원고 속 스톡 그림(원본 권리 표기가 출판사가 아닌 스톡 작가·판매 사이트 — 예: 010쪽 Visual Generation Inc., 018쪽 BASHTA,
   # 141쪽 rancz, 155쪽 Firuz Mukhtarov, 173쪽 Chris Putnam)은 결정 C11(docs/DECISIONS.md, 2026-09-25)로 사이트에 쓰지 않아 항목이 없어요.
@@ -84,9 +72,9 @@ sources:
   - name: 교과서·수업 자료의 예제 코드와 사이트판
     category: operator
     author: 박상진·김석전
-    license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
-    # 옮기는 방법은 PD-33, 사이트 공개 조건은 PD-26
-    used_in: "실습실 예제 코드(examples/). 교과서·수업 자료의 원본 코드 압축 파일에서 옮긴 코드(사이트판 포함)와 사이트가 새로 만든 체험·보충 예제를 사이트에서 CC BY-NC-SA 4.0으로 공개해요. 다른 저작자의 파일이 있는 third-party/ 폴더에서도 **설명 파일(사이드카 .meta.yaml)은 사이트가 쓴 글**이라 이 항목에 들어가요."
+    # 운영자가 예제 코드를 MIT로 넓히기로 했어요(운영자 할 일 8번 답, DECISIONS O13, 2026-09-25). 옮기는 방법은 PD-33.
+    license: MIT
+    used_in: "실습실 예제 코드(examples/). 교과서·수업 자료의 원본 코드 압축 파일에서 옮긴 코드(사이트판 포함)와 사이트가 새로 만든 체험·보충 예제를 사이트에서 MIT로 공개해요(운영자 자체 자료, 운영자 확인 2026-09-15 — MIT로 넓힘 O13, 2026-09-25). 다른 저작자의 파일이 있는 third-party/ 폴더에서도 **설명 파일(사이드카 .meta.yaml)은 사이트가 쓴 글**이라 이 항목에 들어가요(third-party/의 코드 파일은 각자 원래 조건)."
     paths:
       - examples/**
     exclude_paths:
@@ -602,17 +590,20 @@ sources:
 
   # 블루투스 주변기기 라이브러리(Phase 4 통신 실습실): 교과서 자료 f087 = f101 = f146 = f153이 모두 같은 파일이에요(원본 그대로 옮김).
   # 공개 글(TechToTinker 025, George Bantique)과 구조가 같고 2black0/MicroPython-ESP32-BLE(MIT) 구현과도 거의 같아요(CODE_MAPPING §5.2 — 부분 확인).
-  # 파일에는 저작권·라이선스 주석이 없어(직접 확인) 표기가 확인된 쪽으로 단정하지 않고 "원 권리자 보유"로 둬요.
-  # 운영자 할 일: 2black0 저장소의 LICENSE와 대조해 MIT가 맞으면 MIT 고지를 더한 사이트판으로 바꾸기(PLAN §6.5, INVENTORY §8).
+  # 원본 파일에는 저작권·라이선스 주석이 없어(직접 확인) 표기가 확인된 쪽으로 단정하지 않고 "원 권리자 보유"로 둬요.
+  # 운영자 답(할 일 21번 "모름", 2026-09-25) → DECISIONS C12: 파생이었을 때의 위험을 없애려고 2black0(MIT)의 고지를 함께 실어요 —
+  # 옮긴 파일 맨 앞 주석(예제 이관 도구의 notice, scripts/examples-manifest.yaml f087)과 고지 파일 public/licenses/esp32ble.txt.
   - name: TechToTinker MicroPython TechNotes 계열 부품 라이브러리(ESP32BLE.py)
     category: third_party
     author: George Bantique(TechToTinker)
     license: 원 권리자 보유 — 운영자 사용 허락(O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
     url: https://techtotinker.com/025-micropython-technotes-bluetooth-low-energy/
     used_in: "블루투스(BLE) 주변기기 라이브러리 ESP32BLE.py(examples/esp32/lib/third-party/ESP32BLE.py). 교과서 3·4단원과 블루투스 교안의 BLE 예제가 모두 이 파일을 import해요 — 가상 보드는 /board/lib/에 넣고, 실물 보드는 [보드에 저장]이 함께 올려요."
-    rights: "TechToTinker 글(025 - MicroPython TechNotes: Bluetooth Low Energy)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요. 2026-09-25 검토 대조(공식 저장소 읽기만): 2black0/MicroPython-ESP32-BLE의 LICENSE는 MIT \"Copyright (c) 2021 Ardy Seto\"이고 Project/main.py가 같은 뼈대(NUS 서비스 등록, irq 1·2·3, advertiser()의 광고 머리, send()의 줄바꿈)예요. 다만 클래스 이름(BLE ↔ ESP32_BLE)·상태 LED 핀(2 ↔ 12)·깜빡임 주기가 달라 파생인지 단정하지 못했어요 — 운영자 확인 전까지 이 항목 그대로 두고, 확인되면 MIT 고지를 더한 사이트판으로 바꿔요(PROGRESS 운영자 할 일)."
+    rights: "TechToTinker 글(025 - MicroPython TechNotes: Bluetooth Low Energy)에 저작권·라이선스 표기가 없음(2026-09-15 확인). 원 권리는 원 저작자에게 있어요. 2026-09-25 검토 대조(공식 저장소 읽기만): 2black0/MicroPython-ESP32-BLE의 LICENSE는 MIT \"Copyright (c) 2021 Ardy Seto\"이고 Project/main.py가 같은 뼈대(NUS 서비스 등록, irq 1·2·3, advertiser()의 광고 머리, send()의 줄바꿈)예요. 다만 클래스 이름(BLE ↔ ESP32_BLE)·상태 LED 핀(2 ↔ 12)·깜빡임 주기가 달라 파생인지 단정하지 못했어요 — 운영자 답은 \"모름\"(2026-09-25)이라 이 항목은 그대로 두고, 안전하게 2black0의 MIT 고지를 함께 실어요(DECISIONS C12 — 파일 맨 앞 주석과 public/licenses/esp32ble.txt)."
     paths:
       - examples/esp32/lib/third-party/ESP32BLE.py
+      - public/licenses/esp32ble.txt
+    notice: public/licenses/esp32ble.txt
     fetched: 2026-09-18
 
   # 서보모터 라이브러리(Phase 4 통신 실습실): 교과서 자료 f012 = f108 = f117이 모두 같은 파일이에요(원본 그대로 옮김).

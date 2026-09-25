@@ -35,8 +35,8 @@
 
 - GitHub 이용 약관 D.6("Contributions Under Repository License")에 따라, 라이선스가 적힌 저장소에 올린 기여는 **같은 라이선스로 공개하는 데 동의하고, 그렇게 할 권리가 있다**는 뜻이 돼요.
 - 이 저장소의 라이선스는 대상에 따라 둘로 나뉘어요.
-  - 학습 자료와 예제(`content/`·`examples/`), 그림 파일(`public/images/`), 안내 문서: CC BY-NC-SA 4.0 — [LICENSE-CONTENT.md](LICENSE-CONTENT.md)
-  - 사이트 프로그램(`src/`·`scripts/`·`tests/`와 사이트가 새로 쓴 소프트웨어, 컴포넌트 안에 코드로 그린 그림 포함): MIT — [LICENSE](LICENSE)
+  - 학습 자료(`content/`), 그림 파일(`public/images/`), 가린 편집본 교안(`public/teacher/handouts/`), 안내 문서: CC BY-NC-SA 4.0 — [LICENSE-CONTENT.md](LICENSE-CONTENT.md)
+  - 사이트 프로그램(`src/`·`scripts/`·`tests/`와 사이트가 새로 쓴 소프트웨어, 컴포넌트 안에 코드로 그린 그림 포함)과 실습 예제 코드(`examples/`, 2026-09-25부터 — 운영자 결정 O13): MIT — [LICENSE](LICENSE)
 - 직접 만든 것이나, 이 조건으로 올릴 권리가 있는 것만 보내 주세요.
 - `sources.yaml`에 개별 표기된 제3자 자료와 공개 라이브러리는 두 라이선스에서 제외되고 원래 조건을 따라요.
 
