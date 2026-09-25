@@ -1,12 +1,10 @@
 // @ts-check
 import { unified } from '@astrojs/markdown-remark';
 import { defineConfig } from 'astro/config';
-import remarkDirective from 'remark-directive';
 import { siteConfig } from './src/config/site.ts';
 import { clientBundleLicensePlugin } from './scripts/lib/bundle-license.mjs';
 import { esptoolStubGuardPlugin } from './scripts/lib/esptool-stub-guard.mjs';
-import remarkBoxes from './src/lib/remark-boxes.mjs';
-import remarkGlossary from './src/lib/remark-glossary.mjs';
+import { rehypePlugins, remarkPlugins } from './src/lib/markdown-plugins.mjs';
 
 // 주소와 하위 경로는 src/config/site.ts 한 곳에서만 정한다(DECISIONS C7).
 export default defineConfig({
@@ -30,11 +28,10 @@ export default defineConfig({
   markdown: {
     // Astro 7의 기본 처리기(Sätteri) 대신 unified 처리기(@astrojs/markdown-remark)를 쓴다.
     // 상자 문법(:::교사용)과 용어 표시 문법(:용어[픽셀])에 remark 플러그인이 필요하기 때문이다(PLAN §3.1·§3.2, PD-10).
-    // 플러그인 순서가 중요하다(src/lib/remark-boxes.mjs 머리말):
-    //   remarkDirective(: 문법 읽기) → remarkGlossary(:용어[…]) → remarkBoxes(:::상자, 처리 안 된 지시문을 원래 글자로 되돌림)
-    processor: unified({
-      remarkPlugins: [remarkDirective, remarkGlossary, remarkBoxes],
-    }),
+    // 플러그인 목록·순서는 src/lib/markdown-plugins.mjs 한 곳(차시 틀 검사 npm run check:lessons도 같은 목록을 쓴다):
+    //   remark: remarkDirective(: 문법 읽기) → remarkGlossary(:용어[…]) → remarkBoxes(:::상자, 처리 안 된 지시문을 원래 글자로 되돌림)
+    //   rehype: 출력 다듬기 src/lib/rehype-lesson-polish.mjs(Phase 6 구역 A 자리 — 판 번호를 올리면 콘텐츠 캐시가 비워진다)
+    processor: unified({ remarkPlugins, rehypePlugins }),
     // 마크다운 코드 블록 색(Shiki 테마). Astro 기본값 github-dark는 주석 색(#6A737D)이 바탕(#24292E) 위에서 대비 3.05:1이라
     // WCAG AA(글자 4.5:1)에 못 미친다. github-light-high-contrast는 코드 글자색이 모두 흰 바탕(#FFFFFF) 위에서 5.04:1 이상이다
     // (가장 낮은 주석 #66707B 5.04:1, 기본 글자 #0E1116 18.91:1 — 2026-09-16 @shikijs/themes 4.4.3의 색으로 WCAG 상대 휘도 공식 계산).

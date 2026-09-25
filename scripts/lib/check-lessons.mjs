@@ -20,7 +20,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { markdownConfigDefaults, unified } from '@astrojs/markdown-remark';
-import remarkDirective from 'remark-directive';
 import { parseDocument } from 'yaml';
 import { createGlossaryRegistry, findGlossaryMarkers, resolveGlossaryMarker } from '../../src/components/glossary/glossary.ts';
 import { allPlannedLessons } from '../../src/components/lesson/curriculum.ts';
@@ -28,8 +27,7 @@ import { checkLessons as checkLessonEntries } from '../../src/components/lesson/
 import { parseFocusRanges, splitExampleCode } from '../../src/components/lesson/example-code.ts';
 import { checkLessonRules } from '../../src/components/lesson/lesson-rules.ts';
 import { glossarySchema, lessonSchema } from '../../src/config/content-schemas.ts';
-import remarkBoxes from '../../src/lib/remark-boxes.mjs';
-import remarkGlossary from '../../src/lib/remark-glossary.mjs';
+import { rehypePlugins, remarkPlugins } from '../../src/lib/markdown-plugins.mjs';
 import { LESSON_IMAGE_ROOT, RASTER_EXTENSIONS, listManifestFiles, parseImageManifest, readImageRecords, reviewedProblem } from './lesson-images.mjs';
 import { describeYamlCommentTrap, findYamlCommentTraps } from './yaml-comment-traps.mjs';
 
@@ -96,9 +94,9 @@ export function splitFrontmatter(text) {
   return match ? { frontmatter: match[1] ?? '', body: match[2] ?? '' } : { frontmatter: null, body: text };
 }
 
-/** 빌드(astro.config.mjs)와 같은 플러그인 순서의 마크다운 처리기. 코드 색 입히기는 검사에 필요 없어 끈다. */
+/** 빌드(astro.config.mjs)와 같은 플러그인 목록(src/lib/markdown-plugins.mjs)의 마크다운 처리기. 코드 색 입히기는 검사에 필요 없어 끈다. */
 export async function createLessonRenderer() {
-  const processor = unified({ remarkPlugins: [remarkDirective, remarkGlossary, remarkBoxes] });
+  const processor = unified({ remarkPlugins, rehypePlugins });
   const renderer = await processor.createRenderer({ ...markdownConfigDefaults, syntaxHighlight: false });
   return {
     /**

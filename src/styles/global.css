@@ -127,6 +127,14 @@ textarea {
   border: 0;
 }
 
+/*
+ * 중간에서 줄이 바뀌면 안 되는 짧은 글(예: 차시 번호 "2-1-2" — 브라우저가 하이픈 뒤에서 "2-1-" / "2"로 가른다, PROGRESS 미해결 174).
+ * 마크다운 출력 다듬기(src/lib/rehype-lesson-polish.mjs — Phase 6 구역 A)가 붙이려고 준비 때 미리 둔 클래스다.
+ */
+.nowrap {
+  white-space: nowrap;
+}
+
 /* 본문으로 건너뛰기: 평소에는 화면 밖에 있다가 키보드 초점을 받으면 왼쪽 위에 나타난다. */
 .skip-link {
   position: absolute;
