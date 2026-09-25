@@ -1,7 +1,8 @@
 ---
 /**
  * 교사용 시작하기(PLAN §2.1, §8.1 P1-08, §10).
- * - 성취기준·평가 방향 표는 틀만 두고 P5-14에서 채운다. 학교 네트워크 체크리스트와 통신 수업 안내는 Phase 2·4에서 채웠다
+ * - 성취기준·평가 방향 표는 영역 요약만 두고, 자세한 표(성취기준 15개·이어지는 차시·평가할 때 볼 것)는 교사용 자료실 /teacher/standards/(P5-14)로
+ *   잇는다(2026-09-25 Phase 5 통합). 학교 네트워크 체크리스트와 통신 수업 안내는 Phase 2·4에서 채웠다
  *   (2026-09-24 Phase 4 통합 — 공개 중계 서버 안전 규칙 PLAN §7.4·PD-29 "교사용 안내에 실물 구동 장치는 공개 브로커에 연결하지 않기").
  * - 개인정보 처리 안내는 초안이다(법률 자문 아님). 외부 연결 표의 사실과 링크는 2026-09-16에 공식 문서로 확인했다:
  *   GitHub Pages 방문자 IP 기록(GitHub Docs "GitHub Pages란?"), jsDelivr 수집 항목(jsDelivr Privacy Policy, 2023-11-23 시행),
@@ -9,7 +10,6 @@
  * - 성취기준 영역·코드는 INVENTORY §9.2(인천광역시교육청 게시 교육과정, hwp 원문 대조 전)를 따른다(DECISIONS C8).
  */
 import Callout from '../../../components/common/Callout.astro';
-import ComingSoon from '../../../components/common/ComingSoon.astro';
 import ClearRecordsButton from '../../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -20,6 +20,8 @@ const student = getPage('start-student');
 const board = getPage('start-board');
 const boardCheck = getPage('labs-esp32-check');
 const teacherRoom = getPage('teacher');
+const standardsHref = `${teacherRoom.href}standards/`;
+const faqHref = `${teacherRoom.href}faq/`;
 const learn = getPage('learn');
 const settings = getPage('settings');
 const visionLab = getPage('labs-vision');
@@ -40,10 +42,10 @@ const lessonFlow = ['학습목표', '왜 배울까', '핵심 개념', '따라하
 
 const curriculumUrl = 'https://www.ice.go.kr/ice/na/ntt/selectNttInfo.do?mi=11997&bbsId=1999&nttSn=3299910';
 const standardAreas = [
-  { area: '(1) 인공지능 영상인식', codes: '[12인피01-01] ~ [12인피01-04]', unit: 'I. 영상 처리 인공지능' },
-  { area: '(2) 피지컬컴퓨팅', codes: '[12인피02-01] ~ [12인피02-04]', unit: 'II. 피지컬 컴퓨팅' },
-  { area: '(3) 인공지능과 피지컬컴퓨팅', codes: '[12인피03-01] ~ [12인피03-03]', unit: 'III. 인공지능과 피지컬 컴퓨팅' },
-  { area: '(4) 문제해결프로젝트', codes: '[12인피04-01] ~ [12인피04-04]', unit: 'IV. 지능화 사물 개발 프로젝트' },
+  { area: '(1) 인공지능 영상인식', codes: '[12인피01-01] ~ [12인피01-04]', unit: 'I. 영상 처리 인공지능', anchor: 'std-area-1' },
+  { area: '(2) 피지컬컴퓨팅', codes: '[12인피02-01] ~ [12인피02-04]', unit: 'II. 피지컬 컴퓨팅', anchor: 'std-area-2' },
+  { area: '(3) 인공지능과 피지컬컴퓨팅', codes: '[12인피03-01] ~ [12인피03-03]', unit: 'III. 인공지능과 피지컬 컴퓨팅', anchor: 'std-area-3' },
+  { area: '(4) 문제해결프로젝트', codes: '[12인피04-01] ~ [12인피04-04]', unit: 'IV. 지능화 사물 개발 프로젝트', anchor: 'std-area-4' },
 ] as const;
 
 interface Connection {
@@ -206,7 +208,7 @@ const networkChecklist: readonly NetworkItem[] = [
   </div>
   <div class="teacher-table" role="region" aria-labelledby="standards-caption" tabindex="0">
     <table>
-      <caption id="standards-caption">성취기준·평가 방향 표(틀)</caption>
+      <caption id="standards-caption">성취기준 영역과 평가 방향</caption>
       <thead>
         <tr>
           <th scope="col">영역</th>
@@ -222,7 +224,9 @@ const networkChecklist: readonly NetworkItem[] = [
               <th scope="row">{row.area}</th>
               <td>{row.codes}</td>
               <td>{row.unit}</td>
-              <td class="teacher-table__pending">준비 중</td>
+              <td>
+                <a href={`${standardsHref}#${row.anchor}`}>성취기준과 평가 방향</a>
+              </td>
             </tr>
           ))
         }
@@ -237,12 +241,11 @@ const networkChecklist: readonly NetworkItem[] = [
       <li>생성형 인공지능의 도움을 받은 부분을 표시하고, 협력 과정의 자료를 함께 내요.</li>
     </ul>
   </div>
-  <ComingSoon
-    what="성취기준 15개와 차시 연결, 평가 방향 표"
-    when="차시 페이지를 채우는 단계(Phase 5)"
-    headingLevel={3}
-    links={[{ label: teacherRoom.title, href: teacherRoom.href }]}
-  />
+  <div class="prose">
+    <p>
+      성취기준 15개와 이어지는 차시, 평가할 때 볼 것과 모을 자료는 교사용 자료실의 <a href={standardsHref}>성취기준과 평가 방향</a>에 있어요.
+    </p>
+  </div>
 
   <div class="prose">
     <h2 id="privacy">개인정보 처리 안내(초안)</h2>
@@ -394,13 +397,12 @@ const networkChecklist: readonly NetworkItem[] = [
   <div class="prose">
     <h2 id="presentation">발표 모드</h2>
     <p>발표 모드는 프로젝터로 차시 페이지를 보여 줄 때 글씨를 크게 하고 한 단계씩 넘겨 보는 화면이에요.</p>
+    <p>
+      차시 페이지 머리의 <strong>[발표 모드]</strong>를 누르면 글씨가 커지고, 오른쪽·왼쪽 화살표 키로 한 단계씩 넘겨요(Home 처음, End 끝, Esc
+      끝내기). 교사용 칸은 발표 화면에 나오지 않아요. 자세한 것은 <a href={`${faqHref}#발표-모드는-어떻게-쓰나요`}>선생님이 자주 묻는 질문</a>에
+      있어요.
+    </p>
   </div>
-  <ComingSoon
-    what="발표 모드"
-    when="차시 페이지를 채우는 단계(Phase 5)"
-    headingLevel={3}
-    links={[{ label: teacherRoom.title, href: teacherRoom.href }]}
-  />
 </BaseLayout>
 
 <style>
@@ -502,10 +504,6 @@ const networkChecklist: readonly NetworkItem[] = [
     background: var(--color-bg-muted);
     font-weight: var(--weight-semibold);
     white-space: nowrap;
-  }
-
-  .teacher-table__pending {
-    color: var(--color-text-muted);
   }
 
   .connections__links {

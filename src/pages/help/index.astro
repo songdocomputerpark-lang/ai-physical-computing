@@ -22,6 +22,7 @@ const boardPage = getPage('start-board');
 const contributePage = getPage('contribute');
 const errorsPage = getPage('help-errors');
 const settingsPage = getPage('settings');
+const teacherFaqHref = `${getPage('teacher').href}faq/`;
 const errorCount = errorCatalog.entries.length;
 
 const questions = [
@@ -200,7 +201,14 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
       <a href={errorsPage.href}>{errorsPage.title}</a>에서 자주 나는 오류 {errorCount}가지의 뜻과 고치는 방법을 한국어로 볼 수 있어요.
       실습실은 같은 풀이를 콘솔 위 카드로도 보여 줘요.
     </p>
-    <p>보드(MicroPython) 오류 풀이는 교과서 내용을 옮기는 단계(Phase 5)에서 늘려요.</p>
+    <p>보드(MicroPython) 오류와 펌웨어 굽기, 통신 오류 풀이도 같은 오류 사전에 있어요.</p>
+  </section>
+
+  <section class="faq-more" aria-labelledby="help-teacher-faq">
+    <h2 id="help-teacher-faq">선생님이 자주 묻는 질문</h2>
+    <p>
+      수업 준비, 평가와 과제, 기록과 개인정보처럼 선생님이 자주 묻는 것은 교사용 자료실의 <a href={teacherFaqHref}>선생님이 자주 묻는 질문</a>에 있어요.
+    </p>
   </section>
 
   <section class="faq-more" aria-labelledby="help-more">

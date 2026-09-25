@@ -1,0 +1,151 @@
+---
+/**
+ * 차시별 지도 요약 — 모든 차시 한눈에(/teacher/guides/)(PLAN §8.5 P5-14).
+ *
+ * 차시 md에서 빌드 때 모은 목록이다: 차시마다 원천(원고를 옮겼는지 · 원고 없음 · 보충), 소요 시간, 성취기준, 가린 편집본 쪽과
+ * 교사용 안내의 부분(지도안 요약 · 평가 포인트 · 자주 막히는 곳 · 원고에서 바꾼 곳)으로 바로 가는 링크.
+ * 안내 글 전체는 대단원마다 한 페이지(/teacher/guides/u1/ …)에 있다 — src/pages/teacher/guides/[unit].astro.
+ * 새 차시 md를 넣으면 코드 수정 없이 목록에 들어온다.
+ */
+import { getCollection } from 'astro:content';
+import GuideLessonMeta from '../../../components/teacher/GuideLessonMeta.astro';
+import TeacherNav from '../../../components/teacher/TeacherNav.astro';
+import { handoutLinesOf } from '../../../components/teacher/handout-files.ts';
+import { isChangeSection, squashTitle } from '../../../components/teacher/teacher-guides.ts';
+import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, type TeacherLesson } from '../../../components/teacher/teacher-lessons.ts';
+import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
+import { learnUnits } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
+
+const page = getTeacherPage('guides');
+const lessons = buildTeacherLessons(await getCollection('lessons'));
+const byUnit = lessonsByUnit(lessons);
+const counts = {
+  all: lessons.length,
+  manuscript: lessons.filter((lesson) => lesson.source === 'manuscript' || lesson.source === 'manuscript-code').length,
+  noManuscript: lessons.filter((lesson) => lesson.source === 'code-only').length,
+  supplement: lessons.filter((lesson) => lesson.source === 'supplement').length,
+};
+
+/** 교사용 안내에서 바로 갈 부분(제목의 앞부분으로 찾는다 — 차시 틀 검사 lesson-rules.ts의 TEACHER_HEADINGS와 같은 이름) */
+const JUMPS = [
+  { key: '지도안 요약', label: '지도안 요약' },
+  { key: '평가 포인트', label: '평가 포인트' },
+  { key: '자주 막히는 곳', label: '자주 막히는 곳' },
+] as const;
+
+function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
+  const sections = lesson.guide?.sections ?? [];
+  const unitPage = withBase(guidesUnitPath(lesson.summary.unit));
+  const found: { label: string; href: string }[] = JUMPS.flatMap((jump) => {
+    const section = sections.find((candidate) => squashTitle(candidate.title).startsWith(squashTitle(jump.key)));
+    return section?.id ? [{ label: jump.label, href: `${unitPage}#${section.id}` }] : [];
+  });
+  const change = sections.find((candidate) => isChangeSection(candidate.title));
+  if (change?.id) {
+    found.push({ label: change.title, href: `${unitPage}#${change.id}` });
+  }
+  return found;
+}
+---
+
+<BaseLayout title={page.title} description={page.description} width="narrow" breadcrumb={teacherBreadcrumb(page.title)}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <TeacherNav current="guides" />
+
+  <div class="prose">
+    <p>
+      차시 페이지 맨 아래의 교사용 칸(접혀 있는 안내)을 빌드할 때 모아 만든 목록이에요. 지금 차시는 {counts.all}개예요.{' '}
+      {`교과서 원고를 옮긴 차시 ${counts.manuscript}개, 원고 없이 예제 코드를 바탕으로 사이트가 쓴 차시 ${counts.noManuscript}개, 교과서에 없어 사이트가 새로 쓴 차시 ${counts.supplement}개예요.`}
+    </p>
+    <p>
+      차시 이름을 누르면 그 대단원의 지도 요약 페이지에서 안내 전체를 볼 수 있어요. 대단원 페이지는 인쇄하면 차시마다 새 쪽에서 시작해요.
+    </p>
+  </div>
+
+  {
+    learnUnits.map((unit) => {
+      const unitLessons = byUnit.get(unit.unit) ?? [];
+      return (
+        <section class="guide-unit" aria-labelledby={`guide-unit-u${unit.unit}`} data-guide-unit={unit.unit}>
+          <h2 id={`guide-unit-u${unit.unit}`}>{unit.label}</h2>
+          <p class="guide-unit__all">
+            <a href={withBase(guidesUnitPath(unit.unit))}>{unit.label} 지도 요약 전체 보기</a> (차시 {unitLessons.length}개)
+          </p>
+          <ol class="guide-index">
+            {unitLessons.map((lesson) => {
+              const jumps = jumpsOf(lesson);
+              return (
+                <li class="guide-index__item" data-guide-index={lesson.summary.label}>
+                  <h3 class="guide-index__title">
+                    <a href={`${withBase(guidesUnitPath(unit.unit))}#${lesson.idPrefix.slice(0, -1)}`}>{lessonHeading(lesson)}</a>
+                  </h3>
+                  <GuideLessonMeta lesson={lesson} handouts={handoutLinesOf(lesson)} />
+                  {jumps.length > 0 ? (
+                    <p class="guide-index__jumps">
+                      <span class="guide-index__jumps-label">바로 가기:</span>{' '}
+                      {jumps.map((jump, index) => (
+                        <>
+                          {index > 0 && <span aria-hidden="true"> · </span>}
+                          <a href={jump.href}>{jump.label}</a>
+                        </>
+                      ))}
+                    </p>
+                  ) : (
+                    <p class="guide-index__jumps">이 차시에는 아직 교사용 안내가 없어요.</p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      );
+    })
+  }
+</BaseLayout>
+
+<style>
+  .guide-unit {
+    margin-block-start: var(--space-10);
+  }
+
+  .guide-unit h2 {
+    font-size: var(--text-2xl);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .guide-unit__all {
+    margin-block-start: var(--space-2);
+  }
+
+  .guide-index {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .guide-index__item {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+  }
+
+  .guide-index__title {
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+  }
+
+  .guide-index__jumps {
+    margin-block-start: var(--space-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .guide-index__jumps-label {
+    color: var(--color-text-muted);
+  }
+</style>

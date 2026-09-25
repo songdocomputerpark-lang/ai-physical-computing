@@ -1,0 +1,585 @@
+# 교과서 원고 정정 목록 — 교사용 자료실 /teacher/corrections/ (PLAN §8.5 P5-14, INVENTORY §10.4·§10.3)
+#
+# 인쇄된 교과서 원고로 수업하는 선생님이 볼 정오표예요. 사이트의 차시는 이미 바로잡은 글·코드로 옮겼어요.
+# 페이지(src/pages/teacher/corrections/index.astro)가 빌드 때 읽어요. 형식이 틀리면 빌드가 멈추고 한국어로 알려 줘요
+# (검사: src/components/teacher/teacher-data.ts). 차시마다 사이트가 원고와 다르게 쓴 곳 전체는 같은 페이지 아래쪽에
+# 차시 교사용 칸의 "…바꾼 곳"에서 저절로 모여요 — 여기에는 인쇄본에서 고쳐 읽어야 할 곳만 짧게 적어요.
+#
+# 근거: INVENTORY §10.4(Phase 0 원고 정독), 단원 구역의 원고 대조(쪽 그림으로 확인 — .cache/phase5-notes/zone-*.md),
+# 교사용 자료실 구역이 원고 글 층과 쪽 그림으로 다시 확인(2026-09-25). 원고 PDF의 글 층은 역슬래시와 손글씨 숫자 7을 잃고
+# "=="를 "= ="로 보이게 할 때가 있어서, 글 층만으로 오타라고 적지 않아요(191쪽 "= ="는 쪽 그림에서 "=="라 적지 않았어요).
+#
+# 칸
+#   parts[].id        영문 소문자·숫자·하이픈(페이지 안 위치 이름)
+#   parts[].title     묶음 제목
+#   parts[].items[]   page(쪽 — 교과서는 인쇄 쪽 번호, 슬라이드는 "슬라이드 9") · lesson(이 내용을 다루는 차시 번호, 없으면 빼요)
+#                     kind(code 코드 · text 글 · figure 그림 · question 문항과 정답) · original(원고에 적힌 것) · fix(바르게 읽을 것)
+#                     note(선택: 사이트에서 한 일)
+#   code_files[]      교과서·수업 자료의 예제 코드 파일(원본 압축 파일)에서 고칠 곳: code(코드 id — docs/CODE_MAPPING.md) · lesson ·
+#                     problem · site(사이트에서 한 일)
+# 글 안의 `…`는 코드 글꼴로 보여요. 그 밖의 마크다운은 쓰지 않아요.
+
+parts:
+  - id: u1
+    title: I단원 원고(008~051쪽, 112~113쪽, 294쪽)
+    items:
+      - page: "016"
+        lesson: 1-1-2
+        kind: figure
+        original: >-
+          얼굴 랜드마크 번호 그림의 번호는 약 106개인데, 본문은 얼굴 점을 468개라고 설명해요.
+        fix: >-
+          본문의 설명(468개)이 맞아요. 번호 그림은 다른 번호 체계라 함께 보지 않아요.
+        note: >-
+          사이트는 이 번호 그림을 쓰지 않았어요.
+      - page: "017"
+        lesson: 1-1-2
+        kind: code
+        original: >-
+          코드 14행 `hands.process(img_rgb)` — `img_rgb`를 만드는 줄이 없어서 그대로 치면 `NameError`가 나요.
+        fix: >-
+          빈 줄인 13행에 `img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)`를 넣어요.
+        note: >-
+          따라하기는 13행을 채운 사이트판 예제를 써요. 교과서 코드 파일(f026)은 14행이 `hands.process(img)`라 색 순서를 바꾸지 않고 넘겨요.
+      - page: "020"
+        lesson: 1-1-3
+        kind: figure
+        original: >-
+          ESP32 설명 옆의 보드 사진은 교과서 키트의 보드가 아니라 다른 회사 제품이에요.
+        fix: >-
+          키트 보드의 모습은 118쪽 키트 사진과 사이트의 보드 준비 페이지에서 봐요.
+      - page: "023"
+        lesson: 1-1-3
+        kind: text
+        original: >-
+          코드 상자 제목 "MediaPipe와 OpenCV를 활용해 웹캠 영상 출력하기" — 코드는 OpenCV만 써요.
+        fix: >-
+          "웹캠 영상 출력하기"로 읽어요.
+      - page: "023"
+        lesson: 1-1-3
+        kind: code
+        original: >-
+          원고 코드는 29행이고 교과서 코드 파일(f027)은 31행이에요(파일에 빈 줄 두 개가 더 있어요).
+        fix: >-
+          원고 1~22행 = 파일 1~22행, 원고 23행 → 파일 24행, 원고 24~25행 → 파일 26~27행, 원고 26~29행 → 파일 28~31행이에요.
+        note: >-
+          사이트 차시는 실습실에 보이는 파일의 줄 번호를 따라요.
+      - page: "037"
+        lesson: 1-2-2
+        kind: code
+        original: >-
+          46행의 `= =`(등호 사이 띄어쓰기) — 그대로 치면 `SyntaxError`가 나요.
+        fix: >-
+          `==`로 붙여 써요.
+      - page: "037"
+        lesson: 1-2-2
+        kind: text
+        original: >-
+          실행 결과 설명 "손가락 끝에 초록색 점이 표시되고" — 코드에는 점을 그리는 줄이 없어요.
+        fix: >-
+          선만 그려져요.
+      - page: "038"
+        lesson: 1-2-2
+        kind: text
+        original: >-
+          말풍선의 "손가락을 펼쳤을 때만 그림이 그려지고, 초기화, 색상 전환 등으로 확장"과 학습 목표의 "손가락 움직임에 따라 켜고 끄기"는 원고 코드에 없는 기능이에요.
+        fix: >-
+          코드는 d 키로 그리기를 켜고 꺼요.
+        note: >-
+          사이트는 손가락 모양으로 켜고 끄기를 도전 과제로 만들어 보게 했어요.
+      - page: "042"
+        lesson: 1-2-3
+        kind: text
+        original: >-
+          "손가락 관절들의 위치를 절대 좌표로 정밀하게 추출" — 034쪽의 설명(0과 1 사이의 상대 좌표)과 맞지 않아요.
+        fix: >-
+          "상대 좌표를 받아 픽셀 좌표로 바꾼다"로 읽어요.
+      - page: "043"
+        lesson: 1-2-3
+        kind: text
+        original: >-
+          해 보기 제목 "손 좌표 이동과 선 연결 원리 살펴보기"가 1-2-2(037쪽)의 제목과 같아요.
+        fix: >-
+          이 차시의 해 보기는 두 손가락 사이 거리로 조건을 만드는 활동이에요.
+      - page: "045"
+        lesson: 1-2-3
+        kind: text
+        original: >-
+          기본 실습 제목은 "손가락 거리로 선 그리기"인데 도입 문장은 원의 크기를 조절한다고 적혀 있어요.
+        fix: >-
+          기본 실습 코드는 두 손가락 사이에 선과 거리 숫자를 그려요. 원은 심화 실습이에요.
+      - page: "112, 294"
+        lesson: I-마무리
+        kind: question
+        original: >-
+          2번 보기 ④와 294쪽 2번 해설의 "엑추에이터"
+        fix: >-
+          "액추에이터"(외래어 표기법)로 읽어요.
+      - page: "294"
+        lesson: I-마무리
+        kind: question
+        original: >-
+          2번 해설 "기본적으로 환경, 센서, 지능적 처리, 엑추에이터 네 가지 구성 요소를 가진다" — 011쪽은 목표까지 다섯 가지로 설명해요.
+        fix: >-
+          "목표를 이루려고 환경을 센서로 알아차리고, 판단해 액추에이터로 움직이는 시스템"처럼 011쪽과 맞춰 설명해요. 정답(③ 개발자)은 그대로예요.
+      - page: "294"
+        lesson: I-마무리
+        kind: question
+        original: >-
+          8번 예시 답안 `cv2.fiip()`
+        fix: >-
+          `cv2.flip()`이에요.
+      - page: "113"
+        lesson: I-마무리
+        kind: question
+        original: >-
+          11번 코드 6행이 5행보다 한 칸 더 들여 써 있어 그대로 치면 `IndentationError`가 나요.
+        fix: >-
+          6행을 5행과 같은 깊이로 들여 써요.
+
+  - id: u2
+    title: II단원 원고(114~166쪽)
+    items:
+      - page: "116"
+        lesson: 2-1-1
+        kind: text
+        original: >-
+          중단원 성취 계획의 "마이크로파이썬과 ESP32, 아두이노 등을 활용하여" — 아두이노는 본문에서 다루지 않아요.
+        fix: >-
+          II단원 실습은 ESP32와 마이크로파이썬으로 해요.
+      - page: "117"
+        lesson: 2-1-1
+        kind: text
+        original: >-
+          "소형 컴퓨팀 시스템"
+        fix: >-
+          "소형 컴퓨터 시스템"이에요.
+      - page: "122"
+        lesson: 2-1-1
+        kind: text
+        original: >-
+          토니 설정 ❹의 "Targer port"
+        fix: >-
+          "Target port"(보드가 연결된 포트)예요.
+      - page: "127"
+        lesson: 2-1-2
+        kind: code
+        original: >-
+          LCD 화면 제어 함수 목록의 `cd.hide_cursor()`, `lcd.backlight_on`, `lcd.backlight_off`
+        fix: >-
+          `lcd.hide_cursor()`, `lcd.backlight_on()`, `lcd.backlight_off()`처럼 앞의 l과 괄호를 붙여요.
+      - page: "128"
+        lesson: 2-1-2
+        kind: code
+        original: >-
+          `SoftI2C(scl=Pin(22), sda=Pin(21), freq=4000)`
+        fix: >-
+          설명(400kHz)과 코드 파일처럼 `freq=400000`이에요.
+      - page: "128"
+        lesson: 2-1-2
+        kind: text
+        original: >-
+          실행 결과 설명 "LCD 화면에 'Counter:' 문자는 고정되어 출력된다" — 이 코드가 LCD에 쓰는 글자는 `Count: `예요.
+        fix: >-
+          "Count:"로 읽어요.
+      - page: "129"
+        lesson: 2-1-2
+        kind: code
+        original: >-
+          17번 줄 끝에서 다음 줄 `format` 앞의 `.`이 빠졌어요.
+        fix: >-
+          코드 파일처럼 `"{:02}:{:02}:{:02}".` 뒤에서 줄을 바꾸고 다음 줄에 `format(t[4], t[5], t[6])`을 써요(줄을 이을 때는 끝에 `\`).
+      - page: "132"
+        lesson: 2-1-3
+        kind: text
+        original: >-
+          곁글 "I2C와 SPI"의 "통식 방식", 그리고 SPI 설명이 빠져 있어요.
+        fix: >-
+          "통신 방식"이에요. SPI는 신호선 4개로 더 빠르게 주고받는 방식이에요(사이트 2-1-3의 참고 상자에 보탰어요).
+      - page: "135"
+        lesson: 2-1-3
+        kind: code
+        original: >-
+          `from sh1106 import SHII06_I2C`
+        fix: >-
+          `SH1106_I2C`(숫자 1, 1, 0, 6)예요.
+      - page: "136"
+        lesson: 2-1-3
+        kind: figure
+        original: >-
+          프랙탈(시에르핀스키 삼각형) 도식의 밑변에 "64"라고 적혀 있어요.
+        fix: >-
+          실제로 그려지는 밑변의 너비는 약 128점이에요.
+      - page: "137"
+        lesson: 2-1-3
+        kind: code
+        original: >-
+          `from time import slee`
+        fix: >-
+          `from time import sleep`이에요.
+      - page: "137~139"
+        lesson: 2-1-3
+        kind: code
+        original: >-
+          4채널 터치 판정 구간이 쪽마다 달라요. 137쪽은 300~800, 1000~1600, 1800~2400, 3000~4200이고, 138쪽 코드(코드 파일 f058과 같음)는 1000~1200, 2000~2500, 3500~4000, 4000~4200이에요. 138쪽 구간은 139쪽 측정값(688, 1535, 2381, 3263)을 맞히지 못해요.
+        fix: >-
+          139쪽 측정값을 모두 맞히는 구간은 137쪽과 152쪽(500~800, 1000~1700, 2000~2500, 3000~3500) 구간이에요.
+        note: >-
+          사이트판 예제는 여유가 더 큰 152쪽 구간으로 고쳤어요.
+      - page: "146"
+        lesson: 2-1-4
+        kind: text
+        original: >-
+          12번 줄 옆 설명이 말하는 `traffic_state` 리스트(초록 → 깜빡이는 초록 → 빨강 → 파랑)는 코드에 없어요.
+        fix: >-
+          코드는 레이저를 켜고 빨간 LED를 1초, 레이저를 끄고 파란 LED를 1초씩 되풀이해요. 설명의 리스트는 없는 것으로 읽어요.
+      - page: "149"
+        lesson: 2-1-5
+        kind: code
+        original: >-
+          동작 테스트 코드의 첫 반복문에 `np.write()`가 없어서 "순차적으로 점등"이 보이지 않아요(교과서 코드 파일 f064도 같아요).
+        fix: >-
+          첫 반복문 안, 색을 넣은 줄 다음에 `np.write()`를 넣어요.
+        note: >-
+          사이트판 예제는 11번째 줄에 `np.write()`를 더했어요.
+      - page: "158"
+        lesson: 2-2-1
+        kind: text
+        original: >-
+          19번 줄 설명 "음 크기, 출력음 크기를 설정하는 함수(출력음 크기는 0~1023까지 조절 가능)"
+        fix: >-
+          `duty()`는 켜진 시간의 비율을 정해요. 512 근처에서 가장 크게 들리고, 소리의 크기를 곧바로 정하는 값은 아니에요.
+      - page: "159"
+        lesson: 2-2-1
+        kind: code
+        original: >-
+          심화 단계 1 "터치 센서 동작 테스트" 코드 — 7번 줄 `print`의 닫는 괄호가 없고, 8번 줄 들여쓰기가 어긋나요.
+        fix: >-
+          7번 줄은 `print("touch value:", touch.value())`, 8번 줄 `sleep(0.2)`는 7번 줄과 같은 깊이로 써요.
+      - page: "162~164"
+        lesson: 2-2-2
+        kind: text
+        original: >-
+          코드 설명의 "'p1=0x00'는 피드백 받지 않음"
+        fix: >-
+          피드백 설정은 명령의 다섯째 바이트(`command[4]`)이고, p1과 p2는 값(예: 곡 번호)의 앞 칸과 뒤 칸이에요.
+      - page: "163"
+        lesson: 2-2-2
+        kind: text
+        original: >-
+          에러 체크 포인트 표의 `NoSoundError`, `NoResponseError`, `TrackNotFoundError`
+        fix: >-
+          MicroPython의 오류 이름이 아니라 증상에 붙인 이름이에요. 실제로는 오류 메시지 없이 소리가 나지 않아요.
+      - page: "164"
+        lesson: 2-2-2
+        kind: code
+        original: >-
+          33번 줄 비교 부등호 기호의 글꼴이 섞여 있어요.
+        fix: >-
+          코드 파일처럼 `<`로 써요.
+
+  - id: u2c
+    title: II단원 원고(167~181쪽)
+    items:
+      - page: "169"
+        lesson: 2-2-3
+        kind: code
+        original: >-
+          `GORILLACELL_DEMOTORS`와 저장 파일 이름 `gorillacell_dcmotor.py`
+        fix: >-
+          `GORILLACELL_DCMOTORS`, `gorillacell_dcmotors.py`예요. 파일 이름이 다르면 보드에서 `ImportError`가 나요.
+      - page: "171"
+        lesson: 2-2-3
+        kind: code
+        original: >-
+          15번 줄 `else: cmd == '0':`, 13번 줄 `print('[Fan] on (CW, speed =)')`, 23번 줄 `else` 뒤 콜론 빠짐
+        fix: >-
+          `elif cmd == '0':`, `speed = 100`을 적은 글, `else:`로 써요(코드 파일과 같음).
+      - page: "172"
+        lesson: 2-2-3
+        kind: text
+        original: >-
+          심화 실습 제목 "키도드로 회전 속도 조절하기", 단계 3 제목의 "터치 센서"
+        fix: >-
+          "키보드로"예요. 이 코드는 터치 센서를 쓰지 않아요.
+      - page: "173"
+        lesson: 2-2-4
+        kind: text
+        original: >-
+          프로그램 개요의 "터치 센서" — 서보모터 실습 코드에는 터치 센서가 없어요.
+        fix: >-
+          입력은 키보드(콘솔 입력)예요.
+      - page: "176"
+        lesson: 2-2-4
+        kind: text
+        original: >-
+          "0.1초 간격으로 1도씩" — 코드는 `time.sleep(0.01)`이고, 라이브러리가 움직일 때마다 0.5초를 기다려요.
+        fix: >-
+          실제로는 한 걸음에 약 0.51초가 걸려 0도에서 180도까지 약 92초가 걸려요.
+      - page: "177"
+        lesson: 2-2-4
+        kind: text
+        original: >-
+          "두 서보모터는 동시에 회전"
+        fix: >-
+          `rotate()`가 끝날 때까지 기다리므로 두 서보는 약 0.5초 차이로 움직여요.
+      - page: "177, 178"
+        lesson: 2-2-4
+        kind: text
+        original: >-
+          1번 줄 설명 "Pin 모듈과 PWM 모듈 불러오기" — 코드는 `Pin`만 불러와요.
+        fix: >-
+          "Pin 모듈 불러오기"로 읽어요. PWM은 `servo_library.py` 안에서 써요.
+      - page: "181"
+        lesson: II-마무리
+        kind: question
+        original: >-
+          12번 코드 `neopixel.NeoPixel(machine, Pin(5), …)`, `for i in range(np, n):`
+        fix: >-
+          `neopixel.NeoPixel(machine.Pin(5), …)`, `for i in range(np.n):`이에요.
+      - page: "181"
+        lesson: II-마무리
+        kind: question
+        original: >-
+          13번 코드의 줄 번호가 1~7 뒤에 4, 5, 6으로 다시 시작해요.
+        fix: >-
+          줄 번호만 잘못 찍힌 조판 오류라 번호를 무시하고 읽어요.
+
+  - id: u3
+    title: III단원 원고(185~209쪽)
+    items:
+      - page: "185"
+        lesson: 3-1-1
+        kind: text
+        original: >-
+          표의 "숫자 '1'"과 곁글 "아스키코드 — 문자를 숫자로 표현하는 국제 표준"
+        fix: >-
+          따옴표가 있으면 글자처럼 읽히니 "숫자 1"로 읽어요. 아스키(ASCII)는 미국 표준에서 나온 이름이라 "표준"으로 읽어요.
+      - page: "186"
+        lesson: 3-1-1
+        kind: code
+        original: >-
+          `b. send ('f{finger_x}, {finger_y}\n')` — f가 따옴표 안에 있어 좌표 대신 글자 그대로 보내져요.
+        fix: >-
+          `b.send(f"{finger_x},{finger_y}\n")`이에요.
+      - page: "188"
+        lesson: 3-1-1
+        kind: text
+        original: >-
+          표의 "시리얼 통신 | bleak 라이브러리 사용"
+        fix: >-
+          시리얼 통신은 pyserial(`import serial`)을 써요. bleak는 블루투스 통신에 써요.
+      - page: "189"
+        lesson: 3-1-2
+        kind: text
+        original: >-
+          개요의 "'face detection', 'none'과 같은 메시지를 시리얼로 받아"
+        fix: >-
+          코드가 실제로 보내는 것은 한 글자 `a`(얼굴 있음)와 `b`(얼굴 없음)예요.
+      - page: "190"
+        lesson: 3-1-2
+        kind: code
+        original: >-
+          `UART(2, baudrate=115200, tx=16, rx=17)` — 같은 쪽 주석(TX 17번, RX 16번)과 배선 그림(변환기 TX → GPIO16)과 방향이 반대예요.
+        fix: >-
+          주석과 그림에 맞추면 `tx=17, rx=16`이에요. 실물 키트로 확인하기 전이라 사이트판 예제에 표시해 두었어요.
+      - page: "191"
+        lesson: 3-1-2
+        kind: code
+        original: >-
+          boot.py 저장 화면의 코드는 `import time`만 하고 `sleep(1)`을 불러요 — 'a'나 'b'를 받는 순간 `NameError`가 나요.
+        fix: >-
+          190쪽처럼 `from time import sleep`으로 써요.
+      - page: "193"
+        lesson: 3-1-2
+        kind: code
+        original: >-
+          포트 이름 `'COM5'`(교과서 코드 파일은 `'COM10'`)
+        fix: >-
+          컴퓨터마다 달라요. 장치 관리자에서 USB-UART 변환기의 COM 번호를 확인해 적어요.
+      - page: "194"
+        lesson: 3-1-2
+        kind: code
+        original: >-
+          심화 코드 49번 줄 `ser.close()` — 시리얼 객체의 이름은 `uart`라 끝낼 때 `NameError`가 나요.
+        fix: >-
+          `uart.close()`예요.
+        note: >-
+          사이트는 이 줄을 오류 고치기 활동으로 썼어요.
+      - page: "196~197"
+        lesson: 3-1-3
+        kind: code
+        original: >-
+          `Pin(25, Pin, OUT)`, 26번·27번 핀의 변수 이름이 둘 다 `e`, 세 줄의 주석이 모두 "빨간 LED", 초록 분기 28번 줄의 `led[0].off()`
+        fix: >-
+          `Pin(25, Pin.OUT)`, 변수 이름 `g`(26번)와 `b`(27번), 주석은 빨강·초록·파랑, 28번 줄은 `led[1].off()`예요(교과서 코드 파일은 바르게 되어 있어요).
+      - page: "198"
+        lesson: 3-1-3
+        kind: figure
+        original: >-
+          bleak 설치 화면 — 창 제목을 보면 설치 대상이 MicroPython 장치(보드)로 되어 있어요.
+        fix: >-
+          bleak는 컴퓨터의 파이썬(Local Python 3)에 설치해요.
+      - page: "199~200"
+        lesson: 3-1-3
+        kind: code
+        original: >-
+          `cv2.cvtcolor`, `resulte`, `firger_point`, 46·48번 줄 `{finger_y]`, 200쪽 62번 줄 `if cv2.waitkey(1) = = 27:`
+        fix: >-
+          `cv2.cvtColor`, `results`, `finger_point`, `{finger_y}`, `if cv2.waitKey(1) == 27:`이에요(교과서 코드 파일은 바르게 되어 있어요).
+      - page: "204, 206"
+        lesson: 3-1-4
+        kind: text
+        original: >-
+          코드 설명 "5초 대기 후 'q' 키 입력 시 종료"
+        fix: >-
+          `waitKey(5)`는 5밀리초(0.005초) 기다려요.
+      - page: "208"
+        lesson: III-마무리
+        kind: question
+        original: >-
+          2번 보기 ① "저장 방식이 다르다"와 ④ "아스키코드 값이 서로 다르다"가 둘 다 맞는 답으로 읽혀요(원고에는 III단원 마무리의 정답이 없어요).
+        fix: >-
+          숫자 1은 값 1 그대로, 문자 '1'은 아스키코드 49로 저장돼요. 사이트는 ④를 정답으로 두고, ①을 "화면에 보이는 모양이 다르다"로, ④를 "컴퓨터 안에 저장되는 값(바이트)이 서로 다르다"로 바꿨어요.
+      - page: "209"
+        lesson: III-마무리
+        kind: question
+        original: >-
+          12번 코드 5번 줄 `print(x, y)` 앞의 들여쓰기 — 그대로 치면 `IndentationError`가 나요.
+        fix: >-
+          앞 줄과 같은 깊이로 써요.
+
+  - id: ppt
+    title: PyAutoGUI 수업 슬라이드
+    items:
+      - page: 슬라이드 9
+        lesson: P1
+        kind: code
+        original: >-
+          `pyautogui.moveRel(50, 50)`
+        fix: >-
+          함께 받은 코드 파일은 `moveTo(50, 50, duration=1)`이에요. 둘의 차이(상대 이동과 절대 이동)를 견줘 보게 했어요.
+      - page: 슬라이드 10
+        lesson: P1
+        kind: code
+        original: >-
+          `dragRel(-50, -50, duration=1)` 줄
+        fix: >-
+          코드 파일에는 없는 줄이에요.
+      - page: 슬라이드 20
+        lesson: P1
+        kind: code
+        original: >-
+          슬라이드는 `pyautogui.press('enter')`인데 코드 파일의 마지막 줄은 `pyautogui.enter('enter')`예요.
+        fix: >-
+          `press('enter')`가 맞아요. `enter`라는 함수는 없어 진짜 PC에서도 `AttributeError`가 나요.
+
+code_files:
+  - code: f026
+    lesson: 1-1-2
+    problem: >-
+      카메라 사진(BGR)을 RGB로 바꾸지 않고 `hands.process()`에 넘겨요(원고의 BGR → RGB 설명과 달라요).
+    site: >-
+      사이트판 예제가 빈 13행에 색 순서를 바꾸는 줄을 채워요.
+  - code: f041
+    lesson: 1-4-1
+    problem: >-
+      `left_wrist_y`를 사람이 잡힌 장면에서만 만들어서, 첫 장면에 사람이 없으면 46행 비교에서 `NameError`가 나요.
+    site: >-
+      사이트판 예제가 빈 15행에 `left_wrist_y = 1.0`을 넣어요.
+  - code: f050
+    lesson: 2-1-2
+    problem: >-
+      12행 `lcd.move_to(0, 0)` — 자료의 `i2c_lcd.py`에는 같은 일을 하는 `setcursor`만 있어 `AttributeError`가 나요.
+    site: >-
+      사이트가 싣는 `i2c_lcd.py`에 `move_to`라는 이름을 더했어요. 보드에 교과서판 `i2c_lcd.py`가 있으면 사이트판으로 바꿔 올려요.
+  - code: f062
+    lesson: 2-1-4
+    problem: >-
+      초록 핀 줄이 없고 `set_color`가 값을 2개만 받아, 18번 줄에서 `TypeError`로 멈춰요(원고 146쪽 코드는 정상).
+    site: >-
+      사이트판 예제가 원고처럼 초록 핀 줄과 값 3개를 받는 `set_color`를 더했어요.
+  - code: f074
+    lesson: 2-2-3
+    problem: >-
+      줄마다 원고의 줄 번호가 글자로 섞여 1번 줄에서 `SyntaxError`가 나요.
+    site: >-
+      사이트판 예제는 줄 번호만 떼었어요.
+  - code: f075~f077
+    lesson: 2-2-3
+    problem: >-
+      자료의 팬 라이브러리(f004)에는 `speed` 인자가 없어서 `rotate('cw', speed=…)`에서 `TypeError`가 나요.
+    site: >-
+      원고 169쪽 화면대로 속도를 받는 라이브러리(`gorillacell_dcmotors.py`)를 복원해 가상 보드와 실제 보드에 넣어 줘요.
+  - code: f082
+    lesson: 3-1-2
+    problem: >-
+      `import time`만 하고 `sleep(1)`을 불러 'a'나 'b'를 받는 순간 `NameError`가 나요. TX/RX 방향은 원고 190쪽과 같아요(위 190쪽 참고).
+    site: >-
+      사이트판 예제가 두 줄을 고쳤어요(줄 끝 `# [사이트판]`).
+  - code: f083
+    lesson: 3-1-2
+    problem: >-
+      boot.py판 코드의 4번 줄 `Pin(18, PinOUT)` — 실행하자마자 `NameError`로 멈춰요(원고 191쪽은 `Pin.OUT`).
+    site: >-
+      원본 그대로 두어 오류를 찾아 고치는 활동으로 쓸 수 있어요. 바르게는 `Pin(18, Pin.OUT)`이에요.
+  - code: f085
+    lesson: 3-1-2
+    problem: >-
+      마지막 줄 `ser.close()` — 끝낼 때 `NameError`가 나요(원고 194쪽과 같음).
+    site: >-
+      오류 고치기 활동으로 그대로 두었어요.
+  - code: f086
+    lesson: 3-1-3
+    problem: >-
+      주석의 핀 번호(27, 32, 33)가 코드(25, 26, 27)와 달라요.
+    site: >-
+      교과서 회로(196쪽)와 같은 코드의 25, 26, 27이 맞아요.
+  - code: f089
+    lesson: 3-1-3
+    problem: >-
+      원고는 값이 바뀔 때만 보내라고 설명하지만, 코드는 손이 보이면 장면마다 보내요.
+    site: >-
+      "바뀔 때만 보내기"를 도전 과제로 해 보게 했어요.
+  - code: f110, f111, f115
+    lesson: 4-2-2
+    problem: >-
+      레이저를 끄는 줄(`laser.value(0)`)이 주석으로 막혀 있어, 한 번 켜진 레이저가 계속 켜져 있어요.
+    site: >-
+      사이트판 예제는 끄는 줄을 살렸어요(레이저 안전).
+  - code: f113
+    lesson: 4-2-2
+    problem: >-
+      레이저를 켜는 줄만 있고 끄는 코드가 아예 없어요.
+    site: >-
+      사이트판 예제는 2초 뒤에 끄는 규칙을 넣었어요.
+  - code: f111, f113
+    lesson: 4-2-2
+    problem: >-
+      첫 줄 `import ESP32BLE_LIB` — 자료에 없는 파일 이름이라 불러오기 오류가 나요(실물은 `ImportError`, 가상 보드는 `ModuleNotFoundError`).
+    site: >-
+      사이트판 예제는 `ESP32BLE`를 불러요. 오류 사전에 같은 풀이가 있어요.
+  - code: f123
+    lesson: 1-4-1
+    problem: >-
+      39행 `cv2.destoyAllWindows()` 오타 — ESC로 끝낼 때 `AttributeError`가 나요.
+    site: >-
+      오류 읽기 연습으로 그대로 두었어요.
+  - code: f022
+    lesson: P1
+    problem: >-
+      세 번 움직인 거리의 합이 0이라 같은 자리에 삼각형을 다섯 번 그려요(제목은 별 그리기).
+    site: >-
+      별이 그려지는 사이트판 예제(06-draw-star-site.py)를 함께 두었어요.
+  - code: f024
+    lesson: P1
+    problem: >-
+      마지막 줄 `pyautogui.enter('enter')` — 없는 함수라 `AttributeError`가 나요.
+    site: >-
+      오류 읽기 활동으로 썼어요. 바르게는 `pyautogui.press('enter')`예요.
+  - code: f136
+    lesson: C3
+    problem: >-
+      수업 교안 계단 9(접혀 있는 손가락 감지하기) — 손가락을 세는 부분이 손마다 도는 반복문 밖에 있어서, 손을 여럿 찾게 바꾸면 마지막으로 찾은 손만 세어요(지금은 `max_num_hands=1`이라 문제없어요).
+    site: >-
+      보충 C3의 예제는 손마다 따로 세어 더해요(C3 핵심 개념의 참고 상자).

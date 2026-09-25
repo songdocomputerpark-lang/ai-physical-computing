@@ -1,0 +1,242 @@
+---
+/**
+ * 차시별 지도 요약 — 대단원 한 개(/teacher/guides/u1/ … u4/)(PLAN §8.5 P5-14).
+ *
+ * 그 대단원의 모든 차시 md에서 "## 교사용" 칸의 :::교사용 접기를 빌드 때 꺼내 차시 순서대로 펼쳐 보인다
+ * (지도안 요약 · 평가 포인트 · 자주 막히는 곳 · 원고에서 바꾼 곳 …). 손으로 옮겨 적은 글이 없어서
+ * 새 차시 md를 넣거나 교사용 칸을 고치면 코드 수정 없이 이 페이지가 따라 바뀐다(SPEC 원칙 6).
+ * 꺼내는 규칙과 id·#링크 바꾸기는 src/components/teacher/teacher-guides.ts.
+ *
+ * 사이트 검색: 차시 페이지에서는 교사용 접기가 검색에서 빠지고(remark-boxes.mjs) 자료실에서 색인된다.
+ * 단, 대단원 마무리의 교사용 안내에는 정답 표가 들어 있어 학생 검색 결과에 보이지 않게 색인에서 뺀다.
+ */
+import { getCollection } from 'astro:content';
+import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
+import GuideLessonMeta from '../../../components/teacher/GuideLessonMeta.astro';
+import TeacherNav from '../../../components/teacher/TeacherNav.astro';
+import { handoutLinesOf } from '../../../components/teacher/handout-files.ts';
+import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, type TeacherLesson } from '../../../components/teacher/teacher-lessons.ts';
+import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
+import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
+
+export async function getStaticPaths() {
+  const lessons = buildTeacherLessons(await getCollection('lessons'));
+  const byUnit = lessonsByUnit(lessons);
+  return learnUnits.map((unit) => ({
+    params: { unit: `u${unit.unit}` },
+    props: { unit, lessons: byUnit.get(unit.unit) ?? [] },
+  }));
+}
+
+interface Props {
+  unit: LearnUnit;
+  lessons: TeacherLesson[];
+}
+
+const { unit, lessons } = Astro.props;
+const guides = getTeacherPage('guides');
+const title = `${unit.label} 지도 요약`;
+const description = `${unit.label}의 차시마다 교사용 안내(지도안 요약, 평가 포인트, 자주 막히는 곳, 원고에서 바꾼 곳)를 한 페이지에 모았어요.`;
+const otherUnits = learnUnits.filter((candidate) => candidate.unit !== unit.unit);
+const anchorOf = (lesson: TeacherLesson): string => lesson.idPrefix.slice(0, -1);
+const withGuide = lessons.filter((lesson) => lesson.guide);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  width="narrow"
+  breadcrumb={teacherBreadcrumb(unit.label, [{ label: guides.title, href: guides.href }])}
+>
+  <h1 class="page-title">{title}</h1>
+  <p class="lead">{description}</p>
+  <TeacherNav current="guides" />
+
+  <div class="prose">
+    <p>
+      차시 페이지의 교사용 칸을 빌드할 때 그대로 모았어요. 차시를 고치면 이 페이지도 함께 바뀌어요. 지도안의 흐름과 시간은 사이트가 제안하는
+      것이니 반과 학교 사정에 맞게 바꿔 쓰세요. 차시 {lessons.length}개 가운데 교사용 안내가 있는 차시는 {withGuide.length}개예요.
+    </p>
+  </div>
+
+  <nav class="guide-toc" aria-labelledby="guide-toc-title" id="guide-toc" data-pagefind-ignore>
+    <h2 id="guide-toc-title" class="guide-toc__title">이 페이지의 차시</h2>
+    <ol class="guide-toc__list">
+      {
+        lessons.map((lesson) => (
+          <li>
+            <a href={`#${anchorOf(lesson)}`}>{lessonHeading(lesson)}</a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  {
+    lessons.map((lesson) => {
+      const anchor = anchorOf(lesson);
+      const answerKeys = lesson.summary.kind === 'review';
+      return (
+        <article class="guide" aria-labelledby={anchor} data-guide-lesson={lesson.summary.label}>
+          <h2 id={anchor} class="guide__title">
+            <span class="guide__label">{lesson.summary.label}</span>{' '}
+            {lesson.summary.kind === 'supplement' && <span class="guide__kind">보충</span>}
+            {lesson.summary.kind === 'reading' && <span class="guide__kind">읽기 자료</span>}
+            {(lesson.summary.kind === 'supplement' || lesson.summary.kind === 'reading') && ' '}
+            <span>{lesson.summary.title}</span>
+          </h2>
+          <GuideLessonMeta lesson={lesson} handouts={handoutLinesOf(lesson)} />
+          {lesson.guide ? (
+            <div class="guide__body prose" data-pagefind-ignore={answerKeys ? '' : undefined} data-guide-body>
+              <GlossaryScope id={anchor}>
+                <Fragment set:html={lesson.guide.html} />
+              </GlossaryScope>
+            </div>
+          ) : (
+            <p class="guide__empty" data-guide-empty>
+              이 차시에는 아직 교사용 안내가 없어요.
+            </p>
+          )}
+          <p class="guide__links" data-pagefind-ignore>
+            <a href={`${lesson.summary.href}#교사용`}>차시 페이지의 교사용 칸에서 보기</a>
+            <span aria-hidden="true"> · </span>
+            <a href={lesson.summary.href}>차시 페이지 열기</a>
+            <span aria-hidden="true"> · </span>
+            <a href="#guide-toc">이 페이지의 차시 목록으로</a>
+          </p>
+        </article>
+      );
+    })
+  }
+
+  <section class="guide-more" aria-labelledby="guide-more-title" data-pagefind-ignore>
+    <h2 id="guide-more-title">다른 대단원의 지도 요약</h2>
+    <ul>
+      {
+        otherUnits.map((other) => (
+          <li>
+            <a href={withBase(guidesUnitPath(other.unit))}>{other.label}</a>
+          </li>
+        ))
+      }
+      <li>
+        <a href={guides.href}>모든 차시 한눈에 보기</a>
+      </li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<script>
+  import { installCollapsibleHelpers } from '../../../components/lesson/details.ts';
+
+  // 인쇄할 때 접힌 상자를 펼치고, 주소의 #위치가 접힌 상자 안이면 펼친다(차시 페이지와 같은 도우미).
+  installCollapsibleHelpers();
+</script>
+
+<style>
+  .guide-toc {
+    max-width: var(--width-prose);
+    margin-block: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .guide-toc__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .guide-toc__list {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .guide-toc__list a {
+    display: block;
+    padding-block: var(--space-1);
+  }
+
+  .guide {
+    margin-block-start: var(--space-12);
+    padding-block-start: var(--space-4);
+    border-block-start: 3px solid var(--color-accent-soft);
+  }
+
+  .guide__title {
+    font-size: var(--text-2xl);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .guide__label {
+    color: var(--color-accent-hover);
+  }
+
+  .guide__kind {
+    display: inline-block;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: 0.6em;
+    vertical-align: 0.25em;
+  }
+
+  .guide__body {
+    margin-block-start: var(--space-4);
+  }
+
+  /* 모은 글의 ### 제목(지도안 요약, 평가 포인트 …) — 차시 제목(h2)보다 작게 */
+  .guide__body :global(h3) {
+    margin-block-start: var(--space-6);
+    font-size: var(--text-lg);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .guide__body :global(table) {
+    width: 100%;
+  }
+
+  .guide__empty {
+    margin-block-start: var(--space-4);
+    color: var(--color-text-muted);
+  }
+
+  .guide__links {
+    margin-block-start: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .guide-more {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-12);
+  }
+
+  .guide-more h2 {
+    font-size: var(--text-xl);
+  }
+
+  .guide-more ul {
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  @media print {
+    .guide-toc,
+    .guide__links,
+    .guide-more {
+      display: none;
+    }
+
+    .guide {
+      break-before: page;
+    }
+  }
+</style>

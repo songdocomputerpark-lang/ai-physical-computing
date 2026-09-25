@@ -1,0 +1,50 @@
+---
+/**
+ * 교사용 자료실의 마크다운 글(markdown-docs.ts가 읽은 HTML)을 차시 본문과 같은 모양으로 그린다.
+ * - 사이트 뿌리 주소(/start/board/, /images/…)에 base를 붙이고 그림은 늦게 받는다(lesson-html.ts — 차시 페이지와 같은 처리)
+ * - :용어[…] 표시 자리는 GlossaryScope가 용어 링크와 풀이로 바꾼다
+ * - 표·코드 상자·:::상자 모양은 전역 스타일(.prose, boxes.css)을 따른다
+ *
+ * props
+ *   html   마크다운에서 나온 HTML
+ *   scope  용어 풀이 범위 이름(영문 소문자·숫자·하이픈)
+ */
+import { addLazyImageLoading, rewriteRootRelativeUrls } from '../lesson/lesson-html.ts';
+import GlossaryScope from '../glossary/GlossaryScope.astro';
+
+interface Props {
+  html: string;
+  scope: string;
+}
+
+const { html, scope } = Astro.props;
+const prepared = rewriteRootRelativeUrls(addLazyImageLoading(html));
+for (const warning of prepared.warnings) {
+  console.warn(`[교사용 자료실] ${warning}`);
+}
+---
+
+<div class="teacher-doc prose" data-teacher-doc={scope}>
+  <GlossaryScope id={scope}>
+    <Fragment set:html={prepared.html} />
+  </GlossaryScope>
+</div>
+
+<style>
+  .teacher-doc :global(h2) {
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .teacher-doc :global(h3) {
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .teacher-doc :global(table) {
+    width: 100%;
+  }
+
+  .teacher-doc :global(td code),
+  .teacher-doc :global(th code) {
+    overflow-wrap: anywhere;
+  }
+</style>

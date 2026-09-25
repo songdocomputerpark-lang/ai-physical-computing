@@ -1,0 +1,386 @@
+---
+/**
+ * 교과서 원고 정정 목록(/teacher/corrections/)(PLAN §8.5 P5-14, INVENTORY §10.4·§10.3).
+ *
+ * 1. 인쇄된 원고에서 고쳐 읽을 곳(정오표): content/teacher/corrections.yaml(사람이 적는 목록 — 쪽 그림으로 확인한 것만)
+ * 2. 교과서 코드 파일(원본 압축 파일)에서 고칠 곳: 같은 파일의 code_files
+ * 3. 차시마다 사이트가 원고와 다르게 쓴 곳: 차시 교사용 칸의 "…바꾼 곳"·"…코드 파일"·"…쓴 근거" 부분을 빌드 때 모은다(teacher-guides.ts의 isChangeSection).
+ *    새 차시에 "### 원고에서 바꾼 곳"을 적으면 코드 수정 없이 여기 들어온다. 지도 요약 페이지와 같은 글이라 사이트 검색 색인에서는 빼고,
+ *    단원마다 <details>로 접는다(#위치로 오면 details.ts의 installCollapsibleHelpers가 펼친다, 인쇄하면 모두 펼친다).
+ */
+import { getCollection } from 'astro:content';
+import Callout from '../../../components/common/Callout.astro';
+import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
+import TeacherNav from '../../../components/teacher/TeacherNav.astro';
+import { loadCorrections } from '../../../components/teacher/teacher-data.ts';
+import { CORRECTION_KIND_LABELS, formatInline } from '../../../components/teacher/teacher-data-schema.ts';
+import {
+  buildTeacherLessons,
+  changeSectionsOf,
+  guidesUnitPath,
+  lessonHeading,
+  lessonsByUnit,
+  type TeacherLesson,
+} from '../../../components/teacher/teacher-lessons.ts';
+import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
+import { getPage, learnUnits } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
+
+const page = getTeacherPage('corrections');
+const corrections = loadCorrections();
+const lessons = buildTeacherLessons(await getCollection('lessons'));
+const lessonByLabel = new Map(lessons.map((lesson) => [lesson.summary.label.toLowerCase(), lesson]));
+const findLesson = (label: string | undefined): TeacherLesson | undefined => (label ? lessonByLabel.get(label.toLowerCase()) : undefined);
+for (const label of [...corrections.parts.flatMap((part) => part.items.map((item) => item.lesson)), ...corrections.codeFiles.map((item) => item.lesson)]) {
+  if (label && !findLesson(label)) {
+    console.warn(`[교사용 자료실] content/teacher/corrections.yaml의 차시 "${label}"를 차시 목록에서 찾지 못했어요(링크 없이 글자만 보여요).`);
+  }
+}
+const byUnit = lessonsByUnit(lessons);
+const changeCount = lessons.filter((lesson) => changeSectionsOf(lesson).length > 0).length;
+const itemCount = corrections.parts.reduce((sum, part) => sum + part.items.length, 0);
+const contribute = getPage('contribute');
+const errorsPage = getPage('help-errors');
+
+/** 원고 쪽 글자: "017" → "017쪽", "슬라이드 9"는 그대로 */
+const pageLabel = (value: string): string => (/^[\d~,\s]+$/u.test(value) ? `${value}쪽` : value);
+/** 새 id: 차시 앞머리 + "change" */
+const changeAnchor = (lesson: TeacherLesson): string => `${lesson.idPrefix}change`;
+/** 모은 부분에서 맨 앞의 <h3>…</h3>(부분 제목)를 뗀다 — 이 페이지는 차시 제목을 제목으로 쓴다 */
+const withoutHeading = (html: string): string => html.replace(/^\s*<h3\b[^>]*>[\s\S]*?<\/h3>/iu, '');
+---
+
+<BaseLayout title={page.title} description={page.description} width="narrow" breadcrumb={teacherBreadcrumb(page.title)}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <TeacherNav current="corrections" />
+
+  <div class="prose">
+    <p>
+      인쇄된 교과서 원고로 수업할 때 고쳐 읽을 곳이에요. 사이트의 차시에는 이미 바로잡은 글과 코드를 실었어요. 원고 쪽을 크게 보고 확인한 것만
+      적었어요.
+    </p>
+    <p>
+      원고에서 고쳐 읽을 곳은 지금 {itemCount}곳이에요. 목록에 없는 오류를 찾으면 <a href={contribute.href}>{contribute.title}</a>의 방법으로 알려
+      주세요. 코드를 치다 나는 오류는 <a href={errorsPage.href}>{errorsPage.title}</a>에서도 풀이를 볼 수 있어요.
+    </p>
+  </div>
+
+  <nav class="corr-toc" aria-labelledby="corr-toc-title" data-pagefind-ignore>
+    <h2 id="corr-toc-title" class="corr-toc__title">이 페이지의 내용</h2>
+    <ol>
+      {
+        corrections.parts.map((part) => (
+          <li>
+            <a href={`#corr-${part.id}`}>{part.title}</a> ({part.items.length}곳)
+          </li>
+        ))
+      }
+      <li><a href="#code-files">교과서 코드 파일에서 고칠 곳</a> ({corrections.codeFiles.length}곳)</li>
+      <li><a href="#lesson-changes">차시마다 사이트가 원고와 다르게 쓴 곳</a> (차시 {changeCount}개)</li>
+    </ol>
+  </nav>
+
+  {
+    corrections.parts.map((part) => (
+      <section class="corr-part" aria-labelledby={`corr-${part.id}`} data-corrections-part={part.id}>
+        <h2 id={`corr-${part.id}`}>{part.title}</h2>
+        <ul class="corr-list">
+          {part.items.map((item) => {
+            const lesson = findLesson(item.lesson);
+            return (
+              <li class="corr-item" data-correction-page={item.page}>
+                <p class="corr-item__head">
+                  <strong>{pageLabel(item.page)}</strong>
+                  <span class="corr-item__kind">{CORRECTION_KIND_LABELS[item.kind]}</span>
+                  {item.lesson && (
+                    <span class="corr-item__lesson">
+                      {lesson ? <a href={lesson.summary.href}>{lessonHeading(lesson)}</a> : item.lesson}
+                    </span>
+                  )}
+                </p>
+                <p class="corr-item__line">
+                  <span class="corr-item__label">원고</span> <span set:html={formatInline(item.original)} />
+                </p>
+                <p class="corr-item__line">
+                  <span class="corr-item__label corr-item__label--fix">바르게</span> <span set:html={formatInline(item.fix)} />
+                </p>
+                {item.note && (
+                  <p class="corr-item__line corr-item__line--note">
+                    <span class="corr-item__label corr-item__label--note">사이트</span> <span set:html={formatInline(item.note)} />
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+
+  <section class="corr-part" aria-labelledby="code-files" data-corrections-code-files>
+    <h2 id="code-files">교과서 코드 파일에서 고칠 곳</h2>
+    <div class="prose">
+      <p>
+        교과서·수업 자료와 함께 받은 예제 코드 파일(원본 압축 파일)을 진짜 PC에서 그대로 돌릴 때 걸리는 곳이에요. 코드 번호(f026 등)는 사이트가 원본
+        파일에 붙인 번호예요. 사이트의 실습실에는 원본 파일과, 고친 줄 끝에 <code># [사이트판]</code>을 적은 사이트판 파일을 함께 두었어요.
+      </p>
+    </div>
+    <ul class="corr-list">
+      {
+        corrections.codeFiles.map((item) => {
+          const lesson = findLesson(item.lesson);
+          return (
+            <li class="corr-item" data-correction-code={item.code}>
+              <p class="corr-item__head">
+                <strong>{item.code}</strong>
+                {item.lesson && (
+                  <span class="corr-item__lesson">
+                    {lesson ? <a href={lesson.summary.href}>{lessonHeading(lesson)}</a> : item.lesson}
+                  </span>
+                )}
+              </p>
+              <p class="corr-item__line">
+                <span class="corr-item__label">문제</span> <span set:html={formatInline(item.problem)} />
+              </p>
+              <p class="corr-item__line corr-item__line--note">
+                <span class="corr-item__label corr-item__label--note">사이트</span> <span set:html={formatInline(item.site)} />
+              </p>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  <section class="corr-part" aria-labelledby="lesson-changes" data-lesson-changes>
+    <h2 id="lesson-changes">차시마다 사이트가 원고와 다르게 쓴 곳</h2>
+    <div class="prose">
+      <p>
+        차시 교사용 칸에서 원고와 달라진 점을 적은 부분을 빌드할 때 모았어요. 원고를 옮긴 차시는 "원고에서 바꾼 곳"(보충 P1은 "수업 슬라이드에서 바꾼
+        곳"), 원고가 없는 차시는 본문을 쓴 근거(코드 파일)를 적은 부분이에요. 글자 오류 말고도 개인정보, 그림의 권리, 설치 없는 흐름 때문에 바꾼 곳과 원고
+        줄 번호와 파일 줄 번호의 대응표가 들어 있어요.
+      </p>
+      <Callout type="참고" title="원고가 없는 차시">
+        <p>
+          I단원 03·04(1-3-1~1-4-3)와 IV단원(4-1-1~4-2-2)은 교과서 원고가 자료에 없어서, 예제 코드와 주석을 바탕으로 사이트가 본문을 썼어요. 이 차시들은
+          차시 목록과 교사용 칸에 "원고 없음"이 표시돼요. 원고를 받으면 원고 문장으로 바꿔요.
+        </p>
+      </Callout>
+    </div>
+    <div data-pagefind-ignore>
+      {
+        learnUnits.map((unit) => {
+          const withChanges = (byUnit.get(unit.unit) ?? []).filter((lesson) => changeSectionsOf(lesson).length > 0);
+          if (withChanges.length === 0) {
+            return null;
+          }
+          return (
+            <section class="change-unit" aria-labelledby={`changes-u${unit.unit}`}>
+              <h3 id={`changes-u${unit.unit}`} class="change-unit__title">
+                {unit.label}
+              </h3>
+              <details class="change-unit__details" data-change-unit={unit.unit}>
+                <summary class="change-unit__summary">{`차시 ${withChanges.length}개 펼쳐 보기`}</summary>
+                {withChanges.map((lesson) => (
+                  <article class="change" aria-labelledby={changeAnchor(lesson)} data-lesson-change={lesson.summary.label}>
+                    <h4 id={changeAnchor(lesson)} class="change__title">
+                      <a href={lesson.summary.href}>{lessonHeading(lesson)}</a>
+                    </h4>
+                    {changeSectionsOf(lesson).map((section) => (
+                      <div class="change__body prose">
+                        <p class="change__section-title">{section.title}</p>
+                        <GlossaryScope id={changeAnchor(lesson)}>
+                          <Fragment set:html={withoutHeading(section.html)} />
+                        </GlossaryScope>
+                      </div>
+                    ))}
+                    <p class="change__more">
+                      <a href={`${withBase(guidesUnitPath(unit.unit))}#${lesson.idPrefix.slice(0, -1)}`}>이 차시의 지도 요약 전체</a>
+                    </p>
+                  </article>
+                ))}
+              </details>
+            </section>
+          );
+        })
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .corr-toc {
+    max-width: var(--width-prose);
+    margin-block: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .corr-toc__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .corr-toc ol {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .corr-part {
+    margin-block-start: var(--space-10);
+  }
+
+  .corr-part > h2 {
+    font-size: var(--text-2xl);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .corr-part > .prose {
+    margin-block-start: var(--space-3);
+  }
+
+  .corr-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .corr-item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    line-height: var(--leading-snug);
+  }
+
+  .corr-item__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .corr-item__kind {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+  }
+
+  .corr-item__lesson {
+    font-size: var(--text-sm);
+  }
+
+  .corr-item__line {
+    overflow-wrap: anywhere;
+  }
+
+  .corr-item__label {
+    display: inline-block;
+    min-width: 3.5em;
+    margin-inline-end: var(--space-1);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-align: center;
+  }
+
+  .corr-item__label--fix {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+
+  .corr-item__label--note {
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+  }
+
+  .corr-item__line--note {
+    color: var(--color-text-muted);
+  }
+
+  .corr-item :global(code) {
+    padding: 0.05em 0.3em;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-muted);
+    font-size: 0.95em;
+  }
+
+  .change-unit {
+    margin-block-start: var(--space-8);
+  }
+
+  .change-unit__title {
+    font-size: var(--text-xl);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  /* 단원마다 접는다: 지도 요약 페이지와 같은 글이라 필요한 단원만 펼쳐 보게(페이지 길이를 3분의 1로) */
+  .change-unit__details {
+    margin-block-start: var(--space-3);
+  }
+
+  .change-unit__summary {
+    display: list-item;
+    min-block-size: var(--target-min);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .change-unit__details[open] > .change-unit__summary {
+    margin-block-end: var(--space-2);
+  }
+
+  .change {
+    margin-block-start: var(--space-6);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-border-strong);
+  }
+
+  .change__title {
+    font-size: var(--text-lg);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .change__body {
+    margin-block-start: var(--space-3);
+  }
+
+  .change__section-title {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .change__body :global(table) {
+    width: 100%;
+  }
+
+  .change__more {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
+  }
+</style>
+
+<script>
+  import { installCollapsibleHelpers } from '../../../components/lesson/details.ts';
+
+  // 접힌 단원 안의 #위치(차시별 바꾼 곳)나 단원 제목(#changes-u1)으로 오면 그 단원을 펼치고, 인쇄할 때는 모두 펼친다
+  installCollapsibleHelpers();
+</script>

@@ -1,0 +1,95 @@
+---
+/**
+ * 선생님이 자주 묻는 질문(/teacher/faq/)(PLAN §8.5 P5-14 "FAQ").
+ * 글은 content/help/faq-teacher.md 하나 — 새 질문 = "### 질문" 한 줄과 답 문단(코드 수정 없음). 질문 목록은 제목에서 저절로 만든다.
+ * 학생이 자주 묻는 질문(카메라, 브라우저, 포트 등)은 문제 해결 페이지(/help/)에 있다.
+ */
+import TeacherMarkdown from '../../../components/teacher/TeacherMarkdown.astro';
+import TeacherNav from '../../../components/teacher/TeacherNav.astro';
+import { loadMarkdownDoc } from '../../../components/teacher/markdown-docs.ts';
+import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
+import { getPage } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getTeacherPage('faq');
+const doc = await loadMarkdownDoc('content/help/faq-teacher.md');
+const help = getPage('help');
+const groups = doc.sections.map((section) => ({
+  ...section,
+  questions: doc.questions.filter((question) => question.section === section.slug),
+}));
+---
+
+<BaseLayout title={doc.title} description={doc.description} width="narrow" breadcrumb={teacherBreadcrumb(page.title)}>
+  <h1 class="page-title">{doc.title}</h1>
+  <p class="lead">{doc.description}</p>
+  <TeacherNav current="faq" />
+
+  <p class="faq-intro">
+    학생이 자주 묻는 질문(카메라가 켜지지 않을 때, 보드 포트가 보이지 않을 때 등)은 <a href={help.href}>{help.title}</a> 페이지에 있어요.
+  </p>
+
+  <nav class="faq-index" aria-labelledby="faq-index-title" data-pagefind-ignore>
+    <h2 id="faq-index-title" class="faq-index__title">질문 목록</h2>
+    {
+      groups.map((group) => (
+        <div class="faq-index__group">
+          <p class="faq-index__group-title">
+            <a href={`#${group.slug}`}>{group.text}</a>
+          </p>
+          <ol>
+            {group.questions.map((question) => (
+              <li>
+                <a href={`#${question.slug}`}>{question.text}</a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))
+    }
+  </nav>
+
+  <TeacherMarkdown html={doc.html} scope="teacher-faq" />
+</BaseLayout>
+
+<style>
+  .faq-intro {
+    max-width: var(--width-prose);
+    margin-block: var(--space-2) 0;
+  }
+
+  .faq-index {
+    max-width: var(--width-prose);
+    margin-block: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .faq-index__title {
+    margin-block-end: var(--space-3);
+    font-size: var(--text-lg);
+  }
+
+  .faq-index__group + .faq-index__group {
+    margin-block-start: var(--space-4);
+  }
+
+  .faq-index__group-title {
+    font-weight: var(--weight-bold);
+  }
+
+  .faq-index ol {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-1) 0 0;
+    padding-inline-start: 1.5em;
+  }
+
+  /* block이라야 긴 질문이 두 줄로 넘어가도 번호가 첫 줄 옆에 붙는다(/help/ 질문 목록과 같은 규칙) */
+  .faq-index li a {
+    display: block;
+    padding-block: var(--space-1);
+  }
+</style>

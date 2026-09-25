@@ -40,5 +40,6 @@ export const searchConfig = {
    * /glossary/#pixel처럼 항목 위치로 이어 준다(2026-09-16 검토 반영: 전에는 결과가 용어사전 맨 위로만 갔다).
    */
   // 예제 갤러리(P4-11)도 카드 제목(h3#ex-<실습실>-<예제 id>)마다 항목 결과를 낸다(2026-09-24 Phase 4 통합).
-  anchorPages: ['/glossary/', '/help/errors/', '/labs/gallery/'],
+  // 선생님이 자주 묻는 질문(P5-14)은 질문(h3 id)마다 결과를 낸다(2026-09-25 Phase 5 통합).
+  anchorPages: ['/glossary/', '/help/errors/', '/labs/gallery/', '/teacher/faq/'],
 } as const;

@@ -1,0 +1,103 @@
+---
+/**
+ * 차시 한 개의 짧은 정보 줄 — 원천(원고를 옮겼는지 · 원고 없음 · 사이트가 새로 씀), 소요 시간, 성취기준, 가린 편집본 교안 쪽.
+ * 지도 요약 페이지와 자료실의 여러 목록이 함께 쓴다. 성취기준 코드는 자료실 성취기준 표의 그 줄로 이어 준다.
+ * 성취기준이 비었으면 차시 머리와 같은 글(대응표에서 일부러 비운 차시는 "해당 없음(보충 차시)", 대응표에 없는 새 차시는 DECISIONS C8 문구)을 보인다.
+ *
+ * props
+ *   lesson    teacher-lessons.ts의 TeacherLesson
+ *   handouts  (선택) 이 차시의 편집본 쪽(페이지가 파일이 있는지 보고 만든 값). 없으면 줄을 그리지 않는다
+ */
+import { formatDuration, standardsEmptyText } from '../lesson/lesson-data.ts';
+import { withBase } from '../../lib/url.ts';
+import { TEACHER_PATHS, sourceBadge, standardAnchor, type TeacherLesson } from './teacher-lessons.ts';
+
+interface HandoutLine {
+  title: string;
+  pages: string;
+  note?: string;
+  /** 편집본이 있으면 쪽까지 가는 주소(base 없음) */
+  path?: string;
+}
+
+interface Props {
+  lesson: TeacherLesson;
+  handouts?: readonly HandoutLine[];
+}
+
+const { lesson, handouts = [] } = Astro.props;
+const badge = sourceBadge(lesson.source, lesson.summary.pages);
+const duration = formatDuration(lesson.summary.duration);
+const standardsHref = withBase(TEACHER_PATHS.standards);
+---
+
+<ul class="guide-meta" data-guide-meta>
+  <li class="guide-meta__item">
+    <span class:list={['guide-meta__source', `guide-meta__source--${badge.tone}`]} data-guide-source={badge.tone}>{badge.text}</span>
+  </li>
+  {duration && <li class="guide-meta__item">{duration}</li>}
+  <li class="guide-meta__item" data-guide-standards>
+    {
+      lesson.summary.standards.length > 0 ? (
+        <>
+          <span class="visually-hidden">성취기준 </span>
+          {lesson.summary.standards.map((code, index) => (
+            <>
+              {index > 0 && ' '}
+              <a href={`${standardsHref}#${standardAnchor(code)}`}>[{code}]</a>
+            </>
+          ))}
+        </>
+      ) : (
+        <span class="guide-meta__pending">{standardsEmptyText(lesson.summary.label).text}</span>
+      )
+    }
+  </li>
+  {
+    handouts.map((handout) => (
+      <li class="guide-meta__item" data-guide-handout>
+        {handout.title} {handout.pages}쪽{handout.note ? `(${handout.note})` : ''}
+        {' — '}
+        {handout.path ? <a href={withBase(handout.path)}>편집본 열기</a> : '준비 중'}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .guide-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .guide-meta__source {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+  }
+
+  .guide-meta__source--no-manuscript {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .guide-meta__source--supplement {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .guide-meta__pending {
+    font-style: normal;
+  }
+</style>

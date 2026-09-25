@@ -1,0 +1,80 @@
+---
+/**
+ * 교사용 자료실 메뉴 — 자료실 아래 페이지 맨 위에서 자료실의 다른 페이지로 바로 가게 한다(목록은 teacher-pages.ts 하나).
+ * 지금 페이지는 aria-current="page"와 굵은 글씨·테두리로 알린다(색만으로 알리지 않음). 인쇄할 때는 숨긴다.
+ *
+ * props
+ *   current  지금 페이지 id(teacher-pages.ts의 id). 자료실 첫 화면이면 'home'
+ */
+import { getPage } from '../../config/nav.ts';
+import { TEACHER_PAGES } from './teacher-pages.ts';
+
+interface Props {
+  current: string;
+}
+
+const { current } = Astro.props;
+const home = getPage('teacher');
+const items = [{ id: 'home', label: '자료실 첫 화면', href: home.href }, ...TEACHER_PAGES.map((item) => ({ id: item.id, label: item.label, href: item.href }))];
+---
+
+<nav class="teacher-nav" aria-label="교사용 자료실 메뉴" data-pagefind-ignore data-teacher-nav>
+  <ul class="teacher-nav__list">
+    {
+      items.map((item) => (
+        <li>
+          <a class="teacher-nav__link" href={item.href} aria-current={item.id === current ? 'page' : undefined}>
+            {item.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .teacher-nav {
+    margin-block: 0 var(--space-6);
+  }
+
+  .teacher-nav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .teacher-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .teacher-nav__link:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .teacher-nav__link[aria-current='page'] {
+    border: 2px solid var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-bold);
+  }
+
+  @media print {
+    .teacher-nav {
+      display: none;
+    }
+  }
+</style>

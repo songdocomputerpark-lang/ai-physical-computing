@@ -1,0 +1,504 @@
+---
+/**
+ * 성취기준과 평가 방향(/teacher/standards/)(PLAN §8.5 P5-14, INVENTORY §9.2, PD-21, DECISIONS C8·O12).
+ *
+ * - 성취기준 15개와 사이트 요약: src/config/standards.ts(PLAN §2.2 대응표와 같은 곳 — 여기서 다시 적지 않는다)
+ * - 성취기준마다 이어지는 차시: 모든 차시 md의 standards 칸을 빌드 때 모은다(새 차시를 넣으면 코드 수정 없이 늘어난다)
+ * - 과목 정보·평가 방법·고려 사항·"평가할 때 볼 것"(사이트 제안)·비워 둔 까닭: content/teacher/assessment.yaml
+ * - 생성형 AI 활용 탐구 과제: 차시 본문의 :::생성형AI 상자를 빌드 때 모은다
+ * 화면 표기는 "성취기준(인천광역시교육청 승인 교육과정, 차시 연결은 사이트가 붙임)"(PLAN §2.2). 요약 문장에는 "(사이트 요약)"을 붙인다.
+ */
+import { getCollection } from 'astro:content';
+import Callout from '../../../components/common/Callout.astro';
+import ComingSoon from '../../../components/common/ComingSoon.astro';
+import TeacherNav from '../../../components/teacher/TeacherNav.astro';
+import { loadAssessment } from '../../../components/teacher/teacher-data.ts';
+import { formatInline, unmappedReasonFor } from '../../../components/teacher/teacher-data-schema.ts';
+import {
+  TEACHER_PATHS,
+  buildTeacherLessons,
+  guidesUnitPath,
+  lessonHeading,
+  lessonsWithoutStandards,
+  standardRows,
+  unknownStandardCodes,
+  type TeacherLesson,
+} from '../../../components/teacher/teacher-lessons.ts';
+import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
+import { STANDARDS_LABEL } from '../../../components/lesson/teacher-info.ts';
+import { CURRICULUM_SOURCE, STANDARD_AREAS } from '../../../config/standards.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
+
+const page = getTeacherPage('standards');
+const assessment = loadAssessment();
+const lessons = buildTeacherLessons(await getCollection('lessons'));
+const rows = standardRows(lessons);
+const unmapped = lessonsWithoutStandards(lessons);
+const unknownCodes = unknownStandardCodes(lessons);
+for (const code of unknownCodes) {
+  console.warn(`[교사용 자료실] 차시 standards의 "${code}"는 성취기준 15개(src/config/standards.ts)에 없어요.`);
+}
+for (const row of rows) {
+  if (!assessment.standards[row.standard.code]) {
+    console.warn(`[교사용 자료실] content/teacher/assessment.yaml에 ${row.standard.code}의 look·evidence가 없어요.`);
+  }
+}
+const genaiLessons = lessons.filter((lesson) => lesson.genai.length > 0);
+const genaiCount = genaiLessons.reduce((sum, lesson) => sum + lesson.genai.length, 0);
+const project = lessons.find((lesson) => lesson.summary.label === 'IV-프로젝트');
+const guidesHref = withBase(TEACHER_PATHS.guides);
+const sourceLink = (source: 'curriculum' | 'subject_list') =>
+  source === 'curriculum' ? { href: CURRICULUM_SOURCE.url, text: '인천광역시교육청 게시물' } : { href: assessment.subjectList.url, text: '과목 목록' };
+
+/** 차시 링크 글: 지도 요약의 그 차시 */
+const guideHref = (lesson: TeacherLesson) => `${withBase(guidesUnitPath(lesson.summary.unit))}#${lesson.idPrefix.slice(0, -1)}`;
+/** 차시 페이지의 #위치(없으면 차시 페이지) — 생성형 AI 상자 바로 앞 제목으로 간다(teacher-guides.ts genAiTasks의 anchor) */
+const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor ? `${lesson.summary.href}#${anchor}` : lesson.summary.href);
+---
+
+<BaseLayout title={page.title} description={page.description} breadcrumb={teacherBreadcrumb(page.title)}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">{page.description}</p>
+  <TeacherNav current="standards" />
+
+  <div class="prose">
+    <Callout type="참고" title="이 표의 근거">
+      <p>
+        성취기준 코드는 <a href={CURRICULUM_SOURCE.url}>{CURRICULUM_SOURCE.title}</a>({CURRICULUM_SOURCE.registered} 등록)에서 가져왔어요. 교과서가 이
+        교육과정을 따른다는 것은 운영자가 확인했어요. 성취기준 문장은 사이트가 줄인 요약이라 "(사이트 요약)"을 붙였고, 원문은 게시물에서 봐요.
+      </p>
+      <p>
+        차시와 성취기준의 연결은 사이트가 붙였어요. 차시 페이지 머리의 뱃지와 교사용 칸의 "{STANDARDS_LABEL}" 줄이 같은 표를 따라요. 게시물은 문서 보기로
+        읽었고 원문 파일(hwp)과 글자를 맞춰 보지는 않았어요.
+      </p>
+    </Callout>
+
+    <h2 id="course">과목 정보</h2>
+  </div>
+  <dl class="course-facts" data-course-facts>
+    {
+      assessment.course.map((fact) => {
+        const link = sourceLink(fact.source);
+        return (
+          <div class="course-facts__item">
+            <dt>{fact.label}</dt>
+            <dd>
+              <Fragment set:html={formatInline(fact.value)} /> <a class="course-facts__source" href={link.href}>({link.text})</a>
+            </dd>
+          </div>
+        );
+      })
+    }
+  </dl>
+  <p class="source-note">과목 목록: <a href={assessment.subjectList.url}>{assessment.subjectList.title}</a></p>
+
+  <div class="prose">
+    <h2 id="methods">과목 교육과정의 평가 방법</h2>
+    <p>교육청 게시물의 평가 방법을 사이트가 줄여 적었어요.</p>
+    <ul data-assessment-methods>
+      {assessment.methods.map((method) => <li set:html={formatInline(method)} />)}
+    </ul>
+    <p>사이트에서는 이렇게 과정 기록을 모을 수 있어요.</p>
+    <ul>
+      <li>
+        실습실의 <strong>[공유 링크]</strong>는 편집칸의 코드만 주소에 담아요. 로그인 없이 과제로 받을 수 있고, 주소가 2,000자를 넘으면 <strong>[.py 내려받기]</strong> 파일을
+        함께 내도록 알려 줘요(16,000자를 넘는 코드는 링크로 만들지 않아요).
+      </li>
+      <li>차시마다 도전 과제에 채울 표와 관찰 기록 칸이 있어요. 선생님이 볼 곳은 <a href={guidesHref}>차시별 지도 요약</a>의 "평가 포인트"에 모여 있어요.</li>
+      <li>
+        원고의 생성형 AI 활용 탐구 과제는 주로 차시의 도전 과제 칸에 두었고, 상자 끝에 "생성형 AI의 도움을 받은 부분을 표시해요"라는 안내가 저절로 붙어요(아래 <a
+          href="#genai">생성형 AI 활용 탐구 과제</a>).
+      </li>
+      <li>
+        프로젝트 과정의 비중은 {project ? <a href={project.summary.href}>IV단원 프로젝트 안내</a> : 'IV단원 프로젝트 안내'}의 단계별 기록(관찰 기록, 역할표,
+        시험 기록표, 점검표)으로 채울 수 있어요. 교사용 칸에 채점 기준 예시가 있어요.
+      </li>
+    </ul>
+
+    <h2 id="considerations">성취기준을 적용할 때 살핀 고려 사항</h2>
+    <p>교육청 게시물의 문서 보기에서 사이트가 옮긴 문구와, 사이트가 그 문구를 따른 방법이에요.</p>
+  </div>
+  <ul class="consideration-list">
+    {
+      assessment.considerations.map((item) => (
+        <li class="consideration">
+          <p class="consideration__quote">"{item.quote}"</p>
+          <p class="consideration__use" set:html={formatInline(item.use)} />
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="prose">
+    <h2 id="standards">성취기준과 차시</h2>
+    <p>
+      네 영역은 교과서의 I~IV단원과 이름이 같아요. "이어지는 차시"는 차시 md의 성취기준 칸에서 저절로 모아요. "평가할 때 볼 것"과 "모을 자료"는 차시
+      교사용 칸의 평가 포인트를 바탕으로 사이트가 제안하는 글이니, 학교의 평가 계획에 맞게 고쳐 써요.
+    </p>
+  </div>
+
+  {
+    STANDARD_AREAS.map((area) => {
+      const areaRows = rows.filter((row) => row.standard.area === area.area);
+      return (
+        <section class="std-area" aria-labelledby={`std-area-${area.area}`} data-standard-area={area.area}>
+          <h3 id={`std-area-${area.area}`} class="std-area__title">
+            ({area.area}) {area.name}
+          </h3>
+          <div class="std-table" role="region" aria-labelledby={`std-caption-${area.area}`} tabindex="0">
+            <table role="table">
+              <caption id={`std-caption-${area.area}`}>({area.area}) {area.name} 영역의 성취기준과 평가 방향</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">성취기준(사이트 요약)</th>
+                  <th scope="col" role="columnheader">이어지는 차시</th>
+                  <th scope="col" role="columnheader">평가할 때 볼 것(사이트 제안)</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+                {areaRows.map((row) => {
+                  const detail = assessment.standards[row.standard.code];
+                  return (
+                    <tr id={row.anchor} data-standard={row.standard.code} role="row">
+                      <th scope="row" role="rowheader">
+                        <span class="std-table__code">[{row.standard.code}]</span> {row.standard.summary}
+                      </th>
+                      <td role="cell" data-label="이어지는 차시">
+                        {row.lessons.length > 0 ? (
+                          <ul class="std-table__lessons">
+                            {row.lessons.map((lesson) => (
+                              <li>
+                                <a href={lesson.summary.href}>{lessonHeading(lesson)}</a>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span class="std-table__none">아직 이어진 차시가 없어요.</span>
+                        )}
+                      </td>
+                      <td role="cell" data-label="평가할 때 볼 것(사이트 제안)">
+                        {detail ? (
+                          <>
+                            <p set:html={formatInline(detail.look)} />
+                            <p class="std-table__evidence">
+                              <strong>모을 자료:</strong> <Fragment set:html={formatInline(detail.evidence)} />
+                            </p>
+                          </>
+                        ) : (
+                          <span class="std-table__none">준비 중</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      );
+    })
+  }
+
+  <section class="std-unmapped" aria-labelledby="std-unmapped-title" data-standards-unmapped>
+    <h3 id="std-unmapped-title">성취기준을 비워 둔 차시</h3>
+    <p>
+      아래 차시는 차시와 성취기준 대응표에서 성취기준을 일부러 비워 두어 차시 머리에 "해당 없음(보충 차시)"처럼 보여요. 비워 둔 까닭은 이래요.
+    </p>
+    <ul>
+      {
+        unmapped.map((lesson) => (
+          <li data-unmapped={lesson.summary.label}>
+            <a href={guideHref(lesson)}>{lessonHeading(lesson)}</a> —{' '}
+            {unmappedReasonFor(assessment.unmapped, lesson.summary.label, lesson.summary.kind) ?? '대응표(PLAN §2.2)에서 비워 둔 차시예요.'}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <div class="prose">
+    <h2 id="genai">생성형 AI 활용 탐구 과제</h2>
+    <p>
+      과목 교육과정은 생성형 인공지능의 도움을 받은 부분을 표시하게 해요. 원고의 "GenAI와 함께 탐구하기" 과제는 주로 차시의 도전 과제 칸에 두었고, 모두
+      {' '}{genaiLessons.length}개 차시에 {genaiCount}개가 있어요. 과제 이름을 누르면 그 상자가 있는 곳으로 가요. 상자마다 끝에 표시 안내가 저절로 붙어요.
+    </p>
+  </div>
+  <ul class="genai-list" data-genai-list>
+    {
+      genaiLessons.map((lesson) => (
+        <li class="genai-list__lesson" data-genai-lesson={lesson.summary.label}>
+          <a href={lessonAt(lesson, lesson.genai[0]?.anchor)}>{lessonHeading(lesson)}</a>
+          <ul>
+            {lesson.genai.map((task) => (
+              <li>
+                <a href={lessonAt(lesson, task.anchor)}>{task.title}</a>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="prose">
+    <h2 id="plans">평가 계획서와 운영 계획서</h2>
+    <p>
+      교과서 자료의 평가 계획서, 운영 계획서 폴더는 비어 있어요. 자료가 들어오면 이 자리에 올려요. 그때까지는 위의 표, 차시별 평가 포인트, IV단원
+      프로젝트 안내의 채점 기준 예시를 바탕으로 학교의 평가 계획을 세워 주세요.
+    </p>
+  </div>
+  <div data-pagefind-ignore>
+    <ComingSoon what="평가 계획서와 운영 계획서" when="자료를 받은 뒤 이 페이지" headingLevel={3} />
+  </div>
+</BaseLayout>
+
+<style>
+  .course-facts {
+    display: grid;
+    gap: var(--space-2);
+    max-width: var(--width-prose);
+    margin: var(--space-4) 0 0;
+  }
+
+  .course-facts__item {
+    display: grid;
+    grid-template-columns: minmax(8rem, 12rem) 1fr;
+    gap: var(--space-1) var(--space-4);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .course-facts dt {
+    font-weight: var(--weight-semibold);
+  }
+
+  .course-facts dd {
+    margin: 0;
+  }
+
+  .course-facts__source {
+    font-size: var(--text-sm);
+  }
+
+  .source-note {
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .consideration-list {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .consideration {
+    padding: var(--space-3) var(--space-4);
+    border-inline-start: 4px solid var(--color-accent-border);
+    background: var(--color-bg-subtle);
+  }
+
+  .consideration__quote {
+    font-weight: var(--weight-semibold);
+  }
+
+  .consideration__use {
+    margin-block-start: var(--space-1);
+    color: var(--color-text-muted);
+  }
+
+  .std-area {
+    margin-block-start: var(--space-8);
+  }
+
+  .std-area__title {
+    font-size: var(--text-xl);
+  }
+
+  .std-table {
+    max-width: 100%;
+    margin-block: var(--space-3);
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .std-table:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .std-table table {
+    width: 100%;
+    min-width: 44rem;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .std-table caption {
+    padding: var(--space-3);
+    font-weight: var(--weight-bold);
+    text-align: start;
+  }
+
+  .std-table th,
+  .std-table td {
+    padding: var(--space-3);
+    border-top: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .std-table thead th {
+    background: var(--color-bg-muted);
+    font-weight: var(--weight-semibold);
+  }
+
+  .std-table tbody th {
+    width: 24%;
+    font-weight: var(--weight-regular);
+  }
+
+  .std-table tbody td:nth-child(2) {
+    width: 30%;
+  }
+
+  .std-table tbody tr {
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .std-table tbody tr:target {
+    background: var(--color-accent-soft);
+  }
+
+  .std-table__code {
+    display: block;
+    font-weight: var(--weight-bold);
+  }
+
+  .std-table__lessons {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.1em;
+  }
+
+  .std-table td p + p {
+    margin-block-start: var(--space-2);
+  }
+
+  .std-table__evidence {
+    color: var(--color-text-muted);
+  }
+
+  .std-table__none {
+    color: var(--color-text-muted);
+  }
+
+  .std-unmapped {
+    display: grid;
+    gap: var(--space-2);
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-8);
+  }
+
+  .std-unmapped h3 {
+    font-size: var(--text-xl);
+  }
+
+  .std-unmapped ul {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .genai-list {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--width-prose);
+    margin: var(--space-4) 0 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .genai-list ul {
+    margin-block-start: var(--space-1);
+    padding-inline-start: 1.25em;
+    color: var(--color-text-muted);
+  }
+
+  @media (max-width: 40rem) {
+    .course-facts__item {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /*
+   * 좁은 화면: 표를 옆으로 밀어 보지 않게 줄마다 카드로 쌓는다. 표의 뜻(행·열 머리)은 role 속성으로 남기고(display를 바꿔도
+   * 화면 낭독기가 표로 읽게), 칸 이름은 data-label로 칸 위에 보인다. 열 머리 줄은 화면에서만 숨긴다(visually hidden).
+   */
+  @media (max-width: 47.99rem) {
+    .std-table {
+      overflow-x: visible;
+      border: 0;
+    }
+
+    .std-table table,
+    .std-table tbody,
+    .std-table tr,
+    .std-table th,
+    .std-table td {
+      display: block;
+    }
+
+    .std-table table {
+      min-width: 0;
+    }
+
+    .std-table caption {
+      display: block;
+      padding: 0 0 var(--space-2);
+    }
+
+    .std-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .std-table tbody tr {
+      margin-block-end: var(--space-3);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+    }
+
+    .std-table tbody th,
+    .std-table tbody td,
+    .std-table tbody td:nth-child(2) {
+      width: auto;
+    }
+
+    .std-table tbody th {
+      border-top: 0;
+      background: var(--color-bg-subtle);
+    }
+
+    .std-table td::before {
+      content: attr(data-label);
+      display: block;
+      margin-block-end: var(--space-1);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+    }
+  }
+</style>

@@ -1,0 +1,64 @@
+---
+/**
+ * "진짜 PC에서 돌리기"(/teacher/real-pc/)(PLAN §2.3·§8.5 P5-14, CODE_MAPPING §5.4) — 교과서의 설치 절차(원고 021~022쪽, 120~122쪽,
+ * 191~193쪽, 198쪽)를 차시 본문에서 빼고 옮긴 곳. 설치 파일은 재배포하지 않고 공식 주소만 적는다(SPEC 원칙 1, PLAN §9.4 D).
+ * 글은 content/teacher/real-pc.md 하나 — 판 번호가 바뀌면 그 파일만 고친다. 차시 교사용 칸이 이 주소로 이어진다.
+ */
+import TeacherMarkdown from '../../../components/teacher/TeacherMarkdown.astro';
+import TeacherNav from '../../../components/teacher/TeacherNav.astro';
+import { loadMarkdownDoc } from '../../../components/teacher/markdown-docs.ts';
+import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getTeacherPage('real-pc');
+const doc = await loadMarkdownDoc('content/teacher/real-pc.md');
+---
+
+<BaseLayout title={doc.title} description={doc.description} width="narrow" breadcrumb={teacherBreadcrumb(page.title)}>
+  <h1 class="page-title">{doc.title}</h1>
+  <p class="lead">{doc.description}</p>
+  <TeacherNav current="real-pc" />
+
+  <nav class="doc-toc" aria-labelledby="real-pc-toc-title" data-pagefind-ignore>
+    <h2 id="real-pc-toc-title" class="doc-toc__title">이 페이지의 내용</h2>
+    <ol>
+      {
+        doc.sections.map((section) => (
+          <li>
+            <a href={`#${section.slug}`}>{section.text}</a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  <TeacherMarkdown html={doc.html} scope="real-pc" />
+</BaseLayout>
+
+<style>
+  .doc-toc {
+    max-width: var(--width-prose);
+    margin-block: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-subtle);
+  }
+
+  .doc-toc__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .doc-toc ol {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .doc-toc a {
+    display: block;
+    padding-block: var(--space-1);
+  }
+</style>

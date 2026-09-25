@@ -1,85 +1,220 @@
 ---
 /**
- * 교사용 자료실 자리 페이지(PLAN §2.1 /teacher/). 교사용 자료실 묶음(PLAN §8.5 P5-14)에서 실제 자료로 채운다.
- * 무엇이 올라올지와, 원본 파일 대신 개인정보를 가린 편집본만 올리는 방침(PD-31, SPEC §7.3 이탈은 PLAN §3.2)을 미리 알린다.
- * 색인 규칙은 실습실 자리 페이지와 같다: 준비 중 상자와 다른 페이지 카드는 사이트 검색에서 뺀다.
+ * 교사용 자료실 첫 화면(/teacher/)(PLAN §2.1, §8.5 P5-14).
+ *
+ * - 자료실의 아래 페이지(지도 요약 · 성취기준과 평가 · 원고 정정 · 진짜 PC에서 돌리기 · 자주 묻는 질문) 카드 — 목록은 teacher-pages.ts
+ * - 가린 편집본 교안 PDF(PD-31): 파일 이름은 src/components/lesson/handouts.ts 한 곳. public/에 파일이 있으면 [편집본 열기],
+ *   없으면 "준비 중". 어느 차시가 몇 쪽을 쓰는지는 차시 md의 handouts 칸에서 빌드 때 모은다(teacher-lessons.ts의 handoutUses).
+ * - 평가 자료 자리, 여러 사람이 쓰는 컴퓨터(공용 PC) 확인표(#shared-pc), 앞으로 올라올 자료
+ * 원본 파일(PDF·PPTX)을 올리지 않는 방침은 PLAN §3.2·§9.3 6번(PD-31). 준비 중 상자(ComingSoon)는 사이트 검색에서 빠진다.
  */
-import ComingSoon from '../../components/common/ComingSoon.astro';
+import { getCollection } from 'astro:content';
 import PageLinks from '../../components/common/PageLinks.astro';
+import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
+import { HANDOUT_DOCS, type HandoutDocId } from '../../components/lesson/handouts.ts';
+import TeacherNav from '../../components/teacher/TeacherNav.astro';
+import { handoutFileExists, handoutFileSize } from '../../components/teacher/handout-files.ts';
+import { loadMarkdownDoc } from '../../components/teacher/markdown-docs.ts';
+import { loadCorrections } from '../../components/teacher/teacher-data.ts';
+import { TEACHER_PATHS, buildTeacherLessons, handoutUses, lessonHeading } from '../../components/teacher/teacher-lessons.ts';
+import { TEACHER_PAGES } from '../../components/teacher/teacher-pages.ts';
 import { getPage } from '../../config/nav.ts';
+import { STANDARDS } from '../../config/standards.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/url.ts';
 
 const page = getPage('teacher');
 const related = ['start-teacher', 'start-check', 'labs-esp32-check', 'credits'].map((id) => getPage(id));
+const lessons = buildTeacherLessons(await getCollection('lessons'));
+const corrections = loadCorrections();
+const faq = await loadMarkdownDoc('content/help/faq-teacher.md');
+const correctionCount = corrections.parts.reduce((sum, part) => sum + part.items.length, 0);
 
-const plannedMaterials = [
-  {
-    name: '차시별 지도 요약',
-    detail: '차시마다 수업 흐름, 평가 포인트, 학생들이 자주 막히는 곳을 한곳에 모아요.',
-  },
-  {
-    name: '성취기준과 평가 방향 표',
-    detail:
-      '인천광역시교육청이 승인한 과목 교육과정의 성취기준, 차시 연결, 평가 방향을 표로 보여 줘요. 차시 연결은 사이트가 붙인 것이라고 함께 적어요.',
-  },
-  {
-    name: '교과서 원고 정정 목록',
-    detail: '교과서 원고에서 바로잡은 곳을 모아요.',
-  },
-  {
-    name: '"진짜 PC에서 돌리기" 설치 안내',
-    detail: '브라우저 대신 컴퓨터에 파이썬과 편집기를 설치해 원래 코드로 수업할 때 필요한 안내예요.',
-  },
-  {
-    name: '수업 자료 편집본(PDF)',
-    detail: '블루투스 통신 수업 교안과 PyAutoGUI 수업 슬라이드를 개인정보를 가린 편집본으로 올려요.',
-  },
-  {
-    name: '평가 계획서와 운영 계획서',
-    detail: '자료가 들어오는 대로 올려요. 지금은 올릴 자료가 없어요.',
-  },
-];
+/** 카드마다 보이는 숫자(빌드 때 센다) */
+const counts: Record<string, string> = {
+  guides: `차시 ${lessons.length}개`,
+  standards: `성취기준 ${STANDARDS.length}개`,
+  corrections: `원고 ${correctionCount}곳, 코드 파일 ${corrections.codeFiles.length}곳`,
+  'real-pc': '파이썬 3.10~3.12, mediapipe 0.10.21',
+  faq: `질문 ${faq.questions.length}개`,
+};
+
+const handoutDocs = (Object.keys(HANDOUT_DOCS) as HandoutDocId[]).map((doc) => ({
+  doc,
+  title: HANDOUT_DOCS[doc].title,
+  exists: handoutFileExists(doc),
+  size: handoutFileSize(doc),
+  href: withBase(`/${HANDOUT_DOCS[doc].file}`),
+}));
+const uses = handoutUses(lessons, handoutFileExists);
+const missingHandouts = handoutDocs.filter((doc) => !doc.exists);
+const formatSize = (bytes: number | undefined): string =>
+  bytes === undefined ? '' : bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)}MB` : `${Math.max(1, Math.round(bytes / 1024))}KB`;
+const settings = getPage('settings');
+const esp32 = getPage('labs-esp32');
+const vision = getPage('labs-vision');
+const startTeacher = getPage('start-teacher');
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
+  <TeacherNav current="home" />
 
-  <div data-pagefind-ignore>
-    <ComingSoon what={page.label} when="교과서 내용을 옮기는 단계(Phase 5)" />
-  </div>
-
-  <section class="teacher-section" aria-labelledby="teacher-planned">
-    <h2 id="teacher-planned">올라올 자료</h2>
-    <p>평가 계획서와 운영 계획서를 뺀 자료는 교과서 내용을 옮기는 단계(Phase 5)에 채워요.</p>
-    <!-- dt·dd처럼 붙어 있는 요소는 사이트 검색 색인에서 글자가 이어 붙어 한 낱말이 되므로 제목(h3)과 문단(p)으로 나눈다. -->
-    <ul class="teacher-materials">
+  <section class="teacher-section teacher-section--wide" aria-labelledby="teacher-materials">
+    <h2 id="teacher-materials">자료 한눈에</h2>
+    <p class="teacher-section__intro">차시 페이지를 고치면 지도 요약, 성취기준 표, 원고 정정의 차시별 모음이 다음 배포 때 함께 바뀌어요.</p>
+    <ul class="teacher-cards">
       {
-        plannedMaterials.map((item) => (
-          <li class="teacher-materials__item">
-            <h3 class="teacher-materials__name">{item.name}</h3>
-            <p class="teacher-materials__detail">{item.detail}</p>
+        TEACHER_PAGES.map((item) => (
+          <li class="teacher-card" data-teacher-card={item.id}>
+            <h3 class="teacher-card__title">
+              <a class="teacher-card__link" href={item.href}>
+                {item.title}
+              </a>
+            </h3>
+            <p class="teacher-card__description">{item.description}</p>
+            {counts[item.id] && <p class="teacher-card__count">{counts[item.id]}</p>}
           </li>
         ))
       }
     </ul>
   </section>
 
-  <section class="teacher-section" aria-labelledby="teacher-redacted">
+  <section class="teacher-section" aria-labelledby="teacher-redacted" data-teacher-handouts>
     <h2 id="teacher-redacted">원본 파일 대신 가린 편집본을 올려요</h2>
     <p>
-      수업 자료의 원본 파일(PDF, PPTX)은 사이트에 올리지 않아요. 원본에는 학생 얼굴, 컴퓨터 안 파일 경로, 보드의 기기 주소
-      같은 개인정보가 들어 있을 수 있기 때문이에요.
+      수업 자료의 원본 파일(PDF, PPTX)은 사이트에 올리지 않아요. 원본에는 컴퓨터 안 폴더 경로와 개인 파일 이름, 블루투스 기기 주소, 학급 게시물 화면,
+      다른 곳에서 가져온 홍보 그림 속 사람 얼굴 같은 것이 들어 있기 때문이에요.
     </p>
     <p>
-      대신 이런 부분을 가리고, 파일 속에 숨은 정보(메타데이터)까지 지운 편집본만 올려요. 쪽마다 사람이 눈으로 확인한 기록도
-      남겨요.
+      대신 이런 부분을 회색 상자로 지운 편집본만 올려요. 상자 아래의 글자와 그림까지 지워서 복사하거나 검색해도 나오지 않고, 파일 속에 숨은 정보(작성자,
+      만든 프로그램 같은 메타데이터)도 지웠어요. 쪽마다 무엇이 보이고 무엇을 가렸는지 확인한 기록도 남겼어요. 실행 화면 속 선생님 얼굴과 표지의 학교
+      이름은 저자가 공개를 허락해 그대로 두었어요. 교과서 원고는 PDF 파일로 올리지 않고 내용을 차시 페이지로 옮겼어요.
     </p>
-    <p>교과서 원고는 PDF 파일로 올리지 않아요. 내용을 차시 페이지로 옮겨 누구나 읽을 수 있게 해요.</p>
+    <ul class="handout-list">
+      {
+        handoutDocs.map((doc) => {
+          const lessonsUsing = uses.get(doc.doc) ?? [];
+          return (
+            <li class="handout" data-handout-doc={doc.doc} data-handout-state={doc.exists ? 'ready' : 'pending'}>
+              <h3 class="handout__title">{doc.title}</h3>
+              <p class="handout__status">
+                {doc.exists ? (
+                  <>
+                    <a href={doc.href}>편집본 열기(PDF{doc.size ? `, ${formatSize(doc.size)}` : ''})</a>
+                  </>
+                ) : (
+                  <span class="handout__pending">준비 중이에요. 파일이 올라오면 이 자리와 차시 교사용 칸의 링크가 함께 열려요.</span>
+                )}
+              </p>
+              {lessonsUsing.length > 0 && (
+                <>
+                  <p class="handout__uses-title">이 자료를 쓰는 차시</p>
+                  <ul class="handout__uses">
+                    {lessonsUsing.map((use) => (
+                      <li>
+                        <a href={use.lesson.summary.href}>{lessonHeading(use.lesson)}</a>
+                        {` — ${use.pages}쪽${use.note ? `(${use.note})` : ''}`}
+                        {use.path && (
+                          <>
+                            {' '}
+                            <a href={withBase(use.path)}>그 쪽 열기</a>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  <section class="teacher-section" aria-labelledby="teacher-assessment">
+    <h2 id="teacher-assessment">평가 자료</h2>
+    <p>
+      교과서 자료의 평가 계획서와 운영 계획서는 아직 없어요. 그 대신 <a href={withBase(TEACHER_PATHS.standards)}>성취기준과 평가 방향</a>에 성취기준 15개, 이어지는
+      차시, 과목 교육과정의 평가 방법(과정 중심 평가, 프로젝트 과정 30% 이상, 생성형 AI 도움 표시), 성취기준마다 평가할 때 볼 것을 모았어요. 차시마다의 자기
+      평가 문항과 관찰할 곳은 <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>의 "평가 포인트"에 있어요.
+    </p>
+  </section>
+
+  <section class="teacher-section" aria-labelledby="shared-pc">
+    <h2 id="shared-pc">여러 사람이 쓰는 컴퓨터(공용 PC)에서</h2>
+    <p>
+      이 사이트에는 로그인이 없어서, 학생이 쓴 코드와 설정이 그 컴퓨터의 브라우저에 남아요. 다음 반 학생에게 기록이 보이지 않게 수업 전과 뒤에 아래를
+      확인해 주세요.
+    </p>
+    <h3 class="checklist-title">수업이 끝날 때</h3>
+    <ul class="checklist" data-shared-pc-checklist>
+      <li>
+        실습실 아래의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해요. 자동 저장된 코드, 글자 크기 같은 설정, 통신 실습의 이름처럼 이 사이트가 그
+        브라우저에 저장한 것만 지우고 다른 사이트의 기록은 그대로 둬요. 선생님 컴퓨터에서는 아래 단추로 바로 지울 수 있어요.
+      </li>
+      <li>
+        <strong>[.py 내려받기]</strong>나 파일 목록의 [내려받기]로 받은 파일(예: 그린 그림, 화면 캡처)은 컴퓨터의 다운로드 폴더에 남아요. 다음 반이 보지 않게 지워요.
+      </li>
+      <li>
+        <a href={settings.href}>{settings.title}</a>에서 서버 음성 인식을 켰다면 수업 뒤에 꺼요. 이 설정은 그 브라우저에만 저장되고, 기록 지우기 단추도 함께
+        지워요.
+      </li>
+      <li>
+        실제 보드에 <strong>[보드에 저장]</strong>한 코드(main.py)나 교과서처럼 저장한 boot.py는 보드를 켤 때마다 저절로 돌아요. <a href={esp32.href}
+          >{esp32.title}</a
+        >의 [실제 보드] 탭으로 연결했을 때 저절로 도는 파일이 있으면 [main.py 끄기]나 [boot.py 끄기]가 보여요. 다음 반이 쓰기 전에 눌러서 꺼요(코드는 지워지지
+        않아요). 보드가 멈추지 않으면 [보드 되찾기]를 먼저 눌러요.
+      </li>
+    </ul>
+    <ClearRecordsButton id="teacher-room-clear-records" hint={false} />
+    <h3 class="checklist-title">수업을 시작할 때</h3>
+    <ul class="checklist">
+      <li>
+        실습실은 처음 열 때 파이썬을 실행하는 파일을 받아요. 교실 컴퓨터마다 <a href={vision.href}>{vision.title}</a>을 한 번 열고 준비 칸의 <strong
+          >[이 컴퓨터에 실습 파일 미리 받기]</strong
+        >를 눌러 두면 수업 중에 바로 열려요.
+      </li>
+      <li>
+        처음부터 <strong>시크릿 창</strong>(Chrome은 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>)으로 열면 창을 모두 닫을 때 이 사이트의 저장 기록이 남지 않아요. 다만
+        미리 받은 실습 파일도 남지 않아서 실습실이 처음처럼 천천히 열려요.
+      </li>
+      <li>
+        코드, 통신 메시지, 블루투스 보드 이름에 학생 이름이나 학번을 넣지 않게 지도해요. 보드 이름은 <code>ESP32-07</code>처럼 자리 번호로 붙여요.
+      </li>
+      <li>
+        카메라 영상은 이 컴퓨터 밖으로 나가지 않지만, 브라우저는 이 사이트에 준 카메라 허용을 기억해요. 수업 전 확인할 것 전체는 <a href={startTeacher.href}
+          >{startTeacher.title}</a
+        >에 있어요.
+      </li>
+    </ul>
+  </section>
+
+  <section class="teacher-section" aria-labelledby="teacher-planned">
+    <h2 id="teacher-planned">앞으로 올라올 자료</h2>
+    <ul class="planned-list">
+      <li>평가 계획서와 운영 계획서: 자료를 받으면 올려요.</li>
+      {
+        missingHandouts.map((doc) => (
+          <li>{doc.title} PDF: 쪽마다 확인을 마치면 올려요.</li>
+        ))
+      }
+      <li>
+        교과서 I단원 03, 04와 IV단원 원고: 지금은 예제 코드를 바탕으로 사이트가 쓴 본문이에요("원고 없음" 표시). 원고를 받으면 원고 문장으로 바꿔요.
+      </li>
+      <li>인터넷이 없는 교실에서 쓰는 오프라인 배포판</li>
+    </ul>
+    <p class="planned-note">
+      빠진 자료나 고칠 곳이 있으면 <a href={getPage('contribute').href}>{getPage('contribute').title}</a>의 방법으로 알려 주세요. 자주 묻는 것은 <a
+        href={withBase(TEACHER_PATHS.faq)}>선생님이 자주 묻는 질문</a
+      >에 있어요.
+    </p>
   </section>
 
   <section class="teacher-section teacher-section--wide" aria-labelledby="teacher-related" data-pagefind-ignore>
-    <h2 id="teacher-related">지금 볼 수 있는 곳</h2>
+    <h2 id="teacher-related">함께 보면 좋은 곳</h2>
     <PageLinks pages={related} headingLevel={3} />
   </section>
 </BaseLayout>
@@ -98,9 +233,64 @@ const plannedMaterials = [
 
   .teacher-section h2 {
     font-size: var(--text-2xl);
+    scroll-margin-block-start: var(--space-4);
   }
 
-  .teacher-materials {
+  .teacher-section__intro {
+    max-width: var(--width-prose);
+    color: var(--color-text-muted);
+  }
+
+  .teacher-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .teacher-card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .teacher-card:hover,
+  .teacher-card:focus-within {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+  }
+
+  .teacher-card__title {
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  /* 카드 전체를 눌러도 이동한다(링크는 제목 글자 하나 — 화면 낭독기에는 한 번만 읽힌다). */
+  .teacher-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .teacher-card__description {
+    color: var(--color-text-muted);
+    line-height: var(--leading-snug);
+  }
+
+  .teacher-card__count {
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .handout-list {
     display: grid;
     gap: var(--space-3);
     margin: 0;
@@ -108,19 +298,56 @@ const plannedMaterials = [
     list-style: none;
   }
 
-  .teacher-materials__item {
+  .handout {
+    display: grid;
+    gap: var(--space-2);
     padding: var(--space-4) var(--space-5);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
   }
 
-  .teacher-materials__name {
+  .handout__title {
     font-size: var(--text-base);
   }
 
-  .teacher-materials__detail {
-    margin-block-start: var(--space-1);
+  .handout__pending {
     color: var(--color-text-muted);
+  }
+
+  .handout__uses-title {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .handout__uses {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.25em;
+    font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  .checklist-title {
+    font-size: var(--text-lg);
+  }
+
+  .checklist,
+  .planned-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .planned-note {
+    color: var(--color-text-muted);
+  }
+
+  kbd {
+    padding: 0.05em 0.35em;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
   }
 </style>
