@@ -111,7 +111,8 @@ describe.skipIf(!boardPyodideReady)('블록이 만든 코드를 가상 보드(�
     fs.writeFileSync(file, JSON.stringify(codes), 'utf8');
     previous = process.env.APC_BLOCKS_PROGRAMS;
     process.env.APC_BLOCKS_PROGRAMS = file;
-  });
+    // 블록 → 코드 만들기(Blockly)가 npm test 전체 부하에서 기본 10초를 넘은 적이 있다(2026-09-25 — 이 파일만 돌리면 통과).
+  }, 60_000);
 
   afterAll(() => {
     if (previous === undefined) {

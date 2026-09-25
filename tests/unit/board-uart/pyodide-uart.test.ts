@@ -94,8 +94,11 @@ describe.skipIf(!boardPyodideReady)('가상 보드 machine.UART와 시리얼 창
     expect(bytesOf(second)).toEqual(utf8('cd'));
     expect(got).toBe(1);
     expect(bytesOf(buffer)).toEqual([87, 0, 0, 0]);
-    expect(bytesOf(one)).toEqual(utf8('X'));
-    expect(bytesOf(rest)).toEqual(utf8('YZ12'));
+    // read(10)은 "지금 도착한 만큼"(적어도 한 바이트)이고 나머지는 read()가 기다려 모두 받는다. 바이트 사이가 약 1ms라 보통 'X' 하나지만,
+    // 컴퓨터가 바쁘면 그사이 더 도착해 있다(npm test 전체 실행에서 'XYZ'를 본 적 있음, 2026-09-25) — 나눠진 자리가 아니라 합과 순서를 본다.
+    const oneBytes = bytesOf(one) ?? [];
+    expect(oneBytes.length).toBeGreaterThanOrEqual(1);
+    expect([...oneBytes, ...(bytesOf(rest) ?? [])]).toEqual(utf8('XYZ12'));
     expect(none).toBeNull();
     expect(waitedEnough).toBe(true);
     expect(notTooLong).toBe(true);
