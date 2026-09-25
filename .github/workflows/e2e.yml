@@ -60,7 +60,14 @@ jobs:
       - name: 단위 테스트(Vitest)
         run: npm test
 
+      - name: 차시 틀 검사(check:lessons — 엄격 모드)
+        # PLAN §8.5 P5-02, PD-35: 빌드(배포)는 같은 규칙을 경고로만 남기고, 여기서는 오류가 있는 차시가 있으면 실패한다(배포는 막지 않음).
+        # npm test에 넣지 않은 까닭은 scripts/check-lessons.mjs 머리말(여러 구역이 한 폴더에서 동시에 쓰는 동안 남의 쓰다 만 차시로 단위 테스트가 깨지지 않게).
+        if: ${{ !cancelled() }}
+        run: npm run check:lessons
+
       - name: 타입 검사(astro check)
+        if: ${{ !cancelled() }}
         run: npm run check
 
   e2e:
