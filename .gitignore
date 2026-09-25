@@ -18,6 +18,9 @@
 # 빌드·의존성
 node_modules/
 dist/
+# 다른 빌드 결과 폴더(환경 변수 APC_OUT_DIR — 예: 오프라인 배포판 dist-offline, src/config/site.ts)
+/dist-*/
+/dist_*/
 .astro/
 .cache/
 # 같은 사이트에서 내보낼 외부 자산(MediaPipe WASM, Pyodide 예비본) — npm run dev·build 앞에서 scripts/vendor-assets.mjs가 npm 패키지·CDN에서 복사한다(PD-02·PD-13)

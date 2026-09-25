@@ -252,8 +252,10 @@ test.describe('이 담당의 페이지', () => {
     const config = parse(fs.readFileSync(path.join(process.cwd(), ISSUE_TEMPLATE_DIR, 'config.yml'), 'utf8'));
     expect(config.blank_issues_enabled).toBe(false);
     for (const link of config.contact_links) {
-      expect(String(link.url).startsWith(`${siteConfig.origin}${siteConfig.base}/`), link.url).toBe(true);
-      expect((await request.get(new URL(link.url).pathname)).status(), link.url).toBe(200);
+      // 이슈 양식의 링크는 공개 사이트 주소다. 시험할 때는 이번 빌드의 주소로 바꿔 연다(APC_BASE로 뿌리에 빌드해도 같게).
+      expect(String(link.url).startsWith(`${siteConfig.origin}${siteConfig.publicBase}/`), link.url).toBe(true);
+      const sitePath = new URL(link.url).pathname.slice(siteConfig.publicBase.length);
+      expect((await request.get(withBase(sitePath))).status(), link.url).toBe(200);
     }
   });
 });

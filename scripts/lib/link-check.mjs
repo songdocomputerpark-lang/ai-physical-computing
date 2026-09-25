@@ -9,6 +9,8 @@
 //
 // 문제로 보는 것(kind)
 // - base-missing       사이트 뿌리 주소(/credits/ 등)인데 base(/ai-physical-computing/)가 빠졌다 → GitHub Pages에서 404
+//                      (전체 주소 https://…로 적힌 사이트 주소 — 대표 주소·공유 미리보기 — 는 공개 사이트의 base(publicBase)로 본다.
+//                       오프라인 배포판처럼 빌드 base가 공개 사이트와 달라도 대표 주소는 공개 사이트를 가리키기 때문이다)
 // - not-found          가리키는 파일·페이지가 dist/에 없다
 // - no-trailing-slash  페이지 주소 끝에 /가 없다(astro.config.mjs의 trailingSlash 'always' 정책, GitHub Pages가 301로 한 번 더 이동시킴)
 // - anchor-not-found   #위치가 그 페이지에 없다
@@ -27,7 +29,8 @@ import path from 'node:path';
 /**
  * @typedef {object} SiteAddress
  * @property {string} origin 사이트 도메인(예: https://songdocomputerpark-lang.github.io)
- * @property {string} base   하위 경로, 끝에 / 없음(예: /ai-physical-computing)
+ * @property {string} base   이번 빌드의 하위 경로, 끝에 / 없음(예: /ai-physical-computing, 사이트 뿌리면 '')
+ * @property {string} [publicBase] 공개 사이트의 하위 경로(없으면 base와 같다). 전체 주소(https://…)로 적힌 사이트 주소는 이 경로로 본다
  */
 
 /**
@@ -279,7 +282,6 @@ export function checkLinks(distDir, site, options = {}) {
   const idCache = new Map();
   /** @type {LinkReport} */
   const report = { pages: 0, stylesheets: 0, internal: 0, anchors: 0, examples: 0, external: 0, problems: [] };
-  const basePrefix = `${site.base}/`;
 
   /** @param {string} file */
   const idsOf = (file) => {
@@ -320,16 +322,19 @@ export function checkLinks(distDir, site, options = {}) {
       return;
     }
     report.internal += 1;
-    if (url.pathname === site.base) {
+    // 전체 주소로 적힌 사이트 주소(대표 주소·공유 미리보기)는 공개 사이트 주소다 — 빌드 base가 달라도(오프라인 배포판) 공개 사이트의 base로 본다.
+    const rootBase = HAS_SCHEME.test(value) || value.startsWith('//') ? (site.publicBase ?? site.base) : site.base;
+    const rootPrefix = `${rootBase}/`;
+    if (url.pathname === rootBase) {
       report.problems.push({ file, ref, kind: 'no-trailing-slash', target: 'index.html' });
       return;
     }
-    if (!url.pathname.startsWith(basePrefix)) {
+    if (!url.pathname.startsWith(rootPrefix)) {
       report.problems.push({ file, ref, kind: 'base-missing' });
       return;
     }
 
-    const sitePath = safeDecode(url.pathname.slice(basePrefix.length));
+    const sitePath = safeDecode(url.pathname.slice(rootPrefix.length));
     /** @type {string} */
     let target;
     if (sitePath === '' || sitePath.endsWith('/')) {
@@ -398,7 +403,8 @@ export function checkLinks(distDir, site, options = {}) {
 const PROBLEM_MESSAGES = {
   'base-missing': (/** @type {SiteAddress} */ site) =>
     `사이트 주소 앞부분(${site.base}/)이 빠졌어요. .astro 파일에서는 withBase('경로/')로 링크를 만들어요.`,
-  'not-found': () => '가리키는 파일이나 페이지가 빌드 결과(dist/)에 없어요. 주소의 철자와 파일 위치를 확인해요.',
+  'not-found': (/** @type {SiteAddress} */ _site, /** @type {string} */ dirLabel) =>
+    `가리키는 파일이나 페이지가 빌드 결과(${dirLabel}/)에 없어요. 주소의 철자와 파일 위치를 확인해요.`,
   'no-trailing-slash': () => '페이지 주소는 끝에 /를 붙여요(사이트 규칙). 예: …/credits/',
   'anchor-not-found': () => '주소 뒤 #위치(id)가 그 페이지에 없어요. 제목의 id나 #이름의 철자를 확인해요.',
   'relative-in-404': () => '404 페이지는 어느 주소에서나 보이므로 상대 주소가 깨져요. withBase()로 만든 주소를 써요.',
@@ -411,9 +417,11 @@ const PROBLEM_MESSAGES = {
  * 검사 결과를 한국어 문장으로 만든다.
  * @param {LinkReport} report
  * @param {SiteAddress} site
+ * @param {{ dirLabel?: string }} [options] dirLabel: 문장에 쓸 빌드 결과 폴더 이름(기본 dist — APC_OUT_DIR로 바꿨을 때)
  * @returns {string}
  */
-export function formatLinkReport(report, site) {
+export function formatLinkReport(report, site, options = {}) {
+  const dirLabel = options.dirLabel ?? 'dist';
   const summary =
     `HTML ${report.pages}개와 CSS ${report.stylesheets}개에서 사이트 안 주소 ${report.internal}개` +
     `(#위치 ${report.anchors}개, 실습실 예제 ${report.examples}개 포함)를 확인했어요. 다른 사이트 주소 ${report.external}개는 건너뛰었어요.`;
@@ -422,9 +430,9 @@ export function formatLinkReport(report, site) {
   }
   const lines = [`[링크 검사] 실패 — 문제 ${report.problems.length}개. ${summary}`];
   for (const problem of report.problems) {
-    const target = problem.target ? ` (찾아본 파일: dist/${problem.target})` : '';
-    lines.push(`- dist/${problem.file}: "${problem.ref}"${target}`);
-    lines.push(`  ${PROBLEM_MESSAGES[problem.kind](site)}`);
+    const target = problem.target ? ` (찾아본 파일: ${dirLabel}/${problem.target})` : '';
+    lines.push(`- ${dirLabel}/${problem.file}: "${problem.ref}"${target}`);
+    lines.push(`  ${PROBLEM_MESSAGES[problem.kind](site, dirLabel)}`);
   }
   return lines.join('\n');
 }

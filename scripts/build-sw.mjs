@@ -11,8 +11,9 @@
 //      Pyodide 파일 표(이름 → 원본 크기)가 들어간다. 설정이 바뀌면 sw.js 내용이 바뀌므로 브라우저가 새 판을 알아채고 다시 설치한다.
 //
 // 쓰는 법
-//   node scripts/build-sw.mjs                 dist/를 읽고 dist/sw.js를 만든다(npm run build의 postbuild에서 부른다)
+//   node scripts/build-sw.mjs                 빌드 결과 폴더(환경 변수 APC_OUT_DIR, 기본 dist/)를 읽고 그 안에 sw.js를 만든다(npm run build의 postbuild에서 부른다)
 //   node scripts/build-sw.mjs --dir <폴더>     다른 폴더의 빌드 결과에 대고 만든다(병렬 제작 검증용)
+//   사이트 하위 경로(설정의 base)는 이번 빌드와 같은 값(환경 변수 APC_BASE — src/config/site.ts)을 src/lib/url.ts의 BASE_PATH로 읽는다.
 //   node scripts/build-sw.mjs --dry           만들지 않고 목록·크기만 보여 준다
 //
 // 이 파일의 함수는 tests/unit/loading/build-sw.test.ts가 직접 불러 검사한다(순수 함수 부분).
@@ -21,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getManifest } from 'workbox-build';
+import { resolveBuildSettings } from '../src/config/site.ts';
 import {
   ASSETS_CACHE,
   ASSETS_CACHE_MAX_ENTRIES,
@@ -180,7 +182,7 @@ export function renderServiceWorker(source, config) {
 async function main() {
   const args = process.argv.slice(2);
   const dirIndex = args.indexOf('--dir');
-  const dir = path.resolve(rootDir, dirIndex >= 0 ? args[dirIndex + 1] : 'dist');
+  const dir = path.resolve(rootDir, dirIndex >= 0 ? args[dirIndex + 1] : resolveBuildSettings().outDir);
   const dry = args.includes('--dry');
   const indexHtml = path.join(dir, 'index.html');
   if (!fs.existsSync(indexHtml)) {

@@ -12,6 +12,8 @@
  *   absoluteUrl('credits/')            → 'https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/'
  *
  * base는 src/config/site.ts 한 곳에서 온다. 사용자 도메인을 연결해 base를 ''로 바꿔도 부르는 코드는 그대로 둔다.
+ * 이번 빌드의 base는 환경 변수 APC_BASE로 바뀔 수 있다(오프라인 배포판은 사이트 뿌리 '' — site.ts 머리말). 그래도 absoluteUrl()이 만드는
+ * 전체 주소(검색 엔진 대표 주소·공유 미리보기)는 늘 **공개 사이트** 주소다(siteConfig.publicBase).
  * Astro 페이지뿐 아니라 Vitest·Playwright·Node 스크립트도 이 파일을 쓰므로 import.meta.env(Astro 전용 값)를 읽지 않는다.
  */
 import { siteConfig } from '../config/site.ts';
@@ -95,7 +97,19 @@ export function normalizePagePath(pathname: string): string {
   return result;
 }
 
-/** 사이트 밖에서 쓰는 전체 주소(검색 엔진 대표 주소·공유 미리보기 등) */
+/** 공개 사이트의 뿌리 주소(끝에 /). 이번 빌드의 base가 달라도(오프라인 배포판) 전체 주소는 이 경로를 쓴다. */
+const PUBLIC_BASE_PATH = `${siteConfig.publicBase as string}/`;
+
+/**
+ * 사이트 밖에서 쓰는 전체 주소(검색 엔진 대표 주소·공유 미리보기 등). 언제나 공개 사이트(GitHub Pages)의 주소다.
+ * absoluteUrl('credits/') → 'https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/'
+ * 페이지 주소(base가 붙은 Astro.url.pathname)는 stripBase()로 먼저 뗀다: absoluteUrl(stripBase(Astro.url.pathname))
+ */
 export function absoluteUrl(path: string): string {
-  return new URL(withBase(path), siteConfig.origin).href;
+  const local = withBase(path);
+  if (isExternalHref(local)) {
+    return local;
+  }
+  const rest = local.startsWith(BASE_PATH) ? local.slice(BASE_PATH.length) : local;
+  return new URL(`${PUBLIC_BASE_PATH}${rest}`, siteConfig.origin).href;
 }

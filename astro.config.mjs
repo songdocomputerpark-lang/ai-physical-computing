@@ -1,17 +1,23 @@
 // @ts-check
 import { unified } from '@astrojs/markdown-remark';
 import { defineConfig } from 'astro/config';
-import { siteConfig } from './src/config/site.ts';
+import { resolveBuildSettings, siteConfig } from './src/config/site.ts';
 import { clientBundleLicensePlugin } from './scripts/lib/bundle-license.mjs';
 import { esptoolStubGuardPlugin } from './scripts/lib/esptool-stub-guard.mjs';
 import { rehypePlugins, remarkPlugins } from './src/lib/markdown-plugins.mjs';
 
 // 주소와 하위 경로는 src/config/site.ts 한 곳에서만 정한다(DECISIONS C7).
+// 빌드 환경 변수 APC_BASE(하위 경로 — 오프라인 배포판은 '/')·APC_OUT_DIR(결과 폴더, 기본 dist)도 site.ts가 읽는다(그 머리말).
+const build = resolveBuildSettings();
+
 export default defineConfig({
   // GitHub Pages 도메인. 실제 사이트 주소는 site + base다.
   site: siteConfig.origin,
   // 프로젝트 사이트라서 저장소 이름이 하위 경로가 된다. 빌드된 자원·링크 앞에 붙는다.
-  base: siteConfig.base,
+  // site.ts는 사이트 뿌리를 ''로 적고 Astro는 '/'로 받는다(APC_BASE=/ — 오프라인 배포판).
+  base: build.base === '' ? '/' : build.base,
+  // 빌드 결과 폴더(APC_OUT_DIR, 기본 dist). Astro는 빌드 전에 이 폴더를 비운다 — site.ts가 dist·dist-이름·.cache/ 아래만 받는다.
+  outDir: build.outDir,
   // 서버 없이 미리 만든 파일만 배포한다(절대 원칙 2).
   output: 'static',
   // 끝 슬래시 정책: 내부 주소는 항상 /로 끝낸다. 근거는 네 가지다.
@@ -41,6 +47,11 @@ export default defineConfig({
     },
   },
   vite: {
+    // 브라우저로 가는 코드에는 환경 변수가 없어서, 이번 빌드의 base를 글자로 새겨 넣는다(src/config/site.ts의 __APC_BASE__).
+    // 그래서 withBase()·서비스 워커 등록·Pyodide 예비본 주소가 APC_BASE를 따른다(워커는 주소를 화면 쪽에서 받는다).
+    define: {
+      __APC_BASE__: JSON.stringify(build.base),
+    },
     // 병렬 제작: 한 작업 폴더에 개발 서버가 여럿이면 node_modules/.vite/deps를 함께 써서 504(Outdated Optimize Dep)가 되풀이된다.
     // APC_VITE_CACHE_DIR을 서버마다 다르게 주면 미리 묶기 폴더가 나뉜다(src/lab/README.md 5.1). 값이 없으면 지금과 같다.
     ...(process.env.APC_VITE_CACHE_DIR ? { cacheDir: process.env.APC_VITE_CACHE_DIR } : {}),

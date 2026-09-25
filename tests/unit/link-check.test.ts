@@ -133,6 +133,20 @@ describe('링크 검사(checkLinks)', () => {
     expect(message).toContain('사이트 주소 앞부분(/demo/)이 빠졌어요');
   });
 
+  it('사이트 뿌리로 빌드했을 때(오프라인 배포판): 사이트 안 주소는 뿌리로, 전체 주소(대표 주소·공유 미리보기)는 공개 사이트 base로 본다', () => {
+    const rootSite = { origin: site.origin, base: '', publicBase: '/demo' };
+    const dist = makeDist({
+      'index.html': page(
+        ['<a href="/credits/">출처</a>', '<a href="credits/#third-party">상대</a>', '<a href="/demo/credits/">옛 base가 박힌 주소</a>'].join(''),
+        `<link rel="canonical" href="${site.origin}/demo/"><meta property="og:url" content="${site.origin}/demo/credits/">`,
+      ),
+      'credits/index.html': page('<h2 id="third-party">제3자</h2>'),
+    });
+    const report = checkLinks(dist, rootSite);
+    expect(report.problems.map((problem) => [problem.ref, problem.kind])).toEqual([['/demo/credits/', 'not-found']]);
+    expect(formatLinkReport(report, rootSite, { dirLabel: 'dist-offline' })).toContain('- dist-offline/index.html: "/demo/credits/"');
+  });
+
   it('실습실 주소의 ?example= 값이 examples/에 없는 파일이면 찾아낸다(2026-09-17 검토 반영 — 실습실은 조용히 첫 예제를 열기 때문)', () => {
     const examplesDir = makeTempDir('link-check-examples-');
     tempDirs.push(examplesDir);

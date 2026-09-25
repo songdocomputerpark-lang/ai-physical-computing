@@ -32,7 +32,7 @@ import '../styles/global.css';
 import Breadcrumb from '../components/common/Breadcrumb.astro';
 import type { BreadcrumbItem } from '../config/nav.ts';
 import { siteConfig } from '../config/site.ts';
-import { withBase } from '../lib/url.ts';
+import { absoluteUrl, stripBase, withBase } from '../lib/url.ts';
 import SiteFooter from './partials/SiteFooter.astro';
 import SiteHeader from './partials/SiteHeader.astro';
 
@@ -59,7 +59,8 @@ const {
 } = Astro.props;
 
 const documentTitle = isHome ? siteConfig.name : `${title} | ${siteConfig.name}`;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+// 대표 주소는 늘 공개 사이트 주소다 — 오프라인 배포판(사이트 뿌리 base)에서 만들어도 공개 사이트의 같은 쪽을 가리킨다(src/lib/url.ts absoluteUrl).
+const canonicalUrl = absoluteUrl(stripBase(Astro.url.pathname));
 const showBreadcrumb = breadcrumb !== false && !isHome;
 const hasNotice = Astro.slots.has('notice');
 ---

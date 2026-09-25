@@ -4,14 +4,15 @@
 //     public/·examples/·content/의 모든 파일과 package.json의 dependencies가 sources.yaml에 등록됐는지,
 //     한 파일이 저작자가 다른 두 항목에 동시에 걸리지 않았는지 검사한다.
 // - 빌드 뒤(npm의 postbuild): node scripts/check-sources.mjs --bundle
-//     배포 번들에 실제로 들어간 npm 패키지(dist/bundle-licenses.json, scripts/lib/bundle-license.mjs 참고)가
-//     등록됐는지 검사하고, 목록 파일은 배포되지 않게 지운다.
+//     배포 번들에 실제로 들어간 npm 패키지(<빌드 결과 폴더>/bundle-licenses.json, scripts/lib/bundle-license.mjs 참고)가
+//     등록됐는지 검사하고, 목록 파일은 배포되지 않게 지운다. 빌드 결과 폴더는 이번 빌드와 같은 환경 변수 APC_OUT_DIR(기본 dist — src/config/site.ts).
 // 문제가 있으면 한국어로 알리고 종료 코드 1로 끝나서 빌드(와 배포)를 멈춘다.
 //
 // 선택: --root <폴더>  다른 폴더를 검사한다(단위 테스트용).
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveBuildSettings } from '../src/config/site.ts';
 import { checkBundleDependencies, checkSourceFiles } from './lib/sources-check.mjs';
 
 const args = process.argv.slice(2);
@@ -21,7 +22,9 @@ const rootDir =
     ? path.resolve(args[rootOptionIndex + 1])
     : fileURLToPath(new URL('..', import.meta.url));
 
-const result = args.includes('--bundle') ? checkBundleDependencies({ rootDir }) : checkSourceFiles({ rootDir });
+// --root(단위 테스트)로 다른 폴더를 볼 때는 그 폴더의 dist를 본다(환경 변수는 이 저장소의 빌드용).
+const outputDir = rootOptionIndex >= 0 ? undefined : resolveBuildSettings().outDir;
+const result = args.includes('--bundle') ? checkBundleDependencies({ rootDir, outputDir }) : checkSourceFiles({ rootDir });
 
 for (const warning of result.warnings) {
   console.warn(`[출처 검사] 참고: ${warning}`);
