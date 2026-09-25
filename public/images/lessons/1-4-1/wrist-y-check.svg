@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 336" width="640" height="336" role="img" aria-labelledby="title desc">
+<title id="title">손목의 y 좌표로 손을 들었는지 판단하기: y는 위가 0, 아래가 1</title>
+<desc id="desc">왼쪽은 카메라 영상 위에 그린 사람의 뼈대다. 영상의 세로 위치 y는 맨 위가 0, 맨 아래가 1이고, 0.3 높이에 기준선(TARGET_Y = 0.3)이 점선으로 그어져 있다. 사람이 든 왼쪽 손목(15번 점)은 y = 0.2라서 기준선보다 위에 있다. 오른쪽 위 상자: 손을 들었을 때 left_wrist_y = 0.2이고 0.2 &lt; 0.3이 참이라 화면에 Success!를 쓴다. 오른쪽 아래 상자: 손을 내렸을 때 left_wrist_y = 0.9이고 0.9 &lt; 0.3이 거짓이라 아무것도 쓰지 않는다. 사이트가 직접 그린 그림(INVENTORY S35).</desc>
+<rect width="640" height="336" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="238" y="36" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">카메라 영상(정규화 좌표)</text>
+<rect x="88" y="60" width="300" height="225" rx="6" fill="#2a3140"/>
+
+<g font-size="16" fill="#17191c" text-anchor="end">
+<text x="80" y="66">0</text>
+<text x="80" y="133">0.3</text>
+<text x="80" y="291">1</text>
+</g>
+<text x="38" y="176" font-size="16" fill="#4a5361" text-anchor="middle">y</text>
+<line x1="38" y1="186" x2="38" y2="230" stroke="#4a5361" stroke-width="2"/>
+<path d="M32 224 L38 236 L44 224 Z" fill="#4a5361"/>
+<text x="238" y="314" font-size="16" fill="#4a5361" text-anchor="middle">아래로 갈수록 y 값이 커져요</text>
+
+<line x1="88" y1="127.5" x2="388" y2="127.5" stroke="#ffd166" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text x="96" y="119" font-size="16" font-weight="700" fill="#ffd166" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">TARGET_Y = 0.3</text>
+
+<g fill="none" stroke="#e6e9ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M274 190.5 L202 190.5"/>
+<path d="M274 190.5 L298 150 L304 105"/>
+<path d="M202 190.5 L187 235.5 L181 273.7"/>
+<path d="M274 190.5 L268 285"/>
+<path d="M202 190.5 L208 285"/>
+</g>
+<circle cx="238" cy="150" r="17" fill="none" stroke="#e6e9ee" stroke-width="3"/>
+<g fill="#ff6b6b" stroke="#2a3140" stroke-width="1.5">
+<circle cx="274" cy="190.5" r="6"/><circle cx="202" cy="190.5" r="6"/>
+<circle cx="298" cy="150" r="6"/><circle cx="187" cy="235.5" r="6"/>
+<circle cx="181" cy="273.7" r="6"/>
+</g>
+<circle cx="304" cy="105" r="9" fill="#ffd166" stroke="#2a3140" stroke-width="2"/>
+<text x="290" y="101" font-size="16" fill="#ffffff" text-anchor="end"><tspan font-weight="700">15번 점</tspan> y = 0.2</text>
+
+<rect x="404" y="60" width="226" height="108" rx="12" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="418" y="87" font-size="17" font-weight="700" fill="#15653a">손을 들었을 때</text>
+<g font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">
+<text x="418" y="113">left_wrist_y = 0.2</text>
+<text x="418" y="136">0.2 &lt; 0.3 → 참</text>
+</g>
+<text x="418" y="158" font-size="16" fill="#15653a">화면에 Success!</text>
+
+<rect x="404" y="178" width="226" height="108" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="418" y="205" font-size="17" font-weight="700" fill="#17191c">손을 내렸을 때</text>
+<g font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">
+<text x="418" y="231">left_wrist_y = 0.9</text>
+<text x="418" y="254">0.9 &lt; 0.3 → 거짓</text>
+</g>
+<text x="418" y="276" font-size="16" fill="#4a5361">아무것도 쓰지 않아요</text>
+</g>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 316" width="640" height="316" role="img" aria-labelledby="title desc">
+<title id="title">영상 속 객체와 구조를 알아보는 세 가지 기능: 객체 감지, 이미지 분류, 이미지 분할</title>
+<desc id="desc">세 칸의 그림. 첫째 칸 "객체 감지"에는 사과와 컵이 있고, 사과는 파란 네모, 컵은 초록 네모로 둘러싸여 네모 위에 "사과", "컵"이라는 이름표가 붙어 있다. 둘째 칸 "이미지 분류"에는 새 한 마리가 있고 사진 왼쪽 위에 "새 95%"라는 이름표가 붙어 있다. 셋째 칸 "이미지 분할"에는 사람 모양 부분만 파랗게 칠해져 "사람", 나머지는 "배경"으로 나뉘어 있다. 사이트가 직접 그린 그림(원고 015쪽 기능 카드를 사람 사진 없이 다시 그림).</desc>
+<rect width="640" height="316" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+
+<rect x="12" y="8" width="200" height="300" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="112" y="38" font-size="19" font-weight="700" fill="#17191c">객체 감지</text>
+<rect x="28" y="54" width="168" height="150" rx="8" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="78" cy="152" r="30" fill="#e25b5b" stroke="#a3232a" stroke-width="2"/>
+<path d="M78,122 C78,114 80,110 84,106" fill="none" stroke="#5a3b1e" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="92" cy="112" rx="10" ry="5" fill="#3b9360" transform="rotate(-25 92 112)"/>
+<path d="M134,132 H172 L166,190 H140 Z" fill="#dbe7f7" stroke="#4a5361" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M170,144 C184,144 186,170 167,172" fill="none" stroke="#4a5361" stroke-width="3"/>
+<rect x="42" y="98" width="72" height="92" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<rect x="42" y="78" width="44" height="22" fill="#1f5bd6"/>
+<text x="64" y="95" font-size="16" font-weight="700" fill="#ffffff">사과</text>
+<rect x="128" y="124" width="62" height="72" fill="none" stroke="#15653a" stroke-width="3"/>
+<rect x="128" y="104" width="34" height="22" fill="#15653a"/>
+<text x="145" y="121" font-size="16" font-weight="700" fill="#ffffff">컵</text>
+<text x="112" y="236" font-size="16" fill="#17191c">물체를 찾아 네모 칸으로</text>
+<text x="112" y="258" font-size="16" fill="#17191c">자리를 표시해요</text>
+<text x="112" y="288" font-size="16" fill="#4a5361">예: CCTV, 자율주행</text>
+
+<rect x="220" y="8" width="200" height="300" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="320" y="38" font-size="19" font-weight="700" fill="#17191c">이미지 분류</text>
+<rect x="236" y="54" width="168" height="150" rx="8" fill="#eef4f8" stroke="#7b8594"/>
+<path d="M270,168 C286,148 318,140 344,146 L372,128 L366,150 C360,168 330,180 296,178 Z" fill="#ffffff" stroke="#4a5361" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="350" cy="132" r="13" fill="#ffffff" stroke="#4a5361" stroke-width="2.5"/>
+<path d="M362,128 L384,132 L362,137 Z" fill="#f2a33a" stroke="#4a5361" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="353" cy="129" r="2.5" fill="#17191c"/>
+<path d="M300,160 C312,150 326,150 338,156" fill="none" stroke="#4a5361" stroke-width="2.5"/>
+<line x1="306" y1="178" x2="302" y2="196" stroke="#4a5361" stroke-width="2.5"/>
+<line x1="322" y1="178" x2="324" y2="196" stroke="#4a5361" stroke-width="2.5"/>
+<rect x="244" y="62" width="74" height="26" rx="4" fill="#1f5bd6"/>
+<text x="281" y="81" font-size="16" font-weight="700" fill="#ffffff">새 95%</text>
+<text x="320" y="236" font-size="16" fill="#17191c">사진 전체가 무엇인지</text>
+<text x="320" y="258" font-size="16" fill="#17191c">이름을 붙여요</text>
+<text x="320" y="288" font-size="16" fill="#4a5361">예: 사진첩 자동 정리</text>
+
+<rect x="428" y="8" width="200" height="300" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="528" y="38" font-size="19" font-weight="700" fill="#17191c">이미지 분할</text>
+<defs>
+<pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="10" height="10" fill="#f4f6f9"/>
+<line x1="0" y1="0" x2="0" y2="10" stroke="#b8c1cc" stroke-width="3"/>
+</pattern>
+</defs>
+<rect x="444" y="54" width="168" height="150" rx="8" fill="url(#hatch)" stroke="#7b8594"/>
+<path d="M494,204 C494,172 508,158 528,158 C548,158 562,172 562,204 Z" fill="#5b87e0" stroke="#1a4cb4" stroke-width="2"/>
+<circle cx="528" cy="128" r="24" fill="#5b87e0" stroke="#1a4cb4" stroke-width="2"/>
+<text x="528" y="190" font-size="16" font-weight="700" fill="#ffffff">사람</text>
+<rect x="450" y="62" width="44" height="24" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="472" y="80" font-size="16" fill="#4a5361">배경</text>
+<text x="528" y="236" font-size="16" fill="#17191c">픽셀마다 어느 물체의</text>
+<text x="528" y="258" font-size="16" fill="#17191c">것인지 나눠요</text>
+<text x="528" y="288" font-size="16" fill="#4a5361">예: 화상 회의 배경</text>
+</g>
+</svg>

@@ -1,0 +1,58 @@
+# 차시 1-2-3 "손끝 사이의 거리, 컴퓨터가 알아채다"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-2-3
+# 결과는 public/images/lessons/1-2-3/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U1 43
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+#
+# 이 차시가 쓰는 원고 그림은 실행 결과 화면 두 장이에요(둘 다 손만 보이는 화면).
+# - 기본 실습 결과는 043쪽 "해 보기"의 화면을 써요. 047쪽 실행 결과와 같은 화면(Distance: 252)인데, 047쪽은 옆 결과 상자의
+#   말꼬리(하늘색 세모)가 손가락을 덮고 있어요.
+# - 042쪽 핀치 줌 사진(출판 편집 컷)은 INVENTORY §5.2가 "스톡 추정"으로 적은 그림이라 쓰지 않고, 사이트가 그린 pinch-zoom.svg로 대신해요.
+# - 043쪽 유클리드 거리 도식(출판 편집 컷)은 euclidean-distance.svg(INVENTORY S27)로, 051쪽 거리 방식 비교 컷은 distance-kinds.svg(S28)로
+#   사이트가 다시 그렸어요 — 원고 예시 숫자 (300, 400)·(600, 800)을 그림 안에 넣어 본문과 맞추려는 것이에요.
+# - cv2.circle의 값 풀이 그림(circle-args.svg)도 사이트가 그렸어요. 사이트가 그린 SVG는 이 목록에 적지 않아요(sources.yaml "사이트가 직접 그린 그림").
+
+images:
+  - name: distance-result
+    use: 1-2-3 따라하기 — 기본 실습(손가락 거리로 선 그리기)의 실행 결과 화면(원고 043쪽 해 보기 그림, 047쪽 실행 결과와 같은 화면)
+    alt: 프로그램 창 왼쪽 위에 파란 글자로 Distance 252가 적히고, 손 관절마다 빨간 점과 흰 선이 그려진 손에서 엄지 끝과 검지 끝이 초록 선으로 이어진 실행 결과 화면
+    from:
+      source: U1
+      page: 43
+      region: [362, 574, 524, 702]
+      dpi: 300
+    file: public/images/lessons/1-2-3/distance-result.webp
+    width: 676
+    height: 534
+    bytes: 17778
+    sha256: "84978a41b2e544a76e8b1bd5908c604c0950ee5602a34fed36a0a1bb984601b2"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 프로그램 창 속 엄지와 검지를 L자로 벌린 손 사진, 관절의 빨간 점·흰 선, 엄지 끝과 검지 끝을 잇는 초록 선, 왼쪽 위 파란 글자 "Distance 252"만 있음. 해 보기 상자의 질문 글은 영역 밖. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: circle-result
+    use: 1-2-3 따라하기 — 심화 실습(엄지와 검지 손가락 사이 거리로 원 그리기)을 웹캠으로 돌린 실행 결과 화면 두 장(원고 050쪽)
+    alt: 두 손가락을 오므린 화면에서는 화면 가운데 노란 원이 작고, 두 손가락을 벌린 화면에서는 같은 자리의 노란 원이 커진 실행 결과 화면 두 장
+    from:
+      source: U1
+      page: 50
+      region: [199, 130, 509, 372]
+      dpi: 300
+    file: public/images/lessons/1-2-3/circle-result.webp
+    width: 960
+    height: 750
+    bytes: 20678
+    sha256: "f22ceddd764784b1c06ef86c05cb7a22ca22e2ffb1ae763a789e544fce74bf3c"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 겹쳐 놓은 실행 화면 두 장(왼쪽 위 노란 글자 "Distance 58"과 작은 노란 원, "Distance 114"와 큰 노란 원)과 손 사진·빨간 점·흰 선만 있음. 결과 설명 글·점검표는 영역 밖. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음

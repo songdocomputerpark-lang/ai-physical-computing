@@ -1,0 +1,36 @@
+# 차시 1-2-1 "컴퓨터의 눈, 인간을 바라보다"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-2-1
+# 결과는 public/images/lessons/1-2-1/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U1 27
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+#
+# 이 차시가 쓰는 원고 그림은 027쪽 "프로그램 기능과 사용자 인터페이스"의 손 인식 화면 한 장이에요(손만 보이는 화면).
+# - 031쪽 심화 실습 실행 결과도 같은 손 화면이지만, 옆 결과 상자의 말꼬리(하늘색 세모)가 손가락을 덮고 있어 027쪽 그림을 골랐어요.
+# - 029쪽 기본 실습 실행 결과는 얼굴이 크게 나온 화면이라 쓰지 않아요. 운영자가 본인 얼굴이라 공개해도 된다고 답했지만(DECISIONS O9),
+#   좌우 반전은 방향이 드러나는 그림이 더 잘 보여 사이트가 그린 그림(flip-codes.svg, INVENTORY S20)으로 대신해요.
+# - 024쪽 중단원 여는 그림·025쪽 스마트폰 필터 그림은 INVENTORY §5.2가 "스톡 추정"으로 적은 그림이라 쓰지 않아요(결정 C11, 절대 원칙 5).
+# - 사이트가 그린 SVG(hand-tracking-roadmap·frame-pipeline(S19)·flip-codes(S20)·landmark-coords(S22))는 이 목록에 적지 않아요(sources.yaml "사이트가 직접 그린 그림").
+
+images:
+  - name: hand-landmarks-result
+    use: 1-2-1 따라하기 — 심화 실습(손의 랜드마크 표시하기)의 기대 결과 화면(원고 027쪽 "프로그램 기능과 사용자 인터페이스" 그림, 031쪽 실행 결과와 같은 화면)
+    alt: 프로그램 창 속 손바닥을 편 손 위에 손가락 관절마다 빨간 점이 찍히고 점들이 흰 선으로 이어진 손 인식 결과 화면
+    from:
+      source: U1
+      page: 27
+      region: [436, 600, 570, 716]
+      dpi: 300
+    file: public/images/lessons/1-2-1/hand-landmarks-result.webp
+    width: 560
+    height: 484
+    bytes: 11850
+    sha256: "74c05d74581ee0ab0659deae43d8640b94f1e98f8d7a4d5074e44bfaffec3524"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 프로그램 창(제목 표시줄의 빨강·노랑·초록 네모) 속 손바닥을 편 손 사진과 관절마다 찍힌 빨간 점 21개·흰 선만 있음. 옆 결과 상자·말꼬리는 영역 밖. 얼굴·이름·글자·화면 속 경로·파일명·기기 주소·학교명 없음

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 318" width="640" height="318" role="img" aria-labelledby="title desc">
+<title id="title">음성 인식을 쓰는 프로그램 세 가지: 말소리를 글자로 바꿔 일을 해요</title>
+<desc id="desc">음성 비서는 날씨를 묻는 말을, 자동 자막은 영상 속 말소리를, 스마트 조명은 "불 켜 줘"라는 말을 받는다. 세 줄 모두 가운데에서 말을 글자로 바꾸고, 그 글자로 날씨 알려 주기, 자막 보여 주기, 불 켜기를 한다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+<symbol id="wave" viewBox="0 0 36 36">
+<g fill="#ffffff">
+<rect x="1" y="14" width="4" height="8" rx="2"/>
+<rect x="8" y="8" width="4" height="20" rx="2"/>
+<rect x="15" y="3" width="4" height="30" rx="2"/>
+<rect x="22" y="10" width="4" height="16" rx="2"/>
+<rect x="29" y="15" width="4" height="6" rx="2"/>
+</g>
+</symbol>
+</defs>
+<rect width="640" height="318" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="238" y="26" font-size="16" font-weight="600" fill="#4a5361">받아들이는 것</text>
+<text x="405" y="26" font-size="16" font-weight="600" fill="#4a5361">바꾸는 것</text>
+<text x="561" y="26" font-size="16" font-weight="600" fill="#4a5361">하는 일</text>
+
+<rect x="12" y="40" width="616" height="80" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="84" y="87" font-size="18" font-weight="700" fill="#17191c">음성 비서</text>
+<rect x="160" y="54" width="156" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="238" y="86" font-size="16" fill="#17191c">날씨를 묻는 말</text>
+<line x1="318" y1="80" x2="346" y2="80" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="350" y="52" width="110" height="56" rx="12" fill="#1f5bd6"/>
+<use href="#wave" x="356" y="62" width="36" height="36"/>
+<text x="427" y="77" font-size="16" font-weight="700" fill="#ffffff">말을</text>
+<text x="427" y="98" font-size="16" font-weight="700" fill="#ffffff">글자로</text>
+<line x1="462" y1="80" x2="490" y2="80" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="494" y="54" width="134" height="52" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="561" y="86" font-size="16" fill="#17191c">날씨 알려 주기</text>
+
+<rect x="12" y="132" width="616" height="80" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="84" y="179" font-size="18" font-weight="700" fill="#17191c">자동 자막</text>
+<rect x="160" y="146" width="156" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="238" y="178" font-size="16" fill="#17191c">영상 속 말소리</text>
+<line x1="318" y1="172" x2="346" y2="172" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="350" y="144" width="110" height="56" rx="12" fill="#1f5bd6"/>
+<use href="#wave" x="356" y="154" width="36" height="36"/>
+<text x="427" y="169" font-size="16" font-weight="700" fill="#ffffff">말을</text>
+<text x="427" y="190" font-size="16" font-weight="700" fill="#ffffff">글자로</text>
+<line x1="462" y1="172" x2="490" y2="172" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="494" y="146" width="134" height="52" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="561" y="178" font-size="16" fill="#17191c">자막 보여 주기</text>
+
+<rect x="12" y="224" width="616" height="80" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="84" y="271" font-size="18" font-weight="700" fill="#17191c">스마트 조명</text>
+<rect x="160" y="238" width="156" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="238" y="270" font-size="16" fill="#17191c">"불 켜 줘"</text>
+<line x1="318" y1="264" x2="346" y2="264" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="350" y="236" width="110" height="56" rx="12" fill="#1f5bd6"/>
+<use href="#wave" x="356" y="246" width="36" height="36"/>
+<text x="427" y="261" font-size="16" font-weight="700" fill="#ffffff">말을</text>
+<text x="427" y="282" font-size="16" font-weight="700" fill="#ffffff">글자로</text>
+<line x1="462" y1="264" x2="490" y2="264" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="494" y="238" width="134" height="52" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="561" y="270" font-size="16" fill="#17191c">불 켜기</text>
+</g>
+</svg>

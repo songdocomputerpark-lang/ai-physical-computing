@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 610" width="640" height="610" role="img" aria-labelledby="title desc">
+<title id="title">MediaPipe Pose의 자세 랜드마크 33개와 번호(우리를 마주 보는 사람)</title>
+<desc id="desc">우리를 마주 보고 선 사람의 몸에 점 33개가 찍혀 있고 점끼리 선으로 이어져 뼈대처럼 보인다. 0~10번은 얼굴(코, 눈, 귀, 입), 11·12번은 어깨, 13·14번은 팔꿈치, 15·16번은 손목, 17~22번은 손가락, 23·24번은 엉덩이, 25·26번은 무릎, 27·28번은 발목, 29~32번은 발이다. 홀수 번호는 그 사람의 왼쪽, 짝수 번호는 오른쪽인데, 사람이 우리를 마주 보고 있어서 사람의 왼쪽(LEFT)은 그림의 오른쪽에 있다. 사이트가 직접 그린 그림(INVENTORY S15).</desc>
+<rect width="640" height="610" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="20" y="30" font-size="16" font-weight="700" fill="#1a4cb4">사람의 오른쪽(RIGHT)</text>
+<text x="620" y="30" font-size="16" font-weight="700" fill="#1a4cb4" text-anchor="end">사람의 왼쪽(LEFT)</text>
+<text x="320" y="74" font-size="16" fill="#17191c" text-anchor="middle"><tspan font-weight="700">0~10</tspan> 얼굴(코, 눈, 귀, 입)</text>
+
+<circle cx="320" cy="134" r="46" fill="#eef2f7" stroke="#d6dde6" stroke-width="1.5"/>
+
+<g fill="none" stroke="#7b8594" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M320 138 L333 122 L344 120 L355 122 L362 132"/>
+<path d="M320 138 L307 122 L296 120 L285 122 L278 132"/>
+<path d="M331 156 L309 156"/>
+<path d="M392 210 L248 210"/>
+<path d="M392 210 L420 292 L434 372"/>
+<path d="M434 372 L450 392 L440 400 L434 372 L424 390"/>
+<path d="M248 210 L220 292 L206 372"/>
+<path d="M206 372 L190 392 L200 400 L206 372 L216 390"/>
+<path d="M392 210 L362 378 L278 378 L248 210"/>
+<path d="M362 378 L368 472 L372 560 L366 578 L396 582 L372 560"/>
+<path d="M278 378 L272 472 L268 560 L274 578 L244 582 L268 560"/>
+</g>
+
+<g fill="#d24b4b" stroke="#ffffff" stroke-width="1.5">
+<circle cx="320" cy="138" r="5"/>
+<circle cx="333" cy="122" r="3.5"/><circle cx="344" cy="120" r="3.5"/><circle cx="355" cy="122" r="3.5"/>
+<circle cx="307" cy="122" r="3.5"/><circle cx="296" cy="120" r="3.5"/><circle cx="285" cy="122" r="3.5"/>
+<circle cx="362" cy="132" r="4"/><circle cx="278" cy="132" r="4"/>
+<circle cx="331" cy="156" r="3.5"/><circle cx="309" cy="156" r="3.5"/>
+<circle cx="392" cy="210" r="7"/><circle cx="248" cy="210" r="7"/>
+<circle cx="420" cy="292" r="7"/><circle cx="220" cy="292" r="7"/>
+<circle cx="434" cy="372" r="7"/><circle cx="206" cy="372" r="7"/>
+<circle cx="450" cy="392" r="4"/><circle cx="440" cy="400" r="4"/><circle cx="424" cy="390" r="4"/>
+<circle cx="190" cy="392" r="4"/><circle cx="200" cy="400" r="4"/><circle cx="216" cy="390" r="4"/>
+<circle cx="362" cy="378" r="7"/><circle cx="278" cy="378" r="7"/>
+<circle cx="368" cy="472" r="7"/><circle cx="272" cy="472" r="7"/>
+<circle cx="372" cy="560" r="7"/><circle cx="268" cy="560" r="7"/>
+<circle cx="366" cy="578" r="4"/><circle cx="396" cy="582" r="4"/>
+<circle cx="274" cy="578" r="4"/><circle cx="244" cy="582" r="4"/>
+</g>
+
+<g stroke="#9aa3b0" stroke-width="1.5" stroke-dasharray="3 3">
+<line x1="401" y1="210" x2="472" y2="210"/>
+<line x1="429" y1="292" x2="472" y2="292"/>
+<line x1="443" y1="372" x2="472" y2="372"/>
+<line x1="456" y1="396" x2="472" y2="409"/>
+<line x1="377" y1="472" x2="472" y2="472"/>
+<line x1="381" y1="558" x2="472" y2="551"/>
+<line x1="402" y1="584" x2="472" y2="585"/>
+<line x1="239" y1="210" x2="168" y2="210"/>
+<line x1="211" y1="292" x2="168" y2="292"/>
+<line x1="197" y1="372" x2="168" y2="372"/>
+<line x1="184" y1="396" x2="168" y2="409"/>
+<line x1="263" y1="472" x2="168" y2="472"/>
+<line x1="259" y1="558" x2="168" y2="551"/>
+<line x1="238" y1="584" x2="168" y2="585"/>
+</g>
+
+<g font-size="16" fill="#17191c">
+<text x="478" y="215"><tspan font-weight="700">11</tspan> 왼쪽 어깨</text>
+<text x="478" y="297"><tspan font-weight="700">13</tspan> 왼쪽 팔꿈치</text>
+<text x="478" y="377"><tspan font-weight="700">15</tspan> 왼쪽 손목</text>
+<text x="478" y="414"><tspan font-weight="700">17, 19, 21</tspan> 손</text>
+<text x="478" y="477"><tspan font-weight="700">25</tspan> 왼쪽 무릎</text>
+<text x="478" y="556"><tspan font-weight="700">27</tspan> 왼쪽 발목</text>
+<text x="478" y="590"><tspan font-weight="700">29, 31</tspan> 발</text>
+</g>
+<g font-size="16" fill="#17191c" text-anchor="end">
+<text x="162" y="215">오른쪽 어깨 <tspan font-weight="700">12</tspan></text>
+<text x="162" y="297">오른쪽 팔꿈치 <tspan font-weight="700">14</tspan></text>
+<text x="162" y="377">오른쪽 손목 <tspan font-weight="700">16</tspan></text>
+<text x="162" y="414">손 <tspan font-weight="700">18, 20, 22</tspan></text>
+<text x="162" y="477">오른쪽 무릎 <tspan font-weight="700">26</tspan></text>
+<text x="162" y="556">오른쪽 발목 <tspan font-weight="700">28</tspan></text>
+<text x="162" y="590">발 <tspan font-weight="700">30, 32</tspan></text>
+</g>
+<g font-size="16" fill="#17191c">
+<text x="266" y="406" text-anchor="end" font-weight="700">24</text>
+<text x="320" y="406" text-anchor="middle">엉덩이</text>
+<text x="374" y="406" font-weight="700">23</text>
+</g>
+</g>
+</svg>

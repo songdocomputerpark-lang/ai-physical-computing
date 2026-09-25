@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 312" width="640" height="312" role="img" aria-labelledby="title desc">
+<title id="title">카메라 프레임이 쓰이는 두 갈래 길: 손 인식은 RGB로, 임계값과 에지와 윤곽선은 회색으로 바꿔서 쓴다</title>
+<desc id="desc">왼쪽 칸은 OpenCV가 읽은 카메라 프레임으로, 파랑(B), 초록(G), 빨강(R) 순서의 막대 세 개가 있다. 위쪽 길은 cvtColor로 BGR을 RGB로 바꿔 손 인식(MediaPipe)에 넘기고, 손 인식은 RGB 순서로 받는다. 아래쪽 길은 cvtColor로 BGR을 회색으로 바꿔 임계값, 에지, 윤곽선 계산에 쓰고, 이 계산은 밝기 숫자 하나로 한다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="312" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="87" y="100" font-size="18" font-weight="700" fill="#17191c">카메라 프레임</text>
+<rect x="12" y="112" width="150" height="112" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="30" y="126" width="36" height="58" rx="4" fill="#1f5bd6"/>
+<text x="48" y="161" font-size="18" font-weight="700" fill="#ffffff">B</text>
+<rect x="69" y="126" width="36" height="58" rx="4" fill="#15653a"/>
+<text x="87" y="161" font-size="18" font-weight="700" fill="#ffffff">G</text>
+<rect x="108" y="126" width="36" height="58" rx="4" fill="#a3232a"/>
+<text x="126" y="161" font-size="18" font-weight="700" fill="#ffffff">R</text>
+<text x="87" y="210" font-size="16" fill="#4a5361">OpenCV 순서</text>
+
+<line x1="164" y1="140" x2="210" y2="82" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="164" y1="196" x2="210" y2="254" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<rect x="214" y="40" width="176" height="66" rx="10" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="302" y="66" font-size="16" font-family="Consolas, 'Courier New', monospace" fill="#17191c">cvtColor</text>
+<text x="302" y="92" font-size="17" font-weight="700" fill="#17191c">BGR → RGB</text>
+<line x1="392" y1="73" x2="426" y2="73" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="430" y="40" width="198" height="66" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="529" y="66" font-size="17" font-weight="700" fill="#17191c">손 인식(MediaPipe)</text>
+<text x="529" y="92" font-size="16" fill="#17191c">RGB 순서로 받아요</text>
+
+<rect x="214" y="228" width="176" height="66" rx="10" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="302" y="254" font-size="16" font-family="Consolas, 'Courier New', monospace" fill="#17191c">cvtColor</text>
+<text x="302" y="280" font-size="17" font-weight="700" fill="#17191c">BGR → 회색</text>
+<line x1="392" y1="261" x2="426" y2="261" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="430" y="228" width="198" height="66" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="529" y="254" font-size="17" font-weight="700" fill="#17191c">임계값, 에지, 윤곽선</text>
+<text x="529" y="280" font-size="16" fill="#17191c">밝기 숫자 1개로 계산</text>
+
+<text x="302" y="160" font-size="16" fill="#4a5361">쓰는 곳에 맞게</text>
+<text x="302" y="182" font-size="16" fill="#4a5361">바꿔서 넘겨요</text>
+</g>
+</svg>

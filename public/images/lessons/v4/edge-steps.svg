@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 304" width="640" height="304" role="img" aria-labelledby="title desc">
+<title id="title">에지를 찾는 세 단계: 회색으로 바꾸고, 살짝 흐리게 하고, 밝기가 확 바뀌는 곳만 흰 선으로 남긴다</title>
+<desc id="desc">세 칸의 그림. 첫째 칸 "회색으로"에는 어두운 바탕 위에 흰 원과 밝은 회색 네모가 있고, 바탕에 작은 잡티 점이 흩어져 있다(cvtColor). 둘째 칸 "살짝 흐리게"에는 같은 그림이 부드럽게 흐려져 잡티 점이 거의 보이지 않는다(GaussianBlur). 셋째 칸 "테두리 찾기"는 검은 바탕에 원과 네모의 테두리만 흰 선으로 남았다(Canny). 아래에 시작하기의 첫 실습도 이 세 단계라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+<linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#3f3f3f"/>
+<stop offset="1" stop-color="#7a7a7a"/>
+</linearGradient>
+<filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+<feGaussianBlur stdDeviation="3"/>
+</filter>
+<clipPath id="clip2"><rect x="225" y="48" width="190" height="170" rx="8"/></clipPath>
+</defs>
+<rect width="640" height="304" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="107" y="32" font-size="18" font-weight="700" fill="#17191c">① 회색으로</text>
+<text x="320" y="32" font-size="18" font-weight="700" fill="#17191c">② 살짝 흐리게</text>
+<text x="533" y="32" font-size="18" font-weight="700" fill="#17191c">③ 테두리 찾기</text>
+</g>
+<rect x="12" y="48" width="190" height="170" rx="8" fill="url(#ground)" stroke="#7b8594" stroke-width="1.5"/>
+<circle cx="74" cy="152" r="34" fill="#eeeeee"/><rect x="116" y="82" width="60" height="60" fill="#b9b9b9"/>
+<rect x="102" y="94" width="3" height="3" fill="#a0a0a0"/><rect x="121" y="68" width="3" height="3" fill="#a0a0a0"/><rect x="38" y="193" width="3" height="3" fill="#a0a0a0"/><rect x="44" y="149" width="3" height="3" fill="#a0a0a0"/><rect x="169" y="70" width="3" height="3" fill="#a0a0a0"/><rect x="149" y="110" width="3" height="3" fill="#a0a0a0"/><rect x="29" y="78" width="3" height="3" fill="#a0a0a0"/><rect x="131" y="163" width="3" height="3" fill="#a0a0a0"/><rect x="37" y="117" width="3" height="3" fill="#a0a0a0"/><rect x="43" y="197" width="3" height="3" fill="#a0a0a0"/><rect x="128" y="71" width="3" height="3" fill="#a0a0a0"/><rect x="164" y="87" width="3" height="3" fill="#a0a0a0"/><rect x="77" y="205" width="3" height="3" fill="#a0a0a0"/><rect x="35" y="203" width="3" height="3" fill="#a0a0a0"/><rect x="169" y="157" width="3" height="3" fill="#a0a0a0"/><rect x="32" y="112" width="3" height="3" fill="#a0a0a0"/><rect x="31" y="198" width="3" height="3" fill="#a0a0a0"/><rect x="54" y="130" width="3" height="3" fill="#a0a0a0"/><rect x="127" y="92" width="3" height="3" fill="#a0a0a0"/><rect x="158" y="86" width="3" height="3" fill="#a0a0a0"/><rect x="166" y="134" width="3" height="3" fill="#a0a0a0"/><rect x="163" y="102" width="3" height="3" fill="#a0a0a0"/><rect x="46" y="204" width="3" height="3" fill="#a0a0a0"/><rect x="166" y="104" width="3" height="3" fill="#a0a0a0"/><rect x="115" y="80" width="3" height="3" fill="#a0a0a0"/><rect x="160" y="72" width="3" height="3" fill="#a0a0a0"/>
+<g clip-path="url(#clip2)">
+<rect x="225" y="48" width="190" height="170" fill="url(#ground)"/>
+<g filter="url(#soft)"><circle cx="287" cy="152" r="34" fill="#eeeeee"/><rect x="329" y="82" width="60" height="60" fill="#b9b9b9"/><rect x="315" y="94" width="3" height="3" fill="#a0a0a0"/><rect x="334" y="68" width="3" height="3" fill="#a0a0a0"/><rect x="251" y="193" width="3" height="3" fill="#a0a0a0"/><rect x="257" y="149" width="3" height="3" fill="#a0a0a0"/><rect x="382" y="70" width="3" height="3" fill="#a0a0a0"/><rect x="362" y="110" width="3" height="3" fill="#a0a0a0"/><rect x="242" y="78" width="3" height="3" fill="#a0a0a0"/><rect x="344" y="163" width="3" height="3" fill="#a0a0a0"/><rect x="250" y="117" width="3" height="3" fill="#a0a0a0"/><rect x="256" y="197" width="3" height="3" fill="#a0a0a0"/><rect x="341" y="71" width="3" height="3" fill="#a0a0a0"/><rect x="377" y="87" width="3" height="3" fill="#a0a0a0"/><rect x="290" y="205" width="3" height="3" fill="#a0a0a0"/><rect x="248" y="203" width="3" height="3" fill="#a0a0a0"/><rect x="382" y="157" width="3" height="3" fill="#a0a0a0"/><rect x="245" y="112" width="3" height="3" fill="#a0a0a0"/><rect x="244" y="198" width="3" height="3" fill="#a0a0a0"/><rect x="267" y="130" width="3" height="3" fill="#a0a0a0"/><rect x="340" y="92" width="3" height="3" fill="#a0a0a0"/><rect x="371" y="86" width="3" height="3" fill="#a0a0a0"/><rect x="379" y="134" width="3" height="3" fill="#a0a0a0"/><rect x="376" y="102" width="3" height="3" fill="#a0a0a0"/><rect x="259" y="204" width="3" height="3" fill="#a0a0a0"/><rect x="379" y="104" width="3" height="3" fill="#a0a0a0"/><rect x="328" y="80" width="3" height="3" fill="#a0a0a0"/><rect x="373" y="72" width="3" height="3" fill="#a0a0a0"/></g>
+</g>
+<rect x="225" y="48" width="190" height="170" rx="8" fill="none" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="438" y="48" width="190" height="170" rx="8" fill="#000000" stroke="#7b8594" stroke-width="1.5"/>
+<circle cx="500" cy="152" r="34" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+<rect x="542" y="82" width="60" height="60" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+<line x1="204" y1="133" x2="221" y2="133" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="417" y1="133" x2="434" y2="133" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="107" y="242" font-size="16" font-family="Consolas, 'Courier New', monospace" fill="#17191c">cvtColor</text>
+<text x="107" y="264" font-size="16" fill="#4a5361">색을 빼고 밝기만</text>
+<text x="320" y="242" font-size="16" font-family="Consolas, 'Courier New', monospace" fill="#17191c">GaussianBlur</text>
+<text x="320" y="264" font-size="16" fill="#4a5361">잡티를 줄여요</text>
+<text x="533" y="242" font-size="16" font-family="Consolas, 'Courier New', monospace" fill="#17191c">Canny</text>
+<text x="533" y="264" font-size="16" fill="#4a5361">밝기가 확 바뀌는 곳</text>
+<text x="320" y="294" font-size="17" font-weight="700" fill="#1f5bd6">시작하기의 첫 실습(웹캠 에지 검출)도 이 세 단계예요</text>
+</g>
+</svg>

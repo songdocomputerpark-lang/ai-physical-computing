@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 404" width="640" height="404" role="img" aria-labelledby="title desc">
+<title id="title">영상 위에 한글 쓰기: cv2.putText만 쓸 때와 Pillow를 함께 쓸 때</title>
+<desc id="desc">왼쪽 흐름: OpenCV 영상에 cv2.putText()로 한글 "차이"를 바로 쓰면 결과 화면에 물음표 여섯 개(??????)가 나온다. OpenCV 기본 글꼴에 한글이 없어 한글 한 글자가 물음표 세 개로 나오기 때문이다. 오른쪽 흐름: ① Image.fromarray(image)로 영상을 Pillow 그림으로 바꾸고 ② draw.text(…, font=font)로 한글 글꼴을 써서 글자를 쓰고 ③ np.array(pil_img)로 다시 OpenCV 영상으로 바꾸면 결과 화면에 "자세가 틀어졌습니다!"가 제대로 나온다. 한글 글꼴은 ImageFont.truetype(글꼴 파일, 크기)로 준비한다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="404" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="150" y="30" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">cv2.putText만 쓸 때</text>
+<rect x="20" y="46" width="260" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="150" y="78" font-size="16" fill="#17191c" text-anchor="middle">OpenCV 영상(숫자 배열)</text>
+<line x1="150" y1="100" x2="150" y2="124" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="20" y="128" width="260" height="62" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="150" y="154" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">한글 "차이"를 바로 쓰기</text>
+<text x="150" y="178" font-size="16" fill="#17191c" text-anchor="middle" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">cv2.putText()</text>
+<line x1="150" y1="192" x2="150" y2="216" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="20" y="220" width="260" height="70" rx="8" fill="#2a3140"/>
+<text x="150" y="264" font-size="24" font-weight="700" fill="#57e389" text-anchor="middle" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">??????</text>
+<text x="150" y="318" font-size="16" fill="#a3232a" text-anchor="middle">한 글자가 물음표 3개로 나와요</text>
+<text x="150" y="342" font-size="16" fill="#4a5361" text-anchor="middle">(기본 글꼴에 한글이 없어요)</text>
+
+<text x="476" y="30" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">Pillow(PIL)를 함께 쓸 때</text>
+<rect x="326" y="46" width="300" height="60" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="340" y="71" font-size="16" font-weight="700" fill="#17191c">① Pillow 그림으로 바꾸기</text>
+<text x="340" y="95" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">Image.fromarray(image)</text>
+<line x1="476" y1="108" x2="476" y2="124" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="326" y="128" width="300" height="60" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="340" y="153" font-size="16" font-weight="700" fill="#17191c">② 한글 글꼴로 쓰기</text>
+<text x="340" y="177" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">draw.text(…, font=font)</text>
+<line x1="476" y1="190" x2="476" y2="206" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="326" y="210" width="300" height="60" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="340" y="235" font-size="16" font-weight="700" fill="#17191c">③ 다시 OpenCV 영상으로</text>
+<text x="340" y="259" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">np.array(pil_img)</text>
+<line x1="476" y1="272" x2="476" y2="288" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="326" y="292" width="300" height="60" rx="8" fill="#2a3140"/>
+<text x="476" y="329" font-size="20" font-weight="700" fill="#57e389" text-anchor="middle">자세가 틀어졌습니다!</text>
+<text x="476" y="382" font-size="16" fill="#4a5361" text-anchor="middle">글꼴: <tspan font-family="ui-monospace, 'Cascadia Mono', Consolas, monospace">ImageFont.truetype(파일, 30)</tspan></text>
+</g>
+</svg>

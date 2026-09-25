@@ -1,0 +1,33 @@
+# 차시 1-1-3 "인공지능 인식 개발 환경"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-1-3
+# 결과는 public/images/lessons/1-1-3/ 아래 WebP(메타데이터 없음). 쪽 좌표·그림 번호 고르기: npm run images:show -- U1 19
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+#
+# 원고 020쪽 ESP32 보드 사진·MicroPython 로고, 021~022쪽 토니 설치 화면(누리집·패키지 관리 창)은 쓰지 않아요 — 설치 제로 원칙(SPEC §2)으로
+# 설치 절차를 브라우저 실습실 흐름으로 다시 썼고, 021쪽은 제외 쪽이에요(scripts/image-exclusions.yaml). 설치 안내는 교사용 자료실 "진짜 PC에서 돌리기"로 옮겼어요.
+# 019쪽 삽화(이름표 (삽))는 출판 편집 삽화 — 운영자 결정 O10(2026-09-25)으로 운영자 자료라 third_party 없이 이 폴더에 바로 둬요.
+
+images:
+  - name: ide-illustration
+    use: 1-1-3 왜 배울까 — 통합 개발 환경으로 코드를 쓰는 사람과 기능 아이콘 삽화(원고 019쪽)
+    alt: 모니터에 코드와 벌레(오류) 그림이 뜬 컴퓨터 앞에서 코드를 쓰는 사람과, 그 둘레의 확인, 문서, 금지, 돋보기 아이콘, Thonny라고 적힌 상자 두 개가 그려진 통합 개발 환경 삽화
+    from:
+      source: U1
+      page: 19
+      region: [70.9, 548.8, 408.2, 726.8]
+    file: public/images/lessons/1-1-3/ide-illustration.webp
+    width: 960
+    height: 507
+    bytes: 23366
+    sha256: "39b73f3a562fd0d594509434fcfe918f898bce91112079f9d64e76a72c4431f3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_중1-1-1-04(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 출판 편집 삽화(그린 인물 한 명이 모니터 앞에서 코드를 쓰고, 둘레에 확인·문서·벌레·돋보기·금지 표시 아이콘, 책상 양쪽에 "Thonny"와 숫자 123456). 실제 사람 사진·이름·화면 속 경로·파일명·기기 주소·학교명 없음

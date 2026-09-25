@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 304" width="640" height="304" role="img" aria-labelledby="title desc">
+<title id="title">기준 밝기 하나로 글자와 종이 나누기: 밝기가 고르지 않은 회색 사진이 흰색과 검은색 두 값만 있는 사진이 된다</title>
+<desc id="desc">왼쪽은 회색 사진으로, 왼쪽은 어둡고 오른쪽은 밝게 조명이 고르지 않은 종이(밝기 140부터 230) 위에 어두운 글자 AI(밝기 58)가 있다. 가운데 화살표 위아래에 기준 128, 밝으면 흰색, 어두우면 검은색이라고 적혀 있다. 오른쪽은 결과로, 종이 전체가 고른 흰색(255), 글자가 검은색(0)이 된 이진 사진이다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+<linearGradient id="paper" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#8c8c8c"/>
+<stop offset="1" stop-color="#e6e6e6"/>
+</linearGradient>
+</defs>
+<rect width="640" height="304" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="127" y="30" font-size="18" font-weight="700" fill="#17191c">회색 사진: 여러 밝기</text>
+<rect x="12" y="44" width="230" height="180" rx="10" fill="url(#paper)" stroke="#7b8594" stroke-width="1.5"/>
+<text x="127" y="172" font-size="104" font-weight="800" fill="#3a3a3a">AI</text>
+<text x="127" y="252" font-size="16" fill="#4a5361">종이 140~230</text>
+<text x="127" y="276" font-size="16" fill="#4a5361">글자 58</text>
+
+<text x="320" y="116" font-size="18" font-weight="700" fill="#1f5bd6">기준 128</text>
+<line x1="250" y1="134" x2="390" y2="134" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="320" y="164" font-size="16" fill="#17191c">밝으면 흰색</text>
+<text x="320" y="188" font-size="16" fill="#17191c">어두우면 검은색</text>
+
+<text x="513" y="30" font-size="18" font-weight="700" fill="#17191c">이진 사진: 두 값만</text>
+<rect x="398" y="44" width="230" height="180" rx="10" fill="#ffffff" stroke="#17191c" stroke-width="2"/>
+<text x="513" y="172" font-size="104" font-weight="800" fill="#000000">AI</text>
+<text x="513" y="252" font-size="16" fill="#4a5361">종이 → 255(흰색)</text>
+<text x="513" y="276" font-size="16" fill="#4a5361">글자 → 0(검은색)</text>
+</g>
+</svg>

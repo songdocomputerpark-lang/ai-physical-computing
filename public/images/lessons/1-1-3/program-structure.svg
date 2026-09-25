@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 432" width="640" height="432" role="img" aria-labelledby="title desc">
+<title id="title">카메라 프로그램의 기본 구조: 일곱 영역</title>
+<desc id="desc">위에서 아래로 쌓인 일곱 칸. ① 라이브러리 불러오기(import cv2), ② 상수와 설정(창 이름 WINDOW_NAME), ③ 초기화(웹캠 연결 cap = cv2.VideoCapture(0)), ④ 함수 정의(def show_frame), ⑤ 외부 연동 설정(선택, def setup_external_services), ⑥ 메인 실행(while True로 프레임 읽기, 보여 주기, q 키 확인을 되풀이 — 되풀이 화살표가 있다), ⑦ 종료 처리(cap.release, cv2.destroyAllWindows). 칸마다 왼쪽에 영역 이름, 오른쪽에 그 영역의 코드가 있다. 사이트가 직접 그린 그림(INVENTORY S16).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#1a4cb4"/>
+</marker>
+</defs>
+<rect width="640" height="432" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<g font-size="17">
+<rect x="12" y="8" width="616" height="48" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="28" y="38" font-weight="700" fill="#17191c">① 라이브러리 불러오기</text>
+<text x="300" y="38" fill="#17191c" font-family="Consolas, 'Courier New', monospace">import cv2</text>
+
+<rect x="12" y="64" width="616" height="48" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="28" y="94" font-weight="700" fill="#17191c">② 상수와 설정</text>
+<text x="300" y="94" fill="#17191c" font-family="Consolas, 'Courier New', monospace">WINDOW_NAME = 'Camera View'</text>
+
+<rect x="12" y="120" width="616" height="48" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="28" y="150" font-weight="700" fill="#17191c">③ 초기화(웹캠 연결)</text>
+<text x="300" y="150" fill="#17191c" font-family="Consolas, 'Courier New', monospace">cap = cv2.VideoCapture(0)</text>
+
+<rect x="12" y="176" width="616" height="48" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="28" y="206" font-weight="700" fill="#17191c">④ 함수 정의</text>
+<text x="300" y="206" fill="#17191c" font-family="Consolas, 'Courier New', monospace">def show_frame(frame): …</text>
+
+<rect x="12" y="232" width="616" height="48" rx="10" fill="#ffffff" stroke="#7b8594" stroke-dasharray="6 4"/>
+<text x="28" y="262" font-weight="700" fill="#4a5361">⑤ 외부 연동(선택)</text>
+<text x="300" y="262" fill="#4a5361" font-family="Consolas, 'Courier New', monospace">def setup_external_services(): …</text>
+
+<rect x="12" y="288" width="616" height="80" rx="10" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<text x="28" y="318" font-weight="700" fill="#1a4cb4">⑥ 메인 실행(반복)</text>
+<text x="300" y="318" fill="#17191c" font-family="Consolas, 'Courier New', monospace">while True:</text>
+<text x="300" y="350" fill="#17191c">읽기 → 보여 주기 → q 키 확인</text>
+<path d="M279.9,326.1 A14 14 0 1 0 284,336" fill="none" stroke="#1a4cb4" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="28" y="350" font-size="16" fill="#4a5361">프레임마다 되풀이</text>
+
+<rect x="12" y="376" width="616" height="48" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="28" y="406" font-weight="700" fill="#17191c">⑦ 종료 처리</text>
+<text x="300" y="406" fill="#17191c" font-family="Consolas, 'Courier New', monospace">cap.release() …</text>
+</g>
+</g>
+</svg>

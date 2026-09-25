@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 290" width="640" height="290" role="img" aria-labelledby="title desc">
+<title id="title">사람이 보는 사진과 컴퓨터가 받는 사진: 사람은 한눈에 손이라고 알아보지만 컴퓨터는 숫자 표만 받는다</title>
+<desc id="desc">왼쪽 칸은 사람이 보는 사진으로, 편 손이 그려져 있고 "손이에요!"라고 적혀 있다. 가운데 칸은 컴퓨터가 받는 사진으로, 같은 사진의 한 부분이 5칸 곱하기 5칸의 밝기 숫자 표로 보인다. 오른쪽 칸에는 물음표와 함께 "숫자에서 특징을 찾아야 손이라고 알아봐요"라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="290" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+
+<text x="108" y="28" font-size="18" font-weight="700" fill="#17191c">사람이 보는 사진</text>
+<rect x="12" y="42" width="192" height="200" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g fill="#e3e8ef" stroke="#4a5361" stroke-width="2.5" stroke-linejoin="round" transform="translate(10 0)">
+<rect x="64" y="128" width="17" height="62" rx="8.5" transform="rotate(-40 72.5 190)"/>
+<rect x="70" y="66" width="17" height="78" rx="8.5" transform="rotate(-6 78 144)"/>
+<rect x="92" y="56" width="17" height="88" rx="8.5"/>
+<rect x="114" y="62" width="17" height="82" rx="8.5" transform="rotate(6 122 144)"/>
+<rect x="134" y="84" width="15" height="64" rx="7.5" transform="rotate(14 141 148)"/>
+<rect x="64" y="124" width="86" height="96" rx="24"/>
+</g>
+<text x="108" y="272" font-size="18" font-weight="700" fill="#1f5bd6">손이에요!</text>
+
+<line x1="210" y1="142" x2="236" y2="142" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<text x="340" y="28" font-size="18" font-weight="700" fill="#17191c">컴퓨터가 받는 사진</text>
+<rect x="244" y="42" width="192" height="200" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g font-size="16" font-family="Consolas, 'Courier New', monospace">
+<rect x="262" y="58" width="156" height="156" fill="#ffffff" stroke="#7b8594"/>
+<g stroke="#d6dde6" stroke-width="1">
+<line x1="293" y1="58" x2="293" y2="214"/><line x1="324" y1="58" x2="324" y2="214"/><line x1="356" y1="58" x2="356" y2="214"/><line x1="387" y1="58" x2="387" y2="214"/>
+<line x1="262" y1="89" x2="418" y2="89"/><line x1="262" y1="120" x2="418" y2="120"/><line x1="262" y1="152" x2="418" y2="152"/><line x1="262" y1="183" x2="418" y2="183"/>
+</g>
+<g fill="#17191c">
+<text x="277" y="80">38</text><text x="308" y="80">41</text><text x="340" y="80">200</text><text x="371" y="80">43</text><text x="402" y="80">39</text>
+<text x="277" y="111">40</text><text x="308" y="111">196</text><text x="340" y="111">210</text><text x="371" y="111">205</text><text x="402" y="111">44</text>
+<text x="277" y="142">37</text><text x="308" y="142">201</text><text x="340" y="142">214</text><text x="371" y="142">208</text><text x="402" y="142">42</text>
+<text x="277" y="174">36</text><text x="308" y="174">190</text><text x="340" y="174">212</text><text x="371" y="174">199</text><text x="402" y="174">40</text>
+<text x="277" y="205">35</text><text x="308" y="205">39</text><text x="340" y="205">41</text><text x="371" y="205">38</text><text x="402" y="205">37</text>
+</g>
+</g>
+<text x="340" y="272" font-size="18" font-weight="700" fill="#17191c">밝기 숫자뿐이에요</text>
+
+<line x1="442" y1="142" x2="468" y2="142" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<text x="552" y="28" font-size="18" font-weight="700" fill="#17191c">알아보려면</text>
+<rect x="476" y="42" width="152" height="200" rx="14" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<circle cx="552" cy="104" r="34" fill="#1f5bd6"/>
+<text x="552" y="118" font-size="38" font-weight="700" fill="#ffffff">?</text>
+<text x="552" y="172" font-size="17" fill="#17191c">숫자에서</text>
+<text x="552" y="196" font-size="17" fill="#17191c">특징을 찾아야</text>
+<text x="552" y="220" font-size="17" fill="#17191c">알아봐요</text>
+<text x="552" y="272" font-size="18" font-weight="700" fill="#1f5bd6">이 차시에서 배워요</text>
+
+</g>
+</svg>

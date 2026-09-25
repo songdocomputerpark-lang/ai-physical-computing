@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 290" width="640" height="290" role="img" aria-labelledby="title desc">
+<title id="title">인공지능 영상 인식의 과정: 영상 → 특징 추출 → 인식</title>
+<desc id="desc">왼쪽 칸은 카메라가 찍은 편 손 영상이다. 가운데 칸은 같은 손 위에 손가락 끝, 마디, 손목 자리의 파란 점과 점을 잇는 선이 그려져 있어, 영상에서 의미 있는 부분(특징)만 뽑아낸 모습이다. 오른쪽 칸은 뽑아낸 특징으로 판단한 결과로 "편 손"과 "손가락 다섯 개가 모두 펴져 있어요"라고 적혀 있다. 사이트가 직접 그린 그림(원고 013쪽 도식을 얼굴 대신 손으로 다시 그림).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+<g id="hand">
+<rect x="64" y="128" width="17" height="62" rx="8.5" transform="rotate(-40 72.5 190)"/>
+<rect x="70" y="66" width="17" height="78" rx="8.5" transform="rotate(-6 78 144)"/>
+<rect x="92" y="56" width="17" height="88" rx="8.5"/>
+<rect x="114" y="62" width="17" height="82" rx="8.5" transform="rotate(6 122 144)"/>
+<rect x="134" y="84" width="15" height="64" rx="7.5" transform="rotate(14 141 148)"/>
+<rect x="64" y="124" width="86" height="96" rx="24"/>
+</g>
+</defs>
+<rect width="640" height="290" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+
+<text x="108" y="28" font-size="19" font-weight="700" fill="#17191c">① 영상</text>
+<rect x="12" y="42" width="192" height="200" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<use href="#hand" transform="translate(10 0)" fill="#e3e8ef" stroke="#4a5361" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="108" y="272" font-size="17" fill="#4a5361">카메라가 찍은 사진</text>
+
+<line x1="210" y1="142" x2="228" y2="142" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<text x="332" y="28" font-size="19" font-weight="700" fill="#17191c">② 특징 추출</text>
+<rect x="236" y="42" width="192" height="200" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g transform="translate(234 0)">
+<use href="#hand" fill="#ffffff" stroke="#b8c1cc" stroke-width="2" stroke-linejoin="round"/>
+<g fill="none" stroke="#5b87e0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="107,212 59.6,174.7 48.9,161.9 38.1,149"/>
+<polyline points="107,212 76.5,130.1 73.8,104.2 71.2,74.8"/>
+<polyline points="107,212 100.5,130 100.5,97 100.5,64.5"/>
+<polyline points="107,212 123.5,130.1 126.2,104.2 130.2,71"/>
+<polyline points="107,212 144.4,134.4 149.2,115 155.2,93.3"/>
+</g>
+<g fill="#1f5bd6" stroke="#ffffff" stroke-width="1.5">
+<circle cx="107" cy="212" r="5.5"/>
+<circle cx="59.6" cy="174.7" r="4.5"/><circle cx="48.9" cy="161.9" r="4.5"/><circle cx="38.1" cy="149" r="5.5"/>
+<circle cx="76.5" cy="130.1" r="4.5"/><circle cx="73.8" cy="104.2" r="4.5"/><circle cx="71.2" cy="74.8" r="5.5"/>
+<circle cx="100.5" cy="130" r="4.5"/><circle cx="100.5" cy="97" r="4.5"/><circle cx="100.5" cy="64.5" r="5.5"/>
+<circle cx="123.5" cy="130.1" r="4.5"/><circle cx="126.2" cy="104.2" r="4.5"/><circle cx="130.2" cy="71" r="5.5"/>
+<circle cx="144.4" cy="134.4" r="4.5"/><circle cx="149.2" cy="115" r="4.5"/><circle cx="155.2" cy="93.3" r="5.5"/>
+</g>
+</g>
+<text x="332" y="272" font-size="17" fill="#4a5361">손가락 끝, 마디, 손목 찾기</text>
+
+<line x1="434" y1="142" x2="452" y2="142" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<text x="544" y="28" font-size="19" font-weight="700" fill="#17191c">③ 인식</text>
+<rect x="460" y="42" width="168" height="200" rx="14" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="544" y="116" font-size="26" font-weight="700" fill="#1f5bd6">편 손</text>
+<text x="544" y="160" font-size="17" fill="#17191c">손가락 다섯 개가</text>
+<text x="544" y="184" font-size="17" fill="#17191c">모두 펴져 있어요</text>
+<text x="544" y="272" font-size="17" fill="#4a5361">특징으로 판단하기</text>
+</g>
+</svg>

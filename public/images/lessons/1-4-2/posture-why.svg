@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 312" width="640" height="312" role="img" aria-labelledby="title desc">
+<title id="title">바른 자세와 기운 자세: 두 어깨의 높이 차이로 알아봐요</title>
+<desc id="desc">왼쪽 칸은 두 어깨가 거의 같은 높이인 바른 자세로, 어깨 높이 차이가 작아 "좋아요"라고 알려 준다. 오른쪽 칸은 한쪽 어깨가 내려간 기운 자세로, 두 어깨의 높이 차이를 화살표로 보여 주고 "자세가 틀어졌어요!"라고 알려 준다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="312" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="12" y="12" width="300" height="288" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="162" y="42" font-size="19" font-weight="700" fill="#17191c" text-anchor="middle">바른 자세</text>
+<circle cx="162" cy="96" r="24" fill="none" stroke="#4a5361" stroke-width="3"/>
+<g fill="none" stroke="#4a5361" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M210 150 L114 150"/>
+<path d="M210 150 L226 205 L232 252"/>
+<path d="M114 150 L98 205 L92 252"/>
+<path d="M210 150 L200 252"/>
+<path d="M114 150 L124 252"/>
+</g>
+<line x1="60" y1="150" x2="264" y2="150" stroke="#3b9360" stroke-width="2" stroke-dasharray="6 5"/>
+<circle cx="210" cy="150" r="7" fill="#d24b4b" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="114" cy="150" r="7" fill="#d24b4b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="162" y="276" font-size="16" fill="#17191c" text-anchor="middle">어깨 높이 차이가 작아요</text>
+<rect x="222" y="58" width="76" height="34" rx="17" fill="#e8f6ee" stroke="#3b9360"/>
+<text x="260" y="81" font-size="16" font-weight="700" fill="#15653a" text-anchor="middle">좋아요</text>
+
+<rect x="328" y="12" width="300" height="288" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="478" y="42" font-size="19" font-weight="700" fill="#17191c" text-anchor="middle">기운 자세</text>
+<circle cx="470" cy="100" r="24" fill="none" stroke="#4a5361" stroke-width="3"/>
+<g fill="none" stroke="#4a5361" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M526 178 L426 142"/>
+<path d="M526 178 L538 226 L540 268"/>
+<path d="M426 142 L408 196 L400 244"/>
+<path d="M526 178 L508 262"/>
+<path d="M426 142 L438 258"/>
+</g>
+<line x1="380" y1="142" x2="588" y2="142" stroke="#b7800f" stroke-width="2" stroke-dasharray="6 5"/>
+<line x1="380" y1="178" x2="588" y2="178" stroke="#b7800f" stroke-width="2" stroke-dasharray="6 5"/>
+<line x1="578" y1="147" x2="578" y2="173" stroke="#7a4a00" stroke-width="2.5"/>
+<path d="M572 150 L578 142 L584 150 Z" fill="#7a4a00"/>
+<path d="M572 170 L578 178 L584 170 Z" fill="#7a4a00"/>
+<circle cx="526" cy="178" r="7" fill="#d24b4b" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="426" cy="142" r="7" fill="#d24b4b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="478" y="276" font-size="16" fill="#17191c" text-anchor="middle">어깨 높이 차이가 커요</text>
+<rect x="504" y="58" width="116" height="56" rx="12" fill="#fff4d8" stroke="#b7800f"/>
+<text x="562" y="81" font-size="16" font-weight="700" fill="#7a4a00" text-anchor="middle">자세가</text>
+<text x="562" y="102" font-size="16" font-weight="700" fill="#7a4a00" text-anchor="middle">틀어졌어요!</text>
+</g>
+</svg>

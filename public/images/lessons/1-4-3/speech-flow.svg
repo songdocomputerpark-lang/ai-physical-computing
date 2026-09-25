@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" width="640" height="200" role="img" aria-labelledby="title desc">
+<title id="title">음성 인식이 말소리를 글자로 바꾸는 네 단계</title>
+<desc id="desc">왼쪽부터 네 칸이 화살표로 이어진다. ① 말하기: "불 켜 줘"라고 말하면 공기가 떨리며 소리가 된다. ② 마이크: 소리의 떨림을 숫자로 바꾼다(물결 모양 파형). ③ 음성 인식: 숫자에서 말소리의 특징을 찾아 가장 알맞은 글자를 고른다. ④ 글자: "불 켜 줘"라는 글자가 나오고, 프로그램이 조건문으로 판단한다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="200" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<!-- ① 말하기 -->
+<rect x="12" y="12" width="136" height="176" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="80" y="40" font-size="17" font-weight="700" fill="#17191c">① 말하기</text>
+<path d="M30 58 H130 A8 8 0 0 1 138 66 V94 A8 8 0 0 1 130 102 H62 L50 114 L52 102 H30 A8 8 0 0 1 22 94 V66 A8 8 0 0 1 30 58 Z" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="80" y="86" font-size="16" fill="#17191c">"불 켜 줘"</text>
+<text x="80" y="146" font-size="16" fill="#17191c">소리는 공기의</text>
+<text x="80" y="168" font-size="16" fill="#17191c">떨림이에요</text>
+<line x1="150" y1="100" x2="168" y2="100" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- ② 마이크 -->
+<rect x="172" y="12" width="136" height="176" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="240" y="40" font-size="17" font-weight="700" fill="#17191c">② 마이크</text>
+<rect x="186" y="58" width="108" height="56" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<path d="M192 86 L199 86 L203 72 L208 100 L213 66 L218 104 L223 76 L228 94 L233 80 L238 90 L243 70 L248 102 L253 78 L258 94 L263 84 L268 88 L288 86" fill="none" stroke="#1f5bd6" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="240" y="146" font-size="16" fill="#17191c">떨림을 숫자로</text>
+<text x="240" y="168" font-size="16" fill="#17191c">바꿔요</text>
+<line x1="310" y1="100" x2="328" y2="100" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- ③ 음성 인식 -->
+<rect x="332" y="12" width="136" height="176" rx="14" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="400" y="40" font-size="17" font-weight="700" fill="#17191c">③ 음성 인식</text>
+<rect x="346" y="58" width="108" height="56" rx="10" fill="#1f5bd6"/>
+<text x="400" y="82" font-size="16" font-weight="700" fill="#ffffff">특징 찾기</text>
+<text x="400" y="104" font-size="16" font-weight="700" fill="#ffffff">→ 글자</text>
+<text x="400" y="146" font-size="16" fill="#17191c">가장 알맞은</text>
+<text x="400" y="168" font-size="16" fill="#17191c">글자를 골라요</text>
+<line x1="470" y1="100" x2="488" y2="100" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- ④ 글자 -->
+<rect x="492" y="12" width="136" height="176" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="560" y="40" font-size="17" font-weight="700" fill="#17191c">④ 글자</text>
+<rect x="506" y="58" width="108" height="56" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="560" y="92" font-size="17" font-weight="700" fill="#1a4cb4">"불 켜 줘"</text>
+<text x="560" y="146" font-size="16" fill="#17191c">조건문으로</text>
+<text x="560" y="168" font-size="16" fill="#17191c">판단해요</text>
+</g>
+</svg>

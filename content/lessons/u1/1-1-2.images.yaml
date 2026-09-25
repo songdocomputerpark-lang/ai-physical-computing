@@ -11,17 +11,21 @@
 # 방법으로 해 봤지만(2026-09-25), 엄격 얼굴 검사가 동물 얼굴·주먹 마디·머리 점 무늬를 얼굴로 보고 멈춰 꺼내지 않았어요 — 그 그림은
 # 사이트가 그린 그림(INVENTORY §5.3 S13·S14·S15)으로 대신해요. 제외 쪽의 엄격 검사는 끄는 방법이 없어요.
 # 018쪽 석고상 사진(BASHTA 스톡)은 결정 C11(docs/DECISIONS.md)로 쓰지 않아요 — 사이트가 그린 그림(S12)으로 대신해요.
+# 018쪽 얼룩말·자전거 사진도 쓰지 않아요(2026-09-25 구역 A, 미해결 166) — 권리 표기가 없지만 흔한 스톡 사진 모양이고 같은 활동의
+# 석고상이 스톡이라, 절대 원칙 5(애매하면 직접 만든다)와 1-1-1이 011쪽 그림을 S07로 바꾼 선례대로 사이트가 그린 S12
+# (public/images/lessons/1-1-2/feature-techniques.svg)로 바꿨어요. P5-01 샘플로 꺼냈던 두 파일과 항목은 Phase 5 통합에서 지웠어요(git 기록에는 남음).
+# 014쪽 CNN 도식(이름표 (삽))과 016쪽 손 그림 두 장(이름표 (컷))은 출판 편집 삽화·컷이에요 — 운영자 결정 O10(2026-09-25)으로 운영자 자료라
+# third_party 없이 이 차시 그림 폴더에 바로 둬요(checks.rights에 이름표가 기록으로 남아요).
 
 images:
   - name: cnn-stages
     use: 1-1-2 핵심 개념 "딥러닝 기반의 인공지능 영상 인식 기술" — CNN이 초기·중간·최종 단계로 특징을 쌓는 과정 그림(원고 014쪽)
-    alt: 고양이 그림을 입력으로 받아 초기 단계에서 선과 모서리 같은 단순한 특징을, 중간 단계에서 눈·코·귀 같은 부분을 찾고, 최종 단계에서 고양이라고 예측하는 CNN 단계 그림
+    alt: 고양이 그림을 입력으로 받아 초기 단계에서 선과 모서리 같은 단순한 특징을, 중간 단계에서 눈, 코, 귀 같은 부분을 찾고, 최종 단계에서 고양이라고 예측하는 CNN의 세 단계 그림
     from:
       source: U1
       page: 14
       region: [62, 476, 528, 712]
-    third_party: publisher
-    file: public/images/lessons/1-1-2/third-party/publisher/cnn-stages.webp
+    file: public/images/lessons/1-1-2/cnn-stages.webp
     width: 960
     height: 486
     bytes: 33200
@@ -37,15 +41,14 @@ images:
       result: 통과 — CNN 단계 도식(최종·중간·초기 단계 설명 상자, 고양이 그림, 특징 조각 그림, 예측 결과 "고양이"). 사람 없음. 이름·화면 속 경로·파일명·기기 주소·학교명 없음. 출판 편집 삽화라 제3자 항목(publisher)
   - name: hand-landmarks
     use: 1-1-2 핵심 개념 "랜드마크" — 손 랜드마크 21점 그림(원고 016쪽 랜드마크 상자의 첫째 그림)
-    alt: 손바닥 모양을 따라 손목과 손가락 마디에 번호가 붙은 점 21개를 선으로 이은 손 랜드마크 그림
+    alt: 손목(0번)부터 손가락 끝까지 마디마다 0~20번 번호가 붙은 점 21개를 선으로 이은 손 랜드마크 그림
     from:
       source: U1
       page: 16
       region: [116, 595, 201, 683]
       dpi: 300
-    third_party: publisher
     privacy_override: 016쪽 윗부분의 얼굴 사진 카드들을 빼고, 아래 랜드마크 상자의 손 랜드마크 선 그림만 잘라 꺼냄(사람 사진 없음)
-    file: public/images/lessons/1-1-2/third-party/publisher/hand-landmarks.webp
+    file: public/images/lessons/1-1-2/hand-landmarks.webp
     width: 355
     height: 367
     bytes: 7698
@@ -68,9 +71,8 @@ images:
       page: 16
       region: [208, 66, 285, 146]
       dpi: 300
-    third_party: publisher
     privacy_override: 016쪽 얼굴 랜드마크 카드(인물 얼굴 사진 2장)와 자세 추적 카드(인물 사진)를 빼고, 손 랜드마크 감지 카드의 손 사진만 잘라 꺼냄
-    file: public/images/lessons/1-1-2/third-party/publisher/hand-landmark-photo.webp
+    file: public/images/lessons/1-1-2/hand-landmark-photo.webp
     width: 322
     height: 334
     bytes: 8246
@@ -106,44 +108,3 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 프로그램 창(제목 표시줄의 빨강·노랑·초록 점) 속 편 손바닥과 빨간 랜드마크 점·흰 선만 있음. 원고에서 창 왼쪽을 덮던 마스코트·말풍선은 영역 밖으로 뺌. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
-  - name: feature-zebra
-    use: 1-1-2 학습 활동 "특징 추출 기법" — 반복되는 무늬로 질감을 찾는 예시 사진(원고 018쪽 얼룩말)
-    alt: 검은 줄무늬와 흰 줄무늬가 몸 전체에 되풀이되는 얼룩말이 풀밭에 서 있는 사진
-    from:
-      source: U1
-      page: 18
-      image: 697
-    file: public/images/lessons/1-1-2/feature-zebra.webp
-    width: 504
-    height: 319
-    bytes: 38058
-    sha256: "62e8688e1ed6ac79667dc6284bf71d46a162e022f5c905bdcfca42537ffb2474"
-    checks:
-      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
-      faces: 1
-      face_boxes: [[115, 201, 23, 23]]
-      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-    reviewed:
-      by: claude
-      date: 2026-09-25
-      result: 통과 — 풀밭의 얼룩말 사진(뒤에 흐리게 다른 동물 한 마리). OpenCV가 얼굴로 본 [115, 201, 23, 23]은 얼룩말 엉덩이 쪽 줄무늬로 얼굴이 아님. 사람·이름·화면 속 경로·파일명·기기 주소·학교명 없음
-  - name: feature-bicycle
-    use: 1-1-2 학습 활동 "특징 추출 기법" — 선과 모서리로 윤곽·형태를 찾는 예시 사진(원고 018쪽 자전거)
-    alt: 둥근 바퀴와 곧은 몸체 선이 뚜렷한 흰색 자전거가 붉은 벽돌 벽 앞에 서 있는 사진
-    from:
-      source: U1
-      page: 18
-      image: 698
-    file: public/images/lessons/1-1-2/feature-bicycle.webp
-    width: 504
-    height: 319
-    bytes: 57358
-    sha256: "2c978d89a4f7c2f19ce2132448a392b78a3dfee1c297280b6c5205452f466eef"
-    checks:
-      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
-      faces: 0
-      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-    reviewed:
-      by: claude
-      date: 2026-09-25
-      result: 통과 — 벽돌 벽 앞의 흰색 자전거 사진(왼쪽 창문 안에도 자전거가 비침). 사람·글자·이름·화면 속 경로·파일명·기기 주소·학교명 없음
