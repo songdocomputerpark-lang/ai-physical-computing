@@ -36,7 +36,7 @@ const quizPrefix = `quiz-${idPrefix}`;
       part.type === 'html' ? (
         <Fragment set:html={part.html} />
       ) : part.slot === 'examples' ? (
-        <LessonExamples examples={examples} lab={lab} source={source} />
+        <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} />
       ) : part.slot === 'quiz' ? (
         <LessonQuiz items={quiz} idPrefix={quizPrefix} />
       ) : (
@@ -51,7 +51,7 @@ const quizPrefix = `quiz-${idPrefix}`;
           part.type === 'html' ? (
             <Fragment set:html={part.html} />
           ) : part.slot === 'examples' ? (
-            <LessonExamples examples={examples} lab={lab} source={source} />
+            <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} />
           ) : part.slot === 'quiz' ? (
             <LessonQuiz items={quiz} idPrefix={quizPrefix} />
           ) : (
@@ -92,6 +92,39 @@ const quizPrefix = `quiz-${idPrefix}`;
   /* 표: 차시 본문 폭을 가득 채워 표끼리 너비를 가지런히 맞춘다. 넓으면 global.css의 규칙대로 표만 옆으로 밀어 본다. */
   :global(.lesson-body table) {
     width: 100%;
+  }
+
+  /*
+   * 좁은 화면의 4칸 이상 표: 칸이 3~6글자 폭으로 눌려 한 줄씩 끊겨 읽기 어려웠다(2026-09-25 Phase 5 검토 사소 12 — 3-1-1 통신 방식 표 높이 1,041px).
+   * 칸마다 최소 폭을 두어 표가 화면보다 넓어지면 표만 옆으로 밀어 본다(global.css의 .prose table이 가로 스크롤 상자).
+   */
+  @media (max-width: 40rem) {
+    :global(.lesson-body table:has(tr > :nth-child(4)) th),
+    :global(.lesson-body table:has(tr > :nth-child(4)) td) {
+      min-width: 7.5em;
+    }
+  }
+
+  /* [그림 크게 보기](lesson-html.ts addImageZoomLinks): 그림 속 글자가 작아지는 좁은 화면에서만 */
+  :global(.lesson-body .figure-zoom) {
+    display: none;
+  }
+
+  @media (max-width: 48rem) {
+    :global(.lesson-body .figure-zoom) {
+      display: inline-block;
+      margin-block-start: var(--space-1);
+      font-size: var(--text-sm);
+    }
+
+    :global(.lesson-body p > .figure-zoom) {
+      display: block;
+      text-align: center;
+    }
+  }
+
+  :global(html[data-presenting] .lesson-body .figure-zoom) {
+    display: none;
   }
 
   :global(.lesson-body td img) {

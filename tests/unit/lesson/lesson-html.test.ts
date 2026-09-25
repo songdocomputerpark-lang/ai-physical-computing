@@ -2,6 +2,7 @@ import { markdownConfigDefaults, unified } from '@astrojs/markdown-remark';
 import remarkDirective from 'remark-directive';
 import { describe, expect, it } from 'vitest';
 import {
+  addImageZoomLinks,
   addLazyImageLoading,
   decodeHtmlEntities,
   planLessonBody,
@@ -164,6 +165,42 @@ describe('차시 본문 나누기(planLessonBody)', () => {
     expect(none.warnings.some((warning) => warning.includes('frontmatter examples'))).toBe(true);
   });
 
+  it('::예제[n]은 예제마다 자리를 따로 정하고(코드 읽기 바로 아래), 번호 없는 ::예제는 남은 예제를 받는다(Phase 5 검토 중요 1)', async () => {
+    const examples = (plan: LessonBodyPlan) =>
+      plan.sections.flatMap((section) => section.parts.flatMap((part) => (part.type === 'slot' && part.slot === 'examples' ? [part.examples] : [])));
+    const each = planLessonBody(
+      await render(lessonMarkdown({ followBody: '예제 1 읽기\n\n::예제[1]\n\n예제 2 읽기\n\n::예제[2]\n\n:::왜그럴까\n이유\n:::' })),
+      { ...FULL, exampleCount: 2 },
+    );
+    expect(shape(each)).toContain('follow[html,examples,html,examples,html]');
+    expect(examples(each)).toEqual([[0], [1]]);
+    expect(each.warnings).toEqual([]);
+    expect(html(each)).not.toContain('::예제');
+
+    const rest = planLessonBody(await render(lessonMarkdown({ followBody: '::예제[2]\n\n가운데\n\n::예제' })), { ...FULL, exampleCount: 3 });
+    expect(examples(rest)).toEqual([[1], [0, 2]]);
+    expect(rest.warnings).toEqual([]);
+
+    const together = planLessonBody(await render(lessonMarkdown({ followBody: '::예제[2, 3]\n\n::예제[1]' })), { ...FULL, exampleCount: 3 });
+    expect(examples(together)).toEqual([[1, 2], [0]]);
+  });
+
+  it('::예제[n]의 잘못된 번호·겹친 번호·빠진 예제를 경고하고, 빠진 예제는 따라하기 칸 끝에 붙인다', async () => {
+    const plan = planLessonBody(
+      await render(lessonMarkdown({ followBody: '::예제[1]\n\n::예제[1]\n\n::예제[5]\n\n::예제[가]\n\n:::왜그럴까\n이유\n:::' })),
+      { ...FULL, exampleCount: 3 },
+    );
+    const text = plan.warnings.join('\n');
+    expect(text).toContain('두 번 적었어요');
+    expect(text).toContain('5번 예제가 없어요');
+    expect(text).toContain('예제 번호(1부터)만');
+    expect(text).toContain('예제 2, 3번의 자리 표시');
+    const follow = plan.sections.find((section) => section.key === 'follow');
+    const last = follow?.parts.at(-1);
+    expect(last?.type === 'slot' && last.slot === 'examples' ? last.examples : undefined).toEqual([1, 2]);
+    expect(html(plan)).not.toContain('::예제');
+  });
+
   it('상자 안의 ## 제목은 칸을 나누지 않는다', async () => {
     const plan = planLessonBody(
       await render(lessonMarkdown({ teacherBody: ':::교사용\n## 안쪽 제목\n요약\n:::' })),
@@ -239,6 +276,18 @@ describe('주소·그림 도우미', () => {
     const { html: result, warnings } = rewriteRootRelativeUrls('<a href="/../x/">x</a>');
     expect(result).toBe('<a href="/../x/">x</a>');
     expect(warnings).toHaveLength(1);
+  });
+
+  it('본문 그림(figure·문단 하나의 그림)에 [그림 크게 보기] 링크를 붙이고, 표 안 그림에는 붙이지 않는다(Phase 5 검토 사소 10)', () => {
+    const figure = ['<figure>', '<img src="/images/a.svg" alt="가">', '<figcaption>설명</figcaption>', '</figure>'].join('\n');
+    expect(addImageZoomLinks(figure)).toContain('<figcaption>설명 <a class="figure-zoom" href="/images/a.svg" data-pagefind-ignore>그림 크게 보기</a></figcaption>');
+    expect(addImageZoomLinks('<p><img src="/images/b.webp" alt="나"></p>')).toBe(
+      '<p><img src="/images/b.webp" alt="나"><a class="figure-zoom" href="/images/b.webp" data-pagefind-ignore>그림 크게 보기</a></p>',
+    );
+    const inTable = '<table><tr><td><img src="/images/c.webp" alt="다"> 글</td></tr></table>';
+    expect(addImageZoomLinks(inTable)).toBe(inTable);
+    // 두 번 불러도 한 번만
+    expect(addImageZoomLinks(addImageZoomLinks(figure)).match(/figure-zoom/gu)).toHaveLength(1);
   });
 
   it('본문 그림에 느린 받기(loading="lazy")를 한 번만 붙인다', () => {

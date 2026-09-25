@@ -13,12 +13,18 @@
  *
  * - 파일 위치: 저장소 뿌리의 examples/ 아래(frontmatter에는 examples/ 뒤의 경로만 적는다, content-schemas.ts)
  * - 줄 번호는 원본 파일과 같게 보인다(PLAN §2.6: 본문이 "7번째 줄"을 가리킬 수 있게). 복사할 때 줄 번호는 따라가지 않는다.
+ *   긴 줄은 옆으로 밀지 않고 줄 번호 뒤에서 접어 보인다(2026-09-25 Phase 5 검토 — 휴대폰에서 주석이 잘려 보였다).
  * - 코드 색 강조는 쓰지 않는다: 줄 전체가 주석(#)인 줄만 흐린 색으로 구분해 글자 대비를 4.5:1 넘게 지킨다.
  * - 파일이 없으면 "준비 중" 문장을 보이고 빌드 로그에 경고를 남긴다(빌드는 멈추지 않음, PD-35).
+ * - indexes: 이 자리에서 그릴 예제의 차례(0부터). 차시 md의 ::예제[n] 자리마다 이 컴포넌트가 한 번씩 그려진다(lesson-html.ts).
+ *   예제가 여럿인 차시는 머리에 "따라하기 예제 n"으로 번호를 보여 본문의 "예제 n"과 이어지게 한다.
+ * - focus(examples[].focus, 예: "1-7, 117-123"): 코드 읽기가 가리키는 줄만 발췌해 보이고 전체는 [전체 코드 보기] 접기에 둔다(example-code.ts).
+ * - 사이트가 만든 예제 끝의 실습실 안내 주석(바꿔볼 것·왜 이런 결과가 나올까·실습 방법)은 본문과 같은 내용이라 차시에서는 뺀다(example-code.ts).
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import type { LessonData } from '../../config/content-schemas.ts';
+import { codeLinesToHtml, excerptToHtml, parseFocusRanges, splitExampleCode } from './example-code.ts';
 import { labLink, labOfExampleFile, type LabId } from './lesson-data.ts';
 
 interface Props {
@@ -26,27 +32,19 @@ interface Props {
   lab?: LabId;
   /** 경고에 적을 차시 파일 이름 */
   source: string;
+  /** 이 자리에서 그릴 예제 차례(0부터). 없으면 모두 */
+  indexes?: readonly number[] | undefined;
 }
 
-const { examples, lab, source } = Astro.props;
+const { examples, lab, source, indexes } = Astro.props;
 const EXAMPLES_DIR = path.resolve('examples');
+const numbered = examples.length > 1;
 
-function escapeHtml(text: string): string {
-  return text.replace(/&/gu, '&amp;').replace(/</gu, '&lt;').replace(/>/gu, '&gt;');
-}
-
-function codeToHtml(code: string): { html: string; lineCount: number } {
-  const lines = code.replace(/\r\n?/gu, '\n').replace(/\n$/u, '').split('\n');
-  const html = lines
-    .map((line) => {
-      const comment = /^\s*#/u.test(line) ? ' lesson-code__line--comment' : '';
-      return `<span class="lesson-code__line${comment}">${escapeHtml(line)}</span>`;
-    })
-    .join('\n');
-  return { html, lineCount: lines.length };
-}
-
-const panels = examples.map((example, index) => {
+const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) => {
+  const example = examples[index];
+  if (!example) {
+    return [];
+  }
   const filePath = path.join(EXAMPLES_DIR, ...example.file.split('/'));
   let code: string | undefined;
   try {
@@ -57,36 +55,61 @@ const panels = examples.map((example, index) => {
   // 예제마다 도는 실습실이 다르다(통신 차시는 컴퓨터 쪽 vision/ + 보드 쪽 esp32/ 한 쌍 — P4-08에서 발견, 2026-09-24 통합에서 고침).
   // frontmatter lab은 "따라하기에 쓰는 실습실"이라 한쪽만 맞는다 → 파일 경로의 첫 칸이 먼저, 모르면 frontmatter lab.
   const exampleLab = labOfExampleFile(example.file) ?? lab;
-  return {
-    key: `example-${index + 1}`,
-    file: example.file,
-    title: example.title ?? `예제 ${index + 1}`,
-    rendered: code === undefined ? undefined : codeToHtml(code),
-    link: exampleLab ? labLink(exampleLab, example.file) : undefined,
-    // 차시 안에 띄우는 주소(예제 미리 로드 + 머리글·바닥글 숨김). 누르기 전에는 받지 않는다.
-    embedHref: exampleLab ? `${labLink(exampleLab, example.file).href}&embed=1` : undefined,
-    lab: exampleLab,
-  };
+  const number = index + 1;
+  const split = code === undefined ? undefined : splitExampleCode(code);
+  const focus = split && example.focus ? parseFocusRanges(example.focus, split.lines.length) : undefined;
+  for (const problem of focus?.problems ?? []) {
+    console.warn(`[차시 틀] ${source}: examples의 ${example.file} focus ${problem}`);
+  }
+  const excerpt = split && focus && focus.ranges.length > 0 ? excerptToHtml(split.lines, focus.ranges) : undefined;
+  return [
+    {
+      key: `example-${number}`,
+      number,
+      file: example.file,
+      title: example.title ?? `예제 ${number}`,
+      rendered: split ? { html: codeLinesToHtml(split.lines), lineCount: split.lines.length, guideLines: split.guideLines } : undefined,
+      excerpt,
+      link: exampleLab ? labLink(exampleLab, example.file) : undefined,
+      // 차시 안에 띄우는 주소(예제 미리 로드 + 머리글·바닥글 숨김). 누르기 전에는 받지 않는다.
+      embedHref: exampleLab ? `${labLink(exampleLab, example.file).href}&embed=1` : undefined,
+      lab: exampleLab,
+    },
+  ];
 });
 ---
 
 {
   panels.map((panel) => (
-    <div class="lesson-example-block">
-    <figure class="lesson-example" data-lab={panel.lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
+    <div class="lesson-example-block" data-example-number={numbered ? panel.number : undefined}>
+    <figure class="lesson-example" id={panel.key} data-lab={panel.lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
       <figcaption class="lesson-example__caption">
-        <span class="lesson-example__eyebrow">따라하기 예제</span>
+        <span class="lesson-example__eyebrow">{numbered ? `따라하기 예제 ${panel.number}` : '따라하기 예제'}</span>
         <span class="lesson-example__title" id={`${panel.key}-title`}>
           {panel.title}
         </span>
         <span class="lesson-example__file">examples/{panel.file}</span>
       </figcaption>
       {/* <pre> 안의 공백은 그대로 보이므로 <pre>와 <code> 사이에 줄바꿈·들여쓰기를 두지 않는다. */}
-      {/* 가로로 스크롤되는 코드 상자는 키보드로도 스크롤할 수 있게 초점을 받는다. 이름은 region 역할에 붙여야 화면 낭독기가 읽는다(일반 요소의 aria-label은 읽지 않을 수 있음). */}
-      {panel.rendered ? (
+      {/* 코드 상자는 키보드로도 스크롤할 수 있게 초점을 받는다. 이름은 region 역할에 붙여야 화면 낭독기가 읽는다(일반 요소의 aria-label은 읽지 않을 수 있음). */}
+      {panel.rendered && panel.excerpt ? (
+        <Fragment>
+          <p class="lesson-example__excerpt-note">코드 읽기가 가리키는 줄만 보여요(전체 {panel.rendered.lineCount}줄 가운데 {panel.excerpt.shown}줄). 줄 번호는 파일 그대로예요.</p>
+          <pre class="lesson-code lesson-code--excerpt" tabindex="0" role="region" aria-label={`${panel.title} 코드 발췌, ${panel.excerpt.shown}줄`}><code set:html={panel.excerpt.html} /></pre>
+          <details class="lesson-code-full">
+            <summary>전체 코드 보기({panel.rendered.lineCount}줄)</summary>
+            <pre class="lesson-code" tabindex="0" role="region" aria-label={`${panel.title} 전체 코드, ${panel.rendered.lineCount}줄`}><code set:html={panel.rendered.html} /></pre>
+          </details>
+        </Fragment>
+      ) : panel.rendered ? (
         <pre class="lesson-code" tabindex="0" role="region" aria-label={`${panel.title} 코드, ${panel.rendered.lineCount}줄`}><code set:html={panel.rendered.html} /></pre>
       ) : (
         <p class="lesson-example__missing">예제 파일을 준비하고 있어요.</p>
+      )}
+      {panel.rendered && panel.rendered.guideLines > 0 && (
+        <p class="lesson-example__guide-note">
+          파일 끝의 실습실 안내 주석 {panel.rendered.guideLines}줄(바꿔볼 것, 왜 이런 결과가 나올까)은 이 쪽 본문과 같은 내용이라 여기서는 뺐어요. 실습실에서는 보여요.
+        </p>
       )}
       <div class="lesson-example__actions">
         {panel.link && (
@@ -221,7 +244,6 @@ const panels = examples.map((example, index) => {
     font-size: var(--text-sm);
     line-height: 1.6;
     overflow-x: auto;
-    counter-reset: code-line;
     tab-size: 4;
   }
 
@@ -229,8 +251,17 @@ const panels = examples.map((example, index) => {
     outline-offset: calc(-1 * var(--focus-ring-width));
   }
 
+  /*
+   * 줄마다 블록: 긴 줄은 줄 번호 뒤에서 접는다(첫 줄만 왼쪽으로 내어 쓰는 방법 — 이어지는 줄은 코드 칸의 시작에 맞춘다).
+   * 줄 번호는 data-line(발췌에서 건너뛴 줄이 있어도 원래 번호). 번호는 복사되지 않는다(::before).
+   */
   .lesson-code :global(.lesson-code__line) {
-    counter-increment: code-line;
+    display: block;
+    min-height: 1.6em;
+    padding-inline-start: 4.25em;
+    text-indent: -4.25em;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   .lesson-code :global(.lesson-code__line)::before {
@@ -239,12 +270,55 @@ const panels = examples.map((example, index) => {
     padding-inline-end: 1em;
     color: var(--color-text-muted);
     text-align: right;
-    content: counter(code-line);
+    text-indent: 0;
+    content: attr(data-line);
     user-select: none;
   }
 
   .lesson-code :global(.lesson-code__line--comment) {
     color: var(--color-text-muted);
+  }
+
+  /* 줄 사이 줄바꿈 글자: 글자 그대로의 코드·검색 색인용이라 화면에서는 숨긴다(example-code.ts LINE_BREAK_HTML) */
+  .lesson-code :global(.lesson-code__nl) {
+    display: none;
+  }
+
+  .lesson-code :global(.lesson-code__gap) {
+    display: block;
+    padding-inline-start: 4.25em;
+    color: var(--color-text-muted);
+    font-style: italic;
+    user-select: none;
+  }
+
+  .lesson-example__excerpt-note,
+  .lesson-example__guide-note {
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson-example__excerpt-note {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .lesson-example__guide-note {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .lesson-code-full {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .lesson-code-full > summary {
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
   }
 
   .lesson-example__missing {

@@ -6,6 +6,10 @@
  * - 8칸은 ## 제목으로 이 순서대로 쓴다: 학습목표 · 왜 배울까 · 핵심 개념 · 따라하기 · 바꿔보기 · 도전 과제 · 확인 퀴즈 · 교사용
  *   띄어쓰기는 달라도 된다("학습 목표"도 학습목표). 빠지거나 순서가 다르면 빌드 로그에 경고만 남긴다(PD-35).
  * - frontmatter examples의 예제 코드가 들어갈 자리에 ::예제 를 한 줄로 따로 적는다. 적지 않으면 따라하기 칸 끝에 붙는다.
+ *   예제가 여럿이면 ::예제[1] ::예제[2]처럼 번호(examples의 차례, 1부터)를 붙여 예제마다 자리를 따로 정할 수 있다 —
+ *   "코드 읽기(예제 n) → 예제 n 코드"처럼 설명 바로 아래에 그 코드가 오게 한다(2026-09-25 Phase 5 검토 중요 1: 코드 읽기 목록과
+ *   코드가 다섯 화면 넘게 떨어져 있었다). ::예제[2,3]처럼 여럿을 한자리에, 번호 없는 ::예제는 "아직 자리를 정하지 않은 나머지 모두"다.
+ *   번호로 자리를 정하지 않은 예제가 남았는데 번호 없는 ::예제가 없으면 따라하기 칸 끝에 붙이고 경고한다.
  * - frontmatter quiz의 퀴즈가 들어갈 자리에 ::퀴즈 를 한 줄로 따로 적는다. 적지 않으면 확인 퀴즈 칸 끝에 붙는다.
  *   (두 표시는 어떤 remark 플러그인도 처리하지 않는 지시문이라 remark-boxes가 <p>::예제</p> 글자로 되돌려 둔다.
  *    상자·목록 안에 적은 표시는 쓰지 않고 지운다.)
@@ -41,7 +45,14 @@ export const LESSON_MARKERS: Readonly<Record<LessonSlot, string>> = Object.freez
 const SLOT_SECTION: Readonly<Record<LessonSlot, LessonSectionKey>> = Object.freeze({ examples: 'follow', quiz: 'quiz' });
 const SLOT_FIELD: Readonly<Record<LessonSlot, string>> = Object.freeze({ examples: 'examples', quiz: 'quiz' });
 
-export type LessonBodyPart = { readonly type: 'html'; readonly html: string } | { readonly type: 'slot'; readonly slot: LessonPartSlot };
+export type LessonBodyPart =
+  | { readonly type: 'html'; readonly html: string }
+  | {
+      readonly type: 'slot';
+      readonly slot: LessonPartSlot;
+      /** examples 자리에서 그릴 예제의 차례(0부터, frontmatter examples 기준). 적힌 순서대로 그린다 */
+      readonly examples?: readonly number[];
+    };
 
 export interface LessonBodySection {
   readonly key?: LessonSectionKey;
@@ -218,6 +229,31 @@ export function rewriteRootRelativeUrls(html: string): { html: string; warnings:
   return { html: rewritten, warnings };
 }
 
+/** [그림 크게 보기] 링크(좁은 화면에서만 보인다 — LessonBody.astro 스타일) */
+const ZOOM_LINK_CLASS = 'figure-zoom';
+
+function zoomLink(src: string): string {
+  return `<a class="${ZOOM_LINK_CLASS}" href="${src}" data-pagefind-ignore>그림 크게 보기</a>`;
+}
+
+/**
+ * 본문 그림(<figure>의 그림, 문단 하나에 그림 하나만 있는 마크다운 그림)에 [그림 크게 보기] 링크를 붙인다.
+ * 휴대폰에서 폭 640 그림이 절반쯤으로 줄어 그림 속 글자가 8px 안팎이 되는데 확대할 방법이 없었다(2026-09-25 Phase 5 검토 사소 10).
+ * 링크는 그림 파일 자체를 연다(브라우저가 원래 크기로 보이고 손가락으로 키울 수 있다). 넓은 화면에서는 숨긴다.
+ */
+export function addImageZoomLinks(html: string): string {
+  const withFigures = html.replace(/<figure>([\s\S]*?)<\/figure>/gu, (whole: string, inner: string) => {
+    const src = /<img\b[^>]*\ssrc="([^"]+)"/iu.exec(inner)?.[1];
+    if (!src || inner.includes(ZOOM_LINK_CLASS)) {
+      return whole;
+    }
+    return inner.includes('</figcaption>')
+      ? `<figure>${inner.replace('</figcaption>', ` ${zoomLink(src)}</figcaption>`)}</figure>`
+      : `<figure>${inner}${zoomLink(src)}</figure>`;
+  });
+  return withFigures.replace(/<p>(<img\b[^>]*\ssrc="([^"]+)"[^>]*>)<\/p>/giu, (_whole: string, image: string, src: string) => `<p>${image}${zoomLink(src)}</p>`);
+}
+
 /** 본문 그림은 화면에 가까워질 때 받는다(학습 페이지 속도, SPEC §9). */
 export function addLazyImageLoading(html: string): string {
   return html.replace(/<img\b(?![^>]*\sloading=)/giu, '<img loading="lazy" decoding="async"');
@@ -342,6 +378,155 @@ function placeSlot(blocks: WorkingSection[], slot: LessonSlot, enabled: boolean,
   warnings.push(`"${title}" 칸(## ${title})이 없어서 칸을 만들어 넣었어요.`);
 }
 
+/** ::예제 / ::예제[1] / ::예제[2,3] 표시 줄(remark-boxes가 <p> 글자로 되돌려 둔 것) */
+const EXAMPLE_MARKER = /<p>\s*::예제(?:\[([^\]<]*)\])?\s*<\/p>\n?/u;
+
+/** "1", "2, 3" → [0], [1, 2](0부터). 숫자가 아닌 조각이 있으면 undefined */
+function parseExampleNumbers(label: string): number[] | undefined {
+  const pieces = label
+    .split(/[,\s]+/u)
+    .map((piece) => piece.trim())
+    .filter((piece) => piece !== '');
+  if (pieces.length === 0 || pieces.some((piece) => !/^\d+$/u.test(piece))) {
+    return undefined;
+  }
+  return pieces.map((piece) => Number(piece) - 1);
+}
+
+/**
+ * 예제 자리를 정한다(::예제·::예제[n]). placeSlot과 같은 약속(상자·목록 안의 표시는 지우고 경고, examples가 비면 표시를 지움)에
+ * 번호 자리를 더했다 — 파일 머리말 "마크다운을 쓰는 사람의 약속" 참고.
+ */
+function placeExampleSlots(blocks: WorkingSection[], exampleCount: number, warnings: string[]): void {
+  const marker = LESSON_MARKERS.examples;
+  const enabled = exampleCount > 0;
+  const placed = new Set<number>();
+  // 번호 없는 ::예제 자리(나머지 모두). 콜백 안에서 채우므로 객체에 담는다(let은 TypeScript 흐름 분석이 undefined로 좁혀 버린다).
+  const rest: { part?: { type: 'slot'; slot: 'examples'; examples: number[] } } = {};
+  let found = 0;
+  let nested = 0;
+  let duplicates = 0;
+  const problems: string[] = [];
+
+  for (const block of blocks) {
+    block.parts = block.parts.flatMap((part): LessonBodyPart[] => {
+      if (part.type !== 'html') {
+        return [part];
+      }
+      const matches = findMatches(part.html, EXAMPLE_MARKER);
+      if (matches.length === 0) {
+        return [part];
+      }
+      const pieces: LessonBodyPart[] = [];
+      let cursor = 0;
+      for (const match of matches) {
+        found += 1;
+        pieces.push({ type: 'html', html: part.html.slice(cursor, match.index) });
+        cursor = match.index + match.text.length;
+        if (!enabled) {
+          continue;
+        }
+        if (!match.topLevel) {
+          nested += 1;
+          continue;
+        }
+        const label = EXAMPLE_MARKER.exec(match.text)?.[1];
+        if (label === undefined) {
+          if (rest.part) {
+            duplicates += 1;
+            continue;
+          }
+          rest.part = { type: 'slot', slot: 'examples', examples: [] };
+          pieces.push(rest.part);
+          continue;
+        }
+        const numbers = parseExampleNumbers(decodeHtmlEntities(label));
+        if (!numbers) {
+          problems.push(`${marker}[${label}]의 대괄호에는 예제 번호(1부터)만 적어요. 예: ${marker}[1], ${marker}[2,3]`);
+          continue;
+        }
+        const indexes: number[] = [];
+        for (const index of numbers) {
+          if (index < 0 || index >= exampleCount) {
+            problems.push(`${marker}[${index + 1}] — frontmatter examples에는 예제가 ${exampleCount}개라 ${index + 1}번 예제가 없어요.`);
+          } else if (placed.has(index)) {
+            problems.push(`${index + 1}번 예제의 자리(${marker}[${index + 1}])를 두 번 적었어요. 한 번만 적어요.`);
+          } else {
+            placed.add(index);
+            indexes.push(index);
+          }
+        }
+        if (indexes.length > 0) {
+          pieces.push({ type: 'slot', slot: 'examples', examples: indexes });
+        }
+      }
+      pieces.push({ type: 'html', html: part.html.slice(cursor) });
+      return pieces;
+    });
+    block.parts = mergeHtmlParts(block.parts);
+  }
+
+  if (!enabled) {
+    if (found > 0) {
+      warnings.push(`${marker} 줄이 있지만 frontmatter examples가 비어 있어 그 줄을 지웠어요.`);
+    }
+    return;
+  }
+  warnings.push(...problems);
+  if (duplicates > 0) {
+    warnings.push(`번호 없는 ${marker} 줄은 한 번만 적어요. 두 번째부터는 지웠어요.`);
+  }
+  if (nested > 0) {
+    warnings.push(`${marker} 줄은 상자·목록 밖에 한 줄로 따로 적어요. 안에 적은 줄은 지웠어요.`);
+  }
+
+  const remaining = Array.from({ length: exampleCount }, (_, index) => index).filter((index) => !placed.has(index));
+  const restPart = rest.part;
+  if (restPart) {
+    restPart.examples.push(...remaining);
+    if (remaining.length === 0) {
+      // 번호 없는 ::예제가 남은 예제 없이 비었다 — 그 자리는 그리지 않는다.
+      for (const block of blocks) {
+        block.parts = mergeHtmlParts(block.parts.filter((part) => part !== restPart));
+      }
+    }
+    return;
+  }
+  if (remaining.length === 0) {
+    return;
+  }
+  if (placed.size > 0) {
+    warnings.push(
+      `예제 ${remaining.map((index) => index + 1).join(', ')}번의 자리 표시(${marker}[번호])가 없어서 따라하기 칸 끝에 붙였어요. 설명 바로 아래에 ${marker}[${(remaining[0] ?? 0) + 1}]처럼 적어요.`,
+    );
+  }
+  const target = blocks.find((block) => !block.intro && block.key === 'follow');
+  if (target) {
+    target.parts.push({ type: 'slot', slot: 'examples', examples: remaining });
+    return;
+  }
+  const title = sectionTitle('follow');
+  const usedIds = new Set(blocks.map((block) => block.id));
+  let id = headingId(title);
+  for (let suffix = 1; usedIds.has(id); suffix += 1) {
+    id = `${headingId(title)}-${suffix}`;
+  }
+  const order = sectionIndex('follow');
+  const insertAt = blocks.findIndex((block) => !block.intro && block.key !== undefined && sectionIndex(block.key) > order);
+  blocks.splice(insertAt < 0 ? blocks.length : insertAt, 0, {
+    key: 'follow',
+    id,
+    title,
+    generated: true,
+    intro: false,
+    parts: [
+      { type: 'html', html: `<h2 id="${escapeHtml(id)}">${escapeHtml(title)}</h2>\n` },
+      { type: 'slot', slot: 'examples', examples: remaining },
+    ],
+  });
+  warnings.push(`"${title}" 칸(## ${title})이 없어서 칸을 만들어 넣었어요.`);
+}
+
 /** html에서 index에 있는 여는 태그(상자·목록 등)와 짝이 맞는 닫는 태그의 시작 위치. 못 찾으면 -1 */
 function matchingCloseIndex(html: string, openIndex: number): number {
   let depth = 0;
@@ -425,7 +610,7 @@ function templateWarnings(blocks: readonly WorkingSection[], options: LessonBody
  */
 export function planLessonBody(html: string, options: LessonBodyOptions): LessonBodyPlan {
   const warnings: string[] = [];
-  const rewritten = rewriteRootRelativeUrls(addLazyImageLoading(html));
+  const rewritten = rewriteRootRelativeUrls(addImageZoomLinks(addLazyImageLoading(html)));
   warnings.push(...rewritten.warnings);
 
   const { intro, sections } = splitHtmlSections(rewritten.html);
@@ -441,7 +626,7 @@ export function planLessonBody(html: string, options: LessonBodyOptions): Lesson
     })),
   ];
 
-  placeSlot(blocks, 'examples', options.exampleCount > 0, warnings);
+  placeExampleSlots(blocks, options.exampleCount, warnings);
   placeSlot(blocks, 'quiz', options.quizCount > 0, warnings);
   if (options.teacherInfo) {
     placeTeacherInfo(blocks);

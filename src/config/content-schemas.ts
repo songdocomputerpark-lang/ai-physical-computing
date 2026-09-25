@@ -67,6 +67,15 @@ const exampleSchema = z.object({
     .refine((file) => !file.startsWith('examples/'), { error: `${EXAMPLE_FILE_ERROR} (앞의 examples/는 빼요)` }),
   title: z.string().min(1).optional(),
   parts: z.array(partSchema).default([]),
+  /**
+   * (선택) 차시 코드 상자에 발췌해 보일 줄 범위 — 예: "1-7, 117-123, 201-205". 긴 예제(100줄 넘게)에서 코드 읽기가 가리키는 줄만
+   * 보이고 전체 코드는 [전체 코드 보기] 접기에 둔다(2026-09-25 Phase 5 검토 중요 9, src/components/lesson/example-code.ts).
+   * 실습실·갤러리는 늘 전체 코드다. 없는 줄 번호는 npm run check:lessons가 알린다. 새 칸이라 읽는 곳은 ?? 없이 undefined를 견딘다(미해결 169).
+   */
+  focus: z
+    .string()
+    .regex(/^\s*\d+(?:\s*[-~]\s*\d+)?(?:\s*,\s*\d+(?:\s*[-~]\s*\d+)?)*\s*$/u, { error: '발췌할 줄(focus)은 "1-7, 117-123"처럼 줄 번호 범위를 쉼표로 이어 적어요.' })
+    .optional(),
 });
 
 /** 확인 퀴즈 한 문항(객관식, SPEC §7.2 7번) */
