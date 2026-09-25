@@ -36,6 +36,8 @@ interface Result {
   requests: { kind: string; payload: unknown }[];
   syncEntrypointReset: string;
   leftoverClicks: unknown[];
+  shimFailure: { installed?: string[]; failures?: string[][]; thrown?: string };
+  shimFailureCleared: string[][];
 }
 
 function run(): Result {
@@ -85,6 +87,14 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('hello 모듈의 파이썬 �
   it('틱 훅이 입력 확인 지점마다 한 번씩 불리고(같은 함수는 한 번만 등록), 훅 오류는 알림으로만 남는다', () => {
     expect(out.steps.tick_hook).toMatchObject({ value: 3 });
     expect(out.notices.filter((text) => text.includes('훅 오류')).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('흉내 모듈 하나의 설치가 실패해도 예외를 내지 않고 나머지를 설치하며, 실패는 한 줄 까닭으로 남긴다(Phase 5 검토 중요 4)', () => {
+    expect(out.shimFailure.thrown).toBeUndefined();
+    expect(out.shimFailure.installed).toEqual(expect.arrayContaining(['zz_ok_pkg']));
+    expect(out.shimFailure.installed).not.toContain('zz_fake_pkg');
+    expect(out.shimFailure.failures).toEqual([['zz_fake_pkg', 'ImportError: 풀려만 있고 아직 불러오지 못했어요']]);
+    expect(out.shimFailureCleared).toEqual([]);
   });
 
   it('동기 진입점(reset_for_run)에서 모듈 초기화가 양보를 시도하지 않는다(PROGRESS 미해결 25번)', () => {

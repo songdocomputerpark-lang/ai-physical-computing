@@ -78,6 +78,8 @@ let pyodide: PyodideAPI | null = null;
 let loadedFrom = '';
 let jspiAvailable = false;
 let activeRunId: number | null = null;
+/** 화면이 보낸 미리 받기(load-packages)가 아직 도는 수 — 실행이 그사이에 시작되면 흉내 모듈 설치 실패를 알리지 않는다(installShims) */
+let packageLoadsInFlight = 0;
 let interruptBuffer: Uint8Array | null = null;
 const stdoutDecoder = new TextDecoder();
 const stderrDecoder = new TextDecoder();
@@ -222,16 +224,43 @@ function unbindParamGlobals(): void {
   }
 }
 
-/** 받아 둔 패키지의 흉내 모듈을 설치한다(apc_shims.py). 실패해도 실행은 계속하고 콘솔에 알린다. */
+/**
+ * 파이썬 예외의 마지막 줄("ImportError: …")만 돌려준다. describeError는 첫 줄이라 PythonError면 "Traceback (most recent call last):"만
+ * 남아 학생에게 영어 조각만 보였다(2026-09-25 Phase 5 검토 — 중요 4).
+ */
+export function lastErrorLine(error: unknown): string {
+  const text = error instanceof Error ? error.message : String(error);
+  const lines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '');
+  return lines[lines.length - 1] ?? (error instanceof Error ? error.name : String(error));
+}
+
+/**
+ * 받아 둔 패키지의 흉내 모듈을 설치한다(apc_shims.py). 실패해도 실행은 계속하고, 필요할 때만 콘솔에 한국어 한 줄로 알린다.
+ * 미리 받기(loadPackages)가 도는 중이면 알리지 않는다 — 그 패키지를 쓰는 코드는 loadPackagesFromImports가 받기가 끝나기를
+ * 기다린 뒤에 여기 오므로 실패하지 않고, 쓰지 않는 코드에는 필요 없는 모듈이다. 받기가 끝난 다음 실행에서 설치된다.
+ */
 function installShims(): void {
   if (!pyodide) {
     return;
   }
+  let failures: string[][] = [];
   try {
-    pyodide.runPython('import apc_shims\napc_shims.install_available()');
+    const result = pyodide.runPython('import apc_shims\napc_shims.install_available()\napc_shims.last_failures()') as PyProxy | undefined;
+    failures = (result?.toJs() as string[][] | undefined) ?? [];
+    result?.destroy();
   } catch (error) {
-    post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈을 준비하지 못했어요: ${describeError(error)}` });
+    post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈을 준비하지 못했어요(${lastErrorLine(error)}). 실행은 이어서 해요.` });
+    return;
   }
+  if (failures.length === 0 || packageLoadsInFlight > 0) {
+    return;
+  }
+  const names = failures.map(([name]) => name).join(', ');
+  const reasons = failures.map(([, reason]) => reason).join(' / ');
+  post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈(${names})을 준비하지 못했어요(${reasons}). 실행은 이어서 해요.` });
 }
 
 function runtimeInfo(): RuntimeInfo {
@@ -431,11 +460,14 @@ async function loadPackages(message: LoadPackagesMessage): Promise<void> {
     post({ type: 'task-result', taskId: message.taskId, ok: false, error: '코드가 실행 중일 때는 패키지를 불러올 수 없어요.' });
     return;
   }
+  packageLoadsInFlight += 1;
   try {
     await pyodide.loadPackage([...message.names], packageCallbacks());
     post({ type: 'task-result', taskId: message.taskId, ok: true, value: loadedPackageNames() });
   } catch (error) {
     post({ type: 'task-result', taskId: message.taskId, ok: false, error: `패키지를 받지 못했어요: ${describeError(error)}` });
+  } finally {
+    packageLoadsInFlight -= 1;
   }
 }
 

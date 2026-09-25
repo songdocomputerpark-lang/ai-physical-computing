@@ -173,6 +173,26 @@ if (jspi) {
   );
 }
 
+// 흉내 모듈 하나의 설치가 실패해도(예: 미리 받기 도중 풀려만 있는 cv2 — 2026-09-25 Phase 5 검토 중요 4) 예외를 밖으로 내지 않고
+// 나머지는 설치하며, 실패한 것은 last_failures()가 한 줄 까닭으로 알린다. 시험이 끝나면 표에서 뺀다.
+pyodide.FS.writeFile('/apc/zz_fake_pkg.py', 'VALUE = 1\n');
+pyodide.FS.writeFile('/apc/zz_ok_pkg.py', 'VALUE = 2\n');
+pyodide.FS.writeFile('/apc/apc_zz_broken.py', 'def install():\n    raise ImportError("풀려만 있고 아직 불러오지 못했어요")\n');
+pyodide.FS.writeFile('/apc/apc_zz_ok.py', 'def install():\n    pass\n');
+try {
+  const installed = pyodide
+    .runPython(
+      "import apc_shims\napc_shims.register_shims({'zz_fake_pkg': 'apc_zz_broken', 'zz_ok_pkg': 'apc_zz_ok'})\napc_shims.install_available()",
+    )
+    .toJs();
+  out.shimFailure = { installed, failures: pyodide.runPython('apc_shims.last_failures()').toJs() };
+} catch (error) {
+  out.shimFailure = { thrown: String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0] };
+} finally {
+  pyodide.runPython("import apc_shims\napc_shims.SHIMS.pop('zz_fake_pkg', None)\napc_shims.SHIMS.pop('zz_ok_pkg', None)");
+}
+out.shimFailureCleared = pyodide.runPython('import apc_shims\napc_shims.install_available()\napc_shims.last_failures()').toJs();
+
 // 동기 진입점 규칙: reset_for_run(모듈의 _reset 포함)을 마지막 양보 뒤 16ms가 지난 뒤 동기 runPython으로 불러도 스택 전환 오류가 없어야 한다.
 await new Promise((resolve) => setTimeout(resolve, 40));
 try {

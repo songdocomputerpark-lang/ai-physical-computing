@@ -43,12 +43,36 @@ def _is_available(module_name: str) -> bool:
         return False
 
 
+# 마지막 install_available()에서 설치하지 못한 흉내 모듈: [(패키지 이름, "예외 종류: 한 줄 까닭"), …]
+_last_failures: list[tuple[str, str]] = []
+
+
+def _one_line(error: BaseException) -> str:
+    text = str(error).strip().splitlines()
+    return f"{type(error).__name__}: {text[-1]}" if text else type(error).__name__
+
+
 def install_available() -> list[str]:
-    """받아 둔 패키지의 흉내 모듈을 모두 설치하고, 설치한 패키지 이름 목록을 돌려준다."""
+    """받아 둔 패키지의 흉내 모듈을 모두 설치하고, 설치한 패키지 이름 목록을 돌려준다.
+
+    한 모듈의 설치가 실패해도 나머지는 설치한다(예외를 밖으로 내지 않는다). 실패한 것은 last_failures()가 알려 준다.
+    흔한 까닭(2026-09-25 Phase 5 검토에서 재현): 영상처리 실습실이 준비 뒤에 OpenCV를 미리 받는 동안 cv2가 쓰지 않는 예제를 다시
+    실행하면, 풀어 놓았지만 아직 불러오기가 끝나지 않은 cv2를 import하다 실패한다. 이 실행의 코드는 cv2를 쓰지 않고(쓰면 워커가
+    loadPackagesFromImports에서 받기가 끝나기를 기다린다), 받기가 끝난 뒤의 다음 실행에서 설치된다."""
     installed = []
+    _last_failures.clear()
     for module_name, shim_name in SHIMS.items():
         if not _is_available(module_name):
             continue
-        importlib.import_module(shim_name).install()
+        try:
+            importlib.import_module(shim_name).install()
+        except Exception as error:  # 다른 흉내 모듈의 설치를 막지 않는다
+            _last_failures.append((module_name, _one_line(error)))
+            continue
         installed.append(module_name)
     return installed
+
+
+def last_failures() -> list[list[str]]:
+    """마지막 install_available()에서 설치하지 못한 흉내 모듈 [[패키지 이름, 한 줄 까닭], …](워커가 콘솔 알림을 만든다)."""
+    return [[name, reason] for name, reason in _last_failures]
