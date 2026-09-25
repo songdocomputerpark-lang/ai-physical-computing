@@ -61,9 +61,19 @@ sources:
   # ── 제3자 권리 표기 자료(PD-26: 사이트 라이선스에서 제외, /credits/ 제3자 목록에 보임) ──
   # 원고에서 꺼낸 제3자 권리 그림은 public/images/lessons/<차시 폴더>/third-party/<키>/에 두고, 그 키 폴더를 덮는 항목을 따로 만들어요.
   # 원고 이미지 추출 도구(npm run images:extract, P5-01)가 원본 그림의 XMP 권리 표기(제작자·권리 문구·이름표)를 읽어 알려 줘요.
-  # 지금 차시 그림 가운데 제3자 그림은 없어요:
   # - 출판사가 조판 때 넣은 삽화·컷(이름표 "인피컴_…(삽)"·"인피컴_…(컷)")은 운영자가 "다 넣어도 됨"이라고 답해(운영자 할 일 13번, DECISIONS O10,
   #   2026-09-25) 위 원고 항목(운영자 자체 자료, 사이트 CC BY-NC-SA 4.0)으로 옮겼어요. 전에 third-party/publisher/에 있던 7장은 차시 그림 폴더로 옮겼어요.
+  # - 키트 업체의 제품 사진·그림(아래 항목)은 2026-09-25 Phase 5 검토 반영(안전 1)으로 제3자로 나눴어요.
+
+  - name: 교과서 원고에 실린 키트 업체의 제품 사진·그림
+    category: third_party
+    author: 교과서 실습 키트 업체(GORILLACELL — 기판 인쇄 상표 기준)
+    license: 원 권리자 보유 — 운영자 사용 허락(O4·O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
+    used_in: "2-1-1 ESP32 키트 보드 사진(원고 118쪽), 3-1-2 USB-UART 변환기 사진(원고 189쪽)과 변환기·레이저 배선 그림(원고 190쪽). 실제 키트를 이을 때 알아보도록 원고 그대로 싣고, 가상 보드와 같은 모양의 그림은 사이트가 따로 그렸어요."
+    rights: "원본 그림에 권리 표기 없음(2026-09-25 원고 그림 XMP 확인). 저자가 찍은 결과 사진(촬영 기기 기록이 있음)과 달리 제품 누끼·카탈로그형 사진이라 업체 자료로 보고 제3자로 둠 — 운영자가 저자 촬영이라고 알려 주면 운영자 자료로 되돌림(운영자 할 일 24번)"
+    paths:
+      - public/images/lessons/*/third-party/kit-vendor/**
+    fetched: 2026-09-25
 
   # 원고 속 스톡 그림(원본 권리 표기가 출판사가 아닌 스톡 작가·판매 사이트 — 예: 010쪽 Visual Generation Inc., 018쪽 BASHTA,
   # 141쪽 rancz, 155쪽 Firuz Mukhtarov, 173쪽 Chris Putnam)은 결정 C11(docs/DECISIONS.md, 2026-09-25)로 사이트에 쓰지 않아 항목이 없어요.
@@ -115,7 +125,7 @@ sources:
     author: The MediaPipe Authors(Google LLC)
     license: Apache-2.0
     url: https://github.com/google-ai-edge/mediapipe
-    used_in: "얼굴 그물 연결표(FACE_LANDMARKS_*)·자세 연결표(POSE_CONNECTIONS)와 draw_landmarks·draw_detection 그리기 규칙. 사이트 흉내 모듈이 원본과 같은 그림을 그리려고 그대로 옮겼고, 파일 머리말에 저작권·라이선스를 적어 뒀어요(Apache-2.0 4조)."
+    used_in: "얼굴 그물 연결표(FACE_LANDMARKS_*)·자세 연결표(POSE_CONNECTIONS)와 draw_landmarks·draw_detection 그리기 규칙. 사이트 흉내 모듈이 원본과 같은 그림을 그리려고 그대로 옮겼고, 파일 머리말에 저작권·라이선스를 적어 뒀어요(Apache-2.0 4조). 그 밖에 MediaPipe에서 온 것(2026-09-25 Phase 5 검토 반영 — 안전 2): 교사용 자료실 가린 편집본 블루투스 통신 수업 교안 p20·p26·p31의 손 랜드마크 번호 그림(0 WRIST~20 PINKY_TIP)은 MediaPipe Hands 공식 문서 그림이고, 1-1-2의 손 랜드마크 21점 그림(원고 016쪽 출판 편집 컷)도 그 번호 배치를 따른 그림이에요. 사이트가 그린 1-3-1의 얼굴 그물 그림(face-mesh-points.svg)의 삼각형 선도 위 얼굴 그물 연결표를 따라 이었어요. 모두 The MediaPipe Authors, Apache-2.0(고지는 아래 notice)."
     paths:
       - src/lab/modules/mediapipe/face-connections.ts
       - src/lab/modules/mediapipe/apc_mp_tables.py

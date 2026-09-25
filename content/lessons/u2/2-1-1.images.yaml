@@ -7,17 +7,22 @@
 # 118쪽 "ESP32 구성"은 교과서 키트의 실제 보드 사진에 원고가 이름표를 단 그림이에요(실제 키트 연결 안내용 — INVENTORY §5.2 업체 제품 사진, O3·O4).
 # 가상 보드와 같은 모양의 브랜드 중립 그림은 사이트가 따로 그렸어요(esp32-board-parts.svg — sources.yaml "사이트가 직접 그린 그림").
 # 117쪽 입력·처리·출력 그림, 119쪽 부품 핀 구성 카드, 120~122쪽 설치 화면은 쓰지 않아요(사이트 SVG로 대신하거나 설치 제로 원칙으로 뺐어요).
+# 2026-09-25 Phase 5 검토 반영(안전 1): 업체 카탈로그 사진·제품 그림으로 보이는 그림(원본에 저자 촬영 흔적 XMP가 없고, 누끼·카탈로그형 촬영)은
+# 운영자가 웹에 다시 허락할 수 있는 권리인지 알 수 없어 제3자(third_party: kit-vendor → third-party/kit-vendor/)로 나눴어요.
+# sources.yaml "키트 업체의 제품 사진·그림" 항목이 덮고, 사이트 CC BY-NC-SA 4.0에서 빠지며 /credits/ 제3자 목록에 보여요.
+# 운영자가 "저자가 찍거나 만든 것"이라고 알려 주면 third_party를 빼고 운영자 자료로 되돌려요(운영자 할 일 24번).
 
 images:
   - name: esp32-kit-board
     use: 2-1-1 핵심 개념 "ESP32 보드 살펴보기"의 교과서 키트 실제 보드 사진(원고 118쪽)
+    third_party: kit-vendor
     alt: 빨간 ESP32 개발 보드를 파란 확장 보드에 꽂은 사진에 리셋 버튼, 부트 버튼, ESP32-WROOM-32 모듈, USB-C 포트, 전원 버튼, 입출력 핀 영역, I2C 통신 영역(GPIO 21, 22), 고속 통신 핀의 이름표를 붙인 그림
     from:
       source: U2A
       page: 118
       region: [58, 132, 527, 438]
       dpi: 220
-    file: public/images/lessons/2-1-1/esp32-kit-board.webp
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/esp32-kit-board.webp
     width: 960
     height: 627
     bytes: 78470
@@ -29,4 +34,4 @@ images:
     reviewed:
       by: claude
       date: 2026-09-25
-      result: 통과 — 빨간 ESP32 개발 보드를 꽂은 파란 확장 보드 사진과 원고 이름표(리셋·부트 버튼, ESP32-WROOM-32 모듈, USB-C 포트, 전원 버튼, 입출력 핀 영역, I2C 통신 영역, 고속 통신 핀)만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진 — 실제 키트 연결 안내용, O3·O5). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+      result: 통과 — 빨간 ESP32 개발 보드를 꽂은 파란 확장 보드 사진과 원고 이름표(리셋·부트 버튼, ESP32-WROOM-32 모듈, USB-C 포트, 전원 버튼, 입출력 핀 영역, I2C 통신 영역, 고속 통신 핀)만 있음. 기판에 키트 상표 글자와 로고가 보임(업체 제품 사진으로 보여 제3자 kit-vendor로 둠 — 실제 키트 연결 안내용). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음

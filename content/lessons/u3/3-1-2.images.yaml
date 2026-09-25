@@ -7,17 +7,22 @@
 #
 # 194쪽(심화 실습 결과 화면)은 얼굴이 나온 쪽이라 이 차시에서 쓰지 않아요(구역 프롬프트 — 운영자 답 O9로 공개는 허락됐지만,
 # 결과 화면은 사이트가 글로 보여 주고 재생 입력으로 직접 확인할 수 있어서 쓰지 않는 쪽을 골랐어요).
-# 190쪽 배선 그림과 189쪽 변환기 사진에는 키트 업체 상표가 보여요 — 운영자 결정 O3·O4·O5로 실제 키트 연결 안내에 써요(INVENTORY §5.2).
+# 190쪽 배선 그림과 189쪽 변환기 사진에는 키트 업체 상표가 보여요 — 실제 키트 연결 안내에 써요.
+# 2026-09-25 Phase 5 검토 반영(안전 1): 업체 카탈로그 사진·제품 그림으로 보이는 그림(원본에 저자 촬영 흔적 XMP가 없고, 누끼·카탈로그형 촬영)은
+# 운영자가 웹에 다시 허락할 수 있는 권리인지 알 수 없어 제3자(third_party: kit-vendor → third-party/kit-vendor/)로 나눴어요.
+# sources.yaml "키트 업체의 제품 사진·그림" 항목이 덮고, 사이트 CC BY-NC-SA 4.0에서 빠지며 /credits/ 제3자 목록에 보여요.
+# 운영자가 "저자가 찍거나 만든 것"이라고 알려 주면 third_party를 빼고 운영자 자료로 되돌려요(운영자 할 일 24번).
 
 images:
   - name: usb-uart-converter
     use: 3-1-2 핵심 개념 "시리얼 통신과 USB-UART 변환기" — USB-UART 변환기 사진(원고 189쪽)
+    third_party: kit-vendor
     alt: USB-C 단자와 GND, VCC, TX, RX 네 핀이 달린 파란 기판의 USB-UART 변환기 사진
     from:
       source: U3
       page: 189
       image: 2975
-    file: public/images/lessons/3-1-2/usb-uart-converter.webp
+    file: public/images/lessons/3-1-2/third-party/kit-vendor/usb-uart-converter.webp
     width: 313
     height: 282
     bytes: 15014
@@ -29,15 +34,16 @@ images:
     reviewed:
       by: claude
       date: 2026-09-25
-      result: 통과 — 파란 기판의 USB-UART 변환기 한 장(USB-C 단자, GND·VCC·TX·RX 핀, 전압 선택 스위치, 기판 인쇄 글자 "USB to UART Converter", 키트 업체 마스코트 인쇄). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 상표는 O3·O5로 키트 안내에 사용
+      result: 통과 — 파란 기판의 USB-UART 변환기 한 장(USB-C 단자, GND·VCC·TX·RX 핀, 전압 선택 스위치, 기판 인쇄 글자 "USB to UART Converter", 키트 업체 마스코트 인쇄). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 제품 사진으로 보여 제3자 kit-vendor로 둠(키트 안내에 사용)
   - name: wiring-laser-uart
     use: 3-1-2 핵심 개념 "연결 구성" — UART 변환기와 레이저를 ESP32 확장 보드에 잇는 배선 그림(원고 190쪽)
+    third_party: kit-vendor
     alt: 레이저 모듈을 GND, VCC, GPIO 18번 핀에, USB-UART 변환기를 GND, VCC, GPIO 16번 핀과 GPIO 17번 핀에 이은 ESP32 확장 보드 배선 그림
     from:
       source: U3
       page: 190
       region: [88, 140, 488, 298]
-    file: public/images/lessons/3-1-2/wiring-laser-uart.webp
+    file: public/images/lessons/3-1-2/third-party/kit-vendor/wiring-laser-uart.webp
     width: 960
     height: 380
     bytes: 67386
@@ -49,7 +55,7 @@ images:
     reviewed:
       by: claude
       date: 2026-09-25
-      result: 통과 — ESP32 확장 보드(ESP32 Shield V2)에 레이저 모듈(GND·VCC·GPIO 18)과 USB-UART 변환기(GND·VCC·GPIO 16·17)를 잇는 배선 그림과 왼쪽 색 점 설명(GND·VCC·GPIO 18번 핀, GND·VCC·GPIO 16번 핀·GPIO 17번 핀). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 상표(GORILLACELL)는 O3·O5로 키트 안내에 사용. 아래의 'USB 케이블' 안내 문장은 영역 밖이라 본문 글로 옮김
+      result: 통과 — ESP32 확장 보드(ESP32 Shield V2)에 레이저 모듈(GND·VCC·GPIO 18)과 USB-UART 변환기(GND·VCC·GPIO 16·17)를 잇는 배선 그림과 왼쪽 색 점 설명(GND·VCC·GPIO 18번 핀, GND·VCC·GPIO 16번 핀·GPIO 17번 핀). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 상표(GORILLACELL)와 제품 그림이 있어 제3자 kit-vendor로 둠(키트 안내에 사용). 아래의 'USB 케이블' 안내 문장은 영역 밖이라 본문 글로 옮김
   - name: result-laser-on
     use: 3-1-2 따라하기 결과 — 'a'를 받아 레이저가 켜진 실물 사진(원고 192쪽 왼쪽)
     alt: ESP32 보드와 USB-UART 변환기, 레이저 모듈이 선으로 이어져 있고 레이저 모듈 앞에 붉은 빛이 켜진 사진
