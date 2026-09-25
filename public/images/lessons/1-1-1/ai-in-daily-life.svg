@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 318" width="640" height="318" role="img" aria-labelledby="title desc">
+<title id="title">생활 속 인공지능 응용 프로그램 세 가지: 받아들이고, 판단하고, 결과를 내놓아요</title>
+<desc id="desc">음성 비서는 내 목소리를 받아 정보를 알려 주고, 쇼핑몰 추천은 구매 기록을 받아 상품을 추천하고, 자율주행 자동차는 도로 영상을 받아 스스로 운전한다. 세 줄 모두 가운데의 인공지능이 판단한다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="318" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="240" y="26" font-size="16" font-weight="600" fill="#4a5361">받아들이는 것</text>
+<text x="381" y="26" font-size="16" font-weight="600" fill="#4a5361">판단</text>
+<text x="537" y="26" font-size="16" font-weight="600" fill="#4a5361">하는 일</text>
+
+<rect x="12" y="40" width="616" height="80" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="94" y="87" font-size="20" font-weight="700" fill="#17191c">음성 비서</text>
+<rect x="178" y="54" width="124" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="240" y="87" font-size="18" fill="#17191c">내 목소리</text>
+<line x1="304" y1="80" x2="346" y2="80" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<circle cx="381" cy="80" r="30" fill="#1f5bd6"/>
+<text x="381" y="87" font-size="20" font-weight="700" fill="#ffffff">AI</text>
+<line x1="413" y1="80" x2="453" y2="80" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="457" y="54" width="160" height="52" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="537" y="87" font-size="18" fill="#17191c">정보 알려 주기</text>
+
+<rect x="12" y="132" width="616" height="80" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="94" y="179" font-size="20" font-weight="700" fill="#17191c">쇼핑몰 추천</text>
+<rect x="178" y="146" width="124" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="240" y="179" font-size="18" fill="#17191c">구매 기록</text>
+<line x1="304" y1="172" x2="346" y2="172" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<circle cx="381" cy="172" r="30" fill="#1f5bd6"/>
+<text x="381" y="179" font-size="20" font-weight="700" fill="#ffffff">AI</text>
+<line x1="413" y1="172" x2="453" y2="172" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="457" y="146" width="160" height="52" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="537" y="179" font-size="18" fill="#17191c">상품 추천하기</text>
+
+<rect x="12" y="224" width="616" height="80" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="94" y="259" font-size="20" font-weight="700" fill="#17191c">자율주행</text>
+<text x="94" y="285" font-size="20" font-weight="700" fill="#17191c">자동차</text>
+<rect x="178" y="238" width="124" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="240" y="271" font-size="18" fill="#17191c">도로 영상</text>
+<line x1="304" y1="264" x2="346" y2="264" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<circle cx="381" cy="264" r="30" fill="#1f5bd6"/>
+<text x="381" y="271" font-size="20" font-weight="700" fill="#ffffff">AI</text>
+<line x1="413" y1="264" x2="453" y2="264" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="457" y="238" width="160" height="52" rx="10" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="537" y="271" font-size="18" fill="#17191c">스스로 운전하기</text>
+</g>
+</svg>

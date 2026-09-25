@@ -55,10 +55,7 @@ sources:
       # 차시마다 폴더가 따로라(public/images/lessons/<차시>/) 구역이 이 파일을 고치지 않아도 되게 확장자로 나눠요.
       - public/images/lessons/**/*.svg
       - public/images/lessons/supplement/**
-      # 원고를 조판한 출판사·삽화가의 삽화는 아래 제3자 항목(운영자 확인 전)
-      - public/images/lessons/u1/1-1-1-recognition.webp
-      - public/images/lessons/u1/1-1-1-learning.webp
-      - public/images/lessons/u1/1-1-1-reasoning.webp
+      # 원고를 조판한 출판사·삽화가의 삽화는 third-party/publisher/ 폴더에 두고 아래 제3자 항목이 맡아요(운영자 확인 전).
     fetched: 2026-09-15
 
   # ── 제3자 권리 표기 자료(PD-26: 사이트 라이선스에서 제외, /credits/ 제3자 목록에 보임) ──
@@ -74,12 +71,9 @@ sources:
     category: third_party
     author: "원 권리자 미확인 — 교과서 원고를 조판한 출판사 또는 삽화가(운영자 확인 전). 원고 저자: 박상진·김석전"
     license: 원 권리자 보유 — 운영자 사용 허락(O2·O4), 사이트 CC BY-NC-SA 4.0 적용 제외
-    used_in: "차시 그림 가운데 출판사가 조판할 때 넣은 삽화·컷: 1-1-1 핵심 개념 표의 인식·학습·추론 그림 3장(도구 이전 판 public/images/lessons/u1/1-1-1-*.webp와 도구로 다시 꺼낸 판 public/images/lessons/1-1-1/third-party/publisher/)과 차시 그림 폴더의 third-party/publisher/(예: 1-1-2 CNN 단계 그림, 손 랜드마크 그림). 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S-번호)으로 바꿔요."
+    used_in: "차시 그림 가운데 출판사가 조판할 때 넣은 삽화·컷 — 차시 그림 폴더의 third-party/publisher/: 1-1-1 핵심 개념 표의 인식·학습·추론 그림 3장(public/images/lessons/1-1-1/third-party/publisher/), 1-1-2 CNN 단계 그림·손 랜드마크 그림 등. 권리 귀속이 확인되면 운영자 자료로 옮기거나 사이트가 그린 그림(INVENTORY §5.3 S-번호)으로 바꿔요."
     rights: "원고 그림 이름표(XMP 제목)가 '인피컴_…(삽)'·'인피컴_…(컷)' 모양인 출판 편집 삽화·컷 — 별도의 저작권 문구는 없음. 예: 009쪽 인피컴_고1-1-1-01(삽)·인피컴_중1-1-1-02(삽)·인피컴_중1-1-1-03(삽), 014쪽 인피컴_고1-1-1-05(삽), 016쪽 인피컴_고1-1-04(컷)(2026-09-25 원고 이미지 추출 도구로 다시 확인)."
     paths:
-      - public/images/lessons/u1/1-1-1-recognition.webp
-      - public/images/lessons/u1/1-1-1-learning.webp
-      - public/images/lessons/u1/1-1-1-reasoning.webp
       - public/images/lessons/*/third-party/publisher/**
     fetched: 2026-09-25
 
@@ -113,6 +107,17 @@ sources:
     exclude_paths:
       - public/images/site/**/third-party/**
       - public/images/lessons/**/third-party/**
+
+  # ── 교육과정 인용(reference) ──
+  # 차시 머리의 성취기준 코드와 교사용 접기의 성취기준 요약(src/config/standards.ts)이 이 문서를 인용해요(PLAN §2.2·§9.4 C, PD-21, DECISIONS C8).
+  # 사이트 파일(public·examples·content)이 아니라 코드 안 표에 들어가서 paths가 없어요. 요약 문장은 사이트가 줄인 것이고 원문은 게시물에 있어요.
+  - name: 인공지능과 피지컬 컴퓨팅 교육과정(교육감 승인 과목, 2022 개정)
+    category: reference
+    author: 인천광역시교육청 교육과정정보센터 게시(등록일 2024.10.04.)
+    license: 성취기준 코드·문구 인용(교육과정 문서의 법적 성격은 미확인)
+    url: https://www.ice.go.kr/ice/na/ntt/selectNttInfo.do?mi=11997&bbsId=1999&nttSn=3299910
+    used_in: "차시 frontmatter standards의 성취기준 코드와 차시 머리·교사용 접기의 성취기준 표시(코드, 영역 이름, 사이트가 줄인 요약 — \"차시 연결은 사이트가 붙임\"), 차시 검사(npm run check:lessons)의 대응표. 교사용 자료실의 성취기준·평가 방향 표(P5-14)도 이 문서를 근거로 해요."
+    fetched: 2026-09-15
 
   # MediaPipe(Apache-2.0)에서 옮긴 표·그리기 규칙이 사이트 코드(src/) 안에도 있어요. src/는 출처 검사 대상(public·examples·content) 밖이라
   # 파일 안 고지만으로는 /credits/에 보이지 않아서 항목을 따로 뒀어요. 이 파일들은 ?raw import로 배포 번들에 들어가 학생에게 그대로 전달돼요.

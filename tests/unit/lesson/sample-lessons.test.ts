@@ -1,5 +1,6 @@
-// 견본 차시 두 개(PLAN §8.1 P1-06: 1-1-1 원고 일부, 보충 V4 틀)와 그 그림·예제 파일을 검사한다.
-// 모든 차시에 적용하는 엄격한 틀 검사는 P5-02 check:lessons가 맡는다(PD-35). 여기서는 견본만 본다.
+// 견본 차시(PLAN §8.1 P1-06: 기준 차시 1-1-1, 보충 V1~V5)와 그 그림·예제 파일을 검사한다.
+// 모든 차시의 엄격한 틀 검사는 npm run check:lessons(scripts/check-lessons.mjs, P5-02)가 맡는다 — npm test에 넣지 않은 까닭은
+// 그 파일 머리말(PD-35: 구역이 쓰다 만 차시가 다른 구역의 단위 테스트를 깨지 않게). 여기서는 이미 커밋된 견본만 본다.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -75,11 +76,17 @@ describe.each(SAMPLES)('견본 차시 $file', (sample) => {
     }
   });
 
-  it('본문 그림은 public/에 있고 눈 확인 기록(통과)이 있다', () => {
-    for (const match of lesson.body.matchAll(/!\[[^\]]+\]\((\/images\/[^)\s]+)\)/gu)) {
-      const publicPath = `public${match[1]}`;
+  it('본문 그림은 public/에 있고, 래스터 그림은 눈 확인 기록(통과)이 있다(사이트가 그린 SVG는 기록 없음)', () => {
+    const sources = [
+      ...[...lesson.body.matchAll(/!\[[^\]]*\]\((\/images\/[^)\s]+)\)/gu)].map((match) => match[1] ?? ''),
+      ...[...lesson.body.matchAll(/<img\b[^>]*\ssrc="(\/images\/[^"]+)"/gu)].map((match) => match[1] ?? ''),
+    ];
+    for (const source of sources) {
+      const publicPath = `public${source}`;
       expect(fs.existsSync(publicPath), publicPath).toBe(true);
-      expect(imageReviews.get(publicPath)?.reviewed?.result, publicPath).toMatch(/^통과/u);
+      if (!publicPath.endsWith('.svg')) {
+        expect(imageReviews.get(publicPath)?.reviewed?.result, publicPath).toMatch(/^통과/u);
+      }
     }
   });
 });
@@ -101,8 +108,13 @@ describe('차시 그림 폴더(public/images/lessons/)', () => {
   });
 
   it('WebP 그림에 EXIF·XMP·ICC 조각이 없다(메타데이터 제거 확인)', () => {
-    for (const name of fs.readdirSync('public/images/lessons/u1').filter((file) => file.endsWith('.webp'))) {
-      const bytes = fs.readFileSync(`public/images/lessons/u1/${name}`);
+    // git이 추적하는 차시 그림 폴더의 WebP 전부(2026-09-25 P5-02: 옛 public/images/lessons/u1/ 삽화 3장은 도구 판으로 바꾸며 지웠다).
+    const webps = execFileSync('git', ['ls-files', '-z', '--', 'public/images/lessons'], { encoding: 'utf8' })
+      .split('\0')
+      .filter((file) => file.endsWith('.webp') && fs.existsSync(file));
+    expect(webps.length).toBeGreaterThan(0);
+    for (const name of webps) {
+      const bytes = fs.readFileSync(name);
       expect(bytes.subarray(0, 4).toString('latin1')).toBe('RIFF');
       expect(bytes.subarray(8, 12).toString('latin1')).toBe('WEBP');
       const chunks: string[] = [];

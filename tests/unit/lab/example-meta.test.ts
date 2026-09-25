@@ -118,5 +118,8 @@ describe('저장소의 자체 제작 영상처리 예제', () => {
     expect(hasGuideBoxes(meta)).toBe(true);
     expect(parseParams(source).params.map((param) => param.name)).toEqual(['blur_size', 'low', 'high']);
     expect(readExampleMeta(read('u1/1-1-1-sort-vs-group.py')).lesson).toBe('1-1-1');
+    // 기준 차시(P5-02)의 체험 예제도 실습실에서 두 안내 상자를 보인다.
+    expect(hasGuideBoxes(readExampleMeta(read('u1/1-1-1-sort-vs-group.py')))).toBe(true);
+    expect(readExampleMeta(read('u1/1-1-1-sort-vs-group.py')).tryIdeas).toHaveLength(3);
   });
 });

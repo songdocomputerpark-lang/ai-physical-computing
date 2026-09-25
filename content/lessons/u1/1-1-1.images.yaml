@@ -1,38 +1,19 @@
 # 차시 1-1-1 "인공지능 응용 프로그램과 에이전트"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
 #
 # 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-1-1
-# 결과는 public/images/lessons/1-1-1/ 아래 WebP(메타데이터 없음). 쪽 좌표·그림 번호 고르기: npm run images:show -- U1 10
+# 결과는 public/images/lessons/1-1-1/ 아래 WebP(메타데이터 없음). 쪽 좌표·그림 번호 고르기: npm run images:show -- U1 9
 # 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 # reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
 #
-# 원고 009쪽 표 속 삽화 3장은 도구가 생기기 전에 손으로 꺼낸 판(public/images/lessons/u1/1-1-1-*.webp, 기록은 scripts/image-allowlist.yaml)을
-# 1-1-1.md가 아직 써요. 아래 recognition·learning·reasoning은 같은 삽화를 도구로 다시 꺼낸 판이에요 — 1-1-1.md를 이 경로로 바꾸면
-# 옛 판 3장과 그 기록(scripts/image-allowlist.yaml), sources.yaml "출판 편집 삽화·컷" 항목의 옛 경로 3줄을 함께 지워요.
-# 원고 010쪽 쇼핑 로봇 그림(Visual Generation Inc. 스톡)은 결정 C11(docs/DECISIONS.md)로 쓰지 않아요 — 사이트가 그린 그림(S08)으로 대신해요.
-# 원고 008쪽 중단원 여는 그림은 INVENTORY §5.2가 "스톡 추정(표기 없음)"으로 적은 그림이라 샘플에서 뺐어요(절대 원칙 5 "애매하면 직접 만든다", C11의 근거와 같음).
+# 기준 차시(P5-02, 2026-09-25)가 쓰는 원고 그림은 009쪽 표 속 출판 편집 삽화 3장뿐이에요(third_party: publisher — 운영자 할 일 13번 기본값).
+# 도구가 생기기 전에 손으로 꺼낸 옛 판(public/images/lessons/u1/1-1-1-*.webp)과 그 기록(scripts/image-allowlist.yaml)은 이 판으로 바꾸며 지웠어요.
+# 원고 010쪽 쇼핑 로봇 그림(Visual Generation Inc. 스톡)은 결정 C11(docs/DECISIONS.md)로 쓰지 않고, 사이트가 그린 S08
+# (public/images/lessons/1-1-1/rule-vs-learning.svg)로 대신해요. 011쪽 자율주행 자동차 그림(도구가 본 이름표 'Печать', 제작자 표기 없음 —
+# 스톡 추정, 미해결 166)은 절대 원칙 5 "애매하면 직접 만든다"로 쓰지 않고 S07(agent-cycle.svg)로 대신해요 — P5-01 샘플이던 agent-car.webp는 지웠어요.
+# 원고 008쪽 중단원 여는 그림은 INVENTORY §5.2가 "스톡 추정(표기 없음)"으로 적은 그림이라 쓰지 않아요.
+# 사이트가 그린 SVG(ai-in-daily-life·rule-vs-learning·agent-cycle)는 이 목록에 적지 않아요(sources.yaml "사이트가 직접 그린 그림").
 
 images:
-  - name: agent-car
-    use: 1-1-1 핵심 개념 "에이전트" — 자율주행 자동차로 본 에이전트의 구성 요소 그림(원고 011쪽 "에이전트의 특징")
-    alt: 자율주행 자동차 운전석에서 본 도로 그림 둘레에 지능적 처리, 센서, 액추에이터, 환경, 목표 다섯 가지 구성 요소의 설명 상자가 붙어 있는 그림
-    from:
-      source: U1
-      page: 11
-      region: [70, 228, 544, 497]
-    file: public/images/lessons/1-1-1/agent-car.webp
-    width: 960
-    height: 545
-    bytes: 80346
-    sha256: "c6913747c6897d6ba23901af17ef70731f325650868e5f638496c3d17e83cbe1"
-    checks:
-      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
-      faces: 1
-      face_boxes: [[606, 473, 57, 57]]
-      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-    reviewed:
-      by: claude
-      date: 2026-09-25
-      result: 통과 — 운전석에서 본 도로 벡터 그림과 원고의 설명 상자 5개(지능적 처리, 센서, 액추에이터, 환경, 목표). OpenCV가 얼굴로 본 [606, 473, 57, 57]은 오른쪽 아래 좌석 무늬로 얼굴이 아니고, 도로의 보행자는 작은 그림 인물. 이름·화면 속 경로·파일명·기기 주소·학교명 없음
   - name: recognition
     use: 1-1-1 핵심 개념 "인공지능과 사람의 지능" 표의 "인식" 예시 그림(원고 009쪽)
     alt: 스마트폰에 대고 말하는 학생 그림
