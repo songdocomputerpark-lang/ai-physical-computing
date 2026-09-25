@@ -18,6 +18,7 @@
     "dev": "astro dev",
     "prebuild": "node scripts/vendor-assets.mjs && node scripts/fetch-pyodide-fallback.mjs && node scripts/check-sources.mjs",
     "build": "astro build",
+    "build:offline": "node scripts/build-offline.mjs",
     "vendor": "node scripts/vendor-assets.mjs",
     "pyodide:fallback": "node scripts/fetch-pyodide-fallback.mjs",
     "sw": "node scripts/build-sw.mjs",
@@ -39,6 +40,8 @@
     "search:index": "node scripts/search-index.mjs",
     "test": "vitest run && vitest run --config tests/unit/firmware/vitest.container.config.mjs",
     "test:e2e": "playwright test",
+    "test:a11y": "node scripts/run-e2e-group.mjs a11y",
+    "perf:measure": "node scripts/run-e2e-group.mjs perf --project=desktop --workers=1",
     "prepare": "node scripts/setup-git-hooks.mjs"
   },
   "dependencies": {
@@ -60,6 +63,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.4",
     "@types/w3c-web-serial": "1.0.8",
