@@ -1,0 +1,52 @@
+# 차시 2-1-4 "RGB LED와 레이저 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-1-4
+# 결과는 public/images/lessons/2-1-4/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2A 146
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 142쪽 신호등·계기판·레이저 컷팅·레이저쇼 사진은 출처 표기가 없는 판매용 사진으로 보여 쓰지 않아요(INVENTORY §5.2 "스톡 추정",
+# 결정 C11의 근거와 같음) — 사이트가 그린 light-uses.svg로 대신해요. 142쪽 PN 접합 도식도 사이트가 led-pn.svg로 그렸어요.
+# 143~144쪽 연결 사진은 쓰지 않고, 가상 보드의 배선도가 같은 핀을 보여 줘요.
+
+images:
+  - name: laser-on-red
+    use: 2-1-4 따라하기 "실행하고 결과 보기"의 실제 보드 결과 사진 — 레이저가 켜졌을 때 빨간 LED(원고 146쪽)
+    alt: 확장 보드에 이은 레이저 모듈과 RGB LED 모듈 사진에서 레이저가 켜진 동안 RGB LED가 빨갛게 빛나는 모습
+    from:
+      source: U2A
+      page: 146
+      image: 3863
+    file: public/images/lessons/2-1-4/laser-on-red.webp
+    width: 659
+    height: 414
+    bytes: 40058
+    sha256: "accb30eec1819fac913de63a242256c2c0dcfbc0ffdab58641d496ef99f41e59"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드, 확장 보드, USB 케이블, 4색 케이블과 레이저 모듈(끝이 빨갛게 빛남), 빨갛게 켜진 RGB LED 모듈만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: laser-off-blue
+    use: 2-1-4 따라하기 "실행하고 결과 보기"의 실제 보드 결과 사진 — 레이저가 꺼졌을 때 파란 LED(원고 146쪽)
+    alt: 확장 보드에 이은 레이저 모듈과 RGB LED 모듈 사진에서 레이저가 꺼진 동안 RGB LED가 파랗게 빛나는 모습
+    from:
+      source: U2A
+      page: 146
+      image: 3861
+    file: public/images/lessons/2-1-4/laser-off-blue.webp
+    width: 659
+    height: 415
+    bytes: 39894
+    sha256: "e34e96dd874f94c3c2941d6d7093055c8dc2374f09d49d8bef5247dd9a06a660"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[309, 280, 60, 60]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드, 확장 보드, 케이블과 꺼진 레이저 모듈, 파랗게 켜진 RGB LED 모듈만 있음. checks.faces 1곳([309, 280, 60, 60])은 파랗게 빛나는 둥근 LED 머리 부분이고 사람 얼굴이 아님. 기판에 키트 상표 글자와 로고가 보임. 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

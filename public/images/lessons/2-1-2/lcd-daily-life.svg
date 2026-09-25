@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 262" width="640" height="262" role="img" aria-labelledby="title desc">
+<title id="title">생활 속 두 줄 문자 화면</title>
+<desc id="desc">두 줄짜리 문자 화면이 달린 장치 세 개. 프린터 화면에는 READY와 PAPER: A4, 온습도계 화면에는 TEMP 24.5C와 HUMI 40%, 자판기 화면에는 COIN 1500과 SELECT ITEM이 두 줄로 떠 있다. 모두 기계가 지금 상태를 글자와 숫자로 알려 주는 화면이다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="262" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<!-- 장치 1: 프린터 -->
+<rect x="8" y="8" width="200" height="246" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<rect x="44" y="24" width="128" height="30" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<rect x="28" y="50" width="160" height="40" rx="8" fill="#dfe7f1" stroke="#7b8594"/>
+<rect x="18" y="104" width="180" height="70" rx="8" fill="#22384d"/>
+<rect x="26" y="112" width="164" height="54" rx="4" fill="#2f5fc4"/>
+<g font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#ffffff">
+<text x="32" y="134">READY</text>
+<text x="32" y="157">PAPER: A4</text>
+</g>
+<text x="108" y="206" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">프린터</text>
+<text x="108" y="232" font-size="16" fill="#4a5361" text-anchor="middle">지금 상태를 알려요</text>
+
+<!-- 장치 2: 온습도계 -->
+<rect x="220" y="8" width="200" height="246" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<circle cx="320" cy="56" r="30" fill="#ffffff" stroke="#7b8594"/>
+<path d="M320 36 V60" stroke="#b3261e" stroke-width="5" stroke-linecap="round"/>
+<circle cx="320" cy="66" r="8" fill="#b3261e"/>
+<rect x="230" y="104" width="180" height="70" rx="8" fill="#22384d"/>
+<rect x="238" y="112" width="164" height="54" rx="4" fill="#2f5fc4"/>
+<g font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#ffffff">
+<text x="244" y="134">TEMP  24.5C</text>
+<text x="244" y="157">HUMI  40%</text>
+</g>
+<text x="320" y="206" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">온습도계</text>
+<text x="320" y="232" font-size="16" fill="#4a5361" text-anchor="middle">잰 값을 숫자로 보여요</text>
+
+<!-- 장치 3: 자판기 -->
+<rect x="432" y="8" width="200" height="246" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<g fill="#ffffff" stroke="#7b8594">
+<rect x="456" y="22" width="36" height="28" rx="4"/><rect x="498" y="22" width="36" height="28" rx="4"/><rect x="540" y="22" width="36" height="28" rx="4"/><rect x="582" y="22" width="30" height="28" rx="4"/>
+<rect x="456" y="58" width="36" height="28" rx="4"/><rect x="498" y="58" width="36" height="28" rx="4"/><rect x="540" y="58" width="36" height="28" rx="4"/><rect x="582" y="58" width="30" height="28" rx="4"/>
+</g>
+<rect x="442" y="104" width="180" height="70" rx="8" fill="#22384d"/>
+<rect x="450" y="112" width="164" height="54" rx="4" fill="#2f5fc4"/>
+<g font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#ffffff">
+<text x="456" y="134">COIN  1500</text>
+<text x="456" y="157">SELECT ITEM</text>
+</g>
+<text x="532" y="206" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">자판기</text>
+<text x="532" y="232" font-size="16" fill="#4a5361" text-anchor="middle">넣은 돈을 보여요</text>
+</g>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 270" width="640" height="270" role="img" aria-labelledby="title desc">
+<title id="title">ESP32와 MP3 모듈의 UART 연결</title>
+<desc id="desc">왼쪽 ESP32의 TX 17번 핀(보내기)은 오른쪽 MP3 모듈의 RX(받기)로, MP3 모듈의 TX(보내기)는 ESP32의 RX 16번 핀(받기)으로 선이 엇갈려 이어지고, GND끼리는 곧게 이어진다. 파란 선은 보드가 보내는 명령, 초록 선은 모듈의 대답이다. 아래에 두 장치의 속도를 똑같이 9600bps(1초에 9600비트)로 맞춘다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="270" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">UART 연결: 보내는 핀(TX)은 받는 핀(RX)으로 엇갈려 이어요</text>
+<rect x="24" y="48" width="190" height="168" rx="12" fill="#1f2933" stroke="#1f2933" stroke-width="1"/>
+<text x="119" y="78" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">ESP32</text>
+<rect x="426" y="48" width="190" height="168" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="521" y="78" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">MP3 모듈</text>
+<text x="40" y="117" font-size="16" font-weight="700" fill="#ffffff">TX 17번 핀</text>
+<circle cx="214" cy="112" r="6" fill="#f2c94c" stroke="#9a7b12"/>
+<text x="150" y="117" font-size="14" fill="#c9d2dc">보내기</text>
+<text x="40" y="163" font-size="16" font-weight="700" fill="#ffffff">RX 16번 핀</text>
+<circle cx="214" cy="158" r="6" fill="#f2c94c" stroke="#9a7b12"/>
+<text x="150" y="163" font-size="14" fill="#c9d2dc">받기</text>
+<text x="40" y="205" font-size="16" font-weight="700" fill="#ffffff">GND</text>
+<circle cx="214" cy="200" r="6" fill="#f2c94c" stroke="#9a7b12"/>
+<text x="446" y="117" font-size="16" font-weight="700" fill="#17191c">TX</text>
+<circle cx="426" cy="112" r="6" fill="#f2c94c" stroke="#9a7b12"/>
+<text x="490" y="117" font-size="14" fill="#4a5361">보내기</text>
+<text x="446" y="163" font-size="16" font-weight="700" fill="#17191c">RX</text>
+<circle cx="426" cy="158" r="6" fill="#f2c94c" stroke="#9a7b12"/>
+<text x="490" y="163" font-size="14" fill="#4a5361">받기</text>
+<text x="446" y="205" font-size="16" font-weight="700" fill="#17191c">GND</text>
+<circle cx="426" cy="200" r="6" fill="#f2c94c" stroke="#9a7b12"/>
+<line x1="220" y1="112" x2="416" y2="158" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="420" y1="112" x2="224" y2="158" stroke="#2fa84f" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="220" y1="200" x2="420" y2="200" stroke="#17191c" stroke-width="3"/>
+<text x="320" y="96" font-size="15" font-weight="700" fill="#1f5bd6" text-anchor="middle">명령</text>
+<text x="320" y="184" font-size="15" font-weight="700" fill="#2fa84f" text-anchor="middle">대답</text>
+<text x="320" y="222" font-size="14" fill="#4a5361" text-anchor="middle">GND는 함께</text>
+<text x="320" y="254" font-size="16" fill="#17191c" text-anchor="middle">두 장치의 속도를 똑같이 9600bps(1초에 9600비트)로 맞춰요.</text>
+</g>
+</svg>

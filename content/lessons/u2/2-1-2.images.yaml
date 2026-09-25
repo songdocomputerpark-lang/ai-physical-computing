@@ -1,0 +1,30 @@
+# 차시 2-1-2 "LCD 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-1-2
+# 결과는 public/images/lessons/2-1-2/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2A 128
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 124쪽 LCD 좌표 사진, 125~126쪽 연결·설치 화면은 쓰지 않아요(좌표는 사이트가 그린 lcd-grid.svg, 설치는 설치 제로 원칙).
+# 131쪽 터치 결과 사진은 디지털 터치 실습인데 사진 속 모듈이 4채널 아날로그 터치라 헷갈릴 수 있어 쓰지 않아요(INVENTORY §4.1).
+
+images:
+  - name: lcd-count-result
+    use: 2-1-2 따라하기 "실행하고 결과 보기"의 실제 보드 결과 사진 — 기본 실습 1(0부터 5까지 세기)이 끝난 모습(원고 128쪽)
+    alt: "확장 보드에 꽂은 ESP32와 케이블로 이은 파란 문자 LCD의 첫 줄에 Count: 5가 떠 있는 사진"
+    from:
+      source: U2A
+      page: 128
+      image: 986
+    file: public/images/lessons/2-1-2/lcd-count-result.webp
+    width: 553
+    height: 422
+    bytes: 30702
+    sha256: "dfedbb1a5cb906bbe896fb96f9412bf89c804f5c837c63e0706b2ac870c4f31c"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드와 확장 보드, USB 케이블, 4색 케이블로 이은 파란 문자 LCD(첫 줄 Count: 5)만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

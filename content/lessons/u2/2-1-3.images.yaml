@@ -1,0 +1,30 @@
+# 차시 2-1-3 "OLED 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-1-3
+# 결과는 public/images/lessons/2-1-3/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2A 136
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 132쪽 OLED 좌표 사진은 사이트가 그린 oled-pixels.svg로, 136쪽 프랙탈 도식(밑변 '64' 표기가 헷갈림 — INVENTORY §10.4)은
+# sierpinski-steps.svg로 바꿨어요. 133~134쪽 연결·설치 화면은 쓰지 않아요(설치 제로 원칙).
+
+images:
+  - name: oled-fractal-result
+    use: 2-1-3 따라하기 "실행하고 결과 보기"의 실제 보드 결과 사진 — 기본 실습(프랙탈 삼각형)이 그려진 OLED(원고 136쪽)
+    alt: 초록 받침에 끼운 1.3인치 OLED 모듈 화면에 작은 점으로 이루어진 시에르핀스키 삼각형 무늬가 그려진 사진
+    from:
+      source: U2A
+      page: 136
+      image: 3778
+    file: public/images/lessons/2-1-3/oled-fractal-result.webp
+    width: 695
+    height: 402
+    bytes: 30836
+    sha256: "0da0046d3c41f0125af727821d9e6d07635fea085686c61cc4b4da430a1150f3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 초록 받침에 끼운 파란 기판 OLED 모듈(글자 OLED 1.3, I2C, 핀 이름 GND·VCC·SDA·SCL)과 화면의 시에르핀스키 삼각형 무늬, 4색 케이블만 있음. 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

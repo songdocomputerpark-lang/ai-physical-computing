@@ -1,0 +1,53 @@
+# 차시 2-1-5 "네오픽셀 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-1-5
+# 결과는 public/images/lessons/2-1-5/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2A 152
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 148쪽 "네오픽셀의 구조" 그림은 사이트가 ring-index.svg로 다시 그렸어요(번호와 데이터 선을 함께 보이려고).
+# 149쪽 연결 그림은 쓰지 않고, 가상 보드의 배선도가 같은 핀(DIN 23번)을 보여 줘요.
+# 151쪽 무지개 결과 사진 다섯 장은 가상 보드에서 같은 모습을 볼 수 있어 쓰지 않아요.
+# 152쪽 무드등 결과 사진 네 장 가운데 두 장(1번 패드 빨강, 3번 패드 파랑)만 써요.
+
+images:
+  - name: mood-light-red
+    use: 2-1-5 따라하기 "실행하고 결과 보기"의 실제 보드 결과 사진 — 심화 실습 스마트 무드등에서 1번 패드를 누른 모습(원고 152쪽)
+    alt: 확장 보드에 꽂은 ESP32와 네오픽셀 링, 4채널 터치 센서 사진에서 손가락으로 1번 패드를 누르자 네오픽셀 링이 빨갛게 켜진 모습
+    from:
+      source: U2A
+      page: 152
+      image: 5190
+    file: public/images/lessons/2-1-5/mood-light-red.webp
+    width: 460
+    height: 442
+    bytes: 24574
+    sha256: "2a486beaf45141e2f88ab700547f4ad615439172e16cc247855b54e130bd9fd2"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[179, 42, 96, 96]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드와 확장 보드, USB 케이블, 3색 케이블, 보드 위에 놓인 네오픽셀 링(16개 모두 빨강)과 4채널 아날로그 터치 센서, 1번 패드를 누른 손가락 끝만 있음. checks.faces 1곳([179, 42, 96, 96])은 링 윗부분의 빛나는 LED와 기판이고 사람 얼굴이 아님. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: mood-light-blue
+    use: 2-1-5 따라하기 "실행하고 결과 보기"의 실제 보드 결과 사진 — 심화 실습 스마트 무드등에서 3번 패드를 누른 모습(원고 152쪽)
+    alt: 확장 보드에 꽂은 ESP32와 네오픽셀 링, 4채널 터치 센서 사진에서 손가락으로 3번 패드를 누르자 네오픽셀 링이 파랗게 켜진 모습
+    from:
+      source: U2A
+      page: 152
+      image: 5192
+    file: public/images/lessons/2-1-5/mood-light-blue.webp
+    width: 460
+    height: 442
+    bytes: 26098
+    sha256: "5ef9489c80fc3090952d9cba543b8616d9dcca25152540d4126d67655a4b956c"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드와 확장 보드, USB 케이블, 3색 케이블, 보드 위에 놓인 네오픽셀 링(16개 모두 파랑)과 4채널 아날로그 터치 센서, 3번 패드를 누른 손가락 끝만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

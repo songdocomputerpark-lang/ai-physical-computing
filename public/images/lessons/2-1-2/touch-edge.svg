@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 312" width="640" height="312" role="img" aria-labelledby="title desc">
+<title id="title">터치 센서를 누른 순간만 세는 방법</title>
+<desc id="desc">시간 순서대로 0.05초마다 읽은 값을 세 줄로 적은 그림. 지금 값(touch_state) 줄은 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0이고, 이전 값(prev_touch) 줄은 한 칸씩 늦게 따라온다. 지금 값이 1이고 이전 값이 0인 두 칸(세 번째와 열 번째)만 파랗게 강조되어 셈(counter)이 1과 2로 하나씩 늘고, 누르고 있는 동안에는 늘지 않는다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="312" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="24" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">터치 값이 0에서 1로 바뀐 순간에만 1씩 세요</text>
+<rect x="195" y="42" width="37" height="160" rx="6" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<rect x="440" y="42" width="37" height="160" rx="6" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<text x="8" y="64" font-size="16" font-weight="700" fill="#17191c">지금 값</text>
+<text x="8" y="84" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#4a5361">touch_state</text>
+<rect x="128" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="144" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="163" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="178" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="198" y="48" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="214" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="233" y="48" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="248" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="268" y="48" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="284" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="303" y="48" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="318" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="338" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="354" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="373" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="388" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="408" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="424" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="443" y="48" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="458" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="478" y="48" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="494" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="513" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="528" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="548" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="564" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="583" y="48" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="598" y="73" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="8" y="116" font-size="16" font-weight="700" fill="#17191c">이전 값</text>
+<text x="8" y="136" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#4a5361">prev_touch</text>
+<rect x="128" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="144" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="163" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="178" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="198" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="214" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="233" y="100" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="248" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="268" y="100" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="284" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="303" y="100" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="318" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="338" y="100" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="354" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="373" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="388" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="408" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="424" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="443" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="458" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="478" y="100" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="494" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="513" y="100" width="31" height="36" rx="4" fill="#f6d36b" stroke="#b7800f"/>
+<text x="528" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="548" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="564" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="583" y="100" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="598" y="125" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="8" y="176" font-size="16" font-weight="700" fill="#17191c">셈</text>
+<text x="8" y="196" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#4a5361">counter</text>
+<rect x="128" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="144" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="163" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="178" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<rect x="198" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="214" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="233" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="248" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="268" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="284" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="303" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="318" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="338" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="354" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="373" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="388" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="408" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="424" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<rect x="443" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="458" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<rect x="478" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="494" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<rect x="513" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="528" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<rect x="548" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="564" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<rect x="583" y="160" width="31" height="36" rx="4" fill="#ffffff" stroke="#7b8594"/>
+<text x="598" y="185" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<text x="214" y="222" font-size="16" font-weight="700" fill="#1a4cb4" text-anchor="middle">+1</text>
+<text x="458" y="222" font-size="16" font-weight="700" fill="#1a4cb4" text-anchor="middle">+1</text>
+<line x1="128" y1="240" x2="614" y2="240" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="8" y="245" font-size="16" fill="#4a5361">시간</text>
+<text x="128" y="266" font-size="16" fill="#4a5361">0.05초마다 한 번씩 읽어요</text>
+<text x="8" y="296" font-size="16" fill="#17191c">누르고 있는 동안에는 지금 값과 이전 값이 모두 1이라 셈이 늘지 않아요.</text>
+</g>
+</svg>

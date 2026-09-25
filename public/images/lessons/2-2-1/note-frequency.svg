@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" width="640" height="340" role="img" aria-labelledby="title desc">
+<title id="title">도레미파솔라시도와 주파수</title>
+<desc id="desc">막대그래프. 도 262Hz, 레 294Hz, 미 330Hz, 파 349Hz, 솔 392Hz, 라 440Hz, 시 494Hz, 높은 도 523Hz로 오른쪽 음일수록 막대가 높다. 아래 괄호로 도와 높은 도를 이어 523은 262의 약 2배이고, 2배로 떨면 한 옥타브 높은 같은 음이 된다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="340" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">음 이름과 주파수(Hz): 높은 음일수록 1초에 더 많이 떨려요</text>
+<rect x="44" y="156.9" width="48" height="75.1" rx="4" fill="#15408f" stroke="none" stroke-width="1"/>
+<text x="68" y="148.9" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">262</text>
+<rect x="38" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="68" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">도</text>
+<rect x="116" y="147.7" width="48" height="84.3" rx="4" fill="#1f5bd6" stroke="none" stroke-width="1"/>
+<text x="140" y="139.7" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">294</text>
+<rect x="110" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="140" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">레</text>
+<rect x="188" y="137.4" width="48" height="94.6" rx="4" fill="#1f5bd6" stroke="none" stroke-width="1"/>
+<text x="212" y="129.4" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">330</text>
+<rect x="182" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="212" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">미</text>
+<rect x="260" y="131.9" width="48" height="100.1" rx="4" fill="#1f5bd6" stroke="none" stroke-width="1"/>
+<text x="284" y="123.9" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">349</text>
+<rect x="254" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="284" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">파</text>
+<rect x="332" y="119.6" width="48" height="112.4" rx="4" fill="#1f5bd6" stroke="none" stroke-width="1"/>
+<text x="356" y="111.6" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">392</text>
+<rect x="326" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="356" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">솔</text>
+<rect x="404" y="105.8" width="48" height="126.2" rx="4" fill="#1f5bd6" stroke="none" stroke-width="1"/>
+<text x="428" y="97.8" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">440</text>
+<rect x="398" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="428" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">라</text>
+<rect x="476" y="90.3" width="48" height="141.7" rx="4" fill="#1f5bd6" stroke="none" stroke-width="1"/>
+<text x="500" y="82.3" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">494</text>
+<rect x="470" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="500" y="268" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">시</text>
+<rect x="548" y="82" width="48" height="150" rx="4" fill="#15408f" stroke="none" stroke-width="1"/>
+<text x="572" y="74" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">523</text>
+<rect x="542" y="240" width="60" height="44" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="572" y="268" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">높은 도</text>
+<line x1="36" y1="232" x2="604" y2="232" stroke="#7b8594" stroke-width="1"/>
+<text x="24" y="60" font-size="15" fill="#4a5361">Hz</text>
+<path d="M68 292 V302 H548 V292" fill="none" stroke="#4a5361" stroke-width="2"/>
+<text x="308" y="324" font-size="15" fill="#17191c" text-anchor="middle">523은 262의 약 2배예요. 2배로 떨면 한 옥타브 높은 같은 음(높은 도)이 돼요.</text>
+</g>
+</svg>

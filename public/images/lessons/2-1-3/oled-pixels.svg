@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 350" width="640" height="350" role="img" aria-labelledby="title desc">
+<title id="title">OLED(128×64)의 픽셀 좌표</title>
+<desc id="desc">가로 128점, 세로 64점인 OLED 화면. 원점 (0, 0)은 왼쪽 위이고, x는 오른쪽으로 0부터 127까지, y는 아래로 0부터 63까지 커진다. 오른쪽 아래 끝 점은 (127, 63)이다. 화면에는 y=0 자리에 Hello, ESP32!, y=16 자리에 OLED Display!가 쓰여 있고, 오른쪽에는 글자 H 하나를 크게 확대해 가로 8점, 세로 8점 칸에 그려진 것을 보여 준다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="350" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<line x1="64" y1="48" x2="530.0" y2="48" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="536.0" y="54" font-size="18" font-weight="700" fill="#17191c">x</text>
+<text x="64" y="40" font-size="16" fill="#4a5361" text-anchor="middle">0</text>
+<text x="512.0" y="40" font-size="16" fill="#4a5361" text-anchor="middle">127</text>
+<line x1="42" y1="70" x2="42" y2="312.0" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="42" y="334.0" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">y</text>
+<text x="30" y="76" font-size="16" fill="#4a5361" text-anchor="end">0</text>
+<text x="30" y="294.0" font-size="16" fill="#4a5361" text-anchor="end">63</text>
+<rect x="56" y="62" width="464.0" height="240.0" rx="8" fill="#1c232d"/>
+<rect x="64" y="70" width="448.0" height="224.0" fill="#0b0f14"/>
+<line x1="64" y1="98.0" x2="512.0" y2="98.0" stroke="#26303c" stroke-width="1"/>
+<line x1="64" y1="126.0" x2="512.0" y2="126.0" stroke="#26303c" stroke-width="1"/>
+<line x1="64" y1="154.0" x2="512.0" y2="154.0" stroke="#26303c" stroke-width="1"/>
+<line x1="64" y1="182.0" x2="512.0" y2="182.0" stroke="#26303c" stroke-width="1"/>
+<line x1="64" y1="210.0" x2="512.0" y2="210.0" stroke="#26303c" stroke-width="1"/>
+<line x1="64" y1="238.0" x2="512.0" y2="238.0" stroke="#26303c" stroke-width="1"/>
+<line x1="64" y1="266.0" x2="512.0" y2="266.0" stroke="#26303c" stroke-width="1"/>
+<text x="66" y="93" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="25" font-weight="700" fill="#ffffff" textLength="358" lengthAdjust="spacing">Hello, ESP32!</text>
+<text x="66" y="149" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="25" font-weight="700" fill="#ffffff" textLength="358" lengthAdjust="spacing">OLED Display!</text>
+<text x="526.0" y="92" font-size="16" fill="#1a4cb4">← y=0</text>
+<text x="526.0" y="148" font-size="16" fill="#1a4cb4">← y=16</text>
+<circle cx="64" cy="70" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<circle cx="512.0" cy="294.0" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<text x="502.0" y="330.0" font-size="16" font-weight="700" fill="#17191c" text-anchor="end">(127, 63)</text>
+<text x="270" y="330" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">원점 (0, 0)은 왼쪽 위</text>
+<rect x="531" y="167" width="101" height="101" fill="#0b0f14"/>
+<rect x="534.0" y="170" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="170" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="170" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="170" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="170" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="170" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="170" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="170" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="182" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="182" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="182" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="182" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="182" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="182" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="182" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="182" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="194" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="194" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="194" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="194" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="194" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="194" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="194" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="194" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="206" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="206" width="11" height="11" fill="#ffffff"/>
+<rect x="558.0" y="206" width="11" height="11" fill="#ffffff"/>
+<rect x="570.0" y="206" width="11" height="11" fill="#ffffff"/>
+<rect x="582.0" y="206" width="11" height="11" fill="#ffffff"/>
+<rect x="594.0" y="206" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="206" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="206" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="218" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="218" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="218" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="218" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="218" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="218" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="218" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="218" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="230" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="230" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="230" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="230" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="230" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="230" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="230" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="230" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="242" width="11" height="11" fill="#ffffff"/>
+<rect x="546.0" y="242" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="242" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="242" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="242" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="242" width="11" height="11" fill="#ffffff"/>
+<rect x="606.0" y="242" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="242" width="11" height="11" fill="#26303c"/>
+<rect x="534.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="546.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="558.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="570.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="582.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="594.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="606.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="618.0" y="254" width="11" height="11" fill="#26303c"/>
+<rect x="531.0" y="167" width="101" height="101" fill="none" stroke="#1f5bd6" stroke-width="2"/>
+<text x="582" y="290" font-size="16" fill="#17191c" text-anchor="middle">글자 하나</text>
+<text x="582" y="312" font-size="16" fill="#17191c" text-anchor="middle">= 8 × 8 점</text>
+</g>
+</svg>

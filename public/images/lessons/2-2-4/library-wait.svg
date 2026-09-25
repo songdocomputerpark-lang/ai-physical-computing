@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 346" width="640" height="346" role="img" aria-labelledby="title desc">
+<title id="title">rotate() 안의 0.5초 기다림</title>
+<desc id="desc">시간 그래프. 예제 1은 rotate(0) 안에서 0.5초 기다린 뒤 코드의 time.sleep(1)로 1초 더 기다려서, 팔이 0초, 1.5초, 3초에 1.5초마다 움직인다. 예제 3은 서보 1이 0초와 2초에, 서보 2가 0.5초와 2.5초에 움직여 서보 2가 0.5초 늦는다. 두 줄이 차례로 실행되고 rotate()마다 0.5초씩 기다리기 때문이다. 주황 칸은 rotate() 안에서 기다리는 0.5초, 회색 칸은 코드의 time.sleep(1)이다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="346" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">servo_library의 rotate()는 팔을 돌린 뒤 0.5초 기다려요</text>
+<line x1="150" y1="46" x2="150" y2="290" stroke="#d6dde6" stroke-width="1"/>
+<text x="150" y="308" font-size="15" fill="#4a5361" text-anchor="middle">0초</text>
+<line x1="260" y1="46" x2="260" y2="290" stroke="#d6dde6" stroke-width="1"/>
+<text x="260" y="308" font-size="15" fill="#4a5361" text-anchor="middle">1초</text>
+<line x1="370" y1="46" x2="370" y2="290" stroke="#d6dde6" stroke-width="1"/>
+<text x="370" y="308" font-size="15" fill="#4a5361" text-anchor="middle">2초</text>
+<line x1="480" y1="46" x2="480" y2="290" stroke="#d6dde6" stroke-width="1"/>
+<text x="480" y="308" font-size="15" fill="#4a5361" text-anchor="middle">3초</text>
+<line x1="590" y1="46" x2="590" y2="290" stroke="#d6dde6" stroke-width="1"/>
+<text x="590" y="308" font-size="15" fill="#4a5361" text-anchor="middle">4초</text>
+<text x="12" y="70" font-size="16" font-weight="700" fill="#17191c">예제 1</text>
+<text x="12" y="92" font-size="15" fill="#4a5361">0°, 90°, 180°</text>
+<rect x="150" y="56" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="177.5" y="82" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(0)</text>
+<rect x="205" y="56" width="108" height="40" rx="5" fill="#e3e7ed" stroke="none" stroke-width="1"/>
+<text x="260" y="82" font-size="14" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">sleep(1)</text>
+<rect x="315" y="56" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="342.5" y="82" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(90)</text>
+<rect x="370" y="56" width="108" height="40" rx="5" fill="#e3e7ed" stroke="none" stroke-width="1"/>
+<text x="425" y="82" font-size="14" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">sleep(1)</text>
+<rect x="480" y="56" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="507.5" y="82" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(180)</text>
+<rect x="535" y="56" width="53" height="40" rx="5" fill="#e3e7ed" stroke="none" stroke-width="1"/>
+<text x="179.5" y="116" font-size="15" font-weight="700" fill="#c25e00">▲ 팔이 움직이는 때: 0초, 1.5초, 3초 — 1.5초마다</text>
+<text x="12" y="172" font-size="16" font-weight="700" fill="#17191c">예제 3</text>
+<text x="12" y="194" font-size="15" fill="#4a5361">서보 2개</text>
+<text x="140" y="175" font-size="14" fill="#4a5361" text-anchor="end">서보 1</text>
+<rect x="150" y="150" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="177.5" y="175" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(0)</text>
+<rect x="370" y="150" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="397.5" y="175" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(180)</text>
+<text x="140" y="231" font-size="14" fill="#4a5361" text-anchor="end">서보 2</text>
+<rect x="205" y="206" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="232.5" y="231" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(0)</text>
+<rect x="425" y="206" width="53" height="40" rx="5" fill="#c25e00" stroke="none" stroke-width="1"/>
+<text x="452.5" y="231" font-size="14" fill="#ffffff" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(180)</text>
+<line x1="205" y1="262" x2="205" y2="250" stroke="#d92b2b" stroke-width="2.5"/>
+<text x="213" y="276" font-size="15" fill="#d92b2b">서보 2는 0.5초 늦게 움직여요(두 줄이 차례로 실행되기 때문)</text>
+<text x="320" y="338" font-size="14" fill="#4a5361" text-anchor="middle">주황: rotate() 안에서 기다리는 0.5초(괄호 안은 각도)   회색: 코드의 time.sleep(1)</text>
+</g>
+</svg>

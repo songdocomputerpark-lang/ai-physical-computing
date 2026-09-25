@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 168" width="640" height="168" role="img" aria-labelledby="title desc">
+<title id="title">DFPlayer 명령 한 줄의 여덟 바이트</title>
+<desc id="desc">여덟 칸에 7E, FF, 06, 03, 00, 00, 01, EF가 차례로 적혀 있고, 아래에 시작, 버전, 길이, 명령, 피드백, 값1, 값2, 끝이라고 뜻이 적혀 있다. 명령, 값1, 값2 칸이 파랗게 강조되어 있다. 맨 아래에 send_cmd(0x03, 0x00, 0x01)은 명령 03, 값1 00, 값2 01로 1번 곡(001.mp3)을 튼다는 뜻이라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="168" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">MP3 모듈에 보내는 명령 한 줄(8바이트)</text>
+<rect x="24" y="48" width="66" height="48" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="57" y="80" font-size="20" font-weight="700" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">7E</text>
+<text x="57" y="120" font-size="15" fill="#4a5361" text-anchor="middle">시작</text>
+<rect x="98" y="48" width="66" height="48" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="131" y="80" font-size="20" font-weight="700" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">FF</text>
+<text x="131" y="120" font-size="15" fill="#4a5361" text-anchor="middle">버전</text>
+<rect x="172" y="48" width="66" height="48" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="205" y="80" font-size="20" font-weight="700" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">06</text>
+<text x="205" y="120" font-size="15" fill="#4a5361" text-anchor="middle">길이</text>
+<rect x="246" y="48" width="66" height="48" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<text x="279" y="80" font-size="20" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">03</text>
+<text x="279" y="120" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">명령</text>
+<rect x="320" y="48" width="66" height="48" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="353" y="80" font-size="20" font-weight="700" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">00</text>
+<text x="353" y="120" font-size="15" fill="#4a5361" text-anchor="middle">피드백</text>
+<rect x="394" y="48" width="66" height="48" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<text x="427" y="80" font-size="20" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">00</text>
+<text x="427" y="120" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">값1</text>
+<rect x="468" y="48" width="66" height="48" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<text x="501" y="80" font-size="20" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">01</text>
+<text x="501" y="120" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">값2</text>
+<rect x="542" y="48" width="66" height="48" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="575" y="80" font-size="20" font-weight="700" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">EF</text>
+<text x="575" y="120" font-size="15" fill="#4a5361" text-anchor="middle">끝</text>
+<text x="320" y="152" font-size="15" fill="#17191c" text-anchor="middle">send_cmd(0x03, 0x00, 0x01) → 명령 03, 값1 00, 값2 01: "1번 곡(001.mp3)을 틀어요"</text>
+</g>
+</svg>

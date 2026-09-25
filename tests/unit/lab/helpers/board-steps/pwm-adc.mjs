@@ -342,7 +342,7 @@ export default async function pwmAdcSteps({ step, bridge, pyodide, rootDir }) {
   await step('textbook_f073_fan', exampleCode(rootDir, 'esp32/u2/2-2-3-fan-direction.py'), { stopAfterMs: 5000 });
 
   // 교과서 f062(레이저 + RGB LED): 원본은 set_color에 값 3개를 넘겨 첫 반복에서 TypeError(원본 결함),
-  // 사이트판(원고 147쪽처럼 g 핀 줄·값 3개)은 레이저 21번과 빨강 27·파랑 33이 1초마다 번갈아 켜진다
+  // 사이트판(원고 146쪽처럼 g 핀 줄·값 3개)은 레이저 21번과 빨강 27·파랑 33이 1초마다 번갈아 켜진다
   const LASER_WIRING = {
     parts: [
       { part: 'rgb-led', id: 'rgb-led', label: 'RGB LED', pins: { r: 27, g: 32, b: 33 }, directions: { r: 'out', g: 'out', b: 'out' }, known: true },

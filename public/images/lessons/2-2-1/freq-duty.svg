@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 356" width="640" height="356" role="img" aria-labelledby="title desc">
+<title id="title">freq()와 duty()의 차이</title>
+<desc id="desc">세 줄 그림. 첫째 줄 freq(262), duty(512)는 같은 시간에 사각 신호가 3번 켜졌다 꺼지고 켜진 시간이 절반이라 기준인 도 소리다. 둘째 줄 freq(523), duty(512)는 같은 시간에 6번으로 2배 떨려 높은 도가 된다. 셋째 줄 freq(262), duty(50)은 3번으로 높이는 같지만 켜진 시간이 아주 짧은 가는 신호라 작고 가는 소리가 난다. 아래에 duty는 0~1023이고 512가 약 50%라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="356" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">freq()는 소리의 높이, duty()는 켜진 시간의 비율</text>
+<rect x="8" y="48" width="624" height="84" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="82" font-size="17" font-weight="700" fill="#1f5bd6" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">freq(262)</text>
+<text x="22" y="110" font-size="17" font-weight="700" fill="#c25e00" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(512)</text>
+<polyline points="190.0,114.0 190.0,66.0 235.0,66.0 235.0,114.0 280.0,114.0 280.0,114.0 280.0,66.0 325.0,66.0 325.0,114.0 370.0,114.0 370.0,114.0 370.0,66.0 415.0,66.0 415.0,114.0 460.0,114.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<text x="480" y="84" font-size="17" font-weight="700" fill="#17191c">도 소리</text>
+<text x="480" y="110" font-size="16" fill="#4a5361">(기준)</text>
+<rect x="8" y="140" width="624" height="84" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="174" font-size="17" font-weight="700" fill="#1f5bd6" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">freq(523)</text>
+<text x="22" y="202" font-size="17" font-weight="700" fill="#c25e00" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(512)</text>
+<polyline points="190.0,206.0 190.0,158.0 212.5,158.0 212.5,206.0 235.0,206.0 235.0,206.0 235.0,158.0 257.5,158.0 257.5,206.0 280.0,206.0 280.0,206.0 280.0,158.0 302.5,158.0 302.5,206.0 325.0,206.0 325.0,206.0 325.0,158.0 347.5,158.0 347.5,206.0 370.0,206.0 370.0,206.0 370.0,158.0 392.5,158.0 392.5,206.0 415.0,206.0 415.0,206.0 415.0,158.0 437.5,158.0 437.5,206.0 460.0,206.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<text x="480" y="176" font-size="17" font-weight="700" fill="#17191c">높은 도</text>
+<text x="480" y="202" font-size="16" fill="#4a5361">(2배로 떨려요)</text>
+<rect x="8" y="232" width="624" height="84" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="266" font-size="17" font-weight="700" fill="#1f5bd6" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">freq(262)</text>
+<text x="22" y="294" font-size="17" font-weight="700" fill="#c25e00" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(50)</text>
+<polyline points="190.0,298.0 190.0,250.0 194.4,250.0 194.4,298.0 280.0,298.0 280.0,298.0 280.0,250.0 284.4,250.0 284.4,298.0 370.0,298.0 370.0,298.0 370.0,250.0 374.4,250.0 374.4,298.0 460.0,298.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<text x="480" y="268" font-size="17" font-weight="700" fill="#17191c">높이는 같고</text>
+<text x="480" y="294" font-size="16" fill="#4a5361">작고 가는 소리</text>
+<text x="320" y="342" font-size="15" fill="#4a5361" text-anchor="middle">세 줄 모두 같은 시간 동안의 신호예요. duty는 0~1023이고 512가 약 50%예요.</text>
+</g>
+</svg>

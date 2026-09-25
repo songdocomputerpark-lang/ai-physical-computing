@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 384" width="640" height="384" role="img" aria-labelledby="title desc">
+<title id="title">부품 모듈의 핀 구성: GND, VCC와 신호 핀</title>
+<desc id="desc">부품마다 핀 이름을 색 칩으로 나란히 보여 준다. 모든 부품에 GND(검정)와 VCC(빨강)가 있고, 나머지 노란 칩이 신호 핀이다. 3핀 GND, VCC, SIG는 버저, 레이저, 진동 모터, 서보모터. 3핀 GND, VCC, DIN은 네오픽셀. 4핀 GND, VCC, SDA, SCL은 문자 LCD와 OLED(I2C 통신). 4핀 GND, VCC, TX, RX는 MP3 플레이어(UART 통신). 4핀 GND, VCC, InA, InB는 팬 모터. 5핀 GND, VCC, R, G, B는 RGB LED. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="384" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<g font-size="16" font-weight="700" fill="#4a5361">
+<text x="16" y="24">핀 수</text>
+<text x="74" y="24">핀 이름(선 색)</text>
+<text x="424" y="24">부품</text>
+</g>
+<line x1="8" y1="34" x2="632" y2="34" stroke="#7b8594"/>
+
+<!-- 줄 공통: GND 검정, VCC 빨강, 신호 노랑 -->
+<!-- 1: 3핀 SIG -->
+<text x="16" y="70" font-size="17" font-weight="700" fill="#17191c">3핀</text>
+<rect x="72" y="46" width="60" height="32" rx="6" fill="#2b2f36"/><text x="102" y="68" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">GND</text>
+<rect x="138" y="46" width="60" height="32" rx="6" fill="#b3261e"/><text x="168" y="68" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">VCC</text>
+<rect x="204" y="46" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="234" y="68" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">SIG</text>
+<text x="424" y="60" font-size="16" fill="#17191c">버저, 레이저, 진동 모터,</text>
+<text x="424" y="81" font-size="16" fill="#17191c">서보모터</text>
+<line x1="8" y1="92" x2="632" y2="92" stroke="#d6dde6"/>
+
+<!-- 2: 3핀 DIN -->
+<text x="16" y="120" font-size="17" font-weight="700" fill="#17191c">3핀</text>
+<rect x="72" y="98" width="60" height="32" rx="6" fill="#2b2f36"/><text x="102" y="120" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">GND</text>
+<rect x="138" y="98" width="60" height="32" rx="6" fill="#b3261e"/><text x="168" y="120" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">VCC</text>
+<rect x="204" y="98" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="234" y="120" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">DIN</text>
+<text x="424" y="120" font-size="16" fill="#17191c">네오픽셀</text>
+<line x1="8" y1="140" x2="632" y2="140" stroke="#d6dde6"/>
+
+<!-- 3: 4핀 I2C -->
+<text x="16" y="172" font-size="17" font-weight="700" fill="#17191c">4핀</text>
+<rect x="72" y="148" width="60" height="32" rx="6" fill="#2b2f36"/><text x="102" y="170" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">GND</text>
+<rect x="138" y="148" width="60" height="32" rx="6" fill="#b3261e"/><text x="168" y="170" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">VCC</text>
+<rect x="204" y="148" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="234" y="170" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">SDA</text>
+<rect x="270" y="148" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="300" y="170" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">SCL</text>
+<text x="424" y="162" font-size="16" fill="#17191c">문자 LCD, OLED</text>
+<text x="424" y="183" font-size="16" fill="#4a5361">(I2C 통신)</text>
+<line x1="8" y1="192" x2="632" y2="192" stroke="#d6dde6"/>
+
+<!-- 4: 4핀 UART -->
+<text x="16" y="224" font-size="17" font-weight="700" fill="#17191c">4핀</text>
+<rect x="72" y="200" width="60" height="32" rx="6" fill="#2b2f36"/><text x="102" y="222" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">GND</text>
+<rect x="138" y="200" width="60" height="32" rx="6" fill="#b3261e"/><text x="168" y="222" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">VCC</text>
+<rect x="204" y="200" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="234" y="222" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">TX</text>
+<rect x="270" y="200" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="300" y="222" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">RX</text>
+<text x="424" y="214" font-size="16" fill="#17191c">MP3 플레이어</text>
+<text x="424" y="235" font-size="16" fill="#4a5361">(UART 통신)</text>
+<line x1="8" y1="244" x2="632" y2="244" stroke="#d6dde6"/>
+
+<!-- 5: 4핀 팬 -->
+<text x="16" y="272" font-size="17" font-weight="700" fill="#17191c">4핀</text>
+<rect x="72" y="250" width="60" height="32" rx="6" fill="#2b2f36"/><text x="102" y="272" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">GND</text>
+<rect x="138" y="250" width="60" height="32" rx="6" fill="#b3261e"/><text x="168" y="272" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">VCC</text>
+<rect x="204" y="250" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="234" y="272" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">InA</text>
+<rect x="270" y="250" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="300" y="272" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">InB</text>
+<text x="424" y="272" font-size="16" fill="#17191c">팬 모터</text>
+<line x1="8" y1="292" x2="632" y2="292" stroke="#d6dde6"/>
+
+<!-- 6: 5핀 RGB -->
+<text x="16" y="322" font-size="17" font-weight="700" fill="#17191c">5핀</text>
+<rect x="72" y="300" width="60" height="32" rx="6" fill="#2b2f36"/><text x="102" y="322" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">GND</text>
+<rect x="138" y="300" width="60" height="32" rx="6" fill="#b3261e"/><text x="168" y="322" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">VCC</text>
+<rect x="204" y="300" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="234" y="322" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">R</text>
+<rect x="270" y="300" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="300" y="322" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">G</text>
+<rect x="336" y="300" width="60" height="32" rx="6" fill="#f6d36b" stroke="#b7800f"/><text x="366" y="322" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">B</text>
+<text x="424" y="322" font-size="16" fill="#17191c">RGB LED</text>
+<line x1="8" y1="342" x2="632" y2="342" stroke="#7b8594"/>
+
+<text x="16" y="370" font-size="16" fill="#17191c">GND(접지)와 VCC(전원)는 모든 부품에 있고, 노란 신호 핀은 GPIO 핀에 꽂아요.</text>
+</g>
+</svg>

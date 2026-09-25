@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 372" width="640" height="372" role="img" aria-labelledby="title desc">
+<title id="title">PWM 값(duty)에 따른 신호와 LED 밝기</title>
+<desc id="desc">네 줄로 된 그림. duty(0)은 0%로 신호가 늘 꺼져 있어 LED가 꺼져 있다. duty(256)은 약 25%로 한 주기의 4분의 1만 켜져 어둡게, duty(512)는 약 50%로 반만 켜져 중간 밝기, duty(1023)은 100%로 늘 켜져 가장 밝게 빛난다. 아래에 한 주기의 길이가 표시되어 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="372" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="24" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">PWM: 아주 빠르게 켜고 끄며, 켜진 시간의 비율(duty)로 밝기를 정해요</text>
+<text x="8" y="70" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(0)</text>
+<text x="8" y="92" font-size="16" fill="#4a5361">0%</text>
+<line x1="150" y1="88" x2="470" y2="88" stroke="#d6dde6" stroke-width="1"/>
+<polyline points="150.0,88 230.0,88 230.0,88 310.0,88 310.0,88 390.0,88 390.0,88 470.0,88" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<circle cx="534" cy="72" r="18" fill="#ffffff" stroke="#7b8594"/>
+<text x="562" y="78" font-size="16" fill="#17191c">꺼짐</text>
+<text x="8" y="140" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(256)</text>
+<text x="8" y="162" font-size="16" fill="#4a5361">약 25%</text>
+<line x1="150" y1="158" x2="470" y2="158" stroke="#d6dde6" stroke-width="1"/>
+<polyline points="150.0,158 150.0,124 170.0,124 170.0,158 230.0,158 230.0,158 230.0,124 250.0,124 250.0,158 310.0,158 310.0,158 310.0,124 330.0,124 330.0,158 390.0,158 390.0,158 390.0,124 410.0,124 410.0,158 470.0,158" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<circle cx="534" cy="142" r="18" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="534" cy="142" r="18" fill="#e02424" fill-opacity="0.34"/>
+<text x="562" y="148" font-size="16" fill="#17191c">어둡게</text>
+<text x="8" y="210" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(512)</text>
+<text x="8" y="232" font-size="16" fill="#4a5361">약 50%</text>
+<line x1="150" y1="228" x2="470" y2="228" stroke="#d6dde6" stroke-width="1"/>
+<polyline points="150.0,228 150.0,194 190.0,194 190.0,228 230.0,228 230.0,228 230.0,194 270.0,194 270.0,228 310.0,228 310.0,228 310.0,194 350.0,194 350.0,228 390.0,228 390.0,228 390.0,194 430.0,194 430.0,228 470.0,228" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<circle cx="534" cy="212" r="18" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="534" cy="212" r="18" fill="#e02424" fill-opacity="0.56"/>
+<text x="562" y="218" font-size="16" fill="#17191c">중간</text>
+<text x="8" y="280" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty(1023)</text>
+<text x="8" y="302" font-size="16" fill="#4a5361">100%</text>
+<line x1="150" y1="298" x2="470" y2="298" stroke="#d6dde6" stroke-width="1"/>
+<polyline points="150.0,264 230.0,264 230.0,264 310.0,264 310.0,264 390.0,264 390.0,264 470.0,264" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<circle cx="534" cy="282" r="18" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="534" cy="282" r="18" fill="#e02424" fill-opacity="1.00"/>
+<text x="562" y="288" font-size="16" fill="#17191c">가장 밝게</text>
+<path d="M150 334 V340 H230.0 V334" fill="none" stroke="#4a5361" stroke-width="2"/>
+<text x="190.0" y="360" font-size="16" fill="#4a5361" text-anchor="middle">한 주기</text>
+<text x="300" y="360" font-size="16" fill="#4a5361" text-anchor="start">높은 선은 켜짐, 낮은 선은 꺼짐이에요</text>
+</g>
+</svg>

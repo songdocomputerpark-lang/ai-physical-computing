@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="title desc">
+<title id="title">색을 나타내는 두 가지 방법과 무지개 색 표</title>
+<desc id="desc">위: 빨간 네모 옆에 (255, 0, 0) = #FF0000이라고 적혀 있고, 빨강 255는 FF, 초록 0은 00, 파랑 0은 00이 된다고 색을 나누어 보여 준다. 16진수는 0~9와 A~F로 수를 적고 두 자리로 0(00)부터 255(FF)까지 나타낸다. 아래 표: 빨강 (255, 0, 0) #FF0000, 주황 (255, 94, 0) #FF5E00, 노랑 (255, 228, 0) #FFE400, 초록 (0, 255, 0) #00FF00, 파랑 (0, 0, 255) #0000FF, 남색 (0, 0, 75) #00004B, 보라 (95, 0, 255) #5F00FF. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="400" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">색은 숫자 세 개나 16진수로 적어요</text>
+<rect x="8" y="40" width="624" height="120" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<rect x="24" y="58" width="44" height="44" rx="8" fill="#ff0000" stroke="#6b7682"/>
+<text x="82" y="88" font-size="20" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(255, 0, 0)</text>
+<text x="226" y="88" font-size="20" font-weight="700" fill="#17191c">=</text>
+<text x="250" y="88" font-size="20" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#</text>
+<text x="263" y="88" font-size="20" font-weight="700" fill="#d92b2b" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">FF</text>
+<text x="288" y="88" font-size="20" font-weight="700" fill="#2fa84f" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">00</text>
+<text x="313" y="88" font-size="20" font-weight="700" fill="#1f5bd6" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">00</text>
+<text x="384" y="70" font-size="16" font-weight="700" fill="#d92b2b">빨강 255 → FF</text>
+<text x="384" y="92" font-size="16" font-weight="700" fill="#2fa84f">초록 0 → 00</text>
+<text x="506" y="92" font-size="16" font-weight="700" fill="#1f5bd6">파랑 0 → 00</text>
+<text x="24" y="128" font-size="16" fill="#4a5361">16진수는 0~9와 A~F로 수를 적어요.</text>
+<text x="24" y="150" font-size="16" fill="#4a5361">두 자리로 0(00)부터 255(FF)까지 나타내요.</text>
+<rect x="8" y="174" width="624" height="218" rx="14" fill="#ffffff" stroke="#7b8594"/>
+<text x="24" y="198" font-size="16" font-weight="700" fill="#17191c">색</text>
+<text x="150" y="198" font-size="16" font-weight="700" fill="#17191c">숫자 세 개(빨강, 초록, 파랑)</text>
+<text x="470" y="198" font-size="16" font-weight="700" fill="#17191c">16진수</text>
+<line x1="16" y1="208" x2="624" y2="208" stroke="#7b8594"/>
+<rect x="24" y="217" width="32" height="18" rx="3" fill="#FF0000" stroke="#6b7682"/>
+<text x="66" y="232" font-size="16" fill="#17191c">빨강</text>
+<text x="150" y="232" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(255, 0, 0)</text>
+<text x="470" y="232" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#FF0000</text>
+<rect x="24" y="241" width="32" height="18" rx="3" fill="#FF5E00" stroke="#6b7682"/>
+<text x="66" y="256" font-size="16" fill="#17191c">주황</text>
+<text x="150" y="256" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(255, 94, 0)</text>
+<text x="470" y="256" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#FF5E00</text>
+<rect x="24" y="265" width="32" height="18" rx="3" fill="#FFE400" stroke="#6b7682"/>
+<text x="66" y="280" font-size="16" fill="#17191c">노랑</text>
+<text x="150" y="280" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(255, 228, 0)</text>
+<text x="470" y="280" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#FFE400</text>
+<rect x="24" y="289" width="32" height="18" rx="3" fill="#00FF00" stroke="#6b7682"/>
+<text x="66" y="304" font-size="16" fill="#17191c">초록</text>
+<text x="150" y="304" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(0, 255, 0)</text>
+<text x="470" y="304" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#00FF00</text>
+<rect x="24" y="313" width="32" height="18" rx="3" fill="#0000FF" stroke="#6b7682"/>
+<text x="66" y="328" font-size="16" fill="#17191c">파랑</text>
+<text x="150" y="328" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(0, 0, 255)</text>
+<text x="470" y="328" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#0000FF</text>
+<rect x="24" y="337" width="32" height="18" rx="3" fill="#00004B" stroke="#6b7682"/>
+<text x="66" y="352" font-size="16" fill="#17191c">남색</text>
+<text x="150" y="352" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(0, 0, 75)</text>
+<text x="470" y="352" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#00004B</text>
+<rect x="24" y="361" width="32" height="18" rx="3" fill="#5F00FF" stroke="#6b7682"/>
+<text x="66" y="376" font-size="16" fill="#17191c">보라</text>
+<text x="150" y="376" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">(95, 0, 255)</text>
+<text x="470" y="376" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">#5F00FF</text>
+</g>
+</svg>

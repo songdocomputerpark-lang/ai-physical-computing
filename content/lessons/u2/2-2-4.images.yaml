@@ -1,0 +1,52 @@
+# 차시 2-2-4 "서보모터 활용하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-2-4
+# 결과는 public/images/lessons/2-2-4/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2C 177
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 173쪽 "서보모터의 활용" 사진 두 장은 쓰지 않아요 — RC카 사진은 스톡 권리 표기(Chris Putnam, FiledIMAGE)가 있어 결정 C11로 쓸 수 없고,
+# 로봇 팔 렌더도 출처 표기가 없는 판매용 그림으로 보여요(INVENTORY §5.2 "스톡 추정"). 사이트가 그린 servo-uses.svg로 대신해요.
+# 174쪽 연결 그림은 가상 보드의 배선도가, 175쪽 혼 각도 그림은 사이트가 그린 pulse-angle.svg가 대신해요. 174쪽 Thonny 저장 화면은 설치 절차라 쓰지 않아요.
+# 176쪽 결과 사진 두 장은 혼의 각도 차이가 작아 알아보기 어려워 쓰지 않아요.
+
+images:
+  - name: servo-kit
+    use: 2-2-4 따라하기 "실행하고 결과 보기"의 실제 보드 사진 — 동작 테스트(0°, 90°, 180°)를 실행한 교과서 키트(원고 175쪽)
+    alt: 확장 보드에 꽂은 ESP32 개발 보드에 3색 케이블로 서보모터 하나를 이은 사진으로, 서보모터 위에 검은 팔(혼)이 달려 있다
+    from:
+      source: U2C
+      page: 175
+      image: 964
+    file: public/images/lessons/2-2-4/servo-kit.webp
+    width: 725
+    height: 532
+    bytes: 25506
+    sha256: "f5e9433fd0cf4240e274a3747b734ee1454a3a3baf347b2597b91096fa07836b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드(빨간 기판)를 꽂은 확장 보드, USB 케이블, 3색 케이블로 이은 분홍 띠의 서보모터와 검은 팔(혼)만 있음. 기판에 키트 상표 글자와 로고, 서보모터에 제품 이름 글자가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: servo-two-kit
+    use: 2-2-4 따라하기 "실행하고 결과 보기"의 실제 보드 사진 — 심화 실습(서보모터 2개)을 실행한 교과서 키트(원고 177쪽)
+    alt: 확장 보드에 꽂은 ESP32 개발 보드에 3색 케이블 두 줄로 서보모터 두 개를 나란히 이은 사진
+    from:
+      source: U2C
+      page: 177
+      image: 1723
+    file: public/images/lessons/2-2-4/servo-two-kit.webp
+    width: 960
+    height: 567
+    bytes: 52784
+    sha256: "777aea11db4db5d53a269d9624f99cd4c39233bc93a9c831718cca2bf4ffbede"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 'ESP32 Shield V2' 확장 보드에 꽂은 ESP32 개발 보드, USB 케이블, 두 줄의 3색 케이블과 나란히 놓인 서보모터 두 개(검은 팔)만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

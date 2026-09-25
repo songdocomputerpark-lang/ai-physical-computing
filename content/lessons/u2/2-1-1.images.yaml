@@ -1,0 +1,32 @@
+# 차시 2-1-1 "피지컬 컴퓨팅 및 개발 환경의 이해"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-1-1
+# 결과는 public/images/lessons/2-1-1/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2A 118
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 118쪽 "ESP32 구성"은 교과서 키트의 실제 보드 사진에 원고가 이름표를 단 그림이에요(실제 키트 연결 안내용 — INVENTORY §5.2 업체 제품 사진, O3·O4).
+# 가상 보드와 같은 모양의 브랜드 중립 그림은 사이트가 따로 그렸어요(esp32-board-parts.svg — sources.yaml "사이트가 직접 그린 그림").
+# 117쪽 입력·처리·출력 그림, 119쪽 부품 핀 구성 카드, 120~122쪽 설치 화면은 쓰지 않아요(사이트 SVG로 대신하거나 설치 제로 원칙으로 뺐어요).
+
+images:
+  - name: esp32-kit-board
+    use: 2-1-1 핵심 개념 "ESP32 보드 살펴보기"의 교과서 키트 실제 보드 사진(원고 118쪽)
+    alt: 빨간 ESP32 개발 보드를 파란 확장 보드에 꽂은 사진에 리셋 버튼, 부트 버튼, ESP32-WROOM-32 모듈, USB-C 포트, 전원 버튼, 입출력 핀 영역, I2C 통신 영역(GPIO 21, 22), 고속 통신 핀의 이름표를 붙인 그림
+    from:
+      source: U2A
+      page: 118
+      region: [58, 132, 527, 438]
+      dpi: 220
+    file: public/images/lessons/2-1-1/esp32-kit-board.webp
+    width: 960
+    height: 627
+    bytes: 78470
+    sha256: "25a0e80e5e566464bd668bec596fc98c29c812a9d2392871ac7e0eaa7d87c943"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 빨간 ESP32 개발 보드를 꽂은 파란 확장 보드 사진과 원고 이름표(리셋·부트 버튼, ESP32-WROOM-32 모듈, USB-C 포트, 전원 버튼, 입출력 핀 영역, I2C 통신 영역, 고속 통신 핀)만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진 — 실제 키트 연결 안내용, O3·O5). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음

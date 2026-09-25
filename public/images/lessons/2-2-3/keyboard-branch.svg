@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" width="640" height="340" role="img" aria-labelledby="title desc">
+<title id="title">input()으로 팬 세기를 고르는 흐름</title>
+<desc id="desc">순서도. cmd = input('입력(1/2/0): ')로 받은 글자가 '1'이면 약풍(speed 40), '2'면 중풍(speed 70), '0'이면 정지(fan.stop()), 그 밖이면 잘못된 입력 안내 글을 보인다. 아래에 input()은 늘 글자(문자열)를 돌려주므로 1이 아니라 '1'과 비교하고, 고른 뒤에는 다시 입력을 기다린다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="340" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">input()이 돌려준 글자로 팬의 세기를 골라요</text>
+<rect x="170" y="44" width="300" height="44" rx="10" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<text x="320" y="72" font-size="16" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">cmd = input('입력(1/2/0): ')</text>
+<line x1="320" y1="90" x2="320" y2="116" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M320 120 L446 150 L320 180 L194 150 Z" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="320" y="156" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">cmd는 어떤 글자?</text>
+<line x1="320" y1="180" x2="84" y2="226" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="184" y="206" font-size="16" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">'1'</text>
+<rect x="14" y="230" width="140" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="84" y="254" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">약풍</text>
+<text x="84" y="275" font-size="14" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">speed 40</text>
+<line x1="320" y1="180" x2="238" y2="226" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="261" y="206" font-size="16" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">'2'</text>
+<rect x="168" y="230" width="140" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="238" y="254" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">중풍</text>
+<text x="238" y="275" font-size="14" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">speed 70</text>
+<line x1="320" y1="180" x2="392" y2="226" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="374" y="206" font-size="16" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">'0'</text>
+<rect x="322" y="230" width="140" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="392" y="254" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">정지</text>
+<text x="392" y="275" font-size="14" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">fan.stop()</text>
+<line x1="320" y1="180" x2="546" y2="226" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="451" y="206" font-size="16" font-weight="700" fill="#1f5bd6" text-anchor="middle">그 밖</text>
+<rect x="476" y="230" width="140" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="546" y="254" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">잘못된 입력</text>
+<text x="546" y="275" font-size="14" fill="#4a5361" text-anchor="middle">안내 글</text>
+<text x="320" y="312" font-size="15" fill="#17191c" text-anchor="middle">input()은 늘 글자(문자열)를 돌려줘요. 그래서 1이 아니라 '1'과 비교해요.</text>
+<text x="320" y="332" font-size="15" fill="#4a5361" text-anchor="middle">고른 뒤에는 다시 입력을 기다려요(while True).</text>
+</g>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
+<title id="title">OLED에 그리는 세 단계: 지우기, 그리기, 보내기</title>
+<desc id="desc">세 칸으로 나눈 그림. 위 줄은 보드 메모리(버퍼), 아래 줄은 실제 OLED 화면이다. ① oled.fill(0)은 버퍼를 검게 지운다. ② oled.text()와 oled.pixel()은 버퍼에 글자 Hi와 동그라미를 그리지만 OLED 화면은 아직 그대로다. ③ oled.show()를 부르면 버퍼의 그림이 OLED 화면으로 한꺼번에 보내져 Hi와 동그라미가 보인다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker></defs>
+<rect width="640" height="330" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="10" y="112" font-size="16" font-weight="700" fill="#17191c">보드</text>
+<text x="10" y="134" font-size="16" font-weight="700" fill="#17191c">메모리</text>
+<text x="10" y="156" font-size="16" fill="#4a5361">(버퍼)</text>
+<text x="10" y="242" font-size="16" font-weight="700" fill="#17191c">OLED</text>
+<text x="10" y="264" font-size="16" font-weight="700" fill="#17191c">화면</text>
+<text x="186" y="20" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c" text-anchor="middle">① oled.fill(0)</text>
+<rect x="108" y="86" width="156" height="80" rx="6" fill="#1c232d"/>
+<rect x="114" y="92" width="144" height="68" fill="#0b0f14"/>
+<rect x="108" y="214" width="156" height="80" rx="6" fill="#1c232d"/>
+<rect x="114" y="220" width="144" height="68" fill="#0b0f14"/>
+<text x="186" y="316" font-size="16" fill="#17191c" text-anchor="middle">검게 지워요</text>
+<text x="364" y="20" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c" text-anchor="middle">② oled.text()</text>
+<text x="364" y="42" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c" text-anchor="middle">oled.pixel()</text>
+<rect x="286" y="86" width="156" height="80" rx="6" fill="#1c232d"/>
+<rect x="292" y="92" width="144" height="68" fill="#0b0f14"/>
+<text x="308" y="136" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="26" font-weight="700" fill="#ffffff">Hi</text>
+<circle cx="386" cy="126" r="14" fill="none" stroke="#ffffff" stroke-width="3"/>
+<rect x="286" y="214" width="156" height="80" rx="6" fill="#1c232d"/>
+<rect x="292" y="220" width="144" height="68" fill="#0b0f14"/>
+<text x="364" y="316" font-size="16" fill="#17191c" text-anchor="middle">버퍼에 그려요</text>
+<text x="542" y="20" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c" text-anchor="middle">③ oled.show()</text>
+<rect x="464" y="86" width="156" height="80" rx="6" fill="#1c232d"/>
+<rect x="470" y="92" width="144" height="68" fill="#0b0f14"/>
+<text x="486" y="136" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="26" font-weight="700" fill="#ffffff">Hi</text>
+<circle cx="564" cy="126" r="14" fill="none" stroke="#ffffff" stroke-width="3"/>
+<rect x="464" y="214" width="156" height="80" rx="6" fill="#1c232d"/>
+<rect x="470" y="220" width="144" height="68" fill="#0b0f14"/>
+<text x="486" y="264" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="26" font-weight="700" fill="#ffffff">Hi</text>
+<circle cx="564" cy="254" r="14" fill="none" stroke="#ffffff" stroke-width="3"/>
+<text x="542" y="316" font-size="16" fill="#17191c" text-anchor="middle">화면으로 보내요</text>
+<line x1="542" y1="168" x2="542" y2="210" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="552" y="196" font-size="16" font-weight="700" fill="#1a4cb4">보내기</text>
+<text x="364" y="260" font-size="16" fill="#cfd6e0" text-anchor="middle">아직 그대로</text>
+<text x="186" y="260" font-size="16" fill="#cfd6e0" text-anchor="middle">아직 그대로</text>
+</g>
+</svg>

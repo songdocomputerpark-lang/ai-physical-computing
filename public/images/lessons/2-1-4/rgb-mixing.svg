@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 292" width="640" height="292" role="img" aria-labelledby="title desc">
+<title id="title">빛의 삼원색을 더해 만드는 색</title>
+<desc id="desc">왼쪽: 검은 바탕에 빨강, 초록, 파랑 빛의 원이 겹쳐 있다. 빨강과 초록이 겹친 곳은 노랑, 초록과 파랑은 청록, 빨강과 파랑은 자홍, 세 빛이 모두 겹친 가운데는 흰색이다. 오른쪽: set_color(1,0,0)은 빨강, (0,1,0)은 초록, (0,0,1)은 파랑, (1,1,0)은 노랑, (0,1,1)은 청록, (1,0,1)은 자홍, (1,1,1)은 흰색, (0,0,0)은 꺼짐이라는 표. 사이트가 직접 그린 그림.</desc>
+<defs><clipPath id="cR"><circle cx="120" cy="112" r="62"/></clipPath><clipPath id="cG"><circle cx="180" cy="112" r="62"/></clipPath><clipPath id="cRG" clip-path="url(#cR)"><circle cx="180" cy="112" r="62"/></clipPath></defs>
+<rect width="640" height="292" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="8" y="8" width="290" height="276" rx="14" fill="#0b0f14"/>
+<circle cx="120" cy="112" r="62" fill="#ff2a2a"/>
+<circle cx="180" cy="112" r="62" fill="#2adf4a"/>
+<circle cx="150" cy="164" r="62" fill="#2a5cff"/>
+<circle cx="180" cy="112" r="62" fill="#ffe92a" clip-path="url(#cR)"/>
+<circle cx="150" cy="164" r="62" fill="#ff2aff" clip-path="url(#cR)"/>
+<circle cx="150" cy="164" r="62" fill="#2affff" clip-path="url(#cG)"/>
+<circle cx="150" cy="164" r="62" fill="#ffffff" clip-path="url(#cRG)"/>
+<text x="92" y="96" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">빨강</text>
+<text x="208" y="96" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">초록</text>
+<text x="150" y="212" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">파랑</text>
+<text x="150" y="86" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">노랑</text>
+<text x="118" y="160" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">자홍</text>
+<text x="184" y="160" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">청록</text>
+<text x="150" y="134" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">흰색</text>
+<text x="153" y="270" font-size="16" fill="#ffffff" text-anchor="middle">빛은 더할수록 밝아져요</text>
+<text x="318" y="30" font-size="17" font-weight="700" fill="#17191c">r, g, b 켜기(1)와 끄기(0)</text>
+<text x="318" y="62" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(1,0,0)</text>
+<rect x="494" y="46" width="22" height="22" rx="4" fill="#ff2a2a" stroke="#4a5361"/>
+<text x="526" y="62" font-size="16" fill="#17191c">빨강</text>
+<text x="318" y="90" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(0,1,0)</text>
+<rect x="494" y="74" width="22" height="22" rx="4" fill="#2adf4a" stroke="#4a5361"/>
+<text x="526" y="90" font-size="16" fill="#17191c">초록</text>
+<text x="318" y="118" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(0,0,1)</text>
+<rect x="494" y="102" width="22" height="22" rx="4" fill="#2a5cff" stroke="#4a5361"/>
+<text x="526" y="118" font-size="16" fill="#17191c">파랑</text>
+<text x="318" y="146" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(1,1,0)</text>
+<rect x="494" y="130" width="22" height="22" rx="4" fill="#ffe92a" stroke="#4a5361"/>
+<text x="526" y="146" font-size="16" fill="#17191c">노랑</text>
+<text x="318" y="174" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(0,1,1)</text>
+<rect x="494" y="158" width="22" height="22" rx="4" fill="#2affff" stroke="#4a5361"/>
+<text x="526" y="174" font-size="16" fill="#17191c">청록</text>
+<text x="318" y="202" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(1,0,1)</text>
+<rect x="494" y="186" width="22" height="22" rx="4" fill="#ff2aff" stroke="#4a5361"/>
+<text x="526" y="202" font-size="16" fill="#17191c">자홍</text>
+<text x="318" y="230" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(1,1,1)</text>
+<rect x="494" y="214" width="22" height="22" rx="4" fill="#ffffff" stroke="#4a5361"/>
+<text x="526" y="230" font-size="16" fill="#17191c">흰색</text>
+<text x="318" y="258" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color(0,0,0)</text>
+<rect x="494" y="242" width="22" height="22" rx="4" fill="#0b0f14" stroke="#4a5361"/>
+<text x="526" y="258" font-size="16" fill="#17191c">꺼짐</text>
+</g>
+</svg>

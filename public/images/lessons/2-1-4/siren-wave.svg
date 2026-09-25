@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 284" width="640" height="284" role="img" aria-labelledby="title desc">
+<title id="title">사이렌처럼 밝아졌다 어두워지는 빨간 LED</title>
+<desc id="desc">가로축은 시간(0초에서 약 4초), 세로축은 duty(0에서 1023)인 그래프. 빨간 선이 약 1초 동안 0에서 1023까지 올라갔다가 약 1초 동안 0으로 내려오기를 되풀이하는 삼각형 모양이다. 아래 줄의 LED 동그라미도 그에 맞춰 꺼짐, 중간, 가장 밝음, 중간, 꺼짐으로 바뀐다. 첫 번째 for 문은 duty를 0에서 1023으로, 두 번째 for 문은 1023에서 0으로 바꾼다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="284" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<line x1="86" y1="172" x2="620" y2="172" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="86" y1="172" x2="86" y2="38" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="78" y="58" font-size="16" fill="#4a5361" text-anchor="end">1023</text>
+<text x="78" y="178" font-size="16" fill="#4a5361" text-anchor="end">0</text>
+<text x="78" y="30" font-size="16" font-weight="700" fill="#17191c" text-anchor="end">duty</text>
+<line x1="86" y1="172" x2="86" y2="178" stroke="#4a5361" stroke-width="2"/>
+<text x="86" y="198" font-size="16" fill="#4a5361" text-anchor="middle">0초</text>
+<line x1="216" y1="172" x2="216" y2="178" stroke="#4a5361" stroke-width="2"/>
+<text x="216" y="198" font-size="16" fill="#4a5361" text-anchor="middle">약 1초</text>
+<line x1="346" y1="172" x2="346" y2="178" stroke="#4a5361" stroke-width="2"/>
+<text x="346" y="198" font-size="16" fill="#4a5361" text-anchor="middle">약 2초</text>
+<line x1="476" y1="172" x2="476" y2="178" stroke="#4a5361" stroke-width="2"/>
+<text x="476" y="198" font-size="16" fill="#4a5361" text-anchor="middle">약 3초</text>
+<line x1="606" y1="172" x2="606" y2="178" stroke="#4a5361" stroke-width="2"/>
+<text x="606" y="198" font-size="16" fill="#4a5361" text-anchor="middle">약 4초</text>
+<polyline points="86,172 216,52 346,172 476,52 606,172" fill="none" stroke="#d92b2b" stroke-width="4" stroke-linejoin="round"/>
+<text x="133" y="108" font-size="16" font-weight="700" fill="#a3232a" text-anchor="end">점점 밝게</text>
+<text x="299" y="108" font-size="16" font-weight="700" fill="#a3232a" text-anchor="start">점점 어둡게</text>
+<circle cx="86" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="151" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="151" cy="228" r="13" fill="#e02424" fill-opacity="0.57"/>
+<circle cx="216" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="216" cy="228" r="13" fill="#e02424" fill-opacity="1.00"/>
+<circle cx="281" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="281" cy="228" r="13" fill="#e02424" fill-opacity="0.57"/>
+<circle cx="346" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="411" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="411" cy="228" r="13" fill="#e02424" fill-opacity="0.57"/>
+<circle cx="476" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="476" cy="228" r="13" fill="#e02424" fill-opacity="1.00"/>
+<circle cx="541" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<circle cx="541" cy="228" r="13" fill="#e02424" fill-opacity="0.57"/>
+<circle cx="606" cy="228" r="13" fill="#ffffff" stroke="#7b8594"/>
+<text x="78" y="234" font-size="16" font-weight="700" fill="#17191c" text-anchor="end">LED</text>
+<text x="8" y="272" font-size="16" fill="#17191c">첫 번째 for 문은 duty를 0에서 1023으로, 두 번째 for 문은 1023에서 0으로 바꿔요.</text>
+</g>
+</svg>

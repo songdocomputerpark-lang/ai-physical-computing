@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 372" width="640" height="372" role="img" aria-labelledby="title desc">
+<title id="title">네오픽셀 링의 LED 번호와 데이터 선</title>
+<desc id="desc">왼쪽: LED 16개가 둥글게 붙은 링. 12시 자리가 0번이고 시계 방향으로 1번, 2번 … 15번이며, 오른쪽 아래 5번 자리(6번째) LED가 빨갛게 강조되어 있고 가운데에 "6번째 LED는 np[5]"라고 적혀 있다. 오른쪽: ESP32에서 나온 데이터 선(DIN)이 0번, 1번 … 15번 LED로 이어진 그림과 함께 ① 보드가 색 16개를 차례로 이어서 보내면 ② 0번 LED는 첫 번째 색을 갖고 나머지를 1번으로 넘기고 ③ 나머지 LED도 차례로 자기 색을 가져간다는 설명. 그래서 np[번호]로 LED마다 색을 정한다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="372" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">네오픽셀 링의 번호: 0번부터 시계 방향으로 15번까지</text>
+<circle cx="168" cy="212" r="100" fill="#1f2933"/>
+<circle cx="168" cy="212" r="72" fill="#f4efe3" stroke="#0b1117"/>
+<rect x="160.0" y="118.0" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="168.0" cy="126.0" r="4.8" fill="#2b3440"/>
+<text x="168.0" y="93.6" font-size="16" fill="#17191c" text-anchor="middle">0</text>
+<rect x="192.9" y="124.5" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="200.9" cy="132.5" r="4.8" fill="#2b3440"/>
+<text x="215.5" y="103.0" font-size="16" fill="#17191c" text-anchor="middle">1</text>
+<rect x="220.8" y="143.2" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="228.8" cy="151.2" r="4.8" fill="#2b3440"/>
+<text x="255.7" y="129.9" font-size="16" fill="#17191c" text-anchor="middle">2</text>
+<rect x="239.5" y="171.1" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="247.5" cy="179.1" r="4.8" fill="#2b3440"/>
+<text x="282.6" y="170.1" font-size="16" fill="#17191c" text-anchor="middle">3</text>
+<rect x="246.0" y="204.0" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="254.0" cy="212.0" r="4.8" fill="#2b3440"/>
+<text x="292.0" y="217.6" font-size="16" fill="#17191c" text-anchor="middle">4</text>
+<circle cx="247.5" cy="244.9" r="12.8" fill="#ff2a2a" opacity="0.35"/>
+<rect x="239.5" y="236.9" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="247.5" cy="244.9" r="4.8" fill="#ff2a2a"/>
+<text x="282.6" y="265.1" font-size="16" fill="#17191c" text-anchor="middle">5</text>
+<rect x="220.8" y="264.8" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="228.8" cy="272.8" r="4.8" fill="#2b3440"/>
+<text x="255.7" y="305.3" font-size="16" fill="#17191c" text-anchor="middle">6</text>
+<rect x="192.9" y="283.5" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="200.9" cy="291.5" r="4.8" fill="#2b3440"/>
+<text x="215.5" y="332.2" font-size="16" fill="#17191c" text-anchor="middle">7</text>
+<rect x="160.0" y="290.0" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="168.0" cy="298.0" r="4.8" fill="#2b3440"/>
+<text x="168.0" y="341.6" font-size="16" fill="#17191c" text-anchor="middle">8</text>
+<rect x="127.1" y="283.5" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="135.1" cy="291.5" r="4.8" fill="#2b3440"/>
+<text x="120.5" y="332.2" font-size="16" fill="#17191c" text-anchor="middle">9</text>
+<rect x="99.2" y="264.8" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="107.2" cy="272.8" r="4.8" fill="#2b3440"/>
+<text x="80.3" y="305.3" font-size="16" fill="#17191c" text-anchor="middle">10</text>
+<rect x="80.5" y="236.9" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="88.5" cy="244.9" r="4.8" fill="#2b3440"/>
+<text x="53.4" y="265.1" font-size="16" fill="#17191c" text-anchor="middle">11</text>
+<rect x="74.0" y="204.0" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="82.0" cy="212.0" r="4.8" fill="#2b3440"/>
+<text x="44.0" y="217.6" font-size="16" fill="#17191c" text-anchor="middle">12</text>
+<rect x="80.5" y="171.1" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="88.5" cy="179.1" r="4.8" fill="#2b3440"/>
+<text x="53.4" y="170.1" font-size="16" fill="#17191c" text-anchor="middle">13</text>
+<rect x="99.2" y="143.2" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="107.2" cy="151.2" r="4.8" fill="#2b3440"/>
+<text x="80.3" y="129.9" font-size="16" fill="#17191c" text-anchor="middle">14</text>
+<rect x="127.1" y="124.5" width="16" height="16" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="135.1" cy="132.5" r="4.8" fill="#2b3440"/>
+<text x="120.5" y="103.0" font-size="16" fill="#17191c" text-anchor="middle">15</text>
+<rect x="234.5" y="231.9" width="26" height="26" rx="4" fill="none" stroke="#d92b2b" stroke-width="3"/>
+<text x="168" y="208" font-size="16" fill="#17191c" text-anchor="middle">6번째 LED는</text>
+<text x="168" y="230" font-size="17" font-weight="700" fill="#d92b2b" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">np[5]</text>
+<path d="M136.8 65.3 A150 150 0 0 1 260.3 93.8" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="128.8" y="70.3" font-size="16" fill="#4a5361" text-anchor="end">시계 방향</text>
+<rect x="336" y="52" width="296" height="312" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="484" y="80" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">선 하나(DIN)로 16개를 따로 다뤄요</text>
+<rect x="352" y="102" width="56" height="36" rx="6" fill="#1f2933"/>
+<text x="380" y="125" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">ESP32</text>
+<line x1="408" y1="120" x2="434" y2="120" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="421.0" y="112" font-size="13" fill="#4a5361" text-anchor="middle">DIN</text>
+<rect x="436" y="104" width="40" height="32" rx="5" fill="#e9edf1" stroke="#6b7682"/>
+<text x="456" y="125" font-size="14" fill="#17191c" text-anchor="middle">0번</text>
+<rect x="494" y="104" width="40" height="32" rx="5" fill="#e9edf1" stroke="#6b7682"/>
+<text x="514" y="125" font-size="14" fill="#17191c" text-anchor="middle">1번</text>
+<rect x="584" y="104" width="40" height="32" rx="5" fill="#e9edf1" stroke="#6b7682"/>
+<text x="604" y="125" font-size="14" fill="#17191c" text-anchor="middle">15번</text>
+<line x1="476" y1="120" x2="492" y2="120" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="534" y1="120" x2="548" y2="120" stroke="#4a5361" stroke-width="2"/>
+<text x="561.0" y="125" font-size="16" fill="#4a5361" text-anchor="middle">…</text>
+<line x1="568" y1="120" x2="582" y2="120" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="350" y="178" font-size="16" font-weight="700" fill="#1f5bd6">①</text>
+<text x="372" y="178" font-size="16" fill="#17191c">보드가 색 16개를 차례로 이어서</text>
+<text x="372" y="201" font-size="16" fill="#17191c">데이터 선(DIN)으로 보내요.</text>
+<text x="350" y="234" font-size="16" font-weight="700" fill="#1f5bd6">②</text>
+<text x="372" y="234" font-size="16" fill="#17191c">0번 LED는 첫 번째 색을 갖고</text>
+<text x="372" y="257" font-size="16" fill="#17191c">나머지를 1번 LED로 넘겨요.</text>
+<text x="350" y="290" font-size="16" font-weight="700" fill="#1f5bd6">③</text>
+<text x="372" y="290" font-size="16" fill="#17191c">1번, 2번, … 15번 LED도 차례로</text>
+<text x="372" y="313" font-size="16" fill="#17191c">자기 색을 가져가요.</text>
+<text x="484" y="348" font-size="16" fill="#4a5361" text-anchor="middle">그래서 np[번호]로 LED마다 색을 정해요</text>
+</g>
+</svg>

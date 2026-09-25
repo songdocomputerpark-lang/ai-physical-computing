@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 266" width="640" height="266" role="img" aria-labelledby="title desc">
+<title id="title">레이저가 강한 빛을 만드는 원리</title>
+<desc id="desc">가운데 긴 통이 레이저 매질이고, 왼쪽 끝에 빛을 모두 되돌리는 완전 반사 거울, 오른쪽 끝에 빛의 일부만 내보내는 부분 반사 거울이 있다. 위에서 바깥 에너지를 넣으면 매질이 빛을 내고, 빨간 화살표로 그린 빛이 두 거울 사이를 여러 번 오가며 세진다. 오른쪽 거울 밖으로 굵은 빨간 레이저 광선이 나간다. 두 거울로 이루어진 구조를 공진기라고 한다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker><marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#d92b2b"/></marker><pattern id="half" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#ffffff"/><line x1="0" y1="0" x2="0" y2="6" stroke="#22384d" stroke-width="3"/></pattern></defs>
+<rect width="640" height="266" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="22" font-size="16" font-weight="700" fill="#4a5361" text-anchor="middle">바깥에서 에너지를 넣어요</text>
+<line x1="230" y1="32" x2="230" y2="82" stroke="#4a5361" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="320" y1="32" x2="320" y2="82" stroke="#4a5361" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="410" y1="32" x2="410" y2="82" stroke="#4a5361" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="150" y="88" width="340" height="70" rx="6" fill="#fde2e2" stroke="#d24b4b" stroke-width="2"/>
+<rect x="132" y="76" width="16" height="94" fill="#22384d"/>
+<rect x="492" y="76" width="16" height="94" fill="url(#half)" stroke="#22384d" stroke-width="2"/>
+<line x1="168" y1="104" x2="470" y2="104" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrowR)"/>
+<line x1="470" y1="123" x2="168" y2="123" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrowR)"/>
+<line x1="168" y1="142" x2="470" y2="142" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrowR)"/>
+<line x1="508" y1="123" x2="610" y2="123" stroke="#d92b2b" stroke-width="8"/>
+<path d="M608 111 L632 123 L608 135 Z" fill="#d92b2b"/>
+<text x="140" y="196" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">완전 반사 거울</text>
+<text x="140" y="218" font-size="16" fill="#4a5361" text-anchor="middle">빛을 모두 되돌려요</text>
+<text x="320" y="196" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">레이저 매질</text>
+<text x="320" y="218" font-size="16" fill="#4a5361" text-anchor="middle">빛을 만들고 키워요</text>
+<text x="500" y="196" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">부분 반사 거울</text>
+<text x="500" y="218" font-size="16" fill="#4a5361" text-anchor="middle">일부만 내보내요</text>
+<text x="514" y="100" font-size="16" font-weight="700" fill="#a3232a">강한 레이저 광선</text>
+<text x="8" y="254" font-size="16" fill="#17191c">두 거울 사이(공진기)를 빛이 오가며 점점 세지고, 그 일부가 오른쪽 거울 밖으로 나가요.</text>
+</g>
+</svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 356" width="640" height="356" role="img" aria-labelledby="title desc">
+<title id="title">이 사이트의 개발 환경: 브라우저에서 코드를 보내는 두 갈래와 보드가 켜질 때의 실행 순서</title>
+<desc id="desc">왼쪽의 내 컴퓨터 브라우저(ESP32 실습실)에서 코드를 쓰고 실행을 누르면 두 갈래로 간다. 1 가상 보드: 화면 속 보드가 같은 코드로 움직인다. 2 실제 보드: USB 케이블로 연결하고, 처음 한 번은 보드 준비 페이지에서 MicroPython 펌웨어를 굽는다. 아래 줄은 보드가 켜지면 전원 켜짐, boot.py 실행, main.py 실행 차례로 돈다는 것을 보여 준다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="356" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<!-- 내 컴퓨터 -->
+<text x="122" y="24" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">내 컴퓨터(브라우저)</text>
+<rect x="8" y="36" width="232" height="200" rx="12" fill="#f4f6f9" stroke="#7b8594"/>
+<path d="M8 48 A12 12 0 0 1 20 36 H228 A12 12 0 0 1 240 48 V68 H8 Z" fill="#dfe7f1"/>
+<text x="22" y="59" font-size="17" font-weight="700" fill="#17191c">ESP32 실습실</text>
+<rect x="20" y="80" width="208" height="92" rx="6" fill="#ffffff" stroke="#d6dde6"/>
+<g font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c">
+<text x="28" y="106">led = Pin(2, Pin.OUT)</text>
+<text x="28" y="132">led.on()</text>
+<text x="28" y="158" fill="#4a5361">sleep(0.5)</text>
+</g>
+<rect x="20" y="186" width="88" height="38" rx="6" fill="#1f5bd6"/>
+<text x="64" y="211" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">실행</text>
+
+<!-- 갈래 -->
+<g fill="none" stroke="#4a5361" stroke-width="2.5">
+<path d="M242 136 H268"/>
+<path d="M268 84 V196"/>
+<path d="M268 84 H292" marker-end="url(#arrow)"/>
+<path d="M268 196 H292" marker-end="url(#arrow)"/>
+</g>
+
+<!-- 가상 보드 -->
+<rect x="296" y="36" width="336" height="98" rx="12" fill="#eaf1fe" stroke="#5b87e0"/>
+<text x="312" y="66" font-size="19" font-weight="700" fill="#17191c">1 가상 보드</text>
+<text x="312" y="94" font-size="16" fill="#17191c">화면 속 보드가 같은 코드로 움직여요.</text>
+<text x="312" y="120" font-size="16" fill="#4a5361">보드가 없어도 모든 실습을 할 수 있어요.</text>
+
+<!-- 실제 보드 -->
+<rect x="296" y="146" width="336" height="112" rx="12" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="312" y="176" font-size="19" font-weight="700" fill="#17191c">2 실제 보드</text>
+<text x="312" y="204" font-size="16" fill="#17191c">USB 케이블로 보드와 연결해요.</text>
+<text x="312" y="228" font-size="16" fill="#4a5361">처음 한 번은 보드 준비 페이지에서</text>
+<text x="312" y="250" font-size="16" fill="#4a5361">MicroPython 펌웨어를 구워요.</text>
+
+<!-- 켜질 때 실행 순서 -->
+<text x="8" y="302" font-size="17" font-weight="700" fill="#17191c">보드가</text>
+<text x="8" y="324" font-size="17" font-weight="700" fill="#17191c">켜지면</text>
+<rect x="76" y="282" width="128" height="52" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<text x="140" y="314" font-size="16" fill="#17191c" text-anchor="middle">전원 켜짐</text>
+<line x1="206" y1="308" x2="232" y2="308" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="236" y="282" width="168" height="52" rx="10" fill="#fff4d8" stroke="#b7800f"/>
+<text x="320" y="304" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">boot.py</text>
+<text x="320" y="325" font-size="16" fill="#4a5361" text-anchor="middle">환경 설정</text>
+<line x1="406" y1="308" x2="432" y2="308" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="436" y="282" width="196" height="52" rx="10" fill="#e8f6ee" stroke="#3b9360"/>
+<text x="534" y="304" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">main.py</text>
+<text x="534" y="325" font-size="16" fill="#4a5361" text-anchor="middle">내가 만든 프로그램</text>
+</g>
+</svg>

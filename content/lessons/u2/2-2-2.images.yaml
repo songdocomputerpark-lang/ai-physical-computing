@@ -1,0 +1,51 @@
+# 차시 2-2-2 "MP3 플레이어 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-2-2
+# 결과는 public/images/lessons/2-2-2/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2B 163
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 161쪽 "MP3 플레이어와 스피커" 사진은 교과서 키트와 다른 붉은 모듈이라(INVENTORY §4.1) 쓰지 않고, 모듈 안의 구조는 사이트가 그린
+# mp3-module.svg로 보여 줘요. 162쪽 연결 그림은 가상 보드의 배선도가, 163·165쪽 콘솔 화면은 본문의 콘솔 글이 대신해요.
+# 165쪽 결과 사진 두 장 가운데 손가락으로 2번 패드를 누른 사진만 써요(다른 한 장은 같은 장치를 누르기 전에 찍은 사진).
+
+images:
+  - name: mp3-kit
+    use: 2-2-2 따라하기 "실행하고 결과 보기"의 실제 보드 사진 — 기본 실습(자동 음성 안내)을 실행한 교과서 키트(원고 163쪽)
+    alt: 확장 보드에 꽂은 ESP32에 마이크로 SD 카드가 꽂힌 MP3 플레이어 모듈과 둥근 스피커를 이은 사진
+    from:
+      source: U2B
+      page: 163
+      image: 711
+    file: public/images/lessons/2-2-2/mp3-kit.webp
+    width: 556
+    height: 304
+    bytes: 24920
+    sha256: "963200eaff28f4ebd64ac84e62aea9b40baa3b5dcbcd4be97f7a03ae7271dc27"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드를 꽂은 확장 보드, USB 케이블, 'MP3 Player'와 'UART' 글자가 적힌 MP3 모듈(마이크로 SD 카드 칸, 노란 받침), 케이블로 이은 둥근 스피커만 있음. 기판에 키트 상표 글자와 로고, 스피커 뒷면에 제품 표기 글자가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: mp3-touch-stop
+    use: 2-2-2 따라하기 "실행하고 결과 보기"의 실제 보드 사진 — 심화 실습에서 2번 패드를 눌러 음악을 멈추는 모습(원고 165쪽)
+    alt: 확장 보드에 꽂은 ESP32에 MP3 모듈, 스피커, 4채널 터치 센서를 잇고 손가락으로 터치 센서의 2번 패드를 누르는 사진
+    from:
+      source: U2B
+      page: 165
+      image: 2122
+    file: public/images/lessons/2-2-2/mp3-touch-stop.webp
+    width: 576
+    height: 319
+    bytes: 25596
+    sha256: "270b0fe6cce1e1952ab0756316bf1a95e4a1e546c9b3bdcb69af24a2543e8f18"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 확장 보드에 꽂은 ESP32, 'MP3 Player' 모듈, 둥근 스피커, 'Analog Touch Sensor' 글자가 적힌 4채널 터치 센서와 3색·4색 케이블, 2번 패드를 누르는 손가락 하나만 있음(손가락 끝뿐이고 지문·반지·손목 등 알아볼 만한 것은 없음). 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

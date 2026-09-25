@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 252" width="640" height="252" role="img" aria-labelledby="title desc">
+<title id="title">LED가 빛을 내는 원리</title>
+<desc id="desc">위는 정공(흰 동그라미)이 많은 P형 반도체, 아래는 전자(빨간 동그라미)가 많은 N형 반도체이고 두 층이 점선에서 맞닿아 있다. 정공은 아래로, 전자는 위로 움직여 맞닿은 곳에서 만나고, 그곳에서 빛이 나온다. 아래에 전압을 걸면 정공과 전자가 만나며 빛을 내고, 두 반도체의 에너지 차이가 크면 파란색 쪽, 작으면 붉은색 쪽 빛이 나온다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker><marker id="arrowY" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#b7800f"/></marker></defs>
+<rect width="640" height="252" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="150" y="40" width="300" height="70" fill="#dce8fb" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="150" y="110" width="300" height="70" fill="#fde2e2" stroke="#d24b4b" stroke-width="2"/>
+<text x="470" y="82" font-size="17" font-weight="700" fill="#17191c" text-anchor="start">P형 반도체</text>
+<text x="470" y="104" font-size="16" fill="#4a5361" text-anchor="start">정공(○)이 많아요</text>
+<text x="470" y="152" font-size="17" font-weight="700" fill="#17191c" text-anchor="start">N형 반도체</text>
+<text x="470" y="174" font-size="16" fill="#4a5361" text-anchor="start">전자(●)가 많아요</text>
+<circle cx="180" cy="66" r="9" fill="#ffffff" stroke="#1f5bd6" stroke-width="2.5"/>
+<circle cx="180" cy="154" r="9" fill="#a3232a"/>
+<line x1="180" y1="78" x2="180" y2="100" stroke="#1f5bd6" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="180" y1="142" x2="180" y2="120" stroke="#a3232a" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="240" cy="66" r="9" fill="#ffffff" stroke="#1f5bd6" stroke-width="2.5"/>
+<circle cx="240" cy="154" r="9" fill="#a3232a"/>
+<line x1="240" y1="78" x2="240" y2="100" stroke="#1f5bd6" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="240" y1="142" x2="240" y2="120" stroke="#a3232a" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="300" cy="66" r="9" fill="#ffffff" stroke="#1f5bd6" stroke-width="2.5"/>
+<circle cx="300" cy="154" r="9" fill="#a3232a"/>
+<line x1="300" y1="78" x2="300" y2="100" stroke="#1f5bd6" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="300" y1="142" x2="300" y2="120" stroke="#a3232a" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="360" cy="66" r="9" fill="#ffffff" stroke="#1f5bd6" stroke-width="2.5"/>
+<circle cx="360" cy="154" r="9" fill="#a3232a"/>
+<line x1="360" y1="78" x2="360" y2="100" stroke="#1f5bd6" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="360" y1="142" x2="360" y2="120" stroke="#a3232a" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="420" cy="66" r="9" fill="#ffffff" stroke="#1f5bd6" stroke-width="2.5"/>
+<circle cx="420" cy="154" r="9" fill="#a3232a"/>
+<line x1="420" y1="78" x2="420" y2="100" stroke="#1f5bd6" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="420" y1="142" x2="420" y2="120" stroke="#a3232a" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M210 110 L196 18" stroke="#b7800f" stroke-width="3" marker-end="url(#arrowY)"/>
+<path d="M300 110 L286 18" stroke="#b7800f" stroke-width="3" marker-end="url(#arrowY)"/>
+<path d="M390 110 L376 18" stroke="#b7800f" stroke-width="3" marker-end="url(#arrowY)"/>
+<text x="120" y="30" font-size="18" font-weight="700" fill="#7a4a00" text-anchor="middle">빛</text>
+<line x1="150" y1="110" x2="450" y2="110" stroke="#17191c" stroke-width="3" stroke-dasharray="8 5"/>
+<text x="140" y="116" font-size="16" font-weight="700" fill="#17191c" text-anchor="end">맞닿은 곳</text>
+<text x="8" y="214" font-size="16" fill="#17191c">전압을 걸면 정공과 전자가 맞닿은 곳에서 만나며 빛을 내요.</text>
+<text x="8" y="240" font-size="16" fill="#17191c">두 반도체의 에너지 차이가 크면 파란색 쪽, 작으면 붉은색 쪽 빛이 나와요.</text>
+</g>
+</svg>

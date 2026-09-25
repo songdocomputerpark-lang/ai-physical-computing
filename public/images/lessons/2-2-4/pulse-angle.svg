@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 356" width="640" height="356" role="img" aria-labelledby="title desc">
+<title id="title">PWM 펄스 폭과 서보 각도</title>
+<desc id="desc">세 줄 그림. 50Hz라 20ms마다 한 번씩 펄스를 보낸다. rotate(0)은 duty 40으로 펄스가 0.78ms 켜져 팔이 0°(왼쪽), rotate(90)은 duty 77로 1.50ms 켜져 90°(위쪽), rotate(180)은 duty 115로 2.25ms 켜져 180°(오른쪽)를 가리킨다. 펄스가 길수록 팔이 더 많이 돌아간다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="356" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">펄스 폭(켜진 시간)이 각도를 정해요</text>
+<text x="320" y="50" font-size="15" fill="#4a5361" text-anchor="middle">50Hz라 20ms(0.02초)마다 한 번씩 펄스를 보내요</text>
+<rect x="8" y="66" width="624" height="84" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="98" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">rotate(0)</text>
+<text x="22" y="124" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 40</text>
+<polyline points="178.0,124 178.0,84 187.8,84 187.8,124 428.0,124 428.0,84 437.8,84 437.8,124" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<text x="193.8" y="98" font-size="15" font-weight="700" fill="#1f5bd6">0.78ms</text>
+<path d="M178 136 H428" stroke="#7b8594" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="303" y="148" font-size="14" fill="#4a5361" text-anchor="middle">20ms</text>
+<path d="M496 132 A44 44 0 0 1 584 132" fill="none" stroke="#7b8594" stroke-width="2"/>
+<line x1="502" y1="132" x2="492" y2="132" stroke="#7b8594" stroke-width="2"/>
+<text x="478" y="136.6" font-size="13" fill="#4a5361" text-anchor="end">0°</text>
+<line x1="540" y1="94" x2="540" y2="84" stroke="#7b8594" stroke-width="2"/>
+<text x="540" y="74.5" font-size="13" fill="#4a5361" text-anchor="middle">90°</text>
+<line x1="578" y1="132" x2="588" y2="132" stroke="#7b8594" stroke-width="2"/>
+<text x="602" y="136.6" font-size="13" fill="#4a5361" text-anchor="start">180°</text>
+<line x1="540" y1="132" x2="500.0" y2="132.0" stroke="#c25e00" stroke-width="8" stroke-linecap="round"/>
+<circle cx="540" cy="132" r="7.2" fill="#c25e00"/>
+<circle cx="540" cy="132" r="2.8" fill="#ffffff"/>
+<rect x="8" y="158" width="624" height="84" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="190" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">rotate(90)</text>
+<text x="22" y="216" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 77</text>
+<polyline points="178.0,216 178.0,176 196.8,176 196.8,216 428.0,216 428.0,176 446.8,176 446.8,216" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<text x="202.8" y="190" font-size="15" font-weight="700" fill="#1f5bd6">1.50ms</text>
+<path d="M178 228 H428" stroke="#7b8594" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="303" y="240" font-size="14" fill="#4a5361" text-anchor="middle">20ms</text>
+<path d="M496 224 A44 44 0 0 1 584 224" fill="none" stroke="#7b8594" stroke-width="2"/>
+<line x1="502" y1="224" x2="492" y2="224" stroke="#7b8594" stroke-width="2"/>
+<text x="478" y="228.6" font-size="13" fill="#4a5361" text-anchor="end">0°</text>
+<line x1="540" y1="186" x2="540" y2="176" stroke="#7b8594" stroke-width="2"/>
+<text x="540" y="166.6" font-size="13" fill="#4a5361" text-anchor="middle">90°</text>
+<line x1="578" y1="224" x2="588" y2="224" stroke="#7b8594" stroke-width="2"/>
+<text x="602" y="228.6" font-size="13" fill="#4a5361" text-anchor="start">180°</text>
+<line x1="540" y1="224" x2="540.0" y2="184.0" stroke="#c25e00" stroke-width="8" stroke-linecap="round"/>
+<circle cx="540" cy="224" r="7.2" fill="#c25e00"/>
+<circle cx="540" cy="224" r="2.8" fill="#ffffff"/>
+<rect x="8" y="250" width="624" height="84" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="282" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">rotate(180)</text>
+<text x="22" y="308" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 115</text>
+<polyline points="178.0,308 178.0,268 206.1,268 206.1,308 428.0,308 428.0,268 456.1,268 456.1,308" fill="none" stroke="#1f5bd6" stroke-width="3"/>
+<text x="212.1" y="282" font-size="15" font-weight="700" fill="#1f5bd6">2.25ms</text>
+<path d="M178 320 H428" stroke="#7b8594" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="303" y="332" font-size="14" fill="#4a5361" text-anchor="middle">20ms</text>
+<path d="M496 316 A44 44 0 0 1 584 316" fill="none" stroke="#7b8594" stroke-width="2"/>
+<line x1="502" y1="316" x2="492" y2="316" stroke="#7b8594" stroke-width="2"/>
+<text x="478" y="320.6" font-size="13" fill="#4a5361" text-anchor="end">0°</text>
+<line x1="540" y1="278" x2="540" y2="268" stroke="#7b8594" stroke-width="2"/>
+<text x="540" y="258.6" font-size="13" fill="#4a5361" text-anchor="middle">90°</text>
+<line x1="578" y1="316" x2="588" y2="316" stroke="#7b8594" stroke-width="2"/>
+<text x="602" y="320.6" font-size="13" fill="#4a5361" text-anchor="start">180°</text>
+<line x1="540" y1="316" x2="580.0" y2="316.0" stroke="#c25e00" stroke-width="8" stroke-linecap="round"/>
+<circle cx="540" cy="316" r="7.2" fill="#c25e00"/>
+<circle cx="540" cy="316" r="2.8" fill="#ffffff"/>
+</g>
+</svg>

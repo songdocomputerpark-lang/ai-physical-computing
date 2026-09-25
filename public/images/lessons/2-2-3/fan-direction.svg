@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 372" width="640" height="372" role="img" aria-labelledby="title desc">
+<title id="title">INA, INB 신호와 팬의 회전 방향</title>
+<desc id="desc">세 줄 표. INA 1, INB 0이면 모터에 전류가 A에서 B로 흘러 팬이 시계 방향으로 도는 정회전, INA 0, INB 1이면 전류가 B에서 A로 거꾸로 흘러 반시계 방향으로 도는 역회전, 둘 다 0이면 전류가 흐르지 않아 멈춘다. 전류의 방향이 바뀌면 모터가 반대로 돈다는 것을 빨간 화살표로 보여 준다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="372" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">INA와 INB 두 신호로 방향을 정해요</text>
+<rect x="8" y="42" width="624" height="322" rx="12" fill="#ffffff" stroke="#7b8594" stroke-width="1"/>
+<text x="24" y="70" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">INA</text>
+<text x="84" y="70" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">INB</text>
+<text x="150" y="70" font-size="16" font-weight="700" fill="#17191c">모터에 흐르는 전류</text>
+<text x="440" y="70" font-size="16" font-weight="700" fill="#17191c">팬</text>
+<line x1="16" y1="82" x2="624" y2="82" stroke="#7b8594" stroke-width="1"/>
+<text x="36" y="132" font-size="20" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">1</text>
+<text x="96" y="132" font-size="20" font-weight="700" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">0</text>
+<line x1="170" y1="126" x2="262" y2="126" stroke="#7b8594" stroke-width="2"/>
+<line x1="318" y1="126" x2="410" y2="126" stroke="#7b8594" stroke-width="2"/>
+<circle cx="290" cy="126" r="26" fill="#ffffff" stroke="#2b3440" stroke-width="2.5"/>
+<text x="290" y="132" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">M</text>
+<text x="176" y="116" font-size="15" font-weight="700" fill="#4a5361">A</text>
+<text x="398" y="116" font-size="15" font-weight="700" fill="#4a5361">B</text>
+<line x1="196" y1="140" x2="246" y2="140" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="334" y1="140" x2="384" y2="140" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="290" y="172" font-size="15" font-weight="700" fill="#d92b2b" text-anchor="middle">A → B</text>
+<circle cx="470" cy="126" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M470 126 Q470.0 109.0 483.9 116.2 Z" fill="#4a5361"/>
+<path d="M470 126 Q484.7 134.5 471.5 142.9 Z" fill="#4a5361"/>
+<path d="M470 126 Q455.3 134.5 454.6 118.8 Z" fill="#4a5361"/>
+<circle cx="470" cy="126" r="3.6" fill="#2b3440"/>
+<path d="M444.0 111.0 A30 30 0 1 1 470.0 156.0" fill="none" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="516" y="124" font-size="17" font-weight="700" fill="#17191c">정회전</text>
+<text x="516" y="146" font-size="15" fill="#4a5361">시계 방향</text>
+<text x="36" y="228" font-size="20" font-weight="700" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">0</text>
+<text x="96" y="228" font-size="20" font-weight="700" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">1</text>
+<line x1="170" y1="222" x2="262" y2="222" stroke="#7b8594" stroke-width="2"/>
+<line x1="318" y1="222" x2="410" y2="222" stroke="#7b8594" stroke-width="2"/>
+<circle cx="290" cy="222" r="26" fill="#ffffff" stroke="#2b3440" stroke-width="2.5"/>
+<text x="290" y="228" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">M</text>
+<text x="176" y="212" font-size="15" font-weight="700" fill="#4a5361">A</text>
+<text x="398" y="212" font-size="15" font-weight="700" fill="#4a5361">B</text>
+<line x1="246" y1="236" x2="196" y2="236" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="384" y1="236" x2="334" y2="236" stroke="#d92b2b" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="290" y="268" font-size="15" font-weight="700" fill="#d92b2b" text-anchor="middle">B → A</text>
+<circle cx="470" cy="222" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M470 222 Q470.0 205.0 483.9 212.2 Z" fill="#4a5361"/>
+<path d="M470 222 Q484.7 230.5 471.5 238.9 Z" fill="#4a5361"/>
+<path d="M470 222 Q455.3 230.5 454.6 214.8 Z" fill="#4a5361"/>
+<circle cx="470" cy="222" r="3.6" fill="#2b3440"/>
+<path d="M496.0 207.0 A30 30 0 1 0 470.0 252.0" fill="none" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="516" y="220" font-size="17" font-weight="700" fill="#17191c">역회전</text>
+<text x="516" y="242" font-size="15" fill="#4a5361">반시계 방향</text>
+<text x="36" y="320" font-size="20" font-weight="700" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">0</text>
+<text x="96" y="320" font-size="20" font-weight="700" fill="#4a5361" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">0</text>
+<line x1="170" y1="314" x2="262" y2="314" stroke="#7b8594" stroke-width="2"/>
+<line x1="318" y1="314" x2="410" y2="314" stroke="#7b8594" stroke-width="2"/>
+<circle cx="290" cy="314" r="26" fill="#ffffff" stroke="#2b3440" stroke-width="2.5"/>
+<text x="290" y="320" font-size="18" font-weight="700" fill="#17191c" text-anchor="middle">M</text>
+<text x="176" y="304" font-size="15" font-weight="700" fill="#4a5361">A</text>
+<text x="398" y="304" font-size="15" font-weight="700" fill="#4a5361">B</text>
+<text x="290" y="360" font-size="15" fill="#4a5361" text-anchor="middle">흐르지 않아요</text>
+<circle cx="470" cy="314" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M470 314 Q470.0 297.0 483.9 304.2 Z" fill="#4a5361"/>
+<path d="M470 314 Q484.7 322.5 471.5 330.9 Z" fill="#4a5361"/>
+<path d="M470 314 Q455.3 322.5 454.6 306.8 Z" fill="#4a5361"/>
+<circle cx="470" cy="314" r="3.6" fill="#2b3440"/>
+<text x="516" y="312" font-size="17" font-weight="700" fill="#17191c">멈춤</text>
+</g>
+</svg>

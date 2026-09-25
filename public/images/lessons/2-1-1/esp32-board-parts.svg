@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" width="640" height="380" role="img" aria-labelledby="title desc">
+<title id="title">ESP32 개발 보드의 부분과 이름</title>
+<desc id="desc">위에서 본 ESP32 개발 보드에 번호가 붙어 있다. 1 왼쪽 가장자리의 USB-C 단자, 2 왼쪽 위의 리셋(EN) 버튼, 3 왼쪽 아래의 BOOT 버튼(GPIO 0), 4 작은 내장 LED(GPIO 2), 5 오른쪽의 ESP32-WROOM-32 모듈, 6 위아래 가장자리를 따라 늘어선 핀 머리(GPIO), 7 아래 줄의 I2C 핀 두 개(SDA 21번, SCL 22번). 아래에 번호별 이름표가 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="380" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<!-- 보드 -->
+<rect x="88" y="114" width="30" height="46" rx="5" fill="#b8c0cc" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="110" y="50" width="420" height="180" rx="12" fill="#22384d" stroke="#0f1c28" stroke-width="2"/>
+<!-- 위 핀 머리 15개 -->
+<g fill="#d9a520">
+<rect x="226" y="58" width="12" height="12" rx="2"/><rect x="246" y="58" width="12" height="12" rx="2"/><rect x="266" y="58" width="12" height="12" rx="2"/><rect x="286" y="58" width="12" height="12" rx="2"/><rect x="306" y="58" width="12" height="12" rx="2"/>
+<rect x="326" y="58" width="12" height="12" rx="2"/><rect x="346" y="58" width="12" height="12" rx="2"/><rect x="366" y="58" width="12" height="12" rx="2"/><rect x="386" y="58" width="12" height="12" rx="2"/><rect x="406" y="58" width="12" height="12" rx="2"/>
+<rect x="426" y="58" width="12" height="12" rx="2"/><rect x="446" y="58" width="12" height="12" rx="2"/><rect x="466" y="58" width="12" height="12" rx="2"/><rect x="486" y="58" width="12" height="12" rx="2"/><rect x="506" y="58" width="12" height="12" rx="2"/>
+</g>
+<!-- 아래 핀 머리 15개 -->
+<g fill="#d9a520">
+<rect x="226" y="210" width="12" height="12" rx="2"/><rect x="246" y="210" width="12" height="12" rx="2"/><rect x="266" y="210" width="12" height="12" rx="2"/><rect x="286" y="210" width="12" height="12" rx="2"/><rect x="306" y="210" width="12" height="12" rx="2"/>
+<rect x="326" y="210" width="12" height="12" rx="2"/><rect x="346" y="210" width="12" height="12" rx="2"/><rect x="366" y="210" width="12" height="12" rx="2"/><rect x="386" y="210" width="12" height="12" rx="2"/><rect x="406" y="210" width="12" height="12" rx="2"/>
+<rect x="446" y="210" width="12" height="12" rx="2"/><rect x="466" y="210" width="12" height="12" rx="2"/><rect x="506" y="210" width="12" height="12" rx="2"/>
+</g>
+<!-- I2C 핀 21·22 강조 -->
+<circle cx="432" cy="216" r="10" fill="#d9a520" stroke="#8fc2ff" stroke-width="3"/>
+<circle cx="492" cy="216" r="10" fill="#d9a520" stroke="#8fc2ff" stroke-width="3"/>
+<text x="432" y="198" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">21</text>
+<text x="492" y="198" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">22</text>
+<!-- 모듈 -->
+<rect x="316" y="88" width="196" height="100" rx="6" fill="#c9ced6" stroke="#9aa3ae" stroke-width="1.5"/>
+<text x="414" y="138" font-size="24" font-weight="700" fill="#22384d" text-anchor="middle">ESP32</text>
+<text x="414" y="164" font-size="16" fill="#22384d" text-anchor="middle">WROOM-32</text>
+<!-- 리셋(EN) 버튼 -->
+<rect x="130" y="66" width="26" height="20" rx="4" fill="#e6e9ee" stroke="#9aa3ae"/>
+<circle cx="143" cy="76" r="5" fill="#6b7480"/>
+<!-- 내장 LED -->
+<rect x="190" y="118" width="18" height="11" rx="2" fill="#6fd08c" stroke="#2f7d4a"/>
+<!-- BOOT 버튼 -->
+<circle cx="150" cy="192" r="16" fill="#d7dce3" stroke="#9aa3ae"/>
+<circle cx="150" cy="192" r="9" fill="#3a3f47"/>
+
+<!-- 번호표 -->
+<g font-size="16" font-weight="700" text-anchor="middle">
+<line x1="62" y1="137" x2="86" y2="137" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="50" cy="137" r="13" fill="#1f5bd6"/><text x="50" y="143" fill="#ffffff">1</text>
+<line x1="143" y1="36" x2="143" y2="64" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="143" cy="24" r="13" fill="#1f5bd6"/><text x="143" y="30" fill="#ffffff">2</text>
+<line x1="150" y1="210" x2="150" y2="246" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="150" cy="258" r="13" fill="#1f5bd6"/><text x="150" y="264" fill="#ffffff">3</text>
+<line x1="199" y1="36" x2="199" y2="116" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="199" cy="24" r="13" fill="#1f5bd6"/><text x="199" y="30" fill="#ffffff">4</text>
+<circle cx="336" cy="106" r="13" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/><text x="336" y="112" fill="#ffffff">5</text>
+<path d="M226 44 H518" stroke="#1f5bd6" stroke-width="2" fill="none"/>
+<path d="M226 44 V54 M518 44 V54" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="372" cy="30" r="13" fill="#1f5bd6"/><text x="372" y="36" fill="#ffffff">6</text>
+<path d="M432 228 V244 H492 V228" stroke="#1f5bd6" stroke-width="2" fill="none"/>
+<line x1="462" y1="244" x2="462" y2="250" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="462" cy="262" r="13" fill="#1f5bd6"/><text x="462" y="268" fill="#ffffff">7</text>
+</g>
+
+<!-- 이름표 -->
+<rect x="8" y="286" width="624" height="88" rx="10" fill="#f4f6f9" stroke="#d6dde6"/>
+<g font-size="16" fill="#17191c">
+<text x="24" y="310">1 USB-C 단자</text>
+<text x="24" y="334">2 리셋(EN) 버튼</text>
+<text x="24" y="358">3 BOOT 버튼(GPIO 0)</text>
+<text x="226" y="310">4 내장 LED(GPIO 2)</text>
+<text x="226" y="334">5 ESP32-WROOM-32 모듈</text>
+<text x="226" y="358">6 핀 머리(GPIO 핀)</text>
+<text x="446" y="310">7 I2C 핀</text>
+<text x="446" y="334">SDA 21번,</text>
+<text x="446" y="358">SCL 22번</text>
+</g>
+</g>
+</svg>

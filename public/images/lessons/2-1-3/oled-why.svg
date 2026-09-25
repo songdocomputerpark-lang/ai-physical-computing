@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 272" width="640" height="272" role="img" aria-labelledby="title desc">
+<title id="title">점을 켜고 꺼서 그림을 그리는 작은 화면</title>
+<desc id="desc">왼쪽은 작은 화면에 심박수 78 bpm과 오르내리는 그래프를 보여 주는 스마트 밴드이다. 그래프 한 부분을 점선 네모로 표시해 오른쪽에 크게 확대했더니, 네모난 점(픽셀) 가운데 켜진 흰 점들이 이어져 그래프 선이 된 것이 보인다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="272" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="16" y="50" width="280" height="170" rx="48" fill="#2b2f36"/>
+<rect x="52" y="78" width="208" height="114" rx="10" fill="#0b0f14" stroke="#4a5361"/>
+<text x="68" y="112" font-size="26" font-weight="700" fill="#ffffff">78</text>
+<text x="106" y="112" font-size="16" fill="#cfd6e0">bpm</text>
+<polyline points="64,160 92,160 102,160 110,138 118,176 126,150 134,160 170,160 178,140 186,176 194,150 202,160 248,160" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+<rect x="100" y="132" width="44" height="50" fill="none" stroke="#f6d36b" stroke-width="2.5" stroke-dasharray="6 4"/>
+<line x1="144" y1="132" x2="340" y2="58" stroke="#b7800f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<line x1="144" y1="182" x2="340" y2="222" stroke="#b7800f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="340" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="448" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="466" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="58" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="76" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="430" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="448" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="466" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="76" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="94" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="430" y="94" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="448" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="466" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="94" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="112" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="412" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="112" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="448" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="466" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="112" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="130" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="412" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="130" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="448" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="466" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="130" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="358" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="376" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="394" y="148" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="148" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="448" y="148" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="466" y="148" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="502" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="520" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="538" y="148" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="340" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="448" y="166" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="466" y="166" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="484" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="166" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="448" y="184" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="466" y="184" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="484" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="184" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="340" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="358" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="376" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="394" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="412" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="430" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="448" y="202" width="16" height="16" rx="2" fill="#ffffff"/>
+<rect x="466" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="484" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="502" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="520" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="538" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
+<rect x="336" y="54" width="222" height="168" rx="6" fill="none" stroke="#4a5361"/>
+<text x="448" y="250" font-size="16" fill="#17191c" text-anchor="middle">확대하면 켜진 점(픽셀)이 보여요</text>
+<text x="156" y="252" font-size="16" fill="#17191c" text-anchor="middle">스마트 밴드의 작은 화면</text>
+</g>
+</svg>

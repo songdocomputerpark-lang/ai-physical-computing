@@ -17,7 +17,7 @@ parts:
 practice:
   - "[실행]하면 1번 줄에서 SyntaxError가 나요. 원고 그림의 줄 번호(1, 2, 3 …)까지 코드에 함께 옮겨졌기 때문이에요."
   - "줄마다 맨 앞의 번호와 빈칸을 지우고 [실행]하면 팬이 2초씩 정회전 → 역회전 → 멈춤으로 돌아요."
-  - "라이브러리 파일 gorillacell_dcmotors.py는 가상 보드에 미리 들어 있어요. 실물 보드에서는 Thonny로 보드에 먼저 저장해요."
+  - "라이브러리 파일 gorillacell_dcmotors.py는 가상 보드에 미리 들어 있고, 실제 보드에서 [실행]할 때도 사이트가 보드에 먼저 올려 줘요."
 smoke:
   outcome: error
   error: SyntaxError

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 214" width="640" height="214" role="img" aria-labelledby="title desc">
+<title id="title">레이저 작동 알림 시스템의 시간표</title>
+<desc id="desc">시간이 0초에서 4초까지 흐르는 두 줄 표. 레이저 줄은 켜짐, 꺼짐, 켜짐, 꺼짐이 1초씩 되풀이되고, RGB LED 줄은 그와 맞춰 빨강, 파랑, 빨강, 파랑으로 바뀐다. 레이저가 켜져 있을 때는 빨간 LED, 꺼져 있을 때는 파란 LED가 켜진다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="214" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="22" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">1초마다 레이저와 RGB LED가 함께 바뀌어요</text>
+<text x="8" y="74" font-size="17" font-weight="700" fill="#17191c">레이저</text>
+<text x="8" y="96" font-size="16" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">laser</text>
+<rect x="150" y="50" width="106" height="50" rx="8" fill="#fde2e2" stroke="#7b8594"/>
+<text x="203.0" y="82" font-size="17" font-weight="700" fill="#a3232a" text-anchor="middle">켜짐</text>
+<rect x="262" y="50" width="106" height="50" rx="8" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="315.0" y="82" font-size="17" font-weight="700" fill="#4a5361" text-anchor="middle">꺼짐</text>
+<rect x="374" y="50" width="106" height="50" rx="8" fill="#fde2e2" stroke="#7b8594"/>
+<text x="427.0" y="82" font-size="17" font-weight="700" fill="#a3232a" text-anchor="middle">켜짐</text>
+<rect x="486" y="50" width="106" height="50" rx="8" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="539.0" y="82" font-size="17" font-weight="700" fill="#4a5361" text-anchor="middle">꺼짐</text>
+<text x="8" y="136" font-size="17" font-weight="700" fill="#17191c">RGB LED</text>
+<text x="8" y="158" font-size="16" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">set_color</text>
+<rect x="150" y="112" width="106" height="50" rx="8" fill="#ffd6d6" stroke="#7b8594"/>
+<text x="203.0" y="144" font-size="17" font-weight="700" fill="#a3232a" text-anchor="middle">빨강</text>
+<rect x="262" y="112" width="106" height="50" rx="8" fill="#dbe6ff" stroke="#7b8594"/>
+<text x="315.0" y="144" font-size="17" font-weight="700" fill="#1a4cb4" text-anchor="middle">파랑</text>
+<rect x="374" y="112" width="106" height="50" rx="8" fill="#ffd6d6" stroke="#7b8594"/>
+<text x="427.0" y="144" font-size="17" font-weight="700" fill="#a3232a" text-anchor="middle">빨강</text>
+<rect x="486" y="112" width="106" height="50" rx="8" fill="#dbe6ff" stroke="#7b8594"/>
+<text x="539.0" y="144" font-size="17" font-weight="700" fill="#1a4cb4" text-anchor="middle">파랑</text>
+<line x1="147" y1="172" x2="147" y2="182" stroke="#4a5361" stroke-width="2"/>
+<text x="147" y="202" font-size="16" fill="#4a5361" text-anchor="middle">0초</text>
+<line x1="259" y1="172" x2="259" y2="182" stroke="#4a5361" stroke-width="2"/>
+<text x="259" y="202" font-size="16" fill="#4a5361" text-anchor="middle">1초</text>
+<line x1="371" y1="172" x2="371" y2="182" stroke="#4a5361" stroke-width="2"/>
+<text x="371" y="202" font-size="16" fill="#4a5361" text-anchor="middle">2초</text>
+<line x1="483" y1="172" x2="483" y2="182" stroke="#4a5361" stroke-width="2"/>
+<text x="483" y="202" font-size="16" fill="#4a5361" text-anchor="middle">3초</text>
+<line x1="595" y1="172" x2="595" y2="182" stroke="#4a5361" stroke-width="2"/>
+<text x="595" y="202" font-size="16" fill="#4a5361" text-anchor="middle">4초</text>
+<line x1="147" y1="172" x2="608" y2="172" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+</g>
+</svg>

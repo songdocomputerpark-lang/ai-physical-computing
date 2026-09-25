@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 236" width="640" height="236" role="img" aria-labelledby="title desc">
+<title id="title">팬 모터 안전 수칙</title>
+<desc id="desc">노란 경고 삼각형 안에 팬 날개가 그려진 회전 날개 주의 표지와 세 가지 수칙: ① 돌고 있는 날개에 손가락, 머리카락, 연필 같은 물건을 가까이 대지 않는다. ② 날개를 끼우거나 뺄 때는 USB 케이블부터 뽑아 전원을 끈다. ③ 돌고 있는 팬을 손으로 잡아 세우지 않는다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="236" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="8" y="8" width="624" height="220" rx="14" fill="#fff4d8" stroke="#b7800f" stroke-width="2"/>
+<path d="M104 28 L184 168 H24 Z" fill="#f2c94c" stroke="#7a4a00" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="104" cy="120" r="30" fill="#ffffff" stroke="#7a4a00" stroke-width="2"/>
+<path d="M104 120 Q104.0 94.5 124.9 105.4 Z" fill="#2b3440"/>
+<path d="M104 120 Q126.1 132.8 106.2 145.4 Z" fill="#2b3440"/>
+<path d="M104 120 Q81.9 132.8 80.9 109.2 Z" fill="#2b3440"/>
+<circle cx="104" cy="120" r="5.4" fill="#7a4a00"/>
+<text x="104" y="206" font-size="17" font-weight="700" fill="#7a4a00" text-anchor="middle">회전 날개 주의</text>
+<circle cx="222" cy="50" r="12" fill="#7a4a00"/>
+<text x="222" y="55" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<text x="244" y="56" font-size="16" fill="#17191c">돌고 있는 날개에 손가락, 머리카락,</text>
+<text x="244" y="78" font-size="16" fill="#17191c">연필 같은 물건을 가까이 대지 않아요.</text>
+<circle cx="222" cy="110" r="12" fill="#7a4a00"/>
+<text x="222" y="115" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="244" y="116" font-size="16" fill="#17191c">날개를 끼우거나 뺄 때는</text>
+<text x="244" y="138" font-size="16" fill="#17191c">USB 케이블부터 뽑아 전원을 꺼요.</text>
+<circle cx="222" cy="170" r="12" fill="#7a4a00"/>
+<text x="222" y="175" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="244" y="176" font-size="16" fill="#17191c">돌고 있는 팬을 손으로 잡아</text>
+<text x="244" y="198" font-size="16" fill="#17191c">세우지 않아요.</text>
+</g>
+</svg>

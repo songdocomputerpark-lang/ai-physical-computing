@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 304" width="640" height="304" role="img" aria-labelledby="title desc">
+<title id="title">스마트 무드등의 입력, 판단, 출력</title>
+<desc id="desc">다섯 줄 표. 패드 1을 누르면 touch.read() 값이 약 688이고 get_button()이 "Button 1"을 돌려주어 네오픽셀 16개가 모두 빨강(255, 0, 0)이 된다. 패드 2는 약 1535 → "Button 2" → 초록(0, 255, 0), 패드 3은 약 2381 → "Button 3" → 파랑(0, 0, 255), 패드 4는 약 3263 → "Button 4" → 꺼짐(0, 0, 0)이다. 아무것도 누르지 않으면 값이 0이고 "None"이라 색을 바꾸지 않고 그대로 둔다. 윗줄에 입력, 값 읽기, 판단, 출력 단계가 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="304" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">스마트 무드등: 입력 → 판단 → 출력</text>
+<rect x="8" y="40" width="624" height="256" rx="14" fill="#ffffff" stroke="#7b8594"/>
+<text x="24" y="64" font-size="16" font-weight="700" fill="#1f5bd6">입력</text>
+<text x="138" y="64" font-size="16" font-weight="700" fill="#1f5bd6">값 읽기</text>
+<text x="282" y="64" font-size="16" font-weight="700" fill="#b3261e">판단</text>
+<text x="438" y="64" font-size="16" font-weight="700" fill="#2fa84f">출력</text>
+<text x="24" y="90" font-size="16" font-weight="700" fill="#17191c">누른 패드</text>
+<text x="138" y="90" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">touch.read()</text>
+<text x="282" y="90" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">get_button()</text>
+<text x="438" y="90" font-size="16" font-weight="700" fill="#17191c">네오픽셀 16개</text>
+<line x1="16" y1="100" x2="624" y2="100" stroke="#7b8594"/>
+<text x="24" y="130" font-size="16" fill="#17191c">패드 1</text>
+<text x="138" y="130" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">약 688</text>
+<text x="282" y="130" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">"Button 1"</text>
+<line x1="92" y1="125" x2="132" y2="125" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="240" y1="125" x2="276" y2="125" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="398" y1="125" x2="432" y2="125" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<circle cx="448" cy="125" r="9" fill="#ff0000" stroke="#6b7682"/>
+<text x="466" y="130" font-size="16" fill="#17191c">빨강 (255, 0, 0)</text>
+<text x="24" y="166" font-size="16" fill="#17191c">패드 2</text>
+<text x="138" y="166" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">약 1535</text>
+<text x="282" y="166" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">"Button 2"</text>
+<line x1="92" y1="161" x2="132" y2="161" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="240" y1="161" x2="276" y2="161" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="398" y1="161" x2="432" y2="161" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<circle cx="448" cy="161" r="9" fill="#00ff00" stroke="#6b7682"/>
+<text x="466" y="166" font-size="16" fill="#17191c">초록 (0, 255, 0)</text>
+<text x="24" y="202" font-size="16" fill="#17191c">패드 3</text>
+<text x="138" y="202" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">약 2381</text>
+<text x="282" y="202" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">"Button 3"</text>
+<line x1="92" y1="197" x2="132" y2="197" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="240" y1="197" x2="276" y2="197" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="398" y1="197" x2="432" y2="197" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<circle cx="448" cy="197" r="9" fill="#0000ff" stroke="#6b7682"/>
+<text x="466" y="202" font-size="16" fill="#17191c">파랑 (0, 0, 255)</text>
+<text x="24" y="238" font-size="16" fill="#17191c">패드 4</text>
+<text x="138" y="238" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">약 3263</text>
+<text x="282" y="238" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">"Button 4"</text>
+<line x1="92" y1="233" x2="132" y2="233" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="240" y1="233" x2="276" y2="233" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="398" y1="233" x2="432" y2="233" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<circle cx="448" cy="233" r="9" fill="#2b3440" stroke="#6b7682"/>
+<text x="466" y="238" font-size="16" fill="#17191c">꺼짐 (0, 0, 0)</text>
+<text x="24" y="274" font-size="16" fill="#17191c">안 누름</text>
+<text x="138" y="274" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">0</text>
+<text x="282" y="274" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">"None"</text>
+<line x1="92" y1="269" x2="132" y2="269" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="240" y1="269" x2="276" y2="269" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<line x1="398" y1="269" x2="432" y2="269" stroke="#4a5361" stroke-width="1.8" marker-end="url(#arrow)"/>
+<circle cx="448" cy="269" r="9" fill="#ffffff" stroke="#7b8594" stroke-dasharray="3 3"/>
+<text x="466" y="274" font-size="16" fill="#17191c">바꾸지 않고 그대로</text>
+</g>
+</svg>

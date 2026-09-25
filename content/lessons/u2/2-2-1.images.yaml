@@ -1,0 +1,34 @@
+# 차시 2-2-1 "버저 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-2-1
+# 결과는 public/images/lessons/2-2-1/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- U2B 158
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 155쪽 비상벨·타이머·알람 시계 사진은 쓰지 않아요 — 알람 시계는 스톡 권리 표기(Firuz Mukhtarov)가 있어 결정 C11로 쓸 수 없고,
+# 비상벨·타이머도 출처 표기가 없는 판매용 사진으로 보여요(INVENTORY §5.2 "스톡 추정"). 사이트가 그린 buzzer-uses.svg로 대신해요.
+# 155쪽 "버저에서 소리가 나는 원리" 도식은 사이트가 buzzer-principle.svg로 다시 그렸어요.
+# 156~157쪽 Thonny 저장 화면은 설치 절차라 쓰지 않아요(INVENTORY §5.1). 156쪽은 화면 속 폴더 경로 때문에 제외 쪽이기도 해요.
+# 159쪽 결과 사진은 코드(디지털 터치 센서, 17번 핀)와 달리 4채널 아날로그 터치 센서가 찍혀 있어 쓰지 않아요(INVENTORY §4.1).
+
+images:
+  - name: buzzer-kit
+    use: 2-2-1 따라하기 "실행하고 결과 보기"의 실제 보드 사진 — 기본 실습(음계 출력)을 실행한 교과서 키트(원고 158쪽)
+    alt: 확장 보드에 꽂은 ESP32 개발 보드와 3색 케이블로 이은 수동 버저 모듈 사진
+    from:
+      source: U2B
+      page: 158
+      image: 22
+    file: public/images/lessons/2-2-1/buzzer-kit.webp
+    width: 708
+    height: 476
+    bytes: 37134
+    sha256: "bff29532d60dec77c28e7bfcba7b2f2259f14e6db83b58e77a727d838cf2b7b7"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[63, 207, 100, 100]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: "통과 — 흰 바탕 위 ESP32 개발 보드(빨간 기판)를 꽂은 확장 보드, USB 케이블, 3색 케이블과 '수동버저' 글자가 적힌 버저 모듈만 있음. checks.faces 1곳([63, 207, 100, 100])은 흰 바탕과 확장 보드의 전원 스위치, 빨간 리셋 버튼이고 사람 얼굴이 아님. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"

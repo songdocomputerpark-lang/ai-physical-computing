@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
+<title id="title">np[번호] = 색과 np.write()의 차이</title>
+<desc id="desc">두 줄 그림. 위: np[0] = (255, 0, 0)과 np[1] = (0, 255, 0)을 실행하면 ESP32 안의 색 목록 16칸 가운데 0번 칸이 빨강, 1번 칸이 초록으로 적히지만 오른쪽의 네오픽셀 링은 모두 꺼진 그대로다. 아래: np.write()를 실행하면 목록 전체가 한 번에 링으로 보내져 0번 LED가 빨강, 1번 LED가 초록으로 켜진다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="330" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">색 정하기와 보내기는 따로예요</text>
+<rect x="8" y="46" width="624" height="132" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="24" y="74" font-size="16" font-weight="700" fill="#17191c">① np[번호] = 색: 보드 안 색 목록에 적어요</text>
+<rect x="24" y="90" width="206" height="68" rx="8" fill="#ffffff" stroke="#7b8594"/>
+<text x="36" y="114" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">np[0] = (255, 0, 0)</text>
+<text x="36" y="140" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">np[1] = (0, 255, 0)</text>
+<text x="250" y="100" font-size="16" fill="#4a5361">ESP32 안의 색 목록</text>
+<rect x="250" y="108" width="13" height="26" fill="#ff2a2a" stroke="#6b7682"/>
+<rect x="263" y="108" width="13" height="26" fill="#2adf4a" stroke="#6b7682"/>
+<rect x="276" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="289" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="302" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="315" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="328" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="341" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="354" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="367" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="380" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="393" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="406" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="419" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="432" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="445" y="108" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<text x="250" y="154" font-size="14" fill="#4a5361">0번</text>
+<text x="458" y="154" font-size="14" fill="#4a5361" text-anchor="end">15번</text>
+<circle cx="564" cy="116" r="40" fill="#1f2933"/>
+<circle cx="564" cy="116" r="24" fill="#f4efe3" stroke="#0b1117"/>
+<rect x="559.5" y="79.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="564.0" cy="84.0" r="2.7" fill="#2b3440"/>
+<rect x="571.7" y="81.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="576.2" cy="86.4" r="2.7" fill="#2b3440"/>
+<rect x="582.1" y="88.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="586.6" cy="93.4" r="2.7" fill="#2b3440"/>
+<rect x="589.1" y="99.3" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="593.6" cy="103.8" r="2.7" fill="#2b3440"/>
+<rect x="591.5" y="111.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="596.0" cy="116.0" r="2.7" fill="#2b3440"/>
+<rect x="589.1" y="123.7" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="593.6" cy="128.2" r="2.7" fill="#2b3440"/>
+<rect x="582.1" y="134.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="586.6" cy="138.6" r="2.7" fill="#2b3440"/>
+<rect x="571.7" y="141.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="576.2" cy="145.6" r="2.7" fill="#2b3440"/>
+<rect x="559.5" y="143.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="564.0" cy="148.0" r="2.7" fill="#2b3440"/>
+<rect x="547.3" y="141.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="551.8" cy="145.6" r="2.7" fill="#2b3440"/>
+<rect x="536.9" y="134.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="541.4" cy="138.6" r="2.7" fill="#2b3440"/>
+<rect x="529.9" y="123.7" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="534.4" cy="128.2" r="2.7" fill="#2b3440"/>
+<rect x="527.5" y="111.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="532.0" cy="116.0" r="2.7" fill="#2b3440"/>
+<rect x="529.9" y="99.3" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="534.4" cy="103.8" r="2.7" fill="#2b3440"/>
+<rect x="536.9" y="88.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="541.4" cy="93.4" r="2.7" fill="#2b3440"/>
+<rect x="547.3" y="81.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="551.8" cy="86.4" r="2.7" fill="#2b3440"/>
+<text x="564" y="170" font-size="16" fill="#4a5361" text-anchor="middle">링은 그대로</text>
+<rect x="8" y="190" width="624" height="132" rx="14" fill="#f4f6f9" stroke="#7b8594"/>
+<text x="24" y="218" font-size="16" font-weight="700" fill="#17191c">② np.write(): 목록 전체를 한 번에 보내요</text>
+<rect x="24" y="234" width="206" height="42" rx="8" fill="#ffffff" stroke="#7b8594"/>
+<text x="36" y="258" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">np.write()</text>
+<text x="250" y="244" font-size="16" fill="#4a5361">ESP32 안의 색 목록</text>
+<rect x="250" y="252" width="13" height="26" fill="#ff2a2a" stroke="#6b7682"/>
+<rect x="263" y="252" width="13" height="26" fill="#2adf4a" stroke="#6b7682"/>
+<rect x="276" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="289" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="302" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="315" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="328" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="341" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="354" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="367" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="380" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="393" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="406" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="419" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="432" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<rect x="445" y="252" width="13" height="26" fill="#ffffff" stroke="#6b7682"/>
+<text x="250" y="298" font-size="14" fill="#4a5361">0번</text>
+<text x="458" y="298" font-size="14" fill="#4a5361" text-anchor="end">15번</text>
+<line x1="466" y1="265" x2="518" y2="265" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<circle cx="564" cy="260" r="40" fill="#1f2933"/>
+<circle cx="564" cy="260" r="24" fill="#f4efe3" stroke="#0b1117"/>
+<circle cx="564.0" cy="228.0" r="7.2" fill="#ff2a2a" opacity="0.35"/>
+<rect x="559.5" y="223.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="564.0" cy="228.0" r="2.7" fill="#ff2a2a"/>
+<circle cx="576.2" cy="230.4" r="7.2" fill="#2adf4a" opacity="0.35"/>
+<rect x="571.7" y="225.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="576.2" cy="230.4" r="2.7" fill="#2adf4a"/>
+<rect x="582.1" y="232.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="586.6" cy="237.4" r="2.7" fill="#2b3440"/>
+<rect x="589.1" y="243.3" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="593.6" cy="247.8" r="2.7" fill="#2b3440"/>
+<rect x="591.5" y="255.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="596.0" cy="260.0" r="2.7" fill="#2b3440"/>
+<rect x="589.1" y="267.7" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="593.6" cy="272.2" r="2.7" fill="#2b3440"/>
+<rect x="582.1" y="278.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="586.6" cy="282.6" r="2.7" fill="#2b3440"/>
+<rect x="571.7" y="285.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="576.2" cy="289.6" r="2.7" fill="#2b3440"/>
+<rect x="559.5" y="287.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="564.0" cy="292.0" r="2.7" fill="#2b3440"/>
+<rect x="547.3" y="285.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="551.8" cy="289.6" r="2.7" fill="#2b3440"/>
+<rect x="536.9" y="278.1" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="541.4" cy="282.6" r="2.7" fill="#2b3440"/>
+<rect x="529.9" y="267.7" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="534.4" cy="272.2" r="2.7" fill="#2b3440"/>
+<rect x="527.5" y="255.5" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="532.0" cy="260.0" r="2.7" fill="#2b3440"/>
+<rect x="529.9" y="243.3" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="534.4" cy="247.8" r="2.7" fill="#2b3440"/>
+<rect x="536.9" y="232.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="541.4" cy="237.4" r="2.7" fill="#2b3440"/>
+<rect x="547.3" y="225.9" width="9" height="9" rx="2" fill="#e9edf1" stroke="#6b7682"/>
+<circle cx="551.8" cy="230.4" r="2.7" fill="#2b3440"/>
+<text x="564" y="314" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">목록대로 켜져요</text>
+</g>
+</svg>

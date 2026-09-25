@@ -266,7 +266,7 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
     }
   });
 
-  it('교과서 f062: 원본은 첫 반복에서 TypeError(원본 결함), 사이트판(원고 147쪽처럼 g 핀 줄·값 3개)은 레이저 21번과 빨강 27·파랑 33이 1초마다 번갈아 켜진다', () => {
+  it('교과서 f062: 원본은 첫 반복에서 TypeError(원본 결함), 사이트판(원고 146쪽처럼 g 핀 줄·값 3개)은 레이저 21번과 빨강 27·파랑 33이 1초마다 번갈아 켜진다', () => {
     const original = stepOf(out, 'textbook_f062_laser');
     expect([original.errorType, original.errorMessage]).toEqual(['TypeError', 'TypeError: set_color() takes 2 positional arguments but 3 were given']);
     const site = stepOf(out, 'site_f062_laser');

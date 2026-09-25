@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 312" width="640" height="312" role="img" aria-labelledby="title desc">
+<title id="title">MP3 모듈 안의 구조</title>
+<desc id="desc">ESP32가 UART 명령을 MP3 모듈로 보낸다. MP3 모듈 안에는 001.mp3, 002.mp3, 003.mp3 파일이 담긴 마이크로 SD 카드, 압축을 푸는 MP3 디코더, 소리를 키우는 앰프가 차례로 이어져 있고, 앰프가 바깥의 스피커로 소리를 낸다. 아래에 파일을 읽고(디코딩) 소리를 키우는 일은 모듈이 모두 한다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="312" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">MP3 모듈: 보드는 명령만 보내고, 모듈이 파일을 소리로 바꿔요</text>
+<rect x="10" y="126" width="92" height="60" rx="8" fill="#1f2933" stroke="#1f2933" stroke-width="1"/>
+<text x="56" y="162" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">ESP32</text>
+<line x1="104" y1="156" x2="170" y2="156" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="137" y="140" font-size="15" font-weight="700" fill="#1f5bd6" text-anchor="middle">UART</text>
+<text x="137" y="180" font-size="15" fill="#1f5bd6" text-anchor="middle">명령</text>
+<rect x="176" y="52" width="344" height="206" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="348" y="78" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">MP3 모듈</text>
+<path d="M196 104 H262 V214 H196 V122 Z" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="229" y="136" font-size="14" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">001.mp3</text>
+<text x="229" y="160" font-size="14" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">002.mp3</text>
+<text x="229" y="184" font-size="14" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">003.mp3</text>
+<text x="229" y="238" font-size="15" fill="#4a5361" text-anchor="middle">마이크로 SD</text>
+<rect x="292" y="128" width="96" height="56" rx="8" fill="#ffffff" stroke="#4a5361" stroke-width="1.5"/>
+<text x="340" y="162" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">MP3 디코더</text>
+<text x="340" y="210" font-size="15" fill="#4a5361" text-anchor="middle">압축을 풀어요</text>
+<rect x="412" y="128" width="96" height="56" rx="8" fill="#ffffff" stroke="#4a5361" stroke-width="1.5"/>
+<text x="460" y="162" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">앰프</text>
+<text x="460" y="210" font-size="15" fill="#4a5361" text-anchor="middle">소리를 키워요</text>
+<line x1="264" y1="156" x2="288" y2="156" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="390" y1="156" x2="408" y2="156" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="510" y1="156" x2="548" y2="156" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M551.8 145.6 H564.8 L580.4 132.6 V179.4 L564.8 166.4 H551.8 Z" fill="#2b3440"/>
+<path d="M592.1 150.9 A8 8 0 0 1 592.1 161.1" fill="none" stroke="#c25e00" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M598.3 145.7 A16 16 0 0 1 598.3 166.3" fill="none" stroke="#c25e00" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M604.4 140.6 A24 24 0 0 1 604.4 171.4" fill="none" stroke="#c25e00" stroke-width="2.5" stroke-linecap="round"/>
+<text x="578" y="206" font-size="15" fill="#4a5361" text-anchor="middle">스피커</text>
+<text x="320" y="292" font-size="16" fill="#17191c" text-anchor="middle">파일을 읽고(디코딩) 소리를 키우는 일은 모듈이 모두 해요.</text>
+</g>
+</svg>

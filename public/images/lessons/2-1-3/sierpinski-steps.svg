@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
+<title id="title">재귀로 그리는 시에르핀스키 삼각형</title>
+<desc id="desc">왼쪽: 큰 삼각형 하나를 크기가 반인 삼각형 세 개(위, 좌하, 우하)로 나눈 그림. 꼭짓점 자리는 위 (x, y), 좌하 (x - half, y + half), 우하 (x + half, y + half)이고 half는 size // 2이다. 오른쪽: 크기 64일 때 1개, 32일 때 3개, 16일 때 9개처럼 크기가 반씩 줄 때마다 삼각형이 3배가 되고, 크기가 1이 되면 점 하나를 찍어 크기 64에서 시작하면 점 729개가 찍힌다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="330" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="160" y="24" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">한 번 부르면 세 번 다시 불러요</text>
+<path d="M160.0 48.0 L10.0 198.0 L310.0 198.0 Z" fill="none" stroke="#7b8594" stroke-width="2"/>
+<path d="M160.0 48.0 L85.0 123.0 L235.0 123.0 Z" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<path d="M85.0 123.0 L10.0 198.0 L160.0 198.0 Z" fill="#e8f6ee" stroke="#3b9360" stroke-width="2.5"/>
+<path d="M235.0 123.0 L160.0 198.0 L310.0 198.0 Z" fill="#fff4d8" stroke="#b7800f" stroke-width="2.5"/>
+<text x="160" y="111" font-size="17" font-weight="700" fill="#1a4cb4" text-anchor="middle">위</text>
+<text x="85" y="186" font-size="17" font-weight="700" fill="#15653a" text-anchor="middle">좌하</text>
+<text x="235" y="186" font-size="17" font-weight="700" fill="#7a4a00" text-anchor="middle">우하</text>
+<circle cx="160" cy="48" r="5" fill="#17191c"/>
+<circle cx="85" cy="123" r="5" fill="#17191c"/>
+<circle cx="235" cy="123" r="5" fill="#17191c"/>
+<text x="10" y="226" font-size="16" fill="#17191c">꼭짓점 자리(half = size // 2)</text>
+<text x="10" y="252" font-size="16" font-weight="700" fill="#17191c">위</text>
+<text x="58" y="252" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c">(x, y)</text>
+<text x="10" y="278" font-size="16" font-weight="700" fill="#17191c">좌하</text>
+<text x="58" y="278" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c">(x - half, y + half)</text>
+<text x="10" y="304" font-size="16" font-weight="700" fill="#17191c">우하</text>
+<text x="58" y="304" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="16" fill="#17191c">(x + half, y + half)</text>
+<line x1="338" y1="36" x2="338" y2="320" stroke="#d6dde6" stroke-width="2"/>
+<text x="488" y="24" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">크기가 반씩 줄며 개수가 3배</text>
+<path d="M398.0 56.0 L354.0 100.0 L442.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<text x="398" y="126" font-size="16" fill="#17191c" text-anchor="middle">크기 64</text>
+<text x="398" y="148" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">1개</text>
+<path d="M494.0 56.0 L472.0 78.0 L516.0 78.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M472.0 78.0 L450.0 100.0 L494.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M516.0 78.0 L494.0 100.0 L538.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<text x="494" y="126" font-size="16" fill="#17191c" text-anchor="middle">크기 32</text>
+<text x="494" y="148" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">3개</text>
+<path d="M590.0 56.0 L579.0 67.0 L601.0 67.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M579.0 67.0 L568.0 78.0 L590.0 78.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M601.0 67.0 L590.0 78.0 L612.0 78.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M568.0 78.0 L557.0 89.0 L579.0 89.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M557.0 89.0 L546.0 100.0 L568.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M579.0 89.0 L568.0 100.0 L590.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M612.0 78.0 L601.0 89.0 L623.0 89.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M601.0 89.0 L590.0 100.0 L612.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<path d="M623.0 89.0 L612.0 100.0 L634.0 100.0 Z" fill="#4a5361" stroke="#17191c" stroke-width="1"/>
+<text x="590" y="126" font-size="16" fill="#17191c" text-anchor="middle">크기 16</text>
+<text x="590" y="148" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">9개</text>
+<text x="352" y="196" font-size="16" fill="#17191c">… 크기가 1이 되면 더 나누지 않고</text>
+<text x="352" y="220" font-size="16" fill="#17191c">점 하나를 찍어요(oled.pixel).</text>
+<rect x="352" y="238" width="276" height="64" rx="10" fill="#fff4d8" stroke="#b7800f"/>
+<text x="490" y="264" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">크기 64에서 시작하면</text>
+<text x="490" y="290" font-size="16" fill="#17191c" text-anchor="middle">점 729개(3을 6번 곱한 수)</text>
+</g>
+</svg>

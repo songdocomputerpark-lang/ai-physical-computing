@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" width="640" height="380" role="img" aria-labelledby="title desc">
+<title id="title">speed 값과 PWM duty, 팬의 빠르기</title>
+<desc id="desc">위에 duty = int(1023 × speed ÷ 100) 식이 있다. 네 줄: speed=0은 duty 0이라 신호가 늘 꺼져 팬이 멈추고, speed=30은 duty 306이라 짧게 켜져 천천히, speed=70은 duty 716이라 길게 켜져 빠르게, speed=100은 duty 1023이라 늘 켜져 가장 빠르게 돈다. 팬 옆의 빨간 호가 많을수록 빠르다. 아래에 켜진 시간이 길수록 모터가 평균적으로 더 센 힘을 받아 빨리 돈다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="640" height="380" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="26" font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">speed(0~100)를 duty(0~1023)로 바꿔 빠르기를 정해요</text>
+<text x="320" y="54" font-size="16" fill="#1f5bd6" text-anchor="middle" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty = int(1023 × speed ÷ 100)</text>
+<rect x="8" y="70" width="624" height="62" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="98" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">speed=0</text>
+<text x="22" y="120" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 0</text>
+<polyline points="170.0,118.0 230.0,118.0 230.0,118.0 290.0,118.0 290.0,118.0 350.0,118.0 350.0,118.0 410.0,118.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="462" cy="101" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M462 101 Q462.0 84.0 475.9 91.2 Z" fill="#4a5361"/>
+<path d="M462 101 Q476.7 109.5 463.5 117.9 Z" fill="#4a5361"/>
+<path d="M462 101 Q447.3 109.5 446.6 93.8 Z" fill="#4a5361"/>
+<circle cx="462" cy="101" r="3.6" fill="#2b3440"/>
+<text x="510" y="107" font-size="16" font-weight="700" fill="#17191c">멈춰요</text>
+<rect x="8" y="140" width="624" height="62" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="168" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">speed=30</text>
+<text x="22" y="190" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 306</text>
+<polyline points="170.0,188.0 170.0,154.0 187.9,154.0 187.9,188.0 230.0,188.0 230.0,188.0 230.0,154.0 247.9,154.0 247.9,188.0 290.0,188.0 290.0,188.0 290.0,154.0 307.9,154.0 307.9,188.0 350.0,188.0 350.0,188.0 350.0,154.0 367.9,154.0 367.9,188.0 410.0,188.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="462" cy="171" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M462 171 Q462.0 154.0 475.9 161.2 Z" fill="#4a5361"/>
+<path d="M462 171 Q476.7 179.5 463.5 187.9 Z" fill="#4a5361"/>
+<path d="M462 171 Q447.3 179.5 446.6 163.8 Z" fill="#4a5361"/>
+<circle cx="462" cy="171" r="3.6" fill="#2b3440"/>
+<path d="M475.0 148.5 A26 26 0 0 1 487.6 166.5" fill="none" stroke="#d92b2b" stroke-width="2.5" stroke-linecap="round"/>
+<text x="510" y="177" font-size="16" font-weight="700" fill="#17191c">천천히</text>
+<rect x="8" y="210" width="624" height="62" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="238" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">speed=70</text>
+<text x="22" y="260" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 716</text>
+<polyline points="170.0,258.0 170.0,224.0 212.0,224.0 212.0,258.0 230.0,258.0 230.0,258.0 230.0,224.0 272.0,224.0 272.0,258.0 290.0,258.0 290.0,258.0 290.0,224.0 332.0,224.0 332.0,258.0 350.0,258.0 350.0,258.0 350.0,224.0 392.0,224.0 392.0,258.0 410.0,258.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="462" cy="241" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M462 241 Q462.0 224.0 475.9 231.2 Z" fill="#4a5361"/>
+<path d="M462 241 Q476.7 249.5 463.5 257.9 Z" fill="#4a5361"/>
+<path d="M462 241 Q447.3 249.5 446.6 233.8 Z" fill="#4a5361"/>
+<circle cx="462" cy="241" r="3.6" fill="#2b3440"/>
+<path d="M475.0 218.5 A26 26 0 0 1 487.6 236.5" fill="none" stroke="#d92b2b" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M478.5 212.4 A33 33 0 0 1 494.5 235.3" fill="none" stroke="#d92b2b" stroke-width="2.5" stroke-linecap="round"/>
+<text x="510" y="247" font-size="16" font-weight="700" fill="#17191c">빠르게</text>
+<rect x="8" y="280" width="624" height="62" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<text x="22" y="308" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">speed=100</text>
+<text x="22" y="330" font-size="15" fill="#4a5361" font-family="'Consolas', 'D2Coding', 'Menlo', monospace">duty 1023</text>
+<polyline points="170.0,294.0 230.0,294.0 230.0,294.0 290.0,294.0 290.0,294.0 350.0,294.0 350.0,294.0 410.0,294.0" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="462" cy="311" r="20" fill="#ffffff" stroke="#7b8594" stroke-width="2"/>
+<path d="M462 311 Q462.0 294.0 475.9 301.2 Z" fill="#4a5361"/>
+<path d="M462 311 Q476.7 319.5 463.5 327.9 Z" fill="#4a5361"/>
+<path d="M462 311 Q447.3 319.5 446.6 303.8 Z" fill="#4a5361"/>
+<circle cx="462" cy="311" r="3.6" fill="#2b3440"/>
+<path d="M475.0 288.5 A26 26 0 0 1 487.6 306.5" fill="none" stroke="#d92b2b" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M478.5 282.4 A33 33 0 0 1 494.5 305.3" fill="none" stroke="#d92b2b" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M482.0 276.4 A40 40 0 0 1 501.4 304.1" fill="none" stroke="#d92b2b" stroke-width="2.5" stroke-linecap="round"/>
+<text x="510" y="317" font-size="16" font-weight="700" fill="#17191c">가장 빠르게</text>
+<text x="320" y="366" font-size="15" fill="#4a5361" text-anchor="middle">켜진 시간이 길수록 모터가 평균적으로 더 센 힘을 받아 빨리 돌아요.</text>
+</g>
+</svg>
