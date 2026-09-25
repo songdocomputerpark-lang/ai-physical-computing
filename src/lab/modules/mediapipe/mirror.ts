@@ -17,7 +17,7 @@
  *
  * 이 파일은 DOM·다른 모듈에 기대지 않는 순수 함수라 단위 테스트가 가짜 이미지로 검사한다.
  */
-import type { SyntheticFace } from './synthetic-face.ts';
+import { baseFace, type SyntheticFace } from './synthetic-face.ts';
 import type { SyntheticHand, SyntheticHandedness } from './synthetic-hands.ts';
 import { POSE_MIRROR_PAIRS, type SyntheticPose } from './synthetic-pose.ts';
 
@@ -104,15 +104,65 @@ function flip(x: number): number {
   return Math.round((1 - x) * 1e4) / 1e4;
 }
 
+let cachedFacePairs: readonly number[] | null = null;
+
 /**
- * 얼굴 좌표를 좌우로 뒤집는다(x → 1 - x). **번호는 바꾸지 않는다** — 진짜 모델은 뒤집힌 영상에서 왼쪽 눈·오른쪽 눈 번호도 서로 바뀌지만,
- * 교재·교안의 얼굴 예제는 좌우 짝(33·263, 78·308)을 대칭으로만 쓰거나 가운데 점(1·13·14)을 써서 결과가 같다.
- * 번호까지 바꾸려면 468점의 좌우 짝 표가 필요해 지금은 넣지 않았다(PROGRESS 미해결에 기록).
+ * 얼굴 478점의 좌우 짝(거울에 비친 번호) — 합성 얼굴의 기본 자리(synthetic-face.ts baseFace — 겉테두리·눈·입을 좌우 대칭으로 놓고
+ * 진짜 얼굴 그물 연결표로 편 것)에서 한 번만 계산한다. 가운데 선의 점(x = 0)은 자기 자신, 나머지는 거울 자리가 가까운 것부터
+ * 서로 한 번씩만 짝을 맺는다(가장 가까운 것만 고르면 눈가 몇 쌍이 어긋난다). 결과는 33↔263, 133↔362, 234↔454, 78↔308, 468↔473처럼
+ * MediaPipe 얼굴 그물의 알려진 좌우 짝과 같다(tests/unit/mediapipe/mirror.test.ts — 2026-09-25 Phase 5 통합, 구역 b1 요청 8).
+ */
+export function faceMirrorPairs(): readonly number[] {
+  if (cachedFacePairs) {
+    return cachedFacePairs;
+  }
+  const { xy } = baseFace();
+  const pair = new Array<number>(xy.length).fill(-1);
+  const left: number[] = [];
+  const right: number[] = [];
+  xy.forEach(([x], index) => {
+    if (Math.abs(x) < 1e-6) {
+      pair[index] = index;
+    } else if (x < 0) {
+      left.push(index);
+    } else {
+      right.push(index);
+    }
+  });
+  const candidates: [number, number, number][] = [];
+  for (const i of left) {
+    for (const j of right) {
+      // i를 거울에 비친 자리(-x, y)와 j 사이의 거리
+      candidates.push([Math.hypot(xy[j]![0] + xy[i]![0], xy[j]![1] - xy[i]![1]), i, j]);
+    }
+  }
+  candidates.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  for (const [, i, j] of candidates) {
+    if (pair[i]! < 0 && pair[j]! < 0) {
+      pair[i] = j;
+      pair[j] = i;
+    }
+  }
+  // 짝을 못 찾은 점(좌우 개수가 다를 때)은 자기 자신으로 둔다
+  cachedFacePairs = Object.freeze(pair.map((value, index) => (value < 0 ? index : value)));
+  return cachedFacePairs;
+}
+
+/**
+ * 얼굴 좌표를 좌우로 뒤집는다: x → 1 - x, 그리고 **왼쪽·오른쪽 점 번호를 서로 바꾼다**(33 ↔ 263, 234 ↔ 454 …).
+ * 진짜 모델은 뒤집힌 영상에서도 사진 왼쪽 눈을 33번 무리로 부른다(거울 영상도 그럴듯한 얼굴이라 그대로 맞춘다) — 자세의 왼팔·오른팔 이름을
+ * 바꾸는 mirrorPoses와 같은 까닭이다. 번호를 바꾸지 않던 때(2026-09-25 전)에는 234번을 가면의 왼쪽 끝으로 쓰는 1-3-3 심화(f039)에서
+ * 재생 입력의 가면이 얼굴 옆에 그려졌다.
  */
 export function mirrorFaces(faces: readonly SyntheticFace[]): SyntheticFace[] {
+  const pair = faceMirrorPairs();
   return faces.map((face) => ({
     ...face,
-    landmarks: face.landmarks.map(([x, y, z]) => [flip(x), y, z] as const),
+    landmarks: face.landmarks.map((_point, index) => {
+      const source = pair[index] ?? index;
+      const [x, y, z] = face.landmarks[source < face.landmarks.length ? source : index]!;
+      return [flip(x), y, z] as const;
+    }),
     box: { ...face.box, xmin: Math.round((1 - face.box.xmin - face.box.width) * 1e4) / 1e4 },
   }));
 }

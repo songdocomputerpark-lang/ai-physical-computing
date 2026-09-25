@@ -22,8 +22,8 @@
  */
 import { FACE_CONNECTIONS } from './face-connections.ts';
 
-/** 시퀀스·좌표 계산이 바뀌면 올린다(픽스처에 함께 적혀 어긋남을 알린다). */
-export const SYNTHETIC_FACE_VERSION = 1;
+/** 시퀀스·좌표 계산이 바뀌면 올린다(픽스처에 함께 적혀 어긋남을 알린다). 2: 윙크 동작이 사진 오른쪽 눈을 감는다(2026-09-25) */
+export const SYNTHETIC_FACE_VERSION = 2;
 
 /** 얼굴 그물 점 개수(눈동자 제외) */
 export const FACE_MESH_LANDMARK_COUNT = 468;
@@ -481,7 +481,8 @@ export const FACE_SEQUENCE_INFO: Readonly<Record<FaceSequenceId, { readonly labe
     // (2026-09-24 Phase 4 통합 — 구역 H 요청 6. 카메라 없는 교실에서도 클릭으로 켜지는 LED·버저를 볼 수 있게).
     'face-wink': {
       label: '윙크·두 눈 감기(클릭)',
-      description: '사진 왼쪽 눈을 1초쯤 감았다 뜨고(윙크), 조금 뒤 두 눈을 1초쯤 감았다 떠요(4단원 얼굴 마우스의 더블클릭·오른쪽 클릭 예제용).',
+      description:
+        '한쪽 눈을 1초쯤 감았다 뜨고(윙크 — 코드가 영상을 거울처럼 뒤집으면 화면 왼쪽 눈), 조금 뒤 두 눈을 1초쯤 감았다 떠요(4단원 얼굴 마우스의 더블클릭·오른쪽 클릭 예제용).',
       seconds: 6,
     },
   });
@@ -521,12 +522,14 @@ function turnFrame(t: number, seconds: number): SyntheticFaceFrame {
 }
 
 function winkFrame(t: number, seconds: number): SyntheticFaceFrame {
-  // 코가 천천히 오가서 마우스도 움직이고, 0.8~2.0초에 사진 왼쪽 눈(33쪽 — 예제의 LEFT_EYE_POINTS)만, 3.4~4.6초에 두 눈을 감는다.
+  // 코가 천천히 오가서 마우스도 움직이고, 0.8~2.0초에 사진 오른쪽 눈(263쪽)만, 3.4~4.6초에 두 눈을 감는다.
+  // 4단원 예제(f096·f097·f104·f114)는 cv2.flip(frame, 1)로 뒤집은 뒤 LEFT_EYE_POINTS(33쪽)로 판정한다. 뒤집으면 이 눈이 화면 왼쪽에 오고
+  // 재생 입력도 진짜 모델처럼 번호를 바꿔 33쪽으로 부르므로(mirror.ts mirrorFaces) 더블클릭이 된다 — 화면 왼쪽에서 감기는 눈이 코드의 "Left Eye".
   // 두 클릭 사이가 1초(예제의 click_delay)보다 넉넉히 멀고, 감은 동안(완전히 감긴 약 1초)이 0.4초보다 길다.
   const yaw = 10 * Math.sin((2 * Math.PI * t) / seconds);
   const both = plateau(t, 3.4, 4.6, 0.12);
-  const left = Math.max(plateau(t, 0.8, 2.0, 0.12), both);
-  return { faces: [face({ ...REST, yaw, blink: [left, both] })] };
+  const wink = Math.max(plateau(t, 0.8, 2.0, 0.12), both);
+  return { faces: [face({ ...REST, yaw, blink: [both, wink] })] };
 }
 
 const BUILDERS: Readonly<Record<FaceSequenceId, (t: number, seconds: number) => SyntheticFaceFrame>> = Object.freeze({

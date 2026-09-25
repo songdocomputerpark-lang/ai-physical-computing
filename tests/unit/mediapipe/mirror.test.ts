@@ -7,10 +7,13 @@ import {
   ORIENTATION_MARK_SIZE,
   ORIENTATION_SAMPLE,
   detectMirroredFrame,
+  faceMirrorPairs,
   isMarkPixel,
+  mirrorFaces,
   mirrorHandedness,
   mirrorHands,
 } from '../../../src/lab/modules/mediapipe/mirror.ts';
+import { FACE_LANDMARK_COUNT, generateFaceSequence } from '../../../src/lab/modules/mediapipe/synthetic-face.ts';
 import { generateHandSequence } from '../../../src/lab/modules/mediapipe/synthetic-hands.ts';
 
 /** replay-source.ts의 drawOrientationMark와 같은 세모를 RGBA 버퍼에 직접 그린다(Node에는 캔버스가 없다). */
@@ -141,5 +144,59 @@ describe('좌표·좌우 이름 뒤집기', () => {
     const before = hands[0]!.landmarks[4]![0];
     mirrorHands(hands);
     expect(hands[0]!.landmarks[4]![0]).toBe(before);
+  });
+});
+
+describe('얼굴 좌표 뒤집기 — 번호도 좌우 짝으로 바꾼다(진짜 모델처럼, 2026-09-25)', () => {
+  it('좌우 짝 표: 478점 모두 짝이 있고 두 번 짝을 따라가면 제자리, MediaPipe의 알려진 짝과 같다', () => {
+    const pair = faceMirrorPairs();
+    expect(pair).toHaveLength(FACE_LANDMARK_COUNT);
+    for (const [index, other] of pair.entries()) {
+      expect(pair[other], String(index)).toBe(index);
+    }
+    const known: [number, number][] = [
+      [33, 263],
+      [133, 362],
+      [234, 454],
+      [78, 308],
+      [160, 387],
+      [158, 385],
+      [153, 380],
+      [144, 373],
+      [468, 473],
+    ];
+    for (const [a, b] of known) {
+      expect(pair[a], `${a}↔${b}`).toBe(b);
+    }
+    // 가운데 선(코끝 1, 콧등 6, 이마 10, 입술 13·14, 턱 152)은 자기 자신
+    for (const middle of [1, 6, 10, 13, 14, 152]) {
+      expect(pair[middle], String(middle)).toBe(middle);
+    }
+    expect(pair.filter((other, index) => other === index).length).toBeLessThan(40);
+  });
+
+  it('뒤집어도 33번(눈)·234번(볼)은 화면 왼쪽, 263번·454번은 오른쪽이다 — 1-3-3 가면이 얼굴 위에 얹힌다', () => {
+    const face = generateFaceSequence('face-turn').frames[0]!.faces[0]!;
+    const [flipped] = mirrorFaces([face]);
+    expect(face.landmarks[33]![0]).toBeLessThan(face.landmarks[263]![0]);
+    expect(flipped!.landmarks[33]![0]).toBeLessThan(flipped!.landmarks[263]![0]);
+    expect(flipped!.landmarks[234]![0]).toBeLessThan(flipped!.landmarks[454]![0]);
+    // 번호가 바뀐 점의 x는 원래 짝의 1 - x, y는 짝의 y
+    expect(flipped!.landmarks[33]![0]).toBeCloseTo(1 - face.landmarks[263]![0], 4);
+    expect(flipped!.landmarks[33]![1]).toBe(face.landmarks[263]![1]);
+    // 가운데 점은 x만 뒤집힌다
+    expect(flipped!.landmarks[1]![0]).toBeCloseTo(1 - face.landmarks[1]![0], 4);
+    expect(flipped!.landmarks[1]![1]).toBe(face.landmarks[1]![1]);
+  });
+
+  it('두 번 뒤집으면 처음으로 돌아오고, 원본 배열을 고치지 않는다', () => {
+    const face = generateFaceSequence('face-wink').frames[20]!.faces[0]!;
+    const before = face.landmarks[33]![0];
+    const twice = mirrorFaces(mirrorFaces([face]))[0]!;
+    for (const index of [1, 33, 234, 263, 454, 468, 473]) {
+      expect(twice.landmarks[index]![0], String(index)).toBeCloseTo(face.landmarks[index]![0], 4);
+      expect(twice.landmarks[index]![1], String(index)).toBe(face.landmarks[index]![1]);
+    }
+    expect(face.landmarks[33]![0]).toBe(before);
   });
 });

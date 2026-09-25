@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { FACE_CONNECTIONS } from '../../../src/lab/modules/mediapipe/face-connections.ts';
+import { mirrorFaces } from '../../../src/lab/modules/mediapipe/mirror.ts';
 import {
   FACE_KEY_LANDMARKS,
   FACE_LANDMARK_COUNT,
@@ -154,7 +155,7 @@ describe('교재 예제의 판정이 재생 입력에서 바뀐다', () => {
   });
 
   it('윙크·두 눈 감기: 4단원 얼굴 마우스(f104)의 EAR 0.1 판정이 0.4초 넘게 이어져 더블클릭 → 오른쪽 클릭 차례로 나온다', () => {
-    // f104 calculate_ear와 같은 계산(640×480 정수 픽셀). LEFT_EYE_POINTS = 사진 왼쪽 눈(33쪽), RIGHT_EYE_POINTS = 263쪽.
+    // f104 calculate_ear와 같은 계산(640×480 정수 픽셀). LEFT_EYE_POINTS = 화면 왼쪽 눈(33쪽), RIGHT_EYE_POINTS = 263쪽.
     const LEFT_EYE_POINTS = [33, 160, 158, 133, 153, 144];
     const RIGHT_EYE_POINTS = [362, 385, 387, 263, 373, 380];
     const ear = (landmarks: readonly (readonly number[])[], points: readonly number[]) => {
@@ -162,26 +163,35 @@ describe('교재 예제의 판정이 재생 입력에서 바뀐다', () => {
       const dist = (a: readonly [number, number], b: readonly [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
       return (dist(p[1]!, p[5]!) + dist(p[2]!, p[4]!)) / (2 * dist(p[0]!, p[3]!));
     };
-    const faces = first('face-wink');
-    const state = faces.map((face) => {
-      const left = ear(face.landmarks, LEFT_EYE_POINTS) <= 0.1;
-      const right = ear(face.landmarks, RIGHT_EYE_POINTS) <= 0.1;
-      return left && right ? 'both' : left ? 'left' : right ? 'right' : 'open';
-    });
+    const stateOf = (list: readonly { landmarks: readonly (readonly number[])[] }[]) =>
+      list.map((face) => {
+        const left = ear(face.landmarks, LEFT_EYE_POINTS) <= 0.1;
+        const right = ear(face.landmarks, RIGHT_EYE_POINTS) <= 0.1;
+        return left && right ? 'both' : left ? 'left' : right ? 'right' : 'open';
+      });
     // 이어진 구간(같은 상태가 몇 장 이어지나) — 15fps라 0.4초는 6장
-    const runs: { state: string; frames: number }[] = [];
-    for (const value of state) {
-      const last = runs[runs.length - 1];
-      if (last && last.state === value) last.frames += 1;
-      else runs.push({ state: value, frames: 1 });
-    }
-    const closedRuns = runs.filter((run) => run.state !== 'open');
+    const closedRunsOf = (state: string[]) => {
+      const runs: { state: string; frames: number }[] = [];
+      for (const value of state) {
+        const last = runs[runs.length - 1];
+        if (last && last.state === value) last.frames += 1;
+        else runs.push({ state: value, frames: 1 });
+      }
+      return runs.filter((run) => run.state !== 'open');
+    };
+    const faces = first('face-wink');
+    // 4단원 예제는 cv2.flip(frame, 1) 뒤에 판정한다 — 재생 입력도 뒤집힌 영상이면 mirrorFaces로 번호까지 바꿔 준다(진짜 모델과 같게).
+    // 그래서 뒤집은 좌표에서 코드의 LEFT_EYE_POINTS(33쪽, 화면 왼쪽 눈)가 먼저 감겨 더블클릭 → 두 눈으로 오른쪽 클릭이 된다.
+    const mirroredState = stateOf(mirrorFaces(faces));
+    const closedRuns = closedRunsOf(mirroredState);
     expect(closedRuns.map((run) => run.state)).toEqual(['left', 'both']);
     for (const run of closedRuns) {
       expect(run.frames / 15, run.state).toBeGreaterThan(0.6);
     }
-    expect(state[0]).toBe('open');
-    expect(state[state.length - 1]).toBe('open');
+    expect(mirroredState[0]).toBe('open');
+    expect(mirroredState[mirroredState.length - 1]).toBe('open');
+    // 뒤집지 않은 재생 화면에서는 사진 오른쪽 눈(263쪽)이 감긴다
+    expect(closedRunsOf(stateOf(faces)).map((run) => run.state)).toEqual(['right', 'both']);
     // 코가 움직여 마우스도 움직인다
     const noseX = faces.map((face) => face.landmarks[1]![0]);
     expect(Math.max(...noseX) - Math.min(...noseX)).toBeGreaterThan(0.03);
