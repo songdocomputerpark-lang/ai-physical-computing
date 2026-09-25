@@ -506,6 +506,11 @@ export function installLessonPresentation(doc: Document = document): void {
     sections = readSections(body);
     html.dataset.presenting = '';
     root.hidden = false;
+    // 늦게 받는(lazy) 그림은 그 단계를 보여 줄 때에야 받아져, 발표 도중에 높이가 바뀌고 단계 수가 달라졌다(휴대폰 23 → 25단계).
+    // 발표를 시작하면 이 차시의 그림을 모두 받는다 — 다 받으면 아래 'load' 듣기가 한 번 더 나눈다.
+    for (const image of body.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')) {
+      image.loading = 'eager';
+    }
     // 큰 글씨(발표 화면 스타일)가 걸린 뒤에 재야 한 화면에 맞게 나뉜다.
     replan();
     index = 0;

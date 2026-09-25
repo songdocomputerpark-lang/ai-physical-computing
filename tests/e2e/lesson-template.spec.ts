@@ -9,6 +9,9 @@ async function openPresentation(page: Page) {
   await open.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+  // 발표를 시작하면 차시 그림을 모두 받고, 다 받은 높이로 단계를 한 번 더 나눈다(0.2초 모아서) — 그 뒤의 단계 수로 본다.
+  await page.waitForFunction(() => [...document.querySelectorAll<HTMLImageElement>('.lesson-body img')].every((image) => image.complete));
+  await page.waitForTimeout(500);
 }
 
 function status(page: Page) {
