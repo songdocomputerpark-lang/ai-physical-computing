@@ -66,7 +66,7 @@ export const dashText = {
   },
   /** 값이 여러 개일 때(DATA,120,80) 쓰는 칸 설명 */
   fieldHint(): string {
-    return 'DATA,120,80처럼 값이 여러 개면 몇 번째 값을 쓸지 정해요(0부터).';
+    return 'DATA,120,80처럼 값이 여러 개면 쓸 값의 번호를 적어요. 첫 값이 0번이고, 머리말(DATA)은 세지 않아요.';
   },
   /** 두 탭 실습 안내 */
   twoTabs(): string {

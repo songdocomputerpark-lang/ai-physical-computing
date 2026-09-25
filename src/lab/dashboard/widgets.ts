@@ -250,7 +250,7 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     addField({ id: `${settingsId}-min`, label: '눈금 아래', value: String(widget.min), type: 'number', name: 'min' });
     addField({ id: `${settingsId}-max`, label: '눈금 위', value: String(widget.max), type: 'number', name: 'max' });
     addField({ id: `${settingsId}-unit`, label: '단위', value: widget.unit, maxLength: 6, name: 'unit' });
-    addField({ id: `${settingsId}-field`, label: '몇 번째 값', value: String(widget.field), type: 'number', hint: dashText.fieldHint(), name: 'field' });
+    addField({ id: `${settingsId}-field`, label: '값 번호', value: String(widget.field), type: 'number', hint: dashText.fieldHint(), name: 'field' });
   }
   if (widget.kind === 'switch') {
     addField({ id: `${settingsId}-on`, label: '켤 때 보낼 말', value: widget.onText, maxLength: SEND_TEXT_MAX, name: 'onText' });

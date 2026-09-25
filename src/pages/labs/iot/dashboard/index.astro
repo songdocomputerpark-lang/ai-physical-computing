@@ -63,7 +63,7 @@ const mqttTemplate = labLink('esp32', 'esp32/templates/mqtt-pub-sub.py');
       코드의 <code>PREFIX = ""</code> 줄에 이 화면의 접두어를 적어요(ESP32 실습실 MQTT 칸의 [코드에 접두어 적기]). 토픽은
       <code>접두어12글자/esp32-01/tx</code>가 되고, 이미 접두어로 시작하는 토픽은 가상 보드도 한 번 더 붙이지 않아요. 접두어가 없는 MQTT 코드는
       사이트가 실제 보드로 보내지 않아요 — 같은 코드를 올린 모든 보드와 한 토픽을 나눠 쓰게 되기 때문이에요.
-      값이 <code>DATA,120,80</code>처럼 여러 개면 위젯 [설정]의 "몇 번째 값"으로 골라요.
+      값이 <code>DATA,120,80</code>처럼 여러 개면 위젯 [설정]의 "값 번호"로 골라요(첫 값이 0번).
     </p>
     <p>
       보드 없이 <strong>대시보드끼리만</strong> 주고받는 값은 <code>dash/온도</code>처럼 <code>dash/</code>로 시작하는 토픽을 써요.
