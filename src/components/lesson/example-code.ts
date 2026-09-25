@@ -103,7 +103,9 @@ export const LINE_BREAK_HTML = '<span class="lesson-code__nl" aria-hidden="true"
 
 function lineHtml(line: string, number: number): string {
   const comment = /^\s*#/u.test(line) ? ' lesson-code__line--comment' : '';
-  return `<span class="lesson-code__line${comment}" data-line="${number}">${escapeHtml(line)}</span>`;
+  // 빈 줄은 빈칸 하나로 둔다 — 속이 빈 줄 블록은 끌어 고른 글(복사)에서 사라져 빈 줄이 없어졌다(Edge 확인, 2026-09-26).
+  // 빈칸만 있는 줄은 파이썬에서 빈 줄과 같다.
+  return `<span class="lesson-code__line${comment}" data-line="${number}">${line === '' ? ' ' : escapeHtml(line)}</span>`;
 }
 
 /** 줄 전체를 코드 상자 HTML로(줄 번호 1부터). 줄 사이에는 화면에서 숨긴 줄바꿈 글자(LINE_BREAK_HTML)를 둔다. */

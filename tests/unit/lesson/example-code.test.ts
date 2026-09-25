@@ -66,6 +66,10 @@ describe('코드 상자 HTML', () => {
     expect(html.replace(/<[^>]+>/gu, '')).toBe('# 설명\nif a &lt; b:\n    print("&amp;")');
   });
 
+  it('빈 줄은 빈칸 하나로 둔다(복사할 때 빈 줄이 사라지지 않게)', () => {
+    expect(codeLinesToHtml(['a = 1', '', 'b = 2'])).toContain('<span class="lesson-code__line" data-line="2"> </span>');
+  });
+
   it('발췌는 원래 줄 번호를 지키고 건너뛴 줄 수를 앞·사이·끝에 보인다', () => {
     const lines = Array.from({ length: 10 }, (_, index) => `line${index + 1}`);
     const { html, shown } = excerptToHtml(lines, [
