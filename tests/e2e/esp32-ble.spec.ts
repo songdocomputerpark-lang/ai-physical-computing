@@ -190,10 +190,11 @@ test.describe('가상 블루투스(BLE)', () => {
     await connect(page);
     // 원본의 else 분기가 1초마다 세 색을 모두 꺼서, 아무 명령도 없으면 꺼진 상태로 가라앉는다
     await expect.poll(async () => colorName(page), { timeout: 20_000 }).toBe('꺼짐');
+    // 예제는 색을 1초만 켰다 끈다 — 기본 간격(나중에는 1초마다)으로 보면 켜진 1초를 놓칠 수 있어(CI 휴대폰에서 한 번 흔들림, 2026-09-26) 0.1초마다 본다.
     await blePanel(page).locator('[data-ble-command="a"]').click();
-    await expect.poll(async () => colorName(page), { timeout: 20_000 }).toBe('빨강');
+    await expect.poll(async () => colorName(page), { timeout: 20_000, intervals: [100] }).toBe('빨강');
     await blePanel(page).locator('[data-ble-command="c"]').click();
-    await expect.poll(async () => colorName(page), { timeout: 20_000 }).toBe('초록');
+    await expect.poll(async () => colorName(page), { timeout: 20_000, intervals: [100] }).toBe('초록');
     await stop(page);
   });
 
@@ -260,10 +261,11 @@ test.describe('가상 블루투스 — 사이트판 예제', () => {
     await page.waitForTimeout(1200);
     expect(await colorName(page)).toBe('꺼짐');
     await connect(page);
+    // 색을 1초만 켰다 끄므로 켜진 1초를 놓치지 않게 0.1초마다 본다(원본판 f148이 CI에서 흔들린 것과 같은 까닭, 2026-09-26).
     await blePanel(page).locator('[data-ble-command="a"]').click();
-    await expect.poll(async () => colorName(page), { timeout: 20_000 }).toBe('빨강');
+    await expect.poll(async () => colorName(page), { timeout: 20_000, intervals: [100] }).toBe('빨강');
     await blePanel(page).locator('[data-ble-command="c"]').click();
-    await expect.poll(async () => colorName(page), { timeout: 20_000 }).toBe('초록');
+    await expect.poll(async () => colorName(page), { timeout: 20_000, intervals: [100] }).toBe('초록');
     await stop(page);
   });
 
