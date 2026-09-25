@@ -285,6 +285,16 @@ Phase 4 워크플로 `wf_26c7dddc-2bf`를 멈췄다. 돌던 두 단계(G 시나�
 
 - 모델이 Opus 5.5로 바뀌었다. 워크플로 공통 프롬프트의 커밋 서명(Opus 5)은 고치면 캐시가 모두 무효가 되므로 그대로 두고, **커밋하는 두 단계(통합·수정)의 프롬프트에만** Opus 5.5 서명으로 덮어쓰는 줄을 넣었다.
 
+### 2026-09-25 12시 35분 — Phase 5 진행 위치 (한도 대비 기록)
+
+워크플로 `wf_c17f072d-499`(스크립트 사본 `.cache/resume/phase5-content-wf_c17f072d-499.js`, args `.cache/resume/RESUME-ARGS.json`).
+
+- **끝나서 커밋·push된 것:** P5-01 원고 이미지 추출 도구, P5-02 차시 틀·check:lessons·기준 차시 1-1-1(HEAD 8c650dd, origin과 같음). 운영자 답 반영(제외 쪽 16747e1, 결정 aadc441).
+- **도는 중:** 단원 6구역의 첫 단계 — A I단원 앞·보충 V, B I단원 1-2, C I단원 1-4·마무리, D II단원 2-1, E III단원 3-1, F IV단원 4-1. 그 뒤 B2·D2·E2·F2 → G 교사용 자료실·H 가린 편집본 → 통합 → 검토 3 → 수정.
+- **커밋 안 된 작업 파일 22개**(구역은 커밋하지 않는다 — 통합이 커밋). **`git clean`·`git checkout .` 금지.** 사본 `.cache/resume/phase5-wip-snapshot.tar.gz`, 목록 `phase5-wip-files.txt`.
+- **워크플로가 읽는 메인 세션 지시**(`.cache/phase5-notes/main-session-*.md` — 사본은 `.cache/resume/phase5-notes/`): 01 스톡 이미지 금지(C11), 02 운영자 답 반영(얼굴·삽화·학교명 공개, 예제 MIT, ESP32BLE MIT 고지). 프롬프트 기본값보다 이 지시가 앞선다.
+- **재개:** 같은 세션이면 먼저 **살아 있는지** 본다(에이전트 기록 갱신 시각). 죽었으면 `resumeFromRunId: 'wf_c17f072d-499'` — 끝난 P5-01·02는 캐시에서 돌아온다. 재개 직전 journal 크기를 적어 두고 그 뒤에 붙은 줄만 본다(`docs/HANDOFF.md` 4번).
+
 ## 다음 할 일 (순서대로 — 끝난 Phase 3은 `docs/PLAN.md` §8.3, 다음 Phase 4는 §8.4)
 
 1. ~~**P3-00 (실험) MicroPython WASM 포트**~~ **끝남(2026-09-17): PD-04 유지** — 판정·근거는 미해결 42, 비교·다시 볼 조건·**가상 보드가 지킬 MicroPython 차이 표 14항목**(ticks 넘침 2**30·epoch 2000·단정밀도 float·errno 번호·u-이름·`const` 등)은 PLAN §8.3 P3-00 구현 메모. P3-01은 그 표의 "흉내" 항목을 보드 흉내 모듈 단위 테스트로 확인한다. 협조적 정지(`bridge.ts`)·동기 진입점 규칙(미해결 25)·흉내 모듈 폴더 규약은 Pyodide를 그대로 쓰므로 바뀌지 않는다.
