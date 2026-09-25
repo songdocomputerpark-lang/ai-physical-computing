@@ -115,15 +115,14 @@ describe('제외 쪽(scripts/image-exclusions.yaml)', () => {
   });
 
   // PLAN §9.3 2번과 INVENTORY §6의 목록. 이 파일에서 줄을 빼려면 운영자 답(할 일 4·7번)이 있어야 하고, 그때 이 표도 함께 고친다.
+  // 2026-09-25 운영자 답으로 뺀 것: 할 일 4번(본인 얼굴) U1 29·34·35·37·40, U3 194·200·202·204·206, BT 9·84·91 / 할 일 7번(학교명 공개) BT 1.
   const BASELINE: [string, number[], string][] = [
-    ['U1', [13, 15, 16, 29, 33, 34, 35, 37, 40], 'face'],
-    ['U3', [194, 200, 202, 204, 206], 'face'],
-    ['BT', [5, 9, 84, 91], 'face'],
+    ['U1', [13, 15, 16, 33], 'face'],
+    ['BT', [5], 'face'],
     ['BT', [6, 51, 58, 72, 74, 75, 91], 'path'],
     ['U2B', [156], 'path'],
     ['U3', [197, 198], 'device-address'],
     ['BT', [72, 75, 76, 80], 'device-address'],
-    ['BT', [1], 'school-name'],
     ['BT', [71, 73, 79, 82, 86, 89], 'classroom'],
     ['U1', [21], 'content'],
   ];
@@ -135,20 +134,35 @@ describe('제외 쪽(scripts/image-exclusions.yaml)', () => {
     }
   });
 
-  it('BT p5(홍보 이미지 속 인물)·p1(학교명)·학급 게시물은 어떤 경우에도 꺼내지 않는다(never)', () => {
-    for (const page of [1, 5, 71, 89]) {
+  it('BT p5(홍보 이미지 속 인물)·학급 게시물은 어떤 경우에도 꺼내지 않는다(never)', () => {
+    for (const page of [5, 71, 89]) {
       expect(exclusionFor(realExclusions.rules, 'BT', page)?.override).toBe('never');
     }
     expect(exclusionFor(realExclusions.rules, 'U1', 21)?.override).toBe('never');
   });
 
   it('한 쪽이 여러 항목에 걸리면 합친다 — 얼굴이 하나라도 있으면 엄격 얼굴 검사', () => {
-    const p91 = exclusionFor(realExclusions.rules, 'BT', 91);
-    expect(p91).toMatchObject({ override: 'region', strictFaces: true });
-    expect(p91?.kinds.sort()).toEqual(['face', 'path']);
+    // 실제 목록: BT p72는 경로 + 기기 주소(얼굴 없음)
     const p72 = exclusionFor(realExclusions.rules, 'BT', 72);
     expect(p72).toMatchObject({ override: 'region', strictFaces: false });
+    expect(p72?.kinds.sort()).toEqual(['device-address', 'path']);
+    // 운영자가 본인 얼굴이라고 답한 쪽은 얼굴 항목이 빠지고 경로만 남는다(할 일 4번, 2026-09-25)
+    const p91 = exclusionFor(realExclusions.rules, 'BT', 91);
+    expect(p91).toMatchObject({ override: 'region', strictFaces: false });
+    expect(p91?.kinds).toEqual(['path']);
     expect(exclusionFor(realExclusions.rules, 'U1', 14)).toBeNull();
+    expect(exclusionFor(realExclusions.rules, 'U1', 29)).toBeNull();
+    // 얼굴 + 다른 항목이 한 쪽에 겹치면 엄격 얼굴 검사가 켜진다(합치기 규칙 자체)
+    const { rules } = parseExclusions(
+      [
+        'exclusions:',
+        '  - { source: U3, pages: [300], kind: face, override: region, reason: 까닭 }',
+        '  - { source: U3, pages: [300], kind: path, override: region, reason: 까닭 }',
+      ].join('\n'),
+    );
+    const merged = exclusionFor(rules, 'U3', 300);
+    expect(merged).toMatchObject({ override: 'region', strictFaces: true });
+    expect(merged?.kinds.sort()).toEqual(['face', 'path']);
   });
 
   it('형식이 틀린 항목을 알린다', () => {
@@ -261,10 +275,9 @@ describe('제외 쪽 규칙을 목록에 비추기(checkExclusionPolicy)', () =>
     expect(checkExclusionPolicy(entry({ source: 'U1', page: 13, region: [0, 0, 100, 100] }), realExclusions.rules).problem).toContain('privacy_override');
   });
 
-  it('BT p5·p1은 privacy_override가 있어도 막는다', () => {
+  it('BT p5는 privacy_override가 있어도 막는다', () => {
     const override = ', privacy_override: "인물이 없는 부분만 잘라 꺼냈다고 적어도 안 돼요"';
     expect(checkExclusionPolicy(entry({ source: 'BT', page: 5, region: [0, 0, 100, 100] }, override), realExclusions.rules).problem).toContain('꺼내지 않는 쪽');
-    expect(checkExclusionPolicy(entry({ source: 'BT', page: 1, region: [0, 0, 100, 100] }, override), realExclusions.rules).problem).toContain('꺼내지 않는 쪽');
   });
 
   it('region + privacy_override면 꺼내되, 얼굴 쪽은 엄격 얼굴 검사를 표시한다', () => {
