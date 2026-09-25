@@ -106,7 +106,7 @@ const { previous, next } = findNeighbors(lessons, lesson.id);
       {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
       <div data-present-hide>
         <LessonMeta lesson={lesson} />
-        <p class="lesson__tools">
+        <p class="lesson__tools" data-pagefind-ignore>
           <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
             발표 모드
           </button>
