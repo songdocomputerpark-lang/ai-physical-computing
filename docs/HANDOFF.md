@@ -72,15 +72,17 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 | Phase 3 ESP32 실습실 | `wf_86bbf998-bc6` | `workflows\scripts\phase3-esp32-lab-wf_86bbf998-bc6.js` | 제작·통합까지 끝(검토 도중 정지) |
 | Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
 | Phase 4 통신 실습실 | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | 완료(2026-09-25 05시) |
-| **Phase 5 교육과정 콘텐츠** | `wf_c17f072d-499` | `workflows\scripts\phase5-content-wf_c17f072d-499.js` | **도는 중**(2026-09-25 06:03 시작) |
+| Phase 5 교육과정 콘텐츠 | `wf_c17f072d-499` | `workflows\scripts\phase5-content-wf_c17f072d-499.js` | 완료(2026-09-26 — 검토 반영까지, Phase 5 끝) |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
 
-### 지금 도는 것 — `wf_c17f072d-499` Phase 5 교육과정 콘텐츠 (2026-09-25 06:03 시작)
+### 끝난 것 — `wf_c17f072d-499` Phase 5 교육과정 콘텐츠 (2026-09-25 06:03 시작 → 2026-09-26 완료)
 
 PLAN §8.5 P5-01~P5-14. Core(P5-01 원고 이미지 추출 도구 → P5-02 차시 틀·check:lessons·기준 차시 1-1-1) → Build 6구역(A I단원 앞·보충 V 4801 / B I단원 1-2 → B2 1-3 4802 / C I단원 1-4·마무리 4803 / D II단원 2-1 → D2 2-2·마무리 4804 / E III단원 → E2 보충 P1·C1~C3 4805 / F IV단원 4-1 → F2 4-2·프로젝트 4806) → Build2(G 교사용 자료실 4807 / H 가린 편집본 PDF 4808) → 통합 → 검토 3(완료 기준·원고 대조 / 개인정보·저작권·이미지 / 고1 읽기·수업 흐름, 4811~4813) → 수정.
 
 **통합 단계 끝(2026-09-25 저녁):** 구역이 남긴 파일을 영역별 커밋(670cc4b~6a9c3fa 외)으로 합쳐 push했다 — 이제 작업 폴더에 커밋 안 된 구역 파일이 없다. 통합 보고는 `.cache/phase5-notes/integration.md`, 멈추면 다음은 검토 3(4811~4813) → 수정 단계부터.
+
+**검토 반영(수정) 단계 끝(2026-09-26):** 검토 3명의 31건을 반영해 영역별 커밋 15개(`ca11e2f`..`183a0ad`)와 기록 커밋으로 push했다. 보고는 `.cache/phase5-notes/final.md`, 판정표는 PROGRESS "현재 Phase". 이 워크플로는 끝났으니 다시 돌리지 않는다.
 
 **Phase 4와 같은 재개 안전 설계**(보고는 `.cache/phase5-notes/`, 요청 `.cache/phase5-requests/`, 검토 `.cache/phase5-reviews/` — 프롬프트는 상수). 커밋 서명은 처음부터 Opus 5.5. 구역은 커밋하지 않으므로 도는 동안 커밋 안 된 파일이 쌓인다 — **`git clean` 금지.** 스크립트 사본은 세션 폴더와 `.cache/resume/phase5-content-wf_c17f072d-499.js`, args는 `.cache/resume/RESUME-ARGS.json`.
 
@@ -137,7 +139,7 @@ Phase 3의 **남은 일만** 담은 작은 워크플로다: 적대적 검토 `cr
 - 중간에 멈춘 단계가 이미 커밋까지 했으면, 그 단계 프롬프트에 "이미 커밋됨(커밋 해시 나열) — 처음부터 다시 만들지 말고 완료 기준만 확인하고 빠진 것만 보완" 주의를 넣고 재개한다.
 - 에이전트 안에서 개발 서버는 `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx`로 띄운다. 한 폴더에 서버는 하나만 뜬다.
 
-**다음은 Phase 4다(Phase 3은 2026-09-18 검토 반영까지 끝났다 — 남은 것은 운영자의 실물 보드 확인뿐).** Phase가 끝났으면 다음 Phase 워크플로를 새로 쓴다. 남은 것은 Phase 4 통신 실습실(`docs/PLAN.md` §8.4, 11개), Phase 5 교육과정 콘텐츠 이관(§8.5, 14개), Phase 6 품질·유지보수(§8.6, 8개). 지금까지 쓴 틀은 **Core 순차 단계 → 병렬 구역(구역마다 고칠 파일을 못 박고 포트 4501~4507, `PW_BASE_URL`로 각자 시험) → 통합 → 적대적 검토 3명 → 수정·배포**이고, 에이전트는 `effort: 'max'`, 공통 프롬프트에 **파일 내려받기 금지**(외부 파일은 운영자만 받는다)를 넣는다.
+**다음은 Phase 6다(Phase 5는 2026-09-26 검토 반영까지 끝났다 — 남은 것은 운영자의 실물·사실 확인, PROGRESS 운영자 할 일 23~25번).** Phase가 끝났으면 다음 Phase 워크플로를 새로 쓴다. 남은 것은 Phase 6 품질·유지보수(`docs/PLAN.md` §8.6, 8개 — 차례와 할 일은 PROGRESS "다음 할 일" 10번). 지금까지 쓴 틀은 **Core 순차 단계 → 병렬 구역(구역마다 고칠 파일을 못 박고 포트 4501~4507, `PW_BASE_URL`로 각자 시험) → 통합 → 적대적 검토 3명 → 수정·배포**이고, 에이전트는 `effort: 'max'`, 공통 프롬프트에 **파일 내려받기 금지**(외부 파일은 운영자만 받는다)를 넣는다.
 
 ---
 
