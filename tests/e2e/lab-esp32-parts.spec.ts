@@ -281,7 +281,12 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     await expect(motor).toHaveAttribute('data-visual-on', 'true', { timeout: 20_000 });
     await expect(motor).toHaveAttribute('data-visual-motion', 'still');
     await expect(motor).toContainText('진동 중');
-    const animations = await motor.evaluate((element) => element.getAnimations({ subtree: true }).length);
+    // 움직임 줄이기 규칙(global.css)은 모든 요소의 transition-duration을 0.01ms로 두므로, 방금 바뀐 모양(떨림 표시 곡선의
+    // opacity 등)이 0.01ms짜리 CSS 전환으로 다음 화면 갱신까지 목록에 남을 수 있다 — 컴퓨터가 바쁘면 잡힌다(2026-09-25
+    // Phase 5 통합 전체 실행에서 두 번 실패, 따로 돌리면 통과). 떨림은 Web Animations라 CSS 전환만 빼고 센다.
+    const animations = await motor.evaluate(
+      (element) => element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition)).length,
+    );
     expect(animations).toBe(0);
     await page.mouse.up();
     await stop(page);

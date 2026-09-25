@@ -104,7 +104,7 @@ test.describe('시작하기 페이지', () => {
     await expect(help).toHaveAttribute('open', '');
   });
 
-  test('교사용: 외부 연결 표에 네 곳과 처리방침 링크, 성취기준 표 틀, 공용 컴퓨터 안내가 있다', async ({ page }) => {
+  test('교사용: 외부 연결 표에 네 곳과 처리방침 링크, 성취기준 영역 표(자료실로 가는 링크), 공용 컴퓨터 안내가 있다', async ({ page }) => {
     await page.goto(getPage('start-teacher').href);
     const connections = page.getByRole('table', { name: '외부로 연결되는 곳과 보내지는 것' });
     const rows = connections.locator('tbody tr');
@@ -115,9 +115,17 @@ test.describe('시작하기 페이지', () => {
       const links = row.locator('a[href^="https://"]');
       expect(await links.count()).toBeGreaterThan(0);
     }
-    const standards = page.getByRole('table', { name: /성취기준·평가 방향 표/u });
-    await expect(standards.locator('tbody tr')).toHaveCount(4);
+    // Phase 5 통합(2026-09-25): "준비 중" 틀이던 표가 영역마다 교사용 자료실 성취기준 쪽(#std-area-N)으로 가는 표가 됐다.
+    const standards = page.getByRole('table', { name: '성취기준 영역과 평가 방향' });
+    const areaRows = standards.locator('tbody tr');
+    await expect(areaRows).toHaveCount(4);
     await expect(standards).toContainText('[12인피01-01]');
+    for (let area = 1; area <= 4; area += 1) {
+      await expect(areaRows.nth(area - 1).getByRole('link', { name: '성취기준과 평가 방향' })).toHaveAttribute(
+        'href',
+        new RegExp(`/teacher/standards/#std-area-${area}$`, 'u'),
+      );
+    }
     await expect(page.getByText('[이 컴퓨터에서 내 기록 지우기]')).toBeVisible();
     await expect(page.getByRole('table', { name: /학교 네트워크 체크리스트/u })).toBeVisible();
   });

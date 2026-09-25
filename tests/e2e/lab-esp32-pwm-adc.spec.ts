@@ -335,7 +335,8 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
     await expect.poll(async () => /cw(,stop)?,ccw.*,stop/u.test(await directions()), { timeout: 15_000 }).toBe(true);
     await stop(page);
     await expect(fan).toHaveAttribute('data-visual-direction', 'stop');
-    expect(await fan.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+    // 회전은 Web Animations다. 멈춘 뒤에는 그것만 없으면 된다 — 방금 바뀐 모양의 CSS 전환은 세지 않는다(lab-esp32-parts 진동 모터 검사 참고).
+    expect(await fan.evaluate((element) => element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition)).length)).toBe(0);
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openExample(page, 'esp32/u2/2-2-3-fan-direction.py');
@@ -343,7 +344,12 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
     await expect(part(page, 'fan-motor')).toHaveAttribute('data-visual-direction', 'cw', { timeout: 20_000 });
     await expect(part(page, 'fan-motor')).toHaveAttribute('data-visual-motion', 'still');
     await expect(part(page, 'fan-motor')).toContainText('정회전');
-    expect(await part(page, 'fan-motor').evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+    // 움직임 줄이기 규칙(global.css)이 모든 요소에 0.01ms CSS 전환을 두므로 전환은 빼고 센다(바쁜 컴퓨터에서 다음 화면 갱신까지 남음).
+    expect(
+      await part(page, 'fan-motor').evaluate(
+        (element) => element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition)).length,
+      ),
+    ).toBe(0);
     await stop(page);
   });
 

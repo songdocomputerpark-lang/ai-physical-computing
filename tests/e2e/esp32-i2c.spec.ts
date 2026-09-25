@@ -258,7 +258,8 @@ test.describe('ESP32 실습실 — I2C 표시 장치(P3-04)', () => {
       await expect(lcd).toHaveAttribute('data-visual-blink', 'true');
       await expect(lcd).toHaveAttribute('data-visual-lit', 'false');
       await expect(block).toHaveAttribute('opacity', '0.55');
-      expect(await block.evaluate((element) => element.getAnimations().length)).toBe(0);
+      // 깜빡임은 Web Animations다. 움직임 줄이기 규칙이 모든 요소에 두는 0.01ms CSS 전환(방금 바뀐 opacity)은 세지 않는다.
+      expect(await block.evaluate((element) => element.getAnimations().filter((animation) => !(animation instanceof CSSTransition)).length)).toBe(0);
       await expect(lcd.locator('desc[data-part-desc]')).toHaveText(/백라이트 꺼짐\.$/u);
       await expect(lcd).toContainText('백라이트 꺼짐 · 화면 켜짐');
     });
