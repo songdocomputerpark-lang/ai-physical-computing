@@ -274,7 +274,11 @@ class Timer:
         core = self._core
         if core is not None:
             self._stopped_ms = self.value()
-            apc_board.BOARD.remove_timer(core)
+            board = apc_board.BOARD
+            board.remove_timer(core)
+            if board.in_callback:
+                # 콜백 안에서 멈추면 이 Timer가 대기열에 쌓아 둔(아직 안 돈) 콜백도 뺀다 — apc_board.Board.drop_pending_for
+                board.drop_pending_for(self)
         self._core = None
         self._counts = 0
         self._repeat = False

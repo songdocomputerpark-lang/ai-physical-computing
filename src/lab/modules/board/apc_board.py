@@ -861,6 +861,20 @@ class Board:
         if core in self.timers:
             self.timers.remove(core)
 
+    def drop_pending_for(self, owner):
+        """콜백 안에서 Timer를 멈출 때(machine.Timer.deinit): 그 Timer가 대기열에 쌓아 두고 아직 돌지 않은 콜백을 뺀다.
+
+        왜: 실물은 콜백을 곧바로(바이트코드 사이에서) 돌려서, 다른 콜백이 Timer를 멈춘 뒤에 그 Timer의 콜백이 도는 일이 거의 없다.
+        가상 보드는 입력 확인 지점에서 몰아서 돌려 그 틈이 넓다 — 블루투스 연결 콜백(ESP32BLE.py connected())이 상태 LED를 켜고
+        Timer를 멈췄는데, 그사이 틱에서 쌓인 깜빡임 콜백이 뒤이어 돌아 LED를 끄던 것(PROGRESS 미해결 181, 2026-09-25).
+        """
+        if not self.pending:
+            return
+        kept = [item for item in self.pending if item[1] is not owner]
+        if len(kept) != len(self.pending):
+            self.pending.clear()
+            self.pending.extend(kept)
+
     def next_timer_due_ns(self):
         due = None
         for core in self.timers:
