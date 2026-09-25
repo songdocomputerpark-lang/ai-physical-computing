@@ -1,5 +1,5 @@
 /**
- * 성취기준 표와 차시 ↔ 성취기준 대응표(PLAN §2.2 "차시 ↔ 성취기준 대응표(초안)", PD-21, DECISIONS C8).
+ * 성취기준 표와 차시 ↔ 성취기준 대응표(PLAN §2.2 "차시 ↔ 성취기준 대응표" — 2026-09-25 확정, PD-21, DECISIONS C8).
  *
  * 근거: 인천광역시교육청 교육과정정보센터 교육감승인과목 게시물 "인공지능과 피지컬 컴퓨팅"(2022 개정, 등록일 2024.10.04.) —
  * 문서뷰어 텍스트 기준. 운영자가 이 교육과정이 맞다고 확인했다(DECISIONS O12, 2026-09-25 — hwp 원문은 내려받지 않음). 코드 목록은 docs/INVENTORY.md §9.2와 같다.
@@ -78,7 +78,7 @@ export function standardAreaName(area: StandardArea['area']): string {
 }
 
 /**
- * 차시 번호(label) → 성취기준 코드(PLAN §2.2 대응표 초안 그대로). 빈 목록은 "일부러 비운 차시"라는 뜻이고 까닭은 UNMAPPED_REASONS에 있다.
+ * 차시 번호(label) → 성취기준 코드(PLAN §2.2 대응표 그대로 — 2026-09-25 확정). 빈 목록은 "일부러 비운 차시"라는 뜻이고 까닭은 UNMAPPED_REASONS에 있다.
  * 여기에 없는 차시(새로 만든 차시)는 코드가 15개 안에 있는지만 검사하고 "대응표에 없는 차시" 참고를 남긴다.
  */
 export const LESSON_STANDARDS: Readonly<Record<string, readonly string[]>> = Object.freeze({
