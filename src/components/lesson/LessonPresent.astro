@@ -77,9 +77,18 @@
     object-fit: contain;
   }
 
-  /* 학생 한 명이 쓰는 안내(키보드 조작법)는 프로젝터에 필요 없다 */
-  html[data-presenting] .quiz__guide {
+  /* 학생 한 명이 쓰는 안내(키보드 조작법·실습실 여는 법·파일 경로)는 프로젝터에 필요 없다 */
+  html[data-presenting] .quiz__guide,
+  html[data-presenting] .lesson-example__note,
+  html[data-presenting] .lesson-example__guide-note,
+  html[data-presenting] .lesson-example__file {
     display: none;
+  }
+
+  /* 코드 상자는 한 화면 안에서 스스로 스크롤한다 — 긴 예제 하나가 한 단계를 여러 화면으로 늘이지 않게(2026-09-25 Phase 5 검토 중요 5) */
+  html[data-presenting] .lesson-example .lesson-code {
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
   }
 
   html[data-presenting] .lesson__header {

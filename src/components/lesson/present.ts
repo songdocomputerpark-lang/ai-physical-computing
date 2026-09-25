@@ -13,13 +13,18 @@
  *
  * 화면은 DOM을 옮기지 않고 보이지 않을 요소에 data-present-off만 붙였다 뗀다(퀴즈·실습실·툴팁의 동작이 그대로 남는다).
  * 단계 나누기(planPresentationSteps)는 DOM 없이 도는 순수 함수라 Vitest가 검사한다(tests/unit/lesson/present.test.ts).
+ *
+ * 한 화면에 맞추기(2026-09-25 Phase 5 검토 중요 5 — 1366×768에서 단계 대부분이 한 화면을 넘었다): 발표를 시작할 때(그리고 창 크기가
+ * 바뀌거나 그림을 다 받았을 때) 단계마다 블록 높이를 재서, 화면(아래 막대 제외)보다 길면 블록 경계에서 더 잘게 나눈다(splitTallSteps).
+ * 나뉜 뒤 단계에는 그 칸의 제목(##·###)을 다시 보이고 막대에 "(이어서)"를 붙인다. 블록 하나가 화면보다 크면(긴 표 등) 그 블록만 한 단계로
+ * 두고 아래로 스크롤한다. 따라하기 예제·도전 과제 단계의 막대 글에는 예제·과제 제목을 함께 적는다(어느 예제인지 알 수 있게).
  */
 
 export type PresentBlockKind = 'h2' | 'h3' | 'break' | 'content' | 'split';
 
 export interface PresentBlock {
   readonly kind: PresentBlockKind;
-  /** 제목 글자(h2·h3) */
+  /** 제목 글자(h2·h3), 따라하기 예제·도전 과제(break)의 이름 */
   readonly title?: string;
   /** split 블록의 항목 수(퀴즈 문항 수) */
   readonly items?: number;
@@ -49,14 +54,16 @@ export function planPresentationSteps(title: string, sections: readonly PresentS
     let current: number[] = [];
     let hasContent = false;
     let subTitle: string | undefined;
+    let breakTitle: string | undefined;
     const headingBlocks: number[] = [];
     const labelNow = () => (subTitle ? `${section.title} — ${subTitle}` : section.title);
     const flush = () => {
       if (current.length > 0) {
-        steps.push({ section: sectionIndex, blocks: current, label: labelNow() });
+        steps.push({ section: sectionIndex, blocks: current, label: breakTitle ? `${labelNow()} · ${breakTitle}` : labelNow() });
       }
       current = [];
       hasContent = false;
+      breakTitle = undefined;
     };
 
     section.blocks.forEach((block, blockIndex) => {
@@ -80,6 +87,7 @@ export function planPresentationSteps(title: string, sections: readonly PresentS
           }
           current.push(blockIndex);
           hasContent = true;
+          breakTitle = block.title;
           break;
         case 'split': {
           const items = block.items ?? 0;
@@ -104,6 +112,65 @@ export function planPresentationSteps(title: string, sections: readonly PresentS
     flush();
   });
   return steps;
+}
+
+/** 나뉜 뒤 단계의 막대 글 끝에 붙는 말 */
+export const CONTINUED_LABEL = '(이어서)';
+
+/**
+ * 화면보다 긴 단계를 블록 경계에서 더 나눈다(순수 함수). heightOf(칸, 블록)는 그 블록의 높이(바깥 여백 포함),
+ * available은 한 화면에 쓸 수 있는 높이다. 단계 맨 앞의 제목 블록(##·###)은 나뉜 단계마다 다시 보인다(무엇의 이어서인지 알게).
+ * 제목 장·퀴즈 문항 단계·블록이 하나뿐인 단계는 그대로 둔다. 블록 하나가 화면보다 크면 그 블록 하나(와 제목)로 한 단계.
+ */
+export function splitTallSteps(
+  steps: readonly PresentStep[],
+  sections: readonly PresentSection[],
+  heightOf: (section: number, block: number) => number,
+  available: number,
+): PresentStep[] {
+  const result: PresentStep[] = [];
+  for (const step of steps) {
+    const section = sections[step.section];
+    if (!section || step.item !== undefined || step.blocks.length < 2 || available <= 0) {
+      result.push(step);
+      continue;
+    }
+    const total = step.blocks.reduce((sum, block) => sum + heightOf(step.section, block), 0);
+    if (total <= available) {
+      result.push(step);
+      continue;
+    }
+    const isHeading = (block: number) => {
+      const kind = section.blocks[block]?.kind;
+      return kind === 'h2' || kind === 'h3';
+    };
+    let headingCount = 0;
+    while (headingCount < step.blocks.length - 1 && isHeading(step.blocks[headingCount] ?? -1)) {
+      headingCount += 1;
+    }
+    const headings = step.blocks.slice(0, headingCount);
+    const headingHeight = headings.reduce((sum, block) => sum + heightOf(step.section, block), 0);
+    const chunks: number[][] = [];
+    let chunk: number[] = [...headings];
+    let used = headingHeight;
+    let hasContent = false;
+    for (const block of step.blocks.slice(headingCount)) {
+      const height = heightOf(step.section, block);
+      if (hasContent && used + height > available) {
+        chunks.push(chunk);
+        chunk = [...headings];
+        used = headingHeight;
+      }
+      chunk.push(block);
+      used += height;
+      hasContent = true;
+    }
+    chunks.push(chunk);
+    chunks.forEach((blocks, position) => {
+      result.push({ ...step, blocks, label: position === 0 ? step.label : `${step.label} ${CONTINUED_LABEL}` });
+    });
+  }
+  return result;
 }
 
 /** 발표 모드에서 가로채는 키 → 할 일. 가로채지 않으면 undefined */
@@ -188,6 +255,25 @@ function isPresentable(child: Element): child is HTMLElement {
   return child instanceof HTMLElement && !['SCRIPT', 'STYLE', 'TEMPLATE', 'LINK', 'META'].includes(child.tagName) && !child.hidden;
 }
 
+/** 따라하기 예제("예제 2: 보드 쪽 …")·도전 과제 상자의 이름(막대 글에 쓴다) */
+function breakTitleOf(element: HTMLElement): string | undefined {
+  const clean = (text: string | null | undefined) => text?.replace(/\s+/gu, ' ').trim() ?? '';
+  if (element.matches('.lesson-example-block')) {
+    const number = element.dataset.exampleNumber;
+    const title = clean(element.querySelector('.lesson-example__title')?.textContent);
+    return title ? (number ? `예제 ${number}: ${title}` : title) : undefined;
+  }
+  const title = clean(element.querySelector(':scope > .box__title')?.textContent);
+  return title || undefined;
+}
+
+/** 요소 높이 + 위아래 바깥 여백(이웃 여백이 겹치는 만큼 조금 넉넉하게 잰다) */
+function outerHeight(element: HTMLElement): number {
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+  const margin = style ? Number.parseFloat(style.marginTop) + Number.parseFloat(style.marginBottom) : 0;
+  return element.getBoundingClientRect().height + (Number.isFinite(margin) ? margin : 0);
+}
+
 function readSections(body: HTMLElement): DomSection[] {
   return Array.from(body.querySelectorAll<HTMLElement>(':scope > section.lesson-section'))
     .filter((section) => section.dataset.section !== 'teacher')
@@ -204,7 +290,7 @@ function readSections(body: HTMLElement): DomSection[] {
           return { kind: 'split', items: child.querySelectorAll('[data-present-item]').length };
         }
         if (child.matches(BREAK_SELECTOR)) {
-          return { kind: 'break' };
+          return { kind: 'break', title: breakTitleOf(child) };
         }
         return { kind: 'content' };
       });
@@ -252,12 +338,9 @@ export function installLessonPresentation(doc: Document = document): void {
 
   const intro = () => Array.from(body.children).filter((child) => isPresentable(child) && !child.matches('section.lesson-section'));
 
-  const render = () => {
+  /** 단계 하나를 보이게 표시만 바꾼다(막대·초점·스크롤은 render가) */
+  const applyStep = (step: PresentStep) => {
     clearMarks();
-    const step = steps[index];
-    if (!step) {
-      return;
-    }
     // 교사용 칸은 늘 숨긴다.
     for (const teacher of body.querySelectorAll(':scope > section.lesson-section[data-section="teacher"]')) {
       hide(teacher);
@@ -289,6 +372,69 @@ export function installLessonPresentation(doc: Document = document): void {
         }
       });
     });
+  };
+
+  /** 아래 막대를 뺀, 한 단계에 쓸 수 있는 화면 높이 */
+  const availableHeight = () => {
+    const bar = root.querySelector<HTMLElement>('.lesson-present__bar');
+    return (doc.defaultView?.innerHeight ?? 768) - (bar?.getBoundingClientRect().height ?? 64) - 24;
+  };
+
+  /**
+   * 단계를 다시 나눈다: 기본 단계(planPresentationSteps)를 하나씩 보여 블록 높이를 잰 뒤 화면보다 긴 단계를 쪼갠다(splitTallSteps).
+   * keep이 있으면 보고 있던 자리(칸·첫 내용 블록)가 든 단계로 돌아온다.
+   */
+  const replan = (keep?: PresentStep) => {
+    const models = sections.map((section) => section.model);
+    const base = planPresentationSteps(lessonTitle, models);
+    const heights = new Map<string, number>();
+    for (const step of base) {
+      if (step.section < 0 || step.item !== undefined || step.blocks.length < 2) {
+        continue;
+      }
+      applyStep(step);
+      const children = sections[step.section]?.children ?? [];
+      for (const block of step.blocks) {
+        const element = children[block];
+        if (element) {
+          heights.set(`${step.section}:${block}`, outerHeight(element));
+        }
+      }
+    }
+    steps = splitTallSteps(base, models, (section, block) => heights.get(`${section}:${block}`) ?? 0, availableHeight());
+    if (keep) {
+      const kinds = models[keep.section]?.blocks ?? [];
+      const anchor = keep.blocks.find((block) => kinds[block]?.kind !== 'h2' && kinds[block]?.kind !== 'h3') ?? keep.blocks[0];
+      const found = steps.findIndex(
+        (step) => step.section === keep.section && step.item === keep.item && (anchor === undefined || step.blocks.includes(anchor)),
+      );
+      index = found >= 0 ? found : Math.min(index, steps.length - 1);
+    }
+  };
+
+  let replanTimer: number | undefined;
+  const scheduleReplan = () => {
+    if (!html.hasAttribute('data-presenting')) {
+      return;
+    }
+    if (replanTimer !== undefined) {
+      doc.defaultView?.clearTimeout(replanTimer);
+    }
+    replanTimer = doc.defaultView?.setTimeout(() => {
+      replanTimer = undefined;
+      if (html.hasAttribute('data-presenting')) {
+        replan(steps[index]);
+        render();
+      }
+    }, 200);
+  };
+
+  const render = () => {
+    const step = steps[index];
+    if (!step) {
+      return;
+    }
+    applyStep(step);
     if (status) {
       status.textContent = `${index + 1} / ${steps.length} · ${step.label}`;
     }
@@ -358,11 +504,13 @@ export function installLessonPresentation(doc: Document = document): void {
 
   const enter = () => {
     sections = readSections(body);
-    steps = planPresentationSteps(lessonTitle, sections.map((section) => section.model));
-    index = 0;
     html.dataset.presenting = '';
     root.hidden = false;
+    // 큰 글씨(발표 화면 스타일)가 걸린 뒤에 재야 한 화면에 맞게 나뉜다.
+    replan();
+    index = 0;
     doc.addEventListener('keydown', onKeydown, true);
+    doc.defaultView?.addEventListener('resize', scheduleReplan);
     render();
     main?.focus({ preventScroll: true });
   };
@@ -371,6 +519,7 @@ export function installLessonPresentation(doc: Document = document): void {
     const step = steps[index];
     const anchor = step && step.section >= 0 ? sections[step.section]?.children[step.blocks[0] ?? 0] : undefined;
     doc.removeEventListener('keydown', onKeydown, true);
+    doc.defaultView?.removeEventListener('resize', scheduleReplan);
     clearMarks();
     delete html.dataset.presenting;
     root.hidden = true;
@@ -386,6 +535,16 @@ export function installLessonPresentation(doc: Document = document): void {
   };
 
   openButton.addEventListener('click', enter);
+  // 늦게 받은 그림(느린 받기)의 높이가 정해지면 다시 나눈다(발표 중에만).
+  body.addEventListener(
+    'load',
+    (event) => {
+      if (event.target instanceof HTMLImageElement) {
+        scheduleReplan();
+      }
+    },
+    true,
+  );
   previousButton?.addEventListener('click', () => go(index - 1));
   nextButton?.addEventListener('click', () => go(index + 1));
   exitButton?.addEventListener('click', () => exit());

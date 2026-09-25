@@ -54,10 +54,14 @@ test.describe('발표 모드', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(status(page)).toHaveText(`2 / ${total} · 학습목표`);
 
-    // 핵심 개념은 ### 제목마다 한 단계
-    await page.keyboard.press('ArrowRight');
-    await page.keyboard.press('ArrowRight');
-    await expect(status(page)).toHaveText(`4 / ${total} · 핵심 개념 — 인공지능과 사람의 지능`);
+    // 핵심 개념은 ### 제목마다 한 단계. 한 화면보다 긴 칸(왜 배울까의 문단 + 그림 등)은 화면 크기에 따라 "(이어서)" 단계로 더 나뉘므로
+    // (2026-09-25 Phase 5 검토 중요 5) 단계 번호를 적지 않고 그 단계가 나올 때까지 넘긴다.
+    const conceptLabel = /^\d+ \/ \d+ · 핵심 개념 — 인공지능과 사람의 지능$/u;
+    for (let press = 0; press < 6 && !conceptLabel.test((await status(page).textContent()) ?? ''); press += 1) {
+      await page.keyboard.press('ArrowRight');
+    }
+    await expect(status(page)).toHaveText(conceptLabel);
+    const conceptStatus = (await status(page).textContent()) ?? '';
     await expect(page.getByRole('heading', { level: 3, name: '인공지능과 사람의 지능' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeHidden();
 
@@ -68,7 +72,7 @@ test.describe('발표 모드', () => {
     await page.keyboard.press('Escape');
     await expect(term).not.toHaveAttribute('data-tooltip', 'open');
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
-    await expect(status(page)).toHaveText(`4 / ${total} · 핵심 개념 — 인공지능과 사람의 지능`);
+    await expect(status(page)).toHaveText(conceptStatus);
 
     // 끝 단계는 확인 퀴즈 마지막 문항 — 앞 문항은 숨고, 교사용 칸은 어느 단계에도 나오지 않는다.
     await page.keyboard.press('End');
@@ -123,17 +127,25 @@ test.describe('발표 모드', () => {
     const previous = bar.getByRole('button', { name: '◀ 앞' });
     await expect(previous).toBeDisabled();
     const next = bar.getByRole('button', { name: '다음 ▶' });
-    for (let step = 0; step < 8; step += 1) {
+    // 따라하기 예제 단계가 나올 때까지 넘기며 단계마다 옆 넘침이 없는지 본다(단계 수는 화면 크기에 따라 달라진다 — 긴 칸을 더 나눔).
+    let reached = 0;
+    for (let step = 0; step < 30; step += 1) {
       await next.click();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${step + 2}단계`).toBeLessThanOrEqual(0);
+      if (await page.locator('.lesson-example').isVisible()) {
+        reached = step + 2;
+        break;
+      }
     }
-    await expect(status(page)).toHaveText(/^9 \/ /u);
+    expect(reached, '따라하기 예제 단계').toBeGreaterThan(2);
+    // 막대 글에 어느 예제인지(예제 제목)가 함께 보인다.
+    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 따라하기 — 코드 읽기 · 규칙대로 정렬하기와 예시에서 배워 묶기$`, 'u'));
     // 따라하기 예제 단계에서도 [이 자리에서 실습실 열기]를 쓸 수 있다(실습실은 누르기 전에 받지 않는다).
     await expect(page.locator('.lesson-example')).toBeVisible();
     await expect(page.locator('iframe')).toHaveCount(0);
     await previous.click();
-    await expect(status(page)).toHaveText(/^8 \/ /u);
+    await expect(status(page)).toHaveText(new RegExp(`^${reached - 1} \\/ `, 'u'));
     await bar.getByRole('button', { name: '끝내기(Esc)' }).click();
     await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
   });

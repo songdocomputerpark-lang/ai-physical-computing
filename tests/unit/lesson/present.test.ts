@@ -1,6 +1,6 @@
 // 발표 모드(src/components/lesson/present.ts, PLAN §8.5 P5-02) — 단계 나누기와 키 해석(DOM 없이). 화면 동작은 tests/e2e/lesson-template.spec.ts.
 import { describe, expect, it } from 'vitest';
-import { planPresentationSteps, presentCommandFor, type PresentSection } from '../../../src/components/lesson/present.ts';
+import { planPresentationSteps, presentCommandFor, splitTallSteps, type PresentSection } from '../../../src/components/lesson/present.ts';
 
 const SECTIONS: PresentSection[] = [
   { title: '학습목표', blocks: [{ kind: 'h2', title: '학습목표' }, { kind: 'content' }] },
@@ -67,6 +67,60 @@ describe('발표 모드 단계 나누기(planPresentationSteps)', () => {
 
   it('칸이 없어도 제목 장 하나는 있다', () => {
     expect(planPresentationSteps('제목', [])).toHaveLength(1);
+  });
+
+  it('따라하기 예제·도전 과제 단계의 막대 글에 그 이름이 붙는다(어느 예제인지 — Phase 5 검토 중요 5)', () => {
+    const named = planPresentationSteps('제목', [
+      {
+        title: '따라하기',
+        blocks: [
+          { kind: 'h2', title: '따라하기' },
+          { kind: 'h3', title: '코드 읽기' },
+          { kind: 'content' },
+          { kind: 'break', title: '예제 1: 글자 쓰기' },
+          { kind: 'content' },
+          { kind: 'break', title: '예제 2: 숫자 세기' },
+        ],
+      },
+    ]);
+    expect(named.slice(1).map((step) => step.label)).toEqual([
+      '따라하기 — 코드 읽기',
+      '따라하기 — 코드 읽기 · 예제 1: 글자 쓰기',
+      '따라하기 — 코드 읽기 · 예제 2: 숫자 세기',
+    ]);
+  });
+});
+
+describe('한 화면보다 긴 단계 나누기(splitTallSteps — Phase 5 검토 중요 5)', () => {
+  const section: PresentSection = {
+    title: '왜 배울까',
+    blocks: [{ kind: 'h2', title: '왜 배울까' }, { kind: 'content' }, { kind: 'content' }, { kind: 'content' }],
+  };
+  const heights = [60, 200, 500, 150];
+  const base = planPresentationSteps('제목', [section]);
+
+  it('화면에 들어가면 그대로 둔다', () => {
+    expect(splitTallSteps(base, [section], (_s, block) => heights[block] ?? 0, 1000)).toEqual(base);
+  });
+
+  it('넘치면 블록 경계에서 나누고, 나뉜 단계마다 칸 제목을 다시 보이며 "(이어서)"를 붙인다', () => {
+    const split = splitTallSteps(base, [section], (_s, block) => heights[block] ?? 0, 600);
+    expect(split.slice(1).map((step) => [step.blocks, step.label])).toEqual([
+      [[0, 1], '왜 배울까'],
+      [[0, 2], '왜 배울까 (이어서)'],
+      [[0, 3], '왜 배울까 (이어서)'],
+    ]);
+  });
+
+  it('블록 하나가 화면보다 크면 그 블록만(제목과 함께) 한 단계로 두고, 퀴즈 문항 단계는 나누지 않는다', () => {
+    const tall = splitTallSteps(base, [section], (_s, block) => (block === 2 ? 2000 : (heights[block] ?? 0)), 600);
+    expect(tall.slice(1).map((step) => step.blocks)).toEqual([
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ]);
+    const quiz = planPresentationSteps('제목', [SECTIONS[4] as PresentSection]);
+    expect(splitTallSteps(quiz, [SECTIONS[4] as PresentSection], () => 5000, 600)).toEqual(quiz);
   });
 });
 
