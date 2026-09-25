@@ -325,8 +325,10 @@ test.describe('보충 V1~V5 예제(가짜 카메라·샘플 입력)', () => {
           )
           .toBe(true);
         await expect(image).toHaveAttribute('alt', /.{40,}/u);
-        // 안내 상자 두 가지와 교사용 접기
-        await expect(page.locator('[data-box="why"]')).toHaveCount(1);
+        // 안내 상자 두 가지와 교사용 접기 — "왜 이런 결과가 나올까"는 따라하기와 바꿔보기 칸에 하나씩
+        // (2026-09-25 Phase 5 검토 반영: 다른 40편처럼 바꿔보기 결과 풀이 상자를 더함)
+        await expect(page.locator('[data-section="follow"] [data-box="why"]')).toHaveCount(1);
+        await expect(page.locator('[data-section="try"] [data-box="why"]')).toHaveCount(1);
         await expect(page.locator('[data-box="try"]')).toHaveCount(1);
         await expect(page.locator('[data-box="teacher"]')).toHaveCount(1);
         // 확인 퀴즈 3문항(SPEC §7.2 7번)
