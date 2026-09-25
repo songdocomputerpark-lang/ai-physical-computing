@@ -312,11 +312,18 @@ test.describe('보충 V1~V5 예제(가짜 카메라·샘플 입력)', () => {
         // 핵심 개념의 그림(사이트가 직접 그린 SVG)이 실제로 받아진다.
         const image = page.locator('img[src*="/images/lessons/supplement/"]').first();
         await expect(image).toHaveCount(1);
-        const loaded = await image.evaluate((element) => {
-          const img = element as HTMLImageElement;
-          return img.complete && img.naturalWidth > 0;
-        });
-        expect(loaded, `${example.lesson} 그림`).toBe(true);
+        // 차시 그림은 loading="lazy"라, Phase 5에서 "왜 배울까" 그림이 앞에 생긴 뒤로는 화면으로 끌어와야 받아진다(2026-09-25 통합).
+        await image.scrollIntoViewIfNeeded();
+        await expect
+          .poll(
+            () =>
+              image.evaluate((element) => {
+                const img = element as HTMLImageElement;
+                return img.complete && img.naturalWidth > 0;
+              }),
+            { message: `${example.lesson} 그림` },
+          )
+          .toBe(true);
         await expect(image).toHaveAttribute('alt', /.{40,}/u);
         // 안내 상자 두 가지와 교사용 접기
         await expect(page.locator('[data-box="why"]')).toHaveCount(1);

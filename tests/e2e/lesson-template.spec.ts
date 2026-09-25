@@ -168,6 +168,8 @@ test.describe('교사용 접기 — 이 차시의 원고와 자료', () => {
     await expect(originals).toContainText('원본 내려받기는 없어요');
     await expect(originals.getByRole('link', { name: '예제 갤러리' })).toHaveAttribute('href', withBase('labs/gallery/'));
     await expect(originals.getByRole('link', { name: '교사용 자료실' })).toHaveAttribute('href', withBase('teacher/'));
+    await expect(originals.getByRole('link', { name: '교과서 원고 정정 목록' })).toHaveAttribute('href', withBase('teacher/corrections/'));
+    await expect(originals.getByRole('link', { name: '진짜 PC에서 돌리기' })).toHaveAttribute('href', withBase('teacher/real-pc/'));
     // 1-1-1은 이어지는 수업 교안이 없어 편집본 줄이 없다.
     await expect(info.locator('[data-teacher-info="handouts"]')).toHaveCount(0);
     // 교사용 칸의 틀 제목 세 개
@@ -176,12 +178,18 @@ test.describe('교사용 접기 — 이 차시의 원고와 자료', () => {
     }
   });
 
-  test('성취기준이 빈 보충 차시는 교사용 접기에도 "성취기준 코드 확인 중"과 보충 표시가 나온다', async ({ page }) => {
+  test('성취기준을 일부러 비운 보충 차시는 교사용 접기에 "해당 없음(보충 차시)"·까닭 모음 링크와 보충 표시가 나온다', async ({ page }) => {
     await page.goto('./learn/u1/v4/');
     const details = page.locator('details.box--teacher');
     await details.locator('summary').click();
     const info = details.locator('[data-lesson-teacher-info]');
     await expect(info.locator('[data-teacher-info="source"]')).toContainText('보충 차시');
-    await expect(info.locator('[data-teacher-info="standards"]')).toContainText('성취기준 코드 확인 중');
+    const standards = info.locator('[data-teacher-info="standards"]');
+    await expect(standards).toContainText('해당 없음(보충 차시)');
+    await expect(standards).not.toContainText('성취기준 코드 확인 중');
+    await expect(standards.getByRole('link', { name: '교사용 자료실의 성취기준을 비워 둔 차시' })).toHaveAttribute(
+      'href',
+      withBase('teacher/standards/#std-unmapped-title'),
+    );
   });
 });

@@ -49,11 +49,15 @@ test.describe('배우기 목록', () => {
     );
     await expect(page.getByRole('link', { name: 'V4 보충 블러와 에지' })).toHaveAttribute('href', withBase('learn/u1/v4/'));
 
-    const planned = page.locator('#planned-u1-1-1-2');
-    await expect(planned).toContainText('1-1-2');
-    await expect(planned).toContainText('준비 중');
-    await expect(planned.getByRole('link')).toHaveCount(0);
-    await expect(page.locator('#planned-u1-1-3-1')).toContainText('원고 없음');
+    // Phase 5(2026-09-25)에서 차례표의 차시가 모두 생겨 "준비 중" 카드가 없을 수 있다 — 남아 있으면 링크 없이 "준비 중"을 보인다.
+    const planned = page.locator('.lesson-card[data-status="planned"]');
+    if ((await planned.count()) > 0) {
+      await expect(planned.first()).toContainText('준비 중');
+      await expect(planned.first().getByRole('link')).toHaveCount(0);
+    }
+    // 원고 없는 차시(코드만)에는 "원고 없음" 딱지가 붙는다(링크 카드여도).
+    await expect(page.locator('#lesson-u1-1-3-1')).toContainText('원고 없음');
+    await expect(page.locator('#lesson-u1-1-3-1').getByRole('link')).toHaveAttribute('href', withBase('learn/u1/1-3-1/'));
     await expectNoHorizontalScroll(page, '/learn/');
   });
 
@@ -127,15 +131,21 @@ test.describe('차시 페이지', () => {
     const pager = page.getByRole('navigation', { name: '이전·다음 차시' });
     await expect(pager).toContainText('첫 번째 차시예요.');
     await pager.getByRole('link', { name: /다음 차시/u }).click();
-    // 보충 차시 V1~V5(order 3.1~3.5)가 1-1-1 다음에 온다.
+    // 차례표 순서대로 1-1-1 다음은 1-1-2다(보충 V1~V5는 1-1-3 뒤, order 3.1~3.5).
+    await expect(page).toHaveURL(new RegExp(`${withBase('learn/u1/1-1-2/')}$`, 'u'));
+  });
+
+  test('1-1-3 다음은 보충 V1이다(보충 차시는 교과서 차시 사이에 order로 끼운다)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-3/');
+    await page.getByRole('navigation', { name: '이전·다음 차시' }).getByRole('link', { name: /다음 차시/u }).click();
     await expect(page).toHaveURL(new RegExp(`${withBase('learn/u1/v1/')}$`, 'u'));
   });
 
-  test('보충 V4: 성취기준이 비면 "성취기준 코드 확인 중", 제목에 "보충", 이전 차시는 V3', async ({ page }) => {
+  test('보충 V4: 대응표에서 일부러 비운 성취기준은 "해당 없음(보충 차시)", 제목에 "보충", 이전 차시는 V3', async ({ page }) => {
     await page.goto('./learn/u1/v4/');
     await expect(page).toHaveTitle(/^V4 \(보충\) 블러와 에지 \| /u);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/V4\s+보충\s+블러와 에지/u);
-    await expect(page.locator('[data-meta="standards"]')).toHaveText(/성취기준\s*성취기준 코드 확인 중/u);
+    await expect(page.locator('[data-meta="standards"]')).toHaveText(/성취기준\s*해당 없음\(보충 차시\)/u);
     await expect(page.locator('[data-meta="materials"]')).toContainText('웹캠(없으면 샘플 이미지)');
     await expect(
       page.getByRole('navigation', { name: '이전·다음 차시' }).getByRole('link', { name: /이전 차시.*V3/u }),
