@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360" role="img" aria-labelledby="title desc">
+<title id="title">장(프레임)마다 EAR 값과 눈 상태: 앞 장 0에서 지금 장 1로 바뀌는 5번째 장에서만 한 번 누른다</title>
+<desc id="desc">가로축은 1번째부터 12번째 장이다. 위쪽 꺾은선은 장마다의 EAR 값으로, 1~4번째 장은 높고 5~7번째 장에서 임계값 0.1 점선 아래로 떨어졌다가 8번째 장부터 다시 높아진다. 그 아래 "눈 상태" 줄은 1~4번째 0, 5~7번째 1, 8~12번째 0이다. "누르기" 줄에는 5번째 장에만 "클릭!"이 있다. 맨 아래에는 앞 장이 0이고 지금 장이 1인 장에서만 한 번 누르고, 감은 채로 있는 동안에는 누르지 않는다는 설명이 있다. EAR 값은 모양을 보이려고 정한 예다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="360" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">감는 '순간'에만 한 번 눌러요</text>
+
+<!-- 그래프 틀 -->
+<line x1="96" y1="60" x2="96" y2="196" stroke="#4a5361" stroke-width="2"/>
+<line x1="96" y1="196" x2="616" y2="196" stroke="#4a5361" stroke-width="2"/>
+<text x="16" y="96" font-size="17" font-weight="700" fill="#17191c">EAR(예)</text>
+<!-- 임계값 -->
+<line x1="96" y1="160" x2="616" y2="160" stroke="#d24b4b" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="16" y="165" font-size="16" font-weight="700" fill="#a3232a">임계값 0.1</text>
+<!-- 감은 구간 표시 -->
+<rect x="268" y="60" width="116" height="136" fill="#fff4d8"/>
+<!-- 꺾은선 -->
+<polyline fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"
+  points="110,91 154,91 198,94 242,91 286,175 330,184 374,181 418,100 462,91 506,91 550,94 594,91"/>
+<g fill="#1f5bd6" stroke="#ffffff" stroke-width="1.5">
+<circle cx="110" cy="91" r="5"/><circle cx="154" cy="91" r="5"/><circle cx="198" cy="94" r="5"/><circle cx="242" cy="91" r="5"/>
+<circle cx="286" cy="175" r="5"/><circle cx="330" cy="184" r="5"/><circle cx="374" cy="181" r="5"/>
+<circle cx="418" cy="100" r="5"/><circle cx="462" cy="91" r="5"/><circle cx="506" cy="91" r="5"/><circle cx="550" cy="94" r="5"/><circle cx="594" cy="91" r="5"/>
+</g>
+<g font-size="16" fill="#4a5361" text-anchor="middle">
+<text x="110" y="216">1</text><text x="154" y="216">2</text><text x="198" y="216">3</text><text x="242" y="216">4</text>
+<text x="286" y="216">5</text><text x="330" y="216">6</text><text x="374" y="216">7</text><text x="418" y="216">8</text>
+<text x="462" y="216">9</text><text x="506" y="216">10</text><text x="550" y="216">11</text><text x="594" y="216">12</text>
+</g>
+<text x="16" y="216" font-size="16" fill="#4a5361">몇 번째 장</text>
+
+<!-- 눈 상태 -->
+<text x="16" y="250" font-size="17" font-weight="700" fill="#17191c">눈 상태</text>
+<g font-size="18" text-anchor="middle" font-weight="700">
+<text x="110" y="250" fill="#4a5361">0</text><text x="154" y="250" fill="#4a5361">0</text><text x="198" y="250" fill="#4a5361">0</text><text x="242" y="250" fill="#4a5361">0</text>
+<text x="286" y="250" fill="#7a4a00">1</text><text x="330" y="250" fill="#7a4a00">1</text><text x="374" y="250" fill="#7a4a00">1</text>
+<text x="418" y="250" fill="#4a5361">0</text><text x="462" y="250" fill="#4a5361">0</text><text x="506" y="250" fill="#4a5361">0</text><text x="550" y="250" fill="#4a5361">0</text><text x="594" y="250" fill="#4a5361">0</text>
+</g>
+
+<!-- 누르기 -->
+<text x="16" y="286" font-size="17" font-weight="700" fill="#17191c">누르기</text>
+<rect x="256" y="264" width="60" height="30" rx="8" fill="#1f5bd6"/>
+<text x="286" y="285" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">클릭!</text>
+<text x="352" y="285" font-size="16" fill="#4a5361">← 앞 장 0, 지금 장 1</text>
+
+<text x="16" y="324" font-size="16" fill="#17191c">앞 장이 0(뜸)이고 지금 장이 1(감음)인 장에서만 한 번 눌러요.</text>
+<text x="16" y="348" font-size="16" fill="#17191c">감은 채로 있는 6~7번째 장(1 → 1)에서는 누르지 않아요.</text>
+</g>
+</svg>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
+<title id="title">비율 좌표 (0.5, 0.35)에 프레임의 가로 640과 세로 480을 곱하면 픽셀 좌표 (320, 168)이 된다</title>
+<desc id="desc">왼쪽에 가로 640, 세로 480인 프레임 네모가 있고 왼쪽 위 모서리가 (0, 0)이다. x는 오른쪽으로, y는 아래로 갈수록 커진다. 프레임 안의 빨간 점은 가로 길이의 0.5, 세로 길이의 0.35 되는 자리에 있다. 오른쪽에는 x = 0.5 × 640 = 320, y = 0.35 × 480 = 168이라서 픽셀 좌표가 (320, 168)이라는 계산과, 코드 int(nose.x * w)가 이 곱셈이라는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="330" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">비율(0~1)에 가로, 세로 길이를 곱하면 픽셀 좌표</text>
+
+<!-- 프레임: 640×480을 320×240으로 줄여 그림 -->
+<rect x="40" y="76" width="320" height="240" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/>
+<g stroke="#d6dde6" stroke-width="1">
+<line x1="120" y1="76" x2="120" y2="316"/>
+<line x1="200" y1="76" x2="200" y2="316"/>
+<line x1="280" y1="76" x2="280" y2="316"/>
+<line x1="40" y1="136" x2="360" y2="136"/>
+<line x1="40" y1="196" x2="360" y2="196"/>
+<line x1="40" y1="256" x2="360" y2="256"/>
+</g>
+<!-- 축 -->
+<g fill="none" stroke="#4a5361" stroke-width="2">
+<line x1="40" y1="64" x2="372" y2="64" marker-end="url(#arrow)"/>
+<line x1="28" y1="76" x2="28" y2="322" marker-end="url(#arrow)"/>
+</g>
+<g font-size="16" fill="#4a5361">
+<text x="376" y="69">x</text>
+<text x="12" y="300" text-anchor="middle">y</text>
+<text x="44" y="96">(0, 0)</text>
+<text x="354" y="309" text-anchor="end">(640, 480)</text>
+</g>
+<!-- 점 -->
+<g stroke="#d24b4b" stroke-width="1.8" stroke-dasharray="5 4">
+<line x1="200" y1="76" x2="200" y2="160"/>
+<line x1="40" y1="160" x2="200" y2="160"/>
+</g>
+<circle cx="200" cy="160" r="8" fill="#d24b4b" stroke="#ffffff" stroke-width="2"/>
+<g font-size="16" font-weight="700" fill="#a3232a">
+<text x="208" y="100">x 비율 0.5</text>
+<text x="48" y="152">y 비율 0.35</text>
+</g>
+
+<!-- 오른쪽 계산 -->
+<g font-size="18" fill="#17191c">
+<text x="392" y="112">x = 0.5 × 640 = <tspan font-weight="700">320</tspan></text>
+<text x="392" y="148">y = 0.35 × 480 = <tspan font-weight="700">168</tspan></text>
+</g>
+<rect x="386" y="170" width="236" height="46" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="504" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#1a4cb4">픽셀 좌표 (320, 168)</text>
+<g font-size="16" fill="#4a5361">
+<text x="392" y="252">코드에서는</text>
+<text x="392" y="276" font-family="'Consolas', 'D2Coding', monospace" fill="#17191c">int(nose.x * w)</text>
+<text x="392" y="302">w는 프레임의 가로 길이</text>
+</g>
+</g>
+</svg>

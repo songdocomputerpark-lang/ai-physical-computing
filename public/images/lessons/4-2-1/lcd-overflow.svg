@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 350" width="640" height="350" role="img" aria-labelledby="title desc">
+<title id="title">LCD 한 줄은 16칸이라 둘째 줄의 넘친 세 글자가 첫 줄 맨 앞을 덮는다</title>
+<desc id="desc">LCD 칸 그림 세 줄이 있다. 첫째 줄은 먼저 쓴 첫 줄 X:1920  Y:1080이다. 둘째 줄은 d_c:0     r_c:0로 16칸을 채우고, 오른쪽에 점선으로 그린 넘친 3칸(빈칸)이 있다. 넘친 3칸에서 나온 화살표가 셋째 줄로 이어지는데, 셋째 줄은 LCD에 실제로 보이는 첫 줄로 맨 앞 세 칸이 빈칸으로 덮여 920  Y:1080만 보인다. 아래에 둘째 줄의 글은 19글자이고 16칸을 넘은 3글자가 첫 줄 맨 앞 세 칸을 덮는다는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#b25e00"/>
+</marker>
+</defs>
+<rect width="640" height="350" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="30" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">LCD 한 줄은 16칸 — 넘친 글자는 첫 줄 앞으로</text>
+<text x="54" y="58" font-size="16" font-weight="700" fill="#17191c">① 먼저 쓴 첫 줄</text>
+<rect x="54" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="68.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">X</text>
+<rect x="82" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="96.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">:</text>
+<rect x="110" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="124.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">1</text>
+<rect x="138" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="152.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">9</text>
+<rect x="166" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="180.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">2</text>
+<rect x="194" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="208.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="222" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="250" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="278" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="292.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">Y</text>
+<rect x="306" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="320.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">:</text>
+<rect x="334" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="348.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">1</text>
+<rect x="362" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="376.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="390" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="404.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">8</text>
+<rect x="418" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="432.0" y="91" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="446" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="474" y="66" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="54" y="138" font-size="16" font-weight="700" fill="#17191c">② 이어서 쓴 둘째 줄(19글자)</text>
+<rect x="54" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="68.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">d</text>
+<rect x="82" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="96.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">_</text>
+<rect x="110" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="124.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">c</text>
+<rect x="138" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="152.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">:</text>
+<rect x="166" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="180.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="194" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="222" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="250" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="278" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="306" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="334" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="348.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">r</text>
+<rect x="362" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="376.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">_</text>
+<rect x="390" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="404.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">c</text>
+<rect x="418" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="432.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">:</text>
+<rect x="446" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="460.0" y="171" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="474" y="146" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="502" y="146" width="28" height="36" fill="#fff6e8" stroke="#b25e00" stroke-width="2" stroke-dasharray="4 3"/>
+<rect x="530" y="146" width="28" height="36" fill="#fff6e8" stroke="#b25e00" stroke-width="2" stroke-dasharray="4 3"/>
+<rect x="558" y="146" width="28" height="36" fill="#fff6e8" stroke="#b25e00" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="544" y="202" text-anchor="middle" font-size="16" font-weight="700" fill="#8a4600">넘친 3칸</text>
+<text x="510" y="270" font-size="16" font-weight="700" fill="#17191c">③ 보이는 첫 줄</text>
+<rect x="54" y="246" width="28" height="36" fill="#fde7cc" stroke="#b25e00" stroke-width="1"/>
+<rect x="82" y="246" width="28" height="36" fill="#fde7cc" stroke="#b25e00" stroke-width="1"/>
+<rect x="110" y="246" width="28" height="36" fill="#fde7cc" stroke="#b25e00" stroke-width="1"/>
+<rect x="138" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="152.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">9</text>
+<rect x="166" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="180.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">2</text>
+<rect x="194" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="208.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="222" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="250" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="278" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="292.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">Y</text>
+<rect x="306" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="320.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">:</text>
+<rect x="334" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="348.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">1</text>
+<rect x="362" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="376.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="390" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="404.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">8</text>
+<rect x="418" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<text x="432.0" y="271" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">0</text>
+<rect x="446" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<rect x="474" y="246" width="28" height="36" fill="#2f6fd6" stroke="#17191c" stroke-width="1"/>
+<path d="M544 210 C 544 230, 200 222, 100 242" fill="none" stroke="#b25e00" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="10" y="314" font-size="16" fill="#17191c">둘째 줄의 글 f"d_c:{d_c:&lt;5} r_c:{r_c:&lt;5}"는 19글자예요.</text>
+<text x="10" y="338" font-size="16" fill="#17191c">16칸을 넘은 3글자(빈칸)가 첫 줄 맨 앞 세 칸의 X:1을 덮어요.</text>
+</g>
+</svg>

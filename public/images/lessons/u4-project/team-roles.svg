@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 262" width="640" height="262" role="img" aria-labelledby="title desc">
+<title id="title">모둠 역할 네 가지: 인공지능 담당, 보드 담당, 통신 담당, 기록과 안전 담당</title>
+<desc id="desc">카드 네 장이 나란히 있다. 인공지능 담당(카메라 그림)은 카메라 입력과 영상 인식 코드(손, 얼굴 점)를, 보드 담당(보드 그림)은 부품과 배선, MicroPython 보드 코드를, 통신 담당(무선 그림)은 보내는 글의 약속과 블루투스 연결 시험을, 기록과 안전 담당(체크리스트 그림)은 활동 기록과 개인정보, 안전 점검표를 맡는다. 제목에는 역할을 단계마다 바꿔 맡는다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="262" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="30" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">모둠 역할 네 가지(단계마다 바꿔 맡아요)</text>
+
+<g fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5">
+<rect x="12" y="46" width="144" height="206" rx="12"/>
+<rect x="172" y="46" width="144" height="206" rx="12"/>
+<rect x="332" y="46" width="144" height="206" rx="12"/>
+<rect x="492" y="46" width="144" height="206" rx="12"/>
+</g>
+
+<!-- 카메라 -->
+<rect x="58" y="62" width="52" height="36" rx="6" fill="#ffffff" stroke="#17191c" stroke-width="2"/>
+<circle cx="84" cy="80" r="11" fill="#dbe7fb" stroke="#1f5bd6" stroke-width="2.5"/>
+<rect x="70" y="56" width="18" height="8" rx="2" fill="#17191c"/>
+<!-- 보드 -->
+<rect x="216" y="62" width="56" height="36" rx="4" fill="#1f3a5f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="224" y="70" width="40" height="12" rx="2" fill="#dbe7fb"/>
+<g fill="#e6b422"><rect x="220" y="92" width="5" height="5"/><rect x="230" y="92" width="5" height="5"/><rect x="240" y="92" width="5" height="5"/><rect x="250" y="92" width="5" height="5"/><rect x="260" y="92" width="5" height="5"/></g>
+<!-- 무선 -->
+<circle cx="392" cy="92" r="5" fill="#1f5bd6"/>
+<g fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linecap="round">
+<path d="M380 80 Q392 68 404 80"/>
+<path d="M372 72 Q392 52 412 72"/>
+</g>
+<!-- 체크리스트 -->
+<rect x="540" y="58" width="48" height="44" rx="4" fill="#ffffff" stroke="#17191c" stroke-width="2"/>
+<g fill="none" stroke="#15653a" stroke-width="3" stroke-linecap="round">
+<path d="M546 70 L550 74 L556 66"/>
+<path d="M546 88 L550 92 L556 84"/>
+</g>
+<g stroke="#4a5361" stroke-width="2.5"><line x1="562" y1="70" x2="582" y2="70"/><line x1="562" y1="88" x2="582" y2="88"/></g>
+
+<g font-size="17" font-weight="700" fill="#17191c" text-anchor="middle">
+<text x="84" y="130">인공지능 담당</text>
+<text x="244" y="130">보드 담당</text>
+<text x="404" y="130">통신 담당</text>
+<text x="564" y="130">기록, 안전 담당</text>
+</g>
+<g font-size="16" fill="#17191c" text-anchor="middle">
+<text x="84" y="164">카메라 입력</text>
+<text x="84" y="188">영상 인식 코드</text>
+<text x="84" y="212">(손, 얼굴 점)</text>
+<text x="244" y="164">부품과 배선</text>
+<text x="244" y="188">MicroPython</text>
+<text x="244" y="212">보드 코드</text>
+<text x="404" y="164">보내는 글 약속</text>
+<text x="404" y="188">블루투스</text>
+<text x="404" y="212">연결 시험</text>
+<text x="564" y="164">활동 기록</text>
+<text x="564" y="188">개인정보, 안전</text>
+<text x="564" y="212">점검표</text>
+</g>
+</g>
+</svg>

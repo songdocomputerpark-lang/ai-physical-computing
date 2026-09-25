@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 350" width="640" height="350" role="img" aria-labelledby="title desc">
+<title id="title">보드를 고르는 두 방법: 진짜 컴퓨터의 원래 코드는 기기 주소를 복사해 붙이고, 브라우저는 선택 창에서 광고 이름을 고른다</title>
+<desc id="desc">왼쪽 칸 "원래 코드(진짜 컴퓨터)"에는 보드 콘솔에 찍힌 기기 주소(XX:XX:XX:XX:XX:XX로 가림)를 복사해 컴퓨터 코드의 bluetooth_init 괄호 안에 붙여 넣는 흐름이 있다. 오른쪽 칸 "브라우저(이 사이트)"에는 기기 선택 창이 있고 목록에 ESP32-03, ESP32-07, ESP32-12가 보이며 ESP32-07이 골라져 있고 아래에 페어링 단추가 있다. 맨 아래에는 광고 이름은 주변 누구에게나 보이니 이름이나 학번 대신 자리 번호를 쓴다는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="350" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">주소 대신 광고 이름으로 보드를 골라요</text>
+
+<!-- 왼쪽: 원래 코드 -->
+<rect x="12" y="52" width="300" height="236" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="162" y="80" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">원래 코드(진짜 컴퓨터)</text>
+<rect x="28" y="94" width="268" height="58" rx="6" fill="#2a3240"/>
+<g font-size="16" fill="#e8edf3" font-family="'Consolas', 'D2Coding', monospace">
+<text x="38" y="118">ESP32 블루투스 주소:</text>
+<text x="38" y="142">XX:XX:XX:XX:XX:XX</text>
+</g>
+<line x1="162" y1="158" x2="162" y2="186" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="174" y="178" font-size="16" fill="#4a5361">복사해서 붙이기</text>
+<rect x="28" y="194" width="268" height="40" rx="6" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="38" y="220" font-size="16" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace">bluetooth_init("XX:XX:…")</text>
+<text x="162" y="266" text-anchor="middle" font-size="16" fill="#4a5361">주소로 바로 이어요</text>
+
+<!-- 오른쪽: 브라우저 -->
+<rect x="328" y="52" width="300" height="236" rx="14" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="478" y="80" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">브라우저(이 사이트)</text>
+<rect x="352" y="92" width="252" height="160" rx="8" fill="#ffffff" stroke="#4a5361" stroke-width="1.5"/>
+<text x="366" y="116" font-size="16" font-weight="700" fill="#17191c">기기 선택</text>
+<g font-size="16" fill="#17191c">
+<text x="376" y="146">ESP32-03</text>
+<rect x="362" y="156" width="232" height="28" rx="4" fill="#1f5bd6"/>
+<text x="376" y="176" fill="#ffffff" font-weight="700">ESP32-07 (내 보드)</text>
+<text x="376" y="206">ESP32-12</text>
+</g>
+<rect x="514" y="218" width="78" height="28" rx="6" fill="#1f5bd6"/>
+<text x="553" y="238" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">페어링</text>
+<text x="478" y="276" text-anchor="middle" font-size="16" fill="#4a5361">목록에서 이름을 골라요</text>
+
+<text x="320" y="316" text-anchor="middle" font-size="16" fill="#17191c">광고 이름은 주변 누구에게나 보여요. 이름, 학번 대신 자리 번호를 붙여요.</text>
+<text x="320" y="340" text-anchor="middle" font-size="16" fill="#4a5361">기기 주소는 그 기기를 가리키는 번호라서 이 사이트는 가려서 적어요.</text>
+</g>
+</svg>

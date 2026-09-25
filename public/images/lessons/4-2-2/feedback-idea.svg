@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 290" width="640" height="290" role="img" aria-labelledby="title desc">
+<title id="title">눈으로 클릭할 때 알림이 없으면 눌렸는지 모르지만, 빛과 소리로 알리면 바로 안다</title>
+<desc id="desc">두 칸 그림이다. 왼쪽 칸 "알림이 없으면"에는 눈을 감은 얼굴 옆에 물음표 말풍선 "눌렸나?"가 있고, 아래에 모르고 또 눈을 감는다고 적혀 있다. 오른쪽 칸 "빛과 소리로 알리면"에는 눈을 감은 얼굴에서 화살표가 ESP32 보드로 이어지고, 보드의 LED가 초록으로 켜지고 음표 두 개(도, 솔)가 울리며, 느낌표 말풍선 "눌렸구나!"가 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="290" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">클릭했다는 걸 알려 주는 피드백</text>
+
+<!-- 왼쪽 칸 -->
+<rect x="10" y="50" width="300" height="228" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="160" y="78" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">알림이 없으면</text>
+<ellipse cx="90" cy="150" rx="36" ry="44" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<path d="M68 142 Q76 148 84 142" fill="none" stroke="#17191c" stroke-width="2.5"/>
+<path d="M96 142 Q104 148 112 142" fill="none" stroke="#17191c" stroke-width="2.5"/>
+<path d="M80 170 Q90 175 100 170" fill="none" stroke="#4a5361" stroke-width="2"/>
+<path d="M150 96 H270 Q282 96 282 108 V150 Q282 162 270 162 H176 L160 180 L162 162 H150 Q138 162 138 150 V108 Q138 96 150 96 Z" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="210" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="#a3232a">눌렸나?</text>
+<g text-anchor="middle" font-size="16" fill="#17191c">
+<text x="160" y="232">눌렸는지 몰라서</text>
+<text x="160" y="254">또 눈을 감아 버려요</text>
+</g>
+
+<!-- 오른쪽 칸 -->
+<rect x="330" y="50" width="300" height="228" rx="14" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<text x="480" y="78" text-anchor="middle" font-size="17" font-weight="700" fill="#1a4cb4">빛과 소리로 알리면</text>
+<ellipse cx="386" cy="150" rx="30" ry="37" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<path d="M368 143 Q375 148 382 143" fill="none" stroke="#17191c" stroke-width="2.5"/>
+<path d="M390 143 Q397 148 404 143" fill="none" stroke="#17191c" stroke-width="2.5"/>
+<path d="M378 164 Q386 168 394 164" fill="none" stroke="#4a5361" stroke-width="2"/>
+<line x1="420" y1="150" x2="452" y2="150" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<!-- 보드와 LED -->
+<rect x="458" y="124" width="70" height="54" rx="5" fill="#1f3a5f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="466" y="132" width="54" height="16" rx="2" fill="#dbe7fb"/>
+<circle cx="480" cy="164" r="8" fill="#2fbf5b" stroke="#15653a" stroke-width="2"/>
+<g stroke="#2fbf5b" stroke-width="2" stroke-linecap="round">
+<line x1="480" y1="148" x2="480" y2="144"/>
+<line x1="468" y1="164" x2="464" y2="164"/>
+<line x1="492" y1="164" x2="496" y2="164"/>
+</g>
+<text x="493" y="200" text-anchor="middle" font-size="16" font-weight="700" fill="#15653a">초록 LED</text>
+<!-- 음표 -->
+<g fill="#17191c">
+<ellipse cx="556" cy="162" rx="7" ry="5"/>
+<rect x="561" y="130" width="2.5" height="32"/>
+<ellipse cx="588" cy="148" rx="7" ry="5"/>
+<rect x="593" y="116" width="2.5" height="32"/>
+<path d="M561 130 L596 116 L596 124 L561 138 Z"/>
+</g>
+<g font-size="16" fill="#17191c" text-anchor="middle">
+<text x="556" y="190">도</text>
+<text x="590" y="176">솔</text>
+</g>
+<path d="M472 86 H596 Q608 86 608 98 V102 Q608 114 596 114 H532 L520 121 L520 114 H472 Q460 114 460 102 V98 Q460 86 472 86 Z" fill="#ffffff" stroke="#15653a" stroke-width="1.5"/>
+<text x="534" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="#15653a">눌렸구나!</text>
+<g text-anchor="middle" font-size="16" fill="#17191c">
+<text x="480" y="232">초록 불과 "도-솔" 소리로</text>
+<text x="480" y="254">한 번에 알아요</text>
+</g>
+</g>
+</svg>

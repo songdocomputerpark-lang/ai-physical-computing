@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" width="640" height="380" role="img" aria-labelledby="title desc">
+<title id="title">4-2-2 보드에 달린 부품과 핀, 부품마다 하는 일</title>
+<desc id="desc">가운데 ESP32 보드에 여섯 부품이 선으로 이어져 있다. 왼쪽 위 LCD(SDA 21, SCL 22)는 좌표를 글자로 보여 주고, 오른쪽 위 서보모터 X(25)와 Y(26)는 커서 쪽으로 돈다. 왼쪽 가운데 블루투스 상태 LED(12)는 연결 상태를 보여 준다. 아래 줄의 RGB LED(R 27, G 32, B 33)는 초록이면 더블클릭, 파랑이면 오른쪽 클릭이고, 버저(2)는 클릭 소리 도, 솔을 내고, 레이저(18)는 값을 받는 중에 켜진다. 맨 아래에 탐구 예제는 핀이 달라서 서보 X 32, RGB 25, 5, 4, 레이저 27을 쓴다는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="380" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="30" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">보드에 달린 부품과 하는 일(기본, 심화 예제)</text>
+
+<!-- 잇는 선 -->
+<g stroke="#7b8594" stroke-width="2" fill="none">
+<path d="M220 88 H270 V150"/>
+<path d="M420 88 H370 V150"/>
+<path d="M220 180 H250"/>
+<path d="M120 256 V236 H280 V220"/>
+<path d="M320 256 V220"/>
+<path d="M520 256 V236 H360 V220"/>
+</g>
+
+<!-- 보드 -->
+<rect x="250" y="150" width="140" height="70" rx="6" fill="#1f3a5f" stroke="#17191c" stroke-width="1.5"/>
+<text x="320" y="192" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff">ESP32</text>
+
+<!-- LCD -->
+<rect x="20" y="52" width="200" height="72" rx="10" fill="#f4f6f9" stroke="#2c6e3f" stroke-width="2"/>
+<text x="32" y="78" font-size="16" font-weight="700" fill="#17191c">LCD(SDA 21, SCL 22)</text>
+<text x="32" y="106" font-size="16" fill="#17191c">좌표를 글자로 보여 줘요</text>
+
+<!-- 서보 -->
+<rect x="420" y="52" width="200" height="72" rx="10" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/>
+<text x="432" y="78" font-size="16" font-weight="700" fill="#17191c">서보 X(25), 서보 Y(26)</text>
+<text x="432" y="106" font-size="16" fill="#17191c">커서 쪽으로 돌아요</text>
+
+<!-- 상태 LED -->
+<rect x="20" y="146" width="200" height="72" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="32" y="172" font-size="16" font-weight="700" fill="#17191c">상태 LED(12)</text>
+<text x="32" y="200" font-size="16" fill="#17191c">블루투스 연결 상태</text>
+
+<!-- RGB LED -->
+<rect x="20" y="256" width="200" height="88" rx="10" fill="#f4f6f9" stroke="#1f5bd6" stroke-width="2"/>
+<text x="32" y="280" font-size="16" font-weight="700" fill="#17191c">RGB LED(27, 32, 33)</text>
+<circle cx="40" cy="302" r="7" fill="#2fbf5b" stroke="#15653a" stroke-width="1.5"/>
+<text x="54" y="308" font-size="16" fill="#17191c">초록: 더블클릭</text>
+<circle cx="40" cy="328" r="7" fill="#2f6fd6" stroke="#1a4cb4" stroke-width="1.5"/>
+<text x="54" y="334" font-size="16" fill="#17191c">파랑: 오른쪽 클릭</text>
+
+<!-- 버저 -->
+<rect x="240" y="256" width="160" height="88" rx="10" fill="#f4f6f9" stroke="#b25e00" stroke-width="2"/>
+<text x="252" y="280" font-size="16" font-weight="700" fill="#17191c">버저(2)</text>
+<text x="252" y="308" font-size="16" fill="#17191c">클릭 소리</text>
+<text x="252" y="334" font-size="16" fill="#17191c">도 → 솔</text>
+
+<!-- 레이저 -->
+<rect x="420" y="256" width="200" height="88" rx="10" fill="#f4f6f9" stroke="#a3232a" stroke-width="2"/>
+<text x="432" y="280" font-size="16" font-weight="700" fill="#17191c">레이저(18)</text>
+<text x="432" y="308" font-size="16" fill="#17191c">값을 받는 중에 켜져요</text>
+<text x="432" y="334" font-size="16" font-weight="700" fill="#a3232a">눈에 비추지 않기</text>
+
+<text x="20" y="370" font-size="16" fill="#4a5361">탐구 예제는 핀이 달라요: 서보 X 32, RGB 25, 5, 4, 레이저 27</text>
+</g>
+</svg>

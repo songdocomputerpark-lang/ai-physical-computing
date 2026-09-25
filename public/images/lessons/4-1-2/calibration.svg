@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" width="640" height="320" role="img" aria-labelledby="title desc">
+<title id="title">기준점 잡기: 처음 30장 동안 찾은 코 위치의 평균을 기준점으로 삼는다</title>
+<desc id="desc">왼쪽의 어두운 영상 칸에 장마다 찾은 코 위치가 초록 점 여러 개로 조금씩 흩어져 찍혀 있고, 그 가운데에 평균 자리를 나타내는 파란 십자가 있다. 오른쪽에는 화면 아래에 뜨는 글자 Calibrating... 30/30과, 새 평균을 구하는 식(지금 평균 × 센 장 수 + 새 값을 센 장 수 + 1로 나눔), 두 장의 평균 300에 새 값 306이 오면 새 평균이 302가 되는 예가 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="320" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">기준점 = 처음 30장 동안 코 위치의 평균</text>
+
+<!-- 영상 칸 -->
+<rect x="20" y="56" width="270" height="200" rx="8" fill="#2a3240" stroke="#17191c" stroke-width="1.5"/>
+<ellipse cx="155" cy="150" rx="62" ry="80" fill="none" stroke="#6b7a8f" stroke-width="2"/>
+<g fill="#3fbf6f">
+<circle cx="147" cy="140" r="4.5"/>
+<circle cx="160" cy="146" r="4.5"/>
+<circle cx="152" cy="152" r="4.5"/>
+<circle cx="166" cy="138" r="4.5"/>
+<circle cx="143" cy="150" r="4.5"/>
+<circle cx="158" cy="134" r="4.5"/>
+<circle cx="170" cy="150" r="4.5"/>
+<circle cx="150" cy="130" r="4.5"/>
+<circle cx="162" cy="156" r="4.5"/>
+</g>
+<g stroke="#5b9cf5" stroke-width="3.5">
+<line x1="156" y1="131" x2="156" y2="155"/>
+<line x1="144" y1="143" x2="168" y2="143"/>
+</g>
+<text x="30" y="246" font-size="17" font-weight="700" fill="#f5d20a" font-family="'Consolas', 'D2Coding', monospace">Calibrating... 30/30</text>
+
+<g font-size="16" fill="#17191c">
+<circle cx="32" cy="276" r="6" fill="#3fbf6f"/>
+<text x="46" y="282">장마다 찾은 코 위치</text>
+<g stroke="#1f5bd6" stroke-width="3">
+<line x1="32" y1="294" x2="32" y2="310"/>
+<line x1="24" y1="302" x2="40" y2="302"/>
+</g>
+<text x="46" y="308">평균 = 기준점</text>
+</g>
+
+<!-- 오른쪽 설명 -->
+<g font-size="17" fill="#17191c">
+<text x="318" y="78" font-weight="700">새 평균을 구하는 식</text>
+<text x="318" y="108">(지금 평균 × 센 장 수 + 새 값)</text>
+<text x="318" y="134">÷ (센 장 수 + 1)</text>
+</g>
+<rect x="312" y="152" width="314" height="96" rx="12" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<g font-size="16" fill="#17191c">
+<text x="326" y="180">예: 두 장의 평균 300, 새 값 306</text>
+<text x="326" y="208">(300 × 2 + 306) ÷ 3</text>
+<text x="326" y="234" font-weight="700" fill="#1a4cb4">= 302 (새 평균)</text>
+</g>
+<text x="318" y="282" font-size="16" fill="#4a5361">실습실은 1초에 15장 안팎 → 2초쯤</text>
+</g>
+</svg>

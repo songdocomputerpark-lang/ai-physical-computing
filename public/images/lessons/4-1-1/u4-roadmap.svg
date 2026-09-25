@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" width="640" height="300" role="img" aria-labelledby="title desc">
+<title id="title">얼굴로 움직이는 마우스를 만드는 네 걸음: 4-1-1 얼굴 점 찾기, 4-1-2 코로 커서 옮기기, 4-1-3 눈으로 클릭하기, 4-1-4 보드로 보내기</title>
+<desc id="desc">왼쪽부터 차례로 네 칸이 화살표로 이어진다. 첫 칸(4-1-1, 이번 차시라 파랗게 칠함)은 얼굴 그림 위에 점 세 개가 찍혀 있고 "얼굴 점 찾기", 둘째 칸(4-1-2)은 마우스 커서와 움직임 화살표로 "코로 커서 옮기기", 셋째 칸(4-1-3)은 감은 눈 그림으로 "눈으로 클릭하기", 넷째 칸(4-1-4)은 무선 신호를 내는 보드 그림으로 "보드로 보내기"이다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="300" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">손 대신 얼굴로 움직이는 마우스, 네 걸음</text>
+
+<g fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5">
+<rect x="10" y="60" width="128" height="226" rx="14" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+<rect x="174" y="60" width="128" height="226" rx="14"/>
+<rect x="338" y="60" width="128" height="226" rx="14"/>
+<rect x="502" y="60" width="128" height="226" rx="14"/>
+</g>
+<g fill="none" stroke="#4a5361" stroke-width="2.5">
+<line x1="140" y1="170" x2="170" y2="170" marker-end="url(#arrow)"/>
+<line x1="304" y1="170" x2="334" y2="170" marker-end="url(#arrow)"/>
+<line x1="468" y1="170" x2="498" y2="170" marker-end="url(#arrow)"/>
+</g>
+
+<g text-anchor="middle" font-size="17" font-weight="700" fill="#1a4cb4">
+<text x="74" y="88">4-1-1</text>
+<text x="238" y="88">4-1-2</text>
+<text x="402" y="88">4-1-3</text>
+<text x="566" y="88">4-1-4</text>
+</g>
+
+<!-- 1. 얼굴 점 -->
+<ellipse cx="74" cy="142" rx="30" ry="37" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<ellipse cx="62" cy="136" rx="7" ry="4" fill="none" stroke="#4a5361" stroke-width="2"/>
+<ellipse cx="86" cy="136" rx="7" ry="4" fill="none" stroke="#4a5361" stroke-width="2"/>
+<path d="M74 134 V152" stroke="#4a5361" stroke-width="2"/>
+<path d="M64 162 Q74 168 84 162" fill="none" stroke="#4a5361" stroke-width="2"/>
+<circle cx="62" cy="136" r="3.5" fill="#d24b4b"/>
+<circle cx="86" cy="136" r="3.5" fill="#d24b4b"/>
+<circle cx="74" cy="129" r="3.5" fill="#d24b4b"/>
+
+<!-- 2. 커서 -->
+<rect x="200" y="112" width="76" height="56" rx="6" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<path d="M232 126 L232 150 L238 144 L243 155 L247 153 L242 142 L250 142 Z" fill="#17191c"/>
+<path d="M208 176 H268" fill="none" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- 3. 감은 눈 -->
+<path d="M372 142 Q402 118 432 142" fill="none" stroke="#4a5361" stroke-width="2.5"/>
+<path d="M372 142 Q402 160 432 142" fill="none" stroke="#4a5361" stroke-width="2.5"/>
+<path d="M382 148 Q402 156 422 148" fill="none" stroke="#17191c" stroke-width="3"/>
+<g stroke="#1f5bd6" stroke-width="2.5" stroke-linecap="round">
+<line x1="402" y1="112" x2="402" y2="102"/>
+<line x1="384" y1="116" x2="378" y2="108"/>
+<line x1="420" y1="116" x2="426" y2="108"/>
+</g>
+
+<!-- 4. 보드와 무선 -->
+<rect x="540" y="126" width="52" height="40" rx="4" fill="#1f3a5f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="548" y="134" width="36" height="14" rx="2" fill="#dbe7fb"/>
+<g fill="none" stroke="#1f5bd6" stroke-width="2.5" stroke-linecap="round">
+<path d="M598 128 Q606 146 598 164"/>
+<path d="M606 120 Q618 146 606 172"/>
+</g>
+
+<g text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">
+<text x="74" y="214">얼굴 점</text>
+<text x="74" y="236">찾기</text>
+<text x="238" y="214">코로 커서</text>
+<text x="238" y="236">옮기기</text>
+<text x="402" y="214">눈으로</text>
+<text x="402" y="236">클릭하기</text>
+<text x="566" y="214">보드로</text>
+<text x="566" y="236">보내기</text>
+</g>
+<g text-anchor="middle" font-size="16" fill="#4a5361">
+<text x="74" y="266" fill="#1a4cb4" font-weight="700">이번 차시</text>
+<text x="238" y="266">움직인 만큼</text>
+<text x="402" y="266">눈 감는 순간</text>
+<text x="566" y="266">블루투스로</text>
+</g>
+</g>
+</svg>

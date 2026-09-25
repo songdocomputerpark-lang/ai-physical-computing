@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 280" width="640" height="280" role="img" aria-labelledby="title desc">
+<title id="title">코가 기준점에서 오른쪽으로 움직이면 움직인 거리를 화면 좌표로 바꿔 커서도 오른쪽으로 옮기는 세 칸 그림</title>
+<desc id="desc">왼쪽 칸은 웹캠 영상으로, 얼굴 가운데의 파란 십자(기준점)에서 초록 코 점이 오른쪽으로 옮겨 가 있다. 가운데 칸은 코가 움직인 거리 +15픽셀을 계산식으로 화면 좌표 1440으로 바꾸는 모습이다. 오른쪽 칸은 모니터로, 가운데에 있던 커서가 오른쪽으로 옮겨 가 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+<marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#3fbf6f"/>
+</marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/>
+</marker>
+</defs>
+<rect width="640" height="280" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">손 대신 코로 움직이는 마우스 커서</text>
+
+<!-- 1. 웹캠 영상 -->
+<rect x="16" y="56" width="176" height="132" rx="8" fill="#2a3240" stroke="#17191c" stroke-width="1.5"/>
+<ellipse cx="104" cy="122" rx="38" ry="50" fill="none" stroke="#c3cad5" stroke-width="2"/>
+<g fill="none" stroke="#c3cad5" stroke-width="2">
+<path d="M84 110 Q92 104 100 110"/>
+<path d="M108 110 Q116 104 124 110"/>
+<path d="M92 146 Q104 152 116 146"/>
+</g>
+<g stroke="#5b9cf5" stroke-width="3">
+<line x1="96" y1="118" x2="96" y2="132"/>
+<line x1="89" y1="125" x2="103" y2="125"/>
+</g>
+<circle cx="120" cy="125" r="7" fill="#3fbf6f"/>
+<path d="M96 180 H122" stroke="#3fbf6f" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+<text x="104" y="214" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">코가 오른쪽으로</text>
+<text x="104" y="238" text-anchor="middle" font-size="16" fill="#4a5361">기준점(파란 십자)에서</text>
+<text x="104" y="260" text-anchor="middle" font-size="16" fill="#4a5361">+15픽셀</text>
+
+<line x1="198" y1="122" x2="226" y2="122" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- 2. 계산 -->
+<rect x="232" y="56" width="176" height="132" rx="12" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<g text-anchor="middle" fill="#17191c">
+<text x="320" y="92" font-size="17">15 ÷ 60 × 1920</text>
+<text x="320" y="120" font-size="17">+ 960</text>
+<text x="320" y="164" font-size="22" font-weight="700" fill="#1a4cb4">= 1440</text>
+</g>
+<text x="320" y="214" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">화면 좌표로 바꾸기</text>
+<text x="320" y="238" text-anchor="middle" font-size="16" fill="#4a5361">움직인 만큼 비례해서</text>
+
+<line x1="414" y1="122" x2="442" y2="122" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- 3. 모니터 -->
+<rect x="448" y="60" width="176" height="110" rx="6" fill="#ffffff" stroke="#4a5361" stroke-width="2.5"/>
+<rect x="456" y="68" width="160" height="94" fill="#f4f6f9"/>
+<path d="M520 170 L514 188 H558 L552 170" fill="#c3cad5" stroke="#4a5361" stroke-width="1.5"/>
+<line x1="536" y1="116" x2="578" y2="116" stroke="#1f5bd6" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arrow-blue)"/>
+<circle cx="536" cy="116" r="4" fill="#7b8594"/>
+<path d="M584 102 L584 126 L590 120 L595 131 L599 129 L594 118 L602 118 Z" fill="#17191c" stroke="#ffffff" stroke-width="1"/>
+<text x="536" y="214" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">커서도 오른쪽으로</text>
+<text x="536" y="238" text-anchor="middle" font-size="16" fill="#4a5361">가운데 960 → 1440</text>
+</g>
+</svg>

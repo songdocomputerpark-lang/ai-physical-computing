@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 270" width="640" height="270" role="img" aria-labelledby="title desc">
+<title id="title">컴퓨터가 찾은 코 좌표 DATA,320,170을 블루투스로 보내면 ESP32 보드의 LCD에 X:320 Y:170이 나타나는 그림</title>
+<desc id="desc">왼쪽의 노트북 화면에 얼굴과 초록 코 점이 있고, 노트북 위 말풍선에 보내는 글 DATA,320,170이 적혀 있다. 노트북에서 오른쪽으로 전파 곡선이 퍼져 나가 ESP32 보드에 닿고, 보드에 이어진 문자 LCD에 X:320 Y:170이 표시되어 있다. 아래에는 선 없이 0.5초마다 코 좌표를 보낸다는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="270" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">선 없이, 컴퓨터에서 보드로</text>
+
+<!-- 노트북 -->
+<rect x="40" y="96" width="170" height="108" rx="8" fill="#2a3240" stroke="#17191c" stroke-width="2"/>
+<ellipse cx="125" cy="150" rx="28" ry="36" fill="none" stroke="#c3cad5" stroke-width="2"/>
+<circle cx="125" cy="146" r="6" fill="#3fbf6f"/>
+<path d="M24 204 H226 L212 222 H38 Z" fill="#c3cad5" stroke="#4a5361" stroke-width="1.5"/>
+<!-- 말풍선 -->
+<rect x="44" y="50" width="162" height="34" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<path d="M112 84 L120 94 L128 84" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="125" y="73" text-anchor="middle" font-size="17" font-weight="700" fill="#1a4cb4" font-family="'Consolas', 'D2Coding', monospace">DATA,320,170</text>
+
+<!-- 전파 -->
+<g fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linecap="round">
+<path d="M238 128 Q250 150 238 172"/>
+<path d="M258 116 Q276 150 258 184"/>
+<path d="M278 104 Q302 150 278 196"/>
+</g>
+<text x="300" y="140" font-size="17" font-weight="700" fill="#1a4cb4">블루투스</text>
+<text x="300" y="164" font-size="16" fill="#4a5361">0.5초마다</text>
+
+<!-- 보드 -->
+<rect x="390" y="118" width="70" height="64" rx="6" fill="#1f3a5f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="400" y="130" width="50" height="24" rx="3" fill="#c3cad5"/>
+<text x="425" y="176" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">ESP32</text>
+<g stroke="#4a5361" stroke-width="2.5">
+<line x1="460" y1="140" x2="480" y2="140"/>
+<line x1="460" y1="160" x2="480" y2="160"/>
+</g>
+<!-- LCD -->
+<rect x="480" y="108" width="148" height="84" rx="6" fill="#2c6e3f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="490" y="120" width="128" height="58" rx="3" fill="#2f6fd6"/>
+<text x="554" y="156" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">X:320 Y:170</text>
+
+<text x="320" y="252" text-anchor="middle" font-size="16" fill="#17191c">카메라가 찾은 코 좌표를 약속한 모양의 글로 만들어 보드에 보내요.</text>
+</g>
+</svg>

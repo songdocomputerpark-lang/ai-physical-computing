@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 370" width="640" height="370" role="img" aria-labelledby="title desc">
+<title id="title">다섯 칸 약속 DATA,x,y,더블클릭,오른쪽클릭과 0.1초마다 보낸 글 다섯 개</title>
+<desc id="desc">표의 열 이름은 차례로 머리말, 마우스 x, 마우스 y, 더블클릭, 오른쪽 클릭이다. 0.1초마다 보낸 글 다섯 개가 한 줄씩 있다. 머리말은 늘 DATA이고, 마우스 x는 1850, 1885, 1920, 1950, 1980으로 조금씩 바뀌며 마우스 y는 1080이다. 더블클릭 칸은 0.2초에 보낸 셋째 글에만 1이고 나머지는 모두 0이며, 오른쪽 클릭 칸은 모두 0이다. 아래에 좌표 칸은 글마다 새 값이 오는 상태이고, 클릭 칸은 클릭한 순간의 글 하나에만 1인 사건이라는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="370" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">다섯 칸 약속과 0.1초마다 오는 글</text>
+
+<!-- 열 머리 -->
+<g font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">
+<text x="38" y="72">보낸 때</text>
+<text x="125" y="72">머리말</text>
+<text x="225" y="72">마우스 x</text>
+<text x="325" y="72">마우스 y</text>
+<text x="430" y="72">더블클릭</text>
+<text x="545" y="72">오른쪽 클릭</text>
+</g>
+<line x1="8" y1="84" x2="632" y2="84" stroke="#4a5361" stroke-width="1.5"/>
+
+<!-- 좌표 칸 배경(상태) -->
+<rect x="180" y="90" width="190" height="186" rx="6" fill="#eef7f1"/>
+<!-- 클릭 칸 배경(사건) -->
+<rect x="380" y="90" width="220" height="186" rx="6" fill="#fff6e8"/>
+
+<!-- 행 -->
+<g font-size="17" fill="#17191c" text-anchor="middle" font-family="'Consolas', 'D2Coding', monospace">
+<text x="125" y="115">DATA</text><text x="225" y="115">1850</text><text x="325" y="115">1080</text><text x="430" y="115">0</text><text x="545" y="115">0</text>
+<text x="125" y="152">DATA</text><text x="225" y="152">1885</text><text x="325" y="152">1080</text><text x="430" y="152">0</text><text x="545" y="152">0</text>
+<text x="125" y="189">DATA</text><text x="225" y="189">1920</text><text x="325" y="189">1080</text><text x="545" y="189">0</text>
+<text x="125" y="226">DATA</text><text x="225" y="226">1950</text><text x="325" y="226">1080</text><text x="430" y="226">0</text><text x="545" y="226">0</text>
+<text x="125" y="263">DATA</text><text x="225" y="263">1980</text><text x="325" y="263">1080</text><text x="430" y="263">0</text><text x="545" y="263">0</text>
+</g>
+<!-- 클릭한 순간 -->
+<rect x="400" y="168" width="60" height="30" rx="5" fill="#ffffff" stroke="#b25e00" stroke-width="3"/>
+<text x="430" y="190" text-anchor="middle" font-size="19" font-weight="700" fill="#8a4600" font-family="'Consolas', 'D2Coding', monospace">1</text>
+
+<g font-size="16" fill="#4a5361" text-anchor="middle">
+<text x="38" y="115">0.0초</text>
+<text x="38" y="152">0.1초</text>
+<text x="38" y="189" font-weight="700" fill="#8a4600">0.2초</text>
+<text x="38" y="226">0.3초</text>
+<text x="38" y="263">0.4초</text>
+</g>
+<g stroke="#c9ced6" stroke-width="1">
+<line x1="8" y1="133" x2="632" y2="133"/>
+<line x1="8" y1="170" x2="632" y2="170"/>
+<line x1="8" y1="207" x2="632" y2="207"/>
+<line x1="8" y1="244" x2="632" y2="244"/>
+</g>
+
+<!-- 설명 -->
+<rect x="14" y="292" width="18" height="18" rx="3" fill="#eef7f1" stroke="#15653a"/>
+<text x="42" y="307" font-size="16" fill="#17191c">좌표 칸: 글마다 새 값이 와요. 마우스가 지금 어디 있는지(상태)예요.</text>
+<rect x="14" y="324" width="18" height="18" rx="3" fill="#fff6e8" stroke="#b25e00"/>
+<text x="42" y="339" font-size="16" fill="#17191c">클릭 칸: 클릭한 순간의 글 하나에만 1이에요. 방금 일어난 일(사건)이에요.</text>
+</g>
+</svg>

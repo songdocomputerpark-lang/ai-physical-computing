@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
+<title id="title">IV단원 프로젝트의 다섯 단계와 이어지는 성취기준</title>
+<desc id="desc">위 줄에 1단계 문제 찾고 정의하기(12인피04-02, 결과물 문제 정의 문장), 2단계 역할 나누고 계획하기(12인피04-03, 역할표와 계획표), 3단계 만들고 시험하기(12인피04-03, 시험 기록과 코드)가 화살표로 이어진다. 3단계 아래로 4단계 영향 점검하고 고치기(12인피04-04, 점검표와 고친 점)가 이어지고, 4단계에서 3단계로 되돌아가는 점선 화살표에 고치기라고 적혀 있다. 4단계 왼쪽으로 5단계 발표하고 돌아보기(시연과 돌아보기)가 이어진다. 왼쪽 아래에는 모든 단계에서 과정을 기록하고 생성형 AI의 도움을 받은 부분을 표시한다는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="330" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">프로젝트 다섯 단계</text>
+
+<!-- 상자 -->
+<g stroke-width="2">
+<rect x="12" y="52" width="184" height="112" rx="12" fill="#eaf1fe" stroke="#1f5bd6"/>
+<rect x="228" y="52" width="184" height="112" rx="12" fill="#eaf1fe" stroke="#1f5bd6"/>
+<rect x="444" y="52" width="184" height="112" rx="12" fill="#eaf1fe" stroke="#1f5bd6"/>
+<rect x="444" y="204" width="184" height="112" rx="12" fill="#fff6e8" stroke="#b25e00"/>
+<rect x="228" y="204" width="184" height="112" rx="12" fill="#eef7f1" stroke="#15653a"/>
+<rect x="12" y="204" width="184" height="112" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-dasharray="6 4"/>
+</g>
+
+<!-- 화살표 -->
+<g stroke="#4a5361" stroke-width="2.5" fill="none">
+<line x1="198" y1="108" x2="224" y2="108" marker-end="url(#arrow)"/>
+<line x1="414" y1="108" x2="440" y2="108" marker-end="url(#arrow)"/>
+<line x1="500" y1="166" x2="500" y2="200" marker-end="url(#arrow)"/>
+<line x1="442" y1="260" x2="416" y2="260" marker-end="url(#arrow)"/>
+</g>
+<line x1="580" y1="202" x2="580" y2="170" stroke="#b25e00" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<text x="540" y="192" text-anchor="middle" font-size="16" font-weight="700" fill="#8a4600">고치기</text>
+
+<!-- 글 -->
+<g font-size="17" font-weight="700" fill="#17191c">
+<text x="26" y="82">① 문제 찾고</text>
+<text x="48" y="104">정의하기</text>
+<text x="242" y="82">② 역할 나누고</text>
+<text x="264" y="104">계획하기</text>
+<text x="458" y="82">③ 만들고</text>
+<text x="480" y="104">시험하기</text>
+<text x="458" y="234">④ 영향 점검하고</text>
+<text x="480" y="256">고치기</text>
+<text x="242" y="234">⑤ 발표하고</text>
+<text x="264" y="256">돌아보기</text>
+</g>
+<g font-size="16" font-weight="700" fill="#1a4cb4">
+<text x="26" y="128">12인피04-02</text>
+<text x="242" y="128">12인피04-03</text>
+<text x="458" y="128">12인피04-03</text>
+</g>
+<text x="458" y="280" font-size="16" font-weight="700" fill="#8a4600">12인피04-04</text>
+<g font-size="16" fill="#4a5361">
+<text x="26" y="152">문제 정의 문장</text>
+<text x="242" y="152">역할표, 계획표</text>
+<text x="458" y="152">시험 기록, 코드</text>
+<text x="458" y="304">점검표, 고친 점</text>
+<text x="242" y="280">시연, 돌아보기</text>
+</g>
+<g font-size="16" fill="#17191c">
+<text x="26" y="234" font-weight="700">모든 단계에서</text>
+<text x="26" y="258">과정을 기록하고</text>
+<text x="26" y="282">생성형 AI 도움을</text>
+<text x="26" y="306">표시해요</text>
+</g>
+</g>
+</svg>

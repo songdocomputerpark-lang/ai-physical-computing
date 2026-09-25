@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" width="640" height="300" role="img" aria-labelledby="title desc">
+<title id="title">얼굴로 움직인 마우스의 좌표와 클릭이 블루투스로 보드에 가서 LCD와 서보모터 두 개를 움직인다</title>
+<desc id="desc">왼쪽 컴퓨터 칸에는 웹캠 속 얼굴이 오른쪽으로 고개를 돌리고, 모니터의 커서가 오른쪽으로 옮겨 가 있다. 가운데에는 블루투스로 보내는 글 DATA,2880,1080,0,0이 있다. 오른쪽 보드 칸에는 ESP32 보드에 이어진 LCD가 받은 좌표를 글자로 보여 주고, 서보모터 X는 커서가 있는 오른쪽으로 135도, 서보모터 Y는 위로 90도 돌아가 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="300" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">얼굴 마우스의 신호로 보드의 장치를 깨워요</text>
+
+<!-- 왼쪽: 컴퓨터 -->
+<rect x="10" y="52" width="200" height="236" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="110" y="78" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">컴퓨터</text>
+<!-- 웹캠 속 얼굴 -->
+<rect x="26" y="92" width="72" height="72" rx="6" fill="#ffffff" stroke="#4a5361" stroke-width="1.5"/>
+<ellipse cx="64" cy="128" rx="20" ry="25" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<ellipse cx="60" cy="122" rx="4.5" ry="3" fill="none" stroke="#4a5361" stroke-width="1.8"/>
+<ellipse cx="74" cy="122" rx="4.5" ry="3" fill="none" stroke="#4a5361" stroke-width="1.8"/>
+<circle cx="69" cy="127" r="3" fill="#d24b4b"/>
+<path d="M62 140 Q68 144 75 140" fill="none" stroke="#4a5361" stroke-width="1.8"/>
+<path d="M50 104 Q64 96 80 104" fill="none" stroke="#1f5bd6" stroke-width="2" marker-end="url(#arrow)"/>
+<!-- 모니터 -->
+<rect x="108" y="92" width="92" height="64" rx="5" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="146" y="156" width="16" height="10" fill="#7b8594"/>
+<rect x="132" y="166" width="44" height="5" rx="2" fill="#7b8594"/>
+<path d="M170 106 L170 128 L175 123 L179 132 L183 130 L179 121 L186 121 Z" fill="#17191c"/>
+<line x1="124" y1="140" x2="160" y2="140" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrow)"/>
+<g text-anchor="middle" font-size="16" fill="#17191c">
+<text x="110" y="208">고개를 돌리면</text>
+<text x="110" y="230">커서가 따라가요</text>
+</g>
+<text x="110" y="268" text-anchor="middle" font-size="16" fill="#4a5361">얼굴 마우스</text>
+
+<!-- 가운데: 블루투스 글 -->
+<g fill="none" stroke="#1f5bd6" stroke-width="2.5" stroke-linecap="round">
+<path d="M300 118 Q312 132 300 146"/>
+<path d="M310 110 Q326 132 310 154"/>
+<path d="M320 102 Q340 132 320 162"/>
+</g>
+<line x1="218" y1="190" x2="418" y2="190" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="318" y="86" text-anchor="middle" font-size="16" fill="#4a5361">블루투스로 보내는 글</text>
+<rect x="228" y="204" width="182" height="36" rx="8" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="319" y="228" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace">DATA,2880,1080,0,0</text>
+<text x="319" y="266" text-anchor="middle" font-size="16" fill="#4a5361">좌표 두 칸 + 클릭 두 칸</text>
+
+<!-- 오른쪽: 보드 -->
+<rect x="428" y="52" width="202" height="236" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="529" y="78" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">ESP32 보드</text>
+<!-- 보드 -->
+<rect x="442" y="92" width="58" height="40" rx="4" fill="#1f3a5f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="450" y="100" width="42" height="14" rx="2" fill="#dbe7fb"/>
+<!-- LCD -->
+<rect x="512" y="90" width="108" height="46" rx="5" fill="#2c6e3f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="520" y="97" width="92" height="32" rx="2" fill="#2f6fd6"/>
+<g fill="#ffffff">
+<rect x="526" y="103" width="8" height="8"/><rect x="537" y="103" width="8" height="8"/><rect x="548" y="103" width="8" height="8"/><rect x="559" y="103" width="8" height="8"/>
+<rect x="575" y="103" width="8" height="8"/><rect x="586" y="103" width="8" height="8"/><rect x="597" y="103" width="8" height="8"/>
+<rect x="526" y="115" width="8" height="8"/><rect x="537" y="115" width="8" height="8"/><rect x="548" y="115" width="8" height="8"/>
+<rect x="575" y="115" width="8" height="8"/><rect x="586" y="115" width="8" height="8"/>
+</g>
+<line x1="500" y1="112" x2="512" y2="112" stroke="#4a5361" stroke-width="2"/>
+<text x="529" y="158" text-anchor="middle" font-size="16" fill="#17191c">LCD: 좌표를 글자로</text>
+<!-- 서보 X: 135도 -->
+<path d="M448 226 A30 30 0 0 1 508 226" fill="none" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="3 3"/>
+<rect x="458" y="226" width="40" height="24" rx="3" fill="#4a5361"/>
+<line x1="478" y1="226" x2="499" y2="205" stroke="#1f5bd6" stroke-width="5" stroke-linecap="round"/>
+<circle cx="478" cy="226" r="4" fill="#ffffff" stroke="#17191c" stroke-width="1.5"/>
+<text x="478" y="272" text-anchor="middle" font-size="16" fill="#17191c">서보 X 135°</text>
+<!-- 서보 Y: 90도 -->
+<path d="M550 226 A30 30 0 0 1 610 226" fill="none" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="3 3"/>
+<rect x="560" y="226" width="40" height="24" rx="3" fill="#4a5361"/>
+<line x1="580" y1="226" x2="580" y2="196" stroke="#1f5bd6" stroke-width="5" stroke-linecap="round"/>
+<circle cx="580" cy="226" r="4" fill="#ffffff" stroke="#17191c" stroke-width="1.5"/>
+<text x="580" y="272" text-anchor="middle" font-size="16" fill="#17191c">서보 Y 90°</text>
+</g>
+</svg>

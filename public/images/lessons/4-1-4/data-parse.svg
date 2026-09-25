@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="title desc">
+<title id="title">받은 글을 쉼표로 나눠 약속한 모양(칸 3개, 첫 칸 DATA)인지 검사하고 맞을 때만 LCD에 쓴다</title>
+<desc id="desc">위쪽에는 받은 글 DATA,320,170이 split(',')로 DATA, 320, 170 세 칸으로 나뉘고, 칸이 3개이고 첫 칸이 DATA라서 숫자로 바꿔 LCD에 X:320 Y:170을 쓰는 흐름이 있다. 아래 표에는 약속과 다른 세 경우가 있다. 320,170은 칸이 2개이고 첫 칸이 DATA가 아니라서, DATA,1,2,3은 칸이 4개라서 버리고, DATA,10,abc는 모양은 맞지만 abc를 숫자로 바꾸지 못해 except로 넘어가 버린다. 세 경우 모두 LCD는 그대로다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="400" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">약속한 모양인지 검사하고 LCD에 써요</text>
+
+<!-- 위: 맞는 경우 -->
+<rect x="12" y="54" width="170" height="70" rx="10" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="97" y="80" text-anchor="middle" font-size="16" fill="#4a5361">받은 글</text>
+<text x="97" y="108" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace">DATA,320,170</text>
+
+<line x1="186" y1="89" x2="212" y2="89" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<rect x="216" y="54" width="220" height="70" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="326" y="80" text-anchor="middle" font-size="16" fill="#4a5361" font-family="'Consolas', 'D2Coding', monospace">split(',')</text>
+<g font-size="17" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace" text-anchor="middle">
+<rect x="228" y="90" width="72" height="26" rx="4" fill="#ffffff" stroke="#5b87e0"/>
+<text x="264" y="109">DATA</text>
+<rect x="306" y="90" width="56" height="26" rx="4" fill="#ffffff" stroke="#5b87e0"/>
+<text x="334" y="109">320</text>
+<rect x="368" y="90" width="56" height="26" rx="4" fill="#ffffff" stroke="#5b87e0"/>
+<text x="396" y="109">170</text>
+</g>
+
+<line x1="440" y1="89" x2="466" y2="89" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<rect x="470" y="54" width="158" height="70" rx="6" fill="#2c6e3f" stroke="#17191c" stroke-width="1.5"/>
+<rect x="480" y="66" width="138" height="46" rx="3" fill="#2f6fd6"/>
+<text x="549" y="96" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="'Consolas', 'D2Coding', monospace">X:320 Y:170</text>
+
+<g font-size="16" fill="#15653a" font-weight="700">
+<text x="216" y="152">칸이 3개? 예</text>
+<text x="340" y="152">첫 칸이 DATA? 예</text>
+</g>
+<text x="216" y="176" font-size="16" fill="#17191c">→ int()로 숫자로 바꿔 LCD에 써요</text>
+
+<!-- 아래: 버리는 경우 -->
+<text x="12" y="214" font-size="17" font-weight="700" fill="#17191c">약속과 다르면 버려요(LCD는 그대로)</text>
+<g font-size="16">
+<rect x="12" y="226" width="616" height="40" fill="#fdecec"/>
+<text x="24" y="252" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace">320,170</text>
+<text x="200" y="252" fill="#a3232a">칸이 2개, 첫 칸이 DATA가 아니에요</text>
+
+<rect x="12" y="272" width="616" height="40" fill="#fdecec"/>
+<text x="24" y="298" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace">DATA,1,2,3</text>
+<text x="200" y="298" fill="#a3232a">칸이 4개예요</text>
+
+<rect x="12" y="318" width="616" height="40" fill="#fdecec"/>
+<text x="24" y="344" font-weight="700" fill="#17191c" font-family="'Consolas', 'D2Coding', monospace">DATA,10,abc</text>
+<text x="200" y="344" fill="#a3232a">abc를 숫자로 못 바꿔서 except로 넘어가요</text>
+</g>
+<text x="12" y="386" font-size="16" fill="#4a5361">검사 덕분에 엉뚱한 글이 와도 보드가 멈추거나 LCD가 흐트러지지 않아요.</text>
+</g>
+</svg>

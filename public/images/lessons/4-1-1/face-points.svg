@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="title desc">
+<title id="title">얼굴 그물망의 점 번호: 두 눈 사이 콧등 6번, 코끝 1번, 두 눈동자 가운데 468번과 473번</title>
+<desc id="desc">왼쪽에 얼굴 윤곽과 눈, 코, 입 위로 가는 회색 그물망 선이 그려져 있다. 두 눈 사이 콧등에 빨간 점(6번), 코끝에 노란 점(1번), 두 눈동자 가운데에 파란 점(468번, 473번)이 찍혀 있다. 오른쪽에는 세 점의 뜻과, 얼굴 그물 점 468개(0~467번)에 refine_landmarks=True일 때 눈동자 점 10개(468~477번)가 더해져 모두 478개라는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="400" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">얼굴 그물망: 점마다 번호가 정해져 있어요</text>
+
+<!-- 얼굴 그물(성긴 삼각형 선) -->
+<g fill="none" stroke="#c3cad5" stroke-width="1.2">
+<path d="M190 58 L130 100 L190 120 L250 100 Z"/>
+<path d="M130 100 L85 160 L130 150 Z M250 100 L295 160 L250 150 Z"/>
+<path d="M130 100 L130 150 L190 120 M250 100 L250 150 L190 120"/>
+<path d="M85 160 L78 230 L120 230 Z M295 160 L302 230 L260 230 Z"/>
+<path d="M120 230 L150 270 L190 262 M260 230 L230 270 L190 262"/>
+<path d="M78 230 L100 300 L150 270 Z M302 230 L280 300 L230 270 Z"/>
+<path d="M100 300 L145 350 L160 318 Z M280 300 L235 350 L220 318 Z"/>
+<path d="M145 350 L190 372 L235 350 L190 340 Z"/>
+<path d="M130 150 L165 205 L120 230 M250 150 L215 205 L260 230"/>
+<path d="M165 205 L190 176 L215 205 L190 262 Z"/>
+<path d="M150 270 L160 318 L190 300 L220 318 L230 270"/>
+</g>
+
+<!-- 얼굴 윤곽 -->
+<ellipse cx="190" cy="215" rx="118" ry="158" fill="none" stroke="#4a5361" stroke-width="2.5"/>
+<!-- 눈썹 -->
+<g fill="none" stroke="#4a5361" stroke-width="2.5" stroke-linecap="round">
+<path d="M112 150 Q140 136 168 148"/>
+<path d="M212 148 Q240 136 268 150"/>
+</g>
+<!-- 눈 -->
+<g fill="#ffffff" stroke="#4a5361" stroke-width="2.2">
+<path d="M110 186 Q140 164 170 186 Q140 204 110 186 Z"/>
+<path d="M210 186 Q240 164 270 186 Q240 204 210 186 Z"/>
+</g>
+<g fill="none" stroke="#4a5361" stroke-width="1.8">
+<circle cx="140" cy="185" r="11"/>
+<circle cx="240" cy="185" r="11"/>
+</g>
+<!-- 코와 입 -->
+<g fill="none" stroke="#4a5361" stroke-width="2.2" stroke-linecap="round">
+<path d="M190 182 L186 250"/>
+<path d="M170 262 Q190 276 210 262"/>
+<path d="M150 312 Q190 300 230 312 Q190 336 150 312 Z"/>
+</g>
+
+<!-- 주요 점 -->
+<circle cx="190" cy="174" r="7" fill="#d24b4b" stroke="#ffffff" stroke-width="2"/>
+<circle cx="188" cy="258" r="7" fill="#e0b400" stroke="#17191c" stroke-width="1.5"/>
+<circle cx="140" cy="185" r="6" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/>
+<circle cx="240" cy="185" r="6" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/>
+<g font-size="17" font-weight="700">
+<text x="200" y="166" fill="#a3232a">6</text>
+<text x="200" y="252" fill="#7a4a00">1</text>
+</g>
+
+<!-- 오른쪽 설명 -->
+<g font-size="17">
+<circle cx="352" cy="92" r="8" fill="#d24b4b"/>
+<text x="368" y="98" font-weight="700" fill="#17191c">6번 — 두 눈 사이 콧등</text>
+<text x="368" y="122" font-size="16" fill="#4a5361">4-1 코드는 이 점을 '코'라고 불러요</text>
+
+<circle cx="352" cy="160" r="8" fill="#e0b400" stroke="#17191c" stroke-width="1.5"/>
+<text x="368" y="166" font-weight="700" fill="#17191c">1번 — 코끝</text>
+
+<circle cx="352" cy="206" r="8" fill="#1f5bd6"/>
+<text x="368" y="212" font-weight="700" fill="#17191c">468번, 473번</text>
+<text x="368" y="236" font-size="16" fill="#4a5361">두 눈동자의 가운데</text>
+</g>
+
+<rect x="340" y="264" width="286" height="108" rx="12" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<g font-size="16" fill="#17191c">
+<text x="356" y="292">얼굴 그물 점 0~467번: 468개</text>
+<text x="356" y="320">눈동자 점 468~477번: 10개</text>
+<text x="356" y="352" font-weight="700" fill="#1a4cb4">refine_landmarks=True면 478개</text>
+</g>
+</g>
+</svg>

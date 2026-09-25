@@ -11,6 +11,9 @@ tags:
   - pyautogui
 packages:
   - opencv-python
+practice:
+  - "재생 입력이면 재생 동작 '눈 깜빡이기'를 골라 [실행]해요."
+  - "창 왼쪽 위의 Left Eye, Right Eye 값이 눈을 감을 때 0에서 1로 바뀌고 EAR 숫자가 작아지는지 봐요."
 
 # ── 실습실에서 돌릴 때(2026-09-17 이관, 브라우저로 확인 — tests/e2e/lab-textbook-u3-u4.spec.ts) ──
 # 필요한 입력: '재생 입력' + 재생 동작 '눈 깜빡이기'. 출력 창 'Nose Mouse Control + Eye Blink Detection' · r·q.

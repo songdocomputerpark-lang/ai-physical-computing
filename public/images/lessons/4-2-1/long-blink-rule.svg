@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" width="640" height="340" role="img" aria-labelledby="title desc">
+<title id="title">눈을 뜨는 순간 감고 있던 시간을 재서 0.4초 이상이면 클릭한다</title>
+<desc id="desc">0초부터 3초까지의 시간 축 위에 왼쪽 눈을 감은 구간이 두 번 있다. 0.5초부터 0.2초 동안 감았다 뜬 첫 구간은 짧아서 그냥 깜빡임으로 보고 넘어간다. 1.5초부터 0.6초 동안 감았다 뜬 둘째 구간은 뜨는 순간 0.4초를 넘었으므로 더블클릭한다. 아래 줄에는 보내는 글의 더블클릭 칸이 늘 0이다가 더블클릭한 순간의 글 하나에서만 1로 솟는다. 맨 아래에 한 번 클릭한 뒤 1초 동안은 다시 누르지 않고, 두 눈을 함께 0.4초 넘게 감았다 뜨면 오른쪽 클릭이라는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<rect width="640" height="340" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="320" y="30" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">눈을 뜨는 순간, 감고 있던 시간을 재요</text>
+
+<!-- 1줄: 왼쪽 눈 -->
+<text x="70" y="62" font-size="16" font-weight="700" fill="#17191c">왼쪽 눈(짙은 곳이 감은 때)</text>
+<rect x="70" y="70" width="540" height="30" rx="4" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="160" y="70" width="36" height="30" fill="#2f4a73"/>
+<rect x="340" y="70" width="108" height="30" fill="#2f4a73"/>
+<text x="394" y="91" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">감음</text>
+
+<g font-size="16" text-anchor="middle">
+<text x="178" y="122" font-weight="700" fill="#17191c">0.2초</text>
+<text x="178" y="146" fill="#4a5361">짧아서 그냥 깜빡임</text>
+<text x="394" y="122" font-weight="700" fill="#17191c">0.6초</text>
+<text x="470" y="146" fill="#15653a" font-weight="700">뜨는 순간 0.4초를 넘어서 더블클릭</text>
+</g>
+<line x1="448" y1="100" x2="448" y2="128" stroke="#15653a" stroke-width="2" stroke-dasharray="5 4"/>
+<line x1="448" y1="154" x2="448" y2="248" stroke="#15653a" stroke-width="2" stroke-dasharray="5 4"/>
+
+<!-- 2줄: 더블클릭 칸 -->
+<text x="70" y="186" font-size="16" font-weight="700" fill="#17191c">보내는 글의 더블클릭 칸</text>
+<polyline points="70,242 448,242 448,206 466,206 466,242 610,242" fill="none" stroke="#b25e00" stroke-width="3"/>
+<text x="62" y="247" text-anchor="end" font-size="16" fill="#4a5361">0</text>
+<text x="457" y="200" text-anchor="middle" font-size="16" font-weight="700" fill="#8a4600">1</text>
+<text x="520" y="228" font-size="16" fill="#4a5361">이 글 하나만</text>
+
+<!-- 시간 축 -->
+<line x1="70" y1="262" x2="610" y2="262" stroke="#4a5361" stroke-width="1.5"/>
+<g stroke="#4a5361" stroke-width="1.5">
+<line x1="70" y1="262" x2="70" y2="270"/>
+<line x1="250" y1="262" x2="250" y2="270"/>
+<line x1="430" y1="262" x2="430" y2="270"/>
+<line x1="610" y1="262" x2="610" y2="270"/>
+</g>
+<g font-size="16" fill="#4a5361" text-anchor="middle">
+<text x="70" y="288">0초</text>
+<text x="250" y="288">1초</text>
+<text x="430" y="288">2초</text>
+<text x="610" y="288" text-anchor="end">3초</text>
+</g>
+
+<text x="14" y="314" font-size="16" fill="#17191c">한 번 클릭한 뒤 1초 동안은 다시 누르지 않아요(click_delay).</text>
+<text x="14" y="334" font-size="16" fill="#17191c">두 눈을 함께 0.4초 넘게 감았다 뜨면 오른쪽 클릭이에요.</text>
+</g>
+</svg>
