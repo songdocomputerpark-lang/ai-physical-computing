@@ -131,6 +131,41 @@ describe('check:lessons — 파일을 여는 검사', () => {
     expect((await run()).text).toContain('줄 끝이 CRLF');
   });
 
+  it('fm-yaml-comment: 따옴표 없는 풀이 안의 " #"부터 주석이 되어 글이 잘리면 실패하고, 따옴표로 감싸면 통과한다(Phase 5 검토 중요 1)', async () => {
+    const cut = FRONTMATTER.replace('explain: 풀이 셋 }', 'explain: 풀이 셋 }\n  # 아래는 시험 문항\n').replace(
+      'quiz:\n',
+      'quiz:\n  - q: 넷째 문제\n    choices: [가, 나, 다]\n    answer: 0\n    explain: 앞에 #이 붙은 줄은 실행되지 않아요.\n',
+    );
+    write('content/lessons/u1/v1.md', lesson(SECTIONS, cut));
+    const broken = await run();
+    expect(broken.failed).toBe(true);
+    expect(broken.text).toContain('오류 [fm-yaml-comment]');
+    expect(broken.text).toContain('"앞에"에서 잘려요');
+
+    write('content/lessons/u1/v1.md', lesson(SECTIONS, cut.replace('explain: 앞에 #이 붙은 줄은 실행되지 않아요.', 'explain: "앞에 #이 붙은 줄은 실행되지 않아요."')));
+    expect((await run()).text).not.toContain('[fm-yaml-comment]');
+  });
+
+  it('fm-yaml-comment: 차시 예제의 사이드카(.meta.yaml) 설명이 주석으로 잘려도 실패한다. 숫자 뒤 주석(answer: 1  # 순번)은 괜찮다', async () => {
+    write('examples/vision/supplement/v1-pixel-numbers.meta.yaml', 'title: 픽셀 숫자\ndifficulty: 1   # 쉬움\ndescription: 1번 #2번 차례로 읽어요.\n');
+    const { text, failed } = await run();
+    expect(failed).toBe(true);
+    expect(text).toContain('사이드카 examples/vision/supplement/v1-pixel-numbers.meta.yaml 3행(description)');
+    expect(text.match(/\[fm-yaml-comment\]/gu)).toHaveLength(1);
+  });
+
+  it('example-focus: 발췌할 줄이 파일 밖이면 실패, 150줄 넘는 예제에 focus가 없으면 참고', async () => {
+    write('examples/vision/supplement/v1-pixel-numbers.py', `${Array.from({ length: 160 }, (_, index) => `x${index} = ${index}`).join('\n')}\n`);
+    const long = await run();
+    expect(long.failed).toBe(false);
+    expect(long.text).toContain('참고 [example-focus] 예제 examples/vision/supplement/v1-pixel-numbers.py이(가) 160줄이에요');
+
+    write('content/lessons/u1/v1.md', lesson(SECTIONS, FRONTMATTER.replace('  - file: vision/supplement/v1-pixel-numbers.py\n', '  - file: vision/supplement/v1-pixel-numbers.py\n    focus: "1-5, 150-170"\n')));
+    const outside = await run();
+    expect(outside.failed).toBe(true);
+    expect(outside.text).toContain('오류 [example-focus] examples의 vision/supplement/v1-pixel-numbers.py focus: 150-170행 — 파일은 160줄이라 160행까지만 보여요.');
+  });
+
   it('img-file: 본문 그림 파일이 없거나 사이트 밖 주소면 실패', async () => {
     fs.rmSync(path.join(root, 'public/images/lessons/v1/why.svg'));
     const sections = { ...SECTIONS, 따라하기: `${SECTIONS['따라하기']}\n\n![바깥에서 가져온 그림 한 장이에요](https://example.com/a.png)` };

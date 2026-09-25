@@ -6,6 +6,8 @@
 //
 // 여기서만 하는 검사(빌드는 하지 않음 — 파일을 열어야 해서)
 //   example-file      examples[].file이 examples/에 있고 줄 끝이 LF인지
+//   example-focus     examples[].focus(발췌할 줄)가 파일 안의 줄인지(오류), 150줄 넘는 예제에 focus가 없는지(참고 — 차시에 통째로 펼치지 않게)
+//   fm-yaml-comment   frontmatter·그 차시 예제의 사이드카(.meta.yaml)에서 따옴표 없는 글 값이 " #" 주석으로 잘리는 곳(2026-09-25 Phase 5 검토 중요 1)
 //   img-file          본문 그림(/images/…)이 public/에 있는지, 바깥 주소 그림이 아닌지
 //   img-review        원고·화면 래스터 그림(public/images/lessons/)에 눈 확인 기록("통과")이 있는지(PD-32)
 //   img-alt-manifest  그림 목록(<차시>.images.yaml)의 alt와 본문 대체 글이 같은지(P5-01 제안)
@@ -23,15 +25,19 @@ import { parseDocument } from 'yaml';
 import { createGlossaryRegistry, findGlossaryMarkers, resolveGlossaryMarker } from '../../src/components/glossary/glossary.ts';
 import { allPlannedLessons } from '../../src/components/lesson/curriculum.ts';
 import { checkLessons as checkLessonEntries } from '../../src/components/lesson/lesson-data.ts';
+import { parseFocusRanges, splitExampleCode } from '../../src/components/lesson/example-code.ts';
 import { checkLessonRules } from '../../src/components/lesson/lesson-rules.ts';
 import { glossarySchema, lessonSchema } from '../../src/config/content-schemas.ts';
 import remarkBoxes from '../../src/lib/remark-boxes.mjs';
 import remarkGlossary from '../../src/lib/remark-glossary.mjs';
 import { LESSON_IMAGE_ROOT, RASTER_EXTENSIONS, listManifestFiles, parseImageManifest, readImageRecords, reviewedProblem } from './lesson-images.mjs';
+import { describeYamlCommentTrap, findYamlCommentTraps } from './yaml-comment-traps.mjs';
 
 export const LESSONS_ROOT = 'content/lessons';
 export const GLOSSARY_ROOT = 'content/glossary';
 export const EXAMPLES_ROOT = 'examples';
+/** 이보다 긴 예제는 차시에 발췌(focus)로 보이게 한다(참고 example-focus) */
+export const LONG_EXAMPLE_LINES = 150;
 
 /**
  * @typedef {{ level: 'error' | 'warning', code: string, message: string }} CheckIssue
@@ -228,6 +234,10 @@ export async function checkLessonFile(file, context) {
   if (data.draft && !context.includeDrafts) {
     return { ...base, skipped: true, issues: [] };
   }
+  // frontmatter는 md 2행부터(1행은 ---)
+  for (const trap of findYamlCommentTraps(frontmatter)) {
+    issues.push({ level: 'error', code: 'fm-yaml-comment', message: describeYamlCommentTrap({ ...trap, line: trap.line + 1 }, '설정 칸') });
+  }
 
   const { html, warnings } = await context.renderer.render(body, path.join(rootDir, file));
   for (const warning of warnings) {
@@ -246,8 +256,30 @@ export async function checkLessonFile(file, context) {
     const examplePath = path.join(rootDir, EXAMPLES_ROOT, ...example.file.split('/'));
     if (!fs.existsSync(examplePath)) {
       issues.push({ level: 'error', code: 'example-file', message: `예제 파일 examples/${example.file}이(가) 없어요. 파일을 넣거나 examples의 경로를 고쳐요.` });
-    } else if (fs.readFileSync(examplePath, 'utf8').includes('\r')) {
-      issues.push({ level: 'error', code: 'example-file', message: `예제 파일 examples/${example.file}의 줄 끝이 CRLF예요. LF로 저장해요(PD-33).` });
+    } else {
+      const code = fs.readFileSync(examplePath, 'utf8');
+      if (code.includes('\r')) {
+        issues.push({ level: 'error', code: 'example-file', message: `예제 파일 examples/${example.file}의 줄 끝이 CRLF예요. LF로 저장해요(PD-33).` });
+      }
+      const { lines } = splitExampleCode(code);
+      if (example.focus) {
+        for (const problem of parseFocusRanges(example.focus, lines.length).problems) {
+          issues.push({ level: 'error', code: 'example-focus', message: `examples의 ${example.file} focus: ${problem}` });
+        }
+      } else if (lines.length > LONG_EXAMPLE_LINES) {
+        issues.push({
+          level: 'warning',
+          code: 'example-focus',
+          message: `예제 examples/${example.file}이(가) ${lines.length}줄이에요. 코드 읽기가 가리키는 줄을 focus: "1-7, 117-123"처럼 적으면 차시에는 그 줄만 보이고 전체는 접혀요.`,
+        });
+      }
+    }
+    const sidecarFile = example.file.replace(/\.py$/u, '.meta.yaml');
+    const sidecar = path.join(rootDir, EXAMPLES_ROOT, ...sidecarFile.split('/'));
+    if (fs.existsSync(sidecar)) {
+      for (const trap of findYamlCommentTraps(fs.readFileSync(sidecar, 'utf8'))) {
+        issues.push({ level: 'error', code: 'fm-yaml-comment', message: describeYamlCommentTrap(trap, `사이드카 examples/${sidecarFile}`) });
+      }
     }
   }
 
