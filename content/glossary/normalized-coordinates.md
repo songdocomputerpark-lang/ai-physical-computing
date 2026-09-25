@@ -1,9 +1,9 @@
 ---
 title: 정규화 좌표
 english: Normalized coordinates
-aliases: [정규화된 좌표]
+aliases: [정규화된 좌표, 상대 좌표]
 summary: 위치를 0부터 1 사이의 수로 맞춰(정규화) 나타낸 좌표예요. 사진의 가로·세로 길이를 각각 1로 봐요.
-related: [landmark, pixel]
+related: [landmark, pixel, pixel-coordinates]
 group: 영상 처리
 ---
 
