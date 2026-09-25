@@ -20,6 +20,10 @@
 //
 //   :::교사용{open}                       ← 접는 상자를 처음부터 펼쳐 둔다
 //
+//   :::생성형AI[생성형 AI 활용 탐구: LCD 문구 바꾸기]   ← 원고의 생성형 AI 활용 탐구 과제(도전 과제 칸에만 둔다 — npm run check:lessons)
+//   생성형 AI에게 …를 물어보고 …해 보세요.            상자 끝에 "생성형 AI의 도움을 받은 부분을 표시해요…" 안내(GENAI_NOTE)가 저절로 붙는다
+//   :::
+//
 // 상자 종류는 아래 BOX_TYPES에 있다. 영어 이름(:::teacher 등)도 같은 뜻이다.
 // 모르는 이름(:::교사욯 같은 오타)은 상자로 바꾸지 않고 글자를 그대로 보여 주며, 빌드 로그에 경고를 남긴다(PD-35: 빌드는 멈추지 않음).
 //
@@ -47,13 +51,21 @@ import path from 'node:path';
  * @property {boolean} collapsible 접는 상자(<details>)인지
  * @property {boolean} searchable 사이트 검색(Pagefind) 색인에 넣는지. false면 data-pagefind-ignore를 붙인다
  * @property {string} use 쓰임새와 근거
+ * @property {string | undefined} note 상자 끝에 늘 붙는 안내 문장(<p class="box__note">). 없으면 붙이지 않는다
  */
+
+/**
+ * 생성형 AI 활용 탐구 상자 끝에 늘 붙는 안내(과목 교육과정 평가 방향 "생성형 AI의 도움을 받은 부분을 표시하기", PLAN §8.5 P5-02).
+ * 차시마다 따로 적지 않아도 모든 탐구 과제에 같은 문장이 붙는다.
+ */
+export const GENAI_NOTE = '제출할 때 생성형 AI의 도움을 받은 부분을 표시해요. 예를 들어 AI에게 받은 문장이나 코드 옆에 "생성형 AI 도움"이라고 적어요.';
 
 /** 상자 종류(적힌 순서가 문서·검사 목록의 순서) */
 export const BOX_TYPES = Object.freeze([
   boxType('왜그럴까', ['why'], 'why', '왜 이런 결과가 나올까?', false, '예제 결과가 왜 그렇게 나오는지 풀이(SPEC §6.1)'),
   boxType('바꿔보기', ['try'], 'try', '바꿔 보기', false, '값이나 코드를 바꿔 보는 과제 3가지(SPEC §6.1, §7.2 5번)'),
   boxType('도전', ['challenge'], 'challenge', '도전 과제', false, '도전 과제 1~2개(SPEC §7.2 6번)'),
+  boxType('생성형AI', ['genai'], 'genai', '생성형 AI 활용 탐구', false, '원고의 생성형 AI 활용 탐구 과제 — 도전 과제 칸에만(PLAN §8.5 P5-02). 끝에 표시 안내 문장이 저절로 붙는다', true, GENAI_NOTE),
   boxType('힌트', ['hint'], 'hint', '힌트 보기', true, '도전 과제의 힌트 접기(SPEC §7.2 6번)'),
   boxType('정답', ['answer'], 'answer', '정답과 풀이 보기', true, '문제의 정답과 풀이 접기(대단원 마무리 등)', false),
   boxType('확인', ['check'], 'check', '확인해 보세요', false, '단계 끝 체크리스트(SPEC §7.1)'),
@@ -71,10 +83,11 @@ export const BOX_TYPES = Object.freeze([
  * @param {boolean} collapsible
  * @param {string} use
  * @param {boolean} [searchable] 사이트 검색 색인에 넣는지(기본 true)
+ * @param {string} [note] 상자 끝에 늘 붙는 안내 문장
  * @returns {BoxType}
  */
-function boxType(name, aliases, variant, title, collapsible, use, searchable = true) {
-  return Object.freeze({ name, aliases: Object.freeze(aliases), variant, title, collapsible, searchable, use });
+function boxType(name, aliases, variant, title, collapsible, use, searchable = true, note = undefined) {
+  return Object.freeze({ name, aliases: Object.freeze(aliases), variant, title, collapsible, searchable, use, note });
 }
 
 /** @type {Map<string, BoxType>} */
@@ -177,6 +190,7 @@ function applyBox(node, type) {
       children: titleChildren,
     },
     ...body,
+    ...(type.note ? [{ type: 'paragraph', data: { hProperties: { className: ['box__note'] } }, children: [textNode(type.note)] }] : []),
   ];
 }
 

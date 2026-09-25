@@ -2,10 +2,14 @@
 /**
  * 차시 페이지(/learn/u1/1-1-1/) — SPEC §7.2 차시 틀.
  *
- * 머리: 차시 번호·제목·한 줄 소개, 뱃지(성취기준·소요 시간·준비물·난이도·가상 보드·실습실·교과서 쪽)
+ * 머리: 차시 번호·제목·한 줄 소개, 뱃지(성취기준·소요 시간·준비물·난이도·가상 보드·실습실·교과서 쪽), [발표 모드]
  * 본문: 마크다운의 8칸(학습목표 → 왜 배울까 → 핵심 개념 → 따라하기 → 바꿔보기 → 도전 과제 → 확인 퀴즈 → 교사용)
  *       + 따라하기 예제(frontmatter examples) + 확인 퀴즈(frontmatter quiz)
- * 끝: 이전·다음 차시
+ *       + 교사용 접기 끝의 "이 차시의 원고와 자료"(원천·성취기준·원본 안내·가린 편집본 — LessonTeacherInfo.astro, 저절로 붙음)
+ * 끝: 이전·다음 차시, 발표 모드 막대(발표 중에만 보임 — LessonPresent.astro)
+ *
+ * 차시 틀 규칙(lesson-rules.ts)을 빌드할 때 모두 돌려 빌드 기록에 [차시 틀] 경고로 남긴다 — 빌드는 멈추지 않는다(PD-35).
+ * 같은 규칙을 엄격하게(오류면 실패) 돌리는 것은 npm run check:lessons다.
  *
  * 새 차시는 content/lessons/u{대단원}/{파일 이름}.md 하나(와 예제 py 하나)를 넣으면 페이지가 생긴다. 코드는 고치지 않는다.
  * 쓰는 약속은 src/components/lesson/lesson-html.ts 머리말에 있다.
@@ -17,6 +21,7 @@ import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import LessonBody from '../../../components/lesson/LessonBody.astro';
 import LessonMeta from '../../../components/lesson/LessonMeta.astro';
 import LessonPager from '../../../components/lesson/LessonPager.astro';
+import LessonPresent from '../../../components/lesson/LessonPresent.astro';
 import LessonToc from '../../../components/lesson/LessonToc.astro';
 import {
   checkLessons,
@@ -28,6 +33,7 @@ import {
   type LessonSummary,
 } from '../../../components/lesson/lesson-data.ts';
 import { planLessonBody } from '../../../components/lesson/lesson-html.ts';
+import { checkLessonRules, lessonSource } from '../../../components/lesson/lesson-rules.ts';
 import { getLearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -60,14 +66,18 @@ interface Props {
 
 const { entry, lesson, lessons } = Astro.props;
 const source = entry.filePath ?? `content/lessons/${entry.id}.md`;
-const plan = planLessonBody(entry.rendered?.html ?? '', {
+const html = entry.rendered?.html ?? '';
+const plan = planLessonBody(html, {
   exampleCount: entry.data.examples.length,
   quizCount: entry.data.quiz.length,
-  checkTemplate: lesson.kind === 'textbook' || lesson.kind === 'supplement',
+  // 틀 검사는 아래 규칙(lesson-rules.ts)이 맡는다 — 같은 문제를 두 번 적지 않게.
+  checkTemplate: false,
+  teacherInfo: true,
 });
-for (const warning of plan.warnings) {
-  console.warn(`[차시 틀] ${source}: ${warning}`);
+for (const issue of checkLessonRules({ data: entry.data, html, slug: lesson.slug, plan })) {
+  console.warn(`[차시 틀] ${source}: [${issue.code}] ${issue.message}`);
 }
+const teacher = { data: entry.data, source: lessonSource(entry.data, lesson.slug) };
 
 const unit = getLearnUnit(lesson.unit);
 const kind = kindBadge(lesson.kind);
@@ -94,7 +104,17 @@ const { previous, next } = findNeighbors(lessons, lesson.id);
         <span class="lesson__name">{lesson.title}</span>
       </h1>
       {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
-      <LessonMeta lesson={lesson} />
+      <div data-present-hide>
+        <LessonMeta lesson={lesson} />
+        <p class="lesson__tools">
+          <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
+            발표 모드
+          </button>
+          <span class="lesson__tools-note" id="lesson-present-note">
+            수업 중 프로젝터로 크게, 한 단계씩 보여 줘요. 키보드 → ←로 넘기고 Esc로 끝내요.
+          </span>
+        </p>
+      </div>
     </header>
     <LessonToc sections={tocSections} />
     <GlossaryScope id="lesson">
@@ -105,10 +125,12 @@ const { previous, next } = findNeighbors(lessons, lesson.id);
         lab={lesson.lab}
         lessonId={lesson.id}
         source={source}
+        teacher={teacher}
       />
     </GlossaryScope>
     <LessonPager previous={previous} next={next} />
   </article>
+  <LessonPresent />
 </BaseLayout>
 
 <style>
@@ -142,5 +164,24 @@ const { previous, next } = findNeighbors(lessons, lesson.id);
 
   .lesson__lead {
     margin-block-end: var(--space-5);
+  }
+
+  .lesson__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block: calc(-1 * var(--space-3)) var(--space-6);
+  }
+
+  .lesson__tools-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 발표 모드는 자바스크립트로 돈다 — 꺼져 있으면 단추가 없으니 설명도 숨긴다. */
+  :global(html:not(.js)) .lesson__tools {
+    display: none;
   }
 </style>

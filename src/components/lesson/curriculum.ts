@@ -17,10 +17,10 @@
  * 묶음 이름은 원고의 중단원 표기(INVENTORY §3.1, I단원 표지)를 따르고, IV단원은 원고가 없어 코드 폴더 이름을 따른다(PLAN §2.1).
  * 보충 차시(PD-07)는 I단원은 "영상 처리 기초"로, III단원 통신 보충(C1~C3)은 따로 묶었다. P1은 3-1-4의 사전 학습이라 01 안에 둔다.
  */
-import type { LESSON_KINDS } from '../../config/content-schemas.ts';
+import type { LESSON_KINDS, LESSON_SOURCES } from '../../config/content-schemas.ts';
 
 export type LessonKind = (typeof LESSON_KINDS)[number];
-export type LessonSource = 'manuscript-code' | 'manuscript' | 'code-only' | 'supplement';
+export type LessonSource = (typeof LESSON_SOURCES)[number];
 
 export interface PlannedLesson {
   readonly label: string;
@@ -227,4 +227,27 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
 /** 대단원 번호로 차례표를 찾는다. 없으면 빈 차례표 */
 export function getUnitCurriculum(unit: number, curriculum: readonly UnitCurriculum[] = CURRICULUM): UnitCurriculum | undefined {
   return curriculum.find((item) => item.unit === unit);
+}
+
+/**
+ * md 파일에 맞는 차례표 차시를 찾는다(목록 카드와 같은 규칙: 같은 대단원에서 차시 번호가 같거나(대소문자 무시) 파일 이름이 같다).
+ * 차례표에 없는 새 차시면 undefined.
+ */
+export function findPlannedLesson(
+  unit: number,
+  label: string,
+  slug: string,
+  curriculum: readonly UnitCurriculum[] = CURRICULUM,
+): PlannedLesson | undefined {
+  const lessons = getUnitCurriculum(unit, curriculum)?.sections.flatMap((section) => section.lessons) ?? [];
+  return (
+    lessons.find((planned) => planned.label.toLowerCase() === label.toLowerCase()) ?? lessons.find((planned) => planned.slug === slug)
+  );
+}
+
+/** 차례표 전체의 차시를 대단원 순서대로(검사 도구가 "아직 없는 차시" 목록을 만들 때 쓴다) */
+export function allPlannedLessons(curriculum: readonly UnitCurriculum[] = CURRICULUM): { unit: number; lesson: PlannedLesson }[] {
+  return curriculum.flatMap((unitCurriculum) =>
+    unitCurriculum.sections.flatMap((section) => section.lessons.map((lesson) => ({ unit: unitCurriculum.unit, lesson }))),
+  );
 }

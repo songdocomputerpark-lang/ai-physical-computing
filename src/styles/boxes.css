@@ -54,7 +54,8 @@ details.box[open] > summary.box__title {
 /* 배우는 흐름의 상자: 강조색 */
 .box--why,
 .box--try,
-.box--challenge {
+.box--challenge,
+.box--genai {
   --box-bg: var(--color-accent-soft);
   --box-border: var(--color-accent-border);
   --box-title: var(--color-accent-hover);
@@ -96,6 +97,15 @@ details.box[open] > summary.box__title {
   --box-bg: var(--color-info-bg);
   --box-border: var(--color-info-border);
   --box-title: var(--color-info-text);
+}
+
+/* 상자 끝에 늘 붙는 안내(생성형 AI 활용 탐구의 "도움 받은 부분 표시" — remark-boxes.mjs의 GENAI_NOTE) */
+.box__note {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px dashed var(--box-border);
+  color: var(--box-title);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
 }
 
 /* 인쇄할 때는 접힌 상자도 내용이 보이게 제목 표시만 남긴다(브라우저가 닫힌 details 내용을 인쇄하지 않음). */

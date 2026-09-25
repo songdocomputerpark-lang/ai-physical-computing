@@ -20,6 +20,16 @@ export const LESSON_UNITS = [1, 2, 3, 4] as const;
 export const LAB_IDS = ['vision', 'esp32', 'iot'] as const;
 /** 차시 종류: 교과서 차시 / 보충 차시(PD-07, 제목 앞에 "보충") / 읽기 자료(예: 2-1-R) / 대단원 마무리 */
 export const LESSON_KINDS = ['textbook', 'supplement', 'reading', 'review'] as const;
+/**
+ * 차시의 원천(PLAN §2.2 "원천" 칸, §2.3): 원고+코드 / 원고만 / 코드만(원고 없음 — 사이트가 코드 기준으로 본문을 씀) / 보충(자료에 없음).
+ * 차례표(src/components/lesson/curriculum.ts)에 있는 차시는 거기 적힌 값을 쓰고, frontmatter source는 차례표에 없는 차시에만 적는다.
+ */
+export const LESSON_SOURCES = ['manuscript-code', 'manuscript', 'code-only', 'supplement'] as const;
+/**
+ * 가린 편집본 교안(PD-31) 이름: bt = 블루투스 통신 수업 교안, ppt = PyAutoGUI 수업 슬라이드.
+ * 파일 위치·제목은 src/components/lesson/handouts.ts 한 곳에 있다(교사용 자료실 P5-14가 파일을 넣으면 차시의 링크가 저절로 열린다).
+ */
+export const HANDOUT_DOC_IDS = ['bt', 'ppt'] as const;
 /** 난이도: 1 쉬움, 2 보통, 3 어려움 */
 export const DIFFICULTY_LEVELS = [1, 2, 3] as const;
 /** 성취기준 코드 모양. 예: 12인피02-01(인천광역시교육청 승인 과목 교육과정, PLAN §2.2) */
@@ -75,6 +85,17 @@ const quizItemSchema = z
     path: ['answer'],
   });
 
+/** 차시와 이어지는 가린 편집본 교안의 쪽(PD-31). 교사용 접기의 "가린 편집본 교안" 줄이 된다. */
+const handoutSchema = z.object({
+  doc: z.enum(HANDOUT_DOC_IDS, {
+    error: `편집본 이름(doc)은 ${HANDOUT_DOC_IDS.join('·')} 가운데 하나로 적어요(bt = 블루투스 통신 수업 교안, ppt = PyAutoGUI 수업 슬라이드).`,
+  }),
+  pages: z
+    .string({ error: '쪽(pages)을 글자로 적어요. 예: "41~47" 또는 "20·26"' })
+    .regex(/^\d+(?:\s*[~·,-]\s*\d+)*$/u, { error: '쪽(pages)은 숫자와 ~·, 로만 적어요. 예: "41~47", "20·26"' }),
+  note: z.string().min(1).optional(),
+});
+
 /** 국가 교육과정 참고 연결(PD-21: 기본 빈 값, 공식 문서에 대응이 명시된 경우만) */
 const nationalRefSchema = z.object({
   code: z.string().min(1),
@@ -100,6 +121,14 @@ export const lessonSchema = z.looseObject({
   description: z.string().min(1).optional(),
   /** 교과서 쪽. 예: "033~041", "파일명 p55·p58" */
   pages: z.string().min(1).optional(),
+  /** 원천(차례표에 없는 차시만 적는다 — 있으면 차례표 값이 먼저). 교사용 접기의 "원고" 줄이 이 값으로 정해진다 */
+  source: z
+    .enum(LESSON_SOURCES, {
+      error: `원천(source)은 ${LESSON_SOURCES.join('·')} 가운데 하나로 적어요(원고+코드·원고만·코드만(원고 없음)·보충).`,
+    })
+    .optional(),
+  /** 이 차시와 이어지는 가린 편집본 교안의 쪽(PD-31) */
+  handouts: z.array(handoutSchema).default([]),
   /** 성취기준 코드 목록(PLAN §2.2 대응표). 비우거나(standards: 또는 []) 적지 않아도 된다 → 화면은 "성취기준 코드 확인 중"(C8) */
   standards: z
     .array(

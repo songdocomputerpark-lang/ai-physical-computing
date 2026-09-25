@@ -6,6 +6,7 @@
  * - 피드백 칸은 role="status"라서 화면 낭독기가 결과를 읽는다. 맞힌 표시는 색과 함께 "정답" 글자로도 보인다.
  * - 자바스크립트가 꺼져 있으면 버튼 대신 "정답과 풀이 보기" 접기 상자가 보인다.
  * - 정답·풀이는 사이트 검색 색인에서 뺀다(data-pagefind-ignore).
+ * - 발표 모드(present.ts)는 문항마다 한 단계로 보여 준다(data-present-split·data-present-item).
  */
 import type { LessonData } from '../../config/content-schemas.ts';
 import { answerText, choiceMark } from './quiz.ts';
@@ -19,14 +20,14 @@ interface Props {
 const { items, idPrefix } = Astro.props;
 ---
 
-<div class="quiz" data-quiz>
+<div class="quiz" data-quiz data-present-split>
   <p class="quiz__guide">보기를 고르고 [답 확인하기]를 눌러요. 키보드로는 방향키로 보기를 고르고 Tab으로 단추에 가요.</p>
   <ol class="quiz__list">
     {
       items.map((item, index) => {
         const name = `${idPrefix}-q${index + 1}`;
         return (
-          <li class="quiz__item" data-quiz-item data-answer={item.answer}>
+          <li class="quiz__item" data-quiz-item data-present-item data-answer={item.answer}>
             <fieldset class="quiz__fieldset">
               <legend class="quiz__question">
                 <span class="quiz__number">문제 {index + 1}.</span> {item.q}

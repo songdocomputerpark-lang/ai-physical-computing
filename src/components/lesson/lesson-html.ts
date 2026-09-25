@@ -28,6 +28,11 @@ export const LESSON_SECTIONS = [
 
 export type LessonSectionKey = (typeof LESSON_SECTIONS)[number]['key'];
 export type LessonSlot = 'examples' | 'quiz';
+/**
+ * 본문 조각의 자리 종류. examples·quiz는 마크다운 표시 줄(::예제·::퀴즈)로 정하고,
+ * teacher는 이 파일이 교사용 접기(:::교사용 상자) 맨 끝에 저절로 넣는다(원고·성취기준·원본 안내 — LessonTeacherInfo.astro, P5-02).
+ */
+export type LessonPartSlot = LessonSlot | 'teacher';
 
 /** 마크다운에 한 줄로 적는 자리 표시 */
 export const LESSON_MARKERS: Readonly<Record<LessonSlot, string>> = Object.freeze({ examples: '::예제', quiz: '::퀴즈' });
@@ -36,7 +41,7 @@ export const LESSON_MARKERS: Readonly<Record<LessonSlot, string>> = Object.freez
 const SLOT_SECTION: Readonly<Record<LessonSlot, LessonSectionKey>> = Object.freeze({ examples: 'follow', quiz: 'quiz' });
 const SLOT_FIELD: Readonly<Record<LessonSlot, string>> = Object.freeze({ examples: 'examples', quiz: 'quiz' });
 
-export type LessonBodyPart = { readonly type: 'html'; readonly html: string } | { readonly type: 'slot'; readonly slot: LessonSlot };
+export type LessonBodyPart = { readonly type: 'html'; readonly html: string } | { readonly type: 'slot'; readonly slot: LessonPartSlot };
 
 export interface LessonBodySection {
   readonly key?: LessonSectionKey;
@@ -63,6 +68,11 @@ export interface LessonBodyOptions {
   readonly quizCount: number;
   /** 8칸 틀 검사(빠진 칸·순서·퀴즈 3문항·교사용 상자)를 할지. 읽기 자료·대단원 마무리는 false */
   readonly checkTemplate: boolean;
+  /**
+   * 교사용 접기 끝에 teacher 자리(원고·성취기준·원본 안내)를 넣을지(차시 페이지는 true).
+   * :::교사용 상자가 없으면 교사용 칸 끝에, 교사용 칸도 없으면 넣지 않는다.
+   */
+  readonly teacherInfo?: boolean;
 }
 
 function squash(text: string): string {
@@ -332,6 +342,52 @@ function placeSlot(blocks: WorkingSection[], slot: LessonSlot, enabled: boolean,
   warnings.push(`"${title}" 칸(## ${title})이 없어서 칸을 만들어 넣었어요.`);
 }
 
+/** html에서 index에 있는 여는 태그(상자·목록 등)와 짝이 맞는 닫는 태그의 시작 위치. 못 찾으면 -1 */
+function matchingCloseIndex(html: string, openIndex: number): number {
+  let depth = 0;
+  for (const tag of html.slice(openIndex).matchAll(new RegExp(NESTING_TAG.source, 'giu'))) {
+    depth += tag[1] === '/' ? -1 : 1;
+    if (depth === 0) {
+      return openIndex + (tag.index ?? 0);
+    }
+  }
+  return -1;
+}
+
+/** 교사용 칸의 :::교사용 상자 맨 끝(</details> 앞)에 teacher 자리를 넣는다. */
+function placeTeacherInfo(blocks: WorkingSection[]): void {
+  const teacher = blocks.find((block) => !block.intro && block.key === 'teacher');
+  if (!teacher) {
+    return;
+  }
+  for (let index = teacher.parts.length - 1; index >= 0; index -= 1) {
+    const part = teacher.parts[index];
+    if (part?.type !== 'html') {
+      continue;
+    }
+    const opens = findMatches(part.html, /<details\b[^>]*\bclass="(?:[^"]*\s)?box--teacher(?:\s[^"]*)?"[^>]*>/iu).filter(
+      (match) => match.topLevel,
+    );
+    const last = opens[opens.length - 1];
+    if (!last) {
+      continue;
+    }
+    const close = matchingCloseIndex(part.html, last.index);
+    if (close < 0) {
+      continue;
+    }
+    teacher.parts.splice(
+      index,
+      1,
+      { type: 'html', html: part.html.slice(0, close) },
+      { type: 'slot', slot: 'teacher' },
+      { type: 'html', html: part.html.slice(close) },
+    );
+    return;
+  }
+  teacher.parts.push({ type: 'slot', slot: 'teacher' });
+}
+
 function templateWarnings(blocks: readonly WorkingSection[], options: LessonBodyOptions): string[] {
   const warnings: string[] = [];
   const keyed = blocks.filter((block): block is WorkingSection & { key: LessonSectionKey } => !block.intro && block.key !== undefined);
@@ -387,6 +443,9 @@ export function planLessonBody(html: string, options: LessonBodyOptions): Lesson
 
   placeSlot(blocks, 'examples', options.exampleCount > 0, warnings);
   placeSlot(blocks, 'quiz', options.quizCount > 0, warnings);
+  if (options.teacherInfo) {
+    placeTeacherInfo(blocks);
+  }
   if (options.checkTemplate) {
     warnings.push(...templateWarnings(blocks, options));
   }

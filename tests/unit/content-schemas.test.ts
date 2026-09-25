@@ -101,6 +101,16 @@ describe('차시 frontmatter 규칙(lessonSchema)', () => {
     const data = lessonSchema.parse({ ...PLAN_EXAMPLE, hero_image: 'u2/touch.svg' });
     expect((data as Record<string, unknown>).hero_image).toBe('u2/touch.svg');
   });
+
+  it('원천(source)은 네 값 가운데 하나, 가린 편집본(handouts)은 bt·ppt와 쪽 숫자로 적는다(P5-02, PD-31)', () => {
+    const data = lessonSchema.parse({ ...PLAN_EXAMPLE, source: 'code-only', handouts: [{ doc: 'bt', pages: '41~47' }] });
+    expect(data.source).toBe('code-only');
+    expect(data.handouts).toEqual([{ doc: 'bt', pages: '41~47' }]);
+    expect(lessonSchema.parse(PLAN_EXAMPLE).handouts).toEqual([]);
+    expect(issueMessages(lessonSchema.safeParse({ ...PLAN_EXAMPLE, source: 'book' }))).toContain('원천(source)');
+    expect(issueMessages(lessonSchema.safeParse({ ...PLAN_EXAMPLE, handouts: [{ doc: 'pdf', pages: '1' }] }))).toContain('bt·ppt');
+    expect(issueMessages(lessonSchema.safeParse({ ...PLAN_EXAMPLE, handouts: [{ doc: 'bt', pages: 'p41' }] }))).toContain('숫자');
+  });
 });
 
 describe('용어사전 frontmatter 규칙(glossarySchema)', () => {

@@ -1,0 +1,143 @@
+---
+/**
+ * 발표 모드 막대(SPEC §7.3, PLAN §8.5 P5-02) — 수업 중 프로젝터로 차시를 크게, 한 단계씩 보여 준다.
+ * 동작·키는 present.ts 머리말. 여는 단추([발표 모드])는 차시 머리에 있고(data-present-open — 자바스크립트가 되면 보인다),
+ * 이 컴포넌트는 발표 중에만 보이는 아래쪽 막대와 발표 화면 스타일을 맡는다.
+ *
+ * 발표 화면: 머리글·바닥글·현재 위치·차례·이전/다음 차시·차시 정보 뱃지·교사용 칸을 숨기고 글자를 크게(뿌리 글자 크기를 화면 폭에 맞춰) 한다.
+ * 모든 크기가 rem이라 뿌리 글자 크기 하나로 본문·표·코드·퀴즈가 함께 커진다. 움직임은 쓰지 않는다(움직임 줄이기와 상관없이 바로 바뀜).
+ */
+---
+
+<div class="lesson-present" data-lesson-present hidden data-pagefind-ignore>
+  <div class="lesson-present__bar" role="toolbar" aria-label="발표 모드 조작">
+    <button type="button" class="button button--secondary" data-present-previous>◀ 앞</button>
+    <p class="lesson-present__status" aria-live="polite" data-present-status></p>
+    <button type="button" class="button button--primary" data-present-next>다음 ▶</button>
+    <button type="button" class="button button--secondary lesson-present__fullscreen" data-present-fullscreen aria-pressed="false">
+      전체 화면
+    </button>
+    <button type="button" class="button button--secondary" data-present-exit>끝내기(Esc)</button>
+  </div>
+</div>
+
+<script>
+  import { installLessonPresentation } from './present.ts';
+
+  installLessonPresentation();
+</script>
+
+<style is:global>
+  /*
+   * 발표 중(html[data-presenting]) — 보이지 않을 요소는 present.ts가 data-present-off를 붙인다.
+   * !important: 요소마다 display를 grid·flex로 정한 스타일(.quiz 등)보다 앞서야 해서다(발표 중에만 걸린다).
+   */
+  html[data-presenting] {
+    /* 1366px 화면에서 약 26px, 1920px 이상은 28px, 휴대폰은 16px(본문 17px → 발표 중 약 28px) */
+    font-size: clamp(16px, 0.75rem + 1vw, 28px);
+  }
+
+  html[data-presenting] [data-present-off],
+  html[data-presenting] .site-header,
+  html[data-presenting] .site-footer,
+  html[data-presenting] .page-notice,
+  html[data-presenting] .breadcrumb,
+  html[data-presenting] .lesson-toc,
+  html[data-presenting] .lesson-pager,
+  html[data-presenting] [data-present-hide] {
+    display: none !important;
+  }
+
+  html[data-presenting] body {
+    /* 아래쪽 막대에 가리지 않게 */
+    padding-block-end: 6rem;
+  }
+
+  html[data-presenting] .page__main {
+    padding-block-start: var(--space-2);
+  }
+
+  /* 칸 제목 위의 구분 막대·빈자리는 발표 화면에서 줄인다(한 화면에 더 많이) */
+  html[data-presenting] .lesson-body .lesson-section > h2 {
+    margin-block-start: 0;
+    padding-block-start: 0;
+    border-top: 0;
+  }
+
+  html[data-presenting] .lesson-body .lesson-section > :first-child {
+    margin-block-start: 0;
+  }
+
+  /* 설명 그림은 화면 폭을 채우되 한 화면 높이를 넘지 않게(비율은 그대로) */
+  html[data-presenting] .lesson-body figure img,
+  html[data-presenting] .lesson-body p > img {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
+  }
+
+  /* 학생 한 명이 쓰는 안내(키보드 조작법)는 프로젝터에 필요 없다 */
+  html[data-presenting] .quiz__guide {
+    display: none;
+  }
+
+  html[data-presenting] .lesson__header {
+    display: grid;
+    align-content: center;
+    min-height: 60vh;
+  }
+
+  .lesson-present[hidden] {
+    display: none;
+  }
+
+  .lesson-present__bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: var(--z-header, 100);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-2) var(--gutter);
+    border-top: 1px solid var(--color-border-strong);
+    background: var(--color-bg);
+    /* 막대 글자는 발표 중에도 적당한 크기로(뿌리 크기를 따라 너무 커지지 않게) */
+    font-size: clamp(0.8rem, 0.7rem + 0.3vw, 1rem);
+  }
+
+  .lesson-present__bar .button {
+    min-height: var(--target-min);
+    font-size: inherit;
+  }
+
+  .lesson-present__status {
+    flex: 1 1 12rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-weight: var(--weight-semibold);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  /* 휴대폰: 알림 칸을 위 한 줄로, 단추 셋(앞·다음·끝내기)을 아래 한 줄로. 휴대폰에는 전체 화면 단추를 두지 않는다. */
+  @media (max-width: 40rem) {
+    .lesson-present__status {
+      flex-basis: 100%;
+      order: -1;
+    }
+
+    .lesson-present__bar .lesson-present__fullscreen {
+      display: none;
+    }
+  }
+
+  @media print {
+    .lesson-present {
+      display: none !important;
+    }
+  }
+</style>

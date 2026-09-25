@@ -1,0 +1,127 @@
+---
+/**
+ * 교사용 접기 맨 끝의 "이 차시의 원고와 자료"(PLAN §8.5 P5-02) — 차시마다 손으로 적지 않아도 저절로 붙는다.
+ *   원고: 원고를 옮겼는지 / 원고 없음: 사이트가 코드 기준으로 쓴 본문(PLAN §2.3) / 보충
+ *   성취기준: 코드 + 영역 + 사이트 요약 + "차시 연결은 사이트가 붙임" + 원문 게시물 링크(빈 값이면 C8 문구)
+ *   원본 내려받기: 없음 — 원본은 올리지 않는 까닭(PD-31, C6)과 예제 코드 받는 곳
+ *   가린 편집본 교안: frontmatter handouts의 쪽(파일이 생기면 그 쪽으로 바로 가는 링크, 없으면 "준비 중")
+ * 내용은 teacher-info.ts가 만든다. 교사용 상자 안이라 사이트 검색 색인에서 빠진다(상자의 data-pagefind-ignore).
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import type { LessonData } from '../../config/content-schemas.ts';
+import { isExternalHref, withBase } from '../../lib/url.ts';
+import type { LessonSource } from './curriculum.ts';
+import { HANDOUT_DOCS, type HandoutDocId } from './handouts.ts';
+import { STANDARDS_LABEL, buildTeacherInfo } from './teacher-info.ts';
+
+interface Props {
+  data: Pick<LessonData, 'kind' | 'pages' | 'standards' | 'handouts'>;
+  source: LessonSource | undefined;
+  /** 제목 id가 겹치지 않게 붙이는 앞머리 */
+  idPrefix: string;
+}
+
+const { data, source, idPrefix } = Astro.props;
+const info = buildTeacherInfo({
+  data,
+  source,
+  handoutExists: (doc: HandoutDocId) => fs.existsSync(path.resolve('public', ...HANDOUT_DOCS[doc].file.split('/'))),
+});
+const href = (value: string): string => (isExternalHref(value) ? value : withBase(value));
+const titleId = `${idPrefix}-teacher-info`;
+---
+
+<section class="lesson-teacher-info" aria-labelledby={titleId} data-lesson-teacher-info>
+  <h3 id={titleId}>이 차시의 원고와 자료</h3>
+  <ul class="lesson-teacher-info__list">
+    {
+      info.source && (
+        <li data-teacher-info="source">
+          <strong>원고:</strong>{' '}
+          {info.noManuscript ? <mark class="lesson-teacher-info__mark">{info.source}</mark> : info.source}
+        </li>
+      )
+    }
+    <li data-teacher-info="standards">
+      <strong>{STANDARDS_LABEL}:</strong>
+      {
+        info.standards.length > 0 ? (
+          <ul>
+            {info.standards.map((standard) => (
+              <li>
+                [{standard.code}] {standard.area ? `${standard.area} — ${standard.summary}(사이트 요약)` : '과목 교육과정에서 찾지 못한 코드예요.'}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>{info.standardsPending}</p>
+        )
+      }
+      <p>
+        원문은 <a href={info.curriculumLink.href}>{info.curriculumLink.text}</a>에 있어요.
+      </p>
+    </li>
+    <li data-teacher-info="originals">
+      <strong>원본 파일:</strong> {info.originals}{' '}
+      {info.originalsLinks.map((link, index) => (
+        <>
+          {index > 0 && ' · '}
+          <a href={href(link.href)}>{link.text}</a>
+        </>
+      ))}
+    </li>
+    {
+      info.handouts.length > 0 && (
+        <li data-teacher-info="handouts">
+          <strong>가린 편집본 교안:</strong>
+          <ul>
+            {info.handouts.map((handout) => (
+              <li data-handout={handout.doc}>
+                {handout.title} {handout.pages}쪽{handout.note ? `(${handout.note})` : ''} —{' '}
+                {handout.href ? <a href={href(handout.href)}>편집본 열기</a> : '교사용 자료실에 준비 중이에요.'}
+              </li>
+            ))}
+          </ul>
+        </li>
+      )
+    }
+  </ul>
+</section>
+
+<style>
+  .lesson-teacher-info {
+    margin-block-start: var(--space-6);
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--color-border-strong);
+  }
+
+  .lesson-teacher-info h3 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-base);
+  }
+
+  .lesson-teacher-info__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding-inline-start: 1.25em;
+  }
+
+  .lesson-teacher-info__list ul {
+    margin-block: var(--space-1) 0;
+    padding-inline-start: 1.25em;
+  }
+
+  .lesson-teacher-info__list p {
+    margin-block: var(--space-1) 0;
+  }
+
+  .lesson-teacher-info__mark {
+    padding: 0 0.2em;
+    border-radius: var(--radius-sm);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-weight: var(--weight-semibold);
+  }
+</style>

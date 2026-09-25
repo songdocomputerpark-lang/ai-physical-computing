@@ -186,6 +186,25 @@ describe('차시 본문 나누기(planLessonBody)', () => {
     expect(reading.warnings.filter((warning) => !warning.includes('frontmatter'))).toEqual([]);
   });
 
+  it('teacherInfo를 켜면 :::교사용 상자 맨 끝(</details> 앞)에 teacher 자리를 넣는다(P5-02 "이 차시의 원고와 자료")', async () => {
+    const plan = planLessonBody(
+      await render(lessonMarkdown({ teacherBody: ':::교사용\n### 지도안 요약\n요약\n\n:::힌트\n안쪽 접기\n:::\n:::' })),
+      { ...FULL, teacherInfo: true },
+    );
+    expect(shape(plan).at(-1)).toBe('teacher[html,teacher,html]');
+    const teacher = plan.sections.at(-1);
+    const [before, , after] = teacher?.parts ?? [];
+    // 안쪽 접기(힌트)가 끝난 뒤, 교사용 상자의 닫는 태그 바로 앞이다.
+    expect(before?.type === 'html' && before.html).toContain('안쪽 접기');
+    expect(before?.type === 'html' && before.html.trimEnd().endsWith('</details>')).toBe(true);
+    expect(after?.type === 'html' && after.html.startsWith('</details>')).toBe(true);
+
+    const noBox = planLessonBody(await render(lessonMarkdown({ teacherBody: '접지 않은 글' })), { ...FULL, teacherInfo: true });
+    expect(shape(noBox).at(-1)).toBe('teacher[html,teacher]');
+    // 켜지 않으면(기본) 자리를 넣지 않는다.
+    expect(shape(planLessonBody(await render(lessonMarkdown()), FULL)).at(-1)).toBe('teacher[html]');
+  });
+
   it('첫 ## 제목 앞의 글은 intro로 남는다', async () => {
     const plan = planLessonBody(await render(`:::참고[틀만 있어요]\n안내\n:::\n\n${lessonMarkdown()}`), FULL);
     expect(plan.intro).toHaveLength(1);

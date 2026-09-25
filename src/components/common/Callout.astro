@@ -8,8 +8,9 @@
  *   <Callout type="주의"><Fragment slot="title">레이저를 <strong>눈에 비추지 않아요</strong></Fragment><p>…</p></Callout>
  *
  * props
- *   type   상자 종류: 왜그럴까·바꿔보기·도전·힌트·정답·확인·오류·주의·참고·교사용
- *          (영어 이름 why·try·challenge·hint·answer·check·trouble·caution·note·teacher도 된다)
+ *   type   상자 종류: 왜그럴까·바꿔보기·도전·생성형AI·힌트·정답·확인·오류·주의·참고·교사용
+ *          (영어 이름 why·try·challenge·genai·hint·answer·check·trouble·caution·note·teacher도 된다)
+ *          생성형AI 상자는 마크다운 상자처럼 끝에 "도움 받은 부분 표시" 안내가 저절로 붙는다(remark-boxes.mjs의 GENAI_NOTE).
  *   title  (선택) 제목 글자. 없으면 종류별 기본 제목. 꾸민 제목은 title 슬롯으로 넣는다.
  *   open   (선택) 접는 상자(힌트·정답·교사용)를 처음부터 펼쳐 둔다.
  * 모르는 type을 넣으면 빌드가 멈춘다(오타를 바로 알 수 있게).
@@ -40,11 +41,13 @@ const searchIgnore = boxType.searchable ? undefined : '';
     <details class:list={boxClassNames(boxType)} data-box={boxType.variant} data-pagefind-ignore={searchIgnore} open={open}>
       <summary class="box__title">{hasTitleSlot ? <slot name="title" /> : titleText}</summary>
       <slot />
+      {boxType.note && <p class="box__note">{boxType.note}</p>}
     </details>
   ) : (
     <div class:list={boxClassNames(boxType)} data-box={boxType.variant} data-pagefind-ignore={searchIgnore} role="note">
       <p class="box__title">{hasTitleSlot ? <slot name="title" /> : titleText}</p>
       <slot />
+      {boxType.note && <p class="box__note">{boxType.note}</p>}
     </div>
   )
 }

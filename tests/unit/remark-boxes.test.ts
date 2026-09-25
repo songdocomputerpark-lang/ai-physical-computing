@@ -1,7 +1,7 @@
 import { markdownConfigDefaults, unified } from '@astrojs/markdown-remark';
 import remarkDirective from 'remark-directive';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import remarkBoxes, { BOX_TYPES, boxClassNames, findBoxType } from '../../src/lib/remark-boxes.mjs';
+import remarkBoxes, { BOX_TYPES, GENAI_NOTE, boxClassNames, findBoxType } from '../../src/lib/remark-boxes.mjs';
 import remarkGlossary from '../../src/lib/remark-glossary.mjs';
 
 type TreeNode = { type: string; name?: string; data?: Record<string, unknown>; children?: TreeNode[] };
@@ -27,13 +27,14 @@ afterEach(() => {
 });
 
 describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
-  it('상자 종류 10개의 이름(한국어·영어)이 겹치지 않고 모두 찾아진다', () => {
+  it('상자 종류 11개의 이름(한국어·영어)이 겹치지 않고 모두 찾아진다', () => {
     const names = BOX_TYPES.flatMap((type) => [type.name, ...type.aliases]);
     expect(new Set(names).size).toBe(names.length);
     expect(BOX_TYPES.map((type) => type.name)).toEqual([
       '왜그럴까',
       '바꿔보기',
       '도전',
+      '생성형AI',
       '힌트',
       '정답',
       '확인',
@@ -49,6 +50,21 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
       }
     }
     expect(boxClassNames(findBoxType('주의')!)).toEqual(['box', 'box--caution']);
+  });
+
+  it(':::생성형AI 상자는 끝에 "도움 받은 부분 표시" 안내가 저절로 붙고, 다른 상자에는 붙지 않는다(P5-02)', async () => {
+    const html = compact(
+      await render(
+        ':::생성형AI[생성형 AI 활용 탐구: 문구 바꾸기]\nAI에게 물어봐요.\n:::\n\n:::genai\n두 번째\n:::\n\n:::참고\n덧붙임\n:::',
+      ),
+    );
+    expect(html).toContain(
+      `<div class="box box--genai" data-box="genai" role="note"><p class="box__title">생성형 AI 활용 탐구: 문구 바꾸기</p><p>AI에게 물어봐요.</p><p class="box__note">${GENAI_NOTE}</p></div>`,
+    );
+    expect(html).toContain(`<p class="box__title">생성형 AI 활용 탐구</p><p>두 번째</p><p class="box__note">`);
+    expect(GENAI_NOTE).toContain('생성형 AI의 도움을 받은 부분을 표시해요');
+    expect(html.match(/box__note/gu)).toHaveLength(2);
+    expect(BOX_TYPES.filter((type) => type.note).map((type) => type.name)).toEqual(['생성형AI']);
   });
 
   it(':::왜그럴까 는 기본 제목이 붙은 role="note" 상자가 된다', async () => {
