@@ -508,7 +508,7 @@ PW_BASE_URL=http://localhost:4902/ai-physical-computing/ npm run test:a11y -- --
 PW_BASE_URL=http://localhost:4901/ai-physical-computing/ npm run perf:measure                          # 성능은 되도록 빌드 결과(npm run preview)로 — 개발 서버는 느려요
 ```
 
-한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법 — 포트로 PID를 찾아 `Stop-Process`)은 **5.1의 설명 그대로**예요. 빌드(`npm run build`)·전체 브라우저 테스트는 `dist/`를 새로 만들므로 한 폴더에서 두 구역이 동시에 돌리지 않아요 — 자기 결과 폴더가 필요하면 `APC_OUT_DIR=dist-<구역>`을 줘요(미리 보기도 같은 환경 변수로). 이 PC는 메모리 8GB라 전체 브라우저 테스트는 `--workers=2`.
+한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법 — 포트로 PID를 찾아 `Stop-Process`)은 **5.1의 설명 그대로**예요. 빌드(`npm run build`)·빌드를 부르는 브라우저 테스트(`PW_BASE_URL` 없는 `npm run test:e2e`·`test:a11y`·`perf:measure`)는 한 폴더에서 **한 번에 하나만** 돌려요 — 결과 폴더를 `APC_OUT_DIR`로 나눠도 Astro 콘텐츠 캐시(`node_modules/.astro`)·`public/vendor/`를 함께 쓰고, base·결과 폴더가 다른 빌드는 서로 콘텐츠 캐시를 비워요(설정이 바뀐 것으로 봄). 평소 검사는 각자 띄운 개발 서버에 `PW_BASE_URL`로 해요. 이 PC는 메모리 8GB라 전체 브라우저 테스트는 `--workers=2`.
 
 ---
 
