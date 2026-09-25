@@ -127,6 +127,11 @@ describe('frontmatter 규칙', () => {
     expect(codes(await check({ raw: textbook }), 'error')).toContain('fm-pages');
     expect(codes(await check({ raw: { ...textbook, pages: '008~012' } }), 'error')).not.toContain('fm-pages');
     expect(codes(await check(), 'error')).not.toContain('fm-pages');
+    // 읽기 자료: 차례표에 있는 2-1-R(원고 141쪽)은 쪽이 있어야 하고, 차례표에 없는 새 읽기 자료(IV단원 프로젝트 안내 등)는 없어도 된다.
+    const reading = { title: '인공지능 시대의 OLED 디스플레이', unit: 2, order: 3.5, kind: 'reading', label: '2-1-R', description: '읽기 자료예요.', standards: ['12인피02-02'] };
+    expect(codes(await check({ raw: reading, markdown: '## 읽기\n\n글이에요.\n' }), 'error')).toContain('fm-pages');
+    const project = { title: '프로젝트 안내', unit: 4, order: 7, kind: 'reading', label: 'IV-프로젝트', source: 'supplement', description: '프로젝트를 준비해요.', standards: [] };
+    expect(codes(await check({ raw: project, markdown: '## 프로젝트\n\n글이에요.\n' }), 'error')).toEqual([]);
   });
 
   it('fm-examples·fm-lab: 예제가 없거나 예제가 있는데 실습실이 없으면 오류', async () => {

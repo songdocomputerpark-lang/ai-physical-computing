@@ -157,7 +157,10 @@ function frontmatterIssues(input: LessonRuleInput): LessonRuleIssue[] {
   if (template && data.difficulty === undefined) {
     issues.push(issue('error', 'fm-difficulty', '난이도(difficulty)를 1(쉬움)·2(보통)·3(어려움) 가운데 하나로 적어요.'));
   }
-  if ((data.kind === 'textbook' || data.kind === 'reading' || data.kind === 'review') && !data.pages) {
+  // 교과서 차시는 늘, 읽기 자료·대단원 마무리는 차례표에 있는(원고가 있는) 것만 쪽을 적는다.
+  // 차례표에 없는 새 읽기 자료(예: IV단원 프로젝트 안내 — 원고 없음)는 쪽이 없어도 된다.
+  const plannedWithPages = data.label ? findPlannedLesson(data.unit, data.label, slug)?.pages !== undefined : false;
+  if ((data.kind === 'textbook' || ((data.kind === 'reading' || data.kind === 'review') && plannedWithPages)) && !data.pages) {
     issues.push(issue('error', 'fm-pages', '교과서 쪽(pages)을 적어요. 예: pages: "024~032". 원고가 없는 차시는 코드 파일 이름의 쪽을 "파일명 p55·p58"처럼 적어요.'));
   }
   if (template && data.examples.length === 0) {

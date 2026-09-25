@@ -433,7 +433,7 @@ PW_BASE_URL=http://localhost:4404/ai-physical-computing/ npx playwright test tes
 | D II단원 01 | 4804 | P5-08·P5-09 | `u2/2-1-1.md`~`u2/2-1-3.md`, `u2/2-1-r.md`(읽기 자료, `kind: reading`), `u2/2-1-4.md`·`u2/2-1-5.md` | `2-1-1/`~`2-1-5/`·`2-1-r/` | U2A 114~153 |
 | E II단원 02·마무리 | 4805 | P5-10 | `u2/2-2-1.md`~`u2/2-2-4.md`, `u2/review.md`(II 마무리 — 정답·해설 새로 씀) | `2-2-1/`~`2-2-4/`·`u2-review/` | U2B 154~167·U2C 166~181 |
 | F III단원 | 4806 | P5-11 | `u3/3-1-1.md`~`u3/3-1-4.md`, `u3/p1.md`(보충 P1 — PyAutoGUI), `u3/review.md`(III 마무리 — 정답·해설 새로 씀) | `3-1-1/`~`3-1-4/`·`p1/`·`u3-review/` | U3 182~209, BT 교안, PPT |
-| **2차** G IV단원 | 4807 | P5-13 | `u4/4-1-1.md`~`u4/4-2-2.md`(모두 원고 없음), IV단원 프로젝트 안내(교사용 — 12인피04-02~04-04의 문제 정의·팀 역할·사회적 영향 점검 틀, "영상인식에 따른 개인정보·윤리 문제가 생기는 주제는 피하기")는 `u4/project.md`(`kind: reading`)로 쓰고 차례표 한 줄을 요청 | `4-1-1/`~`4-2-2/`·`project/` | 없음(코드 `examples/vision/u4/`·`examples/esp32/u4/`) |
+| **2차** G IV단원 | 4807 | P5-13 | `u4/4-1-1.md`~`u4/4-2-2.md`(모두 원고 없음), IV단원 프로젝트 안내(교사용 — 12인피04-02~04-04의 문제 정의·팀 역할·사회적 영향 점검 틀, "영상인식에 따른 개인정보·윤리 문제가 생기는 주제는 피하기")는 `u4/project.md`(`kind: reading`, `source: supplement` — 원고가 없어 `pages`는 적지 않음)로 쓰고 차례표·대응표 한 줄씩을 요청 | `4-1-1/`~`4-2-2/`·`project/` | 없음(코드 `examples/vision/u4/`·`examples/esp32/u4/`) |
 | **2차** H 교사용 자료실·문제 해결 | 4808 | P5-14 | `src/pages/teacher/**`·`src/components/teacher/`(새로), FAQ(`src/pages/help/` 안 새 페이지), 가린 편집본 PDF(`public/teacher/handouts/` — 파일 이름은 `src/components/lesson/handouts.ts`와 같게, 저장소 검사 허용 목록은 요청) | — | BT 교안·PPT(편집본 쪽마다 눈 확인) |
 
 - **2차 구역**은 1차가 끝난 뒤에 시작해요: G는 B(페이스 매시)·F(블루투스)의 낱말과 설명을 이어 쓰고, H는 모든 차시의 교사용 접기·`src/config/standards.ts`를 읽어 차시별 지도 요약 모음·성취기준·평가 방향 표를 만들어요. 마지막에 `npm run check:lessons -- --complete`(차례표의 차시가 모두 있어야 통과)가 Phase 5 완료 기준이에요.
