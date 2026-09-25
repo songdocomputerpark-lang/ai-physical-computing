@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 396" width="640" height="396" role="img" aria-labelledby="title desc">
+<title id="title">편 손가락 판정: 기준점에서 손가락 끝까지의 거리와 뿌리 관절까지의 거리를 견준다</title>
+<desc id="desc">왼쪽에 검지, 중지, 약지를 펴고 엄지와 소지를 접은 손이 점과 선(손 랜드마크)으로 그려져 있다. 손목(0)에서 검지 끝(8)까지 파란 실선, 검지 뿌리(5)까지 주황 점선이 있는데 파란 선이 더 길어 검지는 펴졌다. 손목에서 소지 끝(20)까지 파란 선은 소지 뿌리(17)까지 주황 점선보다 짧아 소지는 접혔다. 오른쪽 표: 엄지(기준점 17) 접힘 0, 검지 펴짐 1, 중지 펴짐 1, 약지 펴짐 1, 소지 접힘 0이라 01110이 되고 1이 3개라 3이다. 아래 범례에 파란 실선은 기준점에서 끝, 주황 점선은 기준점에서 뿌리 관절이며, 끝이 더 멀면 펴짐(1), 가까우면 접힘(0)이라고 적혀 있다. 손은 계산으로 만든 좌표로 그렸다. 사이트가 직접 그린 그림.</desc>
+<defs>
+
+</defs>
+<rect width="640" height="396" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<g aria-hidden="true"><path d="M178 352 L217.3 312.7 L224.6 209.7 L190.3 199.9 L158.4 207.2 L128.9 224.4 Z" fill="#7b8594" stroke="#7b8594" stroke-width="29" stroke-linejoin="round"/><path d="M178 352 L217.3 312.7 L230.6 263 L212.2 231.1 L181.4 222.8" fill="none" stroke="#7b8594" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/><path d="M224.6 209.7 L231.8 151.2 L236 117.1 L239.3 90.3" fill="none" stroke="#7b8594" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/><path d="M190.3 199.9 L190.3 136.1 L190.3 96.8 L190.3 67.4" fill="none" stroke="#7b8594" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/><path d="M158.4 207.2 L151.2 148.7 L146.7 112.2 L143.4 85.4" fill="none" stroke="#7b8594" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/><path d="M128.9 224.4 L127.8 220.5 L135.5 248.8 L137.1 254.9" fill="none" stroke="#7b8594" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/><path d="M178 352 L217.3 312.7 L224.6 209.7 L190.3 199.9 L158.4 207.2 L128.9 224.4 Z" fill="#e3e8ef" stroke="#e3e8ef" stroke-width="26" stroke-linejoin="round"/><path d="M178 352 L217.3 312.7 L230.6 263 L212.2 231.1 L181.4 222.8" fill="none" stroke="#e3e8ef" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/><path d="M224.6 209.7 L231.8 151.2 L236 117.1 L239.3 90.3" fill="none" stroke="#e3e8ef" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/><path d="M190.3 199.9 L190.3 136.1 L190.3 96.8 L190.3 67.4" fill="none" stroke="#e3e8ef" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/><path d="M158.4 207.2 L151.2 148.7 L146.7 112.2 L143.4 85.4" fill="none" stroke="#e3e8ef" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/><path d="M128.9 224.4 L127.8 220.5 L135.5 248.8 L137.1 254.9" fill="none" stroke="#e3e8ef" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g fill="none" stroke="#4a5361" stroke-width="2" stroke-linecap="round"><line x1="178" y1="352" x2="217.3" y2="312.7"/><line x1="217.3" y1="312.7" x2="230.6" y2="263"/><line x1="230.6" y1="263" x2="212.2" y2="231.1"/><line x1="212.2" y1="231.1" x2="181.4" y2="222.8"/><line x1="178" y1="352" x2="224.6" y2="209.7"/><line x1="224.6" y1="209.7" x2="231.8" y2="151.2"/><line x1="231.8" y1="151.2" x2="236" y2="117.1"/><line x1="236" y1="117.1" x2="239.3" y2="90.3"/><line x1="224.6" y1="209.7" x2="190.3" y2="199.9"/><line x1="190.3" y1="199.9" x2="190.3" y2="136.1"/><line x1="190.3" y1="136.1" x2="190.3" y2="96.8"/><line x1="190.3" y1="96.8" x2="190.3" y2="67.4"/><line x1="190.3" y1="199.9" x2="158.4" y2="207.2"/><line x1="158.4" y1="207.2" x2="151.2" y2="148.7"/><line x1="151.2" y1="148.7" x2="146.7" y2="112.2"/><line x1="146.7" y1="112.2" x2="143.4" y2="85.4"/><line x1="158.4" y1="207.2" x2="128.9" y2="224.4"/><line x1="178" y1="352" x2="128.9" y2="224.4"/><line x1="128.9" y1="224.4" x2="127.8" y2="220.5"/><line x1="127.8" y1="220.5" x2="135.5" y2="248.8"/><line x1="135.5" y1="248.8" x2="137.1" y2="254.9"/></g><g fill="#d24b4b" stroke="#ffffff" stroke-width="1.2"><circle cx="178" cy="352" r="4.2"/><circle cx="217.3" cy="312.7" r="4.2"/><circle cx="230.6" cy="263" r="4.2"/><circle cx="212.2" cy="231.1" r="4.2"/><circle cx="181.4" cy="222.8" r="4.2"/><circle cx="224.6" cy="209.7" r="4.2"/><circle cx="231.8" cy="151.2" r="4.2"/><circle cx="236" cy="117.1" r="4.2"/><circle cx="239.3" cy="90.3" r="4.2"/><circle cx="190.3" cy="199.9" r="4.2"/><circle cx="190.3" cy="136.1" r="4.2"/><circle cx="190.3" cy="96.8" r="4.2"/><circle cx="190.3" cy="67.4" r="4.2"/><circle cx="158.4" cy="207.2" r="4.2"/><circle cx="151.2" cy="148.7" r="4.2"/><circle cx="146.7" cy="112.2" r="4.2"/><circle cx="143.4" cy="85.4" r="4.2"/><circle cx="128.9" cy="224.4" r="4.2"/><circle cx="127.8" cy="220.5" r="4.2"/><circle cx="135.5" cy="248.8" r="4.2"/><circle cx="137.1" cy="254.9" r="4.2"/></g>
+<line x1="178" y1="352" x2="239.3" y2="90.3" stroke="#1f5bd6" stroke-width="4"/>
+<line x1="184" y1="352" x2="230.6" y2="209.7" stroke="#b7800f" stroke-width="4" stroke-dasharray="7 5"/>
+<line x1="178" y1="352" x2="137.1" y2="254.9" stroke="#1f5bd6" stroke-width="4"/>
+<line x1="172" y1="352" x2="122.9" y2="224.4" stroke="#b7800f" stroke-width="4" stroke-dasharray="7 5"/>
+<circle cx="178" cy="352" r="7" fill="#17191c"/>
+<text x="204" y="364" font-size="16" font-weight="700" fill="#17191c">손목(0)</text>
+<text x="251.3" y="96.3" font-size="16" font-weight="700" fill="#1a4cb4">검지 끝(8)</text>
+<text x="238.6" y="213.7" font-size="16" fill="#7a4a00">뿌리(5)</text>
+<text x="16" y="198.4" font-size="16" fill="#7a4a00">소지 뿌리(17)</text>
+<line x1="124" y1="193.4" x2="120.9" y2="218.4" stroke="#b7800f" stroke-width="1.5"/>
+<text x="16" y="290.9" font-size="16" fill="#1a4cb4">소지 끝(20)</text>
+<line x1="108" y1="284.9" x2="129.1" y2="260.9" stroke="#1f5bd6" stroke-width="1.5"/>
+<rect x="350" y="18" width="276" height="262" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="364" y="44" font-size="16" font-weight="700" fill="#17191c">손가락</text>
+<text x="440" y="44" font-size="16" font-weight="700" fill="#17191c">기준점</text>
+<text x="518" y="44" font-size="16" font-weight="700" fill="#17191c">판정</text>
+<text x="588" y="44" font-size="16" font-weight="700" fill="#17191c">값</text>
+<line x1="360" y1="54" x2="616" y2="54" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="364" y="82" font-size="16" fill="#17191c">엄지</text>
+<text x="462" y="82" font-size="16" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">17</text>
+<text x="518" y="82" font-size="16" font-weight="700" fill="#4a5361">접힘</text>
+<text x="594" y="82" font-size="16" font-weight="700" text-anchor="middle" fill="#4a5361" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">0</text>
+<text x="364" y="112" font-size="16" fill="#17191c">검지</text>
+<text x="462" y="112" font-size="16" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">0</text>
+<text x="518" y="112" font-size="16" font-weight="700" fill="#1a4cb4">펴짐</text>
+<text x="594" y="112" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">1</text>
+<text x="364" y="142" font-size="16" fill="#17191c">중지</text>
+<text x="462" y="142" font-size="16" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">0</text>
+<text x="518" y="142" font-size="16" font-weight="700" fill="#1a4cb4">펴짐</text>
+<text x="594" y="142" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">1</text>
+<text x="364" y="172" font-size="16" fill="#17191c">약지</text>
+<text x="462" y="172" font-size="16" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">0</text>
+<text x="518" y="172" font-size="16" font-weight="700" fill="#1a4cb4">펴짐</text>
+<text x="594" y="172" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">1</text>
+<text x="364" y="202" font-size="16" fill="#17191c">소지</text>
+<text x="462" y="202" font-size="16" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">0</text>
+<text x="518" y="202" font-size="16" font-weight="700" fill="#4a5361">접힘</text>
+<text x="594" y="202" font-size="16" font-weight="700" text-anchor="middle" fill="#4a5361" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">0</text>
+<line x1="360" y1="236" x2="616" y2="236" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="364" y="264" font-size="16" font-weight="700" fill="#17191c">01110 → 1이 3개 → 3</text>
+<line x1="350" y1="314" x2="390" y2="314" stroke="#1f5bd6" stroke-width="4"/>
+<text x="400" y="320" font-size="16" fill="#17191c">기준점 → 끝</text>
+<line x1="350" y1="344" x2="390" y2="344" stroke="#b7800f" stroke-width="4" stroke-dasharray="7 5"/>
+<text x="400" y="350" font-size="16" fill="#17191c">기준점 → 뿌리 관절</text>
+<text x="350" y="380" font-size="16" font-weight="700" fill="#17191c">끝이 더 멀면 펴짐(1), 가까우면 접힘(0)</text>
+</g>
+</svg>

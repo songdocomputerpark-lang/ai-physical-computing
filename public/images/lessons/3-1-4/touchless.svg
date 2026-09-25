@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 262" width="640" height="262" role="img" aria-labelledby="title desc">
+<title id="title">손동작으로 컴퓨터 조작하기: 웹캠이 손을 보고, 엄지를 올리면 화면을 캡처하고 검지를 움직이면 마우스 커서가 따라간다</title>
+<desc id="desc">왼쪽 칸: 웹캠이 손을 보고 MediaPipe가 손의 특징점 21개를 찾는다. 오른쪽 위 줄: 동작 ① 엄지 끝을 검지 끝보다 위로 올리면 화면을 캡처해 screenshot.png로 저장한다. 오른쪽 아래 줄: 동작 ② 검지를 움직이면 모니터의 마우스 커서가 검지를 따라 움직인다. 사이트가 직접 그린 그림(원고 201쪽 프로그램 개요를 그림으로).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="262" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<rect x="8" y="12" width="168" height="238" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="92" y="42" text-anchor="middle" font-size="18" font-weight="700" fill="#17191c">웹캠</text>
+<rect x="52" y="60" width="80" height="54" rx="10" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<circle cx="92" cy="87" r="16" fill="#eaf1fe" stroke="#4a5361" stroke-width="2"/>
+<circle cx="92" cy="87" r="6" fill="#4a5361"/>
+<!-- 손 특징점(점과 선) -->
+<g stroke="#9aa3ad" stroke-width="2" fill="none">
+<path d="M92 228 L76 206 L70 186 L66 170"/>
+<path d="M92 228 L90 196 L90 172 L90 152"/>
+<path d="M92 228 L102 198 L106 176 L108 160"/>
+</g>
+<g fill="#1f5bd6">
+<circle cx="92" cy="228" r="4"/>
+<circle cx="66" cy="170" r="5"/>
+<circle cx="90" cy="152" r="5"/>
+<circle cx="108" cy="160" r="4"/>
+</g>
+<text x="92" y="140" text-anchor="middle" font-size="16" fill="#17191c">손을 봐요</text>
+
+<g stroke="#4a5361" stroke-width="2.5">
+<line x1="178" y1="80" x2="216" y2="72" marker-end="url(#arrow)"/>
+<line x1="178" y1="180" x2="216" y2="188" marker-end="url(#arrow)"/>
+</g>
+
+<!-- 동작 1 -->
+<rect x="220" y="12" width="412" height="112" rx="14" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="236" y="42" font-size="17" font-weight="700" fill="#7a4a00">동작 ① 엄지 끝을 검지 끝보다 위로</text>
+<text x="236" y="70" font-size="16" fill="#17191c">→ 화면을 찍어 그림 파일로 저장해요.</text>
+<rect x="236" y="84" width="150" height="30" rx="6" fill="#ffffff" stroke="#b7800f" stroke-width="1.5"/>
+<text x="311" y="105" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4a00">screenshot.png</text>
+<rect x="520" y="44" width="92" height="64" rx="6" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<path d="M538 60 H594 V92 H538 Z" fill="none" stroke="#b7800f" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="566" y="82" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4a00">찰칵</text>
+
+<!-- 동작 2 -->
+<rect x="220" y="138" width="412" height="112" rx="14" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="236" y="168" font-size="17" font-weight="700" fill="#1a4cb4">동작 ② 검지를 움직이면</text>
+<text x="236" y="196" font-size="16" fill="#17191c">→ 마우스 커서가 검지를 따라가요.</text>
+<rect x="520" y="164" width="92" height="64" rx="6" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<path d="M558 180 L558 206 L565 200 L570 212 L575 210 L570 198 L579 197 Z" fill="#17191c" stroke="#ffffff" stroke-width="1"/>
+<path d="M534 214 Q546 196 556 190" fill="none" stroke="#1f5bd6" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="236" y="228" font-size="16" fill="#4a5361">마우스 없이 손만으로 조작해요.</text>
+</g>
+</svg>

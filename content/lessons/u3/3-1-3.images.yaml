@@ -1,0 +1,32 @@
+# 차시 3-1-3 "인공지능과 블루투스 통신"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 3-1-3
+# 결과는 public/images/lessons/3-1-3/ 아래 WebP(메타데이터 없음). 쪽 좌표·그림 번호 고르기: npm run images:show -- U3 196
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+#
+# 197·198쪽은 블루투스 기기 주소(MAC)가 보이는 제외 쪽이라 꺼내지 않아요(scripts/image-exclusions.yaml) — "주소 확인" 결과 화면은
+# 사이트가 "광고 이름 확인"으로 바꿔 글과 그림(사이트가 그린 SVG)으로 보여요(PLAN §7.3). 200쪽(결과 화면)은 얼굴이 나온 쪽이라
+# 이 차시에서 쓰지 않아요. 196쪽 배선 그림에는 키트 업체 상표가 보여요 — O3·O4·O5로 실제 키트 연결 안내에 써요(INVENTORY §5.2).
+
+images:
+  - name: wiring-rgb-led
+    use: 3-1-3 핵심 개념 "회로 구성" — RGB LED를 ESP32 확장 보드에 잇는 배선 그림(원고 196쪽)
+    alt: RGB LED 모듈을 GND, 5V, GPIO 25번 핀, GPIO 26번 핀, GPIO 27번 핀에 다섯 가닥 선으로 이은 ESP32 확장 보드 배선 그림
+    from:
+      source: U3
+      page: 196
+      region: [205, 124, 508, 236]
+    file: public/images/lessons/3-1-3/wiring-rgb-led.webp
+    width: 927
+    height: 344
+    bytes: 48528
+    sha256: "7705883c92342c2a23a6b884f80506aedf9a783bc86c8f484ed23f6e1a2e83f5"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — ESP32 확장 보드(ESP32 Shield V2)에 RGB LED 모듈의 GND·VCC·Red·Green·Blue를 G·V·25·26·27 핀으로 잇는 배선 그림과 왼쪽 색 점 설명(GND·5V·GPIO 25핀·GPIO 26핀·GPIO 27핀). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 상표(GORILLACELL, 마스코트)는 O3·O5로 키트 안내에 사용

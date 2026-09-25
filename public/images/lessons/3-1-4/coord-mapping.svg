@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 318" width="640" height="318" role="img" aria-labelledby="title desc">
+<title id="title">정규화 좌표를 모니터 픽셀 좌표로 바꾸기: 검지 끝 (0.5, 0.25)에 화면 크기 1920×1080을 곱하면 커서 자리 (960, 270)</title>
+<desc id="desc">왼쪽: 카메라 영상의 좌표는 가로와 세로를 각각 0부터 1까지로 나타낸 정규화 좌표이고, 검지 끝이 (0.5, 0.25)에 있다. 가운데 화살표: 화면 크기를 곱한다. 오른쪽: 가로 1920, 세로 1080 모니터에서 커서가 (960, 270)으로 간다. 아래: x는 0.5 × 1920 = 960, y는 0.25 × 1080 = 270이고, 화면 크기는 pyautogui.size()로 불러온다(가상 데스크톱은 1920×1080). 사이트가 직접 그린 그림(INVENTORY S33).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/>
+</marker>
+</defs>
+<rect width="640" height="318" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<text x="130" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">카메라 영상(정규화 좌표)</text>
+<rect x="20" y="50" width="220" height="165" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/>
+<g font-size="16" fill="#4a5361">
+<text x="20" y="44" text-anchor="middle">0</text>
+<text x="240" y="44" text-anchor="middle">1</text>
+<text x="12" y="220" text-anchor="end">1</text>
+</g>
+<line x1="130" y1="50" x2="130" y2="91" stroke="#5b87e0" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="20" y1="91" x2="130" y2="91" stroke="#5b87e0" stroke-width="1.5" stroke-dasharray="4 3"/>
+<circle cx="130" cy="91" r="7" fill="#1f5bd6"/>
+<text x="130" y="124" text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">검지 끝</text>
+<text x="130" y="146" text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">(0.5, 0.25)</text>
+
+<line x1="252" y1="120" x2="336" y2="120" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="294" y="106" text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">× 화면 크기</text>
+
+<text x="486" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#17191c">모니터(픽셀 좌표)</text>
+<rect x="350" y="50" width="272" height="153" rx="4" fill="#ffffff" stroke="#4a5361" stroke-width="3"/>
+<path d="M466 203 H506 L512 222 H460 Z" fill="#4a5361"/>
+<g font-size="16" fill="#4a5361">
+<text x="350" y="44" text-anchor="middle">0</text>
+<text x="622" y="44" text-anchor="middle">1920</text>
+<text x="344" y="208" text-anchor="end">1080</text>
+</g>
+<line x1="486" y1="50" x2="486" y2="88" stroke="#5b87e0" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="350" y1="88" x2="486" y2="88" stroke="#5b87e0" stroke-width="1.5" stroke-dasharray="4 3"/>
+<path d="M486 88 L486 112 L492 106 L497 117 L502 115 L497 104 L505 103 Z" fill="#17191c" stroke="#ffffff" stroke-width="1"/>
+<text x="510" y="140" font-size="16" font-weight="700" fill="#17191c">커서</text>
+<text x="510" y="162" font-size="16" font-weight="700" fill="#17191c">(960, 270)</text>
+
+<rect x="8" y="238" width="624" height="72" rx="12" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="24" y="266" font-size="16" fill="#17191c"><tspan font-weight="700">x</tspan>: 0.5 × 1920 = 960</text>
+<text x="300" y="266" font-size="16" fill="#17191c"><tspan font-weight="700">y</tspan>: 0.25 × 1080 = 270</text>
+<text x="24" y="294" font-size="16" fill="#4a5361">화면 크기는 pyautogui.size()로 불러와요(가상 데스크톱은 1920×1080).</text>
+</g>
+</svg>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" width="640" height="340" role="img" aria-labelledby="title desc">
+<title id="title">통신 방식 세 가지의 연결 모양: 시리얼(선으로 1:1), 블루투스(전파로 가까이, 골라서 1:1), 와이파이·MQTT(인터넷의 중계 서버를 거쳐 여럿이)</title>
+<desc id="desc">세 칸이 나란히 있다. 왼쪽 시리얼(UART) 칸은 컴퓨터에서 USB 선이 변환기로 가고, 변환기에서 TX·RX 두 선이 ESP32 보드로 간다. 선으로 두 기기를 직접 잇는 1:1 연결이고 예는 3-1-2의 레이저다. 가운데 블루투스(BLE) 칸은 ESP32 보드가 전파로 이름을 알리고 위의 컴퓨터가 골라서 연결한다. 가까운 거리의 1:1 연결이고 예는 3-1-3의 RGB LED다. 오른쪽 와이파이·MQTT 칸은 보드, 스마트폰, 컴퓨터가 모두 인터넷의 중계 서버와 주고받는다. 멀리 있는 여러 기기가 함께 쓰는 연결이고 예는 보충 차시 C1이다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="340" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="12" y="12" width="196" height="316" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<rect x="222" y="12" width="196" height="316" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<rect x="432" y="12" width="196" height="316" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<g font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">
+<text x="110" y="42">시리얼(UART)</text>
+<text x="320" y="42">블루투스(BLE)</text>
+<text x="530" y="42">와이파이·MQTT</text>
+</g>
+
+<rect x="80" y="58" width="60" height="38" rx="3" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="72" y="96" width="76" height="7" rx="2" fill="#4a5361"/>
+<line x1="110" y1="103" x2="110" y2="122" stroke="#4a5361" stroke-width="3"/>
+<text x="118" y="118" font-size="16" fill="#4a5361">USB</text>
+<rect x="76" y="122" width="68" height="30" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="2"/>
+<text x="110" y="143" font-size="16" text-anchor="middle" fill="#7a4a00">변환기</text>
+<line x1="100" y1="152" x2="100" y2="184" stroke="#4a5361" stroke-width="2.5"/>
+<line x1="120" y1="152" x2="120" y2="184" stroke="#4a5361" stroke-width="2.5"/>
+<text x="128" y="174" font-size="16" fill="#4a5361">TX·RX</text>
+<rect x="80" y="184" width="60" height="34" rx="5" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/>
+<rect x="98" y="192" width="24" height="18" rx="2" fill="#ffffff" stroke="#1a4cb4"/>
+<text x="110" y="238" font-size="16" text-anchor="middle" fill="#4a5361">ESP32</text>
+
+<rect x="290" y="58" width="60" height="38" rx="3" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="282" y="96" width="76" height="7" rx="2" fill="#4a5361"/>
+<g fill="none" stroke="#1f5bd6" stroke-width="2.5" stroke-linecap="round">
+<path d="M302.7 174 A20 20 0 0 1 337.3 174"/>
+<path d="M290.6 166 A34 34 0 0 1 349.4 166"/>
+<path d="M278.4 158 A48 48 0 0 1 361.6 158"/>
+</g>
+<line x1="320" y1="112" x2="320" y2="132" stroke="#1f5bd6" stroke-width="2" stroke-dasharray="3 4"/>
+<text x="232" y="150" font-size="16" fill="#1a4cb4">이름을</text>
+<text x="232" y="170" font-size="16" fill="#1a4cb4">알려요</text>
+<text x="366" y="120" font-size="16" fill="#4a5361">골라서</text>
+<text x="366" y="140" font-size="16" fill="#4a5361">연결</text>
+<rect x="290" y="184" width="60" height="34" rx="5" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/>
+<rect x="308" y="192" width="24" height="18" rx="2" fill="#ffffff" stroke="#1a4cb4"/>
+<text x="320" y="238" font-size="16" text-anchor="middle" fill="#4a5361">ESP32</text>
+
+<g fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2">
+<circle cx="508" cy="92" r="16"/><circle cx="530" cy="80" r="22"/><circle cx="554" cy="92" r="16"/>
+</g>
+<rect x="492" y="92" width="78" height="16" fill="#eaf1fe"/>
+<line x1="492" y1="108" x2="570" y2="108" stroke="#1a4cb4" stroke-width="2"/>
+<text x="530" y="130" font-size="16" text-anchor="middle" fill="#1a4cb4">중계 서버</text>
+<g stroke="#4a5361" stroke-width="2" stroke-dasharray="4 3" marker-start="url(#arrow)" marker-end="url(#arrow)">
+<line x1="470" y1="182" x2="498" y2="140"/>
+<line x1="530" y1="174" x2="530" y2="142"/>
+<line x1="590" y1="182" x2="562" y2="140"/>
+</g>
+<rect x="448" y="186" width="44" height="30" rx="4" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/>
+<rect x="518" y="178" width="24" height="40" rx="5" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="572" y="188" width="40" height="24" rx="2" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="566" y="212" width="52" height="6" rx="2" fill="#4a5361"/>
+<text x="530" y="238" font-size="16" text-anchor="middle" fill="#4a5361">보드, 폰, 컴퓨터</text>
+
+<g font-size="16" text-anchor="middle">
+<text x="110" y="268" font-weight="700" fill="#17191c">선으로 직접</text>
+<text x="110" y="290" fill="#4a5361">(1:1 연결)</text>
+<text x="110" y="314" fill="#1a4cb4">예: 3-1-2 레이저</text>
+<text x="320" y="268" font-weight="700" fill="#17191c">전파로 가까이</text>
+<text x="320" y="290" fill="#4a5361">(골라서 1:1 연결)</text>
+<text x="320" y="314" fill="#1a4cb4">예: 3-1-3 RGB LED</text>
+<text x="530" y="268" font-weight="700" fill="#17191c">인터넷으로 멀리</text>
+<text x="530" y="290" fill="#4a5361">(여러 기기가 함께)</text>
+<text x="530" y="314" fill="#1a4cb4">예: 보충 C1</text>
+</g>
+</g>
+</svg>

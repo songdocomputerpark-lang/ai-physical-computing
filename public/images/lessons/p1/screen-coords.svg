@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="title desc">
+<title id="title">화면 좌표: 왼쪽 위가 (0, 0)이고 x는 오른쪽, y는 아래로 커진다. moveTo는 (0, 0)에서 잰 자리, moveRel은 지금 자리에서 더 가는 거리</title>
+<desc id="desc">가로 1920, 세로 1080 화면을 줄여 그린 네모. 왼쪽 위 모서리에 (0, 0), 오른쪽 아래 끝에 (1919, 1079)가 적혀 있다. 위쪽 화살표는 x가 오른쪽으로 갈수록 커지고, 왼쪽 화살표는 y가 아래로 갈수록 커진다고 알려 준다. 빨간 점 moveTo(600, 400)은 왼쪽 끝에서 600, 위 끝에서 400 떨어진 자리다. 그 점에서 파란 점선 화살표가 moveRel(500, 200)으로 오른쪽 500, 아래 200을 더 가서 (1100, 600)에 닿는다. 아래에 pyautogui.size()는 화면 크기(가로 1920, 세로 1080), pyautogui.position()은 지금 커서 자리 (x, y)를 알려 준다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1a4cb4"/></marker>
+</defs>
+<rect width="640" height="400" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="152" y="62" width="440" height="247.5" rx="2" fill="#f4f6f9" stroke="#2b3340" stroke-width="3"/>
+<line x1="152" y1="46" x2="614" y2="46" stroke="#1a4cb4" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<text x="372" y="34" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">x는 오른쪽으로 갈수록 커져요</text>
+<line x1="136" y1="62" x2="136" y2="331.5" stroke="#1a4cb4" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<text x="16" y="182" font-size="16" font-weight="700" fill="#1a4cb4">y는 아래로</text>
+<text x="16" y="206" font-size="16" font-weight="700" fill="#1a4cb4">갈수록</text>
+<text x="16" y="230" font-size="16" font-weight="700" fill="#1a4cb4">커져요</text>
+<circle cx="152" cy="62" r="5" fill="#17191c"/>
+<text x="160" y="84" font-size="16" font-weight="700" fill="#17191c">(0, 0)</text>
+<text x="584" y="299.5" font-size="16" text-anchor="end" fill="#4a5361">(1919, 1079)</text>
+<line x1="152" y1="153.7" x2="289.5" y2="153.7" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="289.5" y1="62" x2="289.5" y2="153.7" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="220.75" y="145.7" font-size="16" text-anchor="middle" fill="#4a5361">600</text>
+<text x="283.5" y="113.85" font-size="16" text-anchor="end" fill="#4a5361">400</text>
+<line x1="289.5" y1="153.7" x2="397.1" y2="196.7" stroke="#1f5bd6" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrowBlue)"/>
+<circle cx="289.5" cy="153.7" r="6" fill="#d24b4b" stroke="#fff" stroke-width="1.5"/>
+<circle cx="404.1" cy="199.5" r="6" fill="#1f5bd6" stroke="#fff" stroke-width="1.5"/>
+<text x="299.5" y="141.7" font-size="16" font-weight="700" fill="#a3232a" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">moveTo(600, 400)</text>
+<text x="416.1" y="201.5" font-size="16" font-weight="700" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">moveRel(500, 200)</text>
+<text x="416.1" y="225.5" font-size="16" fill="#1a4cb4">오른쪽 500, 아래 200</text>
+<text x="416.1" y="249.5" font-size="16" fill="#1a4cb4">더 가서 → (1100, 600)</text>
+<text x="152" y="354" font-size="16" font-weight="700" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">pyautogui.size()</text>
+<text x="324" y="354" font-size="16" fill="#4a5361">→ 화면 크기(가로 1920, 세로 1080)</text>
+<text x="152" y="382" font-size="16" font-weight="700" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">pyautogui.position()</text>
+<text x="362" y="382" font-size="16" fill="#4a5361">→ 지금 커서 자리 (x, y)</text>
+</g>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 310" width="640" height="310" role="img" aria-labelledby="title desc">
+<title id="title">PyAutoGUI를 쓸 때 조심할 것 두 가지: 화면 왼쪽 위 모서리의 안전장치와, 파일 이름을 pyautogui.py로 짓지 않기</title>
+<desc id="desc">왼쪽 칸 1 안전장치(FAILSAFE): 화면 네모의 왼쪽 위 모서리 (0, 0)이 빨갛게 칠해져 있고, 커서가 빨간 점선 화살표를 따라 그 모서리로 옮겨 간다. 사람이 마우스를 왼쪽 위 모서리로 밀면, 다음 pyautogui 함수에서 FailSafeException으로 멈춘다. 오른쪽 칸 2 파일 이름 주의(진짜 PC): 내 코드 파일 이름이 pyautogui.py이고 안에 import pyautogui와 pyautogui.moveTo가 적혀 있다. 빨간 화살표가 import 줄에서 파일 자신으로 돌아가고, 진짜 PyAutoGUI는 점선 칸으로 건너뛴다. 자기 자신을 불러와서 moveTo가 없다는 오류가 나므로, 이름을 my_mouse.py처럼 바꾼다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#a3232a"/></marker>
+</defs>
+<rect width="640" height="310" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="10" y="10" width="300" height="290" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="160" y="38" font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">① 안전장치(FAILSAFE)</text>
+<rect x="40" y="56" width="240" height="136" rx="2" fill="#ffffff" stroke="#2b3340" stroke-width="3"/>
+<path d="M40 56 L86 56 A46 46 0 0 1 40 102 Z" fill="#fdecec" stroke="#d24b4b" stroke-width="2"/>
+<text x="46" y="128" font-size="16" font-weight="700" fill="#a3232a">(0, 0)</text>
+<line x1="214" y1="160" x2="66" y2="70" stroke="#a3232a" stroke-width="2.5" stroke-dasharray="8 5" marker-end="url(#arrowRed)"/>
+<path d="M214.0 158.0 L214.0 178.4 L219.4 173.6 L223.0 182.0 L226.6 180.6 L223.1 172.6 L229.6 172.6 Z" fill="#17191c" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="160" y="222" font-size="16" text-anchor="middle" fill="#17191c">사람이 마우스를 왼쪽 위 모서리로</text>
+<text x="160" y="246" font-size="16" text-anchor="middle" fill="#17191c">밀면, 다음 pyautogui 함수에서</text>
+<text x="160" y="272" font-size="16" font-weight="700" text-anchor="middle" fill="#a3232a">FailSafeException으로 멈춰요.</text>
+<rect x="330" y="10" width="300" height="290" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="480" y="38" font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">② 파일 이름 주의(진짜 PC)</text>
+<rect x="346" y="54" width="268" height="110" rx="6" fill="#fdecec" stroke="#d24b4b" stroke-width="2"/>
+<text x="358" y="78" font-size="16" font-weight="700" fill="#a3232a">pyautogui.py(내 코드)</text>
+<rect x="358" y="88" width="212" height="64" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<text x="368" y="112" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">import pyautogui</text>
+<text x="368" y="138" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">pyautogui.moveTo(…)</text>
+<path d="M574 108 C606 108, 606 72, 560 72" fill="none" stroke="#a3232a" stroke-width="2.5" marker-end="url(#arrowRed)"/>
+<rect x="346" y="176" width="268" height="32" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="358" y="198" font-size="16" fill="#4a5361">진짜 PyAutoGUI는 건너뛰어요</text>
+<text x="480" y="234" font-size="16" text-anchor="middle" fill="#17191c">자기 자신을 불러와서</text>
+<text x="480" y="258" font-size="16" font-weight="700" text-anchor="middle" fill="#a3232a">moveTo가 없다는 오류가 나요.</text>
+<text x="480" y="284" font-size="16" text-anchor="middle" fill="#17191c">→ 이름을 my_mouse.py처럼 바꿔요</text>
+</g>
+</svg>

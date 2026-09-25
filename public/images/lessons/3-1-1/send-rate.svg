@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 336" width="640" height="336" role="img" aria-labelledby="title desc">
+<title id="title">보내는 횟수 비교: 매 프레임 보내면 보드의 버퍼에 값이 쌓이고, 바뀔 때만 보내면 쌓이지 않는다</title>
+<desc id="desc">두 칸 모두 카메라가 본 결과가 프레임마다 c, c, c, c, c, c, c, c, a, a로 이어진다. 위 칸 매 프레임 보내기에서는 열 번 모두 보내서 오른쪽 보드의 버퍼에 c 여덟 개와 a 두 개가 쌓이고, 보드는 앞에 쌓인 c부터 처리하느라 a에 늦게 반응한다. 아래 칸 바뀔 때만 보내기에서는 첫 c와 값이 바뀐 첫 a만 보내서 버퍼에 두 개뿐이고 a가 오자마자 반응한다. 사이트가 직접 그린 그림(INVENTORY S82, 원고 187쪽 표).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+<symbol id="sent" viewBox="0 0 16 14"><path d="M0 0 H16 L8 14 Z" fill="#1f5bd6"/></symbol>
+</defs>
+<rect width="640" height="336" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<rect x="12" y="12" width="616" height="150" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="28" y="40" font-size="18" font-weight="700" fill="#17191c">① 매 프레임 보내기</text>
+<g stroke="#7b8594" stroke-width="1.5" fill="#ffffff">
+<rect x="28" y="54" width="32" height="30"/><rect x="66" y="54" width="32" height="30"/><rect x="104" y="54" width="32" height="30"/><rect x="142" y="54" width="32" height="30"/><rect x="180" y="54" width="32" height="30"/>
+<rect x="218" y="54" width="32" height="30"/><rect x="256" y="54" width="32" height="30"/><rect x="294" y="54" width="32" height="30"/><rect x="332" y="54" width="32" height="30" fill="#e8f6ee"/><rect x="370" y="54" width="32" height="30" fill="#e8f6ee"/>
+</g>
+<g font-size="18" text-anchor="middle" fill="#17191c">
+<text x="44" y="75">c</text><text x="82" y="75">c</text><text x="120" y="75">c</text><text x="158" y="75">c</text><text x="196" y="75">c</text>
+<text x="234" y="75">c</text><text x="272" y="75">c</text><text x="310" y="75">c</text><text x="348" y="75" font-weight="700">a</text><text x="386" y="75" font-weight="700">a</text>
+</g>
+<use href="#sent" x="36" y="90" width="16" height="14"/><use href="#sent" x="74" y="90" width="16" height="14"/><use href="#sent" x="112" y="90" width="16" height="14"/><use href="#sent" x="150" y="90" width="16" height="14"/><use href="#sent" x="188" y="90" width="16" height="14"/>
+<use href="#sent" x="226" y="90" width="16" height="14"/><use href="#sent" x="264" y="90" width="16" height="14"/><use href="#sent" x="302" y="90" width="16" height="14"/><use href="#sent" x="340" y="90" width="16" height="14"/><use href="#sent" x="378" y="90" width="16" height="14"/>
+<text x="28" y="126" font-size="16" fill="#1a4cb4">▼ = 보냄: 열 번 모두 보내요</text>
+<text x="28" y="150" font-size="16" fill="#a3232a">쌓인 c부터 처리하느라 a에 늦게 반응해요.</text>
+
+<rect x="432" y="26" width="184" height="124" rx="10" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="524" y="50" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">보드의 버퍼</text>
+<g stroke="#7b8594" stroke-width="1" fill="#eaf1fe">
+<rect x="446" y="62" width="28" height="28"/><rect x="480" y="62" width="28" height="28"/><rect x="514" y="62" width="28" height="28"/><rect x="548" y="62" width="28" height="28"/><rect x="582" y="62" width="28" height="28"/>
+<rect x="446" y="96" width="28" height="28"/><rect x="480" y="96" width="28" height="28"/><rect x="514" y="96" width="28" height="28"/><rect x="548" y="96" width="28" height="28" fill="#e8f6ee"/><rect x="582" y="96" width="28" height="28" fill="#e8f6ee"/>
+</g>
+<g font-size="16" text-anchor="middle" fill="#17191c">
+<text x="460" y="82">c</text><text x="494" y="82">c</text><text x="528" y="82">c</text><text x="562" y="82">c</text><text x="596" y="82">c</text>
+<text x="460" y="116">c</text><text x="494" y="116">c</text><text x="528" y="116">c</text><text x="562" y="116" font-weight="700">a</text><text x="596" y="116" font-weight="700">a</text>
+</g>
+<text x="524" y="143" font-size="16" text-anchor="middle" fill="#a3232a">10개가 쌓였어요</text>
+
+<rect x="12" y="174" width="616" height="150" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="28" y="202" font-size="18" font-weight="700" fill="#17191c">② 값이 바뀔 때만 보내기</text>
+<g stroke="#7b8594" stroke-width="1.5" fill="#ffffff">
+<rect x="28" y="216" width="32" height="30"/><rect x="66" y="216" width="32" height="30"/><rect x="104" y="216" width="32" height="30"/><rect x="142" y="216" width="32" height="30"/><rect x="180" y="216" width="32" height="30"/>
+<rect x="218" y="216" width="32" height="30"/><rect x="256" y="216" width="32" height="30"/><rect x="294" y="216" width="32" height="30"/><rect x="332" y="216" width="32" height="30" fill="#e8f6ee"/><rect x="370" y="216" width="32" height="30" fill="#e8f6ee"/>
+</g>
+<g font-size="18" text-anchor="middle" fill="#17191c">
+<text x="44" y="237">c</text><text x="82" y="237">c</text><text x="120" y="237">c</text><text x="158" y="237">c</text><text x="196" y="237">c</text>
+<text x="234" y="237">c</text><text x="272" y="237">c</text><text x="310" y="237">c</text><text x="348" y="237" font-weight="700">a</text><text x="386" y="237" font-weight="700">a</text>
+</g>
+<use href="#sent" x="36" y="252" width="16" height="14"/><use href="#sent" x="340" y="252" width="16" height="14"/>
+<g stroke="#b3bcc8" stroke-width="2">
+<line x1="76" y1="259" x2="88" y2="259"/><line x1="114" y1="259" x2="126" y2="259"/><line x1="152" y1="259" x2="164" y2="259"/><line x1="190" y1="259" x2="202" y2="259"/>
+<line x1="228" y1="259" x2="240" y2="259"/><line x1="266" y1="259" x2="278" y2="259"/><line x1="304" y1="259" x2="316" y2="259"/><line x1="380" y1="259" x2="392" y2="259"/>
+</g>
+<text x="28" y="288" font-size="16" fill="#1a4cb4">▼ = 보냄: 처음 c와 바뀐 a만 보내요</text>
+<text x="28" y="312" font-size="16" fill="#15653a">a가 오자마자 반응해요.</text>
+
+<rect x="432" y="188" width="184" height="124" rx="10" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="524" y="212" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">보드의 버퍼</text>
+<g stroke="#7b8594" stroke-width="1">
+<rect x="446" y="224" width="28" height="28" fill="#eaf1fe"/><rect x="480" y="224" width="28" height="28" fill="#e8f6ee"/>
+</g>
+<g font-size="16" text-anchor="middle" fill="#17191c">
+<text x="460" y="244">c</text><text x="494" y="244" font-weight="700">a</text>
+</g>
+<text x="524" y="305" font-size="16" text-anchor="middle" fill="#15653a">2개뿐이에요</text>
+</g>
+</svg>

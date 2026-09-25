@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 356" width="640" height="356" role="img" aria-labelledby="title desc">
+<title id="title">블루투스 기기를 광고 이름으로 찾아 연결하는 차례: 광고 → 이름 고르기 → 연결 → 보내고 읽기</title>
+<desc id="desc">위 왼쪽: ESP32 보드가 전파로 "나는 ESP32-07이에요"라고 이름을 알린다(광고). 위 오른쪽: 컴퓨터의 기기 고르기 목록에 ESP32-03, ESP32-07, ESP32-12가 보이고 그 가운데 ESP32-07을 골라 연결한다. 아래: ① 보드가 ESP32BLE.init("ESP32-07")로 이름을 알리고, ② 컴퓨터가 목록에서 이름을 보고 골라 연결하고, ③ 이어지면 컴퓨터가 보낸 글자를 보드가 ble.read()로 읽는다. 맨 아래: 기기 주소가 아니라 이름으로 고르고, 이름에는 자리 번호만 넣는다. 사이트가 직접 그린 그림(INVENTORY S86, 교과서의 주소 확인을 광고 이름 확인으로 바꿈 — PLAN §7.3).</desc>
+<rect width="640" height="356" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<!-- 광고하는 보드 -->
+<rect x="14" y="14" width="196" height="42" rx="21" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="112" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4a00">나는 ESP32-07이에요</text>
+<path d="M92 56 L100 70 L110 56" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<rect x="42" y="84" width="110" height="74" rx="8" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/>
+<rect x="70" y="100" width="54" height="40" rx="3" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="97" y="126" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c">ESP32</text>
+<line x1="142" y1="84" x2="142" y2="70" stroke="#4a5361" stroke-width="2"/>
+<circle cx="142" cy="68" r="3" fill="#4a5361"/>
+<text x="97" y="184" text-anchor="middle" font-size="16" fill="#4a5361">광고: 이름을 알려요</text>
+
+<!-- 전파 -->
+<g fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linecap="round">
+<path d="M180 96 Q196 120 180 144"/>
+<path d="M198 86 Q220 120 198 154"/>
+<path d="M216 76 Q244 120 216 164"/>
+</g>
+
+<!-- 기기 고르기 목록 -->
+<rect x="316" y="14" width="310" height="182" rx="12" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="332" y="42" font-size="17" font-weight="700" fill="#17191c">컴퓨터: 연결할 기기 고르기</text>
+<g font-size="16">
+<rect x="332" y="56" width="278" height="36" rx="6" fill="#f4f6f9"/>
+<text x="346" y="80" fill="#4a5361">ESP32-03</text>
+<rect x="332" y="98" width="278" height="36" rx="6" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<text x="346" y="122" fill="#1a4cb4" font-weight="700">ESP32-07 (내 보드)</text>
+<rect x="540" y="104" width="62" height="24" rx="6" fill="#1f5bd6"/>
+<text x="571" y="122" text-anchor="middle" fill="#ffffff" font-weight="700" font-size="16">연결</text>
+<rect x="332" y="140" width="278" height="36" rx="6" fill="#f4f6f9"/>
+<text x="346" y="164" fill="#4a5361">ESP32-12</text>
+</g>
+
+<!-- 차례 -->
+<g font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">
+<circle cx="30" cy="226" r="13" fill="#1f5bd6"/>
+<text x="30" y="232">1</text>
+<circle cx="30" cy="260" r="13" fill="#1f5bd6"/>
+<text x="30" y="266">2</text>
+<circle cx="30" cy="294" r="13" fill="#1f5bd6"/>
+<text x="30" y="300">3</text>
+</g>
+<g font-size="16" fill="#17191c">
+<text x="52" y="232">보드가 <tspan font-weight="700">ESP32BLE.init("ESP32-07")</tspan>로 이름을 알려요.</text>
+<text x="52" y="266">컴퓨터가 목록에서 이름을 보고 골라 연결해요.</text>
+<text x="52" y="300">이어지면 컴퓨터가 보낸 글자를 보드가 <tspan font-weight="700">ble.read()</tspan>로 읽어요.</text>
+</g>
+<rect x="14" y="314" width="612" height="34" rx="8" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="28" y="337" font-size="16" fill="#7a4a00">기기 주소가 아니라 <tspan font-weight="700">이름</tspan>으로 골라요. 이름에는 자리 번호만 넣어요.</text>
+</g>
+</svg>

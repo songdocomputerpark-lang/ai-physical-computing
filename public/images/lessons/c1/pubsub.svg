@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 390" width="640" height="390" role="img" aria-labelledby="title desc">
+<title id="title">MQTT의 발행과 구독: 보드 A가 esp32-01/tx에 보낸 값을 중계 서버가 그 토픽을 구독한 쪽에만 전한다</title>
+<desc id="desc">왼쪽 보드 A(보내는 쪽)가 esp32-01/tx 토픽으로 1, 2, 3을 보낸다(발행). 화살표가 가운데 구름 모양 중계 서버(브로커)로 간다. 오른쪽에 받는 쪽 세 개가 있다. 보드 B와 대시보드는 esp32-01/tx를 구독해서 초록 화살표로 1, 2, 3을 받는다. 보드 C는 esp32-05/tx만 구독해서 점선에 X 표시가 있고 값이 오지 않는다. 아래에 보내는 쪽은 토픽 이름을 붙여 보내고(발행), 중계 서버는 그 토픽을 받기로 한 쪽(구독)에만 전해 준다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker><marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3b9360"/></marker>
+</defs>
+<rect width="640" height="390" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="16" y="124" width="176" height="104" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="104" y="152" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">보드 A (보내는 쪽)</text>
+<text x="104" y="178" font-size="16" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01/tx</text>
+<text x="104" y="204" font-size="16" text-anchor="middle" fill="#1a4cb4">1, 2, 3 보내기(발행)</text>
+<line x1="194" y1="176" x2="250" y2="176" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<g fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"><circle cx="283.5" cy="170.9" r="23"/><circle cx="313.4" cy="154.8" r="32.199999999999996"/><circle cx="347.9" cy="168.6" r="25.299999999999997"/></g><rect x="283.5" y="168.6" width="64.39999999999999" height="23" fill="#eaf1fe"/><line x1="267.4" y1="193.9" x2="366.3" y2="193.9" stroke="#1a4cb4" stroke-width="2"/>
+<text x="318" y="222" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">중계 서버</text>
+<text x="318" y="244" font-size="16" text-anchor="middle" fill="#1a4cb4">(브로커)</text>
+<rect x="430" y="26" width="196" height="86" rx="10" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="444" y="52" font-size="16" font-weight="700" fill="#15653a">보드 B (받는 쪽)</text>
+<text x="444" y="76" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01/tx 구독</text>
+<text x="444" y="100" font-size="16" fill="#15653a">→ 1, 2, 3 받아요</text>
+<rect x="430" y="132" width="196" height="86" rx="10" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="444" y="158" font-size="16" font-weight="700" fill="#15653a">대시보드 (받는 쪽)</text>
+<text x="444" y="182" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01/tx 구독</text>
+<text x="444" y="206" font-size="16" fill="#15653a">→ 1, 2, 3 받아요</text>
+<rect x="430" y="238" width="196" height="86" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="444" y="264" font-size="16" font-weight="700" fill="#4a5361">보드 C</text>
+<text x="444" y="288" font-size="16" fill="#4a5361" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-05/tx 구독</text>
+<text x="444" y="312" font-size="16" fill="#4a5361">→ 오지 않아요</text>
+<line x1="376" y1="146" x2="424" y2="84" stroke="#3b9360" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+<line x1="382" y1="172" x2="424" y2="174" stroke="#3b9360" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+<line x1="374" y1="196" x2="412" y2="262" stroke="#7b8594" stroke-width="2" stroke-dasharray="5 5"/>
+<g stroke="#d24b4b" stroke-width="3" stroke-linecap="round"><line x1="386" y1="224" x2="400" y2="238"/><line x1="400" y1="224" x2="386" y2="238"/></g>
+<text x="320" y="352" font-size="16" text-anchor="middle" fill="#17191c">보내는 쪽은 토픽 이름을 붙여 보내고(발행), 중계 서버는</text>
+<text x="320" y="376" font-size="16" text-anchor="middle" fill="#17191c">그 토픽을 받기로 한 쪽(구독)에만 전해 줘요.</text>
+</g>
+</svg>

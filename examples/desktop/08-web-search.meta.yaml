@@ -2,6 +2,7 @@
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 웹 검색 자동으로 하기
 description: 가상 브라우저의 연습 검색창에 검색어를 한 글자씩 치고 줄바꿈으로 찾아요. 결과는 이 사이트 안의 배울 거리예요. 마지막 줄 pyautogui.enter는 진짜 PyAutoGUI에도 없는 함수라 AttributeError가 나요 — 오류 설명을 읽고 pyautogui.press('enter')로 고쳐 봐요.
+lesson: p1
 source_id: f024
 tags:
   - webbrowser

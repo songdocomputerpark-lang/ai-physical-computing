@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 266" width="640" height="266" role="img" aria-labelledby="title desc">
+<title id="title">손끝 좌표를 블루투스로 보내 RGB LED 색 바꾸기: 손 → 컴퓨터 → 전파 → ESP32 보드와 RGB LED</title>
+<desc id="desc">왼쪽 칸: 카메라가 손을 보고 검지 끝(8번 점)의 좌표를 찾는다. 가운데 칸: 컴퓨터가 좌표를 글자 '355,152'로 만들어 보낸다. 가운데와 오른쪽 사이: 선 없이 블루투스 전파로 건너간다. 오른쪽 칸: ESP32 보드가 좌표를 받아 x와 y에 따라 빨강, 초록, 파랑 LED 가운데 하나를 켠다. 아래 칸: 3-1-2의 USB 선 대신 전파로 보내고, 가까운 기기끼리 전기를 적게 쓰는 BLE를 쓴다. 사이트가 직접 그린 그림(원고 195쪽 데이터 흐름).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="266" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<g fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5">
+<rect x="8" y="12" width="154" height="170" rx="14"/>
+<rect x="186" y="12" width="154" height="170" rx="14"/>
+<rect x="446" y="12" width="186" height="170" rx="14"/>
+</g>
+<line x1="164" y1="96" x2="182" y2="96" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<g text-anchor="middle" font-size="18" font-weight="700" fill="#17191c">
+<text x="85" y="40">손</text>
+<text x="263" y="40">컴퓨터</text>
+<text x="539" y="40">ESP32 보드</text>
+</g>
+
+<!-- 손: 주먹 모양 위로 검지를 편 손(점과 선) -->
+<rect x="58" y="96" width="54" height="46" rx="16" fill="#fff4d8" stroke="#b7800f" stroke-width="2"/>
+<rect x="60" y="54" width="16" height="50" rx="8" fill="#fff4d8" stroke="#b7800f" stroke-width="2"/>
+<circle cx="68" cy="58" r="6" fill="#1f5bd6"/>
+<text x="84" y="64" font-size="16" fill="#1a4cb4" font-weight="700">8번</text>
+<text x="85" y="166" text-anchor="middle" font-size="16" fill="#17191c">검지 끝 좌표</text>
+
+<!-- 컴퓨터 -->
+<rect x="227" y="56" width="72" height="44" rx="4" fill="#eaf1fe" stroke="#4a5361" stroke-width="2"/>
+<text x="263" y="85" text-anchor="middle" font-size="17" font-weight="700" fill="#1a4cb4">AI</text>
+<path d="M217 104 H309 L303 112 H223 Z" fill="#4a5361"/>
+<rect x="198" y="128" width="130" height="32" rx="16" fill="#1f5bd6"/>
+<text x="263" y="150" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">'355,152' 보내기</text>
+
+<!-- 전파 -->
+<g fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linecap="round">
+<path d="M356 70 Q370 96 356 122"/>
+<path d="M372 60 Q392 96 372 132"/>
+<path d="M388 50 Q414 96 388 142"/>
+</g>
+<text x="394" y="168" text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">전파로</text>
+
+<!-- 보드와 RGB LED -->
+<rect x="464" y="56" width="62" height="46" rx="4" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="480" y="66" width="30" height="26" rx="2" fill="#d6dde6" stroke="#7b8594" stroke-width="1.5"/>
+<line x1="516" y1="56" x2="516" y2="44" stroke="#4a5361" stroke-width="2"/>
+<circle cx="516" cy="42" r="3" fill="#4a5361"/>
+<g stroke-width="2">
+<circle cx="552" cy="79" r="11" fill="#fdecec" stroke="#d24b4b"/>
+<circle cx="582" cy="79" r="11" fill="#e8f6ee" stroke="#3b9360"/>
+<circle cx="612" cy="79" r="11" fill="#eaf1fe" stroke="#5b87e0"/>
+</g>
+<g text-anchor="middle" font-size="15" font-weight="700">
+<text x="552" y="84" fill="#a3232a">R</text>
+<text x="582" y="84" fill="#15653a">G</text>
+<text x="612" y="84" fill="#1a4cb4">B</text>
+</g>
+<text x="539" y="140" text-anchor="middle" font-size="16" fill="#17191c">x, y를 보고</text>
+<text x="539" y="164" text-anchor="middle" font-size="16" fill="#17191c">켤 색을 골라요</text>
+
+<rect x="8" y="196" width="624" height="62" rx="12" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="24" y="222" font-size="16" fill="#17191c">3-1-2의 USB 선 대신 전파로 보내요. 선이 없어도 원리는 같아요.</text>
+<text x="24" y="246" font-size="16" fill="#4a5361">가까운 기기끼리 전기를 적게 쓰며 짧은 글자를 주고받는 BLE를 써요.</text>
+</g>
+</svg>

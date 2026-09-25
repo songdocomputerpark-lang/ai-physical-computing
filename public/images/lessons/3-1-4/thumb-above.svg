@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
+<title id="title">엄지가 검지보다 위에 있는지 y 좌표로 판단하기: thumb_tip.y &lt; index_tip.y이면 화면 캡처</title>
+<desc id="desc">왼쪽 세로 화살표: 영상의 y 좌표는 위쪽이 0이고 아래로 갈수록 커져 1이 된다. 가운데 손: 엄지 끝(4번 점)의 y가 0.30, 검지 끝(8번 점)의 y가 0.45라서 0.30 &lt; 0.45가 참이다. 엄지가 더 위에 있으므로 화면을 캡처한다. 오른쪽 손: 검지를 위로 펴서 검지 끝 y가 0.35, 엄지 끝 y가 0.60이라 0.60 &lt; 0.35가 거짓이다. 캡처하지 않는다. 사이트가 직접 그린 그림(원고 204쪽 설명을 그림으로).</desc>
+<rect width="640" height="330" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<!-- y 축 -->
+<line x1="30" y1="44" x2="30" y2="262" stroke="#4a5361" stroke-width="2.5"/>
+<path d="M22 254 L30 268 L38 254 Z" fill="#4a5361"/>
+<text x="30" y="34" text-anchor="middle" font-size="16" font-weight="700" fill="#4a5361">y</text>
+<text x="42" y="54" font-size="16" fill="#4a5361">0 위</text>
+<text x="42" y="262" font-size="16" fill="#4a5361">1 아래</text>
+
+<!-- 왼쪽: 엄지가 위 -->
+<rect x="96" y="12" width="252" height="306" rx="12" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="222" y="40" text-anchor="middle" font-size="18" font-weight="700" fill="#7a4a00">캡처해요</text>
+<line x1="30" y1="106" x2="150" y2="106" stroke="#b7800f" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="30" y1="139" x2="240" y2="139" stroke="#1f5bd6" stroke-width="1.5" stroke-dasharray="4 3"/>
+<g stroke="#9aa3ad" stroke-width="3" fill="none" stroke-linecap="round">
+<path d="M200 250 L172 222 L160 190 L154 150 L152 106"/>
+<path d="M200 250 L212 206 L230 172 L246 160 L240 139"/>
+<path d="M200 250 L226 214 L252 196 L262 184"/>
+</g>
+<g fill="#7b8594">
+<circle cx="200" cy="250" r="4"/>
+<circle cx="172" cy="222" r="3"/>
+<circle cx="160" cy="190" r="3"/>
+<circle cx="154" cy="150" r="3"/>
+<circle cx="212" cy="206" r="3"/>
+<circle cx="230" cy="172" r="3"/>
+<circle cx="246" cy="160" r="3"/>
+</g>
+<circle cx="152" cy="106" r="12" fill="#b7800f"/>
+<text x="152" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">4</text>
+<circle cx="240" cy="139" r="12" fill="#1f5bd6"/>
+<text x="240" y="145" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">8</text>
+<text x="112" y="80" font-size="16" fill="#7a4a00">엄지 끝 y = 0.30</text>
+<text x="256" y="128" font-size="16" fill="#1a4cb4">검지 끝</text>
+<text x="256" y="148" font-size="16" fill="#1a4cb4">y = 0.45</text>
+<text x="222" y="284" text-anchor="middle" font-size="16" fill="#17191c">0.30 &lt; 0.45 → 참</text>
+<text x="222" y="306" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4a00">엄지가 위 → 캡처!</text>
+
+<!-- 오른쪽: 검지가 위 -->
+<rect x="364" y="12" width="268" height="306" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="498" y="40" text-anchor="middle" font-size="18" font-weight="700" fill="#4a5361">캡처 안 해요</text>
+<g stroke="#9aa3ad" stroke-width="3" fill="none" stroke-linecap="round">
+<path d="M500 250 L472 230 L452 208 L434 190 L420 172"/>
+<path d="M500 250 L502 206 L504 170 L506 142 L508 117"/>
+<path d="M500 250 L522 214 L540 200 L546 214"/>
+</g>
+<g fill="#7b8594">
+<circle cx="500" cy="250" r="4"/>
+<circle cx="472" cy="230" r="3"/>
+<circle cx="452" cy="208" r="3"/>
+<circle cx="434" cy="190" r="3"/>
+<circle cx="502" cy="206" r="3"/>
+<circle cx="504" cy="170" r="3"/>
+<circle cx="506" cy="142" r="3"/>
+</g>
+<circle cx="420" cy="172" r="12" fill="#b7800f"/>
+<text x="420" y="178" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">4</text>
+<circle cx="508" cy="117" r="12" fill="#1f5bd6"/>
+<text x="508" y="123" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">8</text>
+<text x="524" y="112" font-size="16" fill="#1a4cb4">검지 끝</text>
+<text x="524" y="132" font-size="16" fill="#1a4cb4">y = 0.35</text>
+<text x="380" y="210" font-size="16" fill="#7a4a00">엄지 끝</text>
+<text x="380" y="230" font-size="16" fill="#7a4a00">y = 0.60</text>
+<text x="498" y="284" text-anchor="middle" font-size="16" fill="#17191c">0.60 &lt; 0.35 → 거짓</text>
+<text x="498" y="306" text-anchor="middle" font-size="16" font-weight="700" fill="#4a5361">검지가 위 → 그대로</text>
+</g>
+</svg>

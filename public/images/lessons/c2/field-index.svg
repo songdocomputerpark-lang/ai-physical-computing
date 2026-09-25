@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 318" width="640" height="318" role="img" aria-labelledby="title desc">
+<title id="title">대시보드 위젯이 메시지에서 몇 번째 값을 꺼내는 규칙</title>
+<desc id="desc">세 줄이 있다. 첫 줄: 3은 값이 하나라 3이 0번째 값이다. 둘째 줄: 355,152는 쉼표로 나눠 355가 0번째, 152가 1번째 값이다. 셋째 줄: DATA,120,80은 맨 앞 DATA가 숫자가 아니라 머리말이라 세지 않고, 120이 0번째, 80이 1번째 값이다. 아래에 쉼표로 나눈 뒤 맨 앞이 숫자가 아니면 머리말로 보고 건너뛰며, 위젯 설정의 몇 번째 값은 0부터 센다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker>
+</defs>
+<rect width="640" height="318" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="14" y="22" width="176" height="44" rx="6" fill="#edf1f6" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="102" y="51" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">3</text>
+<line x1="194" y1="44" x2="222" y2="44" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="228" y="22" width="110" height="44" rx="6" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="283" y="51" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">3</text>
+<text x="283" y="88" font-size="16" text-anchor="middle" fill="#1a4cb4">0번째</text>
+<rect x="14" y="102" width="176" height="44" rx="6" fill="#edf1f6" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="102" y="131" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">355,152</text>
+<line x1="194" y1="124" x2="222" y2="124" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="228" y="102" width="110" height="44" rx="6" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="283" y="131" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">355</text>
+<text x="283" y="168" font-size="16" text-anchor="middle" fill="#1a4cb4">0번째</text>
+<rect x="350" y="102" width="110" height="44" rx="6" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="405" y="131" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">152</text>
+<text x="405" y="168" font-size="16" text-anchor="middle" fill="#1a4cb4">1번째</text>
+<rect x="14" y="182" width="176" height="44" rx="6" fill="#edf1f6" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="102" y="211" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">DATA,120,80</text>
+<line x1="194" y1="204" x2="222" y2="204" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="228" y="182" width="150" height="44" rx="6" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="303" y="211" font-size="16" font-weight="700" text-anchor="middle" fill="#4a5361" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">DATA</text>
+<text x="303" y="248" font-size="16" text-anchor="middle" fill="#4a5361">머리말(세지 않음)</text>
+<rect x="390" y="182" width="110" height="44" rx="6" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="445" y="211" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">120</text>
+<text x="445" y="248" font-size="16" text-anchor="middle" fill="#1a4cb4">0번째</text>
+<rect x="512" y="182" width="110" height="44" rx="6" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="567" y="211" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">80</text>
+<text x="567" y="248" font-size="16" text-anchor="middle" fill="#1a4cb4">1번째</text>
+<text x="16" y="280" font-size="16" fill="#17191c">쉼표로 나눈 뒤 맨 앞이 숫자가 아니면 머리말로 보고 건너뛰어요.</text>
+<text x="16" y="304" font-size="16" fill="#17191c">위젯 [설정]의 &quot;몇 번째 값&quot;은 0부터 세요.</text>
+</g>
+</svg>

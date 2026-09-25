@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 316" width="640" height="316" role="img" aria-labelledby="title desc">
+<title id="title">받는 쪽 검사: 길이, 글자, 허용 목록을 차례로 보고 통과한 명령으로만 LED를 켜고 끈다</title>
+<desc id="desc">왼쪽에서 on, laser-on, 긴 글(21바이트 이상) 세 메시지가 받는 쪽 검사 상자로 들어간다. 상자 안에 1 길이 20바이트 이하?, 2 글자로 바꿀 수 있나?, 3 허용 목록(on, off, blink)에 있나? 세 가지 검사가 차례로 있다. 모두 통과하면 LED를 켜고 끄고(초록 칸), 하나라도 아니면 무시하고 콘솔에 적는다(회색 칸). 아래에 레이저, 모터처럼 움직이는 장치는 공개 중계 서버에서 받는 코드에 잇지 않는다고 빨간 글로 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker><marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3b9360"/></marker>
+</defs>
+<rect width="640" height="316" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="14" y="56" width="176" height="40" rx="20" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="102" y="82" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">on</text>
+<line x1="192" y1="76" x2="214" y2="76" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="14" y="128" width="176" height="40" rx="20" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="102" y="154" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">laser-on</text>
+<line x1="192" y1="148" x2="214" y2="148" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="14" y="200" width="176" height="40" rx="20" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="102" y="226" font-size="16" text-anchor="middle" fill="#17191c">긴 글(21바이트 이상)</text>
+<line x1="192" y1="220" x2="214" y2="220" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="218" y="30" width="208" height="236" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="2"/>
+<text x="322" y="56" font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">받는 쪽 검사</text>
+<circle cx="244" cy="94" r="12" fill="#1a4cb4"/><text x="244" y="99.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">1</text>
+<text x="264" y="100" font-size="16" fill="#17191c">길이 20바이트 이하?</text>
+<circle cx="244" cy="150" r="12" fill="#1a4cb4"/><text x="244" y="155.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">2</text>
+<text x="264" y="156" font-size="16" fill="#17191c">글자로 바꿀 수 있나?</text>
+<circle cx="244" cy="206" r="12" fill="#1a4cb4"/><text x="244" y="211.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">3</text>
+<text x="264" y="212" font-size="16" fill="#17191c">허용 목록에 있나?</text>
+<text x="264" y="234" font-size="16" fill="#4a5361" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">(on, off, blink)</text>
+<rect x="446" y="44" width="180" height="84" rx="10" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="536" y="76" font-size="16" font-weight="700" text-anchor="middle" fill="#15653a">모두 통과</text>
+<text x="536" y="104" font-size="16" text-anchor="middle" fill="#15653a">→ LED 켜고 끄기</text>
+<rect x="446" y="164" width="180" height="84" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="536" y="196" font-size="16" font-weight="700" text-anchor="middle" fill="#4a5361">하나라도 아니면</text>
+<text x="536" y="224" font-size="16" text-anchor="middle" fill="#4a5361">→ 무시(콘솔에 적기)</text>
+<line x1="428" y1="90" x2="442" y2="88" stroke="#3b9360" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+<line x1="428" y1="200" x2="442" y2="204" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="320" y="300" font-size="16" text-anchor="middle" fill="#a3232a">레이저, 모터처럼 움직이는 장치는 공개 중계 서버에서 받는 코드에 잇지 않아요.</text>
+</g>
+</svg>

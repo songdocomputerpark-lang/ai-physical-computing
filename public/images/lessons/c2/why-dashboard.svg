@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 278" width="640" height="278" role="img" aria-labelledby="title desc">
+<title id="title">보드와 대시보드가 중계 서버를 거쳐 값과 명령을 주고받는 모습</title>
+<desc id="desc">왼쪽 보드(값 보내기, LED)와 오른쪽 모니터 속 대시보드(꺾은선 그래프, 반달 게이지, 켜진 스위치)가 가운데 구름 모양 중계 서버를 거쳐 이어진다. 위쪽 파란 화살표는 1 보드의 값이 그래프와 게이지로 가는 길이고, 아래쪽 초록 화살표는 2 스위치가 보드의 LED로 가는 길이다. 아래에 대시보드는 값을 한눈에 보고, 누르기 한 번으로 장치를 조종하는 화면이라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker><marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3b9360"/></marker>
+</defs>
+<rect width="640" height="278" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="16" y="64" width="176" height="132" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<rect x="56" y="86" width="96" height="56" rx="5" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/><rect x="90" y="94" width="28" height="18" rx="2" fill="#ffffff" stroke="#1a4cb4"/>
+<circle cx="138" cy="130" r="7" fill="#3b9360" stroke="#1a4cb4" stroke-width="1.5"/>
+<text x="104" y="166" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">보드</text>
+<text x="104" y="186" font-size="16" text-anchor="middle" fill="#4a5361">(값 보내기, LED)</text>
+<g fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"><circle cx="289.5" cy="131.7" r="19"/><circle cx="314.2" cy="118.4" r="26.599999999999998"/><circle cx="342.7" cy="129.8" r="20.9"/></g><rect x="289.5" y="129.8" width="53.199999999999996" height="19" fill="#eaf1fe"/><line x1="276.2" y1="150.7" x2="357.9" y2="150.7" stroke="#1a4cb4" stroke-width="2"/>
+<text x="318" y="176" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">중계 서버</text>
+<rect x="444" y="56" width="180" height="120" rx="8" fill="#2b3340" stroke="#2b3340" stroke-width="1"/><rect x="452" y="64" width="164" height="104" rx="3" fill="#ffffff" stroke="#2b3340" stroke-width="1"/><rect x="526" y="176" width="16" height="14" fill="#2b3340"/><rect x="509" y="188" width="50" height="6" rx="3" fill="#2b3340"/>
+<line x1="462" y1="74" x2="462" y2="118" stroke="#7b8594" stroke-width="1.5"/><line x1="462" y1="118" x2="540" y2="118" stroke="#7b8594" stroke-width="1.5"/><polyline points="462.0 113.6 469.8 104.8 477.6 96.0 485.4 87.2 493.2 78.4 501.0 87.2 508.8 96.0 516.6 104.8 524.4 113.6 532.2 104.8 540.0 96.0" fill="none" stroke="#1f5bd6" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M546 116 A30 30 0 0 1 606 116" fill="none" stroke="#d6dde6" stroke-width="8.4"/><path d="M546 116 A30 30 0 0 1 593.6 91.7" fill="none" stroke="#1f5bd6" stroke-width="8.4"/><line x1="576" y1="116" x2="589.8" y2="97.1" stroke="#17191c" stroke-width="2.5"/><circle cx="576" cy="116" r="4" fill="#17191c"/>
+<rect x="464" y="130" width="52" height="28" rx="14" fill="#1f5bd6" stroke="#1a4cb4" stroke-width="1.5"/><circle cx="502" cy="144" r="10" fill="#ffffff"/>
+<text x="534" y="222" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">대시보드</text>
+<line x1="194" y1="100" x2="264" y2="108" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<line x1="372" y1="108" x2="440" y2="100" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<line x1="440" y1="152" x2="372" y2="146" stroke="#3b9360" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+<line x1="264" y1="146" x2="194" y2="152" stroke="#3b9360" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+<text x="318" y="40" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">① 보드의 값 → 그래프, 게이지</text>
+<text x="318" y="212" font-size="16" font-weight="700" text-anchor="middle" fill="#15653a">② 스위치 → 보드의 LED</text>
+<text x="320" y="262" font-size="16" text-anchor="middle" fill="#17191c">대시보드는 값을 한눈에 보고, 누르기 한 번으로 장치를 조종하는 화면이에요.</text>
+</g>
+</svg>

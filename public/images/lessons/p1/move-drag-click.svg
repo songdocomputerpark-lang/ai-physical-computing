@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 282" width="640" height="282" role="img" aria-labelledby="title desc">
+<title id="title">마우스 함수 세 가지 비교: moveTo는 버튼을 뗀 채 옮기고, dragTo는 누른 채 옮기고, click은 그 자리에서 눌렀다 뗀다</title>
+<desc id="desc">세 칸이 나란히 있다. 왼쪽 moveTo(x, y) 칸: 커서가 점선을 따라 옮겨 가고, 마우스 버튼은 눌리지 않았다. 버튼을 뗀 채 커서만 옮겨서 선이 남지 않는다. 가운데 dragTo(x, y) 칸: 마우스 왼쪽 버튼이 눌린 채 옮겨 파란 선이 남는다. 그림판에 선이 남는다. 오른쪽 click(x, y) 칸: 커서 자리에 동그라미 물결이 퍼지고 왼쪽 버튼이 눌렸다. 그 자리에서 눌렀다 떼서 단추나 아이콘이 눌린다. 사이트가 직접 그린 그림.</desc>
+<defs>
+
+</defs>
+<rect width="640" height="282" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="10" y="10" width="200" height="262" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="110" y="38" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">moveTo(x, y)</text>
+<rect x="24" y="52" width="172" height="104" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<line x1="46" y1="134" x2="160" y2="78" stroke="#7b8594" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>
+<path d="M160.0 76.0 L160.0 94.7 L164.9 90.3 L168.3 98.0 L171.6 96.7 L168.4 89.4 L174.3 89.4 Z" fill="#17191c" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+<path d="M28 184 A14 14 0 0 1 56 184 L56 198 A14 14 0 0 1 28 198 Z" fill="#ffffff" stroke="#17191c" stroke-width="2"/><path d="M29.5 184 A12.5 12.5 0 0 1 42 171.5 L42 187.64 L29.5 187.64 Z" fill="#ffffff"/><path d="M42 171.5 A12.5 12.5 0 0 1 54.5 184 L54.5 187.64 L42 187.64 Z" fill="#ffffff"/><line x1="28" y1="187.64" x2="56" y2="187.64" stroke="#17191c" stroke-width="2"/><line x1="42" y1="170" x2="42" y2="187.64" stroke="#17191c" stroke-width="2"/>
+<text x="68" y="188" font-size="16" fill="#4a5361">버튼을 뗀 채</text>
+<text x="68" y="210" font-size="16" fill="#4a5361">커서만 옮겨요</text>
+<text x="110" y="252" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">선이 남지 않아요</text>
+<rect x="220" y="10" width="200" height="262" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="320" y="38" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">dragTo(x, y)</text>
+<rect x="234" y="52" width="172" height="104" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<line x1="256" y1="134" x2="370" y2="78" stroke="#1f5bd6" stroke-width="4" stroke-linecap="round"/>
+<path d="M370.0 76.0 L370.0 94.7 L374.9 90.3 L378.3 98.0 L381.6 96.7 L378.4 89.4 L384.3 89.4 Z" fill="#17191c" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+<path d="M238 184 A14 14 0 0 1 266 184 L266 198 A14 14 0 0 1 238 198 Z" fill="#ffffff" stroke="#17191c" stroke-width="2"/><path d="M239.5 184 A12.5 12.5 0 0 1 252 171.5 L252 187.64 L239.5 187.64 Z" fill="#1f5bd6"/><path d="M252 171.5 A12.5 12.5 0 0 1 264.5 184 L264.5 187.64 L252 187.64 Z" fill="#ffffff"/><line x1="238" y1="187.64" x2="266" y2="187.64" stroke="#17191c" stroke-width="2"/><line x1="252" y1="170" x2="252" y2="187.64" stroke="#17191c" stroke-width="2"/>
+<text x="278" y="188" font-size="16" fill="#4a5361">왼쪽 버튼을</text>
+<text x="278" y="210" font-size="16" fill="#4a5361">누른 채 옮겨요</text>
+<text x="320" y="252" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">그림판에 선이 남아요</text>
+<rect x="430" y="10" width="200" height="262" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="530" y="38" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">click(x, y)</text>
+<rect x="444" y="52" width="172" height="104" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<circle cx="530" cy="100" r="12" fill="none" stroke="#1f5bd6" stroke-width="2"/>
+<circle cx="530" cy="100" r="24" fill="none" stroke="#5b87e0" stroke-width="2" stroke-dasharray="4 4"/>
+<path d="M530.0 98.0 L530.0 116.7 L535.0 112.3 L538.3 120.0 L541.5 118.7 L538.4 111.4 L544.3 111.4 Z" fill="#17191c" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+<path d="M448 184 A14 14 0 0 1 476 184 L476 198 A14 14 0 0 1 448 198 Z" fill="#ffffff" stroke="#17191c" stroke-width="2"/><path d="M449.5 184 A12.5 12.5 0 0 1 462 171.5 L462 187.64 L449.5 187.64 Z" fill="#1f5bd6"/><path d="M462 171.5 A12.5 12.5 0 0 1 474.5 184 L474.5 187.64 L462 187.64 Z" fill="#ffffff"/><line x1="448" y1="187.64" x2="476" y2="187.64" stroke="#17191c" stroke-width="2"/><line x1="462" y1="170" x2="462" y2="187.64" stroke="#17191c" stroke-width="2"/>
+<text x="488" y="188" font-size="16" fill="#4a5361">그 자리에서</text>
+<text x="488" y="210" font-size="16" fill="#4a5361">눌렀다 떼요</text>
+<text x="530" y="252" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">단추나 아이콘이 눌려요</text>
+</g>
+</svg>

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 392" width="640" height="392" role="img" aria-labelledby="title desc">
+<title id="title">시리얼 통신 연결 구성: 컴퓨터와 ESP32 사이의 USB 케이블 두 개와 USB-UART 변환기, TX와 RX를 엇갈려 잇기</title>
+<desc id="desc">왼쪽 컴퓨터에서 USB 케이블 두 개가 나간다. ① 첫 케이블은 ESP32 보드에 바로 꽂혀 코드를 보내고 결과를 보는 UART0 통로가 된다. ② 둘째 케이블은 USB-UART 변환기에 꽂힌다. 변환기의 TX(보내기)는 보드의 GPIO16(RX, 받기)으로, 보드의 GPIO17(TX, 보내기)은 변환기의 RX(받기)로 이어지고, GND끼리 잇는다. 이 선들이 보드의 UART2 통로다. 보내는 쪽 TX는 받는 쪽 RX에 엇갈려 잇고, 양쪽 모두 통신 속도를 115200bps로 맞춘다. 사이트가 직접 그린 그림(INVENTORY S84·S67, 원고 190쪽 회로 구성).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#7a4a00"/>
+</marker>
+</defs>
+<rect width="640" height="392" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<!-- 컴퓨터 -->
+<rect x="18" y="112" width="120" height="80" rx="6" fill="#eaf1fe" stroke="#4a5361" stroke-width="2"/>
+<path d="M8 196 H148 L140 206 H16 Z" fill="#4a5361"/>
+<text x="78" y="232" text-anchor="middle" font-size="18" font-weight="700" fill="#17191c">컴퓨터</text>
+
+<!-- ① 보드용 USB 케이블 -->
+<path d="M138 134 H236 Q256 134 256 114 V44 Q256 24 276 24 H508 Q528 24 528 40" fill="none" stroke="#4a5361" stroke-width="5" stroke-linecap="round"/>
+<circle cx="196" cy="134" r="13" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="196" y="140" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c">1</text>
+<text x="274" y="70" font-size="16" fill="#17191c">코드를 보내고</text>
+<text x="274" y="92" font-size="16" fill="#17191c">결과를 봐요</text>
+<text x="274" y="114" font-size="16" font-weight="700" fill="#4a5361">UART0 통로</text>
+
+<!-- ② 변환기용 USB 케이블 -->
+<path d="M138 176 H154 Q166 176 166 188 V226 Q166 238 178 238" fill="none" stroke="#4a5361" stroke-width="5" stroke-linecap="round"/>
+<circle cx="112" cy="268" r="13" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="112" y="274" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c">2</text>
+<path d="M125 268 H166 V246" fill="none" stroke="#4a5361" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+<!-- USB-UART 변환기 -->
+<rect x="178" y="196" width="152" height="92" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="170" y="228" width="12" height="20" fill="#7b8594"/>
+<text x="232" y="232" text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">USB-UART</text>
+<text x="232" y="254" text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">변환기</text>
+<g font-size="16" font-weight="700" fill="#17191c" text-anchor="end">
+<text x="322" y="216">TX</text>
+<text x="322" y="246">RX</text>
+<text x="322" y="276">GND</text>
+</g>
+
+<!-- ESP32 보드 -->
+<rect x="436" y="40" width="186" height="258" rx="10" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/>
+<rect x="514" y="30" width="28" height="14" fill="#7b8594"/>
+<text x="529" y="76" text-anchor="middle" font-size="18" font-weight="700" fill="#17191c">ESP32 보드</text>
+<text x="529" y="100" text-anchor="middle" font-size="16" fill="#4a5361">① USB = UART0</text>
+<rect x="490" y="114" width="78" height="44" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="529" y="142" text-anchor="middle" font-size="16" fill="#4a5361">칩</text>
+<text x="452" y="186" font-size="16" font-weight="700" fill="#1a4cb4">UART2(데이터)</text>
+<g font-size="16" fill="#17191c">
+<text x="452" y="216">GPIO16 = RX(받기)</text>
+<text x="452" y="246">GPIO17 = TX(보내기)</text>
+<text x="452" y="276">GND</text>
+</g>
+
+<!-- 신호선: 변환기 TX → 보드 RX, 보드 TX → 변환기 RX, GND끼리 -->
+<g stroke-width="3">
+<line x1="330" y1="211" x2="434" y2="211" stroke="#b7800f" marker-end="url(#arrow)"/>
+<line x1="434" y1="241" x2="330" y2="241" stroke="#b7800f" marker-end="url(#arrow)"/>
+<line x1="330" y1="271" x2="436" y2="271" stroke="#17191c"/>
+</g>
+<g fill="#ffffff" stroke="#4a5361" stroke-width="1.5">
+<rect x="326" y="206" width="8" height="10"/>
+<rect x="326" y="236" width="8" height="10"/>
+<rect x="326" y="266" width="8" height="10"/>
+<rect x="432" y="206" width="8" height="10"/>
+<rect x="432" y="236" width="8" height="10"/>
+<rect x="432" y="266" width="8" height="10"/>
+</g>
+
+<!-- 설명 -->
+<rect x="8" y="310" width="624" height="74" rx="12" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="24" y="338" font-size="16" fill="#17191c">보내는 쪽 <tspan font-weight="700">TX</tspan>는 받는 쪽 <tspan font-weight="700">RX</tspan>에 엇갈려 이어요(화살표 방향으로 글자가 가요).</text>
+<text x="24" y="366" font-size="16" fill="#17191c">양쪽 모두 통신 속도를 <tspan font-weight="700">115200bps</tspan>로 똑같이 맞춰요.</text>
+</g>
+</svg>

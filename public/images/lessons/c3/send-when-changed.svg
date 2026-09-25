@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 306" width="640" height="306" role="img" aria-labelledby="title desc">
+<title id="title">bridge.send()는 값이 바뀔 때만 보내고, bridge.event()는 같은 값도 장면마다 보낸다</title>
+<desc id="desc">맨 위 줄에 장면마다 센 손가락 수 2, 2, 2, 2, 3, 3, 3, 3, 3, 5, 5, 5가 동그라미로 있다. 가운데 bridge.send() 줄은 값이 바뀐 장면에서만 파란 칸 2, 3, 5를 보내고 나머지 장면은 비어 있다. 아래 bridge.event() 줄은 열두 장면 모두 노란 칸으로 값을 보낸다. 아래에 send는 값이 바뀔 때만 보내서 12장에서 3번, event는 같은 값도 장면마다 보내서 12장에서 12번이라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker><marker id="arrowYellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#b7800f"/></marker>
+</defs>
+<rect width="640" height="306" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="16" y="66" font-size="16" font-weight="700" fill="#17191c">센 손가락 수</text>
+<text x="16" y="88" font-size="16" fill="#4a5361">(장면마다)</text>
+<text x="16" y="146" font-size="16" font-weight="700" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">bridge.send()</text>
+<text x="16" y="222" font-size="16" font-weight="700" fill="#7a4a00" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">bridge.event()</text>
+<circle cx="176" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="176" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">2</text>
+<line x1="176" y1="90" x2="176" y2="118" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<rect x="162" y="124" width="28" height="28" rx="5" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="176" y="144" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">2</text>
+<line x1="176" y1="158" x2="176" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="162" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="176" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">2</text>
+<circle cx="214" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="214" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">2</text>
+<circle cx="214" cy="138" r="3" fill="#d6dde6"/>
+<line x1="214" y1="158" x2="214" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="200" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="214" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">2</text>
+<circle cx="252" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="252" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">2</text>
+<circle cx="252" cy="138" r="3" fill="#d6dde6"/>
+<line x1="252" y1="158" x2="252" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="238" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="252" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">2</text>
+<circle cx="290" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="290" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">2</text>
+<circle cx="290" cy="138" r="3" fill="#d6dde6"/>
+<line x1="290" y1="158" x2="290" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="276" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="290" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">2</text>
+<circle cx="328" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="328" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">3</text>
+<line x1="328" y1="90" x2="328" y2="118" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<rect x="314" y="124" width="28" height="28" rx="5" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="328" y="144" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">3</text>
+<line x1="328" y1="158" x2="328" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="314" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="328" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">3</text>
+<circle cx="366" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="366" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">3</text>
+<circle cx="366" cy="138" r="3" fill="#d6dde6"/>
+<line x1="366" y1="158" x2="366" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="352" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="366" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">3</text>
+<circle cx="404" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="404" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">3</text>
+<circle cx="404" cy="138" r="3" fill="#d6dde6"/>
+<line x1="404" y1="158" x2="404" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="390" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="404" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">3</text>
+<circle cx="442" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="442" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">3</text>
+<circle cx="442" cy="138" r="3" fill="#d6dde6"/>
+<line x1="442" y1="158" x2="442" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="428" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="442" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">3</text>
+<circle cx="480" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="480" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">3</text>
+<circle cx="480" cy="138" r="3" fill="#d6dde6"/>
+<line x1="480" y1="158" x2="480" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="466" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="480" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">3</text>
+<circle cx="518" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="518" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">5</text>
+<line x1="518" y1="90" x2="518" y2="118" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<rect x="504" y="124" width="28" height="28" rx="5" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="518" y="144" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">5</text>
+<line x1="518" y1="158" x2="518" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="504" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="518" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">5</text>
+<circle cx="556" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="556" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">5</text>
+<circle cx="556" cy="138" r="3" fill="#d6dde6"/>
+<line x1="556" y1="158" x2="556" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="542" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="556" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">5</text>
+<circle cx="594" cy="72" r="15" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<text x="594" y="78" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">5</text>
+<circle cx="594" cy="138" r="3" fill="#d6dde6"/>
+<line x1="594" y1="158" x2="594" y2="194" stroke="#b7800f" stroke-width="2" marker-end="url(#arrowYellow)"/>
+<rect x="580" y="200" width="28" height="28" rx="5" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="594" y="220" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">5</text>
+<text x="16" y="266" font-size="16" font-weight="700" fill="#1a4cb4">send: 값이 바뀔 때만 보내요(12장에서 3번).</text>
+<text x="16" y="292" font-size="16" font-weight="700" fill="#7a4a00">event: 같은 값도 장면마다 보내요(12장에서 12번).</text>
+</g>
+</svg>

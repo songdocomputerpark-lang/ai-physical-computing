@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" width="640" height="320" role="img" aria-labelledby="title desc">
+<title id="title">대시보드 위젯 네 가지: 실시간 그래프, 게이지, 스위치, 텍스트 로그</title>
+<desc id="desc">카드 네 장이 나란히 있다. 실시간 그래프 카드는 오르내리는 꺾은선으로 시간에 따른 값의 변화를 보인다. 게이지 카드는 반달 눈금에 바늘과 80을 크게 보인다. 스위치 카드는 켜짐 상태의 스위치로, 누르면 보드에 on, off를 보낸다. 텍스트 로그 카드는 tx → 75, tx → 80, rx ← on처럼 오고 간 글을 그대로 쌓는다. 아래에 그래프와 게이지는 받을 토픽 esp32-01/tx, 스위치는 보낼 토픽 esp32-01/rx, 텍스트 로그는 모든 토픽(#)을 쓴다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+
+</defs>
+<rect width="640" height="320" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="8" y="14" width="150" height="206" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="83" y="40" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">실시간 그래프</text>
+<rect x="20" y="52" width="126" height="96" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<line x1="32" y1="64" x2="32" y2="134" stroke="#7b8594" stroke-width="1.5"/><line x1="32" y1="134" x2="134" y2="134" stroke="#7b8594" stroke-width="1.5"/><polyline points="32.0 127.0 42.2 113.0 52.4 99.0 62.6 85.0 72.8 71.0 83.0 85.0 93.2 99.0 103.4 113.0 113.6 127.0 123.8 113.0 134.0 99.0" fill="none" stroke="#1f5bd6" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="83" y="180" font-size="16" text-anchor="middle" fill="#4a5361">시간에 따른</text>
+<text x="83" y="204" font-size="16" text-anchor="middle" fill="#4a5361">값의 변화</text>
+<rect x="166" y="14" width="150" height="206" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="241" y="40" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">게이지</text>
+<rect x="178" y="52" width="126" height="96" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<path d="M201 118 A40 40 0 0 1 281 118" fill="none" stroke="#d6dde6" stroke-width="11.200000000000001"/><path d="M201 118 A40 40 0 0 1 273.4 94.5" fill="none" stroke="#1f5bd6" stroke-width="11.200000000000001"/><line x1="241" y1="118" x2="266.2" y2="99.7" stroke="#17191c" stroke-width="2.5"/><circle cx="241" cy="118" r="4" fill="#17191c"/>
+<text x="241" y="142" font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">80</text>
+<text x="241" y="180" font-size="16" text-anchor="middle" fill="#4a5361">지금 값</text>
+<text x="241" y="204" font-size="16" text-anchor="middle" fill="#4a5361">하나를 크게</text>
+<rect x="324" y="14" width="150" height="206" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="399" y="40" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">스위치</text>
+<rect x="336" y="52" width="126" height="96" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<rect x="373" y="76" width="52" height="28" rx="14" fill="#1f5bd6" stroke="#1a4cb4" stroke-width="1.5"/><circle cx="411" cy="90" r="10" fill="#ffffff"/>
+<text x="399" y="132" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">켜짐</text>
+<text x="399" y="180" font-size="16" text-anchor="middle" fill="#4a5361">누르면 보드에</text>
+<text x="399" y="204" font-size="16" text-anchor="middle" fill="#4a5361">on, off 보내기</text>
+<rect x="482" y="14" width="150" height="206" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="557" y="40" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c">텍스트 로그</text>
+<rect x="494" y="52" width="126" height="96" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<text x="504" y="78" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">tx → 75</text>
+<text x="504" y="102" font-size="16" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">tx → 80</text>
+<text x="504" y="126" font-size="16" fill="#15653a" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">rx ← on</text>
+<text x="557" y="180" font-size="16" text-anchor="middle" fill="#4a5361">오고 간 글을</text>
+<text x="557" y="204" font-size="16" text-anchor="middle" fill="#4a5361">그대로 쌓기</text>
+<text x="16" y="252" font-size="16" fill="#17191c">그래프, 게이지: 받을 토픽 esp32-01/tx</text>
+<text x="16" y="278" font-size="16" fill="#17191c">스위치: 보낼 토픽 esp32-01/rx</text>
+<text x="16" y="304" font-size="16" fill="#17191c">텍스트 로그: 모든 토픽(#)</text>
+</g>
+</svg>

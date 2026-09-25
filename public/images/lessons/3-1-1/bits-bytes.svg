@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" width="640" height="300" role="img" aria-labelledby="title desc">
+<title id="title">비트와 바이트: 문자 '1'은 00110001(49, 0x31), 숫자 1은 00000001(1, 0x01)로 저장된다</title>
+<desc id="desc">여덟 칸짜리 줄이 두 개 있다. 칸 하나가 비트 한 개(0 또는 1)이고, 여덟 칸이 1바이트다. 칸 위에는 왼쪽부터 자리값 128, 64, 32, 16, 8, 4, 2, 1이 적혀 있다. 첫째 줄 문자 '1'은 0, 0, 1, 1, 0, 0, 0, 1이라서 32 + 16 + 1 = 49이고 16진수로 0x31이다. 둘째 줄 숫자 1은 0, 0, 0, 0, 0, 0, 0, 1이라서 1이고 16진수로 0x01이다. 사이트가 직접 그린 그림(INVENTORY S79).</desc>
+<rect width="640" height="300" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="20" y="34" font-size="19" font-weight="700" fill="#17191c">칸 하나 = 비트 1개(0 또는 1), 여덟 칸 = 1바이트</text>
+
+<g font-size="16" fill="#4a5361" text-anchor="middle">
+<text x="170" y="76">128</text><text x="210" y="76">64</text><text x="250" y="76">32</text><text x="290" y="76">16</text>
+<text x="330" y="76">8</text><text x="370" y="76">4</text><text x="410" y="76">2</text><text x="450" y="76">1</text>
+</g>
+<text x="20" y="76" font-size="16" fill="#4a5361">자리값</text>
+
+<text x="20" y="122" font-size="19" font-weight="700" fill="#17191c">문자 '1'</text>
+<g stroke="#7b8594" stroke-width="1.5">
+<rect x="150" y="90" width="40" height="50" fill="#ffffff"/><rect x="190" y="90" width="40" height="50" fill="#ffffff"/>
+<rect x="230" y="90" width="40" height="50" fill="#dbe7fb"/><rect x="270" y="90" width="40" height="50" fill="#dbe7fb"/>
+<rect x="310" y="90" width="40" height="50" fill="#ffffff"/><rect x="350" y="90" width="40" height="50" fill="#ffffff"/>
+<rect x="390" y="90" width="40" height="50" fill="#ffffff"/><rect x="430" y="90" width="40" height="50" fill="#dbe7fb"/>
+</g>
+<g font-size="22" text-anchor="middle" fill="#17191c">
+<text x="170" y="123">0</text><text x="210" y="123">0</text><text x="250" y="123" font-weight="700" fill="#1a4cb4">1</text><text x="290" y="123" font-weight="700" fill="#1a4cb4">1</text>
+<text x="330" y="123">0</text><text x="370" y="123">0</text><text x="410" y="123">0</text><text x="450" y="123" font-weight="700" fill="#1a4cb4">1</text>
+</g>
+<text x="488" y="114" font-size="21" font-weight="700" fill="#17191c">= 49</text>
+<text x="488" y="136" font-size="16" fill="#4a5361">16진수 0x31</text>
+
+<text x="20" y="192" font-size="19" font-weight="700" fill="#17191c">숫자 1</text>
+<g stroke="#7b8594" stroke-width="1.5">
+<rect x="150" y="160" width="40" height="50" fill="#ffffff"/><rect x="190" y="160" width="40" height="50" fill="#ffffff"/>
+<rect x="230" y="160" width="40" height="50" fill="#ffffff"/><rect x="270" y="160" width="40" height="50" fill="#ffffff"/>
+<rect x="310" y="160" width="40" height="50" fill="#ffffff"/><rect x="350" y="160" width="40" height="50" fill="#ffffff"/>
+<rect x="390" y="160" width="40" height="50" fill="#ffffff"/><rect x="430" y="160" width="40" height="50" fill="#dbe7fb"/>
+</g>
+<g font-size="22" text-anchor="middle" fill="#17191c">
+<text x="170" y="193">0</text><text x="210" y="193">0</text><text x="250" y="193">0</text><text x="290" y="193">0</text>
+<text x="330" y="193">0</text><text x="370" y="193">0</text><text x="410" y="193">0</text><text x="450" y="193" font-weight="700" fill="#1a4cb4">1</text>
+</g>
+<text x="488" y="184" font-size="21" font-weight="700" fill="#17191c">= 1</text>
+<text x="488" y="206" font-size="16" fill="#4a5361">16진수 0x01</text>
+
+<rect x="12" y="228" width="616" height="60" rx="12" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="28" y="253" font-size="16" fill="#17191c">1이 적힌 칸의 자리값을 더하면 값이 돼요. 문자 '1'은 32 + 16 + 1 = 49예요.</text>
+<text x="28" y="277" font-size="16" fill="#17191c">화면에는 둘 다 1로 보여도, 컴퓨터 안에서는 다른 바이트예요.</text>
+</g>
+</svg>

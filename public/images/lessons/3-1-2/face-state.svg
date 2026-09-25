@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 328" width="640" height="328" role="img" aria-labelledby="title desc">
+<title id="title">얼굴 인식 상태가 바뀔 때만 보내기: 얼굴 없음과 얼굴 있음 두 상태 사이를 오갈 때 'a'나 'b'를 한 번 보낸다</title>
+<desc id="desc">위: 두 상태 '얼굴 없음(face_present = False)'과 '얼굴 있음(face_present = True)'. 없음에서 있음으로 바뀌면 'a'를 한 번, 있음에서 없음으로 바뀌면 'b'를 한 번 보내고, 상태가 그대로면 아무것도 보내지 않는다. 아래: 장면 8장의 인식 결과가 없음, 없음, 있음, 있음, 있음, 있음, 없음, 없음일 때 셋째 장에서 'a', 일곱째 장에서 'b'만 보내 모두 두 번 보낸다. 매 장면 보내면 8번 보내게 된다. 사이트가 직접 그린 그림(INVENTORY S85).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/>
+</marker>
+</defs>
+<rect width="640" height="328" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<rect x="16" y="30" width="188" height="88" rx="44" fill="#f4f6f9" stroke="#7b8594" stroke-width="2"/>
+<text x="110" y="66" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">얼굴 없음</text>
+<text x="110" y="94" text-anchor="middle" font-size="16" fill="#4a5361">face_present = False</text>
+
+<rect x="436" y="30" width="188" height="88" rx="44" fill="#e8f6ee" stroke="#3b9360" stroke-width="2"/>
+<text x="530" y="66" text-anchor="middle" font-size="20" font-weight="700" fill="#15653a">얼굴 있음</text>
+<text x="530" y="94" text-anchor="middle" font-size="16" fill="#15653a">face_present = True</text>
+
+<g stroke="#1f5bd6" stroke-width="3">
+<line x1="208" y1="56" x2="430" y2="56" marker-end="url(#arrow)"/>
+<line x1="432" y1="94" x2="210" y2="94" marker-end="url(#arrow)"/>
+</g>
+<g text-anchor="middle" font-size="16" font-weight="700" fill="#1a4cb4">
+<text x="320" y="44">새로 보이면 'a'를 한 번</text>
+<text x="320" y="120">사라지면 'b'를 한 번</text>
+</g>
+<g text-anchor="middle" font-size="16" fill="#4a5361">
+<text x="110" y="144">그대로면 안 보내요</text>
+<text x="530" y="144">그대로면 안 보내요</text>
+</g>
+
+<line x1="16" y1="164" x2="624" y2="164" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="16" y="192" font-size="16" font-weight="700" fill="#17191c">장면(프레임)마다 보면</text>
+
+<g font-size="16" text-anchor="middle">
+<rect x="20" y="206" width="66" height="40" rx="6" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="53" y="232" fill="#4a5361">없음</text>
+<rect x="96" y="206" width="66" height="40" rx="6" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="129" y="232" fill="#4a5361">없음</text>
+<rect x="172" y="206" width="66" height="40" rx="6" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="205" y="232" fill="#15653a" font-weight="700">있음</text>
+<rect x="248" y="206" width="66" height="40" rx="6" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="281" y="232" fill="#15653a" font-weight="700">있음</text>
+<rect x="324" y="206" width="66" height="40" rx="6" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="357" y="232" fill="#15653a" font-weight="700">있음</text>
+<rect x="400" y="206" width="66" height="40" rx="6" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="433" y="232" fill="#15653a" font-weight="700">있음</text>
+<rect x="476" y="206" width="66" height="40" rx="6" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="509" y="232" fill="#4a5361">없음</text>
+<rect x="552" y="206" width="66" height="40" rx="6" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<text x="585" y="232" fill="#4a5361">없음</text>
+</g>
+<g text-anchor="middle" font-size="16">
+<text x="53" y="274" fill="#7b8594">–</text>
+<text x="129" y="274" fill="#7b8594">–</text>
+<text x="205" y="274" fill="#1a4cb4" font-weight="700">'a' 보냄</text>
+<text x="281" y="274" fill="#7b8594">–</text>
+<text x="357" y="274" fill="#7b8594">–</text>
+<text x="433" y="274" fill="#7b8594">–</text>
+<text x="509" y="274" fill="#1a4cb4" font-weight="700">'b' 보냄</text>
+<text x="585" y="274" fill="#7b8594">–</text>
+</g>
+<text x="16" y="312" font-size="16" fill="#17191c">8장 가운데 두 번만 보내요. 매 장면 보내면 8번 보내서 보드의 버퍼가 쌓여요.</text>
+</g>
+</svg>

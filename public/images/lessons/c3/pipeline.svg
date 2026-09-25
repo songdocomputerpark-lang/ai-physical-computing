@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 404" width="640" height="404" role="img" aria-labelledby="title desc">
+<title id="title">시나리오 F의 전체 흐름: 컴퓨터가 센 손가락 수가 통로를 지나 보드의 LED가 된다</title>
+<desc id="desc">위 줄 컴퓨터 쪽(영상처리 실습실): 1 카메라 영상(없으면 재생 입력), 2 손의 점 21개(MediaPipe), 3 count_fingers() → 3. 가운데 칸: 4 bridge.send(&quot;3&quot;)이 글자 3과 줄바꿈(2바이트)을 보낸다. 통로는 보내기 패널에서 고르며 같은 컴퓨터 탭(기본, 초록), USB-UART 변환기, 블루투스, MQTT 가운데 하나다. 아래 줄 보드 쪽(ESP32 실습실): 5 uart.readline()이 b&quot;3\n&quot;을 받아 &quot;3&quot;으로, 6 숫자인지 확인(isdigit), 7 show(3)으로 LED 3개를 켠다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker>
+</defs>
+<rect width="640" height="404" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="16" y="28" font-size="16" font-weight="700" fill="#1a4cb4">컴퓨터 쪽(영상처리 실습실)</text>
+<rect x="16" y="40" width="188" height="70" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<circle cx="38" cy="64" r="12" fill="#1a4cb4"/><text x="38" y="69.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">1</text>
+<text x="58" y="70" font-size="16" font-weight="700" fill="#17191c">카메라 영상</text>
+<text x="58" y="96" font-size="16" fill="#4a5361">(없으면 재생 입력)</text>
+<line x1="206" y1="75" x2="224" y2="75" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="226" y="40" width="188" height="70" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<circle cx="248" cy="64" r="12" fill="#1a4cb4"/><text x="248" y="69.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">2</text>
+<text x="268" y="70" font-size="16" font-weight="700" fill="#17191c">손의 점 21개</text>
+<text x="268" y="96" font-size="16" fill="#4a5361">(MediaPipe)</text>
+<line x1="416" y1="75" x2="434" y2="75" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="436" y="40" width="188" height="70" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<circle cx="458" cy="64" r="12" fill="#1a4cb4"/><text x="458" y="69.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">3</text>
+<text x="478" y="70" font-size="16" font-weight="700" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">count_fingers()</text>
+<text x="478" y="96" font-size="16" fill="#4a5361">→ 3</text>
+<line x1="530" y1="112" x2="530" y2="132" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="16" y="136" width="608" height="126" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<circle cx="38" cy="162" r="12" fill="#1a4cb4"/><text x="38" y="167.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">4</text>
+<text x="58" y="168" font-size="16" font-weight="700" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">bridge.send(&quot;3&quot;)</text>
+<text x="236" y="168" font-size="16" fill="#17191c">→ 글자 3과 줄바꿈(2바이트)을 보내요</text>
+<text x="58" y="198" font-size="16" fill="#4a5361">[보내기] 패널에서 고르는 통로(기본은 같은 컴퓨터 탭)</text>
+<rect x="58" y="212" width="132" height="36" rx="18" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<text x="124" y="236" font-size="16" font-weight="700" text-anchor="middle" fill="#15653a">같은 컴퓨터 탭</text>
+<rect x="200" y="212" width="150" height="36" rx="18" fill="#ffffff" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="275" y="236" font-size="16" text-anchor="middle" fill="#17191c">USB-UART 변환기</text>
+<rect x="360" y="212" width="90" height="36" rx="18" fill="#ffffff" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="405" y="236" font-size="16" text-anchor="middle" fill="#17191c">블루투스</text>
+<rect x="460" y="212" width="70" height="36" rx="18" fill="#ffffff" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="495" y="236" font-size="16" text-anchor="middle" fill="#17191c">MQTT</text>
+<line x1="110" y1="264" x2="110" y2="282" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="16" y="306" font-size="16" font-weight="700" fill="#15653a">보드 쪽(ESP32 실습실)</text>
+<rect x="16" y="318" width="188" height="70" rx="10" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<circle cx="38" cy="342" r="12" fill="#15653a"/><text x="38" y="347.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">5</text>
+<text x="58" y="348" font-size="16" font-weight="700" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">uart.readline()</text>
+<text x="58" y="374" font-size="16" fill="#4a5361" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">b&quot;3\n&quot; → &quot;3&quot;</text>
+<line x1="206" y1="353" x2="224" y2="353" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="226" y="318" width="188" height="70" rx="10" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<circle cx="248" cy="342" r="12" fill="#15653a"/><text x="248" y="347.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">6</text>
+<text x="268" y="348" font-size="16" font-weight="700" fill="#17191c">숫자인지 확인</text>
+<text x="268" y="374" font-size="16" fill="#4a5361">(isdigit)</text>
+<line x1="416" y1="353" x2="434" y2="353" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="436" y="318" width="188" height="70" rx="10" fill="#e8f6ee" stroke="#3b9360" stroke-width="1.5"/>
+<circle cx="458" cy="342" r="12" fill="#15653a"/><text x="458" y="347.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">7</text>
+<text x="478" y="348" font-size="16" font-weight="700" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">show(3)</text>
+<text x="478" y="374" font-size="16" fill="#4a5361">LED 3개 켜기</text>
+</g>
+</svg>

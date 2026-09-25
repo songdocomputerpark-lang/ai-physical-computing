@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 344" width="640" height="344" role="img" aria-labelledby="title desc">
+<title id="title">보내는 두 가지 방법: 결괏값만 보내기('a'·'b'·'c')와 변수로 보내기('355,152\n')</title>
+<desc id="desc">위 칸은 결괏값만 보내기다. 카메라 화면 가로를 x 0~100, 100~500, 500~640 세 구역으로 나누고 검지가 있는 구역에 따라 컴퓨터가 글자 a, c, b 가운데 하나를 골라 보낸다. 그림의 검지는 x 80이라 a를 보낸다. 보드는 글자만 보면 된다. 아래 칸은 변수로 보내기다. 검지 끝 좌표 x 355, y 152를 쉼표로 이어 끝에 줄바꿈을 붙인 글자 355,152\n으로 보내고, 보드가 나누고 정수로 바꿔 더 정밀하게 제어한다. 사이트가 직접 그린 그림(INVENTORY S83, 원고 186쪽 코드).</desc>
+<rect width="640" height="344" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<rect x="12" y="12" width="616" height="156" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="28" y="40" font-size="19" font-weight="700" fill="#17191c">① 결괏값만 보내기</text>
+<rect x="28" y="54" width="50" height="74" fill="#fdecec" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="78" y="54" width="200" height="74" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="278" y="54" width="70" height="74" fill="#e8f6ee" stroke="#7b8594" stroke-width="1.5"/>
+<g font-size="24" font-weight="700" text-anchor="middle" fill="#17191c">
+<text x="53" y="100">a</text><text x="178" y="100">c</text><text x="313" y="100">b</text>
+</g>
+<circle cx="68" cy="72" r="7" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/>
+<g font-size="16" fill="#4a5361" text-anchor="middle">
+<text x="30" y="150">0</text><text x="78" y="150">100</text><text x="278" y="150">500</text><text x="348" y="150">640</text>
+</g>
+<text x="370" y="72" font-size="16" fill="#17191c">컴퓨터가 판단한 결과를</text>
+<text x="370" y="94" font-size="16" fill="#17191c">글자 하나로 보내요.</text>
+<rect x="370" y="106" width="148" height="32" rx="16" fill="#1f5bd6"/>
+<text x="444" y="128" font-size="17" font-weight="700" text-anchor="middle" fill="#ffffff">보낼 글자: 'a'</text>
+<text x="370" y="158" font-size="16" fill="#4a5361">보드는 글자만 보면 돼요.</text>
+
+<rect x="12" y="180" width="616" height="152" rx="14" fill="#f4f6f9" stroke="#d6dde6"/>
+<text x="28" y="208" font-size="19" font-weight="700" fill="#17191c">② 변수로 보내기</text>
+<rect x="28" y="220" width="144" height="100" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<g stroke="#1f5bd6" stroke-width="1.5" stroke-dasharray="4 4">
+<line x1="108" y1="220" x2="108" y2="252"/>
+<line x1="28" y1="252" x2="108" y2="252"/>
+</g>
+<circle cx="108" cy="252" r="7" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/>
+<text x="116" y="274" font-size="16" fill="#1a4cb4">(355, 152)</text>
+<text x="196" y="240" font-size="16" fill="#17191c">좌표 두 개를 약속한 모양의 글자로 보내요.</text>
+<rect x="196" y="252" width="168" height="34" rx="17" fill="#1f5bd6"/>
+<text x="280" y="275" font-size="18" font-weight="700" text-anchor="middle" fill="#ffffff" font-family="'Cascadia Mono', Consolas, Menlo, 'DejaVu Sans Mono', monospace">'355,152\n'</text>
+<text x="376" y="275" font-size="16" fill="#4a5361">쉼표로 나누고, 끝에 <tspan font-family="'Cascadia Mono', Consolas, Menlo, 'DejaVu Sans Mono', monospace">\n</tspan></text>
+<text x="196" y="314" font-size="16" fill="#17191c">보드가 나누고 바꿔서 더 정밀하게 제어해요.</text>
+</g>
+</svg>

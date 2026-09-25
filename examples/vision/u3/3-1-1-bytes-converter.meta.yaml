@@ -1,0 +1,10 @@
+# 사이트가 만든 예제(3-1-1 체험)의 사이드카 — 설명·안내 상자는 .py 머리말에 있어요(src/lab/README.md 2절).
+# 이 파일은 실행 전에 받을 패키지를 정해요: 카메라를 쓰지 않는 순수 파이썬 예제라 OpenCV(약 25MB)를 기다리지 않게 packages를 비워요.
+# 사이드카가 있는 예제는 title이 꼭 있어야 해서(tests/unit/lab/example-sidecar.test.ts) 머리말 첫 줄과 똑같이 적어요 — 제목을 바꿀 때는 두 곳을 함께 고쳐요.
+# 갤러리 태그·난이도는 차시 md(3-1-1)가 먼저예요.
+title: "3-1-1 체험: 문자열 ↔ bytes 변환기"
+lesson: 3-1-1
+unit: 3
+difficulty: 1
+virtual_ok: true
+packages: []

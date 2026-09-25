@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 318" width="640" height="318" role="img" aria-labelledby="title desc">
+<title id="title">받은 값을 두는 곳 비교: 3-1-2 UART는 줄 서는 우편함, 3-1-3 ESP32BLE는 한 칸 우편함</title>
+<desc id="desc">왼쪽: 3-1-2의 UART는 줄 서는 우편함이다. 도착한 글자 a, b, a가 차례로 쌓이고 보드는 쌓인 차례대로 모두 읽는다. 오른쪽: 3-1-3의 ESP32BLE 라이브러리는 한 칸 우편함이다. 좌표 350,150과 352,151 위에 새 좌표 355,152가 덮어써져, 보드가 ble.read()를 부르면 마지막 값 하나만 받는다. 아래: 보드는 LED를 켜고 끄느라 2초에 한 번 read()를 부르므로, 그사이 온 좌표 가운데 마지막 것만 읽는다. 사이트가 직접 그린 그림(INVENTORY S87).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="318" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<rect x="8" y="10" width="306" height="222" rx="12" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<rect x="326" y="10" width="306" height="222" rx="12" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="24" y="38" font-size="17" font-weight="700" fill="#17191c">3-1-2 UART</text>
+<text x="24" y="62" font-size="16" fill="#4a5361">줄 서는 우편함 — 쌓여요</text>
+<text x="342" y="38" font-size="17" font-weight="700" fill="#17191c">3-1-3 ESP32BLE</text>
+<text x="342" y="62" font-size="16" fill="#4a5361">한 칸 우편함 — 덮어써요</text>
+
+<!-- 왼쪽: 줄 -->
+<rect x="24" y="84" width="180" height="56" rx="8" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<g font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">
+<rect x="36" y="94" width="44" height="36" rx="5" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="58" y="118">a</text>
+<rect x="92" y="94" width="44" height="36" rx="5" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="114" y="118">b</text>
+<rect x="148" y="94" width="44" height="36" rx="5" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<text x="170" y="118">a</text>
+</g>
+<line x1="208" y1="112" x2="240" y2="112" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="244" y="92" width="56" height="40" rx="5" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="272" y="118" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c">보드</text>
+<text x="24" y="170" font-size="16" fill="#17191c">온 차례대로 모두 읽어요.</text>
+<text x="24" y="194" font-size="16" fill="#4a5361">한꺼번에 읽으면 'ba'처럼</text>
+<text x="24" y="216" font-size="16" fill="#4a5361">붙기도 해요(3-1-2 바꿔보기).</text>
+
+<!-- 오른쪽: 한 칸 -->
+<g font-size="16" fill="#7b8594">
+<text x="344" y="102" text-decoration="line-through">350,150</text>
+<text x="420" y="102" text-decoration="line-through">352,151</text>
+</g>
+<line x1="410" y1="108" x2="410" y2="124" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="3 3"/>
+<rect x="344" y="112" width="140" height="44" rx="8" fill="#ffffff" stroke="#1f5bd6" stroke-width="2"/>
+<text x="414" y="141" text-anchor="middle" font-size="18" font-weight="700" fill="#1a4cb4">355,152</text>
+<line x1="488" y1="134" x2="530" y2="134" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="534" y="114" width="84" height="40" rx="5" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<text x="576" y="140" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c">ble.read()</text>
+<text x="342" y="194" font-size="16" fill="#17191c">새 값이 오면 앞 값을 지워요.</text>
+<text x="342" y="216" font-size="16" fill="#4a5361">읽을 때는 마지막 값 하나만.</text>
+
+<rect x="8" y="244" width="624" height="66" rx="12" fill="#fff4d8" stroke="#b7800f" stroke-width="1.5"/>
+<text x="24" y="270" font-size="16" fill="#17191c">3-1-3 보드는 LED를 켜고 끄느라 약 2초에 한 번 <tspan font-weight="700">read()</tspan>를 불러요.</text>
+<text x="24" y="296" font-size="16" fill="#17191c">그사이 컴퓨터가 보낸 좌표 가운데 <tspan font-weight="700">마지막 것만</tspan> 읽어요.</text>
+</g>
+</svg>

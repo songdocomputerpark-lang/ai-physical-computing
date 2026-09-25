@@ -1,0 +1,93 @@
+# 차시 3-1-2 "인공지능 모델과 시리얼 통신"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 3-1-2
+# 결과는 public/images/lessons/3-1-2/ 아래 WebP(메타데이터 없음). 쪽 좌표·그림 번호 고르기: npm run images:show -- U3 190
+# 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+#
+# 194쪽(심화 실습 결과 화면)은 얼굴이 나온 쪽이라 이 차시에서 쓰지 않아요(구역 프롬프트 — 운영자 답 O9로 공개는 허락됐지만,
+# 결과 화면은 사이트가 글로 보여 주고 재생 입력으로 직접 확인할 수 있어서 쓰지 않는 쪽을 골랐어요).
+# 190쪽 배선 그림과 189쪽 변환기 사진에는 키트 업체 상표가 보여요 — 운영자 결정 O3·O4·O5로 실제 키트 연결 안내에 써요(INVENTORY §5.2).
+
+images:
+  - name: usb-uart-converter
+    use: 3-1-2 핵심 개념 "시리얼 통신과 USB-UART 변환기" — USB-UART 변환기 사진(원고 189쪽)
+    alt: USB-C 단자와 GND, VCC, TX, RX 네 핀이 달린 파란 기판의 USB-UART 변환기 사진
+    from:
+      source: U3
+      page: 189
+      image: 2975
+    file: public/images/lessons/3-1-2/usb-uart-converter.webp
+    width: 313
+    height: 282
+    bytes: 15014
+    sha256: "b639c91dc70ff9b19a7b13030c43c3182aecb5b7cfb50d424c13c4156d60eba4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 파란 기판의 USB-UART 변환기 한 장(USB-C 단자, GND·VCC·TX·RX 핀, 전압 선택 스위치, 기판 인쇄 글자 "USB to UART Converter", 키트 업체 마스코트 인쇄). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 상표는 O3·O5로 키트 안내에 사용
+  - name: wiring-laser-uart
+    use: 3-1-2 핵심 개념 "연결 구성" — UART 변환기와 레이저를 ESP32 확장 보드에 잇는 배선 그림(원고 190쪽)
+    alt: 레이저 모듈을 GND, VCC, GPIO 18번 핀에, USB-UART 변환기를 GND, VCC, GPIO 16번 핀과 GPIO 17번 핀에 이은 ESP32 확장 보드 배선 그림
+    from:
+      source: U3
+      page: 190
+      region: [88, 140, 488, 298]
+    file: public/images/lessons/3-1-2/wiring-laser-uart.webp
+    width: 960
+    height: 380
+    bytes: 67386
+    sha256: "75f027acf6b9d5f4629a876d4ef61d4eadfe0bd7f61b1e69b181fce7bb391d55"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — ESP32 확장 보드(ESP32 Shield V2)에 레이저 모듈(GND·VCC·GPIO 18)과 USB-UART 변환기(GND·VCC·GPIO 16·17)를 잇는 배선 그림과 왼쪽 색 점 설명(GND·VCC·GPIO 18번 핀, GND·VCC·GPIO 16번 핀·GPIO 17번 핀). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 업체 상표(GORILLACELL)는 O3·O5로 키트 안내에 사용. 아래의 'USB 케이블' 안내 문장은 영역 밖이라 본문 글로 옮김
+  - name: result-laser-on
+    use: 3-1-2 따라하기 결과 — 'a'를 받아 레이저가 켜진 실물 사진(원고 192쪽 왼쪽)
+    alt: ESP32 보드와 USB-UART 변환기, 레이저 모듈이 선으로 이어져 있고 레이저 모듈 앞에 붉은 빛이 켜진 사진
+    from:
+      source: U3
+      page: 192
+      image: 398
+    file: public/images/lessons/3-1-2/result-laser-on.webp
+    width: 591
+    height: 434
+    bytes: 22570
+    sha256: "4684d1d8f44dfa07046669fb2782517dccc949cd052d0b5675d70b85d8a93f01"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[388, 332, 51, 51]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 흰 바닥 위의 ESP32 보드·확장 보드·USB-UART 변환기·레이저 모듈과 USB 케이블 두 개, 레이저 앞의 붉은 빛. 사람·손·얼굴 없음(OpenCV가 얼굴로 본 [388, 332, 51, 51]은 레이저 모듈의 렌즈 부분과 스티커 무늬). 이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: result-laser-off
+    use: 3-1-2 따라하기 결과 — 'b'를 받아 레이저가 꺼진 실물 사진(원고 192쪽 오른쪽)
+    alt: 같은 ESP32 보드, USB-UART 변환기, 레이저 모듈 연결에서 레이저 빛이 꺼진 사진
+    from:
+      source: U3
+      page: 192
+      image: 399
+    file: public/images/lessons/3-1-2/result-laser-off.webp
+    width: 570
+    height: 426
+    bytes: 20292
+    sha256: "2a8f1ffe69bb8bda2d467b464fb7853ab8554304cdb092a36abd558445570bbc"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-09-25
+      result: 통과 — 같은 보드·변환기·레이저 모듈 연결 사진에서 레이저 빛이 꺼진 모습. 사람·손·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음

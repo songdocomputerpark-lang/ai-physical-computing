@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 280" width="640" height="280" role="img" aria-labelledby="title desc">
+<title id="title">보드와 대시보드의 두 방향 통신: esp32-01/tx로 값이 가고, esp32-01/rx로 명령이 온다</title>
+<desc id="desc">왼쪽 보드(esp32-01)와 오른쪽 대시보드(그래프, 게이지, 스위치)가 있다. 위쪽 파란 화살표 1 esp32-01/tx는 보드에서 대시보드로 0.3초마다 5씩 오르내리는 값을 나른다. 아래쪽 초록 화살표 2 esp32-01/rx는 대시보드에서 스위치를 누르면 보드로 on 또는 off를 나르고, 보드의 LED(IO2)가 켜진다. 아래에 보드는 tx로 보내고 rx를 받으며, 대시보드는 그 반대라고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker><marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3b9360"/></marker>
+</defs>
+<rect width="640" height="280" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="14" y="30" width="188" height="196" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="108" y="56" font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">보드</text>
+<rect x="56" y="72" width="96" height="56" rx="5" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/><rect x="90" y="80" width="28" height="18" rx="2" fill="#ffffff" stroke="#1a4cb4"/>
+<circle cx="138" cy="116" r="7" fill="#3b9360" stroke="#1a4cb4" stroke-width="1.5"/>
+<text x="108" y="156" font-size="16" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01</text>
+<text x="108" y="182" font-size="16" text-anchor="middle" fill="#15653a">LED(IO2)가 켜져요</text>
+<rect x="438" y="30" width="188" height="196" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="532" y="56" font-size="18" font-weight="700" text-anchor="middle" fill="#17191c">대시보드</text>
+<rect x="452" y="70" width="160" height="70" rx="4" fill="#ffffff" stroke="#7b8594" stroke-width="1.2"/>
+<line x1="464" y1="80" x2="464" y2="130" stroke="#7b8594" stroke-width="1.5"/><line x1="464" y1="130" x2="544" y2="130" stroke="#7b8594" stroke-width="1.5"/><polyline points="464.0 125.0 472.0 115.0 480.0 105.0 488.0 95.0 496.0 85.0 504.0 95.0 512.0 105.0 520.0 115.0 528.0 125.0 536.0 115.0 544.0 105.0" fill="none" stroke="#1f5bd6" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M562 124 A22 22 0 0 1 606 124" fill="none" stroke="#d6dde6" stroke-width="6.16"/><path d="M562 124 A22 22 0 0 1 590.8 103.1" fill="none" stroke="#1f5bd6" stroke-width="6.16"/><line x1="584" y1="124" x2="589.3" y2="107.7" stroke="#17191c" stroke-width="2.5"/><circle cx="584" cy="124" r="4" fill="#17191c"/>
+<rect x="506" y="156" width="52" height="28" rx="14" fill="#1f5bd6" stroke="#1a4cb4" stroke-width="1.5"/><circle cx="544" cy="170" r="10" fill="#ffffff"/>
+<text x="532" y="210" font-size="16" text-anchor="middle" fill="#15653a">스위치를 눌러요</text>
+<line x1="206" y1="104" x2="432" y2="104" stroke="#1f5bd6" stroke-width="3" marker-end="url(#arrowBlue)"/>
+<circle cx="250" cy="82" r="12" fill="#1a4cb4"/><text x="250" y="87.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">1</text>
+<text x="270" y="88" font-size="16" font-weight="700" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01/tx</text>
+<text x="320" y="128" font-size="16" text-anchor="middle" fill="#1a4cb4">0.3초마다 5씩 오르내리는 값</text>
+<line x1="432" y1="176" x2="206" y2="176" stroke="#3b9360" stroke-width="3" marker-end="url(#arrowGreen)"/>
+<circle cx="250" cy="156" r="12" fill="#15653a"/><text x="250" y="161.5" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">2</text>
+<text x="270" y="162" font-size="16" font-weight="700" fill="#15653a" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01/rx</text>
+<text x="320" y="200" font-size="16" text-anchor="middle" fill="#15653a">on 또는 off</text>
+<text x="320" y="262" font-size="16" text-anchor="middle" fill="#17191c">보드는 tx로 보내고 rx를 받아요. 대시보드는 그 반대예요.</text>
+</g>
+</svg>

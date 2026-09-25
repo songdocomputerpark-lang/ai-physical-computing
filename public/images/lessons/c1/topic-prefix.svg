@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 246" width="640" height="246" role="img" aria-labelledby="title desc">
+<title id="title">토픽 이름의 세 부분: 통신 접두어 / 보드 번호 / tx 또는 rx</title>
+<desc id="desc">토픽 7kq2m9xd4hpt/esp32-01/tx를 빗금으로 나눈 세 칸이 있다. 첫 칸 7kq2m9xd4hpt는 통신 접두어(무작위 12글자), 둘째 칸 esp32-01은 보드 번호(이름이나 학번 대신), 셋째 칸 tx는 보드가 보냄, rx는 보드가 받음이다. 아래에 코드에는 esp32-01/tx처럼 짧게 적고, 가상 보드는 사이트가 우리 반 접두어를 앞에 붙여 주며, 실제 보드는 코드의 PREFIX 줄에 접두어를 직접 적는다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+
+</defs>
+<rect width="640" height="246" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="24" y="24" width="214" height="50" rx="8" fill="#fff4d8" stroke="#b7800f" stroke-width="2"/>
+<text x="131" y="57" font-size="20" font-weight="700" text-anchor="middle" fill="#7a4a00" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">7kq2m9xd4hpt</text>
+<text x="131" y="100" font-size="16" font-weight="700" text-anchor="middle" fill="#7a4a00">통신 접두어</text>
+<text x="131" y="124" font-size="16" text-anchor="middle" fill="#4a5361">(무작위 12글자)</text>
+<rect x="282" y="24" width="150" height="50" rx="8" fill="#eaf1fe" stroke="#5b87e0" stroke-width="2"/>
+<text x="357" y="57" font-size="20" font-weight="700" text-anchor="middle" fill="#1a4cb4" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">esp32-01</text>
+<text x="357" y="100" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">보드 번호</text>
+<text x="357" y="124" font-size="16" text-anchor="middle" fill="#4a5361">(이름, 학번 대신)</text>
+<rect x="476" y="24" width="140" height="50" rx="8" fill="#e8f6ee" stroke="#3b9360" stroke-width="2"/>
+<text x="546" y="57" font-size="20" font-weight="700" text-anchor="middle" fill="#15653a" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">tx</text>
+<text x="546" y="100" font-size="16" font-weight="700" text-anchor="middle" fill="#15653a">tx: 보드가 보냄</text>
+<text x="546" y="124" font-size="16" text-anchor="middle" fill="#4a5361">rx: 보드가 받음</text>
+<text x="260" y="60" font-size="24" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">/</text>
+<text x="454" y="60" font-size="24" font-weight="700" text-anchor="middle" fill="#17191c" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace">/</text>
+<line x1="16" y1="146" x2="624" y2="146" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="24" y="176" font-size="16" fill="#17191c">코드에는 esp32-01/tx처럼 짧게 적어요.</text>
+<text x="24" y="202" font-size="16" fill="#17191c">가상 보드: 사이트가 우리 반 접두어를 앞에 붙여 줘요.</text>
+<text x="24" y="228" font-size="16" fill="#17191c">실제 보드: 코드의 PREFIX 줄에 접두어를 직접 적어요.</text>
+</g>
+</svg>

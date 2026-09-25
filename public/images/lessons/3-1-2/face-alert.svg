@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 272" width="640" height="272" role="img" aria-labelledby="title desc">
+<title id="title">얼굴 인식 알림 장치의 흐름: 카메라 → 컴퓨터 → USB-UART 변환기 → ESP32 보드의 레이저</title>
+<desc id="desc">네 칸이 왼쪽에서 오른쪽으로 이어진다. 카메라가 얼굴을 찾으면, 컴퓨터의 인공지능이 판단해 글자 'a'를 보내고, 글자는 USB-UART 변환기를 거쳐 선으로 건너가며, ESP32 보드는 'a'를 받으면 레이저를 켠다. 아래 칸: 얼굴이 사라지면 'b'를 보내 레이저를 끈다. 보낼 때 글자는 바이트로 바뀐다. 사이트가 직접 그린 그림(원고 189쪽 프로그램 개요를 그림으로).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="640" height="272" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+
+<g fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5">
+<rect x="8" y="12" width="142" height="168" rx="14"/>
+<rect x="172" y="12" width="142" height="168" rx="14"/>
+<rect x="336" y="12" width="136" height="168" rx="14"/>
+<rect x="494" y="12" width="138" height="168" rx="14"/>
+</g>
+
+<g stroke="#4a5361" stroke-width="2.5">
+<line x1="152" y1="96" x2="168" y2="96" marker-end="url(#arrow)"/>
+<line x1="316" y1="96" x2="332" y2="96" marker-end="url(#arrow)"/>
+<line x1="474" y1="96" x2="490" y2="96" marker-end="url(#arrow)"/>
+</g>
+
+<g text-anchor="middle" font-weight="700" fill="#17191c" font-size="18">
+<text x="79" y="40">카메라</text>
+<text x="243" y="40">컴퓨터</text>
+<text x="404" y="36" font-size="17">USB-UART</text>
+<text x="404" y="56" font-size="17">변환기</text>
+<text x="563" y="40">ESP32 보드</text>
+</g>
+
+<!-- 카메라: 얼굴(웃는 얼굴 기호)과 찾은 자리 네모 -->
+<rect x="47" y="58" width="64" height="64" fill="none" stroke="#15653a" stroke-width="3"/>
+<circle cx="79" cy="90" r="24" fill="#fff4d8" stroke="#b7800f" stroke-width="2"/>
+<circle cx="70" cy="84" r="3.5" fill="#17191c"/>
+<circle cx="88" cy="84" r="3.5" fill="#17191c"/>
+<path d="M68 98 Q79 108 90 98" fill="none" stroke="#17191c" stroke-width="2.5" stroke-linecap="round"/>
+<text x="79" y="152" text-anchor="middle" font-size="16" fill="#17191c">얼굴을</text>
+<text x="79" y="172" text-anchor="middle" font-size="16" fill="#17191c">찾았어요</text>
+
+<!-- 컴퓨터 -->
+<rect x="207" y="58" width="72" height="44" rx="4" fill="#eaf1fe" stroke="#4a5361" stroke-width="2"/>
+<text x="243" y="87" text-anchor="middle" font-size="17" font-weight="700" fill="#1a4cb4">AI</text>
+<path d="M197 106 H289 L283 114 H203 Z" fill="#4a5361"/>
+<rect x="190" y="130" width="106" height="32" rx="16" fill="#1f5bd6"/>
+<text x="243" y="152" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">'a' 보내기</text>
+
+<!-- 변환기 -->
+<rect x="372" y="74" width="64" height="48" rx="6" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="362" y="88" width="12" height="20" fill="#7b8594"/>
+<g fill="#1f5bd6">
+<circle cx="428" cy="84" r="3"/>
+<circle cx="428" cy="94" r="3"/>
+<circle cx="428" cy="104" r="3"/>
+<circle cx="428" cy="114" r="3"/>
+</g>
+<text x="404" y="152" text-anchor="middle" font-size="16" fill="#17191c">선으로</text>
+<text x="404" y="172" text-anchor="middle" font-size="16" fill="#17191c">건너가요</text>
+
+<!-- 보드와 레이저 -->
+<rect x="506" y="64" width="54" height="42" rx="4" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+<rect x="520" y="74" width="26" height="22" rx="2" fill="#d6dde6" stroke="#7b8594" stroke-width="1.5"/>
+<line x1="560" y1="85" x2="572" y2="85" stroke="#4a5361" stroke-width="2"/>
+<rect x="572" y="77" width="28" height="16" rx="3" fill="#4a5361"/>
+<line x1="600" y1="85" x2="624" y2="85" stroke="#d24b4b" stroke-width="4" stroke-linecap="round"/>
+<circle cx="624" cy="85" r="5" fill="#d24b4b"/>
+<text x="563" y="136" text-anchor="middle" font-size="16" fill="#17191c">'a'를 받으면</text>
+<text x="563" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#a3232a">레이저 켜기</text>
+
+<rect x="8" y="196" width="624" height="68" rx="12" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="24" y="224" font-size="16" fill="#17191c">얼굴이 사라지면 <tspan font-weight="700">'b'</tspan>를 보내 레이저를 꺼요.</text>
+<text x="24" y="250" font-size="16" fill="#4a5361">보낼 때 글자는 바이트로 바뀌어 선을 건너가요(3-1-1에서 배운 원리).</text>
+</g>
+</svg>

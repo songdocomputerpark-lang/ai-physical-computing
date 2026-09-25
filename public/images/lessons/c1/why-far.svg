@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 288" width="640" height="288" role="img" aria-labelledby="title desc">
+<title id="title">멀리 떨어진 두 교실의 보드가 와이파이와 인터넷의 중계 서버를 거쳐 메시지를 주고받는 모습</title>
+<desc id="desc">왼쪽 우리 교실 칸에 내 보드와 공유기가, 오른쪽 옆 교실이나 집 칸에 공유기와 LED가 켜진 친구 보드가 있다. 두 공유기에서 점선 화살표가 가운데 위의 구름 모양 중계 서버로 오간다. 가운데에 와이파이로 인터넷에 붙어요라고 적혀 있고, 아래에 멀리 떨어진 기기도 인터넷의 중계 서버를 거쳐 메시지를 주고받는다고 적혀 있다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker>
+</defs>
+<rect width="640" height="288" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<rect x="10" y="100" width="222" height="146" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="22" y="126" font-size="16" font-weight="700" fill="#17191c">우리 교실</text>
+<rect x="36" y="158" width="70" height="44" rx="5" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/><rect x="57" y="166" width="28" height="18" rx="2" fill="#ffffff" stroke="#1a4cb4"/><text x="71" y="222" font-size="16" text-anchor="middle" fill="#4a5361">내 보드</text><circle cx="94" cy="192" r="5" fill="#ffffff" stroke="#1a4cb4" stroke-width="1.5"/>
+<line x1="162" y1="172" x2="158" y2="154" stroke="#17191c" stroke-width="2.5"/><line x1="192" y1="172" x2="196" y2="154" stroke="#17191c" stroke-width="2.5"/><rect x="150" y="172" width="54" height="24" rx="5" fill="#ffffff" stroke="#17191c" stroke-width="2"/><circle cx="164" cy="184" r="3" fill="#3b9360"/><circle cx="176" cy="184" r="3" fill="#3b9360"/><g fill="none" stroke="#1f5bd6" stroke-width="2" stroke-linecap="round"><path d="M167 146 A14 14 0 0 1 187 146"/><path d="M161 139 A22 22 0 0 1 193 139"/></g>
+<text x="177" y="222" font-size="16" text-anchor="middle" fill="#4a5361">공유기</text>
+<rect x="408" y="100" width="222" height="146" rx="10" fill="#f4f6f9" stroke="#d6dde6" stroke-width="1.5"/>
+<text x="618" y="126" font-size="16" font-weight="700" text-anchor="end" fill="#17191c">옆 교실이나 집</text>
+<line x1="444" y1="172" x2="440" y2="154" stroke="#17191c" stroke-width="2.5"/><line x1="474" y1="172" x2="478" y2="154" stroke="#17191c" stroke-width="2.5"/><rect x="432" y="172" width="54" height="24" rx="5" fill="#ffffff" stroke="#17191c" stroke-width="2"/><circle cx="446" cy="184" r="3" fill="#3b9360"/><circle cx="458" cy="184" r="3" fill="#3b9360"/><g fill="none" stroke="#1f5bd6" stroke-width="2" stroke-linecap="round"><path d="M449 146 A14 14 0 0 1 469 146"/><path d="M443 139 A22 22 0 0 1 475 139"/></g>
+<text x="459" y="222" font-size="16" text-anchor="middle" fill="#4a5361">공유기</text>
+<rect x="534" y="158" width="70" height="44" rx="5" fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"/><rect x="555" y="166" width="28" height="18" rx="2" fill="#ffffff" stroke="#1a4cb4"/><text x="569" y="222" font-size="16" text-anchor="middle" fill="#4a5361">친구 보드</text><circle cx="592" cy="192" r="5" fill="#3b9360" stroke="#1a4cb4" stroke-width="1.5"/>
+<g fill="#eaf1fe" stroke="#1a4cb4" stroke-width="2"><circle cx="287" cy="66.6" r="22"/><circle cx="315.6" cy="51.2" r="30.800000000000004"/><circle cx="348.6" cy="64.4" r="24.200000000000003"/></g><rect x="287" y="64.4" width="61.60000000000001" height="22" fill="#eaf1fe"/><line x1="271.6" y1="88.6" x2="366.2" y2="88.6" stroke="#1a4cb4" stroke-width="2"/>
+<text x="320" y="116" font-size="16" font-weight="700" text-anchor="middle" fill="#1a4cb4">중계 서버</text>
+<line x1="186" y1="140" x2="262" y2="94" stroke="#1f5bd6" stroke-width="2.2" stroke-dasharray="6 5" marker-end="url(#arrowBlue)" marker-start="url(#arrowBlue)"/>
+<line x1="440" y1="140" x2="378" y2="94" stroke="#1f5bd6" stroke-width="2.2" stroke-dasharray="6 5" marker-end="url(#arrowBlue)" marker-start="url(#arrowBlue)"/>
+<text x="320" y="170" font-size="16" text-anchor="middle" fill="#4a5361">와이파이로</text>
+<text x="320" y="194" font-size="16" text-anchor="middle" fill="#4a5361">인터넷에 붙어요</text>
+<text x="320" y="272" font-size="16" text-anchor="middle" fill="#17191c">멀리 떨어진 기기도 인터넷의 중계 서버를 거쳐 메시지를 주고받아요.</text>
+</g>
+</svg>

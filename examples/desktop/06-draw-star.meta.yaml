@@ -2,6 +2,7 @@
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 드래그로 별 그리기
 description: 세 번의 드래그를 다섯 번 되풀이해요. 그런데 별이 아니라 삼각형만 겹쳐 그려져요 — 세 번 옮긴 거리를 모두 더하면 (0, 0)이라 커서가 제자리로 돌아오기 때문이에요. 각 dragRel의 숫자를 바꿔 진짜 별을 만들어 봐요.
+lesson: p1
 source_id: f022
 tags:
   - pyautogui

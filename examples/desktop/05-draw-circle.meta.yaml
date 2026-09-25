@@ -2,6 +2,7 @@
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: 커서로 원 그리기
 description: 각도를 5도씩 바꾸며 커서를 원 둘레로 옮겨요. 버튼을 누르지 않아서 선은 안 생기고, [커서가 지나간 길 보기]에만 원이 보여요.
+lesson: p1
 source_id: f021
 tags:
   - pyautogui
