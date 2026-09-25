@@ -20,7 +20,12 @@
 #     kinds: [email]
 #     reason: MIT 라이선스 고지 원문의 저작권 표기(저작자가 공개한 주소). 고지 원문은 고치지 않고 그대로 실어야 해요.
 
-original_formats: []
+# 가린 편집본 PDF(PD-31, P5-14 — Phase 5 통합 2026-09-25). 쪽 번호가 원본과 같아 차시 frontmatter handouts의 #page=가 그대로 맞아요.
+original_formats:
+  - path: public/teacher/handouts/bt-lesson-plan-redacted.pdf
+    reason: 블루투스 통신 수업 교안의 가린 편집본(PD-31, P5-14). 만든 도구 scripts/redact-handouts.py, 가릴 곳과 쪽별 눈 확인 기록은 scripts/handout-redactions.yaml(output.sha256이 이 파일과 같아야 해요 — 저장소 검사 handout-review 규칙과 python scripts/redact-handouts.py check).
+  - path: public/teacher/handouts/pyautogui-slides-redacted.pdf
+    reason: PyAutoGUI 수업 슬라이드를 PDF로 바꾼 가린 편집본(PD-31, P5-14). 도구와 기록은 위와 같아요.
 
 # MediaPipe 모델(public/models/, PD-13 커밋 대상)은 5MB를 넘는 파일이 있어요(손 랜드마커 약 7.8MB, 자세 랜드마커 lite 약 5.5MB·full 약 9.4MB).
 # 모델을 내려받는 묶음(P2-08 손, P2-09 얼굴·자세)이 파일마다 항목을 더해요 — 패턴이 아니라 파일 경로 하나씩, max_mb는 10 이하(PLAN §5.2).

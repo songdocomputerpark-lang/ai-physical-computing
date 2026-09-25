@@ -1,0 +1,330 @@
+# 가린 편집본 교안 — 가릴 곳 목록 + 쪽별 눈 확인 기록(PLAN §8.5 P5-14, PD-31)
+#
+# scripts/redact-handouts.py가 이 파일을 읽어 원본(블루투스 통신 수업 교안 PDF, PyAutoGUI 수업 슬라이드 PPTX)에서
+# 교사용 자료실에 둘 가린 편집본 PDF를 만들고 검사해요. 원본 PDF·PPTX는 저장소와 자료실 어디에도 올리지 않아요(C6).
+#
+#   python scripts/redact-handouts.py build            # 두 편집본을 다시 만들고 바로 검사(원본 폴더 필요 — 운영자 PC)
+#   python scripts/redact-handouts.py check            # 저장소의 편집본만 검사(원본 없이)
+#   python scripts/redact-handouts.py preview bt       # 쪽 그림(.cache/handouts/bt/pNN.png) — 눈 확인용
+#
+# 문서마다 적는 것
+#   source      원본 약칭(scripts/lib/lesson-images.mjs의 SOURCES: BT·PPT)과 원본 파일 SHA-256·쪽 수.
+#               원본이 바뀌면(SHA-256이 다르면) 도구가 멈춰요 — 좌표를 다시 확인해야 하기 때문이에요.
+#   output      편집본 경로(파일 이름은 src/components/lesson/handouts.ts의 HANDOUT_DOCS와 같게)와 SHA-256·크기.
+#               build가 알려 주는 값을 사람이 적어요. 편집본이 바뀌면 아래 review를 다시 해요(check가 SHA-256을 대조해요).
+#   title·lang  새 문서 제목과 언어(원본 메타데이터는 모두 지우고 이 둘만 새로 붙여요).
+#   notice      표지에 붙이는 안내 한 줄(무엇을 가렸는지).
+#   outline     새 책갈피([단계, 제목, 쪽]). 원본의 "슬라이드 N" 책갈피는 지워요. 쪽 번호는 원본과 같아요(쪽을 빼거나 더하지 않아요 —
+#               차시 frontmatter handouts의 쪽 번호와 #page= 링크가 그대로 맞게).
+#   photos      사진(원본이 JPEG인 그림)을 다시 인코딩하는 설정: 화면에 놓인 크기 기준 최대 dpi, JPEG 품질.
+#   redactions  가릴 곳. page = 원본 쪽 번호(PDF 쪽 = 슬라이드 번호), rects = [x0, y0, x1, y1] pt(쪽 왼쪽 위 기준, 쪽 크기 1440×810),
+#               kind = face(얼굴) · path(기관 계정 폴더 경로·사적인 폴더·파일 이름) · device-address(블루투스 기기 주소) ·
+#               classroom(학급 게시물 화면) · desktop(바탕화면 아이콘 이름·작업 표시줄 날짜),
+#               label = 상자에 적는 글(비우면 적지 않아요, 상자가 작아 글이 안 들어가도 적지 않아요), reason = 왜 가리는지.
+#               ※ 가린 내용 자체(경로·주소·이름)는 이 파일에도 적지 않아요 — 이 파일도 공개 저장소에 올라가요.
+#   review      쪽마다 한 줄 눈 확인 기록(모든 쪽). 편집본(output.sha256)을 쪽 그림으로 한 장씩 열어 보고 적어요.
+#               by·date(YYYY-MM-DD)·result("통과"로 시작) — 무엇이 보이는지, 가린 곳, 얼굴·경로·파일명·기기 주소·학교명 확인 결과.
+#
+# 운영자 결정(docs/DECISIONS.md)
+#   O9  블루투스 교안 p9·p84·p91 실행 화면 속 얼굴은 운영자·공동 저자 본인 → 가리지 않아요. p5 외부 홍보 이미지 속 인물은 가려요.
+#   O11 학교명 공개 → 표지(p1)의 학교명을 가리지 않아요(PLAN §13 "허락하면 편집본 p1 가림 해제").
+#   개인정보 예외(DECISIONS §1)는 그대로: 기관 계정 경로·사적인 파일 이름·기기 주소·학급 게시물 화면은 가려요.
+
+documents:
+  bt:
+    title: 블루투스 통신 수업 교안(가린 편집본)
+    lang: ko-KR
+    source:
+      id: BT
+      sha256: d5be9d76086e4a3d567cf1580b176931e4551f6121ba113241c06bd660db41c4
+      pages: 91
+    output:
+      path: public/teacher/handouts/bt-lesson-plan-redacted.pdf
+      sha256: "287c56a2ceed094f46e1e381b00277a5ea1979858e6cebbea67dd67117143c75"   # build가 알려 준 값 — 이 파일로 91쪽을 눈으로 확인(2026-09-25)
+      bytes: 4841213
+    notice:
+      page: 1
+      rect: [106, 560, 1307, 612]
+      text: 가린 편집본 — 기관 계정 폴더 경로·개인 파일 이름·블루투스 기기 주소·학급 게시물 화면·외부 홍보 이미지 속 인물을 회색 상자로 지웠어요. 나머지는 원본 교안 그대로예요.
+    photos:
+      max_dpi: 125
+      quality: 78
+    outline:
+      - [1, 표지·차례, 1]
+      - [1, "A. MediaPipe 손 추적", 3]
+      - [2, "A1. OpenCV·MediaPipe 소개", 3]
+      - [2, "A2. Thonny 패키지 설치·동작 확인", 6]
+      - [2, "A3. 캠 화면 띄우기·크기 바꾸기", 10]
+      - [2, "A4. Hands 모델 쓰기·꾸미기", 14]
+      - [2, "A5. 좌우 반전·랜드마크 번호·정규화·점 그리기", 19]
+      - [2, "A6. 접힌 손가락 감지", 26]
+      - [2, "A7. 인식 개선·양손 구분", 31]
+      - [1, "B. Thonny·MicroPython 기초", 36]
+      - [2, "B1. Thonny 설치·ESP32 연결", 36]
+      - [2, "B2. 내장 LED 깜빡이기", 41]
+      - [2, "B3. RGB LED 차례로 켜기", 43]
+      - [2, "B4. RGB LED 색 섞기·밝기(PWM)", 46]
+      - [2, "B5. I2C 문자 LCD", 49]
+      - [2, "B6. LCD 카운터(boot.py)", 58]
+      - [2, "B7. 서보 모터 라이브러리·회전", 61]
+      - [2, "B8. 서보 모터 각도 늘리기", 67]
+      - [1, "C. 블루투스 통신", 69]
+      - [2, "C1. 기본 — 값 주고받기", 70]
+      - [2, "C2. 응용 — 값 하나 보내기(손가락으로 RGB)", 78]
+      - [2, "C3. 응용 — 값 두 개 보내기(x, y)", 85]
+    redactions:
+      - page: 5
+        kind: face
+        rects: [[247, 357, 909, 711]]
+        label: 가림 — 외부 홍보 이미지(사람 얼굴)
+        reason: MediaPipe 소개 홍보 이미지 속 인물 2명의 얼굴(본인 확인 대상이 아닌 일반인, INVENTORY §5.1). 제3자 홍보 이미지라 그림 전체를 가려요.
+      - page: 6
+        kind: path
+        rects: [[196, 210, 1383, 240]]
+        label: 가림 — 기관 계정 폴더 경로
+        reason: Thonny 제목 줄의 기관 계정 클라우드 폴더 경로와 작업 폴더 이름(INVENTORY §6).
+      - page: 51
+        kind: path
+        rects: [[274, 250, 618, 446]]
+        label: 가림 — 기관 계정 폴더 경로·개인 폴더 이름
+        reason: Thonny 파일 창의 기관 계정 클라우드 폴더 경로와 개인 폴더 목록(사진 모음·연도별 작업 폴더 등). 라이브러리 파일 목록은 남겨요.
+      - page: 58
+        kind: path
+        rects: [[148, 256, 500, 526]]
+        label: 가림 — 기관 계정 폴더 경로·개인 폴더 이름
+        reason: p51과 같은 파일 창(기관 계정 클라우드 폴더 경로와 개인 폴더 목록). 라이브러리 파일 목록은 남겨요.
+      - page: 71
+        kind: classroom
+        rects: [[26, 230, 1155, 555], [26, 555, 827, 601]]
+        label: 가림 — 학급 게시물 화면
+        reason: 학급 게시물(클래스룸) 화면. 사이트에 필요 없어요(INVENTORY §6). 오른쪽 아래 설명 글과 겹치는 칸은 비어 있는 게시물 바탕이라 글을 살리려고 두 상자로 나눴어요.
+      - page: 72
+        kind: path
+        rects: [[205, 216, 752, 237], [153, 324, 420, 357]]
+        label: 가림 — 기관 계정 폴더 경로
+        reason: Thonny 제목 줄과 파일 창의 기관 계정 클라우드 폴더 경로.
+      - page: 72
+        kind: device-address
+        rects: [[746, 392, 957, 416]]
+        label: "XX:XX:XX:XX:XX:XX"
+        reason: 코드에 적힌 블루투스 기기 주소. 사이트 예제와 같은 자리표시자로 보여요.
+      - page: 73
+        kind: classroom
+        rects: [[122, 180, 875, 328], [122, 328, 846, 478], [122, 478, 875, 579]]
+        label: 가림 — 학급 게시물 화면
+        reason: 학급 게시물(클래스룸) 화면. 오른쪽 설명 글이 게시물 오른쪽 끝과 겹쳐 글이 있는 줄만 상자를 좁혔어요(남는 칸은 게시물 테두리·스크롤 막대뿐).
+      - page: 74
+        kind: path
+        rects: [[45, 279, 272, 527]]
+        label: 가림 — 개인 파일 목록
+        reason: 사용자 폴더의 파일 목록(개인 문서·설치 파일 이름, INVENTORY §6). 보드에 올린 파일(MicroPython device 창)은 남겨요.
+      - page: 75
+        kind: path
+        rects: [[44, 236, 236, 497]]
+        label: 가림 — 개인 파일 목록
+        reason: p74와 같은 사용자 폴더 파일 목록(화면이 옆으로 밀려 첫 줄이 더 위에 있어요).
+      - page: 75
+        kind: device-address
+        rects: [[500, 691, 719, 715]]
+        label: "XX:XX:XX:XX:XX:XX"
+        reason: 셸에 찍힌 ESP32 블루투스 기기 주소(첫 바이트까지 모두).
+      - page: 76
+        kind: device-address
+        rects: [[356, 279, 574, 302]]
+        label: "XX:XX:XX:XX:XX:XX"
+        reason: 코드에 붙여 넣은 블루투스 기기 주소.
+      - page: 79
+        kind: classroom
+        rects: [[60, 204, 1071, 525]]
+        label: 가림 — 학급 게시물 화면
+        reason: 학급 게시물(클래스룸) 화면.
+      - page: 80
+        kind: device-address
+        rects: [[614, 331, 766, 348]]
+        label: "XX:XX:XX:XX:XX:XX"
+        reason: VS Code 코드 4번째 줄의 블루투스 기기 주소.
+      - page: 82
+        kind: classroom
+        rects: [[78, 216, 1118, 536]]
+        label: 가림 — 학급 게시물 화면
+        reason: 학급 게시물(클래스룸) 화면.
+      - page: 84
+        kind: device-address
+        rects: [[966, 475, 1033, 490]]
+        label: "XX:XX:XX"
+        reason: 노트북 화면 사진 속 Thonny 셸에 보이는 블루투스 기기 주소 뒷부분(기기마다 다른 부분). 얼굴은 O9로 그대로 둬요.
+      - page: 86
+        kind: classroom
+        rects: [[42, 231, 936, 514]]
+        label: 가림 — 학급 게시물 화면
+        reason: 학급 게시물(클래스룸) 화면.
+      - page: 89
+        kind: classroom
+        rects: [[122, 204, 1022, 574]]
+        label: 가림 — 학급 게시물 화면
+        reason: 학급 게시물(클래스룸) 화면.
+      - page: 91
+        kind: desktop
+        rects: [[378, 175, 563, 225]]
+        label: 가림 — 바탕화면 아이콘 이름
+        reason: 노트북 화면 사진 속 바탕화면 아이콘 이름(개인·학급 폴더 이름, INVENTORY §6). 얼굴은 O9로 그대로 둬요.
+      - page: 91
+        kind: desktop
+        rects: [[1010, 565, 1043, 585]]
+        label: ""
+        reason: 작업 표시줄의 날짜·시각(INVENTORY §6).
+    review:
+      - { page: 1, by: claude, date: 2026-09-25, result: '통과 — 표지 — 제목·머리글(AIoT응용프로그래밍)·새 안내 한 줄·오른쪽 아래 학교명과 교사 이름(O11 공개 허락, 가리지 않음). 얼굴·경로·기기 주소 없음.' }
+      - { page: 2, by: claude, date: 2026-09-25, result: '통과 — 목차 5칸과 템플릿 문구. 개인정보 없음.' }
+      - { page: 3, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(Media Pipe 모듈을 이용한 Hand Tracking). 없음.' }
+      - { page: 4, by: claude, date: 2026-09-25, result: '통과 — OpenCV 설명·opencv.org 주소 글자(링크 주석은 지움)·OpenCV 로고. 없음.' }
+      - { page: 5, by: claude, date: 2026-09-25, result: '통과 — MediaPipe 설명·주소 글자, 홍보 이미지 전체를 회색 상자로 지움(외부 홍보 이미지 속 인물 얼굴). 상자 밖에 남은 사진 없음.' }
+      - { page: 6, by: claude, date: 2026-09-25, result: '통과 — Thonny 제목 줄 경로를 회색 상자로 지움. 보이는 것: 공용 계정(user)의 표준 폴더·일반 폴더 이름, 패키지 관리 창(Program Files의 Thonny). 기관 경로·개인 파일 이름 없음.' }
+      - { page: 7, by: claude, date: 2026-09-25, result: '통과 — 코드 글자(open_window.py 설명). 없음.' }
+      - { page: 8, by: claude, date: 2026-09-25, result: '통과 — Thonny 도구 막대 캡처(<untitled>)와 설명 글. 경로·파일 이름 없음.' }
+      - { page: 9, by: claude, date: 2026-09-25, result: '통과 — Thonny 코드와 웹캠 창 — 창 속 얼굴은 운영자 본인(O9, 가리지 않음). 경로·기기 주소·다른 사람 없음.' }
+      - { page: 10, by: claude, date: 2026-09-25, result: '통과 — 캠 화면 띄우기 코드·설명 글(화면이 안 켜질 때). 없음.' }
+      - { page: 11, by: claude, date: 2026-09-25, result: '통과 — 캠 크기 바꾸기 코드 4줄·설명. 없음.' }
+      - { page: 12, by: claude, date: 2026-09-25, result: '통과 — 캠 크기가 안 바뀔 때 설명 글·코드 2줄. 없음.' }
+      - { page: 13, by: claude, date: 2026-09-25, result: '통과 — Thonny 패키지 관리 창 두 장(mediapipe 0.10.21 설치 화면, 공용 계정(user)의 파이썬 패키지 폴더와 Thonny 설치 폴더만), 빨간 화살표. 기관 경로·개인 파일 이름 없음. 겹친 두 번째 창 아래 가려진 부분도 그림 자료 전체를 꺼내 확인 — 같은 패키지 관리 화면뿐.' }
+      - { page: 14, by: claude, date: 2026-09-25, result: '통과 — Hands 모델 코드 5줄·설명 글. 없음.' }
+      - { page: 15, by: claude, date: 2026-09-25, result: '통과 — Hands 모델 코드 13~24줄·설명 글. 없음.' }
+      - { page: 16, by: claude, date: 2026-09-25, result: '통과 — 꾸미기 코드 1~14줄·설명·color.adobe.com 주소 글자(링크 주석은 지움). 없음.' }
+      - { page: 17, by: claude, date: 2026-09-25, result: '통과 — 손 뼈대 코드 23~36줄·교사 메모 글. 없음.' }
+      - { page: 18, by: claude, date: 2026-09-25, result: '통과 — Hand Tracking 창 속 손 한 개와 랜드마크(얼굴 없음)·질문 글. 없음.' }
+      - { page: 19, by: claude, date: 2026-09-25, result: '통과 — 좌우 반전 코드 4줄·설명. 없음.' }
+      - { page: 20, by: claude, date: 2026-09-25, result: '통과 — 손 랜드마크 번호 도식(0~20)과 이름 표·질문 글. 없음.' }
+      - { page: 21, by: claude, date: 2026-09-25, result: '통과 — 코드 2줄·안내 글. 없음.' }
+      - { page: 22, by: claude, date: 2026-09-25, result: '통과 — 코드 23~34줄·좌표 설명 글. 없음.' }
+      - { page: 23, by: claude, date: 2026-09-25, result: '통과 — 정규화 도식(화살표·점선)과 설명 글. 없음.' }
+      - { page: 24, by: claude, date: 2026-09-25, result: '통과 — 코드 20~36줄·설명 글. 없음.' }
+      - { page: 25, by: claude, date: 2026-09-25, result: '통과 — 코드 32~43줄·설명 글. 없음.' }
+      - { page: 26, by: claude, date: 2026-09-25, result: '통과 — 코드 23~28줄과 손가락 번호 도식·이름 표. 없음.' }
+      - { page: 27, by: claude, date: 2026-09-25, result: '통과 — 코드 25~36줄·설명 글. 없음.' }
+      - { page: 28, by: claude, date: 2026-09-25, result: '통과 — 코드 36~53줄·설명 글. 없음.' }
+      - { page: 29, by: claude, date: 2026-09-25, result: '통과 — 코드 50~63줄·설명 글. 없음.' }
+      - { page: 30, by: claude, date: 2026-09-25, result: '통과 — 실행 결과 사진 세 장(손과 랜드마크·00111/00000/11111 글자, 천장 배경). 얼굴 없음.' }
+      - { page: 31, by: claude, date: 2026-09-25, result: '통과 — 손가락 번호 도식·코드 23~25줄·설명 글. 없음.' }
+      - { page: 32, by: claude, date: 2026-09-25, result: '통과 — 설명 글 세 줄(Hand Gesture·Tensorflow). 없음.' }
+      - { page: 33, by: claude, date: 2026-09-25, result: '통과 — 코드 5줄·설명. 없음.' }
+      - { page: 34, by: claude, date: 2026-09-25, result: '통과 — 코드 25~41줄·설명 글. 없음.' }
+      - { page: 35, by: claude, date: 2026-09-25, result: '통과 — 실행 결과 손 사진 두 장(Left·Right 글자, 천장 배경). 얼굴 없음.' }
+      - { page: 36, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(토니파이썬). 없음.' }
+      - { page: 37, by: claude, date: 2026-09-25, result: '통과 — Thonny 설치 안내 글·thonny.org 주소 글자(링크 주석은 지움)·Thonny 옵션 창(인터프리터 탭, 포트 COM4). 없음.' }
+      - { page: 38, by: claude, date: 2026-09-25, result: '통과 — 드라이버 설치 안내 글과 공개 드라이버 설치 파일 이름·크기. 개인정보 없음.' }
+      - { page: 39, by: claude, date: 2026-09-25, result: '통과 — 파일 업로드 안내 글. 없음.' }
+      - { page: 40, by: claude, date: 2026-09-25, result: '통과 — ESP32를 USB로 연결한 사진(키보드·책상·보드·케이블). 얼굴 없음.' }
+      - { page: 41, by: claude, date: 2026-09-25, result: '통과 — 내장 LED 코드 1~13줄. 없음.' }
+      - { page: 42, by: claude, date: 2026-09-25, result: '통과 — ESP32 실드 보드 사진. 없음.' }
+      - { page: 43, by: claude, date: 2026-09-25, result: '통과 — RGB LED 모듈 사진. 없음.' }
+      - { page: 44, by: claude, date: 2026-09-25, result: '통과 — RGB LED 코드 1~15줄. 없음.' }
+      - { page: 45, by: claude, date: 2026-09-25, result: '통과 — RGB LED 작동 사진(책상·키보드). 없음.' }
+      - { page: 46, by: claude, date: 2026-09-25, result: '통과 — PWM 코드 1~19줄과 작은 저장 알림. 없음.' }
+      - { page: 47, by: claude, date: 2026-09-25, result: '통과 — PWM 코드 21~32줄. 없음.' }
+      - { page: 48, by: claude, date: 2026-09-25, result: '통과 — RGB LED 사진. 없음.' }
+      - { page: 49, by: claude, date: 2026-09-25, result: '통과 — 문자 LCD 앞·뒤 사진(I2C 모듈). 없음.' }
+      - { page: 50, by: claude, date: 2026-09-25, result: '통과 — 보드와 LCD를 이은 사진. 없음.' }
+      - { page: 51, by: claude, date: 2026-09-25, result: '통과 — 파일 창 윗부분(기관 계정 경로·개인 폴더 목록)을 회색 상자로 지움. 보이는 것: 라이브러리 폴더의 .py 이름·코드·MicroPython 장치 파일 이름. 기관 경로·개인 파일 이름 없음.' }
+      - { page: 52, by: claude, date: 2026-09-25, result: '통과 — LCD 코드 1~12줄. 없음.' }
+      - { page: 53, by: claude, date: 2026-09-25, result: '통과 — LCD 코드 14~26줄. 없음.' }
+      - { page: 54, by: claude, date: 2026-09-25, result: '통과 — LCD 코드 28~50줄(두 캡처). 가려진 부분도 그림 자료 전체를 꺼내 확인 — 같은 코드 줄뿐. 없음.' }
+      - { page: 55, by: claude, date: 2026-09-25, result: '통과 — LCD 코드 52~63줄. 없음.' }
+      - { page: 56, by: claude, date: 2026-09-25, result: '통과 — LCD에 Hello world가 뜬 사진. 없음.' }
+      - { page: 57, by: claude, date: 2026-09-25, result: '통과 — LCD 글자(x와 웃는 모양 글자) 사진. 사람 얼굴 없음.' }
+      - { page: 58, by: claude, date: 2026-09-25, result: '통과 — 파일 창 윗부분을 회색 상자로 지움. 보이는 것: 라이브러리 목록·boot.py 코드·셸 Counter 값·MicroPython 장치 파일 이름. 없음.' }
+      - { page: 59, by: claude, date: 2026-09-25, result: '통과 — boot.py 코드 1~15줄. 없음.' }
+      - { page: 60, by: claude, date: 2026-09-25, result: '통과 — LCD 실행 사진(흐릿한 손가락). 없음.' }
+      - { page: 61, by: claude, date: 2026-09-25, result: '통과 — 서보 모터 사진 두 장(부품·손). 얼굴 없음.' }
+      - { page: 62, by: claude, date: 2026-09-25, result: '통과 — 서보 모터를 든 손 사진 두 장. 얼굴 없음.' }
+      - { page: 63, by: claude, date: 2026-09-25, result: '통과 — 보드와 서보를 이은 사진. 없음.' }
+      - { page: 64, by: claude, date: 2026-09-25, result: '통과 — 라이브러리 파일 목록과 MicroPython 장치 파일 이름. 없음.' }
+      - { page: 65, by: claude, date: 2026-09-25, result: '통과 — 서보 코드 1~15줄. 없음.' }
+      - { page: 66, by: claude, date: 2026-09-25, result: '통과 — 서보를 든 손 사진. 얼굴 없음.' }
+      - { page: 67, by: claude, date: 2026-09-25, result: '통과 — 서보 코드 1~16줄(boot.py 탭). 없음.' }
+      - { page: 68, by: claude, date: 2026-09-25, result: '통과 — 서보를 든 손과 보드 사진. 얼굴 없음.' }
+      - { page: 69, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(블루투스 통신). 없음.' }
+      - { page: 70, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(값 주고 받기). 없음.' }
+      - { page: 71, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자 두 개로 지움(글과 겹치지 않게 나눔). 설명 글만 남음. 게시물 글자·그림 남지 않음(그림 자료 픽셀까지 비움 확인).' }
+      - { page: 72, by: claude, date: 2026-09-25, result: '통과 — Thonny 제목 줄·파일 창 경로를 회색 상자 두 개로, 코드 4번째 줄 기기 주소를 자리표시자 상자로 지움. 보이는 것: 예제 파일 이름 두 개·코드 10줄·설명 글. 없음.' }
+      - { page: 73, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자 세 개로 지움. 설명 글만 남음. 게시물 글자·그림 남지 않음.' }
+      - { page: 74, by: claude, date: 2026-09-25, result: '통과 — 사용자 폴더 파일 목록을 회색 상자로 지움. 보이는 것: 공용 계정 경로 한 줄·코드 12줄·MicroPython device 파일 이름. 개인 파일 이름 없음.' }
+      - { page: 75, by: claude, date: 2026-09-25, result: '통과 — 사용자 폴더 파일 목록과 셸의 기기 주소를 회색 상자로 지움(주소 첫 바이트까지). 보이는 것: 코드 12줄·셸 첫 줄·설명 글. 없음.' }
+      - { page: 76, by: claude, date: 2026-09-25, result: '통과 — 코드 4번째 줄 기기 주소를 자리표시자 상자로 지움. 보이는 것: 예제 파일 이름·코드 10줄·설명 글. 없음.' }
+      - { page: 77, by: claude, date: 2026-09-25, result: '통과 — VS Code 터미널(Sent: c)·Thonny 셸(수신 데이터: c)·설명 글. 없음.' }
+      - { page: 78, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(값 하나 보내기). 없음.' }
+      - { page: 79, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자로 지움. 설명 글만 남음.' }
+      - { page: 80, by: claude, date: 2026-09-25, result: '통과 — VS Code 폴더 열기 화면(수업 자료 폴더의 파일 이름)·코드 4번째 줄 기기 주소를 자리표시자 상자로 지움. 없음.' }
+      - { page: 81, by: claude, date: 2026-09-25, result: '통과 — VS Code 코드 31~41줄·설명 글. 없음.' }
+      - { page: 82, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자로 지움. 설명 글(수업 자료 압축 파일 이름)만 남음.' }
+      - { page: 83, by: claude, date: 2026-09-25, result: '통과 — Thonny 제목 줄·파일 창 — 공용 계정(user) 경로와 표준 폴더·수업 자료 폴더 이름뿐, 코드 1~15줄·MicroPython device 파일 이름. 기관 경로·개인 파일 이름 없음(목록 밖 쪽, 눈으로 확인).' }
+      - { page: 84, by: claude, date: 2026-09-25, result: '통과 — 노트북 화면 사진 — VS Code·Thonny·웹캠 창, 창 속 얼굴은 운영자 본인(O9, 가리지 않음). Thonny 셸의 기기 주소 뒷부분을 자리표시자 상자로 지움. 작업 표시줄 날짜 칸은 사진에 없음. 다른 사람·경로 없음.' }
+      - { page: 85, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(값 두 개 보내기). 없음.' }
+      - { page: 86, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자로 지움. 설명 글만 남음.' }
+      - { page: 87, by: claude, date: 2026-09-25, result: '통과 — VS Code 파일 목록(수업 자료 파일 이름)·코드 45~53줄. 없음.' }
+      - { page: 88, by: claude, date: 2026-09-25, result: '통과 — VS Code 코드 41~52줄. 없음.' }
+      - { page: 89, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자로 지움. 설명 글만 남음.' }
+      - { page: 90, by: claude, date: 2026-09-25, result: '통과 — Thonny 화면 — 공용 계정 경로의 표준 폴더 이름(OneDrive는 폴더 이름 한 줄뿐, 계정·기관 이름 없음)·finger_lcd.py·코드 1~13줄. 기관 경로·개인 파일 이름 없음.' }
+      - { page: 91, by: claude, date: 2026-09-25, result: '통과 — 노트북 화면 사진 — 바탕화면 아이콘 이름과 작업 표시줄 날짜·시각을 회색 상자로 지움. 웹캠 창 속 얼굴은 운영자 본인(O9, 가리지 않음). 보이는 것: VS Code(Sent 좌표)·Thonny(Received 좌표)·RGB LED·키보드. 없음.' }
+
+  ppt:
+    title: PyAutoGUI 수업 슬라이드(가린 편집본)
+    lang: ko-KR
+    source:
+      id: PPT
+      sha256: fde6ff429ff401b592d14d791ab7a3f0fae5f425fb2766ccb60dc4c02c0f6113
+      pages: 23
+    output:
+      path: public/teacher/handouts/pyautogui-slides-redacted.pdf
+      sha256: "680dfbba3ba4bb97d2b069163729c888c56b7e79632fb78dae712eef9ddfab33"   # build가 알려 준 값 — 이 파일로 23쪽을 눈으로 확인(2026-09-25)
+      bytes: 854895
+    notice:
+      page: 1
+      rect: [106, 560, 1307, 612]
+      text: 가린 편집본 — 원본 슬라이드를 PDF로 바꾸고 파일 속 정보(작성자·만든 프로그램·날짜 기록 등)를 지웠어요. 화면에서 가린 곳은 없어요.
+    photos:
+      max_dpi: 125
+      quality: 78
+    outline:
+      - [1, 표지·차례, 1]
+      - [1, "01. PyAutoGUI 소개 및 설치", 3]
+      - [1, "02. 마우스·키보드 제어 기초", 8]
+      - [2, 마우스 이동 및 클릭, 9]
+      - [2, 마우스 드래그, 10]
+      - [2, 키 입력, 11]
+      - [2, 키 반복 입력, 12]
+      - [1, "03. 창의적인 마우스 사용", 13]
+      - [2, 원 그리기, 14]
+      - [2, 별 그리기, 15]
+      - [1, "04. 자동화 프로젝트: 작업 자동화, 웹 서핑", 16]
+      - [2, 파일 열고 저장, 17]
+      - [2, 반복 작업 자동화, 18]
+      - [2, 웹페이지 열기, 19]
+      - [2, 웹페이지 검색 자동화, 20]
+      - [1, "05. 심화 주제", 21]
+      - [2, 화면 캡처, 22]
+      - [2, 화면 주기적으로 캡처, 23]
+    redactions: []
+    review:
+      - { page: 1, by: claude, date: 2026-09-25, result: '통과 — 표지 — 제목 Pyautogui·머리글·새 안내 한 줄·저자 표기 박상진/김석전(사이트 저작자 표기 C2와 같음). 없음.' }
+      - { page: 2, by: claude, date: 2026-09-25, result: '통과 — 목차 5칸과 템플릿 문구. 없음.' }
+      - { page: 3, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(PyAutoGUI 소개 및 설치). 없음.' }
+      - { page: 4, by: claude, date: 2026-09-25, result: '통과 — PyAutoGUI 함수 코드 8줄·설명 글. 없음.' }
+      - { page: 5, by: claude, date: 2026-09-25, result: '통과 — 파일 이름 주의할 점 글. 없음.' }
+      - { page: 6, by: claude, date: 2026-09-25, result: '통과 — VS Code 터미널 — 공용 계정(user) 바탕 화면의 예제 폴더 경로와 pip install 명령. 개인정보 없음.' }
+      - { page: 7, by: claude, date: 2026-09-25, result: '통과 — VS Code 코드 8줄과 터미널(공용 계정 경로·화면 크기·마우스 위치 출력). 없음.' }
+      - { page: 8, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(마우스 제어 기초). 없음.' }
+      - { page: 9, by: claude, date: 2026-09-25, result: '통과 — 마우스 이동·클릭 코드. 없음.' }
+      - { page: 10, by: claude, date: 2026-09-25, result: '통과 — 마우스 드래그 코드 7줄. 없음.' }
+      - { page: 11, by: claude, date: 2026-09-25, result: '통과 — 키 입력 코드 9줄. 없음.' }
+      - { page: 12, by: claude, date: 2026-09-25, result: '통과 — 키 반복 입력 코드 8줄. 없음.' }
+      - { page: 13, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(창의적인 마우스 사용). 없음.' }
+      - { page: 14, by: claude, date: 2026-09-25, result: '통과 — 원 그리기 코드 10줄. 없음.' }
+      - { page: 15, by: claude, date: 2026-09-25, result: '통과 — 별 그리기 코드 11줄. 없음.' }
+      - { page: 16, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(자동화 프로젝트). 없음.' }
+      - { page: 17, by: claude, date: 2026-09-25, result: '통과 — 파일 열고 저장 코드 7줄. 없음.' }
+      - { page: 18, by: claude, date: 2026-09-25, result: '통과 — 반복 작업 자동화 코드 11줄. 없음.' }
+      - { page: 19, by: claude, date: 2026-09-25, result: '통과 — 웹페이지 열기 코드 6줄(포털 주소 글자). 없음.' }
+      - { page: 20, by: claude, date: 2026-09-25, result: '통과 — 웹페이지 검색 자동화 코드 8줄. 없음.' }
+      - { page: 21, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(심화 주제). 없음.' }
+      - { page: 22, by: claude, date: 2026-09-25, result: '통과 — 화면 캡처 코드 5줄. 없음.' }
+      - { page: 23, by: claude, date: 2026-09-25, result: '통과 — 화면 주기적으로 캡처 코드 16줄. 없음.' }

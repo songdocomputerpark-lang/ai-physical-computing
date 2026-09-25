@@ -6,6 +6,7 @@ import {
   LARGE_FILE_LIMIT_BYTES,
   buildOriginalNameNeedles,
   checkRepoFiles,
+  collectHandoutRecords,
   findPrivacyNeedles,
   findPrivacyPatterns,
   hashPrivacyNeedle,
@@ -84,6 +85,35 @@ describe('저장소 검사 규칙(checkRepoFiles)', () => {
     ]);
     const allowed = rules({ originalFormatAllowed: [{ path: 'public/teacher/*.pdf', reason: '가린 편집본(PD-31)' }] });
     expect(problemKeys(checkRepoFiles(files, allowed))).toEqual(['original-format:handout.pdf']);
+  });
+
+  it('가린 편집본 PDF(public/teacher/handouts/)는 쪽별 눈 확인 기록과 sha256이 맞아야 통과한다(P5-14, Phase 5 통합)', () => {
+    const pdf = repoFile('public/teacher/handouts/demo-redacted.pdf', '%PDF-1.4 편집본');
+    const sha256 = sha256Hex(pdf.content);
+    const review = [1, 2, 3].map((page) => ({ page, by: 'claude', date: '2026-09-25', result: `통과 — ${page}쪽 확인` }));
+    const allowPdf = { originalFormatAllowed: [{ path: 'public/teacher/handouts/*.pdf', reason: '가린 편집본(PD-31)' }] };
+    const recordFile = (records: object) =>
+      repoFile('scripts/handout-redactions.yaml', `documents:\n  demo:\n${Object.entries(records).map(([key, value]) => `    ${key}: ${JSON.stringify(value)}`).join('\n')}\n`);
+
+    // 기록 있음·sha 같음·모든 쪽 통과 → 통과
+    const good = collectHandoutRecords([recordFile({ source: { pages: 3 }, output: { path: pdf.path, sha256 }, review })]);
+    expect(good.errors).toEqual([]);
+    expect(checkRepoFiles([pdf], rules({ ...allowPdf, handoutReviews: good.records }))).toEqual([]);
+
+    // 기록이 없으면 막는다
+    expect(problemKeys(checkRepoFiles([pdf], rules(allowPdf)))).toEqual([`handout-review:${pdf.path}`]);
+
+    // 쪽 하나가 빠지면 막는다
+    const missingPage = collectHandoutRecords([recordFile({ source: { pages: 3 }, output: { path: pdf.path, sha256 }, review: review.slice(0, 2) })]);
+    const missingProblems = checkRepoFiles([pdf], rules({ ...allowPdf, handoutReviews: missingPage.records }));
+    expect(problemKeys(missingProblems)).toEqual([`handout-review:${pdf.path}`]);
+    expect(missingProblems[0]?.detail).toContain('3쪽');
+
+    // 편집본이 바뀌어 sha가 다르면 막는다
+    const changed = collectHandoutRecords([recordFile({ source: { pages: 3 }, output: { path: pdf.path, sha256: '0'.repeat(64) }, review })]);
+    const changedProblems = checkRepoFiles([pdf], rules({ ...allowPdf, handoutReviews: changed.records }));
+    expect(problemKeys(changedProblems)).toEqual([`handout-review:${pdf.path}`]);
+    expect(changedProblems[0]?.detail).toContain('output.sha256');
   });
 
   it('.pyc와 __pycache__ 폴더를 막는다', () => {
