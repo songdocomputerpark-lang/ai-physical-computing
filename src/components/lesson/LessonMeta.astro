@@ -1,18 +1,18 @@
 ---
 /**
  * 차시 정보 뱃지(SPEC §7.2 머리 칸): 성취기준 코드, 소요 시간, 준비물, 난이도, 가상 보드 가능 여부, 실습실, 교과서 쪽.
- * - 성취기준이 비어 있으면 "성취기준 코드 확인 중"(DECISIONS C8)
+ * - 성취기준이 비어 있으면: 대응표에서 일부러 비운 차시는 "해당 없음(보충 차시)", 대응표에 없는 새 차시는 "성취기준 코드 확인 중"(DECISIONS C8)
  * - 소요 시간·난이도·가상 보드·실습실·교과서 쪽은 frontmatter에 적었을 때만 보인다.
  * - 뜻을 글자로 알린다(난이도 점은 꾸밈이라 화면 낭독기가 읽지 않는다).
  */
 import {
   STANDARDS_NOTE,
-  STANDARDS_PENDING_TEXT,
   difficultyText,
   formatDuration,
   labLink,
   materialsText,
   pagesText,
+  standardsEmptyText,
   virtualBoardText,
   type LessonSummary,
 } from './lesson-data.ts';
@@ -28,6 +28,7 @@ const virtualBoard = virtualBoardText(lesson.virtualOk);
 const pages = pagesText(lesson.pages);
 const lab = lesson.lab ? labLink(lesson.lab) : undefined;
 const hasStandards = lesson.standards.length > 0;
+const emptyStandards = standardsEmptyText(lesson.label);
 ---
 
 <div class="lesson-meta">
@@ -39,7 +40,7 @@ const hasStandards = lesson.standards.length > 0;
           hasStandards ? (
             lesson.standards.map((code) => <span class="lesson-meta__code">[{code}]</span>)
           ) : (
-            <span class="lesson-meta__pending">{STANDARDS_PENDING_TEXT}</span>
+            <span class:list={[emptyStandards.intentional ? 'lesson-meta__none' : 'lesson-meta__pending']}>{emptyStandards.text}</span>
           )
         }
       </dd>
@@ -147,6 +148,11 @@ const hasStandards = lesson.standards.length > 0;
 
   .lesson-meta__pending {
     color: var(--color-warning-text);
+  }
+
+  .lesson-meta__none {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
   }
 
   .lesson-meta__item[data-meta='standards']:has(.lesson-meta__pending) {

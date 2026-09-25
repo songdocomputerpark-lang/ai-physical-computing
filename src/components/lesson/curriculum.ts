@@ -16,6 +16,7 @@
  *
  * 묶음 이름은 원고의 중단원 표기(INVENTORY §3.1, I단원 표지)를 따르고, IV단원은 원고가 없어 코드 폴더 이름을 따른다(PLAN §2.1).
  * 보충 차시(PD-07)는 I단원은 "영상 처리 기초"로, III단원 통신 보충(C1~C3)은 따로 묶었다. P1은 3-1-4의 사전 학습이라 01 안에 둔다.
+ * IV단원 프로젝트 안내(IV-프로젝트, 주소 /learn/u4/project/)는 원고에 없는 읽기 자료라 "IV단원 프로젝트" 묶음으로 따로 둔다(Phase 5 통합, 2026-09-25).
  */
 import type { LESSON_KINDS, LESSON_SOURCES } from '../../config/content-schemas.ts';
 
@@ -59,6 +60,14 @@ function supplement(label: string, title: string, order: number): PlannedLesson 
 
 function reading(label: string, title: string, order: number, pages: string): PlannedLesson {
   return Object.freeze({ label, slug: label.toLowerCase(), title, order, kind: 'reading', source: 'manuscript', pages });
+}
+
+/**
+ * 원고에 없는 활동 안내(읽기 자료) — 사이트가 새로 쓴다(원천 supplement, 교과서 쪽 없음).
+ * 지금은 IV단원 프로젝트 안내 하나(PLAN §8.5 P5-13 — 성취기준 12인피04-02~04-04의 활동 틀).
+ */
+function guide(label: string, slug: string, title: string, order: number): PlannedLesson {
+  return Object.freeze({ label, slug, title, order, kind: 'reading', source: 'supplement' });
 }
 
 /** 대단원 마무리. 주소는 /learn/uN/review/ 이다. */
@@ -219,6 +228,12 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
           textbook('4-2-1', '데이터, 하드웨어를 깨우다!', 5, 'code-only', '파일명 p261·p270·p272'),
           textbook('4-2-2', '소리와 빛으로 상태를 알려줘', 6, 'code-only', '파일명 p278·p281'),
         ],
+      }),
+      section({
+        key: 'u4-project',
+        title: 'IV단원 프로젝트',
+        description: '배운 것을 모아 모둠이 우리 곁의 문제를 푸는 지능화 사물을 만드는 활동 안내예요. 교과서 원고가 없어 사이트가 새로 썼어요.',
+        lessons: [guide('IV-프로젝트', 'project', '우리 곁의 문제를 푸는 지능화 사물 만들기', 7)],
       }),
     ]),
   },

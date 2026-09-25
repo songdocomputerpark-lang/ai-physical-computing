@@ -10,6 +10,7 @@
  */
 import type { LAB_IDS, LessonData } from '../../config/content-schemas.ts';
 import { getLearnUnit, getPage, type BreadcrumbItem } from '../../config/nav.ts';
+import { unmappedReason } from '../../config/standards.ts';
 import { withParticle } from '../../lib/korean.ts';
 import { withBase } from '../../lib/url.ts';
 import { CURRICULUM, type LessonKind, type LessonSource, type UnitCurriculum } from './curriculum.ts';
@@ -30,8 +31,22 @@ export interface LessonEntryLike {
 /** 주소 끝 이름(md 파일 이름) 모양: 영문 소문자·숫자·하이픈(PD-09) */
 export const LESSON_SLUG_PATTERN = /^[a-z\d]+(?:-[a-z\d]+)*$/u;
 
-/** 성취기준 코드가 비었을 때 화면 문장(DECISIONS C8) */
+/** 성취기준 코드가 비었을 때 화면 문장(DECISIONS C8) — 대응표(PLAN §2.2)에 없는 새 차시가 비었을 때만 */
 export const STANDARDS_PENDING_TEXT = '성취기준 코드 확인 중';
+
+/** 대응표에서 일부러 비운 차시(보충·선택 차시·대단원 마무리)의 뱃지 앞말. 뒤에 "(보충 차시)"처럼 까닭이 붙는다 */
+export const STANDARDS_NONE_TEXT = '해당 없음';
+
+/**
+ * 성취기준이 빈 차시의 뱃지 글.
+ * - 대응표에서 일부러 비운 차시(src/config/standards.ts UNMAPPED_REASONS) → "해당 없음(보충 차시)", intentional: true
+ * - 대응표에 없는 새 차시 → "성취기준 코드 확인 중"(DECISIONS C8), intentional: false
+ * 대응표의 근거 교육과정은 운영자가 확인했으므로(O12) 일부러 비운 차시에 "확인 중"을 보이지 않는다(2026-09-25 Phase 5 통합).
+ */
+export function standardsEmptyText(label: string | undefined): { readonly text: string; readonly intentional: boolean; readonly reason?: string } {
+  const reason = unmappedReason(label);
+  return reason ? { text: `${STANDARDS_NONE_TEXT}(${reason})`, intentional: true, reason } : { text: STANDARDS_PENDING_TEXT, intentional: false };
+}
 
 /** 성취기준 코드 옆에 붙이는 설명(PLAN §2.2 화면 표기) */
 export const STANDARDS_NOTE = '성취기준은 인천광역시교육청 승인 교육과정의 코드이고, 차시와의 연결은 사이트가 붙였어요.';

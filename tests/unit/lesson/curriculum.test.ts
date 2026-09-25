@@ -7,12 +7,12 @@ const allLessons: (PlannedLesson & { unit: number })[] = CURRICULUM.flatMap((uni
 );
 
 describe('배우기 차례표(src/components/lesson/curriculum.ts, PLAN §2.2)', () => {
-  it('대단원 I~IV가 순서대로 있고 교과서 31차시·보충 9차시·읽기 자료 1·대단원 마무리 3이다(PLAN §1.1)', () => {
+  it('대단원 I~IV가 순서대로 있고 교과서 31차시·보충 9차시·읽기 자료 2(2-1-R, IV단원 프로젝트 안내)·대단원 마무리 3이다(PLAN §1.1)', () => {
     expect(CURRICULUM.map((unit) => unit.unit)).toEqual([1, 2, 3, 4]);
     const count = (kind: PlannedLesson['kind']) => allLessons.filter((lesson) => lesson.kind === kind).length;
     expect(count('textbook')).toBe(31);
     expect(count('supplement')).toBe(9);
-    expect(count('reading')).toBe(1);
+    expect(count('reading')).toBe(2);
     expect(count('review')).toBe(3);
     expect(getUnitCurriculum(2)?.sections.map((section) => section.title)).toEqual([
       '01 디스플레이 장치 제어',
@@ -20,6 +20,10 @@ describe('배우기 차례표(src/components/lesson/curriculum.ts, PLAN §2.2)',
       '대단원 마무리',
     ]);
     expect(getUnitCurriculum(5)).toBeUndefined();
+    // IV단원 프로젝트 안내는 원고에 없는 읽기 자료(원천 supplement, 교과서 쪽 없음)
+    const project = getUnitCurriculum(4)?.sections.flatMap((section) => section.lessons).find((lesson) => lesson.label === 'IV-프로젝트');
+    expect(project).toMatchObject({ slug: 'project', kind: 'reading', source: 'supplement', order: 7 });
+    expect(project?.pages).toBeUndefined();
   });
 
   it('주소 이름(slug)은 영문 소문자·숫자·하이픈이고 대단원 안에서 겹치지 않는다(PD-09)', () => {

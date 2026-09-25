@@ -2,7 +2,7 @@
  * 성취기준 표와 차시 ↔ 성취기준 대응표(PLAN §2.2 "차시 ↔ 성취기준 대응표(초안)", PD-21, DECISIONS C8).
  *
  * 근거: 인천광역시교육청 교육과정정보센터 교육감승인과목 게시물 "인공지능과 피지컬 컴퓨팅"(2022 개정, 등록일 2024.10.04.) —
- * 문서뷰어 텍스트 기준(hwp 원문 대조는 운영자 할 일 5번). 코드 목록은 docs/INVENTORY.md §9.2와 같다.
+ * 문서뷰어 텍스트 기준. 운영자가 이 교육과정이 맞다고 확인했다(DECISIONS O12, 2026-09-25 — hwp 원문은 내려받지 않음). 코드 목록은 docs/INVENTORY.md §9.2와 같다.
  *
  * 누가 쓰나
  * - 차시 머리의 성취기준 뱃지와 교사용 접기의 "이 차시의 원고와 자료"(src/components/lesson/LessonTeacherInfo.astro)
@@ -11,9 +11,10 @@
  * - 교사용 자료실의 성취기준·평가 방향 표(P5-14)
  *
  * 고치는 법
- * - 운영자가 원문 대조 결과를 주거나(운영자 할 일 5번) 대응을 바꾸기로 하면 PLAN §2.2 표와 이 파일을 함께 고친다.
+ * - 원문 문장과 대조하거나 대응을 바꾸기로 하면 PLAN §2.2 표와 이 파일을 함께 고친다.
  * - summary는 사이트가 줄인 말이다(원문 문장이 아니다). 화면에는 "(사이트 요약)"을 붙이고 원문 게시물 링크를 함께 보인다.
- * - 코드를 새로 만들어 넣지 않는다(DECISIONS C8). 대응이 분명하지 않은 차시는 빈 목록 []으로 둔다 → 화면은 "성취기준 코드 확인 중".
+ * - 코드를 새로 만들어 넣지 않는다(DECISIONS C8). 대응표에서 일부러 비운 차시(보충·선택 차시·대단원 마무리)는 빈 목록 []과 함께
+ *   UNMAPPED_REASONS에 까닭을 적는다 → 화면은 "해당 없음(보충 차시)". 대응표에 없는 새 차시가 비었을 때만 "성취기준 코드 확인 중"(C8).
  */
 
 /** 과목 교육과정 원문(게시물) 주소와 등록일 — sources.yaml의 reference 항목과 같다 */
@@ -77,7 +78,7 @@ export function standardAreaName(area: StandardArea['area']): string {
 }
 
 /**
- * 차시 번호(label) → 성취기준 코드(PLAN §2.2 대응표 초안 그대로). 빈 목록은 "대응 없음(C8 문구)"이라는 뜻이다.
+ * 차시 번호(label) → 성취기준 코드(PLAN §2.2 대응표 초안 그대로). 빈 목록은 "일부러 비운 차시"라는 뜻이고 까닭은 UNMAPPED_REASONS에 있다.
  * 여기에 없는 차시(새로 만든 차시)는 코드가 15개 안에 있는지만 검사하고 "대응표에 없는 차시" 참고를 남긴다.
  */
 export const LESSON_STANDARDS: Readonly<Record<string, readonly string[]>> = Object.freeze({
@@ -122,17 +123,47 @@ export const LESSON_STANDARDS: Readonly<Record<string, readonly string[]>> = Obj
   C2: ['12인피03-02'],
   C3: ['12인피03-01'],
   'III-마무리': [],
-  // IV. 지능화 사물 개발 프로젝트(12인피04-02~04-04는 IV단원 프로젝트 안내 — 교사용, P5-13)
+  // IV. 지능화 사물 개발 프로젝트(12인피04-02~04-04는 IV단원 프로젝트 안내 — P5-13, 차시 번호 IV-프로젝트)
   '4-1-1': ['12인피04-01'],
   '4-1-2': ['12인피04-01'],
   '4-1-3': ['12인피04-01'],
   '4-1-4': ['12인피04-01'],
   '4-2-1': ['12인피04-01'],
   '4-2-2': ['12인피04-01'],
+  'IV-프로젝트': ['12인피04-02', '12인피04-03', '12인피04-04'],
 });
 
 /** 차시 번호의 대응표 코드. 대응표에 없는 차시면 undefined(영문 대소문자는 가리지 않는다) */
 export function mappedStandards(label: string): readonly string[] | undefined {
   const key = Object.keys(LESSON_STANDARDS).find((candidate) => candidate.toLowerCase() === label.trim().toLowerCase());
   return key === undefined ? undefined : LESSON_STANDARDS[key];
+}
+
+/**
+ * 대응표에서 성취기준을 **일부러** 비운 차시와 그 짧은 까닭(PLAN §2.2 근거 칸 — 보충은 영상 처리 기초·사전 학습,
+ * 1-4-3은 음성 인식이 성취기준·내용 요소에 없는 선택 차시, 대단원 마무리는 단원 전체 문항 모음).
+ * 차시 머리 뱃지는 "해당 없음(보충 차시)"처럼 보이고, 대응표에 없는 새 차시가 비었을 때만 C8 문구("성취기준 코드 확인 중")가 보인다.
+ * LESSON_STANDARDS의 빈 목록과 이 표는 늘 같은 차시를 가리킨다(tests/unit/standards.test.ts).
+ * 자세한 까닭은 교사용 자료실 성취기준 표의 "성취기준을 비워 둔 차시"(content/teacher/assessment.yaml unmapped)에 있다.
+ */
+export const UNMAPPED_REASONS: Readonly<Record<string, string>> = Object.freeze({
+  V1: '보충 차시',
+  V2: '보충 차시',
+  V3: '보충 차시',
+  V4: '보충 차시',
+  V5: '보충 차시',
+  '1-4-3': '선택 차시',
+  'I-마무리': '대단원 마무리',
+  'II-마무리': '대단원 마무리',
+  P1: '보충 차시',
+  'III-마무리': '대단원 마무리',
+});
+
+/** 대응표에서 일부러 비운 차시면 그 까닭(예: "보충 차시"), 아니면 undefined(영문 대소문자는 가리지 않는다) */
+export function unmappedReason(label: string | undefined): string | undefined {
+  if (!label) {
+    return undefined;
+  }
+  const key = Object.keys(UNMAPPED_REASONS).find((candidate) => candidate.toLowerCase() === label.trim().toLowerCase());
+  return key === undefined ? undefined : UNMAPPED_REASONS[key];
 }

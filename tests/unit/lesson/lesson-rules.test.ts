@@ -127,11 +127,22 @@ describe('frontmatter 규칙', () => {
     expect(codes(await check({ raw: textbook }), 'error')).toContain('fm-pages');
     expect(codes(await check({ raw: { ...textbook, pages: '008~012' } }), 'error')).not.toContain('fm-pages');
     expect(codes(await check(), 'error')).not.toContain('fm-pages');
-    // 읽기 자료: 차례표에 있는 2-1-R(원고 141쪽)은 쪽이 있어야 하고, 차례표에 없는 새 읽기 자료(IV단원 프로젝트 안내 등)는 없어도 된다.
+    // 읽기 자료: 차례표에 있는 2-1-R(원고 141쪽)은 쪽이 있어야 하고, 원고가 없는 읽기 자료(차례표에 쪽이 없는 IV단원 프로젝트 안내,
+    // 차례표에 없는 새 읽기 자료)는 없어도 된다.
     const reading = { title: '인공지능 시대의 OLED 디스플레이', unit: 2, order: 3.5, kind: 'reading', label: '2-1-R', description: '읽기 자료예요.', standards: ['12인피02-02'] };
     expect(codes(await check({ raw: reading, markdown: '## 읽기\n\n글이에요.\n' }), 'error')).toContain('fm-pages');
-    const project = { title: '프로젝트 안내', unit: 4, order: 7, kind: 'reading', label: 'IV-프로젝트', source: 'supplement', description: '프로젝트를 준비해요.', standards: [] };
-    expect(codes(await check({ raw: project, markdown: '## 프로젝트\n\n글이에요.\n' }), 'error')).toEqual([]);
+    const project = {
+      title: '우리 곁의 문제를 푸는 지능화 사물 만들기',
+      unit: 4,
+      order: 7,
+      kind: 'reading',
+      label: 'IV-프로젝트',
+      description: '프로젝트를 준비해요.',
+      standards: ['12인피04-02', '12인피04-03', '12인피04-04'],
+    };
+    expect(codes(await check({ raw: project, markdown: '## 프로젝트\n\n글이에요.\n' }))).toEqual([]);
+    const newReading = { title: '새 읽기 자료', unit: 4, order: 8, kind: 'reading', label: 'IV-읽기', source: 'supplement', description: '새로 쓴 읽기 자료예요.', standards: [] };
+    expect(codes(await check({ raw: newReading, markdown: '## 읽기\n\n글이에요.\n' }), 'error')).toEqual([]);
   });
 
   it('fm-examples·fm-lab: 예제가 없거나 예제가 있는데 실습실이 없으면 오류', async () => {
@@ -310,6 +321,26 @@ describe('본문 8칸 규칙', () => {
 
   it('heading-h1: 본문에 # 제목을 쓰면 오류', async () => {
     expect(codes(await check({ markdown: `# 큰 제목\n\n${markdownOf(BASE_SECTIONS)}` }), 'error')).toContain('heading-h1');
+  });
+
+  it('md-tilde: 한 문단에 범위 물결표(~)가 두 번이면 취소선이 되어 오류 — \\~로 적거나 코드 안이면 된다', async () => {
+    const struck = withSection('왜 배울까', '원고 1~22행은 파일 3~24행이에요.\n\n<img src="/images/lessons/v1/why.svg" alt="왜 배우는지 보여 주는 사이트 그림">');
+    const issues = await check({ sections: struck });
+    expect(codes(issues, 'error')).toContain('md-tilde');
+    expect(issues.find((item) => item.code === 'md-tilde')?.message).toContain('22행은 파일 3');
+    const escaped = withSection('왜 배울까', '원고 1\\~22행은 파일 3\\~24행이에요.\n\n<img src="/images/lessons/v1/why.svg" alt="왜 배우는지 보여 주는 사이트 그림">');
+    expect(codes(await check({ sections: escaped }))).not.toContain('md-tilde');
+    const inCode = withSection('왜 배울까', '범위는 `a[1~22]`와 `b[3~24]`처럼 적어요.\n\n<img src="/images/lessons/v1/why.svg" alt="왜 배우는지 보여 주는 사이트 그림">');
+    expect(codes(await check({ sections: inCode }))).not.toContain('md-tilde');
+  });
+
+  it('md-bold: 문장 부호 뒤에서 닫은 **가 글자로 남으면 경고 — 코드 안의 **는 괜찮다', async () => {
+    const leftover = withSection('따라하기', '**[실행]**을 눌러요.\n\n::예제\n\n:::왜그럴까\n이유예요.\n:::');
+    const issues = await check({ sections: leftover });
+    expect(codes(issues, 'warning')).toContain('md-bold');
+    expect(codes(issues, 'error')).not.toContain('md-bold');
+    const fixed = withSection('따라하기', '<strong>[실행]</strong>을 눌러요. 거듭제곱은 `2 ** 3`처럼 적어요.\n\n::예제\n\n:::왜그럴까\n이유예요.\n:::');
+    expect(codes(await check({ sections: fixed }))).not.toContain('md-bold');
   });
 
   it('읽기 자료·대단원 마무리는 8칸 틀을 보지 않고 frontmatter·그림 규칙만 본다', async () => {

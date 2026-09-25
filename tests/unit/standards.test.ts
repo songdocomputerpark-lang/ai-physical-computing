@@ -2,7 +2,15 @@
 import { describe, expect, it } from 'vitest';
 import { allPlannedLessons } from '../../src/components/lesson/curriculum.ts';
 import { STANDARD_CODE_PATTERN } from '../../src/config/content-schemas.ts';
-import { LESSON_STANDARDS, STANDARDS, STANDARD_AREAS, findStandard, mappedStandards } from '../../src/config/standards.ts';
+import {
+  LESSON_STANDARDS,
+  STANDARDS,
+  STANDARD_AREAS,
+  UNMAPPED_REASONS,
+  findStandard,
+  mappedStandards,
+  unmappedReason,
+} from '../../src/config/standards.ts';
 
 describe('성취기준 표', () => {
   it('영역 4개 × 4·4·3·4개 = 15개이고 코드 모양이 frontmatter 규칙과 같다', () => {
@@ -28,9 +36,9 @@ describe('차시 ↔ 성취기준 대응표(PLAN §2.2 초안)', () => {
     }
   });
 
-  it('차례표(curriculum.ts)의 차시 44개가 모두 대응표에 있고, 대응표에만 있는 차시는 없다', () => {
+  it('차례표(curriculum.ts)의 차시 45개(IV단원 프로젝트 안내 포함)가 모두 대응표에 있고, 대응표에만 있는 차시는 없다', () => {
     const planned = allPlannedLessons().map(({ lesson }) => lesson.label);
-    expect(planned).toHaveLength(44);
+    expect(planned).toHaveLength(45);
     expect([...planned].sort()).toEqual(Object.keys(LESSON_STANDARDS).sort());
   });
 
@@ -42,5 +50,19 @@ describe('차시 ↔ 성취기준 대응표(PLAN §2.2 초안)', () => {
     expect(mappedStandards('3-1-1')).toEqual(['12인피03-01', '12인피03-03']);
     expect(mappedStandards('4-2-2')).toEqual(['12인피04-01']);
     expect(mappedStandards('9-9-9')).toBeUndefined();
+    expect(mappedStandards('iv-프로젝트')).toEqual(['12인피04-02', '12인피04-03', '12인피04-04']);
+  });
+
+  it('일부러 비운 차시(빈 목록)와 그 까닭 표(UNMAPPED_REASONS)는 늘 같은 차시를 가리킨다', () => {
+    const empty = Object.entries(LESSON_STANDARDS)
+      .filter(([, codes]) => codes.length === 0)
+      .map(([label]) => label)
+      .sort();
+    expect(Object.keys(UNMAPPED_REASONS).sort()).toEqual(empty);
+    expect(unmappedReason('v4')).toBe('보충 차시');
+    expect(unmappedReason('1-4-3')).toBe('선택 차시');
+    expect(unmappedReason('III-마무리')).toBe('대단원 마무리');
+    expect(unmappedReason('1-1-1')).toBeUndefined();
+    expect(unmappedReason(undefined)).toBeUndefined();
   });
 });

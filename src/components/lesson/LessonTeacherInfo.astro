@@ -2,7 +2,7 @@
 /**
  * 교사용 접기 맨 끝의 "이 차시의 원고와 자료"(PLAN §8.5 P5-02) — 차시마다 손으로 적지 않아도 저절로 붙는다.
  *   원고: 원고를 옮겼는지 / 원고 없음: 사이트가 코드 기준으로 쓴 본문(PLAN §2.3) / 보충
- *   성취기준: 코드 + 영역 + 사이트 요약 + "차시 연결은 사이트가 붙임" + 원문 게시물 링크(빈 값이면 C8 문구)
+ *   성취기준: 코드 + 영역 + 사이트 요약 + "차시 연결은 사이트가 붙임" + 원문 게시물 링크(일부러 비운 차시는 "해당 없음"과 까닭 링크, 대응표에 없는 새 차시는 C8 문구)
  *   원본 내려받기: 없음 — 원본은 올리지 않는 까닭(PD-31, C6)과 예제 코드 받는 곳
  *   가린 편집본 교안: frontmatter handouts의 쪽(파일이 생기면 그 쪽으로 바로 가는 링크, 없으면 "준비 중")
  * 내용은 teacher-info.ts가 만든다. 교사용 상자 안이라 사이트 검색 색인에서 빠진다(상자의 data-pagefind-ignore).
@@ -16,7 +16,7 @@ import { HANDOUT_DOCS, type HandoutDocId } from './handouts.ts';
 import { STANDARDS_LABEL, buildTeacherInfo } from './teacher-info.ts';
 
 interface Props {
-  data: Pick<LessonData, 'kind' | 'pages' | 'standards' | 'handouts'>;
+  data: Pick<LessonData, 'kind' | 'pages' | 'standards' | 'handouts'> & Partial<Pick<LessonData, 'unit' | 'label'>>;
   source: LessonSource | undefined;
   /** 제목 id가 겹치지 않게 붙이는 앞머리 */
   idPrefix: string;
@@ -54,6 +54,12 @@ const titleId = `${idPrefix}-teacher-info`;
               </li>
             ))}
           </ul>
+        ) : info.standardsNone ? (
+          <p data-standards-none>
+            {info.standardsNone.text}
+            <a href={href(info.standardsNone.link.href)}>{info.standardsNone.link.text}</a>
+            {info.standardsNone.after}
+          </p>
         ) : (
           <p>{info.standardsPending}</p>
         )

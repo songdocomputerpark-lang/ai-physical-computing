@@ -22,7 +22,7 @@ interface Props {
   /** 경고에 적을 차시 파일 경로 */
   source: string;
   /** 교사용 접기 끝의 "이 차시의 원고와 자료"에 쓰는 값(plan에 teacher 자리가 있을 때만 쓰인다) */
-  teacher?: { data: Pick<LessonData, 'kind' | 'pages' | 'standards' | 'handouts'>; source: LessonSource | undefined };
+  teacher?: { data: Pick<LessonData, 'kind' | 'pages' | 'standards' | 'handouts'> & Partial<Pick<LessonData, 'unit' | 'label'>>; source: LessonSource | undefined };
 }
 
 const { plan, examples, quiz, lab, lessonId, source, teacher } = Astro.props;

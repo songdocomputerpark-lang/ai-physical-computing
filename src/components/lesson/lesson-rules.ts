@@ -101,6 +101,8 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'teacher-box': '교사용 칸은 :::교사용 접기 안에, 지도안 요약·평가 포인트·자주 막히는 곳',
   'img-alt': '그림 대체 글',
   'heading-h1': '본문에 # 제목(h1) 쓰지 않기',
+  'md-tilde': '물결표(~) 두 개가 취소선이 되지 않게(범위는 \\~)',
+  'md-bold': '굵게(**)가 글자 그대로 남지 않게',
 });
 
 function issue(level: LessonRuleLevel, code: string, message: string): LessonRuleIssue {
@@ -453,6 +455,60 @@ function headingIssues(html: string): LessonRuleIssue[] {
     : [];
 }
 
+/** 글자로 읽히는 곳(코드·수식 밖)의 글 조각. 코드 안의 ~·**는 글자 그대로가 맞으므로 보지 않는다 */
+const CODE_TAGS = new Set(['code', 'pre', 'kbd', 'samp', 'script', 'style']);
+function proseTexts(node: HtmlElement): string[] {
+  const texts: string[] = [];
+  const walk = (current: HtmlElement) => {
+    for (const child of current.children) {
+      if (child.type === 'text') {
+        texts.push(child.text);
+      } else if (!CODE_TAGS.has(child.tag)) {
+        walk(child);
+      }
+    }
+  };
+  walk(node);
+  return texts;
+}
+
+/**
+ * 마크다운 함정(Phase 5 구역들이 여러 번 겪은 것):
+ * - md-tilde(오류): GFM은 물결표 하나(~글~)도 취소선으로 읽어서, 한 문단·목록 한 줄·표 한 칸에 "0~100", "1~22행"처럼 범위 물결표가
+ *   두 번 나오면 그 사이가 <del>이 된다. 일부러 취소선을 쓰는 차시는 없다 → 범위 물결표는 \~로 적는다(화면에는 ~로 보임).
+ * - md-bold(경고): **[단추 이름]**를처럼 문장 부호 뒤에서 **를 닫고 바로 한글을 붙이면(CommonMark 규칙) 굵게가 되지 않고 **가 글자로 남는다
+ *   → <strong>[…]</strong>로 쓰거나 **를 글자 뒤로 옮긴다.
+ */
+function markdownTrapIssues(html: string): LessonRuleIssue[] {
+  const tree = parseHtml(html);
+  const issues: LessonRuleIssue[] = [];
+  const strikes = findAll(tree, (element) => element.tag === 'del' || element.tag === 's');
+  if (strikes.length > 0) {
+    const sample = strikes
+      .slice(0, 3)
+      .map((element) => `"${textContent(element).slice(0, 24)}"`)
+      .join(', ');
+    issues.push(
+      issue(
+        'error',
+        'md-tilde',
+        `물결표(~) 두 개 사이의 글이 취소선이 된 곳이 ${strikes.length}곳 있어요(${sample}). 한 문단·목록 한 줄·표 한 칸에 범위 물결표를 두 번 쓰면 생겨요. 범위의 물결표는 \\~로 적어요(화면에는 ~로 보여요).`,
+      ),
+    );
+  }
+  const leftovers = proseTexts(tree).filter((text) => text.includes('**'));
+  if (leftovers.length > 0) {
+    issues.push(
+      issue(
+        'warning',
+        'md-bold',
+        `굵게 표시(**)가 글자 그대로 남은 곳이 ${leftovers.length}곳 있어요(예: "${(leftovers[0] ?? '').trim().slice(0, 30)}"). 문장 부호 뒤에서 **를 닫고 바로 글자를 붙이면 굵게가 되지 않아요 — <strong>…</strong>로 쓰거나 **를 옮겨요.`,
+      ),
+    );
+  }
+  return issues;
+}
+
 /* ───────────── 모으기 ───────────── */
 
 /**
@@ -474,7 +530,7 @@ export function checkLessonRules(input: LessonRuleInput): LessonRuleIssue[] {
   } else {
     issues.push(...plan.warnings.map((warning) => issue('error', 'body-plan', warning)));
   }
-  issues.push(...imageAltIssues(html), ...headingIssues(html));
+  issues.push(...imageAltIssues(html), ...headingIssues(html), ...markdownTrapIssues(html));
   return issues;
 }
 

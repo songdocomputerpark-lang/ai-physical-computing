@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CURRICULUM } from '../../../src/components/lesson/curriculum.ts';
 import {
   STANDARDS_PENDING_TEXT,
+  standardsEmptyText,
   buildUnitOutline,
   checkLessons,
   countOutline,
@@ -164,6 +165,14 @@ describe('대단원 목록(buildUnitOutline)', () => {
 describe('뱃지·표시 문장', () => {
   it('성취기준이 비면 C8 문장을 쓴다', () => {
     expect(STANDARDS_PENDING_TEXT).toBe('성취기준 코드 확인 중');
+  });
+
+  it('대응표에서 일부러 비운 차시는 "해당 없음(까닭)", 대응표에 없는 새 차시만 C8 문구', () => {
+    expect(standardsEmptyText('V4')).toEqual({ text: '해당 없음(보충 차시)', intentional: true, reason: '보충 차시' });
+    expect(standardsEmptyText('1-4-3').text).toBe('해당 없음(선택 차시)');
+    expect(standardsEmptyText('II-마무리').text).toBe('해당 없음(대단원 마무리)');
+    expect(standardsEmptyText('V9')).toEqual({ text: STANDARDS_PENDING_TEXT, intentional: false });
+    expect(standardsEmptyText(undefined).intentional).toBe(false);
   });
 
   it('카드 딱지: 준비 중·원고 없음, 종류 표시: 보충·읽기 자료', () => {
