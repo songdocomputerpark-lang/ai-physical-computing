@@ -122,7 +122,7 @@ describe('제외 쪽(scripts/image-exclusions.yaml)', () => {
     ['BT', [6, 51, 58, 72, 74, 75, 91], 'path'],
     ['U2B', [156], 'path'],
     ['U3', [197, 198], 'device-address'],
-    ['BT', [72, 75, 76, 80], 'device-address'],
+    ['BT', [72, 75, 76, 80, 84], 'device-address'], // p84: 편집본을 만들며 찾은 셸 속 주소(2026-09-25 Phase 5 통합에서 더함)
     ['BT', [71, 73, 79, 82, 86, 89], 'classroom'],
     ['U1', [21], 'content'],
   ];
@@ -189,7 +189,7 @@ images:
       source: U1
       page: 14
       region: [62, 476, 528, 712]
-    third_party: publisher
+    third_party: example-author
   - name: feature-zebra
     use: 1-1-2 학습 활동 사진
     alt: 풀밭에 서 있는 얼룩말 사진
@@ -216,10 +216,13 @@ describe('차시 그림 목록(parseImageManifest)', () => {
     expect(manifest?.images.map((entry) => entry.name)).toEqual(['cnn-stages', 'feature-zebra', 'opener', 'board-shot']);
     const [cnn, zebra, opener] = manifest?.images ?? [];
     expect(cnn?.from).toMatchObject({ source: 'U1', page: 14, region: [62, 476, 528, 712], dpi: 220 });
-    expect(cnn?.thirdParty).toBe('publisher');
+    expect(cnn?.thirdParty).toBe('example-author');
     expect(zebra?.from).toMatchObject({ image: 697 });
     expect(opener).toMatchObject({ decorative: true, alt: '', maxWidth: 800, quality: 80 });
-    expect(outputPathFor('1-1-2', cnn!)).toBe('public/images/lessons/1-1-2/third-party/publisher/cnn-stages.webp');
+    expect(outputPathFor('1-1-2', cnn!)).toBe('public/images/lessons/1-1-2/third-party/example-author/cnn-stages.webp');
+    // 출판 편집 삽화·컷은 운영자 결정 O10(2026-09-25)으로 운영자 자료 — third_party: publisher는 적지 않는다
+    const publisherKey = parseImageManifest(GOOD_MANIFEST.replace('third_party: example-author', 'third_party: publisher'), 'content/lessons/u1/1-1-2.images.yaml');
+    expect(publisherKey.errors.join('\n')).toContain('O10');
     expect(outputPathFor('1-1-2', zebra!)).toBe('public/images/lessons/1-1-2/feature-zebra.webp');
   });
 
@@ -299,13 +302,13 @@ describe('sources.yaml과 잇기(checkSourcesLink)·권리 표기(rightsProblem)
     used_in: 차시 그림
     paths: [public/images/lessons/**]
     exclude_paths: [public/images/lessons/**/third-party/**, public/images/lessons/supplement/**]
-  - name: 출판 편집 삽화
+  - name: 제3자 그림
     category: third_party
-    author: 출판사
+    author: 다른 저작자
     license: 원 권리자 보유
-    used_in: 삽화
-    rights: 이름표
-    paths: [public/images/lessons/*/third-party/publisher/**]
+    used_in: 그림
+    rights: 권리 문구
+    paths: [public/images/lessons/*/third-party/example-author/**]
     fetched: 2026-09-25
   - name: 사이트 그림
     category: self
@@ -318,21 +321,19 @@ describe('sources.yaml과 잇기(checkSourcesLink)·권리 표기(rightsProblem)
   it('원고 그림은 운영자 항목, 제3자 그림은 그 키 폴더를 덮는 third_party 항목에 이어져야 한다', () => {
     expect(registry.errors).toEqual([]);
     expect(checkSourcesLink('public/images/lessons/1-1-2/feature-zebra.webp', registry.entries)).toBeNull();
-    expect(checkSourcesLink('public/images/lessons/1-1-2/third-party/publisher/cnn.webp', registry.entries)).toBeNull();
+    expect(checkSourcesLink('public/images/lessons/1-1-2/third-party/example-author/cnn.webp', registry.entries)).toBeNull();
     const missing = checkSourcesLink('public/images/lessons/2-2-1/third-party/firuz-mukhtarov/clock.webp', registry.entries);
     expect(missing).toContain('category: third_party');
     expect(missing).toContain('public/images/lessons/*/third-party/firuz-mukhtarov/**');
     expect(checkSourcesLink('public/images/lessons/supplement/a.webp', registry.entries)).toContain('operator');
   });
 
-  it('출판 편집 삽화는 third_party: publisher를 요구하고, 스톡 그림은 결정 C11대로 쓰지 않는다', () => {
+  it('출판 편집 삽화는 운영자 자료(O10)라 제3자로 세지 않고, 스톡 그림은 결정 C11대로 쓰지 않는다', () => {
     const publisher = { id: 'placed MC0', publisher: true, info: { title: '인피컴_고1-1-1-05(삽)' } };
     const stock = { id: 'image 696', publisher: false, info: { creator: 'Visual Generation Inc.', rights: 'Copyright' } };
     const operator = { id: 'image 9', publisher: false, info: { creator: 'seok jeon kim' } };
     expect(rightsProblem([], undefined)).toBeNull();
-    expect(rightsProblem([publisher], undefined)).toContain('third_party: publisher');
-    expect(rightsProblem([publisher], 'publisher')).toBeNull();
-    expect(rightsProblem([publisher], 'visual-generation')).toContain('third_party: publisher');
+    expect(rightsProblem([publisher], undefined)).toBeNull();
     // 스톡(출판사가 아닌 권리자)은 third_party를 적어도 쓰지 않는다(C11)
     expect(rightsProblem([stock], undefined)).toContain('C11');
     expect(rightsProblem([stock], 'visual-generation')).toContain('C11');

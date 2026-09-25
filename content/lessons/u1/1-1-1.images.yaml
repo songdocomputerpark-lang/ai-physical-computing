@@ -5,7 +5,7 @@
 # 적는 법·칸 설명은 MAINTENANCE.md 3절. file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 # reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
 #
-# 기준 차시(P5-02, 2026-09-25)가 쓰는 원고 그림은 009쪽 표 속 출판 편집 삽화 3장뿐이에요(third_party: publisher — 운영자 할 일 13번 기본값).
+# 기준 차시(P5-02, 2026-09-25)가 쓰는 원고 그림은 009쪽 표 속 출판 편집 삽화 3장뿐이에요(운영자 결정 O10 — 운영자 자료라 third_party 없이 이 폴더에 바로 둬요).
 # 도구가 생기기 전에 손으로 꺼낸 옛 판(public/images/lessons/u1/1-1-1-*.webp)과 그 기록(scripts/image-allowlist.yaml)은 이 판으로 바꾸며 지웠어요.
 # 원고 010쪽 쇼핑 로봇 그림(Visual Generation Inc. 스톡)은 결정 C11(docs/DECISIONS.md)로 쓰지 않고, 사이트가 그린 S08
 # (public/images/lessons/1-1-1/rule-vs-learning.svg)로 대신해요. 011쪽 자율주행 자동차 그림(도구가 본 이름표 'Печать', 제작자 표기 없음 —
@@ -21,8 +21,7 @@ images:
       source: U1
       page: 9
       image: 18
-    third_party: publisher
-    file: public/images/lessons/1-1-1/third-party/publisher/recognition.webp
+    file: public/images/lessons/1-1-1/recognition.webp
     width: 415
     height: 415
     bytes: 12014
@@ -45,8 +44,7 @@ images:
       region: [260, 590, 396, 695]
       dpi: 288
     max_width: 420
-    third_party: publisher
-    file: public/images/lessons/1-1-1/third-party/publisher/learning.webp
+    file: public/images/lessons/1-1-1/learning.webp
     width: 420
     height: 324
     bytes: 9792
@@ -68,8 +66,7 @@ images:
       page: 9
       image: 20
     max_width: 420
-    third_party: publisher
-    file: public/images/lessons/1-1-1/third-party/publisher/reasoning.webp
+    file: public/images/lessons/1-1-1/reasoning.webp
     width: 420
     height: 416
     bytes: 17374

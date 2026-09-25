@@ -97,7 +97,8 @@ describe('차시 그림 폴더(public/images/lessons/)', () => {
   it('git이 추적하는 모든 차시 그림에 눈 확인 기록이 있다(PD-32)', () => {
     const images = execFileSync('git', ['ls-files', '-z', '--', 'public/images/lessons'], { encoding: 'utf8' })
       .split('\0')
-      .filter((file) => /\.(?:png|jpe?g|gif|webp|avif)$/iu.test(file));
+      // 작업 폴더에서 지웠거나 옮긴 뒤 아직 스테이징하지 않은 그림(옛 경로)은 볼 것이 없으니 뺀다(2026-09-25 Phase 5 통합).
+      .filter((file) => /\.(?:png|jpe?g|gif|webp|avif)$/iu.test(file) && fs.existsSync(file));
     expect(images.length).toBeGreaterThan(0);
     for (const image of images) {
       const review = imageReviews.get(image)?.reviewed;

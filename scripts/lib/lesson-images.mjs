@@ -9,6 +9,7 @@
 //     단원마다 같은 이름을 쓰는 차시(review)는 folder: u1-review처럼 "<단원 폴더>-<차시>"로 적는다.
 //   - 제3자 권리 그림(third_party: <키>)은 public/images/lessons/<폴더>/third-party/<키>/<name>.webp에 두고,
 //     sources.yaml의 category: third_party 항목이 public/images/lessons/*/third-party/<키>/** 로 그 폴더를 덮는다.
+//     출판 편집 삽화·컷(이름표 (삽)·(컷))은 운영자 결정 O10(2026-09-25)으로 운영자 자료라 third_party 없이 차시 그림 폴더에 바로 둔다.
 // ■ 옛 공용 기록 scripts/image-allowlist.yaml은 차시 밖 그림(사이트 화면 그림, 테스트 그림 등)과 도구 이전에 손으로 꺼낸 그림에 쓴다.
 // ■ 제외 쪽 scripts/image-exclusions.yaml(INVENTORY §6) — 목록에 적어도 꺼내지 않는다.
 //
@@ -460,7 +461,11 @@ function buildEntry(raw, index, errors) {
     errors.push(`${label}: lossless는 true 또는 false예요.`);
   }
   if (raw.third_party !== undefined && (typeof raw.third_party !== 'string' || !SLUG.test(raw.third_party))) {
-    errors.push(`${label}: third_party는 sources.yaml 제3자 항목의 폴더 키(영문 소문자·숫자·하이픈, 예: publisher)예요.`);
+    errors.push(`${label}: third_party는 sources.yaml 제3자 항목의 폴더 키(영문 소문자·숫자·하이픈)예요.`);
+  } else if (raw.third_party === 'publisher') {
+    errors.push(
+      `${label}: 출판 편집 삽화·컷은 운영자 결정 O10(2026-09-25, 할 일 13번 답)으로 운영자 자료예요. third_party: publisher를 빼고 차시 그림 폴더에 바로 둬요.`,
+    );
   }
   if (raw.privacy_override !== undefined && (typeof raw.privacy_override !== 'string' || [...raw.privacy_override.trim()].length < 10)) {
     errors.push(`${label}: privacy_override에는 제외 쪽에서 무엇을 잘라 냈는지 한 문장으로 적어요.`);
@@ -669,34 +674,26 @@ function isOperatorCreator(info) {
 
 /**
  * 원본 그림의 권리 표기(도구가 알려 준 rights 목록)로 그 그림을 쓸 수 있는지, third_party가 필요한지 본다.
- * - 출판 편집 삽화·컷(이름표 "…(삽)"·"…(컷)") → third_party: publisher(운영자 할 일 13번 기본값)
+ * - 출판 편집 삽화·컷(이름표 "…(삽)"·"…(컷)") → 운영자 자료(결정 O10, 2026-09-25 — 운영자 할 일 13번 답 "다 넣어도 됨").
+ *   third_party 없이 차시 그림 폴더에 두고, 도구는 checks.rights에 "출판 편집 삽화"를 기록으로만 남긴다.
  * - 출판사가 아닌 제3자(스톡 작가·판매 사이트) 표기 → 쓰지 않는다(결정 C11, docs/DECISIONS.md). 스톡 사용권은 출판사가 교과서용으로
  *   산 것이라 웹사이트로 넘어오지 않는다. C11이 거둬지면(운영자가 웹 사용 라이선스를 알려 주면) 이 규칙을 되돌린다.
  * - 제작자가 운영자 자신이면 제3자가 아니다.
  * @param {{ info: Record<string, string>, publisher: boolean, id: string }[]} hits
- * @param {string | undefined} thirdParty
+ * @param {string | undefined} _thirdParty 목록의 third_party(지금은 판정에 쓰지 않는다 — 출판 편집 삽화도 운영자 자료, O10)
  * @returns {string | null}
  */
-export function rightsProblem(hits, thirdParty) {
-  const others = hits.filter((hit) => hit.publisher || !isOperatorCreator(hit.info));
-  if (others.length === 0) {
+export function rightsProblem(hits, _thirdParty) {
+  // 출판 편집 삽화·컷은 O10으로 운영자 자료다 — 제3자로 세지 않는다. 남는 것은 스톡(출판사가 아닌 권리자) 표기뿐이다.
+  const stock = hits.filter((hit) => !hit.publisher && !isOperatorCreator(hit.info));
+  if (stock.length === 0) {
     return null;
   }
-  const describe = (/** @type {typeof hits} */ list) =>
-    list
-      .map((hit) => (hit.publisher ? `출판 편집 삽화(이름표 ${hit.info.title})` : `제작자 ${hit.info.creator ?? '(없음)'}, 권리 문구 ${hit.info.rights ?? '(없음)'}`))
-      .join(' / ');
-  const stock = others.filter((hit) => !hit.publisher);
-  if (stock.length > 0) {
-    return (
-      `원본 그림에 출판사가 아닌 권리자의 표기가 있어요(${describe(stock)}). 결정 C11(docs/DECISIONS.md) — 스톡 그림은 사이트에 쓰지 않아요. ` +
-      '사이트가 그린 SVG로 바꾸거나 빼요(스톡 그림이 영역 가장자리에 조금 걸린 것이면 region을 좁혀요).'
-    );
-  }
-  if (thirdParty !== 'publisher') {
-    return `원본 그림이 출판 편집 삽화·컷이에요(${describe(others)}). third_party: publisher를 적어요(운영자 할 일 13번 기본값, PLAN §9.2).`;
-  }
-  return null;
+  const describe = stock.map((hit) => `제작자 ${hit.info.creator ?? '(없음)'}, 권리 문구 ${hit.info.rights ?? '(없음)'}`).join(' / ');
+  return (
+    `원본 그림에 출판사가 아닌 권리자의 표기가 있어요(${describe}). 결정 C11(docs/DECISIONS.md) — 스톡 그림은 사이트에 쓰지 않아요. ` +
+    '사이트가 그린 SVG로 바꾸거나 빼요(스톡 그림이 영역 가장자리에 조금 걸린 것이면 region을 좁혀요).'
+  );
 }
 
 // ─────────────────────────────── 그림 파일의 메타데이터 ───────────────────────────────

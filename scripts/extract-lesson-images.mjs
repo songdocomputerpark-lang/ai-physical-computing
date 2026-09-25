@@ -114,7 +114,7 @@ function runShow() {
   for (const item of result.rights ?? []) {
     const info = item.info ?? {};
     console.log(
-      `  권리 표기 자리 [${item.bbox.join(', ')}]: ${item.publisher ? `출판 편집 삽화(이름표 ${info.title}) → third_party: publisher` : `제작자 ${info.creator ?? '-'}, 권리 문구 ${info.rights ?? '-'}, 제목 ${info.title ?? '-'}${info.web ? `, ${info.web}` : ''} → third_party`}`,
+      `  권리 표기 자리 [${item.bbox.join(', ')}]: ${item.publisher ? `출판 편집 삽화(이름표 ${info.title}) → 운영자 자료(O10) — third_party 없이 써요` : `제작자 ${info.creator ?? '-'}, 권리 문구 ${info.rights ?? '-'}, 제목 ${info.title ?? '-'}${info.web ? `, ${info.web}` : ''} → 스톡이면 쓰지 않아요(C11)`}`,
     );
   }
 }
