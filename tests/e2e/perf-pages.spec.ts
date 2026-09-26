@@ -10,6 +10,12 @@
 //     (레이아웃 이동 0). 차시 번호(미해결 174, 두 화면 크기): 좁은 표 칸의 "2-1-3"·"2-1-R"이 한 줄에 있다.
 //
 // 결과: 콘솔 표 + 테스트 첨부(perf-pages-heavy.json). 보고서는 .cache/phase6-notes/zone-a-perf.md.
+//
+// 흔들림 고침(2026-09-26 Phase 6 검토 — PROGRESS 미해결 208): CI에서 쪽마다 새로 연 문맥의 context.close()가 5분 제한을 넘기고(1회차),
+// 긍정 대조가 180초 동안 Pyodide·CodeMirror를 못 알아봤다(2회차). 둘 다 **서비스 워커가 맡은 요청**의 몸통 읽기가 끝나지 않아 생긴 것으로
+// 보고(요청 몸통 읽기를 기다리는 동안 settle()·close()가 붙잡힘), ① 이 묶음의 문맥은 서비스 워커를 막고(서비스 워커를 막아도 페이지·워커의
+// 요청은 모두 보인다 — jsDelivr의 pyodide.mjs·휠까지, 2026-09-26 실사이트로 확인) ② 서비스 워커가 설치 때 스스로 받는 목록(사전 캐시)은
+// sw.js를 읽어 따로 보며 ③ 몸통 읽기와 문맥 닫기에 제한 시간을 두고 ④ 긍정 대조가 실패하면 받은 요청 목록을 메시지에 적는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Browser, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
@@ -37,7 +43,22 @@ interface RequestRecord {
   readonly library: string | null;
 }
 
-/** 문맥이 받은 요청(페이지·서비스 워커)을 모으고, 스크립트는 본문 표식까지 본다 */
+/** 몸통·크기 읽기가 끝나지 않아도 검사가 붙잡히지 않게 제한 시간을 둔다(넘으면 fallback) */
+function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([promise.catch(() => fallback), new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))]);
+}
+
+/** 이 묶음이 여는 문맥: 서비스 워커를 막는다(머리말 "흔들림 고침" ①) */
+function newMeasureContext(browser: Browser, baseURL: string | undefined): Promise<BrowserContext> {
+  return browser.newContext({ baseURL, viewport: { width: 1366, height: 768 }, locale: 'ko-KR', serviceWorkers: 'block' });
+}
+
+/** 문맥 닫기 — 30초 안에 닫히지 않으면 기다리지 않고 다음으로 간다(브라우저를 끝낼 때 함께 닫힌다) */
+async function closeQuietly(context: BrowserContext): Promise<void> {
+  await within(context.close(), 30_000, undefined);
+}
+
+/** 문맥이 받은 요청(페이지·워커)을 모으고, 스크립트는 본문 표식까지 본다 */
 function trackRequests(context: BrowserContext): { records: RequestRecord[]; settle(): Promise<void> } {
   const records: RequestRecord[] = [];
   const pending: Promise<void>[] = [];
@@ -48,12 +69,12 @@ function trackRequests(context: BrowserContext): { records: RequestRecord[]; set
     }
     pending.push(
       (async () => {
-        const sizes = await request.sizes().catch(() => null);
-        const response = await request.response().catch(() => null);
-        const contentType = (await response?.headerValue('content-type').catch(() => null)) ?? '';
+        const sizes = await within(request.sizes(), 15_000, null);
+        const response = await within(request.response(), 15_000, null);
+        const contentType = (response ? await within(response.headerValue('content-type'), 5_000, null) : null) ?? '';
         let body: string | null = null;
         if (/javascript|ecmascript/u.test(contentType) || /\.(?:m?js|ts)(?:[?#]|$)/u.test(url)) {
-          body = (await response?.text().catch(() => null)) ?? null;
+          body = response ? await within(response.text(), 15_000, null) : null;
         }
         records.push({
           url,
@@ -101,7 +122,7 @@ function attachJson(testInfo: TestInfo, name: string, value: unknown): Promise<v
 
 /** 쪽 하나를 새 브라우저 문맥으로 열어 끝까지 내리고, 받은 요청을 돌려준다 */
 async function visitAndCollect(browser: Browser, baseURL: string, target: PerfPage): Promise<{ records: RequestRecord[]; status: number | null }> {
-  const context = await browser.newContext({ baseURL, viewport: { width: 1366, height: 768 }, locale: 'ko-KR' });
+  const context = await newMeasureContext(browser, baseURL);
   await freezeDevReloads(context);
   const tracker = trackRequests(context);
   const page = await context.newPage();
@@ -116,9 +137,9 @@ async function visitAndCollect(browser: Browser, baseURL: string, target: PerfPa
   });
   await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => undefined);
   await page.waitForTimeout(800);
-  await tracker.settle();
+  await within(tracker.settle(), 45_000, undefined);
   const records = [...tracker.records];
-  await context.close();
+  await closeQuietly(context);
   return { records, status: response?.status() ?? null };
 }
 
@@ -151,45 +172,77 @@ test.describe('무거운 라이브러리는 실습실에서만(P6-02)', () => {
   });
 
   test('알아보는 규칙이 살아 있다: 영상처리 실습실에서는 Pyodide·CodeMirror를 알아본다(긍정 대조)', async ({ browser, baseURL }) => {
-    const context = await browser.newContext({ baseURL, viewport: { width: 1366, height: 768 }, locale: 'ko-KR' });
+    const context = await newMeasureContext(browser, baseURL);
     await freezeDevReloads(context);
     const tracker = trackRequests(context);
     const page = await context.newPage();
     await page.goto(withBase('labs/vision/'));
     await expect(labRoot(page)).toHaveAttribute('data-lab-modules', /\bloading\b/u, { timeout: 120_000 });
-    await expect
-      .poll(
-        async () => {
-          await tracker.settle();
-          return [...new Set(tracker.records.map((record) => record.library).filter((id): id is string => id !== null))].sort();
-        },
-        { timeout: 180_000, intervals: [1000] },
-      )
-      .toEqual(expect.arrayContaining(['codemirror', 'pyodide']));
-    await context.close();
+    const seen = async () => {
+      await within(tracker.settle(), 20_000, undefined);
+      return [...new Set(tracker.records.map((record) => record.library).filter((id): id is string => id !== null))].sort();
+    };
+    let libraries: string[] = [];
+    for (const deadline = Date.now() + 180_000; Date.now() < deadline; ) {
+      libraries = await seen();
+      if (libraries.includes('codemirror') && libraries.includes('pyodide')) {
+        break;
+      }
+      await page.waitForTimeout(1000);
+    }
+    // 실패하면 무엇을 받았는지(주소)를 함께 적는다 — 원인을 로그만으로 알 수 있게(머리말 "흔들림 고침" ④)
+    const received = tracker.records.map((record) => `${record.library ?? '-'} ${record.url}`);
+    expect(libraries, `영상처리 실습실에서 Pyodide·CodeMirror를 알아보지 못했어요. 받은 요청 ${received.length}건(마지막 40건): ${received.slice(-40).join(' | ')}`).toEqual(
+      expect.arrayContaining(['codemirror', 'pyodide']),
+    );
+    await closeQuietly(context);
   });
 
   test('알아보는 규칙이 살아 있다: ESP32 실습실에서 [블록]을 누르면 Blockly를 알아본다(긍정 대조, perf 무리)', async ({ browser, baseURL }) => {
     test.skip(!IS_PERF_GROUP, 'npm run perf:measure에서만(Blockly 0.8MB를 받는다)');
-    const context = await browser.newContext({ baseURL, viewport: { width: 1366, height: 768 }, locale: 'ko-KR' });
+    const context = await newMeasureContext(browser, baseURL);
     await freezeDevReloads(context);
     const tracker = trackRequests(context);
     const page = await context.newPage();
     await page.goto(withBase('labs/esp32/'));
     await expect(labRoot(page)).toHaveAttribute('data-lab-modules', /\bblocks\b/u, { timeout: 120_000 });
-    await tracker.settle();
+    await within(tracker.settle(), 20_000, undefined);
     expect(tracker.records.some((record) => record.library === 'blockly'), '[블록]을 누르기 전에는 Blockly를 받지 않는다').toBe(false);
     await page.getByRole('button', { name: '블록', exact: true }).first().click();
     await expect
       .poll(
         async () => {
-          await tracker.settle();
+          await within(tracker.settle(), 20_000, undefined);
           return tracker.records.some((record) => record.library === 'blockly');
         },
         { timeout: 120_000, intervals: [1000] },
       )
       .toBe(true);
-    await context.close();
+    await closeQuietly(context);
+  });
+
+  test('서비스 워커가 설치할 때 스스로 받는 목록(사전 캐시)에도 무거운 라이브러리가 없다', async ({ request }) => {
+    // 위 검사들은 서비스 워커를 막고 재므로, 서비스 워커가 설치 때 받는 셸 목록은 sw.js를 읽어 따로 본다(머리말 "흔들림 고침" ②).
+    const response = await request.get(withBase('sw.js'), { failOnStatusCode: false });
+    const text = response.ok() ? await response.text() : '';
+    test.skip(!text.includes('apc-precache'), '개발 서버에는 sw.js가 없어요(빌드 뒤에 만들어져요).');
+    const match = /"precache":(\[[^\]]*\])/u.exec(text);
+    expect(match, 'sw.js 설정에 사전 캐시 목록이 있다').not.toBeNull();
+    const entries = JSON.parse(match?.[1] ?? '[]') as { url: string }[];
+    expect(entries.length).toBeGreaterThan(0);
+    const heavy: string[] = [];
+    for (const entry of entries) {
+      let body: string | null = null;
+      if (/\.m?js(?:[?#]|$)/u.test(entry.url)) {
+        body = await (await request.get(entry.url)).text();
+      }
+      const library = heavyLibraryOf(entry.url, body);
+      if (library !== null) {
+        heavy.push(`${library}: ${entry.url}`);
+      }
+    }
+    console.log(`[무거운 라이브러리] 서비스 워커 사전 캐시 ${entries.length}개 — 무거운 라이브러리 ${heavy.length}건`);
+    expect(heavy).toEqual([]);
   });
 });
 
