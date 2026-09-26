@@ -2221,3 +2221,14 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-18
+
+  # ── HW 라이브러리 zip의 버저 라이브러리(f008) — 이관 도구 항목으로 두지 않은 사이트판(Phase 6 구역 F, PROGRESS 미해결 175, 2026-09-26) ──
+  # 보드 라이브러리 examples/esp32/lib/third-party/buzzer.py(사이드카 buzzer.meta.yaml)는 원본 buzzer.py(hw zip 멤버 buzzer.py — 163줄·CRLF·끝 줄바꿈 없음,
+  # SHA-256 eab4ac1d59d0f366df6365b9ac7a058e4bac72063b507f8d2a61f64e465d9d71)에서 게임 음악 선율 목록 mario(원본 128~141번 줄 — 설명 주석 2줄과 목록 12줄)를
+  # 지우고 그 자리에 "[사이트판] 게임 음악 선율 데이터 제외" 주석 한 줄을 둔 판이에요(PLAN §6.5 — 원작 게임 음악을 다시 나눠 주지 않음, 원본은 비공개 자료 저장소에만).
+  # 이 도구는 줄 끝만 바꾸고(PD-10) 원본 앞에 고지만 붙일 수 있어서(notice) 줄을 뺄 수 없어요 — 그래서 목록 항목(examples:verify 대상)이 아니라
+  # i2c_lcd.py·esp32_ble_util.py·gorillacell_dcmotors.py처럼 사이트판 파일로 두고, 머리말 주석 13줄이 바꾼 곳 두 가지(mario 목록 빼기, 끝 줄바꿈 더하기)와 출처를 밝혀요.
+  # 만든 날 대조(운영자 PC의 원본 zip을 읽기만): 머리말을 뗀 본문 150줄 = 원본 163줄 − 지운 14줄 + 표시 1줄이고 나머지 줄은 원본과 글자까지 같음,
+  # 파이썬 ast.parse 통과, 사이트판 4,912바이트·LF·SHA-256 d3b15122ec5c85616eb9dc1f634f8cfe0bd9ad0e7b81e413f0b5048805faf438(tests/unit/board-pwm/buzzer-library.test.ts가 지킴).
+  # 원본이 바뀌면 같은 규칙으로 다시 만들고 이 기록과 그 테스트의 값을 함께 고쳐요. 교과서 157쪽 화면의 라이브러리 확인 코드는 원본 코드 묶음에 파일이 없어
+  # 사이트가 화면 그대로 옮겼어요(examples/esp32/u2/2-2-1-buzzer-library.py, 사이드카에 쪽·차시·배선).

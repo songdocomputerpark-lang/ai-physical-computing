@@ -12,6 +12,8 @@
  * 이 파일이 하는 일
  *  1. 두 번째 실습실 안의 **겹친 id**를 푼다(dom.ts — 두 실습실에 함께 붙는 모듈 패널의 고정 id).
  *  2. 주소의 공유 링크·?example=을 맞는 칸에 넣는다(address.ts — index.astro 인라인 스크립트가 틀보다 먼저 맡겨 둔 값).
+ *     ?pair=<짝 이름>이면 두 칸에 그 짝 예제를 함께 불러온다(examples.ts findPairView — 차시 따라하기 링크, 2026-09-26 PROGRESS 미해결 179).
+ *     여럿이 함께 오면 짝을 먼저 불러오고, 그 뒤 공유 링크·?example=이 전과 같은 차례로 제 칸만 덮는다(더 좁게 고른 값이 이긴다).
  *  3. 가상 데스크톱 논리 해상도를 **3840×2160**으로 맞춘다(PD-22 — 4-2 보드 코드가 `map(x, 0, 3840, …)`을 쓴다). 가상 데스크톱 칸의
  *     해상도 선택 상자를 고르는 방식이라 모듈을 고치지 않고, 그 모듈이 기억하는 값은 되돌려 둔다(config.ts DESKTOP_SCREEN_STORAGE_NAME).
  *     한 번만 맞춘다 — 그 뒤 학생이 고른 값은 그대로 둔다([기록 지우기] 뒤에는 다시 맞춘다).
@@ -46,6 +48,7 @@ import {
   UNIT4_SCREEN_VALUE,
 } from './config.ts';
 import { dedupeIdsWithin } from './dom.ts';
+import { findPairView, pairViews } from './examples.ts';
 import {
   FrameMeter,
   LongTaskMeter,
@@ -92,6 +95,7 @@ export const UNIT4_TEXT = Object.freeze({
   busy: '지금은 바꿀 수 없어요. 먼저 [함께 정지]를 눌러 두 칸을 멈춰요.',
   pcRunning: '컴퓨터 칸이 이미 돌고 있어요. [함께 정지]를 누른 뒤 [함께 실행]을 눌러요.',
   noDesktop: '가상 모니터 칸은 컴퓨터 칸의 코드가 pyautogui를 쓸 때 열려요.',
+  pairMissing: '링크에 적힌 짝 예제를 이 화면에서 찾지 못했어요. 아래 [짝 예제 바꾸기]에서 골라요.',
   realBoardTarget:
     '보드 칸이 [실제 보드]로 되어 있어요. 이 화면의 컴퓨터 코드는 같은 화면의 가상 보드와만 이어져요 — 보드 칸 입력·출력 위에서 [가상 보드]를 골라요.',
 });
@@ -561,12 +565,32 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   // ── 주소의 공유 링크·?example=을 맞는 칸에 ──
 
   const labOf = (side: Unit4Side): LabController => (side === 'board' ? board : pc);
+  /** 주소로 짝을 불러왔을 때 상태 글에 남길 안내(페이지 준비가 끝날 때 setPhase가 그린다) */
+  let addressNotice: string | null = null;
   const applyAddress = () => {
     const stash = takeAddressStash(window as unknown as Record<string, unknown>);
     if (!stash) {
       return;
     }
     const placed: string[] = [];
+    if (stash.pair !== undefined) {
+      // ?pair=: 두 칸에 짝 예제를 함께(두 목록에 모두 있는 짝만 — 화면의 [이 짝 불러오기]와 같은 목록)
+      const pcIds = new Set(pc.examples.map((example) => example.id));
+      const boardIds = new Set(board.examples.map((example) => example.id));
+      const view = findPairView(stash.pair, pairViews(pcIds, boardIds).views);
+      const pcOk = view ? pc.loadExample(view.pcId) : false;
+      const boardOk = view ? board.loadExample(view.boardId) : false;
+      if (view && pcOk && boardOk) {
+        addressNotice = `링크의 짝 예제를 두 칸에 불러왔어요: "${view.label}". [함께 실행]을 눌러요.`;
+        if (elements.pairStatus) {
+          elements.pairStatus.textContent = addressNotice;
+        }
+        placed.push(`pair:${view.id}`);
+      } else {
+        addressNotice = UNIT4_TEXT.pairMissing;
+        placed.push('pair:missing');
+      }
+    }
     if (stash.hash !== undefined) {
       const share = parseShareHash(stash.hash);
       const pcIds = new Set(pc.examples.map((example) => example.id));
@@ -797,7 +821,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     );
   });
 
-  setPhase('idle');
+  setPhase('idle', addressNotice);
   root.dataset.unit4Samples = '0';
   root.dataset.unit4Ready = 'yes';
 

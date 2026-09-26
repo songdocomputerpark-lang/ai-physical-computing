@@ -146,7 +146,13 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
   it('교과서 f060(원본 그대로): 빨강 핀 27의 duty가 0부터 1023까지 한 칸씩 올라 100%에 닿는다(가상 시계로 약 1초에 한 번)', () => {
     const record = stepOf(out, 'textbook_f060_fade');
     expect(record.errorType).toBe('KeyboardInterrupt');
-    const duties = pinTrail(record.events, 27).map((pin) => pin.duty as number);
+    /*
+     * 원본은 PWM(Pin(27))(기본 duty 50%)을 만든 뒤 r.duty(0)을 부른다. 두 줄 사이가 16ms를 넘으면(컴퓨터가 바쁠 때 — 2026-09-26 구역 F가
+     * 다른 구역의 브라우저 검사와 함께 돌려 두 번 재현, HEAD판도 같음) 50% 상태가 따로 한 번 보내져 "첫 오름 구간"이 0.5에서 끊겼다.
+     * 오름·내림은 r.duty(0) 뒤부터 본다(흉내가 틀린 것이 아니라 병합 창에 걸린 시작 상태다).
+     */
+    const trail = pinTrail(record.events, 27).map((pin) => pin.duty as number);
+    const duties = trail.slice(Math.max(0, trail.indexOf(0)));
     /*
      * board.state는 16ms 안의 변화를 합쳐 보내므로(P3-11 apc_board.wait_ns) 값이 한 칸씩 다 오지는 않는다 —
      * "줄지 않고 올라가 100%에 거의 닿은 뒤 내려간다"와 "한 칸이 1/1024"만 본다.
@@ -173,7 +179,11 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
      */
     const after = duties.slice(top + 1);
     expect(after.length === 0 || after.some((duty) => duty < peak)).toBe(true);
-    expect(pinTrail(record.events, 32).every((pin) => pin.duty === 0 && pin.freq === 5000)).toBe(true);
+    // 초록(32)도 g.duty(0) 뒤로는 늘 0%(기본 50%는 위와 같은 까닭으로 앞에 한 번 보일 수 있다)
+    const green = pinTrail(record.events, 32);
+    const greenFrom = green.findIndex((pin) => pin.duty === 0);
+    expect(greenFrom).toBeGreaterThanOrEqual(0);
+    expect(green.slice(greenFrom).every((pin) => pin.duty === 0 && pin.freq === 5000)).toBe(true);
   });
 
   it('교과서 f068(원본 그대로): 버저 핀 15가 262·294·330·349·392·440·494·523Hz를 50%로 내고 deinit으로 끝난다', () => {

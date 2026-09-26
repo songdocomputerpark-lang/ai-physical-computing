@@ -709,9 +709,20 @@ function drawDialog(ctx: CanvasRenderingContext2D, model: DesktopModel): void {
     ctx.strokeStyle = COLORS.border;
     ctx.lineWidth = 1.5 * s;
     ctx.stroke();
-    ctx.fillStyle = COLORS.text;
     ctx.font = `${24 * s}px ${MONO_FONT}`;
-    ctx.fillText(`${dialog.fileName}|`, field.x + 14 * s, field.y + 10 * s);
+    const textX = field.x + 14 * s;
+    const textY = field.y + 10 * s;
+    if (dialog.selected && dialog.fileName !== '') {
+      // 골라 둔 이름(진짜 Windows 저장 창처럼 파란 바탕에 흰 글자) — 바로 치면 새 이름으로 바뀐다(미해결 178)
+      const width = ctx.measureText(dialog.fileName).width;
+      ctx.fillStyle = COLORS.accent;
+      ctx.fillRect(textX - 3 * s, field.y + 7 * s, width + 6 * s, field.height - 14 * s);
+      ctx.fillStyle = COLORS.white;
+      ctx.fillText(dialog.fileName, textX, textY);
+    } else {
+      ctx.fillStyle = COLORS.text;
+      ctx.fillText(`${dialog.fileName}|`, textX, textY);
+    }
   } else if (dialog.kind === 'run') {
     ctx.fillText('열 프로그램 이름(notepad, mspaint):', box.x + 32 * s, box.y + 80 * s);
     const field: Rect = { x: box.x + 32 * s, y: box.y + 118 * s, width: box.width - 64 * s, height: 48 * s };

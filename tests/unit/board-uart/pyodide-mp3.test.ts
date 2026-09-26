@@ -100,6 +100,36 @@ describe.skipIf(!boardPyodideReady)('가상 MP3 모듈(실제 Pyodide, JSPI)', (
     expect(value[9]).toEqual(['stopped', 2, 2, 30, 'one', 4]);
   });
 
+  it('긴 sleep 안의 곡 끝: time.sleep(5) 안에서도 3.6초 곡이 끝나는 가상 시각에 멈추고, 잔 양(5초)과 곡 끝 응답(0x3D)은 그대로다(미해결 177)', () => {
+    const record = stepOf(out, 'mp3_song_end_in_long_sleep');
+    expect(record.errorType).toBeUndefined();
+    const [gap, insideSleep, slept, reply, status, pointer, stops] = record.value as [number, boolean, number, number[] | null, string, number, number];
+    // 재생을 시작한 가상 시각에서 곡 길이(3600ms)만큼 뒤에 멈춘다 — sleep(5)가 끝나기 전에
+    expect(gap).toBeGreaterThanOrEqual(3600);
+    expect(gap).toBeLessThanOrEqual(3605);
+    expect(insideSleep).toBe(true);
+    expect(slept).toBeGreaterThanOrEqual(5000);
+    expect(slept).toBeLessThanOrEqual(5002);
+    expect(reply).toEqual([0x7e, 0xff, 0x06, 0x3d, 0x00, 0x00, 0x01, 0xfe, 0xbd, 0xef]);
+    expect([status, pointer, stops]).toEqual(['stopped', 2, 1]);
+    // 화면에도 sleep 도중에 '멈춤'이 간다(마지막 상태)
+    expect(deviceStates<Mp3State>(record, 'mp3').at(-1)).toMatchObject({ status: 'stopped', track: 1 });
+  });
+
+  it('가상 시각 알람 규약: 알려 준 시각에 sleep이 끊겨 다시 불리고, 지난 시각은 잠을 끊지 않으며, 훅 오류는 한 번만 알리고 코드는 계속 돈다', () => {
+    const record = stepOf(out, 'wake_hook_contract');
+    expect(record.errorType).toBeUndefined();
+    const [calls, late, total, badCalled, fewPastCalls] = record.value as [number, number | null, boolean, boolean, boolean];
+    expect(calls).toBe(1);
+    expect(late).not.toBeNull();
+    expect(late).toBeGreaterThanOrEqual(0);
+    expect(late).toBeLessThanOrEqual(2);
+    expect(total).toBe(true);
+    expect(badCalled).toBe(true);
+    expect(fewPastCalls).toBe(true);
+    expect(record.notices.filter((text) => text.includes('가상 부품의 시간 처리에서 오류가 났어요'))).toHaveLength(1);
+  });
+
   it('보드 UART가 9600bps가 아니면 모듈이 알아듣지 못하고 까닭(baud)을 남긴다', () => {
     const record = stepOf(out, 'mp3_wrong_baud');
     expect(record.errorType).toBeUndefined();

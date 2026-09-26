@@ -1,0 +1,11 @@
+# 예제 설명(사이드카). 코드 파일 맨 앞의 [사이트판] 주석이 원본과 다른 곳을 밝혀요 — 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 이 파일은 Phase 6 구역 F(PROGRESS 미해결 175)가 만들었어요(이관 도구가 만든 사이드카가 아니에요 — 원본에서 게임 음악 선율 목록을
+# 빼야 해서 이관 도구로 그대로 옮기지 않았어요. 만든 방법과 대조 기록은 scripts/examples-manifest.yaml의 f008 주석).
+title: "보드 라이브러리: buzzer.py(버저 음 이름과 연주)"
+description: "음 이름(C4 = 262 등)과 멜로디 목록(jingle, twinkle), BUZZER 클래스의 play()·tone()을 담은 버저 라이브러리예요. 교과서 156~157쪽처럼 from buzzer import *로 불러 BUZZER(15)로 버저를 정하고 play(jingle, 100)으로 연주해요. 원본에서 게임 음악 선율 목록(mario)만 뺀 사이트판이에요. 가상 보드는 /board/lib/에, 실물 보드는 [보드에 저장]·[실제 보드] 실행 때 사이트가 함께 올려요."
+source_id: f008
+tags:
+  - 버저
+  - PWM
+  - 라이브러리
+packages: []

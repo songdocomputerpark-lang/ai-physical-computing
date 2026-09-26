@@ -11,9 +11,9 @@
 // f058(4채널 터치 + OLED + RGB LED)은 OLED(구역 B 부품 폴더 oled-i2c)가 있을 때만 끝까지 돌려 본다(없으면 배선도까지).
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
-import { LOAD_TIMEOUT, labRoot, runCode, waitDone } from './helpers/lab.ts';
+import { LOAD_TIMEOUT, labRoot, runCode, setEditorCode, waitDone } from './helpers/lab.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
 /** 병렬 제작(2026-09-18): OLED 부품(구역 B)이 작업 폴더에 있는지 */
@@ -33,6 +33,22 @@ function consoleBox(page: Page) {
 
 async function consoleText(page: Page): Promise<string> {
   return (await consoleBox(page).textContent()) ?? '';
+}
+
+/**
+ * 부품이 스크립트로 돌리는 움직임(element.animate()가 만든 Animation — 떨림·회전·깜빡임) 수. 두 화면 갱신을 기다린 뒤,
+ * CSS가 만든 애니메이션(CSSTransition·CSSAnimation)은 빼고 센다.
+ * 왜(PROGRESS 미해결 182 — 2026-09-26 구역 F 재현): 움직임 줄이기 규칙(src/styles/global.css)은 모든 요소에 transition-duration 0.01ms를 둔다.
+ * 그래서 부품 그림의 SVG 속성이 바뀌면(예: 진동 모터 떨림 표시 곡선 `<g opacity>`) 다음 스타일 계산에서 0.01ms짜리 CSS 전환이 생긴다.
+ * getAnimations()는 스스로 스타일을 계산하므로, 바뀐 뒤 화면 갱신이 한 번도 없었으면(컴퓨터가 바쁠 때) 그 전환이 running으로 목록에 잡힌다 —
+ * CDP로 CPU를 4배 느리게 한 Edge에서 4번 가운데 1번 `CSSTransition opacity`(떨림 곡선 g)를 재현했고, 두 화면 갱신 뒤에는 늘 0이었다.
+ * 그림의 움직임은 모두 Web Animations라 이 수가 "움직이는지"다(움직임 줄이기면 0, 아니면 켜진 부품마다 1).
+ */
+async function scriptedAnimationCount(target: Locator, subtree = true): Promise<number> {
+  return target.evaluate(async (element, deep) => {
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return element.getAnimations({ subtree: deep }).filter((animation) => !(animation instanceof CSSTransition) && !(animation instanceof CSSAnimation)).length;
+  }, subtree);
 }
 
 /**
@@ -129,6 +145,106 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
     await stop(page);
     await expect(laser).toHaveAttribute('data-visual-lit', 'false');
     expect(await consoleText(page)).not.toContain('Traceback');
+    expect(errors).toEqual([]);
+  });
+
+  test('RGB LED 색 이름은 켜진 비율로 — 2-1-4 도전 과제 2 무지개(PWM)의 주황·노랑·보라가 제 이름으로 보인다(미해결 176)', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    // 배선(RGB 27·32·33)은 이 예제의 것을 그대로 쓰고, 편집칸에 도전 과제 2 풀이(set_color = 0~255 값 × 4 → duty)를 넣는다
+    await openExample(page, 'esp32/u2/2-1-4-rgb-pwm-fade.py');
+    await setEditorCode(
+      page,
+      [
+        'from machine import Pin, PWM',
+        'from time import sleep',
+        '',
+        'r = PWM(Pin(27), freq=1000)',
+        'g = PWM(Pin(32), freq=1000)',
+        'b = PWM(Pin(33), freq=1000)',
+        '',
+        'def set_color(r_val, g_val, b_val):',
+        '    r.duty(r_val * 4)',
+        '    g.duty(g_val * 4)',
+        '    b.duty(b_val * 4)',
+        '',
+        'rainbow = [(255, 0, 0), (255, 94, 0), (255, 228, 0), (0, 255, 0), (0, 0, 255), (0, 0, 75), (95, 0, 255)]',
+        'for color in rainbow:',
+        '    set_color(*color)',
+        '    print(color)',
+        '    sleep(0.8)',
+        'set_color(0, 0, 0)',
+      ].join('\n'),
+    );
+    // 편집칸 코드를 바꾸면 보드가 배선도를 다시 그려(# @part 다시 읽기) 부품 요소가 새로 생긴다 — 요소 하나 대신 보드 칸 전체를 지켜보며
+    // RGB LED의 색 이름과 화면 낭독기 글(세기 비율)이 바뀌는 차례를 모은다(0.8초짜리 색을 expect 폴링 사이에 놓치지 않게)
+    const key = `__zoneF_rgb_${Math.random().toString(36).slice(2)}`;
+    await board(page).evaluate((host, storeKey) => {
+      const values: { name: string; label: string }[] = [];
+      (window as unknown as Record<string, unknown>)[storeKey] = values;
+      new MutationObserver((records) => {
+        for (const record of records) {
+          const target = record.target as Element;
+          if (target.getAttribute('data-board-part') !== 'rgb-led') {
+            continue;
+          }
+          const name = String(target.getAttribute('data-visual-name'));
+          const label = String(target.getAttribute('aria-label'));
+          const last = values[values.length - 1];
+          if (!last || last.name !== name || last.label !== label) {
+            values.push({ name, label });
+          }
+        }
+      }).observe(host, { subtree: true, attributes: true, attributeFilter: ['data-visual-name', 'aria-label'] });
+    }, key);
+    await run(page);
+    expect(await waitDone(page, 60_000)).toBe('ok');
+    const changes = await page.evaluate(
+      (storeKey) => [...(((window as unknown as Record<string, unknown>)[storeKey] as { name: string; label: string }[] | undefined) ?? [])],
+      key,
+    );
+    // 한 색에서 다음 색으로 바뀌는 사이(세 핀을 차례로 바꾸는 순간)의 이름이 끼어들 수 있으니 차례만 본다
+    const seen = changes.map((change) => change.name).filter((name, index, all) => index === 0 || name !== all[index - 1]);
+    const wanted = ['빨강', '주황', '노랑', '초록', '파랑', '보라', '꺼짐'];
+    let at = 0;
+    for (const name of seen) {
+      if (name === wanted[at]) {
+        at += 1;
+      }
+    }
+    expect(at, `색 이름 차례: ${seen.join(' → ')}`).toBe(wanted.length);
+    // 주황일 때 화면 낭독기 글의 세기 비율 — 교사용 안내(2-1-4)의 "빨강 100% · 초록 37%"
+    expect(changes.filter((change) => change.name === '주황').map((change) => change.label).join(' / ')).toContain('주황 — 빨강 100% · 초록 37% · 파랑 0%');
+    await expect(consoleBox(page)).toContainText('(0, 0, 75)');
+    expect(errors).toEqual([]);
+  });
+
+  test('버저 라이브러리(교과서 156~157쪽 흐름): from buzzer import * → BUZZER(15) → play(jingle, 100)이 가상 보드에서 징글벨로 울린다(미해결 175)', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openExample(page, 'esp32/u2/2-2-1-buzzer-library.py');
+    // 사이드카의 배선(버저 15번)과 실습 방법, 차시 링크(2-2-1)가 보인다
+    await expect(page.locator('[data-board-wire="signal:buzzer:sig"]')).toHaveAttribute('data-gpio', '15');
+    await expect(page.locator('[data-board-practice-steps] li')).toHaveCount(3);
+    const tones = await recordAttribute(page, '[data-board-part="buzzer"]', 'data-visual-tone-hz');
+    await run(page);
+    // 징글벨 첫머리 E7(2637Hz)부터 G7(3136)·C7(2093)·D7(2349)까지 울린다 — 실물처럼 PWM 해상도로 되계산한 값이라 몇 Hz 다를 수 있다
+    await expect
+      .poll(
+        async () => {
+          const heard = (await tones()).split(',').map(Number).filter((hz) => hz > 0);
+          const near = (note: number) => heard.some((hz) => Math.abs(hz - note) <= 5);
+          return near(2637) && near(3136) && near(2093) && near(2349);
+        },
+        { timeout: 60_000 },
+      )
+      .toBe(true);
+    await expect(board(page)).toHaveAttribute('data-board-phase', 'run');
+    await stop(page);
+    await expect(part(page, 'buzzer')).toHaveAttribute('data-visual-sounding', 'false');
+    const text = await consoleText(page);
+    expect(text).not.toMatch(/ImportError|ModuleNotFoundError/u);
+    expect(text).not.toContain('Traceback');
     expect(errors).toEqual([]);
   });
 
@@ -331,12 +447,12 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
     await expect(fan).toHaveAttribute('data-visual-motion', 'spin');
     await expect(fan).toContainText('정회전');
     await expect(fan).toHaveAttribute('aria-label', /팬 모터\(GPIO25·GPIO26\)/u);
-    expect(await fan.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
+    expect(await scriptedAnimationCount(fan)).toBeGreaterThan(0);
     await expect.poll(async () => /cw(,stop)?,ccw.*,stop/u.test(await directions()), { timeout: 15_000 }).toBe(true);
     await stop(page);
     await expect(fan).toHaveAttribute('data-visual-direction', 'stop');
-    // 회전은 Web Animations다. 멈춘 뒤에는 그것만 없으면 된다 — 방금 바뀐 모양의 CSS 전환은 세지 않는다(lab-esp32-parts 진동 모터 검사 참고).
-    expect(await fan.evaluate((element) => element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition)).length)).toBe(0);
+    // 회전은 Web Animations다. 멈춘 뒤에는 그것만 없으면 된다 — 방금 바뀐 모양의 CSS 전환은 세지 않는다(scriptedAnimationCount 머리말).
+    expect(await scriptedAnimationCount(fan)).toBe(0);
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openExample(page, 'esp32/u2/2-2-3-fan-direction.py');
@@ -344,12 +460,8 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
     await expect(part(page, 'fan-motor')).toHaveAttribute('data-visual-direction', 'cw', { timeout: 20_000 });
     await expect(part(page, 'fan-motor')).toHaveAttribute('data-visual-motion', 'still');
     await expect(part(page, 'fan-motor')).toContainText('정회전');
-    // 움직임 줄이기 규칙(global.css)이 모든 요소에 0.01ms CSS 전환을 두므로 전환은 빼고 센다(바쁜 컴퓨터에서 다음 화면 갱신까지 남음).
-    expect(
-      await part(page, 'fan-motor').evaluate(
-        (element) => element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition)).length,
-      ),
-    ).toBe(0);
+    // 움직임 줄이기면 돌지 않는다 — 규칙이 모든 요소에 두는 0.01ms CSS 전환은 세지 않는다(scriptedAnimationCount 머리말, 미해결 182)
+    expect(await scriptedAnimationCount(part(page, 'fan-motor'))).toBe(0);
     await stop(page);
   });
 

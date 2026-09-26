@@ -90,6 +90,8 @@ for (const entry of lessonEntries) {
     virtualOk: entry.data.virtual_ok,
     comm: entry.data.comm,
     tags: entry.data.tags,
+    // 예제마다 적은 난이도·낱말(examples[].difficulty·tags)이 그 카드에서 차시 값보다 먼저다(src/lab/gallery/cards.ts lessonFacetsForExample, 미해결 180 — 구역 F 요청 F-2)
+    examples: entry.data.examples,
   };
   bySlug[info.slug] = info;
   for (const example of entry.data.examples) {

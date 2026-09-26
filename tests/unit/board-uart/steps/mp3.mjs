@@ -124,6 +124,69 @@ export default async function mp3Steps({ step, rootDir }) {
     { wiring: MP3_WIRING },
   );
 
+  // 5-1. 긴 sleep 안의 곡 끝(2026-09-26 PROGRESS 미해결 177): time.sleep(5) 한 번 안에서도 3.6초 곡이 끝나는 그 가상 시각에 멈추고 화면에 알린다.
+  //      모듈이 화면에 알리는 순간(publish)의 가상 시각을 적어 둔다. sleep한 양(5초)은 그대로이고, 곡 끝 응답(0x3D)도 곡이 끝난 시각에 온다.
+  await step(
+    'mp3_song_end_in_long_sleep',
+    [
+      'from machine import UART',
+      'import time, apc_board',
+      'u = UART(2, baudrate=9600, tx=17, rx=16)',
+      "dev = apc_board.wired_devices('mp3')[0][1]",
+      'log = []',
+      'publish = dev.publish',
+      'def logged():',
+      '    log.append((dev.status, apc_board.BOARD.clock.now_ns() // 1_000_000))',
+      '    publish()',
+      'dev.publish = logged',
+      'u.write(bytearray([0x7E, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x01, 0xEF]))',
+      "start = [t for s, t in log if s == 'playing'][0]",
+      'sleep_start = apc_board.BOARD.clock.now_ns() // 1_000_000',
+      't0 = time.ticks_ms()',
+      'time.sleep(5)',
+      'slept = time.ticks_diff(time.ticks_ms(), t0)',
+      'sleep_end = apc_board.BOARD.clock.now_ns() // 1_000_000',
+      "stops = [t for s, t in log if s == 'stopped']",
+      'data = u.read()',
+      '[stops[0] - start, sleep_start < stops[0] < sleep_end, slept, list(data) if data else None, dev.status, dev.pointer, len(stops)]',
+    ].join('\n'),
+    { wiring: MP3_WIRING },
+  );
+
+  // 5-2. 가상 시각 알람 규약(apc_board.register_wake_hook): 훅이 알려 준 시각에 sleep이 끊겨 훅이 다시 불리고, 지난 시각은 잠을 끊지 않으며,
+  //      훅의 오류는 학생 코드를 멈추지 않고 한 번만 알린다(부품 흉내의 잘못).
+  await step(
+    'wake_hook_contract',
+    [
+      'import time, apc_board',
+      'calls = []',
+      'alarm = [apc_board.BOARD.clock.now_ns() + 1_234_000_000]',
+      'def hook(now):',
+      '    if alarm[0] is not None and now >= alarm[0]:',
+      '        calls.append(now // 1_000_000)',
+      '        alarm[0] = None',
+      '    return alarm[0]',
+      'apc_board.register_wake_hook(hook)',
+      'bad_calls = [0]',
+      'def bad(now):',
+      '    bad_calls[0] += 1',
+      '    raise ValueError("시험 오류")',
+      'apc_board.register_wake_hook(bad)',
+      'past = []',
+      'def past_hook(now):',
+      '    past.append(1)',
+      '    return now - 1',
+      'apc_board.register_wake_hook(past_hook)',
+      'origin = apc_board.BOARD.clock.now_ns() // 1_000_000',
+      'target = alarm[0] // 1_000_000',
+      'time.sleep(3)',
+      'total = apc_board.BOARD.clock.now_ns() // 1_000_000 - origin',
+      'for h in (hook, bad, past_hook):',
+      '    apc_board._wake_hooks.remove(h)',
+      '[len(calls), calls[0] - target if calls else None, 3000 <= total <= 3010, bad_calls[0] > 1, len(past) < 50]',
+    ].join('\n'),
+  );
+
   // 6. 보드 UART 속도가 9600이 아니면 모듈이 알아듣지 못하고(깨진 바이트) 화면에 까닭을 남긴다
   await step(
     'mp3_wrong_baud',

@@ -7,11 +7,11 @@
  * | 태그 | 차시 md(content/lessons/) | 예제 사이드카(<이름>.meta.yaml) | 값 |
  * |---|---|---|---|
  * | 단원 | `unit` | `unit` | 1~4 |
- * | 난이도 | `difficulty` | `difficulty` | 1 쉬움 · 2 보통 · 3 어려움 |
+ * | 난이도 | `difficulty`(그 예제 항목 `examples[].difficulty`가 먼저 — 미해결 180) | `difficulty` | 1 쉬움 · 2 보통 · 3 어려움 |
  * | 가상 보드 가능 | `virtual_ok` | `virtual_ok` | true면 하드웨어 없이 끝까지 됨(절대 원칙 3) |
  * | 통신 방식 | `comm` | `comm` | 아래 EXAMPLE_COMM_KINDS |
  * | 부품 | `examples[].parts` | `parts` | 부품 폴더 id(src/lab/modules/board/parts/) |
- * | 그 밖의 낱말 | `tags` | `tags` | 자유 낱말(검색용) |
+ * | 그 밖의 낱말 | `tags` + 그 예제 항목 `examples[].tags` | `tags` | 자유 낱말(검색용) — 셋을 모두 모은다 |
  *
  * 규칙
  * - **모르면 적지 않는다.** 빈 값은 "해당 없음"이 아니라 "아직 모름"이라서 갤러리가 그 칸의 필터에서 뺀다.

@@ -189,13 +189,70 @@ describe('키보드·메모장', () => {
     const model = fresh();
     model.typeText('안녕');
     model.hotkey(['ctrl', 's']);
-    expect(model.dialog).toMatchObject({ kind: 'save', fileName: '제목 없음.txt' });
+    // 진짜 Windows처럼 파일 이름 칸의 기본 이름이 골라진 채 열린다(미해결 178)
+    expect(model.dialog).toMatchObject({ kind: 'save', fileName: '제목 없음.txt', selected: true });
     // 대화상자가 열려 있는 동안에는 바깥을 눌러도 창이 바뀌지 않는다(모달)
     expect(model.hitTest(10, 10).kind).toBe('dialog');
     model.key('down', 'enter');
     expect(model.dialog).toBeNull();
     expect(model.files.map((file) => ({ name: file.name, text: file.text }))).toEqual([{ name: '제목 없음.txt', text: '안녕' }]);
     expect(model.focusedWindow?.title).toBe('제목 없음.txt — 메모장');
+  });
+
+  it('저장 창은 기본 이름을 골라 둔 채 열려, 바로 친 이름으로 바뀐다 — P1 도전 과제 2(수업 슬라이드 17)의 코드 그대로(미해결 178)', () => {
+    const model = fresh();
+    /** pyautogui.typewrite처럼 글자마다 키를 누르고 뗀다(\n은 Enter) */
+    const typewrite = (text: string) => {
+      for (const char of text) {
+        const key = char === '\n' ? 'enter' : char;
+        model.key('down', key, char);
+        model.key('up', key, char);
+      }
+    };
+    model.hotkey(['win', 'r']);
+    typewrite('notepad\n');
+    typewrite('Hello, automated text input!\n');
+    model.hotkey(['ctrl', 's']);
+    expect(model.dialog).toMatchObject({ kind: 'save', fileName: '제목 없음.txt', selected: true });
+    expect(model.lastAction).toContain('골라져 있어');
+    typewrite('example.txt\n');
+    expect(model.dialog).toBeNull();
+    expect(model.files.map((file) => ({ name: file.name, text: file.text }))).toEqual([{ name: 'example.txt', text: 'Hello, automated text input!\n' }]);
+    expect(model.focusedWindow?.title).toBe('example.txt — 메모장');
+    // 먼저 지우는 줄(press('backspace', presses=20))이 있어도 결과가 같다 — 첫 Backspace가 골라 둔 이름을 통째로 지운다
+    model.hotkey(['ctrl', 's']);
+    expect(model.dialog).toMatchObject({ fileName: 'example.txt', selected: true });
+    model.key('down', 'backspace');
+    expect(model.dialog).toMatchObject({ fileName: '', selected: false });
+    for (let index = 0; index < 19; index += 1) {
+      model.key('down', 'backspace');
+    }
+    typewrite('second.txt\n');
+    expect(model.files.map((file) => file.name)).toEqual(['example.txt', 'second.txt']);
+  });
+
+  it('저장 창의 골라 둔 이름: 방향키·Home·End는 고름만 풀어 뒤에 이어 치고, Ctrl+A는 다시 모두 고르며, Delete는 통째로 지운다', () => {
+    const model = fresh();
+    model.typeText('글');
+    model.hotkey(['ctrl', 's']);
+    model.key('down', 'end');
+    expect(model.dialog).toMatchObject({ fileName: '제목 없음.txt', selected: false });
+    model.key('down', '2', '2');
+    expect(model.dialog).toMatchObject({ fileName: '제목 없음.txt2', selected: false });
+    model.hotkey(['ctrl', 'a']);
+    expect(model.dialog).toMatchObject({ selected: true });
+    expect(model.lastAction).toContain('모두 골랐어요');
+    model.key('down', 'delete');
+    expect(model.dialog).toMatchObject({ fileName: '', selected: false });
+    // 빈 이름으로 저장하면 메모장 기본 이름(전과 같음)
+    model.key('down', 'enter');
+    expect(model.files.at(-1)?.name).toBe('제목 없음.txt');
+    // 그림판의 저장 창도 골라진 채 열린다
+    model.focusWindow(model.windowOfKind('paint')!.id);
+    model.hotkey(['ctrl', 's']);
+    expect(model.dialog).toMatchObject({ fileName: '그림.png', selected: true });
+    model.key('down', 'escape');
+    expect(model.dialog).toBeNull();
   });
 
   it('조합키: Ctrl+Z는 마지막 선을 지우고, Win+R 실행 창은 이름으로 프로그램을 연다', () => {

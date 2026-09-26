@@ -206,6 +206,32 @@ test.describe('카드에서 실습실 열기', () => {
   });
 });
 
+test.describe('예제마다 적은 난이도·낱말(미해결 180)', () => {
+  test('차시 md가 예제 항목에 적은 난이도·낱말이 그 카드에만 붙는다 — 3-1-2·3-1-4 심화는 어려움', async ({ page }) => {
+    test.skip(test.info().project.name !== 'desktop', '빌드 때 정해지는 값이라 데스크톱에서 한 번만 본다.');
+    // 카드는 갤러리 화면(ExampleGallery.astro, 구역 B 파일)이 차시의 examples를 넘길 때만 예제 항목 값을 안다 —
+    // 구역 F 요청(.cache/phase6-requests/f.md F-2)을 통합이 반영하기 전에는 건너뛴다(반영하면 저절로 돈다).
+    const component = fs.readFileSync(path.join(ROOT, 'src', 'components', 'examples', 'ExampleGallery.astro'), 'utf8');
+    test.skip(!/examples:\s*entry\.data\.examples/u.test(component), '갤러리 화면이 아직 차시의 examples를 넘기지 않아요(요청 F-2 반영 전).');
+    await openGallery(page);
+    const card = (file: string) => page.locator(`[data-gallery-card][data-file="${file}"]`);
+    await expect(card('vision/u3/3-1-2-adv-face-uart.py')).toHaveAttribute('data-difficulty', '3');
+    await expect(card('vision/u3/3-1-2-uart-key-send.py')).toHaveAttribute('data-difficulty', '2');
+    await expect(card('vision/u3/3-1-4-adv-finger-mouse.py')).toHaveAttribute('data-difficulty', '3');
+    await expect(card('vision/u3/3-1-4-hand-screenshot.py')).toHaveAttribute('data-difficulty', '2');
+    // 예제 항목 낱말은 그 카드에만(차시 tags처럼 짝 예제 모두에 붙지 않는다)
+    await expect(card('vision/u3/3-1-4-adv-finger-mouse.py')).toContainText('좌표 변환');
+    await expect(card('vision/u3/3-1-4-hand-screenshot.py')).not.toContainText('좌표 변환');
+    await expect(card('esp32/u3/3-1-3-ble-xy-rgb.py')).toContainText('광고 이름');
+    await expect(card('vision/u3/3-1-3-hand-ble-xy.py')).not.toContainText('광고 이름');
+    // 난이도 "어려움"으로 거르면 3-1-2 심화 카드가 남고 3-1-2 기본(컴퓨터 쪽) 카드는 빠진다
+    await chip(page, '난이도', /^어려움/u).check();
+    const visible = await visibleFiles(page);
+    expect(visible).toContain('vision/u3/3-1-2-adv-face-uart.py');
+    expect(visible).not.toContain('vision/u3/3-1-2-uart-key-send.py');
+  });
+});
+
 test.describe('좁은 화면', () => {
   test('가로로 넘치지 않는다', async ({ page }) => {
     test.skip(test.info().project.name !== 'mobile', '좁은 화면에서만 본다.');

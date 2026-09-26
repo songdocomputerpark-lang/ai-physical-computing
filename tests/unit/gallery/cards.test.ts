@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ExampleSidecar } from '../../../src/lab/controls/example-sidecar.ts';
 import type { LabExample } from '../../../src/lab/controls/examples.ts';
-import { buildGallery, cardAnchor, labExampleHref, type GalleryExampleInput, type GalleryLessonInfo } from '../../../src/lab/gallery/cards.ts';
+import { buildGallery, cardAnchor, labExampleHref, lessonFacetsForExample, type GalleryExampleInput, type GalleryLessonInfo } from '../../../src/lab/gallery/cards.ts';
 import type { GalleryLabId } from '../../../src/lab/gallery/filters.ts';
 import { VARIANT_GROUPS } from '../../../src/lab/gallery/variants.ts';
 
@@ -136,6 +136,56 @@ describe('태그를 정하는 차례 — 차시 md → 사이드카 → 사이�
       { bySlug: { '2-1-1': lesson({ unit: 2, virtualOk: true }) } },
     );
     expect(cards[0].facets).toMatchObject({ unit: 2, virtualOk: true });
+  });
+
+  it('차시 md의 예제 항목(examples[].difficulty·tags)이 그 예제 카드에서 차시 값보다 먼저다 — 짝 예제가 여럿인 차시(미해결 180)', () => {
+    const board = 'esp32/u3/3-1-2-uart-laser-site.py';
+    const basic = 'vision/u3/3-1-2-uart-key-send.py';
+    const advanced = 'vision/u3/3-1-2-adv-face-uart.py';
+    const info = lesson({
+      slug: '3-1-2',
+      unit: 3,
+      difficulty: 2,
+      comm: ['uart'],
+      tags: ['시리얼 통신'],
+      examples: [
+        { file: board, tags: ['보드 쪽'] },
+        { file: basic, difficulty: 1 },
+        { file: advanced, difficulty: 3, tags: ['컴퓨터 쪽', '얼굴 감지'] },
+      ],
+    });
+    const { cards, facetGroups } = buildGallery(
+      [
+        input('esp32', { id: 'u3-board', file: board }, { difficulty: 2, tags: ['UART'] }),
+        input('vision', { id: 'u3-basic', file: basic }, { difficulty: 2 }),
+        input('vision', { id: 'u3-adv', file: advanced }, { difficulty: 2 }),
+      ],
+      { byFile: { [board]: info, [basic]: info, [advanced]: info } },
+      { difficultyLabels: { 1: '쉬움', 2: '보통', 3: '어려움' } },
+    );
+    const byFile = (value: string) => cards.find((card) => card.file === value)!;
+    // 예제 항목에 난이도가 없으면 차시 값(2), 있으면 그 값 — 사이드카(2)는 차시 쪽 값에 진다(칸마다 차시가 먼저인 규칙 그대로)
+    expect(byFile(board).facets).toMatchObject({ difficulty: 2, comm: ['uart'], tags: ['시리얼 통신', '보드 쪽', 'UART'] });
+    expect(byFile(basic).facets).toMatchObject({ difficulty: 1, tags: ['시리얼 통신'] });
+    expect(byFile(advanced).facets).toMatchObject({ difficulty: 3, tags: ['시리얼 통신', '컴퓨터 쪽', '얼굴 감지'] });
+    // 거르기 칸의 난이도 개수도 예제별 값으로 센다
+    expect(facetGroups.find((group) => group.key === 'difficulty')?.options).toEqual([
+      { value: '1', label: '쉬움', count: 1 },
+      { value: '2', label: '보통', count: 1 },
+      { value: '3', label: '어려움', count: 1 },
+    ]);
+    // 예제 항목 낱말은 찾기 글자에도 든다
+    expect(byFile(advanced).keywords).toContain('얼굴 감지');
+    expect(byFile(board).keywords).not.toContain('얼굴 감지');
+  });
+
+  it('예제 목록(examples)을 넘기지 않은 차시 정보는 전처럼 차시 값만 쓴다', () => {
+    const plain = lesson({ difficulty: 2, tags: ['LED'] });
+    expect(lessonFacetsForExample(plain, file)).toBe(plain);
+    expect(lessonFacetsForExample(null, file)).toBeNull();
+    const withOther = lesson({ difficulty: 2, examples: [{ file: 'esp32/u2/other.py', difficulty: 3 }] });
+    expect(lessonFacetsForExample(withOther, file)).toBe(withOther);
+    expect(lessonFacetsForExample(lesson({ difficulty: 2, examples: [{ file, difficulty: null, tags: null }] }), file)).toMatchObject({ difficulty: 2, tags: [] });
   });
 });
 

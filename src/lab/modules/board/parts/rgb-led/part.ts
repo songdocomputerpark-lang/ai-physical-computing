@@ -6,7 +6,7 @@
  * 핀 번호는 예제마다 다르다(INVENTORY §4.2 — 27/32/33(원고 2-1-4·f060~f062), 12/5/4(f058), 25/26/27, 23/25/26 — PD-05). 기본 핀은 두지 않는다.
  * 공통 극성: 교과서 코드는 핀이 1이면 그 색이 켜진다(f061 `led[x].on()`, f058 `set_color(0, 0, 0)  # 꺼짐`) → 1이면 켜지는 방식(공통 음극)으로 그리고
  * 그림에 "1이면 켜짐"을 적는다. 키트 모듈의 실제 방식(공통 음극·양극, 트랜지스터 유무)은 확인 전이다(PLAN 부록 B-2 14번).
- * 모습 값: data-visual-r·g·b(0~100), lit, brightness(가장 밝은 색), color(#rrggbb), name(색 이름 — 빨강·노랑·흰색…), summary.
+ * 모습 값: data-visual-r·g·b(0~100), lit, brightness(가장 밝은 색), color(#rrggbb), name(색 이름 — 세 색의 비율로 빨강·주황·노랑·흰색…, rgb-model.ts colorName), summary.
  * 그림: 사이트가 그린 모듈(브랜드 중립) — 색마다 핀 번호·세기 글, 섞인 색으로 빛나는 LED, 색 이름 글(색만으로 알리지 않음).
  */
 import type { PartDefinition } from '../../part-types.ts';

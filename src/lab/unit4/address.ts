@@ -1,5 +1,6 @@
 /**
  * 주소에 담긴 공유 링크(`#code=…&ex=…`)와 `?example=`을 두 실습실 가운데 **맞는 칸에** 나눠 주는 규칙(4단원 통합 화면 전용).
+ * `?pair=<짝 이름>`은 두 칸을 함께 채운다(2026-09-26 PROGRESS 미해결 179 — 짝을 고르는 규칙은 examples.ts findPairView).
  *
  * 왜: 실습실 틀(src/lab/controls/lab-shell.ts)은 주소를 스스로 읽는다. 한 문서에 틀이 둘이면
  *   · 공유 링크는 **먼저 붙은 칸(컴퓨터 쪽)**이 읽고 주소에서 지워 버려, 보드 칸에서 만든 공유 링크의 보드 코드가 컴퓨터 칸에 들어간다.
@@ -20,6 +21,8 @@ export interface AddressStash {
   readonly hash?: string;
   /** `?example=`의 값(examples/ 뒤 경로) */
   readonly example?: string;
+  /** `?pair=`의 값(짝 이름 — examples.ts PAIRS의 id 또는 차시 번호, 2026-09-26 PROGRESS 미해결 179) */
+  readonly pair?: string;
 }
 
 /** 전역에 맡겨 둔 값을 꺼낸다(한 번만 — 꺼내면 지운다). 모양이 틀리면 null */
@@ -33,13 +36,14 @@ export function takeAddressStash(target: Record<string, unknown>): AddressStash 
   if (!raw || typeof raw !== 'object') {
     return null;
   }
-  const value = raw as { hash?: unknown; example?: unknown };
+  const value = raw as { hash?: unknown; example?: unknown; pair?: unknown };
   const hash = typeof value.hash === 'string' && value.hash !== '' ? value.hash : undefined;
   const example = typeof value.example === 'string' && value.example !== '' ? value.example : undefined;
-  if (hash === undefined && example === undefined) {
+  const pair = typeof value.pair === 'string' && value.pair !== '' ? value.pair : undefined;
+  if (hash === undefined && example === undefined && pair === undefined) {
     return null;
   }
-  return { ...(hash !== undefined ? { hash } : {}), ...(example !== undefined ? { example } : {}) };
+  return { ...(hash !== undefined ? { hash } : {}), ...(example !== undefined ? { example } : {}), ...(pair !== undefined ? { pair } : {}) };
 }
 
 /** examples/ 뒤 경로가 어느 칸의 것인가(모르면 null) */

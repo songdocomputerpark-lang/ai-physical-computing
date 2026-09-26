@@ -3,7 +3,7 @@
 // 원본 예제 파일을 그대로(?example=) 열어 본다.
 //  1. 네오픽셀: f064는 write()를 불러야 링이 바뀐다(첫 write에서 15개가 한꺼번에), f065 무지개 색이 GRB로 보냈다 풀어도 (255, 94, 0) 그대로,
 //     [정지]하면 꺼진 모습.
-//  2. MP3: f070 곡 재생 → 곡 끝 → 코드 끝(ok), f071 볼륨 10, f072 터치 패드(키보드로 누르고 있기)로 다음 곡·정지.
+//  2. MP3: f070 곡 재생 → 곡 끝(sleep(5) 도중 약 3.6초에 멈춤 — 미해결 177) → 코드 끝(ok), f071 볼륨 10, f072 터치 패드(키보드로 누르고 있기)로 다음 곡·정지.
 //  3. UART(f001·f007): 시리얼 창에 보드가 보낸 hello world, 글자·바이트 값 보내기로 RGB LED 색, 16진수 보기, 속도 다름 안내, 실행 전 보내기 안내,
 //     키보드만으로 보내기(Tab 순서).
 //  4. 보드 콘솔 input()(f076·f077)과 팬 라이브러리 PWM판(f075 속도 30·70).
@@ -175,6 +175,20 @@ test.describe('ESP32 실습실 — 네오픽셀·UART·MP3·보드 콘솔(P3-05)
       await expect(mp3).toContainText('명령을 기다려요');
 
       const statuses = await recordAttribute(page, '[data-board-part="mp3"]', 'data-visual-status');
+      // 모습이 바뀐 순간의 시각과 실습실 상태도 함께 적는다: 곡 끝(약 3.6초)의 "멈춤"이 sleep(5)가 끝나기 전(코드가 도는 중)에 와야 한다
+      // (미해결 177 — 전에는 sleep이 끝난 5초 뒤에야 멈췄다)
+      const statusKey = `__zoneF_mp3_${Math.random().toString(36).slice(2)}`;
+      await page.locator('[data-board-part="mp3"]').evaluate((element, storeKey) => {
+        const values: { status: string; state: string; at: number }[] = [];
+        (window as unknown as Record<string, unknown>)[storeKey] = values;
+        const root = document.querySelector<HTMLElement>('[data-lab]');
+        new MutationObserver(() => {
+          const status = String(element.getAttribute('data-visual-status'));
+          if (values[values.length - 1]?.status !== status) {
+            values.push({ status, state: root?.dataset.state ?? '', at: performance.now() });
+          }
+        }).observe(element, { attributes: true, attributeFilter: ['data-visual-status'] });
+      }, statusKey);
       await page.getByRole('button', { name: '실행', exact: true }).click();
       await expect(mp3).toHaveAttribute('data-visual-status', 'playing', { timeout: 60_000 });
       await expect(mp3).toHaveAttribute('data-visual-track', '1');
@@ -186,6 +200,16 @@ test.describe('ESP32 실습실 — 네오픽셀·UART·MP3·보드 콘솔(P3-05)
       expect(await waitDone(page, 30_000)).toBe('ok');
       await expect(mp3).toHaveAttribute('data-visual-status', 'stopped');
       expect(await statuses()).toEqual(expect.arrayContaining(['playing', 'stopped']));
+      const changes = await page.evaluate(
+        (storeKey) => [...(((window as unknown as Record<string, unknown>)[storeKey] as { status: string; state: string; at: number }[] | undefined) ?? [])],
+        statusKey,
+      );
+      const playing = changes.findIndex((change) => change.status === 'playing');
+      const stopped = changes.find((change, index) => index > playing && change.status === 'stopped');
+      expect(playing, JSON.stringify(changes)).toBeGreaterThanOrEqual(0);
+      expect(stopped?.state, '곡이 끝나 멈춘 모습이 코드가 끝나기 전에 와야 해요').toBe('running');
+      // 1번 곡 3.6초 — sleep(5)가 끝나는 5초보다 먼저(느린 컴퓨터의 타이머 늦음을 1초까지 봐준다)
+      expect((stopped?.at ?? Infinity) - (changes[playing]?.at ?? 0)).toBeLessThan(4_600);
       await expect(mp3).toHaveAttribute('data-visual-commands', '2');
       expect(await consoleBox(page).textContent()).not.toContain('Traceback');
 

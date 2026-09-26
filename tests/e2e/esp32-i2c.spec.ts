@@ -37,6 +37,22 @@ async function lcdRow(lcd: Locator, row: number): Promise<string> {
 }
 
 /** 요소 속성 값이 바뀌는 차례를 페이지 안에서 빠짐없이 모은다(같은 값이 이어지면 한 번만). 돌려주는 함수는 모은 값 목록을 준다. */
+/**
+ * 부품이 스크립트로 돌리는 움직임(element.animate()가 만든 Animation — 떨림·회전·깜빡임) 수. 두 화면 갱신을 기다린 뒤,
+ * CSS가 만든 애니메이션(CSSTransition·CSSAnimation)은 빼고 센다.
+ * 왜(PROGRESS 미해결 182 — 2026-09-26 구역 F 재현): 움직임 줄이기 규칙(src/styles/global.css)은 모든 요소에 transition-duration 0.01ms를 둔다.
+ * 그래서 부품 그림의 SVG 속성이 바뀌면(예: 진동 모터 떨림 표시 곡선 `<g opacity>`) 다음 스타일 계산에서 0.01ms짜리 CSS 전환이 생긴다.
+ * getAnimations()는 스스로 스타일을 계산하므로, 바뀐 뒤 화면 갱신이 한 번도 없었으면(컴퓨터가 바쁠 때) 그 전환이 running으로 목록에 잡힌다 —
+ * CDP로 CPU를 4배 느리게 한 Edge에서 4번 가운데 1번 `CSSTransition opacity`(떨림 곡선 g)를 재현했고, 두 화면 갱신 뒤에는 늘 0이었다.
+ * 그림의 움직임은 모두 Web Animations라 이 수가 "움직이는지"다(움직임 줄이기면 0, 아니면 켜진 부품마다 1).
+ */
+async function scriptedAnimationCount(target: Locator, subtree = true): Promise<number> {
+  return target.evaluate(async (element, deep) => {
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return element.getAnimations({ subtree: deep }).filter((animation) => !(animation instanceof CSSTransition) && !(animation instanceof CSSAnimation)).length;
+  }, subtree);
+}
+
 async function recordAttribute(page: Page, selector: string, attribute: string): Promise<() => Promise<string[]>> {
   const key = `__zoneB_${attribute}_${Math.random().toString(36).slice(2)}`;
   await page.locator(selector).first().evaluate(
@@ -249,7 +265,7 @@ test.describe('ESP32 실습실 — I2C 표시 장치(P3-04)', () => {
       await expect(lcd.locator('[data-lcd-custom] rect')).toHaveCount(8);
       await expect(lcd.locator('desc[data-part-desc]')).toHaveText(/1줄 "Hi \u25af", 2줄 비어 있음, \u25af은 사용자 정의 글자, 커서 1줄 5칸, 백라이트 켜짐\./u);
       const block = lcd.locator('[data-lcd-cursor="block"]');
-      await expect.poll(() => block.evaluate((element) => element.getAnimations().length)).toBe(1);
+      await expect.poll(() => scriptedAnimationCount(block, false)).toBe(1);
       await lcd.screenshot({ path: test.info().outputPath('lcd-custom-blink.png') });
 
       await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -258,8 +274,8 @@ test.describe('ESP32 실습실 — I2C 표시 장치(P3-04)', () => {
       await expect(lcd).toHaveAttribute('data-visual-blink', 'true');
       await expect(lcd).toHaveAttribute('data-visual-lit', 'false');
       await expect(block).toHaveAttribute('opacity', '0.55');
-      // 깜빡임은 Web Animations다. 움직임 줄이기 규칙이 모든 요소에 두는 0.01ms CSS 전환(방금 바뀐 opacity)은 세지 않는다.
-      expect(await block.evaluate((element) => element.getAnimations().filter((animation) => !(animation instanceof CSSTransition)).length)).toBe(0);
+      // 깜빡임은 Web Animations다. 움직임 줄이기 규칙이 모든 요소에 두는 0.01ms CSS 전환(방금 바뀐 opacity)은 세지 않는다(scriptedAnimationCount 머리말).
+      expect(await scriptedAnimationCount(block, false)).toBe(0);
       await expect(lcd.locator('desc[data-part-desc]')).toHaveText(/백라이트 꺼짐\.$/u);
       await expect(lcd).toContainText('백라이트 꺼짐 · 화면 켜짐');
     });

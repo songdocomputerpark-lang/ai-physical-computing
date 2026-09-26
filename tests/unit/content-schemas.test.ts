@@ -97,6 +97,25 @@ describe('차시 frontmatter 규칙(lessonSchema)', () => {
     expect(issueMessages(missing)).toContain('부품 이름(part)을 적어요');
   });
 
+  it('예제 항목에 그 예제만의 난이도(1~3)·낱말(tags)을 적을 수 있고, 적지 않으면 칸이 없다(갤러리 — 미해결 180)', () => {
+    const data = lessonSchema.parse({
+      ...PLAN_EXAMPLE,
+      examples: [
+        { file: 'vision/u3/3-1-2-uart-key-send.py', difficulty: 1, tags: ['컴퓨터 쪽', '키보드 입력'] },
+        { file: 'vision/u3/3-1-2-adv-face-uart.py', difficulty: 3 },
+        { file: 'esp32/u3/3-1-2-uart-laser-site.py' },
+      ],
+    });
+    expect(data.examples.map((example) => [example.difficulty, example.tags])).toEqual([
+      [1, ['컴퓨터 쪽', '키보드 입력']],
+      [3, undefined],
+      [undefined, undefined],
+    ]);
+    expect(issueMessages(lessonSchema.safeParse({ ...PLAN_EXAMPLE, examples: [{ file: 'esp32/a.py', difficulty: 4 }] }))).toContain('예제 난이도(difficulty)는 1, 2, 3');
+    expect(issueMessages(lessonSchema.safeParse({ ...PLAN_EXAMPLE, examples: [{ file: 'esp32/a.py', tags: [''] }] }))).toContain('빈 글자');
+    expect(lessonSchema.safeParse({ ...PLAN_EXAMPLE, examples: [{ file: 'esp32/a.py', tags: 'LED' }] }).success).toBe(false);
+  });
+
   it('규칙에 없는 필드를 더 적어도 빌드를 멈추지 않고 값을 남긴다', () => {
     const data = lessonSchema.parse({ ...PLAN_EXAMPLE, hero_image: 'u2/touch.svg' });
     expect((data as Record<string, unknown>).hero_image).toBe('u2/touch.svg');

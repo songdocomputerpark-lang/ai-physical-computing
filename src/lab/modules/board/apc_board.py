@@ -49,6 +49,9 @@
      모두 파일이 생겼지만(부품 폴더·examples/esp32/lib), 파일이 빠지면 예전 안내로 돌아가는 안전망이라 표는 그대로 둔다.
    - 블록 전용 호환 모드(PD-27, P3-06): JSPI가 없는 브라우저에서 블록 생성기의 실행판이 `await wait_ns_async(ns)`로 기다린다
      (apc_runtime.sleep_async — runPythonAsync의 최상위 await, 기다리는 동안 입력·[정지]를 받는다).
+   - 가상 시각 알람(2026-09-26 PROGRESS 미해결 177): register_wake_hook(hook)으로 등록한 hook(now_ns)는 입력 확인 지점마다 불려
+     제 할 일(예: MP3 모듈이 곡 끝에 멈춤)을 하고 다음에 깨울 가상 시각(나노초, 없으면 None)을 돌려준다. wait_ns는 Timer처럼 그 시각에
+     잠을 끊어 hook을 다시 부르므로, time.sleep(5) 한 번 안에서도 부품의 일이 제시각에 일어난다(전에는 sleep이 끝나야 알아챘다).
 
 동기 진입점 규칙(PROGRESS 미해결 25번): _reset·_tick·_before_wait·_finish 훅에서는 양보하는 함수(sleep·request·get·poll)를 부르지 않는다
 (peek·drain·emit·notice만). 콜백은 학생 코드 자리(입력 확인 지점·대기 훅)에서만 돌린다.
@@ -101,6 +104,7 @@ __all__ = [
     "register_board_module",
     "register_machine_export",
     "register_part",
+    "register_wake_hook",
     "set_device_state",
     "struct_time_2000",
     "wait_ns",
@@ -492,6 +496,8 @@ class Board:
         self.dirty_devices = set()
         self.devices = None
         self.device_input_handlers = {}
+        # 가상 시각 알람(register_wake_hook): 알람 훅들이 마지막으로 알려 준 가장 이른 시각(나노초, 없으면 None)
+        self.next_wake_ns = None
 
     # ── 실행 시작·끝 ──
 
@@ -520,6 +526,7 @@ class Board:
         self.dirty_devices = set()
         self.devices = None
         self.device_input_handlers = {}
+        self.next_wake_ns = None
         # 화면이 실행 사이에 /board/lib에 넣은 라이브러리(i2c_lcd.py 등)를 import가 찾게 파일 목록 캐시를 비운다(양보 없음)
         importlib.invalidate_caches()
         self.seq = 0
@@ -882,6 +889,35 @@ class Board:
                 due = core.next_due_ns
         return due
 
+    def service_wakes(self):
+        """가상 시각 알람 훅(register_wake_hook)을 부른다: 훅마다 지금 할 일을 하고 다음에 깨울 시각을 알려 준다 — 가장 이른 것을 기억한다.
+        훅의 오류는 학생 코드를 멈추지 않고 한 번만 알린다(부품 흉내의 잘못이라서). 양보 금지(틱 훅 안에서도 불린다)."""
+        if not _wake_hooks:
+            self.next_wake_ns = None
+            return
+        now = self.clock.now_ns()
+        due = None
+        for hook in list(_wake_hooks):
+            try:
+                when = hook(now)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception as error:  # noqa: BLE001 — 부품 흉내의 오류가 학생 코드를 멈추지 않게
+                self.warn_once(("wake-hook-error", getattr(hook, "__qualname__", repr(hook))), f"가상 부품의 시간 처리에서 오류가 났어요({type(error).__name__}: {error}).")
+                continue
+            # 이미 지난 시각은 알람이 아니다(그 훅이 방금 할 일을 했어야 한다) — 다른 훅의 앞날 알람을 가리지 않게 뺀다
+            if when is not None and int(when) > now and (due is None or int(when) < due):
+                due = int(when)
+        self.next_wake_ns = due
+
+    def next_due_ns(self, now_ns):
+        """sleep을 끊어 깨어날 다음 가상 시각: 켜진 Timer가 울릴 시각과 알람 훅이 알려 준 시각(지금보다 뒤인 것만) 가운데 이른 것, 없으면 None"""
+        due = self.next_timer_due_ns()
+        wake = self.next_wake_ns
+        if wake is not None and wake > now_ns and (due is None or wake < due):
+            due = wake
+        return due
+
     def service_timers(self):
         if not self.timers:
             return
@@ -945,10 +981,11 @@ class Board:
         return self.has_irq_handlers()
 
     def service(self, run_callbacks):
-        """입력 확인 지점에서 하는 일: 화면 입력 반영(핀·부품 조작) → 레벨 인터럽트 → 울릴 타이머 → (학생 코드 자리면) 콜백 실행"""
+        """입력 확인 지점에서 하는 일: 화면 입력 반영(핀·부품 조작) → 레벨 인터럽트 → 가상 시각 알람(부품) → 울릴 타이머 → (학생 코드 자리면) 콜백 실행"""
         self.drain_inputs()
         self.drain_device_inputs()
         self.service_level_irqs()
+        self.service_wakes()
         self.service_timers()
         if run_callbacks:
             self.run_pending()
@@ -1188,8 +1225,8 @@ IRQ_SLICE_NS = 20_000_000
 
 
 def wait_ns(total_ns):
-    """가상 시계로 total_ns만큼 잔다(time.sleep*). 자는 동안 Timer가 울릴 시각마다 깨어 콜백을 돌리고,
-    핀 인터럽트가 걸려 있으면 20ms 조각으로 나눠 자며 입력을 반영한다. [정지]면 KeyboardInterrupt."""
+    """가상 시계로 total_ns만큼 잔다(time.sleep*). 자는 동안 Timer가 울릴 시각과 부품의 가상 시각 알람(register_wake_hook — 예: MP3 곡 끝)마다
+    깨어 콜백·부품 일을 돌리고, 핀 인터럽트가 걸려 있으면 20ms 조각으로 나눠 자며 입력을 반영한다. [정지]면 KeyboardInterrupt."""
     board = BOARD
     # (P3-11) 16ms 안의 변화는 합친다 — 실제로 기다리기 직전에는 대기 전 훅(_before_wait)이 보내고, 기다리지 않는 짧은 sleep은
     # 틱 훅(_tick)이 16ms마다 보낸다. 늘 보내면 `duty(i); sleep(0.001)` 반복문(f060)이 board.state를 초당 수백 개 보낸다.
@@ -1209,7 +1246,7 @@ def wait_ns(total_ns):
         if remaining <= 0:
             break
         chunk = remaining
-        due = board.next_timer_due_ns()
+        due = board.next_due_ns(now)
         if due is not None:
             chunk = min(chunk, max(0, due - now))
         if board.has_irq_handlers():
@@ -1257,7 +1294,7 @@ async def wait_ns_async(total_ns):
         if remaining <= 0:
             break
         chunk = remaining
-        due = board.next_timer_due_ns()
+        due = board.next_due_ns(now)
         if due is not None:
             chunk = min(chunk, max(0, due - now))
         if board.has_irq_handlers():
@@ -1309,6 +1346,7 @@ def _idle():
 _board_modules = {}
 _machine_exports = {}
 _parts = {}
+_wake_hooks = []
 _extensions_loaded = False
 
 #: u-이름 → 원래 모듈(MicroPython v1.29.0: 확장 가능한 붙박이 모듈과 usys는 u-이름으로도 import된다 — py/objmodule.c 확인)
@@ -1350,6 +1388,17 @@ def machine_exports():
 def register_part(part_id, factory):
     """부품 흉내(parts/<부품>/apc_part_*.py)가 자기를 등록한다. factory(배선 항목 dict) → 장치 객체. 배선에 그 부품이 있으면 보드가 부른다(P3-04~)."""
     _parts[str(part_id)] = factory
+
+
+def register_wake_hook(hook):
+    """부품의 가상 시각 알람을 등록한다(2026-09-26 PROGRESS 미해결 177 — 확장·부품 흉내가 import될 때 한 번).
+
+    hook(now_ns)는 입력 확인 지점마다(Board.service) 불린다. 지금(now_ns) 해야 할 일을 하고, 다음에 깨워 줄 가상 시각(나노초)을 돌려준다
+    (할 일이 없으면 None). wait_ns는 켜진 Timer처럼 그 시각에 잠을 끊어 훅을 다시 부른다 — 그래서 time.sleep(5) 한 번 안에서도
+    MP3 모듈이 곡이 끝난 그 시각에 멈춘다(실물 DFPlayer도 스스로 멈춘다). 이미 지난 시각을 돌려주면 잠을 끊지 않는다(끝없이 깨지 않게).
+    실행마다 상태를 비우는 일은 훅 쪽(apc_runtime.register_reset_hook)이 맡는다. 양보 금지(틱 훅 안에서도 불린다)."""
+    if hook not in _wake_hooks:
+        _wake_hooks.append(hook)
 
 
 def part_factory(part_id):

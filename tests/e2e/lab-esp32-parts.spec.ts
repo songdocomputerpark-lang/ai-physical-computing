@@ -10,7 +10,7 @@
 //  7. [그림 크게 보기]: 좁은 화면에서 그림을 넓게 펴 가로로 밀어 보고(페이지는 넘치지 않음), 고른 값을 기억한다.
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { LOAD_TIMEOUT, labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 
@@ -52,6 +52,22 @@ async function consoleText(page: Page): Promise<string> {
 
 function count(text: string, needle: string): number {
   return text.split(needle).length - 1;
+}
+
+/**
+ * 부품이 스크립트로 돌리는 움직임(element.animate()가 만든 Animation — 떨림·회전·깜빡임) 수. 두 화면 갱신을 기다린 뒤,
+ * CSS가 만든 애니메이션(CSSTransition·CSSAnimation)은 빼고 센다.
+ * 왜(PROGRESS 미해결 182 — 2026-09-26 구역 F 재현): 움직임 줄이기 규칙(src/styles/global.css)은 모든 요소에 transition-duration 0.01ms를 둔다.
+ * 그래서 부품 그림의 SVG 속성이 바뀌면(예: 진동 모터 떨림 표시 곡선 `<g opacity>`) 다음 스타일 계산에서 0.01ms짜리 CSS 전환이 생긴다.
+ * getAnimations()는 스스로 스타일을 계산하므로, 바뀐 뒤 화면 갱신이 한 번도 없었으면(컴퓨터가 바쁠 때) 그 전환이 running으로 목록에 잡힌다 —
+ * CDP로 CPU를 4배 느리게 한 Edge에서 4번 가운데 1번 `CSSTransition opacity`(떨림 곡선 g)를 재현했고, 두 화면 갱신 뒤에는 늘 0이었다.
+ * 그림의 움직임은 모두 Web Animations라 이 수가 "움직이는지"다(움직임 줄이기면 0, 아니면 켜진 부품마다 1).
+ */
+async function scriptedAnimationCount(target: Locator, subtree = true): Promise<number> {
+  return target.evaluate(async (element, deep) => {
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return element.getAnimations({ subtree: deep }).filter((animation) => !(animation instanceof CSSTransition) && !(animation instanceof CSSAnimation)).length;
+  }, subtree);
 }
 
 /**
@@ -250,19 +266,24 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     await expect(motor).toHaveAttribute('role', 'img');
     await expect(motor).toHaveAttribute('data-visual-on', 'false');
     const motorSequence = await recordAttribute(page, '[data-board-part="vibration-motor"]', 'data-visual-on');
+    // 한 번 떠는 것이 0.3초라, 켜진 모습(떨림·낭독기 글·핀 빛)을 expect로 하나씩 차례로 보면 컴퓨터가 바쁠 때 그 창을 놓친다
+    // (2026-09-26 구역 F — 다른 구역의 검사와 함께 돌려 두 번 모두 "멈춤"을 읽음). 켜진 순간의 값도 모아 두었다가 끝나고 본다.
+    const motionSequence = await recordAttribute(page, '[data-board-part="vibration-motor"]', 'data-visual-motion');
+    const labelSequence = await recordAttribute(page, '[data-board-part="vibration-motor"]', 'aria-label');
+    const pinSequence = await recordAttribute(page, '[data-board-header][data-gpio="19"]', 'data-high');
 
     await run(page);
     const touch = part(page, 'touch-digital');
     await touch.hover();
     await page.mouse.down();
     await expect(consoleBox(page)).toContainText('알림!', { timeout: 20_000 });
-    await expect(motor).toHaveAttribute('data-visual-on', 'true', { timeout: 10_000 });
-    await expect(motor).toHaveAttribute('data-visual-motion', 'shake');
-    await expect(motor).toHaveAttribute('aria-label', /진동 모터\(GPIO19\): 진동 중/u);
-    await expect(header(page, 19)).toHaveAttribute('data-high', 'true');
     await page.mouse.up();
     // 두 번 떨고(켜짐 → 멈춤 → 켜짐 → 멈춤) 멈춘다 — 모은 차례로 확인(0.2초 쉼을 놓치지 않게)
     await expect.poll(motorSequence, { timeout: 15_000 }).toBe('false,true,false,true,false');
+    expect(await motionSequence()).toContain('shake');
+    expect(await labelSequence()).toMatch(/진동 모터\(GPIO19\): 진동 중/u);
+    expect((await pinSequence()).split(',')).toContain('true');
+    await expect(header(page, 19)).not.toHaveAttribute('data-high', 'true');
     await expect(motor).toHaveAttribute('data-visual-on', 'false');
     expect(count(await consoleText(page), '알림!')).toBe(1);
     await stop(page);
@@ -281,13 +302,8 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     await expect(motor).toHaveAttribute('data-visual-on', 'true', { timeout: 20_000 });
     await expect(motor).toHaveAttribute('data-visual-motion', 'still');
     await expect(motor).toContainText('진동 중');
-    // 움직임 줄이기 규칙(global.css)은 모든 요소의 transition-duration을 0.01ms로 두므로, 방금 바뀐 모양(떨림 표시 곡선의
-    // opacity 등)이 0.01ms짜리 CSS 전환으로 다음 화면 갱신까지 목록에 남을 수 있다 — 컴퓨터가 바쁘면 잡힌다(2026-09-25
-    // Phase 5 통합 전체 실행에서 두 번 실패, 따로 돌리면 통과). 떨림은 Web Animations라 CSS 전환만 빼고 센다.
-    const animations = await motor.evaluate(
-      (element) => element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition)).length,
-    );
-    expect(animations).toBe(0);
+    // 떨림(Web Animations)이 없다 — 움직임 줄이기 규칙이 만드는 0.01ms CSS 전환은 세지 않는다(scriptedAnimationCount 머리말, 미해결 182)
+    expect(await scriptedAnimationCount(motor)).toBe(0);
     await page.mouse.up();
     await stop(page);
   });

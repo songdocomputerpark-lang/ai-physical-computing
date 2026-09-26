@@ -209,6 +209,37 @@ test.describe('가상 데스크톱(pyautogui)', () => {
     expect(errors).toEqual([]);
   });
 
+  test('P1 도전 과제 2(수업 슬라이드 17): 저장 창이 기본 이름을 골라 둔 채 열려, 바로 친 example.txt로 저장된다(미해결 178)', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openVisionLab(page, '?example=desktop/01-screen-size.py');
+    const desktop = page.locator(DESKTOP);
+    await expect(desktop).toBeVisible();
+    await page.getByRole('button', { name: '처음 상태로' }).click();
+    // 슬라이드 17의 코드를 저장 창을 여는 줄까지 먼저 돌려 저장 창의 모습을 본다
+    const slide = [
+      'import pyautogui',
+      '',
+      "pyautogui.hotkey('win', 'r')",
+      'pyautogui.typewrite("notepad\\n", interval=0.1)',
+      'pyautogui.typewrite("Hello, automated text input!\\n", interval=0.1)',
+      "pyautogui.hotkey('ctrl', 's')",
+    ];
+    expect(await run(page, slide.join('\n'))).toBe('ok');
+    await expect(desktop).toHaveAttribute('data-desktop-dialog', 'save');
+    await expect(desktop).toHaveAttribute('data-desktop-dialog-name', '제목 없음.txt');
+    await expect(desktop).toHaveAttribute('data-desktop-dialog-selected', 'yes');
+    await expect(page.locator('[data-desktop-action]')).toContainText('골라져 있어');
+    await page.locator('[data-desktop-canvas]').screenshot({ path: test.info().outputPath('save-dialog-selected.png') });
+    // 이어서 마지막 줄: 골라 둔 이름이 친 이름으로 바뀌고 Enter로 저장된다(기본 이름을 지우는 줄이 없어도 된다)
+    expect(await run(page, 'import pyautogui\npyautogui.typewrite("example.txt\\n")')).toBe('ok');
+    await expect(desktop).toHaveAttribute('data-desktop-dialog', '');
+    await expect(page.locator('[data-desktop-files]')).toContainText('example.txt');
+    await expect(page.locator('[data-desktop-files]')).not.toContainText('제목 없음.txtexample');
+    expect(await page.locator('[data-desktop-notepad]').textContent()).toContain('Hello, automated text input!');
+    expect(errors).toEqual([]);
+  });
+
   test('화면 캡처 예제(f025)가 가상 모니터를 Pillow 그림으로 저장한다', async ({ page }) => {
     await openVisionLab(page, '?example=desktop/09-screenshot.py');
     await expect(page.locator(DESKTOP)).toBeVisible();

@@ -252,6 +252,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
     root.dataset.desktopChars = String(model.notepadText.length); // 메모장 글자 수(글 자체는 [data-desktop-notepad])
     root.dataset.desktopRunning = running ? 'yes' : 'no';
     root.dataset.desktopDialog = model.dialog?.kind ?? ''; // save|run|message (없으면 빈 글자)
+    // 저장 창의 파일 이름 칸(글과 모두 골라졌는지 — 진짜 Windows처럼 골라진 채 열린다, 미해결 178). 저장 창이 아니면 빈 글자
+    root.dataset.desktopDialogName = model.dialog?.kind === 'save' ? model.dialog.fileName : '';
+    root.dataset.desktopDialogSelected = model.dialog?.kind === 'save' && model.dialog.selected ? 'yes' : 'no';
     root.dataset.desktopMenu = model.menu ? model.menu.target.kind : ''; // desktop|window|icon
     root.dataset.desktopFileCount = String(model.files.length);
     // 그림판에서 실제로 그려지는 영역(캔버스 픽셀 — getImageData와 같은 좌표계). 브라우저 테스트가 이 안의 픽셀을 센다.

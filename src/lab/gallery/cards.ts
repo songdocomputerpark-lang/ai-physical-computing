@@ -7,6 +7,8 @@
  *
  * 태그(facets)를 정하는 차례 — 칸마다 따로 본다.
  *   ① 차시 md frontmatter → ② 예제 사이드카(`<이름>.meta.yaml`) → ③ 사이트 규칙으로 저절로 읽기(`infer.ts`: 폴더 이름의 단원, 코드가 import하는 통신 모듈)
+ *   ①은 다시 **그 예제 항목(`examples[].difficulty`·`tags`)이 먼저**, 차시 값이 그다음이다(2026-09-26 PROGRESS 미해결 180 — 짝 예제가 여럿인 차시.
+ *   페이지가 `GalleryLessonInfo.examples`로 넘겨야 쓰인다, `lessonFacetsForExample`). 낱말은 차시 tags + 예제 항목 tags + 사이드카 tags를 모두 모은다.
  * ①②는 `galleryFacetsOf`(facets.ts)가 맡고, 둘 다 비었을 때만 ③이 온다. 부품은 배선(`LabExample.parts`)이 곧 태그라 따로 적지 않는다.
  *
  * 같은 코드가 두 번 들어오면(§7.1 사본) **카드는 한 장만** 만들고 나머지 파일 이름을 `sameCode`에 적는다.
@@ -22,6 +24,16 @@ import { GALLERY_LAB_IDS, GALLERY_LAB_LABELS, normalizeKeywords, type GalleryLab
 import { commKindsFromCode, unitFromExampleFile, virtualOkByRule } from './infer.ts';
 import { SITE_VERSION_GROUP, siteVersionPairs, variantGroupsBySourceId, type VariantGroup } from './variants.ts';
 
+/** 차시 md `examples[]` 항목 하나에서 갤러리가 쓰는 값(예제별 난이도·낱말 — 2026-09-26 PROGRESS 미해결 180) */
+export interface GalleryLessonExample {
+  /** examples/ 뒤 경로 */
+  readonly file: string;
+  /** 이 예제만의 난이도 1~3(없으면 차시 difficulty) */
+  readonly difficulty?: number | null;
+  /** 이 예제에만 붙는 낱말(차시 tags에 더해진다) */
+  readonly tags?: readonly string[] | null;
+}
+
 /** 차시 md 하나에서 갤러리가 쓰는 값(페이지가 `getCollection('lessons')`으로 만들어 넘긴다) */
 export interface GalleryLessonInfo extends FacetSource {
   /** 차시 파일 이름(사이드카 `lesson`과 견준다) */
@@ -30,6 +42,28 @@ export interface GalleryLessonInfo extends FacetSource {
   readonly href: string;
   /** 화면 글자. 예: "1-2-1 웹캠 영상 좌우 반전" */
   readonly label: string;
+  /**
+   * (선택) 차시의 예제 목록(frontmatter `examples[]` 그대로 넘겨도 된다) — 예제 항목에 적은 difficulty·tags가 그 예제 카드에서
+   * 차시 값보다 먼저다(lessonFacetsForExample). 넘기지 않으면 전처럼 차시 값만 쓴다.
+   */
+  readonly examples?: readonly GalleryLessonExample[];
+}
+
+/**
+ * 차시 값 + 그 차시의 예제 항목 값 → 이 예제 카드가 쓸 차시 쪽 값(미해결 180):
+ * 난이도는 예제 항목이 먼저(없으면 차시), 낱말은 차시 tags 뒤에 예제 항목 tags를 더한다. 예제 항목이 없으면 차시 값 그대로.
+ */
+export function lessonFacetsForExample(lesson: GalleryLessonInfo | null, file: string): GalleryLessonInfo | null {
+  if (!lesson) {
+    return null;
+  }
+  const item = lesson.examples?.find((example) => example.file === file);
+  if (!item) {
+    return lesson;
+  }
+  const difficulty = typeof item.difficulty === 'number' ? item.difficulty : lesson.difficulty;
+  const tags = [...(lesson.tags ?? []), ...(Array.isArray(item.tags) ? item.tags : [])];
+  return { ...lesson, difficulty, tags };
 }
 
 /** 예제 → 차시 찾는 표(실습실 페이지가 쓰는 것과 같은 모양) */
@@ -245,7 +279,8 @@ export function buildGallery(
     }
     const lesson = lessonFor(input, lessons);
     const sidecar = input.sidecar ?? null;
-    const merged = galleryFacetsOf(lesson, sidecarFacetSource(sidecar));
+    // ① 차시 쪽 값: 차시 md가 이 예제 항목에 난이도·낱말을 따로 적었으면 그 값이 차시 값보다 먼저(미해결 180)
+    const merged = galleryFacetsOf(lessonFacetsForExample(lesson, file), sidecarFacetSource(sidecar));
     // ③ 아무 데도 적혀 있지 않은 칸만 사이트 규칙으로 읽는다(infer.ts).
     const unit = merged.unit ?? unitFromExampleFile(file);
     const comm = merged.comm.length > 0 ? merged.comm : commKindsFromCode(example.code);

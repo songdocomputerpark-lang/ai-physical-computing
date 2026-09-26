@@ -25,7 +25,8 @@ CODE_MAPPING §3.8.3·§6.1 D1, src/lab/README.md 7.5·7.9). 화면 쪽은 같�
 - 없는 곡 번호는 재생하지 않고 오류 프레임(0x40, 5 = FileIndexOut — 라이브러리 오류 번호)을 보낸다. 잠자기 중의 재생 명령은 오류 2(Sleeping).
 - 음원 파일은 두지 않는다(PD-16): SD 카드에 001~003.mp3가 있는 것처럼 트랙 3개를 두고, 소리는 화면이 사이트가 지은 짧은 멜로디로 합성한다.
   곡 길이는 TRACK_LENGTHS_MS이고 화면 멜로디(parts/mp3/melodies.ts)와 같아야 한다(tests/unit/board-uart/mp3-melodies.test.ts가 맞춰 본다).
-- 곡 재생 시간은 가상 시계로 센다(sleep한 만큼 흘러감). 모듈은 [실행]마다 보드와 함께 새로 켜진 것으로 본다(초기화 대기 1.5~3초는 흉내 내지 않음).
+- 곡 재생 시간은 가상 시계로 센다(sleep한 만큼 흘러감). 곡이 끝나는 시각에는 가상 시각 알람(apc_board.register_wake_hook)이 긴 sleep을
+  끊어 그 시각에 멈추고 화면에 알린다(2026-09-26 PROGRESS 미해결 177). 모듈은 [실행]마다 보드와 함께 새로 켜진 것으로 본다(초기화 대기 1.5~3초는 흉내 내지 않음).
 
 화면에 보내는 상태('board.device' state): {v, status: 'stopped'|'playing'|'paused'|'sleep', track, volume, eq, loop: 'none'|'one'|'all',
 playId(곡을 처음부터 틀 때마다 1씩), positionMs(지금까지 재생한 시간), commands(알아들은 명령 수), last{cmd, name, param, bytes, feedback},
@@ -100,14 +101,21 @@ def _reset():
     _live.clear()
 
 
-def _tick():
-    """입력 확인 지점마다(양보 금지): 재생 중인 곡이 끝났는지 가상 시계로 본다."""
+def _wake(now_ns):
+    """가상 시각 알람(apc_board.register_wake_hook — 입력 확인 지점마다, 양보 금지): 재생 중인 곡이 끝났는지 가상 시계로 보고,
+    다음 곡 끝 시각을 알려 준다. 그래서 time.sleep(5) 안에서도 3.6초 곡이 끝나는 그 시각에 멈춘다(2026-09-26 PROGRESS 미해결 177 —
+    전에는 틱 훅이라 sleep이 끝난 뒤에야 알아채 그동안 "재생 중"이었다. 실물 DFPlayer는 스스로 멈춘다)."""
+    due = None
     for module in list(_live):
         module.advance()
+        when = module.finish_due_ns()
+        if when is not None and (due is None or when < due):
+            due = when
+    return due
 
 
 apc_runtime.register_reset_hook(_reset)
-apc_runtime.register_tick_hook(_tick)
+apc_board.register_wake_hook(_wake)
 
 
 def frame_checksum(values):
@@ -354,15 +362,22 @@ class Mp3Module:
         self.resumed_at_ns = self._now()
         self.play_id += 1
 
+    def finish_due_ns(self):
+        """재생 중인 곡이 끝날 가상 시각(나노초). 재생 중이 아니면 None — 가상 시각 알람(_wake)이 wait_ns를 이 시각에 깨운다."""
+        if self.status != "playing" or self.track is None or self.resumed_at_ns is None:
+            return None
+        length = TRACK_LENGTHS_MS[self.track - 1] * 1_000_000
+        return self.resumed_at_ns + max(0, length - self.position_ns)
+
     def advance(self):
         """가상 시계로 곡이 끝났는지 본다: 끝나면 멈추고 다음 곡을 가리키며 0x3D를 보낸다(한 곡 반복·전체 반복이면 이어 튼다).
-        긴 sleep 뒤에 알아채도 곡이 끝난 그 가상 시각을 기준으로 다음 곡을 시작하고 응답을 보낸다(apc_board_uart.deliver at_ns)."""
+        보통은 가상 시각 알람(_wake)이 곡 끝 시각에 부른다. 늦게 알아채도(계산만 하는 반복문 뒤 등) 곡이 끝난 그 가상 시각을 기준으로
+        다음 곡을 시작하고 응답을 보낸다(apc_board_uart.deliver at_ns)."""
         changed = False
         now = self._now()
-        while self.status == "playing" and self.track is not None and self.resumed_at_ns is not None:
-            length = TRACK_LENGTHS_MS[self.track - 1] * 1_000_000
-            finish_at = self.resumed_at_ns + max(0, length - self.position_ns)
-            if now < finish_at:
+        while True:
+            finish_at = self.finish_due_ns()
+            if finish_at is None or now < finish_at:
                 break
             changed = True
             finished = self.track

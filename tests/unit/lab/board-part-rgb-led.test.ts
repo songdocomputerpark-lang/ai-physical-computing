@@ -4,7 +4,7 @@ import { snapshotAfterRun } from '../../../src/lab/modules/board/index.ts';
 import { partAnchors } from '../../../src/lab/modules/board/layout.ts';
 import { PART_DEFINITIONS, resolveWiring } from '../../../src/lab/modules/board/parts.ts';
 import rgb from '../../../src/lab/modules/board/parts/rgb-led/part.ts';
-import { colorName, mixedColor, percentOf, rgbVisual } from '../../../src/lab/modules/board/parts/rgb-led/rgb-model.ts';
+import { colorName, hueOf, mixedColor, percentOf, rgbVisual } from '../../../src/lab/modules/board/parts/rgb-led/rgb-model.ts';
 import { instanceOf, snapshotWith } from './helpers/board-snapshot.ts';
 
 const instance = instanceOf('rgb-led', { r: 27, g: 32, b: 33 }, { usesDefaultPins: false });
@@ -48,11 +48,41 @@ describe('부품: RGB LED(rgb-led)', () => {
       reducedMotion: false,
     });
     expect(mixed).toMatchObject({ r: 100, g: 100, b: 100, name: '흰색', color: '#ffffff' });
-    expect(colorName({ r: 100, g: 40, b: 0 })).toBe('노랑');
+    // 같은 세기로 둘씩 섞으면 노랑·자홍·청록(2-1-4 빛의 삼원색 그림·퀴즈와 같은 이름)
+    expect(colorName({ r: 100, g: 100, b: 0 })).toBe('노랑');
     expect(colorName({ r: 10, g: 0, b: 10 })).toBe('자홍');
     expect(colorName({ r: 0, g: 10, b: 10 })).toBe('청록');
-    expect(rgbVisual({ r: 100, g: 0, b: 25 }).summary).toBe('자홍 — 빨강 100% · 초록 0% · 파랑 25%');
+    expect(rgbVisual({ r: 100, g: 0, b: 60 }).summary).toBe('자홍 — 빨강 100% · 초록 0% · 파랑 60%');
     expect(mixedColor({ r: 25, g: 0, b: 0 })).toBe('#800000');
+  });
+
+  it('색 이름은 켜졌는지가 아니라 세 색의 비율로 정한다 — 2-1-5 무지개 표(원고 150쪽)의 일곱 색(미해결 176)', () => {
+    // set_color(r, g, b)는 0~255 값에 4를 곱해 duty(0~1023)로 넣는다(2-1-3 예제 4, 2-1-4 도전 과제 2) → 세기 % = duty ÷ 1024
+    const namedAs = (r: number, g: number, b: number) => {
+      const levels = [r, g, b].map((value) => percentOf((value * 4) / 1024));
+      return colorName({ r: levels[0]!, g: levels[1]!, b: levels[2]! });
+    };
+    expect(namedAs(255, 0, 0)).toBe('빨강');
+    expect(namedAs(255, 94, 0)).toBe('주황');
+    expect(namedAs(255, 228, 0)).toBe('노랑');
+    expect(namedAs(0, 255, 0)).toBe('초록');
+    expect(namedAs(0, 0, 255)).toBe('파랑');
+    // 남색 (0, 0, 75)은 파랑만 약하게 켠 것 — 이름은 비율만 보고(파랑), 어둡다는 것은 세기 글이 알린다
+    expect(namedAs(0, 0, 75)).toBe('파랑');
+    expect(rgbVisual({ r: 0, g: 0, b: percentOf((75 * 4) / 1024) }).summary).toBe('파랑 — 빨강 0% · 초록 0% · 파랑 29%');
+    expect(namedAs(95, 0, 255)).toBe('보라');
+    // 주황의 세기 글은 교사용 안내(2-1-4)와 같다
+    expect(rgbVisual({ r: percentOf(1020 / 1024), g: percentOf(376 / 1024), b: 0 }).summary).toBe('주황 — 빨강 100% · 초록 37% · 파랑 0%');
+    // 밝기만 다르면 같은 이름, 연두·붉은빛이 도는 자홍 쪽 경계, 세 색이 거의 같으면 흰색, 모두 꺼지면 꺼짐
+    expect(colorName({ r: 12, g: 0, b: 0 })).toBe('빨강');
+    expect(colorName({ r: 50, g: 100, b: 0 })).toBe('연두');
+    expect(colorName({ r: 100, g: 0, b: 25 })).toBe('빨강');
+    expect(colorName({ r: 100, g: 0, b: 40 })).toBe('자홍');
+    expect(colorName({ r: 100, g: 90, b: 80 })).toBe('흰색');
+    expect(colorName({ r: 100, g: 100, b: 70 })).toBe('노랑');
+    expect(colorName({ r: 0, g: 0, b: 0 })).toBe('꺼짐');
+    expect(hueOf({ r: 100, g: 37, b: 0 })).toBeCloseTo(22.2, 1);
+    expect(hueOf({ r: 40, g: 40, b: 40 })).toBeNull();
     expect(percentOf(0)).toBe(0);
     expect(percentOf(0.004)).toBe(1);
     expect(percentOf(1)).toBe(100);

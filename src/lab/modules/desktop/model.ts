@@ -180,7 +180,12 @@ export interface ContextMenu {
 }
 
 export type Dialog =
-  | { readonly kind: 'save'; readonly windowId: string; fileName: string }
+  /**
+   * 저장 창. selected면 파일 이름 칸의 글이 모두 골라져 있다 — 진짜 Windows 저장 창처럼 **골라진 채 열려**(Ctrl+S) 바로 치면 새 이름으로 바뀌고,
+   * Backspace·Delete는 통째로 지우며, 방향키·Home·End는 고름만 푼다(2026-09-26 PROGRESS 미해결 178 — 전에는 기본 이름 뒤에 글자가 붙었다).
+   * Ctrl+A는 다시 모두 고른다. 커서는 늘 글 끝에 있다(칸 안 커서 자리는 흉내 내지 않는다).
+   */
+  | { readonly kind: 'save'; readonly windowId: string; fileName: string; selected: boolean }
   | { readonly kind: 'run'; text: string }
   | { readonly kind: 'message'; readonly text: string };
 
@@ -1018,7 +1023,12 @@ export class DesktopModel {
       return this.#typeKey(main, textForKey(main), { rawKey: main, fromScript: true });
     }
     if (this.dialog) {
-      action = `${combo}: 대화상자가 열려 있어서 무시했어요.`;
+      if (this.dialog.kind === 'save' && mods.has('ctrl') && main === 'a') {
+        this.dialog.selected = this.dialog.fileName !== '';
+        action = 'Ctrl+A: 저장 창의 파일 이름을 모두 골랐어요. 이어서 치면 새 이름으로 바뀌어요.';
+      } else {
+        action = `${combo}: 대화상자가 열려 있어서 무시했어요.`;
+      }
     } else if (mods.has('ctrl') && main === 's') {
       action = this.#openSaveDialog();
     } else if (mods.has('ctrl') && main === 'z') {
@@ -1402,6 +1412,23 @@ export class DesktopModel {
     if (dialog.kind === 'message') {
       return '안내 상자가 열려 있어요. Enter로 닫아요.';
     }
+    if (dialog.kind === 'save' && dialog.selected) {
+      // 골라 둔 파일 이름: 지우는 키는 통째로 지우고, 글자는 통째로 바꾸고, 방향키·Home·End는 고름만 푼다(진짜 Windows와 같게)
+      if (key === 'backspace' || key === 'delete') {
+        dialog.fileName = '';
+        dialog.selected = false;
+        return '저장 창에서 골라 둔 파일 이름을 지웠어요. 새 이름을 쳐요.';
+      }
+      if (text !== null && text !== '\n' && text !== '\t') {
+        dialog.fileName = text.slice(0, 60);
+        dialog.selected = false;
+        return `저장 창의 골라 둔 파일 이름을 '${text}'(으)로 바꿨어요. 이어서 새 이름을 쳐요.`;
+      }
+      if (['left', 'right', 'home', 'end'].includes(key)) {
+        dialog.selected = false;
+        return `${key} 키: 파일 이름 칸의 고름을 풀었어요(글자는 그대로예요).`;
+      }
+    }
     if (key === 'backspace') {
       if (dialog.kind === 'save') {
         dialog.fileName = dialog.fileName.slice(0, -1);
@@ -1430,8 +1457,9 @@ export class DesktopModel {
       return `Ctrl+S: ${WINDOW_LABELS[focused.kind]} 창에는 저장할 것이 없어요(메모장·그림판에서 눌러요).`;
     }
     const fileName = focused.kind === 'notepad' ? this.notepadFileName : '그림.png';
-    this.dialog = { kind: 'save', windowId: focused.id, fileName };
-    return `Ctrl+S: 저장 대화상자를 열었어요(${fileName}). Enter나 [저장]을 눌러요.`;
+    // 진짜 Windows처럼 파일 이름 칸의 글을 모두 골라 둔 채 연다 — 바로 치면 새 이름으로 바뀐다(미해결 178)
+    this.dialog = { kind: 'save', windowId: focused.id, fileName, selected: true };
+    return `Ctrl+S: 저장 대화상자를 열었어요(${fileName} — 이름이 골라져 있어 바로 치면 바뀌어요). Enter나 [저장]을 눌러요.`;
   }
 
   #confirmDialog(): string {

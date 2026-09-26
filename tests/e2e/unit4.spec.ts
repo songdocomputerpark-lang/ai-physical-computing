@@ -34,8 +34,11 @@ import {
   UNIT4_EXTRA_PC_FILES,
   UNIT4_PC_GLOB,
   boardExampleId,
+  findPairView,
   isUnit4BoardFile,
   isUnit4PcFile,
+  normalizePairParam,
+  pairQuery,
   pairViews,
   pcExampleId,
   type Unit4PairView,
@@ -292,6 +295,56 @@ test.describe('4단원 통합 화면 — 순수 논리(브라우저 없이)', ()
     expect(ADDRESS_STASH_KEY in target).toBe(false); // 한 번 꺼내면 지운다
     expect(takeAddressStash(target)).toBeNull();
     expect(takeAddressStash({ [ADDRESS_STASH_KEY]: { hash: 3 } })).toBeNull();
+    // ?pair=(짝 이름)도 맡겨 둔다(미해결 179)
+    expect(takeAddressStash({ [ADDRESS_STASH_KEY]: { pair: '4-1-4' } })).toEqual({ pair: '4-1-4' });
+  });
+
+  test('?pair=: 짝 이름(id)은 겹치지 않고 차시 번호로 시작하며, 차시 번호만 적으면 그 차시의 첫 짝이다(미해결 179)', () => {
+    const ids = PAIRS.map((pair) => pair.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const pair of PAIRS) {
+      expect(normalizePairParam(pair.id), pair.label).toBe(pair.id);
+      // 차시 짝은 이름이 화면 이름의 차시 번호로 시작한다(4-2-1 심화 → 4-2-1-adv)
+      const lesson = /\d-\d-\d/u.exec(pair.label)?.[0];
+      if (lesson !== undefined) {
+        expect(pair.id === lesson || pair.id.startsWith(`${lesson}-`), `${pair.id} ← ${pair.label}`).toBe(true);
+      }
+    }
+    const views = allPairViews();
+    expect(findPairView('4-1-4', views)?.label).toBe('4-1-4 — 코 좌표를 LCD에');
+    expect(findPairView(' 4-2-1-ADV ', views)?.label).toBe('4-2-1 심화 — 서보 두 개');
+    expect(findPairView('4-2-2', views)?.label).toBe('4-2-2 기본 — 서보와 RGB LED');
+    // 차시 번호로 시작하는 짝이 여럿이어도 id가 딱 맞는 것이 먼저, 없으면 목록 차례의 첫 짝
+    expect(findPairView('4-2', views)?.id).toBe('4-2-1');
+    expect(findPairView('9-9-9', views)).toBeNull();
+    expect(findPairView('<script>', views)).toBeNull();
+    expect(findPairView('', views)).toBeNull();
+    expect(pairQuery('4-1-4')).toBe('?pair=4-1-4');
+  });
+
+  test('차시 md의 4단원 통합 실습실 ?pair= 링크가 모두 있는 짝을 가리킨다(짝 이름을 바꾸면 차시 링크도 함께 — 미해결 179)', () => {
+    const lessonsDir = path.join(REPO_ROOT, 'content', 'lessons');
+    const links: { file: string; value: string }[] = [];
+    for (const unit of fs.readdirSync(lessonsDir)) {
+      const dir = path.join(lessonsDir, unit);
+      if (!fs.statSync(dir).isDirectory()) {
+        continue;
+      }
+      for (const name of fs.readdirSync(dir).filter((file) => file.endsWith('.md'))) {
+        const text = fs.readFileSync(path.join(dir, name), 'utf8');
+        for (const match of text.matchAll(/\/labs\/unit4\/\?pair=([^)\s"'#&]+)/gu)) {
+          links.push({ file: `${unit}/${name}`, value: decodeURIComponent(match[1] ?? '') });
+        }
+      }
+    }
+    // 4-1-4 따라하기(와 4-2-1·4-2-2 2단계)가 링크 하나로 두 칸을 채운다
+    expect(links.map((link) => link.file)).toEqual(expect.arrayContaining(['u4/4-1-4.md', 'u4/4-2-1.md', 'u4/4-2-2.md']));
+    const views = allPairViews();
+    for (const link of links) {
+      expect(findPairView(link.value, views), `${link.file}의 ?pair=${link.value}`).not.toBeNull();
+      // 차시 링크는 짝 이름을 그대로 적는다(차시 번호만 적는 줄임은 주소를 손으로 칠 때만)
+      expect(views.some((view) => view.id === link.value), `${link.file}의 ?pair=${link.value}는 짝 이름 그대로`).toBe(true);
+    }
   });
 
   test('짝 예제와 목록 규칙이 실제 예제 파일과 맞는다', () => {
@@ -397,6 +450,32 @@ test.describe('4단원 통합 화면 — 한 문서에 두 실습실', () => {
     // 영상처리 칸이 "링크에 적힌 예제를 찾지 못했어요"를 띄우지 않는다
     expect(await pcLab(page).getAttribute('data-example-missing')).toBeNull();
     expect(page.url()).not.toContain('example=');
+  });
+
+  test('?pair=<짝 이름>은 두 칸에 짝 예제를 함께 불러오고, 모르는 짝이면 안내만 한다(4-1-4 따라하기 링크 — 미해결 179)', async ({ page }) => {
+    test.skip(test.info().project.name !== 'desktop', '주소 처리는 화면 크기와 상관없어 데스크톱에서만');
+    await openUnit4(page, '?pair=4-1-4');
+    await expect(bar(page)).toHaveAttribute('data-unit4-address', 'pair:4-1-4');
+    await expect(pcLab(page)).toHaveAttribute('data-example', pcExampleId('vision/u4/4-1-4-adv-face-ble-tx.py'));
+    await expect(boardLab(page)).toHaveAttribute('data-example', boardExampleId('esp32/u4/4-1-4-ble-lcd-rx.py'));
+    await expect(bar(page).locator('[data-unit4-status]')).toContainText('4-1-4 — 코 좌표를 LCD에');
+    await expect(bar(page).locator('[data-unit4-status]')).toContainText('[함께 실행]');
+    // 두 실습실 틀이 ?pair=을 모르는 주소 값으로 보고 "찾지 못했어요"를 띄우지 않는다(주소에서 지웠다)
+    expect(page.url()).not.toContain('pair=');
+    expect(await pcLab(page).getAttribute('data-example-missing')).toBeNull();
+    expect(await boardLab(page).getAttribute('data-example-missing')).toBeNull();
+    await bar(page).screenshot({ path: test.info().outputPath('unit4-pair-4-1-4.png') });
+
+    await openUnit4(page, '?pair=4-2-1-adv');
+    await expect(bar(page)).toHaveAttribute('data-unit4-address', 'pair:4-2-1-adv');
+    await expect(boardLab(page)).toHaveAttribute('data-example', boardExampleId('esp32/u4/4-2-1-adv-ble-servo-lcd.py'));
+
+    await openUnit4(page, '?pair=없는짝');
+    await expect(bar(page)).toHaveAttribute('data-unit4-address', 'pair:missing');
+    await expect(bar(page).locator('[data-unit4-status]')).toContainText('짝 예제를 이 화면에서 찾지 못했어요');
+    // 두 칸은 처음 짝(4-2-1 최종판 → 4-2-2 심화 사이트판) 그대로다
+    await expect(pcLab(page)).toHaveAttribute('data-example', pcExampleId(DEFAULT_PC_FILE));
+    await expect(boardLab(page)).toHaveAttribute('data-example', boardExampleId(DEFAULT_BOARD_FILE));
   });
 });
 
