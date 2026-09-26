@@ -63,6 +63,35 @@ function toPosix(value) {
   return value.split(path.sep).join('/');
 }
 
+/** YAML 문법 오류 종류(yaml 패키지의 error.code) → 한국어로 고치는 법 */
+const YAML_SYNTAX_HINTS = Object.freeze({
+  BLOCK_AS_IMPLICIT_KEY: '따옴표 없는 글 속에 쌍점과 빈칸(": ")이 있어서 새 칸 이름으로 읽혔어요. 그 값 전체를 큰따옴표로 감싸요(예: title: "터치 센서: 누르면 켜기")',
+  MULTILINE_IMPLICIT_KEY: '칸 이름 뒤의 쌍점(:)이 빠졌거나 글이 다음 줄로 넘어갔어요. "이름: 값" 모양으로 한 줄에 적고, 쌍점이 든 글은 큰따옴표로 감싸요',
+  DUPLICATE_KEY: '같은 칸 이름이 두 번 나와요. 하나를 지우거나 합쳐요',
+  TAB_AS_INDENT: '들여쓰기에 탭 글자가 있어요. 빈칸(스페이스) 두 개씩으로 들여 써요',
+  MISSING_CHAR: '따옴표·괄호가 닫히지 않았거나 목록 줄 앞의 "- "가 빠졌어요. 닫히지 않은 따옴표는 알려 준 줄보다 위에서 열렸을 수 있어요',
+  BAD_INDENT: '들여쓰기가 맞지 않거나 대괄호 [ ]·중괄호 { }가 닫히지 않았어요. 같은 목록의 줄은 같은 칸만큼 들여 써요',
+  BAD_DQ_ESCAPE: '큰따옴표 안의 역슬래시 뒤 글자를 YAML이 읽지 못해요. 역슬래시를 두 번 적거나 글을 작은따옴표로 감싸요',
+  UNEXPECTED_TOKEN: '이 자리에 올 수 없는 글자가 있어요. 쌍점·#·[ ]·{ }가 든 글은 큰따옴표로 감싸요',
+});
+
+/**
+ * 설정 칸의 YAML 문법 오류를 한국어로 풀어 알린다. 원래 영어 문장은 끝에 남긴다(검색용).
+ * 웹 화면(MAINTENANCE 1-8 방법 B)으로 올린 선생님이 영어 메시지만 보고 막혔다(2026-09-26 시나리오 E, PROGRESS 미해결 207).
+ * 줄 번호는 차시 파일 기준(1행은 ---라서 설정 칸 줄 + 1).
+ * @param {{ code?: string, message: string, linePos?: { line: number, col: number }[] }} error yaml 패키지의 YAMLError
+ * @returns {string}
+ */
+export function describeYamlSyntaxError(error) {
+  const position = error.linePos?.[0];
+  const where = position ? `${position.line + 1}번째 줄 ${position.col}번째 글자 근처` : '위치 모름';
+  const hints = /** @type {Record<string, string>} */ (YAML_SYNTAX_HINTS);
+  const hint =
+    (error.code && hints[error.code]) ?? '이 줄의 모양이 YAML 규칙에 맞지 않아요. 쌍점(: )·#·따옴표가 든 글은 큰따옴표로 감싸 봐요';
+  const original = error.message.split('\n')[0].replace(/\s*at line \d+, column \d+:?\s*$/u, '');
+  return `설정 칸 YAML 문법 오류(${where}): ${hint}. 자세한 것은 MAINTENANCE.md 1-4 "설정 칸 함정". 원문: ${original}`;
+}
+
 /**
  * content/lessons 아래 .md 파일(저장소 뿌리 기준, 정렬). 그림 목록(.images.yaml)은 빼고 .md만.
  * @param {string} rootDir
@@ -186,7 +215,7 @@ function imagesIn(html) {
 /**
  * 차시 파일 하나를 검사한다.
  * @param {string} file 저장소 뿌리 기준 경로
- * @param {{ rootDir: string, renderer: Awaited<ReturnType<typeof createLessonRenderer>>, glossary: ReturnType<typeof loadGlossaryRegistry>, images: ReturnType<typeof loadImageInfo>, includeDrafts: boolean }} context
+ * @param {{ rootDir: string, renderer: Awaited<ReturnType<typeof createLessonRenderer>>, glossary: ReturnType<typeof loadGlossaryRegistry>, images: ReturnType<typeof loadImageInfo>, includeDrafts: boolean, fixEol?: boolean }} context
  * @returns {Promise<LessonCheck & { data?: import('../../src/config/content-schemas.ts').LessonData }>}
  */
 export async function checkLessonFile(file, context) {
@@ -208,7 +237,7 @@ export async function checkLessonFile(file, context) {
       slug,
       draft: false,
       skipped: false,
-      issues: document.errors.map((error) => ({ level: 'error', code: 'fm-schema', message: `설정 칸 YAML 문법 오류: ${error.message.split('\n')[0]}` })),
+      issues: document.errors.map((error) => ({ level: 'error', code: 'fm-schema', message: describeYamlSyntaxError(error) })),
     };
   }
   const raw = document.toJS() ?? {};
@@ -255,9 +284,23 @@ export async function checkLessonFile(file, context) {
     if (!fs.existsSync(examplePath)) {
       issues.push({ level: 'error', code: 'example-file', message: `예제 파일 examples/${example.file}이(가) 없어요. 파일을 넣거나 examples의 경로를 고쳐요.` });
     } else {
-      const code = fs.readFileSync(examplePath, 'utf8');
+      let code = fs.readFileSync(examplePath, 'utf8');
       if (code.includes('\r')) {
-        issues.push({ level: 'error', code: 'example-file', message: `예제 파일 examples/${example.file}의 줄 끝이 CRLF예요. LF로 저장해요(PD-33).` });
+        // Windows 메모장·VS Code는 새 파일을 CRLF로 저장하는 것이 기본이라, 처음 쓰는 선생님이 여기서 설명 없이 막혔다(2026-09-26 Phase 6 사용성 검토 지적 9).
+        // --fix-eol이면 LF로 바꿔 저장하고 참고로 알린다(git으로 올리면 .gitattributes의 eol=lf가 LF로 바꿔 주지만, 웹 화면으로 올리면 그대로 들어가서 여기서 막는다).
+        if (context.fixEol) {
+          code = code.replace(/\r\n?/gu, '\n');
+          fs.writeFileSync(examplePath, code, 'utf8');
+          issues.push({ level: 'warning', code: 'example-file', message: `예제 파일 examples/${example.file}의 줄 끝을 CRLF(Windows 방식 줄바꿈)에서 LF로 바꿔 저장했어요(--fix-eol).` });
+        } else {
+          issues.push({
+            level: 'error',
+            code: 'example-file',
+            message:
+              `예제 파일 examples/${example.file}의 줄 끝이 CRLF(Windows 방식 줄바꿈)예요. 저장소는 LF(줄 바꿈 글자 하나)만 받아요 — ` +
+              'npm run check:lessons -- --fix-eol 로 바꿔 저장하거나, VS Code라면 오른쪽 아래 상태 표시줄의 "CRLF"를 눌러 "LF"로 바꾼 뒤 저장해요(MAINTENANCE.md 1-1, PD-33).',
+          });
+        }
       }
       const { lines } = splitExampleCode(code);
       if (example.focus) {
@@ -341,7 +384,7 @@ export async function checkLessonFile(file, context) {
 
 /**
  * 모든 차시를 검사한다.
- * @param {{ rootDir?: string, only?: string[], includeDrafts?: boolean, complete?: boolean }} [options]
+ * @param {{ rootDir?: string, only?: string[], includeDrafts?: boolean, complete?: boolean, fixEol?: boolean }} [options]
  * @returns {Promise<LessonCheckReport>}
  */
 export async function runLessonCheck(options = {}) {
@@ -355,6 +398,8 @@ export async function runLessonCheck(options = {}) {
     glossary: loadGlossaryRegistry(rootDir),
     images: loadImageInfo(rootDir),
     includeDrafts,
+    /** 예제 파일의 CRLF를 LF로 바꿔 저장할지(--fix-eol) */
+    fixEol: options.fixEol ?? false,
   };
 
   /** @type {(LessonCheck & { data?: any })[]} */

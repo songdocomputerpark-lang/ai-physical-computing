@@ -5,6 +5,7 @@
 //   npm run check:lessons -- 1-2-1                 차시 번호·파일 이름·경로로 몇 개만(구역 작업 중에는 자기 차시만)
 //   npm run check:lessons -- --drafts              초안도 함께 검사
 //   npm run check:lessons -- --complete            차례표의 차시가 모두 있어야 통과(Phase 5 완료 기준 — P5-14)
+//   npm run check:lessons -- --fix-eol             예제 파일의 줄 끝 CRLF(Windows 메모장·VS Code 기본)를 LF로 바꿔 저장하고 검사(2026-09-26 Phase 6)
 //
 // 오류가 하나라도 있으면 종료 코드 1. 규칙은 src/components/lesson/lesson-rules.ts(빌드도 같은 규칙을 경고로 씀)와
 // scripts/lib/check-lessons.mjs(파일을 여는 검사)에 있고, 규칙 표는 MAINTENANCE.md 1-6.
@@ -23,12 +24,13 @@ if (args.includes('--help') || args.includes('-h')) {
       '  npm run check:lessons -- 1-2-1 v4     몇 개만(차시 번호·파일 이름·경로)',
       '  npm run check:lessons -- --drafts     초안(draft: true)도 검사',
       '  npm run check:lessons -- --complete   차례표의 차시가 모두 있어야 통과(Phase 5 완료 기준)',
+      '  npm run check:lessons -- --fix-eol    예제 파일의 줄 끝 CRLF(Windows 방식)를 LF로 바꿔 저장하고 검사',
     ].join('\n'),
   );
   process.exit(0);
 }
 
-const unknown = args.filter((arg) => arg.startsWith('--') && !['--drafts', '--complete'].includes(arg));
+const unknown = args.filter((arg) => arg.startsWith('--') && !['--drafts', '--complete', '--fix-eol'].includes(arg));
 if (unknown.length > 0) {
   console.error(`[차시 틀 검사] 모르는 옵션: ${unknown.join(', ')} (--help로 쓰는 법을 봐요)`);
   process.exit(2);
@@ -39,6 +41,7 @@ const report = await runLessonCheck({
   only: args.filter((arg) => !arg.startsWith('--')),
   includeDrafts: args.includes('--drafts'),
   complete: args.includes('--complete'),
+  fixEol: args.includes('--fix-eol'),
 });
 if (report.lessons.length === 0 && args.some((arg) => !arg.startsWith('--'))) {
   console.error(`[차시 틀 검사] 찾는 차시가 없어요: ${args.filter((arg) => !arg.startsWith('--')).join(', ')}`);

@@ -128,7 +128,23 @@ describe('check:lessons — 파일을 여는 검사', () => {
     fs.rmSync(path.join(root, 'examples'), { recursive: true });
     expect((await run()).text).toContain('오류 [example-file] 예제 파일 examples/vision/supplement/v1-pixel-numbers.py이(가) 없어요');
     write('examples/vision/supplement/v1-pixel-numbers.py', 'print(1)\r\n');
-    expect((await run()).text).toContain('줄 끝이 CRLF');
+    const crlf = await run();
+    expect(crlf.text).toContain('줄 끝이 CRLF');
+    // 무엇을 하면 되는지 알려 준다(2026-09-26 Phase 6 사용성 검토 지적 9 — 뜻과 방법 없이 막혔다)
+    expect(crlf.text).toContain('npm run check:lessons -- --fix-eol');
+    expect(crlf.failed).toBe(true);
+  });
+
+  it('example-file: --fix-eol이면 예제의 CRLF를 LF로 바꿔 저장하고 참고로만 알린다(통과)', async () => {
+    write('examples/vision/supplement/v1-pixel-numbers.py', 'print(1)\r\nprint(2)\r\n');
+    const fixed = await runLessonCheck({ rootDir: root, fixEol: true });
+    expect(reportFailed(fixed)).toBe(false);
+    expect(formatLessonCheck(fixed)).toContain('LF로 바꿔 저장했어요');
+    expect(fs.readFileSync(path.join(root, 'examples/vision/supplement/v1-pixel-numbers.py'), 'utf8')).toBe('print(1)\nprint(2)\n');
+    // 다시 돌리면 고칠 것이 없어 참고도 없다
+    const again = await run();
+    expect(again.failed).toBe(false);
+    expect(again.report.lessons[0]?.issues).toEqual([]);
   });
 
   it('fm-yaml-comment: 따옴표 없는 풀이 안의 " #"부터 주석이 되어 글이 잘리면 실패하고, 따옴표로 감싸면 통과한다(Phase 5 검토 중요 1)', async () => {
@@ -231,6 +247,20 @@ describe('check:lessons — 파일을 여는 검사', () => {
     expect(failed).toBe(true);
     expect(text).toContain('[실패] content/lessons/u1/v2.md');
     expect(text).toContain('[fm-schema] 설정 칸 unit: 대단원 번호(unit)는 1, 2, 3, 4 중 하나로 적어요.');
+    expect(text).toContain('[통과] content/lessons/u1/v1.md');
+  });
+
+  it('설정 칸 YAML 문법 오류(따옴표 없는 글 속 ": ", 같은 칸 두 번, 탭 들여쓰기)는 줄 번호와 한국어로 고치는 법을 알린다(미해결 207)', async () => {
+    write('content/lessons/u1/v2.md', lesson(SECTIONS, FRONTMATTER.replace('title: 사진은 숫자다', 'title: 터치 센서: 누르면 켜기').replace('label: V1', 'label: V2')));
+    write('content/lessons/u1/v3.md', lesson(SECTIONS, FRONTMATTER.replace('unit: 1', 'unit: 1\nunit: 1').replace('label: V1', 'label: V3')));
+    write('content/lessons/u1/v4.md', lesson(SECTIONS, FRONTMATTER.replace('  - file: vision/supplement/v1-pixel-numbers.py', '\t- file: vision/supplement/v1-pixel-numbers.py').replace('label: V1', 'label: V4')));
+    const { text, failed } = await run();
+    expect(failed).toBe(true);
+    expect(text).toContain('[fm-schema] 설정 칸 YAML 문법 오류(2번째 줄 8번째 글자 근처): 따옴표 없는 글 속에 쌍점과 빈칸(": ")이 있어서');
+    expect(text).toContain('큰따옴표로 감싸요');
+    expect(text).toContain('원문: Nested mappings are not allowed in compact mappings');
+    expect(text).toContain('같은 칸 이름이 두 번 나와요');
+    expect(text).toContain('들여쓰기에 탭 글자가 있어요');
     expect(text).toContain('[통과] content/lessons/u1/v1.md');
   });
 });
