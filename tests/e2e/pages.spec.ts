@@ -213,6 +213,16 @@ test.describe('이 담당의 페이지', () => {
     const mit = fs.readFileSync(path.join(process.cwd(), 'LICENSE'), 'utf8');
     expect(mit.startsWith('MIT License')).toBe(true);
     expect(mit).toContain(`Copyright (c) 2026 ${siteConfig.author}`);
+    // 예제 코드는 MIT(운영자 결정 O13) — LICENSE의 CC BY-NC-SA 문장에 examples/가 남으면 README·LICENSE-CONTENT·/credits/와 반대로 읽힌다
+    // (2026-09-26 Phase 6 안전 검토 지적 1: 적용 범위 문단만 옛 문장이었다).
+    const ccSentences = mit
+      .split(/(?<=[.요])\s+/u)
+      .filter((sentence) => /CC BY-NC-SA 4\.0(?:을 따라요| \(see)/u.test(sentence.replace(/\s+/gu, ' ')));
+    expect(ccSentences.length, 'LICENSE의 CC BY-NC-SA 문장(한국어·영어)').toBeGreaterThanOrEqual(2);
+    for (const sentence of ccSentences) {
+      expect(sentence, 'LICENSE의 CC BY-NC-SA 문장에 examples/가 들어 있어요').not.toContain('examples/');
+    }
+    expect(mit.replace(/\s+/gu, ' ')).toContain('examples/ 폴더의 실습 예제 코드');
     for (const file of ['LICENSE', 'LICENSE-CONTENT.md', 'README.md']) {
       const text = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
       expect(text, file).toContain('sources.yaml');

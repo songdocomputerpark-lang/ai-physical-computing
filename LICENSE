@@ -21,22 +21,26 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 적용 범위
 
-이 MIT 라이선스는 이 저장소의 사이트 소프트웨어에 적용돼요.
+이 MIT 라이선스는 이 저장소의 사이트 소프트웨어와 실습 예제 코드에 적용돼요.
 - src/, scripts/, tests/ 폴더
+- examples/ 폴더의 실습 예제 코드(교과서·수업 자료에서 옮긴 예제와 그 사이트판, 사이트가 새로 쓴 예제,
+  예제 옆의 설명 파일 .meta.yaml): 2026-09-25 운영자 결정 O13으로 CC BY-NC-SA 4.0에서 MIT로 넓혔어요
 - 사이트가 새로 쓴 그 밖의 소프트웨어: 저장소 뿌리의 설정 파일(astro.config.mjs, playwright.config.ts 등),
   .github/workflows/, .githooks/, 앞으로 사이트가 새로 쓰는 흉내 모듈
 - src/ 안 컴포넌트에 코드(인라인 SVG)로 그린 아이콘·흐름 그림: 코드와 떼어 쓸 수 없어 이 라이선스를 따라요
 
-학습 자료와 예제(content/, examples/), 그림 파일(public/images/), 안내 문서는 이 라이선스가 아니라
-LICENSE-CONTENT.md의 CC BY-NC-SA 4.0을 따라요.
+학습 자료(content/), 그림 파일(public/images/), 가린 편집본 교안(public/teacher/handouts/), 안내 문서는
+이 라이선스가 아니라 LICENSE-CONTENT.md의 CC BY-NC-SA 4.0을 따라요.
 
 제외 조항: sources.yaml(출처 등록부)에 개별 항목으로 표기된 제3자 자료와 공개 라이브러리
-(예: third-party/ 폴더의 파일, 글꼴, 검색 도구가 만드는 파일)는 이 라이선스에서 제외되고 각자의 원래 조건을 따라요.
+(예: third-party/ 폴더의 파일 — examples/ 안의 third-party/ 폴더 포함, 글꼴, 검색 도구가 만드는 파일)는
+이 라이선스에서 제외되고 각자의 원래 조건을 따라요.
 전체 목록: https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/
 
 Scope: This MIT License applies to the site software in this repository (src/, scripts/, tests/ and other
-software newly written for the site, including drawings written as inline SVG code in src/ components).
-Learning materials and examples (content/, examples/), image files (public/images/) and documentation are
-licensed under CC BY-NC-SA 4.0 (see LICENSE-CONTENT.md). Third-party materials
-and open-source libraries listed individually in sources.yaml are excluded and remain under their original
-terms.
+software newly written for the site, including drawings written as inline SVG code in src/ components) and,
+since 2026-09-25, to the example code in examples/ (including the .meta.yaml files next to the examples).
+Learning materials (content/), image files (public/images/), the redacted handouts (public/teacher/handouts/)
+and documentation are licensed under CC BY-NC-SA 4.0 (see LICENSE-CONTENT.md). Third-party materials
+and open-source libraries listed individually in sources.yaml (for example, files in third-party/ folders,
+including those under examples/) are excluded and remain under their original terms.
