@@ -1,0 +1,77 @@
+# 차시 내용 오류 알리기 양식 — GitHub 이슈 양식 문법("Syntax for issue forms"·"Syntax for GitHub's form schema", docs.github.com 2026-09-26 확인)
+# - 이름(name)은 기여·문의 페이지 목록(src/pages/contribute/_issue-templates.ts)과 같게 둔다(tests/e2e/pages.spec.ts가 대조).
+# - 차시(/learn/)의 글·그림·예제 코드·퀴즈가 틀렸을 때 쓴다. 받으면 차시 md(content/lessons/)를 고치고 npm run check:lessons로 확인한다(MAINTENANCE.md 1절).
+# - labels의 documentation은 저장소에 이미 있는 이름표다(2026-09-26 gh label list로 확인).
+name: 차시 내용 오류 알리기
+description: 차시의 설명·그림·예제 코드·퀴즈가 틀렸거나 이해하기 어려울 때 알려 주세요.
+title: "[차시] "
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        틀린 곳을 알려 주셔서 고마워요. **이 글은 누구나 볼 수 있어요.** 이름·연락처·얼굴 사진 같은 개인정보는 적지 마세요.
+        차시 주소와 칸, 몇 번째 문단·그림·코드 줄인지 적어 주시면 빨리 고칠 수 있어요.
+        개인정보가 보이거나 저작권이 걱정되는 자료라면 이 양식 대신 "개인정보·저작권 제보" 양식을 써 주세요.
+  - type: input
+    id: page
+    attributes:
+      label: 차시 주소
+      description: 브라우저 주소창의 주소를 복사해 붙여 주세요.
+      placeholder: "https://songdocomputerpark-lang.github.io/ai-physical-computing/learn/u1/1-1-1/"
+    validations:
+      required: true
+  - type: dropdown
+    id: section
+    attributes:
+      label: 어느 칸인가요?
+      options:
+        - 차시 머리(제목·성취기준·준비물)
+        - 학습목표
+        - 왜 배울까
+        - 핵심 개념
+        - 따라하기(예제 코드 포함)
+        - 바꿔보기
+        - 도전 과제
+        - 확인 퀴즈
+        - 교사용 안내
+        - 그림이나 그림 설명
+        - 잘 모르겠어요
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: 정확한 위치
+      placeholder: "예: 핵심 개념 칸의 두 번째 표 셋째 줄 / 예제 코드 7번째 줄 / 확인 퀴즈 2번의 세 번째 보기"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 무엇이 틀렸나요?
+      description: 틀린 글이나 코드를 짧게 옮겨 적고, 왜 틀렸다고 생각하는지 적어 주세요. 설명이 어려워서 이해하기 힘든 곳도 알려 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 어떻게 고치면 좋을까요?(있으면)
+      placeholder: "예: \"0번째 값\"을 \"0번 값\"으로 바꾸면 좋겠어요."
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 근거(있으면)
+      description: 교과서 쪽 번호, 공식 문서 주소처럼 확인할 수 있는 근거를 적어 주세요. 교과서를 찍은 사진은 올리지 말고 쪽 번호만 적어 주세요.
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy-check
+    attributes:
+      label: 올리기 전에 확인해 주세요
+      options:
+        - label: 이 글에 개인정보(이름·연락처·얼굴 사진)가 없고, 교과서·참고서를 찍은 사진을 첨부하지 않았어요.
+          required: true

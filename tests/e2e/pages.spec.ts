@@ -178,7 +178,7 @@ test.describe('이 담당의 페이지', () => {
     await expect(page.getByRole('main').getByRole('link', { name: '파이썬 오류 사전' })).toHaveAttribute('href', withBase('help/errors/'));
   });
 
-  test('기여·문의는 이슈 양식 3가지·개인정보 안내·라이선스 파일·제3자 목록을 연결한다', async ({ page }) => {
+  test('기여·문의는 이슈 양식(목록 _issue-templates.ts)·개인정보 안내·라이선스 파일·제3자 목록을 연결한다', async ({ page }) => {
     await page.goto('./contribute/');
     const main = page.getByRole('main');
     await expect(main.getByRole('link', { name: '이슈 양식 고르기' })).toHaveAttribute('href', issueChooserUrl);

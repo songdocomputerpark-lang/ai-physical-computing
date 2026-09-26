@@ -1,6 +1,6 @@
 ---
 /**
- * 기여·문의(PLAN §2.1 /contribute/, §8.1 P1-10) — GitHub Issues 안내, 이슈 양식 3가지, 개인정보 제보 방법, 기여물과 사이트의 라이선스.
+ * 기여·문의(PLAN §2.1 /contribute/, §8.1 P1-10) — GitHub Issues 안내, 이슈 양식(목록은 ./_issue-templates.ts), 개인정보 제보 방법, 기여물과 사이트의 라이선스.
  * 이슈 양식 이름·파일은 ./_issue-templates.ts, 라이선스 문구는 src/config/site.ts에서 온다.
  *
  * 개인정보 제보를 공개 이슈로 받되 "위치만" 적게 하는 이유: 이 저장소에는 비공개로 받는 창구가 없다.
@@ -41,7 +41,7 @@ const { content, software, exclusion } = siteConfig.license;
     </section>
 
     <section aria-labelledby="contribute-templates">
-      <h2 id="contribute-templates">알림 양식 3가지</h2>
+      <h2 id="contribute-templates">알림 양식 {ISSUE_TEMPLATES.length}가지</h2>
       <p>양식에 맞춰 쓰면 무엇을 고쳐야 하는지 빨리 알 수 있어요.</p>
       <ul class="template-list">
         {
@@ -72,7 +72,7 @@ const { content, software, exclusion } = siteConfig.license;
       <h2 id="contribute-add">자료나 코드를 보태고 싶다면</h2>
       <p>
         보태는 방법은 저장소의 <a href={repositoryFileUrl('CONTRIBUTING.md')}>기여 안내(CONTRIBUTING.md)</a>에 적어 두었어요.
-        보내 주신 글, 그림, 예제는 {content.shortName}로, 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
+        보내 주신 글과 그림은 {content.shortName}로, 예제 코드와 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
       </p>
       <p>
         교과서나 참고서를 찍은 사진, 출판사나 업체의 그림, 출처를 모르는 이미지는 보내지 마세요. 다른 사람이 만든 공개 자료를 쓰려면

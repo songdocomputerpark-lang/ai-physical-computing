@@ -1,0 +1,63 @@
+# 개인정보·저작권 제보 양식 — GitHub 이슈 양식 문법("Syntax for issue forms"·"Syntax for GitHub's form schema", docs.github.com 2026-09-26 확인)
+# - 이름(name)은 기여·문의 페이지 목록(src/pages/contribute/_issue-templates.ts)과 같게 둔다(tests/e2e/pages.spec.ts가 대조).
+# - 이 저장소에는 비공개로 제보를 받는 창구가 없어서(PROGRESS 운영자 할 일 11번 기본값), 개인정보는 "위치만" 적게 한다(PLAN §9.3 7번).
+#   GitHub의 비공개 보고(private vulnerability reporting)는 보안 취약점 신고용이라 쓰지 않는다.
+# - 받으면 확인하는 대로 해당 파일을 지우는 커밋을 올리고, sources.yaml로 같은 자료가 쓰인 곳을 찾아 함께 바꾼다(CONTRIBUTING.md 9절).
+# - 제보자가 개인정보를 옮겨 적었으면 관리자가 그 댓글·본문을 먼저 고치거나 지운다(CONTRIBUTING.md 9절).
+name: 개인정보·저작권 제보
+description: 사이트나 저장소에서 개인정보가 보이거나, 저작권 문제가 있어 보이는 자료를 알려 주세요.
+title: "[제보] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **이 글은 누구나 볼 수 있어요.**
+        개인정보(얼굴이 보이는 사진, 이름, 연락처, 기기 주소, 컴퓨터 안 파일 경로)를 발견했다면 **그 내용을 옮겨 적거나 캡처해 올리지 말고, 어디에 있는지만** 적어 주세요. 확인하는 대로 사이트에서 지울게요.
+        제보하는 분의 연락처도 적지 마세요. 답은 이 이슈의 댓글로 드려요.
+        글·그림·코드가 틀린 것이라면 "차시 내용 오류 알리기" 양식을 써 주세요.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 어떤 문제인가요?
+      options:
+        - 개인정보가 보여요
+        - 저작권 문제가 있어 보여요
+        - 기타
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: 페이지 주소나 파일 위치
+      description: 사이트라면 브라우저 주소창의 주소, 저장소 파일이라면 파일 경로를 붙여 주세요.
+      placeholder: "https://songdocomputerpark-lang.github.io/ai-physical-computing/..."
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: 페이지의 어디에 있나요?
+      placeholder: "예: '따라하기' 칸의 세 번째 그림, 예제 코드 7번째 줄"
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: 무엇이 문제인가요?
+      description: 개인정보라면 개인정보 자체는 적지 말고 "얼굴이 보여요", "기기 주소가 보여요"처럼 종류만 적어 주세요. 저작권이라면 원래 자료가 어디 있는지 알려 주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 근거 자료(있으면)
+      description: 원래 자료의 공개 주소, 라이선스 안내처럼 확인할 수 있는 근거를 적어 주세요.
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy-check
+    attributes:
+      label: 올리기 전에 확인해 주세요
+      options:
+        - label: 개인정보 자체(이름·연락처·사진·기기 주소)를 이 글에 옮겨 적거나 첨부하지 않았어요.
+          required: true

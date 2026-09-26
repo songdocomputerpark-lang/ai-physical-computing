@@ -198,7 +198,7 @@ function frontmatterIssues(input: LessonRuleInput): LessonRuleIssue[] {
     if (mapped === undefined) {
       if (template || data.standards.length > 0) {
         issues.push(
-          issue('warning', 'fm-standards', `차시 ${data.label}은(는) 성취기준 대응표(PLAN §2.2, src/config/standards.ts)에 없어요. 통합 때 대응표에 더해요(지금 적은 값: ${data.standards.length > 0 ? data.standards.join(', ') : '빈 값'}).`),
+          issue('warning', 'fm-standards', `차시 ${data.label}은(는) 성취기준 대응표(PLAN §2.2, src/config/standards.ts)에 없어요. 새 차시라면 이대로 둬도 되고, 성취기준 대응을 붙이려면 대응표에 이 차시를 더해요(지금 적은 값: ${data.standards.length > 0 ? data.standards.join(', ') : '빈 값'}).`),
         );
       }
     } else {

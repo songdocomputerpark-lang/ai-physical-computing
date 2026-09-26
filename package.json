@@ -1,6 +1,6 @@
 {
   "name": "ai-physical-computing",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "private": true,
   "description": "AI 피지컬 컴퓨팅 오픈랩(가칭) — 설치 없이 브라우저만으로 인공지능과 피지컬 컴퓨팅(ESP32)을 배우는 무료 교육 사이트",
   "license": "MIT AND CC-BY-NC-SA-4.0",
@@ -19,6 +19,7 @@
     "prebuild": "node scripts/vendor-assets.mjs && node scripts/fetch-pyodide-fallback.mjs && node scripts/check-sources.mjs",
     "build": "astro build",
     "build:offline": "node scripts/build-offline.mjs",
+    "test:offline": "node scripts/offline/verify-offline.mjs",
     "vendor": "node scripts/vendor-assets.mjs",
     "pyodide:fallback": "node scripts/fetch-pyodide-fallback.mjs",
     "sw": "node scripts/build-sw.mjs",
@@ -30,6 +31,7 @@
     "handouts:build": "python scripts/redact-handouts.py build",
     "handouts:check": "python scripts/redact-handouts.py check",
     "handouts:preview": "python scripts/redact-handouts.py preview",
+    "handouts:compare": "python scripts/redact-handouts.py compare",
     "postbuild": "node scripts/check-sources.mjs --bundle && node scripts/search-index.mjs && node scripts/build-sw.mjs",
     "preview": "astro preview",
     "check": "astro check",

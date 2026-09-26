@@ -1,0 +1,98 @@
+# 새 예제·자료 제안 양식 — GitHub 이슈 양식 문법("Syntax for issue forms"·"Syntax for GitHub's form schema", docs.github.com 2026-09-26 확인)
+# - 이름(name)은 기여·문의 페이지 목록(src/pages/contribute/_issue-templates.ts)과 같게 둔다(tests/e2e/pages.spec.ts가 대조).
+# - 받은 제안으로 예제를 더할 때는 MAINTENANCE.md 2절(예제 파일 하나 = 목록에 저절로), 차시까지 더하면 1절.
+# - 붙여 준 코드의 라이선스: examples/는 MIT(DECISIONS O13) — CONTRIBUTING.md 4절과 같은 뜻을 안내한다.
+# - labels의 enhancement는 저장소에 이미 있는 이름표다(2026-09-26 gh label list로 확인).
+name: 새 예제·자료 제안하기
+description: 이런 실습 예제나 설명·수업 자료가 있으면 좋겠다고 알려 주세요. 직접 만든 예제 코드도 여기에 보내 주세요.
+title: "[제안] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        제안해 주셔서 고마워요. **이 글은 누구나 볼 수 있어요.** 개인정보는 적지 마세요.
+        교과서·참고서를 찍은 사진, 출판사·업체 그림, 블로그·영상 캡처처럼 다른 사람이 만든 자료 파일은 첨부하지 말고, 공개된 주소만 알려 주세요.
+        직접 만든 코드를 붙이면 사이트 예제와 같은 MIT 라이선스로 공개하는 데 동의하는 것으로 봐요([기여 안내](https://github.com/songdocomputerpark-lang/ai-physical-computing/blob/main/CONTRIBUTING.md) 4절).
+  - type: textarea
+    id: idea
+    attributes:
+      label: 어떤 예제·자료가 있으면 좋을까요?
+      description: 무엇을 해 보는 예제인지, 학생이 무엇을 배우는지 적어 주세요.
+      placeholder: "예: 서보모터 각도를 조절 막대로 바꿔 보며 PWM을 이해하는 예제가 있으면 좋겠어요."
+    validations:
+      required: true
+  - type: dropdown
+    id: lab
+    attributes:
+      label: 어디에서 도는 예제인가요?
+      options:
+        - 영상처리 실습실(카메라·파이썬)
+        - ESP32 실습실(가상 보드)
+        - 두 실습실을 잇는 통신 예제
+        - 실습실 밖(설명·수업 자료)
+        - 잘 모르겠어요
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 이어지는 단원
+      options:
+        - I. 영상 처리 인공지능
+        - II. 피지컬 컴퓨팅
+        - III. 인공지능과 피지컬 컴퓨팅
+        - IV. 지능화 사물 개발 프로젝트
+        - 교사용 자료
+        - 기타·잘 모르겠어요
+    validations:
+      required: true
+  - type: input
+    id: lesson
+    attributes:
+      label: 이어지는 차시(있으면)
+      placeholder: "예: 2-2-4 서보모터 활용하기"
+    validations:
+      required: false
+  - type: textarea
+    id: parts
+    attributes:
+      label: 쓰는 부품과 핀(ESP32 예제면)
+      placeholder: "예: 터치 센서 17번 핀, 서보모터 26번 핀"
+    validations:
+      required: false
+  - type: textarea
+    id: use
+    attributes:
+      label: 어디에 쓰려고 하나요?
+      description: 수업 상황이나 학생 수준을 알려 주시면 알맞게 만들 수 있어요.
+      placeholder: "예: 고1 수업 2차시, 보드가 없는 교실에서 가상 보드로"
+    validations:
+      required: false
+  - type: textarea
+    id: code
+    attributes:
+      label: 직접 만든 코드(있으면)
+      description: 직접 만든 코드만 붙여 주세요. 와이파이 이름·비밀번호, 이름, 기기 주소(XX:XX:XX:XX:XX:XX처럼 가리기)는 지운 뒤 붙여 주세요.
+      render: python
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: 참고할 자료 주소(있으면)
+      description: 공식 문서나 공개 라이선스가 붙은 자료의 주소만 적어 주세요.
+    validations:
+      required: false
+  - type: checkboxes
+    id: check
+    attributes:
+      label: 올리기 전에 확인해 주세요
+      options:
+        - label: 다른 사람이 만든 자료 파일(교과서·출판사 그림 등)을 첨부하지 않았어요.
+          required: true
+        - label: 이 글에 개인정보(이름·연락처·얼굴 사진·기기 주소)가 없어요.
+          required: true
+        - label: 코드를 붙였다면, 직접 만들었고 MIT 라이선스로 공개해도 괜찮아요.
+          required: false
