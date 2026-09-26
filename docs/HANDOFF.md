@@ -73,8 +73,13 @@ Phase 하나는 워크플로(여러 에이전트) 하나로 만든다. 지금까
 | Phase 3 검토·수정 (이어받기) | `wf_db55fe07-fd6` | `workflows\scripts\phase3-review-fix-wf_db55fe07-fd6.js` | 완료(2026-09-18) — Phase 3 끝 |
 | Phase 4 통신 실습실 | `wf_26c7dddc-2bf` | `workflows\scripts\phase4-comm-lab-wf_26c7dddc-2bf.js` | 완료(2026-09-25 05시) |
 | Phase 5 교육과정 콘텐츠 | `wf_c17f072d-499` | `workflows\scripts\phase5-content-wf_c17f072d-499.js` | 완료(2026-09-26 — 검토 반영까지, Phase 5 끝) |
+| Phase 6 품질과 유지보수 | `wf_c7485e2c-a5b` | `workflows\scripts\phase6-quality-wf_c7485e2c-a5b.js`(사본 `.cache/resume/phase6-quality-wf_c7485e2c-a5b.js`) | 도는 중 — 준비·6구역·통합 끝(2026-09-26), 다음 P6-08 시나리오 E → 검토 3 → 수정 |
 
 세션 폴더는 `%USERPROFILE%\.claude\projects\C--Users-----Desktop-2026yearwork-2026-9-15---------------------\<세션 id>\`이고, Phase 3을 만든 세션 id는 `a0288169-2eb1-4ca5-9de8-5c263f0d24db`다.
+
+### 도는 중 — `wf_c7485e2c-a5b` Phase 6 품질과 유지보수 (2026-09-26 03:53 시작)
+
+PLAN §8.6 P6-01~P6-08. Core(병렬 제작 준비 — 빌드 환경 변수 `APC_BASE`·`APC_OUT_DIR`, rehype 자리, `test:a11y`·`perf:measure`·`build:offline` 자리, axe 설치) → Build 5구역(A 성능 4901 / B 접근성 4902 / C 출처·라이선스 → 개인정보 4903 / D 유지보수 문서 4904 / F 실습실 잔여 4906) → Build2(E 오프라인판 4905) → 통합(요청 반영·전체 검증·P6-01 시나리오·성능·접근성·커밋·push) → P6-08 시나리오 E(실제 push → 새 주소 2분 안 200) → 검토 3(4911~4913) → 수정(프로젝트 완료 판정, 판 1.0.0). 보고는 `.cache/phase6-notes/`(구역 보고 + 통합 `integration.md`), 요청 `.cache/phase6-requests/`. **통합 단계 끝(2026-09-26):** 구역 파일을 영역별 커밋으로 합쳐 push했다 — 작업 폴더에 커밋 안 된 구역 파일이 없다(통합 직전 사본 `.cache/resume/phase6-integration-snapshot.tar.gz`). 멈추면 다음은 P6-08부터. 커밋 서명은 Opus 5.5. **`git clean` 금지.**
 
 ### 끝난 것 — `wf_c17f072d-499` Phase 5 교육과정 콘텐츠 (2026-09-25 06:03 시작 → 2026-09-26 완료)
 
@@ -139,7 +144,7 @@ Phase 3의 **남은 일만** 담은 작은 워크플로다: 적대적 검토 `cr
 - 중간에 멈춘 단계가 이미 커밋까지 했으면, 그 단계 프롬프트에 "이미 커밋됨(커밋 해시 나열) — 처음부터 다시 만들지 말고 완료 기준만 확인하고 빠진 것만 보완" 주의를 넣고 재개한다.
 - 에이전트 안에서 개발 서버는 `ASTRO_DEV_BACKGROUND=1 npm run dev -- --port 44xx`로 띄운다. 한 폴더에 서버는 하나만 뜬다.
 
-**다음은 Phase 6다(Phase 5는 2026-09-26 검토 반영까지 끝났다 — 남은 것은 운영자의 실물·사실 확인, PROGRESS 운영자 할 일 23~25번).** Phase가 끝났으면 다음 Phase 워크플로를 새로 쓴다. 남은 것은 Phase 6 품질·유지보수(`docs/PLAN.md` §8.6, 8개 — 차례와 할 일은 PROGRESS "다음 할 일" 10번). 지금까지 쓴 틀은 **Core 순차 단계 → 병렬 구역(구역마다 고칠 파일을 못 박고 포트 4501~4507, `PW_BASE_URL`로 각자 시험) → 통합 → 적대적 검토 3명 → 수정·배포**이고, 에이전트는 `effort: 'max'`, 공통 프롬프트에 **파일 내려받기 금지**(외부 파일은 운영자만 받는다)를 넣는다.
+**지금은 Phase 6(마지막 Phase)의 워크플로 `wf_c7485e2c-a5b`가 도는 중이다(위 "도는 중").** 통합까지 끝났고 남은 것은 P6-08(시나리오 E) → 적대적 검토 3명 → 수정(프로젝트 완료 판정 — 판 1.0.0, CHANGELOG 날짜)이다. 차례와 할 일은 PROGRESS "다음 할 일" 10번, 결과표는 PROGRESS "현재 Phase". 지금까지 쓴 틀은 **Core 순차 단계 → 병렬 구역(구역마다 고칠 파일을 못 박고 포트 49xx, `PW_BASE_URL`로 각자 시험) → 통합 → 적대적 검토 3명 → 수정·배포**이고, 에이전트는 `effort: 'max'`, 공통 프롬프트에 **파일 내려받기 금지**(외부 파일은 운영자만 받는다)를 넣는다.
 
 ---
 
