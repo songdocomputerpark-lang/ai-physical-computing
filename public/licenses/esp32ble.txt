@@ -1,4 +1,4 @@
-ESP32BLE.py(블루투스 주변기기 라이브러리) — 함께 싣는 MIT 라이선스 고지(https://github.com/2black0/MicroPython-ESP32-BLE)
+﻿ESP32BLE.py(블루투스 주변기기 라이브러리) — 함께 싣는 MIT 라이선스 고지(https://github.com/2black0/MicroPython-ESP32-BLE)
 이 사이트의 ESP32 실습실이 가상 보드와 실물 보드([보드에 저장])에 올려 주는 ESP32BLE.py는 교과서·수업 자료의 파일을 그대로 옮긴 것이에요.
 이 파일과 구조가 비슷한 공개 구현 2black0/MicroPython-ESP32-BLE가 MIT 라이선스로 공개되어 있어요. ESP32BLE.py가 그 구현에서 왔는지는
 확인하지 못했지만(운영자 답 "모름", 2026-09-25), 만약 그렇다면 지켜야 할 고지를 빠뜨리지 않으려고 아래 고지를 함께 실어요(DECISIONS C12).

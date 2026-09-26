@@ -43,7 +43,7 @@ sources:
     author: 박상진·김석전
     license: 운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)
     # 사이트 공개 조건은 PD-26(학습 자료 CC BY-NC-SA 4.0)
-    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/ — 원고 이미지 추출 도구로 꺼낸 그림과 차시마다 따로인 그림 목록 content/lessons/**/*.images.yaml). 출판사가 조판 때 넣은 삽화·컷(원고 그림 이름표 '인피컴_…(삽)'·'인피컴_…(컷)' — 예: 1-1-1의 인식·학습·추론 그림, 1-1-2의 CNN 단계·손 랜드마크 그림, 1-1-3의 개발 환경 삽화)도 운영자 결정 O10(2026-09-25)으로 이 항목이 덮어요. 교사용 자료실의 가린 편집본 PDF(public/teacher/handouts/ — 블루투스 통신 수업 교안·PyAutoGUI 수업 슬라이드에서 개인정보를 지우고 쪽마다 눈으로 확인한 판, PD-31, 도구 scripts/redact-handouts.py·기록 scripts/handout-redactions.yaml). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
+    used_in: "교과서 원고, 블루투스 통신 수업교안, PyAutoGUI 수업 슬라이드에서 옮긴 차시 본문(content/)과 그림(public/images/lessons/ — 원고 이미지 추출 도구로 꺼낸 그림과 차시마다 따로인 그림 목록 content/lessons/**/*.images.yaml). 출판사가 조판 때 넣은 삽화·컷(원고 그림 이름표 '인피컴_…(삽)'·'인피컴_…(컷)' — 예: 1-1-1의 인식·학습·추론 그림, 1-1-2의 CNN 단계·손 랜드마크 그림, 1-1-3의 개발 환경 삽화)도 운영자 결정 O10(2026-09-25)으로 이 항목이 덮어요. 도구가 이름표로 알리지 못하는 작은 출판 편집 삽화(예: 원고 010쪽 로봇 마스코트 같은 조각 그림)도 출판사가 그린 것으로 보이면 같은 결정으로 이 항목에 들어가요(PROGRESS 미해결 164, MAINTENANCE.md 3-1). 교사용 자료실의 가린 편집본 PDF(public/teacher/handouts/ — 블루투스 통신 수업 교안·PyAutoGUI 수업 슬라이드에서 개인정보를 지우고 쪽마다 눈으로 확인한 판, PD-31, 도구 scripts/redact-handouts.py·기록 scripts/handout-redactions.yaml — 2026-09-26부터 두 편집본 끝에 저작자·라이선스·원래 권리자 조건을 적은 출처 쪽이 한 장씩 붙어요, 미해결 183). 사이트에서는 CC BY-NC-SA 4.0으로 공개해요."
     paths:
       - content/**
       - public/images/lessons/**
@@ -170,19 +170,36 @@ sources:
   # 그 파일들에 묶여 있던 다른 라이브러리(Svelte 4, bcp-47 계열, adequate-little-templates, mark.js)는 배포되지 않아 등록하지 않아요
   # (2026-09-16 검토 반영 — 이전에는 pagefind-highlight.js 속 mark.js가 등록 없이 배포됐어요).
   # 남는 pagefind.js·pagefind-worker.js에는 다른 라이브러리 표시가 없고(grep으로 확인), wasm 파일에 든 Rust 크레이트 고지는 P6-04에서 확인해요.
+  # → 2026-09-26(P6-04) 확인: wasm(wasm.unknown.pagefind)에 든 크레이트는 아래 "Pagefind 검색 엔진(wasm)에 함께 든 Rust 크레이트" 항목과
+  #   고지 파일 public/licenses/pagefind-wasm-3rd-party.txt에 있어요. 그 가운데 pagefind_microjson 0.1.4는 GPL-3.0-only예요.
   # MIT 고지 전문(notice)은 npm 패키지 pagefind@1.5.2의 LICENSE/LICENSE 파일을 옮긴 것이에요.
   - name: Pagefind 1.5.2
     category: stack
     author: Pagefind
     license: MIT
     url: https://github.com/Pagefind/pagefind
-    used_in: "사이트 검색. 빌드 뒤 dist/pagefind/에 검색 색인과 검색 프로그램(pagefind.js, pagefind-worker.js, WebAssembly 파일)을 만들어 함께 배포해요. 기본 검색 화면 파일은 쓰지 않아 지워요."
+    used_in: "사이트 검색. 빌드 뒤 dist/pagefind/에 검색 색인과 검색 프로그램(pagefind.js, pagefind-worker.js, WebAssembly 파일)을 만들어 함께 배포해요. 기본 검색 화면 파일은 쓰지 않아 지워요. WebAssembly 검색 파일 안에 함께 든 크레이트(GPL-3.0-only인 pagefind_microjson 포함)는 아래 따로 둔 항목을 봐요."
     paths:
       - public/licenses/pagefind.txt
     npm:
       - pagefind
     notice: public/licenses/pagefind.txt
     fetched: 2026-09-16
+
+  # Pagefind WebAssembly 안의 Rust 크레이트(2026-09-26 P6-04). pagefind_web/Cargo.lock(v1.5.2)의 런타임 의존성과 crates.io 라이선스 표기,
+  # wasm 안의 글자(minicbor-2.2.1, wasm-bindgen-0.2.117, rustc 1.97.0-nightly)로 확인했어요. pagefind_microjson 0.1.4(Robert Spencer의 microjson을
+  # Pagefind 관리자가 올린 판)는 GPL-3.0-only라 wasm 파일은 GPL-3.0 조건으로 받는 프로그램이에요 — 고치지 않고 나누고, GPL-3.0 전문과
+  # 대응 소스 주소(Pagefind v1.5.2 태그·crates.io 크레이트)를 고지 파일에 적었어요. 결정은 보고서 "결정 제안"(DECISIONS에 C 번호로).
+  - name: Pagefind 검색 엔진(wasm)에 함께 든 Rust 크레이트
+    category: stack
+    author: "크레이트마다 다름 — Robert Spencer(microjson), Toralf Wittner(minicbor), The Rust Project Developers·Alex Crichton·Aleksey Kladov 등(고지 파일)"
+    license: GPL-3.0-only AND BlueOak-1.0.0 AND MIT
+    url: https://github.com/Pagefind/pagefind/tree/v1.5.2/pagefind_web
+    used_in: "사이트 검색의 WebAssembly 파일(dist/pagefind/wasm.unknown.pagefind — 빌드 때 Pagefind가 만들어 그대로 배포)에 함께 컴파일된 크레이트: pagefind_microjson 0.1.4(GPL-3.0-only — 검색 조건·가중치 JSON을 읽음), minicbor 2.2.1(BlueOak-1.0.0), bit-set·bit-vec·write-json·wasm-bindgen·once_cell·cfg-if·serde·Rust 표준 라이브러리·dlmalloc·hashbrown(MIT 또는 Apache-2.0 — MIT를 따름). GPL-3.0 전문과 대응 소스 받는 곳은 고지 파일에 있어요."
+    paths:
+      - public/licenses/pagefind-wasm-3rd-party.txt
+    notice: public/licenses/pagefind-wasm-3rd-party.txt
+    fetched: 2026-09-26
 
   # 글꼴(P1-05, 자체 호스팅). 공식 배포 파일을 한 바이트도 고치지 않고 그대로 둬요.
   # OFL 1.1에서는 글꼴 파일을 고치면 예약 글꼴 이름 "Pretendard"를 쓸 수 없어요.
@@ -228,6 +245,19 @@ sources:
       - public/vendor/pyodide/**
     notice: public/licenses/pyodide.txt
     fetched: 2026-09-16
+
+  # Pyodide 코어(pyodide.asm.wasm·python_stdlib.zip) 안의 라이브러리(2026-09-26 P6-04). Pyodide 314.0.7의 Makefile.envs·cpython/Makefile과
+  # wasm 안의 판 글자(zlib 1.3.1, bzip2 1.0.6, xz 5.2.2, zstd 1.5.7, SQLite 3.39.0, expat 2.7.3, Emscripten 5.0.3)로 확인했어요.
+  - name: Pyodide 코어에 함께 든 라이브러리(CPython 안 코드·libffi·zlib·bzip2·xz·zstd·SQLite·Emscripten 런타임)
+    category: stack
+    author: "라이브러리마다 다름 — Python Software Foundation과 기여자, Anthony Green·Red Hat(libffi), Jean-loup Gailly·Mark Adler(zlib), Julian Seward(bzip2), Meta Platforms(zstd), Emscripten·musl·LLVM 기여자 등(고지 파일)"
+    license: PSF-2.0 AND MIT AND BSD-3-Clause AND Zlib AND bzip2-1.0.6 AND Apache-2.0 WITH LLVM-exception AND 퍼블릭 도메인(liblzma·SQLite)
+    url: https://github.com/pyodide/pyodide/tree/314.0.7
+    used_in: "파이썬 엔진 Pyodide 314.0.7의 코어 파일(jsDelivr에서 받거나 같은 사이트 예비본 vendor/pyodide/314.0.7/, 오프라인판)에 함께 들어 있는 것: CPython 3.14.2에 든 코드(expat, libmpdec, mimalloc, HACL*, pyzstd 바인딩 등), libffi, zlib, bzip2, xz(liblzma), Zstandard, SQLite, Emscripten 런타임(musl·LLVM libc++ 포함). 구성요소마다의 고지 원문은 고지 파일에 있어요."
+    paths:
+      - public/licenses/pyodide-core-3rd-party.txt
+    notice: public/licenses/pyodide-core-3rd-party.txt
+    fetched: 2026-09-26
 
   - name: CPython 3.14.2(Pyodide 안)
     category: stack
@@ -277,15 +307,33 @@ sources:
     notice: public/licenses/opencv.txt
     fetched: 2026-09-16
 
+  # 휠(opencv-python·Pillow) 안에 실제로 들어 있는 라이브러리(2026-09-26 P6-04 — PLAN §8.6 "재배포하는 휠 구성요소 확인", 미해결 5).
+  # Node에서 실제 Pyodide로 cv2.getBuildInformation()·PIL.features를 찍고, .so 안의 판 글자와 휠을 만든 레시피(pyodide-recipes 릴리스 314-20260911,
+  # 커밋 fc8587207ecbf0fb54305d5da25ab7ed70f126d3 — Pyodide 314.0.7의 pyodide-lock.json과 SHA-256이 같음)로 확정했어요.
+  # FFmpeg 4.4.1(LGPL-2.1+)이 cv2.so에 정적으로 들어 있어요(PD-19) — 대응 소스 받는 곳은 고지 파일 1절.
+  # 바이너리 배포에 필요한 문장: "This software is based in part on the work of the Independent JPEG Group."(IJG),
+  # "Portions of this software are copyright © 2024 The FreeType Project (www.freetype.org). All rights reserved."(FreeType) — /credits/에도 보여요.
+  - name: Pyodide 휠(opencv-python·Pillow)에 함께 든 라이브러리(FFmpeg·IJG libjpeg·libpng·zlib·libwebp·libtiff·Protocol Buffers·FlatBuffers·ADE·FreeType)
+    category: stack
+    author: "라이브러리마다 다름 — FFmpeg developers, Independent JPEG Group(Thomas G. Lane, Guido Vollbeding), The PNG Reference Library Authors, Jean-loup Gailly·Mark Adler, Google(libwebp·Protocol Buffers·FlatBuffers), Sam Leffler·Silicon Graphics(libtiff), Intel(ADE), The FreeType Project(고지 파일)"
+    license: LGPL-2.1-or-later AND IJG AND libpng-2.0 AND Zlib AND BSD-3-Clause AND libtiff AND Apache-2.0 AND FTL
+    url: https://github.com/pyodide/pyodide-recipes/tree/fc8587207ecbf0fb54305d5da25ab7ed70f126d3
+    used_in: "영상처리 실습의 파이썬 휠 안에 정적으로 들어 있는 라이브러리. opencv-python 4.11.0.86(cv2.so): FFmpeg 4.4.1(LGPL-2.1-or-later — 영상 파일 읽기·쓰기), IJG libjpeg 9f, libpng 1.6.55, zlib 1.3.1, libwebp 1.2.2, libtiff 4.4.0, Protocol Buffers 3.19.1, FlatBuffers 23.5.9, ADE 0.1.2e. Pillow 12.2.0: FreeType 2.13.3, IJG libjpeg 9f, libtiff 4.4.0, libwebp 1.2.2, zlib 1.3.1. opencv 휠은 같은 사이트 예비본(vendor/pyodide/314.0.7/)으로 다시 나누고, Pillow 휠은 오프라인판에 넣을 때 다시 나눠요. 휠은 고치지 않아요."
+    paths:
+      - public/licenses/pyodide-wheels-3rd-party.txt
+    notice: public/licenses/pyodide-wheels-3rd-party.txt
+    fetched: 2026-09-26
+
   # Pillow(P2-11 가상 데스크톱의 pyautogui.screenshot()). 버전·라이선스는 Pyodide 314.0.7이 배포하는 휠
   # pillow-12.2.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl 안의 pillow-12.2.0.dist-info/licenses/LICENSE로 확인했어요.
-  # 휠 안에 함께 묶인 구성요소(libjpeg·libpng·zlib·FreeType 등) 고지는 같은 사이트 예비본 재배포 때(PD-19, P6-04) 더해요.
+  # 휠 안에 함께 묶인 구성요소(FreeType 2.13.3·IJG libjpeg 9f·libtiff 4.4.0·libwebp 1.2.2·zlib 1.3.1)는 2026-09-26(P6-04)에 확인해
+  # 위 "Pyodide 휠(opencv-python·Pillow)에 함께 든 라이브러리" 항목과 고지 파일 public/licenses/pyodide-wheels-3rd-party.txt에 실었어요.
   - name: Pillow 12.2.0(Pyodide 패키지 pillow)
     category: stack
     author: Jeffrey A. Clark and contributors, Secret Labs AB, Fredrik Lundh
     license: MIT-CMU
     url: https://github.com/python-pillow/Pillow/blob/12.2.0/LICENSE
-    used_in: "그림 다루기(PIL). 가상 데스크톱 실습의 pyautogui.screenshot()이 화면에서 받은 RGBA를 PIL.Image로 만들어 학생 코드에 돌려주고(examples/desktop/09·10), 1단원 f043이 영상 위에 한글을 쓸 때도 써요. 예제 사이드카의 packages: [pillow]로 실행 전에 jsDelivr에서 받아요. 휠은 고치지 않고 그대로 써요."
+    used_in: "그림 다루기(PIL). 가상 데스크톱 실습의 pyautogui.screenshot()이 화면에서 받은 RGBA를 PIL.Image로 만들어 학생 코드에 돌려주고(examples/desktop/09·10), 1단원 f043이 영상 위에 한글을 쓸 때도 써요. 예제 사이드카의 packages: [pillow]로 실행 전에 jsDelivr에서 받아요. 휠은 고치지 않고 그대로 써요. 오프라인판(npm run build:offline) zip에는 이 휠을 그대로 넣어 다시 나눠요(vendor/pyodide/314.0.7/ — 휠 안 구성요소 고지는 public/licenses/pyodide-wheels-3rd-party.txt)."
     paths:
       - public/licenses/pillow.txt
     notice: public/licenses/pillow.txt
@@ -394,6 +442,19 @@ sources:
     notice: public/licenses/mediapipe-tasks-vision.txt
     fetched: 2026-09-16
 
+  # MediaPipe WebAssembly 안의 라이브러리(2026-09-26 P6-04). npm 패키지에는 고지 파일이 없고 wasm은 Google 내부 소스 트리에서 만들어져,
+  # 파일 안 글자(소스 경로·함수 이름)로 들어 있음을 확인한 것만 적었어요. 판은 공개 저장소 v0.10.35 WORKSPACE 기준(참고).
+  - name: MediaPipe WebAssembly에 함께 든 라이브러리(TensorFlow Lite·XNNPACK·Protocol Buffers·Eigen·fft2d 등)
+    category: stack
+    author: "라이브러리마다 다름 — The TensorFlow Authors(Google), Facebook·Google(XNNPACK), Google(Protocol Buffers·Abseil·ruy·gemmlowp·FlatBuffers·SentencePiece), Eigen 기여자, Takuya Ooura(fft2d), OpenCV team(고지 파일)"
+    license: Apache-2.0 AND BSD-3-Clause AND MPL-2.0 AND fft2d(Ooura) 라이선스
+    url: https://github.com/google-ai-edge/mediapipe/tree/v0.10.35
+    used_in: "손·얼굴·자세 인식 엔진의 WebAssembly 파일(vendor/mediapipe/0.10.35/wasm/)에 함께 들어 있는 라이브러리: TensorFlow Lite(Caffe에서 온 코드의 BSD 고지 포함), XNNPACK, Protocol Buffers, Eigen(MPL-2.0 — 소스 받는 곳을 고지 파일에 적음), fft2d, Abseil·ruy·gemmlowp·FlatBuffers·SentencePiece·OpenCV(Apache-2.0)."
+    paths:
+      - public/licenses/mediapipe-wasm-3rd-party.txt
+    notice: public/licenses/mediapipe-wasm-3rd-party.txt
+    fetched: 2026-09-26
+
   # 모델 파일은 저장소에 커밋해요(PD-13, 파일마다 10MB 이하 — 5MB를 넘는 파일은 scripts/repo-allowlist.yaml의 large_files에 경로·이유·max_mb를 적어요).
   # **2026-09-18(P3-11 통합): 운영자가 공식 주소에서 받아 MD5를 검증한 파일 5개를 public/models/에 넣었어요**(운영자 할 일 17번 완료 —
   #   파일 내려받기는 운영자 몫이라 Claude는 받지 않고, 운영자가 검증 스크립트를 직접 돌린 뒤 .cache/models-staging/에 둔 것을 옮겼어요.
@@ -431,26 +492,33 @@ sources:
   #   /resources/firmware/ESP32_GENERIC-20260824-v1.29.0.bin, v1.29.0(2026-08-24), 설치 위치 0x1000.
   # 공식 페이지에 해시 표기가 없어 운영자가 2026-09-17에 받아 검증한 파일로 잰 값을 적어요(P3-11 통합에서 옮긴 뒤 다시 대조):
   #   1,790,544바이트, SHA-256 e67ad6015a0a504c1fec9aa9bbf589d0432ed28e62546f4f8dd8a147f8bd95f6.
+  # 고지(2026-09-26 P6-04 — 운영자 할 일 19번을 Claude가 공식 원문으로 끝냄): 펌웨어 옆 NOTICE.txt는 MicroPython MIT 원문과 구성요소 목록,
+  # 구성요소마다의 원문 전체는 public/licenses/micropython-esp32-firmware.txt(MicroPython LICENSE 전체, littlefs·ooFatFs·Berkeley DB·re1.5·uzlib,
+  # ESP-IDF LICENSE·COPYRIGHT.rst, Newlib COPYING.NEWLIB, FreeRTOS, lwIP, wpa_supplicant, net80211, Mbed TLS, NimBLE NOTICE, TLSF, SD/MMC).
+  # 무엇이 들어 있는지는 MicroPython v1.29.0 ESP32 빌드 설정과 펌웨어 안 글자로 확인했어요(고지 파일 머리말).
   - name: MicroPython ESP32_GENERIC v1.29.0 펌웨어
     category: stack
     author: "Damien P. George와 MicroPython 기여자. 펌웨어 안의 ESP-IDF v5.5.2 등 제3자 구성요소는 각 저작자(고지 파일)"
     license: MIT
     url: https://micropython.org/download/ESP32_GENERIC/
-    used_in: "보드 준비 페이지의 [펌웨어 굽기](P3-09)가 ESP32 보드에 굽는 공식 펌웨어(public/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin)와 그 고지(NOTICE.txt). 고치지 않고 그대로 배포해요."
+    used_in: "보드 준비 페이지의 [펌웨어 굽기](P3-09)가 ESP32 보드에 굽는 공식 펌웨어(public/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin)와 그 고지(펌웨어 옆 NOTICE.txt, 구성요소 원문 전체 licenses/micropython-esp32-firmware.txt — MIT·BSD·Zlib·Apache-2.0 등). 고치지 않고 그대로 배포해요."
     paths:
       - public/firmware/v1.29.0/**
-    notice: public/firmware/v1.29.0/NOTICE.txt
+      - public/firmware/v1.29.0/NOTICE.txt
+      - public/licenses/micropython-esp32-firmware.txt
+    notice: public/licenses/micropython-esp32-firmware.txt
     fetched: 2026-09-17
 
   # ── 재방문 캐시 서비스 워커(PLAN §5.3 PD-11, P2-05) ──
-  # workbox-build는 빌드 때만 도는 개발 도구(devDependency)라 npm 목록에 적지 않지만, 만들어진 sw.js 안에 Workbox 실행 코드(MIT)가 들어가
-  # 배포되므로 고지 원문을 실어요(npm 패키지 workbox-build 7.4.1의 LICENSE, 2026-09-16 확인).
+  # workbox-build는 빌드 때만 도는 개발 도구(devDependency)라 npm 목록에 적지 않아요. 처음(2026-09-16)에는 sw.js 안에 Workbox 실행 코드가
+  # 들어간다고 보고 고지를 실었는데, 지금 빌드(scripts/build-sw.mjs)는 getManifest()로 사전 캐시 목록만 만들고 sw.js는 사이트가 쓴 src/sw/sw.js예요
+  # (2026-09-26 P6-04: dist/sw.js에 Workbox 코드 없음 확인). 사이트를 만드는 데 쓰는 도구라 항목과 고지는 그대로 둬요.
   - name: Workbox 7.4.1
     category: stack
     author: Google LLC
     license: MIT
     url: https://github.com/GoogleChrome/workbox
-    used_in: "빌드 때 서비스 워커(sw.js)를 만드는 도구. 사이트 공통 셸만 미리 저장하고 Pyodide·모델은 실제로 쓸 때 저장해 두 번째 방문부터 네트워크 없이 실습실이 뜨게 해요(P2-05)."
+    used_in: "빌드 때 서비스 워커의 사전 캐시 목록(사이트 공통 셸의 파일 이름·해시)을 만드는 도구(workbox-build getManifest). 서비스 워커 코드는 사이트가 직접 써서 Workbox 실행 코드는 배포하지 않아요. 서비스 워커는 공통 셸만 미리 저장하고 Pyodide·모델은 실제로 쓸 때 저장해 두 번째 방문부터 네트워크 없이 실습실이 뜨게 해요(P2-05)."
     paths:
       - public/licenses/workbox.txt
     notice: public/licenses/workbox.txt
@@ -528,6 +596,9 @@ sources:
   # 그 파일 안에 mqtt-packet·readable-stream·ws·lru-cache·rfdc·number-allocator·worker-timers·debug·buffer·ieee754 등의 코드가 함께 들어 있어서
   # 고지 파일(public/licenses/mqtt.txt)에 의존성 44개의 라이선스 원문을 모두 모았어요(설치한 패키지의 LICENSE 파일 그대로).
   # 실제로 번들에 들어간 목록은 빌드 뒤 dist/bundle-licenses.json이 알려 줘요 — P4-06이 실습실에 붙인 뒤 다시 확인해요(PLAN P6-04).
+  # → 2026-09-26(P6-04): 번들 파일(node_modules/mqtt/dist/mqtt.js)의 원본 표시 "// node_modules/…" 23가지가 모두 고지 파일에 있음을 다시 대조했고,
+  #   빌드 때만 쓰인 @jspm/core 2.1.0·esbuild-plugin-polyfill-node 0.3.0(MQTT.js v5.15.2 태그 package-lock.json 기준)의 LICENSE 원문 전체를
+  #   공식 저장소에서 옮겨 넣었어요(운영자 할 일 22번을 Claude가 끝냄 — @jspm/core에는 NOTICE 파일이 없음).
   - name: MQTT.js 5.15.2
     category: stack
     author: MQTT.js contributors, Adam Rudd
@@ -597,6 +668,22 @@ sources:
     paths:
       - examples/esp32/lib/third-party/gorillacell_dcmotors.py
     fetched: 2026-09-15
+
+  # 버저 라이브러리(Phase 6 구역 F, PROGRESS 미해결 175): 교과서 자료 f008(HW 라이브러리 묶음의 buzzer.py)을 줄 끝만 바꿔 옮기고
+  # 게임 음악 선율 목록(mario)만 뺀 사이트판이에요(PLAN §6.5, CODE_MAPPING §2.8·§3.10·§5.2 — 원본은 비공개 자료 저장소에만).
+  # 같은 계열 공개 글(TechToTinker 038, George Bantique, 2021-06-09)의 GORILLACELL_BUZZER 코드(duty())를 duty_u16()으로 고친 판으로 보여
+  # (부분 확인) 제3자 자료로 둬요. 만든 방법과 대조 기록은 scripts/examples-manifest.yaml 끝의 f008 주석.
+  # (구역 F 요청 F-1을 구역 C가 2026-09-26에 그대로 반영 — .cache/phase6-requests/f.md)
+  - name: TechToTinker MicroPython TechNotes 계열 부품 라이브러리(buzzer.py)
+    category: third_party
+    author: George Bantique(TechToTinker)
+    license: 원 권리자 보유 — 운영자 사용 허락(O5), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
+    url: https://techtotinker.com/038-micropython-technotes-buzzer/
+    used_in: "버저 라이브러리 buzzer.py(examples/esp32/lib/third-party/buzzer.py) — 교과서 156~157쪽이 쓰는 음 이름·징글벨(jingle)·반짝반짝 작은 별(twinkle)과 BUZZER의 play()·tone(). 원본에서 게임 음악 선율 목록(mario)만 뺀 사이트판이에요(PLAN §6.5). 가상 보드와 실물 보드에 같은 파일을 써요."
+    rights: "TechToTinker 글(038 - MicroPython TechNotes: Buzzer)에 코드의 저작권·라이선스 표기가 없음(2026-09-15 확인, 2026-09-26 다시 확인 — 사이트 바닥의 저작권 줄만 있음). 원 권리는 원 저작자에게 있어요."
+    paths:
+      - examples/esp32/lib/third-party/buzzer.py
+    fetched: 2026-09-26
 
   # 블루투스 주변기기 라이브러리(Phase 4 통신 실습실): 교과서 자료 f087 = f101 = f146 = f153이 모두 같은 파일이에요(원본 그대로 옮김).
   # 공개 글(TechToTinker 025, George Bantique)과 구조가 같고 2black0/MicroPython-ESP32-BLE(MIT) 구현과도 거의 같아요(CODE_MAPPING §5.2 — 부분 확인).

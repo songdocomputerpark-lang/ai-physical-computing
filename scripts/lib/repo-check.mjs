@@ -7,7 +7,8 @@
 // 3) 5MB 넘는 파일(large_files 허용 목록 제외, 허용해도 max_mb를 넘으면 실패)
 // 4) public/ examples/ content/ src/ 안의 원본 파일 이름(원본 zip·PDF·폴더 이름)
 // 5) 모든 추적 텍스트 파일(UTF-16으로 저장된 파일 포함)의 개인정보 형태: 사용자 폴더 경로, OneDrive 경로,
-//    MAC 주소(자리표시자 제외), 이메일 주소(noreply·example 계열 제외), 전화번호 모양,
+//    기기 주소(MAC — 콜론·붙임표·점 모양, 파이썬 bytes 글자, 주소 낱말 옆의 12자리·여섯 바이트 목록 등, 자리표시자 제외 — findDeviceAddresses),
+//    이메일 주소(noreply·example 계열 제외), 전화번호 모양,
 //    그리고 scripts/privacy-needles.json에 해시로만 적어 둔 비공개 이름(학교명 등, PD-37).
 //    예외는 하나뿐이다: public/licenses/ 아래의 제3자 라이선스 고지 원문(저작권 표기에 저작자가 스스로 적은 주소가 들어 있음)은
 //    scripts/repo-allowlist.yaml의 privacy_exceptions에 경로·이유를 적으면 이메일 모양 검사만 건너뛴다(2026-09-16 P2-02, CodeMirror MIT 고지).
@@ -18,16 +19,27 @@
 //    글·코드 파일(SVG·마크다운·Astro·CSS 등) 안에 data: 주소로 넣은 래스터 그림도 그 파일의 기록이 있어야 한다.
 // 7) 래스터 이미지 안의 메타데이터(PLAN §9.3 4번): WebP의 EXIF·XMP·ICC 조각, PNG의 eXIf·tEXt·iTXt·zTXt·iCCP·tIME,
 //    JPEG의 APP1(EXIF·XMP)·APP2(ICC)·APP13(IPTC)·주석, GIF의 주석·XMP. 확인할 수 없는 형식(avif·tif·heic)도 막는다.
+//    보탬(2026-09-26 P6-05 — inspectRasterLeftovers): 그림 끝 뒤에 붙은 바이트, PNG의 모르는 부가 조각(편집기 전용·출처 기록 등),
+//    JPEG JFIF 썸네일(가리기 전 모습이 남는 곳), GIF의 글 확장·모르는 응용 확장, BMP 색 프로필(경로 연결 포함), ICO 안 PNG의 메타데이터,
+//    형식을 알 수 없는 그림.
 // 8) 가린 편집본 PDF(public/teacher/handouts/*.pdf, PD-31·P5-14)의 쪽별 눈 확인 기록: scripts/handout-redactions.yaml(git 인덱스)의
 //    documents.*.output.path가 그 파일이고, output.sha256이 파일과 같고, review에 1쪽부터 source.pages쪽까지 모두
 //    by·date·result("통과"로 시작)가 있어야 한다(Phase 5 통합 2026-09-25 — 편집본을 다시 만들고 기록을 고치지 않으면 막는다).
+//    끝에 출처·라이선스 쪽(credits_page)을 덧붙인 문서는 그 쪽(source.pages + 1)의 기록도 있어야 한다(2026-09-26 P6-04).
 //    이 규칙은 Node만으로 돌아 CI에서도 돈다(CI에는 PyMuPDF가 없어 python scripts/redact-handouts.py check는 못 돈다).
+//
+// 손으로 돌리는 훑기(2026-09-26 P6-05 개인정보 최종 점검에서 만듦 — 커밋 전 훅·CI에는 걸지 않는다, scripts/check-repo.mjs의 선택):
+//  - --worktree: 스테이징 전 작업 폴더 전체(추적 파일 + 새 파일)를 위 규칙 그대로(readWorktreeFiles)
+//  - --history: git 기록 전체의 파일 내용(지운 파일 포함 — 공개 저장소는 기록도 공개)을 개인정보·그림 규칙으로(runHistoryCheck).
+//    기록은 고칠 수 없으므로, 사람이 보고 개인정보가 아니라고 확인한 blob은 scripts/repo-allowlist.yaml의 history_reviewed에 적는다
+//  - --dist <폴더>: 빌드 결과(배포물·오프라인판)에 이 컴퓨터의 절대 경로·개인정보 모양·그림 메타데이터가 없는지(runBuildOutputCheck)
 //
 // 이 파일의 주석에는 검사에 걸리는 실제 모양(경로·주소·이름)을 적지 않는다. 이 파일도 검사 대상이기 때문이다.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { parseDocument } from 'yaml';
 import { matchesGlob, validateGlob } from './glob.mjs';
@@ -80,30 +92,250 @@ const MAC_USER_DIR = /(?<![\w.~%:-])\/Users\/([^\\\/\s"'`<>|?*:;,()[\]{}]+)/gu;
 const LINUX_HOME_DIR = /(?<![\w.~%:-])\/home\/([^\\\/\s"'`<>|?*:;,()[\]{}]+)/gu;
 /** 문장 가운데 적힌 OneDrive 폴더도 잡는다(앞에 글자·숫자만 없으면 됨, 뒤에는 폴더 구분자가 온다). */
 const ONEDRIVE_DIR = /(?<![A-Za-z0-9])OneDrive(?: ?- ?[^\\/\r\n]{1,80}?)?[\\/]/giu;
-const MAC_ADDRESS = /(?<![0-9A-Fa-f:-])[0-9A-Fa-f]{2}([:-])[0-9A-Fa-f]{2}(?:\1[0-9A-Fa-f]{2}){4}(?![0-9A-Fa-f:-])/gu;
-const ALLOWED_MAC_ADDRESSES = new Set(['00:00:00:00:00:00', 'ff:ff:ff:ff:ff:ff', '00-00-00-00-00-00', 'ff-ff-ff-ff-ff-ff']);
 /*
- * 콜론·붙임표 말고 기기 주소가 적히는 다른 모양(2026-09-25 Phase 4 검토 반영 — 실물 확인 결과를 붙여 넣을 때 새는 구멍).
- * MicroPython의 wlan.config('mac')·ble.config('mac')는 bytes를 돌려주고, 학생·교사는 그 print 결과나 16진수를 그대로 옮겨 적는다.
- *  - bytes 글자 하나가 \xHH 정확히 6개로만 된 것(print 결과 모양 — b 뒤 따옴표 안에 \x와 16진수 두 자리가 여섯 번)
- *  - 점 모양(16진수 네 자리씩 셋을 점으로 이은 것)
- *  - 같은 줄 앞쪽에 주소 낱말(맥 주소·addr·bssid·주소)이 있을 때만: 구분자 없는 16진수 12자리, 두 자리씩 빈칸으로 띄운 여섯 묶음,
- *    0x로 시작하는 수 여섯 개를 담은 bytes([…]) — 이 셋은 I2C 명령·MP3 프레임 같은 흔한 6바이트와 헷갈리기 때문이다.
- * 이 설명에 예시 값을 그대로 적지 않는다(검사가 이 파일 자신을 잡는다 — 예시는 tests/unit/repo-check.test.ts에서 조각을 이어 만든다).
- */
-const MAC_BYTES_ESCAPE = /\bb(['"])((?:\\x[0-9A-Fa-f]{2}){6})\1/gu;
-const MAC_DOTTED = /(?<![0-9A-Fa-f.])[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}(?![0-9A-Fa-f.])/gu;
-const MAC_NEAR_WORD =
-  /(?:mac|addr|bssid|주소)[^\n]{0,40}?(?:(?<![0-9A-Fa-f])([0-9A-Fa-f]{12}|[0-9A-Fa-f]{2}(?: [0-9A-Fa-f]{2}){5})(?![0-9A-Fa-f])|(\bbytes\(\s*\[\s*0x[0-9A-Fa-f]{1,2}(?:\s*,\s*0x[0-9A-Fa-f]{1,2}){5}\s*,?\s*\]\s*\)))/giu;
-/**
+ * 기기 주소(MAC) 모양(PLAN §9.3 4번). 콜론·붙임표 말고도 기기 주소가 적히는 모양이 있다(2026-09-25 Phase 4 검토 반영 S8,
+ * 2026-09-26 P6-05에서 넓힘 — PROGRESS 미해결 160). MicroPython의 wlan.config('mac')·ble.config('mac')·machine.unique_id()는
+ * bytes를 돌려주고, 학생·교사는 그 print 결과나 16진수를 그대로 옮겨 적는다. 파이썬은 bytes를 찍을 때 글자로 보이는 바이트(0x20~0x7E)를
+ * 글자 그대로 찍으므로 여섯 바이트가 모두 \x로 나오지는 않는다(ESP32 제조사 번호인 앞 세 바이트에도 글자로 찍히는 바이트가 흔하다).
+ *
+ * 문맥 없이 잡는 모양(흔한 자료와 헷갈리지 않는 것):
+ *  - 두 자리 16진수 여섯 묶음을 콜론이나 붙임표로 이은 것, 네 자리씩 세 묶음을 점으로 이은 것
+ *  - bytes 글자(b 뒤 따옴표)를 파이썬 규칙으로 풀어 정확히 6바이트이고 \x 이스케이프가 3개 이상인 것(print 결과·ESP-NOW 짝 주소 코드)
+ *  - bytes 글자 안이 16진수 12자리뿐인 것(ubinascii.hexlify 결과)
+ * 주소 낱말이 가까이 있을 때만 잡는 모양(I2C 명령·MP3 프레임·색 값·랜드마크 번호 같은 흔한 6바이트·6개 숫자와 헷갈리기 때문이다):
+ *  - 모양: 구분자 없는 16진수 12자리(UUID의 한 묶음은 빼고), 두 자리씩 빈칸으로 띄운 정확히 여섯 묶음, 한두 자리씩 콜론으로 이은 여섯 묶음
+ *    ('%x'로 찍은 결과), 0x 수 여섯 개의 목록([…]·(…)·bytes([…])·bytearray([…])), 0~255 십진수 여섯 개의 목록(list(mac) 결과),
+ *    \x가 한두 개뿐인 6바이트 bytes 글자(\x가 하나도 없이 여섯 글자로 찍힌 것은 값 바로 앞 40자 안에 ①의 낱말이 있을 때만 —
+ *    짧은 글자 bytes나 JSON의 "b": 같은 모양과 헷갈리지 않게)
+ *  - 문맥: ① 같은 줄 값 앞뒤 80자 안에 기기 주소를 콕 집는 낱말(mac — machine·macro 같은 낱말 속은 빼고 —, bssid, bd_addr,
+ *    맥·MAC·기기·블루투스·BLE·보드 주소) ② 같은 줄 값 앞 40자 안에 주소 낱말(addr·address·주소 포함) ③ 바로 윗줄 끝 80자 안에 ①의 낱말
+ *    (REPL에서 명령 다음 줄에 결과가 찍히는 모양). 값 앞뒤 80자 안이 I2C·SPI·UART 전송(i2c·spi·uart·writeto·readfrom·writevto·
+ *    readinto·eeprom)이면 ①만 본다(I2C 장치 주소를 담은 변수 이름 addr와 헷갈리지 않게) — 문맥 없이 잡는 6바이트 bytes 글자도
+ *    이런 자리에서는 ①일 때만 잡는다(장치로 보내는 6바이트 명령과 헷갈리지 않게). 80자로 자르는 것은 JSON에 몰아 담은 예제 코드처럼
+ *    한 줄이 아주 긴 글에서 멀리 떨어진 낱말을 문맥으로 잘못 보지 않게 하려는 것이다(빌드 결과 HTML로 확인, 2026-09-26).
  * 자리표시자로 보는 값: 여섯 바이트가 모두 00이거나 모두 FF, 또는 사이트가 만든 가상 기기 주소 02:00:00:00:00:xx
  * (첫 바이트 02 = "직접 정한 주소" 표시 — 실제 기기에 붙는 번호가 아니다. 가상 보드 network·bluetooth 흉내가 쓴다).
- * @param {string} text
+ * 이 설명에 예시 값을 그대로 적지 않는다(검사가 이 파일 자신을 잡는다 — 예시는 tests/unit/repo-check.test.ts에서 조각을 이어 만든다).
  */
-function isPlaceholderMacValue(text) {
-  const digits = text.replace(/\\x|0x|[^0-9A-Fa-f]/giu, '').toLowerCase();
-  return /^0+$/u.test(digits) || /^f+$/u.test(digits) || /^0200000000[0-9a-f]{2}$/u.test(digits);
+const MAC_ADDRESS = /(?<![0-9A-Fa-f:-])[0-9A-Fa-f]{2}([:-])[0-9A-Fa-f]{2}(?:\1[0-9A-Fa-f]{2}){4}(?![0-9A-Fa-f:-])/gu;
+const MAC_DOTTED = /(?<![0-9A-Fa-f.])[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}(?![0-9A-Fa-f.])/gu;
+/** 파이썬 bytes 글자 하나(한 줄 안, 따옴표 짝). 안쪽은 decodeBytesBody로 푼다 */
+const BYTES_LITERAL = /(?<![A-Za-z0-9_])[bB](['"])((?:\\[^\n]|(?!\1)[^\\\n])*)\1/gu;
+const MAC_BARE_HEX = /(?<![0-9A-Za-z_-])[0-9A-Fa-f]{12}(?![0-9A-Za-z_-])/gu;
+const MAC_SPACED = /(?<![0-9A-Za-z])(?<![0-9A-Fa-f]{2} )[0-9A-Fa-f]{2}(?: [0-9A-Fa-f]{2}){5}(?! [0-9A-Fa-f]{2}(?![0-9A-Za-z]))(?![0-9A-Za-z])/gu;
+const MAC_SHORT_COLON = /(?<![0-9A-Za-z:])[0-9A-Fa-f]{1,2}(?::[0-9A-Fa-f]{1,2}){5}(?![0-9A-Za-z:])/gu;
+const MAC_HEX_LIST = /(?<![0-9A-Za-z_])(?:bytes(?:array)?\(\s*)?[[(]\s*0x[0-9A-Fa-f]{1,2}(?:\s*,\s*0x[0-9A-Fa-f]{1,2}){5}\s*,?\s*[\])]\)?/giu;
+const MAC_DECIMAL_LIST = /[[(]\s*\d{1,3}(?:\s*,\s*\d{1,3}){5}\s*,?\s*[\])]/gu;
+/** 기기 주소를 콕 집는 낱말(같은 줄 어디든, 바로 윗줄) */
+const DEVICE_ADDRESS_WORD = /(?<![a-z])mac(?![a-z])|bssid|(?<![a-z])bd_?addr|(?:맥|mac|기기|블루투스|ble|보드)\s*주소/iu;
+/** 주소 낱말(같은 줄 값 앞 40자 안) — I2C 장치 주소도 이렇게 부르므로 전송 줄에서는 보지 않는다 */
+const ADDRESS_WORD = /(?<![a-z])mac(?![a-z])|addr|bssid|주소/iu;
+const BUS_TRANSFER_WORD = /(?<![a-z0-9_])(?:i2c|spi|uart|writeto(?:_mem)?|readfrom(?:_mem_into|_mem|_into)?|writevto|readinto|eeprom)(?![a-z0-9_])/iu;
+/** 파이썬 bytes 글자의 한 글자 이스케이프 → 바이트 */
+const BYTES_SIMPLE_ESCAPES = Object.freeze({ '\\': 0x5c, "'": 0x27, '"': 0x22, n: 0x0a, r: 0x0d, t: 0x09, a: 0x07, b: 0x08, f: 0x0c, v: 0x0b });
+
+/**
+ * 파이썬 bytes 글자 안쪽을 바이트로 푼다(\xHH·8진수·한 글자 이스케이프, 그 밖의 ASCII 글자 하나 = 한 바이트).
+ * 7바이트가 넘거나 풀 수 없는 글자가 있으면 null(기기 주소 후보가 아니다).
+ * @param {string} body
+ * @returns {{ bytes: number[], hexEscapes: number } | null}
+ */
+function decodeBytesBody(body) {
+  /** @type {number[]} */
+  const bytes = [];
+  let hexEscapes = 0;
+  for (let index = 0; index < body.length; index += 1) {
+    if (bytes.length > 6) return null;
+    const char = body[index];
+    if (char !== '\\') {
+      const code = char.charCodeAt(0);
+      if (code < 0x20 || code > 0x7e) return null;
+      bytes.push(code);
+      continue;
+    }
+    const next = body[index + 1] ?? '';
+    const hex = /^x([0-9A-Fa-f]{2})/u.exec(body.slice(index + 1, index + 4));
+    if (hex) {
+      bytes.push(parseInt(hex[1], 16));
+      hexEscapes += 1;
+      index += 3;
+      continue;
+    }
+    const octal = /^[0-7]{1,3}/u.exec(body.slice(index + 1, index + 4));
+    if (octal) {
+      bytes.push(parseInt(octal[0], 8) & 0xff);
+      index += octal[0].length;
+      continue;
+    }
+    if (Object.hasOwn(BYTES_SIMPLE_ESCAPES, next)) {
+      bytes.push(BYTES_SIMPLE_ESCAPES[/** @type {keyof typeof BYTES_SIMPLE_ESCAPES} */ (next)]);
+      index += 1;
+      continue;
+    }
+    return null;
+  }
+  return bytes.length === 6 ? { bytes, hexEscapes } : null;
 }
+
+/**
+ * bytes 글자 안쪽이 6바이트이면 푼 결과. JS·JSON 글자 안에 한 번 더 이스케이프해 적은 것(\\x…)도 한 번 풀어 본다.
+ * @param {string} body
+ */
+function decodeSixBytes(body) {
+  const direct = decodeBytesBody(body);
+  if (direct || !body.includes('\\\\')) return direct;
+  return decodeBytesBody(body.replace(/\\\\/gu, '\\'));
+}
+
+/**
+ * 16진수 두 자리씩(구분자는 무시) 바이트로.
+ * @param {string} text
+ * @returns {number[]}
+ */
+function hexPairs(text) {
+  return (text.replace(/[^0-9A-Fa-f]/gu, '').match(/[0-9A-Fa-f]{2}/gu) ?? []).map((pair) => parseInt(pair, 16));
+}
+
+/**
+ * 자리표시자 주소인지: 모두 00, 모두 FF, 사이트 가상 주소 02:00:00:00:00:xx.
+ * @param {number[]} bytes
+ */
+function isPlaceholderAddress(bytes) {
+  return (
+    bytes.every((value) => value === 0) ||
+    bytes.every((value) => value === 0xff) ||
+    (bytes[0] === 0x02 && bytes.slice(1, 5).every((value) => value === 0))
+  );
+}
+
+/** 같은 줄에서 문맥 낱말을 찾는 거리(값 앞뒤 글자 수). 한 줄이 아주 긴 글(JSON에 몰아 담은 예제 코드, 긴 문단)에서 멀리 떨어진 낱말을 잡지 않게 */
+const CONTEXT_WINDOW = 80;
+/** 주소 낱말·(여섯 글자로만 찍힌 bytes의) 기기 주소 낱말을 찾는 값 앞 거리 */
+const NEAR_BEFORE = 40;
+
+/**
+ * 값(start~end) 둘레의 기기 주소 문맥(위 설명의 ①②③).
+ * @param {string} text
+ * @param {number} start
+ * @param {number} end
+ * @returns {{ device: boolean, deviceBefore: boolean, bus: boolean, near: boolean }}
+ *   device = 같은 줄 값 앞뒤 80자 안에 기기 주소 낱말, deviceBefore = 값 바로 앞 40자 안에 그 낱말,
+ *   bus = 같은 줄 값 앞뒤 80자 안에 I2C·SPI·UART 전송 낱말, near = 윗줄 끝 80자 안의 기기 주소 낱말이나 값 앞 40자 안의 주소 낱말
+ */
+function addressContext(text, start, end) {
+  const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+  const newline = text.indexOf('\n', end);
+  const lineEnd = newline < 0 ? text.length : newline;
+  const before = text.slice(Math.max(lineStart, start - CONTEXT_WINDOW), start);
+  const around = `${before} ${text.slice(end, Math.min(lineEnd, end + CONTEXT_WINDOW))}`;
+  const nearBefore = text.slice(Math.max(lineStart, start - NEAR_BEFORE), start);
+  const previousLineStart = lineStart > 0 ? text.lastIndexOf('\n', lineStart - 2) + 1 : 0;
+  const previousLine = lineStart > 0 ? text.slice(Math.max(previousLineStart, lineStart - 1 - CONTEXT_WINDOW), lineStart - 1) : '';
+  return {
+    device: DEVICE_ADDRESS_WORD.test(around),
+    deviceBefore: DEVICE_ADDRESS_WORD.test(nearBefore),
+    bus: BUS_TRANSFER_WORD.test(around),
+    near: DEVICE_ADDRESS_WORD.test(previousLine) || ADDRESS_WORD.test(nearBefore),
+  };
+}
+
+/**
+ * 문맥이 있어야 잡는 모양(12자리·빈칸 묶음·목록·\x 한두 개의 bytes 글자)을 잡을지: 같은 줄 가까이 기기 주소 낱말이 있거나,
+ * 전송 줄이 아니면서 윗줄·값 앞에 주소 문맥이 있을 때.
+ * @param {ReturnType<typeof addressContext>} context
+ */
+function contextCounts(context) {
+  return context.device || (!context.bus && context.near);
+}
+
+/**
+ * 글에서 기기 주소(MAC) 모양을 찾는다. 값은 알리지 않는다(공개 CI 기록에 다시 퍼지지 않게).
+ * @param {string} text
+ * @returns {{ index: number, label: string }[]} 찾은 자리(글 안 위치)와 알릴 문장
+ */
+export function findDeviceAddresses(text) {
+  /** @type {{ start: number, end: number, label: string }[]} */
+  const found = [];
+  /** @param {RegExpMatchArray} match @param {string} label */
+  const add = (match, label) => {
+    const start = match.index ?? 0;
+    found.push({ start, end: start + match[0].length, label });
+  };
+  for (const match of text.matchAll(MAC_ADDRESS)) {
+    if (!isPlaceholderAddress(hexPairs(match[0]))) {
+      add(match, `MAC 주소 모양(${match[0].slice(0, 2)}${match[1]}…, 나머지는 가려서 표시)`);
+    }
+  }
+  for (const match of text.matchAll(MAC_DOTTED)) {
+    if (!isPlaceholderAddress(hexPairs(match[0]))) {
+      add(match, 'MAC 주소 모양 — 점 모양(값은 가려서 표시)');
+    }
+  }
+  for (const match of text.matchAll(BYTES_LITERAL)) {
+    const body = match[2] ?? '';
+    if (/^[0-9A-Fa-f]{12}$/u.test(body)) {
+      if (!isPlaceholderAddress(hexPairs(body))) {
+        add(match, 'MAC 주소 모양 — bytes 글자 속 16진수 12자리(hexlify 결과, 값은 가려서 표시)');
+      }
+      continue;
+    }
+    const decoded = decodeSixBytes(body);
+    if (!decoded || isPlaceholderAddress(decoded.bytes)) continue;
+    const start = match.index ?? 0;
+    const context = addressContext(text, start, start + match[0].length);
+    if (decoded.hexEscapes >= 3) {
+      if (!context.bus || context.device) {
+        add(match, 'MAC 주소 모양 — 6바이트 bytes 글자(print 결과 모양, 값은 가려서 표시)');
+      }
+      continue;
+    }
+    // \x가 한두 개면 주소 문맥이 있을 때, 하나도 없으면(여섯 바이트가 모두 글자로 찍힘) 값 바로 앞에 기기 주소 낱말이 있을 때만
+    // — 짧은 글자 bytes(여섯 글자 명령)나 JSON의 "b": 같은 모양과 헷갈리지 않게
+    if (decoded.hexEscapes > 0 ? contextCounts(context) : context.deviceBefore) {
+      add(match, 'MAC 주소 모양 — 주소 낱말 옆의 6바이트 bytes 글자(값은 가려서 표시)');
+    }
+  }
+  /** @type {[RegExp, (value: string) => number[] | null][]} */
+  const contextual = [
+    [MAC_BARE_HEX, hexPairs],
+    [MAC_SPACED, hexPairs],
+    [
+      MAC_SHORT_COLON,
+      (value) => (/^(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/u.test(value) ? null : value.split(':').map((part) => parseInt(part, 16))),
+    ],
+    [MAC_HEX_LIST, (value) => (value.match(/0x[0-9A-Fa-f]{1,2}/giu) ?? []).map((part) => parseInt(part.slice(2), 16))],
+    [
+      MAC_DECIMAL_LIST,
+      (value) => {
+        const numbers = (value.match(/\d+/gu) ?? []).map(Number);
+        return numbers.every((number) => number <= 255) ? numbers : null;
+      },
+    ],
+  ];
+  for (const [regExp, toBytes] of contextual) {
+    for (const match of text.matchAll(regExp)) {
+      const bytes = toBytes(match[0]);
+      if (!bytes || bytes.length !== 6 || isPlaceholderAddress(bytes)) continue;
+      const start = match.index ?? 0;
+      if (contextCounts(addressContext(text, start, start + match[0].length))) {
+        add(match, 'MAC 주소 모양 — 주소 낱말 옆의 여섯 바이트(값은 가려서 표시)');
+      }
+    }
+  }
+  // 한 값을 두 규칙이 함께 잡으면(예: bytes 글자 안 12자리) 하나만 알린다
+  found.sort((left, right) => left.start - right.start || right.end - left.end);
+  /** @type {{ index: number, label: string }[]} */
+  const kept = [];
+  let coveredUntil = -1;
+  for (const item of found) {
+    if (item.start >= coveredUntil) {
+      kept.push({ index: item.start, label: item.label });
+      coveredUntil = item.end;
+    }
+  }
+  return kept;
+}
+
 /** 이메일 주소 모양(사용자@도메인.최상위) */
 const EMAIL_ADDRESS = /(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+)@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})(?![A-Za-z0-9-])/gu;
 /**
@@ -231,6 +463,7 @@ const PROBLEM_KINDS = Object.freeze({
  * @property {string[]} originalNameNeedles 찾을 원본 이름
  * @property {PrivacyNeedleSet} [privacyNeedles] 해시로 적어 둔 비공개 이름(없으면 검사하지 않는다)
  * @property {{ path: string, kinds: string[], reason: string }[]} [privacyExceptions] 개인정보 모양 검사 예외(public/licenses/ 아래 고지 원문의 이메일만)
+ * @property {{ blob: string, reason: string }[]} [historyReviewed] 기록 훑기(runHistoryCheck)에서 사람이 보고 개인정보가 아니라고 확인한 blob
  * @property {Map<string, HandoutRecord>} [handoutReviews] 가린 편집본 경로 → 쪽별 눈 확인 기록. runRepoCheck가 git 인덱스의 기록 파일에서 모은다
  */
 
@@ -439,26 +672,8 @@ export function findPrivacyPatterns(text, options = {}) {
   for (const match of text.matchAll(ONEDRIVE_DIR)) {
     findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: OneDrive 폴더 경로(기관·계정 이름이 드러날 수 있어요)`);
   }
-  for (const match of text.matchAll(MAC_ADDRESS)) {
-    if (!ALLOWED_MAC_ADDRESSES.has(match[0].toLowerCase())) {
-      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양(${match[0].slice(0, 2)}${match[1]}…, 나머지는 가려서 표시)`);
-    }
-  }
-  for (const match of text.matchAll(MAC_BYTES_ESCAPE)) {
-    if (!isPlaceholderMacValue(match[2] ?? '')) {
-      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양 — bytes 글자(\\x 여섯 개, 값은 가려서 표시)`);
-    }
-  }
-  for (const match of text.matchAll(MAC_DOTTED)) {
-    if (!isPlaceholderMacValue(match[0])) {
-      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양 — 점 모양(값은 가려서 표시)`);
-    }
-  }
-  for (const match of text.matchAll(MAC_NEAR_WORD)) {
-    const value = match[1] ?? match[2] ?? '';
-    if (!isPlaceholderMacValue(value)) {
-      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: MAC 주소 모양 — 주소 낱말 옆의 여섯 바이트(값은 가려서 표시)`);
-    }
+  for (const { index, label } of findDeviceAddresses(text)) {
+    findings.push(`${lineNumberAt(text, index)}번째 줄: ${label}`);
   }
   if (!skipKinds.has('email')) {
     for (const match of text.matchAll(EMAIL_ADDRESS)) {
@@ -577,6 +792,224 @@ function decodeTextContent(filePath, content) {
   return content.toString('utf8');
 }
 
+// ── 그림 파일에 남은 것(메타데이터 조각 검사 inspectImageMetadata에 보탬, 2026-09-26 P6-05) ──
+
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+/**
+ * 그림을 그리는 데만 쓰는 PNG 조각(PNG 3판 표준·APNG). inspectImageMetadata가 따로 막는 메타데이터 조각(eXIf·tEXt·iTXt·zTXt·iCCP·tIME)과
+ * 이 목록에 없는 조각(편집기 전용 조각, C2PA 출처 기록 caBX 등)은 모르는 조각으로 알린다.
+ */
+const PNG_RENDERING_CHUNKS = new Set([
+  'IHDR', 'PLTE', 'IDAT', 'IEND', 'tRNS', 'cHRM', 'gAMA', 'sRGB', 'sBIT', 'bKGD', 'hIST', 'pHYs', 'sPLT', 'cICP', 'mDCV', 'cLLI', 'mDCv', 'cLLi',
+  'acTL', 'fcTL', 'fdAT',
+]);
+const PNG_METADATA_CHUNKS = new Set(['eXIf', 'tEXt', 'iTXt', 'zTXt', 'iCCP', 'tIME']);
+/** GIF 응용 확장 가운데 반복 재생만 적는 것(글이 없다) */
+const GIF_LOOP_APPLICATIONS = new Set(['NETSCAPE2.0', 'ANIMEXTS1.0']);
+
+/**
+ * PNG 조각을 훑어 모르는 조각과 IEND 뒤 바이트를 알린다.
+ * @param {Buffer} buffer
+ * @returns {string[]}
+ */
+function pngLeftovers(buffer) {
+  /** @type {string[]} */
+  const problems = [];
+  for (let offset = 8; offset + 12 <= buffer.length; ) {
+    const size = buffer.readUInt32BE(offset);
+    const type = buffer.toString('latin1', offset + 4, offset + 8);
+    if (!PNG_RENDERING_CHUNKS.has(type) && !PNG_METADATA_CHUNKS.has(type)) {
+      problems.push(`PNG의 알 수 없는 조각 "${type.replace(/[^\x20-\x7e]/gu, '?')}"`);
+    }
+    offset += 12 + size;
+    if (type === 'IEND') {
+      if (buffer.length > offset) problems.push(`PNG 끝(IEND) 뒤에 붙은 바이트 ${buffer.length - offset}개`);
+      break;
+    }
+  }
+  return problems;
+}
+
+/**
+ * JPEG 표시(marker)를 끝(EOI)까지 따라가며 JFIF 썸네일과 끝 뒤 바이트를 알린다(메타데이터 조각은 inspectImageMetadata가 본다).
+ * @param {Buffer} buffer
+ * @returns {string[]}
+ */
+function jpegLeftovers(buffer) {
+  /** @type {string[]} */
+  const problems = [];
+  let offset = 2;
+  while (offset + 2 <= buffer.length) {
+    if (buffer[offset] !== 0xff) return problems; // 모양이 어긋나면 더 보지 않는다(잘린 그림은 개인정보 문제가 아니다)
+    const marker = buffer[offset + 1];
+    if (marker === 0xff) {
+      offset += 1; // 채움 바이트
+      continue;
+    }
+    if (marker === 0xd9) {
+      const end = offset + 2;
+      if (buffer.length > end) problems.push(`JPEG 끝(EOI) 뒤에 붙은 바이트 ${buffer.length - end}개`);
+      return problems;
+    }
+    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      offset += 2;
+      continue;
+    }
+    if (offset + 4 > buffer.length) return problems;
+    const size = buffer.readUInt16BE(offset + 2);
+    const payload = buffer.subarray(offset + 4, offset + 2 + size);
+    if (marker === 0xe0) {
+      const identifier = payload.toString('latin1', 0, 5);
+      if (identifier === 'JFIF\0' && payload.length >= 14 && payload[12] * payload[13] > 0) problems.push('JPEG JFIF 썸네일');
+      if (identifier === 'JFXX\0') problems.push('JPEG JFXX 썸네일');
+    }
+    offset += 2 + size;
+    if (marker === 0xda) {
+      // 압축된 영상 자료: 다음 표시(0xFF 뒤가 00·재시작 표시가 아닌 곳)까지 건너뛴다(점진 JPEG은 이런 구간이 여럿이다)
+      while (offset + 1 < buffer.length && !(buffer[offset] === 0xff && buffer[offset + 1] !== 0x00 && !(buffer[offset + 1] >= 0xd0 && buffer[offset + 1] <= 0xd7))) {
+        offset += 1;
+      }
+    }
+  }
+  return problems;
+}
+
+/**
+ * GIF 블록을 따라가며 글 확장·모르는 응용 확장과 끝(0x3B) 뒤 바이트를 알린다(주석·XMP는 inspectImageMetadata가 본다).
+ * @param {Buffer} buffer
+ * @returns {string[]}
+ */
+function gifLeftovers(buffer) {
+  /** @type {string[]} */
+  const problems = [];
+  let offset = 13;
+  if (buffer.length < 13) return problems;
+  if (buffer[10] & 0x80) offset += 3 * (1 << ((buffer[10] & 0x07) + 1));
+  const skipSubBlocks = () => {
+    while (offset < buffer.length && buffer[offset] !== 0) offset += buffer[offset] + 1;
+    offset += 1;
+  };
+  while (offset < buffer.length) {
+    const introducer = buffer[offset];
+    if (introducer === 0x3b) {
+      const end = offset + 1;
+      if (buffer.length > end) problems.push(`GIF 끝 뒤에 붙은 바이트 ${buffer.length - end}개`);
+      break;
+    }
+    if (introducer === 0x21) {
+      const label = buffer[offset + 1];
+      offset += 2;
+      if (label === 0x01) problems.push('GIF 글 확장(Plain Text)');
+      if (label === 0xff) {
+        const application = buffer.toString('latin1', offset + 1, offset + 12);
+        if (!GIF_LOOP_APPLICATIONS.has(application) && application !== 'XMP DataXMP') {
+          problems.push(`GIF 응용 확장 "${application.replace(/[^\x20-\x7e]/gu, '?')}"`);
+        }
+      }
+      skipSubBlocks();
+    } else if (introducer === 0x2c) {
+      const packed = buffer[offset + 9];
+      offset += 10;
+      if (packed & 0x80) offset += 3 * (1 << ((packed & 0x07) + 1));
+      offset += 1;
+      skipSubBlocks();
+    } else {
+      break;
+    }
+  }
+  return problems;
+}
+
+/**
+ * BMP: 색 프로필(V4·V5 머리의 LINK = 다른 파일 경로, MBED = 들어 있는 프로필)과 파일 크기 뒤 바이트.
+ * @param {Buffer} buffer
+ * @returns {string[]}
+ */
+function bmpLeftovers(buffer) {
+  /** @type {string[]} */
+  const problems = [];
+  if (buffer.length < 18) return problems;
+  const headerSize = buffer.readUInt32LE(14);
+  if (headerSize >= 108 && buffer.length >= 74) {
+    const colorSpace = buffer.readUInt32LE(70);
+    if (colorSpace === 0x4c494e4b) problems.push('BMP 색 프로필 경로(LINK)');
+    if (colorSpace === 0x4d424544) problems.push('BMP 색 프로필(MBED)');
+  }
+  const declared = buffer.readUInt32LE(2);
+  if (declared > 0 && buffer.length > declared) problems.push(`BMP 끝 뒤에 붙은 바이트 ${buffer.length - declared}개`);
+  return problems;
+}
+
+/**
+ * ICO: 안에 든 그림 가운데 PNG는 메타데이터와 남은 것을 본다.
+ * @param {Buffer} buffer
+ * @returns {string[]}
+ */
+function icoLeftovers(buffer) {
+  /** @type {string[]} */
+  const problems = [];
+  const count = buffer.readUInt16LE(4);
+  let end = 6 + count * 16;
+  for (let index = 0; index < count && 6 + index * 16 + 16 <= buffer.length; index += 1) {
+    const entry = 6 + index * 16;
+    const size = buffer.readUInt32LE(entry + 8);
+    const offset = buffer.readUInt32LE(entry + 12);
+    end = Math.max(end, offset + size);
+    const image = buffer.subarray(offset, offset + size);
+    if (image.subarray(0, 8).equals(PNG_SIGNATURE)) {
+      for (const problem of [...inspectImageMetadata(image).problems, ...pngLeftovers(image)]) {
+        problems.push(`ICO ${index + 1}번째 그림(PNG): ${problem}`);
+      }
+    }
+  }
+  if (buffer.length > end) problems.push(`ICO 끝 뒤에 붙은 바이트 ${buffer.length - end}개`);
+  return problems;
+}
+
+/**
+ * 파일 머리로 알아낸 래스터 형식(모르면 null — 확장자만 그림이고 내용은 다른 형식인 파일).
+ * @param {Buffer} buffer
+ * @returns {'webp' | 'png' | 'jpeg' | 'gif' | 'bmp' | 'ico' | null}
+ */
+export function rasterFormatOf(buffer) {
+  if (buffer.length >= 12 && buffer.toString('latin1', 0, 4) === 'RIFF' && buffer.toString('latin1', 8, 12) === 'WEBP') return 'webp';
+  if (buffer.length >= 8 && buffer.subarray(0, 8).equals(PNG_SIGNATURE)) return 'png';
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return 'jpeg';
+  if (buffer.length >= 6 && /^GIF8[79]a$/u.test(buffer.toString('latin1', 0, 6))) return 'gif';
+  if (buffer.length >= 18 && buffer.toString('latin1', 0, 2) === 'BM') return 'bmp';
+  if (buffer.length >= 6 && buffer.readUInt16LE(0) === 0 && [1, 2].includes(buffer.readUInt16LE(2))) return 'ico';
+  return null;
+}
+
+/**
+ * 그림 파일에 남은 것: 그림 끝 뒤에 붙은 바이트(도구가 덧붙인 글·썸네일이 숨는 곳), PNG의 모르는 부가 조각, JPEG JFIF 썸네일,
+ * GIF 글 확장·모르는 응용 확장, BMP 색 프로필, ICO 안 PNG의 메타데이터. 메타데이터 조각(EXIF·XMP·ICC·글 조각·주석)은
+ * inspectImageMetadata(scripts/lib/lesson-images.mjs)가 보고, 이 함수는 그 밖을 본다(같은 문제를 두 번 알리지 않는다).
+ * 잘린 그림(끝 표시가 없음)은 개인정보 문제가 아니라서 알리지 않는다. 형식을 모르면 빈 목록(부르는 쪽이 rasterFormatOf로 따로 알린다).
+ * @param {Buffer} buffer
+ * @returns {string[]}
+ */
+export function inspectRasterLeftovers(buffer) {
+  switch (rasterFormatOf(buffer)) {
+    case 'webp': {
+      const end = 8 + buffer.readUInt32LE(4);
+      return buffer.length > end ? [`WebP 끝(RIFF 크기) 뒤에 붙은 바이트 ${buffer.length - end}개`] : [];
+    }
+    case 'png':
+      return pngLeftovers(buffer);
+    case 'jpeg':
+      return jpegLeftovers(buffer);
+    case 'gif':
+      return gifLeftovers(buffer);
+    case 'bmp':
+      return bmpLeftovers(buffer);
+    case 'ico':
+      return icoLeftovers(buffer);
+    default:
+      return [];
+  }
+}
+
 /**
  * @param {Buffer} content
  * @param {string | null} text
@@ -691,10 +1124,12 @@ export function collectHandoutRecords(files) {
       errors.push({ file: HANDOUT_RECORD_FILE, message: `documents.${id}: output.path(편집본 경로)를 적어요.` });
       continue;
     }
+    // 원본 쪽 뒤에 덧붙인 출처·라이선스 쪽(credits_page, 2026-09-26 P6-04)도 눈 확인 기록이 있어야 한다 — 검사하는 쪽 수 = 원본 쪽 수 + 1
+    const appended = entry.credits_page ? 1 : 0;
     records.set(output.path.normalize('NFC'), {
       id,
       sha256: typeof output.sha256 === 'string' ? output.sha256 : undefined,
-      pages: typeof source.pages === 'number' ? source.pages : undefined,
+      pages: typeof source.pages === 'number' ? source.pages + appended : undefined,
       review: Array.isArray(entry.review) ? entry.review : [],
     });
   }
@@ -773,10 +1208,16 @@ export function checkRepoFiles(files, rules) {
     if (RASTER_IMAGE_EXTENSIONS.has(extension) && file.content) {
       if (isUncheckableRaster(extension)) {
         problems.push({ kind: 'image-metadata', path: filePath, detail: `${extension}는 메타데이터를 확인할 수 없는 형식이에요.` });
+      } else if (rasterFormatOf(file.content) === null) {
+        problems.push({
+          kind: 'image-metadata',
+          path: filePath,
+          detail: `${extension} 파일인데 내용이 PNG·JPEG·GIF·WebP·BMP·ICO가 아니라 메타데이터를 확인할 수 없어요(2026-09-26 P6-05).`,
+        });
       } else {
-        const inspected = inspectImageMetadata(file.content);
-        if (inspected.problems.length > 0) {
-          problems.push({ kind: 'image-metadata', path: filePath, detail: `${inspected.problems.join(', ')}이(가) 남아 있어요.` });
+        const found = [...inspectImageMetadata(file.content).problems, ...inspectRasterLeftovers(file.content)];
+        if (found.length > 0) {
+          problems.push({ kind: 'image-metadata', path: filePath, detail: `${found.join(', ')}이(가) 남아 있어요.` });
         }
       }
     }
@@ -933,11 +1374,12 @@ export function loadRepoRules(rootDir) {
   };
 
   const repoAllowlist = parseYamlObject(readOptional(REPO_ALLOWLIST_FILE), REPO_ALLOWLIST_FILE, errors);
+  const knownKeys = ['original_formats', 'large_files', 'privacy_exceptions', 'history_reviewed'];
   for (const key of Object.keys(repoAllowlist)) {
-    if (key !== 'original_formats' && key !== 'large_files' && key !== 'privacy_exceptions') {
+    if (!knownKeys.includes(key)) {
       errors.push({
         file: REPO_ALLOWLIST_FILE,
-        message: `모르는 이름 "${key}"예요. original_formats, large_files, privacy_exceptions만 써요.`,
+        message: `모르는 이름 "${key}"예요. ${knownKeys.join(', ')}만 써요.`,
       });
     }
   }
@@ -947,6 +1389,7 @@ export function loadRepoRules(rootDir) {
   }));
   const largeFileAllowed = readAllowEntries(repoAllowlist, 'large_files', errors);
   const privacyExceptions = readPrivacyExceptions(repoAllowlist, errors);
+  const historyReviewed = readHistoryReviewed(repoAllowlist, errors);
 
   // 눈 확인 기록(imageReviews)은 여기서 읽지 않는다. runRepoCheck가 git 인덱스의 기록 파일(옛 공용 기록 + 차시 그림 목록)에서
   // 모은다(collectImageRecords) — 디스크에만 있고 스테이징하지 않은 기록이 커밋을 통과시키지 않게(2026-09-25 P5-01).
@@ -968,9 +1411,44 @@ export function loadRepoRules(rootDir) {
       originalNameNeedles: buildOriginalNameNeedles(originalFolderNames, documentNames),
       privacyNeedles,
       privacyExceptions,
+      historyReviewed,
     },
     errors,
   };
+}
+
+/**
+ * history_reviewed 항목(기록 훑기에서 사람이 보고 개인정보가 아니라고 확인한 blob)을 읽는다 — blob(16진수 10~40자리)과 reason.
+ * 저장소 검사(인덱스·작업 폴더)에는 쓰지 않는다 — 지금 파일은 늘 고칠 수 있기 때문이다.
+ * @param {Record<string, any>} data
+ * @param {{ file: string, message: string }[]} errors
+ * @returns {{ blob: string, reason: string }[]}
+ */
+function readHistoryReviewed(data, errors) {
+  const value = data.history_reviewed;
+  if (value === undefined || value === null) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    errors.push({ file: REPO_ALLOWLIST_FILE, message: 'history_reviewed는 목록으로 적어요.' });
+    return [];
+  }
+  /** @type {{ blob: string, reason: string }[]} */
+  const entries = [];
+  value.forEach((item, index) => {
+    const where = `history_reviewed의 ${index + 1}번째 항목`;
+    const blob = isPlainObject(item) ? String(item.blob ?? '').toLowerCase() : '';
+    if (!/^[0-9a-f]{10,40}$/u.test(blob)) {
+      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: blob은 git blob 번호(16진수 10~40자리)로 적어요.` });
+      return;
+    }
+    if (!isPlainObject(item) || typeof item.reason !== 'string' || item.reason.trim() === '') {
+      errors.push({ file: REPO_ALLOWLIST_FILE, message: `${where}: reason(개인정보가 아니라고 본 까닭)을 적어요.` });
+      return;
+    }
+    entries.push({ blob, reason: item.reason.trim() });
+  });
+  return entries;
 }
 
 /**
@@ -1090,13 +1568,44 @@ export function readIndexFiles(rootDir) {
 }
 
 /**
- * 저장소 검사를 한 번 돌린다.
- * @param {{ rootDir: string }} options
- * @returns {{ ok: boolean, problems: RepoProblem[], fileCount: number }}
+ * 작업 폴더의 파일(추적 파일 + git이 무시하지 않는 새 파일, 지운 파일은 빼고)을 디스크에서 읽는다(2026-09-26 P6-05).
+ * 여러 구역이 스테이징하지 않고 일하는 동안 "커밋될 모양"을 미리 볼 때 쓴다(check-repo.mjs --worktree). 커밋 전 훅은 인덱스를 본다.
+ * @param {string} rootDir
+ * @returns {RepoFile[]}
  */
-export function runRepoCheck({ rootDir }) {
+export function readWorktreeFiles(rootDir) {
+  /** @param {string[]} args */
+  const listGit = (args) =>
+    execFileSync('git', args, { cwd: rootDir, maxBuffer: 256 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }).toString('utf8').split('\0');
+  const listed = [...listGit(['ls-files', '-z']), ...listGit(['ls-files', '-z', '--others', '--exclude-standard'])]
+    .filter((file) => file !== '')
+    .map((file) => file.normalize('NFC'));
+  /** @type {RepoFile[]} */
+  const files = [];
+  for (const filePath of [...new Set(listed)].sort()) {
+    const absolutePath = path.join(rootDir, ...filePath.split('/'));
+    /** @type {fs.Stats} */
+    let stat;
+    try {
+      stat = fs.lstatSync(absolutePath);
+    } catch {
+      continue; // 작업 폴더에서 지운 파일
+    }
+    if (stat.isDirectory()) continue; // 하위 모듈
+    const readable = !stat.isSymbolicLink() && stat.size <= MAX_CONTENT_BYTES;
+    files.push({ path: filePath, size: stat.size, content: readable ? fs.readFileSync(absolutePath) : null });
+  }
+  return files;
+}
+
+/**
+ * 저장소 검사를 한 번 돌린다. source가 'worktree'면 스테이징 전 작업 폴더(readWorktreeFiles)를, 아니면 git 인덱스를 본다.
+ * @param {{ rootDir: string, source?: 'index' | 'worktree' }} options
+ * @returns {{ ok: boolean, problems: RepoProblem[], fileCount: number, source: 'index' | 'worktree' }}
+ */
+export function runRepoCheck({ rootDir, source = 'index' }) {
   const { rules, errors } = loadRepoRules(rootDir);
-  const files = readIndexFiles(rootDir);
+  const files = source === 'worktree' ? readWorktreeFiles(rootDir) : readIndexFiles(rootDir);
   const imageRecords = collectImageRecords(files);
   rules.imageReviews = imageRecords.records;
   errors.push(...imageRecords.errors);
@@ -1107,17 +1616,258 @@ export function runRepoCheck({ rootDir }) {
   for (const error of errors) {
     problems.push({ kind: 'config', path: error.file, detail: error.message });
   }
-  return { ok: problems.length === 0, problems, fileCount: files.length };
+  return { ok: problems.length === 0, problems, fileCount: files.length, source };
+}
+
+// ── 기록·빌드 결과 훑기(2026-09-26 P6-05 개인정보 최종 점검에서 만든 것 — 커밋 전 훅·CI에는 걸지 않고 손으로 돌린다) ──
+
+/**
+ * @typedef {object} HistoryFinding
+ * @property {string} blob git blob 번호(40자리)
+ * @property {string[]} paths 그 내용이 있었던 경로들
+ * @property {boolean} inHead 지금 HEAD에도 있는지
+ * @property {string[]} details 찾은 것(값은 가려서)
+ * @property {string | null} reviewed history_reviewed에 적힌 까닭(없으면 null)
+ */
+
+/** 파일 경로들 가운데 하나라도 확장자가 맞는지 */
+const anyExtension = (/** @type {string[]} */ paths, /** @type {Set<string>} */ set) =>
+  paths.some((file) => set.has(path.posix.extname(file).toLowerCase()));
+
+/**
+ * 그림 하나의 메타데이터·남은 것(형식을 모르면 그 사실). 기록·빌드 결과 훑기가 함께 쓴다.
+ * @param {Buffer} content
+ * @param {string} extension
+ * @returns {string[]}
+ */
+function rasterFindings(content, extension) {
+  if (isUncheckableRaster(extension)) return [`${extension}는 메타데이터를 확인할 수 없는 형식이에요`];
+  if (rasterFormatOf(content) === null) return [`${extension} 파일인데 내용 형식을 알 수 없어요`];
+  return [...inspectImageMetadata(content).problems, ...inspectRasterLeftovers(content)];
+}
+
+/**
+ * git 기록 전체(모든 가지·태그의 모든 커밋에 한 번이라도 들어간 파일 내용)를 개인정보 규칙으로 훑는다.
+ * 공개 저장소는 지운 파일도 기록으로 남아 누구나 볼 수 있다. 기록은 고칠 수 없으므로(기록 재작성 금지 — OVERNIGHT §3) 찾으면 운영자와
+ * 정하고, 사람이 보고 개인정보가 아니라고 확인한 것은 scripts/repo-allowlist.yaml의 history_reviewed에 blob 번호와 까닭을 적는다.
+ * 검사: 글 파일의 개인정보 모양·비공개 이름(privacy_exceptions 경로는 이메일만 건너뜀), 래스터 그림의 메타데이터·남은 것.
+ * @param {{ rootDir: string }} options
+ * @returns {{ ok: boolean, blobCount: number, findings: HistoryFinding[], errors: { file: string, message: string }[] }}
+ */
+export function runHistoryCheck({ rootDir }) {
+  const { rules, errors } = loadRepoRules(rootDir);
+  /**
+   * @param {string[]} args
+   * @param {string} [input]
+   */
+  const runGit = (args, input) =>
+    execFileSync('git', args, { cwd: rootDir, input, maxBuffer: 4 * 1024 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] });
+  /** @type {Map<string, Set<string>>} */
+  const pathsOf = new Map();
+  for (const line of runGit(['rev-list', '--objects', '--all']).toString('utf8').split('\n')) {
+    const space = line.indexOf(' ');
+    if (space < 0) continue;
+    const id = line.slice(0, space);
+    if (!pathsOf.has(id)) pathsOf.set(id, new Set());
+    pathsOf.get(id)?.add(line.slice(space + 1).normalize('NFC'));
+  }
+  const ids = [...pathsOf.keys()];
+  if (ids.length === 0) return { ok: errors.length === 0, blobCount: 0, findings: [], errors };
+  let headBlobs = new Set();
+  try {
+    headBlobs = new Set(runGit(['ls-tree', '-r', '-z', 'HEAD']).toString('utf8').split('\0').map((entry) => entry.split(/\s+/u)[2]));
+  } catch {
+    // 커밋이 없는 저장소
+  }
+  /** @type {{ id: string, size: number, paths: string[] }[]} */
+  const blobs = [];
+  runGit(['cat-file', '--batch-check'], `${ids.join('\n')}\n`)
+    .toString('utf8')
+    .trim()
+    .split('\n')
+    .forEach((line, index) => {
+      const [id, type, size] = line.split(' ');
+      if (type === 'blob' && id === ids[index]) blobs.push({ id, size: Number(size), paths: [...(pathsOf.get(id) ?? [])] });
+    });
+  // 내용을 읽을 것: 그림, 그리고 이진 확장자가 아닌 파일(글)
+  const wanted = blobs.filter(
+    (blob) => blob.size <= MAX_CONTENT_BYTES && (anyExtension(blob.paths, RASTER_IMAGE_EXTENSIONS) || !anyExtension(blob.paths, BINARY_EXTENSIONS)),
+  );
+  /** @type {Map<string, Buffer>} */
+  const contents = new Map();
+  if (wanted.length > 0) {
+    const output = runGit(['cat-file', '--batch'], `${wanted.map((blob) => blob.id).join('\n')}\n`);
+    let offset = 0;
+    for (const blob of wanted) {
+      const newlineIndex = output.indexOf(10, offset);
+      if (newlineIndex < 0) break;
+      const header = output.subarray(offset, newlineIndex).toString('utf8').split(' ');
+      offset = newlineIndex + 1;
+      if (header[1] === 'missing' || header[2] === undefined) continue;
+      const size = Number(header[2]);
+      contents.set(blob.id, output.subarray(offset, offset + size));
+      offset += size + 1;
+    }
+  }
+  /** @type {HistoryFinding[]} */
+  const findings = [];
+  for (const blob of wanted) {
+    const content = contents.get(blob.id);
+    if (!content) continue;
+    const rasterPath = blob.paths.find((file) => RASTER_IMAGE_EXTENSIONS.has(path.posix.extname(file).toLowerCase()));
+    /** @type {string[]} */
+    let details;
+    if (rasterPath) {
+      details = rasterFindings(content, path.posix.extname(rasterPath).toLowerCase());
+    } else {
+      const text = decodeTextContent(blob.paths[0] ?? '', content);
+      if (text === null) {
+        details = ['앞부분 8000바이트 안에 NUL 바이트가 있어 글로 읽지 못했어요'];
+      } else {
+        const exception = (rules.privacyExceptions ?? []).find((item) => blob.paths.some((file) => matchesGlob(file, item.path)));
+        details = [...findPrivacyPatterns(text, exception ? { skipKinds: exception.kinds } : {}), ...findPrivacyNeedles(text, rules.privacyNeedles)];
+      }
+    }
+    if (details.length === 0) continue;
+    const reviewed = (rules.historyReviewed ?? []).find((item) => blob.id.startsWith(item.blob));
+    findings.push({ blob: blob.id, paths: blob.paths, inHead: headBlobs.has(blob.id), details, reviewed: reviewed ? reviewed.reason : null });
+  }
+  return { ok: errors.length === 0 && findings.every((finding) => finding.reviewed !== null), blobCount: blobs.length, findings, errors };
+}
+
+/**
+ * 기록 훑기 결과를 한국어 보고서로.
+ * @param {ReturnType<typeof runHistoryCheck>} result
+ * @returns {string}
+ */
+export function formatHistoryReport(result) {
+  const open = result.findings.filter((finding) => finding.reviewed === null);
+  const reviewed = result.findings.filter((finding) => finding.reviewed !== null);
+  const lines = [
+    open.length === 0 && result.errors.length === 0
+      ? `[저장소 기록 검사] 통과 — 기록 속 파일 내용 ${result.blobCount}개(사람이 보고 확인해 둔 것 ${reviewed.length}개)`
+      : `[저장소 기록 검사] 확인할 것 ${open.length + result.errors.length}건 — 기록 속 파일 내용 ${result.blobCount}개`,
+  ];
+  for (const finding of open) {
+    lines.push(`  - ${finding.paths.join(' | ')} (blob ${finding.blob.slice(0, 10)}, ${finding.inHead ? '지금도 있음' : '기록에만 있음'}): ${finding.details.join(' / ')}`);
+  }
+  for (const error of result.errors) {
+    lines.push(`  - ${error.file}: ${error.message}`);
+  }
+  if (open.length > 0) {
+    lines.push(
+      '  기록은 고치거나 지울 수 없어요(기록 재작성 금지). 진짜 개인정보면 운영자에게 알려 함께 정하고, 개인정보가 아니면(가짜 값·자리표시자) ' +
+        `${REPO_ALLOWLIST_FILE}의 history_reviewed에 blob 번호(앞 10자리 이상)와 까닭을 적어요.`,
+    );
+  }
+  return lines.join('\n');
+}
+
+/** 빌드 결과에서 사이트가 만든 것이 아니라 npm 패키지에서 그대로 복사한 자리(그림 메타데이터는 참고로만) */
+const BUILD_VENDOR_ROOT = 'vendor/';
+
+/**
+ * 이 컴퓨터를 가리키는 절대 경로 조각(저장소 폴더·홈 폴더 — 역슬래시·슬래시·Git Bash 모양, 소문자로 비교).
+ * @param {string} rootDir
+ * @returns {string[]}
+ */
+function localPathMarkers(rootDir) {
+  const markers = new Set();
+  for (const base of [path.resolve(rootDir), os.homedir()]) {
+    const forward = String(base ?? '').split(path.sep).join('/').replace(/\/+$/u, '');
+    if (forward.length < 8) continue;
+    markers.add(forward);
+    markers.add(forward.replaceAll('/', '\\'));
+    markers.add(forward.replaceAll('/', '\\\\'));
+    const drive = /^([A-Za-z]):\//u.exec(forward);
+    if (drive) markers.add(`/${drive[1].toLowerCase()}${forward.slice(2)}`);
+  }
+  return [...markers].map((marker) => marker.normalize('NFC').toLowerCase());
+}
+
+/**
+ * 빌드 결과 폴더(배포물·오프라인판 재료)를 훑는다. 빌드는 저장소에 없는 것을 만들 수 있다 — 번들러가 넣는 이 컴퓨터의 절대 경로,
+ * 복사해 온 그림 등. 검사: 이 저장소 폴더·홈 폴더의 절대 경로(모든 파일, 이진 포함), 글 파일의 개인정보 모양·비공개 이름
+ * (licenses/ 아래와 이름이 LICENSE·NOTICE·COPYING인 고지 파일은 이메일만 건너뜀), 그림의 메타데이터·남은 것
+ * (vendor/ 아래는 npm 패키지에서 그대로 복사한 파일이라 참고로만 알린다).
+ * @param {{ rootDir: string, outDir: string }} options
+ * @returns {{ ok: boolean, problems: RepoProblem[], notes: string[], fileCount: number, outDir: string }}
+ */
+export function runBuildOutputCheck({ rootDir, outDir }) {
+  const { rules, errors } = loadRepoRules(rootDir);
+  const absoluteOut = path.resolve(rootDir, outDir);
+  const markers = localPathMarkers(rootDir);
+  /** @type {RepoProblem[]} */
+  const problems = errors.map((error) => ({ kind: /** @type {const} */ ('config'), path: error.file, detail: error.message }));
+  /** @type {string[]} */
+  const notes = [];
+  /** @type {string[]} */
+  const files = [];
+  /** @param {string} directory */
+  const walk = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.isFile()) files.push(full);
+    }
+  };
+  walk(absoluteOut);
+  for (const file of files) {
+    const relative = path.relative(absoluteOut, file).split(path.sep).join('/').normalize('NFC');
+    const extension = path.posix.extname(relative).toLowerCase();
+    const content = fs.readFileSync(file);
+    const lowered = content.toString('utf8').normalize('NFC').toLowerCase();
+    if (markers.some((marker) => lowered.includes(marker))) {
+      problems.push({ kind: 'privacy', path: relative, detail: '이 컴퓨터의 절대 경로(저장소 폴더나 홈 폴더)가 들어 있어요 — 빌드 도구가 넣은 경로예요.' });
+    }
+    if (RASTER_IMAGE_EXTENSIONS.has(extension)) {
+      const found = rasterFindings(content, extension);
+      if (found.length === 0) continue;
+      if (relative.startsWith(BUILD_VENDOR_ROOT)) notes.push(`${relative}: ${found.join(', ')}(npm 패키지 원본 그대로 — 사이트가 만든 그림이 아니에요)`);
+      else problems.push({ kind: 'image-metadata', path: relative, detail: `${found.join(', ')}이(가) 남아 있어요.` });
+      continue;
+    }
+    const text = decodeTextContent(relative, content);
+    if (text === null) continue;
+    const isNotice = relative.startsWith('licenses/') || /(?:^|\/)(?:LICENSE|NOTICE|COPYING)[^/]*$/u.test(relative);
+    for (const finding of [...findPrivacyPatterns(text, isNotice ? { skipKinds: ['email'] } : {}), ...findPrivacyNeedles(text, rules.privacyNeedles)]) {
+      problems.push({ kind: 'privacy', path: relative, detail: finding });
+    }
+  }
+  return { ok: problems.length === 0, problems, notes, fileCount: files.length, outDir: path.relative(rootDir, absoluteOut).split(path.sep).join('/') || '.' };
+}
+
+/**
+ * 빌드 결과 훑기 결과를 한국어 보고서로.
+ * @param {ReturnType<typeof runBuildOutputCheck>} result
+ * @returns {string}
+ */
+export function formatBuildOutputReport(result) {
+  const head = result.ok
+    ? `[빌드 결과 검사] 통과 — ${result.outDir}/ 파일 ${result.fileCount}개`
+    : `[빌드 결과 검사] 실패 — ${result.outDir}/ 파일 ${result.fileCount}개에서 문제 ${result.problems.length}건`;
+  const lines = [head];
+  for (const problem of result.problems) lines.push(`  - ${problem.path}: ${problem.detail}`);
+  if (result.notes.length > 0) {
+    lines.push(`  참고 ${result.notes.length}건:`);
+    for (const note of result.notes) lines.push(`    · ${note}`);
+  }
+  if (!result.ok) {
+    lines.push('  빌드 결과는 저장소 파일에서 만들어져요. 저장소 파일을 고치고 다시 빌드해요(절대 경로면 그 경로를 넣은 설정·스크립트를 찾아요).');
+  }
+  return lines.join('\n');
 }
 
 /**
  * 검사 결과를 사람이 읽는 한국어 보고서로 만든다.
- * @param {{ ok: boolean, problems: RepoProblem[], fileCount: number }} result
+ * @param {{ ok: boolean, problems: RepoProblem[], fileCount: number, source?: 'index' | 'worktree' }} result
  * @returns {string}
  */
 export function formatRepoReport(result) {
   if (result.ok) {
-    return `[저장소 검사] 통과 — 추적 파일 ${result.fileCount}개`;
+    return result.source === 'worktree'
+      ? `[저장소 검사] 통과 — 작업 폴더 파일 ${result.fileCount}개(추적 파일 + 새 파일, 스테이징 전 내용)`
+      : `[저장소 검사] 통과 — 추적 파일 ${result.fileCount}개`;
   }
   const lines = [`[저장소 검사] 실패 — 문제 ${result.problems.length}건. 고치기 전에는 커밋과 배포를 멈춰요.`];
   for (const [kind, info] of Object.entries(PROBLEM_KINDS)) {

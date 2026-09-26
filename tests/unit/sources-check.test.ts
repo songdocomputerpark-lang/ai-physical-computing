@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BUNDLE_LICENSE_FILE } from '../../scripts/lib/bundle-license.mjs';
-import { checkBundleDependencies, checkSourceFiles } from '../../scripts/lib/sources-check.mjs';
+import { checkBundleDependencies, checkSourceFiles, licenseIdentifiers } from '../../scripts/lib/sources-check.mjs';
 import { makeTempDir, removeDir, writeFiles } from './helpers/fixture.ts';
 
 const CHECK_SOURCES_CLI = fileURLToPath(new URL('../../scripts/check-sources.mjs', import.meta.url));
@@ -196,6 +196,19 @@ describe('빌드 전 출처 검사(checkSourceFiles)', () => {
     expect(result.warnings[0]).toContain('third-party/');
   });
 
+  it('데이터 파일(JSON·YAML)의 "license" 칸 이름은 저작자 표기로 보지 않는다(2026-09-26 P6-04 — 펌웨어 목록의 license 칸)', () => {
+    const result = checkSourceFiles({
+      rootDir: fixture({
+        'public/_probe/manifest.json': '{\n  "firmware": [{ "id": "x", "license": "MIT", "notice": "NOTICE.txt" }]\n}\n',
+        'public/_probe/meta.yaml': 'title: 예제\nlicense: MIT\n',
+        'public/_probe/credit.json': '{ "note": "Copyright (c) 2020 Someone Else" }\n',
+      }),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('public/_probe/credit.json');
+  });
+
   it('저작자가 같은 두 항목이 겹치는 것은 괜찮다', () => {
     const sameAuthor = `  - name: 사이트가 새로 쓴 예제
     category: self
@@ -264,6 +277,34 @@ describe('빌드 뒤 번들 의존성 검사(checkBundleDependencies)', () => {
     const result = checkBundleDependencies({ rootDir });
     expect(result.ok).toBe(false);
     expect(result.errors.join('\n')).toContain('- pako@2.1.0 ((MIT AND Zlib))');
+  });
+
+  it('SPDX 식의 괄호·AND·OR는 문법으로 보고 식별자마다 등록부 license와 견준다(2026-09-26 P6-04 — pako "(MIT AND Zlib)")', () => {
+    expect(licenseIdentifiers('(MIT AND Zlib)')).toEqual(['MIT', 'Zlib']);
+    expect(licenseIdentifiers('Apache-2.0 WITH LLVM-exception OR MIT')).toEqual(['Apache-2.0', 'LLVM-exception', 'MIT']);
+    const pakoEntry = `  - name: pako
+    category: stack
+    author: Vitaly Puzrin
+    license: MIT AND Zlib
+    url: https://github.com/nodeca/pako
+    used_in: 압축
+    npm:
+      - pako
+    fetched: 2026-09-17
+`;
+    const rootDir = fixture({ 'sources.yaml': registry(OPERATOR_ENTRY, PROBE_ENTRY, ASTRO_ENTRY, pakoEntry) });
+    writeBundleList(rootDir, [
+      { name: 'astro', version: '7.3.2', identifier: 'MIT' },
+      { name: 'pako', version: '2.2.0', identifier: '(MIT AND Zlib)' },
+    ]);
+    const matching = checkBundleDependencies({ rootDir });
+    expect(matching.ok).toBe(true);
+    expect(matching.warnings).toEqual([]);
+
+    writeBundleList(rootDir, [{ name: 'pako', version: '2.2.0', identifier: '(MIT AND BSD-3-Clause)' }]);
+    const differing = checkBundleDependencies({ rootDir });
+    expect(differing.ok).toBe(true);
+    expect(differing.warnings.join('\n')).toContain('pako@2.2.0');
   });
 
   it('목록 파일이 없으면(설정이 빠진 경우) 실패한다', () => {

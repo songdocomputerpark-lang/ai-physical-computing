@@ -1,4 +1,4 @@
-CodeMirror 6와 함께 받는 라이브러리 — MIT 라이선스 고지(https://github.com/codemirror/dev , https://github.com/lezer-parser/lezer)
+﻿CodeMirror 6와 함께 받는 라이브러리 — MIT 라이선스 고지(https://github.com/codemirror/dev , https://github.com/lezer-parser/lezer)
 이 사이트의 실습실 코드 에디터는 CodeMirror 6(코드 편집), Lezer(구문 분석·강조)와 같은 저작자의 보조 라이브러리로 동작해요.
 아래는 npm 패키지의 LICENSE 파일에서 옮긴 고지 원문이에요(2026-09-16). 저작권 표기는 패키지마다 연도만 다르고 허가 조항은 같아서, 표기를 모두 적고 조항은 한 번 적었어요.
 

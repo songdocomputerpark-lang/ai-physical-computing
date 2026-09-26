@@ -5,12 +5,14 @@
 // 제목 단계: 페이지 제목(h1)은 껍데기가 맡고, 이 본문은 h2부터 쓴다.
 import registryText from '../../../sources.yaml?raw';
 import { siteConfig } from '../../config/site.ts';
-import { buildCreditsView } from '../../lib/credits.ts';
+import { REDISTRIBUTION_NOTICES, buildCreditsView, publicFileHref } from '../../lib/credits.ts';
 import SourceEntry from './SourceEntry.astro';
 
 const view = buildCreditsView(registryText);
 const { software, content, exclusion } = siteConfig.license;
 const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
+/** 알림 칸의 고지 파일 링크 글자: 파일 이름만(모음 목록은 사이트 안 경로 전체 — NOTICE.txt·LICENSE.txt처럼 같은 이름이 있어서) */
+const fileName = (filePath: string) => filePath.split('/').pop() ?? filePath;
 ---
 
 <div class="credits">
@@ -36,6 +38,32 @@ const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
       </div>
     </dl>
     <p>{exclusion}</p>
+  </section>
+
+  <section aria-labelledby="credits-redistribution">
+    <h2 id="credits-redistribution">다시 나누는 파일에 꼭 함께 알리는 것</h2>
+    <p>
+      사이트는 파이썬 엔진, 손 인식 엔진, 검색 엔진, ESP32 펌웨어처럼 다른 곳에서 만든 실행 파일을 고치지 않고 함께 나눠요. 그 가운데 라이선스가
+      "문서에 이 문장을 적어요", "소스를 받을 곳을 알려요"라고 요구하는 것을 여기에 모았어요. 자세한 조건과 원문은 각 고지 파일에 있어요.
+    </p>
+    <ul class="credits__notices">
+      {
+        REDISTRIBUTION_NOTICES.map((notice) => (
+          <li id={`credits-notice-${notice.id}`}>
+            <h3 class="credits__notice-title">{notice.title}</h3>
+            <p>{notice.text}</p>
+            {notice.statement && (
+              <p class="credits__statement" lang="en">
+                {notice.statement}
+              </p>
+            )}
+            <p class="credits__notice-link" data-pagefind-ignore>
+              고지 파일: <a href={publicFileHref(notice.noticePath)}>{fileName(notice.noticePath)}</a>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
   </section>
 
   <section aria-labelledby="credits-third-party">
@@ -83,6 +111,24 @@ const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
       ))
     }
   </section>
+
+  <section aria-labelledby="credits-notice-files" data-pagefind-ignore>
+    <h2 id="credits-notice-files">고지 전문 파일 모음</h2>
+    <p>
+      위 항목들이 함께 싣는 라이선스 원문 파일 {view.noticeFiles.length}개예요. 오프라인 배포판에도 같은 파일이 들어가요. 파일은 원문(대부분
+      영어)을 그대로 옮기고, 맨 위에 무엇의 고지인지 한국어로 적었어요.
+    </p>
+    <ul class="credits__files">
+      {
+        view.noticeFiles.map((file) => (
+          <li>
+            <a href={file.href}>{file.path.slice('public/'.length)}</a>
+            <span class="credits__file-for"> — {file.entries.join(' · ')}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
 </div>
 
 <style>
@@ -95,6 +141,13 @@ const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
     margin: 1.75rem 0 0.75rem;
     font-size: 1.25rem;
     line-height: 1.4;
+    /* 여러 라이선스를 AND로 이은 묶음 이름(예: "PSF-2.0 AND MIT AND … WITH LLVM-exception")이 휴대폰 폭을 넘지 않게(2026-09-26 P6-04) */
+    overflow-wrap: anywhere;
+  }
+  /* 격자 칸은 기본으로 내용의 최소 폭보다 줄어들지 않아, 긴 이름 하나가 카드 전체를 화면 밖으로 밀었다 — 칸이 줄어들 수 있게 한다 */
+  .credits__list > li,
+  .credits__notices > li {
+    min-width: 0;
   }
   .credits__licenses {
     display: grid;
@@ -123,5 +176,44 @@ const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
     padding: var(--space-3) var(--space-4);
     border-left: 4px solid var(--color-border-strong);
     background: var(--color-bg-muted);
+  }
+  .credits__notices {
+    display: grid;
+    gap: 1rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .credits__notices > li {
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+  }
+  .credits__notices p {
+    margin: 0.4rem 0 0;
+    overflow-wrap: anywhere;
+  }
+  .credits h3.credits__notice-title {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+  .credits__statement {
+    padding: var(--space-2) var(--space-3);
+    border-left: 4px solid var(--color-border-strong);
+    background: var(--color-bg-muted);
+    font-weight: 600;
+  }
+  .credits__files {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .credits__files li {
+    overflow-wrap: anywhere;
+  }
+  .credits__file-for {
+    color: var(--color-text-muted);
   }
 </style>

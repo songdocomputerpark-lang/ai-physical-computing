@@ -1,4 +1,4 @@
-CPython 3.14.2 — PSF License Version 2 고지(https://github.com/python/cpython/blob/v3.14.2/LICENSE)
+﻿CPython 3.14.2 — PSF License Version 2 고지(https://github.com/python/cpython/blob/v3.14.2/LICENSE)
 이 사이트의 파이썬 실습에서 도는 파이썬 언어 자체는 CPython 3.14.2(Pyodide 314.0.7 안에 들어 있음)예요.
 아래는 CPython 저장소(태그 v3.14.2)의 LICENSE 파일 원문이에요. (2026-09-16)
 

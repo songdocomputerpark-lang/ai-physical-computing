@@ -1,7 +1,9 @@
-Pyodide 314.0.7 — MPL-2.0(Mozilla Public License 2.0) 고지(https://github.com/pyodide/pyodide)
+﻿Pyodide 314.0.7 — MPL-2.0(Mozilla Public License 2.0) 고지(https://github.com/pyodide/pyodide)
 이 사이트의 파이썬 실습은 Pyodide(브라우저 안에서 도는 파이썬)로 동작해요. 보통은 브라우저가 Pyodide 공식 배포 파일을 jsDelivr(https://cdn.jsdelivr.net/pyodide/v314.0.7/full/)에서 그대로 받고, 학교 네트워크가 그곳을 막을 때를 대비해 같은 파일을 이 사이트(vendor/pyodide/314.0.7/)에도 올려 둬요(빌드할 때 공식 배포에서 받아 SHA-256으로 대조해요).
 사이트는 Pyodide를 고치지 않고 그대로 써요. 소스 코드는 위 저장소의 태그 314.0.7에 있어요.
 아래는 Pyodide 저장소(태그 314.0.7)의 LICENSE 파일 원문이에요. (2026-09-16)
+Pyodide 코어 파일 안에 함께 들어 있는 구성요소(CPython에 든 코드, libffi, zlib, bzip2, xz, zstd, SQLite, Emscripten 런타임 등)의 고지는
+licenses/pyodide-core-3rd-party.txt에 있어요(2026-09-26 확인).
 
 Mozilla Public License Version 2.0
 ==================================

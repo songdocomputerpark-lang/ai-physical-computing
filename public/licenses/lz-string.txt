@@ -1,4 +1,4 @@
-lz-string 1.5.0 — MIT 라이선스 고지(https://github.com/pieroxy/lz-string)
+﻿lz-string 1.5.0 — MIT 라이선스 고지(https://github.com/pieroxy/lz-string)
 이 사이트의 실습실 [공유 링크]는 lz-string으로 코드를 압축해 주소에 담아요.
 아래는 npm 패키지 lz-string@1.5.0의 LICENSE 파일에서 옮긴 고지 원문이에요(2026-09-16). 소스 파일 머리말에는 옛 WTFPL 문구가 남아 있지만 배포 라이선스는 이 MIT 원문이에요.
 

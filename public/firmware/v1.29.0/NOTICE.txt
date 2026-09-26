@@ -1,4 +1,4 @@
-MicroPython ESP32_GENERIC v1.29.0 펌웨어 고지 (AI 피지컬 컴퓨팅 오픈랩)
+﻿MicroPython ESP32_GENERIC v1.29.0 펌웨어 고지 (AI 피지컬 컴퓨팅 오픈랩)
 ====================================================================
 
 이 폴더에는 보드 준비 페이지의 [펌웨어 굽기]가 ESP32 보드에 넣는 MicroPython 공식 펌웨어
@@ -8,17 +8,21 @@ ESP32_GENERIC-20260824-v1.29.0.bin 을 둡니다(고치지 않은 공식 파일 
 - 공식 내려받기·설치 안내: https://micropython.org/download/ESP32_GENERIC/
 - 크기 1,790,544바이트, SHA-256 e67ad6015a0a504c1fec9aa9bbf589d0432ed28e62546f4f8dd8a147f8bd95f6
   (공식 페이지에 해시 표기가 없어, 운영자가 공식 주소에서 받은 파일로 잰 값), 굽는 위치 0x1000
-- 소스 코드: https://github.com/micropython/micropython/tree/v1.29.0
+- 소스 코드: https://github.com/micropython/micropython/tree/v1.29.0 (ESP-IDF v5.5.2로 빌드 —
+  https://github.com/espressif/esp-idf/tree/v5.5.2)
 
-[이 고지가 담고 있는 것] 이 파일에는 MicroPython 본체의 라이선스 전문(1절)과, 펌웨어에 들어간 제3자 구성요소의
-목록·라이선스 이름·공식 출처(2·3절)가 있습니다. 2·3절 구성요소의 라이선스 전문은 아래 적은 공식 문서와 각 소스 파일
-머리말에 그대로 있습니다. MIT·BSD 계열이 바이너리 재배포에 요구하는 고지 전문을 이 파일에 함께 싣는 일은
-운영자가 공식 소스(3절 링크)를 내려받아 대조한 뒤 마무리합니다(PROGRESS.md 운영자 할 일 참고).
-이 사이트는 펌웨어 파일을 고치지 않고 공식 파일 그대로 다시 내보냅니다.
+[이 고지가 담고 있는 것] 1절은 MicroPython 본체의 라이선스(MIT) 원문, 2절은 펌웨어에 함께 들어 있는 제3자 구성요소와
+라이선스 이름입니다. 2절 구성요소마다의 저작권 표기·라이선스 **원문 전체**는 같은 사이트의
+licenses/micropython-esp32-firmware.txt 에 모두 있습니다(공개 사이트 주소:
+https://songdocomputerpark-lang.github.io/ai-physical-computing/licenses/micropython-esp32-firmware.txt).
+그 파일은 2026-09-26에 각 공식 저장소의 원문을 글자 그대로 옮기고 원본과 같은지 대조한 것이며, 펌웨어에 무엇이 들어
+있는지 확인한 방법(빌드 설정과 펌웨어 안의 글자)도 머리말에 적었습니다. 이 사이트는 펌웨어 파일을 고치지 않고 공식 파일
+그대로 다시 내보냅니다.
 
 
-1. MicroPython (MIT License) — MicroPython v1.29.0 저장소의 LICENSE 파일 그대로
+1. MicroPython (MIT License) — MicroPython v1.29.0 저장소 LICENSE 파일의 앞부분
 --------------------------------------------------------------------------------
+(같은 파일 뒷부분의 "저장소 안 제3자 코드 요약 표"까지 담은 전체 원문은 licenses/micropython-esp32-firmware.txt 1절)
 
 The MIT License (MIT)
 
@@ -43,29 +47,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-2. MicroPython 저장소 안의 제3자 코드 (ESP32 포트 빌드에 쓰이는 것)
-------------------------------------------------------------------
+2. 펌웨어에 함께 들어 있는 제3자 구성요소 (원문: licenses/micropython-esp32-firmware.txt)
+------------------------------------------------------------------------------------
 
-MicroPython LICENSE 파일은 저장소의 제3자 코드와 라이선스를 폴더별로 요약합니다. 그 가운데
-ESP32 빌드 설정(ports/esp32/esp32_common.cmake, v1.29.0)이 빌드에 넣는 것으로 확인한 항목입니다.
+MicroPython 저장소 안의 코드(ESP32 빌드 설정 ports/esp32/esp32_common.cmake·extmod/extmod.cmake, v1.29.0)
+- littlefs(lib/littlefs) — BSD-3-Clause (Arm Limited, The littlefs authors)
+- ooFatFs(lib/oofatfs, FatFs R0.13c) — BSD-1-Clause (ChaN)
+- Berkeley DB 1.85(lib/berkeley-db-1.xx, btree 모듈) — BSD(캘리포니아 대학교, 광고 조항은 1999년 공지로 삭제)
+- re1.5(lib/re1.5, re 모듈) — BSD-3-Clause (Russ Cox, Paul Sokolovsky)
+- uzlib(lib/uzlib, deflate 모듈) — Zlib (Joergen Ibsen, Paul Sokolovsky, Jim Mussared)
+- ports/esp32/ppp_set_auth.c, lib/mbedtls_errors — Apache-2.0
 
-- lib/littlefs — BSD-3-Clause (LittleFS 파일 시스템)
-- lib/oofatfs — BSD-1-Clause (FAT 파일 시스템)
-- lib/berkeley-db-1.xx — BSD-4-Clause (ESP32 빌드에서 기본으로 켜지는 btree 모듈)
-- ports/esp32/ppp_set_auth.c — Apache-2.0
-
-각 파일의 원래 저작권·라이선스 문구는 소스 파일 머리말과 MicroPython LICENSE 파일을 따릅니다.
-
-
-3. ESP-IDF v5.5.2 (Apache-2.0)와 그 안의 제3자 구성요소
--------------------------------------------------------
-
-이 펌웨어는 Espressif의 ESP-IDF v5.5.2로 빌드되었습니다(파일 안 앱 정보로 확인).
-ESP-IDF의 원래 코드는 Copyright (C) Espressif Systems, Apache License 2.0입니다.
-ESP-IDF 문서 "Copyrights and Licenses"(docs/en/COPYRIGHT.rst, v5.5.2)가 펌웨어에 들어갈 수 있는
-제3자 라이브러리로 적은 것: Newlib(BSD), Xtensa 헤더(MIT), FreeRTOS(MIT), lwIP(BSD),
-wpa_supplicant(BSD), Mbed TLS(Apache-2.0), mynewt-nimble(Apache-2.0), FatFs(BSD 계열),
-TLSF 할당기(BSD-3-Clause) 등.
+ESP-IDF v5.5.2(Espressif Systems, Apache-2.0)와 그 안의 구성요소
+- Newlib 4.3.0(C 라이브러리) — BSD 계열(COPYING.NEWLIB)
+- FreeRTOS Kernel — MIT (Amazon.com, Inc. or its affiliates)
+- lwIP(PPP 포함) — BSD-3-Clause (Swedish Institute of Computer Science)
+- wpa_supplicant — BSD (Jouni Malinen and contributors)
+- FreeBSD net80211(Wi-Fi 라이브러리 안) — BSD-2-Clause (Sam Leffler, Errno Consulting)
+- Mbed TLS 3.6.5 — Apache-2.0 (The Mbed TLS Contributors)
+- Apache Mynewt NimBLE — Apache-2.0 (The Apache Software Foundation, NOTICE 포함)
+- TLSF 메모리 할당기 — BSD-3-Clause (Matthew Conte)
+- SD/MMC 드라이버 — ISC 계열 (Uwe Stuehler, OpenBSD)
+- Fast PBKDF2 — CC0 (Joseph Birr-Pixton)
+- Xtensa 헤더 — MIT (Tensilica Inc.)
+- Espressif Wi-Fi·Bluetooth 컨트롤러·PHY·공존 라이브러리, 관리 구성요소 mdns·lan867x — Apache-2.0 (Espressif Systems)
 
 - ESP-IDF 라이선스: https://github.com/espressif/esp-idf/blob/v5.5.2/LICENSE
 - ESP-IDF 저작권·라이선스 목록: https://github.com/espressif/esp-idf/blob/v5.5.2/docs/en/COPYRIGHT.rst

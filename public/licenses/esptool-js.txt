@@ -1,4 +1,4 @@
-esptool-js 0.6.1 — Apache License 2.0 고지(https://github.com/espressif/esptool-js)
+﻿esptool-js 0.6.1 — Apache License 2.0 고지(https://github.com/espressif/esptool-js)
 저작권 표기: Copyright 2019 Espressif Systems (Shanghai) CO LTD(LICENSE), Copyright (c) 2023 Espressif Systems (Shanghai) Co. Ltd.(README)
 
 이 사이트의 보드 준비 페이지 [펌웨어 굽기]는 npm 패키지 esptool-js@0.6.1을 고치지 않고 배포 번들에 묶어 써요.

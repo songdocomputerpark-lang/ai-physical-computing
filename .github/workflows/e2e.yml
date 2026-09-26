@@ -139,6 +139,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:links
 
+      - name: 빌드 결과 개인정보 훑기(방금 빌드한 dist/)
+        # Phase 6 P6-05(요청 C-18): 빌드 도구·설정이 바뀌어 러너의 절대 경로·개인정보 모양·메타데이터가 든 그림이 배포물에 섞이는 것을 잡는다
+        # (scripts/lib/repo-check.mjs runBuildOutputCheck — vendor/ 아래 npm 원본 그림은 참고로만). 테스트 워크플로라 배포는 막지 않는다(PD-35).
+        if: ${{ !cancelled() }}
+        run: node scripts/check-repo.mjs --dist dist
+
       - name: 실패 보고서 올리기
         if: ${{ failure() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

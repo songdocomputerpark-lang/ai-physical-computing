@@ -14,15 +14,21 @@
 #               build가 알려 주는 값을 사람이 적어요. 편집본이 바뀌면 아래 review를 다시 해요(check가 SHA-256을 대조해요).
 #   title·lang  새 문서 제목과 언어(원본 메타데이터는 모두 지우고 이 둘만 새로 붙여요).
 #   notice      표지에 붙이는 안내 한 줄(무엇을 가렸는지).
-#   outline     새 책갈피([단계, 제목, 쪽]). 원본의 "슬라이드 N" 책갈피는 지워요. 쪽 번호는 원본과 같아요(쪽을 빼거나 더하지 않아요 —
-#               차시 frontmatter handouts의 쪽 번호와 #page= 링크가 그대로 맞게).
+#   outline     새 책갈피([단계, 제목, 쪽]). 원본의 "슬라이드 N" 책갈피는 지워요. 쪽 번호는 원본과 같아요(원본 쪽 사이에 쪽을 빼거나
+#               더하지 않아요 — 차시 frontmatter handouts의 쪽 번호와 #page= 링크가 그대로 맞게. 맨 끝에 덧붙이는 credits_page 한 장만 예외라
+#               그 쪽 책갈피는 source.pages + 1쪽을 가리켜요).
 #   photos      사진(원본이 JPEG인 그림)을 다시 인코딩하는 설정: 화면에 놓인 크기 기준 최대 dpi, JPEG 품질.
 #   redactions  가릴 곳. page = 원본 쪽 번호(PDF 쪽 = 슬라이드 번호), rects = [x0, y0, x1, y1] pt(쪽 왼쪽 위 기준, 쪽 크기 1440×810),
 #               kind = face(얼굴) · path(기관 계정 폴더 경로·사적인 폴더·파일 이름) · device-address(블루투스 기기 주소) ·
 #               classroom(학급 게시물 화면) · desktop(바탕화면 아이콘 이름·작업 표시줄 날짜),
 #               label = 상자에 적는 글(비우면 적지 않아요, 상자가 작아 글이 안 들어가도 적지 않아요), reason = 왜 가리는지.
 #               ※ 가린 내용 자체(경로·주소·이름)는 이 파일에도 적지 않아요 — 이 파일도 공개 저장소에 올라가요.
-#   review      쪽마다 한 줄 눈 확인 기록(모든 쪽). 편집본(output.sha256)을 쪽 그림으로 한 장씩 열어 보고 적어요.
+#   credits_page (선택) 원본 쪽 **뒤에** 덧붙이는 출처·라이선스 쪽 한 장(2026-09-26 P6-04, PROGRESS 미해결 183):
+#               title(제목)·subtitle(한 줄 안내)·sections([{ heading: 칸 이름, text: 글 }]). 원본 쪽은 바꾸거나 옮기지 않아요 —
+#               편집본 쪽 수는 source.pages + 1이고, 1~source.pages쪽 번호는 원본과 같아요. 글에 이메일·전화번호 같은 개인정보 모양을 적지 않아요
+#               (도구가 쪽 글자까지 검사해요). 이 칸을 고치면 편집본 바이트가 바뀌므로, `compare --baseline <옛 편집본 폴더>`로 원본 쪽이
+#               픽셀까지 그대로인지 대조한 뒤 덧붙인 쪽만 새로 보고 review에 적어요.
+#   review      쪽마다 한 줄 눈 확인 기록(모든 쪽 — 덧붙인 출처·라이선스 쪽 포함). 편집본(output.sha256)을 쪽 그림으로 한 장씩 열어 보고 적어요.
 #               by·date(YYYY-MM-DD)·result("통과"로 시작) — 무엇이 보이는지, 가린 곳, 얼굴·경로·파일명·기기 주소·학교명 확인 결과.
 #
 # 운영자 결정(docs/DECISIONS.md)
@@ -40,8 +46,10 @@ documents:
       pages: 91
     output:
       path: public/teacher/handouts/bt-lesson-plan-redacted.pdf
-      sha256: "287c56a2ceed094f46e1e381b00277a5ea1979858e6cebbea67dd67117143c75"   # build가 알려 준 값 — 이 파일로 91쪽을 눈으로 확인(2026-09-25)
-      bytes: 4841213
+      # build가 알려 준 값. 91쪽은 2026-09-25 편집본(287c56a2…)으로 눈 확인했고, 2026-09-26 끝에 출처·라이선스 쪽(92쪽)을 덧붙인 이 파일은
+      # compare --baseline(옛 편집본)로 1~91쪽이 쪽 그림 픽셀(배율 1.0·2.0)과 쪽 글자까지 같음을 대조한 뒤 92쪽만 새로 봤어요.
+      sha256: "f2175fdcb5f9c08fc13fa3e81375ca648fbd9bee2acae4c29bd562168a043626"
+      bytes: 4865076
     notice:
       page: 1
       rect: [106, 560, 1307, 612]
@@ -72,6 +80,21 @@ documents:
       - [2, "C1. 기본 — 값 주고받기", 70]
       - [2, "C2. 응용 — 값 하나 보내기(손가락으로 RGB)", 78]
       - [2, "C3. 응용 — 값 두 개 보내기(x, y)", 85]
+      - [1, 출처와 라이선스, 92]
+    credits_page:
+      title: 출처와 라이선스
+      subtitle: 블루투스 통신 수업 교안(가린 편집본) — 이 쪽은 사이트가 편집본 끝에 덧붙였어요(원본 교안에는 없는 쪽). 1~91쪽은 원본 교안과 쪽 번호가 같아요.
+      sections:
+        - heading: 저작자와 라이선스
+          text: "원본 교안의 저작자는 박상진·김석전이에요. 이 편집본은 CC BY-NC-SA 4.0(저작자표시-비영리-동일조건변경허락 4.0 국제)으로 나눠요 — 저작자를 밝히고, 돈을 받고 팔지 않고, 고친 것도 같은 조건으로 나누면 누구나 쓰고 고치고 나눌 수 있어요. 라이선스 원문: https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko"
+        - heading: 원래 권리자의 조건을 따르는 것(위 라이선스에서 빠져요)
+          text: "20·26·31쪽의 손 랜드마크 번호 그림은 MediaPipe 공식 문서 그림이에요(© The MediaPipe Authors, Apache License 2.0). 4쪽의 OpenCV 로고, 발표 슬라이드 틀의 장식, 화면 캡처에 보이는 프로그램(Thonny·Visual Studio Code 등)의 화면은 각 권리자의 것이에요."
+        - heading: 회색 상자
+          text: "개인정보가 보이던 곳을 지운 자리예요 — 기관 계정 폴더 경로, 개인 파일 이름, 블루투스 기기 주소, 학급 게시물 화면, 외부 홍보 이미지 속 인물. 상자 아래의 글자와 그림까지 지웠고, 파일 속 정보(작성자·만든 프로그램·날짜 기록)도 지웠어요."
+        - heading: 예제 코드
+          text: "교안의 예제 코드는 사이트의 실습실과 예제 갤러리에서 MIT 라이선스로 받을 수 있어요(라이브러리 파일 몇 개는 원래 저작자의 조건을 따라요)."
+        - heading: 더 알아보기
+          text: "교사용 자료실 https://songdocomputerpark-lang.github.io/ai-physical-computing/teacher/\n출처와 라이선스 전체 목록 https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/"
     redactions:
       - page: 5
         kind: face
@@ -265,6 +288,7 @@ documents:
       - { page: 89, by: claude, date: 2026-09-25, result: '통과 — 학급 게시물 화면을 회색 상자로 지움. 설명 글만 남음.' }
       - { page: 90, by: claude, date: 2026-09-25, result: '통과 — Thonny 화면 — 공용 계정 경로의 표준 폴더 이름(OneDrive는 폴더 이름 한 줄뿐, 계정·기관 이름 없음)·finger_lcd.py·코드 1~13줄. 기관 경로·개인 파일 이름 없음.' }
       - { page: 91, by: claude, date: 2026-09-25, result: '통과 — 노트북 화면 사진 — 바탕화면 아이콘 이름과 작업 표시줄 날짜·시각을 회색 상자로 지움. 웹캠 창 속 얼굴은 운영자 본인(O9, 가리지 않음). 보이는 것: VS Code(Sent 좌표)·Thonny(Received 좌표)·RGB LED·키보드. 없음.' }
+      - { page: 92, by: claude, date: 2026-09-26, result: '통과 — 사이트가 덧붙인 출처·라이선스 쪽(흰 바탕 글자만) — 제목·부제, 저작자와 라이선스(박상진·김석전, CC BY-NC-SA 4.0 원문 주소), 원래 권리자 조건(20·26·31쪽 MediaPipe 그림 Apache-2.0, 4쪽 OpenCV 로고·슬라이드 틀·프로그램 화면), 회색 상자 설명, 예제 코드 MIT, 교사용 자료실·출처 목록 주소. 글이 칸 안에 모두 들어가고 겹침 없음. 얼굴·경로·파일명·기기 주소·이메일·전화번호 없음.' }
 
   ppt:
     title: PyAutoGUI 수업 슬라이드(가린 편집본)
@@ -275,8 +299,10 @@ documents:
       pages: 23
     output:
       path: public/teacher/handouts/pyautogui-slides-redacted.pdf
-      sha256: "680dfbba3ba4bb97d2b069163729c888c56b7e79632fb78dae712eef9ddfab33"   # build가 알려 준 값 — 이 파일로 23쪽을 눈으로 확인(2026-09-25)
-      bytes: 854895
+      # build가 알려 준 값. 23쪽은 2026-09-25 편집본(680dfbba…)으로 눈 확인했고, 2026-09-26 끝에 출처·라이선스 쪽(24쪽)을 덧붙인 이 파일은
+      # compare --baseline(옛 편집본)로 1~23쪽이 쪽 그림 픽셀(배율 1.0·2.0)과 쪽 글자까지 같음을 대조한 뒤 24쪽만 새로 봤어요.
+      sha256: "6f09500672947e01f7c3602a4fea92da6e559adabfa16d94119cc94a6648fde6"
+      bytes: 876842
     notice:
       page: 1
       rect: [106, 560, 1307, 612]
@@ -303,6 +329,21 @@ documents:
       - [1, "05. 심화 주제", 21]
       - [2, 화면 캡처, 22]
       - [2, 화면 주기적으로 캡처, 23]
+      - [1, 출처와 라이선스, 24]
+    credits_page:
+      title: 출처와 라이선스
+      subtitle: PyAutoGUI 수업 슬라이드(가린 편집본) — 이 쪽은 사이트가 편집본 끝에 덧붙였어요(원본 슬라이드에는 없는 쪽). 1~23쪽은 원본 슬라이드 번호와 같아요.
+      sections:
+        - heading: 저작자와 라이선스
+          text: "원본 슬라이드의 저작자는 박상진·김석전이에요. 이 편집본은 CC BY-NC-SA 4.0(저작자표시-비영리-동일조건변경허락 4.0 국제)으로 나눠요 — 저작자를 밝히고, 돈을 받고 팔지 않고, 고친 것도 같은 조건으로 나누면 누구나 쓰고 고치고 나눌 수 있어요. 라이선스 원문: https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko"
+        - heading: 원래 권리자의 조건을 따르는 것(위 라이선스에서 빠져요)
+          text: "발표 슬라이드 틀의 장식과 화면 캡처에 보이는 프로그램(Visual Studio Code 등)의 화면은 각 권리자의 것이에요."
+        - heading: 가린 곳
+          text: "이 슬라이드에는 화면에서 가린 곳이 없어요. 원본 슬라이드를 PDF로 바꾸고 파일 속 정보(작성자·만든 프로그램·날짜 기록)만 지웠어요."
+        - heading: 예제 코드
+          text: "슬라이드의 예제 코드는 사이트의 영상처리 실습실(가상 데스크톱)과 예제 갤러리에서 MIT 라이선스로 받을 수 있어요."
+        - heading: 더 알아보기
+          text: "교사용 자료실 https://songdocomputerpark-lang.github.io/ai-physical-computing/teacher/\n출처와 라이선스 전체 목록 https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/"
     redactions: []
     review:
       - { page: 1, by: claude, date: 2026-09-25, result: '통과 — 표지 — 제목 Pyautogui·머리글·새 안내 한 줄·저자 표기 박상진/김석전(사이트 저작자 표기 C2와 같음). 없음.' }
@@ -328,3 +369,4 @@ documents:
       - { page: 21, by: claude, date: 2026-09-25, result: '통과 — 단원 표지(심화 주제). 없음.' }
       - { page: 22, by: claude, date: 2026-09-25, result: '통과 — 화면 캡처 코드 5줄. 없음.' }
       - { page: 23, by: claude, date: 2026-09-25, result: '통과 — 화면 주기적으로 캡처 코드 16줄. 없음.' }
+      - { page: 24, by: claude, date: 2026-09-26, result: '통과 — 사이트가 덧붙인 출처·라이선스 쪽(흰 바탕 글자만) — 제목·부제, 저작자와 라이선스(박상진·김석전, CC BY-NC-SA 4.0 원문 주소), 원래 권리자 조건(슬라이드 틀 장식·프로그램 화면), 가린 곳 없음 안내, 예제 코드 MIT, 교사용 자료실·출처 목록 주소. 글이 칸 안에 모두 들어가고 겹침 없음. 얼굴·경로·파일명·기기 주소·이메일·전화번호 없음.' }

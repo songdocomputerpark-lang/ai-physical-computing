@@ -1,4 +1,4 @@
-Blockly 13.3.0 — Apache License 2.0 고지(https://github.com/RaspberryPiFoundation/blockly)
+﻿Blockly 13.3.0 — Apache License 2.0 고지(https://github.com/RaspberryPiFoundation/blockly)
 소스 파일 머리말의 저작권 표기: Copyright 2011~2025 Google LLC, Copyright 2016 Massachusetts Institute of Technology(파일 하나), Copyright 2026 Raspberry Pi Foundation(파일 8개). 지금은 Raspberry Pi Foundation이 관리해요(npm 패키지 README).
 
 이 사이트의 ESP32 실습실 블록 모드는 npm 패키지 blockly@13.3.0(블록 편집기·파이썬 생성기·한국어 메시지)을 고치지 않고 배포 번들에 묶어 써요.

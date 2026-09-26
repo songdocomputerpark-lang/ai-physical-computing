@@ -1,9 +1,10 @@
-Pillow 12.2.0(Pyodide 패키지 pillow) — 라이선스 고지(https://github.com/python-pillow/Pillow, https://pypi.org/project/pillow/12.2.0/)
+﻿Pillow 12.2.0(Pyodide 패키지 pillow) — 라이선스 고지(https://github.com/python-pillow/Pillow, https://pypi.org/project/pillow/12.2.0/)
 이 사이트의 가상 데스크톱 실습에서 pyautogui.screenshot()이 돌려주는 그림(PIL.Image)에 쓰는 Pillow는 Pyodide 314.0.7이 배포하는 휠(pillow-12.2.0, jsDelivr)을 그대로 받아요.
 사이트는 휠을 고치지 않고, 흉내 모듈(src/lab/modules/desktop/pyautogui.py)이 화면에서 받은 RGBA 바이트를 PIL.Image.frombytes로 감싸 학생 코드에 넘겨요.
 Pillow의 라이선스는 MIT-CMU(HPND 계열)예요. 아래는 배포 휠 pillow-12.2.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl 안의
-pillow-12.2.0.dist-info/licenses/LICENSE 원문이에요. 휠 안에 함께 묶인 구성요소(libjpeg·libpng·zlib·FreeType 등)의 고지는
-같은 사이트 예비본으로 재배포할 때(PLAN PD-19, P2-05·P6-04) 더해요. (2026-09-16)
+pillow-12.2.0.dist-info/licenses/LICENSE 원문이에요. (2026-09-16)
+휠 안에 함께 묶인 구성요소(FreeType 2.13.3·IJG libjpeg 9f·libtiff 4.4.0·libwebp 1.2.2·zlib 1.3.1)는 2026-09-26에 확인해
+licenses/pyodide-wheels-3rd-party.txt에 고지 원문과 함께 적었어요(FreeType 크레디트와 IJG 문장 포함).
 
 
 The Python Imaging Library (PIL) is

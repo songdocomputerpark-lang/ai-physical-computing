@@ -1,8 +1,10 @@
-MediaPipe (google-ai-edge/mediapipe) — Apache License 2.0
+﻿MediaPipe (google-ai-edge/mediapipe) — Apache License 2.0
 Copyright 2019 The MediaPipe Authors.
 
 이 사이트는 npm 패키지 @mediapipe/tasks-vision 0.10.35(JavaScript 번들과 WebAssembly 파일)를 고치지 않고 같은 사이트(public/vendor/mediapipe/)에서 내보내요.
 아래는 공식 저장소 https://github.com/google-ai-edge/mediapipe 의 LICENSE 파일 원문이에요(2026-09-16 확인).
+WebAssembly 파일 안에 함께 들어 있는 구성요소(TensorFlow Lite, XNNPACK, Protocol Buffers, Eigen 등)의 고지는
+licenses/mediapipe-wasm-3rd-party.txt에 있어요(2026-09-26 확인).
 
                                  Apache License
                            Version 2.0, January 2004

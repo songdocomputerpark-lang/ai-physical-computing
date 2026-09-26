@@ -1,4 +1,4 @@
-atob-lite 2.0.0 — MIT 라이선스 고지(https://github.com/hughsk/atob-lite)
+﻿atob-lite 2.0.0 — MIT 라이선스 고지(https://github.com/hughsk/atob-lite)
 저작자: Hugh Kennedy(npm 패키지 package.json의 author)
 
 esptool-js가 base64 글자를 바이트로 바꿀 때 쓰는 작은 라이브러리예요(배포 번들에 함께 묶여요).

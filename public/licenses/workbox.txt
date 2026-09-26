@@ -1,6 +1,8 @@
-Workbox (GoogleChrome/workbox) — MIT License
+﻿Workbox (GoogleChrome/workbox) — MIT License
 
-이 사이트는 workbox-build 7.4.1로 빌드 때 서비스 워커(sw.js)를 만들고, 그 안에 Workbox 실행 코드가 들어가요(P2-05).
+이 사이트는 빌드할 때 workbox-build 7.4.1의 getManifest()로 서비스 워커의 사전 캐시 목록(파일 이름·해시)만 만들어요(P2-05).
+Workbox 실행 코드는 sw.js에 들어가지 않아요(sw.js는 사이트가 직접 쓴 src/sw/sw.js — 2026-09-26 dist/sw.js에서 확인).
+배포물에 들어가지 않는 빌드 도구지만, 사이트를 만드는 데 쓰는 것이라 고지를 남겨 둬요.
 아래는 npm 패키지 workbox-build 7.4.1의 LICENSE 파일 원문이에요(2026-09-16 확인).
 
 Copyright 2018 Google LLC

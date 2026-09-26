@@ -24,6 +24,26 @@ const MARKER_SCAN_EXTENSIONS = new Set(['.py', '.js', '.mjs', '.cjs', '.ts', '.c
 const AUTHORSHIP_MARKER = /copyright|\(c\)|©|\blicen[cs]e\b|spdx-license-identifier|@author\b|\bauthor:|all rights reserved/iu;
 const MARKER_SCAN_BYTES = 2048;
 /**
+ * 데이터 파일(JSON·YAML)에서 "license"라는 **칸 이름**은 저작자 표기가 아니라 자료를 설명하는 값의 이름이다
+ * (예: public/firmware/manifest.json의 "license": "MIT" — 사이트가 만든 펌웨어 목록이 펌웨어의 라이선스를 적은 칸).
+ * 이런 칸 이름만 지우고 나머지(copyright·© 등)는 그대로 본다(2026-09-26 P6-04 — 빌드마다 뜨던 잘못된 참고 줄).
+ */
+const DATA_FILE_EXTENSIONS = new Set(['.json', '.yaml', '.yml']);
+const LICENSE_FIELD_NAME = /"licen[cs]e"\s*:|^[ \t-]*licen[cs]e[ \t]*:/gimu;
+
+/**
+ * SPDX 모양 라이선스 식(예: "(MIT AND Zlib)", "MIT OR Apache-2.0", "Apache-2.0 WITH LLVM-exception")을 식별자 목록으로 나눈다.
+ * 괄호·AND·OR·WITH는 식의 문법이라 빼고 식별자만 남긴다(2026-09-26 P6-04 — pako의 "(MIT AND Zlib)"가 괄호 때문에
+ * 등록부 "MIT AND Zlib"와 다르다고 빌드마다 참고 줄이 뜨던 것).
+ * @param {string} expression
+ * @returns {string[]}
+ */
+export function licenseIdentifiers(expression) {
+  return expression
+    .split(/[()\s]+/u)
+    .filter((token) => token !== '' && !/^(?:AND|OR|WITH)$/iu.test(token));
+}
+/**
  * 고지 파일(sources.yaml의 notice)이 아직 다 쓰이지 않았다는 표시. 2026-09-18 검토 반영:
  * 펌웨어 고지가 "이 고지는 초안입니다 … 파일을 올리기 전에 채웁니다"라고 적힌 채 1.79MB 바이너리와 함께 배포되고 있었다.
  */
@@ -277,6 +297,9 @@ export function findAuthorshipMarkers(rootDir, files, entries) {
     } catch {
       continue;
     }
+    if (DATA_FILE_EXTENSIONS.has(path.posix.extname(file).toLowerCase())) {
+      head = head.replace(LICENSE_FIELD_NAME, '');
+    }
     const marker = AUTHORSHIP_MARKER.exec(head);
     if (marker) {
       warnings.push(
@@ -344,7 +367,11 @@ export function checkBundleDependencies({ rootDir, outputDir = BUILD_OUTPUT_DIR,
       unregistered.push(`- ${label}`);
       continue;
     }
-    if (bundledPackage.identifier && !entry.license.toLowerCase().includes(bundledPackage.identifier.toLowerCase())) {
+    const entryLicense = entry.license.toLowerCase();
+    const missingIdentifiers = bundledPackage.identifier
+      ? licenseIdentifiers(bundledPackage.identifier).filter((identifier) => !entryLicense.includes(identifier.toLowerCase()))
+      : [];
+    if (missingIdentifiers.length > 0) {
       warnings.push(
         `${label}의 package.json 라이선스가 "${entry.name}" 항목의 license("${entry.license}")에 보이지 않아요. 등록부를 확인해 주세요.`,
       );

@@ -11,6 +11,13 @@ scripts/handout-redactions.yaml 한 곳에 있다(형식은 그 파일 머리말
       저장소에 있는 편집본만 검사한다(원본 필요 없음). 문제가 있으면 종료 코드 1.
   python scripts/redact-handouts.py preview [bt|ppt ...] [--zoom 1.0] [--pdf <파일>]
       쪽마다 PNG(.cache/handouts/<문서>/pNN.png)를 그린다 — 쪽별 눈 확인용.
+  python scripts/redact-handouts.py compare [bt|ppt ...] --baseline <옛 편집본 폴더>
+      원본 쪽(1~source.pages)을 옛 편집본과 같은 배율로 그려 픽셀이 같은지 쪽마다 대조한다. 끝에 덧붙인 쪽만 바뀌었을 때
+      옛 쪽의 눈 확인 기록을 그대로 둘 수 있는지 보는 데 쓴다(2026-09-26 P6-04 — 출처·라이선스 쪽을 덧붙일 때 처음 씀).
+
+출처·라이선스 쪽(credits_page, 2026-09-26 P6-04 — PROGRESS 미해결 183): 기록에 credits_page가 있으면 원본 쪽 **뒤에** 사이트가 만든
+쪽 한 장을 덧붙인다(제목·짧은 칸 몇 개를 Pretendard로 적은 글자 쪽 — 링크 주석은 만들지 않는다). 원본 쪽은 하나도 바꾸거나 옮기지 않아
+차시의 #page= 링크와 쪽별 눈 확인 기록이 그대로 맞고, 새 쪽만 눈 확인 기록을 더한다(검사하는 쪽 수 = source.pages + 1).
 
 필요한 것: 파이썬 3.11 + PyMuPDF(1.28.2에서 확인)·Pillow·numpy·fontTools(글꼴 줄이기), Node.js(저장소의 yaml 패키지와
 scripts/lib/repo-check.mjs의 개인정보 검사를 그대로 쓴다 — 규칙을 두 벌 두지 않으려고), 라벨 글꼴은 npm 패키지 pretendard
@@ -69,6 +76,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PLAN_FILE = ROOT / 'scripts' / 'handout-redactions.yaml'
 CACHE_DIR = ROOT / '.cache' / 'handouts'
 LABEL_FONT_FILE = ROOT / 'node_modules' / 'pretendard' / 'dist' / 'public' / 'static' / 'alternative' / 'Pretendard-Regular.ttf'
+# 출처·라이선스 쪽의 제목·칸 이름(같은 npm 패키지의 굵은 글꼴, OFL-1.1)
+BOLD_FONT_FILE = ROOT / 'node_modules' / 'pretendard' / 'dist' / 'public' / 'static' / 'alternative' / 'Pretendard-Bold.ttf'
 
 KINDS = ('face', 'path', 'device-address', 'classroom', 'desktop')
 PAGE_BOX = (1440.0, 810.0)
@@ -78,6 +87,12 @@ INK = (0.18, 0.18, 0.18)  # 라벨 글자
 NOTICE_INK = (0.35, 0.35, 0.35)
 LABEL_MAX_SIZE = 16.0
 LABEL_MIN_SIZE = 6.0
+# 출처·라이선스 쪽: 글자 칸(쪽 1440×810pt 안쪽 여백), 처음 글자 크기(제목·부제·칸 이름·본문), 들어가지 않으면 줄이는 비율과 하한
+CREDITS_BOX = (110.0, 84.0, 1330.0, 752.0)
+CREDITS_SIZES = {'title': 38.0, 'subtitle': 19.0, 'heading': 22.0, 'text': 19.0}
+CREDITS_SHRINK = 0.95
+CREDITS_MIN_SCALE = 0.6
+CREDITS_HEADING_INK = (0.08, 0.08, 0.08)
 # 상자와 겹친 글자: 글자 상자가 가림 상자와 이만큼(pt²)보다 많이 겹치면 남은 것으로 본다(가장자리 반올림 오차 무시)
 TEXT_OVERLAP_EPS = 0.5
 # 그림 픽셀 검사: 가장자리 반올림을 빼려고 안쪽으로 줄이는 픽셀 수와, 빈 픽셀로 보는 밝기.
@@ -199,11 +214,43 @@ def load_plan() -> tuple[dict, dict]:
     return documents, data['sources']
 
 
+def appended_pages(spec: dict) -> int:
+    """원본 쪽 뒤에 사이트가 덧붙이는 쪽 수(지금은 출처·라이선스 쪽 하나뿐)."""
+    return 1 if spec.get('credits_page') else 0
+
+
+def total_pages(spec: dict) -> int:
+    """편집본의 쪽 수 = 원본 쪽 수 + 덧붙인 쪽 수. 원본 쪽 번호(1~source.pages)는 원본과 같다."""
+    return int((spec.get('source') or {}).get('pages') or 0) + appended_pages(spec)
+
+
+def validate_credits_page(where: str, credits: object, problems: Problems) -> None:
+    label = f'{where} credits_page'
+    if not isinstance(credits, dict):
+        problems.add(label, 'title·subtitle·sections를 가진 항목으로 적어요.')
+        return
+    for key in ('title', 'subtitle'):
+        if not str(credits.get(key) or '').strip():
+            problems.add(label, f'{key}를 적어요.')
+    sections = credits.get('sections')
+    if not isinstance(sections, list) or not sections:
+        problems.add(label, 'sections(칸 이름 heading과 글 text의 목록)를 하나 이상 적어요.')
+        return
+    for index, section in enumerate(sections):
+        if not (isinstance(section, dict) and str(section.get('heading') or '').strip() and str(section.get('text') or '').strip()):
+            problems.add(f'{label}.sections[{index}]', 'heading과 text를 모두 적어요.')
+    unknown = set(credits) - {'title', 'subtitle', 'sections'}
+    if unknown:
+        problems.add(label, f'모르는 칸: {", ".join(sorted(unknown))}(title·subtitle·sections만 써요).')
+
+
 def validate_plan(doc_id: str, spec: dict, problems: Problems) -> None:
     where = f'{doc_id}(scripts/handout-redactions.yaml)'
     pages = int((spec.get('source') or {}).get('pages') or 0)
     if pages <= 0:
         problems.add(where, 'source.pages가 없어요.')
+    if 'credits_page' in spec:
+        validate_credits_page(where, spec.get('credits_page'), problems)
     output = (spec.get('output') or {}).get('path', '')
     if not str(output).startswith('public/teacher/handouts/') or not str(output).endswith('.pdf'):
         problems.add(where, 'output.path는 public/teacher/handouts/ 아래 .pdf여야 해요(src/components/lesson/handouts.ts와 같은 이름).')
@@ -227,7 +274,8 @@ def validate_plan(doc_id: str, spec: dict, problems: Problems) -> None:
             if not (0 <= x0 < x1 <= PAGE_BOX[0] and 0 <= y0 < y1 <= PAGE_BOX[1]):
                 problems.add(label, f'rect {rect!r}가 쪽(1440×810) 밖이거나 뒤집혔어요.')
     for index, entry in enumerate(spec.get('outline') or []):
-        if not (isinstance(entry, list) and len(entry) == 3 and entry[0] in (1, 2) and isinstance(entry[2], int) and 1 <= entry[2] <= pages):
+        # 책갈피는 덧붙인 쪽(출처·라이선스)도 가리킬 수 있다
+        if not (isinstance(entry, list) and len(entry) == 3 and entry[0] in (1, 2) and isinstance(entry[2], int) and 1 <= entry[2] <= total_pages(spec)):
             problems.add(f'{where} outline[{index}]', '[단계(1·2), 제목, 쪽] 모양이 아니에요.')
 
 
@@ -479,6 +527,89 @@ def draw_notice(doc: pymupdf.Document, spec: dict, font: pymupdf.Font) -> None:
     write_centered(doc[notice['page'] - 1], font, *fitted, box, NOTICE_INK)
 
 
+def wrap_text(font: pymupdf.Font, text: str, size: float, width: float) -> list[str]:
+    """띄어쓰기 기준으로 줄을 나눈다. 한 낱말(긴 주소 등)이 폭보다 길면 글자 단위로 자른다. 원래 줄바꿈(\\n)은 지킨다."""
+    lines: list[str] = []
+    for paragraph in str(text).split('\n'):
+        current = ''
+        for word in paragraph.split(' '):
+            trial = f'{current} {word}' if current else word
+            if font.text_length(trial, fontsize=size) <= width:
+                current = trial
+                continue
+            if current:
+                lines.append(current)
+            current = ''
+            while font.text_length(word, fontsize=size) > width:
+                cut = len(word)
+                while cut > 1 and font.text_length(word[:cut], fontsize=size) > width:
+                    cut -= 1
+                lines.append(word[:cut])
+                word = word[cut:]
+            current = word
+        lines.append(current)
+    return lines
+
+
+def layout_credits(credits: dict, regular: pymupdf.Font, bold: pymupdf.Font, scale: float) -> tuple[list[tuple], float]:
+    """출처·라이선스 쪽의 줄 배치 [(글꼴, 크기, 글, 칸 안 y 기준선, 색, 선을 그을지)]와 전체 높이."""
+    width = CREDITS_BOX[2] - CREDITS_BOX[0]
+    sizes = {key: value * scale for key, value in CREDITS_SIZES.items()}
+    placed: list[tuple] = []
+    y = 0.0
+
+    def add_lines(font: pymupdf.Font, size: float, text: str, color, gap_before: float) -> None:
+        nonlocal y
+        y += gap_before
+        for line in wrap_text(font, text, size, width):
+            y += size * 1.35
+            placed.append((font, size, line, y - size * 0.3, color, False))
+
+    add_lines(bold, sizes['title'], credits['title'], CREDITS_HEADING_INK, 0.0)
+    add_lines(regular, sizes['subtitle'], credits['subtitle'], NOTICE_INK, sizes['subtitle'] * 0.3)
+    y += sizes['subtitle'] * 0.7
+    placed.append((None, 0.0, '', y, BORDER, True))  # 제목 아래 가는 선
+    for section in credits['sections']:
+        add_lines(bold, sizes['heading'], section['heading'], CREDITS_HEADING_INK, sizes['heading'] * 0.75)
+        add_lines(regular, sizes['text'], section['text'], INK, sizes['text'] * 0.15)
+    return placed, y
+
+
+def add_credits_page(doc: pymupdf.Document, spec: dict, regular: pymupdf.Font, bold: pymupdf.Font) -> int | None:
+    """원본 쪽 뒤에 출처·라이선스 쪽을 한 장 덧붙인다(원본 쪽은 건드리지 않는다). 덧붙인 쪽 번호(1부터)를 돌려준다."""
+    credits = spec.get('credits_page')
+    if not credits:
+        return None
+    box = pymupdf.Rect(CREDITS_BOX)
+    scale = 1.0
+    while True:
+        placed, height = layout_credits(credits, regular, bold, scale)
+        if height <= box.height:
+            break
+        scale *= CREDITS_SHRINK
+        if scale < CREDITS_MIN_SCALE:
+            sys.exit('[편집본] 출처·라이선스 쪽(credits_page) 글이 한 쪽에 들어가지 않아요 — 글을 줄여요.')
+    page = doc.new_page(-1, width=PAGE_BOX[0], height=PAGE_BOX[1])
+    writers: dict[tuple, pymupdf.TextWriter] = {}
+    for font, size, text, baseline, color, is_rule in placed:
+        if is_rule:
+            page.draw_line(pymupdf.Point(box.x0, box.y0 + baseline), pymupdf.Point(box.x1, box.y0 + baseline), color=color, width=0.8)
+            continue
+        if not text:
+            continue
+        writer = writers.setdefault(color, pymupdf.TextWriter(page.rect))
+        writer.append(pymupdf.Point(box.x0, box.y0 + baseline), text, font=font, fontsize=size)
+    for color, writer in writers.items():
+        writer.write_text(page, color=color)
+    return page.number + 1
+
+
+def bold_font() -> pymupdf.Font:
+    if not BOLD_FONT_FILE.exists():
+        sys.exit('[편집본] 굵은 글꼴(node_modules/pretendard의 Pretendard-Bold.ttf)이 없어요. 저장소 뿌리에서 npm ci를 먼저 해요.')
+    return pymupdf.Font(fontfile=str(BOLD_FONT_FILE))
+
+
 # ── 사진 다시 인코딩·문서 정리·저장 ────────────────────────────────────────────
 
 
@@ -702,8 +833,8 @@ def decode_pdf_strings(source: str) -> list[str]:
 def inspect_pdf(path: Path, doc_id: str, spec: dict, sources: dict, problems: Problems) -> None:
     doc = pymupdf.open(path)
     where = path.relative_to(ROOT).as_posix()
-    if doc.page_count != spec['source']['pages']:
-        problems.add(where, f'쪽 수 {doc.page_count}(원본 {spec["source"]["pages"]}쪽과 달라요).')
+    if doc.page_count != total_pages(spec):
+        problems.add(where, f'쪽 수 {doc.page_count}(원본 {spec["source"]["pages"]}쪽 + 덧붙인 쪽 {appended_pages(spec)}과 달라요).')
     # 정보 사전: Title만
     metadata = {key: value for key, value in (doc.metadata or {}).items() if value and key not in ('format', 'encryption')}
     if set(metadata) - {'title'} or metadata.get('title') != spec['title']:
@@ -787,7 +918,7 @@ def check_reviews(doc_id: str, spec: dict, actual_sha: str, problems: Problems) 
     recorded = str((spec.get('output') or {}).get('sha256') or '')
     if recorded != actual_sha:
         problems.add(where, f'output.sha256({recorded or "없음"})이 지금 편집본({actual_sha})과 달라요 — 쪽 그림을 다시 보고 기록을 고쳐요.')
-    pages = spec['source']['pages']
+    pages = total_pages(spec)  # 덧붙인 출처·라이선스 쪽도 눈 확인 기록이 있어야 한다
     seen: dict[int, dict] = {}
     for entry in spec.get('review') or []:
         page = entry.get('page')
@@ -828,12 +959,17 @@ def build(doc_id: str, spec: dict, sources: dict, materials: Path, fresh_export:
     for item in skipped:
         log(f'참고: {doc_id} {item} — 상자가 작아 라벨을 적지 않았어요(회색 상자만).')
     draw_notice(doc, spec, font)
+    credits_page = add_credits_page(doc, spec, font, bold_font()) if spec.get('credits_page') else None
+    if credits_page:
+        log(f'{doc_id}: {credits_page}쪽에 출처·라이선스 쪽을 덧붙였어요(원본 1~{spec["source"]["pages"]}쪽은 그대로).')
     photos = spec.get('photos') or {}
     before, after = reencode_photos(doc, placements, float(photos.get('max_dpi', 150)), int(photos.get('quality', 80)))
     log(f'{doc_id}: 사진 다시 인코딩 {before / 1e6:.2f}MB → {after / 1e6:.2f}MB(JPEG 안 EXIF 조각 없음).')
     scrub_document(doc, spec)
     out = ROOT / spec['output']['path']
-    plan_text = json.dumps({key: spec.get(key) for key in ('title', 'lang', 'notice', 'outline', 'photos', 'redactions')}, sort_keys=True, ensure_ascii=False)
+    # 파일 식별자(/ID)의 씨앗: 편집본 모양을 정하는 칸들. 출처·라이선스 쪽이 없는 기록은 전과 같은 씨앗이 나온다(같은 바이트).
+    plan_keys = ('title', 'lang', 'notice', 'outline', 'photos', 'redactions') + (('credits_page',) if spec.get('credits_page') else ())
+    plan_text = json.dumps({key: spec.get(key) for key in plan_keys}, sort_keys=True, ensure_ascii=False)
     save_deterministic(doc, out, f'{source_sha}\n{plan_text}')
     actual_sha = sha256_file(out)
     size = out.stat().st_size
@@ -883,15 +1019,50 @@ def preview(doc_id: str, spec: dict, zoom: float, pdf: Path | None) -> None:
     log(f'{doc_id}: {doc.page_count}쪽 그림 → {target.relative_to(ROOT).as_posix()}/')
 
 
+def compare(doc_id: str, spec: dict, baseline: Path, zoom: float) -> bool:
+    """원본 쪽(1~source.pages)을 옛 편집본과 같은 배율로 그려 픽셀·쪽 글자가 같은지 대조한다(덧붙인 쪽만 바뀌었는지)."""
+    current_path = ROOT / spec['output']['path']
+    old_path = baseline / Path(spec['output']['path']).name
+    if not old_path.exists():
+        log(f'{doc_id}: 옛 편집본 {old_path}이(가) 없어요.')
+        return False
+    current = pymupdf.open(current_path)
+    old = pymupdf.open(old_path)
+    pages = int(spec['source']['pages'])
+    if current.page_count < pages or old.page_count < pages:
+        log(f'{doc_id}: 쪽 수가 모자라요(지금 {current.page_count}쪽, 옛 편집본 {old.page_count}쪽, 원본 {pages}쪽).')
+        return False
+    matrix = pymupdf.Matrix(zoom, zoom)
+    differ: list[str] = []
+    for pno in range(pages):
+        new_pix = current[pno].get_pixmap(matrix=matrix, alpha=False)
+        old_pix = old[pno].get_pixmap(matrix=matrix, alpha=False)
+        same_pixels = (new_pix.width, new_pix.height) == (old_pix.width, old_pix.height) and new_pix.samples == old_pix.samples
+        same_text = current[pno].get_text('text') == old[pno].get_text('text')
+        if not (same_pixels and same_text):
+            differ.append(f'{pno + 1}쪽({"픽셀" if not same_pixels else ""}{"·" if not same_pixels and not same_text else ""}{"글자" if not same_text else ""})')
+    extra = current.page_count - pages
+    current.close()
+    old.close()
+    if differ:
+        log(f'{doc_id}: 원본 {pages}쪽 가운데 {len(differ)}쪽이 옛 편집본과 달라요 — {", ".join(differ[:20])}. 그 쪽들은 눈 확인을 다시 해요.')
+        return False
+    log(f'{doc_id}: 원본 1~{pages}쪽 모두 옛 편집본과 픽셀·쪽 글자가 같아요(배율 {zoom}). 덧붙인 쪽 {extra}장만 새로 보면 돼요.')
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='가린 편집본 교안 PDF 만들기·검사(PD-31)')
-    parser.add_argument('command', choices=('build', 'check', 'preview'))
+    parser.add_argument('command', choices=('build', 'check', 'preview', 'compare'))
     parser.add_argument('docs', nargs='*', help='bt, ppt(비우면 모두)')
     parser.add_argument('--materials', help='원본 폴더(기본: 저장소 뿌리)')
     parser.add_argument('--fresh-export', action='store_true', help='PPTX를 PowerPoint로 다시 PDF로 바꾼다(편집본 바이트가 달라져 눈 확인을 다시 해야 해요)')
-    parser.add_argument('--zoom', type=float, default=1.0, help='preview 배율(1.0 = 1440×810 픽셀)')
+    parser.add_argument('--zoom', type=float, default=1.0, help='preview·compare 배율(1.0 = 1440×810 픽셀)')
     parser.add_argument('--pdf', help='preview할 다른 PDF(기본: 편집본)')
+    parser.add_argument('--baseline', help='compare: 옛 편집본 PDF들이 있는 폴더(파일 이름은 output.path와 같게)')
     args = parser.parse_args()
+    if args.command == 'compare' and not args.baseline:
+        parser.error('compare에는 --baseline <옛 편집본 폴더>가 필요해요.')
     documents, sources = load_plan()
     wanted = args.docs or list(documents)
     unknown = [doc_id for doc_id in wanted if doc_id not in documents]
@@ -905,6 +1076,8 @@ def main() -> int:
             ok = build(doc_id, spec, sources, materials, args.fresh_export) and ok
         elif args.command == 'check':
             ok = check(doc_id, spec, sources) and ok
+        elif args.command == 'compare':
+            ok = compare(doc_id, spec, Path(args.baseline).resolve(), args.zoom) and ok
         else:
             preview(doc_id, spec, args.zoom, Path(args.pdf) if args.pdf else None)
     return 0 if ok else 1

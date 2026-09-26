@@ -1,6 +1,8 @@
-Pagefind 1.5.2 — MIT 라이선스 고지(https://github.com/Pagefind/pagefind)
+﻿Pagefind 1.5.2 — MIT 라이선스 고지(https://github.com/Pagefind/pagefind)
 이 사이트의 검색 기능은 Pagefind가 만든 파일(pagefind.js, pagefind-worker.js, WebAssembly 검색 파일, 검색 색인)로 동작해요.
 아래는 npm 패키지 pagefind@1.5.2의 LICENSE/LICENSE 파일에서 옮긴 고지 원문이에요. (2026-09-16)
+WebAssembly 검색 파일(wasm.unknown.pagefind) 안에 함께 컴파일된 Rust 크레이트의 고지 — GPL-3.0-only인 pagefind_microjson 포함 — 는
+licenses/pagefind-wasm-3rd-party.txt에 있어요(2026-09-26 확인).
 
 pagefind
 
