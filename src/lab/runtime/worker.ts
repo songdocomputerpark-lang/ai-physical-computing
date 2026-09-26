@@ -30,6 +30,7 @@ import type { PyodideAPI } from 'pyodide';
 import type { PyProxy } from 'pyodide/ffi';
 import { RUNTIME_MODULE_FILE, pythonModulesForLab, shimTableForLab } from '../python/modules.ts';
 import { createBridge, type Bridge } from './bridge.ts';
+import { createPackageQueue } from './package-queue.ts';
 import type {
   DoneMessage,
   FromWorkerMessage,
@@ -81,6 +82,15 @@ let jspiAvailable = false;
 let activeRunId: number | null = null;
 /** 화면이 보낸 미리 받기(load-packages)가 아직 도는 수 — 실행이 그사이에 시작되면 흉내 모듈 설치 실패를 알리지 않는다(installShims) */
 let packageLoadsInFlight = 0;
+/**
+ * 이 워커의 패키지 받기(loadPackage·loadPackagesFromImports)를 한 줄로 세운다(package-queue.ts — 겹치면 Pyodide의 "Loading …" 알림이
+ * 학생 콘솔로 샜다, 2026-09-26 Phase 6 사용성 검토 지적 4).
+ */
+const packageQueue = createPackageQueue();
+
+function withPackageLock<T>(task: () => Promise<T>): Promise<T> {
+  return packageQueue.run(task);
+}
 let interruptBuffer: Uint8Array | null = null;
 const stdoutDecoder = new TextDecoder();
 const stderrDecoder = new TextDecoder();
@@ -352,7 +362,8 @@ async function load(message: LoadMessage): Promise<void> {
 
   if (message.packages.length > 0) {
     try {
-      await pyodide.loadPackage([...message.packages], packageCallbacks());
+      const loader = pyodide;
+      await withPackageLock(() => loader.loadPackage([...message.packages], packageCallbacks()));
     } catch (error) {
       post({ type: 'notice', level: 'warn', text: `전에 쓰던 패키지를 다시 불러오지 못했어요: ${describeError(error)}` });
     }
@@ -380,10 +391,18 @@ async function run(message: RunMessage): Promise<void> {
   let exitCode: number | null | undefined;
 
   try {
-    if (message.packages.length > 0) {
-      await pyodide.loadPackage([...message.packages], packageCallbacks());
+    if (packageLoadsInFlight > 0) {
+      // 준비 직후 미리 받기(numpy·OpenCV)가 아직 도는 중이다 — 받기가 끝나야 코드가 시작하니 무엇을 기다리는지 알린다(느린 망에서 몇 분 —
+      // 2026-09-26 Phase 6 사용성 검토 지적 5). 받은 양은 준비 칸·상태 줄이 서비스 워커 알림으로 보인다.
+      post({ type: 'progress', stage: 'package', message: '실행 전에 필요한 파일을 받는 중이에요 — 다 받으면 코드가 저절로 시작해요.' });
     }
-    await pyodide.loadPackagesFromImports(message.code, packageCallbacks());
+    const loader = pyodide;
+    await withPackageLock(async () => {
+      if (message.packages.length > 0) {
+        await loader.loadPackage([...message.packages], packageCallbacks());
+      }
+      await loader.loadPackagesFromImports(message.code, packageCallbacks());
+    });
 
     if (bridge.api.stopRequested()) {
       outcome = 'stopped';
@@ -463,7 +482,8 @@ async function loadPackages(message: LoadPackagesMessage): Promise<void> {
   }
   packageLoadsInFlight += 1;
   try {
-    await pyodide.loadPackage([...message.names], packageCallbacks());
+    const loader = pyodide;
+    await withPackageLock(() => loader.loadPackage([...message.names], packageCallbacks()));
     post({ type: 'task-result', taskId: message.taskId, ok: true, value: loadedPackageNames() });
   } catch (error) {
     post({ type: 'task-result', taskId: message.taskId, ok: false, error: `패키지를 받지 못했어요: ${describeError(error)}` });

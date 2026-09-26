@@ -323,7 +323,6 @@ export class LoadingTracker {
     let sumTotal = 0;
     let totalKnown = true;
     let involved = 0;
-    let activeLabel = '';
     for (const stage of this.#stages.values()) {
       const bytes = this.#bytesOf(stage);
       const percent =
@@ -347,9 +346,6 @@ export class LoadingTracker {
           sumTotal += bytes.total;
         }
       }
-      if (stage.state === 'active' && activeLabel === '') {
-        activeLabel = stage.label;
-      }
     }
     // 바이트를 실제로 세지 못한 단계가 진행 중이면(서비스 워커가 아직 페이지를 맡지 않은 첫 방문) 백분율을 말하지 않는다.
     // 0%로 보이면 "멈춰 있다"로 오해하기 때문이다 — 막대는 "받는 중" 줄무늬로 보여 준다.
@@ -369,14 +365,25 @@ export class LoadingTracker {
     const percent = involved > 0 && totalKnown && !estimating && sumTotal > 0 ? Math.min(100, Math.round((sumReceived / sumTotal) * 100)) : null;
     const end = this.#finishedAt ?? this.#now();
     const elapsedMs = this.#startedAt === null ? 0 : Math.max(0, Math.round(end - this.#startedAt));
-    const active = stages.find((stage) => stage.state === 'active');
+    // 지금 받는 단계: 아직 다 받지 못한 단계를 먼저 고른다. numpy·OpenCV는 둘 다 받은 뒤에야 "준비 끝"이 오므로, 첫 진행 단계만 보이면
+    // OpenCV(10MB)를 받는 동안 "numpy(배열 계산) 2.8MB / 2.8MB"에 멈춘 것처럼 보였다(느린 망 100초 — 2026-09-26 Phase 6 사용성 검토 지적 5).
+    // 모두 다 받았으면(설치 중) 첫 진행 단계를 보인다.
+    const active =
+      stages.find((stage) => stage.state === 'active' && !stage.estimated && (stage.total === null || stage.received < stage.total)) ??
+      stages.find((stage) => stage.state === 'active');
+    // 받은 양을 셀 수 없는 방문(서비스 워커가 아직 쪽을 맡지 않음)에는 어느 파일을 받는 중인지 모른다 — 함께 받는 단계를 모두 적는다
+    // ("numpy(배열 계산)·OpenCV(영상 처리) 받는 중… (약 13.6MB)"). 첫 단계만 적으면 OpenCV를 받는 몇 분 동안 numpy만 보였다.
+    const estimatedTogether = active?.estimated ? stages.filter((stage) => stage.state === 'active' && stage.estimated) : [];
+    const activeLabel = estimatedTogether.length > 1 ? estimatedTogether.map((stage) => stage.label).join('·') : (active?.label ?? '');
     let text: string;
     if (phase === 'failed') {
       text = '파이썬 파일을 받지 못했어요.';
     } else if (active) {
       if (active.estimated) {
         // 받은 양을 셀 수 없는 방문: 표에서 아는 크기를 "약"으로만 알린다.
-        text = active.total !== null ? `${active.label} 받는 중… (약 ${formatBytes(active.total)})` : `${active.label} 받는 중…`;
+        const together = estimatedTogether.length > 1 ? estimatedTogether : [active];
+        const knownTotal = together.every((stage) => stage.total !== null) ? together.reduce((sum, stage) => sum + (stage.total ?? 0), 0) : null;
+        text = knownTotal !== null ? `${activeLabel} 받는 중… (약 ${formatBytes(knownTotal)})` : `${activeLabel} 받는 중…`;
       } else {
         text = active.total !== null ? `${active.label} ${formatBytes(active.received)} / ${formatBytes(active.total)}` : `${active.label} 받는 중…`;
       }

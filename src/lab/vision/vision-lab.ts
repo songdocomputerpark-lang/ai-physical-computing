@@ -141,6 +141,10 @@ export class VisionLab {
   #disposed = false;
   #stages: Record<LoadStage, StageState> = { core: 'pending', numpy: 'pending', opencv: 'pending' };
   #statusTimer: ReturnType<typeof setInterval> | null = null;
+  /** 받는 중 안내로 바꾸기 전의 입력·출력 칸 빈 안내(되돌릴 때 쓴다 — 출력 칸 글에는 <code>가 있다) */
+  #emptyHtml: { preview: string; output: string } | null = null;
+  /** [실행]을 눌렀는데 numpy·OpenCV를 아직 받는 중이라 코드가 기다리는 동안인지 */
+  #packageWaitShown = false;
 
   constructor(root: HTMLElement, lab: LabController, elements: VisionLabElements) {
     this.root = root;
@@ -165,6 +169,50 @@ export class VisionLab {
     this.#renderStages();
     this.#setInputState('closed');
     this.#statusTimer = setInterval(() => this.#renderInputStatus(), 500);
+    // 받는 중 안내: 미리 받기 상태(data-vision-packages)와 준비 칸의 받은 양(data-loading-text — 로딩 모듈)이 바뀔 때마다 다시 그린다.
+    const waitObserver = new MutationObserver(() => this.#renderPackageWait());
+    waitObserver.observe(root, { attributes: true, attributeFilter: ['data-vision-packages', 'data-loading-text'] });
+    this.#cleanups.push(() => waitObserver.disconnect());
+  }
+
+  /**
+   * 느린 망에서 "준비됐어요. [실행]을 누르세요." 뒤 [실행]을 누르면, 파이썬 엔진 다음에 받는 numpy·OpenCV(약 13MB)를 다 받을 때까지
+   * 코드가 시작하지 않는다. 그동안 입력·출력 칸이 "[실행]을 누르면 입력이 켜져요"·"입력이 꺼져 있어요"만 보여 몇 분 동안 멈춘 것처럼
+   * 보였다(회선 전체 3G에서 4분 30초 — 2026-09-26 Phase 6 사용성 검토 지적 5). 기다리는 동안은 무엇을 받는지와 받은 양을 보이고
+   * "다 받으면 저절로 시작해요"라고 알린다. 다 받거나 실행이 끝나면 원래 안내로 되돌린다.
+   */
+  #renderPackageWait(): void {
+    const waiting = this.#running && this.root.dataset.visionPackages === 'loading';
+    this.root.dataset.visionPackageWait = waiting ? 'yes' : 'no';
+    const { previewEmpty, outputEmpty } = this.#elements;
+    if (waiting) {
+      if (!this.#packageWaitShown) {
+        this.#emptyHtml = { preview: previewEmpty?.innerHTML ?? '', output: outputEmpty?.innerHTML ?? '' };
+        this.#packageWaitShown = true;
+      }
+      // 준비 칸의 받은 양 글("OpenCV(영상 처리) 3.1MB / 10.2MB", 셀 수 없으면 "numpy(배열 계산)·OpenCV(영상 처리) 받는 중… (약 13.6MB)")에서
+      // "받는 중…"을 빼고 붙인다(앞 문장과 겹치지 않게).
+      const amount = (this.root.dataset.loadingText ?? '').replace(/\s*받는 중…/u, '').trim();
+      const detail = amount === '' ? '' : `: ${amount}`;
+      if (previewEmpty) {
+        previewEmpty.textContent = `필요한 파일을 받는 중이에요${detail}. 다 받으면 입력이 켜져요.`;
+      }
+      if (outputEmpty) {
+        outputEmpty.textContent = `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작하고, 영상이 여기에 나와요.`;
+      }
+      this.#renderInputStatus();
+      return;
+    }
+    if (this.#packageWaitShown) {
+      this.#packageWaitShown = false;
+      if (previewEmpty && this.#emptyHtml) {
+        previewEmpty.innerHTML = this.#emptyHtml.preview;
+      }
+      if (outputEmpty && this.#emptyHtml) {
+        outputEmpty.innerHTML = this.#emptyHtml.output;
+      }
+      this.#renderInputStatus();
+    }
   }
 
   /** "이 예제 실습 방법" 상자(예제의 practice 단계 — 없으면 숨긴다) */
@@ -438,7 +486,7 @@ export class VisionLab {
     }
     const source = this.#source;
     if (!source) {
-      status.textContent = '입력이 꺼져 있어요.';
+      status.textContent = this.#packageWaitShown ? '입력이 꺼져 있어요 — 필요한 파일을 다 받으면 켜져요.' : '입력이 꺼져 있어요.';
       status.dataset.width = '';
       status.dataset.height = '';
       return;
@@ -565,10 +613,12 @@ export class VisionLab {
         this.#throttle.reset();
         this.#inputMeter.reset();
         this.#prefillLimitedMode();
+        this.#renderPackageWait();
       }),
       lab.on('done', () => {
         this.#running = false;
         this.#cancelPendingRead(null);
+        this.#renderPackageWait();
         this.#renderInputStatus();
       }),
     );

@@ -106,6 +106,36 @@ describe('LoadingTracker', () => {
     expect(snapshot.text).toContain('준비 끝');
   });
 
+  it('numpy를 다 받고 OpenCV를 받는 동안에는 OpenCV의 받은 양을 보인다(2026-09-26 Phase 6 사용성 검토 지적 5 — numpy 2.8MB / 2.8MB에 멈춘 것처럼 보였다)', () => {
+    const track = tracker();
+    track.runtimeState('loading');
+    track.runtimeState('idle');
+    track.runtimeProgress({ stage: 'package', phase: 'start', names: ['numpy', 'opencv-python'] });
+    track.download(download(pyodideCdnUrl(NUMPY), 'start', 0, 2_960_568));
+    track.download(download(pyodideCdnUrl(NUMPY), 'done', 2_960_568, 2_960_568));
+    track.download(download(pyodideCdnUrl(OPENCV), 'progress', 3_100_000, 10_675_764));
+    const snapshot = track.snapshot();
+    expect(snapshot.phase).toBe('loading');
+    // 두 단계 모두 아직 "진행 중"(Pyodide는 둘 다 설치한 뒤에야 끝을 알린다)이지만 글은 받는 중인 OpenCV를 가리킨다
+    expect(snapshot.stages.find((stage) => stage.id === 'numpy')?.state).toBe('active');
+    expect(snapshot.activeLabel).toContain('OpenCV');
+    expect(snapshot.text).toMatch(/^OpenCV\(영상 처리\) 3\.\dMB \/ 10\.\dMB$/u);
+    // 둘 다 다 받았으면(설치 중) 첫 진행 단계를 보인다
+    track.download(download(pyodideCdnUrl(OPENCV), 'done', 10_675_764, 10_675_764));
+    expect(track.snapshot().activeLabel).toContain('numpy');
+  });
+
+  it('받은 양을 셀 수 없는 방문에 numpy·OpenCV를 함께 받으면 둘 다 적는다(첫 단계만 적으면 OpenCV를 받는 동안 numpy만 보였다)', () => {
+    const track = tracker();
+    track.runtimeState('loading');
+    track.runtimeState('idle');
+    track.runtimeProgress({ stage: 'package', phase: 'start', names: ['numpy', 'opencv-python'] });
+    const snapshot = track.snapshot();
+    expect(snapshot.stages.filter((stage) => stage.state === 'active').map((stage) => stage.estimated)).toEqual([true, true]);
+    expect(snapshot.activeLabel).toBe('numpy(배열 계산)·OpenCV(영상 처리)');
+    expect(snapshot.text).toMatch(/^numpy\(배열 계산\)·OpenCV\(영상 처리\) 받는 중… \(약 13\.\dMB\)$/u);
+  });
+
   it('캐시에서 읽으면 source가 cache가 된다', () => {
     const track = tracker();
     track.runtimeState('loading');

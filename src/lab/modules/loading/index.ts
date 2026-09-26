@@ -122,6 +122,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const cardsBox = find('cards');
   const prefetchButton = find<HTMLButtonElement>('prefetch');
   const prefetchStatus = find('prefetch-status');
+  /** 실습실 틀의 상태 줄 옆 진행 칸(LabShell.astro [data-lab-progress]) */
+  const labProgress = root.querySelector<HTMLElement>('[data-lab-progress]');
 
   const setRootData = (name: string, value: string) => {
     root.dataset[`loading${name[0]!.toUpperCase()}${name.slice(1)}`] = value;
@@ -210,6 +212,15 @@ function mount(context: LabModuleContext): LabModuleHandle {
     setRootData('source', snapshot.source);
     // 받는 중인 단계와 양("OpenCV 3.2MB / 9.8MB") — 4단원 통합 화면의 상태 줄이 두 칸의 진행을 함께 보여 줄 때 읽는다(2026-09-25 Phase 4 검토 반영)
     setRootData('text', snapshot.text);
+    // 파이썬은 준비됐는데(실행기 idle·running) 실습실 패키지(numpy·OpenCV)를 아직 받는 중이면 조작 줄 아래 상태 줄에도 받는 양을 보인다.
+    // 준비 칸은 접히거나 화면 밖이라, "준비됐어요" 뒤 [실행]한 학생에게는 몇 분 동안 멈춘 것처럼 보였다(2026-09-26 Phase 6 사용성 검토 지적 5).
+    if (labProgress && snapshot.phase === 'loading' && snapshot.text !== '' && (runtime.state === 'idle' || runtime.state === 'running')) {
+      const amount = snapshot.text.replace(/\s*받는 중…/u, '').trim();
+      labProgress.textContent =
+        runtime.state === 'running'
+          ? `실행 전에 필요한 파일을 받는 중: ${amount} — 다 받으면 코드가 저절로 시작해요.`
+          : `실습 파일을 받는 중: ${amount} — [실행]을 눌러 두면 다 받은 뒤 시작해요.`;
+    }
     if (titleText) {
       titleText.textContent =
         snapshot.phase === 'ready' ? '실습 준비가 끝났어요' : snapshot.phase === 'failed' ? '파이썬을 받지 못했어요' : '파이썬을 준비하고 있어요';
