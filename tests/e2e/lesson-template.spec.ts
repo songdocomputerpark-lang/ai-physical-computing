@@ -118,9 +118,73 @@ test.describe('발표 모드', () => {
     await expect(bar).toBeHidden();
     await expect(page.locator('[data-present-off]')).toHaveCount(0);
     await expect(page.locator('.site-header')).toBeVisible();
-    await expect(page.getByRole('button', { name: '발표 모드' })).toBeFocused();
-    // 마지막으로 본 칸(확인 퀴즈) 쪽으로 돌아온다.
-    await expect(page.getByRole('heading', { level: 2, name: '확인 퀴즈' })).toBeInViewport();
+    // 마지막으로 본 칸(확인 퀴즈) 쪽으로 돌아오고, 초점도 그 칸 제목에 있다 — 쪽 맨 위 [발표 모드]로 돌리면 초점이 화면 밖이라 보이지 않고
+    // 다음 Tab이 쪽 위로 뛰었다(2026-09-26 Phase 6 사용성 검토 지적 10).
+    const quizHeading = page.getByRole('heading', { level: 2, name: '확인 퀴즈' });
+    await expect(quizHeading).toBeInViewport();
+    await expect(quizHeading).toBeFocused();
+    await page.keyboard.press('Tab');
+    const after = await page.evaluate(() => document.activeElement?.closest('section[data-section]')?.getAttribute('data-section') ?? 'none');
+    expect(after, '다음 Tab은 확인 퀴즈 칸 안의 조작으로 간다').toBe('quiz');
+    await expect(quizHeading).not.toHaveAttribute('tabindex');
+  });
+
+  // 2026-09-26 Phase 6 사용성 검토 지적 2: 1366×768에서 1-1-1 31단계 가운데 10, 1-1-2 45단계 가운데 12에서 그림 설명·문단 둘째 줄·
+  // 코드 아래 줄이 아래 막대 밑으로 들어갔다(한 단계에 쓸 높이를 셀 때 단계 내용이 시작하는 자리를 빼지 않았다).
+  // 블록 하나가 화면보다 큰 단계(제목 + 내용 블록 하나)는 스크롤하는 것이 규칙이라 뺀다.
+  test('단계마다 보이는 글·그림·코드가 아래 막대에 가려지지 않는다(1366×768·1280×720)', async ({ page, isMobile }) => {
+    test.skip(isMobile, '교실 프로젝터 크기(데스크톱)에서 본다');
+    test.setTimeout(180_000);
+    for (const size of [
+      { width: 1366, height: 768 },
+      { width: 1280, height: 720 },
+    ]) {
+      for (const lesson of ['./learn/u1/1-1-1/', './learn/u1/1-1-2/']) {
+        await page.setViewportSize(size);
+        await page.goto(lesson);
+        await openPresentation(page);
+        const total = Number(await page.locator('[data-lesson-present]').getAttribute('data-present-total'));
+        expect(total).toBeGreaterThan(5);
+        for (let step = 1; step <= total; step += 1) {
+          await expect(page.locator('[data-lesson-present]')).toHaveAttribute('data-present-step', String(step));
+          const report = await page.evaluate(() => {
+            const bar = document.querySelector('.lesson-present__bar');
+            const barTop = bar?.getBoundingClientRect().top ?? window.innerHeight;
+            const section = [...document.querySelectorAll('.lesson-body > section.lesson-section')].find((element) => !element.hasAttribute('data-present-off'));
+            if (!section) {
+              return { hidden: [] as string[], single: true };
+            }
+            const blocks = [...section.children].filter(
+              (child): child is HTMLElement =>
+                child instanceof HTMLElement && !child.hasAttribute('data-present-off') && getComputedStyle(child).display !== 'none' && child.getBoundingClientRect().height > 0,
+            );
+            const content = blocks.filter((block) => !/^H[23]$/u.test(block.tagName));
+            // 퀴즈 문항 단계(data-present-split)는 보이는 문항의 글·보기·단추 아래 끝을 본다(채점 결과 칸은 채점할 때 보이는 곳으로 옮겨 온다)
+            const bottomOf = (block: HTMLElement) => {
+              if (!block.hasAttribute('data-present-split')) {
+                return block.getBoundingClientRect().bottom;
+              }
+              const item = [...block.querySelectorAll<HTMLElement>('[data-present-item]')].find((element) => !element.hasAttribute('data-present-off'));
+              const parts = item ? [...item.querySelectorAll<HTMLElement>('legend, label, button, p')].filter((element) => !element.closest('[data-quiz-feedback]')) : [];
+              return Math.max(0, ...parts.map((element) => element.getBoundingClientRect().bottom));
+            };
+            const hidden = blocks
+              .filter((block) => bottomOf(block) > barTop + 1)
+              .map((block) => `${block.tagName.toLowerCase()} "${(block.textContent ?? '').replace(/\s+/gu, ' ').trim().slice(0, 30)}"`);
+            // 퀴즈 문항은 한 블록이어도 본다(문항·보기·단추가 막대 위에서 끝나야 채점할 수 있다)
+            return { hidden, single: content.length < 2 && !content.some((block) => block.hasAttribute('data-present-split')) };
+          });
+          if (!report.single) {
+            expect(report.hidden, `${lesson} ${size.width}×${size.height} ${step}/${total}단계에서 막대에 가려진 블록`).toEqual([]);
+          }
+          if (step < total) {
+            await page.keyboard.press('ArrowRight');
+          }
+        }
+        await page.keyboard.press('Escape');
+        await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
+      }
+    }
   });
 
   test('막대의 단추로도 넘기고 끝내며, 발표 화면은 옆으로 넘치지 않는다', async ({ page }) => {

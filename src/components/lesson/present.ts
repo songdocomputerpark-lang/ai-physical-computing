@@ -267,6 +267,18 @@ function breakTitleOf(element: HTMLElement): string | undefined {
   return title || undefined;
 }
 
+/**
+ * 발표를 끝낸 자리에 초점을 둔다. 초점을 받지 않는 요소(제목·문단)는 잠깐 tabindex="-1"을 붙였다가 초점이 떠나면 뗀다
+ * (Tab 차례에는 들어가지 않고, 다음 Tab은 그 자리 다음 조작으로 간다).
+ */
+function focusReadingPlace(element: HTMLElement): void {
+  if (!element.hasAttribute('tabindex')) {
+    element.setAttribute('tabindex', '-1');
+    element.addEventListener('blur', () => element.removeAttribute('tabindex'), { once: true });
+  }
+  element.focus({ preventScroll: true });
+}
+
 /** 요소 높이 + 위아래 바깥 여백(이웃 여백이 겹치는 만큼 조금 넉넉하게 잰다) */
 function outerHeight(element: HTMLElement): number {
   const style = element.ownerDocument.defaultView?.getComputedStyle(element);
@@ -374,25 +386,111 @@ export function installLessonPresentation(doc: Document = document): void {
     });
   };
 
-  /** 아래 막대를 뺀, 한 단계에 쓸 수 있는 화면 높이 */
-  const availableHeight = () => {
+  /** 아래 막대의 위 끝(화면 좌표). 단계 내용은 이 위에서 끝나야 가려지지 않는다. */
+  const barTop = () => {
+    const viewport = doc.defaultView?.innerHeight ?? 768;
     const bar = root.querySelector<HTMLElement>('.lesson-present__bar');
-    return (doc.defaultView?.innerHeight ?? 768) - (bar?.getBoundingClientRect().height ?? 64) - 24;
+    const top = bar?.getBoundingClientRect().top;
+    return top !== undefined && top > 0 && top <= viewport ? top : viewport - 64;
   };
 
   /**
-   * 단계를 다시 나눈다: 기본 단계(planPresentationSteps)를 하나씩 보여 블록 높이를 잰 뒤 화면보다 긴 단계를 쪼갠다(splitTallSteps).
-   * keep이 있으면 보고 있던 자리(칸·첫 내용 블록)가 든 단계로 돌아온다.
+   * 한 단계에 쓸 수 있는 높이 = 막대 위 끝 − 단계 내용이 시작하는 자리(쪽 위 여백·머리글) − 여유.
+   * 예전에는 화면 높이에서 막대만 뺐는데, 단계 내용이 화면 맨 위가 아니라 60~100px 아래에서 시작해 "들어간다"고 본 단계의 끝이
+   * 막대 밑으로 들어갔다(1366×768에서 1-1-1 31단계 가운데 10 — 2026-09-26 Phase 6 사용성 검토 지적 2).
+   */
+  const availableHeight = (contentTop: number) => barTop() - contentTop - 16;
+
+  /** 단계 하나를 그려 첫 블록(바깥 여백 포함)이 화면 위에서 어디서 시작하는지 잰다 */
+  const contentTopOf = (step: PresentStep): number => {
+    applyStep(step);
+    doc.defaultView?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    const element = sections[step.section]?.children[step.blocks[0] ?? -1];
+    if (!element) {
+      return 0;
+    }
+    const style = doc.defaultView?.getComputedStyle(element);
+    const margin = style ? Number.parseFloat(style.marginTop) : 0;
+    return Math.max(0, element.getBoundingClientRect().top - (Number.isFinite(margin) ? margin : 0));
+  };
+
+  /**
+   * 나눈 단계를 실제로 그려 보아, 첫 내용 블록 뒤의 블록이 막대 밑으로 들어가면 그 블록부터 "(이어서)" 단계로 넘긴다
+   * (여백 겹침·다시 보이는 제목까지 실제 자리로 잰다 — 높이 합으로만 나누면 조금씩 어긋났다, 2026-09-26 Phase 6 사용성 검토 지적 2).
+   * 첫 내용 블록 하나가 화면보다 크면 그 블록은 그대로 두고 스크롤한다(splitTallSteps와 같은 규칙).
+   */
+  const fitToBar = (planned: readonly PresentStep[]): PresentStep[] => {
+    const fitted: PresentStep[] = [];
+    const queue = [...planned];
+    const limit = barTop() - 4;
+    while (queue.length > 0) {
+      const step = queue.shift()!;
+      const section = sections[step.section];
+      if (section && step.item !== undefined && step.blocks.length > 2) {
+        // 퀴즈 첫 문항 단계(제목 + 안내 문단 + 문항): 문항이 막대 밑으로 들어가면 안내 문단을 앞 단계로 뺀다 — 채점 결과가 문항 바로 아래에
+        // 나오므로 문항은 막대 위에서 끝나야 한다(2026-09-26 Phase 6 사용성 검토 지적 2).
+        applyStep(step);
+        doc.defaultView?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+        const kinds = section.model.blocks;
+        const splitBlock = step.blocks[step.blocks.length - 1] ?? -1;
+        const splitElement = section.children[splitBlock];
+        const leading = step.blocks.slice(0, -1);
+        const headings = leading.filter((block) => kinds[block]?.kind === 'h2' || kinds[block]?.kind === 'h3');
+        if (splitElement && splitElement.getBoundingClientRect().bottom > limit && headings.length < leading.length) {
+          fitted.push({ section: step.section, blocks: leading, label: step.label.replace(/\s*\(\d+\/\d+\)$/u, '') });
+          fitted.push({ ...step, blocks: [...headings, splitBlock] });
+          continue;
+        }
+      }
+      if (!section || step.item !== undefined || step.blocks.length < 2) {
+        fitted.push(step);
+        continue;
+      }
+      applyStep(step);
+      doc.defaultView?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      const kinds = section.model.blocks;
+      const isHeading = (block: number) => kinds[block]?.kind === 'h2' || kinds[block]?.kind === 'h3';
+      let headingCount = 0;
+      while (headingCount < step.blocks.length - 1 && isHeading(step.blocks[headingCount] ?? -1)) {
+        headingCount += 1;
+      }
+      let cut = -1;
+      for (let position = headingCount + 1; position < step.blocks.length; position += 1) {
+        const element = section.children[step.blocks[position] ?? -1];
+        if (element && element.getBoundingClientRect().bottom > limit) {
+          cut = position;
+          break;
+        }
+      }
+      if (cut < 0) {
+        fitted.push(step);
+        continue;
+      }
+      fitted.push({ ...step, blocks: step.blocks.slice(0, cut) });
+      const label = step.label.endsWith(` ${CONTINUED_LABEL}`) ? step.label : `${step.label} ${CONTINUED_LABEL}`;
+      queue.unshift({ ...step, blocks: [...step.blocks.slice(0, headingCount), ...step.blocks.slice(cut)], label });
+    }
+    return fitted;
+  };
+
+  /**
+   * 단계를 다시 나눈다: 기본 단계(planPresentationSteps)를 하나씩 보여 블록 높이를 잰 뒤 화면보다 긴 단계를 쪼개고(splitTallSteps),
+   * 그린 자리로 한 번 더 맞춘다(fitToBar). keep이 있으면 보고 있던 자리(칸·첫 내용 블록)가 든 단계로 돌아온다.
    */
   const replan = (keep?: PresentStep) => {
     const models = sections.map((section) => section.model);
     const base = planPresentationSteps(lessonTitle, models);
     const heights = new Map<string, number>();
+    let contentTop: number | null = null;
     for (const step of base) {
       if (step.section < 0 || step.item !== undefined || step.blocks.length < 2) {
         continue;
       }
-      applyStep(step);
+      if (contentTop === null) {
+        contentTop = contentTopOf(step);
+      } else {
+        applyStep(step);
+      }
       const children = sections[step.section]?.children ?? [];
       for (const block of step.blocks) {
         const element = children[block];
@@ -401,7 +499,7 @@ export function installLessonPresentation(doc: Document = document): void {
         }
       }
     }
-    steps = splitTallSteps(base, models, (section, block) => heights.get(`${section}:${block}`) ?? 0, availableHeight());
+    steps = fitToBar(splitTallSteps(base, models, (section, block) => heights.get(`${section}:${block}`) ?? 0, availableHeight(contentTop ?? 0)));
     if (keep) {
       const kinds = models[keep.section]?.blocks ?? [];
       const anchor = keep.blocks.find((block) => kinds[block]?.kind !== 'h2' && kinds[block]?.kind !== 'h3') ?? keep.blocks[0];
@@ -518,6 +616,9 @@ export function installLessonPresentation(doc: Document = document): void {
     doc.defaultView?.addEventListener('resize', scheduleReplan);
     render();
     main?.focus({ preventScroll: true });
+    // 느린 망에서는 글꼴(Pretendard)을 다 받기 전에 발표를 시작할 수 있다 — 대체 글꼴로 잰 자리가 조금 어긋나 막대에 걸리지 않게,
+    // 글꼴을 다 받으면 한 번 더 나눈다(보고 있던 자리는 그대로, 이미 받았으면 같은 결과).
+    void doc.fonts?.ready.then(() => scheduleReplan()).catch(() => undefined);
   };
 
   const exit = () => {
@@ -534,12 +635,28 @@ export function installLessonPresentation(doc: Document = document): void {
       void doc.exitFullscreen().catch(() => undefined);
     }
     enteredFullscreen = false;
-    // 발표를 끝낸 자리(마지막으로 본 칸)에서 이어 읽게 한다.
-    anchor?.scrollIntoView({ block: 'start' });
-    openButton.focus({ preventScroll: Boolean(anchor) });
+    // 발표를 끝낸 자리(마지막으로 본 칸)에서 이어 읽게 한다. 초점도 그 자리(첫 블록 — 보통 칸 제목)에 둔다: 쪽 맨 위 [발표 모드]로 돌리면
+    // 초점이 화면 밖에 있어 보이지 않고 다음 Tab이 쪽 위 "이 차시의 차례"로 뛰어 읽던 자리를 잃었다(2026-09-26 Phase 6 사용성 검토 지적 10).
+    if (anchor) {
+      anchor.scrollIntoView({ block: 'start' });
+      focusReadingPlace(anchor);
+    } else {
+      openButton.focus();
+    }
   };
 
   openButton.addEventListener('click', enter);
+  // 발표 중 퀴즈를 채점하면 결과 글이 문항 바로 아래에 나온다 — 아래 막대에 가리지 않게 보이는 곳으로 옮긴다
+  // (html의 scroll-padding-block-end 6rem을 따른다, 2026-09-26 Phase 6 사용성 검토 지적 2).
+  body.addEventListener('click', (event) => {
+    if (!html.hasAttribute('data-presenting') || !(event.target instanceof Element)) {
+      return;
+    }
+    const feedback = event.target.closest('[data-quiz-check]')?.closest('[data-quiz-item]')?.querySelector<HTMLElement>('[data-quiz-feedback]');
+    if (feedback) {
+      doc.defaultView?.requestAnimationFrame(() => feedback.scrollIntoView({ block: 'nearest' }));
+    }
+  });
   // 늦게 받은 그림(느린 받기)의 높이가 정해지면 다시 나눈다(발표 중에만).
   body.addEventListener(
     'load',

@@ -93,11 +93,19 @@ const hasNotice = Astro.slots.has('notice');
     <meta name="twitter:card" content="summary" />
     <!-- 자바스크립트가 되면 html에 js 클래스를 붙인다. 좁은 화면 메뉴를 처음부터 접어 두어 화면이 흔들리지 않게 한다. -->
     <!-- 주소에 ?embed=1이 있으면 차시 페이지 안(iframe)에 넣은 것이다 — 머리글·바닥글·소개 글을 숨긴다(P2-14, global.css의 html[data-embed]). -->
+    <!-- 그때 이 문서의 main에 이름을 붙인다: 차시 페이지의 main과 이름이 같으면 화면 낭독기의 영역 목록에 "기본 영역"이 둘 들린다 -->
+    <!-- (axe landmark-unique — 2026-09-26 Phase 6 검토 지적). -->
     <script is:inline>
       document.documentElement.classList.add('js');
       try {
         if (new URLSearchParams(location.search).get('embed') === '1') {
           document.documentElement.dataset.embed = '1';
+          document.addEventListener('DOMContentLoaded', function () {
+            var main = document.getElementById('main-content');
+            if (main && !main.hasAttribute('aria-label')) {
+              main.setAttribute('aria-label', '차시 안 실습실');
+            }
+          });
         }
       } catch {
         // 주소를 못 읽어도 페이지는 그대로 보인다.

@@ -43,13 +43,20 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     expect(await page.locator('iframe').count()).toBe(0);
     expect(labRequests, '누르기 전에는 실습실 파일을 받지 않는다').toEqual([]);
 
-    await openButton.click();
+    // 키보드(Enter)로 연다 — 연 뒤에도 초점이 있는 단추가 화면 안에 있다(틀만 보이게 옮기면 단추가 화면 위로 밀려나
+    // 초점 표시가 보이지 않았다 — 2026-09-26 Phase 6 사용성 검토 지적 10).
+    await openButton.focus();
+    await page.keyboard.press('Enter');
     await expect(openButton).toHaveAttribute('aria-expanded', 'true');
     await expect(openButton).toHaveText('실습실 접기');
+    await expect(openButton).toBeFocused();
+    await expect(openButton).toBeInViewport();
 
     const frame = page.frameLocator('iframe.lesson-example__frame');
     const labRoot = frame.locator('[data-lab]');
     await expect(labRoot).toBeVisible({ timeout: LOAD_TIMEOUT });
+    // 차시 쪽과 실습실 문서에 기본 영역(main)이 둘이 되므로 안쪽 것에 다른 이름을 준다(axe landmark-unique — 2026-09-26 Phase 6 완료 기준 검토 지적 4).
+    await expect(frame.locator('main#main-content')).toHaveAttribute('aria-label', '차시 안 실습실');
     // 그 차시의 예제가 미리 올라간다(파일 이름 → 예제 id).
     await expect(labRoot).toHaveAttribute('data-example', 'supplement-v4-blur-edge', { timeout: LOAD_TIMEOUT });
     await expect(frame.locator('[data-lab-editor] .cm-content')).toContainText('Canny', { timeout: LOAD_TIMEOUT });

@@ -191,7 +191,9 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       if (open) {
         // 움직임 줄이기를 켠 학생에게는 부드럽게 흐르지 않고 바로 옮긴다(자바스크립트의 smooth는 CSS 움직임 줄이기 규칙이 막지 못한다 — Phase 6 접근성 점검)
         const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-        slot.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+        // 방금 누른 단추([실습실 접기]로 바뀜)를 화면 맨 위에 두고 그 아래로 실습실 틀을 보인다. 틀만 보이게 옮기면 초점이 있는 단추가
+        // 화면 위로 밀려나 초점 표시가 보이지 않았다(2026-09-26 Phase 6 사용성 검토 지적 10). 초점은 누른 단추에 그대로 둔다.
+        button.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
       } else {
         // 아래 줄의 [실습실 접기]로 접었으면 읽던 예제 자리로 돌아온다(접힌 틀 높이만큼 화면이 튀지 않게).
         button.scrollIntoView({ block: 'nearest' });
