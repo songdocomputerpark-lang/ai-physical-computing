@@ -27,6 +27,10 @@
 //    by·date·result("통과"로 시작)가 있어야 한다(Phase 5 통합 2026-09-25 — 편집본을 다시 만들고 기록을 고치지 않으면 막는다).
 //    끝에 출처·라이선스 쪽(credits_page)을 덧붙인 문서는 그 쪽(source.pages + 1)의 기록도 있어야 한다(2026-09-26 P6-04).
 //    이 규칙은 Node만으로 돌아 CI에서도 돈다(CI에는 PyMuPDF가 없어 python scripts/redact-handouts.py check는 못 돈다).
+// 9) (2026-09-26 Phase 6 안전 검토 반영) 영상·소리 파일은 사람이 보고(듣고) 적은 기록(sha256 포함)이 있어야 하고 바이트도 글처럼 한 번 훑는다,
+//    이진 확장자(.bin·.task·.tflite·글꼴·.wasm)는 정해진 자리에만(BINARY_ALLOWED_ROOTS — .bin은 펌웨어 목록의 sha256과도 같아야),
+//    예제·차시(examples/·content/)의 와이파이 비밀번호 모양(findWifiSecrets). 개인정보 모양도 넓혔다: 국제 형식·괄호·줄표 전화번호,
+//    전각 ＠ 이메일, 네트워크 공유(UNC)·%5C로 적은 사용자 폴더 경로, 기기 주소의 unique_id·fromhex·0x 정수·밑줄·전각 쌍점·EUI-64·표 머리 줄 문맥.
 //
 // 손으로 돌리는 훑기(2026-09-26 P6-05 개인정보 최종 점검에서 만듦 — 커밋 전 훅·CI에는 걸지 않는다, scripts/check-repo.mjs의 선택):
 //  - --worktree: 스테이징 전 작업 폴더 전체(추적 파일 + 새 파일)를 위 규칙 그대로(readWorktreeFiles)
@@ -71,10 +75,33 @@ export const ORIGINAL_NAME_SCAN_ROOTS = Object.freeze(['public/', 'examples/', '
 const RASTER_IMAGE_EXTENSIONS = new Set([
   '.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.bmp', '.tif', '.tiff', '.heic', '.heif', '.ico',
 ]);
+/**
+ * 영상·소리 파일(2026-09-26 Phase 6 안전 검토 지적 6): 얼굴·목소리·촬영자 이름·위치가 담기기 쉬운데 글 검사도 메타데이터 검사도
+ * 할 수 없어, 래스터 그림처럼 사람이 끝까지 보고(듣고) 적은 기록(scripts/image-allowlist.yaml — reviewed와 sha256)이 있어야 한다.
+ * 지금 저장소에는 하나도 없고, 넣으려면 먼저 이슈로 의논한다(MAINTENANCE 3절·CONTRIBUTING 5절).
+ */
+const MEDIA_EXTENSIONS = new Set(['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v', '.mp3', '.wav', '.ogg', '.oga', '.opus', '.m4a', '.aac', '.flac', '.weba']);
+/**
+ * 이진 확장자마다 둘 수 있는 자리(그 밖에 두면 막는다). 이진 파일은 글 검사를 건너뛰므로, 이름만 바꾼 글 파일이나 보드 플래시 통째 백업
+ * (.bin — 와이파이 이름·비밀번호가 평문으로 들어 있다) 같은 것이 검사를 피하지 못하게 자리를 정한다(2026-09-26 Phase 6 안전 검토 지적 6).
+ * 펌웨어(.bin)는 펌웨어 목록(public/firmware/manifest.json)에 적힌 sha256과도 같아야 한다.
+ */
+const BINARY_ALLOWED_ROOTS = Object.freeze({
+  '.bin': ['public/firmware/'],
+  '.task': ['public/models/'],
+  '.tflite': ['public/models/'],
+  '.woff': ['public/fonts/'],
+  '.woff2': ['public/fonts/'],
+  '.ttf': ['public/fonts/'],
+  '.otf': ['public/fonts/'],
+  '.wasm': ['public/vendor/'],
+});
+const FIRMWARE_MANIFEST_FILE = 'public/firmware/manifest.json';
 const BINARY_EXTENSIONS = new Set([
   ...RASTER_IMAGE_EXTENSIONS,
   ...ORIGINAL_FORMAT_EXTENSIONS,
-  '.wasm', '.task', '.tflite', '.bin', '.woff', '.woff2', '.ttf', '.otf', '.mp3', '.wav', '.ogg', '.mp4', '.webm',
+  ...MEDIA_EXTENSIONS,
+  ...Object.keys(BINARY_ALLOWED_ROOTS),
 ]);
 /** 내용을 읽어 검사하는 파일 크기 한도 */
 const MAX_CONTENT_BYTES = 64 * 1024 * 1024;
@@ -90,6 +117,13 @@ const WINDOWS_USER_DIR = /(?<![A-Za-z0-9])[A-Za-z]:(?:\\\\|\\|\/)Users(?:\\\\|\\
 const DRIVE_MOUNT_USER_DIR = /(?<![\w.~%:-])\/(?:mnt\/)?[A-Za-z]\/Users\/([^\\\/\s"'`<>|?*:;,()[\]{}]+)/giu;
 const MAC_USER_DIR = /(?<![\w.~%:-])\/Users\/([^\\\/\s"'`<>|?*:;,()[\]{}]+)/gu;
 const LINUX_HOME_DIR = /(?<![\w.~%:-])\/home\/([^\\\/\s"'`<>|?*:;,()[\]{}]+)/gu;
+/**
+ * 네트워크 공유(UNC) 경로의 사용자 폴더 — 역슬래시(또는 빗금) 두 개 + 컴퓨터 이름 + (공유 이름 하나) + Users + 사용자 이름
+ * (2026-09-26 Phase 6 안전 검토 지적 10). 인터넷 주소(https://…)의 // 는 앞에 쌍점이 있어 빼고 본다.
+ */
+const UNC_USER_DIR = /(?<![\\\/\w:])(?:\\\\|\/\/)[^\\\/\s"'`<>|?*:;,()[\]{}]+[\\\/](?:[^\\\/\s"'`<>|?*:;,()[\]{}]+[\\\/])?Users[\\\/]([^\\\/\s"'`<>|?*:;,()[\]{}]+)/giu;
+/** %5C(\)·%2F(/)·%3A(:)로 적은 경로(file:///C:%5CUsers%5C… 같은 주소 글자) — 한 번 풀어서 사용자 폴더 경로를 다시 본다 */
+const PERCENT_PATH_CHARACTER = /%(?:5c|2f|3a)/iu;
 /** 문장 가운데 적힌 OneDrive 폴더도 잡는다(앞에 글자·숫자만 없으면 됨, 뒤에는 폴더 구분자가 온다). */
 const ONEDRIVE_DIR = /(?<![A-Za-z0-9])OneDrive(?: ?- ?[^\\/\r\n]{1,80}?)?[\\/]/giu;
 /*
@@ -113,11 +147,16 @@ const ONEDRIVE_DIR = /(?<![A-Za-z0-9])OneDrive(?: ?- ?[^\\/\r\n]{1,80}?)?[\\/]/g
  *    readinto·eeprom)이면 ①만 본다(I2C 장치 주소를 담은 변수 이름 addr와 헷갈리지 않게) — 문맥 없이 잡는 6바이트 bytes 글자도
  *    이런 자리에서는 ①일 때만 잡는다(장치로 보내는 6바이트 명령과 헷갈리지 않게). 80자로 자르는 것은 JSON에 몰아 담은 예제 코드처럼
  *    한 줄이 아주 긴 글에서 멀리 떨어진 낱말을 문맥으로 잘못 보지 않게 하려는 것이다(빌드 결과 HTML로 확인, 2026-09-26).
+ * 보탬(2026-09-26 Phase 6 안전 검토 지적 5): 기기 주소 낱말에 unique_id(ESP32에서는 공장 MAC)·add_peer·espnow·efuse_mac, 주소 낱말에
+ * peer(ESP-NOW 짝), 콜론 모양 구분자에 전각 쌍점, 문맥이 있을 때 0x 정수 12자리(11자리)·밑줄로 이은 여섯 묶음, 문맥 없이
+ * fromhex·unhexlify·a2b_hex에 넣은 16진수 12자리와 IPv6 링크 로컬 주소 가운데 EUI-64(가운데 ff:fe — MAC에서 만든 주소),
+ * 그리고 마크다운 표의 값 줄은 그 표의 머리 줄(첫 줄)을 문맥으로 본다(모둠별 보드 주소 표).
  * 자리표시자로 보는 값: 여섯 바이트가 모두 00이거나 모두 FF, 또는 사이트가 만든 가상 기기 주소 02:00:00:00:00:xx
  * (첫 바이트 02 = "직접 정한 주소" 표시 — 실제 기기에 붙는 번호가 아니다. 가상 보드 network·bluetooth 흉내가 쓴다).
  * 이 설명에 예시 값을 그대로 적지 않는다(검사가 이 파일 자신을 잡는다 — 예시는 tests/unit/repo-check.test.ts에서 조각을 이어 만든다).
  */
-const MAC_ADDRESS = /(?<![0-9A-Fa-f:-])[0-9A-Fa-f]{2}([:-])[0-9A-Fa-f]{2}(?:\1[0-9A-Fa-f]{2}){4}(?![0-9A-Fa-f:-])/gu;
+// 구분자: 콜론·붙임표, 그리고 전각 쌍점(한국어 입력기로 적은 표 — 2026-09-26 Phase 6 안전 검토 지적 5)
+const MAC_ADDRESS = /(?<![0-9A-Fa-f:：-])[0-9A-Fa-f]{2}([:：-])[0-9A-Fa-f]{2}(?:\1[0-9A-Fa-f]{2}){4}(?![0-9A-Fa-f:：-])/gu;
 const MAC_DOTTED = /(?<![0-9A-Fa-f.])[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}(?![0-9A-Fa-f.])/gu;
 /** 파이썬 bytes 글자 하나(한 줄 안, 따옴표 짝). 안쪽은 decodeBytesBody로 푼다 */
 const BYTES_LITERAL = /(?<![A-Za-z0-9_])[bB](['"])((?:\\[^\n]|(?!\1)[^\\\n])*)\1/gu;
@@ -126,10 +165,22 @@ const MAC_SPACED = /(?<![0-9A-Za-z])(?<![0-9A-Fa-f]{2} )[0-9A-Fa-f]{2}(?: [0-9A-
 const MAC_SHORT_COLON = /(?<![0-9A-Za-z:])[0-9A-Fa-f]{1,2}(?::[0-9A-Fa-f]{1,2}){5}(?![0-9A-Za-z:])/gu;
 const MAC_HEX_LIST = /(?<![0-9A-Za-z_])(?:bytes(?:array)?\(\s*)?[[(]\s*0x[0-9A-Fa-f]{1,2}(?:\s*,\s*0x[0-9A-Fa-f]{1,2}){5}\s*,?\s*[\])]\)?/giu;
 const MAC_DECIMAL_LIST = /[[(]\s*\d{1,3}(?:\s*,\s*\d{1,3}){5}\s*,?\s*[\])]/gu;
-/** 기기 주소를 콕 집는 낱말(같은 줄 어디든, 바로 윗줄) */
-const DEVICE_ADDRESS_WORD = /(?<![a-z])mac(?![a-z])|bssid|(?<![a-z])bd_?addr|(?:맥|mac|기기|블루투스|ble|보드)\s*주소/iu;
-/** 주소 낱말(같은 줄 값 앞 40자 안) — I2C 장치 주소도 이렇게 부르므로 전송 줄에서는 보지 않는다 */
-const ADDRESS_WORD = /(?<![a-z])mac(?![a-z])|addr|bssid|주소/iu;
+/** 정수로 적은 주소(hex(int.from_bytes(mac, 'big')) 결과 — 앞 0이 빠지면 11자리) — 문맥이 있을 때만(2026-09-26 Phase 6 안전 검토 지적 5) */
+const MAC_HEX_INTEGER = /(?<![0-9A-Za-z_])0x[0-9A-Fa-f]{11,12}(?![0-9A-Za-z_])/gu;
+/** 두 자리 여섯 묶음을 밑줄로 이은 것(변수 이름·파일 이름에 넣은 주소) — 문맥이 있을 때만 */
+const MAC_UNDERSCORE = /(?<![0-9A-Za-z_])[0-9A-Fa-f]{2}(?:_[0-9A-Fa-f]{2}){5}(?![0-9A-Za-z_])/gu;
+/** bytes.fromhex·unhexlify·a2b_hex에 넣은 16진수 12자리(ESP-NOW 짝 주소를 적는 흔한 모양) — 문맥 없이 */
+const MAC_FROMHEX = /(?:fromhex|unhexlify|a2b_hex)\(\s*(['"])([0-9A-Fa-f]{2}(?:[:\s-]?[0-9A-Fa-f]{2}){5})\1\s*\)/giu;
+/** IPv6 링크 로컬 주소 가운데 EUI-64(가운데 ff:fe — 기기 MAC에서 만든 주소)인 것 — 문맥 없이 */
+const IPV6_LINK_LOCAL = /(?<![0-9A-Fa-f:])fe80:(?::[0-9A-Fa-f]{0,4}){2,7}(?![0-9A-Fa-f:])/giu;
+const EUI64_MIDDLE = /[0-9A-Fa-f]{0,2}ff:fe[0-9A-Fa-f]{2}/iu;
+/**
+ * 기기 주소를 콕 집는 낱말(같은 줄 어디든, 바로 윗줄). ESP32의 machine.unique_id()는 공장 기본 MAC 6바이트다
+ * (MicroPython v1.29.0 ports/esp32/modmachine.c — esp_efuse_mac_get_default, 2026-09-26 Phase 6 안전 검토 지적 5).
+ */
+const DEVICE_ADDRESS_WORD = /(?<![a-z])mac(?![a-z])|bssid|(?<![a-z])bd_?addr|unique_?id|add_peer|espnow|efuse_mac|(?:맥|mac|기기|블루투스|ble|보드)\s*주소/iu;
+/** 주소 낱말(같은 줄 값 앞 40자 안) — I2C 장치 주소도 이렇게 부르므로 전송 줄에서는 보지 않는다. peer는 ESP-NOW 짝 주소 변수 이름 */
+const ADDRESS_WORD = /(?<![a-z])mac(?![a-z])|addr|bssid|주소|(?<![a-z])peer(?![a-z])/iu;
 const BUS_TRANSFER_WORD = /(?<![a-z0-9_])(?:i2c|spi|uart|writeto(?:_mem)?|readfrom(?:_mem_into|_mem|_into)?|writevto|readinto|eeprom)(?![a-z0-9_])/iu;
 /** 파이썬 bytes 글자의 한 글자 이스케이프 → 바이트 */
 const BYTES_SIMPLE_ESCAPES = Object.freeze({ '\\': 0x5c, "'": 0x27, '"': 0x22, n: 0x0a, r: 0x0d, t: 0x09, a: 0x07, b: 0x08, f: 0x0c, v: 0x0b });
@@ -232,11 +283,43 @@ function addressContext(text, start, end) {
   const previousLineStart = lineStart > 0 ? text.lastIndexOf('\n', lineStart - 2) + 1 : 0;
   const previousLine = lineStart > 0 ? text.slice(Math.max(previousLineStart, lineStart - 1 - CONTEXT_WINDOW), lineStart - 1) : '';
   return {
-    device: DEVICE_ADDRESS_WORD.test(around),
+    device: DEVICE_ADDRESS_WORD.test(around) || DEVICE_ADDRESS_WORD.test(markdownTableHeader(text, lineStart)),
     deviceBefore: DEVICE_ADDRESS_WORD.test(nearBefore),
     bus: BUS_TRANSFER_WORD.test(around),
     near: DEVICE_ADDRESS_WORD.test(previousLine) || ADDRESS_WORD.test(nearBefore),
   };
+}
+
+/** 마크다운 표로 보는 줄(앞 빈칸 뒤 | 로 시작) */
+const TABLE_ROW = /^\s*\|/u;
+
+/**
+ * 값이 마크다운 표의 값 줄에 있으면 그 표의 머리 줄(표의 첫 줄) 글, 아니면 ''. 모둠별 보드 주소 표처럼 "블루투스 주소"·"MAC"이
+ * 머리 줄에만 있고 값 줄 바로 윗줄은 |---| 구분 줄이라, 윗줄만 보는 문맥으로는 놓쳤다(2026-09-26 Phase 6 안전 검토 지적 5).
+ * 표가 아주 길어도 멈추도록 위로 200줄까지만 본다.
+ * @param {string} text
+ * @param {number} lineStart 값이 있는 줄의 시작 위치
+ */
+function markdownTableHeader(text, lineStart) {
+  const lineEnd = text.indexOf('\n', lineStart);
+  const line = text.slice(lineStart, lineEnd < 0 ? text.length : lineEnd);
+  if (!TABLE_ROW.test(line)) {
+    return '';
+  }
+  let headerStart = lineStart;
+  for (let steps = 0; steps < 200 && headerStart > 0; steps += 1) {
+    const previousStart = text.lastIndexOf('\n', headerStart - 2) + 1;
+    const previous = text.slice(previousStart, headerStart - 1);
+    if (!TABLE_ROW.test(previous)) {
+      break;
+    }
+    headerStart = previousStart;
+  }
+  if (headerStart === lineStart) {
+    return '';
+  }
+  const headerEnd = text.indexOf('\n', headerStart);
+  return text.slice(headerStart, headerEnd < 0 ? text.length : headerEnd);
 }
 
 /**
@@ -269,6 +352,18 @@ export function findDeviceAddresses(text) {
   for (const match of text.matchAll(MAC_DOTTED)) {
     if (!isPlaceholderAddress(hexPairs(match[0]))) {
       add(match, 'MAC 주소 모양 — 점 모양(값은 가려서 표시)');
+    }
+  }
+  for (const match of text.matchAll(MAC_FROMHEX)) {
+    const start = match.index ?? 0;
+    const context = addressContext(text, start, start + match[0].length);
+    if (!isPlaceholderAddress(hexPairs(match[2] ?? '')) && (!context.bus || context.device)) {
+      add(match, 'MAC 주소 모양 — fromhex·unhexlify에 넣은 16진수 12자리(값은 가려서 표시)');
+    }
+  }
+  for (const match of text.matchAll(IPV6_LINK_LOCAL)) {
+    if (EUI64_MIDDLE.test(match[0])) {
+      add(match, 'MAC 주소 모양 — MAC이 들어 있는 IPv6 링크 로컬 주소(가운데 ff:fe, 값은 가려서 표시)');
     }
   }
   for (const match of text.matchAll(BYTES_LITERAL)) {
@@ -304,6 +399,8 @@ export function findDeviceAddresses(text) {
       (value) => (/^(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/u.test(value) ? null : value.split(':').map((part) => parseInt(part, 16))),
     ],
     [MAC_HEX_LIST, (value) => (value.match(/0x[0-9A-Fa-f]{1,2}/giu) ?? []).map((part) => parseInt(part.slice(2), 16))],
+    [MAC_HEX_INTEGER, (value) => hexPairs(value.slice(2).padStart(12, '0'))],
+    [MAC_UNDERSCORE, hexPairs],
     [
       MAC_DECIMAL_LIST,
       (value) => {
@@ -355,12 +452,60 @@ function isPlaceholderEmail(local, domain) {
   );
 }
 /**
- * 한국 전화번호 모양(휴대전화 010·011 등, 지역 번호 02·031 등, 인터넷 전화 070, 대표 번호 080·050x).
- * 구분자(하이픈·점·공백)가 있는 것만 본다 — 버전·날짜 같은 숫자 나열과 헷갈리지 않게.
+ * 전화번호의 구분자: 붙임표·점·빈칸, 그리고 문서 편집기가 바꿔 넣는 줄표(‐ ‑ ‒ – — ―)와 전각 붙임표(－)
+ * (2026-09-26 Phase 6 안전 검토 지적 10 — 줄표로 적은 번호를 놓쳤다).
  */
-const PHONE_NUMBER = /(?<![\dA-Za-z-])(?:01[016789]|0[2-6]\d?|070|080|050\d)[-. ]\d{3,4}[-. ]\d{4}(?![\dA-Za-z-])/gu;
-/** 자리표시자 전화번호(전부 0) */
-const ALLOWED_PHONE_NUMBERS = /^0[\d]{1,3}[-. ]0{3,4}[-. ]0{4}$/u;
+const PHONE_SEP = '[-. ‐‑‒–—―－]';
+const PHONE_PREFIX = '(?:01[016789]|0[2-6]\\d?|070|080|050\\d)';
+/**
+ * 한국 전화번호 모양(휴대전화 010·011 등, 지역 번호 02·031 등, 인터넷 전화 070, 대표 번호 080·050x).
+ * 구분자가 있는 것만 본다 — 버전·날짜 같은 숫자 나열과 헷갈리지 않게(붙여 쓴 번호는 설계상 뺀다).
+ */
+const PHONE_NUMBER = new RegExp(`(?<![\\dA-Za-z+-])${PHONE_PREFIX}${PHONE_SEP}\\d{3,4}${PHONE_SEP}\\d{4}(?![\\dA-Za-z-])`, 'gu');
+/** 괄호로 감싼 앞 번호 — 휴대전화·지역 번호를 괄호 안에 적고 뒤에 두 묶음(예시 값은 이 파일에 적지 않는다 — 머리말) */
+const PHONE_PARENTHESIZED = new RegExp(`(?<![\\dA-Za-z])\\(${PHONE_PREFIX}\\)${PHONE_SEP}?\\d{3,4}${PHONE_SEP}\\d{4}(?![\\dA-Za-z-])`, 'gu');
+/** 국제 형식 — +82 뒤 앞 번호의 첫 0을 빼거나(+82-10-…) 괄호로 둔다(+82 (0)10 …) */
+const PHONE_INTERNATIONAL = new RegExp(
+  `(?<![\\dA-Za-z])\\+82${PHONE_SEP}?(?:\\(0\\))?${PHONE_SEP}?0?(?:1[016789]|[2-6]\\d?|70|80|50\\d)${PHONE_SEP}?\\d{3,4}${PHONE_SEP}\\d{4}(?![\\dA-Za-z-])`,
+  'gu',
+);
+/**
+ * 자리표시자 전화번호: 가운데·끝 묶음이 모두 0(010-0000-0000, +82-10-0000-0000).
+ * @param {string} value
+ */
+function isPlaceholderPhone(value) {
+  const groups = value.split(/\D+/u).filter((group) => group !== '');
+  return groups.length >= 2 && groups.slice(-2).every((group) => /^0+$/u.test(group));
+}
+/**
+ * 예제·차시에 적은 와이파이 비밀번호(2026-09-26 Phase 6 안전 검토 지적 10): wlan.connect('이름', '비밀번호')의 둘째 값과
+ * WIFI_PASSWORD·PASSWORD = '…' 같은 값이 자리표시자가 아니면 알린다(값은 알리지 않는다). examples/·content/에서만 본다.
+ */
+const WIFI_CONNECT = /(?<![A-Za-z0-9_])(?:wlan|sta(?:_if)?|station|wifi|nic|network)\s*\.\s*connect\(\s*(['"])([^'"\n]*)\1\s*,\s*(['"])([^'"\n]*)\3/giu;
+const PASSWORD_ASSIGN = /(?<![A-Za-z0-9_])(?:wifi_?password|wlan_?password|wifi_?pw|password|passwd|pwd)\s*[:=]\s*(['"])([^'"\n]*)\1/giu;
+const PLACEHOLDER_SECRET =
+  /^(?:|1234|12345678|0000|00000000|password|passwd|my-password|my_password|mypassword|your-password|your_password|yourpassword|비밀번호|와이파이 ?비밀번호|교실 ?와이파이 ?비밀번호|\*+|x+|…|\.{3}|<[^>]*>|\{[^}]*\}|\$\{[^}]*\})$/iu;
+
+/**
+ * 예제·차시 글에서 자리표시자가 아닌 와이파이 비밀번호 모양을 찾는다(값은 알리지 않는다).
+ * @param {string} text
+ * @returns {string[]}
+ */
+export function findWifiSecrets(text) {
+  /** @type {string[]} */
+  const findings = [];
+  for (const match of text.matchAll(WIFI_CONNECT)) {
+    if (!PLACEHOLDER_SECRET.test((match[4] ?? '').trim())) {
+      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 와이파이 비밀번호로 보이는 값(connect의 둘째 값 — 값은 가려서 표시)`);
+    }
+  }
+  for (const match of text.matchAll(PASSWORD_ASSIGN)) {
+    if (!PLACEHOLDER_SECRET.test((match[2] ?? '').trim())) {
+      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 비밀번호로 보이는 값(값은 가려서 표시)`);
+    }
+  }
+  return findings;
+}
 const HANGUL_CHARACTER = /\p{Script=Hangul}/u;
 const LATIN_CHARACTER = /[a-z0-9]/u;
 /**
@@ -426,6 +571,18 @@ const PROBLEM_KINDS = Object.freeze({
       '글·코드 파일(이진 확장자가 아닌 파일)의 앞부분에 NUL 바이트가 있으면 개인정보 검사가 그 파일을 이진 파일로 보고 건너뛰어요. ' +
       '이진 파일이면 알맞은 확장자로 저장하고, 글 파일이면 NUL 바이트를 지워요(코드에서 NUL이 필요하면 이스케이프 글자로 적어요).',
   },
+  'media-review': {
+    title: '사람이 보고(듣고) 확인한 기록이 없는 영상·소리 파일',
+    fix:
+      '영상·소리에는 얼굴·목소리·이름·촬영 위치가 담기기 쉬워 글 검사로 거를 수 없어요. 이 사이트는 영상·소리를 넣지 않는 것이 기본이에요 — ' +
+      `꼭 넣어야 하면 먼저 이슈로 의논하고, 끝까지 보고(듣고) 메타데이터를 지운 뒤 ${IMAGE_ALLOWLIST_FILE}에 path·sha256·reviewed(by·date·result "통과…")를 적어 함께 스테이징해요(MAINTENANCE.md 3절).`,
+  },
+  'binary-path': {
+    title: '정해진 자리 밖의 이진 파일',
+    fix:
+      '이진 파일은 글 검사를 건너뛰어서 자리를 정해 두었어요: .bin은 public/firmware/(펌웨어 목록 manifest.json의 sha256과 같아야 해요), ' +
+      '.task·.tflite는 public/models/, 글꼴은 public/fonts/, .wasm은 public/vendor/. 다른 자리에 두어야 하면 먼저 이슈로 의논해요(scripts/lib/repo-check.mjs BINARY_ALLOWED_ROOTS).',
+  },
   config: {
     title: '허용 목록 형식 오류',
     fix: '허용 목록 파일 맨 위의 설명을 보고 형식을 고쳐요.',
@@ -465,6 +622,7 @@ const PROBLEM_KINDS = Object.freeze({
  * @property {{ path: string, kinds: string[], reason: string }[]} [privacyExceptions] 개인정보 모양 검사 예외(public/licenses/ 아래 고지 원문의 이메일만)
  * @property {{ blob: string, reason: string }[]} [historyReviewed] 기록 훑기(runHistoryCheck)에서 사람이 보고 개인정보가 아니라고 확인한 blob
  * @property {Map<string, HandoutRecord>} [handoutReviews] 가린 편집본 경로 → 쪽별 눈 확인 기록. runRepoCheck가 git 인덱스의 기록 파일에서 모은다
+ * @property {Set<string>} [firmwareHashes] 펌웨어 목록(public/firmware/manifest.json)에 적힌 sha256. runRepoCheck가 git 인덱스에서 읽는다(없으면 대조하지 않음)
  */
 
 /**
@@ -661,14 +819,34 @@ export function findPrivacyPatterns(text, options = {}) {
     { regExp: DRIVE_MOUNT_USER_DIR, label: 'Windows 사용자 폴더 경로(Git Bash·WSL 모양)' },
     { regExp: MAC_USER_DIR, label: 'macOS 사용자 폴더 경로' },
     { regExp: LINUX_HOME_DIR, label: 'Linux 사용자 폴더 경로' },
+    { regExp: UNC_USER_DIR, label: '네트워크 공유(UNC) 사용자 폴더 경로' },
   ];
-  for (const { regExp, label } of userDirectoryRules) {
-    for (const match of text.matchAll(regExp)) {
-      if (!isPlaceholderUserName(match[1])) {
-        findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: ${label}(사용자 이름은 가려서 표시)`);
+  // %5C·%2F·%3A로 적은 주소 글자(file:///C:%5CUsers%5C…)는 한 번 풀어서 다시 본다 — 줄바꿈은 바뀌지 않아 줄 번호가 같다(2026-09-26 Phase 6 안전 검토 지적 10)
+  const pathTexts = PERCENT_PATH_CHARACTER.test(text)
+    ? [text, text.replace(/%5c/giu, '\\').replace(/%2f/giu, '/').replace(/%3a/giu, ':')]
+    : [text];
+  const pathFindings = new Set();
+  for (const source of pathTexts) {
+    /** @type {{ start: number, end: number, label: string }[]} */
+    const matches = [];
+    for (const { regExp, label } of userDirectoryRules) {
+      for (const match of source.matchAll(regExp)) {
+        if (!isPlaceholderUserName(match[1])) {
+          const start = match.index ?? 0;
+          matches.push({ start, end: start + match[0].length, label });
+        }
       }
     }
+    // 한 경로를 두 규칙이 함께 잡으면(네트워크 공유 경로 속 /Users/…) 먼저·길게 잡은 하나만 알린다
+    matches.sort((left, right) => left.start - right.start || right.end - left.end);
+    let coveredUntil = -1;
+    for (const item of matches) {
+      if (item.start < coveredUntil) continue;
+      coveredUntil = item.end;
+      pathFindings.add(`${lineNumberAt(source, item.start)}번째 줄: ${item.label}(사용자 이름은 가려서 표시)`);
+    }
   }
+  findings.push(...pathFindings);
   for (const match of text.matchAll(ONEDRIVE_DIR)) {
     findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: OneDrive 폴더 경로(기관·계정 이름이 드러날 수 있어요)`);
   }
@@ -676,15 +854,19 @@ export function findPrivacyPatterns(text, options = {}) {
     findings.push(`${lineNumberAt(text, index)}번째 줄: ${label}`);
   }
   if (!skipKinds.has('email')) {
-    for (const match of text.matchAll(EMAIL_ADDRESS)) {
+    // 전각 ＠로 적은 주소도 이메일로 본다(글자 수가 같아 줄 번호가 그대로다 — 2026-09-26 Phase 6 안전 검토 지적 10)
+    const emailText = text.includes('＠') ? text.replace(/＠/gu, '@') : text;
+    for (const match of emailText.matchAll(EMAIL_ADDRESS)) {
       if (!isPlaceholderEmail(match[1], match[2])) {
         findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 이메일 주소 모양(…@${match[2].split('.').slice(-1)[0]}, 앞부분은 가려서 표시)`);
       }
     }
   }
-  for (const match of text.matchAll(PHONE_NUMBER)) {
-    if (!ALLOWED_PHONE_NUMBERS.test(match[0])) {
-      findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 전화번호 모양(${match[0].slice(0, 3)}…, 나머지는 가려서 표시)`);
+  for (const regExp of [PHONE_NUMBER, PHONE_PARENTHESIZED, PHONE_INTERNATIONAL]) {
+    for (const match of text.matchAll(regExp)) {
+      if (!isPlaceholderPhone(match[0])) {
+        findings.push(`${lineNumberAt(text, match.index ?? 0)}번째 줄: 전화번호 모양(${match[0].slice(0, 3)}…, 나머지는 가려서 표시)`);
+      }
     }
   }
   return findings;
@@ -1205,6 +1387,31 @@ export function checkRepoFiles(files, rules) {
         problems.push({ kind: 'handout-review', path: filePath, detail: `${problem}(${HANDOUT_RECORD_FILE}).` });
       }
     }
+    // 영상·소리: 사람이 끝까지 보고(듣고) 적은 기록(sha256 포함)이 있어야 한다. 글 검사를 못 하니 바이트를 한 번 글로 훑어 경로·주소·이메일도 본다.
+    if (MEDIA_EXTENSIONS.has(extension)) {
+      const record = rules.imageReviews.get(filePath);
+      const problem =
+        describeReviewProblem(record, file.content) ??
+        (isPlainObject(record) && typeof record.sha256 !== 'string' ? '영상·소리 기록에는 sha256도 적어요(본 파일이 바뀌면 다시 봐야 해요)' : null);
+      if (problem) {
+        problems.push({ kind: 'media-review', path: filePath, detail: `${problem}(${IMAGE_ALLOWLIST_FILE}).` });
+      }
+      if (file.content) {
+        for (const finding of findPrivacyPatterns(file.content.toString('latin1'))) {
+          problems.push({ kind: 'privacy', path: filePath, detail: `파일 바이트 안: ${finding}` });
+        }
+      }
+    }
+    const allowedRoots = /** @type {Record<string, readonly string[]>} */ (BINARY_ALLOWED_ROOTS)[extension];
+    if (allowedRoots && !allowedRoots.some((root) => filePath.startsWith(root))) {
+      problems.push({ kind: 'binary-path', path: filePath, detail: `${extension} 파일은 ${allowedRoots.join('·')} 아래에만 둬요.` });
+    } else if (extension === '.bin' && file.content && rules.firmwareHashes && !rules.firmwareHashes.has(sha256Hex(file.content))) {
+      problems.push({
+        kind: 'binary-path',
+        path: filePath,
+        detail: `펌웨어 목록(${FIRMWARE_MANIFEST_FILE})에 적힌 sha256과 같은 파일이 아니에요(목록에 없는 .bin — 보드 백업 같은 파일일 수 있어요).`,
+      });
+    }
     if (RASTER_IMAGE_EXTENSIONS.has(extension) && file.content) {
       if (isUncheckableRaster(extension)) {
         problems.push({ kind: 'image-metadata', path: filePath, detail: `${extension}는 메타데이터를 확인할 수 없는 형식이에요.` });
@@ -1235,7 +1442,9 @@ export function checkRepoFiles(files, rules) {
       // 예외(privacy_exceptions)는 public/licenses/ 아래 고지 원문의 이메일 모양만 건너뛴다. 비공개 이름(needles)은 늘 검사한다.
       const exception = (rules.privacyExceptions ?? []).find((item) => matchesGlob(filePath, item.path));
       const patternFindings = findPrivacyPatterns(text, exception ? { skipKinds: exception.kinds } : {});
-      for (const finding of [...patternFindings, ...findPrivacyNeedles(text, rules.privacyNeedles)]) {
+      // 와이파이 비밀번호 모양은 학생·교사가 옮겨 적는 예제·차시에서만 본다(사이트 코드·검사의 가짜 값과 헷갈리지 않게)
+      const secretFindings = filePath.startsWith('examples/') || filePath.startsWith('content/') ? findWifiSecrets(text) : [];
+      for (const finding of [...patternFindings, ...secretFindings, ...findPrivacyNeedles(text, rules.privacyNeedles)]) {
         problems.push({ kind: 'privacy', path: filePath, detail: finding });
       }
     }
@@ -1612,11 +1821,40 @@ export function runRepoCheck({ rootDir, source = 'index' }) {
   const handoutRecords = collectHandoutRecords(files);
   rules.handoutReviews = handoutRecords.records;
   errors.push(...handoutRecords.errors);
+  const firmware = collectFirmwareHashes(files);
+  rules.firmwareHashes = firmware.hashes;
+  errors.push(...firmware.errors);
   const problems = checkRepoFiles(files, rules);
   for (const error of errors) {
     problems.push({ kind: 'config', path: error.file, detail: error.message });
   }
   return { ok: problems.length === 0, problems, fileCount: files.length, source };
+}
+
+/**
+ * 펌웨어 목록(public/firmware/manifest.json — 검사 대상 파일 목록 안의 것)에 적힌 sha256들. 목록 파일이 없으면 hashes는 undefined
+ * (대조하지 않음 — 펌웨어가 없는 저장소·단위 테스트). 목록이 있는데 읽을 수 없으면 설정 오류로 알린다.
+ * @param {RepoFile[]} files
+ * @returns {{ hashes: Set<string> | undefined, errors: { file: string, message: string }[] }}
+ */
+export function collectFirmwareHashes(files) {
+  const manifest = files.find((file) => file.path.normalize('NFC') === FIRMWARE_MANIFEST_FILE);
+  if (!manifest || !manifest.content) {
+    return { hashes: undefined, errors: [] };
+  }
+  try {
+    const data = JSON.parse(manifest.content.toString('utf8'));
+    const list = isPlainObject(data) && Array.isArray(data.firmware) ? data.firmware : [];
+    const hashes = new Set(
+      list.flatMap((item) => (isPlainObject(item) && typeof item.sha256 === 'string' ? [item.sha256.toLowerCase()] : [])),
+    );
+    return { hashes, errors: [] };
+  } catch (error) {
+    return {
+      hashes: undefined,
+      errors: [{ file: FIRMWARE_MANIFEST_FILE, message: `펌웨어 목록을 JSON으로 읽지 못했어요: ${error instanceof Error ? error.message : String(error)}` }],
+    };
+  }
 }
 
 // ── 기록·빌드 결과 훑기(2026-09-26 P6-05 개인정보 최종 점검에서 만든 것 — 커밋 전 훅·CI에는 걸지 않고 손으로 돌린다) ──

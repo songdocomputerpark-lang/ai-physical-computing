@@ -2245,7 +2245,8 @@ const MODULE_FACTORIES: Record<string, (runtime: Interpreter) => PyModule> = {
       soft_reset: fn('soft_reset', () => {
         throw new ResetSignal('soft');
       }),
-      unique_id: fn('unique_id', () => new PyBytes(Uint8Array.from([0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]))),
+      // ESP32의 unique_id는 공장 기본 MAC이라, 흉내 값도 사이트 가상 기기 주소 모양(첫 바이트 02 — 직접 정한 주소)으로 둔다(저장소 검사 C37)
+      unique_id: fn('unique_id', () => new PyBytes(Uint8Array.from([0x02, 0x00, 0x00, 0x00, 0x00, 0x0f]))),
       freq: fn('freq', () => 160_000_000),
     });
   },

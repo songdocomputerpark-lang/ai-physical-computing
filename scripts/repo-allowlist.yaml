@@ -94,3 +94,5 @@ history_reviewed:
     reason: src/lab/bridge/message.ts의 옛 판(e9e06a0, 2026-09-18)이 제어 문자 정규식에 NUL 글자를 그대로 적어 글로 읽히지 않았던 것이에요. NUL을 빈칸으로 바꿔 개인정보 규칙으로 다시 훑었더니 걸린 것이 없었어요(5394f61에서 이스케이프 글자로 고침).
   - blob: 500d90c707532d05842042063377efbe05c8b257
     reason: 같은 src/lab/bridge/message.ts의 더 옛 판(81745d7, 2026-09-18)으로 까닭이 위와 같아요. NUL을 빈칸으로 바꿔 다시 훑었더니 걸린 것이 없었어요.
+  - blob: 682440d19b4c2d3bd0bd0f58d3e32cbe77f5f415
+    reason: src/lab/serial/mock/mini-python.ts의 옛 판(fd86632, 2026-09-17 — Phase 3 모의 시리얼)이 모의 보드 machine.unique_id()의 흉내 값으로 적은 연속 바이트(0a부터 0f까지 차례로 늘어나는 여섯 값)예요. 실제 기기의 주소가 아니에요. 2026-09-26 Phase 6 안전 검토 지적 5로 unique_id(ESP32에서는 공장 MAC)를 기기 주소 낱말로 보게 되면서 걸렸고, 지금 판은 사이트 가상 주소 모양(02:00:00:00:00:0f)으로 바꿨어요.

@@ -550,12 +550,82 @@ describe('원본 이름 목록 만들기', () => {
     expect(findPrivacyPatterns(`sha256 ${'0123456789abcdef'.repeat(4)}`)).toEqual([]);
   });
 
+  it('영상·소리는 사람이 보고(듣고) 적은 기록(sha256 포함)이 있어야 하고 바이트 속 경로·주소도 훑는다, 이진 파일은 정해진 자리에만(2026-09-26 Phase 6 안전 검토 지적 6)', () => {
+    const clip = Buffer.concat([Buffer.from([0x00, 0x00, 0x00, 0x18]), Buffer.from(`ftypmp42 author ${realLookingEmail} ${windowsUserPath}`, 'latin1')]);
+    const noRecord = checkRepoFiles([repoFile('public/images/lessons/2-1-1/class-demo.mp4', clip)], rules());
+    expect(problemKeys(noRecord)).toEqual([
+      'media-review:public/images/lessons/2-1-1/class-demo.mp4',
+      'privacy:public/images/lessons/2-1-1/class-demo.mp4',
+      'privacy:public/images/lessons/2-1-1/class-demo.mp4',
+    ]);
+    const audio = repoFile('content/lessons/u2/voice.mp3', Buffer.from([0x49, 0x44, 0x33, 0x04, 0x00]));
+    const reviewedWithoutHash = rules({ imageReviews: new Map([[audio.path, { reviewed: { by: '운영자', date: '2026-09-26', result: '통과' } }]]) });
+    expect(problemKeys(checkRepoFiles([audio], reviewedWithoutHash))).toEqual(['media-review:content/lessons/u2/voice.mp3']);
+    const reviewed = rules({
+      imageReviews: new Map([[audio.path, { reviewed: { by: '운영자', date: '2026-09-26', result: '통과 — 끝까지 들음' }, sha256: sha256Hex(audio.content) }]]),
+    });
+    expect(checkRepoFiles([audio], reviewed)).toEqual([]);
+
+    // 이진 파일의 자리: 펌웨어 .bin은 public/firmware/ 아래, 목록의 sha256과 같아야
+    const firmware = repoFile('public/firmware/v1.29.0/board.bin', Buffer.from([0xe9, 0x03, 0x02, 0x20]));
+    const firmwareHashes = new Set([sha256Hex(firmware.content)]);
+    expect(checkRepoFiles([firmware], rules({ firmwareHashes }))).toEqual([]);
+    const backup = repoFile('public/firmware/v1.29.0/flash-backup.bin', Buffer.from([0xe9, 0x03, 0x02, 0x21]));
+    expect(problemKeys(checkRepoFiles([backup], rules({ firmwareHashes })))).toEqual(['binary-path:public/firmware/v1.29.0/flash-backup.bin']);
+    const misplaced = [
+      repoFile('content/lessons/u2/dump.bin', Buffer.from('ssid=우리집')),
+      repoFile('public/images/site/a.woff2', Buffer.from([0x77, 0x4f, 0x46, 0x32])),
+      repoFile('tests/fixtures/model.task', Buffer.from([0x00])),
+    ];
+    expect(problemKeys(checkRepoFiles(misplaced, rules())).sort()).toEqual(
+      ['binary-path:content/lessons/u2/dump.bin', 'binary-path:public/images/site/a.woff2', 'binary-path:tests/fixtures/model.task'].sort(),
+    );
+    const placed = [repoFile('public/models/hand.task', Buffer.from([0x00])), repoFile('public/fonts/pretendard/a.woff2', Buffer.from([0x77, 0x4f, 0x46, 0x32]))];
+    expect(checkRepoFiles(placed, rules())).toEqual([]);
+  });
+
+  it('국제 형식·괄호·줄표 전화번호, 전각 ＠ 이메일, 네트워크 공유·%5C로 적은 사용자 폴더 경로도 찾는다(2026-09-26 Phase 6 안전 검토 지적 10)', () => {
+    const middle = ['2345', '6789'];
+    const found = (text: string) => findPrivacyPatterns(text).length;
+    expect(found(`연락처 +82-10-${middle.join('-')}`)).toBe(1);
+    expect(found(`연락처 +82 10 ${middle.join(' ')}`)).toBe(1);
+    expect(found(`연락처 (010) ${middle.join('-')}`)).toBe(1);
+    expect(found(`연락처 010–${middle.join('–')}`)).toBe(1);
+    expect(found(`연락처 010－${middle.join('－')}`)).toBe(1);
+    expect(found(`메일 ${realLookingEmail.replace('@', '＠')}`)).toBe(1);
+    expect(found(['\\\\교무실PC', 'Users', 'kimteacher', 'Desktop', 'a.py'].join('\\'))).toBe(1);
+    expect(found(['//LAB-PC', 'c$', 'Users', 'kimteacher', 'a.py'].join('/'))).toBe(1);
+    expect(found(`file:///C:${['%5CUsers', 'kimteacher', 'Desktop'].join('%5C')}`)).toBe(1);
+    // 자리표시자와 일반 주소는 그대로 통과
+    expect(found('+82-10-0000-0000, (010) 0000-0000, 010–0000–0000')).toBe(0);
+    expect(found('https://github.com/Users/guide 과 //cdn.example.com/Users/x')).toBe(0);
+    expect(found(['\\\\교무실PC', 'Users', '<사용자>', 'a.py'].join('\\'))).toBe(0);
+  });
+
+  it('예제·차시의 와이파이 비밀번호는 자리표시자만 된다(값은 알리지 않는다, 2026-09-26 Phase 6 안전 검토 지적 10)', () => {
+    const secret = ['k1ms', 'chool', '2026!'].join('');
+    const leaky = [
+      repoFile('examples/esp32/u3/net.py', `wlan.connect("교실공유기", "${secret}")\n`),
+      repoFile('content/lessons/u3/c9.md', `WIFI_PASSWORD = '${secret}'\n`),
+    ];
+    const problems = checkRepoFiles(leaky, rules());
+    expect(problemKeys(problems)).toEqual(['privacy:examples/esp32/u3/net.py', 'privacy:content/lessons/u3/c9.md']);
+    expect(problems.map((problem) => problem.detail).join('\n')).not.toContain(secret);
+    const placeholders = [
+      repoFile('examples/esp32/u3/ok.py', 'wlan.connect("classroom-wifi", "my-password")\nsta.connect("이름", "비밀번호")\nWIFI_PASSWORD = "1234"\n'),
+      repoFile('content/lessons/u3/ok.md', '`wlan.connect("이름", "비밀번호")`\npassword = ""\n'),
+      // 사이트 코드·검사는 가짜 값이 있어도 이 규칙으로 보지 않는다(예제·차시에서만)
+      repoFile('src/lab/mock.ts', `wlan.connect("x", "${secret}")\n`),
+    ];
+    expect(checkRepoFiles(placeholders, rules())).toEqual([]);
+  });
+
   it('이진 확장자가 아닌 파일의 앞부분에 NUL이 있으면 건너뛰지 않고 알린다(개인정보 검사를 피하는 구멍)', () => {
     const nul = String.fromCharCode(0);
     const problems = checkRepoFiles(
       [
         repoFile('docs/notes.md', `기록${nul}${realLookingMac}`),
-        repoFile('public/models/a.bin', `x${nul}y`),
+        repoFile('public/firmware/v0/a.bin', `x${nul}y`),
       ],
       rules(),
     );
@@ -629,6 +699,20 @@ describe('기기 주소 모양(미해결 160 — P6-05에서 넓힘): 미탐·�
       ['십진수 목록(윗줄 명령)', `>>> list(wlan.config('mac'))\n[${sampleBytes.join(', ')}]`],
       ['I2C 줄이라도 같은 줄에 기기 주소 낱말', `i2c.writeto(0x3C, b'${hexEscapes(pairs)}')  # 보드 MAC 주소를 보냄`],
       ['JS·JSON 글자 안에 한 번 더 이스케이프', `'print(b"${pairs.map((pair) => ['\\\\', 'x', pair].join('')).join('')}")'`],
+      // ── 2026-09-26 Phase 6 안전 검토 지적 5: ESP32 unique_id(= 공장 MAC)·0x 정수·밑줄·표 속 값·EUI-64·fromhex·전각 쌍점 ──
+      ['REPL — unique_id 명령 다음 줄, \\x 두 개', `>>> machine.unique_id()\n${pyBytesRepr([...printableFront, 0x41, 0x9b, 0x02])}`],
+      ['같은 줄 unique_id + 주석의 print 결과(\\x 하나)', `print(machine.unique_id())  # ${pyBytesRepr([...printableFront, 0x41, 0x42, 0x9b])}`],
+      ['unique_id를 hexlify한 결과(따옴표 글자, 윗줄 명령)', `>>> ubinascii.hexlify(machine.unique_id()).decode()\n'${pairs.join('')}'`],
+      ['unique_id 흉내의 연속 값(가상 주소가 아닌 값)', `unique_id: () => Uint8Array.from([${listOf(['0a', '0b', '0c', '0d', '0e', '0f'])}])`],
+      ['0x 정수 12자리(mac 낱말)', `mac = 0x${pairs.join('')}`],
+      ['0x 정수 11자리(앞 0이 빠진 hex 결과, 윗줄 명령)', `>>> hex(int.from_bytes(wlan.config('mac'), 'big'))\n'0x${['0a', ...pairs.slice(1)].join('').slice(1)}'`],
+      ['밑줄로 이은 여섯 묶음(mac 낱말)', `board_mac = "${pairs.join('_')}"`],
+      ['마크다운 표 값 줄(머리 줄에 블루투스 주소)', `| 모둠 | 블루투스 주소 |\n|---|---|\n| 1모둠 | ${upper.join('')} |`],
+      ['마크다운 표 값 줄(머리 줄에 MAC, 빈칸 묶음)', `| 모둠 | MAC |\n| --- | --- |\n| 2모둠 | 비고 없음 |\n| 3모둠 | ${upper.join(' ')} |`],
+      ['IPv6 링크 로컬 EUI-64(가운데 ff:fe)', `ip: fe80::${pairs[0]}${pairs[1]}:${pairs[2]}ff:fe${pairs[3]}:${pairs[4]}${pairs[5]}`],
+      ['bytes.fromhex(ESP-NOW 짝)', `peer = bytes.fromhex('${pairs.join('')}')`],
+      ['unhexlify(콜론 없는 12자리)', `peer = ubinascii.unhexlify("${pairs.join('')}")`],
+      ['전각 쌍점으로 적은 주소', `보드 ${upper.join('：')}`],
     ];
     for (const [name, text] of cases) {
       expect({ name, count: findDeviceAddresses(text).length }).toEqual({ name, count: 1 });
@@ -672,7 +756,13 @@ describe('기기 주소 모양(미해결 160 — P6-05에서 넓힘): 미탐·�
       ['가린 자리표시자', `mac = ${placeholderMac}`],
       ['시각·IPv6·SHA-256', `12:34:56 fe80::1 sha256 ${'0123456789abcdef'.repeat(4)}`],
       ['I2C 스캔 결과', '>>> i2c.scan()\n[39, 60]'],
-      ['unique_id 흉내의 연속 값(주소 낱말이 아님)', `unique_id: () => Uint8Array.from([${listOf(['0a', '0b', '0c', '0d', '0e', '0f'])}])`],
+      // unique_id는 이제 기기 주소 낱말이라(ESP32 공장 MAC), 모의 보드 흉내 값은 사이트 가상 주소 모양으로 둔다(src/lab/serial/mock/mini-python.ts)
+      ['unique_id 흉내 — 사이트 가상 주소', `unique_id: () => Uint8Array.from([${listOf([...virtual, '0f'])}])`],
+      ['기기 주소 낱말 없는 밑줄 이름(색 이름 조각)', `color_${['aa', 'bb', 'cc', 'dd', 'ee', 'ff'].join('_')}_theme = 1`],
+      ['글꼴 fromhex(길이가 12자리가 아님)', `_FONT = bytes.fromhex('${'00'.repeat(20)}')`],
+      ['IPv6 링크 로컬이지만 EUI-64가 아님', 'fe80::1234:5678:9abc:def0'],
+      ['0x 정수지만 문맥 없음(색 값 목록 옆)', `COLOR = 0x${['12', '34', '56', '78', '9a', 'bc'].join('')}`],
+      ['마크다운 표지만 머리 줄에 기기 주소 낱말 없음', `| 차시 | 커밋 |\n|---|---|\n| 1-1-1 | ${pairs.join('')} |`],
     ];
     for (const [name, text] of passes) {
       expect({ name, found: findDeviceAddresses(text) }).toEqual({ name, found: [] });
@@ -756,14 +846,14 @@ describe('git 인덱스 검사(runRepoCheck, scripts/check-repo.mjs)', () => {
     writeFiles(rootDir, {
       'docs/INVENTORY.md': '| `교과서_안/고등_인공지능과피지컬_2단원-1.pdf` |\n',
       'docs/SPEC.md': '# 사양\n',
-      'public/big.bin': Buffer.alloc(LARGE_FILE_LIMIT_BYTES + 1024),
+      'public/firmware/v0/big.bin': Buffer.alloc(LARGE_FILE_LIMIT_BYTES + 1024),
       'content/lessons/u2/2-1-1.md': '원고 파일 고등_인공지능과피지컬_2단원-1.pdf에서 옮겼어요.\n',
     });
-    git(rootDir, 'add', 'docs/INVENTORY.md', 'docs/SPEC.md', 'public/big.bin', 'content/lessons/u2/2-1-1.md');
+    git(rootDir, 'add', 'docs/INVENTORY.md', 'docs/SPEC.md', 'public/firmware/v0/big.bin', 'content/lessons/u2/2-1-1.md');
 
     const result = runRepoCheck({ rootDir });
     expect(problemKeys(result.problems).sort()).toEqual(
-      ['forbidden:docs/SPEC.md', 'large-file:public/big.bin', 'original-name:content/lessons/u2/2-1-1.md'].sort(),
+      ['forbidden:docs/SPEC.md', 'large-file:public/firmware/v0/big.bin', 'original-name:content/lessons/u2/2-1-1.md'].sort(),
     );
   });
 
