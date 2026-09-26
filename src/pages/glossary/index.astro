@@ -110,7 +110,8 @@ group: 영상 처리             # 묶음 이름
         <code>content/glossary/</code> 폴더에 낱말 하나당 마크다운 파일 하나를 넣으면 이 페이지에 저절로 나타나요. 파일 이름은 영문
         소문자·숫자·하이픈으로 짓고, 그 이름이 주소 뒤 <code>#이름</code>이 돼요(예: <code>pixel.md</code> → <code>#pixel</code>).
       </p>
-      <pre class="glossary-code"><code>{frontmatterExample}</code></pre>
+      {/* 좁은 화면에서 옆으로 넘치면 Tab으로 들어와 방향키로 밀어 본다(src/components/common/scroll-focus.ts — Phase 6 접근성 점검) */}
+      <pre class="glossary-code" data-scroll-focus="용어 파일 예시"><code>{frontmatterExample}</code></pre>
       <p>
         차시 글에는 <code>{':용어[픽셀]'}</code>처럼 쓰고 조사는 대괄호 밖에 붙여요. 보이는 말이 표제어·다른 이름과 다르면{' '}
         <code>{':용어[화소]{항목=pixel}'}</code>처럼 파일 이름을 적어요. 사전에 없는 낱말을 쓰면 빌드 로그에 경고가 남고 글은 보통

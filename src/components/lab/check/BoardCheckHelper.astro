@@ -57,7 +57,8 @@ const labHref = withBase('labs/esp32/');
   <ol class="board-check__items" data-check-items></ol>
 
   <h2 class="board-check__heading">보드가 보낸 글</h2>
-  <pre class="board-check__console" role="log" aria-label="보드가 보낸 글" data-check-console></pre>
+  {/* data-scroll-focus: 글이 칸을 넘치면 Tab으로 들어와 방향키로 밀어 본다(역할·이름은 그대로 — src/components/common/scroll-focus.ts) */}
+  <pre class="board-check__console" role="log" aria-label="보드가 보낸 글" data-check-console data-scroll-focus="보드가 보낸 글"></pre>
   <form class="board-check__input" data-check-input hidden>
     <label for="board-check-input-field">보드로 보낼 한 줄(input)</label>
     <input id="board-check-input-field" type="text" autocomplete="off" data-check-input-field />

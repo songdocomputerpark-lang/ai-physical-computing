@@ -232,8 +232,19 @@ export function rewriteRootRelativeUrls(html: string): { html: string; warnings:
 /** [그림 크게 보기] 링크(좁은 화면에서만 보인다 — LessonBody.astro 스타일) */
 const ZOOM_LINK_CLASS = 'figure-zoom';
 
-function zoomLink(src: string): string {
-  return `<a class="${ZOOM_LINK_CLASS}" href="${src}" data-pagefind-ignore>그림 크게 보기</a>`;
+/**
+ * 링크 글은 화면에 "그림 크게 보기"만 보이고, 화면 낭독기에는 그림의 대체 글을 덧붙여 읽힌다(숨긴 글 — global.css의 .visually-hidden).
+ * 그림이 여럿인 차시에서 링크 목록으로 다니는 학생이 "그림 크게 보기"만 여러 번 듣고 어느 그림인지 모르던 것을 막는다
+ * (WCAG 2.4.4 링크 목적, 2026-09-26 Phase 6 접근성 점검). 대체 글이 비었으면(꾸밈 그림) 덧붙이지 않는다.
+ */
+function zoomLink(src: string, alt: string | undefined): string {
+  const name = alt?.trim() ? `<span class="visually-hidden">: ${alt.trim()}</span>` : '';
+  return `<a class="${ZOOM_LINK_CLASS}" href="${src}" data-pagefind-ignore>그림 크게 보기${name}</a>`;
+}
+
+/** <img …> 태그의 alt 값(속성에 적힌 그대로 — 이미 HTML 글자 참조로 적혀 있어 글 자리에 그대로 넣어도 된다) */
+function altOf(imageTag: string): string | undefined {
+  return /\salt="([^"]*)"/iu.exec(imageTag)?.[1];
 }
 
 /**
@@ -243,15 +254,42 @@ function zoomLink(src: string): string {
  */
 export function addImageZoomLinks(html: string): string {
   const withFigures = html.replace(/<figure>([\s\S]*?)<\/figure>/gu, (whole: string, inner: string) => {
-    const src = /<img\b[^>]*\ssrc="([^"]+)"/iu.exec(inner)?.[1];
-    if (!src || inner.includes(ZOOM_LINK_CLASS)) {
+    const image = /<img\b[^>]*>/iu.exec(inner)?.[0];
+    const src = image ? /\ssrc="([^"]+)"/iu.exec(image)?.[1] : undefined;
+    if (!image || !src || inner.includes(ZOOM_LINK_CLASS)) {
       return whole;
     }
+    const link = zoomLink(src, altOf(image));
     return inner.includes('</figcaption>')
-      ? `<figure>${inner.replace('</figcaption>', ` ${zoomLink(src)}</figcaption>`)}</figure>`
-      : `<figure>${inner}${zoomLink(src)}</figure>`;
+      ? `<figure>${inner.replace('</figcaption>', ` ${link}</figcaption>`)}</figure>`
+      : `<figure>${inner}${link}</figure>`;
   });
-  return withFigures.replace(/<p>(<img\b[^>]*\ssrc="([^"]+)"[^>]*>)<\/p>/giu, (_whole: string, image: string, src: string) => `<p>${image}${zoomLink(src)}</p>`);
+  return withFigures.replace(
+    /<p>(<img\b[^>]*\ssrc="([^"]+)"[^>]*>)<\/p>/giu,
+    (_whole: string, image: string, src: string) => `<p>${image}${zoomLink(src, altOf(image))}</p>`,
+  );
+}
+
+/**
+ * 두 방향 표(맨 위 왼쪽 머리 칸이 빈 표 — 마크다운 `| | 가 | 나 |`)를 화면 낭독기가 읽기 좋게 고친다:
+ * 빈 머리 칸은 보통 칸(<td>)으로, 몸통의 줄마다 첫 칸은 줄 머리(<th scope="row">)로. 그래야 칸마다 "줄 이름 + 열 이름"이 함께 읽힌다
+ * (WCAG 1.3.1 — 마크다운 표는 줄 머리를 적을 방법이 없고, 빈 <th>는 이름 없는 머리 칸이 된다: axe empty-table-header,
+ * 2026-09-26 Phase 6 접근성 점검에서 1-3-2의 MAR·EAR 비교 표로 찾음). 첫 머리 칸에 글이 있는 표는 그대로 둔다.
+ */
+export function markRowHeaderTables(html: string): string {
+  return html.replace(/<table\b[^>]*>[\s\S]*?<\/table>/giu, (table: string) => {
+    const emptyCorner = /(<thead\b[^>]*>\s*<tr\b[^>]*>\s*)<th\b([^>]*)>\s*<\/th>/iu;
+    if (!emptyCorner.test(table)) {
+      return table;
+    }
+    const withCorner = table.replace(emptyCorner, (_whole: string, before: string, attrs: string) => `${before}<td${attrs}></td>`);
+    return withCorner.replace(/<tbody\b[^>]*>[\s\S]*?<\/tbody>/iu, (body: string) =>
+      body.replace(
+        /(<tr\b[^>]*>\s*)<td\b([^>]*)>([\s\S]*?)<\/td>/giu,
+        (_whole: string, before: string, attrs: string, content: string) => `${before}<th scope="row"${attrs}>${content}</th>`,
+      ),
+    );
+  });
 }
 
 /** 본문 그림은 화면에 가까워질 때 받는다(학습 페이지 속도, SPEC §9). */
@@ -610,7 +648,7 @@ function templateWarnings(blocks: readonly WorkingSection[], options: LessonBody
  */
 export function planLessonBody(html: string, options: LessonBodyOptions): LessonBodyPlan {
   const warnings: string[] = [];
-  const rewritten = rewriteRootRelativeUrls(addImageZoomLinks(addLazyImageLoading(html)));
+  const rewritten = rewriteRootRelativeUrls(markRowHeaderTables(addImageZoomLinks(addLazyImageLoading(html))));
   warnings.push(...rewritten.warnings);
 
   const { intro, sections } = splitHtmlSections(rewritten.html);

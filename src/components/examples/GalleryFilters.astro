@@ -256,6 +256,15 @@ const { groups, virtualOkCount, total } = Astro.props;
     line-height: var(--leading-body);
   }
 
+  /*
+   * 화면 아래에 붙은 결과 개수 줄(아래)이 Tab으로 옮겨 간 보기를 가리지 않게, 초점을 따라 화면이 움직일 때 그 줄 높이만큼 위에서 멈춘다
+   * (WCAG 2.4.11 초점이 가려지지 않음 — 2026-09-26 Phase 6 접근성 점검의 키보드 걷기에서 부품 칸 둘째 줄이 줄 밑에 숨었다).
+   * 줄 높이: 넓은 화면 약 58px, 휴대폰 두 줄 약 90px.
+   */
+  :global(html:has(.gallery-filters__footer)) {
+    scroll-padding-block-end: 7rem;
+  }
+
   /* 고른 결과 개수 줄 — 거르기 칸을 보는 동안 화면 아래에 붙어 있다 */
   .gallery-filters__footer {
     position: sticky;

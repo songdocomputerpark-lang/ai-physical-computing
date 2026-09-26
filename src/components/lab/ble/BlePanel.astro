@@ -86,7 +86,8 @@ import { DEFAULT_NAME_PREFIX, NAME_MAX_BYTES, bleText, initLineFor, suggestBoard
       <span class="ble-real__count" data-ble-real-counts>{bleText.counts(0, 0, 0)}</span>
       <button type="button" class="lab-button lab-button--small" data-ble-real-action="clear">기록 지우기</button>
     </div>
-    <pre class="ble-real__lines" data-ble-real-log aria-live="polite">아직 주고받은 것이 없어요.</pre>
+    {/* data-scroll-focus: 기록이 칸을 넘치면 Tab으로 들어와 방향키로 밀어 본다(src/components/common/scroll-focus.ts — Phase 6 접근성 점검) */}
+    <pre class="ble-real__lines" data-ble-real-log aria-live="polite" data-scroll-focus="블루투스로 주고받은 기록">아직 주고받은 것이 없어요.</pre>
     <p class="ble-real__hex">
       마지막 값(16진수): <code data-ble-real-hex>—</code>
     </p>

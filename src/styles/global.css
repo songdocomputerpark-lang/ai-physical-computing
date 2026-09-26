@@ -428,6 +428,21 @@ textarea {
   scroll-behavior: auto !important;
 }
 
+/*
+ * ── 윈도 고대비(강제 색) 모드 ──
+ * 강제 색 모드에서는 바탕색·그림자가 모두 시스템 색으로 바뀌어, 바탕색으로만 나타내던 "고른 것·지금 있는 곳"
+ * ([블록]/[코드] 전환 단추, 출력 창·보드 대상 탭, 주 메뉴의 지금 있는 곳)이 보이지 않았다(2026-09-26 Phase 6 접근성 점검, 강제 색 흉내로 확인).
+ * 테두리 선으로 한 번 더 보인다. 초점 표시(:focus-visible)와 겹치면 초점 표시가 먼저다.
+ */
+@media (forced-colors: active) {
+  :is([aria-pressed='true'], [role='tab'][aria-selected='true'], .site-nav__link[data-active], .site-nav__sublink[aria-current='page']):not(
+      :focus-visible
+    ) {
+    outline: 2px solid SelectedItem;
+    outline-offset: -2px;
+  }
+}
+
 /* ── 인쇄 ── */
 @media print {
   .skip-link {

@@ -36,7 +36,7 @@ const units = learnUnits.map((unit) => {
             차시 {counts.ready + counts.planned}개 가운데 {counts.ready}개를 볼 수 있어요.
           </p>
         </header>
-        <UnitOutline sections={sections} headingLevel={3} />
+        <UnitOutline sections={sections} headingLevel={3} contextId={`${unit.id}-title`} />
       </section>
     ))
   }

@@ -143,7 +143,7 @@ const total = errorCatalog.entries.length;
             {entry.example && (
               <>
                 <h4 class="errors-entry__subtitle">이런 코드에서 나요</h4>
-                <pre class="errors-entry__code"><code>{entry.example.code}</code></pre>
+                <pre class="errors-entry__code" data-scroll-focus={`${preview.title} — 예시 코드`}><code>{entry.example.code}</code></pre>
                 <p class="errors-entry__message"><code>{entry.example.error}</code></p>
               </>
             )}

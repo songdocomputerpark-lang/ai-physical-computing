@@ -434,6 +434,7 @@ export function mountBoardCheck(root: HTMLElement): (() => void) | void {
     const output = document.createElement('pre');
     output.className = 'board-check__output';
     output.dataset.checkOutput = '';
+    output.dataset.scrollFocus = '보드가 보낸 결과'; // 넘치면 키보드로 밀어 보게(scroll-focus.ts — Phase 6 요청 B-4)
     output.hidden = true;
     const savedOutput = records[item.id]?.output?.trim();
     if (savedOutput) {

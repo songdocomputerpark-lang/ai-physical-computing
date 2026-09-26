@@ -79,7 +79,10 @@ const hasNotice = Astro.slots.has('notice');
     <link rel="icon" type="image/svg+xml" href={withBase('images/site/favicon.svg')} />
     <!-- Pretendard 가변 글꼴(공식 다이내믹 서브셋): 페이지에 쓰인 글자가 든 조각만 받는다. font-display: swap이라 받는 동안에도 글이 보이고,
          그동안은 src/styles/fonts.css의 'Pretendard Fallback'(폭·높이를 맞춘 맑은 고딕)으로 보여 조각이 도착해도 줄이 밀리지 않는다. -->
-    <link rel="stylesheet" href={withBase('fonts/pretendard/pretendardvariable-dynamic-subset.css')} />
+    <!-- 글꼴 CSS는 첫 그리기를 막지 않게 받는다(Phase 6 P6-02 — 느린 3G에서 왕복 한 번 2초, 구역 A 요청 A-2): media="print"로 받기 시작해 도착하면 all로 바꾼다.
+         그동안은 위의 'Pretendard Fallback'(폭·높이를 맞춘 맑은 고딕)으로 보여 글이 먼저 읽힌다. 자바스크립트가 꺼져 있으면 noscript 쪽이 받는다. -->
+    <link rel="stylesheet" href={withBase('fonts/pretendard/pretendardvariable-dynamic-subset.css')} media="print" onload="this.setAttribute('media','all')" />
+    <noscript><link rel="stylesheet" href={withBase('fonts/pretendard/pretendardvariable-dynamic-subset.css')} /></noscript>
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={siteConfig.name} />
     <meta property="og:title" content={isHome ? siteConfig.name : title} />
@@ -124,9 +127,12 @@ const hasNotice = Astro.slots.has('notice');
     </div>
     <SiteFooter />
     {/* 오프라인 준비(PD-11, P2-05). 실패해도 사이트는 그대로 돈다. 주소에 ?sw=off를 붙이면 등록을 풀고 이 사이트 캐시를 지운다. */}
+    {/* 넘치는 표·그림 칸을 키보드로도 밀어 보게(넘치는 동안만 Tab 차례에 — src/components/common/scroll-focus.ts, Phase 6 접근성 점검) */}
     <script>
+      import { installScrollFocus } from '../components/common/scroll-focus.ts';
       import { registerServiceWorker } from '../lab/loader/sw-client.ts';
 
+      installScrollFocus();
       void registerServiceWorker();
     </script>
   </body>

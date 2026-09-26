@@ -189,7 +189,9 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       button.setAttribute('aria-expanded', open ? 'true' : 'false');
       button.textContent = open ? CLOSE_LABEL : OPEN_LABEL;
       if (open) {
-        slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        // 움직임 줄이기를 켠 학생에게는 부드럽게 흐르지 않고 바로 옮긴다(자바스크립트의 smooth는 CSS 움직임 줄이기 규칙이 막지 못한다 — Phase 6 접근성 점검)
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        slot.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
       } else {
         // 아래 줄의 [실습실 접기]로 접었으면 읽던 예제 자리로 돌아온다(접힌 틀 높이만큼 화면이 튀지 않게).
         button.scrollIntoView({ block: 'nearest' });

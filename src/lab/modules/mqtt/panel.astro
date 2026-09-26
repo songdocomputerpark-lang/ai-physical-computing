@@ -68,7 +68,7 @@ const dashboardHref = getPage('labs-iot-dashboard').href;
 
     <div class="mqtt__row">
       <span class="mqtt__label" id="lab-module-mqtt-prefix-label">통신 접두어</span>
-      <code class="mqtt__prefix" data-mqtt-prefix aria-labelledby="lab-module-mqtt-prefix-label"></code>
+      <code class="mqtt__prefix" data-mqtt-prefix></code>
       <button type="button" class="lab-button lab-button--small" data-mqtt-copy-prefix>복사</button>
       <button type="button" class="lab-button lab-button--small" data-mqtt-new-prefix>새로 만들기</button>
       <button type="button" class="lab-button lab-button--small" data-mqtt-pin aria-pressed="false">이 접두어 고정</button>
@@ -127,7 +127,7 @@ const dashboardHref = getPage('labs-iot-dashboard').href;
   <p class="mqtt__hint" data-mqtt-hint aria-live="polite" hidden></p>
 
   <h3 class="mqtt__log-title">주고받은 기록</h3>
-  <ul class="mqtt__log" data-mqtt-log aria-live="polite"></ul>
+  <ul class="mqtt__log" data-mqtt-log aria-live="polite" data-scroll-focus="MQTT로 주고받은 기록"></ul>
 </div>
 
 <style>

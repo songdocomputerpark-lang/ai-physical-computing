@@ -5,6 +5,7 @@ import {
   addImageZoomLinks,
   addLazyImageLoading,
   decodeHtmlEntities,
+  markRowHeaderTables,
   planLessonBody,
   rewriteRootRelativeUrls,
   sectionKeyFromHeading,
@@ -280,14 +281,39 @@ describe('주소·그림 도우미', () => {
 
   it('본문 그림(figure·문단 하나의 그림)에 [그림 크게 보기] 링크를 붙이고, 표 안 그림에는 붙이지 않는다(Phase 5 검토 사소 10)', () => {
     const figure = ['<figure>', '<img src="/images/a.svg" alt="가">', '<figcaption>설명</figcaption>', '</figure>'].join('\n');
-    expect(addImageZoomLinks(figure)).toContain('<figcaption>설명 <a class="figure-zoom" href="/images/a.svg" data-pagefind-ignore>그림 크게 보기</a></figcaption>');
+    // 화면 글은 "그림 크게 보기", 화면 낭독기에는 그림의 대체 글을 덧붙인다(숨긴 글 — Phase 6 접근성 점검, WCAG 2.4.4)
+    expect(addImageZoomLinks(figure)).toContain(
+      '<figcaption>설명 <a class="figure-zoom" href="/images/a.svg" data-pagefind-ignore>그림 크게 보기<span class="visually-hidden">: 가</span></a></figcaption>',
+    );
     expect(addImageZoomLinks('<p><img src="/images/b.webp" alt="나"></p>')).toBe(
-      '<p><img src="/images/b.webp" alt="나"><a class="figure-zoom" href="/images/b.webp" data-pagefind-ignore>그림 크게 보기</a></p>',
+      '<p><img src="/images/b.webp" alt="나"><a class="figure-zoom" href="/images/b.webp" data-pagefind-ignore>그림 크게 보기<span class="visually-hidden">: 나</span></a></p>',
+    );
+    // 대체 글이 빈 꾸밈 그림은 덧붙이지 않는다
+    expect(addImageZoomLinks('<p><img src="/images/d.webp" alt=""></p>')).toBe(
+      '<p><img src="/images/d.webp" alt=""><a class="figure-zoom" href="/images/d.webp" data-pagefind-ignore>그림 크게 보기</a></p>',
     );
     const inTable = '<table><tr><td><img src="/images/c.webp" alt="다"> 글</td></tr></table>';
     expect(addImageZoomLinks(inTable)).toBe(inTable);
     // 두 번 불러도 한 번만
     expect(addImageZoomLinks(addImageZoomLinks(figure)).match(/figure-zoom/gu)).toHaveLength(1);
+  });
+
+  it('맨 위 왼쪽 머리 칸이 빈 두 방향 표는 빈 칸을 <td>로, 줄마다 첫 칸을 줄 머리(<th scope="row">)로 바꾼다(Phase 6 접근성 점검)', async () => {
+    const html = await render(['| | 가 | 나 |', '| --- | --- | --- |', '| 쓰는 점 | 입 | 눈 |', '| 판단 | **크면** | 작으면 |'].join('\n'));
+    const marked = markRowHeaderTables(html);
+    expect(marked).not.toMatch(/<th[^>]*>\s*<\/th>/u);
+    expect(marked).toMatch(/<thead>\s*<tr>\s*<td><\/td>\s*<th>가<\/th>/u);
+    expect(marked).toContain('<th scope="row">쓰는 점</th>');
+    expect(marked).toContain('<th scope="row">판단</th>');
+    // 줄 머리 뒤의 보통 칸은 그대로
+    expect(marked).toContain('<td><strong>크면</strong></td>');
+    // 첫 머리 칸에 글이 있는 보통 표는 건드리지 않는다
+    const plain = await render(['| 이름 | 값 |', '| --- | --- |', '| a | 1 |'].join('\n'));
+    expect(markRowHeaderTables(plain)).toBe(plain);
+    // 차시 본문 처리(planLessonBody)에도 들어 있다
+    const plan = planLessonBody(`<h2 id="학습목표">학습목표</h2>${html}`, { exampleCount: 0, quizCount: 0, checkTemplate: false });
+    const part = plan.sections[0]?.parts[0];
+    expect(part?.type === 'html' ? part.html : '').toContain('<th scope="row">쓰는 점</th>');
   });
 
   it('본문 그림에 느린 받기(loading="lazy")를 한 번만 붙인다', () => {

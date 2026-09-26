@@ -220,6 +220,8 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     // 메시지마다 낭독기가 읽지 않게 알림 칸으로 두지 않는다(값이 흐르면 초당 몇 번씩 읽었다 — 2026-09-25 Phase 4 검토 반영)
     logList.setAttribute('aria-live', 'off');
     logList.setAttribute('aria-label', `${widget.title} 목록`);
+    // 기록이 쌓여 넘치면 키보드로도 밀어 볼 수 있게(src/components/common/scroll-focus.ts — Phase 6 접근성 요청 B-4, 이름은 위 aria-label을 그대로 씀)
+    logList.dataset.scrollFocus = `${widget.title} 기록`;
     body.append(logList);
   }
 
@@ -256,6 +258,64 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     addField({ id: `${settingsId}-on`, label: '켤 때 보낼 말', value: widget.onText, maxLength: SEND_TEXT_MAX, name: 'onText' });
     addField({ id: `${settingsId}-off`, label: '끌 때 보낼 말', value: widget.offText, maxLength: SEND_TEXT_MAX, name: 'offText' });
   }
+
+  // ── 끌지 않고 옮기기·크기 바꾸기(WCAG 2.2 2.5.7 끌기 동작 — 2026-09-26 Phase 6 접근성 요청 B-5) ──
+  // 손잡이·크기 단추를 끄는 일을 마우스·손가락 한 번 누르기로도 한다(키보드 방향키는 끌기를 대신하지 못한다 — 2.5.7은 한 손가락 누르기를 요구).
+  // 손잡이 방향키와 같은 처리기(onGrabKey)를 불러 격자 규칙·저장·알림(dashText.moved·resized·edge)이 모두 같다.
+  const place = el('div', 'dash-widget__place');
+  place.dataset.dashPlace = '';
+  const PLACE_ROWS: readonly {
+    readonly from: 'grab' | 'resize';
+    readonly label: string;
+    readonly name: string;
+    readonly buttons: readonly { readonly key: string; readonly arrow: string; readonly text: string }[];
+  }[] = [
+    {
+      from: 'grab',
+      label: '자리',
+      name: '자리 옮기기',
+      buttons: [
+        { key: 'ArrowLeft', arrow: '←', text: '왼쪽' },
+        { key: 'ArrowRight', arrow: '→', text: '오른쪽' },
+        { key: 'ArrowUp', arrow: '↑', text: '위' },
+        { key: 'ArrowDown', arrow: '↓', text: '아래' },
+      ],
+    },
+    {
+      from: 'resize',
+      label: '크기',
+      name: '크기 바꾸기',
+      buttons: [
+        { key: 'ArrowLeft', arrow: '−', text: '좁게' },
+        { key: 'ArrowRight', arrow: '+', text: '넓게' },
+        { key: 'ArrowUp', arrow: '−', text: '낮게' },
+        { key: 'ArrowDown', arrow: '+', text: '높게' },
+      ],
+    },
+  ];
+  const placeButtons: HTMLButtonElement[] = [];
+  for (const row of PLACE_ROWS) {
+    const group = el('div', 'dash-widget__place-row');
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', row.name);
+    group.dataset.dashPlaceFrom = row.from;
+    const label = el('span', 'dash-widget__place-label', row.label);
+    label.setAttribute('aria-hidden', 'true');
+    group.append(label);
+    for (const item of row.buttons) {
+      const button = el('button', 'dash-widget__small dash-widget__place-button');
+      button.type = 'button';
+      button.dataset.dashPlaceFrom = row.from;
+      button.dataset.dashPlaceKey = item.key;
+      const arrow = el('span', 'dash-widget__place-arrow', item.arrow);
+      arrow.setAttribute('aria-hidden', 'true');
+      button.append(arrow, document.createTextNode(item.text));
+      group.append(button);
+      placeButtons.push(button);
+    }
+    place.append(group);
+  }
+  settings.append(place);
 
   const resize = el('button', 'dash-widget__resize');
   resize.type = 'button';
@@ -326,6 +386,16 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
   resize.addEventListener('keydown', onResizeKeyDown);
   cleanups.push(() => grab.removeEventListener('keydown', onGrabKeyDown));
   cleanups.push(() => resize.removeEventListener('keydown', onResizeKeyDown));
+
+  const onPlaceClick = (event: MouseEvent): void => {
+    const button = event.currentTarget as HTMLButtonElement;
+    const from = button.dataset.dashPlaceFrom === 'resize' ? 'resize' : 'grab';
+    handlers.onGrabKey(spec.id, new KeyboardEvent('keydown', { key: button.dataset.dashPlaceKey ?? '' }), from);
+  };
+  for (const button of placeButtons) {
+    button.addEventListener('click', onPlaceClick);
+    cleanups.push(() => button.removeEventListener('click', onPlaceClick));
+  }
 
   const onGrabPointerDown = (event: PointerEvent): void => handlers.onGrabPointer(spec.id, event);
   grab.addEventListener('pointerdown', onGrabPointerDown);

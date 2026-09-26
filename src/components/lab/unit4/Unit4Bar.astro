@@ -170,6 +170,11 @@ const { pairs } = Astro.props;
     display: none;
   }
 
+  /* 떠 있는 상태 줄이 보이는 동안에는 Tab으로 옮겨 간 초점이 그 줄 밑(화면 맨 위)에 숨지 않게 그만큼 아래에서 멈춘다(WCAG 2.4.11, Phase 6 접근성 점검) */
+  :global(html:has(.unit4-float:not([hidden]))) {
+    scroll-padding-block-start: 6rem;
+  }
+
   .unit4-float__text {
     flex: 1 1 18rem;
     min-width: 0;

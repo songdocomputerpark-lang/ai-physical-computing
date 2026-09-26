@@ -4,10 +4,12 @@
  * LabShell이 [data-lab-module-panel="loading"] 안에 그려 두고(hidden), index.ts의 mount가 showPanel()로 연다.
  * 이 파일은 HTML·CSS만 그리고, 글자·단계 줄·카드 내용은 index.ts가 data-loading-* 표시를 찾아 채운다
  * (카드 글은 src/lab/loader/cards.ts 한 곳에 있다).
+ * 겉과 카드 칸은 영역(section)이 아니라 이름 붙은 묶음(role="group")이다 — 영역 이름은 LabShell의 모듈 칸("준비 — 컴퓨터 칸" 등)이 맡아,
+ * 한 쪽에 실습실 틀이 둘인 4단원 화면에서 같은 이름의 영역이 겹치지 않게 한다(axe landmark-unique, 2026-09-26 Phase 6 통합).
  */
 ---
 
-<section class="loading" data-loading-panel data-collapsed="false" aria-labelledby="lab-loading-title">
+<div class="loading" data-loading-panel data-collapsed="false" role="group" aria-labelledby="lab-loading-title">
   <div class="loading__head">
     <h3 class="loading__title" id="lab-loading-title" data-loading-title>파이썬을 준비하고 있어요</h3>
     <p class="loading__line" role="status" aria-live="polite" data-loading-text></p>
@@ -23,7 +25,7 @@
 
     <p class="loading__source" data-loading-source-text></p>
 
-    <section class="loading__cards" data-loading-cards aria-label="기다리는 동안 읽는 1분 개념">
+    <div class="loading__cards" data-loading-cards role="group" aria-label="기다리는 동안 읽는 1분 개념">
       <article class="loading__card" data-loading-card>
         <h4 class="loading__card-title" data-loading-card-title></h4>
         <div class="loading__card-body" data-loading-card-body></div>
@@ -35,7 +37,7 @@
         <span class="loading__card-counter" data-loading-counter aria-live="off"></span>
         <button type="button" class="lab-button lab-button--small" data-loading-next aria-label="다음 개념 카드">다음 →</button>
       </div>
-    </section>
+    </div>
 
     <div class="loading__actions">
       <button type="button" class="lab-button" data-loading-prefetch>이 컴퓨터에 실습 파일 미리 받기</button>
@@ -44,7 +46,7 @@
 
     <p class="loading__note" data-loading-note></p>
   </div>
-</section>
+</div>
 
 <style>
   .loading {

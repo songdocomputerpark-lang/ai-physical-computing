@@ -33,8 +33,9 @@
   </div>
 
   <div class="bridge__row bridge__row--prefix">
+    {/* 이름표는 바로 앞 글자로 읽힌다. 역할 없는 <code>에 aria-labelledby를 달면 낭독기가 읽지 않는다(axe aria-prohibited-attr — Phase 6 접근성 점검) */}
     <span class="bridge__label" id="lab-bridge-prefix-label">통신 접두어</span>
-    <code class="bridge__prefix" data-bridge-prefix aria-labelledby="lab-bridge-prefix-label">-</code>
+    <code class="bridge__prefix" data-bridge-prefix>-</code>
     <button type="button" class="lab-button lab-button--small" data-bridge-new-prefix>새로 만들기</button>
     <label class="bridge__check">
       <input type="checkbox" data-bridge-pin />
@@ -105,7 +106,8 @@
 
   <div class="bridge__log-box">
     <span class="bridge__label">주고받은 글</span>
-    <ul class="bridge__log" data-bridge-log aria-live="off"></ul>
+    {/* data-scroll-focus: 기록이 칸을 넘치면 Tab으로 들어와 방향키로 밀어 본다(src/components/common/scroll-focus.ts — Phase 6 접근성 점검) */}
+    <ul class="bridge__log" data-bridge-log aria-live="off" data-scroll-focus="주고받은 글 기록"></ul>
   </div>
 </div>
 

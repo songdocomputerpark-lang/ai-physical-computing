@@ -2,7 +2,8 @@
 /**
  * 바닥글(공통 레이아웃의 일부, PLAN §8.1 P1-05·P1-10, PD-26)
  * - 사이트 지도: src/config/nav.ts의 최상위 페이지와 한 단계 아래 페이지
- * - 사이트 이름과 버전(package.json), 만든 사람(DECISIONS C2)
+ * - 사이트 이름과 버전(package.json → src/config/site.ts의 version)·버전별 바뀐 점(저장소의 CHANGELOG.md, P6-06), 만든 사람(DECISIONS C2)
+ *   판 번호를 올릴 때는 package.json의 version만 고친다 — 바닥글은 빌드할 때 그 값을 읽는다(MAINTENANCE.md 10절 "사이트 판 번호와 CHANGELOG").
  * - 라이선스 두 줄(학습 자료 CC BY-NC-SA 4.0, 사이트 프로그램과 예제 코드 MIT — 라이선스 요약 링크와 저장소의 라이선스 파일 링크)과
  *   제3자 자료 제외 문구, 출처와 라이선스 링크(P1-10 완료 기준 "바닥글에서 연결")
  * - 저장소·문제 알리기(GitHub Issues) 링크
@@ -14,6 +15,8 @@ import { withBase } from '../../lib/url.ts';
 
 const { content, software, exclusion } = siteConfig.license;
 const sections = siteMap.filter((page) => page.id !== 'home');
+/** 버전별 바뀐 점(저장소 뿌리의 CHANGELOG.md — Phase 6 유지보수 문서) */
+const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
 ---
 
 <footer class="site-footer">
@@ -43,7 +46,7 @@ const sections = siteMap.filter((page) => page.id !== 'home');
 
     <div class="site-footer__about">
       <p class="site-footer__title">
-        {siteConfig.name} <span class="site-footer__version">버전 {siteConfig.version}</span>
+        {siteConfig.name} <span class="site-footer__version" data-site-version={siteConfig.version}>버전 {siteConfig.version}</span> <a class="site-footer__changelog" href={changelogUrl}>바뀐 점 기록</a>
       </p>
       <p>만든 사람: {siteConfig.author}</p>
       <ul class="site-footer__licenses">
@@ -128,6 +131,15 @@ const sections = siteMap.filter((page) => page.id !== 'home');
   .site-footer__version {
     margin-inline-start: var(--space-2);
     color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+  }
+
+  /* 바뀐 점 기록 링크: 문장 속 링크처럼 위아래 여백으로 누르는 곳을 24px 넘게(WCAG 2.5.8) */
+  .site-footer__changelog {
+    display: inline-block;
+    margin-inline-start: var(--space-2);
+    padding-block: var(--space-1);
+    font-size: var(--text-sm);
     font-weight: var(--weight-regular);
   }
 

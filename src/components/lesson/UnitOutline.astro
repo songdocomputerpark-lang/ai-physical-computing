@@ -2,6 +2,8 @@
 // 대단원 하나의 목록: 묶음(중단원) 제목과 차시 카드.
 // 목록 계산은 lesson-data.ts의 buildUnitOutline이 한다(차례표와 content/lessons의 md를 합침).
 // 쓰는 법: UnitOutline에 sections(buildUnitOutline 결과)와 headingLevel(배우기 페이지 3, 대단원 페이지 2)을 넘긴다.
+// 대단원 여럿을 한 쪽에 보이면(배우기 페이지) contextId에 대단원 제목의 id를 넘긴다 — 묶음 칸(영역) 이름이 "대단원 마무리 I. 영상 처리 인공지능"처럼
+// 대단원까지 읽혀, 대단원마다 있는 같은 이름의 묶음("대단원 마무리")이 화면 낭독기 영역 목록에서 구별된다(axe landmark-unique, Phase 6 접근성 점검).
 // 주의: 이 머리말을 JSDoc 블록 주석으로 쓰면 Astro 컴파일러가 Props를 찾지 못해 props 타입 검사가 꺼졌다(2026-09-16 확인).
 import LessonCard from './LessonCard.astro';
 import type { OutlineSection } from './lesson-data.ts';
@@ -9,16 +11,18 @@ import type { OutlineSection } from './lesson-data.ts';
 interface Props {
   sections: readonly OutlineSection[];
   headingLevel?: 2 | 3;
+  contextId?: string;
 }
 
-const { sections, headingLevel = 2 } = Astro.props;
+const { sections, headingLevel = 2, contextId } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const labelledBy = (key: string): string => (contextId ? `${key}-title ${contextId}` : `${key}-title`);
 ---
 
 <div class="unit-outline">
   {
     sections.map((section) => (
-      <section class="unit-outline__section" aria-labelledby={`${section.key}-title`}>
+      <section class="unit-outline__section" aria-labelledby={labelledBy(section.key)}>
         <Heading class="unit-outline__title" id={`${section.key}-title`}>
           {section.title}
         </Heading>

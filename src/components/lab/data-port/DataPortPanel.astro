@@ -74,7 +74,8 @@ import { dataPortText } from '../../../lab/serial/data-port/text.ts';
       <span class="data-port__count" data-data-port-count>받은 0바이트 · 보낸 0바이트</span>
       <button type="button" class="lab-button lab-button--small" data-data-port-action="clear">기록 지우기</button>
     </div>
-    <pre class="data-port__lines" data-data-port-lines aria-live="polite">아직 받은 것이 없어요.</pre>
+    {/* data-scroll-focus: 기록이 칸을 넘치면 Tab으로 들어와 방향키로 밀어 본다(src/components/common/scroll-focus.ts — Phase 6 접근성 점검) */}
+    <pre class="data-port__lines" data-data-port-lines aria-live="polite" data-scroll-focus="데이터 포트로 주고받은 기록">아직 받은 것이 없어요.</pre>
     <p class="data-port__hex">
       마지막 바이트(16진수): <code data-data-port-hex>—</code>
     </p>
@@ -100,7 +101,7 @@ import { dataPortText } from '../../../lab/serial/data-port/text.ts';
       변환기가 없으면 보드에 아래 코드를 올려 두고 실습실 입력줄로 <code>a</code>·<code>b</code>를 보내 볼 수 있어요. 아직 실물
       확인 전이라 기본 통로로는 쓰지 않아요.
     </p>
-    <pre class="data-port__code" data-data-port-template>{SINGLE_USB_TEMPLATE}</pre>
+    <pre class="data-port__code" data-data-port-template data-scroll-focus="보드 쪽 코드 틀">{SINGLE_USB_TEMPLATE}</pre>
     <button type="button" class="lab-button lab-button--small" data-data-port-action="template">편집칸에 이 코드 넣기</button>
   </details>
 </section>

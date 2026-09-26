@@ -56,8 +56,9 @@ const checkHref = getPage('start-check').href;
     <p class="dash__note" data-dash-broker-note></p>
 
     <div class="dash__row">
+      {/* 이름표는 바로 앞 글자로 읽힌다. 역할 없는 <code>에 aria-labelledby를 달면 낭독기가 읽지 않는다(axe aria-prohibited-attr — Phase 6 접근성 점검) */}
       <span class="dash__label" id="dash-prefix-label">통신 접두어</span>
-      <code class="dash__prefix" data-dash-prefix aria-labelledby="dash-prefix-label"></code>
+      <code class="dash__prefix" data-dash-prefix></code>
       <button type="button" class="button button--secondary dash__small" data-dash-copy-prefix>복사</button>
       <button type="button" class="button button--secondary dash__small" data-dash-new-prefix>새로 만들기</button>
       <button type="button" class="button button--secondary dash__small" data-dash-pin aria-pressed="false">이 접두어 고정</button>
@@ -110,10 +111,10 @@ const checkHref = getPage('start-check').href;
     <p class="dash__help" id="dash-keyboard-help" data-dash-help>
       <span class="dash__help-wide">
         위젯 제목(손잡이)을 끌어서 옮겨요. 키보드로는 손잡이에서 <kbd>방향키</kbd>로 옮기고,{' '}
-        <kbd>Shift</kbd>+<kbd>방향키</kbd>로 크기를 바꿔요(크기 단추에서는 <kbd>방향키</kbd>만으로). 배치는 이 컴퓨터에만 저장돼요.
+        <kbd>Shift</kbd>+<kbd>방향키</kbd>로 크기를 바꿔요(크기 단추에서는 <kbd>방향키</kbd>만으로). 끌기 어려우면 [설정]의 자리·크기 단추를 눌러도 돼요. 배치는 이 컴퓨터에만 저장돼요.
       </span>
       <span class="dash__help-narrow">
-        좁은 화면에서는 위젯이 한 줄에 하나씩 쌓여요. 손잡이에서 <kbd>↑</kbd>·<kbd>↓</kbd>로 차례를 바꿔요. 배치는 이 컴퓨터에만 저장돼요.
+        좁은 화면에서는 위젯이 한 줄에 하나씩 쌓여요. 손잡이에서 <kbd>↑</kbd>·<kbd>↓</kbd>로(또는 [설정]의 위·아래 단추로) 차례를 바꿔요. 배치는 이 컴퓨터에만 저장돼요.
       </span>
     </p>
     <p class="dash__announce" data-dash-announce role="status" aria-live="polite"></p>
@@ -588,6 +589,35 @@ const checkHref = getPage('start-check').href;
     font-size: var(--text-xs);
   }
 
+  /* 끌지 않고 옮기기·크기 바꾸기 단추(설정 칸 안 — WCAG 2.2 2.5.7, 2026-09-26 Phase 6 요청 B-5) */
+  .dash-widget__place {
+    display: grid;
+    gap: var(--space-1);
+    padding-top: var(--space-1);
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .dash-widget__place-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .dash-widget__place-label {
+    flex: 0 0 2.5rem;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  .dash-widget__place-button {
+    min-width: 2.75rem;
+  }
+
+  .dash-widget__place-arrow {
+    margin-right: 0.125rem;
+  }
+
   .dash-widget__resize {
     position: absolute;
     right: 0.125rem;
@@ -646,6 +676,13 @@ const checkHref = getPage('start-check').href;
 
     /* 쌓인 화면에서는 크기·가로 자리가 보이는 변화가 없어 크기 단추를 숨기고 도움말도 바꾼다(2026-09-25 Phase 4 검토 반영) */
     .dash-widget__resize {
+      display: none;
+    }
+
+    /* 같은 까닭으로 설정 칸의 끌지 않는 단추도 위·아래(차례 바꾸기)만 둔다 */
+    .dash-widget__place-row[data-dash-place-from='resize'],
+    .dash-widget__place-button[data-dash-place-key='ArrowLeft'],
+    .dash-widget__place-button[data-dash-place-key='ArrowRight'] {
       display: none;
     }
 

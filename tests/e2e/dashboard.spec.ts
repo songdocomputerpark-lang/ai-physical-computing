@@ -280,6 +280,31 @@ test.describe('대시보드 — 시나리오 D', () => {
     await expect(widget(page, 'switch-1')).toHaveAttribute('data-dash-w', '2');
   });
 
+  test('끌지 않고 [설정]의 자리·크기 단추를 한 번씩 눌러 옮기고 크기를 바꾼다(WCAG 2.2 2.5.7)', async ({ page, isMobile }) => {
+    test.skip(Boolean(isMobile), '좁은 화면은 위·아래(차례) 단추만 보인다 — 아래 휴대폰 검사가 본다.');
+    await openDashboard(page);
+    const target = widget(page, 'switch-1');
+    await expect(target).toHaveAttribute('data-dash-x', '9');
+    await target.locator('[data-dash-settings]').click();
+    const moveDown = target.locator('[data-dash-place-from="grab"][data-dash-place-key="ArrowDown"]');
+    await expect(moveDown).toBeVisible();
+    await expect(target.locator('[role="group"][aria-label="자리 옮기기"]')).toBeVisible();
+
+    await moveDown.click();
+    await expect(target).toHaveAttribute('data-dash-y', '1');
+    await expect(page.locator('[data-dash-announce]')).toContainText('옮겼어요');
+    // 다시 그린 뒤에도 누른 단추가 그대로 있어 이어서 누를 수 있다(설정 칸이 닫히지 않는다).
+    await expect(moveDown).toBeVisible();
+
+    await target.locator('[data-dash-place-from="resize"][data-dash-place-key="ArrowLeft"]').click();
+    await expect(target).toHaveAttribute('data-dash-w', '2');
+    await expect(page.locator('[data-dash-announce]')).toContainText('크기를');
+
+    await page.reload();
+    await expect(widget(page, 'switch-1')).toHaveAttribute('data-dash-y', '1');
+    await expect(widget(page, 'switch-1')).toHaveAttribute('data-dash-w', '2');
+  });
+
   test('끌어서 옮기고, 위젯을 더하고 지우고 처음 배치로 되돌린다', async ({ page, isMobile }) => {
     test.skip(Boolean(isMobile), '좁은 화면은 위젯을 한 줄에 하나씩 쌓아 보여 주므로 끌어 놓기 대신 아래 휴대폰 검사를 본다.');
     await openDashboard(page);

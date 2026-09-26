@@ -37,8 +37,9 @@ import '../../styles/board-drawing.css';
         칸보다 그림이 넓으면(휴대폰 기본 화면, [그림 크게 보기]) 옆으로 밀어 봐야 한다 — 그 사실을 오른쪽 그늘과 아래 한 줄로 알린다
         (2026-09-18 검토 반영: 375px에서 크게 보기를 누르면 보드 왼쪽 40%만 보이고 더 볼 수 있다는 표시가 없어 그림이 깨진 줄 알았다).
       */}
+      {/* data-scroll-focus: 그림이 칸보다 넓을 때만 Tab으로 칸에 들어와 방향키로 밀어 본다(src/components/common/scroll-focus.ts — 키보드만 쓰는 학생) */}
       <div class="board-io__stage-wrap" data-board-stage-wrap data-board-overflow="no">
-        <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-board-zoom-level="fit" data-lab-reveal-on-run-min>
+        <div class="board-io__stage" data-board-stage data-board-phase="stopped" data-board-zoom-level="fit" data-lab-reveal-on-run-min data-scroll-focus="가상 보드 그림(방향키로 밀어 보기)">
           <p class="board-io__loading">가상 보드를 그리는 중이에요…</p>
         </div>
       </div>
@@ -69,7 +70,7 @@ import '../../styles/board-drawing.css';
 
     <section class="board-io__pins" aria-labelledby="board-pins-heading">
       <h3 id="board-pins-heading" class="board-io__heading">핀 상태</h3>
-      <div class="board-io__table-wrap">
+      <div class="board-io__table-wrap" data-scroll-focus="핀 상태 표(방향키로 밀어 보기)">
         <table class="board-pins">
           <caption class="board-pins__caption">코드가 쓴 핀의 모드와 값(1 = HIGH 3.3V, 0 = LOW 0V)</caption>
           <thead>
@@ -334,6 +335,13 @@ import '../../styles/board-drawing.css';
 
   .board-io__table-wrap {
     overflow-x: auto;
+  }
+
+  /* 실행 전(코드가 쓴 핀이 아직 없을 때)에는 머리 줄뿐인 빈 표를 숨긴다 — 화면 낭독기가 빈 표 대신 바로 아래 안내
+     ("아직 코드가 쓴 핀이 없어요")를 읽는다(2026-09-26 Phase 6 접근성 점검, axe th-has-data-cells "확인 필요"). 줄은 보드 모듈(view.ts)이
+     tbody에 채우고(replaceChildren) 다 비우면 다시 숨는다. :has()를 모르는 브라우저에서는 전처럼 빈 표가 보인다. */
+  .board-io__table-wrap:has(tbody:empty) {
+    display: none;
   }
 
   .board-pins {

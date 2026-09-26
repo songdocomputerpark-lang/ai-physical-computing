@@ -53,6 +53,11 @@
     padding-block-end: 6rem;
   }
 
+  /* 키보드로 옮겨 간 초점(퀴즈 보기·예제 단추)도 아래쪽 막대 밑에 숨지 않게 그만큼 위에서 멈춘다(WCAG 2.4.11, Phase 6 접근성 점검) */
+  html[data-presenting] {
+    scroll-padding-block-end: 6rem;
+  }
+
   html[data-presenting] .page__main {
     padding-block-start: var(--space-2);
   }
