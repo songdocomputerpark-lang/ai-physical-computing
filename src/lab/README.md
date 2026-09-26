@@ -505,7 +505,7 @@ PW_BASE_URL=http://localhost:4801/ai-physical-computing/ npx playwright test tes
 |---|---|
 | `npm run build` | 14초(출처 검사 파일 814개·항목 38개, 번들 의존성 20개 통과, 83쪽, Pagefind 79쪽) |
 | `dist/` | 104,127,349바이트(파일 654개·HTML 83개) — `vendor/` 51.0MB(Pyodide 예비본 27.2·MediaPipe 22.3·Pretendard 1.6), `models/` 27.0MB, `teacher/` 6.6MB, `_astro/` 3.6MB, `fonts/` 3.0MB, `firmware/` 1.8MB, `images/` 1.7MB, `pagefind/` 1.5MB |
-| `first-visit.spec.ts` | 홈만(사전 캐시 포함) 0.34MB·28건 / 홈 → 첫 에지 20.07MB(사이트 1.14 + jsDelivr 18.94)·290건, 실습실 1.0초 → 준비 끝 8.1초 → 첫 에지 9.6초 / Fast 3G 실측 홈 4.3초 → 실습실 화면 5.2초 → 준비 끝 11.0초 |
+| `first-visit.spec.ts` | 홈만(사전 캐시 포함) 0.34MB·28건 / 홈 → 첫 에지 20.07MB(사이트 1.14 + jsDelivr 18.94)·290건, 실습실 1.0초 → 준비 끝 8.1초 → 첫 에지 9.6초 / Fast 3G(페이지만 느리게 — **파이썬 워커는 속도 제한을 받지 않아** 준비 끝은 빠른 망 값에 가까워요) 홈 4.3초 → 실습실 화면 5.2초 → 준비 끝 11.0초. 회선 전체를 3G(400kbit/s·왕복 400ms)로 느리게 한 검토 측정(2026-09-26, 워커·서비스 워커까지): 준비됐어요 2분 38초 → [실행] → 첫 에지 7분 9초, 받은 양 20.97MB — 그래서 느린 망 안내에 [미리 받기]를 적고, 받는 동안 받은 양을 결과 칸에 보여요(PROGRESS 미해결의 느린 망 시나리오 A) |
 | 차시 `/learn/u1/1-1-1/` 첫 방문 | 0.60MB·43건(글꼴 496KB·그림 41KB·CSS 21KB·JS 11KB·HTML 18KB), FCP 396ms / **Fast 3G**: FCP 1,540ms, DOMContentLoaded 6,193ms |
 | 무거운 차시 Fast 3G | 1-1-2: 0.59MB, FCP 1,560ms, DCL 5,726ms / 4-1-3: 0.52MB, FCP 1,596ms, DCL 5,598ms |
 | 실습실 첫 방문(준비 끝까지) | 영상처리 19.81MB(사이트 0.88 + jsDelivr 18.93)·98건·준비 4.8초 / ESP32 6.97MB(사이트 1.01 + jsDelivr 5.96)·103건·준비 3.0초 |

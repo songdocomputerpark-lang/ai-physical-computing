@@ -10,7 +10,7 @@
 | **사이트** | https://songdocomputerpark-lang.github.io/ai-physical-computing/ |
 | **선생님이 먼저 볼 곳** | [교사용 시작하기](https://songdocomputerpark-lang.github.io/ai-physical-computing/start/teacher/) · [교사용 자료실](https://songdocomputerpark-lang.github.io/ai-physical-computing/teacher/) · [학교 네트워크와 브라우저 점검](https://songdocomputerpark-lang.github.io/ai-physical-computing/start/check/) · [보드 준비하기](https://songdocomputerpark-lang.github.io/ai-physical-computing/start/board/) |
 | **라이선스** | 학습 자료·그림은 **CC BY-NC-SA 4.0**, 사이트 프로그램과 예제 코드는 **MIT** — 아래 [라이선스](#라이선스) |
-| **오프라인판** | 인터넷이 막힌 교실에서 쓰는 묶음(zip, 약 68MB) — `npm run build:offline`으로 만들고, 풀어서 `시작하기.bat`를 두 번 눌러요(Windows 10·11, 설치·관리자 권한 없음 — 이 컴퓨터 안에서만 여는 작은 서버). 만드는 법·쓰는 법은 [MAINTENANCE.md](MAINTENANCE.md) 12절. 받아 쓸 수 있게 릴리스에 올리는 것은 운영자 확인 뒤예요 |
+| **오프라인판** | 인터넷이 막힌 교실에서 쓰는 묶음(zip, 약 69MB) — 풀어서 `시작하기.bat`를 두 번 누르면 이 컴퓨터 안에서만 사이트가 열려요(Windows 10·11, 설치·관리자 권한 없음). **아직 받을 수 있는 zip은 없어요** — 운영자가 GitHub 릴리스에 올리면 여기에 받는 곳과 SHA-256을 적어요. 직접 만들려면 개발 환경이 필요해요: [MAINTENANCE.md](MAINTENANCE.md) 0절(설치·저장소 내려받기) → 12-2절(`npm run build:offline`, 결과는 `.cache/offline/apc-offline-<판>.zip`). 쓰는 법은 12-3절 |
 | **문제 알리기·기여** | [이슈 양식 고르기](https://github.com/songdocomputerpark-lang/ai-physical-computing/issues/new/choose) — 누구나 보는 공개 게시판이니 개인정보는 적지 마세요. 자세한 방법은 [CONTRIBUTING.md](CONTRIBUTING.md) |
 | **사이트를 고치는 법** | [MAINTENANCE.md](MAINTENANCE.md) — 새 차시는 마크다운 1개 + 예제 1개로 더해요 |
 | **바뀐 내용** | [CHANGELOG.md](CHANGELOG.md) — 지금 판은 사이트 바닥글의 "버전"에 보여요 |
@@ -73,7 +73,7 @@
 
 ## 명령어
 
-Node.js 22.12.0 이상이 필요해요(권장: 24 LTS). 프로젝트 폴더에서 실행해요.
+Node.js 22.12.0 이상이 필요해요(권장: 24 LTS). 프로젝트 폴더에서 실행해요. 처음이면 설치와 저장소 내려받기(clone)부터 [MAINTENANCE.md](MAINTENANCE.md) 0절을 따라요.
 
 | 하는 일 | 명령 |
 |---|---|
@@ -85,7 +85,7 @@ Node.js 22.12.0 이상이 필요해요(권장: 24 LTS). 프로젝트 폴더에�
 | 단위 테스트 | `npm test` |
 | 브라우저 테스트(빌드부터 다시 함) | `npm run test:e2e` |
 | 접근성 검사·성능 측정(브라우저 테스트 무리) | `npm run test:a11y` · `npm run perf:measure` |
-| 차시 틀 검사(엄격 모드) | `npm run check:lessons` · `npm run check:lessons -- 2-1-1` |
+| 차시 틀 검사(엄격 모드) | `npm run check:lessons` · `npm run check:lessons -- 2-1-1` · `-- --fix-eol`(예제 줄 바꿈 CRLF를 LF로) |
 | 출처 검사만 | `npm run check:sources` |
 | 저장소 안전 검사(스테이징된 파일) · 작업 폴더 전체 · git 기록 전체 · 빌드 결과 | `npm run check:repo` · `npm run check:repo -- --worktree` · `-- --history` · `-- --dist dist` |
 | 사이트 안 링크·그림·#위치 검사(빌드 뒤) | `npm run check:links` |
@@ -94,7 +94,7 @@ Node.js 22.12.0 이상이 필요해요(권장: 24 LTS). 프로젝트 폴더에�
 | 예제 옮기기·대조 | `npm run examples:import` · `npm run examples:verify` |
 | 가린 편집본 교안 만들기·보기·검사·원본 쪽 대조 | `npm run handouts:build` · `npm run handouts:preview` · `npm run handouts:check` · `npm run handouts:compare -- --baseline <옛 편집본 폴더>` |
 | 같은 사이트 자산 복사·Pyodide 예비본·서비스 워커만 | `npm run vendor` · `npm run pyodide:fallback` · `npm run sw` |
-| 오프라인판 만들기·확인 | `npm run build:offline` · `npm run test:offline` |
+| 오프라인판 만들기(커밋한 깨끗한 작업 폴더에서)·확인 | `npm run build:offline` · `npm run test:offline` |
 
 - 개발 서버에는 검색 색인이 없어요. 사이트 검색은 `npm run build` 뒤 `npm run preview`에서 확인해요.
 - AI 에이전트 안에서 `npm run preview`를 실행하면 Astro가 백그라운드 서버로 띄워요. 다 본 뒤 `npx astro preview stop`으로 닫아요.
