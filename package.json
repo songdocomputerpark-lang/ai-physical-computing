@@ -1,6 +1,6 @@
 {
   "name": "ai-physical-computing",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "private": true,
   "description": "AI 피지컬 컴퓨팅 오픈랩(가칭) — 설치 없이 브라우저만으로 인공지능과 피지컬 컴퓨팅(ESP32)을 배우는 무료 교육 사이트",
   "license": "MIT AND CC-BY-NC-SA-4.0",
