@@ -26,7 +26,12 @@
 //   npm run build:offline                 모두
 //   node scripts/build-offline.mjs --skip-build   2~4를 건너뛰고 이미 있는 .cache/offline/site로 묶기만(안내 파일을 고칠 때)
 //   node scripts/build-offline.mjs --no-zip       zip을 만들지 않는다(빌드와 확인만)
+//   node scripts/build-offline.mjs --allow-dirty  커밋하지 않은 변경이 있어도 만든다(시험용 — 읽어보세요.txt에 "커밋 전 변경"이 적힌다)
 // 확인: node scripts/offline/verify-offline.mjs(zip을 풀어 시작하기.bat로 서버를 띄우고, 인터넷을 막은 Edge로 tests/e2e/offline.spec.ts)
+//
+// 커밋한 내용만 담는다(2026-09-26 Phase 6 안전 검토 지적 7): 오프라인판은 커밋 전 훅·CI를 거치지 않고 운영자 PC에서 곧바로 나가는
+// 유일한 공개 배포물이라, 작업 폴더에 커밋하지 않은 변경(추적하지 않는 새 파일 포함 — 예: 막 꺼내 아직 눈 확인 기록이 없는 그림)이
+// 있으면 멈춘다. 작업 폴더가 깨끗하면 public/의 그림은 모두 커밋 전 훅의 눈 확인 기록을 거친 파일이다.
 //
 // 한 작업 폴더에서 빌드는 한 번에 하나만 돌린다(콘텐츠 캐시·public/vendor를 함께 쓴다 — src/lab/README.md 5.5).
 import { spawnSync } from 'node:child_process';
@@ -66,6 +71,7 @@ const TEMPLATE_DIR = path.join(rootDir, 'scripts', 'offline');
 const args = process.argv.slice(2);
 const skipBuild = args.includes('--skip-build');
 const noZip = args.includes('--no-zip');
+const allowDirty = args.includes('--allow-dirty');
 
 const startedAt = Date.now();
 /** @type {{ step: string, ms: number }[]} */
@@ -119,6 +125,15 @@ function git(argsList) {
   return result.status === 0 ? result.stdout.trim() : '';
 }
 
+/** 커밋하지 않은 변경(추적하지 않는 새 파일 포함, .gitignore 대상은 빼고) — git status --porcelain 줄 목록 */
+function workingTreeChanges() {
+  const result = spawnSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: rootDir, encoding: 'utf8', windowsHide: true });
+  if (result.status !== 0) {
+    return [];
+  }
+  return result.stdout.split('\n').filter((line) => line.trim() !== '');
+}
+
 function localDate(date) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -138,6 +153,19 @@ async function main() {
   const version = siteConfig.version;
   const packageName = offlinePackageName(version);
   const lock = JSON.parse(fs.readFileSync(path.join(rootDir, 'node_modules', 'pyodide', 'pyodide-lock.json'), 'utf8'));
+
+  // 0. 커밋한 내용만 담는다(머리말 — 나눠 줄 zip에 확인 전 파일이 섞이지 않게)
+  const changes = workingTreeChanges();
+  if (changes.length > 0 && !allowDirty) {
+    fail(
+      `작업 폴더에 커밋하지 않은 변경이 ${changes.length}개 있어요. 오프라인판은 커밋한 내용만 담아요(나눠 줄 zip에 확인 전 파일이 섞이지 않게).\n` +
+        `${changes.slice(0, 12).map((line) => `  ${line}`).join('\n')}${changes.length > 12 ? '\n  …' : ''}\n` +
+        '  커밋한 뒤 다시 돌려요. 시험으로만 만들 때는 node scripts/build-offline.mjs --allow-dirty(읽어보세요.txt에 "커밋 전 변경"이 적혀요).',
+    );
+  }
+  if (changes.length > 0) {
+    log(`주의 — 커밋하지 않은 변경 ${changes.length}개를 담아요(--allow-dirty, 시험용). 나눠 줄 판은 커밋한 뒤 다시 만들어요.`);
+  }
 
   // 1. 패키지 확인
   const coverage = await step('파이썬 패키지 확인(예제·흉내 모듈·차시 코드의 import → pyodide-lock.json)', () => {
@@ -201,7 +229,7 @@ async function main() {
   const extrasRoot = path.join(workDir, 'extras');
   const extrasDir = path.join(extrasRoot, packageName);
   const commit = git(['rev-parse', '--short', 'HEAD']) || '알 수 없음';
-  const dirty = git(['status', '--porcelain', '--untracked-files=no']) !== '';
+  const dirty = changes.length > 0;
   const buildDate = localDate(new Date(startedAt));
   const templateValues = {
     VERSION: version,

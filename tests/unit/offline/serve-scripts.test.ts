@@ -113,6 +113,12 @@ function stop(running: Running | null): void {
   }
 }
 
+/**
+ * 깊은 폴더에 풀린 오프라인판을 흉내 낸 파일: 임시 폴더 경로(약 60글자)를 더하면 전체 경로가 260글자를 넘는다.
+ * Windows는 긴 경로 설정이 꺼져 있으면 이런 파일을 "없다"고 봐서, 서버가 opencv 휠을 404로 줘 첫 실습이 멈췄다(2026-09-26 Phase 6 검토 지적).
+ */
+const LONG_WHEEL = `deep/${'d'.repeat(100)}/${'e'.repeat(60)}/opencv_python-4.11.0.86-cp314-cp314-pyemscripten_2026_0_wasm32.whl`;
+
 const SITE = {
   'index.html': '<!doctype html><title>홈</title>',
   '404.html': '<!doctype html><title>없어요</title>',
@@ -122,10 +128,11 @@ const SITE = {
   'licenses/a.txt': '\ufeff고지',
   'models/.gitkeep': '',
   'noindex/readme.md': '# 목록 없음',
+  [LONG_WHEEL]: Buffer.from('PK-long-path-wheel'),
 };
 
 /** 두 서버에 같은 검사를 한다 */
-function sharedChecks(label: string, getRunning: () => Running) {
+function sharedChecks(label: string, getRunning: () => Running, getSiteDir: () => string) {
   it(`${label}: 파일 종류(MIME)와 폴더 주소`, async () => {
     const { port } = getRunning();
     const home = await request(port, '/');
@@ -164,6 +171,20 @@ function sharedChecks(label: string, getRunning: () => Running) {
     }
   });
 
+  it(`${label}: 전체 경로가 260글자를 넘는 파일(깊은 폴더에 푼 오프라인판의 휠)도 준다`, async () => {
+    const { port } = getRunning();
+    const siteDir = getSiteDir();
+    const fullLength = path.join(siteDir, ...LONG_WHEEL.split('/')).length;
+    expect(fullLength, '시험 파일의 전체 경로 길이').toBeGreaterThan(260);
+    const wheel = await request(port, `/${LONG_WHEEL}`);
+    expect(wheel.status, `${fullLength}글자 경로`).toBe(200);
+    expect(wheel.headers['content-type']).toBe('application/zip');
+    expect(wheel.body.toString('utf8')).toBe('PK-long-path-wheel');
+    const head = await request(port, `/${LONG_WHEEL}`, { method: 'HEAD' });
+    expect(head.status).toBe(200);
+    expect(head.headers['content-length']).toBe(String('PK-long-path-wheel'.length));
+  });
+
   it(`${label}: HEAD는 머리말만, GET·HEAD 말고는 거절, Host가 localhost·127.0.0.1이 아니면 거절`, async () => {
     const { port } = getRunning();
     const head = await request(port, '/vendor/pyodide/pyodide.asm.wasm', { method: 'HEAD' });
@@ -195,7 +216,7 @@ describe.skipIf(!isWindows)('serve.ps1(Windows PowerShell 5.1)', () => {
     removeDir(siteDir);
   });
 
-  sharedChecks('serve.ps1', () => running!);
+  sharedChecks('serve.ps1', () => running!, () => siteDir);
 
   it('serve.ps1: 포트가 쓰이는 중이면 다음 번호로 연다(관리자 권한 없이)', async () => {
     const port = await freePort();
@@ -341,5 +362,5 @@ describe.skipIf(python === null)('serve.py(파이썬 3)', () => {
     removeDir(siteDir);
   });
 
-  sharedChecks('serve.py', () => running!);
+  sharedChecks('serve.py', () => running!, () => siteDir);
 });

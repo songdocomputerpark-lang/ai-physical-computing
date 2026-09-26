@@ -102,6 +102,19 @@ $MimeTypes = @{
 }
 $DefaultMime = 'application/octet-stream'
 
+# ───────── 긴 경로(전체 경로 260글자 넘음) ─────────
+# Windows는 전체 경로가 260글자를 넘는 파일을 보통 방법으로는 "없다"고 본다(긴 경로 설정 LongPathsEnabled가 꺼진 PC가 흔하다).
+# 반디집·7-Zip·tar는 깊은 폴더에도 끝까지 풀어 버려서, 그런 곳에 풀면 opencv·numpy 휠이 404가 되어 첫 실습이
+# "cv2 모듈이 없어요"로 멈췄다(2026-09-26 Phase 6 검토 — 162글자 폴더에서 재현). 그래서 파일을 찾고 열 때는 \\?\ 머리를 붙인다
+# (.NET Framework 4.6.2 이상 — Windows 10·11의 PowerShell 5.1에서 확인, 긴 경로 설정이 꺼져 있어도 된다).
+function ConvertTo-LongPath([string]$Path) {
+  if ($Path.StartsWith('\\?\')) { return $Path }
+  if ($Path.StartsWith('\\')) { return '\\?\UNC\' + $Path.Substring(2) }
+  return '\\?\' + $Path
+}
+function Test-SiteFile([string]$Path) { return [System.IO.File]::Exists((ConvertTo-LongPath $Path)) }
+function Test-SiteFolder([string]$Path) { return [System.IO.Directory]::Exists((ConvertTo-LongPath $Path)) }
+
 # ───────── 내보낼 폴더 ─────────
 if ([string]::IsNullOrWhiteSpace($Root)) {
   $Root = Join-Path (Split-Path -Parent $PSScriptRoot) 'site'
@@ -112,7 +125,7 @@ try {
   Stop-WithMessage @("[안내] 사이트 폴더 주소가 올바르지 않아요: $Root")
 }
 $RootPrefix = $RootFull + '\'
-if (-not [System.IO.File]::Exists((Join-Path $RootFull 'index.html'))) {
+if (-not (Test-SiteFile (Join-Path $RootFull 'index.html'))) {
   Stop-WithMessage @(
     "[안내] 사이트 파일을 찾지 못했어요: $RootFull\index.html",
     '       압축을 모두 푼 뒤, 풀린 폴더 안의 시작하기.bat를 실행해 주세요(압축 파일 안에서 바로 실행하면 안 돼요).'
@@ -145,7 +158,7 @@ function Get-MimeType([string]$Path) {
 }
 
 function Send-FileBody($Response, [string]$Path, [int]$Status, [bool]$WithBody) {
-  $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+  $stream = [System.IO.File]::Open((ConvertTo-LongPath $Path), [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
   try {
     $Response.StatusCode = $Status
     $Response.ContentType = (Get-MimeType $Path)
@@ -168,7 +181,7 @@ function Send-Text($Response, [int]$Status, [string]$Text, [bool]$WithBody) {
 
 function Send-NotFound($Response, [bool]$WithBody) {
   $page = Join-Path $RootFull '404.html'
-  if ([System.IO.File]::Exists($page)) {
+  if (Test-SiteFile $page) {
     Send-FileBody $Response $page 404 $WithBody
   } else {
     Send-Text $Response 404 '404 — 이 주소에는 파일이 없어요.' $WithBody
@@ -212,7 +225,7 @@ function Invoke-Request($Context) {
       $status = 404
       return
     }
-    if ([System.IO.Directory]::Exists($full)) {
+    if (Test-SiteFolder $full) {
       if (-not $absolutePath.EndsWith('/')) {
         # 폴더 주소는 /로 끝나게(GitHub Pages와 같게 — 사이트의 상대 주소가 맞게)
         $response.StatusCode = 301
@@ -221,9 +234,9 @@ function Invoke-Request($Context) {
         $status = 301
         return
       }
-      $full = Join-Path $full 'index.html'
+      $full = [System.IO.Path]::Combine($full, 'index.html')
     }
-    if (-not [System.IO.File]::Exists($full)) {
+    if (-not (Test-SiteFile $full)) {
       Send-NotFound $response $withBody
       $status = 404
       return

@@ -71,6 +71,25 @@ DEFAULT_MIME = 'application/octet-stream'
 LOOPBACK = '127.0.0.1'
 
 
+def long_path(path: str) -> str:
+    """Windows에서 전체 경로가 260글자를 넘는 파일도 찾고 열 수 있게 \\\\?\\ 머리를 붙인다(다른 운영체제는 그대로).
+
+    Windows는 긴 경로 설정(LongPathsEnabled)이 꺼져 있으면 260글자가 넘는 파일을 "없다"고 본다. 반디집·7-Zip·tar는 깊은 폴더에도
+    끝까지 풀어 버려서, 그런 곳에 풀면 opencv·numpy 휠이 404가 되어 첫 실습이 멈췄다(2026-09-26 Phase 6 검토 — serve.ps1과 같은 까닭).
+    """
+    if os.name != 'nt':
+        return path
+    trailing = path.endswith(('/', '\\'))
+    full = os.path.abspath(path)
+    if full.startswith('\\\\?\\'):
+        prefixed = full
+    elif full.startswith('\\\\'):
+        prefixed = '\\\\?\\UNC\\' + full[2:]
+    else:
+        prefixed = '\\\\?\\' + full
+    return prefixed + ('\\' if trailing and not prefixed.endswith('\\') else '')
+
+
 class OfflineHandler(http.server.SimpleHTTPRequestHandler):
     """site 폴더만 내보내는 처리기(폴더 목록 없음, 숨은 파일 없음, 사이트의 404 쪽)."""
 
@@ -102,8 +121,12 @@ class OfflineHandler(http.server.SimpleHTTPRequestHandler):
         path = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path)
         return any(part.startswith('.') for part in path.split('/') if part) or '\\' in path or '\x00' in path
 
+    def translate_path(self, path: str) -> str:
+        # 표준 처리기의 경로(site 폴더 기준)에 Windows 긴 경로 머리를 붙인다 — isdir·isfile·open이 모두 이 경로를 쓴다
+        return long_path(super().translate_path(path))
+
     def send_not_found(self) -> None:
-        page = os.path.join(self.directory, '404.html')
+        page = long_path(os.path.join(self.directory, '404.html'))
         if os.path.isfile(page):
             with open(page, 'rb') as file:
                 body = file.read()
@@ -161,7 +184,7 @@ def main() -> int:
 
     here = os.path.dirname(os.path.abspath(__file__))
     site_dir = os.path.abspath(options.root or os.path.join(here, os.pardir, 'site'))
-    if not os.path.isfile(os.path.join(site_dir, 'index.html')):
+    if not os.path.isfile(long_path(os.path.join(site_dir, 'index.html'))):
         print(f'[안내] 사이트 파일을 찾지 못했어요: {os.path.join(site_dir, "index.html")} — 압축을 모두 푼 뒤 다시 실행해 주세요.')
         return 1
 
