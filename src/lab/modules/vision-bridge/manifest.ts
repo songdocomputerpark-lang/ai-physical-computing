@@ -19,6 +19,11 @@ const manifest: LabModuleManifest = {
   shims: {},
   packages: [],
   placement: 'wide',
+  // 쓸 때만 받는다(Phase 6 P6-02, 미해결 157 — 통신 무리 'comm'). 패널 조건(index.ts PC_USE_PATTERN·BOARD_USE_PATTERN — serial·list_ports·bridge·UART)보다
+  // 넓게 낱말만 보이면 받고, 다른 화면이 선의 끝으로 연 실습실(주소 ?bridge=)이면 열 때 받는다.
+  // [보내기] 패널이 통로 목록을 그리므로 **통로를 등록하는 모듈(data-port·web-bluetooth·mqtt — order 0)보다 뒤에** mount한다(order 10) —
+  // 무리는 모두 받은 뒤 이 차례로 붙어, 목록에서 통로가 빠지던 Phase 4 검토 지적 1이 받는 차례와 상관없이 생기지 않는다.
+  load: { group: 'comm', code: /\b(?:serial|list_ports|bridge|UART)\b/u, query: ['bridge'], order: 10 },
 };
 
 export default manifest;

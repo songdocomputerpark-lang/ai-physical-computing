@@ -104,7 +104,9 @@ describe('코드 머리말 → 가상 보드 배선(code-wiring)', () => {
     expect(program.wiring.length).toBe(8);
     expect(wiringFromBlocksCode(program.code)).toEqual(program.wiring);
     expect(wiringFromBlocksCode(kit.generate(workspaceFrom(TOUCH_LED_STATE)).code)).toEqual([{ part: 'touch-digital', pin: 17, label: '터치 센서' }]);
-  });
+    // 이 파일의 첫 nodeBlocksKit()이 Node에서 Blockly를 처음 띄운다 — 컴퓨터가 바쁠 때(npm test 전체·다른 검사와 함께) 기본 5초를 넘은 적이 있어
+    // (2026-09-26 Phase 6 구역 A 실측: 한 번 56초, 제한을 늘리면 3.6초로 통과) 제한 시간을 60초로 둔다(요청 A-7).
+  }, 60_000);
 
   it('학생이 코드 모드에서 # @part 핀을 고치면 배선도 따라간다. 블록 코드가 아니면 null', () => {
     const code = `${BLOCKS_CODE_MARKER}\n# @part touch-digital 18\nfrom machine import Pin\n`;

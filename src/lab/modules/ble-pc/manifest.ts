@@ -29,6 +29,9 @@ const manifest: LabModuleManifest = {
   requestKinds: ['ble-pc.open', 'ble-pc.close'],
   eventKinds: ['ble-pc.tx'],
   channels: ['ble-pc.info', 'ble-pc.rx'],
+  // 쓸 때만 받는다(Phase 6 P6-02, 미해결 157 — 통신 무리 'comm'은 함께 받는다, types.ts LabModuleLoadRule).
+  // 학생 코드의 import bluetooth·bluetooth_lib(이 폴더의 bluetooth.py·bluetooth_lib.py)가 보이면.
+  load: { group: 'comm', code: /\bbluetooth(?:_lib)?\b/u },
 };
 
 export default manifest;

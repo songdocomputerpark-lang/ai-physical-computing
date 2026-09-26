@@ -53,6 +53,7 @@ import {
   type ServiceWorkerState,
 } from '../../loader/sw-client.ts';
 import { LoadingTracker, stageIdForUrl, type StageSnapshot } from '../../loader/stages.ts';
+import { prefetchLazyModules } from '../host.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
 
@@ -612,6 +613,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
         prefetchStatus.textContent = '실습 파일을 받는 중이에요… 창을 닫지 마세요.';
       }
       const result = await prefetchFiles(pyodidePrefetchUrlsFor(labPackages), 10 * 60_000);
+      // 쓸 때 받는 모듈(통신 모듈 — Phase 6 P6-02, PROGRESS 미해결 157)의 화면 쪽 파일도 받아 둔다. 서비스 워커가 _astro/를 캐시에 넣어,
+      // 미리 받아 둔 교실 PC는 수업 중 인터넷이 끊겨도 통신 예제의 [보내기]·블루투스·MQTT 칸이 붙는다(받기만 하고 붙이지는 않는다 — 요청 A-10).
+      await prefetchLazyModules(context.root).catch(() => 0);
       prefetchButton.disabled = false;
       if (prefetchStatus) {
         prefetchStatus.textContent = result

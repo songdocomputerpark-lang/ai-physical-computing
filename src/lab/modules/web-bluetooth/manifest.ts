@@ -25,6 +25,10 @@ const manifest: LabModuleManifest = {
   eventKinds: [],
   channels: [],
   placement: 'panel',
+  // 쓸 때만 받는다(Phase 6 P6-02, 미해결 157 — 통신 무리 'comm'). 패널 조건(index.ts BLE_CODE_PATTERN — ESP32BLE·bluetooth·ubluetooth·bluetooth_lib)보다
+  // 넓게(ESP32BLE_LIB 등) 받고, 칸을 열어 달라는 창 이벤트(apc:web-bluetooth-show — [보내기] 패널·블루투스 통로가 보냄)가 먼저 와도 받는다.
+  // 통로 'ble'을 등록하므로 통로 목록을 그리는 vision-bridge(order 10)보다 먼저 mount한다.
+  load: { group: 'comm', code: /\b(?:ESP32BLE\w*|u?bluetooth(?:_lib)?)\b/u, windowEvents: ['apc:web-bluetooth-show'], order: 0 },
 };
 
 export default manifest;

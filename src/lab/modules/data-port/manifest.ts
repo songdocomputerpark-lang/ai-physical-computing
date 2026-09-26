@@ -24,6 +24,10 @@ const manifest: LabModuleManifest = {
   eventKinds: [],
   channels: [],
   placement: 'panel',
+  // 쓸 때만 받는다(Phase 6 P6-02, 미해결 157 — 통신 무리 'comm'). 패널 조건(index.ts DATA_PORT_CODE_PATTERN — serial·UART)보다 넓게
+  // 낱말만 보이면 받고, [보내기] 패널이 이 칸을 열어 달라는 창 이벤트(apc:data-port-show)가 먼저 와도 받는다.
+  // 통로 'serial'을 등록하므로 통로 목록을 그리는 vision-bridge(order 10)보다 먼저 mount한다.
+  load: { group: 'comm', code: /\b(?:serial|UART)\b/u, windowEvents: ['apc:data-port-show'], order: 0 },
 };
 
 export default manifest;

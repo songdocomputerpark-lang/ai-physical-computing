@@ -25,6 +25,8 @@ const manifest: LabModuleManifest = {
   requestKinds: ['serial-pc.open'],
   eventKinds: ['serial-pc.tx', 'serial-pc.control'],
   channels: ['serial-pc.rx', 'serial-pc.info'],
+  // 쓸 때만 받는다(Phase 6 P6-02, 미해결 157 — 통신 무리 'comm'). 학생 코드의 import serial·from serial(이 폴더의 serial.py)이 보이면.
+  load: { group: 'comm', code: /\bserial\b/u },
 };
 
 export default manifest;

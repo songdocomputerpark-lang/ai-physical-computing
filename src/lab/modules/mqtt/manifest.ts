@@ -22,6 +22,9 @@ const manifest: LabModuleManifest = {
   eventKinds: ['mqtt.wifi'],
   channels: ['mqtt.inbox'],
   placement: 'wide',
+  // 쓸 때만 받는다(Phase 6 P6-02, 미해결 157 — 통신 무리 'comm'). 패널 조건(index.ts USE_PATTERN)과 같은 낱말(umqtt·mqtt·network)이 보이거나,
+  // 대시보드 링크처럼 주소에 ?prefix=(통신 접두어)가 있으면 열 때 받는다. 통로 'mqtt'를 등록하므로 vision-bridge(order 10)보다 먼저 mount한다.
+  load: { group: 'comm', code: /\b(?:umqtt|mqtt|network)\b/u, query: ['prefix'], order: 0 },
 };
 
 export default manifest;

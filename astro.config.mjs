@@ -30,6 +30,11 @@ export default defineConfig({
   trailingSlash: 'always',
   build: {
     format: 'directory',
+    // 쪽마다 CSS를 HTML 안(<style>)에 넣는다(Phase 6 P6-02, 구역 A 측정 2026-09-26). 느린 3G(DevTools "3G" — 지연 2,000ms)에서
+    // 따로 받는 CSS 파일(_astro/*.css)이 첫 그리기를 왕복 한 번 더 기다리게 해 학습 페이지 FCP가 4.7~5.3초였다(실사이트 5.4~5.6초 — 3초 기준을 넘음).
+    // BaseLayout의 글꼴 CSS를 기다리지 않게 한 수정(media="print" → all)과 함께 2.2~2.4초. 대가: 쪽마다 HTML이 gzip 6~7KB 늘고 CSS 파일을 따로 캐시하지 않는다.
+    // 사이트 CSS에는 바깥 파일을 가리키는 url()이 없어(글꼴 CSS는 public/의 따로 파일) 링크 검사가 보는 주소는 줄지 않는다.
+    inlineStylesheets: 'always',
   },
   markdown: {
     // Astro 7의 기본 처리기(Sätteri) 대신 unified 처리기(@astrojs/markdown-remark)를 쓴다.
