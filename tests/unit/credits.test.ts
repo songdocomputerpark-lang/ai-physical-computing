@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { parseRegistry } from '../../scripts/lib/sources-registry.mjs';
 import {
   REDISTRIBUTION_NOTICES,
+  SOURCE_OFFER,
+  SOURCE_OFFER_EN,
   buildCreditsView,
   categoryLabel,
   formatKoreanDate,
@@ -158,5 +160,20 @@ describe('고지 전문 파일(2026-09-26 P6-04)', () => {
       // 출처 페이지의 문장과 고지 파일의 문장이 같아야 한다(두 곳이 어긋나지 않게 — 파일은 줄 맞춤으로 빈칸이 둘일 수 있다)
       expect(wheels.replace(/ {2,}/gu, ' ')).toContain(statement);
     }
+  });
+
+  it('대응 소스 서면 제안(LGPL-2.1 6조 c·GPL-3.0 6조 b)이 고지 파일 두 개와 출처 페이지 알림에 같은 글자로 있다(2026-09-26 Phase 6 안전 검토 지적 3·4)', () => {
+    for (const file of ['pyodide-wheels-3rd-party.txt', 'pagefind-wasm-3rd-party.txt']) {
+      const text = fs.readFileSync(new URL(`../../public/licenses/${file}`, import.meta.url), 'utf8');
+      expect(text, file).toContain(SOURCE_OFFER);
+      expect(text, file).toContain(SOURCE_OFFER_EN);
+    }
+    const byId = new Map(REDISTRIBUTION_NOTICES.map((notice) => [notice.id, notice]));
+    expect(byId.get('ffmpeg-lgpl')?.text).toContain(SOURCE_OFFER);
+    expect(byId.get('pagefind-gpl')?.text).toContain(SOURCE_OFFER);
+    // 제안에는 기간(3년)·값(무료)·요청 창구가 들어 있어야 한다
+    expect(SOURCE_OFFER).toMatch(/적어도 3년/u);
+    expect(SOURCE_OFFER).toMatch(/무료/u);
+    expect(SOURCE_OFFER).toContain('/issues');
   });
 });

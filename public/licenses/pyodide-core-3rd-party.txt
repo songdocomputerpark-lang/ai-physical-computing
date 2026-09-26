@@ -1,4 +1,4 @@
-﻿Pyodide 314.0.7 코어(pyodide.asm.wasm·python_stdlib.zip) 안의 제3자 구성요소 — 라이선스 고지 원문
+﻿Pyodide 314.0.7 코어(pyodide.mjs·pyodide.asm.mjs·pyodide.asm.wasm·python_stdlib.zip) 안의 제3자 구성요소 — 라이선스 고지 원문
 =================================================================================================
 
 이 파일은 브라우저 안 파이썬 엔진 Pyodide 314.0.7의 코어 파일에 함께 들어 있는 구성요소의 고지를 원문 그대로 모은 것이에요.
@@ -34,6 +34,8 @@ Pyodide 자체(MPL-2.0)의 고지는 licenses/pyodide.txt, 파이썬 언어(CPyt
   musl libc(Emscripten 안)                   5.0.3 안     MIT                                        10
   LLVM libc++·libc++abi·compiler-rt(Emscripten 안)
                                              5.0.3 안     Apache-2.0 WITH LLVM-exception             11
+  error-stack-parser·stackframe(Pyodide JS — pyodide.mjs·pyodide.asm.mjs 안)
+                                             314.0.7 안   MIT                                        12
 
 ------------------------------------------------------------------------------
 1. CPython 3.14.2에 든 제3자 코드 — "Licenses and Acknowledgements for Incorporated Software"
@@ -1793,3 +1795,31 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+------------------------------------------------------------------------------
+12. error-stack-parser·stackframe(Pyodide JS 안) — MIT
+   원문: https://github.com/pyodide/pyodide/blob/314.0.7/src/js/vendor/stackframe/LICENSE (git blob 5c09f1a02595993feb91c69cd67eddac2bbfd45b, 1,080바이트)
+   Pyodide가 저장소 src/js/vendor/stackframe/에 옮겨 둔 두 라이브러리(ErrorStackParser·StackFrame)가 pyodide.mjs·pyodide.asm.mjs에 함께
+   묶여 있어요(pyodide.mjs.map의 sources — src/js/vendor/stackframe/stackframe.ts·error-stack-parser.ts, 2026-09-26 Phase 6 안전 검토 지적 2).
+   사이트 예비본 vendor/pyodide/314.0.7/과 오프라인판이 이 두 파일을 고치지 않고 다시 나눠요.
+------------------------------------------------------------------------------
+
+Copyright (c) 2017 Eric Wendelin and other contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -7,6 +7,8 @@
 │   배포되고, 이 판은 GPL 전용 부분 없이 만들어졌어요(아래 1절). 이 사이트는 휠도 FFmpeg도 고치지 않고 Pyodide 공식 파일을
 │   그대로 다시 나눠요. 받은 사람은 LGPL-2.1에 따라 FFmpeg를 고치고 그것으로 cv2.so를 다시 만들 수 있고, 이 사이트는 그러려는
 │   수정과 디버깅용 역공학을 막지 않아요. 대응 소스를 받을 곳은 1절, LGPL-2.1 전문은 1절 끝에 있어요.
+│ • 대응 소스 서면 제안(LGPL-2.1 6조 c): 이 휠을 받은 사람은 누구나 받은 날부터 적어도 3년 동안 대응 소스의 사본을
+│   무료로 받을 수 있어요 — 1절 [서면 제안](한국어·영어 원문).
 │ • This software is based in part on the work of the Independent JPEG Group.
 │ • Portions of this software are copyright © 2024 The FreeType Project (www.freetype.org).  All rights reserved.
 └─────────────────────────────────────────────────────────────────────────────────────
@@ -79,6 +81,12 @@ cv2.so를 만든 재료와 방법은 모두 공개돼 있어요.
   Pyodide 교차 빌드 환경 314.0.6, Emscripten 5.0.3.
 - 이 사이트 저장소의 릴리스에도 위 파일들의 사본을 함께 올려 두기로 했어요(휠을 나누는 곳과 같은 곳에서 받을 수 있게 — 올리는 일은
   운영자가 해요, PROGRESS.md 운영자 할 일). 사본이 올라오기 전에도 위 공식 주소에서 같은 파일을 받을 수 있어요.
+
+[서면 제안 — LGPL-2.1 6조 c]
+서면 제안: 이 사이트나 오프라인판에서 이 파일을 받은 사람은 누구나, 받은 날부터 적어도 3년 동안, 고지 파일에 적힌 대응 소스의 사본을 무료로 받을 수 있어요. 요청은 저장소 이슈(https://github.com/songdocomputerpark-lang/ai-physical-computing/issues)로 해 주세요.
+Written offer: for at least three years from the date you received this file from this site or its offline edition, anyone may obtain, free of charge, a complete copy of the corresponding source listed in this notice by opening an issue at https://github.com/songdocomputerpark-lang/ai-physical-computing/issues .
+(여기서 대응 소스는 위 세 가지 — FFmpeg 4.4.1 소스, OpenCV·opencv-python 소스, 휠을 만든 레시피와 빌드 도구 판 — 예요. 이 파일은 사이트
+예비본 vendor/pyodide/314.0.7/과 오프라인판 zip이 다시 나누는 opencv 휠에 함께 가요.)
 
 [FFmpeg가 이 판에서 LGPL인 까닭] 레시피의 configure 옵션에 --enable-gpl·--enable-nonfree가 없어요. FFmpeg LICENSE.md(아래)가
 설명하듯 GPL 부분은 --enable-gpl을 줄 때만 들어가요. cv2.so에서도 GPL 전용 라이브러리(libpostproc)의 흔적을 찾지 못했어요.

@@ -41,6 +41,20 @@ export interface RedistributionNotice {
   noticePath: string;
 }
 
+/**
+ * 대응 소스 서면 제안(LGPL-2.1 6조 c, GPL-3.0 6조 b — 2026-09-26 Phase 6 안전 검토 지적 3·4, DECISIONS C36).
+ * 공식 주소만 알리면 "같은 곳에서" 받게 하라는 LGPL 6조 d의 글자와 맞지 않고, 오프라인판을 USB로 나눌 때는 어느 조항도 채우지 못했다.
+ * 이 문장을 고지 파일 두 개(pyodide-wheels 1절·pagefind-wasm 머리 상자)와 출처 페이지에 같은 글자로 싣는다(단위 테스트가 대조).
+ */
+export const SOURCE_OFFER =
+  '서면 제안: 이 사이트나 오프라인판에서 이 파일을 받은 사람은 누구나, 받은 날부터 적어도 3년 동안, 고지 파일에 적힌 대응 소스의 사본을 무료로 받을 수 있어요. ' +
+  '요청은 저장소 이슈(https://github.com/songdocomputerpark-lang/ai-physical-computing/issues)로 해 주세요.';
+
+/** 서면 제안의 영어 원문(고지 파일 두 개에 한국어와 함께 싣는다) */
+export const SOURCE_OFFER_EN =
+  'Written offer: for at least three years from the date you received this file from this site or its offline edition, anyone may obtain, ' +
+  'free of charge, a complete copy of the corresponding source listed in this notice by opening an issue at https://github.com/songdocomputerpark-lang/ai-physical-computing/issues .';
+
 export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.freeze([
   {
     id: 'ffmpeg-lgpl',
@@ -48,7 +62,8 @@ export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.fr
     text:
       '파이썬 영상 처리 라이브러리 OpenCV 휠(opencv-python 4.11.0.86)의 cv2.so에는 FFmpeg 4.4.1이 정적으로 들어 있고, FFmpeg는 GNU LGPL 2.1 이상이에요. ' +
       '사이트는 휠과 FFmpeg를 고치지 않고 Pyodide 공식 파일을 그대로 같은 사이트 예비본으로 다시 나눠요. 받은 사람은 LGPL에 따라 FFmpeg를 고쳐 다시 연결할 수 있고, ' +
-      '사이트는 그러려는 수정과 디버깅용 역공학을 막지 않아요. 대응 소스(FFmpeg 4.4.1, OpenCV 소스, 휠을 만든 레시피)를 받는 곳과 LGPL 전문은 고지 파일 1절에 있어요.',
+      '사이트는 그러려는 수정과 디버깅용 역공학을 막지 않아요. 대응 소스(FFmpeg 4.4.1, OpenCV 소스, 휠을 만든 레시피)를 받는 곳과 LGPL 전문은 고지 파일 1절에 있어요. ' +
+      SOURCE_OFFER,
     noticePath: 'public/licenses/pyodide-wheels-3rd-party.txt',
   },
   {
@@ -56,7 +71,8 @@ export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.fr
     title: '사이트 검색 엔진(GPL-3.0 크레이트 포함)',
     text:
       '사이트 검색의 WebAssembly 파일(pagefind/wasm.unknown.pagefind)에는 GPL-3.0-only인 pagefind_microjson 0.1.4가 함께 들어 있어, 이 파일은 GPL-3.0 조건으로 받는 프로그램이에요. ' +
-      '사이트는 Pagefind가 만든 파일을 고치지 않고 나눠요. GPL-3.0 전문과 대응 소스(Pagefind v1.5.2 소스와 크레이트)를 받는 곳은 고지 파일에 있어요.',
+      '사이트는 Pagefind가 만든 파일을 고치지 않고 나눠요. GPL-3.0 전문과 대응 소스(Pagefind v1.5.2 소스와 크레이트)를 받는 곳은 고지 파일에 있어요. ' +
+      SOURCE_OFFER,
     noticePath: 'public/licenses/pagefind-wasm-3rd-party.txt',
   },
   {

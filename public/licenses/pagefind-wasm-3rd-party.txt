@@ -21,7 +21,10 @@ licenses/pagefind.txt에 있어요. 이 파일은 그 wasm 안에 함께 컴파�
 │  • 빌드 도구: rustc 1.97.0-nightly(bf4fbfb7a 2026-04-11 — wasm 안 글자), wasm-bindgen 0.2.117.
 │ 이 사이트 저장소의 릴리스에도 위 소스의 사본을 함께 올려 두기로 했어요(운영자 할 일 — PROGRESS.md). 사이트 코드(MIT)는
 │ GPL-3.0과 함께 쓸 수 있는 라이선스이고, 검색 화면은 이 wasm을 정해진 함수로 불러 쓸 뿐 wasm을 고치지 않아요.
+│ 서면 제안(GPL-3.0 6조 b — 오프라인판을 USB 같은 매체로 나눌 때도 이 제안이 함께 가요):
 └─────────────────────────────────────────────────────────────────────────────────────
+서면 제안: 이 사이트나 오프라인판에서 이 파일을 받은 사람은 누구나, 받은 날부터 적어도 3년 동안, 고지 파일에 적힌 대응 소스의 사본을 무료로 받을 수 있어요. 요청은 저장소 이슈(https://github.com/songdocomputerpark-lang/ai-physical-computing/issues)로 해 주세요.
+Written offer: for at least three years from the date you received this file from this site or its offline edition, anyone may obtain, free of charge, a complete copy of the corresponding source listed in this notice by opening an issue at https://github.com/songdocomputerpark-lang/ai-physical-computing/issues .
 
 wasm에 들어가는 크레이트(pagefind_web/Cargo.lock v1.5.2 — 빌드할 때만 쓰는 proc-macro 크레이트 proc-macro2·quote·syn·
 unicode-ident·bumpalo·rustversion·serde_derive·wasm-bindgen-macro(-support)는 wasm에 들어가지 않아서 뺐어요)

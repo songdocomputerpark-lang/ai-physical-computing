@@ -144,6 +144,17 @@ sources:
       - astro
     fetched: 2026-09-15
 
+  - name: Vite 8.3.0·Rolldown 1.2.8 실행 도우미(빌드 결과 안)
+    category: stack
+    author: "VoidZero Inc.와 Vite 기여자(Vite), VoidZero Inc.와 기여자(Rolldown). Astro 고지(Fred K. Schott와 Astro 기여자)도 함께"
+    license: MIT
+    url: https://github.com/vitejs/vite
+    used_in: "Astro가 빌드할 때 번들러(Vite·Rolldown)가 사이트 스크립트에 넣어 함께 배포되는 작은 실행 도우미 — 나중에 받는 스크립트를 미리 받는 도우미(_astro/preload-helper.*.js, Vite)와 모듈 연결 도우미(_astro/rolldown-runtime.*.js, Rolldown). 저작권 표기와 MIT 허락 문장은 고지 파일에 있어요(2026-09-26 Phase 6 안전 검토에서 찾아 더함)."
+    paths:
+      - public/licenses/build-runtime.txt
+    notice: public/licenses/build-runtime.txt
+    fetched: 2026-09-26
+
   - name: "@astrojs/markdown-remark 7.3.1"
     category: stack
     author: Fred K. Schott와 withastro(Astro 기여자)
@@ -248,12 +259,12 @@ sources:
 
   # Pyodide 코어(pyodide.asm.wasm·python_stdlib.zip) 안의 라이브러리(2026-09-26 P6-04). Pyodide 314.0.7의 Makefile.envs·cpython/Makefile과
   # wasm 안의 판 글자(zlib 1.3.1, bzip2 1.0.6, xz 5.2.2, zstd 1.5.7, SQLite 3.39.0, expat 2.7.3, Emscripten 5.0.3)로 확인했어요.
-  - name: Pyodide 코어에 함께 든 라이브러리(CPython 안 코드·libffi·zlib·bzip2·xz·zstd·SQLite·Emscripten 런타임)
+  - name: Pyodide 코어에 함께 든 라이브러리(CPython 안 코드·libffi·zlib·bzip2·xz·zstd·SQLite·Emscripten 런타임·JS의 error-stack-parser·stackframe)
     category: stack
-    author: "라이브러리마다 다름 — Python Software Foundation과 기여자, Anthony Green·Red Hat(libffi), Jean-loup Gailly·Mark Adler(zlib), Julian Seward(bzip2), Meta Platforms(zstd), Emscripten·musl·LLVM 기여자 등(고지 파일)"
+    author: "라이브러리마다 다름 — Python Software Foundation과 기여자, Anthony Green·Red Hat(libffi), Jean-loup Gailly·Mark Adler(zlib), Julian Seward(bzip2), Meta Platforms(zstd), Emscripten·musl·LLVM 기여자, Eric Wendelin과 기여자(error-stack-parser·stackframe) 등(고지 파일)"
     license: PSF-2.0 AND MIT AND BSD-3-Clause AND Zlib AND bzip2-1.0.6 AND Apache-2.0 WITH LLVM-exception AND 퍼블릭 도메인(liblzma·SQLite)
     url: https://github.com/pyodide/pyodide/tree/314.0.7
-    used_in: "파이썬 엔진 Pyodide 314.0.7의 코어 파일(jsDelivr에서 받거나 같은 사이트 예비본 vendor/pyodide/314.0.7/, 오프라인판)에 함께 들어 있는 것: CPython 3.14.2에 든 코드(expat, libmpdec, mimalloc, HACL*, pyzstd 바인딩 등), libffi, zlib, bzip2, xz(liblzma), Zstandard, SQLite, Emscripten 런타임(musl·LLVM libc++ 포함). 구성요소마다의 고지 원문은 고지 파일에 있어요."
+    used_in: "파이썬 엔진 Pyodide 314.0.7의 코어 파일(jsDelivr에서 받거나 같은 사이트 예비본 vendor/pyodide/314.0.7/, 오프라인판)에 함께 들어 있는 것: CPython 3.14.2에 든 코드(expat, libmpdec, mimalloc, HACL*, pyzstd 바인딩 등), libffi, zlib, bzip2, xz(liblzma), Zstandard, SQLite, Emscripten 런타임(musl·LLVM libc++ 포함), 그리고 JS 파일(pyodide.mjs·pyodide.asm.mjs)에 묶인 error-stack-parser·stackframe(MIT — 2026-09-26 Phase 6 안전 검토에서 찾아 고지 12절에 더함). 구성요소마다의 고지 원문은 고지 파일에 있어요."
     paths:
       - public/licenses/pyodide-core-3rd-party.txt
     notice: public/licenses/pyodide-core-3rd-party.txt

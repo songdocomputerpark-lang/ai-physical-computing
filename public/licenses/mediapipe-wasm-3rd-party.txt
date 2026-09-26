@@ -396,4 +396,4 @@ MPL-2.0 전문은 licenses/pyodide.txt(Pyodide의 MPL-2.0 원문과 같은 글)�
 - FlatBuffers — Copyright 2014 Google Inc. — https://github.com/google/flatbuffers
 - SentencePiece(TensorFlow Lite 토크나이저 연산) — Copyright Google Inc. — https://github.com/google/sentencepiece
 - TCMalloc — Copyright The TCMalloc Authors — https://github.com/google/tcmalloc
-- OpenCV 4.x(MediaPipe 영상 변환) — OpenCV team — https://github.com/opencv/opencv (4.5.0부터 Apache-2.0; 판은 파일에 드러나지 않아요)
+- OpenCV 4.13.0(MediaPipe 영상 변환) — OpenCV team — https://github.com/opencv/opencv (4.5.0부터 Apache-2.0; 판은 두 wasm 파일 안의 OpenCV 빌드 정보 글 "General configuration for OpenCV 4.13.0"에서 읽었어요)
