@@ -183,4 +183,25 @@ describe('오프라인 배포판 설정(build-sw --offline — PLAN §5.6, P6-07
     expect(swSource).toContain('if (!outcome.ok && !OFFLINE)');
     expect(swSource).toContain('이 컴퓨터의 작은 서버가 꺼져 있어요');
   });
+
+  it('연결이 없을 때 한 번도 안 연 쪽은 홈이 아니라 안내 쪽(홈으로 가는 링크)이고, 홈 주소일 때만 받아 둔 홈을 준다(2026-09-26 Phase 6 사용성 검토 지적 3)', () => {
+    expect(swSource).toMatch(/if \(isHomePath\(new URL\(request\.url\)\.pathname\)\) \{/u);
+    expect(swSource).not.toMatch(/return home \|\| offlinePage\(\)/u);
+    expect(swSource).toContain('홈으로 가기');
+    // isHomePath만 떼어 BASE를 넣어 돌려 본다(서비스 워커 파일은 모듈이 아니라 혼자 도는 코드라 함수 글자를 꺼내 쓴다)
+    const source = /function isHomePath\(pathname\) \{[\s\S]*?\n\}/u.exec(swSource)?.[0];
+    expect(source).toBeTruthy();
+    const make = (base: string) =>
+      new Function('BASE', 'self', `${source}\nreturn isHomePath;`)(base, { location: { href: `https://example.test${base}sw.js` } }) as (path: string) => boolean;
+    const online = make('/ai-physical-computing/');
+    expect(online('/ai-physical-computing/')).toBe(true);
+    expect(online('/ai-physical-computing')).toBe(true);
+    expect(online('/ai-physical-computing/index.html')).toBe(true);
+    expect(online('/ai-physical-computing/learn/u2/2-1-1/')).toBe(false);
+    expect(online('/ai-physical-computing/labs/esp32/')).toBe(false);
+    const offline = make('/');
+    expect(offline('/')).toBe(true);
+    expect(offline('/index.html')).toBe(true);
+    expect(offline('/learn/u2/2-1-1/')).toBe(false);
+  });
 });

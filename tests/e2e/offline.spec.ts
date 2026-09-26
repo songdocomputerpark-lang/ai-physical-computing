@@ -8,6 +8,7 @@
 //   검사마다 끝에 "사이트 밖으로 나가려던 요청 0건"을 확인한다.
 // 확인하는 것
 //   1. 홈·차시·검색·출처 쪽이 열리고, 서비스 워커가 사이트 뿌리에서 오프라인 설정으로 쪽을 맡는다.
+//      작은 서버에 닿지 못하면 연 적 있는 쪽은 저장본, 안 연 쪽은 "작은 서버가 꺼져 있어요" 안내 쪽(홈 내용을 그 주소로 보이지 않음).
 //   2. 시나리오 A 오프라인: 홈 → [카메라로 바로 해보기] → (가짜 카메라 — 카메라 권한이 localhost에서 된다) 에지 결과 →
 //      조절 막대로 결과가 바뀐다 → 입력을 "샘플 입력"으로 바꿔도 에지 결과. 파이썬 엔진은 같은 사이트에서 받는다.
 //   3. ESP32 가상 보드 첫 예제(내장 LED 깜빡이기)와 [실제 보드] 탭(Web Serial이 localhost에서 "지원").
@@ -180,6 +181,40 @@ test.describe('오프라인 배포판 — 인터넷 없이', () => {
     note('사이트 요청', `이 컴퓨터 ${network.local.length}건, 사이트 밖 ${network.external.length}건`);
     expect(network.external, '사이트 밖으로 나가려던 요청').toEqual([]);
     expect(errors).toEqual([]);
+  });
+
+  // 2026-09-26 Phase 6 사용성 검토 지적 3: 서버(검은 창)를 닫은 뒤 한 번도 안 연 쪽을 열면 주소창은 그 쪽인데 화면은 **홈**이 떴다
+  // (서비스 워커가 어느 주소든 사전 캐시된 홈을 줬다). 이제 홈 주소일 때만 홈이고, 나머지는 "작은 서버가 꺼져 있어요" 안내 쪽이다.
+  // 서버를 끄는 대신 브라우저 문맥을 오프라인으로 두어 같은 상황(이 컴퓨터의 작은 서버에 닿지 못함)을 만든다.
+  test('작은 서버가 꺼지면: 연 적 있는 쪽은 저장본으로, 안 연 쪽은 "작은 서버가 꺼져 있어요" 안내 쪽과 [홈으로 가기]', async ({ page, context }) => {
+    test.setTimeout(120_000);
+    await guardNetwork(context);
+    await page.goto(withBase(''));
+    await expect
+      .poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.state ?? 'none'), { timeout: 30_000 })
+      .toBe('activated');
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null), { timeout: 15_000 }).toBe(true);
+    await page.goto(withBase('learn/u1/1-1-1/'));
+    await expect(page.locator('main h1')).toBeVisible();
+
+    await context.setOffline(true);
+    try {
+      // 연 적 있는 차시는 저장본으로 뜬다
+      await page.goto(withBase('learn/u1/1-1-1/'));
+      await expect(page.locator('main h1')).toBeVisible();
+      // 안 연 쪽은 안내 쪽(홈 내용이 그 주소로 뜨지 않는다)
+      await page.goto(withBase('learn/u2/2-1-1/'));
+      await expect(page.locator('h1')).toHaveText('이 컴퓨터의 작은 서버가 꺼져 있어요');
+      await expect(page.locator('[data-home-action="camera"]')).toHaveCount(0);
+      await expect(page.locator('body')).toContainText('시작하기.bat');
+      // [홈으로 가기]는 저장해 둔 홈을 연다
+      await page.getByRole('link', { name: '홈으로 가기' }).click();
+      await expect(page.locator('[data-home-action="camera"]')).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe('/');
+    } finally {
+      await context.setOffline(false);
+    }
   });
 
   test('시나리오 A: 홈 → [카메라로 바로 해보기] → 가짜 카메라 에지 결과 → 조절 막대 → 샘플 입력으로 바꿔도 에지 결과', async ({ page, context }) => {

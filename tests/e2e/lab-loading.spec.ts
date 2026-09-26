@@ -143,6 +143,39 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     await expect(root).toHaveAttribute('data-outcome', 'ok');
   });
 
+  // 2026-09-26 Phase 6 사용성 검토 지적 4·5: 파이썬은 "준비됐어요"인데 numpy·OpenCV를 아직 받는 중에 [실행]하면 ① 콘솔과 "콘솔에 결과가
+  // 나왔어요" 칸에 영어 "Loading numpy, opencv-python"이 결과처럼 나오고 ② 입력·출력 칸이 "[실행]을 누르면 입력이 켜져요"만 보여
+  // 느린 망에서 몇 분 동안 멈춘 것처럼 보였다.
+  test('파이썬 준비 뒤 OpenCV를 받는 중에 [실행]하면 받는 중이라고 알리고 다 받은 뒤 저절로 시작하며, 콘솔에 영어 로딩 줄이 없다', async ({ page, context }) => {
+    test.skip(test.info().project.name === 'mobile', '데스크톱에서 잰다(같은 코드).');
+    test.setTimeout(LOAD_TIMEOUT + PACKAGES_TIMEOUT);
+    // OpenCV 휠을 15초 늦게 준다 — 파이썬 엔진은 준비됐고 실습 파일은 아직 받는 때를 확실히 잡는다(워커 요청도 문맥 경로 규칙을 따른다).
+    await context.route(/opencv_python[^/]*\.whl$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 15_000));
+      await route.continue();
+    });
+    await page.goto(VISION_PATH);
+    const root = labRoot(page);
+    await expect(root).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    await expect(root).toHaveAttribute('data-vision-packages', 'loading');
+    await page.locator('[data-lab-run]').click();
+    await expect(root).toHaveAttribute('data-vision-package-wait', 'yes');
+    await expect(page.locator('[data-vision-output-empty]')).toContainText('필요한 파일을 받는 중이에요');
+    await expect(page.locator('[data-vision-output-empty]')).toContainText('다 받으면 코드가 저절로 시작');
+    await expect(page.locator('[data-vision-input-status]')).toContainText('필요한 파일을 다 받으면 켜져요');
+    await expect(page.locator('[data-lab-progress]')).toContainText('다 받으면 코드가 저절로 시작해요');
+    // 다 받으면 코드가 저절로 시작하고 안내는 원래대로 돌아간다
+    await expect(root).toHaveAttribute('data-vision-packages', 'ready', { timeout: PACKAGES_TIMEOUT });
+    await expect(root).toHaveAttribute('data-vision-package-wait', 'no');
+    await expect(page.locator('[data-vision-input-status]')).not.toContainText('필요한 파일');
+    await expect(root).toHaveAttribute('data-state', 'running');
+    // Pyodide의 영어 패키지 알림이 콘솔로 새지 않는다(실행의 패키지 받기와 미리 받기를 줄 세움 — src/lab/runtime/package-queue.ts)
+    await expect(page.locator('[data-lab-console]')).not.toContainText('Loading');
+    await page.locator('[data-lab-stop]').click();
+    await expect(root).toHaveAttribute('data-outcome', /^(stopped|killed|ok)$/u, { timeout: 30_000 });
+    await expect(page.locator('[data-lab-console]')).not.toContainText('Loading');
+  });
+
   test('주소에 ?sw=off를 붙이면 오프라인 준비를 끈다(비상구)', async ({ page }) => {
     await page.goto(`${VISION_PATH}?sw=off`);
     await expect(labRoot(page)).toHaveAttribute('data-loading-sw', 'off', { timeout: 20_000 });
@@ -182,8 +215,14 @@ test.describe('서비스 워커(캐시·오프라인·예비 경로)', () => {
       await expect(labRoot(page)).toHaveAttribute('data-loading-source', 'cache', { timeout: 20_000 });
       await expect(page.locator('[data-vision-stage="opencv"]')).toHaveAttribute('data-state', 'done', { timeout: PACKAGES_TIMEOUT });
 
-      // 한 번도 안 열어 본 주소를 오프라인에서 열면 설치할 때 받아 둔 홈 페이지를 보여 준다(빈 오류 화면이 아니라).
+      // 한 번도 안 열어 본 주소를 오프라인에서 열면 "인터넷 연결이 없어요" 안내 쪽을 보인다(빈 오류 화면도, 그 주소에 홈 내용도 아니라 —
+      // 2026-09-26 Phase 6 사용성 검토 지적 3: 전에는 주소창은 /learn/u3/인데 화면은 홈이라 링크가 고장 난 것처럼 보였다).
+      // 안내 쪽의 [홈으로 가기]는 설치할 때 받아 둔 홈을 연다.
       await page.goto(withBase('learn/u3/'));
+      await expect(page.locator('h1')).toHaveText('인터넷 연결이 없어요');
+      await expect(page.locator('[data-home-action="camera"]')).toHaveCount(0);
+      await page.getByRole('link', { name: '홈으로 가기' }).click();
+      await expect(page.locator('[data-home-action="camera"]')).toBeVisible();
       await expect(page.locator('body')).toContainText('AI 피지컬 컴퓨팅');
     } finally {
       await context.setOffline(false);

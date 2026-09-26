@@ -459,9 +459,16 @@ async function networkFirst(request, cacheName, timeoutMs, trim) {
       return response;
     }
     if (request.mode === 'navigate') {
-      // 한 번도 안 열어 본 주소를 오프라인에서 열었을 때: 본 적 있는 홈 → 설치할 때 받아 둔 홈 → 마지막으로 안내 쪽지.
-      const home = (await cache.match(BASE, MATCH_OPTIONS)) ?? (await precacheMatch(new Request(new URL(BASE, self.location.href).href)));
-      return home || offlinePage();
+      // 한 번도 안 열어 본 주소를 오프라인에서 열었을 때: **홈 주소일 때만** 본 적 있는 홈 → 설치할 때 받아 둔 홈을 주고,
+      // 그 밖의 주소는 안내 쪽지(홈으로 가는 링크 포함)를 준다. 예전에는 어느 주소든 홈을 줘서, 주소창은 /learn/u2/2-1-1/인데
+      // 화면은 홈이 떠 "링크가 고장 났다"로 보였다(2026-09-26 Phase 6 사용성 검토 지적 3 — 홈은 설치 때 늘 사전 캐시된다).
+      if (isHomePath(new URL(request.url).pathname)) {
+        const home = (await cache.match(BASE, MATCH_OPTIONS)) ?? (await precacheMatch(new Request(new URL(BASE, self.location.href).href)));
+        if (home) {
+          return home;
+        }
+      }
+      return offlinePage();
     }
     return new Response('', { status: 504, statusText: 'Gateway Timeout' });
   }
@@ -494,20 +501,29 @@ async function staleWhileRevalidate(request, cacheName, trim) {
   return response || new Response('', { status: 504, statusText: 'Gateway Timeout' });
 }
 
+/** 요청 경로가 사이트 홈(BASE 그 자체 또는 BASE/index.html)인지 */
+function isHomePath(pathname) {
+  const home = new URL(BASE, self.location.href).pathname;
+  return pathname === home || pathname === `${home}index.html` || `${pathname}/` === home;
+}
+
 function offlinePage() {
   // 오프라인 배포판은 인터넷이 아니라 이 컴퓨터의 작은 서버(시작하기.bat가 연 창)에서 쪽을 받는다 — 그 창이 닫힌 경우다.
   const title = OFFLINE ? '이 컴퓨터의 작은 서버가 꺼져 있어요' : '인터넷 연결이 없어요';
+  const homeHref = new URL(BASE, self.location.href).pathname;
   const body = OFFLINE
     ? `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 오프라인판 폴더의 <strong>시작하기.bat</strong>를 다시 실행한 뒤 새로고침해 주세요.</p>
 <p>서버 창(검은 창)을 닫으면 사이트가 멈춰요. 수업하는 동안에는 창을 닫지 말고 작게 줄여 두세요.</p>`
-    : `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 인터넷에 연결한 뒤 새로고침해 주세요.</p>
-<p>한 번 열어 본 페이지와 실습실은 연결 없이도 열려요.</p>`;
+    : `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 인터넷에 연결한 뒤 새로고침해 주세요.</p>`;
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" /><title>${title}</title>
 <style>body{font-family:system-ui,'Malgun Gothic',sans-serif;margin:0;padding:2rem;line-height:1.7;color:#17191c}
 h1{font-size:1.4rem}a{color:#0b5cab}</style></head><body>
+<main data-apc-offline-page>
 <h1>${title}</h1>
 ${body}
+<p>한 번 열어 본 페이지와 실습실은 연결 없이도 열려요. <a href="${homeHref}">홈으로 가기</a></p>
+</main>
 </body></html>`;
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
