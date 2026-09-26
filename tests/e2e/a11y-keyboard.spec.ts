@@ -361,6 +361,69 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     await expect(content).not.toBeFocused();
   });
 
+  // 2026-09-26 Phase 6 사용성 검토 지적 1: Enter로 [실행]을 누르면 [실행]이 꺼지며 초점이 문서(body)로 사라졌다([정지]도 같음).
+  // 이제 [실행] → [정지], [정지] → [실행]으로 초점이 옮겨 간다(화면은 결과 칸으로 옮겨 간 그대로 — preventScroll).
+  const focusedButton = (page: Page) =>
+    page.evaluate(() => {
+      const active = document.activeElement;
+      if (!active || active === document.body) {
+        return 'body';
+      }
+      return active.hasAttribute('data-lab-run') ? 'run' : active.hasAttribute('data-lab-stop') ? 'stop' : active.tagName.toLowerCase();
+    });
+
+  test('ESP32 실습실: 키보드로 [실행]을 누르면 초점이 [정지]로, [정지]를 누르면 [실행]으로 간다 — 곧바로 끝나는 코드도 초점이 [실행]에 남는다', async ({ page }) => {
+    test.setTimeout(LAB_READY_TIMEOUT + 90_000);
+    await freezeDevReloads(page);
+    await page.goto(withBase('labs/esp32/'));
+    await waitLabsIdle(page);
+    const root = page.locator('[data-lab]').first();
+    const run = page.locator('[data-lab-run]');
+    // [정지]까지 도는 코드(가상 보드의 sleep 되풀이)
+    const content = page.locator('[data-lab-editor] .cm-content');
+    await content.click();
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.insertText('import time\nwhile True:\n    time.sleep(0.1)\n');
+    await run.focus();
+    await page.keyboard.press('Enter');
+    await expect(root).toHaveAttribute('data-state', 'running', { timeout: 30_000 });
+    await expect.poll(() => focusedButton(page), { timeout: 10_000 }).toBe('stop');
+    await page.keyboard.press('Enter');
+    await expect(root).toHaveAttribute('data-outcome', /^(stopped|killed)$/u, { timeout: 30_000 });
+    await expect(root).toHaveAttribute('data-state', 'idle', { timeout: 30_000 });
+    await expect.poll(() => focusedButton(page), { timeout: 10_000 }).toBe('run');
+
+    // 곧바로 끝나는 코드: [실행] → ([정지]) → 끝나면 다시 [실행] — 어느 때도 body로 사라지지 않고 끝에는 [실행]
+    await content.click();
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.insertText('print("안녕")\n');
+    await run.focus();
+    await page.keyboard.press('Enter');
+    await expect(root).toHaveAttribute('data-outcome', 'ok', { timeout: 30_000 });
+    await expect(root).toHaveAttribute('data-state', 'idle');
+    await expect.poll(() => focusedButton(page), { timeout: 10_000 }).toBe('run');
+  });
+
+  test('영상처리 실습실: 키보드로 [실행]을 누르면 초점이 [정지]로, [정지]를 누르면 [실행]으로 간다', async ({ page }) => {
+    test.skip(!FULL, FULL_ONLY_REASON);
+    test.setTimeout(LAB_READY_TIMEOUT + 120_000);
+    await freezeDevReloads(page);
+    await page.goto(withBase('labs/vision/'));
+    await waitLabsIdle(page);
+    const root = page.locator('[data-lab]').first();
+    await expect(root).toHaveAttribute('data-vision-packages', 'ready', { timeout: LAB_READY_TIMEOUT });
+    const run = page.locator('[data-lab-run]');
+    await run.focus();
+    await page.keyboard.press('Enter');
+    await expect(root).toHaveAttribute('data-state', 'running', { timeout: 30_000 });
+    await expect.poll(() => focusedButton(page), { timeout: 10_000 }).toBe('stop');
+    await page.keyboard.press('Enter');
+    await expect(root).toHaveAttribute('data-state', 'idle', { timeout: 30_000 });
+    await expect.poll(() => focusedButton(page), { timeout: 10_000 }).toBe('run');
+  });
+
   test('ESP32 실습실: [블록]을 키보드로 켜고 끄며, 블록 모드에서도 Tab이 작업판을 지나간다', async ({ page }) => {
     test.setTimeout(LAB_READY_TIMEOUT + 120_000);
     await freezeDevReloads(page);

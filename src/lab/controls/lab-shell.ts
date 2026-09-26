@@ -326,6 +326,12 @@ class LabShellController implements LabController {
   #holdCancelled = false;
   /** [실행] 단추의 원래 글자 */
   #runLabel = '실행';
+  /**
+   * [실행]·[정지] 가운데 초점이 있던 단추가 꺼지면(disabled) 초점을 옮길 단추. 키보드로 [실행]을 누르면 실행이 시작되며 [실행]이 꺼져
+   * 초점이 문서(body)로 사라졌다 — 화면 낭독기 사용자는 자리를 잃고, 다음 Tab은 쪽 처음부터였다(2026-09-26 Phase 6 사용성 검토 지적 1).
+   * 이제 [실행] → [정지], [정지] → [실행]으로 옮긴다(둘 다 꺼져 있으면 먼저 켜지는 단추로). 학생이 초점을 다른 곳으로 옮기면 그만둔다.
+   */
+  #focusFollow: 'run' | 'stop' | null = null;
   #disposed = false;
   /** (P3-06) [실행] 때 파이썬 실행기로 보낼 코드를 바꾸는 함수(setRunCodeTransform) */
   #runCodeTransform: ((code: string) => string | null) | null = null;
@@ -689,34 +695,75 @@ class LabShellController implements LabController {
 
   /** 실행 대상이 있으면 그 상태(idle·running·stopping)로, 없으면 파이썬 실행기 상태로 상태 글·단추·data-state를 그린다 */
   #renderTargetState(): void {
-    const { stopButton, statusText } = this.#elements;
-    const target = this.#runTarget;
-    const run = this.#targetRun;
-    this.root.dataset.runTarget = target?.label ?? '';
-    if (target && run) {
-      const stopping = run.stopRequestedAt !== null;
-      this.root.dataset.state = stopping ? 'stopping' : 'running';
-      if (statusText) {
-        statusText.textContent = stopping
-          ? `${withParticle(target.label, '을/를')} 멈추는 중이에요…`
-          : (this.#targetStatusText ?? `${target.label}에서 실행 중이에요.`);
+    this.#keepButtonFocus(() => {
+      const { stopButton, statusText } = this.#elements;
+      const target = this.#runTarget;
+      const run = this.#targetRun;
+      this.root.dataset.runTarget = target?.label ?? '';
+      if (target && run) {
+        const stopping = run.stopRequestedAt !== null;
+        this.root.dataset.state = stopping ? 'stopping' : 'running';
+        if (statusText) {
+          statusText.textContent = stopping
+            ? `${withParticle(target.label, '을/를')} 멈추는 중이에요…`
+            : (this.#targetStatusText ?? `${target.label}에서 실행 중이에요.`);
+        }
+        stopButton.disabled = stopping;
+      } else if (target) {
+        this.root.dataset.state = 'idle';
+        if (statusText) {
+          statusText.textContent = `${target.label}에서 실행할 수 있어요. [실행]을 누르세요.`;
+        }
+        stopButton.disabled = true;
+      } else {
+        const state = this.runtime.state;
+        this.root.dataset.state = state;
+        if (statusText) {
+          statusText.textContent = STATE_TEXT[state];
+        }
+        stopButton.disabled = state !== 'running';
       }
-      stopButton.disabled = stopping;
-    } else if (target) {
-      this.root.dataset.state = 'idle';
-      if (statusText) {
-        statusText.textContent = `${target.label}에서 실행할 수 있어요. [실행]을 누르세요.`;
-      }
-      stopButton.disabled = true;
-    } else {
-      const state = this.runtime.state;
-      this.root.dataset.state = state;
-      if (statusText) {
-        statusText.textContent = STATE_TEXT[state];
-      }
-      stopButton.disabled = state !== 'running';
+      this.#paintRunButton();
+    });
+  }
+
+  /**
+   * 단추 상태를 바꾸는 그리기를 감싼다: 초점이 있던 [실행]·[정지]가 꺼지면 다른 단추로 초점을 옮긴다(#focusFollow).
+   * 초점을 옮길 때 화면은 움직이지 않는다(preventScroll) — [실행] 뒤 결과 칸으로 옮겨 간 화면(revealTogether)을 되돌리지 않게.
+   */
+  #keepButtonFocus(render: () => void): void {
+    const { runButton, stopButton } = this.#elements;
+    const active = document.activeElement;
+    render();
+    if (active === runButton && runButton.disabled) {
+      this.#focusFollow = 'stop';
+    } else if (active === stopButton && stopButton.disabled) {
+      this.#focusFollow = 'run';
     }
-    this.#renderRunButton();
+    this.#followButtonFocus();
+  }
+
+  #followButtonFocus(): void {
+    const follow = this.#focusFollow;
+    if (!follow) {
+      return;
+    }
+    const { runButton, stopButton } = this.#elements;
+    const active = document.activeElement;
+    const lost = active === null || active === document.body || ((active === runButton || active === stopButton) && (active as HTMLButtonElement).disabled);
+    if (!lost) {
+      // 학생이 초점을 다른 곳(편집칸·입력줄 등)으로 옮겼다 — 따라가지 않는다.
+      this.#focusFollow = null;
+      return;
+    }
+    const preferred = follow === 'stop' ? stopButton : runButton;
+    const other = follow === 'stop' ? runButton : stopButton;
+    const target = !preferred.disabled ? preferred : !other.disabled ? other : null;
+    if (target) {
+      target.focus({ preventScroll: true });
+      this.#focusFollow = null;
+    }
+    // 둘 다 꺼져 있으면(준비 중에 누른 [실행] — "준비되면 실행돼요…") 기억해 두었다가 먼저 켜지는 단추로 옮긴다.
   }
 
   reset(): void {
@@ -1047,6 +1094,11 @@ class LabShellController implements LabController {
    * 실행 중·멈추는 중·준비 실패일 때만 끈다.
    */
   #renderRunButton(): void {
+    this.#keepButtonFocus(() => this.#paintRunButton());
+  }
+
+  /** [실행] 단추만 그린다(초점 옮기기 없이 — 부르는 쪽이 #keepButtonFocus로 감싼다) */
+  #paintRunButton(): void {
     const { runButton } = this.#elements;
     const state = this.runtime.state;
     if (this.#runTarget) {
@@ -1114,12 +1166,14 @@ class LabShellController implements LabController {
         if (this.#runTarget) {
           this.#renderTargetState();
         } else {
-          this.root.dataset.state = state;
-          if (statusText) {
-            statusText.textContent = STATE_TEXT[state];
-          }
-          this.#renderRunButton();
-          stopButton.disabled = state !== 'running';
+          this.#keepButtonFocus(() => {
+            this.root.dataset.state = state;
+            if (statusText) {
+              statusText.textContent = STATE_TEXT[state];
+            }
+            this.#paintRunButton();
+            stopButton.disabled = state !== 'running';
+          });
           if (state !== 'running') {
             this.#hideInput();
             this.#resolveTargetPrompt(null);
