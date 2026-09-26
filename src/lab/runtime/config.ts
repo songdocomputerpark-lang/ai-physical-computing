@@ -1,8 +1,22 @@
 /**
  * 파이썬 실행기 설정 한 곳(PLAN §5.2 PD-02, §4.4 PD-01, §8.2 P2-01).
  * Pyodide 주소·버전·정지 시간처럼 바꿀 일이 있는 값은 이 파일만 고친다. 화면 쪽(client.ts)과 테스트가 읽는다.
+ *
+ * 오프라인 배포판(PLAN §5.6, P6-07): `npm run build:offline`은 이 사이트를 한 번 더 빌드하면서 `__APC_OFFLINE__`을 true로 새긴다
+ * (scripts/offline/astro.config.offline.mjs — 보통 설정에 define 한 줄을 더한 것). 그 빌드에서만 `OFFLINE_BUILD`가 true가 되어
+ * 파이썬 엔진을 jsDelivr 대신 **같은 사이트 파일에서만** 받는다. 온라인 사이트·개발 서버·Node(스크립트·테스트)에는 이 이름이 없어서
+ * 늘 false다 — 그래서 온라인 사이트의 동작(jsDelivr 먼저 → 막히면 같은 사이트 예비본)은 그대로다.
  */
 import { withBase } from '../../lib/url.ts';
+
+/**
+ * 오프라인 배포판 빌드가 번들에 새겨 넣는 표시(scripts/offline/astro.config.offline.mjs의 vite.define).
+ * 보통 빌드·개발 서버·Node에는 정의되지 않는다(typeof로만 읽는다 — src/config/site.ts의 __APC_BASE__와 같은 방식).
+ */
+declare const __APC_OFFLINE__: boolean | undefined;
+
+/** 이 번들이 오프라인 배포판인지(PLAN §5.6). 온라인 사이트·개발 서버·Node에서는 false. */
+export const OFFLINE_BUILD: boolean = typeof __APC_OFFLINE__ === 'boolean' ? __APC_OFFLINE__ : false;
 
 /** Pyodide 버전(PLAN §3.1, PD-02). 올릴 때는 회귀 테스트(tests/unit/lab/, tests/e2e/lab-runtime.spec.ts)를 통과시킨 뒤에만(PLAN §4.5). */
 export const PYODIDE_VERSION = '314.0.7';
@@ -29,9 +43,14 @@ export const PYODIDE_SITE_FALLBACK_READY = true;
 
 /**
  * 워커가 차례로 시도할 Pyodide 위치. 앞의 것이 실패하면 다음 것을 쓴다(P2-05에서 "받은 양이 15초 동안 늘지 않으면"도 더한다).
+ * 오프라인 배포판은 같은 사이트 파일 하나만 쓴다 — 인터넷이 없는 교실에서 jsDelivr를 먼저 두드리며 기다리지 않게(PLAN §5.6).
  * @param origin 같은 사이트 예비본 주소를 만들 때 쓰는 사이트 출처(브라우저에서는 location.origin)
+ * @param offline 오프라인 배포판처럼 고를지(기본: 이 번들의 OFFLINE_BUILD — 단위 테스트가 두 경우를 모두 본다)
  */
-export function pyodideIndexUrls(origin?: string): string[] {
+export function pyodideIndexUrls(origin?: string, offline: boolean = OFFLINE_BUILD): string[] {
+  if (offline) {
+    return [origin ? new URL(PYODIDE_SITE_INDEX_PATH, origin).href : PYODIDE_SITE_INDEX_PATH];
+  }
   const urls = [PYODIDE_CDN_INDEX_URL];
   if (PYODIDE_SITE_FALLBACK_READY && origin) {
     urls.push(new URL(PYODIDE_SITE_INDEX_PATH, origin).href);
@@ -42,8 +61,9 @@ export function pyodideIndexUrls(origin?: string): string[] {
 /**
  * 실습 중 브라우저가 접속해도 되는 사이트 밖 출처(SPEC §2 서버 제로: 학생 영상·음성은 브라우저 밖으로 나가지 않는다).
  * 브라우저 테스트가 이 목록과 사이트 자신 말고 다른 곳으로 가는 요청이 0건인지 확인한다. MediaPipe·모델은 같은 사이트(P2-08).
+ * 오프라인 배포판은 사이트 밖으로 나갈 일이 없어 빈 목록이다(tests/e2e/offline.spec.ts가 인터넷을 막고 0건인지 본다).
  */
-export const ALLOWED_REMOTE_ORIGINS: readonly string[] = Object.freeze(['https://cdn.jsdelivr.net']);
+export const ALLOWED_REMOTE_ORIGINS: readonly string[] = Object.freeze(OFFLINE_BUILD ? [] : ['https://cdn.jsdelivr.net']);
 
 /**
  * 정지 2단계까지 기다리는 시간(밀리초, PLAN §4.4). [정지]를 눌렀는데 이 시간 안에 파이썬이 멈추지 않으면

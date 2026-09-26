@@ -9,6 +9,7 @@ import {
   PYODIDE_CORE_BYTES,
   PYODIDE_FALLBACK_FILES,
   PYODIDE_FALLBACK_TOTAL_BYTES,
+  PYODIDE_OFFLINE_EXTRA_FILES,
   PYODIDE_VERSION,
   findPyodideFile,
   formatBytes,
@@ -69,6 +70,14 @@ describe('예비본 파일 표', () => {
     }
     // opencv-python은 numpy에만 기대므로 둘만 있으면 첫 실습이 돈다(PLAN §5.2).
     expect(lock.packages['opencv-python']!.depends).toEqual(['numpy']);
+  });
+
+  it('오프라인판에서만 더 넣는 휠(pillow)은 온라인 예비본 표에 없다 — 온라인 배포물·서비스 워커 표는 그대로(P6-07)', () => {
+    const fallbackNames = new Set(PYODIDE_FALLBACK_FILES.map((file) => file.name));
+    for (const file of PYODIDE_OFFLINE_EXTRA_FILES) {
+      expect(fallbackNames.has(file.name), file.name).toBe(false);
+    }
+    expect(PYODIDE_OFFLINE_EXTRA_FILES.map((file) => file.package)).toEqual(['pillow']);
   });
 
   it('npm 패키지 판이 설정과 같다', () => {

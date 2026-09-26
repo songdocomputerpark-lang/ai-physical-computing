@@ -17,8 +17,13 @@
  *
  * Pyodide 판을 올릴 때: config.ts의 PYODIDE_VERSION을 바꾸고 이 표의 이름·크기·해시를 새 파일로 갱신한다(단위 테스트가 어긋남을 잡는다).
  * Node.js(scripts/)도 읽으므로 타입 표기만 지우면 그대로 도는 문법만 쓴다.
+ *
+ * 오프라인 배포판(PLAN §5.6, P6-07): 인터넷 없이 모든 실습이 돌게 예비본 7개에 **오프라인판에서만 더 넣는 휠**(PYODIDE_OFFLINE_EXTRA_FILES)을
+ * 더한 표(PYODIDE_OFFLINE_FILES)를 쓴다. scripts/build-offline.mjs가 이 표대로 파일을 채우고(크기·SHA-256 대조),
+ * 서비스 워커(scripts/build-sw.mjs --offline)도 이 표로 크기·해시를 안다. 아래 찾기 도우미는 이 번들이 오프라인판(config.ts의
+ * OFFLINE_BUILD)이면 그 표를, 아니면 예비본 표를 본다 — 온라인 사이트의 결과는 전과 같다.
  */
-import { PYODIDE_CDN_INDEX_URL, PYODIDE_SITE_INDEX_PATH, PYODIDE_VERSION } from '../runtime/config.ts';
+import { OFFLINE_BUILD, PYODIDE_CDN_INDEX_URL, PYODIDE_SITE_INDEX_PATH, PYODIDE_VERSION } from '../runtime/config.ts';
 
 export type PyodideFileKind = 'core' | 'package';
 
@@ -55,24 +60,58 @@ export const PYODIDE_FALLBACK_FILES: readonly PyodideFile[] = Object.freeze([
   },
 ]);
 
+/**
+ * 오프라인 배포판에만 더 넣는 휠(PLAN §5.6, P6-07). 온라인 사이트는 이 휠을 쓸 때 jsDelivr에서 받는다(예비본에 넣지 않는다 —
+ * 첫 실습에 필요 없고 GitHub Pages 배포물을 키우지 않으려고).
+ *
+ * 고르는 법: 예제(examples/)·사이트 흉내 모듈(src/lab/**\/*.py)·차시 코드 블록이 import하는 이름을 pyodide-lock.json의 imports로
+ * 패키지에 잇고 depends를 따라간 것 가운데 예비본에 없는 것(2026-09-26: cv2 → opencv-python·numpy, PIL → pillow — 나머지는 표준 라이브러리이거나
+ * 사이트 흉내 모듈). scripts/lib/offline-packages.mjs가 그 계산을 하고, tests/unit/offline/packages.test.ts와 npm run build:offline이
+ * 이 표로 모두 덮이는지 매번 본다 — 새 예제가 다른 패키지(예: matplotlib)를 쓰면 거기서 멈추고 여기에 한 줄을 더하라고 알린다.
+ * 크기는 jsDelivr가 준 휠(.cache/pyodide-packages/)을 재서, SHA-256은 pyodide-lock.json의 값을 적었다(2026-09-26 — 둘이 같음을 확인).
+ */
+export const PYODIDE_OFFLINE_EXTRA_FILES: readonly PyodideFile[] = Object.freeze([
+  {
+    name: 'pillow-12.2.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl',
+    kind: 'package',
+    package: 'pillow',
+    size: 1_037_806,
+    sha256: 'e29838b7a756e4ee0f27a9cfa9a387ee0dfa2e9dd44be2dd595130b9f9d93ac3',
+  },
+]);
+
+/** 오프라인 배포판에 넣는 Pyodide 파일 전부: 예비본 7개 + 오프라인판에서만 더 넣는 휠 */
+export const PYODIDE_OFFLINE_FILES: readonly PyodideFile[] = Object.freeze([...PYODIDE_FALLBACK_FILES, ...PYODIDE_OFFLINE_EXTRA_FILES]);
+
 /** Pyodide 코어(파이썬 엔진) 파일의 원본 크기 합(약 13.5MB) */
 export const PYODIDE_CORE_BYTES = PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core').reduce((sum, file) => sum + file.size, 0);
 
 /** 예비본 전체 크기(약 27.2MB — GitHub Pages 사이트 한도 1GB의 3% 안, PLAN §5.1) */
 export const PYODIDE_FALLBACK_TOTAL_BYTES = PYODIDE_FALLBACK_FILES.reduce((sum, file) => sum + file.size, 0);
 
-export function findPyodideFile(name: string): PyodideFile | null {
-  return PYODIDE_FALLBACK_FILES.find((file) => file.name === name) ?? null;
+/** 오프라인 배포판의 Pyodide 파일 전체 크기(약 28.2MB) */
+export const PYODIDE_OFFLINE_TOTAL_BYTES = PYODIDE_OFFLINE_FILES.reduce((sum, file) => sum + file.size, 0);
+
+/**
+ * 이 번들이 아는 Pyodide 파일 표: 온라인 사이트는 예비본 7개, 오프라인 배포판은 PYODIDE_OFFLINE_FILES.
+ * @param offline 기본은 이 번들이 오프라인판인지(config.ts의 OFFLINE_BUILD). 빌드 스크립트·단위 테스트는 직접 넘긴다.
+ */
+export function pyodideFileTable(offline: boolean = OFFLINE_BUILD): readonly PyodideFile[] {
+  return offline ? PYODIDE_OFFLINE_FILES : PYODIDE_FALLBACK_FILES;
 }
 
-/** 패키지 이름(numpy, opencv-python)의 휠 파일 */
-export function pyodidePackageFile(packageName: string): PyodideFile | null {
-  return PYODIDE_FALLBACK_FILES.find((file) => file.kind === 'package' && file.package === packageName) ?? null;
+export function findPyodideFile(name: string, offline: boolean = OFFLINE_BUILD): PyodideFile | null {
+  return pyodideFileTable(offline).find((file) => file.name === name) ?? null;
+}
+
+/** 패키지 이름(numpy, opencv-python — 오프라인판은 pillow도)의 휠 파일 */
+export function pyodidePackageFile(packageName: string, offline: boolean = OFFLINE_BUILD): PyodideFile | null {
+  return pyodideFileTable(offline).find((file) => file.kind === 'package' && file.package === packageName) ?? null;
 }
 
 /** 패키지 이름의 휠 크기(바이트). 표에 없으면 null. */
-export function packageWheelSize(packageName: string): number | null {
-  return pyodidePackageFile(packageName)?.size ?? null;
+export function packageWheelSize(packageName: string, offline: boolean = OFFLINE_BUILD): number | null {
+  return pyodidePackageFile(packageName, offline)?.size ?? null;
 }
 
 /** jsDelivr 주소 */
@@ -118,21 +157,40 @@ export function twinPyodideUrl(url: string, origin: string): string | null {
   return parsed.from === 'cdn' ? pyodideSiteUrl(parsed.name, origin) : pyodideCdnUrl(parsed.name);
 }
 
-/** 예비본 전체의 CDN 주소 목록(미리 받기·캐시에 넣어 두기용) */
-export function pyodidePrefetchUrls(): string[] {
-  return PYODIDE_FALLBACK_FILES.map((file) => pyodideCdnUrl(file.name));
+/** 브라우저에서는 이 페이지의 출처(location.origin), Node에서는 없음 */
+function currentOrigin(): string | undefined {
+  const locationLike = (globalThis as { location?: { origin?: string } }).location;
+  return typeof locationLike?.origin === 'string' && locationLike.origin !== 'null' ? locationLike.origin : undefined;
 }
 
-/** 표에 있는 패키지가 함께 받는 패키지(pyodide-lock.json의 depends — opencv-python은 numpy에 기댄다) */
+/**
+ * 미리 받기·캐시 채우기에 쓸 주소: 온라인 사이트는 jsDelivr 주소(서비스 워커가 막히면 같은 사이트로 바꾼다),
+ * 오프라인 배포판은 같은 사이트 주소(인터넷을 두드리지 않는다 — PLAN §5.6). 출처를 모르면(Node) 사이트 뿌리 기준 경로.
+ */
+export function pyodidePreferredUrl(name: string, offline: boolean = OFFLINE_BUILD, origin: string | undefined = currentOrigin()): string {
+  if (!offline) {
+    return pyodideCdnUrl(name);
+  }
+  return origin ? pyodideSiteUrl(name, origin) : `${PYODIDE_SITE_INDEX_PATH}${name}`;
+}
+
+/** 이 번들이 아는 파일 표 전체의 미리 받기 주소 목록(온라인: 예비본 7개의 CDN 주소) */
+export function pyodidePrefetchUrls(offline: boolean = OFFLINE_BUILD): string[] {
+  return pyodideFileTable(offline).map((file) => pyodidePreferredUrl(file.name, offline));
+}
+
+/** 표에 있는 패키지가 함께 받는 패키지(pyodide-lock.json의 depends — opencv-python은 numpy에 기대고, pillow는 기대는 것이 없다) */
 export const PACKAGE_DEPENDENCIES: Readonly<Record<string, readonly string[]>> = Object.freeze({ 'opencv-python': ['numpy'] });
 
 /**
  * 실습실이 쓰는 패키지만큼의 예비본 파일: 파이썬 엔진(코어 5개) + 그 패키지와 기대는 패키지의 휠(P3-01, PD-04).
- * packages가 null이면 예비본 전체(예전 동작 — 실습실이 LabShell pyodidePackages를 적지 않은 경우). ESP32 실습실은 []라 코어만.
+ * packages가 null이면 표 전체(예전 동작 — 실습실이 LabShell pyodidePackages를 적지 않은 경우). ESP32 실습실은 []라 코어만.
+ * 오프라인 배포판에서는 오프라인 표(pillow 포함)에서 고른다.
  */
-export function pyodideFilesFor(packages: readonly string[] | null): PyodideFile[] {
+export function pyodideFilesFor(packages: readonly string[] | null, offline: boolean = OFFLINE_BUILD): PyodideFile[] {
+  const table = pyodideFileTable(offline);
   if (packages === null) {
-    return [...PYODIDE_FALLBACK_FILES];
+    return [...table];
   }
   const wanted = new Set<string>();
   const add = (name: string) => {
@@ -147,17 +205,17 @@ export function pyodideFilesFor(packages: readonly string[] | null): PyodideFile
   for (const name of packages) {
     add(name);
   }
-  return PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core' || (file.package !== undefined && wanted.has(file.package)));
+  return table.filter((file) => file.kind === 'core' || (file.package !== undefined && wanted.has(file.package)));
 }
 
-/** pyodideFilesFor의 CDN 주소 목록 */
-export function pyodidePrefetchUrlsFor(packages: readonly string[] | null): string[] {
-  return pyodideFilesFor(packages).map((file) => pyodideCdnUrl(file.name));
+/** pyodideFilesFor의 미리 받기 주소 목록(온라인: CDN 주소, 오프라인 배포판: 같은 사이트 주소 — pyodidePreferredUrl) */
+export function pyodidePrefetchUrlsFor(packages: readonly string[] | null, offline: boolean = OFFLINE_BUILD): string[] {
+  return pyodideFilesFor(packages, offline).map((file) => pyodidePreferredUrl(file.name, offline));
 }
 
 /** pyodideFilesFor의 원본 크기 합 */
-export function pyodidePrefetchBytesFor(packages: readonly string[] | null): number {
-  return pyodideFilesFor(packages).reduce((sum, file) => sum + file.size, 0);
+export function pyodidePrefetchBytesFor(packages: readonly string[] | null, offline: boolean = OFFLINE_BUILD): number {
+  return pyodideFilesFor(packages, offline).reduce((sum, file) => sum + file.size, 0);
 }
 
 /** 바이트를 사람이 읽는 글자로: 118KB, 2.9MB, 13.5MB */

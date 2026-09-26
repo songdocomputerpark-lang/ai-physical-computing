@@ -13,6 +13,7 @@
 import { withBase } from '../../../lib/url.ts';
 import { RECORDS_CLEARED_EVENT } from '../../controls/records.ts';
 import type { RuntimeRequest } from '../../runtime/client.ts';
+import { OFFLINE_BUILD } from '../../runtime/config.ts';
 import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
@@ -74,7 +75,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
   let serverAllowed = isServerSpeechAllowed();
   let onDevice: OnDeviceStatus = ctor ? 'unchecked' : 'unsupported';
   let onDeviceAsked = false;
-  let modes: SpeechMode[] = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed });
+  let modes: SpeechMode[] = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed, offline: OFFLINE_BUILD });
   let mode: SpeechMode = DEFAULT_SPEECH_MODE;
   let select: HTMLSelectElement | null = null;
   let pending: RuntimeRequest | null = null;
@@ -376,7 +377,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const onRecordsCleared = () => {
     // 기록을 지우면 "서버 음성 인식 허용"도 함께 지워져 기본값(꺼짐)으로 돌아간다.
     serverAllowed = isServerSpeechAllowed();
-    modes = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed });
+    modes = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed, offline: OFFLINE_BUILD });
     mode = DEFAULT_SPEECH_MODE;
     renderModes();
     renderMode();
@@ -431,7 +432,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     onDeviceAsked = true;
     void checkOnDevice(ctor).then((result) => {
       onDevice = result;
-      modes = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed });
+      modes = availableModes({ hasRecognition: ctor !== null, onDevice, serverAllowed, offline: OFFLINE_BUILD });
       const previous = mode;
       mode = modes.includes(previous) ? previous : restoreMode();
       renderModes();

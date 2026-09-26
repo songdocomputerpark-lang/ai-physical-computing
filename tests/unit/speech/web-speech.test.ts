@@ -94,6 +94,11 @@ describe('고를 수 있는 방식', () => {
     expect(availableModes({ hasRecognition: false, onDevice: 'unsupported', serverAllowed: true })).toEqual(['text']);
   });
 
+  it('오프라인 배포판에서는 설정·기기와 상관없이 글자 입력만(PLAN §5.6)', () => {
+    expect(availableModes({ hasRecognition: true, onDevice: 'available', serverAllowed: true, offline: true })).toEqual(['text']);
+    expect(availableModes({ hasRecognition: true, onDevice: 'available', serverAllowed: true, offline: false })).toEqual(['text', 'ondevice', 'server']);
+  });
+
   it('설정을 켜고 음성 인식이 있으면 서버 인식이 마지막에 붙는다', () => {
     expect(availableModes({ hasRecognition: true, onDevice: 'unavailable', serverAllowed: true })).toEqual(['text', 'server']);
     expect(availableModes({ hasRecognition: true, onDevice: 'available', serverAllowed: true })).toEqual(['text', 'ondevice', 'server']);

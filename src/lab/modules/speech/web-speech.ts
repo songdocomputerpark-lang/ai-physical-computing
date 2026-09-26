@@ -165,9 +165,19 @@ export const MODE_NOTES: Readonly<Record<SpeechMode, string>> = Object.freeze({
  * - 글자 입력은 언제나 있다(기본).
  * - 내 기기 안 인식은 음성 인식이 있고 온디바이스가 되는(또는 음성 팩만 받으면 되는) 브라우저에서만.
  * - 서버 인식은 **교사가 사이트 설정에서 켰을 때만** — 꺼져 있으면 목록에 아예 넣지 않는다(DOM에도 안 생김).
+ * - 오프라인 배포판(`offline` — src/lab/runtime/config.ts의 OFFLINE_BUILD)에서는 **글자 입력만**(PLAN §5.6·§10 "오프라인판은 글자 입력 방식만").
+ *   인터넷이 없는 교실에서 서버 인식은 실패하고, 기기 안 인식도 음성 팩을 받아야 할 수 있어서다(2026-09-26 Phase 6 요청 E-9).
  */
-export function availableModes(options: { hasRecognition: boolean; onDevice: OnDeviceStatus; serverAllowed: boolean }): SpeechMode[] {
+export function availableModes(options: {
+  hasRecognition: boolean;
+  onDevice: OnDeviceStatus;
+  serverAllowed: boolean;
+  offline?: boolean;
+}): SpeechMode[] {
   const modes: SpeechMode[] = ['text'];
+  if (options.offline === true) {
+    return modes;
+  }
   if (options.hasRecognition && (options.onDevice === 'available' || options.onDevice === 'downloadable' || options.onDevice === 'downloading')) {
     modes.push('ondevice');
   }

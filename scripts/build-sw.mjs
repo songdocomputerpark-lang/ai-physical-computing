@@ -15,6 +15,10 @@
 //   node scripts/build-sw.mjs --dir <폴더>     다른 폴더의 빌드 결과에 대고 만든다(병렬 제작 검증용)
 //   사이트 하위 경로(설정의 base)는 이번 빌드와 같은 값(환경 변수 APC_BASE — src/config/site.ts)을 src/lib/url.ts의 BASE_PATH로 읽는다.
 //   node scripts/build-sw.mjs --dry           만들지 않고 목록·크기만 보여 준다
+//   node scripts/build-sw.mjs --offline       오프라인 배포판용(scripts/build-offline.mjs가 부른다 — PLAN §5.6): 설정에 offline: true를 넣고
+//                                             Pyodide 표를 오프라인 표(예비본 7개 + 오프라인판에서만 더 넣는 휠)로 새긴다.
+//                                             서비스 워커는 그 설정을 보고 Pyodide 파일을 같은 사이트에서만 받는다(src/sw/sw.js 머리말).
+//                                             이 선택이 없으면 설정은 전과 한 글자도 다르지 않다(온라인 사이트 그대로).
 //
 // 이 파일의 함수는 tests/unit/loading/build-sw.test.ts가 직접 불러 검사한다(순수 함수 부분).
 import crypto from 'node:crypto';
@@ -49,7 +53,7 @@ import {
   VENDOR_CACHE_LIMIT_BYTES,
   pyodideCacheName,
 } from '../src/lab/loader/constants.ts';
-import { PYODIDE_FALLBACK_FILES, PYODIDE_VERSION } from '../src/lab/loader/pyodide-files.ts';
+import { PYODIDE_VERSION, pyodideFileTable } from '../src/lab/loader/pyodide-files.ts';
 import { PYODIDE_CDN_INDEX_URL, PYODIDE_SITE_INDEX_PATH } from '../src/lab/runtime/config.ts';
 import { BASE_PATH } from '../src/lib/url.ts';
 
@@ -109,11 +113,17 @@ export function checkPrecacheBudget(entries, limits = { maxFileBytes: PRECACHE_M
   return { problems, total };
 }
 
-/** 서비스 워커에 새겨 넣을 설정. buildId가 바뀌면 브라우저가 새 판으로 본다. */
-export function buildConfig(precache) {
+/**
+ * 서비스 워커에 새겨 넣을 설정. buildId가 바뀌면 브라우저가 새 판으로 본다.
+ * @param {{ url: string, revision: string | null }[]} precache
+ * @param {{ offline?: boolean }} [options] offline: 오프라인 배포판(설정에 offline: true, Pyodide 표는 오프라인 표). 없으면 온라인 사이트 설정 그대로.
+ */
+export function buildConfig(precache, options = {}) {
+  const offline = options.offline === true;
+  const files = pyodideFileTable(offline);
   const sizes = {};
   const hashes = {};
-  for (const file of PYODIDE_FALLBACK_FILES) {
+  for (const file of files) {
     sizes[file.name] = file.size;
     // 크기만으로는 "다른 파일"을 못 걸러낸다. 학생 브라우저가 실행하는 코드(pyodide.asm.mjs 등)라서
     // 빌드 스크립트와 같은 SHA-256을 서비스 워커에도 새겨 넣는다(2026-09-17 검토 반영, PLAN §5.4).
@@ -156,9 +166,13 @@ export function buildConfig(precache) {
       sizes,
       hashes,
       // 용량 정리 때 마지막까지 남기는 파일(파이썬 엔진 코어) — 휠부터 지운다.
-      keepPaths: PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core').map((file) => `${PYODIDE_SITE_INDEX_PATH}${file.name}`),
+      keepPaths: files.filter((file) => file.kind === 'core').map((file) => `${PYODIDE_SITE_INDEX_PATH}${file.name}`),
     },
   };
+  if (offline) {
+    // 온라인 설정에는 이 칸을 넣지 않는다 — 넣으면 온라인 sw.js의 내용·판 번호가 까닭 없이 바뀐다.
+    config.offline = true;
+  }
   config.buildId = crypto.createHash('sha256').update(JSON.stringify(config)).digest('hex').slice(0, 12);
   return config;
 }
@@ -184,6 +198,7 @@ async function main() {
   const dirIndex = args.indexOf('--dir');
   const dir = path.resolve(rootDir, dirIndex >= 0 ? args[dirIndex + 1] : resolveBuildSettings().outDir);
   const dry = args.includes('--dry');
+  const offline = args.includes('--offline');
   const indexHtml = path.join(dir, 'index.html');
   if (!fs.existsSync(indexHtml)) {
     throw new Error(`빌드 결과가 없어요: ${path.relative(rootDir, indexHtml)} — 먼저 npm run build를 실행해요.`);
@@ -227,14 +242,17 @@ async function main() {
     throw new Error(`사전 캐시 예산을 넘었어요(PD-11).\n${problems.map((problem) => `- ${problem}`).join('\n')}`);
   }
 
-  const config = buildConfig(entries.map(({ url, revision }) => ({ url, revision })));
+  const config = buildConfig(
+    entries.map(({ url, revision }) => ({ url, revision })),
+    { offline },
+  );
   const output = renderServiceWorker(fs.readFileSync(SW_SOURCE, 'utf8'), config);
   const outPath = path.join(dir, SW_SCRIPT_NAME);
   if (!dry) {
     fs.writeFileSync(outPath, output, 'utf8');
   }
   console.log(
-    `[서비스 워커] ${dry ? '(시험) ' : ''}${path.relative(rootDir, outPath)} — 셸 ${entries.length}개 ${Math.round(total / 1024)}KB ` +
+    `[서비스 워커] ${dry ? '(시험) ' : ''}${offline ? '(오프라인 배포판) ' : ''}${path.relative(rootDir, outPath)} — 셸 ${entries.length}개 ${Math.round(total / 1024)}KB ` +
       `(예산 ${Math.round(PRECACHE_BUDGET_BYTES / 1024)}KB, workbox 합계 ${Math.round(size / 1024)}KB), 판 ${config.buildId}`,
   );
   for (const entry of entries) {

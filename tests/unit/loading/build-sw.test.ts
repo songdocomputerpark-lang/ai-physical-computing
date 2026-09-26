@@ -11,7 +11,7 @@ import {
   SW_MESSAGE,
   pyodideCacheName,
 } from '../../../src/lab/loader/constants.ts';
-import { PYODIDE_FALLBACK_FILES, PYODIDE_VERSION } from '../../../src/lab/loader/pyodide-files.ts';
+import { PYODIDE_FALLBACK_FILES, PYODIDE_OFFLINE_FILES, PYODIDE_VERSION } from '../../../src/lab/loader/pyodide-files.ts';
 import { BASE_PATH } from '../../../src/lib/url.ts';
 
 const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
@@ -149,5 +149,38 @@ describe('서비스 워커 원본(src/sw/sw.js)', () => {
 
   it('다른 사이트(jsDelivr) 응답의 Content-Length를 전체 크기로 믿지 않는다(압축된 크기라서)', () => {
     expect(swSource).toContain('url.startsWith(self.location.origin)');
+  });
+});
+
+describe('오프라인 배포판 설정(build-sw --offline — PLAN §5.6, P6-07)', () => {
+  const precache = [{ url: `${BASE_PATH}_astro/a.css`, revision: null }];
+
+  it('보통 설정에는 offline 칸이 없다 — 온라인 sw.js의 설정·판 번호가 전과 같다', () => {
+    const online = buildConfig(precache);
+    expect(online).not.toHaveProperty('offline');
+    expect(buildConfig(precache, {})).toEqual(online);
+    expect(buildConfig(precache, { offline: false })).toEqual(online);
+    expect(Object.keys(online.pyodide.sizes)).toEqual(PYODIDE_FALLBACK_FILES.map((file) => file.name));
+  });
+
+  it('오프라인 설정에는 offline: true와 오프라인 표(예비본 7개 + 오프라인판에서만 더 넣는 휠)의 크기·SHA-256이 들어간다', () => {
+    const online = buildConfig(precache);
+    const offline = buildConfig(precache, { offline: true });
+    expect(offline).toHaveProperty('offline', true);
+    expect(Object.keys(offline.pyodide.sizes)).toEqual(PYODIDE_OFFLINE_FILES.map((file) => file.name));
+    expect(offline.pyodide.hashes).toEqual(Object.fromEntries(PYODIDE_OFFLINE_FILES.map((file) => [file.name, file.sha256])));
+    expect(offline.pyodide.keepPaths).toEqual(online.pyodide.keepPaths);
+    expect(offline.buildId).not.toBe(online.buildId);
+    const rendered = renderServiceWorker(swSource, offline) as string;
+    expect(rendered).toContain('"offline":true');
+  });
+
+  it('서비스 워커는 offline 설정이면 Pyodide를 같은 사이트에서만 받고(CDN으로 바꾸지 않음), 서버가 꺼졌다고 알린다', () => {
+    expect(swSource).toContain('const OFFLINE = CONFIG.offline === true;');
+    expect(swSource).toMatch(/const first = OFFLINE \|\| info\.from === 'site'/u);
+    expect(swSource).toContain('const second = OFFLINE ? null :');
+    expect(swSource).toContain('if (!outcome.ok && second)');
+    expect(swSource).toContain('if (!outcome.ok && !OFFLINE)');
+    expect(swSource).toContain('이 컴퓨터의 작은 서버가 꺼져 있어요');
   });
 });

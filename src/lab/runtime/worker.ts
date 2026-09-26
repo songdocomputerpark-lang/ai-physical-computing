@@ -20,8 +20,9 @@
  * 3. stop(정지 1단계): 다리에 정지 표시를 켜 기다리던 곳(sleep·input·request)을 깨우면 파이썬 쪽에서 KeyboardInterrupt가 난다.
  *    양보 없는 계산 반복문은 이 메시지를 받지 못하므로 화면이 1초 뒤 워커를 끝내고 다시 띄운다(정지 2단계, client.ts).
  *    인터럽트 버퍼(pyodide.setInterruptBuffer)는 SharedArrayBuffer가 필요하고 GitHub Pages는 교차 출처 격리 헤더(COOP·COEP)를
- *    줄 수 없어 못 쓴다(PLAN §4.2·§4.3, 2026-09-16 Pyodide 공식 문서로 다시 확인). 격리된 곳(오프라인판 localhost 서버가 헤더를
- *    줄 때)에서만 덤으로 켠다 — 그 경우 화면이 버퍼에 2(SIGINT)를 써서 계산 반복문도 멈춘다(격리 환경이 없어 미검증).
+ *    줄 수 없어 못 쓴다(PLAN §4.2·§4.3, 2026-09-16 Pyodide 공식 문서로 다시 확인). 격리된 곳에서만 덤으로 켠다 — 그 경우 화면이
+ *    버퍼에 2(SIGINT)를 써서 계산 반복문도 멈춘다(격리 환경이 없어 미검증). 오프라인판의 작은 서버(scripts/offline/serve.ps1·serve.py)도
+ *    격리 머리말(COOP·COEP)을 보내지 않는다 — 온라인과 같은 동작을 지키려고(2026-09-26 P6-07 결정).
  *
  * 워커 전역 타입(lib webworker)을 프로젝트 전체에 넣으면 DOM 타입과 부딪히므로, 여기서 쓰는 몇 가지만 좁게 적었다.
  */

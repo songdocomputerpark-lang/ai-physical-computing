@@ -19,6 +19,10 @@
  * - GET만 다룬다. 요청을 가로채 실패시키는 일이 없게, 모든 처리기는 마지막에 그냥 fetch로 돌아간다.
  * - 압축 전송(content-encoding)된 응답의 Content-Length는 압축된 크기라 진행률에 쓰지 않는다. 아는 파일은 표의 원본 크기를 쓴다.
  * - 캐시에 다시 넣을 때 content-encoding·content-length 머리말은 지운다(브라우저가 이미 푼 바이트라 그대로 두면 깨진다).
+ *
+ * 오프라인 배포판(PLAN §5.6, P6-07 — `scripts/build-sw.mjs --offline`이 설정에 `offline: true`를 넣는다. 온라인 사이트 설정에는 이 칸이 없다):
+ * - Pyodide 파일은 늘 같은 사이트에서만 받는다(jsDelivr로 바꾸지 않는다 — 인터넷이 없는 교실에서 헛되이 기다리지 않게).
+ * - 한 번도 안 열어 본 쪽을 서버 없이 열면 "인터넷 연결이 없어요" 대신 "이 컴퓨터의 작은 서버가 꺼져 있어요"를 보여 준다.
  */
 
 const CONFIG = __APC_SW_CONFIG__;
@@ -29,6 +33,8 @@ const LIMITS = CONFIG.limits;
 const TIMING = CONFIG.timing;
 const MESSAGE = CONFIG.messages;
 const PYODIDE = CONFIG.pyodide;
+/** 오프라인 배포판인지(설정에 offline: true가 있을 때만) */
+const OFFLINE = CONFIG.offline === true;
 const SIZE_HEADER = 'x-apc-size';
 /**
  * 캐시에서 찾을 때의 규칙. GitHub Pages가 Vary: Accept-Encoding을 보내므로, 요청 머리말이 조금 달라도(미리 받기와 실제 방문)
@@ -362,13 +368,13 @@ async function handlePyodide(request, info) {
   const expectedSha256 = (PYODIDE.hashes && PYODIDE.hashes[info.name]) || '';
   const cdnUrl = pyodideCdnUrl(info.name);
   const siteUrl = pyodideSiteUrl(info.name);
-  // 보통은 요청이 온 쪽부터 쓰되, 방금 CDN이 막혔다면 예비 경로부터 쓴다.
-  const first = info.from === 'site' || cdnLooksDown() ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
-  const second = first.from === 'cdn' ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
+  // 보통은 요청이 온 쪽부터 쓰되, 방금 CDN이 막혔다면 예비 경로부터 쓴다. 오프라인 배포판은 같은 사이트만 쓴다(CDN으로 바꾸지 않는다).
+  const first = OFFLINE || info.from === 'site' || cdnLooksDown() ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
+  const second = OFFLINE ? null : first.from === 'cdn' ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
 
   let usedFrom = first.from;
   let outcome = await downloadBuffered(first.url, { expectedTotal, expectedSha256, from: first.from, stallMs: TIMING.stallMs });
-  if (!outcome.ok) {
+  if (!outcome.ok && second) {
     if (first.from === 'cdn') {
       cdnDownUntil = Date.now() + TIMING.cdnDownTtlMs;
     }
@@ -489,13 +495,19 @@ async function staleWhileRevalidate(request, cacheName, trim) {
 }
 
 function offlinePage() {
+  // 오프라인 배포판은 인터넷이 아니라 이 컴퓨터의 작은 서버(시작하기.bat가 연 창)에서 쪽을 받는다 — 그 창이 닫힌 경우다.
+  const title = OFFLINE ? '이 컴퓨터의 작은 서버가 꺼져 있어요' : '인터넷 연결이 없어요';
+  const body = OFFLINE
+    ? `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 오프라인판 폴더의 <strong>시작하기.bat</strong>를 다시 실행한 뒤 새로고침해 주세요.</p>
+<p>서버 창(검은 창)을 닫으면 사이트가 멈춰요. 수업하는 동안에는 창을 닫지 말고 작게 줄여 두세요.</p>`
+    : `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 인터넷에 연결한 뒤 새로고침해 주세요.</p>
+<p>한 번 열어 본 페이지와 실습실은 연결 없이도 열려요.</p>`;
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" /><title>인터넷 연결이 없어요</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" /><title>${title}</title>
 <style>body{font-family:system-ui,'Malgun Gothic',sans-serif;margin:0;padding:2rem;line-height:1.7;color:#17191c}
 h1{font-size:1.4rem}a{color:#0b5cab}</style></head><body>
-<h1>인터넷 연결이 없어요</h1>
-<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 인터넷에 연결한 뒤 새로고침해 주세요.</p>
-<p>한 번 열어 본 페이지와 실습실은 연결 없이도 열려요.</p>
+<h1>${title}</h1>
+${body}
 </body></html>`;
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
@@ -590,18 +602,21 @@ async function fillCache(urls, mode) {
         }
         const expectedTotal = PYODIDE.sizes[info.name] || 0;
         const expectedSha256 = (PYODIDE.hashes && PYODIDE.hashes[info.name]) || '';
-        let outcome = await downloadBuffered(url, {
+        // 오프라인 배포판은 CDN 주소가 와도 같은 사이트 파일을 받는다(인터넷을 두드리지 않는다).
+        const from = OFFLINE ? 'site' : info.from;
+        const fileUrl = OFFLINE ? pyodideSiteUrl(info.name) : url;
+        let outcome = await downloadBuffered(fileUrl, {
           expectedTotal,
           expectedSha256,
-          from: info.from,
+          from,
           stallMs: TIMING.stallMs,
           cacheMode: mode === 'warm' ? 'force-cache' : 'default',
         });
         if (!outcome.ok && mode === 'warm') {
           // 브라우저 캐시에 없으면 그냥 받는다.
-          outcome = await downloadBuffered(url, { expectedTotal, expectedSha256, from: info.from, stallMs: TIMING.stallMs });
+          outcome = await downloadBuffered(fileUrl, { expectedTotal, expectedSha256, from, stallMs: TIMING.stallMs });
         }
-        if (!outcome.ok) {
+        if (!outcome.ok && !OFFLINE) {
           const twin = info.from === 'cdn' ? pyodideSiteUrl(info.name) : pyodideCdnUrl(info.name);
           outcome = await downloadBuffered(twin, { expectedTotal, expectedSha256, from: info.from === 'cdn' ? 'site' : 'cdn', stallMs: TIMING.stallMs });
         }
