@@ -10,9 +10,14 @@
  *
  * 테스트가 읽는 값: 실습실 뿌리 [data-lab]의 data-serial-pc(닫힘 closed / 열림 open), data-serial-pc-sent(보낸 바이트 수),
  * data-serial-pc-received(받은 바이트 수).
+ *
+ * 판 1.1.0(미해결 139): 새 예제용 `bridge` 흉내가 자기 모듈(bridge-pc)로 나가며 같은 선을 함께 쓴다. 그래서
+ * - 보드에서 온 바이트는 **파이썬이 포트를 연 동안만** 'serial-pc.rx'에 넣는다(진짜 포트도 열기 전에 온 바이트는 받지 않는다).
+ *   bridge만 쓰는 코드에서 아무도 꺼내지 않는 칸에 바이트가 끝없이 쌓이지 않게 한다.
+ * - `Sent: …` 줄은 선 하나에 한 번만 적는다(link.ts shareSentPrinter — bridge-pc와 나눠 쓴다).
  */
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
-import { PEER_WAIT_MS, getBridgeLink, type UartFrame } from '../vision-bridge/link.ts';
+import { PEER_WAIT_MS, getBridgeLink, noPeerMessage as linkNoPeerMessage, shareSentPrinter, type UartFrame } from '../vision-bridge/link.ts';
 import manifest from './manifest.ts';
 
 /** 파이썬이 보는 포트 이름(실물 COM 번호 대신 쓰는 이름 — 화면이 고른 통로가 진짜 상대다) */
@@ -37,13 +42,9 @@ export function portNotice(port: string | null): string | null {
   return `브라우저에서는 포트 이름(${port})을 쓰지 않아요. 아래 [보내기] 패널에서 고른 통로가 상대예요 — 실제 컴퓨터에서는 장치 관리자에 보이는 COM 번호를 적어요.`;
 }
 
-/** 상대(ESP32 실습실 탭)가 없을 때 파이썬 SerialException에 실을 한국어 안내 */
+/** 상대(ESP32 실습실 탭)가 없을 때 파이썬 SerialException에 실을 한국어 안내(같은 선을 쓰는 bridge 흉내와 같은 글 — link.ts) */
 export function noPeerMessage(prefix: string): string {
-  return [
-    'ESP32 실습실 탭을 찾지 못했어요.',
-    '[보내기] 패널의 [ESP32 실습실 새 탭에서 열기]나 [한 화면에 가상 보드 열기]를 누른 뒤 다시 [실행]해요.',
-    `두 화면의 통신 접두어가 ${prefix}로 같아야 해요.`,
-  ].join(' ');
+  return linkNoPeerMessage(prefix);
 }
 
 function bytesOf(payload: unknown): Uint8Array {
@@ -86,15 +87,14 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   const offs = [
     link.onStatus(pushInfo),
-    link.onSent((line) => {
-      // §7.6 규칙 ⑤ — 원본 코드처럼 콘솔에 `Sent: …`를 남긴다.
-      context.lab.appendConsole(`${line}\n`, 'notice');
-    }),
+    // §7.6 규칙 ⑤ — 원본 코드처럼 콘솔에 `Sent: …`를 남긴다(같은 선을 쓰는 bridge-pc와 한 번만 — link.ts shareSentPrinter).
+    shareSentPrinter(link, (line) => context.lab.appendConsole(line, 'notice')),
     link.onWarn((warning) => {
       context.notice(warning.text);
     }),
     link.onFrame((frame: UartFrame) => {
-      if (frame.from === 'pc') {
+      // 파이썬이 포트를 연 동안만 받는다(머리말 — 열기 전에 온 바이트는 실물 포트도 받지 않는다)
+      if (frame.from === 'pc' || !open) {
         return;
       }
       context.pushEvent('serial-pc.rx', { bytes: Array.from(frame.bytes), baud: frame.baud, port: frame.port });

@@ -81,6 +81,7 @@ export {
   type DirectHubOptions,
 } from './channels/direct.ts';
 export {
+  TAB_BLE_DATA_TYPE,
   TAB_CHANNEL_ID,
   TAB_CHANNEL_NAME_PREFIX,
   TAB_UART_DATA_TYPE,

@@ -14,17 +14,16 @@
   통로를 열지 못했으면 **BridgeClosed**를 낸다. 둘 다 BridgeError의 한 갈래라 `except bridge.BridgeError:`로 한꺼번에 잡을 수 있다.
   두 이름은 오류 사전(content/help/errors/errors.yaml)의 comm-no-peer·comm-closed 항목이 한국어로 풀어 준다.
 - 보내는 빈도(초당 10회)·밀린 상태 값 바꿔 끼우기·20바이트 경고·콘솔의 `Sent: …` 줄은 화면 쪽 보낼 차례가 맡는다(P4-01 BridgeOutbox).
-- 한 코드에서 `serial`(pyserial 흉내)과 `bridge`를 함께 쓰지 않는다 — 둘은 같은 선을 나눠 써서 받은 바이트를 서로 가져간다.
+- 한 코드에서 `serial`(pyserial 흉내)과 `bridge`를 함께 쓰면 두 흉내가 같은 선을 쓴다 — 보드가 보낸 바이트는 **먼저 연 쪽만이 아니라
+  연 쪽 모두**의 받을 칸에 들어가니, 받기는 한쪽으로만 한다(보통은 bridge 하나로 충분하다).
 
-어디로 이어지나(구역 A가 만든 선을 그대로 쓴다 — 이 모듈은 새 요청·이벤트 이름을 만들지 않는다)
-    bridge.send("3") → 이벤트 'serial-pc.tx' { bytes: [51, 10], baud: 0, category: 'state' }
-      → src/lab/modules/serial-pc/index.ts → vision-bridge의 선(link.ts, 보낼 차례) → 브릿지 통로(BroadcastChannel 등)
-      → ESP32 실습실의 가상 USB-UART 변환기 → 보드 UART2의 readline()
-    보드 uart.write(…) → 그 반대 길 → 채널 'serial-pc.rx' → bridge.receive()
-  이름을 serial-pc 모듈의 것으로 쓰는 까닭: 이 파일의 자리(src/lab/modules/vision-bridge/finger-count/)는 폴더 모듈이 아니라
-  manifest를 가질 수 없고, 같은 선을 써야 통로를 바꿔도 받는 쪽 코드가 같다(§7.2 규칙 6). 자기 이름을 갖게 옮기는 것은 통합 단계의 몫이다
-  (요청서 .cache/phase4-requests/scenario-f.md). category는 지금 화면 쪽이 읽지 않지만(모든 바이트를 모양으로 판정) 요청이 반영되면
-  event()가 보낸 것이 병합되지 않는다(§7.2 규칙 5).
+어디로 이어지나(판 1.1.0, PROGRESS 미해결 139 — 자기 모듈 폴더 src/lab/modules/bridge-pc/, 이름은 모두 'bridge-pc.')
+    bridge.send("3") → 이벤트 'bridge-pc.tx' { bytes: [51, 10], baud: 0, category: 'state' }
+      → src/lab/modules/bridge-pc/index.ts → vision-bridge의 선(link.ts, 보낼 차례) → 브릿지 통로(BroadcastChannel 등)
+      → ESP32 실습실의 가상 USB-UART 변환기(또는 블루투스 부품만 있으면 가상 블루투스) → 보드의 readline()·ESP32BLE.read()
+    보드 uart.write(…) → 그 반대 길 → 채널 'bridge-pc.rx' → bridge.receive()
+  같은 선을 써서 통로를 바꿔도 받는 쪽 코드가 같다(§7.2 규칙 6). event()가 보낸 것은 category 'event'라 차례에서 바꿔 끼우지 않는다(§7.2 규칙 5).
+  예전 자리(vision-bridge/finger-count/ — manifest가 없어 serial-pc의 이름을 빌려 씀)는 판 1.1.0에서 없앴다.
 
 ESP32 실습실(가상 보드)에서는 import부터 막는다: 실물 ESP32에는 bridge 모듈이 없어서(`ImportError`) 가상 보드도 같게 한다.
 보드는 컴퓨터가 보낸 줄을 UART(`uart.readline()`)나 블루투스(`ESP32BLE.read()`)로 받는다(보충 C3 보드 쪽 예제).
@@ -63,12 +62,12 @@ __all__ = [
     "send_bytes",
 ]
 
-#: 화면 쪽(구역 A, src/lab/modules/serial-pc/manifest.ts)이 정해 둔 이름 — 이 모듈은 새 이름을 만들지 않는다.
-REQUEST_OPEN = "serial-pc.open"
-EVENT_TX = "serial-pc.tx"
-EVENT_CONTROL = "serial-pc.control"
-CHANNEL_RX = "serial-pc.rx"
-VALUE_INFO = "serial-pc.info"
+#: 화면 쪽(src/lab/modules/bridge-pc/manifest.ts)이 정해 둔 이름
+REQUEST_OPEN = "bridge-pc.open"
+EVENT_TX = "bridge-pc.tx"
+EVENT_CONTROL = "bridge-pc.control"
+CHANNEL_RX = "bridge-pc.rx"
+VALUE_INFO = "bridge-pc.info"
 
 #: 메시지 끝 문자 한 개(§7.2 규칙 2)
 TERMINATOR = "\n"
@@ -76,7 +75,7 @@ TERMINATOR = "\n"
 MAX_BYTES = 20
 #: 속도를 적지 않는다(0 = 받는 보드와 같은 속도로 맞춤). 속도는 UART 실습(3-1-2)의 pyserial 흉내에서만 뜻이 있다.
 _AUTO_BAUD = 0
-#: 화면이 "받을 쪽 없음"을 알릴 때 쓰는 글(구역 A serial-pc/index.ts noPeerMessage) — 답에 reason이 없을 때만 이 글로 가른다.
+#: 화면이 "받을 쪽 없음"을 알릴 때 쓰는 글(src/lab/modules/vision-bridge/link.ts noPeerMessage) — 답에 reason이 없을 때만 이 글로 가른다.
 _NO_PEER_MARK = "찾지 못했어요"
 
 _open = False

@@ -29,6 +29,11 @@ export interface BridgeOptions {
   readonly terminator?: string;
   /** 받는 쪽 거르기(허용 목록·길이 — PD-29) */
   readonly inbound?: BridgeInboundPolicy;
+  /**
+   * 받기를 할지(기본 참). 거짓이면 통로의 봉투를 받는 차례에 모으지 않는다 — **보내기만 쓰는** 흉내 모듈(컴퓨터 쪽 bluetooth 흉내처럼
+   * 받은 바이트를 스스로 따로 처리하는 곳)이 아무도 꺼내지 않는 줄·꼬리를 쌓지 않게(판 1.1.0, PROGRESS 미해결 137·136).
+   */
+  readonly receive?: boolean;
   /** 보낼 때 함께 넣을 것(포트 이름표·속도 등) */
   readonly send?: BridgeSendOptions;
   readonly scheduler?: BridgeScheduler;
@@ -90,16 +95,18 @@ export class Bridge {
   }
 
   private listen(): void {
-    this.offs.push(
-      this.current.on('message', (envelope) => {
-        if (isSignalType(envelope.type)) {
-          // 실행 상태 알림은 데이터가 아니다(TAB_UART_STATUS_TYPE)
-          return;
-        }
-        this.lastEnvelope = envelope;
-        this.box.push(envelope.bytes);
-      }),
-    );
+    if (this.options.receive !== false) {
+      this.offs.push(
+        this.current.on('message', (envelope) => {
+          if (isSignalType(envelope.type)) {
+            // 실행 상태 알림은 데이터가 아니다(TAB_UART_STATUS_TYPE)
+            return;
+          }
+          this.lastEnvelope = envelope;
+          this.box.push(envelope.bytes);
+        }),
+      );
+    }
     if (this.options.onPeers !== undefined) {
       this.offs.push(this.current.on('peers', this.options.onPeers));
     }

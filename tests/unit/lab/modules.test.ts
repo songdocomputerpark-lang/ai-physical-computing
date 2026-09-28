@@ -174,10 +174,11 @@ describe('쓸 때 받기(load 규칙 — Phase 6 P6-02, 미해결 157)', () => {
 });
 
 describe('저장소의 통신 모듈은 쓸 때 무리로 받는다(미해결 157)', () => {
-  const COMM = ['ble-pc', 'data-port', 'mqtt', 'serial-pc', 'vision-bridge', 'web-bluetooth'];
+  // 판 1.1.0(미해결 139): 새 예제용 bridge 흉내가 자기 폴더(bridge-pc)를 가져 일곱이 됐다
+  const COMM = ['ble-pc', 'bridge-pc', 'data-port', 'mqtt', 'serial-pc', 'vision-bridge', 'web-bluetooth'];
   const indexSource = (id: string) => fs.readFileSync(path.join(MODULES_DIR, id, 'index.ts'), 'utf8');
 
-  it('load 규칙은 통신 모듈 여섯에만 있다(나머지는 지금처럼 열 때 받는다)', () => {
+  it('load 규칙은 통신 모듈 일곱에만 있다(나머지는 지금처럼 열 때 받는다)', () => {
     expect(MODULE_MANIFESTS.filter((item) => item.load !== undefined).map((item) => item.id)).toEqual(COMM);
     for (const item of MODULE_MANIFESTS.filter((entry) => entry.load !== undefined)) {
       expect(item.load?.group, item.id).toBe('comm');
@@ -186,8 +187,9 @@ describe('저장소의 통신 모듈은 쓸 때 무리로 받는다(미해결 15
 
   it('실습실마다 무리 구성과 mount 차례: 통로를 등록하는 모듈이 통로 목록을 그리는 [보내기] 패널(vision-bridge)보다 먼저', () => {
     const groupOf = (labId: string) => moduleLoadPlan(labId).groups.map((group) => [group.name, group.members.map((item) => item.id)]);
-    expect(groupOf('vision')).toEqual([['comm', ['ble-pc', 'data-port', 'serial-pc', 'web-bluetooth', 'vision-bridge']]]);
-    expect(groupOf('esp32')).toEqual([['comm', ['data-port', 'mqtt', 'web-bluetooth', 'vision-bridge']]]);
+    expect(groupOf('vision')).toEqual([['comm', ['ble-pc', 'bridge-pc', 'data-port', 'serial-pc', 'web-bluetooth', 'vision-bridge']]]);
+    // ESP32 실습실의 bridge-pc는 파이썬 파일(bridge.py — import하면 한국어 안내와 함께 ModuleNotFoundError)만 쓰고 화면 쪽은 아무것도 하지 않는다
+    expect(groupOf('esp32')).toEqual([['comm', ['bridge-pc', 'data-port', 'mqtt', 'web-bluetooth', 'vision-bridge']]]);
     expect(groupOf('dev')).toEqual([['comm', ['data-port', 'web-bluetooth']]]);
     // index.ts가 브릿지 통로를 등록하는 모듈(registerXxxChannel)은 vision-bridge와 같은 무리에서 더 작은 order
     const bridgeOrder = MODULE_MANIFESTS.find((item) => item.id === 'vision-bridge')?.load?.order ?? 0;
@@ -207,7 +209,8 @@ describe('저장소의 통신 모듈은 쓸 때 무리로 받는다(미해결 15
       const found = [...indexSource(id).matchAll(/^(?:export\s+)?const\s+\w*PATTERN\s*=\s*\/((?:\\.|[^/\n])+)\/([a-z]*);/gmu)].map((match) => new RegExp(match[1] ?? '', match[2] ?? ''));
       panelPatterns.set(id, found);
     }
-    expect(panelPatterns.get('vision-bridge')).toHaveLength(2);
+    // vision-bridge: 컴퓨터 쪽 serial·bridge, 컴퓨터 쪽 bluetooth(판 1.1.0 — 같은 문서에 보드가 없을 때), 보드 쪽 UART, 보드 쪽 블루투스(선만 연다)
+    expect(panelPatterns.get('vision-bridge')).toHaveLength(4);
     expect(panelPatterns.get('data-port')).toHaveLength(1);
     expect(panelPatterns.get('web-bluetooth')).toHaveLength(1);
     expect(panelPatterns.get('mqtt')).toHaveLength(1);
@@ -256,7 +259,9 @@ describe('저장소의 통신 모듈은 쓸 때 무리로 받는다(미해결 15
     }
     expect(pythonNames.get('serial-pc')).toEqual(['serial']);
     expect([...(pythonNames.get('ble-pc') ?? [])].sort()).toEqual(['bluetooth', 'bluetooth_lib']);
-    expect(pythonNames.get('vision-bridge')).toEqual(['bridge']);
+    // 판 1.1.0(미해결 139): bridge.py는 자기 모듈 폴더에 있다 — vision-bridge에는 파이썬 파일이 없다(README 4.7의 예외가 사라짐)
+    expect(pythonNames.get('bridge-pc')).toEqual(['bridge']);
+    expect(pythonNames.get('vision-bridge')).toEqual([]);
     for (const [id, names] of pythonNames) {
       const item = MODULE_MANIFESTS.find((entry) => entry.id === id);
       const labs = item?.labs === '*' ? ['vision', 'esp32', 'dev'] : [...(item?.labs ?? [])];
@@ -272,9 +277,9 @@ describe('저장소의 통신 모듈은 쓸 때 무리로 받는다(미해결 15
 
   it('통신 무리의 파이썬 요청은 host가 자리를 맡아 둔다(코드 모양으로 못 알아본 import도 받은 뒤 처리)', () => {
     const vision = moduleLoadPlan('vision').groups.find((group) => group.name === 'comm');
-    expect(vision && [...groupRequestKinds(vision).keys()].sort()).toEqual(['ble-pc.close', 'ble-pc.open', 'serial-pc.open']);
+    expect(vision && [...groupRequestKinds(vision).keys()].sort()).toEqual(['ble-pc.close', 'ble-pc.open', 'bridge-pc.open', 'serial-pc.open']);
     const esp32 = moduleLoadPlan('esp32').groups.find((group) => group.name === 'comm');
-    expect(esp32 && [...groupRequestKinds(esp32).keys()].sort()).toEqual(['mqtt.connect', 'mqtt.disconnect', 'mqtt.publish', 'mqtt.subscribe']);
+    expect(esp32 && [...groupRequestKinds(esp32).keys()].sort()).toEqual(['bridge-pc.open', 'mqtt.connect', 'mqtt.disconnect', 'mqtt.publish', 'mqtt.subscribe']);
     // 주소·창 이벤트로도 부른다
     expect(esp32 && groupWantedByQuery(esp32, '?bridge=zaneabridge3')).toBe('vision-bridge');
     expect(esp32 && groupWantedByQuery(esp32, '?prefix=zaneabridge3&example=esp32%2Ftemplates%2Fdashboard-demo.py')).toBe('mqtt');

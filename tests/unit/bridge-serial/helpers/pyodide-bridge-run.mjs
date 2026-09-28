@@ -1,11 +1,11 @@
-// Node.js에서 실제 Pyodide 314.0.7로 새 예제용 통신 모듈(src/lab/modules/vision-bridge/finger-count/bridge.py)을 검사하는 도우미 스크립트(P4-08).
+// Node.js에서 실제 Pyodide 314.0.7로 새 예제용 통신 모듈(src/lab/modules/bridge-pc/bridge.py)을 검사하는 도우미 스크립트(P4-08).
 // tests/unit/bridge-serial/pyodide-bridge.test.ts가 `node --experimental-wasm-jspi 이 파일 <저장소 뿌리>`로 띄우고 마지막 줄의 JSON 한 줄을 읽는다.
 // 얼개는 같은 폴더의 pyodide-serial-run.mjs와 같다(워커와 같은 순서: 다리 등록 → /apc에 .py 쓰기 → install → 실행마다 reset).
 //
-// 화면 흉내(src/lab/modules/serial-pc/index.ts가 하는 일)
-//  - 요청 'serial-pc.open' → openReply(기본 { ok: true, label: '같은 컴퓨터 탭' }). rejectOpen이면 요청을 거절한다(흉내 모듈이 없는 화면).
-//  - 이벤트 'serial-pc.tx' → 보낸 바이트·category를 모은다. 'serial-pc.control' → 닫기 기록.
-//  - 채널 'serial-pc.rx' → 보드가 보낸 바이트를 넣는다.
+// 화면 흉내(src/lab/modules/bridge-pc/index.ts가 하는 일)
+//  - 요청 'bridge-pc.open' → openReply(기본 { ok: true, label: '같은 컴퓨터 탭' }). rejectOpen이면 요청을 거절한다(흉내 모듈이 없는 화면).
+//  - 이벤트 'bridge-pc.tx' → 보낸 바이트·category를 모은다. 'bridge-pc.control' → 닫기 기록.
+//  - 채널 'bridge-pc.rx' → 보드가 보낸 바이트를 넣는다.
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -17,7 +17,7 @@ const require = createRequire(path.join(rootDir, 'package.json'));
 const { loadPyodide } = await import(pathToFileURL(require.resolve('pyodide/pyodide.mjs')).href);
 const { createBridge } = await import(pathToFileURL(path.join(rootDir, 'src', 'lab', 'runtime', 'bridge.ts')).href);
 
-const BRIDGE_PY = path.join(rootDir, 'src', 'lab', 'modules', 'vision-bridge', 'finger-count', 'bridge.py');
+const BRIDGE_PY = path.join(rootDir, 'src', 'lab', 'modules', 'bridge-pc', 'bridge.py');
 const out = { steps: {}, control: [], notices: [] };
 const DEFAULT_REPLY = { ok: true, portstr: 'ESP32-LAB', label: '같은 컴퓨터 탭', notices: [] };
 let openReply = DEFAULT_REPLY;
@@ -45,17 +45,17 @@ const bridge = createBridge({
   post: (message) => {
     if (message.type === 'request') {
       setTimeout(() => {
-        if (message.kind === 'serial-pc.open' && !rejectOpen) {
+        if (message.kind === 'bridge-pc.open' && !rejectOpen) {
           bridge.resolveRequest(message.requestId, openReply);
           return;
         }
         bridge.rejectRequest(message.requestId, `이 실습실은 "${message.kind}" 요청을 처리하지 못해요.`);
       }, 5);
     } else if (message.type === 'event') {
-      if (message.kind === 'serial-pc.tx') {
+      if (message.kind === 'bridge-pc.tx') {
         const payload = message.payload ?? {};
         sent.push({ text: new TextDecoder().decode(new Uint8Array(payload.bytes ?? [])), category: payload.category ?? null, baud: payload.baud ?? null });
-      } else if (message.kind === 'serial-pc.control') {
+      } else if (message.kind === 'bridge-pc.control') {
         out.control.push(message.payload?.kind ?? '?');
       }
     } else if (message.type === 'notice') {
@@ -73,7 +73,7 @@ pyodide.setStdout({
 });
 pyodide.registerJsModule('_apc_bridge', bridge.api);
 pyodide.FS.mkdirTree('/apc');
-// 붙박이 도우미 + bridge.py만 넣는다(워커는 영상처리 실습실에 vision-bridge 폴더의 .py를 넣는다 — src/lab/python/modules.ts)
+// 붙박이 도우미 + bridge.py만 넣는다(워커는 영상처리·ESP32 실습실에 bridge-pc 폴더의 .py를 넣는다 — src/lab/python/modules.ts)
 for (const file of fs.readdirSync(path.join(rootDir, 'src', 'lab', 'python'))) {
   if (file.endsWith('.py')) pyodide.FS.writeFile(`/apc/${file}`, fs.readFileSync(path.join(rootDir, 'src', 'lab', 'python', file), 'utf8'));
 }
@@ -93,7 +93,7 @@ async function step(name, code, { setup } = {}) {
   bridge.beginRun();
   // 워커처럼 **동기** runPython으로 실행 준비를 한다 — bridge.py의 초기화 함수가 양보하면 여기서 오류가 난다(미해결 25번).
   pyodide.runPython('import apc_runtime\napc_runtime.reset_for_run()');
-  bridge.setValue('serial-pc.info', { ready: true, label: '같은 컴퓨터 탭', peers: ['board'], prefix: 'zangfinger2a' });
+  bridge.setValue('bridge-pc.info', { ready: true, label: '같은 컴퓨터 탭', peers: ['board'], prefix: 'zangfinger2a' });
   if (setup) setup();
   try {
     const globals = pyodide.toPy({ __name__: '__main__' });
@@ -117,7 +117,7 @@ async function step(name, code, { setup } = {}) {
 }
 
 /** 보드가 보낸 바이트를 받을 칸에 넣는다(화면의 pushEvent와 같다) */
-const push = (text) => bridge.pushEvent('serial-pc.rx', { bytes: [...new TextEncoder().encode(text)] });
+const push = (text) => bridge.pushEvent('bridge-pc.rx', { bytes: [...new TextEncoder().encode(text)] });
 const NL = String.fromCharCode(10);
 
 if (jspi) {

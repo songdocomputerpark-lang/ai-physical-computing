@@ -1,4 +1,4 @@
-// 새 예제용 통신 모듈 bridge(src/lab/modules/vision-bridge/finger-count/bridge.py)를 **실제 Pyodide 314.0.7**로 검사한다(P4-08, PLAN §7.6).
+// 새 예제용 통신 모듈 bridge(src/lab/modules/bridge-pc/bridge.py)를 **실제 Pyodide 314.0.7**로 검사한다(P4-08, PLAN §7.6).
 // 얼개는 같은 폴더의 pyodide-serial.test.ts와 같다(JSPI는 --experimental-wasm-jspi로 따로 띄운다).
 //
 // 지키는 것

@@ -17,6 +17,13 @@
  * 실행 상태 되알림(2026-09-25 Phase 4 검토 반영): 보드 쪽은 컴퓨터 쪽이 나타날 때·[실행]이 시작되고 끝날 때·돌지 않는데 글자가
  * 왔을 때 'idle'·'running'을 알린다(link.sendState — 같은 컴퓨터 탭 통로에서만). 컴퓨터 쪽은 상태 줄에 적고, 코드가 도는 중에
  * 'idle'을 받으면 콘솔에도 한 번 안내한다 — 전에는 "보드가 아직 돌지 않아요"가 보드 탭 콘솔에만 있었다.
+ *
+ * 블루투스 줄기(판 1.1.0, PROGRESS 미해결 137): 컴퓨터 쪽 `bluetooth` 흉내(ble-pc)는 같은 문서에 가상 보드가 없으면 이 선의 블루투스
+ * 줄기(봉투 type `ble.data` — link.ts BLE_ENVELOPE_TYPE)로 보낸다. 그래서
+ *  - 영상처리 실습실: 코드가 bluetooth를 쓰고 같은 문서에 ESP32 실습실 칸이 없으면 이 패널을 연다 — [ESP32 실습실 새 탭에서 열기]·
+ *    [한 화면에 가상 보드 열기]가 보드 쪽을 여는 길이다(4단원 통합 화면처럼 같은 문서에 보드가 있으면 열지 않는다).
+ *  - ESP32 실습실: 블루투스 줄기로 온 바이트를 가상 블루투스(`apc:ble-write` — 상대 기기가 RX 특성에 쓴 것)에 넣고,
+ *    보드가 알림(notify)으로 내보낸 값(`apc:ble-notify`)을 같은 줄기로 컴퓨터에 돌려보낸다.
  */
 import { listBridgeChannels, onBridgeChannelsChanged } from '../../bridge/index.ts';
 import { registerMqttChannel } from '../../mqtt/index.ts';
@@ -25,7 +32,7 @@ import { revealElement } from '../../controls/reveal.ts';
 import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import { deviceInputFor, newBytesFrom, readUartDevice, readUartTxEvent } from './board-uart.ts';
-import { PREFIX_QUERY_NAME, dropBridgeLink, getBridgeLink, type LinkStatus, type PeerRunState, type UartFrame } from './link.ts';
+import { BLE_ENVELOPE_TYPE, PREFIX_QUERY_NAME, dropBridgeLink, getBridgeLink, type LinkStatus, type PeerRunState, type UartFrame } from './link.ts';
 import manifest from './manifest.ts';
 
 /** 보드 쪽 부품 흉내에 값을 넣는 채널(board 모듈이 정한 이름 — manifest.ts 머리말) */
@@ -39,8 +46,11 @@ const BOARD_STATE_EVENT = 'board.state';
 /**
  * 가상 BLE 부품에 값을 넣는 창 이벤트(P4-03 — src/lab/modules/board/parts/ble/part.ts의 BLE_WRITE_EVENT와 같은 이름).
  * 배선에 USB-UART 변환기가 없고 블루투스만 있으면(보드가 ESP32BLE.read()로 받는 예제) 선으로 온 바이트를 이 길로 넣는다(2026-09-24 통합, 구역 G 요청 7).
+ * 블루투스 줄기(ble.data)로 온 바이트는 배선과 상관없이 늘 이 길이다(판 1.1.0, 미해결 137).
  */
 const BLE_WRITE_EVENT = 'apc:ble-write';
+/** 가상 BLE 부품이 알림(notify)으로 내보낸 값의 창 이벤트(같은 part.ts의 BLE_NOTIFY_EVENT) — 블루투스 줄기로 컴퓨터에 돌려보낸다 */
+const BLE_NOTIFY_EVENT = 'apc:ble-notify';
 
 /**
  * 한 화면 모드·새 탭에서 열 보드 예제(한 줄 = 짝 하나. 새 짝은 여기에 한 줄 더하면 된다).
@@ -54,6 +64,12 @@ export const BOARD_EXAMPLES: readonly { file: string; label: string }[] = Object
   { file: 'esp32/u3/3-1-2-uart-laser-boot.py', label: '3-1-2 기본 — boot.py판(원본 f083, 4번 줄에서 멈춤)' },
   { file: 'esp32/u4/c3-neopixel-count-rx.py', label: '보충 C3 — 받은 숫자만큼 네오픽셀 켜기(시나리오 F)' },
   { file: 'esp32/u4/c3-neopixel-count-rx-ble.py', label: '보충 C3 — 블루투스판(ESP32BLE.read()로 받기)' },
+  // 컴퓨터 쪽이 bluetooth 흉내로 보내는 짝(판 1.1.0, 미해결 137 — 블루투스 줄기로 이 탭의 가상 블루투스에 닿는다)
+  { file: 'esp32/u3/3-1-3-ble-xy-rgb.py', label: '3-1-3 — 블루투스로 받은 손끝 좌표로 RGB LED(ESP32BLE.read())' },
+  { file: 'esp32/bt/b10-two-values-rgb.py', label: '블루투스 교안 — 좌표 두 개로 RGB LED' },
+  { file: 'esp32/u4/4-1-4-ble-lcd-rx.py', label: '4-1-4 — 블루투스로 받은 코 좌표를 LCD에' },
+  { file: 'esp32/u4/4-2-1-adv-ble-data-lcd.py', label: '4-2-1 — 블루투스로 받은 마우스 좌표·클릭 수를 LCD에' },
+  { file: 'esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer-site.py', label: '4-2-3 — 서보·RGB·레이저·버저(사이트판)' },
   { file: '', label: '빈 실습실로 열기' },
 ]);
 
@@ -62,6 +78,12 @@ export const BOARD_PAIR_OF: Readonly<Record<string, string>> = Object.freeze({
   'vision/u3/3-1-2-uart-key-send.py': 'esp32/u3/3-1-2-uart-laser-site.py',
   'vision/u3/3-1-2-adv-face-uart.py': 'esp32/u3/3-1-2-uart-laser-site.py',
   'vision/u4/c3-finger-count-send.py': 'esp32/u4/c3-neopixel-count-rx.py',
+  // bluetooth 흉내 짝(4단원 통합 화면 src/lab/unit4/examples.ts PAIRS와 같은 짝 — 4-2는 LCD로 값이 보이는 짝을 먼저)
+  'vision/u3/3-1-3-hand-ble-xy.py': 'esp32/u3/3-1-3-ble-xy-rgb.py',
+  'vision/bt/b11-finger-xy-send.py': 'esp32/bt/b10-two-values-rgb.py',
+  'vision/u4/4-1-4-adv-face-ble-tx.py': 'esp32/u4/4-1-4-ble-lcd-rx.py',
+  'vision/u4/4-2-1-face-mouse-ble-tx.py': 'esp32/u4/4-2-1-adv-ble-data-lcd.py',
+  'vision/u4/4-2-3-face-mouse-ble-tx-lib.py': 'esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer-site.py',
 });
 
 /**
@@ -69,8 +91,30 @@ export const BOARD_PAIR_OF: Readonly<Record<string, string>> = Object.freeze({
  * bridge만 쓴 예제도 받을 쪽이 없으면 BridgeNoPeer가 "[보내기] 패널의 …"을 가리키므로 패널이 보여야 한다(2026-09-24 통합).
  */
 const PC_USE_PATTERN = /\bimport\s+serial\b|\bserial\s*\.\s*Serial\b|\blist_ports\b|\bimport\s+bridge\b|\bfrom\s+bridge\s+import\b/u;
+/**
+ * 컴퓨터 쪽 bluetooth 흉내를 쓰는 코드(`import bluetooth`, f104의 `import time, bluetooth`, `from bluetooth_lib import …`).
+ * 같은 문서에 ESP32 실습실 칸이 없을 때만 패널을 연다(판 1.1.0, 미해결 137 — 머리말).
+ */
+const PC_BLE_PATTERN = /^[ \t]*import[ \t]+(?:[\w.]+[ \t]*,[ \t]*)*bluetooth(?:_lib)?\b|^[ \t]*from[ \t]+bluetooth(?:_lib)?[ \t]+import\b/mu;
+/** 패널 조건 둘을 합친 것(showPanelWhenUsed는 모양 하나를 받는다 — 블루투스 쪽의 "같은 문서에 보드 없음"은 also가 본다) */
+const PC_PANEL_PATTERN = new RegExp(`${PC_USE_PATTERN.source}|${PC_BLE_PATTERN.source}`, 'mu');
 /** ESP32 실습실 쪽 */
 const BOARD_USE_PATTERN = /\bUART\s*\(|\bimport\s+serial\b/u;
+/**
+ * ESP32 실습실에서 블루투스를 쓰는 보드 코드 — 선을 열어 둔다(패널은 열지 않는다). 접두어를 고정해 둔 두 탭도
+ * 컴퓨터 쪽 bluetooth 흉내가 이 보드를 찾게(주소 ?bridge=로 연 탭은 코드와 상관없이 연다 — 판 1.1.0, 미해결 137).
+ */
+const BOARD_BLE_PATTERN = /\bESP32BLE\w*\b|\bu?bluetooth\b/u;
+
+/** 같은 문서에 ESP32 실습실 칸(가상 보드)이 있나 — 4단원 통합 화면. 있으면 bluetooth 흉내가 그 보드로 바로 보낸다 */
+function sameDocumentBoard(): boolean {
+  return typeof document !== 'undefined' && document.querySelector('[data-lab][data-lab-id="esp32"]') !== null;
+}
+
+/** 영상처리 실습실에서 선([보내기] 패널)을 쓰는 코드인가: serial·bridge, 또는 같은 문서에 보드가 없을 때의 bluetooth */
+export function pcUsesLink(code: string, boardInDocument: boolean): boolean {
+  return PC_USE_PATTERN.test(code) || (!boardInDocument && PC_BLE_PATTERN.test(code));
+}
 /** 주고받은 글 목록에 남길 줄 수 */
 const LOG_LIMIT = 40;
 /**
@@ -88,6 +132,10 @@ const IDLE_ECHO_MS = 2000;
 /** 컴퓨터 쪽 콘솔에 남기는 안내(보드 쪽이 돌지 않는다고 알려 왔을 때) */
 export const BOARD_NOT_RUNNING_NOTICE =
   '가상 보드(ESP32 실습실)가 돌고 있지 않아요. 보드 쪽 화면에서 [실행]을 눌러야 보낸 글자를 받아요(보드가 꺼져 있을 때 온 글자는 실물처럼 사라져요).';
+
+/** 보드 쪽 콘솔 안내 — 컴퓨터의 bluetooth 흉내가 보냈는데 이 보드 예제에 블루투스 부품이 없을 때(판 1.1.0, 미해결 137) */
+export const BOARD_NO_BLE_NOTICE =
+  '컴퓨터가 블루투스로 글자를 보냈지만 이 보드 예제에는 블루투스 부품이 없어요. 블루투스로 받는 보드 예제(ESP32BLE.read()를 쓰는 것)를 열어요.';
 
 /** ESP32 실습실 주소를 만든다(한 화면 모드는 ?embed=1로 머리글·바닥글을 숨긴다 — P2-14와 같은 방식) */
 export function boardLabUrl(options: { prefix: string; example?: string; embed?: boolean }): string {
@@ -125,7 +173,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
     search: typeof location === 'undefined' ? '' : location.search,
   });
   const panel = context.panel;
-  const panelGate = showPanelWhenUsed(context, role === 'board' ? BOARD_USE_PATTERN : PC_USE_PATTERN);
+  const panelGate =
+    role === 'board'
+      ? showPanelWhenUsed(context, BOARD_USE_PATTERN)
+      : showPanelWhenUsed(context, PC_PANEL_PATTERN, { also: () => pcUsesLink(context.lab.getCode(), sameDocumentBoard()) });
   const cleanups: (() => void)[] = [];
   const listen = <K extends keyof HTMLElementEventMap>(target: HTMLElement, type: K, handler: (event: HTMLElementEventMap[K]) => void): void => {
     target.addEventListener(type, handler);
@@ -541,6 +592,49 @@ function mount(context: LabModuleContext): LabModuleHandle {
         }
       }),
     );
+
+    // ── 블루투스 줄기(판 1.1.0, 미해결 137 — 머리말): 컴퓨터의 bluetooth 흉내 → 가상 블루투스, 보드의 알림 → 컴퓨터 ──
+    let warnedNoBle = false;
+    offs.push(
+      link.onEnvelope(BLE_ENVELOPE_TYPE, (frameIn: UartFrame) => {
+        if (frameIn.from === 'board' || frameIn.bytes.length === 0) {
+          return;
+        }
+        addLog('in', frameIn.bytes);
+        if (context.root.querySelector('[data-board-part][data-part="ble"]') === null) {
+          if (!warnedNoBle) {
+            warnedNoBle = true;
+            context.notice(BOARD_NO_BLE_NOTICE);
+          }
+          return;
+        }
+        // 상대 기기(컴퓨터)가 RX 특성에 쓴 것 — 블루투스 칸이 연결까지 해 주고 20바이트 자르기도 실물처럼 한다(part.ts)
+        window.dispatchEvent(new CustomEvent(BLE_WRITE_EVENT, { detail: { bytes: Array.from(frameIn.bytes) } }));
+        if (context.runtime.state !== 'running') {
+          const now = Date.now();
+          if (now - lastIdleEcho >= IDLE_ECHO_MS) {
+            lastIdleEcho = now;
+            link.sendState('idle');
+          }
+        }
+      }),
+    );
+    const onBleNotify = (event: Event): void => {
+      const status = link.status;
+      if (status.state !== 'open' || !status.peers.includes('pc')) {
+        return;
+      }
+      const detail = (event as CustomEvent<{ bytes?: unknown }>).detail;
+      const raw = Array.isArray(detail?.bytes) ? detail.bytes : [];
+      const bytes = Uint8Array.from(raw.filter((one): one is number => typeof one === 'number').map((one) => one & 0xff));
+      if (bytes.length === 0) {
+        return;
+      }
+      void link.sendEnvelope(BLE_ENVELOPE_TYPE, bytes).catch(() => undefined);
+      addLog('out', bytes);
+    };
+    window.addEventListener(BLE_NOTIFY_EVENT, onBleNotify);
+    cleanups.push(() => window.removeEventListener(BLE_NOTIFY_EVENT, onBleNotify));
   }
 
   // ── 컴퓨터 쪽: 보드가 알려 온 실행 상태 ──
@@ -577,7 +671,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   // ── 언제 통로를 여나 ──
   const autoConnect = (code: string): void => {
-    const wanted = (role === 'board' ? BOARD_USE_PATTERN : PC_USE_PATTERN).test(code);
+    const wanted = role === 'board' ? BOARD_USE_PATTERN.test(code) || BOARD_BLE_PATTERN.test(code) : pcUsesLink(code, sameDocumentBoard());
     if (wanted && link.status.state === 'closed') {
       void link.connect().then(render);
     }

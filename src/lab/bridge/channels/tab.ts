@@ -26,6 +26,11 @@ import { BRIDGE_DATA_TYPE } from './direct.ts';
 export const TAB_CHANNEL_ID = 'tab';
 /** PLAN §8.4 설계 메모 ②의 UART 통로 봉투 type */
 export const TAB_UART_DATA_TYPE = 'uart.data';
+/**
+ * 같은 선에 실리는 블루투스 줄기 봉투 type(판 1.1.0, PROGRESS 미해결 137). 컴퓨터 쪽 `bluetooth` 흉내가 다른 탭(또는 한 화면 모드 iframe)의
+ * 가상 보드에 보낸 바이트와, 그 보드가 알림(notify)으로 돌려보낸 바이트가 이 type으로 오간다 — UART 줄기와 섞이지 않게 type을 나눴다.
+ */
+export const TAB_BLE_DATA_TYPE = 'ble.data';
 /** 선의 한 끝이 실행 상태를 알리는 봉투 type — 정의는 envelope.ts(데이터로 읽는 쪽이 가벼운 파일에서 가져가게) */
 export { TAB_UART_STATUS_TYPE } from './envelope.ts';
 /** 채널 이름 머리말 */

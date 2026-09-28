@@ -3,8 +3,8 @@
 // 확인하는 것: ① 접두어 정하기(주소 ?bridge= → 저장 → 새로 만들기) ② 상대 알아보기 ③ 바이트가 그대로 간다(속도·선 이름표까지)
 // ④ §7.6 병합 규칙(같은 한 글자 명령은 합쳐지고 다른 글자는 둘 다 나간다) ⑤ 상대가 없으면 한국어 오류.
 import { afterEach, describe, expect, it } from 'vitest';
-import { BridgeLink, prefixFromSearch, resolvePrefix, type UartFrame } from '../../../src/lab/modules/vision-bridge/link.ts';
-import { PREFIX_LENGTH, isValidPrefix } from '../../../src/lab/bridge/index.ts';
+import { BLE_ENVELOPE_TYPE, BridgeLink, noPeerMessage, prefixFromSearch, resolvePrefix, shareSentPrinter, type UartFrame } from '../../../src/lab/modules/vision-bridge/link.ts';
+import { BridgeClosedError, PREFIX_LENGTH, createBridge, isValidPrefix, textMessage } from '../../../src/lab/bridge/index.ts';
 
 /** 저장 공간 흉내(Node에는 sessionStorage가 없다) */
 function fakeStore(): Storage {
@@ -269,5 +269,154 @@ describe('두 끝을 잇는다(진짜 BroadcastChannel)', () => {
     const status = await pc.setPrefix('나쁜값');
     expect(status.prefix).toBe('jbcdefghijkm');
     expect(status.error).toMatch(/12글자|접두어/u);
+  });
+});
+
+// ── 판 1.1.0(PROGRESS 미해결 137·139) ──
+
+/** 조건이 참이 될 때까지(최대 ms) 기다린다 */
+async function until(check: () => boolean, ms = 2000): Promise<void> {
+  const started = Date.now();
+  while (!check()) {
+    if (Date.now() - started > ms) {
+      throw new Error('기다리던 일이 일어나지 않았어요.');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+}
+
+describe('같은 선의 블루투스 줄기(ble.data — 컴퓨터 쪽 bluetooth 흉내 ↔ 다른 탭의 가상 보드, 미해결 137)', () => {
+  it('블루투스 줄기는 UART 줄기(onFrame)·바이트 셈과 섞이지 않고 onEnvelope로만 간다', async () => {
+    const prefix = 'pbcdefghijkm';
+    const pc = link('pc', prefix);
+    const board = link('board', prefix);
+    await pc.connect();
+    await board.connect();
+    expect(await pc.waitForPeer(2000)).toBe(true);
+
+    const bleFrames: UartFrame[] = [];
+    board.onEnvelope(BLE_ENVELOPE_TYPE, (frame) => bleFrames.push(frame));
+    const uartFrames = frames(board, 400);
+    await pc.sendEnvelope(BLE_ENVELOPE_TYPE, new TextEncoder().encode('DATA,1,2,0,0'));
+    expect(await uartFrames).toEqual([]);
+    expect(bleFrames.map(text)).toEqual(['DATA,1,2,0,0']);
+    expect(bleFrames[0]?.from).toBe('pc');
+    expect(bleFrames[0]?.type).toBe(BLE_ENVELOPE_TYPE);
+    // UART 셈(상태 줄·[보내기] 패널)은 그대로다
+    expect(pc.status.sentBytes).toBe(0);
+    expect(board.status.receivedBytes).toBe(0);
+    // 듣는 곳이 없는 줄기는 조용히 버린다(UART 쪽으로 새지 않는다)
+    const stray = frames(pc, 300);
+    await board.sendEnvelope('other.data', new Uint8Array([1, 2, 3]));
+    expect(await stray).toEqual([]);
+  });
+
+  it('선이 열리기 전에는 줄기로 보내지 못한다(BridgeClosedError — 한국어 까닭)', async () => {
+    const pc = link('pc', 'qbcdefghijkm');
+    await expect(pc.sendEnvelope(BLE_ENVELOPE_TYPE, new Uint8Array([1]))).rejects.toBeInstanceOf(BridgeClosedError);
+  });
+
+  it('subChannel은 Bridge가 끼워 쓰는 통로 모양이다 — 상태·상대·보내기·받기가 선을 따라가고, close()는 선을 닫지 않는다', async () => {
+    const prefix = 'rbcdefghijkm';
+    const pc = link('pc', prefix);
+    const board = link('board', prefix);
+    const sub = pc.subChannel(BLE_ENVELOPE_TYPE, '다른 탭의 보드');
+    expect(sub.state).toBe('closed');
+    expect(sub.peers).toEqual([]);
+    expect(sub.label).toBe('다른 탭의 보드');
+    expect(sub.from).toBe('pc');
+    await pc.connect();
+    await board.connect();
+    expect(await pc.waitForPeer(2000)).toBe(true);
+    expect(sub.state).toBe('open');
+    expect(sub.peers).toEqual(['board']);
+
+    // 보드 → 컴퓨터(알림)
+    const got: string[] = [];
+    sub.on('message', (envelope) => got.push(new TextDecoder().decode(envelope.bytes)));
+    await board.sendEnvelope(BLE_ENVELOPE_TYPE, new TextEncoder().encode('OK'));
+    await until(() => got.length === 1);
+    expect(got).toEqual(['OK']);
+
+    // 컴퓨터 → 보드: 흉내 모듈의 Bridge(보낼 차례·§7.6 병합)를 그대로 끼운다 — 같은 자리 좌표는 최신 값만, 클릭 줄은 반드시
+    const onBoard: string[] = [];
+    board.onEnvelope(BLE_ENVELOPE_TYPE, (frame) => onBoard.push(text(frame)));
+    const bridge = createBridge(sub, { terminator: '', receive: false, minIntervalMs: 80 });
+    bridge.sendMessage(textMessage('DATA,1,1,0,0', { terminator: '' }));
+    bridge.sendMessage(textMessage('DATA,2,2,0,0', { terminator: '' }));
+    bridge.sendMessage(textMessage('DATA,3,3,0,0', { terminator: '' }));
+    bridge.sendMessage(textMessage('DATA,3,3,1,0', { terminator: '' }));
+    await until(() => onBoard.includes('DATA,3,3,1,0'));
+    expect(onBoard[0]).toBe('DATA,1,1,0,0');
+    expect(onBoard).not.toContain('DATA,2,2,0,0');
+    expect(onBoard.filter((line) => line === 'DATA,3,3,1,0')).toHaveLength(1);
+
+    // 듣기만 푼다 — 선은 [보내기] 패널·serial 흉내가 함께 쓰므로 열린 채다
+    sub.close();
+    bridge.close(false);
+    expect(pc.status.state).toBe('open');
+    await board.sendEnvelope(BLE_ENVELOPE_TYPE, new TextEncoder().encode('again'));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(got).toEqual(['OK']);
+  });
+
+  it('접두어를 바꿔 선을 다시 열어도 subChannel이 새 선으로 보낸다', async () => {
+    const pc = link('pc', 'sbcdefghijkm');
+    const oldBoard = link('board', 'sbcdefghijkm');
+    const newBoard = link('board', 'tbcdefghijkm');
+    const sub = pc.subChannel(BLE_ENVELOPE_TYPE);
+    await pc.connect();
+    await oldBoard.connect();
+    await newBoard.connect();
+    const onOld: string[] = [];
+    const onNew: string[] = [];
+    oldBoard.onEnvelope(BLE_ENVELOPE_TYPE, (frame) => onOld.push(text(frame)));
+    newBoard.onEnvelope(BLE_ENVELOPE_TYPE, (frame) => onNew.push(text(frame)));
+    await pc.setPrefix('tbcdefghijkm');
+    expect(await pc.waitForPeer(2000)).toBe(true);
+    await sub.send(new TextEncoder().encode('x'));
+    await until(() => onNew.length === 1);
+    expect(onNew).toEqual(['x']);
+    expect(onOld).toEqual([]);
+  });
+});
+
+describe('Sent 줄은 선 하나에 한 번(shareSentPrinter — serial·bridge 흉내가 같은 선을 쓴다, 미해결 139)', () => {
+  it('모듈 둘이 걸어도 한 줄씩만 적고, 모두 풀어야 멈춘다', async () => {
+    const prefix = 'ubcdefghijkm';
+    const pc = link('pc', prefix);
+    const board = link('board', prefix);
+    await pc.connect();
+    await board.connect();
+    expect(await pc.waitForPeer(2000)).toBe(true);
+
+    const first: string[] = [];
+    const second: string[] = [];
+    const releaseFirst = shareSentPrinter(pc, (line) => first.push(line));
+    const releaseSecond = shareSentPrinter(pc, (line) => second.push(line));
+    pc.sendBytes(new TextEncoder().encode('a'));
+    await until(() => first.length === 1);
+    expect(first).toEqual(['Sent: a\n']);
+    expect(second).toEqual([]);
+
+    // 먼저 건 모듈이 풀어도 다른 모듈이 남아 있으면 계속 적는다(같은 적는 곳 — 둘은 같은 콘솔이다)
+    releaseFirst();
+    releaseFirst();
+    pc.sendBytes(new TextEncoder().encode('b'));
+    await until(() => first.length === 2);
+    expect(first).toEqual(['Sent: a\n', 'Sent: b\n']);
+
+    // 모두 풀면 멈춘다
+    releaseSecond();
+    pc.sendBytes(new TextEncoder().encode('c'));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(first).toEqual(['Sent: a\n', 'Sent: b\n']);
+  });
+
+  it('받을 쪽이 없을 때의 한국어 안내는 serial·bridge 흉내가 같은 글을 쓴다(오류 사전 comm-serial-no-peer·comm-no-peer)', () => {
+    const message = noPeerMessage('abcdefghijkm');
+    expect(message).toContain('ESP32 실습실 탭을 찾지 못했어요');
+    expect(message).toContain('[한 화면에 가상 보드 열기]');
+    expect(message).toContain('abcdefghijkm');
   });
 });

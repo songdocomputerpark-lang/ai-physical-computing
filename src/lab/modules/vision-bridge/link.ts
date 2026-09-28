@@ -15,10 +15,19 @@
  * - 속도(baud)는 메시지마다 다를 수 있어(학생이 9600으로 열면 그대로 보내야 속도 불일치 실습이 된다) 메시지별 정보를
  *   WeakMap으로 들고 있다가 실제로 나갈 때 봉투에 싣는다.
  *
+ * 같은 선의 다른 줄기(판 1.1.0, PROGRESS 미해결 137): 컴퓨터 쪽 `bluetooth` 흉내(ble-pc)가 **다른 탭의 가상 보드**로 보낼 때도
+ * 이 선(같은 접두어·같은 통로)을 쓴다. 바이트는 봉투 type `ble.data`(BLE_ENVELOPE_TYPE)로 실어 UART 줄기(`uart.data`)와 섞이지 않고,
+ * 받는 쪽(ESP32 실습실의 vision-bridge)이 type을 보고 가상 블루투스에 넣는다. `subChannel(type)`은 그 줄기를 BridgeChannel 모양으로
+ * 내주어 흉내 모듈이 자기 Bridge(보낼 차례·병합)를 그대로 끼우게 한다 — 접두어를 바꾸거나 선을 다시 열어도 따라간다.
+ *
+ * `Sent: …` 콘솔 줄(§7.6 ⑤)은 선 하나에 한 번만 건다(`shareSentPrinter`) — 같은 선을 쓰는 serial·bridge 흉내가 둘 다 붙어도 줄이 겹치지 않게.
+ *
  * 라이선스: 사이트 소프트웨어(MIT, PD-26).
  */
 import {
+  BridgeClosedError,
   BridgeOutbox,
+  TAB_BLE_DATA_TYPE,
   TAB_CHANNEL_ID,
   TAB_UART_DATA_TYPE,
   TAB_UART_STATUS_TYPE,
@@ -38,6 +47,8 @@ import {
   writeSessionPrefix,
   type BridgeCategory,
   type BridgeChannel,
+  type BridgeChannelEvents,
+  type BridgeEnvelope,
   type BridgeMessage,
   type BridgeParty,
   type BridgeSendResult,
@@ -47,6 +58,20 @@ import {
 
 /** 봉투 type — PLAN §8.4 설계 메모 ②(`{type: 'uart.data', from, port, bytes, baud}`). 값은 브릿지 핵심이 정한 이름을 그대로 쓴다. */
 export const UART_ENVELOPE_TYPE = TAB_UART_DATA_TYPE;
+/** 같은 선의 블루투스 줄기(판 1.1.0, 미해결 137 — 머리말). 컴퓨터 쪽 bluetooth 흉내 ↔ 다른 탭의 가상 보드 블루투스 */
+export const BLE_ENVELOPE_TYPE = TAB_BLE_DATA_TYPE;
+
+/**
+ * 받을 쪽 화면(ESP32 실습실 탭·한 화면 모드)을 찾지 못했을 때의 한국어 안내 — 같은 선을 쓰는 serial·bridge 흉내가 함께 쓴다
+ * (파이썬 SerialException·BridgeNoPeer에 실린다. 오류 사전 comm-serial-no-peer가 앞 문장으로 알아본다).
+ */
+export function noPeerMessage(prefix: string): string {
+  return [
+    'ESP32 실습실 탭을 찾지 못했어요.',
+    '[보내기] 패널의 [ESP32 실습실 새 탭에서 열기]나 [한 화면에 가상 보드 열기]를 누른 뒤 다시 [실행]해요.',
+    `두 화면의 통신 접두어가 ${prefix}로 같아야 해요.`,
+  ].join(' ');
+}
 /** 선 이름표(한 통로에 선이 여럿일 때 가른다. 지금은 USB-UART 변환기 한 줄) */
 export const DEFAULT_PORT_LABEL = 'uart';
 /** 주소에서 접두어를 받는 이름: /labs/esp32/?bridge=7kq2m9xd4hpt */
@@ -73,6 +98,8 @@ export interface UartFrame {
   readonly baud: number;
   readonly port: string;
   readonly at: number;
+  /** 봉투 type(없으면 UART 줄기 'uart.data') */
+  readonly type?: string;
 }
 
 export type LinkState = 'closed' | 'connecting' | 'open';
@@ -151,6 +178,8 @@ export class BridgeLink {
   private readonly sentListeners = new Set<(line: string, message: BridgeMessage) => void>();
   private readonly warnListeners = new Set<(warning: BridgeWarning) => void>();
   private readonly peerStateListeners = new Set<(state: PeerRunState, from: BridgeParty) => void>();
+  /** 같은 선의 다른 줄기(봉투 type → 듣는 곳) — 블루투스 줄기 등(미해결 137) */
+  private readonly envelopeListeners = new Map<string, Set<(frame: UartFrame) => void>>();
   private channel: BridgeChannel | null = null;
   private offMessage: (() => void) | null = null;
   private offPeers: (() => void) | null = null;
@@ -210,6 +239,11 @@ export class BridgeLink {
     return this.prefixValue;
   }
 
+  /** 이 끝의 이름('pc'·'board') */
+  get from(): BridgeParty {
+    return this.options.from;
+  }
+
   /** 지금 이 선에 보이는 상대가 있나 */
   get hasPeer(): boolean {
     return (this.channel?.peers.length ?? 0) > 0;
@@ -243,6 +277,47 @@ export class BridgeLink {
   onPeerState(listener: (state: PeerRunState, from: BridgeParty) => void): () => void {
     this.peerStateListeners.add(listener);
     return () => this.peerStateListeners.delete(listener);
+  }
+
+  /**
+   * 같은 선의 **다른 줄기**(봉투 type이 UART·실행 상태가 아닌 것 — 블루투스 줄기 BLE_ENVELOPE_TYPE 등)로 온 바이트를 듣는다.
+   * UART 줄기(onFrame)·바이트 셈(sentBytes·receivedBytes)과는 따로다. 돌려주는 함수를 부르면 그만 듣는다.
+   */
+  onEnvelope(type: string, listener: (frame: UartFrame) => void): () => void {
+    const set = this.envelopeListeners.get(type) ?? new Set<(frame: UartFrame) => void>();
+    set.add(listener);
+    this.envelopeListeners.set(type, set);
+    return () => {
+      set.delete(listener);
+      if (set.size === 0 && this.envelopeListeners.get(type) === set) {
+        this.envelopeListeners.delete(type);
+      }
+    };
+  }
+
+  /**
+   * 같은 선의 다른 줄기로 바이트를 **곧바로** 보낸다(이 선의 보낼 차례를 거치지 않는다 — 차례·병합은 부르는 쪽 Bridge가 맡는다).
+   * 선이 열려 있지 않으면 BridgeClosedError. 통로가 상대를 알고 아무도 없으면 통로 규칙대로(BridgeNoPeerError 등) 던진다.
+   */
+  async sendEnvelope(type: string, bytes: Uint8Array): Promise<void> {
+    const channel = this.channel;
+    if (channel === null || this.linkState !== 'open' || channel.state !== 'open') {
+      throw new BridgeClosedError(this.status.label);
+    }
+    await channel.send(bytes, { type });
+  }
+
+  /**
+   * 같은 선의 한 줄기를 **BridgeChannel 모양**으로 내준다 — 흉내 모듈이 자기 Bridge(보낼 차례·§7.6 병합)를 그대로 끼우게.
+   * 선을 다시 열거나 접두어를 바꿔도 이 모양은 그대로 따라간다(지금의 선에 보낸다). close()는 선을 닫지 않는다(선은 여럿이 함께 쓴다).
+   */
+  subChannel(type: string, label?: string): BridgeChannel {
+    return new LinkSubChannel(this, type, label);
+  }
+
+  /** 지금 선의 통로(없으면 null) — 부분 통로(LinkSubChannel)가 상대 목록을 읽는다 */
+  get currentChannel(): BridgeChannel | null {
+    return this.channel;
   }
 
   /**
@@ -433,6 +508,7 @@ export class BridgeLink {
     this.sentListeners.clear();
     this.warnListeners.clear();
     this.peerStateListeners.clear();
+    this.envelopeListeners.clear();
   }
 
   private attach(channel: BridgeChannel): void {
@@ -448,7 +524,14 @@ export class BridgeLink {
         return;
       }
       if (envelope.type !== UART_ENVELOPE_TYPE) {
-        // 같은 접두어의 다른 줄기(브릿지 새 예제 등)는 그냥 둔다.
+        // 같은 접두어의 다른 줄기: 듣는 곳(onEnvelope — 블루투스 줄기 등)이 있으면 그리로, 없으면 그냥 둔다.
+        const listeners = this.envelopeListeners.get(envelope.type);
+        if (listeners !== undefined && listeners.size > 0) {
+          const frame = this.frameOf(envelope);
+          for (const listener of [...listeners]) {
+            listener(frame);
+          }
+        }
         return;
       }
       const bytes = envelope.bytes instanceof Uint8Array ? envelope.bytes : new Uint8Array(0);
@@ -456,19 +539,25 @@ export class BridgeLink {
         return;
       }
       this.received += bytes.length;
-      const frame: UartFrame = {
-        from: envelope.from,
-        bytes,
-        baud: typeof envelope.baud === 'number' ? envelope.baud : 0,
-        port: envelope.port ?? DEFAULT_PORT_LABEL,
-        at: envelope.at,
-      };
+      const frame = this.frameOf(envelope);
       for (const listener of this.frameListeners) {
         listener(frame);
       }
       this.emitStatus();
     });
     this.offPeers = channel.on('peers', () => this.emitStatus());
+  }
+
+  /** 봉투 → 받은 덩어리(바이트는 Uint8Array로) */
+  private frameOf(envelope: BridgeEnvelope): UartFrame {
+    return {
+      from: envelope.from,
+      bytes: envelope.bytes instanceof Uint8Array ? envelope.bytes : new Uint8Array(0),
+      baud: typeof envelope.baud === 'number' ? envelope.baud : 0,
+      port: envelope.port ?? DEFAULT_PORT_LABEL,
+      at: envelope.at,
+      type: envelope.type,
+    };
   }
 
   private async write(message: BridgeMessage): Promise<void> {
@@ -486,6 +575,120 @@ export class BridgeLink {
       listener(status);
     }
   }
+}
+
+/**
+ * 선의 한 줄기를 BridgeChannel 모양으로(BridgeLink.subChannel). 흉내 모듈의 Bridge가 `setChannel`로 끼워 쓴다.
+ * 상태·상대는 선의 지금 통로를 그대로 비춘다. 받기는 onEnvelope(type), 보내기는 sendEnvelope(type)이다.
+ */
+class LinkSubChannel implements BridgeChannel {
+  readonly from: BridgeParty;
+  readonly label: string;
+  readonly #link: BridgeLink;
+  readonly #type: string;
+  readonly #offs = new Set<() => void>();
+
+  constructor(link: BridgeLink, type: string, label?: string) {
+    this.#link = link;
+    this.#type = type;
+    this.from = link.from;
+    this.label = label ?? link.status.label;
+  }
+
+  get id(): string {
+    return this.#link.status.channelId;
+  }
+
+  get state(): 'open' | 'closed' {
+    const channel = this.#link.currentChannel;
+    return this.#link.status.state === 'open' && channel !== null && channel.state === 'open' ? 'open' : 'closed';
+  }
+
+  get peers(): readonly BridgeParty[] {
+    return this.state === 'open' ? this.#link.status.peers : [];
+  }
+
+  get knowsPeers(): boolean {
+    return this.#link.currentChannel?.knowsPeers ?? true;
+  }
+
+  send(bytes: Uint8Array): Promise<void> {
+    return this.#link.sendEnvelope(this.#type, bytes);
+  }
+
+  on<K extends keyof BridgeChannelEvents>(event: K, listener: BridgeChannelEvents[K]): () => void {
+    let off: () => void;
+    if (event === 'message') {
+      const onMessage = listener as BridgeChannelEvents['message'];
+      off = this.#link.onEnvelope(this.#type, (frame) => {
+        onMessage({ v: 1, type: this.#type, from: frame.from, bytes: frame.bytes, at: frame.at, port: frame.port, ...(frame.baud > 0 ? { baud: frame.baud } : {}) });
+      });
+    } else if (event === 'peers') {
+      const onPeers = listener as BridgeChannelEvents['peers'];
+      let last = '';
+      off = this.#link.onStatus((status) => {
+        const key = status.state === 'open' ? status.peers.join(' ') : '';
+        if (key !== last) {
+          last = key;
+          onPeers(status.state === 'open' ? status.peers : []);
+        }
+      });
+    } else {
+      const onClose = listener as BridgeChannelEvents['close'];
+      let wasOpen = this.state === 'open';
+      off = this.#link.onStatus((status) => {
+        if (wasOpen && status.state !== 'open') {
+          onClose('선이 닫혔어요.');
+        }
+        wasOpen = status.state === 'open';
+      });
+    }
+    this.#offs.add(off);
+    return () => {
+      off();
+      this.#offs.delete(off);
+    };
+  }
+
+  /** 듣던 것만 푼다 — 선 자체는 여럿이 함께 쓰므로 닫지 않는다 */
+  close(): void {
+    for (const off of [...this.#offs]) {
+      off();
+    }
+    this.#offs.clear();
+  }
+}
+
+/** 선마다 `Sent: …` 줄을 적는 곳 하나(shareSentPrinter) — 쓰는 모듈 수를 센다 */
+const sentPrinters = new WeakMap<BridgeLink, { users: number; off: () => void }>();
+
+/**
+ * 선으로 실제로 나간 줄을 콘솔에 `Sent: …`로 한 번씩 적는다(§7.6 ⑤). **같은 선에 흉내 모듈이 여럿 붙어도(serial·bridge) 한 번만** 건다 —
+ * 먼저 부른 모듈의 write가 적고, 부른 모듈이 모두 풀면 멈춘다. 돌려주는 함수를 부르면 그 모듈 몫을 푼다.
+ */
+export function shareSentPrinter(link: BridgeLink, write: (line: string) => void): () => void {
+  const found = sentPrinters.get(link);
+  if (found !== undefined) {
+    found.users += 1;
+  } else {
+    sentPrinters.set(link, { users: 1, off: link.onSent((line) => write(`${line}\n`)) });
+  }
+  let released = false;
+  return () => {
+    if (released) {
+      return;
+    }
+    released = true;
+    const entry = sentPrinters.get(link);
+    if (entry === undefined) {
+      return;
+    }
+    entry.users -= 1;
+    if (entry.users <= 0) {
+      entry.off();
+      sentPrinters.delete(link);
+    }
+  };
 }
 
 /** 실습실 화면 하나에 선 하나(영상처리의 serial 흉내와 [보내기] 패널이 같은 선을 쓴다) */
