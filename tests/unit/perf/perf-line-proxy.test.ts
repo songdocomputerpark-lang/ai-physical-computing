@@ -192,9 +192,13 @@ describe('프록시(startLineProxy)', () => {
       viaProxy(proxy.port, `http://127.0.0.1:${upstreamPort}/big`, agent),
       viaProxy(proxy.port, `http://127.0.0.1:${upstreamPort}/big`, agent),
     ]);
-    // 80,000바이트 / 200,000바이트/초 = 400ms(+ 왕복) — 혼자 받을 때(200ms)의 두 배쯤, 둘이 거의 함께 끝난다
-    expect(Math.min(a.ms, b.ms)).toBeGreaterThanOrEqual(350);
-    expect(Math.abs(a.ms - b.ms)).toBeLessThan(150);
+    // 80,000바이트 / 200,000바이트/초 = 400ms(+ 왕복) — 혼자 받을 때(200ms + 왕복)의 두 배쯤. 두 연결이 시작하는 때가 조금 어긋나면
+    // 먼저 시작한 쪽이 그동안 혼자 회선을 써서 일찍 끝난다(CI Linux에서 먼저 끝난 쪽이 317ms — 2026-09-29 판 1.1.0 통합, 그 전 기대
+    // "둘 다 350ms 넘게"가 흔들렸다). 그래서 끝나는 때 하나하나가 아니라 늦게 끝난 쪽(두 배의 바이트를 한 회선으로 보낸 뒤)과 두 시간의
+    // 합으로 나눠 쓴 것을 본다 — 나눠 쓰지 않으면 둘 다 약 250ms라 늦은 쪽 380ms·합 700ms에 못 미친다.
+    expect(Math.max(a.ms, b.ms)).toBeGreaterThanOrEqual(380);
+    expect(a.ms + b.ms).toBeGreaterThanOrEqual(700);
+    expect(Math.abs(a.ms - b.ms)).toBeLessThan(250);
     agent.destroy();
   });
 
