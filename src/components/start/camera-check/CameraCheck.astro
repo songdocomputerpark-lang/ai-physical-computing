@@ -1,0 +1,257 @@
+---
+/**
+ * 점검 페이지의 "카메라 영상 확인"(판 1.1.0, PROGRESS 미해결 121) — 브라우저 점검 표(CheckReport.astro) 아래에 들어간다.
+ *
+ * 규칙
+ * - 페이지를 열기만 해서는 카메라를 켜지 않는다. [카메라 켜서 확인하기]를 누를 때만 카메라를 켜고(허락 창), 카메라마다 몇 초씩 재고 바로 끈다.
+ *   재는 코드(camera-check-run.ts)도 누를 때 import()로 받는다.
+ * - 결과: 카메라 수, 카메라마다 이름(가상·적외선 카메라 표시)·브라우저가 먼저 여는 카메라인지·영상이 들어오는지(까만 화면·장 없음·못 엶).
+ *   끝나면 document에 apc:camera-check-result(detail.text)를 보내 점검 표의 [결과 복사] 글 끝에 붙는다(CheckReport.astro).
+ * - 개인정보: 장치 이름은 화면과 [결과 복사] 글에만 — 저장하거나 보내지 않는다. 영상은 까만지 재는 데만 쓴다.
+ * 테스트가 읽는 값: 뿌리 [data-camera-check]의 data-state(idle|running|done)·data-level(ok|warn|fail), 줄마다 [data-camera-check-entry]의
+ * data-outcome(ok|black|no-frames|error)·data-kind(normal|virtual|infrared)·data-default(yes|no).
+ */
+---
+
+<section class="camera-check" data-camera-check data-state="idle" aria-labelledby="camera-check-title">
+  <h3 id="camera-check-title" class="camera-check__title">카메라 영상 확인(누를 때만)</h3>
+  <p class="camera-check__intro">
+    위 표는 카메라를 켜지 않고 확인해요. 영상이 실제로 들어오는지는 <strong>[카메라 켜서 확인하기]</strong>를 누를 때만 확인해요.
+    카메라마다 몇 초씩 켰다가 바로 꺼요. 교실의 화면 공유 프로그램이 만든 <strong>가상 카메라</strong>가 진짜 웹캠을 가리는지도 알 수 있어요.
+    영상은 까만지 재는 데만 쓰고 저장하거나 보내지 않아요.
+  </p>
+  <div class="camera-check__actions">
+    <button type="button" class="button button--secondary" data-camera-check-run>카메라 켜서 확인하기</button>
+    <p class="camera-check__status" role="status" data-camera-check-status></p>
+  </div>
+  <div class="camera-check__preview" data-camera-check-preview hidden>
+    <video class="camera-check__video" muted playsinline data-camera-check-video aria-label="확인 중인 카메라 영상(확인이 끝나면 꺼져요)"></video>
+  </div>
+  <ol class="camera-check__list" data-camera-check-list hidden></ol>
+  <div class="camera-check__verdict" data-camera-check-verdict hidden>
+    <p class="camera-check__verdict-text" data-camera-check-verdict-text></p>
+    <ul class="camera-check__advice" data-camera-check-advice></ul>
+  </div>
+</section>
+
+<script>
+  import {
+    CAMERA_CHECK_RESULT_EVENT,
+    entryText,
+    formatCameraCheckReport,
+    outcomeMark,
+    summarizeCameraCheck,
+    type CameraCheckResult,
+  } from './camera-check-report.ts';
+
+  function setup(root: HTMLElement) {
+    const runButton = root.querySelector<HTMLButtonElement>('[data-camera-check-run]');
+    const status = root.querySelector<HTMLElement>('[data-camera-check-status]');
+    const preview = root.querySelector<HTMLElement>('[data-camera-check-preview]');
+    const video = root.querySelector<HTMLVideoElement>('[data-camera-check-video]');
+    const list = root.querySelector<HTMLOListElement>('[data-camera-check-list]');
+    const verdictBox = root.querySelector<HTMLElement>('[data-camera-check-verdict]');
+    const verdictText = root.querySelector<HTMLElement>('[data-camera-check-verdict-text]');
+    const adviceList = root.querySelector<HTMLUListElement>('[data-camera-check-advice]');
+    if (!runButton || !status || !preview || !video || !list || !verdictBox || !verdictText || !adviceList) {
+      return;
+    }
+
+    const render = (result: CameraCheckResult) => {
+      list.replaceChildren(
+        ...result.entries.map((entry, index) => {
+          const item = document.createElement('li');
+          item.className = 'camera-check__entry';
+          item.dataset.cameraCheckEntry = String(index + 1);
+          item.dataset.outcome = entry.outcome;
+          item.dataset.kind = entry.kind;
+          item.dataset.default = entry.isDefault ? 'yes' : 'no';
+          const mark = document.createElement('span');
+          mark.className = 'camera-check__mark';
+          mark.setAttribute('aria-hidden', 'true');
+          mark.textContent = outcomeMark(entry.outcome);
+          const text = document.createElement('span');
+          // 번호는 목록(<ol>)이 붙인다 — [결과 복사] 글에는 "1. …"처럼 번호가 들어간다(camera-check-report.ts).
+          text.textContent = entryText(entry);
+          item.append(mark, text);
+          return item;
+        }),
+      );
+      list.hidden = result.entries.length === 0;
+      const summary = summarizeCameraCheck(result);
+      root.dataset.level = summary.level;
+      verdictText.textContent = summary.verdict;
+      adviceList.replaceChildren(
+        ...summary.advice.map((line) => {
+          const item = document.createElement('li');
+          item.textContent = line;
+          return item;
+        }),
+      );
+      adviceList.hidden = summary.advice.length === 0;
+      verdictBox.hidden = false;
+      return summary;
+    };
+
+    runButton.addEventListener('click', async () => {
+      runButton.disabled = true;
+      root.dataset.state = 'running';
+      delete root.dataset.level;
+      verdictBox.hidden = true;
+      list.hidden = true;
+      preview.hidden = false;
+      status.textContent = '확인을 준비하는 중이에요…';
+      let result: CameraCheckResult;
+      try {
+        const { runCameraCheck } = await import('./camera-check-run.ts');
+        result = await runCameraCheck({ video, onProgress: (text) => (status.textContent = text) });
+      } catch (error) {
+        result = {
+          status: 'error',
+          entries: [],
+          checkedAt: new Date(),
+          message: `카메라를 확인하지 못했어요(${error instanceof Error ? error.name : '알 수 없는 오류'}).`,
+        };
+      } finally {
+        preview.hidden = true;
+        video.srcObject = null;
+      }
+      render(result);
+      // 판정 글은 아래 상자에 있으니 여기서는 되풀이하지 않는다(화면 낭독기는 이 줄만 한 번 읽는다 — 상자로 가는 길을 알려 준다).
+      status.textContent = '확인을 마쳤어요. 결과는 아래에 있고, 위 [결과 복사]에도 함께 담겨요.';
+      document.dispatchEvent(new CustomEvent(CAMERA_CHECK_RESULT_EVENT, { detail: { text: formatCameraCheckReport(result) } }));
+      root.dataset.state = 'done';
+      runButton.textContent = '카메라 다시 확인하기';
+      runButton.disabled = false;
+    });
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-camera-check]')) {
+    setup(root);
+  }
+</script>
+
+<style>
+  .camera-check {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    line-height: var(--leading-snug);
+  }
+
+  .camera-check__title {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .camera-check__intro {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .camera-check__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .camera-check__actions .button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .camera-check__status {
+    flex: 1 1 14rem;
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .camera-check__preview {
+    width: min(100%, 16rem);
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: #17191c;
+  }
+
+  .camera-check__video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .camera-check__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-inline-start: 1.6em;
+    font-size: var(--text-sm);
+  }
+
+  /* 줄(li)과 기호는 스크립트가 만드므로 범위 스타일이 닿지 않는다 — :global()로 목록 안에서만 */
+  .camera-check__list :global(.camera-check__entry) {
+    overflow-wrap: anywhere;
+  }
+
+  .camera-check__list :global(.camera-check__mark) {
+    display: inline-block;
+    min-width: 1.2em;
+    margin-inline-end: 0.4em;
+    font-weight: var(--weight-bold);
+    text-align: center;
+  }
+
+  .camera-check__list :global(.camera-check__entry[data-outcome='ok'] .camera-check__mark) {
+    color: var(--color-success-text);
+  }
+
+  .camera-check__list :global(.camera-check__entry:not([data-outcome='ok']) .camera-check__mark) {
+    color: var(--color-danger-text);
+  }
+
+  .camera-check__verdict {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-info-border);
+    border-inline-start-width: 0.375rem;
+    border-radius: var(--radius-md);
+    background: var(--color-info-bg);
+    font-size: var(--text-sm);
+  }
+
+  .camera-check[data-level='ok'] .camera-check__verdict {
+    border-color: var(--color-success-border);
+    background: var(--color-success-bg);
+  }
+
+  .camera-check[data-level='warn'] .camera-check__verdict {
+    border-color: var(--color-warning-border);
+    background: var(--color-warning-bg);
+  }
+
+  .camera-check[data-level='fail'] .camera-check__verdict {
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-bg);
+  }
+
+  .camera-check__verdict-text {
+    margin: 0;
+    font-weight: var(--weight-bold);
+  }
+
+  .camera-check__advice {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.4em;
+  }
+</style>
