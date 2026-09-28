@@ -27,7 +27,7 @@
 1. **주소:** 문제가 생긴 페이지의 주소를 주소창에서 복사해 붙여요.
 2. **차례:** 무엇을 눌렀을 때 어떻게 되었는지 차례대로 적어요. 고른 예제 이름도 함께 적어요.
 3. **오류 글:** 실습실 콘솔의 **마지막 줄**(예: `NameError: name 'total' is not defined`)을 그대로 붙여요. 먼저 [파이썬 오류 사전](https://songdocomputerpark-lang.github.io/ai-physical-computing/help/errors/)에서 찾아보면 바로 풀릴 때가 많아요.
-4. **점검 결과:** [학교 네트워크와 브라우저 점검](https://songdocomputerpark-lang.github.io/ai-physical-computing/start/check/) 페이지에서 **[결과 복사]**를 누르고 양식의 "점검 결과" 칸에 붙여요. 브라우저 종류, 운영체제, 창 크기, 사이트 판, 점검 결과만 들어 있어요. 실제 보드 문제라면 [실물 점검 도우미](https://songdocomputerpark-lang.github.io/ai-physical-computing/labs/esp32/check/)의 [결과 복사] 글도 좋아요.
+4. **점검 결과:** [학교 네트워크와 브라우저 점검](https://songdocomputerpark-lang.github.io/ai-physical-computing/start/check/) 페이지에서 **[결과 복사]**를 누르고 양식의 "점검 결과" 칸에 붙여요. 브라우저 종류, 운영체제, 창 크기, 사이트 판, 점검 결과(카메라 확인을 눌렀다면 카메라 번호·종류와 그 결과 — 장치 이름은 넣지 않아요)만 들어 있어요. 붙이기 전에 한 번 읽어 보고 개인정보가 보이면 지워 주세요. 실제 보드 문제라면 [실물 점검 도우미](https://songdocomputerpark-lang.github.io/ai-physical-computing/labs/esp32/check/)의 [결과 복사] 글도 좋아요.
 
 - 이슈를 쓰려면 GitHub 계정이 필요해요. GitHub 이용 약관상 계정은 13세 이상만 만들 수 있으니, 학생은 선생님께 알려 주세요.
 - 답은 그 이슈의 댓글로 드려요. 고친 뒤에는 이슈를 닫아요.

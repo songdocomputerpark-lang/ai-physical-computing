@@ -6,8 +6,12 @@
  * - 페이지를 열기만 해서는 카메라를 켜지 않는다. [카메라 켜서 확인하기]를 누를 때만 카메라를 켜고(허락 창), 카메라마다 몇 초씩 재고 바로 끈다.
  *   재는 코드(camera-check-run.ts)도 누를 때 import()로 받는다.
  * - 결과: 카메라 수, 카메라마다 이름(가상·적외선 카메라 표시)·브라우저가 먼저 여는 카메라인지·영상이 들어오는지(까만 화면·장 없음·못 엶).
- *   끝나면 document에 apc:camera-check-result(detail.text)를 보내 점검 표의 [결과 복사] 글 끝에 붙는다(CheckReport.astro).
- * - 개인정보: 장치 이름은 화면과 [결과 복사] 글에만 — 저장하거나 보내지 않는다. 영상은 까만지 재는 데만 쓴다.
+ *   끝나면 document에 apc:camera-check-result(detail: text·level·headline — camera-check-report.ts cameraCheckResultDetail)를 보내
+ *   점검 표의 [결과 복사] 글 끝과 요약 칸에 붙는다(CheckReport.astro).
+ * - 개인정보: 장치 이름은 **화면에만** — [결과 복사] 글에는 번호·종류·걸린 낱말만 넣고(장치 이름에 사람 이름이 들 수 있다, 1.1.0 검토 반영 —
+ *   DECISIONS C58), 저장하거나 보내지 않는다. 영상은 까만지 재는 데만 쓴다.
+ * - 키보드: 확인하는 동안 단추를 disabled로 끄지 않고 aria-disabled로 둔다 — disabled로 끄면 누른 단추의 초점이 문서(body)로 사라져
+ *   다시 켜져도 돌아오지 않았다(1.1.0 검토 반영). 확인 중에 다시 누르면 무시한다.
  * 테스트가 읽는 값: 뿌리 [data-camera-check]의 data-state(idle|running|done)·data-level(ok|warn|fail), 줄마다 [data-camera-check-entry]의
  * data-outcome(ok|black|no-frames|error)·data-kind(normal|virtual|infrared)·data-default(yes|no).
  */
@@ -18,7 +22,7 @@
   <p class="camera-check__intro">
     위 표는 카메라를 켜지 않고 확인해요. 영상이 실제로 들어오는지는 <strong>[카메라 켜서 확인하기]</strong>를 누를 때만 확인해요.
     카메라마다 몇 초씩 켰다가 바로 꺼요. 교실의 화면 공유 프로그램이 만든 <strong>가상 카메라</strong>가 진짜 웹캠을 가리는지도 알 수 있어요.
-    영상은 까만지 재는 데만 쓰고 저장하거나 보내지 않아요.
+    영상은 까만지 재는 데만 쓰고 저장하거나 보내지 않아요. 카메라 이름은 이 화면에만 보이고, [결과 복사] 글에는 번호와 종류만 들어가요.
   </p>
   <div class="camera-check__actions">
     <button type="button" class="button button--secondary" data-camera-check-run>카메라 켜서 확인하기</button>
@@ -37,8 +41,8 @@
 <script>
   import {
     CAMERA_CHECK_RESULT_EVENT,
+    cameraCheckResultDetail,
     entryText,
-    formatCameraCheckReport,
     outcomeMark,
     summarizeCameraCheck,
     type CameraCheckResult,
@@ -94,7 +98,11 @@
     };
 
     runButton.addEventListener('click', async () => {
-      runButton.disabled = true;
+      if (root.dataset.state === 'running') {
+        return;
+      }
+      // disabled 대신 aria-disabled — 누른 단추에 초점이 그대로 남는다(머리말 "키보드").
+      runButton.setAttribute('aria-disabled', 'true');
       root.dataset.state = 'running';
       delete root.dataset.level;
       verdictBox.hidden = true;
@@ -118,11 +126,11 @@
       }
       render(result);
       // 판정 글은 아래 상자에 있으니 여기서는 되풀이하지 않는다(화면 낭독기는 이 줄만 한 번 읽는다 — 상자로 가는 길을 알려 준다).
-      status.textContent = '확인을 마쳤어요. 결과는 아래에 있고, 위 [결과 복사]에도 함께 담겨요.';
-      document.dispatchEvent(new CustomEvent(CAMERA_CHECK_RESULT_EVENT, { detail: { text: formatCameraCheckReport(result) } }));
+      status.textContent = '확인을 마쳤어요. 결과는 아래에 있고, 위 [결과 복사]에도 함께 담겨요(카메라 이름은 빼고 번호로).';
+      document.dispatchEvent(new CustomEvent(CAMERA_CHECK_RESULT_EVENT, { detail: cameraCheckResultDetail(result) }));
       root.dataset.state = 'done';
       runButton.textContent = '카메라 다시 확인하기';
-      runButton.disabled = false;
+      runButton.removeAttribute('aria-disabled');
     });
   }
 
@@ -160,7 +168,8 @@
     gap: var(--space-3);
   }
 
-  .camera-check__actions .button:disabled {
+  .camera-check__actions .button:disabled,
+  .camera-check__actions .button[aria-disabled='true'] {
     cursor: not-allowed;
     opacity: 0.6;
   }

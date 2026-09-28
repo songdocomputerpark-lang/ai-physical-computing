@@ -106,6 +106,17 @@ describe('카메라 이름으로 종류 가르기(classifyCameraLabel)', () => {
     expect(Object.isFrozen(DEPRIORITIZED_CAMERA_PATTERNS)).toBe(true);
     expect(matchedCameraPattern('OBS Virtual Camera')?.kind).toBe('virtual');
   });
+
+  it('걸린 낱말은 종류를 가른 것과 같은 종류 안에서 프로그램 이름을 먼저 — 점검 [결과 복사] 글에 적는 낱말(DECISIONS C58)', () => {
+    expect(matchedCameraPattern('EShare Virtual Camera')?.name).toBe('EShare');
+    expect(matchedCameraPattern('OBS Virtual Camera')?.name).toBe('OBS');
+    expect(matchedCameraPattern('Virtual Camera')?.name).toBe('Virtual(가상)');
+    expect(matchedCameraPattern('Integrated IR Camera')?.name).toBe('IR(적외선)');
+    // 종류는 classifyCameraLabel과 같다(처음 걸린 것) — 가상·적외선 낱말이 함께 있어도 낱말이 종류와 어긋나지 않는다
+    expect(classifyCameraLabel('Virtual IR Camera')).toBe('virtual');
+    expect(matchedCameraPattern('Virtual IR Camera')?.kind).toBe('virtual');
+    expect(matchedCameraPattern('HD Webcam')).toBeNull();
+  });
 });
 
 describe('장치 목록 다듬기', () => {

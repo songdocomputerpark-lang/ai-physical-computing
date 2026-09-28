@@ -92,13 +92,25 @@ export function classifyCameraLabel(label: string | null | undefined): CameraKin
   return found ? found.kind : 'normal';
 }
 
-/** 이름에서 걸린 낱말(없으면 null) — 안내 글·점검 결과에 "무엇 때문에 가상 카메라로 봤는지" 적을 때 쓴다 */
+/** 일반 낱말 — 같은 이름에 프로그램 이름(EShare·OBS 등)도 걸리면 그쪽을 알린다(무엇을 끄면 되는지 알기 쉽게) */
+const GENERIC_PATTERN_NAMES: ReadonlySet<string> = new Set(['Virtual(가상)', '가상']);
+
+/**
+ * 이름에서 걸린 낱말(없으면 null) — 점검 결과([결과 복사] 글은 장치 이름 대신 이 낱말만 — DECISIONS C58)에 "무엇 때문에 가상 카메라로
+ * 봤는지" 적을 때 쓴다. 종류는 classifyCameraLabel과 같게(목록에서 처음 걸린 것의 종류) 두고, 그 종류 안에서 프로그램 이름을 먼저 고른다
+ * ("EShare Virtual Camera" → 'EShare', "Virtual Camera" → 'Virtual(가상)').
+ */
 export function matchedCameraPattern(label: string | null | undefined): CameraNamePattern | null {
   const text = typeof label === 'string' ? label.trim() : '';
   if (text === '') {
     return null;
   }
-  return DEPRIORITIZED_CAMERA_PATTERNS.find((item) => item.pattern.test(text)) ?? null;
+  const matches = DEPRIORITIZED_CAMERA_PATTERNS.filter((item) => item.pattern.test(text));
+  const first = matches[0];
+  if (!first) {
+    return null;
+  }
+  return matches.find((item) => item.kind === first.kind && !GENERIC_PATTERN_NAMES.has(item.name)) ?? first;
 }
 
 /** 뒤로 미루는 카메라(가상·적외선)인지 */

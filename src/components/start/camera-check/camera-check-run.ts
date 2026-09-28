@@ -7,10 +7,11 @@
  * 2. 브라우저가 먼저 연 카메라부터, 카메라마다 한 대씩 열어 까만지 잰다(black-frame.ts 판정 — 밝은 장이 오면 바로, 까만 장만 오면
  *    2초 + 1초 더 보고, 장이 안 오면 4초 뒤). 다음 카메라를 열기 전에 앞 카메라를 끈다. 한 번에 MAX_CHECKED_CAMERAS대까지.
  * 3. 끝나면 모든 카메라를 끄고 결과(CameraCheckResult)를 돌려준다.
- * 영상은 64×48 작은 그림으로 밝기를 재는 데만 쓰고 저장하거나 보내지 않는다. 장치 이름도 저장하지 않는다(결과 글에만).
+ * 영상은 64×48 작은 그림으로 밝기를 재는 데만 쓰고 저장하거나 보내지 않는다. 장치 이름도 저장하지 않는다(화면에만 — [결과 복사] 글에는
+ * 번호·종류·걸린 낱말만, camera-check-report.ts 머리말).
  */
 import { BLACK_FRAME_LIMITS } from '../../../lab/vision/black-frame.ts';
-import { cameraName, type CameraDevice } from '../../../lab/vision/camera-devices.ts';
+import { cameraName, matchedCameraPattern, type CameraDevice } from '../../../lab/vision/camera-devices.ts';
 import {
   VideoBlackWatcher,
   describeCameraError,
@@ -129,6 +130,7 @@ export async function runCameraCheck(options: RunCameraCheckOptions): Promise<Ca
     skipped = ordered.length - toCheck.length;
     for (const [index, camera] of toCheck.entries()) {
       const name = cameraName(camera);
+      const pattern = camera.kind === 'normal' ? undefined : matchedCameraPattern(camera.label)?.name;
       const isDefault = camera === defaultCamera;
       progress(toCheck.length === 1 ? `카메라(${name})를 확인하는 중이에요…` : `카메라 ${toCheck.length}대 가운데 ${index + 1}번째(${name})를 확인하는 중이에요…`);
       let stream: MediaStream;
@@ -139,13 +141,13 @@ export async function runCameraCheck(options: RunCameraCheckOptions): Promise<Ca
         try {
           stream = await requestCamera(640, 480, camera.deviceId || null);
         } catch (error) {
-          entries.push({ name, kind: camera.kind, isDefault, outcome: 'error', meanLuma: null, reason: shortReason(describeCameraError(error)) });
+          entries.push({ name, kind: camera.kind, pattern, isDefault, outcome: 'error', meanLuma: null, reason: shortReason(describeCameraError(error)) });
           continue;
         }
       }
       try {
         const measured = await measure(stream, video);
-        entries.push({ name, kind: camera.kind, isDefault, outcome: measured.outcome, meanLuma: measured.meanLuma });
+        entries.push({ name, kind: camera.kind, pattern, isDefault, outcome: measured.outcome, meanLuma: measured.meanLuma });
       } finally {
         stopStream(stream);
         video.srcObject = null;
