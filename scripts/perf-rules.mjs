@@ -89,6 +89,14 @@ export const LINE_PROFILES = Object.freeze({
   }),
 });
 
+/**
+ * 회선 흉내 프록시가 미리 보기 서버의 응답에 붙이는 Cache-Control — 실사이트(GitHub Pages)가 모든 파일에 주는 값(2026-09-29 `curl -I` 확인).
+ * 미리 보기 서버(astro preview — Vite sirv의 dev 모드)는 no-cache라 둘째 쪽(홈 → 실습실)의 글꼴 CSS가 매번 다시 확인(느린 왕복)되어 "느린 망"
+ * 규칙이 저절로 걸렸고, 실사이트에서는 CSS가 캐시에서 곧바로 와서 걸리지 않았다(1.1.0 검토 — 실습실 DCL 13초 ↔ 24.3초). 그래서 회선 3G 시나리오 A는
+ * 실사이트와 같은 캐시 규칙으로 잰다(perf-scenario-a.spec.ts). CDP 속도 제한(perf-timing)은 쪽마다 새 문맥이라 캐시 규칙과 상관없다.
+ */
+export const SITE_CACHE_CONTROL = 'max-age=600';
+
 /** SPEC §13 시나리오 A "5분 안에 웹캠 에지 결과" — 회선 전체 3G 측정은 이 값과 견줘 **기록만** 한다(넘으면 PLAN §11 위험 31) */
 export const SCENARIO_A_LIMIT_MS = 5 * 60 * 1000;
 

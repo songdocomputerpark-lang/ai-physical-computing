@@ -8,14 +8,17 @@
 //
 // 판정은 **기록용**이다: SPEC의 5분(SCENARIO_A_LIMIT_MS)을 넘으면 넘은 그대로 적고(콘솔·주석·첨부 JSON) PLAN §11 위험 31로 잇는다.
 // 검사하는 것은 측정이 성립했는지뿐이다 — 파이썬 엔진·패키지 바이트가 회선을 지났는지(= 워커 요청이 회선을 탔는지), 첫 에지와 슬라이더 효과가 나왔는지.
-// 첫 방문과 같게 캐시 없는 새 문맥이고 서비스 워커를 켠다(홈이 등록하고 사전 캐시도 같은 회선을 먹는다). 개발 서버는 파일을 묶지 않아(요청 수백 개)
+// 첫 방문과 같게 캐시 없는 새 문맥이고 서비스 워커를 켠다(홈이 등록하고 사전 캐시도 같은 회선을 먹는다). 미리 보기 서버의 응답에는 실사이트
+// (GitHub Pages)와 같은 Cache-Control max-age=600을 붙인다(perf-rules.mjs SITE_CACHE_CONTROL — 1.1.0 검토: 미리 보기의 no-cache 때문에 둘째 쪽 글꼴
+// CSS가 다시 확인되어 실사이트와 다른 수가 나왔다). 실습실(둘째 쪽)에서 글꼴 CSS를 켠 때가 load 뒤인지도 본다(BaseLayout __apcFontCss — soft 검사).
+// 개발 서버는 파일을 묶지 않아(요청 수백 개)
 // 뜻이 없어 건너뛴다 — 빌드 결과(npm run perf:measure의 미리 보기 서버)나 실사이트(PW_BASE_URL)로 잰다.
 // 1.0.0 사용성 검토가 같은 조건을 손으로 잰 값: 준비됐어요 2분 38초, 첫 에지 7분 9초, 받은 양 20.97MB(.cache/phase6-notes/review-experience.md 5·6).
 // 결과: 콘솔 줄 + 테스트 첨부(perf-scenario-a-3g.json).
 import fs from 'node:fs';
 import { expect, test, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
 import { startLineProxy, type LineStats } from '../../scripts/perf-line-proxy.mjs';
-import { LINE_PROFILES, SCENARIO_A_LIMIT_MS, lineAllowHosts } from '../../scripts/perf-rules.mjs';
+import { LINE_PROFILES, SCENARIO_A_LIMIT_MS, SITE_CACHE_CONTROL, lineAllowHosts } from '../../scripts/perf-rules.mjs';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
 import { withBase } from '../../src/lib/url.ts';
 import { labRoot } from './helpers/lab.ts';
@@ -39,8 +42,16 @@ function installRecorder(): void {
   (window as unknown as { __apcScenario: { events: Recorded[]; href: string } }).__apcScenario = { events, href: location.href };
   const log = (name: string, value: string | null) => events.push({ name, value, at: Date.now() });
   document.addEventListener('DOMContentLoaded', () => log('dcl', location.pathname), { once: true });
+  window.addEventListener('load', () => log('load', location.pathname), { once: true });
   const seen = new Map<string, string | null>();
   const check = () => {
+    // 글꼴 CSS를 켠 때(media print → all — BaseLayout __apcFontCss). 느린 망이면 load 뒤여야 한다.
+    const fontLink = document.querySelector('link[href*="pretendardvariable-dynamic-subset.css"][rel="stylesheet"]');
+    const fontMedia = fontLink?.getAttribute('media') ?? null;
+    if (fontLink && seen.get('font-media') !== fontMedia) {
+      seen.set('font-media', fontMedia);
+      log('font-media', fontMedia);
+    }
     const root = document.querySelector('[data-lab]');
     if (!root) {
       return;
@@ -120,7 +131,8 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
 
     const line = LINE_PROFILES['3g'];
     const allowHosts = lineAllowHosts(baseURL ?? '', ALLOWED_REMOTE_ORIGINS);
-    const proxy = await startLineProxy({ ...line, allowHosts });
+    // 미리 보기 서버(http)의 응답만 실사이트처럼 max-age=600으로(실사이트로 잴 때는 https 터널이라 그대로)
+    const proxy = await startLineProxy({ ...line, allowHosts, cacheControl: SITE_CACHE_CONTROL });
     const context = await browser.newContext({
       baseURL,
       viewport: { width: 1366, height: 768 },
@@ -182,6 +194,8 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
       const events = await recordedEvents(page);
       const firstAt = (name: string, value?: string) => events.find((event) => event.name === name && (value === undefined || event.value === value))?.at ?? null;
       const labDcl = since(firstAt('dcl'));
+      const labLoad = since(firstAt('load'));
+      const labFontOn = since(firstAt('font-media', 'all'));
       const runButtonEnabled = since(firstAt('run-button', 'enabled'));
       const runStart = since(firstAt('data-run-count', '1'));
       const packagesReady = since(firstAt('data-vision-packages', 'ready'));
@@ -209,7 +223,7 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
         .map(([host, bytes]) => `${host} ${mb(bytes)}`)
         .join('·');
       const summary =
-        `[회선 3G 시나리오 A] 홈 FCP ${seconds(homeFcp)} → [카메라로 바로 해보기] ${seconds(homeClick)} → 실습실 FCP ${seconds(labFcp)}·DCL ${seconds(labDcl)}` +
+        `[회선 3G 시나리오 A] 홈 FCP ${seconds(homeFcp)} → [카메라로 바로 해보기] ${seconds(homeClick)} → 실습실 FCP ${seconds(labFcp)}·DCL ${seconds(labDcl)}·load ${seconds(labLoad)}·글꼴 켬 ${seconds(labFontOn)}` +
         ` → [실행] 켜짐 ${seconds(runButtonEnabled)}(누름 ${seconds(runClick)}) → 파이썬 준비·실행 시작 ${seconds(runStart)} → numpy·OpenCV 준비 ${seconds(packagesReady)}` +
         ` → 첫 에지 ${seconds(firstEdge)} → 슬라이더 효과 ${seconds(sliderEffect)} · 회선으로 받은 양 ${mb(final.down)}(${hostText}), 올린 양 ${mb(final.up)}, 연결 ${final.connections}개` +
         ` · 흰 픽셀 100:${(base * 100).toFixed(2)}% → 20:${(low * 100).toFixed(2)}% → 100:${(back * 100).toFixed(2)}%` +
@@ -229,7 +243,8 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
         allowHosts,
         limitMs: SCENARIO_A_LIMIT_MS,
         overLimit,
-        marksMs: { homeFcp, homeClick, labFcp, labDcl, runButtonEnabled, runClick, runStart, packagesReady, firstEdge, sliderEffect },
+        cacheControl: SITE_CACHE_CONTROL,
+        marksMs: { homeFcp, homeClick, labFcp, labDcl, labLoad, labFontOn, runButtonEnabled, runClick, runStart, packagesReady, firstEdge, sliderEffect },
         whiteRatio: { threshold100: base, threshold20: low, back100: back },
         bytes: { down: final.down, up: final.up, connections: final.connections, byHost, rejected: final.rejected },
         snapshots,
@@ -243,6 +258,8 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
       expect(final.down, `회선으로 받은 양이 ${mb(final.down)}뿐이에요 — 워커가 받는 파이썬 엔진이 프록시를 지나지 않은 것 같아요`).toBeGreaterThan(15_000_000);
       const siteHost = new URL(baseURL ?? 'http://localhost/').hostname;
       expect(byHost[siteHost] ?? 0, `사이트(${siteHost})에서 받은 양이 ${mb(byHost[siteHost] ?? 0)}뿐이에요 — 사이트 요청이 회선을 비켜 간 것 같아요`).toBeGreaterThan(300_000);
+      // 둘째 쪽(실습실)도 느린 망이면 글꼴 CSS를 load 뒤에 켠다(BaseLayout __apcFontCss — 쪽 HTML을 받은 시간으로도 느린 망을 안다, 1.1.0 검토 반영)
+      expect.soft(labFontOn !== null && labLoad !== null && labFontOn >= labLoad, `실습실 글꼴 켬 ${seconds(labFontOn)}이 load ${seconds(labLoad)} 뒤`).toBe(true);
       expect(low, `threshold 20: ${low} > 100: ${base}`).toBeGreaterThan(base + MIN_RATIO_CHANGE);
       expect(back, `threshold 100 again: ${back} < 20: ${low}`).toBeLessThan(low - MIN_RATIO_CHANGE);
       expect(errors).toEqual([]);

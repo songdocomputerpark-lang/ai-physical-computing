@@ -1,13 +1,14 @@
 // 회선 흉내 프록시(scripts/perf-line-proxy.mjs — 판 1.1.0, PROGRESS 미해결 210)의 단위 테스트.
 //  - 회선(LineLink): 초당 바이트만큼만 내보내고, 흐름들이 번갈아 나눠 쓰고, 조각은 한쪽 지연(RTT/2) 뒤에 닿고, 흐름 안 차례를 지킨다
 //  - 프록시: http 절대 주소 요청(미리 보기 서버 localhost)과 https CONNECT 터널이 같은 회선을 지나고(대역폭·지연·새 연결 왕복),
-//    허용 밖 호스트는 403으로 끊고 센다. 조건 값(LINE_PROFILES)은 DevTools "3G"에서 온다.
+//    허용 밖 호스트는 403으로 끊고 센다. 조건 값(LINE_PROFILES)은 DevTools "3G"에서 온다. cacheControl을 주면 미리 보기 서버의 no-cache를
+//    실사이트(GitHub Pages)처럼 max-age=600으로 바꾼다(1.1.0 검토 반영 — 둘째 쪽 글꼴 CSS가 캐시에서 오는 실사이트와 같게).
 // 실제 브라우저가 이 프록시로 워커·서비스 워커까지 지나는지는 tests/e2e/perf-scenario-a.spec.ts(perf 무리)가 jsDelivr 바이트로 본다.
 import http from 'node:http';
 import net from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { LineLink, SEGMENT_BYTES, hostAllowed, startLineProxy, type LineProxy } from '../../../scripts/perf-line-proxy.mjs';
-import { LINE_PROFILES, SCENARIO_A_LIMIT_MS, THROTTLE_PROFILES, lineAllowHosts } from '../../../scripts/perf-rules.mjs';
+import { LINE_PROFILES, SCENARIO_A_LIMIT_MS, SITE_CACHE_CONTROL, THROTTLE_PROFILES, lineAllowHosts } from '../../../scripts/perf-rules.mjs';
 
 /** 손으로 돌리는 시계: 예약한 일을 모았다가 flush()로 부른다 */
 function manualClock() {
@@ -139,6 +140,12 @@ describe('프록시(startLineProxy)', () => {
         res.end(BODY);
         return;
       }
+      if (req.url === '/no-cache') {
+        // 미리 보기 서버(astro preview)처럼 no-cache를 주는 파일
+        res.writeHead(200, { 'Content-Type': 'text/css', 'Cache-Control': 'no-cache', 'Content-Length': 2 });
+        res.end('ok');
+        return;
+      }
       res.writeHead(404).end();
     });
     await new Promise((resolve) => upstream?.listen(0, '127.0.0.1', () => resolve(undefined)));
@@ -204,6 +211,28 @@ describe('프록시(startLineProxy)', () => {
     expect(a.ms + b.ms).toBeGreaterThanOrEqual(700);
     expect(Math.abs(a.ms - b.ms)).toBeLessThan(250);
     agent.destroy();
+  });
+
+  it('cacheControl을 주면 http(미리 보기 서버) 응답의 Cache-Control을 그 값으로 바꾼다 — 실사이트(GitHub Pages)처럼, 주지 않으면 그대로', async () => {
+    const upstreamPort = await startUpstream();
+    const headerVia = async (options: { cacheControl?: string }) => {
+      proxy = await startLineProxy({ downBytesPerSecond: 200_000, upBytesPerSecond: 200_000, rttMs: 10, newConnectionRoundTrips: 0, allowHosts: ['127.0.0.1'], ...options });
+      const port = proxy.port;
+      const url = `http://127.0.0.1:${upstreamPort}/no-cache`;
+      const header = await new Promise<string | undefined>((resolve, reject) => {
+        const request = http.request({ host: '127.0.0.1', port, path: url, headers: { host: new URL(url).host }, agent: false }, (response) => {
+          response.resume();
+          response.on('end', () => resolve(response.headers['cache-control']));
+        });
+        request.on('error', reject);
+        request.end();
+      });
+      await proxy.close();
+      proxy = null;
+      return header;
+    };
+    expect(await headerVia({})).toBe('no-cache');
+    expect(await headerVia({ cacheControl: SITE_CACHE_CONTROL })).toBe('max-age=600');
   });
 
   it('허용 밖 호스트는 403으로 끊고 센다', async () => {

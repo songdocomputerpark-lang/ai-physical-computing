@@ -13,6 +13,9 @@
 // - https: CONNECT 터널(암호를 풀지 않는다 — 내용은 보지 않고 바이트만 센다). http(미리 보기 서버 localhost): 절대 주소 요청을 받아 원 서버로 넘긴다.
 // - 허용한 호스트만 지난다. 나머지(브라우저 자체의 검색·보안 검사·업데이트 같은 배경 통신)는 403으로 끊고 센다 — 그 바이트가 같은 회선을
 //   먹어 사이트 수치를 흐리지 않게(검토 첫 측정은 Edge 배경 통신 704KB 때문에 FCP가 3.3초로 잡혔다).
+// - 사이트 응답의 Cache-Control(선택 cacheControl): 미리 보기 서버(astro preview)는 no-cache라 둘째 쪽부터 글꼴 CSS·스크립트를 매번 다시
+//   확인(왕복)하지만 실사이트(GitHub Pages)는 max-age=600이라 캐시에서 곧바로 준다 — 그 차이로 미리 보기 측정이 실사이트와 달랐다(1.1.0 검토:
+//   실습실 DCL 13초 ↔ 24초). 주면 http(미리 보기) 응답의 Cache-Control을 그 값으로 바꿔 실사이트처럼 만든다(https 터널은 건드리지 않는다).
 // 흉내 내지 않는 것: TCP 느린 시작·패킷 손실·실제 학교망의 공유(여러 학생) — 수치는 "한 사람이 3G 회선을 혼자 쓸 때"다.
 import http from 'node:http';
 import net from 'node:net';
@@ -182,6 +185,7 @@ export class LineLink {
  * @property {number} [newConnectionRoundTrips] 새 연결을 여는 데 드는 왕복 수(기본 2 — DNS 1 + TCP 1)
  * @property {readonly string[]} allowHosts 지나갈 수 있는 호스트 이름(같거나 그 아래 이름)
  * @property {number} [port] 기본 0(빈 포트)
+ * @property {string} [cacheControl] 주면 http(미리 보기 서버) 응답의 Cache-Control을 이 값으로 바꾼다(실사이트 GitHub Pages처럼 — 머리말)
  */
 
 /**
@@ -302,6 +306,9 @@ export async function startLineProxy(options) {
           (upRes) => {
             const head = responseHeadBytes(upRes);
             const responseHeaders = Object.fromEntries(Object.entries(upRes.headers).filter(([name]) => !HOP_BY_HOP.has(name)));
+            if (options.cacheControl !== undefined) {
+              responseHeaders['cache-control'] = options.cacheControl;
+            }
             let ended = false;
             down.enqueue(downFlow, head, {
               onPiece: (piece) => count(host, 'down', piece),
