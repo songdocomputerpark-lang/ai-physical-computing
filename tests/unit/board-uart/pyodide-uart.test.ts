@@ -92,13 +92,17 @@ describe.skipIf(!boardPyodideReady)('가상 보드 machine.UART와 시리얼 창
     const [first, second, got, buffer, one, rest, none, waitedEnough, notTooLong] = record.value as unknown[];
     expect(bytesOf(first)).toEqual(utf8('ab\n'));
     expect(bytesOf(second)).toEqual(utf8('cd'));
-    expect(got).toBe(1);
-    expect(bytesOf(buffer)).toEqual([87, 0, 0, 0]);
-    // read(10)은 "지금 도착한 만큼"(적어도 한 바이트)이고 나머지는 read()가 기다려 모두 받는다. 바이트 사이가 약 1ms라 보통 'X' 하나지만,
-    // 컴퓨터가 바쁘면 그사이 더 도착해 있다(npm test 전체 실행에서 'XYZ'를 본 적 있음, 2026-09-25) — 나눠진 자리가 아니라 합과 순서를 본다.
+    // readinto·read(10)은 "지금 도착한 만큼"(적어도 한 바이트)이고 나머지는 read()가 기다려 모두 받는다. 바이트 사이가 약 1ms라 보통
+    // readinto는 'W' 하나·read(10)은 'X' 하나지만, 컴퓨터가 바쁘면 그사이 더 도착해 있다(npm test 전체 실행에서 read(10)이 'XYZ'를 받은 적
+    // 있고(2026-09-25) readinto가 3바이트를 받은 적 있다(2026-09-29 판 1.1.0 통합)) — 나눠진 자리가 아니라 합과 순서를 본다.
+    const count = Number(got);
+    expect(Number.isInteger(count) && count >= 1 && count <= 4, `readinto가 돌려준 수 ${String(got)}`).toBe(true);
+    const bufferBytes = bytesOf(buffer) ?? [];
+    expect(bufferBytes).toHaveLength(4);
+    expect(bufferBytes.slice(count)).toEqual(new Array<number>(4 - count).fill(0));
     const oneBytes = bytesOf(one) ?? [];
     expect(oneBytes.length).toBeGreaterThanOrEqual(1);
-    expect([...oneBytes, ...(bytesOf(rest) ?? [])]).toEqual(utf8('XYZ12'));
+    expect([...bufferBytes.slice(0, count), ...oneBytes, ...(bytesOf(rest) ?? [])]).toEqual(utf8('WXYZ12'));
     expect(none).toBeNull();
     expect(waitedEnough).toBe(true);
     expect(notTooLong).toBe(true);
