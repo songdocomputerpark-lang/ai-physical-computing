@@ -28,6 +28,8 @@
  *   #enable-experimental-web-platform-features를 켜야 한다(WebBluetoothCG implementation-status.md).
  *   getAvailability()는 블루투스 어댑터가 없거나 설정·정책으로 막히면 false다(MDN Bluetooth.getAvailability).
  * - 카메라 장치: enumerateDevices()는 허락 전에는 장치 이름(label) 없이 종류만 알려 준다(MDN MediaDevices.enumerateDevices).
+ *   영상이 실제로 들어오는지·가상 카메라가 가리는지는 허락 창이 뜨므로 이 자동 점검에서 보지 않고, 점검 페이지의 "카메라 영상 확인"
+ *   (src/components/start/camera-check/ — 누를 때만, 판 1.1.0)이 본다.
  */
 
 import { STORAGE_KEY_PREFIX, storageKey, type StorageLike } from './storage.ts';
@@ -550,7 +552,7 @@ export async function checkCameraDevice(
         'camera-device',
         'supported',
         '카메라 장치가 보여요.',
-        '화면이 실제로 나오는지는 실습에서 카메라를 켤 때 확인돼요.',
+        '영상이 실제로 들어오는지(가상 카메라가 가리지 않는지)는 이 표 아래의 [카메라 켜서 확인하기]로 확인해요.',
       );
     }
     return makeResult(

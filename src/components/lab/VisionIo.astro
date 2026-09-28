@@ -14,7 +14,14 @@
  * 좁은 화면(48rem 미만)에서는 입력 → 출력 순서로 세로로 쌓인다.
  *
  * 개인정보(PLAN §10): "영상은 이 컴퓨터 밖으로 나가지 않아요"를 입력 칸에 늘 보인다. 사이트 검색 색인은 LabShell 뿌리에서 이미 뺀다.
+ *
+ * 판 1.1.0(미해결 121): 카메라가 두 대 이상이면 입력 소스 아래에 [카메라] 고르기 칸이 보이고(가상 카메라에는 "— 가상 카메라" 표시),
+ * 켠 카메라에서 2초 넘게 까만 화면만 오면 미리 보기 아래에 안내([다른 카메라로 바꾸기]·[샘플로 계속])가 뜬다. 고른 카메라는 이 브라우저에만
+ * 기억하고(장치 이름은 저장하지 않음), 영상은 까만지 재는 데만 잠깐 쓴다.
  */
+import { getPage } from '../../config/nav.ts';
+
+const cameraHelpHref = `${getPage('help').href}#camera-black`;
 ---
 
 <div class="vision-io" data-vision-io>
@@ -52,6 +59,11 @@
       <button type="button" class="lab-button lab-button--small" data-vision-file-button hidden>그림 파일 고르기</button>
       <input type="file" accept="image/*" data-vision-file-input hidden aria-label="그림 파일" />
     </div>
+    {/* 카메라 고르기(판 1.1.0): 카메라가 두 대 이상이고 입력 소스가 웹캠일 때만 보인다(vision-lab.ts). 고른 장치는 이 브라우저에만 기억한다. */}
+    <div class="vision-source vision-camera" data-vision-camera hidden>
+      <label class="vision-source__label" for="vision-camera-select">카메라</label>
+      <select id="vision-camera-select" class="lab__select vision-source__select" data-vision-camera-select></select>
+    </div>
     <p class="vision-io__note" data-vision-source-description></p>
     <p class="vision-io__note" data-vision-file-name hidden>아직 고른 파일이 없어요.</p>
 
@@ -60,6 +72,18 @@
         [실행]을 누르면 입력이 켜져요. 웹캠을 고르면 브라우저가 카메라 사용을 물어요.
       </p>
       <canvas class="vision-preview__canvas" data-vision-preview-canvas width="640" height="480" hidden aria-label="입력 미리 보기"></canvas>
+    </div>
+    {/* 까만 영상 안내(판 1.1.0): 켠 카메라에서 2초 넘게 까만 화면만 오면 보인다. 원인을 하나로 단정하지 않고 가능성이 큰 차례로 적는다(camera-notice.ts). */}
+    <div class="vision-camera-notice" data-vision-camera-notice hidden>
+      <p class="vision-camera-notice__title" data-vision-camera-notice-title></p>
+      <p class="vision-camera-notice__lead" data-vision-camera-notice-lead></p>
+      <ol class="vision-camera-notice__causes" data-vision-camera-notice-causes></ol>
+      <p class="vision-camera-notice__sample" data-vision-camera-notice-sample></p>
+      <div class="vision-camera-notice__actions">
+        <button type="button" class="lab-button lab-button--small" data-vision-camera-other hidden>다른 카메라로 바꾸기</button>
+        <button type="button" class="lab-button lab-button--small" data-vision-camera-sample>샘플로 계속</button>
+        <a class="vision-camera-notice__more" href={cameraHelpHref}>자세한 해결 방법</a>
+      </div>
     </div>
     <p class="vision-io__status" data-vision-input-status aria-live="polite">입력이 꺼져 있어요.</p>
     <p class="vision-io__message" data-vision-input-message role="status" aria-live="polite"></p>
@@ -313,6 +337,49 @@
     margin: 0;
     font-size: var(--text-xs);
     line-height: var(--leading-snug);
+  }
+
+  /* 까만 영상 안내(판 1.1.0) — 주의 상자 색(글자 대비: 본문 글자·warning-text 6.83, 링크 accent 5.4 이상) */
+  .vision-camera-notice {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--color-warning-border);
+    border-inline-start-width: 4px;
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .vision-camera-notice__title {
+    margin: 0;
+    color: var(--color-warning-text);
+    font-weight: 700;
+  }
+
+  .vision-camera-notice__lead,
+  .vision-camera-notice__sample {
+    margin: 0;
+  }
+
+  .vision-camera-notice__causes {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.4em;
+  }
+
+  .vision-camera-notice__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .vision-camera-notice__more {
+    font-size: var(--text-sm);
   }
 
   .vision-output__bar {

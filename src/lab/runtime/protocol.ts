@@ -9,7 +9,7 @@
  *
  * 흉내 모듈이 쓰는 요청·이벤트 종류(P2-03, 카메라·창 — src/lab/python/apc_cv2.py ↔ src/lab/vision/vision-lab.ts)
  *   request 'camera.open'    payload { index }             → reply { ok, width, height, source, fps }
- *   request 'camera.read'    payload {}                    → reply { width, height, data: Uint8ClampedArray(RGBA) } | null
+ *   request 'camera.read'    payload {}                    → reply { width, height, data: Uint8ClampedArray(RGBA) } | undefined(장 없음 — 파이썬에서 None, 판 1.1.0)
  *   request 'camera.set'     payload { prop, value }       → reply boolean(바뀌었는지)
  *   request 'camera.release' payload {}                    → reply true
  *   event   'window.show'    payload { name, width, height, data: Uint8Array(RGBA) }   cv2.imshow
