@@ -264,6 +264,10 @@ const allVirtual = gallery.cards.length > 0 && gallery.virtualOkCount === galler
   /*
    * 예제는 계속 늘어난다(지금 140장 남짓). 화면 밖 카드는 브라우저가 배치·그리기를 건너뛰게 해서
    * 목록이 길어져도 첫 화면이 느려지지 않게 한다(content-visibility). 값은 카드 한 장의 대략 높이다.
+   * 판 1.1.1(2026-09-29): 카드에 난이도·낱말·설명이 늘어 실제 높이 가운데 값이 1366 폭 22.9rem·375 폭 25.9rem(159장)인데
+   * 자리는 16rem이라, 아직 그리지 않은 카드의 내용이 자리 밖으로 넘쳐 다음 칸 제목 위에 놓였다 — 화면에는 보이지 않지만(그릴 때
+   * 제 높이가 됨) 접근성 검사(axe)가 넘친 [실습실에서 열기]를 제목 글자의 배경으로 읽어 대비 위반으로 셌다. 실제 높이에 가까운 24rem으로
+   * 바꿨다(content-visibility를 끄면 load가 늦어져 — 같은 날 이 PC에서 0.95 → 1.9초, 다른 검사와 함께 돌 때 잰 값 — 켜 둔다). 카드가 크게 달라지면 다시 잰다.
    */
   .gallery .gallery-card {
     min-width: 0;
@@ -275,7 +279,7 @@ const allVirtual = gallery.cards.length > 0 && gallery.virtualOkCount === galler
     border-radius: var(--radius-lg);
     background: var(--color-bg);
     content-visibility: auto;
-    contain-intrinsic-size: auto 16rem;
+    contain-intrinsic-size: auto 24rem;
   }
 
   .gallery .gallery-card__title {
