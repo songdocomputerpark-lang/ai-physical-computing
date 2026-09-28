@@ -168,14 +168,18 @@ describe('프록시(startLineProxy)', () => {
     const first = await viaProxy(proxy.port, `http://127.0.0.1:${upstreamPort}/big`, agent);
     expect(first.status).toBe(200);
     expect(first.body.equals(BODY)).toBe(true);
-    // 2왕복(200ms) + 1왕복(100ms) + 40,000/200,000초(200ms) ≈ 500ms
-    expect(first.ms).toBeGreaterThanOrEqual(450);
+    // 2왕복(200ms) + 1왕복(100ms) + 40,000/200,000초(200ms) ≈ 500ms. 다만 회선은 쉬는 동안 50ms어치 몫(+ 한 조각, 약 11.5KB)을 모아
+    // 두었다가 곧바로 보내므로 전송이 약 143ms로 짧아질 수 있어 가장 짧으면 약 443ms다 — 타이머가 정확한 Linux CI는 그 가까이 나온다
+    // (2026-09-29 판 1.1.0 통합: 같은 연결 두 번째 요청이 257ms로 옛 기대 270ms에 못 미쳤다). 그래서 모델이 보장하는 아래 값으로 본다.
+    expect(first.ms).toBeGreaterThanOrEqual(420);
     expect(first.ms).toBeLessThan(2_000);
-    // 같은 연결을 다시 쓰면 새 연결 왕복이 없다 ≈ 300ms
+    // 같은 연결을 다시 쓰면 새 연결 왕복이 없다 ≈ 300ms(모아 둔 몫으로 약 243ms까지)
     const second = await viaProxy(proxy.port, `http://127.0.0.1:${upstreamPort}/big`, agent);
     expect(second.body.equals(BODY)).toBe(true);
-    expect(second.ms).toBeGreaterThanOrEqual(270);
+    expect(second.ms).toBeGreaterThanOrEqual(230);
     expect(second.ms).toBeLessThan(first.ms);
+    // 두 요청의 차이는 새 연결을 여는 2왕복(200ms)쯤이다(두 번째 요청 앞에 회선이 몫을 다 모으지 못했어도 120ms는 넘는다)
+    expect(first.ms - second.ms).toBeGreaterThanOrEqual(120);
     const stats = proxy.stats();
     expect(stats.requests).toBe(2);
     expect(stats.connections).toBe(1);
@@ -273,8 +277,8 @@ describe('프록시(startLineProxy)', () => {
     });
     const elapsed = Date.now() - started;
     expect(received.subarray(received.indexOf('\r\n\r\n') + 4).equals(BODY)).toBe(true);
-    // 터널 열기 2왕복(200ms) + 요청·응답 1왕복(100ms) + 전송 200ms ≈ 500ms
-    expect(elapsed).toBeGreaterThanOrEqual(450);
+    // 터널 열기 2왕복(200ms) + 요청·응답 1왕복(100ms) + 전송 200ms ≈ 500ms(쉬는 동안 모은 몫으로 가장 짧으면 약 443ms — 위 http 검사와 같은 까닭)
+    expect(elapsed).toBeGreaterThanOrEqual(420);
     expect(elapsed).toBeLessThan(2_500);
     const stats = proxy.stats();
     expect(stats.hosts['127.0.0.1']?.down).toBeGreaterThanOrEqual(BODY.length);
