@@ -10,9 +10,12 @@
  * 컴퓨터 → 보드 길: 학생 코드의 `bluetooth.init(...).send("DATA,x,y,d,r")`
  *   → 흉내 모듈 ble-pc(src/lab/modules/ble-pc/) → P4-01 브릿지(초당 10회·상태 병합·클릭 이벤트 보존)
  *   → 창 이벤트 `apc:ble-write` → 가상 보드의 BLE 특성(P4-03) → 보드 코드의 `ESP32BLE.read()`.
- * 두 칸이 **같은 문서**에 있어서 창 이벤트로 닿는다(iframe·다른 탭이 아니다). 그래서 이 연결은 이 화면에서만 된다.
+ * 두 칸이 **같은 문서**에 있어서 창 이벤트로 바로 닿는다. (판 1.1.0부터는 영상처리 실습실 단독에서도 [보내기] 패널로 연 다른 탭의
+ * ESP32 실습실에 블루투스 줄기로 닿는다 — PROGRESS 미해결 137. 두 칸을 한 화면에서 함께 보는 곳은 여기다.)
  *
- * 가상 모니터 해상도는 3840×2160으로 맞춘다(PD-22) — 보드 코드가 `map(mouse_x, 0, 3840, 0, 180)`을 쓰기 때문이다(unit4-page.ts).
+ * 한 문서에 틀이 둘이라 생기던 일(같은 id·공유 링크·?example=)은 실습실 틀이 푼다(판 1.1.0, 미해결 138 — LabShell idSuffix·lab-shell.ts).
+ * 이 화면은 칸마다 idSuffix(pc·board)를 주고, 가상 모니터 해상도 3840×2160은 컴퓨터 칸 조상의 `data-desktop-screen-default`로 준다
+ * (PD-22 — 보드 코드가 `map(mouse_x, 0, 3840, 0, 180)`을 쓴다. 가상 데스크톱 모듈이 이 값을 기억하지 않고 연다).
  *
  * 예제 목록은 두 실습실의 **4단원 폴더**(examples/vision/u4/, examples/esp32/u4/)에, 같은 블루투스 길을 쓰는 3단원 3-1-3·블루투스 교안의
  * 짝 두 쌍만 더해 싣는다 — 새 4단원 .py 하나면 목록에 들어온다(원칙 6). 전체 목록(약 150개·예제 코드 약 290KB)을 싣지 않는 까닭은
@@ -33,7 +36,7 @@ import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
 import { esp32ExamplesFromFiles } from '../../../lab/esp32/examples.ts';
 import type { WiringEntry } from '../../../lab/modules/board/part-types.ts';
 import { normalizeWiringSpecs } from '../../../lab/modules/board/wiring-spec.ts';
-import { ADDRESS_STASH_KEY } from '../../../lab/unit4/config.ts';
+import { UNIT4_SCREEN_VALUE } from '../../../lab/unit4/config.ts';
 import { defaultBoardExampleId, defaultPcExampleId, pairViews } from '../../../lab/unit4/examples.ts';
 import { VISION_PACKAGES, visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -110,40 +113,9 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
 <BaseLayout title={title} description={description} width="wide">
   <BrowserNotice slot="notice" />
   {/*
-    두 실습실 틀은 주소의 공유 링크(#code=)와 ?example=을 스스로 읽는다. 한 문서에 틀이 둘이면 먼저 붙은 칸이 공유 링크를 차지하고
-    (보드 칸에서 만든 링크의 코드가 컴퓨터 칸에 들어감), ?example=은 그 파일이 없는 칸이 "찾지 못했어요"를 띄운다.
-    그래서 틀의 스크립트(모듈 — 문서를 다 읽은 뒤에 돈다)보다 먼저 두 값을 맡겨 두고 주소에서 지운다.
-    unit4-page.ts가 두 칸이 준비되면 맞는 칸에 넣는다(src/lab/unit4/address.ts). 이 화면만의 ?pair=(짝 이름)도 같이 맡겨 두면
-    unit4-page.ts가 두 칸에 짝 예제를 함께 불러온다(2026-09-26 PROGRESS 미해결 179).
+    공유 링크(#code=…&lab=)와 ?example=은 실습실 틀이 맞는 칸에만 넣는다(판 1.1.0, 미해결 138 — 전에는 이 자리의 인라인 스크립트가
+    먼저 맡아 두었다). 이 화면만의 ?pair=(짝 이름 — 2026-09-26 미해결 179)은 틀이 읽지 않고 unit4-page.ts가 두 칸에 짝 예제를 함께 불러온다.
   */}
-  <script is:inline define:vars={{ stashKey: ADDRESS_STASH_KEY }}>
-    try {
-      var stash = {};
-      var hash = window.location.hash || '';
-      if (/(?:^#?|&)code=/.test(hash)) {
-        stash.hash = hash;
-      }
-      var params = new URLSearchParams(window.location.search);
-      var example = params.get('example');
-      if (example) {
-        stash.example = example;
-        params.delete('example');
-      }
-      // ?pair=<짝 이름>: 두 칸을 짝 예제로 함께 채운다(차시 따라하기 링크 — src/lab/unit4/examples.ts PAIRS의 id)
-      var pair = params.get('pair');
-      if (pair) {
-        stash.pair = pair;
-        params.delete('pair');
-      }
-      if (stash.hash !== undefined || stash.example !== undefined || stash.pair !== undefined) {
-        window[stashKey] = stash;
-        var query = params.toString();
-        window.history.replaceState(window.history.state, '', window.location.pathname + (query ? '?' + query : ''));
-      }
-    } catch (error) {
-      // 주소를 못 읽으면 실습실 틀의 기본 동작 그대로 간다.
-    }
-  </script>
 
   <h1 class="page-title" data-embed-hide>{title}</h1>
   <p class="lead" data-embed-hide>{description}</p>
@@ -151,16 +123,25 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
   <Unit4Bar pairs={pairs} />
 
   <div class="unit4-grid">
-    <section class="unit4-pane" aria-labelledby="unit4-pc-heading">
+    {/* data-desktop-screen-default: 가상 모니터를 이 크기로 연다(가상 데스크톱 모듈이 기억하지 않는다 — PD-22, 미해결 138) */}
+    <section class="unit4-pane" aria-labelledby="unit4-pc-heading" data-desktop-screen-default={UNIT4_SCREEN_VALUE}>
       <h2 id="unit4-pc-heading" class="unit4-pane__heading">컴퓨터 칸 — 카메라와 가상 모니터</h2>
-      <LabShell labId="vision" examples={pcExamples} initialExampleId={initialPc} pyodidePackages={VISION_PACKAGES} headingLevel={3} contextLabel="컴퓨터 칸">
+      <LabShell
+        labId="vision"
+        examples={pcExamples}
+        initialExampleId={initialPc}
+        pyodidePackages={VISION_PACKAGES}
+        headingLevel={3}
+        contextLabel="컴퓨터 칸"
+        idSuffix="pc"
+      >
         <VisionIo slot="io" />
       </LabShell>
     </section>
 
     <section class="unit4-pane" aria-labelledby="unit4-board-heading">
       <h2 id="unit4-board-heading" class="unit4-pane__heading">보드 칸 — 가상 ESP32</h2>
-      <LabShell labId="esp32" examples={boardExamples} initialExampleId={initialBoard} pyodidePackages={[]} headingLevel={3} contextLabel="보드 칸">
+      <LabShell labId="esp32" examples={boardExamples} initialExampleId={initialBoard} pyodidePackages={[]} headingLevel={3} contextLabel="보드 칸" idSuffix="board">
         <BoardIo slot="io" />
       </LabShell>
     </section>
@@ -193,8 +174,8 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
         </li>
         <li>
           그래도 느리면 한 쪽씩 따로 해 봐요 — 컴퓨터 쪽은 <a href={visionPage.href}>{visionPage.title}</a>에서, 보드 쪽은{' '}
-          <a href={esp32Page.href}>{esp32Page.title}</a>의 블루투스 조작 칸([좌표 보내기]·[클릭 보내기])으로요. 두 칸을 블루투스로 잇는
-          것은 이 화면에서만 돼요.
+          <a href={esp32Page.href}>{esp32Page.title}</a>의 블루투스 조작 칸([좌표 보내기]·[클릭 보내기])으로요. 따로 연 두 실습실도
+          블루투스로 이을 수 있어요 — 영상처리 실습실의 [보내기] 패널에서 [ESP32 실습실 새 탭에서 열기]를 눌러요.
         </li>
       </ul>
     </Callout>

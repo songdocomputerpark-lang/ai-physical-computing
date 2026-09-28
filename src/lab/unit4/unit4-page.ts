@@ -10,13 +10,12 @@
  *   (초당 10회·상태 병합·클릭 이벤트 보존) → 창 이벤트 `apc:ble-write` → 가상 보드 블루투스 조작 칸(P4-03) → 보드 코드 `ESP32BLE.read()`.
  *
  * 이 파일이 하는 일
- *  1. 두 번째 실습실 안의 **겹친 id**를 푼다(dom.ts — 두 실습실에 함께 붙는 모듈 패널의 고정 id).
- *  2. 주소의 공유 링크·?example=을 맞는 칸에 넣는다(address.ts — index.astro 인라인 스크립트가 틀보다 먼저 맡겨 둔 값).
- *     ?pair=<짝 이름>이면 두 칸에 그 짝 예제를 함께 불러온다(examples.ts findPairView — 차시 따라하기 링크, 2026-09-26 PROGRESS 미해결 179).
- *     여럿이 함께 오면 짝을 먼저 불러오고, 그 뒤 공유 링크·?example=이 전과 같은 차례로 제 칸만 덮는다(더 좁게 고른 값이 이긴다).
- *  3. 가상 데스크톱 논리 해상도를 **3840×2160**으로 맞춘다(PD-22 — 4-2 보드 코드가 `map(x, 0, 3840, …)`을 쓴다). 가상 데스크톱 칸의
- *     해상도 선택 상자를 고르는 방식이라 모듈을 고치지 않고, 그 모듈이 기억하는 값은 되돌려 둔다(config.ts DESKTOP_SCREEN_STORAGE_NAME).
- *     한 번만 맞춘다 — 그 뒤 학생이 고른 값은 그대로 둔다([기록 지우기] 뒤에는 다시 맞춘다).
+ *  1. (판 1.1.0, PROGRESS 미해결 138) 한 문서에 틀이 둘이라 생기던 일은 이제 **실습실 틀이** 푼다 — 겹친 id(LabShell idSuffix → lab-shell.ts
+ *     scopeLabIds), 공유 링크(#code=…&lab=)·?example=(맞는 칸만 받음), 가상 모니터 3840×2160(페이지의 data-desktop-screen-default를 가상
+ *     데스크톱 모듈이 기억하지 않고 연다). 전에 여기 있던 우회(dom.ts dedupeIdsWithin·address.ts 주소 맡기기·해상도 기억 되돌리기)는 걷어냈다.
+ *  2. ?pair=<짝 이름>이면 두 칸에 그 짝 예제를 함께 불러온다(examples.ts findPairView — 차시 따라하기 링크, 2026-09-26 PROGRESS 미해결 179).
+ *     실습실 틀은 이 값을 읽지 않는다. 불러온 뒤 주소에서 지운다(새로 고치면 두 칸의 자동 저장본이 열린다).
+ *  3. 가상 모니터 크기 안내 줄 — 지금 크기가 3840×2160이 아니면 서보가 덜 움직인다고 알린다.
  *  4. [함께 실행] — ① 두 파이썬이 준비될 때까지 ② 보드 코드를 먼저 돌려 블루투스 광고를 기다리고 ③ [연결]을 누른 뒤 ④ 컴퓨터 코드를 돌린다.
  *     순서가 중요하다: 자료의 컴퓨터 코드(f104)는 `ble_device.connected`가 참일 때만 보내므로, 보드가 먼저 이어져 있어야 첫 프레임부터 나간다.
  *     [함께 정지] — 두 칸을 함께 멈춘다. 짝 예제 [이 짝 불러오기] — 두 칸의 예제를 한 번에 바꾼다.
@@ -24,30 +23,17 @@
  *  6. 성능 재기(perf.ts) — 컴퓨터 코드가 도는 동안 0.5초마다 입력·출력·화면 fps, 긴 작업, 보낸 줄, 힙을 모으고 [측정 기록 복사]로 마크다운 표.
  *
  * 테스트가 읽는 값: `[data-unit4]`의 data-unit4-phase(idle·prepare·board·link·pc·running·stopping), data-unit4-samples,
- * data-unit4-screen(3840x2160), data-unit4-connected, data-unit4-ids(푼 id 수), data-unit4-address(주소 값을 넣은 칸), data-unit4-ready,
- * 떠 있는 상태 줄 [data-unit4-float](상태 줄이 화면 밖이고 알릴 글이 있을 때만 보임).
+ * data-unit4-screen(3840x2160), data-unit4-connected, data-unit4-address(?pair=로 불러온 짝 — pair:<id>·pair:missing), data-unit4-ready,
+ * 떠 있는 상태 줄 [data-unit4-float](상태 줄이 화면 밖이고 알릴 글이 있을 때만 보임). 겹친 id를 푼 수는 두 실습실 뿌리의 data-lab-ids-scoped.
  *
  * 느린 학교망(2026-09-25 Phase 4 검토 반영): 준비 단계 글에 두 칸의 받는 양·지난 시간을 싣고(각 칸 준비 모듈이 뿌리에 적는
  * data-loading-text), 컴퓨터 칸이 OpenCV를 아직 받는 중이면 다 받을 때까지 기다린 뒤 컴퓨터 코드를 돌린다 — 전에는 받는 동안에도
  * "두 칸이 함께 돌고 있어요"라고 했다. [함께 실행] 뒤 화면이 아래 칸으로 내려가도 상태 글이 보이게 화면 위에 한 줄을 띄운다.
  */
-import { findExample, findExampleByFile } from '../controls/examples.ts';
+import { findExample } from '../controls/examples.ts';
 import { getLabController, type LabController } from '../controls/lab-shell.ts';
-import { parseShareHash } from '../controls/share-link.ts';
 import { getMountedModules } from '../modules/host.ts';
-import { readItem, removeItem, writeItem } from '../../lib/storage.ts';
-import { guessSideFromCode, sideForExampleId, sideForFile, takeAddressStash, type Unit4Side } from './address.ts';
-import {
-  BOARD_START_MS,
-  CONNECT_MS,
-  DESKTOP_SCREEN_STORAGE_NAME,
-  POLL_MS,
-  PYTHON_READY_MS,
-  SAMPLE_MS,
-  UNIT4_SCREEN,
-  UNIT4_SCREEN_VALUE,
-} from './config.ts';
-import { dedupeIdsWithin } from './dom.ts';
+import { BOARD_START_MS, CONNECT_MS, PAIR_QUERY_NAME, POLL_MS, PYTHON_READY_MS, SAMPLE_MS, UNIT4_SCREEN, UNIT4_SCREEN_VALUE } from './config.ts';
 import { findPairView, pairViews } from './examples.ts';
 import {
   FrameMeter,
@@ -160,28 +146,6 @@ function waitFor(check: () => boolean, timeoutMs: number, cancelled: () => boole
   });
 }
 
-/**
- * 가상 데스크톱 해상도를 value로 맞춘다. 선택 상자·선택지를 못 찾으면 거짓.
- * 모듈이 그 값을 기억하지 않게 바꾸기 전 기억값을 되돌린다(학생이 직접 고른 값만 모듈이 기억하게).
- */
-export function applyScreenPreset(visionRoot: HTMLElement, value: string = UNIT4_SCREEN_VALUE): boolean {
-  const select = visionRoot.querySelector<HTMLSelectElement>('[data-desktop-screen]');
-  if (!select || ![...select.options].some((option) => option.value === value)) {
-    return false;
-  }
-  if (select.value !== value) {
-    const remembered = readItem(DESKTOP_SCREEN_STORAGE_NAME);
-    select.value = value;
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-    if (remembered === null) {
-      removeItem(DESKTOP_SCREEN_STORAGE_NAME);
-    } else {
-      writeItem(DESKTOP_SCREEN_STORAGE_NAME, remembered);
-    }
-  }
-  return true;
-}
-
 export interface Unit4Page {
   readonly root: HTMLElement;
   readonly pc: LabController;
@@ -205,10 +169,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     return null;
   }
 
-  // 1. 겹친 id 풀기 — 모듈이 붙기 전에(패널 HTML은 LabShell이 이미 그려 두었다)
-  const renamed = dedupeIdsWithin(boardRoot, 'esp32');
-  root.dataset.unit4Ids = String(renamed.length);
-
+  // 겹친 id는 실습실 틀이 모듈이 붙기 전에 푼다(LabShell idSuffix → lab-shell.ts scopeLabIds — 판 1.1.0, 미해결 138)
   const [pc, board] = await Promise.all([getLabController(visionRoot), getLabController(boardRoot)]);
 
   const elements = {
@@ -488,8 +449,9 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   );
 
   // ── 가상 모니터 3840×2160 ──
+  // 크기는 페이지(index.astro 컴퓨터 칸의 data-desktop-screen-default)가 주고 가상 데스크톱 모듈이 기억하지 않고 연다(판 1.1.0, 미해결 138).
+  // 여기는 지금 크기를 읽어 안내 줄만 쓴다.
 
-  let screenApplied = false;
   const renderScreen = () => {
     const select = visionRoot.querySelector<HTMLSelectElement>('[data-desktop-screen]');
     const value = select?.value ?? '';
@@ -501,25 +463,16 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
           : `가상 모니터가 ${value.replace('x', '×') || '알 수 없는 크기'}예요. 4단원 보드 코드는 ${UNIT4_SCREEN.width}×${UNIT4_SCREEN.height}를 가정해서 서보가 덜 움직여요(가상 데스크톱 칸의 [모니터 크기]에서 바꿔요).`;
     }
   };
-  const applyScreenOnce = (force = false) => {
-    if (screenApplied && !force) {
-      return;
-    }
-    if ((visionRoot.dataset.labModules ?? '').split(' ').includes('desktop') && applyScreenPreset(visionRoot)) {
-      screenApplied = true;
-    }
-    renderScreen();
-  };
   void getMountedModules(visionRoot)
     .then(() => {
       if (!disposed) {
-        applyScreenOnce();
+        renderScreen();
         listen(visionRoot.querySelector('[data-desktop-screen]'), 'change', renderScreen);
       }
     })
     .catch(() => undefined);
-  // [이 컴퓨터에서 내 기록 지우기]는 가상 데스크톱을 1920×1080으로 되돌린다 — 이 화면의 전제로 다시 맞춘다.
-  cleanups.push(pc.on('records-cleared', () => window.setTimeout(() => applyScreenOnce(true), 0)));
+  // [이 컴퓨터에서 내 기록 지우기] 뒤에는 모듈이 페이지 기본 크기로 돌아간다 — 안내 줄을 다시 쓴다(모듈이 먼저 바꾼 뒤에)
+  cleanups.push(pc.on('records-cleared', () => window.setTimeout(renderScreen, 0)));
 
   // ── 입력 소스 고르기(조작 줄) ──
 
@@ -562,70 +515,42 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     });
   }
 
-  // ── 주소의 공유 링크·?example=을 맞는 칸에 ──
+  // ── 주소의 ?pair=<짝 이름> — 두 칸에 짝 예제를 함께(공유 링크·?example=은 실습실 틀이 맞는 칸에 넣는다) ──
 
-  const labOf = (side: Unit4Side): LabController => (side === 'board' ? board : pc);
   /** 주소로 짝을 불러왔을 때 상태 글에 남길 안내(페이지 준비가 끝날 때 setPhase가 그린다) */
   let addressNotice: string | null = null;
-  const applyAddress = () => {
-    const stash = takeAddressStash(window as unknown as Record<string, unknown>);
-    if (!stash) {
+  const applyPairFromAddress = () => {
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get(PAIR_QUERY_NAME);
+    if (wanted === null || wanted === '') {
       return;
     }
-    const placed: string[] = [];
-    if (stash.pair !== undefined) {
-      // ?pair=: 두 칸에 짝 예제를 함께(두 목록에 모두 있는 짝만 — 화면의 [이 짝 불러오기]와 같은 목록)
-      const pcIds = new Set(pc.examples.map((example) => example.id));
-      const boardIds = new Set(board.examples.map((example) => example.id));
-      const view = findPairView(stash.pair, pairViews(pcIds, boardIds).views);
-      const pcOk = view ? pc.loadExample(view.pcId) : false;
-      const boardOk = view ? board.loadExample(view.boardId) : false;
-      if (view && pcOk && boardOk) {
-        addressNotice = `링크의 짝 예제를 두 칸에 불러왔어요: "${view.label}". [함께 실행]을 눌러요.`;
-        if (elements.pairStatus) {
-          elements.pairStatus.textContent = addressNotice;
-        }
-        placed.push(`pair:${view.id}`);
-      } else {
-        addressNotice = UNIT4_TEXT.pairMissing;
-        placed.push('pair:missing');
+    // 두 목록에 모두 있는 짝만 — 화면의 [이 짝 불러오기]와 같은 목록
+    const pcIds = new Set(pc.examples.map((example) => example.id));
+    const boardIds = new Set(board.examples.map((example) => example.id));
+    const view = findPairView(wanted, pairViews(pcIds, boardIds).views);
+    const pcOk = view ? pc.loadExample(view.pcId) : false;
+    const boardOk = view ? board.loadExample(view.boardId) : false;
+    if (view && pcOk && boardOk) {
+      addressNotice = `링크의 짝 예제를 두 칸에 불러왔어요: "${view.label}". [함께 실행]을 눌러요.`;
+      if (elements.pairStatus) {
+        elements.pairStatus.textContent = addressNotice;
       }
+      root.dataset.unit4Address = `pair:${view.id}`;
+    } else {
+      addressNotice = UNIT4_TEXT.pairMissing;
+      root.dataset.unit4Address = 'pair:missing';
     }
-    if (stash.hash !== undefined) {
-      const share = parseShareHash(stash.hash);
-      const pcIds = new Set(pc.examples.map((example) => example.id));
-      const boardIds = new Set(board.examples.map((example) => example.id));
-      const side = sideForExampleId(share.example, pcIds, boardIds) ?? (share.code !== undefined ? guessSideFromCode(share.code) : 'pc');
-      const lab = labOf(side);
-      if (share.code !== undefined) {
-        if (share.example !== undefined && findExample(lab.examples, share.example)) {
-          lab.loadExample(share.example);
-        }
-        lab.setCode(share.code, { save: false });
-        lab.root.dataset.shareLoaded = 'yes';
-        lab.showMessage('공유 링크의 코드를 불러왔어요. 고치면 이 컴퓨터에 자동 저장돼요.');
-      } else {
-        lab.root.dataset.shareLoaded = 'broken';
-        lab.showMessage('공유 링크가 망가져 있어서 코드를 읽지 못했어요. 링크를 보낸 사람에게 다시 받아 주세요.');
-      }
-      placed.push(`share:${side}`);
+    // 주소에서 지운다 — 새로 고치면 두 칸의 자동 저장본이 열린다(짝을 다시 덮어쓰지 않게)
+    params.delete(PAIR_QUERY_NAME);
+    const query = params.toString();
+    try {
+      window.history.replaceState(window.history.state, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+    } catch {
+      // 주소를 못 바꾸는 환경이면 그대로 둔다
     }
-    if (stash.example !== undefined) {
-      const side = sideForFile(stash.example);
-      const lab = side ? labOf(side) : null;
-      const found = lab ? findExampleByFile(lab.examples, stash.example) : undefined;
-      if (lab && found) {
-        lab.loadExample(found.id);
-        placed.push(`example:${side}`);
-      } else {
-        const where = side === 'board' ? 'ESP32 실습실' : '영상처리 실습실';
-        pc.showMessage(`링크에 적힌 예제(${stash.example})는 이 화면에 없어요. 이 화면에는 4단원 예제만 있어요 — ${where}에서 열어요.`);
-        placed.push('example:missing');
-      }
-    }
-    root.dataset.unit4Address = placed.join(' ');
   };
-  applyAddress();
+  applyPairFromAddress();
 
   // ── [함께 실행]·[함께 정지]·짝 예제 ──
 
@@ -724,7 +649,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
         }
         setPhase('pc', linkedText);
       }
-      applyScreenOnce();
+      renderScreen();
       const done = pc.run();
       setPhase('running', null);
       const result = await done;

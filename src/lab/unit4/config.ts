@@ -6,7 +6,8 @@
  * 4-2 예제의 보드 코드가 가정하는 가상 모니터 논리 해상도(PD-22, CODE_MAPPING §6.3·§6.4).
  * 보드 코드가 `map(mouse_x, 0, 3840, 0, 180)`처럼 3840×2160을 그대로 쓰기 때문에,
  * 기본값 1920×1080으로 두면 서보가 절반(89°)까지만 움직인다.
- * 가상 데스크톱 모듈(src/lab/modules/desktop/model.ts SCREEN_PRESETS)에 이미 있는 선택지를 고르는 방식이라 모듈을 고치지 않는다.
+ * 페이지(index.astro 컴퓨터 칸)가 `data-desktop-screen-default`로 주고, 가상 데스크톱 모듈이 그 크기로 연다(판 1.1.0, 미해결 138 —
+ * 모듈 선택지 SCREEN_PRESETS에 있는 값이어야 한다).
  */
 export const UNIT4_SCREEN = Object.freeze({ width: 3840, height: 2160 });
 
@@ -14,11 +15,13 @@ export const UNIT4_SCREEN = Object.freeze({ width: 3840, height: 2160 });
 export const UNIT4_SCREEN_VALUE = `${UNIT4_SCREEN.width}x${UNIT4_SCREEN.height}`;
 
 /**
- * 가상 데스크톱 모듈이 고른 해상도를 기억하는 저장 이름(src/lab/modules/desktop/index.ts의 storeName('screen')).
- * 이 화면이 3840×2160으로 바꿀 때 모듈이 그 값을 기억해 버리면 영상처리 실습실의 1920×1080 예제까지 3840으로 열린다.
- * 그래서 바꾼 **직후에** 원래 기억값을 되돌려 둔다(학생이 직접 고른 값은 모듈이 그대로 기억한다).
+ * 가상 데스크톱 모듈이 학생이 고른 해상도를 기억하는 저장 이름(src/lab/modules/desktop/index.ts의 storeName('screen')).
+ * 페이지 기본 크기(3840×2160)는 여기에 적히지 않는다 — 영상처리 실습실의 1920×1080 예제까지 3840으로 열리지 않게(브라우저 테스트가 본다).
  */
 export const DESKTOP_SCREEN_STORAGE_NAME = 'module:desktop:screen';
+
+/** 두 칸에 짝 예제를 함께 불러오는 주소 이름 — `/labs/unit4/?pair=4-1-4`(2026-09-26 미해결 179, examples.ts findPairView) */
+export const PAIR_QUERY_NAME = 'pair';
 
 /** 성능을 재는 간격(ms) */
 export const SAMPLE_MS = 500;
@@ -30,6 +33,3 @@ export const BOARD_START_MS = 30_000;
 export const CONNECT_MS = 8_000;
 /** 상태를 다시 보는 간격(ms) */
 export const POLL_MS = 100;
-
-/** 공유 링크·?example=을 페이지가 나눠 주려고 잠깐 맡아 두는 전역 이름(index.astro의 인라인 스크립트가 쓴다) */
-export const ADDRESS_STASH_KEY = '__apcUnit4Address';

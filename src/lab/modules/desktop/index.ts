@@ -16,6 +16,11 @@
  * 7. (P2-12) 미니게임(games.ts): 미니게임 창이 열려 있는 동안만 requestAnimationFrame 시계가 돌아 게임이 움직인다.
  *    press('space')는 desktop.key로 들어와 모델이 게임에 넣는다(f121). 창이 없으면 코드가 보낸 스페이스일 때만 열어 준다.
  *
+ * 8. (판 1.1.0, PROGRESS 미해결 138) 페이지 기본 해상도: 실습실 칸이나 그 조상에 `data-desktop-screen-default="3840x2160"`처럼 적어 두면
+ *    (4단원 통합 화면 — 보드 코드가 3840×2160을 가정한다, PD-22) 그 크기로 연다. 이 값은 **기억하지 않는다**(영상처리 실습실의 1920×1080
+ *    예제에 번지지 않게). 학생이 [모니터 크기]를 직접 고르면 지금처럼 기억하고, [기록 지우기] 뒤에는 페이지 기본 크기로 돌아간다.
+ *    그 쪽에서는 기억해 둔 크기보다 페이지 기본 크기가 먼저다 — 그 쪽의 예제가 그 크기를 전제로 하기 때문이다.
+ *
  * 보이기: 영상처리 실습실의 모든 예제가 가상 모니터를 쓰지는 않으므로, 코드에 pyautogui가 보이거나 파이썬이 desktop.open을 보낼 때만 연다.
  * 접근성: 캔버스 글자는 읽어 주지 못하므로 마지막 동작·메모장 글·커서 위치를 옆의 글(aria-live)로 함께 둔다. 캔버스는 tabindex=0이라
  * 키보드로 닿고, Tab·화살표는 가로채지 않는다(model.keyFromBrowser). 움직임 줄이기(prefers-reduced-motion)면 커서를 부드럽게
@@ -41,6 +46,20 @@ import { displayRect, displayScale, drawDesktop, logicalPoint, pruneClickMarks, 
 
 /** 화면 캡처(screenshot)의 최대 가로 픽셀 — 1920 그대로 찍으면 한 장이 8MB라 절반으로 찍고 파이썬 쪽 Pillow가 논리 크기로 늘린다. */
 export const SCREENSHOT_MAX_WIDTH = 960;
+
+/** 페이지 기본 크기를 적는 속성(실습실 칸이나 그 조상 — 머리말 8) */
+export const SCREEN_DEFAULT_ATTRIBUTE = 'data-desktop-screen-default';
+
+/**
+ * 실습실 칸(또는 조상)에 적힌 페이지 기본 크기(머리말 8). 선택지(SCREEN_PRESETS)에 있는 값만 받는다 — 없거나 틀리면 null.
+ * 예: `<section data-desktop-screen-default="3840x2160">`(4단원 통합 화면).
+ */
+export function pageDefaultScreen(root: Element | null): { width: number; height: number } | null {
+  const value = root?.closest(`[${SCREEN_DEFAULT_ATTRIBUTE}]`)?.getAttribute(SCREEN_DEFAULT_ATTRIBUTE)?.trim() ?? '';
+  const found = SCREEN_PRESETS.find((item) => `${item.width}x${item.height}` === value);
+  return found ? { width: found.width, height: found.height } : null;
+}
+
 /** 학생이 마우스를 움직일 때 파이썬에 알리는 간격(ms) */
 const POINTER_PUSH_MS = 60;
 /** 두 번 누름으로 보는 시간·거리 */
@@ -150,9 +169,14 @@ function mount(context: LabModuleContext): LabModuleHandle {
   }
 
   const reducedMotionQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  // 페이지가 정한 기본 크기(머리말 8 — 기억하지 않는다)가 있으면 그것, 없으면 기억해 둔 크기, 그것도 없으면 1920×1080
+  const pageScreen = pageDefaultScreen(context.root);
   const savedScreen = readItem(storeName('screen'));
-  const preset = SCREEN_PRESETS.find((item) => `${item.width}x${item.height}` === savedScreen);
+  const preset = pageScreen ?? SCREEN_PRESETS.find((item) => `${item.width}x${item.height}` === savedScreen);
   const model = new DesktopModel(preset?.width ?? DEFAULT_SCREEN_WIDTH, preset?.height ?? DEFAULT_SCREEN_HEIGHT);
+  if (pageScreen !== null) {
+    context.root.dataset.desktopScreenFrom = 'page';
+  }
   let clickMarks: ClickMark[] = [];
   let showTrail = readItem(storeName('trail')) !== 'off';
   let running = false;
@@ -756,9 +780,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
     if (elements.trailToggle) {
       elements.trailToggle.checked = true;
     }
-    model.resize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    // 기억을 지웠으니 이 쪽의 처음 크기로(페이지 기본 크기가 있으면 그것 — 머리말 8)
+    const back = pageScreen ?? { width: DEFAULT_SCREEN_WIDTH, height: DEFAULT_SCREEN_HEIGHT };
+    model.resize(back.width, back.height);
     if (elements.screenSelect) {
-      elements.screenSelect.value = `${DEFAULT_SCREEN_WIDTH}x${DEFAULT_SCREEN_HEIGHT}`;
+      elements.screenSelect.value = `${back.width}x${back.height}`;
     }
     cursorAt = model.cursor;
     sendState();

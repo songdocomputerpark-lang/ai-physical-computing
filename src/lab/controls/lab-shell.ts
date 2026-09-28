@@ -20,11 +20,18 @@
  *   1. 주소 # 뒤에 공유 링크 코드(code=)가 있으면 그 코드(예제는 ex= 값). 주소의 #은 지워 새로고침하면 자동 저장본이 열린다.
  *   2. 아니면 예제를 고른다: ?example=<examples/ 경로> → 저장된 "마지막 예제" → 첫 예제 → 없음(scratch).
  *   3. 그 예제의 자동 저장본이 있으면 그것, 없으면 예제 원래 코드(예제가 없으면 DEFAULT_SCRATCH_CODE).
+ *
+ * 한 쪽에 실습실 틀이 둘 이상일 때(4단원 통합 화면 — 판 1.1.0, PROGRESS 미해결 138. 전에는 그 화면만의 우회가 있었다)
+ *   · 공유 링크는 `lab=`(어느 칸의 코드인지)이 가리키는 칸만 받고 주소를 지운다(옛 링크는 `ex=` 예제를 가진 칸 — share-link.ts pickShareLab).
+ *   · `?example=`은 그 파일을 가진 칸만 받고, 다른 칸은 "찾지 못했어요"를 띄우지 않는다(어느 칸에도 없을 때만 첫 칸이 알린다).
+ *   · 두 칸에 함께 붙는 흉내 모듈 패널의 같은 id는 칸마다 꼬리를 붙여 푼다(scopeLabIds — LabShell idSuffix, 없으면 labId).
+ *     모듈이 붙기 전(mountLabShell 맨 처음)이라 이름표(for)·aria 참조가 제 칸을 가리킨다.
  * 자동 저장은 코드가 바뀔 때마다(손을 멈춘 뒤 0.4초) 예제별 이름으로 저장하고 "저장됨"을 보인다.
  * [이 컴퓨터에서 내 기록 지우기](ClearRecordsButton)가 끝나면 document의 apc:records-cleared를 받아 예제 원래 코드·기본 글자 크기로 돌아간다.
  *
  * 테스트가 읽는 값(뿌리 요소의 data-*): state·run-target(실행 대상 이름, 없으면 빈 값)·jspi·limited·outcome·run-count·stop-ms·save-state·example·share-loaded·
- * example-missing(?example= 파일을 못 찾음)·loading-intro(첫 준비 중이면 yes — 준비 패널이 맨 위, LabShell.astro).
+ * example-missing(?example= 파일을 못 찾음)·loading-intro(첫 준비 중이면 yes — 준비 패널이 맨 위, LabShell.astro)·
+ * lab-ids-scoped(한 쪽에 칸이 여럿일 때 꼬리를 붙인 id 수 — scopeLabIds).
  * [실행] 단추의 data-lab-run-pending=yes는 "파이썬을 받는 동안 눌러 둠(준비되면 실행)"이다.
  *
  * 학생이 헤매지 않게 하는 규칙(2026-09-17 Phase 2 검토 반영)
@@ -47,7 +54,7 @@ import { downloadTextFile } from './download.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
 import { isMostlyVisible, revealElement, revealTogether } from './reveal.ts';
-import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash } from './share-link.ts';
+import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickExampleLab, pickShareLab, type LabOnPage } from './share-link.ts';
 
 /** 실행기 상태를 사람 말로 */
 export const STATE_TEXT: Readonly<Record<RuntimeState, string>> = Object.freeze({
@@ -271,6 +278,142 @@ function readExamples(root: HTMLElement): LabExample[] {
   }
 }
 
+/**
+ * 이 문서의 실습실 칸들(문서 차례)과 그 가운데 이 칸의 차례. 다른 칸의 예제 목록은 물을 때 한 번만 읽는다(칸이 하나면 읽을 일이 없다).
+ */
+function labsOnPage(root: HTMLElement, examples: readonly LabExample[]): { list: LabOnPage[]; self: number } {
+  const roots = [...(root.ownerDocument ?? document).querySelectorAll<HTMLElement>('[data-lab]')];
+  const list = roots.map((item): LabOnPage => {
+    let cached: readonly LabExample[] | null = item === root ? examples : null;
+    const read = (): readonly LabExample[] => {
+      cached ??= readExamples(item);
+      return cached;
+    };
+    return {
+      labId: item.dataset.labId ?? '',
+      hasExample: (id) => findExample(read(), id) !== undefined,
+      hasFile: (file) => findExampleByFile(read(), file) !== undefined,
+    };
+  });
+  const self = roots.indexOf(root);
+  if (self < 0) {
+    // 문서에 아직 붙지 않은 칸(시험용) — 이 칸 하나로 본다
+    return { list: [{ labId: root.dataset.labId ?? '', hasExample: (id) => findExample(examples, id) !== undefined, hasFile: (file) => findExampleByFile(examples, file) !== undefined }], self: 0 };
+  }
+  return { list, self };
+}
+
+/** id를 가리키는 속성(공백으로 여러 id를 적을 수 있다) — scopeLabIds가 칸 안의 참조를 함께 고친다 */
+export const ID_REFERENCE_ATTRIBUTES: readonly string[] = Object.freeze([
+  'for',
+  'aria-labelledby',
+  'aria-describedby',
+  'aria-controls',
+  'aria-owns',
+  'aria-details',
+  'aria-errormessage',
+  'aria-activedescendant',
+  'aria-flowto',
+  'list',
+  'form',
+  'headers',
+]);
+
+/** 문서마다 "여러 칸에 겹쳐 꼬리를 붙인 원래 id" — 뒤에 붙는 칸도 같은 id에 자기 꼬리를 붙여 모든 칸이 같은 모양이 된다 */
+const scopedIdsByDocument = new WeakMap<Document, Set<string>>();
+
+/** id 꼬리 모양(LabShell idSuffix — 영문 소문자·숫자·하이픈) */
+const ID_SUFFIX_PATTERN = /^[a-z0-9][a-z0-9-]*$/u;
+
+/**
+ * 한 쪽에 실습실 틀이 둘 이상일 때 **같은 id**를 푼다(판 1.1.0, PROGRESS 미해결 138 — 4단원 통합 화면만의 우회 dedupeIdsWithin을 틀로 옮김).
+ * 두 칸에 함께 붙는 흉내 모듈 패널(준비·[보내기]·블루투스·데이터 포트)이 고정 id를 쓰므로, 칸 안의 id 가운데 **칸 밖에도 있는 것**
+ * (과 앞 칸이 이미 꼬리를 붙인 것)에 이 칸의 꼬리 `--<꼬리>`(LabShell의 idSuffix → root data-lab-id-suffix, 없으면 labId)를 붙이고,
+ * 칸 안의 참조(for·aria-*·list·form·headers·href="#…")를 함께 고친다. 스크립트는 이 id를 찾지 않고 data-* 표시로 찾는다
+ * (src/lab·src/components/lab의 getElementById 0곳 — 2026-09-28 확인). 칸이 하나인 쪽에서는 아무것도 하지 않는다. 바꾼 id 수를 돌려준다.
+ */
+export function scopeLabIds(root: HTMLElement, doc: Document = root.ownerDocument ?? document): number {
+  if (doc.querySelectorAll('[data-lab]').length < 2) {
+    return 0;
+  }
+  const given = (root.dataset.labIdSuffix ?? '').trim();
+  const suffix = ID_SUFFIX_PATTERN.test(given) ? given : (root.dataset.labId ?? 'lab');
+  const outside = new Set<string>();
+  const taken = new Set<string>();
+  for (const element of doc.querySelectorAll<HTMLElement>('[id]')) {
+    taken.add(element.id);
+    if (!root.contains(element) && element.id !== '') {
+      outside.add(element.id);
+    }
+  }
+  const scoped = scopedIdsByDocument.get(doc) ?? new Set<string>();
+  scopedIdsByDocument.set(doc, scoped);
+  const renamed = new Map<string, string>();
+  const inside = [...root.querySelectorAll<HTMLElement>('[id]')];
+  if (root.id !== '') {
+    inside.unshift(root);
+  }
+  for (const element of inside) {
+    const id = element.id;
+    if (id === '' || renamed.has(id) || !(outside.has(id) || scoped.has(id))) {
+      continue;
+    }
+    let next = `${id}--${suffix}`;
+    let counter = 2;
+    while (taken.has(next)) {
+      next = `${id}--${suffix}-${counter}`;
+      counter += 1;
+    }
+    taken.add(next);
+    renamed.set(id, next);
+    scoped.add(id);
+    element.id = next;
+  }
+  if (renamed.size === 0) {
+    return 0;
+  }
+  const selector = [...ID_REFERENCE_ATTRIBUTES.map((name) => `[${name}]`), 'a[href^="#"]'].join(',');
+  const referrers = [...root.querySelectorAll<HTMLElement>(selector)];
+  if (root.matches(selector)) {
+    referrers.unshift(root);
+  }
+  for (const element of referrers) {
+    for (const name of ID_REFERENCE_ATTRIBUTES) {
+      const value = element.getAttribute(name);
+      if (value === null || value.trim() === '') {
+        continue;
+      }
+      const tokens = value.split(/\s+/u).filter((token) => token !== '');
+      let changed = false;
+      const next = tokens.map((token) => {
+        const replacement = renamed.get(token);
+        if (replacement !== undefined) {
+          changed = true;
+          return replacement;
+        }
+        return token;
+      });
+      if (changed) {
+        element.setAttribute(name, next.join(' '));
+      }
+    }
+    const href = element.tagName === 'A' ? element.getAttribute('href') : null;
+    if (href !== null && href.startsWith('#') && href.length > 1) {
+      let target = href.slice(1);
+      try {
+        target = decodeURIComponent(target);
+      } catch {
+        // 망가진 %-글자는 그대로 비교한다
+      }
+      const replacement = renamed.get(target);
+      if (replacement !== undefined) {
+        element.setAttribute('href', `#${replacement}`);
+      }
+    }
+  }
+  return renamed.size;
+}
+
 function openDialog(dialog: HTMLDialogElement): void {
   if (typeof dialog.showModal === 'function') {
     if (!dialog.open) {
@@ -354,12 +497,20 @@ class LabShellController implements LabController {
     this.runtime = new PythonRuntime({ forceLimited, labId: this.labId });
 
     // 1. 시작 코드와 예제 정하기(파일 머리말의 순서)
-    const share = hasShareHash(window.location.hash) ? parseShareHash(window.location.hash) : null;
+    const onPage = labsOnPage(root, this.examples);
+    const linkShare = hasShareHash(window.location.hash) ? parseShareHash(window.location.hash) : null;
+    // 한 쪽에 칸이 여럿이면 링크가 가리키는 칸만 받는다(lab= → ex= → 첫 칸 — 머리말). 안 받는 칸은 주소를 건드리지 않는다(뒤 칸이 받게).
+    const share = linkShare !== null && pickShareLab(linkShare, onPage.list) === onPage.self ? linkShare : null;
     const queryFile = new URLSearchParams(window.location.search).get('example');
     const queryExample = findExampleByFile(this.examples, queryFile);
     // 주소에 ?example=이 있는데 그런 파일이 없으면 조용히 다른 예제를 열지 않고 한 번 알린다(공유 링크가 망가졌을 때와 같은 방식).
     // findExampleByFile은 못 찾으면 undefined를 돌려준다(null이 아님 — 2026-09-17 브라우저 테스트에서 이 비교가 늘 거짓이던 것을 발견).
-    const missingQueryFile = queryFile !== null && queryFile !== '' && queryExample === undefined;
+    // 칸이 여럿이면 다른 칸의 예제일 수 있다 — 그 칸이 받으니 조용히 넘기고, 어느 칸에도 없을 때만 첫 칸이 알린다.
+    const missingQueryFile =
+      queryFile !== null &&
+      queryFile !== '' &&
+      queryExample === undefined &&
+      (onPage.list.length < 2 || (pickExampleLab(queryFile, onPage.list) < 0 && onPage.self === 0));
     const initial =
       findExample(this.examples, share?.example) ??
       queryExample ??
@@ -1348,7 +1499,8 @@ class LabShellController implements LabController {
   #openShare(): void {
     const e = this.#elements;
     try {
-      const link = buildShareLink(window.location.href, this.getCode(), this.#example?.id ?? null);
+      // 어느 칸의 코드인지(lab=)도 싣는다 — 한 쪽에 칸이 둘인 화면에서 맞는 칸이 받게(판 1.1.0, 미해결 138)
+      const link = buildShareLink(window.location.href, this.getCode(), this.#example?.id ?? null, this.labId);
       if (e.shareUrl) {
         e.shareUrl.value = link.url;
       }
@@ -1464,6 +1616,12 @@ export function mountLabShell(root: HTMLElement): LabController | null {
   const existing = controllers.get(root);
   if (existing) {
     return existing;
+  }
+  // 한 쪽에 칸이 여럿이면 같은 id부터 푼다 — 편집칸 안내(aria-describedby)·모듈 패널 이름표가 제 칸을 가리키게(모듈이 붙기 전에).
+  // 푼 수는 뿌리의 data-lab-ids-scoped(테스트가 읽는다 — 칸이 하나인 쪽에는 붙이지 않는다)
+  const scopedIds = scopeLabIds(root);
+  if (scopedIds > 0) {
+    root.dataset.labIdsScoped = String(scopedIds);
   }
   const runButton = query<HTMLButtonElement>(root, '[data-lab-run]');
   const stopButton = query<HTMLButtonElement>(root, '[data-lab-stop]');

@@ -9,7 +9,10 @@ import {
   encodeShareCode,
   hasShareHash,
   parseShareHash,
+  pickExampleLab,
+  pickShareLab,
   shareLengthWarning,
+  type LabOnPage,
 } from '../../../src/lab/controls/share-link.ts';
 
 const PAGE_URL = 'https://songdocomputerpark-lang.github.io/ai-physical-computing/labs/vision/';
@@ -120,5 +123,62 @@ describe('공유 링크 만들기', () => {
       expect((error as Error).message).toContain('너무 길어서');
       expect((error as Error).message).toContain('.py 내려받기');
     }
+  });
+});
+
+// ── 판 1.1.0(PROGRESS 미해결 138): 어느 칸의 코드인지(lab=) — 한 쪽에 실습실 틀이 둘인 4단원 통합 화면 ──
+
+/** 문서 차례대로 놓인 가짜 칸(예제 id·파일 목록) */
+function fakeLab(labId: string, examples: readonly { id: string; file: string }[]): LabOnPage {
+  return {
+    labId,
+    hasExample: (id) => examples.some((example) => example.id === id),
+    hasFile: (file) => examples.some((example) => example.file === file),
+  };
+}
+
+describe('공유 링크의 lab= 과 받을 칸 고르기', () => {
+  it('lab= 을 싣고 되읽는다(code= 는 늘 맨 앞 — 옛 링크 모양과 같다), 모양이 틀린 실습실 id는 싣지도 읽지도 않는다', () => {
+    const link = buildShareLink(PAGE_URL, SAMPLE_CODE, 'u4-a', 'esp32');
+    expect(link.url.startsWith(`${PAGE_URL}#code=`)).toBe(true);
+    expect(link.url.endsWith('&ex=u4-a&lab=esp32')).toBe(true);
+    const reopened = parseShareHash(new URL(link.url).hash);
+    expect(reopened).toMatchObject({ code: SAMPLE_CODE, example: 'u4-a', lab: 'esp32', broken: false });
+    expect(buildShareLink(PAGE_URL, 'x = 1', null, 'Bad Lab').url).not.toContain('lab=');
+    expect(parseShareHash('#code=abc&lab=../x').lab).toBeUndefined();
+    // 예제 없이 칸만(빈 편집칸에서 만든 링크)
+    expect(buildShareLink(PAGE_URL, 'x = 1', null, 'vision').url).toMatch(/#code=[^&]+&lab=vision$/u);
+  });
+
+  const pc = fakeLab('vision', [
+    { id: 'u4-a', file: 'vision/u4/a.py' },
+    { id: 'same', file: 'vision/u4/same.py' },
+  ]);
+  const board = fakeLab('esp32', [
+    { id: 'u4-b', file: 'esp32/u4/b.py' },
+    { id: 'same', file: 'esp32/u4/same.py' },
+  ]);
+
+  it('칸이 하나면 lab= 이 달라도 그 칸이 받는다(옛 링크·다른 실습실의 링크도 연다)', () => {
+    expect(pickShareLab({ lab: 'esp32' }, [pc])).toBe(0);
+    expect(pickShareLab({}, [pc])).toBe(0);
+    expect(pickShareLab({}, [])).toBe(-1);
+  });
+
+  it('칸이 여럿이면 lab= 칸 → (옛 링크) ex= 예제를 가진 칸이 하나뿐일 때 그 칸 → 첫 칸', () => {
+    expect(pickShareLab({ lab: 'esp32' }, [pc, board])).toBe(1);
+    expect(pickShareLab({ lab: 'vision', example: 'u4-b' }, [pc, board])).toBe(0); // lab= 이 먼저
+    expect(pickShareLab({ example: 'u4-b' }, [pc, board])).toBe(1);
+    expect(pickShareLab({ example: 'u4-a' }, [pc, board])).toBe(0);
+    expect(pickShareLab({ example: 'same' }, [pc, board])).toBe(0); // 모호하면 첫 칸
+    expect(pickShareLab({ example: 'none' }, [pc, board])).toBe(0);
+    expect(pickShareLab({ lab: 'iot' }, [pc, board])).toBe(0); // 이 쪽에 없는 실습실이면 옛 규칙으로
+    expect(pickShareLab({ lab: 'iot', example: 'u4-b' }, [pc, board])).toBe(1);
+  });
+
+  it('?example=은 그 파일을 가진 첫 칸이 받고, 어느 칸에도 없으면 -1', () => {
+    expect(pickExampleLab('esp32/u4/b.py', [pc, board])).toBe(1);
+    expect(pickExampleLab('vision/u4/a.py', [pc, board])).toBe(0);
+    expect(pickExampleLab('vision/u1/none.py', [pc, board])).toBe(-1);
   });
 });

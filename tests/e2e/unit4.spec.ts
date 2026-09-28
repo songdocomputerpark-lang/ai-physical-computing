@@ -23,8 +23,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test';
 import { encodeShareCode } from '../../src/lab/controls/share-link.ts';
-import { guessSideFromCode, sideForExampleId, sideForFile, takeAddressStash } from '../../src/lab/unit4/address.ts';
-import { ADDRESS_STASH_KEY, DESKTOP_SCREEN_STORAGE_NAME, UNIT4_SCREEN_VALUE } from '../../src/lab/unit4/config.ts';
+import { DESKTOP_SCREEN_STORAGE_NAME, UNIT4_SCREEN_VALUE } from '../../src/lab/unit4/config.ts';
 import {
   DEFAULT_BOARD_FILE,
   DEFAULT_PC_FILE,
@@ -270,35 +269,6 @@ test.describe('4단원 통합 화면 — 순수 논리(브라우저 없이)', ()
     meter.stop();
   });
 
-  test('주소의 공유 링크·?example=은 예제 목록과 코드 모양으로 맞는 칸을 고른다', () => {
-    expect(sideForFile('vision/u4/4-2-1-face-mouse-ble-tx.py')).toBe('pc');
-    expect(sideForFile('esp32/u4/4-2-1-adv-ble-data-lcd.py')).toBe('board');
-    expect(sideForFile('esp32/u2/2-1-1-led.py')).toBe('board');
-    expect(sideForFile('desktop/01-screen-size.py')).toBe('pc');
-    expect(sideForFile('other/x.py')).toBeNull();
-    expect(sideForFile('')).toBeNull();
-
-    const pcIds = new Set(['u4-a', 'same']);
-    const boardIds = new Set(['u4-b', 'same']);
-    expect(sideForExampleId('u4-a', pcIds, boardIds)).toBe('pc');
-    expect(sideForExampleId('u4-b', pcIds, boardIds)).toBe('board');
-    expect(sideForExampleId('same', pcIds, boardIds)).toBeNull(); // 모호하면 고르지 않는다
-    expect(sideForExampleId(undefined, pcIds, boardIds)).toBeNull();
-
-    expect(guessSideFromCode('import ESP32BLE\nble = ESP32BLE.init("ESP32")\n')).toBe('board');
-    expect(guessSideFromCode('from machine import Pin\n')).toBe('board');
-    expect(guessSideFromCode('import cv2\nimport time, bluetooth\n')).toBe('pc');
-    expect(guessSideFromCode('# import machine 은 주석이라 보지 않는다\nprint(1)\n')).toBe('pc');
-
-    const target: Record<string, unknown> = { [ADDRESS_STASH_KEY]: { hash: '#code=abc&ex=u4-b', example: 'esp32/u4/a.py' } };
-    expect(takeAddressStash(target)).toEqual({ hash: '#code=abc&ex=u4-b', example: 'esp32/u4/a.py' });
-    expect(ADDRESS_STASH_KEY in target).toBe(false); // 한 번 꺼내면 지운다
-    expect(takeAddressStash(target)).toBeNull();
-    expect(takeAddressStash({ [ADDRESS_STASH_KEY]: { hash: 3 } })).toBeNull();
-    // ?pair=(짝 이름)도 맡겨 둔다(미해결 179)
-    expect(takeAddressStash({ [ADDRESS_STASH_KEY]: { pair: '4-1-4' } })).toEqual({ pair: '4-1-4' });
-  });
-
   test('?pair=: 짝 이름(id)은 겹치지 않고 차시 번호로 시작하며, 차시 번호만 적으면 그 차시의 첫 짝이다(미해결 179)', () => {
     const ids = PAIRS.map((pair) => pair.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -408,8 +378,12 @@ test.describe('4단원 통합 화면 — 한 문서에 두 실습실', () => {
     await expect(bar(page).locator('[data-unit4-screen-note]')).toContainText('3840×2160');
     expect(await page.evaluate((key) => window.localStorage.getItem(key), storageKey(DESKTOP_SCREEN_STORAGE_NAME))).toBeNull();
 
-    // 겹친 id가 없고, 이름표·aria 참조가 같은 실습실 안(또는 실습실 밖)을 가리킨다
-    expect(Number(await bar(page).getAttribute('data-unit4-ids'))).toBeGreaterThan(0);
+    // 겹친 id가 없고, 이름표·aria 참조가 같은 실습실 안(또는 실습실 밖)을 가리킨다.
+    // 실습실 틀이 칸마다 꼬리(idSuffix pc·board)를 붙여 푼다(판 1.1.0, 미해결 138 — 전에는 이 화면만의 우회 dom.ts가 보드 칸만 고쳤다)
+    expect(Number(await pcLab(page).getAttribute('data-lab-ids-scoped'))).toBeGreaterThan(0);
+    expect(Number(await boardLab(page).getAttribute('data-lab-ids-scoped'))).toBeGreaterThan(0);
+    await expect(pcLab(page).locator('#lab-bridge-channel--pc')).toHaveCount(1);
+    await expect(boardLab(page).locator('#lab-bridge-channel--board')).toHaveCount(1);
     expect(await idProblems(page)).toEqual([]);
 
     // 실제 보드 블루투스 칸은 이 화면에서 숨는다(컴퓨터 코드의 좌표가 그 보드로 가지 않으므로)
@@ -432,10 +406,21 @@ test.describe('4단원 통합 화면 — 한 문서에 두 실습실', () => {
 
   test('공유 링크(#code=)와 ?example=은 맞는 칸으로 가고 다른 칸은 그대로다', async ({ page }) => {
     test.skip(test.info().project.name !== 'desktop', '주소 처리는 화면 크기와 상관없어 데스크톱에서만');
+    // ① 새 모양(판 1.1.0, 미해결 138): lab= 이 어느 칸의 코드인지 알린다 — 예제 id가 없어도 보드 칸이 받는다
+    const labCode = '# 공유 링크 시험(보드 칸, lab=)\nfrom machine import Pin\nprint("board lab share")\n';
+    await openUnit4(page, `#code=${encodeShareCode(labCode)}&lab=esp32`);
+    await expect(boardLab(page)).toHaveAttribute('data-share-loaded', 'yes');
+    await expect.poll(() => editorText(boardLab(page))).toContain('board lab share');
+    expect(await editorText(pcLab(page))).not.toContain('board lab share');
+    expect(await pcLab(page).getAttribute('data-share-loaded')).toBeNull();
+    expect(page.url()).not.toContain('code=');
+
+    // ② 옛 모양(lab= 없음): ex= 예제를 가진 칸이 받는다
+    // (틀이 주소의 #을 지워 지금 주소가 /labs/unit4/다 — # 만 다른 주소로 가면 같은 문서 안 이동이라 쪽을 새로 열지 않는다)
+    await page.goto('about:blank');
     const boardFile = 'esp32/u4/4-2-1-adv-ble-data-lcd.py';
     const boardCode = '# 공유 링크 시험(보드 칸)\nfrom machine import Pin\nprint("board share")\n';
     await openUnit4(page, `#code=${encodeShareCode(boardCode)}&ex=${boardExampleId(boardFile)}`);
-    await expect(bar(page)).toHaveAttribute('data-unit4-address', 'share:board');
     await expect(boardLab(page)).toHaveAttribute('data-example', boardExampleId(boardFile));
     await expect(boardLab(page)).toHaveAttribute('data-share-loaded', 'yes');
     await expect.poll(() => editorText(boardLab(page))).toContain('board share');
@@ -443,13 +428,25 @@ test.describe('4단원 통합 화면 — 한 문서에 두 실습실', () => {
     await expect(pcLab(page)).toHaveAttribute('data-example', pcExampleId(DEFAULT_PC_FILE));
     expect(page.url()).not.toContain('code=');
 
+    // ③ 이 화면에서 [공유 링크]를 만들면 lab=이 실린다(칸마다 자기 id)
+    await boardLab(page).locator('[data-lab-share]').click();
+    const shared = await boardLab(page).locator('[data-lab-share-url]').inputValue();
+    expect(shared).toContain('#code=');
+    expect(shared).toContain('&lab=esp32');
+    await boardLab(page).getByRole('button', { name: '닫기', exact: true }).click();
+
+    // ④ ?example=은 그 파일을 가진 칸만 받고, 다른 칸은 "링크에 적힌 예제를 찾지 못했어요"를 띄우지 않는다
     const other = 'esp32/u4/4-2-1-adv-ble-servo-lcd.py';
     await openUnit4(page, `?example=${encodeURIComponent(other)}`);
-    await expect(bar(page)).toHaveAttribute('data-unit4-address', 'example:board');
     await expect(boardLab(page)).toHaveAttribute('data-example', boardExampleId(other));
-    // 영상처리 칸이 "링크에 적힌 예제를 찾지 못했어요"를 띄우지 않는다
     expect(await pcLab(page).getAttribute('data-example-missing')).toBeNull();
-    expect(page.url()).not.toContain('example=');
+    expect(await boardLab(page).getAttribute('data-example-missing')).toBeNull();
+    await expect(pcLab(page)).toHaveAttribute('data-example', pcExampleId(DEFAULT_PC_FILE));
+
+    // ⑤ 어느 칸에도 없는 파일이면 첫 칸(컴퓨터 칸) 한 곳만 알린다
+    await openUnit4(page, `?example=${encodeURIComponent('vision/u1/없는-예제.py')}`);
+    await expect(pcLab(page)).toHaveAttribute('data-example-missing', 'vision/u1/없는-예제.py');
+    expect(await boardLab(page).getAttribute('data-example-missing')).toBeNull();
   });
 
   test('?pair=<짝 이름>은 두 칸에 짝 예제를 함께 불러오고, 모르는 짝이면 안내만 한다(4-1-4 따라하기 링크 — 미해결 179)', async ({ page }) => {
