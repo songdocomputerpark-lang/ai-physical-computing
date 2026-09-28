@@ -243,7 +243,7 @@ handouts:                            # (선택) 이어지는 가린 편집본 �
 - 스톡 그림(판매용 그림 사이트의 그림)은 쓰지 않아요(결정 C11). 권리 표기가 없어도 스톡으로 보이면 사이트가 그린 그림으로 바꿔요.
 - 대체 글(alt)은 그림을 볼 수 없는 사람이 듣는 글이에요. **8자 이상 한 문장**으로 무엇이 보이고 무슨 뜻인지 적어요. "그림", "사진", 파일 이름은 안 돼요. 장식 그림만 빈 alt(`![](…)`).
 - 주소는 사이트 뿌리부터(`/images/…`, `/help/errors/`) 적으면 차시 페이지가 사이트 주소 앞부분(`/ai-physical-computing`)을 붙여 줘요. 바깥 주소 그림은 쓰지 않아요.
-- 휴대폰처럼 좁은 화면에서는 그림마다 [그림 크게 보기] 링크가 저절로 붙어 그림 파일을 따로 열 수 있어요(손으로 적지 않아요).
+- 휴대폰처럼 좁은 화면에서는 그림마다 [그림 크게 보기] 링크가 저절로 붙어요(손으로 적지 않아요). 사이트가 그린 SVG는 누르면 쪽 안의 크게 보기 창이 열려 본문에 보이던 그림(좁은 그림이 있으면 그것)을 본문보다 크게 보여 주고, 사진은 파일을 따로 열어요(판 1.1.1 — `src/components/lesson/figure-zoom.ts`, 결정 C65).
 - 칸이 4개 이상인 표는 좁은 화면에서 칸마다 최소 폭을 지켜 옆으로 밀어 보게 돼요. 칸이 많고 참고용인 표는 `:::더알아보기`로 접는 것도 생각해요.
 
 **마크다운 함정 두 가지**(검사가 잡아요)
@@ -488,7 +488,7 @@ ESP32 실습실의 가상 보드에 부품(센서·LED·화면 등)을 더할 �
 영상처리 실습실은 카메라가 두 대 이상이면 입력 칸에 [카메라] 고르기를 보이고, 화면 공유 프로그램의 **가상 카메라**(EShare·OBS 등)는 "가상 카메라:"로 표시하고 처음 켤 때 건너뛰어요. 카메라를 켰는데 2초 넘게 까만 화면만 오면 미리 보기 아래에 까닭과 [다른 카메라로 바꾸기]·[샘플로 계속]이 떠요(결정 C40·C41).
 
 - **목록에 없는 가상 카메라가 교실 PC에서 먼저 켜질 때:** `src/lab/vision/camera-devices.ts`의 `DEPRIORITIZED_CAMERA_PATTERNS`에 그 프로그램 이름 낱말을 한 줄 더해요. 짧은 낱말은 낱말 경계(`\b…\b`)로 적어 진짜 카메라 이름에 우연히 든 글자(예: OBSBOT)를 잘못 잡지 않게 해요. 그리고 `tests/unit/camera/camera-devices.test.ts`의 가상 카메라 이름 목록에 실제 이름 하나를 더한 뒤 `npx vitest run tests/unit/camera`.
-  - 카메라 이름은 점검 페이지 `/start/check/`의 [카메라 켜서 확인하기] → [결과 복사] 글에서 볼 수 있어요(장치 이름은 화면과 복사 글에만 있고 저장하지도 보내지도 않아요).
+  - 카메라 이름은 점검 페이지 `/start/check/`의 [카메라 켜서 확인하기]를 누르면 **화면 목록**에서 볼 수 있어요(장치 이름은 화면에만 있고 저장하지도 보내지도 않아요. [결과 복사] 글에는 사람 이름이 든 장치 이름이 공개 이슈로 가지 않게 "카메라 1 [가상 카메라 — 이름에 'EShare' 낱말]"처럼 번호·종류·걸린 낱말만 들어가요 — 결정 C58).
 - **까만 화면 판정 값**은 `src/lab/vision/black-frame.ts`의 `BLACK_FRAME_LIMITS` 한 곳이에요(64×48 표본의 밝기 평균 ≤ 20·표준편차 ≤ 4가 2초 이어지면, 장이 4초 동안 없으면). 바꿀 때는 `tests/unit/camera/black-frame.test.ts` 머리말의 실측 표와 견줘요(흐린 교실(평균 22.7)이 "까만 화면"이 되지 않게).
 - **안내 글**은 `src/lab/vision/camera-notice.ts`(원인 차례·단추), 화면 칸은 `src/components/lab/VisionIo.astro`의 `[data-vision-camera]`·`[data-vision-camera-notice]`, 도움말은 `/help/#camera-black`(`src/pages/help/index.astro`), 점검 페이지 카메라 확인은 `src/components/start/camera-check/`예요.
 - 학생이 고른 카메라는 이 브라우저에만 deviceId로 기억해요(저장 이름 `vision:camera` — [기록 지우기]가 지워요, `src/lib/storage.ts` 규칙).
@@ -1136,7 +1136,7 @@ Result (3 files):
 | `server/serve.ps1` · `server/serve.py` | 작은 웹 서버(PowerShell 5.1판 — 기본, 파이썬 3판 — 다른 방법) |
 | `site/` | 사이트 전체(차시 45편·교사용 자료실과 가린 편집본 PDF·실습실·검색 색인), 파이썬 실행기 Pyodide 314.0.7 코어와 numpy·OpenCV·Pillow 휠(`vendor/pyodide/314.0.7/` 8개 26.9MiB), MediaPipe WebAssembly·모델 5개, ESP32 펌웨어, 글꼴, 고지 전문 28개 |
 | `LICENSE` · `LICENSE-CONTENT.md` | 사이트 코드·예제(MIT), 학습 자료(CC BY-NC-SA 4.0) |
-| `sources/`(`--sources`로 만들 때만) | 대응 소스 사본 31개(FFmpeg·OpenCV·레시피·Pagefind·크레이트)와 `읽어보세요.txt`(한국어·영어)·`SHA256SUMS.txt` — zip이 소스 크기만큼(적어도 약 110MB) 커져요 |
+| `sources/`(`--sources`로 만들 때만) | 대응 소스 사본 34개(FFmpeg·OpenCV·다시 연결 재료·Emscripten 포트·레시피·Pagefind·크레이트)와 `읽어보세요.txt`(한국어·영어)·`SHA256SUMS.txt` — zip이 소스 크기만큼(적어도 약 110MB) 커져요. 공식 해시가 없는 3개의 값을 목록에 고정하기 전에는 멈춰요(결정 C60) |
 
 크기(2026-09-26, 판 0.5.0 — 통합에서 다시 만든 zip): 72,016,404바이트(68.7MB), 항목 795개(파일 637개), 풀면 103.3MB. 판 0.1.0으로 처음 만든 zip(구역 E)은 68.2MB·파일 665개였어요(그때는 CSS가 따로 파일이었어요). 판을 올릴 때마다 다시 만든 zip의 크기·SHA-256·만든 커밋은 PROGRESS.md "시나리오·품질 결과표"의 오프라인판 줄에 적어요(1.0.0부터).
 
@@ -1201,10 +1201,10 @@ Result (3 files):
 
 ### 12-10. 대응 소스 사본(운영자 할 일 26 — 판 1.1.0)
 
-사이트가 고치지 않고 다시 나누는 실행 파일 가운데 OpenCV 휠 안 FFmpeg(LGPL-2.1)와 검색 엔진 wasm 안 GPL-3.0 크레이트는 "대응 소스"를 계속 받을 수 있게 해야 해요(DECISIONS C22·C23·C36). 받을 파일 31개(주소·공식 해시·근거)는 `scripts/release/sources-manifest.json` 한 곳에 있고(결정 C55), 자세한 절차는 `scripts/release/README.md`예요.
+사이트가 고치지 않고 다시 나누는 실행 파일 가운데 OpenCV 휠 안 FFmpeg(LGPL-2.1)와 검색 엔진 wasm 안 GPL-3.0 크레이트는 "대응 소스"를 계속 받을 수 있게 해야 해요(DECISIONS C22·C23·C36). 받을 파일 34개(주소·공식 해시·근거)는 `scripts/release/sources-manifest.json` 한 곳에 있고(결정 C55·C61 — 판 1.1.1에서 Emscripten 포트 3개를 더함), 자세한 절차는 `scripts/release/README.md`예요. 고지 두 파일과 `/credits/`가 약속하는 대응 소스 범위는 이 목록 전체이고, `npm test`가 목록의 모든 파일이 고지에 적혀 있는지 대조해요.
 
-1. **받기(운영자 PC):** 탐색기로 저장소 폴더를 열고 주소창에 `powershell` → `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\release\fetch-sources.ps1`(5~15분, 빈 공간 1GB쯤). 파일마다 PASS·RECORD·FAIL이 한 줄씩 나오고, 결과는 `.cache\release-sources\`의 `SHA256SUMS.txt`·`fetch-result.txt`예요. FAIL이면 같은 명령을 다시 돌려요(확인된 파일은 건너뛰어요). `-ListOnly`를 붙이면 받을 목록만 보여 줘요(받지 않음).
-2. **확인·릴리스 초안:** `node scripts/release/release-notes.mjs`가 폴더를 목록과 대조하고 한영 설명과 `gh release` 명령을 **찍기만** 해요. 릴리스(태그 `license-sources-2026-09`)에 올리는 것은 운영자가 "예"라고 한 뒤예요 — 초안 → `--check-uploaded`로 올라간 파일의 이름·크기·SHA-256 대조 → 공개 → 고지 두 파일(`licenses/pyodide-wheels-3rd-party.txt`·`licenses/pagefind-wasm-3rd-party.txt`)에 릴리스 주소(결정 C56).
+1. **받기(운영자 PC):** 탐색기로 저장소 폴더를 열고 주소창에 `powershell` → `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\release\fetch-sources.ps1`(5~15분, 빈 공간 1GB쯤). 파일마다 PASS·RECORD·FAIL이 한 줄씩 나오고(PASS = 공식 해시와 같음, RECORD = 공식 해시가 없는 GitHub 압축 3개 — 압축 안에 적힌 git 커밋이 목록과 같고 끝까지 풀리는 것을 확인한 뒤 받은 날의 SHA-256을 적음, 결정 C60), 결과는 `.cache\release-sources\`의 `SHA256SUMS.txt`·`fetch-result.txt`예요. FAIL이면 같은 명령을 다시 돌려요(확인된 파일은 건너뛰어요). `-ListOnly`를 붙이면 받을 목록만 보여 줘요(받지 않음).
+2. **확인·릴리스 초안:** 먼저 RECORD 3개의 받은 날 SHA-256을 목록에 고정해요(`scripts/release/README.md` 3절 2번 — 고정 전에는 `release-notes.mjs`와 `build:offline --sources`가 멈춰요). 그다음 `node scripts/release/release-notes.mjs`가 폴더를 목록과 대조하고 한영 설명과 `gh release` 명령을 **찍기만** 해요. 릴리스(태그 `license-sources-2026-09`)에 올리는 것은 운영자가 "예"라고 한 뒤예요 — 초안 → `--check-uploaded`로 올라간 파일의 이름·크기·SHA-256 대조 → 공개 → 고지 두 파일(`licenses/pyodide-wheels-3rd-party.txt`·`licenses/pagefind-wasm-3rd-party.txt`)에 릴리스 주소(결정 C56).
 3. **오프라인판에 함께 넣기:** `npm run build:offline -- --sources .cache/release-sources`(12-2).
 4. **판을 올릴 때:** Pyodide·opencv 휠·Pagefind 판이 바뀌면 목록의 `site` 칸과 실제 판이 달라져 `npm test`(`tests/unit/release/sources-manifest.test.ts`)가 멈춰요 — `scripts/release/README.md` 5절 차례로 고쳐요(크레이트 목록은 `node scripts/release/crates-from-lock.mjs <Cargo.lock>`).
 
