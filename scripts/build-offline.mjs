@@ -27,7 +27,17 @@
 //   node scripts/build-offline.mjs --skip-build   2~4를 건너뛰고 이미 있는 .cache/offline/site로 묶기만(안내 파일을 고칠 때)
 //   node scripts/build-offline.mjs --no-zip       zip을 만들지 않는다(빌드와 확인만)
 //   node scripts/build-offline.mjs --allow-dirty  커밋하지 않은 변경이 있어도 만든다(시험용 — 읽어보세요.txt에 "커밋 전 변경"이 적힌다)
+//   npm run build:offline -- --sources .cache/release-sources
+//                                                 대응 소스 사본을 zip 안 sources/에 함께 넣는다(아래 "대응 소스")
 // 확인: node scripts/offline/verify-offline.mjs(zip을 풀어 시작하기.bat로 서버를 띄우고, 인터넷을 막은 Edge로 tests/e2e/offline.spec.ts)
+//
+// 대응 소스(--sources <폴더> — 미해결 211, 운영자 할 일 26): 이 묶음이 고치지 않고 나누는 실행 파일 가운데 OpenCV 휠(FFmpeg — LGPL-2.1)과
+// 검색 엔진 wasm(GPL-3.0 크레이트)의 소스를 USB로 나눌 때 함께 주려는 선택이다. 폴더는 운영자가 scripts/release/fetch-sources.ps1로 받은 곳
+// (보통 .cache/release-sources)이고, 목록(scripts/release/sources-manifest.json)의 파일이 모두 있고 크기·공식 해시·받을 때 잰 값
+// (SHA256SUMS.txt)이 맞을 때만 빌드를 시작한다 — 하나라도 없거나 틀리면, 또는 목록이 이 사이트가 나누는 판(Pyodide·opencv 휠·Pagefind)과
+// 다르면 빌드 전에 멈춘다(scripts/lib/offline-sources.mjs). 목록 밖 파일은 넣지 않는다. zip 안에는 sources/<파일>(저장 방식 — 이미 압축된
+// 파일), sources/읽어보세요.txt(한국어·영어), sources/SHA256SUMS.txt가 들어가고, 안내 글 두 개는 다른 안내 파일처럼 개인정보 검사를 거친다.
+// 옵션이 없으면 zip은 지금과 같다(대응 소스는 고지의 서면 제안 — DECISIONS C36).
 //
 // 커밋한 내용만 담는다(2026-09-26 Phase 6 안전 검토 지적 7): 오프라인판은 커밋 전 훅·CI를 거치지 않고 운영자 PC에서 곧바로 나가는
 // 유일한 공개 배포물이라, 작업 폴더에 커밋하지 않은 변경(추적하지 않는 새 파일 포함 — 예: 막 꺼내 아직 눈 확인 기록이 없는 그림)이
@@ -53,6 +63,17 @@ import {
   startBatTemplateValues,
   toCrlf,
 } from './lib/offline-site.mjs';
+import {
+  SOURCES_MANIFEST_FILE,
+  SOURCES_ZIP_DIR,
+  addSourceArchivesToZip,
+  checkSourcesFolder,
+  parseSourcesOption,
+  readSiteSourcesActual,
+  readSourcesManifest,
+  sourcesGuideFiles,
+  sourcesSiteMismatches,
+} from './lib/offline-sources.mjs';
 import { ZipWriter } from './lib/offline-zip.mjs';
 import { formatBuildOutputReport, runBuildOutputCheck } from './lib/repo-check.mjs';
 import { listZipEntries, readZipEntry } from './lib/zip-read.mjs';
@@ -72,6 +93,8 @@ const args = process.argv.slice(2);
 const skipBuild = args.includes('--skip-build');
 const noZip = args.includes('--no-zip');
 const allowDirty = args.includes('--allow-dirty');
+/** --sources <폴더>(대응 소스 사본을 zip 안 sources/에 — 머리말 "대응 소스") */
+const sourcesOption = parseSourcesOption(args);
 
 const startedAt = Date.now();
 /** @type {{ step: string, ms: number }[]} */
@@ -147,6 +170,47 @@ function removeDir(dir) {
   fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
 
+/**
+ * 대응 소스 폴더를 목록과 대조한다(--sources — 머리말 "대응 소스"). 빌드보다 먼저 돌려, 틀리면 아무것도 쓰기 전에 멈춘다.
+ * @param {string} folderArg 명령 줄에 적은 폴더(현재 폴더 기준)
+ */
+function prepareSources(folderArg) {
+  const at = Date.now();
+  const folder = path.resolve(process.cwd(), folderArg);
+  log(`대응 소스 사본 확인(--sources ${folderArg}, 목록 ${SOURCES_MANIFEST_FILE})`);
+  const { manifest, problems } = readSourcesManifest(rootDir);
+  if (!manifest) {
+    fail(`대응 소스 목록에 문제가 ${problems.length}건 있어요:\n${problems.map((problem) => `  - ${problem}`).join('\n')}`);
+  }
+  const mismatches = sourcesSiteMismatches(manifest, readSiteSourcesActual(rootDir, PYODIDE_VERSION));
+  if (mismatches.length > 0) {
+    fail(
+      `대응 소스 목록(${SOURCES_MANIFEST_FILE})이 이 사이트가 나누는 판과 달라요 — 다른 판의 소스를 넣지 않게 멈춰요:\n` +
+        `${mismatches.map((line) => `  - ${line}`).join('\n')}\n` +
+        '  목록을 새 판에 맞게 고치고 fetch-sources.ps1로 다시 받아요(scripts/release/README.md).',
+    );
+  }
+  const result = checkSourcesFolder({ folder, manifest });
+  if (!result.ok) {
+    fail(
+      `대응 소스 폴더에 문제가 ${result.problems.length}건 있어요 — zip을 만들지 않아요:\n` +
+        `${result.problems.map((problem) => `  - ${problem}`).join('\n')}\n` +
+        '  scripts/release/README.md 차례로 fetch-sources.ps1을 다시 돌린 뒤 이 명령을 다시 돌려요.',
+    );
+  }
+  for (const note of result.notes) {
+    log(`  참고 — ${note}`);
+  }
+  const bytes = result.files.reduce((sum, file) => sum + file.size, 0);
+  const recorded = result.files.filter((file) => file.basis === 'recorded').length;
+  log(
+    `  ${result.files.length}개(${megabytes(bytes)}) 모두 맞아요 — 공식 해시 대조 ${result.files.length - recorded}개, ` +
+      `받을 때 잰 값 대조 ${recorded}개(공식 해시가 없는 GitHub 압축)`,
+  );
+  timings.push({ step: '대응 소스 사본 확인', ms: Date.now() - at });
+  return { manifest, files: result.files, bytes, folder };
+}
+
 async function main() {
   const siteDir = path.join(rootDir, ...OFFLINE_OUT_DIR.split('/'));
   const workDir = path.join(rootDir, ...OFFLINE_WORK_DIR.split('/'));
@@ -166,6 +230,12 @@ async function main() {
   if (changes.length > 0) {
     log(`주의 — 커밋하지 않은 변경 ${changes.length}개를 담아요(--allow-dirty, 시험용). 나눠 줄 판은 커밋한 뒤 다시 만들어요.`);
   }
+
+  // 대응 소스 사본(--sources) — 빌드 전에 먼저 확인한다(빠지거나 틀린 파일이 있으면 곧바로 멈춤)
+  if (sourcesOption.error) {
+    fail(sourcesOption.error);
+  }
+  const sources = sourcesOption.folder === null ? null : prepareSources(sourcesOption.folder);
 
   // 1. 패키지 확인
   const coverage = await step('파이썬 패키지 확인(예제·흉내 모듈·차시 코드의 import → pyodide-lock.json)', () => {
@@ -257,6 +327,10 @@ async function main() {
       { name: OFFLINE_LAYOUT.license, data: fs.readFileSync(path.join(rootDir, 'LICENSE')) },
       { name: OFFLINE_LAYOUT.licenseContent, data: fs.readFileSync(path.join(rootDir, 'LICENSE-CONTENT.md')) },
     ];
+    if (sources) {
+      // 대응 소스의 안내 글 두 개(--sources) — 여기 두어 8단계 개인정보 검사를 함께 받는다. 소스 압축 자체는 9단계에서 폴더에서 바로 넣는다.
+      list.push(...sourcesGuideFiles({ manifest: sources.manifest, files: sources.files, version }));
+    }
     // 시작하기.bat는 영어·기호만(ASCII) — cmd가 UTF-8 여러 바이트 글자가 든 배치 파일을 잘못 읽는다(scripts/lib/offline-site.mjs START_BAT_MESSAGES).
     // 안내 글·PowerShell 스크립트는 BOM으로 시작해야 한다(BOM이 없으면 PowerShell 5.1이 한국어 Windows에서 CP949로 읽어 한국어가 깨진다).
     if (list[0].data.some((byte) => byte > 0x7e || (byte < 0x20 && byte !== 0x0d && byte !== 0x0a && byte !== 0x09))) {
@@ -290,7 +364,7 @@ async function main() {
 
   if (noZip) {
     log('zip은 만들지 않아요(--no-zip).');
-    summarize({ siteCheck, coverage, extrasCount: extras.length, zip: null, version, packageName, commit: templateValues.COMMIT, buildDate });
+    summarize({ siteCheck, coverage, extrasCount: extras.length, zip: null, version, packageName, commit: templateValues.COMMIT, buildDate, sources });
     return;
   }
 
@@ -304,6 +378,9 @@ async function main() {
       const top = `${packageName}/`;
       /** 폴더 항목(zip 안 이름) — 파일보다 먼저, 이름 차례 */
       const directories = new Set([top, `${top}${OFFLINE_LAYOUT.serverDir}/`, `${top}${OFFLINE_LAYOUT.siteDir}/`]);
+      if (sources) {
+        directories.add(`${top}${SOURCES_ZIP_DIR}/`);
+      }
       for (const relative of siteFiles) {
         const parts = relative.split('/');
         for (let depth = 1; depth < parts.length; depth += 1) {
@@ -319,6 +396,11 @@ async function main() {
       }
       for (const relative of siteFiles) {
         writer.addFile(`${top}${OFFLINE_LAYOUT.siteDir}/${relative}`, fs.readFileSync(path.join(siteDir, ...relative.split('/'))));
+      }
+      // 대응 소스 압축(--sources): 사이트 파일 뒤에 둔다(옵션이 없을 때와 앞부분 차림이 같게). 저장 방식으로, 넣기 직전에
+      // SHA-256을 한 번 더 재서 확인한 것과 같은 내용만 넣는다(scripts/lib/offline-sources.mjs addSourceArchivesToZip).
+      if (sources) {
+        addSourceArchivesToZip(writer, top, sources.files);
       }
       return writer.close();
     } catch (error) {
@@ -369,10 +451,27 @@ async function main() {
     packageName,
     commit: templateValues.COMMIT,
     buildDate,
+    sources,
   });
 }
 
-function summarize({ siteCheck, coverage, extrasCount, zip, version, packageName, commit, buildDate }) {
+/** 요약에 적을 대응 소스(--sources) — 폴더는 저장소 안이면 상대 경로(이 컴퓨터의 사용자 경로를 요약에 남기지 않게) */
+function sourcesSummary(sources) {
+  if (!sources) {
+    return null;
+  }
+  const relative = path.relative(rootDir, sources.folder);
+  const inside = relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+  return {
+    folder: inside ? relative.split(path.sep).join('/') : '(저장소 밖 폴더)',
+    releaseTag: sources.manifest.releaseTag,
+    files: sources.files.length,
+    bytes: sources.bytes,
+    items: sources.files.map((file) => ({ file: file.item.file, bytes: file.size, sha256: file.sha256, basis: file.basis })),
+  };
+}
+
+function summarize({ siteCheck, coverage, extrasCount, zip, version, packageName, commit, buildDate, sources }) {
   const totalMs = Date.now() - startedAt;
   const summary = {
     version,
@@ -385,6 +484,7 @@ function summarize({ siteCheck, coverage, extrasCount, zip, version, packageName
     site: { dir: OFFLINE_OUT_DIR, files: siteCheck.siteFileCount, publicFiles: siteCheck.publicFileCount },
     pyodide: { files: PYODIDE_OFFLINE_FILES.map((file) => file.name), bytes: PYODIDE_OFFLINE_TOTAL_BYTES, packages: coverage.needed },
     extras: extrasCount,
+    sources: sourcesSummary(sources),
     zip: zip
       ? {
           file: path.relative(rootDir, zip.path).split(path.sep).join('/'),
@@ -416,6 +516,13 @@ function summarize({ siteCheck, coverage, extrasCount, zip, version, packageName
     log(
       `  가장 긴 zip 안 이름 ${summary.zip.longestEntryLength}글자(상한 ${OFFLINE_MAX_ENTRY_LENGTH}) — Windows 탐색기로 풀 때 풀 곳 폴더 경로가 ` +
         `${summary.zip.explorerExtractBudget}글자까지 돼요: ${summary.zip.longestEntryName}`,
+    );
+  }
+  if (summary.sources) {
+    const where = summary.zip ? `zip 안 ${packageName}/${SOURCES_ZIP_DIR}/에 넣었어요` : '확인했어요(--no-zip이라 zip에는 넣지 않았어요)';
+    log(
+      `  대응 소스 사본 ${summary.sources.files}개(${megabytes(summary.sources.bytes)})를 ${where} — ` +
+        `목록 ${SOURCES_MANIFEST_FILE}, 릴리스 태그 ${summary.sources.releaseTag}`,
     );
   }
   log(`  요약: ${path.relative(rootDir, path.join(workDir, `${packageName}.json`)).split(path.sep).join('/')}`);

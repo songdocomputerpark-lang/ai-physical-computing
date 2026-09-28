@@ -1,0 +1,556 @@
+{
+  "$comment": [
+    "Corresponding-source copies: operator task 26 (PROGRESS.md) and npm run build:offline -- --sources <folder> (unresolved 211).",
+    "Read by scripts/release/fetch-sources.ps1 (Windows PowerShell 5.1), scripts/lib/offline-sources.mjs and tests/unit/release/. Guide: scripts/release/README.md.",
+    "sha256/md5 = official value (hashSource says where it comes from). null = no official value: fetch-sources.ps1 records the SHA-256 (RECORD); pin it here afterwards.",
+    "site = the versions this list belongs to. When the site ships another Pyodide, OpenCV wheel or Pagefind, npm test fails until this list is updated."
+  ],
+  "schema": 1,
+  "releaseTag": "license-sources-2026-09",
+  "checkedOn": "2026-09-28",
+  "site": {
+    "pyodideVersion": "314.0.7",
+    "pyodideLockSha256": "5dc2fc119108bc148c7457dc86e7675b5c87e1cafd420b9c34c1eaef7b36c010",
+    "opencvWheel": "opencv_python-4.11.0.86-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+    "opencvWheelSha256": "469a8ba6758ec4e0bce12436da977a1db3a953e320927c3f55ca6233a5d20acf",
+    "pagefindVersion": "1.5.2"
+  },
+  "groups": [
+    {
+      "id": "lgpl-ffmpeg",
+      "title": "FFmpeg 4.4.1 (LGPL-2.1-or-later) statically linked into the OpenCV wheel",
+      "titleKo": "OpenCV 휠 안의 FFmpeg 4.4.1(GNU LGPL 2.1 이상)",
+      "license": "LGPL-2.1-or-later",
+      "binary": "cv2/cv2.so in opencv_python-4.11.0.86-cp314-cp314-pyemscripten_2026_0_wasm32.whl (site folder vendor/pyodide/314.0.7/)",
+      "binaryKo": "opencv_python-4.11.0.86-cp314-cp314-pyemscripten_2026_0_wasm32.whl 안의 cv2/cv2.so(사이트 폴더 vendor/pyodide/314.0.7/)",
+      "notice": "licenses/pyodide-wheels-3rd-party.txt",
+      "why": "LGPL-2.1 section 6: whoever receives cv2.so must be able to get the source of FFmpeg (with any changes - there are none) and of the work that uses it, with the scripts that build them, so that they can change FFmpeg and relink cv2.so.",
+      "whyKo": "LGPL-2.1 6조: cv2.so를 받은 사람이 FFmpeg 소스(고친 곳 — 여기서는 없음)와 FFmpeg를 쓰는 저작물의 소스·빌드 방법을 받아, FFmpeg를 고쳐 cv2.so를 다시 연결할 수 있어야 해요.",
+      "tools": "Emscripten 5.0.3 and its ports zlib 1.3.1, libjpeg 9f and libpng 1.6.55 (distributed with the compiler - LGPL-2.1 section 6 does not require them), the Pyodide cross-build environment 314.0.6, and the CMake and Python build tools named in the recipes",
+      "toolsKo": "Emscripten 5.0.3과 그 포트 zlib 1.3.1·libjpeg 9f·libpng 1.6.55(컴파일러와 함께 나오는 것 — LGPL-2.1 6조가 요구하지 않음), Pyodide 교차 빌드 환경 314.0.6, 레시피에 적힌 CMake·파이썬 빌드 도구"
+    },
+    {
+      "id": "gpl-pagefind",
+      "title": "Search engine wasm with the GPL-3.0-only crate pagefind_microjson 0.1.4 (Pagefind 1.5.2)",
+      "titleKo": "사이트 검색 엔진 wasm 안의 GPL-3.0 크레이트 pagefind_microjson 0.1.4(Pagefind 1.5.2)",
+      "license": "GPL-3.0-only",
+      "binary": "pagefind/wasm.unknown.pagefind in the site folder (written by Pagefind 1.5.2 at build time)",
+      "binaryKo": "사이트 폴더의 pagefind/wasm.unknown.pagefind(빌드 때 Pagefind 1.5.2가 씀)",
+      "notice": "licenses/pagefind-wasm-3rd-party.txt",
+      "why": "GPL-3.0 section 6: the Corresponding Source of the whole wasm - Pagefind v1.5.2 (pagefind_web and its build scripts) and every crates.io crate in pagefind_web/Cargo.lock (the set cargo vendor downloads: 12 compiled into the wasm, 9 used only while building it).",
+      "whyKo": "GPL-3.0 6조: wasm 전체의 대응 소스 — Pagefind v1.5.2(pagefind_web과 빌드 스크립트)와 pagefind_web/Cargo.lock에 적힌 crates.io 크레이트 전부(cargo vendor가 받는 범위: wasm에 든 12개, 만들 때만 쓰는 9개).",
+      "tools": "Rust nightly 1.97.0 (bf4fbfb7a 2026-04-11) with its standard library source (rust-src, rebuilt with -Z build-std - a system library of the compiler), wasm-pack with the wasm-bindgen 0.2.117 CLI, Node.js and gzip (pagefind_web/local_build.sh)",
+      "toolsKo": "Rust nightly 1.97.0(bf4fbfb7a 2026-04-11)과 그 표준 라이브러리 소스(rust-src — -Z build-std로 함께 빌드, 컴파일러의 시스템 라이브러리), wasm-pack·wasm-bindgen 0.2.117 CLI, Node.js·gzip(pagefind_web/local_build.sh)"
+    }
+  ],
+  "items": [
+    {
+      "id": "ffmpeg-n4.4.1",
+      "group": "lgpl-ffmpeg",
+      "file": "FFmpeg-n4.4.1.tar.gz",
+      "urls": [
+        "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n4.4.1.tar.gz"
+      ],
+      "size": null,
+      "sha256": "82b43cc67296bcd01a59ae6b327cdb50121d3a9e35f41a30de1edd71bb4a6666",
+      "md5": null,
+      "hashSource": "pyodide-recipes fc8587207ecbf0fb54305d5da25ab7ed70f126d3 packages/libffmpeg/meta.yaml (source.sha256)",
+      "what": "FFmpeg 4.4.1 source (git tag n4.4.1) - the exact archive the Pyodide recipe built libffmpeg from; no patches, the configure options are in the recipe",
+      "whatKo": "FFmpeg 4.4.1 소스(태그 n4.4.1) — Pyodide 레시피가 libffmpeg를 만든 바로 그 파일(고친 곳 없음, 설정 옵션은 레시피에)",
+      "license": "LGPL-2.1-or-later"
+    },
+    {
+      "id": "ffmpeg-4.4.1-release",
+      "group": "lgpl-ffmpeg",
+      "file": "ffmpeg-4.4.1.tar.xz",
+      "urls": [
+        "https://ffmpeg.org/releases/ffmpeg-4.4.1.tar.xz"
+      ],
+      "size": 9557516,
+      "sha256": "eadbad9e9ab30b25f5520fbfde99fae4a92a1ae3c0257a8d68569a4651e30e02",
+      "md5": null,
+      "hashSource": "Ubuntu 22.04 source package ffmpeg_4.4.1-3ubuntu5.dsc (Checksums-Sha256 of ffmpeg_4.4.1.orig.tar.xz, the same file; its MD5 41a1ca8693acc56088e8eaf3899b91ea is also in BLFS 11.1 for this address)",
+      "what": "FFmpeg 4.4.1 official release tarball (the same source as published by FFmpeg; signature in ffmpeg-4.4.1.tar.xz.asc)",
+      "whatKo": "FFmpeg 4.4.1 공식 배포본(FFmpeg가 낸 같은 소스 — 서명은 ffmpeg-4.4.1.tar.xz.asc)",
+      "license": "LGPL-2.1-or-later"
+    },
+    {
+      "id": "ffmpeg-4.4.1-release-signature",
+      "group": "lgpl-ffmpeg",
+      "file": "ffmpeg-4.4.1.tar.xz.asc",
+      "urls": [
+        "https://ffmpeg.org/releases/ffmpeg-4.4.1.tar.xz.asc"
+      ],
+      "size": 520,
+      "sha256": "ed469b92e363e6bd1f1bca0f702fba461fa26ccc4785b5f1fe15d57c92b7006c",
+      "md5": null,
+      "hashSource": "Ubuntu 22.04 source package ffmpeg_4.4.1-3ubuntu5.dsc (Checksums-Sha256 of ffmpeg_4.4.1.orig.tar.xz.asc)",
+      "what": "OpenPGP signature of ffmpeg-4.4.1.tar.xz made with the FFmpeg release key",
+      "whatKo": "공식 배포본 ffmpeg-4.4.1.tar.xz의 OpenPGP 서명(FFmpeg 배포 열쇠)",
+      "license": "LGPL-2.1-or-later"
+    },
+    {
+      "id": "opencv-python-4.11.0.86",
+      "group": "lgpl-ffmpeg",
+      "file": "opencv-python-4.11.0.86.tar.gz",
+      "urls": [
+        "https://files.pythonhosted.org/packages/17/06/68c27a523103dad5837dc5b87e71285280c4f098c60e4fe8a8db6486ab09/opencv-python-4.11.0.86.tar.gz"
+      ],
+      "size": 95171956,
+      "sha256": "03d60ccae62304860d232272e4a4fda93c39d595780cb40b161b310244b736a4",
+      "md5": null,
+      "hashSource": "PyPI JSON API (opencv-python 4.11.0.86 sdist); the same sha256 is in pyodide-recipes fc8587207ecbf0fb54305d5da25ab7ed70f126d3 packages/opencv-python/meta.yaml",
+      "what": "opencv-python 4.11.0.86 source distribution: OpenCV 4.11.0 source (with its bundled protobuf 3.19.1 and FlatBuffers) and the Python binding build - the work that uses FFmpeg (cv2.so)",
+      "whatKo": "opencv-python 4.11.0.86 소스 묶음 — OpenCV 4.11.0 소스(함께 든 protobuf 3.19.1·FlatBuffers 포함)와 파이썬 연결 빌드, FFmpeg를 쓰는 저작물(cv2.so)",
+      "license": "Apache-2.0 AND MIT"
+    },
+    {
+      "id": "ade-0.1.2e",
+      "group": "lgpl-ffmpeg",
+      "file": "ade-0.1.2e.zip",
+      "urls": [
+        "https://github.com/opencv/ade/archive/v0.1.2e.zip"
+      ],
+      "size": null,
+      "sha256": null,
+      "md5": "962ce79e0b95591f226431f7b5f152cd",
+      "hashSource": "OpenCV 4.11.0 modules/gapi/cmake/DownloadADE.cmake (ade_md5) - OpenCV CMake downloads this file during the build",
+      "what": "ADE 0.1.2e, the graph library of OpenCV G-API - downloaded by OpenCV CMake during the build and compiled into cv2.so",
+      "whatKo": "ADE 0.1.2e(OpenCV G-API의 그래프 라이브러리) — 빌드 때 OpenCV CMake가 받아 cv2.so에 함께 넣은 것",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "libwebp-1.2.2",
+      "group": "lgpl-ffmpeg",
+      "file": "libwebp-1.2.2.tar.gz",
+      "urls": [
+        "https://github.com/webmproject/libwebp/archive/refs/tags/v1.2.2.tar.gz"
+      ],
+      "size": null,
+      "sha256": "51e9297aadb7d9eb99129fe0050f53a11fcce38a0848fb2b0389e385ad93695e",
+      "md5": null,
+      "hashSource": "pyodide-recipes fc8587207ecbf0fb54305d5da25ab7ed70f126d3 packages/libwebp/meta.yaml (source.sha256)",
+      "what": "libwebp 1.2.2 source (git tag v1.2.2) - built by the Pyodide recipe and statically linked into cv2.so",
+      "whatKo": "libwebp 1.2.2 소스(태그 v1.2.2) — Pyodide 레시피가 만들어 cv2.so에 정적으로 연결",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "id": "libtiff-4.4.0",
+      "group": "lgpl-ffmpeg",
+      "file": "tiff-4.4.0.tar.gz",
+      "urls": [
+        "https://src.fedoraproject.org/repo/pkgs/libtiff/tiff-4.4.0.tar.gz/sha512/78ffab7667d0feb8d38571bc482390fc6dd20b93a798ab3a8b5cc7d5ab00b44a37f67eb8f19421e4ab33ad89ab40e382128f8a4bbdf097e0efb6d9fca5ac6f9e/tiff-4.4.0.tar.gz",
+        "https://download.osgeo.org/libtiff/tiff-4.4.0.tar.gz"
+      ],
+      "size": null,
+      "sha256": "917223b37538959aca3b790d2d73aa6e626b688e02dcda272aec24c2f498abed",
+      "md5": null,
+      "hashSource": "pyodide-recipes fc8587207ecbf0fb54305d5da25ab7ed70f126d3 packages/libtiff/meta.yaml (source.sha256); the same value is in the Arch Linux libtiff 4.4.0 PKGBUILD",
+      "what": "libtiff 4.4.0 source - built by the Pyodide recipe and statically linked into cv2.so (the recipe downloads it from the Fedora lookaside cache; download.osgeo.org is the upstream address)",
+      "whatKo": "libtiff 4.4.0 소스 — Pyodide 레시피가 만들어 cv2.so에 정적으로 연결(레시피는 Fedora 보관소에서 받고, 원래 배포처는 download.osgeo.org)",
+      "license": "libtiff"
+    },
+    {
+      "id": "pyodide-recipes-fc85872",
+      "group": "lgpl-ffmpeg",
+      "file": "pyodide-recipes-fc8587207ecbf0fb54305d5da25ab7ed70f126d3.tar.gz",
+      "urls": [
+        "https://github.com/pyodide/pyodide-recipes/archive/fc8587207ecbf0fb54305d5da25ab7ed70f126d3.tar.gz"
+      ],
+      "size": null,
+      "sha256": null,
+      "md5": null,
+      "hashSource": null,
+      "what": "pyodide-recipes at commit fc8587207ecbf0fb54305d5da25ab7ed70f126d3 (release tag 314-20260911, whose pyodide-lock.json is the one of Pyodide 314.0.7): the build recipes, scripts and extras of libffmpeg, opencv-python, libwebp, libtiff and Pillow",
+      "whatKo": "pyodide-recipes 커밋 fc8587207ecbf0fb54305d5da25ab7ed70f126d3(릴리스 314-20260911 — Pyodide 314.0.7 잠금 파일의 레시피): libffmpeg·opencv-python·libwebp·libtiff·Pillow의 빌드 설정·스크립트",
+      "license": "MPL-2.0"
+    },
+    {
+      "id": "pyodide-build-26a30ea",
+      "group": "lgpl-ffmpeg",
+      "file": "pyodide-build-26a30ea0c7274d0f99220c5d54e8938a28afb46c.tar.gz",
+      "urls": [
+        "https://github.com/pyodide/pyodide-build/archive/26a30ea0c7274d0f99220c5d54e8938a28afb46c.tar.gz"
+      ],
+      "size": null,
+      "sha256": null,
+      "md5": null,
+      "hashSource": null,
+      "what": "pyodide-build at commit 26a30ea0c7274d0f99220c5d54e8938a28afb46c - the build tool that the recipes commit pins as a git submodule (GitHub archives leave submodules out)",
+      "whatKo": "pyodide-build 커밋 26a30ea0c7274d0f99220c5d54e8938a28afb46c — 레시피 커밋이 하위 모듈로 고정한 빌드 도구(GitHub 압축은 하위 모듈을 빼서 따로 받아요)",
+      "license": "MPL-2.0"
+    },
+    {
+      "id": "pagefind-1.5.2",
+      "group": "gpl-pagefind",
+      "file": "pagefind-1.5.2.tar.gz",
+      "urls": [
+        "https://github.com/Pagefind/pagefind/archive/refs/tags/v1.5.2.tar.gz"
+      ],
+      "size": null,
+      "sha256": null,
+      "md5": null,
+      "hashSource": null,
+      "what": "Pagefind v1.5.2 source (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96): pagefind_web (the search engine compiled to wasm) with its Cargo.toml, Cargo.lock and build scripts",
+      "whatKo": "Pagefind v1.5.2 소스(커밋 bf17396721be637cc67c8ed7ead1dc7b8ac43d96): wasm으로 만드는 검색 엔진 pagefind_web과 Cargo.toml·Cargo.lock·빌드 스크립트",
+      "license": "MIT"
+    },
+    {
+      "id": "crate-pagefind_microjson-0.1.4",
+      "group": "gpl-pagefind",
+      "file": "pagefind_microjson-0.1.4.crate",
+      "urls": [
+        "https://static.crates.io/crates/pagefind_microjson/pagefind_microjson-0.1.4.crate",
+        "https://crates.io/api/v1/crates/pagefind_microjson/0.1.4/download"
+      ],
+      "size": null,
+      "sha256": "8f97aa64cde14e78d6274c473f36cec98d401f0b583282055e953d2df907e210",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "pagefind_microjson 0.1.4 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 pagefind_microjson 0.1.4 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "GPL-3.0-only",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-bit-set-0.10.0",
+      "group": "gpl-pagefind",
+      "file": "bit-set-0.10.0.crate",
+      "urls": [
+        "https://static.crates.io/crates/bit-set/bit-set-0.10.0.crate",
+        "https://crates.io/api/v1/crates/bit-set/0.10.0/download"
+      ],
+      "size": null,
+      "sha256": "09ec2f926cc3060f09db9ebc5b52823d85268d24bb917e472c0c4bea35780a7d",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "bit-set 0.10.0 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 bit-set 0.10.0 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "Apache-2.0 OR MIT",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-bit-vec-0.9.1",
+      "group": "gpl-pagefind",
+      "file": "bit-vec-0.9.1.crate",
+      "urls": [
+        "https://static.crates.io/crates/bit-vec/bit-vec-0.9.1.crate",
+        "https://crates.io/api/v1/crates/bit-vec/0.9.1/download"
+      ],
+      "size": null,
+      "sha256": "b71798fca2c1fe1086445a7258a4bc81e6e49dcd24c8d0dd9a1e57395b603f51",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "bit-vec 0.9.1 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 bit-vec 0.9.1 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "Apache-2.0 OR MIT",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-cfg-if-1.0.4",
+      "group": "gpl-pagefind",
+      "file": "cfg-if-1.0.4.crate",
+      "urls": [
+        "https://static.crates.io/crates/cfg-if/cfg-if-1.0.4.crate",
+        "https://crates.io/api/v1/crates/cfg-if/1.0.4/download"
+      ],
+      "size": null,
+      "sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "cfg-if 1.0.4 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 cfg-if 1.0.4 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-minicbor-2.2.1",
+      "group": "gpl-pagefind",
+      "file": "minicbor-2.2.1.crate",
+      "urls": [
+        "https://static.crates.io/crates/minicbor/minicbor-2.2.1.crate",
+        "https://crates.io/api/v1/crates/minicbor/2.2.1/download"
+      ],
+      "size": null,
+      "sha256": "e70eae6d4f18f7d76877fe7b13f0bc21f7c2b7239d2041c338335f7b388d0dd7",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "minicbor 2.2.1 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 minicbor 2.2.1 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "BlueOak-1.0.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-once_cell-1.21.4",
+      "group": "gpl-pagefind",
+      "file": "once_cell-1.21.4.crate",
+      "urls": [
+        "https://static.crates.io/crates/once_cell/once_cell-1.21.4.crate",
+        "https://crates.io/api/v1/crates/once_cell/1.21.4/download"
+      ],
+      "size": null,
+      "sha256": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "once_cell 1.21.4 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 once_cell 1.21.4 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-pagefind_stem-1.0.0",
+      "group": "gpl-pagefind",
+      "file": "pagefind_stem-1.0.0.crate",
+      "urls": [
+        "https://static.crates.io/crates/pagefind_stem/pagefind_stem-1.0.0.crate",
+        "https://crates.io/api/v1/crates/pagefind_stem/1.0.0/download"
+      ],
+      "size": null,
+      "sha256": "8dfa810b158f3ac364e5acd43ca4a6020a6e729d40c15ce1bed1d911237a52e5",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "pagefind_stem 1.0.0 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 pagefind_stem 1.0.0 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-serde_core-1.0.228",
+      "group": "gpl-pagefind",
+      "file": "serde_core-1.0.228.crate",
+      "urls": [
+        "https://static.crates.io/crates/serde_core/serde_core-1.0.228.crate",
+        "https://crates.io/api/v1/crates/serde_core/1.0.228/download"
+      ],
+      "size": null,
+      "sha256": "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "serde_core 1.0.228 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 serde_core 1.0.228 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-serde-1.0.228",
+      "group": "gpl-pagefind",
+      "file": "serde-1.0.228.crate",
+      "urls": [
+        "https://static.crates.io/crates/serde/serde-1.0.228.crate",
+        "https://crates.io/api/v1/crates/serde/1.0.228/download"
+      ],
+      "size": null,
+      "sha256": "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "serde 1.0.228 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 serde 1.0.228 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-wasm-bindgen-0.2.117",
+      "group": "gpl-pagefind",
+      "file": "wasm-bindgen-0.2.117.crate",
+      "urls": [
+        "https://static.crates.io/crates/wasm-bindgen/wasm-bindgen-0.2.117.crate",
+        "https://crates.io/api/v1/crates/wasm-bindgen/0.2.117/download"
+      ],
+      "size": null,
+      "sha256": "0551fc1bb415591e3372d0bc4780db7e587d84e2a7e79da121051c5c4b89d0b0",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "wasm-bindgen 0.2.117 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 wasm-bindgen 0.2.117 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-wasm-bindgen-shared-0.2.117",
+      "group": "gpl-pagefind",
+      "file": "wasm-bindgen-shared-0.2.117.crate",
+      "urls": [
+        "https://static.crates.io/crates/wasm-bindgen-shared/wasm-bindgen-shared-0.2.117.crate",
+        "https://crates.io/api/v1/crates/wasm-bindgen-shared/0.2.117/download"
+      ],
+      "size": null,
+      "sha256": "39129a682a6d2d841b6c429d0c51e5cb0ed1a03829d8b3d1e69a011e62cb3d3b",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "wasm-bindgen-shared 0.2.117 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 wasm-bindgen-shared 0.2.117 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-write-json-0.1.4",
+      "group": "gpl-pagefind",
+      "file": "write-json-0.1.4.crate",
+      "urls": [
+        "https://static.crates.io/crates/write-json/write-json-0.1.4.crate",
+        "https://crates.io/api/v1/crates/write-json/0.1.4/download"
+      ],
+      "size": null,
+      "sha256": "23f6174b2566cc4a74f95e1367ec343e7fa80c93cc8087f5c4a3d6a1088b2118",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "write-json 0.1.4 (crates.io) - compiled into the search wasm",
+      "whatKo": "크레이트 write-json 0.1.4 — 검색 엔진 wasm에 함께 컴파일됨",
+      "license": "MIT OR Apache-2.0",
+      "use": "wasm"
+    },
+    {
+      "id": "crate-bumpalo-3.20.2",
+      "group": "gpl-pagefind",
+      "file": "bumpalo-3.20.2.crate",
+      "urls": [
+        "https://static.crates.io/crates/bumpalo/bumpalo-3.20.2.crate",
+        "https://crates.io/api/v1/crates/bumpalo/3.20.2/download"
+      ],
+      "size": null,
+      "sha256": "5d20789868f4b01b2f2caec9f5c4e0213b41e3e5702a50157d699ae31ced2fcb",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "bumpalo 3.20.2 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 bumpalo 3.20.2 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-proc-macro2-1.0.106",
+      "group": "gpl-pagefind",
+      "file": "proc-macro2-1.0.106.crate",
+      "urls": [
+        "https://static.crates.io/crates/proc-macro2/proc-macro2-1.0.106.crate",
+        "https://crates.io/api/v1/crates/proc-macro2/1.0.106/download"
+      ],
+      "size": null,
+      "sha256": "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "proc-macro2 1.0.106 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 proc-macro2 1.0.106 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-quote-1.0.45",
+      "group": "gpl-pagefind",
+      "file": "quote-1.0.45.crate",
+      "urls": [
+        "https://static.crates.io/crates/quote/quote-1.0.45.crate",
+        "https://crates.io/api/v1/crates/quote/1.0.45/download"
+      ],
+      "size": null,
+      "sha256": "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "quote 1.0.45 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 quote 1.0.45 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-rustversion-1.0.22",
+      "group": "gpl-pagefind",
+      "file": "rustversion-1.0.22.crate",
+      "urls": [
+        "https://static.crates.io/crates/rustversion/rustversion-1.0.22.crate",
+        "https://crates.io/api/v1/crates/rustversion/1.0.22/download"
+      ],
+      "size": null,
+      "sha256": "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "rustversion 1.0.22 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 rustversion 1.0.22 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-serde_derive-1.0.228",
+      "group": "gpl-pagefind",
+      "file": "serde_derive-1.0.228.crate",
+      "urls": [
+        "https://static.crates.io/crates/serde_derive/serde_derive-1.0.228.crate",
+        "https://crates.io/api/v1/crates/serde_derive/1.0.228/download"
+      ],
+      "size": null,
+      "sha256": "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "serde_derive 1.0.228 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 serde_derive 1.0.228 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-syn-2.0.117",
+      "group": "gpl-pagefind",
+      "file": "syn-2.0.117.crate",
+      "urls": [
+        "https://static.crates.io/crates/syn/syn-2.0.117.crate",
+        "https://crates.io/api/v1/crates/syn/2.0.117/download"
+      ],
+      "size": null,
+      "sha256": "e665b8803e7b1d2a727f4023456bbbbe74da67099c585258af0ad9c5013b9b99",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "syn 2.0.117 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 syn 2.0.117 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-unicode-ident-1.0.24",
+      "group": "gpl-pagefind",
+      "file": "unicode-ident-1.0.24.crate",
+      "urls": [
+        "https://static.crates.io/crates/unicode-ident/unicode-ident-1.0.24.crate",
+        "https://crates.io/api/v1/crates/unicode-ident/1.0.24/download"
+      ],
+      "size": null,
+      "sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "unicode-ident 1.0.24 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 unicode-ident 1.0.24 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-wasm-bindgen-macro-0.2.117",
+      "group": "gpl-pagefind",
+      "file": "wasm-bindgen-macro-0.2.117.crate",
+      "urls": [
+        "https://static.crates.io/crates/wasm-bindgen-macro/wasm-bindgen-macro-0.2.117.crate",
+        "https://crates.io/api/v1/crates/wasm-bindgen-macro/0.2.117/download"
+      ],
+      "size": null,
+      "sha256": "7fbdf9a35adf44786aecd5ff89b4563a90325f9da0923236f6104e603c7e86be",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "wasm-bindgen-macro 0.2.117 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 wasm-bindgen-macro 0.2.117 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    },
+    {
+      "id": "crate-wasm-bindgen-macro-support-0.2.117",
+      "group": "gpl-pagefind",
+      "file": "wasm-bindgen-macro-support-0.2.117.crate",
+      "urls": [
+        "https://static.crates.io/crates/wasm-bindgen-macro-support/wasm-bindgen-macro-support-0.2.117.crate",
+        "https://crates.io/api/v1/crates/wasm-bindgen-macro-support/0.2.117/download"
+      ],
+      "size": null,
+      "sha256": "dca9693ef2bab6d4e6707234500350d8dad079eb508dca05530c85dc3a529ff2",
+      "md5": null,
+      "hashSource": "pagefind_web/Cargo.lock at Pagefind v1.5.2 (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96, git blob 1c15fdf002b0757782091e5a822f1ee7fdd5bbb4); the same checksum is on crates.io",
+      "what": "wasm-bindgen-macro-support 0.2.117 (crates.io) - used only while building the wasm (procedural macro or its dependency)",
+      "whatKo": "크레이트 wasm-bindgen-macro-support 0.2.117 — wasm을 만들 때만 쓰는 매크로(또는 그 의존)",
+      "license": "MIT OR Apache-2.0",
+      "use": "build"
+    }
+  ]
+}
