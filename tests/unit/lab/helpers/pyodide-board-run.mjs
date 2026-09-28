@@ -254,8 +254,26 @@ await step(
 
 await step(
   'polling_without_sleep',
-  ['from machine import Pin', 'b = Pin(0, Pin.IN)', 'led = Pin(2, Pin.OUT)', 'n = 0', 'while b.value() == 1:', '    n += 1', 'led.on()', '[n > 0, led.value()]'].join('\n'),
-  { inputs: { pins: { 0: 'pullup' } }, during: [[80, () => bridge.pushEvent('board.input', { pin: 0, drive: 0 })]] },
+  [
+    'from machine import Pin',
+    'import apc_runtime',
+    'b = Pin(0, Pin.IN)',
+    'led = Pin(2, Pin.OUT)',
+    'n = 0',
+    "apc_runtime.emit('board.device', {'mark': 'loop'})",
+    'while b.value() == 1:',
+    '    n += 1',
+    'led.on()',
+    '[n > 0, led.value()]',
+  ].join('\n'),
+  {
+    inputs: { pins: { 0: 'pullup' } },
+    // 반복문(sleep 없음 — f015 모양) 바로 앞의 표시를 받은 뒤 80ms에 버튼을 누른다. 전에는 단계 시작부터 80ms라서, 바쁜 컴퓨터에서
+    // 실행 준비가 80ms를 넘으면 반복문에 들어가기 전에 이미 눌려 n = 0이 됐다(2026-09-28 최종 검증에서 한 번 — 코드 진행에 맞춰 흔들림을 없앰).
+    onMark: (mark) => {
+      if (mark === 'loop') setTimeout(() => bridge.pushEvent('board.input', { pin: 0, drive: 0 }), 80);
+    },
+  },
 );
 
 await step(

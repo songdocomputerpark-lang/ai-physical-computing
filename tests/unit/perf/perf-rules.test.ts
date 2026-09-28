@@ -83,9 +83,12 @@ describe('무거운 라이브러리 알아보기', () => {
       return;
     }
     const chunks = fs.readdirSync(dir).filter((file) => file.endsWith('.js'));
+    // 청크마다 한 번만 읽는다. 전에는 표식마다 모든 청크를 다시 읽어(청크 105개 × 표식 7개 = 735번, 약 24MB) 바쁜 컴퓨터에서
+    // 기본 제한 5초를 넘겼다(2026-09-28 최종 검증에서 6.5초 — 검사 내용은 그대로, 읽는 횟수만 줄임).
+    const bodies = new Map(chunks.map((file) => [file, fs.readFileSync(path.join(dir, file), 'utf8')]));
     for (const library of HEAVY_LIBRARIES) {
       for (const marker of library.markers) {
-        const holders = chunks.filter((file) => fs.readFileSync(path.join(dir, file), 'utf8').includes(marker));
+        const holders = chunks.filter((file) => bodies.get(file)?.includes(marker));
         // 표식이 든 청크는 모두 실습실 쪽 청크여야 한다 — 학습 페이지가 받는 공용 청크(url·BaseLayout·차시 스크립트)에 없어야 한다
         for (const holder of holders) {
           expect(holder, `${library.id} 표식 "${marker}"`).not.toMatch(/^(?:url|BaseLayout|LessonBody|LessonPresent|_unit_|_lesson_|SearchPage|QuickCheck|korean|storage|details)[.]/u);
