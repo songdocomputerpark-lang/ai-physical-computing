@@ -8,7 +8,17 @@
  * - 브라우저는 **WebSocket(wss://)** 으로만 MQTT를 쓴다. 사이트가 https라서 ws://(암호화 없음)는 브라우저가 막는다.
  * - 경로(`/mqtt`)가 필요한 브로커가 있다. 공식 안내로 확인한 것만 `verified: true`로 두고, 확인하지 못한 것은
  *   `verified: false`와 까닭을 적는다(추측으로 기본값을 만들지 않는다 — CLAUDE.md 작업 규칙).
+ *   `verified: true`인 주소는 점검 페이지(`/start/check/`)의 연결 시험 항목에도 저절로 들어간다(src/components/start/network-check/items.ts).
  * - 목록에 없는 주소는 [주소 직접 입력]으로 넣는다.
+ *
+ * HiveMQ 확인 기록(2026-09-28, PROGRESS 미해결 135 — 판 1.1.0)
+ * - 주소·포트: HiveMQ가 운영하는 공개 브로커 안내 https://www.mqtt-dashboard.com/ ("HiveMQ Public Broker")의 연결 표 —
+ *   Host `broker.hivemq.com`, TLS Websocket Port `8884`(암호화 없는 Websocket Port 8000은 https 사이트에서 막혀 쓰지 않는다).
+ * - 경로: HiveMQ 공식 웹 클라이언트 https://www.hivemq.com/demos/websocket-client/ (소스 github.com/hivemq/hivemq-mqtt-web-client,
+ *   Apache-2.0)가 SSL을 켜면 `["wss://", host, ":", port, "/mqtt"]`로 주소를 만든다(js/mqttws31.js `_doConnect`). 이 데모의 기본값도
+ *   포트 8884·SSL 켬이다. HiveMQ 문서의 WebSocket 리스너 예(docs.hivemq.com … listeners.html)도 `<path>/mqtt</path>`다.
+ * - 실제 연결 시험(같은 날, MQTT 3.1.1 CONNECT만 보내고 발행·구독 없음): `wss://broker.hivemq.com:8884/mqtt`는 CONNACK(20 02 00 00)이
+ *   1.8초 만에 오고, 경로 `/`·`/nope`는 10초 동안 답이 없었다 — 경로가 꼭 `/mqtt`여야 한다.
  */
 import { mqttText, MqttError } from './messages.ts';
 
@@ -51,8 +61,8 @@ export const MQTT_BROKERS: readonly MqttBrokerOption[] = Object.freeze([
     id: 'hivemq',
     label: 'HiveMQ 공개 브로커',
     url: 'wss://broker.hivemq.com:8884/mqtt',
-    verified: false,
-    note: '연결되지 않으면 다른 서버를 골라요(경로 /mqtt는 아직 공식 문서로 확인하지 못했어요).',
+    verified: true,
+    note: 'HiveMQ가 학습·시험용으로 여는 공개 서버예요. 주소는 HiveMQ 공식 안내로 확인했어요.',
   }),
   Object.freeze({
     id: CUSTOM_BROKER_ID,

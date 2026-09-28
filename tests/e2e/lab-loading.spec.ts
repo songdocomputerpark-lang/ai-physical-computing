@@ -6,6 +6,7 @@
 //   스스로 건너뛰고(아래 hasServiceWorkerFile), 진행률 패널·1분 개념 카드·비상구(?sw=off)만 확인한다.
 import { expect, test, type Page } from '@playwright/test';
 import { findPyodideFile } from '../../src/lab/loader/pyodide-files.ts';
+import { MQTT_BROKERS } from '../../src/lab/mqtt/brokers.ts';
 import { PYODIDE_VERSION } from '../../src/lab/runtime/config.ts';
 import { withBase } from '../../src/lib/url.ts';
 import { LOAD_TIMEOUT, labRoot } from './helpers/lab.ts';
@@ -392,7 +393,11 @@ test.describe('네트워크 점검(시작하기 > 점검)', () => {
     // 그 문서의 연결은 진짜 서버로 나간다(2026-09-24 통합 검사에서 실제로 그렇게 나간 것을 보고 고침).
     const sockets: string[] = [];
     const socketMessages: string[] = [];
-    await page.routeWebSocket(/^wss:\/\/(?:broker\.emqx\.io|test\.mosquitto\.org)/u, (socket) => {
+    // 가로챌 서버는 brokers.ts에서 공식 안내로 확인한(verified) wss:// 주소 전부 — 새 서버가 확인되면 이 검사도 저절로 따라간다
+    // (판 1.1.0에서 HiveMQ가 더해졌을 때 옛 정규식이 HiveMQ를 가로채지 않아 진짜 서버에 붙을 뻔했다 — 미해결 135·146).
+    const checkedBrokers = MQTT_BROKERS.filter((broker) => broker.verified && broker.url.startsWith('wss://'));
+    const checkedHosts = checkedBrokers.map((broker) => new URL(broker.url).host);
+    await page.routeWebSocket((url) => url.protocol === 'wss:' && checkedHosts.includes(url.host), (socket) => {
       sockets.push(socket.url());
       socket.onMessage((message) => socketMessages.push(String(message)));
     });
@@ -418,10 +423,11 @@ test.describe('네트워크 점검(시작하기 > 점검)', () => {
     await expect(root).toHaveAttribute('data-state', 'done', { timeout: 60_000 });
     await expect(page.locator('[data-network-item="pyodide-cdn"]')).toHaveAttribute('data-status', /ok|blocked|unknown/u);
     await expect(page.locator('[data-network-item="pyodide-site"]')).toHaveAttribute('data-status', /ok|unknown/u);
-    for (const id of ['mqtt-emqx', 'mqtt-mosquitto']) {
+    for (const id of checkedBrokers.map((broker) => `mqtt-${broker.id}`)) {
       await expect(page.locator(`[data-network-item="${id}"]`)).toHaveAttribute('data-status', 'ok');
     }
-    expect(sockets.map((url) => new URL(url).host).sort()).toEqual(['broker.emqx.io:8084', 'test.mosquitto.org:8081']);
+    expect(checkedBrokers.map((broker) => broker.id)).toEqual(expect.arrayContaining(['emqx', 'mosquitto', 'hivemq']));
+    expect(sockets.map((url) => new URL(url).host).sort()).toEqual([...checkedHosts].sort());
     expect(socketMessages).toEqual([]);
     // 누른 뒤에도 파일은 jsDelivr에서만 받았다(그 밖의 사이트로는 나가지 않는다).
     expect(outside.every((url) => url.startsWith('https://cdn.jsdelivr.net/'))).toBe(true);

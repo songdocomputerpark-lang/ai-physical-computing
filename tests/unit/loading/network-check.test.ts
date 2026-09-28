@@ -68,8 +68,11 @@ describe('점검 항목', () => {
       // 막혀도 수업은 된다는 것(같은 컴퓨터 탭)을 대처에 적는다
       expect(item.advice, item.id).toContain('같은 컴퓨터 탭');
     }
-    // 경로를 확인하지 못한 서버(HiveMQ)는 시험하지 않는다 — 잘못 "막힘"으로 보일 수 있어서
-    expect(NETWORK_CHECK_ITEMS.some((item) => item.websocket?.url.includes('hivemq'))).toBe(false);
+    // 경로를 확인하지 못한 서버(verified: false)는 시험하지 않는다 — 잘못 "막힘"으로 보일 수 있어서.
+    // HiveMQ는 2026-09-28 공식 안내로 경로(/mqtt)·포트(8884)를 확인해 항목에 들어온다(미해결 135 — src/lab/mqtt/brokers.ts 머리말)
+    expect(NETWORK_CHECK_ITEMS.some((item) => item.websocket?.url === 'wss://broker.hivemq.com:8884/mqtt')).toBe(true);
+    const unverified = MQTT_BROKERS.filter((broker) => !broker.verified && broker.url !== '').map((broker) => broker.url);
+    expect(NETWORK_CHECK_ITEMS.filter((item) => item.websocket !== undefined && unverified.includes(item.websocket.url))).toEqual([]);
   });
 });
 

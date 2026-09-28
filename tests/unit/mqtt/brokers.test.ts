@@ -30,9 +30,17 @@ describe('브로커 목록', () => {
     }
   });
 
-  it('확인하지 못한 주소는 verified가 거짓이다(추측으로 기본값을 만들지 않는다)', () => {
-    expect(brokerById('hivemq')?.verified).toBe(false);
+  it('공식 안내로 확인한 주소만 verified가 참이다(추측으로 기본값을 만들지 않는다)', () => {
     expect(brokerById('mosquitto')?.verified).toBe(true);
+    // HiveMQ: 공개 브로커 안내(포트 8884)와 공식 웹 클라이언트(경로 /mqtt)로 확인했다(2026-09-28, 미해결 135 — brokers.ts 머리말)
+    expect(brokerById('hivemq')?.verified).toBe(true);
+    expect(brokerById('hivemq')?.url).toBe('wss://broker.hivemq.com:8884/mqtt');
+    // 직접 입력 칸은 주소가 없어 확인할 것이 없다
+    expect(brokerById(CUSTOM_BROKER_ID)?.verified).toBe(false);
+    // 확인했다는 서버의 안내 글은 "확인하지 못했어요"라고 말하지 않는다(글과 값이 어긋나지 않게)
+    for (const broker of MQTT_BROKERS.filter((item) => item.verified)) {
+      expect(broker.note, broker.id).not.toContain('확인하지 못했');
+    }
   });
 
   it('주소로도 찾는다', () => {
