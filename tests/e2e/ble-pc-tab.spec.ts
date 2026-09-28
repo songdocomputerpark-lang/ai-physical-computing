@@ -12,6 +12,8 @@
  *  2. 보드가 `ble.send()`(알림)로 보낸 값이 컴퓨터 탭 콘솔에 원본처럼 찍힌다(bluetooth.py _notification_handler 자리).
  *  3. 보드 탭이 [실행] 전이면 이어지지 않는다(실물 보드도 코드가 돌아야 광고한다) — connected가 거짓이고 보내지 않는다.
  *  4. 영상처리 실습실에서 bluetooth 코드를 열면(같은 문서에 보드가 없으니) [보내기] 패널이 열려 [ESP32 실습실 새 탭에서 열기]가 보인다.
+ *     패널 소개·예제 설명·실습 방법은 두 탭 블루투스 흐름을 말하고 "가상 USB-UART 변환기"를 말하지 않는다(1.1.0 교실 사용성 검토 지적 3).
+ *  (3번) 이어지기 전에는 출력 화면 아래에 "블루투스: 아직 이을 보드가 없어서…" 줄이 남는다(지적 10), 이어지면(1번) 없다.
  *
  * 돌리는 법(개발 서버): PW_BASE_URL=http://localhost:5002/ai-physical-computing/ npx playwright test tests/e2e/ble-pc-tab.spec.ts --project=desktop --workers=1
  */
@@ -183,6 +185,11 @@ test.describe('컴퓨터 쪽 bluetooth 흉내 → 다른 탭의 ESP32 실습실(
     await expect(labRoot(page)).toHaveAttribute('data-ble-pc-sent', '0');
     // 보드가 없다고 한 번 알리고(보드 쪽을 여는 길을 알려 준다), 연결 전 보내기는 원본처럼 한 줄
     expect(pcText).toContain('[ESP32 실습실 새 탭에서 열기]');
+    // 콘솔 안내는 print 줄 사이에 묻히므로 출력 화면 아래에도 한 줄 — 코드가 끝나도 이어진 적이 없으면 남는다
+    const waiting = page.locator('[data-ble-pc-waiting]');
+    await expect(waiting).toBeVisible();
+    await expect(waiting).toContainText('블루투스: 아직 이을 보드가 없어서 값을 보내지 않아요');
+    await expect(waiting).toContainText('[ESP32 실습실 새 탭에서 열기]');
     await expect(consoleOf(board)).not.toContainText('수신 데이터');
     await board.close();
   });
@@ -193,5 +200,18 @@ test.describe('컴퓨터 쪽 bluetooth 흉내 → 다른 탭의 ESP32 실습실(
     await expect(page.locator('[data-bridge-open-tab]')).toBeVisible();
     // 짝 보드 예제를 먼저 골라 둔다(3-1-3 블루투스 보드 쪽)
     await expect(page.locator('[data-bridge-board-example]')).toHaveValue('esp32/u3/3-1-3-ble-xy-rgb.py');
+    // 패널 소개·도움말은 선이 실어 나르는 것(가상 블루투스)에 맞춘다 — 블루투스를 배우는 화면에서 "USB-UART"·uart.readline()을 말하지 않는다
+    const panel = page.locator('[data-bridge-panel]');
+    await expect(panel).toHaveAttribute('data-bridge-carry', 'ble');
+    const intro = panel.locator('.bridge__intro:visible');
+    await expect(intro).toHaveCount(1);
+    await expect(intro).toContainText('블루투스 코드');
+    await expect(intro).toContainText('ESP32BLE.read()');
+    await expect(intro).not.toContainText('USB-UART');
+    await expect(panel.locator('.bridge__hint:visible')).not.toContainText('uart.readline()');
+    // 예제 설명 한 줄과 실습 방법 상자도 두 탭 흐름([ESP32 실습실 새 탭에서 열기])을 말한다
+    await expect(page.locator('[data-lab-example-description]')).toContainText('[ESP32 실습실 새 탭에서 열기]');
+    await expect(page.locator('[data-lab-example-description]')).not.toContainText('영상처리 실습실에서만 돌리면');
+    await expect(page.locator('[data-vision-practice-steps] li').first()).toContainText('[ESP32 실습실 새 탭에서 열기]');
   });
 });

@@ -684,6 +684,26 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     display: none;
   }
 
+  /*
+   * 흉내 모듈이 입력·출력 칸 아래에 띄우는 한 줄(스크립트가 만든다 — :global). 예: 컴퓨터 쪽 블루투스가 아직 이을 보드를 찾지 못함
+   * (src/lab/modules/ble-pc/index.ts — 1.1.0 검토 반영). 주의 상자 색(대비 AA — 까만 화면 안내와 같은 토큰).
+   */
+  .lab :global(.lab__module-note) {
+    margin-block: var(--space-3) 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-warning-border);
+    border-inline-start-width: 4px;
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lab :global(.lab__module-note[hidden]) {
+    display: none;
+  }
+
   .lab__io-output-head {
     display: flex;
     flex-wrap: wrap;

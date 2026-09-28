@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import YAML from 'yaml';
 import { examplePathForSidecar, parseExampleSidecar, readExampleSidecars } from '../../../src/lab/controls/example-sidecar.ts';
 import { validateExamples } from '../../../src/lab/controls/examples.ts';
 import { EXAMPLE_GROUPS, exampleGroupKey, exampleGroupLabel, visionExamplesFromFiles } from '../../../src/lab/vision/examples.ts';
@@ -62,6 +63,34 @@ describe('사이드카 읽기', () => {
     const sidecars = readExampleSidecars({ '/examples/vision/u1/a.meta.yaml': 'title: 제목\n', '/examples/vision/readme.yaml': 'x: 1' });
     expect(Object.keys(sidecars)).toEqual(['/examples/vision/u1/a.py']);
     expect(() => readExampleSidecars({ '/examples/vision/u1/b.meta.yaml': 'title: [\n' })).toThrow(/b\.meta\.yaml/u);
+  });
+});
+
+describe('저장소 사이드카의 YAML 함정', () => {
+  it('practice·tags 줄이 모두 글자다 — 따옴표 없는 글 속 "낱말: "은 YAML이 이름표로 읽어 그 줄이 사라진다(1.1.0 검토 반영 중 5곳 발견)', () => {
+    const problems: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+        } else if (entry.name.endsWith('.meta.yaml')) {
+          const data = YAML.parse(fs.readFileSync(full, 'utf8')) as Record<string, unknown> | null;
+          for (const key of ['practice', 'tags'] as const) {
+            const list = data?.[key];
+            if (Array.isArray(list)) {
+              list.forEach((line, index) => {
+                if (typeof line !== 'string') {
+                  problems.push(`${path.relative(ROOT, full)} ${key}[${index}] — 줄 전체를 작은따옴표로 감싸요`);
+                }
+              });
+            }
+          }
+        }
+      }
+    };
+    walk(path.join(ROOT, 'examples'));
+    expect(problems).toEqual([]);
   });
 });
 

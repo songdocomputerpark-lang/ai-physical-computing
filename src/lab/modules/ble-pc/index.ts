@@ -21,8 +21,12 @@
  *     받는 쪽 ESP32 실습실의 vision-bridge가 그 바이트를 가상 블루투스에 넣고(`apc:ble-write`), 보드의 알림을 같은 줄기로 돌려보낸다.
  *     "이어짐"은 그 탭이 선에 보이고 보드 코드가 **돌고 있을 때**(보드 탭이 알려 오는 실행 상태)다 — 보드가 멈춰 있으면 실물처럼 이어지지 않는다.
  *
+ * 이어지기 전 안내 줄(1.1.0 검토 반영): bluetooth.init 뒤 아직 이어지지 않았으면 입력·출력 칸 아래에 "블루투스: 아직 이을 보드가 없어요 — …"
+ * 한 줄([data-ble-pc-waiting], role=status)을 이어질 때까지 보인다. 콘솔 안내는 한 번뿐이라, 원본 코드가 매 장 찍는 print("Sent: …") 사이에
+ * 묻혀 보내는 중처럼 보였다. 이어지면·다음 [실행]을 시작하면 숨는다(코드가 끝나도 이어진 적이 없으면 남겨 까닭을 알린다).
+ *
  * 테스트가 읽는 값: 실습실 뿌리 [data-lab]의 data-ble-pc(닫힘 closed / 열림 open), data-ble-pc-connected,
- * data-ble-pc-sent(실제로 나간 줄 수), data-ble-pc-received(받은 바이트 수), data-ble-pc-target(virtual·real·tab).
+ * data-ble-pc-sent(실제로 나간 줄 수), data-ble-pc-received(받은 바이트 수), data-ble-pc-target(virtual·real·tab), 안내 줄 [data-ble-pc-waiting].
  */
 import {
   TAB_CHANNEL_ID,
@@ -89,6 +93,15 @@ export function noPeerNotice(present = true): string {
     '두 칸을 한 화면에서 함께 보려면 "4단원 통합 실습실"에서 돌려요.',
     '이어지기 전에는 좌표를 보내지 않아요(원본 코드도 연결이 없으면 보내지 않아요).',
   ].join(' ');
+}
+
+/**
+ * 이어지기 전 안내 줄의 글(입력·출력 칸 아래 — 머리말). present: 같은 화면에 가상 보드의 블루투스 조작 칸이 있나(4단원 통합 화면).
+ */
+export function waitingLineText(present: boolean): string {
+  return present
+    ? '블루투스: 아직 보드와 이어지지 않았어요 — 보드 칸에서 보드 코드를 [실행]하고 블루투스 조작 칸의 [연결]을 누르면 그때부터 값이 나가요.'
+    : '블루투스: 아직 이을 보드가 없어서 값을 보내지 않아요 — [보내기] 패널의 [ESP32 실습실 새 탭에서 열기]로 보드 탭을 열고 그 탭에서 [실행]을 눌러요.';
 }
 
 /** 기기 주소를 적은 코드에 내는 안내(§7.3 — 브라우저는 주소로 연결하지 않는다) */
@@ -168,6 +181,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   let received = 0;
   let open = false;
   let toldNoPeer = false;
+  /** 이어지기 전 안내 줄을 보이는 중인가(bluetooth.init 뒤 아직 안 이어짐 — 코드가 끝나도 다음 [실행]까지 남는다) */
+  let waitingShown = false;
   let timer: number | null = null;
 
   root.dataset.blePc = 'closed';
@@ -175,6 +190,40 @@ function mount(context: LabModuleContext): LabModuleHandle {
   root.dataset.blePcSent = '0';
   root.dataset.blePcReceived = '0';
   root.dataset.blePcTarget = 'virtual';
+
+  /** 이어지기 전 안내 줄(머리말) — 처음 쓸 때 만들어 출력 화면 바로 아래에 둔다 */
+  let waitingLine: HTMLElement | null = null;
+  const renderWaiting = (show: boolean, present: boolean): void => {
+    if (!show && waitingLine === null) {
+      return;
+    }
+    if (waitingLine === null) {
+      const io = root.querySelector<HTMLElement>('[data-lab-io]');
+      if (io === null) {
+        return;
+      }
+      waitingLine = document.createElement('p');
+      waitingLine.className = 'lab__module-note';
+      waitingLine.setAttribute('role', 'status');
+      waitingLine.dataset.blePcWaiting = '';
+      waitingLine.hidden = true;
+      // 출력 화면 바로 아래(io 슬롯이 알려 주는 자리 — 실습실 틀의 "콘솔에 결과가 나왔어요" 칸도 이 뒤로 온다), 없으면 입력·출력 칸 끝
+      const anchor = io.querySelector<HTMLElement>('[data-lab-io-output-anchor]');
+      if (anchor !== null) {
+        anchor.after(waitingLine);
+      } else {
+        io.append(waitingLine);
+      }
+      cleanups.push(() => waitingLine?.remove());
+    }
+    const text = waitingLineText(present);
+    if (show && waitingLine.textContent !== text) {
+      waitingLine.textContent = text;
+    }
+    if (waitingLine.hidden === show) {
+      waitingLine.hidden = !show;
+    }
+  };
 
   /** 보드가 알림으로 보낸 바이트 — 지금 보내는 곳(from)에서 온 것만, 그리고 bluetooth.init을 부른 뒤에만 파이썬에 넘긴다 */
   const noteReceived = (from: BlePcTarget, bytes: readonly number[]) => {
@@ -254,7 +303,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
     if (state.connected) {
       toldNoPeer = false;
+      waitingShown = false;
+    } else if (open) {
+      waitingShown = true;
     }
+    renderWaiting(waitingShown && !state.connected, state.present);
   };
 
   /** 통로를 만든다 — 한쪽은 파이썬이 쓰고, 반대쪽은 창 이벤트로 같은 문서의 가상 보드에 닿는다. */
@@ -404,6 +457,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     received = 0;
     open = false;
     toldNoPeer = false;
+    waitingShown = false;
     root.dataset.blePc = 'closed';
     root.dataset.blePcSent = '0';
     root.dataset.blePcReceived = '0';

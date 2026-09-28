@@ -1,7 +1,8 @@
 // 컴퓨터 쪽 bluetooth 흉내(src/lab/modules/ble-pc/index.ts)의 순수 함수 — 판 1.1.0(PROGRESS 미해결 137).
 // 두 탭이 실제로 이어지는 흐름은 브라우저 검사 tests/e2e/ble-pc-tab.spec.ts가 본다(진짜 BroadcastChannel·가상 보드).
 import { describe, expect, it } from 'vitest';
-import { REAL_BOARD_LABEL, TAB_BOARD_LABEL, addressNotice, chooseTarget, noPeerNotice, payloadBytes } from '../../../src/lab/modules/ble-pc/index.ts';
+import { REAL_BOARD_LABEL, TAB_BOARD_LABEL, addressNotice, chooseTarget, noPeerNotice, payloadBytes, waitingLineText } from '../../../src/lab/modules/ble-pc/index.ts';
+import { bridgeCarryOf } from '../../../src/lab/modules/vision-bridge/index.ts';
 
 describe('보낼 곳 고르기(chooseTarget) — 같은 문서의 가상 보드 → 실제 보드 → 다른 탭의 ESP32 실습실', () => {
   it('같은 문서에 가상 보드가 있으면 늘 그 보드(4단원 통합 화면)', () => {
@@ -15,6 +16,34 @@ describe('보낼 곳 고르기(chooseTarget) — 같은 문서의 가상 보드 
 
   it('아무 데도 없으면 같은 문서 통로(아무 데도 닿지 않음 — 원본처럼 연결 전에는 보내지 않는다)', () => {
     expect(chooseTarget({ present: false, real: false, tab: false })).toBe('virtual');
+  });
+});
+
+describe('이어지기 전 안내 줄(waitingLineText — 1.1.0 검토 반영: 출력 화면 아래에 이어질 때까지)', () => {
+  it('보드가 없는 화면은 [보내기] 패널로 보드 탭을 여는 길, 같은 화면에 보드 칸이 있으면 그 칸의 [실행]·[연결]', () => {
+    expect(waitingLineText(false)).toContain('[ESP32 실습실 새 탭에서 열기]');
+    expect(waitingLineText(false)).toContain('값을 보내지 않아요');
+    expect(waitingLineText(true)).toContain('[연결]');
+    for (const text of [waitingLineText(false), waitingLineText(true)]) {
+      expect(text.startsWith('블루투스: ')).toBe(true);
+      expect(text.trim().endsWith('요.')).toBe(true);
+    }
+  });
+});
+
+describe('[보내기] 패널이 실어 나르는 것(bridgeCarryOf — 소개·도움말 글을 고른다, 1.1.0 검토 반영)', () => {
+  it('컴퓨터 쪽: bluetooth만 쓰면 블루투스, serial·bridge를 쓰면 USB-UART', () => {
+    expect(bridgeCarryOf('pc', ['import bluetooth', 'b = bluetooth.init("XX")'].join('\n'))).toBe('ble');
+    expect(bridgeCarryOf('pc', 'import time, bluetooth')).toBe('ble');
+    expect(bridgeCarryOf('pc', 'from bluetooth_lib import init')).toBe('ble');
+    expect(bridgeCarryOf('pc', ['import serial', 'ser = serial.Serial("COM3")'].join('\n'))).toBe('uart');
+    expect(bridgeCarryOf('pc', ['import bridge', 'bridge.send(3)'].join('\n'))).toBe('uart');
+    expect(bridgeCarryOf('pc', 'print(1)')).toBe('uart');
+  });
+
+  it('보드 쪽: ESP32BLE·bluetooth만 쓰면 블루투스, UART를 쓰면 USB-UART', () => {
+    expect(bridgeCarryOf('board', ['import ESP32BLE', 'ble = ESP32BLE.init("ESP32")'].join('\n'))).toBe('ble');
+    expect(bridgeCarryOf('board', ['from machine import UART', 'uart = UART(2, 115200)'].join('\n'))).toBe('uart');
   });
 });
 

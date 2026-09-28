@@ -111,6 +111,17 @@ function sameDocumentBoard(): boolean {
   return typeof document !== 'undefined' && document.querySelector('[data-lab][data-lab-id="esp32"]') !== null;
 }
 
+/**
+ * 선이 실어 나르는 것(패널의 data-bridge-carry — 소개·도움말 글을 고른다, 1.1.0 검토 반영): 'ble'은 블루투스만 쓰는 코드(컴퓨터 쪽 bluetooth
+ * 흉내·보드 쪽 ESP32BLE), 그 밖은 'uart'(serial·bridge·UART — 가상 USB-UART 변환기).
+ */
+export function bridgeCarryOf(role: 'pc' | 'board', code: string): 'ble' | 'uart' {
+  if (role === 'board') {
+    return !BOARD_USE_PATTERN.test(code) && BOARD_BLE_PATTERN.test(code) ? 'ble' : 'uart';
+  }
+  return !PC_USE_PATTERN.test(code) && PC_BLE_PATTERN.test(code) ? 'ble' : 'uart';
+}
+
 /** 영상처리 실습실에서 선([보내기] 패널)을 쓰는 코드인가: serial·bridge, 또는 같은 문서에 보드가 없을 때의 bluetooth */
 export function pcUsesLink(code: string, boardInDocument: boolean): boolean {
   return PC_USE_PATTERN.test(code) || (!boardInDocument && PC_BLE_PATTERN.test(code));
@@ -676,7 +687,17 @@ function mount(context: LabModuleContext): LabModuleHandle {
       void link.connect().then(render);
     }
   };
-  context.onLab('code', ({ code }) => autoConnect(code));
+  // 패널의 소개·도움말은 선이 실어 나르는 것(가상 USB-UART 변환기 / 가상 블루투스)에 맞춘다(bridgeCarryOf — 코드가 바뀔 때마다)
+  const renderCarry = (code: string): void => {
+    if (root !== null) {
+      root.dataset.bridgeCarry = bridgeCarryOf(role, code);
+    }
+  };
+  renderCarry(context.lab.getCode());
+  context.onLab('code', ({ code }) => {
+    renderCarry(code);
+    autoConnect(code);
+  });
   context.onLab('run', () => {
     // 실행을 새로 시작하면 지난 실행에서 밀려 있던 것을 버린다.
     link.reset();
