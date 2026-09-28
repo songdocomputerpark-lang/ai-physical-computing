@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 362" width="360" height="362" role="img" aria-labelledby="title desc">
+<title id="title">I2C 통신: 선 두 개에 여러 장치를 잇고 주소로 부르기</title>
+<desc id="desc">왼쪽 ESP32 보드의 SDA(21번 핀)와 SCL(22번 핀)에서 가로선 두 개가 오른쪽으로 뻗는다. 위 실선은 데이터를 싣는 SDA, 아래 점선은 박자를 맞추는 SCL이다. 두 선에 문자 LCD(주소 0x20)와 OLED(주소 0x3C)가 함께 이어져 있다. 보드는 주소로 장치를 골라 부른다. GND와 VCC 전원선은 따로 잇는다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<rect width="360" height="362" fill="#ffffff"/>
+<rect x="10" y="56" width="116" height="120" rx="12" fill="#22384d"/>
+<line x1="126" y1="96" x2="350" y2="96" stroke="#1f5bd6" stroke-width="4"/>
+<line x1="126" y1="146" x2="350" y2="146" stroke="#7a4a00" stroke-width="4" stroke-dasharray="12 6"/>
+<circle cx="126" cy="96" r="5" fill="#f6d36b"/>
+<circle cx="126" cy="146" r="5" fill="#f6d36b"/>
+<line x1="160" y1="96" x2="160" y2="196" stroke="#1f5bd6" stroke-width="3"/>
+<line x1="190" y1="146" x2="190" y2="196" stroke="#7a4a00" stroke-width="3"/>
+<circle cx="160" cy="96" r="5" fill="#1f5bd6"/>
+<circle cx="190" cy="146" r="5" fill="#7a4a00"/>
+<rect x="136" y="196" width="104" height="70" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<line x1="272" y1="96" x2="272" y2="196" stroke="#1f5bd6" stroke-width="3"/>
+<line x1="302" y1="146" x2="302" y2="196" stroke="#7a4a00" stroke-width="3"/>
+<circle cx="272" cy="96" r="5" fill="#1f5bd6"/>
+<circle cx="302" cy="146" r="5" fill="#7a4a00"/>
+<rect x="248" y="196" width="104" height="70" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<line x1="14" y1="286" x2="50" y2="286" stroke="#1f5bd6" stroke-width="4"/>
+<line x1="14" y1="314" x2="50" y2="314" stroke="#7a4a00" stroke-width="4" stroke-dasharray="12 6"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="180" y="22" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">선 두 개에 장치 여러 개를 잇고,</text>
+<text x="180" y="42" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">주소로 골라 불러요</text>
+<text x="58" y="82" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">ESP32</text>
+<text x="118" y="102" font-size="15" font-weight="700" fill="#ffffff" text-anchor="end">SDA 21</text>
+<text x="118" y="152" font-size="15" font-weight="700" fill="#ffffff" text-anchor="end">SCL 22</text>
+<text x="188" y="225" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">문자 LCD</text>
+<text x="188" y="251" font-size="15" fill="#17191c" text-anchor="middle">주소 0x20</text>
+<text x="300" y="225" font-size="16" font-weight="700" fill="#17191c" text-anchor="middle">OLED</text>
+<text x="300" y="251" font-size="15" fill="#17191c" text-anchor="middle">주소 0x3C</text>
+<text x="58" y="291" font-size="15" fill="#17191c">SDA: 데이터를 실어요</text>
+<text x="58" y="319" font-size="15" fill="#17191c">SCL: 박자를 맞춰요</text>
+<text x="14" y="348" font-size="15" fill="#4a5361">GND, VCC는 따로 이어요</text>
+</g>
+</svg>

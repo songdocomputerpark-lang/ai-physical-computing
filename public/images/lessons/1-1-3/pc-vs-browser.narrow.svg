@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 340" width="360" height="340" role="img" aria-labelledby="title desc">
+<title id="title">진짜 PC에서 개발 환경을 준비하는 순서와 이 사이트 실습실에서 준비하는 순서 비교</title>
+<desc id="desc">왼쪽 "진짜 PC에서(교과서 방식)" 칸: ① 토니 내려받아 설치하기 → ② 패키지 관리에서 라이브러리 설치하기 → ③ 코드 쓰고 실행 단추 누르기 → 카메라 창이 떠요. 오른쪽 "이 사이트 실습실에서" 칸: ① 실습실 열기(설치 없음) → ② 파이썬과 OpenCV를 실습실이 알아서 받아요(처음 한 번) → ③ 코드 쓰고 [실행] 누르기 → 출력 창에 떠요. 아래에 "같은 파이썬 코드가 두 곳에서 돌아요"라고 적혀 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다(그림 설명이 말하는 자리는 그대로 둠). 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="360" height="340" fill="#ffffff"/>
+<rect x="8" y="8" width="168" height="272" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="18" y="60" width="148" height="46" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<line x1="92" y1="106" x2="92" y2="116" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="18" y="122" width="148" height="64" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<line x1="92" y1="186" x2="92" y2="196" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="18" y="202" width="148" height="38" rx="10" fill="#ffffff" stroke="#7b8594"/>
+<rect x="184" y="8" width="168" height="272" rx="14" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<rect x="194" y="60" width="148" height="46" rx="10" fill="#ffffff" stroke="#5b87e0"/>
+<line x1="268" y1="106" x2="268" y2="116" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="194" y="122" width="148" height="64" rx="10" fill="#ffffff" stroke="#5b87e0"/>
+<line x1="268" y1="186" x2="268" y2="196" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="194" y="202" width="148" height="38" rx="10" fill="#ffffff" stroke="#5b87e0"/>
+<rect x="8" y="288" width="344" height="44" rx="12" fill="#1f5bd6"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="92" y="30" font-size="15" font-weight="700" fill="#17191c">진짜 PC에서</text>
+<text x="92" y="48" font-size="15" font-weight="700" fill="#17191c">(교과서 방식)</text>
+<text x="92" y="78.5" font-size="14" fill="#17191c">① 토니 내려받아</text>
+<text x="92" y="97.5" font-size="14" fill="#17191c">설치하기</text>
+<text x="92" y="149.5" font-size="14" fill="#17191c">② 패키지 관리에서</text>
+<text x="92" y="168.5" font-size="14" fill="#17191c">라이브러리 설치하기</text>
+<text x="92" y="226" font-size="14" fill="#17191c">③ 코드 쓰고 ▶ 실행</text>
+<text x="92" y="266" font-size="14" font-weight="700" fill="#4a5361">→ 카메라 창이 떠요</text>
+<text x="268" y="30" font-size="15" font-weight="700" fill="#17191c">이 사이트</text>
+<text x="268" y="48" font-size="15" font-weight="700" fill="#17191c">실습실에서</text>
+<text x="268" y="78.5" font-size="14" fill="#17191c">① 실습실 열기</text>
+<text x="268" y="97.5" font-size="14" fill="#17191c">(설치 없음)</text>
+<text x="268" y="140" font-size="14" fill="#17191c">② 파이썬, OpenCV를</text>
+<text x="268" y="159" font-size="14" fill="#17191c">알아서 받아요</text>
+<text x="268" y="178" font-size="14" fill="#17191c">(처음 한 번)</text>
+<text x="268" y="226" font-size="14" fill="#17191c">③ 코드 쓰고 [실행]</text>
+<text x="268" y="266" font-size="14" font-weight="700" fill="#1a4cb4">→ 출력 창에 떠요</text>
+<text x="180" y="316" font-size="15" font-weight="700" fill="#ffffff">같은 파이썬 코드가 두 곳에서 돌아요</text>
+</g>
+</svg>

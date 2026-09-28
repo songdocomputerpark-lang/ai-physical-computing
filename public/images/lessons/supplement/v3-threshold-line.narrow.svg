@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 226" width="360" height="226" role="img" aria-labelledby="title desc">
+<title id="title">임계값으로 나누기: 픽셀 밝기 12개를 0~255 눈금 위에 놓고 기준 128보다 큰 것은 흰색(255), 나머지는 검은색(0)으로 바꾼 결과</title>
+<desc id="desc">위 줄에 밝기 20부터 250까지 픽셀 12칸이 있고 칸 위에 밝기 숫자가 적혀 있다. 가운데 0부터 255까지 눈금 위에 각 픽셀의 값이 점으로 놓여 있고, 파란 점선이 기준 128을 표시한다. 아래 줄에는 기준보다 큰 픽셀은 255(흰색), 나머지는 0(검은색)으로 바뀐 결과 12칸이 있고 칸 아래에 숫자가 적혀 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 칸을 좁히고 숫자를 칸 밖에 적어 다시 그린 그림이다. 사이트가 직접 그린 그림.</desc>
+<rect width="360" height="226" fill="#ffffff"/>
+<rect x="12" y="24" width="28" height="28" fill="#141414" stroke="#d6dde6"/>
+<rect x="40" y="24" width="28" height="28" fill="#2d2d2d" stroke="#d6dde6"/>
+<rect x="68" y="24" width="28" height="28" fill="#464646" stroke="#d6dde6"/>
+<rect x="96" y="24" width="28" height="28" fill="#5f5f5f" stroke="#d6dde6"/>
+<rect x="124" y="24" width="28" height="28" fill="#6e6e6e" stroke="#d6dde6"/>
+<rect x="152" y="24" width="28" height="28" fill="#7d7d7d" stroke="#d6dde6"/>
+<rect x="180" y="24" width="28" height="28" fill="#828282" stroke="#d6dde6"/>
+<rect x="208" y="24" width="28" height="28" fill="#969696" stroke="#d6dde6"/>
+<rect x="236" y="24" width="28" height="28" fill="#b4b4b4" stroke="#d6dde6"/>
+<rect x="264" y="24" width="28" height="28" fill="#c8c8c8" stroke="#d6dde6"/>
+<rect x="292" y="24" width="28" height="28" fill="#e6e6e6" stroke="#d6dde6"/>
+<rect x="320" y="24" width="28" height="28" fill="#fafafa" stroke="#d6dde6"/>
+<rect x="12" y="98" width="168.7" height="36" fill="#edf1f6"/>
+<rect x="180.7" y="98" width="167.3" height="36" fill="#eaf1fe"/>
+<line x1="12" y1="116" x2="348" y2="116" stroke="#7b8594" stroke-width="2"/>
+<line x1="12" y1="108" x2="12" y2="124" stroke="#7b8594" stroke-width="2"/>
+<line x1="348" y1="108" x2="348" y2="124" stroke="#7b8594" stroke-width="2"/>
+<line x1="26" y1="52" x2="38.4" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="38.4" cy="116" r="5" fill="#141414" stroke="#17191c" stroke-width="1.5"/>
+<line x1="54" y1="52" x2="71.3" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="71.3" cy="116" r="5" fill="#2d2d2d" stroke="#17191c" stroke-width="1.5"/>
+<line x1="82" y1="52" x2="104.2" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="104.2" cy="116" r="5" fill="#464646" stroke="#17191c" stroke-width="1.5"/>
+<line x1="110" y1="52" x2="137.2" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="137.2" cy="116" r="5" fill="#5f5f5f" stroke="#17191c" stroke-width="1.5"/>
+<line x1="138" y1="52" x2="156.9" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="156.9" cy="116" r="5" fill="#6e6e6e" stroke="#17191c" stroke-width="1.5"/>
+<line x1="166" y1="52" x2="176.7" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="176.7" cy="116" r="5" fill="#7d7d7d" stroke="#17191c" stroke-width="1.5"/>
+<line x1="194" y1="52" x2="183.3" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="183.3" cy="116" r="5" fill="#828282" stroke="#17191c" stroke-width="1.5"/>
+<line x1="222" y1="52" x2="209.6" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="209.6" cy="116" r="5" fill="#969696" stroke="#17191c" stroke-width="1.5"/>
+<line x1="250" y1="52" x2="249.2" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="249.2" cy="116" r="5" fill="#b4b4b4" stroke="#17191c" stroke-width="1.5"/>
+<line x1="278" y1="52" x2="275.5" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="275.5" cy="116" r="5" fill="#c8c8c8" stroke="#17191c" stroke-width="1.5"/>
+<line x1="306" y1="52" x2="315.1" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="315.1" cy="116" r="5" fill="#e6e6e6" stroke="#17191c" stroke-width="1.5"/>
+<line x1="334" y1="52" x2="341.4" y2="110" stroke="#b8c1cc" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="341.4" cy="116" r="5" fill="#fafafa" stroke="#17191c" stroke-width="1.5"/>
+<line x1="180.7" y1="88" x2="180.7" y2="162" stroke="#1f5bd6" stroke-width="3" stroke-dasharray="8 5"/>
+<rect x="12" y="172" width="28" height="28" fill="#000000" stroke="#7b8594"/>
+<rect x="40" y="172" width="28" height="28" fill="#000000" stroke="#7b8594"/>
+<rect x="68" y="172" width="28" height="28" fill="#000000" stroke="#7b8594"/>
+<rect x="96" y="172" width="28" height="28" fill="#000000" stroke="#7b8594"/>
+<rect x="124" y="172" width="28" height="28" fill="#000000" stroke="#7b8594"/>
+<rect x="152" y="172" width="28" height="28" fill="#000000" stroke="#7b8594"/>
+<rect x="180" y="172" width="28" height="28" fill="#ffffff" stroke="#7b8594"/>
+<rect x="208" y="172" width="28" height="28" fill="#ffffff" stroke="#7b8594"/>
+<rect x="236" y="172" width="28" height="28" fill="#ffffff" stroke="#7b8594"/>
+<rect x="264" y="172" width="28" height="28" fill="#ffffff" stroke="#7b8594"/>
+<rect x="292" y="172" width="28" height="28" fill="#ffffff" stroke="#7b8594"/>
+<rect x="320" y="172" width="28" height="28" fill="#ffffff" stroke="#7b8594"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="26" y="17" font-size="13" fill="#17191c">20</text>
+<text x="54" y="17" font-size="13" fill="#17191c">45</text>
+<text x="82" y="17" font-size="13" fill="#17191c">70</text>
+<text x="110" y="17" font-size="13" fill="#17191c">95</text>
+<text x="138" y="17" font-size="13" fill="#17191c">110</text>
+<text x="166" y="17" font-size="13" fill="#17191c">125</text>
+<text x="194" y="17" font-size="13" fill="#17191c">130</text>
+<text x="222" y="17" font-size="13" fill="#17191c">150</text>
+<text x="250" y="17" font-size="13" fill="#17191c">180</text>
+<text x="278" y="17" font-size="13" fill="#17191c">200</text>
+<text x="306" y="17" font-size="13" fill="#17191c">230</text>
+<text x="334" y="17" font-size="13" fill="#17191c">250</text>
+<text x="26" y="217" font-size="13" fill="#17191c">0</text>
+<text x="54" y="217" font-size="13" fill="#17191c">0</text>
+<text x="82" y="217" font-size="13" fill="#17191c">0</text>
+<text x="110" y="217" font-size="13" fill="#17191c">0</text>
+<text x="138" y="217" font-size="13" fill="#17191c">0</text>
+<text x="166" y="217" font-size="13" fill="#17191c">0</text>
+<text x="194" y="217" font-size="13" fill="#17191c">255</text>
+<text x="222" y="217" font-size="13" fill="#17191c">255</text>
+<text x="250" y="217" font-size="13" fill="#17191c">255</text>
+<text x="278" y="217" font-size="13" fill="#17191c">255</text>
+<text x="306" y="217" font-size="13" fill="#17191c">255</text>
+<text x="334" y="217" font-size="13" fill="#17191c">255</text>
+<text x="12" y="152" font-size="14" fill="#4a5361" text-anchor="start">0</text>
+<text x="348" y="152" font-size="14" fill="#4a5361" text-anchor="end">255</text>
+<text x="180.7" y="82" font-size="16" font-weight="700" fill="#1f5bd6" stroke="#ffffff" stroke-width="4" paint-order="stroke">128</text>
+</g>
+</svg>

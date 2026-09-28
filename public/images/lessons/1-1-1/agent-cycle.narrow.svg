@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 384" width="360" height="384" role="img" aria-labelledby="title desc">
+<title id="title">에이전트의 구성 요소가 도는 차례(자율주행 자동차 예): 환경 → 센서 → 지능적 처리 → 액추에이터 → 환경, 가운데에 목표</title>
+<desc id="desc">위의 환경(도로, 신호, 차량, 보행자)에서 오른쪽의 센서(카메라, 라이다)가 정보를 모으고, 아래의 지능적 처리(상황 판단, 경로 계획)로 데이터를 보낸다. 지능적 처리는 왼쪽의 액추에이터(핸들, 브레이크)에 행동을 명령하고, 액추에이터가 움직이면 환경이 바뀐다. 가운데의 목표(안전하게 목적지까지)가 지능적 처리의 판단 기준이다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다(그림 설명이 말하는 자리는 그대로 둠). 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="360" height="384" fill="#ffffff"/>
+<g fill="none" stroke="#4a5361" stroke-width="2" stroke-linejoin="round">
+<path d="M280 42 H295 V154" marker-end="url(#arrow)"/>
+<path d="M295 224 V342 H286" marker-end="url(#arrow)"/>
+<path d="M80 342 H65 V230" marker-end="url(#arrow)"/>
+<path d="M65 160 V42 H74" marker-end="url(#arrow)"/>
+</g>
+<line x1="180" y1="234" x2="180" y2="310" stroke="#4a5361" stroke-width="2" stroke-dasharray="5 4"/>
+<rect x="80" y="10" width="200" height="64" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="240" y="160" width="110" height="64" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="80" y="310" width="200" height="64" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="10" y="160" width="110" height="64" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="130" y="150" width="100" height="84" rx="14" fill="#1f5bd6"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<g font-size="14" fill="#4a5361">
+<text x="288" y="112" text-anchor="end">정보 모으기</text>
+<text x="288" y="292" text-anchor="end">데이터 보내기</text>
+<text x="72" y="292">행동 명령</text>
+<text x="72" y="112">환경 바꾸기</text>
+<text x="172" y="262" text-anchor="end">판단의 기준</text>
+</g>
+<g text-anchor="middle">
+<text x="180" y="36" font-size="17" font-weight="700" fill="#17191c">환경</text>
+<text x="180" y="60" font-size="14" fill="#4a5361">도로, 신호, 차량, 보행자</text>
+<text x="295" y="186" font-size="17" font-weight="700" fill="#17191c">센서</text>
+<text x="295" y="210" font-size="14" fill="#4a5361">카메라, 라이다</text>
+<text x="180" y="336" font-size="17" font-weight="700" fill="#17191c">지능적 처리</text>
+<text x="180" y="360" font-size="14" fill="#4a5361">상황 판단, 경로 계획</text>
+<text x="65" y="186" font-size="17" font-weight="700" fill="#17191c">액추에이터</text>
+<text x="65" y="210" font-size="14" fill="#4a5361">핸들, 브레이크</text>
+<text x="180" y="178" font-size="17" font-weight="700" fill="#ffffff">목표</text>
+<text x="180" y="200" font-size="14" fill="#ffffff">안전하게</text>
+<text x="180" y="220" font-size="14" fill="#ffffff">목적지까지</text>
+</g>
+</g>
+</svg>

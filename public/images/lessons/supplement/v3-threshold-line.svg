@@ -11,10 +11,10 @@
 <text x="235" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#ffffff">95</text>
 <rect x="260" y="30" width="50" height="50" fill="#6e6e6e" stroke="#d6dde6"/>
 <text x="285" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#ffffff">110</text>
-<rect x="310" y="30" width="50" height="50" fill="#7d7d7d" stroke="#d6dde6"/>
+<rect x="310" y="30" width="50" height="50" fill="#767676" stroke="#d6dde6"/>
 <text x="335" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#ffffff">125</text>
 <rect x="360" y="30" width="50" height="50" fill="#828282" stroke="#d6dde6"/>
-<text x="385" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#ffffff">130</text>
+<text x="385" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#17191c">130</text>
 <rect x="410" y="30" width="50" height="50" fill="#969696" stroke="#d6dde6"/>
 <text x="435" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#17191c">150</text>
 <rect x="460" y="30" width="50" height="50" fill="#b4b4b4" stroke="#d6dde6"/>

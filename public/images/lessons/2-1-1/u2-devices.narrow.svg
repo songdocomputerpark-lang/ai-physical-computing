@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 374" width="360" height="374" role="img" aria-labelledby="title desc">
+<title id="title">ESP32 보드 하나로 움직여 볼 장치들</title>
+<desc id="desc">위의 ESP32 보드에서 선이 네 갈래로 뻗어 화면(문자 LCD, OLED), 빛(RGB LED, 레이저, 네오픽셀), 소리(버저, MP3 플레이어), 움직임(팬 모터, 서보모터) 장치로 이어진다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 세로로 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="360" height="374" fill="#ffffff"/>
+<rect x="105" y="10" width="150" height="86" rx="14" fill="#22384d"/>
+<g fill="#d9a520"><rect x="123" y="20" width="18" height="6" rx="1"/><rect x="149" y="20" width="18" height="6" rx="1"/><rect x="175" y="20" width="18" height="6" rx="1"/><rect x="201" y="20" width="18" height="6" rx="1"/><rect x="123" y="80" width="18" height="6" rx="1"/><rect x="149" y="80" width="18" height="6" rx="1"/><rect x="175" y="80" width="18" height="6" rx="1"/><rect x="201" y="80" width="18" height="6" rx="1"/></g>
+<path d="M180 96 V106 H22 V336" fill="none" stroke="#4a5361" stroke-width="2.5"/>
+<rect x="40" y="116" width="310" height="56" rx="12" fill="#f4f6f9" stroke="#d6dde6"/>
+<g transform="translate(-190 100)">
+<rect x="236" y="30" width="40" height="28" rx="4" fill="#22384d"/>
+<rect x="240" y="34" width="32" height="20" rx="2" fill="#3d7be0"/>
+</g>
+<path d="M22 144 H34" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="40" y="180" width="310" height="56" rx="12" fill="#f4f6f9" stroke="#d6dde6"/>
+<g transform="translate(-190 88)">
+<g stroke="#b7800f" stroke-width="2.5" stroke-linecap="round">
+<path d="M256 101 V105"/><path d="M256 135 V139"/><path d="M237 120 H241"/><path d="M271 120 H275"/>
+<path d="M243 107 L246 110"/><path d="M266 130 L269 133"/><path d="M269 107 L266 110"/><path d="M246 130 L243 133"/>
+</g>
+<circle cx="256" cy="120" r="10" fill="#f2b705"/>
+</g>
+<path d="M22 208 H34" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="40" y="244" width="310" height="56" rx="12" fill="#f4f6f9" stroke="#d6dde6"/>
+<g transform="translate(-190 76)">
+<path d="M238 189 H247 L258 180 V212 L247 203 H238 Z" fill="#4a5361"/>
+<path d="M264 189 Q270 196 264 203" fill="none" stroke="#4a5361" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M269 183 Q280 196 269 209" fill="none" stroke="#4a5361" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+<path d="M22 272 H34" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="40" y="308" width="310" height="56" rx="12" fill="#f4f6f9" stroke="#d6dde6"/>
+<g transform="translate(-190 64)">
+<g fill="#4a5361">
+<ellipse cx="256" cy="261" rx="5" ry="10"/>
+<ellipse cx="256" cy="261" rx="5" ry="10" transform="rotate(120 256 272)"/>
+<ellipse cx="256" cy="261" rx="5" ry="10" transform="rotate(240 256 272)"/>
+</g>
+<circle cx="256" cy="272" r="4" fill="#ffffff" stroke="#4a5361" stroke-width="2"/>
+</g>
+<path d="M22 336 H34" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="180" y="56" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle">ESP32</text>
+<text x="180" y="76" font-size="15" fill="#dfe7f1" text-anchor="middle">보드</text>
+<text x="96" y="150" font-size="17" font-weight="700" fill="#17191c">화면</text>
+<text x="158" y="150" font-size="15" fill="#17191c">문자 LCD, OLED</text>
+<text x="96" y="214" font-size="17" font-weight="700" fill="#17191c">빛</text>
+<text x="158" y="214" font-size="15" fill="#17191c">RGB LED, 레이저, 네오픽셀</text>
+<text x="96" y="278" font-size="17" font-weight="700" fill="#17191c">소리</text>
+<text x="158" y="278" font-size="15" fill="#17191c">버저, MP3 플레이어</text>
+<text x="96" y="342" font-size="17" font-weight="700" fill="#17191c">움직임</text>
+<text x="158" y="342" font-size="15" fill="#17191c">팬 모터, 서보모터</text>
+</g>
+</svg>

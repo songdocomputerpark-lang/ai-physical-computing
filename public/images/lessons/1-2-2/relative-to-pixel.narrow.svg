@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 562" width="360" height="562" role="img" aria-labelledby="title desc">
+<title id="title">상대 좌표 (0.5, 0.25)를 픽셀 좌표 (320, 120)으로 바꾸기</title>
+<desc id="desc">위는 가로와 세로를 0에서 1로 본 상자에 점 (0.5, 0.25)가 있다. 가운데 아래로 향한 화살표 양옆에 x 곱하기 640, y 곱하기 480이 적혀 있다. 아래는 가로 640, 세로 480 픽셀 화면에 같은 점이 (320, 120)에 있다. 맨 아래에 int(0.5 × 640) = 320, int(0.25 × 480) = 120이라는 계산이 두 줄로 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 세로로 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="360" height="562" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<g transform="translate(44 0)">
+<text x="136" y="28" font-size="18" font-weight="700" fill="#17191c">상대 좌표(0~1)</text><rect x="44" y="64" width="184" height="138" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/><g font-size="16" fill="#4a5361"><text x="44" y="54">0</text><text x="228" y="54">1</text><text x="34" y="202" text-anchor="end">1</text></g><g stroke="#1f5bd6" stroke-width="1.5" stroke-dasharray="5 4"><line x1="136" y1="64" x2="136" y2="98.5"/><line x1="44" y1="98.5" x2="136" y2="98.5"/></g><text x="136" y="54" font-size="16" font-weight="700" fill="#1a4cb4">0.5</text><text x="34" y="104.5" font-size="16" font-weight="700" fill="#1a4cb4" text-anchor="end">0.25</text><circle cx="136" cy="98.5" r="7" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/><text x="140" y="126.5" font-size="17" font-weight="700" fill="#1a4cb4" text-anchor="start">(0.5, 0.25)</text>
+</g>
+<line x1="180" y1="220" x2="180" y2="258" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="162" y="246" font-size="15" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c" text-anchor="end">x × 640</text>
+<text x="198" y="246" font-size="15" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c" text-anchor="start">y × 480</text>
+<g transform="translate(-304 262)">
+<text x="484" y="28" font-size="18" font-weight="700" fill="#17191c">픽셀 좌표(640×480)</text><rect x="372" y="64" width="224" height="168" fill="#f4f6f9" stroke="#4a5361" stroke-width="2"/><g font-size="16" fill="#4a5361"><text x="372" y="54">0</text><text x="596" y="54">640</text><text x="362" y="232" text-anchor="end">480</text></g><g stroke="#1f5bd6" stroke-width="1.5" stroke-dasharray="5 4"><line x1="484" y1="64" x2="484" y2="106"/><line x1="372" y1="106" x2="484" y2="106"/></g><text x="484" y="54" font-size="16" font-weight="700" fill="#1a4cb4">320</text><text x="362" y="112" font-size="16" font-weight="700" fill="#1a4cb4" text-anchor="end">120</text><circle cx="484" cy="106" r="7" fill="#1f5bd6" stroke="#ffffff" stroke-width="2"/><text x="494" y="134" font-size="17" font-weight="700" fill="#1a4cb4" text-anchor="start">(320, 120)</text>
+</g>
+<text x="180" y="524" font-size="15" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">int(0.5 × 640) = 320,</text>
+<text x="180" y="546" font-size="15" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">int(0.25 × 480) = 120</text>
+</g>
+</svg>

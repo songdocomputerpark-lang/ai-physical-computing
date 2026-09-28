@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 486" width="360" height="486" role="img" aria-labelledby="title desc">
+<title id="title">손 인식 프로그램에서 OpenCV와 MediaPipe가 나눠 맡는 일</title>
+<desc id="desc">위에서 아래로 흐르는 네 칸. 웹캠에서 온 영상을 ① OpenCV가 프레임(사진 한 장)으로 읽고(cap.read), ② MediaPipe가 그 사진에서 손 랜드마크를 찾고(hands.process), ③ OpenCV가 찾은 점을 그려 화면에 보여 준다(cv2.imshow). 그다음 왼쪽의 점선 화살표를 따라 다시 ①로 돌아가 다음 프레임을 읽는다. OpenCV 칸은 파란 테두리, MediaPipe 칸은 초록 테두리이고, 칸마다 라이브러리 이름이 적혀 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 세로로 다시 배치한 그림이다. 사이트가 직접 그린 그림(INVENTORY S17).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
+</marker>
+</defs>
+<rect width="360" height="486" fill="#ffffff"/>
+<g fill="none" stroke="#4a5361" stroke-width="2">
+<path d="M188 58 V76" marker-end="url(#arrow)"/>
+<path d="M188 166 V184" marker-end="url(#arrow)"/>
+<path d="M188 274 V292" marker-end="url(#arrow)"/>
+<path d="M188 382 V402 H20 V124 H34" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+</g>
+
+<rect x="124" y="10" width="128" height="48" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<rect x="140" y="22" width="36" height="24" rx="6" fill="#4a5361"/>
+<circle cx="158" cy="34" r="8" fill="#ffffff"/>
+<circle cx="158" cy="34" r="3.5" fill="#4a5361"/>
+
+<rect x="40" y="82" width="296" height="84" rx="14" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="40" y="190" width="296" height="84" rx="14" fill="#e8f6ee" stroke="#15653a" stroke-width="2"/>
+<rect x="40" y="298" width="296" height="84" rx="14" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="190" y="40" font-size="16" font-weight="700" fill="#17191c">웹캠</text>
+
+<text x="54" y="108" font-size="17" font-weight="700" fill="#17191c">① 프레임 읽기</text>
+<text x="322" y="108" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="end">OpenCV</text>
+<text x="54" y="132" font-size="14" fill="#4a5361">사진 한 장씩</text>
+<text x="54" y="154" font-size="14" fill="#17191c" font-family="Consolas, 'Courier New', monospace">cap.read()</text>
+
+<text x="54" y="216" font-size="17" font-weight="700" fill="#17191c">② 손 찾기</text>
+<text x="322" y="216" font-size="14" font-weight="700" fill="#15653a" text-anchor="end">MediaPipe</text>
+<text x="54" y="240" font-size="14" fill="#4a5361">관절 21곳의 위치(랜드마크)</text>
+<text x="54" y="262" font-size="14" fill="#17191c" font-family="Consolas, 'Courier New', monospace">hands.process()</text>
+
+<text x="54" y="324" font-size="17" font-weight="700" fill="#17191c">③ 그리고 보여 주기</text>
+<text x="322" y="324" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="end">OpenCV</text>
+<text x="54" y="348" font-size="14" fill="#4a5361">점, 선, 창</text>
+<text x="54" y="370" font-size="14" fill="#17191c" font-family="Consolas, 'Courier New', monospace">cv2.imshow()</text>
+
+<text x="188" y="424" font-size="14" fill="#4a5361" text-anchor="middle">다음 프레임도 똑같이 되풀이해요</text>
+<text x="180" y="454" font-size="14" fill="#4a5361" text-anchor="middle">파란 칸은 OpenCV,</text>
+<text x="180" y="474" font-size="14" fill="#4a5361" text-anchor="middle">초록 칸은 MediaPipe가 맡는 일이에요.</text>
+</g>
+</svg>

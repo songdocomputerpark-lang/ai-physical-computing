@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 266" width="360" height="266" role="img" aria-labelledby="title desc">
+<title id="title">d 키로 그리기 모드를 켜고 끄기</title>
+<desc id="desc">왼쪽 상자는 그리기 꺼짐 상태(drawing_enabled = False)로 손이 움직여도 선을 긋지 않는다. 실행하면 여기서 시작한다. 오른쪽 상자는 그리기 켜짐 상태(drawing_enabled = True)로 검지 끝을 따라 선을 긋는다. 위쪽 화살표(꺼짐에서 켜짐)와 아래쪽 화살표(켜짐에서 꺼짐)에 모두 d 키라고 적혀 있고, 꺼질 때 이전 좌표를 (0, 0)으로 되돌린다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다(그림 설명이 말하는 자리는 그대로 둠). 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker><marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker></defs>
+<rect width="360" height="266" fill="#ffffff"/>
+<rect x="10" y="50" width="160" height="136" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="2"/>
+<rect x="190" y="50" width="160" height="136" rx="14" fill="#e8f6ee" stroke="#3b9360" stroke-width="2.5"/>
+<line x1="60" y1="28" x2="60" y2="46" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+<path d="M146 52 C166 24, 194 24, 214 52" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M214 186 C194 214, 166 214, 146 186" fill="none" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="10" y="20" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="start">실행하면 여기서 시작</text>
+<text x="180" y="20" font-size="15" font-weight="700" fill="#17191c">d 키</text>
+<text x="90" y="78" font-size="16" font-weight="700" fill="#17191c">그리기 꺼짐</text>
+<text x="90" y="102" font-size="13" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#4a5361">drawing_enabled</text>
+<text x="90" y="120" font-size="13" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#4a5361">= False</text>
+<text x="90" y="148" font-size="14" fill="#17191c">손이 움직여도 선을</text>
+<text x="90" y="168" font-size="14" fill="#17191c">긋지 않아요</text>
+<text x="270" y="78" font-size="16" font-weight="700" fill="#15653a">그리기 켜짐</text>
+<text x="270" y="102" font-size="13" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#15653a">drawing_enabled</text>
+<text x="270" y="120" font-size="13" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#15653a">= True</text>
+<text x="270" y="148" font-size="14" fill="#17191c">검지 끝을 따라</text>
+<text x="270" y="168" font-size="14" fill="#17191c">선을 그어요</text>
+<text x="180" y="234" font-size="15" font-weight="700" fill="#17191c">d 키</text>
+<text x="180" y="256" font-size="14" fill="#4a5361">(꺼질 때 이전 좌표는 (0, 0)으로)</text>
+</g>
+</svg>

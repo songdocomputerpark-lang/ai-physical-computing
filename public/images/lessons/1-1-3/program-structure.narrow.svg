@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 498" width="360" height="498" role="img" aria-labelledby="title desc">
+<title id="title">카메라 프로그램의 기본 구조: 일곱 영역</title>
+<desc id="desc">위에서 아래로 쌓인 일곱 칸. ① 라이브러리 불러오기(import cv2), ② 상수와 설정(창 이름 WINDOW_NAME), ③ 초기화(웹캠 연결 cap = cv2.VideoCapture(0)), ④ 함수 정의(def show_frame), ⑤ 외부 연동 설정(선택, def setup_external_services), ⑥ 메인 실행(while True로 프레임 읽기, 보여 주기, q 키 확인을 되풀이 — 되풀이 화살표가 있다), ⑦ 종료 처리(cap.release, cv2.destroyAllWindows). 칸마다 윗줄에 영역 이름, 아랫줄에 그 영역의 코드가 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 영역 이름과 코드를 두 줄로 다시 배치한 그림이다. 사이트가 직접 그린 그림(INVENTORY S16).</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+<path d="M0 0 L10 5 L0 10 Z" fill="#1a4cb4"/>
+</marker>
+</defs>
+<rect width="360" height="498" fill="#ffffff"/>
+<rect x="10" y="8" width="340" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<rect x="10" y="70" width="340" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<rect x="10" y="132" width="340" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<rect x="10" y="194" width="340" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<rect x="10" y="256" width="340" height="54" rx="10" fill="#ffffff" stroke="#7b8594" stroke-dasharray="6 4"/>
+<rect x="10" y="318" width="340" height="108" rx="10" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="10" y="434" width="340" height="54" rx="10" fill="#f4f6f9" stroke="#7b8594"/>
+<path d="M145 361 A10 10 0 1 1 135 351" fill="none" stroke="#1a4cb4" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" font-size="15">
+<g font-weight="700" fill="#17191c">
+<text x="24" y="30">① 라이브러리 불러오기</text>
+<text x="24" y="92">② 상수와 설정</text>
+<text x="24" y="154">③ 초기화(웹캠 연결)</text>
+<text x="24" y="216">④ 함수 정의</text>
+<text x="24" y="278" fill="#4a5361">⑤ 외부 연동(선택)</text>
+<text x="24" y="340" fill="#1a4cb4">⑥ 메인 실행(반복)</text>
+<text x="24" y="456">⑦ 종료 처리</text>
+</g>
+<g font-size="14" fill="#17191c" font-family="Consolas, 'Courier New', monospace">
+<text x="24" y="52">import cv2</text>
+<text x="24" y="114">WINDOW_NAME = 'Camera View'</text>
+<text x="24" y="176">cap = cv2.VideoCapture(0)</text>
+<text x="24" y="238">def show_frame(frame): …</text>
+<text x="24" y="300" fill="#4a5361">def setup_external_services(): …</text>
+<text x="24" y="366">while True:</text>
+<text x="24" y="478">cap.release() …</text>
+</g>
+<text x="24" y="392" font-size="14" fill="#17191c">읽기 → 보여 주기 → q 키 확인</text>
+<text x="24" y="414" font-size="14" fill="#4a5361">프레임마다 되풀이</text>
+</g>
+</svg>

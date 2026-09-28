@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 282" width="360" height="282" role="img" aria-labelledby="title desc">
+<title id="title">터치 센서를 누른 순간만 세는 방법</title>
+<desc id="desc">시간 순서대로 0.05초마다 읽은 값을 세 줄로 적은 그림. 지금 값(touch_state) 줄은 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0이고, 이전 값(prev_touch) 줄은 한 칸씩 늦게 따라온다. 지금 값이 1이고 이전 값이 0인 두 칸(세 번째와 열 번째)만 파랗게 강조되어 셈(counter)이 1과 2로 하나씩 늘고, 누르고 있는 동안에는 늘지 않는다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker></defs>
+<rect width="360" height="282" fill="#ffffff"/>
+<rect x="128" y="38" width="21" height="132" rx="5" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="261" y="38" width="21" height="132" rx="5" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2"/>
+<rect x="92" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="111" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="130" y="44" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="149" y="44" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="168" y="44" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="187" y="44" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="206" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="225" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="244" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="263" y="44" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="282" y="44" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="301" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="320" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="339" y="44" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="92" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="111" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="130" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="149" y="88" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="168" y="88" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="187" y="88" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="206" y="88" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="225" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="244" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="263" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="282" y="88" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="301" y="88" width="17" height="32" rx="3" fill="#f6d36b" stroke="#b7800f"/>
+<rect x="320" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="339" y="88" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="92" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="111" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="130" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="149" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="168" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="187" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="206" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="225" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="244" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="263" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="282" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="301" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="320" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<rect x="339" y="132" width="17" height="32" rx="3" fill="#ffffff" stroke="#7b8594"/>
+<line x1="92" y1="198" x2="352" y2="198" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="180" y="22" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">터치 값이 0에서 1로 바뀐 순간에만 1씩 세요</text>
+<text x="8" y="58" font-size="15" font-weight="700" fill="#17191c">지금 값</text>
+<text x="8" y="75" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="13" fill="#4a5361">touch_state</text>
+<text x="100.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="119.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="138.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="157.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="176.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="195.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="214.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="233.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="252.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="271.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="290.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="309.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="328.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="347.5" y="66" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="8" y="102" font-size="15" font-weight="700" fill="#17191c">이전 값</text>
+<text x="8" y="119" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="13" fill="#4a5361">prev_touch</text>
+<text x="100.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="119.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="138.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="157.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="176.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="195.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="214.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="233.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="252.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="271.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="290.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="309.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="328.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="347.5" y="110" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="8" y="146" font-size="15" font-weight="700" fill="#17191c">셈</text>
+<text x="8" y="163" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="13" fill="#4a5361">counter</text>
+<text x="100.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="119.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="138.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="157.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="176.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="195.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="214.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="233.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="252.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">1</text>
+<text x="271.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<text x="290.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<text x="309.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<text x="328.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<text x="347.5" y="154" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">2</text>
+<text x="138.5" y="186" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="middle">+1</text>
+<text x="271.5" y="186" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="middle">+1</text>
+<text x="8" y="203" font-size="14" fill="#4a5361">시간</text>
+<text x="92" y="222" font-size="14" fill="#4a5361">0.05초마다 한 번씩 읽어요</text>
+<text x="8" y="250" font-size="14" fill="#17191c">누르고 있는 동안에는 지금 값과 이전 값이</text>
+<text x="8" y="270" font-size="14" fill="#17191c">모두 1이라 셈이 늘지 않아요.</text>
+</g>
+</svg>

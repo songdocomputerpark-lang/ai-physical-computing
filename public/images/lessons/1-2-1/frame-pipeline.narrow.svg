@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 520" width="360" height="520" role="img" aria-labelledby="title desc">
+<title id="title">손 인식 프로그램이 프레임마다 되풀이하는 여섯 단계</title>
+<desc id="desc">위에서 아래로 ① 프레임 읽기(video.read), ② 좌우 반전(cv2.flip), ③ 색 순서 바꾸기(cv2.cvtColor), ④ 손 찾기(hands.process), ⑤ 점과 선 그리기(draw_landmarks), ⑥ 화면에 보여 주기(cv2.imshow)가 이어진다. ⑥에서 키를 확인하고(waitKey) 왼쪽의 파란 점선을 따라 다시 ①로 돌아가 다음 프레임을 처리한다. ④와 ⑤는 MediaPipe가 하는 일이라 파란 칸이고, 나머지는 OpenCV가 하는 일이라 흰 칸이다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 여섯 단계를 한 줄로 세워 다시 배치한 그림이다. 사이트가 직접 그린 그림(원고 027쪽 프로그램 구조도를 고리 모양으로 다시 그림).</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker><marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker></defs>
+<rect width="360" height="520" fill="#ffffff"/>
+<rect x="44" y="10" width="292" height="56" rx="12" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<line x1="190" y1="66" x2="190" y2="78" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="44" y="84" width="292" height="56" rx="12" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<line x1="190" y1="140" x2="190" y2="152" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="44" y="158" width="292" height="56" rx="12" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<line x1="190" y1="214" x2="190" y2="226" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="44" y="232" width="292" height="56" rx="12" fill="#eaf1fe" stroke="#5b87e0" stroke-width="2.5"/>
+<line x1="190" y1="288" x2="190" y2="300" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="44" y="306" width="292" height="56" rx="12" fill="#eaf1fe" stroke="#5b87e0" stroke-width="2.5"/>
+<line x1="190" y1="362" x2="190" y2="374" stroke="#4a5361" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="44" y="380" width="292" height="56" rx="12" fill="#ffffff" stroke="#7b8594" stroke-width="1.5"/>
+<path d="M100 436 V452 H22 V38 H36" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#arrowBlue)"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="58" y="34" font-size="16" font-weight="700" fill="#17191c">① 프레임 읽기</text>
+<text x="322" y="34" font-size="14" font-weight="400" fill="#4a5361" text-anchor="end">OpenCV</text>
+<text x="58" y="56" font-size="14" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">video.read()</text>
+<text x="58" y="108" font-size="16" font-weight="700" fill="#17191c">② 좌우 반전</text>
+<text x="322" y="108" font-size="14" font-weight="400" fill="#4a5361" text-anchor="end">OpenCV</text>
+<text x="58" y="130" font-size="14" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">cv2.flip()</text>
+<text x="58" y="182" font-size="16" font-weight="700" fill="#17191c">③ 색 순서 바꾸기</text>
+<text x="322" y="182" font-size="14" font-weight="400" fill="#4a5361" text-anchor="end">OpenCV</text>
+<text x="58" y="204" font-size="14" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">cv2.cvtColor()</text>
+<text x="58" y="256" font-size="16" font-weight="700" fill="#17191c">④ 손 찾기</text>
+<text x="322" y="256" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="end">MediaPipe</text>
+<text x="58" y="278" font-size="14" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">hands.process()</text>
+<text x="58" y="330" font-size="16" font-weight="700" fill="#17191c">⑤ 점과 선 그리기</text>
+<text x="322" y="330" font-size="14" font-weight="700" fill="#1a4cb4" text-anchor="end">MediaPipe</text>
+<text x="58" y="352" font-size="14" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">draw_landmarks()</text>
+<text x="58" y="404" font-size="16" font-weight="700" fill="#17191c">⑥ 화면에 보여 주기</text>
+<text x="322" y="404" font-size="14" font-weight="400" fill="#4a5361" text-anchor="end">OpenCV</text>
+<text x="58" y="426" font-size="14" font-family="ui-monospace, 'Cascadia Mono', Consolas, 'D2Coding', 'Malgun Gothic', monospace" fill="#17191c">cv2.imshow()</text>
+<text x="112" y="458" font-size="15" font-weight="700" fill="#1a4cb4">키를 확인하고(waitKey)</text>
+<text x="112" y="478" font-size="15" font-weight="700" fill="#1a4cb4">다음 프레임으로 되풀이</text>
+<text x="180" y="508" font-size="14" fill="#4a5361" text-anchor="middle">흰 칸은 OpenCV, 파란 칸은 MediaPipe가 해요</text>
+</g>
+</svg>

@@ -18,6 +18,7 @@ import rehypeLessonPolish, {
   gifSize,
   imageSizeOf,
   jpegSize,
+  narrowFigureFingerprint,
   pngSize,
   publicDirFor,
   publicFileForSrc,
@@ -66,6 +67,15 @@ function stripImageSize(html: string): string {
 /** 크기 속성이 있는 그림 수 */
 function sizedImages(html: string): number {
   return (html.match(/<img\b[^>]* width="\d+" height="\d+"/gu) ?? []).length;
+}
+
+/**
+ * 좁은 화면용 그림 감싸기(판 1.1.0 — 미해결 209, 구역 D의 플러그인 판 3: <img> 앞에 <picture><source …>, 뒤에 </picture>)를 걷는다.
+ * <img>는 한 글자도 바뀌지 않아야 하므로 감싼 조각만 걷으면 플러그인 없는 출력과 같다. 양쪽에 똑같이 걷는다(글쓴이가 직접 적은 <picture>는
+ * 플러그인이 건드리지 않아 양쪽에 같게 있다 — 2026-09-28 차시 md에는 없음). 좁은 그림이 없던 판(2)에서는 아무것도 걷히지 않는다.
+ */
+function stripNarrowPicture(html: string): string {
+  return html.replace(/<picture><source\b[^>]*>/gu, '').replace(/<\/picture>/gu, '');
 }
 
 // ── 그림 머리 바이트 만들기(합성) ──
@@ -291,8 +301,8 @@ describe('저장소의 차시 45편(플러그인이 더하는 것 말고는 한 
         const body = splitFrontmatter(fs.readFileSync(full, 'utf8'));
         const polished = await render(withPolish, body, full);
         const plain = await render(withoutPolish, body, full);
-        // nowrap 조각을 걷으면, 그림 크기 속성 말고는 플러그인 없는 출력과 한 글자도 같다
-        expect(stripImageSize(stripNowrap(polished)), file).toBe(stripImageSize(plain));
+        // nowrap 조각·좁은 화면용 그림 감싸기를 걷으면, 그림 크기 속성 말고는 플러그인 없는 출력과 한 글자도 같다
+        expect(stripImageSize(stripNarrowPicture(stripNowrap(polished))), file).toBe(stripImageSize(stripNarrowPicture(plain)));
         // 글쓴이가 적은 크기(<img … width= height=>)는 그대로 두고, 크기 없는 마크다운 그림에만 더했다
         expect(sizedImages(polished), `${file}: 크기 있는 그림 수`).toBeGreaterThanOrEqual(sizedImages(plain));
         // 코드 블록(<pre>) 안에는 nowrap이 없다
@@ -318,6 +328,6 @@ describe('판 번호(콘텐츠 캐시 비우기)', () => {
   it('동작이 바뀐 판(2 이상)이 목록에 등록돼 있다', () => {
     expect(REHYPE_LESSON_POLISH_VERSION).toBeGreaterThanOrEqual(2);
     const entry = rehypePlugins.find((plugin) => Array.isArray(plugin) && plugin[0] === rehypeLessonPolish) as [unknown, { version: number }] | undefined;
-    expect(entry?.[1]).toEqual({ version: REHYPE_LESSON_POLISH_VERSION });
+    expect(entry?.[1]).toEqual({ version: REHYPE_LESSON_POLISH_VERSION, narrow: narrowFigureFingerprint() });
   });
 });

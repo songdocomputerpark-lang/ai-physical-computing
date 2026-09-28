@@ -7,7 +7,7 @@
 //
 // Node.js가 직접 읽으므로 JavaScript(JSDoc 타입 표기)로 쓴다.
 import remarkDirective from 'remark-directive';
-import rehypeLessonPolish, { REHYPE_LESSON_POLISH_VERSION } from './rehype-lesson-polish.mjs';
+import rehypeLessonPolish, { REHYPE_LESSON_POLISH_VERSION, narrowFigureFingerprint } from './rehype-lesson-polish.mjs';
 import remarkBoxes from './remark-boxes.mjs';
 import remarkGlossary from './remark-glossary.mjs';
 
@@ -16,6 +16,7 @@ export const remarkPlugins = [remarkDirective, remarkGlossary, remarkBoxes];
 
 /**
  * 판 번호를 설정으로 넘기는 까닭: 플러그인 동작이 바뀌면 Astro 설정 JSON이 바뀌어 콘텐츠 캐시가 비워진다(rehype-lesson-polish.mjs 머리말).
+ * narrow(좁은 화면용 그림 목록의 지문)도 같은 까닭 — 차시 md를 고치지 않고 x.narrow.svg만 더하거나 지워도 캐시가 비워진다(미해결 209).
  * @type {import('@astrojs/markdown-remark').RehypePlugins}
  */
-export const rehypePlugins = [[rehypeLessonPolish, { version: REHYPE_LESSON_POLISH_VERSION }]];
+export const rehypePlugins = [[rehypeLessonPolish, { version: REHYPE_LESSON_POLISH_VERSION, narrow: narrowFigureFingerprint() }]];

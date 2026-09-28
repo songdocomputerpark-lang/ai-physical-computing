@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 538" width="360" height="538" role="img" aria-labelledby="title desc">
+<title id="title">특징 추출 기법 세 가지: 밝기 차이로 경계선, 패턴 반복으로 무늬와 질감, 선과 모서리로 윤곽과 형태를 찾는다</title>
+<desc id="desc">세 칸의 그림. 첫째 칸 "밝기 차이 분석"에는 어두운 바탕 위 흰 꽃병이 있고, 밝기가 확 바뀌는 꽃병 가장자리를 따라 주황 점선이 그어져 있다(쓰임: 얼굴의 눈, 코, 입 경계). 둘째 칸 "패턴 분석"에는 검은 줄무늬가 되풀이되는 천이 있고, 되풀이되는 줄무늬 세 개를 주황 괄호로 묶었다(쓰임: 지문의 곡선 무늬). 셋째 칸 "모서리와 선 탐지"에는 선으로 그린 자전거가 있고, 선이 만나는 모서리 다섯 곳에 주황 점이 찍혀 있다(쓰임: 도로 차선 찾기). 휴대폰처럼 좁은 화면에서 읽기 쉽게 세 칸을 위아래로 다시 배치한 그림이다. 사이트가 직접 그린 그림(원고 018쪽 활동 사진을 대신함).</desc>
+<rect width="360" height="538" fill="#ffffff"/>
+
+<rect x="10" y="10" width="340" height="166" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<svg x="22" y="54" width="120" height="111" viewBox="28 76 168 156">
+<rect x="28" y="76" width="168" height="140" rx="8" fill="#4a5361"/>
+<path d="M97,90 H127 V104 C127,114 158,126 158,156 C158,184 140,200 125,200 H99 C84,200 66,184 66,156 C66,126 97,114 97,104 Z" fill="#f4f6f9"/>
+<path d="M97,90 H127 V104 C127,114 158,126 158,156 C158,184 140,200 125,200 H99 C84,200 66,184 66,156 C66,126 97,114 97,104 Z" fill="none" stroke="#f2a33a" stroke-width="3.5" stroke-dasharray="7 5"/>
+</svg>
+
+<rect x="10" y="186" width="340" height="166" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<svg x="22" y="230" width="120" height="111" viewBox="236 76 168 156">
+<rect x="236" y="76" width="168" height="140" rx="8" fill="#ffffff" stroke="#7b8594"/>
+<g fill="none" stroke="#17191c" stroke-width="10" stroke-linecap="round">
+<path d="M250,90 C262,120 244,150 258,204"/>
+<path d="M274,86 C286,120 268,150 282,206"/>
+<path d="M298,86 C310,120 292,150 306,206"/>
+<path d="M322,86 C334,120 316,150 330,206"/>
+<path d="M346,86 C358,120 340,150 354,206"/>
+<path d="M370,86 C382,120 364,150 378,206"/>
+<path d="M392,92 C398,120 388,150 396,200"/>
+</g>
+<path d="M270,222 V230 H334 V222" fill="none" stroke="#f2a33a" stroke-width="3.5"/>
+</svg>
+
+<rect x="10" y="362" width="340" height="166" rx="14" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<svg x="22" y="406" width="120" height="111" viewBox="444 76 168 156">
+<rect x="444" y="76" width="168" height="140" rx="8" fill="#ffffff" stroke="#7b8594"/>
+<g fill="none" stroke="#17191c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="484" cy="176" r="28"/>
+<circle cx="572" cy="176" r="28"/>
+<polyline points="484,176 522,176 510,124 484,176"/>
+<polyline points="510,124 560,120 522,176"/>
+<polyline points="560,120 572,176"/>
+<polyline points="560,120 564,104 576,104"/>
+<line x1="500" y1="120" x2="520" y2="120"/>
+</g>
+<g fill="#f2a33a" stroke="#17191c" stroke-width="1.5">
+<circle cx="484" cy="176" r="6"/><circle cx="522" cy="176" r="6"/><circle cx="510" cy="124" r="6"/><circle cx="560" cy="120" r="6"/><circle cx="572" cy="176" r="6"/>
+</g>
+</svg>
+
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="24" y="40" font-size="17" font-weight="700" fill="#17191c">밝기 차이 분석</text>
+<text x="338" y="40" font-size="15" fill="#4a5361" text-anchor="end">→ 경계선</text>
+<text x="156" y="76" font-size="14" fill="#17191c">밝기가 확 바뀌는 곳을</text>
+<text x="156" y="96" font-size="14" fill="#17191c">경계선으로 찾아요</text>
+<text x="156" y="128" font-size="14" fill="#4a5361">쓰임: 얼굴의 눈, 코,</text>
+<text x="156" y="148" font-size="14" fill="#4a5361">입 경계</text>
+
+<text x="24" y="216" font-size="17" font-weight="700" fill="#17191c">패턴 분석</text>
+<text x="338" y="216" font-size="15" fill="#4a5361" text-anchor="end">→ 무늬, 질감</text>
+<text x="156" y="252" font-size="14" fill="#17191c">같은 무늬가 되풀이되는</text>
+<text x="156" y="272" font-size="14" fill="#17191c">규칙을 찾아요</text>
+<text x="156" y="304" font-size="14" fill="#4a5361">쓰임: 지문의 곡선 무늬</text>
+
+<text x="24" y="392" font-size="17" font-weight="700" fill="#17191c">모서리와 선 탐지</text>
+<text x="338" y="392" font-size="15" fill="#4a5361" text-anchor="end">→ 윤곽, 형태</text>
+<text x="156" y="428" font-size="14" fill="#17191c">선과 모서리를 이어</text>
+<text x="156" y="448" font-size="14" fill="#17191c">모양(형태)을 알아내요</text>
+<text x="156" y="480" font-size="14" fill="#4a5361">쓰임: 자율주행 자동차의</text>
+<text x="156" y="500" font-size="14" fill="#4a5361">도로 차선 찾기</text>
+</g>
+</svg>

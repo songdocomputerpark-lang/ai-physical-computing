@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 378" width="360" height="378" role="img" aria-labelledby="title desc">
+<title id="title">영상 처리 기초 계단: V1 픽셀 숫자, V2 회색 사진, V3 흑백 나누기, V4 블러와 에지, V5 덩어리 찾기</title>
+<desc id="desc">아래에서 위로, 한 칸씩 오른쪽으로 올라가는 다섯 칸의 계단. V1 픽셀 숫자(gray[y, x]), V2 회색 사진(cvtColor), V3 흑백 나누기(threshold), V4 블러와 에지(GaussianBlur), V5 덩어리 찾기(findContours) 차례이고, 가장 높은 V5 칸이 파랗게 칠해져 "이 차시"라고 적혀 있다. 맨 아래에 V5에서 앞의 네 계단이 한 코드로 이어진다고 적혀 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 계단을 위아래로 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<rect width="360" height="378" fill="#ffffff"/>
+<rect x="10" y="262" width="250" height="50" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<rect x="30" y="204" width="250" height="50" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<rect x="50" y="146" width="250" height="50" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<rect x="70" y="88" width="250" height="50" rx="10" fill="#eaf1fe" stroke="#5b87e0" stroke-width="1.5"/>
+<rect x="90" y="30" width="250" height="50" rx="10" fill="#1f5bd6" stroke="#1a4cb4" stroke-width="1.5"/>
+<line x1="10" y1="320" x2="350" y2="320" stroke="#7b8594" stroke-width="1.5"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="215" y="20" font-size="15" font-weight="700" fill="#1f5bd6" text-anchor="middle">이 차시</text>
+<text x="24" y="293" font-size="17" font-weight="800" fill="#17191c">V1</text>
+<text x="60" y="293" font-size="16" font-weight="700" fill="#17191c">픽셀 숫자</text>
+<text x="248" y="293" font-size="14" font-family="Consolas, 'Courier New', monospace" fill="#4a5361" text-anchor="end">gray[y, x]</text>
+<text x="44" y="235" font-size="17" font-weight="800" fill="#17191c">V2</text>
+<text x="80" y="235" font-size="16" font-weight="700" fill="#17191c">회색 사진</text>
+<text x="268" y="235" font-size="14" font-family="Consolas, 'Courier New', monospace" fill="#4a5361" text-anchor="end">cvtColor</text>
+<text x="64" y="177" font-size="17" font-weight="800" fill="#17191c">V3</text>
+<text x="100" y="177" font-size="16" font-weight="700" fill="#17191c">흑백 나누기</text>
+<text x="288" y="177" font-size="14" font-family="Consolas, 'Courier New', monospace" fill="#4a5361" text-anchor="end">threshold</text>
+<text x="84" y="119" font-size="17" font-weight="800" fill="#17191c">V4</text>
+<text x="120" y="119" font-size="16" font-weight="700" fill="#17191c">블러와 에지</text>
+<text x="308" y="119" font-size="14" font-family="Consolas, 'Courier New', monospace" fill="#4a5361" text-anchor="end">GaussianBlur</text>
+<text x="104" y="61" font-size="17" font-weight="800" fill="#ffffff">V5</text>
+<text x="140" y="61" font-size="16" font-weight="700" fill="#ffffff">덩어리 찾기</text>
+<text x="328" y="61" font-size="14" font-family="Consolas, 'Courier New', monospace" fill="#ffffff" text-anchor="end">findContours</text>
+<text x="180" y="346" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">V5에서 앞의 네 계단이</text>
+<text x="180" y="366" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">한 코드 안에 차례로 이어져요</text>
+</g>
+</svg>

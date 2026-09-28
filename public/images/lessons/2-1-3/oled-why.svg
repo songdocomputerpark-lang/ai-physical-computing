@@ -6,7 +6,7 @@
 <rect x="16" y="50" width="280" height="170" rx="48" fill="#2b2f36"/>
 <rect x="52" y="78" width="208" height="114" rx="10" fill="#0b0f14" stroke="#4a5361"/>
 <text x="68" y="112" font-size="26" font-weight="700" fill="#ffffff">78</text>
-<text x="106" y="112" font-size="16" fill="#cfd6e0">bpm</text>
+<text x="104" y="112" font-size="21" fill="#cfd6e0">bpm</text>
 <polyline points="64,160 92,160 102,160 110,138 118,176 126,150 134,160 170,160 178,140 186,176 194,150 202,160 248,160" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
 <rect x="100" y="132" width="44" height="50" fill="none" stroke="#f6d36b" stroke-width="2.5" stroke-dasharray="6 4"/>
 <line x1="144" y1="132" x2="340" y2="58" stroke="#b7800f" stroke-width="1.5" stroke-dasharray="6 4"/>
@@ -120,7 +120,7 @@
 <rect x="520" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
 <rect x="538" y="202" width="16" height="16" rx="2" fill="#1c232d"/>
 <rect x="336" y="54" width="222" height="168" rx="6" fill="none" stroke="#4a5361"/>
-<text x="448" y="250" font-size="16" fill="#17191c" text-anchor="middle">확대하면 켜진 점(픽셀)이 보여요</text>
-<text x="156" y="252" font-size="16" fill="#17191c" text-anchor="middle">스마트 밴드의 작은 화면</text>
+<text x="448" y="252" font-size="21" fill="#17191c" text-anchor="middle">확대하면 켜진 점(픽셀)이 보여요</text>
+<text x="156" y="252" font-size="21" fill="#17191c" text-anchor="middle">스마트 밴드의 작은 화면</text>
 </g>
 </svg>

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import packageJson from '../../package.json' with { type: 'json' };
 import { prunePagefind, REQUIRED_PAGEFIND_FILES, UNUSED_PAGEFIND_FILES } from '../../scripts/prune-pagefind.mjs';
 import { rehypePlugins, remarkPlugins } from '../../src/lib/markdown-plugins.mjs';
-import rehypeLessonPolish, { REHYPE_LESSON_POLISH_VERSION } from '../../src/lib/rehype-lesson-polish.mjs';
+import rehypeLessonPolish, { REHYPE_LESSON_POLISH_VERSION, narrowFigureFingerprint } from '../../src/lib/rehype-lesson-polish.mjs';
 import {
   BUILD_ENV_NAMES,
   DEFAULT_OUT_DIR,
@@ -104,7 +104,8 @@ describe('사이트 뿌리로 빌드할 때(APC_BASE=/ — 오프라인 배포�
 describe('마크다운 출력 다듬기 자리(src/lib/rehype-lesson-polish.mjs — 구역 A)', () => {
   it('빌드와 차시 틀 검사가 함께 쓰는 목록에 판 번호와 함께 등록돼 있다(판을 올리면 콘텐츠 캐시가 비워진다)', () => {
     expect(remarkPlugins).toHaveLength(3);
-    expect(rehypePlugins).toContainEqual([rehypeLessonPolish, { version: REHYPE_LESSON_POLISH_VERSION }]);
+    // 좁은 화면용 그림 목록의 지문도 함께 — 그림 파일만 더해도 캐시가 비워진다(판 1.1.0, 미해결 209)
+    expect(rehypePlugins).toContainEqual([rehypeLessonPolish, { version: REHYPE_LESSON_POLISH_VERSION, narrow: narrowFigureFingerprint() }]);
     expect(Number.isInteger(REHYPE_LESSON_POLISH_VERSION) && REHYPE_LESSON_POLISH_VERSION >= 1).toBe(true);
   });
 });

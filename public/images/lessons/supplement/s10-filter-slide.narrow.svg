@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 206" width="360" height="206" role="img" aria-labelledby="title desc">
+<title id="title">3×3 평균 필터(블러)가 6×6 입력 격자 위를 한 칸씩 옮겨 다니며 4×4 결과 격자를 채우는 애니메이션. 결과 칸의 값은 겹친 아홉 칸의 평균이다</title>
+<desc id="desc">왼쪽 6×6 입력 격자에 밝기 숫자가 적혀 있고(어두운 바탕 40, 왼쪽 위 한 칸만 60, 가운데 밝은 세로 막대 200, 오른쪽 아래 잡티 한 칸 240), 파란 3×3 창이 격자 위를 한 칸씩 옮겨 다닌다. 오른쪽 4×4 결과 격자에는 창이 지나간 자리마다 아홉 칸의 평균값이 하나씩 채워진다. 움직임 줄이기 설정에서는 마지막 장면만 보인다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 칸을 줄여 다시 그린 그림이다. 사이트가 직접 그린 그림.</desc>
+<style>
+.win{animation:slide 11.2s steps(1,end) infinite}
+@keyframes slide{0.000%{transform:translate(0px,0px)}6.250%{transform:translate(29px,0px)}12.500%{transform:translate(58px,0px)}18.750%{transform:translate(87px,0px)}25.000%{transform:translate(0px,29px)}31.250%{transform:translate(29px,29px)}37.500%{transform:translate(58px,29px)}43.750%{transform:translate(87px,29px)}50.000%{transform:translate(0px,58px)}56.250%{transform:translate(29px,58px)}62.500%{transform:translate(58px,58px)}68.750%{transform:translate(87px,58px)}75.000%{transform:translate(0px,87px)}81.250%{transform:translate(29px,87px)}87.500%{transform:translate(58px,87px)}93.750%{transform:translate(87px,87px)}100%{transform:translate(87px,87px)}}
+.o0{animation:show0 11.2s linear infinite}
+@keyframes show0{0%,2.490%{opacity:0}2.500%,100%{opacity:1}}
+.o1{animation:show1 11.2s linear infinite}
+@keyframes show1{0%,8.740%{opacity:0}8.750%,100%{opacity:1}}
+.o2{animation:show2 11.2s linear infinite}
+@keyframes show2{0%,14.990%{opacity:0}15.000%,100%{opacity:1}}
+.o3{animation:show3 11.2s linear infinite}
+@keyframes show3{0%,21.240%{opacity:0}21.250%,100%{opacity:1}}
+.o4{animation:show4 11.2s linear infinite}
+@keyframes show4{0%,27.490%{opacity:0}27.500%,100%{opacity:1}}
+.o5{animation:show5 11.2s linear infinite}
+@keyframes show5{0%,33.740%{opacity:0}33.750%,100%{opacity:1}}
+.o6{animation:show6 11.2s linear infinite}
+@keyframes show6{0%,39.990%{opacity:0}40.000%,100%{opacity:1}}
+.o7{animation:show7 11.2s linear infinite}
+@keyframes show7{0%,46.240%{opacity:0}46.250%,100%{opacity:1}}
+.o8{animation:show8 11.2s linear infinite}
+@keyframes show8{0%,52.490%{opacity:0}52.500%,100%{opacity:1}}
+.o9{animation:show9 11.2s linear infinite}
+@keyframes show9{0%,58.740%{opacity:0}58.750%,100%{opacity:1}}
+.o10{animation:show10 11.2s linear infinite}
+@keyframes show10{0%,64.990%{opacity:0}65.000%,100%{opacity:1}}
+.o11{animation:show11 11.2s linear infinite}
+@keyframes show11{0%,71.240%{opacity:0}71.250%,100%{opacity:1}}
+.o12{animation:show12 11.2s linear infinite}
+@keyframes show12{0%,77.490%{opacity:0}77.500%,100%{opacity:1}}
+.o13{animation:show13 11.2s linear infinite}
+@keyframes show13{0%,83.740%{opacity:0}83.750%,100%{opacity:1}}
+.o14{animation:show14 11.2s linear infinite}
+@keyframes show14{0%,89.990%{opacity:0}90.000%,100%{opacity:1}}
+.o15{animation:show15 11.2s linear infinite}
+@keyframes show15{0%,96.240%{opacity:0}96.250%,100%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.win{animation:none;transform:translate(87px,87px)}.o0{animation:none;opacity:1}.o1{animation:none;opacity:1}.o2{animation:none;opacity:1}.o3{animation:none;opacity:1}.o4{animation:none;opacity:1}.o5{animation:none;opacity:1}.o6{animation:none;opacity:1}.o7{animation:none;opacity:1}.o8{animation:none;opacity:1}.o9{animation:none;opacity:1}.o10{animation:none;opacity:1}.o11{animation:none;opacity:1}.o12{animation:none;opacity:1}.o13{animation:none;opacity:1}.o14{animation:none;opacity:1}.o15{animation:none;opacity:1}}
+</style>
+<rect width="360" height="206" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" font-size="13" font-weight="600" text-anchor="middle">
+<rect x="6" y="16" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="20.5" y="35.5" fill="#ffffff">40</text>
+<rect x="35" y="16" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="49.5" y="35.5" fill="#ffffff">40</text>
+<rect x="64" y="16" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="78.5" y="35.5" fill="#17191c">200</text>
+<rect x="93" y="16" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="107.5" y="35.5" fill="#17191c">200</text>
+<rect x="122" y="16" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="136.5" y="35.5" fill="#ffffff">40</text>
+<rect x="151" y="16" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="165.5" y="35.5" fill="#ffffff">40</text>
+<rect x="6" y="45" width="29" height="29" fill="#3c3c3c" stroke="#8a93a0"/>
+<text x="20.5" y="64.5" fill="#ffffff">60</text>
+<rect x="35" y="45" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="49.5" y="64.5" fill="#ffffff">40</text>
+<rect x="64" y="45" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="78.5" y="64.5" fill="#17191c">200</text>
+<rect x="93" y="45" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="107.5" y="64.5" fill="#17191c">200</text>
+<rect x="122" y="45" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="136.5" y="64.5" fill="#ffffff">40</text>
+<rect x="151" y="45" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="165.5" y="64.5" fill="#ffffff">40</text>
+<rect x="6" y="74" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="20.5" y="93.5" fill="#ffffff">40</text>
+<rect x="35" y="74" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="49.5" y="93.5" fill="#ffffff">40</text>
+<rect x="64" y="74" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="78.5" y="93.5" fill="#17191c">200</text>
+<rect x="93" y="74" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="107.5" y="93.5" fill="#17191c">200</text>
+<rect x="122" y="74" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="136.5" y="93.5" fill="#ffffff">40</text>
+<rect x="151" y="74" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="165.5" y="93.5" fill="#ffffff">40</text>
+<rect x="6" y="103" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="20.5" y="122.5" fill="#ffffff">40</text>
+<rect x="35" y="103" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="49.5" y="122.5" fill="#ffffff">40</text>
+<rect x="64" y="103" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="78.5" y="122.5" fill="#17191c">200</text>
+<rect x="93" y="103" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="107.5" y="122.5" fill="#17191c">200</text>
+<rect x="122" y="103" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="136.5" y="122.5" fill="#ffffff">40</text>
+<rect x="151" y="103" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="165.5" y="122.5" fill="#ffffff">40</text>
+<rect x="6" y="132" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="20.5" y="151.5" fill="#ffffff">40</text>
+<rect x="35" y="132" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="49.5" y="151.5" fill="#ffffff">40</text>
+<rect x="64" y="132" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="78.5" y="151.5" fill="#17191c">200</text>
+<rect x="93" y="132" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="107.5" y="151.5" fill="#17191c">200</text>
+<rect x="122" y="132" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="136.5" y="151.5" fill="#ffffff">40</text>
+<rect x="151" y="132" width="29" height="29" fill="#f0f0f0" stroke="#8a93a0"/>
+<text x="165.5" y="151.5" fill="#17191c">240</text>
+<rect x="6" y="161" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="20.5" y="180.5" fill="#ffffff">40</text>
+<rect x="35" y="161" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="49.5" y="180.5" fill="#ffffff">40</text>
+<rect x="64" y="161" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="78.5" y="180.5" fill="#17191c">200</text>
+<rect x="93" y="161" width="29" height="29" fill="#c8c8c8" stroke="#8a93a0"/>
+<text x="107.5" y="180.5" fill="#17191c">200</text>
+<rect x="122" y="161" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="136.5" y="180.5" fill="#ffffff">40</text>
+<rect x="151" y="161" width="29" height="29" fill="#282828" stroke="#8a93a0"/>
+<text x="165.5" y="180.5" fill="#ffffff">40</text>
+</g>
+<g class="win" style="transform-box:view-box"><rect x="6" y="16" width="87" height="87" fill="#1f5bd6" fill-opacity="0.18" stroke="#1f5bd6" stroke-width="3"/></g>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5361"/></marker></defs>
+<path d="M 184 103 h 26" stroke="#4a5361" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" font-size="14" font-weight="600" text-anchor="middle">
+<rect x="216" y="45" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o0"><rect x="216" y="45" width="29" height="29" fill="#606060" stroke="#ffffff" stroke-width="1.5"/><text x="230.5" y="65" fill="#ffffff">96</text></g>
+<rect x="245" y="45" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o1"><rect x="245" y="45" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="259.5" y="65" fill="#17191c">147</text></g>
+<rect x="274" y="45" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o2"><rect x="274" y="45" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="288.5" y="65" fill="#17191c">147</text></g>
+<rect x="303" y="45" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o3"><rect x="303" y="45" width="29" height="29" fill="#5d5d5d" stroke="#ffffff" stroke-width="1.5"/><text x="317.5" y="65" fill="#ffffff">93</text></g>
+<rect x="216" y="74" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o4"><rect x="216" y="74" width="29" height="29" fill="#606060" stroke="#ffffff" stroke-width="1.5"/><text x="230.5" y="94" fill="#ffffff">96</text></g>
+<rect x="245" y="74" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o5"><rect x="245" y="74" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="259.5" y="94" fill="#17191c">147</text></g>
+<rect x="274" y="74" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o6"><rect x="274" y="74" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="288.5" y="94" fill="#17191c">147</text></g>
+<rect x="303" y="74" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o7"><rect x="303" y="74" width="29" height="29" fill="#5d5d5d" stroke="#ffffff" stroke-width="1.5"/><text x="317.5" y="94" fill="#ffffff">93</text></g>
+<rect x="216" y="103" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o8"><rect x="216" y="103" width="29" height="29" fill="#5d5d5d" stroke="#ffffff" stroke-width="1.5"/><text x="230.5" y="123" fill="#ffffff">93</text></g>
+<rect x="245" y="103" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o9"><rect x="245" y="103" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="259.5" y="123" fill="#17191c">147</text></g>
+<rect x="274" y="103" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o10"><rect x="274" y="103" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="288.5" y="123" fill="#17191c">147</text></g>
+<rect x="303" y="103" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o11"><rect x="303" y="103" width="29" height="29" fill="#747474" stroke="#ffffff" stroke-width="1.5"/><text x="317.5" y="123" fill="#ffffff">116</text></g>
+<rect x="216" y="132" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o12"><rect x="216" y="132" width="29" height="29" fill="#5d5d5d" stroke="#ffffff" stroke-width="1.5"/><text x="230.5" y="152" fill="#ffffff">93</text></g>
+<rect x="245" y="132" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o13"><rect x="245" y="132" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="259.5" y="152" fill="#17191c">147</text></g>
+<rect x="274" y="132" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o14"><rect x="274" y="132" width="29" height="29" fill="#939393" stroke="#ffffff" stroke-width="1.5"/><text x="288.5" y="152" fill="#17191c">147</text></g>
+<rect x="303" y="132" width="29" height="29" fill="#f6f8fb" stroke="#8a93a0"/>
+<g class="o15"><rect x="303" y="132" width="29" height="29" fill="#747474" stroke="#ffffff" stroke-width="1.5"/><text x="317.5" y="152" fill="#ffffff">116</text></g>
+</g>
+<rect x="216" y="45" width="116" height="116" fill="none" stroke="#7b8594" stroke-width="1.5"/>
+</svg>

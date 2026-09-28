@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 482" width="360" height="482" role="img" aria-labelledby="title desc">
+<title id="title">디스플레이 모양의 변화: 평면, 곡면, 폴더블, 롤러블</title>
+<desc id="desc">위에서 아래로 화살표로 이어진 네 가지 화면: 받침 위의 평평한 화면(평면), 가운데가 휘어진 화면(곡면), 가운데 접는 선을 따라 반쯤 접힌 화면(폴더블), 원통에 감겨 있다가 펼쳐지는 화면(롤러블). 맨 아래 상자에 스스로 빛나는 OLED는 백라이트가 없어 얇게 만들 수 있어서 휘고 접고 말 수 있다고 적혀 있다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/></marker><linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3f74e0"/><stop offset="1" stop-color="#1a4cb4"/></linearGradient></defs>
+<rect width="360" height="482" fill="#ffffff"/>
+<svg x="83" y="12" width="96" height="84" viewBox="22 31.75 120 105">
+<rect x="30" y="40" width="104" height="68" rx="4" fill="url(#scr)" stroke="#17191c" stroke-width="3"/>
+<rect x="74" y="108" width="16" height="16" fill="#4a5361"/><rect x="56" y="124" width="52" height="6" rx="3" fill="#4a5361"/>
+</svg>
+<svg x="83" y="112" width="96" height="84" viewBox="182 31.25 120 105">
+<path d="M186 48 Q242 30 298 48 L298 112 Q242 94 186 112 Z" fill="url(#scr)" stroke="#17191c" stroke-width="3"/>
+<rect x="234" y="104" width="16" height="20" fill="#4a5361"/><rect x="216" y="124" width="52" height="6" rx="3" fill="#4a5361"/>
+</svg>
+<svg x="83" y="212" width="96" height="84" viewBox="342 36.5 120 105">
+<path d="M352 50 L402 66 L402 128 L352 112 Z" fill="url(#scr)" stroke="#17191c" stroke-width="3" stroke-linejoin="round"/>
+<path d="M402 66 L452 50 L452 112 L402 128 Z" fill="#2f5fc4" stroke="#17191c" stroke-width="3" stroke-linejoin="round"/>
+<line x1="402" y1="66" x2="402" y2="128" stroke="#f6d36b" stroke-width="3"/>
+</svg>
+<svg x="83" y="312" width="96" height="84" viewBox="506 33.5 120 105">
+<rect x="520" y="46" width="30" height="80" rx="15" fill="#4a5361" stroke="#17191c" stroke-width="3"/>
+<path d="M536 50 L612 50 L612 122 L536 122 Z" fill="url(#scr)" stroke="#17191c" stroke-width="3"/>
+<ellipse cx="535" cy="86" rx="10" ry="36" fill="#2b2f36"/>
+</svg>
+<line x1="131" y1="95" x2="131" y2="114" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="131" y1="195" x2="131" y2="214" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="131" y1="295" x2="131" y2="314" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="8" y="410" width="344" height="64" rx="10" fill="#fff4d8" stroke="#b7800f"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="195" y="50" font-size="19" font-weight="700" fill="#17191c">평면</text>
+<text x="195" y="76" font-size="16" fill="#4a5361">평평한 화면</text>
+<text x="195" y="150" font-size="19" font-weight="700" fill="#17191c">곡면</text>
+<text x="195" y="176" font-size="16" fill="#4a5361">휘어진 화면</text>
+<text x="195" y="250" font-size="19" font-weight="700" fill="#17191c">폴더블</text>
+<text x="195" y="276" font-size="16" fill="#4a5361">접히는 화면</text>
+<text x="195" y="350" font-size="19" font-weight="700" fill="#17191c">롤러블</text>
+<text x="195" y="376" font-size="16" fill="#4a5361">말리는 화면</text>
+<text x="180" y="436" font-size="16" fill="#17191c" text-anchor="middle">OLED는 백라이트가 없어 얇게 만들 수 있어서</text>
+<text x="180" y="460" font-size="16" fill="#17191c" text-anchor="middle">휘고, 접고, 말 수 있어요.</text>
+</g>
+</svg>

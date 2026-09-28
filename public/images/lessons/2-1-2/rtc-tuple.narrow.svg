@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 438" width="360" height="438" role="img" aria-labelledby="title desc">
+<title id="title">RTC 날짜와 시각 튜플의 여덟 칸</title>
+<desc id="desc">rtc.datetime((2025, 6, 21, 6, 11, 0, 0, 0))의 값 여덟 개가 네 칸씩 두 줄의 칸에 하나씩 들어 있다. 칸 아래에 t[0]부터 t[7]까지의 번호와 뜻(년, 월, 일, 요일, 시, 분, 초, 초 아래)이 적혀 있다. 시, 분, 초인 t[4], t[5], t[6] 세 칸이 파랗게 강조되어 있고, 이 세 값을 형식 {:02}로 두 자리씩 이어 LCD에 Time: 11:00:00으로 보여 준다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker></defs>
+<rect width="360" height="438" fill="#ffffff"/>
+<rect x="16" y="34" width="76" height="56" rx="8" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<rect x="100" y="34" width="76" height="56" rx="8" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<rect x="184" y="34" width="76" height="56" rx="8" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<rect x="268" y="34" width="76" height="56" rx="8" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<rect x="16" y="144" width="76" height="56" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="3"/>
+<rect x="100" y="144" width="76" height="56" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="3"/>
+<rect x="184" y="144" width="76" height="56" rx="8" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="3"/>
+<rect x="268" y="144" width="76" height="56" rx="8" fill="#f4f6f9" stroke="#7b8594" stroke-width="1"/>
+<path d="M16 254 V262 H260 V254" fill="none" stroke="#1f5bd6" stroke-width="2.5"/>
+<line x1="138" y1="262" x2="138" y2="278" stroke="#1f5bd6" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="8" y="284" width="344" height="30" rx="6" fill="#edf1f6"/>
+<rect x="76" y="340" width="208" height="42" rx="6" fill="#22384d"/>
+<rect x="82" y="346" width="196" height="30" rx="3" fill="#2f5fc4"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="180" y="20" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="13" fill="#17191c" text-anchor="middle">rtc.datetime((2025, 6, 21, 6, 11, 0, 0, 0))</text>
+<text x="54" y="70" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">2025</text>
+<text x="54" y="110" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[0]</text>
+<text x="54" y="130" font-size="14" fill="#17191c" text-anchor="middle">년</text>
+<text x="138" y="70" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">6</text>
+<text x="138" y="110" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[1]</text>
+<text x="138" y="130" font-size="14" fill="#17191c" text-anchor="middle">월</text>
+<text x="222" y="70" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">21</text>
+<text x="222" y="110" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[2]</text>
+<text x="222" y="130" font-size="14" fill="#17191c" text-anchor="middle">일</text>
+<text x="306" y="70" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">6</text>
+<text x="306" y="110" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[3]</text>
+<text x="306" y="130" font-size="14" fill="#17191c" text-anchor="middle">요일</text>
+<text x="54" y="180" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">11</text>
+<text x="54" y="220" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[4]</text>
+<text x="54" y="240" font-size="14" fill="#17191c" text-anchor="middle">시</text>
+<text x="138" y="180" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="138" y="220" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[5]</text>
+<text x="138" y="240" font-size="14" fill="#17191c" text-anchor="middle">분</text>
+<text x="222" y="180" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="222" y="220" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[6]</text>
+<text x="222" y="240" font-size="14" fill="#17191c" text-anchor="middle">초</text>
+<text x="306" y="180" font-size="22" font-weight="700" fill="#17191c" text-anchor="middle">0</text>
+<text x="306" y="220" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="14" fill="#1a4cb4" text-anchor="middle">t[7]</text>
+<text x="306" y="240" font-size="14" fill="#17191c" text-anchor="middle">초 아래</text>
+<text x="180" y="304" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="13" fill="#17191c" text-anchor="middle">"{:02}:{:02}:{:02}".format(t[4], t[5], t[6])</text>
+<text x="180" y="324" font-size="16" fill="#17191c" text-anchor="middle" transform="rotate(90 180 318)">→</text>
+<text x="92" y="367" font-family="'Consolas', 'D2Coding', 'Menlo', monospace" font-size="17" fill="#ffffff">Time: 11:00:00</text>
+<text x="8" y="408" font-size="14" fill="#4a5361">{:02}는 한 자리 숫자 앞에 0을 채워</text>
+<text x="8" y="428" font-size="14" fill="#4a5361">두 자리로 만들어요(0 → 00, 5 → 05).</text>
+</g>
+</svg>

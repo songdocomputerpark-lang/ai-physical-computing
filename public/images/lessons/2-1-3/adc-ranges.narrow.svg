@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 424" width="360" height="424" role="img" aria-labelledby="title desc">
+<title id="title">4채널 터치 센서의 ADC 값과 버튼 판정 구간</title>
+<desc id="desc">0부터 4095까지의 수직선 위에 안 누름 0, 패드 1 688, 패드 2 1535, 패드 3 2381, 패드 4 3263이 점으로 찍혀 있다(이름표는 두 줄로 엇갈려 적었다). 아래 초록 줄은 겹치지 않는 판정 구간(500~800, 1000~1700, 2000~2500, 3000~3500)으로 네 값이 버튼 1~4에 하나씩 들어간다. 그 아래 빨간 줄은 원본 파일의 구간(500~1200, 1000~2500, 2000~4000, 3000~4200)으로 서로 겹쳐서, 패드 3의 2381이 버튼 2와 버튼 3 구간에 모두 들어가 먼저 확인한 버튼 2로, 패드 4의 3263이 버튼 3으로 잘못 판정된다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 같은 내용을 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<rect width="360" height="424" fill="#ffffff"/>
+<line x1="82.1" y1="136" x2="82.1" y2="348" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="146.2" y1="136" x2="146.2" y2="348" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="210.2" y1="136" x2="210.2" y2="348" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="277" y1="136" x2="277" y2="348" stroke="#7b8594" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="30" y1="84" x2="30" y2="136" stroke="#b8c1cc" stroke-width="1.5"/>
+<line x1="146.2" y1="84" x2="146.2" y2="136" stroke="#b8c1cc" stroke-width="1.5"/>
+<line x1="277" y1="84" x2="277" y2="136" stroke="#b8c1cc" stroke-width="1.5"/>
+<line x1="30" y1="136" x2="340" y2="136" stroke="#17191c" stroke-width="2.5"/>
+<line x1="30" y1="130" x2="30" y2="142" stroke="#17191c" stroke-width="2"/>
+<line x1="105.7" y1="130" x2="105.7" y2="142" stroke="#17191c" stroke-width="2"/>
+<line x1="181.4" y1="130" x2="181.4" y2="142" stroke="#17191c" stroke-width="2"/>
+<line x1="257.1" y1="130" x2="257.1" y2="142" stroke="#17191c" stroke-width="2"/>
+<line x1="340" y1="130" x2="340" y2="142" stroke="#17191c" stroke-width="2"/>
+<circle cx="30" cy="136" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<circle cx="82.1" cy="136" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<circle cx="146.2" cy="136" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<circle cx="210.2" cy="136" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<circle cx="277" cy="136" r="6" fill="#f6d36b" stroke="#b7800f" stroke-width="2"/>
+<rect x="67.9" y="198" width="22.7" height="20" rx="4" fill="#e8f6ee" stroke="#3b9360" stroke-width="2"/>
+<rect x="105.7" y="198" width="53" height="20" rx="4" fill="#e8f6ee" stroke="#3b9360" stroke-width="2"/>
+<rect x="181.4" y="198" width="37.9" height="20" rx="4" fill="#e8f6ee" stroke="#3b9360" stroke-width="2"/>
+<rect x="257.1" y="198" width="37.9" height="20" rx="4" fill="#e8f6ee" stroke="#3b9360" stroke-width="2"/>
+<rect x="67.9" y="274" width="52.9" height="14" rx="3" fill="#fdecec" stroke="#d24b4b" stroke-width="1.5"/>
+<rect x="105.7" y="294" width="113.6" height="14" rx="3" fill="#fdecec" stroke="#d24b4b" stroke-width="1.5"/>
+<rect x="181.4" y="314" width="151.4" height="14" rx="3" fill="#fdecec" stroke="#d24b4b" stroke-width="1.5"/>
+<rect x="257.1" y="334" width="82.9" height="14" rx="3" fill="#fdecec" stroke="#d24b4b" stroke-width="1.5"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
+<text x="180" y="18" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">4채널 터치 센서: 패드마다 다른</text>
+<text x="180" y="36" font-size="15" font-weight="700" fill="#17191c" text-anchor="middle">ADC 값(0~4095)이 나와요</text>
+<text x="30" y="160" font-size="13" fill="#4a5361" text-anchor="middle">0</text>
+<text x="105.7" y="160" font-size="13" fill="#4a5361" text-anchor="middle">1000</text>
+<text x="181.4" y="160" font-size="13" fill="#4a5361" text-anchor="middle">2000</text>
+<text x="257.1" y="160" font-size="13" fill="#4a5361" text-anchor="middle">3000</text>
+<text x="340" y="160" font-size="13" fill="#4a5361" text-anchor="middle">4095</text>
+<text x="8" y="60" font-size="14" font-weight="700" fill="#17191c" text-anchor="start">안 누름</text>
+<text x="8" y="78" font-size="14" fill="#17191c" text-anchor="start">0</text>
+<text x="82.1" y="102" font-size="14" font-weight="700" fill="#17191c" text-anchor="middle">패드 1</text>
+<text x="82.1" y="120" font-size="14" fill="#17191c" text-anchor="middle">688</text>
+<text x="146.2" y="60" font-size="14" font-weight="700" fill="#17191c" text-anchor="middle">패드 2</text>
+<text x="146.2" y="78" font-size="14" fill="#17191c" text-anchor="middle">1535</text>
+<text x="210.2" y="102" font-size="14" font-weight="700" fill="#17191c" text-anchor="middle">패드 3</text>
+<text x="210.2" y="120" font-size="14" fill="#17191c" text-anchor="middle">2381</text>
+<text x="277" y="60" font-size="14" font-weight="700" fill="#17191c" text-anchor="middle">패드 4</text>
+<text x="277" y="78" font-size="14" fill="#17191c" text-anchor="middle">3263</text>
+<text x="79.25" y="236" font-size="14" fill="#15653a" text-anchor="middle" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 1</text>
+<text x="132.2" y="236" font-size="14" fill="#15653a" text-anchor="middle" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 2</text>
+<text x="200.35000000000002" y="236" font-size="14" fill="#15653a" text-anchor="middle" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 3</text>
+<text x="276.05" y="236" font-size="14" fill="#15653a" text-anchor="middle" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 4</text>
+<text x="62.900000000000006" y="286" font-size="14" fill="#a3232a" text-anchor="end" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 1</text>
+<text x="100.7" y="306" font-size="14" fill="#a3232a" text-anchor="end" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 2</text>
+<text x="176.4" y="326" font-size="14" fill="#a3232a" text-anchor="end" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 3</text>
+<text x="252.10000000000002" y="346" font-size="14" fill="#a3232a" text-anchor="end" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">버튼 4</text>
+<text x="8" y="188" font-size="15" font-weight="700" fill="#15653a">겹치지 않는 구간(교과서 152쪽, 사이트판)</text>
+<text x="8" y="264" font-size="15" font-weight="700" fill="#a3232a">서로 겹치는 구간(원본 파일)</text>
+<text x="8" y="372" font-size="14" fill="#17191c">구간이 겹치면 먼저 확인한 버튼이 돼요.</text>
+<text x="8" y="392" font-size="14" fill="#17191c">그래서 원본 파일은 패드 3(2381)을 버튼 2로,</text>
+<text x="8" y="412" font-size="14" fill="#17191c">패드 4(3263)를 버튼 3으로 잘못 알아봐요.</text>
+</g>
+</svg>

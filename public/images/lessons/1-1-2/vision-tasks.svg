@@ -47,8 +47,8 @@
 </pattern>
 </defs>
 <rect x="444" y="54" width="168" height="150" rx="8" fill="url(#hatch)" stroke="#7b8594"/>
-<path d="M494,204 C494,172 508,158 528,158 C548,158 562,172 562,204 Z" fill="#5b87e0" stroke="#1a4cb4" stroke-width="2"/>
-<circle cx="528" cy="128" r="24" fill="#5b87e0" stroke="#1a4cb4" stroke-width="2"/>
+<path d="M494,204 C494,172 508,158 528,158 C548,158 562,172 562,204 Z" fill="#1f5bd6" stroke="#163f96" stroke-width="2"/>
+<circle cx="528" cy="128" r="24" fill="#1f5bd6" stroke="#163f96" stroke-width="2"/>
 <text x="528" y="190" font-size="16" font-weight="700" fill="#ffffff">사람</text>
 <rect x="450" y="62" width="44" height="24" rx="4" fill="#ffffff" stroke="#7b8594"/>
 <text x="472" y="80" font-size="16" fill="#4a5361">배경</text>

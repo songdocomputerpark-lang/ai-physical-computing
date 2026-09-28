@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 436" width="360" height="436" role="img" aria-labelledby="title desc">
+<title id="title">cv2.flip의 방향 값에 따라 뒤집힌 네 화면</title>
+<desc id="desc">왼쪽 위 원본 화면은 왼쪽 위에 파란 세모가 있고 가운데에 글자 R이 바로 서 있다. 오른쪽 위 방향 1(좌우 반전)은 세모가 오른쪽 위로 가고 R이 거울 글자가 된다. 왼쪽 아래 방향 0(위아래 반전)은 세모가 왼쪽 아래로 가고 R이 거꾸로 선다. 오른쪽 아래 방향 -1(둘 다 반전)은 세모가 오른쪽 아래로 가고 R이 좌우와 위아래가 모두 뒤집힌다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 네 화면을 두 줄로 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<rect width="360" height="436" fill="#ffffff"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<rect x="20" y="10" width="150" height="150" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g transform="translate(95 85) scale(1 1) translate(-95 -85)"><path d="M32 22 H70 L32 60 Z" fill="#1f5bd6"/><text x="95" y="115" font-size="84" font-weight="800" fill="#17191c">R</text></g>
+<text x="95" y="188" font-size="17" font-weight="700" fill="#17191c">원본</text>
+<text x="95" y="210" font-size="15" fill="#4a5361">그대로</text>
+<rect x="190" y="10" width="150" height="150" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g transform="translate(265 85) scale(-1 1) translate(-265 -85)"><path d="M202 22 H240 L202 60 Z" fill="#1f5bd6"/><text x="265" y="115" font-size="84" font-weight="800" fill="#17191c">R</text></g>
+<text x="265" y="188" font-size="17" font-weight="700" fill="#17191c">방향 1</text>
+<text x="265" y="210" font-size="15" fill="#4a5361">좌우 반전</text>
+<rect x="20" y="224" width="150" height="150" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g transform="translate(95 299) scale(1 -1) translate(-95 -299)"><path d="M32 236 H70 L32 274 Z" fill="#1f5bd6"/><text x="95" y="329" font-size="84" font-weight="800" fill="#17191c">R</text></g>
+<text x="95" y="402" font-size="17" font-weight="700" fill="#17191c">방향 0</text>
+<text x="95" y="424" font-size="15" fill="#4a5361">위아래 반전</text>
+<rect x="190" y="224" width="150" height="150" rx="12" fill="#f4f6f9" stroke="#7b8594" stroke-width="1.5"/>
+<g transform="translate(265 299) scale(-1 -1) translate(-265 -299)"><path d="M202 236 H240 L202 274 Z" fill="#1f5bd6"/><text x="265" y="329" font-size="84" font-weight="800" fill="#17191c">R</text></g>
+<text x="265" y="402" font-size="17" font-weight="700" fill="#17191c">방향 -1</text>
+<text x="265" y="424" font-size="15" fill="#4a5361">둘 다 반전</text>
+</g>
+</svg>

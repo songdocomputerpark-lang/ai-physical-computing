@@ -394,6 +394,15 @@ textarea {
   display: block;
 }
 
+/*
+ * 좁은 화면용 그림(src/lib/rehype-lesson-polish.mjs 3번 — 휴대폰에서는 <picture>가 세로로 다시 그린 x.narrow.svg를 고른다):
+ * 감싸지 않은 그림(figure > img)과 같은 자리·모양이 되게 <picture>도 블록으로 둔다.
+ */
+.prose figure > picture,
+.prose figure > picture > img {
+  display: block;
+}
+
 .prose figcaption {
   margin-block-start: var(--space-2);
   font-size: var(--text-sm);

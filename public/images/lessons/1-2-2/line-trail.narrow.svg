@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 280" width="360" height="280" role="img" aria-labelledby="title desc">
+<title id="title">이전 좌표와 현재 좌표를 이어 선이 되는 과정</title>
+<desc id="desc">프레임 1, 2, 3, 4에서 찍힌 검지 끝 점들이 이웃끼리 초록 선으로 이어져 곡선이 된다. 3번 점에는 이전 좌표, 4번 점에는 현재 좌표라는 이름표가 있고 둘 사이의 선이 가장 굵다. 5번 프레임은 손이 없어 빨간 가위표와 "→ (0, 0)"이 있고, 이전 좌표가 (0, 0)으로 돌아가 선이 끊긴다. 6, 7, 8번 프레임에서 새 선이 다시 시작된다. 휴대폰처럼 좁은 화면에서 읽기 쉽게 가로를 좁혀 다시 배치한 그림이다. 사이트가 직접 그린 그림.</desc>
+<rect width="360" height="280" fill="#ffffff"/>
+<line x1="24" y1="182" x2="64.3" y2="134" stroke="#3b9360" stroke-width="5" stroke-linecap="round"/>
+<line x1="64.3" y1="134" x2="110.8" y2="116" stroke="#3b9360" stroke-width="5" stroke-linecap="round"/>
+<line x1="110.8" y1="116" x2="155.4" y2="138" stroke="#3b9360" stroke-width="7" stroke-linecap="round"/>
+<line x1="241" y1="194" x2="284.4" y2="150" stroke="#3b9360" stroke-width="5" stroke-linecap="round"/>
+<line x1="284.4" y1="150" x2="332.8" y2="136" stroke="#3b9360" stroke-width="5" stroke-linecap="round"/>
+<circle cx="24" cy="182" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<circle cx="64.3" cy="134" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<circle cx="110.8" cy="116" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<circle cx="155.4" cy="138" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<circle cx="241" cy="194" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<circle cx="284.4" cy="150" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<circle cx="332.8" cy="136" r="7" fill="#17191c" stroke="#ffffff" stroke-width="2"/>
+<g stroke="#d24b4b" stroke-width="3" stroke-linecap="round"><line x1="188.8" y1="150" x2="208.8" y2="170"/><line x1="208.8" y1="150" x2="188.8" y2="170"/></g>
+<line x1="110.8" y1="222" x2="110.8" y2="130" stroke="#1f5bd6" stroke-width="1.5" stroke-dasharray="4 4"/>
+<line x1="155.4" y1="246" x2="155.4" y2="152" stroke="#1f5bd6" stroke-width="1.5" stroke-dasharray="4 4"/>
+<g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" text-anchor="middle">
+<text x="24" y="166" font-size="16" font-weight="700" fill="#17191c">1</text>
+<text x="64.3" y="118" font-size="16" font-weight="700" fill="#17191c">2</text>
+<text x="110.8" y="100" font-size="16" font-weight="700" fill="#17191c">3</text>
+<text x="155.4" y="122" font-size="16" font-weight="700" fill="#17191c">4</text>
+<text x="241" y="178" font-size="16" font-weight="700" fill="#17191c">6</text>
+<text x="284.4" y="134" font-size="16" font-weight="700" fill="#17191c">7</text>
+<text x="332.8" y="120" font-size="16" font-weight="700" fill="#17191c">8</text>
+<text x="198.8" y="136" font-size="16" font-weight="700" fill="#17191c">5</text>
+<text x="198.8" y="196" font-size="15" fill="#a3232a">손 없음</text>
+<text x="198.8" y="218" font-size="15" fill="#a3232a">→ (0, 0)</text>
+<text x="110.8" y="240" font-size="15" fill="#1a4cb4">이전 좌표</text>
+<text x="155.4" y="264" font-size="15" fill="#1a4cb4">현재 좌표</text>
+<text x="241" y="240" font-size="15" fill="#4a5361">새로 시작</text>
+<text x="14" y="22" font-size="14" fill="#4a5361" text-anchor="start">숫자 = 프레임 차례,</text>
+<text x="14" y="42" font-size="14" fill="#4a5361" text-anchor="start">초록 선 = cv2.line(이전 좌표, 현재 좌표)</text>
+</g>
+</svg>

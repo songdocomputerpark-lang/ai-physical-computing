@@ -4,6 +4,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 
 async function openPresentation(page: Page) {
+  // 개발 서버에만 있는 Astro 개발 도구 막대(astro-dev-toolbar)가 휴대폰 폭에서 발표 막대의 [다음 ▶]를 가려 클릭이 막힌다
+  // (PW_BASE_URL로 개발 서버를 시험할 때 — 2026-09-28 겪음). 빌드 결과에는 이 막대가 없어 아무 일도 없다(a11y spec이 axe에서 빼는 것과 같은 까닭).
+  await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
   const open = page.getByRole('button', { name: '발표 모드' });
   await expect(open).toBeVisible();
   await open.focus();
