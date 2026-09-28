@@ -10,8 +10,13 @@
  *
  * 쓰는 곳: 시작하기 > 점검 페이지(src/pages/start/check/index.astro)의 "네트워크 점검" 자리.
  * 테스트가 읽는 값: 뿌리 [data-network-check]의 data-state(idle|running|done), 항목 [data-network-item="<id>"]의 data-status.
+ * 오프라인판(판 1.1.0, 미해결 199 E-10): 항목 위에 "인터넷 항목은 막힘으로 나와도 정상" 한 줄([data-network-offline-note]) — 빌드 때
+ * OFFLINE_BUILD 표시를 따라 오프라인판 HTML에만 들어간다(온라인 사이트에는 없다).
  */
-import { NETWORK_CHECK_ITEMS } from './items.ts';
+import { OFFLINE_BUILD } from '../../../lab/runtime/config.ts';
+import { NETWORK_CHECK_ITEMS, offlineNetworkNote } from './items.ts';
+
+const offlineNote = offlineNetworkNote(OFFLINE_BUILD);
 ---
 
 <div class="network-check" data-network-check data-state="idle">
@@ -25,6 +30,8 @@ import { NETWORK_CHECK_ITEMS } from './items.ts';
     <button type="button" class="button button--secondary" data-network-copy disabled>결과 복사</button>
     <p class="network-check__status" role="status" aria-live="polite" data-network-status></p>
   </div>
+
+  {offlineNote && <p class="network-check__offline" data-network-offline-note>{offlineNote}</p>}
 
   <ul class="network-check__list">
     {
@@ -260,6 +267,20 @@ import { NETWORK_CHECK_ITEMS } from './items.ts';
   .network-check__status {
     margin: 0;
     font-weight: var(--weight-semibold);
+  }
+
+  /* 오프라인판에서만 보이는 한 줄(인터넷 항목이 막힘으로 나와도 정상) — 안내 상자 색 */
+  .network-check__offline {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-info-border);
+    border-inline-start-width: 0.375rem;
+    border-radius: var(--radius-md);
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
   }
 
   .network-check__list {

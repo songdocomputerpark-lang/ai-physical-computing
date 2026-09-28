@@ -76,6 +76,17 @@ export const NETWORK_CHECK_ITEMS: readonly NetworkCheckItem[] = Object.freeze([
   ...MQTT_ITEMS,
 ]);
 
+/**
+ * 오프라인판(OFFLINE_BUILD — src/lab/runtime/config.ts)에서 항목 목록 위에 보이는 한 줄(판 1.1.0, PROGRESS 미해결 199 요청 E-10).
+ * 오프라인판은 인터넷 없이 이 컴퓨터의 작은 서버(검은 창)에서 파일을 받으므로, 인터넷 주소 항목(jsDelivr·공개 중계 서버)이 "막힘"으로
+ * 나와도 실습에는 문제가 없다. 온라인 사이트에서는 null(보이지 않는다).
+ */
+export function offlineNetworkNote(offline: boolean): string | null {
+  return offline
+    ? '이 사이트는 인터넷 없이 쓰는 오프라인판이에요. 아래에서 인터넷 주소 항목(jsDelivr·공개 중계 서버)은 "막힘"으로 나와도 정상이에요 — 실습 파일은 이 컴퓨터의 작은 서버(검은 창)에서 받아요.'
+    : null;
+}
+
 /** 항목이 실제로 받아 볼 주소 */
 export function networkItemUrl(item: NetworkCheckItem, origin: string): string {
   if (item.url) {

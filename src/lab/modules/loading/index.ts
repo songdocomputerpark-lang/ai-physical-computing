@@ -13,6 +13,8 @@
  *    같은 CDN의 작은 파일(pyodide.mjs 18KB)을 따로 받아 본다(살핌). 잘 되면 느린 것뿐이라 그대로 두고, 막혔으면 서비스 워커에 알린 뒤
  *    (다음 파일부터 예비 경로를 먼저 씀) 같은 사이트 예비본이 살아 있는지 보고 **한 탭에서 한 번만** 페이지를 다시 불러 예비본으로 연다.
  *    둘 다 막혔으면 점검 페이지를 안내한다. 서비스 워커가 이미 맡고 있으면 다시 부르지 않아도 파일 하나 단위로 바뀐다(src/sw/sw.js).
+ *    오프라인판(OFFLINE_BUILD, 판 1.1.0 — 미해결 199 E-10)은 인터넷을 살피지 않고 이 컴퓨터의 작은 서버(검은 창)만 살펴, 꺼졌으면
+ *    "검은 창이 켜져 있는지·시작하기.bat 다시 실행"을 안내한다(offline-note.ts).
  *
  * 테스트가 읽는 값(실습실 뿌리 [data-lab]): data-loading-phase(idle|loading|ready|failed), data-loading-percent,
  * data-loading-source(cdn|site|cache|unknown), data-loading-sw(unsupported|off|registering|ready|controlled|failed),
@@ -53,9 +55,11 @@ import {
   type ServiceWorkerState,
 } from '../../loader/sw-client.ts';
 import { LoadingTracker, stageIdForUrl, type StageSnapshot } from '../../loader/stages.ts';
+import { OFFLINE_BUILD } from '../../runtime/config.ts';
 import { prefetchLazyModules } from '../host.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import manifest from './manifest.ts';
+import { OFFLINE_SERVER_DOWN_NOTE, OFFLINE_SERVER_SLOW_NOTE } from './offline-note.ts';
 
 /** 점검 페이지 주소(네트워크가 막혔을 때 안내) */
 const CHECK_PAGE = withBase('start/check/');
@@ -527,6 +531,23 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
     probing = true;
     setRootData('fallback', 'probing');
+    if (OFFLINE_BUILD) {
+      // 오프라인판(판 1.1.0, 미해결 199 E-10): 인터넷 주소가 없다 — 이 컴퓨터의 작은 서버(검은 창)만 살피고, 그 서버 이야기로 안내한다.
+      const local = await probeUrl(`${pyodideSiteUrl('pyodide.mjs', origin)}?probe=${Date.now()}`, { stallMs: PROBE_STALL_MS });
+      if (disposed) {
+        return;
+      }
+      if (local.status === 'ok') {
+        // 서버는 살아 있고 느린 것뿐이다. 다음에 또 살펴볼 수 있게 열어 둔다(온라인의 "느린 것뿐"과 같다).
+        probing = false;
+        setRootData('fallback', '');
+        setNote(OFFLINE_SERVER_SLOW_NOTE);
+        return;
+      }
+      setRootData('fallback', 'blocked');
+      setNote(OFFLINE_SERVER_DOWN_NOTE);
+      return;
+    }
     // 검색어를 붙여 브라우저·서비스 워커 캐시를 지나가게 한다(실제 망을 잰다 — parsePyodideUrl이 ?가 붙은 주소를 지나친다).
     const outcome = await probeUrl(`${pyodideCdnUrl('pyodide.mjs')}?probe=${Date.now()}`, { stallMs: PROBE_STALL_MS });
     if (outcome.status === 'ok') {
