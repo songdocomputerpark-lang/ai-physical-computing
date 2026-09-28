@@ -251,6 +251,8 @@ function altOf(imageTag: string): string | undefined {
  * 본문 그림(<figure>의 그림, 문단 하나에 그림 하나만 있는 마크다운 그림)에 [그림 크게 보기] 링크를 붙인다.
  * 휴대폰에서 폭 640 그림이 절반쯤으로 줄어 그림 속 글자가 8px 안팎이 되는데 확대할 방법이 없었다(2026-09-25 Phase 5 검토 사소 10).
  * 링크는 그림 파일 자체를 연다(브라우저가 원래 크기로 보이고 손가락으로 키울 수 있다). 넓은 화면에서는 숨긴다.
+ * 사이트가 그린 SVG 그림은 자바스크립트가 있으면 파일 대신 이 쪽 안의 크게 보기 창으로 연다 — SVG 파일은 휴대폰 기본 창 폭(980px)으로
+ * 그려져 본문보다 작게 보였다(figure-zoom.ts, 1.1.0 검토 반영). 링크 주소는 그대로 원래 그림이다(자바스크립트가 없으면 전처럼 파일).
  */
 export function addImageZoomLinks(html: string): string {
   const withFigures = html.replace(/<figure>([\s\S]*?)<\/figure>/gu, (whole: string, inner: string) => {

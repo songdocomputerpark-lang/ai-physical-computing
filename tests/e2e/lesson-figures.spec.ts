@@ -5,7 +5,10 @@
 //  ① 휴대폰(375×812): 고친 차시의 사이트 그림 글자가 **보이는 크기로 11px 이상**인지(그림 파일을 같은 폭으로 그려 글자마다 잼),
 //     좁은 그림이 있는 그림은 좁은 그림을 받는지, 가로 넘침이 없는지
 //  ② 데스크톱(1366×768): 원래 그림을 받고, <source>에 좁은 그림의 가로·세로가 있는지, [그림 크게 보기]는 원래 그림을 여는지
+//  ③ 휴대폰에서 [그림 크게 보기]를 누르면 SVG 그림은 이 쪽 안의 크게 보기 창이 열려 본문 그림(좁은 그림)이 본문보다 크게 보이는지,
+//     Esc로 닫으면 링크로 초점이 돌아오는지(1.1.0 교실 사용성 검토 사소 4 — 전에는 SVG 파일이 휴대폰 기본 창 폭으로 열려 본문보다 작았다)
 // 를 본다. 단위 테스트(tests/unit/lesson/narrow-figures.test.ts)는 차시 45편 출력과 좁은 그림 파일 규칙을 본다.
+import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { stripBase } from '../../src/lib/url.ts';
 
@@ -149,6 +152,38 @@ test.describe('차시 그림 — 휴대폰에서 글자가 읽히는 크기(미�
       expect(overflow, '가로 넘침').toBeLessThanOrEqual(0);
     });
   }
+
+  test('휴대폰 [그림 크게 보기]: 크게 보기 창이 열려 본문에 보이던 좁은 그림을 본문보다 크게 보이고, Esc로 닫으면 링크로 초점', async ({ page, isMobile }) => {
+    test.skip(!isMobile, '휴대폰 폭에서 본다([그림 크게 보기]는 좁은 화면에서만 보인다)');
+    await page.goto(`./learn/${CHECKED_LESSONS[0]}/`);
+    const figure = page.locator('.lesson-body figure').filter({ has: page.locator('picture') }).first();
+    await figure.scrollIntoViewIfNeeded();
+    const image = figure.locator('img');
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).complete && (element as HTMLImageElement).naturalWidth > 0)).toBe(true);
+    const inPage = await image.evaluate((element) => ({ src: (element as HTMLImageElement).currentSrc, width: element.getBoundingClientRect().width }));
+    expect(inPage.src).toMatch(/\.narrow\.svg$/u);
+    const link = figure.locator('a.figure-zoom');
+    await link.click();
+    const dialog = page.locator('dialog[data-figure-zoom]');
+    await expect(dialog).toBeVisible();
+    // 파일로 넘어가지 않고 이 쪽에 머문다
+    expect(new URL(page.url()).pathname).toMatch(/\/learn\/u1\/1-1-1\/$/u);
+    const zoomed = dialog.locator('img');
+    await expect.poll(() => zoomed.evaluate((element) => (element as HTMLImageElement).complete && (element as HTMLImageElement).naturalWidth > 0)).toBe(true);
+    const shown = await zoomed.evaluate((element) => ({ src: (element as HTMLImageElement).currentSrc, width: element.getBoundingClientRect().width, alt: (element as HTMLImageElement).alt }));
+    // 본문에 보이던 그 그림(좁은 그림)을 본문보다 1.5배 넘게
+    expect(shown.src).toBe(inPage.src);
+    expect(shown.width).toBeGreaterThan(inPage.width * 1.5);
+    expect(shown.alt.length).toBeGreaterThan(0);
+    await expect(dialog.getByRole('button', { name: '닫기' })).toBeFocused();
+    const severe = (await new AxeBuilder({ page }).include('dialog[data-figure-zoom]').analyze()).violations.filter(
+      (violation) => violation.impact === 'critical' || violation.impact === 'serious',
+    );
+    expect(severe.map((violation) => violation.id)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(link).toBeFocused();
+  });
 
   test('데스크톱은 원래 그림을 받고, <source>에 좁은 그림의 가로·세로가 있고, [그림 크게 보기]는 원래 그림을 연다', async ({ page, isMobile }) => {
     test.skip(isMobile, '넓은 화면에서 본다');
