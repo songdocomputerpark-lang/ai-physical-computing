@@ -138,6 +138,48 @@ describe('태그를 정하는 차례 — 차시 md → 사이드카 → 사이�
     expect(cards[0].facets).toMatchObject({ unit: 2, virtualOk: true });
   });
 
+  it('차시가 싣지 않고 가리키기만 한 예제는 사이드카 값이 먼저고, 빈 칸만 차시로 채운다(2026-09-28 미해결 140)', () => {
+    const info = lesson({ slug: '4-2-2', unit: 4, difficulty: 3, virtualOk: true, comm: ['tab', 'uart'], tags: ['프로젝트'] });
+    const { cards } = buildGallery(
+      [
+        // 사이드카 lesson으로 가리키기만 함 → 사이드카의 난이도·통신 방식이 이긴다, 단원·하드웨어 없이는 차시로 채운다
+        input('esp32', { id: 'u4-mount', file: 'esp32/u4/mount.py', code: '# 조립 준비\n' }, { lesson: '4-2-2', difficulty: 1, comm: ['ble'], tags: ['서보'] }),
+        // 같은 차시가 frontmatter examples로 싣는 예제 → 차시가 이긴다(사이드카 1은 가려진다)
+        input('esp32', { id: 'u4-main', file: 'esp32/u4/main.py', code: '# 본 예제\n' }, { lesson: '4-2-2', difficulty: 1 }),
+      ],
+      { byFile: { 'esp32/u4/main.py': info }, bySlug: { '4-2-2': info } },
+    );
+    const byFile = (value: string) => cards.find((card) => card.file === value)!;
+    expect(byFile('esp32/u4/mount.py').facets).toMatchObject({ unit: 4, difficulty: 1, virtualOk: true, comm: ['ble'] });
+    // 낱말은 차례와 상관없이 차시 → 사이드카 순서로 모두 모은다
+    expect(byFile('esp32/u4/mount.py').facets.tags).toEqual(['프로젝트', '서보']);
+    expect(byFile('esp32/u4/main.py').facets).toMatchObject({ unit: 4, difficulty: 3, comm: ['uart', 'tab'] });
+  });
+
+  it('사이드카가 없는 사이트 예제는 머리말의 # @lesson으로 차시를 찾고, # @tags를 낱말로 쓴다', () => {
+    const code = ['# 진동 알림', '# 터치하면 떨려요.', '# @lesson 2-2-1', '# @tags 진동 모터, 터치 센서', 'from machine import Pin', ''].join('\n');
+    const { cards } = buildGallery(
+      [input('esp32', { id: '04-alert', file: 'esp32/04-alert.py', code })],
+      { bySlug: { '2-2-1': lesson({ slug: '2-2-1', unit: 2, difficulty: 2, tags: ['버저'] }) } },
+    );
+    expect(cards[0].facets).toMatchObject({ unit: 2, difficulty: 2, tags: ['버저', '진동 모터', '터치 센서'] });
+    expect(cards[0].keywords).toContain('진동 모터');
+    // 사이드카 lesson이 머리말보다 먼저다(실습실 목록의 차시 링크와 같은 차례)
+    const both = buildGallery(
+      [input('esp32', { id: '04-alert', file: 'esp32/04-alert.py', code }, { lesson: '2-2-2' })],
+      { bySlug: { '2-2-1': lesson({ slug: '2-2-1', difficulty: 2 }), '2-2-2': lesson({ slug: '2-2-2', difficulty: 3 }) } },
+    );
+    expect(both.cards[0].facets.difficulty).toBe(3);
+  });
+
+  it('머리말 # @tags는 사이드카 tags와 합친다(겹치는 낱말은 한 번만) — 옮긴 예제처럼 규약 줄이 없으면 머리말에서 아무것도 더하지 않는다', () => {
+    const header = ['# 템플릿', '# @tags UART, 통신', 'print(1)', ''].join('\n');
+    const withHeader = buildGallery([input('esp32', { id: 't', file: 'esp32/templates/t.py', code: header }, { title: '템플릿', tags: ['통신', '에코'] })]);
+    expect(withHeader.cards[0].facets.tags).toEqual(['통신', '에코', 'UART']);
+    const migrated = buildGallery([input('vision', { id: 'm', file: 'vision/u1/m.py', code: '# 라이브러리 불러오기\nimport cv2\n' }, { tags: ['카메라'] })]);
+    expect(migrated.cards[0].facets.tags).toEqual(['카메라']);
+  });
+
   it('차시 md의 예제 항목(examples[].difficulty·tags)이 그 예제 카드에서 차시 값보다 먼저다 — 짝 예제가 여럿인 차시(미해결 180)', () => {
     const board = 'esp32/u3/3-1-2-uart-laser-site.py';
     const basic = 'vision/u3/3-1-2-uart-key-send.py';
@@ -306,13 +348,15 @@ describe('묶음과 거르기 칸', () => {
     });
   });
 
-  it('난이도를 일부만 적었으면 칸 이름에 적은 수를 밝힌다', () => {
+  it('난이도 칸 이름에는 단서를 달지 않는다 — 난이도는 모든 예제에 적는 칸이다(2026-09-28 미해결 140, 빠진 예제는 repo-facets.test.ts가 잡는다)', () => {
     const { facetGroups } = buildGallery([
       input('esp32', { id: 'a', file: 'esp32/u2/a.py' }, { difficulty: 1 }),
       input('esp32', { id: 'b', file: 'esp32/u2/b.py', code: '# b\n' }),
     ]);
     const difficulty = facetGroups.find((group) => group.key === 'difficulty');
-    expect(difficulty?.legend).toBe('난이도(적어 둔 예제 1개만)');
+    expect(difficulty?.legend).toBe('난이도');
+    // 개수는 적힌 값만 센다(빈 값은 그 칸을 고르면 빠진다 — filters.ts 규칙 그대로)
+    expect(difficulty?.options).toEqual([{ value: '1', label: '1', count: 1 }]);
   });
 
   it('파일 경로가 없는 예제는 넣지 않는다(실습실 자리 코드 등)', () => {

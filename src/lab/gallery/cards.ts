@@ -6,10 +6,17 @@
  * (실습실 [예제 불러오기] 목록에 드는 것과 똑같은 조건 — 원칙 6). 차시 md를 새로 만들면 카드에 차시 링크와 차시가 적은 태그가 함께 붙는다.
  *
  * 태그(facets)를 정하는 차례 — 칸마다 따로 본다.
- *   ① 차시 md frontmatter → ② 예제 사이드카(`<이름>.meta.yaml`) → ③ 사이트 규칙으로 저절로 읽기(`infer.ts`: 폴더 이름의 단원, 코드가 import하는 통신 모듈)
+ *   ① 차시 md frontmatter → ② 예제 쪽(사이드카 `<이름>.meta.yaml`, 사이트가 만든 예제는 머리말 `# @tags`까지) → ③ 사이트 규칙으로 저절로 읽기
+ *      (`infer.ts`: 폴더 이름의 단원, 코드가 import하는 통신 모듈)
  *   ①은 다시 **그 예제 항목(`examples[].difficulty`·`tags`)이 먼저**, 차시 값이 그다음이다(2026-09-26 PROGRESS 미해결 180 — 짝 예제가 여럿인 차시.
- *   페이지가 `GalleryLessonInfo.examples`로 넘겨야 쓰인다, `lessonFacetsForExample`). 낱말은 차시 tags + 예제 항목 tags + 사이드카 tags를 모두 모은다.
+ *   페이지가 `GalleryLessonInfo.examples`로 넘겨야 쓰인다, `lessonFacetsForExample`). 낱말은 차시 tags + 예제 항목 tags + 사이드카·머리말 tags를 모두 모은다.
+ *   **①이 ②보다 먼저인 것은 차시가 그 예제를 싣고 있을 때(frontmatter `examples`)뿐이다.** 사이드카 `lesson`이나 머리말 `# @lesson`으로
+ *   차시를 가리키기만 한 예제는 ② → ①(예제가 적은 값이 먼저, 빈 칸만 차시로 채움 — 2026-09-28 미해결 140). 차시 전체의 값(예: 4-2-2 난이도 3)이
+ *   차시가 싣지도 않은 짧은 준비 코드나 다른 통로를 쓰는 판(C3 블루투스판)을 덮어쓰지 않게 한다. 차시를 찾는 차례는 실습실 목록과 같다
+ *   (차시가 싣는 예제 → 사이드카 lesson → 머리말 # @lesson, src/lab/vision/examples.ts).
  * ①②는 `galleryFacetsOf`(facets.ts)가 맡고, 둘 다 비었을 때만 ③이 온다. 부품은 배선(`LabExample.parts`)이 곧 태그라 따로 적지 않는다.
+ * 난이도는 모든 예제에 있어야 한다(미해결 140 — 저장소 예제는 tests/unit/gallery/repo-facets.test.ts가 확인). 그래서 거르기 칸 이름에
+ * "적어 둔 예제 몇 개만" 같은 단서를 달지 않는다.
  *
  * 같은 코드가 두 번 들어오면(§7.1 사본) **카드는 한 장만** 만들고 나머지 파일 이름을 `sameCode`에 적는다.
  * 거의 같은 변형(§7.2)과 원본↔사이트판은 `variants.ts`가 묶어 "비교해 보기"로 잇는다.
@@ -17,6 +24,7 @@
  * 빌드에서만 도는 파일이다(페이지 프런트매터가 부른다). 브라우저로 가는 값은 카드의 `data-*`뿐이라 코드 본문은 화면에 실리지 않는다.
  */
 import { getPage } from '../../config/nav.ts';
+import { readExampleMeta, type ExampleMeta } from '../controls/example-meta.ts';
 import type { ExampleSidecar } from '../controls/example-sidecar.ts';
 import type { LabExample } from '../controls/examples.ts';
 import { galleryFacetsOf, partIdsOf, type FacetSource, type GalleryFacets } from './facets.ts';
@@ -195,28 +203,43 @@ export function labExampleHref(lab: GalleryLabId, file: string): string {
   return `${getPage(LAB_PAGE_ID[lab]).href}?example=${encodeURIComponent(file)}`;
 }
 
-/** 차시 md와 사이드카에서 이 예제에 해당하는 차시를 찾는다(차시가 싣고 있으면 그 차시가 먼저). */
-function lessonFor(input: GalleryExampleInput, lessons: GalleryLessonLookup): GalleryLessonInfo | null {
+/** 이 예제의 차시와, 그 차시가 frontmatter `examples`에 이 예제를 싣고 있는지 */
+interface LessonMatch {
+  readonly lesson: GalleryLessonInfo;
+  /** 참: 차시가 이 예제를 싣는다(차시 값이 먼저). 거짓: 사이드카·머리말의 lesson으로 가리키기만 했다(예제 값이 먼저) */
+  readonly carries: boolean;
+}
+
+/**
+ * 이 예제에 해당하는 차시를 찾는다 — 차시가 싣고 있으면 그 차시, 아니면 사이드카 `lesson` → 머리말 `# @lesson`이 가리키는 차시
+ * (실습실 목록이 "이 예제가 나오는 차시" 링크를 찾는 차례와 같다 — src/lab/vision/examples.ts·src/lab/esp32/examples.ts).
+ */
+function lessonFor(input: GalleryExampleInput, lessons: GalleryLessonLookup, header: ExampleMeta): LessonMatch | null {
   const file = input.example.file ?? '';
   const byFile = lessons.byFile?.[file];
   if (byFile) {
-    return byFile;
+    return { lesson: byFile, carries: true };
   }
-  const slug = input.sidecar?.lesson ?? null;
-  return (slug !== null ? lessons.bySlug?.[slug] : null) ?? null;
+  const slug = input.sidecar?.lesson ?? header.lesson ?? null;
+  const bySlug = slug !== null ? lessons.bySlug?.[slug] : undefined;
+  return bySlug ? { lesson: bySlug, carries: false } : null;
 }
 
-/** 사이드카를 facets.ts가 읽는 모양으로 바꾼다(칸 이름이 다른 것만 맞춰 준다). */
-function sidecarFacetSource(sidecar: ExampleSidecar | null | undefined): FacetSource | null {
-  if (!sidecar) {
+/**
+ * 예제 쪽 값(사이드카 + 머리말)을 facets.ts가 읽는 모양으로 바꾼다. 머리말에서는 낱말(`# @tags`)만 읽는다 —
+ * 사이트가 만든 예제는 낱말을 머리말에 적고(src/lab/controls/example-meta.ts), 난이도 같은 나머지 칸은 사이드카나 차시에 적는다.
+ */
+function exampleFacetSource(sidecar: ExampleSidecar | null | undefined, header: ExampleMeta): FacetSource | null {
+  const tags = [...(sidecar?.tags ?? []), ...header.tags];
+  if (!sidecar && tags.length === 0) {
     return null;
   }
   return {
-    unit: sidecar.unit ?? undefined,
-    difficulty: sidecar.difficulty ?? undefined,
-    virtualOk: sidecar.virtualOk ?? undefined,
-    comm: sidecar.comm,
-    tags: sidecar.tags,
+    unit: sidecar?.unit ?? undefined,
+    difficulty: sidecar?.difficulty ?? undefined,
+    virtualOk: sidecar?.virtualOk ?? undefined,
+    comm: sidecar?.comm ?? [],
+    tags,
   };
 }
 
@@ -277,10 +300,14 @@ export function buildGallery(
       notes.push(`갤러리: examples/${file}은(는) examples/${existing.file}과 코드가 같아 카드 한 장으로 합쳤어요.`);
       continue;
     }
-    const lesson = lessonFor(input, lessons);
+    const header = readExampleMeta(example.code);
+    const match = lessonFor(input, lessons, header);
     const sidecar = input.sidecar ?? null;
-    // ① 차시 쪽 값: 차시 md가 이 예제 항목에 난이도·낱말을 따로 적었으면 그 값이 차시 값보다 먼저(미해결 180)
-    const merged = galleryFacetsOf(lessonFacetsForExample(lesson, file), sidecarFacetSource(sidecar));
+    // ① 차시 쪽 값: 차시 md가 이 예제 항목에 난이도·낱말을 따로 적었으면 그 값이 차시 값보다 먼저(미해결 180).
+    //    차시가 이 예제를 싣지 않고 가리키기만 했으면 ② 예제 쪽 값이 먼저다(미해결 140).
+    const merged = galleryFacetsOf(lessonFacetsForExample(match?.lesson ?? null, file), exampleFacetSource(sidecar, header), {
+      exampleFirst: match !== null && !match.carries,
+    });
     // ③ 아무 데도 적혀 있지 않은 칸만 사이트 규칙으로 읽는다(infer.ts).
     const unit = merged.unit ?? unitFromExampleFile(file);
     const comm = merged.comm.length > 0 ? merged.comm : commKindsFromCode(example.code);
@@ -303,7 +330,7 @@ export function buildGallery(
         comm.map((kind) => commLabels[kind] ?? kind).join(' '),
         file,
         sidecar?.sourceId ?? '',
-        lesson?.label ?? '',
+        match?.lesson.label ?? '',
       ].join(' '),
     );
     const card: GalleryCard = {
@@ -401,7 +428,6 @@ export function buildGallery(
   const commCounts = new Map<string, number>();
   const partCounts = new Map<string, number>();
   const difficultyCounts = new Map<string, number>();
-  let difficultyFilled = 0;
   let virtualOkCount = 0;
   for (const card of finalCards) {
     pushOption(labCounts, card.lab);
@@ -410,7 +436,6 @@ export function buildGallery(
     }
     if (card.facets.difficulty !== null) {
       pushOption(difficultyCounts, String(card.facets.difficulty));
-      difficultyFilled += 1;
     }
     if (card.facets.virtualOk === true) {
       virtualOkCount += 1;
@@ -438,8 +463,9 @@ export function buildGallery(
     },
     {
       key: 'difficulty',
-      // 난이도는 사람이 적은 예제에만 있다 — 적은 수를 칸 이름에 밝혀 "쉬움 6개뿐"으로 오해하지 않게(2026-09-25 Phase 4 검토 반영)
-      legend: difficultyFilled < finalCards.length ? `난이도(적어 둔 예제 ${difficultyFilled}개만)` : '난이도',
+      // 난이도는 모든 예제에 있다(2026-09-28 미해결 140). 전에는 적은 예제에만 있어 칸 이름에 "적어 둔 예제 N개만"을 붙였는데(2026-09-25),
+      // 이제 모든 카드가 이 칸으로 걸러지므로 단서를 걷었다 — 빠진 예제는 tests/unit/gallery/repo-facets.test.ts가 잡는다.
+      legend: '난이도',
       options: optionsFrom(difficultyCounts, ['1', '2', '3'], (value) => difficultyLabels[Number(value)] ?? value),
     },
     {

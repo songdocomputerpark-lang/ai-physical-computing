@@ -3,6 +3,7 @@
 title: "계단 18: 코 끝이 움직인 방향 알아채기"
 description: 최근 30장의 코 끝 위치를 모아 왼쪽, 오른쪽 어느 쪽으로 움직였는지 판단해요.
 source_id: f126
+difficulty: 2
 tags:
   - 얼굴
   - 코

@@ -334,6 +334,13 @@ describe('이관(importExamples)', () => {
     expect(esp32).toMatchObject({ packages: [], parts: [{ part: 'touch-digital', pin: 17 }], smoke: { outcome: 'error', error: 'ImportError' }, practice: ['[실행]을 눌러요.'] });
     expect('parts' in defaultSidecar(entry)).toBe(false);
     expect('smoke' in defaultSidecar(entry)).toBe(false);
+    // 갤러리 난이도는 씨앗의 1~3만 옮기고 source_id 바로 뒤에 둔다(2026-09-28 미해결 140)
+    const withLevel = defaultSidecar({ ...entry, meta: { difficulty: 2 } });
+    expect(withLevel.difficulty).toBe(2);
+    expect(Object.keys(withLevel).slice(Object.keys(withLevel).indexOf('source_id'), Object.keys(withLevel).indexOf('source_id') + 2)).toEqual(['source_id', 'difficulty']);
+    expect('difficulty' in defaultSidecar({ ...entry, meta: { difficulty: 4 } })).toBe(false);
+    expect('difficulty' in defaultSidecar({ ...entry, meta: { difficulty: '2' } })).toBe(false);
+    expect('difficulty' in defaultSidecar(entry)).toBe(false);
     const converted = convertOriginal(Buffer.from(CRLF_SOURCE, 'utf8'), entry, { python: null });
     expect(converted).toMatchObject({ lines: 4, originalLines: 4, syntax: 'ok', problems: [] });
   });

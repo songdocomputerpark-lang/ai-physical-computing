@@ -3,6 +3,7 @@
 title: "계단 14: 눈을 감았는지 알아채기"
 description: 눈꺼풀 사이 거리와 눈 가로 길이의 비율로 눈이 감겼는지 봐요.
 source_id: f122
+difficulty: 2
 tags:
   - 얼굴
   - 눈

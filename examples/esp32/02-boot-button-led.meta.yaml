@@ -1,0 +1,6 @@
+# 사이트가 만든 예제라 제목·설명·낱말(# @tags)·안내 상자는 .py 머리말에 있어요(src/lab/README.md 2절) — 한 곳에만 적어 어긋나지 않게 해요.
+# 여기에는 머리말 규약에 칸이 없는 갤러리 난이도(P4-11 — 2026-09-28 미해결 140, 기준은 src/lab/gallery/facets.ts)만 적어요.
+# title은 ESP32 예제 사이드카에 반드시 있어야 해서(tests/unit/lab/esp32-examples.test.ts) .py 머리말 첫 줄과 같게 적어 두었어요 — 고칠 때는 두 곳을 함께 고쳐요
+# (사이드카가 먼저 쓰여요. 어긋나면 tests/unit/gallery/repo-facets.test.ts가 알려 줘요).
+title: "BOOT 버튼을 누르면 LED 켜기"
+difficulty: 1

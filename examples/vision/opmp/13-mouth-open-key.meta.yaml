@@ -3,6 +3,7 @@
 title: "계단 13: 입을 벌리면 키보드 누르기"
 description: 윗입술과 아랫입술 사이가 벌어지면 스페이스 키를 눌러요(가상 데스크톱).
 source_id: f121
+difficulty: 2
 tags:
   - 얼굴
   - 입

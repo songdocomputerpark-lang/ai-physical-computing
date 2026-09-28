@@ -3,6 +3,7 @@
 title: "계단 19: 코 끝으로 마우스 움직이기"
 description: 코 끝 위치를 화면 크기에 맞춰 마우스 커서를 옮겨요(가상 데스크톱).
 source_id: f127
+difficulty: 3
 tags:
   - 얼굴
   - 코

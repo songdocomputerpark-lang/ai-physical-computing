@@ -3,6 +3,7 @@
 title: "계단 5: 영상 좌우 반전"
 description: 영상을 거울처럼 뒤집은 뒤 손을 인식해요.
 source_id: f132
+difficulty: 1
 tags:
   - 손
   - flip

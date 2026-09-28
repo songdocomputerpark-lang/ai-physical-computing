@@ -494,6 +494,11 @@ export function defaultSidecar(entry) {
     sidecar.page = page;
   }
   sidecar.source_id = entry.id;
+  // 갤러리 난이도(1~3)는 씨앗에 있으면 옮긴다 — 차시에 싣지 않은 예제는 난이도가 꼭 있어야 한다(2026-09-28 미해결 140,
+  // tests/unit/gallery/repo-facets.test.ts). 자리는 옮긴 예제 사이드카들과 같게 source_id 바로 뒤.
+  if (Number.isInteger(meta.difficulty) && Number(meta.difficulty) >= 1 && Number(meta.difficulty) <= 3) {
+    sidecar.difficulty = meta.difficulty;
+  }
   sidecar.tags = Array.isArray(meta.tags) ? meta.tags : [];
   sidecar.packages = Array.isArray(meta.packages) ? meta.packages : folder === 'vision' ? ['opencv-python'] : [];
   // ESP32 예제의 배선(src/lab/README.md 7.4)·예제 스모크 기대 결과(tests/e2e/examples-smoke.spec.ts)·실습 방법은 씨앗에 있으면 그대로 옮긴다(P3-02).

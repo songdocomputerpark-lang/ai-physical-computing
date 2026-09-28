@@ -3,6 +3,7 @@
 title: "계단 16: deque 연습(파이썬 기초)"
 description: 길이가 정해진 줄(deque)에 값을 넣으면 오래된 값부터 밀려나는 것을 봐요. 카메라가 필요 없어요.
 source_id: f124
+difficulty: 1
 tags:
   - 파이썬 기초
   - deque

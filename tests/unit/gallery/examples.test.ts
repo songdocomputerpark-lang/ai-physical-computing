@@ -2,66 +2,19 @@
  * 저장소에 실제로 있는 예제 파일로 갤러리 목록을 만들어 본다(P4-11 완료 기준 "새 .py 하나를 넣으면 코드 수정 없이 카드가 생긴다"의 뿌리).
  *
  * 페이지(src/components/examples/ExampleGallery.astro)가 빌드 때 하는 일을 그대로 흉내 낸다 —
- * examples/ 폴더를 읽어 실습실 목록 만들기(vision/esp32 examples.ts)에 넘기고, 그 결과를 buildGallery에 넣는다.
+ * examples/ 폴더를 읽어 실습실 목록 만들기(vision/esp32 examples.ts)에 넘기고, 그 결과를 buildGallery에 넣는다(helpers/repo-gallery.ts).
  * 그래서 예제를 더하거나 폴더를 옮겼을 때 갤러리에서 빠지거나 두 번 나오면 여기서 먼저 걸린다.
+ * 여기서는 **차시 md 없이**(예제·사이드카만) 만든다 — 차시가 덮어쓰지 않아도 폴더·코드 규칙으로 붙는 태그를 본다.
+ * 차시까지 읽은 화면 그대로의 값(모든 카드에 난이도 등)은 repo-facets.test.ts가 본다.
  */
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { readExampleSidecars } from '../../../src/lab/controls/example-sidecar.ts';
-import { esp32ExamplesFromFiles } from '../../../src/lab/esp32/examples.ts';
-import { buildGallery, type GalleryExampleInput } from '../../../src/lab/gallery/cards.ts';
-import { visionExamplesFromFiles } from '../../../src/lab/vision/examples.ts';
+import { buildRepoGallery } from './helpers/repo-gallery.ts';
 
-const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
-const EXAMPLES_DIR = path.join(ROOT, 'examples');
-
-/** examples/ 아래 파일을 import.meta.glob과 같은 모양({ '/examples/…': '내용' })으로 읽는다. */
-function readGlob(suffix: string, dirs: readonly string[]): Record<string, string> {
-  const result: Record<string, string> = {};
-  const walk = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        walk(full);
-      } else if (entry.name.endsWith(suffix)) {
-        const relative = path.relative(EXAMPLES_DIR, full).split(path.sep).join('/');
-        result[`/examples/${relative}`] = fs.readFileSync(full, 'utf8');
-      }
-    }
-  };
-  for (const dir of dirs) {
-    const full = path.join(EXAMPLES_DIR, dir);
-    if (fs.existsSync(full)) {
-      walk(full);
-    }
-  }
-  return result;
-}
-
-const visionFiles = readGlob('.py', ['vision', 'desktop']);
-const visionSidecars = readExampleSidecars(readGlob('.meta.yaml', ['vision', 'desktop']));
-const esp32Files = readGlob('.py', ['esp32']);
-const esp32Sidecars = readExampleSidecars(readGlob('.meta.yaml', ['esp32']));
-
-const visionExamples = visionExamplesFromFiles(visionFiles, visionSidecars);
-const esp32Examples = esp32ExamplesFromFiles(esp32Files, esp32Sidecars);
-const sidecarByFile = new Map(
-  [...Object.entries(visionSidecars), ...Object.entries(esp32Sidecars)].map(([globPath, sidecar]) => [
-    globPath.replace(/^\/examples\//u, ''),
-    sidecar,
-  ]),
-);
-const inputs: GalleryExampleInput[] = [
-  ...visionExamples.map((example) => ({ lab: 'vision' as const, example, sidecar: sidecarByFile.get(example.file ?? '') ?? null })),
-  ...esp32Examples.map((example) => ({ lab: 'esp32' as const, example, sidecar: sidecarByFile.get(example.file ?? '') ?? null })),
-];
-const gallery = buildGallery(inputs, {}, { partLabels: {}, commLabels: {} });
+const { gallery, examples } = buildRepoGallery({ withLessons: false });
 
 describe('저장소의 예제로 만든 갤러리', () => {
   it('실습실 [예제 불러오기]에 드는 예제가 모두 카드가 된다(라이브러리 폴더는 빼고)', () => {
-    const labFiles = [...visionExamples, ...esp32Examples].map((example) => example.file);
+    const labFiles = examples.map((example) => example.file);
     const cardFiles = gallery.cards.map((card) => card.file);
     expect(cardFiles.length).toBeGreaterThan(50);
     expect([...cardFiles].sort()).toEqual([...labFiles].sort());

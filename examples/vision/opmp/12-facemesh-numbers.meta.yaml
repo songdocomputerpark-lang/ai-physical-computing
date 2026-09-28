@@ -3,6 +3,7 @@
 title: "계단 12: 얼굴 점에 번호 붙이기"
 description: 얼굴 점 5개마다 번호를 적어 어떤 번호가 어디인지 찾아봐요.
 source_id: f120
+difficulty: 1
 tags:
   - 얼굴
   - 랜드마크 번호

@@ -3,6 +3,7 @@
 title: "계단 10: 여러 손 동시에 보기"
 description: 손을 최대 3개까지 찾아 왼손, 오른손 이름표와 접힌 손가락을 함께 써요.
 source_id: f118
+difficulty: 2
 tags:
   - 손
   - 여러 손

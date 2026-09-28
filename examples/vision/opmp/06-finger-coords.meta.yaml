@@ -3,6 +3,7 @@
 title: "계단 6: 손가락 좌표 확인하기"
 description: 검지 끝(8번 점)의 x, y, z 값을 콘솔에 출력해요.
 source_id: f133
+difficulty: 1
 tags:
   - 손
   - 좌표

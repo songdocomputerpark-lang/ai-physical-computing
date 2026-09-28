@@ -20,7 +20,7 @@
  *                틀린 줄은 빼고 까닭을 partErrors에 모은다(빌드는 경고만 — PD-35)
  *   practice     (선택) 실습 방법 — 실습실에서 무엇을 누르고 무엇을 보는지 단계 목록(ESP32 실습실이 보드 그림 위에 보인다, P3-02)
  *   unit·difficulty·virtual_ok·comm   예제 갤러리(P4-11) 태그 — 단원 1~4, 난이도 1~3, 하드웨어 없이 되나, 통신 방식 목록.
- *                규약과 합치는 규칙은 src/lab/gallery/facets.ts(차시 md가 먼저, 없으면 사이드카). 모르면 적지 않는다
+ *                규약과 합치는 규칙은 src/lab/gallery/facets.ts(차시가 싣는 예제는 차시가 먼저, 가리키기만 한 예제는 사이드카가 먼저). 모르면 적지 않는다 — 단 difficulty는 차시에 싣지 않은 예제면 꼭
  *   smoke        예제 스모크 테스트(tests/e2e/examples-smoke.spec.ts)가 기대하는 결과. 이 파서는 읽지 않고 그 테스트만 본다.
  *                input(sample|replay|webcam)·outcome(ok|stopped|error)·error(오류 이름)·seconds(지켜보는 시간)·skip(건너뛰는 이유)
  */

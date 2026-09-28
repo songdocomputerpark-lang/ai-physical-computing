@@ -147,6 +147,29 @@ test.describe('예제 갤러리', () => {
     expect(page.url()).not.toContain('unit=');
   });
 
+  test('모든 카드에 난이도가 있어 "난이도" 거르기가 모든 예제에 듣는다(미해결 140)', async ({ page }) => {
+    await openGallery(page);
+    const group = page.getByRole('group', { name: '난이도', exact: true });
+    // 전에는 적은 예제에만 난이도가 있어 칸 이름이 "난이도(적어 둔 예제 N개만)"였다 — 이제 단서 없이 "난이도"
+    await expect(group.locator('legend')).toHaveText('난이도');
+    const values = await page.$$eval('[data-gallery-card]', (cards) => cards.map((card) => (card as HTMLElement).dataset.difficulty ?? ''));
+    expect(values.length).toBeGreaterThan(150);
+    expect(values.filter((value) => !['1', '2', '3'].includes(value))).toEqual([]);
+    const counts = await group.locator('[data-gallery-chip-count]').allTextContents();
+    expect(counts.reduce((sum, text) => sum + Number(text.replace(/개$/u, '')), 0)).toBe(values.length);
+
+    // 쉬움을 고르면 쉬움 카드만 남고 주소에 실린다 — 시작하기의 첫 실습과 ESP32 실습실의 첫 예제가 든다
+    await chip(page, '난이도', /^쉬움/u).check();
+    const easy = values.filter((value) => value === '1').length;
+    await expect(page.locator('[data-gallery]')).toHaveAttribute('data-gallery-visible', String(easy));
+    const levels = await page.$$eval('[data-gallery-card]:not([hidden])', (cards) => cards.map((card) => (card as HTMLElement).dataset.difficulty ?? ''));
+    expect([...new Set(levels)]).toEqual(['1']);
+    expect(page.url()).toContain('level=1');
+    const files = await visibleFiles(page);
+    expect(files).toContain('vision/first-edge.py');
+    expect(files).toContain('esp32/01-first-blink.py');
+  });
+
   test('주소로 열면 고른 것이 그대로 되살아난다(링크로 나누기)', async ({ page }) => {
     await openGallery(page, '?comm=ble');
     await expect(chip(page, '통신 방식', /블루투스/u)).toBeChecked();

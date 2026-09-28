@@ -3,6 +3,7 @@
 title: "계단 11: 얼굴 메시 점 띄우기"
 description: 얼굴의 점들을 그물처럼 이어 그려요. 창을 닫거나 ESC로 끝나요.
 source_id: f119
+difficulty: 1
 tags:
   - 얼굴
   - face_mesh

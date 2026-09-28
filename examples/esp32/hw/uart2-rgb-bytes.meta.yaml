@@ -3,6 +3,7 @@
 title: "보드 확인: UART로 받은 바이트 값(1~4)으로 RGB LED 색 바꾸기"
 description: '글자 1이 아니라 바이트 값 1~4를 받아 RGB LED 색을 바꿔요(글자를 보내면 반응하지 않아요). 시리얼 창에서 보내는 모양을 "바이트 값"으로 골라요.'
 source_id: "f007"
+difficulty: 2
 tags:
   - UART
   - RGB LED

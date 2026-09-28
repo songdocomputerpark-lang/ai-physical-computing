@@ -3,6 +3,7 @@
 title: "계단 15: 자세 점 그려 보기"
 description: 몸의 점을 찾아 뼈대를 그려요. 마지막 줄의 오타는 원본 그대로예요(오류 읽기 연습).
 source_id: f123
+difficulty: 1
 tags:
   - 자세
   - pose

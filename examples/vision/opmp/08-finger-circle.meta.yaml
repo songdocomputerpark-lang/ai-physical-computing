@@ -3,6 +3,7 @@
 title: "계단 8: 검지 끝에 원 그리기"
 description: 검지 끝 위치에 큰 원을 그려 손가락이 어디를 가리키는지 보여 줘요.
 source_id: f135
+difficulty: 1
 tags:
   - 손
   - 원

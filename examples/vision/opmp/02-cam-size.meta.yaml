@@ -3,6 +3,7 @@
 title: "계단 2: 캠 화면 크기 바꾸기"
 description: 카메라에 너비를 부탁하고 실제로 받은 크기를 읽어요.
 source_id: f129
+difficulty: 1
 tags:
   - 카메라
   - 해상도

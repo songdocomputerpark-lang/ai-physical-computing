@@ -3,6 +3,7 @@
 title: "보드 확인: UART로 받은 글자(1~4)로 RGB LED 색 바꾸기"
 description: "UART2(9600bps, TX 17·RX 16)로 받은 첫 글자가 1~4이면 RGB LED(23·25·26번)의 색을 바꿔요. 부품 조작 칸의 시리얼 창이 컴퓨터 쪽 역할을 해요."
 source_id: "f001"
+difficulty: 2
 tags:
   - UART
   - RGB LED
