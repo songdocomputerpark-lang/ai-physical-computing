@@ -15,7 +15,7 @@
  *
  * 개인정보(PLAN §10): "영상은 이 컴퓨터 밖으로 나가지 않아요"를 입력 칸에 늘 보인다. 사이트 검색 색인은 LabShell 뿌리에서 이미 뺀다.
  *
- * 판 1.1.0(미해결 121): 카메라가 두 대 이상이면 입력 소스 아래에 [카메라] 고르기 칸이 보이고(가상 카메라에는 "— 가상 카메라" 표시),
+ * 판 1.1.0(미해결 121): 카메라가 두 대 이상이면 입력 소스 아래에 [카메라] 고르기 칸이 보이고(가상 카메라에는 앞에 "가상 카메라:" 표시),
  * 켠 카메라에서 2초 넘게 까만 화면만 오면 미리 보기 아래에 안내([다른 카메라로 바꾸기]·[샘플로 계속])가 뜬다. 고른 카메라는 이 브라우저에만
  * 기억하고(장치 이름은 저장하지 않음), 영상은 까만지 재는 데만 잠깐 쓴다.
  */
@@ -85,7 +85,11 @@ const cameraHelpHref = `${getPage('help').href}#camera-black`;
         <a class="vision-camera-notice__more" href={cameraHelpHref}>자세한 해결 방법</a>
       </div>
     </div>
-    <p class="vision-io__status" data-vision-input-status aria-live="polite">입력이 꺼져 있어요.</p>
+    {/*
+      입력 상태 줄은 실행 중 0.5초마다 fps 숫자가 바뀌어 낭독하지 않는다(aria-live="off" — 출력 상태 줄과 같게, 1.1.0 검토 반영).
+      화면 낭독기가 한 번 읽어야 하는 글(카메라를 켰어요·까만 화면 안내·입력을 바꿨어요)은 바로 아래 role="status" 줄로만 보낸다.
+    */}
+    <p class="vision-io__status" data-vision-input-status aria-live="off">입력이 꺼져 있어요.</p>
     <p class="vision-io__message" data-vision-input-message role="status" aria-live="polite"></p>
     <p class="vision-io__privacy">영상은 이 컴퓨터 밖으로 나가지 않아요. 파이썬도 이 브라우저 안에서 돌아요.</p>
   </section>

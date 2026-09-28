@@ -11,8 +11,19 @@
  *    카메라 없이도 실습은 끝까지 된다는 것([샘플로 계속])은 늘 마지막 줄에 둔다(원칙 3).
  * 장치 이름은 화면에만 보이고 어디에도 저장하거나 보내지 않는다. 한국어 조사가 이름(영어가 많다)에 맞지 않을 수 있어 이름 뒤에는 조사를
  * 붙이지 않는다("켠 카메라: HD Webcam", "가상 카메라(OBS Virtual Camera)는").
+ * 1.1.0 검토 반영(2026-09-29): 장치 관리자 방법은 목록에 가상 카메라가 있거나 카메라가 두 대 이상일 때만 적는다(카메라 한 대뿐인
+ * 노트북을 장치 관리자로 보내지 않게), 가상 카메라만 보이는 컴퓨터는 "진짜 웹캠이 없거나 꺼져 있을 수 있어요"를 먼저 적는다,
+ * 장치 관리자 문장에 관리자 권한·다시 켜기를, 가리개 문장에 노트북 카메라 끄기 키(Fn)를 더했다. 카메라 허용을 되돌리는 문장은
+ * CAMERA_PERMISSION_STEP 한 곳(실습실·점검 페이지·도움말이 같은 글을 쓴다).
  */
 import { cameraName, type CameraDevice, type CameraKind } from './camera-devices.ts';
+
+/**
+ * 카메라 허용을 되돌리는 방법 — 실습실(camera-stream.ts describeCameraError)·점검 페이지(camera-check-report.ts)·도움말(/help/)이
+ * 같은 글을 쓴다(1.1.0 검토 반영: 셋이 서로 다른 메뉴 이름을 적었다). Chrome·Edge 모두 주소 표시줄 왼쪽 아이콘으로 된다.
+ * 뒤에 "해요."·"한 뒤 …"·"하거나 …"를 붙여 쓴다.
+ */
+export const CAMERA_PERMISSION_STEP = '주소 표시줄 왼쪽의 사이트 정보 아이콘(자물쇠나 조절 막대 모양)에서 카메라를 "허용"으로 바꾸고 새로고침';
 
 /** 카메라를 켠 뒤 입력 칸 안내 한 줄 */
 export function cameraOpenedMessage(info: {
@@ -27,7 +38,7 @@ export function cameraOpenedMessage(info: {
   }
   if (info.avoided) {
     const skipped = info.avoided.label.trim() !== '' ? `(${cameraName(info.avoided)})` : '';
-    return `카메라를 켰어요${name ? `: ${name}` : ''}. 가상 카메라${skipped}는 건너뛰었어요 — [카메라] 칸에서 바꿀 수 있어요.`;
+    return `카메라를 켰어요${name ? `: ${name}` : ''}. 가상 카메라${skipped}는 건너뛰었어요 — 가상 카메라를 쓰려면 [카메라] 칸에서 골라요(이 브라우저가 기억해요).`;
   }
   if (name && info.count >= 2) {
     return `카메라를 켰어요: ${name}.`;
@@ -85,10 +96,14 @@ export function otherCameras(cameras: readonly CameraDevice[], current: CameraDe
 }
 
 const DEVICE_MANAGER_TEXT =
-  '교실 화면 공유 프로그램(EShare 등)의 가상 카메라가 진짜 카메라를 가릴 수 있어요. 선생님께 부탁해 장치 관리자 → 카메라 → 가상 카메라에서 마우스 오른쪽 버튼 → 디바이스 사용 안 함을 고르고, 브라우저를 모두 닫았다가 다시 열어요.';
+  '교실 화면 공유 프로그램(EShare 등)의 가상 카메라가 진짜 카메라를 가릴 수 있어요. 선생님께 부탁해 장치 관리자 → 카메라 → 가상 카메라에서 마우스 오른쪽 버튼 → 디바이스 사용 안 함을 고르고(관리자 권한이 필요할 수 있어요), 브라우저를 모두 닫았다가 다시 열어요. 화면 공유를 쓸 때는 다시 켜요.';
 
 const COVER_TEXT =
-  '렌즈 가리개(뚜껑)나 손·스티커가 렌즈를 가리지 않았는지, 방이 아주 어둡지 않은지 봐요. 가린 것을 치우면 이 안내는 저절로 사라져요.';
+  '렌즈 가리개(뚜껑)나 손·스티커가 렌즈를 가리지 않았는지, 노트북의 카메라 끄기 키(Fn + 카메라 그림)가 눌려 있지 않은지, 방이 아주 어둡지 않은지 봐요. 가린 것을 치우면 이 안내는 저절로 사라져요.';
+
+/** 가상 카메라만 보이는 컴퓨터(웹캠이 없는 교실 데스크톱 + 화면 공유 프로그램) — 장치 관리자로 가상 카메라를 끄면 카메라가 아예 없어진다 */
+const NO_REAL_CAMERA_TEXT =
+  '이 컴퓨터에는 진짜 카메라가 보이지 않아요. 웹캠이 없거나 꺼져 있을 수 있어요 — 데스크톱이면 USB 웹캠을 꽂고 새로고침해요. 웹캠이 없으면 [샘플로 계속]을 눌러요.';
 
 const BUSY_TEXT = '화상 수업 프로그램처럼 카메라를 쓰는 다른 프로그램이 켜져 있으면 닫고 다시 [입력 켜기]를 눌러요.';
 
@@ -104,16 +119,27 @@ export function cameraNotice(input: CameraNoticeInput): CameraNoticeContent {
   const causes: CameraNoticeCause[] = [];
   const otherCause = (): CameraNoticeCause | null =>
     actionWord ? { id: 'other-camera', text: `이 컴퓨터에는 카메라가 ${cameras.length}대 있어요. ${actionWord}로 다른 카메라를 켜 봐요.` } : null;
+  // 장치 관리자 방법(가상 카메라 끄기)은 목록에 가상 카메라가 있거나, 이름으로 못 가른 카메라가 둘 이상일 때만 도움이 된다 —
+  // 카메라가 한 대뿐인 노트북(렌즈를 가림)이나 적외선 카메라만 문제인 컴퓨터를 장치 관리자로 보내지 않는다(1.1.0 검토 반영).
+  const hasVirtual = cameras.some((camera) => camera.kind === 'virtual');
+  const deviceManager = (): void => {
+    if (hasVirtual || (cameras.length >= 2 && current?.kind !== 'infrared')) {
+      causes.push({ id: 'device-manager', text: DEVICE_MANAGER_TEXT });
+    }
+  };
 
   if (current?.kind === 'virtual') {
     causes.push({
       id: 'current-virtual',
       text:
         `지금 켠 카메라${currentName ? `(${currentName})` : ''}는 가상 카메라예요. 화면 공유·방송 프로그램이 만든 카메라라서 그 프로그램이 쉬면 까만 화면만 보내요. ` +
-        (actionWord ? `${actionWord}로 진짜 카메라를 골라요.` : '진짜 카메라가 목록에 없으면 아래 장치 관리자 방법을 써요.'),
+        (actionWord ? `${actionWord}로 진짜 카메라를 골라요.` : NO_REAL_CAMERA_TEXT),
     });
     causes.push({ id: 'cover', text: COVER_TEXT });
-    causes.push({ id: 'device-manager', text: DEVICE_MANAGER_TEXT });
+    // 다른 카메라가 없으면(가상 카메라만) 장치 관리자로 끄면 카메라가 아예 없어진다 — 적지 않는다.
+    if (actionWord) {
+      deviceManager();
+    }
   } else if (current?.kind === 'infrared') {
     causes.push({
       id: 'current-infrared',
@@ -122,19 +148,19 @@ export function cameraNotice(input: CameraNoticeInput): CameraNoticeContent {
         (actionWord ? `${actionWord}로 보통 카메라를 골라요.` : '보통 카메라가 있으면 [카메라] 칸에서 골라요.'),
     });
     causes.push({ id: 'cover', text: COVER_TEXT });
-    causes.push({ id: 'device-manager', text: DEVICE_MANAGER_TEXT });
+    deviceManager();
   } else if (input.flat || input.verdict === 'no-frames') {
     // 잡티 하나 없는 검정(또는 장이 오지 않음)은 렌즈를 가린 진짜 카메라보다 프로그램이 만든 카메라에서 흔하다.
     const other = otherCause();
     if (other) causes.push(other);
-    causes.push({ id: 'device-manager', text: DEVICE_MANAGER_TEXT });
+    deviceManager();
     if (input.verdict === 'no-frames') causes.push({ id: 'busy', text: BUSY_TEXT });
     causes.push({ id: 'cover', text: COVER_TEXT });
   } else {
     causes.push({ id: 'cover', text: COVER_TEXT });
     const other = otherCause();
     if (other) causes.push(other);
-    causes.push({ id: 'device-manager', text: DEVICE_MANAGER_TEXT });
+    deviceManager();
   }
 
   const title = input.verdict === 'no-frames' ? '카메라는 켜졌는데 영상이 들어오지 않아요' : '카메라는 켜졌는데 화면이 까매요';

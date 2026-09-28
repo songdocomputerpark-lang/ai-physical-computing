@@ -50,6 +50,32 @@ test.describe('실행 중에 입력 소스 바꾸기(미해결 200)', () => {
     await waitFrames(page, 'gray', 5);
     await expect(page.locator('[data-vision-output-status]')).toContainText('gray 640×480');
 
+    // 실행 중에 화면 낭독기가 읽는 곳(aria-live polite·assertive, role=status·alert)은 알림이 있을 때만 바뀐다 — fps가 0.5초마다 바뀌는
+    // 입력 상태 줄은 낭독하지 않는다(1.1.0 교실 사용성 검토 지적 2: 전에는 6초에 10번 넘게 읽어 까만 화면 알림이 묻혔다)
+    await expect(page.locator('[data-vision-input-status]')).toHaveAttribute('aria-live', 'off');
+    await page.evaluate(() => {
+      const io = document.querySelector('[data-vision-io]');
+      const live = [...(io?.querySelectorAll('[aria-live], [role="status"], [role="alert"]') ?? [])].filter((element) => element.getAttribute('aria-live') !== 'off');
+      const state = window as unknown as { __apcLiveChanges: number };
+      state.__apcLiveChanges = 0;
+      const last = new Map(live.map((element) => [element, element.textContent]));
+      const observer = new MutationObserver(() => {
+        for (const element of live) {
+          if (element.textContent !== last.get(element)) {
+            last.set(element, element.textContent);
+            state.__apcLiveChanges += 1;
+          }
+        }
+      });
+      for (const element of live) {
+        observer.observe(element, { subtree: true, childList: true, characterData: true });
+      }
+    });
+    await expectMoreFrames(page, 'gray', 20);
+    await page.waitForTimeout(3_000);
+    await expect(page.locator('[data-vision-input-status]')).toContainText('fps로 전달');
+    expect(await page.evaluate(() => (window as unknown as { __apcLiveChanges: number }).__apcLiveChanges)).toBeLessThanOrEqual(1);
+
     // 실행 중에 샘플로 바꾼다 → 코드는 멈추지 않고 샘플 장면을 받는다.
     await page.locator('[data-vision-source-select]').selectOption('sample');
     await expect(labRoot(page)).toHaveAttribute('data-vision-source', 'sample');

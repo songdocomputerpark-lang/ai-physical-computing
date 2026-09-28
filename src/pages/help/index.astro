@@ -10,10 +10,13 @@
  * - 드라이버 공식 주소와 Windows 자동 설치 가능성: PLAN §8.3 P3-10(2026-09-15 확인)
  * 실습실이 아직 없어서 "~하게 만들어요", "~할 거예요"로 적은 곳은 해당 기능이 생기면 실제 버튼 이름·동작으로 고친다.
  * 브라우저 메뉴 이름은 판이 바뀌면 달라질 수 있으니 연 1회 점검(MAINTENANCE.md) 때 다시 확인한다.
+ * 카메라 허용을 되돌리는 문장은 실습실·점검 페이지와 같은 글(src/lab/vision/camera-notice.ts CAMERA_PERMISSION_STEP — 1.1.0 검토 반영:
+ * 세 곳이 서로 다른 메뉴 이름을 적었다). 설정 화면은 메뉴 이름 대신 Chrome·Edge 모두 바뀌지 않는 주소(chrome://·edge://settings/content/camera)로.
  */
 import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../config/nav.ts';
 import { errorCatalog } from '../../lab/errors/catalog-data.ts';
+import { CAMERA_PERMISSION_STEP } from '../../lab/vision/camera-notice.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('help');
@@ -62,9 +65,11 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
         아래 순서로 바꿔요.
       </p>
       <ol>
-        <li>Chrome 오른쪽 위의 <strong>더보기(⋮)</strong>를 누르고 <strong>설정</strong>으로 가요.</li>
-        <li><strong>개인 정보 보호 및 보안</strong> → <strong>사이트 설정</strong> → <strong>카메라</strong>를 골라요.</li>
-        <li>허용되지 않은 사이트 목록에서 이 사이트 주소를 골라 카메라를 <strong>허용</strong>으로 바꾸고, 페이지를 새로고침해요.</li>
+        <li>{CAMERA_PERMISSION_STEP}해요. Chrome과 Edge 모두 같아요.</li>
+        <li>
+          아이콘에서 카메라가 보이지 않으면 주소창에 Chrome은 <code>chrome://settings/content/camera</code>, Edge는{' '}
+          <code>edge://settings/content/camera</code>를 적어 카메라 설정을 열고, 이 사이트를 <strong>허용</strong>으로 바꾼 뒤 새로고침해요.
+        </li>
       </ol>
       <p>
         Windows 설정도 확인해요. Windows 11은 <strong>시작 → 설정 → 개인 정보 &amp; 보안 → 카메라</strong>에서{' '}
@@ -87,7 +92,7 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
         <li>노트북의 카메라 가림막(뚜껑)과 카메라 끄기 키(Fn + 카메라 그림)를 확인해요. 가린 것을 치우면 안내는 저절로 사라져요.</li>
         <li>
           카메라가 두 대 이상이면 실습실 입력 칸의 <strong>[카메라]</strong>에서 다른 카메라를 골라요(안내 상자의 [다른 카메라로 바꾸기]도
-          같아요). 화면 공유·방송 프로그램이 만든 가상 카메라에는 "— 가상 카메라"가 붙어 있고, 실습실은 처음 켤 때 가상 카메라를 뒤로
+          같아요). 화면 공유·방송 프로그램이 만든 가상 카메라에는 앞에 "가상 카메라:"가 붙어 있고, 실습실은 처음 켤 때 가상 카메라를 뒤로
           미뤄요. 고른 카메라는 이 브라우저에만 기억하고, [이 컴퓨터에서 내 기록 지우기]를 누르면 잊어요.
         </li>
         <li>화상 회의·카메라 앱이 카메라를 쓰고 있으면 그 프로그램을 닫아요.</li>

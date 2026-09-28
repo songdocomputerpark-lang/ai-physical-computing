@@ -7,6 +7,8 @@
 // - 'noise' : 어둡고 잡티가 조금 있는 영상(렌즈를 가린 카메라 흉내)    - 'none'  : 장을 한 장도 보내지 않음   - 'busy': 여는 순간 NotReadableError
 // 허락 전(granted false)에는 Chrome처럼 이름·id가 빈 카메라 한 개만 알려 주고, 첫 getUserMedia가 성공하면 이름이 채워진 목록을 준다.
 // 영상처리 실습실 검사는 [입력 켜기]만 쓰므로 파이썬을 기다리지 않는다(파이썬은 뒤에서 받아지지만 검사와 상관없다).
+// 1.1.0 검토 반영(2026-09-29): 안내 단추·점검 단추를 키보드로 눌러도 초점이 문서로 사라지지 않고, 휴대폰에서 안내가 화면 밖이면 화면 안으로 오고,
+// 풀리면 콘솔에도 한 줄, 점검 [결과 복사] 글에는 장치 이름 대신 번호·종류만(사람 이름이 든 장치 이름 — 연속성 카메라).
 // 실행: PW_BASE_URL=http://localhost:5001/ai-physical-computing/ npx playwright test tests/e2e/camera.spec.ts --project=desktop
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
@@ -228,6 +230,7 @@ test.describe('영상처리 실습실 — 카메라 고르기(모의 카메라 �
     await expect(labRoot(page)).toHaveAttribute('data-vision-camera-kind', 'virtual');
 
     // 가상 카메라가 까만 화면만 보낸다 → 2초 뒤 안내(가상 카메라 이야기가 먼저, 진짜 카메라 하나로 바로 바꾸는 단추).
+    // (한 번 고른 가상 카메라는 기억한 선택이라 존중해 연다 — 알아서 건너뛰는 것은 기본 장치일 때만, DECISIONS C40·C62)
     const notice = page.locator('[data-vision-camera-notice]');
     await expect(notice).toBeVisible({ timeout: 10_000 });
     await expect(labRoot(page)).toHaveAttribute('data-vision-camera-check', 'black');
@@ -240,10 +243,16 @@ test.describe('영상처리 실습실 — 카메라 고르기(모의 카메라 �
     await expect(other).toBeVisible();
     expect(await severeAxe(page, '[data-vision-io]')).toEqual([]);
 
-    await other.click();
+    // 키보드로 누른다: 안내가 숨으며 단추가 사라져도 초점은 [카메라] 칸(바꾼 카메라가 골라져 있음)으로 간다 — 문서(body)로 사라지지 않는다
+    await other.focus();
+    await page.keyboard.press('Enter');
     await expect(labRoot(page)).toHaveAttribute('data-vision-camera-kind', 'normal', { timeout: 15_000 });
     await expect(notice).toBeHidden();
     await expect(page.getByLabel('카메라', { exact: true })).toHaveValue('cam-webcam');
+    await expect(page.getByLabel('카메라', { exact: true })).toBeFocused();
+    await expect(page.getByLabel('카메라', { exact: true })).toBeInViewport();
+    // 안내가 풀렸다는 것을 콘솔에도(실습실 틀의 "콘솔에 결과가 나왔어요" 칸에 옛 안내가 남지 않게)
+    await expect(page.locator('[data-lab-console]')).toContainText('[안내] 다른 입력으로 바꿨어요 — 까만 화면 안내를 닫았어요.');
     expect(await page.evaluate((key) => localStorage.getItem(key), CAMERA_KEY)).toBe('cam-webcam');
     expect(await mockLog(page)).toEqual(['open:cam-eshare', 'stop:cam-eshare', 'open:cam-webcam']);
     await expect(labRoot(page)).toHaveAttribute('data-vision-camera-check', 'ok', { timeout: 10_000 });
@@ -263,15 +272,20 @@ test.describe('영상처리 실습실 — 카메라 고르기(모의 카메라 �
     await expect(notice).toBeVisible({ timeout: 10_000 });
     await expect(notice).toHaveAttribute('data-verdict', 'black');
     const causes = await notice.locator('[data-cause]').evaluateAll((items) => items.map((item) => (item as HTMLElement).dataset.cause));
-    expect(causes).toEqual(['cover', 'device-manager']);
+    // 카메라 한 대(가상 카메라 없음)인 노트북은 장치 관리자로 보내지 않는다(1.1.0 검토 반영)
+    expect(causes).toEqual(['cover']);
+    await expect(notice.locator('[data-cause="cover"]')).toContainText('카메라 끄기 키(Fn + 카메라 그림)');
     await expect(notice.locator('[data-vision-camera-other]')).toBeHidden();
     await expect(page.locator('[data-vision-camera]')).toBeHidden();
     await expect(notice.getByRole('link', { name: '자세한 해결 방법' })).toHaveAttribute('href', /\/help\/#camera-black$/u);
 
-    await notice.getByRole('button', { name: '샘플로 계속', exact: true }).click();
+    // 키보드로 [샘플로 계속]: 초점은 입력 소스 칸('샘플 입력'이 골라짐)으로 — 문서로 사라지지 않는다
+    await notice.getByRole('button', { name: '샘플로 계속', exact: true }).focus();
+    await page.keyboard.press('Enter');
     await expect(labRoot(page)).toHaveAttribute('data-vision-source', 'sample');
     await expect(labRoot(page)).toHaveAttribute('data-vision-input-state', 'open');
     await expect(notice).toBeHidden();
+    await expect(page.getByLabel('입력 소스', { exact: true })).toBeFocused();
     await expect(labRoot(page)).toHaveAttribute('data-vision-camera-check', 'idle');
     expect(await liveStreams(page)).toBe(0);
   });
@@ -314,12 +328,15 @@ test.describe('영상처리 실습실 — 카메라 고르기(모의 카메라 �
 test.describe('영상처리 실습실 — 까만 화면 안내의 휴대폰 화면 배치', () => {
   test.skip(({ isMobile }) => !isMobile, '휴대폰 화면(375px)에서만 확인한다');
 
-  test('안내가 떠도 화면이 옆으로 넘치지 않고 단추가 손가락 크기다', async ({ page }) => {
+  test('안내가 떠도 화면이 옆으로 넘치지 않고 단추가 손가락 크기다 — 안내가 화면 밖(아래를 보는 중)이면 화면 안으로 온다', async ({ page }) => {
     await openVisionWithMock(page, { cameras: [ESHARE, { ...WEBCAM, mode: 'black' }], granted: true });
     await page.getByLabel('카메라', { exact: true }).selectOption('cam-eshare');
     await turnInputOn(page);
+    // 안내가 뜨기 전(카메라를 켠 뒤 2초)에 쪽 맨 아래로 — [실행] 뒤 출력 칸을 보는 휴대폰 학생처럼
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     const notice = page.locator('[data-vision-camera-notice]');
     await expect(notice).toBeVisible({ timeout: 15_000 });
+    await expect(notice).toBeInViewport({ timeout: 5_000 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     for (const button of await notice.getByRole('button').all()) {
@@ -348,8 +365,14 @@ test.describe('점검 페이지 — 카메라 영상 확인(누를 때만)', () 
     // 점검 표 글에는 아직 카메라 확인이 없다.
     await expect(page.locator('[data-check-text]')).not.toHaveValue(/카메라 영상 확인/u);
 
-    await check.getByRole('button', { name: '카메라 켜서 확인하기' }).click();
+    // 키보드로 누른다: 확인하는 동안과 끝난 뒤에도 초점이 이 단추에 남는다(disabled 대신 aria-disabled — 1.1.0 검토 반영)
+    const runButton = check.getByRole('button', { name: '카메라 켜서 확인하기' });
+    await runButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(check).toHaveAttribute('data-state', 'running');
+    expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-camera-check-run') ?? false)).toBe(true);
     await expect(check).toHaveAttribute('data-state', 'done', { timeout: 30_000 });
+    await expect(check.getByRole('button', { name: '카메라 다시 확인하기' })).toBeFocused();
     const entries = check.locator('[data-camera-check-entry]');
     await expect(entries).toHaveCount(2);
     await expect(entries.nth(0)).toHaveAttribute('data-default', 'yes');
@@ -364,13 +387,22 @@ test.describe('점검 페이지 — 카메라 영상 확인(누를 때만)', () 
     expect(await liveStreams(page)).toBe(0);
     await expect(check.locator('[data-camera-check-preview]')).toBeHidden();
 
+    // 요약 칸에도 카메라 결과 한 줄(자동 점검이 모두 "지원"이어도 카메라가 "주의"면 초록으로 두지 않는다)
+    await expect(page.locator('[data-check-camera]')).toBeVisible();
+    await expect(page.locator('[data-check-camera]')).toContainText('카메라 영상 확인: 주의');
+    await expect(page.locator('[data-check-report]')).not.toHaveAttribute('data-level', 'ready');
+
     await page.locator('[data-check-copy]').click();
     await expect(page.locator('[data-check-copy-status]')).toContainText('복사했어요');
     const copied = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/gu, '\n');
     expect(copied).toContain('카메라 영상 확인(눌러서 확인');
-    expect(copied).toContain('- 카메라 2대');
-    expect(copied).toContain('- 1. EShare Virtual Camera [가상 카메라] · 브라우저가 먼저 여는 카메라 — 까만 화면만 와요');
-    expect(copied).toContain('- 2. HD Webcam — 영상이 잘 들어와요');
+    expect(copied).toContain('카메라 영상 확인: 주의 — 아래 "카메라 영상 확인" 참고');
+    expect(copied).toContain('- 카메라 2대(이름은 넣지 않고 번호로 적어요)');
+    expect(copied).toContain("- 카메라 1 [가상 카메라 — 이름에 'EShare' 낱말] · 브라우저가 먼저 여는 카메라 — 까만 화면만 와요");
+    expect(copied).toContain('- 카메라 2 — 영상이 잘 들어와요');
+    // 복사 글(공개 이슈에 붙일 수 있는 글)에는 장치 이름이 없다 — 화면 목록에만 있다(1.1.0 안전 검토 지적 1)
+    expect(copied).not.toContain('EShare Virtual Camera');
+    expect(copied).not.toContain('HD Webcam');
     await expect(page.locator('[data-check-text]')).toHaveValue(copied);
     // 장치 이름은 저장하지 않는다(이 사이트의 저장 공간 어디에도 없다).
     const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));
@@ -384,6 +416,25 @@ test.describe('점검 페이지 — 카메라 영상 확인(누를 때만)', () 
     await expect(page.locator('[data-check-text]')).toHaveValue(/카메라 영상 확인/u);
   });
 
+  test('사람 이름이 든 장치 이름(맥의 연속성 카메라 "○○의 iPhone 카메라")은 화면에만 보이고 [결과 복사] 글에는 없다', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const phone: MockCamera = { deviceId: 'cam-phone', label: '홍길동의 iPhone 카메라', mode: 'real' };
+    await page.addInitScript(installCameraMock, { cameras: [phone, WEBCAM] });
+    await page.goto(getPage('start-check').href);
+    await expect(page.locator('[data-check-report]')).toHaveAttribute('data-state', 'done', { timeout: 15_000 });
+    const check = page.locator('[data-camera-check]');
+    await check.getByRole('button', { name: '카메라 켜서 확인하기' }).click();
+    await expect(check).toHaveAttribute('data-state', 'done', { timeout: 30_000 });
+    await expect(check.locator('[data-camera-check-entry]').first()).toContainText('홍길동의 iPhone 카메라');
+    await page.locator('[data-check-copy]').click();
+    await expect(page.locator('[data-check-copy-status]')).toContainText('복사했어요');
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toContain('- 카메라 1 · 브라우저가 먼저 여는 카메라 — 영상이 잘 들어와요');
+    expect(copied).not.toContain('홍길동');
+    expect(copied).not.toContain('iPhone');
+    await expect(page.locator('[data-check-text]')).not.toHaveValue(/홍길동/u);
+  });
+
   test('카메라를 허용하지 않으면 까닭과 되돌리는 방법만 보인다', async ({ page }) => {
     await page.addInitScript(installCameraMock, { cameras: [WEBCAM], deny: true });
     await page.goto(getPage('start-check').href);
@@ -394,5 +445,7 @@ test.describe('점검 페이지 — 카메라 영상 확인(누를 때만)', () 
     await expect(check.locator('[data-camera-check-verdict-text]')).toHaveText('카메라 사용을 허용하지 않아서 확인하지 못했어요.');
     await expect(check.locator('[data-camera-check-entry]')).toHaveCount(0);
     await expect(check.getByRole('button', { name: '카메라 다시 확인하기' })).toBeEnabled();
+    // 되돌리는 방법은 실습실·도움말과 같은 문장(주소 표시줄 왼쪽 사이트 정보 아이콘)
+    await expect(check.locator('[data-camera-check-advice]')).toContainText('주소 표시줄 왼쪽의 사이트 정보 아이콘');
   });
 });

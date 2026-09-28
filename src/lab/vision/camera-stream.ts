@@ -10,6 +10,7 @@
  */
 import { BLACK_FRAME_LIMITS, BlackFrameWatch, measureLuma, type BlackVerdict, type BlackWatchSummary, type LumaStats } from './black-frame.ts';
 import { toCameraDevices, type CameraDevice } from './camera-devices.ts';
+import { CAMERA_PERMISSION_STEP } from './camera-notice.ts';
 
 /** 소스를 열지 못한 이유(한국어 설명과 종류). 실습실이 종류에 따라 샘플 입력으로 바꾼다. */
 export class SourceOpenError extends Error {
@@ -31,7 +32,7 @@ export function describeCameraError(error: unknown): SourceOpenError {
   switch (name) {
     case 'NotAllowedError':
     case 'PermissionDeniedError':
-      return new SourceOpenError('denied', '카메라 사용을 허용하지 않았어요. 주소 표시줄의 카메라 아이콘에서 허용으로 바꾸거나, 샘플 입력으로 실습해요.');
+      return new SourceOpenError('denied', `카메라 사용을 허용하지 않았어요. ${CAMERA_PERMISSION_STEP}하거나, 샘플 입력으로 실습해요.`);
     case 'NotFoundError':
     case 'DevicesNotFoundError':
     case 'OverconstrainedError':
@@ -124,7 +125,8 @@ export type BlackVerdictListener = (verdict: BlackVerdict, summary: BlackWatchSu
 
 /**
  * <video>를 BLACK_FRAME_LIMITS.sampleIntervalMs마다 작은 캔버스에 그려 까만 영상인지 지켜본다.
- * stop()을 부르거나 video가 문서에서 빠지면 멈춘다. 그림 한 장(64×48)만 잠깐 그렸다 버린다 — 저장하지 않는다.
+ * stop()을 부르거나 video가 문서에서 빠지면 멈춘다(부르는 쪽이 stop()을 잊어도 타이머와 마지막 표본이 남지 않게 — 1.1.0 검토 반영).
+ * 그림 한 장(64×48)만 잠깐 그렸다 버린다 — 저장하지 않는다. 멈추면 표본 캔버스도 비운다.
  */
 export class VideoBlackWatcher {
   readonly #video: HTMLVideoElement;
@@ -160,6 +162,15 @@ export class VideoBlackWatcher {
   /** 지금 장면을 한 번 잰다(타이머가 부른다 — 테스트·점검 페이지가 바로 부를 수도 있다). */
   sample(now: number = performance.now()): BlackVerdict {
     const video = this.#video;
+    if (this.#timer === null) {
+      // 멈춘 뒤(캔버스를 비웠다)에는 재지 않는다.
+      return this.#watch.verdict;
+    }
+    if (!video.isConnected) {
+      // 문서에서 빠진 video(입력을 끄거나 바꿈) — 더 재지 않는다.
+      this.stop();
+      return this.#watch.verdict;
+    }
     let verdict: BlackVerdict;
     if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
       const ctx = this.#canvas.getContext('2d', { willReadFrequently: true });
@@ -186,6 +197,16 @@ export class VideoBlackWatcher {
       clearInterval(this.#timer);
       this.#timer = null;
     }
+    // 마지막 표본을 들고 있지 않게 캔버스를 비운다(다시 재지 않는다 — 새로 지켜보려면 새 VideoBlackWatcher를 만든다).
+    this.#canvas.width = 0;
+    this.#canvas.height = 0;
+    this.#noiseCanvas.width = 0;
+    this.#noiseCanvas.height = 0;
+  }
+
+  /** 지켜보는 중인지(stop() 뒤나 video가 문서에서 빠진 뒤에는 false) */
+  get watching(): boolean {
+    return this.#timer !== null;
   }
 
   /** 영상 가운데를 줄이지 않고 32×24만 옮겨 그려 잡티(밝기 표준편차)를 잰다 — 줄인 장은 잡티가 평균돼 사라진다(black-frame.ts 머리말). */

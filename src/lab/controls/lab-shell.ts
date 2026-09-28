@@ -95,6 +95,12 @@ function cancelFrame(handle: number): void {
 /** 컨트롤러가 만들어졌을 때 뿌리 요소에 보내는 이름 */
 export const LAB_READY_EVENT = 'apc:lab-ready';
 
+/** appendConsole의 선택 값 */
+export interface ConsoleAppendOptions {
+  /** false면 콘솔이 화면 밖이어도 결과 칸 알림 쪽으로 화면을 옮기지 않는다(알림 글은 그대로 띄움). 기본 true */
+  reveal?: boolean;
+}
+
 /**
  * [실행]이 holdRun 약속을 기다리는 최대 시간(밀리초). 넘으면 기다리지 않고 실행한다 — 모듈 하나가 멈춰도 실습실이 막히지 않게.
  * 보드 라이브러리 6개(약 60KB)를 워커에 쓰는 데는 수십 ms, 가상 파일(mask.png) 그리기는 수백 ms면 끝난다(2026-09-25 실측).
@@ -183,7 +189,12 @@ export interface LabController {
   /** 예제 원래 코드로(확인 없이) */
   reset(): void;
   loadExample(id: string): boolean;
-  appendConsole(text: string, kind?: ConsoleKind): void;
+  /**
+   * 콘솔에 한 줄을 더한다. 콘솔이 화면 밖이면 결과 칸 아래에 "콘솔에 결과가 나왔어요"를 띄우고 처음 한 번 그쪽으로 화면을 옮기는데,
+   * `options.reveal`이 false면 알림 칸은 띄우되 화면은 옮기지 않는다 — 그 줄을 쓴 모듈이 더 중요한 칸을 스스로 보여 줄 때
+   * (영상처리 실습실의 까만 화면 안내 — 1.1.0 검토 반영, 옮기면 안내 쪽으로 가던 화면을 되돌린다).
+   */
+  appendConsole(text: string, kind?: ConsoleKind, options?: ConsoleAppendOptions): void;
   clearConsole(): void;
   /** 조작 줄 아래 안내 글(role=status) */
   showMessage(text: string): void;
@@ -455,6 +466,8 @@ class LabShellController implements LabController {
   #consoleNewLines = 0;
   /** 콘솔이 화면에 보이는지(null = 아직 재지 않음 — 처음 출력 때 한 번 재고 그 뒤로는 IntersectionObserver가 고친다) */
   #consoleVisible: boolean | null = null;
+  /** 이번에 모아 그릴 알림에 "화면을 옮기지 않기" 줄이 있었는지(appendConsole의 reveal: false) */
+  #consoleNoticeHoldReveal = false;
   /** 알림 글자 쓰기를 모으는 화면 그리기 예약 */
   #consoleNoticeFrame: number | null = null;
   #fontSizePx = DEFAULT_FONT_SIZE_PX;
@@ -950,7 +963,7 @@ class LabShellController implements LabController {
     return true;
   }
 
-  appendConsole(text: string, kind: ConsoleKind = 'stdout'): void {
+  appendConsole(text: string, kind: ConsoleKind = 'stdout', options: ConsoleAppendOptions = {}): void {
     const box = this.#elements.consoleBox;
     const span = document.createElement('span');
     span.className = `lab-console__line lab-console__line--${kind}`;
@@ -962,6 +975,9 @@ class LabShellController implements LabController {
     box.scrollTop = box.scrollHeight;
     // 콘솔이 화면 밖이면 결과 칸에 "결과가 나왔어요"를 띄운다(실행 머리줄 '── 실행 N ──'은 빼고 진짜 출력만).
     if (kind !== 'notice' || !text.startsWith('── 실행 ')) {
+      if (options.reveal === false) {
+        this.#consoleNoticeHoldReveal = true;
+      }
       this.#noteConsoleOutput(text);
     }
   }
@@ -1059,13 +1075,17 @@ class LabShellController implements LabController {
         anchor.after(ioOutputBox);
       }
       const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
-      revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox });
+      if (!this.#consoleNoticeHoldReveal) {
+        revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox });
+      }
     }
+    this.#consoleNoticeHoldReveal = false;
   }
 
   #resetConsoleOutputNotice(): void {
     this.#consoleTail.length = 0;
     this.#consoleNewLines = 0;
+    this.#consoleNoticeHoldReveal = false;
     if (this.#consoleNoticeFrame !== null) {
       cancelFrame(this.#consoleNoticeFrame);
       this.#consoleNoticeFrame = null;

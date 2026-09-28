@@ -20,10 +20,14 @@
  *    (진짜 OpenCV에서 카메라를 뽑은 것과 같다 — 실행 중이면 콘솔에 까닭을 한 줄 적는다).
  *    그림 파일을 아직 고르지 않았으면 고를 때까지 기다린다(그동안 코드는 cap.read()에서 쉰다 — [정지]는 그대로 된다).
  * 7. **카메라 고르기**(미해결 121): 카메라가 두 대 이상이면 [카메라] 칸이 보인다(camera-devices.ts — 허락 전에는 이름을 몰라 "카메라 1·2",
- *    가상 카메라는 뒤로 미루고 "— 가상 카메라" 표시). 학생이 고른 장치는 deviceId로 이 브라우저에만 기억한다(저장 이름 vision:camera —
+ *    가상 카메라는 뒤로 미루고 앞에 "가상 카메라:" 표시). 학생이 고른 장치는 deviceId로 이 브라우저에만 기억한다(저장 이름 vision:camera —
  *    [기록 지우기]가 지운다, 장치 이름은 저장하지 않음). 고르지 않았으면 웹캠 소스가 가상 카메라를 건너뛰고 진짜 카메라를 연다(sources.ts).
  * 8. **까만 영상 감지**(미해결 121): 웹캠을 켠 뒤 2초 동안 들어온 장면이 모두 거의 까맣거나(black-frame.ts) 4초 동안 한 장도 오지 않으면
  *    미리 보기 아래에 안내를 띄운다(camera-notice.ts — [다른 카메라로 바꾸기]·[샘플로 계속]·도움말 링크). 밝은 장이 오면 저절로 사라진다.
+ *    1.1.0 검토 반영(2026-09-29): 안내가 화면 밖(휴대폰 — 출력 칸을 보는 중)이면 한 번 화면 안으로 옮기고, 안내가 풀리면(밝아짐·입력 바꿈)
+ *    콘솔에도 한 줄을 남겨 "콘솔에 결과가 나왔어요" 칸에 옛 안내가 남지 않게 한다. 안내 단추를 키보드로 누르면 안내가 숨기 전에 초점을
+ *    [카메라]·입력 소스 칸으로 옮긴다(초점이 문서로 사라지지 않게). 입력 상태 줄은 fps가 0.5초마다 바뀌어 낭독하지 않는다(aria-live off —
+ *    한 번짜리 알림은 [data-vision-input-message] role=status로만).
  *
  * 카메라 스트림은 학생이 웹캠을 고르거나 [실행]으로 열릴 때만 켜지고, 페이지를 떠나면(pagehide) 꺼진다. 영상은 브라우저 메모리에만 있고
  * 워커(같은 컴퓨터)로만 간다(PLAN §10). 테스트가 읽는 값: 뿌리의 data-vision-source(id)·data-vision-input-state(closed|opening|open|failed)·
@@ -34,6 +38,7 @@
 import { readItem, removeItem, writeItem } from '../../lib/storage.ts';
 import { getLabController, type LabController } from '../controls/lab-shell.ts';
 import { RECORDS_CLEARED_EVENT } from '../controls/records.ts';
+import { revealElement } from '../controls/reveal.ts';
 import type { RuntimeRequest } from '../runtime/client.ts';
 import type { BlackVerdict, BlackWatchSummary } from './black-frame.ts';
 import { VISION_CAMERA_STORAGE_NAME, cameraName, cameraOptions, canChooseCameras, pickCamera, type CameraDevice } from './camera-devices.ts';
@@ -390,7 +395,7 @@ export class VisionLab {
     this.#closedGeneration = this.#generation;
     this.#setHoldReads(false);
     this.#cancelPendingRead(NO_FRAME);
-    this.#detach();
+    this.#detach('close');
     this.#setInputState('closed');
     this.#renderInputStatus();
   }
@@ -470,12 +475,15 @@ export class VisionLab {
     this.#renderCameraRow();
   }
 
-  /** 열린 소스를 떼어 낸다(카메라 끄기·미리 보기 지우기). 파이썬의 읽기 대기는 건드리지 않는다. */
-  #detach(): void {
+  /**
+   * 열린 소스를 떼어 낸다(카메라 끄기·미리 보기 지우기). 파이썬의 읽기 대기는 건드리지 않는다.
+   * @param reason 'switch'(다른 입력으로 바꿈 — 까만 화면 안내가 떠 있었으면 콘솔에 한 줄) · 'close'(입력 끄기·페이지 떠남)
+   */
+  #detach(reason: 'switch' | 'close'): void {
     const source = this.#source;
     this.#source = null;
     this.#stopBlackWatch();
-    this.#hideCameraNotice();
+    this.#hideCameraNotice(reason === 'switch' ? '[안내] 다른 입력으로 바꿨어요 — 까만 화면 안내를 닫았어요.' : null);
     this.#openedCameraId = null;
     delete this.root.dataset.visionCameraKind;
     this.#setCameraCheck('idle');
@@ -509,7 +517,7 @@ export class VisionLab {
     this.#generation += 1;
     const running = this.#running;
     this.#setHoldReads(running);
-    this.#detach();
+    this.#detach('switch');
     this.#applySelection(id);
     const selected = findVisionSource(id);
     if (selected?.kind === 'file' && currentFileImage() === null) {
@@ -851,10 +859,15 @@ export class VisionLab {
     const other = this.#elements.cameraOtherButton ?? null;
     if (other) {
       const onOther = () => {
+        const hadFocus = document.activeElement === other;
         const target = other.dataset.cameraTarget;
         if (target) {
           if (select) {
             select.value = target;
+          }
+          // 카메라를 바꾸면 안내가 숨어 이 단추도 사라진다 — 숨기 전에 초점을 [카메라] 칸(바꾼 카메라가 골라져 있음)으로 옮긴다.
+          if (hadFocus) {
+            this.#moveFocusTo(this.#visible(select) ? select : this.#elements.sourceSelect);
           }
           this.#chooseCamera(target);
           return;
@@ -870,6 +883,10 @@ export class VisionLab {
     const sample = this.#elements.cameraSampleButton ?? null;
     if (sample) {
       const onSample = () => {
+        // [샘플로 계속]도 안내를 거둔다 — 숨기 전에 초점을 입력 소스 칸('샘플 입력'이 골라진다)으로 옮긴다.
+        if (document.activeElement === sample) {
+          this.#moveFocusTo(this.#elements.sourceSelect);
+        }
         this.selectSource('sample');
         if (!this.#inputOn()) {
           void this.openSource().catch(() => undefined);
@@ -912,7 +929,7 @@ export class VisionLab {
       // 밝은 장이 왔다 — 안내가 떠 있었으면 거두고 지켜보기를 끝낸다(가리개를 열었을 때 저절로 사라진다).
       this.#stopBlackWatch();
       if (this.#noticeShown) {
-        this.#hideCameraNotice();
+        this.#hideCameraNotice('[안내] 이제 카메라 영상이 들어와요.');
         this.#showInputMessage('이제 카메라 영상이 들어와요.');
       }
       return;
@@ -965,18 +982,48 @@ export class VisionLab {
     }
     if (!this.#noticeShown) {
       this.#noticeShown = true;
-      this.lab.appendConsole(`${content.consoleLine}\n`, 'notice');
+      // 안내가 화면 밖이면(휴대폰에서 [실행] 뒤 출력 칸을 보는 중 — 안내는 미리 보기 아래라 화면 위쪽 밖) 한 번 화면 안으로 옮긴다(1.1.0 검토 반영).
+      // 콘솔 줄은 실습실 틀의 "콘솔에 결과가 나왔어요" 칸에도 비치지만, 그 칸 쪽으로는 화면을 옮기지 않게 한다(reveal: false) — 옮기면
+      // 다음 화면 그리기에서 안내 쪽으로 가던 화면을 결과 칸으로 되돌린다(휴대폰 검사에서 확인).
+      this.lab.appendConsole(`${content.consoleLine}\n`, 'notice', { reveal: false });
+      revealElement(e.cameraNotice, { block: 'center' });
     }
     this.#showInputMessage(content.announce);
   }
 
-  #hideCameraNotice(): void {
+  /**
+   * 까만 화면 안내를 거둔다. consoleLine이 있고 안내가 떠 있었으면 콘솔에도 한 줄 남긴다 — 실습실 틀의 "콘솔에 결과가 나왔어요" 칸이
+   * 마지막 몇 줄을 보여 주므로, 풀린 뒤에도 옛 "[안내] … 화면이 까매요"가 남아 아직 까만 것처럼 보이지 않게(1.1.0 검토 반영).
+   */
+  #hideCameraNotice(consoleLine: string | null = null): void {
+    const wasShown = this.#noticeShown;
     this.#noticeShown = false;
     const notice = this.#elements.cameraNotice ?? null;
     if (notice) {
       notice.hidden = true;
       delete notice.dataset.verdict;
     }
+    if (wasShown && consoleLine) {
+      this.lab.appendConsole(`${consoleLine}\n`, 'notice');
+    }
+  }
+
+  /** 보이는 요소인지(hidden 조상 없음) */
+  #visible(element: HTMLElement | null | undefined): element is HTMLElement {
+    return element !== null && element !== undefined && !element.hidden && element.closest('[hidden]') === null;
+  }
+
+  /**
+   * 초점을 받던 단추가 곧 숨을 때(까만 화면 안내의 단추 — 안내를 거두면 사라진다) 초점을 이어 받을 칸으로 옮긴다. 옮기지 않으면 초점이
+   * 문서(body)로 사라져 키보드·화면 낭독기 사용자가 자리를 잃는다(1.1.0 검토 반영 — 실습실 틀의 [실행]·[정지] 초점 규칙과 같은 뜻).
+   * 화면은 필요할 때만(그 칸이 화면 밖일 때) 옮긴다.
+   */
+  #moveFocusTo(element: HTMLElement | null | undefined): void {
+    if (!this.#visible(element)) {
+      return;
+    }
+    element.focus({ preventScroll: true });
+    revealElement(element, { block: 'center' });
   }
 
   #wireControls(): void {
