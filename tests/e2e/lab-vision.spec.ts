@@ -95,7 +95,8 @@ test.describe('영상처리 실습실(가짜 카메라)', () => {
     // 이유와 되돌리는 방법이 입력 칸 안내에 **남아 있다**(예전에는 샘플 입력을 붙이는 기본 문구가 바로 덮어썼다 — 2026-09-17 검토 반영).
     const inputMessage = page.locator('[data-vision-input-message]');
     await expect(inputMessage).toContainText('카메라 사용을 허용하지 않았어요');
-    await expect(inputMessage).toContainText('주소 표시줄의 카메라 아이콘');
+    // 되돌리는 방법은 실습실·점검 페이지·도움말이 같은 문장(CAMERA_PERMISSION_STEP — 1.1.0 교실 사용성 검토 지적 7)
+    await expect(inputMessage).toContainText('주소 표시줄 왼쪽의 사이트 정보 아이콘');
     await expect(inputMessage).toContainText('샘플 입력');
     await expect(page.locator('[data-vision-input-status]')).toContainText('샘플 입력');
     await expect(page.locator('[data-vision-preview-canvas]')).toBeVisible();

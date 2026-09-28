@@ -20,6 +20,7 @@ import VisionIo from '../../../components/lab/VisionIo.astro';
 import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { getPage } from '../../../config/nav.ts';
 import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
+import { CAMERA_PERMISSION_STEP } from '../../../lab/vision/camera-notice.ts';
 import { VISION_PACKAGES, visionExamplesFromFiles, type ExampleLessonLink } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -88,7 +89,7 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
     </Callout>
     <Callout type="오류" title="카메라가 켜지지 않거나 화면이 검게 나와요">
       <ul>
-        <li>브라우저 주소 표시줄의 카메라 아이콘에서 이 사이트를 "허용"으로 바꾼 뒤 다시 [실행]해요.</li>
+        <li>카메라를 허용하지 않았으면 {CAMERA_PERMISSION_STEP}한 뒤 다시 [실행]해요.</li>
         <li>
           카메라가 두 대 이상이면 입력 칸의 [카메라]에서 다른 카메라를 골라요. 까만 화면만 2초 넘게 들어오면 입력 칸에 안내가 떠요(<a
             href={cameraBlackHref}>까만 화면 해결 방법</a>).
