@@ -14,7 +14,9 @@ import {
   PERF_PAGES,
   READ_BUDGET_MS,
   THROTTLE_PROFILES,
+  commModuleFromManifestSource,
   commModuleOf,
+  commModulesForLab,
   formatTimingRow,
   heavyLibraryOf,
   lessonPagesFromFiles,
@@ -72,7 +74,7 @@ describe('무거운 라이브러리 알아보기', () => {
     expect(heavyLibraryOf(chunk, 'await loadPyodide({indexURL:e})')).toBe('pyodide');
     expect(heavyLibraryOf(chunk, 'class FilesetResolver{}')).toBe('mediapipe');
     expect(heavyLibraryOf(chunk, 'g.setAttribute("class","blocklyMainBackground")')).toBe('blockly');
-    // package.json이 통째로 든 청크(src/config/site.ts) — 의존성 이름만 있다
+    // package.json이 통째로 든 청크(1.0.0까지의 src/config/site.ts — 1.1.0부터는 판 글자만, 미해결 202) — 의존성 이름만 있다
     expect(heavyLibraryOf('http://localhost:4329/ai-physical-computing/_astro/url.0eqcnGz4.js', '{"dependencies":{"esptool-js":"0.6.1","mqtt":"5.15.2","blockly":"13.3.0","@mediapipe/tasks-vision":"0.10.35"},"devDependencies":{"pyodide":"314.0.7"}}')).toBeNull();
     expect(HEAVY_LIBRARIES.map((item) => item.id)).toEqual(['pyodide', 'mediapipe', 'blockly', 'mqtt', 'codemirror', 'esptool']);
   });
@@ -105,6 +107,8 @@ describe('통신 모듈 청크 알아보기', () => {
     expect(commModuleOf('http://localhost:4329/ai-physical-computing/_astro/data-port.9P7F8Ii2.js')).toBe('data-port');
     expect(commModuleOf('http://localhost:4329/ai-physical-computing/_astro/ble-pc.CZHREPbY.js')).toBe('ble-pc');
     expect(commModuleOf('http://localhost:4329/ai-physical-computing/_astro/mqtt.D1UJSqgx.js')).toBe('mqtt');
+    expect(commModuleOf('http://localhost:4329/ai-physical-computing/_astro/bridge-pc.Ab12Cd34.js')).toBe('bridge-pc');
+    expect(commModuleOf('http://localhost:4901/src/lab/modules/bridge-pc/index.ts')).toBe('bridge-pc');
     // 통신 모듈이 아닌 것
     expect(commModuleOf('http://localhost:4329/ai-physical-computing/_astro/mqtt.esm.DJxwHEmv.js')).toBeNull();
     expect(commModuleOf('http://localhost:4329/ai-physical-computing/_astro/loading.BBE3g6xi.js')).toBeNull();
@@ -112,8 +116,39 @@ describe('통신 모듈 청크 알아보기', () => {
     expect(commModuleOf('http://localhost:4901/src/lab/modules/vision-bridge/link.ts')).toBeNull();
   });
 
-  it('통신 모듈 목록은 manifest의 load 무리(comm)와 같다', () => {
-    expect([...COMM_MODULE_IDS]).toEqual(MODULE_MANIFESTS.filter((item) => item.load?.group === 'comm').map((item) => item.id));
+  it('통신 모듈 목록은 manifest의 load 무리(comm)와 같다 — 파일 글에서 읽은 것이 실제 manifest 값과 같다(실습실마다)', () => {
+    const comm = MODULE_MANIFESTS.filter((item) => item.load?.group === 'comm');
+    expect([...COMM_MODULE_IDS].sort()).toEqual(comm.map((item) => item.id).sort());
+    for (const labId of ['vision', 'esp32', 'dev', 'unit4']) {
+      const expected = comm.filter((item) => item.labs === '*' || item.labs.includes(labId)).map((item) => item.id).sort();
+      expect(commModulesForLab(labId).sort(), labId).toEqual(expected);
+    }
+    // 모든 manifest에서: 통신 무리가 아닌 모듈은 null, 통신 무리는 id·labs가 실제 값과 같다
+    const modulesDir = path.join(ROOT, 'src', 'lab', 'modules');
+    for (const manifest of MODULE_MANIFESTS) {
+      const source = fs.readFileSync(path.join(modulesDir, manifest.id, 'manifest.ts'), 'utf8');
+      const read = commModuleFromManifestSource(manifest.id, source);
+      if (manifest.load?.group === 'comm') {
+        expect(read, manifest.id).toEqual({ id: manifest.id, labs: manifest.labs === '*' ? '*' : [...manifest.labs] });
+      } else {
+        expect(read, manifest.id).toBeNull();
+      }
+    }
+  });
+
+  it('manifest 글 읽기는 주석 속 글자에 속지 않는다', () => {
+    const source = [
+      '/** 설명: labs: vision, load: { group: \'comm\' } 같은 글자는 주석이다 */',
+      "// load: { group: 'comm', code: /x/ }",
+      'const manifest = {',
+      "  id: 'demo-mod',",
+      "  labs: '*',",
+      '};',
+    ].join('\n');
+    expect(commModuleFromManifestSource('demo-mod', source)).toBeNull();
+    expect(commModuleFromManifestSource('demo-mod', `${source}\nconst more = { load: { group: 'comm', code: /\\bdemo\\b/u } };`)).toEqual({ id: 'demo-mod', labs: '*' });
+    expect(commModuleFromManifestSource('x', "id: 'x',\nlabs: ['vision', 'esp32'],\nload: { group: 'comm', code: /a/u }")).toEqual({ id: 'x', labs: ['vision', 'esp32'] });
+    expect(commModulesForLab('esp32', [{ id: 'a', labs: ['vision'] }, { id: 'b', labs: '*' }, { id: 'c', labs: ['esp32'] }])).toEqual(['b', 'c']);
   });
 });
 
@@ -151,6 +186,10 @@ describe('측정하는 쪽', () => {
   it('측정 행 한 줄', () => {
     expect(formatTimingRow({ label: '차시 1-1-1', profile: '3g', fcp: 2396.4, firstText: 2596, lcp: null, dcl: 21385, load: 21389, bytes: 597663, requests: 34, fontBytes: 504843 })).toBe(
       '차시 1-1-1 [3g] FCP 2,396ms · 첫 문단 2,596ms · LCP — · DCL 21,385ms · load 21,389ms · 584KB/34건(글꼴 493KB)',
+    );
+    // 스크립트·글꼴 도착(미해결 194)은 값이 있을 때만 — 글꼴을 받지 않은 쪽은 "—"
+    expect(formatTimingRow({ label: '홈', profile: '3g', fcp: 2244, firstText: 2312, lcp: 2400, dcl: 6120.6, load: 6200, bytes: 102400, requests: 12, fontBytes: 0, scriptsDone: 6010, fontsDone: null })).toBe(
+      '홈 [3g] FCP 2,244ms · 첫 문단 2,312ms · LCP 2,400ms · DCL 6,121ms · load 6,200ms · 스크립트 끝 6,010ms · 글꼴 끝 — · 100KB/12건(글꼴 0KB)',
     );
   });
 });

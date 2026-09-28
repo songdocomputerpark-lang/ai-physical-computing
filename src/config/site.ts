@@ -14,6 +14,10 @@
  * 브라우저에는 환경 변수가 없어서, astro.config.mjs가 이번 빌드의 base를 `vite.define`으로 번들에 글자로 새겨 넣는다(`__APC_BASE__`).
  * Git Bash에서는 `/`로 시작하는 값이 Windows 경로(`C:/Program Files/Git/`)로 바뀌므로 `MSYS_NO_PATHCONV=1`을 앞에 붙인다
  * (2026-09-26 확인 — 바뀐 값은 알아보고 한국어 오류로 멈춘다).
+ *
+ * 사이트 판(`version`)도 같은 방식이다(판 1.1.0, PROGRESS 미해결 202): 판은 여전히 package.json `version` 한 곳에서 오지만(DECISIONS C20),
+ * 번들에는 astro.config.mjs가 `__APC_VERSION__`으로 판 글자만 새겨 넣는다. 전에는 package.json을 통째로 불러 모든 쪽이 받는 공용 청크
+ * (`_astro/url.*.js`)에 이름·명령·의존성 목록까지 약 2.3KB(gzip 약 1KB)가 들어갔다. Node가 이 파일을 직접 읽을 때는 package.json을 읽는다.
  */
 import packageJson from '../../package.json' with { type: 'json' };
 
@@ -22,6 +26,13 @@ import packageJson from '../../package.json' with { type: 'json' };
  * Node가 이 파일을 직접 읽을 때(astro.config.mjs·scripts·Playwright·Vitest)는 없다 — 그때는 환경 변수를 읽는다.
  */
 declare const __APC_BASE__: string | undefined;
+
+/**
+ * astro.config.mjs의 `vite.define`이 번들에 새겨 넣는 사이트 판(package.json `version` 글자 그대로).
+ * Node가 이 파일을 직접 읽을 때는 없다 — 그때는 package.json을 읽는다(`currentVersion`).
+ * 번들에서는 `typeof` 검사가 참으로 접혀 package.json을 읽는 갈래가 빠지고, 그러면 package.json import도 번들에서 빠진다.
+ */
+declare const __APC_VERSION__: string | undefined;
 
 /** 공개 저장소 주소(아래 저장소 링크·이슈·라이선스 파일 주소가 이 값으로 만들어진다) */
 const repositoryUrl = 'https://github.com/songdocomputerpark-lang/ai-physical-computing';
@@ -138,6 +149,17 @@ function currentBase(): string {
   return parseBaseSetting(nodeEnvironment()[BUILD_ENV_NAMES.base]);
 }
 
+/**
+ * 이번 빌드의 사이트 판: 번들 안에서는 빌드 때 새긴 글자, Node에서는 package.json.
+ * astro.config.mjs는 Node에서 이 값(= package.json)을 읽어 `__APC_VERSION__`으로 새긴다.
+ */
+function currentVersion(): string {
+  if (typeof __APC_VERSION__ === 'string') {
+    return __APC_VERSION__;
+  }
+  return packageJson.version;
+}
+
 export const siteConfig = {
   /** 사이트 이름. 가칭이다(DECISIONS C4). */
   name: 'AI 피지컬 컴퓨팅 오픈랩',
@@ -160,8 +182,11 @@ export const siteConfig = {
   repositoryUrl,
   /** 문제 알리기·질문(GitHub Issues). 바닥글과 기여·문의 페이지가 쓴다. */
   issuesUrl: `${repositoryUrl}/issues`,
-  /** 사이트 버전. package.json의 version을 그대로 쓴다. */
-  version: packageJson.version,
+  /**
+   * 사이트 버전. package.json의 version을 그대로 쓴다(DECISIONS C20 — 바닥글 "버전"·점검 페이지 [결과 복사]·오프라인판 zip 이름이 이 값).
+   * 번들에는 astro.config.mjs의 `vite.define` `__APC_VERSION__`으로 글자만 들어간다(위 머리말, 미해결 202).
+   */
+  version: currentVersion(),
   /**
    * 라이선스(DECISIONS C3, 적용 범위는 PLAN PD-26). 예제 코드(examples/)는 운영자 결정 O13(2026-09-25)으로 MIT예요.
    * 전문은 저장소 뿌리의 LICENSE(MIT)와 LICENSE-CONTENT.md(CC BY-NC-SA 4.0)에 있다(P1-10). 바닥글이 fileUrl로 연결한다.

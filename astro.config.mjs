@@ -54,8 +54,11 @@ export default defineConfig({
   vite: {
     // 브라우저로 가는 코드에는 환경 변수가 없어서, 이번 빌드의 base를 글자로 새겨 넣는다(src/config/site.ts의 __APC_BASE__).
     // 그래서 withBase()·서비스 워커 등록·Pyodide 예비본 주소가 APC_BASE를 따른다(워커는 주소를 화면 쪽에서 받는다).
+    // 사이트 판도 글자로 새긴다(__APC_VERSION__ — 값은 package.json version 한 곳, 여기서는 Node가 읽은 siteConfig.version).
+    // 전에는 site.ts가 package.json을 통째로 불러 모든 쪽이 받는 공용 청크에 약 2.3KB가 들어갔다(판 1.1.0, PROGRESS 미해결 202).
     define: {
       __APC_BASE__: JSON.stringify(build.base),
+      __APC_VERSION__: JSON.stringify(siteConfig.version),
     },
     // 병렬 제작: 한 작업 폴더에 개발 서버가 여럿이면 node_modules/.vite/deps를 함께 써서 504(Outdated Optimize Dep)가 되풀이된다.
     // APC_VITE_CACHE_DIR을 서버마다 다르게 주면 미리 묶기 폴더가 나뉜다(src/lab/README.md 5.1). 값이 없으면 지금과 같다.

@@ -7,8 +7,11 @@
 // 재는 동안 추적 기록·화면 찍기는 끄고(이 파일 맨 위 test.use — describe 안에서는 Playwright가 받지 않는다) 서비스 워커는 막는다.
 // 개발 서버(PW_BASE_URL=…:4901)에서는 파일을 묶지 않고 압축도 없어 참고값만 적고 판정하지 않는다 — 판정은 빌드 결과로(npm run perf:measure).
 // 다른 무거운 일(브라우저 검사·빌드)과 함께 돌리면 값이 흔들린다 — 혼자 돌린다.
+// 판 1.1.0(미해결 194)에서 더한 것: 글꼴 조각이 언제 나가고(첫 요청) 언제 다 왔는지(글꼴 끝)·마지막 스크립트가 언제 왔는지(스크립트 끝)를 함께 적고,
+// 'full' 번은 글꼴 CSS가 켜지고 글꼴을 다 받을 때까지 기다린다. 판정 조건(3G)에서는 "글꼴 조각을 load 뒤에 받는다"(BaseLayout의 __apcFontCss)도 본다.
+// 회선 전체(워커까지)를 느리게 한 실습실 시나리오 A는 tests/e2e/perf-scenario-a.spec.ts(미해결 210).
 //
-// 결과: 콘솔 표 + 테스트 첨부(perf-pages-3g.json·perf-pages-slow-4g.json). 보고서는 .cache/phase6-notes/zone-a-perf.md.
+// 결과: 콘솔 표 + 테스트 첨부(perf-pages-3g.json·perf-pages-slow-4g.json). 보고서는 .cache/phase6-notes/zone-a-perf.md·.cache/v110-notes/zone-c-perf.md.
 import fs from 'node:fs';
 import { expect, test, type Browser, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
 import { JUDGED_PROFILE, PERF_PAGES, READ_BUDGET_MS, THROTTLE_PROFILES, formatTimingRow, type PerfPage } from '../../scripts/perf-rules.mjs';
@@ -63,6 +66,12 @@ interface TimingRow {
   readonly htmlBytes: number;
   /** 첫 그리기를 막은 파일 이름(CSS·head의 동기 스크립트) */
   readonly renderBlocking: readonly string[];
+  /** 첫 글꼴 조각을 요청한 때·마지막 글꼴 조각이 도착한 때·글꼴 조각 수(Resource Timing — 'full' 모드만, 미해결 194) */
+  readonly fontsStart: number | null;
+  readonly fontsDone: number | null;
+  readonly fontCount: number;
+  /** 마지막 스크립트(모듈과 그 import)가 도착한 때 — DCL이 이것을 기다린다('full' 모드만) */
+  readonly scriptsDone: number | null;
 }
 
 /**
@@ -133,6 +142,20 @@ async function measureTiming(
   if (mode === 'full') {
     await page.goto(withBase(target.path), { waitUntil: 'load', timeout: 300_000 });
     await page.waitForTimeout(300);
+    // 글꼴 도착까지 잰다(미해결 194 — 느린 망에서는 BaseLayout이 글꼴 CSS를 load 뒤에 켜서 load는 당겨져도 글꼴은 그 뒤에 온다).
+    // ① 글꼴 CSS가 켜질 때까지(media가 print가 아니게) ② 두 화면 틀 뒤(켜진 CSS로 글꼴 요청이 나가게) ③ 받는 중인 글꼴이 없을 때까지.
+    await page
+      .waitForFunction(
+        () => [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href*="pretendard"]')].every((link) => link.media !== 'print'),
+        null,
+        { timeout: 120_000, polling: 100 },
+      )
+      .catch(() => undefined);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined))))).catch(() => undefined);
+    await page
+      .waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 120_000, polling: 250 })
+      .catch(() => undefined);
+    await page.waitForTimeout(300);
   } else {
     await page.goto(withBase(target.path), { waitUntil: 'commit', timeout: 300_000 });
     await page
@@ -151,9 +174,12 @@ async function measureTiming(
     const fcp = performance.getEntriesByName('first-contentful-paint')[0];
     const perf = (window as unknown as { __apcPerf: { lcp: number; firstText: number | null } }).__apcPerf;
     // 첫 그리기를 막은 파일(Resource Timing의 renderBlockingStatus — Chromium 107부터). 글꼴 CSS를 media로 늦게 붙이면 여기서 빠진다.
-    const blocking = (performance.getEntriesByType('resource') as (PerformanceResourceTiming & { renderBlockingStatus?: string })[])
-      .filter((entry) => entry.renderBlockingStatus === 'blocking')
-      .map((entry) => entry.name.split('/').pop() ?? entry.name);
+    const resources = performance.getEntriesByType('resource') as (PerformanceResourceTiming & { renderBlockingStatus?: string })[];
+    const blocking = resources.filter((entry) => entry.renderBlockingStatus === 'blocking').map((entry) => entry.name.split('/').pop() ?? entry.name);
+    // 글꼴 조각(woff2)과 스크립트가 언제 시작하고 끝났는지 — 글꼴이 스크립트와 회선을 나눠 DCL을 늦추는지 보려고(미해결 194)
+    const fonts = resources.filter((entry) => /\.woff2?(?:[?#]|$)/u.test(entry.name));
+    const scripts = resources.filter((entry) => /\.m?js(?:[?#]|$)/u.test(entry.name));
+    const latest = (entries: PerformanceResourceTiming[]) => (entries.length === 0 ? null : Math.max(...entries.map((entry) => entry.responseEnd)));
     return {
       fcp: fcp ? fcp.startTime : null,
       firstText: perf.firstText,
@@ -162,6 +188,10 @@ async function measureTiming(
       load: nav && nav.loadEventEnd > 0 ? nav.loadEventEnd : null,
       htmlBytes: nav ? nav.transferSize : 0,
       renderBlocking: blocking,
+      fontsStart: fonts.length === 0 ? null : Math.min(...fonts.map((entry) => entry.startTime)),
+      fontsDone: latest(fonts),
+      fontCount: fonts.length,
+      scriptsDone: latest(scripts),
     };
   });
   if (mode === 'full') {
@@ -225,14 +255,21 @@ test.describe('느린 3G에서 학습 페이지가 3초 안에 읽힌다(P6-02, 
         };
         rows.push(row);
         const runsText = runs > 1 ? ` · FCP ${runs}번 ${fcpRuns.map((value) => (value === null ? '—' : Math.round(value))).join('/')}ms(가운데 값)` : '';
+        const fontsText = row.fontCount > 0 ? ` · 글꼴 조각 ${row.fontCount}개(첫 요청 ${Math.round(row.fontsStart ?? 0).toLocaleString('ko-KR')}ms)` : ' · 글꼴 조각 0개';
         console.log(
-          `[느린 망] ${formatTimingRow(row)} · HTML ${kb(row.htmlBytes)} · 그리기를 막은 파일 ${row.renderBlocking.length}개${row.renderBlocking.length > 0 ? `(${row.renderBlocking.join(', ')})` : ''}${runsText}${row.dev ? ' (개발 서버 — 참고값)' : ''}`,
+          `[느린 망] ${formatTimingRow(row)} · HTML ${kb(row.htmlBytes)}${fontsText} · 그리기를 막은 파일 ${row.renderBlocking.length}개${row.renderBlocking.length > 0 ? `(${row.renderBlocking.join(', ')})` : ''}${runsText}${row.dev ? ' (개발 서버 — 참고값)' : ''}`,
         );
         if (judged && !row.dev) {
           // 넘으면 까닭(첫 그리기를 막은 파일 — 파일마다 왕복 지연 2초)을 메시지에 함께 적는다
           const why = row.renderBlocking.length > 0 ? ` — 첫 그리기를 막은 파일 ${row.renderBlocking.join(', ')}` : '';
           expect.soft(row.fcp, `/${target.path}(${target.label})의 FCP를 재지 못했어요`).not.toBeNull();
           expect.soft(row.fcp ?? Number.POSITIVE_INFINITY, `/${target.path}(${target.label})의 FCP(${THROTTLE_PROFILES[profileId].label})${why}`).toBeLessThanOrEqual(READ_BUDGET_MS);
+          // 느린 망에서는 글꼴 조각을 load 뒤에 받는다(판 1.1.0, 미해결 194 — BaseLayout의 __apcFontCss). 글꼴이 먼저 나가면 스크립트와 회선을 다퉈 DCL이 늦어진다.
+          if (row.fontCount > 0 && row.load !== null) {
+            expect
+              .soft(row.fontsStart ?? 0, `/${target.path}(${target.label})의 글꼴 조각이 load(${Math.round(row.load)}ms) 전에 나갔어요 — 퀴즈·용어 풀이 스크립트와 회선을 다퉈 DCL이 늦어져요(미해결 194)`)
+              .toBeGreaterThanOrEqual(row.load - 50);
+          }
         }
       }
       const worst = rows.reduce((max, row) => Math.max(max, row.fcp ?? 0), 0);

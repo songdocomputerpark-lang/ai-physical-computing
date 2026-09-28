@@ -12,14 +12,20 @@
 //
 // 2. "읽힌다"의 판정(READ_BUDGET_MS): PLAN §8.1 구현 메모대로 **본문이 처음 그려지는 시각(FCP, first-contentful-paint)**이 3,000ms 안.
 //    함께 적는 것: 본문 첫 문단이 그려진 시각(Element Timing — 측정 스크립트가 main 안 첫 긴 문단에 elementtiming을 단다), LCP, DCL, load,
-//    글꼴 도착(load에 포함 — font-display: swap이라 글꼴은 FCP를 막지 않는다), 받은 바이트·요청 수.
+//    글꼴 도착("글꼴 끝" — font-display: swap이라 글꼴은 FCP를 막지 않는다. 판 1.1.0부터 느린 망에서는 BaseLayout이 글꼴을 load 뒤에 받아
+//    load에 들지 않는다 — 미해결 194), 마지막 스크립트 도착("스크립트 끝"), 받은 바이트·요청 수.
 //
 // 3. 무거운 라이브러리(HEAVY_LIBRARIES): 실습실에서만 받아야 하는 것 — Pyodide·MediaPipe·Blockly·MQTT.js·CodeMirror·esptool-js.
 //    주소 모양(개발 서버의 /node_modules/.vite/deps/…와 빌드의 _astro/<이름>.<해시>.js·/vendor/…)과 **본문 속 표식 글자**(압축돼도 남는
 //    문자열 — 빌드 결과 dist/_astro를 grep해 고름, 2026-09-26)로 알아본다. 표식은 그 라이브러리 파일에만 있는 글자를 골랐다
-//    (예: "esptool"·"pyodide" 낱말은 package.json을 묶은 url.*.js에도 있어 쓰지 않는다 — 구역 A 보고서).
+//    (예: "esptool"·"pyodide" 낱말은 1.0.0까지 package.json을 통째로 묶은 url.*.js에도 있어 쓰지 않았다 — 구역 A 보고서.
+//    1.1.0부터 그 청크에는 판 글자만 들어가지만(미해결 202, src/config/site.ts의 __APC_VERSION__) 옛 빌드를 잴 때를 생각해 규칙은 그대로 둔다).
 //
-// 4. 통신 모듈 청크(COMM_MODULE_IDS) — 쓸 때만 받는지(PROGRESS 미해결 157) 볼 때 쓰는 주소 모양.
+// 4. 통신 모듈 청크(COMM_MODULE_IDS) — 쓸 때만 받는지(PROGRESS 미해결 157) 볼 때 쓰는 주소 모양. 목록은 manifest 파일에서 읽는다(readCommModules).
+// 5. 회선 전체 흉내 조건(LINE_PROFILES)·시나리오 A 한도(SCENARIO_A_LIMIT_MS) — tests/e2e/perf-scenario-a.spec.ts(판 1.1.0, 미해결 210).
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /** @typedef {{ offline: boolean, latency: number, downloadThroughput: number, uploadThroughput: number }} CdpNetworkConditions */
 
@@ -49,6 +55,54 @@ export const THROTTLE_PROFILES = Object.freeze({
 
 /** P6-02 판정에 쓰는 조건 */
 export const JUDGED_PROFILE = '3g';
+
+/**
+ * @typedef {object} LineProfile
+ * @property {string} id
+ * @property {string} label
+ * @property {string} source 값의 출처
+ * @property {number} downBytesPerSecond 내려받기(한 회선을 모든 연결이 나눠 씀)
+ * @property {number} upBytesPerSecond 올리기
+ * @property {number} rttMs 왕복 지연(모든 조각에 한쪽 RTT/2)
+ * @property {number} newConnectionRoundTrips 새 연결을 여는 데 드는 왕복 수(DNS 1 + TCP 1)
+ */
+
+/**
+ * 회선 전체 흉내 조건(판 1.1.0 — PROGRESS 미해결 210, 프록시 scripts/perf-line-proxy.mjs). THROTTLE_PROFILES는 CDP가 **요청마다** 지연을 붙이는 값이라
+ * 페이지 대상에만 걸리고(워커는 빠짐), 이것은 모든 요청(페이지·워커·서비스 워커)이 **조각마다** 지나는 회선 값이다.
+ * - 대역폭: DevTools "3G" 값 그대로 50,000바이트/초(400kbit/s) 양방향 — DevTools가 요청 단위 흉내라 0.8을 곱한 값(원래 "~500Kbps")을
+ *   되돌리지 않고 그대로 써서 조금 보수적이다. 1.0.0 사용성 검토의 회선 측정(첫 에지 7분 9초)과 같은 값이라 수를 견줄 수 있다.
+ * - 지연: DevTools의 targetLatency(왕복 400ms — DevTools는 이것에 5를 곱한 2,000ms를 요청마다 붙인다). 출처: devtools-frontend
+ *   front_end/core/sdk/NetworkManager.ts `const slow3GTargetLatency = 400; … latency: slow3GTargetLatency * 5, targetLatency: slow3GTargetLatency`
+ *   (2026-09-28 원문 확인 — https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/core/sdk/NetworkManager.ts).
+ * @type {Readonly<Record<'3g', LineProfile>>}
+ */
+export const LINE_PROFILES = Object.freeze({
+  '3g': Object.freeze({
+    id: '3g',
+    label: '회선 전체 DevTools "3G" — 400kbit/s 양방향, 왕복 400ms(페이지·워커·서비스 워커 모두)',
+    source: 'Slow3GConditions: download·upload 500*1000/8*.8 그대로, 왕복 = targetLatency 400(latency 400*5의 5를 뺀 값), 새 연결 DNS·TCP 2왕복',
+    downBytesPerSecond: (500 * 1000) / 8 * 0.8,
+    upBytesPerSecond: (500 * 1000) / 8 * 0.8,
+    rttMs: 400,
+    newConnectionRoundTrips: 2,
+  }),
+});
+
+/** SPEC §13 시나리오 A "5분 안에 웹캠 에지 결과" — 회선 전체 3G 측정은 이 값과 견줘 **기록만** 한다(넘으면 PLAN §11 위험 31) */
+export const SCENARIO_A_LIMIT_MS = 5 * 60 * 1000;
+
+/**
+ * 회선 흉내 프록시가 지나게 할 호스트: 시험하는 사이트 + 실습실이 받는 바깥 출처(src/lab/runtime/config.ts ALLOWED_REMOTE_ORIGINS — 지금 jsDelivr).
+ * 그 밖(브라우저 자체의 배경 통신)은 프록시가 끊는다.
+ * @param {string} baseURL
+ * @param {readonly string[]} remoteOrigins
+ * @returns {string[]}
+ */
+export function lineAllowHosts(baseURL, remoteOrigins) {
+  const hosts = [new URL(baseURL).hostname, ...remoteOrigins.map((origin) => new URL(origin).hostname)];
+  return [...new Set(hosts)];
+}
 
 /** "읽힌다"의 한도(밀리초) — SPEC §9 "학습 페이지는 3G에서도 3초 안에 읽힘", 판정 지표는 FCP(PLAN §8.1 구현 메모) */
 export const READ_BUDGET_MS = 3000;
@@ -179,8 +233,62 @@ export function heavyLibraryOf(url, body = null) {
   return null;
 }
 
-/** 쓸 때만 받는 통신 모듈(src/lab/modules/<id>/manifest.ts의 load.group 'comm') */
-export const COMM_MODULE_IDS = Object.freeze(['ble-pc', 'data-port', 'mqtt', 'serial-pc', 'vision-bridge', 'web-bluetooth']);
+/** 흉내 모듈 폴더(src/lab/modules/) */
+const MODULES_DIR = fileURLToPath(new URL('../src/lab/modules/', import.meta.url));
+
+/**
+ * @typedef {object} CommModule
+ * @property {string} id
+ * @property {'*' | string[]} labs 붙는 실습실(manifest의 labs 그대로)
+ */
+
+/**
+ * 흉내 모듈 manifest 소스 글에서 "쓸 때 받는 통신 무리(load.group 'comm')"인지와 붙는 실습실을 읽는다. 아니면 null.
+ * src/lab/modules/manifests.ts는 import.meta.glob(Vite 전용)으로 모아서 Playwright(Node)에서는 부를 수 없어 파일 글을 읽는다 —
+ * 단위 테스트(tests/unit/perf/perf-rules.test.ts)가 모든 manifest에서 MODULE_MANIFESTS와 같은 답인지 대조한다.
+ * 주석(블록 주석·줄 전체 주석)은 먼저 걷어 낸다(설명 글 속 "labs: vision" 같은 글자에 속지 않게).
+ * @param {string} folder 폴더 이름(id를 못 읽으면 이것)
+ * @param {string} source manifest.ts 글
+ * @returns {CommModule | null}
+ */
+export function commModuleFromManifestSource(folder, source) {
+  const code = source.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/^\s*\/\/.*$/gmu, '');
+  if (!/\bload:\s*\{\s*group:\s*'comm'/u.test(code)) {
+    return null;
+  }
+  const id = /\bid:\s*'([a-z0-9-]+)'/u.exec(code)?.[1] ?? folder;
+  const labs = /\blabs:\s*(?:'(\*)'|\[([^\]]*)\])/u.exec(code);
+  return { id, labs: labs?.[1] === '*' ? '*' : [...(labs?.[2] ?? '').matchAll(/'([^']+)'/gu)].map((match) => match[1] ?? '') };
+}
+
+/**
+ * 저장소의 통신 무리 모듈(폴더 이름 차례). 새 통신 모듈을 더해도 이 파일을 고칠 일이 없다(판 1.1.0 — 전에는 id를 손으로 적어
+ * 새 모듈 bridge-pc(미해결 139)가 생기자 성능 검사가 어긋났다).
+ * @param {string} [dir]
+ * @returns {CommModule[]}
+ */
+export function readCommModules(dir = MODULES_DIR) {
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(dir, entry.name, 'manifest.ts')))
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b, 'en'))
+    .map((folder) => commModuleFromManifestSource(folder, fs.readFileSync(path.join(dir, folder, 'manifest.ts'), 'utf8')))
+    .filter((item) => item !== null);
+}
+
+/** 쓸 때만 받는 통신 모듈(src/lab/modules/<id>/manifest.ts의 load.group 'comm') — 저장소 manifest에서 읽는다 */
+export const COMM_MODULE_IDS = Object.freeze(readCommModules().map((item) => item.id));
+
+/**
+ * 그 실습실에 붙는 통신 무리 모듈 id(폴더 이름 차례).
+ * @param {string} labId
+ * @param {readonly CommModule[]} [modules]
+ * @returns {string[]}
+ */
+export function commModulesForLab(labId, modules = readCommModules()) {
+  return modules.filter((item) => item.labs === '*' || item.labs.includes(labId)).map((item) => item.id);
+}
 
 /**
  * 스크립트 주소가 통신 모듈의 화면 쪽(index.ts) 청크인지 — 그 모듈 id, 아니면 null.
@@ -205,13 +313,17 @@ export function commModuleOf(url) {
 
 /**
  * 측정 행을 한 줄 한국어로(보고서·콘솔).
- * @param {{ label: string, profile: string, fcp: number | null, firstText: number | null, lcp: number | null, dcl: number | null, load: number | null, bytes: number, requests: number, fontBytes?: number }} row
+ * fontsDone(마지막 글꼴 조각이 도착한 때)·scriptsDone(마지막 스크립트가 도착한 때)은 있을 때만 적는다(2026-09-28 판 1.1.0 — 미해결 194:
+ * 글꼴을 늦게 받게 바꾸면 load는 당겨져도 글꼴 도착은 늦어질 수 있어, 두 값을 함께 봐야 주고받은 것이 보인다).
+ * @param {{ label: string, profile: string, fcp: number | null, firstText: number | null, lcp: number | null, dcl: number | null, load: number | null, bytes: number, requests: number, fontBytes?: number, fontsDone?: number | null, scriptsDone?: number | null }} row
  */
 export function formatTimingRow(row) {
   const ms = (value) => (value === null || value === undefined ? '—' : `${Math.round(value).toLocaleString('ko-KR')}ms`);
   const kb = (value) => `${(value / 1024).toFixed(0)}KB`;
+  const arrivals =
+    (row.scriptsDone === undefined ? '' : ` · 스크립트 끝 ${ms(row.scriptsDone)}`) + (row.fontsDone === undefined ? '' : ` · 글꼴 끝 ${ms(row.fontsDone)}`);
   return (
-    `${row.label} [${row.profile}] FCP ${ms(row.fcp)} · 첫 문단 ${ms(row.firstText)} · LCP ${ms(row.lcp)} · DCL ${ms(row.dcl)} · load ${ms(row.load)}` +
+    `${row.label} [${row.profile}] FCP ${ms(row.fcp)} · 첫 문단 ${ms(row.firstText)} · LCP ${ms(row.lcp)} · DCL ${ms(row.dcl)} · load ${ms(row.load)}${arrivals}` +
     ` · ${kb(row.bytes)}/${row.requests}건${row.fontBytes === undefined ? '' : `(글꼴 ${kb(row.fontBytes)})`}`
   );
 }

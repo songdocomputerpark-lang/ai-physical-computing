@@ -1,7 +1,7 @@
 // 통신 모듈은 쓸 때만 받는다(Phase 6 P6-02, PROGRESS 미해결 157 — 구역 A) 브라우저 테스트.
 //
 // 확인하는 것
-//  1. 영상처리 실습실을 첫 예제(에지 검출 — 통신 없음)로 열면 통신 모듈(ble-pc·data-port·serial-pc·vision-bridge·web-bluetooth)의
+//  1. 영상처리 실습실을 첫 예제(에지 검출 — 통신 없음)로 열면 통신 모듈(그 실습실의 load 무리 comm — manifest에서 읽음)의
 //     화면 쪽 JS를 **한 바이트도 받지 않는다**(요청 목록으로 증명). 붙은 모듈 목록(data-lab-modules)에는 있고 waiting에 있다.
 //  2. 편집칸에 `import serial`을 넣으면 그때 무리째 받고 [보내기] 패널이 열리며, 통로 목록에 탭·MQTT(와 이 브라우저에 있으면
 //     USB 데이터 포트·블루투스)가 모두 있다 — 받는 차례가 바뀌어 목록에서 통로가 빠지던 Phase 4 검토 지적 1이 되살아나지 않는다.
@@ -13,7 +13,7 @@
 // 돌리는 법: PW_BASE_URL=http://localhost:4901/ai-physical-computing/ npx playwright test tests/e2e/perf-lab-modules.spec.ts --project=desktop
 // (npm run perf:measure·npm run test:e2e에도 들어 있다 — 데스크톱에서만 돈다)
 import { expect, test, type Page, type Response } from '@playwright/test';
-import { COMM_MODULE_IDS, commModuleOf } from '../../scripts/perf-rules.mjs';
+import { COMM_MODULE_IDS, commModuleOf, commModulesForLab } from '../../scripts/perf-rules.mjs';
 import { withBase } from '../../src/lib/url.ts';
 import { labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 
@@ -22,8 +22,10 @@ const ESP32 = withBase('labs/esp32/');
 /** 개발 서버는 처음 여는 파일을 그때 옮겨서(Vite) 느리다 — 넉넉하게 */
 const MODULES_TIMEOUT = 120_000;
 const READY_TIMEOUT = 180_000;
-const VISION_COMM = ['ble-pc', 'data-port', 'serial-pc', 'vision-bridge', 'web-bluetooth'];
-const ESP32_COMM = ['data-port', 'mqtt', 'vision-bridge', 'web-bluetooth'];
+// 실습실마다 쓸 때 받는 통신 모듈 — manifest 파일에서 읽는다(판 1.1.0: 손으로 적은 목록은 새 모듈 bridge-pc(미해결 139)가 생기자 어긋났다).
+// 1.0.0 때: 영상처리 ble-pc·data-port·serial-pc·vision-bridge·web-bluetooth, ESP32 data-port·mqtt·vision-bridge·web-bluetooth.
+const VISION_COMM = commModulesForLab('vision');
+const ESP32_COMM = commModulesForLab('esp32');
 
 interface ScriptRecord {
   readonly url: string;
