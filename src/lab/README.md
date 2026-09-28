@@ -12,7 +12,7 @@
 | `editor/` | 코드 에디터(CodeMirror 6) |
 | `controls/` | 실습실 공통 조작(`lab-shell.ts` 컨트롤러, 예제 목록 `examples.ts`, 예제 머리말 읽기 `example-meta.ts`, 사이드카 읽기 `example-sidecar.ts`(빌드 전용), 자동 저장·공유 링크·내려받기) |
 | `params/` | 조절 패널: 규약 파서 `parse.ts`, 화면 논리 `panel.ts` |
-| `vision/` | 영상처리 실습실 화면(카메라·샘플 입력, 출력 창, 예제 목록 만들기 `examples.ts` — PC 전용 라이브러리 폴더 `vision/lib/` 제외, 프레임 훅 `vision-lab.ts`) |
+| `vision/` | 영상처리 실습실 화면(카메라·샘플 입력, 출력 창, 예제 목록 만들기 `examples.ts` — PC 전용 라이브러리 폴더 `vision/lib/` 제외, 프레임 훅 `vision-lab.ts`). 판 1.1.0: 카메라 고르기 `camera-devices.ts`(가상 카메라 이름 목록 한 곳)·까만 영상 판정 `black-frame.ts`·카메라 스트림 도우미 `camera-stream.ts`(점검 페이지도 씀)·안내 글 `camera-notice.ts` |
 | `bridge/` | **통신 브릿지**(9절): 메시지 규칙·보낼 차례·받는 차례·통로 등록표. 쓰는 쪽은 `bridge/index.ts`에서만 가져와요 |
 | `mqtt/` | **MQTT·같은 컴퓨터 탭 통로**(P4-06, 9.9): 중계 서버 목록·토픽 규칙(PD-29)·통로 `mqtt`·이 탭의 연결 하나(`session.ts`) |
 | `dashboard/` | **대시보드**(P4-07, 9.10): 위젯 네 가지·격자 배치·저장·그래프·게이지(라이브러리 없이) |
@@ -173,7 +173,7 @@ export default manifest;
   ② 주소에 `query` 이름이 있을 때(`?bridge=` 등) ③ `windowEvents`의 창 이벤트가 올 때(받은 뒤 같은 이벤트를 한 번 더 보내요) ④ 파이썬이 그 모듈의 `requestKinds` 요청을 보낼 때
   (host가 자리를 맡아 두었다가 받은 뒤 넘겨요) **같은 `group`의 모듈을 모두** 받고, 다 받은 뒤 `order` 차례(작은 수 먼저)로 mount해요.
   받는 동안 [실행]은 기다려요(`holdRun`). 뿌리 `data-lab-modules`에는 붙은 모듈(기다리는 것 포함), `data-lab-modules-loaded`에는 mount가 끝난 것,
-  `data-lab-modules-waiting`에는 기다리는 것, `data-lab-modules-loaded-by`에는 받은 까닭(`comm=code:serial-pc` 등). 통신 모듈 여섯은 무리 `comm`이에요 —
+  `data-lab-modules-waiting`에는 기다리는 것, `data-lab-modules-loaded-by`에는 받은 까닭(`comm=code:serial-pc` 등). 통신 모듈 일곱(판 1.1.0에서 새 예제용 bridge 흉내 `bridge-pc`가 더해짐)은 무리 `comm`이에요 —
   통로를 등록하는 모듈(data-port·web-bluetooth·mqtt, order 0)이 통로 목록을 그리는 [보내기] 패널(vision-bridge, order 10)보다 먼저 붙어요.
   **`code` 정규식은 패널 조건보다 넓게**(그 낱말이 보이기만 해도) 적어요 — `tests/unit/lab/modules.test.ts`가 예제 전체로 "패널 조건이 맞으면 받는 조건도 맞는다"를 지켜요.
   [이 컴퓨터에 실습 파일 미리 받기]는 `prefetchLazyModules(root)`로 이런 모듈의 파일도 받아 둬요(붙이지는 않음 — 인터넷이 끊긴 교실 PC에서도 칸이 붙게).
@@ -189,7 +189,7 @@ export default manifest;
 | `ctx.setValue(name, value)` | 최신 값 하나(덮어씀) | `apc_runtime.get(name, default)` |
 | `ctx.pushEvent(channel, value)` | 쌓이는 값(순서대로) | `apc_runtime.poll(channel)`(꺼내면 비움) |
 | `ctx.onLab('run' \| 'run-pending' \| 'done' \| 'code' \| 'example' \| 'state' \| 'records-cleared', fn)` | 실습실 조작 이벤트(`LabController.on`과 같음). `run-pending`은 파이썬을 받는 동안 [실행]을 눌러 예약했을 때(준비가 끝나면 `run`이 따로 와요) | — |
-| `ctx.vision()` → `VisionLab \| null` | 영상처리 실습실이면 `vision.onFrame((frame, {sourceId, now}) => …)`(cap.read 답 직전, frame.data는 답한 뒤 워커로 옮겨져 비므로 보관하려면 복사), `vision.grabFrame()`, `vision.windows`, `vision.sendKey()` | — |
+| `ctx.vision()` → `VisionLab \| null` | 영상처리 실습실이면 `vision.onFrame((frame, {sourceId, now}) => …)`(cap.read 답 직전, frame.data는 답한 뒤 워커로 옮겨져 비므로 보관하려면 복사), `vision.grabFrame()`, `vision.windows`, `vision.sendKey()`, `vision.cameras`(이 컴퓨터의 카메라 목록 — 허락 뒤에는 이름이 있다). 실행 중에 `vision.selectSource(id)`를 부르면 입력이 켜져 있을 때 새 소스를 바로 열어 cap.read()가 이어진다(판 1.1.0) | — |
 | `ctx.panel`, `ctx.showPanel()`, `ctx.hidePanel()` | `panel.astro`가 그려진 요소(처음엔 hidden). **mount에서 무조건 열지 말고** `showPanelWhenUsed(ctx, /이름/)`(`modules/panel-when-used.ts`)로 코드가 그 모듈을 쓸 때만 열어요. 조건이 하나 더 있으면 `showPanelWhenUsed(ctx, /이름/, { also: () => …, watchAttributes: ['data-run-target'] })`(예: ESP32 실습실의 USB 데이터 포트 칸은 [실제 보드] 탭일 때만), 돌려받은 `gate.dispose()`는 모듈 dispose에서 불러요 | — |
 | `ctx.lab.holdRun(Promise)` | **준비 뒤 할 일**을 실습실 틀에 맡겨요(2026-09-25 Phase 4 검토 반영). 파이썬이 준비된 순간 모듈이 워커에 파일을 쓰는 일(보드 라이브러리·mask.png)이 끝나기 전에는 예약해 둔 [실행]을 보내지 않아요 — 전에는 준비 중에 누른 [실행]이 라이브러리보다 먼저 돌아 `ImportError`로 멈췄어요. 한 번에 최대 8초(`RUN_HOLD_MAX_MS`) 기다리고, 그동안 [실행] 단추는 예약 표시예요. `runtime.on('ready', () => ctx.lab.holdRun(쓰기()))`처럼 써요 | — |
 | `ctx.storageName('설정')` → `ai-physical-computing:module:<id>:설정` | 브라우저 저장 이름(`src/lib/storage.ts` 규칙 — [이 컴퓨터에서 내 기록 지우기]가 함께 지움) | — |
@@ -218,6 +218,7 @@ export default manifest;
 - **실행이 끝날 때 한 번 할 일**은 `register_finish_hook(fn)`으로 등록해요(워커가 `unbind_run_globals`를 부를 때 한 번, 동기 진입점이라 양보 금지). 마지막 줄에서 파일을 저장하고 끝나는 코드처럼 틱 훅으로는 잡히지 않는 것에 써요.
 - **동기 진입점 규칙(PROGRESS 미해결 25번):** `install()`, `register_reset_hook` 함수, `register_tick_hook` 함수 안에서는 양보하는 함수(`sleep`·`request`·`input`·`block_on`·`get`·`poll`)를 부르지 않아요. 쌓인 값을 버릴 때는 `drain(channel)`. 어기면 `RuntimeError: Cannot stack switch…`가 나요.
 - 요청 답을 큰 바이트 배열로 받을 때는 `request(kind, payload, raw=True)`로 JsProxy를 받아 `assign_to`로 numpy에 복사해요(`apc_cv2.py`의 `_frame_to_bgr` 참고).
+- **"값 없음"을 파이썬에 답할 때는 JS `null` 대신 `undefined`**(판 1.1.0): Pyodide 314는 JS null을 None이 아닌 `jsnull`로 넘겨 `if x is None` 검사를 지나친다 — 영상처리 실습실이 cap.read()에 null로 답하던 때 `AttributeError: 'JsNull' object has no attribute 'width'`가 났다(미해결 200). undefined는 None이 된다(`vision-lab.ts` NO_FRAME, board-console의 `lineMessage`와 같은 까닭).
 - 파일 맨 위 docstring에 학생 코드에서 쓰는 법을 적어요(`hello/apc_hello.py`).
 
 ### 4.5 panel.astro
@@ -316,7 +317,7 @@ npx vitest run tests/unit/lab/board-part-buzzer.test.ts tests/unit/lab/pyodide-b
 | D mqtt | 4704 | P4-06·P4-07 | `src/lab/mqtt/`, `src/lab/modules/mqtt/`, `modules/board/ext/network/`, `src/lab/dashboard/`, `src/components/lab/dashboard/`, 페이지 `src/pages/labs/iot/dashboard/`(통합에서 `/labs/dashboard/` → 통신 실습실 아래로) | `tests/unit/{mqtt,dashboard}/**`, `tests/e2e/{mqtt,dashboard}.spec.ts` |
 | E templates | 4705 | P4-10 | `examples/esp32/templates/`(통신 템플릿 3종), `src/lab/blocks/comm/` | `tests/unit/blocks/comm-*.test.ts`, `tests/e2e/esp32-comm-blocks.spec.ts` |
 | F gallery | 4706 | P4-11 | `src/lab/gallery/`의 새 파일, `src/components/examples/`, 페이지 `src/pages/labs/gallery/`(통합에서 `/examples/` → 사이트 지도 주소로) | `tests/unit/gallery/**`, `tests/e2e/examples-gallery.spec.ts` |
-| **2차** G scenario-f | 4707 | P4-08 | `src/lab/modules/vision-bridge/finger-count/bridge.py`(새 예제용 `bridge` 모듈), `examples/{vision,esp32}/u4/c3-*.py`, 보충 C3 초안 `content/lessons/supplement/c3.md`(`draft: true` — Phase 5 통합에서 `content/lessons/u3/c3.md`로 옮겨 공개) | `tests/unit/bridge-serial/pyodide-bridge.test.ts`, `tests/e2e/scenario-f.spec.ts` |
+| **2차** G scenario-f | 4707 | P4-08 | `src/lab/modules/vision-bridge/finger-count/bridge.py`(새 예제용 `bridge` 모듈 — 판 1.1.0에서 `src/lab/modules/bridge-pc/`로 옮김), `examples/{vision,esp32}/u4/c3-*.py`, 보충 C3 초안 `content/lessons/supplement/c3.md`(`draft: true` — Phase 5 통합에서 `content/lessons/u3/c3.md`로 옮겨 공개) | `tests/unit/bridge-serial/pyodide-bridge.test.ts`, `tests/e2e/scenario-f.spec.ts` |
 | **2차** H unit4 | 4708 | P4-09 | `src/pages/labs/unit4/`, `src/lab/unit4/`, `src/components/lab/unit4/`, (구역 밖을 통합이 받아들임) `src/lab/modules/ble-pc/`(PC 쪽 `bluetooth`·`bluetooth_lib` 흉내) | `tests/e2e/unit4.spec.ts` |
 
 통합(2026-09-24)이 더한 것: 통신 실습실 안내 페이지 `src/pages/labs/iot/index.astro`(9.9 앞 "한눈에"), 사이트 지도의 대시보드·4단원 통합 실습실, 오류 사전 `comm` 묶음 21항목,
@@ -505,7 +506,7 @@ PW_BASE_URL=http://localhost:4801/ai-physical-computing/ npx playwright test tes
 |---|---|
 | `npm run build` | 14초(출처 검사 파일 814개·항목 38개, 번들 의존성 20개 통과, 83쪽, Pagefind 79쪽) |
 | `dist/` | 104,127,349바이트(파일 654개·HTML 83개) — `vendor/` 51.0MB(Pyodide 예비본 27.2·MediaPipe 22.3·Pretendard 1.6), `models/` 27.0MB, `teacher/` 6.6MB, `_astro/` 3.6MB, `fonts/` 3.0MB, `firmware/` 1.8MB, `images/` 1.7MB, `pagefind/` 1.5MB |
-| `first-visit.spec.ts` | 홈만(사전 캐시 포함) 0.34MB·28건 / 홈 → 첫 에지 20.07MB(사이트 1.14 + jsDelivr 18.94)·290건, 실습실 1.0초 → 준비 끝 8.1초 → 첫 에지 9.6초 / Fast 3G(페이지만 느리게 — **파이썬 워커는 속도 제한을 받지 않아** 준비 끝은 빠른 망 값에 가까워요) 홈 4.3초 → 실습실 화면 5.2초 → 준비 끝 11.0초. 회선 전체를 3G(400kbit/s·왕복 400ms)로 느리게 한 검토 측정(2026-09-26, 워커·서비스 워커까지): 준비됐어요 2분 38초 → [실행] → 첫 에지 7분 9초, 받은 양 20.97MB — 그래서 느린 망 안내에 [미리 받기]를 적고, 받는 동안 받은 양을 결과 칸에 보여요(PROGRESS 미해결의 느린 망 시나리오 A) |
+| `first-visit.spec.ts` | 홈만(사전 캐시 포함) 0.34MB·28건 / 홈 → 첫 에지 20.07MB(사이트 1.14 + jsDelivr 18.94)·290건, 실습실 1.0초 → 준비 끝 8.1초 → 첫 에지 9.6초 / Fast 3G(페이지만 느리게 — **파이썬 워커는 속도 제한을 받지 않아** 준비 끝은 빠른 망 값에 가까워요) 홈 4.3초 → 실습실 화면 5.2초 → 준비 끝 11.0초. 회선 전체를 3G(400kbit/s·왕복 400ms)로 느리게 한 측정(워커·서비스 워커까지 — 2026-09-26 검토 손 측정 첫 에지 7분 9초·20.97MB, 판 1.1.0부터 perf:measure의 perf-scenario-a.spec.ts가 자동으로: 1.0.0 빌드 파이썬 준비 2분 39초~2분 51초 → 첫 에지 7분 14초~7분 28초·약 21.3MB, 1.1.0 빌드도 같은 범위) — 그래서 느린 망 안내에 [미리 받기]를 적고, 받는 동안 받은 양을 결과 칸에 보여요(PROGRESS 미해결의 느린 망 시나리오 A) |
 | 차시 `/learn/u1/1-1-1/` 첫 방문 | 0.60MB·43건(글꼴 496KB·그림 41KB·CSS 21KB·JS 11KB·HTML 18KB), FCP 396ms / **Fast 3G**: FCP 1,540ms, DOMContentLoaded 6,193ms |
 | 무거운 차시 Fast 3G | 1-1-2: 0.59MB, FCP 1,560ms, DCL 5,726ms / 4-1-3: 0.52MB, FCP 1,596ms, DCL 5,598ms |
 | 실습실 첫 방문(준비 끝까지) | 영상처리 19.81MB(사이트 0.88 + jsDelivr 18.93)·98건·준비 4.8초 / ESP32 6.97MB(사이트 1.01 + jsDelivr 5.96)·103건·준비 3.0초 |
@@ -519,6 +520,23 @@ PW_BASE_URL=http://localhost:4901/ai-physical-computing/ npm run perf:measure   
 ```
 
 한 작업 폴더에 개발 서버를 여럿 띄울 때 부딪히는 것(`--ignore-lock`·`ASTRO_DEV_BACKGROUND=1`·`APC_VITE_CACHE_DIR`·끄는 법 — 포트로 PID를 찾아 `Stop-Process`)은 **5.1의 설명 그대로**예요. 빌드(`npm run build`)·빌드를 부르는 브라우저 테스트(`PW_BASE_URL` 없는 `npm run test:e2e`·`test:a11y`·`perf:measure`)는 한 폴더에서 **한 번에 하나만** 돌려요 — 결과 폴더를 `APC_OUT_DIR`로 나눠도 Astro 콘텐츠 캐시(`node_modules/.astro`)·`public/vendor/`를 함께 쓰고, base·결과 폴더가 다른 빌드는 서로 콘텐츠 캐시를 비워요(설정이 바뀐 것으로 봄). 평소 검사는 각자 띄운 개발 서버에 `PW_BASE_URL`로 해요. 이 PC는 메모리 8GB라 전체 브라우저 테스트는 `--workers=2`.
+
+
+### 5.6 판 1.1.0 개선 묶음(1.0.0 뒤 첫 개선, 2026-09-28~29) — 구역·포트 기록
+
+모든 Phase가 끝난 뒤 PROGRESS 미해결 가운데 사람 확인 없이 풀 수 있는 것만 여섯 구역이 동시에 풀고 통합이 합쳤어요(결정 DECISIONS C40~C57, 구현 메모 `docs/PLAN.md` §8.8). 구역 보고는 `.cache/v110-notes/`, 공유 파일 요청은 `.cache/v110-requests/`(이 PC에만). 구역은 5.5와 같은 규칙(자기 파일만 고치고 공유 파일은 요청, 커밋은 통합)으로 일했어요.
+
+| 구역 | 포트 | 미해결 | 주로 만든·고친 곳 |
+|---|---|---|---|
+| A 카메라 | 5001 | 121 카메라 고르기·가상 카메라 뒤로·까만 영상·점검 카메라 항목, 200 실행 중 입력 바꾸기, 199 오프라인판 문구 | `src/lab/vision/{camera-devices,black-frame,camera-stream,camera-notice}.ts`·`sources.ts`·`vision-lab.ts`, `src/components/lab/VisionIo.astro`, `src/components/start/camera-check/`, `src/lab/modules/loading/offline-note.ts` |
+| B 통신 | 5002 | 135 HiveMQ 경로, 136 4단원 메모리(원인 가름), 137 컴퓨터 쪽 bluetooth → 다른 탭, 138 한 문서 두 실습실, 139 bridge 모듈 자리 | `src/lab/mqtt/brokers.ts`, `src/lab/modules/{ble-pc,vision-bridge,serial-pc,bridge-pc}/`, `src/lab/bridge/`, `src/lab/controls/{lab-shell,share-link}.ts`, `src/lab/unit4/`, `tests/e2e/unit4-memory.spec.ts`(측정 도구) |
+| C 성능 | 5003 | 210 회선 전체 3G 시나리오 A 자동 측정, 194 첫 방문 3G 글꼴, 202 `site.ts`의 package.json 번들 | `scripts/perf-line-proxy.mjs`, `tests/e2e/perf-scenario-a.spec.ts`, `src/layouts/BaseLayout.astro`(글꼴), `src/config/site.ts`·`astro.config.mjs`(`__APC_VERSION__`) |
+| D 휴대폰 그림 | 5004 | 209 사이트 SVG 글자(좁은 화면용 그림) | `src/lib/rehype-lesson-polish.mjs`(판 3), `public/images/lessons/**/*.narrow.svg`(47장), `tests/e2e/lesson-figures.spec.ts` |
+| E 예제·퀴즈 | 5005 | 140 예제 난이도, 185 퀴즈 보기 길이 | `src/lab/gallery/`, 사이드카 28개, 차시 17편의 퀴즈 보기 |
+| F 대응 소스 | 5006 | 운영자 할 일 26 준비, 211 `build:offline --sources` | `scripts/release/`, `scripts/lib/offline-sources.mjs`, `scripts/build-offline.mjs`(`--sources`) |
+| 검토 | 5011~5013 | 적대적 검토(통합 뒤) | 고치지 않음(보고만) |
+
+통합이 받은 구역 밖 변경(요청): 점검 검사의 HiveMQ(`tests/unit/loading/network-check.test.ts`·`tests/e2e/lab-loading.spec.ts` — 가로챌 서버를 `MQTT_BROKERS`에서 읽음), 콘솔 접기(`runtime-extras/console-fold.ts` — 접힌 조각을 글자로, 미해결 136의 고칠 곳), 플러그인 설정의 좁은 그림 지문(`markdown-plugins.mjs`), 갤러리 교사용 안내·이관 도구의 `difficulty` 씨앗·차시 3-1-3·4-1-4 글, 오프라인판 `읽어보세요.txt` 6절.
 
 ---
 
@@ -1121,7 +1139,7 @@ registerBridgeChannel({
 - **주소로 접두어 넘기기:** 대시보드 ↔ ESP32 실습실 링크는 `?prefix=<접두어>`를 싣고(`prefixFromQuery` — 브릿지 선의 `?bridge=`도 받는다), MQTT 칸·대시보드에 [접두어 복사]가 있다. 실행마다 파이썬이 구독한 필터만 파이썬으로 넘긴다(지난 실행의 구독이 새어 들지 않게 — `runFilters`).
 - **실제 보드 관문(`real-board-guard.ts`):** 코드가 MQTT를 쓰는데 토픽 앞 접두어 글자(`PREFIX = "…"`)가 비어 있으면 [실제 보드] [실행]·[보드에 저장]을 멈추고(`MQTT_NO_PREFIX_ERROR` = 오류 사전 `comm-mqtt-real-no-prefix`) MQTT 칸의 [코드에 접두어 적기]를 알린다. 접두어가 있으면 "실물은 코드에 적은 중계 서버에 직접 붙어요" 경고를 한 번 적는다(PD-29).
 - **토픽 규칙(PD-29, `topics.ts`)**: 늘 `<접두어 12글자>/<장치>/<rx|tx>`·`<접두어>/dash/<위젯>`. 가상 보드는 코드의 토픽 앞에 접두어를 붙이고, **이미 접두어로 시작하면 한 번 더 붙이지 않는다**(실제 보드 코드는 접두어를 직접 적는다 — 템플릿 `examples/esp32/templates/mqtt-pub-sub.py` 주석). 고정 뿌리 토픽은 없다.
-- **공개 중계 서버 목록** `brokers.ts`의 `MQTT_BROKERS`(`verified`가 참인 주소만 기본값·점검 페이지 연결 시험에 쓴다). 브라우저는 `wss://`만(`checkBrokerUrl`).
+- **공개 중계 서버 목록** `brokers.ts`의 `MQTT_BROKERS`(`verified`가 참인 주소만 기본값·점검 페이지 연결 시험에 쓴다). 브라우저는 `wss://`만(`checkBrokerUrl`). HiveMQ(`wss://broker.hivemq.com:8884/mqtt`)는 2026-09-28 공식 안내(공개 브로커 연결 표·공식 웹 클라이언트의 `/mqtt` 경로)와 CONNACK 시험으로 확인해 `verified: true`(미해결 135). `verified`로 올리는 기준은 DECISIONS C44(공식 안내에서 호스트·포트·경로 확인 + CONNECT → CONNACK만 시험).
 - **실제 보드로 가는 수신**은 통로의 `extra.inbound`(허용 목록·20바이트)로 거른다 — LED·LCD만 움직이는 값. 움직이는 장치(레이저·팬·서보)를 공개 중계 서버 수신에 잇지 않는다.
 - 보드 쪽 흉내(`network`·`umqtt.simple`)는 7.10 표. 화면 모듈은 `src/lab/modules/mqtt/`(ESP32 실습실, 코드에 `umqtt`·`network`가 보일 때만 칸이 열림).
 - 테스트: `tests/unit/mqtt/**`(토픽·설정·세션·탭 통로·파이썬 흉내·실제 보드 관문), `tests/e2e/mqtt.spec.ts`(두 탭이 서로의 가상 LED를 켠다 — 탭 통로는 인터넷 없이, "공개 중계 서버" 실패 알림은 닫힌 주소로 흉내, **공개 서버 시험은 실제 EMQX**(`wss://broker.emqx.io:8084/mqtt`)에 실행마다 새 무작위 접두어로 붙고, 막히면 "외부 요인"으로 적고 건너뛴다).
@@ -1143,10 +1161,11 @@ registerBridgeChannel({
 | 흉내 | 파이썬 파일 | 화면 쪽 | 통로 |
 |---|---|---|---|
 | pyserial(`serial.Serial`) | `modules/serial-pc/serial.py` | `modules/serial-pc/index.ts` — 요청 `serial-pc.open` → `{ok, label, notices, error?, reason?: 'closed'|'no-peer'}`, 이벤트 `serial-pc.tx {bytes, baud, category?}` | `vision-bridge`의 선(`getBridgeLink`) — [보내기] 패널이 고른 통로(같은 컴퓨터 탭·USB 데이터 포트·블루투스·MQTT) |
-| `bridge`(사이트가 만든 새 예제용) | `modules/vision-bridge/finger-count/bridge.py` | 위와 같은 `serial-pc.tx`(`category` — 값은 `state`, 클릭은 `event`) | 위와 같음. `bridge.send(글)`은 **바뀔 때만** 보내고, 끝 문자는 `\n` 하나, 20바이트 넘으면 안내 |
-| 블루투스(`bluetooth`·`bluetooth_lib`) | `modules/ble-pc/{bluetooth,bluetooth_lib}.py` | `modules/ble-pc/index.ts` — 요청 `ble-pc.open`, 이벤트 `ble-pc.tx`, 채널 `ble-pc.rx`·`ble-pc.info` | 같은 **문서**에 가상 보드가 있으면 그 블루투스 칸(창 이벤트 `apc:ble-write`/`apc:ble-notify`, `direct` 통로), 없고 블루투스 칸에서 **실제 보드가 이어져 있으면** 그 통로(`ble`)로 보낸다(2026-09-25 Phase 4 검토 반영 — 뿌리 `data-ble-pc-target` = `virtual`·`real`). 다른 탭의 가상 보드는 남김 |
+| `bridge`(사이트가 만든 새 예제용) | `modules/bridge-pc/bridge.py`(판 1.1.0에서 자기 모듈 폴더로 — 전에는 vision-bridge 하위 폴더라 serial-pc의 이름을 빌려 썼다) | `modules/bridge-pc/index.ts` — 요청 `bridge-pc.open`, 이벤트 `bridge-pc.tx {bytes, baud: 0, category?}`·`bridge-pc.control`, 채널 `bridge-pc.rx`·`bridge-pc.info` | serial 흉내와 **같은 선**(`getBridgeLink`). `bridge.send(글)`은 **바뀔 때만** 보내고, 끝 문자는 `\n` 하나, 20바이트 넘으면 안내 |
+| 블루투스(`bluetooth`·`bluetooth_lib`) | `modules/ble-pc/{bluetooth,bluetooth_lib}.py` | `modules/ble-pc/index.ts` — 요청 `ble-pc.open`, 이벤트 `ble-pc.tx`, 채널 `ble-pc.rx`·`ble-pc.info` | 같은 **문서**에 가상 보드가 있으면 그 블루투스 칸(창 이벤트 `apc:ble-write`/`apc:ble-notify`, `direct` 통로), 없고 블루투스 칸에서 **실제 보드가 이어져 있으면** 그 통로(`ble`)로 보낸다(2026-09-25 Phase 4 검토 반영 — 뿌리 `data-ble-pc-target` = `virtual`·`real`·`tab`). 둘 다 없으면 **[보내기] 패널과 같은 선의 블루투스 줄기**(봉투 type `ble.data` — `link.subChannel`)로 다른 탭·한 화면 모드의 ESP32 실습실에 보낸다(판 1.1.0, 미해결 137). 받는 쪽 vision-bridge가 `apc:ble-write`로 가상 블루투스에 넣고 보드 알림(`apc:ble-notify`)을 같은 줄기로 돌려보낸다. "이어짐" = 그 탭이 선에 보이고 보드 코드가 돌고 있을 때(실행 상태 봉투) |
 
 - 영상처리 ↔ 가상 보드 짝(`vision-bridge/index.ts`의 `BOARD_EXAMPLES`·`BOARD_PAIR_OF`): 3-1-2 키 보내기·얼굴 UART → **3-1-2 사이트판**(`esp32/u3/3-1-2-uart-laser-site.py`, 기본), C3 손가락 개수 → `esp32/u4/c3-neopixel-count-rx.py`. 보드 쪽이 UART 부품 없이 `ble` 부품만 그렸으면 받은 바이트를 `apc:ble-write`로 넣는다(`c3-neopixel-count-rx-ble.py`).
+- 같은 선을 쓰는 흉내(serial-pc·bridge-pc·ble-pc)는 **파이썬 쪽이 연 동안만** 받은 바이트를 자기 받을 칸에 넣는다(판 1.1.0 — 아무도 꺼내지 않는 칸이 오래 켜 둔 화면에서 쌓이지 않게). `Sent: …` 콘솔 줄은 선 하나에 한 번(`shareSentPrinter`). 영상처리 실습실은 코드가 bluetooth를 쓰고 같은 문서에 ESP32 실습실 칸이 없으면 [보내기] 패널을 연다(`pcUsesLink`), ESP32 실습실은 보드 코드가 블루투스를 쓰면 선을 열어 둔다(패널은 UART일 때만).
 - 한 화면 모드: [한 화면에 가상 보드 열기]가 같은 출처 iframe으로 ESP32 실습실을 열고, 두 문서는 `tab` 통로로 잇는다(접두어는 주소 `?bridge=`). 보드 틀은 [보내기] 패널이 아니라 **입력·출력 칸 바로 아래**로 옮겨 카메라 결과와 가상 보드를 함께 본다(`data-bridge-frame-place="io"`).
 - **보드 → 컴퓨터는 바이트 흐름**이라 합치지 않는다(`link.sendStream` — 아직 나가지 않은 앞 조각에 이어 붙여 초당 10회로만 보낸다). 병합(§7.6)은 컴퓨터 → 보드 원본 코드용이고, 같은 열쇠가 **차례 맨 뒤**에 있을 때만 바꿔 끼운다(`BridgeOutbox`).
 - **보드 쪽 역할 띠·실행 상태 되알림:** `?bridge=`로 열린 ESP32 실습실은 조작 줄 위에 "이 탭은 보드 쪽이에요 · 먼저 [실행] · 컴퓨터 쪽과 이어졌어요 ●" 띠(`[data-bridge-role-band]`의 `data-running`·`data-peer`)를 보이고, 컴퓨터 쪽이 나타날 때·[실행]이 시작·끝날 때·돌지 않는데 글자가 왔을 때 `idle`·`running`을 알린다(봉투 `uart.status` — 같은 컴퓨터 탭 통로에서만, 데이터로 읽는 쪽은 `isSignalType`으로 거른다). 컴퓨터 쪽은 상태 줄(`data-bridge-board-run`)에 적고, 코드가 도는 중에 `idle`을 받으면 콘솔에 한 번 안내한다.
@@ -1187,16 +1206,16 @@ registerBridgeChannel({
 
 ### 9.15 4단원 통합 화면 — `/labs/unit4/`(P4-09)
 
-- 한 문서에 영상처리 실습실과 ESP32 실습실(가상 보드)을 함께 둔다(`src/pages/labs/unit4/`, 화면 논리 `src/lab/unit4/`, 가져오는 곳 `index.ts`). 두 번째 뿌리의 id는 `dedupeIdsWithin`으로 꼬리를 붙여 겹치지 않게 한다.
-- 짝 예제 표 `examples.ts`의 `PAIRS`(4단원 폴더 밖 예제는 `UNIT4_EXTRA_*`와 페이지 glob에도). [함께 실행]은 보드 코드 → 블루투스 광고 기다리기 → [연결] → 컴퓨터 코드 차례로 돌린다. 짝마다 주소 이름(`PAIRS`의 id)이 있어 `/labs/unit4/?pair=4-1-4`처럼 링크 하나로 두 칸을 함께 채운다(`findPairView` — 차시 번호만 적으면 그 차시의 첫 짝, 2026-09-26 미해결 179). 차시 링크는 짝 이름 그대로 적고, `tests/e2e/unit4.spec.ts`가 차시 md의 `?pair=` 링크를 모두 대조한다. 한 문서에 실습실 틀이 둘이라 주소의 공유 링크(`#code=`)·`?example=`은 페이지 머리의 인라인 스크립트가 먼저 맡아 두고, `address.ts`의 규칙으로 맞는 칸에 넣는다(`takeAddressStash`·`sideForExampleId`·`guessSideFromCode`).
-- 성능: `perf.ts`의 `summarize(samples)` → `reportMarkdown(…)`(fps·메모리 표). 오래 켜 두면 렌더러 메모리가 느는 것은 PROGRESS 미해결.
+- 한 문서에 영상처리 실습실과 ESP32 실습실(가상 보드)을 함께 둔다(`src/pages/labs/unit4/`, 화면 논리 `src/lab/unit4/`, 가져오는 곳 `index.ts`). 같은 id는 실습실 틀이 칸마다 꼬리를 붙여 푼다(LabShell `idSuffix` pc·board → `lab-shell.ts` `scopeLabIds`, 모듈이 붙기 전 — 판 1.1.0, 미해결 138).
+- 짝 예제 표 `examples.ts`의 `PAIRS`(4단원 폴더 밖 예제는 `UNIT4_EXTRA_*`와 페이지 glob에도). [함께 실행]은 보드 코드 → 블루투스 광고 기다리기 → [연결] → 컴퓨터 코드 차례로 돌린다. 짝마다 주소 이름(`PAIRS`의 id)이 있어 `/labs/unit4/?pair=4-1-4`처럼 링크 하나로 두 칸을 함께 채운다(`findPairView` — 차시 번호만 적으면 그 차시의 첫 짝, 2026-09-26 미해결 179). 차시 링크는 짝 이름 그대로 적고, `tests/e2e/unit4.spec.ts`가 차시 md의 `?pair=` 링크를 모두 대조한다. 공유 링크는 `#code=…&lab=<labId>`라 그 칸만 받고(옛 링크는 `ex=` 예제를 가진 칸), `?example=`은 그 파일을 가진 칸만 받는다(어느 칸에도 없으면 첫 칸만 알림) — 실습실 틀이 한다(`share-link.ts` `pickShareLab`·`pickExampleLab`, 판 1.1.0). 가상 모니터 3840×2160은 컴퓨터 칸 조상의 `data-desktop-screen-default`를 가상 데스크톱 모듈이 기억하지 않고 연다. `?pair=`는 틀이 읽지 않는 값이라 `unit4-page.ts`가 직접 읽고 불러온 뒤 주소에서 지운다(`PAIR_QUERY_NAME`).
+- 성능: `perf.ts`의 `summarize(samples)` → `reportMarkdown(…)`(fps·메모리 표). 오래 켜 둘 때의 메모리는 `tests/e2e/unit4-memory.spec.ts`(`UNIT4_MEMORY_SECONDS=660` — 쪽·파이썬 워커마다 WebAssembly·힙, GPU 프로세스, CDP로. `UNIT4_MEMORY_DUMP=1`이면 크롬 memory-infra 덤프로 할당기별 차이)로 잰다. 판 1.1.0 측정에서 느는 것은 WebAssembly가 아니라 쪽 Blink 힙(Oilpan) 페이지였다 — 콘솔에 오래 남는 출력 조각이 페이지를 붙잡는 조각남(미해결 136). 그래서 콘솔 접기(`runtime-extras/console-fold.ts`)는 접힌 조각을 DOM 노드로 두지 않고 글자로 모아 두었다가 [펼치기] 때만 그린다(결정 C47 — 10분 늘어남 +332~335MB → +77MB, 빌드 결과 2026-09-29).
 - 카메라 없이: 재생 입력(동작 10개 — 얼굴 `face-wink` "윙크·두 눈 감기(클릭)"가 클릭을 만든다). 테스트 `tests/e2e/unit4.spec.ts`.
 - 느린 학교망(2026-09-25 Phase 4 검토 반영): 준비 단계 글에 두 칸의 받는 양·지난 시간을 싣고(각 칸 준비 모듈이 뿌리에 적는 `data-loading-text`), 컴퓨터 칸이 OpenCV를 아직 받는 중이면 다 받을 때까지 기다린 뒤 컴퓨터 코드를 돌린다. 상태 글이 화면 밖이면 화면 위에 같은 글을 한 줄로 띄운다(`[data-unit4-float]` — [조작 줄 보기]·[닫기]).
 
 ### 9.16 예제 갤러리 — `/labs/gallery/`(P4-11)
 
-- 카드·태그는 빌드 때 `src/lab/gallery/cards.ts`의 `buildGallery`가 만든다. **새 예제 `.py` 하나로 카드가 생기고**, 태그 차례는 차시 md(그 예제 항목의 `difficulty`·`tags`가 먼저, 2026-09-26 미해결 180 — 화면이 `GalleryLessonInfo.examples`를 넘긴다) → 사이드카(`unit`·`difficulty`·`virtual_ok`·`comm`·`tags`) → 사이트 규칙(`infer.ts` — 폴더 이름의 단원, import 줄의 통신 방식).
+- 카드·태그는 빌드 때 `src/lab/gallery/cards.ts`의 `buildGallery`가 만든다. **새 예제 `.py` 하나로 카드가 생기고**, 태그 차례는 차시 md(그 예제 항목의 `difficulty`·`tags`가 먼저, 2026-09-26 미해결 180 — 화면이 `GalleryLessonInfo.examples`를 넘긴다) → 사이드카(`unit`·`difficulty`·`virtual_ok`·`comm`·`tags`) → 사이트 규칙(`infer.ts` — 폴더 이름의 단원, import 줄의 통신 방식). 차시 md가 먼저인 것은 차시가 frontmatter `examples`로 그 예제를 **싣고 있을 때**뿐이고, 사이드카 `lesson`·머리말 `# @lesson`으로 차시를 가리키기만 한 예제는 예제 쪽(사이드카, 사이트가 만든 예제는 머리말 `# @tags`까지)이 먼저이고 빈 칸만 차시로 채운다(`galleryFacetsOf`의 `exampleFirst` — 2026-09-28 미해결 140). 차시를 찾는 차례는 실습실 목록과 같다(차시가 싣는 예제 → 사이드카 `lesson` → 머리말 `# @lesson`).
 - 거르기·낱말 찾기(`filters.ts`)는 빌드와 브라우저가 같은 함수를 쓰고, 고른 것이 주소(`?comm=ble` 등)에 실린다. 사본은 한 장으로 합치고 변형은 "비교해 보기"로 잇는다(`variants.ts`).
-- **하드웨어 없이(`virtual_ok`)는 사이트 규칙으로 채운다**(`infer.ts`의 `virtualOkByRule` — 두 실습실 예제는 모두 가상으로 끝까지 되고, 옮긴 ESP32 예제는 예제 스모크가 가상 보드에서 확인한다). 실물에서만 되는 예제는 사이드카에 `virtual_ok: false`. 모두 참이면 거르기 단추 대신 "모두 하드웨어 없이 돼요" 한 줄을 보이고 카드 딱지를 달지 않는다. 난이도는 적은 예제에만 있어 칸 이름에 적은 수를 밝힌다.
+- **하드웨어 없이(`virtual_ok`)는 사이트 규칙으로 채운다**(`infer.ts`의 `virtualOkByRule` — 두 실습실 예제는 모두 가상으로 끝까지 되고, 옮긴 ESP32 예제는 예제 스모크가 가상 보드에서 확인한다). 실물에서만 되는 예제는 사이드카에 `virtual_ok: false`. 모두 참이면 거르기 단추 대신 "모두 하드웨어 없이 돼요" 한 줄을 보이고 카드 딱지를 달지 않는다. 난이도는 모든 예제에 있다(2026-09-28 미해결 140 — 차시에 싣지 않은 예제는 사이드카 `difficulty`, 매기는 기준은 `facets.ts`의 EXAMPLE_DIFFICULTY_GUIDE 주석, 빠지면 `tests/unit/gallery/repo-facets.test.ts`가 실패). 그래서 거르기 칸 이름에 단서를 달지 않는다.
 - 고를 때마다 칸마다의 개수를 지금 조건으로 다시 센다(그 값을 고르면 몇 개가 되나, 0개면 흐리게 `data-empty`). 고른 결과 개수 줄은 거르기 칸을 보는 동안 화면 아래에 붙어 있고 [결과 보기]로 첫 카드로 건너뛴다. 부품 칸의 블루투스는 "블루투스 부품(상태 LED)"으로 통신 방식 칸과 구별한다.
 - 검색 색인은 카드 단위(`src/config/search.ts`의 `anchorPages`에 `/labs/gallery/`). 테스트 `tests/unit/gallery/**`, `tests/e2e/examples-gallery.spec.ts`.

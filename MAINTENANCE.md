@@ -12,7 +12,9 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 | 새 차시를 더하거나 차시 글을 고쳐요 | [1절](#1-새-차시-더하기--마크다운-1개--예제-1개)(올리기는 1-8, 반영 확인은 1-9) |
 | git 없이 GitHub 웹 화면에서 파일을 올려요 | [1-8 방법 B](#1-8-올리기) |
 | 실습실 예제·오류 풀이·가상 보드 부품·점검 항목을 더해요 | 2절, 2-1~2-3 |
+| 영상처리 실습실이 교실 PC의 가상 카메라를 먼저 켜요(카메라 이름 목록·까만 화면 판정) | 2-4 |
 | 그림을 넣어요(원고 그림, 사이트가 그린 그림) | 3절 |
+| 휴대폰에서 그림 글자가 너무 작아요(좁은 화면용 그림 `x.narrow.svg`) | 1-4 "그림" |
 | 외부 자료·라이브러리를 쓰려고 출처를 등록해요 | [4절](#4-외부-자료라이브러리-등록sourcesyaml) |
 | push한 뒤 사이트에 잘 올라갔는지 봐요 | [5절](#5-배포-확인) |
 | Actions에 빨간 X가 떴어요 | [6절](#6-빌드가-실패했을-때) |
@@ -21,6 +23,7 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 | 사이트 판 번호를 올리고 CHANGELOG를 써요 | [10절](#10-사이트-판-번호와-changelog) |
 | 한 해에 한 번 점검해요(새 학년 전) | [11절](#11-연-1회-점검-목록) |
 | 인터넷이 막힌 교실용 오프라인판을 만들어요 | [12절](#12-오프라인-배포판) |
+| FFmpeg·검색 엔진의 대응 소스 사본을 받아 릴리스에 올려요(운영자 할 일 26) | 12-10 |
 
 **처음 보는 낱말** — 이 문서에 자주 나오는 말이에요.
 
@@ -234,6 +237,7 @@ handouts:                            # (선택) 이어지는 가린 편집본 �
   </figure>
   ```
 
+- **휴대폰용 좁은 그림(판 1.1.0):** 글이 많은 그림은 폭 640 그대로 두고, 같은 폴더에 **같은 이름 + `.narrow.svg`**(예: `agent-cycle.svg` 옆 `agent-cycle.narrow.svg`)로 세로로 다시 그린 그림을 두면, 휴대폰(화면 폭 30em = 480px 이하)에서는 저절로 좁은 그림을 보여 줘요. **차시 md는 고치지 않아요**(빌드가 `<picture>`로 감싸요 — `src/lib/rehype-lesson-polish.mjs`, 결정 C51). 좁은 그림 규칙: 폭 360(`viewBox="0 0 360 높이"`, `width="360"`), 글자 **13px 이상**(휴대폰에서 약 12.4px)·핵심 이름표 16px 이상, 제목(`<title>`)은 원래 그림과 똑같이, 그림 속 낱말도 원래 그림과 같게(검사가 봐요 — `tests/unit/lesson/narrow-figures.test.ts`). 그림 설명(figcaption)이 "왼쪽·오른쪽·가운데·위·아래"처럼 자리를 말하면 좁은 그림도 그 자리를 지켜요. **대체 글(alt)에는 자리 낱말을 쓰지 않아요**(휴대폰은 위아래 배치라 어긋나요 — "왼쪽 LCD는 …" 대신 "LCD는 …"). 원래 그림의 글을 고치면 좁은 그림도 함께 고쳐요(파일 두 개). 글이 네다섯 개뿐인 그림은 좁은 그림 대신 원래 그림의 글자를 21px 이상으로 키워요. [그림 크게 보기]는 원래 그림을 열어요. 회색 칸 위 글자는 대비 4.5:1이 되게 칸 색을 옮겨요(밝기 약 119~128의 회색은 `#767676`으로 — C52). 차시 하나를 다 고치면 `tests/e2e/lesson-figures.spec.ts`의 `CHECKED_LESSONS`에 더해요(휴대폰 375 폭에서 그림 글자 11px 이상을 검사 — 아직 안 고친 그림 목록은 PROGRESS 미해결 209).
 - 원고 그림(래스터)은 **원고 이미지 추출 도구로만** 꺼내요 — 목록 → 꺼내기 → 한 장씩 눈 확인 → 대체 글(3-1절). 본문에는 `![목록의 alt 그대로](/images/lessons/1-1-1/recognition.webp)`. 검사가 목록의 alt와 본문 대체 글이 같은지, 눈 확인 기록(`reviewed`)이 있는지 봐요.
 - 마크다운 그림(`![대체 글](/images/…)`)은 빌드가 그림 파일에서 가로·세로를 읽어 `width`·`height`를 저절로 붙여요(`src/lib/rehype-lesson-polish.mjs` — 받기 전에 자리를 잡아 글이 밀리지 않아요). 마크다운 안에 `<img>`를 직접 쓸 때만 `width`·`height`를 손으로 적어요. 글 속 차시 번호(2-1-3)는 저절로 한 덩어리로 묶여 줄이 갈리지 않아요.
 - 스톡 그림(판매용 그림 사이트의 그림)은 쓰지 않아요(결정 C11). 권리 표기가 없어도 스톡으로 보이면 사이트가 그린 그림으로 바꿔요.
@@ -404,13 +408,14 @@ git push
 
 - 교과서·수업 자료의 예제는 원본 압축 파일에서 줄 끝만 바꿔 그대로 옮기고, 원본과 줄 수·문법을 대조해요(`docs/PLAN.md` PD-33). 코드 추출 사본은 줄 끝이 망가져 있어 쓰지 않아요.
 - **옮기는 도구:** `scripts/examples-manifest.yaml`의 `examples:`에 항목(코드 id, zip 이름, zip 안 경로, 대상 경로 `examples/…py`, 저작자 `operator`/`third_party`, 사이드카 씨앗 `meta`)을 적고 `npm run examples:import`(운영자 PC — 원본 폴더가 저장소 뿌리에 있음. 다른 컴퓨터는 `npm run examples:import -- --materials <원본 폴더>`)를 실행해요. 줄 끝을 LF로 바꿔 쓰고, 파이썬 3의 `ast.parse`로 문법을 확인하고, 줄 수·SHA-256을 목록에 기록해요. 원본 결함으로 문법 오류가 나는 파일(f074)은 `expect_syntax_error: true`. `npm run examples:verify`(원본 없이 기록과 대조)는 `npm test`에 들어 있어 기록과 다르게 고친 파일을 잡아요. 자세한 규칙은 `src/lab/README.md` 6절.
-- **옮긴 예제의 제목·설명:** 코드 파일에는 머리말을 넣지 않고(줄 번호 보존) 옆의 **사이드카** `<이름>.meta.yaml`에 적어요(`title`·`description`·`lesson`·`page`·`tags`·`packages`). 처음 한 번은 도구가 만들고 그 뒤로는 손으로 고쳐요(도구가 덮어쓰지 않아요). 다른 저작자의 파일은 `third-party/` 폴더 아래에만 두고 `sources.yaml`에 항목을 따로 만들어요.
+- **옮긴 예제의 제목·설명:** 코드 파일에는 머리말을 넣지 않고(줄 번호 보존) 옆의 **사이드카** `<이름>.meta.yaml`에 적어요(`title`·`description`·`lesson`·`page`·`tags`·`packages`, 갤러리 난이도 `difficulty`). **난이도(`difficulty` 1~3)는 모든 예제에 있어야 해요** — 차시(frontmatter `examples`)에 실린 예제는 차시의 난이도가 쓰이고, 차시에 싣지 않은 예제(사이드카 `lesson`으로 가리키기만 한 예제 포함)는 사이드카의 `difficulty`가 쓰여요. 매기는 기준: 1 한 가지 동작을 차례대로 해 보는 짧은 코드(창 띄우기·값 하나 보이기·부품 하나 켜고 끄기), 2 읽은 값으로 계산하거나 판단하는 코드(조건문 여러 개·좌표·거리·각도·콜백·통신 짝의 한쪽), 3 인식 결과로 마우스나 다른 장치를 움직이는 여러 단계 프로젝트 코드(`src/lab/gallery/facets.ts` 주석, 결정 C53). 빠지면 `npm test`의 `tests/unit/gallery/repo-facets.test.ts`가 파일 이름과 함께 알려 줘요. 이관 목록 `meta`에 `difficulty`를 적어 두면 도구가 사이드카로 옮겨요. 처음 한 번은 도구가 만들고 그 뒤로는 손으로 고쳐요(도구가 덮어쓰지 않아요). 다른 저작자의 파일은 `third-party/` 폴더 아래에만 두고 `sources.yaml`에 항목을 따로 만들어요.
 - 옮긴 코드 파일은 고치지 않아요. 사이트판이 필요하면 파일을 따로 두고(`…-site.py`, PD-10), 한 줄 안에서 고칠 때는 끝에 `# [사이트판] 고친 이유` 주석을 붙여 줄 번호가 밀리지 않게 해요.
 - **도구가 원본을 바꾸는 예외 두 가지**(목록 항목에 적을 때만): ① `privacy: [mac]` — 기기 주소(MAC·블루투스 주소)를 같은 글자 수의 `XX:XX:XX:XX:XX:XX`로 가려요. ② `notice:` — 다른 저작자의 파일에 라이선스 고지를 붙여야 할 때, 모든 줄이 `#`로 시작하는 주석 머리말을 원본 **앞에** 붙여요(결정 C12 — `examples/esp32/lib/third-party/ESP32BLE.py`는 26줄 고지 + 원본 79줄 = 105줄). 줄 수는 "원본 + 머리말"로, SHA-256은 붙인 뒤의 파일로 기록돼요. 머리말만큼 줄 번호가 밀리니 차시·사이드카에서 줄 번호를 말할 때 확인해요.
 - **라이선스:** `examples/`의 예제 코드는 MIT예요(결정 O13 — 사이트 프로그램과 같음, `LICENSE`). `third-party/` 폴더의 파일만 원래 저작자의 라이선스를 따르고 `sources.yaml`에 항목이 따로 있어요. 차시 글·그림·교안 편집본은 CC BY-NC-SA 4.0(`LICENSE-CONTENT.md`).
 - **흉내 모듈(import mediapipe·pyautogui 같은 것) 더하기:** `src/lab/modules/<id>/` 폴더 하나(`manifest.ts`·`index.ts`·`apc_<이름>.py`·`panel.astro`)를 두면 등록 파일을 고치지 않아도 실습실이 찾아요. 규약·훅·테스트 방법·금지 사항은 `src/lab/README.md` 4절, 예시는 `src/lab/modules/hello/`.
 - **영상처리 실습실 예제 더하기:** `examples/vision/` 아래에 `.py` 파일 하나를 두면 실습실의 [예제 불러오기] 목록에 저절로 들어가요(코드 수정 없음).
   - 첫 줄 주석(`# 첫 실습: …`)이 목록에 보이는 제목, 둘째 줄 주석이 한 줄 설명이에요. `# @slider`·`# @lesson` 같은 규약 주석은 설명으로 쓰지 않아요. 사이트가 만든 예제의 머리말 규약 전체(`# @lesson 차시`, `# @tags 낱말`, 코드 끝의 "바꿔볼 것 3가지"·"왜 이런 결과가 나올까" 상자)는 `src/lab/README.md` 2절에 있어요. 원본 자료에서 옮긴 예제에는 머리말을 넣지 않아요(줄 번호를 지키려고).
+  - 차시에 싣지 않는 새 예제는 머리말에 `# @lesson 차시`를 적어 그 차시의 난이도를 쓰거나, 같은 이름의 사이드카 `<이름>.meta.yaml`에 `title`(머리말 첫 줄과 똑같이 — 사이드카가 먼저 쓰여요)과 `difficulty`만 적어요. 본보기: `examples/vision/first-edge.meta.yaml`, `examples/esp32/01-first-blink.meta.yaml`.
   - 파일 이름(영문 소문자·숫자·하이픈)이 예제 id가 되고, 하위 폴더가 있으면 `폴더-파일` 순으로 이어요(`supplement/v4-blur-edge.py` → `supplement-v4-blur-edge`).
   - 차시 파일(frontmatter)에서 같은 경로(`vision/supplement/v4-blur-edge.py` — 보충 V4)를 적으면 [실습실에서 열기]가 그 예제를 고른 채 실습실을 열어요. 실습실 위에는 거꾸로 "이 예제가 나오는 차시" 링크가 생겨요(차시 frontmatter의 `examples`, 없으면 사이드카 `lesson`·머리말 `# @lesson`이 가리키는 차시가 있을 때).
   - 차시 본문에 실습실 주소를 손으로 적을 때(`…/labs/vision/?example=vision/u1/…py`)는 경로를 정확히 적어요. 없는 파일이면 실습실이 첫 예제를 열면서 "링크에 적힌 예제를 찾지 못했어요"라고 알리고, `npm run check:links`가 `example-not-found`로 잡아요.
@@ -477,6 +482,18 @@ ESP32 실습실의 가상 보드에 부품(센서·LED·화면 등)을 더할 �
 3. `wiring`은 예제 사이드카의 `parts:`와 같은 모양이라, 적으면 배선 그림이 저절로 그려져요.
 4. 움직이거나 빛을 내는 부품(팬·서보·레이저)이면 `prepare` 끝에 안전 안내를 한 줄 적어요(예: "팬이 도는 동안 날개에 손대지 않고, 프로펠러 주변을 비워 둬요.").
 5. `npx vitest run tests/unit/esp32-check`로 규칙 검사(코드·글·배선·라이브러리)를 돌려요.
+
+## 2-4. 영상처리 실습실 카메라 — 가상 카메라 이름 더하기·까만 화면 판정(판 1.1.0)
+
+영상처리 실습실은 카메라가 두 대 이상이면 입력 칸에 [카메라] 고르기를 보이고, 화면 공유 프로그램의 **가상 카메라**(EShare·OBS 등)는 "가상 카메라:"로 표시하고 처음 켤 때 건너뛰어요. 카메라를 켰는데 2초 넘게 까만 화면만 오면 미리 보기 아래에 까닭과 [다른 카메라로 바꾸기]·[샘플로 계속]이 떠요(결정 C40·C41).
+
+- **목록에 없는 가상 카메라가 교실 PC에서 먼저 켜질 때:** `src/lab/vision/camera-devices.ts`의 `DEPRIORITIZED_CAMERA_PATTERNS`에 그 프로그램 이름 낱말을 한 줄 더해요. 짧은 낱말은 낱말 경계(`\b…\b`)로 적어 진짜 카메라 이름에 우연히 든 글자(예: OBSBOT)를 잘못 잡지 않게 해요. 그리고 `tests/unit/camera/camera-devices.test.ts`의 가상 카메라 이름 목록에 실제 이름 하나를 더한 뒤 `npx vitest run tests/unit/camera`.
+  - 카메라 이름은 점검 페이지 `/start/check/`의 [카메라 켜서 확인하기] → [결과 복사] 글에서 볼 수 있어요(장치 이름은 화면과 복사 글에만 있고 저장하지도 보내지도 않아요).
+- **까만 화면 판정 값**은 `src/lab/vision/black-frame.ts`의 `BLACK_FRAME_LIMITS` 한 곳이에요(64×48 표본의 밝기 평균 ≤ 20·표준편차 ≤ 4가 2초 이어지면, 장이 4초 동안 없으면). 바꿀 때는 `tests/unit/camera/black-frame.test.ts` 머리말의 실측 표와 견줘요(흐린 교실(평균 22.7)이 "까만 화면"이 되지 않게).
+- **안내 글**은 `src/lab/vision/camera-notice.ts`(원인 차례·단추), 화면 칸은 `src/components/lab/VisionIo.astro`의 `[data-vision-camera]`·`[data-vision-camera-notice]`, 도움말은 `/help/#camera-black`(`src/pages/help/index.astro`), 점검 페이지 카메라 확인은 `src/components/start/camera-check/`예요.
+- 학생이 고른 카메라는 이 브라우저에만 deviceId로 기억해요(저장 이름 `vision:camera` — [기록 지우기]가 지워요, `src/lib/storage.ts` 규칙).
+- 파이썬에 "값 없음"(카메라 장이 없음)을 답할 때는 JS `undefined`로 해요 — `null`은 Pyodide에서 `None`이 아니라 `jsnull`이 되어 `if frame is None`을 지나쳐요(`src/lab/README.md` 4.4, 결정 C42).
+- 확인: `npx vitest run tests/unit/camera` → `npx playwright test tests/e2e/camera.spec.ts tests/e2e/lab-vision-switch.spec.ts --project=desktop`(모의 카메라 여러 대 — 진짜 가상 카메라는 교실 PC에서 사람이 확인해요, PROGRESS 운영자 할 일 33).
 
 ## 3. 그림 넣기와 출처 등록
 
@@ -669,7 +686,7 @@ ESP32 실습실 코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 
 
 1. 컴퓨터 쪽 예제는 `examples/vision/…`, 보드 쪽 예제는 `examples/esp32/…`에 `.py` 하나씩 둬요(2절과 같은 규칙 — 목록·갤러리에 저절로 들어가요). 한 차시에 두 쪽 예제를 함께 적어도 돼요. 차시의 [실습실에서 열기]는 **파일의 첫 폴더**(`vision/`·`esp32/`)로 실습실을 골라요. 틀린 실습실로 가는 링크는 `npm run check:links`가 `example-wrong-lab`으로 잡아요.
 2. 보드 쪽 배선: USB-UART 변환기는 `# @part uart rx=17 tx=16`(원고 배선 그림과 같은 교차 결선 — 코드는 `UART(2, tx=17, rx=16)`), 블루투스는 `# @part ble 12`(무선은 보드 안, 12번은 `ESP32BLE.py`의 상태 LED)예요.
-3. 갤러리 거르기용 태그를 사이드카나 차시에 적어요: `comm: [uart]`(uart·ble·wifi·mqtt·tab), `unit`, `difficulty`(1~3), `virtual_ok: true`(가상 보드로 끝까지 되면).
+3. 갤러리 거르기용 태그를 사이드카나 차시에 적어요: `comm: [uart]`(uart·ble·wifi·mqtt·tab), `unit`, `difficulty`(1~3 — 차시에 싣지 않은 예제는 꼭), `virtual_ok: true`(가상 보드로 끝까지 되면).
 4. 사이트가 새로 쓰는 컴퓨터 쪽 예제는 `import bridge`로 보내요 — `bridge.send(값)`(값이 바뀔 때만 보내요), `bridge.event("클릭")`(한 번 일어난 일 — 합쳐지지 않아요), `bridge.send_bytes(바이트)`, 받기는 `bridge.receive()`. **통로(같은 컴퓨터 탭·블루투스·USB·MQTT)는 코드에 적지 않고** 화면의 [보내기] 패널에서 골라요. 원본에서 옮긴 예제의 `import serial`·`import bluetooth`는 그대로 둬요(사이트의 흉내가 받아요).
 5. [보내기] 패널의 "한 화면에 가상 보드 열기" 목록에 보드 예제를 올리려면 `src/lab/modules/vision-bridge/index.ts`의 `BOARD_EXAMPLES`에 한 줄, 컴퓨터 쪽 예제를 열 때 먼저 고를 짝은 `BOARD_PAIR_OF`에 한 줄 더해요. 4단원 통합 화면(`/labs/unit4/`)에 짝을 보이려면 `src/lab/unit4/examples.ts`의 `PAIRS`에 한 줄이에요.
 6. **MQTT 토픽**은 짧게(`esp32-01/rx`) 적어요. 가상 보드는 우리 반 접두어(무작위 12글자)를 앞에 붙여 줘요. **실물 보드는 붙이지 못하니** 실물에 올릴 코드에는 토픽 앞에 대시보드·MQTT 칸의 접두어를 직접 적어요(템플릿 `examples/esp32/templates/mqtt-pub-sub.py` 주석). 실물 보드가 공개 중계 서버에서 받는 코드는 **LED·LCD 표시만**, 허용 목록과 20바이트 검사를 넣어요. 레이저·팬·서보처럼 움직이는 장치는 공개 중계 서버 수신에 잇지 않아요(PD-29).
@@ -908,7 +925,7 @@ Result (3 files):
 | `src/lab/runtime/config.ts` `PYODIDE_VERSION` | 브라우저가 받는 주소(jsDelivr `…/pyodide/v<판>/full/`)와 같은 사이트 예비본 폴더(`vendor/pyodide/<판>/`)가 이 값에서 나와요 |
 | `src/lab/loader/pyodide-files.ts` 표 | 예비본 7개(코어 5 + numpy·OpenCV 휠)의 이름·크기·SHA-256. 코어는 `node_modules/pyodide/`의 파일로 재고, 휠 이름·SHA-256은 `node_modules/pyodide/pyodide-lock.json`에서, 휠 크기는 `npm test`가 받아 두는 `.cache/pyodide-packages/`의 파일로 재요 오프라인판에서만 넣는 휠 `PYODIDE_OFFLINE_EXTRA_FILES`(지금 Pillow)도 새 판의 이름·크기·SHA-256으로(`tests/unit/offline/packages.test.ts`가 lock과 대조 — 12-4절) |
 | `sources.yaml` | Pyodide·CPython·NumPy·opencv-python·Pillow 항목과 opencv 휠 안 FFmpeg(LGPL — PD-19) 설명의 판·`fetched` |
-| `public/licenses/` | `pyodide.txt`·`cpython.txt`·`numpy.txt`·`numpy-3rd-party.txt`·`opencv.txt`·`opencv-3rd-party.txt`·`opencv-python.txt`·`pillow.txt` 안의 판 표기, `pyodide-core-3rd-party.txt`(코어 wasm 안 라이브러리 — Pyodide의 `Makefile.envs`·`cpython/Makefile` 판과 wasm 안 판 글자로 확인)·`pyodide-wheels-3rd-party.txt`(opencv·Pillow 휠 안 구성요소 — Node Pyodide로 `cv2.getBuildInformation()`·`PIL.features`, 레시피 커밋의 FFmpeg 판과 대응 소스 주소·SHA-256). 휠 안 FFmpeg 판이 바뀌면 PD-19 대응 소스 주소와 릴리스 사본(운영자 할 일 26)도 새 판으로 |
+| `public/licenses/` | `pyodide.txt`·`cpython.txt`·`numpy.txt`·`numpy-3rd-party.txt`·`opencv.txt`·`opencv-3rd-party.txt`·`opencv-python.txt`·`pillow.txt` 안의 판 표기, `pyodide-core-3rd-party.txt`(코어 wasm 안 라이브러리 — Pyodide의 `Makefile.envs`·`cpython/Makefile` 판과 wasm 안 판 글자로 확인)·`pyodide-wheels-3rd-party.txt`(opencv·Pillow 휠 안 구성요소 — Node Pyodide로 `cv2.getBuildInformation()`·`PIL.features`, 레시피 커밋의 FFmpeg 판과 대응 소스 주소·SHA-256). 휠 안 FFmpeg 판이 바뀌면 PD-19 대응 소스 주소와 릴리스 사본(운영자 할 일 26)도 새 판으로 — 목록 `scripts/release/sources-manifest.json`(`npm test`의 `tests/unit/release/sources-manifest.test.ts`가 설치된 잠금 파일·opencv 휠과 대조해 알려요, 고치는 차례는 `scripts/release/README.md` 5절) |
 | `tests/unit/errors/fixtures/tracebacks.json` | 트레이스백 모양 채집본 — `node --experimental-wasm-jspi tests/unit/errors/helpers/pyodide-traceback-run.mjs . --write`로 다시 만들어요(2-1절) |
 
 - 확인: `npx vitest run tests/unit/loading/pyodide-files.test.ts`(표와 설치된 파일 대조) → `npm test`(실제 Pyodide로 흉내 모듈 전부) → `npm run build`(예비본을 `public/vendor/pyodide/<판>/`에 채워요 — 표와 다르면 6-7의 `[Pyodide 예비본]` 오류) → `npx playwright test tests/e2e/lab-runtime.spec.ts tests/e2e/lab-loading.spec.ts tests/e2e/examples-smoke.spec.ts --project=desktop` → 브라우저 전체.
@@ -989,7 +1006,7 @@ Result (3 files):
 ### 8-8. 그 밖의 npm 패키지
 
 - **CodeMirror 6**(`@codemirror/*`·`@lezer/*`)·**lz-string**: `package.json` 판 → `sources.yaml` 판 표기와 `public/licenses/codemirror.txt`의 패키지 목록 → Esc 뒤 Tab으로 편집칸을 나가는 동작이 그대로인지 `npx playwright test tests/e2e/lab-editor.spec.ts --project=desktop`.
-- **Pagefind**(검색): `scripts/search-index.mjs`·`scripts/prune-pagefind.mjs`(지우는 화면 파일 이름), `public/licenses/pagefind-wasm-3rd-party.txt`(새 판의 `pagefind_web/Cargo.lock`에 든 크레이트와 crates.io 라이선스 — 특히 GPL 크레이트가 남았는지, 대응 소스 주소의 판과 커밋 — DECISIONS C23. 빌드가 이 파일을 `dist/pagefind/NOTICE-THIRD-PARTY.txt`로 복사해요) → `npm run build` 뒤 `npx playwright test tests/e2e/search.spec.ts tests/e2e/search-index.spec.ts --project=desktop`(빌드 결과에서만 — 개발 서버에는 색인이 없어요).
+- **Pagefind**(검색): `scripts/search-index.mjs`·`scripts/prune-pagefind.mjs`(지우는 화면 파일 이름), `public/licenses/pagefind-wasm-3rd-party.txt`(새 판의 `pagefind_web/Cargo.lock`에 든 크레이트와 crates.io 라이선스 — 특히 GPL 크레이트가 남았는지, 대응 소스 주소의 판과 커밋 — DECISIONS C23. 빌드가 이 파일을 `dist/pagefind/NOTICE-THIRD-PARTY.txt`로 복사해요. 대응 소스 목록 `scripts/release/sources-manifest.json`의 Pagefind 소스·크레이트 칸도 새 판으로 — 새 판 태그의 `pagefind_web/Cargo.lock`을 `node scripts/release/crates-from-lock.mjs <파일>`로 항목으로 바꾸고 license·use를 채워요(`scripts/release/README.md` 5절, 안 고치면 `npm test`가 멈춰요)) → `npm run build` 뒤 `npx playwright test tests/e2e/search.spec.ts tests/e2e/search-index.spec.ts --project=desktop`(빌드 결과에서만 — 개발 서버에는 색인이 없어요).
 - **workbox-build**(서비스 워커): `scripts/build-sw.mjs`와 사전 캐시 예산 → `npx playwright test tests/e2e/lab-loading.spec.ts --project=desktop`.
 - **Playwright**(`@playwright/test`): CI의 브라우저 설치 캐시 이름이 판을 따라 바뀌어 새 브라우저를 받아요. 로컬은 설치된 Microsoft Edge를 써요(`PW_CHANNEL`).
 - **개발 도구**(`@axe-core/playwright`·Vitest·TypeScript·yaml·esbuild 등)는 배포물에 들어가지 않아 `sources.yaml`에 적지 않아요(PLAN §9.2).
@@ -1012,6 +1029,7 @@ Result (3 files):
 - remark 플러그인(`src/lib/remark-boxes.mjs`·`remark-glossary.mjs`)을 고쳤는데 화면이 그대로면 콘텐츠 캐시를 지우고(빌드는 `node_modules/.astro/`, 개발 서버는 끈 뒤 `.astro/data-store.json`) 다시 빌드해요.
 - 차시 설정 칸(`src/config/content-schemas.ts`)에 새 칸을 더하면, 캐시에 남은 옛 차시에는 그 칸이 없을 수 있어요. 읽는 쪽에서 `?? []`처럼 기본값을 둬요(PROGRESS 미해결 169).
 - 틀 규칙(`src/components/lesson/lesson-rules.ts`)을 바꾸면 1-6 표와 단위 테스트(`tests/unit/lesson/lesson-rules.test.ts`)를 함께 고쳐요.
+- 좁은 화면용 그림(`x.narrow.svg`)을 더하거나 지웠는데 개발 서버·로컬 빌드에 안 보이면: 플러그인 설정에 좁은 그림 목록의 지문(`narrowFigureFingerprint()` — `src/lib/markdown-plugins.mjs`)이 들어가 있어 개발 서버를 다시 켜기만 하면 캐시가 비워져요. 그래도 옛 그림이면 콘텐츠 캐시를 지워요(위 remark 줄과 같은 방법). CI 빌드는 캐시 없이 새로 그려요.
 
 ## 9. 도메인 연결(사용자 도메인)
 
@@ -1072,7 +1090,7 @@ Result (3 files):
 ### 10-2. 판을 올리는 차례
 
 1. CHANGELOG.md의 "다음 판" 제목을 `## 1.1.0 — 2026-10-15`처럼 판과 날짜로 바꾸고, 그 위에 빈 "다음 판" 칸을 새로 둬요.
-2. `package.json`의 `"version"`을 같은 판으로 바꿔요. 판은 이 한 곳에서 와요 — `src/config/site.ts`의 `siteConfig.version`이 읽어 **바닥글 "버전"**과 점검 페이지 **[결과 복사]의 "사이트 버전"**에 보여요.
+2. `package.json`의 `"version"`을 같은 판으로 바꿔요. 판은 이 한 곳에서 와요 — `src/config/site.ts`의 `siteConfig.version`이 읽어 **바닥글 "버전"**과 점검 페이지 **[결과 복사]의 "사이트 버전"**에 보여요. 번들(브라우저로 가는 코드)에는 `astro.config.mjs`가 이 값을 `__APC_VERSION__`으로 새겨 넣어요 — 따로 고칠 곳은 없어요. `npm test`(`tests/unit/perf/site-version.test.ts`)가 package.json 판과 CHANGELOG의 `## 판 — 날짜` 제목이 짝인지 봐요 — 1번과 2번을 한 커밋에 해요(결정 C50).
    - 내 컴퓨터: `npm version 1.1.0 --no-git-tag-version`(`package.json`과 `package-lock.json`을 함께 바꾸고, git 태그는 만들지 않아요).
    - 웹 화면: `package.json`의 `"version"`과 `package-lock.json`의 `"version"` 두 곳(맨 위, 그리고 `"packages"` 안 `""` 항목)을 같은 판으로 고쳐요.
 3. 한 커밋으로 올려요. 예: `판: 1.1.0 — 새 차시 3편과 서보모터 예제를 더한 판`.
@@ -1102,7 +1120,7 @@ Result (3 files):
 | 10 | GitHub Pages 한도 | 사이트 크기 1GB·월 대역폭 100GB(소프트 한도 — PLAN §5.1). 빌드한 `dist/` 크기(2026-09-26 약 104MB)와 GitHub에서 온 알림 메일 | 크기가 크게 늘면 PLAN §11 위험 6 대응 |
 | 11 | 운영자 할 일·미해결 | PROGRESS.md의 "운영자 할 일"·"미해결 결정·확인 사항" 표 | 끝난 것을 끝남으로 |
 | 12 | 판 올리고 기록 | CHANGELOG의 "다음 판"에 쌓인 것 | 10절(판을 올렸으면 12절 오프라인판도 다시) |
-| 13 | 성능 | `npm run perf:measure`(다른 검사 없이 혼자 — 약 20분) — 학습 페이지가 DevTools "3G"(느린 3G)에서 3초 안에 그려지는지(FCP), 실습실 밖 쪽이 무거운 라이브러리(Pyodide·MediaPipe·Blockly·MQTT.js·CodeMirror·esptool-js)를 받지 않는지, 통신 모듈이 쓸 때만 받아지는지. 실사이트는 `PW_BASE_URL=https://songdocomputerpark-lang.github.io/ai-physical-computing/ npm run perf:measure` | 기준·까닭은 DECISIONS C15·C16, 규칙 `scripts/perf-rules.mjs` |
+| 13 | 성능 | `npm run perf:measure`(다른 검사 없이 혼자 — 약 30분) — 학습 페이지가 DevTools "3G"(느린 3G)에서 3초 안에 그려지는지(FCP), 실습실 밖 쪽이 무거운 라이브러리(Pyodide·MediaPipe·Blockly·MQTT.js·CodeMirror·esptool-js)를 받지 않는지, 통신 모듈이 쓸 때만 받아지는지. 회선 전체(파이썬 워커까지)를 3G로 느리게 한 시나리오 A(홈 → 첫 에지)도 재서 기록해요(5분을 넘으면 PLAN §11 위험 31 — 판정이 아니라 기록, 결정 C48). 실사이트는 `PW_BASE_URL=https://songdocomputerpark-lang.github.io/ai-physical-computing/ npm run perf:measure` | 기준·까닭은 DECISIONS C15·C16, 규칙 `scripts/perf-rules.mjs` |
 | 14 | 접근성 | `npm run test:a11y`(axe 모든 쪽 + 누른 뒤 화면 + 키보드·확대·움직임 줄이기, 두 화면 크기 — 약 15분). 심각(critical·serious) 0이어야 해요. 도구 오판은 규칙을 끄지 않고 `tests/e2e/a11y.spec.ts`의 `KNOWN_FALSE_POSITIVES`에 까닭과 함께 | 새 칸은 `data-scroll-focus`, 역할 없는 칸에 aria-label 금지(DECISIONS C18·C19) |
 
 ## 12. 오프라인 배포판
@@ -1118,6 +1136,7 @@ Result (3 files):
 | `server/serve.ps1` · `server/serve.py` | 작은 웹 서버(PowerShell 5.1판 — 기본, 파이썬 3판 — 다른 방법) |
 | `site/` | 사이트 전체(차시 45편·교사용 자료실과 가린 편집본 PDF·실습실·검색 색인), 파이썬 실행기 Pyodide 314.0.7 코어와 numpy·OpenCV·Pillow 휠(`vendor/pyodide/314.0.7/` 8개 26.9MiB), MediaPipe WebAssembly·모델 5개, ESP32 펌웨어, 글꼴, 고지 전문 28개 |
 | `LICENSE` · `LICENSE-CONTENT.md` | 사이트 코드·예제(MIT), 학습 자료(CC BY-NC-SA 4.0) |
+| `sources/`(`--sources`로 만들 때만) | 대응 소스 사본 31개(FFmpeg·OpenCV·레시피·Pagefind·크레이트)와 `읽어보세요.txt`(한국어·영어)·`SHA256SUMS.txt` — zip이 소스 크기만큼(적어도 약 110MB) 커져요 |
 
 크기(2026-09-26, 판 0.5.0 — 통합에서 다시 만든 zip): 72,016,404바이트(68.7MB), 항목 795개(파일 637개), 풀면 103.3MB. 판 0.1.0으로 처음 만든 zip(구역 E)은 68.2MB·파일 665개였어요(그때는 CSS가 따로 파일이었어요). 판을 올릴 때마다 다시 만든 zip의 크기·SHA-256·만든 커밋은 PROGRESS.md "시나리오·품질 결과표"의 오프라인판 줄에 적어요(1.0.0부터).
 
@@ -1128,6 +1147,7 @@ Result (3 files):
    - 하는 일(`scripts/build-offline.mjs` 머리말): 파이썬 패키지 확인 → 사이트 뿌리(`/`)로 빌드(`scripts/offline/astro.config.offline.mjs` — 보통 설정에 오프라인 표시 한 줄) → 서비스 워커 오프라인 설정 → Pyodide 파일 채우기(고정 주소 + SHA-256) → 링크 검사 → 빌드 결과 확인 → 안내 파일 → 개인정보 검사 → zip → 다시 읽어 CRC 확인. **하나라도 실패하면 zip을 만들지 않아요.**
    - 안내 글·서버 스크립트만 고쳤으면 `node scripts/build-offline.mjs --skip-build`(다시 빌드하지 않고 묶기만).
    - 한 작업 폴더에서 빌드는 한 번에 하나만 돌려요(콘텐츠 캐시·`public/vendor/`를 함께 써요). 뿌리 경로 빌드와 보통 빌드를 번갈아 하면 콘텐츠 캐시를 새로 그려 느려질 뿐이에요.
+   - **대응 소스 사본을 함께 넣을 때**(USB로 나눌 판 — 미해결 211): `npm run build:offline -- --sources .cache/release-sources`. 폴더는 운영자가 `scripts/release/fetch-sources.ps1`로 받은 곳(운영자 할 일 26, 12-10)이고, 목록 `scripts/release/sources-manifest.json`의 파일이 모두 있고 크기·공식 해시·받을 때 잰 값이 맞을 때만 빌드를 시작해요 — 하나라도 없거나 틀리면, 또는 목록이 사이트가 나누는 판과 다르면 빌드 전에 멈춰요. 목록 밖 파일은 넣지 않아요(결정 C56). 절차·안 될 때는 `scripts/release/README.md`.
 3. **확인:** `npm run test:offline`(= `node scripts/offline/verify-offline.mjs`) — zip을 새 폴더에 풀고(Windows `tar.exe`) 풀린 `시작하기.bat`로 서버를 띄운 뒤, 인터넷을 막은 Edge로 `tests/e2e/offline.spec.ts` 9개를 돌려요(약 1분). 파이썬판 서버로는 `npm run test:offline -- --server py`.
 4. 판을 올렸으면(10절) 오프라인판도 다시 만들어요 — zip 이름에 판이 들어가요.
 
@@ -1164,7 +1184,7 @@ Result (3 files):
 ### 12-7. 라이선스와 개인정보
 
 - zip에는 `/credits/`의 "고지 전문 파일 모음" 28개(`licenses/` 26개, `firmware/v1.29.0/NOTICE.txt`, `fonts/pretendard/LICENSE.txt`)와 저장소 뿌리의 `LICENSE`·`LICENSE-CONTENT.md`가 들어가요(`build:offline`이 빠진 것이 없는지 확인해요). 검색 엔진 wasm 옆에는 `pagefind/NOTICE-THIRD-PARTY.txt`도 들어가요.
-- opencv 휠 안의 FFmpeg(LGPL-2.1+)와 검색 엔진(Pagefind) wasm 안의 GPL-3.0 크레이트: 대응 소스 받는 곳·SHA-256은 `licenses/pyodide-wheels-3rd-party.txt` 1절과 `licenses/pagefind-wasm-3rd-party.txt` 머리 상자에 있어요(DECISIONS C22·C23). 두 파일과 `/credits/`에는 **서면 제안**(받은 날부터 3년 동안 대응 소스를 무료로 드리고, 요청은 저장소 이슈로 — LGPL-2.1 6조 c·GPL-3.0 6조 b, DECISIONS C36)이 실려 있어요. USB 등으로 다시 나눌 때는 폴더를 통째로 주고(고지와 서면 제안이 함께 가요), 운영자가 올린 대응 소스 사본(운영자 할 일 26)이 있으면 같은 USB에 함께 넣어요(읽어보세요.txt 6절). 서면 제안에 따라 요청이 오면 운영자가 공식 주소의 소스를 전해요.
+- opencv 휠 안의 FFmpeg(LGPL-2.1+)와 검색 엔진(Pagefind) wasm 안의 GPL-3.0 크레이트: 대응 소스 받는 곳·SHA-256은 `licenses/pyodide-wheels-3rd-party.txt` 1절과 `licenses/pagefind-wasm-3rd-party.txt` 머리 상자에 있어요(DECISIONS C22·C23). 두 파일과 `/credits/`에는 **서면 제안**(받은 날부터 3년 동안 대응 소스를 무료로 드리고, 요청은 저장소 이슈로 — LGPL-2.1 6조 c·GPL-3.0 6조 b, DECISIONS C36)이 실려 있어요. USB 등으로 다시 나눌 때는 폴더를 통째로 주고(고지와 서면 제안이 함께 가요), 운영자가 올린 대응 소스 사본(운영자 할 일 26)이 있으면 같은 USB에 함께 넣어요(읽어보세요.txt 6절). `--sources`로 만든 zip에는 사본이 이미 `sources/`에 들어 있어요. 서면 제안에 따라 요청이 오면 운영자가 공식 주소의 소스를 전해요.
 - 오프라인판은 운영자 PC에서 만들어 그대로 나눠 주므로 zip 직전 개인정보 검사(`runBuildOutputCheck` — 이 컴퓨터의 저장소 폴더·홈 폴더 경로, 개인정보 모양, 그림 메타데이터)를 `build:offline`이 저절로 해요. 손으로는 `npm run check:repo -- --dist .cache/offline/site`. `vendor/` 아래 Blockly 그림 3장의 원본 메타데이터(paint.net·2018년 날짜)는 참고로만 나와요(2026-09-26 확인 — 개인정보 아님).
 
 ### 12-8. 나눠 주기(GitHub Release)
@@ -1178,3 +1198,14 @@ Result (3 files):
 - Windows 탐색기 풀기 엔진으로 파일 665개 모두 풀림(9~10초), 풀린 폴더의 `시작하기.bat`로 서버가 열림(1초 안). 새 콘솔(코드 페이지 949)에서 `시작하기.bat`가 한국어 안내를 바르게 보여 줌.
 - 1.0.0 검토 반영(같은 날)에서 검사 한 개를 더해 9개가 됐어요: 서버를 끈 뒤 한 번 연 쪽은 저장본으로, 안 연 쪽은 "이 컴퓨터의 작은 서버가 꺼져 있어요" 안내와 [홈으로 가기]. 긴 경로(285글자)는 단위 테스트(`tests/unit/offline/serve-scripts.test.ts`)가 두 서버로 확인해요. 1.0.0 zip의 결과는 PROGRESS.md에 있어요.
 - 실제로 네트워크를 끊은 교실 PC와 학교 보안 정책 아래의 확인은 운영자 할 일 27이에요(PROGRESS).
+
+### 12-10. 대응 소스 사본(운영자 할 일 26 — 판 1.1.0)
+
+사이트가 고치지 않고 다시 나누는 실행 파일 가운데 OpenCV 휠 안 FFmpeg(LGPL-2.1)와 검색 엔진 wasm 안 GPL-3.0 크레이트는 "대응 소스"를 계속 받을 수 있게 해야 해요(DECISIONS C22·C23·C36). 받을 파일 31개(주소·공식 해시·근거)는 `scripts/release/sources-manifest.json` 한 곳에 있고(결정 C55), 자세한 절차는 `scripts/release/README.md`예요.
+
+1. **받기(운영자 PC):** 탐색기로 저장소 폴더를 열고 주소창에 `powershell` → `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\release\fetch-sources.ps1`(5~15분, 빈 공간 1GB쯤). 파일마다 PASS·RECORD·FAIL이 한 줄씩 나오고, 결과는 `.cache\release-sources\`의 `SHA256SUMS.txt`·`fetch-result.txt`예요. FAIL이면 같은 명령을 다시 돌려요(확인된 파일은 건너뛰어요). `-ListOnly`를 붙이면 받을 목록만 보여 줘요(받지 않음).
+2. **확인·릴리스 초안:** `node scripts/release/release-notes.mjs`가 폴더를 목록과 대조하고 한영 설명과 `gh release` 명령을 **찍기만** 해요. 릴리스(태그 `license-sources-2026-09`)에 올리는 것은 운영자가 "예"라고 한 뒤예요 — 초안 → `--check-uploaded`로 올라간 파일의 이름·크기·SHA-256 대조 → 공개 → 고지 두 파일(`licenses/pyodide-wheels-3rd-party.txt`·`licenses/pagefind-wasm-3rd-party.txt`)에 릴리스 주소(결정 C56).
+3. **오프라인판에 함께 넣기:** `npm run build:offline -- --sources .cache/release-sources`(12-2).
+4. **판을 올릴 때:** Pyodide·opencv 휠·Pagefind 판이 바뀌면 목록의 `site` 칸과 실제 판이 달라져 `npm test`(`tests/unit/release/sources-manifest.test.ts`)가 멈춰요 — `scripts/release/README.md` 5절 차례로 고쳐요(크레이트 목록은 `node scripts/release/crates-from-lock.mjs <Cargo.lock>`).
+
+- 스크립트는 영어·기호만(ASCII — PowerShell 5.1이 BOM 없이도 바르게 읽어요) 쓰고, 컴퓨터 설정을 바꾸지 않으며, 목록과 다른 파일은 남기지 않아요(결정 C57). 테스트(`tests/unit/release/fetch-sources-ps1.test.ts`)는 인터넷 없이 이 컴퓨터 안 작은 서버(127.0.0.1)로만 받기 갈래를 돌려요.
