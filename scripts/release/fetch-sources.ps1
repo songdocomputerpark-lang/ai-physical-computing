@@ -15,9 +15,12 @@
   after the operator says yes.
 
   One result word per file:
-    PASS     matches the official value in the list
-    RECORD   the list has no official value (GitHub builds that archive on request) - its SHA-256 is written down
-    FAIL     download failed, or the size or hash differs from the official value (the file is not kept)
+    PASS     matches the official value in the list (SHA-256, SHA-512 or MD5)
+    RECORD   the list has no official value (GitHub builds that archive on request). The list names the git commit
+             instead: the archive must carry that commit (git archive writes it into the pax header, comment=...)
+             and must read to its end. Then its SHA-256 is written down, to be pinned in the list afterwards.
+    FAIL     download failed, or the size, hash or commit differs from the list, or the archive is cut short
+             (the file is not kept)
     MISSING  (-VerifyOnly) the file is not in the folder
 
 .PARAMETER OutDir
@@ -158,10 +161,15 @@ foreach ($item in $items) {
     if (-not ($url -is [string]) -or -not (Test-SourceUrl $url)) { $problems.Add("$label - not an https address: $url") }
   }
   $sha = Get-Field $item 'sha256'
+  $sha512 = Get-Field $item 'sha512'
   $md5 = Get-Field $item 'md5'
+  $commit = Get-Field $item 'commit'
   $size = Get-Field $item 'size'
   if ($null -ne $sha -and -not (($sha -is [string]) -and $sha -cmatch '^[0-9a-f]{64}$')) { $problems.Add("$label - sha256 must be 64 lowercase hex digits") }
+  if ($null -ne $sha512 -and -not (($sha512 -is [string]) -and $sha512 -cmatch '^[0-9a-f]{128}$')) { $problems.Add("$label - sha512 must be 128 lowercase hex digits") }
   if ($null -ne $md5 -and -not (($md5 -is [string]) -and $md5 -cmatch '^[0-9a-f]{32}$')) { $problems.Add("$label - md5 must be 32 lowercase hex digits") }
+  if ($null -ne $commit -and -not (($commit -is [string]) -and $commit -cmatch '^[0-9a-f]{40}$')) { $problems.Add("$label - commit must be 40 lowercase hex digits") }
+  if ($null -eq $sha -and $null -eq $sha512 -and $null -eq $md5 -and $null -eq $commit) { $problems.Add("$label - a file without an official hash needs commit (checked inside the archive)") }
   if ($null -ne $size -and -not ("$size" -match '^[1-9][0-9]*$')) { $problems.Add("$label - size must be a positive whole number") }
 }
 if ($problems.Count -gt 0) {
@@ -173,10 +181,15 @@ if ($problems.Count -gt 0) {
 function Get-CheckText($Item) {
   $parts = @()
   $size = Get-Field $Item 'size'
-  if ($null -ne (Get-Field $Item 'sha256')) { $parts += 'official sha256' }
+  $commit = Get-Field $Item 'commit'
+  if ($null -ne (Get-Field $Item 'sha256')) {
+    if ($null -ne $commit) { $parts += 'pinned sha256' } else { $parts += 'official sha256' }
+  }
+  if ($null -ne (Get-Field $Item 'sha512')) { $parts += 'official sha512' }
   if ($null -ne (Get-Field $Item 'md5')) { $parts += 'official md5' }
   if ($null -ne $size) { $parts += "size $size" }
-  if ($parts.Count -eq 0) { return 'no official hash - SHA-256 will be recorded' }
+  if ($null -ne $commit) { $parts += ('git commit ' + $commit.Substring(0, 12)) }
+  if ($parts.Count -eq 1 -and $null -ne $commit) { return ('no official hash - git commit ' + $commit.Substring(0, 12) + ' is checked, SHA-256 will be recorded') }
   return ($parts -join ', ')
 }
 
@@ -209,11 +222,12 @@ if ($VerifyOnly) {
   [void][IO.Directory]::CreateDirectory($outFull)
 }
 
-function Get-Hashes([string]$Path, [bool]$WantMd5) {
+function Get-Hashes([string]$Path, [bool]$WantMd5, [bool]$WantSha512) {
   $result = @{
     Size = [int64](Get-Item -LiteralPath $Path).Length
     Sha256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
     Md5 = $null
+    Sha512 = $null
   }
   if ($WantMd5) {
     try {
@@ -222,16 +236,83 @@ function Get-Hashes([string]$Path, [bool]$WantMd5) {
       $result.Md5 = 'unavailable'
     }
   }
+  if ($WantSha512) {
+    $result.Sha512 = (Get-FileHash -LiteralPath $Path -Algorithm SHA512).Hash.ToLowerInvariant()
+  }
   return $result
 }
 
-# Compare measured values with the official values of one list item.
-function Test-SourceFile($Item, $Hashes) {
+# A GitHub source archive (.tar.gz made by git archive): the commit id that git archive writes into the pax global
+# header at the very start ("52 comment=<40 hex digits>"), and whether the whole archive reads to its end (a complete tar
+# ends with zero blocks - a cut download does not). The archive is only read: nothing is extracted or written.
+function Get-ArchiveInfo([string]$Path) {
+  $info = @{ Commit = ''; Complete = $false; Problem = '' }
+  $stream = $null
+  $gzip = $null
+  try {
+    $stream = [IO.File]::OpenRead($Path)
+    $first = $stream.ReadByte()
+    $second = $stream.ReadByte()
+    if ($first -ne 0x1f -or $second -ne 0x8b) {
+      $info.Problem = 'not a gzip archive (a web page instead of the file?)'
+      return $info
+    }
+    $stream.Position = 0
+    $gzip = New-Object System.IO.Compression.GZipStream($stream, [IO.Compression.CompressionMode]::Decompress)
+    $head = New-Object byte[] 1024
+    $got = 0
+    while ($got -lt 1024) {
+      $read = $gzip.Read($head, $got, 1024 - $got)
+      if ($read -le 0) { break }
+      $got += $read
+    }
+    if ($got -eq 1024 -and $head[156] -eq 103) {
+      $text = [Text.Encoding]::ASCII.GetString($head, 512, 512)
+      $match = [regex]::Match($text, '(?:^|\n)\d+ comment=([0-9a-f]{40})\n')
+      if ($match.Success) { $info.Commit = $match.Groups[1].Value }
+    }
+    $total = [int64]$got
+    $tail = New-Object byte[] 1024
+    [Array]::Copy($head, 0, $tail, 0, $got)
+    $buffer = New-Object byte[] 65536
+    while ($true) {
+      $read = $gzip.Read($buffer, 0, $buffer.Length)
+      if ($read -le 0) { break }
+      $total += $read
+      if ($read -ge 1024) {
+        [Array]::Copy($buffer, $read - 1024, $tail, 0, 1024)
+      } else {
+        [Array]::Copy($tail, $read, $tail, 0, 1024 - $read)
+        [Array]::Copy($buffer, 0, $tail, 1024 - $read, $read)
+      }
+    }
+    $zeroTail = $true
+    foreach ($byte in $tail) {
+      if ($byte -ne 0) { $zeroTail = $false; break }
+    }
+    $info.Complete = ($total -ge 2048) -and (($total % 512) -eq 0) -and $zeroTail
+    if (-not $info.Complete) { $info.Problem = 'the archive does not end like a whole tar file (cut download?)' }
+  } catch {
+    $info.Complete = $false
+    $info.Problem = 'the archive could not be read to its end (cut download?): ' + $_.Exception.Message
+  } finally {
+    if ($null -ne $gzip) { $gzip.Dispose() }
+    if ($null -ne $stream) { $stream.Dispose() }
+  }
+  return $info
+}
+
+# Compare measured values with the official values of one list item (and, for an archive without an official hash,
+# the commit written inside it).
+function Test-SourceFile($Item, $Hashes, [string]$Path) {
   $reasons = @()
   $basis = 'recorded'
   $size = Get-Field $Item 'size'
   $sha = Get-Field $Item 'sha256'
+  $sha512 = Get-Field $Item 'sha512'
   $md5 = Get-Field $Item 'md5'
+  $commit = Get-Field $Item 'commit'
+  $found = ''
   if ($null -ne $size -and [int64]$size -ne [int64]$Hashes.Size) {
     $reasons += ("size is {0} bytes, the list says {1}" -f $Hashes.Size, $size)
   }
@@ -239,13 +320,28 @@ function Test-SourceFile($Item, $Hashes) {
     $basis = 'sha256'
     if ($Hashes.Sha256 -ne $sha.ToLowerInvariant()) { $reasons += ("sha256 is {0}, the list says {1}" -f $Hashes.Sha256, $sha) }
   }
+  if ($null -ne $sha512) {
+    if ($basis -eq 'recorded') { $basis = 'sha512' }
+    if ($Hashes.Sha512 -ne $sha512.ToLowerInvariant()) { $reasons += ("sha512 is {0}, the list says {1}" -f $Hashes.Sha512, $sha512) }
+  }
   if ($null -ne $md5) {
     if ($basis -eq 'recorded') { $basis = 'md5' }
     if ($Hashes.Md5 -ne $md5.ToLowerInvariant()) { $reasons += ("md5 is {0}, the list says {1}" -f $Hashes.Md5, $md5) }
   }
+  if ($null -ne $commit) {
+    $archive = Get-ArchiveInfo $Path
+    $found = $archive.Commit
+    if (-not $archive.Complete) {
+      $reasons += $archive.Problem
+    } elseif ($found -ne $commit) {
+      $shown = $found
+      if (-not $shown) { $shown = '(none)' }
+      $reasons += ("git commit in the archive is {0}, the list says {1}" -f $shown, $commit)
+    }
+  }
   $status = 'PASS'
   if ($reasons.Count -gt 0) { $status = 'FAIL' } elseif ($basis -eq 'recorded') { $status = 'RECORD' }
-  return @{ Status = $status; Basis = $basis; Reasons = $reasons }
+  return @{ Status = $status; Basis = $basis; Reasons = $reasons; Commit = $found }
 }
 
 function Get-HttpStatus($ErrorRecord) {
@@ -316,6 +412,7 @@ foreach ($item in $items) {
   $file = Get-Field $item 'file'
   $urls = @(Get-List (Get-Field $item 'urls'))
   $wantMd5 = ($null -ne (Get-Field $item 'md5'))
+  $wantSha512 = ($null -ne (Get-Field $item 'sha512'))
   $destination = Join-Path $outFull $file
   $watch = [Diagnostics.Stopwatch]::StartNew()
   Write-Line ("[{0}/{1}] {2}" -f $index, $items.Count, $file) ''
@@ -338,8 +435,8 @@ foreach ($item in $items) {
       $present = $false
     }
     if ($present) {
-      $hashes = Get-Hashes $destination $wantMd5
-      $check = Test-SourceFile $item $hashes
+      $hashes = Get-Hashes $destination $wantMd5 $wantSha512
+      $check = Test-SourceFile $item $hashes $destination
       if ($check.Status -eq 'FAIL' -and -not $VerifyOnly) {
         Write-Line '      the file already in the folder does not match - downloading it again' 'DarkYellow'
         Remove-Item -LiteralPath $destination -Force
@@ -356,8 +453,8 @@ foreach ($item in $items) {
           $attemptNotes += ("{0}: download failed: {1}" -f $url, $fetch.Error)
           continue
         }
-        $hashes = Get-Hashes $fetch.Part $wantMd5
-        $check = Test-SourceFile $item $hashes
+        $hashes = Get-Hashes $fetch.Part $wantMd5 $wantSha512
+        $check = Test-SourceFile $item $hashes $fetch.Part
         if ($check.Status -eq 'FAIL') {
           Remove-Item -LiteralPath $fetch.Part -Force
           $mismatch = ($check.Reasons -join '; ')
@@ -385,6 +482,8 @@ foreach ($item in $items) {
   $status = 'FAIL'
   $basis = ''
   $reasons = @()
+  $foundCommit = ''
+  if ($null -ne $check) { $foundCommit = $check.Commit }
   if ($crashed) {
     $reasons = @($attemptNotes)
     $hashes = $null
@@ -411,22 +510,30 @@ foreach ($item in $items) {
   $size = $null
   $sha = $null
   $md5 = $null
+  $sha512 = $null
   if ($null -ne $hashes) {
     $size = $hashes.Size
     $sha = $hashes.Sha256
     $md5 = $hashes.Md5
+    $sha512 = $hashes.Sha512
   }
   $color = 'Green'
   if ($status -eq 'RECORD') { $color = 'Cyan' }
   if ($status -eq 'FAIL' -or $status -eq 'MISSING') { $color = 'Red' }
   if ($status -eq 'PASS' -or $status -eq 'RECORD') {
+    $short = ''
+    if ($foundCommit -and $foundCommit.Length -ge 12) { $short = $foundCommit.Substring(0, 12) }
     $how = 'official ' + $basis
-    if ($status -eq 'RECORD') { $how = 'no official hash, recorded' }
+    if ($null -ne (Get-Field $item 'commit') -and $basis -eq 'sha256') { $how = 'pinned sha256' }
+    if ($short) { $how = $how + ', git commit ' + $short + ' checked' }
+    if ($status -eq 'RECORD') { $how = 'no official hash, git commit ' + $short + ' checked, recorded' }
     Write-Line ("      {0,-7} {1} bytes, sha256 {2} ({3}, {4}, {5} s)" -f $status, $size, $sha, $how, $from, $seconds) $color
   } else {
     Write-Line ("      {0,-7} {1}" -f $status, ($reasons -join '; ')) $color
   }
 
+  $recordedCommit = $null
+  if ($foundCommit -and ($status -eq 'PASS' -or $status -eq 'RECORD')) { $recordedCommit = $foundCommit }
   $results.Add([pscustomobject][ordered]@{
     id = Get-Field $item 'id'
     file = $file
@@ -435,9 +542,13 @@ foreach ($item in $items) {
     bytes = $size
     sha256 = $sha
     md5 = $md5
+    sha512 = $sha512
+    commit = $recordedCommit
     expectedBytes = Get-Field $item 'size'
     expectedSha256 = Get-Field $item 'sha256'
     expectedMd5 = Get-Field $item 'md5'
+    expectedSha512 = Get-Field $item 'sha512'
+    expectedCommit = Get-Field $item 'commit'
     from = $from
     url = $usedUrl
     seconds = $seconds

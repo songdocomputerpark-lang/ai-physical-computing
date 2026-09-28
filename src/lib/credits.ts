@@ -62,7 +62,7 @@ export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.fr
     text:
       '파이썬 영상 처리 라이브러리 OpenCV 휠(opencv-python 4.11.0.86)의 cv2.so에는 FFmpeg 4.4.1이 정적으로 들어 있고, FFmpeg는 GNU LGPL 2.1 이상이에요. ' +
       '사이트는 휠과 FFmpeg를 고치지 않고 Pyodide 공식 파일을 그대로 같은 사이트 예비본으로 다시 나눠요. 받은 사람은 LGPL에 따라 FFmpeg를 고쳐 다시 연결할 수 있고, ' +
-      '사이트는 그러려는 수정과 디버깅용 역공학을 막지 않아요. 대응 소스(FFmpeg 4.4.1, OpenCV 소스, 휠을 만든 레시피)를 받는 곳과 LGPL 전문은 고지 파일 1절에 있어요. ' +
+      '사이트는 그러려는 수정과 디버깅용 역공학을 막지 않아요. 대응 소스(FFmpeg 4.4.1 소스, cv2.so를 다시 연결하는 재료인 OpenCV·ADE·libwebp·libtiff·zlib·libjpeg·libpng 소스, 휠을 만든 레시피 — 목록 전체는 저장소의 scripts/release/sources-manifest.json)를 받는 곳과 LGPL 전문은 고지 파일 1절에 있어요. ' +
       SOURCE_OFFER,
     noticePath: 'public/licenses/pyodide-wheels-3rd-party.txt',
   },
@@ -71,7 +71,7 @@ export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.fr
     title: '사이트 검색 엔진(GPL-3.0 크레이트 포함)',
     text:
       '사이트 검색의 WebAssembly 파일(pagefind/wasm.unknown.pagefind)에는 GPL-3.0-only인 pagefind_microjson 0.1.4가 함께 들어 있어, 이 파일은 GPL-3.0 조건으로 받는 프로그램이에요. ' +
-      '사이트는 Pagefind가 만든 파일을 고치지 않고 나눠요. GPL-3.0 전문과 대응 소스(Pagefind v1.5.2 소스와 크레이트)를 받는 곳은 고지 파일에 있어요. ' +
+      '사이트는 Pagefind가 만든 파일을 고치지 않고 나눠요. GPL-3.0 전문과 대응 소스(Pagefind v1.5.2 소스와 pagefind_web/Cargo.lock의 크레이트 21개 — 만들 때만 쓰는 매크로 포함)를 받는 곳은 고지 파일에 있어요. ' +
       SOURCE_OFFER,
     noticePath: 'public/licenses/pagefind-wasm-3rd-party.txt',
   },

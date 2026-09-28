@@ -1,6 +1,7 @@
 // 대응 소스 사본 도구(scripts/lib/offline-sources.mjs) — 미해결 211(build:offline --sources)·운영자 할 일 26.
-// 작은 가짜 파일로 목록 검사·SHA256SUMS 읽기·폴더 대조(공식 SHA-256·MD5·받을 때 잰 값)·안내 글·zip에 넣기를 확인한다.
-// 진짜 소스 압축은 받지 않는다(내려받기는 운영자 몫 — scripts/release/README.md).
+// 작은 가짜 파일로 목록 검사·SHA256SUMS 읽기·폴더 대조(공식 SHA-256·SHA-512·MD5·받을 때 잰 값)·안내 글·zip에 넣기를 확인한다.
+// 공식 해시가 없는 GitHub 압축은 git archive 모양의 가짜 .tar.gz(tests/unit/helpers/git-archive.ts)로 압축 안의 커밋·끝까지 풀림을 본다
+// (1.1.0 안전 검토 지적 3 — 차단 안내 쪽·끊긴 받기·다른 커밋을 거른다). 진짜 소스 압축은 받지 않는다(내려받기는 운영자 몫 — scripts/release/README.md).
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,19 +16,23 @@ import {
   crateSourceItem,
   cratesFromCargoLock,
   hashFile,
+  inspectGitArchive,
   isAllowedSourceUrl,
   parseSha256Sums,
   parseSourcesOption,
+  readPaxCommit,
   sourcesGuideFiles,
   sourcesReadmeText,
   sourcesSha256SumsText,
   sourcesSiteMismatches,
+  unpinnedSourceItems,
   validateSourcesManifest,
 } from '../../../scripts/lib/offline-sources.mjs';
 import { ZipWriter } from '../../../scripts/lib/offline-zip.mjs';
 import { findDeviceAddresses, findPrivacyPatterns } from '../../../scripts/lib/repo-check.mjs';
 import { listZipEntries, readZipEntry } from '../../../scripts/lib/zip-read.mjs';
 import { makeTempDir, removeDir, writeFiles } from '../helpers/fixture.ts';
+import { gitArchiveTar, gitArchiveTarGz } from '../helpers/git-archive.ts';
 
 const tempDirs: string[] = [];
 afterEach(() => {
@@ -44,11 +49,15 @@ function tempDir(): string {
 
 const sha = (text: string | Buffer) => crypto.createHash('sha256').update(text).digest('hex');
 const md5 = (text: string | Buffer) => crypto.createHash('md5').update(text).digest('hex');
+const sha512 = (text: string | Buffer) => crypto.createHash('sha512').update(text).digest('hex');
+
+/** 공식 해시가 없는 GitHub 압축이 담고 있어야 할 커밋 */
+const COMMIT = 'fc8587207ecbf0fb54305d5da25ab7ed70f126d3';
 
 const CONTENT = {
   official: 'official source archive bytes',
   md5only: 'archive with only an md5 in the list',
-  recorded: 'github archive without an official hash',
+  recorded: gitArchiveTarGz(COMMIT),
   crate: 'pretend crate bytes',
 };
 
@@ -108,7 +117,7 @@ function fakeManifest() {
         hashSource: 'recipe meta.yaml',
       }),
       item({ id: 'md5only', file: 'md5only-0.1.zip', md5: md5(CONTENT.md5only), hashSource: 'cmake file' }),
-      item({ id: 'recorded', file: 'recorded-abc.tar.gz', group: 'gpl' }),
+      item({ id: 'recorded', file: 'recorded-abc.tar.gz', group: 'gpl', commit: COMMIT }),
       item({
         id: 'crate-demo-0.1.4',
         file: 'demo-0.1.4.crate',
@@ -125,9 +134,9 @@ function fakeManifest() {
 type FakeManifest = ReturnType<typeof fakeManifest>;
 
 /** fetch-sources.ps1이 받은 뒤의 폴더 모양을 만든다(파일 네 개 + SHA256SUMS.txt) */
-function fakeFolder(manifest: FakeManifest, change: (files: Record<string, string>) => void = () => {}): string {
+function fakeFolder(manifest: FakeManifest, change: (files: Record<string, string | Buffer>) => void = () => {}): string {
   const dir = tempDir();
-  const files: Record<string, string> = {
+  const files: Record<string, string | Buffer> = {
     'official-1.0.tar.gz': CONTENT.official,
     'md5only-0.1.zip': CONTENT.md5only,
     'recorded-abc.tar.gz': CONTENT.recorded,
@@ -175,6 +184,26 @@ describe('목록 검사(validateSourcesManifest)', () => {
     expect(problems).toContain('(todo).license가 비었거나 TODO');
     expect(problems).toContain('(size).size');
     expect(problems).toContain('(use).use');
+  });
+
+  it('공식 해시가 없는 파일은 commit(압축 안 git 커밋)이 있어야 하고, commit·sha512 모양을 본다(1.1.0 안전 검토 지적 3)', () => {
+    const manifest = fakeManifest();
+    manifest.items.push(item({ id: 'nothing', file: 'n.tar.gz' }));
+    manifest.items.push(item({ id: 'shortcommit', file: 's.tar.gz', commit: 'abc123' }));
+    manifest.items.push(item({ id: 'badsha512', file: 'b.tar.gz', sha512: 'ABC', hashSource: 'port file' }));
+    manifest.items.push(item({ id: 'goodsha512', file: 'g.tar.gz', sha512: sha512('g'), hashSource: 'port file' }));
+    const problems = validateSourcesManifest(manifest).join('\n');
+    expect(problems).toContain('(nothing)은(는) 공식 해시가 없어서 commit');
+    expect(problems).toContain('(shortcommit).commit은 없거나 git 커밋 이름');
+    expect(problems).toContain('(badsha512).sha512는 없거나 소문자 16진수 128자리');
+    expect(problems).not.toContain('goodsha512');
+  });
+
+  it('고정하지 않은 항목(공식 해시가 하나도 없음)을 골라낸다 — 이런 목록으로는 오프라인판·릴리스를 만들지 않는다', () => {
+    const manifest = fakeManifest();
+    expect(unpinnedSourceItems(manifest).map((entry) => entry.id)).toEqual(['recorded']);
+    manifest.items[2].sha256 = sha(CONTENT.recorded);
+    expect(unpinnedSourceItems(manifest)).toEqual([]);
   });
 
   it('site·groups 칸이 비면 알린다', () => {
@@ -232,6 +261,36 @@ describe('파일 해시(hashFile)', () => {
     const big = Buffer.alloc(1024 * 1024 * 2 + 17, 7);
     fs.writeFileSync(path.join(dir, 'big.bin'), big);
     expect(hashFile(path.join(dir, 'big.bin'))).toEqual({ size: big.length, sha256: sha(big), md5: null });
+    expect(hashFile(path.join(dir, 'big.bin'), { sha512: true }).sha512).toBe(sha512(big));
+  });
+});
+
+describe('GitHub 소스 압축 확인(inspectGitArchive·readPaxCommit)', () => {
+  it('git archive가 적은 커밋을 읽고, 끝까지 풀리면 complete', () => {
+    const dir = tempDir();
+    writeFiles(dir, { 'a.tar.gz': gitArchiveTarGz(COMMIT) });
+    expect(inspectGitArchive(path.join(dir, 'a.tar.gz'))).toEqual({ commit: COMMIT, complete: true, problem: null });
+    expect(readPaxCommit(gitArchiveTar(COMMIT))).toBe(COMMIT);
+    expect(readPaxCommit(gitArchiveTar(null))).toBeNull();
+  });
+
+  it('웹 쪽(차단 안내)·끊긴 받기·pax 머리 없는 압축을 알아본다', () => {
+    const dir = tempDir();
+    const big = { 'data.txt': crypto.randomBytes(24_000).toString('base64') };
+    writeFiles(dir, {
+      'blocked.tar.gz': '<!doctype html><title>차단된 사이트</title>',
+      'cut.tar.gz': gitArchiveTarGz(COMMIT, { files: big, truncate: 6_000 }),
+      'plain.tar.gz': gitArchiveTarGz(null),
+    });
+    const blocked = inspectGitArchive(path.join(dir, 'blocked.tar.gz'));
+    expect(blocked.commit).toBeNull();
+    expect(blocked.complete).toBe(false);
+    expect(blocked.problem).toContain('gzip 압축이 아니에요');
+    const cut = inspectGitArchive(path.join(dir, 'cut.tar.gz'));
+    expect(cut.commit).toBe(COMMIT);
+    expect(cut.complete).toBe(false);
+    expect(cut.problem).toContain('끝까지 풀리지 않아요');
+    expect(inspectGitArchive(path.join(dir, 'plain.tar.gz'))).toMatchObject({ commit: null, complete: true });
   });
 });
 
@@ -249,6 +308,8 @@ describe('받은 폴더 대조(checkSourcesFolder)', () => {
     ]);
     expect(result.files[1].md5).toBe(md5(CONTENT.md5only));
     expect(result.files[2].sha256).toBe(sha(CONTENT.recorded));
+    // 공식 해시가 없는 압축은 안의 git 커밋을 확인했다
+    expect(result.files[2].commit).toBe(COMMIT);
   });
 
   it('없는 파일·공식 값과 다른 파일·크기가 다른 파일을 막는다', () => {
@@ -270,11 +331,53 @@ describe('받은 폴더 대조(checkSourcesFolder)', () => {
   it('공식 값이 없는 파일은 SHA256SUMS.txt(받을 때 잰 값)와 달라지면 막는다 — 받은 뒤에 바뀐 파일', () => {
     const manifest = fakeManifest();
     const folder = fakeFolder(manifest, (files) => {
-      files['recorded-abc.tar.gz'] = 'changed after download';
+      // 같은 커밋이지만 다른 바이트(다시 받은 압축) — 커밋 확인은 통과하고 받을 때 잰 값과 다르다
+      files['recorded-abc.tar.gz'] = gitArchiveTarGz(COMMIT, { files: { 'README.md': 'changed after download\n' } });
     });
     const result = checkSourcesFolder({ folder, manifest });
     expect(result.ok).toBe(false);
     expect(result.problems).toEqual([expect.stringContaining('recorded-abc.tar.gz이(가) 받은 뒤에 바뀌었어요')]);
+  });
+
+  it('공식 해시가 없는 압축은 안의 git 커밋이 목록과 달라도·끊겨 있어도·웹 쪽이어도 막는다(받을 때 잰 값과 같아도)', () => {
+    const manifest = fakeManifest();
+    for (const [label, data, expected] of [
+      ['다른 커밋', gitArchiveTarGz('0'.repeat(40)), '안의 git 커밋이 0000000000000000000000000000000000000000이에요'],
+      ['끊긴 받기', gitArchiveTarGz(COMMIT, { files: { 'data.txt': crypto.randomBytes(24_000).toString('base64') }, truncate: 6_000 }), '끝까지 풀리지 않아요'],
+      ['차단 안내 쪽', Buffer.from('<html>blocked</html>'), 'gzip 압축이 아니에요'],
+    ] as const) {
+      const dir = tempDir();
+      const files: Record<string, string | Buffer> = {
+        'official-1.0.tar.gz': CONTENT.official,
+        'md5only-0.1.zip': CONTENT.md5only,
+        'recorded-abc.tar.gz': data,
+        'demo-0.1.4.crate': CONTENT.crate,
+      };
+      // 받을 때 잰 값도 그 (틀린) 파일의 값 — 기록만으로는 거르지 못하는 경우
+      const sums = manifest.items.map((entry) => `${sha(files[entry.file]!)}  ${entry.file}\n`).join('');
+      writeFiles(dir, { ...files, [SOURCES_SUMS_FILE]: sums });
+      const result = checkSourcesFolder({ folder: dir, manifest });
+      expect(result.ok, label).toBe(false);
+      expect(result.problems.join('\n'), label).toContain(expected);
+      expect(result.files.map((file) => file.item.file), label).not.toContain('recorded-abc.tar.gz');
+    }
+  });
+
+  it('공식 SHA-512(Emscripten 포트)가 있는 파일은 SHA-512로 대조한다', () => {
+    const manifest = fakeManifest();
+    const folder = fakeFolder(manifest);
+    manifest.items.push(item({ id: 'port', file: 'zlib-1.3.1.tar.gz', sha512: sha512('zlib port'), hashSource: 'tools/ports/zlib.py' }) as (typeof manifest.items)[number]);
+    writeFiles(folder, { 'zlib-1.3.1.tar.gz': 'zlib port' });
+    fs.appendFileSync(path.join(folder, SOURCES_SUMS_FILE), `${sha('zlib port')}  zlib-1.3.1.tar.gz\n`);
+    const ok = checkSourcesFolder({ folder, manifest });
+    expect(ok.problems).toEqual([]);
+    expect(ok.files.at(-1)).toMatchObject({ basis: 'sha512', sha512: sha512('zlib port') });
+    writeFiles(folder, { 'zlib-1.3.1.tar.gz': 'other bytes' });
+    fs.writeFileSync(
+      path.join(folder, SOURCES_SUMS_FILE),
+      fs.readFileSync(path.join(folder, SOURCES_SUMS_FILE), 'utf8').replace(sha('zlib port'), sha('other bytes')),
+    );
+    expect(checkSourcesFolder({ folder, manifest }).problems.join('\n')).toContain('zlib-1.3.1.tar.gz의 SHA-512가 목록의 공식 값과 달라요');
   });
 
   it('SHA256SUMS.txt가 없거나 줄이 빠지면 막는다', () => {
@@ -380,6 +483,7 @@ describe('zip 안 안내 글과 확인값', () => {
     expect(text).toContain('오프라인판 1.1.0 — 대응 소스 사본');
     expect(text).toContain('Corresponding source — AI Physical Computing Open Lab offline edition 1.1.0');
     expect(text).toContain('공식 해시가 없는 1개');
+    expect(text).toContain('git 커밋이 목록과 같은지 확인');
     expect(text).toContain('sha256sum -c SHA256SUMS.txt');
     expect(text).toContain('license-sources-test');
     // 크레이트는 주소를 한 번만(파일마다 되풀이하지 않음)

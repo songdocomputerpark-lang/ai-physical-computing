@@ -2,12 +2,12 @@
   "$comment": [
     "Corresponding-source copies: operator task 26 (PROGRESS.md) and npm run build:offline -- --sources <folder> (unresolved 211).",
     "Read by scripts/release/fetch-sources.ps1 (Windows PowerShell 5.1), scripts/lib/offline-sources.mjs and tests/unit/release/. Guide: scripts/release/README.md.",
-    "sha256/md5 = official value (hashSource says where it comes from). null = no official value: fetch-sources.ps1 records the SHA-256 (RECORD); pin it here afterwards.",
+    "sha256/sha512/md5 = official value (hashSource says where it comes from). An item with no official value must name its git commit (commit): fetch-sources.ps1 and scripts/lib/offline-sources.mjs check that the GitHub archive carries that commit (git archive pax header comment=) and can be read to its end, then record its SHA-256 (RECORD); pin that value in sha256 afterwards (README section 3). build:offline --sources and release-notes.mjs refuse a list with unpinned items.",
     "site = the versions this list belongs to. When the site ships another Pyodide, OpenCV wheel or Pagefind, npm test fails until this list is updated."
   ],
   "schema": 1,
   "releaseTag": "license-sources-2026-09",
-  "checkedOn": "2026-09-28",
+  "checkedOn": "2026-09-29",
   "site": {
     "pyodideVersion": "314.0.7",
     "pyodideLockSha256": "5dc2fc119108bc148c7457dc86e7675b5c87e1cafd420b9c34c1eaef7b36c010",
@@ -26,8 +26,8 @@
       "notice": "licenses/pyodide-wheels-3rd-party.txt",
       "why": "LGPL-2.1 section 6: whoever receives cv2.so must be able to get the source of FFmpeg (with any changes - there are none) and of the work that uses it, with the scripts that build them, so that they can change FFmpeg and relink cv2.so.",
       "whyKo": "LGPL-2.1 6조: cv2.so를 받은 사람이 FFmpeg 소스(고친 곳 — 여기서는 없음)와 FFmpeg를 쓰는 저작물의 소스·빌드 방법을 받아, FFmpeg를 고쳐 cv2.so를 다시 연결할 수 있어야 해요.",
-      "tools": "Emscripten 5.0.3 and its ports zlib 1.3.1, libjpeg 9f and libpng 1.6.55 (distributed with the compiler - LGPL-2.1 section 6 does not require them), the Pyodide cross-build environment 314.0.6, and the CMake and Python build tools named in the recipes",
-      "toolsKo": "Emscripten 5.0.3과 그 포트 zlib 1.3.1·libjpeg 9f·libpng 1.6.55(컴파일러와 함께 나오는 것 — LGPL-2.1 6조가 요구하지 않음), Pyodide 교차 빌드 환경 314.0.6, 레시피에 적힌 CMake·파이썬 빌드 도구"
+      "tools": "Emscripten 5.0.3 (its ports zlib 1.3.1, libjpeg 9f and libpng 1.6.55 are compiled into cv2.so, so their sources are in this list), the Pyodide cross-build environment 314.0.6, and the CMake and Python build tools named in the recipes",
+      "toolsKo": "Emscripten 5.0.3(그 포트 zlib 1.3.1·libjpeg 9f·libpng 1.6.55는 cv2.so에 함께 들어가서 소스를 이 목록에 넣었어요), Pyodide 교차 빌드 환경 314.0.6, 레시피에 적힌 CMake·파이썬 빌드 도구"
     },
     {
       "id": "gpl-pagefind",
@@ -151,6 +151,54 @@
       "license": "libtiff"
     },
     {
+      "id": "emscripten-port-zlib-1.3.1",
+      "group": "lgpl-ffmpeg",
+      "file": "zlib-1.3.1.tar.gz",
+      "urls": [
+        "https://github.com/madler/zlib/archive/refs/tags/v1.3.1.tar.gz"
+      ],
+      "size": null,
+      "sha256": null,
+      "sha512": "8c9642495bafd6fad4ab9fb67f09b268c69ff9af0f4f20cf15dfc18852ff1f312bd8ca41de761b3f8d8e90e77d79f2ccacd3d4c5b19e475ecf09d021fdfe9088",
+      "md5": null,
+      "hashSource": "Emscripten 5.0.3 tools/ports/zlib.py (HASH, sha512 - the compiler downloads this archive and checks it when it builds the port; raw.githubusercontent.com and jsDelivr copies of the file agree, 2026-09-29)",
+      "what": "zlib 1.3.1 source (git tag v1.3.1) - the Emscripten port that the compiler built and statically linked into cv2.so",
+      "whatKo": "zlib 1.3.1 소스(태그 v1.3.1) — 컴파일러(Emscripten)가 포트로 만들어 cv2.so에 정적으로 연결",
+      "license": "Zlib"
+    },
+    {
+      "id": "emscripten-port-libjpeg-9f",
+      "group": "lgpl-ffmpeg",
+      "file": "jpegsrc.v9f.tar.gz",
+      "urls": [
+        "https://storage.googleapis.com/webassembly/emscripten-ports/jpegsrc.v9f.tar.gz"
+      ],
+      "size": null,
+      "sha256": null,
+      "sha512": "7f733d79cf176c690dcf127352f9aa7ec48000455944f286faae606cdeada6f6865b4a3f9f01bda8947b5b1089bb3e52d2b56879b6e871279ec5cbd1829304dc",
+      "md5": null,
+      "hashSource": "Emscripten 5.0.3 tools/ports/libjpeg.py (HASH, sha512 - the compiler downloads this archive from the Emscripten ports mirror and checks it; raw.githubusercontent.com and jsDelivr copies of the file agree, 2026-09-29)",
+      "what": "IJG libjpeg 9f source - the Emscripten port that the compiler built and statically linked into cv2.so",
+      "whatKo": "IJG libjpeg 9f 소스 — 컴파일러(Emscripten)가 포트로 만들어 cv2.so에 정적으로 연결",
+      "license": "IJG"
+    },
+    {
+      "id": "emscripten-port-libpng-1.6.55",
+      "group": "lgpl-ffmpeg",
+      "file": "libpng-1.6.55.tar.gz",
+      "urls": [
+        "https://storage.googleapis.com/webassembly/emscripten-ports/libpng-1.6.55.tar.gz"
+      ],
+      "size": null,
+      "sha256": null,
+      "sha512": "45d3c4c3bd3d22dd93026e1bdff8df8133459a2903fb70be178899a55d256bab55bb5c4220d790202fce578e346c040c5c00e1f004cf5c4dcbf387a30d43e701",
+      "md5": null,
+      "hashSource": "Emscripten 5.0.3 tools/ports/libpng.py (HASH, sha512 - the compiler downloads this archive from the Emscripten ports mirror and checks it; raw.githubusercontent.com and jsDelivr copies of the file agree, 2026-09-29)",
+      "what": "libpng 1.6.55 source - the Emscripten port that the compiler built and statically linked into cv2.so",
+      "whatKo": "libpng 1.6.55 소스 — 컴파일러(Emscripten)가 포트로 만들어 cv2.so에 정적으로 연결",
+      "license": "libpng-2.0"
+    },
+    {
       "id": "pyodide-recipes-fc85872",
       "group": "lgpl-ffmpeg",
       "file": "pyodide-recipes-fc8587207ecbf0fb54305d5da25ab7ed70f126d3.tar.gz",
@@ -161,6 +209,7 @@
       "sha256": null,
       "md5": null,
       "hashSource": null,
+      "commit": "fc8587207ecbf0fb54305d5da25ab7ed70f126d3",
       "what": "pyodide-recipes at commit fc8587207ecbf0fb54305d5da25ab7ed70f126d3 (release tag 314-20260911, whose pyodide-lock.json is the one of Pyodide 314.0.7): the build recipes, scripts and extras of libffmpeg, opencv-python, libwebp, libtiff and Pillow",
       "whatKo": "pyodide-recipes 커밋 fc8587207ecbf0fb54305d5da25ab7ed70f126d3(릴리스 314-20260911 — Pyodide 314.0.7 잠금 파일의 레시피): libffmpeg·opencv-python·libwebp·libtiff·Pillow의 빌드 설정·스크립트",
       "license": "MPL-2.0"
@@ -176,6 +225,7 @@
       "sha256": null,
       "md5": null,
       "hashSource": null,
+      "commit": "26a30ea0c7274d0f99220c5d54e8938a28afb46c",
       "what": "pyodide-build at commit 26a30ea0c7274d0f99220c5d54e8938a28afb46c - the build tool that the recipes commit pins as a git submodule (GitHub archives leave submodules out)",
       "whatKo": "pyodide-build 커밋 26a30ea0c7274d0f99220c5d54e8938a28afb46c — 레시피 커밋이 하위 모듈로 고정한 빌드 도구(GitHub 압축은 하위 모듈을 빼서 따로 받아요)",
       "license": "MPL-2.0"
@@ -185,13 +235,14 @@
       "group": "gpl-pagefind",
       "file": "pagefind-1.5.2.tar.gz",
       "urls": [
-        "https://github.com/Pagefind/pagefind/archive/refs/tags/v1.5.2.tar.gz"
+        "https://github.com/Pagefind/pagefind/archive/bf17396721be637cc67c8ed7ead1dc7b8ac43d96.tar.gz"
       ],
       "size": null,
       "sha256": null,
       "md5": null,
       "hashSource": null,
-      "what": "Pagefind v1.5.2 source (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96): pagefind_web (the search engine compiled to wasm) with its Cargo.toml, Cargo.lock and build scripts",
+      "commit": "bf17396721be637cc67c8ed7ead1dc7b8ac43d96",
+      "what": "Pagefind v1.5.2 source (commit bf17396721be637cc67c8ed7ead1dc7b8ac43d96 - tag v1.5.2; downloaded by commit, not by tag, because a tag can be moved): pagefind_web (the search engine compiled to wasm) with its Cargo.toml, Cargo.lock and build scripts",
       "whatKo": "Pagefind v1.5.2 소스(커밋 bf17396721be637cc67c8ed7ead1dc7b8ac43d96): wasm으로 만드는 검색 엔진 pagefind_web과 Cargo.toml·Cargo.lock·빌드 스크립트",
       "license": "MIT"
     },

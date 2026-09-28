@@ -11,12 +11,15 @@
 // 목록의 site 칸은 목록이 가리키는 사이트 판(Pyodide 잠금 파일·opencv 휠·Pagefind)이다. 사이트 판을 올리면 목록도 고쳐야 하므로
 // build-offline(--sources)과 단위 테스트(tests/unit/release/sources-manifest.test.ts)가 실제 판과 대조한다.
 //
-// 확인 규칙(checkSourcesFolder): 목록의 파일이 모두 있어야 하고, 크기(목록에 있으면)·공식 SHA-256이나 MD5(있으면)가 같아야 하며,
-// 폴더의 SHA256SUMS.txt(받을 때 잰 값)와도 같아야 한다 — 공식 값이 없는 파일(GitHub가 그때그때 만드는 압축)은 이 기록값이 기준이다.
-// 목록 밖 파일은 넣지 않고 참고로만 알린다.
+// 확인 규칙(checkSourcesFolder): 목록의 파일이 모두 있어야 하고, 크기(목록에 있으면)·공식 SHA-256·SHA-512·MD5(있으면)가 같아야 하며,
+// 폴더의 SHA256SUMS.txt(받을 때 잰 값)와도 같아야 한다. 공식 해시가 없는 파일(GitHub가 그때그때 만드는 압축)은 목록의 commit 칸이 있어야 하고,
+// 압축 안(git archive가 맨 앞 pax 전역 머리에 적는 comment=<커밋 40자리>)의 커밋이 같고 압축이 끝까지 풀려야 한다 — 학교망 차단 안내 쪽·끊긴
+// 받기·옮겨진 태그를 "받을 때 잰 값"으로 고정하지 않게(1.1.0 안전 검토 지적 3, DECISIONS C60). 목록 밖 파일은 넣지 않고 참고로만 알린다.
+// 공식 해시가 없는 채(고정 전)인 목록으로는 오프라인판·릴리스를 만들지 않는다(unpinnedSourceItems — scripts/release/README.md 3절 2번에서 고정).
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { toCrlf } from './offline-site.mjs';
 
 /** 대응 소스 목록(저장소 뿌리 기준) */
@@ -41,6 +44,9 @@ export const SOURCES_FOLDER_META_FILES = Object.freeze([
 
 const HEX64 = /^[0-9a-f]{64}$/u;
 const HEX32 = /^[0-9a-f]{32}$/u;
+const HEX128 = /^[0-9a-f]{128}$/u;
+/** git 커밋 이름(SHA-1 40자리) */
+const HEX40 = /^[0-9a-f]{40}$/u;
 /** 파일 이름: 영어·숫자로 시작, 폴더 구분자·빈칸 없음(zip 안 이름·릴리스 파일 이름으로 그대로 쓴다) */
 const SAFE_FILE = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/u;
 const SAFE_ID = /^[a-z0-9][a-z0-9._-]*$/u;
@@ -51,6 +57,7 @@ const ITEM_USES = Object.freeze(['wasm', 'build']);
 /**
  * @typedef {{
  *   id: string, group: string, file: string, urls: string[], size: number | null, sha256: string | null, md5: string | null,
+ *   sha512?: string | null, commit?: string,
  *   hashSource: string | null, what: string, whatKo: string, license: string, use?: 'wasm' | 'build',
  * }} SourceItem
  * @typedef {{
@@ -62,7 +69,10 @@ const ITEM_USES = Object.freeze(['wasm', 'build']);
  *   site: { pyodideVersion: string, pyodideLockSha256: string, opencvWheel: string, opencvWheelSha256: string, pagefindVersion: string },
  *   groups: SourceGroup[], items: SourceItem[],
  * }} SourcesManifest
- * @typedef {{ item: SourceItem, path: string, size: number, sha256: string, md5: string | null, basis: 'sha256' | 'md5' | 'recorded' }} CheckedSource
+ * @typedef {{
+ *   item: SourceItem, path: string, size: number, sha256: string, md5: string | null, sha512: string | null,
+ *   basis: 'sha256' | 'sha512' | 'md5' | 'recorded', commit: string | null,
+ * }} CheckedSource
  */
 
 function isNonEmptyString(value) {
@@ -204,8 +214,18 @@ export function validateSourcesManifest(manifest, options = {}) {
     if (item.md5 !== null && (typeof item.md5 !== 'string' || !HEX32.test(item.md5))) {
       problems.push(`${where}.md5는 null이거나 소문자 16진수 32자리여야 해요.`);
     }
-    if ((item.sha256 !== null || item.md5 !== null) && !isNonEmptyString(item.hashSource)) {
+    const sha512 = item.sha512 ?? null;
+    if (sha512 !== null && (typeof sha512 !== 'string' || !HEX128.test(sha512))) {
+      problems.push(`${where}.sha512는 없거나 소문자 16진수 128자리여야 해요.`);
+    }
+    if (item.commit !== undefined && (typeof item.commit !== 'string' || !HEX40.test(item.commit))) {
+      problems.push(`${where}.commit은 없거나 git 커밋 이름(소문자 16진수 40자리)이어야 해요.`);
+    }
+    if ((item.sha256 !== null || item.md5 !== null || sha512 !== null) && !isNonEmptyString(item.hashSource)) {
       problems.push(`${where}.hashSource(공식 값을 어디서 가져왔는지)가 비었어요.`);
+    }
+    if (item.sha256 === null && item.md5 === null && sha512 === null && item.commit === undefined) {
+      problems.push(`${where}은(는) 공식 해시가 없어서 commit(압축 안에 적힌 git 커밋 40자리)이 있어야 해요 — 받은 뒤 내용을 확인할 길이 없어요.`);
     }
     for (const key of ['what', 'whatKo', 'license']) {
       if (!isNonEmptyString(item[key]) || /\bTODO\b/u.test(item[key])) {
@@ -280,14 +300,15 @@ export function parseSha256Sums(text) {
 }
 
 /**
- * 파일의 크기와 SHA-256(원하면 MD5)을 잰다. 1MiB씩 읽어 큰 파일도 메모리에 모으지 않는다.
+ * 파일의 크기와 SHA-256(원하면 MD5·SHA-512)을 잰다. 1MiB씩 읽어 큰 파일도 메모리에 모으지 않는다.
  * @param {string} filePath
- * @param {{ md5?: boolean }} [options]
- * @returns {{ size: number, sha256: string, md5: string | null }}
+ * @param {{ md5?: boolean, sha512?: boolean }} [options]
+ * @returns {{ size: number, sha256: string, md5: string | null, sha512?: string | null }}
  */
 export function hashFile(filePath, options = {}) {
   const sha256 = crypto.createHash('sha256');
   const md5 = options.md5 ? crypto.createHash('md5') : null;
+  const sha512 = options.sha512 ? crypto.createHash('sha512') : null;
   const buffer = Buffer.allocUnsafe(1024 * 1024);
   const fd = fs.openSync(filePath, 'r');
   let size = 0;
@@ -300,12 +321,70 @@ export function hashFile(filePath, options = {}) {
       const chunk = buffer.subarray(0, read);
       sha256.update(chunk);
       md5?.update(chunk);
+      sha512?.update(chunk);
       size += read;
     }
   } finally {
     fs.closeSync(fd);
   }
-  return { size, sha256: sha256.digest('hex'), md5: md5 ? md5.digest('hex') : null };
+  return { size, sha256: sha256.digest('hex'), md5: md5 ? md5.digest('hex') : null, ...(sha512 ? { sha512: sha512.digest('hex') } : {}) };
+}
+
+/**
+ * tar 앞머리(풀린 앞 1,024바이트 이상)에서 git archive가 적는 커밋 이름을 읽는다: 첫 512바이트 머리의 종류가 'g'(pax 전역 머리)이고
+ * 다음 512바이트에 "52 comment=<40자리>\n" 기록이 있을 때(git 문서 git-archive — "the commit ID is stored in a global extended pax header").
+ * @param {Buffer} tar
+ * @returns {string | null}
+ */
+export function readPaxCommit(tar) {
+  if (tar.length < 1024 || tar[156] !== 0x67) {
+    return null;
+  }
+  const match = /(?:^|\n)\d+ comment=([0-9a-f]{40})\n/u.exec(tar.subarray(512, 1024).toString('latin1'));
+  return match ? match[1] : null;
+}
+
+/**
+ * GitHub 소스 압축(.tar.gz — git archive가 만듦)을 확인한다(공식 해시가 없는 파일 — 머리말). 풀어서 쓰지 않고 읽기만 한다.
+ * - gzip이 아니면(차단 안내 쪽 등) commit null
+ * - 끝까지 풀리고 tar 끝 표시(512바이트 단위, 마지막 1,024바이트가 0)가 있어야 complete — 끊긴 받기를 막는다
+ * @param {string} filePath
+ * @returns {{ commit: string | null, complete: boolean, problem: string | null }}
+ */
+export function inspectGitArchive(filePath) {
+  let data;
+  try {
+    data = fs.readFileSync(filePath);
+  } catch (error) {
+    return { commit: null, complete: false, problem: `파일을 읽지 못했어요: ${error instanceof Error ? error.message : String(error)}` };
+  }
+  if (data.length < 18 || data[0] !== 0x1f || data[1] !== 0x8b) {
+    return { commit: null, complete: false, problem: 'gzip 압축이 아니에요(학교망 차단 안내 같은 웹 쪽을 받았을 수 있어요)' };
+  }
+  let commit = null;
+  try {
+    commit = readPaxCommit(zlib.gunzipSync(data.subarray(0, Math.min(data.length, 64 * 1024)), { finishFlush: zlib.constants.Z_SYNC_FLUSH }));
+  } catch {
+    commit = null;
+  }
+  let tar;
+  try {
+    tar = zlib.gunzipSync(data);
+  } catch (error) {
+    return { commit, complete: false, problem: `압축이 끝까지 풀리지 않아요(받다 끊긴 파일일 수 있어요): ${error instanceof Error ? error.message : String(error)}` };
+  }
+  const tail = tar.subarray(Math.max(0, tar.length - 1024));
+  const complete = tar.length >= 2048 && tar.length % 512 === 0 && tail.every((byte) => byte === 0);
+  return { commit, complete, problem: complete ? null : 'tar 끝 표시가 없어요(받다 끊긴 파일일 수 있어요)' };
+}
+
+/**
+ * 공식 해시가 하나도 없는(아직 고정하지 않은) 목록 항목 — 이런 목록으로는 오프라인판·릴리스를 만들지 않는다(머리말).
+ * @param {SourcesManifest} manifest
+ * @returns {SourceItem[]}
+ */
+export function unpinnedSourceItems(manifest) {
+  return manifest.items.filter((item) => item.sha256 === null && item.md5 === null && (item.sha512 ?? null) === null);
 }
 
 /** 메모리의 내용 SHA-256 */
@@ -359,7 +438,8 @@ export function checkSourcesFolder({ folder, manifest }) {
       problems.push(`${item.file}이(가) 폴더에 없어요.`);
       continue;
     }
-    const measured = hashFile(filePath, { md5: item.md5 !== null });
+    const wantSha512 = (item.sha512 ?? null) !== null;
+    const measured = hashFile(filePath, { md5: item.md5 !== null, sha512: wantSha512 });
     const before = problems.length;
     if (item.size !== null && measured.size !== item.size) {
       problems.push(`${item.file}의 크기가 ${measured.size.toLocaleString('en-US')}바이트예요(목록 ${item.size.toLocaleString('en-US')}바이트).`);
@@ -369,7 +449,15 @@ export function checkSourcesFolder({ folder, manifest }) {
     if (item.sha256 !== null) {
       basis = 'sha256';
       if (measured.sha256 !== item.sha256) {
-        problems.push(`${item.file}의 SHA-256이 목록의 공식 값과 달라요(잰 값 ${measured.sha256}).`);
+        problems.push(`${item.file}의 SHA-256이 목록의 값과 달라요(잰 값 ${measured.sha256}).`);
+      }
+    }
+    if (wantSha512) {
+      if (basis === 'recorded') {
+        basis = 'sha512';
+      }
+      if (measured.sha512 !== item.sha512) {
+        problems.push(`${item.file}의 SHA-512가 목록의 공식 값과 달라요(잰 값 ${measured.sha512}).`);
       }
     }
     if (item.md5 !== null) {
@@ -378,6 +466,17 @@ export function checkSourcesFolder({ folder, manifest }) {
       }
       if (measured.md5 !== item.md5) {
         problems.push(`${item.file}의 MD5가 목록의 공식 값과 달라요(잰 값 ${measured.md5}).`);
+      }
+    }
+    /** 압축 안에서 읽은 커밋(목록에 commit이 있는 파일만) */
+    let commit = null;
+    if (item.commit !== undefined) {
+      const archive = inspectGitArchive(filePath);
+      commit = archive.commit;
+      if (!archive.complete) {
+        problems.push(`${item.file}: ${archive.problem ?? '압축을 끝까지 읽지 못했어요'} — fetch-sources.ps1로 다시 받아요.`);
+      } else if (archive.commit !== item.commit) {
+        problems.push(`${item.file} 안의 git 커밋이 ${archive.commit ?? '(없음)'}이에요(목록 ${item.commit}) — 다른 판을 받았어요.`);
       }
     }
     const recorded = sums.get(item.file);
@@ -389,7 +488,7 @@ export function checkSourcesFolder({ folder, manifest }) {
       problems.push(`${item.file}이(가) 받은 뒤에 바뀌었어요(${SOURCES_SUMS_FILE}의 값과 달라요) — fetch-sources.ps1로 다시 받아요.`);
     }
     if (problems.length === before) {
-      files.push({ item, path: filePath, size: measured.size, sha256: measured.sha256, md5: measured.md5, basis });
+      files.push({ item, path: filePath, size: measured.size, sha256: measured.sha256, md5: measured.md5, sha512: measured.sha512 ?? null, basis, commit });
     }
   }
 
@@ -467,7 +566,7 @@ export function sourcesReadmeText({ manifest, files, version }) {
   for (const file of files) {
     byGroup.get(file.item.group)?.push(file);
   }
-  const recordedCount = files.filter((file) => file.basis === 'recorded').length;
+  const commitCount = files.filter((file) => file.item.commit !== undefined).length;
   const crateUrl = 'https://static.crates.io/crates/<이름>/<이름>-<판>.crate';
   const lines = [
     `AI 피지컬 컴퓨팅 오픈랩 오프라인판 ${version} — 대응 소스 사본`,
@@ -503,8 +602,11 @@ export function sourcesReadmeText({ manifest, files, version }) {
     `  - macOS·Linux: 이 폴더에서  sha256sum -c ${SOURCES_SUMS_FILE}`,
     '  공식 해시가 있는 파일은 그 값과 같은지 확인한 뒤 넣었어요(목록: 공개 저장소의 scripts/release/sources-manifest.json).',
   );
-  if (recordedCount > 0) {
-    lines.push(`  공식 해시가 없는 ${recordedCount}개(GitHub가 그때그때 만드는 압축)는 받은 날 잰 값과 같은지 확인했어요.`);
+  if (commitCount > 0) {
+    lines.push(
+      `  공식 해시가 없는 ${commitCount}개(GitHub가 그때그때 만드는 압축)는 압축 안에 적힌 git 커밋이 목록과 같은지 확인하고,`,
+      '  받은 날 잰 SHA-256을 목록에 고정해 그 값과 같은지 확인했어요.',
+    );
   }
   lines.push(
     '  같은 파일을 공개 저장소의 릴리스 목록(https://github.com/songdocomputerpark-lang/ai-physical-computing/releases)에서도',
@@ -543,8 +645,11 @@ export function sourcesReadmeText({ manifest, files, version }) {
     `  - macOS/Linux: in this folder run  sha256sum -c ${SOURCES_SUMS_FILE}`,
     '  Files with an official hash were checked against it (list: scripts/release/sources-manifest.json in the public repository).',
   );
-  if (recordedCount > 0) {
-    lines.push(`  The ${recordedCount} archive(s) without an official hash (GitHub builds them on request) match the SHA-256 measured when they were downloaded.`);
+  if (commitCount > 0) {
+    lines.push(
+      `  The ${commitCount} archive(s) without an official hash (GitHub builds them on request) carry the git commit named in the list`,
+      '  (checked inside the archive) and match the SHA-256 measured when they were downloaded and pinned in the list.',
+    );
   }
   lines.push(
     `  The same files can also be found in the repository releases (tag ${manifest.releaseTag}, once the operator has published it):`,

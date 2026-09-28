@@ -1,6 +1,9 @@
 // 대응 소스 목록(scripts/release/sources-manifest.json — 운영자 할 일 26·미해결 211)이 모양에 맞고, 이 사이트가 실제로 나누는 판·
 // 고지 파일 두 개와 같은 것을 가리키는지 본다. Pyodide·OpenCV 휠·Pagefind 판을 올리고 목록을 그대로 두면 여기서 멈춘다
 // (다른 판의 소스를 릴리스·오프라인판에 싣지 않게 — scripts/release/README.md 5절 "판을 올릴 때").
+// 1.1.0 안전 검토 반영(DECISIONS C60·C61): 서면 제안은 "고지 파일에 적힌 대응 소스"를 약속하므로 목록의 모든 파일이 고지 두 파일에 있어야 하고,
+// 공식 해시가 없는 파일은 커밋 주소(태그 주소는 옮겨질 수 있음)와 commit 칸이 있어야 한다.
+import { REDISTRIBUTION_NOTICES } from '../../../src/lib/credits.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -123,16 +126,68 @@ describe(`대응 소스 목록(${SOURCES_MANIFEST_FILE})`, () => {
     expect(gpl.whyKo).toContain(`wasm에 든 ${wasm.length}개, 만들 때만 쓰는 ${build.length}개`);
   });
 
-  it('크레이트는 모두 crates.io 공식 체크섬이 있고, 다른 파일은 공식 값이 없으면 GitHub 압축뿐이다', () => {
+  it('크레이트는 모두 crates.io 공식 체크섬이 있고, 공식 값이 없는 파일은 커밋 주소로 받는 GitHub 압축(+ commit 칸)뿐이다', () => {
     const list = loaded();
     for (const item of list.items) {
       if (item.file.endsWith('.crate')) {
         expect(item.sha256, item.id).toMatch(/^[0-9a-f]{64}$/u);
         expect(item.urls[0], item.id).toBe(`https://static.crates.io/crates/${item.file.replace(/-\d[^-]*\.crate$/u, '')}/${item.file}`);
-      } else if (item.sha256 === null && item.md5 === null) {
-        expect(item.urls[0], item.id).toMatch(/^https:\/\/github\.com\/[^/]+\/[^/]+\/archive\//u);
+      } else if (item.sha256 === null && item.md5 === null && (item.sha512 ?? null) === null) {
+        // 태그 주소(refs/tags)는 태그가 옮겨지면 다른 내용이 온다 — 커밋 주소로만 받고, 압축 안의 커밋을 확인한다
+        expect(item.commit, item.id).toMatch(/^[0-9a-f]{40}$/u);
+        expect(item.urls, item.id).toEqual([`https://github.com/${/^https:\/\/github\.com\/([^/]+\/[^/]+)\//u.exec(item.urls[0])?.[1]}/archive/${item.commit}.tar.gz`]);
       }
     }
+    // 공식 값이 없는 파일은 셋(레시피·그 하위 모듈·Pagefind)
+    expect(list.items.filter((item) => item.commit !== undefined).map((item) => item.id)).toEqual(['pyodide-recipes-fc85872', 'pyodide-build-26a30ea', 'pagefind-1.5.2']);
+  });
+
+  it('Emscripten 포트(zlib·libjpeg·libpng — cv2.so에 정적으로 들어감)도 목록에 있고 공식 SHA-512(포트 파일의 값)로 확인한다', () => {
+    for (const [id, file] of [
+      ['emscripten-port-zlib-1.3.1', 'zlib-1.3.1.tar.gz'],
+      ['emscripten-port-libjpeg-9f', 'jpegsrc.v9f.tar.gz'],
+      ['emscripten-port-libpng-1.6.55', 'libpng-1.6.55.tar.gz'],
+    ] as const) {
+      const item = itemById(id);
+      expect(item.file).toBe(file);
+      expect(item.group).toBe('lgpl-ffmpeg');
+      expect(item.sha512, id).toMatch(/^[0-9a-f]{128}$/u);
+      expect(item.hashSource, id).toContain('Emscripten 5.0.3 tools/ports/');
+    }
+    // 목록의 도구 칸이 포트를 "요구하지 않음"이라고 하지 않는다(소스를 넣었으므로)
+    const lgpl = loaded().groups.find((group) => group.id === 'lgpl-ffmpeg')!;
+    expect(lgpl.tools).not.toContain('does not require');
+    expect(lgpl.toolsKo).toContain('소스를 이 목록에 넣었어요');
+  });
+
+  it('서면 제안의 범위 = 목록 전체: 목록의 모든 파일이 고지 두 파일에 있다(주소·커밋·크레이트 이름과 판)', () => {
+    const list = loaded();
+    const wasmListed = new Set(noticeWasmCrates(pagefindNotice));
+    for (const item of list.items) {
+      const group = list.groups.find((entry) => entry.id === item.group)!;
+      const notice = group.notice.endsWith('pagefind-wasm-3rd-party.txt') ? pagefindNotice : wheelsNotice;
+      if (item.file.endsWith('.crate')) {
+        const [, name, version] = /^(.+)-(\d[^-]*)\.crate$/u.exec(item.file)!;
+        const listed = item.use === 'wasm' ? wasmListed.has(`${name} ${version}`) : notice.includes(`${name} ${version}`);
+        expect(listed, `${item.file}이(가) ${group.notice}에 있다`).toBe(true);
+      } else if (item.commit !== undefined) {
+        expect(notice, `${item.id}의 커밋이 ${group.notice}에 있다`).toContain(item.commit);
+      } else {
+        expect(item.urls.some((url) => notice.includes(url)), `${item.id}의 받는 곳이 ${group.notice}에 있다`).toBe(true);
+      }
+    }
+    // 범위를 못 박는 문장도 목록 전체를 가리킨다
+    expect(wheelsNotice).toContain('여기서 대응 소스는 위 목록 전부');
+    expect(wheelsNotice).not.toContain('위 세 가지');
+    expect(pagefindNotice).toContain('crates.io 크레이트 전부 21개');
+    for (const notice of [wheelsNotice, pagefindNotice]) {
+      expect(notice).toContain('scripts/release/sources-manifest.json');
+    }
+    // 출처 페이지 글(/credits/ "다시 나누는 파일에 꼭 함께 알리는 것")도 목록을 가리킨다
+    const creditsText = (id: string) => REDISTRIBUTION_NOTICES.find((entry) => entry.id === id)?.text ?? '';
+    expect(creditsText('ffmpeg-lgpl')).toContain('scripts/release/sources-manifest.json');
+    expect(creditsText('ffmpeg-lgpl')).toContain('ADE·libwebp·libtiff·zlib·libjpeg·libpng');
+    expect(creditsText('pagefind-gpl')).toContain('크레이트 21개');
   });
 
   it('운영자 안내(scripts/release/README.md)가 같은 릴리스 태그와 명령을 쓴다', () => {

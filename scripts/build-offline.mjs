@@ -73,6 +73,7 @@ import {
   readSourcesManifest,
   sourcesGuideFiles,
   sourcesSiteMismatches,
+  unpinnedSourceItems,
 } from './lib/offline-sources.mjs';
 import { ZipWriter } from './lib/offline-zip.mjs';
 import { formatBuildOutputReport, runBuildOutputCheck } from './lib/repo-check.mjs';
@@ -198,14 +199,23 @@ function prepareSources(folderArg) {
         '  scripts/release/README.md 차례로 fetch-sources.ps1을 다시 돌린 뒤 이 명령을 다시 돌려요.',
     );
   }
+  // 공식 해시가 없는 파일(GitHub 압축)의 값을 목록에 고정하기 전에는 만들지 않는다 — 고정 전에는 같은 폴더의 기록과만 대조된다
+  // (1.1.0 안전 검토 지적 3, DECISIONS C60 — scripts/release/README.md 3절 2번)
+  const unpinned = unpinnedSourceItems(manifest);
+  if (unpinned.length > 0) {
+    fail(
+      `대응 소스 목록에 아직 고정하지 않은 파일이 ${unpinned.length}개 있어요(${unpinned.map((item) => item.file).join(', ')}) — zip을 만들지 않아요.\n` +
+        '  scripts/release/README.md 3절 2번대로 fetch-sources.ps1이 커밋을 확인하고 잰 SHA-256을 목록의 sha256 칸에 고정한 뒤 다시 돌려요.',
+    );
+  }
   for (const note of result.notes) {
     log(`  참고 — ${note}`);
   }
   const bytes = result.files.reduce((sum, file) => sum + file.size, 0);
-  const recorded = result.files.filter((file) => file.basis === 'recorded').length;
+  const byCommit = result.files.filter((file) => file.item.commit !== undefined).length;
   log(
-    `  ${result.files.length}개(${megabytes(bytes)}) 모두 맞아요 — 공식 해시 대조 ${result.files.length - recorded}개, ` +
-      `받을 때 잰 값 대조 ${recorded}개(공식 해시가 없는 GitHub 압축)`,
+    `  ${result.files.length}개(${megabytes(bytes)}) 모두 맞아요 — 공식 해시 대조 ${result.files.length - byCommit}개, ` +
+      `git 커밋 확인 + 고정한 값 대조 ${byCommit}개(공식 해시가 없는 GitHub 압축)`,
   );
   timings.push({ step: '대응 소스 사본 확인', ms: Date.now() - at });
   return { manifest, files: result.files, bytes, folder };

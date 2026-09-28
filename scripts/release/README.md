@@ -20,7 +20,7 @@ Claude는 소스 압축 파일을 내려받지 않아요(내려받기 규칙). �
 ## 1. 운영자가 할 일(한 번, 약 10~20분)
 
 준비: 인터넷이 되는 이 컴퓨터, 빈 공간 1GB쯤(가장 큰 opencv-python 소스가 약 95MB라 모두 합쳐 적어도 110MB — 정확한 크기는 받은 뒤 결과에 나와요). 학교망이 github.com·crates.io·ffmpeg.org·
-pythonhosted.org를 막으면 집 인터넷에서 해요.
+pythonhosted.org·storage.googleapis.com·download.osgeo.org를 막으면 집 인터넷에서 해요.
 
 1. 파일 탐색기로 **이 저장소 폴더**(`package.json` 파일이 있는 폴더)를 열어요.
 2. 탐색기 위쪽 **주소창**을 한 번 누르고, `powershell`이라고 쓰고 Enter를 눌러요. 그 폴더에서 파란 창이 열려요.
@@ -31,29 +31,32 @@ pythonhosted.org를 막으면 집 인터넷에서 해요.
    ```
 
    `-ExecutionPolicy Bypass`는 **이번 한 번만** 이 스크립트를 실행하게 허락하는 것이고, 컴퓨터 설정은 바꾸지 않아요.
-4. 기다려요(5~15분). 파일마다 `[3/31] 파일 이름` 줄 다음에 결과가 나와요.
+4. 기다려요(5~15분). 파일마다 `[3/34] 파일 이름` 줄 다음에 결과가 나와요.
    - **PASS**(초록): 공식 값과 같아요.
-   - **RECORD**(하늘색): 공식 값이 없는 GitHub 압축 3개 — 받은 파일의 값을 적어 두었어요(정상이에요).
+   - **RECORD**(하늘색): 공식 값이 없는 GitHub 압축 3개 — 압축 안에 적힌 git 커밋이 목록과 같고 압축이 끝까지 풀리는 것을 확인한 뒤
+     받은 파일의 값을 적어 두었어요(정상이에요). 학교망 차단 안내 쪽을 받았거나 받다 끊겼으면 FAIL이 돼요.
    - **FAIL**(빨강): 받지 못했거나 값이 달라요. 그 파일은 남기지 않아요. 잠시 뒤 **같은 명령을 다시** 돌려요
      (이미 받은 파일은 건너뛰어요). 계속 FAIL이면 그 줄을 그대로 Claude에게 알려 주세요.
-5. 마지막에 `Summary: 28 PASS, 3 RECORD, 0 FAIL, 0 MISSING`처럼 나오면 끝이에요. Claude에게 **"소스 받기 끝났어요"**라고
+5. 마지막에 `Summary: 31 PASS, 3 RECORD, 0 FAIL, 0 MISSING`처럼 나오면 끝이에요. Claude에게 **"소스 받기 끝났어요"**라고
    알려 주세요(`===== BEGIN` ~ `===== END` 줄을 붙여 넣어도 돼요). 받은 파일은 `.cache\release-sources\`에 있어요
    (git이 무시하는 폴더라 저장소에 섞이지 않아요).
 6. Claude가 결과를 확인하고 릴리스 초안(제목·설명·올릴 파일 목록)을 보여 드려요. **"예"라고 하시기 전에는 아무것도 올리지 않아요.**
 
-받는 파일(목록 `scripts/release/sources-manifest.json` — 31개):
+받는 파일(목록 `scripts/release/sources-manifest.json` — 34개):
 
 | 무엇 | 파일 | 확인값 |
 |---|---|---|
 | FFmpeg 4.4.1 소스(휠 빌드가 쓴 GitHub 압축) + 공식 배포본·서명 | `FFmpeg-n4.4.1.tar.gz`, `ffmpeg-4.4.1.tar.xz`, `ffmpeg-4.4.1.tar.xz.asc` | 레시피·Ubuntu 소스 패키지의 SHA-256 |
 | FFmpeg를 쓰는 쪽(cv2.so)의 소스: OpenCV·파이썬 연결, 빌드 때 받는 ADE, 함께 연결된 libwebp·libtiff | `opencv-python-4.11.0.86.tar.gz`, `ade-0.1.2e.zip`, `libwebp-1.2.2.tar.gz`, `tiff-4.4.0.tar.gz` | PyPI·레시피의 SHA-256, OpenCV CMake의 MD5 |
-| 휠을 만든 방법: Pyodide 레시피 커밋과 그 하위 모듈(빌드 도구) | `pyodide-recipes-fc85872….tar.gz`, `pyodide-build-26a30ea….tar.gz` | 공식 값 없음 → RECORD |
-| 검색 엔진 소스: Pagefind v1.5.2 | `pagefind-1.5.2.tar.gz` | 공식 값 없음 → RECORD |
+| 컴파일러(Emscripten 5.0.3)가 포트로 만들어 cv2.so에 넣은 zlib·libjpeg·libpng | `zlib-1.3.1.tar.gz`, `jpegsrc.v9f.tar.gz`, `libpng-1.6.55.tar.gz` | Emscripten 포트 파일의 SHA-512 |
+| 휠을 만든 방법: Pyodide 레시피 커밋과 그 하위 모듈(빌드 도구) | `pyodide-recipes-fc85872….tar.gz`, `pyodide-build-26a30ea….tar.gz` | 공식 값 없음 → 압축 안 git 커밋 확인 후 RECORD |
+| 검색 엔진 소스: Pagefind v1.5.2(태그가 아니라 커밋 bf17396 주소로 받아요 — 태그는 옮겨질 수 있어서) | `pagefind-1.5.2.tar.gz` | 공식 값 없음 → 압축 안 git 커밋 확인 후 RECORD |
 | 검색 엔진이 쓰는 크레이트 21개(GPL 크레이트 포함, `Cargo.lock` 전부) | `pagefind_microjson-0.1.4.crate` 등 `.crate` 21개 | `Cargo.lock`의 체크섬(= crates.io) |
 
-넣지 않은 것과 까닭: 컴파일러와 그와 함께 나오는 것(Emscripten 5.0.3과 그 포트 zlib·libjpeg·libpng, Rust nightly와 표준 라이브러리)은
-라이선스가 요구하지 않아서 이름과 판만 적어요(목록의 `tools`). 공식 값을 어디서 가져왔는지는 목록의 `hashSource` 칸에 파일마다 있어요
-(2026-09-28 Claude가 공식 텍스트로 확인 — 두 곳 이상에서 같은 값인지 대조).
+넣지 않은 것과 까닭: 컴파일러 자체와 그와 함께 나오는 것(Emscripten 5.0.3 본체, Rust nightly와 표준 라이브러리)은 라이선스가 요구하지
+않아서 이름과 판만 적어요(목록의 `tools`). Emscripten이 빌드 때 밖에서 받아 cv2.so에 넣는 포트(zlib·libjpeg·libpng)는 "컴파일러와 함께
+나오는 것"으로 보기 어려워 소스를 넣었어요(2026-09-29 — 1.1.0 안전 검토, DECISIONS C61). 공식 값을 어디서 가져왔는지는 목록의 `hashSource`
+칸에 파일마다 있어요(2026-09-28·29 Claude가 공식 텍스트로 확인 — 두 곳 이상에서 같은 값인지 대조).
 
 ## 2. 안 될 때
 
@@ -72,9 +75,11 @@ pythonhosted.org를 막으면 집 인터넷에서 해요.
 
 준비(올리지 않음)
 1. `.cache/release-sources/fetch-result.json`을 읽고 FAIL·MISSING이 없는지 본다.
-2. RECORD 3개의 SHA-256을 목록 `sources-manifest.json`의 `sha256` 칸에 고정하고 `hashSource`에
-   `measured by scripts/release/fetch-sources.ps1 on <날짜> (operator PC)`를 적는다 → `npm test`(목록 검사) → 경로를 적어 커밋.
-   이제부터 이 세 파일도 PASS·FAIL로 확인돼요.
+2. RECORD 3개는 `fetch-result.json`의 `commit`이 목록의 `commit`과 같은지(스크립트가 이미 확인했지만 한 번 더 눈으로) 본 뒤,
+   그 SHA-256을 목록 `sources-manifest.json`의 `sha256` 칸에 고정하고 `hashSource`에
+   `measured by scripts/release/fetch-sources.ps1 on <날짜> (operator PC); git commit checked inside the archive`를 적는다 →
+   `npm test`(목록 검사) → 경로를 적어 커밋. 이제부터 이 세 파일도 PASS·FAIL로 확인돼요. **고정하기 전에는 3번(`release-notes.mjs`)과
+   `build:offline --sources`가 멈춰요**(고정 전 값은 같은 폴더의 기록과만 대조되기 때문 — DECISIONS C60).
 3. `node scripts/release/release-notes.mjs` — 받은 폴더를 목록과 다시 대조하고(`build:offline --sources`와 같은 규칙),
    `.cache/release-sources/release-notes.md`(한국어·영어 설명)를 쓰고, 공개 단계의 명령 세 줄을 찍는다.
    28번(오프라인판) 답이 "예"면 `--offline-zip .cache/offline/apc-offline-<판>.zip`을 붙인다(4절).
@@ -128,11 +133,12 @@ pythonhosted.org를 막으면 집 인터넷에서 해요.
 
 | 파일 | 하는 일 |
 |---|---|
-| `sources-manifest.json` | 대응 소스 목록 한 곳(주소·공식 해시·근거·라이선스·쓰임, 목록이 가리키는 사이트 판) |
+| `sources-manifest.json` | 대응 소스 목록 한 곳(주소·공식 해시(SHA-256·SHA-512·MD5)나 git 커밋·근거·라이선스·쓰임, 목록이 가리키는 사이트 판) |
 | `fetch-sources.ps1` | 운영자가 돌리는 받기·확인(Windows PowerShell 5.1, **ASCII 글자만** — BOM 없는 한국어는 5.1이 깨뜨려요). `-ListOnly`(목록만)·`-VerifyOnly`(받지 않고 확인만)·`-Force`(다시 받기) |
 | `release-notes.mjs` | 받은 폴더 확인 → 릴리스 설명 → 올릴 명령 찍기(올리지 않음), `--check-uploaded`로 올라간 파일 대조 |
 | `crates-from-lock.mjs` | `Cargo.lock` → 목록의 크레이트 항목(판 올리기용) |
 | `../lib/offline-sources.mjs` | 공통 규칙(목록 검사·폴더 대조·zip 안내 글) — `build:offline --sources`도 씀 |
 
-테스트: `tests/unit/release/`(목록이 사이트 판·고지와 같은지, PowerShell 스크립트를 이 컴퓨터 안 작은 서버로 돌려 보기, 릴리스 설명),
+테스트: `tests/unit/release/`(목록이 사이트 판·고지와 같은지 — 목록의 모든 파일이 고지 두 파일에 있는지, PowerShell 스크립트를 이 컴퓨터 안
+작은 서버로 돌려 보기(가짜 git 압축의 커밋 확인·끊긴 압축·웹 쪽 거르기 포함), 릴리스 설명),
 `tests/unit/offline/sources.test.ts`(폴더 대조·zip에 넣기).

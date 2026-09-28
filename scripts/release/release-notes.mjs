@@ -10,6 +10,8 @@
 //      gh api로 초안 릴리스의 파일 목록을 읽어 이름·크기·SHA-256(GitHub가 적는 digest)을 폴더와 대조한다(읽기만).
 //   4. 모두 맞으면 찍힌 gh release edit <태그> --draft=false 명령으로 공개한다.
 // 쓰는 도구는 저장소 안의 것뿐이고(외부 패키지 없음), gh는 3에서만 읽기(api GET)로 부른다.
+// 목록에 공식 해시가 없는 채(고정 전)인 항목이 있으면 멈춘다 — README 3절 2번(받은 날 잰 SHA-256을 목록에 고정)을 먼저 한다
+// (1.1.0 안전 검토 지적 3: 고정 전 값은 같은 폴더의 기록과만 대조된다, DECISIONS C60).
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,6 +24,7 @@ import {
   hashFile,
   readSourcesManifest,
   sourcesSha256SumsText,
+  unpinnedSourceItems,
 } from '../lib/offline-sources.mjs';
 
 export const RELEASE_REPO = 'songdocomputerpark-lang/ai-physical-computing';
@@ -80,11 +83,21 @@ export function buildReleaseNotes({ manifest, files, fetchedOn = null, offlineZi
   for (const file of files) {
     byGroup.get(file.item.group)?.push(file);
   }
-  const recorded = files.filter((file) => file.basis === 'recorded');
+  /** 공식 해시가 없어 압축 안의 git 커밋을 확인하고 받은 날 잰 값을 고정한 파일(GitHub가 그때그때 만드는 압축) */
+  const byCommit = files.filter((file) => file.item.commit !== undefined);
+  const hashName = (basis) => (basis === 'md5' ? 'MD5' : basis === 'sha512' ? 'SHA-512' : 'SHA-256');
   const basisKo = (file) =>
-    file.basis === 'recorded' ? `받을 때 잰 값${fetchedOn ? `(${fetchedOn})` : ''}` : `공식 ${file.basis === 'md5' ? 'MD5' : 'SHA-256'} — ${file.item.hashSource}`;
+    file.item.commit !== undefined
+      ? `git 커밋 ${file.item.commit.slice(0, 12)} 확인, SHA-256은 받은 날 잰 값${fetchedOn ? `(${fetchedOn})` : ''}`
+      : file.basis === 'recorded'
+        ? `받을 때 잰 값${fetchedOn ? `(${fetchedOn})` : ''}`
+        : `공식 ${hashName(file.basis)} — ${file.item.hashSource}`;
   const basisEn = (file) =>
-    file.basis === 'recorded' ? `measured when downloaded${fetchedOn ? ` (${fetchedOn})` : ''}` : `official ${file.basis === 'md5' ? 'MD5' : 'SHA-256'} - ${file.item.hashSource}`;
+    file.item.commit !== undefined
+      ? `git commit ${file.item.commit.slice(0, 12)} checked, SHA-256 measured when downloaded${fetchedOn ? ` (${fetchedOn})` : ''}`
+      : file.basis === 'recorded'
+        ? `measured when downloaded${fetchedOn ? ` (${fetchedOn})` : ''}`
+        : `official ${hashName(file.basis)} - ${file.item.hashSource}`;
   const table = (rows, lang) => {
     const head =
       lang === 'ko'
@@ -142,8 +155,10 @@ export function buildReleaseNotes({ manifest, files, fetchedOn = null, offlineZi
     `- 파일마다의 SHA-256은 \`${SOURCES_SUMS_FILE}\`에 있어요. Windows PowerShell: \`Get-FileHash -Algorithm SHA256 <파일>\`, macOS·Linux: \`sha256sum -c ${SOURCES_SUMS_FILE}\``,
     `- 공식 해시가 있는 파일은 그 값과 같음을 확인했어요(근거는 표의 마지막 칸, 목록은 [${SOURCES_MANIFEST_FILE}](${REPO_URL}/blob/main/${SOURCES_MANIFEST_FILE})).`,
   );
-  if (recorded.length > 0) {
-    lines.push(`- 공식 해시가 없는 ${recorded.length}개(GitHub가 그때그때 만드는 압축)는 받을 때 잰 값이에요.`);
+  if (byCommit.length > 0) {
+    lines.push(
+      `- 공식 해시가 없는 ${byCommit.length}개(GitHub가 그때그때 만드는 압축)는 압축 안에 적힌 git 커밋이 목록과 같은지 확인하고, 받은 날 잰 SHA-256을 목록에 고정했어요.`,
+    );
   }
   if (offlineZip) {
     lines.push(
@@ -350,6 +365,14 @@ async function main(argv) {
   }
   const tag = option(argv, '--tag') ?? manifest.releaseTag;
   const repo = option(argv, '--repo') ?? RELEASE_REPO;
+  const unpinned = unpinnedSourceItems(manifest);
+  if (unpinned.length > 0) {
+    console.error(
+      `목록에 아직 고정하지 않은 파일이 ${unpinned.length}개 있어요(${unpinned.map((item) => item.file).join(', ')}) — 릴리스를 준비하지 않아요.\n` +
+        '  scripts/release/README.md 3절 2번대로, fetch-sources.ps1이 커밋을 확인하고 잰 SHA-256(fetch-result.json)을 목록의 sha256 칸에 고정한 뒤 다시 돌려요.',
+    );
+    return 1;
+  }
   const result = checkSourcesFolder({ folder: dir, manifest });
   for (const note of result.notes) {
     console.log(`참고 — ${note}`);

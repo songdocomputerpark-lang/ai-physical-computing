@@ -18,6 +18,7 @@ import {
   releaseCommands,
 } from '../../../scripts/release/release-notes.mjs';
 import { makeTempDir, removeDir, writeFiles } from '../helpers/fixture.ts';
+import { gitArchiveTarGz } from '../helpers/git-archive.ts';
 
 const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
 const SCRIPT = path.join(rootDir, 'scripts', 'release', 'release-notes.mjs');
@@ -30,9 +31,12 @@ afterEach(() => {
   }
 });
 
-const FILES: Record<string, string> = {
+/** 공식 해시가 없는 GitHub 압축(레시피)이 담은 커밋 — 가짜 git archive 압축 안에 적힌다 */
+const COMMIT = 'fc8587207ecbf0fb54305d5da25ab7ed70f126d3';
+
+const FILES: Record<string, string | Buffer> = {
   'ffmpeg-9.9.tar.gz': 'ffmpeg source bytes',
-  'recipes-abc.tar.gz': 'recipes archive bytes',
+  'recipes-abc.tar.gz': gitArchiveTarGz(COMMIT),
   'microjson-0.1.4.crate': 'gpl crate bytes',
   'syn-2.0.0.crate': 'macro crate bytes',
 };
@@ -53,7 +57,8 @@ function group(id: string, ko: string) {
   };
 }
 
-function manifest() {
+/** pinned: 레시피 압축의 SHA-256을 목록에 고정했는지(README 3절 2번 — 고정 전에는 명령 줄 도구가 멈춘다) */
+function manifest(pinned = true) {
   const item = (id: string, file: string, groupId: string, fields: Record<string, unknown>) => ({
     id,
     group: groupId,
@@ -76,19 +81,23 @@ function manifest() {
     groups: [group('lgpl', '엘지피엘'), group('gpl', '지피엘')],
     items: [
       item('ffmpeg', 'ffmpeg-9.9.tar.gz', 'lgpl', { sha256: sha(FILES['ffmpeg-9.9.tar.gz']), hashSource: 'recipe meta.yaml', license: 'LGPL-2.1-or-later' }),
-      item('recipes', 'recipes-abc.tar.gz', 'lgpl', { license: 'MPL-2.0' }),
+      item('recipes', 'recipes-abc.tar.gz', 'lgpl', {
+        license: 'MPL-2.0',
+        commit: COMMIT,
+        ...(pinned ? { sha256: sha(FILES['recipes-abc.tar.gz']!), hashSource: 'measured by scripts/release/fetch-sources.ps1 on 2026-09-29 (operator PC)' } : {}),
+      }),
       item('microjson', 'microjson-0.1.4.crate', 'gpl', { sha256: sha(FILES['microjson-0.1.4.crate']), hashSource: 'Cargo.lock', license: 'GPL-3.0-only', use: 'wasm' }),
       item('syn', 'syn-2.0.0.crate', 'gpl', { sha256: sha(FILES['syn-2.0.0.crate']), hashSource: 'Cargo.lock', use: 'build' }),
     ],
   };
 }
 
-/** fetch-sources.ps1이 받은 뒤의 폴더 + 가짜 목록 파일 */
-function prepared() {
+/** fetch-sources.ps1이 받은 뒤의 폴더 + 가짜 목록 파일(pinned — manifest와 같은 뜻) */
+function prepared(pinned = true) {
   const dir = makeTempDir('apc-release-notes-');
   tempDirs.push(dir);
-  const list = manifest();
-  const sums = list.items.map((entry) => `${sha(FILES[entry.file])}  ${entry.file}\n`).join('');
+  const list = manifest(pinned);
+  const sums = list.items.map((entry) => `${sha(FILES[entry.file]!)}  ${entry.file}\n`).join('');
   writeFiles(dir, {
     ...FILES,
     [SOURCES_SUMS_FILE]: sums,
@@ -109,7 +118,7 @@ function offlineZip(dir: string, summarySha?: string) {
 }
 
 describe('릴리스 설명(buildReleaseNotes)', () => {
-  it('묶음마다 한국어·영어 표, 공식 값의 근거, 받을 때 잰 값의 날, 크레이트는 접기, 고지 주소', () => {
+  it('묶음마다 한국어·영어 표, 공식 값의 근거, 커밋 확인·받은 날 잰 값, 크레이트는 접기, 고지 주소', () => {
     const { list, files } = prepared();
     const notes = buildReleaseNotes({ manifest: list as never, files, fetchedOn: '2026-09-29' });
     expect(notes).toContain('## 엘지피엘 묶음');
@@ -118,11 +127,14 @@ describe('릴리스 설명(buildReleaseNotes)', () => {
       expect(notes).toContain(`\`${file}\``);
     }
     expect(notes).toContain('공식 SHA-256 — recipe meta.yaml');
-    expect(notes).toContain('받을 때 잰 값(2026-09-29)');
-    expect(notes).toContain('measured when downloaded (2026-09-29)');
+    expect(notes).toContain(`git 커밋 ${COMMIT.slice(0, 12)} 확인, SHA-256은 받은 날 잰 값(2026-09-29)`);
+    expect(notes).toContain(`git commit ${COMMIT.slice(0, 12)} checked, SHA-256 measured when downloaded (2026-09-29)`);
     expect(notes).toContain('<details><summary>크레이트 2개');
     expect(notes).toContain('(https://songdocomputerpark-lang.github.io/ai-physical-computing/licenses/lgpl.txt)');
     expect(notes).toContain('공식 해시가 없는 1개');
+    expect(notes).toContain('압축 안에 적힌 git 커밋이 목록과 같은지 확인');
+    // 고정한 값은 "공식"이라고 부르지 않는다
+    expect(notes).not.toContain('공식 SHA-256 — measured by');
     expect(notes).not.toContain('오프라인판 1.1.0');
     expect(notes).not.toMatch(/[A-Za-z]:\\/u);
   });
@@ -245,7 +257,15 @@ describe('명령 줄(node scripts/release/release-notes.mjs) — 올리지 않�
     expect(result.stdout).toMatch(/1\) gh release create license-sources-test --repo \S+ --target main --draft /u);
     expect(result.stdout).toContain('3) gh release edit license-sources-test');
     const notes = fs.readFileSync(path.join(dir, NOTES_FILE), 'utf8');
-    expect(notes).toContain('받을 때 잰 값(2026-09-29)');
+    expect(notes).toContain('SHA-256은 받은 날 잰 값(2026-09-29)');
+  });
+
+  it('준비: 목록에 아직 고정하지 않은 파일(공식 해시 없음)이 있으면 멈춘다 — README 3절 2번 먼저', () => {
+    const { dir } = prepared(false);
+    const result = run(['--dir', dir, '--manifest', path.join(dir, 'manifest.json')]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('목록에 아직 고정하지 않은 파일이 1개 있어요(recipes-abc.tar.gz)');
+    expect(fs.existsSync(path.join(dir, NOTES_FILE))).toBe(false);
   });
 
   it('준비: SHA256SUMS.txt에 목록 밖 줄이 있으면 목록의 파일만으로 다시 쓴다', () => {
@@ -262,7 +282,7 @@ describe('명령 줄(node scripts/release/release-notes.mjs) — 올리지 않�
     fs.writeFileSync(path.join(dir, 'ffmpeg-9.9.tar.gz'), 'changed');
     const result = run(['--dir', dir, '--manifest', path.join(dir, 'manifest.json')]);
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('ffmpeg-9.9.tar.gz의 SHA-256이 목록의 공식 값과 달라요');
+    expect(result.stderr).toContain('ffmpeg-9.9.tar.gz의 SHA-256이 목록의 값과 달라요');
     expect(result.stderr).toContain('fetch-sources.ps1을 다시 돌려야 해요');
     expect(fs.existsSync(path.join(dir, NOTES_FILE))).toBe(false);
   });

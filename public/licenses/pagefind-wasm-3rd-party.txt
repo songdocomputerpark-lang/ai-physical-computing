@@ -15,9 +15,14 @@ licenses/pagefind.txt에 있어요. 이 파일은 그 wasm 안에 함께 컴파�
 │ 대응 소스(Corresponding Source) — 이 wasm을 만든 소스와 빌드 방법:
 │  • Pagefind v1.5.2(커밋 bf17396721be637cc67c8ed7ead1dc7b8ac43d96): https://github.com/Pagefind/pagefind/tree/v1.5.2
 │    pagefind_web/(Cargo.toml·Cargo.lock·src/·build.js·local_build.sh), pagefind_stem/ — https://github.com/Pagefind/pagefind/archive/refs/tags/v1.5.2.tar.gz
-│  • 의존 크레이트 소스(crates.io, 체크섬은 pagefind_web/Cargo.lock): pagefind_microjson 0.1.4
-│    https://crates.io/api/v1/crates/pagefind_microjson/0.1.4/download (SHA-256 8f97aa64cde14e78d6274c473f36cec98d401f0b583282055e953d2df907e210),
-│    그 밖의 크레이트는 아래 표의 판 그대로 crates.io에 있어요.
+│    (커밋으로 받는 주소: https://github.com/Pagefind/pagefind/archive/bf17396721be637cc67c8ed7ead1dc7b8ac43d96.tar.gz)
+│  • 의존 크레이트 소스: pagefind_web/Cargo.lock에 적힌 crates.io 크레이트 전부 21개(cargo vendor가 받는 범위 — wasm에 든 12개와
+│    만들 때만 쓰는 매크로 9개). 이름·판·체크섬은 Cargo.lock과 공개 저장소의 scripts/release/sources-manifest.json("gpl-pagefind" 묶음 —
+│    https://github.com/songdocomputerpark-lang/ai-physical-computing/blob/main/scripts/release/sources-manifest.json)에 있어요.
+│    GPL 크레이트 pagefind_microjson 0.1.4: https://crates.io/api/v1/crates/pagefind_microjson/0.1.4/download
+│    (SHA-256 8f97aa64cde14e78d6274c473f36cec98d401f0b583282055e953d2df907e210). 만들 때만 쓰는 9개: proc-macro2 1.0.106, quote 1.0.45,
+│    syn 2.0.117, unicode-ident 1.0.24, bumpalo 3.20.2, rustversion 1.0.22, serde_derive 1.0.228, wasm-bindgen-macro 0.2.117,
+│    wasm-bindgen-macro-support 0.2.117 — 그 밖의 12개는 아래 표의 판 그대로 crates.io에 있어요.
 │  • 빌드 도구: rustc 1.97.0-nightly(bf4fbfb7a 2026-04-11 — wasm 안 글자), wasm-bindgen 0.2.117.
 │ 이 사이트 저장소의 릴리스에도 위 소스의 사본을 함께 올려 두기로 했어요(운영자 할 일 — PROGRESS.md). 사이트 코드(MIT)는
 │ GPL-3.0과 함께 쓸 수 있는 라이선스이고, 검색 화면은 이 wasm을 정해진 함수로 불러 쓸 뿐 wasm을 고치지 않아요.

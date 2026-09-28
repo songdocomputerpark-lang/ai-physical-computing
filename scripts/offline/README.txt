@@ -99,7 +99,7 @@
   - 다른 저작자가 만든 라이브러리·파일은 원래 조건을 따라요. 목록과 고지 전문은
     site\licenses\ 폴더와 사이트의 "출처와 라이선스" 쪽(http://localhost:8080/credits/)에 있어요.
   - 이 묶음에는 다음 두 가지가 고치지 않은 채 들어 있어요. 고지와 "대응 소스(프로그램을 만든 원래 소스)"를
-    받는 곳·확인값(SHA-256)을 그 파일에 적어 두었어요.
+    받는 곳·확인값을 그 파일에 적어 두었어요(대응 소스 목록 전체는 공개 저장소의 scripts/release/sources-manifest.json).
       · OpenCV 휠 안의 FFmpeg 4.4.1(LGPL-2.1 이상) → site\licenses\pyodide-wheels-3rd-party.txt 1절
       · 사이트 검색 엔진(Pagefind) wasm 안의 GPL-3.0 크레이트 → site\licenses\pagefind-wasm-3rd-party.txt 머리 상자
     두 파일에는 "서면 제안"이 들어 있어요: 이 묶음을 받은 사람은 누구나 받은 날부터 적어도 3년 동안 대응 소스의 사본을
