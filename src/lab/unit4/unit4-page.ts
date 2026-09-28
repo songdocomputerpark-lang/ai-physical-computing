@@ -64,7 +64,9 @@ export const UNIT4_TEXT = Object.freeze({
   board: '보드 코드를 실행하고 있어요…',
   link: '가상 보드와 블루투스로 잇고 있어요…',
   pc: '컴퓨터 코드를 실행하고 있어요…',
-  running: '두 칸이 함께 돌고 있어요. 얼굴이 움직이면 가상 모니터의 커서와 보드의 서보·LCD가 따라 움직여요.',
+  running: '두 칸이 함께 돌고 있어요.',
+  /** 짝 목록에 없는 조합(두 칸에서 예제를 따로 골랐을 때)의 뒷말 — 짝이면 짝의 running 글(examples.ts PAIRS)이 붙는다 */
+  runningAny: '컴퓨터 칸이 보낸 값이 블루투스로 보드 칸에 닿아요 — 보드 칸의 콘솔과 부품을 봐요.',
   runningNoLink: '컴퓨터 코드는 돌지만 보드와 아직 이어지지 않았어요. 보드 칸의 블루투스 조작 칸에서 [연결]을 눌러요.',
   boardStopped: '보드가 멈췄어요. 좌표가 보드에 닿지 않아요 — [함께 정지]를 누른 뒤 [함께 실행]을 다시 눌러요.',
   noBle: '이 보드 예제는 블루투스를 쓰지 않아서 잇지 않고 컴퓨터 코드만 이어서 돌려요.',
@@ -237,6 +239,21 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     return `${UNIT4_TEXT.preparing} — 컴퓨터 칸: ${loadingLine(visionRoot, pc)}, 보드 칸: ${loadingLine(boardRoot, board)}${elapsed}. 준비가 끝나면 바로 시작해요.`;
   };
 
+  /** 지금 두 칸의 예제가 짝 목록의 한 짝이면 그 짝이 도는 동안의 한 줄(Unit4Bar의 data-unit4-pair-running), 아니면 null */
+  const pairRunningText = (): string | null => {
+    const pcId = pc.currentExample?.id;
+    const boardId = board.currentExample?.id;
+    if (!pcId || !boardId) {
+      return null;
+    }
+    for (const button of root.querySelectorAll<HTMLButtonElement>('[data-unit4-pair]')) {
+      if (button.dataset.unit4PairPc === pcId && button.dataset.unit4PairBoard === boardId) {
+        return button.dataset.unit4PairRunning ?? null;
+      }
+    }
+    return null;
+  };
+
   const describeRunning = (): string => {
     if (!isRunning(boardRoot)) {
       return UNIT4_TEXT.boardStopped;
@@ -245,10 +262,45 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     if (host && !bleConnected(boardRoot)) {
       return UNIT4_TEXT.runningNoLink;
     }
-    return host ? UNIT4_TEXT.running : UNIT4_TEXT.noBle;
+    return host ? `${UNIT4_TEXT.running} ${pairRunningText() ?? UNIT4_TEXT.runningAny}` : UNIT4_TEXT.noBle;
+  };
+
+  /**
+   * [함께 실행]·[함께 정지]를 키보드로 누르면 그 단추가 꺼진다 — 초점이 문서(body)로 사라지지 않게 켜진 짝 단추로 옮긴다
+   * (실습실 틀 lab-shell.ts #keepButtonFocus와 같은 규칙, 1.1.0 검토 반영). 둘 다 꺼져 있으면(멈추는 중) 켜질 때까지 기다렸다 옮긴다.
+   * 학생이 초점을 다른 곳으로 옮겼으면 따라가지 않는다. 화면은 움직이지 않는다(preventScroll).
+   */
+  let focusFollow: 'run' | 'stop' | null = null;
+  const followFocus = (before: Element | null): void => {
+    const { run, stop } = elements;
+    if (!run || !stop) {
+      return;
+    }
+    if (before === run && run.disabled) {
+      focusFollow = 'stop';
+    } else if (before === stop && stop.disabled) {
+      focusFollow = 'run';
+    }
+    if (focusFollow === null) {
+      return;
+    }
+    const active = document.activeElement;
+    const lost = active === null || active === document.body || ((active === run || active === stop) && (active as HTMLButtonElement).disabled);
+    if (!lost) {
+      focusFollow = null;
+      return;
+    }
+    const preferred = focusFollow === 'stop' ? stop : run;
+    const other = focusFollow === 'stop' ? run : stop;
+    const target = !preferred.disabled ? preferred : !other.disabled ? other : null;
+    if (target) {
+      target.focus({ preventScroll: true });
+      focusFollow = null;
+    }
   };
 
   const render = () => {
+    const focusBefore = document.activeElement;
     const pcRunning = isRunning(visionRoot);
     const boardRunning = isRunning(boardRoot);
     root.dataset.unit4Phase = phase;
@@ -259,6 +311,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     if (elements.stop) {
       elements.stop.disabled = phase === 'stopping' || (phase === 'idle' && !pcRunning && !boardRunning);
     }
+    followFocus(focusBefore);
     if (elements.input) {
       elements.input.disabled = pcRunning;
     }

@@ -492,6 +492,8 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
     await runTogether(page);
     await expect(bar(page)).toHaveAttribute('data-unit4-connected', 'true');
     await expect(bar(page).locator('[data-unit4-status]')).toContainText('두 칸이 함께 돌고 있어요');
+    // 도는 동안 글은 짝마다(이 짝 — 4-2-2 심화 사이트판: 레이저·버저) — 1.1.0 검토 반영: 모든 짝에 "서보·LCD"가 나오던 것
+    await expect(bar(page).locator('[data-unit4-status]')).toContainText('값이 오는 동안 레이저가 켜지며');
 
     // 컴퓨터 칸: 원본처럼 `Sent: …`(§7.6 ⑤), 보드 칸: 받은 줄 수가 보낸 줄 수를 따라온다
     await expect.poll(() => consoleText(pcLab(page)), { timeout: 60_000 }).toMatch(/Sent: DATA,\d+,\d+,0,0/u);
@@ -560,7 +562,12 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
     await openUnit4(page);
     await waitBothReady(page);
     await chooseReplay(page, 'face-wink');
-    await runTogether(page);
+    // 키보드로 [함께 실행]을 누르면 그 단추가 꺼져도 초점이 [함께 정지]로 간다 — 문서(body)로 사라지지 않는다(1.1.0 검토 반영, lab-shell 규칙과 같게)
+    await expect(bar(page).locator('[data-unit4-run]')).toBeEnabled({ timeout: READY_TIMEOUT });
+    await bar(page).locator('[data-unit4-run]').focus();
+    await page.keyboard.press('Enter');
+    await expect(bar(page)).toHaveAttribute('data-unit4-phase', 'running', { timeout: READY_TIMEOUT });
+    await expect(bar(page).locator('[data-unit4-stop]')).toBeFocused();
     await expect(bar(page)).toHaveAttribute('data-unit4-connected', 'true');
 
     // 컴퓨터 칸: 원본 f104가 왼쪽 눈을 0.4초 넘게 감으면 더블클릭, 두 눈이면 우클릭을 찍는다(카메라 없이 — PD-30 합성 좌표)
@@ -579,7 +586,13 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
     }
     expect([...seen].sort(), '보드가 받은 클릭 줄(더블클릭 1,0 · 우클릭 0,1)').toEqual(['0,1', '1,0']);
 
-    await stopTogether(page);
+    // 키보드로 [함께 정지] → 멈추는 동안 두 단추가 모두 꺼져도, 멈춘 뒤 초점이 [함께 실행]으로 돌아온다
+    await bar(page).locator('[data-unit4-stop]').focus();
+    await page.keyboard.press('Enter');
+    await expect(bar(page)).toHaveAttribute('data-unit4-phase', 'idle', { timeout: 60_000 });
+    await expect(bar(page).locator('[data-unit4-run]')).toBeFocused({ timeout: 10_000 });
+    await expect(pcLab(page)).toHaveAttribute('data-state', /^(idle|failed)$/u, { timeout: 30_000 });
+    await expect(boardLab(page)).toHaveAttribute('data-state', /^(idle|failed)$/u, { timeout: 30_000 });
     await expect(boardLab(page).locator('[data-lab-console]')).not.toContainText('Traceback');
   });
 

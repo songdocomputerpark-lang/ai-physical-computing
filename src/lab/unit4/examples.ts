@@ -53,6 +53,11 @@ export interface Unit4Pair {
   readonly label: string;
   /** 무엇이 보이는지 한 줄 */
   readonly note: string;
+  /**
+   * 두 칸이 함께 도는 동안 상태 줄에 붙는 한 줄("두 칸이 함께 돌고 있어요." 뒤) — 짝마다 무엇이 움직이는지(1.1.0 검토 반영: 모든 짝에
+   * "얼굴이 움직이면 … 서보·LCD가"가 나와 3-1-3 손끝 짝과 맞지 않았다)
+   */
+  readonly running: string;
   /** 컴퓨터 쪽 예제(examples/ 뒤 경로) */
   readonly pc: string;
   /** 보드 쪽 예제 */
@@ -65,6 +70,7 @@ export interface Unit4PairView {
   readonly id: string;
   readonly label: string;
   readonly note: string;
+  readonly running: string;
   readonly pcId: string;
   readonly boardId: string;
 }
@@ -78,6 +84,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-1-4',
     label: '4-1-4 — 코 좌표를 LCD에',
     note: '0.5초마다 DATA,x,y(카메라 좌표)를 보내고 LCD에 적어요.',
+    running: '얼굴이 움직이면 0.5초마다 코 좌표가 보드 LCD에 적혀요.',
     pc: 'vision/u4/4-1-4-adv-face-ble-tx.py',
     board: 'esp32/u4/4-1-4-ble-lcd-rx.py',
   },
@@ -85,6 +92,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-1',
     label: '4-2-1 기본 — 마우스 좌표를 LCD에',
     note: '얼굴로 움직인 마우스 좌표와 클릭 수를 LCD에 적어요.',
+    running: '얼굴이 움직이면 가상 모니터의 커서가 따라가고, 마우스 좌표와 클릭 수가 보드 LCD에 적혀요.',
     pc: DEFAULT_PC_FILE,
     board: 'esp32/u4/4-2-1-adv-ble-data-lcd.py',
   },
@@ -92,6 +100,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-1-adv',
     label: '4-2-1 심화 — 서보 두 개',
     note: '마우스 좌표를 각도로 바꿔 서보 X·Y를 돌려요(화면 3840×2160 가정).',
+    running: '얼굴이 움직이면 가상 모니터의 커서와 보드의 서보 X·Y가 따라 움직여요.',
     pc: DEFAULT_PC_FILE,
     board: 'esp32/u4/4-2-1-adv-ble-servo-lcd.py',
   },
@@ -99,6 +108,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-2',
     label: '4-2-2 기본 — 서보와 RGB LED',
     note: '클릭하면 LED가 아주 잠깐 켜져요(다음 좌표가 오면 바로 꺼져요 — 원본 그대로).',
+    running: '얼굴이 움직이면 커서와 보드의 서보가 따라 움직이고, 클릭하면 RGB LED가 아주 잠깐 켜져요.',
     pc: DEFAULT_PC_FILE,
     board: 'esp32/u4/4-2-2-ble-servo-rgb.py',
   },
@@ -106,6 +116,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-2-adv',
     label: '4-2-2 심화 — 서보·RGB·레이저·버저(사이트판)',
     note: '값이 오는 동안 레이저가 켜지고, 클릭하면 버저가 울려요.',
+    running: '얼굴이 움직이면 커서와 서보가 따라 움직이고, 값이 오는 동안 레이저가 켜지며, 클릭하면 버저가 울려요.',
     pc: DEFAULT_PC_FILE,
     board: DEFAULT_BOARD_FILE,
   },
@@ -113,6 +124,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-2-mount',
     label: '4-2-2 심화 — 거치대 각도(사이트판)',
     note: '거치대에 맞춰 서보가 도는 범위를 좁혔어요.',
+    running: '얼굴이 움직이면 커서와 거치대의 서보가 좁은 각도 안에서 따라 움직여요.',
     pc: DEFAULT_PC_FILE,
     board: 'esp32/u4/4-2-2-adv-ble-mount-site.py',
   },
@@ -120,6 +132,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-2-explore',
     label: '4-2-2 탐구 — 클릭 LED 2초 유지(사이트판)',
     note: '클릭 LED가 2초 동안 켜져 있어 눈으로 보기 쉬워요. 배선이 다른 예제라 보드 그림을 봐요.',
+    running: '값이 오는 동안 레이저가 켜지고, 클릭하면 RGB LED가 2초 동안 켜졌다가 저절로 꺼져요.',
     pc: DEFAULT_PC_FILE,
     board: 'esp32/u4/4-2-2-explore-rgb-buzzer-site.py',
   },
@@ -127,6 +140,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '4-2-3',
     label: '4-2-3 — bluetooth_lib 이름으로 부르기(사이트판)',
     note: '컴퓨터 쪽은 부르는 이름만 다르고, 보드 쪽은 서보 각도 범위가 달라요.',
+    running: '얼굴이 움직이면 커서와 보드의 서보가 따라 움직이고, 값이 오지 않으면 레이저가 꺼져요.',
     pc: 'vision/u4/4-2-3-face-mouse-ble-tx-lib.py',
     board: 'esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer-site.py',
   },
@@ -134,6 +148,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: '3-1-3',
     label: '(3단원) 3-1-3 — 손끝 좌표로 RGB LED',
     note: '검지 끝 좌표 "x,y"를 매 장 보내요. 보드는 2초에 하나씩 읽어 빨강·초록·파랑을 켜요(입력은 손).',
+    running: '손끝(검지)이 움직이면 보드가 2초에 하나씩 좌표를 읽어 RGB LED 색을 바꿔요.',
     pc: 'vision/u3/3-1-3-hand-ble-xy.py',
     board: 'esp32/u3/3-1-3-ble-xy-rgb.py',
   },
@@ -141,6 +156,7 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
     id: 'bt-finger-rgb',
     label: '(블루투스 교안) 손끝 좌표 두 개로 RGB LED',
     note: '3-1-3과 같은 일을 하는 교안 판이에요. 보드의 LED 핀만 달라요(27·32·33).',
+    running: '손끝(검지)이 움직이면 보드가 좌표를 읽어 RGB LED 색을 바꿔요.',
     pc: 'vision/bt/b11-finger-xy-send.py',
     board: 'esp32/bt/b10-two-values-rgb.py',
   },
@@ -156,7 +172,7 @@ export function pairViews(pcIds: ReadonlySet<string>, boardIds: ReadonlySet<stri
     const pcId = pcExampleId(pair.pc);
     const boardId = boardExampleId(pair.board);
     if (pcIds.has(pcId) && boardIds.has(boardId)) {
-      views.push({ id: pair.id, label: pair.label, note: pair.note, pcId, boardId });
+      views.push({ id: pair.id, label: pair.label, note: pair.note, running: pair.running, pcId, boardId });
     } else {
       missing.push(pair);
     }
