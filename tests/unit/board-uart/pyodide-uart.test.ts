@@ -60,7 +60,15 @@ describe.skipIf(!boardPyodideReady)('가상 보드 machine.UART와 시리얼 창
     ]);
     // write는 보낸 바이트 수(글자는 UTF-8 — "한글"은 6바이트, 최대·시작 인자), 받은 것이 없으면 any 0·read None·readline None, 보내는 중에는 txdone False
     expect(value[23]).toEqual([5, 2, 3, 6, 2, 3]);
-    expect(value[24]).toEqual([0, null, null, null, false]);
+    const [anyCount, readAll, readFour, line, txdoneWhileSending, leftAfterNs] = value[24] as [number, unknown, unknown, unknown, unknown, number];
+    expect([anyCount, readAll, readFour, line]).toEqual([0, null, null, null]);
+    // 21바이트(9600bps 약 22ms)를 보내는 동안 txdone은 False. 바쁜 컴퓨터에서는 txdone을 부르기 전에 이미 다 보냈을 수 있어서
+    // (npm test 전체 실행에서 True를 한 번 봄, 2026-09-29 판 1.1.1 검토 반영) txdone을 부른 뒤에도 보낼 것이 남아 있었을 때만 False를 요구한다.
+    expect(typeof txdoneWhileSending).toBe('boolean');
+    expect(typeof leftAfterNs).toBe('number');
+    if (leftAfterNs > 0) {
+      expect(txdoneWhileSending).toBe(false);
+    }
     expect(value[25]).toBe(true);
     // deinit 뒤: write·read는 None, txdone False, any는 OSError(1, 'ESP_FAIL')
     expect(value[26]).toEqual([null, null, false]);

@@ -33,7 +33,9 @@ test.describe('시작하기 페이지', () => {
       const response = await page.goto(navPage.href);
       expect(response?.status()).toBe(200);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(navPage.title);
-      await expect(page.locator('h1')).toHaveCount(1);
+      // 쪽 문서의 제목만 센다 — Playwright의 'h1'은 그림자 DOM까지 들어가 개발 서버의 Astro 개발 도구 막대(astro-dev-toolbar) 속 제목 4개도
+      // 세었다(개발 서버로 돌리면 늘 "기대 1·받음 5" — 1.1.0 검토 지적, 빌드 결과엔 막대가 없다). querySelectorAll은 그림자 DOM에 들어가지 않는다.
+      expect(await page.evaluate(() => document.querySelectorAll('h1').length)).toBe(1);
       await page.waitForLoadState('networkidle');
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(0);

@@ -57,7 +57,9 @@ export default async function uartSteps({ step, bridge, out, rootDir }) {
       '        r.append(type(e).__name__ + ": " + str(e))',
       'u = UART(2, baudrate=9600, tx=17, rx=16)',
       'r.append([u.write("hello"), u.write(b"ab"), u.write(bytearray([1, 2, 3])), u.write("한글"), u.write(b"abcdef", 2), u.write(b"abcdef", 1, 3)])',
-      'r.append([u.any(), u.read(), u.read(4), u.readline(), u.txdone()])',
+      // 마지막 칸: txdone()을 부른 "뒤"에도 보낼 것이 남은 시간(ns) — 바쁜 컴퓨터에서 이미 다 보낸 경우를 가려낸다(테스트가 봄)
+      'import apc_board',
+      'r.append([u.any(), u.read(), u.read(4), u.readline(), u.txdone(), u._tx_free_ns - apc_board.BOARD.clock.now_ns()])',
       'import time',
       'time.sleep_ms(50)',
       'r.append(u.txdone())',
