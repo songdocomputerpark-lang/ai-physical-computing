@@ -79,7 +79,9 @@ describe('무거운 라이브러리 알아보기', () => {
     expect(HEAVY_LIBRARIES.map((item) => item.id)).toEqual(['pyodide', 'mediapipe', 'blockly', 'mqtt', 'codemirror', 'esptool']);
   });
 
-  it('빌드 결과가 있으면: 표식 글자가 그 라이브러리 청크에만 있다(dist/_astro — 없으면 건너뛴다)', () => {
+  // 제한 시간 30초: 이 검사는 빠르기가 아니라 내용(표식이 어느 청크에 있는지)을 본다. 혼자 돌면 0.4초지만 npm test 전체(파일 232개를
+  // 여러 워커가 함께)에서는 디스크 읽기가 밀려 기본 5초를 넘겼다(2026-09-29 1.1.1 최종 검증 — 청크 111개·3.6MB에 5.7초).
+  it('빌드 결과가 있으면: 표식 글자가 그 라이브러리 청크에만 있다(dist/_astro — 없으면 건너뛴다)', { timeout: 30_000 }, () => {
     const dir = path.join(ROOT, 'dist', '_astro');
     if (!fs.existsSync(dir)) {
       return;
