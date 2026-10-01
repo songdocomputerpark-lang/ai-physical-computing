@@ -8,6 +8,7 @@
  *
  * 키 입력: 출력 화면(stage)에 초점이 있을 때 누른 키를 cv2.waitKey 값으로 바꿔(frame.ts keyCodeForEvent) onKey로 알린다.
  * Tab·화살표·조합키는 브라우저에 그대로 둔다(키보드 접근성). 터치 기기용 화면 키 버튼도 같은 onKey를 부른다.
+ * 창 탭 줄(role=tablist)은 ←·→·Home·End로 창을 고른다(APG Tabs — 판 1.1.1 최종 점검).
  * 학생이 탭의 [창 닫기]를 누르면 onClose(이름)으로 알려 파이썬의 cv2.getWindowProperty가 0.0을 돌려주게 한다.
  *
  * 화면 요소는 src/components/lab/VisionIo.astro가 그리고, 여기서는 data-vision-* 표시로 찾는다.
@@ -85,6 +86,23 @@ export class OutputWindows {
     };
     stage.addEventListener('keydown', onKeyDown);
     this.#cleanups.push(() => stage.removeEventListener('keydown', onKeyDown));
+    // 탭 줄의 키보드(WAI-ARIA APG Tabs, 자동 선택): ←·→로 옆 창(끝에서 처음으로 돌아감), Home·End로 첫·끝 창을 고르고 그 탭에 초점을 둔다.
+    // 탭은 고른 것만 Tab 차례(roving tabindex)라, 이 키가 없으면 창이 둘 이상일 때 키보드로는 두 번째 창을 볼 수 없었다(판 1.1.1 최종 점검 —
+    // 보충 V1·V3·V4·V5와 두 창을 띄우는 학생 코드). 출력 화면(stage)의 cv2.waitKey 키 전달과 겹치지 않게 탭 줄에서만 듣는다.
+    const onTabsKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return;
+      }
+      const next = this.#tabKeyTarget(event.key, event.target);
+      if (next === null) {
+        return;
+      }
+      event.preventDefault();
+      this.select(next);
+      this.#windows.get(next)?.tab.focus();
+    };
+    tabs.addEventListener('keydown', onTabsKeyDown);
+    this.#cleanups.push(() => tabs.removeEventListener('keydown', onTabsKeyDown));
     if (closeButton) {
       const onClose = () => this.closeActive();
       closeButton.addEventListener('click', onClose);
@@ -213,6 +231,29 @@ export class OutputWindows {
       cleanup();
     }
     this.clear();
+  }
+
+  /** 탭 줄에서 누른 키가 고를 창 이름(←·→·Home·End가 아니거나 창이 없으면 null) */
+  #tabKeyTarget(key: string, target: EventTarget | null): string | null {
+    const names = this.names;
+    if (names.length === 0) {
+      return null;
+    }
+    const focused = target instanceof HTMLElement ? target.dataset.visionTab : undefined;
+    const from = focused !== undefined && names.includes(focused) ? focused : this.#active;
+    const current = from === null ? -1 : names.indexOf(from);
+    switch (key) {
+      case 'ArrowRight':
+        return names[current < 0 ? 0 : (current + 1) % names.length] ?? null;
+      case 'ArrowLeft':
+        return names[current < 0 ? names.length - 1 : (current - 1 + names.length) % names.length] ?? null;
+      case 'Home':
+        return names[0] ?? null;
+      case 'End':
+        return names[names.length - 1] ?? null;
+      default:
+        return null;
+    }
   }
 
   #ensure(name: string): WindowEntry {

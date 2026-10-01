@@ -89,6 +89,14 @@ export const UART_STATUS_TYPE = TAB_UART_STATUS_TYPE;
 /** 끝의 실행 상태: 'idle' = [실행] 전(받은 글자가 사라진다), 'running' = 도는 중 */
 export type PeerRunState = 'idle' | 'running';
 
+/**
+ * 상대에게 실행 상태를 묻는 말(UART_STATUS_TYPE 봉투의 글자 — 'idle'·'running'과 섞이지 않는다, 판 1.1.1 최종 점검).
+ * 상대 탭이 6초 넘게 멈칫하면(느린 PC·바쁜 탭) 이 끝의 상대 목록에서 빠졌다가 다시 보이는데, 상대 쪽은 이 끝을 계속 보고 있어
+ * "상대가 늘 때" 보내는 상태 알림이 다시 오지 않는다 — 그래서 상대가 (다시) 보이면 이 끝이 먼저 묻고, 상태를 가진 끝(보드 쪽,
+ * answerStateWith)이 지금 상태로 답한다. 전에는 두 탭 블루투스가 한 번 끊기면 컴퓨터 쪽 connected가 거짓으로 굳었다.
+ */
+export const STATE_QUERY_TEXT = 'query';
+
 /** 선을 지나온 바이트 한 덩어리 */
 export interface UartFrame {
   /** 보낸 쪽 이름('pc'·'board') */
@@ -180,6 +188,12 @@ export class BridgeLink {
   private readonly peerStateListeners = new Set<(state: PeerRunState, from: BridgeParty) => void>();
   /** 같은 선의 다른 줄기(봉투 type → 듣는 곳) — 블루투스 줄기 등(미해결 137) */
   private readonly envelopeListeners = new Map<string, Set<(frame: UartFrame) => void>>();
+  /** 다른 줄기로 실제로 나간 것을 듣는 곳([보내기] 패널의 "주고받은 글" — 판 1.1.1 최종 점검) */
+  private readonly envelopeSentListeners = new Set<(type: string, bytes: Uint8Array) => void>();
+  /** 상대가 실행 상태를 물을 때 답할 값(보드 쪽이 건다 — STATE_QUERY_TEXT). 없으면 답하지 않는다 */
+  private stateProvider: (() => PeerRunState) | null = null;
+  /** 지난번에 본 상대들(새로 보인 상대를 가려 실행 상태를 묻는다) */
+  private knownPeers = new Set<BridgeParty>();
   private channel: BridgeChannel | null = null;
   private offMessage: (() => void) | null = null;
   private offPeers: (() => void) | null = null;
@@ -305,6 +319,18 @@ export class BridgeLink {
       throw new BridgeClosedError(this.status.label);
     }
     await channel.send(bytes, { type });
+    for (const listener of [...this.envelopeSentListeners]) {
+      listener(type, bytes);
+    }
+  }
+
+  /**
+   * 다른 줄기(sendEnvelope)로 한 덩어리가 실제로 나갔을 때 — UART 줄기의 onSent와 짝. [보내기] 패널이 블루투스 줄기로 오간 글도
+   * "주고받은 글"에 남기려고 듣는다(판 1.1.1 최종 점검: 코드가 보낸 글이 칸에 남지 않았다). 돌려주는 함수를 부르면 그만 듣는다.
+   */
+  onEnvelopeSent(listener: (type: string, bytes: Uint8Array) => void): () => void {
+    this.envelopeSentListeners.add(listener);
+    return () => this.envelopeSentListeners.delete(listener);
   }
 
   /**
@@ -331,6 +357,24 @@ export class BridgeLink {
     }
     void channel.send(new TextEncoder().encode(state), { type: UART_STATUS_TYPE }).catch(() => undefined);
     return true;
+  }
+
+  /**
+   * 상대에게 지금 실행 상태를 묻는다(STATE_QUERY_TEXT — 같은 컴퓨터 탭 통로가 열려 있고 상대가 보일 때만, 기다리지 않는다).
+   * 상대가 새로 보이면 이 선이 스스로 묻고(상태를 듣는 곳이 있을 때), 흉내 모듈은 상대가 보이는데 상태를 모를 때 부른다.
+   */
+  queryState(): boolean {
+    const channel = this.channel;
+    if (channel === null || this.linkState !== 'open' || this.channelId !== TAB_CHANNEL_ID || !this.hasPeer) {
+      return false;
+    }
+    void channel.send(new TextEncoder().encode(STATE_QUERY_TEXT), { type: UART_STATUS_TYPE }).catch(() => undefined);
+    return true;
+  }
+
+  /** 상대가 실행 상태를 물으면 이 함수의 값으로 답한다(보드 쪽 — null이면 답하지 않는다) */
+  answerStateWith(provider: (() => PeerRunState) | null): void {
+    this.stateProvider = provider;
   }
 
   /** 통로를 연다(이미 열려 있으면 그대로). 통로 id를 주면 그 통로로 바꿔 연다. */
@@ -373,6 +417,7 @@ export class BridgeLink {
     this.channel?.close();
     this.channel = null;
     this.linkState = 'closed';
+    this.knownPeers = new Set();
     this.emitStatus();
   }
 
@@ -509,6 +554,8 @@ export class BridgeLink {
     this.warnListeners.clear();
     this.peerStateListeners.clear();
     this.envelopeListeners.clear();
+    this.envelopeSentListeners.clear();
+    this.stateProvider = null;
   }
 
   private attach(channel: BridgeChannel): void {
@@ -516,6 +563,14 @@ export class BridgeLink {
     this.offMessage = channel.on('message', (envelope) => {
       if (envelope.type === UART_STATUS_TYPE) {
         const text = envelope.bytes instanceof Uint8Array ? new TextDecoder().decode(envelope.bytes) : '';
+        if (text === STATE_QUERY_TEXT) {
+          // 상대가 이 끝의 실행 상태를 물었다 — 상태를 가진 끝(answerStateWith를 건 보드 쪽)만 답한다
+          const provider = this.stateProvider;
+          if (provider !== null) {
+            this.sendState(provider());
+          }
+          return;
+        }
         if (text === 'idle' || text === 'running') {
           for (const listener of this.peerStateListeners) {
             listener(text, envelope.from);
@@ -545,7 +600,16 @@ export class BridgeLink {
       }
       this.emitStatus();
     });
-    this.offPeers = channel.on('peers', () => this.emitStatus());
+    this.knownPeers = new Set(channel.peers);
+    this.offPeers = channel.on('peers', (peers) => {
+      const appeared = peers.some((party) => !this.knownPeers.has(party));
+      this.knownPeers = new Set(peers);
+      if (appeared && this.peerStateListeners.size > 0) {
+        // 새로 보인(또는 잠깐 끊겼다 다시 보인) 상대에게 실행 상태를 묻는다 — STATE_QUERY_TEXT 머리말
+        this.queryState();
+      }
+      this.emitStatus();
+    });
   }
 
   /** 봉투 → 받은 덩어리(바이트는 Uint8Array로) */

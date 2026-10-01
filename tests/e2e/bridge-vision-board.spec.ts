@@ -195,6 +195,58 @@ test.describe('영상처리 ↔ 가상 보드 시리얼 선(P4-02)', () => {
     expect(await waitDone(page, 30_000)).toBe('stopped');
   });
 
+  // 판 1.1.1 최종 점검: ① 컴퓨터 쪽을 먼저 [실행]해 SerialException이 난 뒤(3-1-2·C3 오류 상자가 시키는 순서) [한 화면에 가상 보드 열기]가
+  // 페이지 오류(insertBefore)로 조용히 실패했다 ② 코드가 보낸 글이 "주고받은 글"에 남지 않았다 ③ [보드 화면 닫기]를 키보드로 누르면 초점이 body로 갔다.
+  test('한 화면 모드: 컴퓨터 쪽을 먼저 [실행]한 뒤에도 보드 틀이 열리고, 코드가 보낸 글이 "주고받은 글"에 남고, 키보드로 닫으면 초점이 여는 단추로', async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+    await openVision(page, `?example=${encodeURIComponent(PC_KEY_SEND)}`);
+    await expect(bridgePanel(page)).toBeVisible();
+
+    // ① 보드 화면 없이 먼저 [실행] → 받을 쪽이 없어 SerialException(콘솔 알림 칸이 출력 화면 아래로 옮겨 간다 — 전에 틀이 실패한 조건)
+    await clickRun(page);
+    expect(await waitDone(page, 60_000)).toBe('error');
+    await expect(page.locator('[data-lab-console]')).toContainText('SerialException');
+    expect(await page.evaluate(() => document.querySelector('[data-lab-io-output]')?.parentElement?.hasAttribute('data-lab-io') ?? null)).toBe(false);
+
+    // 키보드로 [한 화면에 가상 보드 열기]
+    await expect(page.locator('[data-bridge-board-example]')).toHaveValue(BOARD_LASER_SITE);
+    const openButton = page.locator('[data-bridge-open-frame]');
+    await openButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(labRoot(page)).toHaveAttribute('data-bridge-frame', 'on');
+    await expect(page.locator('[data-bridge-frame-view]')).toHaveCount(1);
+    // 보드 틀은 입력·출력 칸의 직계 자식(두 칸 아래 전체 폭)이다
+    expect(await page.evaluate(() => document.querySelector('[data-bridge-frame-host]')?.parentElement?.hasAttribute('data-lab-io') ?? null)).toBe(true);
+    expect(pageErrors).toEqual([]);
+
+    // ② 보드를 돌리고 컴퓨터 코드가 a·b를 보내면 레이저가 켜졌다 꺼지고, "주고받은 글"에 → a·→ b가 남는다
+    const frame = page.frameLocator('[data-bridge-frame-view]');
+    await expect(frame.locator('[data-lab]')).toHaveAttribute('data-state', 'idle', { timeout: READY_TIMEOUT });
+    await expect(frame.locator('[data-board-io]')).toHaveAttribute('data-board-ready', 'yes', { timeout: READY_TIMEOUT });
+    await frame.getByRole('button', { name: '실행', exact: true }).first().click();
+    await expect(frame.locator('[data-board-io]')).toHaveAttribute('data-board-phase', /^(run|idle)$/u, { timeout: 60_000 });
+    await waitPeer(page);
+    await clickRun(page);
+    await typeInput(page, 'a');
+    await expect(frame.locator('[data-board-pin="18"]')).toHaveAttribute('data-level', '1', { timeout: 60_000 });
+    await typeInput(page, 'b');
+    await expect(frame.locator('[data-board-pin="18"]')).toHaveAttribute('data-level', '0', { timeout: 60_000 });
+    const log = page.locator('[data-bridge-log] li');
+    await expect(log.filter({ hasText: '→ a' })).toHaveCount(1, { timeout: 15_000 });
+    await expect(log.filter({ hasText: '→ b' })).toHaveCount(1, { timeout: 15_000 });
+    await typeInput(page, 'q');
+    expect(await waitDone(page, 30_000)).toBe('ok');
+
+    // ③ 키보드로 [보드 화면 닫기] → 초점이 [한 화면에 가상 보드 열기]로(body로 사라지지 않는다)
+    await page.locator('[data-bridge-close-frame]').focus();
+    await page.keyboard.press('Enter');
+    await expect(labRoot(page)).toHaveAttribute('data-bridge-frame', 'off');
+    await expect(page.locator('[data-bridge-frame-view]')).toHaveCount(0);
+    await expect(openButton).toBeFocused();
+    expect(pageErrors).toEqual([]);
+  });
+
   test('속도가 다르면 실물처럼 글자가 깨져 레이저가 켜지지 않는다(속도 불일치 실습)', async ({ page, context }) => {
     const board = await openSecondTab(context, `?example=${encodeURIComponent(BOARD_LASER)}&bridge=${PREFIX_SPEED}`);
     await clickRun(board);

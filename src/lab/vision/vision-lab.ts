@@ -44,6 +44,7 @@ import type { BlackVerdict, BlackWatchSummary } from './black-frame.ts';
 import { VISION_CAMERA_STORAGE_NAME, cameraName, cameraOptions, canChooseCameras, pickCamera, type CameraDevice } from './camera-devices.ts';
 import { cameraNotice, cameraOpenedMessage } from './camera-notice.ts';
 import { VideoBlackWatcher } from './camera-stream.ts';
+import { codeShowsVideo } from './code-uses.ts';
 import { FpsMeter, FrameThrottle, SCREEN_KEYS, type VisionFrame } from './frame.ts';
 import { VISION_PACKAGES } from './examples.ts';
 import {
@@ -203,6 +204,8 @@ export class VisionLab {
   #emptyHtml: { preview: string; output: string } | null = null;
   /** [실행]을 눌렀는데 numpy·OpenCV를 아직 받는 중이라 코드가 기다리는 동안인지 */
   #packageWaitShown = false;
+  /** 지금 실행한 코드가 영상(cv2)을 쓰나 — 받는 중 안내 글을 고른다(codeShowsVideo) */
+  #runShowsVideo = true;
   /** 소스를 닫거나 바꿀 때마다 올린다 — 열던 중인 소스가 늦게 열리면 버리고 지금 고른 소스를 연다(닫았으면 열지 않는다) */
   #generation = 0;
   /** 마지막으로 closeSource()가 올린 #generation 값(열던 중에 입력을 껐는지 가른다) */
@@ -275,11 +278,17 @@ export class VisionLab {
       // "받는 중…"을 빼고 붙인다(앞 문장과 겹치지 않게).
       const amount = (this.root.dataset.loadingText ?? '').replace(/\s*받는 중…/u, '').trim();
       const detail = amount === '' ? '' : `: ${amount}`;
+      // 영상을 쓰지 않는 코드(시리얼·블루투스만 — 3-1-2 컴퓨터 쪽 등)도 실습실을 처음 열었을 때는 OpenCV를 다 받은 뒤에 시작한다
+      // (워커가 미리 받기를 끝낸 뒤 코드를 돌린다). 그때는 "영상"·"입력이 켜져요"를 말하지 않는다(판 1.1.1 최종 점검).
       if (previewEmpty) {
-        previewEmpty.textContent = `필요한 파일을 받는 중이에요${detail}. 다 받으면 입력이 켜져요.`;
+        previewEmpty.textContent = this.#runShowsVideo
+          ? `필요한 파일을 받는 중이에요${detail}. 다 받으면 입력이 켜져요.`
+          : `필요한 파일을 받는 중이에요${detail}.`;
       }
       if (outputEmpty) {
-        outputEmpty.textContent = `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작하고, 영상이 여기에 나와요.`;
+        outputEmpty.textContent = this.#runShowsVideo
+          ? `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작하고, 영상이 여기에 나와요.`
+          : `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작해요.`;
       }
       this.#renderInputStatus();
       return;
@@ -1110,8 +1119,9 @@ export class VisionLab {
           this.#setStage('core', 'failed');
         }
       }),
-      lab.on('run', () => {
+      lab.on('run', ({ code }) => {
         this.#running = true;
+        this.#runShowsVideo = codeShowsVideo(code);
         this.windows.clear();
         this.#throttle.reset();
         this.#inputMeter.reset();

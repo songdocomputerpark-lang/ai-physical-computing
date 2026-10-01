@@ -68,7 +68,7 @@ export const BOARD_EXAMPLES: readonly { file: string; label: string }[] = Object
   { file: 'esp32/u3/3-1-3-ble-xy-rgb.py', label: '3-1-3 — 블루투스로 받은 손끝 좌표로 RGB LED(ESP32BLE.read())' },
   { file: 'esp32/bt/b10-two-values-rgb.py', label: '블루투스 교안 — 좌표 두 개로 RGB LED' },
   { file: 'esp32/u4/4-1-4-ble-lcd-rx.py', label: '4-1-4 — 블루투스로 받은 코 좌표를 LCD에' },
-  { file: 'esp32/u4/4-2-1-adv-ble-data-lcd.py', label: '4-2-1 — 블루투스로 받은 마우스 좌표·클릭 수를 LCD에' },
+  { file: 'esp32/u4/4-2-1-adv-ble-data-lcd.py', label: '4-2-1 — 블루투스로 받은 마우스 좌표·클릭 표시를 LCD에' },
   { file: 'esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer-site.py', label: '4-2-3 — 서보·RGB·레이저·버저(사이트판)' },
   { file: '', label: '빈 실습실로 열기' },
 ]);
@@ -159,6 +159,27 @@ export function boardLabUrl(options: { prefix: string; example?: string; embed?:
     params.set('embed', '1');
   }
   return `${withBase('labs/esp32/')}?${params.toString()}`;
+}
+
+/**
+ * 한 화면 모드의 보드 틀을 입력·출력 칸(`[data-lab-io]`)의 **직계 자식**으로 둔다 — 입력·출력 두 칸 아래를 가로지르는 전체 폭.
+ * "콘솔에 결과가 나왔어요" 알림(`[data-lab-io-output]`)이 아직 칸의 직계 자식이면 그 바로 앞에, 실습실 틀(lab-shell.ts)이 첫 콘솔
+ * 출력 때 알림을 출력 화면 바로 아래(io 슬롯 안의 `[data-lab-io-output-anchor]` 뒤)로 옮긴 뒤면 칸 맨 끝에 둔다.
+ * 전에는 늘 `insertBefore(틀, 알림)`이라, 컴퓨터 쪽을 한 번 [실행]한 뒤에는 알림이 직계 자식이 아니어서 NotFoundError로 조용히
+ * 실패했다(판 1.1.1 최종 점검 — 3-1-2·C3 오류 상자가 시키는 "SerialException이 나면 [한 화면에 가상 보드 열기]"가 막혔다).
+ * 알림 바로 앞(io 슬롯 안)에 넣지 않는 것은, 영상처리 실습실의 알림이 출력 칸(넓은 화면에서 오른쪽 반) 안이라 보드 틀이 반 폭이 되기 때문이다.
+ */
+export function placeFrameHost(ioSection: HTMLElement, frameHost: HTMLElement): void {
+  const notice = Array.from(ioSection.children).find((child) => child.hasAttribute('data-lab-io-output')) ?? null;
+  if (notice !== null) {
+    if (frameHost.nextElementSibling !== notice) {
+      ioSection.insertBefore(frameHost, notice);
+    }
+    return;
+  }
+  if (frameHost.parentElement !== ioSection) {
+    ioSection.append(frameHost);
+  }
 }
 
 /** 글로 보여 줄 수 없는 글자(줄바꿈·탭은 뺀 제어 문자와 깨진 글자 표시) */
@@ -417,12 +438,21 @@ function mount(context: LabModuleContext): LabModuleHandle {
   // ── 한 화면 모드(iframe) ──
   let frame: HTMLIFrameElement | null = null;
   const closeFrame = (): void => {
+    // 초점이 보드 틀 안([보드 화면 닫기] 단추·iframe)에 있었으면 틀을 숨긴 뒤 [한 화면에 가상 보드 열기]로 옮긴다 — 그대로 두면
+    // 초점이 문서(body)로 사라져 키보드·화면 낭독기 사용자가 자리를 잃는다(판 1.1.1 최종 점검, 점검 단추·[실행]·[정지]와 같은 규칙).
+    // 화면은 그 단추가 화면 밖일 때만 옮긴다. 초점이 틀 밖이면(openFrame·dispose가 부를 때 등) 건드리지 않는다.
+    const active = typeof document === 'undefined' ? null : document.activeElement;
+    const focusWasInside = frameHost !== null && active !== null && active !== document.body && frameHost.contains(active);
     frame?.remove();
     frame = null;
     if (frameHost !== null) {
       frameHost.hidden = true;
     }
     context.root.dataset.bridgeFrame = 'off';
+    if (focusWasInside && openFrameButton !== null && openFrameButton.isConnected) {
+      openFrameButton.focus({ preventScroll: true });
+      revealElement(openFrameButton, { block: 'center' });
+    }
   };
   const openFrame = (): void => {
     if (frameHost === null) {
@@ -439,9 +469,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
      * 가상 보드가 가까이 있어야 손가락을 펴면 링이 켜지는 것을 함께 본다(2026-09-25 Phase 4 검토 반영: 둘이 2,300px 떨어져 있었다).
      */
     const ioSection = context.root.querySelector<HTMLElement>('[data-lab-io]');
-    const ioNotice = ioSection?.querySelector('[data-lab-io-output]') ?? null;
-    if (ioSection !== null && frameHost.parentElement !== ioSection) {
-      ioSection.insertBefore(frameHost, ioNotice);
+    if (ioSection !== null) {
+      placeFrameHost(ioSection, frameHost);
       frameHost.dataset.bridgeFramePlace = 'io';
     }
     frameHost.hidden = false;
@@ -476,15 +505,18 @@ function mount(context: LabModuleContext): LabModuleHandle {
       }
       const bytes = new TextEncoder().encode(text);
       void link.connect().then(() => {
+        // "주고받은 글"에는 실제로 나갈 때 적는다(아래 link.onSent) — 코드가 보낸 것과 같은 길이라 두 번 적히지 않는다
         link.sendBytes(bytes, { baud: 0 });
-        addLog('out', bytes);
         sendInput.value = '';
         sendInput.focus();
       });
     });
   }
 
-  // ── 선에서 오는 것 ──
+  // ── 선에서 오는 것·선으로 나간 것 ──
+  // "주고받은 글"에는 손으로 보낸 것뿐 아니라 **코드가 보낸 것**(컴퓨터 쪽 serial·bridge·bluetooth 흉내, 보드 쪽 UART·블루투스 알림)도
+  // 실제로 나간 때 적는다 — 판 1.1.1 최종 점검: 콘솔에는 `Sent: a`가 나오는데 이 칸은 "아직 주고받은 글이 없어요"였다.
+  // UART 줄기는 보낼 차례(병합 뒤)를 지난 것(onSent), 블루투스 줄기는 sendEnvelope가 보낸 것(onEnvelopeSent)이다.
   const offs = [
     link.onStatus(render),
     link.onFrame((frameIn: UartFrame) => {
@@ -492,6 +524,12 @@ function mount(context: LabModuleContext): LabModuleHandle {
         return;
       }
       addLog('in', frameIn.bytes);
+    }),
+    link.onSent((_line, message) => addLog('out', message.bytes)),
+    link.onEnvelopeSent((type, bytes) => {
+      if (type === BLE_ENVELOPE_TYPE && bytes.length > 0) {
+        addLog('out', bytes);
+      }
     }),
     link.onWarn((warning) => showError(warning.text)),
   ];
@@ -502,6 +540,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
     let lastPeers = 0;
     let lastIdleEcho = -Infinity;
     const runState = (): PeerRunState => (boardRunning() ? 'running' : 'idle');
+    // 컴퓨터 쪽이 물으면(보드 탭이 멈칫해 컴퓨터 쪽 목록에서 빠졌다가 다시 보일 때 — link.ts STATE_QUERY_TEXT) 지금 상태로 답한다.
+    // 이 끝은 컴퓨터를 계속 보고 있어 아래 "상대가 늘 때" 알림이 다시 오지 않으므로, 답이 없으면 두 탭 블루투스가 끊긴 채로 굳었다(판 1.1.1 최종 점검).
+    link.answerStateWith(runState);
+    cleanups.push(() => link.answerStateWith(null));
     offs.push(
       // 컴퓨터 쪽이 새로 보이면 지금 상태를 알린다(한 화면 모드는 iframe이 뜨자마자 'idle'을 받아 상태 줄에 적는다).
       link.onStatus((status) => {
@@ -549,8 +591,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
           seenTotal = next.total;
           if (next.bytes.length > 0) {
             // 보드 → 컴퓨터는 바이트 흐름이다 — 합치지 않고 이어 붙여 보낸다(link.sendStream, 2026-09-25 Phase 4 검토 반영).
+            // "주고받은 글"에는 실제로 나갈 때 적는다(위 link.onSent).
             link.sendStream(next.bytes, { baud: reading.baud });
-            addLog('out', next.bytes);
           }
           if (next.missed > 0 && !warnedMissed) {
             warnedMissed = true;
@@ -566,7 +608,6 @@ function mount(context: LabModuleContext): LabModuleHandle {
           sawTxEvent = true;
           instanceId = tx.id;
           link.sendStream(tx.bytes, { baud: tx.baud });
-          addLog('out', tx.bytes);
           return;
         }
         if (event.kind === BOARD_STATE_EVENT && (event.payload as { reason?: unknown })?.reason === 'reset') {
@@ -641,8 +682,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
       if (bytes.length === 0) {
         return;
       }
+      // "주고받은 글"에는 실제로 나간 뒤에 적는다(위 link.onEnvelopeSent)
       void link.sendEnvelope(BLE_ENVELOPE_TYPE, bytes).catch(() => undefined);
-      addLog('out', bytes);
     };
     window.addEventListener(BLE_NOTIFY_EVENT, onBleNotify);
     cleanups.push(() => window.removeEventListener(BLE_NOTIFY_EVENT, onBleNotify));
@@ -651,6 +692,14 @@ function mount(context: LabModuleContext): LabModuleHandle {
   // ── 컴퓨터 쪽: 보드가 알려 온 실행 상태 ──
   if (role === 'pc') {
     let noticedThisRun = false;
+    offs.push(
+      // 블루투스 줄기로 보드가 돌려보낸 알림(notify)도 "주고받은 글"에 남긴다(보내는 쪽은 위 onEnvelopeSent)
+      link.onEnvelope(BLE_ENVELOPE_TYPE, (frameIn: UartFrame) => {
+        if (frameIn.from !== role && frameIn.bytes.length > 0) {
+          addLog('in', frameIn.bytes);
+        }
+      }),
+    );
     offs.push(
       link.onPeerState((state, from) => {
         if (from !== 'board') {

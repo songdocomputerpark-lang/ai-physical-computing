@@ -332,9 +332,18 @@ function mount(context: LabModuleContext): LabModuleHandle {
       context.setValue('speech.text', '');
       return;
     }
-    // 아직 파이썬이 기다리지 않을 때: 적어 둔 문장을 기억해 둔다(제한 모드와 다음 listen에서 쓴다).
+    // 아직 파이썬이 기다리지 않을 때: 적어 둔 문장을 기억해 둔다. 그 문장을 r.listen()이 그대로 쓰는 것은 기다릴 수 없는 제한 모드(JSPI 없음)뿐이고,
+    // 보통 브라우저에서는 코드가 r.listen()에 닿아 기다릴 때 [보내기]로 보낸 문장을 받는다(판 1.1.1 최종 점검 — 전에는 늘 "첫 r.listen()에서 써요"라고 했다).
     context.setValue('speech.text', value);
-    textOf(status, value === '' ? IDLE_TEXT : `적어 두었어요: ${value} — [실행] 뒤 첫 r.listen()에서 써요.`);
+    const limited = context.runtime.info?.limited === true;
+    textOf(
+      status,
+      value === ''
+        ? IDLE_TEXT
+        : limited
+          ? `적어 두었어요: ${value} — [실행] 뒤 첫 r.listen()에서 써요.`
+          : `적어 두었어요: ${value} — [실행] 뒤 코드가 r.listen()에서 기다릴 때 [보내기]를 한 번 더 눌러요.`,
+    );
   }
 
   const onSubmit = (event: Event) => {

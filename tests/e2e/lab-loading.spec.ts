@@ -76,11 +76,82 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     await expect(core).toHaveAttribute('data-state', 'done');
     await expect(page.locator('[data-loading-stage="opencv-python"]')).toHaveAttribute('data-state', 'done');
     await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: 10_000 });
+    // 마우스로 누른 카드 단추의 초점은 칸이 숨을 때 문서(body)로 사라지지 않고 [펼치기]로 옮겨 간다(판 1.1.1 최종 점검)
+    expect(await page.evaluate(() => document.activeElement !== document.body && document.activeElement !== null)).toBe(true);
     // 접힌 뒤에도 [펼치기]로 다시 볼 수 있다
     await page.getByRole('button', { name: '펼치기' }).click();
     await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'false');
 
     expect(errors).toEqual([]);
+  });
+
+  // 판 1.1.1 최종 점검(PROGRESS 미해결 216 — CI에서 한 번 흔들린 키보드 걷기의 원인): 준비가 끝나 칸이 저절로 접히며 맨 위에서 제자리
+  // (입력·출력 아래)로 옮겨 가면, 키보드 초점이 칸의 [접기]에 있었을 때는 화면 밖에 남고 카드 단추에 있었을 때는 문서(body)로 사라졌다.
+  // 이제 키보드 초점이 칸 안에 있으면 접기를 미루고, 초점이 칸을 떠날 때 접으며 초점 요소는 화면 안에 둔다.
+  for (const target of [
+    { label: '[접기]', selector: '[data-loading-toggle]' },
+    { label: '1분 개념 카드 [다음 →]', selector: '[data-loading-next]' },
+  ]) {
+    test(`키보드 초점이 준비 칸의 ${target.label}에 있는 채로 준비가 끝나도 초점이 화면 안에 남고, 칸을 떠나면 그때 접힌다`, async ({ page, context }) => {
+      test.setTimeout(4 * 60_000);
+      // 초점을 옮길 시간을 벌려고 파이썬 엔진 파일을 몇 초 늦게 준다
+      await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await route.continue();
+      });
+      await page.goto(VISION_PATH);
+      const box = page.locator('[data-loading-panel]');
+      await expect(loadingPanel(page)).toBeVisible({ timeout: 30_000 });
+      await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'yes');
+
+      // 키보드로 그 단추에 초점을 둔다(뒤로 한 번 갔다가 다시 앞으로 — 키보드 초점 표시가 켜지게)
+      const button = page.locator(target.selector);
+      await button.focus();
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Tab');
+      await expect(button).toBeFocused();
+
+      // 준비가 끝나고 저절로 접힐 때(1.5초 뒤)가 지나도 초점이 칸 안이라 접지 않는다 — 초점은 그 단추에, 화면 안에 있다
+      await waitVisionReady(page);
+      await expect(labRoot(page)).toHaveAttribute('data-loading-phase', 'ready', { timeout: PACKAGES_TIMEOUT });
+      await page.waitForTimeout(2500);
+      await expect(box).toHaveAttribute('data-collapsed', 'false');
+      await expect(button).toBeFocused();
+      await expect(button).toBeInViewport();
+
+      // 초점이 칸을 떠나면 그때 접히고, 새 초점 요소는 화면 안에 있다(문서 body로 사라지지 않는다)
+      const run = page.locator('[data-lab-run]');
+      await run.focus();
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Tab');
+      await expect(run).toBeFocused();
+      await expect(box).toHaveAttribute('data-collapsed', 'true', { timeout: 5_000 });
+      await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'no');
+      await expect(run).toBeFocused();
+      await expect(run).toBeInViewport();
+    });
+  }
+
+  test('키보드로 준비 칸 [접기]를 누르면 칸이 제자리로 옮겨 가도 [펼치기]가 화면 안에 있다', async ({ page, context }) => {
+    test.setTimeout(4 * 60_000);
+    // 저절로 접히기 전에 누르려고 파이썬 엔진 파일을 몇 초 늦게 준다
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await route.continue();
+    });
+    await page.goto(VISION_PATH);
+    await expect(loadingPanel(page)).toBeVisible({ timeout: 30_000 });
+    await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'yes');
+    const toggle = page.locator('[data-loading-toggle]');
+    await expect(toggle).toHaveText('접기');
+    await toggle.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true');
+    await expect(toggle).toHaveText('펼치기');
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toBeInViewport();
   });
 
   test('준비하는 동안 준비 패널이 편집칸 위에 있고, 그때 누른 [실행]은 예약됐다가 준비가 끝나면 돈다(2026-09-17 검토 반영)', async ({ page, context }) => {
@@ -403,8 +474,9 @@ test.describe('네트워크 점검(시작하기 > 점검)', () => {
     });
     const response = await page.goto(checkPage);
     expect(response?.status()).toBe(200);
+    // 네트워크 항목은 점검 페이지에 붙어 있다(통합 뒤 — 없으면 건너뛰지 않고 실패한다: 기능이 사라지는 회귀가 초록으로 보이지 않게, 판 1.1.1 최종 점검)
     const root = page.locator('[data-network-check]');
-    test.skip((await root.count()) === 0, '점검 페이지에 네트워크 항목이 아직 붙지 않았어요(.cache/phase2-requests/loading.md 요청 2번).');
+    await expect(root).toHaveCount(1);
 
     // 누르기 전에는 사이트 밖으로 나가는 요청이 없다(파일 요청과 WebSocket 모두).
     const outside: string[] = [];

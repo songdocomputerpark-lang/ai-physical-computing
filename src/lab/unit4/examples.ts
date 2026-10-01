@@ -91,8 +91,8 @@ export const PAIRS: readonly Unit4Pair[] = Object.freeze([
   {
     id: '4-2-1',
     label: '4-2-1 기본 — 마우스 좌표를 LCD에',
-    note: '얼굴로 움직인 마우스 좌표와 클릭 수를 LCD에 적어요.',
-    running: '얼굴이 움직이면 가상 모니터의 커서가 따라가고, 마우스 좌표와 클릭 수가 보드 LCD에 적혀요.',
+    note: '얼굴로 움직인 마우스 좌표와 클릭 표시(방금 클릭하면 1)를 LCD에 적어요.',
+    running: '얼굴이 움직이면 가상 모니터의 커서가 따라가고, 마우스 좌표와 클릭 표시(방금 클릭하면 1)가 보드 LCD에 적혀요.',
     pc: DEFAULT_PC_FILE,
     board: 'esp32/u4/4-2-1-adv-ble-data-lcd.py',
   },

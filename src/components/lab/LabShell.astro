@@ -49,14 +49,8 @@ import { STOP_GRACE_MS } from '../../lab/runtime/config.ts';
 import ClearRecordsButton from './ClearRecordsButton.astro';
 import ParamPanel from './ParamPanel.astro';
 
-/**
- * 흉내 모듈 폴더의 화면 조각(src/lab/modules/<id>/panel.astro, 자동 발견 — src/lab/README.md 4절).
- * 이 실습실(labId)에 붙는 모듈의 것만 그려 두고(hidden), 모듈의 index.ts가 mount 때 showPanel()로 연다.
- * placement 'panel'은 조절 패널 아래(오른쪽 열), 'wide'는 입력·출력과 콘솔 사이 전체 폭.
- */
-const panelComponents = import.meta.glob<{ default: (props: Record<string, never>) => unknown }>('../../lab/modules/*/panel.astro', { eager: true });
-const modulePanelsById = new Map(Object.entries(panelComponents).map(([globPath, loaded]) => [folderNameOf(globPath), loaded.default]));
-
+// Props는 import 바로 아래(첫 const 앞)에 둔다 — 앞에 const 선언이 있으면 Astro가 이 interface를 컴포넌트 props 형으로 잇지 않아
+// 틀린 props를 타입 검사가 잡지 못했다(판 1.1.1 최종 점검 — astro check의 "'Props' is declared but never used" 힌트).
 interface Props {
   labId: string;
   examples?: readonly LabExample[];
@@ -67,6 +61,14 @@ interface Props {
   contextLabel?: string;
   idSuffix?: string;
 }
+
+/**
+ * 흉내 모듈 폴더의 화면 조각(src/lab/modules/<id>/panel.astro, 자동 발견 — src/lab/README.md 4절).
+ * 이 실습실(labId)에 붙는 모듈의 것만 그려 두고(hidden), 모듈의 index.ts가 mount 때 showPanel()로 연다.
+ * placement 'panel'은 조절 패널 아래(오른쪽 열), 'wide'는 입력·출력과 콘솔 사이 전체 폭.
+ */
+const panelComponents = import.meta.glob<{ default: (props: Record<string, never>) => unknown }>('../../lab/modules/*/panel.astro', { eager: true });
+const modulePanelsById = new Map(Object.entries(panelComponents).map(([globPath, loaded]) => [folderNameOf(globPath), loaded.default]));
 
 const { labId, examples = [], initialExampleId, editorTitle = '코드', headingLevel = 2, pyodidePackages, contextLabel, idSuffix } = Astro.props;
 if (!/^[a-z0-9][a-z0-9-]*$/u.test(labId)) {
@@ -441,6 +443,12 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   .button:disabled,
   :global(.lab-button:disabled),
   :global(.lab__select:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* 끝에 닿아 꺼진 글자 크기 단추(aria-disabled — 초점은 받는다, lab-shell.ts #applyFontSize). 흐린 모양은 조작할 수 없다는 표시(대비 기준 예외) */
+  .lab__font :global(.lab-button[aria-disabled='true']) {
     opacity: 0.55;
     cursor: not-allowed;
   }

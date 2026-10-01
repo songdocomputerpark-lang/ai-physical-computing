@@ -113,6 +113,36 @@ test.describe('코드 에디터(개발용 시험 페이지)', () => {
     await page.getByRole('button', { name: '글자 작게', exact: true }).click();
     await expect(labRoot(page)).toHaveAttribute('data-font-size', '15');
 
+    // 키보드로 끝(24px)까지 누르면 단추는 aria-disabled로 꺼지지만 초점은 그 단추에 남는다(판 1.1.1 최종 점검 — 전에는 disabled가 되며 body로 사라졌다)
+    const larger = page.locator('[data-lab-font-larger]');
+    await larger.focus();
+    for (let press = 0; press < 3; press += 1) {
+      await page.keyboard.press('Enter');
+    }
+    await expect(labRoot(page)).toHaveAttribute('data-font-size', '24');
+    await expect(larger).toBeFocused();
+    await expect(larger).toHaveAttribute('aria-disabled', 'true');
+    // 진짜 disabled는 아니다(그래야 초점이 남는다 — Playwright의 toBeEnabled는 aria-disabled도 꺼진 것으로 봐서 속성을 직접 본다)
+    expect(await larger.evaluate((element) => (element as HTMLButtonElement).disabled)).toBe(false);
+    // 끝에서 더 눌러도 글자 크기는 그대로다
+    await page.keyboard.press('Enter');
+    await expect(labRoot(page)).toHaveAttribute('data-font-size', '24');
+    expect(await editor.evaluate((element) => getComputedStyle(element).fontSize)).toBe('24px');
+    // 반대 단추로 돌아오면 다시 켜진다
+    const smaller = page.locator('[data-lab-font-smaller]');
+    await smaller.focus();
+    await page.keyboard.press('Enter');
+    await expect(larger).toHaveAttribute('aria-disabled', 'false');
+    for (let press = 0; press < 5; press += 1) {
+      await page.keyboard.press('Enter');
+    }
+    await expect(labRoot(page)).toHaveAttribute('data-font-size', '13');
+    await expect(smaller).toBeFocused();
+    await expect(smaller).toHaveAttribute('aria-disabled', 'true');
+    // 다음 단계를 위해 기본 크기로
+    await larger.click();
+    await expect(labRoot(page)).toHaveAttribute('data-font-size', '15');
+
     await setEditorCode(page, "print('고친 코드')\n");
     await page.getByRole('button', { name: '초기화', exact: true }).click();
     await expect(page.locator('[data-lab-reset-dialog]')).toBeVisible();

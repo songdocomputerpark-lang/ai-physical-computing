@@ -363,6 +363,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
       await link.waitForPeer(TAB_PEER_WAIT_MS);
     }
     if (tabPeerVisible() && boardRun === null) {
+      // 보드 탭은 보이는데 실행 상태를 모르면(앞서 잠깐 끊겼다 다시 보인 경우 등) 물어본다 — 다시 [실행]만으로도 되살아나게(판 1.1.1 최종 점검)
+      link.queryState();
       await waitUntil(() => boardRun !== null, TAB_STATE_WAIT_MS);
     }
   };
@@ -385,7 +387,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   );
   cleanups.push(
     link.onStatus((status) => {
-      // 보드 탭이 사라지면 알던 실행 상태도 버린다(다시 보이면 새로 알려 온다)
+      // 보드 탭이 사라지면 알던 실행 상태도 버린다. 다시 보이면 선(link.ts)이 실행 상태를 물어 보드가 답한다 — 보드 탭이 6초 넘게
+      // 멈칫해 목록에서 잠깐 빠졌던 때도 저절로 다시 이어진다(판 1.1.1 최종 점검: 전에는 보드 쪽이 다시 알리지 않아 끊긴 채 굳었다).
       if (boardRun !== null && !status.peers.includes('board')) {
         boardRun = null;
       }

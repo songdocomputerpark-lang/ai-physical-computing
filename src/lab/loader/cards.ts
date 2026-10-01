@@ -72,7 +72,7 @@ export const CONCEPT_CARDS: readonly ConceptCard[] = Object.freeze([
     body: [
       '밝기 차이가 얼마 이상이어야 테두리로 칠지 정하는 기준이 임계값이에요.',
       '기준을 낮추면 희미한 것까지 선이 되고(지저분해짐), 높이면 뚜렷한 것만 남아요.',
-      '준비가 끝나면 오른쪽 아래 슬라이더로 직접 움직여 보세요.',
+      '준비가 끝나면 조절 패널의 슬라이더로 직접 움직여 보세요.',
     ],
     code: 'threshold = 100  # @slider 0 255 1',
     link: { href: withBase('glossary/#threshold'), text: '용어사전: 임계값' },

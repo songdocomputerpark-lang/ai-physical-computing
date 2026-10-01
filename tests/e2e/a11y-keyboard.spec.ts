@@ -237,6 +237,9 @@ const WALK_PAGES: readonly { label: string; path: string; maxTabs: number; full?
     ready: async (page) => {
       await waitLabsIdle(page);
       await expect(page.locator('[data-lab]')).toHaveAttribute('data-vision-packages', 'ready', { timeout: LAB_READY_TIMEOUT });
+      // 준비 칸은 준비가 끝나고 1.5초 뒤 저절로 접히며 맨 위에서 제자리로 옮겨 간다 — 접힌 뒤에 걷는다. 걷기가 그 단추에 닿는 때와
+      // 접히는 때가 겹치면 "[펼치기]가 화면에 보이지 않는다"로 흔들렸다(PROGRESS 미해결 216 — 판 1.1.1 최종 점검에서 원인 확정)
+      await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: 30_000 });
     },
   },
   {
@@ -246,6 +249,8 @@ const WALK_PAGES: readonly { label: string; path: string; maxTabs: number; full?
     ready: async (page) => {
       await waitLabsIdle(page);
       await expect(page.locator('[data-board-io]')).toHaveAttribute('data-board-ready', 'yes', { timeout: LAB_READY_TIMEOUT });
+      // 영상처리 실습실과 같은 까닭(준비 칸이 접힌 뒤에 걷는다 — 미해결 216)
+      await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: 30_000 });
     },
   },
 ];

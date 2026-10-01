@@ -105,6 +105,55 @@ test.describe('영상처리 실습실(가짜 카메라)', () => {
     expect(await waitDone(page, STOP_GRACE_MS + 5_000)).toBe('stopped');
   });
 
+  // 판 1.1.1 최종 점검: 창 탭이 roving tabindex(고른 탭만 Tab 차례)인데 화살표 키가 없어, 키보드로는 두 번째 창을 볼 수 없었다(WCAG 2.1.1).
+  test('출력 창이 둘이면 탭 줄에서 ←·→·Home·End로 창을 고른다(키보드만으로 두 번째 창을 본다)', async ({ page }) => {
+    await openVisionLab(page);
+    await page.locator('[data-vision-source-select]').selectOption('sample');
+    await setEditorCode(
+      page,
+      [
+        'import cv2',
+        'cap = cv2.VideoCapture(0)',
+        'ok, frame = cap.read()',
+        'gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)',
+        "cv2.imshow('original', frame)",
+        "cv2.imshow('gray', gray)",
+        'cv2.waitKey(1)',
+        '',
+      ].join('\n'),
+    );
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    expect(await waitDone(page, FRAME_TIMEOUT)).toBe('ok');
+    const first = page.locator('[data-vision-tab="original"]');
+    const second = page.locator('[data-vision-tab="gray"]');
+    await expect(first).toHaveAttribute('aria-selected', 'true');
+    await expect(second).toHaveAttribute('aria-selected', 'false');
+    await expect(second).toHaveAttribute('tabindex', '-1');
+
+    // 첫 탭에 초점 → → : 두 번째 창이 골라지고 초점이 그 탭으로, 그 캔버스가 보인다
+    await first.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(second).toHaveAttribute('aria-selected', 'true');
+    await expect(second).toBeFocused();
+    await expect(second).toHaveAttribute('tabindex', '0');
+    await expect(page.locator('canvas[data-vision-window="gray"]')).toBeVisible();
+    await expect(page.locator('canvas[data-vision-window="original"]')).toBeHidden();
+    // 끝에서 → 는 처음으로 돌아간다, Home·End는 첫·끝 창
+    await page.keyboard.press('ArrowRight');
+    await expect(first).toBeFocused();
+    await expect(first).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('End');
+    await expect(second).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(first).toBeFocused();
+    await expect(first).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('canvas[data-vision-window="original"]')).toBeVisible();
+    // ← 는 반대 방향(처음에서 끝으로 돌아감)
+    await page.keyboard.press('ArrowLeft');
+    await expect(second).toBeFocused();
+    await expect(second).toHaveAttribute('aria-selected', 'true');
+  });
+
   test('제한 모드(?limited=1): 샘플 입력을 켜 두면 cap.read()가 한 장을 받아 한 번 실행되는 코드가 돈다', async ({ page }) => {
     await openVisionLab(page, '?limited=1');
     await expect(labRoot(page)).toHaveAttribute('data-limited', 'yes');

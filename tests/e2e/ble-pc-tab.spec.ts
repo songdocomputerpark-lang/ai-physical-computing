@@ -14,6 +14,8 @@
  *  4. 영상처리 실습실에서 bluetooth 코드를 열면(같은 문서에 보드가 없으니) [보내기] 패널이 열려 [ESP32 실습실 새 탭에서 열기]가 보인다.
  *     패널 소개·예제 설명·실습 방법은 두 탭 블루투스 흐름을 말하고 "가상 USB-UART 변환기"를 말하지 않는다(1.1.0 교실 사용성 검토 지적 3).
  *  (3번) 이어지기 전에는 출력 화면 아래에 "블루투스: 아직 이을 보드가 없어서…" 줄이 남는다(지적 10), 이어지면(1번) 없다.
+ *  5. 보드 탭이 8초 멈칫해(느린 PC) 컴퓨터 쪽 상대 목록에서 빠졌다 돌아와도 사람 조작 없이 3초 안에 다시 이어지고 값이 다시 흐른다
+ *     (판 1.1.1 최종 점검 — 전에는 보드 쪽이 실행 상태를 다시 알리지 않아 connected가 거짓으로 굳었다. 선이 상태를 묻는다: link.ts STATE_QUERY_TEXT).
  *
  * 돌리는 법(개발 서버): PW_BASE_URL=http://localhost:5002/ai-physical-computing/ npx playwright test tests/e2e/ble-pc-tab.spec.ts --project=desktop --workers=1
  */
@@ -29,6 +31,7 @@ const READY_TIMEOUT = 180_000;
 const PREFIX_SEND = 'zangbtpcsnd2';
 const PREFIX_NOTIFY = 'zangbtpcnty2';
 const PREFIX_IDLE = 'zangbtpcidy2';
+const PREFIX_STALL = 'zangbtpcstk2';
 
 /** 블루투스로 받는 교안 예제(0.1초마다 read()해 "수신 데이터: …"를 찍는다 — 배선은 사이드카의 ble 12) */
 const BOARD_RECEIVE = 'esp32/bt/b1-ble-receive-print.py';
@@ -191,6 +194,51 @@ test.describe('컴퓨터 쪽 bluetooth 흉내 → 다른 탭의 ESP32 실습실(
     await expect(waiting).toContainText('블루투스: 아직 이을 보드가 없어서 값을 보내지 않아요');
     await expect(waiting).toContainText('[ESP32 실습실 새 탭에서 열기]');
     await expect(consoleOf(board)).not.toContainText('수신 데이터');
+    await board.close();
+  });
+
+  test('보드 탭이 8초 멈칫해 끊겨도 사람 조작 없이 3초 안에 다시 이어지고 값이 다시 흐른다(판 1.1.1 최종 점검)', async ({ page, context }) => {
+    const board = await openBoard(context, `?example=${encodeURIComponent(BOARD_RECEIVE)}&bridge=${PREFIX_STALL}`);
+    await run(board);
+    const bleHost = board.locator('[data-board-part-controls][data-part="ble"]');
+    await expect(bleHost).toHaveAttribute('data-ble-running', 'true', { timeout: 60_000 });
+
+    await openVision(page, `?bridge=${PREFIX_STALL}`);
+    // 0.2초마다 이어졌을 때만 보내는 교과서 모양 코드(약 40초 돈다)
+    await setEditorCode(page, pcCode(200, 0.2));
+    await run(page);
+    const root = labRoot(page);
+    await expect(root).toHaveAttribute('data-ble-pc-connected', 'true', { timeout: 60_000 });
+    await expect(bleHost).toHaveAttribute('data-ble-rx', /^[1-9]\d*$/u, { timeout: 30_000 });
+
+    // 컴퓨터 탭에서 이어짐 값을 0.1초마다 적어 둔다(보드 탭이 멈춘 동안에도 이 탭은 돈다)
+    await page.evaluate(() => {
+      const target = document.querySelector('[data-lab]');
+      const log: string[] = [];
+      (window as unknown as { __apcConnectedLog: string[] }).__apcConnectedLog = log;
+      window.setInterval(() => log.push(target?.getAttribute('data-ble-pc-connected') ?? ''), 100);
+    });
+    // 보드 탭의 주 스레드를 8초 붙잡는다 — 탭 통로는 6초 동안 소식이 없는 상대를 목록에서 뺀다(tab.ts peerTimeoutMs)
+    await board.evaluate(() => {
+      const started = Date.now();
+      while (Date.now() - started < 8000) {
+        // 느린 PC에서 탭이 멈칫하는 것을 흉내 낸다
+      }
+    });
+    const rxAfterStall = Number(await bleHost.getAttribute('data-ble-rx'));
+    // 멈춘 동안 컴퓨터 쪽은 보드를 잃었다(끊김이 실제로 일어났는지 — 이 검사가 헛돌지 않게)
+    const during = await page.evaluate(() => (window as unknown as { __apcConnectedLog: string[] }).__apcConnectedLog.slice());
+    expect(during).toContain('false');
+    // 사람 조작 없이 3초 안에 다시 이어진다
+    await expect(root).toHaveAttribute('data-ble-pc-connected', 'true', { timeout: 3_000 });
+    // 학생 코드의 b.connected가 다시 참이 되어 값이 다시 보드에 닿는다
+    await expect.poll(async () => Number(await bleHost.getAttribute('data-ble-rx')), { timeout: 15_000 }).toBeGreaterThan(rxAfterStall);
+    await expect(board.locator('[data-bridge-role-band]')).toHaveAttribute('data-peer', 'yes');
+
+    expect(await waitDone(page, 120_000)).toBe('ok');
+    await expect(consoleOf(page)).toContainText('connected at end: True');
+    await stop(board);
+    expect(await waitDone(board, 30_000)).toBe('stopped');
     await board.close();
   });
 

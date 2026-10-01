@@ -149,7 +149,65 @@ function mount(context: LabModuleContext): LabModuleHandle {
   // ── 진행률 그리기 ──
   let collapseTimer: ReturnType<typeof setTimeout> | null = null;
   let collapsed = false;
+  /** 준비가 끝나 접을 때가 됐지만 초점이 칸 안에 있어 미뤄 둔 상태 — 초점이 칸을 떠나면 접는다(아래 focusout) */
+  let collapseWhenFocusLeaves = false;
   let renderQueued = false;
+
+  /** 초점이 이 준비 칸 안에 있나 */
+  const focusInsidePanel = (): boolean => {
+    const active = document.activeElement;
+    return panel !== null && active !== null && active !== document.body && panel.contains(active);
+  };
+
+  /**
+   * 키보드로 옮긴 초점인가(초점 테두리가 보이는 :focus-visible). 마우스로 누른 단추는 초점을 받아도 테두리가 보이지 않는다 —
+   * 그런 초점은 따라가거나 붙들지 않는다(마우스로 카드를 넘긴 학생의 칸은 예전처럼 저절로 접히고, 화면도 튀지 않게).
+   */
+  const isKeyboardFocus = (element: Element | null): element is HTMLElement => {
+    if (!(element instanceof HTMLElement) || element === document.body) {
+      return false;
+    }
+    try {
+      return element.matches(':focus-visible');
+    } catch {
+      return true; // :focus-visible을 모르는 옛 브라우저 — 키보드 초점으로 본다
+    }
+  };
+
+  /**
+   * 칸을 접은 뒤(첫 준비 동안 맨 위에 있던 칸이 제자리 — 입력·출력 아래 — 로 옮겨 가며 둘레 칸도 움직인다) 키보드 초점 요소가
+   * 화면 밖으로 나갔으면 화면 안으로 옮긴다 — 곧바로(움직임 줄이기와 상관없이 부드럽게 넘기지 않는다).
+   * 마우스로 누른 단추처럼 초점 테두리가 보이지 않는 초점은 따라가지 않는다 — 마우스로 [접기]를 누른 학생의
+   * 화면이 칸을 따라 아래로 튀지 않게(판 1.1.1 최종 점검, PROGRESS 미해결 216 — 전에는 [펼치기]가 화면 밖에 남았다).
+   */
+  const keepFocusInView = (): void => {
+    const active = document.activeElement;
+    if (!isKeyboardFocus(active)) {
+      return;
+    }
+    const rect = active.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    if ((rect.width === 0 && rect.height === 0) || viewportHeight === 0) {
+      return;
+    }
+    if (rect.bottom > 0 && rect.top < viewportHeight) {
+      return; // 조금이라도 보이면 그대로 둔다(편집칸처럼 큰 칸이 조금 밀린 것까지 따라가지 않게)
+    }
+    active.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+  };
+
+  /** 준비 칸을 접고, 옮겨 간 뒤에도 초점 요소가 화면 안에 있게 한다 */
+  const collapseKeepingFocus = (): void => {
+    collapseWhenFocusLeaves = false;
+    const active = document.activeElement;
+    const focusInBody = bodyBox !== null && active !== null && bodyBox.contains(active);
+    setCollapsed(true);
+    if (focusInBody && toggleButton !== null && toggleButton.isConnected) {
+      // 숨는 칸(1분 개념 카드 등) 안에 있던 초점은 [펼치기]로 옮긴다 — 문서(body)로 사라지지 않게(마우스로 누른 카드 단추 등).
+      toggleButton.focus({ preventScroll: true });
+    }
+    keepFocusInView();
+  };
 
   const setCollapsed = (value: boolean) => {
     collapsed = value;
@@ -260,17 +318,29 @@ function mount(context: LabModuleContext): LabModuleHandle {
       sourceText.textContent = where;
     }
     if (snapshot.phase === 'ready') {
-      if (!collapsed && collapseTimer === null) {
+      if (!collapsed && collapseTimer === null && !collapseWhenFocusLeaves) {
         collapseTimer = setTimeout(() => {
           collapseTimer = null;
-          setCollapsed(true);
+          if (disposed || collapsed) {
+            return;
+          }
+          if (focusInsidePanel() && isKeyboardFocus(document.activeElement)) {
+            // 학생이 키보드로 칸 안([접기]·1분 개념 카드의 [다음 →] 등)에 초점을 두고 있으면 지금 접지 않는다 — 접으며 칸이 제자리로
+            // 옮겨 가면 초점이 화면 밖에 남고, 카드 칸이 숨으면 초점이 문서(body)로 사라졌다(판 1.1.1 최종 점검, 미해결 216). 칸을 떠날 때 접는다.
+            collapseWhenFocusLeaves = true;
+            return;
+          }
+          collapseKeepingFocus();
         }, PANEL_COLLAPSE_DELAY_MS);
       }
       scheduleWarm();
-    } else if (collapseTimer !== null) {
+    } else {
       // 다시 받기 시작했다(패키지 단계 등) — 접지 않는다.
-      clearTimeout(collapseTimer);
-      collapseTimer = null;
+      if (collapseTimer !== null) {
+        clearTimeout(collapseTimer);
+        collapseTimer = null;
+      }
+      collapseWhenFocusLeaves = false;
     }
   };
 
@@ -423,8 +493,31 @@ function mount(context: LabModuleContext): LabModuleHandle {
       clearTimeout(collapseTimer);
       collapseTimer = null;
     }
+    collapseWhenFocusLeaves = false;
+    // 학생이 직접 누르면 곧바로 접고 편다. 접으며 칸이 제자리로 옮겨 가도 키보드로 누른 단추([펼치기])는 화면 안에 둔다(keepFocusInView).
     setCollapsed(!collapsed);
+    keepFocusInView();
   });
+
+  // 접기를 미뤄 둔 동안(초점이 칸 안) 초점이 칸 밖으로 나가면 그때 접는다 — 칸 안에서 단추 사이를 옮겨 다니는 것은 세지 않는다.
+  const onPanelFocusOut = (event: FocusEvent) => {
+    if (!collapseWhenFocusLeaves || collapsed || panel === null) {
+      return;
+    }
+    const next = event.relatedTarget;
+    if (next instanceof Node && panel.contains(next)) {
+      return;
+    }
+    // 새 초점이 자리를 잡은 뒤에 본다(relatedTarget이 없을 때 — 빈 곳을 누른 경우 등 — 도 같은 규칙)
+    setTimeout(() => {
+      if (!collapseWhenFocusLeaves || collapsed || disposed || focusInsidePanel()) {
+        return;
+      }
+      collapseKeepingFocus();
+    }, 0);
+  };
+  panel?.addEventListener('focusout', onPanelFocusOut);
+  cleanups.push(() => panel?.removeEventListener('focusout', onPanelFocusOut));
 
   // ── 오프라인 준비(서비스 워커) ──
   let registration: ServiceWorkerRegistration | null = null;

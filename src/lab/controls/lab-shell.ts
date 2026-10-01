@@ -1203,11 +1203,13 @@ class LabShellController implements LabController {
     if (fontSizeText) {
       fontSizeText.textContent = `${this.#fontSizePx}px`;
     }
+    // 끝(가장 작게·크게)에 닿으면 disabled 대신 aria-disabled로 끈다 — 키보드로 누르던 단추가 disabled가 되면 초점이 문서(body)로
+    // 사라졌다(판 1.1.1 최종 점검, 점검 단추의 aria-disabled 규약과 같은 뜻). 누름은 아래 click 처리에서 무시하고, 흐린 모양은 CSS가 그린다.
     if (fontSmaller) {
-      fontSmaller.disabled = !canStepFontSize(this.#fontSizePx, -1);
+      fontSmaller.setAttribute('aria-disabled', String(!canStepFontSize(this.#fontSizePx, -1)));
     }
     if (fontLarger) {
-      fontLarger.disabled = !canStepFontSize(this.#fontSizePx, 1);
+      fontLarger.setAttribute('aria-disabled', String(!canStepFontSize(this.#fontSizePx, 1)));
     }
     this.root.dataset.fontSize = String(this.#fontSizePx);
     if (save) {
@@ -1496,10 +1498,16 @@ class LabShellController implements LabController {
       this.#cleanups.push(() => observer.disconnect());
     }
     listen(e.fontSmaller, 'click', () => {
+      if (!canStepFontSize(this.#fontSizePx, -1)) {
+        return; // 가장 작은 단계(aria-disabled) — 누름을 무시한다
+      }
       this.#fontSizePx = stepFontSize(this.#fontSizePx, -1);
       this.#applyFontSize(true);
     });
     listen(e.fontLarger, 'click', () => {
+      if (!canStepFontSize(this.#fontSizePx, 1)) {
+        return; // 가장 큰 단계(aria-disabled) — 누름을 무시한다
+      }
       this.#fontSizePx = stepFontSize(this.#fontSizePx, 1);
       this.#applyFontSize(true);
     });

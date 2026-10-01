@@ -290,6 +290,10 @@ test.describe('4단원 통합 화면 — 순수 논리(브라우저 없이)', ()
     expect(findPairView('<script>', views)).toBeNull();
     expect(findPairView('', views)).toBeNull();
     expect(pairQuery('4-1-4')).toBe('?pair=4-1-4');
+    // 4-2-1 기본 짝의 보드는 넷째·다섯째 값(방금 더블클릭·오른쪽 클릭했으면 1)을 그대로 LCD에 쓴다 — "클릭 수"가 아니라 "클릭 표시"(판 1.1.1 최종 점검)
+    const basic = PAIRS.find((pair) => pair.id === '4-2-1');
+    expect(basic?.note).toContain('클릭 표시(방금 클릭하면 1)');
+    expect(`${basic?.note ?? ''} ${basic?.running ?? ''}`).not.toContain('클릭 수');
   });
 
   test('차시 md의 4단원 통합 실습실 ?pair= 링크가 모두 있는 짝을 가리킨다(짝 이름을 바꾸면 차시 링크도 함께 — 미해결 179)', () => {
