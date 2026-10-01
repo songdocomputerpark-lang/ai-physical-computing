@@ -108,10 +108,16 @@ const total = errorCatalog.entries.length;
             data-errors-level={entry.level}
             data-errors-search={[entry.id, preview.title, ...entry.types, preview.meaning, ...preview.mistakes].join(' ')}
           >
-            <h3 class="errors-entry__title" id={entry.id}>
-              {preview.title}
-              {entry.level === 'notice' && !preview.title.includes('오류가 아니에요') && <span class="errors-entry__badge">오류가 아니에요</span>}
-            </h3>
+            <h3 class="errors-entry__title" id={entry.id}>{preview.title}</h3>
+            {/*
+              "오류가 아니에요" 딱지는 제목(h3) 밖, 제목 아래 줄에 둔다 — 제목 안에 두면 검색 결과 제목과 화면 낭독기가
+              "…안내예요오류가 아니에요"처럼 붙여 읽었다(2026-09-30 최종 점검 PM-08). 제목이 이미 "오류가 아니라 안내예요"·"오류가 아니에요"면 붙이지 않는다.
+            */}
+            {entry.level === 'notice' && !/오류가 아니/u.test(preview.title) && (
+              <p class="errors-entry__kind">
+                <span class="errors-entry__badge">오류가 아니에요</span>
+              </p>
+            )}
             {entry.types.length > 0 && (
               <p class="errors-entry__types">
                 오류 종류:{' '}
@@ -281,16 +287,19 @@ const total = errorCatalog.entries.length;
     display: none;
   }
 
-  /* "오류가 아니에요" 항목(level: notice — [정지] 등)임을 제목 옆에 적는다(2026-09-18 검토 반영) */
+  /* "오류가 아니에요" 항목(level: notice — [정지] 등)임을 제목 아래 줄에 적는다(2026-09-18 검토 반영, 2026-09-30 제목 밖으로) */
+  .errors-entry__kind {
+    margin-block: 0 var(--space-2);
+  }
+
   .errors-entry__badge {
-    margin-inline-start: var(--space-2);
+    display: inline-block;
     padding: 0.1em 0.6em;
     border-radius: var(--radius-full);
     background: var(--color-info-text);
     color: var(--color-on-accent);
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
-    vertical-align: middle;
     white-space: nowrap;
   }
 
@@ -298,12 +307,59 @@ const total = errorCatalog.entries.length;
     margin-block-start: var(--space-2);
   }
 
+  /*
+   * 펼침 칸 표시: display:flex인 summary에는 브라우저가 ▶ 표식을 그리지 않아 그냥 굵은 글로 보였다(2026-09-30 최종 점검 C-02).
+   * 글자(▶) 대신 테두리로 그린 세모라 화면 낭독기가 읽지 않고(칸은 이미 "펼침 단추"로 읽힌다), 글꼴·그림 문자 차이가 없다.
+   * 닫혀 있으면 오른쪽, 열리면 아래(돌리기만 — 전환 움직임 없음). 자리(폭)는 두 상태가 같아 글이 밀리지 않는다.
+   */
   .errors-entry__summary {
     display: flex;
     align-items: center;
+    gap: var(--space-2);
     min-block-size: var(--target-min);
     font-weight: var(--weight-semibold);
+    list-style: none;
     cursor: pointer;
+  }
+
+  .errors-entry__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .errors-entry__summary::before {
+    content: '';
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.4em;
+    border-inline-width: 0.6em 0;
+    border-inline-start-color: currentColor;
+  }
+
+  .errors-entry__more[open] > .errors-entry__summary::before {
+    transform: rotate(90deg);
+  }
+
+  /*
+   * 강제 색(윈도 고대비) 모드: 브라우저가 테두리 색을 시스템 색으로 바꿔 투명한 변까지 칠할 수 있고, 펼침 칸 글자는 본문과 다른
+   * 시스템 색일 수 있어(2026-09-30 Edge 강제 색 흉내: 펼침 칸 파랑 rgb(0,0,159), 본문 검정) 세모 색을 미리 정할 수 없다 —
+   * 이 모드에서는 브라우저 기본 ▶/▼ 표식으로 돌아간다(펼침 칸 글자와 같은 색).
+   */
+  @media (forced-colors: active) {
+    .errors-entry__summary {
+      display: list-item;
+      list-style: revert;
+    }
+
+    .errors-entry__summary::-webkit-details-marker {
+      display: revert;
+    }
+
+    .errors-entry__summary::before {
+      content: none;
+    }
   }
 
   .errors-how {

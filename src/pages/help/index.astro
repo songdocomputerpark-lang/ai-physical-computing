@@ -1,6 +1,7 @@
 ---
 /**
- * 문제 해결(PLAN §2.1 /help/) — 자주 묻는 질문 초안 5개. 오류 사전은 Phase 2부터 붙인다(P2-06, P5-14).
+ * 문제 해결(PLAN §2.1 /help/) — 학생·교사가 실습하다 자주 막히는 질문. 오류 메시지 풀이는 오류 사전(/help/errors/, P2-06),
+ * 선생님 질문은 교사용 자료실 FAQ(P5-14)로 잇는다.
  *
  * 질문마다 id를 붙여 다른 페이지에서 바로 연결할 수 있다. 예: withBase('help/#board-port')
  * 화면 안내 이름은 공식 도움말 문서에서 확인한 이름을 그대로 쓴다(2026-09-16 확인).
@@ -8,7 +9,7 @@
  * - Chrome 사이트 데이터: "Chrome에서 쿠키 삭제, 허용, 관리하기"(answer/95647?hl=ko), 시크릿 창: "시크릿 모드로 탐색하기"(answer/95464?hl=ko)
  * - Windows 카메라: Microsoft 지원 "Windows 카메라, 마이크 및 개인 정보"(support.microsoft.com/ko-kr/windows/privacy/windows-camera-microphone-and-privacy)
  * - 드라이버 공식 주소와 Windows 자동 설치 가능성: PLAN §8.3 P3-10(2026-09-15 확인)
- * 실습실이 아직 없어서 "~하게 만들어요", "~할 거예요"로 적은 곳은 해당 기능이 생기면 실제 버튼 이름·동작으로 고친다.
+ * 실습실 칸은 자리 낱말("오른쪽 패널") 대신 칸 이름으로 가리킨다 — 휴대폰·태블릿 세로(1024px 미만)에서는 칸이 아래로 쌓인다(2026-09-30 최종 점검 MA-01).
  * 브라우저 메뉴 이름은 판이 바뀌면 달라질 수 있으니 연 1회 점검(MAINTENANCE.md) 때 다시 확인한다.
  * 카메라 허용을 되돌리는 문장은 실습실·점검 페이지와 같은 글(src/lab/vision/camera-notice.ts CAMERA_PERMISSION_STEP — 1.1.0 검토 반영:
  * 세 곳이 서로 다른 메뉴 이름을 적었다). 설정 화면은 메뉴 이름 대신 Chrome·Edge 모두 바뀌지 않는 주소(chrome://·edge://settings/content/camera)로.
@@ -43,7 +44,7 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
 <BaseLayout title={page.title} description={page.description} width="narrow">
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <p>자주 묻는 질문의 첫 모음이에요. 실습실이 생기면서 답이 더 자세해지고 질문도 늘어나요.</p>
+  <p>실습하다 막히면 먼저 아래 질문에서 찾아봐요. 코드가 오류로 끝났다면 <a href={errorsPage.href}>{errorsPage.title}</a>에 풀이가 있어요.</p>
 
   <nav class="faq-toc" aria-label="질문 목록">
     <ol>
@@ -131,9 +132,9 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
     <section aria-labelledby={speech.id}>
       <h2 id={speech.id}>{speech.title}</h2>
       <p>
-        괜찮아요. 음성 실습(1-4-3)은 <strong>글자 입력이 기본</strong>이에요. 실습실 오른쪽 패널의 칸에 문장을 적고
-        <strong>[보내기]</strong>를 누르면 그 문장이 파이썬의 <code>recognize_google()</code> 결과가 돼요. 마이크는 켜지지 않고,
-        아무것도 바깥으로 나가지 않아요.
+        괜찮아요. 음성 실습(1-4-3)은 <strong>글자 입력이 기본</strong>이에요. 코드가 <code>r.listen()</code>에서 기다릴 때 실습실 조절 패널의
+        '말 대신 적을 문장' 칸에 문장을 적고 <strong>[보내기]</strong>를 누르면 그 문장이 파이썬의 <code>recognize_google()</code> 결과가
+        돼요. 마이크는 켜지지 않고, 아무것도 바깥으로 나가지 않아요.
       </p>
       <p>
         마이크로 말하는 방법은 교사가{' '}

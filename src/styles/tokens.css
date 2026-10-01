@@ -100,6 +100,8 @@
   --radius-full: 999px;
   --shadow-sm: 0 1px 2px rgb(23 25 28 / 0.08);
   --shadow-md: 0 4px 16px rgb(23 25 28 / 0.1);
+  /* 옆으로 넘치는 표·코드 칸에서 "더 볼 것이 있어요" 그늘(global.css [data-scroll-more] — 꾸밈이라 대비 기준 밖) */
+  --shadow-scroll-more: rgb(23 25 28 / 0.3);
 
   /* ── 누르는 곳 최소 크기(44px, 손가락·마우스 모두 편하게) ── */
   --target-min: 2.75rem;

@@ -372,6 +372,32 @@ textarea {
   font-size: var(--text-sm);
 }
 
+/*
+ * 옆으로 밀어 볼 것이 남은 쪽 안쪽 가장자리에 그늘(2026-09-30 최종 점검 MA-02 — 휴대폰에서 표의 열·코드 줄 끝이 칸 경계에서 잘려
+ * 거기서 끝난 것처럼 보였다). data-scroll-more는 넘치는 동안만 붙고 밀 때마다 바뀐다(src/components/common/scroll-focus.ts — 대상은
+ * .prose table·.prose pre·[data-scroll-shade]). 끝까지 밀면 그 쪽 그늘이 사라진다. 칸 안쪽 그림자라 글과 함께 밀리지 않고,
+ * 머리 칸(th)처럼 바탕색이 있는 칸 위에는 그려지지 않는다. 강제 색 모드는 브라우저가 그림자를 지운다(칸 테두리·밀기는 그대로).
+ */
+[data-scroll-more='end'] {
+  box-shadow: inset -1.5rem 0 1rem -1rem var(--shadow-scroll-more);
+}
+
+[data-scroll-more='start'] {
+  box-shadow: inset 1.5rem 0 1rem -1rem var(--shadow-scroll-more);
+}
+
+[data-scroll-more='both'] {
+  box-shadow:
+    inset -1.5rem 0 1rem -1rem var(--shadow-scroll-more),
+    inset 1.5rem 0 1rem -1rem var(--shadow-scroll-more);
+}
+
+@media print {
+  [data-scroll-more] {
+    box-shadow: none;
+  }
+}
+
 .prose th,
 .prose td {
   padding: var(--space-2) var(--space-3);

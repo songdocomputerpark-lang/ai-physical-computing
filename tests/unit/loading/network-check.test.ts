@@ -16,6 +16,7 @@ import {
 } from '../../../src/components/start/network-check/items.ts';
 import { MQTT_BROKERS } from '../../../src/lab/mqtt/brokers.ts';
 import { ALLOWED_REMOTE_ORIGINS, PYODIDE_CDN_INDEX_URL } from '../../../src/lab/runtime/config.ts';
+import { formatCheckedAt } from '../../../src/lib/capabilities.ts';
 import { BASE_PATH } from '../../../src/lib/url.ts';
 
 const ORIGIN = 'https://songdocomputerpark-lang.github.io';
@@ -159,8 +160,11 @@ describe('결과 복사 글', () => {
   ];
 
   it('항목마다 한 줄이고 판정이 한국어로 보인다', () => {
-    const report = formatNetworkReport(lines, { origin: ORIGIN, when: new Date('2026-09-16T08:30:00Z') });
-    expect(report).toContain('[네트워크 점검] 2026-09-16 08:30 (UTC)');
+    const when = new Date('2026-09-16T08:30:00Z');
+    const report = formatNetworkReport(lines, { origin: ORIGIN, when });
+    // 시각은 브라우저 점검 글과 같은 기준(이 컴퓨터 시각 + UTC 차이 — 2026-09-30 최종 점검 PM-03: 전에는 이쪽만 UTC였다)
+    expect(report).toContain(`[네트워크 점검] ${formatCheckedAt(when)}`);
+    expect(report.split('\n')[0]).toMatch(/^\[네트워크 점검\] \d{4}-\d{2}-\d{2} \d{2}:\d{2} \(UTC[+-]\d{2}:\d{2}\)$/u);
     expect(report).toContain(`사이트: ${ORIGIN}`);
     expect(report).toContain('- 파이썬 엔진 받는 곳(jsDelivr): 연결됨 — 접속됐어요(0.4초, 18KB).');
     expect(report).toContain('- 같은 사이트 파이썬 예비본: 막힘 — 접속하지 못했어요.');

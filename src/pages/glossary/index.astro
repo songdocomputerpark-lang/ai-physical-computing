@@ -4,7 +4,7 @@
 //   새 낱말 = md 파일 하나 추가(코드 수정 없음). 파일 이름이 항목 id이자 주소 뒤 #이름이다. 예: pixel.md → /glossary/#pixel
 // - 차시 본문의 :용어[픽셀]은 이 페이지의 항목으로 이어진다(src/lib/remark-glossary.mjs → GlossaryScope.astro).
 // - 가나다·ABC 색인의 묶음과 순서는 src/components/glossary/glossary.ts의 groupGlossaryEntries가 정한다.
-// - 나오는 차시는 차시 본문에 쓴 :용어[…]를 모아 자동으로 채운다(차시가 아직 없으면 "준비 중이에요").
+// - 나오는 차시는 차시 본문에 쓴 :용어[…]를 모아 자동으로 채운다(이어진 차시가 없으면 "이어진 차시가 없어요").
 import { getCollection } from 'astro:content';
 import Callout from '../../components/common/Callout.astro';
 import GlossaryEntry from '../../components/glossary/GlossaryEntry.astro';

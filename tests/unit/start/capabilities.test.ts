@@ -2,6 +2,7 @@
 // 실제 V8의 JSPI로 시험 모듈이 도는지는 Node를 --experimental-wasm-jspi로 따로 띄워 확인한다(플래그를 모르는 Node면 건너뜀).
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
+import { formatNetworkReport } from '../../../src/components/start/network-check/items.ts';
 import {
   BROWSER_NOTICE_DISMISS_KEY,
   CHECK_IDS,
@@ -458,6 +459,17 @@ describe('한꺼번에 점검·요약·결과 복사 글', () => {
 
   it('점검 시각은 이 컴퓨터 시간대의 날짜·시각과 UTC 차이로 적는다', () => {
     expect(formatCheckedAt(new Date(2026, 0, 2, 3, 4))).toMatch(/^2026-01-02 03:04 \(UTC[+-]\d{2}:\d{2}\)$/u);
+  });
+
+  it('점검 쪽 두 [결과 복사] 글(브라우저 점검·네트워크 점검)은 같은 시각 기준으로 적는다(2026-09-30 최종 점검 PM-03)', async () => {
+    // 전에는 네트워크 점검 글만 UTC("… 01:05 (UTC)")라 두 글을 함께 보내면 교사·전산 담당이 9시간 차이로 읽었다.
+    const when = new Date(2026, 8, 30, 10, 5);
+    const report = await runChecks(makeEnv(), CHECK_IDS, { now: () => when });
+    const browserStamp = formatReport(report, { siteName: '사이트' }).split('\n')[1]?.replace('점검 시각: ', '');
+    const networkStamp = formatNetworkReport([], { origin: 'https://example.github.io', when }).split('\n')[0]?.replace('[네트워크 점검] ', '');
+    expect(browserStamp).toMatch(/^2026-09-30 10:05 \(UTC[+-]\d{2}:\d{2}\)$/u);
+    expect(networkStamp).toBe(browserStamp);
+    expect(networkStamp).not.toMatch(/\(UTC\)$/u);
   });
 });
 

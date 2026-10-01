@@ -8,7 +8,7 @@
 import { getCollection } from 'astro:content';
 import LessonLegend from '../../components/lesson/LessonLegend.astro';
 import UnitOutline from '../../components/lesson/UnitOutline.astro';
-import { buildUnitOutline, countOutline, publishedLessons } from '../../components/lesson/lesson-data.ts';
+import { buildUnitOutline, countOutline, lessonCountText, publishedLessons } from '../../components/lesson/lesson-data.ts';
 import { getPage, learnUnits } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
@@ -18,12 +18,13 @@ const units = learnUnits.map((unit) => {
   const sections = buildUnitOutline(unit.unit, lessons);
   return { unit, sections, counts: countOutline(sections) };
 });
+const hasPlanned = units.some(({ counts }) => counts.planned > 0);
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description} 카드를 누르면 그 차시로 가요.</p>
-  <LessonLegend />
+  <LessonLegend hasPlanned={hasPlanned} />
   {
     units.map(({ unit, sections, counts }) => (
       <section class="learn-unit" aria-labelledby={`${unit.id}-title`}>
@@ -32,9 +33,7 @@ const units = learnUnits.map((unit) => {
             <a href={unit.href}>{unit.title}</a>
           </h2>
           <p class="learn-unit__description">{unit.description}</p>
-          <p class="learn-unit__count">
-            차시 {counts.ready + counts.planned}개 가운데 {counts.ready}개를 볼 수 있어요.
-          </p>
+          <p class="learn-unit__count">{lessonCountText(counts)}</p>
         </header>
         <UnitOutline sections={sections} headingLevel={3} contextId={`${unit.id}-title`} />
       </section>

@@ -146,7 +146,7 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
           <h3 id={`std-area-${area.area}`} class="std-area__title">
             ({area.area}) {area.name}
           </h3>
-          <div class="std-table" role="region" aria-labelledby={`std-caption-${area.area}`} tabindex="0">
+          <div class="std-table" role="region" aria-labelledby={`std-caption-${area.area}`} tabindex="0" data-scroll-shade>
             <table role="table">
               <caption id={`std-caption-${area.area}`}>({area.area}) {area.name} 영역의 성취기준과 평가 방향</caption>
               <thead role="rowgroup">

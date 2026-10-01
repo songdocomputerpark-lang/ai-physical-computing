@@ -7,7 +7,8 @@
  * props
  *   entry     getCollection('glossary')의 항목
  *   registry  createGlossaryRegistry로 만든 찾아보기 표(함께 보면 좋은 낱말의 제목을 찾는다)
- *   lessons   (선택) 이 낱말이 나오는 차시 링크(collectLessonsByEntry). 없으면 "준비 중이에요"
+ *   lessons   (선택) 이 낱말이 나오는 차시 링크(collectLessonsByEntry — 차시 본문의 :용어[…]). 없으면 "이어진 차시가 없어요"
+ *             (차시 45편이 모두 공개된 뒤에도 "준비 중이에요"라고 해 차시를 만드는 중인 것처럼 읽혔다 — 2026-09-30 최종 점검 PM-06)
  */
 import { render, type CollectionEntry } from 'astro:content';
 import GlossaryScope from './GlossaryScope.astro';
@@ -95,7 +96,7 @@ const related = data.related.flatMap((relatedId) => {
               ))}
             </ul>
           ) : (
-            <span class="glossary-entry__empty">준비 중이에요</span>
+            <span class="glossary-entry__empty">이어진 차시가 없어요</span>
           )
         }
       </dd>

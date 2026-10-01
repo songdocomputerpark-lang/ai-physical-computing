@@ -6,6 +6,8 @@
  *   withParticle('ESP32', '이/가')  → 'ESP32가'   (숫자는 읽는 소리로 판단: 2 → "이")
  *   withParticle('파일', '으로/로') → '파일로'     (ㄹ 받침 뒤에는 "로")
  *   withParticle('Wi-Fi', '은/는')  → 'Wi-Fi은(는)' (영어 글자로 끝나면 둘 다 적는다)
+ *   withParticle('블루투스(BLE)', '을/를') → '블루투스(BLE)를' (덧붙인 괄호 안이 영어라 소리를 모르면 괄호 앞 말로 고른다)
+ *   withParticle('문자 LCD(16×2)', '을/를') → '문자 LCD(16×2)를' (괄호 안이 한글·숫자로 끝나 소리를 알면 그 소리로 — 지금까지와 같다)
  */
 export type ParticlePair = '은/는' | '이/가' | '을/를' | '과/와' | '으로/로';
 
@@ -31,8 +33,25 @@ const DIGIT_FINAL_SOUND: Readonly<Record<string, FinalSound>> = {
 
 function finalSound(word: string): FinalSound {
   // 끝에 붙은 괄호·따옴표·문장 부호는 소리가 없으니 건너뛴다. 예: "실습실)" → "실"
-  const trimmed = word.trim().replace(/[\s)\]}"'”’」』.,!?…·]+$/u, '');
-  const last = trimmed.at(-1);
+  const whole = word.trim();
+  const trimmed = whole.replace(/[\s)\]}"'”’」』.,!?…·]+$/u, '');
+  const sound = lastCharSound(trimmed);
+  if (sound !== 'unknown') {
+    return sound;
+  }
+  // 낱말 뒤에 덧붙인 괄호 풀이가 영어 글자로 끝나 소리를 정할 수 없으면(예: "블루투스(BLE)") 괄호 앞 말로 다시 본다 —
+  // 괄호 속 풀이는 읽을 때 건너뛰는 말이라서(2026-09-30 최종 점검 E5: 배선 경고가 "블루투스(BLE)을(를)"로 나왔다).
+  // 괄호 안이 한글·숫자로 끝나 소리를 알면 위에서 이미 그 소리로 정했다("문자 LCD(16×2)" → "를", "출처 페이지(자동)" → "을").
+  const open = trimmed.lastIndexOf('(');
+  if (open > 0 && !trimmed.includes(')', open) && whole.slice(trimmed.length).includes(')')) {
+    return finalSound(trimmed.slice(0, open));
+  }
+  return 'unknown';
+}
+
+/** 마지막 글자 하나로 끝소리를 본다(한글 음절·숫자만 안다) */
+function lastCharSound(text: string): FinalSound {
+  const last = text.at(-1);
   if (last === undefined) {
     return 'unknown';
   }

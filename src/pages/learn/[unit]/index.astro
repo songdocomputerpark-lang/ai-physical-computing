@@ -6,7 +6,7 @@
 import { getCollection } from 'astro:content';
 import LessonLegend from '../../../components/lesson/LessonLegend.astro';
 import UnitOutline from '../../../components/lesson/UnitOutline.astro';
-import { buildUnitOutline, countOutline, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { buildUnitOutline, countOutline, lessonCountText, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -31,8 +31,8 @@ const counts = countOutline(sections);
 <BaseLayout title={unit.title} description={unit.description}>
   <h1 class="page-title">{unit.title}</h1>
   <p class="lead">{unit.description}</p>
-  <p class="unit-count">차시 {counts.ready + counts.planned}개 가운데 {counts.ready}개를 볼 수 있어요.</p>
-  <LessonLegend />
+  <p class="unit-count">{lessonCountText(counts)}</p>
+  <LessonLegend hasPlanned={counts.planned > 0} />
   <UnitOutline sections={sections} headingLevel={2} />
 </BaseLayout>
 

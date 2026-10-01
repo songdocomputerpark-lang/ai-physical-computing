@@ -409,6 +409,16 @@ export function countOutline(sections: readonly OutlineSection[]): { ready: numb
   return { ready, planned };
 }
 
+/**
+ * 배우기·대단원 목록의 차시 수 한 줄. "준비 중" 차시가 있을 때만 "N개 가운데 M개를 볼 수 있어요"로 적는다 —
+ * 모두 공개된 뒤에도 "23개 가운데 23개를 볼 수 있어요"라고 만드는 중인 것처럼 말했다(2026-09-30 최종 점검 C-05).
+ */
+export function lessonCountText(counts: { readonly ready: number; readonly planned: number }): string {
+  return counts.planned > 0
+    ? `차시 ${counts.ready + counts.planned}개 가운데 ${counts.ready}개를 볼 수 있어요.`
+    : `차시 ${counts.ready}개`;
+}
+
 /** 카드·제목 앞에 붙는 차시 종류 표시(교과서 차시와 대단원 마무리는 붙이지 않는다, PD-07) */
 export function kindBadge(kind: LessonKind): string | undefined {
   return kind === 'supplement' || kind === 'reading' ? KIND_LABELS[kind] : undefined;

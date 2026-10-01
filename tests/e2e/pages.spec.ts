@@ -174,8 +174,12 @@ test.describe('이 담당의 페이지', () => {
     await expect(page).toHaveURL(/#board-port$/u);
     await expect(page.locator('h2[id="board-port"]')).toBeInViewport();
 
-    // 오류 사전으로 가는 길(P2-14에서 "준비 중" 상자를 링크로 바꿈)
-    await expect(page.getByRole('main').getByRole('link', { name: '파이썬 오류 사전' })).toHaveAttribute('href', withBase('help/errors/'));
+    // 오류 사전으로 가는 길(P2-14에서 "준비 중" 상자를 링크로 바꿈, 2026-09-30 첫 문단에도 — 같은 이름은 모두 같은 곳으로 간다)
+    const errorLinks = page.getByRole('main').getByRole('link', { name: '파이썬 오류 사전' });
+    expect(await errorLinks.count()).toBeGreaterThanOrEqual(1);
+    for (const link of await errorLinks.all()) {
+      await expect(link).toHaveAttribute('href', withBase('help/errors/'));
+    }
   });
 
   test('기여·문의는 이슈 양식(목록 _issue-templates.ts)·개인정보 안내·라이선스 파일·제3자 목록을 연결한다', async ({ page }) => {
@@ -267,6 +271,72 @@ test.describe('이 담당의 페이지', () => {
       const sitePath = new URL(link.url).pathname.slice(siteConfig.publicBase.length);
       expect((await request.get(withBase(sitePath))).status(), link.url).toBe(200);
     }
+  });
+});
+
+test.describe('실습실 밖 쪽의 안내 글·표시(2026-09-30 최종 점검 고침)', () => {
+  test.skip(({ isMobile }) => isMobile, '글과 표시는 데스크톱에서 확인한다');
+
+  test('문제 해결: 개발 중 표현이 없고, 음성 질문은 칸 이름으로 가리키며 "적고 [보내기]를" 띄어 쓴다', async ({ page }) => {
+    await page.goto('./help/');
+    const main = page.getByRole('main');
+    await expect(main).not.toContainText('첫 모음');
+    await expect(main).not.toContainText('실습실이 생기면서');
+    const speech = page.locator('section[aria-labelledby="speech"]');
+    await expect(speech).toContainText("'말 대신 적을 문장' 칸에 문장을 적고 [보내기]를 누르면");
+    await expect(speech).not.toContainText('오른쪽');
+  });
+
+  test('오류 사전: "오류가 아니에요" 딱지는 제목 밖에 있고(제목이 이미 그렇게 말하면 없음), 펼침 칸에는 세모 표시가 있다', async ({ page }) => {
+    await page.goto('./help/errors/');
+    // 제목(h3)은 제목 글만 — 검색 결과·화면 낭독기가 "…않아요오류가 아니에요"로 붙여 읽지 않게
+    await expect(page.locator('h3#comm-mqtt-topic-prefix-twice')).toHaveText('토픽에는 접두어를 적지 않아요');
+    await expect(page.locator('[data-errors-entry-item="comm-mqtt-topic-prefix-twice"] .errors-entry__badge')).toHaveText('오류가 아니에요');
+    await expect(page.locator('.errors-entry__title .errors-entry__badge')).toHaveCount(0);
+    // 제목이 이미 "오류가 아니라 안내예요"·"오류가 아니에요"라고 말하는 항목에는 딱지를 또 붙이지 않는다
+    for (const id of ['comm-ble-truncated', 'keyboard-interrupt']) {
+      await expect(page.locator(`[data-errors-entry-item="${id}"] .errors-entry__badge`), id).toHaveCount(0);
+    }
+    // 펼침 칸 표시: 닫혀 있으면 오른쪽을 가리키는 세모, 열리면 아래로 돈다(테두리로 그려 낭독되지 않음)
+    const entry = page.locator('[data-errors-entry-item="name-error"]');
+    const summary = entry.locator('summary');
+    const marker = () =>
+      summary.evaluate((element) => {
+        const style = getComputedStyle(element, '::before');
+        return { content: style.content, left: style.borderLeftWidth, transform: style.transform };
+      });
+    const closed = await marker();
+    expect(closed.content).toBe('""');
+    expect(Number.parseFloat(closed.left)).toBeGreaterThan(0);
+    expect(closed.transform).toBe('none');
+    await summary.click();
+    await expect(entry.locator('[data-errors-more]')).toHaveAttribute('open', '');
+    expect((await marker()).transform).not.toBe('none');
+  });
+
+  test('교사용 시작하기: 외부 연결 표의 공개 중계 서버 줄에 실습실이 고를 수 있는 서버가 모두 있다(HiveMQ 포함)', async ({ page }) => {
+    await page.goto(getPage('start-teacher').href);
+    const table = page.getByRole('table', { name: '외부로 연결되는 곳과 보내지는 것' });
+    const mqtt = table.locator('tbody tr').filter({ hasText: 'MQTT' });
+    await expect(mqtt).toContainText('HiveMQ');
+    await expect(mqtt).toContainText('test.mosquitto.org');
+    await expect(mqtt.getByRole('link', { name: 'HiveMQ 개인정보처리방침(영어)' })).toHaveAttribute('href', 'https://www.hivemq.com/legal/privacy-policy/');
+    await expect(table).not.toContainText('생긴 뒤');
+  });
+
+  test('설정: 영상처리 실습실에서 고른 카메라를 기억한다고 적고, 음성 방법을 고르는 곳은 칸 이름으로 가리킨다', async ({ page }) => {
+    await page.goto(getPage('settings').href);
+    const main = page.getByRole('main');
+    await expect(main).toContainText('고른 카메라');
+    await expect(main).not.toContainText('지금은 실습실을 열 때마다 골라요.');
+    await expect(main).toContainText("조절 패널의 '받는 방법' 칸");
+    await expect(main).not.toContainText('오른쪽 아래 패널');
+  });
+
+  test('학생용 시작하기: 조절 패널을 자리 낱말 없이 가리킨다(휴대폰에서는 칸이 아래로 쌓인다)', async ({ page }) => {
+    await page.goto(getPage('start-student').href);
+    await expect(page.getByRole('main')).toContainText('실행 중에 조절 패널의 슬라이더로');
+    await expect(page.getByRole('main')).not.toContainText('오른쪽 아래 조절 패널');
   });
 });
 

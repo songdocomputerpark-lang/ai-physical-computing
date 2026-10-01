@@ -12,6 +12,7 @@
 import type { ProbeStatus } from '../../../lab/loader/probe.ts';
 import { MQTT_BROKERS } from '../../../lab/mqtt/brokers.ts';
 import { PYODIDE_CDN_INDEX_URL, PYODIDE_SITE_INDEX_PATH } from '../../../lab/runtime/config.ts';
+import { formatCheckedAt } from '../../../lib/capabilities.ts';
 import { withBase } from '../../../lib/url.ts';
 
 export type NetworkStatus = 'pending' | 'ok' | 'blocked' | 'unknown';
@@ -198,11 +199,11 @@ const STATUS_TEXT: Readonly<Record<NetworkStatus, string>> = Object.freeze({
 
 /**
  * 복사할 결과 글. 개인정보는 넣지 않는다(사이트 주소·항목·판정·걸린 시간만).
- * 줄 모양은 점검 페이지의 [결과 복사]와 비슷하게 맞춘다.
+ * 줄 모양은 점검 페이지의 [결과 복사]와 비슷하게 맞춘다. 시각도 브라우저 점검 글과 같은 도우미(이 컴퓨터 시각 + UTC 차이,
+ * src/lib/capabilities.ts formatCheckedAt)로 적는다 — 전에는 이쪽만 UTC라 두 글을 함께 붙이면 9시간 차이로 읽혔다(2026-09-30 최종 점검 PM-03).
  */
 export function formatNetworkReport(lines: readonly NetworkReportLine[], context: { origin: string; when: Date }): string {
-  const stamp = context.when.toISOString().slice(0, 16).replace('T', ' ');
-  const head = [`[네트워크 점검] ${stamp} (UTC)`, `사이트: ${context.origin}`, ''];
+  const head = [`[네트워크 점검] ${formatCheckedAt(context.when)}`, `사이트: ${context.origin}`, ''];
   const body = lines.map((line) => `- ${line.label}: ${STATUS_TEXT[line.status]} — ${line.text}`);
   return [...head, ...body, ''].join('\n');
 }

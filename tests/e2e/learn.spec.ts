@@ -70,6 +70,52 @@ test.describe('배우기 목록', () => {
     }
   });
 
+  test('카드 표시 풀이는 목록에 있는 딱지만 풀고, 모두 공개됐으면 차시 수만 적는다(2026-09-30 최종 점검 C-05)', async ({ page }) => {
+    for (const address of ['./learn/', `.${learnUnits[0]!.path}`]) {
+      await page.goto(address);
+      const legend = page.locator('.lesson-legend');
+      await expect(legend).toContainText('원고 없음');
+      const plannedCards = await page.locator('.lesson-card[data-status="planned"]').count();
+      // "준비 중" 풀이는 준비 중 카드가 있을 때만(차시 45편이 모두 공개된 지금은 없다)
+      await expect(legend.locator('[data-legend="planned"]'), address).toHaveCount(plannedCards > 0 ? 1 : 0);
+      await expect(legend).not.toContainText('사이트가 글을 쓰는 차시');
+      if (plannedCards === 0) {
+        await expect(page.locator('main')).not.toContainText('개를 볼 수 있어요');
+        await expect(page.locator('.learn-unit__count, .unit-count').first()).toHaveText(/^차시 \d+개$/u);
+      }
+    }
+  });
+
+  test('휴대폰 폭에서 옆으로 넘치는 표·코드 칸은 오른쪽 안쪽에 그늘이 생기고, 끝까지 밀면 그 그늘이 사라진다(2026-09-30 최종 점검 MA-02)', async ({ page, isMobile }) => {
+    test.skip(!isMobile, '휴대폰 폭(375px)에서 본다');
+    await page.goto('./learn/u4/project/');
+    const table = page.locator('.lesson-body table').first();
+    await table.scrollIntoViewIfNeeded();
+    expect(await table.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeGreaterThan(1);
+    await expect(table).toHaveAttribute('data-scroll-more', 'end');
+    expect(await table.evaluate((element) => getComputedStyle(element).boxShadow)).toContain('inset');
+    // 끝까지 밀면 오른쪽 그늘은 사라지고 왼쪽에 남는다
+    await table.evaluate((element) => {
+      element.scrollLeft = element.scrollWidth;
+    });
+    await expect(table).toHaveAttribute('data-scroll-more', 'start');
+    // 넘치지 않는 표에는 표시가 없다
+    const notOverflowing = await page.locator('.lesson-body table').evaluateAll((elements) =>
+      elements.filter((element) => element.scrollWidth - element.clientWidth <= 1).map((element) => element.getAttribute('data-scroll-more')),
+    );
+    expect(notOverflowing.every((value) => value === null)).toBe(true);
+
+    // 코드 칸도 같다(차시 코드 칸은 처음부터 Tab 차례에 있어 초점 규칙은 그대로)
+    await page.goto('./learn/u3/3-1-1/');
+    const wide = page.locator('.lesson-body pre').filter({ has: page.locator('code') });
+    const index = await wide.evaluateAll((elements) => elements.findIndex((element) => element.scrollWidth - element.clientWidth > 1));
+    expect(index).toBeGreaterThanOrEqual(0);
+    const pre = wide.nth(index);
+    await pre.scrollIntoViewIfNeeded();
+    await expect(pre).toHaveAttribute('data-scroll-more', 'end');
+    await expect(pre).not.toHaveAttribute('data-scroll-focus-added', /.*/u);
+  });
+
   test('대단원 페이지 4개가 열리고 현재 위치가 홈 › 배우기 › 대단원이다', async ({ page }) => {
     for (const unit of learnUnits) {
       const response = await page.goto(`.${unit.path}`);

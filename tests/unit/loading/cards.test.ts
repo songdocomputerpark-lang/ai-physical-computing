@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { BOARD_CONCEPT_CARDS, CONCEPT_CARDS, cardCounterText, cardsForLab, nextCardIndex } from '../../../src/lab/loader/cards.ts';
 import { NETWORK_CHECK_ITEMS, formatNetworkReport, networkItemUrl, statusOf } from '../../../src/components/start/network-check/items.ts';
 import { MQTT_BROKERS } from '../../../src/lab/mqtt/brokers.ts';
+import { formatCheckedAt } from '../../../src/lib/capabilities.ts';
 import { BASE_PATH } from '../../../src/lib/url.ts';
 
 const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
@@ -117,7 +118,8 @@ describe('네트워크 점검 항목', () => {
       ],
       { origin: 'https://songdocomputerpark-lang.github.io', when: new Date('2026-09-16T07:00:00Z') },
     );
-    expect(report).toContain('[네트워크 점검] 2026-09-16 07:00 (UTC)');
+    // 시각은 브라우저 점검 글과 같은 기준(이 컴퓨터 시각 + UTC 차이 — 2026-09-30 최종 점검 PM-03)
+    expect(report).toContain(`[네트워크 점검] ${formatCheckedAt(new Date('2026-09-16T07:00:00Z'))}`);
     expect(report).toContain('- 파이썬 엔진 받는 곳(jsDelivr): 연결됨');
     expect(report).toContain('- 같은 사이트 파이썬 예비본: 막힘');
     expect(report).not.toMatch(/@|010-|\.kr\b/u);
