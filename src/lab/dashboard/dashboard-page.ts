@@ -161,7 +161,14 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
       }
       if (Date.now() - started > 4000) {
         stopLedWatch();
-        view.noteWidget(spec.id, dashText.frameLedMissed(), 'warn');
+        // 그 보드가 코드를 돌리는 중이면 "[실행]을 눌렀는지"가 아니라 보드 콘솔을 보라고 한다(판 1.1.1 최종 점검)
+        let state: string | undefined;
+        try {
+          state = frame.contentDocument?.querySelector<HTMLElement>('[data-lab]')?.dataset.state;
+        } catch {
+          state = undefined;
+        }
+        view.noteWidget(spec.id, dashText.frameLedMissed(state === 'running' || state === 'stopping'), 'warn');
       }
     }, 200);
   };

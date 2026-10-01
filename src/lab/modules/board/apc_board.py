@@ -1454,26 +1454,53 @@ NOT_YET_MODULES = {
     # 통신 실습실(Phase 4) 자리 — 파일이 생기면 저절로 그 파일이 import된다.
     "umqtt": "firmware",  # 펌웨어에 굳혀 둔 umqtt.simple — P4-06이 흉내를 더한다
     "esp32_ble_util": "library",  # micropython 저장소 examples/bluetooth의 BLESimplePeripheral — P4-03이 더한다
+    # 펌웨어(v1.29.0)에 굳혀 둔 모듈 가운데 가상 보드가 흉내 내지 않는 것(판 1.1.1 최종 점검 — 전에는 `import dht`가 "PC 프로그램용 —
+    # pip install" 풀이로 갔다). 목록은 src/lab/esp32/board-libraries.ts의 펌웨어 모듈 표와 같다. asyncio는 Pyodide 표준 모듈이 대신하고
+    # umqtt는 위 줄(흉내 있음)이라 빼고, requests는 Pyodide에 같은 이름의 PC용 패키지가 있어 아래 FIRMWARE_ONLY_MODULES로 따로 막는다.
+    "dht": "firmware",
+    "ds18x20": "firmware",
+    "onewire": "firmware",
+    "aioespnow": "firmware",
+    "upysh": "firmware",
+    "ntptime": "firmware",
+    "webrepl": "firmware",
+    "webrepl_setup": "firmware",
 }
+
+#: 펌웨어 모듈인데 Pyodide에 같은 이름의 PC용 패키지가 있는 것 — 그대로 두면 PC용 requests(HTTP)가 import되어 엉뚱하게 돈다.
+#: 학생이 같은 이름의 파일을 작업 폴더·보드 라이브러리 폴더에 두었으면 그 파일을 쓴다(실물처럼 — 보드 뿌리의 파일이 먼저).
+FIRMWARE_ONLY_MODULES = {"requests"}
 
 
 def not_yet_module_message(name):
-    if NOT_YET_MODULES.get(name) == "firmware":
+    # 모든 Phase가 끝난 판에서는 "다음 단계에서 들어와요"를 약속하지 않는다(판 1.1.1 최종 점검). "가상 보드에 아직 없어요"는
+    # 오류 사전 board-not-emulated가 찾는 글이라 그대로 둔다.
+    if NOT_YET_MODULES.get(name) == "firmware" or name in FIRMWARE_ONLY_MODULES:
         return (
             f"No module named '{name}' (가상 보드에 아직 없어요 — 실물 ESP32 펌웨어에는 들어 있는 모듈이에요. "
-            "가상 보드에 부품을 더하는 다음 단계에서 들어와요.)"
+            "지금 판의 가상 보드는 이 모듈을 흉내 내지 않아요 — 실물 보드에서 확인해요.)"
         )
     return (
-        f"No module named '{name}' (가상 보드에 아직 없어요 — 사이트가 주는 부품 라이브러리 {name}.py는 가상 보드에 부품을 더하는 "
-        "다음 단계에서 들어와요. 실물 보드에서는 이 파일을 보드에 올려야 import할 수 있어요.)"
+        f"No module named '{name}' (가상 보드에 아직 없어요 — 사이트가 주는 부품 라이브러리 {name}.py를 가상 보드가 찾지 못했어요. "
+        "실물 보드에서는 이 파일을 보드에 올려야 import할 수 있어요.)"
     )
 
 
+def _user_module_file(name):
+    """학생이 둔 같은 이름의 파일(작업 폴더·보드 라이브러리 폴더)이 있나 — 있으면 그 파일을 import하게 둔다."""
+    for folder in (WORK_DIR, BOARD_LIB_DIR):
+        if os.path.exists(os.path.join(folder, f"{name}.py")) or os.path.isdir(os.path.join(folder, name)):
+            return True
+    return False
+
+
 def _bluetooth_placeholder(name):
+    # 평소에는 확장 ext/ble/apc_board_ble.py가 같은 이름을 다시 등록해 이 글에 닿지 않는다(안전망). "가상 보드의 블루투스는 아직"은
+    # 오류 사전이 찾는 글이라 그대로 둔다.
     def factory():
         raise ModuleNotFoundError(
-            f"No module named '{name}' (가상 보드의 블루투스는 아직 흉내 내지 않아요 — 통신 실습실을 만드는 단계에서 더해져요. "
-            "실물 ESP32에는 있는 모듈이에요.)",
+            f"No module named '{name}' (가상 보드의 블루투스는 아직 흉내 내지 않아요 — 지금 판의 가상 보드에서 블루투스 확장을 불러오지 못했어요. "
+            "실물 ESP32에는 있는 모듈이에요 — 실물 보드에서 확인해요.)",
             name=name,
         )
 
@@ -1481,12 +1508,13 @@ def _bluetooth_placeholder(name):
 
 
 def _network_placeholder(name):
-    """와이파이(network.WLAN) 자리 — Phase 4 준비 2026-09-18. 확장 ext/network/apc_board_network.py가 같은 이름을 다시 등록하면 그것이 이긴다."""
+    """와이파이(network.WLAN) 자리 — Phase 4 준비 2026-09-18. 확장 ext/network/apc_board_network.py가 같은 이름을 다시 등록하면 그것이 이긴다
+    (평소에는 이 글에 닿지 않는 안전망이다. "가상 보드의 와이파이는 아직"은 오류 사전이 찾는 글이라 그대로 둔다)."""
 
     def factory():
         raise ModuleNotFoundError(
-            f"No module named '{name}' (가상 보드의 와이파이는 아직 흉내 내지 않아요 — 통신 실습실을 만드는 단계에서 더해져요. "
-            "실물 ESP32에는 있는 모듈이에요.)",
+            f"No module named '{name}' (가상 보드의 와이파이는 아직 흉내 내지 않아요 — 지금 판의 가상 보드에서 와이파이 확장을 불러오지 못했어요. "
+            "실물 ESP32에는 있는 모듈이에요 — 실물 보드에서 확인해요.)",
             name=name,
         )
 
@@ -1528,6 +1556,13 @@ def _board_import(name, globals=None, locals=None, fromlist=(), level=0):  # noq
             return _host_import(alias, globals, locals, fromlist, 0)
         # 점이 든 이름(from umqtt.simple import …)도 맨 앞 이름으로 본다 — 학생이 보는 안내가 같아야 한다(Phase 4 준비 2026-09-18).
         head = name.partition(".")[0]
+        if head in FIRMWARE_ONLY_MODULES and not _user_module_file(head):
+            # Pyodide의 PC용 같은 이름 패키지를 부르지 않고 곧바로 알린다(FIRMWARE_ONLY_MODULES 머리말). Pyodide는 자기 배포판에 있는
+            # 이름의 ModuleNotFoundError에 "micropip.install(…)로 설치해요"라는 영어 덧말을 붙이는데(_pyodide/_importhook.py
+            # add_note_to_module_not_found_error — 이미 붙였다는 표시 _PYODIDE_ADDED_NOTE가 있으면 건너뜀), 보드에는 맞지 않는 안내라 붙이지 않게 한다.
+            error = ModuleNotFoundError(not_yet_module_message(head), name=head)
+            setattr(error, "_PYODIDE_ADDED_NOTE", True)
+            raise error
         if head in NOT_YET_MODULES:
             try:
                 return _host_import(name, globals, locals, fromlist, level)

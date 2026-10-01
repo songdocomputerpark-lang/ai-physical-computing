@@ -70,6 +70,11 @@ import '../../styles/board-drawing.css';
 
     <section class="board-io__pins" aria-labelledby="board-pins-heading">
       <h3 id="board-pins-heading" class="board-io__heading">핀 상태</h3>
+      {/*
+        [정지] 뒤(보드 단계 stopped)에는 그림의 부품을 꺼진 모습으로 그리지만 표는 멈추기 전 마지막 값을 남긴다(실물도 핀이 마지막 값에 남는다).
+        둘이 달라 보이지 않게 한 줄로 알리고 표를 흐리게 한다(판 1.1.1 최종 점검 — view.ts renderPins, 표의 data-stopped).
+      */}
+      <p class="board-io__note board-io__pins-stopped" data-board-pins-stopped hidden>멈추기 전 마지막 값이에요(그림의 부품은 꺼진 모습이에요).</p>
       <div class="board-io__table-wrap" data-scroll-focus="핀 상태 표(방향키로 밀어 보기)">
         <table class="board-pins">
           <caption class="board-pins__caption">코드가 쓴 핀의 모드와 값(1 = HIGH 3.3V, 0 = LOW 0V)</caption>
@@ -263,9 +268,11 @@ import '../../styles/board-drawing.css';
   /*
    * 그림 크게 보기: 칸보다 넓게 펴고(가로로 밀어 보기) 높이 제한을 푼다(전역 규칙의 svg max-width: 100%도 푼다).
    * 그림 폭 48rem(768px)이면 보기 영역 418~430 단위가 약 1.8배라, 휴대폰 375px에서도 핀 번호 글자(8.5 단위)가 약 15px로 보인다(계산값).
+   * 부품이 많으면 보기 영역이 넓어져(4-2-2 탐구 예제 1094 단위) 48rem으로는 배율이 0.7이라 핀 번호가 6px였다 — 그래서 폭을 보기 영역 폭의
+   * 1.8배(단위당 1.8px, board-drawing.ts가 넣는 --board-vb-w)보다 좁지 않게 편다(판 1.1.1 최종 점검). 넘치는 만큼은 칸 안에서 옆으로 민다.
    */
   .board-io__stage[data-board-zoom-level='large'] :global(.board-stage__svg) {
-    width: max(100%, 48rem);
+    width: max(100%, 48rem, calc(var(--board-vb-w, 418) * 1.8px));
     max-width: none;
     max-height: none;
   }
@@ -384,5 +391,19 @@ import '../../styles/board-drawing.css';
   .board-pins :global(.board-pins__dot--high) {
     border-color: var(--color-accent-hover);
     background: var(--color-accent);
+  }
+
+  /* [정지] 뒤: 멈추기 전 마지막 값 — 글자는 흐린 글자색(대비 AA 그대로), 1(HIGH) 점은 꺼진 색으로 */
+  .board-pins[data-stopped='true'] tbody {
+    color: var(--color-text-muted);
+  }
+
+  .board-pins[data-stopped='true'] :global(.board-pins__dot--high) {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg-muted);
+  }
+
+  .board-io__pins-stopped[hidden] {
+    display: none;
   }
 </style>

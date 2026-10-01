@@ -215,16 +215,17 @@ export class MqttConnection {
         await this.resubscribe();
         return { via: 'broker', where: transport.where };
       } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
-        this.notice(reason);
+        // 실패 한 번에 안내 한 줄(짧은 한국어 까닭을 괄호로 — 판 1.1.1 최종 점검: 전에는 까닭 줄과 안내 줄이 따로 나가 두 줄이었고,
+        // 까닭에 MQTT.js 영어 문구가 그대로 보일 때가 있었다). 까닭은 openBrokerTransport가 만든 MqttConnectError의 reason만 쓴다.
+        const reason = error instanceof MqttConnectError ? error.reason : null;
         if (mode === 'broker') {
           // 공개 중계 서버만 고른 학생에게는 몰래 탭으로 바꾸지 않고 실패를 알린다(무엇을 하면 되는지 함께 — 머리말 MqttMode).
           this.setState('closed');
-          const failed = mqttText.brokerFailed(url);
+          const failed = mqttText.brokerFailed(url, reason);
           this.notice(failed);
-          throw new MqttConnectError(failed);
+          throw new MqttConnectError(failed, reason);
         }
-        this.notice(mqttText.switchedToTab(url));
+        this.notice(mqttText.switchedToTab(url, reason));
       }
     }
     try {

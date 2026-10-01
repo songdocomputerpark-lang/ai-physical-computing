@@ -148,6 +148,7 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
       stage,
       pinRows: io.querySelector<HTMLElement>('[data-board-pin-rows]'),
       pinsEmpty: io.querySelector<HTMLElement>('[data-board-pins-empty]'),
+      pinsStopped: io.querySelector<HTMLElement>('[data-board-pins-stopped]'),
       phaseText: io.querySelector<HTMLElement>('[data-board-phase-text]'),
       problems: io.querySelector<HTMLElement>('[data-board-problems]'),
       zoomButton: io.querySelector<HTMLButtonElement>('[data-board-zoom]'),

@@ -27,8 +27,11 @@ export class MqttError extends Error {
 /** 중계 서버에 연결하지 못했다(학교망 차단·브로커 멈춤·주소 오타) */
 export class MqttConnectError extends MqttError {
   override readonly name = 'MqttConnectFailed';
-  constructor(message: string) {
+  /** 짧은 한국어 까닭("서버가 답하지 않음" 등 — 연결 안내 한 줄에 넣는다). 모르면 null */
+  readonly reason: string | null;
+  constructor(message: string, reason: string | null = null) {
     super('connect-failed', message);
+    this.reason = reason;
   }
 }
 
@@ -125,17 +128,25 @@ export const mqttText = {
   connectFailed(url: string, reason: string): string {
     return `중계 서버 ${url}에 연결하지 못했어요(${reason}). 학교망이 막았거나 서버가 쉬는 중일 수 있어요.`;
   },
-  /** 연결 실패 뒤 탭 통로로 스스로 바꿈('중계 서버 먼저, 안 되면 탭'을 골랐을 때) */
-  switchedToTab(url: string): string {
+  /**
+   * 연결 실패 뒤 탭 통로로 스스로 바꿈('중계 서버 먼저, 안 되면 탭'을 골랐을 때). reason: 짧은 한국어 까닭(있으면 괄호로).
+   * 실패 한 번에 이 한 줄만 낸다(판 1.1.1 최종 점검 — 전에는 까닭 줄과 이 줄이 따로 나가 두 줄이었다).
+   */
+  switchedToTab(url: string, reason: string | null = null): string {
+    const why = reason === null || reason === '' ? '' : `(${reason})`;
     return (
-      `중계 서버 ${url}에 연결하지 못해서 같은 컴퓨터 탭 통로로 바꿨어요. 지금은 같은 컴퓨터의 탭끼리만 이어져요 — 다른 컴퓨터와는 안 돼요. ` +
+      `중계 서버 ${url}에 연결하지 못했어요${why}. 그래서 같은 컴퓨터 탭 통로로 바꿨어요. 지금은 같은 컴퓨터의 탭끼리만 이어져요 — 다른 컴퓨터와는 안 돼요. ` +
       '받을 화면을 이 컴퓨터의 다른 탭에 열어 두면 그대로 실습할 수 있어요. 학교망이 막았는지는 시작하기의 점검 페이지에서 확인해요.'
     );
   },
-  /** '공개 중계 서버'만 고른 채 연결하지 못했을 때(몰래 바꾸지 않는다 — 2026-09-25 Phase 4 검토 반영) */
-  brokerFailed(url: string): string {
+  /**
+   * '공개 중계 서버'만 고른 채 연결하지 못했을 때(몰래 바꾸지 않는다 — 2026-09-25 Phase 4 검토 반영). reason: 짧은 한국어 까닭(있으면 괄호로).
+   * 실패 한 번에 이 한 줄만 낸다(판 1.1.1 최종 점검).
+   */
+  brokerFailed(url: string, reason: string | null = null): string {
+    const why = reason === null || reason === '' ? '' : `(${reason})`;
     return (
-      `공개 중계 서버 ${url}에 연결하지 못했어요. 학교망이 막았거나 서버가 쉬는 중일 수 있어요. ` +
+      `공개 중계 서버 ${url}에 연결하지 못했어요${why}. 학교망이 막았거나 서버가 쉬는 중일 수 있어요. ` +
       '같은 컴퓨터에서 실습하면 통로를 [같은 컴퓨터 탭]으로 바꾸고, 다른 컴퓨터와 하려면 시작하기의 점검 페이지에서 학교망을 확인해요.'
     );
   },

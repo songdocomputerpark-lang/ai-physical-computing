@@ -131,6 +131,9 @@ export function createBoardDrawing(): BoardDrawing {
       wiresLayer.replaceChildren();
       const { viewBox } = plan;
       svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+      // 보기 영역 폭(단위 없는 수) — [그림 크게 보기]가 그림 폭을 이 값에 비례하게 펴서, 부품이 많아 보기 영역이 넓어져도 글자가 작아지지 않게 한다
+      // (BoardIo.astro의 data-board-zoom-level='large' 규칙, 판 1.1.1 최종 점검 — 전에는 폭이 48rem 고정이라 부품이 많은 예제의 핀 번호가 5~6px였다).
+      svg.style.setProperty('--board-vb-w', String(viewBox.width));
       if (plan.breadboard) {
         const board = plan.breadboard;
         breadboardLayer.append(

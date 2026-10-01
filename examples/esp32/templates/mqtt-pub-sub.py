@@ -65,7 +65,7 @@ def wifi_connect(name, password):
 
 wifi_connect(WIFI_NAME, WIFI_PASSWORD)
 
-client = MQTTClient(DEVICE, BROKER, port=1883)
+client = MQTTClient(PREFIX + DEVICE, BROKER, port=1883)  # 보드 이름이 다른 보드와 같으면 먼저 붙은 쪽이 끊겨서 접두어를 붙여요.
 client.set_callback(on_message)
 client.connect()
 client.subscribe(TOPIC_RX)

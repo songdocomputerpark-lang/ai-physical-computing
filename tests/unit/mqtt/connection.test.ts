@@ -4,7 +4,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { flush, FakeBroadcastHub } from '../bridge/helpers/fake.ts';
 import {
+  MqttConnectError,
   MqttConnection,
+  mqttText,
   openTabTransport,
   toBytes,
   type BrokerTransportOptions,
@@ -71,6 +73,28 @@ describe('통로 고르기', () => {
     expect(notices.join('\n')).toContain('같은 컴퓨터 탭 통로로 바꿨어요');
     expect(notices.join('\n')).toContain('다른 컴퓨터와는 안 돼요');
     expect(connection.state).toBe('open');
+  });
+
+  // 판 1.1.1 최종 점검: 실패 한 번에 안내가 두 줄(까닭 줄 + 안내 줄)이었고 까닭에 영어 "(connack timeout)"이 보였다 → 한국어 까닭을 넣은 한 줄.
+  it('중계 서버 실패 안내는 한 번에 한 줄이고, 짧은 한국어 까닭을 괄호로 넣는다(auto·broker 모두)', async () => {
+    const url = 'wss://broker.example:8084/mqtt';
+    const refuse = (_options: BrokerTransportOptions) =>
+      Promise.reject(new MqttConnectError(mqttText.connectFailed(url, '서버가 답하지 않음'), '서버가 답하지 않음'));
+    for (const mode of ['auto', 'broker'] as const) {
+      const hub = new FakeBroadcastHub();
+      const notices: string[] = [];
+      const connection = makeConnection(hub, { mode, brokerUrl: url, openBroker: refuse });
+      connection.on('notice', (text) => notices.push(text));
+      if (mode === 'broker') {
+        await expect(connection.connect()).rejects.toThrow(/공개 중계 서버 .*연결하지 못했어요\(서버가 답하지 않음\)/u);
+      } else {
+        await connection.connect();
+      }
+      const failures = notices.filter((text) => text.includes(url));
+      expect(failures, mode).toHaveLength(1);
+      expect(failures[0], mode).toContain('(서버가 답하지 않음)');
+      expect(notices.join('\n'), mode).not.toMatch(/connack|timeout/iu);
+    }
   });
 
   it('"공개 중계 서버"(broker)만 고르면 안 될 때 몰래 탭으로 바꾸지 않고 한국어로 실패를 알린다(2026-09-25 검토 반영)', async () => {

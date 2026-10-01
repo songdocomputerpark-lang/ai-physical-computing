@@ -121,7 +121,12 @@ const RECIPES: Readonly<Record<CommFamily, CommRecipe>> = Object.freeze({
           `def ${COMM_NAMES.uartLine}():`,
           `    data = ${COMM_NAMES.uart}.readline()`,
           '    if data:',
-          "        return data.decode().strip()",
+          // 두 쪽 속도(bps)가 다르면 바이트가 깨져 글자로 바꿀 수 없다(UnicodeError — MicroPython에는 UnicodeDecodeError 이름이 없다).
+          // 영어 트레이스백으로 멈추지 않고 한국어 한 줄로 알린 뒤 빈 줄로 넘긴다(판 1.1.1 최종 점검 — 템플릿 uart-echo.py와 같은 규칙).
+          '        try:',
+          "            return data.decode().strip()",
+          '        except UnicodeError:',
+          `            print('깨진 글자를 받았어요:', data, '— 두 쪽 속도(bps)가 같은지 봐요.')`,
           "    return ''",
         );
       }
@@ -228,7 +233,9 @@ const RECIPES: Readonly<Record<CommFamily, CommRecipe>> = Object.freeze({
         `def ${COMM_NAMES.mqttConnect}(device):`,
         `    global ${COMM_NAMES.mqttClient}, ${COMM_NAMES.mqttTopic}`,
         `    ${COMM_NAMES.mqttTopic} = MQTT_PREFIX + '/' + device if MQTT_PREFIX else device`,
-        `    ${COMM_NAMES.mqttClient} = MQTTClient(device, MQTT_BROKER, port=${COMM_MQTT.port})`,
+        // 보드 이름(client id) = 접두어 + 보드 번호 — 같은 이름의 보드가 둘 붙으면 중계 서버가 먼저 붙은 쪽을 끊는다(MQTT 3.1.1 [MQTT-3.1.4-2]).
+        // 기본 이름 esp32-01을 교실·다른 학교가 함께 쓰면 공개 중계 서버에서 서로 끊어 냈다(판 1.1.1 최종 점검, 템플릿과 같은 규칙).
+        `    ${COMM_NAMES.mqttClient} = MQTTClient(MQTT_PREFIX + device, MQTT_BROKER, port=${COMM_MQTT.port})`,
         `    ${COMM_NAMES.mqttClient}.set_callback(${COMM_NAMES.mqttOnMessage})`,
         `    ${COMM_NAMES.mqttClient}.connect()`,
         `    ${COMM_NAMES.mqttClient}.subscribe(${COMM_NAMES.mqttTopic} + '/rx')`,

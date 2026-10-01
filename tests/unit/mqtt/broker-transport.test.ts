@@ -2,7 +2,8 @@
 // 진짜 브로커에 붙지 않고 **MQTT.js와 같은 모양의 가짜 클라이언트**로 규칙을 확인한다
 // (공식 타입 선언 node_modules/mqtt/build/lib/client.d.ts의 이벤트·함수 이름을 그대로 쓴다).
 import { describe, expect, it, vi } from 'vitest';
-import { openBrokerTransport, toBytes, type MqttClientLike, type MqttIncoming } from '../../../src/lab/mqtt/index.ts';
+import { MqttConnectError, openBrokerTransport, reasonOf, toBytes, type MqttClientLike, type MqttIncoming } from '../../../src/lab/mqtt/index.ts';
+import { CONNECT_TIMEOUT_MARGIN_MS } from '../../../src/lab/mqtt/broker-transport.ts';
 
 const URL_OK = 'wss://broker.example:8084/mqtt';
 
@@ -85,12 +86,49 @@ describe('연결', () => {
     expect(transport.connected).toBe(true);
   });
 
-  it('error 이벤트가 오면 한국어 까닭과 함께 실패하고 클라이언트를 닫는다', async () => {
+  it('error 이벤트가 오면 한국어 까닭과 함께 실패하고 클라이언트를 닫는다(모르는 영어 문구는 학생 화면에 내지 않는다)', async () => {
     const client = new FakeClient();
     await expect(openBrokerTransport({ prefix: '7kq2m9xd4hpt', url: URL_OK, connectFn: connectFnOf(client, 'error') })).rejects.toThrow(
-      /연결하지 못했어요.*ECONNREFUSED/su,
+      /연결하지 못했어요\(까닭을 알 수 없음\)/u,
     );
     expect(client.ended).toBe(true);
+  });
+
+  // 판 1.1.1 최종 점검: 연결 실패 안내에 MQTT.js의 영어 "(connack timeout)"이 그대로 보였다.
+  it('MQTT.js의 알려진 영어 오류 문구는 짧은 한국어 까닭으로 바꾸고, 오류 값에 그 까닭을 싣는다', async () => {
+    expect(reasonOf(new Error('connack timeout'))).toBe('서버가 답하지 않음');
+    expect(reasonOf(new Error('WebSocket error'))).toBe('서버에 닿지 못함');
+    expect(reasonOf(new Error('Connection refused: Not authorized'))).toBe('서버가 연결을 거절함');
+    expect(reasonOf(new Error('Connection closed'))).toBe('서버가 연결을 닫음');
+    expect(reasonOf(new Error('Keepalive timeout'))).toBe('서버와 한동안 소식이 끊김');
+    expect(reasonOf(new Error('something odd'))).toBe('까닭을 알 수 없음');
+    expect(reasonOf(new Error('연결 끊김'))).toBe('연결 끊김');
+    expect(reasonOf(undefined)).toBe('까닭을 알 수 없음');
+
+    const client = new FakeClient();
+    const failed = await openBrokerTransport({ prefix: '7kq2m9xd4hpt', url: URL_OK, connectFn: connectFnOf(client, 'error', new Error('connack timeout')) }).catch(
+      (error: unknown) => error,
+    );
+    expect(failed).toBeInstanceOf(MqttConnectError);
+    expect((failed as MqttConnectError).message).toContain('(서버가 답하지 않음)');
+    expect((failed as MqttConnectError).message).not.toContain('connack');
+    expect((failed as MqttConnectError).reason).toBe('서버가 답하지 않음');
+  });
+
+  it('MQTT.js의 연결 제한 시간은 우리 타이머보다 조금 길다(한국어 "N초 동안 답이 없음"이 먼저 나오게)', async () => {
+    const client = new FakeClient();
+    let seen: Record<string, unknown> = {};
+    await openBrokerTransport({
+      prefix: '7kq2m9xd4hpt',
+      url: URL_OK,
+      connectTimeoutMs: 8000,
+      connectFn: (url, options) => {
+        seen = options;
+        return connectFnOf(client)(url, options);
+      },
+    });
+    expect(seen.connectTimeout).toBe(8000 + CONNECT_TIMEOUT_MARGIN_MS);
+    expect(CONNECT_TIMEOUT_MARGIN_MS).toBeGreaterThan(0);
   });
 
   it('답이 없으면 정해진 시간 뒤에 포기한다', async () => {

@@ -89,7 +89,7 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
       <ul>
         <li>
           예제마다 쓰는 부품과 선(배선도)이 보드 아래에 그려져요. 내장 LED·BOOT 버튼·터치 센서·진동 모터·RGB LED·레이저·버저·서보모터·팬 모터·4채널
-          터치 센서·문자 화면(LCD)·OLED·네오픽셀 링·MP3 모듈·USB-UART 변환기를 쓸 수 있어요.
+          터치 센서·문자 화면(LCD)·OLED·네오픽셀 링·MP3 모듈·USB-UART 변환기·블루투스(BLE — 조작 칸이 스마트폰 노릇)를 쓸 수 있어요.
         </li>
         <li>
           코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 같은 코드를 만들 수 있고, 입력·출력 칸 위의 [실제 보드]를 누르면 USB로 연결한 실물 보드에
@@ -151,12 +151,54 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
     padding-inline-start: 1.5em;
   }
 
+  /*
+   * 펼침 칸 표시: display:flex인 summary에는 브라우저가 ▶ 표식을 그리지 않아 그냥 굵은 글로 보였다(판 1.1.1 최종 점검 — 오류 사전과 같은 모양).
+   * 글자 대신 테두리로 그린 세모라 화면 낭독기가 읽지 않는다. 닫혀 있으면 오른쪽, 열리면 아래(전환 움직임 없음). 강제 색 모드는 아래 규칙.
+   */
   .esp32-intro__more > summary {
     display: flex;
     align-items: center;
+    gap: var(--space-2);
     min-block-size: var(--target-min);
     font-weight: var(--weight-semibold);
+    list-style: none;
     cursor: pointer;
+  }
+
+  .esp32-intro__more > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .esp32-intro__more > summary::before {
+    content: '';
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.4em;
+    border-inline-width: 0.6em 0;
+    border-inline-start-color: currentColor;
+  }
+
+  .esp32-intro__more[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  /* 강제 색(윈도 고대비) 모드: 세모 색을 미리 정할 수 없어 브라우저 기본 ▶/▼ 표식으로 돌아간다(오류 사전과 같은 규칙) */
+  @media (forced-colors: active) {
+    .esp32-intro__more > summary {
+      display: list-item;
+      list-style: revert;
+    }
+
+    .esp32-intro__more > summary::-webkit-details-marker {
+      display: revert;
+    }
+
+    .esp32-intro__more > summary::before {
+      content: none;
+    }
   }
 
   .esp32-intro__more > summary:focus-visible {

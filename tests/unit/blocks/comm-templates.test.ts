@@ -162,6 +162,17 @@ describe('통신 템플릿 파일', () => {
     expect(source).toContain(`uart = UART(${COMM_UART.number}, baudrate=${COMM_UART.baud}, tx=${COMM_UART.boardTx}, rx=${COMM_UART.boardRx}, timeout=${COMM_UART.timeoutMs})`);
     expect(source).toContain('uart.readline()');
     expect(source).toContain('uart.write(text + "\\n")');
+    // 속도가 달라 깨진 바이트는 멈추지 않고 한국어로 알린다(템플릿 = 블록, 판 1.1.1 최종 점검 — 전에는 실습 방법 4단계대로 하면 UnicodeDecodeError로 멈췄다).
+    // MicroPython에는 UnicodeDecodeError 이름이 없으니 UnicodeError로 잡는다(CPython에서는 UnicodeDecodeError의 부모).
+    const generated = generatedCode('comm-uart-echo');
+    for (const [name, code] of [
+      ['템플릿', codeLines(source)],
+      ['블록이 만든 코드', generated],
+    ] as const) {
+      expect(code, name).toContain('except UnicodeError:');
+      expect(code, name).not.toContain('UnicodeDecodeError');
+      expect(code, name).toMatch(/깨진 글자를 받았어요/u);
+    }
     // 머리말 `# @part` → 실습실이 쓰는 배선 한 줄(가상 보드가 USB-UART 변환기를 그린다)
     expect(normalizeWiringSpecs(readExampleMeta(source).parts, '템플릿').entries).toEqual([
       { part: 'uart', pins: { rx: COMM_UART.boardTx, tx: COMM_UART.boardRx } },
@@ -213,6 +224,11 @@ describe('통신 템플릿 파일', () => {
     expect(source).toContain('TOPIC_TX = BASE + "/tx"');
     expect(source).toContain('client.subscribe(TOPIC_RX)');
     expect(source).toContain('client.publish(TOPIC_TX');
+    // 보드 이름(client id) = 접두어 + 보드 번호 — 같은 이름의 보드가 둘 붙으면 중계 서버가 먼저 붙은 쪽을 끊는다(MQTT 3.1.1 [MQTT-3.1.4-2],
+    // 판 1.1.1 최종 점검). 실제 보드용 예제 셋이 모두 같은 규칙인지 본다.
+    expect(source).toContain(`client = MQTTClient(PREFIX + DEVICE, BROKER, port=${COMM_MQTT.port})`);
+    expect(fs.readFileSync(path.join(TEMPLATE_DIR, 'dashboard-demo.py'), 'utf8')).toContain('client = MQTTClient(PREFIX + DEVICE, ');
+    expect(fs.readFileSync(path.join(REPO, 'examples', 'esp32', 'u3', 'c1-mqtt-remote.py'), 'utf8')).toContain('client = MQTTClient(PREFIX + MY_NAME, BROKER)');
     expect(codeLines(source)).not.toMatch(/xxxxxxxxxxxx/u);
     // 비어 있는 PREFIX로는 실제 보드에 보내지 않고, [코드에 접두어 적기]가 채우면 보낸다(src/lab/mqtt/real-board-guard.ts)
     expect(mqttPrefixProblem(source)).not.toBeNull();

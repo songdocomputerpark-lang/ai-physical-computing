@@ -90,7 +90,11 @@ describe('통신 블록 예시 → 코드', () => {
       'def uart_line():',
       '    data = uart.readline()',
       '    if data:',
-      "        return data.decode().strip()",
+      // 두 쪽 속도가 다르면 바이트가 깨져 글자로 바꿀 수 없다 — 영어 트레이스백으로 멈추지 않고 한국어로 알린다(템플릿과 같은 규칙, 판 1.1.1 최종 점검)
+      '        try:',
+      "            return data.decode().strip()",
+      '        except UnicodeError:',
+      "            print('깨진 글자를 받았어요:', data, '— 두 쪽 속도(bps)가 같은지 봐요.')",
       "    return ''",
       '',
       '받은줄 = 0',
@@ -166,6 +170,8 @@ describe('통신 블록 예시 → 코드', () => {
     expect(mqttPrefixProblem(code)).not.toBeNull();
     expect(mqttPrefixProblem(code.replace("MQTT_PREFIX = ''", "MQTT_PREFIX = '7kq2m9xd4hpt'"))).toBeNull();
     expect(code).toContain("mqtt_connect('esp32-01')");
+    // 보드 이름(client id)에 접두어를 붙인다 — 같은 이름이 둘 붙으면 중계 서버가 먼저 붙은 쪽을 끊는다(판 1.1.1 최종 점검, 템플릿과 같은 규칙)
+    expect(code).toContain('    client = MQTTClient(MQTT_PREFIX + device, MQTT_BROKER, port=1883)');
     expect(code).toContain("    client.subscribe(mqtt_topic + '/rx')");
     expect(code).toContain("    client.publish(mqtt_topic + '/tx', str(횟수))");
     expect(code).not.toContain('xxxxxxxxxxxx');

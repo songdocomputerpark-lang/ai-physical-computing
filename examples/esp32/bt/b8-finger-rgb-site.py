@@ -9,8 +9,8 @@ from time import sleep
 ble = ESP32BLE.init("ESP32")
 
 # r,g,b 값 나타내기
-r=Pin(27, Pin.OUT)  # [사이트판] 빨강 12 -> 27: 12는 ESP32BLE.py가 쓰는 상태 LED와 같은 핀이라 겹쳐요(PD-23)
-g=Pin(32, Pin.OUT)  # [사이트판] 초록 5 -> 32: 5도 부팅에 쓰는 스트래핑 핀이라 함께 옮겨요(PD-23)
+r=Pin(27, Pin.OUT)  # [사이트판] 빨강 12 -> 27: 12는 ESP32BLE.py가 쓰는 상태 LED와 같은 핀이라 겹쳐요
+g=Pin(32, Pin.OUT)  # [사이트판] 초록 5 -> 32: 5도 부팅에 쓰는 스트래핑 핀이라 함께 옮겨요
 b=Pin(33, Pin.OUT)  # [사이트판] 파랑 4 -> 33: 블루투스 교안 83쪽 화면과 같은 핀 묶음(27/32/33)이에요
 
 led=[r,g,b]

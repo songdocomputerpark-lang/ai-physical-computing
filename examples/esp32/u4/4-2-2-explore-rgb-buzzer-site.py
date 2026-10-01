@@ -11,14 +11,14 @@ servo_x = MG90S_SERVO(signal_pin=32)
 servo_y = MG90S_SERVO(signal_pin=26)
 
 # 핀 설정
-leds = {'r': Pin(25, Pin.OUT), 'g': Pin(5, Pin.OUT), 'b': Pin(4, Pin.OUT)}  # [사이트판] 빨강 12 -> 25: 12는 ESP32BLE.py 상태 LED와 같은 핀이에요(PD-23)
+leds = {'r': Pin(25, Pin.OUT), 'g': Pin(5, Pin.OUT), 'b': Pin(4, Pin.OUT)}  # [사이트판] 빨강 12 -> 25: 12는 ESP32BLE.py 상태 LED와 같은 핀이에요
 laser = Pin(27, Pin.OUT)
 buzzer = PWM(Pin(2, Pin.OUT))
 buzzer.duty(0)
 
 # LED 타이머
 led_timers = {'g': 0, 'b': 0}
-laser_time = 0  # [사이트판] 레이저를 켠 시각(PD-23 — 마지막 수신 뒤 2초가 지나면 끈다)
+laser_time = 0  # [사이트판] 레이저를 켠 시각(마지막 수신 뒤 2초가 지나면 끈다)
 
 def beep(freq, duration):
     """부저 울리기"""
@@ -35,7 +35,7 @@ def check_leds():
             leds[color].value(0)
             led_timers[color] = 0
 
-def check_laser():  # [사이트판] 레이저 끄기(PD-23)
+def check_laser():  # [사이트판] 레이저 끄기(실물 레이저가 계속 켜져 있지 않게)
     """레이저 2초 후 끄기 — LED와 같은 방식이에요"""
     global laser_time
     if laser_time > 0 and ticks_ms() - laser_time > 2000:

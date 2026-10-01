@@ -48,6 +48,18 @@ describe('probeFirmware(HEAD)', () => {
     expect(await probeFirmware(URL, 1_790_544, { fetchImpl: other.fetchImpl })).toMatchObject({ state: 'available', sizeMismatch: true });
   });
 
+  it('압축 전송(content-encoding)이면 Content-Length는 압축된 크기라 비교하지 않는다(GitHub Pages는 .bin을 gzip으로 보냄)', async () => {
+    const gzip = fakeFetch(
+      () => new Response(null, { status: 200, headers: { 'content-encoding': 'gzip', 'content-length': '1175657', 'content-type': 'application/octet-stream' } }),
+    );
+    expect(await probeFirmware(URL, 1_790_544, { fetchImpl: gzip.fetchImpl })).toEqual({ state: 'available', status: 200, size: null, sizeMismatch: false });
+    const br = fakeFetch(() => new Response(null, { status: 200, headers: { 'content-encoding': 'br', 'content-length': '999' } }));
+    expect(await probeFirmware(URL, 1_790_544, { fetchImpl: br.fetchImpl })).toMatchObject({ state: 'available', size: null, sizeMismatch: false });
+    // identity는 압축이 아니다 — 지금처럼 크기를 비교한다
+    const identity = fakeFetch(() => new Response(null, { status: 200, headers: { 'content-encoding': 'identity', 'content-length': '100' } }));
+    expect(await probeFirmware(URL, 1_790_544, { fetchImpl: identity.fetchImpl })).toMatchObject({ state: 'available', size: 100, sizeMismatch: true });
+  });
+
   it('404·410이면 missing, HTML(차단 안내)·500·네트워크 오류면 unknown', async () => {
     expect((await probeFirmware(URL, 10, { fetchImpl: fakeFetch(() => new Response(null, { status: 404 })).fetchImpl })).state).toBe('missing');
     expect((await probeFirmware(URL, 10, { fetchImpl: fakeFetch(() => new Response(null, { status: 410 })).fetchImpl })).state).toBe('missing');

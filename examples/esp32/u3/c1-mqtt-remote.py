@@ -35,7 +35,7 @@ while not wlan.isconnected():  # 연결될 때까지 기다려요(실물도 곧�
     sleep(0.1)
 print("와이파이 연결:", wlan.isconnected())
 
-client = MQTTClient(MY_NAME, BROKER)
+client = MQTTClient(PREFIX + MY_NAME, BROKER)  # 보드 이름이 다른 보드와 같으면 먼저 붙은 쪽이 끊겨서 접두어를 붙여요.
 client.set_callback(on_message)
 client.connect()
 client.subscribe(TOPIC_VALUE)  # 친구 보드의 값을 받기로 해요(구독).
@@ -55,7 +55,7 @@ while True:
 # ── 실습 방법 ──
 # 1. 친구 보드 예제(통신 템플릿 3: 와이파이 + MQTT)를 다른 화면에서 먼저 [실행]해요. 두 화면의 통신 접두어가 같아야 해요.
 # 2. 이 보드도 [실행]해요. 콘솔에 "친구 보드가 보낸 값: 1, 2, 3…"이 1초마다 늘어나요.
-# 3. 보드 아래 터치 센서를 한 번 누르면 친구 보드의 파란 LED(GPIO2)가 켜지고, 한 번 더 누르면 꺼져요.
+# 3. 보드 아래 터치 센서를 한 번 누르면 친구 보드의 내장 LED(GPIO2)가 켜지고, 한 번 더 누르면 꺼져요.
 # ── 바꿔볼 것 3가지 ──
 # 1. command = "on" if led_on else "off"를 command = "blink"로 바꿔 봐요. 친구 LED가 1초마다 깜빡여요.
 # 2. FRIEND를 "esp32-03"으로 바꿔 봐요. 아무도 그 토픽을 쓰지 않아 값도 안 오고, 친구 LED도 그대로예요.

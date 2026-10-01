@@ -30,6 +30,8 @@ export interface BoardViewElements {
   readonly stage: HTMLElement;
   readonly pinRows: HTMLElement | null;
   readonly pinsEmpty: HTMLElement | null;
+  /** [정지] 뒤 "멈추기 전 마지막 값이에요" 한 줄(판 1.1.1 최종 점검) */
+  readonly pinsStopped?: HTMLElement | null;
   readonly phaseText: HTMLElement | null;
   readonly problems: HTMLElement | null;
   /** [그림 크게 보기] 단추(aria-pressed·글자가 [원래 크기로]로 바뀐다) */
@@ -384,6 +386,16 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
       return;
     }
     const pins = [...current.pins.values()].sort((a, b) => a.id - b.id);
+    // [정지] 뒤에는 그림의 부품이 꺼진 모습인데 표는 멈추기 전 마지막 값이다(실물도 핀이 마지막 값에 남는다) — 한 줄로 알리고 표를 흐리게 한다.
+    // 행 글자("GPIO2 출력 1 (HIGH)")는 그대로 둔다(판 1.1.1 최종 점검).
+    const stopped = current.phase === 'stopped' && pins.length > 0;
+    const table = pinRows.closest('table');
+    if (table) {
+      table.dataset.stopped = String(stopped);
+    }
+    if (elements.pinsStopped) {
+      elements.pinsStopped.hidden = !stopped;
+    }
     const key = JSON.stringify([current.phase, pins, [...connected.entries()]]);
     if (key === lastPinsKey) {
       return;

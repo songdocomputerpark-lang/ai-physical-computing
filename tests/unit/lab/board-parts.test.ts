@@ -154,6 +154,10 @@ describe('배선(resolveWiring)', () => {
     );
     const text = texts(resolved.issues);
     expect(text).toContain('부품 "nope"은(는) 가상 보드에 아직 없어서 그림에 그리지 못했어요');
+    // 둘째 문장은 "부품이 더해진 뒤에 끝까지 돌아요"를 약속하지 않고, 오타를 고칠 수 있게 철자와 가상 보드 부품 이름을 알린다(판 1.1.1 최종 점검)
+    const unknownText = resolved.issues.find((issue) => issue.code === 'unknown-part')?.text ?? '';
+    expect(unknownText).toContain('# @part 줄에 적은 부품 이름의 철자를 확인해요(가상 보드 부품: btn, led-x)');
+    expect(unknownText).not.toContain('부품이 더해진 뒤');
     expect(text).toContain('"a"이(가) 규칙에 맞지 않거나 겹쳐요');
     expect(text).toContain('24는 ESP32에 없는 GPIO');
     expect(text).toContain('34~39번은 입력 전용');

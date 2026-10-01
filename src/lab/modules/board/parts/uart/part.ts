@@ -17,7 +17,7 @@
  * 칸 뿌리의 data-uart-sent(보낸 횟수)·data-uart-received-total(받은 바이트 수).
  * 그림: 사이트가 그린 변환기 기판(브랜드 중립)·USB 단자·노트북. 받거나 보낼 때 RX·TX 표시등이 켜진다(계속 오가면 켜진 채 — 깜빡임 없음).
  */
-import { readItem, writeItem } from '../../../../../lib/storage.ts';
+import { readItem, removeItem, writeItem } from '../../../../../lib/storage.ts';
 import type { PartDefinition, PartVisual } from '../../part-types.ts';
 import { isLive, type BoardPhase, type BoardSnapshot, type PartDeviceState } from '../../state.ts';
 import {
@@ -200,7 +200,15 @@ const definition: PartDefinition = {
     const names = { mode: api.storageName('mode'), ending: api.storageName('ending'), baud: api.storageName('baud'), hex: api.storageName('hex') };
     let mode: SendMode = readSetting(names.mode) === 'bytes' ? 'bytes' : 'text';
     let ending: LineEnding = parseLineEnding(readSetting(names.ending));
-    let baud: BaudChoice = parseBaudChoice(readSetting(names.baud));
+    // 속도는 기억하지 않는다 — 창을 열 때마다 "보드와 같게"로 시작한다. 속도 불일치 실습(3-1-2 바꿔보기 등)에서 일부러 바꾼 값이
+    // 저장돼 다음 UART 예제가 불일치로 시작했다(판 1.1.1 최종 점검). 보내는 모양·끝 문자·16진수 보기는 그대로 기억한다.
+    // 전에 저장해 둔 속도가 남아 있으면 지운다(이 이름을 더는 읽지 않는다).
+    let baud: BaudChoice = parseBaudChoice(null);
+    try {
+      removeItem(names.baud);
+    } catch {
+      // 저장소를 쓸 수 없으면 그대로 둔다
+    }
     let showHex = readSetting(names.hex) === '1';
     let phase: BoardPhase = 'stopped';
     let terminal: TerminalState | null = null;
@@ -406,7 +414,7 @@ const definition: PartDefinition = {
     });
     listen(baudSelect, 'change', () => {
       baud = parseBaudChoice(baudSelect.value);
-      writeSetting(names.baud, String(baud));
+      // 이 방문에만 쓴다(저장하지 않는다 — 위 baud 설명)
       settingsSent = false;
       if (isRunning(phase) && terminal !== null) {
         settingsSent = true;

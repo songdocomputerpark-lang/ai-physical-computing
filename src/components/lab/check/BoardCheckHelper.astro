@@ -187,12 +187,54 @@ const labHref = withBase('labs/esp32/');
     background: var(--color-warning-bg);
   }
 
+  /*
+   * 펼침 칸 표시: display:flex인 summary에는 브라우저가 ▶ 표식을 그리지 않아 그냥 굵은 글로 보였다(판 1.1.1 최종 점검 — 오류 사전과 같은 모양).
+   * 글자 대신 테두리로 그린 세모라 화면 낭독기가 읽지 않는다. 닫혀 있으면 오른쪽, 열리면 아래(전환 움직임 없음). 강제 색 모드는 아래 규칙.
+   */
   .board-check__safety > summary {
     display: flex;
     align-items: center;
+    gap: var(--space-2);
     min-block-size: var(--target-min);
     font-weight: var(--weight-semibold);
+    list-style: none;
     cursor: pointer;
+  }
+
+  .board-check__safety > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .board-check__safety > summary::before {
+    content: '';
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.4em;
+    border-inline-width: 0.6em 0;
+    border-inline-start-color: currentColor;
+  }
+
+  .board-check__safety[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  /* 강제 색(윈도 고대비) 모드: 세모 색을 미리 정할 수 없어 브라우저 기본 ▶/▼ 표식으로 돌아간다(오류 사전과 같은 규칙) */
+  @media (forced-colors: active) {
+    .board-check__safety > summary {
+      display: list-item;
+      list-style: revert;
+    }
+
+    .board-check__safety > summary::-webkit-details-marker {
+      display: revert;
+    }
+
+    .board-check__safety > summary::before {
+      content: none;
+    }
   }
 
   .board-check__safety > summary:focus-visible {

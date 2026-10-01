@@ -41,7 +41,7 @@ def on_message(topic, msg):
     print("받음:", text)
 
 
-client = MQTTClient(DEVICE, "broker.emqx.io")
+client = MQTTClient(PREFIX + DEVICE, "broker.emqx.io")  # 보드 이름이 다른 보드와 같으면 먼저 붙은 쪽이 끊겨서 접두어를 붙여요.
 client.set_callback(on_message)
 client.connect()
 client.subscribe(BASE + "/rx")

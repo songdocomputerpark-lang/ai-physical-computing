@@ -32,8 +32,10 @@ _MISSING = object()
 
 
 def _not_emulated_message(name, planned):
-    if planned:
-        return f"machine.{name}은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요). 가상 보드에 부품을 더하는 다음 단계에서 들어와요."
+    # 모든 Phase가 끝난 판에서는 "다음 단계에서 들어와요"를 약속하지 않는다(판 1.1.1 최종 점검). planned는 확장 파일이 더하기로 한 이름 —
+    # 평소에는 확장(ext/*)이 이미 등록해 이 글에 닿지 않는 안전망이라, 흉내 내지 않는 이름(SPI 등)과 같은 글을 쓴다.
+    # "가상 보드에 아직 없어요"는 오류 사전 board-not-emulated가 찾는 글이고, 이 문장은 그 항목의 보기 오류 글과 같다.
+    del planned
     return f"machine.{name}은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요). 이 기능은 실물 보드에서 확인해요."
 
 

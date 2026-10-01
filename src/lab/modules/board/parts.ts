@@ -246,14 +246,23 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
     return candidate;
   };
 
+  // 모르는 부품 안내 끝에 붙일 "가상 보드 부품" 이름(보드에 붙은 부품은 적지 않아도 늘 있으니 빼고, 가나다·abc 차례)
+  const knownPartNames = [...definitions.values()]
+    .filter((definition) => !definition.onboard)
+    .map((definition) => definition.id)
+    .sort();
   for (const entry of all) {
     const definition = definitions.get(entry.part);
     if (!definition) {
       const label = entry.label ?? entry.part;
+      // 첫 문장은 그대로 둔다(검사·오류 풀이가 이 글로 찾는다). 둘째 문장은 모든 Phase가 끝난 판에서 "부품이 더해진 뒤"를 약속하지 않고,
+      // 오타일 때 고칠 수 있게 철자와 부품 이름을 알린다(판 1.1.1 최종 점검).
       issues.push({
         level: 'warning',
         code: 'unknown-part',
-        text: `${withParticle(`이 예제에 쓰는 부품 "${label}"`, '은/는')} 가상 보드에 아직 없어서 그림에 그리지 못했어요. 이 부품을 쓰는 코드는 부품이 더해진 뒤에 끝까지 돌아요.`,
+        text:
+          `${withParticle(`이 예제에 쓰는 부품 "${label}"`, '은/는')} 가상 보드에 아직 없어서 그림에 그리지 못했어요. ` +
+          `코드 맨 위 # @part 줄에 적은 부품 이름의 철자를 확인해요(가상 보드 부품: ${joinNames(knownPartNames)}).`,
       });
       const id = takeId(entry);
       const pins: Record<string, number> = { ...(entry.pins ?? {}) };

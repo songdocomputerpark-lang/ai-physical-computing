@@ -173,6 +173,61 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await expect(led).toHaveAttribute('data-visual-lit', 'false');
   });
 
+  // 판 1.1.1 최종 점검: [정지] 뒤 그림의 내장 LED는 꺼진 모습인데 핀 상태 표는 "GPIO2 출력 1 (HIGH)"라 서로 달라 보였다.
+  test('[정지] 뒤 핀 상태 표 위에 "멈추기 전 마지막 값이에요"가 보이고, 다시 [실행]하면 사라진다', async ({ page }) => {
+    await openEsp32Lab(page);
+    await runCode(page, ['from machine import Pin', 'from time import sleep', 'led = Pin(2, Pin.OUT)', 'led.on()', 'while True:', '    sleep(0.2)'].join('\n'));
+    const row = page.locator('[data-board-pin="2"]');
+    await expect(row).toHaveAttribute('data-level', '1', { timeout: 60_000 });
+    const note = page.locator('[data-board-pins-stopped]');
+    await expect(note).toBeHidden();
+    await page.locator('[data-lab-stop]').click();
+    expect(await waitDone(page, 30_000)).toBe('stopped');
+    await expect(part(page, 'builtin-led')).toHaveAttribute('data-visual-lit', 'false');
+    await expect(note).toBeVisible();
+    await expect(note).toContainText('멈추기 전 마지막 값이에요');
+    // 표의 값은 지우지 않는다(실물도 [정지] 뒤 핀이 마지막 값에 남는다) — 흐린 모양 표시만
+    await expect(row).toContainText('1 (HIGH)');
+    await expect(page.locator('table.board-pins')).toHaveAttribute('data-stopped', 'true');
+    // 다시 [실행]하면 안내가 사라진다
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    await expect(labRoot(page)).toHaveAttribute('data-state', 'running', { timeout: 60_000 });
+    await expect(note).toBeHidden({ timeout: 10_000 });
+    await expect(page.locator('table.board-pins')).toHaveAttribute('data-stopped', 'false');
+    await page.locator('[data-lab-stop]').click();
+    expect(await waitDone(page, 30_000)).toBe('stopped');
+  });
+
+  // 판 1.1.1 최종 점검(PROGRESS 미해결 51 보강): 부품이 많은 예제는 보기 영역이 넓어 [그림 크게 보기]를 눌러도 핀 번호가 5~6px였다.
+  test('부품이 많은 예제도 [그림 크게 보기]를 누르면 보드 그림의 가장 작은 글자가 11px 이상이고, 쪽이 가로로 넘치지 않는다', async ({ page }) => {
+    const response = await page.goto(`${ESP32_PATH}?example=${encodeURIComponent('esp32/u4/4-2-2-explore-rgb-buzzer-site.py')}`);
+    expect(response?.status()).toBe(200);
+    await expect(board(page)).toHaveAttribute('data-board-ready', 'yes', { timeout: LOAD_TIMEOUT });
+    const smallestText = () =>
+      page.evaluate(() => {
+        const sizes: number[] = [];
+        for (const element of document.querySelectorAll('[data-board-stage-wrap] text, [data-board-stage-wrap] tspan')) {
+          const own = [...element.childNodes].some((node) => node.nodeType === 3 && (node.textContent ?? '').trim() !== '');
+          const box = element.getBoundingClientRect();
+          if (!own || box.width === 0) {
+            continue;
+          }
+          const matrix = (element as SVGGraphicsElement).getScreenCTM();
+          const scale = matrix ? Math.sqrt(Math.abs(matrix.a * matrix.d - matrix.b * matrix.c)) : 1;
+          sizes.push(parseFloat(getComputedStyle(element).fontSize) * scale);
+        }
+        return sizes.length === 0 ? 0 : Math.min(...sizes);
+      });
+    const zoom = page.getByRole('button', { name: '그림 크게 보기' }).first();
+    await zoom.click();
+    await expect(page.locator('[data-board-zoom-level]').first()).toHaveAttribute('data-board-zoom-level', 'large');
+    await expect.poll(smallestText, { timeout: 10_000 }).toBeGreaterThanOrEqual(11);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    // 원래 크기로 되돌린다(다음 방문에 남지 않게)
+    await page.getByRole('button', { name: '원래 크기로' }).first().click();
+  });
+
   test('사이트 예제 01·02가 고치지 않고 돈다: LED가 깜빡이고 interval 막대로 빨라지며, BOOT 버튼을 누르는 동안 LED가 켜진다', async ({ page }) => {
     test.skip(test.info().project.name === 'mobile', '예제 동작은 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
     const errors: string[] = [];

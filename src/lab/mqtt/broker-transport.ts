@@ -35,6 +35,9 @@ export interface BrokerTransportOptions extends MqttTransportOptions {
   readonly connectFn?: MqttConnectFn;
 }
 
+/** MQTT.js connectTimeout을 우리 연결 타이머보다 이만큼 길게 둔다(밀리초 — openBrokerTransport) */
+export const CONNECT_TIMEOUT_MARGIN_MS = 2000;
+
 /** 브라우저에서 중계 서버 연결(WebSocket)을 쓸 수 있나 */
 export function isBrokerAvailable(): boolean {
   return typeof (globalThis as { WebSocket?: unknown }).WebSocket === 'function';
@@ -49,15 +52,39 @@ async function defaultConnect(url: string, options: Record<string, unknown>): Pr
   return connect(url, options);
 }
 
-/** 오류 값에서 학생에게 보여 줄 짧은 까닭을 뽑는다 */
+/**
+ * MQTT.js가 내는 영어 오류 문구 → 학생에게 보일 짧은 한국어 까닭(설치된 mqtt 5.15.2의 build/lib 원문에서 찾은 것, 2026-09-30).
+ * 판 1.1.1 최종 점검: 연결 실패 안내에 영어 "(connack timeout)"가 그대로 보였다.
+ */
+const KNOWN_REASONS: readonly (readonly [RegExp, string])[] = Object.freeze([
+  [/^connack timeout$/iu, '서버가 답하지 않음'],
+  [/^WebSocket error$/iu, '서버에 닿지 못함'],
+  [/^Connection refused\b/iu, '서버가 연결을 거절함'],
+  [/^Connection closed$/iu, '서버가 연결을 닫음'],
+  [/^Keepalive timeout$/iu, '서버와 한동안 소식이 끊김'],
+  [/^No connection to broker$/iu, '서버와 이어지지 않음'],
+  [/^client disconnecting$/iu, '연결을 끝내는 중'],
+] as const);
+
+/** 한글이 든 글(사이트가 만든 한국어 까닭)인가 */
+const HANGUL = /[가-힣]/u;
+
+/**
+ * 오류 값에서 학생에게 보여 줄 짧은 한국어 까닭을 뽑는다. 알려진 MQTT.js 문구는 한국어로 바꾸고, 사이트가 만든 한국어 글은 그대로,
+ * 모르는 영어 글은 "까닭을 알 수 없음"으로 한다(학생 화면에 영어 문구가 새지 않게).
+ */
 export function reasonOf(error: unknown): string {
-  if (error instanceof Error && error.message !== '') {
-    return error.message;
+  const text = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+  const trimmed = text.trim();
+  if (trimmed === '') {
+    return '까닭을 알 수 없음';
   }
-  if (typeof error === 'string' && error !== '') {
-    return error;
+  for (const [pattern, korean] of KNOWN_REASONS) {
+    if (pattern.test(trimmed)) {
+      return korean;
+    }
   }
-  return '까닭을 알 수 없음';
+  return HANGUL.test(trimmed) ? trimmed : '까닭을 알 수 없음';
 }
 
 class BrokerTransport implements MqttTransport {
@@ -177,7 +204,9 @@ export async function openBrokerTransport(options: BrokerTransportOptions): Prom
     clean: true,
     keepalive: 30,
     reconnectPeriod: 3000,
-    connectTimeout: timeoutMs,
+    // 아래 우리 타이머(timeoutMs — "N초 동안 답이 없음")가 먼저 끝나게 MQTT.js 쪽은 조금 길게 둔다. 같으면 MQTT.js의
+    // 'connack timeout'이 먼저 올 때가 있어 까닭이 들쭉날쭉했다(판 1.1.1 최종 점검).
+    connectTimeout: timeoutMs + CONNECT_TIMEOUT_MARGIN_MS,
     resubscribe: true,
     queueQoSZero: false,
   };
@@ -194,7 +223,8 @@ export async function openBrokerTransport(options: BrokerTransportOptions): Prom
       } catch {
         // 무시
       }
-      reject(new MqttConnectError(mqttText.connectFailed(url, `${Math.round(timeoutMs / 1000)}초 동안 답이 없음`)));
+      const reason = `${Math.round(timeoutMs / 1000)}초 동안 답이 없음`;
+      reject(new MqttConnectError(mqttText.connectFailed(url, reason), reason));
     }, timeoutMs);
     client.on('connect', ((): void => {
       if (settled) {
@@ -215,7 +245,8 @@ export async function openBrokerTransport(options: BrokerTransportOptions): Prom
       } catch {
         // 무시
       }
-      reject(new MqttConnectError(mqttText.connectFailed(url, reasonOf(error))));
+      const reason = reasonOf(error);
+      reject(new MqttConnectError(mqttText.connectFailed(url, reason), reason));
     }) as unknown as (...args: never[]) => void);
   });
 }

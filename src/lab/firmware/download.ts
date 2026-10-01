@@ -51,7 +51,17 @@ function isAbort(error: unknown): boolean {
   return typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'AbortError';
 }
 
+/**
+ * 서버가 알려 준 파일 크기(Content-Length). 모르면 null.
+ * 압축 전송(content-encoding이 identity가 아님)이면 Content-Length는 **압축된** 크기라 파일 크기로 쓰지 않는다
+ * — GitHub Pages는 .bin을 gzip으로 보낸다(2026-09-30 실사이트: 1,790,544바이트 파일이 머리말에는 1,175,657).
+ * 서비스 워커(src/sw/sw.js)의 같은 규칙과 맞춘다. 받은 뒤의 크기·SHA-256 대조(verify.ts)는 이와 상관없이 한다.
+ */
 function contentLength(response: Response): number | null {
+  const encoding = (response.headers.get('content-encoding') ?? '').trim().toLowerCase();
+  if (encoding !== '' && encoding !== 'identity') {
+    return null;
+  }
   const raw = response.headers.get('content-length');
   if (raw === null || !/^\d+$/u.test(raw.trim())) {
     return null;

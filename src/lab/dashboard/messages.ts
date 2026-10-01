@@ -96,9 +96,15 @@ export const dashText = {
   frameLed(on: boolean): string {
     return `아래 가상 보드가 받았어요 — LED ${on ? '켜짐' : '꺼짐'}`;
   },
-  /** 몇 초가 지나도 아래 가상 보드의 LED가 바뀌지 않을 때 */
-  frameLedMissed(): string {
-    return '아래 가상 보드의 LED가 바뀌지 않았어요. 가상 보드에서 [실행]을 눌렀는지 봐요.';
+  /**
+   * 몇 초가 지나도 아래 가상 보드의 LED가 바뀌지 않을 때. boardRunning: 그 보드가 코드를 돌리는 중인가(iframe 실습실 뿌리의 data-state).
+   * 도는 중이면 [실행]을 말하지 않는다 — 보드 코드가 받은 말을 허용 목록에서 걸렀을 수 있다(C2 바꿔보기 3 ALLOW = ("on",)처럼 일부러
+   * 그런 결과를 보는 실습도 있다, 판 1.1.1 최종 점검).
+   */
+  frameLedMissed(boardRunning = false): string {
+    return boardRunning
+      ? '아래 가상 보드의 LED가 바뀌지 않았어요. 보드는 돌고 있어요 — 보드 콘솔에 "무시했어요"가 나왔는지 봐요(보드 코드가 받은 말을 걸렀을 수 있어요).'
+      : '아래 가상 보드의 LED가 바뀌지 않았어요. 가상 보드에서 [실행]을 눌렀는지 봐요.';
   },
   /** 접두어 [복사] */
   prefixCopied(prefix: string): string {
