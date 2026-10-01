@@ -1,13 +1,16 @@
 // mediapipe 흉내 모듈의 파이썬 쪽(src/lab/modules/mediapipe/{mediapipe,apc_mediapipe}.py)을 Node.js의 실제 Pyodide 314.0.7 + opencv-python으로
 // 검사한다(PLAN §8.2 P2-08 손 · P2-09 얼굴·자세, CODE_MAPPING §3.2, src/lab/README.md 4.6절). 학생 코드가 PC에서 쓰던 레거시 mp.solutions 모양 그대로 도는지를 본다.
 //   - JSPI 있음(--experimental-wasm-jspi): Hands()·FaceMesh()·Pose()·FaceDetection()의 process()·draw_landmarks가 실제로 화면과 값을 주고받는다.
-//   - JSPI 없음(--no-experimental-wasm-jspi, 제한 모드): 기다릴 수 없으니 아무것도 못 찾은 것(None)으로 답하고 한국어로 안내한다.
+//   - JSPI 없음(제한 모드 — JSPI 없는 브라우저를 tests/unit/helpers/no-jspi.mjs로 흉내 냄): 기다릴 수 없으니 아무것도 못 찾은 것(None)으로 답하고
+//     한국어로 안내한다. 전에는 --no-experimental-wasm-jspi로 껐는데 새 Node(CI 24.20 이상)는 그 플래그로 끌 수 없어 CI에서 조용히 건너뛰어졌다
+//     (2026-09-30 최종 점검 TD-05). 흉내를 못 내면 건너뛰지 않고 실패한다.
 // 추론 결과는 합성 좌표로 흉내 낸다(PD-30): 손은 tests/fixtures/landmarks/hands.json, 얼굴·자세는 생성기(synthetic-face.ts·synthetic-pose.ts)를 바로 부른다.
 // opencv 휠은 .cache/pyodide-packages/에 저장된다.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { NO_JSPI_NODE_ARGS, nodeCanHideJspi, noJspiProblem } from '../helpers/no-jspi.ts';
 
 const ROOT = process.cwd();
 const SCRIPT = path.join(ROOT, 'tests', 'unit', 'mediapipe', 'helpers', 'pyodide-mediapipe-run.mjs');
@@ -17,13 +20,6 @@ const nodeJspi = spawnSync(process.execPath, ['--experimental-wasm-jspi', '-e', 
   timeout: 20_000,
 });
 const nodeHasJspi = nodeJspi.status === 0 && nodeJspi.stdout === 'function';
-// Node 판에 따라 JSPI가 기본으로 켜져 있어 --no-experimental-wasm-jspi로도 끄지 못한다(CI Node 24.20+에서 확인).
-// 그때는 "제한 모드" 검사를 건너뛴다 — 켜진 채로 돌리면 기다릴 수 있어서 기대와 다른 결과가 나온다.
-const nodeNoJspi = spawnSync(process.execPath, ['--no-experimental-wasm-jspi', '-e', 'process.stdout.write(typeof WebAssembly.Suspending)'], {
-  encoding: 'utf8',
-  timeout: 20_000,
-});
-const nodeCanDisableJspi = nodeNoJspi.status === 0 && nodeNoJspi.stdout === 'undefined';
 const pyodideInstalled = fs.existsSync(path.join(ROOT, 'node_modules', 'pyodide', 'pyodide.mjs'));
 const fixtureExists = fs.existsSync(path.join(ROOT, 'tests', 'fixtures', 'landmarks', 'hands.json'));
 
@@ -63,7 +59,12 @@ interface Result {
 }
 
 function run(jspi: boolean): Result {
-  const result = spawnSync(process.execPath, [jspi ? '--experimental-wasm-jspi' : '--no-experimental-wasm-jspi', SCRIPT, ROOT], {
+  if (!jspi && !nodeCanHideJspi) {
+    // 흉내를 못 내면 묶음을 건너뛰지 않고 까닭과 함께 실패한다(묶음을 모으는 동안 부르므로 expect 대신 오류)
+    throw new Error(noJspiProblem);
+  }
+  const flags = jspi ? ['--experimental-wasm-jspi'] : NO_JSPI_NODE_ARGS;
+  const result = spawnSync(process.execPath, [...flags, SCRIPT, ROOT], {
     encoding: 'utf8',
     timeout: 300_000,
     maxBuffer: 64 * 1024 * 1024,
@@ -381,7 +382,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 
   });
 });
 
-describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists || !nodeCanDisableJspi)('mediapipe 흉내 모듈 — 제한 모드(JSPI 없음)', () => {
+describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 흉내 모듈 — 제한 모드(JSPI 없음)', () => {
   const out = run(false);
 
   it('JSPI 없이도 import·상수는 그대로 되고 process()는 손 없음(None)으로 답하며 한국어로 안내한다', () => {

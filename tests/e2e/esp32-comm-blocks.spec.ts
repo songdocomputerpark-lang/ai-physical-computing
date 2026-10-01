@@ -299,12 +299,13 @@ test.describe('통신 템플릿과 통신 블록(P4-10)', () => {
     }
   });
 
-  test('도구 상자 "통신" 칸이 붙으면 블록을 끌어 놓아 코드를 만든다', async ({ page }) => {
+  test('도구 상자 "통신" 칸에서 블록을 끌어 놓아 코드를 만든다', async ({ page }) => {
     await openLab(page, '?blocks=1');
     await expect(page.locator('[data-blocks]')).toHaveAttribute('data-blocks-ready', 'yes', { timeout: LOAD_TIMEOUT });
+    // "통신" 칸은 Phase 4 통합(2026-09-24)에서 붙었다. 칸이 없으면 건너뛰지 않고 실패한다 — 칸이 빠지는 회귀가 건너뜀(초록)으로 숨지 않게
+    // (2026-09-30 최종 점검 TD-01).
     const category = page.locator('[data-blocks-workspace] .blocklyToolboxCategory', { hasText: '통신' });
-    const attached = (await category.count()) > 0;
-    test.skip(!attached, '통합에서 kit.ts에 withCommCategory·installCommBlocks를 붙이면 이 검사가 돈다(.cache/phase4-requests/templates.md).');
+    await expect(category).toHaveCount(1);
 
     const { dragFromToolbox, editorCode } = await import('./helpers/blocks.ts');
     await dragFromToolbox(page, { category: '통신', type: 'apc_comm_uart_send', to: 'free' });

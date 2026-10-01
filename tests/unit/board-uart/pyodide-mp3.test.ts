@@ -103,13 +103,13 @@ describe.skipIf(!boardPyodideReady)('가상 MP3 모듈(실제 Pyodide, JSPI)', (
   it('긴 sleep 안의 곡 끝: time.sleep(5) 안에서도 3.6초 곡이 끝나는 가상 시각에 멈추고, 잔 양(5초)과 곡 끝 응답(0x3D)은 그대로다(미해결 177)', () => {
     const record = stepOf(out, 'mp3_song_end_in_long_sleep');
     expect(record.errorType).toBeUndefined();
+    expect(record.thawError).toBeUndefined();
     const [gap, insideSleep, slept, reply, status, pointer, stops] = record.value as [number, boolean, number, number[] | null, string, number, number];
-    // 재생을 시작한 가상 시각에서 곡 길이(3600ms)만큼 뒤에 멈춘다 — sleep(5)가 끝나기 전에
-    expect(gap).toBeGreaterThanOrEqual(3600);
-    expect(gap).toBeLessThanOrEqual(3605);
+    // 재생을 시작한 가상 시각에서 곡 길이(3600ms)만큼 뒤에 멈춘다 — sleep(5)가 끝나기 전에. 단계가 시험용 멈춘 시계(frozenClock)로 돌아
+    // 계산 시간이 가상 시각에 더해지지 않으므로 값이 정확하다(전에는 3600~3605·5000~5002를 받아 주었는데 부하가 크면 5,003이 나왔다 — 2026-09-30 TD-03)
+    expect(gap).toBe(3600);
     expect(insideSleep).toBe(true);
-    expect(slept).toBeGreaterThanOrEqual(5000);
-    expect(slept).toBeLessThanOrEqual(5002);
+    expect(slept).toBe(5000);
     expect(reply).toEqual([0x7e, 0xff, 0x06, 0x3d, 0x00, 0x00, 0x01, 0xfe, 0xbd, 0xef]);
     expect([status, pointer, stops]).toEqual(['stopped', 2, 1]);
     // 화면에도 sleep 도중에 '멈춤'이 간다(마지막 상태)
@@ -119,11 +119,11 @@ describe.skipIf(!boardPyodideReady)('가상 MP3 모듈(실제 Pyodide, JSPI)', (
   it('가상 시각 알람 규약: 알려 준 시각에 sleep이 끊겨 다시 불리고, 지난 시각은 잠을 끊지 않으며, 훅 오류는 한 번만 알리고 코드는 계속 돈다', () => {
     const record = stepOf(out, 'wake_hook_contract');
     expect(record.errorType).toBeUndefined();
+    expect(record.thawError).toBeUndefined();
     const [calls, late, total, badCalled, fewPastCalls] = record.value as [number, number | null, boolean, boolean, boolean];
     expect(calls).toBe(1);
-    expect(late).not.toBeNull();
-    expect(late).toBeGreaterThanOrEqual(0);
-    expect(late).toBeLessThanOrEqual(2);
+    // 알려 준 시각 그대로 불린다(시험용 멈춘 시계 — 계산 시간이 더해지지 않아 늦음이 0)
+    expect(late).toBe(0);
     expect(total).toBe(true);
     expect(badCalled).toBe(true);
     expect(fewPastCalls).toBe(true);

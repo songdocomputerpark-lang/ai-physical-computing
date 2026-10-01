@@ -1,11 +1,14 @@
 // pyautogui 흉내 모듈의 파이썬 쪽(src/lab/modules/desktop/pyautogui.py)을 Node.js의 실제 Pyodide 314.0.7로 검사한다
 // (PLAN §8.2 P2-11, CODE_MAPPING §3.4, src/lab/README.md 4.6, PD-14).
-// JSPI 켠 판(--experimental-wasm-jspi)과 끈 판(--no-experimental-wasm-jspi, 제한 모드)을 따로 띄워 도우미 스크립트의 JSON 한 줄을 읽는다.
-// CI의 Node는 JSPI가 기본 켜짐이라 두 플래그를 모두 명시한다(PROGRESS 미해결 1번).
+// JSPI 켠 판(--experimental-wasm-jspi)과 JSPI 없는 브라우저 판(제한 모드)을 따로 띄워 도우미 스크립트의 JSON 한 줄을 읽는다.
+// CI의 Node는 JSPI가 기본 켜짐이라 켤 때도 플래그를 명시한다(PROGRESS 미해결 1번). 제한 모드는 플래그로 끄지 않고 Pyodide가 알아보는 이름을 지워
+// 흉내 낸다(tests/unit/helpers/no-jspi.mjs) — 새 Node는 --no-experimental-wasm-jspi로 끌 수 없어 이 묶음이 CI에서 조용히 건너뛰어졌다
+// (2026-09-30 최종 점검 TD-05). 흉내를 못 내면 건너뛰지 않고 실패한다.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { NO_JSPI_NODE_ARGS, nodeCanHideJspi, noJspiProblem } from '../helpers/no-jspi.ts';
 
 const ROOT = process.cwd();
 const SCRIPT = path.join(ROOT, 'tests', 'unit', 'pyautogui', 'helpers', 'pyodide-pyautogui-run.mjs');
@@ -15,13 +18,6 @@ const nodeJspi = spawnSync(process.execPath, ['--experimental-wasm-jspi', '-e', 
   timeout: 20_000,
 });
 const nodeHasJspi = nodeJspi.status === 0 && nodeJspi.stdout === 'function';
-// Node 판에 따라 JSPI가 기본으로 켜져 있어 --no-experimental-wasm-jspi로도 끄지 못한다(CI Node 24.20+에서 확인).
-// 그때는 "제한 모드" 검사를 건너뛴다 — 켜진 채로 돌리면 기다릴 수 있어서 기대와 다른 결과가 나온다.
-const nodeNoJspi = spawnSync(process.execPath, ['--no-experimental-wasm-jspi', '-e', 'process.stdout.write(typeof WebAssembly.Suspending)'], {
-  encoding: 'utf8',
-  timeout: 20_000,
-});
-const nodeCanDisableJspi = nodeNoJspi.status === 0 && nodeNoJspi.stdout === 'undefined';
 const pyodideInstalled = fs.existsSync(path.join(ROOT, 'node_modules', 'pyodide', 'pyodide.mjs'));
 
 interface EventRecord {
@@ -52,8 +48,14 @@ interface Result {
   leftoverPointer: unknown[];
 }
 
-function run(flag: '--experimental-wasm-jspi' | '--no-experimental-wasm-jspi'): Result {
-  const result = spawnSync(process.execPath, [flag, SCRIPT, ROOT], { encoding: 'utf8', timeout: 300_000, maxBuffer: 64 * 1024 * 1024 });
+/** 도우미 스크립트를 띄운다 — jspi: true면 JSPI를 켠 판, false면 JSPI 없는 브라우저 판(제한 모드) */
+function run(jspi: boolean): Result {
+  if (!jspi && !nodeCanHideJspi) {
+    // 흉내를 못 내면 묶음을 건너뛰지 않고 까닭과 함께 실패한다(묶음을 모으는 동안 부르므로 expect 대신 오류)
+    throw new Error(noJspiProblem);
+  }
+  const flags = jspi ? ['--experimental-wasm-jspi'] : NO_JSPI_NODE_ARGS;
+  const result = spawnSync(process.execPath, [...flags, SCRIPT, ROOT], { encoding: 'utf8', timeout: 300_000, maxBuffer: 64 * 1024 * 1024 });
   if (result.status !== 0) {
     throw new Error(`도우미 스크립트 실패(${result.status}): ${result.stderr.slice(-2000)}`);
   }
@@ -67,7 +69,7 @@ function kinds(step: StepRecord | undefined, kind: string): Record<string, unkno
 }
 
 describe.skipIf(!pyodideInstalled || !nodeHasJspi)('pyautogui 흉내(실제 Pyodide, JSPI)', () => {
-  const out = run('--experimental-wasm-jspi');
+  const out = run(true);
 
   it('모듈 파일이 /apc에 들어가고 이름이 겹치지 않는다(import pyautogui가 이 파일을 받는다)', () => {
     expect(out.duplicate).toBeUndefined();
@@ -249,8 +251,8 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('pyautogui 흉내(실제 Pyod
   });
 });
 
-describe.skipIf(!pyodideInstalled || !nodeCanDisableJspi)('pyautogui 흉내(제한 모드 — JSPI 없는 브라우저)', () => {
-  const out = run('--no-experimental-wasm-jspi');
+describe.skipIf(!pyodideInstalled || !nodeHasJspi)('pyautogui 흉내(제한 모드 — JSPI 없는 브라우저)', () => {
+  const out = run(false);
 
   it('제한 모드로 뜬다', () => {
     expect(out.jspi).toBe(false);

@@ -353,28 +353,34 @@ test.describe('펌웨어 굽기 화면', () => {
     expect(await board.requests()).toHaveLength(2);
   });
 
-  test.describe('운영자가 받은 실제 펌웨어 파일로', () => {
-    const staged = path.join(ROOT, '.cache', 'firmware-staging', 'ESP32_GENERIC-20260824-v1.29.0.bin');
-    test.skip(!fs.existsSync(staged), '.cache/firmware-staging에 실제 파일이 있는 컴퓨터(운영자 PC)에서만 — CI에는 없다');
+  test.describe('저장소에 든 실제 펌웨어 파일로', () => {
+    // 목록(public/firmware/manifest.json)의 기본 펌웨어 파일(public/<path>) — 판을 올리면(MAINTENANCE 8절 4-4) 새 파일로 돈다.
+    // 2026-09-30 최종 점검 TD-04: 전에는 운영자 PC에만 있는 .cache/firmware-staging 사본을 봐서 CI·다른 컴퓨터에서 늘 건너뛰었다.
+    const realFile = path.join(ROOT, 'public', String(REAL_FIRMWARE.path));
+    test.skip(!fs.existsSync(realFile), `펌웨어 파일(public/${String(REAL_FIRMWARE.path)})이 아직 없어요 — 목록만 고친 중간 상태`);
 
-    test('실제 목록(1,790,544바이트·SHA-256 e67ad601…)과 실제 파일이 브라우저 검증을 통과하고 모의 보드에 끝까지 구워진다', async ({ page }, testInfo) => {
+    test('실제 목록(크기·SHA-256)과 실제 파일이 브라우저 검증을 통과하고 모의 보드에 끝까지 구워진다', async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== 'desktop', '데스크톱에서만');
       test.setTimeout(240_000);
-      const image = new Uint8Array(fs.readFileSync(staged));
+      const image = new Uint8Array(fs.readFileSync(realFile));
+      const size = Number(REAL_FIRMWARE.size);
+      expect(image.length, '목록의 size와 파일 크기가 달라요').toBe(size);
       await installBoard(page);
       await page.route(`**/${String(REAL_FIRMWARE.path)}`, (route) => route.fulfill({ status: 200, contentType: 'application/octet-stream', body: Buffer.from(image) }));
       const root = await openFlasher(page);
       await expect(root).toHaveAttribute('data-file-state', 'available', { timeout: 15_000 });
       await root.getByRole('button', { name: '펌웨어 굽기 시작' }).click();
-      await expect(stage(root, 'file')).toContainText('크기 1,790,544바이트 · SHA-256 일치', { timeout: 60_000 });
+      // v1.29.0: "크기 1,790,544바이트 · SHA-256 일치"
+      await expect(stage(root, 'file')).toContainText(`크기 ${size.toLocaleString('en-US')}바이트 · SHA-256 일치`, { timeout: 60_000 });
       await expect(root).toHaveAttribute('data-state', 'done', { timeout: 200_000 });
       const flashMd5 = await page.evaluate(
         ([offset, length]) => (globalThis as unknown as { __apcEsp32Rom: { md5(id: string, o: number, l: number): string } }).__apcEsp32Rom.md5('board', offset!, length!),
-        [0x1000, image.length],
+        [Number(REAL_FIRMWARE.offset), image.length],
       );
-      expect(flashMd5).toBe('9bc5ba8866e70b194d92af536c143070');
+      // 기대 MD5는 Node의 crypto로 따로 잰다(v1.29.0은 9bc5ba8866e70b194d92af536c143070)
+      expect(flashMd5).toBe(createHash('md5').update(image).digest('hex'));
       expect(await romCount(page, 'MEM_BEGIN')).toBe(0);
-      await expect(root.locator('[data-firmware-log]')).toContainText('flash done: 1790544 bytes');
+      await expect(root.locator('[data-firmware-log]')).toContainText(`flash done: ${size} bytes`);
     });
   });
 

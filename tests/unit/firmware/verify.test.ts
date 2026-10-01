@@ -9,7 +9,13 @@ import { readEsp32ImageHeader, sha256Hex, toHex, verifyFirmwareImage } from '../
 import { sha256Of, syntheticImage } from './helpers/synthetic-image.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
-const STAGED_FIRMWARE = path.join(ROOT, '.cache', 'firmware-staging', 'ESP32_GENERIC-20260824-v1.29.0.bin');
+/**
+ * 저장소에 든 실제 펌웨어 — 목록(public/firmware/manifest.json)의 기본 펌웨어 파일(public/<path>). 판을 올리면(MAINTENANCE 8절 4-4) 목록과 파일이
+ * 함께 바뀌고 이 검사가 새 파일을 본다. 2026-09-30 최종 점검 TD-04: 전에는 운영자 PC에만 있는 .cache/firmware-staging 사본을 봐서 CI·다른 컴퓨터에서
+ * 늘 건너뛰었다. 파일이 없으면(목록만 고친 중간 상태) 건너뛴다.
+ */
+const REAL_MANIFEST = parseFirmwareManifest(JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'firmware', 'manifest.json'), 'utf8')));
+const REAL_FIRMWARE_FILE = path.join(ROOT, 'public', defaultFirmware(REAL_MANIFEST).path);
 
 function infoFor(image: Uint8Array) {
   return { size: image.length, sha256: sha256Of(image), chip: 'ESP32' };
@@ -87,13 +93,13 @@ describe('verifyFirmwareImage', () => {
     expect(readEsp32ImageHeader(image)).toBeNull();
   });
 
-  it.runIf(fs.existsSync(STAGED_FIRMWARE))('운영자가 받은 실제 파일(.cache/firmware-staging)은 목록의 크기·SHA-256과 맞고 ESP32·DIO·4MB 이미지다', async () => {
-    const manifest = parseFirmwareManifest(JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'firmware', 'manifest.json'), 'utf8')));
-    const image = new Uint8Array(fs.readFileSync(STAGED_FIRMWARE));
-    const result = await verifyFirmwareImage(image, defaultFirmware(manifest));
+  it.runIf(fs.existsSync(REAL_FIRMWARE_FILE))('저장소에 든 실제 파일(public/firmware/…)은 목록의 크기·SHA-256과 맞고 ESP32·DIO·4MB 이미지다', async () => {
+    const image = new Uint8Array(fs.readFileSync(REAL_FIRMWARE_FILE));
+    const result = await verifyFirmwareImage(image, defaultFirmware(REAL_MANIFEST));
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.header).toEqual({ segments: 3, flashMode: 'DIO', flashSize: '4MB', chipId: 0, hashAppended: true });
+      // 세그먼트 수는 펌웨어 판마다 다를 수 있어 보지 않는다(칩·플래시 방식·크기·끝에 붙은 해시만)
+      expect(result.header).toMatchObject({ flashMode: 'DIO', flashSize: '4MB', chipId: 0, hashAppended: true });
     }
   });
 });

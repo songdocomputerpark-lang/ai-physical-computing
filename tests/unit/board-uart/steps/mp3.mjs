@@ -150,7 +150,9 @@ export default async function mp3Steps({ step, rootDir }) {
       'data = u.read()',
       '[stops[0] - start, sleep_start < stops[0] < sleep_end, slept, list(data) if data else None, dev.status, dev.pointer, len(stops)]',
     ].join('\n'),
-    { wiring: MP3_WIRING },
+    // 시험용 멈춘 시계(공유 도우미 frozenClock): 곡 끝·잔 양은 가상 시각 계산을 본다 — 실제 시계 그대로면 알람 뒤 계산 시간이 더해져
+    // 부하가 크면 5,003ms처럼 흔들렸다(2026-09-30 최종 점검 TD-03)
+    { wiring: MP3_WIRING, frozenClock: true },
   );
 
   // 5-2. 가상 시각 알람 규약(apc_board.register_wake_hook): 훅이 알려 준 시각에 sleep이 끊겨 훅이 다시 불리고, 지난 시각은 잠을 끊지 않으며,
@@ -185,6 +187,8 @@ export default async function mp3Steps({ step, rootDir }) {
       '    apc_board._wake_hooks.remove(h)',
       '[len(calls), calls[0] - target if calls else None, 3000 <= total <= 3010, bad_calls[0] > 1, len(past) < 50]',
     ].join('\n'),
+    // 알람 시각·잔 양은 가상 시각 계산을 본다 — 시험용 멈춘 시계로 부하와 상관없이(위 5-1과 같은 까닭, TD-03)
+    { frozenClock: true },
   );
 
   // 6. 보드 UART 속도가 9600이 아니면 모듈이 알아듣지 못하고(깨진 바이트) 화면에 까닭을 남긴다

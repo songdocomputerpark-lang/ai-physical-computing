@@ -75,14 +75,33 @@ let stdout = '';
 let stderr = '';
 /** 단계가 정한 "파이썬이 이 표시를 보내면 할 일"(board.device {mark}) — 시간 대신 코드 진행에 맞춰 입력을 넣어 부하에 흔들리지 않게 */
 let onMark = null;
+/**
+ * 단계가 정한 "이 이벤트가 오면 [정지]"(options.stopWhen) — 실제 시간(stopAfterMs) 대신 코드가 거기까지 갔는지로 멈춘다.
+ * 부하가 큰 컴퓨터에서는 같은 실제 시간 안에 코드가 덜 가서, 시간으로 멈추면 보려는 모습(첫 write·꼭대기 뒤 내림 등)이 오기 전에 멈췄다
+ * (2026-09-30 최종 점검 TD-03 — npm test를 다른 프로그램과 함께 돌려 재현).
+ */
+let stopWhen = null;
+/** [정지]를 요청한 시각(performance.now) — 단계 기록의 stopLatencyMs(정지 요청부터 실행이 끝날 때까지)를 잰다 */
+let stopRequestedAt = null;
+function requestStopNow() {
+  if (stopRequestedAt === null) stopRequestedAt = performance.now();
+  bridge.requestStop();
+}
+/** 파이썬이 실제로 기다린 횟수(다리의 sleep 부름) — 짧은 sleep 모으기(16ms)를 실제 시간과 상관없이 세려고(단계 기록의 hostWaits) */
+let hostWaits = 0;
 const bridge = createBridge({
   post: (message) => {
     if (message.type === 'event' && message.kind === 'board.device' && message.payload && typeof message.payload.mark === 'string') {
       onMark?.(message.payload.mark);
       return;
     }
-    if (message.type === 'event') out.events.push({ kind: message.kind, payload: message.payload });
-    else if (message.type === 'notice') out.notices.push(message.text);
+    if (message.type === 'event') {
+      out.events.push({ kind: message.kind, payload: message.payload });
+      if (stopWhen && stopWhen({ kind: message.kind, payload: message.payload })) {
+        stopWhen = null;
+        requestStopNow();
+      }
+    } else if (message.type === 'notice') out.notices.push(message.text);
     else if (message.type === 'request') setTimeout(() => bridge.rejectRequest(message.requestId, `화면이 "${message.kind}" 요청을 처리하지 못해요.`), 5);
   },
   now: () => performance.now(),
@@ -90,6 +109,11 @@ const bridge = createBridge({
 });
 pyodide.setStdout({ write: (buffer) => ((stdout += new TextDecoder().decode(buffer)), buffer.length) });
 pyodide.setStderr({ write: (buffer) => ((stderr += new TextDecoder().decode(buffer)), buffer.length) });
+const bridgeSleep = bridge.api.sleep;
+bridge.api.sleep = (ms) => {
+  hostWaits += 1;
+  return bridgeSleep(ms);
+};
 pyodide.registerJsModule('_apc_bridge', bridge.api);
 pyodide.FS.mkdirTree('/apc');
 const files = new Map();
@@ -121,9 +145,28 @@ pyodide.runPython(`import json, apc_shims\napc_shims.register_shims(json.loads($
 
 const IDLE_CODE = '__import__("apc_runtime").run_idle()';
 
+/*
+ * 시험용 멈춘 시계(options.frozenClock): 가상 시계(apc_board.Clock)는 sleep한 양에 "실제로 계산한 시간"을 더한다(실물 보드도 코드가 도는 동안
+ * 시간이 흐르니까). 그래서 컴퓨터가 바쁘면 Timer 주기를 합치거나(20ms를 넘게 밀리면 한 번으로) ticks 차이가 몇 ms 늘어, 가상 시각 계산 자체를 보는
+ * 검사가 부하에 따라 흔들렸다(2026-09-30 최종 점검 TD-03 — 콜백 5번 대신 3번, sleep(5)가 5,003ms). 이 틀을 켜면 실행 동안 apc_board가 읽는
+ * 실제 시계(_host_monotonic)를 0에 멈춰, 가상 시각이 sleep한 양만큼만 흐른다 — 부하와 상관없이 값이 정확하다(실제 기다림은 그대로 일어난다).
+ * 실물처럼 계산 시간이 흐르는 모습은 이 틀을 켜지 않은 단계(virtual_clock 등)가 본다. 실행이 끝나면 되돌리고 그 가상 시각에서 이어 가게 닻을 다시 놓는다.
+ */
+const FREEZE_HOST_CLOCK = ['import apc_board as _apc_b', '_apc_b._apc_test_host_monotonic = _apc_b._host_monotonic', '_apc_b._host_monotonic = lambda: 0.0'].join('\n');
+const THAW_HOST_CLOCK = [
+  'import apc_board as _apc_b',
+  '_apc_now = _apc_b.BOARD.clock.now_ns()',
+  '_apc_b._host_monotonic = _apc_b._apc_test_host_monotonic',
+  'del _apc_b._apc_test_host_monotonic',
+  '_apc_b.BOARD.clock.anchor(_apc_now)',
+].join('\n');
+
 /**
  * 워커의 run()과 같은 순서로 코드 한 번을 돌린다.
  * options.inputs: 실행 전 board.inputs 값 / options.during: 실행 중 [ms, 함수] 목록 / options.stopAfterMs: 그 뒤 [정지] / options.idle: run_idle까지
+ * options.onMark(mark): 파이썬이 board.device {mark}를 보내면 / options.stopWhen({kind, payload}): 이벤트가 이 조건에 맞으면 [정지](코드 진행에 맞춰 —
+ * stopAfterMs를 함께 주면 그것은 조건이 끝내 오지 않을 때의 안전망) / options.frozenClock: 위 시험용 멈춘 시계.
+ * 기록: ms(단계 전체 실제 시간), hostWaits(파이썬이 실제로 기다린 횟수), stopLatencyMs([정지] 요청부터 실행이 끝날 때까지 — 요청했을 때만)
  */
 async function step(name, code, options = {}) {
   stdout = '';
@@ -135,15 +178,23 @@ async function step(name, code, options = {}) {
   if (options.wiring !== undefined) bridge.setValue('board.wiring', options.wiring);
   const startedAt = performance.now();
   bridge.beginRun();
+  stopRequestedAt = null;
+  const waitsBefore = hostWaits;
   const timers = [];
   for (const [ms, action] of options.during ?? []) timers.push(setTimeout(action, ms));
-  if (options.stopAfterMs !== undefined) timers.push(setTimeout(() => bridge.requestStop(), options.stopAfterMs));
+  if (options.stopAfterMs !== undefined) timers.push(setTimeout(() => requestStopNow(), options.stopAfterMs));
   onMark = options.onMark ?? null;
+  stopWhen = options.stopWhen ?? null;
   const globals = pyodide.toPy({ __name__: '__main__', __file__: 'main.py' });
+  let frozen = false;
   try {
     pyodide.runPython('import apc_shims\napc_shims.install_available()');
     pyodide.runPython('import apc_runtime\napc_runtime.reset_for_run()');
     pyodide.runPython('__import__("apc_runtime").bind_run_globals(globals())', { globals });
+    if (options.frozenClock) {
+      pyodide.runPython(FREEZE_HOST_CLOCK);
+      frozen = true;
+    }
     const value = await pyodide.runPythonAsync(code, { globals, filename: 'main.py' });
     record.value = value && typeof value.toJs === 'function' ? value.toJs({ dict_converter: Object.fromEntries }) : value;
     if (value && typeof value.destroy === 'function') value.destroy();
@@ -155,6 +206,14 @@ async function step(name, code, options = {}) {
     record.errorType = error && error.type ? error.type : 'JsError';
     record.errorMessage = String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0];
   } finally {
+    if (frozen) {
+      try {
+        pyodide.runPython(THAW_HOST_CLOCK);
+      } catch (error) {
+        // 되돌리지 못하면 다음 단계의 가상 시계가 멈춘 채로 돈다 — 조용히 넘어가지 않고 기록에 남긴다
+        record.thawError = String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0];
+      }
+    }
     try {
       pyodide.runPython('import apc_runtime\napc_runtime.unbind_run_globals()');
     } catch {
@@ -163,9 +222,13 @@ async function step(name, code, options = {}) {
     globals.destroy();
     for (const timer of timers) clearTimeout(timer);
     onMark = null;
+    stopWhen = null;
     bridge.endRun();
   }
-  record.ms = Math.round(performance.now() - startedAt);
+  const endedAt = performance.now();
+  record.ms = Math.round(endedAt - startedAt);
+  record.hostWaits = hostWaits - waitsBefore;
+  if (stopRequestedAt !== null) record.stopLatencyMs = Math.round(endedAt - stopRequestedAt);
   record.stdout = stdout;
   record.stderr = stderr;
   record.events = out.events.slice(eventsBefore).filter((event) => event.kind === 'board.state').map((event) => event.payload);
@@ -343,21 +406,31 @@ await step(
 
 await step(
   'virtual_clock',
+  // 실제 시계 그대로(계산 시간도 가상 시각에 들어감): 1ms × 200번 — 잔 만큼보다 줄지 않고, 실제로 기다린 횟수(hostWaits)는 16ms씩 모은 만큼
+  ['import time', 't0 = time.ticks_us()', 'for _ in range(200):', '    time.sleep_ms(1)', 'time.ticks_diff(time.ticks_us(), t0)'].join('\n'),
+);
+
+await step(
+  'virtual_clock_exact',
+  // 시험용 멈춘 시계(frozenClock): 계산 시간을 빼고 가상 시각 계산만 — 짧은 sleep을 모아도 잔 만큼, sleep(초)은 밀리초로 버림, sleep_us는 마이크로초
   [
     'import time',
     't0 = time.ticks_us()',
     'for _ in range(200):',
     '    time.sleep_ms(1)',
     'many = time.ticks_diff(time.ticks_us(), t0)',
-    't1 = time.ticks_ms()',
+    't1 = time.ticks_us()',
     'time.sleep(0.0005)',
-    'tiny = time.ticks_diff(time.ticks_ms(), t1)',
+    'tiny = time.ticks_diff(time.ticks_us(), t1)',
     't2 = time.ticks_ms()',
     'time.sleep(0.25)',
     'quarter = time.ticks_diff(time.ticks_ms(), t2)',
+    't3 = time.ticks_us()',
     'time.sleep_us(3)',
-    '[many, tiny, quarter]',
+    'micro = time.ticks_diff(time.ticks_us(), t3)',
+    '[many, tiny, quarter, micro]',
   ].join('\n'),
+  { frozenClock: true },
 );
 
 await step(
@@ -377,6 +450,8 @@ await step(
     'gaps = [calls[i + 1][1] - calls[i][1] for i in range(len(calls) - 1)]',
     '[n, len(calls), all(same for same, _ in calls), gaps, 0 <= v < 20, text, repr(Timer(1)), Timer(0) is t, Timer(-1) is Timer(-1), Timer.PERIODIC, Timer.ONE_SHOT]',
   ].join('\n'),
+  // 콜백 수·간격은 가상 시각 계산을 본다 — 계산 시간이 20ms를 넘게 밀리면 주기가 합쳐져 부하에 따라 수가 흔들렸다(TD-03)
+  { frozenClock: true },
 );
 
 await step(
@@ -400,6 +475,7 @@ await step(
     'r.append(len(fast))',
     'r',
   ].join('\n'),
+  { frozenClock: true },
 );
 
 await step(
@@ -415,12 +491,20 @@ await step(
     'time.sleep_ms(80)',
     'count[0]',
   ].join('\n'),
+  { frozenClock: true },
 );
 
+// 코드가 끝난 뒤(run_idle)에도 Timer가 LED를 바꾸는지: 끝난 뒤의 상태(phase idle)가 6번 오면 [정지] — 전에는 실제 400ms 뒤에 멈춰서,
+// 컴퓨터가 바쁘면 준비에 시간을 다 써 idle 상태가 모자랐다(TD-03). 60초는 조건이 끝내 오지 않을 때(회귀)의 안전망.
+let idleStates = 0;
 await step(
   'idle_after_end',
   ['from machine import Pin, Timer', 'led = Pin(2, Pin.OUT)', 'Timer(0).init(period=30, callback=lambda t: led.toggle())', '"started"'].join('\n'),
-  { idle: true, stopAfterMs: 400 },
+  {
+    idle: true,
+    stopWhen: ({ kind, payload }) => kind === 'board.state' && payload?.phase === 'idle' && (idleStates += 1) >= 6,
+    stopAfterMs: 60_000,
+  },
 );
 
 await step('no_idle_without_timers', ['from machine import Pin', 'Pin(2, Pin.OUT).on()', '"done"'].join('\n'), { idle: true });

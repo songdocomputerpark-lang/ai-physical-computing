@@ -8,6 +8,8 @@
 //   });
 //
 // 단계 파일은 tests/unit/lab/helpers/board-steps/<부품 또는 기능>.mjs에 새로 만든다(본보기: extension-points.mjs). 공유 스크립트는 고치지 않는다.
+// 부하에 흔들리지 않게(2026-09-30 최종 점검 TD-03): 가상 시각 계산을 볼 때는 step(…, { frozenClock: true }), 실제 시간 대신 코드 진행으로 멈출 때는
+// step(…, { stopWhen: ({ kind, payload }) => …, stopAfterMs: 안전망 }) — 설명은 pyodide-board-run.mjs의 step() 머리말.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,6 +58,12 @@ export interface BoardDeviceEventRecord {
 
 export interface BoardStepRecord {
   ms: number;
+  /** 파이썬이 실제로 기다린 횟수(다리의 sleep 부름 — 짧은 sleep 모으기를 실제 시간과 상관없이 셀 때) */
+  hostWaits?: number;
+  /** [정지] 요청(stopAfterMs·stopWhen)부터 실행이 끝날 때까지(ms) — 요청한 단계만 */
+  stopLatencyMs?: number;
+  /** 시험용 멈춘 시계(frozenClock)를 되돌리지 못했을 때의 오류 — 있으면 뒤 단계의 가상 시계가 믿을 수 없다 */
+  thawError?: string;
   /** 코드 마지막 식의 값(파이썬 → JS, dict는 객체) */
   value?: unknown;
   errorType?: string;

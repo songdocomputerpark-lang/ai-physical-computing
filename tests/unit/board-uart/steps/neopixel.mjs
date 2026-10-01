@@ -89,9 +89,17 @@ export default async function neopixelSteps({ step, rootDir }) {
     { wiring: RING_WIRING },
   );
 
-  // 4·5. 원본 f064(첫 반복에 write 없음 → 불이 차례로 켜지지 않음)·f065(무지개)를 파일 그대로
+  // 4·5. 원본 f064(첫 반복에 write 없음 → 불이 차례로 켜지지 않음)·f065(무지개)를 파일 그대로.
+  // [정지]는 실제 시간이 아니라 진행으로 건다: 링이 받은 write 수가 보려는 곳을 지나면 멈춘다. 전에는 2.4초·2초 뒤에 멈춰서, 컴퓨터가 바쁘면
+  // 첫 write(f064는 1.6초 가상 시간 뒤)가 오기 전에 멈춰 기록이 비었다(2026-09-30 최종 점검 TD-03). 60초는 조건이 끝내 오지 않을 때의 안전망.
   const f064 = fs.readFileSync(path.join(rootDir, 'examples/esp32/u2/2-1-5-neopixel-check.py'), 'utf8');
-  await step('f064_file', f064, { wiring: RING_WIRING, stopAfterMs: 2400 });
+  await step('f064_file', f064, { wiring: RING_WIRING, stopWhen: stopAfterWrites(2), stopAfterMs: 60_000 });
   const f065 = fs.readFileSync(path.join(rootDir, 'examples/esp32/u2/2-1-5-neopixel-rainbow.py'), 'utf8');
-  await step('f065_file', f065, { wiring: RING_WIRING, stopAfterMs: 2000 });
+  // 17번째 write = 둘째 반복(주황, 15번부터 거꾸로)의 첫 write
+  await step('f065_file', f065, { wiring: RING_WIRING, stopWhen: stopAfterWrites(17), stopAfterMs: 60_000 });
+}
+
+/** step의 stopWhen: 네오픽셀 링(배선 id neopixel)이 알린 write 수가 count 이상이면 참 */
+function stopAfterWrites(count) {
+  return ({ kind, payload }) => kind === 'board.device' && payload?.id === 'neopixel' && Number(payload?.state?.writes) >= count;
 }

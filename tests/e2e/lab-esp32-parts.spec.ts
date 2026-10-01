@@ -3,32 +3,17 @@
 //  1. 원본에서 옮긴 f046(내장 LED 깜빡이기): 파일 그대로 돌아 LED가 켜졌다 꺼지고, 보드 그림의 GPIO2 핀 머리가 1일 때 빛난다. 바깥 부품이 없어 배선도는 없다.
 //  2. f015(BOOT 버튼): 기다리는 줄이 없는 반복문에서도 BOOT 버튼을 키보드(Enter를 누르고 있기)·마우스로 누르는 동안 LED가 켜진다.
 //  3. f053(터치 센서 값 읽기): 배선도에 터치 센서와 GPIO17 신호선이 그려지고, 마우스·키보드(Space)·손가락(터치 화면)으로 누르는 동안 콘솔에 1이 나온다.
-//  4. f052(터치 + 문자 LCD): LCD는 아직 없는 부품이라 "주의"가 보이고, 2번 줄 SoftI2C에서 한국어 안내가 든 ImportError로 끝난다(P3-04에서 끝까지 돈다).
+//  4. f052(터치 + 문자 LCD)가 LCD에 누른 횟수를 끝까지 세는 것은 esp32-i2c.spec.ts가 본다(P3-04에서 문자 LCD가 생겨 "아직 없는 부품" 검사는 지웠다 —
+//     2026-09-30 최종 점검 TD-01: 늘 건너뛰던 죽은 검사였다).
 //  5. 진동 알림 새 예제(PD-36): 터치하면 진동 모터가 떨리고(움직임 줄이기면 떨지 않고 "진동 중"), 사이트 배정 핀 안내가 보인다.
 //  6. 배선 오류: 화면 검사(스트래핑 핀·한 핀에 입력·출력 부품·입력 전용 핀·아직 없는 부품)와 파이썬 검사(입력 부품 핀을 출력으로·출력 부품 핀을 입력으로·
 //     부품 없는 핀을 출력으로)가 한국어로 보인다.
 //  7. [그림 크게 보기]: 좁은 화면에서 그림을 넓게 펴 가로로 밀어 보고(페이지는 넘치지 않음), 고른 값을 기억한다.
-import fs from 'node:fs';
-import path from 'node:path';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { LOAD_TIMEOUT, labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
-
-/**
- * 문자 LCD(P3-04 구역 B)가 가상 보드에 생겼는지 — 부품 폴더 parts/lcd-i2c/ 또는 SoftI2C 확장(apc_board_i2c.py)이 있으면 true.
- * "P3-04 전" 모습을 보는 검사는 그때 건너뛴다(병렬 제작 준비 2026-09-17 — 부품 구역이 이 공유 spec을 고치지 않아도 되게).
- */
-function lcdEmulated(): boolean {
-  const boardDir = path.join(process.cwd(), 'src', 'lab', 'modules', 'board');
-  if (fs.existsSync(path.join(boardDir, 'parts', 'lcd-i2c', 'part.ts'))) {
-    return true;
-  }
-  const walk = (dir: string): boolean =>
-    fs.readdirSync(dir, { withFileTypes: true }).some((entry) => (entry.isDirectory() ? walk(path.join(dir, entry.name)) : entry.name === 'apc_board_i2c.py'));
-  return walk(boardDir);
-}
 
 function board(page: Page) {
   return page.locator('[data-board-io]');
@@ -55,19 +40,50 @@ function count(text: string, needle: string): number {
 }
 
 /**
- * 부품이 스크립트로 돌리는 움직임(element.animate()가 만든 Animation — 떨림·회전·깜빡임) 수. 두 화면 갱신을 기다린 뒤,
- * CSS가 만든 애니메이션(CSSTransition·CSSAnimation)은 빼고 센다.
- * 왜(PROGRESS 미해결 182 — 2026-09-26 구역 F 재현): 움직임 줄이기 규칙(src/styles/global.css)은 모든 요소에 transition-duration 0.01ms를 둔다.
- * 그래서 부품 그림의 SVG 속성이 바뀌면(예: 진동 모터 떨림 표시 곡선 `<g opacity>`) 다음 스타일 계산에서 0.01ms짜리 CSS 전환이 생긴다.
- * getAnimations()는 스스로 스타일을 계산하므로, 바뀐 뒤 화면 갱신이 한 번도 없었으면(컴퓨터가 바쁠 때) 그 전환이 running으로 목록에 잡힌다 —
- * CDP로 CPU를 4배 느리게 한 Edge에서 4번 가운데 1번 `CSSTransition opacity`(떨림 곡선 g)를 재현했고, 두 화면 갱신 뒤에는 늘 0이었다.
- * 그림의 움직임은 모두 Web Animations라 이 수가 "움직이는지"다(움직임 줄이기면 0, 아니면 켜진 부품마다 1).
+ * 부품이 켜지는 순간마다(data-visual-on이 "true"가 될 때마다) 그 부품 그림 안에서 스크립트가 돌리는 움직임(element.animate()가 만든 Animation —
+ * 떨림·회전·깜빡임) 수를 페이지 안에서 모은다. CSS가 만든 애니메이션(CSSTransition·CSSAnimation)은 빼고 센다.
+ * 왜 켜지는 순간에 세는지(2026-09-30 최종 점검 TD-02 — 닫은 PROGRESS 미해결 182의 남은 꼬리): 진동 모터는 0.3초만 켜진다. expect로 켜진 것을 본 뒤에
+ * 세면 컴퓨터가 바쁠 때는 그사이에 이미 꺼져 있다. 보드 그림 갱신(view.ts update)은 부품 그림을 바꾸고(움직임 시작 포함) data-visual-on을 같은 작업
+ * 안에서 쓰므로, MutationObserver가 부르는 순간에는 그 켜짐의 움직임이 이미 만들어져 있다 — 시간 창에 기대지 않는다.
+ * 왜 CSS 전환은 빼는지(미해결 182 — 2026-09-26 구역 F 재현): 움직임 줄이기 규칙(src/styles/global.css)은 모든 요소에 transition-duration 0.01ms를 둔다.
+ * 그래서 부품 그림의 SVG 속성이 바뀌면(예: 진동 모터 떨림 표시 곡선 `<g opacity>`) 스타일을 계산할 때 0.01ms짜리 CSS 전환이 생기고, getAnimations()가
+ * 그것을 목록에 잡을 수 있다. 그림의 움직임은 모두 Web Animations라 이 수가 "움직이는지"다(움직임 줄이기면 0, 아니면 켜질 때마다 1).
+ * 돌려주는 함수를 부르면 지금까지 모은 수를 켜진 차례대로 준다.
  */
-async function scriptedAnimationCount(target: Locator, subtree = true): Promise<number> {
-  return target.evaluate(async (element, deep) => {
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    return element.getAnimations({ subtree: deep }).filter((animation) => !(animation instanceof CSSTransition) && !(animation instanceof CSSAnimation)).length;
-  }, subtree);
+async function recordAnimationsWhenOn(page: Page, selector: string): Promise<() => Promise<number[]>> {
+  const key = `__animations_${Math.random().toString(36).slice(2)}`;
+  await page.locator(selector).evaluate((element, storeKey) => {
+    const counts: number[] = [];
+    (window as unknown as Record<string, number[]>)[storeKey] = counts;
+    let last = element.getAttribute('data-visual-on');
+    new MutationObserver(() => {
+      const value = element.getAttribute('data-visual-on');
+      if (value === last) {
+        return;
+      }
+      last = value;
+      if (value === 'true') {
+        counts.push(element.getAnimations({ subtree: true }).filter((animation) => !(animation instanceof CSSTransition) && !(animation instanceof CSSAnimation)).length);
+      }
+    }).observe(element, { attributes: true, attributeFilter: ['data-visual-on'] });
+  }, key);
+  return () => page.evaluate((storeKey) => [...((window as unknown as Record<string, number[]>)[storeKey] ?? [])], key);
+}
+
+/** 요소 안 글자(textContent)가 바뀌는 차례를 페이지 안에서 빠짐없이 모은다 — 아래 recordAttribute와 같은 까닭(짧게 켜지는 표시를 놓치지 않게). */
+async function recordText(page: Page, selector: string): Promise<() => Promise<string[]>> {
+  const key = `__text_${Math.random().toString(36).slice(2)}`;
+  await page.locator(selector).evaluate((element, storeKey) => {
+    const values: string[] = [element.textContent ?? ''];
+    (window as unknown as Record<string, string[]>)[storeKey] = values;
+    new MutationObserver(() => {
+      const value = element.textContent ?? '';
+      if (values[values.length - 1] !== value) {
+        values.push(value);
+      }
+    }).observe(element, { childList: true, characterData: true, subtree: true });
+  }, key);
+  return () => page.evaluate((storeKey) => [...((window as unknown as Record<string, string[]>)[storeKey] ?? [])], key);
 }
 
 /**
@@ -236,20 +252,6 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('f052: 문자 LCD는 아직 없는 부품이라 "주의"가 보이고, 2번 줄에서 한국어 안내가 든 ImportError로 끝난다(P3-04 전)', async ({ page }) => {
-    test.skip(test.info().project.name === 'mobile', '데스크톱에서 한 번만 본다.');
-    test.skip(lcdEmulated(), '문자 LCD·SoftI2C 흉내(P3-04)가 생겨 f052가 끝까지 도는 것은 그 구역의 spec이 확인해요.');
-    await openExample(page, 'esp32/u2/2-1-2-adv-touch-lcd-counter.py');
-    const warning = page.locator('[data-board-problems] li[data-code="unknown-part"]');
-    await expect(warning).toHaveAttribute('data-level', 'warning');
-    await expect(warning).toContainText('주의:');
-    await expect(warning).toContainText('문자 LCD(16×2)');
-    await expect(part(page, 'touch-digital')).toHaveCount(1);
-    await page.getByRole('button', { name: '실행', exact: true }).click();
-    expect(await waitDone(page, 60_000)).toBe('error');
-    await expect(consoleBox(page)).toContainText('machine.SoftI2C은(는) 가상 보드에 아직 없어요');
-  });
-
   test('진동 알림 새 예제: 터치하면 진동 모터가 두 번 떨리고 멈추며, 사이트 배정 핀 안내와 조절 막대가 있다', async ({ page }) => {
     test.skip(test.info().project.name === 'mobile', '예제 동작은 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
     const errors: string[] = [];
@@ -271,6 +273,7 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     const motionSequence = await recordAttribute(page, '[data-board-part="vibration-motor"]', 'data-visual-motion');
     const labelSequence = await recordAttribute(page, '[data-board-part="vibration-motor"]', 'aria-label');
     const pinSequence = await recordAttribute(page, '[data-board-header][data-gpio="19"]', 'data-high');
+    const animationsWhenOn = await recordAnimationsWhenOn(page, '[data-board-part="vibration-motor"]');
 
     await run(page);
     const touch = part(page, 'touch-digital');
@@ -281,6 +284,8 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     // 두 번 떨고(켜짐 → 멈춤 → 켜짐 → 멈춤) 멈춘다 — 모은 차례로 확인(0.2초 쉼을 놓치지 않게)
     await expect.poll(motorSequence, { timeout: 15_000 }).toBe('false,true,false,true,false');
     expect(await motionSequence()).toContain('shake');
+    // 켜질 때마다 떨림(Web Animations) 하나 — 아래 움직임 줄이기 검사의 [0, 0]이 "세는 도구가 늘 0"이 아님을 여기서 확인한다
+    expect(await animationsWhenOn()).toEqual([1, 1]);
     expect(await labelSequence()).toMatch(/진동 모터\(GPIO19\): 진동 중/u);
     expect((await pinSequence()).split(',')).toContain('true');
     await expect(header(page, 19)).not.toHaveAttribute('data-high', 'true');
@@ -295,16 +300,29 @@ test.describe('ESP32 실습실 — 보드 그림과 첫 부품(P3-02)', () => {
     test.skip(test.info().project.name === 'mobile', '데스크톱에서 한 번만 본다.');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openExample(page, 'esp32/04-touch-vibration-alert.py');
+    const motorSelector = '[data-board-part="vibration-motor"]';
+    await expect(part(page, 'vibration-motor')).toHaveAttribute('data-visual-on', 'false');
+    // 한 번 켜지는 것이 0.3초라, 켜진 모습(켜짐 → 멈춘 모습 → "진동 중" 글)을 expect로 하나씩 차례로 보면 컴퓨터가 바쁠 때 그 창을 놓친다
+    // (2026-09-30 최종 점검 TD-02 — 실사이트 긴 실행에서 처음·다시 시도 모두 놓침. 첫 확인부터 마지막 확인까지 창의 절반인 157ms를 쓴 기록도 있다).
+    // 바로 위 검사처럼 켜짐·움직임 값·낭독기 글·보이는 글·켜진 순간의 움직임 수를 페이지 안에서 모아 두었다가 끝나고 본다.
+    const onSequence = await recordAttribute(page, motorSelector, 'data-visual-on');
+    const motionSequence = await recordAttribute(page, motorSelector, 'data-visual-motion');
+    const labelSequence = await recordAttribute(page, motorSelector, 'aria-label');
+    const texts = await recordText(page, motorSelector);
+    const animationsWhenOn = await recordAnimationsWhenOn(page, motorSelector);
     await run(page);
     await part(page, 'touch-digital').hover();
     await page.mouse.down();
-    const motor = part(page, 'vibration-motor');
-    await expect(motor).toHaveAttribute('data-visual-on', 'true', { timeout: 20_000 });
-    await expect(motor).toHaveAttribute('data-visual-motion', 'still');
-    await expect(motor).toContainText('진동 중');
-    // 떨림(Web Animations)이 없다 — 움직임 줄이기 규칙이 만드는 0.01ms CSS 전환은 세지 않는다(scriptedAnimationCount 머리말, 미해결 182)
-    expect(await scriptedAnimationCount(motor)).toBe(0);
+    await expect(consoleBox(page)).toContainText('알림!', { timeout: 20_000 });
     await page.mouse.up();
+    await expect.poll(onSequence, { timeout: 15_000 }).toBe('false,true,false,true,false');
+    // 떨지 않는다: 움직임 값은 한 번도 shake가 아니고, 켜진 두 순간 모두 스크립트 움직임(떨림)이 없다
+    // (움직임 줄이기 규칙이 만드는 0.01ms CSS 전환은 세지 않는다 — recordAnimationsWhenOn 머리말, 미해결 182)
+    expect(await motionSequence()).not.toContain('shake');
+    expect(await animationsWhenOn()).toEqual([0, 0]);
+    // 대신 "진동 중"을 보이는 글과 낭독기 글로 알린다
+    expect((await texts()).some((text) => text.includes('진동 중'))).toBe(true);
+    expect(await labelSequence()).toMatch(/진동 모터\(GPIO19\): 진동 중/u);
     await stop(page);
   });
 });

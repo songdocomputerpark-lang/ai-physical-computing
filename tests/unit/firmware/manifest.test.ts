@@ -64,7 +64,7 @@ describe('public/firmware/manifest.json', () => {
     expect(firmware.hashSource).toContain('공식 페이지에 해시 표기가 없어');
   });
 
-  it('고지 파일이 있고 MicroPython MIT 라이선스 전문과 공식 주소·SHA-256을 담았다. 펌웨어 파일은 아직 없다(통합 단계가 넣는다)', () => {
+  it('고지 파일과 펌웨어 파일이 저장소에 있고, 고지는 MicroPython MIT 라이선스 전문과 공식 주소·SHA-256을 담았다', () => {
     const warnings: string[] = [];
     const { files } = readFirmwareManifestFile(ROOT, { warn: (message) => warnings.push(message) });
     expect(files).toHaveLength(1);
@@ -74,12 +74,12 @@ describe('public/firmware/manifest.json', () => {
     expect(notice).toContain('THE SOFTWARE IS PROVIDED "AS IS"');
     expect(notice).toContain('e67ad6015a0a504c1fec9aa9bbf589d0432ed28e62546f4f8dd8a147f8bd95f6');
     expect(notice).toContain('https://micropython.org/download/ESP32_GENERIC/');
-    if (files[0]!.present) {
-      // 통합 단계가 파일을 넣은 뒤: 크기가 목록과 같아야 한다(SHA-256은 verify.test.ts의 실제 파일 검사가 본다)
-      expect(fs.statSync(path.join(ROOT, 'public', 'firmware', 'v1.29.0', 'ESP32_GENERIC-20260824-v1.29.0.bin')).size).toBe(1_790_544);
-    } else {
-      expect(warnings.join('\n')).toContain('public/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin이(가) 아직 없어요');
-    }
+    // 펌웨어 파일은 Phase 3 통합(P3-09)부터 저장소에 있다(git이 추적 — CI에도 있다). 전에는 "아직 없음"도 통과로 받아 주어서, 파일이 빠지는
+    // 회귀(굽기 화면이 "펌웨어 파일 준비 중"이 되고 실제 파일 검사들은 건너뜀)가 초록으로 숨었다(2026-10-01 최종 점검 TD-01·TD-04 이어서).
+    // 크기는 목록과 같아야 한다(SHA-256은 verify.test.ts의 실제 파일 검사가 본다).
+    expect(files[0]!.present, `public/${files[0]!.info.path}이(가) 없어요 — 목록만 고치고 파일을 두지 않았는지 봐요(MAINTENANCE 4-4)`).toBe(true);
+    expect(warnings).toEqual([]);
+    expect(fs.statSync(path.join(ROOT, 'public', ...files[0]!.info.path.split('/'))).size).toBe(files[0]!.info.size);
   });
 
   it('public/firmware/ 안에는 목록·고지·목록에 적힌 펌웨어 파일만 둔다(다른 바이너리가 섞이지 않게)', () => {

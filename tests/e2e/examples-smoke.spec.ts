@@ -294,9 +294,11 @@ test.describe('이관 예제 스모크(실습실에서 한 번씩 실행)', () =
   });
 
   test('ESP32 실습실 예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page, context }) => {
+    // 교과서 ESP32 예제는 P3-02부터 이관 목록(examples/esp32/…)에 있다 — 목록을 읽지 못하면 건너뛰지 않고 실패한다(영상처리 검사와 같게,
+    // 2026-09-30 최종 점검 TD-01: "아직 없음" 가드가 남아 있으면 목록이 깨지는 회귀가 건너뜀(초록)으로 보인다).
+    expect(allCases.filter((item) => item.lab === 'esp32').length, '이관 목록(scripts/examples-manifest.yaml)에서 ESP32 예제를 읽지 못했어요').toBeGreaterThan(40);
     const selected = cases.filter((item) => item.lab === 'esp32');
-    // 교과서 ESP32 예제는 P3-02부터 이관 목록(examples/esp32/…)에 들어온다. 그 전에는 돌릴 예제가 없다.
-    test.skip(selected.length === 0, '이관 목록에 ESP32 예제가 아직 없어요(P3-02부터).');
+    test.skip(selected.length === 0, 'SMOKE_ONLY에 맞는 ESP32 예제가 없어요.');
     const { failures, pageErrors, ran } = await runSmoke(page, context, LABS.esp32, selected);
     console.log(`[예제 스모크 — ESP32] ${ran}개 실행(건너뜀 ${selected.filter((item) => item.skip).length}개), 문제 ${failures.length}개`);
     expect(failures, `예제 스모크 실패:\n${failures.join('\n')}`).toEqual([]);

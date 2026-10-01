@@ -14,7 +14,7 @@ const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const FIRMWARE_IN_PUBLIC = fs.existsSync(path.join(ROOT, 'public', 'firmware', 'v1.29.0', 'ESP32_GENERIC-20260824-v1.29.0.bin'));
 
 describe('FirmwareFlasher.astro', () => {
-  it('목록의 펌웨어로 굽기 화면을 그리고, 파일이 public/에 있을 때만 내려받기 링크를 그린다', async () => {
+  it('목록의 펌웨어로 굽기 화면을 그리고, public/에 든 펌웨어 파일의 내려받기 링크를 그린다', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FirmwareFlasher, { props: { headingLevel: 3 } });
     expect(html).toContain('data-pagefind-ignore');
@@ -25,14 +25,11 @@ describe('FirmwareFlasher.astro', () => {
     expect(html).toContain('href="/ai-physical-computing/labs/esp32/"');
     expect(html).toContain('href="/ai-physical-computing/start/board/#port-not-found"');
     expect(html).toContain('MicroPython v1.29.0(2026-08-24) · ESP32용 · 1.7MB');
-    if (FIRMWARE_IN_PUBLIC) {
-      expect(html).toContain('data-file-at-build="present"');
-      expect(html).toContain('href="/ai-physical-computing/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin" download>');
-    } else {
-      // 펌웨어 파일이 없는 동안(통합 전)은 링크 검사가 막을 내려받기 링크가 없다
-      expect(html).toContain('data-file-at-build="missing"');
-      expect(html).not.toContain(' download>');
-    }
+    // 펌웨어 파일은 Phase 3 통합(P3-09)부터 저장소에 있다 — 전에는 "파일이 없는 동안(통합 전)"의 모습도 통과로 받아 주어, 파일이 빠지는 회귀가
+    // 초록으로 숨었다(2026-10-01 최종 점검 TD-01 이어서). 없으면 건너뛰지 않고 실패한다.
+    expect(FIRMWARE_IN_PUBLIC, 'public/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin이 없어요').toBe(true);
+    expect(html).toContain('data-file-at-build="present"');
+    expect(html).toContain('href="/ai-physical-computing/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin" download>');
   }, 120_000);
 
   it('제목 단계와 주소를 props로 바꿀 수 있다', async () => {

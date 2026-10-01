@@ -449,13 +449,9 @@ test.describe('시나리오 F — 손가락 개수만큼 네오픽셀 켜기(P4-
     await expect(console_).toContainText('컴퓨터(영상처리 실습실)에서 쓰는 사이트 모듈');
   });
 
-  test('import bridge만 쓴 예제도 [보내기] 패널이 저절로 열린다(요청 1번 반영 뒤)', async ({ page }) => {
-    // 패널을 여는 코드 모양(PC_USE_PATTERN)은 구역 A의 공유 파일에 있다 — 요청(.cache/phase4-requests/scenario-f.md 1번)이
-    // 반영되기 전에는 이 검사를 건너뛰고, 반영되면 저절로 돈다.
-    const moduleSource = fs.readFileSync(path.join(ROOT, 'src', 'lab', 'modules', 'vision-bridge', 'index.ts'), 'utf8');
-    const patternLine = moduleSource.split('\n').find((line) => line.includes('const PC_USE_PATTERN')) ?? '';
-    test.skip(!/bridge/u.test(patternLine), 'vision-bridge의 PC_USE_PATTERN에 bridge가 아직 없다(공유 파일 변경 요청 1번 반영 전).');
-
+  test('import bridge만 쓴 예제도 [보내기] 패널이 저절로 열린다', async ({ page }) => {
+    // 패널을 여는 코드 모양(vision-bridge의 PC_USE_PATTERN)에 bridge가 들어간 뒤로(Phase 4 통합) 건너뛰지 않는다 —
+    // 그 모양에서 bridge가 빠지는 회귀는 아래 패널 확인에서 실패한다(2026-09-30 최종 점검 TD-01).
     await openVision(page, `?example=${encodeURIComponent(PC_FINGER_COUNT)}`);
     await expect(page.locator('[data-lab-module-panel="vision-bridge"]')).toBeVisible({ timeout: 30_000 });
     await expect(bridgePanel(page).locator('[data-bridge-open-frame]')).toBeVisible();

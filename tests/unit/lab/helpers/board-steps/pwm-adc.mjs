@@ -1,6 +1,6 @@
 // 구역 A(P3-03 PWM·ADC 부품) — machine.PWM·machine.ADC 확장(src/lab/modules/board/ext/{pwm,adc}/)과 서보 라이브러리·교과서 예제를 실제 Pyodide로 확인하는 단계들.
 // tests/unit/lab/pyodide-board-pwm-adc.test.ts가 공유 도우미(pyodide-board-run.mjs --steps=이 파일)로 돌린다(src/lab/README.md 7.7·7.9).
-// 받는 도구: step(이름, 코드, { inputs, wiring, during, onMark, stopAfterMs, idle }), bridge, pyodide, rootDir.
+// 받는 도구: step(이름, 코드, { inputs, wiring, during, onMark, stopAfterMs, stopWhen, frozenClock, idle }), bridge, pyodide, rootDir.
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -8,6 +8,24 @@ import { pathToFileURL } from 'node:url';
 /** examples/ 아래 예제 파일(원본에서 옮긴 코드 그대로) */
 function exampleCode(rootDir, file) {
   return fs.readFileSync(path.join(rootDir, 'examples', ...file.split('/')), 'utf8');
+}
+
+/**
+ * step의 stopWhen: 핀 gpio의 PWM duty가 꼭대기(99% 넘음)에 닿은 뒤 처음으로 내려간 board.state가 오면 참 — 실제 시간과 상관없이
+ * "첫 오름 구간 전체 + 내림의 시작"이 기록에 들어온 뒤 멈춘다(2026-09-30 최종 점검 TD-03). 시작의 기본 50%·duty(0)처럼 꼭대기 전의 내림은 세지 않는다.
+ */
+function stopAfterFirstFallFromTop(gpio) {
+  let top = -1;
+  return ({ kind, payload }) => {
+    if (kind !== 'board.state') return false;
+    const duty = payload?.pins?.find((pin) => pin.id === gpio)?.duty;
+    if (typeof duty !== 'number') return false;
+    if (duty >= top) {
+      top = duty;
+      return false;
+    }
+    return top > 0.99;
+  };
 }
 
 /** 화면이 하듯 보드 라이브러리(examples/esp32/lib/**\/*.py)를 워커의 /board/lib/에 써 넣는다(board/index.ts writeLibraries) */
@@ -206,10 +224,14 @@ export default async function pwmAdcSteps({ step, bridge, pyodide, rootDir }) {
     ].join('\n'),
   );
 
-  // 교과서 f060(RGB LED 빨강 밝기 서서히): 원본 그대로 돌리며 핀 27의 duty가 오르내린다
-  // 2,600ms였을 때, 컴퓨터가 바쁘면 1,024칸을 다 올라간 뒤 내려오기 전에 [정지]가 걸려 검사가 재현 가능하게 실패했다
-  // (2026-09-18 검토 반영 — 흉내가 틀린 것이 아니라 실제 시간이 모자란 것이다). 올라가고 내려오는 구간이 함께 들어오게 늘린다.
-  await step('textbook_f060_fade', exampleCode(rootDir, 'esp32/u2/2-1-4-rgb-pwm-fade.py'), { stopAfterMs: 4500 });
+  // 교과서 f060(RGB LED 빨강 밝기 서서히): 원본 그대로 돌리며 핀 27의 duty가 오르내린다.
+  // [정지]는 실제 시간이 아니라 진행으로 건다: 꼭대기(99% 넘음)에 닿은 뒤 처음 내려간 상태가 오면 멈춘다. 전에는 2,600ms → 4,500ms 뒤에 멈췄는데
+  // (2026-09-18 검토 반영), 컴퓨터가 아주 바쁘면 그 시간 안에 절반(duty 0.46·0.61)밖에 못 올라가 여전히 실패했다(2026-09-30 최종 점검 TD-03).
+  // 60초는 조건이 끝내 오지 않을 때(회귀)의 안전망 — 그때는 검사가 "꼭대기에 못 닿음"으로 실패한다.
+  await step('textbook_f060_fade', exampleCode(rootDir, 'esp32/u2/2-1-4-rgb-pwm-fade.py'), {
+    stopWhen: stopAfterFirstFallFromTop(27),
+    stopAfterMs: 60_000,
+  });
 
   // 교과서 f068(버저 음계): 원본 그대로 — 8음을 0.5초씩, 마지막에 deinit
   await step('textbook_f068_scale', exampleCode(rootDir, 'esp32/u2/2-2-1-buzzer-scale.py'));

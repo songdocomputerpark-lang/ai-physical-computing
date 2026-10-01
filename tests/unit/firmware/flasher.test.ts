@@ -1,6 +1,7 @@
 // 펌웨어 굽기 순서(src/lab/firmware/flasher.ts)를 모의 시리얼 + 모의 ESP32 ROM 부트로더(src/lab/firmware/mock/esp32-rom.ts)로 끝까지 돌린다.
 // esptool-js 0.6.1을 그대로 쓰고(스텁 없이 — PD-38), 흉내는 esptool.py --no-stub과 다른 길이·블록 크기를 오류로 대답한다.
 // 흉내에서 된 것은 실물의 증거가 아니다(부록 B-2 — 운영자 할 일 2번).
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,13 +9,20 @@ import { deflateSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 import { explainFlashError, FlashError } from '../../../src/lab/firmware/errors.ts';
 import { FirmwareFlasher, findMicroPythonBanner, looksLikeBootLoop } from '../../../src/lab/firmware/flasher.ts';
+import { defaultFirmware, parseFirmwareManifest } from '../../../src/lab/firmware/manifest.ts';
 import { md5Hex } from '../../../src/lab/firmware/md5.ts';
 import { Esp32RomEmulator, type Esp32RomOptions } from '../../../src/lab/firmware/mock/esp32-rom.ts';
 import { MicroPythonDevice, MockSerialPort, type MicroPythonDeviceOptions } from '../../../src/lab/serial/mock/index.ts';
 import { syntheticImage } from './helpers/synthetic-image.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
-const STAGED_FIRMWARE = path.join(ROOT, '.cache', 'firmware-staging', 'ESP32_GENERIC-20260824-v1.29.0.bin');
+/**
+ * 저장소에 든 실제 펌웨어 — 목록(public/firmware/manifest.json)의 기본 펌웨어 파일(public/<path>). 판을 올리면(MAINTENANCE 8절 4-4) 목록과 파일이
+ * 함께 바뀌고 이 검사가 새 파일로 끝까지 굽는다. 2026-09-30 최종 점검 TD-04: 전에는 운영자 PC에만 있는 .cache/firmware-staging 사본을 봐서
+ * CI·다른 컴퓨터에서 늘 건너뛰었다. 파일이 없으면(목록만 고친 중간 상태) 건너뛴다.
+ */
+const REAL_FIRMWARE = defaultFirmware(parseFirmwareManifest(JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'firmware', 'manifest.json'), 'utf8'))));
+const REAL_FIRMWARE_FILE = path.join(ROOT, 'public', REAL_FIRMWARE.path);
 
 const flashers: FirmwareFlasher[] = [];
 const ports: MockSerialPort[] = [];
@@ -248,14 +256,15 @@ describe('모의 ROM 부트로더로 굽기', () => {
     expect(explainFlashError(error, { stage: 'write' }).retry).toBe('slow');
   }, 60_000);
 
-  it.runIf(fs.existsSync(STAGED_FIRMWARE))('운영자가 받은 실제 MicroPython v1.29.0 파일(1,790,544바이트)도 끝까지 쓰고 MD5가 맞는다', async () => {
-    const image = new Uint8Array(fs.readFileSync(STAGED_FIRMWARE));
+  it.runIf(fs.existsSync(REAL_FIRMWARE_FILE))('저장소에 든 실제 MicroPython 파일(public/firmware/…, v1.29.0은 1,790,544바이트)도 끝까지 쓰고 MD5가 맞는다', async () => {
+    const image = new Uint8Array(fs.readFileSync(REAL_FIRMWARE_FILE));
     const { rom, flasher } = await setup();
     await flasher.connect();
-    const result = await flasher.flash({ image, offset: 0x1000, eraseAll: false, bootWaitMs: 3000 });
-    expect(result.bytesWritten).toBe(1_790_544);
-    expect(result.md5).toBe('9bc5ba8866e70b194d92af536c143070');
-    expect(rom.md5(0x1000, image.length)).toBe(result.md5);
+    const result = await flasher.flash({ image, offset: REAL_FIRMWARE.offset, eraseAll: false, bootWaitMs: 3000 });
+    expect(result.bytesWritten).toBe(REAL_FIRMWARE.size);
+    // 기대 MD5는 Node의 crypto로 따로 잰다(판을 올려도 고칠 숫자가 없게 — v1.29.0은 9bc5ba8866e70b194d92af536c143070)
+    expect(result.md5).toBe(createHash('md5').update(image).digest('hex'));
+    expect(rom.md5(REAL_FIRMWARE.offset, image.length)).toBe(result.md5);
     // esptool-js가 pako level 9로 압축한 크기(1,172,437 — node:zlib level 9와 비교하면 거의 같다)
     expect(result.compressedBytes).toBeGreaterThan(deflateSync(image, { level: 9 }).length * 0.95);
     expect(rom.count('FLASH_DEFL_DATA')).toBe(Math.ceil(result.compressedBytes / 0x400));

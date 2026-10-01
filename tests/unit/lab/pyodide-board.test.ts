@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { STOP_GRACE_MS } from '../../../src/lab/runtime/config.ts';
 
 const ROOT = process.cwd();
 const SCRIPT = path.join(ROOT, 'tests', 'unit', 'lab', 'helpers', 'pyodide-board-run.mjs');
@@ -29,6 +30,12 @@ interface StateEvent {
 
 interface StepRecord {
   ms: number;
+  /** 파이썬이 실제로 기다린 횟수(다리의 sleep 부름) */
+  hostWaits: number;
+  /** [정지] 요청부터 실행이 끝날 때까지(요청한 단계만) */
+  stopLatencyMs?: number;
+  /** 시험용 멈춘 시계를 되돌리지 못했을 때의 오류(frozenClock 단계) */
+  thawError?: string;
   value?: unknown;
   errorType?: string;
   errorMessage?: string;
@@ -154,35 +161,36 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
   });
 
   it('가상 시계: 짧은 sleep을 모아도 ticks는 잔 만큼 늘고, sleep(초)은 밀리초로 버린다', () => {
+    /*
+     * 2026-09-30 최종 점검 TD-03: 전에는 실제 시계 그대로 돌려 "402,709 < 400,000"처럼 상한이 부하에 따라 깨졌다(가상 시계는 계산 시간도 더한다).
+     * 가상 시각 계산은 시험용 멈춘 시계(helpers/pyodide-board-run.mjs frozenClock)로 정확한 값을 보고, 실제 시계 쪽은 부하와 상관없는 것만 본다.
+     */
+    const exact = step('virtual_clock_exact');
+    expect(exact.thawError).toBeUndefined();
+    // 1ms × 200번 = 200,000µs, sleep(0.0005)는 0ms로 버림, sleep(0.25) = 250ms, sleep_us(3) = 3µs
+    expect(exact.value).toEqual([200_000, 0, 250, 3]);
+
     const record = step('virtual_clock');
-    const [many, tiny, quarter] = record.value as number[];
-    expect(many).toBeGreaterThanOrEqual(200_000);
-    expect(many).toBeLessThan(400_000);
-    expect(tiny).toBeLessThan(20);
-    expect(quarter).toBeGreaterThanOrEqual(250);
-    expect(quarter).toBeLessThan(270);
-    // 1ms × 200번이 실제로도 오래 걸리지 않는다(16ms씩 모아 기다림) — 2초를 넘으면 모으기가 깨진 것
-    expect(record.ms).toBeLessThan(2_000);
+    // 실제 시계 그대로면 계산 시간이 더해질 뿐, 잔 만큼보다 줄지는 않는다
+    expect(record.value as number).toBeGreaterThanOrEqual(200_000);
+    /*
+     * 짧은 sleep은 16ms씩 모아 기다린다: 실제로 기다린 횟수는 모은 몫(200 ÷ 16 → 13)과, 16ms마다 한 번 양보한 몫(단계 실제 시간 ÷ 16)을 넘지 않는다.
+     * 모으기가 깨지면 sleep마다 기다려 200번 가까이 된다. (전에는 "실제 2초 안"으로 봤는데 부하에 따라 흔들리고, 모으기가 깨져도 Node에서는 2초 안에 끝났다.)
+     */
+    expect(record.hostWaits).toBeGreaterThan(0);
+    expect(record.hostWaits).toBeLessThanOrEqual(Math.ceil(200 / 16) + Math.ceil(record.ms / 16) + 3);
   });
 
   it('Timer: 주기마다 가상 시각에 맞춰 콜백(20ms 간격), deinit 뒤 멈춤, value(), 뒤바뀐 repr까지 실물과 같다', () => {
-    const value = step('timer_periodic').value as unknown[];
-    // init과 sleep_ms(105) 사이의 계산 시간도 가상 시각에 들어가므로, 부하가 아주 크면 120ms 콜백까지 6번일 수 있다.
-    expect(value[0] as number).toBeGreaterThanOrEqual(5);
-    expect(value[0] as number).toBeLessThanOrEqual(6);
+    // 시험용 멈춘 시계(frozenClock)라 가상 시각이 sleep한 양만큼만 흐른다 — 콜백은 가상 시각 20·40·60·80·100ms에 정확히 5번.
+    // (전에는 계산 시간이 더해져 5~6번·간격 8~32ms를 받아 주었는데, 부하가 크면 20ms 넘게 밀린 주기가 합쳐져 3번까지 줄었다 — TD-03)
+    const record = step('timer_periodic');
+    expect(record.thawError).toBeUndefined();
+    const value = record.value as unknown[];
+    expect(value[0]).toBe(5);
     expect(value[1]).toBe(value[0]);
     expect(value[2]).toBe(true);
-    // 콜백은 가상 시각 20·40·60·80·100ms에 불린다. 콜백 안의 ticks_ms()에는 그때까지 계산한 시간(부하가 크면 몇 ms)이 더해져
-    // 간격 하나하나는 흔들리지만(전체 테스트 병렬 실행에서 17ms 관찰), 주기가 밀리지는 않아 첫 콜백부터 마지막 콜백까지 80ms 근처다.
-    const gaps = value[3] as number[];
-    expect(gaps).toHaveLength((value[0] as number) - 1);
-    for (const gap of gaps) {
-      expect(gap).toBeGreaterThanOrEqual(8);
-      expect(gap).toBeLessThanOrEqual(32);
-    }
-    const span = gaps.reduce((sum, gap) => sum + gap, 0);
-    expect(span).toBeGreaterThanOrEqual(20 * gaps.length - 15);
-    expect(span).toBeLessThanOrEqual(20 * gaps.length + 15);
+    expect(value[3]).toEqual([20, 20, 20, 20]);
     expect(value.slice(4)).toEqual([true, 'Timer(0, mode=ONE_SHOT, period=20)', 'Timer(1, mode=PERIODIC, period=0)', true, false, 1, 0]);
   });
 
@@ -196,25 +204,25 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
       'ValueError: Timer period is too short for this timer',
       'ValueError: Timer period is too short for this timer',
     ]);
-    // freq=100(10ms)으로 sleep_ms(55): 10·20·30·40·50ms에 5번(init과 sleep 사이 계산 시간이 5ms를 넘으면 60ms까지 6번) — 건너뛴 주기가 없다.
-    expect(value[6] as number).toBeGreaterThanOrEqual(5);
-    expect(value[6] as number).toBeLessThanOrEqual(6);
+    // freq=100(10ms)으로 sleep_ms(55): 10·20·30·40·50ms에 정확히 5번 — 건너뛴 주기가 없다(시험용 멈춘 시계, TD-03).
+    expect(value[6]).toBe(5);
   });
 
   it('콜백 오류는 트레이스백(학생 코드 줄만)과 안내를 남기고 보드는 계속 돈다', () => {
     const record = step('callback_error_keeps_running');
-    expect(record.value as number).toBeGreaterThanOrEqual(3);
-    expect(record.value as number).toBeLessThanOrEqual(4);
+    // 25ms 주기로 sleep_ms(80): 25·50·75ms에 3번 — 오류가 나도 다음 주기가 온다(시험용 멈춘 시계, TD-03)
+    expect(record.value).toBe(3);
     expect(record.stderr).toContain('File "main.py", line 6, in bad');
     expect(record.stderr).not.toContain('/apc/');
     expect(record.notices.filter((text) => text.includes('콜백 함수에서 오류'))).toHaveLength(1);
   });
 
   it('코드가 끝나도 Timer가 있으면 [정지]까지 이어 돌고(run_idle), 없으면 곧바로 끝난다', () => {
+    // 끝난 뒤의 상태(phase idle)가 6번 오면 도우미가 [정지]를 누른다(실제 시간 대신 진행으로 — TD-03). 스스로 끝나지 않고 [정지]로 멈춘 것을 본다.
     const idle = step('idle_after_end');
     expect(idle.value).toBe('started');
     expect(idle.errorType).toBe('KeyboardInterrupt');
-    expect(idle.ms).toBeGreaterThanOrEqual(390);
+    expect(idle.idleStartedMs).toBeDefined();
     expect(idle.notices.some((text) => text.includes('계속 돌고 있어요'))).toBe(true);
     const phases = idle.events.map((event) => event.phase);
     expect(phases).toContain('idle');
@@ -223,13 +231,20 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
     const quick = step('no_idle_without_timers');
     expect(quick.value).toBe('done');
     expect(quick.errorType).toBeUndefined();
-    expect(quick.ms).toBeLessThan(200);
+    // Timer가 없으면 run_idle이 기다리지 않는다: 끝난 뒤의 상태·안내가 없고, run_idle에 쓴 시간이 짧다
+    // (전에는 단계 전체가 200ms 안인지 봤는데 준비 시간까지 들어가 부하에 따라 흔들렸다 — TD-03)
+    expect(quick.events.some((event) => event.phase === 'idle')).toBe(false);
+    expect(quick.notices.some((text) => text.includes('계속 돌고 있어요'))).toBe(false);
+    expect(quick.ms - (quick.idleStartedMs ?? 0)).toBeLessThan(1_000);
   });
 
   it('[정지]: time.sleep 반복문은 곧바로 KeyboardInterrupt로 멈춘다', () => {
     const record = step('stop_in_sleep_loop');
     expect(record.errorType).toBe('KeyboardInterrupt');
-    expect(record.ms).toBeLessThan(500);
+    // [정지] 요청부터 멈출 때까지만 잰다(전에는 준비 시간까지 든 단계 전체가 500ms 안인지 봐서 부하에 흔들렸다 — TD-03).
+    // 실습실의 약속은 정지 유예(src/lab/runtime/config.ts STOP_GRACE_MS, 1초) 안 — 보통은 몇십 ms다.
+    expect(record.stopLatencyMs).toBeDefined();
+    expect(record.stopLatencyMs!).toBeLessThan(STOP_GRACE_MS);
   });
 
   it('micropython.const·u-이름·errno(실물 번호)·bluetooth 흉내·아직 없는 machine 이름·schedule 대기열(8개)', () => {
