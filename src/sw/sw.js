@@ -38,9 +38,24 @@ const OFFLINE = CONFIG.offline === true;
 const SIZE_HEADER = 'x-apc-size';
 /**
  * 캐시에서 찾을 때의 규칙. GitHub Pages가 Vary: Accept-Encoding을 보내므로, 요청 머리말이 조금 달라도(미리 받기와 실제 방문)
- * 같은 주소면 같은 파일로 본다. 검색어(?)는 그대로 구분한다.
+ * 같은 주소면 같은 파일로 본다. 검색어(?)는 그대로 구분한다 — 다만 쪽(HTML)과 사이트 검색 파일은 검색어를 뗀 주소를 열쇠로 쓴다(keyWithoutSearch).
  */
 const MATCH_OPTIONS = { ignoreVary: true };
+
+/**
+ * 검색어(?…)를 뗀 캐시 열쇠 — 쪽(HTML)과 사이트 검색 파일(Pagefind)에 쓴다. 둘 다 네트워크 우선이라 연결이 있으면 늘 새로 받는다.
+ * - 쪽: 이 사이트의 쪽은 검색어와 상관없이 같은 정적 파일이고(?example=·?embed=1·?q=·?bridge=·?prefix=·?pair=는 쪽의 스크립트가 읽는다),
+ *   검색어째 열쇠로 넣으면 학생이 친 검색어(/search/?q=…)와 통신 접두어(?bridge=·?prefix=)가 [이 컴퓨터에서 내 기록 지우기] 뒤에도
+ *   캐시 이름으로 남았다(2026-09-30 최종 점검 SP-01). 떼어 두면 연결이 없을 때 검색어만 다른 주소(?example=…)로 열어도 저장해 둔 쪽을 준다.
+ * - 검색 파일: Pagefind는 pagefind-entry.json에 ?ts=<지금 시각>을 붙여 받는다(HTTP 캐시 피하기 — pagefind.js loadEntry). 그대로 열쇠로 쓰면
+ *   방문마다 새 열쇠가 쌓여 검색 조각 파일을 밀어내고(80개까지), 연결이 없을 때는 늘 열쇠가 달라 한 번 해 본 검색도 "검색을 불러오지
+ *   못했어요"로 끝났다(2026-09-30 최종 점검 중 Edge로 확인).
+ * 옛 판이 넣은 검색어 열쇠는 활성화 때 쪽은 검색어 없는 열쇠로 옮기고, 검색 파일은 지운다(다음 검색 때 다시 받는다).
+ */
+function keyWithoutSearch(url) {
+  const target = new URL(url, self.location.href);
+  return target.origin + target.pathname;
+}
 
 /** 이 판이 쓰는 캐시 이름 모두(활성화할 때 나머지 apc- 캐시는 지운다) */
 function currentCacheNames() {
@@ -91,6 +106,29 @@ self.addEventListener('activate', (event) => {
       for (const request of await precache.keys()) {
         if (!wanted.has(new URL(request.url).pathname)) {
           await precache.delete(request);
+        }
+      }
+      // 옛 판이 쪽 캐시에 검색어째 넣은 열쇠(/search/?q=…·?bridge=… — keyWithoutSearch 머리말)를 검색어 없는 열쇠로 옮기고 지운다.
+      // 쪽은 검색어와 상관없이 같은 HTML이라, 예를 들어 ?example= 링크로만 열어 본 실습실도 연결 없이 계속 열린다.
+      const pages = await caches.open(CACHES.pages);
+      for (const request of await pages.keys()) {
+        if (new URL(request.url).search === '') {
+          continue;
+        }
+        const key = keyWithoutSearch(request.url);
+        if (!(await pages.match(key, MATCH_OPTIONS))) {
+          const response = await pages.match(request, MATCH_OPTIONS);
+          if (response) {
+            await pages.put(key, response);
+          }
+        }
+        await pages.delete(request);
+      }
+      // 검색 파일 캐시에 방문마다 쌓인 pagefind-entry.json?ts=… 열쇠는 지운다(옮길 값이 여럿이고 오래된 것일 수 있어 다음 검색 때 새로 받는다).
+      const search = await caches.open(CACHES.search);
+      for (const request of await search.keys()) {
+        if (new URL(request.url).search !== '') {
+          await search.delete(request);
         }
       }
       await self.clients.claim();
@@ -433,15 +471,15 @@ async function cacheFirst(request, cacheName, trim) {
 
 /**
  * 네트워크 우선. 캐시본이 **있을 때만** timeoutMs까지 기다리고 넘으면 캐시본을 준다(느린 망의 첫 방문을 끊지 않게 —
- * 캐시본이 없으면 네트워크를 끝까지 기다린다).
+ * 캐시본이 없으면 네트워크를 끝까지 기다린다). cacheKey를 주면 그 열쇠로 넣고 찾는다(쪽·검색 파일은 검색어를 뗀 주소 — keyWithoutSearch).
  */
-async function networkFirst(request, cacheName, timeoutMs, trim) {
+async function networkFirst(request, cacheName, timeoutMs, trim, cacheKey = request) {
   const cache = await caches.open(cacheName);
   const network = fetch(request)
     .then(async (response) => {
       if (response.ok) {
         try {
-          await cache.put(request, await withSizeHeader(response));
+          await cache.put(cacheKey, await withSizeHeader(response));
           if (trim) {
             await trim();
           }
@@ -452,7 +490,7 @@ async function networkFirst(request, cacheName, timeoutMs, trim) {
       return response;
     })
     .catch(() => null);
-  const cached = await cache.match(request, MATCH_OPTIONS);
+  const cached = await cache.match(cacheKey, MATCH_OPTIONS);
   if (!cached) {
     const response = await network;
     if (response) {
@@ -587,11 +625,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (route === 'search') {
-    event.respondWith(networkFirst(request, CACHES.search, TIMING.pageTimeoutMs, () => trimEntries(CACHES.search, LIMITS.searchMaxEntries)));
+    event.respondWith(
+      networkFirst(request, CACHES.search, TIMING.pageTimeoutMs, () => trimEntries(CACHES.search, LIMITS.searchMaxEntries), keyWithoutSearch(request.url)),
+    );
     return;
   }
   if (route === 'pages') {
-    event.respondWith(networkFirst(request, CACHES.pages, TIMING.pageTimeoutMs, () => trimEntries(CACHES.pages, LIMITS.pagesMaxEntries)));
+    event.respondWith(
+      networkFirst(request, CACHES.pages, TIMING.pageTimeoutMs, () => trimEntries(CACHES.pages, LIMITS.pagesMaxEntries), keyWithoutSearch(request.url)),
+    );
     return;
   }
   event.respondWith(staleWhileRevalidate(request, CACHES.static, () => trimEntries(CACHES.static, LIMITS.staticMaxEntries)));
@@ -665,7 +707,8 @@ async function fillCache(urls, mode) {
         const cache = await caches.open(cacheName);
         const stored = await withSizeHeader(response);
         bytes += cachedSize(stored);
-        await cache.put(request, stored);
+        // 쪽·검색 파일은 방문할 때와 같은 열쇠(검색어를 뗀 주소)로 넣는다
+        await cache.put(route === 'pages' || route === 'search' ? keyWithoutSearch(url) : request, stored);
         ok += 1;
       } else {
         failed += 1;

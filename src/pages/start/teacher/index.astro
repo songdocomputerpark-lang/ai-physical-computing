@@ -7,12 +7,15 @@
  * - 개인정보 처리 안내는 초안이다(법률 자문 아님). 외부 연결 표의 사실과 링크는 2026-09-16에 공식 문서로 확인했다:
  *   GitHub Pages 방문자 IP 기록(GitHub Docs "GitHub Pages란?"), jsDelivr 수집 항목(jsDelivr Privacy Policy, 2023-11-23 시행),
  *   test.mosquitto.org의 공개 발행·구독 안내, Chrome 음성 인식의 서버 처리(MDN SpeechRecognition).
+ *   표의 데이터는 ./_connections.ts에 있고, 공개 중계 서버 줄은 실습실이 고를 수 있는 서버 목록(src/lab/mqtt/brokers.ts)에서 만든다
+ *   (2026-09-30 최종 점검 — 판 1.1.0에 더한 HiveMQ가 이 표에서 빠져 있었다. HiveMQ 처리방침은 그날 확인).
  * - 성취기준 영역·코드는 INVENTORY §9.2(인천광역시교육청 게시 교육과정, hwp 원문 대조 전)를 따른다(DECISIONS C8).
  */
 import Callout from '../../../components/common/Callout.astro';
 import ClearRecordsButton from '../../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { connections } from './_connections.ts';
 
 const page = getPage('start-teacher');
 const check = getPage('start-check');
@@ -47,54 +50,6 @@ const standardAreas = [
   { area: '(3) 인공지능과 피지컬컴퓨팅', codes: '[12인피03-01] ~ [12인피03-03]', unit: 'III. 인공지능과 피지컬 컴퓨팅', anchor: 'std-area-3' },
   { area: '(4) 문제해결프로젝트', codes: '[12인피04-01] ~ [12인피04-04]', unit: 'IV. 지능화 사물 개발 프로젝트', anchor: 'std-area-4' },
 ] as const;
-
-interface Connection {
-  where: string;
-  when: string;
-  what: string;
-  who: string;
-  links: readonly { label: string; url: string }[];
-}
-
-const connections: readonly Connection[] = [
-  {
-    where: 'GitHub Pages(사이트 파일을 보내 주는 곳)',
-    when: '사이트를 열 때마다',
-    what: '접속한 컴퓨터의 IP 주소. GitHub는 보안을 위해 방문자의 IP 주소를 기록하고 보관한다고 안내해요.',
-    who: 'GitHub',
-    links: [
-      { label: 'GitHub Pages 안내(데이터 수집)', url: 'https://docs.github.com/ko/pages/getting-started-with-github-pages/what-is-github-pages' },
-      { label: 'GitHub 일반 개인정보처리방침', url: 'https://docs.github.com/ko/site-policy/privacy-policies/github-general-privacy-statement' },
-    ],
-  },
-  {
-    where: 'jsDelivr(파이썬 실행 파일을 보내 주는 콘텐츠 전송망)',
-    when: '파이썬 실습을 처음 열 때(영상처리 실습실이 생긴 뒤)',
-    what: 'IP 주소, 브라우저 종류와 버전, 요청한 사이트의 도메인',
-    who: 'jsDelivr와 트래픽을 전달하는 전송망 업체',
-    links: [{ label: 'jsDelivr 개인정보처리방침(영어)', url: 'https://github.com/jsdelivr/jsdelivr/blob/master/Privacy%20Policy.md' }],
-  },
-  {
-    where: '공개 MQTT 브로커(선택 기능)',
-    when: '통신 실습에서 통로를 "공개 중계 서버"로 고르고 [연결]을 누를 때, 또는 점검 페이지의 [시험하기]를 누를 때만. 기본 통로(같은 컴퓨터 탭)는 이 서버에 접속하지 않아요',
-    what: 'IP 주소와 보낸 메시지. 메시지는 같은 주제(토픽) 이름을 아는 누구나 보고 보낼 수도 있어요. 점검 페이지는 연결만 해 보고 메시지를 보내지 않아요.',
-    who: '중계 서버(브로커)를 운영하는 회사나 단체(기본: EMQX, 다른 선택지: test.mosquitto.org)',
-    links: [
-      { label: 'EMQ 개인정보처리방침(영어)', url: 'https://www.emqx.com/en/policy/privacy-policy' },
-      { label: 'test.mosquitto.org 이용 안내(영어)', url: 'https://test.mosquitto.org/' },
-    ],
-  },
-  {
-    where: '브라우저의 서버 음성 인식(선택 차시)',
-    when: '선택 차시 "말을 글로 바꾸는 기술"에서, 교사가 설정을 켠 브라우저로 학생이 고를 때만(기본은 꺼짐)',
-    what: '마이크로 말한 음성. Chrome 같은 일부 브라우저는 음성을 서버로 보내 글자로 바꿔요.',
-    who: '브라우저 회사(예: Chrome은 Google)',
-    links: [
-      { label: 'Google 개인정보처리방침', url: 'https://policies.google.com/privacy?hl=ko' },
-      { label: 'MDN 음성 인식 설명(영어)', url: 'https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition' },
-    ],
-  },
-];
 
 const moeGuideUrl =
   'https://www.moe.go.kr/boardCnts/viewRenew.do?boardID=294&boardSeq=105007&lev=0&searchType=null&statusYN=W&page=1&s=moe&m=020402&opType=N';
@@ -206,7 +161,7 @@ const networkChecklist: readonly NetworkItem[] = [
       >에서 가져왔고, 차시와의 연결은 사이트가 붙여요.
     </p>
   </div>
-  <div class="teacher-table" role="region" aria-labelledby="standards-caption" tabindex="0">
+  <div class="teacher-table" role="region" aria-labelledby="standards-caption" tabindex="0" data-scroll-shade>
     <table>
       <caption id="standards-caption">성취기준 영역과 평가 방향</caption>
       <thead>
@@ -260,7 +215,7 @@ const networkChecklist: readonly NetworkItem[] = [
     </p>
   </div>
 
-  <div class="teacher-table" role="region" aria-labelledby="connections-caption" tabindex="0">
+  <div class="teacher-table" role="region" aria-labelledby="connections-caption" tabindex="0" data-scroll-shade>
     <table class="connections">
       <caption id="connections-caption">외부로 연결되는 곳과 보내지는 것</caption>
       <thead>
@@ -370,7 +325,7 @@ const networkChecklist: readonly NetworkItem[] = [
     <p>학교 네트워크가 무엇을 막는지는 학교마다 달라요. 아래 항목을 수업 전에 한 번 확인해 주세요.</p>
   </div>
 
-  <div class="teacher-table" role="region" aria-labelledby="network-caption" tabindex="0">
+  <div class="teacher-table" role="region" aria-labelledby="network-caption" tabindex="0" data-scroll-shade>
     <table>
       <caption id="network-caption">학교 네트워크 체크리스트(틀)</caption>
       <thead>
