@@ -931,7 +931,7 @@ entries:
     meaning: "import {module}에서 그 모듈이 무엇인지 파이썬이 몰라요. 이름을 잘못 쳤거나, 이 파이썬에 없는 모듈이에요."
     why:
       - "모듈 이름은 정확해야 해요. OpenCV는 cv2, numpy는 numpy(보통 import numpy as np)예요."
-      - "브라우저 파이썬(Pyodide)에는 numpy·opencv-python·Pillow 같은 자주 쓰는 패키지가 있고, import 문을 보고 자동으로 받아요. 목록에 없는 패키지는 받을 수 없어요."
+      - "영상처리 실습실의 브라우저 파이썬(Pyodide)에는 numpy·opencv-python·Pillow 같은 자주 쓰는 패키지가 있고, import 문을 보고 자동으로 받아요. 목록에 없는 패키지는 받을 수 없어요. ESP32 실습실의 가상 보드는 실물 보드처럼 이런 컴퓨터용 패키지를 받지 않아요."
       - "내가 만든 파일(예: servo_library.py)을 import하려면 그 파일이 같은 폴더에 있어야 해요. 보드용 라이브러리는 실습실이 미리 넣어 주는 것만 돼요."
     fix:
       - "{line}번째 줄의 모듈 이름 철자를 확인해요. 예: import cv3 → import cv2"
@@ -1618,7 +1618,7 @@ entries:
     priority: 3
     meaning: "[실제 보드] 탭에서 [실행]을 눌렀지만, 이 브라우저에는 USB로 보드와 이야기하는 기능(Web Serial)이 없어요."
     why:
-      - "USB 보드 연결은 컴퓨터용 Chrome·Edge(그리고 Firefox 151 이후)에서만 돼요. Safari, 아이폰·아이패드에서는 안 돼요."
+      - "USB 보드 연결(Web Serial)은 컴퓨터용 Chrome·Edge(그리고 Firefox 151 이후)에서 돼요. Safari와 아이폰·아이패드에서는 안 돼요."
     fix:
       - "컴퓨터용 Chrome이나 Edge로 이 실습실을 열어요."
       - "보드가 없어도 [가상 보드] 탭에서 같은 코드를 끝까지 실행할 수 있어요."
@@ -1797,7 +1797,7 @@ entries:
     patterns:
       - "no module named '(?<module>[^']+)'"
     priority: 3
-    meaning: "import {module}에서 보드가 {module} 모듈을 찾지 못했어요. 실물 MicroPython은 'no module named'라고 알려요."
+    meaning: "import {module}에서 보드가 {module} 모듈을 찾지 못했어요. 실물 MicroPython은 'no module named'라고 알려요. 가상 보드도 컴퓨터용 패키지는 실물처럼 이렇게 알려요."
     why:
       - "사이트가 주는 라이브러리(i2c_lcd.py·servo_library.py 등)는 [실행]할 때 보드에 없으면 사이트가 먼저 올려요. 그래도 이 오류가 나면 {module} 모듈은 사이트가 주지 않는 파일이에요(교과서가 따로 주는 파일)."
       - "cv2·numpy 같은 컴퓨터용 파이썬 패키지는 보드에 없어요."
@@ -1967,7 +1967,7 @@ entries:
     priority: 3
     meaning: "input(), 카메라 읽기, cv2.waitKey(0)처럼 답을 기다리는 함수를 썼는데, 이 브라우저에는 파이썬이 기다릴 수 있게 하는 기능(JSPI)이 없어요."
     why:
-      - "브라우저 안 파이썬이 화면의 답을 기다리려면 JSPI라는 기능이 필요해요. 컴퓨터용 Chrome·Edge 최신판에는 있고, 휴대폰·태블릿·Safari·옛 브라우저에는 없어요."
+      - "브라우저 안 파이썬이 화면의 답을 기다리려면 JSPI라는 기능이 필요해요. 컴퓨터용 Chrome·Edge 최신판에는 있고, Android의 Chrome과 옛 브라우저에는 없어요. 그 밖의 브라우저는 판에 따라 달라서, 시작하기의 점검 페이지에서 'JSPI(파이썬 기다리기 기능)' 줄로 확인해요."
       - "제한 모드에서는 한 번 실행되고 끝나는 코드는 돌지만, 기다리는 코드는 이 오류로 알려요."
     fix:
       - "컴퓨터의 Chrome이나 Edge 최신판에서 이 페이지를 열어요."
