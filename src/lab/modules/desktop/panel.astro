@@ -71,8 +71,8 @@ import { GAMES } from './games.ts';
 
   <p class="desktop__note">
     진짜 마우스·키보드 대신 이 <strong>가상 모니터</strong>가 움직여요. 코드를 그대로 진짜 PC에서 돌리면 진짜 마우스가 움직여요.{' '}
-    직접 눌러 보고 글자를 쳐 볼 수도 있어요(캔버스를 한 번 누르면 키보드가 들어가요). 화면 왼쪽 위 모서리 (0, 0)은{' '}
-    <code>FAILSAFE</code> 자리예요 — 커서가 그곳에 있으면 다음 <code>pyautogui</code> 함수에서 멈춰요.{' '}
+    직접 눌러 보고 글자를 쳐 볼 수도 있어요(캔버스를 한 번 누르면 키보드가 들어가요). 화면의 네 모서리(왼쪽 위 (0, 0) 등)는{' '}
+    <code>FAILSAFE</code> 자리예요 — 커서가 모서리에 있으면 다음 <code>pyautogui</code> 함수에서 멈춰요.{' '}
     <code>webbrowser.open(주소)</code>는 <strong>가상 브라우저 창</strong>을 열어요(진짜 인터넷에 가지 않아요).{' '}
     <code>pyautogui.press('space')</code>는 <strong>미니게임</strong>으로 가요 — 게임 창이 없으면 열어 줘요.
   </p>
@@ -235,11 +235,53 @@ import { GAMES } from './games.ts';
     font-size: var(--text-sm);
   }
 
+  /*
+   * 펼침 칸 표시: display:flex인 summary에는 브라우저가 ▶ 표식을 그리지 않아 그냥 글로 보였다(판 1.1.1 최종 점검 — 오류 사전과 같은 모양).
+   * 글자 대신 테두리로 그린 세모라 화면 낭독기가 읽지 않는다. 닫혀 있으면 오른쪽, 열리면 아래(전환 움직임 없음). 강제 색 모드는 아래 규칙.
+   */
   .desktop__more summary {
     min-height: var(--target-min);
     display: flex;
     align-items: center;
+    gap: var(--space-2);
+    list-style: none;
     cursor: pointer;
+  }
+
+  .desktop__more summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .desktop__more summary::before {
+    content: '';
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.4em;
+    border-inline-width: 0.6em 0;
+    border-inline-start-color: currentColor;
+  }
+
+  .desktop__more[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  /* 강제 색(윈도 고대비) 모드: 세모 색을 미리 정할 수 없어 브라우저 기본 ▶/▼ 표식으로 돌아간다(오류 사전과 같은 규칙) */
+  @media (forced-colors: active) {
+    .desktop__more summary {
+      display: list-item;
+      list-style: revert;
+    }
+
+    .desktop__more summary::-webkit-details-marker {
+      display: revert;
+    }
+
+    .desktop__more summary::before {
+      content: none;
+    }
   }
 
   .desktop__label {

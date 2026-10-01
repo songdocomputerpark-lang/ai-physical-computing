@@ -16,7 +16,7 @@
  *   desktop.browser(webbrowser.open → 가상 브라우저 창) · desktop.file(screenshot 저장 → '내 파일' 미리보기·내려받기)
  * - 요청(파이썬이 답을 기다림): desktop.screenshot(가상 모니터의 RGBA 바이트 — pyautogui.screenshot())
  * - 채널(화면 → 파이썬): desktop.state(최신 값: 모니터 크기와 지금 커서 위치, 실행 시작마다 다시 넣음) ·
- *   desktop.pointer(쌓이는 값: 학생이 가상 모니터를 눌러 커서를 옮긴 위치 — 왼쪽 위 모서리는 FAILSAFE)
+ *   desktop.pointer(쌓이는 값: 학생이 가상 모니터를 눌러 커서를 옮긴 위치 — 네 모서리는 FAILSAFE)
  */
 import type { LabModuleManifest } from '../types.ts';
 

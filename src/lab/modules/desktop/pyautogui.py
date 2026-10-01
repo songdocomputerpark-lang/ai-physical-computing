@@ -6,8 +6,12 @@
 
 PyAutoGUI 0.9.54와 같게 맞춘 것(공식 소스·문서로 확인, CODE_MAPPING §3.4)
 - size() → Size(width=1920, height=1080) 같은 namedtuple(가상 모니터 논리 해상도, 기본 1920×1080 — PD-22), position() → Point(x, y).
-- 함수를 부를 때마다 PAUSE(기본 0.1초)만큼 쉰다. FAILSAFE(기본 True)면 커서가 FAILSAFE_POINTS(기본 [(0, 0)] — 화면 왼쪽 위 모서리)에
-  있을 때 다음 pyautogui 함수를 부르는 순간 FailSafeException이 난다(가상 모니터의 왼쪽 위 모서리에 마우스를 올리거나 [모서리로] 버튼).
+- 함수를 부를 때마다 PAUSE(기본 0.1초)만큼 쉰다. FAILSAFE(기본 True)면 커서가 FAILSAFE_POINTS(화면 **네 모서리**)에
+  있을 때 다음 pyautogui 함수를 부르는 순간 FailSafeException이 난다(가상 모니터의 모서리에 마우스를 올리거나 [모서리로] 버튼).
+  진짜 0.9.54는 FAILSAFE_POINTS = [(0, 0)]로 시작해 파일 끝에서 size()로 나머지 세 모서리를 더한다
+  (`FAILSAFE_POINTS.extend([(0, _bottom - 1), (_right - 1, 0), (_right - 1, _bottom - 1)])` — 2026-09-30 공식 소스
+  https://raw.githubusercontent.com/asweigart/pyautogui/master/pyautogui/__init__.py 파일 끝까지 확인. 전에는 왼쪽 위 한 곳만 흉내 냈다).
+  여기서는 모니터 크기를 실행마다 첫 함수 호출 때 읽으므로 그때 세 모서리를 더한다(_ensure_state — 학생이 목록을 통째로 바꿨으면 더하지 않는다).
 - moveTo·dragTo의 duration: 0.1초(MINIMUM_DURATION)보다 길면 0.05초(MINIMUM_SLEEP) 간격의 여러 걸음으로 나눠 옮긴다(진짜와 같은 계산).
   좌표는 int()로 잘라 정수 픽셀이 되고(f021의 소수 좌표), 화면 밖은 화면 안으로 잘린다(운영체제가 커서를 화면 밖에 두지 않는 것과 같음).
 - typewrite/write는 한 글자씩(interval 간격), '\\n'은 Enter. press·keyDown·keyUp·hotkey는 KEYBOARD_KEYS의 이름만 받고 모르는 이름은
@@ -116,6 +120,7 @@ DEFAULT_HEIGHT = 1080
 # ── PyAutoGUI 공개 상수(원본과 같은 이름·기본값) ──
 PAUSE = 0.1
 FAILSAFE = True
+# 진짜처럼 왼쪽 위 (0, 0)로 시작하고, 모니터 크기를 읽는 첫 함수 호출 때 나머지 세 모서리를 더한다(머리말·_ensure_state).
 FAILSAFE_POINTS = [(0, 0)]
 MINIMUM_DURATION = 0.1
 MINIMUM_SLEEP = 0.05
@@ -147,12 +152,10 @@ KEYBOARD_KEYS = [
 KEY_NAMES = KEYBOARD_KEYS  # 원본도 같은 목록을 두 이름으로 내보낸다.
 _KEY_SET = set(KEYBOARD_KEYS) | set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+# 진짜 FailSafeException의 영어 문구(0.9.54 failSafeCheck와 같은 글) — 한국어 안내는 어느 모서리인지 붙여 _failsafe_message가 만든다.
 FAILSAFE_MESSAGE = (
     "PyAutoGUI fail-safe triggered from mouse moving to a corner of the screen. "
-    "To disable this fail-safe, set pyautogui.FAILSAFE to False. DISABLING FAIL-SAFE IS NOT RECOMMENDED.\n"
-    "(안전장치) 마우스 커서가 화면 왼쪽 위 모서리 (0, 0)에 있어서 PyAutoGUI가 실행을 멈췄어요. "
-    "진짜 PC에서 자동화가 폭주할 때 사람이 마우스를 모서리로 밀어 멈추는 장치예요. "
-    "가상 데스크톱에서는 모니터의 왼쪽 위 모서리에 마우스를 올리거나 [모서리로] 버튼을 누르면 걸려요."
+    "To disable this fail-safe, set pyautogui.FAILSAFE to False. DISABLING FAIL-SAFE IS NOT RECOMMENDED."
 )
 LIMITED_SCREENSHOT_MESSAGE = (
     "이 브라우저에는 JSPI(파이썬 기다리기 기능)가 없어서 screenshot()처럼 화면의 답을 기다리는 함수는 쓸 수 없어요. "
@@ -204,6 +207,9 @@ _skipped_saves = {}
 _warned_save_rate = set()
 _last_shot = None
 _screenshot_class = None
+# 불러올 때·실행을 시작할 때 만든 FAILSAFE_POINTS 목록과, 모니터 크기를 몰라 세 모서리를 아직 못 더했는지(_start_failsafe_points)
+_default_failsafe_points = FAILSAFE_POINTS
+_corners_pending = True
 
 
 def __getattr__(name):
@@ -248,9 +254,75 @@ def _ensure_state():
             _width, _height = DEFAULT_WIDTH, DEFAULT_HEIGHT
             _x, _y = _width // 2, _height // 2
     _x, _y = _clamp(_x, _y)
+    _add_pending_corners()
     if not _opened:
         _opened = True
         _emit(EVENT_OPEN, {"width": _width, "height": _height, "x": _x, "y": _y})
+
+
+def _corner_points(width, height):
+    """화면 네 모서리(진짜 0.9.54의 FAILSAFE_POINTS와 같은 차례: 왼쪽 위, 왼쪽 아래, 오른쪽 위, 오른쪽 아래)."""
+    right, bottom = int(width), int(height)
+    return [(0, 0), (0, bottom - 1), (right - 1, 0), (right - 1, bottom - 1)]
+
+
+def _peek_screen_size():
+    """화면이 실행 직전에 넣어 둔 모니터 크기(양보하지 않는 peek — 모듈을 불러올 때·실행을 시작할 때도 쓸 수 있다). 모르면 None."""
+    state = apc_runtime.peek(STATE_NAME)
+    if not isinstance(state, dict):
+        return None
+    try:
+        return max(1, int(state.get("width", DEFAULT_WIDTH))), max(1, int(state.get("height", DEFAULT_HEIGHT)))
+    except (TypeError, ValueError):
+        return None
+
+
+def _start_failsafe_points():
+    """진짜처럼 (0, 0)으로 시작해 화면 크기로 나머지 세 모서리를 더한다(진짜는 import 때 파일 끝에서 size()로 — 머리말).
+    모듈을 불러올 때와 실행을 시작할 때(_reset — 동기 진입점이라 양보하지 않는 peek만) 부른다. 크기를 아직 모르면
+    첫 함수 호출 때 _ensure_state가 더한다(_add_pending_corners)."""
+    global FAILSAFE_POINTS, _default_failsafe_points, _corners_pending
+    FAILSAFE_POINTS = [(0, 0)]
+    _default_failsafe_points = FAILSAFE_POINTS
+    screen = _peek_screen_size()
+    if screen is None:
+        _corners_pending = True
+        return
+    FAILSAFE_POINTS.extend(_corner_points(*screen)[1:])
+    _corners_pending = False
+
+
+def _add_pending_corners():
+    """불러올 때 크기를 몰라 못 더한 세 모서리를 지금 크기로 더한다(한 번만). 학생이 목록을 통째로 바꿨으면(다른 목록) 그대로 둔다."""
+    global _corners_pending
+    if not _corners_pending:
+        return
+    _corners_pending = False
+    if FAILSAFE_POINTS is not _default_failsafe_points:
+        return
+    for point in _corner_points(_width, _height)[1:]:
+        if point not in FAILSAFE_POINTS:
+            FAILSAFE_POINTS.append(point)
+
+
+def _corner_name(x, y):
+    """커서가 선 모서리의 이름(한국어). 모서리가 아니면(학생이 더한 자리) None."""
+    right, bottom = _width - 1, _height - 1
+    names = {(0, 0): "왼쪽 위 모서리", (0, bottom): "왼쪽 아래 모서리", (right, 0): "오른쪽 위 모서리", (right, bottom): "오른쪽 아래 모서리"}
+    return names.get((x, y))
+
+
+def _failsafe_message(x, y):
+    """FailSafeException 글: 진짜와 같은 영어 문구 + 어느 모서리인지 적은 한국어 안내."""
+    corner = _corner_name(x, y)
+    where = f"화면 {corner} ({x}, {y})" if corner else f"안전장치 자리(FAILSAFE_POINTS) ({x}, {y})"
+    return (
+        f"{FAILSAFE_MESSAGE}\n"
+        f"(안전장치) 마우스 커서가 {where}에 있어서 PyAutoGUI가 실행을 멈췄어요. "
+        "진짜 PC에서 자동화가 폭주할 때 사람이 마우스를 화면 네 모서리 가운데 한 곳(보통 왼쪽 위)으로 밀어 멈추는 장치예요. "
+        "코드가 커서를 모서리로 보낸 뒤 다음 pyautogui 함수를 불러도 멈춰요. "
+        "가상 데스크톱에서는 모니터의 모서리에 마우스를 올리거나 [모서리로] 버튼을 누르면 걸려요."
+    )
 
 
 def _clamp(x, y):
@@ -375,10 +447,10 @@ def onScreen(x, y=None):
 
 
 def failSafeCheck():
-    """FAILSAFE가 켜져 있고 커서가 FAILSAFE_POINTS(기본 왼쪽 위 모서리)에 있으면 FailSafeException."""
+    """FAILSAFE가 켜져 있고 커서가 FAILSAFE_POINTS(기본 화면 네 모서리)에 있으면 FailSafeException."""
     _sync_pointer()
     if FAILSAFE and (_x, _y) in [tuple(point) for point in FAILSAFE_POINTS]:
-        raise FailSafeException(FAILSAFE_MESSAGE)
+        raise FailSafeException(_failsafe_message(_x, _y))
 
 
 def _move_to(x, y):
@@ -824,10 +896,11 @@ def screenshot(imageFilename=None, region=None):
 def _reset():
     """실행이 시작될 때(동기 진입점 — 양보하는 함수 금지, drain만): PAUSE·FAILSAFE 기본값과 커서 상태를 처음으로 돌린다.
     진짜 PC에서는 실행마다 새 파이썬이 뜨므로 pyautogui.PAUSE = 0.01 같은 설정이 다음 실행에 남지 않는다 — 여기서도 같게 한다."""
-    global PAUSE, FAILSAFE, FAILSAFE_POINTS, MINIMUM_DURATION, MINIMUM_SLEEP, _state_ready, _opened, _last_shot
+    global PAUSE, FAILSAFE, MINIMUM_DURATION, MINIMUM_SLEEP, _state_ready, _opened, _last_shot
     PAUSE = 0.1
     FAILSAFE = True
-    FAILSAFE_POINTS = [(0, 0)]
+    # 네 모서리로 다시 만든다(화면이 실행 직전에 넣은 모니터 크기 — peek라 양보하지 않는다)
+    _start_failsafe_points()
     MINIMUM_DURATION = 0.1
     MINIMUM_SLEEP = 0.05
     _state_ready = False
@@ -843,3 +916,6 @@ def _reset():
 
 
 apc_runtime.register_reset_hook(_reset)
+
+# 진짜 0.9.54처럼 파일 끝에서 화면 크기로 나머지 세 모서리를 더한다(머리말). 모니터 크기를 아직 모르면 첫 함수 호출 때 더한다.
+_start_failsafe_points()

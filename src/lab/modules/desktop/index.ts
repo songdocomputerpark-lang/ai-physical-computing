@@ -7,7 +7,7 @@
  *    desktop.scroll. desktop.hotkey는 **표시 전용**이다 — 파이썬 hotkey()가 키 down/up을 먼저 보내고 모델이 그때 조합키를
  *    처리하므로(model.key → model.hotkey), 여기서 또 처리하면 저장 대화상자가 두 번 열린다.
  * 3. 학생이 가상 모니터를 직접 쓰게 한다(마우스·키보드). 커서를 옮기면 desktop.pointer 채널로 알려 파이썬 position()이 따라간다
- *    (진짜 PC에서 사람이 마우스를 움직인 것과 같다). 왼쪽 위 모서리 (0, 0)은 PyAutoGUI 안전장치 자리다([모서리로] 버튼).
+ *    (진짜 PC에서 사람이 마우스를 움직인 것과 같다). 화면 네 모서리는 PyAutoGUI 안전장치 자리다([모서리로] 버튼은 왼쪽 위 (0, 0)로 보낸다).
  * 4. 실행이 시작될 때 모니터 크기·커서 위치를 desktop.state로 넣는다(정지 2단계로 워커가 다시 떠도 값이 살아 있게 — hello 예시와 같은 규칙).
  * 5. 파이썬 screenshot()의 요청(desktop.screenshot)에 캔버스를 RGBA 바이트로 답한다(버퍼는 transfer로 넘겨 복사하지 않는다).
  * 6. (P2-12) desktop.browser: webbrowser.open(url)이 가상 브라우저 창을 연다 — 진짜 인터넷에 가지 않고, 우리 사이트 주소일 때만

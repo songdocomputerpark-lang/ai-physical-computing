@@ -109,15 +109,25 @@ function drawWallpaper(ctx: CanvasRenderingContext2D, model: DesktopModel): void
     ctx.arc(model.width * (0.72 + index * 0.08), model.height * (0.68 - index * 0.18), model.height * ratio, 0, Math.PI * 2);
     ctx.fill();
   });
-  // 왼쪽 위 모서리 = PyAutoGUI 안전장치 지점(0, 0) 표시
+  // 네 모서리 = PyAutoGUI 안전장치 지점 표시(진짜 0.9.54의 FAILSAFE_POINTS — pyautogui.py 머리말, 판 1.1.1 최종 점검에서 네 곳으로)
   const s = scaleOf(model.width);
+  const size = 28 * s;
+  const right = model.width;
+  const bottom = model.height;
   ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(28 * s, 0);
-  ctx.lineTo(0, 28 * s);
-  ctx.closePath();
-  ctx.fill();
+  for (const [cornerX, cornerY, towardX, towardY] of [
+    [0, 0, 1, 1],
+    [right, 0, -1, 1],
+    [0, bottom, 1, -1],
+    [right, bottom, -1, -1],
+  ] as const) {
+    ctx.beginPath();
+    ctx.moveTo(cornerX, cornerY);
+    ctx.lineTo(cornerX + towardX * size, cornerY);
+    ctx.lineTo(cornerX, cornerY + towardY * size);
+    ctx.closePath();
+    ctx.fill();
+  }
 }
 
 function drawIcons(ctx: CanvasRenderingContext2D, model: DesktopModel): void {

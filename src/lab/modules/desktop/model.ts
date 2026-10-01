@@ -80,7 +80,7 @@ export const DEFAULT_SCREEN_HEIGHT = 1080;
 export const SCREEN_PRESETS: readonly { readonly width: number; readonly height: number; readonly label: string }[] = Object.freeze([
   { width: 1920, height: 1080, label: '1920×1080 (기본 — 교안 실행 화면과 같음)' },
   { width: 1280, height: 720, label: '1280×720 (작은 모니터)' },
-  { width: 3840, height: 2160, label: '3840×2160 (4단원 얼굴 마우스 예제, PD-22)' },
+  { width: 3840, height: 2160, label: '3840×2160 (4단원 얼굴 마우스 예제)' },
 ]);
 
 /** 창 제목 줄 높이(1920 기준 논리 픽셀). 다른 해상도는 scaleOf()로 비례한다. */

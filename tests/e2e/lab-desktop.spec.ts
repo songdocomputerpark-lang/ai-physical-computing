@@ -168,6 +168,38 @@ test.describe('가상 데스크톱(pyautogui)', () => {
     await expect(page.locator(CONSOLE)).not.toContainText('여기는 오지 않아요');
   });
 
+  // 판 1.1.1 최종 점검: 진짜 PyAutoGUI 0.9.54의 FAILSAFE_POINTS는 화면 네 모서리다(공식 소스 파일 끝의 FAILSAFE_POINTS.extend — 전에는 (0, 0)만 흉내 냈다).
+  test('안전장치는 화면 네 모서리 — 오른쪽 아래 모서리로 간 뒤 다음 함수에서 멈추고, FAILSAFE = False면 멈추지 않는다', async ({ page }) => {
+    await openVisionLab(page, '?example=desktop/01-screen-size.py');
+    const desktop = page.locator(DESKTOP);
+    await expect(desktop).toBeVisible();
+    await page.locator('[data-desktop-screen]').selectOption('1920x1080');
+    await expect(desktop).toHaveAttribute('data-desktop-width', '1920');
+
+    expect(
+      await run(
+        page,
+        ['import pyautogui', 'print("모서리:", sorted(pyautogui.FAILSAFE_POINTS))', 'pyautogui.moveTo(1919, 1079)', 'pyautogui.moveTo(10, 10)', 'print("여기는 오지 않아요")'].join('\n'),
+      ),
+    ).toBe('error');
+    await expect(page.locator(CONSOLE)).toContainText('모서리: [(0, 0), (0, 1079), (1919, 0), (1919, 1079)]');
+    await expect(page.locator(CONSOLE)).toContainText('FailSafeException');
+    await expect(page.locator(CONSOLE)).toContainText('mouse moving to a corner of the screen');
+    await expect(page.locator(CONSOLE)).toContainText('오른쪽 아래 모서리');
+    await expect(page.locator(CONSOLE)).not.toContainText('여기는 오지 않아요');
+
+    expect(
+      await run(page, ['import pyautogui', 'pyautogui.FAILSAFE = False', 'pyautogui.moveTo(1919, 1079)', 'pyautogui.moveTo(10, 10)', 'print("껐으면 지나가요", tuple(pyautogui.position()))'].join('\n')),
+    ).toBe('ok');
+    await expect(page.locator(CONSOLE)).toContainText('껐으면 지나가요 (10, 10)');
+
+    // 모니터 크기를 바꾸면 모서리도 그 크기를 따른다(4단원 3840×2160처럼)
+    await page.locator('[data-desktop-screen]').selectOption('1280x720');
+    await expect(desktop).toHaveAttribute('data-desktop-width', '1280');
+    expect(await run(page, 'import pyautogui\nprint("작은 모니터:", sorted(pyautogui.FAILSAFE_POINTS))')).toBe('ok');
+    await expect(page.locator(CONSOLE)).toContainText('작은 모니터: [(0, 0), (0, 719), (1279, 0), (1279, 719)]');
+  });
+
   test('이관한 원본 예제 f018·f019·f020·f021·f016이 고치지 않고 끝까지 돈다', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));

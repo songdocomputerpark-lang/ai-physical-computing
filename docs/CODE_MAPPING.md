@@ -478,7 +478,8 @@ Pyodide `opencv-python`(314.0.7 기준 4.11.0.86)은 **실물**을 쓰고 아래
 
 ### 3.4 `pyautogui` 가상 데스크톱 mock (PAG)·`webbrowser` shim (WEB)
 
-연구 결과 반영(PyAutoGUI 0.9.54 소스·문서): 기본 `PAUSE = 0.1`(호출마다 0.1초 쉼), `FAILSAFE = True`·`FAILSAFE_POINTS = [(0, 0)]`에 닿으면 `FailSafeException`, `Point = namedtuple("Point", "x y")`, `Size = namedtuple("Size", "width height")`, **`enter()` 함수 없음**. 출처: https://github.com/asweigart/pyautogui/blob/master/pyautogui/__init__.py , https://pyautogui.readthedocs.io/en/latest/quickstart.html
+연구 결과 반영(PyAutoGUI 0.9.54 소스·문서): 기본 `PAUSE = 0.1`(호출마다 0.1초 쉼), `FAILSAFE = True`이면 **화면 네 모서리**(`FAILSAFE_POINTS`) 가운데 한 곳에 닿을 때 `FailSafeException`, `Point = namedtuple("Point", "x y")`, `Size = namedtuple("Size", "width height")`, **`enter()` 함수 없음**. 출처: https://github.com/asweigart/pyautogui/blob/master/pyautogui/__init__.py , https://pyautogui.readthedocs.io/en/latest/quickstart.html
+- **정정(2026-09-30 최종 점검 U34-01, 같은 소스 원문을 다시 확인 — `__version__ = "0.9.54"`):** 처음 연구는 파일 앞부분의 `FAILSAFE_POINTS = [(0, 0)]`만 보고 왼쪽 위 한 곳으로 적었다. 파일 **끝**에 `_right, _bottom = size()` 다음 `FAILSAFE_POINTS.extend([(0, _bottom - 1), (_right - 1, 0), (_right - 1, _bottom - 1)])`가 있어, 불러오는 순간 화면 크기로 **네 모서리**가 된다. 예외 문구는 `PyAutoGUI fail-safe triggered from mouse moving to a corner of the screen. …`. 흉내 모듈(`src/lab/modules/desktop/pyautogui.py`)도 가상 모니터 크기로 네 모서리를 쓰게 고쳤다(최종 점검 LB-07). 흉내의 "진짜와 같게" 주장은 공식 소스 파일 끝까지 확인한다.
 
 | 필수 API | 시그니처(원본) | mock 동작 | 쓰는 파일 |
 |---|---|---|---|
@@ -493,7 +494,7 @@ Pyodide `opencv-python`(314.0.7 기준 4.11.0.86)은 **실물**을 쓰고 아래
 | `press(keys, presses=1, interval=0.0)` | `press('space')`, `press('enter')` | 가상 키 이벤트(스페이스 키 미니게임 등) | f121, f024 사이트판 |
 | `hotkey(*keys)` | `hotkey('ctrl', 's')`, 슬라이드 `hotkey('win', 'r')` | 가상 앱 단축키(저장 대화상자, 실행 창 흉내). 실제 브라우저 단축키는 보내지 않음 | f020, PPT |
 | `screenshot(imageFilename=None)` | → PIL Image, 파일명을 주면 저장 | 가상 데스크톱 캔버스를 PIL 이미지로(Pyodide Pillow), 가상 파일 저장·썸네일·[내려받기]. 같은 이름 반복 저장은 빈도 제한 | f016, f025, f090 |
-| `PAUSE`·`FAILSAFE` 속성 | 대입 가능 | Claude 결정: 원본 기본값을 흉내 낸다(0.1초 쉼, (0,0) 닿으면 `FailSafeException`) → f021·f127의 원본 체감과 f091의 모서리 예외가 PC와 같고, f095~f097·f104의 `PAUSE=0.01`·`FAILSAFE=False` 변경도 의미가 산다 | f091, f095~f097, f104, f114, f127 |
+| `PAUSE`·`FAILSAFE` 속성 | 대입 가능 | Claude 결정: 원본 기본값을 흉내 낸다(0.1초 쉼, 화면 네 모서리 가운데 한 곳에 닿으면 `FailSafeException` — 2026-09-30 정정: 처음에는 (0,0) 한 곳으로 적었다, 위 정정 참고) → f021·f127의 원본 체감과 f091의 모서리 예외가 PC와 같고, f095~f097·f104의 `PAUSE=0.01`·`FAILSAFE=False` 변경도 의미가 산다 | f091, f095~f097, f104, f114, f127 |
 | `enter(…)` | 없음 | 만들지 않는다 → AttributeError + 한국어 설명 | f024 |
 | `webbrowser.open(url)` | | 가상 브라우저 창 열기(주소창에 URL, 내용은 자체 제작 연습 페이지). 실제 사이트 화면·로고 모사 금지 | f023, f024 |
 
