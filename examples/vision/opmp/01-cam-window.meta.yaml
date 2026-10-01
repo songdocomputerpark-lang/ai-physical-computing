@@ -3,6 +3,7 @@
 title: "계단 1: 캠 화면 띄우기"
 description: 웹캠 영상을 창에 보여 주고 ESC 키로 끝내요.
 source_id: f128
+lesson: 1-2-1
 difficulty: 1
 tags:
   - 카메라

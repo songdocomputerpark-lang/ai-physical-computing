@@ -3,6 +3,7 @@
 title: "계단 9: 접힌 손가락 알아채기"
 description: 손가락마다 끝과 뿌리의 위치를 비교해 접혔는지 펴졌는지 글자로 써요.
 source_id: f136
+lesson: 1-2-3
 difficulty: 2
 tags:
   - 손

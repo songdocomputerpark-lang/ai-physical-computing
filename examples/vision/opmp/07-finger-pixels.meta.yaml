@@ -3,6 +3,7 @@
 title: "계단 7: 화면 위 손가락 위치(픽셀) 출력하기"
 description: 0~1 사이 좌표에 화면 크기를 곱해 픽셀 위치로 바꿔요.
 source_id: f134
+lesson: 1-2-2
 difficulty: 1
 tags:
   - 손

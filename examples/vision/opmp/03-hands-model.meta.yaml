@@ -3,6 +3,7 @@
 title: "계단 3: MediaPipe Hands 모델 쓰기"
 description: 손 하나를 찾아 관절 점과 이음선을 기본 모양으로 그려요.
 source_id: f130
+lesson: 1-2-1
 difficulty: 1
 tags:
   - 손

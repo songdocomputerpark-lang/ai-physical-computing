@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="720" height="320" role="img" aria-labelledby="title">
-<title id="title">윤곽선과 도형: 흑백 사진의 흰 덩어리(왼쪽) → 가장자리를 따라간 윤곽선(가운데, 초록) → 직선 몇 개로 단순화한 다각형과 꼭짓점 수 4(오른쪽). 아래는 삼각형 3, 네모 4, 원 12+의 꼭짓점 수 예</title>
+<title id="title">윤곽선과 도형: 흑백 사진의 흰 덩어리(왼쪽) → 가장자리를 따라간 윤곽선(가운데, 초록) → 직선 몇 개로 단순화한 다각형과 꼭짓점 수 4(오른쪽). 아래는 삼각형 3, 네모 4, 원 8쯤의 꼭짓점 수 예(예제처럼 둘레의 3%로 펼 때)</title>
 <rect width="720" height="320" fill="#ffffff"/>
 <rect x="24" y="24" width="200" height="160" rx="8" fill="#17191c"/>
 <path d="M 40 30 C 70 22 120 26 160 34 C 172 60 168 100 158 130 C 120 138 70 136 42 128 C 30 96 30 60 40 30 Z" transform="translate(24,24)" fill="#ffffff"/>
@@ -22,7 +22,7 @@
 <g transform="translate(360,258)" fill="#edf1f6" stroke="#3b9360" stroke-width="4" stroke-linejoin="round"><rect x="-34" y="-34" width="68" height="68" rx="3" /></g>
 <text x="422" y="266" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="700" fill="#15653a">4</text>
 <g transform="translate(610,258)" fill="#edf1f6" stroke="#3b9360" stroke-width="4" stroke-linejoin="round"><circle r="36" /></g>
-<text x="672" y="266" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="700" fill="#15653a">12+</text>
+<text x="672" y="266" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="700" fill="#15653a">8</text>
 <circle cx="110" cy="224" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
 <circle cx="148" cy="288" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
 <circle cx="72" cy="288" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
@@ -30,4 +30,12 @@
 <circle cx="394" cy="224" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
 <circle cx="394" cy="292" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
 <circle cx="326" cy="292" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="646" cy="258" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="635.5" cy="283.5" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="610" cy="294" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="584.5" cy="283.5" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="574" cy="258" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="584.5" cy="232.5" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="610" cy="222" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
+<circle cx="635.5" cy="232.5" r="6" fill="#b7800f" stroke="#ffffff" stroke-width="2"/>
 </svg>

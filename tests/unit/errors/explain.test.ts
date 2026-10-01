@@ -135,14 +135,14 @@ describe('풀이 내용', () => {
     expect(consoleSummary(explanation)).toBe('[오류 풀이] NameError — 정해 준 적이 없는 이름을 썼어요 (내 코드 2번째 줄(함수 show 안)). 자세한 풀이는 콘솔 위 "오류 풀이" 카드에 있어요.');
   });
 
-  it('모듈·함수 이름이 글에 그대로 들어가고 조사는 소리에 맞게 붙는다', () => {
-    // cv3의 끝소리는 "삼"이라 "이"가 붙는다(src/lib/korean.ts).
-    expect(explainFixture('module-not-found').meaning).toBe("import cv3에서 cv3이 무엇인지 파이썬이 몰라요. 이름을 잘못 쳤거나, 이 파이썬에 없는 모듈이에요.");
+  it('모듈·함수 이름이 글에 그대로 들어가고, 영문 이름 뒤에는 조사 자리를 두지 않는다', () => {
+    // 모듈 이름은 영어로 끝날 때가 많아(numpyy → "numpyy이(가)") 사전 글은 조사 자리 없이 "그 모듈이"로 쓴다(2026-09-30 최종 점검 D6·CT-20).
+    expect(explainFixture('module-not-found').meaning).toBe("import cv3에서 그 모듈이 무엇인지 파이썬이 몰라요. 이름을 잘못 쳤거나, 이 파이썬에 없는 모듈이에요.");
     expect(explainFixture('module-not-found-site').meaning).toContain('mediapipe 모듈은');
     // 영문 이름 뒤에는 "이(가)"처럼 두 조사를 적게 되므로(korean.ts) 사전 글은 조사가 필요 없는 말로 쓴다.
     expect(explainFixture('attribute-error-module').meaning).toBe('cv2 모듈에 destoyAllWindows 함수가 없어요. 이름을 잘못 쳤거나, 그 판의 모듈에는 없는 함수예요.');
     const englishParticles = catalog.entries.flatMap((entry) =>
-      [entry.title, entry.meaning, ...entry.why, ...entry.fix, ...entry.mistakes].filter((text) => /\{(?:name|attr|func|path|kind|arg):/u.test(text)),
+      [entry.title, entry.meaning, ...entry.why, ...entry.fix, ...entry.mistakes].filter((text) => /\{(?:name|attr|func|path|kind|arg|module):/u.test(text)),
     );
     expect(englishParticles, '영문 이름이 들어가는 자리에는 조사를 붙이지 않아요(을(를)처럼 보여요)').toEqual([]);
   });

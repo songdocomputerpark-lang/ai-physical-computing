@@ -15,7 +15,9 @@
 #             사이트가 만든 이름도 쓸 수 있어요: StopRequested([정지]로 멈춤), ForcedRestart(정지 2단계, 파이썬 다시 시작),
 #             PackageLoadError(패키지 못 받음), RuntimeNotReady, RuntimeBusy, JavaScriptError(워커 쪽 오류).
 #   patterns  오류 메시지(마지막 줄의 ": " 뒤와 그 아래 이어진 줄)에 맞출 정규식 목록. 하나라도 맞으면 돼요.
-#             (?<name>…)처럼 이름 붙은 묶음은 아래 글의 {name} 자리에 들어가요. 조사는 {name:은/는}·{name:이/가}·{name:을/를}·{name:과/와}·{name:으로/로}로 붙여요.
+#             (?<name>…)처럼 이름 붙은 묶음은 아래 글의 {name} 자리에 들어가요. 조사 자리는 {name:은/는}·{name:이/가}·{name:을/를}·{name:과/와}·{name:으로/로} 모양이지만,
+#             영어로 끝날 수 있는 값({module}·{name}·{attr} 등 — 오류 메시지에서 온 이름은 거의 다예요)에는 쓰지 않아요("numpyy이(가)"처럼 보여요).
+#             조사가 필요하면 "그 모듈이", "{module} 모듈은"처럼 한국어 낱말을 사이에 둬요(MAINTENANCE.md 2-1절과 같은 규칙).
 #   traceback_patterns  트레이스백 전체(파일 이름·줄 포함)에 맞출 정규식(선택). 어느 파일에서 난 오류인지로 구별할 때 써요.
 #   priority  같은 오류에 여러 항목이 맞을 때 먼저 고를 순서(숫자가 클수록 먼저, 기본 0). 종류만 맞는 항목보다 패턴까지 맞는 항목이 늘 먼저예요.
 #   meaning   (필수) 무슨 뜻인지 한 문장.
@@ -902,7 +904,7 @@ entries:
     title: "이 모듈은 PC 프로그램용이에요 — 사이트에서는 흉내 모듈이 대신해요"
     types: [ModuleNotFoundError]
     patterns:
-      - "No module named '(?<module>pyautogui|mediapipe|speech_recognition|pyaudio|serial|bluetooth|bluetooth_lib|bleak|machine|neopixel|dht|ESP32BLE|esp32_ble_util)'"
+      - "No module named '(?<module>pyautogui|mediapipe|speech_recognition|pyaudio|serial|bluetooth|bluetooth_lib|bleak|machine|neopixel|ESP32BLE|esp32_ble_util)'"
     priority: 3
     meaning: "{module} 모듈은 PC나 보드에 설치하는 프로그램이라 브라우저 파이썬에는 원래 없어요. 이 사이트는 실습실마다 그 모듈을 흉내 내는 사이트 모듈을 붙여요."
     why:
@@ -926,7 +928,7 @@ entries:
     patterns:
       - "No module named '(?<module>[^']+)'"
     priority: 1
-    meaning: "import {module}에서 {module:이/가} 무엇인지 파이썬이 몰라요. 이름을 잘못 쳤거나, 이 파이썬에 없는 모듈이에요."
+    meaning: "import {module}에서 그 모듈이 무엇인지 파이썬이 몰라요. 이름을 잘못 쳤거나, 이 파이썬에 없는 모듈이에요."
     why:
       - "모듈 이름은 정확해야 해요. OpenCV는 cv2, numpy는 numpy(보통 import numpy as np)예요."
       - "브라우저 파이썬(Pyodide)에는 numpy·opencv-python·Pillow 같은 자주 쓰는 패키지가 있고, import 문을 보고 자동으로 받아요. 목록에 없는 패키지는 받을 수 없어요."
@@ -1797,7 +1799,7 @@ entries:
     priority: 3
     meaning: "import {module}에서 보드가 {module} 모듈을 찾지 못했어요. 실물 MicroPython은 'no module named'라고 알려요."
     why:
-      - "사이트가 주는 라이브러리(i2c_lcd.py·servo_library.py 등)는 [실행]할 때 보드에 없으면 사이트가 먼저 올려요. 그래도 이 오류가 나면 {module:은/는} 사이트가 주지 않는 파일이에요(교과서가 따로 주는 파일)."
+      - "사이트가 주는 라이브러리(i2c_lcd.py·servo_library.py 등)는 [실행]할 때 보드에 없으면 사이트가 먼저 올려요. 그래도 이 오류가 나면 {module} 모듈은 사이트가 주지 않는 파일이에요(교과서가 따로 주는 파일)."
       - "cv2·numpy 같은 컴퓨터용 파이썬 패키지는 보드에 없어요."
       - "모듈 이름의 철자가 달라요."
     fix:
@@ -2041,11 +2043,12 @@ entries:
     patterns:
       - "fail-safe"
     priority: 2
-    meaning: "pyautogui는 마우스가 화면 모서리(0, 0)에 닿으면 코드를 멈춰요. 프로그램이 마우스를 마구 움직일 때 사람이 멈출 수 있게 둔 안전장치예요."
+    meaning: "pyautogui는 마우스가 화면 네 모서리 가운데 한 곳(예: 왼쪽 위 (0, 0))에 닿으면 코드를 멈춰요. 프로그램이 마우스를 마구 움직일 때 사람이 멈출 수 있게 둔 안전장치예요."
     why:
       - "손 위치로 커서를 움직이는 코드에서 손이 화면 밖으로 나가면 좌표가 0이나 화면 끝이 되어 모서리에 닿기 쉬워요."
+      - "진짜 PyAutoGUI(0.9.54)는 왼쪽 위·왼쪽 아래·오른쪽 위·오른쪽 아래 네 모서리를 모두 안전장치 자리로 써요. 가상 데스크톱도 같아요."
     fix:
-      - "좌표가 화면 안에 머물게 제한해요: x = max(1, min(x, 너비 - 2))"
+      - "좌표가 화면 안에 머물게 제한해요: x = max(1, min(x, 너비 - 2)), y = max(1, min(y, 높이 - 2))"
       - "안전장치를 끄려면 pyautogui.FAILSAFE = False를 쓸 수 있지만, 진짜 PC에서는 코드를 멈추기 어려워지므로 권하지 않아요."
     example:
       code: |
@@ -2053,7 +2056,7 @@ entries:
         pyautogui.moveTo(0, 0)
       error: "pyautogui.FailSafeException: PyAutoGUI fail-safe triggered from mouse moving to a corner of the screen. …"
     cases:
-      - "3-1-4 심화(p205, 손가락으로 마우스 커서 조종)에서 손이 화면 가장자리로 가면 나요. 가상 데스크톱도 PC와 같게 동작해요."
+      - "3-1-4 심화(p205, 손가락으로 마우스 커서 조종)에서 손이 화면 모서리 쪽으로 가면 나요. 가상 데스크톱도 PC와 같게 동작해요."
 
   # ── 통신(브릿지·UART·블루투스·와이파이·MQTT) — Phase 4(2026-09-24 통합, src/lab/README.md 5.2·9절) ──
   # 모두 group: comm. 차례: 컴퓨터 쪽 모듈 → 시리얼(UART) → 블루투스 → USB 데이터 포트 → MQTT → 브릿지 공통(받을 쪽 없음·통로 닫힘).
@@ -2133,6 +2136,40 @@ entries:
       line: 1
     cases:
       - "3-1-2 기본(p192)의 uart.write(key.encode('utf-8'))에서 .encode를 빼면 나요."
+
+  # 판 1.1.1 최종 점검(2026-09-30, EX-01): 통신 템플릿 1(UART 에코) 실습 방법대로 속도를 바꾸면 이 오류가 났는데 일반 풀이만 나왔다.
+  # 실물 MicroPython v1.29.0은 bytes.decode()가 UTF-8에 맞지 않으면 메시지 없는 UnicodeError를 낸다(py/objstr.c — mp_raise_msg(&mp_type_UnicodeError, NULL)),
+  # 이름표에 UnicodeDecodeError는 없다(py/modbuiltins.c). 컴퓨터 파이썬·가상 보드(Pyodide)는 UnicodeDecodeError + "codec can't decode".
+  # 파일 읽기(인코딩이 다른 파일)도 같은 오류라 뜻과 까닭을 두 경우 모두 적는다(파일 읽기 오류에 틀린 풀이가 나오지 않게).
+  - id: comm-uart-decode
+    group: comm
+    title: 받은 바이트를 글자로 바꾸지 못했어요(속도나 글자 방식이 달라요)
+    types: [UnicodeDecodeError, UnicodeError]
+    patterns:
+      - "codec can't decode"
+      # 실물 MicroPython은 메시지 없이 "UnicodeError: "로만 알려요 — 메시지가 비면 마지막 줄 전체로 맞춰 보므로(explain.ts) 그 모양도 이 항목으로.
+      - "^(?:UnicodeError:?)?\\s*$"
+    priority: 4
+    meaning: "decode()로 바이트를 글자로 바꾸려 했는데, 바이트가 글자 규칙(UTF-8)에 맞지 않아 바꾸지 못했어요."
+    why:
+      - "통신(UART·시리얼)이라면 두 쪽의 통신 속도(bps)가 달라서 받는 쪽이 비트를 엉뚱한 자리에서 끊어 읽었어요. 그렇게 깨진 바이트는 글자 규칙에 맞지 않을 때가 많아요."
+      - "파일을 읽었다면 파일이 저장된 글자 방식(인코딩 — 예: cp949)과 코드가 읽는 방식(utf-8)이 달라요."
+      - "실물 ESP32(MicroPython)는 설명 없이 UnicodeError라고만 알려요. 컴퓨터 파이썬과 가상 보드는 UnicodeDecodeError라고 알려요."
+    fix:
+      - "통신이면 보내는 쪽과 받는 쪽의 속도를 같게 맞춰요. 코드의 baudrate와 시리얼 창(또는 변환기)의 속도를 함께 봐요."
+      - "깨진 줄이 와도 멈추지 않게 하려면 decode() 줄을 try: 와 except UnicodeError: 로 감싸 그 줄만 건너뛰어요(통신 템플릿 1 UART 에코가 그렇게 해요)."
+      - "파일이면 open(…, encoding='cp949')처럼 파일에 맞는 인코딩을 적거나, 파일을 UTF-8로 다시 저장해요."
+    mistakes:
+      - "실물 보드(MicroPython)에는 UnicodeDecodeError라는 이름이 없어서, except UnicodeDecodeError: 로 적으면 오류가 났을 때 그 이름을 찾지 못해 NameError가 나요. except UnicodeError: 로 잡아요(컴퓨터 파이썬에서도 UnicodeDecodeError까지 함께 잡혀요)."
+    example:
+      code: |
+        line = b"\xfe\xe6\n"  # 속도가 달라 깨진 바이트
+        text = line.decode().strip()
+      error: "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xfe in position 0: invalid start byte"
+      line: 2
+    cases:
+      - "통신 템플릿 1(UART 에코)에서 보드는 9600bps인데 시리얼 창의 속도만 115200bps로 바꿔 보내면, 보드의 decode() 줄에서 나요. 지금 템플릿은 이 오류를 잡아 \"깨진 글자를 받았어요\"로 알리고 계속 돌아요."
+      - "속도가 달라도 늘 이 오류가 나지는 않아요. 깨진 바이트가 우연히 글자 규칙에 맞으면 오류 없이 엉뚱한 글자만 받아요(3-1-2 바꿔보기 1)."
 
   - id: comm-bridge-on-board
     group: comm

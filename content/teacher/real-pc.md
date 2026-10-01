@@ -98,10 +98,12 @@ mediapipe 0.10.21은 OpenCV(opencv-contrib-python)와 2보다 낮은 판의 nump
 | 파일 | 쓰는 차시 |
 | --- | --- |
 | `i2c_lcd.py` | 문자 LCD(2-1-2, 4-1-4, 4-2-1, 4-2-2) |
+| `buzzer.py` | 버저(2-2-1 — 원본에서 게임 음악 선율 목록만 뺀 사이트판) |
 | `gorillacell_dcmotors.py` | 팬 모터(2-2-3) |
 | `servo_library.py` | 서보모터(2-2-4) |
 | `mg90s_servo.py` | 서보모터(4-2-1, 4-2-2, 블루투스 수업 교안) |
 | `ESP32BLE.py` | 블루투스(3-1-3, IV단원, 보충 C3의 블루투스판) |
+| `esp32_ble_util.py` | 블루투스(블루투스 수업 교안의 스마트폰 앱 예제 `ble-dabble-rgb.py`) |
 
 5. OLED(2-1-3)를 쓰려면 보드에 OLED 드라이버 파일이 있어야 하는데, 사이트는 이 파일을 아직 싣지 않아요. OLED 칩이 SSD1306이면 [micropython-lib의 ssd1306.py](https://github.com/micropython/micropython-lib/tree/master/micropython/drivers/display/ssd1306)(MIT)를 받아 보드에 저장해요. 원고 133쪽의 `sh1106.py`는 원래 출처를 확인하지 못해 사이트가 안내하지 않아요.
 6. 사이트 ESP32 실습실의 [실제 보드] 탭을 쓰면 토니 없이도 [실행]과 [보드에 저장]이 되고, 코드가 부르는 라이브러리 파일도 함께 올려 줘요(OLED 드라이버는 빼고).
@@ -132,7 +134,7 @@ mediapipe 0.10.21은 OpenCV(opencv-contrib-python)와 2보다 낮은 판의 nump
 
 ### PyAutoGUI(보충 P1, 3-1-4, IV단원)
 
-- 진짜 마우스와 키보드가 움직여요. 코드가 도는 동안에는 마우스를 쓰기 어려우니, 멈추는 방법을 먼저 알려 주고 실행해요. 마우스를 화면 왼쪽 위 모서리로 힘껏 밀면 안전장치(FAILSAFE)가 코드를 멈춰요.
+- 진짜 마우스와 키보드가 움직여요. 코드가 도는 동안에는 마우스를 쓰기 어려우니, 멈추는 방법을 먼저 알려 주고 실행해요. 마우스를 화면 모서리로 힘껏 밀면(네 모서리 어디든 되고, 보통 왼쪽 위) 안전장치(FAILSAFE)가 코드를 멈춰요.
 - 내 코드 파일 이름을 `pyautogui.py`로 짓지 않아요. 파이썬이 설치된 PyAutoGUI 대신 내 파일을 불러와 오류가 나요.
 - 보충 P1의 메모장 예제는 기다리는 5초 안에 메모장 창을 눌러 두어야 글자가 그 창에 들어가요.
 

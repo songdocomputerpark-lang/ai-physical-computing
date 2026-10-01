@@ -3,6 +3,7 @@
 title: "계단 17: 코 끝 위치 출력하기"
 description: 코 끝(1번 점)에 작은 점과 번호 1을 화면에 그려요. 줄마다 한국어 설명이 있어요.
 source_id: f125
+lesson: 1-3-1
 difficulty: 1
 tags:
   - 얼굴
