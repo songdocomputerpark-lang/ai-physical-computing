@@ -14,13 +14,16 @@
  * 5. Node.js가 이 파일을 직접 불러 JSPI를 실제로 시험할 수 있게(tests/unit/start/) 저장 이름 규칙(./storage.ts, 같은 규칙으로 쓴 파일)
  *    말고는 다른 파일을 import하지 않고, 타입 표기만 지우면 그대로 도는 문법만 쓴다(enum·namespace 금지).
  *
- * 근거(2026-09-16 확인)
+ * 근거(2026-09-16 확인, MDN 부분은 2026-10-02 다시 확인)
  * - JSPI의 새 API는 WebAssembly.Suspending(생성자)과 WebAssembly.promising(함수)이다
  *   (https://github.com/WebAssembly/js-promise-integration/blob/main/proposals/js-promise-integration/Overview.md).
  *   V8 블로그의 감지 방법 `WebAssembly.Suspending != undefined`(https://v8.dev/blog/jspi-newapi)에
  *   promising 확인과 52바이트 시험 모듈 실제 실행을 더했다. 이름만 있고 동작하지 않는 경우를 "확인 필요"로 가르기 위해서다.
- *   MDN 호환성 자료(mdn/browser-compat-data webassembly/api/Suspending.json): Chrome 137·Firefox 153 데스크톱 지원,
- *   Android Chrome·Safari·iOS 미지원(Edge·Opera·삼성 인터넷은 Chrome을 따른다고 표시).
+ *   MDN 호환성 자료(https://raw.githubusercontent.com/mdn/browser-compat-data/main/webassembly/api/Suspending.json, 2026-10-02):
+ *   Chrome 137·Firefox 153(Android 포함 — firefox_android는 firefox를 따름)·Safari 27(iOS 포함 — safari_ios는 safari를 따름) 지원,
+ *   Android Chrome 미지원(chrome_android false — 삼성 인터넷·Android WebView도 따름, Edge·Opera는 Chrome을 따른다고 표시).
+ *   판정은 이 표가 아니라 위 기능 감지로 하므로 표가 바뀌어도 결과는 맞다 — 표가 바뀌면 학생 글(오류 사전 limited-mode·
+ *   board-real-unsupported, 점검 페이지 "휴대폰·태블릿 결과(확인 전)" 문단)을 함께 본다(MAINTENANCE.md 11절 5번).
  * - 브라우저 이름: navigator.userAgentData(User-Agent Client Hints, 보안 연결에서만 있음)의 brands·platform을 먼저 쓰고,
  *   없거나 "Chromium"뿐이면 navigator.userAgent 글자로 가른다. platform 값은 Android, Chrome OS, Fuchsia, iOS, Linux,
  *   macOS, Windows, Unknown이다(https://wicg.github.io/ua-client-hints/).

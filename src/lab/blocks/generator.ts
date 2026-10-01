@@ -3,7 +3,7 @@
  *
  * Blockly 13.3.0의 PythonGenerator를 이어받아 두 가지 코드를 **같은 줄 수로** 만든다.
  *   code      화면(편집칸)·실제 보드·[공유 링크]·[.py 내려받기]에 쓰는 보통 MicroPython 코드(교과서 예제 모양, 들여쓰기 4칸)
- *   execCode  JSPI가 없는 브라우저(iPad Safari·Android Chrome 등)에서 가상 보드가 돌리는 실행판 — 기다리는 줄과 반복문 머리만 다르다:
+ *   execCode  JSPI가 없는 브라우저(Android Chrome·옛 브라우저 등)에서 가상 보드가 돌리는 실행판 — 기다리는 줄과 반복문 머리만 다르다:
  *               sleep(0.5)            → await __import__('apc_blocks').sleep(0.5)
  *               while True:           → while await __import__('apc_blocks').tick(True):
  *               for count in range(3): → async for count in __import__('apc_blocks').each(range(3)):

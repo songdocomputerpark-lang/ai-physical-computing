@@ -33,3 +33,56 @@ describe('scrollMoreOf — 가로로 아직 안 보이는 쪽', () => {
     }
   });
 });
+
+/** src 아래 .astro·.ts 파일(저장소 뿌리 기준 경로) */
+function sourceFiles(dir: string): string[] {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      return sourceFiles(full);
+    }
+    return /\.(?:astro|ts)$/u.test(entry.name) ? [full] : [];
+  });
+}
+
+/** 줄이 쌓이는 기록 칸·줄을 접는 칸(가로로 넘치지 않거나 그늘이 맞지 않는 칸) — 그늘 규칙에서 뺀다 */
+const SHADE_EXEMPT_CLASS = /(?:^|\s)(?:[\w-]+__(?:log|lines|console|notepad|request)|data-port__code)(?:\s|$)/u;
+
+describe('가로로 넘칠 수 있는 코드 칸은 그늘 규칙도 쓴다(판 1.1.3 최종 전수 점검 2바퀴 ST2-01)', () => {
+  // 그늘 규칙은 `.prose` 안의 표·코드 칸에만 저절로 붙어서, `.prose` 밖의 코드 칸(오류 사전 예시 코드·용어 파일 예시·직접 굽는 명령)은
+  // 휴대폰에서 줄 끝이 잘린 채 끝난 것처럼 보였다. data-scroll-focus를 단 <pre>는 기록 칸이 아니면 data-scroll-shade도 단다.
+  it('data-scroll-focus를 단 <pre> 가운데 기록 칸이 아닌 것은 모두 data-scroll-shade가 있다', () => {
+    const missing: string[] = [];
+    let checked = 0;
+    for (const file of sourceFiles(path.join(rootDir, 'src'))) {
+      const text = fs.readFileSync(file, 'utf8');
+      for (const match of text.matchAll(/<pre\b[^>]*>/gu)) {
+        const tag = match[0];
+        if (!tag.includes('data-scroll-focus')) {
+          continue;
+        }
+        const className = /\bclass="([^"]*)"/u.exec(tag)?.[1] ?? '';
+        if (SHADE_EXEMPT_CLASS.test(className)) {
+          continue;
+        }
+        checked += 1;
+        if (!/\bdata-scroll-shade\b/u.test(tag)) {
+          const line = text.slice(0, match.index).split('\n').length;
+          missing.push(`${path.relative(rootDir, file).split(path.sep).join('/')}:${line} ${tag.slice(0, 80)}`);
+        }
+      }
+    }
+    // 훑기가 코드 칸을 하나도 못 찾으면 거짓으로 통과하지 않게(오류 사전·용어사전·굽기 명령 셋은 있어야 한다)
+    expect(checked).toBeGreaterThanOrEqual(3);
+    expect(missing, '가로로 넘칠 수 있는 코드 칸에는 data-scroll-shade도 붙여요(src/components/common/scroll-focus.ts 머리말)').toEqual([]);
+  });
+
+  it('기록 칸 빼기 규칙은 기록 칸만 뺀다', () => {
+    for (const exempt of ['ble-real__lines', 'board-check__console', 'connect-check__log', 'desktop__notepad', 'port-help__request', 'data-port__code', 'fw__log']) {
+      expect(SHADE_EXEMPT_CLASS.test(exempt), exempt).toBe(true);
+    }
+    for (const code of ['errors-entry__code', 'glossary-code', 'fw__code', 'fw__logbook']) {
+      expect(SHADE_EXEMPT_CLASS.test(code), code).toBe(false);
+    }
+  });
+});

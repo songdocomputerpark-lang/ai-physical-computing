@@ -1,7 +1,8 @@
 /**
  * 블록 전용 호환 모드(PLAN PD-27, §4.5·§8.3 P3-06) — JSPI가 없는 브라우저에서 [실행]이 블록 실행판을 돌리게 한다.
  *
- * 언제: 파이썬 실행기가 제한 모드(JSPI 없음 — iPad·iPhone의 모든 브라우저, Android Chrome, 옛 Chrome·Edge, 또는 ?limited=1)이고,
+ * 언제: 파이썬 실행기가 제한 모드(JSPI 없음 — Android Chrome, 옛 Chrome·Edge·Safari(27 전 판 — iPad·iPhone 포함) 등, 또는 ?limited=1 —
+ *   MDN 호환성 자료 2026-10-02, src/lib/capabilities.ts 머리말)이고,
  * 편집칸 코드가 블록이 마지막으로 만든 화면 코드와 **글자 하나까지 같을 때**만. 그러면 실행기에 실행판(execCode — 기다리는 줄이 await인 판)을 보낸다.
  * 화면·[공유 링크]·[.py 내려받기]·실제 보드에는 늘 보통 코드가 간다(실행판은 워커에만).
  * 코드를 직접 고쳤으면 고친 코드를 그대로 보낸다(제한 모드: time.sleep은 워커를 붙잡은 채 기다려 그동안 화면 입력을 못 받고, [정지]는 파이썬을

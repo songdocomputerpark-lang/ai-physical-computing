@@ -168,7 +168,7 @@ export function renderFirmwareFlasherHtml(options: FirmwareFlasherMarkupOptions)
     '</ol>',
     `<h${subLevel} class="fw__manual-title">방법 2. esptool로 굽기(MicroPython 공식 안내)</h${subLevel}>`,
     `<p>공식 페이지에서 <code>${e(info.fileName)}</code>을 받은 폴더에서 차례로 실행해요. 처음 넣는 보드는 첫 줄(전체 지우기)부터 해요.</p>`,
-    `<pre class="fw__code" data-scroll-focus="직접 굽는 명령"><code>esptool.py erase_flash\nesptool.py --baud 460800 write_flash ${e(offsetLabel)} ${e(info.fileName)}</code></pre>`,
+    `<pre class="fw__code" data-scroll-focus="직접 굽는 명령" data-scroll-shade><code>esptool.py erase_flash\nesptool.py --baud 460800 write_flash ${e(offsetLabel)} ${e(info.fileName)}</code></pre>`,
     '<p>중간에 실패하면 <code>--baud 460800</code>을 빼고 느린 속도로 다시 해요. 연결이 안 되면 BOOT 버튼을 누른 채로 다시 실행해요.</p>',
     `<h${subLevel} class="fw__manual-title">펌웨어 파일 정보</h${subLevel}>`,
     '<dl class="fw__file-info">',

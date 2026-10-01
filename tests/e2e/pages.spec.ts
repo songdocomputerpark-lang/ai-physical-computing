@@ -382,4 +382,61 @@ test.describe('좁은 화면(375px)', () => {
       expect(overflow, `${pagePath} ${offenders.join(', ')}`).toBeLessThanOrEqual(0);
     }
   });
+
+  // 판 1.1.3(최종 전수 점검 2바퀴 ST2-01): 그늘 규칙이 글 읽기(.prose) 안에만 저절로 붙어, 오류 사전의 예시 코드 칸·용어 파일 예시·
+  // 보드 준비 쪽 드라이버 표·직접 굽는 명령은 휴대폰에서 줄 끝이 잘린 채 끝난 것처럼 보였다(learn.spec.ts의 차시 그늘 검사와 같은 모양).
+  test('.prose 밖의 넘치는 코드·표 칸도 오른쪽 안쪽에 그늘이 생기고, 끝까지 밀면 그 그늘이 사라진다', async ({ page }) => {
+    /** 펼침 칸을 모두 연 뒤, 넘치는 칸과 그늘 표시가 맞지 않는 칸 목록(넘치면 end/both/start, 넘치지 않으면 표시 없음) */
+    const mismatches = (selector: string) =>
+      page.locator(selector).evaluateAll((elements) =>
+        elements
+          .map((element, index) => {
+            const overflowing = element.scrollWidth - element.clientWidth > 1;
+            const more = element.getAttribute('data-scroll-more');
+            return overflowing === (more !== null) ? null : `${index}: 넘침 ${overflowing}, 표시 ${String(more)}`;
+          })
+          .filter((item) => item !== null),
+      );
+    const checkShade = async (selector: string) => {
+      const boxes = page.locator(selector);
+      await expect.poll(() => mismatches(selector), { message: selector }).toEqual([]);
+      const index = await boxes.evaluateAll((elements) => elements.findIndex((element) => element.scrollWidth - element.clientWidth > 1));
+      expect(index, `${selector} — 375px에서 넘치는 칸이 하나는 있어야 이 검사가 뜻이 있어요`).toBeGreaterThanOrEqual(0);
+      const box = boxes.nth(index);
+      await box.scrollIntoViewIfNeeded();
+      await expect(box).toHaveAttribute('data-scroll-more', 'end');
+      expect(await box.evaluate((element) => getComputedStyle(element).boxShadow)).toContain('inset');
+      await box.evaluate((element) => {
+        element.scrollLeft = element.scrollWidth;
+      });
+      await expect(box).toHaveAttribute('data-scroll-more', 'start');
+    };
+
+    // 닫힌 펼침 칸(오류 사전의 "왜 났는지와 고치는 법"·교사용 상자) 안의 칸은 크기가 0이라 넘치지 않는다 — 모두 연 뒤 잰다
+    const openAllDetails = () =>
+      page.locator('details').evaluateAll((elements) => {
+        for (const element of elements) {
+          (element as HTMLDetailsElement).open = true;
+        }
+      });
+
+    await page.goto('./help/errors/');
+    await openAllDetails();
+    await checkShade('pre.errors-entry__code');
+
+    await page.goto('./glossary/');
+    await openAllDetails();
+    await checkShade('pre.glossary-code');
+
+    await page.goto('./start/board/');
+    await openAllDetails();
+    await checkShade('div.driver-table');
+    // 직접 굽는 명령(펌웨어 굽기 화면이 스크립트로 그리는 펼침 칸 안 — 실습실 쪽 파일 src/lab/firmware/markup.ts)
+    const manual = page.locator('details:has(pre.fw__code)').first();
+    await expect(manual).toHaveCount(1, { timeout: 30_000 });
+    await manual.evaluate((element) => {
+      (element as HTMLDetailsElement).open = true;
+    });
+    await checkShade('pre.fw__code');
+  });
 });
