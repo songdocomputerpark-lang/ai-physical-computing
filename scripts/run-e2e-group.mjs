@@ -1,11 +1,13 @@
-// 브라우저 테스트 무리 하나만 돌리기 — npm run test:a11y(접근성, Phase 6 구역 B)·npm run perf:measure(성능 측정, 구역 A).
-// Phase 6 병렬 제작 준비(2026-09-26)에서 package.json 명령 자리를 먼저 만들 때 더했다(package.json은 공유 파일이라 구역이 못 고친다).
+// 브라우저 테스트 무리 하나만 돌리기 — npm run test:a11y(접근성 검사)·npm run perf:measure(성능 측정).
+// Phase 6 병렬 제작 준비(2026-09-26)에서 package.json 명령 자리를 먼저 만들 때 더했다.
 //
 // 쓰는 법
 //   node scripts/run-e2e-group.mjs <무리> [Playwright 인자…]
 //   예: node scripts/run-e2e-group.mjs a11y --project=desktop
-// - 무리 = tests/e2e/<무리>*.spec.ts 파일들(예: a11y → a11y.spec.ts·a11y-pages.spec.ts). 파일이 아직 없으면 "아직 없어요"를
-//   한국어로 알리고 종료 코드 0으로 끝난다(구역이 파일을 만들기 전에도 명령이 깨지지 않게).
+// - 무리 = tests/e2e/<무리>*.spec.ts 파일들(예: a11y → a11y.spec.ts·a11y-keyboard.spec.ts). 파일이 하나도 없으면 무엇을 볼지 한국어로
+//   알리고 **실패(종료 코드 1)**로 끝난다 — 돌린 검사가 없는데 성공으로 끝나면 연 1회 점검(MAINTENANCE.md 11절 13·14번)을 하는 사람이
+//   "통과"로 읽는다(판 1.1.3 최종 전수 점검 2바퀴 TD2-01, DECISIONS C74 ④ — 기능이 들어온 뒤의 "아직 없음 → 성공" 분기를 지운다).
+//   개발 중(Phase 6 구역이 파일을 만들기 전)에는 "아직 없어요"와 종료 코드 0이었다.
 // - 있으면 `playwright test <그 파일들> <인자>`를 돌린다. 설정은 playwright.config.ts 그대로다 — PW_BASE_URL이 없으면 npm run build 뒤
 //   미리 보기 서버를 띄우고, 있으면 그 주소(각자 띄운 개발 서버)를 시험한다.
 // - 환경 변수 APC_E2E_GROUP=<무리>를 넘긴다. spec은 이 값으로 "이 명령으로 돌 때만" 도는 검사를 고를 수 있다
@@ -20,11 +22,25 @@ const rootDir = fileURLToPath(new URL('..', import.meta.url));
 const E2E_DIR = path.join(rootDir, 'tests', 'e2e');
 const PLAYWRIGHT_CLI = path.join(rootDir, 'node_modules', '@playwright', 'test', 'cli.js');
 
-/** 무리 이름 → 만드는 구역(안내 문장용). 새 무리를 더하면 package.json 명령 한 줄과 여기 한 줄 */
+/** 무리 이름 → 명령과 무엇을 보는 검사인지(안내 문장용). 새 무리를 더하면 package.json 명령 한 줄과 여기 한 줄 */
 export const E2E_GROUPS = Object.freeze({
-  a11y: { command: 'npm run test:a11y', owner: 'Phase 6 구역 B(접근성, P6-03)' },
-  perf: { command: 'npm run perf:measure', owner: 'Phase 6 구역 A(성능, P6-02)' },
+  a11y: { command: 'npm run test:a11y', about: 'axe 접근성 검사' },
+  perf: { command: 'npm run perf:measure', about: '성능 측정' },
 });
+
+/**
+ * 무리 파일이 없을 때 알리는 한국어 글(순수 함수 — 단위 검사가 본다).
+ * @param {string} group
+ * @param {{ command: string, about: string } | undefined} known
+ * @returns {string}
+ */
+export function missingGroupMessage(group, known) {
+  const what = known ? ` ${known.about}(${known.command})에서 돌릴` : ' 돌릴';
+  return (
+    `[브라우저 테스트 무리] tests/e2e/${group}*.spec.ts 파일이 없어요 —${what} 검사가 없어 실패로 끝내요. ` +
+    '파일 이름이 바뀌었거나 지워졌는지 봐요.'
+  );
+}
 
 /**
  * tests/e2e/ 바로 아래에서 <무리>*.spec.ts 파일을 찾는다(저장소 뿌리 기준, / 구분, 이름 차례).
@@ -46,16 +62,15 @@ export function findGroupSpecs(group, dir = E2E_DIR) {
 const isMain = process.argv[1] !== undefined && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const [group, ...playwrightArgs] = process.argv.slice(2);
-  const known = group ? /** @type {Record<string, { command: string, owner: string }>} */ (E2E_GROUPS)[group] : undefined;
+  const known = group ? /** @type {Record<string, { command: string, about: string }>} */ (E2E_GROUPS)[group] : undefined;
   if (!group || !/^[a-z][a-z\d-]*$/u.test(group)) {
     console.error('[브라우저 테스트 무리] 무리 이름을 적어요. 예: node scripts/run-e2e-group.mjs a11y');
     process.exit(1);
   }
   const specs = findGroupSpecs(group);
   if (specs.length === 0) {
-    const who = known ? ` ${known.owner}가 만들어요.` : '';
-    console.log(`[브라우저 테스트 무리] 아직 없어요: tests/e2e/${group}*.spec.ts 파일이 없어서 돌릴 검사가 없어요.${who}`);
-    process.exit(0);
+    console.error(missingGroupMessage(group, known));
+    process.exit(1);
   }
   console.log(`[브라우저 테스트 무리] ${group}: ${specs.join(', ')}`);
   const result = spawnSync(process.execPath, [PLAYWRIGHT_CLI, 'test', ...specs, ...playwrightArgs], {
