@@ -55,7 +55,7 @@
 | 차시 `/learn/u2/2-1-1/` | `content/lessons/u2/2-1-1.md`(주소 끝 이름 = 파일 이름) |
 | 차시의 예제 코드 | 차시 파일 맨 위 `examples:`에 적힌 경로 — `examples/` 뒤에 붙여요. 예: `esp32/u2/2-1-1-blink-check.py` → `examples/esp32/u2/2-1-1-blink-check.py` |
 | 실습실 [예제 불러오기]의 제목·설명(옮긴 예제) | 예제 옆의 `<이름>.meta.yaml` |
-| 용어사전 낱말 | `content/glossary/<영문 이름>.md` |
+| 용어사전 낱말 | `content/glossary/<영문 이름>.md`(새 낱말의 칸과 규칙 — 이름이 다른 낱말과 겹치면 빌드가 멈춰요 — 은 MAINTENANCE.md 1-4 "용어") |
 | 파이썬 오류 사전·오류 풀이 카드 | `content/help/errors/errors.yaml` |
 | 교사용 자료실의 원고 정정·성취기준·선생님 FAQ | `content/teacher/`·`content/help/faq-teacher.md` |
 | 출처와 라이선스 페이지 | `sources.yaml`(페이지는 저절로 만들어져요) |

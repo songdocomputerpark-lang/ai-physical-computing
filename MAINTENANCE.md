@@ -224,7 +224,36 @@ handouts:                            # (선택) 이어지는 가린 편집본 �
 - 긴 예제는 설정 칸의 `focus`(1-2절)로 줄을 골라요. 150줄이 넘는데 `focus`가 없으면 검사가 참고로 알려 줘요(`example-focus`).
 - 긴 코드 줄은 차시에서 줄 번호 뒤로 접혀 보여요(옆으로 밀지 않아도 돼요).
 
-**용어** — 용어사전에 있는 낱말은 `:용어[패턴]`처럼 적고, 조사는 대괄호 밖에 붙여요(`:용어[패턴]은`). 차시 안에서 처음 나온 곳만 굵은 링크와 풀이 툴팁이 돼요. 보이는 말이 표제어와 다르면 `:용어[화소]{항목=pixel}`. 사전에 없는 낱말은 글자만 보이고 빌드 경고·검사 참고가 남아요. **새 낱말은 `content/glossary/영문-이름.md` 파일 하나로 더해요**(병렬 제작 중인 구역은 직접 만들지 않고 요청 — `src/lab/README.md` 5.4).
+**용어** — 용어사전에 있는 낱말은 `:용어[패턴]`처럼 적고, 조사는 대괄호 밖에 붙여요(`:용어[패턴]은`). 차시 안에서 처음 나온 곳만 굵은 링크와 풀이 툴팁이 돼요. 보이는 말이 표제어와 다르면 `:용어[화소]{항목=pixel}`. 사전에 없는 낱말은 글자만 보이고 빌드 경고·검사 참고가 남아요(`npm test`는 실패해요 — 아래 "차시와 잇기"). **새 낱말은 `content/glossary/영문-이름.md` 파일 하나로 더해요**(병렬 제작 중인 구역은 직접 만들지 않고 요청 — `src/lab/README.md` 5.4).
+
+- **본보기:** `content/glossary/actuator.md`(용어사전 쪽 `/glossary/` 맨 아래 교사용 상자 "낱말을 더하거나 고치는 방법"에도 같은 틀이 있어요). 설정 칸 아래 본문에는 "조금 더 알기" 2~3문장을 적어요.
+
+  ```md
+  ---
+  title: 액추에이터
+  english: Actuator
+  aliases: [구동기, 구동 장치]
+  summary: 제어 신호를 받아 실제로 움직이는 장치예요. …
+  related: [sensor, pwm, agent]
+  group: 피지컬 컴퓨팅
+  ---
+
+  :용어[센서]가 주변을 알아채는 장치라면 …
+  ```
+
+  | 칸 | 꼭? | 적는 것 |
+  |---|---|---|
+  | `title` | 꼭 | 표제어(`:용어[표제어]`로 이어져요) |
+  | `summary` | 꼭 | 툴팁 한 줄 풀이 — **100자 안**, 해요체 |
+  | `english` | | 영어 이름. 약자는 풀어 써요(예: Pulse Width Modulation) |
+  | `aliases` | | 같은 뜻의 다른 이름 목록(`[화소]`) — `:용어[화소]`도 이 항목으로 이어져요 |
+  | `related` | | 함께 볼 항목의 **파일 이름**(.md 뺀 것) 목록. 없는 이름은 검사 참고 |
+  | `group` | | 분야 이름표(사전 항목에 작게 보여요) — 지금 쓰는 다섯 가지(인공지능·영상 처리·피지컬 컴퓨팅·통신·컴퓨터 기초) 가운데 하나 |
+  | `draft` | | `true`면 사전·차시에 나오지 않아요(쓰는 중) |
+
+- **규칙 두 가지(어기면 빌드가 멈춰요 — 6-2 4번):** ① 파일 이름은 영문 소문자·숫자·하이픈만(`bgr-rgb.md`), `index-`·`glossary-`로 시작하지 않아요(파일 이름이 주소 뒤 `#이름`이 돼요). ② 표제어·별칭·영어 이름은 **다른 항목의 표제어·별칭·영어 이름과 겹치면 안 돼요** — 띄어쓰기와 영문 대소문자는 같은 글자로 봐요("픽 셀" = "픽셀", "Pwm" = "PWM"). 같은 말이 두 항목에 필요하면 한쪽의 `aliases`에서 빼요.
+- 올리기 전에 `npm run check:lessons`(1-6)가 용어 파일의 두 규칙과 설정 칸도 함께 봐요(어기면 `[실패] 오류 [glossary] …` 한 줄).
+- **차시와 잇기:** 새 낱말 파일을 더했으면 그 낱말이 처음 나오는 차시 본문 자리에 `:용어[낱말]`을 적어요(제목·링크·상자 제목 안은 안 돼요). 어느 차시에도 이어지지 않은 항목(용어사전 쪽의 "나오는 차시"가 비어요)이 있거나 차시의 `:용어[…]`가 사전에 없으면 `npm test`의 `glossary-lesson-links` 검사(`tests/unit/glossary/glossary-lesson-links.test.ts`)가 그 항목·낱말 이름을 알려 주며 실패해요. 빌드는 멈추지 않지만 "테스트" 워크플로가 빨간 X가 돼요(2026-09-30 최종 점검 — 차시에 글자로는 나오는데 표시가 없어 "나오는 차시"가 빈 항목이 다섯 개 있었어요).
 
 **그림**
 
@@ -309,6 +338,7 @@ npm run check:lessons -- --fix-eol  # 예제 파일의 줄 끝 CRLF(Windows 방�
 ```
 
 - 한 줄에 하나씩 `오류`·`참고`, 대괄호 안이 규칙 이름(아래 표), 그 뒤가 고치는 법이에요. 두 오류를 고친 뒤 다시 돌리면 `[통과] … — 참고 1`과 `통과 1, 실패 0`이 나왔어요.
+- 차시 파일 밖의 문제(용어사전 파일의 규칙·이름 겹침 — 1-4 "용어", 초안과 같은 주소)는 차시 줄 아래에 `[실패] 오류 [glossary] …`처럼 따로 나오고, 결과 줄 끝에 `오류 1개는 차시 파일 밖 문제예요`가 붙어요. 이때는 차시가 모두 통과(`실패 0`)여도 검사는 실패해요(종료 코드 1).
 - 설정 칸 형식이 틀리면 `오류 [fm-schema] 설정 칸 quiz.0.answer: 정답(answer)은 보기의 순번이에요. 첫 보기가 0이라서 보기 개수보다 작아야 해요.`처럼 칸 이름과 한국어 설명이 나와요. 이 오류는 빌드도 멈춰요(6-2).
 
 | 규칙(검사 결과의 [이름]) | 무엇을 보나 | 수준 |
@@ -336,7 +366,7 @@ npm run check:lessons -- --fix-eol  # 예제 파일의 줄 끝 CRLF(Windows 방�
 | `box-unknown`·`lesson-path` | 상자 이름 오타, 같은 주소·차시 번호를 두 파일이 씀 | 오류 |
 | `md-tilde` | 범위 물결표 두 개 사이가 취소선이 된 곳(범위는 `\~` — 1-4절 마크다운 함정) | 오류 |
 | `md-bold` | 굵게 표시(`**`)가 글자 그대로 남은 곳(1-4절 마크다운 함정) | 참고 |
-| `glossary` | 용어사전에 없는 `:용어[…]` | 참고 |
+| `glossary` | 용어사전에 없는 `:용어[…]`(참고), 용어 파일(`content/glossary/`)의 설정 칸·파일 이름 규칙·이름 겹침(오류 — 빌드도 멈춰요, 1-4 "용어"), 용어의 `related`에 없는 항목(참고) | 참고·오류 |
 
 규칙은 `src/components/lesson/lesson-rules.ts`(빌드와 함께 씀)와 `scripts/lib/check-lessons.mjs`(파일을 여는 검사)에 있고, 규칙마다 단위 테스트가 있어요(`tests/unit/lesson/lesson-rules.test.ts`·`check-lessons.test.ts`). 규칙을 바꾸면 이 표도 고쳐요.
 
@@ -669,7 +699,7 @@ ESP32 실습실 코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 
 4. **고지:** `NOTICE.txt`를 새 판 폴더로 옮겨 판·해시·포함 구성요소(ESP-IDF 판 등)를 고치고(구성요소 원문 `public/licenses/micropython-esp32-firmware.txt`도 새 판의 빌드 설정(`ports/esp32/esp32_common.cmake`·`extmod/extmod.cmake`)과 ESP-IDF 판의 `docs/en/COPYRIGHT.rst`로 다시 확인해요), `sources.yaml`의 "MicroPython ESP32_GENERIC …" 항목의 `name`·`paths`·`notice`·`fetched`와 주석의 크기·SHA-256을 고쳐요.
 5. **판을 기준으로 삼는 곳:** `src/lab/serial/banner.ts`의 `SITE_FIRMWARE_VERSION`(실습실이 "옛 펌웨어예요"를 알리는 기준), 실물 점검 도우미 질문 글(`src/lab/esp32/check/items.ts`의 "MicroPython v1.29.0" 문장), 펌웨어에 굳혀 둔 모듈 목록(`src/lab/esp32/board-libraries.ts` — 새 판의 `ports/esp32/boards/manifest.py`와 대조).
 6. **글:** 새 판에서 오류 문구가 바뀌었으면 오류 사전(`content/help/errors/errors.yaml`의 "v1.29.0" 주석이 달린 항목)과 차시(예: 2-1-1·2-1-4·2-1-5의 교사용 칸), `content/teacher/real-pc.md`의 판 표기를 고쳐요. `git grep -n "1.29.0"`으로 찾아요.
-7. **확인:** `npx vitest run tests/unit/firmware/` → `npx vitest run --config tests/unit/firmware/vitest.container.config.mjs` → `npm run build` → `npx playwright test tests/e2e/esp32-firmware.spec.ts tests/e2e/start-board.spec.ts --project=desktop` → 보드 한 대로 `/start/board/`의 [펌웨어 굽기 시작]과 실습실 [실제 보드] 연결(시작 글에 새 판이 보이는지)을 확인해요(운영자).
+7. **확인:** `npx vitest run tests/unit/firmware/` → `npx vitest run --config tests/unit/firmware/vitest.container.config.mjs` → `npm run build` → `npx playwright test tests/e2e/esp32-firmware.spec.ts tests/e2e/start-board.spec.ts --project=desktop` → 보드 한 대로 `/start/board/`의 [펌웨어 굽기 시작]과 실습실 [실제 보드] 연결(시작 글에 새 판이 보이는지)을 확인해요(운영자). 실제 파일 검사(`flasher.test.ts`·`verify.test.ts`, `esp32-firmware.spec.ts`의 "저장소에 든 실제 펌웨어 파일로")는 목록의 `path`·`size`·`sha256`으로 새 파일을 저절로 검증하고 모의 보드에 끝까지 구워 봐요 — 검사 안의 숫자는 고치지 않아도 돼요(MD5는 검사가 파일에서 따로 재요, 2026-09-30 최종 점검 TD-04). 파일을 두지 않고 목록만 고치면 이 검사들은 건너뛰지만, `tests/unit/firmware/manifest.test.ts`가 "파일이 없어요"로 실패해 알려 줘요. 이 파일과 `astro-component.container-test.ts`는 v1.29.0의 이름·크기·SHA-256을 글자로 적어 두었으니(목록이 바뀐 것을 알아채게) 새 판의 값으로 함께 고쳐요.
 
 ## 4-5. 보드 준비 페이지 고치기(P3-10)
 
@@ -714,7 +744,7 @@ ESP32 실습실 코드 칸 위의 [블록]을 누르면 블록을 끌어 놓아 
 | 워크플로 | 언제 도나 | 하는 일 | 걸리는 시간(2026-09-26 무렵) | 실패하면 |
 |---|---|---|---|---|
 | 사이트 배포 | `main`에 push할 때(`PROGRESS.md`·`.agent/`만 바뀐 push는 빼고), [Run workflow] | 작업 "저장소 안전 검사"와 "빌드"를 나란히 돌리고, 둘 다 성공하면 "배포" | 1분 안팎(2026-09-26 52초~76초 — 시나리오 E는 push부터 새 차시 주소 200까지 약 52초) | 사이트에 올라가지 않아요 — 옛 판이 그대로 보여요 |
-| 테스트 | push·풀 리퀘스트, [Run workflow] | 작업 "단위 테스트·타입 검사"(저장소 검사 → 단위 테스트 → 차시 틀 검사 → 타입 검사)와 "브라우저 테스트·링크 검사" | 40분 안팎(최근 42~47분 — Phase 6에 접근성·성능 검사가 늘었어요) | 배포는 그대로 돼요(PD-35). 무엇이 깨졌는지 보고 고쳐요 |
+| 테스트 | push·풀 리퀘스트, [Run workflow] | 작업 "단위 테스트·타입 검사"(저장소 검사 → 단위 테스트 → 차시 틀 검사 → 타입 검사)와 "브라우저 테스트·링크 검사"(브라우저 테스트 → 링크 검사 → 빌드 결과 개인정보 훑기) | 40분 안팎(최근 42~47분 — Phase 6에 접근성·성능 검사가 늘었어요) | 배포는 그대로 돼요(PD-35). 무엇이 깨졌는지 보고 고쳐요 |
 | 저장소 검사 | 모든 push·풀 리퀘스트(바뀐 경로와 상관없이) | 저장소 안전 검사(개인정보 모양·원본 형식·그림 눈 확인 기록) | 30초 안팎 | 이미 공개 저장소에 올라간 뒤예요 — 바로 고쳐 올려요(6-4) |
 
 **Actions 화면 읽는 법**
@@ -751,12 +781,19 @@ gh run view <실행 번호> --log-failed       # 실패한 단계의 기록만 �
 | 실패한 곳(워크플로 › 작업 › 단계) | 뜻 | 볼 절 |
 |---|---|---|
 | 사이트 배포 › 저장소 안전 검사 › 저장소 검사, 또는 저장소 검사 워크플로 | 공개하면 안 되는 것(개인정보 모양·원본 형식·기록 없는 그림)이 있어요 | 6-4 |
-| 사이트 배포 › 빌드 › 설치·빌드·결과 올리기 | 빌드가 멈췄어요. 기록에서 `[출처 검사]`, 설정 칸 형식(`does not match collection schema`), `[배우기]`, `[Pyodide 예비본]`, `[서비스 워커]`, 환경 변수 메시지를 찾아요 | 6-3, 6-2, 6-7 |
+| 사이트 배포 › 빌드 › 설치·빌드·결과 올리기 | 빌드가 멈췄어요. 기록에서 `[출처 검사]`, 설정 칸 형식(`does not match collection schema`), `[배우기]`, `용어사전(content/glossary/)`, `[Pyodide 예비본]`, `[서비스 워커]`, 환경 변수 메시지를 찾아요 | 6-3, 6-2, 6-7 |
 | 테스트 › 단위 테스트·타입 검사 › 차시 틀 검사(check:lessons — 엄격 모드) | 차시 틀 규칙에 어긋난 차시가 있어요(배포는 됐어요) | 6-2 |
 | 테스트 › 단위 테스트·타입 검사 › 타입 검사(astro check) | 프로그램 코드의 타입 오류(배포는 됐어요) | 6-6 |
 | 테스트 › 단위 테스트·타입 검사 › 단위 테스트(Vitest) | 코드·데이터 규칙 검사가 깨졌어요 | 6-8 |
 | 테스트 › 브라우저 테스트·링크 검사 › 브라우저 테스트 | 화면 동작 검사가 깨졌어요 | 6-8 |
 | 테스트 › 브라우저 테스트·링크 검사 › 링크 검사(방금 빌드한 dist/) | 사이트 안 링크·그림 주소가 틀렸어요 | 6-5 |
+| 테스트 › 브라우저 테스트·링크 검사 › 빌드 결과 개인정보 훑기(방금 빌드한 dist/) | 빌드 결과에 컴퓨터 절대 경로·개인정보 모양·메타데이터가 든 그림이 섞였어요(`[빌드 결과 검사] 실패`) — 저장소 파일을 고치고 다시 빌드해요 | 6-4 |
+
+**늘 나오는 메시지(오류가 아니에요)** — `npm run build`는 성공해도 노란 글 두 가지를 매번 남겨요. 내 변경 탓이 아니니 그대로 두어요(2026-09-30 판 1.1.1 빌드 기록으로 확인).
+
+- `[WARN] [vite] … (!) Some chunks are larger than 500 kB after minification.` — 블록 모드(Blockly)나 실습실의 파이썬 실행기처럼 **그 기능을 쓸 때만 받는** 큰 파일이 있어서 나와요(2026-09-29 기준 약 630kB 두 개). 첫 화면·차시 쪽은 이 파일을 받지 않아요(첫 방문 전송량은 `tests/e2e/first-visit.spec.ts`, 실습실 밖 쪽은 `tests/e2e/perf-pages.spec.ts`가 지켜요). 청크 크기 한도(Vite 기본 500kB)는 더 커지면 알아채려고 일부러 그대로 둬요.
+- `Pagefind doesn't support stemming for the language ko` — 사이트 검색(Pagefind)이 한국어 낱말의 어미를 떼어 찾는 기능이 없다는 안내예요. 한국어 검색은 낱말 그대로 찾아요(7절).
+- `npm run check`의 `hint`(힌트)도 오류가 아니에요 — 6-6.
 
 "사이트 배포"가 실패하면 사이트는 옛 판 그대로예요. "테스트"만 실패하면 사이트는 이미 새 판이에요 — 배포와 테스트를 나눈 까닭은 선생님이 올린 차시가 검사 하나 때문에 막히지 않게 하려는 것이에요(PD-35). 그래도 빨간 X는 되도록 그날 고쳐요.
 
@@ -764,10 +801,11 @@ gh run view <실행 번호> --log-failed       # 실패한 단계의 기록만 �
 
 - **빌드는 멈추지 않고 경고만** 남겨요. 빌드 기록에 `[차시 틀] content/lessons/u2/b9.md: [fm-standards] 차시 B9은(는) 성취기준 대응표(…)에 없어요. …`처럼 파일·규칙·문장이 한 줄씩 보여요(2026-09-26 임시 차시로 본 개발 서버 기록).
 - **`check:lessons`는 오류면 실패**해요. 대괄호 안의 규칙 이름을 1-6 표에서 찾아 고쳐요(결과 읽는 법도 1-6). 내 컴퓨터에서는 `npm run check:lessons -- <차시 번호>`로 같은 결과를 봐요.
-- **빌드가 멈추는 경우는 셋이에요.**
+- **빌드가 멈추는 경우는 넷이에요.**
   1. **설정 칸 형식 오류:** 빌드 기록에 `InvalidContentEntryDataError`와 함께 `lessons → u2/b8 data does not match collection schema.`, 그 아래 `quiz.0.answer: 정답(answer)은 보기의 순번이에요. 첫 보기가 0이라서 보기 개수보다 작아야 해요.`처럼 차시·칸 이름·한국어 설명이 나와요(칸마다의 설명은 `src/config/content-schemas.ts`). 1-2 표를 보고 그 칸을 고쳐요. 설정 칸이 `---`로 감싸였는지, 들여쓰기(빈칸 두 개씩)가 맞는지, `#`이나 `: `(쌍점 + 빈칸)이 든 글을 큰따옴표로 감쌌는지(1-4 설정 칸 함정)도 봐요. YAML 문법 자체가 틀리면(따옴표 없는 글 속 `: ` 등) 칸 검사 앞에서 멈춰, 빌드 기록의 `[content] Syncing content` 바로 다음 줄에 `bad indentation of a mapping entry`, 그 아래 `Location:`에 `content\lessons\u2\b1.md:1:13`처럼 파일과 설정 칸 안의 줄:칸이 나와요(2026-09-26 확인 — 영어 메시지예요).
   2. **같은 주소:** `[배우기] 차시 파일을 고쳐야 해요.` 아래에 두 파일이 적혀 있어요. 두 차시 파일이 같은 주소·차시 번호를 써요 — 하나의 파일 이름이나 `unit`·`label`을 고쳐요.
   3. **새 설정 칸과 옛 캐시**(드물고 개발자용): 8-11.
+  4. **용어사전 파일:** 빌드 기록에 `용어사전(content/glossary/): 두 항목이 같은 이름으로 읽혀요 — actuator.md의 "구동기", 새파일.md의 "구동기". …`(표제어·별칭·영어 이름이 다른 항목과 겹침 — 띄어쓰기·영문 대소문자는 같은 글자로 봐요) 또는 `파일 이름 "…md"는 영문 소문자·숫자·하이픈으로 지어요`가 나와요. 메시지가 가리키는 파일의 `title`·`aliases`·`english`나 파일 이름을 고쳐요(용어 파일 규칙은 1-4 "용어"). 용어 파일의 설정 칸이 빠지거나 `summary`가 100자를 넘으면 1번과 같은 방식으로 `glossary → 파일이름 data does not match collection schema.`와 칸 설명이 나오며 멈춰요(용어 칸 규칙도 `src/config/content-schemas.ts`). `npm run check:lessons`는 같은 문제를 스택(오류 더미) 없이 `[실패] 오류 [glossary] …` 한 줄씩으로 먼저 알려요(2026-09-30 최종 점검 TD-08).
 - 경고만 나고 빌드는 계속되는 것: `[상자 문법] 모르는 상자 이름 ":::…"`(상자 이름 오타 — 1-4 표의 이름으로), `[용어 표시] 용어사전에 없는 말 ":용어[…]"`(사전에 낱말을 더하거나 `:용어` 표시를 빼요).
 
 ### 6-3. 출처 검사 — `[출처 검사] 실패`
@@ -880,6 +918,7 @@ Result (3 files):
 ### 6-8. 단위 테스트·브라우저 테스트
 
 - **단위 테스트(Vitest, `npm test`):** 기록에 `FAIL`과 테스트 파일·이름, 기대한 값(expected)과 실제 값이 보여요. 테스트 이름은 한국어라 무엇을 지키는 검사인지 읽을 수 있어요. 그 파일만 다시 돌리기: `npx vitest run tests/unit/<파일>`.
+- **내 변경과 상관없어 보이는 실패가 컴퓨터가 바쁠 때만 나면:** 다른 프로그램(브라우저 여러 개·화상 수업 등)이 많이 도는 컴퓨터에서는 실제 Pyodide를 띄우는 검사(`tests/unit/lab/pyodide-*.test.ts`·`tests/unit/board-*/pyodide-*.test.ts`)와 임시 git 저장소를 만드는 검사(`tests/unit/repo-check.test.ts`)가 시간 때문에 실패할 수 있어요(`Test timed out`). 그 파일만 다시 돌려 통과하면 괜찮아요. 검사 하나의 제한 시간은 30초(`vitest.config.ts`)이고, 가상 보드의 시간 계산을 보는 검사는 실제 시간에 기대지 않게 고쳐 두었어요(2026-09-30 최종 점검 TD-03 — 도우미 `tests/unit/lab/helpers/pyodide-board-run.mjs`의 `frozenClock`·`stopWhen`). 조용한 컴퓨터에서도 되풀이되면 진짜 문제예요.
 - **브라우저 테스트(Playwright, `npm run test:e2e`):** 빌드부터 다시 해서 30~50분 걸려요. 한 파일만: `npx playwright test tests/e2e/learn.spec.ts --project=desktop`. 실패 기록은 5절 7번(Artifacts)이에요. 실패한 검사는 한 번 더 시도해요(`playwright.config.ts`의 `retries: 1` — 로컬·CI 모두). 두 번째에 통과하면 "flaky"(흔들림)로 적혀요. 되풀이되면 원인을 봐요.
 - **예제 스모크**(`tests/e2e/examples-smoke.spec.ts`): 옮긴 예제를 실습실에서 한 번씩 돌려 사이드카의 `smoke:` 기대와 견줘요(2절). 새로 옮긴 예제만: `SMOKE_ONLY=f090 npx playwright test tests/e2e/examples-smoke.spec.ts --project=desktop`.
 - **접근성·성능 무리:** `npm run test:a11y`(`tests/e2e/a11y*.spec.ts` — axe 검사)와 `npm run perf:measure`(`tests/e2e/perf*.spec.ts`, 데스크톱·워커 1개). 무리 파일이 없으면 "아직 없어요"만 알리고 성공으로 끝나요.
@@ -1002,6 +1041,7 @@ Result (3 files):
 | `sources.yaml` "Astro …" 항목과 `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.3.2'`을 기대) | 판 이름 |
 
 - 확인: 먼저 콘텐츠 캐시를 지워요(`node_modules/.astro/` 폴더와, 개발 서버를 끈 뒤 `.astro/` 폴더 — 옛 판이 만든 캐시가 섞이지 않게) → `npm run check` → `npm test` → `npm run build` → `npm run check:lessons -- --complete` → `npm run check:links` → `npm run test:e2e -- --workers=2`. `.astro` 파일의 띄어쓰기(CLAUDE.md "`.astro` 띄어쓰기 주의")처럼 출력이 달라진 곳이 없는지 차시·실습실 몇 쪽을 눈으로 봐요.
+- 띄어쓰기 함정은 `npm test`의 `tests/unit/astro-line-break-spaces.test.ts`가 지켜요. 이 파일의 첫 검사("이 검사의 전제")는 Astro가 쓰는 .astro 변환기(`@astrojs/compiler-rs` — Astro가 함께 설치해요)로 줄바꿈 공백이 지워지는 모습을 직접 확인해요. 판을 올린 뒤 이 첫 검사만 실패하면 공백 규칙이 바뀐 것이니, 검사가 찾는 모양(파일 머리말의 ①②③)과 `.astro` 파일들을 함께 다시 봐요(2026-09-30 최종 점검).
 
 ### 8-8. 그 밖의 npm 패키지
 
@@ -1065,9 +1105,12 @@ Result (3 files):
 | `README.md`, `MAINTENANCE.md`, `CONTRIBUTING.md` | 적힌 사이트 주소 |
 | `src/pages/help/index.astro` | "학교 방화벽에 허용해 달라고 부탁할 주소" 목록의 이 사이트 주소 |
 | `.github/workflows/deploy.yml` | 머리말 주석의 주소 |
+| `scripts/handout-redactions.yaml` | 가린 편집본 교안 두 개의 `credits_page` 글(PDF 끝 출처 쪽에 **인쇄돼 들어가는** 교사용 자료실·출처 페이지 주소). 고친 뒤 운영자 PC에서 `npm run handouts:build`로 PDF를 다시 만들고 `output.sha256`·쪽 눈 확인 기록을 고쳐요(3-3절). 글만 고치고 PDF를 다시 만들지 않으면 PDF에 인쇄된 옛 주소가 그대로 남아요 |
+| `public/firmware/v1.29.0/NOTICE.txt` | 고지 전문 안의 사이트 주소(펌웨어 고지 파일 주소) |
+| `scripts/release/release-notes.mjs` | `SITE_URL`(오프라인판 릴리스 설명에 들어가는 주소) |
 | 주소를 글자로 적은 검사(예: `tests/unit/site.test.ts`) | 새 값 |
 
-- 빠진 곳 찾기: `git grep -n "songdocomputerpark-lang.github.io"`(도메인 — 2026-09-26 기준 30개 파일 안팎)와 `git grep -n "[/]ai-physical-computing"`(하위 경로 — 앞의 `[/]`는 Git Bash가 `/`로 시작하는 글자를 Windows 경로로 바꾸지 않게 하려는 것). 하위 경로를 글자로 적은 검사가 `tests/` 아래에 30개 파일 안팎 있어서, 도메인 바꾸기는 개발자와 함께 `npm test`·`npm run test:e2e`가 모두 통과할 때까지 고쳐요. 카메라 허락 안내 그림(`src/components/start/CameraPermissionFigures.astro`)의 주소창 글자도 바꿔요. 저장소 주소(`github.com/songdocomputerpark-lang/ai-physical-computing`)는 바뀌지 않으니 그대로 둬요.
+- 빠진 곳 찾기: `git grep -n "songdocomputerpark-lang.github.io"`(도메인 — 2026-09-30 기준 36개 파일, `tests/` 밖 26개)와 `git grep -n "[/]ai-physical-computing"`(하위 경로 — 앞의 `[/]`는 Git Bash가 `/`로 시작하는 글자를 Windows 경로로 바꾸지 않게 하려는 것). `src/`의 주석(예: `src/lib/url.ts`의 보기)과 기록 문서(`PROGRESS.md`·`docs/`)는 화면·동작과 상관없어 나중에 고쳐도 돼요. 하위 경로를 글자로 적은 검사가 `tests/` 아래에 45개 파일(2026-09-30 기준) 있어서, 도메인 바꾸기는 개발자와 함께 `npm test`·`npm run test:e2e`가 모두 통과할 때까지 고쳐요. 카메라 허락 안내 그림(`src/components/start/CameraPermissionFigures.astro`)의 주소창 글자도 바꿔요. 저장소 주소(`github.com/songdocomputerpark-lang/ai-physical-computing`)는 바뀌지 않으니 그대로 둬요.
 - 확인: `npm test` → `npm run build` → `npm run check:links`(사이트 뿌리로 바뀐 주소를 따라가요) → `npm run test:e2e -- --workers=2` → push → 새 주소의 첫 화면·차시·실습실(카메라 허락 창이 뜨는지)을 봐요.
 - 오프라인판은 따로 사이트 뿌리로 빌드하므로(12절) 도메인과 상관없어요.
 - **되돌리기:** Settings → Pages에서 Custom domain을 지우고(Remove) `site.ts` 등을 되돌려 push해요.
@@ -1110,7 +1153,7 @@ Result (3 files):
 |---|---|---|---|
 | 1 | 사이트와 실습실이 도는지 | 5절 실사이트 확인. 영상처리 실습실 첫 예제(카메라), ESP32 실습실 첫 예제, 차시 한두 편 | 문제에 따라 6절 |
 | 2 | 공개 중계 서버(MQTT) 주소 | 점검 페이지 `/start/check/` 네트워크 점검의 [시험하기] → "공개 중계 서버" 줄이 "연결됨"인지, 각 서버의 공식 안내가 그대로인지 | `src/lab/mqtt/brokers.ts`(목록·`verified`), `src/lab/blocks/comm/plan.ts`(`COMM_MQTT`), 실물용 템플릿 `examples/esp32/templates/mqtt-pub-sub.py`·`dashboard-demo.py`, `examples/esp32/u3/c1-mqtt-remote.py`, 점검 항목 `src/components/start/network-check/items.ts` |
-| 3 | 사이트 밖 링크 | 목록 뽑기: `git grep -h -o -E "https://[a-zA-Z0-9./?=_%:~#&-]+" -- src content sources.yaml`에 Git Bash는 `\| sort -u`, PowerShell은 `\| Sort-Object -Unique`를 붙여요(2026-09-26 기준 96개). 몇 개씩 열어 봐요 — 특히 드라이버·근거 주소, 교육과정 게시물, 설치 안내 | `src/components/start/board/links.ts`(`LINKS_CHECKED_ON`도), `src/config/standards.ts`, `content/teacher/real-pc.md`, `sources.yaml`의 `url` |
+| 3 | 사이트 밖 링크 | 목록 뽑기: `git grep -h -o -E "https://[a-zA-Z0-9./?=_%:~#&-]+" -- src content sources.yaml`에 Git Bash는 `\| sort -u`, PowerShell은 `\| Sort-Object -Unique`를 붙여요(2026-09-26 기준 96개, 2026-10-01 최종 점검 뒤 109개 안팎 — `git grep`은 git이 아는 파일만 봐요. 아직 `git add`하지 않은 새 파일까지 보려면 `--untracked`를 붙여요). 몇 개씩 열어 봐요 — 특히 드라이버·근거 주소, 교육과정 게시물, 설치 안내 | `src/components/start/board/links.ts`(`LINKS_CHECKED_ON`도), `src/config/standards.ts`, `content/teacher/real-pc.md`, `sources.yaml`의 `url` |
 | 4 | 교육과정 개정 | 인천광역시교육청 교육과정정보센터의 과목 게시물(`src/config/standards.ts`의 `CURRICULUM_SOURCE`)에 새 교육과정·성취기준이 나왔는지 | `src/config/standards.ts`, PLAN §2.2, `content/teacher/assessment.yaml`, 차시 `standards` → `npm run check:lessons` |
 | 5 | 브라우저 지원 | 교실 PC·태블릿에서 `/start/check/`의 [결과 복사](JSPI·Web Serial·Web Bluetooth·카메라). MDN 호환표에서 JSPI(`WebAssembly.Suspending`)·Web Serial 지원이 바뀌었는지 | `src/lib/capabilities.ts`의 안내 문장, `/help/`의 브라우저 메뉴 이름(`src/pages/help/index.astro`), `src/components/compat/BrowserNotice.astro` |
 | 6 | 판 올리기 | `npm outdated`(뒤처진 판), `npm audit --omit=dev`(배포물에 들어가는 패키지의 알려진 보안 문제), 각 라이브러리의 릴리스 안내 | 8절(한 번에 하나) |
@@ -1121,7 +1164,7 @@ Result (3 files):
 | 11 | 운영자 할 일·미해결 | PROGRESS.md의 "운영자 할 일"·"미해결 결정·확인 사항" 표 | 끝난 것을 끝남으로 |
 | 12 | 판 올리고 기록 | CHANGELOG의 "다음 판"에 쌓인 것 | 10절(판을 올렸으면 12절 오프라인판도 다시) |
 | 13 | 성능 | `npm run perf:measure`(다른 검사 없이 혼자 — 약 30분) — 학습 페이지가 DevTools "3G"(느린 3G)에서 3초 안에 그려지는지(FCP), 실습실 밖 쪽이 무거운 라이브러리(Pyodide·MediaPipe·Blockly·MQTT.js·CodeMirror·esptool-js)를 받지 않는지, 통신 모듈이 쓸 때만 받아지는지. 회선 전체(파이썬 워커까지)를 3G로 느리게 한 시나리오 A(홈 → 첫 에지)도 재서 기록해요(5분을 넘으면 PLAN §11 위험 31 — 판정이 아니라 기록, 결정 C48). 실사이트는 `PW_BASE_URL=https://songdocomputerpark-lang.github.io/ai-physical-computing/ npm run perf:measure` | 기준·까닭은 DECISIONS C15·C16, 규칙 `scripts/perf-rules.mjs` |
-| 14 | 접근성 | `npm run test:a11y`(axe 모든 쪽 + 누른 뒤 화면 + 키보드·확대·움직임 줄이기, 두 화면 크기 — 약 15분). 심각(critical·serious) 0이어야 해요. 도구 오판은 규칙을 끄지 않고 `tests/e2e/a11y.spec.ts`의 `KNOWN_FALSE_POSITIVES`에 까닭과 함께 | 새 칸은 `data-scroll-focus`, 역할 없는 칸에 aria-label 금지(DECISIONS C18·C19) |
+| 14 | 접근성 | `npm run test:a11y`(axe 모든 쪽 + 누른 뒤 화면 + 키보드·확대·움직임 줄이기, 두 화면 크기 — 약 15분). 심각(critical·serious) 0이어야 해요. 도구 오판은 규칙을 끄지 않고 `tests/e2e/a11y.spec.ts`의 `KNOWN_FALSE_POSITIVES`에 까닭과 함께 | 새 칸은 `data-scroll-focus`(표를 감싼 스크롤 칸에는 휴대폰에서 "옆으로 더 있어요" 그늘을 그리는 `data-scroll-shade`도 — `src/components/common/scroll-focus.ts`, 차시 마크다운의 표·코드 칸은 저절로), 역할 없는 칸에 aria-label 금지(DECISIONS C18·C19) |
 
 ## 12. 오프라인 배포판
 
@@ -1143,7 +1186,7 @@ Result (3 files):
 ### 12-2. 만드는 법(운영자·개발자)
 
 1. `npm ci`(처음 한 번).
-2. `npm run build:offline` — 약 25~40초. **작업 폴더에 커밋하지 않은 변경(새 파일 포함)이 있으면 멈춰요** — 나눠 줄 zip이 어느 커밋에서 나왔는지 분명하고, 눈 확인 기록이 없는 새 그림이 섞이지 않게요(시험 삼아 만들 때만 `npm run build:offline -- --allow-dirty` — 안내 파일에 "커밋 전 변경"이 적혀요). 결과는 `.cache/offline/apc-offline-<판>.zip`(저장소에 넣지 않아요)과 요약 `.cache/offline/apc-offline-<판>.json`(크기·SHA-256·단계별 시간).
+2. `npm run build:offline` — 약 30초~1분 30초(실측 2026-09-29: 판 1.1.0 32.5초, 판 1.1.1 71.8초 — 그 가운데 사이트 빌드가 20.6초·59.8초. 요약 `.json`의 단계별 시간). **작업 폴더에 커밋하지 않은 변경(새 파일 포함)이 있으면 멈춰요** — 나눠 줄 zip이 어느 커밋에서 나왔는지 분명하고, 눈 확인 기록이 없는 새 그림이 섞이지 않게요(시험 삼아 만들 때만 `npm run build:offline -- --allow-dirty` — 안내 파일에 "커밋 전 변경"이 적혀요). 결과는 `.cache/offline/apc-offline-<판>.zip`(저장소에 넣지 않아요)과 요약 `.cache/offline/apc-offline-<판>.json`(크기·SHA-256·단계별 시간).
    - 하는 일(`scripts/build-offline.mjs` 머리말): 파이썬 패키지 확인 → 사이트 뿌리(`/`)로 빌드(`scripts/offline/astro.config.offline.mjs` — 보통 설정에 오프라인 표시 한 줄) → 서비스 워커 오프라인 설정 → Pyodide 파일 채우기(고정 주소 + SHA-256) → 링크 검사 → 빌드 결과 확인 → 안내 파일 → 개인정보 검사 → zip → 다시 읽어 CRC 확인. **하나라도 실패하면 zip을 만들지 않아요.**
    - 안내 글·서버 스크립트만 고쳤으면 `node scripts/build-offline.mjs --skip-build`(다시 빌드하지 않고 묶기만).
    - 한 작업 폴더에서 빌드는 한 번에 하나만 돌려요(콘텐츠 캐시·`public/vendor/`를 함께 써요). 뿌리 경로 빌드와 보통 빌드를 번갈아 하면 콘텐츠 캐시를 새로 그려 느려질 뿐이에요.

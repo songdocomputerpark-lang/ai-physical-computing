@@ -98,6 +98,19 @@ describe('출처 페이지 데이터(src/lib/credits.ts)', () => {
     expect(view.licenseGroups.flatMap((group) => group.entries.map((entry) => entry.name))).toContain('Astro 7.3.2');
   });
 
+  it('출처 페이지에 글자 그대로 보이는 칸(이름·저작자·라이선스·쓰는 곳·권리 표기)에는 마크다운 굵게(**)를 쓰지 않는다', () => {
+    // 출처 페이지(/credits/)는 이 칸들을 마크다운으로 바꾸지 않고 글자 그대로 보여 준다 — "**설명 파일…**"이 별표째 보였다(2026-09-30 최종 점검 TD-06).
+    // 글 속 경로 글롭(content/lessons/**/*.images.yaml처럼 / 뒤의 **)과 paths·exclude_paths 칸은 그대로 둔다.
+    const { entries } = parseRegistry(fs.readFileSync(new URL('../../sources.yaml', import.meta.url), 'utf8'));
+    const shown = entries.flatMap((entry) =>
+      (['name', 'author', 'license', 'used_in', 'rights'] as const)
+        .map((field) => [field, (entry as unknown as Record<string, unknown>)[field]] as const)
+        .filter(([, value]) => typeof value === 'string' && value.replace(/\/\*\*/gu, '/').includes('**'))
+        .map(([field]) => `${entry.name} — ${field}`),
+    );
+    expect(shown).toEqual([]);
+  });
+
   it('분류 이름과 날짜를 한국어로 보여 준다', () => {
     expect(categoryLabel('third_party')).toBe('제3자 권리 표기 자료');
     expect(categoryLabel('stack')).toBe('실행 구성요소');

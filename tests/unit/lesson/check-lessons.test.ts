@@ -234,6 +234,43 @@ describe('check:lessons — 파일을 여는 검사', () => {
     expect(issues.filter((item) => item.code === 'glossary').map((item) => item.level)).toEqual(['warning']);
   });
 
+  it('glossary(용어사전 파일): 표제어·별칭이 다른 항목과 겹치면 스택 없이 한 줄 오류로 실패하고, 나머지 검사는 계속한다(빌드는 이 문제에서 멈춘다)', async () => {
+    // 2026-09-30 최종 점검 TD-08: 전에는 Node 오류 더미(스택 트레이스)와 함께 멈췄다
+    // 파일은 이름 차례로 읽는다 — pixel.md가 먼저, 겹치는 spot.md가 뒤
+    write('content/glossary/spot.md', '---\ntitle: 점\naliases: [픽 셀]\nsummary: 겹치는 이름을 가진 시험 항목이에요.\n---\n');
+    const { text, failed, report } = await run({ only: ['v1'] });
+    expect(failed).toBe(true);
+    expect(report.global.map((item) => `${item.level}:${item.code}`)).toEqual(['error:glossary']);
+    expect(text).toContain('[실패] 오류 [glossary] 용어사전(content/glossary/): 두 항목이 같은 이름으로 읽혀요 — pixel.md의 "픽셀", spot.md의 "픽 셀"');
+    // 먼저 들어간 항목(pixel)은 그대로 쓰여 차시의 :용어[픽셀]은 사전에 있는 말로 본다
+    expect(report.lessons[0]?.issues.filter((item) => item.code === 'glossary')).toEqual([]);
+    expect(text).toContain('[통과] content/lessons/u1/v1.md');
+    // 차시는 모두 통과("실패 0")인데 검사는 실패한다 — 결과 줄이 그 까닭을 함께 알린다(헷갈리지 않게)
+    expect(text).toMatch(/통과 1, 실패 0\(오류 1, 참고 0\)\. 오류 1개는 차시 파일 밖 문제예요/u);
+  });
+
+  it('glossary(용어사전 파일): 설정 칸 규칙(summary 등)·파일 이름 규칙에 어긋나면 파일마다 한 줄 오류', async () => {
+    write('content/glossary/no-summary.md', '---\ntitle: 요약 없음\n---\n');
+    write('content/glossary/Upper.md', '---\ntitle: 대문자 이름\nsummary: 파일 이름에 대문자가 있어요.\n---\n');
+    write('content/glossary/broken.md', '---\ntitle: 깨진 칸\nsummary: 설명: 쌍점이 있어요\n---\n');
+    const { text, failed, report } = await run({ only: ['v1'] });
+    expect(failed).toBe(true);
+    expect(report.global).toHaveLength(3);
+    expect(text).toContain('오류 [glossary] content/glossary/broken.md: 설정 칸 YAML 문법 오류');
+    expect(text).toContain('오류 [glossary] content/glossary/no-summary.md: 설정 칸이 용어 규칙에 맞지 않아요(summary —');
+    expect(text).toContain('오류 [glossary] 용어사전(content/glossary/): 파일 이름 "Upper.md"는 영문 소문자·숫자·하이픈으로 지어요');
+  });
+
+  it('glossary(용어사전 파일): related에 없는 항목을 적으면 참고(실패 아님 — 빌드도 그 링크만 빼고 경고)', async () => {
+    write('content/glossary/pixel.md', '---\ntitle: 픽셀\nsummary: 디지털 사진을 이루는 작은 점이에요.\nrelated: [frame]\n---\n');
+    const { text, failed } = await run({ only: ['v1'] });
+    expect(failed).toBe(false);
+    expect(text).toContain('[참고] [glossary] content/glossary/pixel.md의 related에 적은 "frame" 항목이 없어요');
+    expect(text).toMatch(/실패 0\(오류 0, 참고 1\)/u);
+    // 참고만 있으면 "차시 파일 밖 문제" 안내는 붙지 않는다(실패가 아니므로)
+    expect(text).not.toContain('차시 파일 밖 문제');
+  });
+
   it('lesson-path: 두 파일이 같은 차시 번호를 쓰면 실패(빌드는 경고)', async () => {
     write('content/lessons/u1/v1-copy.md', lesson());
     const { text, failed } = await run();

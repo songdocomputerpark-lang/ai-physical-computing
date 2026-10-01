@@ -11,7 +11,8 @@
 //   img-file          본문 그림(/images/…)이 public/에 있는지, 바깥 주소 그림이 아닌지
 //   img-review        원고·화면 래스터 그림(public/images/lessons/)에 눈 확인 기록("통과")이 있는지(PD-32)
 //   img-alt-manifest  그림 목록(<차시>.images.yaml)의 alt와 본문 대체 글이 같은지(P5-01 제안)
-//   glossary          :용어[…]가 용어사전에 있는지(없으면 참고 — 새 낱말은 통합 때 사전에 넣는다)
+//   glossary          :용어[…]가 용어사전에 있는지(없으면 참고 — 새 낱말은 통합 때 사전에 넣는다), 그리고 용어사전 파일 자체가 규칙에 맞는지
+//                     (설정 칸·파일 이름·표제어/별칭/영어 이름 겹침 — 빌드가 멈추는 문제라 오류, 파일마다 한 줄. 2026-09-30 최종 점검 TD-08)
 //   box-unknown       모르는 상자 이름(:::교사욯 같은 오타 — 화면에 글자 그대로 보인다)
 //   lesson-path       두 파일이 같은 주소·차시 번호를 쓰는지, 파일 이름·폴더 규칙(lesson-data.ts의 checkLessons)
 //   curriculum        차례표에 있는데 아직 md가 없는 차시(목록으로만 알림, --complete면 오류)
@@ -21,7 +22,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { markdownConfigDefaults, unified } from '@astrojs/markdown-remark';
 import { parseDocument } from 'yaml';
-import { createGlossaryRegistry, findGlossaryMarkers, resolveGlossaryMarker } from '../../src/components/glossary/glossary.ts';
+import {
+  createGlossaryRegistry,
+  findGlossaryMarkers,
+  findRelatedProblems,
+  formatGlossaryProblem,
+  resolveGlossaryMarker,
+} from '../../src/components/glossary/glossary.ts';
 import { allPlannedLessons } from '../../src/components/lesson/curriculum.ts';
 import { checkLessons as checkLessonEntries } from '../../src/components/lesson/lesson-data.ts';
 import { parseFocusRanges, splitExampleCode } from '../../src/components/lesson/example-code.ts';
@@ -55,7 +62,7 @@ export const LONG_EXAMPLE_LINES = 150;
  * @property {{ unit: number, label: string, title: string, slug: string, draftFile?: string }[]} missing 차례표에 있는데 md가 없는(또는 초안인) 차시
  * @property {number} plannedCount 차례표의 차시 수
  * @property {boolean} complete --complete(없는 차시도 오류)
- * @property {CheckIssue[]} global 파일 하나에 묶이지 않는 문제(같은 주소 등)
+ * @property {CheckIssue[]} global 파일 하나에 묶이지 않는 문제(같은 주소, 용어사전 파일의 문제 등)
  */
 
 /** @param {string} value */
@@ -151,23 +158,60 @@ export async function createLessonRenderer() {
 }
 
 /**
- * 용어사전(content/glossary/*.md)을 읽어 찾아보기 표를 만든다.
+ * 용어사전(content/glossary/*.md)을 읽어 찾아보기 표를 만들고, 표에 넣지 못한 파일은 까닭을 모은다(problems — 검사는 "오류 [glossary] …"로 알린다).
+ * 빌드는 같은 문제에서 멈춘다: 설정 칸 규칙(src/config/content-schemas.ts glossarySchema — title·summary 100자 안 등), 파일 이름 규칙과
+ * 표제어·별칭·영어 이름 겹침(src/components/glossary/glossary.ts createGlossaryRegistry). 2026-09-30 최종 점검 TD-08: 전에는 이 검사가 규칙에 안 맞는
+ * 파일을 말없이 빼고, 이름이 겹치면 Node 오류 더미(스택 트레이스)와 함께 멈췄다 — 이제 파일마다 한 줄로 알리고 나머지 검사는 계속한다.
+ * 겹침은 사이트 규칙 그대로 보려고 항목을 하나씩 더해 보며 createGlossaryRegistry가 멈추는 항목만 뺀다(항목 100개 안팎이라 금방 끝난다).
+ * @param {string} rootDir
+ * @returns {{ registry: ReturnType<typeof createGlossaryRegistry>, problems: string[] }}
+ */
+export function loadGlossary(rootDir) {
+  const directory = path.join(rootDir, GLOSSARY_ROOT);
+  /** @type {string[]} */
+  const problems = [];
+  /** @type {{ id: string, data: any }[]} */
+  const inputs = [];
+  const names = fs.existsSync(directory) ? fs.readdirSync(directory).filter((name) => name.endsWith('.md')).sort() : [];
+  for (const name of names) {
+    const file = `${GLOSSARY_ROOT}/${name}`;
+    const { frontmatter } = splitFrontmatter(fs.readFileSync(path.join(directory, name), 'utf8'));
+    if (frontmatter === null) {
+      problems.push(`${file}: 맨 위에 --- 로 감싼 설정 칸(title·summary)이 없어요. 본보기: content/glossary/actuator.md`);
+      continue;
+    }
+    const document = parseDocument(frontmatter);
+    if (document.errors.length > 0) {
+      problems.push(`${file}: ${describeYamlSyntaxError(/** @type {any} */ (document.errors[0]))}`);
+      continue;
+    }
+    const parsed = glossarySchema.safeParse(document.toJS() ?? {});
+    if (!parsed.success) {
+      const reasons = parsed.error.issues.map((issue) => `${issue.path.length > 0 ? issue.path.join('.') : '설정 칸'} — ${issue.message}`);
+      problems.push(`${file}: 설정 칸이 용어 규칙에 맞지 않아요(${reasons.join(' / ')}). 칸 설명은 MAINTENANCE.md 1-4 "용어".`);
+      continue;
+    }
+    inputs.push({ id: name.slice(0, -3), data: parsed.data });
+  }
+  /** @type {{ id: string, data: any }[]} */
+  const accepted = [];
+  for (const input of inputs) {
+    try {
+      createGlossaryRegistry([...accepted, input]);
+      accepted.push(input);
+    } catch (error) {
+      problems.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+  return { registry: createGlossaryRegistry(accepted), problems };
+}
+
+/**
+ * 용어사전의 찾아보기 표만(규칙에 안 맞는 파일은 빼고). 까닭까지 보려면 loadGlossary.
  * @param {string} rootDir
  */
 export function loadGlossaryRegistry(rootDir) {
-  const directory = path.join(rootDir, GLOSSARY_ROOT);
-  const inputs = fs.existsSync(directory)
-    ? fs
-        .readdirSync(directory)
-        .filter((name) => name.endsWith('.md'))
-        .sort()
-        .flatMap((name) => {
-          const { frontmatter } = splitFrontmatter(fs.readFileSync(path.join(directory, name), 'utf8'));
-          const parsed = glossarySchema.safeParse(frontmatter === null ? {} : (parseDocument(frontmatter).toJS() ?? {}));
-          return parsed.success ? [{ id: name.slice(0, -3), data: parsed.data }] : [];
-        })
-    : [];
-  return createGlossaryRegistry(inputs);
+  return loadGlossary(rootDir).registry;
 }
 
 /**
@@ -392,10 +436,11 @@ export async function runLessonCheck(options = {}) {
   const includeDrafts = options.includeDrafts ?? false;
   const complete = options.complete ?? false;
   const only = (options.only ?? []).map((value) => toPosix(value).replace(/^\.\//u, '').toLowerCase());
+  const glossary = loadGlossary(rootDir);
   const context = {
     rootDir,
     renderer: await createLessonRenderer(),
-    glossary: loadGlossaryRegistry(rootDir),
+    glossary: glossary.registry,
     images: loadImageInfo(rootDir),
     includeDrafts,
     /** 예제 파일의 CRLF를 LF로 바꿔 저장할지(--fix-eol) */
@@ -411,6 +456,14 @@ export async function runLessonCheck(options = {}) {
   // 파일끼리 부딪히는 곳(같은 주소는 빌드도 멈춘다 — 나머지는 빌드에서 경고, 여기서는 오류)
   /** @type {CheckIssue[]} */
   const global = [];
+  // 용어사전 파일의 문제(설정 칸 규칙·파일 이름·이름 겹침) — 빌드가 멈추는 문제라 몇 차시만 검사할 때도 알린다
+  for (const message of glossary.problems) {
+    global.push({ level: 'error', code: 'glossary', message });
+  }
+  // related에 없는 항목·자기 자신을 적은 곳 — 빌드는 그 링크만 빼고 경고로 남긴다(참고)
+  for (const problem of findRelatedProblems(glossary.registry)) {
+    global.push({ level: 'warning', code: 'glossary', message: formatGlossaryProblem(problem).replace(/^\[용어사전\]\s*/u, '') });
+  }
   const entries = all.filter((lesson) => lesson.data).map((lesson) => ({ id: lesson.id, data: lesson.data, filePath: lesson.file }));
   for (const problem of checkLessonEntries(entries)) {
     const owner = all.find((lesson) => lesson.id === problem.id);
@@ -484,8 +537,13 @@ export function formatLessonCheck(report) {
     }
   }
   for (const problem of report.global) {
-    lines.push(`[실패] ${problem.message}`);
-    errorCount += problem.level === 'error' ? 1 : 0;
+    if (problem.level === 'error') {
+      lines.push(`[실패] 오류 [${problem.code}] ${problem.message}`);
+      errorCount += 1;
+    } else {
+      lines.push(`[참고] [${problem.code}] ${problem.message}`);
+      warningCount += 1;
+    }
   }
   if (report.missing.length > 0) {
     lines.push('');
@@ -498,10 +556,14 @@ export function formatLessonCheck(report) {
       );
     }
   }
+  // 차시 파일 밖 오류(용어사전 파일·초안과 같은 주소)는 차시를 "실패"로 세지 않으므로, "실패 0"인데 검사가 실패(종료 코드 1)해 헷갈리지 않게
+  // 결과 줄에 따로 알린다(2026-10-01 최종 점검 TD-08 이어서)
+  const outsideErrors = report.global.filter((problem) => problem.level === 'error').length;
   lines.push('');
   lines.push(
     `결과: 차시 ${passed + failed}개 검사 — 통과 ${passed}, 실패 ${failed}(오류 ${errorCount}, 참고 ${warningCount})` +
-      `${skipped > 0 ? `, 초안 ${skipped}개 건너뜀` : ''}${report.missing.length > 0 ? `, 아직 없는 차시 ${report.missing.length}개${report.complete ? '(--complete: 실패)' : '(목록만)'}` : ''}.`,
+      `${skipped > 0 ? `, 초안 ${skipped}개 건너뜀` : ''}${report.missing.length > 0 ? `, 아직 없는 차시 ${report.missing.length}개${report.complete ? '(--complete: 실패)' : '(목록만)'}` : ''}.` +
+      `${outsideErrors > 0 ? ` 오류 ${outsideErrors}개는 차시 파일 밖 문제예요(위의 "[실패] 오류 […]" 줄 — 용어사전 파일 등). 차시가 모두 통과해도 검사는 실패해요.` : ''}`,
   );
   return lines.join('\n');
 }
