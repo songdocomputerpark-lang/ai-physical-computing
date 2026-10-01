@@ -4,7 +4,8 @@
  *
  * 실습실 공통 틀(src/components/lab/LabShell.astro)에 가상 보드 칸(src/components/lab/BoardIo.astro)을 넣고, 흉내 모듈
  * src/lab/modules/board/(labs ['esp32'])가 파이썬의 machine·time 흉내(machine.py·apc_board.py)와 잇는다.
- * 가상 보드는 Pyodide 코어만 쓴다(PD-04) — OpenCV·numpy를 받지 않는다(LabShell pyodidePackages={[]}: 준비 모듈의 미리 받기도 파이썬 엔진만).
+ * 가상 보드는 Pyodide 코어만 쓴다(PD-04) — OpenCV·numpy를 받지 않는다(LabShell pyodidePackages={[]}: 준비 모듈의 미리 받기도 파이썬 엔진만,
+ * 실행 때도 import 문을 보고 받지 않는다 — 보드 모듈 manifest packagesFromImports: false, 판 1.1.3).
  *
  * 예제 목록: examples/esp32/ 아래 .py(보드 라이브러리 폴더 esp32/lib/ 제외)를 빌드 때 모두 읽는다(src/lab/esp32/examples.ts).
  * 새 예제는 .py 파일 하나를 그 폴더에 두면 [예제 불러오기]에 들어간다(원칙 6).
@@ -119,6 +120,10 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
         </li>
         <li>실물 보드는 소수를 짧게(8자리 안팎) 보여 줘요. 소수를 출력할 때는 round(값, 2)처럼 자릿수를 정해 두면 두 곳의 결과가 같아요.</li>
         <li>가상 보드는 실행할 때마다 보드를 새로 켠 것처럼 핀과 시계(ticks_ms)가 처음 상태에서 시작해요.</li>
+        <li>
+          numpy·OpenCV(cv2) 같은 컴퓨터용 파이썬 패키지는 실물 보드에 없어서 가상 보드에서도 쓸 수 없어요(import하면 실물과 같은 오류가 나요). 다만
+          컴퓨터 파이썬에 기본으로 들어 있는 모듈 가운데 실물 보드에는 없는 것(예: datetime)은 가상 보드에서 돌 수 있으니, 실물 보드에서도 확인해요.
+        </li>
       </ul>
     </Callout>
     <Callout type="오류" title="코드가 오류로 끝났어요">

@@ -12,6 +12,10 @@
  * time은 늘 있으므로 실행 직전마다 apc_board.install()이 불려(멱등) import 훅·실행 훅이 걸린다. 이 표는 ESP32 실습실의 워커에만
  * 등록되므로(shimTableForLab) 영상처리 실습실의 time은 그대로다. 학생 코드의 `import time`이 MicroPython판이 되는 것은 import 훅이다.
  *
+ * packagesFromImports: false — ESP32 실습실 워커는 실행 때 import 문을 보고 Pyodide 패키지(numpy·opencv-python …)를 받지 않는다
+ * (실물 MicroPython에는 pip 패키지가 없다 — 판 1.1.3 최종 전수 점검 2바퀴 LB2-01). 준비 단계도 받지 않는다(LabShell pyodidePackages={[]}).
+ * 보드 코드가 그런 이름을 import하면 apc_board.py의 import 훅이 실물과 같은 `ImportError: no module named '…'`로 알린다.
+ *
  * 이름(모두 "board."로 시작, 모양은 README 7절)
  * - 이벤트(파이썬 → 화면): board.state(핀 상태 묶음 — 실행 시작·바뀜·코드가 끝난 뒤 대기·끝), board.device(부품 흉내의 상태, 부품 단계에서 씀),
  *   board.notice(코드와 배선이 어긋났다는 안내 — 보드 그림 아래 "배선 확인" 칸, 2026-09-18 검토 반영),
@@ -28,6 +32,7 @@ const manifest: LabModuleManifest = {
   labs: ['esp32'],
   shims: { time: 'apc_board' },
   packages: [],
+  packagesFromImports: false,
   requestKinds: [],
   eventKinds: ['board.state', 'board.device', 'board.notice', 'board.uart.tx'],
   channels: ['board.inputs', 'board.input', 'board.wiring', 'board.device.input'],

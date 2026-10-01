@@ -133,6 +133,9 @@ export function validateManifests(
     if (manifest.packages !== undefined && (!Array.isArray(manifest.packages) || manifest.packages.some((name) => typeof name !== 'string' || name.trim() === ''))) {
       errors.push(`${where}: packages는 Pyodide 패키지 이름 목록이에요(예: ['opencv-python']).`);
     }
+    if (manifest.packagesFromImports !== undefined && typeof manifest.packagesFromImports !== 'boolean') {
+      errors.push(`${where}: packagesFromImports는 true 또는 false예요(false = 실행 때 import 문을 보고 패키지를 받지 않음).`);
+    }
     if (manifest.load !== undefined) {
       errors.push(...validateLoadRule(manifest.load, where));
     }

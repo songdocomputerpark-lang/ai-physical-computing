@@ -29,7 +29,13 @@ export const BOARD_LIBRARY_PREFIX = 'esp32/lib/';
 /**
  * 보드 라이브러리가 쓸 수 없는 이름(가상 보드 붙박이 모듈·MicroPython 내장 모듈과 겹치면 학생 코드가 엉뚱한 파일을 받는다).
  * 실물 보드에서는 보드 뿌리의 파일이 펌웨어에 굳혀 둔(frozen) 모듈보다 먼저 불리므로, ESP32_GENERIC v1.29.0이 굳혀 둔 이름
- * (ports/esp32/boards/manifest.py: asyncio·aioespnow·dht·ds18x20·neopixel·onewire·umqtt·upysh와 bundle-networking 묶음)도 막는다.
+ * (ports/esp32/boards/manifest.py: asyncio·aioespnow·dht·ds18x20·neopixel·onewire·umqtt·upysh와 bundle-networking 묶음 —
+ * micropython-lib bundles/bundle-networking/manifest.py: mip·ntptime·ssl·requests·webrepl·urequests)도 막는다.
+ * 판 1.1.3(최종 전수 점검 2바퀴 LB2-02, 2026-10-02 공식 소스로 확인)에서 더한 것: 굳힌 포트 모듈 ports/esp32/modules/(espnow.py·apa106.py),
+ * C 모듈 ports/esp32/esp32_common.cmake(modesp.c·modesp32.c·modespnow.c, MICROPY_PY_BTREE ON)·mpconfigport.h와 py/mpconfig.h 기본값
+ * (cryptolib·deflate·vfs·uctypes, MICROPY_PY_NETWORK → tls·websocket). 가상 보드가 "펌웨어에는 들어 있는 모듈"이라고 알리는 이름
+ * (src/lab/modules/board/apc_board.py의 NOT_YET_MODULES "firmware"·FIRMWARE_ONLY_MODULES)은 모두 이 목록 안에 있어야 한다 —
+ * tests/unit/lab/board-libraries.test.ts가 그 파일을 읽어 본다.
  */
 export const RESERVED_LIBRARY_NAMES: readonly string[] = Object.freeze([
   'machine',
@@ -56,6 +62,8 @@ export const RESERVED_LIBRARY_NAMES: readonly string[] = Object.freeze([
   'framebuf',
   // 펌웨어에 굳혀 둔(frozen) 모듈 — 보드 뿌리에 같은 이름을 올리면 그 파일이 먼저 불린다(ports/esp32/boards/manifest.py v1.29.0)
   'asyncio',
+  // extmod/asyncio/manifest.py의 옛 이름 호환 모듈(uasyncio.py — 판 1.1.3 통합에서 더함, apc_board.py U_ALIASES)
+  'uasyncio',
   'aioespnow',
   'dht',
   'ds18x20',
@@ -67,6 +75,19 @@ export const RESERVED_LIBRARY_NAMES: readonly string[] = Object.freeze([
   'webrepl_setup',
   'inisetup',
   'requests',
+  // bundle-networking의 나머지·굳힌 포트 모듈·C 모듈(판 1.1.3 — 위 머리말의 근거)
+  'mip',
+  'urequests',
+  'ssl',
+  'espnow',
+  'apa106',
+  'btree',
+  'cryptolib',
+  'deflate',
+  'vfs',
+  'tls',
+  'websocket',
+  'uctypes',
 ]);
 
 /**

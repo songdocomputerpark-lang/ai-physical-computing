@@ -68,6 +68,8 @@ export interface BoardStepRecord {
   value?: unknown;
   errorType?: string;
   errorMessage?: string;
+  /** 오류 트레이스백 전체(Pyodide가 덧붙인 안내 줄 포함 — 워커가 화면에 넘기는 error.traceback과 같은 글) */
+  errorText?: string;
   stdout: string;
   stderr: string;
   /** 이 단계의 board.state 이벤트 */

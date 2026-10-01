@@ -8,6 +8,7 @@ import {
   PYTHON_MODULE_OWNERS,
   collectPythonModules,
   moduleOwnerOf,
+  packagesFromImportsForLab,
   pythonModulesForLab,
   shimTableForLab,
 } from '../../../src/lab/python/modules.ts';
@@ -74,5 +75,28 @@ describe('실습실별로 넣는 파일·흉내 표(pythonModulesForLab·shimTab
     expect(Object.keys(pythonModulesForLab('vision', manifests, owners, modules))).toEqual(['apc_runtime.py', 'apc_orphan.py']);
     expect(Object.keys(pythonModulesForLab('esp32', manifests, owners, modules))).toEqual(['apc_runtime.py', 'machine.py', 'apc_orphan.py']);
     expect(MODULE_MANIFESTS.find((manifest) => manifest.id === 'board')?.labs).toEqual(['esp32']);
+  });
+});
+
+describe('실행 때 import 문을 보고 패키지를 받는지(packagesFromImportsForLab — 판 1.1.3 LB2-01)', () => {
+  it('가상 보드가 붙는 ESP32 실습실(4단원 보드 칸·한 화면 보드 틀도 labId esp32)은 받지 않고, 영상처리·시험 실습실은 받는다', () => {
+    expect(packagesFromImportsForLab('esp32')).toBe(false);
+    expect(packagesFromImportsForLab('vision')).toBe(true);
+    expect(packagesFromImportsForLab('dev')).toBe(true);
+    // labId가 없으면(단위 테스트·옛 호출) 예전처럼 받는다
+    expect(packagesFromImportsForLab()).toBe(true);
+    expect(MODULE_MANIFESTS.find((manifest) => manifest.id === 'board')?.packagesFromImports).toBe(false);
+  });
+
+  it('실습실 이름이 아니라 붙는 모듈의 manifest로 정한다 — 깃발을 적은 모듈이 붙는 새 실습실도 받지 않는다', () => {
+    const manifests: LabModuleManifest[] = [
+      { id: 'board', title: '보드', labs: ['esp32', 'new-board-lab'], packagesFromImports: false },
+      { id: 'common', title: '공통', labs: '*' },
+      { id: 'other', title: '다른 것', labs: ['vision'], packagesFromImports: true },
+    ];
+    expect(packagesFromImportsForLab('new-board-lab', manifests)).toBe(false);
+    expect(packagesFromImportsForLab('esp32', manifests)).toBe(false);
+    expect(packagesFromImportsForLab('vision', manifests)).toBe(true);
+    expect(packagesFromImportsForLab('dev', manifests)).toBe(true);
   });
 });

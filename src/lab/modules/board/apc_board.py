@@ -1367,6 +1367,10 @@ U_ALIASES = {
     "uselect": "select",
     "usocket": "socket",
     "uplatform": "platform",
+    # uasyncio는 붙박이 u-이름이 아니라 펌웨어에 굳힌 옛 이름 호환 모듈이다 — extmod/asyncio/manifest.py `module("uasyncio.py")`
+    # (그 파일은 asyncio를 그대로 넘겨줌)를 ports/esp32/boards/manifest.py가 `include("$(MPY_DIR)/extmod/asyncio")`로 넣는다
+    # (v1.29.0, 2026-10-02 공식 소스 확인). 전에는 가상 보드에서 "그런 이름의 모듈이 없어요(오타이거나 …)" 카드로 갔다(판 1.1.3 통합).
+    "uasyncio": "asyncio",
 }
 
 
@@ -1465,23 +1469,89 @@ NOT_YET_MODULES = {
     "ntptime": "firmware",
     "webrepl": "firmware",
     "webrepl_setup": "firmware",
+    # 펌웨어(v1.29.0 ESP32_GENERIC)에 들어 있지만 가상 보드가 흉내 내지 않고 Pyodide에도 같은 이름이 없는 모듈(판 1.1.3 최종 전수 점검
+    # 2바퀴 LB2-02 — 전에는 "오타이거나 설치되지 않았어요" 카드로 갔다). 근거(2026-10-02 공식 소스, micropython v1.29.0):
+    # 굳힌 포트 모듈 ports/esp32/modules/(espnow.py·apa106.py), 보드 매니페스트 ports/esp32/boards/manifest.py의 bundle-networking
+    # (micropython-lib bundles/bundle-networking/manifest.py — mip·urequests), C 모듈 ports/esp32/esp32_common.cmake(modesp.c·modesp32.c·
+    # modespnow.c, MICROPY_PY_BTREE ON), ports/esp32/mpconfigport.h(ROM 단계 EXTRA_FEATURES, MICROPY_VFS 1, MICROPY_PY_NETWORK 1 →
+    # MICROPY_PY_SSL·MICROPY_SSL_MBEDTLS·MICROPY_PY_WEBSOCKET)와 py/mpconfig.h 기본값(cryptolib = MICROPY_PY_SSL, deflate·uctypes =
+    # EXTRA_FEATURES, vfs = CORE_FEATURES && MICROPY_VFS) — tls는 extmod/modtls_mbedtls.c(MICROPY_PY_SSL && MICROPY_SSL_MBEDTLS),
+    # websocket은 extmod/modwebsocket.c, uctypes는 extmod/moductypes.c가 등록한다. 내부용 flashbdev·_boot·inisetup은 넣지 않는다.
+    # 실물 목록 대조(Thonny 셸 help('modules'))는 운영자 할 일 — 이 이름이 모두 src/lab/esp32/board-libraries.ts의
+    # RESERVED_LIBRARY_NAMES 안에 있는지는 tests/unit/lab/board-libraries.test.ts가 이 파일을 읽어 본다.
+    "esp": "firmware",
+    "esp32": "firmware",
+    "espnow": "firmware",
+    "apa106": "firmware",
+    "mip": "firmware",
+    "urequests": "firmware",
+    "btree": "firmware",
+    "cryptolib": "firmware",
+    "deflate": "firmware",
+    "vfs": "firmware",
+    "tls": "firmware",
+    "websocket": "firmware",
+    "uctypes": "firmware",
 }
 
-#: 펌웨어 모듈인데 Pyodide에 같은 이름의 PC용 패키지가 있는 것 — 그대로 두면 PC용 requests(HTTP)가 import되어 엉뚱하게 돈다.
+#: 펌웨어 모듈인데 Pyodide에 같은 이름의 PC용 모듈이 있는 것 — 그대로 두면 PC용 requests(HTTP)·ssl(CPython 표준 모듈)이 import되어
+#: 엉뚱하게 돈다. 그래서 host import 전에 막는다(ssl — 판 1.1.3 LB2-02, bundle-networking의 ssl.py가 tls 위에 굳혀 있다).
 #: 학생이 같은 이름의 파일을 작업 폴더·보드 라이브러리 폴더에 두었으면 그 파일을 쓴다(실물처럼 — 보드 뿌리의 파일이 먼저).
-FIRMWARE_ONLY_MODULES = {"requests"}
+FIRMWARE_ONLY_MODULES = {"requests", "ssl"}
+
+#: 컴퓨터용 파이썬 패키지 — Pyodide 배포판에는 있지만 실물 ESP32의 MicroPython(v1.29.0 ESP32_GENERIC 매니페스트)에는 없는 이름
+#: (판 1.1.3 최종 전수 점검 2바퀴 LB2-01). 전에는 ESP32 실습실 워커가 실행 때 import 문을 보고 jsDelivr에서 numpy·opencv 휠을 받아
+#: 보드 코드의 `import numpy`가 그대로 돌았다("보드에서도 numpy가 된다"고 잘못 배움). 이제 워커는 받지 않고(board manifest
+#: packagesFromImports: false), 이 이름은 host import 전에 실물 MicroPython과 같은 모양 `ImportError: no module named '<맨 앞 이름>'`
+#: (py/builtinimport.c — 점 이름은 없는 맨 앞 이름)에 한국어 덧말을 붙여 알린다. 오류 사전 board-import-no-module(types ImportError,
+#: 소문자 "no module named")이 고른다 — 덧말에 "가상 보드에 아직 없어요"를 넣지 않는다(그 글이 있으면 board-not-emulated가 이겨
+#: "실물에는 있는 기능" 카드가 된다). 이름 표는 pc_package_names(): Pyodide가 "배포판에 있지만 설치되지 않았어요(micropip.install …)"
+#: 덧말에 쓰는 배포판 import 이름 표(_pyodide._importhook.REPODATA_PACKAGES_IMPORT_TO_PACKAGE_NAME — pyodide-lock.json의 imports,
+#: Pyodide 314.0.7에서 304개 — 막지 않으면 정확히 이 이름들이 영어 덧말을 단다) + 아래 고정 목록(그 표를 읽지 못하는 판을 위한
+#: 안전망 — 교과서·사이트의 컴퓨터 쪽 예제가 쓰는 패키지). 파이썬 표준 모듈 이름(sys.stdlib_module_names)과 펌웨어 이름·u-이름은
+#: 빼므로 표준 모듈 차이(datetime 등 — 실물에는 없지만 가상 보드에서는 돎)는 그대로다(ESP32 실습실 "다른 점" 상자가 알림).
+PC_PACKAGE_FALLBACK = frozenset({"numpy", "cv2", "pandas", "matplotlib", "PIL", "scipy", "sklearn"})
+
+_pc_package_cache = None
 
 
-def not_yet_module_message(name):
-    # 모든 Phase가 끝난 판에서는 "다음 단계에서 들어와요"를 약속하지 않는다(판 1.1.1 최종 점검). "가상 보드에 아직 없어요"는
-    # 오류 사전 board-not-emulated가 찾는 글이라 그대로 둔다.
+def pc_package_names():
+    """보드 코드가 import하면 실물처럼 막을 컴퓨터용 패키지 import 이름(처음 부를 때 한 번 만들어 기억한다 — 양보 없음)."""
+    global _pc_package_cache
+    if _pc_package_cache is None:
+        names = set(PC_PACKAGE_FALLBACK)
+        hook = sys.modules.get("_pyodide._importhook")
+        table = getattr(hook, "REPODATA_PACKAGES_IMPORT_TO_PACKAGE_NAME", None)
+        if isinstance(table, dict):
+            names.update(name for name in table if isinstance(name, str) and name.isidentifier())
+        names -= set(getattr(sys, "stdlib_module_names", ()))
+        names -= set(NOT_YET_MODULES) | FIRMWARE_ONLY_MODULES | set(U_ALIASES)
+        _pc_package_cache = frozenset(names)
+    return _pc_package_cache
+
+
+def pc_package_message(name):
+    # 실물 MicroPython 글("no module named '…'", 소문자)을 그대로 앞에 둔다 — 오류 사전 board-import-no-module의 패턴.
+    return (
+        f"no module named '{name}' (컴퓨터용 파이썬 패키지라 실물 ESP32 보드에도 없어요 — "
+        "컴퓨터 쪽 코드는 영상처리 실습실에서 돌려요.)"
+    )
+
+
+def not_yet_module_message(name, shown=None):
+    """name = 맨 앞 이름(펌웨어·라이브러리 종류를 고른다), shown = 글에 쓰는 이름(오류가 난 이름 그대로 — `umqtt.robust`, 없으면 name).
+
+    모든 Phase가 끝난 판에서는 "다음 단계에서 들어와요"를 약속하지 않는다(판 1.1.1 최종 점검). "가상 보드에 아직 없어요"는
+    오류 사전 board-not-emulated가 찾는 글이라 그대로 둔다. 점 이름은 오류가 난 이름 그대로 알린다 — 전에는 `import umqtt.robust`가
+    "No module named 'umqtt'"로 나와, 바로 앞 줄에서 되는 umqtt.simple과 어긋나게 umqtt 전체가 없다고 읽혔다(판 1.1.3 LB2-02)."""
+    label = shown or name
     if NOT_YET_MODULES.get(name) == "firmware" or name in FIRMWARE_ONLY_MODULES:
         return (
-            f"No module named '{name}' (가상 보드에 아직 없어요 — 실물 ESP32 펌웨어에는 들어 있는 모듈이에요. "
+            f"No module named '{label}' (가상 보드에 아직 없어요 — 실물 ESP32 펌웨어에는 들어 있는 모듈이에요. "
             "지금 판의 가상 보드는 이 모듈을 흉내 내지 않아요 — 실물 보드에서 확인해요.)"
         )
     return (
-        f"No module named '{name}' (가상 보드에 아직 없어요 — 사이트가 주는 부품 라이브러리 {name}.py를 가상 보드가 찾지 못했어요. "
+        f"No module named '{label}' (가상 보드에 아직 없어요 — 사이트가 주는 부품 라이브러리 {name}.py를 가상 보드가 찾지 못했어요. "
         "실물 보드에서는 이 파일을 보드에 올려야 import할 수 있어요.)"
     )
 
@@ -1554,7 +1624,8 @@ def _board_import(name, globals=None, locals=None, fromlist=(), level=0):  # noq
         alias = U_ALIASES.get(name)
         if alias is not None:
             return _host_import(alias, globals, locals, fromlist, 0)
-        # 점이 든 이름(from umqtt.simple import …)도 맨 앞 이름으로 본다 — 학생이 보는 안내가 같아야 한다(Phase 4 준비 2026-09-18).
+        # 점이 든 이름(from umqtt.simple import …)도 종류는 맨 앞 이름으로 고른다 — 학생이 보는 안내가 같아야 한다(Phase 4 준비 2026-09-18).
+        # 차례: 펌웨어 이름(FIRMWARE_ONLY)을 먼저 보고 컴퓨터용 패키지를 본다 — 펌웨어 이름(requests·ssl)이 컴퓨터용 카드로 가지 않게(판 1.1.3).
         head = name.partition(".")[0]
         if head in FIRMWARE_ONLY_MODULES and not _user_module_file(head):
             # Pyodide의 PC용 같은 이름 패키지를 부르지 않고 곧바로 알린다(FIRMWARE_ONLY_MODULES 머리말). Pyodide는 자기 배포판에 있는
@@ -1563,13 +1634,19 @@ def _board_import(name, globals=None, locals=None, fromlist=(), level=0):  # noq
             error = ModuleNotFoundError(not_yet_module_message(head), name=head)
             setattr(error, "_PYODIDE_ADDED_NOTE", True)
             raise error
+        if head in pc_package_names() and not _user_module_file(head):
+            # 컴퓨터용 패키지(PC_PACKAGE_FALLBACK 머리말) — 실물 MicroPython과 같은 ImportError. ModuleNotFoundError가 아니라 Pyodide의
+            # 영어 덧말 대상이 아니지만, 같은 표시를 남겨 둔다(덧말이 붙는 경로가 바뀌어도 학생 콘솔에 micropip 안내가 새지 않게).
+            error = ImportError(pc_package_message(head), name=head)
+            setattr(error, "_PYODIDE_ADDED_NOTE", True)
+            raise error
         if head in NOT_YET_MODULES:
             try:
                 return _host_import(name, globals, locals, fromlist, level)
             except ModuleNotFoundError as error:
                 if error.name not in (name, head):
                     raise
-                raise ModuleNotFoundError(not_yet_module_message(head), name=error.name or head) from None
+                raise ModuleNotFoundError(not_yet_module_message(head, error.name), name=error.name or head) from None
     return _host_import(name, globals, locals, fromlist, level)
 
 

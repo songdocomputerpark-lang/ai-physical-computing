@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { BOARD_LIBRARIES, BOARD_LIBRARY_DIR } from '../../../src/lab/esp32/board-library-files.ts';
-import { boardLibrariesFromFiles, boardLibraryFileFromPath, importedModuleNames, librariesNeededBy } from '../../../src/lab/esp32/board-libraries.ts';
+import { RESERVED_LIBRARY_NAMES, boardLibrariesFromFiles, boardLibraryFileFromPath, importedModuleNames, librariesNeededBy } from '../../../src/lab/esp32/board-libraries.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 
@@ -59,6 +59,24 @@ describe('보드 라이브러리 목록', () => {
     const apcNames = new Set([...walkPython(path.join(ROOT, 'src', 'lab', 'python')), ...walkPython(path.join(ROOT, 'src', 'lab', 'modules'))]);
     const clashes = BOARD_LIBRARIES.filter((library) => apcNames.has(library.fileName)).map((library) => library.file);
     expect(clashes, '같은 이름을 흉내(/apc)와 보드 라이브러리(examples/esp32/lib/)에 함께 두지 않아요 — src/lab/README.md 7.9').toEqual([]);
+  });
+
+  it('가상 보드가 "펌웨어에는 들어 있는 모듈"이라고 알리는 이름(apc_board.py NOT_YET_MODULES의 firmware·FIRMWARE_ONLY_MODULES)은 모두 보드 라이브러리 금지 이름이다(판 1.1.3 LB2-02)', () => {
+    // 두 목록이 같은 근거(ESP32_GENERIC v1.29.0 빌드 설정)로 함께 자라야 한다 — 한쪽에만 더하면 "펌웨어에 있다"는 이름으로 보드 라이브러리를 만들 수 있게 된다.
+    const boardSource = fs.readFileSync(path.join(ROOT, 'src', 'lab', 'modules', 'board', 'apc_board.py'), 'utf8');
+    const notYetBlock = /^NOT_YET_MODULES = \{([\s\S]*?)^\}/mu.exec(boardSource)?.[1] ?? '';
+    const firmwareNames = [...notYetBlock.matchAll(/"([A-Za-z0-9_]+)":\s*"firmware"/gu)].map((match) => match[1]!);
+    const firmwareOnlyBlock = /^FIRMWARE_ONLY_MODULES = \{([^}]*)\}/mu.exec(boardSource)?.[1] ?? '';
+    const firmwareOnly = [...firmwareOnlyBlock.matchAll(/"([A-Za-z0-9_]+)"/gu)].map((match) => match[1]!);
+    // 글 모양이 바뀌어 아무것도 못 읽으면 검사가 거짓으로 통과하지 않게 아는 이름으로 먼저 확인한다
+    expect(firmwareNames).toEqual(expect.arrayContaining(['dht', 'neopixel', 'umqtt', 'esp32', 'espnow', 'mip', 'urequests', 'btree']));
+    expect(firmwareOnly).toEqual(expect.arrayContaining(['requests', 'ssl']));
+    const missing = [...firmwareNames, ...firmwareOnly].filter((name) => !RESERVED_LIBRARY_NAMES.includes(name));
+    expect(missing, 'src/lab/esp32/board-libraries.ts의 RESERVED_LIBRARY_NAMES에 더해요(머리말에 근거)').toEqual([]);
+    // 금지 이름이면 보드 라이브러리를 만들 수 없다(빌드가 멈춤)
+    for (const name of ['espnow', 'mip', 'ssl', 'tls']) {
+      expect(() => boardLibrariesFromFiles({ [`/examples/esp32/lib/${name}.py`]: '' }), name).toThrow(/이미 쓰는 이름/u);
+    }
   });
 });
 

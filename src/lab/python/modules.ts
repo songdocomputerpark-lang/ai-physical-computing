@@ -131,3 +131,16 @@ export function shimTableForLab(labId?: string, manifests: readonly LabModuleMan
   }
   return shimTableOf(manifests.filter((manifest) => moduleAppliesTo(manifest, labId)));
 }
+
+/**
+ * 그 실습실의 워커가 실행 때 학생 코드의 import 문을 보고 Pyodide 패키지를 받는지(worker.ts run의 loadPackagesFromImports).
+ * 그 실습실에 붙는 모듈 가운데 하나라도 manifest에 `packagesFromImports: false`를 적었으면 받지 않는다 — 가상 ESP32 보드(board)가
+ * 붙는 실습실(labId esp32 — ESP32 실습실·4단원 보드 칸·한 화면 보드 틀)이 그렇다(판 1.1.3 LB2-01). 실습실 이름을 워커에 박지 않고
+ * 모듈 자료로 정하므로, 보드 모듈을 붙이는 새 실습실도 저절로 같다. labId가 없으면(단위 테스트·옛 호출) 예전처럼 받는다.
+ */
+export function packagesFromImportsForLab(labId?: string, manifests: readonly LabModuleManifest[] = MODULE_MANIFESTS): boolean {
+  if (!labId) {
+    return true;
+  }
+  return !manifests.some((manifest) => moduleAppliesTo(manifest, labId) && manifest.packagesFromImports === false);
+}

@@ -58,6 +58,12 @@ describe('manifest 검사(validateManifests)', () => {
     expect(text).toMatch(/src\/lab\/modules\/y\/manifest.ts: default export/u);
   });
 
+  it('packagesFromImports는 true·false만 받는다(판 1.1.3 — false면 실행 때 import 문을 보고 패키지를 받지 않음)', () => {
+    expect(validateManifests({ './p/manifest.ts': { default: manifest({ id: 'p', packagesFromImports: false }) } })).toEqual([]);
+    const errors = validateManifests({ './q/manifest.ts': { default: manifest({ id: 'q', packagesFromImports: 'no' as never }) } });
+    expect(errors.join('\n')).toMatch(/packagesFromImports는 true 또는 false/u);
+  });
+
   it('요청·이벤트·채널·흉내 모듈 이름이 다른 모듈이나 붙박이(cv2)와 겹치면 오류', () => {
     const errors = validateManifests({
       './a/manifest.ts': { default: manifest({ id: 'a', requestKinds: ['a.read'], shims: { mediapipe: 'apc_mp' } }) },

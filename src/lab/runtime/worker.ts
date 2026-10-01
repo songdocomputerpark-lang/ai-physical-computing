@@ -9,7 +9,9 @@
  *    stdout·stderr를 화면으로 흘려보내고(write 처리기, 줄 단위 버퍼), JS 다리(bridge.ts)를 `_apc_bridge`로 등록하고,
  *    파이썬 쪽 모듈(src/lab/python/*.py — 도우미 apc_runtime.py와 흉내 모듈)을 가상 파일시스템 /apc에 넣어 time.sleep·input()을 바꾼다.
  *    JSPI 감지는 runPythonAsync 안에서 pyodide.ffi.can_run_sync()를 불러 한다(run_sync는 runPythonAsync로 들어온 호출에서만 된다).
- * 2. run: import 문을 분석해 필요한 Pyodide 패키지를 받고(loadPackagesFromImports, 패키지 이름은 pyodide-lock.json 기준),
+ * 2. run: import 문을 분석해 필요한 Pyodide 패키지를 받고(loadPackagesFromImports, 패키지 이름은 pyodide-lock.json 기준 — 단, 실습실에 붙는
+ *    흉내 모듈이 manifest에 packagesFromImports: false를 적은 실습실(가상 ESP32 보드 — 실물 MicroPython에는 pip 패키지가 없다, 판 1.1.3)은
+ *    받지 않는다. 판단은 load 때 python/modules.ts packagesFromImportsForLab(labId)로 한 번),
  *    받아 둔 패키지의 흉내 모듈을 설치한 뒤(apc_shims.install_available — cv2의 카메라·창 함수 덮어쓰기, P2-03),
  *    새 전역(__name__ == '__main__')을 조절 패널 값의 목적지로 도우미에 알리고(apc_runtime.bind_run_globals, P2-04)
  *    runPythonAsync 한다(JSPI 기다리기는 이 경로에서만 된다). 끝나면 done 메시지.
@@ -28,7 +30,7 @@
  */
 import type { PyodideAPI } from 'pyodide';
 import type { PyProxy } from 'pyodide/ffi';
-import { RUNTIME_MODULE_FILE, pythonModulesForLab, shimTableForLab } from '../python/modules.ts';
+import { RUNTIME_MODULE_FILE, packagesFromImportsForLab, pythonModulesForLab, shimTableForLab } from '../python/modules.ts';
 import { createBridge, type Bridge } from './bridge.ts';
 import { createPackageQueue } from './package-queue.ts';
 import type {
@@ -80,6 +82,11 @@ let pyodide: PyodideAPI | null = null;
 let loadedFrom = '';
 let jspiAvailable = false;
 let activeRunId: number | null = null;
+/**
+ * 실행 때 학생 코드의 import 문을 보고 Pyodide 패키지를 받는지(load 메시지의 labId로 정함 — packagesFromImportsForLab).
+ * 가상 ESP32 보드 실습실은 false: 보드 코드의 `import numpy`가 jsDelivr에서 컴퓨터용 패키지를 받아 그대로 돌던 것을 막는다(판 1.1.3 LB2-01).
+ */
+let packagesFromImports = true;
 /** 화면이 보낸 미리 받기(load-packages)가 아직 도는 수 — 실행이 그사이에 시작되면 흉내 모듈 설치 실패를 알리지 않는다(installShims) */
 let packageLoadsInFlight = 0;
 /**
@@ -320,6 +327,7 @@ async function load(message: LoadMessage): Promise<void> {
   // 이 실습실(labId)에 붙는 흉내 모듈의 파일만 넣는다(없으면 모두). 가상 보드의 machine.py가 영상처리 실습실에 새지 않게(P3-01).
   const pythonModules = pythonModulesForLab(message.labId);
   const shimTable = shimTableForLab(message.labId);
+  packagesFromImports = packagesFromImportsForLab(message.labId);
   if (!(RUNTIME_MODULE_FILE in pythonModules)) {
     throw new Error(`파이썬 도우미 ${RUNTIME_MODULE_FILE}이(가) 묶음에 없어요(src/lab/python/).`);
   }
@@ -401,7 +409,11 @@ async function run(message: RunMessage): Promise<void> {
       if (message.packages.length > 0) {
         await loader.loadPackage([...message.packages], packageCallbacks());
       }
-      await loader.loadPackagesFromImports(message.code, packageCallbacks());
+      // 가상 보드 실습실은 import 문을 보고 받지 않는다(packagesFromImports 머리말) — 보드 코드의 컴퓨터용 패키지 이름은 보드 모듈의 import 훅이
+      // 실물 MicroPython과 같은 ImportError로 알린다(apc_board.py).
+      if (packagesFromImports) {
+        await loader.loadPackagesFromImports(message.code, packageCallbacks());
+      }
     });
 
     if (bridge.api.stopRequested()) {

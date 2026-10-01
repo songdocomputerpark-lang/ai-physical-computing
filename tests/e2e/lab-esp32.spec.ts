@@ -6,6 +6,7 @@
 //  4. Timer 예제는 코드가 끝난 뒤에도 LED가 깜빡이고(board.state phase idle) [정지]로 멈춘다 — 멈추면 LED가 꺼진 모습.
 //     사이트 예제 01(첫 화면 예제 — 깜빡이기와 interval 조절 막대)·02(BOOT 버튼으로 LED)도 파일 그대로 돌려 본다.
 //  5. 가상 보드는 OpenCV·numpy를 받지 않고(PD-04, 준비 모듈의 캐시 채우기 포함), 허용 주소 밖 요청이 없다.
+//     보드 코드가 import numpy를 해도 실행 때 받지 않고 실물처럼 ImportError로 알린다(판 1.1.3 — 펌웨어 모듈 안내·점 이름도 함께).
 //  6. 보드 흉내는 ESP32 실습실에만 있다: 개발용 시험 페이지에서는 import machine이 없는 모듈이고 time에 sleep_ms가 없다.
 //  7. 콘솔이 화면 밖일 때 결과 칸이 "콘솔에 결과가 나왔어요"와 마지막 줄·[콘솔 보기 ↓]를 보인다(2026-09-18 검토 반영).
 import { expect, test, type Page } from '@playwright/test';
@@ -277,6 +278,44 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     expect(await waitDone(page, 30_000)).toBe('stopped');
 
     expect(await consoleText(page)).not.toMatch(/Traceback|Error/u);
+    expect(errors).toEqual([]);
+  });
+
+  // 판 1.1.3(최종 전수 점검 2바퀴 LB2-01·LB2-02): 전에는 보드 칸의 `import numpy`가 실행 때 jsDelivr에서 numpy 휠을 받아 그대로 돌았고
+  // (실물 ESP32에는 없는 모듈), 실물 펌웨어에 있는 esp32는 "오타이거나 설치되지 않았어요" 카드, umqtt.robust는 "umqtt가 없다"로 읽혔다.
+  test('보드 코드의 컴퓨터용 패키지(import numpy)는 실행 때도 받지 않고 실물처럼 알리며, 펌웨어 모듈은 "아직 없는 기능"으로 알린다', async ({ page }) => {
+    test.skip(test.info().project.name === 'mobile', '실행 결과·요청은 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const requests = collectRequests(page);
+    await openEsp32Lab(page);
+    const card = page.locator('[data-errors-card]');
+
+    await runCode(page, ['import numpy as np', 'print(np.zeros(3))'].join('\n'));
+    expect(await waitDone(page, 60_000)).toBe('error');
+    await expect(card).toHaveAttribute('data-errors-entry', 'board-import-no-module');
+    await expect(page.locator('[data-errors-title]')).toHaveText('보드에 그 모듈이 없어요');
+    let text = await consoleText(page);
+    expect(text).toContain("ImportError: no module named 'numpy'");
+    expect(text).not.toContain('micropip');
+    // 휠(.whl)을 하나도 받지 않았다 — 워커가 받는 jsDelivr·같은 사이트 예비본 모두(42행 검사와 같은 요청 기록)
+    expect(requests.urls.filter((url) => /\.whl(?:[?#]|$)/u.test(url))).toEqual([]);
+
+    // 실물 펌웨어에 들어 있는 모듈은 "가상 보드에 아직 없는 기능이에요"(전에는 "오타이거나 설치되지 않았어요")
+    await runCode(page, 'import esp32');
+    expect(await waitDone(page, 60_000)).toBe('error');
+    await expect(card).toHaveAttribute('data-errors-entry', 'board-not-emulated');
+    await expect(page.locator('[data-errors-title]')).toHaveText('가상 보드에 아직 없는 기능이에요');
+
+    // 점 이름은 오류가 난 이름 그대로(umqtt.robust) — 바로 다음 실행의 umqtt.simple은 된다
+    await runCode(page, 'import umqtt.robust');
+    expect(await waitDone(page, 60_000)).toBe('error');
+    text = await consoleText(page);
+    expect(text).toContain("No module named 'umqtt.robust'");
+    await runCode(page, ['from umqtt.simple import MQTTClient', "print('MQTT', MQTTClient.__name__)"].join('\n'));
+    expect(await waitDone(page, 60_000)).toBe('ok');
+    expect(await consoleText(page)).toContain('MQTT MQTTClient');
+    expect(requests.urls.filter((url) => /\.whl(?:[?#]|$)/u.test(url))).toEqual([]);
     expect(errors).toEqual([]);
   });
 

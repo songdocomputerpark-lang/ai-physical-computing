@@ -62,6 +62,14 @@ export interface LabModuleManifest {
   readonly shims?: Readonly<Record<string, string>>;
   /** 실습실이 준비될 때 미리 받을 Pyodide 패키지(pyodide-lock.json 이름). 실행 시 import 문 분석과 별개다. */
   readonly packages?: readonly string[];
+  /**
+   * false면 이 모듈이 붙는 실습실의 워커는 **실행 때 학생 코드의 import 문을 보고 Pyodide 패키지를 받지 않는다**
+   * (worker.ts run의 loadPackagesFromImports를 건너뜀 — python/modules.ts packagesFromImportsForLab). 적지 않으면 받는다(예전 동작).
+   * 가상 ESP32 보드(board)가 쓴다: 실물 MicroPython에는 pip 패키지가 없으므로, 보드 칸에 붙인 컴퓨터 쪽 코드(import numpy·cv2)가
+   * 가상 보드에서만 돌아 "보드에서도 numpy가 된다"고 잘못 배우지 않게(판 1.1.3 최종 전수 점검 2바퀴 LB2-01). 그 이름의 안내는 보드 모듈의
+   * import 훅(apc_board.py `PC_PACKAGE_FALLBACK`·`pc_package_names`)이 실물과 같은 ImportError로 한다.
+   */
+  readonly packagesFromImports?: boolean;
   /** 파이썬 apc_runtime.request(kind)로 부탁하고 이 모듈의 index.ts가 답하는 요청 이름. 모두 "<id>."로 시작 */
   readonly requestKinds?: readonly string[];
   /** 파이썬 apc_runtime.emit(kind)로 보내고 index.ts가 받는 이벤트 이름. "<id>."로 시작 */

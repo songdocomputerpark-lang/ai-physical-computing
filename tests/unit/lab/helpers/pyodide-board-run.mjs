@@ -205,6 +205,8 @@ async function step(name, code, options = {}) {
   } catch (error) {
     record.errorType = error && error.type ? error.type : 'JsError';
     record.errorMessage = String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0];
+    // 트레이스백 전체(워커가 화면에 넘기는 error.traceback과 같은 글 — Pyodide가 덧붙인 영어 안내(note)는 마지막 줄 뒤에 온다, 판 1.1.3)
+    record.errorText = String(error && error.message ? error.message : error).trim();
   } finally {
     if (frozen) {
       try {
