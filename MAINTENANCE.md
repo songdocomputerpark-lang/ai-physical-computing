@@ -142,7 +142,7 @@ handouts:                            # (선택) 이어지는 가린 편집본 �
 | `source` | 차례표에 없는 차시만 | 원천: `manuscript-code`(원고+코드)·`manuscript`(원고만)·`code-only`(원고 없음)·`supplement`(보충). 차례표에 있으면 차례표 값이 쓰여요 |
 | `handouts` | | 가린 편집본 교안의 쪽: `{ doc: bt 또는 ppt, pages: "41~47", note: 짧은 설명 }` |
 | `comm`·`tags` | | 예제 갤러리 태그(통신 방식 `uart`·`ble`·`wifi`·`mqtt`·`tab`, 자유 낱말) — 모르면 적지 않아요 |
-| `draft` | | 아직 공개하지 않을 초안이면 `true`(목록·검사에서 빠져요) |
+| `draft` | | 아직 공개하지 않을 초안이면 `true`(목록·검사에서 빠져요). 차례표에 있는 차시를 초안으로 돌리면 CI "테스트"의 차시 틀 검사가 실패로 알려요(배포는 돼요 — 1-6) |
 
 - 전체 규칙은 `src/config/content-schemas.ts`에 있어요. 틀리게 적으면 빌드가 차시 파일 이름과 함께 한국어로 알려 줘요.
 
@@ -324,7 +324,7 @@ npm run check:lessons -- --fix-eol  # 예제 파일의 줄 끝 CRLF(Windows 방�
 ```
 
 - **빌드(`npm run build`)는 같은 규칙을 경고로만** 남기고(`[차시 틀] 파일: [규칙] 문장`) 멈추지 않아요 — 설정 칸 형식 오류만 빌드를 멈춰요(PD-35). 그래서 선생님이 올린 새 차시는 틀이 조금 모자라도 바로 배포돼요.
-- **`check:lessons`는 "오류"가 하나라도 있으면 실패**해요(종료 코드 1). "참고"는 실패가 아니에요. 차시를 올리기 전에, 그리고 CI의 "테스트" 워크플로(배포는 막지 않음)가 돌려요. `npm test`에는 넣지 않았어요(여러 사람이 동시에 쓰는 동안 남의 쓰다 만 차시로 내 테스트가 깨지지 않게 — 규칙 자체는 단위 테스트가 지켜요).
+- **`check:lessons`는 "오류"가 하나라도 있으면 실패**해요(종료 코드 1). "참고"는 실패가 아니에요. 차시를 올리기 전에, 그리고 CI의 "테스트" 워크플로(배포는 막지 않음)가 돌려요. **CI는 `--complete`로 돌려요** — 차례표(`src/components/lesson/curriculum.ts`)의 차시가 하나라도 빠졌거나(md를 지움·옮김·이름 바꿈) 초안이면 결과 끝의 `[실패] 아직 md가 없는 차시(…)` 목록과 함께 실패해요. 차례표 밖의 새 차시(1-8의 보충 B1 등)는 이 조건과 상관없어요. `npm test`에는 넣지 않았어요(여러 사람이 동시에 쓰는 동안 남의 쓰다 만 차시로 내 테스트가 깨지지 않게 — 규칙 자체는 단위 테스트가 지켜요).
 
 **결과 읽는 법** — 2026-09-26 임시 차시 B9에 일부러 틀린 곳 두 군데를 넣어 돌린 실제 결과예요(한 차시 3초 남짓).
 
@@ -418,7 +418,7 @@ git push
 웹 화면으로 올릴 때 알아 둘 것:
 
 - 내 컴퓨터의 커밋 전 검사(훅)가 **돌지 않아요**. push 뒤 "저장소 검사"·"사이트 배포"의 저장소 안전 검사가 같은 검사를 하지만, 그때는 이미 공개 저장소에 올라간 뒤라 위 "올리기 전 확인"을 꼭 해요.
-- 차시 틀 검사(`check:lessons`)는 "테스트" 워크플로의 "차시 틀 검사" 단계에서 봐요(배포는 막지 않아요 — 6-2).
+- 차시 틀 검사(`check:lessons -- --complete` — 차례표의 차시가 모두 있어야 통과)는 "테스트" 워크플로의 "차시 틀 검사" 단계에서 봐요(배포는 막지 않아요 — 6-2).
 - 틀린 것을 올렸으면 같은 파일을 연필 단추(Edit this file)로 고쳐 다시 커밋해요. 파일을 지울 때는 파일 화면 오른쪽 위 […] → **Delete file**.
 
 ### 1-9. 반영 확인
@@ -782,7 +782,7 @@ gh run view <실행 번호> --log-failed       # 실패한 단계의 기록만 �
 |---|---|---|
 | 사이트 배포 › 저장소 안전 검사 › 저장소 검사, 또는 저장소 검사 워크플로 | 공개하면 안 되는 것(개인정보 모양·원본 형식·기록 없는 그림)이 있어요 | 6-4 |
 | 사이트 배포 › 빌드 › 설치·빌드·결과 올리기 | 빌드가 멈췄어요. 기록에서 `[출처 검사]`, 설정 칸 형식(`does not match collection schema`), `[배우기]`, `용어사전(content/glossary/)`, `[Pyodide 예비본]`, `[서비스 워커]`, 환경 변수 메시지를 찾아요 | 6-3, 6-2, 6-7 |
-| 테스트 › 단위 테스트·타입 검사 › 차시 틀 검사(check:lessons — 엄격 모드) | 차시 틀 규칙에 어긋난 차시가 있어요(배포는 됐어요) | 6-2 |
+| 테스트 › 단위 테스트·타입 검사 › 차시 틀 검사(check:lessons — 엄격 모드) | 차시 틀 규칙에 어긋난 차시가 있거나, 차례표의 차시 md가 빠졌거나 초안이에요(배포는 됐어요) | 6-2 |
 | 테스트 › 단위 테스트·타입 검사 › 타입 검사(astro check) | 프로그램 코드의 타입 오류(배포는 됐어요) | 6-6 |
 | 테스트 › 단위 테스트·타입 검사 › 단위 테스트(Vitest) | 코드·데이터 규칙 검사가 깨졌어요 | 6-8 |
 | 테스트 › 브라우저 테스트·링크 검사 › 브라우저 테스트 | 화면 동작 검사가 깨졌어요 | 6-8 |
@@ -1155,7 +1155,7 @@ Result (3 files):
 | 2 | 공개 중계 서버(MQTT) 주소 | 점검 페이지 `/start/check/` 네트워크 점검의 [시험하기] → "공개 중계 서버" 줄이 "연결됨"인지, 각 서버의 공식 안내가 그대로인지 | `src/lab/mqtt/brokers.ts`(목록·`verified`), `src/lab/blocks/comm/plan.ts`(`COMM_MQTT`), 실물용 템플릿 `examples/esp32/templates/mqtt-pub-sub.py`·`dashboard-demo.py`, `examples/esp32/u3/c1-mqtt-remote.py`, 점검 항목 `src/components/start/network-check/items.ts` |
 | 3 | 사이트 밖 링크 | 목록 뽑기: `git grep -h -o -E "https://[a-zA-Z0-9./?=_%:~#&-]+" -- src content sources.yaml`에 Git Bash는 `\| sort -u`, PowerShell은 `\| Sort-Object -Unique`를 붙여요(2026-09-26 기준 96개, 2026-10-01 최종 점검 뒤 109개 안팎 — `git grep`은 git이 아는 파일만 봐요. 아직 `git add`하지 않은 새 파일까지 보려면 `--untracked`를 붙여요). 몇 개씩 열어 봐요 — 특히 드라이버·근거 주소, 교육과정 게시물, 설치 안내 | `src/components/start/board/links.ts`(`LINKS_CHECKED_ON`도), `src/config/standards.ts`, `content/teacher/real-pc.md`, `sources.yaml`의 `url` |
 | 4 | 교육과정 개정 | 인천광역시교육청 교육과정정보센터의 과목 게시물(`src/config/standards.ts`의 `CURRICULUM_SOURCE`)에 새 교육과정·성취기준이 나왔는지 | `src/config/standards.ts`, PLAN §2.2, `content/teacher/assessment.yaml`, 차시 `standards` → `npm run check:lessons` |
-| 5 | 브라우저 지원 | 교실 PC·태블릿에서 `/start/check/`의 [결과 복사](JSPI·Web Serial·Web Bluetooth·카메라). MDN 호환표에서 JSPI(`WebAssembly.Suspending`)·Web Serial 지원이 바뀌었는지 | `src/lib/capabilities.ts`의 안내 문장(머리말의 MDN 근거 날짜도), `/help/`의 브라우저 메뉴 이름(`src/pages/help/index.astro`), `src/components/compat/BrowserNotice.astro`, 오류 사전 `content/help/errors/errors.yaml`의 `limited-mode`·`board-real-unsupported`·`comm-ble-browser-unsupported` 항목 `why`(어느 브라우저에 그 기능이 있는지), 점검 페이지 `src/pages/start/check/index.astro`의 "휴대폰·태블릿 결과(확인 전)" 문단 |
+| 5 | 브라우저 지원 | 교실 PC·태블릿에서 `/start/check/`의 [결과 복사](JSPI·Web Serial·Web Bluetooth·카메라). MDN 호환표에서 JSPI(`WebAssembly.Suspending`)·Web Serial(`api/Serial.json`)·Web Bluetooth(`api/Bluetooth.json`) 지원이 바뀌었는지 | `src/lib/capabilities.ts`의 안내 문장(머리말의 MDN 근거 날짜도), `/help/`의 브라우저 메뉴 이름(`src/pages/help/index.astro`), `src/components/compat/BrowserNotice.astro`, 오류 사전 `content/help/errors/errors.yaml`의 `limited-mode`·`board-real-unsupported`·`comm-ble-browser-unsupported` 항목 `why`(어느 브라우저에 그 기능이 있는지), 점검 페이지 `src/pages/start/check/index.astro`의 "휴대폰·태블릿 결과(확인 전)" 문단, 교사용 시작하기 `src/pages/start/teacher/index.astro`의 "통신 수업(3·4단원)" 블루투스 줄, 실습실 블루투스 칸 안내 `src/lab/ble/support.ts`(아이폰·아이패드·Firefox 문장과 머리말의 MDN 확인 날짜), USB 데이터 포트 안내 `src/lab/serial/data-port/data-port.ts`(`PROBLEM_TEXT`의 `unsupported` — "파이어폭스(151 이상)"). 브라우저 이름 뒤에 "에만"·"에서만"을 쓰면 `tests/unit/start/browser-support-wording.test.ts`가 찾아요(DECISIONS C78·C84) |
 | 6 | 판 올리기 | `npm outdated`(뒤처진 판), `npm audit --omit=dev`(배포물에 들어가는 패키지의 알려진 보안 문제), 각 라이브러리의 릴리스 안내 | 8절(한 번에 하나) |
 | 7 | Node.js·GitHub Actions | Node LTS 일정(24는 2028-04-30까지), Actions 실행 화면의 노란 경고 | 8-9·8-10 |
 | 8 | 개인정보 | `npm run check:repo`(추적 파일 전체), `npm run check:repo -- --history`(git 기록 전체 — 지운 파일도 공개 저장소 기록에 남아요. 새로 걸린 것이 개인정보가 아니면 `scripts/repo-allowlist.yaml`의 `history_reviewed`에 blob 번호와 까닭을, 개인정보면 운영자와 정해요), `npm run build` 뒤 `npm run check:repo -- --dist dist`(빌드 결과에 이 컴퓨터의 절대 경로·개인정보 모양이 없는지), 이슈·풀 리퀘스트 글과 댓글에 개인정보가 없는지(Issues 탭 훑기), 한 해 동안 더한 그림을 눈으로, `npm run handouts:check` | 발견하면 CONTRIBUTING.md 9절 처리 차례 |

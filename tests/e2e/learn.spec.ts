@@ -33,7 +33,7 @@ async function expectNoHorizontalScroll(page: import('@playwright/test').Page, l
 }
 
 test.describe('배우기 목록', () => {
-  test('대단원 4개 > 묶음 > 차시 카드가 보이고, 준비 중·원고 없음·보충 표시가 붙는다', async ({ page }) => {
+  test('대단원 4개 > 묶음 > 차시 카드가 보이고, 차례표의 차시가 모두 공개돼 "준비 중" 카드가 없으며, 원고 없음·보충 표시가 붙는다', async ({ page }) => {
     const response = await page.goto('./learn/');
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', { level: 1, name: '배우기' })).toBeVisible();
@@ -49,12 +49,11 @@ test.describe('배우기 목록', () => {
     );
     await expect(page.getByRole('link', { name: 'V4 보충 블러와 에지' })).toHaveAttribute('href', withBase('learn/u1/v4/'));
 
-    // Phase 5(2026-09-25)에서 차례표의 차시가 모두 생겨 "준비 중" 카드가 없을 수 있다 — 남아 있으면 링크 없이 "준비 중"을 보인다.
+    // 차례표의 차시 45편이 모두 공개됐다(Phase 5, 2026-09-25) — "준비 중" 카드가 하나라도 있으면 차시 md가 빠졌거나(지움·옮김·이름 바꿈) 초안이다.
+    // 전에는 "있으면 그 모양을 보고, 없으면 통과" 두 갈래라 차시가 사라져도 초록이었다(2026-10-02 최종 전수 점검 3바퀴 TD3-01 — DECISIONS C74 ④·C80).
+    // "준비 중" 카드·딱지 그리기 자체는 단위 검사(tests/unit/lesson/lesson-data.test.ts)가 지킨다.
     const planned = page.locator('.lesson-card[data-status="planned"]');
-    if ((await planned.count()) > 0) {
-      await expect(planned.first()).toContainText('준비 중');
-      await expect(planned.first().getByRole('link')).toHaveCount(0);
-    }
+    await expect(planned, '차례표의 차시가 모두 공개돼 있어야 해요 — md가 빠졌거나 초안이면 npm run check:lessons -- --complete로 확인해요').toHaveCount(0);
     // 원고 없는 차시(코드만)에는 "원고 없음" 딱지가 붙는다(링크 카드여도).
     await expect(page.locator('#lesson-u1-1-3-1')).toContainText('원고 없음');
     await expect(page.locator('#lesson-u1-1-3-1').getByRole('link')).toHaveAttribute('href', withBase('learn/u1/1-3-1/'));
@@ -70,19 +69,21 @@ test.describe('배우기 목록', () => {
     }
   });
 
-  test('카드 표시 풀이는 목록에 있는 딱지만 풀고, 모두 공개됐으면 차시 수만 적는다(2026-09-30 최종 점검 C-05)', async ({ page }) => {
+  test('카드 표시 풀이는 목록에 있는 딱지만 풀고, 차시가 모두 공개돼 차시 수만 적는다(2026-09-30 최종 점검 C-05)', async ({ page }) => {
     for (const address of ['./learn/', `.${learnUnits[0]!.path}`]) {
       await page.goto(address);
       const legend = page.locator('.lesson-legend');
       await expect(legend).toContainText('원고 없음');
-      const plannedCards = await page.locator('.lesson-card[data-status="planned"]').count();
-      // "준비 중" 풀이는 준비 중 카드가 있을 때만(차시 45편이 모두 공개된 지금은 없다)
-      await expect(legend.locator('[data-legend="planned"]'), address).toHaveCount(plannedCards > 0 ? 1 : 0);
+      // 차례표의 차시가 모두 공개됐다 — "준비 중" 카드가 없고(위 검사와 같은 까닭, 3바퀴 TD3-01), 그래서 "준비 중" 풀이와
+      // "차시 N개 가운데 M개를 볼 수 있어요" 글도 없다(C66 ⑤ — 둘 다 준비 중 차시가 있을 때만 보인다).
+      await expect(
+        page.locator('.lesson-card[data-status="planned"]'),
+        `${address} — 차례표의 차시가 모두 공개돼 있어야 해요(npm run check:lessons -- --complete로 확인해요)`,
+      ).toHaveCount(0);
+      await expect(legend.locator('[data-legend="planned"]'), address).toHaveCount(0);
       await expect(legend).not.toContainText('사이트가 글을 쓰는 차시');
-      if (plannedCards === 0) {
-        await expect(page.locator('main')).not.toContainText('개를 볼 수 있어요');
-        await expect(page.locator('.learn-unit__count, .unit-count').first()).toHaveText(/^차시 \d+개$/u);
-      }
+      await expect(page.locator('main')).not.toContainText('개를 볼 수 있어요');
+      await expect(page.locator('.learn-unit__count, .unit-count').first()).toHaveText(/^차시 \d+개$/u);
     }
   });
 

@@ -13,6 +13,8 @@
 // 왜 npm test에 넣지 않나(PD-35): 여러 구역이 한 작업 폴더에서 동시에 차시를 쓰는 동안, 다른 구역의 쓰다 만 차시 때문에
 // 내 단위 테스트가 깨지지 않게 하려는 것이다. 규칙 자체는 단위 테스트(tests/unit/lesson/lesson-rules.test.ts·check-lessons.test.ts)가 지키고,
 // 올라간 차시 전체는 CI "테스트" 워크플로의 이 검사가 본다(배포는 막지 않음 — 새 차시는 경고만 나고 바로 배포된다, 시나리오 E).
+// CI는 --complete로 돈다(2026-10-02 최종 전수 점검 3바퀴 TD3-01 — 차례표의 차시가 빠졌거나 초안이면 실패). 옵션 없는 기본 동작(아직 없는
+// 차시는 목록만)은 로컬에서 새 차시를 쓰는 동안 쓰라고 그대로 둔다.
 import { formatLessonCheck, reportFailed, runLessonCheck } from './lib/check-lessons.mjs';
 
 const args = process.argv.slice(2);

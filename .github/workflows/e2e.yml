@@ -63,8 +63,11 @@ jobs:
       - name: 차시 틀 검사(check:lessons — 엄격 모드)
         # PLAN §8.5 P5-02, PD-35: 빌드(배포)는 같은 규칙을 경고로만 남기고, 여기서는 오류가 있는 차시가 있으면 실패한다(배포는 막지 않음).
         # npm test에 넣지 않은 까닭은 scripts/check-lessons.mjs 머리말(여러 구역이 한 폴더에서 동시에 쓰는 동안 남의 쓰다 만 차시로 단위 테스트가 깨지지 않게).
+        # --complete: 차례표(src/components/lesson/curriculum.ts)의 차시가 모두 공개돼 있어야 통과 — 차시 md가 빠졌거나(지움·옮김·이름 바꿈)
+        # 초안(draft: true)이면 실패한다(배포는 막지 않음). 45편이 모두 공개된 뒤로 "아직 없는 차시"는 사고뿐이라 목록만 찍고 통과하면 놓친다
+        # (2026-10-02 최종 전수 점검 3바퀴 TD3-01, DECISIONS C74 ④·C80). 차례표 밖의 새 차시(보충 B1 등)는 이 조건에 들지 않는다.
         if: ${{ !cancelled() }}
-        run: npm run check:lessons
+        run: npm run check:lessons -- --complete
 
       - name: 타입 검사(astro check)
         if: ${{ !cancelled() }}
