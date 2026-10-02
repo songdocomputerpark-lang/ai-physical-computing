@@ -30,6 +30,8 @@ interface StepRecord {
   value?: unknown;
   errorType?: string;
   errorMessage?: string;
+  /** 오류가 난 학생 코드 줄(트레이스백의 마지막 `File "main.py", line N`) */
+  errorLine?: number;
   stdout: string;
   events: EventRecord[];
 }
@@ -46,6 +48,8 @@ interface Result {
   requests: { kind: string; payload: unknown }[];
   syncEntrypointReset: string;
   leftoverPointer: unknown[];
+  /** 오류 사전(content/help/errors/errors.yaml) failsafe 항목의 보기 — 도우미가 읽지 못하면 null */
+  failsafeExample: { code: string; line: number | null } | null;
 }
 
 /** 도우미 스크립트를 띄운다 — jspi: true면 JSPI를 켠 판, false면 JSPI 없는 브라우저 판(제한 모드) */
@@ -169,6 +173,19 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('pyautogui 흉내(실제 Pyod
     expect(out.steps.failsafe?.errorType).toBe('FailSafeException');
     expect(out.steps.failsafe?.errorMessage).toContain('왼쪽 위 모서리');
     expect(out.steps.failsafe_off?.value).toEqual([300, 300]);
+  });
+
+  it('오류 사전 failsafe 보기 코드를 새 실행에서 그대로 돌리면 보기의 오류 줄에서 FailSafeException이 난다(최종 전수 점검 3바퀴 CT3-02)', () => {
+    // 사전의 보기는 "이 코드를 돌리면 이 오류가 나요"라는 약속이다. 전 보기(`moveTo(0, 0)` 한 줄)는 진짜 PyAutoGUI 0.9.54에서도, 이 흉내에서도
+    // 오류가 나지 않았다 — 안전장치는 모서리에 있는 채로 다음 함수를 부를 때 본다(이번 이동이 만든 모서리 자리는 이동 중 확인에서 건너뜀).
+    const example = out.failsafeExample;
+    expect(example, '오류 사전에서 failsafe 보기를 읽지 못했어요').not.toBeNull();
+    const codeLines = (example?.code ?? '').trimEnd().split('\n');
+    const expectedLine = example?.line ?? codeLines.length; // 사전 페이지와 같은 규칙 — line을 적지 않으면 마지막 줄(catalog-schema.ts ErrorExample)
+    const step = out.steps.failsafe_dictionary_example;
+    expect(step?.errorType, `보기 그대로 돌린 결과: ${JSON.stringify(step?.value ?? step?.errorMessage ?? null)}`).toBe('FailSafeException');
+    expect(step?.errorLine).toBe(expectedLine);
+    expect(step?.errorMessage).toContain('왼쪽 위 모서리');
   });
 
   it('학생이 가상 모니터를 눌러 옮긴 커서를 position()이 따라간다(desktop.pointer 채널)', () => {

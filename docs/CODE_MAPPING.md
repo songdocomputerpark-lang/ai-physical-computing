@@ -494,7 +494,7 @@ Pyodide `opencv-python`(314.0.7 기준 4.11.0.86)은 **실물**을 쓰고 아래
 | `press(keys, presses=1, interval=0.0)` | `press('space')`, `press('enter')` | 가상 키 이벤트(스페이스 키 미니게임 등) | f121, f024 사이트판 |
 | `hotkey(*keys)` | `hotkey('ctrl', 's')`, 슬라이드 `hotkey('win', 'r')` | 가상 앱 단축키(저장 대화상자, 실행 창 흉내). 실제 브라우저 단축키는 보내지 않음 | f020, PPT |
 | `screenshot(imageFilename=None)` | → PIL Image, 파일명을 주면 저장 | 가상 데스크톱 캔버스를 PIL 이미지로(Pyodide Pillow), 가상 파일 저장·썸네일·[내려받기]. 같은 이름 반복 저장은 빈도 제한 | f016, f025, f090 |
-| `PAUSE`·`FAILSAFE` 속성 | 대입 가능 | Claude 결정: 원본 기본값을 흉내 낸다(0.1초 쉼, 화면 네 모서리 가운데 한 곳에 닿으면 `FailSafeException` — 2026-09-30 정정: 처음에는 (0,0) 한 곳으로 적었다, 위 정정 참고) → f021·f127의 원본 체감과 f091의 모서리 예외가 PC와 같고, f095~f097·f104의 `PAUSE=0.01`·`FAILSAFE=False` 변경도 의미가 산다 | f091, f095~f097, f104, f114, f127 |
+| `PAUSE`·`FAILSAFE` 속성 | 대입 가능 | Claude 결정: 원본 기본값을 흉내 낸다(0.1초 쉼, 커서가 화면 네 모서리 가운데 한 곳에 있는 채로 다음 pyautogui 함수를 부르면 `FailSafeException` — 2026-09-30 정정: 처음에는 (0,0) 한 곳으로 적었다, 위 정정 참고. 2026-10-02 정정: 모서리에 "닿는" 순간이 아니라 다음 호출에서 — 진짜 0.9.54 `_genericPyAutoGUIChecks`의 `failSafeCheck`, 최종 전수 점검 3바퀴 CT3-02) → f021·f127의 원본 체감과 f091의 모서리 예외가 PC와 같고, f095~f097·f104의 `PAUSE=0.01`·`FAILSAFE=False` 변경도 의미가 산다 | f091, f095~f097, f104, f114, f127 |
 | `enter(…)` | 없음 | 만들지 않는다 → AttributeError + 한국어 설명 | f024 |
 | `webbrowser.open(url)` | | 가상 브라우저 창 열기(주소창에 URL, 내용은 자체 제작 연습 페이지). 실제 사이트 화면·로고 모사 금지 | f023, f024 |
 

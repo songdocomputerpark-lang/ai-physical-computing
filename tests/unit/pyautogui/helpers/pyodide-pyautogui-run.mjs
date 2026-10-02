@@ -170,7 +170,11 @@ async function step(name, code, { setup } = {}) {
     }
   } catch (error) {
     record.errorType = error && error.type ? error.type : 'JsError';
-    record.errorMessage = String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0];
+    const fullText = String(error && error.message ? error.message : error);
+    record.errorMessage = fullText.trim().split('\n').slice(-1)[0];
+    // 오류가 난 학생 코드 줄(트레이스백의 마지막 `File "main.py", line N`) — 오류 사전 보기가 어느 줄에서 멈추는지 본다(3바퀴 CT3-02).
+    const mainLines = [...fullText.matchAll(/File "main\.py", line (\d+)/gu)];
+    if (mainLines.length > 0) record.errorLine = Number(mainLines[mainLines.length - 1][1]);
   } finally {
     bridge.endRun();
   }
@@ -219,6 +223,17 @@ await step('failsafe', 'import pyautogui\npyautogui.moveTo(300, 300)\npyautogui.
 await step('failsafe_off', 'import pyautogui\npyautogui.FAILSAFE = False\npyautogui.moveTo(300, 300)\nlist(pyautogui.position())', {
   setup: () => bridge.pushEvent('desktop.pointer', { x: 0, y: 0 }),
 });
+
+// ⑨-b 오류 사전(content/help/errors/errors.yaml)의 failsafe 보기 코드를 새 실행에서 그대로 돌린다(최종 전수 점검 3바퀴 CT3-02 — 사전의
+// 보기가 정말 그 오류를 내는지). 전 보기 `moveTo(0, 0)` 한 줄은 진짜 PyAutoGUI 0.9.54에서도 오류가 나지 않았다: 이번 이동이 만든 모서리
+// 자리는 이동 중 확인에서 건너뛰고(_mouseMoveDrag), 안전장치는 다음 함수를 부를 때(_genericPyAutoGUIChecks의 failSafeCheck) 본다.
+// 커서는 화면이 알린 자리(SCREEN — 모서리 아님)에서 시작한다(새 페이지와 같음). 보기는 프로젝트의 yaml 패키지로 읽는다.
+const errorDictionary = require('yaml').parse(fs.readFileSync(path.join(rootDir, 'content', 'help', 'errors', 'errors.yaml'), 'utf8'));
+const failsafeEntry = (errorDictionary?.entries ?? []).find((entry) => entry && entry.id === 'failsafe');
+out.failsafeExample = failsafeEntry && failsafeEntry.example ? { code: failsafeEntry.example.code, line: failsafeEntry.example.line ?? null } : null;
+if (out.failsafeExample && typeof out.failsafeExample.code === 'string') {
+  await step('failsafe_dictionary_example', out.failsafeExample.code);
+}
 
 // ⑩ 학생이 가상 모니터를 눌러 커서를 옮기면 position()이 따라간다
 await step('pointer_follows', 'import pyautogui\nlist(pyautogui.position())', {
