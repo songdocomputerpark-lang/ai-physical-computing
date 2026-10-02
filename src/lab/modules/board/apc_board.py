@@ -399,8 +399,10 @@ class Clock:
         return value
 
     def begin_wait(self, target_ns):
-        """sleep을 시작할 때: 기다리는 동안 가상 시각이 target_ns를 넘지 않게 한다."""
-        self._cap_ns = int(target_ns)
+        """sleep을 시작할 때: 기다리는 동안 가상 시각이 target_ns를 넘지 않게 한다. 이미 다른 기다림이 있으면(asyncio 작업 여럿이 함께 잠 —
+        판 1.1.5 ext/asyncio) 더 이른 끝 시각까지만 — 혼자 자는 보통의 sleep은 전과 같다(그때는 앞선 기다림이 없다)."""
+        target = int(target_ns)
+        self._cap_ns = target if self._cap_ns is None else min(self._cap_ns, target)
 
     def end_wait(self):
         self._cap_ns = None
@@ -1217,7 +1219,9 @@ def _sleep_virtual(ns):
     except BaseException:
         clock.end_wait()
         raise
-    clock.anchor(before + ns)
+    # 혼자 잤으면 now_ns()는 끝 시각(before + ns)을 넘지 않아 "잔 만큼"으로 닻을 놓는다(전과 같음). 다른 작업의 기다림이 그사이 시계를 더 앞으로
+    # 보냈으면(asyncio 작업 안의 time.sleep — 판 1.1.5) 그 시각을 지켜 가상 시각이 거꾸로 가지 않게 한다.
+    clock.anchor(max(before + ns, clock.now_ns()))
 
 
 #: 핀 인터럽트가 걸려 있을 때 긴 sleep을 나눠 자는 조각(나노초) — 버튼을 누르면 20ms 안에 콜백이 돈다(실물은 곧바로)
@@ -1270,7 +1274,9 @@ async def _sleep_virtual_async(ns):
     except BaseException:
         clock.end_wait()
         raise
-    clock.anchor(before + ns)
+    # 여러 작업이 함께 자면(asyncio — ext/asyncio의 sleep·sleep_ms와 run의 지켜보는 작업, 판 1.1.5) 먼저 끝난 작업의 닻이 다른 작업의 끝 시각을
+    # 넘어 있을 수 있다 — 그 시각을 지켜 거꾸로 가지 않게 한다(혼자 잤으면 끝 시각 그대로 — _sleep_virtual과 같음).
+    clock.anchor(max(before + ns, clock.now_ns()))
 
 
 async def wait_ns_async(total_ns):
@@ -1370,6 +1376,8 @@ U_ALIASES = {
     # uasyncio는 붙박이 u-이름이 아니라 펌웨어에 굳힌 옛 이름 호환 모듈이다 — extmod/asyncio/manifest.py `module("uasyncio.py")`
     # (그 파일은 asyncio를 그대로 넘겨줌)를 ports/esp32/boards/manifest.py가 `include("$(MPY_DIR)/extmod/asyncio")`로 넣는다
     # (v1.29.0, 2026-10-02 공식 소스 확인). 전에는 가상 보드에서 "그런 이름의 모듈이 없어요(오타이거나 …)" 카드로 갔다(판 1.1.3 통합).
+    # 판 1.1.5부터 asyncio·uasyncio 둘 다 보드 확장 ext/asyncio/apc_board_asyncio.py가 등록표(register_board_module)에 올린 얇은 모듈을 받는다
+    # (sleep·sleep_ms가 가상 시계·[정지]를 안다 — 등록표가 이 별칭보다 먼저다). 이 줄은 그 확장을 불러오지 못했을 때의 안전망이다.
     "uasyncio": "asyncio",
 }
 
@@ -1459,7 +1467,8 @@ NOT_YET_MODULES = {
     "umqtt": "firmware",  # 펌웨어에 굳혀 둔 umqtt.simple — P4-06이 흉내를 더한다
     "esp32_ble_util": "library",  # micropython 저장소 examples/bluetooth의 BLESimplePeripheral — P4-03이 더한다
     # 펌웨어(v1.29.0)에 굳혀 둔 모듈 가운데 가상 보드가 흉내 내지 않는 것(판 1.1.1 최종 점검 — 전에는 `import dht`가 "PC 프로그램용 —
-    # pip install" 풀이로 갔다). 목록은 src/lab/esp32/board-libraries.ts의 펌웨어 모듈 표와 같다. asyncio는 Pyodide 표준 모듈이 대신하고
+    # pip install" 풀이로 갔다). 목록은 src/lab/esp32/board-libraries.ts의 펌웨어 모듈 표와 같다. asyncio는 보드 확장(ext/asyncio — 진짜 asyncio에
+    # sleep·sleep_ms 등 MicroPython 이름을 얹은 얇은 모듈, 판 1.1.5)이 대신하고
     # umqtt는 위 줄(흉내 있음)이라 빼고, requests는 Pyodide에 같은 이름의 PC용 패키지가 있어 아래 FIRMWARE_ONLY_MODULES로 따로 막는다.
     "dht": "firmware",
     "ds18x20": "firmware",

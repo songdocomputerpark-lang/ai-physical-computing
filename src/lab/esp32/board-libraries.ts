@@ -62,7 +62,8 @@ export const RESERVED_LIBRARY_NAMES: readonly string[] = Object.freeze([
   'framebuf',
   // 펌웨어에 굳혀 둔(frozen) 모듈 — 보드 뿌리에 같은 이름을 올리면 그 파일이 먼저 불린다(ports/esp32/boards/manifest.py v1.29.0)
   'asyncio',
-  // extmod/asyncio/manifest.py의 옛 이름 호환 모듈(uasyncio.py — 판 1.1.3 통합에서 더함, apc_board.py U_ALIASES)
+  // extmod/asyncio/manifest.py의 옛 이름 호환 모듈(uasyncio.py — 판 1.1.3 통합에서 더함, apc_board.py U_ALIASES. 판 1.1.5부터 보드 확장
+  // modules/board/ext/asyncio가 asyncio와 같은 모듈로 등록 — sleep_ms·[정지])
   'uasyncio',
   'aioespnow',
   'dht',

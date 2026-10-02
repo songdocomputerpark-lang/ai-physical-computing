@@ -60,9 +60,10 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — 펌웨어에 굳힌
     expect(stepOf(out, 'import_umqtt').value).toBe('MQTTClient');
   });
 
-  it('흉내가 있는 모듈(umqtt)·Pyodide 표준 모듈(asyncio)은 그대로, 학생이 둔 같은 이름 파일은 그 파일을 쓴다', () => {
+  it('흉내가 있는 모듈(umqtt·asyncio)은 그대로, 학생이 둔 같은 이름 파일은 그 파일을 쓴다', () => {
     expect(stepOf(out, 'import_asyncio').value).toBe('asyncio');
-    // 실물 v1.29.0이 굳혀 둔 옛 이름 uasyncio도 asyncio로 된다(전에는 "그런 이름의 모듈이 없어요" 카드 — 판 1.1.3 통합)
+    // 실물 v1.29.0이 굳혀 둔 옛 이름 uasyncio도 asyncio로 된다(전에는 "그런 이름의 모듈이 없어요" 카드 — 판 1.1.3 통합).
+    // 판 1.1.5부터 둘 다 보드 확장 ext/asyncio의 얇은 모듈(sleep_ms·[정지] — pyodide-board-asyncio.test.ts)
     const uasyncio = stepOf(out, 'import_uasyncio');
     expect(uasyncio.errorType).toBeUndefined();
     expect(uasyncio.value).toEqual(['asyncio', 'sleep']);

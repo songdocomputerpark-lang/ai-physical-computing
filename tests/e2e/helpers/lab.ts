@@ -93,6 +93,21 @@ export async function waitDone(page: Page, timeout = 60_000): Promise<string> {
   return (await labRoot(page).getAttribute('data-outcome')) ?? '';
 }
 
+/**
+ * 코드를 넣고 [실행]을 눌러 **이번** 실행이 끝날 때까지 기다린 결과(ok·error·stopped·killed)를 돌려준다(한 실습실 쪽).
+ * 같은 쪽에서 실행을 이어 할 때 runCode + waitDone은 앞 실행의 data-outcome을 읽을 수 있다 — 실습실이 모듈의 파일(보드 라이브러리 등)을
+ * 넣는 동안 [실행]을 미루면(lab-shell.ts의 #runHolds) 실행 번호를 올리고 결과를 지우는 일이 클릭보다 늦다(2026-10-02 최종 전수 점검
+ * 3바퀴 — lab-esp32 numpy 검사가 개발 서버에서 4번 가운데 1번 앞 실행의 'error'를 읽고 "── 실행 3 ──" 머리줄만 본 채 실패).
+ * 그래서 실행 번호(data-run-count)가 오른 뒤에 결과를 기다린다.
+ */
+export async function runCodeAndWait(page: Page, code: string, timeout = 60_000): Promise<string> {
+  const runCount = async () => Number((await labRoot(page).getAttribute('data-run-count')) ?? '0');
+  const before = await runCount();
+  await runCode(page, code);
+  await expect.poll(runCount, { timeout, message: '[실행]이 시작되지 않았어요(data-run-count가 그대로)' }).toBeGreaterThan(before);
+  return waitDone(page, timeout);
+}
+
 /** 이 사이트 머리말로 시작하는 localStorage·sessionStorage 이름 목록 */
 export async function ourStorageKeys(page: Page, prefix: string): Promise<{ local: string[]; session: string[] }> {
   return page.evaluate((keyPrefix) => {

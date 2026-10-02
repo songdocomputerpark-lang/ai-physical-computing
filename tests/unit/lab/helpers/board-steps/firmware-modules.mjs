@@ -54,9 +54,9 @@ export default async function firmwareModuleSteps({ step, pyodide }) {
   await step('import_ssl', 'import ssl');
   // 점 이름: 오류가 난 이름 그대로(umqtt.robust), 바로 다음 줄의 umqtt.simple은 그대로 된다
   await step('import_umqtt_robust', 'import umqtt.robust');
-  // 흉내가 있는 것·Pyodide 표준 모듈은 그대로
+  // 흉내가 있는 것(umqtt·asyncio — 판 1.1.5부터 asyncio는 보드 확장 ext/asyncio의 얇은 모듈)은 그대로
   await step('import_asyncio', 'import asyncio\nasyncio.__name__');
-  // 실물 펌웨어의 옛 이름 호환 모듈 uasyncio(extmod/asyncio/manifest.py)는 asyncio를 그대로 넘겨준다(판 1.1.3 통합)
+  // 실물 펌웨어의 옛 이름 호환 모듈 uasyncio(extmod/asyncio/manifest.py)는 asyncio를 그대로 넘겨준다(판 1.1.3 통합 — 판 1.1.5부터 같은 얇은 모듈)
   await step('import_uasyncio', 'import uasyncio as aio\nfrom uasyncio import sleep\n[aio.__name__, sleep.__name__]');
   await step('import_umqtt', 'from umqtt.simple import MQTTClient\nMQTTClient.__name__');
   // 학생이 같은 이름의 파일을 작업 폴더에 두면 그 파일을 쓴다(실물 보드도 보드 뿌리의 파일이 먼저)

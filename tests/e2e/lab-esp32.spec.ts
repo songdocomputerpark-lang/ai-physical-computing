@@ -12,7 +12,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
-import { expectEditorToContain, labRoot, LOAD_TIMEOUT, openLabAndWaitReady, runCode, waitDone } from './helpers/lab.ts';
+import { expectEditorToContain, labRoot, LOAD_TIMEOUT, openLabAndWaitReady, runCode, runCodeAndWait, waitDone } from './helpers/lab.ts';
+import { expectNoHorizontalOverflow, expectParamsHelpReflows, REFLOW_VIEWPORT } from './helpers/reflow.ts';
 import { collectRequests } from './helpers/vision.ts';
 
 const ESP32_PATH = withBase('labs/esp32/');
@@ -291,8 +292,8 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await openEsp32Lab(page);
     const card = page.locator('[data-errors-card]');
 
-    await runCode(page, ['import numpy as np', 'print(np.zeros(3))'].join('\n'));
-    expect(await waitDone(page, 60_000)).toBe('error');
+    // 같은 쪽에서 실행을 이어 하므로 이번 실행의 결과를 기다린다(runCodeAndWait — 앞 실행의 결과를 읽지 않게)
+    expect(await runCodeAndWait(page, ['import numpy as np', 'print(np.zeros(3))'].join('\n'))).toBe('error');
     await expect(card).toHaveAttribute('data-errors-entry', 'board-import-no-module');
     await expect(page.locator('[data-errors-title]')).toHaveText('보드에 그 모듈이 없어요');
     let text = await consoleText(page);
@@ -302,18 +303,15 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     expect(requests.urls.filter((url) => /\.whl(?:[?#]|$)/u.test(url))).toEqual([]);
 
     // 실물 펌웨어에 들어 있는 모듈은 "가상 보드에 아직 없는 기능이에요"(전에는 "오타이거나 설치되지 않았어요")
-    await runCode(page, 'import esp32');
-    expect(await waitDone(page, 60_000)).toBe('error');
+    expect(await runCodeAndWait(page, 'import esp32')).toBe('error');
     await expect(card).toHaveAttribute('data-errors-entry', 'board-not-emulated');
     await expect(page.locator('[data-errors-title]')).toHaveText('가상 보드에 아직 없는 기능이에요');
 
     // 점 이름은 오류가 난 이름 그대로(umqtt.robust) — 바로 다음 실행의 umqtt.simple은 된다
-    await runCode(page, 'import umqtt.robust');
-    expect(await waitDone(page, 60_000)).toBe('error');
+    expect(await runCodeAndWait(page, 'import umqtt.robust')).toBe('error');
     text = await consoleText(page);
     expect(text).toContain("No module named 'umqtt.robust'");
-    await runCode(page, ['from umqtt.simple import MQTTClient', "print('MQTT', MQTTClient.__name__)"].join('\n'));
-    expect(await waitDone(page, 60_000)).toBe('ok');
+    expect(await runCodeAndWait(page, ['from umqtt.simple import MQTTClient', "print('MQTT', MQTTClient.__name__)"].join('\n'))).toBe('ok');
     expect(await consoleText(page)).toContain('MQTT MQTTClient');
     expect(requests.urls.filter((url) => /\.whl(?:[?#]|$)/u.test(url))).toEqual([]);
     expect(errors).toEqual([]);
@@ -325,6 +323,69 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await expect(board(page)).toHaveAttribute('data-board-ready', 'yes', { timeout: 60_000 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  // 판 1.1.5(최종 전수 점검 3바퀴 LB3-02): 320px(WCAG 2.1 1.4.10 재배치 기준 폭)에서 조절 패널 "조절 값 쓰는 법"을 펼치면 쪽이 28px 넘쳐
+  // 조절 막대 오른쪽 값이 잘렸다(규약 보기 코드가 줄을 바꾸지 않아 패널을 넓힘 — 375px 검사는 넘치지 않아 놓쳤다).
+  test('가장 좁은 휴대폰(320px)에서도 조절 패널 도움말을 펼쳐도 가로로 넘치지 않는다', async ({ page }) => {
+    test.skip(test.info().project.name !== 'mobile', '모바일 프로젝트에서만 잰다.');
+    await page.setViewportSize(REFLOW_VIEWPORT);
+    await openEsp32Lab(page);
+    await expectNoHorizontalOverflow(page, 'ESP32 실습실 320px');
+    await expectParamsHelpReflows(page, 'ESP32 실습실 320px');
+  });
+
+  // 판 1.1.5(최종 전수 점검 3바퀴 LB3-01): 전에는 가상 보드의 asyncio가 컴퓨터 파이썬 asyncio 그대로라 `await asyncio.sleep_ms(100)`이
+  // "오타일 때가 많아요" 카드였고, `await asyncio.sleep` 무한 반복은 [정지]가 1초 안에 먹지 않아 "계산만 하는 반복문" 안내와 함께
+  // 파이썬을 다시 시작했다(결과 killed). 이제 보드 확장 ext/asyncio가 sleep·sleep_ms를 가상 시계·[정지]를 아는 판으로 준다.
+  test('MicroPython식 asyncio(uasyncio + sleep_ms)가 오류 없이 돌고, await asyncio.sleep 무한 반복도 [정지]로 곧바로 멈춘다', async ({ page }) => {
+    test.skip(test.info().project.name === 'mobile', '실행 결과는 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openEsp32Lab(page);
+    const card = page.locator('[data-errors-card]');
+
+    const blinkOutcome = await runCodeAndWait(
+      page,
+      [
+        'import uasyncio as asyncio',
+        'from machine import Pin',
+        'led = Pin(2, Pin.OUT)',
+        'async def blink():',
+        '    for _ in range(3):',
+        '        led.value(not led.value())',
+        '        await asyncio.sleep_ms(100)',
+        'asyncio.run(blink())',
+        "print('END', led.value())",
+      ].join('\n'),
+    );
+    expect(blinkOutcome).toBe('ok');
+    expect(await consoleText(page)).toContain('END 1');
+    await expect(card).toBeHidden();
+
+    await runCode(
+      page,
+      [
+        'import asyncio',
+        'from machine import Pin',
+        'led = Pin(2, Pin.OUT)',
+        'async def main():',
+        '    n = 0',
+        '    while True:',
+        '        n += 1',
+        '        led.value(n % 2)',
+        "        print('tick', n)",
+        '        await asyncio.sleep(0.3)',
+        'asyncio.run(main())',
+      ].join('\n'),
+    );
+    await expect(page.locator('[data-lab-console]')).toContainText('tick 2', { timeout: 60_000 });
+    await page.locator('[data-lab-stop]').click();
+    expect(await waitDone(page, 30_000)).toBe('stopped');
+    const text = await consoleText(page);
+    expect(text).not.toContain('계산만 하는 반복문');
+    expect(text).not.toContain('Unhandled exception');
+    expect(errors).toEqual([]);
   });
 });
 
