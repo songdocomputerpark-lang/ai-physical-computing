@@ -87,10 +87,14 @@ group: 영상 처리             # 묶음 이름
     </ul>
   </nav>
 
+  {/* 묶음 머리(h2 "U"·"숫자·기호" 등)는 검색 색인에서 뺀다(data-pagefind-ignore — 기본값 "index": 글자만 색인에서 빠지고 id·aria-labelledby·
+       색인 링크는 그대로, https://pagefind.app/docs/indexing/). id가 있는 제목이라 Pagefind가 항목 결과(sub_result)로 내서, 검색어 uasyncio가
+       "U — 용어사전"으로, 숫자가 "숫자·기호"로 이어졌다(2026-10-02 최종 전수 점검 3바퀴 ST3-02). 고르는 규칙에서도 뺀다
+       (src/components/search/search-page.ts isGlossaryGroupAnchor). */}
   {
     groups.map((group) => (
       <section class="glossary-group" aria-labelledby={group.anchor}>
-        <h2 class="glossary-group__title" id={group.anchor}>
+        <h2 class="glossary-group__title" id={group.anchor} data-pagefind-ignore>
           {group.label}
         </h2>
         {group.entries.map((item) => {

@@ -4,7 +4,8 @@
 // 브라우저에서 확인한 한국어 검색 동작(2026-09-16) — 테스트가 이 사실에 기대고 있다.
 // - 낱말의 앞부분으로 찾는다: '서보'는 '서보모터'를, '로그인'은 '로그인이'를 찾는다. 조사를 떼어 주지는 않는다.
 // - 가운뎃점(·)으로 이은 낱말('버저·서보모터')은 한 낱말로 묶인다 → 사이트 글의 나열은 쉼표로 쓴다.
-// - 어떤 낱말과도 맞지 않는 한국어 검색어는 앞부분이 맞는 결과를 보여 주기도 해서, "결과 없음"은 영문 검색어로 시험한다.
+// - 어떤 낱말과도 맞지 않는 검색어는 Pagefind(쪽 언어 ko)가 검색어를 조각내 그 조각으로 찾은 결과를 보여 주기도 한다 — 한국어뿐 아니라
+//   영문도 그렇다(2026-10-02 실사이트: asyncio → 결과 23개 모두 'as' 표시). 그래서 "결과 없음"은 조각도 맞지 않는 한글 '뷁쿍퓽'으로 시험한다.
 // 검색 결과에는 다른 담당의 페이지도 섞이므로, 이 담당 페이지가 "들어 있는지"만 확인한다(결과 전체를 펼쳐서).
 import { expect, test, type Page } from '@playwright/test';
 import { getPage } from '../../src/config/nav.ts';
@@ -127,6 +128,21 @@ test.describe('사이트 검색(색인과 결과)', () => {
     await result.locator('h3 a').click();
     await expect(page).toHaveURL(/\/labs\/gallery\/#ex-vision-u4-c3-finger-count-send$/u);
     await expect(page.locator('h3#ex-vision-u4-c3-finger-count-send')).toBeInViewport();
+  });
+
+  test('용어사전의 가나다·ABC 색인 묶음 머리("U"·"숫자·기호")로는 이어 주지 않는다(2026-10-02 최종 전수 점검 3바퀴 ST3-02)', async ({ page }) => {
+    // 전에는 uasyncio → "U — 용어사전"(#index-u, 요약 "U."), 숫자 → 용어사전 결과가 "숫자·기호"(#index-etc)였다. 묶음 머리 글자는 색인에서
+    // 빠졌고(data-pagefind-ignore), 고르는 규칙도 머리를 뺀다(search-page.ts isGlossaryGroupAnchor). 결과 개수는 엔진 결과라 보지 않는다.
+    const groupHead = `${getPage('glossary').href}#index-`;
+    for (const term of ['uasyncio', '숫자']) {
+      await page.goto(searchUrl(term));
+      await expect(searchRoot(page)).toHaveAttribute('data-state', /^(?:results|empty)$/u);
+      const hrefs = (await searchRoot(page).getAttribute('data-state')) === 'results' ? await collectResultHrefs(page) : [];
+      expect(
+        hrefs.filter((href) => href.startsWith(groupHead)),
+        `${term} — 용어사전 결과가 색인 묶음 머리로 가요`,
+      ).toEqual([]);
+    }
   });
 
   test('검색·404 페이지는 결과에 나오지 않는다', async ({ page }) => {

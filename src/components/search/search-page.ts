@@ -39,13 +39,32 @@ interface ResultView {
 }
 
 /**
+ * 용어사전 쪽의 가나다·ABC 색인 묶음 머리(h2#index-…)로 가는 주소인가 — 항목 결과로 고르지 않는다(2026-10-02 최종 전수 점검 3바퀴 ST3-02:
+ * `uasyncio` → "U — 용어사전", `숫자` → "숫자·기호"로 이어 주어 학생이 엉뚱한 자리로 갔다). 묶음 id는 src/components/glossary/glossary.ts
+ * glossaryGroupOf가 만든다(index-giyeok~index-hieut, index-a~index-z, index-etc — 브라우저 번들에 그 파일을 끌어오지 않게 규칙만 여기 둔다,
+ * 단위 테스트가 둘을 맞춰 본다). 경로까지 보는 까닭: 같은 anchorPages의 오류 사전 IndexError 항목 id가 `index-error`다(/help/errors/#index-error).
+ * 묶음 머리 글자는 색인에서도 뺐다(src/pages/glossary/index.astro data-pagefind-ignore) — 이 함수는 빌드 없이 지키는 안전망이다.
+ */
+export function isGlossaryGroupAnchor(url: string): boolean {
+  const hashAt = url.indexOf('#');
+  if (hashAt < 0) {
+    return false;
+  }
+  const pathPart = url.slice(0, hashAt).split('?')[0] ?? '';
+  return /(?:^|\/)glossary\/(?:index\.html)?$/u.test(pathPart) && url.slice(hashAt + 1).startsWith('index-');
+}
+
+/**
  * 항목 단위 페이지의 결과를 가장 잘 맞는 항목으로 바꾼다.
  * 제목이 검색어로 시작하는 항목(예: "픽셀" → "픽셀 Pixel")을 먼저 고르고, 없으면 검색어가 든 첫 항목, 그것도 없으면 첫 항목.
+ * 용어사전의 색인 묶음 머리(isGlossaryGroupAnchor)는 항목으로 보지 않는다.
  * 항목이 없으면(제목 앞의 글에서만 맞음) 페이지 결과를 그대로 쓴다. 순수 함수라 단위 테스트가 검사한다.
  */
 export function pickAnchoredResult(data: PagefindResultData, term: string): ResultView {
   const pageTitle = data.meta?.title?.trim() || data.url;
-  const anchored = (data.sub_results ?? []).filter((sub) => sub.url.includes('#') && sub.title.trim() !== '');
+  const anchored = (data.sub_results ?? []).filter(
+    (sub) => sub.url.includes('#') && sub.title.trim() !== '' && !isGlossaryGroupAnchor(sub.url),
+  );
   if (anchored.length === 0) {
     return { title: pageTitle, url: data.url, excerpt: data.excerpt };
   }
