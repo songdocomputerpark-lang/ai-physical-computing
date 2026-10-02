@@ -41,8 +41,15 @@
 </div>
 
 <style>
+  /*
+   * 휴대폰 320px(WCAG 2.1 1.4.10 재배치 기준 폭)에서 가로로 넘치지 않게(2026-10-02 최종 전수 점검 3바퀴 LB3-02): 그리드 열을 정하지 않으면
+   * auto 열이 내용의 최소 폭까지 넓어져, 줄을 바꾸지 않는 규약 보기 코드(`mode = "edge"  # @select edge blur gray`)가 패널을 넓히고
+   * 위 안내 글과 조절 막대 오른쪽 값 숫자까지 화면 밖으로 밀었다. 열은 minmax(0, 1fr), 설명 속 코드 조각은 줄을 바꿔 보인다
+   * (새 가로 스크롤 칸을 만들지 않는다 — 만들면 data-scroll-focus·data-scroll-shade 규약, DECISIONS C68·C79).
+   */
   .params {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
     min-height: 10rem;
     padding: var(--space-3) var(--space-4);
@@ -65,11 +72,14 @@
   .params__help-note code {
     font-family: var(--font-mono);
     font-size: 0.92em;
-    white-space: pre;
+    /* 빈칸 두 개(규약 보기 그대로)는 지키되 칸이 좁으면 줄을 바꾼다 — pre면 가장 긴 줄이 패널 폭을 정했다(위 머리말) */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   .params__list {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
   }
 
@@ -180,12 +190,9 @@
 
   .params__help-list {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
     margin: var(--space-2) 0 0;
-  }
-
-  .params__help-list dt {
-    overflow-x: auto;
   }
 
   .params__help-list dd {

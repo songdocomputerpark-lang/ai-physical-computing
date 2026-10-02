@@ -54,6 +54,7 @@ import {
 } from '../../src/lab/unit4/perf.ts';
 import { storageKey } from '../../src/lib/storage.ts';
 import { withBase } from '../../src/lib/url.ts';
+import { expectNoHorizontalOverflow, expectParamsHelpReflows, REFLOW_VIEWPORT } from './helpers/reflow.ts';
 
 const UNIT4_PATH = withBase('labs/unit4/');
 const VISION_PATH = withBase('labs/vision/');
@@ -406,6 +407,18 @@ test.describe('4단원 통합 화면 — 한 문서에 두 실습실', () => {
     await bar(page).locator('[data-unit4-jump="board"]').click();
     await expect(boardLab(page).locator('[data-board-stage-wrap]')).toBeFocused();
     await expect(boardLab(page).locator('[data-board-stage-wrap]')).toBeInViewport();
+  });
+
+  // 판 1.1.5(최종 전수 점검 3바퀴 LB3-02): 320px(WCAG 2.1 1.4.10 재배치 기준 폭)에서 가상 데스크톱 칸이 접힌 채로도 18px, 조절 패널
+  // "조절 값 쓰는 법"을 펼치면 28px 넘쳤다(그리드의 auto 열이 긴 선택지·규약 보기 코드의 폭까지 넓어짐 — 열은 이제 minmax(0, 1fr)).
+  test('가장 좁은 휴대폰(320px)에서도 가상 데스크톱·조절 패널 도움말이 가로로 넘치지 않는다', async ({ page }) => {
+    test.skip(test.info().project.name !== 'mobile', '휴대폰 폭에서만 잰다');
+    await page.setViewportSize(REFLOW_VIEWPORT);
+    await openUnit4(page);
+    await waitBothReady(page);
+    await expect(pcLab(page).locator('[data-desktop]')).toBeVisible();
+    await expectNoHorizontalOverflow(page, '4단원 통합 실습실 320px');
+    await expectParamsHelpReflows(page, '4단원 통합 실습실 320px');
   });
 
   test('공유 링크(#code=)와 ?example=은 맞는 칸으로 가고 다른 칸은 그대로다', async ({ page }) => {

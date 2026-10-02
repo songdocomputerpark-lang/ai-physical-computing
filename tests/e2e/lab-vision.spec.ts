@@ -7,6 +7,7 @@
 import { expect, test } from '@playwright/test';
 import { ALLOWED_REMOTE_ORIGINS, STOP_GRACE_MS } from '../../src/lab/runtime/config.ts';
 import { labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
+import { expectNoHorizontalOverflow, expectParamsHelpReflows, REFLOW_VIEWPORT } from './helpers/reflow.ts';
 import { FRAME_TIMEOUT, VISION_PATH, collectRequests, openVisionLab, waitFrames, whiteRatio } from './helpers/vision.ts';
 
 test.describe('영상처리 실습실(가짜 카메라)', () => {
@@ -194,5 +195,20 @@ test.describe('좁은 화면', () => {
       ['.vision-io__input', '.vision-io__output'].map((selector) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1),
     );
     expect(tops[0]).toBeLessThan(tops[1]);
+  });
+
+  // 판 1.1.5(최종 전수 점검 3바퀴 LB3-02): 320px(WCAG 2.1 1.4.10 재배치 기준 폭)에서 조절 패널 "조절 값 쓰는 법"을 펼치면 쪽이 28px 넘쳐
+  // 조절 막대 오른쪽 값 숫자(output.param__value)가 잘렸다 — 규약 보기 코드(`mode = "edge"  # @select edge blur gray`)가 줄을 바꾸지 않아 패널을 넓힘.
+  test('가장 좁은 휴대폰(320px)에서도 조절 막대 값이 보이고, 조절 패널 도움말을 펼쳐도 가로로 넘치지 않는다', async ({ page }) => {
+    await page.setViewportSize(REFLOW_VIEWPORT);
+    await openVisionLab(page);
+    await expectNoHorizontalOverflow(page, '영상처리 실습실 320px');
+    // 첫 예제(에지 검출)의 조절 막대 값 숫자가 화면 안에 있다
+    const value = page.locator('output.param__value').first();
+    await value.scrollIntoViewIfNeeded();
+    const right = await value.evaluate((element) => element.getBoundingClientRect().right);
+    expect(right).toBeLessThanOrEqual(REFLOW_VIEWPORT.width);
+    await expectParamsHelpReflows(page, '영상처리 실습실 320px');
+    expect(await value.evaluate((element) => element.getBoundingClientRect().right)).toBeLessThanOrEqual(REFLOW_VIEWPORT.width);
   });
 });

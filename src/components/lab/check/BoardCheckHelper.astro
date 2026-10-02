@@ -266,8 +266,12 @@ const labHref = withBase('labs/esp32/');
   }
 
   .board-check__item-title {
+    /* 가운뎃점으로 이은 긴 어절("모듈(neopixel·ubluetooth·PWM·ADC)")은 body의 word-break: keep-all 아래에서 한 덩어리라, 줄을 바꿀 수 없으면
+       휴대폰 320px에서 제목이 화면 밖으로 넘쳤다(2026-10-02 최종 전수 점검 3바퀴 LB3-02). 제목 글은 [결과 복사]와 같아야 해서 CSS로만 고친다. */
+    min-width: 0;
     margin: 0;
     font-size: var(--text-lg);
+    overflow-wrap: anywhere;
   }
 
   .board-check__badge {

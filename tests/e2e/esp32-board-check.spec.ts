@@ -10,6 +10,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { CHECK_ITEMS, wiringItems } from '../../src/lab/esp32/check/items.ts';
 import { withBase } from '../../src/lib/url.ts';
+import { expectNoHorizontalOverflow, REFLOW_VIEWPORT } from './helpers/reflow.ts';
 import { installSerialMock, serialMock, utf8Text } from './helpers/serial.ts';
 
 const CHECK_PATH = withBase('labs/esp32/check/');
@@ -187,5 +188,17 @@ test.describe('실물 점검 도우미(휴대폰 폭)', () => {
     }));
     expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
     await expect(card(page, 'touch').locator('[data-check-figure] svg')).toBeVisible();
+  });
+
+  // 판 1.1.5(최종 전수 점검 3바퀴 LB3-02): 320px(WCAG 2.1 1.4.10 재배치 기준 폭)에서 5번 제목 "펌웨어에 든 모듈(neopixel·ubluetooth·PWM·ADC)"이
+  // body의 word-break: keep-all 아래 한 덩어리라 11px 넘쳤다. 제목 글은 [결과 복사]와 같아야 해서 CSS로만 줄을 바꾼다.
+  test('가장 좁은 휴대폰(320px)에서도 가로 넘침이 없고, 긴 항목 제목은 줄을 바꿔 화면 안에 있다', async ({ page }) => {
+    await page.setViewportSize(REFLOW_VIEWPORT);
+    await openCheckPage(page);
+    await expectNoHorizontalOverflow(page, '실물 점검 도우미 320px');
+    const title = card(page, 'modules').locator('.board-check__item-title');
+    await expect(title).toContainText('펌웨어에 든 모듈(neopixel·ubluetooth·PWM·ADC)');
+    await title.scrollIntoViewIfNeeded();
+    expect(await title.evaluate((element) => element.getBoundingClientRect().right)).toBeLessThanOrEqual(REFLOW_VIEWPORT.width);
   });
 });
