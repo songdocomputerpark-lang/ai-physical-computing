@@ -160,7 +160,9 @@ test.describe('가상 블루투스(BLE)', () => {
     await connect(page);
     await sendText(page, 'DATA,120,80');
     await expect.poll(async () => lcdRow(page, 0), { timeout: 20_000 }).toContain('X:120');
-    expect(await lcdRow(page, 0)).toContain('Y:80');
+    // LCD는 한 글자씩 써지므로 X를 본 순간 Y가 아직 덜 써졌을 수 있다("X:120   Y:8" — 2026-10-06 판 1.2.0 통합 전체 실행의 휴대폰 쪽에서 한 번,
+    // 다시 시도에서 통과) — Y도 기다려 본다.
+    await expect.poll(async () => lcdRow(page, 0), { timeout: 5_000 }).toContain('Y:80');
 
     // 머리말·칸 수가 다르면 그대로 둔다(예제가 len(parts) == 3과 "DATA"를 검사한다)
     await sendText(page, '999,999');

@@ -222,8 +222,9 @@ test.describe('용어 툴팁', () => {
     const tipId = await term.getAttribute('aria-describedby');
     await expect(page.locator(`[id="${tipId}"]`)).toBeVisible();
     await expect(page).not.toHaveURL(/#sensor$/u);
-    // 다른 곳을 누르면 닫히고, 다시 누르면 또 뜬다
-    await page.locator('h1').tap();
+    // 다른 곳을 누르면 닫히고, 다시 누르면 또 뜬다. 쪽 본문(main)의 제목을 누른다 — Playwright의 'h1'은 그림자 DOM까지 들어가 개발 서버의
+    // Astro 개발 도구 막대(astro-dev-toolbar) 속 제목까지 잡아 strict 위반이었다(2026-10-06 판 1.1.5 뒤 개선 묶음 구역 E 지적, start.spec 7b884a8과 같은 종류).
+    await page.locator('main h1').tap();
     await expect(term).not.toHaveAttribute('data-tooltip', 'open');
     await term.tap();
     await expect(term).toHaveAttribute('data-tooltip', 'open');
