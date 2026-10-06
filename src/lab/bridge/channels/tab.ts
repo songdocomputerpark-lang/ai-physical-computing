@@ -13,11 +13,16 @@
  * - peerTimeoutMs 동안 소식이 없으면 목록에서 뺀다. 닫을 때는 `bridge.bye`.
  * - `requirePeer`(기본 참)면 상대가 없을 때 보내기가 BridgeNoPeerError를 던진다 — "ESP32 실습실 탭을 열어요" 안내로 이어진다.
  *   보내기 직전에 discoveryMs만큼 한 번 더 기다려 본다(막 열린 탭이 답할 시간).
+ * - 시계(heartbeat·기다리기 타이머)는 기본으로 **워커 시계**(`background-clock.ts` backgroundScheduler)다(미해결 220 — 판 1.1.5 뒤).
+ *   크롬(엣지도 그 기능이 켜져 있으면)은 1분 넘게 가려진 탭의 주 스레드 사슬 타이머를 1분에 한 번으로 줄여, 가려진 보드 탭이
+ *   상대 탭 목록에서 빠졌다 들어왔다 했다.
+ *   워커가 시간을 재고 주 스레드가 알림을 받아 보내므로, 주 스레드가 멈춘 탭은 여전히 알리지 못한다(살아 있음의 뜻은 그대로).
+ *   단위 검사는 scheduler에 가짜 시계를 넣고, 워커가 없는 곳(Node)에서는 주 스레드 타이머로 돈다.
  */
 import { BridgeClosedError, BridgeNoPeerError } from '../messages.ts';
 import type { BridgeChannel, BridgeChannelEvents, BridgeChannelState, BridgeParty, BridgeSendOptions } from '../types.ts';
 import type { BridgeScheduler } from '../outbox.ts';
-import { systemScheduler } from '../outbox.ts';
+import { backgroundScheduler } from './background-clock.ts';
 import { BridgeChannelEmitter } from './emitter.ts';
 import { BRIDGE_BYE_TYPE, BRIDGE_HELLO_TYPE, BRIDGE_HERE_TYPE, isPresenceType, makeEnvelope, parseEnvelope } from './envelope.ts';
 import { BRIDGE_DATA_TYPE } from './direct.ts';
@@ -59,6 +64,7 @@ export interface TabChannelOptions {
   readonly heartbeatMs?: number;
   /** 이 시간 동안 소식이 없으면 상대 목록에서 뺀다(밀리초, 기본 6000) */
   readonly peerTimeoutMs?: number;
+  /** 시계(기본: 가려진 탭에서도 제때 도는 워커 시계 — 머리말, 미해결 220) */
   readonly scheduler?: BridgeScheduler;
   /** BroadcastChannel을 만드는 함수(테스트가 가짜를 넣는다) */
   readonly factory?: (name: string) => BroadcastChannelLike;
@@ -103,7 +109,7 @@ class TabChannel implements BridgeChannel {
     this.from = options.from;
     this.type = options.type ?? BRIDGE_DATA_TYPE;
     this.label = options.label ?? '같은 컴퓨터 탭';
-    this.scheduler = options.scheduler ?? systemScheduler;
+    this.scheduler = options.scheduler ?? backgroundScheduler();
     this.name = tabChannelName(options.prefix);
     this.channel = (options.factory ?? defaultFactory)(this.name);
     this.listener = (event) => {

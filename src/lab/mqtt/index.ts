@@ -30,7 +30,18 @@ export {
 } from './topics.ts';
 export { MqttEmitter, makeClientId, previewBytes, toBytes, type MqttIncoming, type MqttPublishOptions, type MqttTransport, type MqttTransportEvents, type MqttTransportOptions, type MqttVia } from './transport.ts';
 export { isTabMqttAvailable, openTabTransport, parseTabEnvelope, tabMqttChannelName, type BroadcastChannelLike, type TabMqttEnvelope, type TabMqttTransportOptions } from './tab-transport.ts';
-export { isBrokerAvailable, openBrokerTransport, reasonOf, type BrokerTransportOptions, type MqttClientLike, type MqttConnectFn } from './broker-transport.ts';
+export {
+  CONNECT_REASONS,
+  isBrokerAvailable,
+  openBrokerTransport,
+  reasonOf,
+  timeoutReasonOf,
+  type BrokerTransportOptions,
+  type MqttClientLike,
+  type MqttConnectFn,
+  type WebSocketFactory,
+  type WebSocketLike,
+} from './broker-transport.ts';
 export { MqttConnection, type MqttConnectionEvents, type MqttConnectionOptions, type MqttConnectionState, type MqttLogEntry, type MqttMode, type MqttReceived } from './connection.ts';
 export { getMqttSession, peekMqttSession, resetMqttSession } from './session.ts';
 export { MQTT_CHANNEL_ID, MQTT_DATA_TYPE, envelopeTextOf, forgetMqttChannelRegistration, registerMqttChannel, type MqttChannelExtra } from './channel.ts';

@@ -2,7 +2,17 @@
 // 진짜 브로커에 붙지 않고 **MQTT.js와 같은 모양의 가짜 클라이언트**로 규칙을 확인한다
 // (공식 타입 선언 node_modules/mqtt/build/lib/client.d.ts의 이벤트·함수 이름을 그대로 쓴다).
 import { describe, expect, it, vi } from 'vitest';
-import { MqttConnectError, openBrokerTransport, reasonOf, toBytes, type MqttClientLike, type MqttIncoming } from '../../../src/lab/mqtt/index.ts';
+import {
+  CONNECT_REASONS,
+  MqttConnectError,
+  openBrokerTransport,
+  reasonOf,
+  timeoutReasonOf,
+  toBytes,
+  type MqttClientLike,
+  type MqttIncoming,
+  type WebSocketLike,
+} from '../../../src/lab/mqtt/index.ts';
 import { CONNECT_TIMEOUT_MARGIN_MS } from '../../../src/lab/mqtt/broker-transport.ts';
 
 const URL_OK = 'wss://broker.example:8084/mqtt';
@@ -148,6 +158,191 @@ describe('연결', () => {
   it('주소가 wss://가 아니면 열기 전에 막는다', async () => {
     const client = new FakeClient();
     await expect(openBrokerTransport({ prefix: '7kq2m9xd4hpt', url: 'ws://broker.example:8083', connectFn: connectFnOf(client) })).rejects.toThrow(/wss:\/\//u);
+  });
+});
+
+/** 브라우저 WebSocket 흉내 — 열림·닫힘만(우리가 보는 부분) */
+class FakeSocket implements WebSocketLike {
+  private readonly listeners = new Map<string, Array<() => void>>();
+
+  constructor(
+    readonly url: string,
+    readonly protocols: string[],
+  ) {}
+
+  addEventListener(type: 'open' | 'close', listener: () => void): void {
+    const list = this.listeners.get(type) ?? [];
+    list.push(listener);
+    this.listeners.set(type, list);
+  }
+
+  emit(type: 'open' | 'close'): void {
+    for (const listener of [...(this.listeners.get(type) ?? [])]) {
+      listener();
+    }
+  }
+}
+
+/**
+ * MQTT.js 5.15.2가 브라우저에서 하는 대로 흉내 낸 연결 함수: `createWebsocket`(우리가 넘긴 선택)으로 소켓을 만들고, 소켓이 닫히면
+ * 'error'는 내지 않고(브라우저 WebSocket 오류는 code가 없어 삼킨다 — build/lib/client.js streamErrorHandler) 'close' 뒤
+ * reconnectPeriod(3초)마다 다시 붙는다. 클라이언트를 end()하면 그만 붙는다.
+ */
+function browserLikeConnect(client: FakeClient, server: 'close-after-open' | 'unreachable', sockets: FakeSocket[]) {
+  return (url: string, options: Record<string, unknown>): MqttClientLike => {
+    const create = options['createWebsocket'] as (socketUrl: string, protocols: string[]) => WebSocketLike;
+    const attempt = (): void => {
+      if (client.ended) {
+        return;
+      }
+      const socket = create(url, ['mqtt']) as FakeSocket;
+      sockets.push(socket);
+      setTimeout(() => {
+        if (server === 'close-after-open') {
+          socket.emit('open');
+        }
+        socket.emit('close');
+        client.fire('close');
+        setTimeout(() => {
+          if (!client.ended) {
+            client.fire('reconnect');
+            attempt();
+          }
+        }, 3000);
+      }, 50);
+    };
+    attempt();
+    return client;
+  };
+}
+
+// 미해결 221(판 1.1.5 뒤): 받자마자 닫는 서버도, 닿지 못하는 서버도 까닭이 "8초 동안 답이 없음"이었다.
+describe('연결 실패 까닭 고르기(미해결 221)', () => {
+  it('서버가 WebSocket을 받자마자 닫으면 다시 붙어 보다가 "서버가 연결을 닫음"으로 알린다', async () => {
+    vi.useFakeTimers();
+    try {
+      const client = new FakeClient();
+      const sockets: FakeSocket[] = [];
+      const promise = openBrokerTransport({
+        prefix: '7kq2m9xd4hpt',
+        url: URL_OK,
+        connectTimeoutMs: 8000,
+        connectFn: browserLikeConnect(client, 'close-after-open', sockets),
+        socketFactory: (socketUrl, protocols) => new FakeSocket(socketUrl, protocols),
+      });
+      const failed = promise.catch((error: unknown) => error);
+      await vi.advanceTimersByTimeAsync(8100);
+      const error = await failed;
+      expect(error).toBeInstanceOf(MqttConnectError);
+      expect((error as MqttConnectError).reason).toBe(CONNECT_REASONS.serverClosed);
+      expect((error as MqttConnectError).message).toContain('(서버가 연결을 닫음)');
+      expect((error as MqttConnectError).message).not.toContain('답이 없음');
+      // 기다리는 시간·다시 붙기는 그대로 — 8초 동안 0·3·6초에 세 번 붙어 봤다(한 번 닫혀도 다음 시도에 붙을 수 있다)
+      expect(sockets).toHaveLength(3);
+      expect(sockets[0]?.url).toBe(URL_OK);
+      expect(sockets[0]?.protocols).toEqual(['mqtt']);
+      expect(client.ended).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('WebSocket이 열리지도 못하면(주소·포트·학교망 차단) "서버에 닿지 못함"으로 알린다', async () => {
+    vi.useFakeTimers();
+    try {
+      const client = new FakeClient();
+      const sockets: FakeSocket[] = [];
+      const promise = openBrokerTransport({
+        prefix: '7kq2m9xd4hpt',
+        url: URL_OK,
+        connectTimeoutMs: 8000,
+        connectFn: browserLikeConnect(client, 'unreachable', sockets),
+        socketFactory: (socketUrl, protocols) => new FakeSocket(socketUrl, protocols),
+      });
+      const failed = promise.catch((error: unknown) => error);
+      await vi.advanceTimersByTimeAsync(8100);
+      const error = (await failed) as MqttConnectError;
+      expect(error.reason).toBe(CONNECT_REASONS.unreachable);
+      expect(error.message).toContain('(서버에 닿지 못함)');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('소켓이 열린 채 아무 답이 없으면 전처럼 "N초 동안 답이 없음"', async () => {
+    vi.useFakeTimers();
+    try {
+      const client = new FakeClient();
+      const sockets: FakeSocket[] = [];
+      const promise = openBrokerTransport({
+        prefix: '7kq2m9xd4hpt',
+        url: URL_OK,
+        connectTimeoutMs: 8000,
+        connectFn: (url, options) => {
+          const socket = (options['createWebsocket'] as (u: string, p: string[]) => WebSocketLike)(url, ['mqtt']) as FakeSocket;
+          sockets.push(socket);
+          setTimeout(() => socket.emit('open'), 50);
+          return client;
+        },
+        socketFactory: (socketUrl, protocols) => new FakeSocket(socketUrl, protocols),
+      });
+      const failed = promise.catch((error: unknown) => error);
+      await vi.advanceTimersByTimeAsync(8100);
+      expect(((await failed) as MqttConnectError).reason).toBe('8초 동안 답이 없음');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('첫 소켓을 만들다 막히면(브라우저가 막는 포트 등) 기다리지 않고 "서버에 닿지 못함"', async () => {
+    const client = new FakeClient();
+    const started = Date.now();
+    const failed = await openBrokerTransport({
+      prefix: '7kq2m9xd4hpt',
+      url: URL_OK,
+      connectTimeoutMs: 8000,
+      connectFn: (url, options) => {
+        (options['createWebsocket'] as (u: string, p: string[]) => WebSocketLike)(url, ['mqtt']);
+        return client;
+      },
+      socketFactory: () => {
+        throw new Error('SecurityError: The port 9 is not allowed.');
+      },
+    }).catch((error: unknown) => error);
+    expect(failed).toBeInstanceOf(MqttConnectError);
+    expect((failed as MqttConnectError).reason).toBe(CONNECT_REASONS.unreachable);
+    expect((failed as MqttConnectError).message).not.toContain('port');
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
+  it('붙으면 그 뒤 소켓 일은 연결 결과를 바꾸지 않는다(createWebsocket은 다시 붙을 때도 쓰인다)', async () => {
+    const client = new FakeClient();
+    const transport = await openBrokerTransport({
+      prefix: '7kq2m9xd4hpt',
+      url: URL_OK,
+      connectFn: (url, options) => {
+        const socket = (options['createWebsocket'] as (u: string, p: string[]) => WebSocketLike)(url, ['mqtt']) as FakeSocket;
+        setTimeout(() => {
+          socket.emit('open');
+          client.connected = true;
+          client.fire('connect');
+          socket.emit('close');
+        }, 0);
+        return client;
+      },
+      socketFactory: (socketUrl, protocols) => new FakeSocket(socketUrl, protocols),
+    });
+    expect(transport.via).toBe('broker');
+  });
+
+  it('까닭 고르기는 서버에 닿았던 일 → 닿지 못한 일 → 시간 순서', () => {
+    expect(timeoutReasonOf({ closedAfterOpen: 1, failedBeforeOpen: 2 }, 8000)).toBe('서버가 연결을 닫음');
+    expect(timeoutReasonOf({ closedAfterOpen: 0, failedBeforeOpen: 1 }, 8000)).toBe('서버에 닿지 못함');
+    expect(timeoutReasonOf({ closedAfterOpen: 0, failedBeforeOpen: 0 }, 8000)).toBe('8초 동안 답이 없음');
+    expect(timeoutReasonOf({ closedAfterOpen: 0, failedBeforeOpen: 0 }, 1000)).toBe('1초 동안 답이 없음');
+    // MQTT.js 영어 문구를 바꾼 까닭과 같은 낱말이다(같은 상황에 두 문구를 만들지 않는다 — README 9.7)
+    expect(reasonOf(new Error('Connection closed'))).toBe(CONNECT_REASONS.serverClosed);
+    expect(reasonOf(new Error('WebSocket error'))).toBe(CONNECT_REASONS.unreachable);
   });
 });
 

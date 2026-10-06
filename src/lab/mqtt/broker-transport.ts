@@ -30,13 +30,36 @@ export interface MqttClientLike {
 /** 주소·옵션으로 클라이언트를 만드는 함수(기본은 MQTT.js) */
 export type MqttConnectFn = (url: string, options: Record<string, unknown>) => MqttClientLike;
 
+/** 브라우저 WebSocket에서 우리가 보는 부분(열림·닫힘 — 테스트가 가짜를 넣는다) */
+export interface WebSocketLike {
+  addEventListener(type: 'open' | 'close', listener: () => void): void;
+}
+
+/** WebSocket을 만드는 함수(기본은 브라우저 WebSocket — MQTT.js 선택 `createWebsocket`으로 넘긴다) */
+export type WebSocketFactory = (url: string, protocols: string[]) => WebSocketLike;
+
 export interface BrokerTransportOptions extends MqttTransportOptions {
   /** 테스트가 가짜 클라이언트를 넣는 자리 */
   readonly connectFn?: MqttConnectFn;
+  /** 테스트가 가짜 WebSocket을 넣는 자리(없으면 브라우저 WebSocket) */
+  readonly socketFactory?: WebSocketFactory;
 }
 
 /** MQTT.js connectTimeout을 우리 연결 타이머보다 이만큼 길게 둔다(밀리초 — openBrokerTransport) */
 export const CONNECT_TIMEOUT_MARGIN_MS = 2000;
+
+/**
+ * 연결 실패 까닭(짧은 한국어 — 연결 안내 한 줄의 괄호 안에 들어간다). 같은 상황에는 같은 낱말을 쓴다(README 9.7) —
+ * MQTT.js 영어 문구를 바꾼 까닭(KNOWN_REASONS)과 우리가 WebSocket을 지켜보고 고른 까닭(openBrokerTransport)이 이 값을 함께 쓴다.
+ */
+export const CONNECT_REASONS = Object.freeze({
+  /** WebSocket은 열렸는데(서버에 닿았는데) MQTT 연결 확인(CONNACK) 전에 서버 쪽에서 닫았다 */
+  serverClosed: '서버가 연결을 닫음',
+  /** WebSocket이 열리지도 못했다(주소·포트가 틀렸거나, 학교망이 막았거나, 서버가 꺼짐) */
+  unreachable: '서버에 닿지 못함',
+  /** 정해진 시간 동안 아무 답이 없었다(열린 채 MQTT 답이 없거나, 여는 중에 멈춰 열리지도 닫히지도 않음) */
+  noAnswer: (seconds: number): string => `${seconds}초 동안 답이 없음`,
+});
 
 /** 브라우저에서 중계 서버 연결(WebSocket)을 쓸 수 있나 */
 export function isBrokerAvailable(): boolean {
@@ -58,9 +81,9 @@ async function defaultConnect(url: string, options: Record<string, unknown>): Pr
  */
 const KNOWN_REASONS: readonly (readonly [RegExp, string])[] = Object.freeze([
   [/^connack timeout$/iu, '서버가 답하지 않음'],
-  [/^WebSocket error$/iu, '서버에 닿지 못함'],
+  [/^WebSocket error$/iu, CONNECT_REASONS.unreachable],
   [/^Connection refused\b/iu, '서버가 연결을 거절함'],
-  [/^Connection closed$/iu, '서버가 연결을 닫음'],
+  [/^Connection closed$/iu, CONNECT_REASONS.serverClosed],
   [/^Keepalive timeout$/iu, '서버와 한동안 소식이 끊김'],
   [/^No connection to broker$/iu, '서버와 이어지지 않음'],
   [/^client disconnecting$/iu, '연결을 끝내는 중'],
@@ -187,9 +210,43 @@ class BrokerTransport implements MqttTransport {
   }
 }
 
+/** 연결을 기다리는 동안 WebSocket이 어떻게 됐는지(openBrokerTransport — 미해결 221) */
+export interface SocketWatch {
+  /** 열린 뒤(서버에 닿은 뒤) 닫힌 소켓 수 */
+  closedAfterOpen: number;
+  /** 열리지도 못하고 끝난 소켓 수(만들 때 막힘 포함) */
+  failedBeforeOpen: number;
+}
+
+/**
+ * 연결 확인(CONNACK)을 기다리다 시간이 다 됐을 때의 까닭을 고른다(미해결 221). 서버에 닿았다가 닫혔으면 "서버가 연결을 닫음",
+ * 열리지도 못했으면 "서버에 닿지 못함", 아무 일도 없었으면 "N초 동안 답이 없음". 둘 다 있었으면 서버에 닿았던 쪽이 더 많은 것을 알려 준다.
+ */
+export function timeoutReasonOf(watch: Readonly<SocketWatch>, timeoutMs: number): string {
+  if (watch.closedAfterOpen > 0) {
+    return CONNECT_REASONS.serverClosed;
+  }
+  if (watch.failedBeforeOpen > 0) {
+    return CONNECT_REASONS.unreachable;
+  }
+  return CONNECT_REASONS.noAnswer(Math.round(timeoutMs / 1000));
+}
+
+/** 브라우저 WebSocket으로 소켓을 만드는 함수(없으면 null — 그때는 MQTT.js가 스스로 만든다) */
+function browserSocketFactory(): WebSocketFactory | null {
+  const ctor = (globalThis as { WebSocket?: new (url: string, protocols: string[]) => WebSocketLike }).WebSocket;
+  return typeof ctor === 'function' ? (url, protocols) => new ctor(url, protocols) : null;
+}
+
 /**
  * 중계 서버에 연결한다. 연결될 때까지 기다렸다가 통로를 돌려주고, 실패하면 `MqttConnectError`(한국어)를 던진다.
  * 처음 연결에 실패하면 클라이언트를 닫아 뒤에서 몰래 다시 붙지 않게 한다(학생이 "연결 안 됨"을 보고 탭 통로로 바꾸게).
+ *
+ * 실패 까닭 고르기(미해결 221 — 판 1.1.5 뒤): MQTT.js 5.15.2는 브라우저 WebSocket 오류를 'error'로 내지 않는다(code가 없는 오류는
+ * 삼킨다 — `node_modules/mqtt/build/lib/client.js`의 `streamErrorHandler`). 소켓이 닫히면 'close' 뒤 `reconnectPeriod`(3초)마다 다시
+ * 붙으므로, 받자마자 닫는 서버도 닿지 못하는 서버도 우리 타이머가 끝날 때 "N초 동안 답이 없음"이 됐다. 그래서 MQTT.js의 문서화된 선택
+ * `createWebsocket`(README "Customize Websockets with createWebsocket")으로 **우리가 WebSocket을 만들어** 열렸는지·닫혔는지를 보고
+ * 까닭을 고른다(`timeoutReasonOf`). 기다리는 시간(timeoutMs)과 다시 붙는 동작은 그대로다 — 한 번 닫혔어도 다음 시도에 붙을 수 있다.
  */
 export async function openBrokerTransport(options: BrokerTransportOptions): Promise<MqttTransport> {
   if (options.connectFn === undefined && !isBrokerAvailable()) {
@@ -198,6 +255,8 @@ export async function openBrokerTransport(options: BrokerTransportOptions): Prom
   const url = requireBrokerUrl(options.url ?? '');
   const timeoutMs = options.connectTimeoutMs ?? 8000;
   const reconnectLimit = options.reconnectLimit ?? 5;
+  const watch: SocketWatch = { closedAfterOpen: 0, failedBeforeOpen: 0 };
+  const makeSocket = options.socketFactory ?? browserSocketFactory();
   const clientOptions: Record<string, unknown> = {
     clientId: options.clientId ?? makeClientId('apc'),
     protocolVersion: 4,
@@ -210,7 +269,42 @@ export async function openBrokerTransport(options: BrokerTransportOptions): Prom
     resubscribe: true,
     queueQoSZero: false,
   };
-  const client = options.connectFn ? options.connectFn(url, clientOptions) : await defaultConnect(url, clientOptions);
+  if (makeSocket !== null) {
+    // MQTT.js가 소켓을 만들 때마다(처음과 다시 붙을 때) 부른다 — 하위 규약(['mqtt'])은 MQTT.js가 준 그대로, binaryType은 MQTT.js가 정한다.
+    clientOptions['createWebsocket'] = (socketUrl: string, protocols: string[]): WebSocketLike => {
+      let socket: WebSocketLike;
+      try {
+        socket = makeSocket(socketUrl, protocols);
+      } catch (error) {
+        // 만들 때부터 막혔다(브라우저가 막는 포트 등) — 열리지도 못한 소켓으로 센다
+        watch.failedBeforeOpen += 1;
+        throw error;
+      }
+      let opened = false;
+      socket.addEventListener('open', () => {
+        opened = true;
+      });
+      socket.addEventListener('close', () => {
+        if (opened) {
+          watch.closedAfterOpen += 1;
+        } else {
+          watch.failedBeforeOpen += 1;
+        }
+      });
+      return socket;
+    };
+  }
+  let client: MqttClientLike;
+  try {
+    client = options.connectFn ? options.connectFn(url, clientOptions) : await defaultConnect(url, clientOptions);
+  } catch (error) {
+    if (watch.failedBeforeOpen > 0) {
+      // 첫 소켓을 만들다 막혀 MQTT.js가 클라이언트를 돌려주지 못했다(다시 붙는 타이머도 없다)
+      const reason = CONNECT_REASONS.unreachable;
+      throw new MqttConnectError(mqttText.connectFailed(url, reason), reason);
+    }
+    throw error;
+  }
   return new Promise<MqttTransport>((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -223,7 +317,7 @@ export async function openBrokerTransport(options: BrokerTransportOptions): Prom
       } catch {
         // 무시
       }
-      const reason = `${Math.round(timeoutMs / 1000)}초 동안 답이 없음`;
+      const reason = timeoutReasonOf(watch, timeoutMs);
       reject(new MqttConnectError(mqttText.connectFailed(url, reason), reason));
     }, timeoutMs);
     client.on('connect', ((): void => {
