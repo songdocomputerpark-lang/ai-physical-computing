@@ -84,6 +84,15 @@ export interface RuntimeProgress {
   readonly names?: readonly string[];
 }
 
+/** 실행이 패키지 받기를 기다리기 시작·끝(protocol.ts PackageWaitMessage — 판 1.2.0) */
+export interface RuntimePackageWait {
+  readonly runId: number;
+  readonly waiting: boolean;
+  /** start: 코드가 시작하기 전, import: 코드가 import 줄에서 */
+  readonly phase: 'start' | 'import';
+  readonly names: readonly string[];
+}
+
 /** 파이썬이 대기 지점에서 화면에 부탁한 일 */
 export interface RuntimeRequest {
   readonly requestId: number;
@@ -105,6 +114,7 @@ export interface RuntimeEvents {
   state: { state: RuntimeState; previous: RuntimeState };
   ready: RuntimeInfo;
   progress: RuntimeProgress;
+  'package-wait': RuntimePackageWait;
   stdout: string;
   stderr: string;
   notice: RuntimeNotice;
@@ -350,6 +360,9 @@ export class PythonRuntime {
           ...(message.phase ? { phase: message.phase } : {}),
           ...(message.names ? { names: message.names } : {}),
         });
+        return;
+      case 'package-wait':
+        this.#emit('package-wait', { runId: message.runId, waiting: message.waiting, phase: message.phase, names: message.names });
         return;
       case 'stdout':
         this.#emit('stdout', message.text);

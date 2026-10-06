@@ -12,6 +12,11 @@
  * 2. run: import 문을 분석해 필요한 Pyodide 패키지를 받고(loadPackagesFromImports, 패키지 이름은 pyodide-lock.json 기준 — 단, 실습실에 붙는
  *    흉내 모듈이 manifest에 packagesFromImports: false를 적은 실습실(가상 ESP32 보드 — 실물 MicroPython에는 pip 패키지가 없다, 판 1.1.3)은
  *    받지 않는다. 판단은 load 때 python/modules.ts packagesFromImportsForLab(labId)로 한 번),
+ *    받기는 모두 한 줄로 선다(package-loads.ts — 미리 받기·다시 불러오기·실행 쪽 받기, DECISIONS C39 ④). 판 1.2.0(미해결 219): 미리 받기
+ *    (numpy·OpenCV)가 도는 중이라도 이 실행이 받을 것이 없으면(코드의 import와 RunMessage.packages가 모두 이미 받은 패키지) 줄을 서지 않고
+ *    곧바로 시작한다 — 받는 중인 패키지는 흉내 설치가 미루고(apc_shims), 코드가 흉내 모듈 등을 거쳐 그 패키지를 import하면 파이썬
+ *    import 문지기(apc_runtime)가 그 자리에서 다 받을 때까지 기다린다(그동안 화면에 package-wait). 줄을 서서 기다리는 동안 [정지]하면
+ *    곧바로 'stopped'로 끝내고 그 실행의 받기는 차례가 와도 하지 않는다(예전엔 1초 뒤 워커를 다시 띄웠다).
  *    받아 둔 패키지의 흉내 모듈을 설치한 뒤(apc_shims.install_available — cv2의 카메라·창 함수 덮어쓰기, P2-03),
  *    새 전역(__name__ == '__main__')을 조절 패널 값의 목적지로 도우미에 알리고(apc_runtime.bind_run_globals, P2-04)
  *    runPythonAsync 한다(JSPI 기다리기는 이 경로에서만 된다). 끝나면 done 메시지.
@@ -32,7 +37,7 @@ import type { PyodideAPI } from 'pyodide';
 import type { PyProxy } from 'pyodide/ffi';
 import { RUNTIME_MODULE_FILE, packagesFromImportsForLab, pythonModulesForLab, shimTableForLab } from '../python/modules.ts';
 import { createBridge, type Bridge } from './bridge.ts';
-import { createPackageQueue } from './package-queue.ts';
+import { createPackageLoads, type LockPackages, type PackageLoads } from './package-loads.ts';
 import type {
   DoneMessage,
   FromWorkerMessage,
@@ -87,17 +92,11 @@ let activeRunId: number | null = null;
  * 가상 ESP32 보드 실습실은 false: 보드 코드의 `import numpy`가 jsDelivr에서 컴퓨터용 패키지를 받아 그대로 돌던 것을 막는다(판 1.1.3 LB2-01).
  */
 let packagesFromImports = true;
-/** 화면이 보낸 미리 받기(load-packages)가 아직 도는 수 — 실행이 그사이에 시작되면 흉내 모듈 설치 실패를 알리지 않는다(installShims) */
-let packageLoadsInFlight = 0;
 /**
- * 이 워커의 패키지 받기(loadPackage·loadPackagesFromImports)를 한 줄로 세운다(package-queue.ts — 겹치면 Pyodide의 "Loading …" 알림이
- * 학생 콘솔로 샜다, 2026-09-26 Phase 6 사용성 검토 지적 4).
+ * 이 워커의 패키지 받기(loadPackage·loadPackagesFromImports) — 한 줄로 세우고(겹치면 Pyodide의 "Loading …" 알림이 학생 콘솔로 샜다,
+ * 2026-09-26 Phase 6 사용성 검토 지적 4) 받는 중인 패키지를 적어 실행 계획을 세운다(package-loads.ts, 판 1.2.0). Pyodide를 띄운 뒤 만든다.
  */
-const packageQueue = createPackageQueue();
-
-function withPackageLock<T>(task: () => Promise<T>): Promise<T> {
-  return packageQueue.run(task);
-}
+let packageLoads: PackageLoads | null = null;
 let interruptBuffer: Uint8Array | null = null;
 const stdoutDecoder = new TextDecoder();
 const stderrDecoder = new TextDecoder();
@@ -106,7 +105,39 @@ const bridge: Bridge = createBridge({
   post,
   now: () => performance.now(),
   canRunSync: () => jspiAvailable,
+  packagesLoading: () => packageLoads?.loadingImports() ?? [],
+  whenPackagesLoaded: (name) => waitForPackageImport(name),
 });
+
+/**
+ * 파이썬 import 문지기(apc_runtime._wait_for_package)가 받는 중인 패키지 name을 import하려는 자리에서 기다린다(판 1.2.0, 미해결 219).
+ * 기다리는 동안 화면에 package-wait(phase 'import')와 상태 줄 글을 보낸다. [정지]는 파이썬 쪽 block_on이 raceStop으로 받는다.
+ */
+async function waitForPackageImport(name: string): Promise<readonly string[]> {
+  const loads = packageLoads;
+  if (!loads) {
+    return [];
+  }
+  const runId = activeRunId;
+  const names = loads.loadingKeys();
+  if (runId !== null) {
+    post({ type: 'package-wait', runId, waiting: true, phase: 'import', names });
+    post({ type: 'progress', stage: 'package', message: IMPORT_WAIT_MESSAGE });
+  }
+  try {
+    return await loads.whenLoaded([name]);
+  } finally {
+    // [정지]로 그 실행이 먼저 끝났으면(파이썬 쪽은 raceStop으로 이미 빠져나감) 알리지 않는다 — 다음 실행의 기다림 안내를 잘못 지우지 않게.
+    if (runId !== null && activeRunId === runId) {
+      post({ type: 'package-wait', runId, waiting: false, phase: 'import', names });
+    }
+  }
+}
+
+/** 줄을 서서 기다리는 실행의 상태 줄 글(lab-loading.spec이 이 글을 본다) */
+const START_WAIT_MESSAGE = '실행 전에 필요한 파일을 받는 중이에요 — 다 받으면 코드가 저절로 시작해요.';
+/** 코드가 import 줄에서 받는 중인 패키지를 기다릴 때의 상태 줄 글 */
+const IMPORT_WAIT_MESSAGE = '코드가 쓰는 파일을 아직 받는 중이에요 — 다 받으면 이어서 돌아요.';
 
 function describeError(error: unknown): string {
   if (error instanceof Error) {
@@ -257,8 +288,8 @@ export function lastErrorLine(error: unknown): string {
 
 /**
  * 받아 둔 패키지의 흉내 모듈을 설치한다(apc_shims.py). 실패해도 실행은 계속하고, 필요할 때만 콘솔에 한국어 한 줄로 알린다.
- * 미리 받기(loadPackages)가 도는 중이면 알리지 않는다 — 그 패키지를 쓰는 코드는 loadPackagesFromImports가 받기가 끝나기를
- * 기다린 뒤에 여기 오므로 실패하지 않고, 쓰지 않는 코드에는 필요 없는 모듈이다. 받기가 끝난 다음 실행에서 설치된다.
+ * 받는 중인 패키지의 흉내는 apc_shims가 실패가 아니라 미룬다(판 1.2.0 — 그 패키지를 import하면 파이썬 import 문지기가 다 받은 뒤 설치,
+ * 아니면 다음 실행). 받기가 도는 중이면 실패도 알리지 않는다(예전 규칙 그대로 — 받기가 끝난 다음 실행에서 다시 설치된다).
  */
 function installShims(): void {
   if (!pyodide) {
@@ -273,13 +304,47 @@ function installShims(): void {
     post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈을 준비하지 못했어요(${lastErrorLine(error)}). 실행은 이어서 해요.` });
     return;
   }
-  if (failures.length === 0 || packageLoadsInFlight > 0) {
+  if (failures.length === 0 || packageLoads?.busy() === true) {
     return;
   }
   const names = failures.map(([name]) => name).join(', ');
   const reasons = failures.map(([, reason]) => reason).join(' / ');
   post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈(${names})을 준비하지 못했어요(${reasons}). 실행은 이어서 해요.` });
 }
+
+/**
+ * 이 워커의 패키지 받기(package-loads.ts)를 Pyodide에 잇는다. 받는 중인 import 이름이 늘면 파이썬 import 문지기에 알린다
+ * (apc_runtime.set_packages_loading — 받기를 줄에 세울 때라 학생 코드가 도는 중이 아니다: 미리 받기는 실행 중에 거절되고 실행 쪽 받기는 코드 전).
+ */
+function createWorkerPackageLoads(loader: PyodideAPI): PackageLoads {
+  let codeModule: (PyProxy & { find_imports(code: string): PyProxy }) | null = null;
+  return createPackageLoads({
+    loadPackage: (names) => loader.loadPackage([...names], packageCallbacks()),
+    loadPackagesFromImports: (code) => loader.loadPackagesFromImports(code, packageCallbacks()),
+    loadedNames: () => Object.keys(loader.loadedPackages),
+    findImports(code) {
+      codeModule ??= loader.pyimport('pyodide.code') as PyProxy & { find_imports(code: string): PyProxy };
+      const found = codeModule.find_imports(code);
+      try {
+        return (found.toJs() as string[]).map(String);
+      } finally {
+        found.destroy();
+      }
+    },
+    lockPackages: () => (loader.lockfile?.packages as LockPackages | undefined) ?? null,
+    onLoadingGrew(importNames) {
+      try {
+        loader.runPython(`import apc_runtime\napc_runtime.set_packages_loading(${JSON.stringify(importNames)})`);
+      } catch {
+        // 알리지 못하면 문지기가 받는 중인 이름을 모른다 — 이 워커는 더는 곧바로 시작하지 않고 예전처럼 줄을 선다(run의 canWait).
+        packageGuardBroken = true;
+      }
+    },
+  });
+}
+
+/** 받는 중인 이름을 파이썬 import 문지기에 알리지 못한 적이 있는지 — 있으면 받기가 도는 동안 곧바로 시작하지 않는다 */
+let packageGuardBroken = false;
 
 function runtimeInfo(): RuntimeInfo {
   return {
@@ -368,16 +433,45 @@ async function load(message: LoadMessage): Promise<void> {
     }
   }
 
+  packageLoads = createWorkerPackageLoads(pyodide);
   if (message.packages.length > 0) {
     try {
-      const loader = pyodide;
-      await withPackageLock(() => loader.loadPackage([...message.packages], packageCallbacks()));
+      await packageLoads.load([...message.packages]);
     } catch (error) {
       post({ type: 'notice', level: 'warn', text: `전에 쓰던 패키지를 다시 불러오지 못했어요: ${describeError(error)}` });
     }
   }
 
   post({ type: 'ready', info: runtimeInfo(), ...(interruptBuffer ? { interruptBuffer } : {}) });
+}
+
+/**
+ * 실행 전 패키지 준비(판 1.2.0, PROGRESS 미해결 219) — package-loads.ts의 계획대로.
+ * - 받기가 도는 중인데 이 실행이 받을 것이 없으면(startNow) 줄을 서지 않고 곧바로 돌아온다.
+ * - 아니면 줄을 서서 받는다. 앞의 받기(미리 받기 등)를 기다리는 때는 무엇을 기다리는지 알린다(상태 줄 + package-wait — 느린 망에서 몇 분,
+ *   2026-09-26 Phase 6 사용성 검토 지적 5). 기다리는 동안 [정지]하면 곧바로 돌아오고(실행은 'stopped'), 그 실행의 받기는 차례가 와도 하지 않는다.
+ * 받기가 실패하면 예외를 낸다(run이 PackageLoadError로 알린다).
+ */
+async function preparePackages(message: RunMessage): Promise<void> {
+  if (!packageLoads) {
+    return;
+  }
+  await packageLoads.prepareRun({
+    code: message.code,
+    packages: message.packages,
+    // 가상 보드 실습실은 import 문을 보고 받지 않는다(packagesFromImports 머리말) — 보드 코드의 컴퓨터용 패키지 이름은 보드 모듈의 import 훅이
+    // 실물 MicroPython과 같은 ImportError로 알린다(apc_board.py).
+    fromImports: packagesFromImports,
+    canWait: bridge.api.canWait() && !packageGuardBroken,
+    raceStop: (promise) => bridge.api.raceStop(promise),
+    isStopSignal: (value) => bridge.api.isStopSignal(value),
+    onWait(waiting, names) {
+      if (waiting) {
+        post({ type: 'progress', stage: 'package', message: START_WAIT_MESSAGE });
+      }
+      post({ type: 'package-wait', runId: message.runId, waiting, phase: 'start', names });
+    },
+  });
 }
 
 async function run(message: RunMessage): Promise<void> {
@@ -399,22 +493,7 @@ async function run(message: RunMessage): Promise<void> {
   let exitCode: number | null | undefined;
 
   try {
-    if (packageLoadsInFlight > 0) {
-      // 준비 직후 미리 받기(numpy·OpenCV)가 아직 도는 중이다 — 받기가 끝나야 코드가 시작하니 무엇을 기다리는지 알린다(느린 망에서 몇 분 —
-      // 2026-09-26 Phase 6 사용성 검토 지적 5). 받은 양은 준비 칸·상태 줄이 서비스 워커 알림으로 보인다.
-      post({ type: 'progress', stage: 'package', message: '실행 전에 필요한 파일을 받는 중이에요 — 다 받으면 코드가 저절로 시작해요.' });
-    }
-    const loader = pyodide;
-    await withPackageLock(async () => {
-      if (message.packages.length > 0) {
-        await loader.loadPackage([...message.packages], packageCallbacks());
-      }
-      // 가상 보드 실습실은 import 문을 보고 받지 않는다(packagesFromImports 머리말) — 보드 코드의 컴퓨터용 패키지 이름은 보드 모듈의 import 훅이
-      // 실물 MicroPython과 같은 ImportError로 알린다(apc_board.py).
-      if (packagesFromImports) {
-        await loader.loadPackagesFromImports(message.code, packageCallbacks());
-      }
-    });
+    await preparePackages(message);
 
     if (bridge.api.stopRequested()) {
       outcome = 'stopped';
@@ -488,19 +567,19 @@ async function loadPackages(message: LoadPackagesMessage): Promise<void> {
     post({ type: 'task-result', taskId: message.taskId, ok: false, error: '파이썬이 아직 준비되지 않았어요.' });
     return;
   }
+  if (!packageLoads) {
+    post({ type: 'task-result', taskId: message.taskId, ok: false, error: '파이썬이 아직 준비되지 않았어요.' });
+    return;
+  }
   if (activeRunId !== null) {
     post({ type: 'task-result', taskId: message.taskId, ok: false, error: '코드가 실행 중일 때는 패키지를 불러올 수 없어요.' });
     return;
   }
-  packageLoadsInFlight += 1;
   try {
-    const loader = pyodide;
-    await withPackageLock(() => loader.loadPackage([...message.names], packageCallbacks()));
+    await packageLoads.load([...message.names]);
     post({ type: 'task-result', taskId: message.taskId, ok: true, value: loadedPackageNames() });
   } catch (error) {
     post({ type: 'task-result', taskId: message.taskId, ok: false, error: `패키지를 받지 못했어요: ${describeError(error)}` });
-  } finally {
-    packageLoadsInFlight -= 1;
   }
 }
 

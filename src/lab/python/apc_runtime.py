@@ -31,6 +31,16 @@
 - 제한 모드(JSPI 없음, PLAN §4.5): 기다리는 함수(input·request·block_on)는 한국어 안내와 함께 RuntimeError를 낸다.
   time.sleep은 브라우저가 멈춘 채 기다리므로(양보 없음) [정지]는 2단계(다시 시작)로만 된다. 한 번 실행되고 끝나는 코드는 그대로 돈다.
   조절 값은 get·poll 같은 입력 확인 지점에서 들어온다(양보하지 않아도 넣을 수 있다).
+- import 훅(판 1.2.0 — PROGRESS 미해결 219·223): 필요할 때만 builtins.__import__를 감싼다(받는 중인 패키지가 생기거나 학생 전용 모듈이
+  등록될 때 — 가상 보드 실습실은 둘 다 없어 걸리지 않는다). 하는 일 둘:
+  ① 받는 중인 패키지 문지기: 워커가 numpy·OpenCV를 미리 받는 동안 그것과 상관없는 코드는 기다리지 않고 시작한다(worker.ts·package-loads.ts).
+    그 코드가 흉내 모듈·작업 폴더의 내 모듈을 거쳐 받는 중인 패키지(파일은 풀렸지만 .so는 아직 — import하면 ImportError)를 import하면,
+    기다릴 수 있는 자리(학생 코드 실행)에서는 다 받을 때까지 그 자리에서 기다리고([정지]면 KeyboardInterrupt) 미뤄 둔 흉내 모듈을 설치한 뒤
+    이어 가고, 기다릴 수 없는 자리(동기 진입점 — 흉내 모듈 설치)에서는 PackageStillLoading을 낸다(apc_shims가 그 흉내를 미룬다).
+    받는 중인 이름은 워커가 set_packages_loading으로 알려 주고(늘어날 때만), 이름이 걸리면 그때 정확한 값을 워커에 묻는다.
+  ② 학생 코드에만 주는 모듈(register_student_module): 학생 코드(__main__·작업 폴더의 파일 — is_student_code)가 그 이름을 import하면
+    sys.modules의 진짜 대신 등록한 모듈을 준다. 컴퓨터 쪽 asyncio(apc_asyncio.py — [정지]를 아는 sleep·run)가 쓴다. 가상 보드 실습실은
+    보드의 import 훅(apc_board._board_import)이 먼저라 보드 코드의 asyncio는 보드 확장이 맡는다.
 
 정지 표시·값 저장소·요청 번호는 JS 다리가 가지고 있고, 이 파일은 그것을 파이썬 예외·값으로 바꾸기만 한다.
 JS 쪽 값이 파이썬으로 올 때는 JsProxy이므로 to_py()로 바꿔 돌려준다(raw=True가 아니면).
@@ -50,6 +60,8 @@ import js
 
 __all__ = [
     "PARAMS_CHANNEL",
+    "PackageStillLoading",
+    "WORK_DIR",
     "YIELD_INTERVAL_MS",
     "bind_run_globals",
     "block_on",
@@ -60,23 +72,30 @@ __all__ = [
     "get",
     "input",
     "install",
+    "is_student_code",
     "maybe_yield",
     "notice",
+    "package_loading",
+    "packages_loading",
     "peek",
     "poll",
     "register_finish_hook",
     "register_idle_hook",
     "register_reset_hook",
+    "register_student_module",
     "register_tick_hook",
     "register_wait_hook",
     "request",
     "reset_for_run",
     "run_idle",
+    "set_packages_loading",
     "sleep",
     "sleep_async",
     "stop_requested",
     "sync_params",
     "unbind_run_globals",
+    "until_stop",
+    "wait_async",
 ]
 
 # 양보 간격(밀리초). src/lab/runtime/config.ts의 YIELD_INTERVAL_MS와 같아야 한다.
@@ -91,6 +110,9 @@ LIMITED_MESSAGE = (
     "컴퓨터의 Chrome이나 Edge 최신판에서 열어 주세요."
 )
 CANCELLED_INPUT_MESSAGE = "입력이 취소되었어요."
+
+# 학생 작업 폴더(Pyodide 기본 홈 — runtime-extras의 apc_files.WORK_DIR, 가상 보드의 apc_board.WORK_DIR와 같다)
+WORK_DIR = "/home/pyodide"
 
 _real_sleep = time.sleep
 _real_input = builtins.input
@@ -208,12 +230,34 @@ async def sleep_async(seconds):
         raise TypeError(f"'{type(seconds).__name__}' object cannot be interpreted as an integer or float")
     if seconds < 0:
         raise ValueError("sleep length must be non-negative")
+    await _wait_ms_async(float(seconds) * 1000.0)
+
+
+async def wait_async(seconds):
+    """(판 1.2.0, PROGRESS 미해결 223) [정지]를 아는 비동기 기다리기 — 컴퓨터 쪽 asyncio.sleep(apc_asyncio.py)이 쓴다.
+    sleep_async와 같은 일(정지 확인·대기 전 훅·조절 값·틱 훅)을 하되 인자 검사는 하지 않는다 — 0보다 큰 초를 부르는 쪽이 진짜 asyncio
+    규칙(0 이하는 한 번 양보, NaN은 ValueError)으로 걸러 넘긴다. 기다리는 동안 [정지]가 오면 곧바로 KeyboardInterrupt. JSPI가 없어도 된다
+    (runPythonAsync 안의 await)."""
+    check_stop()
+    await _wait_ms_async(float(seconds) * 1000.0)
+
+
+async def _wait_ms_async(ms):
     _run_wait_hooks()
-    result = await _bridge.raceStop(_bridge.sleep(float(seconds) * 1000.0))
+    result = await _bridge.raceStop(_bridge.sleep(ms))
     if _bridge.isStopSignal(result):
         raise KeyboardInterrupt(STOP_MESSAGE)
     sync_params()
     _run_tick_hooks()
+
+
+async def until_stop():
+    """(판 1.2.0, PROGRESS 미해결 223) [정지]가 올 때까지 기다렸다가 KeyboardInterrupt를 낸다 — 컴퓨터 쪽 asyncio의 run이 옆에 두는
+    지켜보는 작업(학생 코드가 Event·Queue만 기다려도 [정지]가 먹게)이 쓴다. 폴링하지 않는다(JS 다리의 정지 신호 약속을 기다림).
+    [정지] 없이 실행이 끝나면 끝나지 않으므로, 부르는 쪽이 일이 끝나면 그 작업을 멈춘다(cancel)."""
+    check_stop()
+    await _bridge.stopSignal()
+    raise KeyboardInterrupt(STOP_MESSAGE)
 
 
 def request(kind, payload=None, *, raw=False):
@@ -430,6 +474,147 @@ def sync_params() -> int:
         except (TypeError, ValueError) as error:
             notice(f"조절 값 {name}을(를) 넣지 못했어요: {error}", "warn")
     return applied
+
+
+# ── import 훅(판 1.2.0 — 받는 중인 패키지 문지기·학생 전용 모듈, 머리말) ──
+
+
+class PackageStillLoading(Exception):
+    """받는 중인 Pyodide 패키지를 기다릴 수 없는 자리(동기 진입점 — 흉내 모듈 설치)에서 import하려 했다(판 1.2.0, PROGRESS 미해결 219).
+
+    ImportError가 아니다 — `try: import numpy except ImportError: np = None`처럼 대체값을 굳히는 모듈이 반쯤 받은 패키지를 '없음'으로
+    기억하지 않게 한다(그 모듈의 import 자체가 실패해 sys.modules에 남지 않고, 다 받은 뒤 다시 불러온다).
+    apc_shims.install_available()이 받아 그 흉내 모듈을 미룬다."""
+
+
+#: 받는 중인 패키지의 import 이름(맨 앞 이름) — 워커가 받기를 줄에 세울 때 늘린다. 줄어든 것은 이름이 걸렸을 때 정확한 값을 물어 고친다.
+_packages_loading = frozenset()
+#: 학생 코드에만 주는 모듈(import 이름 → 모듈)
+_student_modules = {}
+#: import 훅을 걸기 전의 builtins.__import__(훅을 걸지 않았으면 None)
+_host_import = None
+#: 미룬 흉내 모듈을 설치하는 중인지(그 설치가 다시 문지기를 거쳐 되풀이되지 않게)
+_installing_deferred = False
+#: 지금 import 훅 안에서 몇 겹 import하는 중인지(맨 바깥 import가 끝나면 0)
+_import_depth = 0
+#: 받기를 기다린 뒤 맨 바깥 import가 끝나면 미룬 흉내를 다시 설치해야 하는지 — 기다린 자리가 흉내 모듈 자신의 import 도중이면
+#: (학생 코드 `import mediapipe` → apc_mediapipe의 맨 위 `import numpy`) 그 흉내는 덜 만들어져 그때 설치할 수 없다(apc_shims._initializing).
+_retry_deferred = False
+
+
+def set_packages_loading(names) -> None:
+    """워커가 받기를 줄에 세울 때 부른다(동기 진입점): 받는 중인 패키지의 import 이름 목록. 비어 있지 않으면 import 훅을 건다."""
+    global _packages_loading
+    _packages_loading = frozenset(str(name) for name in (_to_py(names) or ()))
+    if _packages_loading:
+        _ensure_import_hook()
+
+
+def packages_loading() -> frozenset:
+    """받는 중인 패키지의 import 이름(정확한 지금 값). 받는 중으로 알려진 것이 있을 때만 워커에 묻는다(없으면 묻지 않고 빈 집합)."""
+    global _packages_loading
+    if _packages_loading:
+        _packages_loading = frozenset(str(name) for name in (_to_py(_bridge.packagesLoading()) or ()))
+    return _packages_loading
+
+
+def package_loading(name) -> bool:
+    """name(점이 든 이름이면 맨 앞 이름)이 받는 중인 패키지의 import 이름인지(정확한 값). apc_shims가 흉내 설치를 미룰 때 쓴다."""
+    head = str(name).partition(".")[0]
+    return head in _packages_loading and head in packages_loading()
+
+
+def is_student_code(namespace) -> bool:
+    """import하는 쪽이 학생 코드인지: 실행 중인 main.py(__main__)와 작업 폴더(WORK_DIR)의 파일. 사이트 모듈(/apc)·표준 라이브러리·
+    받은 패키지(site-packages)는 아니다(가상 보드의 apc_board.is_board_code와 같은 규칙 — 보드 라이브러리 폴더만 빠짐)."""
+    if not isinstance(namespace, dict):
+        return False
+    if namespace.get("__name__") == "__main__":
+        return True
+    file_name = namespace.get("__file__")
+    if not isinstance(file_name, str) or file_name == "":
+        return False
+    if not file_name.startswith("/"):
+        return True
+    return file_name.startswith(WORK_DIR + "/")
+
+
+def register_student_module(name, module) -> None:
+    """학생 코드(is_student_code)가 `import <name>`하면 sys.modules의 진짜 대신 받을 모듈을 등록하고 import 훅을 건다(뒤에 등록한 것이 이긴다).
+    컴퓨터 쪽 asyncio(apc_asyncio.py)가 쓴다. 사이트 모듈·표준 라이브러리가 import하는 같은 이름은 진짜 그대로다."""
+    _student_modules[str(name)] = module
+    _ensure_import_hook()
+
+
+def _wait_for_package(head) -> None:
+    """받는 중인 패키지 head를 import하려는 자리. 정확한 값으로 다시 보고, 아직이면 기다릴 수 있는 자리(학생 코드 실행 — JSPI)에서는
+    다 받을 때까지 기다린 뒤(그사이 [정지]면 KeyboardInterrupt) 미뤄 둔 흉내 모듈을 설치하고, 기다릴 수 없는 자리면 PackageStillLoading.
+    지금 import되는 중이라 덜 만들어진 흉내(apc_mediapipe 등)는 apc_shims가 다시 미루고, 맨 바깥 import가 끝날 때 설치한다(_apc_import)."""
+    global _packages_loading, _retry_deferred
+    if head not in packages_loading():
+        return
+    if not (can_wait() and _sync_allowed()):
+        raise PackageStillLoading(f"'{head}' 패키지를 아직 받는 중이에요 — 다 받은 뒤에 불러와요.")
+    value = block_on(_bridge.whenPackagesLoaded(head))
+    _packages_loading = frozenset(str(name) for name in (_to_py(value) or ()))
+    _install_deferred_shims()
+    _retry_deferred = True
+
+
+def _install_deferred_shims() -> None:
+    """받는 중이라 이번 실행 직전에 미룬 흉내 모듈(apc_shims.install_deferred)을 설치한다 — 이 실행이 import하는 패키지의 흉내(cv2 창 함수 등)."""
+    global _installing_deferred
+    if _installing_deferred:
+        return
+    shims = sys.modules.get("apc_shims")
+    install_deferred = getattr(shims, "install_deferred", None)
+    if not callable(install_deferred):
+        return
+    _installing_deferred = True
+    try:
+        install_deferred()
+    finally:
+        _installing_deferred = False
+
+
+def _apc_import(name, globals=None, locals=None, fromlist=(), level=0):  # noqa: A002 — builtins.__import__와 같은 인자 이름
+    global _import_depth, _retry_deferred
+    _import_depth += 1
+    try:
+        result = _apc_import_inner(name, globals, locals, fromlist, level)
+    finally:
+        _import_depth -= 1
+    if _import_depth == 0 and _retry_deferred and not _installing_deferred:
+        # 받기를 기다린 import가 모두 끝났다 — 그 import 도중이라 덜 만들어져 미룬 흉내를 이제 설치한다(_wait_for_package 머리말)
+        _retry_deferred = False
+        _install_deferred_shims()
+    return result
+
+
+def _apc_import_inner(name, globals, locals, fromlist, level):  # noqa: A002 — builtins.__import__와 같은 인자 이름
+    if level == 0 and isinstance(name, str):
+        head = name.partition(".")[0]
+        if head in _packages_loading:
+            _wait_for_package(head)
+        module = _student_modules.get(head)
+        if module is not None and is_student_code(globals):
+            if name == head:
+                return module
+            # asyncio.tasks처럼 점이 든 이름: 진짜 하위 모듈을 불러오고, `import asyncio.tasks`가 묶는 맨 앞 이름에는 학생용 모듈을 준다
+            # (from asyncio.tasks import … 는 진짜 하위 모듈에서 꺼낸다).
+            result = _host_import(name, globals, locals, fromlist, level)
+            return result if fromlist else module
+    return _host_import(name, globals, locals, fromlist, level)
+
+
+def _ensure_import_hook() -> None:
+    """builtins.__import__를 한 번만 감싼다. C 코드가 부르는 PyImport_Import도 이 훅을 거치지만 돌려준 값이 아니라 sys.modules를 쓰므로
+    학생용 모듈은 학생 코드의 import 문에만 간다(apc_board 머리말 6과 같은 까닭)."""
+    global _host_import
+    if _host_import is not None:
+        return
+    _host_import = builtins.__import__
+    builtins.__import__ = _apc_import
 
 
 def reset_for_run() -> None:

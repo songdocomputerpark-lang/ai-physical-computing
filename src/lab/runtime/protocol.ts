@@ -162,6 +162,22 @@ export interface ProgressMessage {
   readonly names?: readonly string[];
 }
 
+/**
+ * (판 1.2.0, PROGRESS 미해결 219) 실행이 패키지 받기를 기다리기 시작·끝. 화면의 "받는 중" 안내(vision-lab.ts)가 실제로 기다릴 때만 보이게 쓴다.
+ * - phase 'start': 코드가 시작하기 전에 앞의 받기(미리 받기 등)를 기다림 — 다 받으면 코드가 저절로 시작한다.
+ * - phase 'import': 곧바로 시작한 코드가 흉내 모듈·내 모듈을 거쳐 받는 중인 패키지를 import하는 줄에서 기다림 — 다 받으면 이어서 돈다.
+ * 받기가 도는 중이라도 이 실행이 받을 것이 없으면 기다리지 않으므로 이 메시지가 오지 않는다(워커 package-loads.ts의 계획).
+ */
+export interface PackageWaitMessage {
+  readonly type: 'package-wait';
+  readonly runId: number;
+  /** true: 기다리기 시작, false: 끝 */
+  readonly waiting: boolean;
+  readonly phase: 'start' | 'import';
+  /** 기다리는 패키지(pyodide-lock.json 열쇠 — 예: numpy, opencv-python) */
+  readonly names: readonly string[];
+}
+
 export interface ReadyMessage {
   readonly type: 'ready';
   readonly info: RuntimeInfo;
@@ -228,6 +244,7 @@ export interface TaskResultMessage {
 
 export type FromWorkerMessage =
   | ProgressMessage
+  | PackageWaitMessage
   | ReadyMessage
   | LoadFailedMessage
   | OutputMessage

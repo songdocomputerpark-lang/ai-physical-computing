@@ -204,6 +204,11 @@ export class VisionLab {
   #emptyHtml: { preview: string; output: string } | null = null;
   /** [실행]을 눌렀는데 numpy·OpenCV를 아직 받는 중이라 코드가 기다리는 동안인지 */
   #packageWaitShown = false;
+  /**
+   * 지금 실행이 패키지 받기를 기다리는 중인지(워커의 package-wait — 판 1.2.0, 미해결 219). 받을 것이 없는 코드는 미리 받기가 도는 중에도
+   * 기다리지 않고 시작하므로, "받는 중" 안내는 워커가 기다린다고 알릴 때만 보인다. start: 코드가 시작하기 전, import: 코드가 import 줄에서.
+   */
+  #packageWait: 'start' | 'import' | null = null;
   /** 지금 실행한 코드가 영상(cv2)을 쓰나 — 받는 중 안내 글을 고른다(codeShowsVideo) */
   #runShowsVideo = true;
   /** 소스를 닫거나 바꿀 때마다 올린다 — 열던 중인 소스가 늦게 열리면 버리고 지금 고른 소스를 연다(닫았으면 열지 않는다) */
@@ -264,9 +269,11 @@ export class VisionLab {
    * 코드가 시작하지 않는다. 그동안 입력·출력 칸이 "[실행]을 누르면 입력이 켜져요"·"입력이 꺼져 있어요"만 보여 몇 분 동안 멈춘 것처럼
    * 보였다(회선 전체 3G에서 4분 30초 — 2026-09-26 Phase 6 사용성 검토 지적 5). 기다리는 동안은 무엇을 받는지와 받은 양을 보이고
    * "다 받으면 저절로 시작해요"라고 알린다. 다 받거나 실행이 끝나면 원래 안내로 되돌린다.
+   * 판 1.2.0(미해결 219): 받을 것이 없는 코드(시리얼만 쓰는 3-1-2 컴퓨터 쪽, 3-1-1 바이트 변환기 등)는 미리 받기가 도는 중에도 곧바로 시작하므로
+   * 미리 받기 상태(data-vision-packages)가 아니라 워커가 "기다린다"고 알릴 때(package-wait)만 이 안내를 보인다.
    */
   #renderPackageWait(): void {
-    const waiting = this.#running && this.root.dataset.visionPackages === 'loading';
+    const waiting = this.#running && this.#packageWait !== null;
     this.root.dataset.visionPackageWait = waiting ? 'yes' : 'no';
     const { previewEmpty, outputEmpty } = this.#elements;
     if (waiting) {
@@ -278,17 +285,24 @@ export class VisionLab {
       // "받는 중…"을 빼고 붙인다(앞 문장과 겹치지 않게).
       const amount = (this.root.dataset.loadingText ?? '').replace(/\s*받는 중…/u, '').trim();
       const detail = amount === '' ? '' : `: ${amount}`;
-      // 영상을 쓰지 않는 코드(시리얼·블루투스만 — 3-1-2 컴퓨터 쪽 등)도 실습실을 처음 열었을 때는 OpenCV를 다 받은 뒤에 시작한다
-      // (워커가 미리 받기를 끝낸 뒤 코드를 돌린다). 그때는 "영상"·"입력이 켜져요"를 말하지 않는다(판 1.1.1 최종 점검).
+      // 영상을 쓰지 않는 코드에는 "영상"·"입력이 켜져요"를 말하지 않는다(판 1.1.1 최종 점검). 코드가 이미 시작해 import 줄에서 기다리는
+      // 때(import)는 "저절로 시작" 대신 "이어서 돌아요"라고 한다.
+      const resumes = this.#packageWait === 'import';
       if (previewEmpty) {
         previewEmpty.textContent = this.#runShowsVideo
           ? `필요한 파일을 받는 중이에요${detail}. 다 받으면 입력이 켜져요.`
           : `필요한 파일을 받는 중이에요${detail}.`;
       }
       if (outputEmpty) {
-        outputEmpty.textContent = this.#runShowsVideo
-          ? `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작하고, 영상이 여기에 나와요.`
-          : `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작해요.`;
+        if (this.#runShowsVideo) {
+          outputEmpty.textContent = resumes
+            ? `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 이어서 돌고, 영상이 여기에 나와요.`
+            : `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작하고, 영상이 여기에 나와요.`;
+        } else {
+          outputEmpty.textContent = resumes
+            ? `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 이어서 돌아요.`
+            : `필요한 파일을 받는 중이에요${detail}. 다 받으면 코드가 저절로 시작해요.`;
+        }
       }
       this.#renderInputStatus();
       return;
@@ -1119,8 +1133,13 @@ export class VisionLab {
           this.#setStage('core', 'failed');
         }
       }),
+      runtime.on('package-wait', ({ waiting, phase }) => {
+        this.#packageWait = waiting ? phase : null;
+        this.#renderPackageWait();
+      }),
       lab.on('run', ({ code }) => {
         this.#running = true;
+        this.#packageWait = null;
         this.#runShowsVideo = codeShowsVideo(code);
         this.windows.clear();
         this.#throttle.reset();
@@ -1130,6 +1149,7 @@ export class VisionLab {
       }),
       lab.on('done', () => {
         this.#running = false;
+        this.#packageWait = null;
         this.#setHoldReads(false);
         this.#cancelPendingRead(NO_FRAME);
         this.#renderPackageWait();

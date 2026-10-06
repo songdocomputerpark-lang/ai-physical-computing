@@ -87,8 +87,9 @@ describe.runIf(pyodideInstalled && nodeHasJspi)('Node.js의 실제 Pyodide + ope
       }
       expect(out.loadedPackages).toEqual(['numpy', 'opencv-python']);
       expect(out.canRunSync).toBe(true);
-      expect(out.shimsInstalled).toEqual(['cv2']);
-      expect(out.shimsInstalledAgain).toEqual(['cv2']);
+      // 붙박이 표 차례: cv2, asyncio(판 1.2.0 — 컴퓨터 쪽 실습실의 학생 코드에만 [정지]를 아는 asyncio, apc_asyncio.py)
+      expect(out.shimsInstalled).toEqual(['cv2', 'asyncio']);
+      expect(out.shimsInstalledAgain).toEqual(['cv2', 'asyncio']);
       // [VideoCapture 바뀜, imshow 바뀜, waitKey 바뀜, 원래 imshow는 다른 함수, 오타 이름은 없음]
       expect(out.patched).toEqual([true, true, true, true, false]);
 

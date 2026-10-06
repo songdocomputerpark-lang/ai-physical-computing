@@ -30,6 +30,13 @@ export interface BridgeHost {
   canRunSync(): boolean;
   /** ms 뒤에 fn을 부른다(기본 setTimeout) */
   schedule?(fn: () => void, ms: number): void;
+  /**
+   * (판 1.2.0, 미해결 219) 지금 받는 중인 Pyodide 패키지의 import 이름 — 워커가 package-loads.ts로 센다. 없으면 늘 빈 목록(받는 중 없음).
+   * 파이썬 import 문지기(apc_runtime)가 받는 중으로 알려진 이름이 import될 때만 묻는다.
+   */
+  packagesLoading?(): readonly string[];
+  /** (판 1.2.0) name이 받는 중이 아니게 되면 그때의 받는 중 import 이름으로 끝나는 약속. 없으면 곧바로 빈 목록. */
+  whenPackagesLoaded?(name: string): Promise<readonly string[]>;
 }
 
 /** 파이썬(apc_runtime.py)이 부르는 함수. 이름은 JS 규칙(camelCase)이고 파이썬 쪽이 감싸서 쓴다. */
@@ -43,6 +50,15 @@ export interface BridgeApi {
   isStopSignal(value: unknown): boolean;
   /** ms 뒤에 끝나는 약속(양보 지점). 0이어도 이벤트 루프에 한 번 양보한다. */
   sleep(ms: number): Promise<void>;
+  /**
+   * (판 1.2.0, 미해결 223) [정지]가 눌리면 STOP_SIGNAL로 끝나는 약속 — 컴퓨터 쪽 asyncio(apc_asyncio.py)의 지켜보는 작업이 폴링 없이 기다린다.
+   * 이미 눌렸으면 곧바로 끝나고, [정지] 없이 실행이 끝나면 끝나지 않는다(기다리던 작업은 그 asyncio가 멈춘다).
+   */
+  stopSignal(): Promise<unknown>;
+  /** (판 1.2.0, 미해결 219) 지금 받는 중인 Pyodide 패키지의 import 이름(BridgeHost.packagesLoading). 파이썬 import 문지기가 쓴다. */
+  packagesLoading(): string[];
+  /** (판 1.2.0) name이 받는 중이 아니게 되면 그때의 받는 중 import 이름 목록으로 끝나는 약속(파이썬은 block_on으로 기다린다 — [정지]와 경주). */
+  whenPackagesLoaded(name: string): Promise<string[]>;
   /** 마지막으로 양보한 뒤 지난 시간(밀리초). sleep 없는 반복문이 16ms마다 양보하는 데 쓴다. */
   msSinceYield(): number;
   /** 화면에 부탁하고 답을 기다리는 약속을 돌려준다(payload는 구조화 복제가 되는 값). */
@@ -141,6 +157,16 @@ export function createBridge(host: BridgeHost): Bridge {
       new Promise<void>((resolve) => {
         schedule(resolve, Number.isFinite(ms) && ms > 0 ? ms : 0);
       }),
+    stopSignal() {
+      if (stopRequested) {
+        return Promise.resolve(STOP_SIGNAL);
+      }
+      return new Promise<unknown>((resolve) => {
+        stopWaiters.add(() => resolve(STOP_SIGNAL));
+      });
+    },
+    packagesLoading: () => [...(host.packagesLoading?.() ?? [])].map(String),
+    whenPackagesLoaded: async (name) => [...((await host.whenPackagesLoaded?.(String(name))) ?? [])].map(String),
     msSinceYield: () => host.now() - lastYieldAt,
     request(kind, payload) {
       return new Promise<unknown>((resolve, reject) => {
