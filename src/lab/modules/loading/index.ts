@@ -13,12 +13,23 @@
  *    같은 CDN의 작은 파일(pyodide.mjs 18KB)을 따로 받아 본다(살핌). 잘 되면 느린 것뿐이라 그대로 두고, 막혔으면 서비스 워커에 알린 뒤
  *    (다음 파일부터 예비 경로를 먼저 씀) 같은 사이트 예비본이 살아 있는지 보고 **한 탭에서 한 번만** 페이지를 다시 불러 예비본으로 연다.
  *    둘 다 막혔으면 점검 페이지를 안내한다. 서비스 워커가 이미 맡고 있으면 다시 부르지 않아도 파일 하나 단위로 바뀐다(src/sw/sw.js).
+ *    판 1.2.0(PROGRESS 미해결 215 — 느린 회선에서 느린 것을 막힌 것으로 보던 것): 무엇을 "막힘"으로 보는지는 src/lab/loader/fallback-plan.ts —
+ *    살핌이 바이트를 15초 동안 하나도 못 받은 "멈춤"은 느린 회선일 수 있어 "느려요" 안내만 하고(서비스 워커에 알리지 않고 다시 불러오지 않음),
+ *    연결 실패·HTTP 오류·차단 안내 쪽·실행기 실패만 막힘으로 본다. 서비스 워커가 이 쪽의 파이썬 파일을 맡아 받기 메시지를 보내고 있으면
+ *    살피지 않는다(바이트로 판단하는 것은 서비스 워커 몫).
  *    오프라인판(OFFLINE_BUILD, 판 1.1.0 — 미해결 199 E-10)은 인터넷을 살피지 않고 이 컴퓨터의 작은 서버(검은 창)만 살펴, 꺼졌으면
  *    "검은 창이 켜져 있는지·시작하기.bat 다시 실행"을 안내한다(offline-note.ts).
+ * 5. **첫 준비 동안 맨 위**: 실습실 틀이 편집칸 앞에 그려 둔 자리([data-lab-intro])로 이 칸을 DOM째 옮겨 보이는 차례와 Tab 차례를 맞추고,
+ *    준비가 끝나 접히거나 [실행]을 누르면 제자리로 돌려놓는다(intro.ts — 판 1.2.0, PROGRESS 미해결 218).
  *
  * 테스트가 읽는 값(실습실 뿌리 [data-lab]): data-loading-phase(idle|loading|ready|failed), data-loading-percent,
  * data-loading-source(cdn|site|cache|unknown), data-loading-sw(unsupported|off|registering|ready|controlled|failed),
- * data-loading-warm(idle|running|done|partial|failed), data-loading-fallback(''|probing|switching|site|blocked).
+ * data-loading-warm(idle|running|done|partial|failed), data-loading-fallback(''|probing|slow|switching|site|blocked),
+ * data-loading-intro(yes|no — 실습실 틀이 그린 처음 값 yes, intro.ts).
+ * 측정 기록 칸(판 1.2.0 — 미해결 215, tests/e2e/perf-scenario-a.spec.ts가 결과에 남긴다): data-loading-fallback-reason(화면 살핌의 까닭 —
+ * 'idle:cdn-stalled'·'failed:cdn-error:site-ok' 꼴, fallback-plan.ts), data-loading-sw-fallback(서비스 워커가 다른 위치로 바꾼 파일과 까닭 —
+ * '<파일>=<까닭>'을 빈칸으로 이음), data-loading-sw-site-first(CDN이 막혔다고 본 뒤 5분 동안 예비본부터 받은 파일과 누가 막혔다고 봤는지 —
+ * '<파일>=<file:…|page>').
  */
 import { withBase } from '../../../lib/url.ts';
 import { readItem, writeItem } from '../../../lib/storage.ts';
@@ -29,7 +40,6 @@ import {
   LOADING_STAGE_EVENT,
   PANEL_COLLAPSE_DELAY_MS,
   PREFETCH_DONE_NAME,
-  PROBE_AFTER_IDLE_MS,
   PROBE_STALL_MS,
   RELOAD_GUARD_NAME,
   SW_MESSAGE,
@@ -37,9 +47,11 @@ import {
   type DownloadMessage,
   type LoadingStageDetail,
 } from '../../loader/constants.ts';
+import { SLOW_LINE_NOTE, planFallback, shouldProbeOnIdle, type FallbackTrigger } from '../../loader/fallback-plan.ts';
 import { probeUrl } from '../../loader/probe.ts';
 import {
   formatBytes,
+  parsePyodideUrl,
   pyodideCdnUrl,
   pyodidePrefetchBytesFor,
   pyodidePrefetchUrlsFor,
@@ -58,8 +70,12 @@ import { LoadingTracker, stageIdForUrl, type StageSnapshot } from '../../loader/
 import { OFFLINE_BUILD } from '../../runtime/config.ts';
 import { prefetchLazyModules } from '../host.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
+import { endLoadingIntro, placeInLoadingIntro } from './intro.ts';
 import manifest from './manifest.ts';
 import { OFFLINE_SERVER_DOWN_NOTE, OFFLINE_SERVER_SLOW_NOTE } from './offline-note.ts';
+
+/** 측정 기록 칸 하나에 남길 항목 수 상한(같은 항목은 한 번만) */
+const RECORD_LIMIT = 12;
 
 /** 점검 페이지 주소(네트워크가 막혔을 때 안내) */
 const CHECK_PAGE = withBase('start/check/');
@@ -145,6 +161,19 @@ function mount(context: LabModuleContext): LabModuleHandle {
   setRootData('warm', 'idle');
   setRootData('source', 'unknown');
   setRootData('fallback', '');
+  setRootData('fallbackReason', '');
+  setRootData('swFallback', '');
+  setRootData('swSiteFirst', '');
+
+  /** 측정 기록 칸(빈칸으로 이은 목록)에 항목을 더한다 — 같은 항목은 한 번만, RECORD_LIMIT개까지 */
+  const appendRootRecord = (name: string, item: string) => {
+    const key = `loading${name[0]!.toUpperCase()}${name.slice(1)}`;
+    const items = (root.dataset[key] ?? '').split(' ').filter((entry) => entry !== '');
+    if (items.includes(item) || items.length >= RECORD_LIMIT) {
+      return;
+    }
+    root.dataset[key] = [...items, item].join(' ');
+  };
 
   // ── 진행률 그리기 ──
   let collapseTimer: ReturnType<typeof setTimeout> | null = null;
@@ -212,9 +241,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const setCollapsed = (value: boolean) => {
     collapsed = value;
     if (value) {
-      // 첫 준비 동안 맨 위(조작 줄 바로 아래)에 올려 둔 이 패널을 제자리(입력·출력 아래)로 돌린다(LabShell.astro의 data-loading-intro).
-      // 준비가 끝나 접힐 때나 학생이 [접기]를 누를 때 한 번 — 그 뒤로는 다시 올리지 않는다(화면이 오르내리지 않게).
-      root.dataset.loadingIntro = 'no';
+      // 첫 준비 동안 맨 위(조작 줄 바로 아래 — LabShell.astro의 [data-lab-intro])로 DOM째 옮겨 둔 이 패널을 제자리(입력·출력 아래)로 돌린다.
+      // 준비가 끝나 접힐 때나 학생이 [접기]를 누를 때 한 번 — 그 뒤로는 다시 올리지 않는다(화면이 오르내리지 않게). 초점은 intro.ts가 지킨다.
+      endLoadingIntro(root);
     }
     if (panel) {
       const box = panel.querySelector<HTMLElement>('[data-loading-panel]');
@@ -266,6 +295,12 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
   };
 
+  /**
+   * 지금 실행이 패키지 받기를 기다리는지(실행기 'package-wait' — 판 1.2.0, PROGRESS 미해결 219). 받을 것이 없는 코드는 미리 받기 중에도
+   * 곧바로 돌므로, 상태 줄 글은 실행 상태(running)가 아니라 이 값으로 고른다: start = 코드가 시작하기 전에 기다림, import = 코드가 import 줄에서 기다림.
+   */
+  let packageWait: 'start' | 'import' | null = null;
+
   const render = () => {
     renderQueued = false;
     const snapshot = tracker.snapshot();
@@ -276,12 +311,17 @@ function mount(context: LabModuleContext): LabModuleHandle {
     setRootData('text', snapshot.text);
     // 파이썬은 준비됐는데(실행기 idle·running) 실습실 패키지(numpy·OpenCV)를 아직 받는 중이면 조작 줄 아래 상태 줄에도 받는 양을 보인다.
     // 준비 칸은 접히거나 화면 밖이라, "준비됐어요" 뒤 [실행]한 학생에게는 몇 분 동안 멈춘 것처럼 보였다(2026-09-26 Phase 6 사용성 검토 지적 5).
+    // 판 1.2.0(미해결 219): 실행 중이라도 받을 것이 없는 코드는 이미 돌고 있으므로 "저절로 시작해요"는 실행기가 기다린다고 알릴 때만 쓴다.
     if (labProgress && snapshot.phase === 'loading' && snapshot.text !== '' && (runtime.state === 'idle' || runtime.state === 'running')) {
       const amount = snapshot.text.replace(/\s*받는 중…/u, '').trim();
       labProgress.textContent =
-        runtime.state === 'running'
-          ? `실행 전에 필요한 파일을 받는 중: ${amount} — 다 받으면 코드가 저절로 시작해요.`
-          : `실습 파일을 받는 중: ${amount} — [실행]을 눌러 두면 다 받은 뒤 시작해요.`;
+        runtime.state !== 'running'
+          ? `실습 파일을 받는 중: ${amount} — 이 파일을 쓰는 코드는 [실행]하면 다 받은 뒤 시작해요.`
+          : packageWait === 'start'
+            ? `실행 전에 필요한 파일을 받는 중: ${amount} — 다 받으면 코드가 저절로 시작해요.`
+            : packageWait === 'import'
+              ? `코드가 쓰는 파일을 받는 중: ${amount} — 다 받으면 이어서 돌아요.`
+              : `실습 파일을 받는 중: ${amount} — 코드는 그대로 돌고 있어요.`;
     }
     if (titleText) {
       titleText.textContent =
@@ -318,6 +358,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
       sourceText.textContent = where;
     }
     if (snapshot.phase === 'ready') {
+      if (root.dataset.loadingFallback === 'slow') {
+        // 느린 회선이었지만 다 받았다 — "느려요" 안내를 거두고 오프라인 준비 안내로 돌아간다(까닭 기록 data-loading-fallback-reason은 남긴다).
+        setRootData('fallback', '');
+        setNote(SW_NOTES[swState]);
+      }
       if (!collapsed && collapseTimer === null && !collapseWhenFocusLeaves) {
         collapseTimer = setTimeout(() => {
           collapseTimer = null;
@@ -357,10 +402,20 @@ function mount(context: LabModuleContext): LabModuleHandle {
     runtime.on('state', ({ state }) => {
       noteActivity();
       tracker.runtimeState(state);
+      if (state !== 'running') {
+        packageWait = null;
+      }
       scheduleRender();
       if (state === 'failed') {
         void onLoadFailed();
       }
+    }),
+  );
+  cleanups.push(
+    // 실행이 패키지 받기를 기다리기 시작·끝(판 1.2.0 — 미해결 219, worker.ts preparePackages·waitForPackageImport) — 상태 줄 글을 고른다(render).
+    runtime.on('package-wait', ({ waiting, phase }) => {
+      packageWait = waiting ? phase : null;
+      scheduleRender();
     }),
   );
   cleanups.push(
@@ -401,10 +456,24 @@ function mount(context: LabModuleContext): LabModuleHandle {
   // 서비스 워커 메시지는 문서 전체로 온다. 한 문서에 실습실이 둘이면(4단원 통합 화면) 옆 실습실이 받는 OpenCV·모델 메시지까지 이 패널에 들어와,
   // 파이썬 엔진만 쓰는 ESP32 칸이 끝나지 않는 "numpy·OpenCV 받는 중"을 보였다(2026-09-24 통합 화면 확인). 패키지 목록이 빈 실습실은 엔진 파일만 센다.
   const coreOnly = labPackages !== null && labPackages.length === 0;
+  /** 서비스 워커가 이 쪽의 파이썬 파일을 맡아 받기 메시지를 보냈는지 — 그러면 "진행 없음"으로 살피지 않는다(바이트 판단은 서비스 워커 몫, 미해결 215) */
+  let swDeliveringPyodide = false;
   cleanups.push(
     onDownload((message: DownloadMessage) => {
       if (coreOnly && stageIdForUrl(message.url, origin) !== 'core') {
         return;
+      }
+      const pyodideFile = parsePyodideUrl(message.url, origin);
+      if (pyodideFile) {
+        swDeliveringPyodide = true;
+        // 측정 기록 칸(판 1.2.0 — 미해결 215): 서비스 워커가 다른 위치로 바꾼 파일과 까닭, 예비본부터 받은 파일과 누가 막혔다고 봤는지
+        if (message.state === 'fallback' && message.reason) {
+          appendRootRecord('swFallback', `${pyodideFile.name}=${message.reason}`);
+        } else if (message.state === 'error' && message.reason) {
+          appendRootRecord('swFallback', `${pyodideFile.name}=error:${message.reason}`);
+        } else if (message.state === 'start' && message.why === 'cdn-down') {
+          appendRootRecord('swSiteFirst', `${pyodideFile.name}=${message.downBy || '?'}`);
+        }
       }
       noteActivity();
       tracker.download(message);
@@ -617,8 +686,10 @@ function mount(context: LabModuleContext): LabModuleHandle {
   };
 
   // ── CDN이 막혔는지 살펴보고, 막혔으면 같은 사이트 예비본으로 바꾼다 ──
+  // 무엇을 막힘으로 보는지는 src/lab/loader/fallback-plan.ts(판 1.2.0 — PROGRESS 미해결 215): 살핌이 바이트를 15초 동안 하나도 못 받은 것("멈춤")은
+  // 느린 회선일 수 있어 "느려요" 안내만 하고, 연결 실패·HTTP 오류·차단 안내 쪽·실행기 실패만 막힘으로 본다(서비스 워커에 알리고 예비본으로 바꾼다).
   let probing = false;
-  const probeAndSwitch = async () => {
+  const probeAndSwitch = async (trigger: FallbackTrigger) => {
     if (probing || disposed) {
       return;
     }
@@ -630,9 +701,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
       if (disposed) {
         return;
       }
+      setRootData('fallbackReason', `${trigger}:local-${local.status}`);
       if (local.status === 'ok') {
         // 서버는 살아 있고 느린 것뿐이다. 다음에 또 살펴볼 수 있게 열어 둔다(온라인의 "느린 것뿐"과 같다).
         probing = false;
+        noteActivity();
         setRootData('fallback', '');
         setNote(OFFLINE_SERVER_SLOW_NOTE);
         return;
@@ -642,63 +715,92 @@ function mount(context: LabModuleContext): LabModuleHandle {
       return;
     }
     // 검색어를 붙여 브라우저·서비스 워커 캐시를 지나가게 한다(실제 망을 잰다 — parsePyodideUrl이 ?가 붙은 주소를 지나친다).
-    const outcome = await probeUrl(`${pyodideCdnUrl('pyodide.mjs')}?probe=${Date.now()}`, { stallMs: PROBE_STALL_MS });
-    if (outcome.status === 'ok') {
-      // 인터넷은 되는데 느린 것뿐이다. 다음에 또 살펴볼 수 있게 열어 둔다.
-      probing = false;
-      setRootData('fallback', '');
-      return;
-    }
+    const cdn = await probeUrl(`${pyodideCdnUrl('pyodide.mjs')}?probe=${Date.now()}`, { stallMs: PROBE_STALL_MS });
     if (disposed) {
       return;
     }
-    // CDN이 막혔다. 서비스 워커에 알려 다음 파일부터 예비 경로를 먼저 쓰게 한다.
-    tellServiceWorker(registration, { type: SW_MESSAGE.cdnDown });
-    const site = await probeUrl(`${pyodideSiteUrl('pyodide.mjs', origin)}?probe=${Date.now()}`, { stallMs: PROBE_STALL_MS });
-    if (disposed) {
-      return;
+    const controlled = () => Boolean(navigator.serviceWorker?.controller);
+    const reloadAllowed = () =>
+      !reloadGuard().taken &&
+      runtime.state !== 'idle' &&
+      runtime.state !== 'running' &&
+      swState !== 'unsupported' &&
+      swState !== 'off' &&
+      swState !== 'failed';
+    let plan = planFallback({ trigger, cdn: cdn.status, controlled: controlled(), reloadAllowed: reloadAllowed() });
+    if (plan.tellServiceWorker) {
+      // CDN이 막혔다는 확실한 증거다. 서비스 워커에 알려 다음 파일부터 예비 경로를 먼저 쓰게 한다
+      // (서비스 워커가 방금 CDN에서 바이트를 받고 있었으면 따르지 않는다 — src/sw/sw.js).
+      tellServiceWorker(registration, { type: SW_MESSAGE.cdnDown });
     }
-    if (site.status !== 'ok') {
-      setRootData('fallback', 'blocked');
-      setNote(`인터넷에서도 이 사이트에서도 파이썬 파일을 받지 못했어요. 시작하기 > 점검 페이지(${CHECK_PAGE})에서 네트워크를 시험해 보세요.`);
-      return;
-    }
-    if (navigator.serviceWorker?.controller) {
-      // 서비스 워커가 이미 맡고 있으면 다시 부르지 않아도 예비 경로로 바뀐다.
-      setRootData('fallback', 'site');
-      setNote('인터넷(jsDelivr)이 막혀 있어 이 사이트의 예비본으로 받고 있어요.');
-      return;
-    }
-    const guard = reloadGuard();
-    if (guard.taken || runtime.state === 'idle' || runtime.state === 'running' || swState === 'unsupported' || swState === 'off' || swState === 'failed') {
-      setRootData('fallback', 'blocked');
-      setNote(`인터넷(jsDelivr)에서 파이썬 파일을 받지 못했어요. 새로고침하거나 시작하기 > 점검 페이지(${CHECK_PAGE})를 열어 보세요.`);
-      return;
-    }
-    guard.take();
-    setRootData('fallback', 'switching');
-    setNote('인터넷이 막혀 있어 이 사이트의 예비본으로 바꾸는 중이에요. 화면이 한 번 새로고침돼요.');
-    lab.appendConsole('[안내] 인터넷(jsDelivr)이 막혀 있어 이 사이트의 예비본으로 바꿔요. 화면을 한 번 새로 불러와요.\n', 'notice');
-    setTimeout(() => {
-      if (!disposed) {
-        location.reload();
+    if (plan.needSiteProbe) {
+      const site = await probeUrl(`${pyodideSiteUrl('pyodide.mjs', origin)}?probe=${Date.now()}`, { stallMs: PROBE_STALL_MS });
+      if (disposed) {
+        return;
       }
-    }, 600);
+      plan = planFallback({ trigger, cdn: cdn.status, site: site.status, controlled: controlled(), reloadAllowed: reloadAllowed() });
+    }
+    setRootData('fallbackReason', plan.reason);
+    switch (plan.action) {
+      case 'none':
+        // 인터넷은 되는데 느린 것뿐이다. 다음에 또 살펴볼 수 있게 열어 둔다(다음 살핌은 지금부터 다시 15초 동안 진행이 없을 때).
+        probing = false;
+        noteActivity();
+        setRootData('fallback', '');
+        return;
+      case 'slow':
+        // 살핌도 바이트를 받지 못했다 — 느린 회선일 수 있다(큰 파일과 같은 연결에 줄을 섬). 막혔다고 단정하지 않고 안내만 하며, 다음에 또 살핀다
+        // (살핌이 15초를 기다린 바로 뒤에 또 살피지 않게 지금부터 다시 센다).
+        probing = false;
+        noteActivity();
+        setRootData('fallback', 'slow');
+        setNote(SLOW_LINE_NOTE);
+        return;
+      case 'blocked':
+        setRootData('fallback', 'blocked');
+        setNote(`인터넷에서도 이 사이트에서도 파이썬 파일을 받지 못했어요. 시작하기 > 점검 페이지(${CHECK_PAGE})에서 네트워크를 시험해 보세요.`);
+        return;
+      case 'site':
+        // 서비스 워커가 이미 맡고 있으면 다시 부르지 않아도 예비 경로로 바뀐다.
+        setRootData('fallback', 'site');
+        setNote('인터넷(jsDelivr)이 막혀 있어 이 사이트의 예비본으로 받고 있어요.');
+        return;
+      case 'blocked-no-reload':
+        setRootData('fallback', 'blocked');
+        setNote(`인터넷(jsDelivr)에서 파이썬 파일을 받지 못했어요. 새로고침하거나 시작하기 > 점검 페이지(${CHECK_PAGE})를 열어 보세요.`);
+        return;
+      case 'reload': {
+        reloadGuard().take();
+        setRootData('fallback', 'switching');
+        setNote('인터넷이 막혀 있어 이 사이트의 예비본으로 바꾸는 중이에요. 화면이 한 번 새로고침돼요.');
+        lab.appendConsole('[안내] 인터넷(jsDelivr)이 막혀 있어 이 사이트의 예비본으로 바꿔요. 화면을 한 번 새로 불러와요.\n', 'notice');
+        setTimeout(() => {
+          if (!disposed) {
+            location.reload();
+          }
+        }, 600);
+        return;
+      }
+      default:
+        probing = false;
+        setRootData('fallback', '');
+    }
   };
 
   const onLoadFailed = async () => {
     if (disposed) {
       return;
     }
-    await probeAndSwitch();
+    await probeAndSwitch('failed');
   };
 
   /**
    * "받은 양이 15초 동안 늘지 않으면"(PLAN §5.4)의 화면 쪽 구현.
    * 진행 신호(실행기 단계 알림·서비스 워커 파일 메시지)가 올 때마다 시각을 적어 두고, 받는 중인데 그 시각이 PROBE_AFTER_IDLE_MS보다
    * 오래됐으면 CDN을 살펴본다. 전체 시간이 아니라 **멈춤**을 기준으로 삼아 느린 망에서 오판하지 않는다.
-   * 서비스 워커가 페이지를 맡은 방문에는 파일 진행 메시지가 계속 오므로 여기까지 오지 않고, 서비스 워커가 파일 하나 단위로
-   * 예비 경로로 바꾼다(src/sw/sw.js). 받기가 아예 실패하면(state 'failed') 기다리지 않고 바로 살핀다.
+   * 서비스 워커가 이 쪽의 파이썬 파일을 맡아 받기 메시지를 보낸 방문에는 살피지 않는다 — 서비스 워커가 실제 바이트로(같은 위치의 받기 모두에
+   * 15초 동안 바이트가 없을 때만) 파일 하나 단위로 예비 경로로 바꾼다(src/sw/sw.js, 판 1.2.0 — 미해결 215). 서비스 워커가 맡지 않은 첫 방문에는
+   * 화면이 워커의 받기 진행을 볼 수 없어 살핌이 대리 지표다. 받기가 아예 실패하면(state 'failed') 기다리지 않고 바로 살핀다.
    */
   const idleCheckMs = 1_000;
   let lastActivityAt = Date.now();
@@ -706,17 +808,21 @@ function mount(context: LabModuleContext): LabModuleHandle {
     lastActivityAt = Date.now();
   };
   const idleTimer = setInterval(() => {
-    if (disposed || probing) {
+    if (disposed) {
       return;
     }
-    if (runtime.state !== 'loading' && runtime.state !== 'unloaded') {
-      return;
-    }
-    if (tracker.snapshot().phase !== 'loading' || Date.now() - lastActivityAt < PROBE_AFTER_IDLE_MS) {
+    const wanted = shouldProbeOnIdle({
+      runtimeState: runtime.state,
+      phase: tracker.snapshot().phase,
+      quietMs: Date.now() - lastActivityAt,
+      probing,
+      swDeliveringPyodide,
+    });
+    if (!wanted) {
       return;
     }
     noteActivity();
-    void probeAndSwitch();
+    void probeAndSwitch('idle');
   }, idleCheckMs);
   cleanups.push(() => clearInterval(idleTimer));
 
@@ -788,6 +894,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
   }
 
+  // 첫 준비 중이면 이 칸을 실습실 맨 위 자리([data-lab-intro] — 편집칸 앞)로 DOM째 옮긴 뒤 보인다: 보이는 차례와 Tab 차례가 같다
+  // (판 1.2.0 — PROGRESS 미해결 218, WCAG 2.4.3). 준비가 끝나 접히거나 [실행]을 누르면 제자리로 돌아간다(setCollapsed·lab-shell.ts — intro.ts).
+  if (panel) {
+    placeInLoadingIntro(root, panel);
+  }
   context.showPanel();
   setCollapsed(false);
   render();

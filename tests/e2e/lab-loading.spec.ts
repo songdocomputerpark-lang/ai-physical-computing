@@ -39,6 +39,28 @@ function loadingPanel(page: Page) {
   return page.locator('[data-lab-module-panel="loading"]');
 }
 
+/**
+ * 개발 서버의 Vite 새로 고침 신호(full-reload·update)를 거른다 — a11y-keyboard.spec.ts·a11y-states.spec.ts와 같은 방법. 빌드 결과에는 이 연결이 없다.
+ * 여러 작업이 한 작업 폴더에서 함께 돌 때 다른 사람이 실습실 모듈(.ts·.py)을 고치면 Vite가 열린 실습실을 다시 불러 파이썬 준비가 처음부터
+ * 다시 시작했고, 이 파일의 검사가 "90초 안에 준비되지 않음"으로 흔들렸다(판 1.2.0 구역 B 확인 — 호출 기록의 "navigation to finish").
+ */
+async function freezeDevReloads(page: Page): Promise<void> {
+  await page.routeWebSocket(/\/\?token=/u, (socket) => {
+    const server = socket.connectToServer();
+    server.onMessage((message) => {
+      if (typeof message === 'string' && /"type":"(?:full-reload|update|prune)"/u.test(message)) {
+        return;
+      }
+      socket.send(message);
+    });
+    socket.onMessage((message) => server.send(message));
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  await freezeDevReloads(page);
+});
+
 test.describe('준비 진행률과 1분 개념 카드', () => {
   test('실습실에 진행률 패널·단계·1분 개념 카드가 보이고, 준비가 끝나면 접힌다', async ({ page }) => {
     // 준비(파이썬·OpenCV 받기)가 끝날 때까지 지켜보므로 기본 30초로는 모자랄 수 있다(전체 실행 중 부하가 크면 준비에 30초 넘게 걸림).
@@ -131,6 +153,61 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
       await expect(run).toBeInViewport();
     });
   }
+
+  // 판 1.2.0(PROGRESS 미해결 218 — WCAG 2.4.3 초점 차례): 예전에는 CSS로 보이게만 올려 준비 칸의 Tab 차례가 편집칸·입력/출력·조절 패널 뒤였다.
+  // 이제 준비 칸이 DOM째 편집칸 앞 자리([data-lab-intro])로 옮겨 오고(src/lab/modules/loading/intro.ts), 접히면 제자리(넓은 모듈 줄)로 돌아간다.
+  // Tab으로 걸어 보는 검사는 a11y-keyboard.spec.ts(데스크톱) — 여기서는 두 화면 폭 모두 DOM 차례·자리를 본다.
+  test('첫 준비 동안 준비 칸은 DOM째 편집칸 앞 자리에 있고(보이는 차례 = Tab 차례), 접히면 제자리(입력·출력 아래)로 돌아간다', async ({ page, context }) => {
+    test.setTimeout(4 * 60_000);
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await route.continue();
+    });
+    await page.goto(VISION_PATH);
+    const root = labRoot(page);
+    await expect(loadingPanel(page)).toBeVisible({ timeout: 30_000 });
+    await expect(root).toHaveAttribute('data-loading-intro', 'yes');
+    await expect(page.locator('[data-lab-intro] > [data-lab-module-panel="loading"]')).toHaveCount(1);
+    const order = () =>
+      page.evaluate(() => {
+        const panel = document.querySelector('[data-lab-module-panel="loading"]')!;
+        const follows = (a: Element, selector: string) => (a.compareDocumentPosition(document.querySelector(selector)!) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+        return { beforeEditor: follows(panel, '[data-lab-editor]'), beforeIo: follows(panel, '[data-lab-io]'), beforeConsole: follows(panel, '[data-lab-console]') };
+      });
+    expect(await order()).toEqual({ beforeEditor: true, beforeIo: true, beforeConsole: true });
+    // 보이는 자리도 편집칸 위(두 화면 폭 모두)
+    const panelTop = (await loadingPanel(page).boundingBox())?.y ?? Number.POSITIVE_INFINITY;
+    const editorTop = (await page.locator('[data-lab-editor]').boundingBox())?.y ?? 0;
+    expect(panelTop).toBeLessThan(editorTop);
+
+    // 준비가 끝나 접히면 제자리(넓은 모듈 줄 — 입력·출력·조절 패널 뒤, 콘솔 앞)로 DOM째 돌아가고 맨 위 자리는 비어 숨는다
+    await waitVisionReady(page);
+    await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: PACKAGES_TIMEOUT });
+    await expect(root).toHaveAttribute('data-loading-intro', 'no');
+    await expect(page.locator('.lab__modules > [data-lab-module-panel="loading"]')).toHaveCount(1);
+    await expect(page.locator('[data-lab-intro] > *')).toHaveCount(0);
+    await expect(page.locator('[data-lab-intro]')).toBeHidden();
+    expect(await order()).toEqual({ beforeEditor: false, beforeIo: false, beforeConsole: true });
+  });
+
+  test('4단원 통합 화면(한 문서에 실습실 틀 둘): 두 칸의 준비 칸이 각자 자기 틀의 맨 위 자리로 간다', async ({ page, context }) => {
+    test.skip(test.info().project.name === 'mobile', '틀 둘의 자리는 데스크톱에서 본다(같은 코드).');
+    test.setTimeout(3 * 60_000);
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+      await route.continue();
+    });
+    await page.goto(withBase('labs/unit4/'));
+    const roots = page.locator('[data-lab]');
+    await expect(roots).toHaveCount(2);
+    for (const index of [0, 1]) {
+      const root = roots.nth(index);
+      await expect(root.locator('[data-lab-module-panel="loading"]')).toBeVisible({ timeout: 60_000 });
+      await expect(root).toHaveAttribute('data-loading-intro', 'yes');
+      // 자기 틀의 자리에 — 다른 칸의 자리로 가지 않는다
+      await expect(root.locator(':scope > [data-lab-intro] > [data-lab-module-panel="loading"]')).toHaveCount(1);
+    }
+  });
 
   test('키보드로 준비 칸 [접기]를 누르면 칸이 제자리로 옮겨 가도 [펼치기]가 화면 안에 있다', async ({ page, context }) => {
     test.setTimeout(4 * 60_000);

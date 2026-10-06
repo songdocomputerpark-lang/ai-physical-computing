@@ -10,6 +10,8 @@
 /**
  * "받은 양이 15초 동안 늘지 않으면" 예비 경로로 바꾸는 기준(PLAN §5.4). 전체 시간이 아니라 멈춤을 기준으로 삼아
  * 느린 망에서 오판하지 않는다. 서비스 워커의 CDN 받기와 화면의 CDN 살핌(probe)이 같은 값을 쓴다.
+ * 서비스 워커는 파일 하나가 아니라 **그 위치(CDN·같은 사이트)의 받기 모두**에 이만큼 바이트가 없을 때를 멈춤으로 본다
+ * (판 1.2.0 — PROGRESS 미해결 215: HTTP/2 한 연결에 여러 파일이 차례로 실려 오면 뒤 파일은 느린 회선에서 15초 넘게 기다릴 수 있다).
  */
 export const PYODIDE_STALL_MS = 15_000;
 
@@ -21,9 +23,12 @@ export const PYODIDE_STALL_MS = 15_000;
 export const PROBE_AFTER_IDLE_MS = PYODIDE_STALL_MS;
 
 /**
- * 살핌(probe) 한 번에 쓰는 멈춤 기준. 이미 15초를 기다린 뒤라 더 짧게 잡아 빨리 판단한다(작은 파일 18KB만 받아 본다).
+ * 살핌(probe) 한 번에 쓰는 멈춤 기준 — 서비스 워커와 같은 "바이트가 15초 동안 하나도 오지 않음"(판 1.2.0 — PROGRESS 미해결 215).
+ * 예전에는 5초였다: 이미 15초를 기다린 뒤라 빨리 판단하려 했지만, 살핌(pyodide.mjs 18KB)은 워커가 받는 큰 파일과 같은 HTTP/2 연결에
+ * 실려 그 뒤에 줄을 서므로 느린 회선에서는 5초 안에 첫 바이트가 오지 않을 수 있다 — 느린 것을 막힘으로 볼 수 있었다.
+ * 그래도 살핌의 "멈춤"은 막힘의 확실한 증거가 아니다(화면의 판단은 src/lab/loader/fallback-plan.ts).
  */
-export const PROBE_STALL_MS = 5_000;
+export const PROBE_STALL_MS = PYODIDE_STALL_MS;
 
 /** 준비가 모두 끝난 뒤 받은 파일을 캐시에 넣어 두기까지 기다리는 시간(패키지 받기와 겹치지 않게) */
 export const WARM_DELAY_MS = 3_000;
@@ -122,6 +127,16 @@ export interface DownloadMessage {
   readonly total: number | null;
   readonly state: DownloadState;
   readonly from: DownloadSource;
+  /**
+   * (state 'fallback'·'error') 앞 시도가 실패한 까닭 — 'stalled-headers'(응답 머리말이 오지 않음)·'stalled-body'(몸통 바이트가 멈춤)·
+   * 'error'(연결 실패)·'http-<상태>'·'blocked'(파일 대신 HTML)·'short'(크기가 다름)·'hash'(SHA-256이 다름). 'error'는 두 위치 모두
+   * 실패했으면 'stalled-body+error'처럼 둘을 잇는다. 측정이 어느 판정이 예비본으로 바꿨는지 가르는 기록 칸(판 1.2.0 — 미해결 215).
+   */
+  readonly reason?: string;
+  /** (state 'start') CDN 주소로 온 요청을 같은 사이트 예비본부터 받는 까닭 — 'cdn-down'(CDN이 막혔다고 본 뒤 5분 동안) */
+  readonly why?: 'cdn-down';
+  /** why가 'cdn-down'일 때 누가 막혔다고 봤는지 — 'file:<파일 이름>:<까닭>'(서비스 워커의 받기 실패) 또는 'page'(화면의 살핌) */
+  readonly downBy?: string;
 }
 
 export interface CacheStatusMessage {

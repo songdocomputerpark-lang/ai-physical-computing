@@ -241,11 +241,11 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
   }
 
   /*
-   * 실습실 틀(LabShell.astro)의 범위 스타일을 이 화면에서만 덮는다. 틀의 선택자는 `.lab__grid[data-astro-cid-…]`(점수 0,2,0),
-   * 준비 중 규칙은 `.lab[data-loading-intro='yes'][…] .lab__grid[…]`(0,5,0)라서 앞에 `.unit4-grid > .unit4-pane`을 붙여 늘 이긴다.
+   * 실습실 틀(LabShell.astro)의 범위 스타일을 이 화면에서만 덮는다. 틀의 선택자는 `.lab__grid[data-astro-cid-…]`(점수 0,2,0)라서
+   * 앞에 `.unit4-grid > .unit4-pane`을 붙여 늘 이긴다. 첫 준비 동안의 준비 칸은 실습실 틀이 DOM째 편집칸 앞 자리([data-lab-intro])로 옮기므로
+   * 여기서 줄 차례를 바꾸지 않는다(판 1.2.0 — 미해결 218, 보이는 차례 = Tab 차례).
    */
-  .unit4-grid > .unit4-pane :global(.lab .lab__grid),
-  .unit4-grid > .unit4-pane :global(.lab[data-loading-intro] .lab__grid) {
+  .unit4-grid > .unit4-pane :global(.lab .lab__grid) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
     grid-template-areas:
@@ -253,16 +253,6 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
       'io'
       'panel'
       'modules'
-      'console';
-  }
-
-  /* 처음 파이썬을 받는 동안에는 준비 칸(넓은 모듈 줄)을 맨 위로 — 실습실 틀의 규칙(LabShell.astro)을 한 줄 배치로 옮긴 것 */
-  .unit4-grid > .unit4-pane :global(.lab[data-loading-intro='yes'] .lab__grid) {
-    grid-template-areas:
-      'modules'
-      'editor'
-      'io'
-      'panel'
       'console';
   }
 

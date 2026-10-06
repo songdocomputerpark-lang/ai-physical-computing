@@ -15,10 +15,17 @@
 // 뜻이 없어 건너뛴다 — 빌드 결과(npm run perf:measure의 미리 보기 서버)나 실사이트(PW_BASE_URL)로 잰다.
 // 1.0.0 사용성 검토가 같은 조건을 손으로 잰 값: 준비됐어요 2분 38초, 첫 에지 7분 9초, 받은 양 20.97MB(.cache/phase6-notes/review-experience.md 5·6).
 // 결과: 콘솔 줄 + 테스트 첨부(perf-scenario-a-3g.json).
+//
+// 예비본 판정 기록(판 1.2.0 — PROGRESS 미해결 215): 측정마다 numpy·OpenCV 휠이 jsDelivr 또는 같은 사이트 예비본에서 와서, **어느 판정이 바꿨는지**를
+// 함께 남긴다 — ① 서비스 워커의 받기 메시지(apc:download) 가운데 fallback·error(까닭 reason)와 예비본부터 받은 start(why 'cdn-down'·downBy:
+// 누가 CDN을 막혔다고 봤는지 — 'file:<파일>:<까닭>'은 서비스 워커의 받기 실패, 'page'는 화면의 살핌), ② 실습실 뿌리의 data-loading-fallback·
+// -fallback-reason(화면 살핌의 까닭)·-sw-fallback·-sw-site-first·-source, ③ 실습실 문서를 몇 번 열었는지(화면 살핌이 다시 불러오기를 했는지).
+// ①은 문맥에 묶은 함수(__apcRecordLoading)로 모든 문서에서 모아 다시 불러와도 잃지 않는다. 요약 줄 끝 "예비본 판정"과 JSON의 fallback 칸.
 import fs from 'node:fs';
 import { expect, test, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
 import { startLineProxy, type LineStats } from '../../scripts/perf-line-proxy.mjs';
 import { LINE_PROFILES, SCENARIO_A_LIMIT_MS, SITE_CACHE_CONTROL, lineAllowHosts } from '../../scripts/perf-rules.mjs';
+import { SW_MESSAGE } from '../../src/lab/loader/constants.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
 import { withBase } from '../../src/lib/url.ts';
 import { labRoot } from './helpers/lab.ts';
@@ -35,14 +42,50 @@ const MIN_RATIO_CHANGE = 0.0005;
 // 재는 동안 추적 기록·화면 찍기를 끈다 — 10분 가까운 기록이 무겁고 렌더러를 바쁘게 한다(perf-timing.spec.ts와 같은 까닭, 파일 맨 위에서만 받는다).
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 
-/** 페이지 안에서 벽시계(Date.now)로 적는 일 — 실습실 뿌리 속성·첫 에지 장·DOMContentLoaded. 문서마다 새로 적는다. */
-function installRecorder(): void {
+/** 서비스 워커 받기 메시지 가운데 예비본 판정에 닿는 것(판 1.2.0 — 미해결 215). 시각은 벽시계(Date.now). */
+interface FallbackRecord {
+  readonly at: number;
+  readonly page: string;
+  readonly state: string;
+  readonly file: string;
+  readonly from: string | null;
+  readonly reason: string | null;
+  readonly why: string | null;
+  readonly downBy: string | null;
+}
+
+/**
+ * 페이지 안에서 벽시계(Date.now)로 적는 일 — 실습실 뿌리 속성·첫 에지 장·DOMContentLoaded. 문서마다 새로 적는다.
+ * 서비스 워커의 예비본 판정 메시지는 문맥에 묶은 함수(__apcRecordLoading)로도 보내 다시 불러온 문서 앞의 것까지 모은다.
+ */
+function installRecorder(options: { readonly downloadType: string }): void {
   type Recorded = { name: string; value: string | null; at: number };
   const events: Recorded[] = [];
   (window as unknown as { __apcScenario: { events: Recorded[]; href: string } }).__apcScenario = { events, href: location.href };
   const log = (name: string, value: string | null) => events.push({ name, value, at: Date.now() });
   document.addEventListener('DOMContentLoaded', () => log('dcl', location.pathname), { once: true });
   window.addEventListener('load', () => log('load', location.pathname), { once: true });
+  // 서비스 워커가 다른 위치로 바꾼 파일(fallback·error의 reason)과 예비본부터 받은 파일(start의 why·downBy)
+  navigator.serviceWorker?.addEventListener('message', (event: MessageEvent) => {
+    const data = event.data as { type?: string; state?: string; url?: string; from?: string; reason?: string; why?: string; downBy?: string } | null;
+    if (!data || data.type !== options.downloadType || !(data.state === 'fallback' || data.state === 'error' || data.why)) {
+      return;
+    }
+    const file = String(data.url ?? '').split('/').pop() ?? '';
+    const entry = {
+      at: Date.now(),
+      page: location.pathname,
+      state: String(data.state),
+      file,
+      from: data.from ?? null,
+      reason: data.reason ?? null,
+      why: data.why ?? null,
+      downBy: data.downBy ?? null,
+    };
+    log(`sw-${entry.state}`, `${file} ${entry.reason ?? entry.downBy ?? ''}`.trim());
+    const send = (window as unknown as { __apcRecordLoading?: (value: unknown) => unknown }).__apcRecordLoading;
+    void Promise.resolve(send?.(entry)).catch(() => undefined);
+  });
   const seen = new Map<string, string | null>();
   const check = () => {
     // 글꼴 CSS를 켠 때(media print → all — BaseLayout __apcFontCss). 느린 망이면 load 뒤여야 한다.
@@ -56,7 +99,19 @@ function installRecorder(): void {
     if (!root) {
       return;
     }
-    for (const name of ['data-state', 'data-run-count', 'data-vision-packages', 'data-lab-modules-loaded']) {
+    for (const name of [
+      'data-state',
+      'data-run-count',
+      'data-vision-packages',
+      'data-lab-modules-loaded',
+      // 예비본 판정 기록 칸(판 1.2.0 — 미해결 215, src/lab/modules/loading/index.ts 머리말)
+      'data-loading-sw',
+      'data-loading-source',
+      'data-loading-fallback',
+      'data-loading-fallback-reason',
+      'data-loading-sw-fallback',
+      'data-loading-sw-site-first',
+    ]) {
       const value = root.getAttribute(name);
       if (seen.get(name) !== value) {
         seen.set(name, value);
@@ -142,16 +197,28 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
       serviceWorkers: 'allow',
       proxy: { server: proxy.server },
     });
-    await context.addInitScript(installRecorder);
+    // 예비본 판정 기록(판 1.2.0 — 미해결 215): 서비스 워커 메시지를 모든 문서에서 모은다(화면 살핌이 쪽을 다시 불러와도 잃지 않게)
+    const fallbackLog: FallbackRecord[] = [];
+    await context.exposeFunction('__apcRecordLoading', (entry: FallbackRecord) => {
+      fallbackLog.push(entry);
+    });
+    await context.addInitScript(installRecorder, { downloadType: SW_MESSAGE.download });
     const errors: string[] = [];
     const snapshots: Record<string, LineStats> = {};
     const timeline: { at: number; state: string | null; status: string; progress: string; down: number }[] = [];
+    /** 실습실 문서를 연 때(두 번 이상이면 화면 살핌이 쪽을 다시 불러온 것 — 예비본 판정 기록) */
+    const labDocumentLoads: number[] = [];
     let sampler: ReturnType<typeof setInterval> | null = null;
     const t0 = Date.now();
     const since = (wall: number | null | undefined) => (typeof wall === 'number' ? wall - t0 : null);
     try {
       const page = await context.newPage();
       page.on('pageerror', (error) => errors.push(error.message));
+      page.on('framenavigated', (frame) => {
+        if (frame === page.mainFrame() && new URL(frame.url()).pathname === VISION_PATH) {
+          labDocumentLoads.push(Date.now() - t0);
+        }
+      });
 
       // 1. 홈 — 첫 그리기 뒤 주요 단추를 누른다(학생은 설명을 읽지 않는다)
       await page.goto(withBase(''), { waitUntil: 'commit', timeout: STEP_TIMEOUT });
@@ -218,6 +285,29 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
       const final = snapshots.end;
       const byHost = Object.fromEntries(Object.entries(final.hosts).map(([host, value]) => [host, value.down]));
       const overLimit = firstEdge > SCENARIO_A_LIMIT_MS;
+      // 예비본 판정 기록(판 1.2.0 — 미해결 215): 무엇이 같은 사이트 예비본으로 바꿨는지
+      const rootRecords = await page
+        .evaluate(() => {
+          const root = document.querySelector('[data-lab]');
+          const read = (name: string) => root?.getAttribute(name) ?? null;
+          return {
+            source: read('data-loading-source'),
+            sw: read('data-loading-sw'),
+            fallback: read('data-loading-fallback'),
+            fallbackReason: read('data-loading-fallback-reason'),
+            swFallback: read('data-loading-sw-fallback'),
+            swSiteFirst: read('data-loading-sw-site-first'),
+          };
+        })
+        .catch(() => null);
+      const swFallbacks = fallbackLog.filter((entry) => entry.state === 'fallback' || entry.state === 'error');
+      const siteFirst = fallbackLog.filter((entry) => entry.why === 'cdn-down');
+      const fallbackText =
+        `예비본 판정: 서비스 워커가 바꿈 ${swFallbacks.length}건` +
+        (swFallbacks.length > 0 ? `(${swFallbacks.map((entry) => `${entry.file}=${entry.reason ?? '?'}@${seconds(entry.at - t0)}`).join(', ')})` : '') +
+        ` · 예비본부터 ${siteFirst.length}건` +
+        (siteFirst.length > 0 ? `(${siteFirst.map((entry) => `${entry.file}←${entry.downBy || '?'}`).join(', ')})` : '') +
+        ` · 화면 살핌 ${rootRecords?.fallbackReason || '없음'}(${rootRecords?.fallback || '—'}) · 실습실 문서 ${labDocumentLoads.length}번 열림`;
       const hostText = Object.entries(byHost)
         .sort((a, b) => b[1] - a[1])
         .map(([host, bytes]) => `${host} ${mb(bytes)}`)
@@ -227,7 +317,8 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
         ` → [실행] 켜짐 ${seconds(runButtonEnabled)}(누름 ${seconds(runClick)}) → 파이썬 준비·실행 시작 ${seconds(runStart)} → numpy·OpenCV 준비 ${seconds(packagesReady)}` +
         ` → 첫 에지 ${seconds(firstEdge)} → 슬라이더 효과 ${seconds(sliderEffect)} · 회선으로 받은 양 ${mb(final.down)}(${hostText}), 올린 양 ${mb(final.up)}, 연결 ${final.connections}개` +
         ` · 흰 픽셀 100:${(base * 100).toFixed(2)}% → 20:${(low * 100).toFixed(2)}% → 100:${(back * 100).toFixed(2)}%` +
-        (overLimit ? ` · SPEC 시나리오 A 5분을 ${seconds(firstEdge - SCENARIO_A_LIMIT_MS)} 넘음 — PLAN §11 위험 31(기록용)` : ' · SPEC 5분 안');
+        (overLimit ? ` · SPEC 시나리오 A 5분을 ${seconds(firstEdge - SCENARIO_A_LIMIT_MS)} 넘음 — PLAN §11 위험 31(기록용)` : ' · SPEC 5분 안') +
+        ` · ${fallbackText}`;
       console.log(summary);
       for (const sample of timeline) {
         console.log(`[회선 3G 시나리오 A]   ${seconds(sample.at)} ${sample.state ?? '-'} | ${sample.status} | ${sample.progress} | 받은 양 ${mb(sample.down)}`);
@@ -250,6 +341,12 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
         snapshots,
         timeline,
         events: events.map((event) => ({ ...event, at: event.at - t0 })),
+        // 예비본 판정 기록(판 1.2.0 — 미해결 215): 서비스 워커 메시지(모든 문서)·실습실 뿌리 기록 칸(마지막 문서)·실습실 문서를 연 때
+        fallback: {
+          serviceWorker: fallbackLog.map((entry) => ({ ...entry, at: entry.at - t0 })),
+          root: rootRecords,
+          labDocumentLoads,
+        },
         errors,
       });
 

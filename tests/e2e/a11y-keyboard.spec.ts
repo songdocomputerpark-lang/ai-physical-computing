@@ -448,6 +448,122 @@ test.describe('키보드만으로 — 여닫는 것', () => {
   });
 });
 
+// 판 1.2.0(PROGRESS 미해결 218 — 최종 전수 점검 LV-02, WCAG 2.4.3 초점 차례): 첫 준비 동안 준비 칸은 편집칸 위에 보이는데 Tab 차례는 편집칸·입력/출력·
+// 조절 패널을 다 지난 뒤(약 32번째)였다 — CSS(grid-template-areas)로 보이게만 올렸기 때문. 이제 준비 칸이 DOM째 편집칸 앞 자리([data-lab-intro])로
+// 옮겨 오므로(src/lab/modules/loading/intro.ts) 조작 줄 다음 Tab 몇 번 안에 준비 칸에 닿고, 편집칸보다 먼저다. 접힌 뒤에는 제자리(입력·출력 아래)다.
+test.describe('키보드만으로 — 첫 준비 동안 준비 칸의 Tab 차례 = 보이는 차례(WCAG 2.4.3, 미해결 218)', () => {
+  test.skip(({ isMobile }) => isMobile, '키보드 걷기는 데스크톱에서 본다(DOM 차례는 lab-loading.spec.ts가 두 화면에서 본다)');
+  test.describe.configure({ timeout: LAB_READY_TIMEOUT + 120_000 });
+
+  /** 지금 초점이 어느 칸에 있는지(준비 칸·편집칸·입력/출력·조절 패널·조작 줄·그 밖)와 화면 위치 */
+  const focusPlace = (page: Page) =>
+    page.evaluate(() => {
+      const active = document.activeElement;
+      if (!(active instanceof HTMLElement) || active === document.body) {
+        return { where: 'body', top: 0, label: '' };
+      }
+      const where = active.closest('[data-lab-module-panel="loading"]')
+        ? 'loading'
+        : active.closest('.lab__editor')
+          ? 'editor'
+          : active.closest('[data-lab-io]')
+            ? 'io'
+            : active.closest('.lab__panel')
+              ? 'panel'
+              : active.closest('[data-lab-toolbar]')
+                ? 'toolbar'
+                : 'other';
+      const label = (active.getAttribute('aria-label') ?? active.textContent ?? '').replace(/\s+/gu, ' ').trim().slice(0, 30);
+      return { where, top: Math.round(active.getBoundingClientRect().top + window.scrollY), label };
+    });
+
+  for (const target of [
+    { label: '영상처리 실습실', path: 'labs/vision/' },
+    { label: 'ESP32 실습실', path: 'labs/esp32/' },
+  ]) {
+    test(`${target.label}: 첫 준비 동안 처음부터 Tab 몇 번 안에(조작 줄 바로 다음) 준비 칸에 닿고, 편집칸보다 먼저다`, async ({ page, context }) => {
+      await freezeDevReloads(page);
+      // 준비 중인 때를 확실히 잡으려고 파이썬 엔진 파일을 늦게 준다(워커 요청도 문맥 경로 규칙을 따른다)
+      await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 20_000));
+        await route.continue().catch(() => undefined);
+      });
+      await page.goto(withBase(target.path));
+      const root = page.locator('[data-lab]').first();
+      const panel = page.locator('[data-lab-module-panel="loading"]');
+      await expect(panel).toBeVisible({ timeout: 60_000 });
+      await expect(root).toHaveAttribute('data-loading-intro', 'yes');
+      // 준비 칸은 DOM째 편집칸 앞 자리에 있다
+      await expect(page.locator('[data-lab-intro] > [data-lab-module-panel="loading"]')).toHaveCount(1);
+
+      // 처음(문서 맨 앞)부터 Tab: 본문 건너뛰기 → 머리글 → 조작 줄 → (예제 차시 링크) → 준비 칸 → 편집칸 차례여야 한다
+      const places: { where: string; top: number; label: string }[] = [];
+      let firstLoading = -1;
+      let firstEditor = -1;
+      for (let press = 0; press < 60 && (firstLoading < 0 || firstEditor < 0); press += 1) {
+        await page.keyboard.press('Tab');
+        const place = await focusPlace(page);
+        places.push(place);
+        if (place.where === 'loading' && firstLoading < 0) {
+          firstLoading = press + 1;
+        }
+        if (place.where === 'editor' && firstEditor < 0) {
+          firstEditor = press + 1;
+        }
+      }
+      const trail = places.map((place, index) => `${index + 1}:${place.where}「${place.label}」`).join(' ');
+      test.info().annotations.push({ type: '첫 준비 동안 Tab 차례', description: `${target.label}: 준비 칸 ${firstLoading}번째, 편집칸 ${firstEditor}번째 — ${trail}` });
+      expect(firstLoading, `준비 칸에 닿지 못했다 — ${trail}`).toBeGreaterThan(0);
+      expect(firstLoading, `준비 칸이 편집칸보다 뒤다 — ${trail}`).toBeLessThan(firstEditor);
+      // 조작 줄의 마지막 초점 다음 Tab 3번 안(사이에 올 수 있는 것: "이 예제가 나오는 차시" 링크)
+      const lastToolbar = places.map((place) => place.where).lastIndexOf('toolbar') + 1;
+      expect(lastToolbar, `조작 줄을 지나지 않았다 — ${trail}`).toBeGreaterThan(0);
+      // 예전(약 32번째)에는 편집칸·입력/출력·조절 패널을 다 지난 뒤였다 — 이제 본문 건너뛰기·머리글·조작 줄만 지난다
+      expect(firstLoading - lastToolbar, `조작 줄 다음 준비 칸까지 Tab ${firstLoading - lastToolbar}번 — ${trail}`).toBeLessThanOrEqual(3);
+      // 보이는 차례도 같다: 준비 칸에서 지난 초점들은 조작 줄 아래·편집칸 위에 있다
+      const toolbarTop = Math.max(...places.filter((place) => place.where === 'toolbar').map((place) => place.top));
+      const editorTop = places.find((place) => place.where === 'editor')?.top ?? Number.POSITIVE_INFINITY;
+      for (const place of places.filter((entry) => entry.where === 'loading')) {
+        expect(place.top, `준비 칸 단추 「${place.label}」의 위치`).toBeGreaterThan(toolbarTop);
+        expect(place.top, `준비 칸 단추 「${place.label}」의 위치`).toBeLessThan(editorTop);
+      }
+    });
+  }
+
+  test('영상처리 실습실: 키보드만으로 첫 준비 → [실행] 예약 → 준비 끝 실행까지 — 준비 칸이 제자리로 가도 초점은 [정지]에 있고 화면 안이다', async ({ page, context }) => {
+    await freezeDevReloads(page);
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 6000));
+      await route.continue().catch(() => undefined);
+    });
+    await page.goto(withBase('labs/vision/'));
+    const root = page.locator('[data-lab]').first();
+    await expect(page.locator('[data-lab-module-panel="loading"]')).toBeVisible({ timeout: 60_000 });
+    await expect(root).toHaveAttribute('data-loading-intro', 'yes');
+    // 처음부터 Tab으로 [실행]까지 가서 Enter(준비 중이면 예약)
+    let onRun = false;
+    for (let press = 0; press < 40 && !onRun; press += 1) {
+      await page.keyboard.press('Tab');
+      onRun = await page.evaluate(() => document.activeElement?.hasAttribute('data-lab-run') ?? false);
+    }
+    expect(onRun, 'Tab으로 [실행]에 닿는다').toBe(true);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-lab-run]')).toHaveAttribute('data-lab-run-pending', 'yes');
+    // 준비가 끝나면 예약한 실행이 돌고, 준비 칸은 제자리(넓은 모듈 줄)로, 초점은 [정지](C39 — [실행]이 꺼지면 켜진 짝 단추로)
+    await expect(root).toHaveAttribute('data-run-count', '1', { timeout: LAB_READY_TIMEOUT });
+    await expect(root).toHaveAttribute('data-loading-intro', 'no');
+    await expect(page.locator('.lab__modules > [data-lab-module-panel="loading"]')).toHaveCount(1);
+    await expect(page.locator('[data-lab-intro] > *')).toHaveCount(0);
+    await expect
+      .poll(() => page.evaluate(() => (document.activeElement?.hasAttribute('data-lab-stop') ? 'stop' : document.activeElement?.tagName.toLowerCase() ?? 'none')), {
+        timeout: 30_000,
+      })
+      .toBe('stop');
+    await page.keyboard.press('Enter');
+    await expect(root).toHaveAttribute('data-outcome', /^(stopped|killed|ok|error)$/u, { timeout: 60_000 });
+  });
+});
+
 test.describe('키보드만으로 — 넘치는 표·그림 칸은 넘치는 동안만 Tab으로 들어와 방향키로 민다(scroll-focus)', () => {
   test.skip(({ isMobile }) => isMobile, '화면 폭을 직접 바꿔 가며 본다(데스크톱 프로젝트에서 한 번)');
 

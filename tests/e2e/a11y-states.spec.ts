@@ -259,6 +259,43 @@ test.describe('실습실 — 실행한 뒤', () => {
     expect(found, found.join('\n')).toEqual([]);
   });
 
+  // 판 1.2.0(PROGRESS 미해결 218): 첫 준비 동안 준비 칸이 DOM째 편집칸 앞 자리([data-lab-intro])로 옮겨 온 화면과, 준비가 끝나 제자리로 돌아간 화면.
+  // 첫 준비 동안 열린 가상 데스크톱(placement wide)은 예전처럼 맨 위로 보이게만 올라가지 않고 제자리(입력·출력·조절 패널 아래)에 있다 —
+  // 보이는 차례 = DOM(Tab) 차례.
+  test('영상처리 실습실: 첫 준비 동안(준비 칸이 편집칸 앞 자리, 가상 데스크톱은 제자리)과 준비가 끝나 접힌 뒤', async ({ page, context }, testInfo) => {
+    test.setTimeout(LAB_READY_TIMEOUT + 120_000);
+    const found: string[] = [];
+    await freezeDevReloads(page);
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 15_000));
+      await route.continue().catch(() => undefined);
+    });
+    await page.goto(withBase(`labs/vision/?example=${encodeURIComponent('desktop/02-mouse-move-click.py')}`));
+    const loading = page.locator('[data-lab-module-panel="loading"]');
+    const desktop = page.locator('[data-lab-module-panel="desktop"]');
+    await expect(loading).toBeVisible({ timeout: 60_000 });
+    await expect(desktop).toBeVisible({ timeout: 60_000 });
+    await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'yes');
+    await expect(page.locator('[data-lab-intro] > [data-lab-module-panel="loading"]')).toHaveCount(1);
+    const tops = await page.evaluate(() => {
+      const top = (selector: string) => document.querySelector(selector)!.getBoundingClientRect().top;
+      return {
+        loading: top('[data-lab-module-panel="loading"]'),
+        editor: top('[data-lab-editor]'),
+        panel: top('.lab__panel'),
+        desktop: top('[data-lab-module-panel="desktop"]'),
+      };
+    });
+    expect(tops.loading, '준비 칸은 편집칸 위').toBeLessThan(tops.editor);
+    expect(tops.desktop, '가상 데스크톱은 제자리(조절 패널 아래) — 첫 준비 동안에도 맨 위로 올라가지 않는다').toBeGreaterThan(tops.panel);
+    await scanState(page, testInfo, '첫 준비 동안(준비 칸 맨 위)', found);
+    await waitLabsIdle(page);
+    await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: LAB_READY_TIMEOUT });
+    await expect(page.locator('.lab__modules > [data-lab-module-panel="loading"]')).toHaveCount(1);
+    await scanState(page, testInfo, '준비가 끝나 접힌 뒤(준비 칸 제자리)', found);
+    expect(found, found.join('\n')).toEqual([]);
+  });
+
   test('영상처리 실습실: 가상 데스크톱(pyautogui) 예제', async ({ page }, testInfo) => {
     test.setTimeout(LAB_READY_TIMEOUT + 120_000);
     const found: string[] = [];

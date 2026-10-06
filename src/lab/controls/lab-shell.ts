@@ -30,7 +30,8 @@
  * [이 컴퓨터에서 내 기록 지우기](ClearRecordsButton)가 끝나면 document의 apc:records-cleared를 받아 예제 원래 코드·기본 글자 크기로 돌아간다.
  *
  * 테스트가 읽는 값(뿌리 요소의 data-*): state·run-target(실행 대상 이름, 없으면 빈 값)·jspi·limited·outcome·run-count·stop-ms·save-state·example·share-loaded·
- * example-missing(?example= 파일을 못 찾음)·loading-intro(첫 준비 중이면 yes — 준비 패널이 맨 위, LabShell.astro)·
+ * example-missing(?example= 파일을 못 찾음)·loading-intro(첫 준비 중이면 yes — 준비 패널이 맨 위 자리 [data-lab-intro]에 DOM째, LabShell.astro·
+ * src/lab/modules/loading/intro.ts)·
  * lab-ids-scoped(한 쪽에 칸이 여럿일 때 꼬리를 붙인 id 수 — scopeLabIds).
  * [실행] 단추의 data-lab-run-pending=yes는 "파이썬을 받는 동안 눌러 둠(준비되면 실행)"이다.
  *
@@ -49,6 +50,7 @@ import { STOP_GRACE_MS } from '../runtime/config.ts';
 import type { RuntimeState } from '../runtime/protocol.ts';
 import { withParticle } from '../../lib/korean.ts';
 import { readItem, writeItem } from '../../lib/storage.ts';
+import { endLoadingIntro } from '../modules/loading/intro.ts';
 import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatus } from './autosave.ts';
 import { downloadTextFile } from './download.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
@@ -679,8 +681,8 @@ class LabShellController implements LabController {
     this.showMessage('');
     // 지난 실행의 "콘솔에 결과가 나왔어요" 알림도 지운다(이번 실행의 출력이 오면 다시 뜬다).
     this.#resetConsoleOutputNotice();
-    // 첫 준비 동안 맨 위로 올려 둔 준비 패널(LabShell.astro의 data-loading-intro)을 제자리로 돌린 뒤에 화면 위치를 잰다.
-    this.root.dataset.loadingIntro = 'no';
+    // 첫 준비 동안 맨 위 자리([data-lab-intro])로 DOM째 옮겨 둔 준비 패널을 제자리로 돌린 뒤에 화면 위치를 잰다(곧바로 — 동기. 판 1.2.0, 미해결 218).
+    endLoadingIntro(this.root);
     this.appendConsole(`── 실행 ${this.#runCount} ──\n`, 'notice');
     this.#emit('run', { code, runCount: this.#runCount, target });
     // 결과가 첫 화면 밖이면(검토 실측: 1366×768에서 출력 제목 y≈678, 375×812에서 y≈2,056) 결과 칸으로 화면을 옮긴다.

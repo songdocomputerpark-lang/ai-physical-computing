@@ -10,6 +10,9 @@
  * 2. Pyodide 파일(jsDelivr 또는 같은 사이트 예비본): 캐시 우선 → 없으면 받는다. 받는 동안 진행률을 화면에 알리고
  *    (apc:download), 15초 동안 새 바이트가 오지 않거나 오류·차단 페이지가 오면 같은 파일의 **다른 위치**로 자동으로 바꾼다
  *    (CDN ↔ 같은 사이트 예비본, PLAN §5.4). 파일 이름 하나 = 캐시 하나라 어느 쪽으로 받았든 다음부터는 캐시에서 준다.
+ *    "15초 동안 새 바이트가 없음"은 **그 위치(CDN·같은 사이트)의 받기 모두**를 본다(판 1.2.0 — PROGRESS 미해결 215): jsDelivr는 HTTP/2
+ *    한 연결에 여러 파일을 실어 차례로 보내기도 해서, 느린 회선에서는 뒤 파일이 앞 파일을 기다리느라 15초 넘게 제 몫이 없을 수 있다 —
+ *    그동안 같은 위치의 다른 파일에 바이트가 오고 있으면 막힌 것이 아니라 느린 것이다(sourceQuietMs).
  * 3. 그 밖의 같은 사이트 요청: 해시 이름 자산·글꼴·vendor·models는 캐시 우선, HTML과 검색 색인은 네트워크 우선(새 차시가 빨리 보이게),
  *    그림·고지 파일은 캐시를 먼저 주고 뒤에서 새로 받는다. 다른 사이트 요청은 건드리지 않는다.
  * 4. 화면이 보내는 메시지: 미리 받기(apc:prefetch), 이미 받은 것 캐시에 넣기(apc:warm), 캐시 상태(apc:cache-status),
@@ -178,8 +181,13 @@ async function broadcast(message) {
   }
 }
 
-function postDownload(url, state, from, received, total) {
-  return broadcast({ type: MESSAGE.download, url, state, from, received, total: total ?? null });
+/**
+ * 파일 받기 진행을 화면에 알린다. extra는 측정·기록용 칸(판 1.2.0 — 미해결 215):
+ * - state 'fallback'·'error'의 reason: 앞 시도가 실패한 까닭(failReason — 'stalled-headers'·'stalled-body'·'error'·'http-404'·'blocked'·'short'·'hash')
+ * - state 'start'의 why·downBy: CDN 파일을 같은 사이트 예비본부터 받은 까닭('cdn-down')과 누가 CDN을 막혔다고 봤는지(cdnDownBy)
+ */
+function postDownload(url, state, from, received, total, extra) {
+  return broadcast({ type: MESSAGE.download, url, state, from, received, total: total ?? null, ...(extra || {}) });
 }
 
 /** 항목 수로 캐시 정리(오래된 것부터 — Cache API의 keys()는 넣은 순서다) */
@@ -258,9 +266,43 @@ function pyodideCacheKey(name) {
 
 /** CDN이 방금 막혔다면 한동안 예비 경로부터 쓴다(워커가 살아 있는 동안만 기억한다). */
 let cdnDownUntil = 0;
+/** 누가 CDN을 막혔다고 봤는지(측정·기록용 — 'file:<파일 이름>:<까닭>'(이 워커의 받기 실패) 또는 'page'(화면의 살핌)) */
+let cdnDownBy = '';
 
 function cdnLooksDown() {
   return Date.now() < cdnDownUntil;
+}
+
+/**
+ * 위치(cdn·site)마다 마지막으로 바이트(응답 머리말 포함)가 온 시각. 같은 위치의 받기가 여럿이면 **하나라도** 바이트가 오는 동안은
+ * 그 위치가 살아 있다(판 1.2.0 — 미해결 215). 서비스 워커가 다시 시작되면 0부터(그때는 진행 중인 받기도 없다).
+ */
+const lastByteAt = { cdn: 0, site: 0 };
+
+function noteSourceBytes(from) {
+  if (from === 'cdn' || from === 'site') {
+    lastByteAt[from] = Date.now();
+  }
+}
+
+/** 그 위치에서 마지막 바이트가 온 뒤 지난 시간(밀리초). 한 번도 오지 않았으면 아주 큰 값 */
+function sourceQuietMs(from) {
+  const last = lastByteAt[from] || 0;
+  return last === 0 ? Number.POSITIVE_INFINITY : Date.now() - last;
+}
+
+/** 받기 실패를 한 낱말로(화면·측정 기록용) */
+function failReason(outcome) {
+  if (!outcome || outcome.ok) {
+    return '';
+  }
+  if (outcome.reason === 'stalled') {
+    return `stalled-${outcome.phase === 'headers' ? 'headers' : 'body'}`;
+  }
+  if (outcome.reason === 'http') {
+    return `http-${outcome.status ?? '?'}`;
+  }
+  return String(outcome.reason || 'error');
 }
 
 /** 받은 조각을 이어 붙여 바이트 한 덩어리로 만든다(해시 계산용). */
@@ -298,25 +340,40 @@ async function sha256Hex(bytes) {
 /**
  * 주소 하나를 끝까지 받는다(멈춤 감지 + 진행률 알림). 몸통을 모두 메모리에 모은 뒤 새 응답으로 만든다.
  * 스트리밍을 포기하는 대신, 중간에 멈춰도 다른 위치로 통째로 바꿀 수 있다(PLAN §5.4).
- * 돌려주는 값: { ok: true, response, bytes } 또는 { ok: false, reason: 'stalled'|'error'|'http'|'blocked'|'short'|'hash' }
+ * 돌려주는 값: { ok: true, response, bytes } 또는 { ok: false, reason: 'stalled'|'error'|'http'|'blocked'|'short'|'hash', phase? }
+ * (stalled의 phase: 'headers' = 응답 머리말을 기다리다, 'body' = 몸통 바이트를 기다리다)
+ *
+ * 멈춤(stalled)은 **그 위치(from — cdn·site)의 받기 모두에 stallMs 동안 바이트가 하나도 오지 않았을 때**다(판 1.2.0 — PROGRESS 미해결 215).
+ * 이 파일만 기다리는 동안 같은 위치의 다른 파일에 바이트가 오고 있으면(HTTP/2 한 연결에 여러 파일이 차례로 실려 오는 느린 회선) 남은
+ * 시간만큼 더 기다린다. 전에는 파일마다 따로 재서, 느린 회선에서 뒤 파일이 "막힘"으로 보여 예비본으로 바뀌고 5분 동안 예비본 먼저가 됐다.
  *
  * expectedSha256을 주면 받은 바이트 전체의 SHA-256을 대조한다(표에 적힌 Pyodide 파일만). 크기만 보면 "잘렸는지"는 알아도
  * "다른 파일인지"는 모르는데, pyodide.asm.mjs·pyodide.mjs는 워커에서 그대로 실행되는 코드라 한 번 더 확인한다
  * (빌드 스크립트 scripts/fetch-pyodide-fallback.mjs가 쓰는 값과 같은 표 — src/lab/loader/pyodide-files.ts, 2026-09-17).
+ * startExtra는 'start' 메시지에 함께 싣는 기록 칸(예비본부터 받는 까닭 — postDownload).
  */
 async function downloadBuffered(url, options) {
   const { expectedTotal, expectedSha256, from, stallMs } = options;
   const controller = new AbortController();
-  let stalled = false;
+  /** 멈춤으로 끊었으면 그때의 단계('headers'|'body'), 아니면 null */
+  let stalled = null;
+  let phase = 'headers';
   let timer = null;
-  const arm = () => {
+  const arm = (waitMs = stallMs) => {
     if (timer !== null) {
       clearTimeout(timer);
     }
     timer = setTimeout(() => {
-      stalled = true;
+      timer = null;
+      // 같은 위치의 다른 받기에 바이트가 오는 중이면 느린 것뿐이다 — 그 위치가 조용해진 때부터 stallMs가 지날 때까지 더 기다린다.
+      const quiet = sourceQuietMs(from);
+      if (quiet < stallMs) {
+        arm(stallMs - quiet);
+        return;
+      }
+      stalled = phase;
       controller.abort();
-    }, stallMs);
+    }, waitMs);
   };
   const disarm = () => {
     if (timer !== null) {
@@ -328,6 +385,9 @@ async function downloadBuffered(url, options) {
   try {
     arm();
     const response = await fetch(url, { signal: controller.signal, credentials: 'omit', cache: options.cacheMode || 'default' });
+    // 응답 머리말도 그 위치가 살아 있다는 신호다(같은 위치의 다른 받기가 기다리는 시간을 늘린다).
+    noteSourceBytes(from);
+    phase = 'body';
     if (!response.ok) {
       disarm();
       return { ok: false, reason: 'http', status: response.status };
@@ -343,7 +403,7 @@ async function downloadBuffered(url, options) {
     const sameOrigin = url.startsWith(self.location.origin);
     const declared = sameOrigin && !response.headers.get('content-encoding') ? Number(response.headers.get('content-length')) : Number.NaN;
     const total = expectedTotal || (Number.isFinite(declared) && declared > 0 ? declared : null);
-    await postDownload(url, 'start', from, 0, total);
+    await postDownload(url, 'start', from, 0, total, options.startExtra);
     const chunks = [];
     if (response.body && typeof response.body.getReader === 'function') {
       const reader = response.body.getReader();
@@ -354,6 +414,7 @@ async function downloadBuffered(url, options) {
         if (done) {
           break;
         }
+        noteSourceBytes(from);
         chunks.push(value);
         received += value.byteLength;
         const now = Date.now();
@@ -390,7 +451,10 @@ async function downloadBuffered(url, options) {
     return { ok: true, bytes: received, response: new Response(blob, { status: 200, statusText: 'OK', headers }) };
   } catch (error) {
     disarm();
-    return { ok: false, reason: stalled ? 'stalled' : 'error', message: String((error && error.message) || error) };
+    if (stalled) {
+      return { ok: false, reason: 'stalled', phase: stalled, received };
+    }
+    return { ok: false, reason: 'error', message: String((error && error.message) || error) };
   }
 }
 
@@ -409,19 +473,25 @@ async function handlePyodide(request, info) {
   // 보통은 요청이 온 쪽부터 쓰되, 방금 CDN이 막혔다면 예비 경로부터 쓴다. 오프라인 배포판은 같은 사이트만 쓴다(CDN으로 바꾸지 않는다).
   const first = OFFLINE || info.from === 'site' || cdnLooksDown() ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
   const second = OFFLINE ? null : first.from === 'cdn' ? { url: siteUrl, from: 'site' } : { url: cdnUrl, from: 'cdn' };
+  // CDN 주소로 온 요청을 예비본부터 받는 까닭을 'start' 메시지에 남긴다(측정이 어느 판정이 바꿨는지 가르게 — 미해결 215)
+  const startExtra = !OFFLINE && info.from === 'cdn' && first.from === 'site' ? { why: 'cdn-down', downBy: cdnDownBy } : undefined;
 
   let usedFrom = first.from;
-  let outcome = await downloadBuffered(first.url, { expectedTotal, expectedSha256, from: first.from, stallMs: TIMING.stallMs });
+  let outcome = await downloadBuffered(first.url, { expectedTotal, expectedSha256, from: first.from, stallMs: TIMING.stallMs, startExtra });
+  let firstFailure = '';
   if (!outcome.ok && second) {
+    firstFailure = failReason(outcome);
     if (first.from === 'cdn') {
       cdnDownUntil = Date.now() + TIMING.cdnDownTtlMs;
+      cdnDownBy = `file:${info.name}:${firstFailure}`;
     }
-    void postDownload(request.url, 'fallback', second.from, 0, expectedTotal || null);
+    void postDownload(request.url, 'fallback', second.from, 0, expectedTotal || null, { reason: firstFailure });
     usedFrom = second.from;
     outcome = await downloadBuffered(second.url, { expectedTotal, expectedSha256, from: second.from, stallMs: TIMING.stallMs });
   }
   if (!outcome.ok) {
-    void postDownload(request.url, 'error', first.from, 0, expectedTotal || null);
+    const reason = firstFailure ? `${firstFailure}+${failReason(outcome)}` : failReason(outcome);
+    void postDownload(request.url, 'error', first.from, 0, expectedTotal || null, { reason });
     // 마지막으로 브라우저에 그냥 맡긴다(우리 판단이 틀렸을 수도 있으니 실패를 확정하지 않는다).
     try {
       return await fetch(request);
@@ -764,7 +834,12 @@ self.addEventListener('message', (event) => {
   }
   if (data.type === MESSAGE.cdnDown) {
     // 화면이 살펴본 결과 CDN이 막혔다 — 한동안 예비 경로부터 쓴다(15초 멈춤을 기다리지 않게).
-    cdnDownUntil = Date.now() + TIMING.cdnDownTtlMs;
+    // 단, 이 서비스 워커가 방금(stallMs 안에) CDN에서 바이트를 받았으면 따르지 않는다: CDN은 살아 있고, 화면의 살핌이 바쁜 연결에 끼어
+    // 늦었을 뿐이다(판 1.2.0 — 미해결 215. 직접 본 바이트가 화면의 짐작보다 확실하다).
+    if (sourceQuietMs('cdn') >= TIMING.stallMs) {
+      cdnDownUntil = Date.now() + TIMING.cdnDownTtlMs;
+      cdnDownBy = 'page';
+    }
     return;
   }
   if (data.type === MESSAGE.cacheStatus) {
