@@ -81,7 +81,8 @@ function undoQuoteFixes(polished: string, plain: string, label: string): { html:
       continue;
     }
     const pair = `${b[index]}${a[index]}`;
-    expect(['“”', '‘’'], `${label}: ${index}번째 글자 ${pair} — 따옴표 방향 말고 다른 것이 바뀜`).toContain(pair);
+    // 여는 → 닫는(판 4), 닫는 → 여는(판 5 — 여는 자리의 닫는 따옴표)
+    expect(['“”', '‘’', '”“', '’‘'], `${label}: ${index}번째 글자 ${pair} — 따옴표 방향 말고 다른 것이 바뀜`).toContain(pair);
     a[index] = b[index] ?? '';
     fixed += 1;
   }
@@ -392,11 +393,29 @@ describe('닫는 따옴표 바로잡기(판 4 — 판 1.2.0, DECISIONS C96)', ()
     expect(state.fixed).toBe(2);
     expect(state.prev).toBe('”');
   });
+
+  // 판 5(판 1.2.1 — 판 1.2.0 적대적 검토 C6): smartypants가 기호 앞 따옴표를 닫는 쪽으로 정한 반대 방향
+  it('여는 자리(블록 맨 앞·빈칸·여는 괄호 뒤)의 닫는 따옴표는 뒤가 빈칸이 아니면 여는 따옴표로 바꾼다(2-2-2 "▣ 정지"·"⏹ 정지")', async () => {
+    expect(await quoted('"▣ 정지"는 파일에서 "⏹ 정지"예요.')).toBe('“▣ 정지”는 파일에서 “⏹ 정지”예요.');
+    expect(await quoted('실행 화면의 "▣ 정지"와 같아요.')).toBe('실행 화면의 “▣ 정지”와 같아요.');
+    expect(await quoted("('▶ 실행')을 눌러요.")).toBe('(‘▶ 실행’)을 눌러요.');
+  });
+
+  it('반대 방향은 뒤 글자가 빈칸이거나 글 조각 끝이면 바꾸지 않고, 글자 뒤 닫는 따옴표는 그대로다', () => {
+    const state: { prev: string | null; fixed: number } = { prev: null, fixed: 0 };
+    // 빈칸 뒤·뒤가 빈칸인 닫는 따옴표, 조각 끝의 닫는 따옴표는 그대로(근거가 없으면 바꾸지 않는 쪽)
+    expect(fixClosingQuotesInText('말했어요 ” 그리고 ”', state)).toBe('말했어요 ” 그리고 ”');
+    expect(state.fixed).toBe(0);
+    // 맨 앞의 닫는 따옴표 + 기호는 여는 따옴표로, 짝의 닫는 따옴표(글자 뒤)는 그대로
+    const fresh: { prev: string | null; fixed: number } = { prev: null, fixed: 0 };
+    expect(fixClosingQuotesInText('”▣ 정지”는 ’⏹’', fresh)).toBe('“▣ 정지”는 ‘⏹’');
+    expect(fresh.fixed).toBe(2);
+  });
 });
 
 describe('판 번호(콘텐츠 캐시 비우기)', () => {
-  it('동작이 바뀐 판(4 이상 — 닫는 따옴표)이 목록에 등록돼 있다', () => {
-    expect(REHYPE_LESSON_POLISH_VERSION).toBeGreaterThanOrEqual(4);
+  it('동작이 바뀐 판(5 이상 — 닫는 따옴표 반대 방향)이 목록에 등록돼 있다', () => {
+    expect(REHYPE_LESSON_POLISH_VERSION).toBeGreaterThanOrEqual(5);
     const entry = rehypePlugins.find((plugin) => Array.isArray(plugin) && plugin[0] === rehypeLessonPolish) as [unknown, { version: number }] | undefined;
     expect(entry?.[1]).toEqual({ version: REHYPE_LESSON_POLISH_VERSION, narrow: narrowFigureFingerprint() });
   });

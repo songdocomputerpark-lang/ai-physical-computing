@@ -44,7 +44,11 @@
 //      - 앞 글자는 같은 블록 안에서 굵게·링크·용어 같은 인라인 요소의 경계를 넘어 본다. 인라인 코드(<code>·<kbd>·<samp>·<var>)는 글자를 바꾸지
 //        않고 낱말 하나로 본다(smartypants도 인라인 코드를 낱말 글자로 이어 본다). 마크다운 안 HTML 조각(raw) 바로 뒤와 모르는 요소 뒤는
 //        블록 맨 앞처럼 본다(바꾸지 않는 쪽 — smartypants가 보지 않는 글이라 판단할 근거가 없다).
-//      - 코드 블록·인라인 코드 안의 따옴표, 닫는 따옴표·아포스트로피(’), 곧은 따옴표는 건드리지 않는다. 바꾸는 것은 따옴표 방향뿐이라 글자 수·
+//      - 반대 방향(판 5 — 판 1.2.1, 판 1.2.0 적대적 검토 C6): smartypants는 따옴표 바로 뒤가 기호(▣·⏹ 등)이면 **닫는** 따옴표로 정해
+//        `"▣ 정지"는 파일에서 "⏹ 정지"예요`가 ”▣ 정지”는 파일에서 ”⏹ 정지”예요로 보였다(2-2-2 등 3쪽 6곳). 그래서 닫는 따옴표(” ’)가 여는 자리
+//        (블록 맨 앞·빈칸·여는 괄호 등 — 위 규칙과 같은 OPENING_QUOTE_CONTEXT)에 있고 바로 뒤 글자가 같은 글 안에서 빈칸이 아니면 여는 따옴표로
+//        바꾼다. 뒤 글자를 모르는 자리(글 조각의 끝)는 바꾸지 않는다(바꾸지 않는 쪽 — "말했어요 ”"처럼 빈칸 뒤 닫는 따옴표가 혹시 있어도 그대로).
+//      - 코드 블록·인라인 코드 안의 따옴표, 곧은 따옴표는 건드리지 않는다. 바꾸는 것은 따옴표 방향뿐이라 글자 수·
 //        제목 id·주소는 그대로다. 차시 md에는 둥근 따옴표를 쓰지 않는다(곧은 따옴표로 쓰면 된다 — 유지보수 쉬움).
 //
 // 어디서 도나(@astrojs/markdown-remark 7.3.1 dist/index.js의 순서, 2026-09-26 확인)
@@ -80,8 +84,9 @@ import { withBase } from './url.ts';
  * 이 플러그인의 동작 판. 출력이 바뀌는 수정을 하면 1씩 올린다(위 캐시 주의).
  * 1 = 아무것도 안 함(준비 자리) · 2 = 그림 width·height(190) + 차시 번호 nowrap(174) · 3 = 좁은 화면용 그림 <picture>(209)
  * · 4 = 닫는 따옴표 바로잡기(판 1.2.0 — 머리말 4번)
+ * · 5 = 여는 자리의 닫는 따옴표를 여는 따옴표로(판 1.2.1 — 머리말 4번 "반대 방향")
  */
-export const REHYPE_LESSON_POLISH_VERSION = 4;
+export const REHYPE_LESSON_POLISH_VERSION = 5;
 
 /** 좁은 화면용 그림 파일 이름의 끝: 원래 그림 agent-cycle.svg 옆의 agent-cycle.narrow.svg */
 export const NARROW_FIGURE_SUFFIX = '.narrow.svg';
@@ -693,6 +698,15 @@ const CLOSING_QUOTE_OF = new Map([
   ['‘', '’'],
 ]);
 
+/** 닫는 따옴표 → 여는 따옴표(반대 방향 — 머리말 4번, 판 5) */
+const OPENING_QUOTE_OF = new Map([
+  ['”', '“'],
+  ['’', '‘'],
+]);
+
+/** 빈칸 글자(반대 방향을 바꿀 때 뒤 글자가 이것이면 바꾸지 않는다) */
+const SPACE_CHAR = /\s/u;
+
 /**
  * 이 글자 바로 뒤의 여는 따옴표는 바르다: 빈칸, 여는 괄호·따옴표, 줄표·하이픈, 빗금, 별표(굵게가 되지 못하고 글자로 남은 `**` — 차시 틀 검사
  * md-bold가 따로 알린다)
@@ -711,18 +725,29 @@ const WORD_PLACEHOLDER = 'A';
 /**
  * 글 하나의 여는 따옴표 가운데 앞 글자가 여는 자리가 아닌 것을 닫는 따옴표로 바꾼다. state.prev는 블록 안 앞 글자(null = 블록 맨 앞)이고,
  * 바꾼 글자로 이어 간다(‘종료‘“를 → ’ 다음의 “도 닫는 쪽).
+ * 반대로 여는 자리(블록 맨 앞·빈칸·여는 괄호 뒤)의 닫는 따옴표는 바로 뒤 글자가 이 글 안에 있고 빈칸이 아니면 여는 따옴표로 바꾼다(판 5 — ”▣ 정지” → “▣ 정지”).
  * @param {string} value
  * @param {{ prev: string | null, fixed: number }} state
  * @returns {string}
  */
 export function fixClosingQuotesInText(value, state) {
   let out = '';
-  for (const char of value) {
+  const chars = [...value];
+  for (let index = 0; index < chars.length; index += 1) {
+    const char = chars[index];
     let next = char;
     const closing = CLOSING_QUOTE_OF.get(char);
-    if (closing !== undefined && state.prev !== null && !OPENING_QUOTE_CONTEXT.test(state.prev)) {
+    const opening = OPENING_QUOTE_OF.get(char);
+    const atOpening = state.prev === null || OPENING_QUOTE_CONTEXT.test(state.prev);
+    if (closing !== undefined && !atOpening) {
       next = closing;
       state.fixed += 1;
+    } else if (opening !== undefined && atOpening) {
+      const after = chars[index + 1];
+      if (after !== undefined && !SPACE_CHAR.test(after)) {
+        next = opening;
+        state.fixed += 1;
+      }
     }
     out += next;
     state.prev = next;
