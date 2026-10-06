@@ -209,27 +209,49 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     }
   });
 
-  test('키보드로 준비 칸 [접기]를 누르면 칸이 제자리로 옮겨 가도 [펼치기]가 화면 안에 있다', async ({ page, context }) => {
-    test.setTimeout(4 * 60_000);
-    // 저절로 접히기 전에 누르려고 파이썬 엔진 파일을 몇 초 늦게 준다
-    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await route.continue();
+  // 판 1.2.1(판 1.2.0 적대적 검토 E14): 첫 준비 동안 맨 위 칸의 [접기]를 누르면 칸이 제자리(입력·출력 아래)로 옮겨 가며 브라우저가 초점 단추를
+  // 따라 화면을 굴려(moveBefore — Edge 154 실측 데스크톱 scrollY 0 → 1,485px, 375px 폭 3,152px) 편집칸·조작 줄이 화면 밖으로 사라졌다.
+  // 이제 학생이 누른 [접기]는 그 자리에서 접히고(옮기지 않음) [실행] 때 제자리로 간다 — 마우스·키보드 모두 화면이 뛰지 않는다.
+  for (const how of ['마우스', '키보드'] as const) {
+    test(`첫 준비 동안 ${how}로 준비 칸 [접기]를 누르면 그 자리에서 접히고 화면이 뛰지 않으며, [펼치기]가 화면 안에 있다`, async ({ page, context }) => {
+      test.setTimeout(4 * 60_000);
+      // 저절로 접히기 전에 누르려고 파이썬 엔진 파일을 늦게 준다
+      await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 6000));
+        await route.continue().catch(() => undefined);
+      });
+      await page.goto(VISION_PATH);
+      await expect(loadingPanel(page)).toBeVisible({ timeout: 30_000 });
+      await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'yes');
+      const toggle = page.locator('[data-loading-toggle]');
+      await expect(toggle).toHaveText('접기');
+      // 누르기 전 화면 위치는 [접기]가 화면 안에 들어온 뒤에 잰다 — 휴대폰 폭에서는 칸이 첫 화면 아래(약 950px)라 클릭·초점이 먼저 굴린다
+      if (how === '마우스') {
+        await toggle.scrollIntoViewIfNeeded();
+      } else {
+        await toggle.focus();
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Tab');
+        await expect(toggle).toBeFocused();
+      }
+      const before = await page.evaluate(() => Math.round(window.scrollY));
+      if (how === '마우스') {
+        await toggle.click();
+      } else {
+        await page.keyboard.press('Enter');
+        await expect(toggle).toBeFocused();
+      }
+      await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true');
+      await expect(toggle).toHaveText('펼치기');
+      await page.waitForTimeout(300);
+      const after = await page.evaluate(() => Math.round(window.scrollY));
+      expect(Math.abs(after - before), `[접기] 전 scrollY ${before} → 뒤 ${after}`).toBeLessThan(100);
+      // 칸은 맨 위 자리에 접힌 채 남고(편집칸 앞), 첫 준비 표시도 그대로다
+      await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'yes');
+      await expect(page.locator('[data-lab-intro] > [data-lab-module-panel="loading"]')).toHaveCount(1);
+      await expect(toggle).toBeInViewport();
     });
-    await page.goto(VISION_PATH);
-    await expect(loadingPanel(page)).toBeVisible({ timeout: 30_000 });
-    await expect(labRoot(page)).toHaveAttribute('data-loading-intro', 'yes');
-    const toggle = page.locator('[data-loading-toggle]');
-    await expect(toggle).toHaveText('접기');
-    await toggle.focus();
-    await page.keyboard.press('Shift+Tab');
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Enter');
-    await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true');
-    await expect(toggle).toHaveText('펼치기');
-    await expect(toggle).toBeFocused();
-    await expect(toggle).toBeInViewport();
-  });
+  }
 
   test('준비하는 동안 준비 패널이 편집칸 위에 있고, 그때 누른 [실행]은 예약됐다가 준비가 끝나면 돈다(2026-09-17 검토 반영)', async ({ page, context }) => {
     test.skip(test.info().project.name === 'mobile', '배치 순서는 데스크톱에서 잰다(모바일은 같은 규칙으로 세로로 쌓인다).');
@@ -270,6 +292,43 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     await expect(root).toHaveAttribute('data-outcome', /^(stopped|killed|ok|error)$/u, { timeout: 30_000 });
   });
 
+  // 판 1.2.1(판 1.2.0 적대적 검토 E15): 준비 중 키보드로 누른 [실행]이 "준비되면 실행돼요…"로 바뀌며 disabled가 되어 초점이 문서(body)로 빠졌고,
+  // [정지]도 꺼져 있어 예약을 거둘 수 없었다. 이제 예약된 [실행]은 aria-disabled(초점은 남음)이고 [정지]로 예약을 거둔다.
+  test('준비 중 키보드로 누른 [실행]은 초점이 그대로 남고(aria-disabled), [정지]로 예약을 거둘 수 있다', async ({ page, context }) => {
+    test.skip(test.info().project.name === 'mobile', '키보드 초점은 데스크톱에서 본다.');
+    test.setTimeout(4 * 60_000);
+    await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+      await route.continue().catch(() => undefined);
+    });
+    await page.goto(VISION_PATH);
+    const root = labRoot(page);
+    const run = page.locator('[data-lab-run]');
+    const stop = page.locator('[data-lab-stop]');
+    await expect(root).toHaveAttribute('data-state', /unloaded|loading/u);
+    await expect(run).toBeEnabled({ timeout: 30_000 });
+    await run.focus();
+    await page.keyboard.press('Enter');
+    await expect(run).toHaveAttribute('data-lab-run-pending', 'yes');
+    await expect(run).toHaveAttribute('aria-disabled', 'true');
+    await expect(run).toBeFocused();
+    await expect(stop).toBeEnabled();
+    // 한 번 더 눌러도 예약은 하나(실행 번호가 늘지 않는다)
+    await page.keyboard.press('Enter');
+    await expect(run).toHaveAttribute('data-lab-run-pending', 'yes');
+    // [정지]로 예약을 거둔다 — 단추는 다시 "실행", 초점은 문서로 빠지지 않는다
+    await stop.focus();
+    await page.keyboard.press('Enter');
+    await expect(run).not.toHaveAttribute('data-lab-run-pending', 'yes');
+    await expect(run).not.toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('[data-lab-message]')).toContainText('눌러 둔 [실행]을 거뒀어요');
+    expect(await page.evaluate(() => document.activeElement !== document.body && document.activeElement !== null)).toBe(true);
+    // 준비가 끝나도 거둔 실행은 돌지 않는다
+    await expect(root).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    await page.waitForTimeout(1500);
+    await expect(root).not.toHaveAttribute('data-run-count', /^[1-9]/u);
+  });
+
   // 2026-09-25 Phase 4 검토 반영(사용성 C1 — 실사이트 재현): 준비 중에 누른 [실행]이 보드 라이브러리(i2c_lcd 등)를 다 넣기 전에 돌아
   // `ImportError: no module named 'i2c_lcd'`로 거짓 오류가 났다. 실습실 틀이 모듈의 "준비 뒤 할 일"(holdRun)을 기다린 뒤에 보낸다.
   test('준비 중에 누른 [실행]은 보드 라이브러리를 다 넣은 뒤에 돈다(ESP32 문자 LCD 예제가 거짓 ImportError 없이 끝난다)', async ({ page, context }) => {
@@ -307,8 +366,19 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     const root = labRoot(page);
     await expect(root).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
     await expect(root).toHaveAttribute('data-vision-packages', 'loading');
+    // 판 1.2.1(검토 E1): 파이썬은 준비됐고 실습 파일만 받는 동안 준비 칸 제목이 "파이썬을 준비하고 있어요"로 남지 않는다
+    await expect(page.locator('[data-loading-title]')).toHaveText('파이썬은 준비됐어요 — 실습 파일을 더 받고 있어요');
+    // 판 1.2.1(검토 E13): 받은 양이 바뀌는 진행 줄은 낭독하지 않고, 낭독 줄(role=status)이 단계만 알린다
+    // (실습실 뿌리에도 data-loading-text 값이 있어 준비 칸 안의 진행 줄만 고른다)
+    await expect(page.locator('[data-loading-panel] [data-loading-text]')).toHaveAttribute('aria-live', 'off');
+    await expect(page.locator('[data-lab-progress]')).toHaveAttribute('aria-live', 'off');
+    const announce = page.locator('[data-loading-announce]');
+    await expect(announce).toHaveAttribute('role', 'status');
+    await expect(announce).toContainText('파이썬은 준비됐고, 실습 파일(');
     await page.locator('[data-lab-run]').click();
     await expect(root).toHaveAttribute('data-vision-package-wait', 'yes');
+    await expect(announce).toContainText('실행 전에 필요한 파일(');
+    await expect(announce).toContainText('다 받으면 코드가 저절로 시작해요');
     await expect(page.locator('[data-vision-output-empty]')).toContainText('필요한 파일을 받는 중이에요');
     await expect(page.locator('[data-vision-output-empty]')).toContainText('다 받으면 코드가 저절로 시작');
     await expect(page.locator('[data-vision-input-status]')).toContainText('필요한 파일을 다 받으면 켜져요');

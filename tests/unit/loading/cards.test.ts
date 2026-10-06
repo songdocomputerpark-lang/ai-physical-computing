@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { BOARD_CONCEPT_CARDS, CONCEPT_CARDS, cardCounterText, cardsForLab, nextCardIndex } from '../../../src/lab/loader/cards.ts';
+import { BOARD_CONCEPT_CARDS, CONCEPT_CARDS, SERIAL_CONCEPT_CARDS, cardCounterText, cardsForLab, nextCardIndex } from '../../../src/lab/loader/cards.ts';
 import { NETWORK_CHECK_ITEMS, formatNetworkReport, networkItemUrl, statusOf } from '../../../src/components/start/network-check/items.ts';
 import { MQTT_BROKERS } from '../../../src/lab/mqtt/brokers.ts';
 import { formatCheckedAt } from '../../../src/lib/capabilities.ts';
@@ -14,6 +14,7 @@ const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
 const CARD_SETS = [
   ['영상처리', CONCEPT_CARDS],
   ['ESP32', BOARD_CONCEPT_CARDS],
+  ['시리얼 통신', SERIAL_CONCEPT_CARDS],
 ] as const;
 
 describe.each(CARD_SETS)('1분 개념 카드(%s)', (_name, CONCEPT_CARDS) => {
@@ -57,6 +58,12 @@ describe('1분 개념 카드 공통', () => {
     expect(cardsForLab('esp32')).toBe(BOARD_CONCEPT_CARDS);
     expect(cardsForLab('vision')).toBe(CONCEPT_CARDS);
     expect(cardsForLab('dev')).toBe(CONCEPT_CARDS);
+    // 판 1.2.1(검토 E4): 영상처리 실습실을 시리얼 통신 코드로 열면 통신 카드, 보드 실습실은 코드와 상관없이 보드 카드
+    expect(cardsForLab('vision', 'import serial \nimport time\nuart = serial.Serial("COM10", 115200)')).toBe(SERIAL_CONCEPT_CARDS);
+    expect(cardsForLab('vision', 'import cv2, serial')).toBe(CONCEPT_CARDS);
+    expect(cardsForLab('vision', 'from serial import Serial')).toBe(SERIAL_CONCEPT_CARDS);
+    expect(cardsForLab('vision', '# import serial 은 주석')).toBe(CONCEPT_CARDS);
+    expect(cardsForLab('esp32', 'import serial')).toBe(BOARD_CONCEPT_CARDS);
   });
 
   it('카드 번호는 처음과 끝이 이어진다', () => {

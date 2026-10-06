@@ -7,6 +7,8 @@
  * - 카드 순서 = 첫 실습(에지 검출)에서 실제로 일어나는 순서: 픽셀 → 회색 → 흐리게 → 에지 → 임계값.
  * - 여기 글을 고치면 tests/unit/loading/cards.test.ts의 길이·링크 검사가 함께 지킨다.
  * - (P3-11) 실습실마다 읽을 거리가 다르다: 영상처리는 사진·에지, ESP32는 핀·MicroPython. cardsForLab(labId)로 고른다.
+ * - (판 1.2.1 — 판 1.2.0 적대적 검토 E4) 영상처리 실습실이라도 시리얼 통신 코드(3-1 단원의 컴퓨터 쪽 — `import serial`)로 열렸으면
+ *   통신 카드를 보인다: 시리얼(UART) 차시를 기다리는 학생에게 "색을 버리면 계산이 빨라져요"(영상처리)가 나왔다. cardsForLab(labId, code).
  */
 import { withBase } from '../../lib/url.ts';
 
@@ -134,9 +136,48 @@ export const BOARD_CONCEPT_CARDS: readonly ConceptCard[] = Object.freeze([
   },
 ]);
 
-/** 이 실습실에서 보여 줄 카드(모르는 실습실은 영상처리 카드) */
-export function cardsForLab(labId: string): readonly ConceptCard[] {
-  return labId === 'esp32' ? BOARD_CONCEPT_CARDS : CONCEPT_CARDS;
+/** 컴퓨터 쪽 시리얼 통신 코드(3-1 단원 — 컴퓨터 ↔ ESP32 UART)를 기다리는 동안 읽는 카드 — 순서: 한 줄로 주고받기 → 빠르기 → 바이트 */
+export const SERIAL_CONCEPT_CARDS: readonly ConceptCard[] = Object.freeze([
+  {
+    id: 'serial-line',
+    title: '시리얼 통신은 한 줄로 주고받아요',
+    body: [
+      '컴퓨터와 ESP32는 USB 선 하나로 데이터를 차례차례 주고받아요.',
+      '한쪽의 TX(보내기)가 다른 쪽의 RX(받기)로 이어져 바이트가 한 줄로 흘러가요.',
+    ],
+    code: "uart = serial.Serial('COM10', 115200)",
+    link: { href: withBase('glossary/#uart'), text: '용어사전: UART' },
+  },
+  {
+    id: 'serial-baud',
+    title: '보드레이트는 말하는 빠르기예요',
+    body: [
+      '115200은 1초에 비트를 115,200개 보낸다는 뜻이에요.',
+      '보내는 쪽과 받는 쪽이 같은 빠르기여야 글자가 깨지지 않아요.',
+    ],
+    link: { href: withBase('glossary/#baud-rate'), text: '용어사전: 보드레이트' },
+  },
+  {
+    id: 'serial-bytes',
+    title: '글자도 보낼 때는 바이트예요',
+    body: [
+      '통신으로는 바이트만 오가서, 글자는 encode()로 바이트로 바꿔 보내요.',
+      '받는 쪽은 decode()로 다시 글자로 되돌려요.',
+    ],
+    code: "uart.write(key.encode('utf-8'))",
+    link: { href: withBase('glossary/#byte'), text: '용어사전: 바이트' },
+  },
+]);
+
+/** 코드가 컴퓨터 쪽 시리얼 통신(`import serial` — 사이트의 serial 흉내)을 쓰는지 */
+const SERIAL_IMPORT = /^[ \t]*(?:import[ \t]+serial\b|from[ \t]+serial\b)/mu;
+
+/** 이 실습실에서 보여 줄 카드(모르는 실습실은 영상처리 카드). code: 실습실을 연 예제 코드 — 시리얼 통신 코드면 통신 카드(판 1.2.1) */
+export function cardsForLab(labId: string, code = ''): readonly ConceptCard[] {
+  if (labId === 'esp32') {
+    return BOARD_CONCEPT_CARDS;
+  }
+  return SERIAL_IMPORT.test(code) ? SERIAL_CONCEPT_CARDS : CONCEPT_CARDS;
 }
 
 export function nextCardIndex(index: number, step = 1, count = CONCEPT_CARDS.length): number {

@@ -635,6 +635,10 @@ class LabShellController implements LabController {
      * 파이썬을 받는 동안(unloaded·loading) 누른 [실행]은 버리지 않고 예약한다. 느린 학교 네트워크에서는 준비에 몇 분이 걸려서
      * (PLAN §5.1 Fast 3G 계산값 약 3.6분) 예전처럼 단추를 꺼 두면 학생의 첫 클릭이 아무 반응 없이 사라졌다(2026-09-17 검토 반영).
      */
+    if (this.#pendingRun) {
+      // 이미 눌러 둔 [실행](준비되면 실행돼요… — aria-disabled라 누를 수는 있다)은 다시 받지 않는다(판 1.2.1 — 검토 E15)
+      return null;
+    }
     if (this.runtime.state === 'unloaded' || this.runtime.state === 'loading') {
       this.#pendingRun = true;
       this.#renderRunButton();
@@ -700,6 +704,13 @@ class LabShellController implements LabController {
   stop(): Promise<StopResult> {
     if (this.#targetRun && this.#runTarget) {
       return this.#stopTarget(this.#runTarget);
+    }
+    if (this.#pendingRun) {
+      // 파이썬을 받는 동안 눌러 둔 [실행]을 [정지]로 거둔다(판 1.2.1 — 판 1.2.0 적대적 검토 E15: 예약을 거둘 길이 없었다)
+      this.#pendingRun = false;
+      this.#renderRunButton();
+      this.showMessage('눌러 둔 [실행]을 거뒀어요. 준비가 끝난 뒤 [실행]을 누르면 돼요.');
+      return Promise.resolve('idle');
     }
     if (this.#holdWaiting) {
       // 준비 작업을 기다리던 [실행]은 아직 코드를 보내지 않았다 — 그 실행을 버린다.
@@ -887,7 +898,7 @@ class LabShellController implements LabController {
         if (statusText) {
           statusText.textContent = STATE_TEXT[state];
         }
-        stopButton.disabled = state !== 'running';
+        stopButton.disabled = state !== 'running' && !this.#runReserved();
       }
       this.#paintRunButton();
     });
@@ -1272,26 +1283,41 @@ class LabShellController implements LabController {
     this.#keepButtonFocus(() => this.#paintRunButton());
   }
 
-  /** [실행] 단추만 그린다(초점 옮기기 없이 — 부르는 쪽이 #keepButtonFocus로 감싼다) */
+  /** 눌러 둔 [실행]이 준비를 기다리는지(파이썬을 받는 동안 예약했거나, 모듈의 준비 뒤 할 일을 기다림) */
+  #runReserved(): boolean {
+    return this.#pendingRun || this.#holdWaiting;
+  }
+
+  /**
+   * [실행] 단추만 그린다(초점 옮기기 없이 — 부르는 쪽이 #keepButtonFocus로 감싼다).
+   * 눌러 둔 [실행]이 준비를 기다리는 동안은 disabled 대신 aria-disabled로 끈다 — 키보드로 누른 단추가 disabled가 되면 초점이 문서(body)로 빠져
+   * 느린 망에서 몇 분 동안 초점이 없었다(판 1.2.1 — 판 1.2.0 적대적 검토 E15, 글자 크기 단추의 aria-disabled 규약과 같은 뜻). 다시 눌러도
+   * run()이 무시하고, 그동안 [정지]가 켜져 예약을 거둘 수 있다(stop()).
+   */
   #paintRunButton(): void {
-    const { runButton } = this.#elements;
+    const { runButton, stopButton } = this.#elements;
     const state = this.runtime.state;
     if (this.#runTarget) {
       // 실행 대상(실제 보드)은 파이썬 준비를 기다리지 않는다 — 대상이 도는 동안만 끈다.
       runButton.textContent = this.#runLabel;
       delete runButton.dataset.labRunPending;
+      runButton.removeAttribute('aria-disabled');
       runButton.disabled = this.#targetRun !== null;
       return;
     }
-    if (this.#pendingRun || this.#holdWaiting) {
+    if (this.#runReserved()) {
       runButton.textContent = '준비되면 실행돼요…';
-      runButton.disabled = true;
+      runButton.disabled = false;
+      runButton.setAttribute('aria-disabled', 'true');
       runButton.dataset.labRunPending = 'yes';
+      stopButton.disabled = false;
       return;
     }
     runButton.textContent = this.#runLabel;
     delete runButton.dataset.labRunPending;
+    runButton.removeAttribute('aria-disabled');
     runButton.disabled = state === 'running' || state === 'stopping' || state === 'failed';
+    stopButton.disabled = state !== 'running';
   }
 
   #hideInput(): void {
@@ -1347,7 +1373,7 @@ class LabShellController implements LabController {
               statusText.textContent = STATE_TEXT[state];
             }
             this.#paintRunButton();
-            stopButton.disabled = state !== 'running';
+            stopButton.disabled = state !== 'running' && !this.#runReserved();
           });
           if (state !== 'running') {
             this.#hideInput();

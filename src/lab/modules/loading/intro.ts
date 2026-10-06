@@ -1,6 +1,7 @@
 /**
- * 첫 준비 동안 준비 칸을 실습실 맨 위 자리로 **DOM째** 옮기고, 준비가 끝나면(접힘·[실행]) 제자리로 돌려놓는다
- * (판 1.2.0 — PROGRESS 미해결 218, 최종 전수 점검 LV-02, WCAG 2.4.3 초점 차례).
+ * 첫 준비 동안 준비 칸을 실습실 맨 위 자리로 **DOM째** 옮기고, 준비가 끝나면(저절로 접힘·[실행]) 제자리로 돌려놓는다
+ * (판 1.2.0 — PROGRESS 미해결 218, 최종 전수 점검 LV-02, WCAG 2.4.3 초점 차례). 학생이 첫 준비 동안 [접기]를 누르면 칸은 맨 위 자리에서
+ * 접히고 [실행] 때 제자리로 간다(판 1.2.1 — index.ts setCollapsed stayInPlace, 판 1.2.0 적대적 검토 E14).
  *
  * 왜 DOM째인가: 예전에는 CSS(grid-template-areas)로 넓은 모듈 줄(.lab__modules)을 맨 위에 **보이게만** 했다. 그래서 준비 칸은 편집칸 위에
  * 보이는데 Tab 차례는 편집칸·입력/출력·조절 패널을 다 지난 뒤(약 32번째)였다. 이제 실습실 틀(LabShell.astro)이 편집칸 바로 앞에 빈 자리
@@ -29,12 +30,17 @@ type MoveBefore = (node: Node, child: Node | null) => void;
 /**
  * element를 parent 안 before 앞으로 옮기며 초점을 지킨다. moveBefore가 있으면 초점·상태가 그대로 남고(초점 잃음·blur 없음),
  * 없거나 실패하면 insertBefore로 옮긴 뒤 안에 있던 초점 요소에 초점을 되돌린다(화면은 움직이지 않게 preventScroll).
+ * 화면 위치는 옮기기 전 그대로 둔다(판 1.2.1 — 판 1.2.0 적대적 검토 E14): 브라우저는 초점 요소가 든 칸을 moveBefore로 옮기면 그 요소를
+ * 화면 안으로 곧바로(동기) 굴린다 — 마우스로 누른 [접기]도 그래서 화면이 칸의 제자리(입력·출력 아래)로 뛰었다(Edge 154 실측 scrollY 0 → 1,485px,
+ * 375px 폭 3,152px). 키보드 초점을 화면 안에 둘지는 부르는 쪽(준비 칸 index.ts keepFocusInView)이, [실행] 뒤 결과 칸으로 옮길지는 실습실 틀이 정한다.
  */
 export function moveKeepingFocus(element: Element, parent: Node, before: Node | null): void {
   const doc = element.ownerDocument;
+  const view = doc?.defaultView ?? null;
   const active = doc?.activeElement ?? null;
   /** 옮기는 칸 안에 있던 초점 요소(없으면 null) */
   const focused = active instanceof HTMLElement && active !== doc?.body && element.contains(active) ? active : null;
+  const scrollBefore = focused && view ? { x: view.scrollX, y: view.scrollY } : null;
   const atomic = (parent as unknown as { moveBefore?: MoveBefore }).moveBefore;
   let moved = false;
   if (typeof atomic === 'function') {
@@ -54,6 +60,9 @@ export function moveKeepingFocus(element: Element, parent: Node, before: Node | 
     } catch {
       // 초점을 받을 수 없게 된 요소 — 그대로 둔다
     }
+  }
+  if (scrollBefore && view && (view.scrollX !== scrollBefore.x || view.scrollY !== scrollBefore.y)) {
+    view.scrollTo({ left: scrollBefore.x, top: scrollBefore.y, behavior: 'instant' as ScrollBehavior });
   }
 }
 

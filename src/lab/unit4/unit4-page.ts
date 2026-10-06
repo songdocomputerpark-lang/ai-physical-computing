@@ -178,6 +178,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     run: root.querySelector<HTMLButtonElement>('[data-unit4-run]'),
     stop: root.querySelector<HTMLButtonElement>('[data-unit4-stop]'),
     status: root.querySelector<HTMLElement>('[data-unit4-status]'),
+    statusAnnounce: root.querySelector<HTMLElement>('[data-unit4-status-announce]'),
     input: root.querySelector<HTMLSelectElement>('[data-unit4-input]'),
     screen: root.querySelector<HTMLElement>('[data-unit4-screen-note]'),
     pairStatus: root.querySelector<HTMLElement>('[data-unit4-pair-status]'),
@@ -327,6 +328,11 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     }
     if (elements.status && elements.status.textContent !== text) {
       elements.status.textContent = text;
+    }
+    // 낭독 줄: 준비 단계에는 받는 양·초를 빼고 단계 글만(1초마다 바뀌는 글을 읽지 않게 — 판 1.2.1, 검토 E13과 같은 까닭)
+    const spoken = statusOverride === null && phase === 'prepare' ? (waitingPcPackages ? `${UNIT4_TEXT.pcPackages}.` : UNIT4_TEXT.prepare) : text;
+    if (elements.statusAnnounce && elements.statusAnnounce.textContent !== spoken) {
+      elements.statusAnnounce.textContent = spoken;
     }
     renderFloat(text);
   };

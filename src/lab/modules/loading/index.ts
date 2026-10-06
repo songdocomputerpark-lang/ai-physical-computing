@@ -20,7 +20,15 @@
  *    오프라인판(OFFLINE_BUILD, 판 1.1.0 — 미해결 199 E-10)은 인터넷을 살피지 않고 이 컴퓨터의 작은 서버(검은 창)만 살펴, 꺼졌으면
  *    "검은 창이 켜져 있는지·시작하기.bat 다시 실행"을 안내한다(offline-note.ts).
  * 5. **첫 준비 동안 맨 위**: 실습실 틀이 편집칸 앞에 그려 둔 자리([data-lab-intro])로 이 칸을 DOM째 옮겨 보이는 차례와 Tab 차례를 맞추고,
- *    준비가 끝나 접히거나 [실행]을 누르면 제자리로 돌려놓는다(intro.ts — 판 1.2.0, PROGRESS 미해결 218).
+ *    준비가 끝나 저절로 접히거나 [실행]을 누르면 제자리로 돌려놓는다(intro.ts — 판 1.2.0, PROGRESS 미해결 218). 학생이 첫 준비 동안 [접기]를
+ *    누르면 칸은 그 자리(맨 위)에서 접히고 [실행] 때 제자리로 간다(판 1.2.1 — 판 1.2.0 적대적 검토 E14: 누른 자리에서 칸이 사라지며 화면이
+ *    칸의 제자리로 1,485px 뛰었다).
+ *
+ * 6. **화면 낭독**(판 1.2.1 — 판 1.2.0 적대적 검토 E13): 보이는 진행 줄([data-loading-text]·실습실 틀의 [data-lab-progress])은 받은 양·초가
+ *    바뀔 때마다 갈아 끼우므로 낭독하지 않는다(aria-live="off" — 느린 망 첫 준비 120초에 346번 바뀌어 NVDA·내레이터가 다른 것을 읽지 못했다).
+ *    대신 화면에 보이지 않는 상태 줄 [data-loading-announce](role="status")가 실습실 틀의 상태 줄(파이썬 준비 중·준비됐어요·준비 실패)이 알리지
+ *    않는 것만 알린다(announce): 파이썬 준비 뒤 실습 파일(numpy·OpenCV)을 더 받는 단계, [실행]이 받기를 기다림, 실습 파일을 다 받음, 그리고 같은
+ *    단계가 ANNOUNCE_INTERVAL_MS(30초) 넘게 이어질 때 초 없이 받은 양 한 줄. 진행 막대의 aria-valuetext도 받은 양 대신 백분율·단계 이름만 쓴다.
  *
  * 테스트가 읽는 값(실습실 뿌리 [data-lab]): data-loading-phase(idle|loading|ready|failed), data-loading-percent,
  * data-loading-source(cdn|site|cache|unknown), data-loading-sw(unsupported|off|registering|ready|controlled|failed),
@@ -66,7 +74,7 @@ import {
   warmCache,
   type ServiceWorkerState,
 } from '../../loader/sw-client.ts';
-import { LoadingTracker, stageIdForUrl, type StageSnapshot } from '../../loader/stages.ts';
+import { LoadingTracker, stageIdForUrl, type LoadingSnapshot, type StageSnapshot } from '../../loader/stages.ts';
 import { OFFLINE_BUILD } from '../../runtime/config.ts';
 import { prefetchLazyModules } from '../host.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
@@ -76,6 +84,15 @@ import { OFFLINE_SERVER_DOWN_NOTE, OFFLINE_SERVER_SLOW_NOTE } from './offline-no
 
 /** 측정 기록 칸 하나에 남길 항목 수 상한(같은 항목은 한 번만) */
 const RECORD_LIMIT = 12;
+
+/** 같은 단계가 이어질 때 화면 낭독기에 받은 양을 다시 알리는 간격(밀리초 — 머리말 6) */
+const ANNOUNCE_INTERVAL_MS = 30_000;
+
+/** 받은 양을 셀 수 없는 받기(서비스 워커가 아직 쪽을 맡지 않은 첫 방문)가 이만큼 이어지면 기대 시간을 함께 보인다(밀리초 — 판 1.2.1, 검토 E7) */
+const SLOW_HINT_AFTER_MS = 15_000;
+
+/** 받은 양을 모를 때 보이는 기대 시간(회선 전체 3G 실측: 파이썬 엔진 약 2분 반, numpy·OpenCV까지 7분 남짓 — PROGRESS 215 측정) */
+const SLOW_HINT = '느린 인터넷에서는 몇 분 걸려요';
 
 /** 점검 페이지 주소(네트워크가 막혔을 때 안내) */
 const CHECK_PAGE = withBase('start/check/');
@@ -96,6 +113,12 @@ const SW_NOTES: Readonly<Record<ServiceWorkerState, string>> = Object.freeze({
   controlled: '한 번 받은 파일은 이 컴퓨터에 저장돼 있어요. 다음부터는 인터넷 없이도 열려요.',
   failed: '오프라인 준비를 켜지 못했어요(실습은 그대로 돼요).',
 });
+
+/**
+ * 서비스 워커가 쪽을 맡았는데 아직 받는 중일 때의 글(판 1.2.1 — 검토 E2). 받는 동안 "저장돼 있어요"(다 된 일)라고 하면 아직 아무것도 저장하지 않은
+ * 첫 방문에도 다 받은 것처럼 읽혔다. 다 받으면(phase ready) SW_NOTES.controlled로 바꾼다(render).
+ */
+const CONTROLLED_LOADING_NOTE = '받는 파일은 이 컴퓨터에 저장돼요. 다음부터는 인터넷 없이도 열려요.';
 
 function reducedMotion(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -125,6 +148,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const find = <T extends HTMLElement>(name: string): T | null => panel?.querySelector<T>(`[data-loading-${name}]`) ?? null;
   const titleText = find('title');
   const lineText = find('text');
+  /** 화면 낭독 전용 상태 줄(머리말 6 — 보이는 진행 줄 대신 알린다) */
+  const announceText = find('announce');
   const bodyBox = find('body');
   const toggleButton = find<HTMLButtonElement>('toggle');
   const bar = find('bar');
@@ -238,11 +263,15 @@ function mount(context: LabModuleContext): LabModuleHandle {
     keepFocusInView();
   };
 
-  const setCollapsed = (value: boolean) => {
+  /**
+   * 칸을 접거나 편다. 접을 때 첫 준비 동안 맨 위(조작 줄 바로 아래 — LabShell.astro의 [data-lab-intro])로 DOM째 옮겨 둔 이 패널을
+   * 제자리(입력·출력 아래)로 돌린다 — 준비가 끝나 저절로 접힐 때 한 번, 그 뒤로는 다시 올리지 않는다(화면이 오르내리지 않게). 초점은 intro.ts가 지킨다.
+   * stayInPlace: 학생이 직접 누른 [접기]는 그 자리에서 접는다(판 1.2.1 — 검토 E14). 준비 칸을 치우고 코드를 보려고 누른 학생의 편집칸이
+   * 화면 밖으로 밀리지 않게 한다. 맨 위 자리의 칸은 [실행] 때 실습실 틀(lab-shell.ts #beginRun)이 제자리로 돌린다.
+   */
+  const setCollapsed = (value: boolean, { stayInPlace = false }: { stayInPlace?: boolean } = {}) => {
     collapsed = value;
-    if (value) {
-      // 첫 준비 동안 맨 위(조작 줄 바로 아래 — LabShell.astro의 [data-lab-intro])로 DOM째 옮겨 둔 이 패널을 제자리(입력·출력 아래)로 돌린다.
-      // 준비가 끝나 접힐 때나 학생이 [접기]를 누를 때 한 번 — 그 뒤로는 다시 올리지 않는다(화면이 오르내리지 않게). 초점은 intro.ts가 지킨다.
+    if (value && !stayInPlace) {
       endLoadingIntro(root);
     }
     if (panel) {
@@ -301,6 +330,70 @@ function mount(context: LabModuleContext): LabModuleHandle {
    */
   let packageWait: 'start' | 'import' | null = null;
 
+  /** 파이썬 엔진은 준비됐는지(실행기가 idle·running·stopping) — 그 뒤의 받기는 실습 파일(numpy·OpenCV 등)이다 */
+  const pythonReady = (): boolean => runtime.state === 'idle' || runtime.state === 'running' || runtime.state === 'stopping';
+
+  /** 지금 받는 단계(보이는 이름)와 그 단계를 받기 시작한 시각 — 진행 줄의 초는 그 파일부터 센다(판 1.2.1 — 검토 E6) */
+  let stageLabel = '';
+  let stageStartedAt = 0;
+
+  /** 마지막으로 낭독 줄이 본 상태(단계·상태·기다림·파이썬 준비)와 알린 시각, 파이썬 준비 뒤 실습 파일을 받는다고 알렸는지 */
+  let announcedKey = '';
+  let announcedAt = 0;
+  let announcedFilesAfterPython = false;
+
+  /**
+   * 화면 낭독기에 알릴 한 줄(초·잦은 숫자 없이 — 머리말 6). changed: 단계·상태가 바뀌었는지(아니면 같은 단계가 30초 넘게 이어진 것).
+   * 실습실 틀의 상태 줄이 알리는 것(파이썬 준비 중·준비됐어요·준비 실패)은 되풀이하지 않는다. 알릴 것이 없으면 ''.
+   */
+  const announcementFor = (snapshot: LoadingSnapshot, title: string, changed: boolean): string => {
+    const ready = pythonReady();
+    if (snapshot.phase === 'ready') {
+      return changed && announcedFilesAfterPython ? '실습 파일을 다 받았어요.' : '';
+    }
+    if (snapshot.phase === 'failed') {
+      return changed && ready ? '실습 파일을 받지 못했어요.' : '';
+    }
+    if (snapshot.phase !== 'loading') {
+      return '';
+    }
+    const what = snapshot.activeLabel === '' ? '파일' : snapshot.activeLabel;
+    const amount = snapshot.text.replace(/\s*받는 중…/u, '').trim();
+    if (!changed) {
+      return amount === '' ? '' : `${title}: ${amount} 받는 중이에요.`;
+    }
+    if (packageWait === 'start') {
+      return `실행 전에 필요한 파일(${what})을 받는 중이에요. 다 받으면 코드가 저절로 시작해요.`;
+    }
+    if (packageWait === 'import') {
+      return `코드가 쓰는 파일(${what})을 받는 중이에요. 다 받으면 이어서 돌아요.`;
+    }
+    return ready ? `파이썬은 준비됐고, 실습 파일(${what})을 더 받고 있어요.` : '';
+  };
+
+  const announce = (snapshot: LoadingSnapshot, title: string): void => {
+    if (!announceText) {
+      return;
+    }
+    const key = `${snapshot.phase}|${snapshot.activeLabel}|${packageWait ?? ''}|${pythonReady() ? 'py' : ''}`;
+    const now = Date.now();
+    const changed = key !== announcedKey;
+    if (!changed && !(snapshot.phase === 'loading' && now - announcedAt >= ANNOUNCE_INTERVAL_MS)) {
+      return;
+    }
+    const text = announcementFor(snapshot, title, changed);
+    announcedKey = key;
+    announcedAt = now;
+    if (snapshot.phase === 'loading' && pythonReady()) {
+      announcedFilesAfterPython = true;
+    } else if (snapshot.phase !== 'loading') {
+      announcedFilesAfterPython = false;
+    }
+    if (text !== '' && announceText.textContent !== text) {
+      announceText.textContent = text;
+    }
+  };
+
   const render = () => {
     renderQueued = false;
     const snapshot = tracker.snapshot();
@@ -323,23 +416,46 @@ function mount(context: LabModuleContext): LabModuleHandle {
               ? `코드가 쓰는 파일을 받는 중: ${amount} — 다 받으면 이어서 돌아요.`
               : `실습 파일을 받는 중: ${amount} — 코드는 그대로 돌고 있어요.`;
     }
+    // 제목: 파이썬 엔진은 준비됐는데 실습 파일(numpy·OpenCV)을 더 받는 동안 "파이썬을 준비하고 있어요"가 남아, 그사이 [실행]한 코드가 돌고 오류까지
+    // 난 학생에게 "파이썬이 아직인데 왜 돌았지?"로 읽혔다(판 1.2.1 — 판 1.2.0 적대적 검토 E1).
+    const title =
+      snapshot.phase === 'ready'
+        ? '실습 준비가 끝났어요'
+        : snapshot.phase === 'failed'
+          ? pythonReady()
+            ? '실습 파일을 받지 못했어요'
+            : '파이썬을 받지 못했어요'
+          : pythonReady()
+            ? '파이썬은 준비됐어요 — 실습 파일을 더 받고 있어요'
+            : '파이썬을 준비하고 있어요';
     if (titleText) {
-      titleText.textContent =
-        snapshot.phase === 'ready' ? '실습 준비가 끝났어요' : snapshot.phase === 'failed' ? '파이썬을 받지 못했어요' : '파이썬을 준비하고 있어요';
+      titleText.textContent = title;
+    }
+    if (snapshot.activeLabel !== stageLabel) {
+      stageLabel = snapshot.activeLabel;
+      stageStartedAt = Date.now();
     }
     if (lineText) {
-      const seconds = snapshot.elapsedMs >= 1000 ? ` · ${(snapshot.elapsedMs / 1000).toFixed(1)}초` : '';
-      lineText.textContent = snapshot.text === '' ? '' : `${snapshot.text}${snapshot.phase === 'loading' ? seconds : ''}`;
+      // 초는 지금 받는 파일을 받기 시작한 때부터 센다(판 1.2.1 — 검토 E6: 처음부터 센 초가 "OpenCV 0B / 10.2MB · 139.1초"처럼 붙어 2분 넘게 0으로 읽혔다).
+      // 받은 양을 셀 수 없는 받기가 길어지면 기대 시간을 함께 보인다(검토 E7 — 서비스 워커가 아직 맡지 않은 첫 방문은 2분 넘게 숫자가 움직이지 않는다).
+      const stageMs = stageLabel === '' ? 0 : Date.now() - stageStartedAt;
+      const seconds = stageMs >= 1000 ? ` · ${(stageMs / 1000).toFixed(1)}초` : '';
+      const estimating = snapshot.stages.some((stage) => stage.state === 'active' && stage.estimated);
+      const slowHint = estimating && stageMs >= SLOW_HINT_AFTER_MS ? ` · ${SLOW_HINT}` : '';
+      lineText.textContent = snapshot.text === '' ? '' : `${snapshot.text}${snapshot.phase === 'loading' ? `${seconds}${slowHint}` : ''}`;
     }
+    announce(snapshot, title);
     if (bar) {
       const known = snapshot.percent !== null;
       bar.dataset.indeterminate = String(!known && snapshot.phase === 'loading');
+      // 낭독기가 읽는 값은 백분율과 단계 이름만(받은 양은 1초에 몇 번씩 바뀐다 — 머리말 6)
+      const stageName = snapshot.activeLabel === '' ? (snapshot.phase === 'ready' ? '준비 끝' : '준비') : snapshot.activeLabel;
       if (known) {
         bar.setAttribute('aria-valuenow', String(snapshot.percent));
-        bar.setAttribute('aria-valuetext', `${snapshot.percent}% · ${snapshot.text}`);
+        bar.setAttribute('aria-valuetext', `${snapshot.percent}% · ${stageName}`);
       } else {
         bar.removeAttribute('aria-valuenow');
-        bar.setAttribute('aria-valuetext', snapshot.text || '준비하는 중');
+        bar.setAttribute('aria-valuetext', snapshot.phase === 'loading' ? `${stageName} 받는 중` : stageName);
       }
       if (fill && known) {
         fill.style.width = `${snapshot.percent}%`;
@@ -347,15 +463,30 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
     renderStages(snapshot.stages);
     if (sourceText) {
+      // 받는 동안은 지금 하는 일로, 다 받은 뒤에는 한 일로 말한다(판 1.2.1 — 검토 E2: 첫 받기 31초부터 "받았어요"가 보였다)
+      const loadingNow = snapshot.phase === 'loading';
       const where =
         snapshot.source === 'cdn'
-          ? '파일을 인터넷(jsDelivr)에서 받았어요.'
+          ? loadingNow
+            ? '파일을 인터넷(jsDelivr)에서 받는 중이에요.'
+            : '파일을 인터넷(jsDelivr)에서 받았어요.'
           : snapshot.source === 'site'
-            ? '파일을 이 사이트의 예비본에서 받았어요.'
+            ? loadingNow
+              ? '파일을 이 사이트의 예비본에서 받는 중이에요.'
+              : '파일을 이 사이트의 예비본에서 받았어요.'
             : snapshot.source === 'cache'
-              ? '파일을 이 컴퓨터에 저장된 것에서 바로 읽었어요.'
+              ? loadingNow
+                ? '파일을 이 컴퓨터에 저장된 것에서 읽는 중이에요.'
+                : '파일을 이 컴퓨터에 저장된 것에서 바로 읽었어요.'
               : '';
       sourceText.textContent = where;
+    }
+    if (swState === 'controlled' && noteText) {
+      // 오프라인 준비 글도 받는 동안은 "저장돼요", 다 받은 뒤에는 "저장돼 있어요"(다른 안내 — 느린 회선·예비본 — 가 있으면 건드리지 않는다)
+      const current = noteText.textContent ?? '';
+      if (current === SW_NOTES.controlled || current === CONTROLLED_LOADING_NOTE) {
+        setNote(snapshot.phase === 'loading' ? CONTROLLED_LOADING_NOTE : SW_NOTES.controlled);
+      }
     }
     if (snapshot.phase === 'ready') {
       if (root.dataset.loadingFallback === 'slow') {
@@ -482,7 +613,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   );
 
   // ── 1분 개념 카드(실습실에 맞는 묶음 — 영상처리는 사진·에지, ESP32는 핀·MicroPython) ──
-  const cards = cardsForLab(context.labId);
+  // 영상처리 실습실이 시리얼 통신 예제(3-1 단원 컴퓨터 쪽)로 열렸으면 통신 카드(판 1.2.1 — 검토 E4)
+  const cards = cardsForLab(context.labId, lab.getCode());
   let cardIndex = 0;
   let cardTimer: ReturnType<typeof setInterval> | null = null;
   const showCard = (index: number) => {
@@ -563,8 +695,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
       collapseTimer = null;
     }
     collapseWhenFocusLeaves = false;
-    // 학생이 직접 누르면 곧바로 접고 편다. 접으며 칸이 제자리로 옮겨 가도 키보드로 누른 단추([펼치기])는 화면 안에 둔다(keepFocusInView).
-    setCollapsed(!collapsed);
+    // 학생이 직접 누르면 곧바로 접고 편다 — 그 자리에서(첫 준비 동안 맨 위 자리의 칸도 옮기지 않는다, 판 1.2.1 — 검토 E14). 키보드로 누른
+    // 단추([펼치기])는 화면 안에 둔다(keepFocusInView — 칸이 옮겨 가지 않으니 보통은 할 일이 없다).
+    setCollapsed(!collapsed, { stayInPlace: true });
     keepFocusInView();
   });
 
@@ -605,13 +738,16 @@ function mount(context: LabModuleContext): LabModuleHandle {
     registration = result.registration;
     swState = result.state;
     setRootData('sw', result.state);
-    setNote(result.message || SW_NOTES[result.state]);
+    setNote(
+      result.message ||
+        (result.state === 'controlled' && tracker.snapshot().phase === 'loading' ? CONTROLLED_LOADING_NOTE : SW_NOTES[result.state]),
+    );
     if (result.state === 'ready') {
       const controlled = await waitForController();
       if (!disposed && controlled) {
         swState = 'controlled';
         setRootData('sw', 'controlled');
-        setNote(SW_NOTES.controlled);
+        setNote(tracker.snapshot().phase === 'loading' ? CONTROLLED_LOADING_NOTE : SW_NOTES.controlled);
       }
     }
   };

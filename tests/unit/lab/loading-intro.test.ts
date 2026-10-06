@@ -145,6 +145,45 @@ describe('endLoadingIntro — 접히거나 [실행]을 누르면 제자리로(�
     expect(calls).toEqual(['loading→lab__intro', 'loading→lab__modules']);
   });
 
+  it('초점 요소가 든 칸을 원자 이동으로 옮겨 브라우저가 화면을 굴려도 옮기기 전 화면 위치로 되돌린다(판 1.2.1 — 검토 E14, Edge 154 0 → 1,485px)', () => {
+    let fakeScrollY = 0;
+    const scrolled: number[] = [];
+    const scrollYDescriptor = Object.getOwnPropertyDescriptor(window, 'scrollY');
+    const originalScrollTo = window.scrollTo;
+    Object.defineProperty(window, 'scrollY', { configurable: true, get: () => fakeScrollY });
+    window.scrollTo = ((options: ScrollToOptions) => {
+      scrolled.push(options.top ?? -1);
+      fakeScrollY = options.top ?? fakeScrollY;
+    }) as typeof window.scrollTo;
+    (Element.prototype as unknown as { moveBefore: (node: Node, child: Node | null) => void }).moveBefore = function (this: Element, node: Node, child: Node | null) {
+      const hadFocus = (node as Element).contains(document.activeElement);
+      this.insertBefore(node, child);
+      if (hadFocus) {
+        fakeScrollY = 1485; // 브라우저가 옮긴 초점 요소를 화면 안으로 굴린 것을 흉내(jsdom은 insertBefore에서 초점을 잃으므로 옮기기 전에 본다)
+      }
+    };
+    try {
+      const root = rootOf('vision');
+      const panel = panelOf(root);
+      panel.hidden = false;
+      placeInLoadingIntro(root, panel);
+      expect(scrolled).toEqual([]); // 초점이 칸 밖이면 건드리지 않는다
+      const toggle = panel.querySelector<HTMLButtonElement>('[data-loading-toggle]')!;
+      toggle.focus();
+      endLoadingIntro(root);
+      expect(document.activeElement).toBe(toggle);
+      expect(scrolled).toEqual([0]);
+      expect(window.scrollY).toBe(0);
+    } finally {
+      window.scrollTo = originalScrollTo;
+      if (scrollYDescriptor) {
+        Object.defineProperty(window, 'scrollY', scrollYDescriptor);
+      } else {
+        delete (window as unknown as { scrollY?: number }).scrollY;
+      }
+    }
+  });
+
   it('원자 이동이 실패하면(예외) 보통 방법으로 옮긴다', () => {
     (Element.prototype as unknown as { moveBefore: () => void }).moveBefore = () => {
       throw new DOMException('state', 'HierarchyRequestError');

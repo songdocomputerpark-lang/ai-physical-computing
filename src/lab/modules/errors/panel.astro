@@ -21,7 +21,12 @@ const dictionaryHref = withBase(DICTIONARY_PATH);
 
 <script is:inline type="application/json" data-errors-catalog set:html={errorCardCatalogJson} />
 
-<div class="errors" data-errors-card hidden aria-live="polite">
+{/*
+  카드는 낭독 영역(aria-live)이 아니다 — 카드 전체(약 400자, [닫기]까지)가 [정지]·오류마다 읽혔다(판 1.2.1 — 판 1.2.0 적대적 검토 E9).
+  무엇이 났는지는 실습실 틀의 결과 줄(role="status")과 안내 줄("오류로 끝났어요: … 아래 풀이 카드에 고치는 방법이 있어요")이 한 번 알리고,
+  카드는 학생이 읽으러 간다(제목 h3로 찾아갈 수 있다).
+*/}
+<div class="errors" data-errors-card hidden>
   <div class="errors__head">
     <span class="errors__badge" data-errors-type>오류</span>
     <h3 class="errors__title" data-errors-title></h3>

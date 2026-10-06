@@ -175,7 +175,8 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
   <p class="lab__status">
     <span class="lab__status-main" role="status" aria-live="polite" data-lab-status>아직 시작하지 않았어요.</span>
-    <span class="lab__status-progress" data-lab-progress aria-live="polite"></span>
+    {/* 받은 양이 바뀔 때마다 바뀌어 낭독하지 않는다 — 준비 칸의 낭독 줄이 단계가 바뀔 때 알린다(loading/index.ts 머리말 6, 판 1.2.1) */}
+    <span class="lab__status-progress" data-lab-progress aria-live="off"></span>
   </p>
   <p class="lab__message" role="status" aria-live="polite" data-lab-message></p>
 
@@ -295,7 +296,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
       </form>
       <p class="lab__result" role="status" aria-live="polite" data-lab-result></p>
       <p class="lab__hint" data-lab-stop-hint="runtime">
-        [정지]를 누르면 기다리는 곳(time.sleep, input)에서 바로 멈춰요. {STOP_GRACE_MS / 1000}초 안에 멈추지 않으면 파이썬을 다시
+        [정지]를 누르면 기다리는 곳(time.sleep, input, asyncio.sleep)에서 바로 멈춰요. {STOP_GRACE_MS / 1000}초 안에 멈추지 않으면 파이썬을 다시
         시작해요.
       </p>
       <p class="lab__hint" data-lab-stop-hint="target">
@@ -457,8 +458,12 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     cursor: not-allowed;
   }
 
-  /* 끝에 닿아 꺼진 글자 크기 단추(aria-disabled — 초점은 받는다, lab-shell.ts #applyFontSize). 흐린 모양은 조작할 수 없다는 표시(대비 기준 예외) */
-  .lab__font :global(.lab-button[aria-disabled='true']) {
+  /*
+    끝에 닿아 꺼진 글자 크기 단추와 준비를 기다리는 [실행]("준비되면 실행돼요…")은 aria-disabled — 초점은 받는다(lab-shell.ts #applyFontSize·
+    #paintRunButton, 판 1.2.1 검토 E15). 흐린 모양은 조작할 수 없다는 표시(대비 기준 예외)
+  */
+  .lab__font :global(.lab-button[aria-disabled='true']),
+  .button[data-lab-run][aria-disabled='true'] {
     opacity: 0.55;
     cursor: not-allowed;
   }

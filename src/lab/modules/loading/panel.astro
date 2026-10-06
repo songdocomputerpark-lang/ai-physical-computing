@@ -12,7 +12,9 @@
 <div class="loading" data-loading-panel data-collapsed="false" role="group" aria-labelledby="lab-loading-title">
   <div class="loading__head">
     <h3 class="loading__title" id="lab-loading-title" data-loading-title>파이썬을 준비하고 있어요</h3>
-    <p class="loading__line" role="status" aria-live="polite" data-loading-text></p>
+    {/* 진행 줄은 받은 양·초가 1초에 몇 번씩 바뀌어 낭독하지 않는다(aria-live="off"). 낭독은 아래 보이지 않는 상태 줄이 단계가 바뀔 때만(index.ts 머리말 6 — 판 1.2.1) */}
+    <p class="loading__line" aria-live="off" data-loading-text></p>
+    <p class="visually-hidden" role="status" aria-live="polite" data-loading-announce></p>
     <button type="button" class="lab-button lab-button--small loading__toggle" data-loading-toggle aria-expanded="true">접기</button>
   </div>
 

@@ -38,9 +38,15 @@ const { pairs } = Astro.props;
     </span>
   </div>
 
-  <p class="unit4-bar__status" data-unit4-status role="status" aria-live="polite">
+  {/*
+    상태 글은 준비 단계에 두 칸의 받는 양·지난 초가 1초마다 바뀌어 낭독하지 않는다(aria-live="off"). 낭독은 아래 보이지 않는 상태 줄이
+    단계 글만 알린다(unit4-page.ts render — 판 1.2.1, 판 1.2.0 적대적 검토 E13과 같은 까닭: 느린 망에서 몇 분 동안 다른 것을 읽지 못한다).
+  */}
+  <p class="unit4-bar__status" data-unit4-status aria-live="off">
     [함께 실행]을 누르면 보드 코드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.
   </p>
+  {/* 처음 글은 위 상태 글과 같게 둔다 — 쪽을 열자마자 같은 안내를 한 번 더 읽지 않게(첫 render가 같은 글이면 바꾸지 않는다) */}
+  <p class="visually-hidden" role="status" aria-live="polite" data-unit4-status-announce>[함께 실행]을 누르면 보드 코드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.</p>
   {/*
     떠 있는 상태 줄 — 위 상태 글이 화면 밖일 때(아래 두 칸을 보는 동안) 화면 위에 같은 글을 한 줄로 띄운다. 글은 위 상태 글이
     이미 읽어 주므로 낭독기에는 숨기고, 단추만 읽힌다(2026-09-25 Phase 4 검토 반영: 실행하면 화면이 1,596px 내려가 "[연결]을 눌러요"를 놓쳤다).
