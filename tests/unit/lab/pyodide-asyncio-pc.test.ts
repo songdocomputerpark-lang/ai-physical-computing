@@ -107,6 +107,51 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('컴퓨터 쪽 asyncio — �
     expect(record.value).toEqual([['a:멈춤', 'b:멈춤'], true]);
   });
 
+  it('gather가 만든 자식도 남은 작업이다 — 예외로 끝난 run이 남은 자식을 멈추고 마무리를 기다린 뒤 예외를 낸다(CPython과 같음, 판 1.2.1 — 검토 C1)', () => {
+    const record = stepOf('gather_child_leak');
+    expect(record.errorType, record.errorMessage).toBeUndefined();
+    expect(record.value).toEqual([['tick-fin', 'VE'], true, 1]);
+    expect(record.stdoutAfter).toBe('');
+    expect(record.stderr).toBe('');
+  });
+
+  it('맨 바깥 asyncio.run(asyncio.gather(…))·맨 바깥 await gather의 남은 자식도 실행이 끝나면 멈춰 다음 실행 콘솔에 섞이지 않는다(검토 C1)', () => {
+    const record = stepOf('top_level_gather_leak');
+    expect(record.errorType, record.errorMessage).toBeUndefined();
+    expect(record.value).toBe('done');
+    expect(record.stdout).toMatch(/R\n/u);
+    expect(record.stdout).toMatch(/G\n/u);
+    expect(record.stdoutAfter).toBe('');
+    expect(record.stderr).toBe('');
+    const next = stepOf('after_leaks');
+    expect(next.stdout).toBe('다음 실행\n다음 실행 끝\n');
+    expect(next.stdoutAfter).toBe('');
+  });
+
+  it('main이 예외로 끝나면 남은 작업의 마무리(finally)가 먼저 돌고 예외가 except에 닿는다(CPython: bg-fin → KE, 검토 C2)', () => {
+    const record = stepOf('main_raises_order');
+    expect(record.errorType, record.errorMessage).toBeUndefined();
+    expect(record.value).toEqual(['bg-fin', 'KE']);
+  });
+
+  it('루프·이름이 PC와 같다: close 뒤 is_closed·"Event loop is closed", new_event_loop는 새 루프, AbstractEventLoop, 코루틴 안 asyncio.run은 RuntimeError, all_tasks는 2(검토 C3)', () => {
+    const record = stepOf('loop_like_pc');
+    expect(record.errorType, record.errorMessage).toBeUndefined();
+    expect(record.value).toEqual([
+      'a',
+      'b',
+      'c',
+      true,
+      false,
+      false,
+      true,
+      'Event loop is closed',
+      'asyncio.run() cannot be called from a running event loop',
+      2,
+    ]);
+    expect(record.stderr).toBe('');
+  });
+
   it('loop.run_forever()는 loop.stop()까지 기다린다(Pyodide WebLoop는 곧바로 돌아왔다)', () => {
     const record = stepOf('run_forever_until_stop');
     expect(record.errorType, record.errorMessage).toBeUndefined();

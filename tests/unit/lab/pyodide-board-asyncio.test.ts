@@ -101,6 +101,11 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — asyncio·uasyncio(�
     expect(stepOf(out, 'leftover_after').value, 'run(main)이 끝난 뒤 400ms 동안 작업이 더 돌았어요').toBe(0);
     expect(stepOf(out, 'top_level_task').value).toBe('code done');
     expect(stepOf(out, 'top_level_after').value, '실행이 끝난 뒤 400ms 동안 작업이 더 돌았어요').toBe(0);
+    // gather가 만든 자식도(판 1.2.1 — 검토 C1·C7): 한 자식이 예외로 끝나 run이 끝나면 남은 자식도 멈춘다
+    const gathered = stepOf(out, 'gather_leftover');
+    expect(gathered.errorType, gathered.errorMessage).toBeUndefined();
+    expect(gathered.value).toBe('caught 센서 오류');
+    expect(stepOf(out, 'gather_after').value, 'gather 자식이 run이 끝난 뒤 400ms 동안 더 돌았어요').toBe(0);
     const next = stepOf(out, 'next_run_clean');
     expect(next.errorType, next.errorMessage).toBeUndefined();
     expect(next.value).toBe(0);

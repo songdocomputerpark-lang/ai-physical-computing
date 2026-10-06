@@ -264,6 +264,123 @@ await step(
   ].join('\n'),
 );
 
+// ⓕ-2(판 1.2.1 — 판 1.2.0 적대적 검토 C1): gather가 만든 자식도 학생 작업이다. bad가 예외로 끝나 gather가 그 예외를 내면 run이 남은 tick을
+// 멈추고 마무리(finally)를 기다린 뒤 예외가 except에 닿는다(CPython 3.11 같은 코드: [['tick-fin', 'VE'], True, 1]). 판 1.2.0은 create_task로 만든
+// 작업만 기억해 tick이 실행이 끝난 뒤·다음 실행에도 계속 콘솔에 찍혔다.
+await step(
+  'gather_child_leak',
+  [
+    'import asyncio, time',
+    'log = []',
+    'async def tick():',
+    '    try:',
+    '        while True:',
+    "            log.append('t')",
+    "            print('tick')",
+    '            await asyncio.sleep(0.05)',
+    '    finally:',
+    "        log.append('tick-fin')",
+    'async def bad():',
+    '    await asyncio.sleep(0.12)',
+    "    raise ValueError('bad')",
+    'async def main():',
+    '    await asyncio.gather(tick(), bad())',
+    'try:',
+    '    asyncio.run(main())',
+    'except ValueError:',
+    "    log.append('VE')",
+    'n = len(log)',
+    'time.sleep(0.3)',
+    '[log[-2:], len(log) == n, log.count("tick-fin")]',
+  ].join('\n'),
+  { afterMs: 400 },
+);
+// 맨 바깥 asyncio.run(asyncio.gather(…))(자식이 run 앞에서 만들어짐)·맨 바깥 await gather도 끝나면 남은 자식을 멈춘다 — 다음 실행 콘솔에 섞이지 않는다
+await step(
+  'top_level_gather_leak',
+  [
+    'import asyncio',
+    'async def tick(tag):',
+    '    while True:',
+    '        print(tag)',
+    '        await asyncio.sleep(0.05)',
+    'async def bad():',
+    '    await asyncio.sleep(0.12)',
+    "    raise ValueError('bad')",
+    'try:',
+    "    asyncio.run(asyncio.gather(tick('R'), bad()))",
+    'except ValueError:',
+    '    pass',
+    'try:',
+    "    await asyncio.gather(tick('G'), bad())",
+    'except ValueError:',
+    '    pass',
+    "'done'",
+  ].join('\n'),
+  { afterMs: 400 },
+);
+await step('after_leaks', ['import time', "print('다음 실행')", 'time.sleep(0.3)', "print('다음 실행 끝')"].join('\n'), { afterMs: 300 });
+// main이 예외로 끝나면 남은 작업의 마무리가 먼저 돌고 예외가 except에 닿는다(CPython: ['bg-fin', 'KE'] — 판 1.2.0은 ['KE', 'bg-fin'], 검토 C2)
+await step(
+  'main_raises_order',
+  [
+    'import asyncio, time',
+    'log = []',
+    'async def bg():',
+    '    try:',
+    '        await asyncio.sleep(10)',
+    '    finally:',
+    "        log.append('bg-fin')",
+    'async def main():',
+    '    asyncio.create_task(bg())',
+    '    await asyncio.sleep(0.01)',
+    "    raise KeyError('k')",
+    'try:',
+    '    asyncio.run(main())',
+    'except KeyError:',
+    "    log.append('KE')",
+    'time.sleep(0.1)',
+    'log',
+  ].join('\n'),
+);
+// 루프·이름이 PC와 같다(검토 C3): close 뒤 is_closed·닫힌 루프 오류, new_event_loop는 새 루프, AbstractEventLoop, 코루틴 안 asyncio.run은
+// PC처럼 RuntimeError, all_tasks에는 사이트 작업이 없다(CPython: 2)
+await step(
+  'loop_like_pc',
+  [
+    'import asyncio',
+    'loop = asyncio.new_event_loop()',
+    'asyncio.set_event_loop(loop)',
+    "r1 = loop.run_until_complete(asyncio.sleep(0.01, 'a'))",
+    'loop.close()',
+    "r2 = asyncio.run(asyncio.sleep(0.01, 'b'))",
+    'loop2 = asyncio.new_event_loop()',
+    "r3 = loop2.run_until_complete(asyncio.sleep(0.01, 'c'))",
+    'try:',
+    '    loop.run_until_complete(asyncio.sleep(0))',
+    '    closed_error = None',
+    'except RuntimeError as e:',
+    '    closed_error = str(e)',
+    'async def inner():',
+    '    return 1',
+    'async def nested():',
+    '    try:',
+    '        return asyncio.run(inner())',
+    '    except RuntimeError as e:',
+    '        return str(e)',
+    'async def count():',
+    '    t = asyncio.create_task(asyncio.sleep(0.01))',
+    '    n = len(asyncio.all_tasks())',
+    '    await t',
+    '    # run 안의 루프는 새 루프 — 앞에서 close()한 루프가 아니라 create_task가 된다(CPython Runner처럼)',
+    "    t2 = asyncio.get_running_loop().create_task(asyncio.sleep(0.01, 'x'))",
+    '    await t2',
+    '    return n',
+    '[r1, r2, r3, loop.is_closed(), loop2.is_closed(), loop is loop2, isinstance(loop2, asyncio.AbstractEventLoop), closed_error,',
+    ' asyncio.run(nested()), asyncio.run(count())]',
+  ].join('\n'),
+);
+
 // ⓖ loop.run_forever()는 loop.stop()까지 기다린다(WebLoop는 곧바로 돌아왔다), [정지]로도 끝난다
 await step(
   'run_forever_until_stop',

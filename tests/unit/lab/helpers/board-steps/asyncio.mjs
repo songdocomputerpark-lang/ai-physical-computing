@@ -303,6 +303,35 @@ export default async function asyncioSteps({ step, bridge, out }) {
   await new Promise((resolve) => setTimeout(resolve, 400));
   out.steps.top_level_after = { ms: 400, value: ticksSince(out, afterTopLevel), stdout: '', stderr: '', events: [], notices: [] };
 
+  // (판 1.2.1 — 판 1.2.0 적대적 검토 C1·C7) gather가 만든 자식도 남은 작업이다: 한 자식이 예외로 끝나 run이 끝나면 남은 자식(blink)도 멈춘다.
+  // 판 1.1.5~1.2.0은 create_task로 만든 작업만 기억해 blink가 실행이 끝난 뒤에도 돌았다(같은 설계의 컴퓨터 쪽 asyncio에서 찾음).
+  await step(
+    'gather_leftover',
+    [
+      'import asyncio, apc_runtime',
+      'async def blink():',
+      '    n = 0',
+      '    while True:',
+      '        n += 1',
+      "        apc_runtime.emit('test.tick', {'n': n})",
+      '        await asyncio.sleep_ms(20)',
+      'async def bad():',
+      '    await asyncio.sleep_ms(70)',
+      "    raise ValueError('센서 오류')",
+      'async def main():',
+      '    await asyncio.gather(blink(), bad())',
+      'try:',
+      '    asyncio.run(main())',
+      'except ValueError as error:',
+      "    result = 'caught ' + str(error)",
+      'result',
+    ].join('\n'),
+    { stopAfterMs: 20_000 },
+  );
+  const afterGather = out.events.length;
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  out.steps.gather_after = { ms: 400, value: ticksSince(out, afterGather), stdout: '', stderr: '', events: [], notices: [] };
+
   // 실행 사이에 멈춘 작업은 다음 실행에 끼어들지 않는다 — 다음 실행의 보드는 깨끗하다(LED 2번 핀 그대로 0)
   await step('next_run_clean', ['from machine import Pin', 'import time', 'led = Pin(2, Pin.OUT)', 'time.sleep_ms(100)', 'led.value()'].join('\n'));
 }
