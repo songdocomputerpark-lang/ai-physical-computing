@@ -297,7 +297,66 @@ async function runLikeWorker(name, code, { packages = [], stopOn, onMessage } = 
   return record;
 }
 
-if (mode === 'control') {
+/** 판 1.2.0 방식의 받기 줄(워커와 같은 package-loads.ts) — main·late가 쓴다 */
+function workerLikeLoads() {
+  return createPackageLoads({
+    loadPackage: (names) => pyodide.loadPackage([...names], packageCallbacks('load')),
+    loadPackagesFromImports: (code) => {
+      out.importLoads = (out.importLoads ?? 0) + 1;
+      return pyodide.loadPackagesFromImports(code, packageCallbacks('imports'));
+    },
+    loadedNames: () => Object.keys(pyodide.loadedPackages),
+    findImports: (code) => {
+      const found = pyodide.pyimport('pyodide.code').find_imports(code);
+      try {
+        return found.toJs();
+      } finally {
+        found.destroy();
+      }
+    },
+    lockPackages: () => pyodide.lockfile?.packages ?? null,
+    onLoadingGrew: (importNames) => {
+      out.pushed = [...(out.pushed ?? []), [...importNames]];
+      pyodide.runPython(`import apc_runtime\napc_runtime.set_packages_loading(${JSON.stringify(importNames)})`);
+    },
+  });
+}
+
+if (mode === 'late') {
+  // ── 판 1.2.1(판 1.2.0 적대적 검토 C4·C5): 미리 받기 도중 곧바로 시작한 실행 ──
+  loads = workerLikeLoads();
+  pyodide.registerJsModule('_probe', { loaded: () => 'opencv-python' in pyodide.loadedPackages && !loads.busy() });
+  pyodide.FS.writeFile('/home/pyodide/helper_cv2b.py', 'import cv2\n');
+  const preload = loads.load(['opencv-python']).catch(skip);
+  // C5) 예제가 적은 패키지(opencv-python — 사이드카 없는 영상처리 예제)는 미리 받기가 받는 중이면 시작을 막지 않는다: 편집칸 코드가 그것을 쓰지 않으면 곧바로
+  await runLikeWorker('example_packages_start_now', ['import time', "print('예제와 다른 코드')", 'time.sleep(0.05)', "print('끝')"].join('\n'), {
+    packages: ['opencv-python'],
+  });
+  // C4) 받을 것 없는 코드로 시작 → 그사이 미리 받기가 끝남 → 작업 폴더의 내 모듈(helper_cv2b)이 import 문으로 드러나지 않게 cv2에 닿는다.
+  //     받기가 끝난 뒤라 문지기는 기다리지 않지만, 그 import가 끝나는 자리에서 미룬 cv2 흉내가 설치돼 imshow가 화면으로 간다(전에는 그 실행 내내 진짜 imshow).
+  //     문은 실제 시간이 아니라 진행으로 연다 — 이 실행이 '시작'을 찍으면(stdout) 두 문을 연다.
+  let opened = false;
+  const openWhenStarted = () => {
+    if (!opened && stdout.includes('시작\n')) {
+      opened = true;
+      releaseNumpy();
+      releaseCv2();
+    }
+  };
+  const gateTimer = setInterval(openWhenStarted, 20);
+  await runLikeWorker(
+    'late_cv2_via_helper',
+    ['import time, _probe', "print('시작')", 'while not _probe.loaded():', '    time.sleep(0.05)', 'import helper_cv2b', "print('cv2 imshow from', helper_cv2b.cv2.imshow.__module__)"].join('\n'),
+  );
+  clearInterval(gateTimer);
+  await preload;
+  // 다음 실행은 처음부터 흉내가 설치된다(예전과 같음)
+  await runLikeWorker('next_run_cv2', "import cv2\nprint('next imshow from', cv2.imshow.__module__)");
+  out.final = { shims: py('import apc_shims\n[apc_shims.install_available(), apc_shims.deferred(), apc_shims.last_failures()]') };
+  out.stdout = stdout;
+  out.progress = progress;
+  finishJson(out);
+} else if (mode === 'control') {
   // ── 대조: 판 1.1.5까지(문지기 없이) — 미리 받기 동안 흉내 설치·import가 반쯤 받은 numpy를 건드린다 ──
   const preload = pyodide.loadPackage(['opencv-python'], packageCallbacks('preload')).catch(skip);
   await waitUntil(() => extracted('numpy'), 'numpy 휠 풀림');
@@ -327,27 +386,7 @@ if (mode === 'control') {
   finishJson(out);
 } else {
   // ── 판 1.2.0 방식 ──
-  loads = createPackageLoads({
-    loadPackage: (names) => pyodide.loadPackage([...names], packageCallbacks('load')),
-    loadPackagesFromImports: (code) => {
-      out.importLoads = (out.importLoads ?? 0) + 1;
-      return pyodide.loadPackagesFromImports(code, packageCallbacks('imports'));
-    },
-    loadedNames: () => Object.keys(pyodide.loadedPackages),
-    findImports: (code) => {
-      const found = pyodide.pyimport('pyodide.code').find_imports(code);
-      try {
-        return found.toJs();
-      } finally {
-        found.destroy();
-      }
-    },
-    lockPackages: () => pyodide.lockfile?.packages ?? null,
-    onLoadingGrew: (importNames) => {
-      out.pushed = [...(out.pushed ?? []), [...importNames]];
-      pyodide.runPython(`import apc_runtime\napc_runtime.set_packages_loading(${JSON.stringify(importNames)})`);
-    },
-  });
+  loads = workerLikeLoads();
 
   // 1) 미리 받기(영상처리 실습실 VISION_PACKAGES)
   const preload = loads.load(['opencv-python']).catch(skip);

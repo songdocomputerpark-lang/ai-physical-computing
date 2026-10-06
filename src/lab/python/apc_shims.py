@@ -52,7 +52,8 @@ def _is_available(module_name: str) -> bool:
 _last_failures: list[tuple[str, str]] = []
 
 # 받는 중이라 미룬 흉내 모듈의 패키지 이름(판 1.2.0) — 실패가 아니다. 이 실행이 그 패키지를 import하면 apc_runtime의 import 문지기가
-# 다 받을 때까지 기다린 뒤 install_deferred()로 설치하고, 아니면 다음 실행의 install_available()이 설치한다.
+# 다 받을 때까지 기다린 뒤 install_deferred()로 설치하고, 아니면 다음 실행의 install_available()이 설치한다. 받기가 실행 도중에 이미 끝난
+# 뒤의 import는 기다릴 일이 없으므로 apc_runtime이 그 import가 끝나는 자리에서 설치한다(set_deferred_shims로 이름을 알려 둔다 — 판 1.2.1).
 _deferred: list[str] = []
 
 
@@ -108,6 +109,7 @@ def install_available() -> list[str]:
     for module_name, shim_name in SHIMS.items():
         if _install_one(module_name, shim_name):
             installed.append(module_name)
+    apc_runtime.set_deferred_shims(_deferred)
     return installed
 
 
@@ -126,6 +128,7 @@ def install_deferred() -> list[str]:
             installed.append(module_name)
         for name, reason in _last_failures[before:]:
             apc_runtime.notice(f"사이트 흉내 모듈({name})을 준비하지 못했어요({reason}). 실행은 이어서 해요.", "warn")
+    apc_runtime.set_deferred_shims(_deferred)
     return installed
 
 

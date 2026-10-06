@@ -88,6 +88,7 @@ __all__ = [
     "request",
     "reset_for_run",
     "run_idle",
+    "set_deferred_shims",
     "set_packages_loading",
     "sleep",
     "sleep_async",
@@ -500,6 +501,18 @@ _import_depth = 0
 #: 받기를 기다린 뒤 맨 바깥 import가 끝나면 미룬 흉내를 다시 설치해야 하는지 — 기다린 자리가 흉내 모듈 자신의 import 도중이면
 #: (학생 코드 `import mediapipe` → apc_mediapipe의 맨 위 `import numpy`) 그 흉내는 덜 만들어져 그때 설치할 수 없다(apc_shims._initializing).
 _retry_deferred = False
+#: 이번 실행 직전에 받는 중이라 미룬 흉내 모듈의 패키지 이름(apc_shims가 set_deferred_shims로 알려 준다 — 판 1.2.1, 판 1.2.0 적대적 검토 C4).
+#: 받기가 실행 도중에 끝난 뒤 학생 코드가 그 이름을 import하면(작업 폴더의 내 모듈이 `import cv2`처럼 import 문으로 드러나지 않게 닿아도)
+#: 기다릴 일이 없어 문지기를 거치지 않으므로, 그 import가 끝나는 자리에서 미룬 흉내를 설치한다 — 전에는 그 실행 내내 진짜 cv2.imshow였다.
+_deferred_heads = frozenset()
+
+
+def set_deferred_shims(names) -> None:
+    """apc_shims가 미룬 흉내 모듈의 패키지 이름을 알려 준다(동기 진입점 — install_available·install_deferred 끝). 비어 있지 않으면 import 훅을 건다."""
+    global _deferred_heads
+    _deferred_heads = frozenset(str(name) for name in (_to_py(names) or ()))
+    if _deferred_heads:
+        _ensure_import_hook()
 
 
 def set_packages_loading(names) -> None:
@@ -584,6 +597,14 @@ def _apc_import(name, globals=None, locals=None, fromlist=(), level=0):  # noqa:
         result = _apc_import_inner(name, globals, locals, fromlist, level)
     finally:
         _import_depth -= 1
+    if _deferred_heads and not _installing_deferred and level == 0 and isinstance(name, str):
+        head = name.partition(".")[0]
+        if head in _deferred_heads and not package_loading(head):
+            # 미룬 흉내의 패키지를 방금 불러왔고 받기는 끝났다 — 이 import 문 다음 줄이 그 이름을 쓰기 전에 설치한다(머리말 _deferred_heads, 검토 C4).
+            # 그 패키지가 아직 만들어지는 중이면 apc_shims가 다시 미루고, 맨 바깥 import가 끝날 때(아래) 또는 다음 import에서 다시 본다.
+            _install_deferred_shims()
+            if _deferred_heads:
+                _retry_deferred = True
     if _import_depth == 0 and _retry_deferred and not _installing_deferred:
         # 받기를 기다린 import가 모두 끝났다 — 그 import 도중이라 덜 만들어져 미룬 흉내를 이제 설치한다(_wait_for_package 머리말)
         _retry_deferred = False

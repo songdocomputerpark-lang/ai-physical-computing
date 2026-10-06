@@ -314,18 +314,31 @@ export function createPackageLoads(host: PackageLoadsHost): PackageLoads {
       if (!found) {
         return { needed: [], busy, startNow: false };
       }
-      const roots: string[] = [...packages];
+      const importRoots: string[] = [];
       if (options.fromImports) {
         for (const importName of host.findImports(code)) {
           const key = found.importToKey.get(importName);
           if (key !== undefined) {
-            roots.push(key);
+            importRoots.push(key);
           }
         }
       }
-      const { keys, unknown } = closureOf(found, roots, loadedKeys());
-      const needed = [...keys].sort();
-      return { needed, busy, startNow: busy && options.canWait && unknown.length === 0 && needed.length === 0 };
+      const loaded = loadedKeys();
+      const fromPackages = closureOf(found, packages, loaded);
+      const fromImports = closureOf(found, importRoots, loaded);
+      const needed = [...new Set([...fromPackages.keys, ...fromImports.keys])].sort();
+      const unknown = [...fromPackages.unknown, ...fromImports.unknown];
+      // 예제가 적은 패키지(packages — 사이드카가 없으면 영상처리 예제는 opencv-python)는 다른 받기(미리 받기)가 이미 받는 중이면 시작을 막지 않는다:
+      // 코드가 그것을 쓰면 import 문지기가 그 줄에서 기다린다(판 1.2.1 — 판 1.2.0 적대적 검토 C5). 전에는 첫 에지 예제를 연 채 편집칸을
+      // 시리얼 코드로 바꿔도 예제의 opencv-python이 실행 계획에 들어가 OpenCV를 다 받을 때까지 시작하지 않았다. 코드의 import가 부르는 패키지는
+      // 예전처럼 시작 전에 기다린다(받을 것 없는 코드만 곧바로 — 결정 C92).
+      const loading = loadingKeySet();
+      const packagesCovered = [...fromPackages.keys].every((key) => loading.has(key));
+      return {
+        needed,
+        busy,
+        startNow: busy && options.canWait && unknown.length === 0 && fromImports.keys.size === 0 && packagesCovered,
+      };
     },
 
     async loadForRun(plan, code, packages, options) {

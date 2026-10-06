@@ -87,7 +87,14 @@ interface MainOutput {
   marks: [number, string][];
 }
 
-function runHelper<T>(mode: 'control' | 'main'): T & { skipped?: string } {
+interface LateOutput {
+  skipped?: string;
+  steps: Record<string, StepRecord>;
+  final: { shims: [string[], string[], string[][]] };
+  stdout: string;
+}
+
+function runHelper<T>(mode: 'control' | 'main' | 'late'): T & { skipped?: string } {
   const result = spawnSync(process.execPath, ['--experimental-wasm-jspi', SCRIPT, ROOT, mode], { encoding: 'utf8', timeout: 280_000, cwd: ROOT });
   expect(result.status, result.stderr).toBe(0);
   const lines = result.stdout.trim().split('\n');
@@ -215,5 +222,29 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('패키지를 받는 동안�
     expect(out.progress.join('\n')).toMatch(/^load:Loading numpy, opencv-python$/mu);
     // 새어 나온 오류는 [정지]의 KeyboardInterrupt뿐(워커는 error·unhandledrejection에서 삼킨다)
     expect(out.escaped.every((entry) => entry.endsWith('KeyboardInterrupt'))).toBe(true);
+  }, 300_000);
+
+  it('판 1.2.1(검토 C5·C4): 예제가 적은 패키지는 미리 받기 중이면 시작을 막지 않고, 실행 도중 받기가 끝난 뒤 내 모듈이 닿은 cv2에도 흉내가 설치된다', () => {
+    const out = runHelper<LateOutput>('late');
+    if (out.skipped) {
+      console.warn(`[건너뜀] ${out.skipped}`);
+      return;
+    }
+    // C5: 예제 packages(opencv-python)를 함께 보내도, 편집칸 코드가 그것을 import하지 않고 미리 받기가 받는 중이면 곧바로 시작한다
+    const examplePackages = out.steps.example_packages_start_now;
+    expect(examplePackages.outcome).toBe('ok');
+    expect(examplePackages.plan).toEqual({ needed: ['numpy', 'opencv-python'], busy: true, startNow: true });
+    expect(examplePackages.stdout).toBe('예제와 다른 코드\n끝\n');
+    // C4: 실행을 시작할 때는 cv2·mediapipe 흉내가 미뤄졌지만, 받기가 끝난 뒤 내 모듈의 `import cv2`가 끝나는 자리에서 cv2 흉내가 설치된다
+    const late = out.steps.late_cv2_via_helper;
+    expect(late.outcome, late.errorMessage).toBe('ok');
+    expect(late.plan?.startNow).toBe(true);
+    expect(late.shims?.deferred).toEqual(['cv2', 'mediapipe']);
+    expect(late.stdout).toBe('시작\ncv2 imshow from apc_cv2\n');
+    expect(late.posted.filter((message) => message.type === 'notice')).toEqual([]);
+    expect(out.steps.next_run_cv2.stdout).toBe('next imshow from apc_cv2\n');
+    expect(out.final.shims[1]).toEqual([]);
+    expect(out.final.shims[2]).toEqual([]);
+    expect(out.stdout).not.toMatch(/Loading|Loaded|No new packages|already loaded/u);
   }, 300_000);
 });
