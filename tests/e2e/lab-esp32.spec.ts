@@ -330,7 +330,7 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await openEsp32Lab(page);
     const card = page.locator('[data-errors-card]');
     const datetimeNotice =
-      "[알림] datetime 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, 실물 보드에서는 ImportError(no module named 'datetime')가 나요.";
+      '[알림] datetime 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, 실물 보드에서는 ImportError(no module named \'datetime\')가 나요. 실물 보드에서도 돌릴 코드면 오류 사전 "가상 보드에서만 되는 모듈이에요"에서 바꿀 방법을 봐요(가상 보드에서만 연습하면 그대로 둬도 돼요).';
     const countOf = (text: string, part: string) => text.split(part).length - 1;
 
     const first = await runCodeAndWait(

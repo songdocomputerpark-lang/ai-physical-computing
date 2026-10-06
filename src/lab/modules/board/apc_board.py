@@ -1528,11 +1528,13 @@ def missing_on_board(name):
 
 
 def missing_module_notice(name):
-    """학생 콘솔에 "[알림]"으로 보이는 글(apc_runtime.notice level warn). 고1이 읽는 두 문장 + 실물 오류 글(no module named …).
+    """학생 콘솔에 "[알림]"으로 보이는 글(apc_runtime.notice level warn). 고1이 읽는 세 문장 — 무엇이 일어나는지 + 실물 오류 글(no module named …)
+    + 그럼 어떻게 하는지(판 1.2.1 — 판 1.2.0 적대적 검토 E10: 할 일이 없어 오류 사전의 바꿀 방법에 닿을 길이 없었다. 정상 실행이라 풀이 카드는 숨는다).
     오류 사전·검사가 "모듈은 실물 ESP32 보드(MicroPython)에는 없어요"로 이 글을 찾으니 바꾸면 함께 고친다."""
     return (
         f"{name} 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, "
-        f"실물 보드에서는 ImportError(no module named '{name}')가 나요."
+        f"실물 보드에서는 ImportError(no module named '{name}')가 나요. "
+        "실물 보드에서도 돌릴 코드면 오류 사전 \"가상 보드에서만 되는 모듈이에요\"에서 바꿀 방법을 봐요(가상 보드에서만 연습하면 그대로 둬도 돼요)."
     )
 
 

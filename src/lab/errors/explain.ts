@@ -323,8 +323,15 @@ export function entryPreview(entry: ErrorEntry): EntryPreview {
   };
 }
 
-/** 콘솔에 한 줄로 알릴 글. 예: "[오류 풀이] NameError — 정해 준 적이 없는 이름을 썼어요 (내 코드 3번째 줄). 자세한 풀이는 콘솔 위 카드에 있어요." */
+/**
+ * 콘솔에 한 줄로 알릴 글. 예: "[오류 풀이] NameError — 정해 준 적이 없는 이름을 썼어요 (내 코드 3번째 줄). 자세한 풀이는 콘솔 위 카드에 있어요."
+ * 오류가 아닌 안내(level: notice — [정지] 등)는 머리를 "[안내]"로 쓴다(판 1.2.1 — 판 1.2.0 적대적 검토 E8: "[오류 풀이] 정지 — … 오류가 아니에요"가
+ * 한 줄에서 부딪혔다).
+ */
 export function consoleSummary(explanation: Explanation): string {
   const where = explanation.locationText ? ` (${explanation.locationText})` : '';
+  if (explanation.entry.level === 'notice') {
+    return `[안내] ${explanation.typeLabel} — ${explanation.title}${where}. 자세한 내용은 콘솔 위 안내 카드에 있어요.`;
+  }
   return `[오류 풀이] ${explanation.typeLabel} — ${explanation.title}${where}. 자세한 풀이는 콘솔 위 "오류 풀이" 카드에 있어요.`;
 }

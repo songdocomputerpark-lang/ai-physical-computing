@@ -13,6 +13,37 @@
  */
 import { withParticle } from '../../lib/korean.ts';
 
+/**
+ * 연결 실패 까닭(짧은 한국어 — 연결 안내 한 줄의 괄호 안에 들어간다). 같은 상황에는 같은 낱말을 쓴다(README 9.7) — broker-transport.ts의
+ * CONNECT_REASONS가 이 값이고(판 1.2.1부터 이 파일에 둔다 — 까닭별 뒷글 reasonHint가 같은 낱말을 보아야 해서), MQTT.js 영어 문구를 바꾼 까닭도 쓴다.
+ */
+export const MQTT_CONNECT_REASONS = Object.freeze({
+  /** WebSocket은 열렸는데(서버에 닿았는데) MQTT 연결 확인(CONNACK) 전에 서버 쪽에서 닫았다 */
+  serverClosed: '서버가 연결을 닫음',
+  /** WebSocket이 열리지도 못했다(주소·포트가 틀렸거나, 학교망이 막았거나, 서버가 꺼짐) */
+  unreachable: '서버에 닿지 못함',
+  /** 정해진 시간 동안 아무 답이 없었다(열린 채 MQTT 답이 없거나, 여는 중에 멈춰 열리지도 닫히지도 않음) */
+  noAnswer: (seconds: number): string => `${seconds}초 동안 답이 없음`,
+});
+
+/**
+ * 연결 실패 까닭마다 그 뜻과 할 일 한 문장(판 1.2.1 — 판 1.2.0 적대적 검토 E11). 판 1.2.0은 까닭을 셋으로 갈랐지만 뒷글은 모두
+ * "학교망이 막았거나 서버가 쉬는 중일 수 있어요"라서, 서버까지 닿은 "서버가 연결을 닫음"에도 학교망 이야기가 붙어 차이가 남지 않았다.
+ * 모르는 까닭·까닭 없음은 예전 글 그대로.
+ */
+export function reasonHint(reason: string | null): string {
+  if (reason === MQTT_CONNECT_REASONS.unreachable) {
+    return '학교망이 막았거나 주소가 틀렸을 수 있어요.';
+  }
+  if (reason === MQTT_CONNECT_REASONS.serverClosed || reason === '서버가 연결을 거절함') {
+    return '서버까지는 닿았는데 서버가 연결을 받아 주지 않았어요 — 다른 중계 서버를 골라 봐요.';
+  }
+  if (reason !== null && (/^\d+초 동안 답이 없음$/u.test(reason) || reason === '서버가 답하지 않음')) {
+    return '서버가 느리거나 쉬는 중일 수 있어요 — 잠시 뒤 다시 해 봐요.';
+  }
+  return '학교망이 막았거나 서버가 쉬는 중일 수 있어요.';
+}
+
 /** MQTT 쪽 오류의 뿌리. 실습실 오류 카드가 name으로 풀이를 찾는다(오류 사전 comm 묶음). */
 export class MqttError extends Error {
   override readonly name: string = 'MqttError';
@@ -126,7 +157,7 @@ export const mqttText = {
   },
   /** 연결 실패 */
   connectFailed(url: string, reason: string): string {
-    return `중계 서버 ${url}에 연결하지 못했어요(${reason}). 학교망이 막았거나 서버가 쉬는 중일 수 있어요.`;
+    return `중계 서버 ${url}에 연결하지 못했어요(${reason}). ${reasonHint(reason)}`;
   },
   /**
    * 연결 실패 뒤 탭 통로로 스스로 바꿈('중계 서버 먼저, 안 되면 탭'을 골랐을 때). reason: 짧은 한국어 까닭(있으면 괄호로).
@@ -146,7 +177,7 @@ export const mqttText = {
   brokerFailed(url: string, reason: string | null = null): string {
     const why = reason === null || reason === '' ? '' : `(${reason})`;
     return (
-      `공개 중계 서버 ${url}에 연결하지 못했어요${why}. 학교망이 막았거나 서버가 쉬는 중일 수 있어요. ` +
+      `공개 중계 서버 ${url}에 연결하지 못했어요${why}. ${reasonHint(reason)} ` +
       '같은 컴퓨터에서 실습하면 통로를 [같은 컴퓨터 탭]으로 바꾸고, 다른 컴퓨터와 하려면 시작하기의 점검 페이지에서 학교망을 확인해요.'
     );
   },

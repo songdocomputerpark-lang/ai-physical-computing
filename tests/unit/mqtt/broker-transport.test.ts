@@ -408,3 +408,22 @@ describe('다시 연결(PLAN §7.4 — 5번까지)', () => {
     expect(client.ended).toBe(true);
   });
 });
+
+// 판 1.2.1(판 1.2.0 적대적 검토 E11): 까닭은 셋으로 갈렸는데 뒷글이 모두 "학교망이 막았거나 서버가 쉬는 중일 수 있어요"라서 차이가 남지 않았다.
+describe('연결 실패 까닭마다 뜻과 할 일 한 문장(reasonHint)', () => {
+  it('닿지 못함은 학교망·주소, 닫음·거절은 다른 서버, 답 없음은 잠시 뒤, 모르는 까닭은 예전 글', async () => {
+    const { reasonHint, mqttText } = await import('../../../src/lab/mqtt/messages.ts');
+    expect(reasonHint(CONNECT_REASONS.unreachable)).toBe('학교망이 막았거나 주소가 틀렸을 수 있어요.');
+    expect(reasonHint(CONNECT_REASONS.serverClosed)).toBe('서버까지는 닿았는데 서버가 연결을 받아 주지 않았어요 — 다른 중계 서버를 골라 봐요.');
+    expect(reasonHint('서버가 연결을 거절함')).toBe(reasonHint(CONNECT_REASONS.serverClosed));
+    expect(reasonHint(CONNECT_REASONS.noAnswer(8))).toBe('서버가 느리거나 쉬는 중일 수 있어요 — 잠시 뒤 다시 해 봐요.');
+    expect(reasonHint('서버가 답하지 않음')).toBe(reasonHint(CONNECT_REASONS.noAnswer(8)));
+    expect(reasonHint(null)).toBe('학교망이 막았거나 서버가 쉬는 중일 수 있어요.');
+    expect(reasonHint('까닭을 알 수 없음')).toBe('학교망이 막았거나 서버가 쉬는 중일 수 있어요.');
+    // 안내 한 줄에 그대로 들어간다(연결 실패·공개 중계 서버만 고른 실패)
+    expect(mqttText.connectFailed(URL_OK, CONNECT_REASONS.serverClosed)).toBe(
+      `중계 서버 ${URL_OK}에 연결하지 못했어요(서버가 연결을 닫음). 서버까지는 닿았는데 서버가 연결을 받아 주지 않았어요 — 다른 중계 서버를 골라 봐요.`,
+    );
+    expect(mqttText.brokerFailed(URL_OK, CONNECT_REASONS.unreachable)).toContain('(서버에 닿지 못함). 학교망이 막았거나 주소가 틀렸을 수 있어요. 같은 컴퓨터에서');
+  });
+});

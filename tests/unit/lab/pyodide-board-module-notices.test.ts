@@ -34,10 +34,10 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — 실물 펌웨어에
     expect(noticedModules(again)).toEqual(['datetime']);
   });
 
-  it('알림 글은 고1이 읽는 한국어 두 문장이고 실물의 오류 글(no module named)을 함께 보여 준다', () => {
+  it('알림 글은 고1이 읽는 한국어 세 문장이고 실물의 오류 글(no module named)과 할 일(오류 사전·그대로 둬도 됨)을 함께 보여 준다(판 1.2.1 — 검토 E10)', () => {
     const text = stepOf(out, 'notice_once_per_run').notices.find((line) => line.includes(NOTICE_MARK));
     expect(text).toBe(
-      "datetime 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, 실물 보드에서는 ImportError(no module named 'datetime')가 나요.",
+      'datetime 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, 실물 보드에서는 ImportError(no module named \'datetime\')가 나요. 실물 보드에서도 돌릴 코드면 오류 사전 "가상 보드에서만 되는 모듈이에요"에서 바꿀 방법을 봐요(가상 보드에서만 연습하면 그대로 둬도 돼요).',
     );
     expect((stepOf(out, 'pure_functions').value as { text: string }).text).toBe(text);
   });

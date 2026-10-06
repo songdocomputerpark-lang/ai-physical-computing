@@ -14,7 +14,7 @@
  * - `clientId`에 개인정보를 넣지 않는다(무작위 꼬리표만 — PLAN §10).
  * - MQTT.js는 **처음 필요할 때** import한다(`await import('mqtt')`) — 실습실을 열기만 한 학생은 받지 않는다.
  */
-import { mqttText, MqttConnectError, MqttError } from './messages.ts';
+import { MQTT_CONNECT_REASONS, mqttText, MqttConnectError, MqttError } from './messages.ts';
 import { requireBrokerUrl } from './brokers.ts';
 import { MqttEmitter, makeClientId, type MqttPublishOptions, type MqttTransport, type MqttTransportEvents, type MqttTransportOptions } from './transport.ts';
 
@@ -52,14 +52,7 @@ export const CONNECT_TIMEOUT_MARGIN_MS = 2000;
  * 연결 실패 까닭(짧은 한국어 — 연결 안내 한 줄의 괄호 안에 들어간다). 같은 상황에는 같은 낱말을 쓴다(README 9.7) —
  * MQTT.js 영어 문구를 바꾼 까닭(KNOWN_REASONS)과 우리가 WebSocket을 지켜보고 고른 까닭(openBrokerTransport)이 이 값을 함께 쓴다.
  */
-export const CONNECT_REASONS = Object.freeze({
-  /** WebSocket은 열렸는데(서버에 닿았는데) MQTT 연결 확인(CONNACK) 전에 서버 쪽에서 닫았다 */
-  serverClosed: '서버가 연결을 닫음',
-  /** WebSocket이 열리지도 못했다(주소·포트가 틀렸거나, 학교망이 막았거나, 서버가 꺼짐) */
-  unreachable: '서버에 닿지 못함',
-  /** 정해진 시간 동안 아무 답이 없었다(열린 채 MQTT 답이 없거나, 여는 중에 멈춰 열리지도 닫히지도 않음) */
-  noAnswer: (seconds: number): string => `${seconds}초 동안 답이 없음`,
-});
+export const CONNECT_REASONS = MQTT_CONNECT_REASONS;
 
 /** 브라우저에서 중계 서버 연결(WebSocket)을 쓸 수 있나 */
 export function isBrokerAvailable(): boolean {

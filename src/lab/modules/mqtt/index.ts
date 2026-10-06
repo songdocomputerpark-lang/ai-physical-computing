@@ -199,6 +199,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
     item.className = 'mqtt__log-item';
     item.dataset.mqttLogKind = entry.kind;
     item.textContent = logLine(entry);
+    if (entry.kind === 'notice') {
+      // 사이트 안내(연결·실패·구독)는 안내 줄(data-mqtt-hint)·상태 글·콘솔 [안내]가 함께 보이므로 기록 칸이 또 읽지 않는다 — 실패 한 번에 같은 긴 글이
+      // 두 번 읽혔다(판 1.2.1 — 판 1.2.0 적대적 검토 E12). 주고받은 글(보냄·받음)은 그대로 읽는다. 같은 줄은 콘솔에서 다시 읽을 수 있다.
+      item.setAttribute('aria-hidden', 'true');
+    }
     logList.append(item);
     while (logList.childElementCount > 40) {
       logList.firstElementChild?.remove();
