@@ -122,7 +122,8 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
         <li>가상 보드는 실행할 때마다 보드를 새로 켠 것처럼 핀과 시계(ticks_ms)가 처음 상태에서 시작해요.</li>
         <li>
           numpy·OpenCV(cv2) 같은 컴퓨터용 파이썬 패키지는 실물 보드에 없어서 가상 보드에서도 쓸 수 없어요(import하면 실물과 같은 오류가 나요). 다만
-          컴퓨터 파이썬에 기본으로 들어 있는 모듈 가운데 실물 보드에는 없는 것(예: datetime)은 가상 보드에서 돌 수 있으니, 실물 보드에서도 확인해요.
+          컴퓨터 파이썬에 기본으로 들어 있는 모듈 가운데 실물 보드에는 없는 것(예: datetime·threading)은 가상 보드에서는 돌아가요. 그런 모듈을 import하면
+          콘솔에 [알림]이 한 번 나오니, 실물 보드에서도 돌릴 코드라면 실물에 있는 모듈로 바꿔요(예: 날짜·시각은 time 모듈).
         </li>
       </ul>
     </Callout>

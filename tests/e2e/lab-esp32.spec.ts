@@ -7,8 +7,11 @@
 //     사이트 예제 01(첫 화면 예제 — 깜빡이기와 interval 조절 막대)·02(BOOT 버튼으로 LED)도 파일 그대로 돌려 본다.
 //  5. 가상 보드는 OpenCV·numpy를 받지 않고(PD-04, 준비 모듈의 캐시 채우기 포함), 허용 주소 밖 요청이 없다.
 //     보드 코드가 import numpy를 해도 실행 때 받지 않고 실물처럼 ImportError로 알린다(판 1.1.3 — 펌웨어 모듈 안내·점 이름도 함께).
+//     실물 펌웨어에 없는 모듈(datetime 등)은 막지 않고 콘솔 [알림]으로 실행마다 한 번 알린다(미해결 222 — 보드 라이브러리·사이트 흉내는 알리지 않음).
 //  6. 보드 흉내는 ESP32 실습실에만 있다: 개발용 시험 페이지에서는 import machine이 없는 모듈이고 time에 sleep_ms가 없다.
 //  7. 콘솔이 화면 밖일 때 결과 칸이 "콘솔에 결과가 나왔어요"와 마지막 줄·[콘솔 보기 ↓]를 보인다(2026-09-18 검토 반영).
+import fs from 'node:fs';
+import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
 import { ALLOWED_REMOTE_ORIGINS } from '../../src/lab/runtime/config.ts';
@@ -315,6 +318,103 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     expect(await consoleText(page)).toContain('MQTT MQTTClient');
     expect(requests.urls.filter((url) => /\.whl(?:[?#]|$)/u.test(url))).toEqual([]);
     expect(errors).toEqual([]);
+  });
+
+  // 미해결 222(2026-10-06): 가상 보드는 컴퓨터 파이썬(Pyodide) 위에서 돌아 datetime·threading처럼 실물 MicroPython v1.29.0 ESP32_GENERIC에는
+  // 없는 모듈도 불러와진다. 막지 않고(DECISIONS C76 ④) 학생 코드의 import 문마다 실행에 한 번 콘솔 "[알림]"으로 알린다 — 보드 라이브러리
+  // (/board/lib)·사이트 흉내(/apc)·실물에도 있는 모듈(u-이름·얼린 꾸러미 포함)은 알리지 않는다. 표는 apc_board.py FIRMWARE_*_MODULES.
+  test('실물 펌웨어에 없는 모듈(datetime·threading)은 실행을 막지 않고 콘솔 [알림]으로 실행마다 한 번 알리고, 실물에 있는 모듈·보드 라이브러리는 알리지 않는다', async ({ page }) => {
+    test.skip(test.info().project.name === 'mobile', '실행 결과는 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openEsp32Lab(page);
+    const card = page.locator('[data-errors-card]');
+    const datetimeNotice =
+      "[알림] datetime 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, 실물 보드에서는 ImportError(no module named 'datetime')가 나요.";
+    const countOf = (text: string, part: string) => text.split(part).length - 1;
+
+    const first = await runCodeAndWait(
+      page,
+      ['import datetime', 'import json', 'from datetime import date', 'import threading', "print('YEAR', date(2026, 10, 6).year)"].join('\n'),
+    );
+    expect(first).toBe('ok');
+    let text = await consoleText(page);
+    expect(text).toContain('YEAR 2026');
+    expect(countOf(text, datetimeNotice), '같은 실행에서 datetime을 두 번 불러도 알림은 한 번').toBe(1);
+    expect(text).toContain('[알림] threading 모듈은 실물 ESP32 보드(MicroPython)에는 없어요.');
+    expect(text).not.toContain('json 모듈은');
+    await expect(card).toBeHidden();
+
+    // 다음 실행(보드를 새로 켬)에서는 다시 알린다
+    expect(await runCodeAndWait(page, ['import datetime', "print('AGAIN')"].join('\n'))).toBe('ok');
+    text = await consoleText(page);
+    expect(text).toContain('AGAIN');
+    expect(countOf(text, datetimeNotice)).toBe(2);
+
+    // 실물에도 있는 모듈·u-이름·얼린 꾸러미, 사이트 흉내(ssd1306·neopixel), 보드 라이브러리(i2c_lcd·servo_library·gorillacell_dcmotors)는 알리지 않는다
+    const before = countOf(await consoleText(page), '[알림]');
+    const quiet = await runCodeAndWait(
+      page,
+      [
+        'from machine import Pin, SoftI2C, PWM',
+        'import time, utime, ujson, ustruct, micropython, uasyncio',
+        'from umqtt.simple import MQTTClient',
+        'import ssd1306, neopixel',
+        'from i2c_lcd import I2cLcd',
+        'from servo_library import ServoMotor',
+        'from gorillacell_dcmotors import GORILLACELL_DCMOTORS',
+        "print('LIBS OK')",
+      ].join('\n'),
+    );
+    expect(quiet).toBe('ok');
+    text = await consoleText(page);
+    expect(text).toContain('LIBS OK');
+    expect(countOf(text, '[알림]'), text.slice(-600)).toBe(before);
+    expect(errors).toEqual([]);
+  });
+
+  // 거짓 알림 0(미해결 222): examples/esp32/의 모든 예제가 쓰는 import 줄을 실습실에서 한 번에 다시 돌려도(실패하는 줄은 넘김) 알림이 없다.
+  // 브라우저 워커의 실제 자리(/apc 흉내·화면이 넣은 /board/lib 라이브러리)로 본다 — 예제마다·차시 코드 블록·블록 모드는
+  // tests/unit/lab/pyodide-board-module-notices.test.ts가 Node 실제 Pyodide로 하나씩 본다.
+  test('ESP32 예제 전부의 import 줄을 한 번에 돌려도 "실물 펌웨어에 없는 모듈" 알림이 하나도 나오지 않는다(미해결 222)', async ({ page }) => {
+    test.skip(test.info().project.name === 'mobile', '실행 결과는 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
+    const examplesDir = path.join(process.cwd(), 'examples', 'esp32');
+    const walk = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) return entry.name === 'lib' ? [] : walk(full);
+        return entry.name.endsWith('.py') ? [full] : [];
+      });
+    const statements = [
+      ...new Set(
+        walk(examplesDir).flatMap((file) =>
+          fs
+            .readFileSync(file, 'utf8')
+            .split(/\r?\n/u)
+            .map((line) => line.replace(/#.*$/u, '').trim())
+            .filter((line) => /^(?:import|from)\s+[A-Za-z_]/u.test(line) && !line.includes('(')),
+        ),
+      ),
+    ].sort();
+    expect(statements.length, 'examples/esp32/의 import 줄').toBeGreaterThan(15);
+    await openEsp32Lab(page);
+    const code = [
+      `_apc_statements = ${JSON.stringify(statements)}`,
+      '_apc_failed = []',
+      'for _apc_statement in _apc_statements:',
+      '    try:',
+      '        exec(_apc_statement)',
+      '    except Exception:',
+      '        _apc_failed.append(_apc_statement)',
+      "print('IMPORTS', len(_apc_statements), 'FAILED', _apc_failed)",
+    ].join('\n');
+    expect(await runCodeAndWait(page, code)).toBe('ok');
+    const text = await consoleText(page);
+    expect(text).toContain(`IMPORTS ${statements.length} FAILED`);
+    expect(text, text.slice(-800)).not.toContain('실물 ESP32 보드(MicroPython)에는 없어요');
+    // 실패한 줄은 일부러 오류인 예제(ESP32BLE_LIB — 차시 4-2-2의 "라이브러리 이름 바꾸기" 실습)뿐
+    const failed = /FAILED \[(.*)\]/u.exec(text)?.[1] ?? '';
+    expect(failed.split(',').filter((item) => item.trim() !== '' && !item.includes('ESP32BLE_LIB'))).toEqual([]);
   });
 
   test('좁은 화면(375px)에서도 가로로 넘치지 않는다', async ({ page }) => {

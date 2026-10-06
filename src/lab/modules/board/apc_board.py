@@ -26,6 +26,8 @@
    왜 import 훅인가: time은 CPython의 붙박이 모듈이라 파일로 가릴 수 없고, 진짜 time의 time()·localtime()을 2000년 기준·8칸으로
    바꾸면 표준 라이브러리(logging·asyncio 등)가 깨질 수 있다(P3-00 구현 메모). C 코드가 부르는 PyImport_Import는 __import__의
    돌려준 값이 아니라 sys.modules를 쓰므로 영향을 받지 않는다(CPython 소스 확인).
+   같은 훅이 학생 코드의 import 문이 불러온 모듈이 실물 펌웨어(MicroPython v1.29.0 ESP32_GENERIC)에 없으면 — datetime·threading·typing·js 등,
+   가상 보드는 컴퓨터 파이썬 위에서 돌아 불러와진다 — 실행은 막지 않고 콘솔에 "[알림]"으로 한 번 알린다(미해결 222, FIRMWARE_MODULES 머리말).
 7. 확장: /apc의 apc_board_*.py(machine의 PWM·ADC·UART 같은 주변장치, P3-03~)와 apc_part_*.py(부품 흉내, parts/<부품>/)를
    첫 실행 직전(install) 한 번 불러온다. 확장은 register_machine_export·register_board_module·register_part로 자기를 등록하고 machine을 import하지 않는다.
 8. 배선과 코드 맞춰 보기(P3-02): 화면이 넣은 배선('board.wiring' — 부품·핀·방향)과 코드가 핀을 쓰는 모양이 어긋나면 실행마다 핀 하나에 한 번
@@ -63,6 +65,7 @@
 import builtins
 import importlib
 import math
+import opcode
 import os
 import struct
 import sys
@@ -85,6 +88,11 @@ __all__ = [
     "EVENT_DEVICE",
     "EVENT_STATE",
     "EVENT_UART_TX",
+    "FIRMWARE_BUILTIN_MODULES",
+    "FIRMWARE_EXTENSIBLE_MODULES",
+    "FIRMWARE_FROZEN_MODULES",
+    "FIRMWARE_FROZEN_SUBMODULES",
+    "FIRMWARE_MODULES",
     "NOT_YET_MODULES",
     "VALID_GPIOS",
     "WORK_DIR",
@@ -92,10 +100,13 @@ __all__ = [
     "board_oserror",
     "check_point",
     "find_pin",
+    "firmware_has_module",
     "float32",
     "install",
     "load_extensions",
     "machine_exports",
+    "missing_module_notice",
+    "missing_on_board",
     "mktime_2000",
     "mp_float",
     "mp_int",
@@ -491,6 +502,8 @@ class Board:
         self.phase = "stopped"
         self.last_flush = -1.0
         self.warned = set()
+        # 이번 실행에서 "실물 펌웨어에는 없는 모듈" 알림을 이미 낸 이름(미해결 222 — 모듈 하나에 실행마다 한 번, _notice_missing_on_board)
+        self.module_notices = set()
         self.in_callback = False
         self.callback_errors = set()
         # 부품 장치(P3-03~ 확장 자리): 배선 id → (부품 id, 상태), 화면에 아직 안 보낸 배선 id, 이번 실행의 장치 목록, 화면 조작을 받을 함수
@@ -513,6 +526,7 @@ class Board:
         self.pins = {}
         self.pin_objects = {}
         self.warned = set()
+        self.module_notices = set()
         self.callback_errors = set()
         self.in_callback = False
         self.clock.reset()
@@ -1452,6 +1466,119 @@ def load_extensions():
                 apc_runtime.notice(f"가상 보드 확장 {file_name}을(를) 불러오지 못했어요: {type(error).__name__}: {error}", "warn")
 
 
+# ───────────────────────── 실물 펌웨어의 모듈 표(미해결 222) ─────────────────────────
+#
+# 사이트가 굽는 펌웨어(public/firmware/v1.29.0/ESP32_GENERIC-20260824-v1.29.0.bin — MicroPython v1.29.0 ESP32_GENERIC)에서 `import`가 되는
+# 모듈 이름. 가상 보드는 컴퓨터 파이썬(Pyodide) 위에서 돌아 datetime·threading·typing·js처럼 실물에는 없는 모듈도 불러와진다. 학생 코드가 이 표에
+# 없는 모듈을 import하면 실행은 막지 않고 콘솔에 한 번 알린다(_notice_missing_on_board — DECISIONS C76 ④ "표준 모듈 차이는 알림만"을 콘솔까지).
+# 근거(2026-10-06):
+#   ① 그 펌웨어 파일을 읽어 푼 표 — 앱 이미지(플래시 0x10000)의 DROM에서 qstr 풀 사슬 3개(1,641개, 길이 표와 모두 맞음)를 풀고,
+#     mp_type_module을 값으로 갖는 두 표 mp_builtin_module_table(확장 불가 21)·mp_builtin_extensible_module_table(확장 가능 20)의 키와
+#     얼린 모듈 이름 표 mp_frozen_names를 읽었다. tests/unit/board-modules/firmware-modules.test.ts가 저장소의 펌웨어 파일로 같은 풀이를 다시 해서
+#     이 표와 맞춰 본다 — 펌웨어 판을 바꾸면(MAINTENANCE 8-6) 그 검사가 고칠 이름을 알려 준다.
+#   ② 공식 소스(v1.29.0, WebFetch): py/objmodule.c mp_module_get_builtin(u-이름은 확장 가능한 붙박이 모듈만 + usys 특례),
+#     py/builtinimport.c process_import_at_level(확장 불가 붙박이 → 파일·얼린 모듈 → 확장 가능 붙박이, 없으면
+#     ImportError "no module named '<그 깊이까지의 이름>'"), ports/esp32/boards/manifest.py(freeze("$(PORT_DIR)/modules")·extmod/asyncio·
+#     bundle-networking·aioespnow·dht·ds18x20·neopixel·onewire·umqtt.robust·umqtt.simple·upysh — ESP32_GENERIC는 따로 바꾸지 않음).
+#   실물 Thonny 셸 help('modules') 대조는 운영자 할 일 2(같은 이름이 나와야 한다). 보드 라이브러리 금지 이름(src/lab/esp32/board-libraries.ts
+#   RESERVED_LIBRARY_NAMES)은 이 표의 이름과 u-이름을 모두 담는다(같은 검사가 본다).
+
+#: 확장할 수 없는 붙박이 모듈(MP_REGISTER_MODULE) — 보드 뿌리에 같은 이름 파일이 있어도 붙박이가 먼저다. u-이름으로는 불러지지 않는다(usys만 특례).
+FIRMWARE_BUILTIN_MODULES = frozenset({
+    "__main__", "_asyncio", "_espnow", "_onewire", "_thread", "_webrepl", "btree", "builtins", "cmath", "deflate", "esp",
+    "esp32", "framebuf", "gc", "math", "micropython", "network", "sys", "tls", "uctypes", "vfs",
+})
+#: 확장할 수 있는 붙박이 모듈(MP_REGISTER_EXTENSIBLE_MODULE) — 보드 뿌리의 같은 이름 파일이 먼저이고, u-이름(ujson·utime …)으로도 불러진다.
+FIRMWARE_EXTENSIBLE_MODULES = frozenset({
+    "array", "binascii", "bluetooth", "collections", "cryptolib", "errno", "hashlib", "heapq", "io", "json", "machine", "os",
+    "platform", "random", "re", "select", "socket", "struct", "time", "websocket",
+})
+#: 펌웨어에 얼린(frozen) 파이썬 모듈의 맨 앞 이름(mp_frozen_names — 내부용 _boot·flashbdev·inisetup 포함, machine은 붙박이 machine을 넓히는 파일).
+FIRMWARE_FROZEN_MODULES = frozenset({
+    "_boot", "aioespnow", "apa106", "asyncio", "dht", "ds18x20", "espnow", "flashbdev", "inisetup", "machine", "mip",
+    "neopixel", "ntptime", "onewire", "requests", "ssl", "uasyncio", "umqtt", "upysh", "urequests", "webrepl", "webrepl_setup",
+})
+#: 얼린 꾸러미의 하위 모듈(점 이름) — 붙박이 모듈은 꾸러미가 아니라 `import os.path`·`import collections.abc`는 실물에서 ImportError다.
+FIRMWARE_FROZEN_SUBMODULES = frozenset({
+    "asyncio.core", "asyncio.event", "asyncio.funcs", "asyncio.lock", "asyncio.stream", "umqtt.robust", "umqtt.simple",
+})
+FIRMWARE_MODULES = FIRMWARE_BUILTIN_MODULES | FIRMWARE_EXTENSIBLE_MODULES | FIRMWARE_FROZEN_MODULES
+
+
+def firmware_has_module(name):
+    """실물 펌웨어(위 표)에서 `import name`이 되는지. 점 이름은 그 깊이의 모듈이 얼린 꾸러미에 있어야 하고,
+    u-이름은 확장 가능한 붙박이 모듈과 usys만 된다(py/objmodule.c — umachine·ujson은 되고 unetwork·umath는 안 됨)."""
+    name = str(name)
+    if "." in name:
+        return name in FIRMWARE_FROZEN_SUBMODULES
+    if name in FIRMWARE_MODULES or name == "usys":
+        return True
+    return name.startswith("u") and name[1:] in FIRMWARE_EXTENSIBLE_MODULES
+
+
+def missing_on_board(name):
+    """실물 보드에서 `import name`이 처음 실패하는 이름 — 실물 오류 "no module named '…'"에 나오는 깊이와 같다(py/builtinimport.c).
+    다 있으면 None. 예: datetime → 'datetime', xml.etree.ElementTree → 'xml', os.path → 'os.path', umqtt.simple → None."""
+    parts = str(name).split(".")
+    for depth in range(1, len(parts) + 1):
+        prefix = ".".join(parts[:depth])
+        if not firmware_has_module(prefix):
+            return prefix
+    return None
+
+
+def missing_module_notice(name):
+    """학생 콘솔에 "[알림]"으로 보이는 글(apc_runtime.notice level warn). 고1이 읽는 두 문장 + 실물 오류 글(no module named …).
+    오류 사전·검사가 "모듈은 실물 ESP32 보드(MicroPython)에는 없어요"로 이 글을 찾으니 바꾸면 함께 고친다."""
+    return (
+        f"{name} 모듈은 실물 ESP32 보드(MicroPython)에는 없어요. 가상 보드에서만 돌아가고, "
+        f"실물 보드에서는 ImportError(no module named '{name}')가 나요."
+    )
+
+
+#: 사이트 흉내 파일이 있는 폴더(워커의 /apc — 이 파일이 있는 곳). machine·micropython·neopixel·framebuf·ssd1306·sh1106처럼 사이트가 주는 모듈이다.
+_SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+#: 파이썬 import 문의 명령(IMPORT_NAME). 모르는 판이면 None — 그때는 import 문인지 가리지 않고 알린다.
+_IMPORT_NAME_OPCODE = opcode.opmap.get("IMPORT_NAME")
+
+
+def _site_module_file(name):
+    return os.path.exists(os.path.join(_SITE_DIR, f"{name}.py"))
+
+
+def _called_by_import_statement(frame):
+    """import를 부른 곳이 파이썬 import 문(IMPORT_NAME 명령)인지. C 코드가 부르는 import(PyImport_Import — datetime.strptime이 부르는 _strptime,
+    warnings.warn이 부르는 warnings 등)도 지금 프레임(학생 코드)의 globals로 builtins.__import__를 부르므로(CPython Python/import.c,
+    Pyodide 314.0.7에서 확인 — 그때 프레임은 CALL 명령에 있다), 학생이 쓰지 않은 import에 알리지 않게 거른다."""
+    if frame is None or _IMPORT_NAME_OPCODE is None:
+        return True
+    try:
+        code = frame.f_code.co_code
+        index = frame.f_lasti
+        return 0 <= index < len(code) and code[index] == _IMPORT_NAME_OPCODE
+    except Exception:  # noqa: BLE001 — 프레임을 못 읽으면 알림 쪽으로(드묾)
+        return True
+
+
+def _notice_missing_on_board(missing, namespace, frame):
+    """학생 코드의 import 문이 성공했는데 그 모듈(missing — missing_on_board의 값)이 실물 펌웨어에 없으면 콘솔에 알린다(미해결 222).
+    실행은 막지 않고, 실행마다 모듈 하나에 한 번. 알리지 않는 것: 학생·보드 라이브러리 파일(작업 폴더·/board/lib — 실물 보드에도 올라감),
+    사이트 흉내(/apc의 파일), 보드 라이브러리 안쪽의 import(사이트 라이브러리 — /board/lib 파일이 부른 것), C 코드가 부른 import.
+    동기 진입점 규칙: 양보하지 않는다(notice만)."""
+    if missing in BOARD.module_notices:
+        return
+    head = missing.partition(".")[0]
+    if _user_module_file(head) or _site_module_file(head):
+        return
+    file_name = namespace.get("__file__") if isinstance(namespace, dict) else None
+    if isinstance(file_name, str) and file_name.startswith(BOARD_LIB_DIR + "/"):
+        return
+    if not _called_by_import_statement(frame):
+        return
+    BOARD.module_notices.add(missing)
+    apc_runtime.notice(missing_module_notice(missing), "warn")
+
+
 #: 실물 펌웨어에 들어 있거나(firmware) 사이트가 부품 라이브러리로 주는데(library) 가상 보드에 아직 없는 모듈(병렬 제작 준비 2026-09-17).
 #: 학생 코드가 import했는데 파일이 없으면 한국어 안내가 든 ModuleNotFoundError를 낸다. 부품 구역이 같은 이름의 파일(부품 폴더의 .py 또는
 #: examples/esp32/lib/의 라이브러리)을 더하면 그 파일이 그대로 import되므로 이 표를 고치지 않아도 된다. 안내 문구에는 오류 사전
@@ -1501,6 +1628,10 @@ NOT_YET_MODULES = {
     "tls": "firmware",
     "websocket": "firmware",
     "uctypes": "firmware",
+    # 위 둘(cryptolib·websocket)은 확장 가능한 붙박이 모듈이라 실물에서는 u-이름으로도 불러진다(펌웨어 파일의 확장 가능 표·py/objmodule.c —
+    # 미해결 222 조사, 2026-10-06). 전에는 가상 보드에서 "그런 이름의 모듈이 없어요(오타이거나 …)" 카드로 갔다.
+    "ucryptolib": "firmware",
+    "uwebsocket": "firmware",
 }
 
 #: 펌웨어 모듈인데 Pyodide에 같은 이름의 PC용 모듈이 있는 것 — 그대로 두면 PC용 requests(HTTP)·ssl(CPython 표준 모듈)이 import되어
@@ -1518,7 +1649,8 @@ FIRMWARE_ONLY_MODULES = {"requests", "ssl"}
 #: 덧말에 쓰는 배포판 import 이름 표(_pyodide._importhook.REPODATA_PACKAGES_IMPORT_TO_PACKAGE_NAME — pyodide-lock.json의 imports,
 #: Pyodide 314.0.7에서 304개 — 막지 않으면 정확히 이 이름들이 영어 덧말을 단다) + 아래 고정 목록(그 표를 읽지 못하는 판을 위한
 #: 안전망 — 교과서·사이트의 컴퓨터 쪽 예제가 쓰는 패키지). 파이썬 표준 모듈 이름(sys.stdlib_module_names)과 펌웨어 이름·u-이름은
-#: 빼므로 표준 모듈 차이(datetime 등 — 실물에는 없지만 가상 보드에서는 돎)는 그대로다(ESP32 실습실 "다른 점" 상자가 알림).
+#: 빼므로 표준 모듈 차이(datetime 등 — 실물에는 없지만 가상 보드에서는 돎)는 막지 않는다 — 콘솔 "[알림]"(_notice_missing_on_board,
+#: 미해결 222)과 ESP32 실습실 "다른 점" 상자가 알린다.
 PC_PACKAGE_FALLBACK = frozenset({"numpy", "cv2", "pandas", "matplotlib", "PIL", "scipy", "sklearn"})
 
 _pc_package_cache = None
@@ -1534,7 +1666,7 @@ def pc_package_names():
         if isinstance(table, dict):
             names.update(name for name in table if isinstance(name, str) and name.isidentifier())
         names -= set(getattr(sys, "stdlib_module_names", ()))
-        names -= set(NOT_YET_MODULES) | FIRMWARE_ONLY_MODULES | set(U_ALIASES)
+        names -= set(NOT_YET_MODULES) | FIRMWARE_ONLY_MODULES | set(U_ALIASES) | FIRMWARE_MODULES
         _pc_package_cache = frozenset(names)
     return _pc_package_cache
 
@@ -1627,36 +1759,47 @@ _host_import = None
 
 def _board_import(name, globals=None, locals=None, fromlist=(), level=0):  # noqa: A002 — builtins.__import__와 같은 인자 이름
     if level == 0 and is_board_code(globals):
-        if name in _board_modules:
-            target = _board_modules[name]
-            return target() if callable(target) and not isinstance(target, types.ModuleType) else target
-        alias = U_ALIASES.get(name)
-        if alias is not None:
-            return _host_import(alias, globals, locals, fromlist, 0)
-        # 점이 든 이름(from umqtt.simple import …)도 종류는 맨 앞 이름으로 고른다 — 학생이 보는 안내가 같아야 한다(Phase 4 준비 2026-09-18).
-        # 차례: 펌웨어 이름(FIRMWARE_ONLY)을 먼저 보고 컴퓨터용 패키지를 본다 — 펌웨어 이름(requests·ssl)이 컴퓨터용 카드로 가지 않게(판 1.1.3).
-        head = name.partition(".")[0]
-        if head in FIRMWARE_ONLY_MODULES and not _user_module_file(head):
-            # Pyodide의 PC용 같은 이름 패키지를 부르지 않고 곧바로 알린다(FIRMWARE_ONLY_MODULES 머리말). Pyodide는 자기 배포판에 있는
-            # 이름의 ModuleNotFoundError에 "micropip.install(…)로 설치해요"라는 영어 덧말을 붙이는데(_pyodide/_importhook.py
-            # add_note_to_module_not_found_error — 이미 붙였다는 표시 _PYODIDE_ADDED_NOTE가 있으면 건너뜀), 보드에는 맞지 않는 안내라 붙이지 않게 한다.
-            error = ModuleNotFoundError(not_yet_module_message(head), name=head)
-            setattr(error, "_PYODIDE_ADDED_NOTE", True)
-            raise error
-        if head in pc_package_names() and not _user_module_file(head):
-            # 컴퓨터용 패키지(PC_PACKAGE_FALLBACK 머리말) — 실물 MicroPython과 같은 ImportError. ModuleNotFoundError가 아니라 Pyodide의
-            # 영어 덧말 대상이 아니지만, 같은 표시를 남겨 둔다(덧말이 붙는 경로가 바뀌어도 학생 콘솔에 micropip 안내가 새지 않게).
-            error = ImportError(pc_package_message(head), name=head)
-            setattr(error, "_PYODIDE_ADDED_NOTE", True)
-            raise error
-        if head in NOT_YET_MODULES:
-            try:
-                return _host_import(name, globals, locals, fromlist, level)
-            except ModuleNotFoundError as error:
-                if error.name not in (name, head):
-                    raise
-                raise ModuleNotFoundError(not_yet_module_message(head, error.name), name=error.name or head) from None
+        module = _board_code_import(name, globals, locals, fromlist)
+        # 실물 펌웨어에 없는 모듈 알림(미해결 222): import가 된 뒤에만 — 안 되면 오류가 이미 알렸다. 펌웨어 이름이면 여기서 끝(빠른 길).
+        missing = missing_on_board(name)
+        if missing is not None:
+            _notice_missing_on_board(missing, globals, sys._getframe(1))
+        return module
     return _host_import(name, globals, locals, fromlist, level)
+
+
+def _board_code_import(name, globals, locals, fromlist):  # noqa: A002 — builtins.__import__와 같은 인자 이름
+    """학생 코드(is_board_code)의 절대 import: 등록표 → u-이름 → 펌웨어 이름(FIRMWARE_ONLY) → 컴퓨터용 패키지 → 아직 없는 모듈 → host import."""
+    if name in _board_modules:
+        target = _board_modules[name]
+        return target() if callable(target) and not isinstance(target, types.ModuleType) else target
+    alias = U_ALIASES.get(name)
+    if alias is not None:
+        return _host_import(alias, globals, locals, fromlist, 0)
+    # 점이 든 이름(from umqtt.simple import …)도 종류는 맨 앞 이름으로 고른다 — 학생이 보는 안내가 같아야 한다(Phase 4 준비 2026-09-18).
+    # 차례: 펌웨어 이름(FIRMWARE_ONLY)을 먼저 보고 컴퓨터용 패키지를 본다 — 펌웨어 이름(requests·ssl)이 컴퓨터용 카드로 가지 않게(판 1.1.3).
+    head = name.partition(".")[0]
+    if head in FIRMWARE_ONLY_MODULES and not _user_module_file(head):
+        # Pyodide의 PC용 같은 이름 패키지를 부르지 않고 곧바로 알린다(FIRMWARE_ONLY_MODULES 머리말). Pyodide는 자기 배포판에 있는
+        # 이름의 ModuleNotFoundError에 "micropip.install(…)로 설치해요"라는 영어 덧말을 붙이는데(_pyodide/_importhook.py
+        # add_note_to_module_not_found_error — 이미 붙였다는 표시 _PYODIDE_ADDED_NOTE가 있으면 건너뜀), 보드에는 맞지 않는 안내라 붙이지 않게 한다.
+        error = ModuleNotFoundError(not_yet_module_message(head), name=head)
+        setattr(error, "_PYODIDE_ADDED_NOTE", True)
+        raise error
+    if head in pc_package_names() and not _user_module_file(head):
+        # 컴퓨터용 패키지(PC_PACKAGE_FALLBACK 머리말) — 실물 MicroPython과 같은 ImportError. ModuleNotFoundError가 아니라 Pyodide의
+        # 영어 덧말 대상이 아니지만, 같은 표시를 남겨 둔다(덧말이 붙는 경로가 바뀌어도 학생 콘솔에 micropip 안내가 새지 않게).
+        error = ImportError(pc_package_message(head), name=head)
+        setattr(error, "_PYODIDE_ADDED_NOTE", True)
+        raise error
+    if head in NOT_YET_MODULES:
+        try:
+            return _host_import(name, globals, locals, fromlist, 0)
+        except ModuleNotFoundError as error:
+            if error.name not in (name, head):
+                raise
+            raise ModuleNotFoundError(not_yet_module_message(head, error.name), name=error.name or head) from None
+    return _host_import(name, globals, locals, fromlist, 0)
 
 
 _installed = False
