@@ -3,6 +3,8 @@
 //    저장소의 실제 마크다운 그림은 모두 그림 목록(*.images.yaml)에 도구가 적은 숫자와 같아야 한다.
 //  - 174 차시 번호: 글 속 "2-1-3"·"2-1-R"을 <span class="nowrap">으로 감싸되, 코드 블록·인라인 코드·링크 주소·제목 id는 그대로다.
 //    저장소의 차시 45편을 플러그인 있이·없이 그려 **nowrap 조각과 그림 크기 속성만 다르고 나머지 글자는 한 글자도 같은지** 본다.
+//  - 판 4 닫는 따옴표(판 1.2.0 — DECISIONS C96): smartypants가 문장부호·기호 뒤에 잘못 넣은 여는 따옴표만 닫는 따옴표로 바꾼다.
+//    45편 비교는 따옴표 방향(“→” ‘→’) 말고는 한 글자도 바뀌지 않았는지까지 본다.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -15,6 +17,7 @@ import rehypeLessonPolish, {
   LESSON_NUMBER_PATTERN,
   NOWRAP_CLASS,
   REHYPE_LESSON_POLISH_VERSION,
+  fixClosingQuotesInText,
   gifSize,
   imageSizeOf,
   jpegSize,
@@ -62,6 +65,27 @@ function stripNowrap(html: string): string {
 /** 그림 크기 속성을 걷어 낸다(양쪽에 똑같이 — 글쓴이가 적은 크기도 함께 걷히므로 비교는 공평하다) */
 function stripImageSize(html: string): string {
   return html.replace(/(<img\b[^>]*?) width="\d+" height="\d+"/gu, '$1');
+}
+
+/**
+ * 닫는 따옴표 바로잡기(판 4)가 바꾼 자리를 되돌려 플러그인 없는 출력과 견줄 수 있게 한다. 두 글은 길이가 같고, 다른 글자는 모두
+ * 여는 따옴표 → 닫는 따옴표(“→” ‘→’)여야 한다(아니면 그 자리를 알리며 실패). 되돌린 글과 바꾼 수를 돌려준다.
+ */
+function undoQuoteFixes(polished: string, plain: string, label: string): { html: string; fixed: number } {
+  const a = [...polished];
+  const b = [...plain];
+  expect(a.length, `${label}: 따옴표 말고 글자 수가 달라요`).toBe(b.length);
+  let fixed = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] === b[index]) {
+      continue;
+    }
+    const pair = `${b[index]}${a[index]}`;
+    expect(['“”', '‘’'], `${label}: ${index}번째 글자 ${pair} — 따옴표 방향 말고 다른 것이 바뀜`).toContain(pair);
+    a[index] = b[index] ?? '';
+    fixed += 1;
+  }
+  return { html: a.join(''), fixed };
 }
 
 /** 크기 속성이 있는 그림 수 */
@@ -286,23 +310,28 @@ describe('저장소의 차시 45편(플러그인이 더하는 것 말고는 한 
     expect(files.length).toBeGreaterThanOrEqual(45);
   });
 
-  let totals = { nowrap: 0, sized: 0 };
+  let totals = { nowrap: 0, sized: 0, quotes: 0 };
   afterAll(() => {
-    // 기록용(테스트 출력에 남는다) — 2026-09-26 기준 값은 보고서 zone-a-perf.md
-    console.log(`[다듬기] 차시 ${files.length}편: 차시 번호 감싼 곳 ${totals.nowrap}곳, 크기를 붙인 마크다운 그림 ${totals.sized}장`);
+    // 기록용(테스트 출력에 남는다) — 2026-09-26 기준 값은 보고서 zone-a-perf.md, 닫는 따옴표는 2026-10-06 75곳(27편)
+    console.log(
+      `[다듬기] 차시 ${files.length}편: 차시 번호 감싼 곳 ${totals.nowrap}곳, 크기를 붙인 마크다운 그림 ${totals.sized}장, 바로잡은 닫는 따옴표 ${totals.quotes}곳`,
+    );
   });
 
   it(
     '플러그인 있이·없이 그린 HTML이 nowrap 조각과 그림 크기 속성을 빼면 같고, 코드 블록·링크 주소·제목 id가 그대로다',
     async () => {
-      totals = { nowrap: 0, sized: 0 };
+      totals = { nowrap: 0, sized: 0, quotes: 0 };
       for (const file of files) {
         const full = path.join(LESSONS, ...file.split('/'));
         const body = splitFrontmatter(fs.readFileSync(full, 'utf8'));
         const polished = await render(withPolish, body, full);
         const plain = await render(withoutPolish, body, full);
-        // nowrap 조각·좁은 화면용 그림 감싸기를 걷으면, 그림 크기 속성 말고는 플러그인 없는 출력과 한 글자도 같다
-        expect(stripImageSize(stripNarrowPicture(stripNowrap(polished))), file).toBe(stripImageSize(stripNarrowPicture(plain)));
+        // nowrap 조각·좁은 화면용 그림 감싸기를 걷고 닫는 따옴표를 되돌리면, 그림 크기 속성 말고는 플러그인 없는 출력과 한 글자도 같다
+        const expected = stripImageSize(stripNarrowPicture(plain));
+        const quotes = undoQuoteFixes(stripImageSize(stripNarrowPicture(stripNowrap(polished))), expected, file);
+        expect(quotes.html, file).toBe(expected);
+        totals.quotes += quotes.fixed;
         // 글쓴이가 적은 크기(<img … width= height=>)는 그대로 두고, 크기 없는 마크다운 그림에만 더했다
         expect(sizedImages(polished), `${file}: 크기 있는 그림 수`).toBeGreaterThanOrEqual(sizedImages(plain));
         // 코드 블록(<pre>) 안에는 nowrap이 없다
@@ -319,14 +348,55 @@ describe('저장소의 차시 45편(플러그인이 더하는 것 말고는 한 
       }
       expect(totals.nowrap).toBeGreaterThan(0);
       expect(totals.sized).toBeGreaterThanOrEqual(9);
+      expect(totals.quotes).toBeGreaterThan(0);
     },
     180_000,
   );
 });
 
+describe('닫는 따옴표 바로잡기(판 4 — 판 1.2.0, DECISIONS C96)', () => {
+  /** 한 문단 마크다운을 그려 <p> 껍데기를 벗긴다 */
+  const quoted = async (markdown: string) => (await render(withPolish, markdown)).replace(/^<p>/u, '').replace(/<\/p>\n?$/u, '');
+
+  it('문장부호·기호·숫자 뒤에 조사가 붙은 닫는 따옴표를 바로잡는다(2026-10-06 차시에서 찾은 모양)', async () => {
+    expect(await quoted("동작을 '재생 입력(합성 좌표)'으로 골라요.")).toBe('동작을 ‘재생 입력(합성 좌표)’으로 골라요.');
+    expect(await quoted('속도를 "정회전 30%"처럼 적어요.')).toBe('속도를 “정회전 30%”처럼 적어요.');
+    expect(await quoted('90°가 "약 89°"로 보여요.')).toBe('90°가 “약 89°”로 보여요.');
+    expect(await quoted('"데이터가 들어오는 곳(Data In)"이라는 뜻이에요.')).toBe('“데이터가 들어오는 곳(Data In)”이라는 뜻이에요.');
+    // 따옴표 둘이 겹친 곳: 바로잡은 글자(’)로 이어 보므로 바깥 따옴표도 닫는 쪽이다
+    expect(await quoted("\"'정지' 또는 '종료'\"를 말해요.")).toBe('“‘정지’ 또는 ‘종료’”를 말해요.');
+  });
+
+  it('바른 따옴표는 그대로다(글자 뒤 닫는 것, 빈칸·괄호·줄표 뒤 여는 것, 블록 맨 앞)', async () => {
+    expect(await quoted("\"손 찾기\"와 '윙크'로 해요.")).toBe('“손 찾기”와 ‘윙크’로 해요.');
+    expect(await quoted('("정지")를 눌러요 — "다시"도 있어요.')).toBe('(“정지”)를 눌러요 — “다시”도 있어요.');
+    expect(await quoted('"처음" 칸')).toBe('“처음” 칸');
+  });
+
+  it('굵게·링크 경계를 넘어 앞 글자를 보고, 인라인 코드는 낱말로 본다(코드 글자는 바꾸지 않음)', async () => {
+    expect(await quoted('"**굵게(볼드)**"로 써요.')).toBe('“<strong>굵게(볼드)</strong>”로 써요.');
+    // 굵게가 되지 못하고 글자로 남은 별표(차시 틀 검사 md-bold가 오류로 알리는 모양) 뒤의 여는 따옴표는 그대로 둔다
+    expect(await quoted('**"굵게(볼드)"**로 써요.')).toBe('**“굵게(볼드)”**로 써요.');
+    expect(await quoted('[링크 "실습실(L)"](/labs/)로 가요.')).toBe('<a href="/labs/">링크 “실습실(L)”</a>로 가요.');
+    expect(await quoted('`print("a")` 뒤 "따옴표(1)"를 봐요.')).toBe('<code>print("a")</code> 뒤 “따옴표(1)”를 봐요.');
+  });
+
+  it('코드 블록 안은 건드리지 않는다', async () => {
+    const markdown = '```python\nprint("(1)"+"x")\n```\n';
+    expect(await render(withPolish, markdown)).toBe(await render(withoutPolish, markdown));
+  });
+
+  it('글 하나 단위 함수: 블록 맨 앞(prev null)은 여는 자리, 바꾼 수를 센다', () => {
+    const state: { prev: string | null; fixed: number } = { prev: null, fixed: 0 };
+    expect(fixClosingQuotesInText('“a(1)“로 ‘b’ “c%“', state)).toBe('“a(1)”로 ‘b’ “c%”');
+    expect(state.fixed).toBe(2);
+    expect(state.prev).toBe('”');
+  });
+});
+
 describe('판 번호(콘텐츠 캐시 비우기)', () => {
-  it('동작이 바뀐 판(2 이상)이 목록에 등록돼 있다', () => {
-    expect(REHYPE_LESSON_POLISH_VERSION).toBeGreaterThanOrEqual(2);
+  it('동작이 바뀐 판(4 이상 — 닫는 따옴표)이 목록에 등록돼 있다', () => {
+    expect(REHYPE_LESSON_POLISH_VERSION).toBeGreaterThanOrEqual(4);
     const entry = rehypePlugins.find((plugin) => Array.isArray(plugin) && plugin[0] === rehypeLessonPolish) as [unknown, { version: number }] | undefined;
     expect(entry?.[1]).toEqual({ version: REHYPE_LESSON_POLISH_VERSION, narrow: narrowFigureFingerprint() });
   });

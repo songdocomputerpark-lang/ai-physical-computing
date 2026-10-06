@@ -34,6 +34,18 @@
 //        스타일: src/styles/global.css의 .prose figure > picture.
 //      - 좁은 그림 파일을 새로 더하거나 지워도 차시 md는 그대로라, 로컬 빌드·개발 서버의 콘텐츠 캐시가 옛 HTML을 되살릴 수 있다(아래 캐시 주의 —
 //        markdown-plugins.mjs가 narrowFigureFingerprint()를 플러그인 설정에 넣어 저절로 비워진다. CI 빌드는 늘 캐시 없이 새로 그린다).
+//   4. 닫는 따옴표 바로잡기(판 1.2.0 — 2026-10-06 판 1.1.5 뒤 개선 묶음 구역 E 지적, DECISIONS C96): 곧은 따옴표(" ')를 둥근 따옴표로 바꾸는
+//      smartypants(@astrojs/markdown-remark가 사용자 remark 플러그인보다 먼저 거는 remark-smartypants 3.0.3 → retext-smartypants 6.2.0)는
+//      따옴표 앞이 문장부호·기호이고 뒤가 낱말이면 **여는** 따옴표로 정한다(retext-smartypants lib/index.js quotesDefault "Get most opening
+//      single quotes"). 한국어는 닫는 따옴표 뒤에 조사가 빈칸 없이 붙어 "뒤가 낱말"이 되므로 `'재생 입력(합성 좌표)'으로`가 화면에
+//      ‘재생 입력(합성 좌표)‘으로, `"정회전 30%"처럼`이 “정회전 30%“처럼, `"'정지' 또는 '종료'"를`이 “‘정지’ 또는 ‘종료‘“를로 보였다
+//      (차시 45편 가운데 23편 72곳). 그래서 smartypants 뒤에서 **여는 따옴표(“ ‘) 바로 앞 글자가 빈칸·여는 괄호·여는 따옴표·줄표·빗금이 아니면**
+//      닫는 따옴표(” ’)로 바꾼다. 블록(문단·제목·목록 항목·표 칸 등)의 맨 앞은 여는 자리다.
+//      - 앞 글자는 같은 블록 안에서 굵게·링크·용어 같은 인라인 요소의 경계를 넘어 본다. 인라인 코드(<code>·<kbd>·<samp>·<var>)는 글자를 바꾸지
+//        않고 낱말 하나로 본다(smartypants도 인라인 코드를 낱말 글자로 이어 본다). 마크다운 안 HTML 조각(raw) 바로 뒤와 모르는 요소 뒤는
+//        블록 맨 앞처럼 본다(바꾸지 않는 쪽 — smartypants가 보지 않는 글이라 판단할 근거가 없다).
+//      - 코드 블록·인라인 코드 안의 따옴표, 닫는 따옴표·아포스트로피(’), 곧은 따옴표는 건드리지 않는다. 바꾸는 것은 따옴표 방향뿐이라 글자 수·
+//        제목 id·주소는 그대로다. 차시 md에는 둥근 따옴표를 쓰지 않는다(곧은 따옴표로 쓰면 된다 — 유지보수 쉬움).
 //
 // 어디서 도나(@astrojs/markdown-remark 7.3.1 dist/index.js의 순서, 2026-09-26 확인)
 //   remark 플러그인(src/lib/markdown-plugins.mjs) → remark-rehype → Shiki 코드 색 → **이 플러그인** → Astro 그림 처리(rehypeImages)
@@ -67,8 +79,9 @@ import { withBase } from './url.ts';
 /**
  * 이 플러그인의 동작 판. 출력이 바뀌는 수정을 하면 1씩 올린다(위 캐시 주의).
  * 1 = 아무것도 안 함(준비 자리) · 2 = 그림 width·height(190) + 차시 번호 nowrap(174) · 3 = 좁은 화면용 그림 <picture>(209)
+ * · 4 = 닫는 따옴표 바로잡기(판 1.2.0 — 머리말 4번)
  */
-export const REHYPE_LESSON_POLISH_VERSION = 3;
+export const REHYPE_LESSON_POLISH_VERSION = 4;
 
 /** 좁은 화면용 그림 파일 이름의 끝: 원래 그림 agent-cycle.svg 옆의 agent-cycle.narrow.svg */
 export const NARROW_FIGURE_SUFFIX = '.narrow.svg';
@@ -103,6 +116,7 @@ const SKIP_TEXT_INSIDE = new Set(['code', 'pre', 'kbd', 'samp', 'script', 'style
  * @property {string} [basePath] 그림 주소 앞에 붙어 있을 수 있는 사이트 하위 경로(기본 공개 사이트 경로 siteConfig.publicBase — 있으면 떼고 찾는다.
  *   마크다운은 보통 base 없이 /images/…로 적으므로 대비용이다)
  * @property {boolean} [narrowFigures] false면 좁은 화면용 그림(<picture>)을 붙이지 않는다(테스트에서 판 2 출력과 견줄 때). 기본 true
+ * @property {boolean} [closingQuotes] false면 닫는 따옴표를 바로잡지 않는다(테스트에서 판 3 출력과 견줄 때). 기본 true
  * @property {string} [narrow] 좁은 그림 목록의 지문(narrowFigureFingerprint() — 동작에는 쓰지 않고, 설정 JSON에 들어가 캐시를 비우는 용도)
  */
 
@@ -669,6 +683,90 @@ function polish(parent, state) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// 닫는 따옴표 바로잡기(머리말 4번 — 판 1.2.0)
+// ─────────────────────────────────────────────────────────────
+
+/** 여는 따옴표 → 닫는 따옴표 */
+const CLOSING_QUOTE_OF = new Map([
+  ['“', '”'],
+  ['‘', '’'],
+]);
+
+/**
+ * 이 글자 바로 뒤의 여는 따옴표는 바르다: 빈칸, 여는 괄호·따옴표, 줄표·하이픈, 빗금, 별표(굵게가 되지 못하고 글자로 남은 `**` — 차시 틀 검사
+ * md-bold가 따로 알린다)
+ */
+const OPENING_QUOTE_CONTEXT = /[\s([{<“‘「『《〈—–\-/*]/u;
+
+/** 블록 안에서 앞 글자를 이어 보는 인라인 요소(굵게·링크·용어 등). 이 밖의 요소는 블록 경계로 본다(그 안과 뒤는 맨 앞처럼) */
+const QUOTE_INLINE_TAGS = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'cite', 'data', 'del', 'dfn', 'em', 'glossary-term', 'i', 'ins', 'mark', 'q', 's', 'small', 'span', 'strong', 'sub', 'sup', 'time', 'u']);
+
+/** 글자를 바꾸지 않고 낱말 하나로 보는 인라인 코드 요소(smartypants도 인라인 코드를 낱말 글자로 이어 본다) */
+const QUOTE_CODE_TAGS = new Set(['code', 'kbd', 'samp', 'var']);
+
+/** 앞 글자 대신 쓰는 낱말 글자(인라인 코드 뒤) */
+const WORD_PLACEHOLDER = 'A';
+
+/**
+ * 글 하나의 여는 따옴표 가운데 앞 글자가 여는 자리가 아닌 것을 닫는 따옴표로 바꾼다. state.prev는 블록 안 앞 글자(null = 블록 맨 앞)이고,
+ * 바꾼 글자로 이어 간다(‘종료‘“를 → ’ 다음의 “도 닫는 쪽).
+ * @param {string} value
+ * @param {{ prev: string | null, fixed: number }} state
+ * @returns {string}
+ */
+export function fixClosingQuotesInText(value, state) {
+  let out = '';
+  for (const char of value) {
+    let next = char;
+    const closing = CLOSING_QUOTE_OF.get(char);
+    if (closing !== undefined && state.prev !== null && !OPENING_QUOTE_CONTEXT.test(state.prev)) {
+      next = closing;
+      state.fixed += 1;
+    }
+    out += next;
+    state.prev = next;
+  }
+  return out;
+}
+
+/**
+ * 나무를 돌며 닫는 따옴표를 바로잡는다(머리말 4번). 바꾼 수를 돌려준다.
+ * @param {Parent} parent
+ * @param {{ prev: string | null, fixed: number }} state
+ */
+function fixClosingQuotes(parent, state) {
+  for (const child of parent.children) {
+    if (child.type === 'text') {
+      child.value = fixClosingQuotesInText(child.value, state);
+      continue;
+    }
+    if (child.type === 'element') {
+      if (QUOTE_CODE_TAGS.has(child.tagName)) {
+        state.prev = WORD_PLACEHOLDER;
+        continue;
+      }
+      if (QUOTE_INLINE_TAGS.has(child.tagName)) {
+        fixClosingQuotes(child, state);
+        continue;
+      }
+      // 블록(문단·제목·목록 항목·표 칸 …)이나 모르는 요소: 그 안은 맨 앞부터, 그 뒤도 맨 앞처럼. 코드·스크립트 안은 보지 않는다.
+      if (!SKIP_TEXT_INSIDE.has(child.tagName)) {
+        const inner = { prev: null, fixed: 0 };
+        fixClosingQuotes(child, inner);
+        state.fixed += inner.fixed;
+      }
+      state.prev = null;
+      continue;
+    }
+    if (child.type === 'raw') {
+      // 마크다운 안 HTML 조각 — smartypants가 보지 않는 글이라 바로 뒤는 맨 앞처럼(바꾸지 않는 쪽)
+      state.prev = null;
+    }
+  }
+  return state.fixed;
+}
+
 /**
  * rehype 플러그인(unified 규약: 설정을 받아 변환 함수를 돌려준다).
  * @param {RehypeLessonPolishOptions} [options]
@@ -677,8 +775,12 @@ function polish(parent, state) {
 export default function rehypeLessonPolish(options = {}) {
   const basePath = options.basePath ?? siteConfig.publicBase;
   const narrowFigures = options.narrowFigures !== false;
+  const closingQuotes = options.closingQuotes !== false;
   return function transform(tree, file) {
     const publicDir = options.publicDir ?? publicDirFor(file?.path, file?.cwd);
+    if (closingQuotes) {
+      fixClosingQuotes(tree, { prev: null, fixed: 0 });
+    }
     polish(tree, { publicDir, basePath, insideSkip: false, narrowFigures });
   };
 }
