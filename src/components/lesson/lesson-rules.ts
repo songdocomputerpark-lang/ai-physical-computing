@@ -103,6 +103,7 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'heading-h1': '본문에 # 제목(h1) 쓰지 않기',
   'md-tilde': '물결표(~) 두 개가 취소선이 되지 않게(범위는 \\~)',
   'md-bold': '굵게(**)가 글자 그대로 남지 않게',
+  'para-length': '학생 글 한 문단은 3문장 안(SPEC §7.1)',
 });
 
 function issue(level: LessonRuleLevel, code: string, message: string): LessonRuleIssue {
@@ -509,6 +510,203 @@ function markdownTrapIssues(html: string): LessonRuleIssue[] {
   return issues;
 }
 
+/* ───────────── 문단 길이(참고) ───────────── */
+
+/**
+ * 학생 글 한 문단의 문장 수 기준 — SPEC §7.1 "한 문단 3문장 이내", MAINTENANCE 1-3(PROGRESS 미해결 217, 2026-10-06).
+ * 넘으면 참고(para-length)로만 알린다. 정의와 바로 잇는 예처럼 나누면 오히려 어색한 문단도 있어서다(기준이지 법이 아님).
+ */
+export const MAX_PARAGRAPH_SENTENCES = 3;
+
+/** 문장 끝 부호(전각 포함) */
+const SENTENCE_END_MARKS = new Set(['.', '?', '!', '。', '？', '！']);
+/** 여는 기호 → 닫는 기호. 짝이 맞는 기호 안의 문장 끝은 세지 않는다(괄호 속 덧붙임, 따옴표 속 인용) */
+const ENCLOSING_PAIRS: Readonly<Record<string, string>> = Object.freeze({
+  '(': ')',
+  '（': '）',
+  '[': ']',
+  '“': '”',
+  '‘': '’',
+  '「': '」',
+  '『': '』',
+  '《': '》',
+  '〈': '〉',
+});
+const ENCLOSING_CLOSERS = new Set(Object.values(ENCLOSING_PAIRS));
+
+/**
+ * 글자마다 짝이 맞는 괄호·따옴표 몇 겹 안에 있는지. 짝이 없는 기호(번호 "1)", 영어 아포스트로피 ’, smartypants가 잘못 바꾼 따옴표)는
+ * 보통 글자로 둔다 — 짝 없는 여는 기호 하나 때문에 문단 끝까지 "괄호 안"으로 읽혀 문장을 못 세는 일이 없게.
+ * 곧은 큰따옴표(")는 smartypants가 바꾸지 않은 곳(마크다운 안 HTML 등)에만 남아 있어 차례로 둘씩 짝짓는다.
+ */
+function enclosureDepths(chars: readonly string[]): number[] {
+  const depths = chars.map(() => 0);
+  const deepen = (open: number, close: number) => {
+    for (let index = open + 1; index < close; index += 1) {
+      depths[index] = (depths[index] ?? 0) + 1;
+    }
+  };
+  const open: { index: number; closer: string }[] = [];
+  let straightQuote = -1;
+  chars.forEach((char, index) => {
+    if (char === '"') {
+      if (straightQuote < 0) {
+        straightQuote = index;
+      } else {
+        deepen(straightQuote, index);
+        straightQuote = -1;
+      }
+      return;
+    }
+    const closer = ENCLOSING_PAIRS[char];
+    if (closer) {
+      open.push({ index, closer });
+      return;
+    }
+    if (ENCLOSING_CLOSERS.has(char)) {
+      const at = open.map((entry) => entry.closer).lastIndexOf(char);
+      const opener = open[at];
+      if (opener) {
+        deepen(opener.index, index);
+        open.length = at;
+      }
+    }
+  });
+  return depths;
+}
+
+/**
+ * 글 한 덩어리를 문장으로 나눈다(문단 길이 참고 규칙용 — 사람이 세는 것과 가깝게, 헷갈리면 덜 세는 쪽으로).
+ *   문장 끝 = 마침표·물음표·느낌표 바로 뒤가 빈칸이거나 글 끝일 때. 그래서 소수점(0.5초), 파일 이름(a.py), 판 번호(1.29.0),
+ *            닫는 따옴표·괄호 바로 뒤에 조사가 붙은 인용(“…요.”가)은 저절로 끝이 아니다.
+ *   짝이 맞는 괄호·따옴표 안의 부호는 끝이 아니다: "(예: 0.5. 기본값)", "“켜져요. 꺼져요.”처럼", "“목 운동 끝!” 같은 한글".
+ *   마침표가 둘 이상 붙은 말줄임표(...)도 끝이 아니다. "?!"처럼 붙은 부호는 마지막 하나에서 한 번 끝난다.
+ * 인라인 코드는 부르는 쪽(studentParagraphs)이 미리 낱말 하나로 바꿔 넘긴다(코드 속 마침표·괄호가 끼지 않게).
+ */
+export function splitSentences(text: string): string[] {
+  const chars = [...text];
+  const depths = enclosureDepths(chars);
+  const sentences: string[] = [];
+  let start = 0;
+  chars.forEach((char, index) => {
+    if (!SENTENCE_END_MARKS.has(char) || (depths[index] ?? 0) > 0) {
+      return;
+    }
+    if (char === '.' && (chars[index - 1] === '.' || chars[index + 1] === '.')) {
+      return;
+    }
+    const next = chars[index + 1];
+    if (next !== undefined && !/\s/u.test(next)) {
+      return;
+    }
+    const sentence = chars.slice(start, index + 1).join('').trim();
+    if (sentence !== '') {
+      sentences.push(sentence);
+    }
+    start = index + 1;
+  });
+  const rest = chars.slice(start).join('').trim();
+  if (rest !== '') {
+    sentences.push(rest);
+  }
+  return sentences;
+}
+
+/** 문단 길이를 재지 않는 곳: 코드 블록·표·목록·인용·그림(그림 설명 포함) — 문단(<p>)이 아니거나 문장 글이 아니다 */
+const NOT_PROSE_TAGS = new Set(['pre', 'table', 'ul', 'ol', 'dl', 'blockquote', 'figure', 'script', 'style', 'template']);
+/** 학생 본문이 아닌 상자: 교사용(지도 글)·정답(정답과 풀이 접기) */
+const NOT_STUDENT_BOXES = ['teacher', 'answer'] as const;
+/** 인라인 코드는 낱말 하나("코드")로 읽는다 */
+const INLINE_CODE_TAGS = new Set(['code', 'kbd', 'samp', 'var']);
+/**
+ * 보기 줄 — 대단원 마무리 문항의 "①&nbsp;속도가 빨라요. ②&nbsp;…"는 문장이 아니라 한 줄에 늘어놓은 보기 목록이다.
+ * ①로 시작하고 빈칸 뒤 ②가 이어질 때만 본다("②는 사람이 정한 …"·"② 상수와 설정 영역에 …"처럼 번호로 코드 부분을 가리키는 문장은 센다).
+ */
+const CHOICE_LINE = /^①\s[\s\S]*\s②\s/u;
+
+/** 학생이 읽는 본문 문단 하나 */
+export interface StudentParagraph {
+  /** 화면에 보이는 글(빈칸은 한 칸으로) */
+  readonly text: string;
+  /** 문장들(인라인 코드는 "코드"로 바꿔 나눈 것) */
+  readonly sentences: readonly string[];
+}
+
+function proseForCounting(paragraph: HtmlElement): string {
+  const parts: string[] = [];
+  const walk = (node: HtmlElement) => {
+    for (const child of node.children) {
+      if (child.type === 'text') {
+        parts.push(child.text);
+      } else if (INLINE_CODE_TAGS.has(child.tag)) {
+        parts.push('코드');
+      } else if (child.tag === 'br') {
+        parts.push(' ');
+      } else {
+        walk(child);
+      }
+    }
+  };
+  walk(paragraph);
+  return parts.join('').replace(/\s+/gu, ' ').trim();
+}
+
+/**
+ * 차시 HTML에서 학생이 읽는 본문 문단(<p>)과 그 문장들을 차례대로 돌려준다.
+ * 빼는 것: 교사용·정답 상자 안, 코드 블록·표·목록·인용·그림(그림 설명), 상자 제목(p.box__title)·상자 끝 안내(p.box__note — 생성형 AI 상자),
+ * 보기 줄(①…②…), 빈 문단(그림만 있는 문단). 힌트·왜그럴까·오류·더알아보기 같은 학생 상자 안 문단은 센다.
+ */
+export function studentParagraphs(html: string): StudentParagraph[] {
+  const found: StudentParagraph[] = [];
+  const walk = (node: HtmlElement) => {
+    for (const child of childElements(node)) {
+      if (NOT_PROSE_TAGS.has(child.tag) || NOT_STUDENT_BOXES.some((variant) => isBox(child, variant))) {
+        continue;
+      }
+      if (child.tag !== 'p') {
+        walk(child);
+        continue;
+      }
+      if (hasClass(child, 'box__title') || hasClass(child, 'box__note')) {
+        continue;
+      }
+      const text = textContent(child);
+      if (text !== '' && !CHOICE_LINE.test(text)) {
+        found.push({ text, sentences: splitSentences(proseForCounting(child)) });
+      }
+    }
+  };
+  walk(parseHtml(html));
+  return found;
+}
+
+/**
+ * para-length(참고): 학생 글에 3문장을 넘는 문단 — 차시 하나에 한 줄로 몇 곳인지와 앞의 세 곳.
+ * "왜 배울까" 칸은 틀이 한 문단이라(SPEC §7.2 2번 "1문단 + 그림" — 차시 40편 모두 한 문단 3문장) 그 칸의 긴 문단에는 나누지 말고
+ * 3문장으로 줄이라고 덧붙인다(2026-10-06 2-1-5).
+ */
+function paragraphLengthIssues(html: string, plan: LessonBodyPlan): LessonRuleIssue[] {
+  const isLong = (paragraph: StudentParagraph) => paragraph.sentences.length > MAX_PARAGRAPH_SENTENCES;
+  const long = studentParagraphs(html).filter(isLong);
+  if (long.length === 0) {
+    return [];
+  }
+  const samples = long
+    .slice(0, 3)
+    .map((paragraph) => `"${[...paragraph.text].slice(0, 20).join('')}…" ${paragraph.sentences.length}문장`)
+    .join(', ');
+  const why = plan.sections.find((section) => section.key === 'why');
+  const whyLong = why ? studentParagraphs(why.parts.map((part) => (part.type === 'html' ? part.html : '')).join('')).some(isLong) : false;
+  return [
+    issue(
+      'warning',
+      'para-length',
+      `학생 글에 ${MAX_PARAGRAPH_SENTENCES}문장이 넘는 문단이 ${long.length}곳 있어요(${samples}). 한 문단은 ${MAX_PARAGRAPH_SENTENCES}문장 안이 기준이에요(SPEC §7.1) — 이야기가 바뀌는 문장 앞에 빈 줄을 넣어 문단을 나눠요. 정의와 바로 잇는 예처럼 나누면 어색한 문단은 그대로 둬도 돼요.` +
+        (whyLong ? ` "왜 배울까" 칸은 한 문단이 틀이라(SPEC §7.2) 나누지 말고 ${MAX_PARAGRAPH_SENTENCES}문장으로 줄여요.` : ''),
+    ),
+  ];
+}
+
 /* ───────────── 모으기 ───────────── */
 
 /**
@@ -530,7 +728,7 @@ export function checkLessonRules(input: LessonRuleInput): LessonRuleIssue[] {
   } else {
     issues.push(...plan.warnings.map((warning) => issue('error', 'body-plan', warning)));
   }
-  issues.push(...imageAltIssues(html), ...headingIssues(html), ...markdownTrapIssues(html));
+  issues.push(...imageAltIssues(html), ...headingIssues(html), ...markdownTrapIssues(html), ...paragraphLengthIssues(html, plan));
   return issues;
 }
 

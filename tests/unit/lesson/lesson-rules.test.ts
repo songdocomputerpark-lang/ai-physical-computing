@@ -6,9 +6,12 @@ import { describe, expect, it } from 'vitest';
 import {
   LESSON_RULES,
   MAX_LESSON_MINUTES,
+  MAX_PARAGRAPH_SENTENCES,
   checkLessonRules,
   imageAltIssues,
   lessonSource,
+  splitSentences,
+  studentParagraphs,
   type LessonRuleIssue,
 } from '../../../src/components/lesson/lesson-rules.ts';
 import { lessonSchema, type LessonData } from '../../../src/config/content-schemas.ts';
@@ -357,6 +360,117 @@ describe('본문 8칸 규칙', () => {
     };
     const issues = await check({ raw: review, markdown: '## 문제\n\n풀어 봐요.\n\n::퀴즈\n' });
     expect(codes(issues)).toEqual([]);
+  });
+});
+
+// PROGRESS 미해결 217(최종 전수 점검 U1-05, 2026-10-06): SPEC §7.1 "한 문단 3문장 이내"를 문장 셈으로 재는 참고 규칙.
+// 셈이 실제 차시 글에서 틀리던 모양(소수점·파일 이름·따옴표 속 인용·괄호 속 덧붙임·보기 줄·인라인 코드)을 하나씩 막는다.
+describe('문단 길이(para-length) — 문장 셈', () => {
+  const count = (text: string) => splitSentences(text).length;
+
+  it('해요체 문장 끝(. ? !)과 끝 부호 없는 마지막 조각을 센다', () => {
+    expect(splitSentences('불이 켜져요. 왜 그럴까요? 정답이에요! 다음 차시에서 더 배워요')).toEqual([
+      '불이 켜져요.',
+      '왜 그럴까요?',
+      '정답이에요!',
+      '다음 차시에서 더 배워요',
+    ]);
+    expect(count('')).toBe(0);
+    // 붙은 부호(?!)는 한 번, 빈칸 대신 NBSP·전각 부호도 끝
+    expect(count('정말요?! 네, 맞아요.')).toBe(2);
+    expect(count('켜져요. 꺼져요。 끝이에요')).toBe(3);
+  });
+
+  it('소수점·판 번호·파일 이름·주소처럼 마침표 뒤에 글자가 붙으면 끝이 아니다', () => {
+    expect(count('값은 0.5초예요. MicroPython 1.29.0 판을 써요.')).toBe(2);
+    expect(count('a.py 파일에서 cv2.imshow로 보여요. https://example.com/a.b 주소예요.')).toBe(2);
+    expect(count('반지름이 1.4배쯤 커져요. 0.4 아래로 내려와요.')).toBe(2);
+  });
+
+  it('짝이 맞는 괄호·따옴표 안의 부호는 끝이 아니다 — 닫은 뒤 빈칸이 와도(“…!” 같은)', () => {
+    expect(count('값을 바꿔요(예: 0.5. 기본값은 1이에요). 다시 실행해요.')).toBe(2);
+    expect(count('화면에 “안녕하세요.”가 나와요. 끝이에요.')).toBe(2);
+    expect(count('화면 글자는 영어로 적고, “목 운동 끝!” 같은 한글은 콘솔에 적어요. 15초쯤 걸려요.')).toBe(2);
+    expect(count('콘솔에 ‘Hello.’라고 나와요. [실행. 정지] 단추가 있어요.')).toBe(2);
+    // smartypants를 거치지 않은 곧은 따옴표도 둘씩 짝짓는다
+    expect(count('"켜져요. 꺼져요."처럼 번갈아 나와요. 끝이에요.')).toBe(2);
+  });
+
+  it('짝 없는 기호는 보통 글자다 — 번호 "1)"·영어 아포스트로피·잘못 바뀐 따옴표 때문에 나머지를 못 세지 않는다', () => {
+    expect(count('1) 먼저 해요. 2) 다음에 해요. 3) 끝내요.')).toBe(3);
+    expect(count('Let’s go 라고 적어요. 다음 줄이에요.')).toBe(2);
+    expect(count('DIN은 “데이터가 들어오는 곳(Data In)“이라는 뜻이에요. 선 하나로 보내요. 차례로 넘겨요. 끝이에요.')).toBe(4);
+  });
+
+  it('말줄임표(...)는 끝이 아니다', () => {
+    expect(count('0, 1, 2, ... 9까지 세요. 다 셌어요.')).toBe(2);
+    expect(count('기다리는 중... 곧 끝나요.')).toBe(1);
+  });
+});
+
+describe('문단 길이(para-length) — 학생 문단 고르기와 참고 규칙', () => {
+  it('학생 상자(왜그럴까·오류·힌트·더알아보기) 안 문단은 세고, 교사용·정답 상자·목록·표·그림 설명·코드·상자 제목은 뺀다', async () => {
+    const html = await render(
+      [
+        '본문 첫 문단이에요. 둘째 문장이에요.',
+        ':::왜그럴까\n왜그럴까 문단이에요.\n:::',
+        ':::오류\n오류 문단이에요.\n:::',
+        '::::도전[도전]\n과제 문단이에요.\n\n:::힌트\n힌트 문단이에요.\n:::\n::::',
+        ':::더알아보기\n더 알아보기 문단이에요.\n:::',
+        ':::교사용\n교사용 글이에요. 하나. 둘. 셋. 넷.\n:::',
+        ':::정답\n정답 풀이예요. 하나. 둘. 셋. 넷.\n:::',
+        '- 목록이에요. 하나. 둘. 셋. 넷.',
+        '| 칸 |\n| --- |\n| 표예요. 하나. 둘. 셋. 넷. |',
+        '> 인용이에요. 하나. 둘. 셋. 넷.',
+        '<figure>\n<img src="/a.svg" alt="그림 설명을 위한 시험 그림">\n<figcaption>그림 설명이에요. 하나. 둘. 셋. 넷.</figcaption>\n</figure>',
+        '```text\n코드 블록이에요. 하나. 둘. 셋. 넷.\n```',
+      ].join('\n\n'),
+    );
+    expect(studentParagraphs(html).map((paragraph) => paragraph.text)).toEqual([
+      '본문 첫 문단이에요. 둘째 문장이에요.',
+      '왜그럴까 문단이에요.',
+      '오류 문단이에요.',
+      '과제 문단이에요.',
+      '힌트 문단이에요.',
+      '더 알아보기 문단이에요.',
+    ]);
+    expect(studentParagraphs(html)[0]?.sentences).toHaveLength(2);
+  });
+
+  it('인라인 코드 속 마침표·괄호는 세지 않고, 보기 줄(①&nbsp;… ②&nbsp;…)은 문단으로 보지 않는다', async () => {
+    const html = await render(
+      [
+        '`cv2.imshow("a. b")`로 보여요. `x = 1.5`처럼 적어요. 끝이에요.',
+        '①&nbsp;속도가 빨라요. ②&nbsp;진동을 만들어 내요. ③&nbsp;오래 써요. ④&nbsp;늘 돌아요.',
+        '② 상수와 설정 영역에 한 줄 더하세요. 그리고 ④ 함수를 고쳐요. 줄 끝을 봐요. 단추를 눌러요.',
+      ].join('\n\n'),
+    );
+    const paragraphs = studentParagraphs(html);
+    expect(paragraphs.map((paragraph) => paragraph.sentences.length)).toEqual([3, 4]);
+    expect(paragraphs[0]?.text).toContain('cv2.imshow("a. b")');
+    expect(paragraphs[1]?.text.startsWith('② 상수와')).toBe(true);
+  });
+
+  it(`para-length: ${MAX_PARAGRAPH_SENTENCES}문장을 넘는 학생 문단은 참고(실패 아님) — 몇 곳인지와 앞부분을 알린다`, async () => {
+    const four = withSection('따라하기', '하나예요. 둘이에요. 셋이에요. 넷이에요.\n\n::예제\n\n:::왜그럴까\n이유예요.\n:::');
+    const issues = await check({ sections: four });
+    expect(codes(issues, 'warning')).toEqual(['para-length']);
+    expect(codes(issues, 'error')).toEqual([]);
+    expect(issues.find((item) => item.code === 'para-length')?.message).toContain('1곳 있어요("하나예요. 둘이에요. 셋이에요. 넷이…" 4문장)');
+    // 세 문장까지는 괜찮고, 나눠 쓰면(빈 줄) 문단이 둘이 된다
+    const three = withSection('따라하기', '하나예요. 둘이에요. 셋이에요.\n\n넷이에요.\n\n::예제\n\n:::왜그럴까\n이유예요.\n:::');
+    expect(codes(await check({ sections: three }))).toEqual([]);
+    // 다른 칸의 긴 문단에는 "왜 배울까" 안내가 붙지 않고, "왜 배울까" 칸(틀이 한 문단 — SPEC §7.2)의 긴 문단에는 나누지 말고 줄이라고 덧붙인다
+    expect(issues.find((item) => item.code === 'para-length')?.message).not.toContain('"왜 배울까"');
+    const why = withSection('왜 배울까', '하나예요. 둘이에요. 셋이에요. 넷이에요.\n\n<img src="/images/lessons/v1/why.svg" alt="왜 배우는지 보여 주는 사이트 그림">');
+    expect((await check({ sections: why })).find((item) => item.code === 'para-length')?.message).toContain(
+      '"왜 배울까" 칸은 한 문단이 틀이라(SPEC §7.2) 나누지 말고 3문장으로 줄여요.',
+    );
+    // 교사용 접기 안의 긴 문단은 학생 글이 아니라 보지 않는다
+    const teacherBody = BASE_SECTIONS['교사용'] ?? '';
+    expect(teacherBody).toContain('\n요약\n');
+    const teacher = withSection('교사용', teacherBody.replace('\n요약\n', '\n요약이에요. 하나. 둘. 셋. 넷.\n'));
+    expect(codes(await check({ sections: teacher }))).toEqual([]);
   });
 });
 

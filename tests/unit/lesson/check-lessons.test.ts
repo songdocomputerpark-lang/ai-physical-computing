@@ -121,6 +121,18 @@ describe('check:lessons — 통과와 실패', () => {
     expect(report.missing).toEqual([]);
     expect((await run({ only: ['9-9-9'] })).report.lessons).toEqual([]);
   });
+
+  it('para-length: 학생 글에 3문장 넘는 문단은 참고로만 알리고 통과한다 — 빈 줄로 나누면 참고도 없다(PROGRESS 미해결 217)', async () => {
+    const long = '실행해요. 콘솔을 봐요. 값이 바뀌어요. 다시 실행해요.';
+    write('content/lessons/u1/v1.md', lesson({ ...SECTIONS, 따라하기: SECTIONS['따라하기']?.replace('실행해요.', long) ?? '' }));
+    const flagged = await run();
+    expect(flagged.failed).toBe(false);
+    expect(flagged.text).toContain('[통과] content/lessons/u1/v1.md  V1 사진은 숫자다 — 참고 1');
+    expect(flagged.text).toContain('참고 [para-length] 학생 글에 3문장이 넘는 문단이 1곳 있어요');
+    write('content/lessons/u1/v1.md', lesson({ ...SECTIONS, 따라하기: SECTIONS['따라하기']?.replace('실행해요.', long.replace(' 다시', '\n\n다시')) ?? '' }));
+    const split = await run();
+    expect(split.report.lessons[0]?.issues).toEqual([]);
+  });
 });
 
 describe('check:lessons — 파일을 여는 검사', () => {
