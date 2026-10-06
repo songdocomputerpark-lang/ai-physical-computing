@@ -93,8 +93,8 @@ scripts/release/sources-manifest.json("lgpl-ffmpeg" 묶음 — https://github.co
   packages/libffmpeg/meta.yaml(configure 옵션)과 packages/opencv-python/(meta.yaml, extras/build_args.sh·OpenCVFindLibsGrfmt.cmake·
   detect_ffmpeg.cmake, patches/) — https://github.com/pyodide/pyodide-recipes/tree/fc8587207ecbf0fb54305d5da25ab7ed70f126d3. 빌드 도구는 같은 커밋의 하위 모듈 pyodide-build(26a30ea0c7274d0f99220c5d54e8938a28afb46c),
   Pyodide 교차 빌드 환경 314.0.6, Emscripten 5.0.3.
-- 이 사이트 저장소의 릴리스에도 위 파일들의 사본을 함께 올려 두기로 했어요(휠을 나누는 곳과 같은 곳에서 받을 수 있게 — 올리는 일은
-  운영자가 해요, PROGRESS.md 운영자 할 일). 사본이 올라오기 전에도 위 공식 주소에서 같은 파일을 받을 수 있어요.
+- 이 사이트 저장소의 릴리스에도 위 파일들의 사본을 함께 올려 두었어요(2026-10-06 — 휠을 나누는 곳과 같은 곳에서 받을 수 있게):
+  https://github.com/songdocomputerpark-lang/ai-physical-computing/releases/tag/license-sources-2026-09 . 위 공식 주소에서도 같은 파일을 받을 수 있어요.
 
 [서면 제안 — LGPL-2.1 6조 c]
 서면 제안: 이 사이트나 오프라인판에서 이 파일을 받은 사람은 누구나, 받은 날부터 적어도 3년 동안, 고지 파일에 적힌 대응 소스의 사본을 무료로 받을 수 있어요. 요청은 저장소 이슈(https://github.com/songdocomputerpark-lang/ai-physical-computing/issues)로 해 주세요.

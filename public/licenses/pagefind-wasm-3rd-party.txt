@@ -24,7 +24,7 @@ licenses/pagefind.txt에 있어요. 이 파일은 그 wasm 안에 함께 컴파�
 │    syn 2.0.117, unicode-ident 1.0.24, bumpalo 3.20.2, rustversion 1.0.22, serde_derive 1.0.228, wasm-bindgen-macro 0.2.117,
 │    wasm-bindgen-macro-support 0.2.117 — 그 밖의 12개는 아래 표의 판 그대로 crates.io에 있어요.
 │  • 빌드 도구: rustc 1.97.0-nightly(bf4fbfb7a 2026-04-11 — wasm 안 글자), wasm-bindgen 0.2.117.
-│ 이 사이트 저장소의 릴리스에도 위 소스의 사본을 함께 올려 두기로 했어요(운영자 할 일 — PROGRESS.md). 사이트 코드(MIT)는
+│ 이 사이트 저장소의 릴리스에도 위 소스의 사본을 함께 올려 두었어요(2026-10-06): https://github.com/songdocomputerpark-lang/ai-physical-computing/releases/tag/license-sources-2026-09 . 사이트 코드(MIT)는
 │ GPL-3.0과 함께 쓸 수 있는 라이선스이고, 검색 화면은 이 wasm을 정해진 함수로 불러 쓸 뿐 wasm을 고치지 않아요.
 │ 서면 제안(GPL-3.0 6조 b — 오프라인판을 USB 같은 매체로 나눌 때도 이 제안이 함께 가요):
 └─────────────────────────────────────────────────────────────────────────────────────
