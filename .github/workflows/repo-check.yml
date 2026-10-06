@@ -9,6 +9,7 @@
 #
 # 액션 버전은 2026-09-16에 확인한 릴리스의 커밋 SHA로 고정한다(까닭은 deploy.yml 머리말).
 #   actions/checkout v7.0.1, actions/setup-node v7.0.0
+# 러너도 ubuntu-latest가 아니라 판(ubuntu-26.04)을 적어 고정한다(까닭과 옮기는 법은 deploy.yml 머리말 — 미해결 214).
 name: 저장소 검사
 
 on:
@@ -27,7 +28,7 @@ concurrency:
 jobs:
   repo-check:
     name: 저장소 안전 검사(경로에 상관없이)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: 저장소 내려받기

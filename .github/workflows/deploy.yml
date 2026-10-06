@@ -9,6 +9,13 @@
 # 배포 권한(pages·id-token 쓰기)을 가진 작업이 바뀐 액션 코드를 받는 일을 막는다. 주석의 버전이 그 SHA의 릴리스다.
 # 버전을 올릴 때는 각 저장소의 릴리스 노트와 action.yml을 확인한 뒤 새 릴리스 태그의 SHA를 적는다
 # (예: gh api repos/actions/checkout/git/ref/tags/v7.0.1 → 태그 객체면 git/tags/<sha>로 한 번 더 풀어 커밋 SHA를 얻는다).
+#
+# 실행 컴퓨터(러너)도 ubuntu-latest가 아니라 판을 적어 고정한다: ubuntu-26.04(2026-10-06, PROGRESS 미해결 214).
+# ubuntu-latest는 GitHub가 2년쯤마다 새 Ubuntu LTS로 옮겨서(24.04 → 26.04는 2026-10-19~11-19, actions/runner-images#14748)
+# 저장소를 하나도 바꾸지 않았는데 어느 날 CI가 빨갛게 될 수 있다. 판을 적어 두면 옮기는 날을 우리가 정한다.
+# 옮기는 법(지금 판의 사용 중단 알림이 실행 화면이나 runner-images 공지에 보이면 — MAINTENANCE 8-9·11절): 새 가지에서
+# 세 워크플로(deploy·e2e·repo-check)의 runs-on 여섯 곳을 모두 새 판으로 바꾸고 풀 리퀘스트를 연다("테스트"·"저장소 검사"가
+# 저절로 돌고, "테스트"가 배포와 같은 npm run build를 한다). 초록이면 main에 합치고 "사이트 배포"도 초록인지 본다.
 name: 사이트 배포
 
 on:
@@ -35,7 +42,7 @@ concurrency:
 jobs:
   repo-check:
     name: 저장소 안전 검사
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     # 커밋 전 훅과 같은 검사(scripts/check-repo.mjs, PLAN §8.0 PD-32)를 한 번 더 돌린다:
     # 원본 자료 형식·5MB 넘는 파일·원본 파일 이름·개인정보 형태·눈 확인 기록 없는 이미지·docs/SPEC.md.
@@ -64,7 +71,7 @@ jobs:
 
   build:
     name: 빌드
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     # 빌드 작업은 npm 패키지의 설치 스크립트를 실행하므로 쓰기 권한을 주지 않는다.
     permissions:
@@ -113,7 +120,7 @@ jobs:
     name: 배포
     # 저장소 검사와 빌드가 모두 성공해야 배포한다.
     needs: [repo-check, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     # deploy-pages가 요구하는 최소 권한(actions/deploy-pages README)
     permissions:
