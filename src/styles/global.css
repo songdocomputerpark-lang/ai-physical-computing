@@ -218,11 +218,13 @@ textarea {
 }
 
 .page-title {
-  margin-block: var(--space-2) var(--space-4);
+  margin-block: var(--space-2) var(--space-3);
   font-size: var(--text-3xl);
 }
 
+/* 쪽 제목 아래 한두 문장. 긴 설명은 .more(자세히 보기)로 접거나 아래로 내린다(판 1.3.0). */
 .lead {
+  max-width: 44rem;
   margin-block-end: var(--space-8);
   color: var(--color-text-muted);
   font-size: var(--text-lg);
@@ -250,9 +252,15 @@ textarea {
     color var(--duration-fast) var(--ease-standard);
 }
 
+/* 버튼 안의 아이콘(<Icon>)은 글자와 같은 줄에 나란히 선다. 간격은 위 gap이 맡는다. */
+.button > .icon {
+  flex: none;
+}
+
 .button--primary {
   background: var(--color-accent);
   color: var(--color-on-accent);
+  box-shadow: var(--shadow-sm);
 }
 
 .button--primary:hover {
@@ -279,6 +287,7 @@ textarea {
 .button--large {
   min-height: 3.5rem;
   padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
   font-size: var(--text-lg);
 }
 

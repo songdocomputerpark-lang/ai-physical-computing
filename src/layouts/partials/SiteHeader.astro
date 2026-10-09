@@ -2,13 +2,19 @@
 /**
  * 머리글(공통 레이아웃의 일부) — 사이트 이름, 주 메뉴(src/config/nav.ts의 headerNav), 검색 상자 자리.
  *
- * - 넓은 화면(75rem 이상): 주 메뉴와 검색 상자가 한 줄에 보인다.
- * - 좁은 화면: [메뉴] 버튼 뒤에 메뉴가 접힌다. 버튼은 aria-expanded로 열림 상태를 알리고,
- *   Enter·Space로 열고 닫으며, 열린 채 Esc를 누르면 닫히고 초점이 버튼으로 돌아온다.
- *   좁은 화면 메뉴에는 아래 페이지(학생용·보드 준비 등)도 함께 보인다.
+ * 판 1.3.0 "설명 없이 쓰는 사이트":
+ * - 순서(DOM = 보이는 차례): 사이트 이름 → [메뉴] 단추 → 주 메뉴 → 검색 상자. 메뉴 밖에 검색 상자를 두어, 좁은 화면에서도 메뉴를 열지 않고 늘 쓴다.
+ * - 넓은 화면(75rem 이상): 한 줄 — 이름 · 메뉴(아이콘 위, 낱말 아래) · 검색 상자. 하위 메뉴는 숨긴다(드롭다운을 만들면 Tab 정지점이 늘어난다).
+ *   다른 글자 크기·넓은 화면에서 한 줄에 다 들어가지 않으면 검색 상자가 다음 줄로 내려간다(flex-wrap).
+ * - 좁은 화면: 첫 줄에 이름과 [메뉴] 단추, 둘째 줄에 검색 상자. [메뉴]를 열면 첫 줄 바로 아래에 큰 줄(아이콘 + 낱말, 48px)로 펼쳐지고 하위 메뉴는 들여 쓴다.
+ *   [메뉴]는 aria-expanded로 열림을 알리고, Enter·Space로 열고 닫으며, 열린 채 Esc를 누르면 닫히고 초점이 버튼으로 돌아온다(검색 상자 안의 Esc는 검색 자동 완성이 맡는다).
+ *   링크를 누르거나 머리글 바깥을 눌러도 닫힌다.
  * - 자바스크립트가 꺼져 있으면 버튼 없이 메뉴가 늘 펼쳐져 있다.
- * - 검색 상자는 src/components/search/HeaderSearch.astro(검색 담당 파일)를 그대로 넣는다.
+ * - 머리글은 화면에 붙어 있지 않는다(sticky 아님): 붙이면 좁은 화면에서 두 줄(약 7rem)이 화면을 먹고, 글자만 키운 화면에서는 여러 줄이 되어
+ *   #위치 이동·초점을 가린다(WCAG 2.4.11). --header-height(tokens.css)는 넓은 화면 한 줄 머리글의 높이다.
+ * - 검색 상자는 src/components/search/HeaderSearch.astro(검색 담당 파일)를 그대로 넣는다. 이 파일은 자리·폭만 정한다.
  */
+import Icon from '../../components/common/Icon.astro';
 import HeaderSearch from '../../components/search/HeaderSearch.astro';
 import { headerNav, isCurrentPage, isInSection } from '../../config/nav.ts';
 import { siteConfig } from '../../config/site.ts';
@@ -18,7 +24,7 @@ const pathname = Astro.url.pathname;
 const isHome = normalizePagePath(pathname) === '/';
 ---
 
-<header class="site-header">
+<header class="site-header" data-site-header>
   <div class="site-header__inner">
     <a class="site-header__brand" href={withBase('')} aria-current={isHome ? 'page' : undefined}>
       <svg class="site-header__logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
@@ -32,10 +38,9 @@ const isHome = normalizePagePath(pathname) === '/';
     </a>
 
     <button class="site-header__menu-button" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-button>
-      <svg class="site-header__menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M4 7h16M4 12h16M4 17h16"></path>
-      </svg>
-      메뉴
+      <span class="site-header__menu-icon site-header__menu-icon--closed"><Icon name="menu" size="sm" /></span>
+      <span class="site-header__menu-icon site-header__menu-icon--open"><Icon name="close" size="sm" /></span>
+      <span class="site-header__menu-label">메뉴</span>
     </button>
 
     <div class="site-header__menu" id="site-menu" data-menu>
@@ -53,7 +58,10 @@ const isHome = normalizePagePath(pathname) === '/';
                     aria-current={current ? 'page' : undefined}
                     data-active={active ? 'true' : undefined}
                   >
-                    {page.label}
+                    <span class="site-nav__icon">
+                      <Icon name={page.icon} size="sm" />
+                    </span>
+                    <span class="site-nav__label">{page.label}</span>
                   </a>
                   {page.children.length > 0 && (
                     <ul class="site-nav__sublist">
@@ -76,19 +84,21 @@ const isHome = normalizePagePath(pathname) === '/';
           }
         </ul>
       </nav>
-      <div class="site-header__search">
-        <HeaderSearch />
-      </div>
+    </div>
+
+    <div class="site-header__search">
+      <HeaderSearch />
     </div>
   </div>
 </header>
 
 <script>
   // 좁은 화면 메뉴 열고 닫기. 버튼과 접힌 상태는 html의 js 클래스(BaseLayout)가 있을 때만 스타일로 나타난다.
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
   const button = document.querySelector<HTMLButtonElement>('[data-menu-button]');
   const menu = document.querySelector<HTMLElement>('[data-menu]');
 
-  if (button && menu) {
+  if (header && button && menu) {
     // 아래 스타일의 75rem 기준과 같게 유지한다.
     const narrowScreen = window.matchMedia('(max-width: 74.99rem)');
     const isOpen = () => button.getAttribute('aria-expanded') === 'true';
@@ -101,11 +111,35 @@ const isHome = normalizePagePath(pathname) === '/';
       setOpen(!isOpen());
     });
 
+    // Esc: 메뉴 줄이나 [메뉴]에서는 메뉴를 닫고 초점을 [메뉴]로 돌린다. 검색 상자 안의 Esc는 검색 자동 완성이 맡는다(목록 닫기 → 입력 비우기).
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && narrowScreen.matches && isOpen()) {
-        setOpen(false);
-        button.focus();
+      if (event.key !== 'Escape' || event.defaultPrevented || !narrowScreen.matches || !isOpen()) {
+        return;
       }
+      if (event.target instanceof Element && event.target.closest('.site-header__search')) {
+        return;
+      }
+      setOpen(false);
+      button.focus();
+    });
+
+    // 메뉴의 링크를 누르면(같은 쪽 #위치 링크 등) 닫는다. 다른 쪽으로 가는 링크는 쪽이 바뀌므로 상관없다.
+    menu.addEventListener('click', (event) => {
+      if (isOpen() && event.target instanceof Element && event.target.closest('a')) {
+        setOpen(false);
+      }
+    });
+
+    // 머리글 바깥을 누르면 닫는다(초점은 누른 곳에 그대로 둔다).
+    document.addEventListener('click', (event) => {
+      if (narrowScreen.matches && isOpen() && event.target instanceof Node && !header.contains(event.target)) {
+        setOpen(false);
+      }
+    });
+
+    // 화면이 넓어지면(창 크기 바꿈·기울임) 열림 상태를 처음으로 돌려, 다시 좁아졌을 때 낡은 상태가 남지 않게 한다.
+    narrowScreen.addEventListener('change', () => {
+      setOpen(false);
     });
   }
 </script>
@@ -188,16 +222,23 @@ const isHome = normalizePagePath(pathname) === '/';
   }
 
   .site-header__menu-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
+    display: inline-flex;
   }
 
-  .site-header__menu {
+  /* 닫혀 있으면 ☰, 열려 있으면 ✕ (글자 "메뉴"는 그대로 — 열림 여부는 aria-expanded로도 알린다) */
+  .site-header__menu-icon--open,
+  .site-header__menu-button[aria-expanded='true'] .site-header__menu-icon--closed {
+    display: none;
+  }
+
+  .site-header__menu-button[aria-expanded='true'] .site-header__menu-icon--open {
+    display: inline-flex;
+  }
+
+  .site-header__menu,
+  .site-header__search {
     flex-basis: 100%;
+    min-width: 0;
   }
 
   .site-nav__list,
@@ -212,11 +253,13 @@ const isHome = normalizePagePath(pathname) === '/';
     gap: var(--space-1);
   }
 
+  /* 좁은 화면(와 자바스크립트가 꺼진 화면)의 메뉴 줄: 아이콘 + 낱말, 48px */
   .site-nav__link,
   .site-nav__sublink {
     display: flex;
     align-items: center;
-    min-height: var(--target-min);
+    gap: var(--space-3);
+    min-height: 3rem;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-md);
     color: var(--color-text);
@@ -227,26 +270,64 @@ const isHome = normalizePagePath(pathname) === '/';
     font-weight: var(--weight-semibold);
   }
 
+  .site-nav__icon {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
   .site-nav__link:hover,
   .site-nav__sublink:hover {
     background: var(--color-bg-muted);
     color: var(--color-text);
   }
 
-  /* 지금 있는 곳: 색과 밑줄 막대를 함께 써서 색만으로 알리지 않는다. */
+  /* 지금 있는 곳: 색과 막대(와 굵은 글자)를 함께 써서 색만으로 알리지 않는다. */
   .site-nav__link[data-active],
   .site-nav__sublink[aria-current='page'] {
     background: var(--color-accent-soft);
-    box-shadow: inset 0 -3px 0 var(--color-accent);
+    box-shadow: inset 4px 0 0 var(--color-accent);
     color: var(--color-accent-hover);
   }
 
-  .site-nav__sublist {
-    padding-inline-start: var(--space-4);
+  .site-nav__link[data-active] .site-nav__icon {
+    background: var(--color-bg);
   }
 
-  .site-header__search {
-    padding-block: var(--space-2);
+  .site-nav__link[data-active] .site-nav__label {
+    font-weight: var(--weight-bold);
+  }
+
+  /*
+   * 하위 메뉴: 위 줄의 낱말 밑에 알약 칩으로 이어 붙인다(한 줄에 여럿 — 세로로 쌓으면 열린 메뉴가 화면 두 배가 넘게 길어져 검색 상자가 멀어진다).
+   * 칩은 누를 수 있는 곳이라는 표시로 테두리를 두고, 높이는 44px 이상으로 한다.
+   */
+  .site-nav__sublist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    margin-block: 0 var(--space-2);
+    margin-inline-start: 3.25rem;
+  }
+
+  .site-nav__sublink {
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+  }
+
+  .site-nav__sublink[aria-current='page'] {
+    border-color: var(--color-accent);
+    box-shadow: none;
+    font-weight: var(--weight-bold);
   }
 
   @media (max-width: 74.99rem) {
@@ -259,8 +340,12 @@ const isHome = normalizePagePath(pathname) === '/';
     }
 
     .site-header__menu {
-      padding-block: var(--space-2) var(--space-3);
-      border-top: 1px solid var(--color-border);
+      padding-block: var(--space-2);
+      border-block: 1px solid var(--color-border);
+    }
+
+    .site-header__search {
+      padding-block-end: var(--space-1);
     }
   }
 
@@ -283,36 +368,72 @@ const isHome = normalizePagePath(pathname) === '/';
   }
 
   /*
-   * 넓은 화면: 이름·메뉴·검색이 한 줄. flex-wrap은 그대로 두어(nowrap 아님) 글자만 200%로 키운 브라우저처럼
-   * 한 줄에 다 들어가지 않으면 메뉴 묶음이 다음 줄로 내려가고, 묶음 안에서도 검색 상자가 줄을 바꾼다
-   * (2026-09-16 검토 반영: nowrap이던 때 글자 200%에서 277px 넘쳐 검색 상자가 화면 밖으로 나갔다).
+   * 넓은 화면: 이름 · 메뉴 · 검색이 한 줄. flex-wrap은 그대로 두어(nowrap 아님) 글자만 200%로 키운 브라우저처럼
+   * 한 줄에 다 들어가지 않으면 검색 상자가 다음 줄로 내려간다(2026-09-16 검토 반영: nowrap이던 때 글자 200%에서 277px 넘쳐 검색 상자가 화면 밖으로 나갔다).
+   * 메뉴 한 칸은 아이콘 위·낱말 아래라서 가로로 짧다(가로로 나란히 두면 1200px 폭에 이름·메뉴·검색이 다 들어가지 않는다).
    */
   @media (min-width: 75rem) {
-    .site-header__menu {
-      display: flex;
-      flex: 0 1 auto;
+    .site-header__inner {
       flex-wrap: wrap;
-      align-items: center;
+      min-height: var(--header-height);
       gap: var(--space-2) var(--space-4);
-      min-width: 0;
-      max-width: 100%;
+      padding-block: var(--space-1);
     }
 
-    .site-header__search {
-      flex: 1 1 12rem;
+    .site-header__brand {
+      flex: none;
+      margin-inline-end: 0;
+    }
+
+    .site-header__menu {
+      flex: 1 1 auto;
       min-width: 0;
     }
 
     .site-nav__list {
       display: flex;
-      gap: var(--space-1);
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0 var(--space-1);
+    }
+
+    .site-nav__link {
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.125rem;
+      min-width: 4rem;
+      min-height: 3.5rem;
+      padding: var(--space-1) var(--space-2);
+      font-size: var(--text-sm);
+      line-height: 1.3;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .site-nav__icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      background: none;
+    }
+
+    .site-nav__link[data-active] .site-nav__icon {
+      background: none;
+    }
+
+    /* 지금 있는 곳: 아래 막대(안쪽) */
+    .site-nav__link[data-active] {
+      box-shadow: inset 0 -3px 0 var(--color-accent);
     }
 
     .site-nav__sublist {
       display: none;
     }
 
+    /* 검색 칸: 17rem까지 자라는 상자. 안의 검색 폼(HeaderSearch.astro)이 flex 항목으로 자라 이 칸을 채운다. */
     .site-header__search {
+      display: flex;
+      flex: 0 1 17rem;
+      min-width: 12rem;
       padding-block: 0;
     }
   }

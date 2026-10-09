@@ -363,7 +363,8 @@ test.describe('없는 주소(404)', () => {
   test('404 페이지의 검색 상자로 찾으면 검색 페이지가 결과를 보여 준다', async ({ page }) => {
     await page.goto('./no-such-page/');
     const form = page.getByRole('search', { name: '사이트에서 찾아보기' });
-    await form.getByRole('searchbox', { name: '검색어' }).fill('실습실');
+    // 판 1.3.0: 404 검색칸에도 자동 완성이 붙어 입력칸 역할이 combobox다(자바스크립트가 안 되면 searchbox 그대로 — 폼 제출은 같다)
+    await form.getByRole('combobox', { name: '검색어' }).fill('실습실');
     await form.getByRole('button', { name: '검색' }).click();
     await expect(page.getByRole('heading', { level: 1, name: getPage('search').title })).toBeVisible();
     await expect.poll(() => new URL(page.url()).searchParams.get(searchConfig.queryParam)).toBe('실습실');

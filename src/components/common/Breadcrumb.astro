@@ -12,8 +12,10 @@
  *       { label: '1-2-1 컴퓨터의 눈, 인간을 바라보다' },
  *     ]}
  * 칸이 하나(홈)뿐이면 아무것도 그리지 않는다.
+ * 판 1.3.0: 첫 칸 "홈"은 집 아이콘과 함께, 칸 사이 구분은 작은 화살표(꾸밈 — 화면 낭독기는 목록 번호로 읽는다)로 그린다.
  */
 import { navTrail, type BreadcrumbItem } from '../../config/nav.ts';
+import Icon from './Icon.astro';
 import { normalizePagePath } from '../../lib/url.ts';
 
 interface Props {
@@ -34,9 +36,23 @@ const crumbs: readonly BreadcrumbItem[] =
   crumbs.length > 1 && (
     <nav class="breadcrumb" aria-label="현재 위치">
       <ol class="breadcrumb__list">
-        {crumbs.map((crumb) => (
+        {crumbs.map((crumb, index) => (
           <li class="breadcrumb__item">
-            {crumb.href ? <a href={crumb.href}>{crumb.label}</a> : <span aria-current="page">{crumb.label}</span>}
+            {index > 0 && (
+              <span class="breadcrumb__sep">
+                <Icon name="chevron-right" size="sm" />
+              </span>
+            )}
+            {crumb.href ? (
+              <a href={crumb.href}>
+                {index === 0 && <Icon name="home" size="sm" />}
+                <span>{crumb.label}</span>
+              </a>
+            ) : (
+              <span class="breadcrumb__current" aria-current="page">
+                {crumb.label}
+              </span>
+            )}
           </li>
         ))}
       </ol>
@@ -46,7 +62,7 @@ const crumbs: readonly BreadcrumbItem[] =
 
 <style>
   .breadcrumb {
-    margin-block-end: var(--space-2);
+    margin-block-end: var(--space-1);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
   }
@@ -63,21 +79,34 @@ const crumbs: readonly BreadcrumbItem[] =
   .breadcrumb__item {
     display: inline-flex;
     align-items: center;
+    min-width: 0;
   }
 
-  .breadcrumb__item + .breadcrumb__item::before {
-    margin-inline: var(--space-2);
+  /* 칸 사이 화살표: 꾸밈이라 색이 옅어도 되지만 글자색과 같은 계열로 둔다 */
+  .breadcrumb__sep {
+    display: inline-flex;
+    margin-inline: var(--space-1);
     color: var(--color-text-muted);
-    content: '›';
-    content: '›' / '';
   }
 
   .breadcrumb a {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
     padding-block: var(--space-2);
+    color: var(--color-text-muted);
+    text-decoration: none;
   }
 
-  .breadcrumb [aria-current='page'] {
-    color: var(--color-text-muted);
+  .breadcrumb a:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* 지금 있는 쪽: 진한 글자 */
+  .breadcrumb__current {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    overflow-wrap: anywhere;
   }
 </style>

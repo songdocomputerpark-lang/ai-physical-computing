@@ -15,6 +15,7 @@
 // 오래 걸리는 것(링크가 수백 개인 쪽의 Tab 걷기, 확대·글자 크기 검사의 나머지 쪽)은 `npm run test:a11y`(APC_E2E_GROUP=a11y)에서만 돈다.
 // 전체 브라우저 검사(npm run test:e2e — CI 포함)에서는 대표 쪽만 본다(FULL이 아니면 test.skip). 쪽마다 적힌 full: true가 그 표시다.
 import { expect, test, type Page } from '@playwright/test';
+import { headerNav } from '../../src/config/nav.ts';
 import { withBase } from '../../src/lib/url.ts';
 import { waitBlocksReady } from './helpers/blocks.ts';
 
@@ -319,6 +320,42 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeVisible();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link').first()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(button).toBeFocused();
+  });
+
+  test('휴대폰 폭 머리글(판 1.3.0): 메뉴를 연 채 Tab은 메뉴 줄을 지나 검색 상자로 가고, 닫으면 [메뉴] 바로 다음이 검색 상자다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto(withBase('learn/'));
+    const button = page.locator('[data-menu-button]');
+    const searchInput = page.locator('#header-search-input');
+    const menuLinks = page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link');
+
+    // 닫힌 채: [메뉴] → 검색 상자(검색 상자는 메뉴 밖에 있어 접혀도 Tab에 든다)
+    await button.focus();
+    await page.keyboard.press('Tab');
+    await expect(searchInput).toBeFocused();
+
+    // 열린 채: [메뉴] → 메뉴 줄 전부 → 검색 상자(보이는 차례와 같다)
+    await button.focus();
+    await page.keyboard.press('Enter');
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    const count = await menuLinks.count();
+    expect(count).toBeGreaterThan(headerNav.length);
+    for (let index = 0; index < count; index += 1) {
+      await page.keyboard.press('Tab');
+      await expect(menuLinks.nth(index)).toBeFocused();
+    }
+    await page.keyboard.press('Tab');
+    await expect(searchInput).toBeFocused();
+    // 검색 상자 안의 Esc는 검색 자동 완성이 맡는다(목록 닫기) — 메뉴는 닫지 않고 초점도 검색 상자에 그대로 둔다
+    await page.keyboard.press('Escape');
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(searchInput).toBeFocused();
+    // 메뉴 줄이나 [메뉴]에서 Esc는 메뉴를 닫고 초점을 [메뉴]로 돌린다
+    await menuLinks.first().focus();
     await page.keyboard.press('Escape');
     await expect(button).toHaveAttribute('aria-expanded', 'false');
     await expect(button).toBeFocused();

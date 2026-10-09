@@ -14,6 +14,7 @@
  *   "얼굴"로 찾히지 않기 때문이다(P1-11, 2026-09-16 확인). 짧은 이름(label)의 가운뎃점은 그대로 둔다.
  *   긴 제목(title)은 좁은 화면에서 가운뎃점 앞에서 줄이 바뀌어 "·브라우저"처럼 보이므로 "와"로 이어 쓴다(예: 학교 네트워크와 브라우저 점검).
  */
+import type { IconName } from '../components/common/icons.ts';
 import { normalizePagePath, withBase } from '../lib/url.ts';
 
 /** 현재 위치(빵부스러기) 한 칸. href가 없는 칸이 지금 페이지다. */
@@ -28,6 +29,8 @@ interface NavPageInput {
   title?: string;
   path: string;
   description: string;
+  /** 메뉴·카드에 쓰는 아이콘 이름(src/components/common/icons.ts). 판 1.3.0 */
+  icon: IconName;
   inHeader?: boolean;
   children?: readonly NavPageInput[];
 }
@@ -50,6 +53,8 @@ export interface NavPage {
   readonly href: string;
   /** 한 줄 설명(고1 눈높이). 메뉴 목록 카드·자리 페이지·검색 설명에 쓴다. */
   readonly description: string;
+  /** 주 메뉴·링크 카드에 글자와 함께 그리는 아이콘 이름(꾸밈 — 글자가 뜻을 전한다) */
+  readonly icon: IconName;
   /** 머리글 주 메뉴에 보이는지 */
   readonly inHeader: boolean;
   /** 아래 페이지 */
@@ -66,12 +71,14 @@ export interface LearnUnit extends NavPage {
 const SITE_MAP_INPUT: readonly NavPageInput[] = [
   {
     id: 'home',
+    icon: 'home',
     label: '홈',
     path: '/',
     description: '설치 없이 브라우저만으로 인공지능과 피지컬 컴퓨팅을 배우는 사이트의 첫 화면이에요.',
   },
   {
     id: 'start',
+    icon: 'flag',
     label: '시작하기',
     path: '/start/',
     description: '처음 왔다면 여기서 무엇부터 할지 골라요.',
@@ -79,6 +86,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
     children: [
       {
         id: 'start-student',
+        icon: 'play',
         label: '학생용',
         title: '학생용 시작하기',
         path: '/start/student/',
@@ -86,6 +94,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       },
       {
         id: 'start-board',
+        icon: 'chip',
         label: '보드 준비',
         title: '보드 준비하기',
         path: '/start/board/',
@@ -93,6 +102,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       },
       {
         id: 'start-teacher',
+        icon: 'teacher',
         label: '교사용',
         title: '교사용 시작하기',
         path: '/start/teacher/',
@@ -100,6 +110,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       },
       {
         id: 'start-check',
+        icon: 'check-circle',
         label: '점검',
         title: '학교 네트워크와 브라우저 점검',
         path: '/start/check/',
@@ -109,6 +120,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'learn',
+    icon: 'book',
     label: '배우기',
     path: '/learn/',
     description: '교과서 차례대로 단원과 차시를 공부해요.',
@@ -116,6 +128,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'labs',
+    icon: 'flask',
     label: '실습실',
     path: '/labs/',
     description: '코드를 바로 실행해 결과를 보는 실습 공간이에요.',
@@ -123,18 +136,21 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
     children: [
       {
         id: 'labs-vision',
+        icon: 'camera',
         label: '영상처리 실습실',
         path: '/labs/vision/',
         description: '웹캠 영상에 파이썬 코드를 실행하고, 값을 바꿔 가며 결과를 봐요.',
       },
       {
         id: 'labs-esp32',
+        icon: 'chip',
         label: 'ESP32 실습실',
         path: '/labs/esp32/',
         description: '블록이나 코드로 가상 보드와 실제 보드를 움직여요.',
         children: [
           {
             id: 'labs-esp32-check',
+            icon: 'check-circle',
             label: '실물 점검 도우미',
             path: '/labs/esp32/check/',
             description: '가지고 있는 키트 보드가 사이트 예제대로 움직이는지 하나씩 확인해요.',
@@ -143,12 +159,14 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       },
       {
         id: 'labs-iot',
+        icon: 'signal',
         label: '통신 실습실',
         path: '/labs/iot/',
         description: '유선(시리얼), 블루투스, 인터넷(MQTT)으로 컴퓨터와 보드가 신호를 주고받아요.',
         children: [
           {
             id: 'labs-iot-dashboard',
+            icon: 'monitor',
             label: '대시보드',
             path: '/labs/iot/dashboard/',
             description: '보드가 보낸 값을 그래프와 게이지로 보고, 스위치를 눌러 보드의 LED를 켜요.',
@@ -157,12 +175,14 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       },
       {
         id: 'labs-unit4',
+        icon: 'sparkles',
         label: '4단원 통합 실습실',
         path: '/labs/unit4/',
         description: '카메라, 가상 모니터, 가상 ESP32 보드를 한 화면에서 함께 돌려요. 얼굴로 움직인 마우스 좌표가 블루투스로 보드에 닿아요.',
       },
       {
         id: 'labs-gallery',
+        icon: 'grid',
         label: '예제 갤러리',
         path: '/labs/gallery/',
         description: '모든 예제를 카드로 모아 단원과 부품으로 찾아봐요.',
@@ -171,6 +191,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'teacher',
+    icon: 'teacher',
     label: '교사용 자료실',
     path: '/teacher/',
     description: '차시별 지도 요약, 성취기준과 평가 방향 표, 수업 자료를 모았어요.',
@@ -178,6 +199,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'help',
+    icon: 'lifebuoy',
     label: '문제 해결',
     path: '/help/',
     description: '자주 묻는 질문과 오류 메시지 풀이를 모았어요.',
@@ -185,6 +207,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
     children: [
       {
         id: 'help-errors',
+        icon: 'alert',
         label: '파이썬 오류 사전',
         path: '/help/errors/',
         description: '실습실에서 자주 나는 파이썬 오류 메시지를 한국어로 풀이하고, 고치는 방법을 알려 줘요.',
@@ -193,6 +216,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'glossary',
+    icon: 'glossary',
     label: '용어사전',
     path: '/glossary/',
     description: '처음 보는 낱말의 뜻을 쉽게 풀어 두었어요.',
@@ -200,18 +224,21 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'settings',
+    icon: 'settings',
     label: '사이트 설정',
     path: '/settings/',
     description: '이 컴퓨터의 브라우저에만 저장되는 설정이에요. 음성 인식처럼 교사가 정할 것을 여기에서 켜고 꺼요.',
   },
   {
     id: 'credits',
+    icon: 'list',
     label: '출처와 라이선스',
     path: '/credits/',
     description: '사이트에 쓴 자료가 어디서 왔고 어떤 조건으로 쓸 수 있는지 모았어요.',
   },
   {
     id: 'search',
+    icon: 'search',
     label: '검색',
     title: '사이트 검색',
     path: '/search/',
@@ -219,6 +246,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
   {
     id: 'contribute',
+    icon: 'lightbulb',
     label: '기여·문의',
     path: '/contribute/',
     description: '틀린 곳을 알리거나 자료를 보태는 방법을 안내해요.',
@@ -231,6 +259,7 @@ const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
     unit: 1,
     numeral: 'I',
     id: 'learn-u1',
+    icon: 'camera',
     label: 'I. 영상 처리 인공지능',
     path: '/learn/u1/',
     description: '카메라 영상에서 손, 얼굴, 몸의 움직임을 알아채는 프로그램을 만들어요.',
@@ -239,6 +268,7 @@ const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
     unit: 2,
     numeral: 'II',
     id: 'learn-u2',
+    icon: 'chip',
     label: 'II. 피지컬 컴퓨팅',
     path: '/learn/u2/',
     description: 'ESP32 보드로 LED, 화면, 소리, 모터를 움직여요.',
@@ -247,6 +277,7 @@ const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
     unit: 3,
     numeral: 'III',
     id: 'learn-u3',
+    icon: 'signal',
     label: 'III. 인공지능과 피지컬 컴퓨팅',
     path: '/learn/u3/',
     description: '인공지능이 알아낸 결과를 통신으로 보드에 보내 움직여요.',
@@ -255,6 +286,7 @@ const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
     unit: 4,
     numeral: 'IV',
     id: 'learn-u4',
+    icon: 'lightbulb',
     label: 'IV. 지능화 사물 개발 프로젝트',
     path: '/learn/u4/',
     description: '배운 것을 모아 똑똑한 사물을 직접 만들어요.',
@@ -285,6 +317,7 @@ function buildPage(input: NavPageInput): NavPage {
     path: input.path,
     href: withBase(input.path),
     description: input.description,
+    icon: input.icon,
     inHeader: input.inHeader ?? false,
     children: Object.freeze((input.children ?? []).map(buildPage)),
   });
