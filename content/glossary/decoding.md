@@ -1,7 +1,7 @@
 ---
 title: 디코딩
 english: decoding
-summary: 압축·암호화하거나 정해진 규칙대로 바꾼 데이터를 원래 모양(글자·소리 등)으로 되돌리는 일이에요. 인코딩을 거꾸로 하는 일이에요.
+summary: 약속한 규칙으로 바뀐 데이터를 원래 글자나 소리로 되돌리는 일이에요. 인코딩의 반대예요.
 related: [encoding, byte, parsing]
 group: 컴퓨터 기초
 ---

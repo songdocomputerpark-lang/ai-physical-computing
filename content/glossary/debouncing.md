@@ -2,7 +2,7 @@
 title: 디바운싱
 english: Debouncing
 aliases: [디바운스, 채터링 방지]
-summary: 버튼이나 센서를 한 번 눌렀는데 값이 떨려 여러 번 누른 것처럼 읽히는 것을 한 번으로 걸러 내는 방법이에요.
+summary: 버튼을 한 번 눌렀는데 값이 여러 번 읽히는 떨림을 한 번으로 처리하는 방법이에요.
 related: [sensor]
 group: 피지컬 컴퓨팅
 ---
