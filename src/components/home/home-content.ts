@@ -1,29 +1,17 @@
 /**
  * 홈 화면의 글과 링크를 모은 곳(PLAN §8.1 P1-05, SPEC §5 홈 화면 요구).
  *
- * 홈의 문장·버튼 이름·카드 내용을 바꿀 때는 이 파일만 고친다. 화면 모양은 같은 폴더의 .astro 파일에 있다.
+ * 홈의 문장·버튼 이름·타일 내용을 바꿀 때는 이 파일만 고친다. 화면 모양은 같은 폴더의 .astro 파일에 있다.
  * - 링크는 사이트 지도(src/config/nav.ts)의 페이지 id로 적는다. 주소(href)는 getPage()가 base를 붙여 만든다.
  *   주소를 손으로 적지 않으므로 사이트 지도에서 주소가 바뀌어도 홈 링크가 따라간다.
  * - 학생이 보는 문장: "고1이 처음 읽어도 이해되는가?", 한 문단 3문장 이내, 전문용어는 처음 나올 때 풀이(SPEC §7.1).
  * - tests/unit/home/home-content.test.ts와 tests/e2e/home.spec.ts가 이 값을 읽어 검사한다.
+ *
+ * 판 1.3.0 홈 순서: 첫 화면(hero) → 이어서 하기 띠(진도가 있을 때만) → 큰 검색 → 배움 지도(대단원 4장) → 바로 가기 타일 → 원칙.
+ * 배움 지도의 대단원 카드(차시 수·첫 차시·진도 차시 목록)는 차시 목록에서 만든다 — home-map.ts.
  */
-import { getPage, learnUnits } from '../../config/nav.ts';
-
-/** HomeIcon.astro가 그리는 아이콘 이름 */
-export type HomeIconName =
-  | 'camera'
-  | 'chip'
-  | 'usb'
-  | 'flag'
-  | 'book'
-  | 'flask'
-  | 'presentation'
-  | 'browser'
-  | 'monitor-board'
-  | 'unlock'
-  | 'arrow-right'
-  | 'pause'
-  | 'replay';
+import { getPage } from '../../config/nav.ts';
+import type { IconName } from '../common/icons.ts';
 
 /** 첫 화면의 큰 버튼 하나 */
 export interface HomeAction {
@@ -37,7 +25,7 @@ export interface HomeAction {
   readonly pageId: string;
   /** 가는 곳 주소(base 포함). getPage()가 만든다. */
   readonly href: string;
-  readonly icon: HomeIconName;
+  readonly icon: IconName;
   /** primary = 파랑으로 채운 버튼(처음 온 학생에게 가장 먼저 권하는 길), secondary = 테두리 버튼 */
   readonly variant: 'primary' | 'secondary';
   /**
@@ -59,20 +47,20 @@ export interface FlowStep {
   readonly detail: string;
 }
 
-/** 아래쪽 "이 사이트로 할 수 있는 것" 카드 하나 */
-export interface HomeFeature {
+/** 바로 가기 타일 하나(아이콘 위, 낱말 아래) */
+export interface HomeShortcut {
   readonly pageId: string;
-  readonly title: string;
+  /** 타일에 보이는 짧은 이름. 사이트 지도의 이름이 길면 여기서 줄인다. */
+  readonly label: string;
   readonly href: string;
-  readonly description: string;
-  /** 그 페이지에 들어 있는 것(쉼표로 이어 보통 글자로 보인다 — 버튼처럼 보이는 알약 모양은 누를 수 있다고 오해하게 해서 쓰지 않는다) */
-  readonly items: readonly string[];
-  readonly icon: HomeIconName;
+  readonly icon: IconName;
+  /** 단원 색(1~4) — 실습실이 I~IV단원과 짝이다. 없으면 파랑. */
+  readonly unit?: 1 | 2 | 3 | 4;
 }
 
 /** "설치 없이, 브라우저만으로" 원칙 하나 */
 export interface HomePrinciple {
-  readonly icon: HomeIconName;
+  readonly icon: IconName;
   readonly title: string;
   readonly body: string;
 }
@@ -81,19 +69,14 @@ function action(input: Omit<HomeAction, 'href'>): HomeAction {
   return Object.freeze({ ...input, href: getPage(input.pageId).href });
 }
 
-function feature(
-  pageId: string,
-  icon: HomeIconName,
-  options: { description?: string; items?: readonly string[] } = {},
-): HomeFeature {
+function shortcut(pageId: string, icon: IconName, options: { label?: string; unit?: 1 | 2 | 3 | 4 } = {}): HomeShortcut {
   const page = getPage(pageId);
   return Object.freeze({
     pageId,
     icon,
-    title: page.title,
+    label: options.label ?? page.label,
     href: page.href,
-    description: options.description ?? page.description,
-    items: Object.freeze([...(options.items ?? page.children.map((child) => child.label))]),
+    ...(options.unit === undefined ? {} : { unit: options.unit }),
   });
 }
 
@@ -106,6 +89,11 @@ export const homeHero = Object.freeze({
    * ESP32는 이 페이지에서 처음 나오는 전문용어라 괄호로 풀이한다.
    */
   lead: "고등학교 '인공지능과 피지컬 컴퓨팅' 교과서 차례대로, 설치 없이 브라우저만으로 인공지능과 ESP32 보드(LED·모터를 움직이는 작은 컴퓨터)를 배우고 바로 실습하는 무료 사이트예요.",
+  /**
+   * 큰 버튼 아래 한 줄 길잡이. 어느 것을 먼저 누를지 알려 준다. 버튼 이름을 다시 쓰지 않는다(같은 이름의 글이 둘이 되면 안 됨).
+   * 색·모양이 아니라 순서("첫 번째")로 말한다(WCAG 1.3.3).
+   */
+  guide: '처음이라면 첫 번째 버튼부터 눌러 보세요.',
 });
 
 /**
@@ -136,7 +124,7 @@ export const homeActions: readonly HomeAction[] = Object.freeze([
     label: '내 보드 연결하기',
     hint: 'USB 케이블로 보드를 이어요',
     pageId: 'start-board',
-    icon: 'usb',
+    icon: 'plug',
     variant: 'secondary',
   }),
 ]);
@@ -155,17 +143,43 @@ export const flowFigure = Object.freeze({
   ]),
 });
 
-/** 아래쪽 카드(스크롤 뒤). 제목·설명은 사이트 지도를 따르고, 홈에서 다르게 말할 곳만 여기서 바꾼다. */
-export const homeFeatures = Object.freeze({
-  heading: '이 사이트로 할 수 있는 것',
-  cards: Object.freeze([
-    feature('start', 'flag'),
-    feature('learn', 'book', { items: learnUnits.map((unit) => unit.label) }),
-    feature('labs', 'flask'),
-    feature('teacher', 'presentation', {
-      description: '수업을 준비하는 선생님을 위한 자료를 모았어요.',
-      items: ['차시별 지도 요약', '성취기준·평가 방향 표', '수업 자료'],
-    }),
+/** 이어서 하기 띠(진도가 있을 때만 보인다 — home-resume.ts가 채운다). 처음 온 사람에게는 아무것도 보이지 않는다. */
+export const homeResume = Object.freeze({
+  heading: '이어서 하기',
+  lesson: Object.freeze({ kicker: '지난번에 본 차시', go: '이어서 하기' }),
+  lab: Object.freeze({ kicker: '마지막으로 연 실습실', go: '다시 열기' }),
+});
+
+/** 큰 검색(구역 B의 HomeSearch.astro가 폼을 그린다). 여기는 위에 붙는 제목만 둔다. */
+export const homeSearch = Object.freeze({
+  heading: '무엇을 찾나요?',
+});
+
+/** 배움 지도: 대단원 4장이 화살표로 이어진 길 */
+export const homeMap = Object.freeze({
+  heading: '배움 지도',
+  lead: 'I단원부터 차례로 따라가면 돼요.',
+  /** 카드 안 단추: 진도가 없을 때 / 진도가 있어 안 본 차시가 남았을 때 / 모두 봤을 때 */
+  startLabel: '시작하기',
+  resumeLabel: '이어서 하기',
+  replayLabel: '다시 보기',
+  /** 대단원 번호 → 아이콘(영상 → 보드 → 통신 → 프로젝트) */
+  unitIcons: Object.freeze<Record<1 | 2 | 3 | 4, IconName>>({ 1: 'camera', 2: 'chip', 3: 'signal', 4: 'lightbulb' }),
+});
+
+/** 바로 가기 타일 9개(네이버식 아이콘 칸). 실습실 4개는 I~IV단원 색을 따른다. */
+export const homeShortcuts = Object.freeze({
+  heading: '바로 가기',
+  items: Object.freeze<HomeShortcut[]>([
+    shortcut('labs-vision', 'camera', { unit: 1 }),
+    shortcut('labs-esp32', 'chip', { unit: 2 }),
+    shortcut('labs-iot', 'signal', { unit: 3 }),
+    shortcut('labs-unit4', 'sparkles', { unit: 4 }),
+    shortcut('labs-gallery', 'grid'),
+    shortcut('help-errors', 'alert', { label: '오류 사전' }),
+    shortcut('glossary', 'glossary'),
+    shortcut('teacher', 'teacher'),
+    shortcut('start-check', 'check-circle', { label: '내 컴퓨터 점검' }),
   ]),
 });
 
@@ -179,7 +193,7 @@ export const homePrinciples = Object.freeze({
       body: '파이썬 코드가 브라우저 안에서 바로 실행돼요. 실제 보드를 연결할 때만 컴퓨터에 따라 드라이버(보드를 알아보게 해 주는 프로그램)가 필요할 수 있어요.',
     },
     {
-      icon: 'monitor-board',
+      icon: 'monitor',
       title: '보드가 없어도 돼요',
       body: '모든 보드 실습을 화면 속 가상 보드로 끝까지 할 수 있어요. 실제 보드도 같은 코드로 움직여요.',
     },

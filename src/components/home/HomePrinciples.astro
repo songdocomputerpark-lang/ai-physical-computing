@@ -3,7 +3,7 @@
  * 홈 맨 아래 "설치 없이, 브라우저만으로" 원칙(PLAN §8.1 P1-05, SPEC §2 절대 원칙 1~3을 짧게).
  * 권장 브라우저 한 줄과 점검 페이지 링크를 함께 둔다(SPEC §9). 글과 링크는 home-content.ts에 있다.
  */
-import HomeIcon from './HomeIcon.astro';
+import Icon from '../common/Icon.astro';
 import { homePrinciples } from './home-content.ts';
 
 const { heading, items, browserNote } = homePrinciples;
@@ -16,7 +16,7 @@ const { heading, items, browserNote } = homePrinciples;
       items.map((item) => (
         <li class="principle">
           <span class="principle__icon">
-            <HomeIcon name={item.icon} />
+            <Icon name={item.icon} />
           </span>
           <h3 class="principle__title">{item.title}</h3>
           <p class="principle__body">{item.body}</p>

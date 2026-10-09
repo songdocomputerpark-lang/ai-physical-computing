@@ -1,0 +1,106 @@
+---
+/**
+ * 홈 "이어서 하기" 띠(판 1.3.0). 지난번에 본 차시와 마지막으로 연 실습실로 한 번에 돌아가게 한다.
+ *
+ * - 처음 온 사람에게는 아무것도 보이지 않는다: 띠는 hidden으로 나가고, 저장된 진도가 있을 때만 home-resume.ts가 hidden을 뗀다.
+ *   hero 바로 아래라 첫 화면 밖이고, 처음에 자리를 잡아 두지 않으므로 처음 온 사람의 쪽이 밀리지 않는다.
+ * - 링크 주소·이름은 저장된 진도에서 와서 textContent·setAttribute로만 넣는다(마크업으로 해석되지 않음).
+ * - 발표 모드·embed에서는 숨긴다(data-present-hide, data-embed-hide).
+ * - 링크의 접근 이름은 "1-2-1 손 찾기 이어서 하기"처럼 이름 뒤에 동작이 붙는다.
+ */
+import Icon from '../common/Icon.astro';
+import { homeResume } from './home-content.ts';
+---
+
+<section class="resume" aria-labelledby="home-resume-title" data-home-resume data-embed-hide data-present-hide hidden>
+  <h2 id="home-resume-title" class="resume__title">{homeResume.heading}</h2>
+  <ul class="resume__list" role="list">
+    <li class="resume__item card card--link" data-resume-lesson hidden>
+      <span class="card__icon"><Icon name="book" /></span>
+      <div class="resume__text">
+        <p class="resume__kicker">{homeResume.lesson.kicker}</p>
+        <p class="resume__name">
+          <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go">{homeResume.lesson.go}</span></a>
+        </p>
+      </div>
+      <span class="resume__arrow" aria-hidden="true"><Icon name="arrow-right" size="sm" /></span>
+    </li>
+    <li class="resume__item card card--link" data-resume-lab hidden>
+      <span class="card__icon"><Icon name="flask" /></span>
+      <div class="resume__text">
+        <p class="resume__kicker">{homeResume.lab.kicker}</p>
+        <p class="resume__name">
+          <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go">{homeResume.lab.go}</span></a>
+        </p>
+      </div>
+      <span class="resume__arrow" aria-hidden="true"><Icon name="arrow-right" size="sm" /></span>
+    </li>
+  </ul>
+</section>
+
+<style>
+  .resume {
+    margin-block-end: var(--space-10);
+  }
+
+  .resume[hidden] {
+    display: none;
+  }
+
+  .resume__title {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .resume__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .resume__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .resume__item[hidden] {
+    display: none;
+  }
+
+  .resume__text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .resume__kicker {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .resume__name {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    overflow-wrap: anywhere;
+  }
+
+  /* 동작 글("이어서 하기")은 이름 옆에 작게. 링크 안에 있어 접근 이름에 들어간다. */
+  .resume__go {
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+  }
+
+  .resume__arrow {
+    display: flex;
+    flex: none;
+    color: var(--color-text-muted);
+  }
+</style>

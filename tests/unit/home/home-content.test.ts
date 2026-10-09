@@ -12,11 +12,15 @@ import {
   COMING_SOON_BADGE,
   flowFigure,
   homeActions,
-  homeFeatures,
   homeHero,
+  homeMap,
   homePrinciples,
+  homeResume,
+  homeSearch,
+  homeShortcuts,
 } from '../../../src/components/home/home-content.ts';
-import { flattenPages, getPage, learnUnits } from '../../../src/config/nav.ts';
+import { ICON_NAMES } from '../../../src/components/common/icons.ts';
+import { flattenPages, getPage } from '../../../src/config/nav.ts';
 import { siteConfig } from '../../../src/config/site.ts';
 
 /** 문장 수: 마침표·물음표·느낌표 뒤 띄어쓰기로 나눈 덩어리 수 */
@@ -112,26 +116,85 @@ describe('흐름 그림 글(home-content.ts)', () => {
   });
 });
 
-describe('아래쪽 카드와 원칙(home-content.ts)', () => {
-  it('카드는 3~4개이고 배우기·실습실·교사용 자료실을 포함한다', () => {
-    expect(homeFeatures.cards.length).toBeGreaterThanOrEqual(3);
-    expect(homeFeatures.cards.length).toBeLessThanOrEqual(4);
-    expect(homeFeatures.cards.map((card) => card.pageId)).toEqual(expect.arrayContaining(['learn', 'labs', 'teacher']));
+describe('큰 버튼 아래 길잡이와 아이콘', () => {
+  it('길잡이는 한 문장이고 버튼 이름을 다시 쓰지 않으며 색이 아니라 순서로 말한다', () => {
+    expect(countSentences(homeHero.guide)).toBe(1);
+    expect(homeHero.guide.endsWith('.')).toBe(true);
+    for (const action of homeActions) {
+      expect(homeHero.guide, action.label).not.toContain(action.label);
+    }
+    expect(homeHero.guide).not.toMatch(/파란|파랑|빨간|초록|색/u);
   });
 
-  it('카드 제목·주소는 사이트 지도를 따르고, 들어 있는 것이 적혀 있다', () => {
-    for (const card of homeFeatures.cards) {
-      const page = getPage(card.pageId);
-      expect(card.title).toBe(page.title);
-      expect(card.href).toBe(page.href);
-      expect(card.items.length, card.title).toBeGreaterThan(0);
-      expect(countSentences(card.description), card.title).toBeLessThanOrEqual(3);
+  it('큰 버튼 아이콘은 모두 공용 아이콘 표(Icon.astro)에 있다', () => {
+    for (const action of homeActions) {
+      expect(ICON_NAMES as readonly string[], action.label).toContain(action.icon);
+    }
+  });
+});
+
+describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () => {
+  it('이어서 하기 띠 글: 제목, 차시 칸(이어서 하기 — 배우기 시작 카드와 같은 낱말), 실습실 칸(다시 열기)', () => {
+    expect(homeResume.heading).toBe('이어서 하기');
+    expect(homeResume.lesson.go).toBe('이어서 하기');
+    expect(homeResume.lab.go).toBe('다시 열기');
+    expect(homeResume.lesson.kicker.length).toBeGreaterThan(0);
+    expect(homeResume.lab.kicker.length).toBeGreaterThan(0);
+  });
+
+  it('큰 검색 제목은 "무엇을 찾나요?"다', () => {
+    expect(homeSearch.heading).toBe('무엇을 찾나요?');
+  });
+
+  it('배움 지도: 제목, 한 문장 안내, 단추 글 3가지, 단원마다 다른 아이콘', () => {
+    expect(homeMap.heading).toBe('배움 지도');
+    expect(countSentences(homeMap.lead)).toBe(1);
+    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['시작하기', '이어서 하기', '다시 보기']);
+    const icons = [1, 2, 3, 4].map((unit) => homeMap.unitIcons[unit as 1 | 2 | 3 | 4]);
+    expect(new Set(icons).size).toBe(4);
+    for (const icon of icons) {
+      expect(ICON_NAMES as readonly string[]).toContain(icon);
+    }
+  });
+});
+
+describe('바로 가기 타일과 원칙(home-content.ts)', () => {
+  it('타일은 9개이고 실습실 4개·예제 갤러리·오류 사전·용어사전·교사용 자료실·점검을 담는다', () => {
+    expect(homeShortcuts.items.map((item) => item.pageId)).toEqual([
+      'labs-vision',
+      'labs-esp32',
+      'labs-iot',
+      'labs-unit4',
+      'labs-gallery',
+      'help-errors',
+      'glossary',
+      'teacher',
+      'start-check',
+    ]);
+  });
+
+  it('타일 주소는 사이트 지도를 따르고(모두 실제 페이지), 이름과 아이콘이 있으며, 이름이 겹치지 않는다', () => {
+    for (const item of homeShortcuts.items) {
+      expect(item.href, item.pageId).toBe(getPage(item.pageId).href);
+      expect(SITE_PATHS.has(item.href), item.href).toBe(true);
+      expect(item.label.length, item.pageId).toBeGreaterThan(0);
+      expect(ICON_NAMES as readonly string[], item.pageId).toContain(item.icon);
+    }
+    expect(new Set(homeShortcuts.items.map((item) => item.label)).size).toBe(homeShortcuts.items.length);
+  });
+
+  it('타일 이름이 큰 버튼 이름과 겹치지 않는다(홈에서 같은 이름의 링크가 둘이 되지 않게)', () => {
+    const buttonNames = homeActions.map((action) => action.label);
+    for (const item of homeShortcuts.items) {
+      for (const name of buttonNames) {
+        expect(item.label.includes(name) || name.includes(item.label), `${item.label} / ${name}`).toBe(false);
+      }
     }
   });
 
-  it('배우기 카드는 대단원 네 개를 교과서 차례대로 보여 준다', () => {
-    const learn = homeFeatures.cards.find((card) => card.pageId === 'learn');
-    expect(learn?.items).toEqual(learnUnits.map((unit) => unit.label));
+  it('실습실 타일 4개는 I~IV단원 색을 하나씩 쓴다', () => {
+    const units = homeShortcuts.items.filter((item) => item.pageId.startsWith('labs-') && item.unit !== undefined).map((item) => item.unit);
+    expect(units).toEqual([1, 2, 3, 4]);
   });
 
   it('원칙은 3개이고, 문단마다 3문장 이내이며, 점검 페이지로 가는 링크가 있다', () => {
@@ -139,6 +202,7 @@ describe('아래쪽 카드와 원칙(home-content.ts)', () => {
     for (const item of homePrinciples.items) {
       expect(countSentences(item.body), item.title).toBeLessThanOrEqual(3);
       expect(item.body.endsWith('.'), item.title).toBe(true);
+      expect(ICON_NAMES as readonly string[], item.title).toContain(item.icon);
     }
     expect(homePrinciples.browserNote.href).toBe(getPage('start-check').href);
     expect(countSentences(homePrinciples.browserNote.text)).toBe(1);

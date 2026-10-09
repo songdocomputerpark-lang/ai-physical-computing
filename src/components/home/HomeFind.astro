@@ -1,0 +1,28 @@
+---
+/**
+ * 홈 큰 검색 자리(판 1.3.0): h2 "무엇을 찾나요?" + 구역 B의 HomeSearch(폼 이름 "배울 것 찾기").
+ * 머리글 검색 "사이트 검색"과 폼 이름이 달라 홈에 검색칸이 둘이어도 랜드마크 이름이 겹치지 않는다.
+ * 자동 완성·추천 칩은 HomeSearch가 맡는다 — 이 파일은 제목과 둘레 모양만 안다.
+ */
+import HomeSearch from '../search/HomeSearch.astro';
+import { homeSearch } from './home-content.ts';
+---
+
+<section class="find" aria-labelledby="home-find-title" data-embed-hide data-present-hide>
+  <h2 id="home-find-title" class="find__title">{homeSearch.heading}</h2>
+  <HomeSearch />
+</section>
+
+<style>
+  .find {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .find__title {
+    font-size: var(--text-2xl);
+    text-align: center;
+  }
+</style>

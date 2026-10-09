@@ -3,7 +3,8 @@
 //   ① 스크롤 없이 제목·한 문장 소개·큰 버튼 3개가 화면 안에 다 보이는지
 //   ② Tab 키만으로 큰 버튼 3개에 닿는지(초점 테두리가 보이고 화면이 밀리지 않는지)
 //   ③ 흐름 그림의 화면 낭독기 설명, 동작 줄이기 설정, 멈춤 버튼
-//   ④ 스크롤 뒤 카드·원칙과 홈의 사이트 안 링크
+//   ④ 스크롤 뒤 큰 검색·배움 지도(대단원 4장)·바로 가기 타일·원칙과 홈의 사이트 안 링크
+//   ⑤ 배움 지도 카드가 통째로 눌리고 키보드로 닿는지, 저장된 진도가 있을 때 이어서 하기 띠와 단추(판 1.3.0)
 // 주소는 baseURL 기준 상대 경로('./')로 연다(앞에 /를 붙이면 base가 빠진다).
 // 글과 주소는 src/components/home/home-content.ts에서 읽으므로, 문구를 바꿔도 이 파일은 고치지 않아도 된다.
 import { expect, test, type Page } from '@playwright/test';
@@ -11,10 +12,16 @@ import { FLOW_TOGGLE_LABELS } from '../../src/components/home/flow-motion.ts';
 import {
   flowFigure,
   homeActions,
-  homeFeatures,
   homeHero,
+  homeMap,
   homePrinciples,
+  homeResume,
+  homeSearch,
+  homeShortcuts,
 } from '../../src/components/home/home-content.ts';
+import { learnUnits } from '../../src/config/nav.ts';
+import { PROGRESS_STORAGE_NAME } from '../../src/lib/progress.ts';
+import { storageKey } from '../../src/lib/storage.ts';
 
 /** P1-05 완료 기준 화면 크기. playwright.config.ts의 projects 이름·크기와 같아야 한다. */
 const VIEWPORTS: Readonly<Record<string, { width: number; height: number }>> = {
@@ -183,14 +190,28 @@ test.describe('홈 흐름 그림', () => {
 });
 
 test.describe('홈 아래쪽(스크롤 뒤)', () => {
-  test('할 수 있는 것 카드와 설치 없이 원칙이 있고, 홈의 사이트 안 링크가 모두 열린다', async ({ page, request }) => {
+  test('큰 검색·배움 지도·바로 가기·원칙이 있고, 홈의 사이트 안 링크가 모두 열린다', async ({ page, request }) => {
     await page.goto('./');
     const main = page.getByRole('main');
 
-    await expect(main.getByRole('heading', { level: 2, name: homeFeatures.heading })).toBeVisible();
-    for (const card of homeFeatures.cards) {
-      const cardLink = main.getByRole('heading', { level: 3, name: card.title, exact: true }).getByRole('link');
-      await expect(cardLink).toHaveAttribute('href', card.href);
+    // 큰 검색: 머리글 "사이트 검색"과 이름이 달라 같은 이름의 랜드마크가 둘이 되지 않는다.
+    await expect(main.getByRole('heading', { level: 2, name: homeSearch.heading })).toBeVisible();
+    await expect(main.getByRole('search', { name: '배울 것 찾기', exact: true })).toBeVisible();
+    await expect(page.getByRole('search', { name: '사이트 검색', exact: true })).toHaveCount(1);
+
+    // 배움 지도: 대단원 4장(제목 링크는 단원 쪽, [시작하기]는 첫 차시)
+    await expect(main.getByRole('heading', { level: 2, name: homeMap.heading })).toBeVisible();
+    for (const unit of learnUnits) {
+      const titleLink = main.getByRole('heading', { level: 3, name: unit.label, exact: true }).getByRole('link');
+      await expect(titleLink).toHaveAttribute('href', unit.href);
+      const start = main.getByRole('link', { name: `${unit.numeral}단원 ${homeMap.startLabel}`, exact: true });
+      await expect(start).toHaveAttribute('href', new RegExp(`${unit.path}[a-z0-9-]+/$`, 'u'));
+    }
+
+    // 바로 가기 타일 9개
+    await expect(main.getByRole('heading', { level: 2, name: homeShortcuts.heading })).toBeVisible();
+    for (const item of homeShortcuts.items) {
+      await expect(main.getByRole('link', { name: item.label, exact: true })).toHaveAttribute('href', item.href);
     }
 
     await expect(main.getByRole('heading', { level: 2, name: homePrinciples.heading })).toBeVisible();
@@ -206,7 +227,7 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
       .locator('a[href]')
       .evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href') ?? ''))]);
     const internal = hrefs.filter((href) => href.startsWith('/'));
-    expect(internal.length).toBeGreaterThanOrEqual(homeActions.length + homeFeatures.cards.length);
+    expect(internal.length).toBeGreaterThanOrEqual(homeActions.length + learnUnits.length + homeShortcuts.items.length);
     for (const href of internal) {
       expect((await request.get(href)).status(), href).toBe(200);
     }
@@ -225,4 +246,121 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
     }
     await expect(page.locator('main[data-pagefind-body]')).toHaveCount(0);
   });
+
+  test('가로로 넘치지 않는다(화면 폭 그대로와 320px)', async ({ page }) => {
+    await page.goto('./');
+    expect(await overflowX(page), '기본 폭').toBeLessThanOrEqual(0);
+    await page.setViewportSize({ width: 320, height: 760 });
+    await page.goto('./');
+    expect(await overflowX(page), '320px').toBeLessThanOrEqual(0);
+  });
 });
+
+test.describe('홈 배움 지도·바로 가기(키보드와 눌리는 곳)', () => {
+  test('카드 전체가 눌린다: 카드 빈 곳을 누르면 대단원 쪽으로, [시작하기]는 첫 차시로 간다', async ({ page }) => {
+    await page.goto('./');
+    const unit = learnUnits[1]!;
+    const card = page.locator('[data-home-unit]').nth(1);
+    await card.scrollIntoViewIfNeeded();
+    const box = await card.boundingBox();
+    expect(box).not.toBeNull();
+    // 카드 왼쪽 위 근처(아이콘 둘레 빈 곳)를 누른다 — 제목 링크의 덮개가 카드 전체를 덮는다.
+    await page.mouse.click(box!.x + box!.width - 12, box!.y + 12);
+    await expect(page).toHaveURL(new RegExp(`${unit.path}$`, 'u'));
+  });
+
+  test('Tab으로 지도의 제목 링크 → [시작하기] 차례로 닿고, 초점 테두리가 카드 둘레에 보인다', async ({ page }) => {
+    await page.goto('./');
+    const card = page.locator('[data-home-unit]').first();
+    const title = card.getByRole('heading', { level: 3 }).getByRole('link');
+    const start = card.locator('[data-unit-start]');
+
+    await title.focus();
+    // 덮개(::after)에 그린 초점 테두리: 링크 글자가 아니라 카드 전체를 두른다.
+    const outline = await title.evaluate((link) => {
+      const after = getComputedStyle(link, '::after');
+      return { style: after.outlineStyle, width: Number.parseFloat(after.outlineWidth) };
+    });
+    expect(outline.style).not.toBe('none');
+    expect(outline.width).toBeGreaterThanOrEqual(2);
+
+    await page.keyboard.press('Tab');
+    await expect(start).toBeFocused();
+    const startOutline = await start.evaluate((link) => Number.parseFloat(getComputedStyle(link).outlineWidth));
+    expect(startOutline).toBeGreaterThanOrEqual(2);
+  });
+
+  test('화살표와 진도 막대는 Tab 정지점이 아니고 처음 온 사람에게는 진도 글이 보이지 않는다', async ({ page }) => {
+    await page.goto('./');
+    const card = page.locator('[data-home-unit]').first();
+    await expect(card).toHaveAttribute('data-progress-empty', '');
+    await expect(card.locator('[data-progress-count]')).toBeHidden();
+    await expect(card.locator('[data-progress-bar]')).toBeHidden();
+    await expect(page.locator('[data-home-resume]')).toBeHidden();
+    await expect(page.locator('html')).not.toHaveAttribute('data-progress-has', '');
+    // 지도 안에서 초점을 받는 것은 제목 링크 4개와 [시작하기] 4개뿐이다.
+    const focusables = await page
+      .locator('[data-home-map] a[href], [data-home-map] button, [data-home-map] [tabindex]')
+      .count();
+    expect(focusables).toBe(learnUnits.length * 2);
+  });
+});
+
+test.describe('홈 진도 표시(이어서 하기)', () => {
+  const lesson = { id: 'u1/1-1-1', href: '/ai-physical-computing/learn/u1/1-1-1/', label: '1-1-1', title: '카메라란 무엇일까', at: 1000 };
+  const state = {
+    version: 1,
+    seen: ['u1/1-1-1'],
+    done: ['u1/1-1-1'],
+    last: lesson,
+    lastLab: { path: '/ai-physical-computing/labs/vision/', title: '영상처리 실습실', at: 2000 },
+  };
+
+  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글, [이어서 하기] 단추가 나타난다', async ({ page }) => {
+    await page.addInitScript(
+      ({ key, value }) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // 저장을 막은 브라우저
+        }
+      },
+      { key: storageKey(PROGRESS_STORAGE_NAME), value: JSON.stringify(state) },
+    );
+    await page.goto('./');
+    const band = page.getByRole('region', { name: homeResume.heading });
+    await expect(band).toBeVisible();
+    await expect(band.getByRole('link', { name: /1-1-1 카메라란 무엇일까 이어서 하기/u })).toHaveAttribute('href', lesson.href);
+    await expect(band.getByRole('link', { name: /영상처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
+
+    const card = page.locator('[data-home-unit]').first();
+    await expect(card.locator('[data-progress-count]')).toContainText('1개 끝냄');
+    await expect(page.locator('[data-home-unit]').nth(1)).toHaveAttribute('data-progress-empty', '');
+    const resume = card.locator('[data-unit-start]');
+    await expect(resume).toHaveAccessibleName('I단원 이어서 하기');
+    await expect(resume).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
+  });
+
+  test('망가진 저장 값이 있어도 오류 없이 처음 온 사람처럼 보인다', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(String(error)));
+    await page.addInitScript(
+      ({ key }) => {
+        try {
+          localStorage.setItem(key, '{"version":1,"seen":"nope","last":{"href":"//evil.example/x"}}');
+        } catch {
+          // 저장을 막은 브라우저
+        }
+      },
+      { key: storageKey(PROGRESS_STORAGE_NAME) },
+    );
+    await page.goto('./');
+    await expect(page.locator('[data-home-resume]')).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+});
+
+/** 문서가 화면 폭보다 얼마나 넓은지(px) */
+function overflowX(page: Page): Promise<number> {
+  return page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+}

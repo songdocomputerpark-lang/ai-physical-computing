@@ -18,7 +18,7 @@
  */
 import { FLOW_TOGGLE_LABELS } from './flow-motion.ts';
 import { flowFigure } from './home-content.ts';
-import HomeIcon from './HomeIcon.astro';
+import Icon from '../common/Icon.astro';
 
 const TITLE_ID = 'home-flow-title';
 const DESC_ID = 'home-flow-desc';
@@ -210,8 +210,8 @@ const HAND_JOINTS = [
     </ol>
     <div class="flow__controls">
       <button class="flow__toggle" type="button" data-flow-toggle hidden>
-        <span class="flow__toggle-icon flow__toggle-icon--pause"><HomeIcon name="pause" /></span>
-        <span class="flow__toggle-icon flow__toggle-icon--replay"><HomeIcon name="replay" /></span>
+        <span class="flow__toggle-icon flow__toggle-icon--pause"><Icon name="pause" size="fill" /></span>
+        <span class="flow__toggle-icon flow__toggle-icon--replay"><Icon name="replay" size="fill" /></span>
         <span data-flow-toggle-label>{FLOW_TOGGLE_LABELS.replay}</span>
       </button>
     </div>
