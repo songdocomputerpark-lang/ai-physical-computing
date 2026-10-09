@@ -7,7 +7,7 @@
  * 문구("이전 차시"·"다음 차시"·"첫 번째 차시예요."·"마지막으로 준비된 차시예요.")와 링크 이름은 그대로다.
  */
 import Icon from '../common/Icon.astro';
-import type { LessonSummary } from './lesson-data.ts';
+import { lessonStepLabel, type LessonSummary } from './lesson-data.ts';
 
 interface Props {
   previous?: LessonSummary | undefined;
@@ -15,6 +15,11 @@ interface Props {
 }
 
 const { previous, next } = Astro.props;
+
+/** 카드에 보이는 차시 이름: 대단원 마무리는 코드 같은 번호(I-마무리) 대신 "I단원 마무리" 한 번만(R1-082 — 제목 "대단원 마무리"와 겹치지 않게) */
+function pagerName(lesson: LessonSummary): string {
+  return lesson.kind === 'review' ? lessonStepLabel(lesson) : `${lesson.label} ${lesson.title}`;
+}
 ---
 
 <nav class="lesson-pager" aria-label="이전·다음 차시" data-pagefind-ignore>
@@ -29,7 +34,7 @@ const { previous, next } = Astro.props;
                 이전 차시
               </span>{' '}
               <span class="lesson-pager__title">
-                {previous.label} {previous.title}
+                {pagerName(previous)}
               </span>
             </a>
           </div>
@@ -48,7 +53,7 @@ const { previous, next } = Astro.props;
                 <Icon name="arrow-right" size="sm" />
               </span>{' '}
               <span class="lesson-pager__title">
-                {next.label} {next.title}
+                {pagerName(next)}
               </span>
             </a>
           </div>

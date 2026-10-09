@@ -123,6 +123,12 @@ const firstLesson = firstUnit ? lessons.find((lesson) => lesson.id === firstUnit
     gap: var(--space-1);
   }
 
+  /* 본 차시가 없거나 아직 칠하기 전이면 자리를 차지하지 않는다(머리띠 아래 빈 칸 없음, R1-089) */
+  .learn-unit__header:not([data-progress-ready]) .learn-unit__progress,
+  .learn-unit__header[data-progress-empty] .learn-unit__progress {
+    display: none;
+  }
+
   .learn-unit__progress-text {
     color: var(--color-text);
     font-size: var(--text-sm);
@@ -151,12 +157,13 @@ const firstLesson = firstUnit ? lessons.find((lesson) => lesson.id === firstUnit
 
   @media (min-width: 48rem) {
     .learn-unit__header {
-      grid-template-columns: auto minmax(0, 1fr) minmax(12rem, 16rem);
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
     }
 
     .learn-unit__progress {
       grid-column: auto;
+      inline-size: 14rem;
     }
   }
 </style>

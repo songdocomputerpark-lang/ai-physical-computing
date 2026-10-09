@@ -3,6 +3,8 @@
  * 차시 본문 — lesson-html.ts의 planLessonBody 결과를 칸(section)마다 그리고, 예제·퀴즈·교사용 안내 자리에 컴포넌트를 넣는다.
  * 마크다운에서 나온 HTML에는 컴포넌트 스타일이 닿지 않으므로 본문용 스타일은 :global로 적는다(.lesson-body 안에서만).
  * 교사용 칸은 발표 모드(LessonPresent.astro)에서 빠진다 — data-section="teacher".
+ * 교사용 칸의 제목(## 교사용)은 학생 흐름의 제목들보다 작고 흐리게 그린다 — 학생이 퀴즈를 마친 바로 아래에서 같은 무게로 눈에 띄지 않게(R1-071).
+ * 제목 글자는 그대로 둔다(8칸 h2는 모두 보이게, 차례 #링크·e2e가 그 이름을 쓴다).
  */
 import type { LessonData } from '../../config/content-schemas.ts';
 import type { LessonSource } from './curriculum.ts';
@@ -92,6 +94,20 @@ const quizPrefix = `quiz-${idPrefix}`;
     border-top: 3px solid var(--color-accent-soft);
   }
 
+  /* 교사용 칸: 작고 흐리게(학생 흐름 아래에 조용히). 제목은 읽기 쉬운 크기(1.0625rem)·본문 글자 대비를 지킨다. */
+  :global(.lesson-body .lesson-section[data-section='teacher'] > h2) {
+    margin-block-start: var(--space-12);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* 쪽 안에서 제목으로 보내거나(발표를 끝내고 돌아올 때 포함) 초점이 가도 제목의 초점 테두리가 화면 위에 잘리지 않게 한다(R1-077) */
+  :global(html:not([data-presenting]) .lesson-body .lesson-section > *) {
+    scroll-margin-block-start: var(--space-4);
+  }
+
   /* 표: 차시 본문 폭을 가득 채워 표끼리 너비를 가지런히 맞춘다. 넓으면 global.css의 규칙대로 표만 옆으로 밀어 본다. */
   :global(.lesson-body table) {
     width: 100%;
@@ -113,18 +129,39 @@ const quizPrefix = `quiz-${idPrefix}`;
     display: none;
   }
 
+  /*
+   * 손가락으로 누르기 쉽게 단추 모양으로(높이 40px 이상, R1-070 — 예전에는 85×23px 글자 링크였다).
+   * 글줄 사이에 끼는 링크가 아니라 그림 바로 아래의 독립된 줄이다.
+   */
   @media (max-width: 48rem) {
     :global(.lesson-body .figure-zoom) {
-      display: inline-block;
-      margin-block-start: var(--space-1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-block-size: 2.5rem;
+      margin-block-start: var(--space-2);
+      padding: var(--space-1) var(--space-4);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
       font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      text-decoration: none;
+    }
+
+    :global(.lesson-body .figure-zoom:hover) {
+      border-color: var(--color-accent-border);
+      background: var(--color-accent-soft);
     }
 
     :global(.lesson-body p > .figure-zoom) {
-      display: block;
-      text-align: center;
+      display: flex;
+      inline-size: fit-content;
+      margin-inline: auto;
     }
   }
+
+  /* 본문 속 용어 링크의 눌리는 면적(R1-070)은 용어 부품(GlossaryScope.astro)이 모든 쪽에 같이 넓힌다. */
 
   :global(html[data-presenting] .lesson-body .figure-zoom) {
     display: none;

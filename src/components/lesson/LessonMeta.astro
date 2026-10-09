@@ -142,6 +142,13 @@ const emptyStandards = standardsEmptyText(lesson.label);
     font-weight: var(--weight-semibold);
   }
 
+  /* 실습실 링크: 글자 높이(약 20px)뿐이라 누르기 어려웠다(R1-070) — 칩 안에서 눌리는 곳만 위아래로 넓힌다 */
+  .lesson-meta__item[data-meta='lab'] a {
+    display: inline-block;
+    margin-block: -0.6rem;
+    padding-block: 0.6rem;
+  }
+
   .lesson-meta__code {
     font-variant-numeric: tabular-nums;
   }

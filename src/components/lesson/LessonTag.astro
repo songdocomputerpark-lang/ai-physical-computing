@@ -5,19 +5,21 @@
  * 쓰는 법: <LessonTag tone="planned">준비 중</LessonTag>
  * tone
  *   planned        준비 중(아직 글이 없는 차시)
- *   no-manuscript  원고 없음(코드만 있어 사이트가 본문을 쓰는 차시, PLAN §2.3)
+ *   no-manuscript  사이트 해설(코드만 있어 사이트가 본문을 쓰는 차시, PLAN §2.3 — 교사용 글에는 "원고 없음"으로 남는다, R1-085)
  *   kind           보충·읽기 자료(교과서 차시와 구분, PD-07)
  *   meta           소요 시간·난이도·교과서 쪽 같은 덧붙임 정보
  * 뜻은 색만이 아니라 글자로도 전한다. 글자 대비는 모두 4.5:1 이상(tokens.css 계산값).
  */
 interface Props {
   tone: 'planned' | 'no-manuscript' | 'kind' | 'meta';
+  /** 마우스를 올리면 보이는 짧은 풀이(화면 낭독기는 읽지 않는다 — 같은 말이 쪽의 풀이 줄에도 있다) */
+  title?: string;
 }
 
-const { tone } = Astro.props;
+const { tone, title } = Astro.props;
 ---
 
-<span class:list={['lesson-tag', `lesson-tag--${tone}`]}><slot /></span>
+<span class:list={['lesson-tag', `lesson-tag--${tone}`]} title={title}><slot /></span>
 
 <style>
   .lesson-tag {
@@ -32,6 +34,13 @@ const { tone } = Astro.props;
     font-weight: var(--weight-semibold);
     line-height: var(--leading-snug);
     white-space: nowrap;
+  }
+
+  /* 1100px 이하(프로젝터·작은 노트북·카드 3열)에서는 13px 딱지가 멀리서 읽히지 않는다 — 15px로 키운다(R1-090). 칩이 줄을 바꿔 쌓이도록 카드가 이미 wrap이다. */
+  @media (max-width: 68.75rem) {
+    .lesson-tag {
+      font-size: var(--text-sm);
+    }
   }
 
   .lesson-tag--planned {

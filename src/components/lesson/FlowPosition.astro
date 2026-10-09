@@ -1,0 +1,121 @@
+---
+/**
+ * 큰 그림에서 이 단원의 자리(판 1.3.0 R1-083·R1-084) — "보고 → 판단하고 → 움직여요" 세 칸 가운데 이 단원이 맡은 칸을 강조한다.
+ * 차시 쪽 머리(작게)와 대단원 쪽 소개(조금 크게)에서 쓴다. 홈의 흐름 그림과 같은 낱말이다(unit-about.ts).
+ *
+ * 색만으로 알리지 않는다: 맡은 칸은 굵은 글씨 + 단원 색 바탕 + 숨은 글 "(이 단원)"으로 읽힌다.
+ * 화살표(→)는 꾸밈이라 화면 낭독기가 읽지 않는다. 목록(ol)은 Tab 정지점이 없다.
+ *
+ * props
+ *   unit  대단원 번호
+ *   size  mini(차시 머리) | normal(대단원 쪽)
+ */
+import { FLOW_STAGES, flowRoleText, isStageOfUnit } from './unit-about.ts';
+import { unitCardClass, type LessonUnitNumber } from './unit-style.ts';
+
+interface Props {
+  unit: LessonUnitNumber;
+  size?: 'mini' | 'normal';
+}
+
+const { unit, size = 'normal' } = Astro.props;
+---
+
+<div class:list={['flow-position', `flow-position--${size}`, unitCardClass(unit)]} data-pagefind-ignore>
+  <ol class="flow-position__list" aria-label="큰 그림: 보고, 판단하고, 움직여요">
+    {
+      FLOW_STAGES.map((stage) => (
+        <li class="flow-position__stage" data-on={isStageOfUnit(unit, stage.id) ? 'true' : 'false'}>
+          {stage.label}
+          {isStageOfUnit(unit, stage.id) && <span class="visually-hidden"> (이 단원)</span>}
+        </li>
+      ))
+    }
+  </ol>
+  <p class="flow-position__role">{flowRoleText(unit)}</p>
+</div>
+
+<style>
+  .flow-position {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .flow-position__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .flow-position__stage {
+    margin: 0;
+    padding: 0.125rem var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    white-space: nowrap;
+  }
+
+  .flow-position__stage[data-on='true'] {
+    border-color: var(--card-unit);
+    background: var(--card-unit-soft);
+    color: var(--card-unit);
+    font-weight: var(--weight-bold);
+  }
+
+  /* 칸 사이 화살표(꾸밈 — 읽히지 않게 대체 글을 비운다). 지원하지 않는 브라우저는 앞 줄(읽히는 화살표)을 쓴다. */
+  .flow-position__stage + .flow-position__stage::before {
+    margin-inline-end: var(--space-2);
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+    content: '→';
+    content: '→' / '';
+  }
+
+  .flow-position__role {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .flow-position--mini {
+    margin-block-end: var(--space-3);
+  }
+
+  .flow-position--mini .flow-position__stage {
+    padding-inline: var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  .flow-position--mini .flow-position__role {
+    font-size: var(--text-xs);
+  }
+
+  .flow-position--normal .flow-position__stage {
+    padding-block: 0.25rem;
+    font-size: var(--text-base);
+  }
+
+  @media (forced-colors: active) {
+    .flow-position__stage[data-on='true'] {
+      border-width: 2px;
+      border-color: Highlight;
+    }
+  }
+
+  @media print {
+    .flow-position {
+      display: none;
+    }
+  }
+</style>

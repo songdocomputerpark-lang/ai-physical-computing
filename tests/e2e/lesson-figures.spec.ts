@@ -163,6 +163,10 @@ test.describe('차시 그림 — 휴대폰에서 글자가 읽히는 크기(미�
     const inPage = await image.evaluate((element) => ({ src: (element as HTMLImageElement).currentSrc, width: element.getBoundingClientRect().width }));
     expect(inPage.src).toMatch(/\.narrow\.svg$/u);
     const link = figure.locator('a.figure-zoom');
+    // 손가락으로 누르기 쉬운 크기: 높이 40px 이상 단추 모양(R1-070 — 예전 85×23px)
+    const linkBox = await link.boundingBox();
+    expect(linkBox!.height, '[그림 크게 보기] 높이').toBeGreaterThanOrEqual(40);
+    expect(linkBox!.width, '[그림 크게 보기] 너비').toBeGreaterThanOrEqual(44);
     await link.click();
     const dialog = page.locator('dialog[data-figure-zoom]');
     await expect(dialog).toBeVisible();

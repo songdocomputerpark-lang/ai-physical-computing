@@ -126,6 +126,8 @@ test.describe('발표 모드', () => {
     const quizHeading = page.getByRole('heading', { level: 2, name: '확인 퀴즈' });
     await expect(quizHeading).toBeInViewport();
     await expect(quizHeading).toBeFocused();
+    // 제목의 초점 테두리가 화면 맨 위에 걸려 잘리지 않는다(scroll-margin — R1-077)
+    expect(await quizHeading.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(8);
     await page.keyboard.press('Tab');
     const after = await page.evaluate(() => document.activeElement?.closest('section[data-section]')?.getAttribute('data-section') ?? 'none');
     expect(after, '다음 Tab은 확인 퀴즈 칸 안의 조작으로 간다').toBe('quiz');
@@ -190,6 +192,69 @@ test.describe('발표 모드', () => {
     }
   });
 
+  // 판 1.3.0 검수 R1-073·R1-074·R1-076: 화면보다 긴 단계는 "아래에 더 있어요" 띠를 보이고, Space·PageDown이 한 화면 스크롤한 뒤 끝에서 다음 단계로 넘긴다.
+  // 막대 높이(상태 글 2줄 높이를 늘 잡음)는 단계마다 같다. 1024×768(교실 프로젝터)에서 1-2-1을 한 단계씩 돌며 본다.
+  test('긴 단계는 "아래에 더 있어요" 띠와 Space 스크롤이 있고, 막대 높이는 모든 단계에서 같다(1024×768)', async ({ page, isMobile }) => {
+    test.skip(isMobile, '교실 프로젝터 크기(데스크톱)에서 본다');
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('./learn/u1/1-2-1/');
+    await openPresentation(page);
+    const total = Number(await page.locator('[data-lesson-present]').getAttribute('data-present-total'));
+    expect(total).toBeGreaterThan(5);
+    const more = page.locator('[data-present-more]');
+    const barHeights = new Set<number>();
+    let scrolledSteps = 0;
+    for (let step = 1; step <= total; step += 1) {
+      await expect(page.locator('[data-lesson-present]')).toHaveAttribute('data-present-step', String(step));
+      barHeights.add(await page.locator('.lesson-present__bar').evaluate((element) => Math.round(element.getBoundingClientRect().height)));
+      let advanced = false;
+      if (await more.isVisible()) {
+        scrolledSteps += 1;
+        const label = (await status(page).textContent()) ?? '';
+        const before = await page.evaluate(() => window.scrollY);
+        await page.keyboard.press('Space');
+        // Space는 다음 단계가 아니라 한 화면 스크롤이다
+        expect(await page.evaluate(() => window.scrollY), `${step}/${total}단계에서 Space가 스크롤하지 않았다`).toBeGreaterThan(before);
+        await expect(status(page)).toHaveText(label);
+        for (let guard = 0; guard < 12 && (await more.isVisible()); guard += 1) {
+          await page.keyboard.press('PageDown');
+        }
+        // 끝까지 내리면 띠가 사라지고, 한 번 더 누르면 다음 단계다
+        await expect(more).toBeHidden();
+        if (step < total) {
+          await page.keyboard.press('Space');
+          advanced = true;
+        }
+      }
+      if (!advanced && step < total) {
+        await page.keyboard.press('ArrowRight');
+      }
+    }
+    test.info().annotations.push({ type: '아래에 더 있는 단계(Space로 스크롤)', description: String(scrolledSteps) });
+    expect([...barHeights], '막대 높이는 단계마다 같다').toHaveLength(1);
+  });
+
+  // R1-078: 발표 중 Tab은 막대의 단추만 돌고, 쪽 맨 위의 [본문으로 건너뛰기]로 새지 않는다.
+  test('발표 중에는 [본문으로 건너뛰기]가 숨고 Tab이 슬라이드 밖으로 새지 않는다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '키보드 조작은 데스크톱에서 본다');
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentation(page);
+    await expect(page.locator('.skip-link')).toBeHidden();
+    for (let press = 0; press < 10; press += 1) {
+      await page.keyboard.press('Tab');
+      const where = await page.evaluate(() => {
+        const active = document.activeElement;
+        return { skip: active?.classList.contains('skip-link') ?? false, inSlide: Boolean(active?.closest('.lesson-present, .lesson-body, #main-content')) || active === document.body };
+      });
+      expect(where.skip, `${press + 1}번째 Tab이 건너뛰기 링크로 샜다`).toBe(false);
+      expect(where.inSlide, `${press + 1}번째 Tab이 슬라이드 밖에 있다`).toBe(true);
+    }
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
+    await expect(page.locator('.skip-link')).toBeAttached();
+  });
+
   test('막대의 단추로도 넘기고 끝내며, 발표 화면은 옆으로 넘치지 않는다', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
     await openPresentation(page);
@@ -210,7 +275,7 @@ test.describe('발표 모드', () => {
     }
     expect(reached, '따라하기 예제 단계').toBeGreaterThan(2);
     // 막대 글에 어느 예제인지(예제 제목)가 함께 보인다.
-    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 따라하기 — 코드 읽기 · 규칙대로 정렬하기와 예시에서 배워 묶기$`, 'u'));
+    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 따라 하기 — 코드 읽기 · 규칙대로 정렬하기와 예시에서 배워 묶기$`, 'u'));
     // 따라하기 예제 단계에서도 [이 자리에서 실습실 열기]를 쓸 수 있다(실습실은 누르기 전에 받지 않는다).
     await expect(page.locator('.lesson-example')).toBeVisible();
     await expect(page.locator('iframe')).toHaveCount(0);

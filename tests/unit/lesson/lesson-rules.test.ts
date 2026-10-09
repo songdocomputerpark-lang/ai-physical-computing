@@ -254,7 +254,7 @@ describe('본문 8칸 규칙', () => {
     const nested = withSection('따라하기', '실행해요.\n\n:::참고\n::예제\n:::\n\n:::왜그럴까\n이유\n:::');
     expect(codes(await check({ sections: nested }), 'error')).toContain('body-plan');
     const elsewhere = { ...withSection('따라하기', '실행해요.\n\n:::왜그럴까\n이유\n:::'), 바꿔보기: `::예제\n\n${BASE_SECTIONS['바꿔보기']}` };
-    expect((await check({ sections: elsewhere })).find((item) => item.code === 'slot-place')?.message).toContain('따라하기 칸');
+    expect((await check({ sections: elsewhere })).find((item) => item.code === 'slot-place')?.message).toContain('따라 하기 칸');
     const quizElsewhere = { ...withSection('확인 퀴즈', '세 문제예요.'), 교사용: `::퀴즈\n\n${BASE_SECTIONS['교사용']}` };
     expect(codes(await check({ sections: quizElsewhere }), 'error')).toContain('slot-place');
   });

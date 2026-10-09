@@ -9,7 +9,9 @@
  * 끝: [이 차시 다 했어요] 토글(LessonDone.astro), 이전·다음 차시, 발표 모드 막대(발표 중에만 보임 — LessonPresent.astro)
  *
  * 판 1.3.0: 쪽 폭을 default로 올리고 넓은 화면(64rem 이상)에서 2열 — 왼쪽에 붙어 따라오는 단원 차시 목록(LessonSidebar), 오른쪽에 본문(44rem 그대로).
- * 좁은 화면에서는 본문 위의 <details>로 접힌다. 머리 위쪽에 "몇 번째 차시인지"와 작은 [이전]·[다음], 차시를 열면 "봤어요"를 저장한다.
+ * 좁은 화면에서는 본문 위의 <details>로 접힌다. 머리 위쪽에 "이 단원의 몇 번째 차시인지"와 작은 [이전]·[다음], 차시를 열면 "열어 봤어요"를 저장한다.
+ * (진도의 "N차시 중 M차시를 마쳤어요"와 헷갈리지 않게 위치 글에는 전체 차시 수를 적지 않는다, R1-067.)
+ * 머리의 칩 줄 앞에는 큰 그림(보고 → 판단하고 → 움직여요)에서 이 단원의 자리를 보인다(FlowPosition, R1-084).
  *
  * 차시 틀 규칙(lesson-rules.ts)을 빌드할 때 모두 돌려 빌드 기록에 [차시 틀] 경고로 남긴다 — 빌드는 멈추지 않는다(PD-35).
  * 같은 규칙을 엄격하게(오류면 실패) 돌리는 것은 npm run check:lessons다.
@@ -22,6 +24,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Icon from '../../../components/common/Icon.astro';
 import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
+import FlowPosition from '../../../components/lesson/FlowPosition.astro';
 import LessonBody from '../../../components/lesson/LessonBody.astro';
 import LessonDone from '../../../components/lesson/LessonDone.astro';
 import LessonMeta from '../../../components/lesson/LessonMeta.astro';
@@ -35,6 +38,7 @@ import {
   kindBadge,
   lessonBreadcrumb,
   lessonDocumentTitle,
+  lessonStepLabel,
   publishedLessons,
   type LessonSummary,
 } from '../../../components/lesson/lesson-data.ts';
@@ -88,7 +92,10 @@ const teacher = { data: entry.data, source: lessonSource(entry.data, lesson.slug
 
 const unit = getLearnUnit(lesson.unit);
 const kind = kindBadge(lesson.kind);
-const tocSections = plan.sections.flatMap((section) => (section.id ? [{ id: section.id, title: section.title }] : []));
+// 차례의 교사용 칸은 푸터의 "교사용 시작하기"·머리글의 "교사용 자료실"과 이름이 같아 헷갈렸다(R1-072) — 이 차시의 안내라고 밝힌다.
+const tocSections = plan.sections.flatMap((section) =>
+  section.id ? [{ id: section.id, title: section.key === 'teacher' ? '교사용 안내' : section.title }] : [],
+);
 const { previous, next } = findNeighbors(lessons, lesson.id);
 const position = lessonPosition(lessons, lesson);
 ---
@@ -99,6 +106,7 @@ const position = lessonPosition(lessons, lesson);
   width="default"
   breadcrumb={lessonBreadcrumb(lesson)}
   ogType="article"
+  skipTarget="lesson-article"
 >
   <div class="lesson-layout">
     <LessonSidebar lesson={lesson} lessons={lessons} unit={unit} />
@@ -110,7 +118,7 @@ const position = lessonPosition(lessons, lesson);
               <Icon name={unitIcon(lesson.unit)} size="sm" />
             </span>
             <a href={unit.href}>{unit.title}</a>
-            {position && <span class="lesson__position">{position.total}차시 중 {position.index}번째</span>}
+            {position && <span class="lesson__position">이 단원의 {position.index}번째 차시</span>}
           </p>
           <nav class="lesson__step" aria-label="차시 이동">
             {
@@ -118,7 +126,7 @@ const position = lessonPosition(lessons, lesson);
                 <a class="lesson__step-link" href={previous.href} rel="prev">
                   <Icon name="arrow-left" size="sm" />
                   <span>이전</span>
-                  <span class="lesson__step-label">{previous.label}</span>
+                  <span class="lesson__step-label">{lessonStepLabel(previous)}</span>
                 </a>
               )
             }
@@ -126,7 +134,7 @@ const position = lessonPosition(lessons, lesson);
               next && (
                 <a class="lesson__step-link" href={next.href} rel="next">
                   <span>다음</span>
-                  <span class="lesson__step-label">{next.label}</span>
+                  <span class="lesson__step-label">{lessonStepLabel(next)}</span>
                   <Icon name="arrow-right" size="sm" />
                 </a>
               )
@@ -141,6 +149,7 @@ const position = lessonPosition(lessons, lesson);
         </h1>
         {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
         <div data-present-hide>
+          <FlowPosition unit={lesson.unit} size="mini" />
           <LessonMeta lesson={lesson} />
           <p class="lesson__tools" data-pagefind-ignore>
             <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
@@ -164,7 +173,7 @@ const position = lessonPosition(lessons, lesson);
           teacher={teacher}
         />
       </GlossaryScope>
-      <LessonDone lesson={lesson} />
+      <LessonDone lesson={lesson} next={next} />
       <LessonPager previous={previous} next={next} />
     </article>
   </div>

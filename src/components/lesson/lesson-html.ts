@@ -3,7 +3,7 @@
  * 예제 코드와 확인 퀴즈가 들어갈 자리를 정한다(PLAN §2.6·§8.1 P1-06). 순수 함수라 Vitest로 검사한다.
  *
  * 마크다운을 쓰는 사람의 약속
- * - 8칸은 ## 제목으로 이 순서대로 쓴다: 학습목표 · 왜 배울까 · 핵심 개념 · 따라하기 · 바꿔보기 · 도전 과제 · 확인 퀴즈 · 교사용
+ * - 8칸은 ## 제목으로 이 순서대로 쓴다: 학습목표 · 왜 배울까 · 핵심 개념 · 따라 하기 · 바꿔 보기 · 도전 과제 · 확인 퀴즈 · 교사용
  *   띄어쓰기는 달라도 된다("학습 목표"도 학습목표). 빠지거나 순서가 다르면 빌드 로그에 경고만 남긴다(PD-35).
  * - frontmatter examples의 예제 코드가 들어갈 자리에 ::예제 를 한 줄로 따로 적는다. 적지 않으면 따라하기 칸 끝에 붙는다.
  *   예제가 여럿이면 ::예제[1] ::예제[2]처럼 번호(examples의 차례, 1부터)를 붙여 예제마다 자리를 따로 정할 수 있다 —
@@ -23,8 +23,8 @@ export const LESSON_SECTIONS = [
   { key: 'goals', title: '학습목표' },
   { key: 'why', title: '왜 배울까' },
   { key: 'concepts', title: '핵심 개념' },
-  { key: 'follow', title: '따라하기' },
-  { key: 'try', title: '바꿔보기' },
+  { key: 'follow', title: '따라 하기' },
+  { key: 'try', title: '바꿔 보기' },
   { key: 'challenge', title: '도전 과제' },
   { key: 'quiz', title: '확인 퀴즈' },
   { key: 'teacher', title: '교사용' },
@@ -537,7 +537,7 @@ function placeExampleSlots(blocks: WorkingSection[], exampleCount: number, warni
   }
   if (placed.size > 0) {
     warnings.push(
-      `예제 ${remaining.map((index) => index + 1).join(', ')}번의 자리 표시(${marker}[번호])가 없어서 따라하기 칸 끝에 붙였어요. 설명 바로 아래에 ${marker}[${(remaining[0] ?? 0) + 1}]처럼 적어요.`,
+      `예제 ${remaining.map((index) => index + 1).join(', ')}번의 자리 표시(${marker}[번호])가 없어서 따라 하기 칸 끝에 붙였어요. 설명 바로 아래에 ${marker}[${(remaining[0] ?? 0) + 1}]처럼 적어요.`,
     );
   }
   const target = blocks.find((block) => !block.intro && block.key === 'follow');

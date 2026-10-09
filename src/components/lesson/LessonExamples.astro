@@ -84,7 +84,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
     <div class="lesson-example-block" data-example-number={numbered ? panel.number : undefined}>
     <figure class="lesson-example" id={panel.key} data-lab={panel.lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
       <figcaption class="lesson-example__caption">
-        <span class="lesson-example__eyebrow">{numbered ? `따라하기 예제 ${panel.number}` : '따라하기 예제'}</span>
+        <span class="lesson-example__eyebrow">{numbered ? `따라 하기 예제 ${panel.number}` : '따라 하기 예제'}</span>
         <span class="lesson-example__title" id={`${panel.key}-title`}>
           {panel.title}
         </span>
@@ -359,6 +359,19 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
     overflow: hidden;
   }
 
+  /*
+   * 넓은 화면(64rem 이상)에는 왼쪽에 단원 차시 목록이 붙어 본문 칸이 가운데가 아니다(lesson-layout, [lesson].astro). 위의 "가운데에서 좌우로 펴기"는
+   * 본문 칸이 화면 가운데일 때만 맞아서, 1366px에서 실습실이 목록 밑으로 들어가고 오른쪽이 잘려 가로 스크롤이 생겼다(1443 > 1366, R1-079).
+   * 그래서 이 자리에서는 본문 칸 폭(44rem 이하)에 맞춘다. 실습실은 칸 안에서 위아래로 쌓이는 배치로 열리고, 더 넓게 쓰려면 [실습실을 크게 열기]가 있다.
+   */
+  @media (min-width: 64rem) {
+    .lesson-example__lab {
+      width: 100%;
+      max-width: 100%;
+      margin-inline: 0;
+    }
+  }
+
   .lesson-example__lab :global(.lesson-example__frame) {
     display: block;
     width: 100%;
@@ -382,6 +395,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
   .lesson-example__lab :global(.lesson-example__lab-bar) {
     display: flex;
     flex-wrap: wrap;
+    min-width: 0;
     gap: var(--space-2) var(--space-3);
     padding: var(--space-3) var(--space-4);
     border-top: 1px solid var(--color-border);

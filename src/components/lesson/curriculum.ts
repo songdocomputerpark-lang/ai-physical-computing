@@ -104,8 +104,9 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
       }),
       section({
         key: 'u1-basics',
-        title: '보충: 영상 처리 기초',
-        description: '사진이 숫자라는 것부터 테두리 찾기까지, 손 인식을 배우기 전에 알아 두면 좋은 내용을 사이트가 보탰어요.',
+        title: '보충: 영상 처리 기초 (선택)',
+        description:
+          '사진이 숫자라는 것부터 테두리 찾기까지, 손 인식을 배우기 전에 알아 두면 좋은 내용을 사이트가 보탰어요. 건너뛰어도 되고, 손 인식이 어렵게 느껴지면 먼저 해 보세요.',
         lessons: [
           supplement('V1', '사진은 숫자다', 3.1),
           supplement('V2', '색공간과 흑백', 3.2),
@@ -128,6 +129,7 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         key: 'u1-03',
         title: '03 페이스 매시',
         middleUnit: 3,
+        description: '교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
           textbook('1-3-1', 'AI는 나의 방향을 알고 있다', 7, 'code-only', '파일명 p55·p58'),
           textbook('1-3-2', 'AI는 나의 하품을 파악한다', 8, 'code-only', '파일명 p65·p68'),
@@ -138,6 +140,7 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         key: 'u1-04',
         title: '04 포즈 트래킹과 음성 인식',
         middleUnit: 4,
+        description: '교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
           textbook('1-4-1', '몸으로 말해요! 동작 감지 인공지능', 10, 'code-only', '파일명 p85·p88'),
           textbook('1-4-2', '균형 잡힌 자세를 도와주는 인공지능', 11, 'code-only', '파일명 p95·p99'),
@@ -194,10 +197,11 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
       }),
       section({
         key: 'u3-network',
-        title: '보충: 인터넷 통신과 AI→피지컬 연결',
-        description: '교과서 자료에 없는 인터넷 통신(MQTT), 대시보드, 손가락 개수로 LED를 켜는 연결 실습을 사이트가 보탰어요.',
+        title: '보충: 인터넷 통신과 AI→피지컬 연결 (선택)',
+        description:
+          '교과서 자료에 없는 인터넷 통신(MQTT), 대시보드, 손가락 개수로 LED를 켜는 연결 실습을 사이트가 보탰어요. 건너뛰어도 돼요.',
         lessons: [
-          supplement('C1', 'Wi-Fi와 MQTT: 발행과 구독', 4.1),
+          supplement('C1', '와이파이와 MQTT: 발행과 구독', 4.1),
           supplement('C2', '대시보드로 보고 조종하기', 4.2),
           supplement('C3', '손가락 개수만큼 LED 켜기', 4.3),
         ],
@@ -212,7 +216,7 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         key: 'u4-01',
         title: '01 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발',
         middleUnit: 1,
-        description: '이 대단원은 교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요.',
+        description: '이 대단원은 교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
           textbook('4-1-1', 'AI의 눈, 내 얼굴 인식', 1, 'code-only', '파일명 p216·p217·p219'),
           textbook('4-1-2', '눈길 따라 움직이는 마우스 커서', 2, 'code-only', '파일명 p226'),

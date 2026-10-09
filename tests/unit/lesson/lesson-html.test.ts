@@ -141,10 +141,10 @@ describe('차시 본문 나누기(planLessonBody)', () => {
     ]);
     const generated = plan.sections.filter((section) => section.generated);
     expect(generated.map((section) => [section.id, section.title])).toEqual([
-      ['따라하기', '따라하기'],
+      ['따라-하기', '따라 하기'],
       ['확인-퀴즈', '확인 퀴즈'],
     ]);
-    expect(plan.warnings.join('\n')).toContain('"따라하기" 칸');
+    expect(plan.warnings.join('\n')).toContain('"따라 하기" 칸');
     expect(plan.warnings.join('\n')).toContain('"확인 퀴즈" 칸');
   });
 

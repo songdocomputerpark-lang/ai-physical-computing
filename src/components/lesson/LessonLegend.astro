@@ -8,6 +8,7 @@
  *               새 차시를 차례표(curriculum.ts)에 먼저 더하면 다시 보인다(lesson-data.ts status 'planned').
  */
 import LessonTag from './LessonTag.astro';
+import { SITE_WRITTEN_NOTE } from './lesson-data.ts';
 
 interface Props {
   hasPlanned?: boolean;
@@ -30,8 +31,8 @@ const { hasPlanned = false } = Astro.props;
       )
     }
     <div class="lesson-legend__item" data-legend="no-manuscript">
-      <dt><LessonTag tone="no-manuscript">원고 없음</LessonTag></dt>
-      <dd>교과서 원고가 없어서 예제 코드를 바탕으로 사이트가 쓴 차시예요.</dd>
+      <dt><LessonTag tone="no-manuscript">사이트 해설</LessonTag></dt>
+      <dd>{SITE_WRITTEN_NOTE}</dd>
     </div>
     <div class="lesson-legend__item" data-legend="supplement">
       <dt><LessonTag tone="kind">보충</LessonTag></dt>

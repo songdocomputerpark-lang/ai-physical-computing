@@ -1,6 +1,18 @@
 // 발표 모드(src/components/lesson/present.ts, PLAN §8.5 P5-02) — 단계 나누기와 키 해석(DOM 없이). 화면 동작은 tests/e2e/lesson-template.spec.ts.
 import { describe, expect, it } from 'vitest';
-import { planPresentationSteps, presentCommandFor, splitTallSteps, type PresentSection } from '../../../src/components/lesson/present.ts';
+import {
+  hasMoreBelow,
+  hiddenBelow,
+  isMergeable,
+  mergedLabel,
+  planPresentationSteps,
+  presentCommandFor,
+  scrollTargetFor,
+  splitTallSteps,
+  unionBlocks,
+  type PresentSection,
+  type PresentStep,
+} from '../../../src/components/lesson/present.ts';
 
 const SECTIONS: PresentSection[] = [
   { title: '학습목표', blocks: [{ kind: 'h2', title: '학습목표' }, { kind: 'content' }] },
@@ -148,5 +160,73 @@ describe('발표 모드 키(presentCommandFor)', () => {
     expect(presentCommandFor({ key: 'ArrowRight', target: 'none', altKey: true })).toBeUndefined();
     expect(presentCommandFor({ key: 'ArrowLeft', target: 'none', ctrlKey: true })).toBeUndefined();
     expect(presentCommandFor({ key: 'a', target: 'none' })).toBeUndefined();
+  });
+});
+
+describe('↓·↑는 본문·단추 위에서 조금씩 스크롤하는 명령이다(R1-074)', () => {
+  it('본문·단추·링크에서 ↓·↑는 lineDown·lineUp, 보기(라디오)·코드 상자·입력칸에서는 가로채지 않는다', () => {
+    expect(presentCommandFor({ key: 'ArrowDown', target: 'none' })).toBe('lineDown');
+    expect(presentCommandFor({ key: 'ArrowUp', target: 'control' })).toBe('lineUp');
+    expect(presentCommandFor({ key: 'ArrowDown', target: 'arrows' })).toBeUndefined();
+    expect(presentCommandFor({ key: 'ArrowUp', target: 'text' })).toBeUndefined();
+    expect(presentCommandFor({ key: 'ArrowDown', target: 'none', ctrlKey: true })).toBeUndefined();
+  });
+});
+
+describe('넘치는 단계 스크롤(scrollTargetFor·hiddenBelow·hasMoreBelow — R1-073·R1-074)', () => {
+  // 막대 윗선 650, 이 단계 내용은 문서 좌표 1500까지(화면 두 배쯤)
+  const base = { barTop: 650, contentBottom: 1500, maxScroll: 1100, amount: 500 } as const;
+
+  it('내용이 막대 위에서 끝나면 넘치지 않은 것이다(한 화면에 맞춘 단계는 "더 있음"이 뜨지 않는다)', () => {
+    expect(hiddenBelow(646, 0, 650)).toBe(0);
+    expect(hasMoreBelow(646, 0, 650)).toBe(false);
+    expect(hasMoreBelow(500, 0, 650)).toBe(false);
+    expect(hasMoreBelow(1500, 0, 650)).toBe(true);
+  });
+
+  it('아래로: 한 번에 amount만큼, 남은 내용이 적으면 그만큼(+여유 12px)만, 끝이면 null(= 다음 단계로 넘긴다)', () => {
+    expect(scrollTargetFor({ ...base, direction: 1, scrollY: 0 })).toBe(500);
+    expect(scrollTargetFor({ ...base, direction: 1, scrollY: 500 })).toBe(866);
+    // 남은 숨은 내용 = 1500 - (866 + 650) + 4 = -12 → 더 내릴 것이 없다
+    expect(scrollTargetFor({ ...base, direction: 1, scrollY: 866 })).toBeNull();
+    expect(scrollTargetFor({ ...base, direction: 1, scrollY: 1100 })).toBeNull();
+  });
+
+  it('한 화면에 들어오는 단계는 아래로 갈 수 없다(null)', () => {
+    expect(scrollTargetFor({ ...base, contentBottom: 600, direction: 1, scrollY: 0 })).toBeNull();
+  });
+
+  it('쪽을 더 내릴 수 없으면(maxScroll) 거기까지만, 이미 거기면 null', () => {
+    expect(scrollTargetFor({ ...base, maxScroll: 300, direction: 1, scrollY: 0 })).toBe(300);
+    expect(scrollTargetFor({ ...base, maxScroll: 300, direction: 1, scrollY: 300 })).toBeNull();
+  });
+
+  it('위로: 맨 위가 아니면 amount만큼(0 아래로는 안 간다), 맨 위면 null(= 앞 단계로)', () => {
+    expect(scrollTargetFor({ ...base, direction: -1, scrollY: 800 })).toBe(300);
+    expect(scrollTargetFor({ ...base, direction: -1, scrollY: 200 })).toBe(0);
+    expect(scrollTargetFor({ ...base, direction: -1, scrollY: 0 })).toBeNull();
+  });
+});
+
+describe('너무 잘게 나뉜 단계 합치기 도우미(R1-075)', () => {
+  const step = (over: Partial<PresentStep>): PresentStep => ({ section: 1, blocks: [0], label: '핵심 개념', ...over });
+
+  it('isMergeable: 같은 칸의 일반 단계끼리만. 제목 장·퀴즈 문항 단계·다른 칸은 합치지 않는다', () => {
+    expect(isMergeable(step({}), step({ blocks: [1] }))).toBe(true);
+    expect(isMergeable(step({ section: -1, blocks: [] }), step({ section: -1, blocks: [] }))).toBe(false);
+    expect(isMergeable(step({}), step({ section: 2 }))).toBe(false);
+    expect(isMergeable(step({ item: 0 }), step({ blocks: [2] }))).toBe(false);
+    expect(isMergeable(step({}), step({ item: 1 }))).toBe(false);
+  });
+
+  it('unionBlocks: 다시 보이는 제목 블록은 한 번만, 칸 안 차례대로', () => {
+    expect(unionBlocks([0, 1, 2], [0, 3, 4])).toEqual([0, 1, 2, 3, 4]);
+    expect(unionBlocks([0, 5], [0, 2])).toEqual([0, 2, 5]);
+  });
+
+  it('mergedLabel: 뒤 단계가 앞 글에 예제 이름을 더한 꼴이면 그 글, 아니면 앞 글', () => {
+    expect(mergedLabel('따라하기', '따라하기 · 예제 1: 손 찾기')).toBe('따라하기 · 예제 1: 손 찾기');
+    expect(mergedLabel('핵심 개념 — A', '핵심 개념 — B')).toBe('핵심 개념 — A');
+    expect(mergedLabel('핵심 개념', '핵심 개념')).toBe('핵심 개념');
   });
 });

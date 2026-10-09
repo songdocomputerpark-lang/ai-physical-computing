@@ -1,7 +1,7 @@
 /**
  * 차시 쪽의 학습 진도와 단원 차시 목록(판 1.3.0).
  *
- * - 차시를 열면 markSeen(봤어요) — 저장하는 것은 차시 번호·제목·주소·시각뿐이다(src/lib/progress.ts).
+ * - 차시를 열면 markSeen(열어 봤어요) — 저장하는 것은 차시 번호·제목·주소·시각뿐이다(src/lib/progress.ts).
  * - [이 차시 다 했어요] 토글: aria-pressed. 누르면 setDone. 확인 퀴즈를 모두 맞히면(quiz.ts의 apc:quiz-complete) 저절로 "다 했어요".
  * - 단원 차시 목록(LessonSidebar): 넓은 화면(64rem 이상)에서는 펼쳐 두고 옆에 붙이며, 좁은 화면에서는 <details> 그대로 둔다.
  *   펼친 목록은 지금 차시가 보이게 목록 안에서만 스크롤한다(쪽은 움직이지 않는다).
@@ -38,13 +38,16 @@ export function installLessonProgress(doc: Document = document): () => void {
   const title = box.getAttribute('data-lesson-title') ?? '';
   const button = box.querySelector<HTMLButtonElement>('[data-lesson-done-button]');
   const status = box.querySelector<HTMLElement>('[data-lesson-done-status]');
+  // 다음 차시 링크가 있으면 낭독 글에 "다음 차시: …"를 보탠다(차시 번호 뒤 조사 선택을 피하려고 이름만 말한다)(R1-081 — 켜진 뒤 다음 할 일)
+  const nextLabel = box.querySelector('[data-lesson-done-next]')?.getAttribute('data-next-label') ?? '';
+  const withNext = (text: string): string => (nextLabel === '' ? text : `${text} 다음 차시: ${nextLabel}.`);
   const announce = (text: string): void => {
     if (status) {
       status.textContent = text;
     }
   };
 
-  // 칠하기가 먼저 듣고 있어야 markSeen이 보내는 사건으로 목록의 "봤어요"가 바로 바뀐다.
+  // 칠하기가 먼저 듣고 있어야 markSeen이 보내는 사건으로 목록의 "열어 봤어요"가 바로 바뀐다.
   installProgressPaint();
   markSeen({ id, href, label, title });
 
@@ -61,7 +64,7 @@ export function installLessonProgress(doc: Document = document): () => void {
     const next = button.getAttribute('aria-pressed') !== 'true';
     setDone(id, next);
     setPressed(button, next);
-    announce(next ? DONE_STATUS_TEXT.done : DONE_STATUS_TEXT.undone);
+    announce(next ? withNext(DONE_STATUS_TEXT.done) : DONE_STATUS_TEXT.undone);
   };
   button?.addEventListener('click', onClick);
 
@@ -73,7 +76,7 @@ export function installLessonProgress(doc: Document = document): () => void {
     if (button) {
       setPressed(button, true);
     }
-    announce(DONE_STATUS_TEXT.quiz);
+    announce(withNext(DONE_STATUS_TEXT.quiz));
   };
   doc.addEventListener(QUIZ_COMPLETE_EVENT, onQuizComplete);
 
@@ -82,6 +85,19 @@ export function installLessonProgress(doc: Document = document): () => void {
     button?.removeEventListener('click', onClick);
     doc.removeEventListener(QUIZ_COMPLETE_EVENT, onQuizComplete);
   };
+}
+
+/**
+ * 쪽 맨 위 [본문으로 건너뛰기]가 차시 본문(#lesson-article)으로 가게 한다(R1-080).
+ * 기본 건너뛰기는 main#main-content로 가는데, 차시 쪽은 단원 차시 목록(링크 약 25개)이 main 안 왼쪽에 있어
+ * 건너뛰고도 목록을 다 지나야 본문이었다(Tab 약 34번). 이 쪽에서만 목표를 본문 글(article, tabindex -1)로 바꾼다.
+ * 자바스크립트가 꺼져 있으면 기본(main)대로이고, 목록 앞의 [차시 목록 건너뛰기]가 그 몫을 한다.
+ */
+export function retargetSkipLink(doc: Document = document): void {
+  const link = doc.querySelector<HTMLAnchorElement>('a.skip-link');
+  if (link && doc.getElementById('lesson-article')) {
+    link.setAttribute('href', '#lesson-article');
+  }
 }
 
 /** 목록 안에서만 스크롤해 지금 차시가 보이게 한다(쪽 스크롤은 건드리지 않는다) */

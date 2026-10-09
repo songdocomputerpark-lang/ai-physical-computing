@@ -5,6 +5,7 @@ import {
   DONE_STATUS_TEXT,
   installLessonNav,
   installLessonProgress,
+  retargetSkipLink,
   revealCurrentInNav,
 } from '../../../src/components/lesson/lesson-progress.ts';
 import { QUIZ_COMPLETE_EVENT, allCorrect, enhanceQuizzes } from '../../../src/components/lesson/quiz.ts';
@@ -125,7 +126,7 @@ describe('installLessonProgress — 열면 봤어요, 토글, 퀴즈 완료', ()
     const state = readProgress();
     expect(state.seen).toEqual(['u1/1-1-1']);
     expect(state.last).toMatchObject({ id: 'u1/1-1-1', href: '/x/learn/u1/1-1-1/', label: '1-1-1', title: '첫 차시' });
-    expect(badge('u1/1-1-1')).toBe('봤어요');
+    expect(badge('u1/1-1-1')).toBe('열어 봤어요');
     expect(badge('u1/1-1-2')).toBe('');
     expect(button().getAttribute('aria-pressed')).toBe('false');
   });
@@ -137,14 +138,14 @@ describe('installLessonProgress — 열면 봤어요, 토글, 퀴즈 완료', ()
     expect(document.querySelector('[data-lesson-done]')?.getAttribute('data-done')).toBe('true');
     expect(readProgress().done).toEqual(['u1/1-1-1']);
     expect(status()).toBe(DONE_STATUS_TEXT.done);
-    expect(badge('u1/1-1-1')).toBe('다 했어요');
+    expect(badge('u1/1-1-1')).toBe('마쳤어요');
 
     button().click();
     expect(button().getAttribute('aria-pressed')).toBe('false');
     expect(readProgress().done).toEqual([]);
     expect(readProgress().seen).toEqual(['u1/1-1-1']);
     expect(status()).toBe(DONE_STATUS_TEXT.undone);
-    expect(badge('u1/1-1-1')).toBe('봤어요');
+    expect(badge('u1/1-1-1')).toBe('열어 봤어요');
   });
 
   it('이미 다 했다고 표시한 차시를 열면 단추가 켜진 채로 시작한다', () => {
@@ -259,5 +260,62 @@ describe('installLessonNav — 넓은 화면은 펼치고 좁은 화면은 접�
     nav.scrollTop = 0;
     revealCurrentInNav(nav);
     expect(nav.scrollTop).toBe(0);
+  });
+});
+
+describe('[이 차시 다 했어요] 뒤 다음 할 일(R1-081)', () => {
+  let stop: () => void = () => {};
+  beforeEach(() => {
+    localStorage.clear();
+    document.body.innerHTML = `
+      <div data-lesson-done data-done="false" data-lesson-id="u1/1-1-1" data-lesson-href="/x/learn/u1/1-1-1/" data-lesson-label="1-1-1" data-lesson-title="첫 차시">
+        <button type="button" aria-pressed="false" data-lesson-done-button>이 차시 다 했어요</button>
+        <p role="status" data-lesson-done-status></p>
+        <a href="/x/learn/u1/1-1-2/" data-lesson-done-next data-next-label="1-1-2">다음 차시 1-1-2 시작하기</a>
+      </div>`;
+  });
+  afterEach(() => {
+    stop();
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  it('켜면 낭독 글에 다음 차시가 붙고(링크는 CSS가 data-done으로 보인다), 끄면 붙지 않는다', () => {
+    stop = installLessonProgress(document);
+    const status = (): string => document.querySelector('[data-lesson-done-status]')?.textContent ?? '';
+    (document.querySelector('[data-lesson-done-button]') as HTMLButtonElement).click();
+    expect(document.querySelector('[data-lesson-done]')?.getAttribute('data-done')).toBe('true');
+    expect(status()).toBe(`${DONE_STATUS_TEXT.done} 다음 차시: 1-1-2.`);
+    (document.querySelector('[data-lesson-done-button]') as HTMLButtonElement).click();
+    expect(status()).toBe(DONE_STATUS_TEXT.undone);
+  });
+
+  it('퀴즈를 모두 맞혀 저절로 켜져도 다음 차시를 알린다', () => {
+    stop = installLessonProgress(document);
+    document.dispatchEvent(new CustomEvent(QUIZ_COMPLETE_EVENT));
+    expect(document.querySelector('[data-lesson-done-status]')?.textContent).toBe(`${DONE_STATUS_TEXT.quiz} 다음 차시: 1-1-2.`);
+  });
+});
+
+describe('retargetSkipLink — 본문 건너뛰기가 차시 본문으로(R1-080)', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('차시 본문(#lesson-article)이 있으면 건너뛰기 링크의 목표를 그리로 바꾼다', () => {
+    document.body.innerHTML = '<a class="skip-link" href="#main-content">본문으로 건너뛰기</a><main id="main-content"><article id="lesson-article" tabindex="-1"></article></main>';
+    retargetSkipLink(document);
+    expect(document.querySelector('.skip-link')?.getAttribute('href')).toBe('#lesson-article');
+  });
+
+  it('차시 본문이 없으면(임베드 등) 그대로 둔다', () => {
+    document.body.innerHTML = '<a class="skip-link" href="#main-content">본문으로 건너뛰기</a><main id="main-content"></main>';
+    retargetSkipLink(document);
+    expect(document.querySelector('.skip-link')?.getAttribute('href')).toBe('#main-content');
+  });
+
+  it('건너뛰기 링크가 없어도 조용히 넘어간다', () => {
+    document.body.innerHTML = '<article id="lesson-article"></article>';
+    expect(() => retargetSkipLink(document)).not.toThrow();
   });
 });

@@ -5,7 +5,9 @@
  * - 버튼 이름은 늘 "이 차시 다 했어요"이고 켜짐은 aria-pressed로 알린다(이름이 바뀌지 않아야 화면 낭독기가 토글로 읽는다).
  * - 확인 퀴즈를 모두 맞히면 저절로 켜진다(quiz.ts의 apc:quiz-complete → lesson-progress.ts).
  * - 저장은 이 컴퓨터의 진도(src/lib/progress.ts)뿐이다. 자바스크립트가 꺼져 있으면 보이지 않는다.
- * - 이 컴포넌트의 스크립트가 차시를 열었을 때의 markSeen("봤어요")과 단원 차시 목록의 진도 칠하기도 맡는다.
+ * - 이 컴포넌트의 스크립트가 차시를 열었을 때의 markSeen("열어 봤어요")과 단원 차시 목록의 진도 칠하기도 맡는다.
+ * - 켜지면(data-done="true") 칭찬 한 줄과 "다음 차시 1-1-2 시작하기 →" 링크가 나타난다(R1-081). 숫자와 체크만 바뀌어 다음 할 일이 없던 것을 고쳤다.
+ *   다음 차시가 없으면(마지막 차시) 링크 없이 칭찬만. 두 글은 CSS로 번갈아 보이고, 링크는 켜졌을 때만 Tab 차례에 들어온다.
  */
 import Icon from '../common/Icon.astro';
 import type { LessonSummary } from './lesson-data.ts';
@@ -13,9 +15,11 @@ import { unitCardClass } from './unit-style.ts';
 
 interface Props {
   lesson: LessonSummary;
+  /** 다음 차시(없으면 마지막 차시) */
+  next?: LessonSummary | undefined;
 }
 
-const { lesson } = Astro.props;
+const { lesson, next } = Astro.props;
 ---
 
 <div
@@ -31,7 +35,10 @@ const { lesson } = Astro.props;
   data-pagefind-ignore
 >
   <div class="lesson-done__text">
-    <p class="lesson-done__title">이 차시를 마쳤나요?</p>
+    <p class="lesson-done__title">
+      <span class="lesson-done__title-off">이 차시를 마쳤나요?</span>
+      <span class="lesson-done__title-on">{lesson.label} 끝! 잘했어요.</span>
+    </p>
     <p class="lesson-done__hint">표시해 두면 다음에 와서 어디까지 했는지 바로 알 수 있어요.</p>
   </div>
   <button type="button" class="button button--secondary lesson-done__button" aria-pressed="false" data-lesson-done-button>
@@ -40,13 +47,22 @@ const { lesson } = Astro.props;
     <span>이 차시 다 했어요</span>
   </button>
   <p class="lesson-done__status" role="status" data-lesson-done-status></p>
+  {
+    next && (
+      <a class="lesson-done__next" href={next.href} data-lesson-done-next data-next-label={next.label}>
+        <span>다음 차시 {next.label} 시작하기</span>
+        <Icon name="arrow-right" size="sm" />
+      </a>
+    )
+  }
 </div>
 
 <script>
-  import { installLessonNav, installLessonProgress } from './lesson-progress.ts';
+  import { installLessonNav, installLessonProgress, retargetSkipLink } from './lesson-progress.ts';
 
   installLessonProgress();
   installLessonNav();
+  retargetSkipLink();
 </script>
 
 <style>
@@ -82,6 +98,33 @@ const { lesson } = Astro.props;
 
   .lesson-done__status:empty {
     display: none;
+  }
+
+  .lesson-done__title-on,
+  .lesson-done__next {
+    display: none;
+  }
+
+  /* 켜지면: 칭찬 한 줄 + 다음 차시로 가는 링크(눌러서 켜진 직후에도, 이미 켜진 채 다시 열었을 때도) */
+  .lesson-done[data-done='true'] .lesson-done__title-off,
+  .lesson-done[data-done='true'] .lesson-done__hint {
+    display: none;
+  }
+
+  .lesson-done[data-done='true'] .lesson-done__title-on {
+    display: inline;
+    color: var(--color-success-text);
+  }
+
+  .lesson-done[data-done='true'] .lesson-done__next {
+    display: inline-flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: var(--space-2);
+    justify-self: start;
+    min-block-size: var(--target-min);
+    padding-block: var(--space-2);
+    font-weight: var(--weight-bold);
   }
 
   .lesson-done__off {

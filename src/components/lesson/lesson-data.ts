@@ -424,19 +424,39 @@ export function kindBadge(kind: LessonKind): string | undefined {
   return kind === 'supplement' || kind === 'reading' ? KIND_LABELS[kind] : undefined;
 }
 
+/**
+ * 차시 쪽 위의 [이전]·[다음] 단추에 쓰는 차시 이름. 대단원 마무리의 번호(I-마무리, II-마무리)는 코드처럼 보여 읽히는 말로 바꾼다
+ * ("I단원 마무리"). 다른 차시는 차시 번호 그대로(R1-082). 아래쪽 이전·다음 카드(LessonPager)도 마무리 차시는 이 이름 하나만 쓴다(제목 "대단원 마무리"와 겹치지 않게).
+ */
+export function lessonStepLabel(lesson: Pick<LessonSummary, 'label' | 'kind'>): string {
+  if (lesson.kind === 'review') {
+    const numeral = /^(I{1,3}|IV)-마무리$/u.exec(lesson.label.trim())?.[1];
+    return numeral ? `${numeral}단원 마무리` : lesson.label;
+  }
+  return lesson.label;
+}
+
+/** 코드만 있는 차시(교과서 원고가 없어 사이트가 예제 코드를 바탕으로 본문을 쓴 차시)의 카드 딱지 글 — 학생에게는 불안한 "없음" 대신 "사이트 해설"(R1-085) */
+export const SITE_WRITTEN_BADGE = '사이트 해설';
+
+/** 위 딱지의 풀이(범례·대단원 쪽 안내·마우스 올림 설명에 같은 말을 쓴다) */
+export const SITE_WRITTEN_NOTE = '교과서 원고가 없어서 예제 코드를 바탕으로 사이트가 본문을 쓴 차시예요.';
+
 export interface Badge {
   readonly text: string;
   readonly tone: 'planned' | 'no-manuscript';
+  /** 마우스를 올리면 보이는 짧은 풀이(없을 수 있다) */
+  readonly note?: string;
 }
 
-/** 카드 상태 뱃지: 준비 중, 원고 없음(코드만 있는 차시, PLAN §2.3) */
+/** 카드 상태 뱃지: 준비 중, 사이트 해설(코드만 있는 차시, PLAN §2.3 — 교사용에는 "원고 없음"으로 남는다) */
 export function outlineBadges(item: Pick<OutlineItem, 'status' | 'source'>): Badge[] {
   const badges: Badge[] = [];
   if (item.status === 'planned') {
     badges.push({ text: '준비 중', tone: 'planned' });
   }
   if (item.source === 'code-only') {
-    badges.push({ text: '원고 없음', tone: 'no-manuscript' });
+    badges.push({ text: SITE_WRITTEN_BADGE, tone: 'no-manuscript', note: SITE_WRITTEN_NOTE });
   }
   return badges;
 }

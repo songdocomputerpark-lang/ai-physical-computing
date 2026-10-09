@@ -5,13 +5,18 @@
  *
  * 판 1.3.0: 단원 색 머리띠 + 진도 막대, 시작 카드("다음에 볼 차시"), 카드마다 진도 표시와 "다음에 볼 차시" 표.
  * 진도는 브라우저에서만 칠한다(HTML에 굽지 않는다).
+ * 머리띠 안에는 "이 단원을 마치면 할 수 있어요"(3줄) · 큰 그림(보고 → 판단하고 → 움직여요)에서 이 단원의 자리 · 걸리는 시간이 있다(R1-083).
+ * 진도 막대는 본 차시가 생기기 전에는 자리를 차지하지 않는다(머리띠 아래에 빈 칸이 남던 것을 고침, R1-089) — 넓은 화면에서는 오른쪽 칸이라 쪽이 밀리지 않는다.
+ * 모두 봤으면 시작 카드가 다음 대단원으로 이어 준다(LearnStart nextUnit, R1-088).
  */
 import { getCollection } from 'astro:content';
 import Icon from '../../../components/common/Icon.astro';
+import FlowPosition from '../../../components/lesson/FlowPosition.astro';
 import LearnStart from '../../../components/lesson/LearnStart.astro';
 import LessonLegend from '../../../components/lesson/LessonLegend.astro';
 import UnitOutline from '../../../components/lesson/UnitOutline.astro';
 import { buildUnitOutline, countOutline, lessonCountText, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { getUnitAbout, unitDurationText } from '../../../components/lesson/unit-about.ts';
 import { progressIds, unitCardClass, unitIcon } from '../../../components/lesson/unit-style.ts';
 import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -34,6 +39,16 @@ const sections = buildUnitOutline(unit.unit, lessons);
 const counts = countOutline(sections);
 const ids = sections.flatMap((section) => section.items.flatMap((item) => (item.lesson ? [item.lesson.id] : [])));
 const firstLesson = lessons.find((lesson) => lesson.id === ids[0]);
+const about = getUnitAbout(unit.unit);
+const duration = unitDurationText(lessons.filter((lesson) => lesson.unit === unit.unit).map((lesson) => lesson.duration));
+// 다음 대단원(있으면)의 차시 목록 — 이 단원을 모두 봤을 때 시작 카드가 다음 단원으로 이어 준다
+const followingUnit = learnUnits.find((candidate) => candidate.unit === unit.unit + 1);
+const followingEntries = followingUnit
+  ? buildUnitOutline(followingUnit.unit, lessons).flatMap((section) =>
+      section.items.flatMap((item) => (item.lesson ? [{ id: item.lesson.id, href: item.lesson.href, label: item.label, title: item.title }] : [])),
+    )
+  : [];
+const nextUnit = followingUnit && followingEntries.length > 0 ? { numeral: followingUnit.numeral, entries: followingEntries } : undefined;
 ---
 
 <BaseLayout title={unit.title} description={unit.description}>
@@ -54,8 +69,21 @@ const firstLesson = lessons.find((lesson) => lesson.id === ids[0]);
       <p class="unit-head__progress-text" data-progress-count />
       <div class="progress-bar" data-progress-bar aria-hidden="true" />
     </div>
+    <div class="unit-about" data-pagefind-ignore>
+      <div class="unit-about__goals">
+        <h2 class="unit-about__title">이 단원을 마치면 할 수 있어요</h2>
+        <ul class="unit-about__list">
+          {about.outcomes.map((outcome) => <li>{outcome}</li>)}
+        </ul>
+      </div>
+      <div class="unit-about__side">
+        <h2 class="unit-about__title">큰 그림에서 이 단원은</h2>
+        <FlowPosition unit={unit.unit} />
+        {duration && <p class="unit-about__time">걸리는 시간: {duration}</p>}
+      </div>
+    </div>
   </header>
-  {firstLesson && <LearnStart first={firstLesson} numeral={unit.numeral} scope="unit" unit={unit.unit} />}
+  {firstLesson && <LearnStart first={firstLesson} numeral={unit.numeral} scope="unit" unit={unit.unit} nextUnit={nextUnit} />}
   <LessonLegend hasPlanned={counts.planned > 0} />
   <UnitOutline sections={sections} headingLevel={2} unit={unit.unit} showNext />
 </BaseLayout>
@@ -64,7 +92,7 @@ const firstLesson = lessons.find((lesson) => lesson.id === ids[0]);
   .unit-head {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
+    align-items: center;
     gap: var(--space-3) var(--space-4);
     padding: var(--space-5);
     border: 1px solid var(--card-unit);
@@ -97,6 +125,50 @@ const firstLesson = lessons.find((lesson) => lesson.id === ids[0]);
     gap: var(--space-1);
   }
 
+  /* 본 차시가 없거나 아직 칠하기 전이면 자리를 차지하지 않는다(머리띠 아래 빈 칸 없음, R1-089) */
+  .unit-head:not([data-progress-ready]) .unit-head__progress,
+  .unit-head[data-progress-empty] .unit-head__progress {
+    display: none;
+  }
+
+  .unit-about {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: var(--space-3) var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .unit-about__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-base);
+  }
+
+  .unit-about__list {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-inline-start: 1.25em;
+    line-height: var(--leading-snug);
+  }
+
+  .unit-about__side {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+
+  .unit-about__side .unit-about__title {
+    margin-block-end: 0;
+  }
+
+  .unit-about__time {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
   .unit-head__progress-text {
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
@@ -104,6 +176,21 @@ const firstLesson = lessons.find((lesson) => lesson.id === ids[0]);
 
   .unit-head__progress .progress-bar {
     background: var(--color-bg);
+  }
+
+  @media (min-width: 48rem) {
+    .unit-head {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .unit-head__progress {
+      grid-column: auto;
+      inline-size: 14rem;
+    }
+
+    .unit-about {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
   }
 
   @media (max-width: 40rem) {

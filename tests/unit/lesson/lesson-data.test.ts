@@ -10,6 +10,7 @@ import {
   findNeighbors,
   formatDuration,
   kindBadge,
+  lessonStepLabel,
   labLink,
   labOfExampleFile,
   lessonBreadcrumb,
@@ -175,13 +176,24 @@ describe('뱃지·표시 문장', () => {
     expect(standardsEmptyText(undefined).intentional).toBe(false);
   });
 
-  it('카드 딱지: 준비 중·원고 없음, 종류 표시: 보충·읽기 자료', () => {
-    expect(outlineBadges({ status: 'planned', source: 'code-only' }).map((badge) => badge.text)).toEqual(['준비 중', '원고 없음']);
+  it('카드 딱지: 준비 중·사이트 해설(R1-085 — 학생에게는 "원고 없음" 대신), 종류 표시: 보충·읽기 자료', () => {
+    expect(outlineBadges({ status: 'planned', source: 'code-only' }).map((badge) => badge.text)).toEqual(['준비 중', '사이트 해설']);
+    expect(outlineBadges({ status: 'ready', source: 'code-only' })[0]?.note).toBe('교과서 원고가 없어서 예제 코드를 바탕으로 사이트가 본문을 쓴 차시예요.');
     expect(outlineBadges({ status: 'ready', source: 'manuscript' })).toEqual([]);
     expect(kindBadge('supplement')).toBe('보충');
     expect(kindBadge('reading')).toBe('읽기 자료');
     expect(kindBadge('textbook')).toBeUndefined();
     expect(kindBadge('review')).toBeUndefined();
+  });
+
+  it('lessonStepLabel: 대단원 마무리는 읽히는 이름, 나머지는 차시 번호 그대로(R1-082)', () => {
+    expect(lessonStepLabel({ label: 'I-마무리', kind: 'review' })).toBe('I단원 마무리');
+    expect(lessonStepLabel({ label: 'II-마무리', kind: 'review' })).toBe('II단원 마무리');
+    expect(lessonStepLabel({ label: 'III-마무리', kind: 'review' })).toBe('III단원 마무리');
+    expect(lessonStepLabel({ label: 'IV-마무리', kind: 'review' })).toBe('IV단원 마무리');
+    expect(lessonStepLabel({ label: '마무리', kind: 'review' })).toBe('마무리');
+    expect(lessonStepLabel({ label: '2-1-1', kind: 'textbook' })).toBe('2-1-1');
+    expect(lessonStepLabel({ label: 'IV-프로젝트', kind: 'reading' })).toBe('IV-프로젝트');
   });
 
   it('소요 시간·난이도·가상 보드·준비물·교과서 쪽 문장', () => {

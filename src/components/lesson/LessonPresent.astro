@@ -5,11 +5,14 @@
  * 이 컴포넌트는 발표 중에만 보이는 아래쪽 막대와 발표 화면 스타일을 맡는다.
  *
  * 발표 화면: 머리글·바닥글·현재 위치·차례·이전/다음 차시·차시 정보 뱃지·교사용 칸을 숨기고 글자를 크게(뿌리 글자 크기를 화면 폭에 맞춰) 한다.
+ * 막대 높이는 단계마다 같다(상태 글을 2줄까지만 보이고 그 높이를 늘 잡아 둔다 — R1-076). 단계가 화면보다 길면 막대 위에 "▼ 아래에 더 있어요" 띠가 뜬다(R1-073, present.ts).
+ * 발표 중에는 맨 위 [본문으로 건너뛰기]를 숨겨 Tab이 슬라이드 밖으로 새지 않게 한다(R1-078 — 막대의 단추 셋을 돌고 끝난다).
  * 모든 크기가 rem이라 뿌리 글자 크기 하나로 본문·표·코드·퀴즈가 함께 커진다. 움직임은 쓰지 않는다(움직임 줄이기와 상관없이 바로 바뀜).
  */
 ---
 
 <div class="lesson-present" data-lesson-present hidden data-pagefind-ignore>
+  <p class="lesson-present__more" data-present-more hidden aria-hidden="true">▼ 아래에 더 있어요 (↓ · Space · 마우스 휠)</p>
   <div class="lesson-present__bar" role="toolbar" aria-label="발표 모드 조작">
     <button type="button" class="button button--secondary" data-present-previous>◀ 앞</button>
     <p class="lesson-present__status" aria-live="polite" data-present-status></p>
@@ -46,18 +49,19 @@
   html[data-presenting] .lesson-pager,
   html[data-presenting] .lesson-nav,
   html[data-presenting] .lesson-done,
+  html[data-presenting] .skip-link,
   html[data-presenting] [data-present-hide] {
     display: none !important;
   }
 
   html[data-presenting] body {
-    /* 아래쪽 막대에 가리지 않게 */
-    padding-block-end: 6rem;
+    /* 아래쪽 막대에 가리지 않게 — 막대 높이만큼(present.ts가 --present-bar-h에 잰 값을 쓴다) + 여유 */
+    padding-block-end: calc(var(--present-bar-h, 5rem) + 1.5rem);
   }
 
   /* 키보드로 옮겨 간 초점(퀴즈 보기·예제 단추)도 아래쪽 막대 밑에 숨지 않게 그만큼 위에서 멈춘다(WCAG 2.4.11, Phase 6 접근성 점검) */
   html[data-presenting] {
-    scroll-padding-block-end: 6rem;
+    scroll-padding-block-end: calc(var(--present-bar-h, 5rem) + 1.5rem);
   }
 
   html[data-presenting] .page__main {
@@ -130,20 +134,59 @@
     font-size: inherit;
   }
 
+  /*
+   * 상태 글은 2줄까지만 보이고(넘치는 글은 줄임), 2줄 높이를 늘 잡아 둔다 — 막대 높이가 단계마다 84~137px로 달라져
+   * 한 화면에 맞춘 계산이 어긋나고 글이 흔들렸다(R1-076). 전체 글은 DOM에 그대로 있어 화면 낭독기는 모두 읽는다.
+   */
   .lesson-present__status {
+    display: -webkit-box;
     flex: 1 1 12rem;
+    min-block-size: calc(2 * var(--leading-snug) * 1em);
     margin: 0;
+    overflow: hidden;
     color: var(--color-text-muted);
     font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
     text-align: center;
     overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  /* 막대 바로 위의 "아래에 더 있어요" 띠: 가운데 알약, 눌리지 않는다(글자 대비는 흰 바탕 위 강조색) */
+  .lesson-present__more {
+    position: fixed;
+    inset-inline: 0;
+    bottom: calc(var(--present-bar-h, 5rem) + var(--space-2));
+    z-index: var(--z-header, 100);
+    inline-size: fit-content;
+    max-inline-size: calc(100vw - 2 * var(--gutter));
+    margin-inline: auto;
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+    color: var(--color-accent-hover);
+    font-size: clamp(0.8rem, 0.7rem + 0.3vw, 1rem);
+    font-weight: var(--weight-semibold);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .lesson-present__more[hidden] {
+    display: none;
   }
 
   /* 휴대폰: 알림 칸을 위 한 줄로, 단추 셋(앞·다음·끝내기)을 아래 한 줄로. 휴대폰에는 전체 화면 단추를 두지 않는다. */
   @media (max-width: 40rem) {
     .lesson-present__status {
       flex-basis: 100%;
+      min-block-size: calc(var(--leading-snug) * 1em);
       order: -1;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
     }
 
     .lesson-present__bar .lesson-present__fullscreen {

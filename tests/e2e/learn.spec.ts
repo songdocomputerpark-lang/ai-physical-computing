@@ -33,7 +33,7 @@ async function expectNoHorizontalScroll(page: import('@playwright/test').Page, l
 }
 
 test.describe('배우기 목록', () => {
-  test('대단원 4개 > 묶음 > 차시 카드가 보이고, 차례표의 차시가 모두 공개돼 "준비 중" 카드가 없으며, 원고 없음·보충 표시가 붙는다', async ({ page }) => {
+  test('대단원 4개 > 묶음 > 차시 카드가 보이고, 차례표의 차시가 모두 공개돼 "준비 중" 카드가 없으며, 사이트 해설·보충 표시가 붙는다', async ({ page }) => {
     const response = await page.goto('./learn/');
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', { level: 1, name: '배우기' })).toBeVisible();
@@ -54,8 +54,8 @@ test.describe('배우기 목록', () => {
     // "준비 중" 카드·딱지 그리기 자체는 단위 검사(tests/unit/lesson/lesson-data.test.ts)가 지킨다.
     const planned = page.locator('.lesson-card[data-status="planned"]');
     await expect(planned, '차례표의 차시가 모두 공개돼 있어야 해요 — md가 빠졌거나 초안이면 npm run check:lessons -- --complete로 확인해요').toHaveCount(0);
-    // 원고 없는 차시(코드만)에는 "원고 없음" 딱지가 붙는다(링크 카드여도).
-    await expect(page.locator('#lesson-u1-1-3-1')).toContainText('원고 없음');
+    // 원고 없는 차시(코드만)에는 "사이트 해설" 딱지가 붙는다(교사용 글에는 "원고 없음"이 남는다 — R1-085)(링크 카드여도).
+    await expect(page.locator('#lesson-u1-1-3-1')).toContainText('사이트 해설');
     await expect(page.locator('#lesson-u1-1-3-1').getByRole('link')).toHaveAttribute('href', withBase('learn/u1/1-3-1/'));
     await expectNoHorizontalScroll(page, '/learn/');
   });
@@ -73,7 +73,7 @@ test.describe('배우기 목록', () => {
     for (const address of ['./learn/', `.${learnUnits[0]!.path}`]) {
       await page.goto(address);
       const legend = page.locator('.lesson-legend');
-      await expect(legend).toContainText('원고 없음');
+      await expect(legend).toContainText('사이트 해설');
       // 차례표의 차시가 모두 공개됐다 — "준비 중" 카드가 없고(위 검사와 같은 까닭, 3바퀴 TD3-01), 그래서 "준비 중" 풀이와
       // "차시 N개 가운데 M개를 볼 수 있어요" 글도 없다(C66 ⑤ — 둘 다 준비 중 차시가 있을 때만 보인다).
       await expect(
@@ -153,9 +153,13 @@ test.describe('차시 페이지', () => {
       withBase('labs/vision/'),
     );
 
-    for (const title of ['학습목표', '왜 배울까', '핵심 개념', '따라하기', '바꿔보기', '도전 과제', '확인 퀴즈', '교사용']) {
+    for (const title of ['학습목표', '왜 배울까', '핵심 개념', '따라 하기', '바꿔 보기', '도전 과제', '확인 퀴즈', '교사용']) {
       await expect(page.getByRole('heading', { level: 2, name: title, exact: true })).toBeVisible();
     }
+    // 교사용 칸의 제목은 학생 흐름의 제목보다 작고 흐리다(R1-071) — 글자는 그대로 둔다
+    const teacherSize = await page.getByRole('heading', { level: 2, name: '교사용', exact: true }).evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+    const studentSize = await page.getByRole('heading', { level: 2, name: '확인 퀴즈', exact: true }).evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(teacherSize).toBeLessThan(studentSize);
 
     const example = page.locator('.lesson-example');
     await expect(example.locator('.lesson-code')).toContainText('photos = [');
@@ -255,7 +259,7 @@ test.describe('차시 페이지', () => {
     await expect(item.locator('label', { hasText: '센서' })).toHaveAttribute('data-result', 'wrong');
   });
 
-  test('교사용 안내는 처음에 접혀 있고 키보드(Enter)로 열고 닫으며, 차례의 "교사용" 링크로 가면 펼쳐진다', async ({ page }) => {
+  test('교사용 안내는 처음에 접혀 있고 키보드(Enter)로 열고 닫으며, 차례의 "교사용 안내" 링크(푸터 "교사용 시작하기"·머리글 "교사용 자료실"과 이름이 다르다 — R1-072)로 가면 펼쳐진다', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
     const details = page.locator('details.box--teacher');
     const summary = details.locator('summary');
@@ -272,7 +276,7 @@ test.describe('차시 페이지', () => {
     await expect(details).not.toHaveAttribute('open');
     await expect(heading).toBeHidden();
 
-    await page.getByRole('navigation', { name: '이 차시의 차례' }).getByRole('link', { name: '교사용', exact: true }).click();
+    await page.getByRole('navigation', { name: '이 차시의 차례' }).getByRole('link', { name: '교사용 안내', exact: true }).click();
     await expect(details).toHaveAttribute('open', '');
   });
 });

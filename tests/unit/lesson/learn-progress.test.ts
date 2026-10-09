@@ -6,6 +6,7 @@ import {
   paintNextFlag,
   paintStart,
   pickStart,
+  readNextUnit,
   readStartEntries,
   startTexts,
   type StartEntry,
@@ -182,5 +183,104 @@ describe('installLearnProgress — 진도가 바뀌면 다시 그린다', () => 
     expect(startEl().getAttribute('data-start-mode')).toBe('resume');
     expect(startEl().querySelector('[data-start-button]')?.getAttribute('href')).toBe('/x/learn/u1/1-1-2/');
     stop();
+  });
+});
+
+describe('가는 차시가 단추 이름에 들어간다(R1-092)', () => {
+  beforeEach(() => mount());
+
+  it('처음 상태에서는 aria-label이 없고, 이어서 하기로 바뀌면 "차시 번호 제목 이어서 하기"가 이름이 된다(보이는 글이 이름 끝에 그대로 든다)', () => {
+    const button = (): Element | null => startEl().querySelector('[data-start-button]');
+    paintStart(startEl(), ENTRIES, emptyProgress());
+    expect(button()?.hasAttribute('aria-label')).toBe(false);
+
+    paintStart(startEl(), ENTRIES, stateWith(['u1/1-1-1']));
+    expect(button()?.getAttribute('aria-label')).toBe('1-1-2 인공지능의 능력 이어서 하기');
+    expect(button()?.getAttribute('aria-label')?.endsWith(startEl().querySelector('[data-start-button-text]')?.textContent ?? '?')).toBe(true);
+
+    // 진도가 지워지면 이름도 처음 상태로 돌아온다
+    paintStart(startEl(), ENTRIES, emptyProgress());
+    expect(button()?.hasAttribute('aria-label')).toBe(false);
+  });
+});
+
+describe('이 단원을 모두 봤으면 다음 대단원으로 이어 준다(R1-088)', () => {
+  const NEXT: StartEntry[] = [
+    { id: 'u2/2-1-1', href: '/x/learn/u2/2-1-1/', label: '2-1-1', title: '피지컬 컴퓨팅' },
+    { id: 'u2/2-1-2', href: '/x/learn/u2/2-1-2/', label: '2-1-2', title: 'LCD 제어하기' },
+  ];
+  const ALL_SEEN = ENTRIES.map((entry) => entry.id);
+
+  function mountWithNext(next: StartEntry[] | null = NEXT): void {
+    mount('unit', false);
+    const card = startEl();
+    if (next) {
+      card.setAttribute('data-start-next-numeral', 'II');
+      card.setAttribute('data-start-next-entries', JSON.stringify(next));
+    }
+    card.querySelector('[data-start-button]')?.insertAdjacentHTML('afterend', '<a data-start-again hidden href="/x/learn/u1/1-1-1/">처음부터 다시 보기</a>');
+  }
+  const again = (): HTMLAnchorElement => startEl().querySelector('[data-start-again]') as HTMLAnchorElement;
+  const button = (): HTMLAnchorElement => startEl().querySelector('[data-start-button]') as HTMLAnchorElement;
+
+  it('readNextUnit: 서버가 실어 둔 JSON을 읽고, 없거나 깨졌으면 undefined', () => {
+    mountWithNext();
+    expect(readNextUnit(startEl())).toEqual({ numeral: 'II', entries: NEXT });
+    startEl().setAttribute('data-start-next-entries', '{깨짐');
+    expect(readNextUnit(startEl())).toBeUndefined();
+    startEl().setAttribute('data-start-next-entries', '[]');
+    expect(readNextUnit(startEl())).toBeUndefined();
+    startEl().removeAttribute('data-start-next-numeral');
+    expect(readNextUnit(startEl())).toBeUndefined();
+  });
+
+  it('모두 봤고 다음 단원을 아직 안 봤으면: 주 단추는 다음 단원 시작하기, 처음부터 다시 보기는 보조 링크로 나타난다', () => {
+    mountWithNext();
+    paintStart(startEl(), ENTRIES, stateWith(ALL_SEEN));
+    expect(startEl().getAttribute('data-start-mode')).toBe('review');
+    expect(startEl().getAttribute('data-start-next')).toBe('first');
+    expect(startEl().querySelector('[data-start-kicker]')?.textContent).toBe('이 단원을 모두 봤어요. 다음 단원이에요');
+    expect(startEl().querySelector('[data-start-title]')?.textContent).toBe('II단원 2-1-1 피지컬 컴퓨팅');
+    expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('II단원 시작하기');
+    expect(button().getAttribute('href')).toBe('/x/learn/u2/2-1-1/');
+    expect(button().getAttribute('aria-label')).toBe('II단원 2-1-1 피지컬 컴퓨팅 II단원 시작하기');
+    expect(again().hidden).toBe(false);
+    expect(again().getAttribute('href')).toBe('/x/learn/u1/1-1-1/');
+  });
+
+  it('다음 단원을 일부 봤으면 그 단원의 안 본 첫 차시로 "이어서 하기"', () => {
+    mountWithNext();
+    paintStart(startEl(), ENTRIES, stateWith([...ALL_SEEN, 'u2/2-1-1']));
+    expect(startEl().getAttribute('data-start-next')).toBe('next');
+    expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('II단원 이어서 하기');
+    expect(button().getAttribute('href')).toBe('/x/learn/u2/2-1-2/');
+  });
+
+  it('다음 단원도 모두 봤거나 다음 단원이 없으면(마지막 대단원) 예전처럼 "처음부터 다시 보기"가 주 단추이고 보조 링크는 숨는다', () => {
+    mountWithNext();
+    paintStart(startEl(), ENTRIES, stateWith([...ALL_SEEN, ...NEXT.map((entry) => entry.id)]));
+    expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('처음부터 다시 보기');
+    expect(button().getAttribute('href')).toBe('/x/learn/u1/1-1-1/');
+    expect(again().hidden).toBe(true);
+    expect(startEl().hasAttribute('data-start-next')).toBe(false);
+
+    mountWithNext(null);
+    paintStart(startEl(), ENTRIES, stateWith(ALL_SEEN));
+    expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('처음부터 다시 보기');
+    expect(again().hidden).toBe(true);
+  });
+
+  it('아직 다 안 봤으면 다음 단원 이야기는 없다', () => {
+    mountWithNext();
+    paintStart(startEl(), ENTRIES, stateWith(['u1/1-1-1']));
+    expect(startEl().getAttribute('data-start-mode')).toBe('next');
+    expect(again().hidden).toBe(true);
+    expect(startEl().hasAttribute('data-start-next')).toBe(false);
+  });
+
+  it('startTexts: nextUnit이 있어도 review가 아니면 쓰지 않는다', () => {
+    const next = { numeral: 'II', pick: { mode: 'first', entry: NEXT[0]! } } as const;
+    expect(startTexts({ mode: 'next', entry: ENTRIES[1]! }, '처음', next).button).toBe('이어서 하기');
+    expect(startTexts({ mode: 'review', entry: ENTRIES[0]! }, '처음', next).button).toBe('II단원 시작하기');
   });
 });

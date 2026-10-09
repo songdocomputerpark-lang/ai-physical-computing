@@ -75,6 +75,19 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     });
     expect(sizes.frame).toBeGreaterThan(300);
     expect(sizes.frame, '실습실 틀 높이').toBeLessThanOrEqual(sizes.viewport);
+    // 넓은 화면(왼쪽에 단원 차시 목록이 붙는 64rem 이상)에서는 실습실 칸이 본문 칸 안에 들어간다 — 목록 밑으로 들어가거나 오른쪽이 잘려
+    // 가로 스크롤이 생기던 것(1443 > 1366)을 고쳤다(R1-079).
+    if ((page.viewportSize()?.width ?? 0) >= 1024) {
+      const placement = await page.evaluate(() => {
+        const lab = document.querySelector('.lesson-example__lab')?.getBoundingClientRect();
+        const article = document.querySelector('#lesson-article')?.getBoundingClientRect();
+        const nav = document.querySelector('[data-lesson-nav]')?.getBoundingClientRect();
+        return { labLeft: lab?.left ?? 0, labRight: lab?.right ?? 0, articleLeft: article?.left ?? 0, articleRight: article?.right ?? 0, navRight: nav?.right ?? 0 };
+      });
+      expect(placement.labLeft, '실습실 왼쪽이 본문 칸 왼쪽보다 나가지 않는다').toBeGreaterThanOrEqual(placement.articleLeft - 1);
+      expect(placement.labRight, '실습실 오른쪽이 본문 칸 오른쪽보다 나가지 않는다').toBeLessThanOrEqual(placement.articleRight + 1);
+      expect(placement.labLeft, '실습실이 왼쪽 차시 목록 밑으로 들어가지 않는다').toBeGreaterThanOrEqual(placement.navRight);
+    }
     // 틀 바로 아래에도 [실습실 접기]와 [실습실을 크게 열기]가 있다.
     const bar = page.locator('.lesson-example__lab-bar').first();
     await expect(bar.getByRole('button', { name: '실습실 접기' })).toBeVisible();

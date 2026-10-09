@@ -4,12 +4,16 @@
  *
  * 서버가 그린 글은 "처음이라면" 상태다(JS가 꺼져 있어도 맞는 길). 진도가 있으면 learn-progress.ts가
  * "이어서 하기"(배우기 첫 쪽: 지난번에 본 차시, 대단원 쪽: 아직 안 본 첫 차시)로 바꾼다. 글만 바뀌고 크기는 같아 쪽이 밀리지 않는다.
- * 채운 파랑 주 단추는 이 쪽에 이것 하나뿐이다. 눌리는 곳은 단추(링크)이고, 접근 이름은 단추 글 하나다 — 차시 제목은 링크 밖에 둔다.
+ * 채운 파랑 주 단추는 이 쪽에 이것 하나뿐이다. 눌리는 곳은 단추(링크)이고, 접근 이름은 처음 상태에서는 단추 글 하나,
+ * 바뀐 뒤에는 "1-1-2 … 이어서 하기"처럼 가는 차시를 앞에 붙인 글이다(learn-progress.ts, R1-092).
+ * 대단원 쪽에서 이 단원을 모두 봤으면 주 단추가 다음 대단원으로 가고, 보조 링크 [처음부터 다시 보기]가 나타난다(R1-088).
+ * 그 값(다음 대단원의 로마 숫자·차시 목록)은 nextUnit prop으로 받아 data-start-next-*에 싣는다.
  *
  * props
  *   first   처음 상태에서 가리킬 차시(차례의 첫 차시)
  *   numeral 대단원 로마 숫자(I~IV) — "처음이면 I단원 1-1-1부터"
  *   scope   all(배우기 첫 쪽) | unit(대단원 쪽)
+ *   nextUnit 다음 대단원(대단원 쪽만, 마지막 대단원은 없음)
  */
 import Icon from '../common/Icon.astro';
 import type { LessonSummary } from './lesson-data.ts';
@@ -19,9 +23,10 @@ interface Props {
   numeral: string;
   scope: 'all' | 'unit';
   unit?: 1 | 2 | 3 | 4;
+  nextUnit?: { numeral: string; entries: readonly { id: string; href: string; label: string; title: string }[] } | undefined;
 }
 
-const { first, numeral, scope, unit } = Astro.props;
+const { first, numeral, scope, unit, nextUnit } = Astro.props;
 const firstButton = `처음이면 ${numeral}단원 ${first.label}부터`;
 ---
 
@@ -31,6 +36,8 @@ const firstButton = `처음이면 ${numeral}단원 ${first.label}부터`;
   data-start-scope={scope}
   data-start-first-text={firstButton}
   data-start-mode="first"
+  data-start-next-numeral={nextUnit?.numeral}
+  data-start-next-entries={nextUnit ? JSON.stringify(nextUnit.entries) : undefined}
   data-embed-hide
   data-present-hide
   data-pagefind-ignore
@@ -42,10 +49,19 @@ const firstButton = `처음이면 ${numeral}단원 ${first.label}부터`;
     <p class="learn-start__kicker" data-start-kicker>처음이라면</p>
     <p class="learn-start__title" data-start-title>{first.label} {first.title}</p>
   </div>
-  <a class="button button--primary button--large learn-start__button" href={first.href} data-start-button>
-    <span data-start-button-text>{firstButton}</span>
-    <Icon name="arrow-right" size="sm" />
-  </a>
+  <div class="learn-start__actions">
+    <a class="button button--primary button--large learn-start__button" href={first.href} data-start-button>
+      <span data-start-button-text>{firstButton}</span>
+      <Icon name="arrow-right" size="sm" />
+    </a>
+    {
+      nextUnit && (
+        <a class="learn-start__again" href={first.href} data-start-again hidden>
+          처음부터 다시 보기
+        </a>
+      )
+    }
+  </div>
 </div>
 
 <script>
@@ -104,9 +120,25 @@ const firstButton = `처음이면 ${numeral}단원 ${first.label}부터`;
     overflow-wrap: anywhere;
   }
 
-  .learn-start__button {
+  .learn-start__actions {
+    display: grid;
     grid-column: 1 / -1;
-    justify-self: stretch;
+    justify-items: stretch;
+    gap: var(--space-1);
+  }
+
+  /* 보조 링크: 주 단추 아래에 작게(채운 단추가 아니라 글 링크 — 주 단추는 하나) */
+  .learn-start__again {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--target-min);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .learn-start__again[hidden] {
+    display: none;
   }
 
   @media (min-width: 48rem) {
@@ -114,9 +146,13 @@ const firstButton = `처음이면 ${numeral}단원 ${first.label}부터`;
       grid-template-columns: auto minmax(0, 1fr) auto;
     }
 
-    .learn-start__button {
+    .learn-start__actions {
       grid-column: auto;
-      justify-self: end;
+      justify-items: end;
+    }
+
+    .learn-start__again {
+      justify-content: flex-end;
     }
   }
 </style>

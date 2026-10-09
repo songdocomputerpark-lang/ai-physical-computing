@@ -95,7 +95,7 @@ describe('check:lessons — 통과와 실패', () => {
     const { text, failed } = await run();
     expect(failed).toBe(true);
     expect(text).toContain('[실패] content/lessons/u1/v1.md');
-    expect(text).toContain('오류 [sec-missing] "바꿔보기" 칸(## 바꿔보기)이 없어요');
+    expect(text).toContain('오류 [sec-missing] "바꿔 보기" 칸(## 바꿔 보기)이 없어요');
   });
 
   it('--complete이면 차례표의 차시가 모두 있어야 통과한다(Phase 5 완료 기준)', async () => {

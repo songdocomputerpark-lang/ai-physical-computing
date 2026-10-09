@@ -77,7 +77,7 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'fm-difficulty': '난이도(difficulty)',
   'fm-pages': '교과서 쪽(pages)',
   'fm-lab': '실습실(lab)',
-  'fm-examples': '따라하기 예제(examples) 1개 이상',
+  'fm-examples': '따라 하기 예제(examples) 1개 이상',
   'fm-virtual-ok': 'ESP32 예제가 있으면 virtual_ok',
   'fm-standards': '성취기준(standards) — 15개 코드 안, 대응표(PLAN §2.2)와 같게',
   'fm-quiz': '확인 퀴즈 3문항, 문항마다 보기 3개 이상·정답 1개·풀이',
@@ -90,12 +90,12 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'sec-unknown': '틀에 없는 ## 제목',
   'sec-intro': '첫 ## 앞의 글',
   'body-plan': '::예제·::퀴즈 자리 표시·주소',
-  'slot-place': '예제는 따라하기, 퀴즈는 확인 퀴즈 칸에',
+  'slot-place': '예제는 따라 하기, 퀴즈는 확인 퀴즈 칸에',
   'goals-count': '학습목표 1~3개',
   'why-text': '왜 배울까의 문단과 그림',
   'concepts-figure': '핵심 개념의 그림(사이트가 그린 SVG 권장)',
-  'box-why': '"왜 이런 결과가 나올까" 상자(따라하기·바꿔보기 칸)',
-  'box-try': '"바꿔보기" 상자와 바꿔볼 것 3가지',
+  'box-why': '"왜 이런 결과가 나올까" 상자(따라 하기·바꿔 보기 칸)',
+  'box-try': '"바꿔 보기" 상자와 바꿔 볼 것 3가지',
   'box-challenge': '도전 과제 1~2개와 힌트 접기',
   'box-genai': '생성형 AI 활용 탐구 상자는 도전 과제 칸에만',
   'teacher-box': '교사용 칸은 :::교사용 접기 안에, 지도안 요약·평가 포인트·자주 막히는 곳',
@@ -168,11 +168,11 @@ function frontmatterIssues(input: LessonRuleInput): LessonRuleIssue[] {
   }
   if (template && data.examples.length === 0) {
     issues.push(
-      issue('error', 'fm-examples', '따라하기 예제(examples)를 하나 이상 적어요. 원고만 있는 차시도 카메라·보드 없이 해 보는 체험 예제를 새로 만들어요(PLAN §2.3).'),
+      issue('error', 'fm-examples', '따라 하기 예제(examples)를 하나 이상 적어요. 원고만 있는 차시도 카메라·보드 없이 해 보는 체험 예제를 새로 만들어요(PLAN §2.3).'),
     );
   }
   if (data.examples.length > 0 && !data.lab) {
-    issues.push(issue('error', 'fm-lab', '예제가 있으면 따라하기에 쓰는 실습실(lab)을 적어요: vision, esp32, iot 가운데 하나.'));
+    issues.push(issue('error', 'fm-lab', '예제가 있으면 따라 하기에 쓰는 실습실(lab)을 적어요: vision, esp32, iot 가운데 하나.'));
   }
   if ((hasEsp32Example || data.lab === 'esp32' || data.lab === 'iot') && data.virtual_ok === undefined) {
     issues.push(issue('error', 'fm-virtual-ok', 'ESP32 예제가 있으면 가상 보드만으로 끝까지 되는지(virtual_ok: true)를 적어요. 차시 머리에 보여요.'));
@@ -305,7 +305,7 @@ function structureIssues(plan: LessonBodyPlan): LessonRuleIssue[] {
   for (const section of plan.sections) {
     for (const part of section.parts) {
       if (part.type === 'slot' && part.slot === 'examples' && section.key !== 'follow' && !section.generated) {
-        issues.push(issue('error', 'slot-place', `::예제 자리 표시는 따라하기 칸에 적어요(지금 "${section.title}" 칸).`));
+        issues.push(issue('error', 'slot-place', `::예제 자리 표시는 따라 하기 칸에 적어요(지금 "${section.title}" 칸).`));
       }
       if (part.type === 'slot' && part.slot === 'quiz' && section.key !== 'quiz' && !section.generated) {
         issues.push(issue('error', 'slot-place', `::퀴즈 자리 표시는 확인 퀴즈 칸에 적어요(지금 "${section.title}" 칸).`));
@@ -351,7 +351,7 @@ function contentIssues(plan: LessonBodyPlan, data: LessonData): LessonRuleIssue[
   const tryTree = sectionTree(plan, 'try');
   const whyBoxes = [...boxes(follow, 'why'), ...boxes(tryTree, 'why')];
   if (whyBoxes.length === 0) {
-    issues.push(issue('error', 'box-why', '따라하기(또는 바꿔보기) 칸에 :::왜그럴까 상자("왜 이런 결과가 나올까")를 넣어요(SPEC §6.1).'));
+    issues.push(issue('error', 'box-why', '따라 하기(또는 바꿔 보기) 칸에 :::왜그럴까 상자("왜 이런 결과가 나올까")를 넣어요(SPEC §6.1).'));
   } else if (whyBoxes.length < data.examples.length) {
     issues.push(
       issue('warning', 'box-why', `예제가 ${data.examples.length}개인데 "왜 이런 결과가 나올까" 상자는 ${whyBoxes.length}개예요. 예제마다 하나씩 두면 좋아요(SPEC §6.1).`),
@@ -366,7 +366,7 @@ function contentIssues(plan: LessonBodyPlan, data: LessonData): LessonRuleIssue[
     for (const box of tryBoxes) {
       const items = findAll(box, (element) => element.tag === 'li').length;
       if (items < TRY_ITEMS) {
-        issues.push(issue('error', 'box-try', `바꿔보기 상자에 바꿔 볼 것이 ${items}가지예요. 번호 목록(1. 2. 3.)으로 ${TRY_ITEMS}가지를 적어요.`));
+        issues.push(issue('error', 'box-try', `바꿔 보기 상자에 바꿔 볼 것이 ${items}가지예요. 번호 목록(1. 2. 3.)으로 ${TRY_ITEMS}가지를 적어요.`));
       }
     }
   }

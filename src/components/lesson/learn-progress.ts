@@ -3,6 +3,8 @@
  *
  * - 시작 카드([data-learn-start]): 진도가 없으면 "처음이면 I단원 1-1-1부터", 있으면 "이어서 하기"(/learn/은 지난번에 본 차시,
  *   대단원 쪽은 아직 안 본 첫 차시). 서버가 그린 글이 "처음" 상태라서 JS가 없어도 맞는 길을 보여 준다.
+ *   바뀐 뒤에는 단추의 접근 이름에 가는 차시가 들어간다("1-1-2 … 이어서 하기" — 보이는 글 "이어서 하기"를 끝에 그대로 담아 2.5.3을 지킨다, R1-092).
+ *   대단원 쪽에서 이 단원을 모두 봤으면 주 단추는 다음 대단원의 첫 안 본 차시로 가고, "처음부터 다시 보기"는 작은 보조 링크가 된다(R1-088).
  * - 다음에 볼 차시 표시(li[data-next]): 대단원 쪽 카드 가운데 아직 안 본 첫 차시에 표를 붙인다. 표는 카드 안에 떠 있어 자리를 밀지 않는다.
  *
  * 순수 함수(pickStart·startTexts)는 tests/unit/lesson/learn-progress.test.ts가, DOM 붙이기는 jsdom 시험과 tests/e2e/progress.spec.ts가 본다.
@@ -60,8 +62,25 @@ export interface StartTexts {
   readonly button: string;
 }
 
-/** 고른 차시를 시작 카드에 쓸 글로. firstButton은 "처음이면 I단원 1-1-1부터"처럼 서버가 정한 처음 상태의 단추 글 */
-export function startTexts(pick: StartPick, firstButton: string): StartTexts {
+/** 다음 대단원으로 이어 줄 때 쓰는 값: 다음 대단원의 로마 숫자와, 그 단원에서 고른 차시 */
+export interface NextUnitPick {
+  readonly numeral: string;
+  readonly pick: StartPick;
+}
+
+/**
+ * 고른 차시를 시작 카드에 쓸 글로. firstButton은 "처음이면 I단원 1-1-1부터"처럼 서버가 정한 처음 상태의 단추 글.
+ * nextUnit이 있으면(이 단원을 모두 본 대단원 쪽) 다음 대단원으로 가는 글을 쓴다 — 이때 pick은 쓰지 않는다.
+ */
+export function startTexts(pick: StartPick, firstButton: string, nextUnit?: NextUnitPick): StartTexts {
+  if (nextUnit && pick.mode === 'review') {
+    const target = nextUnit.pick.entry;
+    return {
+      kicker: nextUnit.pick.mode === 'next' ? `이 단원을 모두 봤어요. ${nextUnit.numeral}단원을 이어서 해요` : '이 단원을 모두 봤어요. 다음 단원이에요',
+      title: `${nextUnit.numeral}단원 ${target.label} ${target.title}`.trim(),
+      button: nextUnit.pick.mode === 'next' ? `${nextUnit.numeral}단원 이어서 하기` : `${nextUnit.numeral}단원 시작하기`,
+    };
+  }
   const title = `${pick.entry.label} ${pick.entry.title}`.trim();
   switch (pick.mode) {
     case 'resume':
@@ -100,6 +119,33 @@ function setText(element: Element | null, text: string): void {
   }
 }
 
+/**
+ * 서버가 카드에 실어 둔 "다음 대단원" 차시 목록(data-start-next-entries, JSON)과 로마 숫자(data-start-next-numeral)를 읽는다.
+ * 없거나 깨졌으면 undefined(마지막 대단원이거나 JSON을 못 읽음 — 그냥 "처음부터 다시 보기"로 둔다).
+ */
+export function readNextUnit(card: HTMLElement): { numeral: string; entries: StartEntry[] } | undefined {
+  const numeral = card.getAttribute('data-start-next-numeral') ?? '';
+  const raw = card.getAttribute('data-start-next-entries');
+  if (numeral === '' || !raw) {
+    return undefined;
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return undefined;
+    }
+    const entries = parsed.flatMap((item): StartEntry[] => {
+      const value = item as Partial<Record<keyof StartEntry, unknown>> | null;
+      return value && typeof value.id === 'string' && typeof value.href === 'string' && typeof value.label === 'string' && typeof value.title === 'string'
+        ? [{ id: value.id, href: value.href, label: value.label, title: value.title }]
+        : [];
+    });
+    return entries.length > 0 ? { numeral, entries } : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** 시작 카드 하나를 지금 진도에 맞게 고친다 */
 export function paintStart(card: HTMLElement, entries: readonly StartEntry[], state: ProgressState): void {
   const scope = card.getAttribute('data-start-scope') === 'unit' ? 'unit' : 'all';
@@ -107,17 +153,46 @@ export function paintStart(card: HTMLElement, entries: readonly StartEntry[], st
   if (!pick) {
     return;
   }
-  const texts = startTexts(pick, card.getAttribute('data-start-first-text') ?? '');
+  // 이 단원을 모두 봤으면 다음 대단원의 안 본 첫 차시로 이어 준다(다음 대단원도 모두 봤으면 그대로 "처음부터 다시 보기")
+  let nextUnit: NextUnitPick | undefined;
+  const nextData = pick.mode === 'review' ? readNextUnit(card) : undefined;
+  if (nextData) {
+    const nextPick = pickStart(state, nextData.entries, 'unit');
+    if (nextPick && nextPick.mode !== 'review') {
+      nextUnit = { numeral: nextData.numeral, pick: nextPick };
+    }
+  }
+  const target = nextUnit ? nextUnit.pick.entry : pick.entry;
+  const texts = startTexts(pick, card.getAttribute('data-start-first-text') ?? '', nextUnit);
   setText(card.querySelector('[data-start-kicker]'), texts.kicker);
   setText(card.querySelector('[data-start-title]'), texts.title);
   const button = card.querySelector<HTMLAnchorElement>('[data-start-button]');
   if (button) {
     setText(button.querySelector('[data-start-button-text]') ?? button, texts.button);
-    if (button.getAttribute('href') !== pick.entry.href) {
-      button.setAttribute('href', pick.entry.href);
+    if (button.getAttribute('href') !== target.href) {
+      button.setAttribute('href', target.href);
+    }
+    // 처음 상태의 단추 글은 차시를 이미 말하므로 그대로 두고, 그 밖에는 가는 차시를 이름에 넣는다(R1-092). 보이는 글이 이름의 끝에 그대로 든다.
+    if (pick.mode === 'first') {
+      button.removeAttribute('aria-label');
+    } else {
+      button.setAttribute('aria-label', `${texts.title} ${texts.button}`);
+    }
+  }
+  // 보조 링크 [처음부터 다시 보기]: 다음 대단원으로 이어 줄 때만 보인다
+  const again = card.querySelector<HTMLAnchorElement>('[data-start-again]');
+  if (again) {
+    again.hidden = nextUnit === undefined;
+    if (again.getAttribute('href') !== pick.entry.href) {
+      again.setAttribute('href', pick.entry.href);
     }
   }
   card.setAttribute('data-start-mode', pick.mode);
+  if (nextUnit) {
+    card.setAttribute('data-start-next', nextUnit.pick.mode);
+  } else {
+    card.removeAttribute('data-start-next');
+  }
 }
 
 /** 대단원 쪽 카드 가운데 안 본 첫 차시에 data-next를 붙인다(다른 카드에서는 뗀다) */
