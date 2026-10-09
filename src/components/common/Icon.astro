@@ -1,0 +1,80 @@
+---
+/**
+ * 사이트 공용 선 아이콘(판 1.3.0). 새 화면은 이 컴포넌트 하나로 아이콘을 그린다(홈의 옛 HomeIcon도 이것으로 바꿨다).
+ * 모양은 icons.ts의 표에서 읽는다 — 24×24 격자, 선 굵기 2, 둥근 끝, 선 색은 둘레 글자 색(currentColor)을 따른다.
+ *
+ * 쓰는 법
+ *   <Icon name="search" />                         꾸밈 아이콘: 옆 글자가 뜻을 전한다(화면 낭독기에는 숨김)
+ *   <Icon name="eye" size="sm" />                  크기 sm 1.25rem · md 1.5rem(기본) · lg 2rem · fill(감싼 요소를 가득)
+ *   <Icon name="alert" label="오류" />             아이콘만 있고 글자가 없을 때만 label을 준다(role="img" + 접근 이름)
+ *   <Icon name="check" class="my-icon" />          class는 svg에 더해진다(크기·색은 CSS 변수와 color로 정한다)
+ *
+ * 단추·링크 안에서 글자 없이 아이콘만 쓰면 그 단추·링크에 접근 이름(aria-label)을 달고 아이콘은 꾸밈(label 없이)으로 둔다.
+ * 줄바꿈이 든 글자 사이에 둘 때는 CLAUDE.md의 .astro 공백 함정에 주의한다(아이콘과 글자 사이는 CSS gap으로 띄운다).
+ */
+import { ICONS, type IconName } from './icons.ts';
+
+interface Props {
+  name: IconName;
+  size?: 'sm' | 'md' | 'lg' | 'fill';
+  /** 아이콘만으로 뜻을 전할 때의 접근 이름. 없으면 꾸밈 아이콘(aria-hidden). */
+  label?: string;
+  class?: string;
+}
+
+const { name, size = 'md', label, class: className } = Astro.props;
+const parts = ICONS[name] ?? [];
+const decorative = label === undefined || label === '';
+---
+
+<svg
+  class:list={['icon', `icon--${size}`, className]}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  role={decorative ? undefined : 'img'}
+  aria-label={decorative ? undefined : label}
+  aria-hidden={decorative ? 'true' : undefined}
+  focusable="false"
+  data-icon={name}
+>
+  {parts.map((part) => (typeof part === 'string' ? <path d={part} /> : <path class="icon__solid" d={part.solid} />))}
+</svg>
+
+<style>
+  /* :where()로 특이도를 0으로 둔다 — 쓰는 쪽이 class로 크기·정렬을 쉽게 덮어쓸 수 있게 */
+  :where(.icon) {
+    display: inline-block;
+    flex: none;
+    vertical-align: -0.125em;
+  }
+
+  :where(.icon--sm) {
+    width: var(--icon-sm, 1.25rem);
+    height: var(--icon-sm, 1.25rem);
+  }
+
+  :where(.icon--md) {
+    width: var(--icon-md, 1.5rem);
+    height: var(--icon-md, 1.5rem);
+  }
+
+  :where(.icon--lg) {
+    width: var(--icon-lg, 2rem);
+    height: var(--icon-lg, 2rem);
+  }
+
+  :where(.icon--fill) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* 꽉 찬 조각: 글자 색으로 채우고 선(둥근 모서리)도 같은 색 */
+  .icon__solid {
+    fill: currentColor;
+  }
+</style>

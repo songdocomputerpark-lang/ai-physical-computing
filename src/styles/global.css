@@ -484,3 +484,425 @@ textarea {
     display: none !important;
   }
 }
+
+/*
+ * ══ 판 1.3.0 공용 클래스(Core가 더함 — 위 규칙은 바꾸지 않았다) ══
+ * 카드(.card …) · 단계 칩(.steps) · 자세히 보기(.more) · 진도 표시(.progress-bar, [data-progress-*]).
+ * 모든 구역이 같은 모양을 쓰도록 여기에 한 번만 만든다. 색·크기는 tokens.css 변수만 쓴다.
+ * 쓰는 법과 마크업 예는 .cache/ui-redesign/notes/core.md (통합 때 docs로 옮긴다).
+ */
+
+/* ── 카드 ──
+ * <div class="card card--link card--u1">
+ *   <span class="card__icon"><Icon name="book" /></span>
+ *   <h3><a class="card__link" href="…">제목</a></h3>
+ *   <p>설명</p>
+ * </div>
+ * .card--link는 카드 전체가 눌린다: 안의 첫 링크 .card__link의 ::after가 카드 전체를 덮는다.
+ * 카드 안에 다른 링크·단추를 또 두면 그것은 덮개 위로 올라와(z-index) 따로 눌린다. 접근 이름은 .card__link의 글자 하나다.
+ */
+.card {
+  position: relative;
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card--link {
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.card--link:hover,
+.card--link:focus-within {
+  border-color: var(--color-accent-border);
+  box-shadow: var(--shadow-md);
+}
+
+.card__link {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.card__link:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+/* 카드 전체를 누르는 곳으로 넓힌다 */
+.card__link::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  content: '';
+}
+
+/* 초점은 링크 글자가 아니라 카드 전체에 그린다(덮개가 카드와 같은 크기라서 가려지지 않는다) */
+.card__link:focus-visible {
+  outline: none;
+}
+
+.card__link:focus-visible::after {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* 덮개 위에서 따로 눌려야 하는 것(카드 안의 다른 링크·단추) */
+.card--link :is(a, button, summary, input, select, textarea, label):not(.card__link) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 단원 색 */
+.card--u1,
+.card__icon--u1 {
+  --card-unit: var(--unit-1);
+  --card-unit-soft: var(--unit-1-soft);
+}
+
+.card--u2,
+.card__icon--u2 {
+  --card-unit: var(--unit-2);
+  --card-unit-soft: var(--unit-2-soft);
+}
+
+.card--u3,
+.card__icon--u3 {
+  --card-unit: var(--unit-3);
+  --card-unit-soft: var(--unit-3-soft);
+}
+
+.card--u4,
+.card__icon--u4 {
+  --card-unit: var(--unit-4);
+  --card-unit-soft: var(--unit-4-soft);
+}
+
+/* 단원 색 왼쪽 띠(장식 — 단원은 늘 글자로도 적는다). 마우스를 올려도 띠 색은 그대로. */
+.card.card--u1,
+.card.card--u2,
+.card.card--u3,
+.card.card--u4 {
+  border-inline-start: 4px solid var(--card-unit);
+}
+
+/* 아이콘 원: 단원 색 바탕 + 같은 색 아이콘. 단원 클래스가 없으면 파랑. */
+.card__icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background: var(--card-unit-soft, var(--color-accent-soft));
+  color: var(--card-unit, var(--color-accent));
+}
+
+.card__icon--lg {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card--link {
+    transition: none;
+  }
+}
+
+:root[data-motion='reduce'] .card--link {
+  transition: none;
+}
+
+/* ── 단계 칩 ──
+ * <ol class="steps"><li>예제 고르기</li><li>[실행] 누르기</li><li>결과 보기</li></ol>
+ * 번호 원(CSS 숫자 — 화면 낭독기는 목록 번호로 읽으므로 번호 글자는 읽히지 않게 한다) + 짧은 낱말.
+ * li[data-done] = 끝낸 단계(초록), li[aria-current='step'] = 지금 단계(굵게). .steps--stack = 세로로 쌓기.
+ */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: steps;
+}
+
+.steps > li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  overflow-wrap: anywhere;
+  counter-increment: steps;
+}
+
+.steps > li::before {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  content: counter(steps);
+  /* 번호는 목록이 이미 알려 주므로 읽는 이름에서 뺀다(지원하는 브라우저만 — 모르면 위 선언이 쓰인다) */
+  content: counter(steps) / '';
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.steps > li[aria-current='step'] {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  font-weight: var(--weight-bold);
+}
+
+.steps > li[data-done] {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.steps > li[data-done]::before {
+  background: var(--color-success-text);
+}
+
+.steps--stack {
+  display: grid;
+  justify-items: start;
+}
+
+/* ── 자세히 보기(<details class="more"><summary>자세히 보기</summary> …) ──
+ * C68 규약: <summary>가 display:flex면 브라우저가 ▶를 지우므로 테두리로 그린 세모(::before)를 쓴다.
+ * 닫혀 있으면 오른쪽, 열리면 아래(전환 움직임 없음). 강제 색(윈도 고대비) 모드는 브라우저 기본 표식으로 돌아간다.
+ */
+.more {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.more > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+  list-style: none;
+  cursor: pointer;
+}
+
+.more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.more > summary::before {
+  content: '';
+  flex: none;
+  inline-size: 0;
+  block-size: 0;
+  border-style: solid;
+  border-color: transparent;
+  border-block-width: 0.4em;
+  border-inline-width: 0.6em 0;
+  border-inline-start-color: currentColor;
+}
+
+.more[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.more > summary:hover {
+  color: var(--color-accent-hover);
+}
+
+.more > summary:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+/* 펼친 내용 */
+.more > :not(summary) {
+  margin-inline: var(--space-4);
+}
+
+.more > :not(summary):last-child {
+  margin-block-end: var(--space-4);
+}
+
+.more > :not(summary) + :not(summary) {
+  margin-block-start: var(--space-3);
+}
+
+/* ── 진도 표시 ──
+ * 칠하는 쪽은 src/components/progress/progress-paint.ts. 마크업 약속은 그 파일 머리말에 있다.
+ *   [data-progress-badge]  차시 하나의 "봤어요"/"다 했어요" 글(빈 글이면 자리만 두고 숨긴다 — 칠한 뒤 쪽이 밀리지 않게)
+ *   [data-progress-count]  단원 진도 글 ("18차시 중 3개 끝냄")
+ *   .progress-bar          단원 진도 막대: <progress class="progress-bar" data-progress-bar> 또는 <div class="progress-bar" data-progress-bar>
+ *   [data-progress-empty]  본 차시가 없는 단원 — 글·막대를 숨긴다(처음 온 사람에게 "0개"를 크게 보이지 않기). 자리는 남겨 쪽이 밀리지 않는다.
+ */
+[data-progress-badge] {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+[data-progress-badge]:empty {
+  visibility: hidden;
+}
+
+[data-progress-state='seen'] [data-progress-badge] {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+}
+
+[data-progress-state='done'] [data-progress-badge] {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+[data-progress-count]:empty::before {
+  /* 빈 글이어도 한 줄 높이를 지킨다(안 보이는 글자 하나) */
+  content: '\200b';
+}
+
+:is([data-progress-unit], [data-progress-ids]):not([data-progress-ready]) :is([data-progress-count], [data-progress-bar]),
+[data-progress-empty] :is([data-progress-count], [data-progress-bar]) {
+  visibility: hidden;
+}
+
+.progress-bar {
+  --progress-color: var(--card-unit, var(--color-accent));
+
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  overflow: hidden;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* div 막대: 연한 칸 = 본 차시 비율, 진한 칸 = 끝낸 차시 비율 (값은 progress-paint가 --progress-seen·--progress-done에 쓴다) */
+div.progress-bar::before,
+div.progress-bar::after {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: inherit;
+  background: var(--progress-color);
+  content: '';
+}
+
+div.progress-bar::before {
+  width: var(--progress-seen, 0%);
+  opacity: 0.3;
+}
+
+div.progress-bar::after {
+  width: var(--progress-done, 0%);
+}
+
+/* <progress> 막대 */
+progress.progress-bar {
+  appearance: none;
+  border: 0;
+}
+
+progress.progress-bar::-webkit-progress-bar {
+  background: var(--color-bg-muted);
+}
+
+progress.progress-bar::-webkit-progress-value {
+  border-radius: var(--radius-full);
+  background: var(--progress-color);
+}
+
+progress.progress-bar::-moz-progress-bar {
+  border-radius: var(--radius-full);
+  background: var(--progress-color);
+}
+
+/* ── 윈도 고대비(강제 색) 모드: 카드·단계·막대가 시스템 색으로 보이게 ── */
+@media (forced-colors: active) {
+  .card--link:hover,
+  .card--link:focus-within {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .card__icon {
+    border: 1px solid CanvasText;
+  }
+
+  .steps > li::before {
+    border: 1px solid CanvasText;
+  }
+
+  .steps > li[aria-current='step'] {
+    outline: 2px solid SelectedItem;
+    outline-offset: -2px;
+  }
+
+  /* 세모 색을 미리 정할 수 없어 브라우저 기본 ▶/▼ 표식으로 돌아간다(C68) */
+  .more > summary {
+    display: list-item;
+    list-style: revert;
+  }
+
+  .more > summary::-webkit-details-marker {
+    display: revert;
+  }
+
+  .more > summary::before {
+    content: none;
+  }
+
+  [data-progress-badge]:not(:empty) {
+    border: 1px solid CanvasText;
+  }
+
+  .progress-bar {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    forced-color-adjust: none;
+  }
+
+  div.progress-bar::before {
+    background: GrayText;
+  }
+
+  div.progress-bar::after,
+  progress.progress-bar::-webkit-progress-value,
+  progress.progress-bar::-moz-progress-bar {
+    background: Highlight;
+  }
+}
