@@ -343,7 +343,7 @@ documents:
         - heading: 가린 곳
           text: "이 슬라이드에는 화면에서 가린 곳이 없어요. 원본 슬라이드를 PDF로 바꾸고 파일 속 정보(작성자·만든 프로그램·날짜 기록)만 지웠어요."
         - heading: 예제 코드
-          text: "슬라이드의 예제 코드는 사이트의 영상처리 실습실(가상 데스크톱)과 예제 갤러리에서 MIT 라이선스로 받을 수 있어요."
+          text: "슬라이드의 예제 코드는 사이트의 영상 처리 실습실(가상 데스크톱)과 예제 갤러리에서 MIT 라이선스로 받을 수 있어요."
         - heading: 더 알아보기
           text: "교사용 자료실 https://songdocomputerpark-lang.github.io/ai-physical-computing/teacher/\n출처와 라이선스 전체 목록 https://songdocomputerpark-lang.github.io/ai-physical-computing/credits/"
     redactions: []

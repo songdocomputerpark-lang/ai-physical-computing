@@ -38,7 +38,7 @@ export interface Standard {
   readonly summary: string;
 }
 
-/** 네 영역 — 교과서 I~IV단원과 이름이 같다(INVENTORY §9.2) */
+/** 네 영역 — 교과서 1~4단원과 짝이다(INVENTORY §9.2) */
 export const STANDARD_AREAS: readonly StandardArea[] = Object.freeze([
   { area: 1, name: '인공지능 영상인식' },
   { area: 2, name: '피지컬컴퓨팅' },

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="title desc">
-<title id="title">3-1-2 실습 순서: 한 화면에 컴퓨터 쪽(영상처리 실습실)과 보드 쪽(ESP32 실습실)을 함께 열고 보드부터 실행하기</title>
+<title id="title">3-1-2 실습 순서: 한 화면에 컴퓨터 쪽(영상 처리 실습실)과 보드 쪽(ESP32 실습실)을 함께 열고 보드부터 실행하기</title>
 <desc id="desc">왼쪽은 네 단계다. ① 컴퓨터 쪽 기본 실습 예제에서 [이 자리에서 실습실 열기]를 누른다. ② 아래 [보내기] 패널에서 보드에서 열 예제가 3-1-2 기본(사이트판)인지 보고 [한 화면에 가상 보드 열기]를 누른다. ③ 보드 쪽에서 먼저 [실행]을 누르면 보드가 글자를 기다린다. ④ 컴퓨터 쪽 [실행]을 누르고 입력줄에 a를 적어 Enter를 누르면 레이저가 켜진다. 오른쪽은 실습실 화면의 대략적인 자리다. 위의 조작 줄에 [실행], 왼쪽에 코드, 오른쪽에 입력·출력과 그 아래 보드 쪽(ESP32 실습실), 아래에 [보내기] 패널과 콘솔·입력줄이 있다. 사이트가 직접 그린 그림.</desc>
 <rect width="640" height="400" fill="#ffffff"/>
 <g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">

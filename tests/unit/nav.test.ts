@@ -52,7 +52,7 @@ describe('사이트 지도(src/config/nav.ts)', () => {
   it('시작하기 아래에 학생용·보드 준비·교사용·점검이 있다', () => {
     expect(getPage('start').children.map((page) => page.label)).toEqual(['학생용', '보드 준비', '교사용 시작하기', '내 컴퓨터 점검']);
     expect(getPage('labs').children.map((page) => page.label)).toEqual([
-      '영상처리 실습실',
+      '영상 처리 실습실',
       'ESP32 실습실',
       '통신 실습실',
       '4단원 통합 실습실',
@@ -108,5 +108,17 @@ describe('사이트 지도(src/config/nav.ts)', () => {
 
   it('없는 id를 찾으면 오류를 낸다', () => {
     expect(() => getPage('nowhere')).toThrow(/id "nowhere"/u);
+  });
+
+  it('차례 이름은 "1단원~4단원"(아라비아 숫자)으로 쓴다. 로마 숫자는 큰 제목 앞 번호("IV. …")로만 쓴다 (R2-037)', () => {
+    const everyPage = [...flattenPages(), ...learnUnits];
+    for (const page of everyPage) {
+      // "IV단원"·"I단원"처럼 로마 숫자 + 단원 꼴은 라벨·설명에 없다 (알파벳 I와 헷갈리고 소리 내어 읽기도 흔들린다)
+      expect(page.label, page.id).not.toMatch(/[IV]+단원/u);
+      expect(page.description, page.id).not.toMatch(/[IV]+단원/u);
+    }
+    // 큰 제목(대단원 이름)만 "I. …"처럼 로마 숫자 + 마침표로 시작한다
+    expect(learnUnits.map((unit) => unit.label.split('.')[0])).toEqual(['I', 'II', 'III', 'IV']);
+    expect(getPage('labs-unit4').label).toBe('4단원 통합 실습실');
   });
 });

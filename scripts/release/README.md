@@ -6,7 +6,7 @@
 
 | 사이트가 나누는 파일 | 안에 든 것 | 라이선스 |
 |---|---|---|
-| OpenCV 휠(영상처리 실습의 파이썬 라이브러리)의 `cv2.so` | FFmpeg 4.4.1 | GNU LGPL 2.1 이상 |
+| OpenCV 휠(영상 처리 실습의 파이썬 라이브러리)의 `cv2.so` | FFmpeg 4.4.1 | GNU LGPL 2.1 이상 |
 | 사이트 검색 엔진 파일 `pagefind/wasm.unknown.pagefind` | pagefind_microjson 0.1.4 | GNU GPL 3.0 |
 
 두 라이선스는 "이 파일을 받은 사람이 **소스(프로그램을 만든 원래 글)**도 받을 수 있게 해 달라"고 해요. 지금은 고지 파일에 적은

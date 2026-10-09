@@ -35,7 +35,7 @@
 //
 // 만드는 HTML(스타일: src/styles/boxes.css, 같은 HTML을 만드는 컴포넌트: src/components/common/Callout.astro)
 //   <div class="box box--why" data-box="why" role="note"><p class="box__title">왜 이런 결과가 나올까?</p>…</div>
-//   <details class="box box--teacher" data-box="teacher" data-pagefind-ignore=""><summary class="box__title">교사용 안내</summary>…</details>
+//   <details class="box box--teacher" data-box="teacher" data-pagefind-ignore=""><summary class="box__title">지도 요약·평가 포인트 보기</summary>…</details>
 //
 // 사이트 검색 색인(P1-11 결정): 교사용·정답 상자(searchable: false)에는 data-pagefind-ignore를 붙여 Pagefind가 색인하지 않게 한다.
 // 학생이 검색했을 때 결과 요약에 지도 글이나 정답이 보이지 않게 하려는 것이다. 교사용 요약은 교사용 자료실(/teacher/)에서 색인한다.
@@ -67,7 +67,7 @@ export const GENAI_NOTE =
 /** 상자 종류(적힌 순서가 문서·검사 목록의 순서) */
 export const BOX_TYPES = Object.freeze([
   boxType('왜그럴까', ['why'], 'why', '왜 이런 결과가 나올까?', false, '예제 결과가 왜 그렇게 나오는지 풀이(SPEC §6.1)'),
-  boxType('바꿔보기', ['try'], 'try', '바꿔 보기', false, '값이나 코드를 바꿔 보는 과제 3가지(SPEC §6.1, §7.2 5번)'),
+  boxType('바꿔보기', ['try'], 'try', '바꿔 볼 것 3가지', false, '값이나 코드를 바꿔 보는 과제 3가지(SPEC §6.1, §7.2 5번)'),
   boxType('도전', ['challenge'], 'challenge', '도전 과제', false, '도전 과제 1~2개(SPEC §7.2 6번)'),
   boxType('생성형AI', ['genai'], 'genai', '생성형 AI 활용 탐구', false, '원고의 생성형 AI 활용 탐구 과제 — 도전 과제 칸에만(PLAN §8.5 P5-02). 끝에 표시 안내 문장이 저절로 붙는다', true, GENAI_NOTE),
   boxType('힌트', ['hint'], 'hint', '힌트 보기', true, '도전 과제의 힌트 접기(SPEC §7.2 6번)'),
@@ -77,7 +77,7 @@ export const BOX_TYPES = Object.freeze([
   boxType('주의', ['caution'], 'caution', '주의하세요', false, '안전과 주의(레이저·팬 모터 등, PLAN §10)'),
   boxType('참고', ['note'], 'note', '참고', false, '덧붙이는 설명'),
   boxType('더알아보기', ['more'], 'more', '더 알아보기', true, '본문 줄기 밖의 참고 표·자세한 설명을 접어 둔다(한 쪽 한 개념, SPEC §7.1 — 2026-09-25 Phase 5 검토 중요 3)'),
-  boxType('교사용', ['teacher'], 'teacher', '교사용 안내', true, '지도 요약·평가 포인트·자주 막히는 곳(SPEC §7.2 8번)', false),
+  boxType('교사용', ['teacher'], 'teacher', '지도 요약·평가 포인트 보기', true, '지도 요약·평가 포인트·자주 막히는 곳(SPEC §7.2 8번)', false),
 ]);
 
 /**

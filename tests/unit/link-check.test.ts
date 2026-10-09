@@ -161,7 +161,7 @@ describe('링크 검사(checkLinks)', () => {
           '<a href="/demo/labs/vision/?example=">빈 값</a>',
         ].join(''),
       ),
-      'labs/vision/index.html': page('<h1>영상처리 실습실</h1>'),
+      'labs/vision/index.html': page('<h1>영상 처리 실습실</h1>'),
     });
     const report = checkLinks(dist, site, { examplesDir });
     expect(report.examples).toBe(4);
@@ -172,7 +172,7 @@ describe('링크 검사(checkLinks)', () => {
     expect(formatLinkReport(report, site)).toContain('?example= 값이 examples/ 아래에 없는 파일이에요');
   });
 
-  it('?example= 예제를 싣지 않는 실습실로 열면 찾아낸다(통신 차시의 보드 쪽 예제가 영상처리 실습실로 가던 것 — P4-08·2026-09-24 통합)', () => {
+  it('?example= 예제를 싣지 않는 실습실로 열면 찾아낸다(통신 차시의 보드 쪽 예제가 영상 처리 실습실로 가던 것 — P4-08·2026-09-24 통합)', () => {
     const examplesDir = makeTempDir('link-check-examples-');
     tempDirs.push(examplesDir);
     writeFiles(examplesDir, {
@@ -186,12 +186,12 @@ describe('링크 검사(checkLinks)', () => {
           '<a href="/demo/labs/vision/?example=vision%2Fu4%2Fc3-finger-count-send.py">맞음</a>',
           '<a href="/demo/labs/vision/?example=desktop/01-screen-size.py">맞음(가상 데스크톱)</a>',
           '<a href="/demo/labs/esp32/?example=esp32/u4/c3-neopixel-count-rx.py&embed=1">맞음(보드)</a>',
-          '<a href="/demo/labs/vision/?example=esp32%2Fu4%2Fc3-neopixel-count-rx.py&embed=1">보드 예제를 영상처리로</a>',
+          '<a href="/demo/labs/vision/?example=esp32%2Fu4%2Fc3-neopixel-count-rx.py&embed=1">보드 예제를 영상 처리로</a>',
           '<a href="/demo/labs/esp32/?example=vision/u4/c3-finger-count-send.py">컴퓨터 예제를 보드로</a>',
           '<a href="/demo/labs/unit4/?example=esp32/u4/c3-neopixel-count-rx.py">두 칸 화면은 검사하지 않음</a>',
         ].join(''),
       ),
-      'labs/vision/index.html': page('<h1>영상처리 실습실</h1>'),
+      'labs/vision/index.html': page('<h1>영상 처리 실습실</h1>'),
       'labs/esp32/index.html': page('<h1>ESP32 실습실</h1>'),
       'labs/unit4/index.html': page('<h1>4단원 통합 실습실</h1>'),
     });

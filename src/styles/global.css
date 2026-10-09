@@ -829,10 +829,11 @@ textarea {
 
 /* ── 진도 표시 ──
  * 칠하는 쪽은 src/components/progress/progress-paint.ts. 마크업 약속은 그 파일 머리말에 있다.
- *   [data-progress-badge]  차시 하나의 "열어 봤어요"/"마쳤어요" 글(빈 글이면 자리만 두고 숨긴다 — 칠한 뒤 쪽이 밀리지 않게)
- *   [data-progress-count]  단원 진도 글 ("18차시 중 3차시를 마쳤어요")
+ *   [data-progress-badge]  차시 하나의 "열어 봤어요"/"다 했어요" 글(빈 글이면 자리만 두고 숨긴다 — 칠한 뒤 쪽이 밀리지 않게)
+ *   [data-progress-count]  단원 진도 글 ("18차시 중 3차시를 다 했어요")
  *   .progress-bar          단원 진도 막대: <progress class="progress-bar" data-progress-bar> 또는 <div class="progress-bar" data-progress-bar>
  *   [data-progress-empty]  본 차시가 없는 단원 — 글·막대를 숨긴다(처음 온 사람에게 "0개"를 크게 보이지 않기). 자리는 남겨 쪽이 밀리지 않는다.
+ *                         예외: 홈 배움 지도 카드(HomeMap.astro)는 진도 자리를 처음부터 없앤다(R2-031 — 처음 온 사람의 카드를 낮게, 지도는 접는 선 아래라 밀림 영향 작음).
  */
 [data-progress-badge] {
   display: inline-flex;

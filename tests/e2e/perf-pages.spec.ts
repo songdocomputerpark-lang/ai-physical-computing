@@ -4,7 +4,7 @@
 //  1. 무거운 라이브러리는 실습실에서만(늘 돈다, 데스크톱): 실습실 밖 쪽(학습·교사용·갤러리·도움말·시작하기 …)을 캐시 없는 새 브라우저로
 //     열고 끝까지 스크롤해, 받은 요청(페이지·서비스 워커 모두 — 문맥 단위) 가운데 Pyodide·MediaPipe·Blockly·MQTT.js·CodeMirror·esptool-js가
 //     **0건**인지 요청 목록으로 본다(주소 모양 + 스크립트 본문 표식). 전체 실행(npm run test:e2e)에서는 대표 쪽만, npm run perf:measure에서는
-//     목록 전체와 차시 45편을 모두 본다. 알아보는 규칙이 살아 있는지 영상처리 실습실에서 Pyodide·CodeMirror를 알아보는지도 함께 본다(긍정 대조).
+//     목록 전체와 차시 45편을 모두 본다. 알아보는 규칙이 살아 있는지 영상 처리 실습실에서 Pyodide·CodeMirror를 알아보는지도 함께 본다(긍정 대조).
 //  2. 느린 3G에서 3초 안에 읽히는지는 tests/e2e/perf-timing.spec.ts(perf 무리에서만 — 추적 기록을 끄는 설정이 파일 단위라 나눴다).
 //  3. 원고 그림 자리(미해결 190, 늘 돈다): 마크다운으로 넣은 원고 그림이 받기 전에도 가로세로 비율대로 자리를 잡고, 받은 뒤 높이가 그대로다
 //     (레이아웃 이동 0). 차시 번호(미해결 174, 두 화면 크기): 좁은 표 칸의 "2-1-3"·"2-1-R"이 한 줄에 있다.
@@ -171,7 +171,7 @@ test.describe('무거운 라이브러리는 실습실에서만(P6-02)', () => {
     expect(rows.length).toBe(pages.length);
   });
 
-  test('알아보는 규칙이 살아 있다: 영상처리 실습실에서는 Pyodide·CodeMirror를 알아본다(긍정 대조)', async ({ browser, baseURL }) => {
+  test('알아보는 규칙이 살아 있다: 영상 처리 실습실에서는 Pyodide·CodeMirror를 알아본다(긍정 대조)', async ({ browser, baseURL }) => {
     const context = await newMeasureContext(browser, baseURL);
     await freezeDevReloads(context);
     const tracker = trackRequests(context);
@@ -192,7 +192,7 @@ test.describe('무거운 라이브러리는 실습실에서만(P6-02)', () => {
     }
     // 실패하면 무엇을 받았는지(주소)를 함께 적는다 — 원인을 로그만으로 알 수 있게(머리말 "흔들림 고침" ④)
     const received = tracker.records.map((record) => `${record.library ?? '-'} ${record.url}`);
-    expect(libraries, `영상처리 실습실에서 Pyodide·CodeMirror를 알아보지 못했어요. 받은 요청 ${received.length}건(마지막 40건): ${received.slice(-40).join(' | ')}`).toEqual(
+    expect(libraries, `영상 처리 실습실에서 Pyodide·CodeMirror를 알아보지 못했어요. 받은 요청 ${received.length}건(마지막 40건): ${received.slice(-40).join(' | ')}`).toEqual(
       expect.arrayContaining(['codemirror', 'pyodide']),
     );
     await closeQuietly(context);

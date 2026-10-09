@@ -58,7 +58,7 @@ export const SOURCE_OFFER_EN =
 export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.freeze([
   {
     id: 'ffmpeg-lgpl',
-    title: 'FFmpeg(GNU LGPL 2.1 이상) — 영상처리 실습의 OpenCV 휠 안',
+    title: 'FFmpeg(GNU LGPL 2.1 이상) — 영상 처리 실습의 OpenCV 휠 안',
     text:
       '파이썬 영상 처리 라이브러리 OpenCV 휠(opencv-python 4.11.0.86)의 cv2.so에는 FFmpeg 4.4.1이 정적으로 들어 있고, FFmpeg는 GNU LGPL 2.1 이상이에요. ' +
       '사이트는 휠과 FFmpeg를 고치지 않고 Pyodide 공식 파일을 그대로 같은 사이트 예비본으로 다시 나눠요. 받은 사람은 LGPL에 따라 FFmpeg를 고쳐 다시 연결할 수 있고, ' +

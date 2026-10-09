@@ -235,7 +235,7 @@ describe('입력하면 결과를 보인다', () => {
     expect(all[0]?.getAttribute('href')).toBe(`${BASE}learn/u1/1-1-1/`);
     const last = all.at(-1);
     expect(last?.textContent).toContain('"서보" 전체 검색 결과 보기');
-    expect(last?.textContent).toContain('23개');
+    expect(last?.textContent).toContain('총 23건');
     expect(last?.getAttribute('href')).toBe(`${BASE}search/?q=${encodeURIComponent('서보')}`);
     expect(live.textContent).toBe(describeSuggestCount('서보', MAX_ITEMS, 23));
   });
@@ -272,7 +272,7 @@ describe('입력하면 결과를 보인다', () => {
     await settle();
     const items = options(list).filter((o) => o.classList.contains('suggest__item'));
     expect(items).toHaveLength(4);
-    expect(options(list).at(-1)?.textContent).not.toMatch(/\d+개/u);
+    expect(options(list).at(-1)?.textContent).not.toMatch(/\d+[개건]/u);
   });
 
   it('오타(임게값)로 결과가 없으면 가장 가까운 추천 낱말(임계값)을 맨 앞 칩으로 보인다(R1-012)', async () => {

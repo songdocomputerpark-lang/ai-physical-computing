@@ -8,7 +8,7 @@ describe('한국어 조사 도우미(src/lib/korean.ts)', () => {
     expect(withParticle('보드', '이/가')).toBe('보드가');
     expect(withParticle('모터', '을/를')).toBe('모터를');
     expect(withParticle('카메라', '과/와')).toBe('카메라와');
-    expect(withParticle('영상처리 실습실', '은/는')).toBe('영상처리 실습실은');
+    expect(withParticle('영상 처리 실습실', '은/는')).toBe('영상 처리 실습실은');
   });
 
   it('으로/로는 ㄹ 받침이나 받침 없는 말 뒤에서 "로"를 붙인다', () => {

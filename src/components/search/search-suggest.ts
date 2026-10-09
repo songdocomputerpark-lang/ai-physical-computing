@@ -275,7 +275,7 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
     if (total !== undefined && total > 0) {
       const count = document.createElement('span');
       count.className = 'suggest__count';
-      count.textContent = ` ${total}개`;
+      count.textContent = ` 총 ${total}건`;
       link.append(count);
     }
     options.push(link);

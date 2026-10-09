@@ -2,7 +2,7 @@
 //
 // 인터넷이 막히거나 느린 교실에서 쓰는 zip을 만든다. 풀어서 시작하기.bat를 두 번 누르면 이 컴퓨터 안에서만 열리는 작은 웹 서버
 // (Windows에 처음부터 있는 PowerShell 5.1 — scripts/offline/serve.ps1)가 사이트를 http://localhost:8080/ 으로 열고, 인터넷 없이
-// 첫 실습(영상처리)·가상 보드·같은 컴퓨터 탭 통신이 된다(tests/e2e/offline.spec.ts가 인터넷을 막은 브라우저로 확인).
+// 첫 실습(영상 처리)·가상 보드·같은 컴퓨터 탭 통신이 된다(tests/e2e/offline.spec.ts가 인터넷을 막은 브라우저로 확인).
 //
 // 하는 일(차례대로 — 하나라도 실패하면 zip을 만들지 않고 종료 코드 1)
 //   1. 패키지 확인: 사이트가 주는 파이썬 코드의 import → pyodide-lock.json 패키지(scripts/lib/offline-packages.mjs)가

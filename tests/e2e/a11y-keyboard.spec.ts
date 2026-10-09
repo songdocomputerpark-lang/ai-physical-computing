@@ -232,7 +232,7 @@ const WALK_PAGES: readonly { label: string; path: string; maxTabs: number; full?
   { label: '대시보드', path: 'labs/iot/dashboard/', maxTabs: 200 },
   { label: '보드 준비', path: 'start/board/', maxTabs: 200, full: true },
   {
-    label: '영상처리 실습실(준비 끝)',
+    label: '영상 처리 실습실(준비 끝)',
     path: 'labs/vision/',
     maxTabs: 250,
     ready: async (page) => {
@@ -250,7 +250,7 @@ const WALK_PAGES: readonly { label: string; path: string; maxTabs: number; full?
     ready: async (page) => {
       await waitLabsIdle(page);
       await expect(page.locator('[data-board-io]')).toHaveAttribute('data-board-ready', 'yes', { timeout: LAB_READY_TIMEOUT });
-      // 영상처리 실습실과 같은 까닭(준비 칸이 접힌 뒤에 걷는다 — 미해결 216)
+      // 영상 처리 실습실과 같은 까닭(준비 칸이 접힌 뒤에 걷는다 — 미해결 216)
       await expect(page.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: 30_000 });
     },
   },
@@ -448,7 +448,7 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     await expect.poll(() => focusedButton(page), { timeout: 10_000 }).toBe('run');
   });
 
-  test('영상처리 실습실: 키보드로 [실행]을 누르면 초점이 [정지]로, [정지]를 누르면 [실행]으로 간다', async ({ page }) => {
+  test('영상 처리 실습실: 키보드로 [실행]을 누르면 초점이 [정지]로, [정지]를 누르면 [실행]으로 간다', async ({ page }) => {
     test.skip(!FULL, FULL_ONLY_REASON);
     test.setTimeout(LAB_READY_TIMEOUT + 120_000);
     await freezeDevReloads(page);
@@ -515,7 +515,7 @@ test.describe('키보드만으로 — 첫 준비 동안 준비 칸의 Tab 차례
     });
 
   for (const target of [
-    { label: '영상처리 실습실', path: 'labs/vision/' },
+    { label: '영상 처리 실습실', path: 'labs/vision/' },
     { label: 'ESP32 실습실', path: 'labs/esp32/' },
   ]) {
     test(`${target.label}: 첫 준비 동안 처음부터 Tab 몇 번 안에(조작 줄 바로 다음) 준비 칸에 닿고, 편집칸보다 먼저다`, async ({ page, context }) => {
@@ -567,7 +567,7 @@ test.describe('키보드만으로 — 첫 준비 동안 준비 칸의 Tab 차례
     });
   }
 
-  test('영상처리 실습실: 키보드만으로 첫 준비 → [실행] 예약 → 준비 끝 실행까지 — 준비 칸이 제자리로 가도 초점은 [정지]에 있고 화면 안이다', async ({ page, context }) => {
+  test('영상 처리 실습실: 키보드만으로 첫 준비 → [실행] 예약 → 준비 끝 실행까지 — 준비 칸이 제자리로 가도 초점은 [정지]에 있고 화면 안이다', async ({ page, context }) => {
     await freezeDevReloads(page);
     await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 6000));
@@ -674,7 +674,7 @@ const ZOOM_PAGES: readonly { label: string; path: string; lab?: boolean; full?: 
   { label: '파이썬 오류 사전', path: 'help/errors/', full: true },
   { label: '예제 갤러리', path: 'labs/gallery/', full: true },
   { label: '대시보드', path: 'labs/iot/dashboard/', full: true },
-  { label: '영상처리 실습실', path: 'labs/vision/', lab: true, full: true },
+  { label: '영상 처리 실습실', path: 'labs/vision/', lab: true, full: true },
   { label: 'ESP32 실습실', path: 'labs/esp32/', lab: true },
 ];
 

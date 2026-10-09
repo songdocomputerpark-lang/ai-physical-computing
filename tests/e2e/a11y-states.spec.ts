@@ -208,7 +208,7 @@ test.describe('실습실 — 실행한 뒤', () => {
   // 예제 카드가 150개 넘는 갤러리는 axe 한 번에 수십 초 걸린다(실습실 검사는 저마다 더 길게 잡는다).
   test.describe.configure({ timeout: 180_000 });
 
-  test('영상처리 실습실: 에지 예제 실행(출력 창·조절 막대) → 대화 상자 → 오류 풀이 카드 → [보내기] 패널·재생 입력·음성 패널', async ({ page }, testInfo) => {
+  test('영상 처리 실습실: 에지 예제 실행(출력 창·조절 막대) → 대화 상자 → 오류 풀이 카드 → [보내기] 패널·재생 입력·음성 패널', async ({ page }, testInfo) => {
     test.setTimeout(LAB_READY_TIMEOUT * 2 + 180_000);
     const found: string[] = [];
     await freezeDevReloads(page);
@@ -262,7 +262,7 @@ test.describe('실습실 — 실행한 뒤', () => {
   // 판 1.2.0(PROGRESS 미해결 218): 첫 준비 동안 준비 칸이 DOM째 편집칸 앞 자리([data-lab-intro])로 옮겨 온 화면과, 준비가 끝나 제자리로 돌아간 화면.
   // 첫 준비 동안 열린 가상 데스크톱(placement wide)은 예전처럼 맨 위로 보이게만 올라가지 않고 제자리(입력·출력·조절 패널 아래)에 있다 —
   // 보이는 차례 = DOM(Tab) 차례.
-  test('영상처리 실습실: 첫 준비 동안(준비 칸이 편집칸 앞 자리, 가상 데스크톱은 제자리)과 준비가 끝나 접힌 뒤', async ({ page, context }, testInfo) => {
+  test('영상 처리 실습실: 첫 준비 동안(준비 칸이 편집칸 앞 자리, 가상 데스크톱은 제자리)과 준비가 끝나 접힌 뒤', async ({ page, context }, testInfo) => {
     test.setTimeout(LAB_READY_TIMEOUT + 120_000);
     const found: string[] = [];
     await freezeDevReloads(page);
@@ -296,7 +296,7 @@ test.describe('실습실 — 실행한 뒤', () => {
     expect(found, found.join('\n')).toEqual([]);
   });
 
-  test('영상처리 실습실: 가상 데스크톱(pyautogui) 예제', async ({ page }, testInfo) => {
+  test('영상 처리 실습실: 가상 데스크톱(pyautogui) 예제', async ({ page }, testInfo) => {
     test.setTimeout(LAB_READY_TIMEOUT + 120_000);
     const found: string[] = [];
     await freezeDevReloads(page);

@@ -16,7 +16,7 @@
 // - anchor-not-found   #위치가 그 페이지에 없다
 // - relative-in-404    404 페이지의 상대 주소(404 페이지는 어느 깊이의 주소에서도 보이므로 상대 주소가 깨진다)
 // - example-not-found  실습실 주소의 ?example=<examples/ 아래 경로> 값이 실제 예제 파일이 아니다(실습실이 조용히 다른 예제를 연다)
-// - example-wrong-lab  ?example= 파일은 있는데 그 예제를 싣지 않는 실습실로 연다(영상처리 실습실에 esp32/ 예제, ESP32 실습실에 vision/ 예제 —
+// - example-wrong-lab  ?example= 파일은 있는데 그 예제를 싣지 않는 실습실로 연다(영상 처리 실습실에 esp32/ 예제, ESP32 실습실에 vision/ 예제 —
 //                      실습실은 목록에서 못 찾아 조용히 첫 예제를 연다. 통신 차시의 컴퓨터 쪽·보드 쪽 한 쌍에서 생기기 쉽다, P4-08·2026-09-24 통합)
 // 건너뛰는 것: 다른 사이트 주소, mailto:·tel:·javascript:·data:·blob:, 자바스크립트가 실행 중에 만드는 주소(검색 결과 등),
 // <script>·<style> 안의 글자와 HTML 주석
@@ -410,7 +410,7 @@ const PROBLEM_MESSAGES = {
   'relative-in-404': () => '404 페이지는 어느 주소에서나 보이므로 상대 주소가 깨져요. withBase()로 만든 주소를 써요.',
   'example-not-found': () => '실습실 주소의 ?example= 값이 examples/ 아래에 없는 파일이에요. 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 파일 경로를 고쳐요.',
   'example-wrong-lab': () =>
-    '?example= 예제를 싣지 않는 실습실로 열어요(esp32/ 예제는 ESP32 실습실, vision/·desktop/ 예제는 영상처리 실습실). 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 링크의 실습실 주소를 고쳐요(차시는 LessonExamples가 예제 경로로 실습실을 고른다).',
+    '?example= 예제를 싣지 않는 실습실로 열어요(esp32/ 예제는 ESP32 실습실, vision/·desktop/ 예제는 영상 처리 실습실). 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 링크의 실습실 주소를 고쳐요(차시는 LessonExamples가 예제 경로로 실습실을 고른다).',
 };
 
 /**

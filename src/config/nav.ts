@@ -139,7 +139,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       {
         id: 'labs-vision',
         icon: 'camera',
-        label: '영상처리 실습실',
+        label: '영상 처리 실습실',
         path: '/labs/vision/',
         description: '웹캠 영상에 파이썬 코드를 실행하고, 값을 바꿔 가며 결과를 봐요.',
       },
@@ -180,7 +180,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
         icon: 'sparkles',
         label: '4단원 통합 실습실',
         path: '/labs/unit4/',
-        description: '카메라, 가상 모니터, 가상 ESP32 보드를 한 화면에서 함께 돌려요. 얼굴로 움직인 마우스 좌표가 블루투스로 보드에 닿아요.',
+        description: '카메라, 가상 모니터, 가상 ESP32 보드를 한 화면에서 함께 돌려요. 얼굴로 움직인 마우스 좌표가 블루투스로 보드에 전해져요.',
       },
       {
         id: 'labs-gallery',
@@ -255,7 +255,11 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   },
 ];
 
-/** 대단원(PLAN §2.1·§2.2). 제목은 교과서 차례를 따른다(IV단원 로마 숫자 표기는 모양을 맞춘 것, PLAN §2.1). */
+/**
+ * 대단원(PLAN §2.1·§2.2). 제목은 교과서 차례를 따른다(IV 로마 숫자 표기는 모양을 맞춘 것, PLAN §2.1).
+ * 숫자 표기 규칙(R2-037): 로마 숫자(I·II·III·IV)는 이 큰 제목 앞 번호("IV. 지능화 사물 개발 프로젝트")로만 쓴다.
+ * 차례를 가리키는 이름("1단원 알아보기"·"4단원 통합 실습실"·"3·4단원")은 아라비아 숫자로 쓴다 — 알파벳 I와 헷갈리지 않고 소리 내어 읽기도 쉽다.
+ */
 const LEARN_UNIT_INPUT: readonly LearnUnitInput[] = [
   {
     unit: 1,

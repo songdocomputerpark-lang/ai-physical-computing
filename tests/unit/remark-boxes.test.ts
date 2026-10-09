@@ -76,12 +76,21 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
     );
   });
 
+  it('칸 제목(## 바꿔 보기·## 교사용)과 같은 이름을 상자 제목으로 되풀이하지 않는다(R2-049)', async () => {
+    const tryBox = compact(await render(':::바꿔보기\n1. 값을 바꿔요\n:::'));
+    expect(tryBox).toContain('<p class="box__title">바꿔 볼 것 3가지</p>');
+    expect(tryBox).not.toContain('<p class="box__title">바꿔 보기</p>');
+    const teacherBox = compact(await render(':::교사용\n지도 포인트\n:::'));
+    expect(teacherBox).not.toContain('<summary class="box__title">교사용</summary>');
+    expect(teacherBox).not.toContain('<summary class="box__title">교사용 안내</summary>');
+  });
+
   it('접는 상자(교사용)는 details·summary가 되고, {open}을 붙이면 펼쳐져 있다', async () => {
     expect(compact(await render(':::교사용\n지도 포인트\n:::'))).toBe(
-      '<details class="box box--teacher" data-box="teacher" data-pagefind-ignore=""><summary class="box__title">교사용 안내</summary><p>지도 포인트</p></details>',
+      '<details class="box box--teacher" data-box="teacher" data-pagefind-ignore=""><summary class="box__title">지도 요약·평가 포인트 보기</summary><p>지도 포인트</p></details>',
     );
     expect(compact(await render(':::교사용{open}\n지도 포인트\n:::'))).toContain(
-      '<details class="box box--teacher" data-box="teacher" data-pagefind-ignore="" open><summary class="box__title">교사용 안내</summary>',
+      '<details class="box box--teacher" data-box="teacher" data-pagefind-ignore="" open><summary class="box__title">지도 요약·평가 포인트 보기</summary>',
     );
   });
 

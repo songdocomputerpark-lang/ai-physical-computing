@@ -114,6 +114,11 @@ describe('찾을 계획(planSearch)', () => {
     expect(planSearch('바꿔보기 예시')?.terms).toEqual(['바꿔 보기 예시']);
   });
 
+  it('붙여 쓴 과목 낱말도 띄어 쓴 본문 말로 찾는다: 영상처리 → 영상 처리, 피지컬컴퓨팅 → 피지컬 컴퓨팅 (R2-038)', () => {
+    expect(planSearch('영상처리 실습실')?.terms).toEqual(['영상 처리 실습실']);
+    expect(planSearch('피지컬컴퓨팅')?.terms).toEqual(['피지컬 컴퓨팅']);
+  });
+
   it('같은 뜻 말을 뒤에 덧붙인다: 수행평가 → 과정 중심 평가, permission denied → 카메라 허용', () => {
     expect(planSearch('수행평가')?.terms).toEqual(['수행평가', '과정 중심 평가']);
     expect(planSearch('웹캠 permission denied')?.terms).toEqual(['웹캠 permission denied', '카메라 허용']);
