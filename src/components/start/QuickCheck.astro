@@ -3,6 +3,7 @@
  * 짧은 브라우저 확인(학생용 시작하기 ① 단계) — 브라우저·JSPI·카메라 기능 세 가지만 보여 준다.
  * 판단은 src/lib/capabilities.ts의 runChecks()가 하고, 전체 항목은 점검 페이지(/start/check/)에 있다.
  * 허락 창을 띄우지 않고 사이트 밖 서버에 접속하지 않는다. 테스트용으로 data-state(running·done)와 줄마다 data-status를 적는다.
+ * 끝나면 apc:quick-check-done(detail.allSupported)을 보낸다 — 학생용 시작하기의 단계 칩이 듣는다(판 1.3.0).
  */
 import { CHECK_ITEMS, type CheckId } from '../../lib/capabilities.ts';
 import { withBase } from '../../lib/url.ts';
@@ -91,6 +92,13 @@ const checkHref = withBase('start/check/');
         }
       }
       root.dataset.state = 'done';
+      // 학생용 시작하기의 단계 칩이 ①에 "끝"을 칠하도록 알린다(세 줄이 모두 지원일 때만 allSupported)
+      root.dispatchEvent(
+        new CustomEvent('apc:quick-check-done', {
+          bubbles: true,
+          detail: { allSupported: report.results.every((result) => result.status === 'supported') },
+        }),
+      );
     });
   }
 </script>

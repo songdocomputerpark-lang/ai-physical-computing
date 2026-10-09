@@ -13,6 +13,7 @@ import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
 import SpeechSetting from '../../components/settings/SpeechSetting.astro';
 import UpcomingSettings from '../../components/settings/UpcomingSettings.astro';
 import { getPage } from '../../config/nav.ts';
+import { PROGRESS_PRIVACY_NOTE } from '../../config/privacy-text.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const page = getPage('settings');
@@ -42,6 +43,7 @@ const teacherPage = getPage('start-teacher');
         컴퓨터라면 수업이 끝날 때 지워 주세요.
         누르면 "서버 음성 인식 허용"도 꺼짐(기본값)으로 돌아가요.
       </p>
+      <p>{PROGRESS_PRIVACY_NOTE}</p>
       <ClearRecordsButton id="settings-clear-records" hint={false} />
     </section>
   </div>

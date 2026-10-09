@@ -1,9 +1,11 @@
 ---
 /**
- * 시작하기 개요(PLAN §2.1, §8.1 P1-08) — 누구인지에 맞는 안내를 고르고, 처음이라면 점검 → 첫 실습 → 보드 순서로 안내한다.
+ * 시작하기 개요(PLAN §2.1, §8.1 P1-08) — "누구세요?" 큰 카드로 맞는 안내를 고르고, 처음이라면 점검 → 첫 실습 → 보드 순서의 단계 칩으로 안내한다.
+ * 판 1.3.0: 카드 통째로 눌림(.card--link) + 아이콘. 처음 온 학생에게는 학생 카드가 "처음이면 여기"로 먼저 눈에 띈다(채운 단추는 쓰지 않는다).
+ * 카드와 단계 칩은 같은 쪽으로 가는 링크가 겹치지만, 하나는 "나는 누구" 길이고 하나는 "처음이면 이 순서" 길이라 둘 다 둔다.
  */
 import Callout from '../../components/common/Callout.astro';
-import PageLinks from '../../components/common/PageLinks.astro';
+import Icon from '../../components/common/Icon.astro';
 import { getPage } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
@@ -13,46 +15,95 @@ const board = getPage('start-board');
 const teacher = getPage('start-teacher');
 const check = getPage('start-check');
 
+/** "누구세요?" 카드 — 이름(page.title)이 링크의 접근 이름 뒷부분이 된다 */
+const who = [
+  {
+    key: 'student',
+    me: '학생이에요',
+    page: student,
+    text: '카메라를 허용하고 3분 만에 첫 실습을 해 봐요.',
+    icon: 'camera',
+    first: true,
+  },
+  {
+    key: 'teacher',
+    me: '선생님이에요',
+    page: teacher,
+    text: '수업 운영, 평가, 개인정보 처리 안내를 모았어요.',
+    icon: 'teacher',
+    first: false,
+  },
+  {
+    key: 'board',
+    me: 'ESP32 보드가 있어요',
+    page: board,
+    text: '보드를 USB로 연결하고 기본 프로그램을 넣어요.',
+    icon: 'chip',
+    first: false,
+  },
+  {
+    key: 'check',
+    me: '내 컴퓨터가 되는지 볼래요',
+    page: check,
+    text: '카메라, 보드 연결, 학교 네트워크를 자동으로 확인해요.',
+    icon: 'monitor',
+    first: false,
+  },
+] as const;
+
+/** 처음이라면 이 순서로 — 단계 칩 */
 const order = [
-  { step: '점검', page: check, text: '이 컴퓨터와 브라우저로 실습할 수 있는지 자동으로 확인해요.' },
-  { step: '첫 실습', page: student, text: '카메라를 허용하고 첫 실습을 해요.' },
-  { step: '보드 연결(보드가 있을 때)', page: board, text: 'ESP32 보드를 USB로 연결해요.' },
+  { step: '점검하기', note: '', page: check },
+  { step: '첫 실습 하기', note: '', page: student },
+  { step: '보드 연결하기', note: '보드가 있을 때', page: board },
 ] as const;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">설치할 프로그램은 없어요. 필요한 안내를 골라 시작해요.</p>
+  <p class="lead">설치할 프로그램은 없어요. 나에게 맞는 안내를 골라 시작해요.</p>
 
   <h2 class="start-heading">어떤 안내가 필요한가요?</h2>
-  <PageLinks pages={page.children} headingLevel={3} />
+  <ul class="start-who">
+    {
+      who.map((item) => (
+        <li class:list={['card', 'card--link', 'start-who__card', { 'start-who__card--first': item.first }]} data-start-who={item.key}>
+          <span class="card__icon card__icon--lg start-who__icon">
+            <Icon name={item.icon} size="lg" />
+          </span>
+          <h3 class="start-who__title">
+            <a class="card__link start-who__link" href={item.page.href}>
+              <span class="start-who__me">{item.me}</span>{' '}
+              <span class="start-who__to">{item.page.title}</span>
+            </a>
+          </h3>
+          <p class="start-who__text">{item.text}</p>
+          {item.first && <p class="start-who__flag">처음이면 여기부터</p>}
+        </li>
+      ))
+    }
+  </ul>
 
   <h2 class="start-heading">처음이라면 이 순서로 해요</h2>
-  <ol class="start-order">
+  <ol class="steps start-steps">
     {
-      order.map((item, index) => (
-        <li class="start-order__item">
-          <span class="start-order__number" aria-hidden="true">
-            {index + 1}
-          </span>
-          <div class="start-order__body">
-            <p class="start-order__step">{item.step}</p>
-            <p>
-              <a href={item.page.href}>{item.page.title}</a> — {item.text}
-            </p>
-          </div>
+      order.map((item) => (
+        <li class="start-steps__item">
+          <a class="start-steps__link" href={item.page.href}>
+            {item.step}
+            {item.note && <span class="start-steps__note">({item.note})</span>}
+          </a>
         </li>
       ))
     }
   </ol>
 
-  <div class="prose">
+  <div class="prose start-more">
     <Callout type="참고" title="하드웨어가 없어도 괜찮아요">
       <p>
         보드가 없는 학교도 가상 보드로 피지컬 실습을 끝까지 할 수 있게 만들어요. 실제 보드가 생기면 같은 코드를 그대로 보드에서 실행해요.
       </p>
     </Callout>
-    <p>선생님은 <a href={teacher.href}>{teacher.title}</a>에서 수업 운영과 개인정보 처리 안내를 먼저 봐 주세요.</p>
   </div>
 </BaseLayout>
 
@@ -62,44 +113,144 @@ const order = [
     font-size: var(--text-2xl);
   }
 
-  .start-order {
+  .start-who {
     display: grid;
-    gap: var(--space-3);
-    max-width: var(--width-prose);
-    margin: 0 0 var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .start-order__item {
+  .start-who__card {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-lg);
+    align-content: start;
+    justify-items: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
   }
 
-  .start-order__number {
-    display: grid;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--radius-full);
-    background: var(--color-accent);
-    color: var(--color-on-accent);
+  /* 처음 온 학생이 눈으로 먼저 찾는 카드: 테두리를 굵게 하고 안내 칩을 단다(색만으로 알리지 않는다) */
+  .start-who__card--first {
+    border: 2px solid var(--color-accent);
+    background: var(--color-accent-soft);
+  }
+
+  .start-who__icon {
+    margin-block-end: var(--space-1);
+  }
+
+  /* 파란 바탕 카드 안에서도 아이콘 원이 보이게 흰 바탕으로 */
+  .start-who__card--first .start-who__icon {
+    background: var(--color-bg);
+  }
+
+  /* 좁은 화면: 아이콘을 왼쪽에 두어 카드를 낮게(네 장이 한눈에 들어오게) */
+  @media (max-width: 40rem) {
+    .start-who__card {
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: var(--space-4);
+      justify-items: start;
+      padding: var(--space-4);
+    }
+
+    .start-who__icon {
+      grid-row: span 2;
+      margin: 0;
+    }
+
+    .start-who__flag {
+      position: static;
+      grid-column: 2;
+      pointer-events: none;
+    }
+  }
+
+  .start-who__title {
     font-size: var(--text-lg);
-    font-weight: var(--weight-bold);
-  }
-
-  .start-order__body {
-    display: grid;
-    gap: var(--space-1);
     line-height: var(--leading-snug);
   }
 
-  .start-order__step {
+  .start-who__me,
+  .start-who__to {
+    display: block;
+  }
+
+  .start-who__to {
+    margin-block-start: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .start-who__text {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .start-who__flag {
+    position: absolute;
+    inset-block-start: var(--space-3);
+    inset-inline-end: var(--space-3);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    pointer-events: none; /* 눌러도 카드의 링크가 열리게 */
+    font-size: var(--text-xs);
     font-weight: var(--weight-bold);
+    line-height: 1.5rem;
+  }
+
+  /* 단계 칩 하나가 통째로 링크 */
+  .start-steps__item {
+    position: relative;
+    padding-block: var(--space-1);
+    font-size: var(--text-base);
+  }
+
+  .start-steps__link {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .start-steps__link:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  .start-steps__link::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    content: '';
+  }
+
+  .start-steps__link:focus-visible {
+    outline: none;
+  }
+
+  .start-steps__link:focus-visible::after {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .start-steps__note {
+    margin-inline-start: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+  }
+
+  .start-more {
+    margin-block-start: var(--space-10);
+  }
+
+  @media (forced-colors: active) {
+    .start-who__flag {
+      border: 1px solid CanvasText;
+    }
   }
 </style>

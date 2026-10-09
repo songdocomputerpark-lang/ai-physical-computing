@@ -3,6 +3,7 @@
  * 용어사전 항목 하나(/glossary/ 페이지의 한 칸, PLAN §8.1 P1-07).
  *   표제어(h3, id = 파일 이름) · 영어 이름 · 묶음 · 한 줄 풀이 · 조금 더 알기(md 본문) · 다른 이름 · 함께 보면 좋은 낱말 · 나오는 차시
  * 본문 속 :용어[…]는 다른 항목으로 가는 링크·툴팁이 된다(자기 자신을 가리키면 보통 글자).
+ * 판 1.3.0: 용어사전 맨 위 "낱말 거르기" 칸이 읽는 data-glossary-item·data-glossary-search(표제어·영어 이름·다른 이름·한 줄 풀이·묶음)를 단다.
  *
  * props
  *   entry     getCollection('glossary')의 항목
@@ -31,7 +32,12 @@ const related = data.related.flatMap((relatedId) => {
 });
 ---
 
-<article class="glossary-entry" aria-labelledby={id}>
+<article
+  class="glossary-entry"
+  aria-labelledby={id}
+  data-glossary-item
+  data-glossary-search={[data.title, data.english, ...data.aliases, data.summary, data.group].filter(Boolean).join(' ')}
+>
   <div class="glossary-entry__head">
     <h3 class="glossary-entry__title" id={id}>
       {data.title}

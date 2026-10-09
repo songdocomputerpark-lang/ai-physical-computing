@@ -328,3 +328,40 @@ test.describe('교사용 자료실 — 좁은 화면(375px)', () => {
     expect(display).not.toBe('table-row');
   });
 });
+
+// ── 판 1.3.0: 교사용 자료실 첫 화면의 "수업 준비 3단계"와 개인정보 문장 ──
+test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
+  test('수업 준비 3단계(점검 → 차시 지도 요약 → 발표 모드)가 번호 순서대로 눌리는 카드로 있다', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.home));
+    const prep = page.locator('[data-teacher-prep]');
+    await expect(prep.getByRole('heading', { level: 2, name: '수업 준비 3단계' })).toBeVisible();
+    const steps = prep.locator('[data-teacher-prep-step]');
+    await expect(steps).toHaveCount(3);
+    await expect(steps.nth(0).locator('a')).toHaveAttribute('href', getPage('start-check').href);
+    await expect(steps.nth(1).locator('a')).toHaveAttribute('href', withBase(TEACHER_PATHS.guides));
+    await expect(steps.nth(2).locator('a')).toHaveAttribute('href', `${getPage('start-teacher').href}#presentation`);
+    // 발표 모드 단계가 가리키는 자리(교사용 시작하기의 #presentation)가 실제로 있다
+    await page.goto(`${getPage('start-teacher').href}#presentation`);
+    await expect(page.locator('h2#presentation')).toBeVisible();
+  });
+
+  test('자료 카드는 아이콘이 있고 카드 어디를 눌러도 열린다', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.home));
+    const first = TEACHER_PAGES[0];
+    const card = page.locator(`[data-teacher-card="${first.id}"]`);
+    await expect(card.locator('svg[data-icon]')).toHaveCount(1);
+    await card.locator('.teacher-card__description').click({ force: true });
+    await expect(page).toHaveURL(new RegExp(`${first.href}$`, 'u'));
+  });
+
+  test('공용 PC 확인표(네 줄)와 교사용 시작하기·설정에 본 차시·끝낸 차시 표시가 남는 곳이 적혀 있다', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.home));
+    const shared = page.locator('section[aria-labelledby="shared-pc"]');
+    await expect(shared.locator('[data-shared-pc-checklist] > li')).toHaveCount(4);
+    await expect(shared).toContainText('본 차시·끝낸 차시 표시');
+    await page.goto(getPage('start-teacher').href);
+    await expect(page.locator('h2#shared-pc + ul')).toContainText('본 차시·끝낸 차시 표시');
+    await page.goto(getPage('settings').href);
+    await expect(page.getByRole('main')).toContainText('본 차시·끝낸 차시 표시');
+  });
+});

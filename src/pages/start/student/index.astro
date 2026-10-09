@@ -2,8 +2,15 @@
 /**
  * 학생용 시작하기(PLAN §2.1, §8.1 P1-08): ① 브라우저 확인 → ② 카메라 허용 → ③ 첫 실습 3분(Phase 2에서 연결).
  * 브라우저 권장 환경 안내(BrowserNotice)를 notice 자리에 넣는다.
+ *
+ * 판 1.3.0: 맨 위 세 단계는 단계 칩(.steps)이고, 끝낸 단계에는 "✓ 끝"이 붙는다(색만으로 알리지 않는다).
+ *   ① 짧은 점검(QuickCheck)이 세 줄 모두 "지원"이면 — QuickCheck가 끝나면 보내는 apc:quick-check-done 이벤트를 듣는다.
+ *   ② 브라우저가 이 사이트의 카메라 허용을 이미 기억하면 — navigator.permissions.query는 허락 창을 띄우지 않는다. 못 쓰는 브라우저는 그냥 안 칠한다.
+ *   ③ 영상처리 실습실을 연 적이 있으면 — 학습 진도(src/lib/progress.ts)의 lastLab. 실습실 쪽이 rememberLab으로 적는다.
+ * 아직 안 끝낸 첫 단계에 aria-current="step"을 단다. 끝에 큰 주 단추 [첫 실습 시작] 하나(채운 파랑 단추는 이 쪽에 이것뿐).
  */
 import Callout from '../../../components/common/Callout.astro';
+import Icon from '../../../components/common/Icon.astro';
 import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import CameraPermissionFigures from '../../../components/start/CameraPermissionFigures.astro';
 import QuickCheck from '../../../components/start/QuickCheck.astro';
@@ -18,28 +25,36 @@ const learn = getPage('learn');
 const glossary = getPage('glossary');
 
 const steps = [
-  { id: 'step-browser', title: '브라우저 확인하기', time: '1분' },
-  { id: 'step-camera', title: '카메라 허용하기', time: '1분' },
-  { id: 'step-first-lab', title: '첫 실습 해 보기', time: '3분' },
+  { id: 'step-browser', key: 'browser', title: '브라우저 확인하기', time: '1분' },
+  { id: 'step-camera', key: 'camera', title: '카메라 허용하기', time: '1분' },
+  { id: 'step-first-lab', key: 'lab', title: '첫 실습 해 보기', time: '3분' },
+] as const;
+
+/** 다음에 해 볼 것 — 카드 */
+const next = [
+  { icon: 'chip', page: board, label: 'ESP32 보드가 있다면', text: '보드를 USB로 연결해요.' },
+  { icon: 'book', page: learn, label: '교과서 차례대로 공부하기', text: '대단원과 차시를 차례로 따라가요.' },
+  { icon: 'glossary', page: glossary, label: '모르는 낱말 찾아보기', text: '낱말 풀이를 모아 두었어요.' },
 ] as const;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <BrowserNotice slot="notice" />
   <h1 class="page-title">{page.title}</h1>
-  <p class="lead">프로그램을 설치하지 않아도 돼요. 아래 세 단계를 차례대로 따라 해요.</p>
+  <p class="lead">프로그램을 설치하지 않아도 돼요. 세 단계만 따라 하면 첫 실습까지 가요.</p>
 
-  <ol class="student-steps">
+  <ol class="steps student-steps" data-student-steps aria-label="세 단계">
     {
-      steps.map((step, index) => (
-        <li class="student-steps__item">
-          <span class="student-steps__number" aria-hidden="true">
-            {index + 1}
-          </span>
+      steps.map((step) => (
+        <li class="student-steps__item" data-student-step={step.key}>
           <a class="student-steps__link" href={`#${step.id}`}>
             {step.title}
           </a>
           <span class="student-steps__time">약 {step.time}</span>
+          <span class="student-steps__done" data-student-step-done hidden>
+            <Icon name="check" size="sm" />
+            끝
+          </span>
         </li>
       ))
     }
@@ -91,59 +106,125 @@ const steps = [
         돌아요(처음 한 번은 약 20MB를 받아요). 출력 화면을 누르고 <kbd>q</kbd> 키를 치면 끝나요.
       </p>
       <p>
-        <a class="button button--primary" href={vision.href}>{vision.title}에서 첫 실습 열기</a>
-      </p>
-      <p>
-        실행 중에 조절 패널의 슬라이더로 <code>threshold</code>(테두리로 볼 밝기 차이) 값을 움직이면 다음 프레임부터
-        테두리가 달라져요. 코드의 숫자도 함께 바뀌니 마음에 드는 값을 찾으면 그대로 두면 돼요. 배운 내용을 차례대로 보려면{' '}
-        <a href={learn.href}>{learn.title}</a>로 가요.
+        실행 중에 조절 패널의 슬라이더로 <code>threshold</code>(테두리로 볼 밝기 차이) 값을 움직여 봐요. 다음 프레임부터 테두리가
+        달라지고, 코드의 숫자도 함께 바뀌어요.
       </p>
     </div>
+    <p class="student-go">
+      <a class="button button--primary button--large" href={vision.href} data-student-go>
+        <Icon name="play" />
+        첫 실습 시작
+      </a>
+      <span class="student-go__where">{vision.title}이 열려요.</span>
+    </p>
   </section>
 
   <section class="student-section" aria-labelledby="student-next">
     <h2 id="student-next">다음에 해 볼 것</h2>
     <ul class="student-next">
-      <li><a href={board.href}>ESP32 보드가 있다면 — {board.title}</a></li>
-      <li><a href={learn.href}>교과서 차례대로 공부하기 — {learn.title}</a></li>
-      <li><a href={glossary.href}>모르는 낱말 찾아보기 — {glossary.title}</a></li>
+      {
+        next.map((item) => (
+          <li class="card card--link student-next__card">
+            <span class="card__icon">
+              <Icon name={item.icon} />
+            </span>
+            <div>
+              <h3 class="student-next__title">
+                <a class="card__link" href={item.page.href}>
+                  {item.label} — {item.page.title}
+                </a>
+              </h3>
+              <p class="student-next__text">{item.text}</p>
+            </div>
+          </li>
+        ))
+      }
     </ul>
   </section>
 </BaseLayout>
 
+<script>
+  /**
+   * 세 단계 칩에 "끝" 표시를 칠한다. 쪽을 열 때 무거운 것을 받지 않는다(진도 저장과 브라우저 질문뿐).
+   * 어느 하나가 안 돼도(질문 거부·저장 막힘) 그 단계만 안 칠하고 쪽은 그대로 쓴다.
+   */
+  import { readProgress, PROGRESS_CHANGED_EVENT } from '../../../lib/progress.ts';
+
+  const list = document.querySelector<HTMLElement>('[data-student-steps]');
+  const done: Record<string, boolean> = { browser: false, camera: false, lab: false };
+
+  function paint(): void {
+    if (!list) return;
+    let current: HTMLElement | null = null;
+    for (const item of list.querySelectorAll<HTMLElement>('[data-student-step]')) {
+      const finished = done[item.dataset.studentStep ?? ''] === true;
+      item.toggleAttribute('data-done', finished);
+      const mark = item.querySelector<HTMLElement>('[data-student-step-done]');
+      if (mark) mark.hidden = !finished;
+      item.removeAttribute('aria-current');
+      if (!finished && current === null) {
+        current = item;
+      }
+    }
+    current?.setAttribute('aria-current', 'step');
+  }
+
+  function checkLab(): void {
+    try {
+      done.lab = readProgress().lastLab?.path.includes('/labs/vision/') === true;
+    } catch {
+      done.lab = false;
+    }
+    paint();
+  }
+
+  // ① QuickCheck가 끝나면 알려 준다(세 줄이 모두 지원일 때만 ✓)
+  document.addEventListener('apc:quick-check-done', (event) => {
+    done.browser = (event as CustomEvent<{ allSupported: boolean }>).detail?.allSupported === true;
+    paint();
+  });
+  // 이미 끝나 있었다면(스크립트 순서) 표시된 값을 읽는다
+  const quick = document.querySelector<HTMLElement>('[data-quick-check]');
+  if (quick?.dataset.state === 'done') {
+    const rows = [...quick.querySelectorAll<HTMLElement>('[data-quick-row]')];
+    done.browser = rows.length > 0 && rows.every((row) => row.dataset.status === 'supported');
+  }
+
+  // ② 카메라 허용(질문만 한다 — 허락 창을 띄우지 않는다)
+  try {
+    void navigator.permissions
+      ?.query({ name: 'camera' as PermissionName })
+      .then((status) => {
+        const sync = () => {
+          done.camera = status.state === 'granted';
+          paint();
+        };
+        sync();
+        status.addEventListener('change', sync);
+      })
+      .catch(() => {});
+  } catch {
+    // 이 브라우저는 카메라 허용을 미리 물을 수 없다 — ②는 칠하지 않는다
+  }
+
+  // ③ 영상처리 실습실을 연 적이 있나
+  checkLab();
+  document.addEventListener(PROGRESS_CHANGED_EVENT, checkLab);
+  window.addEventListener('storage', checkLab);
+  paint();
+</script>
+
 <style>
+  /* 단계 칩: 번호 원과 이름은 .steps(global.css)가 그린다. 여기서는 큰 누르는 곳·시간·끝 표시만. */
   .student-steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
-    gap: var(--space-3);
     margin: 0 0 var(--space-8);
-    padding: 0;
-    list-style: none;
   }
 
   .student-steps__item {
     position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: var(--space-1) var(--space-3);
-    padding: var(--space-4);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg);
-  }
-
-  .student-steps__number {
-    display: grid;
-    grid-row: span 2;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--radius-full);
-    background: var(--color-accent);
-    color: var(--color-on-accent);
-    font-size: var(--text-lg);
-    font-weight: var(--weight-bold);
+    flex-wrap: wrap;
+    min-height: var(--target-min);
+    padding-block: var(--space-1);
   }
 
   .student-steps__link {
@@ -157,11 +238,11 @@ const steps = [
     text-decoration: underline;
   }
 
-  /* 칸 전체를 누르는 곳으로 넓힌다 */
+  /* 칩 전체를 누르는 곳으로 넓힌다 */
   .student-steps__link::after {
     position: absolute;
     inset: 0;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-full);
     content: '';
   }
 
@@ -176,7 +257,18 @@ const steps = [
 
   .student-steps__time {
     color: var(--color-text-muted);
-    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+  }
+
+  .student-steps__done {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-weight: var(--weight-bold);
+  }
+
+  .student-steps__done[hidden] {
+    display: none;
   }
 
   .student-section {
@@ -189,9 +281,47 @@ const steps = [
     scroll-margin-block-start: var(--space-4);
   }
 
+  .student-go {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    margin-block: var(--space-6) 0;
+  }
+
+  .student-go .button {
+    gap: var(--space-2);
+  }
+
+  .student-go__where {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
   .student-next {
     display: grid;
-    gap: var(--space-2);
-    padding-inline-start: 1.25em;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .student-next__card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-3);
+  }
+
+  .student-next__title {
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+  }
+
+  .student-next__text {
+    margin-block-start: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
   }
 </style>

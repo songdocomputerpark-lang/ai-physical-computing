@@ -14,8 +14,10 @@
  * 카메라 허용을 되돌리는 문장은 실습실·점검 페이지와 같은 글(src/lab/vision/camera-notice.ts CAMERA_PERMISSION_STEP — 1.1.0 검토 반영:
  * 세 곳이 서로 다른 메뉴 이름을 적었다). 설정 화면은 메뉴 이름 대신 Chrome·Edge 모두 바뀌지 않는 주소(chrome://·edge://settings/content/camera)로.
  */
+import Icon from '../../components/common/Icon.astro';
 import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../config/nav.ts';
+import { PROGRESS_PRIVACY_NOTE } from '../../config/privacy-text.ts';
 import { errorCatalog } from '../../lab/errors/catalog-data.ts';
 import { CAMERA_PERMISSION_STEP } from '../../lab/vision/camera-notice.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -38,14 +40,61 @@ const questions = [
   { id: 'school-network', title: '학교 네트워크에서 실습실이 열리지 않아요' },
   { id: 'clear-data', title: '공용 컴퓨터에서 내 기록을 지우고 싶어요' },
 ] as const;
+/** "무엇이 안 되나요?" 증상 타일 — 누르면 그 질문 자리(#id)나 오류 사전으로 간다 */
+const symptoms = [
+  { icon: 'camera', label: '카메라가 안 켜져요', href: `#${questions[0].id}` },
+  { icon: 'monitor', label: '카메라 화면이 까매요', href: `#${questions[1].id}` },
+  { icon: 'chip', label: '보드가 안 잡혀요', href: `#${questions[4].id}` },
+  { icon: 'alert', label: '오류 메시지가 나와요', href: errorsPage.href },
+  { icon: 'wifi', label: '느려요, 학교망에서 막혀요', href: `#${questions[5].id}` },
+  { icon: 'clock', label: '내 기록을 지우고 싶어요', href: `#${questions[6].id}` },
+] as const;
 const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData] = questions;
 ---
 
 <BaseLayout title={page.title} description={page.description} width="narrow">
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description}</p>
-  <p>실습하다 막히면 먼저 아래 질문에서 찾아봐요. 코드가 오류로 끝났다면 <a href={errorsPage.href}>{errorsPage.title}</a>에 풀이가 있어요.</p>
+  <h2 class="help-heading" id="help-symptoms">무엇이 안 되나요?</h2>
+  <nav class="help-symptoms" aria-labelledby="help-symptoms" data-pagefind-ignore>
+    <ul class="help-symptoms__list">
+      {
+        symptoms.map((item) => (
+          <li class="card card--link help-symptom" data-help-symptom>
+            <span class="card__icon">
+              <Icon name={item.icon} />
+            </span>
+            <a class="card__link help-symptom__link" href={item.href}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
 
+  <section class="help-errors card" aria-labelledby="help-errors-title" data-help-errors data-pagefind-ignore>
+    <h2 class="help-errors__title" id="help-errors-title">오류 메시지가 나왔나요?</h2>
+    <p class="help-errors__text">실습실 콘솔에 나온 영어 오류 글을 붙여 넣으면, 뜻과 고치는 방법을 한국어로 찾아 줘요.</p>
+    <form class="help-errors__form" role="search" aria-label="오류 사전에서 찾기" action={errorsPage.href} method="get">
+      <label class="visually-hidden" for="help-errors-input">오류 메시지나 낱말</label>
+      <input
+        id="help-errors-input"
+        class="help-errors__input"
+        type="search"
+        name="q"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="예: NameError: name 'total' is not defined"
+      />
+      <button class="button button--primary" type="submit">오류 풀이 찾기</button>
+    </form>
+    <p class="help-errors__more">
+      <a href={errorsPage.href}>{errorsPage.title} 전체 보기</a>({errorCount}가지)
+    </p>
+  </section>
+
+  <h2 class="help-heading">다른 질문 모두 보기</h2>
   <nav class="faq-toc" aria-label="질문 목록">
     <ol>
       {
@@ -191,6 +240,7 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
         이 사이트에는 로그인이 없어요. 실습실에서 쓴 코드와 설정은 서버가 아니라 지금 쓰는 컴퓨터의 브라우저 저장 공간에만
         남아요. 그래서 여러 사람이 함께 쓰는 컴퓨터에서는 다음 사람이 볼 수 있어요.
       </p>
+      <p>{PROGRESS_PRIVACY_NOTE}</p>
       <p>
         수업이 끝나면 실습실 아래(또는 바로 여기)의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 눌러 주세요. 이 사이트가 이
         브라우저에 저장한 코드와 설정만 지우고, 다른 사이트의 기록은 건드리지 않아요.
@@ -234,6 +284,91 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
 </BaseLayout>
 
 <style>
+  .help-heading {
+    margin-block: var(--space-8) var(--space-4);
+    font-size: var(--text-2xl);
+  }
+
+  /* 증상 타일: 카드 전체가 눌리고, 둘(좁은 화면은 하나)씩 줄을 이룬다 */
+  .help-symptoms__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .help-symptom {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 4.5rem;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .help-symptom__link {
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  /* 좁은 화면: 두 줄씩 짝지어 여섯 개가 한 화면에 들어오게(아이콘 위, 글 아래) */
+  @media (max-width: 40rem) {
+    .help-symptoms__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+
+    .help-symptom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      min-height: 0;
+      padding: var(--space-3);
+    }
+
+    .help-symptom__link {
+      font-size: var(--text-sm);
+    }
+  }
+
+  .help-errors {
+    display: grid;
+    gap: var(--space-3);
+    margin-block-start: var(--space-8);
+    padding: var(--space-5);
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+  }
+
+  .help-errors__title {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .help-errors__text,
+  .help-errors__more {
+    margin: 0;
+  }
+
+  .help-errors__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .help-errors__input {
+    flex: 1 1 14rem;
+    min-width: 0;
+    min-height: 3rem;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
   .faq-toc {
     margin-block: var(--space-6) var(--space-8);
     padding: var(--space-4) var(--space-5);

@@ -234,3 +234,51 @@ test.describe('용어 툴팁', () => {
     await expect(page.locator('h3#sensor')).toBeInViewport();
   });
 });
+
+// ── 판 1.3.0: 맨 위 "낱말 거르기" 칸 ──
+test.describe('용어사전 낱말 거르기(판 1.3.0)', () => {
+  test('칸은 자바스크립트가 켜지면 보이고, 색인(가나다·ABC)이 풀이 보는 법보다 먼저 온다', async ({ page }) => {
+    await page.goto('./glossary/');
+    const finder = page.getByRole('search', { name: '낱말 거르기' });
+    await expect(finder).toBeVisible();
+    await expect(finder.getByRole('searchbox', { name: '낱말로 찾기' })).toBeVisible();
+    const order = await page.evaluate(() => {
+      const nav = document.querySelector('[data-glossary-index]');
+      const how = document.getElementById('glossary-how-title');
+      return nav && how ? Boolean(nav.compareDocumentPosition(how) & Node.DOCUMENT_POSITION_FOLLOWING) : false;
+    });
+    expect(order).toBe(true);
+  });
+
+  test('낱말을 넣으면 맞는 항목만 남고, 색인은 접히며, 지우면 모두 돌아온다', async ({ page }) => {
+    await page.goto('./glossary/');
+    const total = await page.locator('[data-glossary-item]').count();
+    expect(total).toBeGreaterThan(20);
+    const input = page.getByRole('searchbox', { name: '낱말로 찾기' });
+    await input.fill('픽셀');
+    await expect(page.locator('h3#pixel')).toBeVisible();
+    const shown = await page.locator('[data-glossary-item]:not([hidden])').count();
+    expect(shown).toBeGreaterThanOrEqual(1);
+    expect(shown).toBeLessThan(total);
+    await expect(page.locator('[data-glossary-find-count]')).toHaveText(new RegExp(`${total}개 가운데 ${shown}개`, 'u'));
+    await expect(page.getByRole('navigation', { name: '가나다·ABC로 찾기' })).toBeHidden();
+    // 영어 이름으로도 찾힌다
+    await input.fill('pixel');
+    await expect(page.locator('h3#pixel')).toBeVisible();
+    // 맞는 낱말이 없으면 안내한다
+    await input.fill('뷁쿍퓽');
+    await expect(page.locator('[data-glossary-item]:not([hidden])')).toHaveCount(0);
+    await expect(page.locator('[data-glossary-find-count]')).toContainText('맞는 낱말이 없어요');
+    // 비우면 모두 돌아온다
+    await input.fill('');
+    await expect(page.locator('[data-glossary-item]:not([hidden])')).toHaveCount(total);
+    await expect(page.getByRole('navigation', { name: '가나다·ABC로 찾기' })).toBeVisible();
+  });
+
+  test('거르기 칸은 검색 색인에서 빠지고, 항목 제목(h3 id)은 그대로며, 가로로 넘치지 않는다', async ({ page }) => {
+    await page.goto('./glossary/');
+    await expect(page.locator('[data-glossary-find][data-pagefind-ignore]')).toHaveCount(1);
+    await expect(page.locator('h3[id="pixel"]')).toHaveCount(1);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+  });
+});

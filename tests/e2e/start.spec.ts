@@ -5,6 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { getPage } from '../../src/config/nav.ts';
 import { siteConfig } from '../../src/config/site.ts';
 import { BROWSER_NOTICE_DISMISS_KEY, CHECK_ITEMS } from '../../src/lib/capabilities.ts';
+import { STORAGE_KEY_PREFIX } from '../../src/lib/storage.ts';
 
 const HANGUL = /[가-힣]/u;
 const START_PAGE_IDS = ['start', 'start-student', 'start-board', 'start-teacher', 'start-check'] as const;
@@ -279,5 +280,98 @@ test.describe('다른 브라우저로 열었을 때', () => {
     await waitForCheckReport(page);
     await expect(checkRow(page, 'browser')).toHaveAttribute('data-status', 'unknown');
     await expect(checkRow(page, 'browser').locator('[data-check-summary]')).toContainText('Firefox(Windows)');
+  });
+});
+
+// ── 판 1.3.0 "설명 없이 쓰는 사이트": 시작하기 개요의 "누구세요?" 카드·단계 칩, 학생용의 단계 칩·끝 표시·큰 주 단추 ──
+test.describe('시작하기 새 모양(판 1.3.0)', () => {
+  test('개요: "누구세요?" 카드 네 장이 통째로 눌리고, 학생 카드가 "처음이면 여기부터"로 먼저 보인다', async ({ page }) => {
+    await page.goto(getPage('start').href);
+    const expected = [
+      ['student', getPage('start-student').href],
+      ['teacher', getPage('start-teacher').href],
+      ['board', getPage('start-board').href],
+      ['check', getPage('start-check').href],
+    ] as const;
+    const cards = page.locator('[data-start-who]');
+    await expect(cards).toHaveCount(expected.length);
+    for (const [key, href] of expected) {
+      const card = page.locator(`[data-start-who="${key}"]`);
+      await expect(card.locator('a.card__link')).toHaveAttribute('href', href);
+      await expect(card.locator('svg[data-icon]')).toHaveCount(1);
+    }
+    await expect(page.locator('[data-start-who="student"]')).toContainText('처음이면 여기부터');
+    // 카드의 글자(링크가 아닌 설명 줄)를 눌러도 그 쪽으로 간다
+    await page.locator('[data-start-who="teacher"] .start-who__text').click({ force: true });
+    await expect(page).toHaveURL(new RegExp(`${getPage('start-teacher').href}$`, 'u'));
+  });
+
+  test('개요: 처음이라면 이 순서(점검 → 첫 실습 → 보드) 단계 칩이 차례대로 있다', async ({ page }) => {
+    await page.goto(getPage('start').href);
+    const links = page.locator('.start-steps > li a');
+    await expect(links).toHaveCount(3);
+    await expect(links.nth(0)).toHaveAttribute('href', getPage('start-check').href);
+    await expect(links.nth(1)).toHaveAttribute('href', getPage('start-student').href);
+    await expect(links.nth(2)).toHaveAttribute('href', getPage('start-board').href);
+  });
+
+  test('학생용: 세 단계 칩이 있고 눌러서 그 단계로 가며, 채운 파랑 주 단추는 [첫 실습 시작] 하나뿐이다', async ({ page }) => {
+    await page.goto(getPage('start-student').href);
+    const steps = page.locator('[data-student-steps] > li');
+    await expect(steps).toHaveCount(3);
+    for (const [index, id] of ['step-browser', 'step-camera', 'step-first-lab'].entries()) {
+      await expect(steps.nth(index).locator('a')).toHaveAttribute('href', `#${id}`);
+    }
+    const primary = page.locator('main .button--primary');
+    await expect(primary).toHaveCount(1);
+    await expect(primary).toHaveText(/첫 실습 시작/u);
+    await expect(primary).toHaveAttribute('href', getPage('labs-vision').href);
+  });
+
+  test('학생용: ①이 끝나면 "끝"이 붙고 지금 단계(aria-current)가 아직 안 끝낸 첫 단계로 간다(휴대폰은 브라우저 줄이 "확인 필요"라 ①이 남는다)', async ({ page, isMobile }) => {
+    await page.goto(getPage('start-student').href);
+    await expect(page.locator('[data-quick-check]')).toHaveAttribute('data-state', 'done', { timeout: 15_000 });
+    const browserStep = page.locator('[data-student-step="browser"]');
+    if (isMobile) {
+      await expect(browserStep).not.toHaveAttribute('data-done', '');
+      await expect(browserStep).toHaveAttribute('aria-current', 'step');
+    } else {
+      await expect(browserStep).toHaveAttribute('data-done', '');
+      await expect(browserStep.locator('[data-student-step-done]')).toBeVisible();
+      await expect(browserStep.locator('[data-student-step-done]')).toContainText('끝');
+      await expect(browserStep).not.toHaveAttribute('aria-current', 'step');
+    }
+    // 시험 설정이 카메라 허용을 미리 줘 둬서(playwright.config.ts) ②가 끝나 있을 수 있다 — 어느 단계가 끝났든 "지금 단계"는 끝나지 않은 첫 단계 하나다
+    const state = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-student-step]')].map((item) => ({ done: item.hasAttribute('data-done'), current: item.getAttribute('aria-current') === 'step' })),
+    );
+    const firstOpen = state.findIndex((item) => !item.done);
+    expect(state.filter((item) => item.current)).toHaveLength(firstOpen === -1 ? 0 : 1);
+    if (firstOpen !== -1) {
+      expect(state[firstOpen]?.current).toBe(true);
+    }
+  });
+
+  test('학생용: 카메라 허용을 이미 한 브라우저면 ②에 "끝"이 붙는다(허락 창을 띄우지 않고 물어본다)', async ({ page, context, isMobile }) => {
+    test.skip(isMobile, '카메라 허용 질문은 데스크톱 Chromium에서 확인한다');
+    await context.grantPermissions(['camera']);
+    await page.goto(getPage('start-student').href);
+    await expect(page.locator('[data-student-step="camera"]')).toHaveAttribute('data-done', '', { timeout: 10_000 });
+  });
+
+  test('학생용: 영상처리 실습실을 연 적이 있으면(학습 진도의 마지막 실습실) ③에 "끝"이 붙는다', async ({ page }) => {
+    await page.goto(getPage('start-student').href);
+    await expect(page.locator('[data-student-step="lab"]')).not.toHaveAttribute('data-done', '');
+    await page.evaluate(
+      ([key, path]) => {
+        localStorage.setItem(
+          key as string,
+          JSON.stringify({ version: 1, seen: [], done: [], last: null, lastLab: { path, title: '영상처리 실습실', at: 1700000000000 } }),
+        );
+        window.dispatchEvent(new StorageEvent('storage', { key: key as string }));
+      },
+      [`${STORAGE_KEY_PREFIX}progress:v1`, getPage('labs-vision').href],
+    );
+    await expect(page.locator('[data-student-step="lab"]')).toHaveAttribute('data-done', '');
   });
 });
