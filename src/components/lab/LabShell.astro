@@ -32,6 +32,10 @@
  *                     PROGRESS 미해결 138). 두 칸에 함께 붙는 흉내 모듈 패널은 고정 id를 쓰므로 같은 id가 두 번 나오는데, 실습실 틀이
  *                     그런 id에 `--<꼬리>`를 붙이고 칸 안의 이름표(for)·aria 참조를 함께 고친다(lab-shell.ts scopeLabIds — 모듈이 붙기 전).
  *                     적지 않으면 labId를 꼬리로 쓴다. 칸이 하나인 쪽에서는 아무 일도 없다. contextLabel과 짝으로 준다.
+ *   coach             (선택, 기본 true) 조작 줄 아래 "① 예제 고르기 → ② [실행] 누르기 → ③ 결과 보기" 코치 줄(판 1.3.0)을 그릴지.
+ *                     한 쪽에 틀이 둘이면(4단원 통합 화면) 한 번만 보이게 첫 틀에만 두고 둘째에는 coach={false}를 준다.
+ *                     코치 줄은 Tab 정지점이 없는 목록이고 차시 안 임베드(?embed=1)에서는 숨는다. 지금 단계 강조는 data-run-count를
+ *                     읽는 CSS뿐이다(새 JS 상태 없음).
  *
  * 한 쪽에 틀이 여럿이면 주소의 공유 링크(#code=…&lab=<labId>)·?example=도 틀이 맞는 칸에만 넣는다(lab-shell.ts 머리말) —
  * 페이지가 따로 우회할 것이 없다.
@@ -63,6 +67,7 @@ interface Props {
   pyodidePackages?: readonly string[];
   contextLabel?: string;
   idSuffix?: string;
+  coach?: boolean;
 }
 
 /**
@@ -73,7 +78,7 @@ interface Props {
 const panelComponents = import.meta.glob<{ default: (props: Record<string, never>) => unknown }>('../../lab/modules/*/panel.astro', { eager: true });
 const modulePanelsById = new Map(Object.entries(panelComponents).map(([globPath, loaded]) => [folderNameOf(globPath), loaded.default]));
 
-const { labId, examples = [], initialExampleId, editorTitle = '코드', headingLevel = 2, pyodidePackages, contextLabel, idSuffix } = Astro.props;
+const { labId, examples = [], initialExampleId, editorTitle = '코드', headingLevel = 2, pyodidePackages, contextLabel, idSuffix, coach = true } = Astro.props;
 if (!/^[a-z0-9][a-z0-9-]*$/u.test(labId)) {
   throw new Error(`LabShell: labId "${labId}"은(는) 영문 소문자·숫자·하이픈만 써요(예: vision).`);
 }
@@ -172,6 +177,17 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     <button type="button" class="lab-button" data-lab-share>공유 링크</button>
     <button type="button" class="lab-button" data-lab-download>.py 내려받기</button>
   </div>
+
+  {
+    /* 처음 쓰는 방법 코치 줄(판 1.3.0). 조작 줄 아래·상태 줄 위 — 조작 줄 위에는 역할 띠가 오고, 준비 칸 자리([data-lab-intro])에는 아무것도 넣지 않는다. */
+    coach && (
+      <ol class="lab__coach steps" aria-label="처음 쓰는 방법" data-lab-coach data-embed-hide>
+        <li>예제 고르기</li>
+        <li>[실행] 누르기</li>
+        <li>결과 보기</li>
+      </ol>
+    )
+  }
 
   <p class="lab__status">
     <span class="lab__status-main" role="status" aria-live="polite" data-lab-status>아직 시작하지 않았어요.</span>
@@ -466,6 +482,120 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   .button[data-lab-run][aria-disabled='true'] {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  /*
+   * 코치 줄: 지금 어디까지 했는지를 data-run-count(실행한 횟수, lab-shell.ts가 이미 적는 값)로만 칠한다.
+   * 0이면 ② [실행] 누르기가 지금 할 일, 1 이상이면 ①②는 한 일(초록)·③ 결과 보기가 지금 보는 곳.
+   * 화면 낭독기에는 늘 같은 목록이다(상태를 알리는 일은 아래 상태 줄이 맡는다).
+   */
+  .lab__coach {
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  /* 휴대폰 폭(375px)에서도 세 칸이 한 줄에 들어오게 안쪽 여백을 줄인다 */
+  .lab__coach > li {
+    padding-inline-end: var(--space-3);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 30rem) {
+    .lab__coach > li {
+      gap: var(--space-1);
+      padding-block: 0.125rem;
+      font-size: var(--text-xs);
+    }
+
+    .lab__coach > li::before {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+
+  @media (max-width: 22rem) {
+    .lab__coach > li {
+      white-space: normal;
+    }
+  }
+
+  .lab[data-run-count='0'] .lab__coach > li:nth-child(2),
+  .lab:not([data-run-count='0']) .lab__coach > li:nth-child(3) {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    font-weight: var(--weight-bold);
+  }
+
+  .lab:not([data-run-count='0']) .lab__coach > li:nth-child(-n + 2) {
+    border-color: var(--color-success-border);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+
+  .lab:not([data-run-count='0']) .lab__coach > li:nth-child(-n + 2)::before {
+    background: var(--color-success-text);
+  }
+
+  @media (forced-colors: active) {
+    .lab[data-run-count='0'] .lab__coach > li:nth-child(2),
+    .lab:not([data-run-count='0']) .lab__coach > li:nth-child(3) {
+      outline: 2px solid SelectedItem;
+      outline-offset: -2px;
+    }
+  }
+
+  /*
+   * [실행]·[정지] 단추: 글자 앞에 CSS로 그린 ▶·■(글자가 아니라 읽히지 않고, 접근 이름은 "실행"·"정지" 그대로).
+   * [실행]은 이 화면의 하나뿐인 채운 단추라 조금 더 크게. [정지]는 나머지 보조 단추처럼 회색 테두리.
+   */
+  .button[data-lab-run] {
+    min-height: 3rem;
+    padding-inline: var(--space-6);
+    font-size: var(--text-lg);
+  }
+
+  .button[data-lab-run]::before {
+    content: '';
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.45em;
+    border-inline-width: 0.75em 0;
+    border-inline-start-color: currentColor;
+  }
+
+  .button[data-lab-stop] {
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+  }
+
+  .button[data-lab-stop]:hover {
+    border-color: var(--color-text);
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+  }
+
+  .button[data-lab-stop]:disabled:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg);
+  }
+
+  .button[data-lab-stop]::before {
+    content: '';
+    flex: none;
+    inline-size: 0.8em;
+    block-size: 0.8em;
+    border-radius: 0.1em;
+    background: currentColor;
+  }
+
+  @media (forced-colors: active) {
+    .button[data-lab-stop]::before {
+      forced-color-adjust: none;
+      background: ButtonText;
+    }
   }
 
   .lab__status {

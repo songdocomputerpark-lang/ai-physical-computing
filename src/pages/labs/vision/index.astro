@@ -61,16 +61,24 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
   <h1 class="page-title" data-embed-hide>{page.title}</h1>
   <p class="lead" data-embed-hide>{page.description}</p>
 
+  {/*
+    판 1.3.0: 긴 설명은 접고 한 줄만 먼저 보인다(편집칸·결과칸이 첫 화면에 들어오게). 접은 칸은 Tab 정지점이 하나 늘 뿐이고
+    차례(조작 줄 → 준비 칸 → 편집칸)는 그대로다. 처음 쓰는 방법은 조작 줄 아래 코치 줄(LabShell)이 한 줄로 알린다.
+  */}
   <div class="vision-intro" data-embed-hide>
-    <p>
-      웹캠(카메라) 영상을 파이썬 코드로 바꿔 봐요. 사진은 작은 점(픽셀)마다 밝기를 적은 숫자예요. 코드가 그 숫자를 바꾸면 회색
-      사진이 되기도 하고, 테두리(에지)만 남은 사진이 되기도 해요.
-    </p>
-    <ol class="vision-intro__steps">
-      <li>[실행]을 누르면 파이썬과 OpenCV가 준비된 뒤 예제가 돌아요. 브라우저가 카메라 사용을 물으면 "허용"을 눌러요.</li>
-      <li>카메라가 없거나 허용하지 않으면 실습실이 직접 그린 샘플 입력으로 똑같이 실습해요. 내 그림 파일을 넣을 수도 있어요.</li>
-      <li>출력 화면을 누른 뒤 <kbd>q</kbd> 키를 치면(또는 화면의 [q] 버튼) 예제가 끝나요. 코드를 고쳐 다시 [실행]해 봐요.</li>
-    </ol>
+    <p>카메라 영상(없으면 샘플 영상)을 파이썬 코드로 바꿔 봐요. 아래 순서대로 [실행]만 눌러도 시작돼요.</p>
+    <details class="more">
+      <summary>처음 쓰는 법 자세히</summary>
+      <p>
+        사진은 작은 점(픽셀)마다 밝기를 적은 숫자예요. 코드가 그 숫자를 바꾸면 회색 사진이 되기도 하고, 테두리(에지)만 남은 사진이
+        되기도 해요.
+      </p>
+      <ol class="vision-intro__steps">
+        <li>[실행]을 누르면 파이썬과 OpenCV가 준비된 뒤 예제가 돌아요. 브라우저가 카메라 사용을 물으면 "허용"을 눌러요.</li>
+        <li>카메라가 없거나 허용하지 않으면 실습실이 직접 그린 샘플 입력으로 똑같이 실습해요. 내 그림 파일을 넣을 수도 있어요.</li>
+        <li>출력 화면을 누른 뒤 <kbd>q</kbd> 키를 치면(또는 화면의 [q] 버튼) 예제가 끝나요. 코드를 고쳐 다시 [실행]해 봐요.</li>
+      </ol>
+    </details>
   </div>
 
   <LabShell labId="vision" examples={examples} pyodidePackages={VISION_PACKAGES}>
@@ -108,7 +116,10 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
 </BaseLayout>
 
 <script>
+  import { rememberCurrentLab } from '../../../components/lab/remember-lab.ts';
   import { mountVisionLab } from '../../../lab/vision/vision-lab.ts';
+
+  rememberCurrentLab();
 
   mountVisionLab(document.querySelector<HTMLElement>('[data-lab]')).catch((error: unknown) => {
     console.error('영상처리 실습실을 준비하지 못했어요.', error);
@@ -120,18 +131,17 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
     display: grid;
     gap: var(--space-3);
     max-width: var(--width-prose);
-    margin-block-end: var(--space-6);
+    margin-block-end: var(--space-4);
     line-height: var(--leading-body);
   }
 
-  .vision-intro p {
+  .vision-intro > p {
     margin: 0;
   }
 
   .vision-intro__steps {
     display: grid;
     gap: var(--space-1);
-    margin: 0;
     padding-inline-start: 1.5em;
   }
 

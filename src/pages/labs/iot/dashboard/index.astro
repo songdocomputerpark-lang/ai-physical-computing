@@ -30,8 +30,8 @@ const mqttTemplate = labLink('esp32', 'esp32/templates/mqtt-pub-sub.py');
   <BrowserNotice slot="notice" />
   <h1 class="page-title">{title}</h1>
   <p class="lead">
-    보드가 보낸 값이 <strong>실시간 그래프</strong>와 <strong>게이지</strong>로 보이고, <strong>스위치</strong>를 누르면 보드의 LED가 켜져요.
-    오고 간 메시지는 <strong>텍스트 로그</strong>에 그대로 쌓여요. 하드웨어가 없어도 가상 보드로 끝까지 해 볼 수 있어요.
+    보드가 보낸 값이 <strong>그래프</strong>와 <strong>게이지</strong>로 보이고, <strong>스위치</strong>를 누르면 보드의 LED가 켜져요. 하드웨어가
+    없어도 가상 보드로 끝까지 해 볼 수 있어요.
   </p>
 
   <div class="prose" data-embed-hide>
@@ -88,7 +88,10 @@ const mqttTemplate = labLink('esp32', 'esp32/templates/mqtt-pub-sub.py');
 </BaseLayout>
 
 <script>
+  import { rememberCurrentLab } from '../../../../components/lab/remember-lab.ts';
   import { mountDashboard } from '../../../../lab/dashboard/index.ts';
+
+  rememberCurrentLab();
 
   const root = document.querySelector<HTMLElement>('[data-dash-page]');
   if (root !== null) {

@@ -22,10 +22,8 @@ const { pairs } = Astro.props;
 
 <section class="unit4-bar" data-unit4 data-unit4-phase="idle" data-unit4-samples="0" aria-labelledby="unit4-bar-heading">
   <h2 id="unit4-bar-heading" class="unit4-bar__heading">한 화면에서 함께 돌리기</h2>
-  <p class="unit4-bar__lead">
-    <strong>컴퓨터 칸</strong>은 카메라로 얼굴을 찾아 가상 모니터의 마우스를 움직이고, 그 좌표를 블루투스로 <strong>보드 칸</strong>에
-    보내요. 보드는 LCD·서보 2개·RGB LED·레이저·버저로 반응해요. 두 칸은 파이썬을 따로 돌려요.
-  </p>
+  {/* 판 1.3.0: 첫 화면을 비우려고 긴 설명은 아래 "처음 쓰는 법 자세히"로 접고 한 줄만 남긴다(설계 원칙 4 — 글보다 짧은 낱말) */}
+  <p class="unit4-bar__lead">컴퓨터 칸이 카메라로 찾은 얼굴 좌표를 블루투스로 보드 칸에 보내요.</p>
 
   <div class="unit4-bar__controls">
     <button type="button" class="button button--primary" data-unit4-run>함께 실행</button>
@@ -65,16 +63,23 @@ const { pairs } = Astro.props;
     <button type="button" class="lab-button lab-button--small" data-unit4-jump="desktop">가상 모니터</button>
     <button type="button" class="lab-button lab-button--small" data-unit4-jump="board">보드 그림</button>
   </div>
-  <p class="unit4-bar__note" data-unit4-screen-note>
-    가상 모니터를 {UNIT4_SCREEN.width}×{UNIT4_SCREEN.height}로 맞춰요. 4단원 보드 코드가 이 크기를 가정하고 서보 각도를 계산해요.
-  </p>
-  <p class="unit4-bar__note">
-    카메라가 없거나 컴퓨터가 버거우면 입력을 <strong>재생 입력(합성 좌표)</strong>으로 바꿔요. 사람 영상 없이 사이트가 만든 얼굴이 고개를 돌려요.
-    클릭(LED·버저)을 보려면 컴퓨터 칸의 재생 동작을 <strong>"윙크·두 눈 감기(클릭)"</strong>로 골라요 — 출력 창에서 합성 얼굴이 왼쪽 눈을 감으면 더블클릭,
-    두 눈을 감으면 우클릭이 보드로 가요. 보드 칸 블루투스 조작 칸의 [클릭 보내기]로도 확인할 수 있어요.
-  </p>
+  <details class="more unit4-bar__more">
+    <summary>처음 쓰는 법 자세히</summary>
+    <p class="unit4-bar__note">
+      <strong>컴퓨터 칸</strong>은 카메라로 얼굴을 찾아 가상 모니터의 마우스를 움직이고, 그 좌표를 블루투스로 <strong>보드 칸</strong>에
+      보내요. 보드는 LCD·서보 2개·RGB LED·레이저·버저로 반응해요. 두 칸은 파이썬을 따로 돌려요.
+    </p>
+    <p class="unit4-bar__note" data-unit4-screen-note>
+      가상 모니터를 {UNIT4_SCREEN.width}×{UNIT4_SCREEN.height}로 맞춰요. 4단원 보드 코드가 이 크기를 가정하고 서보 각도를 계산해요.
+    </p>
+    <p class="unit4-bar__note">
+      카메라가 없거나 컴퓨터가 버거우면 입력을 <strong>재생 입력(합성 좌표)</strong>으로 바꿔요. 사람 영상 없이 사이트가 만든 얼굴이 고개를 돌려요.
+      클릭(LED·버저)을 보려면 컴퓨터 칸의 재생 동작을 <strong>"윙크·두 눈 감기(클릭)"</strong>로 골라요 — 출력 창에서 합성 얼굴이 왼쪽 눈을 감으면 더블클릭,
+      두 눈을 감으면 우클릭이 보드로 가요. 보드 칸 블루투스 조작 칸의 [클릭 보내기]로도 확인할 수 있어요.
+    </p>
+  </details>
 
-  <details class="unit4-bar__more">
+  <details class="more unit4-bar__more">
     <summary>짝 예제 바꾸기</summary>
     <p class="unit4-bar__note">
       컴퓨터 코드가 보내는 글과 보드 코드가 읽는 글이 같은 것끼리 짝이에요. 4-2는 늘 <code>DATA,x,y,더블클릭,오른쪽클릭</code>을 보내요.
@@ -105,7 +110,7 @@ const { pairs } = Astro.props;
     <p class="unit4-bar__note" data-unit4-pair-status role="status" aria-live="polite"></p>
   </details>
 
-  <details class="unit4-bar__more">
+  <details class="more unit4-bar__more">
     <summary>성능 재기(이 컴퓨터에서 잰 값)</summary>
     <p class="unit4-bar__note">
       컴퓨터 칸이 도는 동안 0.5초마다 재요. 카메라 → 파이썬은 가장 많이 1초에 15장, 보드로 보내는 줄은 가장 많이 1초에 10줄이에요(사이트가
@@ -240,28 +245,23 @@ const { pairs } = Astro.props;
     max-width: 100%;
   }
 
+  /* 접는 칸 셋(처음 쓰는 법·짝 예제·성능 재기)은 사이트 공용 "자세히 보기"(.more, global.css — C68 세모) 모양으로 맞춘다(판 1.3.0).
+     칸 바탕(연회색)과 구별되게 흰 바탕만 더한다. */
   .unit4-bar__more {
-    border-block-start: 1px solid var(--color-border);
-    padding-block-start: var(--space-2);
+    background: var(--color-bg);
   }
 
-  /* 접는 칸 — 사이트 접는 상자(src/styles/boxes.css)와 같이 list-item으로 두어 펼침 표시(▶)가 보이게 한다 */
-  .unit4-bar__more > summary {
-    display: list-item;
-    min-block-size: var(--target-min);
-    padding-block: var(--space-2);
-    box-sizing: border-box;
-    font-weight: var(--weight-semibold);
-    cursor: pointer;
-  }
-
-  .unit4-bar__more > summary:focus-visible {
-    outline: var(--focus-ring-width) solid var(--color-focus);
-    outline-offset: var(--focus-ring-offset);
+  /* 안의 글·목록은 위 margin: 0 규칙보다 앞서 .more와 같은 안쪽 여백을 갖는다 */
+  .unit4-bar__more > :not(summary) {
+    margin-inline: var(--space-4);
   }
 
   .unit4-bar__more > :not(summary) + :not(summary) {
     margin-block-start: var(--space-2);
+  }
+
+  .unit4-bar__more > :not(summary):last-child {
+    margin-block-end: var(--space-4);
   }
 
   .unit4-bar__pairs {
@@ -306,7 +306,8 @@ const { pairs } = Astro.props;
   .unit4-bar__report {
     display: block;
     box-sizing: border-box;
-    width: 100%;
+    /* 접는 칸(.more) 안쪽 여백 안에 들어가게(width 100%면 오른쪽 여백만큼 넘친다) */
+    width: calc(100% - 2 * var(--space-4));
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);

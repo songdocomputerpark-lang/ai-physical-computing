@@ -23,14 +23,20 @@ const learn = getPage('learn');
 
   <div class="examples-intro">
     <p>
-      사이트에 있는 실습 예제를 한자리에 모았어요. 위쪽에서 낱말로 찾거나 태그(대단원, 통신 방식, 부품 …)를 골라 좁힌 다음,
-      카드의 [실습실에서 열기]를 누르면 그 예제가 <a href={visionLab.href}>{visionLab.label}</a> 또는{' '}
-      <a href={esp32Lab.href}>{esp32Lab.label}</a>에 그대로 올라와요. 바로 [실행]해 보고 코드를 고쳐 봐도 돼요.
+      낱말로 찾거나 태그를 골라 좁힌 다음, 카드를 누르면 <a href={visionLab.href}>{visionLab.label}</a> 또는{' '}
+      <a href={esp32Lab.href}>{esp32Lab.label}</a>에 그 예제가 올라와요. 바로 [실행]해 보고 코드를 고쳐 봐도 돼요.
     </p>
-    <p>
-      차시 차례대로 공부하고 싶으면 <a href={learn.href}>{learn.label}</a>로 가요. 예제 카드에 차시 이름이 있으면 그 차시에서
-      무엇을 배우는 예제인지 함께 읽을 수 있어요.
-    </p>
+    <details class="more">
+      <summary>카드 보는 법 자세히</summary>
+      <p>
+        카드 왼쪽 띠 색은 어느 대단원 예제인지를 알려 줘요(1단원 파랑, 2단원 초록, 3단원 보라, 4단원 주황). 카드의 딱지에는 쓰는 실습실, 통신 방식,
+        필요한 부품, 난이도가 적혀 있어요.
+      </p>
+      <p>
+        차시 차례대로 공부하고 싶으면 <a href={learn.href}>{learn.label}</a>로 가요. 예제 카드에 차시 이름이 있으면 그 차시에서
+        무엇을 배우는 예제인지 함께 읽을 수 있어요.
+      </p>
+    </details>
   </div>
 
   <ExampleGallery />
@@ -41,7 +47,11 @@ const learn = getPage('learn');
     display: grid;
     gap: var(--space-3);
     max-width: var(--width-prose);
-    margin-block-end: var(--space-6);
+    margin-block-end: var(--space-4);
     line-height: var(--leading-body);
+  }
+
+  .examples-intro > p {
+    margin: 0;
   }
 </style>

@@ -72,22 +72,21 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
   <h1 class="page-title" data-embed-hide>{page.title}</h1>
   <p class="lead" data-embed-hide>{page.description}</p>
 
+  {/*
+    판 1.3.0: 한 줄만 먼저 보이고 나머지는 모두 "처음 쓰는 법 자세히" 안에 접는다(2026-09-18 검토 때 일부만 접었던 것을 더 줄임).
+    처음 쓰는 방법은 조작 줄 아래 코치 줄(LabShell)이 한 줄로 알린다.
+  */}
   <div class="esp32-intro" data-embed-hide>
-    <p>
-      ESP32는 LED, 버저, 서보모터 같은 부품을 움직이는 작은 컴퓨터예요. 보드가 없어도 화면 속 가상 보드가 실물 보드와 같은 파이썬 코드(보드용
-      파이썬인 MicroPython)를 돌려요.
-    </p>
-    <ol class="esp32-intro__steps">
-      <li>[실행]을 누르면 파이썬이 준비된 뒤 가상 보드가 코드를 돌려요. 코드가 핀을 바꾸면 보드 그림과 "핀 상태" 표가 함께 바뀌어요.</li>
-      <li>BOOT 버튼·터치 센서는 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있으면 눌려요.</li>
-    </ol>
-    {/*
-      나머지 두 가지는 접어 둔다 — 1366×768에서 첫 화면이 안내 글로 가득 차고 코드 칸과 보드 그림이 접힌 곳 아래로 밀렸다
-      (2026-09-18 검토 반영).
-    */}
-    <details class="esp32-intro__more">
-      <summary>무엇을 더 할 수 있나요?</summary>
-      <ul>
+    <p>ESP32는 LED, 모터 같은 부품을 움직이는 작은 컴퓨터예요. 보드가 없어도 가상 보드로 해요.</p>
+    <details class="more">
+      <summary>처음 쓰는 법 자세히</summary>
+      <p>가상 보드가 실물 보드와 같은 파이썬 코드(보드용 파이썬인 MicroPython)를 돌려요.</p>
+      <ol class="esp32-intro__steps">
+        <li>[실행]을 누르면 파이썬이 준비된 뒤 가상 보드가 코드를 돌려요. 코드가 핀을 바꾸면 보드 그림과 "핀 상태" 표가 함께 바뀌어요.</li>
+        <li>BOOT 버튼·터치 센서는 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있으면 눌려요.</li>
+      </ol>
+      <p><strong>무엇을 더 할 수 있나요?</strong></p>
+      <ul class="esp32-intro__more-list">
         <li>
           예제마다 쓰는 부품과 선(배선도)이 보드 아래에 그려져요. 내장 LED·BOOT 버튼·터치 센서·진동 모터·RGB LED·레이저·버저·서보모터·팬 모터·4채널
           터치 센서·문자 화면(LCD)·OLED·네오픽셀 링·MP3 모듈·USB-UART 변환기·블루투스(BLE — 조작 칸이 스마트폰 노릇)를 쓸 수 있어요.
@@ -137,85 +136,30 @@ const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sideca
   </section>
 </BaseLayout>
 
+<script>
+  import { rememberCurrentLab } from '../../../components/lab/remember-lab.ts';
+
+  rememberCurrentLab();
+</script>
+
 <style>
   .esp32-intro {
     display: grid;
     gap: var(--space-3);
     max-width: var(--width-prose);
-    margin-block-end: var(--space-6);
+    margin-block-end: var(--space-4);
     line-height: var(--leading-body);
   }
 
-  .esp32-intro p {
+  .esp32-intro > p {
     margin: 0;
   }
 
-  .esp32-intro__steps {
+  /* 접은 칸(.more — 세모·초점·강제 색 규칙은 global.css 공용) 안의 목록 */
+  .esp32-intro__steps,
+  .esp32-intro__more-list {
     display: grid;
     gap: var(--space-1);
-    margin: 0;
-    padding-inline-start: 1.5em;
-  }
-
-  /*
-   * 펼침 칸 표시: display:flex인 summary에는 브라우저가 ▶ 표식을 그리지 않아 그냥 굵은 글로 보였다(판 1.1.1 최종 점검 — 오류 사전과 같은 모양).
-   * 글자 대신 테두리로 그린 세모라 화면 낭독기가 읽지 않는다. 닫혀 있으면 오른쪽, 열리면 아래(전환 움직임 없음). 강제 색 모드는 아래 규칙.
-   */
-  .esp32-intro__more > summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-block-size: var(--target-min);
-    font-weight: var(--weight-semibold);
-    list-style: none;
-    cursor: pointer;
-  }
-
-  .esp32-intro__more > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .esp32-intro__more > summary::before {
-    content: '';
-    flex: none;
-    inline-size: 0;
-    block-size: 0;
-    border-style: solid;
-    border-color: transparent;
-    border-block-width: 0.4em;
-    border-inline-width: 0.6em 0;
-    border-inline-start-color: currentColor;
-  }
-
-  .esp32-intro__more[open] > summary::before {
-    transform: rotate(90deg);
-  }
-
-  /* 강제 색(윈도 고대비) 모드: 세모 색을 미리 정할 수 없어 브라우저 기본 ▶/▼ 표식으로 돌아간다(오류 사전과 같은 규칙) */
-  @media (forced-colors: active) {
-    .esp32-intro__more > summary {
-      display: list-item;
-      list-style: revert;
-    }
-
-    .esp32-intro__more > summary::-webkit-details-marker {
-      display: revert;
-    }
-
-    .esp32-intro__more > summary::before {
-      content: none;
-    }
-  }
-
-  .esp32-intro__more > summary:focus-visible {
-    outline: var(--focus-ring-width) solid var(--color-focus);
-    outline-offset: var(--focus-ring-offset);
-  }
-
-  .esp32-intro__more ul {
-    display: grid;
-    gap: var(--space-1);
-    margin: 0;
     padding-inline-start: 1.5em;
   }
 

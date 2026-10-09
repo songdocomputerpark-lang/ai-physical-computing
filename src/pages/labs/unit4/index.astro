@@ -141,7 +141,7 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
 
     <section class="unit4-pane" aria-labelledby="unit4-board-heading">
       <h2 id="unit4-board-heading" class="unit4-pane__heading">보드 칸 — 가상 ESP32</h2>
-      <LabShell labId="esp32" examples={boardExamples} initialExampleId={initialBoard} pyodidePackages={[]} headingLevel={3} contextLabel="보드 칸" idSuffix="board">
+      <LabShell labId="esp32" examples={boardExamples} initialExampleId={initialBoard} pyodidePackages={[]} headingLevel={3} contextLabel="보드 칸" idSuffix="board" coach={false}>
         <BoardIo slot="io" />
       </LabShell>
     </section>
@@ -198,8 +198,11 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
 </BaseLayout>
 
 <script>
+  import { rememberCurrentLab } from '../../../components/lab/remember-lab.ts';
   import { mountVisionLab } from '../../../lab/vision/vision-lab.ts';
   import { mountUnit4Page } from '../../../lab/unit4/unit4-page.ts';
+
+  rememberCurrentLab();
 
   const visionRoot = document.querySelector<HTMLElement>('[data-lab][data-lab-id="vision"]');
   mountVisionLab(visionRoot).catch((error: unknown) => {
