@@ -1,16 +1,29 @@
 ---
 /**
- * 머리글 검색 상자(PLAN §8.1 P1-11). 공통 레이아웃 머리글(src/layouts/partials/SiteHeader.astro)이 이 파일을 그대로 넣는다.
+ * 머리글 검색 상자(PLAN §8.1 P1-11, 판 1.3.0 자동 완성). 공통 레이아웃 머리글(src/layouts/partials/SiteHeader.astro)이 이 파일을 그대로 넣는다.
  *
- * 자바스크립트 없이도 되는 폼으로 둔다: 검색어를 /search/?q=검색어 로 보내고, 검색 페이지(SearchPage.astro)가 결과를 보여 준다.
- * 모든 페이지에 검색 코드를 싣지 않으려고 머리글에서는 결과를 바로 보여 주지 않는다(학교 컴퓨터·느린 네트워크 고려).
- * 폼 이름(aria-label)은 검색 페이지·404 페이지의 검색 폼과 달라서 화면 낭독기의 랜드마크 목록에서 구분된다.
+ * 자바스크립트 없이도 되는 폼이다: 검색어를 /search/?q=검색어 로 보내고, 검색 페이지(SearchPage.astro)가 결과를 보여 준다.
+ * 자바스크립트가 되면 search-suggest.ts가 자동 완성을 붙인다: 입력칸에 초점이 가면 검색 도구를 받고, 입력을 멈추면 결과 6개를 칸 아래 목록으로 보인다.
+ * 쪽을 열 때는 검색 도구를 받지 않는다(성능 규칙) — 이 스크립트는 작은 모듈이고 폼에 data-suggest가 달린 곳에만 일한다.
+ * 이 폼이 쪽마다 자동 완성 설정(data-suggest-config …)을 들고 있어서, 홈 큰 검색(HomeSearch.astro)이나 404 검색칸도 data-suggest만 달면 같은 자동 완성이 켜진다.
+ * 폼 이름(aria-label)은 검색 페이지·홈 큰 검색·404 페이지의 검색 폼과 달라서 화면 낭독기의 랜드마크 목록에서 구분된다.
  * 설정 값(검색 페이지 주소·검색어 이름)은 src/config/search.ts에 있다.
+ *
+ * 자동 완성 목록의 모양(.suggest …)은 스크립트가 만들어 붙이는 요소라서 이 파일 맨 아래의 전역 스타일 한 곳에 둔다(홈·404도 이것을 쓴다).
  */
 import { searchConfig } from '../../config/search.ts';
+import Icon from '../common/Icon.astro';
+import { suggestConfigAttrs } from './suggest-attrs.ts';
 ---
 
-<form class="header-search" role="search" aria-label="사이트 검색" action={searchConfig.pageHref} method="get">
+<form
+  class="header-search"
+  role="search"
+  aria-label="사이트 검색"
+  action={searchConfig.pageHref}
+  method="get"
+  data-suggest="true" {...suggestConfigAttrs()}
+>
   <label class="visually-hidden" for="header-search-input">사이트 검색어</label>
   <input
     id="header-search-input"
@@ -21,26 +34,40 @@ import { searchConfig } from '../../config/search.ts';
     autocomplete="off"
     enterkeyhint="search"
   />
-  <button class="header-search__button" type="submit">검색</button>
+  <button class="header-search__button" type="submit" aria-label="검색">
+    <Icon name="search" size="sm" />
+  </button>
 </form>
+
+<script>
+  import { bootSuggest } from './search-suggest.ts';
+
+  bootSuggest();
+</script>
 
 <style>
   .header-search {
-    display: flex;
-    gap: var(--space-2);
+    position: relative;
     width: 100%;
   }
 
   .header-search__input {
-    flex: 1 1 auto;
     /* 퍼센트 너비: 입력칸의 기본 너비(글꼴에 따라 달라짐)가 좁은 화면 메뉴를 넓히지 않게 한다(SearchPage.astro 주석 참고). */
+    display: block;
     width: 100%;
     min-width: 0;
     min-height: var(--target-min);
-    padding: var(--space-2) var(--space-3);
+    /* 오른쪽에 돋보기 단추가 겹쳐 앉는다 */
+    padding: var(--space-2) calc(var(--target-min) + var(--space-1)) var(--space-2) var(--space-4);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-full);
     background: var(--color-bg);
+    /* 입력칸이 16px보다 작으면 iOS가 초점을 줄 때 화면을 확대한다 */
+    font-size: max(1rem, var(--text-base));
+  }
+
+  .header-search__input:hover {
+    border-color: var(--color-accent-border);
   }
 
   .header-search__input::placeholder {
@@ -48,30 +75,202 @@ import { searchConfig } from '../../config/search.ts';
     opacity: 1;
   }
 
+  /* type=search의 브라우저 기본 ×(지우기)는 돋보기 단추와 겹치므로 우리 단추 왼쪽으로 비켜 둔다 */
+  .header-search__input::-webkit-search-cancel-button {
+    margin-inline-end: var(--space-1);
+  }
+
   .header-search__button {
-    flex: none;
-    min-height: var(--target-min);
-    padding: var(--space-2) var(--space-4);
-    border: 2px solid var(--color-accent);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--target-min);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
     color: var(--color-accent);
-    font-weight: var(--weight-semibold);
     cursor: pointer;
   }
 
   .header-search__button:hover {
-    border-color: var(--color-accent-hover);
     background: var(--color-accent-soft);
     color: var(--color-accent-hover);
   }
 
   @media (min-width: 75rem) {
     /* 넓은 화면에서는 검색 상자가 메뉴 옆 남은 자리(머리글 SiteHeader.astro의 .site-header__search)에 맞춰 줄어든다. 입력칸은 10rem을 바라되 자리가 없으면 더 좁아진다. */
-    .header-search__input {
+    .header-search {
       flex: 1 1 10rem;
       width: 10rem;
       max-width: 100%;
+    }
+  }
+</style>
+
+<style is:global>
+  /* ── 자동 완성 목록(search-suggest.ts가 만들어 붙인다) — 머리글·홈·404 검색칸이 함께 쓴다 ── */
+  form[data-suggest] {
+    position: relative;
+  }
+
+  .suggest {
+    position: absolute;
+    inset-block-start: calc(100% + var(--space-2));
+    inset-inline-end: 0;
+    /* 홈의 카드·화살표(z-index 1 안팎) 위에 뜬다. 용어 풀이 툴팁(--z-tooltip)보다는 아래 */
+    z-index: 60;
+    box-sizing: border-box;
+    /* 좁은 칸(머리글)에서는 칸보다 넓게 펼치되 화면 밖으로 나가지 않는다 */
+    width: max(100%, min(30rem, 100vw - 2 * var(--gutter)));
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-lg);
+    color: var(--color-text);
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+  }
+
+  .suggest[hidden],
+  .suggest__list[hidden],
+  .suggest__note[hidden] {
+    display: none;
+  }
+
+  .suggest__note {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-muted);
+  }
+
+  .suggest__list {
+    display: grid;
+    gap: 2px;
+  }
+
+  .suggest__option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .suggest__option:hover {
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+  }
+
+  .suggest__option[aria-selected='true'] {
+    background: var(--color-accent-soft);
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+  }
+
+  .suggest-icon {
+    flex: none;
+    width: var(--icon-sm, 1.25rem);
+    height: var(--icon-sm, 1.25rem);
+    color: var(--color-accent);
+  }
+
+  .suggest__text {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .suggest__title {
+    overflow: hidden;
+    font-weight: var(--weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .suggest__where {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .suggest__count {
+    flex: none;
+    margin-inline-start: auto;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* 마지막 줄(전체 검색 결과 보기): 위 결과와 선으로 나눈다 */
+  .suggest__option--all {
+    margin-block-start: var(--space-1);
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+
+  /* 이 줄은 글이 잘리면 안 되는 행동이라 줄을 바꿔서라도 다 보인다 */
+  .suggest__option--all .suggest__title {
+    flex: 1 1 auto;
+    color: var(--color-accent);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .suggest__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .suggest__heading {
+    flex: 1 0 100%;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .suggest__group > .suggest__chip {
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+  }
+
+  .suggest__group > .suggest__chip:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+  }
+
+  .suggest__group > .suggest__chip[aria-selected='true'] {
+    border-color: var(--color-focus);
+  }
+
+  .suggest__chip .suggest-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  @media (forced-colors: active) {
+    .suggest {
+      border-color: CanvasText;
+    }
+
+    .suggest__option[aria-selected='true'] {
+      outline: 3px solid Highlight;
     }
   }
 </style>

@@ -3,7 +3,8 @@
  *
  * Pagefind 1.5.2가 빌드 뒤(npm run build의 postbuild) dist/를 읽어 dist/pagefind/에 검색 색인과 검색 코드를 만든다.
  * 검색 화면(/search/)과 머리글 검색 상자(src/components/search/HeaderSearch.astro)는 이 값을 쓴다.
- * 검색 화면 구현: src/components/search/SearchPage.astro(화면)와 search-page.ts(Pagefind API로 찾고 결과 그리기).
+ * 검색 화면 구현: src/components/search/SearchPage.astro(화면)와 search-page.ts(Pagefind API로 찾고 결과 그리기),
+ * 두 곳이 함께 쓰는 부분은 search-core.ts, 검색칸 자동 완성은 search-suggest.ts(판 1.3.0).
  *
  * 색인 규칙(P1-11 결정)
  * - BaseLayout이 <main>에 data-pagefind-body를 붙인다. 그래서 머리글·바닥글은 색인되지 않고,
@@ -42,4 +43,10 @@ export const searchConfig = {
   // 예제 갤러리(P4-11)도 카드 제목(h3#ex-<실습실>-<예제 id>)마다 항목 결과를 낸다(2026-09-24 Phase 4 통합).
   // 선생님이 자주 묻는 질문(P5-14)은 질문(h3 id)마다 결과를 낸다(2026-09-25 Phase 5 통합).
   anchorPages: ['/glossary/', '/help/errors/', '/labs/gallery/', '/teacher/faq/'],
+  /**
+   * 많이 찾는 낱말(판 1.3.0). 검색칸이 비어 있을 때 초점을 주면 칩으로 보이고(자동 완성), 홈 큰 검색 아래와 검색 쪽 처음 화면에도 나온다.
+   * 모두 사이트에 실제로 있는 낱말이어야 한다 — 결과가 없는 추천은 처음 온 사람을 헷갈리게 한다(tests/e2e/search-suggest.spec.ts가 빌드한 색인으로 확인).
+   * 학생이 막히는 때("카메라가 안 켜져요")와 배울 낱말(손 인식·임계값·LED·서보·블루투스·NameError)을 섞었다.
+   */
+  popularWords: ['손 인식', '임계값', 'LED', '서보', '블루투스', 'NameError', '카메라가 안 켜져요'],
 } as const;

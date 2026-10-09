@@ -5,11 +5,17 @@
 // 그래도 검색 화면은 src/config/search.ts의 baseUrl을 넘겨 두면 불러오는 방식이 바뀌어도 안전하다.
 import { expect, test } from '@playwright/test';
 import { searchConfig } from '../../src/config/search.ts';
+import { ensureSearchIndex } from './helpers/search-index.ts';
 
 type PagefindResult = { data: () => Promise<{ url: string }> };
 
 test.describe('사이트 검색 색인(Pagefind)', () => {
   test.skip(({ isMobile }) => isMobile, '색인은 화면 크기와 상관없어 데스크톱에서 한 번만 확인한다');
+
+  // 개발 서버에는 색인이 없어서 이전 빌드의 dist/pagefind를 대신 쓴다(미리 보기에서는 아무것도 하지 않는다 — helpers/search-index.ts)
+  test.beforeEach(async ({ page }) => {
+    await ensureSearchIndex(page);
+  });
 
   test('baseUrl을 넘기면 검색 결과 주소가 base가 붙은 실제 페이지(200)가 된다', async ({ page, request }) => {
     await page.goto('./');

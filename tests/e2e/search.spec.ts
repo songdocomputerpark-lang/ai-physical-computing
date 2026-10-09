@@ -11,6 +11,12 @@ import { expect, test, type Page } from '@playwright/test';
 import { getPage } from '../../src/config/nav.ts';
 import { searchConfig } from '../../src/config/search.ts';
 import { withBase } from '../../src/lib/url.ts';
+import { ensureSearchIndex } from './helpers/search-index.ts';
+
+// 개발 서버(PW_BASE_URL)에는 검색 색인이 없어서, 저장소 안 이전 빌드의 dist/pagefind가 있으면 그것을 대신 쓴다(미리 보기에서는 아무것도 하지 않는다).
+test.beforeEach(async ({ page }) => {
+  await ensureSearchIndex(page);
+});
 
 const searchRoot = (page: Page) => page.locator('[data-search-root]');
 const pageSearchbox = (page: Page) => page.getByRole('searchbox', { name: '검색어', exact: true });
@@ -50,10 +56,13 @@ test.describe('사이트 검색(색인과 결과)', () => {
     }
   });
 
-  test('낱말의 앞부분으로도 찾는다: "서보"로 찾으면 "서보모터"가 든 ESP32 실습실이 나온다', async ({ page }) => {
+  test('낱말의 앞부분으로도 찾는다: "서보"로 찾으면 "서보모터"가 든 차시와 예제 카드가 나온다', async ({ page }) => {
+    // 판 1.3.0: ESP32 실습실 첫 화면의 긴 소개 문단이 줄면서 그 쪽 본문에서 "서보모터"가 빠졌다(구역 X). 앞부분 검색은 차시·예제로 확인한다.
     await page.goto(searchUrl('서보'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
-    expect(await collectResultHrefs(page)).toContain(getPage('labs-esp32').href);
+    const hrefs = await collectResultHrefs(page);
+    expect(hrefs).toContain(withBase('learn/u2/2-2-4/'));
+    expect(hrefs).toContain(`${getPage('labs-gallery').href}#ex-esp32-u2-2-2-4-servo-angles`);
   });
 
   test('조사가 붙은 낱말도 찾는다: "로그인"으로 찾으면 "로그인이"만 있는 문제 해결 페이지가 나온다', async ({ page }) => {
@@ -199,6 +208,9 @@ test.describe('사이트 검색 화면', () => {
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('search', { name: '검색어로 찾기' }).getByRole('button', { name: '검색' })).toBeFocused();
+    // 판 1.3.0: 결과 위의 종류 칩(라디오 모임)이 Tab 정지점 하나로 끼었다(화살표로 옮긴다)
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('radiogroup', { name: '결과 종류' }).getByRole('radio', { name: '전체' })).toBeFocused();
     await page.keyboard.press('Tab');
     const firstLink = resultItems(page).first().locator('h3 a');
     await expect(firstLink).toBeFocused();
@@ -209,14 +221,16 @@ test.describe('사이트 검색 화면', () => {
 });
 
 test.describe('머리글 검색 상자', () => {
-  test('머리글 검색 상자로 찾으면 검색 페이지가 결과를 보여 준다(좁은 화면은 메뉴를 열고)', async ({ page, isMobile }) => {
+  test('머리글 검색 상자로 찾으면 검색 페이지가 결과를 보여 준다(좁은 화면에서도 메뉴를 열지 않고)', async ({ page }) => {
     await page.goto('./help/');
-    if (isMobile) {
-      await page.getByRole('button', { name: '메뉴' }).click();
-    }
+    // 판 1.3.0: 자동 완성 스크립트가 입력칸에 combobox 역할을 붙인다(자바스크립트가 안 되면 searchbox 그대로 — 폼 제출은 같다)
+    await page.locator('#header-search-input[role="combobox"]').waitFor({ state: 'attached' });
     const headerForm = page.getByRole('search', { name: '사이트 검색', exact: true });
-    const headerSearchbox = headerForm.getByRole('searchbox', { name: '사이트 검색어' });
+    const headerSearchbox = headerForm.getByRole('combobox', { name: '사이트 검색어' });
+    // 판 1.3.0: 검색칸은 휴대폰에서도 메뉴 밖에 늘 보인다(메뉴 단추를 누르지 않는다)
+    await expect(headerSearchbox).toBeVisible();
     await headerSearchbox.fill('서보');
+    // 목록에서 항목을 고르지 않고 Enter를 누르면 폼 제출(/search/?q=)이다
     await headerSearchbox.press('Enter');
 
     await expect(page.getByRole('heading', { level: 1, name: getPage('search').title })).toBeVisible();
