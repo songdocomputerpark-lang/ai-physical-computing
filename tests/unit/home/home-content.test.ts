@@ -166,12 +166,18 @@ describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () 
   it('배움 지도: 제목, 한 문장 안내, 단추 글 3가지, 단원마다 다른 아이콘', () => {
     expect(homeMap.heading).toBe('배움 지도');
     expect(countSentences(homeMap.lead)).toBe(1);
-    // 화면에는 앞에 단원이 붙어 "1단원 배우기"가 된다. 머리글 메뉴 [시작하기]·띠의 [이어서 하기]와 글자가 겹치지 않는다(R1-027).
-    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['배우기', '계속하기', '다시 보기']);
+    // 화면에는 앞에 단원이 붙어 "1단원 배우기"가 된다. 머리글 메뉴 [시작하기]와 글자가 겹치지 않는다(R1-027).
+    // 이어 하는 단추는 띠·배우기 쪽과 같은 말이다 — 같은 행동은 같은 말(R3-006)
+    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['배우기', '이어서 하기', '다시 보기']);
+    expect(homeMap.resumeLabel).toBe(homeResume.lesson.go);
     expect([homeMap.startLabel, homeMap.resumeLabel]).not.toContain('시작하기');
-    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).not.toContain(homeResume.lesson.go);
+    expect(homeResume.lesson.kicker).toBe('지난번에 열어 본 차시');
     // 단원마다 큰 그림의 단계 칩이 하나씩 있고 서로 다르다(R1-025)
-    expect([1, 2, 3, 4].map((unit) => homeMap.stages[unit as 1 | 2 | 3 | 4])).toEqual(['보고·판단', '움직여요', '잇기', '합치기']);
+    expect([1, 2, 3, 4].map((unit) => homeMap.stages[unit as 1 | 2 | 3 | 4])).toEqual(['보고 판단하기', '움직이기', '잇기', '합치기']);
+    // 네 낱말이 모두 "-기" 꼴이다(R3-012)
+    for (const unit of [1, 2, 3, 4]) {
+      expect(homeMap.stages[unit as 1 | 2 | 3 | 4], `${unit}단원 단계 칩`).toMatch(/기$/u);
+    }
     const icons = [1, 2, 3, 4].map((unit) => homeMap.unitIcons[unit as 1 | 2 | 3 | 4]);
     expect(new Set(icons).size).toBe(4);
     for (const icon of icons) {

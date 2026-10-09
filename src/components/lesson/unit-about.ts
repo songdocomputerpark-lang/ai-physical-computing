@@ -3,7 +3,7 @@
  * 순수 함수라 Vitest가 검사한다(tests/unit/lesson/unit-about.test.ts).
  *
  * 큰 그림 단계 이름과 단원 몫은 홈의 흐름 그림(src/components/home/home-content.ts)과 같다:
- *   I 보고·판단 · II 움직여요 · III 잇기(판단한 것을 보드로 보냄) · IV 합치기
+ *   I 보고 판단하기 · II 움직이기 · III 잇기(판단한 것을 보드로 보냄) · IV 합치기
  * 학생 글이라 고1 눈높이로, 한 줄에 하나만 적는다. 단원 설명(nav.ts)과 겹치지 않게 "무엇을 할 수 있게 되는지"만 말한다.
  */
 import type { LessonUnitNumber } from './unit-style.ts';
@@ -20,7 +20,7 @@ export const FLOW_STAGES: readonly { readonly id: FlowStage; readonly label: str
 export interface UnitAbout {
   /** 이 단원이 맡은 큰 그림 단계 */
   readonly stages: readonly FlowStage[];
-  /** 단원 몫을 한두 낱말로("보고·판단") */
+  /** 단원 몫을 '-기' 꼴 한두 낱말로("보고 판단하기") — 홈 배움 지도 칩(home-content.ts homeMap.stages)과 같은 글 */
   readonly role: string;
   /** 이 단원을 마치면 할 수 있는 것(3줄) */
   readonly outcomes: readonly string[];
@@ -29,7 +29,7 @@ export interface UnitAbout {
 export const UNIT_ABOUT: Readonly<Record<LessonUnitNumber, UnitAbout>> = Object.freeze({
   1: Object.freeze({
     stages: Object.freeze<FlowStage[]>(['see', 'judge']),
-    role: '보고·판단',
+    role: '보고 판단하기',
     outcomes: Object.freeze([
       '카메라 영상에서 인공지능이 손, 얼굴, 몸을 어떻게 알아보는지 설명할 수 있어요.',
       '손 좌표를 읽어 손가락 수나 손끝 사이의 거리를 알아내는 프로그램을 만들 수 있어요.',
@@ -38,7 +38,7 @@ export const UNIT_ABOUT: Readonly<Record<LessonUnitNumber, UnitAbout>> = Object.
   }),
   2: Object.freeze({
     stages: Object.freeze<FlowStage[]>(['act']),
-    role: '움직여요',
+    role: '움직이기',
     outcomes: Object.freeze([
       '입력, 처리, 출력으로 보드가 움직이는 원리를 설명할 수 있어요.',
       'MicroPython으로 LED, 화면, 소리, 모터를 움직일 수 있어요.',
@@ -75,7 +75,7 @@ export function isStageOfUnit(unit: LessonUnitNumber, stage: FlowStage): boolean
   return UNIT_ABOUT[unit].stages.includes(stage);
 }
 
-/** 한 줄 안내: "이 단원은 큰 그림의 "보고·판단" 칸이에요." */
+/** 한 줄 안내: "이 단원은 큰 그림의 "보고 판단하기" 칸이에요." */
 export function flowRoleText(unit: LessonUnitNumber): string {
   return `이 단원은 큰 그림의 "${UNIT_ABOUT[unit].role}" 칸이에요.`;
 }

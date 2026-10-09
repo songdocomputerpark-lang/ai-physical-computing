@@ -8,6 +8,7 @@ import {
   isStageOfUnit,
   unitDurationText,
 } from '../../../src/components/lesson/unit-about.ts';
+import { homeMap } from '../../../src/components/home/home-content.ts';
 
 describe('UNIT_ABOUT — 대단원마다 할 수 있는 것 3줄과 큰 그림 속 자리', () => {
   it('대단원 4개 모두 있고, 할 수 있는 것은 3줄이며 "~ 수 있어요."로 끝난다', () => {
@@ -24,9 +25,9 @@ describe('UNIT_ABOUT — 대단원마다 할 수 있는 것 3줄과 큰 그림 �
     expect(FLOW_STAGES.map((stage) => stage.label)).toEqual(['보고', '판단하고', '움직여요']);
   });
 
-  it('단원 몫: I 보고·판단 · II 움직여요 · III 잇기(판단 + 움직여요) · IV 합치기(셋 모두)', () => {
-    expect(UNIT_ABOUT[1].role).toBe('보고·판단');
-    expect(UNIT_ABOUT[2].role).toBe('움직여요');
+  it('단원 몫(모두 -기 꼴, 홈 칩과 같은 글 R3-012): I 보고 판단하기 · II 움직이기 · III 잇기 · IV 합치기', () => {
+    expect(UNIT_ABOUT[1].role).toBe('보고 판단하기');
+    expect(UNIT_ABOUT[2].role).toBe('움직이기');
     expect(UNIT_ABOUT[3].role).toBe('잇기');
     expect(UNIT_ABOUT[4].role).toBe('합치기');
     expect(isStageOfUnit(1, 'see')).toBe(true);
@@ -41,8 +42,14 @@ describe('UNIT_ABOUT — 대단원마다 할 수 있는 것 3줄과 큰 그림 �
     }
   });
 
+  it('차시 머리 단원 몫과 홈 배움 지도 칩은 같은 글이다(R3-012)', () => {
+    for (const unit of [1, 2, 3, 4] as const) {
+      expect(UNIT_ABOUT[unit].role, `${unit}단원`).toBe(homeMap.stages[unit]);
+    }
+  });
+
   it('flowRoleText: 한 줄 안내', () => {
-    expect(flowRoleText(1)).toBe('이 단원은 큰 그림의 "보고·판단" 칸이에요.');
+    expect(flowRoleText(1)).toBe('이 단원은 큰 그림의 "보고 판단하기" 칸이에요.');
     expect(flowRoleText(3)).toBe('이 단원은 큰 그림의 "잇기" 칸이에요.');
   });
 

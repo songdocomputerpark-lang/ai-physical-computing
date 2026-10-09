@@ -7,10 +7,11 @@
  *     script[data-home-index]             JSON {lessons: [[id, 번호, 제목], …], labs: [쪽 주소, …]} — 지금 사이트에 있는 차시·실습실 목록(없으면 거르지 않는다)
  *     [data-resume-lesson][hidden]        지난번에 본 차시 칸 — 안의 [data-resume-link](링크), [data-resume-name](이름 글), [data-resume-go](동작 글),
  *                                         data-go-open·data-go-done = 동작 글(끝낸 차시면 done 글: "다시 보기")
- *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 보인다(같은 대단원에서 안 연 첫 차시)
+ *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 채운다(같은 대단원에서 안 연 첫 차시). 첫 화면 한 줄이 이 칸을 그대로 보이면
+ *                                         같은 안내가 위아래로 두 번 보이지 않게 이 칸은 숨긴다(R3-007). 띠에는 "다시 보기" 칸(지난번 차시)이 남는다.
  *     [data-resume-lab][hidden]           마지막으로 연 실습실 칸 — 같은 구조
  *   [data-hero-resume][hidden]            첫 화면 큰 버튼 아래 "지난번 이어서" 한 줄(HomeHero.astro, R2-029) — 안의 [data-hero-resume-link]·[data-hero-resume-kicker]·[data-hero-resume-name].
- *                                         띠의 칸(다음에 볼 차시 > 지난번 차시 > 실습실) 중 첫 번째 보이는 칸에서 주소·머리글·이름을 복사한다.
+ *                                         띠의 칸(다음에 볼 차시 > 지난번 차시 > 실습실) 중 첫 번째 칸에서 주소·머리글·이름을 복사한다(칸이 숨어 있어도 값은 읽힌다).
  *                                         보이면 [data-hero-guide]("처음이라면 첫 번째 단추부터…")는 숨긴다 — 돌아온 학생에게 어긋난 안내라서.
  *   [data-home-map][data-learn-base]      배움 지도. data-learn-base = /learn/ 주소(base 포함), data-start-label·data-resume-label·data-replay-label = 단추 글
  *     [data-home-unit][data-progress-unit]  대단원 카드(차시 id 목록은 progress-paint가 센다)
@@ -31,7 +32,7 @@ export interface MapLabels {
   readonly replay: string;
 }
 
-const DEFAULT_LABELS: MapLabels = { start: '배우기', resume: '계속하기', replay: '다시 보기' };
+const DEFAULT_LABELS: MapLabels = { start: '배우기', resume: '이어서 하기', replay: '다시 보기' };
 const DEFAULT_GO_OPEN = '이어서 하기';
 const DEFAULT_GO_DONE = '다시 보기';
 
@@ -102,9 +103,10 @@ function unitOf(id: string): string {
 
 /**
  * 첫 화면의 "지난번 이어서" 한 줄을 띠의 한 칸으로 채운다. 칸이 없으면(item === null) 한 줄을 숨기고 처음 온 사람용 길잡이를 되살린다.
+ * 한 줄을 보였으면 true를 돌려준다(R3-007: 띠가 같은 칸을 또 보이지 않으려고 부르는 쪽이 알아야 한다).
  * 글은 textContent·setAttribute로만 옮긴다(띠 칸에 이미 들어간 값이라 마크업이 아니다).
  */
-function fillHero(root: ParentNode, item: Element | null): void {
+function fillHero(root: ParentNode, item: Element | null): boolean {
   const hero = root.querySelector('[data-hero-resume]');
   const guide = root.querySelector('[data-hero-guide]');
   const link = hero?.querySelector<HTMLAnchorElement>('[data-hero-resume-link]') ?? null;
@@ -112,7 +114,7 @@ function fillHero(root: ParentNode, item: Element | null): void {
   if (hero === null || link === null || item === null || source === null) {
     hero?.setAttribute('hidden', '');
     guide?.removeAttribute('hidden');
-    return;
+    return false;
   }
   hero.removeAttribute('hidden');
   guide?.setAttribute('hidden', '');
@@ -122,6 +124,7 @@ function fillHero(root: ParentNode, item: Element | null): void {
   }
   setText(link.querySelector('[data-hero-resume-kicker]'), item.querySelector('[data-resume-kicker]')?.textContent ?? '');
   setText(link.querySelector('[data-hero-resume-name]'), item.querySelector('[data-resume-name]')?.textContent ?? '');
+  return true;
 }
 
 /**
@@ -175,9 +178,15 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
   const labItem = band.querySelector('[data-resume-lab]');
   const labShown = fillItem(labItem, lab && labValid ? lab.path : null, lab && labValid ? lab.title : '');
 
-  band.toggleAttribute('hidden', !(lessonShown || nextShown || labShown));
   // 첫 화면 한 줄: 끝낸 차시가 있으면 다음 차시, 아니면 지난번 차시, 그것도 없으면 마지막 실습실
-  fillHero(root, nextShown ? nextItem : lessonShown ? lessonItem : labShown ? labItem : null);
+  const heroItem = nextShown ? nextItem : lessonShown ? lessonItem : labShown ? labItem : null;
+  const heroShown = fillHero(root, heroItem);
+  // 한 줄이 "다음에 볼 차시"를 이미 보이고 있으면 띠에서는 그 칸을 숨긴다 — 같은 안내는 한 번만(R3-007). 한 줄을 못 보인 때는 띠가 맡는다.
+  const nextVisible = nextShown && !(heroShown && heroItem === nextItem);
+  if (nextShown && !nextVisible) {
+    nextItem?.setAttribute('hidden', '');
+  }
+  band.toggleAttribute('hidden', !(lessonShown || nextVisible || labShown));
 }
 
 /**

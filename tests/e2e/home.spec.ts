@@ -458,7 +458,7 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(page.getByText(homeHero.guide)).toBeVisible();
   });
 
-  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글, 다음 차시 [시작하기] 단추가 나타난다', async ({ page }) => {
+  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글, 이어서 하기 단추가 나타나고 다음에 볼 차시 안내는 한 번만 보인다', async ({ page }) => {
     await page.addInitScript(
       ({ key, value }) => {
         try {
@@ -475,9 +475,11 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     // 1-1-1은 이미 끝낸 차시라 "다시 보기"이고(R1-030), 같은 대단원의 안 연 첫 차시(1-1-2)가 "다음에 볼 차시"로 나온다.
     // 차시 이름은 저장된 글이 아니라 지금 사이트의 것이라 제목은 가리지 않는다.
     await expect(band.getByRole('link', { name: /^1-1-1 .+ 다시 보기$/u })).toHaveAttribute('href', lesson.href);
-    // 다음에 볼 차시는 아직 안 연 차시라 배우기 쪽과 같은 말 [시작하기](R2-021)
     await expect(band.getByRole('link', { name: /이어서 하기/u })).toHaveCount(0);
-    await expect(band.getByRole('link', { name: /^1-1-2 .+ 시작하기$/u })).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
+    // R3-007: "다음에 볼 차시"(1-1-2)는 첫 화면 한 줄이 이미 보이므로 띠에서는 같은 칸을 숨긴다 — 같은 안내가 위아래로 두 번 나오지 않는다.
+    await expect(band.getByRole('link', { name: /^1-1-2 / })).toHaveCount(0);
+    await expect(page.getByText(homeResume.next.kicker).filter({ visible: true })).toHaveCount(1);
+    await expect(page.locator('[data-hero-resume]').getByRole('link')).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
     await expect(band.getByRole('link', { name: /영상 처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
 
     const card = page.locator('[data-home-unit]').first();
@@ -487,7 +489,9 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(card.getByRole('img', { name: /차시 중/u })).toHaveCount(0);
     await expect(page.locator('[data-home-unit]').nth(1)).toHaveAttribute('data-progress-empty', '');
     const resume = card.locator('[data-unit-start]');
-    await expect(resume).toHaveAccessibleName(`1단원 ${homeMap.resumeLabel}`);
+    // R3-006: 이어 하는 단추는 띠·배우기 쪽과 같은 말 "이어서 하기"다(예전 "계속하기"는 없다).
+    await expect(resume).toHaveAccessibleName('1단원 이어서 하기');
+    await expect(resume).not.toContainText('계속하기');
     await expect(resume).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
   });
 

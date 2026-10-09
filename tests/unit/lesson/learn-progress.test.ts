@@ -93,9 +93,9 @@ describe('startTexts — 카드에 쓸 글', () => {
   });
 
   it('이어서 하기(이미 시작한 차시)·시작하기(처음 하는 차시)·다시 보기·모두 봤어요 — 한 기능에 한 이름(R2-021)', () => {
-    expect(startTexts({ mode: 'resume', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '지난번에 본 차시', button: '이어서 하기' });
+    expect(startTexts({ mode: 'resume', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '지난번에 열어 본 차시', button: '이어서 하기' });
     expect(startTexts({ mode: 'next', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '다음에 볼 차시', button: '시작하기' });
-    expect(startTexts({ mode: 'again', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '지난번에 본 차시', button: '다시 보기' });
+    expect(startTexts({ mode: 'again', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '지난번에 열어 본 차시', button: '다시 보기' });
     expect(startTexts({ mode: 'review', entry: ENTRIES[0]! }, first)).toMatchObject({ kicker: '이 단원을 모두 봤어요', button: '처음부터 다시 보기' });
   });
 
@@ -147,7 +147,7 @@ describe('readStartEntries / paintStart / paintNextFlag', () => {
   it('paintStart: 지난번에 본 차시를 아직 다 하지 않았으면 "이어서 하기"로 그 차시를 가리킨다', () => {
     paintStart(startEl(), ENTRIES, stateWith(['u1/1-1-1', 'u1/1-1-2'], [], 'u1/1-1-2'));
     expect(startEl().getAttribute('data-start-mode')).toBe('resume');
-    expect(startEl().querySelector('[data-start-kicker]')?.textContent).toBe('지난번에 본 차시');
+    expect(startEl().querySelector('[data-start-kicker]')?.textContent).toBe('지난번에 열어 본 차시');
     expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('이어서 하기');
     expect(startEl().querySelector('[data-start-button]')?.getAttribute('href')).toBe('/x/learn/u1/1-1-2/');
   });

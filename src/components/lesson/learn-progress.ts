@@ -94,11 +94,11 @@ export function startTexts(pick: StartPick, firstButton: string, nextUnit?: Next
   const title = `${pick.entry.label} ${pick.entry.title}`.trim();
   switch (pick.mode) {
     case 'resume':
-      return { kicker: '지난번에 본 차시', title, button: '이어서 하기' };
+      return { kicker: '지난번에 열어 본 차시', title, button: '이어서 하기' };
     case 'next':
       return { kicker: '다음에 볼 차시', title, button: '시작하기' };
     case 'again':
-      return { kicker: '지난번에 본 차시', title, button: '다시 보기' };
+      return { kicker: '지난번에 열어 본 차시', title, button: '다시 보기' };
     case 'review':
       return { kicker: '이 단원을 모두 봤어요', title, button: '처음부터 다시 보기' };
     default:
