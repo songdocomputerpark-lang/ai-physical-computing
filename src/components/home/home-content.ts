@@ -30,7 +30,7 @@ export interface HomeAction {
   readonly variant: 'primary' | 'secondary';
   /**
    * 가는 곳이 아직 자리 페이지면 'coming-soon' — 버튼에 "준비 중" 표시가 붙는다(누르기 전에 알 수 있게, 2026-09-16 검토 반영).
-   * 실습실이 실제로 생기는 묶음에서 지운다(영상처리는 P2-04에서 지움 — 홈 → 실습실 → 슬라이더까지 이어짐, ESP32는 P3).
+   * 실습실이 실제로 생기는 묶음에서 지운다(영상 처리는 P2-04에서 지움 — 홈 → 실습실 → 슬라이더까지 이어짐, ESP32는 P3).
    */
   readonly status?: 'coming-soon';
 }
@@ -56,7 +56,7 @@ export interface HomeShortcut {
   readonly label: string;
   readonly href: string;
   readonly icon: IconName;
-  /** 단원 색(1~4) — 실습실이 I~IV단원과 짝이다. 없으면 파랑. */
+  /** 단원 색(1~4) — 실습실이 1~4단원과 짝이다. 없으면 파랑. */
   readonly unit?: 1 | 2 | 3 | 4;
 }
 
@@ -143,7 +143,7 @@ export const flowFigure = Object.freeze({
     { id: 'judge', label: '판단하고', detail: '손가락 수를 세요', unit: 1 },
     { id: 'act', label: '움직여요', detail: '보드가 LED를 켜요', unit: 2 },
   ]),
-  /** 단계 아래 링크 글. "{I}단원 알아보기" — 배움 지도 카드 단추([I단원 배우기])와 이름이 겹치지 않게 다른 동사를 쓴다. */
+  /** 단계 아래 링크 글. "{1}단원 알아보기" — 배움 지도 카드 단추([1단원 배우기])와 이름이 겹치지 않게 다른 동사를 쓴다. */
   unitLinkLabel: '알아보기',
 });
 
@@ -152,9 +152,9 @@ export const homeResume = Object.freeze({
   /** 띠 머리. 배움 지도 카드 단추와 "이어서 하기"가 겹쳐 보이지 않게 머리는 "지난번 이어서"로 둔다(R1-027). */
   heading: '지난번 이어서',
   /** 지난번 차시 칸: 아직 안 끝낸 차시는 go, 이미 끝낸 차시는 goDone("다시 보기")로 바뀐다(R1-030). */
-  lesson: Object.freeze({ kicker: '마지막으로 본 차시', go: '이어서 하기', goDone: '다시 보기' }),
-  /** 지난번 차시를 이미 끝냈을 때만 보이는 칸: 같은 대단원에서 아직 안 연 첫 차시 */
-  next: Object.freeze({ kicker: '다음에 볼 차시', go: '이어서 하기' }),
+  lesson: Object.freeze({ kicker: '지난번에 본 차시', go: '이어서 하기', goDone: '다시 보기' }),
+  /** 지난번 차시를 이미 끝냈을 때만 보이는 칸: 같은 대단원에서 그 뒤로 아직 안 연 차시. 처음 여는 차시라 [시작하기](배우기 쪽과 같은 말, R2-021) */
+  next: Object.freeze({ kicker: '다음에 볼 차시', go: '시작하기' }),
   lab: Object.freeze({ kicker: '마지막으로 연 실습실', go: '다시 열기' }),
 });
 
@@ -166,10 +166,10 @@ export const homeSearch = Object.freeze({
 /** 배움 지도: 대단원 4장이 화살표로 이어진 길 */
 export const homeMap = Object.freeze({
   heading: '배움 지도',
-  lead: 'I단원부터 차례로 따라가면 돼요.',
+  lead: '1단원부터 차례로 따라가면 돼요.',
   /**
    * 카드 안 단추: 진도가 없을 때 / 진도가 있어 안 본 차시가 남았을 때 / 모두 봤을 때.
-   * 화면에는 앞에 단원이 붙어 "I단원 배우기"로 보인다(머리글 메뉴 [시작하기]·이어서 하기 띠와 글자가 겹치지 않게, R1-027).
+   * 화면에는 앞에 단원이 붙어 "1단원 배우기"로 보인다(머리글 메뉴 [시작하기]·이어서 하기 띠와 글자가 겹치지 않게, R1-027).
    */
   startLabel: '배우기',
   resumeLabel: '계속하기',
@@ -180,7 +180,7 @@ export const homeMap = Object.freeze({
   unitIcons: Object.freeze<Record<1 | 2 | 3 | 4, IconName>>({ 1: 'camera', 2: 'chip', 3: 'signal', 4: 'lightbulb' }),
 });
 
-/** 바로 가기 타일 9개(네이버식 아이콘 칸). 실습실 4개는 I~IV단원 색을 따른다. */
+/** 바로 가기 타일 9개(네이버식 아이콘 칸). 실습실 4개는 1~4단원 색을 따른다. */
 export const homeShortcuts = Object.freeze({
   heading: '바로 가기',
   items: Object.freeze<HomeShortcut[]>([

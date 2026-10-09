@@ -207,8 +207,13 @@ const HAND_JOINTS = [
             <span class="flow__detail">{step.detail}</span>
             {/* 단계 글이 배움 지도의 길잡이가 되도록 그 단계를 배우는 대단원 쪽으로 이어 준다(R1-025). 이름 끝의 숨은 글이 어느 단계의 링크인지 알린다. */}
             <a class="flow__go" href={getLearnUnit(step.unit).href}>
-              {getLearnUnit(step.unit).numeral}단원 {flowFigure.unitLinkLabel}
-              <span class="visually-hidden"> ({step.label})</span>
+              <span>
+                {getLearnUnit(step.unit).unit}단원 {flowFigure.unitLinkLabel}
+                <span class="visually-hidden"> ({step.label})</span>
+              </span>
+              <span class="flow__go-arrow" aria-hidden="true">
+                <Icon name="arrow-right" size="fill" />
+              </span>
             </a>
           </li>
         ))
@@ -318,6 +323,8 @@ const HAND_JOINTS = [
     --flow-delay: 0.6s;
 
     display: grid;
+    /* 왼쪽 글 칸과 키가 같아지게 늘어나면(HomeHero의 .hero__figure가 grid라 이 칸이 늘어난다) 안쪽을 가운데로 모은다 — 카드 위·아래 선이 제목 줄·길잡이 줄과 맞는다(R2-030) */
+    align-content: center;
     gap: var(--space-3);
     padding: var(--space-4);
     border: 1px solid var(--color-border);
@@ -542,27 +549,79 @@ const HAND_JOINTS = [
     line-height: var(--leading-snug);
   }
 
-  /* 단계 아래 단원 링크: 글만 링크처럼 보이고, 누르는 곳은 44px 높이를 지킨다 */
+  /*
+   * 단계 아래 단원 링크(R2-030): 세 개가 같은 모양의 작은 알약 단추라, 흩어진 밑줄 글이 아니라 "눌러서 가는 곳"으로 한눈에 읽힌다.
+   * 눌리는 곳은 44px 높이를 지킨다. 글자 accent-hover on bg 7.7:1, hover 때 accent-soft 바탕 6.7:1.
+   */
   .flow__go {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--space-1);
     min-height: var(--target-min);
-    color: var(--color-accent);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-accent-hover);
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
     line-height: var(--leading-snug);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-decoration: none;
   }
 
   .flow__go:hover {
-    color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent-soft);
   }
 
+  .flow__go-arrow {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* 좁은 칸(세 단계가 한 줄이라 칸이 100px 안팎)에서는 화살표를 빼 글이 두 줄로 덜 꺾이게 한다 */
+  @media (max-width: 39.99rem) {
+    .flow__go {
+      padding-inline: var(--space-2);
+    }
+
+    .flow__go-arrow {
+      display: none;
+    }
+  }
+
+  /*
+   * [그림 멈추기]: 카드 맨 아래 가운데 한 줄(위에 가는 선)로 카드 안에 붙인다 — 오른쪽 아래에 외따로 떠 있지 않게(R2-030).
+   * 단추가 안 나오는 때(움직임 줄이기·스크립트 전)에는 줄도 자리도 없다. 단추가 나올 때(data-state가 static이 아닐 때: playing·paused·ended) 덧붙는다.
+   */
   .flow__controls {
+    display: none;
+    justify-content: center;
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .flow:not([data-state='static']) .flow__controls {
     display: flex;
-    justify-content: flex-end;
+  }
+
+  /*
+   * 멈춤 단추 줄이 있으면 카드 바닥에 붙인다(카드 꼬리 줄 — R2-030 통합 확인: 카드가 글 칸 키만큼 늘면 가운데 모음 때문에 단추 줄이 바닥에서 80px 떠 있었다).
+   * 그림·단계는 위에서부터, 남는 자리는 단계와 단추 줄 사이로 간다.
+   */
+  .flow:not([data-state='static']) {
+    align-content: stretch;
+    grid-template-rows: auto 1fr;
+  }
+
+  .flow:not([data-state='static']) .flow__caption {
+    grid-template-rows: auto 1fr;
+  }
+
+  .flow:not([data-state='static']) .flow__controls {
+    align-self: end;
   }
 
   .flow__toggle {

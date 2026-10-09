@@ -9,16 +9,19 @@
  *                                         data-go-open·data-go-done = 동작 글(끝낸 차시면 done 글: "다시 보기")
  *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 보인다(같은 대단원에서 안 연 첫 차시)
  *     [data-resume-lab][hidden]           마지막으로 연 실습실 칸 — 같은 구조
+ *   [data-hero-resume][hidden]            첫 화면 큰 버튼 아래 "지난번 이어서" 한 줄(HomeHero.astro, R2-029) — 안의 [data-hero-resume-link]·[data-hero-resume-kicker]·[data-hero-resume-name].
+ *                                         띠의 칸(다음에 볼 차시 > 지난번 차시 > 실습실) 중 첫 번째 보이는 칸에서 주소·머리글·이름을 복사한다.
+ *                                         보이면 [data-hero-guide]("처음이라면 첫 번째 단추부터…")는 숨긴다 — 돌아온 학생에게 어긋난 안내라서.
  *   [data-home-map][data-learn-base]      배움 지도. data-learn-base = /learn/ 주소(base 포함), data-start-label·data-resume-label·data-replay-label = 단추 글
  *     [data-home-unit][data-progress-unit]  대단원 카드(차시 id 목록은 progress-paint가 센다)
- *       [data-unit-start]                 단원 링크: data-first-href(처음 차시), data-unit-name("I단원")
- *         [data-unit-start-label]         링크 안 글: "I단원 배우기" 꼴(단원 이름 + 단추 글)
+ *       [data-unit-start]                 단원 링크: data-first-href(처음 차시), data-unit-name("1단원")
+ *         [data-unit-start-label]         링크 안 글: "1단원 배우기" 꼴(단원 이름 + 단추 글)
  *
  * 글은 모두 textContent로만 넣는다(저장소 값이 마크업으로 해석되지 않게). 같은 상태를 여러 번 그려도 같은 결과다.
  * 실습실 라이브러리를 import하지 않는다 — 홈은 사전 캐시되는 쪽이라 작게 유지한다.
  */
 import { installProgressPaint, watchProgress } from '../progress/progress-paint.ts';
-import { firstUnseen, isLessonId, lessonStatus, type ProgressState } from '../../lib/progress.ts';
+import { firstUnseen, isLessonId, nextUnseen, lessonStatus, type ProgressState } from '../../lib/progress.ts';
 import { lessonHrefFromId } from './home-map.ts';
 
 /** 지도 카드 단추 글. 마크업(HomeMap.astro)의 data-start-label·data-resume-label·data-replay-label이 우선이고, 없으면 이 기본값이다. */
@@ -98,6 +101,30 @@ function unitOf(id: string): string {
 }
 
 /**
+ * 첫 화면의 "지난번 이어서" 한 줄을 띠의 한 칸으로 채운다. 칸이 없으면(item === null) 한 줄을 숨기고 처음 온 사람용 길잡이를 되살린다.
+ * 글은 textContent·setAttribute로만 옮긴다(띠 칸에 이미 들어간 값이라 마크업이 아니다).
+ */
+function fillHero(root: ParentNode, item: Element | null): void {
+  const hero = root.querySelector('[data-hero-resume]');
+  const guide = root.querySelector('[data-hero-guide]');
+  const link = hero?.querySelector<HTMLAnchorElement>('[data-hero-resume-link]') ?? null;
+  const source = item?.querySelector<HTMLAnchorElement>('[data-resume-link]') ?? null;
+  if (hero === null || link === null || item === null || source === null) {
+    hero?.setAttribute('hidden', '');
+    guide?.removeAttribute('hidden');
+    return;
+  }
+  hero.removeAttribute('hidden');
+  guide?.setAttribute('hidden', '');
+  const href = source.getAttribute('href') ?? '';
+  if (link.getAttribute('href') !== href) {
+    link.setAttribute('href', href);
+  }
+  setText(link.querySelector('[data-hero-resume-kicker]'), item.querySelector('[data-resume-kicker]')?.textContent ?? '');
+  setText(link.querySelector('[data-hero-resume-name]'), item.querySelector('[data-resume-name]')?.textContent ?? '');
+}
+
+/**
  * 이어서 하기 띠를 채운다. 보일 칸이 하나도 없으면 띠 전체를 숨긴다.
  *  - 사이트에 없는 차시·실습실(옛 주소)은 칸을 숨긴다. 있는 차시는 번호·제목·주소를 지금 사이트 것으로 쓴다(저장된 옛 이름·주소가 아니라).
  *  - 지난번 차시를 이미 끝냈으면 동작 글을 "다시 보기"로 바꾸고, 같은 대단원에서 아직 안 연 첫 차시를 "다음에 볼 차시" 칸으로 보인다.
@@ -127,26 +154,30 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
   const goText = lastDone ? lessonItem?.getAttribute('data-go-done') : lessonItem?.getAttribute('data-go-open');
   setText(lessonItem?.querySelector('[data-resume-go]') ?? null, goText || (lastDone ? DEFAULT_GO_DONE : DEFAULT_GO_OPEN));
 
-  // 다음에 볼 차시: 지난번 차시를 끝냈고, 같은 대단원에 안 연 차시가 남았을 때만
+  // 다음에 볼 차시: 지난번 차시를 끝냈고, 같은 대단원에 그 뒤로 안 연 차시가 남았을 때만
   let nextHref: string | null = null;
   let nextName = '';
   if (last && lastDone && index && learnBase !== '') {
     const unit = unitOf(last.id);
     const ids = [...index.lessons.keys()].filter((id) => unitOf(id) === unit);
-    const nextId = firstUnseen(state, ids);
+    const nextId = nextUnseen(state, ids); // 지난번 차시 바로 뒤의 안 본 차시(안 본 앞 차시로 되돌리지 않음, R2-021)
     const next = nextId === null ? undefined : index.lessons.get(nextId);
     if (nextId !== null && next) {
       nextHref = lessonHrefFromId(learnBase, nextId);
       nextName = `${next.label} ${next.title}`;
     }
   }
-  const nextShown = fillItem(band.querySelector('[data-resume-next]'), nextHref, nextName);
+  const nextItem = band.querySelector('[data-resume-next]');
+  const nextShown = fillItem(nextItem, nextHref, nextName);
 
   // 마지막 실습실: 목록이 있으면 목록에 있는 쪽만
   const labValid = lab !== null && (index === null || index.labs.has(trimSlash(lab.path)));
-  const labShown = fillItem(band.querySelector('[data-resume-lab]'), lab && labValid ? lab.path : null, lab && labValid ? lab.title : '');
+  const labItem = band.querySelector('[data-resume-lab]');
+  const labShown = fillItem(labItem, lab && labValid ? lab.path : null, lab && labValid ? lab.title : '');
 
   band.toggleAttribute('hidden', !(lessonShown || nextShown || labShown));
+  // 첫 화면 한 줄: 끝낸 차시가 있으면 다음 차시, 아니면 지난번 차시, 그것도 없으면 마지막 실습실
+  fillHero(root, nextShown ? nextItem : lessonShown ? lessonItem : labShown ? labItem : null);
 }
 
 /**
@@ -185,7 +216,7 @@ export function applyMapProgress(root: ParentNode, state: ProgressState, fallbac
     if (link.getAttribute('href') !== href) {
       link.setAttribute('href', href);
     }
-    // 눈에 보이는 글이 "I단원 배우기"처럼 단원 이름을 담으므로 따로 aria-label을 두지 않는다(보이는 글 = 접근 이름).
+    // 눈에 보이는 글이 "1단원 배우기"처럼 단원 이름을 담으므로 따로 aria-label을 두지 않는다(보이는 글 = 접근 이름).
     const unitName = link.getAttribute('data-unit-name');
     setText(link.querySelector('[data-unit-start-label]'), unitName ? `${unitName} ${label}` : label);
     link.removeAttribute('aria-label');

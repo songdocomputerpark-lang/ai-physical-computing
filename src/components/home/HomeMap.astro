@@ -6,9 +6,11 @@
  *  - 카드를 어디 눌러도 대단원 쪽(차시 목록)으로 간다 — 제목 링크의 ::after 덮개(.card__link).
  *  - [시작하기]는 덮개 위에 따로 눌리는 링크로, 그 단원 첫 차시로 간다. 진도가 있으면 "이어서 하기"(안 본 첫 차시)로 바뀐다(home-resume.ts).
  *  - 단원 이름 위에 단계 칩(보고·판단 / 움직여요 / 잇기 / 합치기)이 있어, 첫 화면 흐름 그림의 단계와 이어진다(R1-025).
- *  - [시작하기]였던 단추는 "I단원 배우기"로 단원 이름이 눈에 보이는 글이다(머리글 메뉴 [시작하기]와 안 겹침, R1-027). 접근 이름도 같은 글이다.
+ *  - [시작하기]였던 단추는 "1단원 배우기"로 단원 이름이 눈에 보이는 글이다(머리글 메뉴 [시작하기]와 안 겹침, R1-027). 접근 이름도 같은 글이다.
  *  - 진도 막대는 화면 낭독기에서 숨긴다(aria-hidden) — 같은 말이 글(map__progress-text)로 이미 읽히기 때문이다(R1-032, 배우기 쪽과 같은 약속).
- *  - 진도 막대·글은 처음 온 사람에게 보이지 않는다(data-progress-empty). 자리는 남겨 쪽이 밀리지 않는다.
+ *  - 진도 막대·글은 본 차시가 있는 단원에서만 보인다. 처음 온 사람에게는 자리까지 없애 카드가 낮고(R2-031), 처음부터 없으므로 칠한 뒤에도 쪽이 밀리지 않는다.
+ *  - 낭독 순서(R2-028): 마크업은 제목 → 설명 → 차시 수·단계 → 진도 → 단추 차례이고, 눈에 보이는 차례(아이콘·차시 수 → 단계 칩 → 제목 → 설명)는 CSS order로 맞춘다.
+ *    초점을 받는 것은 제목 링크와 단추 둘뿐이고 둘의 차례는 그대로라서 "보이는 차례 = Tab 차례"가 지켜진다.
  * 차시 수·첫 차시는 공개 차시 목록에서 만든다(home-map.ts). 새 차시 md를 넣으면 코드를 고치지 않아도 따라온다.
  */
 import { getCollection } from 'astro:content';
@@ -37,23 +39,26 @@ const learnBase = withBase('learn/');
             class={`map__card card card--link card--u${unit.unit}`}
             data-home-unit
             data-progress-unit={unit.lessonIds.join(',')}
-            data-progress-label={`${unit.numeral}단원`}
+            data-progress-label={`${unit.unit}단원`}
           >
-            <div class="map__top">
-              <span class={`card__icon card__icon--lg card__icon--u${unit.unit}`}>
-                <Icon name={unit.icon} size="lg" />
-              </span>
-              <p class="map__count">{unit.count}차시</p>
-            </div>
-            <p class="map__stage">
-              <span class="visually-hidden">큰 그림에서 맡은 단계: </span>{homeMap.stages[unit.unit]}
-            </p>
             <h3 class="map__name">
               <a class="card__link" href={unit.href}>
                 {unit.label}
               </a>
             </h3>
             <p class="map__description">{unit.description}</p>
+            <div class="map__top">
+              <span class={`card__icon card__icon--lg card__icon--u${unit.unit}`}>
+                <Icon name={unit.icon} size="lg" />
+              </span>
+              <p class="map__count">
+                <span class="visually-hidden">단원 전체 </span>
+                {unit.count}차시
+              </p>
+            </div>
+            <p class="map__stage">
+              <span class="visually-hidden">큰 그림에서 맡은 단계: </span>{homeMap.stages[unit.unit]}
+            </p>
             <div class="map__progress" aria-live="off">
               <p class="map__progress-text" data-progress-count></p>
               <div class="progress-bar" data-progress-bar aria-hidden="true"></div>
@@ -63,9 +68,9 @@ const learnBase = withBase('learn/');
               href={unit.first ? unit.first.href : unit.href}
               data-unit-start
               data-first-href={unit.first ? unit.first.href : unit.href}
-              data-unit-name={`${unit.numeral}단원`}
+              data-unit-name={`${unit.unit}단원`}
             >
-              <span data-unit-start-label>{`${unit.numeral}단원 ${homeMap.startLabel}`}</span>
+              <span data-unit-start-label>{`${unit.unit}단원 ${homeMap.startLabel}`}</span>
               <Icon name="arrow-right" size="sm" />
             </a>
           </div>
@@ -102,7 +107,7 @@ const learnBase = withBase('learn/');
   /* 휴대폰: 세로 한 줄(화살표는 카드 사이 틈에 걸친다). 넓은 화면: 4칸 가로. */
   .map__path {
     --map-gap: var(--space-6);
-    --map-arrow: 1.75rem;
+    --map-arrow: 1.5rem;
 
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -126,7 +131,12 @@ const learnBase = withBase('learn/');
     padding: var(--space-5);
   }
 
+  /*
+   * 눈에 보이는 차례(R2-028): 아이콘·차시 수 → 단계 칩 → 제목 → 설명 → 진도 → 단추.
+   * 마크업은 제목 → 설명 → 차시 수·단계 → 진도 → 단추라, 화면 낭독기는 제목부터 읽는다. 초점을 받는 제목 링크·단추의 차례는 둘 다 같다.
+   */
   .map__top {
+    order: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -146,6 +156,7 @@ const learnBase = withBase('learn/');
 
   /* 단계 칩: 흐름 그림의 단계(보고·판단 / 움직여요 / 잇기 / 합치기). 색만이 아니라 글로 알린다. */
   .map__stage {
+    order: 2;
     align-self: flex-start;
     padding: 0 var(--space-3);
     border: 1px solid var(--card-unit);
@@ -157,22 +168,32 @@ const learnBase = withBase('learn/');
   }
 
   .map__name {
+    order: 3;
     font-size: var(--text-lg);
     line-height: var(--leading-tight);
   }
 
   .map__description {
+    order: 4;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
   }
 
-  /* 진도: 본 차시가 없으면 글·막대가 안 보이지만(global.css) 자리는 남는다 */
+  /*
+   * 진도: 본 차시가 있는 단원에서만 보인다(R2-031). 처음 온 사람에게는 자리까지 없애 카드가 낮아지고,
+   * 칠하기 전에도 같은 모양이라 쪽이 밀리지 않는다. 막대 자리를 비워 두면 설명과 단추 사이가 60px가량 비었다.
+   */
   .map__progress {
-    display: grid;
+    display: none;
+    order: 5;
     gap: var(--space-1);
     margin-block-start: auto;
     padding-block-start: var(--space-2);
+  }
+
+  .map__card[data-progress-ready]:not([data-progress-empty]) .map__progress {
+    display: grid;
   }
 
   .map__progress-text {
@@ -182,9 +203,16 @@ const learnBase = withBase('learn/');
   }
 
   .map__start {
+    order: 6;
     justify-content: center;
     gap: var(--space-2);
     width: 100%;
+  }
+
+  /* 진도가 안 보일 때는 단추가 카드 맨 아래에 붙는다(설명 줄 수가 달라도 네 단추의 높이가 같다) */
+  .map__card:not([data-progress-ready]) .map__start,
+  .map__card[data-progress-empty] .map__start {
+    margin-block-start: auto;
   }
 
   /* 카드 사이 화살표: 눌리지 않는 꾸밈 */

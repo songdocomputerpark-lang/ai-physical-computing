@@ -145,8 +145,8 @@ test.describe('홈 흐름 그림', () => {
       const unit = learnUnits.find((candidate) => candidate.unit === step.unit)!;
       const link = steps.nth(index).getByRole('link');
       await expect(link, step.label).toHaveAttribute('href', unit.href);
-      await expect(link, step.label).toContainText(`${unit.numeral}단원 ${flowFigure.unitLinkLabel}`);
-      await expect(link, step.label).toHaveAccessibleName(new RegExp(`${unit.numeral}단원 ${flowFigure.unitLinkLabel}.*${step.label}`, 'u'));
+      await expect(link, step.label).toContainText(`${unit.unit}단원 ${flowFigure.unitLinkLabel}`);
+      await expect(link, step.label).toHaveAccessibleName(new RegExp(`${unit.unit}단원 ${flowFigure.unitLinkLabel}.*${step.label}`, 'u'));
       const box = await link.boundingBox();
       expect(box!.height, `${step.label} 링크 높이`).toBeGreaterThanOrEqual(44);
     }
@@ -155,6 +155,42 @@ test.describe('홈 흐름 그림', () => {
       const card = page.locator('[data-home-unit]').nth(unit.unit - 1);
       await expect(card.locator('.map__stage')).toContainText(homeMap.stages[unit.unit]);
     }
+  });
+
+  // R2-030: 오른쪽 그림 카드의 위·아래 선이 왼쪽 글 칸과 맞고, 단원 링크 셋은 같은 모양·같은 줄이다.
+  test('넓은 화면에서 그림 카드의 위·아래 선이 왼쪽 글 칸과 맞고, 단원 링크 셋이 한 줄에 같은 크기로 있다', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', '두 칸 가로 배치는 넓은 화면에서만');
+    await page.goto('./');
+    await page.evaluate(() => document.fonts.ready);
+    const intro = await page.locator('.hero__intro').boundingBox();
+    const card = await page.locator('[data-flow]').boundingBox();
+    expect(Math.abs(card!.y - intro!.y), '카드 위 끝').toBeLessThanOrEqual(1);
+    expect(Math.abs(card!.y + card!.height - (intro!.y + intro!.height)), '카드 아래 끝').toBeLessThanOrEqual(1);
+    const links = await page.locator('[data-flow] .flow__go').evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return { top: Math.round(rect.top), height: Math.round(rect.height) };
+      }),
+    );
+    expect(links).toHaveLength(flowFigure.steps.length);
+    expect(new Set(links.map((item) => item.top)).size, '링크 위 끝').toBe(1);
+    expect(new Set(links.map((item) => item.height)).size, '링크 높이').toBe(1);
+  });
+
+  test.describe('움직여도 되는 설정이면(멈춤 단추 자리)', () => {
+    test.use({ reducedMotion: 'no-preference' });
+
+    test('[그림 멈추기]는 카드 안 맨 아래 가운데에 있고 윗선으로 카드에 붙는다', async ({ page }) => {
+      await page.goto('./');
+      const figure = page.locator('[data-flow]');
+      const toggle = figure.getByRole('button', { name: FLOW_TOGGLE_LABELS.pause });
+      await expect(toggle).toBeVisible();
+      const card = (await figure.boundingBox())!;
+      const button = (await toggle.boundingBox())!;
+      expect(Math.abs(button.x + button.width / 2 - (card.x + card.width / 2)), '가운데').toBeLessThanOrEqual(4);
+      expect(button.y + button.height, '카드 안').toBeLessThanOrEqual(card.y + card.height);
+      expect(card.y + card.height - (button.y + button.height), '카드 바닥에서 떨어진 거리').toBeLessThanOrEqual(24);
+    });
   });
 
   test.describe('운영체제의 동작 줄이기 설정이면', () => {
@@ -225,7 +261,7 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
       const titleLink = main.getByRole('heading', { level: 3, name: unit.label, exact: true }).getByRole('link');
       await expect(titleLink).toHaveAttribute('href', unit.href);
       // 단추 글에 단원 이름이 들어 있다(머리글 메뉴 [시작하기]와 겹치지 않음, R1-027)
-      const start = main.getByRole('link', { name: `${unit.numeral}단원 ${homeMap.startLabel}`, exact: true });
+      const start = main.getByRole('link', { name: `${unit.unit}단원 ${homeMap.startLabel}`, exact: true });
       await expect(start).toHaveAttribute('href', new RegExp(`${unit.path}[a-z0-9-]+/$`, 'u'));
     }
 
@@ -293,6 +329,54 @@ test.describe('홈 배움 지도·바로 가기(키보드와 눌리는 곳)', ()
     await expect(page).toHaveURL(new RegExp(`${unit.path}$`, 'u'));
   });
 
+  // R2-028: 화면 낭독기가 '18차시'·단계 칩보다 제목을 먼저 읽게 마크업은 제목부터이고, 눈에 보이는 차례는 CSS order로 그대로 둔다.
+  test('낭독 순서는 제목 → 설명 → 차시 수 → 단계이고, 눈에 보이는 차례(차시 수 → 단계 → 제목 → 설명 → 단추)는 그대로다', async ({ page }) => {
+    await page.goto('./');
+    const cards = await page.locator('[data-home-unit]').evaluateAll((nodes) =>
+      nodes.map((card) => {
+        const part = (selector: string): HTMLElement => card.querySelector(selector) as HTMLElement;
+        const parts = ['.map__name', '.map__description', '.map__count', '.map__stage', '[data-unit-start]'].map(part);
+        const domOrdered = parts.every((node, index) => index === 0 || (parts[index - 1]!.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0);
+        const [name, description, count, stage, start] = parts.map((node) => node.getBoundingClientRect());
+        return {
+          domOrdered,
+          visual: count!.top < stage!.top && stage!.top < name!.top && name!.top < description!.top && description!.top < start!.top,
+        };
+      }),
+    );
+    expect(cards).toHaveLength(learnUnits.length);
+    for (const [index, card] of cards.entries()) {
+      expect(card.domOrdered, `${index + 1}번째 카드 마크업 차례`).toBe(true);
+      expect(card.visual, `${index + 1}번째 카드 보이는 차례`).toBe(true);
+    }
+    // 낭독용 글: 차시 수에는 "단원 전체"가, 단계에는 "큰 그림에서 맡은 단계"가 숨은 글로 붙어 있다
+    const first = page.locator('[data-home-unit]').first();
+    await expect(first.locator('.map__count')).toContainText(/^단원 전체 \d+차시$/u);
+    await expect(first.locator('.map__stage')).toContainText('큰 그림에서 맡은 단계:');
+  });
+
+  // R2-031: 본 차시가 없는 단원은 진도 자리까지 없애 카드가 낮고, 설명 줄 수가 달라도 [단원 배우기] 네 개의 높이는 같다.
+  test('처음 온 사람의 카드는 진도 자리 없이 낮고, 설명과 단추 사이가 비지 않는다', async ({ page }, testInfo) => {
+    await page.goto('./');
+    const cards = page.locator('[data-home-unit]');
+    await expect(cards.first()).toHaveAttribute('data-progress-ready', '');
+    await expect(cards.first().locator('.map__progress')).toBeHidden();
+    const gaps = await cards.evaluateAll((nodes) =>
+      nodes.map((card) => {
+        const description = card.querySelector('.map__description')!.getBoundingClientRect();
+        const start = card.querySelector('[data-unit-start]')!.getBoundingClientRect();
+        return { gap: start.top - description.bottom, startBottom: start.bottom, cardBottom: card.getBoundingClientRect().bottom };
+      }),
+    );
+    // 설명이 가장 긴 카드는 설명 바로 아래에 단추가 온다(진도 자리 약 60px가 비지 않는다)
+    expect(Math.min(...gaps.map((item) => item.gap)), '설명과 단추 사이').toBeLessThanOrEqual(24);
+    if (testInfo.project.name === 'desktop') {
+      // 가로 한 줄(4칸)에서는 단추 아래 끝이 모두 같다
+      const bottoms = gaps.map((item) => Math.round(item.startBottom));
+      expect(new Set(bottoms).size, `단추 아래 끝 ${bottoms.join('·')}`).toBe(1);
+    }
+  });
+
   test('Tab으로 지도의 제목 링크 → [시작하기] 차례로 닿고, 초점 테두리가 카드 둘레에 보인다', async ({ page }) => {
     await page.goto('./');
     const card = page.locator('[data-home-unit]').first();
@@ -337,10 +421,44 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     seen: ['u1/1-1-1'],
     done: ['u1/1-1-1'],
     last: lesson,
-    lastLab: { path: '/ai-physical-computing/labs/vision/', title: '영상처리 실습실', at: 2000 },
+    lastLab: { path: '/ai-physical-computing/labs/vision/', title: '영상 처리 실습실', at: 2000 },
   };
 
-  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글, [이어서 하기] 단추가 나타난다', async ({ page }) => {
+  // R2-029: 돌아온 학생은 스크롤 없이 첫 화면에서 "지난번 이어서"를 보고, "처음이라면…" 길잡이는 사라진다.
+  test('저장된 진도가 있으면 첫 화면 큰 버튼 아래에 지난번 이어서 한 줄이 보이고 처음이라면 길잡이는 숨는다', async ({ page }) => {
+    await page.addInitScript(
+      ({ key, value }) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // 저장을 막은 브라우저
+        }
+      },
+      { key: storageKey(PROGRESS_STORAGE_NAME), value: JSON.stringify(state) },
+    );
+    await page.goto('./');
+    const resume = page.locator('[data-hero-resume]');
+    await expect(resume).toBeVisible();
+    await expect(resume).toBeInViewport({ ratio: 1 });
+    // 1-1-1을 끝냈으니 다음에 볼 차시(1-1-2)로 간다. 큰 버튼 셋 뒤에 오므로 Tab 차례(= 보이는 차례)가 그대로다.
+    const link = resume.getByRole('link');
+    await expect(link).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
+    await expect(link).toContainText(homeResume.next.kicker);
+    await expect(page.locator('[data-hero-guide]')).toBeHidden();
+    await expect(page.getByText(homeHero.guide)).toBeHidden();
+    const lastAction = (await page.locator('[data-home-action]').last().boundingBox())!;
+    const resumeBox = (await resume.boundingBox())!;
+    expect(resumeBox.y, '큰 버튼 아래').toBeGreaterThanOrEqual(lastAction.y + lastAction.height);
+    expect(resumeBox.height, '누르는 곳 높이').toBeGreaterThanOrEqual(44);
+  });
+
+  test('처음 온 사람에게는 지난번 이어서 한 줄이 없고 처음이라면 길잡이가 보인다', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.locator('[data-hero-resume]')).toBeHidden();
+    await expect(page.getByText(homeHero.guide)).toBeVisible();
+  });
+
+  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글, 다음 차시 [시작하기] 단추가 나타난다', async ({ page }) => {
     await page.addInitScript(
       ({ key, value }) => {
         try {
@@ -357,18 +475,19 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     // 1-1-1은 이미 끝낸 차시라 "다시 보기"이고(R1-030), 같은 대단원의 안 연 첫 차시(1-1-2)가 "다음에 볼 차시"로 나온다.
     // 차시 이름은 저장된 글이 아니라 지금 사이트의 것이라 제목은 가리지 않는다.
     await expect(band.getByRole('link', { name: /^1-1-1 .+ 다시 보기$/u })).toHaveAttribute('href', lesson.href);
-    await expect(band.getByRole('link', { name: /이어서 하기/u })).toHaveCount(1);
-    await expect(band.getByRole('link', { name: /^1-1-2 .+ 이어서 하기$/u })).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
-    await expect(band.getByRole('link', { name: /영상처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
+    // 다음에 볼 차시는 아직 안 연 차시라 배우기 쪽과 같은 말 [시작하기](R2-021)
+    await expect(band.getByRole('link', { name: /이어서 하기/u })).toHaveCount(0);
+    await expect(band.getByRole('link', { name: /^1-1-2 .+ 시작하기$/u })).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
+    await expect(band.getByRole('link', { name: /영상 처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
 
     const card = page.locator('[data-home-unit]').first();
-    await expect(card.locator('[data-progress-count]')).toContainText('1차시를 마쳤어요');
+    await expect(card.locator('[data-progress-count]')).toContainText('1차시를 다 했어요');
     // 진도 막대는 같은 말이 글로 읽히므로 화면 낭독기에서 숨긴다(R1-032): 그림(role=img)으로 한 번 더 읽히지 않는다.
     await expect(card.locator('[data-progress-bar]')).toHaveAttribute('aria-hidden', 'true');
     await expect(card.getByRole('img', { name: /차시 중/u })).toHaveCount(0);
     await expect(page.locator('[data-home-unit]').nth(1)).toHaveAttribute('data-progress-empty', '');
     const resume = card.locator('[data-unit-start]');
-    await expect(resume).toHaveAccessibleName(`I단원 ${homeMap.resumeLabel}`);
+    await expect(resume).toHaveAccessibleName(`1단원 ${homeMap.resumeLabel}`);
     await expect(resume).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
   });
 

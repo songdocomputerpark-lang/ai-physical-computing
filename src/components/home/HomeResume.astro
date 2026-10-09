@@ -4,6 +4,7 @@
  *
  * - 처음 온 사람에게는 아무것도 보이지 않는다: 띠는 hidden으로 나가고, 저장된 진도가 있을 때만 home-resume.ts가 hidden을 뗀다.
  *   hero 바로 아래라 첫 화면 밖이고, 처음에 자리를 잡아 두지 않으므로 처음 온 사람의 쪽이 밀리지 않는다.
+ * - 띠는 첫 화면 아래라 돌아온 학생이 놓치기 쉬워(R2-029), 같은 길(다음에 볼 차시 > 지난번 차시 > 실습실)로 가는 한 줄을 첫 화면 큰 버튼 아래에도 둔다(HomeHero의 data-hero-resume). 그 줄은 이 띠의 칸에서 주소·이름·머리글을 복사한다.
  * - 링크 주소·이름은 저장된 진도에서 와서 textContent·setAttribute로만 넣는다(마크업으로 해석되지 않음).
  * - 발표 모드·embed에서는 숨긴다(data-present-hide, data-embed-hide).
  * - 링크의 접근 이름은 "1-2-1 손 찾기 이어서 하기"처럼 이름 뒤에 동작이 붙는다.
@@ -32,7 +33,7 @@ const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, 
     <li class="resume__item card card--link" data-resume-lesson data-go-open={homeResume.lesson.go} data-go-done={homeResume.lesson.goDone} hidden>
       <span class="card__icon"><Icon name="book" /></span>
       <div class="resume__text">
-        <p class="resume__kicker">{homeResume.lesson.kicker}</p>
+        <p class="resume__kicker" data-resume-kicker>{homeResume.lesson.kicker}</p>
         <p class="resume__name">
           <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go" data-resume-go>{homeResume.lesson.go}</span></a>
         </p>
@@ -42,7 +43,7 @@ const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, 
     <li class="resume__item card card--link" data-resume-next hidden>
       <span class="card__icon"><Icon name="flag" /></span>
       <div class="resume__text">
-        <p class="resume__kicker">{homeResume.next.kicker}</p>
+        <p class="resume__kicker" data-resume-kicker>{homeResume.next.kicker}</p>
         <p class="resume__name">
           <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go">{homeResume.next.go}</span></a>
         </p>
@@ -52,7 +53,7 @@ const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, 
     <li class="resume__item card card--link" data-resume-lab hidden>
       <span class="card__icon"><Icon name="flask" /></span>
       <div class="resume__text">
-        <p class="resume__kicker">{homeResume.lab.kicker}</p>
+        <p class="resume__kicker" data-resume-kicker>{homeResume.lab.kicker}</p>
         <p class="resume__name">
           <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go">{homeResume.lab.go}</span></a>
         </p>

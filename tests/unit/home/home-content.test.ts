@@ -38,7 +38,7 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     expect(homeActions.map((action) => action.label)).toEqual(['카메라로 바로 해 보기', '가상 ESP32 켜 보기', '내 보드 연결하기']);
   });
 
-  it('버튼은 영상처리 실습실, ESP32 실습실, 보드 준비 페이지로 간다', () => {
+  it('버튼은 영상 처리 실습실, ESP32 실습실, 보드 준비 페이지로 간다', () => {
     expect(homeActions.map((action) => action.pageId)).toEqual(['labs-vision', 'labs-esp32', 'start-board']);
     for (const action of homeActions) {
       expect(action.href).toBe(getPage(action.pageId).href);
@@ -59,7 +59,7 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     expect(homeActions.map((action) => action.variant)).toEqual(['primary', 'secondary', 'secondary']);
   });
 
-  it('자리 페이지로 가는 버튼이 없어 "준비 중" 표시가 붙은 버튼이 없다(영상처리 실습실은 P2-04, ESP32 실습실은 P3-01부터 열림, 보드 준비는 안내 페이지)', () => {
+  it('자리 페이지로 가는 버튼이 없어 "준비 중" 표시가 붙은 버튼이 없다(영상 처리 실습실은 P2-04, ESP32 실습실은 P3-01부터 열림, 보드 준비는 안내 페이지)', () => {
     expect(homeActions.filter((action) => action.status === 'coming-soon').map((action) => action.id)).toEqual([]);
     expect(homeActions.find((action) => action.id === 'camera')?.status).toBeUndefined();
     expect(homeActions.find((action) => action.id === 'virtual-board')?.status).toBeUndefined();
@@ -107,10 +107,10 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
 });
 
 describe('흐름 그림 글(home-content.ts)', () => {
-  it('단계 글이 배움 지도로 이어진다: 보고·판단하고는 I단원, 움직여요는 II단원(R1-025)', () => {
+  it('단계 글이 배움 지도로 이어진다: 보고·판단하고는 1단원, 움직여요는 2단원(R1-025)', () => {
     expect(flowFigure.steps.map((step) => step.unit)).toEqual([1, 1, 2]);
     expect(flowFigure.unitLinkLabel.length).toBeGreaterThan(0);
-    // 배움 지도 카드 단추([I단원 배우기])와 링크 이름이 같으면 같은 이름이 서로 다른 곳으로 가게 된다
+    // 배움 지도 카드 단추([1단원 배우기])와 링크 이름이 같으면 같은 이름이 서로 다른 곳으로 가게 된다
     expect(flowFigure.unitLinkLabel).not.toBe(homeMap.startLabel);
     expect(flowFigure.unitLinkLabel).not.toBe(homeMap.resumeLabel);
     expect(flowFigure.unitLinkLabel).not.toBe(homeMap.replayLabel);
@@ -148,11 +148,11 @@ describe('큰 버튼 아래 길잡이와 아이콘', () => {
 });
 
 describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () => {
-  it('이어서 하기 띠 글: 머리는 "지난번 이어서", 차시 칸(이어서 하기, 끝낸 차시면 다시 보기), 다음 차시 칸, 실습실 칸(다시 열기)', () => {
+  it('이어서 하기 띠 글: 머리는 "지난번 이어서", 차시 칸(이어서 하기, 끝낸 차시면 다시 보기), 다음 차시 칸(시작하기), 실습실 칸(다시 열기)', () => {
     expect(homeResume.heading).toBe('지난번 이어서');
     expect(homeResume.lesson.go).toBe('이어서 하기');
     expect(homeResume.lesson.goDone).toBe('다시 보기');
-    expect(homeResume.next.go).toBe('이어서 하기');
+    expect(homeResume.next.go).toBe('시작하기');
     expect(homeResume.next.kicker).toBe('다음에 볼 차시');
     expect(homeResume.lab.go).toBe('다시 열기');
     expect(homeResume.lesson.kicker.length).toBeGreaterThan(0);
@@ -166,7 +166,7 @@ describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () 
   it('배움 지도: 제목, 한 문장 안내, 단추 글 3가지, 단원마다 다른 아이콘', () => {
     expect(homeMap.heading).toBe('배움 지도');
     expect(countSentences(homeMap.lead)).toBe(1);
-    // 화면에는 앞에 단원이 붙어 "I단원 배우기"가 된다. 머리글 메뉴 [시작하기]·띠의 [이어서 하기]와 글자가 겹치지 않는다(R1-027).
+    // 화면에는 앞에 단원이 붙어 "1단원 배우기"가 된다. 머리글 메뉴 [시작하기]·띠의 [이어서 하기]와 글자가 겹치지 않는다(R1-027).
     expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['배우기', '계속하기', '다시 보기']);
     expect([homeMap.startLabel, homeMap.resumeLabel]).not.toContain('시작하기');
     expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).not.toContain(homeResume.lesson.go);
@@ -214,7 +214,7 @@ describe('바로 가기 타일과 원칙(home-content.ts)', () => {
     }
   });
 
-  it('실습실 타일 4개는 I~IV단원 색을 하나씩 쓴다', () => {
+  it('실습실 타일 4개는 1~4단원 색을 하나씩 쓴다', () => {
     const units = homeShortcuts.items.filter((item) => item.pageId.startsWith('labs-') && item.unit !== undefined).map((item) => item.unit);
     expect(units).toEqual([1, 2, 3, 4]);
   });
