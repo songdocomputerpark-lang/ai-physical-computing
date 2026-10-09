@@ -359,6 +359,22 @@ test.describe('펌웨어 굽기 화면', () => {
     const realFile = path.join(ROOT, 'public', String(REAL_FIRMWARE.path));
     test.skip(!fs.existsSync(realFile), `펌웨어 파일(public/${String(REAL_FIRMWARE.path)})이 아직 없어요 — 목록만 고친 중간 상태`);
 
+    test('페이지를 열면 파일은 HEAD로만 살피고(1.7MB를 미리 받지 않음), 기록된 실패는 그 HEAD뿐이다(R3-017)', async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== 'desktop', '데스크톱에서만');
+      // Chromium은 본문이 없는 HEAD fetch를 응답(200)을 받은 뒤 requestfailed(net::ERR_ABORTED)로 기록한다 — 사이트의 오류가 아니라
+      // 기록 방식이다(2026-10-10 미리 보기 서버에서 확인: 홈 주소를 HEAD로 불러도 똑같이 기록됨). 그 밖의 실패가 끼면 진짜 문제다.
+      const binRequests: string[] = [];
+      const failed: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().endsWith('.bin')) binRequests.push(request.method());
+      });
+      page.on('requestfailed', (request) => failed.push(`${request.method()} ${request.url()} ${request.failure()?.errorText ?? ''}`));
+      const root = await openFlasher(page);
+      await expect(root).toHaveAttribute('data-file-state', 'available', { timeout: 15_000 });
+      expect(binRequests).toEqual(['HEAD']);
+      expect(failed.filter((line) => !/^HEAD \S+\.bin /u.test(line)), '펌웨어 HEAD 말고 실패한 요청').toEqual([]);
+    });
+
     test('실제 목록(크기·SHA-256)과 실제 파일이 브라우저 검증을 통과하고 모의 보드에 끝까지 구워진다', async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== 'desktop', '데스크톱에서만');
       test.setTimeout(240_000);

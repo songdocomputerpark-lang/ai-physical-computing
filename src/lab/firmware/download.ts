@@ -73,7 +73,12 @@ function looksLikeHtml(response: Response): boolean {
   return /\btext\/html\b/iu.test(response.headers.get('content-type') ?? '');
 }
 
-/** HEAD로 파일이 있는지 살핀다(오류를 던지지 않는다) */
+/**
+ * HEAD로 파일이 있는지 살핀다(오류를 던지지 않는다).
+ * 참고(R3-017): Chromium·Playwright는 응답(200)을 다 받은 HEAD fetch도 requestfailed(net::ERR_ABORTED)로 적는다 — 본문이 없어서 생기는
+ * 기록일 뿐 사용자에게 보이는 오류가 아니다. GET + Range로 바꾸면 Range를 무시하는 서버에서 1.7MB를 통째로 받게 되어 HEAD를 지킨다
+ * (tests/e2e/esp32-firmware.spec.ts가 "열 때 .bin 요청은 HEAD 하나, 다른 실패 없음"을 지킨다).
+ */
 export async function probeFirmware(
   url: string,
   expectedSize: number,
