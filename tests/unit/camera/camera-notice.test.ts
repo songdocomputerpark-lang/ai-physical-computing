@@ -83,7 +83,7 @@ describe('까만 영상 안내(cameraNotice)', () => {
   });
 
   it('카메라 허용을 되돌리는 문장은 한 곳(실습실·점검 페이지·도움말이 함께 쓴다)', () => {
-    expect(CAMERA_PERMISSION_STEP).toContain('주소 표시줄 왼쪽의 사이트 정보 아이콘');
+    expect(CAMERA_PERMISSION_STEP).toContain('주소창 왼쪽의 사이트 정보 아이콘');
     expect(CAMERA_PERMISSION_STEP).toContain('"허용"으로 바꾸고 새로고침');
   });
 
@@ -94,7 +94,7 @@ describe('까만 영상 안내(cameraNotice)', () => {
     expect(cameraPermissionStep(iphone)).toBe(CAMERA_PERMISSION_STEP_PHONE);
     expect(cameraPermissionStep(android)).toBe(CAMERA_PERMISSION_STEP_PHONE);
     expect(cameraPermissionStep(desktop)).toBe(CAMERA_PERMISSION_STEP);
-    expect(CAMERA_PERMISSION_STEP_PHONE).not.toContain('주소 표시줄 왼쪽');
+    expect(CAMERA_PERMISSION_STEP_PHONE).not.toContain('주소창 왼쪽');
     expect(CAMERA_PERMISSION_STEP_PHONE).toContain('"허용"으로 바꾸고 새로고침');
   });
 

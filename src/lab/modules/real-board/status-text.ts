@@ -82,7 +82,7 @@ export const numberText = (value: number) => value.toLocaleString('ko-KR');
 function supportNotes(support: SerialSupport): string[] {
   const notes: string[] = [];
   if (support.firefox) {
-    notes.push('Firefox는 처음 연결할 때 사이트 권한 부가 기능을 설치할지 물을 수 있어요. 허락해야 연결돼요.');
+    notes.push('Firefox는 처음 연결할 때 사이트 권한 부가 기능을 설치할지 물을 수 있어요. 허용해야 연결돼요.');
   } else if (support.level === 'unknown') {
     notes.push('휴대폰·태블릿은 기기와 보드에 따라 포트 선택 창에 보드가 안 보일 수 있어요. 컴퓨터용 Chrome·Edge를 권해요.');
   } else if (support.level === 'supported' && !support.recommended) {

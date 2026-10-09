@@ -157,7 +157,7 @@ const itRequestText = [
     <h3>수업 전 준비</h3>
     <ol>
       <li>교실 컴퓨터 한 대에서 <a href={check.href}>{check.title}</a> 페이지를 열고 결과를 확인해요.</li>
-      <li>학생들이 <a href={student.href}>{student.title}</a>의 순서대로 카메라 허락을 한 번 연습하게 해요.</li>
+      <li>학생들이 <a href={student.href}>{student.title}</a>의 순서대로 카메라 허용을 한 번 연습하게 해요.</li>
       <li>보드 수업이라면 <a href={board.href}>{board.title}</a>의 안내대로 케이블과 드라이버를 미리 확인해요.</li>
       <li>
         <strong>키트를 처음 쓸 때 한 번:</strong> <a href={boardCheck.href}>{boardCheck.title}</a>에서 항목마다 [보드에 보내기]를 눌러
@@ -343,9 +343,11 @@ const itRequestText = [
       </li>
       <li>
         블루투스 보드 이름은 <code>ESP32-07</code>처럼 자리 번호로 붙여요. 모든 보드가 <code>ESP32</code>로 광고하면 선택 창에서 내 보드를 고를 수
-        없어요. 실제 보드와 블루투스로 잇는 기능은 기준 브라우저(컴퓨터용 Chrome·Edge)에서 돼요.
-        교실 기기에서 되는지는 <a href={check.href}>{check.title}</a>의 "Web Bluetooth(블루투스)" 줄로 확인해요(아이폰·아이패드에는 없어요).
-        안 되면 가상 보드의 블루투스 칸으로 같은 실습을 해요.
+        없어요.
+      </li>
+      <li>
+        실제 보드와 블루투스로 잇는 기능은 기준 브라우저(컴퓨터용 Chrome·Edge)에서 돼요. 교실 기기에서 되는지는 <a href={check.href}>{check.title}</a>의
+        "Web Bluetooth(블루투스)" 줄로 확인해요(아이폰·아이패드에는 없어요). 안 되면 가상 보드의 블루투스 칸으로 같은 실습을 해요.
       </li>
       <li>
         실제 USB-UART 변환기를 쓰면 USB 포트가 두 개(코드를 보내는 보드 포트, 글자가 오가는 변환기 포트)가 돼요. 실습실의 [USB 데이터 포트] 칸에서

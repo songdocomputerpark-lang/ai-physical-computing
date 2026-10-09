@@ -142,7 +142,7 @@ test.describe('교사용 자료실', () => {
     // 공용 PC: 확인표와 기록 지우기 단추(이 사이트 이름만 지운다)
     const shared = page.locator('section[aria-labelledby="shared-pc"]');
     await expect(shared.getByRole('heading', { level: 2 })).toHaveText('여러 사람이 쓰는 컴퓨터(공용 PC)에서');
-    await expect(shared.locator('[data-shared-pc-checklist] > li')).toHaveCount(4);
+    await expect(shared.locator('[data-shared-pc-checklist] > li')).toHaveCount(5);
     await page.evaluate((prefix) => {
       localStorage.setItem(`${prefix}teacher-spec`, '1');
       localStorage.setItem('other-site:teacher-spec', '1');
@@ -401,10 +401,10 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(page).toHaveURL(new RegExp(`${first.href}$`, 'u'));
   });
 
-  test('공용 PC 확인표(네 줄)와 교사용 시작하기·설정에 본 차시와 "다 했어요" 표시가 남는 곳이 적혀 있다', async ({ page }) => {
+  test('공용 PC 확인표(다섯 줄)와 교사용 시작하기·설정에 본 차시와 "다 했어요" 표시가 남는 곳이 적혀 있다', async ({ page }) => {
     await page.goto(at(TEACHER_PATHS.home));
     const shared = page.locator('section[aria-labelledby="shared-pc"]');
-    await expect(shared.locator('[data-shared-pc-checklist] > li')).toHaveCount(4);
+    await expect(shared.locator('[data-shared-pc-checklist] > li')).toHaveCount(5);
     await expect(shared).toContainText('본 차시와 "다 했어요" 표시');
     await page.goto(getPage('start-teacher').href);
     await expect(page.locator('h2#shared-pc + ul')).toContainText('본 차시와 "다 했어요" 표시');

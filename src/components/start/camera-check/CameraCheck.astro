@@ -21,9 +21,14 @@
   <h3 id="camera-check-title" class="camera-check__title">카메라 영상 확인(누를 때만)</h3>
   <p class="camera-check__intro">
     위 표는 카메라를 켜지 않고 확인해요. 영상이 실제로 들어오는지는 <strong>[카메라 켜서 확인하기]</strong>를 누를 때만 확인해요.
-    카메라마다 몇 초씩 켰다가 바로 꺼요. 교실의 화면 공유 프로그램이 만든 <strong>가상 카메라</strong>가 진짜 웹캠을 가리는지도 알 수 있어요.
-    영상은 까만지 재는 데만 쓰고 저장하거나 보내지 않아요. 카메라 이름은 이 화면에만 보이고, [결과 복사] 글에는 번호와 종류만 들어가요.
   </p>
+  <ul class="camera-check__notes">
+    <li>
+      <strong>하는 일</strong> — 카메라마다 몇 초씩 켰다가 바로 꺼요. 교실의 화면 공유 프로그램이 만든 <strong>가상 카메라</strong>가 진짜 웹캠을 가리는지도 알 수 있어요.
+    </li>
+    <li><strong>보내는 것</strong> — [결과 복사] 글에는 카메라 번호와 종류만 들어가요. 카메라 이름은 이 화면에만 보여요.</li>
+    <li><strong>보내지 않는 것</strong> — 영상은 까만지 재는 데만 쓰고 저장하거나 보내지 않아요.</li>
+  </ul>
   <div class="camera-check__actions">
     <button type="button" class="button button--secondary" data-camera-check-run>카메라 켜서 확인하기</button>
     <p class="camera-check__status" role="status" data-camera-check-status></p>
@@ -157,6 +162,15 @@
 
   .camera-check__intro {
     margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .camera-check__notes {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-left: var(--space-5);
     font-size: var(--text-sm);
     line-height: var(--leading-body);
   }

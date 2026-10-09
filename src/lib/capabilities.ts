@@ -89,7 +89,7 @@ const CHECK_ITEM_LIST: CheckItem[] = [
     neededFor: '파이썬 코드가 카메라 화면이나 버튼 입력을 기다렸다가 이어서 실행하게 해 줘요.',
   },
   { id: 'camera-api', label: '카메라 기능', neededFor: '영상 처리 실습에서 웹캠을 켤 때 필요해요.' },
-  { id: 'camera-device', label: '카메라 장치', neededFor: '웹캠이 연결되어 있는지 봐요. 허락을 묻는 창은 뜨지 않아요.' },
+  { id: 'camera-device', label: '카메라 장치', neededFor: '웹캠이 연결되어 있는지 봐요. 허용을 묻는 창은 뜨지 않아요.' },
   { id: 'web-serial', label: 'Web Serial(USB 보드 연결)', neededFor: '실제 ESP32 보드를 USB 케이블로 연결할 때 필요해요.' },
   { id: 'web-bluetooth', label: 'Web Bluetooth(블루투스)', neededFor: '실제 보드와 블루투스로 신호를 주고받을 때 필요해요.' },
   { id: 'local-storage', label: '브라우저 저장 공간', neededFor: '쓴 코드와 설정을 이 컴퓨터의 브라우저에 저장할 때 필요해요.' },
@@ -520,7 +520,7 @@ export function checkCameraApi(env: CapabilityEnv): CheckResult {
       'camera-api',
       'supported',
       '카메라 기능이 있어요.',
-      '실습에서 카메라를 켜면 브라우저가 허락을 물어요. 허락하는 방법은 학생용 시작하기에 있어요.',
+      '실습에서 카메라를 켜면 브라우저가 카메라를 허용할지 물어요. 허용하는 방법은 학생용 시작하기에 있어요.',
     );
   }
   if (env.isSecureContext !== true) {

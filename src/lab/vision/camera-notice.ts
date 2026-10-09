@@ -20,16 +20,16 @@ import { cameraName, type CameraDevice, type CameraKind } from './camera-devices
 
 /**
  * 카메라 허용을 되돌리는 방법 — 실습실(camera-stream.ts describeCameraError)·점검 페이지(camera-check-report.ts)·도움말(/help/)이
- * 같은 글을 쓴다(1.1.0 검토 반영: 셋이 서로 다른 메뉴 이름을 적었다). Chrome·Edge 모두 주소 표시줄 왼쪽 아이콘으로 된다.
+ * 같은 글을 쓴다(1.1.0 검토 반영: 셋이 서로 다른 메뉴 이름을 적었다). Chrome·Edge 모두 주소창 왼쪽 아이콘으로 된다.
  * 뒤에 "해요."·"한 뒤 …"·"하거나 …"를 붙여 쓴다.
  */
-export const CAMERA_PERMISSION_STEP = '주소 표시줄 왼쪽의 사이트 정보 아이콘(자물쇠나 조절 막대 모양)에서 카메라를 "허용"으로 바꾸고 새로고침';
+export const CAMERA_PERMISSION_STEP = '주소창 왼쪽의 사이트 정보 아이콘(자물쇠나 조절 막대 모양)에서 카메라를 "허용"으로 바꾸고 새로고침';
 
 /**
- * 휴대폰·태블릿용 카메라 허용 되돌리기(R2-002). 휴대폰 브라우저에는 "주소 표시줄 왼쪽 사이트 정보 아이콘"이 없는 것이 많다(주소 표시줄 위치·메뉴가 브라우저마다 다르다).
+ * 휴대폰·태블릿용 카메라 허용 되돌리기(R2-002). 휴대폰 브라우저에는 "주소창 왼쪽 사이트 정보 아이콘"이 없는 것이 많다(주소창 위치·메뉴가 브라우저마다 다르다).
  * 그래서 아이콘 위치를 말하지 않고 브라우저의 사이트 설정에서 바꾸라고 한다. 뒤에 "해요."·"하거나 …"를 붙여 쓰는 것은 같다.
  */
-export const CAMERA_PERMISSION_STEP_PHONE = '브라우저 주소 표시줄 근처나 메뉴의 "사이트 설정"에서 카메라를 "허용"으로 바꾸고 새로고침';
+export const CAMERA_PERMISSION_STEP_PHONE = '브라우저 주소창 근처나 메뉴의 "사이트 설정"에서 카메라를 "허용"으로 바꾸고 새로고침';
 
 /** 이 기기가 휴대폰·태블릿인지(사용자 에이전트 글자로 — 카메라 허용 안내 글을 고르는 데만 쓴다. 모르면 컴퓨터로 본다) */
 export function isPhoneLikeDevice(userAgent: string | undefined = typeof navigator === 'undefined' ? undefined : navigator.userAgent): boolean {

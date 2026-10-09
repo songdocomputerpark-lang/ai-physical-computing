@@ -445,7 +445,7 @@ test.describe('점검 페이지 — 카메라 영상 확인(누를 때만)', () 
     await expect(check.locator('[data-camera-check-verdict-text]')).toHaveText('카메라 사용을 허용하지 않아서 확인하지 못했어요.');
     await expect(check.locator('[data-camera-check-entry]')).toHaveCount(0);
     await expect(check.getByRole('button', { name: '카메라 다시 확인하기' })).toBeEnabled();
-    // 되돌리는 방법은 실습실·도움말과 같은 문장(주소 표시줄 왼쪽 사이트 정보 아이콘)
-    await expect(check.locator('[data-camera-check-advice]')).toContainText('주소 표시줄 왼쪽의 사이트 정보 아이콘');
+    // 되돌리는 방법은 실습실·도움말과 같은 문장(주소창 왼쪽 사이트 정보 아이콘)
+    await expect(check.locator('[data-camera-check-advice]')).toContainText('주소창 왼쪽의 사이트 정보 아이콘');
   });
 });

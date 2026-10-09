@@ -80,7 +80,7 @@ function base(tone: ConnectTone, title: string, detail: string): ConnectView {
 /** 지원·브라우저에 따라 덧붙이는 안내(ESP32 실습실 실제 보드 탭과 같은 뜻) */
 export function supportNotes(support: ConnectSupport): string[] {
   if (support.firefox) {
-    return ['Firefox는 처음 연결할 때 사이트 권한을 위한 부가 기능 설치를 물을 수 있어요. 허락해야 연결돼요.'];
+    return ['Firefox는 처음 연결할 때 사이트 권한을 위한 부가 기능 설치를 물을 수 있어요. 허용해야 연결돼요.'];
   }
   if (support.level === 'unknown') {
     return ['휴대폰·태블릿은 기기와 보드에 따라 포트 선택 창에 보드가 나오지 않을 수 있어요. 컴퓨터용 Chrome·Edge를 권해요.'];

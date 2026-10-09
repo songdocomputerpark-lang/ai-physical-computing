@@ -59,7 +59,7 @@ test.describe('시작하기 페이지', () => {
     for (const name of ['① 브라우저 확인하기', '② 카메라 허용하기', '③ 첫 실습 해 보기']) {
       await expect(page.getByRole('heading', { level: 2, name })).toBeVisible();
     }
-    await expect(page.getByRole('img', { name: '카메라 허락 창에서 허용 누르기' })).toBeVisible();
+    await expect(page.getByRole('img', { name: '카메라 허용을 묻는 창에서 허용 누르기' })).toBeVisible();
     await expect(page.getByRole('img', { name: '실수로 차단했을 때 카메라를 다시 허용하기' })).toBeVisible();
 
     const quick = page.locator('[data-quick-check]');
