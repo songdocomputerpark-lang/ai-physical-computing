@@ -12,7 +12,8 @@
  * - 대단원(배우기 아래 I~IV)은 learnUnits에 따로 둔다. 머리글·바닥글에는 나오지 않고 현재 위치 계산과 배우기 화면에서 쓴다.
  * - description의 낱말 나열은 가운뎃점(·) 대신 쉼표로 쓴다. 사이트 검색(Pagefind)이 "손·얼굴"을 한 낱말로 묶어
  *   "얼굴"로 찾히지 않기 때문이다(P1-11, 2026-09-16 확인). 짧은 이름(label)의 가운뎃점은 그대로 둔다.
- *   긴 제목(title)은 좁은 화면에서 가운뎃점 앞에서 줄이 바뀌어 "·브라우저"처럼 보이므로 "와"로 이어 쓴다(예: 학교 네트워크와 브라우저 점검).
+ *   긴 제목(title)은 좁은 화면에서 가운뎃점 앞에서 줄이 바뀌어 "·브라우저"처럼 보이므로 "와"로 이어 쓴다(예: 학교 네트워크와 브라우저).
+ *   같은 쪽은 이름 하나로 부른다(판 1.3.0 R1-010): /start/check/는 어디서나 '내 컴퓨터 점검'(교사용 쪽만 '교실 컴퓨터 점검'). 무엇을 보는지는 설명(description)에만 붙인다.
  */
 import type { IconName } from '../components/common/icons.ts';
 import { normalizePagePath, withBase } from '../lib/url.ts';
@@ -103,7 +104,8 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       {
         id: 'start-teacher',
         icon: 'teacher',
-        label: '교사용',
+        // 바닥글·칩에서 '교사용'만 쓰면 차시 쪽 '교사용' 칸·머리글 '교사용 자료실'과 이름이 겹친다(판 1.3.0 검수 R1-072)
+        label: '교사용 시작하기',
         title: '교사용 시작하기',
         path: '/start/teacher/',
         description: '수업 운영 방법, 평가, 개인정보 처리 안내를 모았어요.',
@@ -111,10 +113,10 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
       {
         id: 'start-check',
         icon: 'check-circle',
-        label: '점검',
-        title: '학교 네트워크와 브라우저 점검',
+        label: '내 컴퓨터 점검',
+        title: '내 컴퓨터 점검',
         path: '/start/check/',
-        description: '이 컴퓨터와 학교 네트워크에서 카메라, 보드 연결 같은 기능을 쓸 수 있는지 자동으로 확인해요.',
+        description: '이 컴퓨터의 브라우저와 학교 네트워크, 카메라가 실습에 쓸 수 있는지 자동으로 확인해요.',
       },
     ],
   },

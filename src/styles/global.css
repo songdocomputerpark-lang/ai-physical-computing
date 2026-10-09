@@ -176,8 +176,13 @@ textarea {
   margin-inline: auto;
 }
 
-.page--narrow .page__inner {
-  --page-width: var(--width-prose);
+/*
+ * 글 읽기(narrow) 쪽도 칸 자체는 기본 쪽과 같은 폭(R1-003, 판 1.3.0 검수): 현재 위치·쪽 제목·메뉴 칩 줄이 쪽마다 같은 왼쪽선에서 시작해
+ * 같은 영역 쪽을 옮겨 다녀도 제목이 좌우로 튀지 않는다. 글 읽기 폭(44rem, 한 줄 40자 안팎)은 본문 덩어리에만 건다.
+ * 쪽 제목(.page-title)·교사용 자료실 메뉴(.teacher-nav)·[data-page-wide]를 붙인 덩어리는 칸 폭을 다 쓴다. 쪽마다 폭을 따로 정하지 않는다.
+ */
+.page--narrow .page__main > :where(:not(.page-title, .teacher-nav, [data-page-wide])) {
+  max-width: var(--width-prose);
 }
 
 .page--wide .page__inner {
@@ -627,6 +632,65 @@ textarea {
   transition: none;
 }
 
+/* ── 카드 격자 균형(R1-007, 판 1.3.0 검수) ──
+ * 자동 열(auto-fill)은 화면 폭만 보고 열 수를 정해 카드가 5·7장이면 마지막 줄에 카드 하나만 덩그러니 남았다.
+ * 카드 수(3~7장)를 보고 열 수를 고른다: 3장 = 2열(마지막 카드는 한 줄 전체) → 3열(통합 확인 — 768px 대단원 쪽 보충 묶음이 2+1이었다), 4장 = 2열 → 4열, 5장 = 2열(마지막 카드는 한 줄 전체) → 3열(3+2), 6장 = 2열 → 3열,
+ * 7장 = 2열·3열(마지막 카드는 한 줄 전체) → 4열(4+3). 2장 이하·8장 이상은 전처럼 자동 열.
+ * 카드 순서(보이는 차례 = Tab 차례)는 그대로이고, 열 수와 마지막 카드의 칸 너비만 바꾼다. 휴대폰(34rem 미만)은 한 열 그대로.
+ * 쓰는 곳: 새 격자는 클래스 .card-grid를 붙이면 된다(칸 최소 폭은 --card-min). 이미 있는 격자는 아래 목록에 클래스 이름이 들어 있다.
+ * 실습실 개요의 카드(.lab-cards, 5장·3열 = 3+2)는 카드가 커서(22rem) 이 목록에 넣지 않았다 — 마지막 줄에 둘이 남아 홀로 남는 카드가 없다.
+ * 목록 선택자는 쪽·컴포넌트 안의 격자 규칙(속성 선택자가 붙어 0,2,0)을 이기도록 :has까지 합쳐 0,3,0이다.
+ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min, 15rem)), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 34rem) {
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(3):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(4):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(5):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(6):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(7):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(3):last-child) > :last-child,
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(5):last-child) > :last-child,
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(7):last-child) > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 56rem) {
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(3):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(5):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(6):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(7):last-child) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(3):last-child) > :last-child,
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(5):last-child) > :last-child {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 72rem) {
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(4):last-child),
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(7):last-child) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  :is(.card-grid, .unit-outline__cards, .teacher-cards, .page-links, .not-found__routes):has(> :nth-child(7):last-child) > :last-child {
+    grid-column: auto;
+  }
+}
+
 /* ── 단계 칩 ──
  * <ol class="steps"><li>예제 고르기</li><li>[실행] 누르기</li><li>결과 보기</li></ol>
  * 번호 원(CSS 숫자 — 화면 낭독기는 목록 번호로 읽으므로 번호 글자는 읽히지 않게 한다) + 짧은 낱말.
@@ -765,8 +829,8 @@ textarea {
 
 /* ── 진도 표시 ──
  * 칠하는 쪽은 src/components/progress/progress-paint.ts. 마크업 약속은 그 파일 머리말에 있다.
- *   [data-progress-badge]  차시 하나의 "봤어요"/"다 했어요" 글(빈 글이면 자리만 두고 숨긴다 — 칠한 뒤 쪽이 밀리지 않게)
- *   [data-progress-count]  단원 진도 글 ("18차시 중 3개 끝냄")
+ *   [data-progress-badge]  차시 하나의 "열어 봤어요"/"마쳤어요" 글(빈 글이면 자리만 두고 숨긴다 — 칠한 뒤 쪽이 밀리지 않게)
+ *   [data-progress-count]  단원 진도 글 ("18차시 중 3차시를 마쳤어요")
  *   .progress-bar          단원 진도 막대: <progress class="progress-bar" data-progress-bar> 또는 <div class="progress-bar" data-progress-bar>
  *   [data-progress-empty]  본 차시가 없는 단원 — 글·막대를 숨긴다(처음 온 사람에게 "0개"를 크게 보이지 않기). 자리는 남겨 쪽이 밀리지 않는다.
  */

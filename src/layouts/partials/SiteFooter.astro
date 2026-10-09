@@ -7,6 +7,9 @@
  * - 라이선스 두 줄(학습 자료 CC BY-NC-SA 4.0, 사이트 프로그램과 예제 코드 MIT — 라이선스 요약 링크와 저장소의 라이선스 파일 링크)과
  *   제3자 자료 제외 문구, 출처와 라이선스 링크(P1-10 완료 기준 "바닥글에서 연결")
  * - 저장소·문제 알리기(GitHub Issues) 링크
+ * 줄 차례(= 읽는 차례): 이름·판 → 만든 사람 → 저장소 링크 → 라이선스 두 줄 → 제3자 자료 제외 문구와 출처 링크.
+ * 얇게(R1-009, 판 1.3.0 검수): 넓은 화면에서 사이트 지도는 묶음마다 한 줄(제목 + 링크 이어 놓기), 사이트 정보는 줄바꿈 가능한 한 덩어리로 흘려
+ * 약 570px였던 높이를 줄인다. 라이선스 두 줄·제3자 자료 제외 문구·출처 링크는 필수(P1-10, PD-26)라 글은 줄이지 않고 배치만 접는다.
  * 문구와 주소는 모두 src/config/site.ts에서 온다.
  */
 import { siteConfig } from '../../config/site.ts';
@@ -49,7 +52,11 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
       <p class="site-footer__title">
         {siteConfig.name} <span class="site-footer__version" data-site-version={siteConfig.version}>버전 {siteConfig.version}</span> <a class="site-footer__changelog" href={changelogUrl}>바뀐 점 기록</a>
       </p>
-      <p>만든 사람: {siteConfig.author}</p>
+      <p class="site-footer__maker">만든 사람: {siteConfig.author}</p>
+      <ul class="site-footer__links">
+        <li><a href={siteConfig.repositoryUrl}>GitHub 저장소</a></li>
+        <li><a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a></li>
+      </ul>
       <ul class="site-footer__licenses">
         {/* 줄바꿈은 Astro가 지우므로 가운뎃점 앞뒤 공백을 한 줄에 적는다. */}
         <li>
@@ -59,13 +66,9 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
           사이트 프로그램과 예제 코드: <a href={software.url} rel="license">{software.shortName}</a> · <a href={software.fileUrl}>라이선스 전문(LICENSE)</a>
         </li>
       </ul>
-      <p>
+      <p class="site-footer__exclusion">
         {exclusion} 해당 자료는 <a href={withBase('credits/')}>출처와 라이선스</a>에 모아 두었어요.
       </p>
-      <ul class="site-footer__links">
-        <li><a href={siteConfig.repositoryUrl}>GitHub 저장소</a></li>
-        <li><a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a></li>
-      </ul>
     </div>
   </div>
 </footer>
@@ -82,10 +85,10 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
 
   .site-footer__inner {
     display: grid;
-    gap: var(--space-8);
+    gap: var(--space-4);
     width: min(100% - 2 * var(--gutter), var(--width-page));
     margin-inline: auto;
-    padding-block: var(--space-10) var(--space-12);
+    padding-block: var(--space-6) var(--space-8);
   }
 
   .site-footer ul {
@@ -94,25 +97,27 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
     list-style: none;
   }
 
-  /* 사이트 지도: 휴대폰은 두 칸씩(320px 같은 아주 좁은 화면은 한 칸), 넓은 화면은 다섯 칸 */
+  /* 사이트 지도: 묶음마다 한 줄 — 제목 아래(좁은 화면)나 제목 옆(넓은 화면)에 링크를 이어 놓는다. 다섯 묶음이 위아래로 쌓인다. */
   .site-footer__sections {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-6) var(--space-4);
+    gap: var(--space-1);
   }
 
   .site-footer__section {
+    display: grid;
+    gap: 0 var(--space-4);
     min-width: 0;
-    padding-block-start: var(--space-3);
-    border-block-start: 3px solid var(--color-border);
+    padding-block: 0;
+    border-block-start: 1px solid var(--color-border);
   }
 
   .site-footer__section-link,
   .site-footer__section-title {
+    justify-self: start;
     display: inline-block;
     padding-block: var(--space-1);
     color: var(--color-text);
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     font-weight: var(--weight-bold);
   }
 
@@ -126,9 +131,10 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
   }
 
   .site-footer__children {
-    display: grid;
-    gap: var(--space-1);
-    margin-block-start: var(--space-1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-4);
+    min-width: 0;
   }
 
   .site-footer__children a {
@@ -141,11 +147,18 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
     color: var(--color-accent-hover);
   }
 
+  /* 사이트 정보: 이름·판·만든 사람·라이선스·저장소 링크를 한 덩어리로 흘리고, 줄이 모자라면 아래로 내려간다. 보이는 차례 = 글 차례. */
   .site-footer__about {
-    display: grid;
-    gap: var(--space-2);
-    padding-block-start: var(--space-6);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--space-6);
+    padding-block-start: var(--space-3);
     border-top: 1px solid var(--color-border);
+  }
+
+  .site-footer__about > p {
+    margin: 0;
   }
 
   .site-footer__title {
@@ -168,9 +181,17 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
     font-weight: var(--weight-regular);
   }
 
+  /* 라이선스 두 줄은 넓은 화면에서 한 줄에 나란히(좁으면 줄을 바꿔 쌓인다) */
   .site-footer__licenses {
-    display: grid;
-    gap: var(--space-1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-6);
+  }
+
+  /* 제3자 자료 제외 문구와 출처 링크: 한 줄 전체를 쓰고 조금 흐리게 */
+  .site-footer__exclusion {
+    flex-basis: 100%;
+    color: var(--color-text-muted);
   }
 
   /*
@@ -190,7 +211,7 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
   .site-footer__links {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2) var(--space-6);
+    gap: 0 var(--space-6);
   }
 
   .site-footer__links a {
@@ -198,21 +219,10 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
     padding-block: var(--space-1);
   }
 
-  @media (max-width: 22.49rem) {
-    .site-footer__sections {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
   @media (min-width: 48rem) {
-    .site-footer__sections {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .site-footer__sections {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+    .site-footer__section {
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+      align-items: baseline;
     }
   }
 </style>

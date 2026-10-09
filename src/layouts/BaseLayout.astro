@@ -14,7 +14,7 @@
  * props
  *   title        (필수) 페이지 제목. 브라우저 탭에는 "제목 | 사이트 이름"으로 보인다(isHome이면 사이트 이름만).
  *   description  검색 결과·공유 미리보기 설명. 없으면 사이트 설명(src/config/site.ts).
- *   width        본문 폭: 'default'(기본 76rem) · 'narrow'(글 읽기 44rem) · 'wide'(화면 가득, 실습실).
+ *   width        본문 폭: 'default'(기본 76rem) · 'narrow'(글 읽기: 칸은 76rem 그대로, 본문 덩어리만 44rem — 제목 왼쪽선이 쪽마다 같다) · 'wide'(화면 가득, 실습실).
  *   breadcrumb   현재 위치 표시. 기본은 사이트 지도(src/config/nav.ts)에서 자동으로 찾는다.
  *                false면 숨기고, 배열이면 그대로 쓴다(차시처럼 사이트 지도에 없는 페이지). 마지막 칸(href 없음)이 지금 페이지.
  *   isHome       홈이면 true(현재 위치를 숨기고 탭 제목을 사이트 이름만).
@@ -45,6 +45,11 @@ interface Props {
   noindex?: boolean;
   searchIndex?: boolean;
   ogType?: 'website' | 'article';
+  /**
+   * [본문으로 건너뛰기]가 갈 곳의 id(기본 main-content). 차시 쪽은 왼쪽 차시 목록을 건너뛰고 본문 글(lesson-article)로 바로 간다
+   * (판 1.3.0 검수 R1-080 — 목록 앞에서 멈춰 Tab을 34번 눌러야 했다). JS가 없어도 같다.
+   */
+  skipTarget?: string;
 }
 
 const {
@@ -56,6 +61,7 @@ const {
   noindex = false,
   searchIndex = true,
   ogType = 'website',
+  skipTarget = 'main-content',
 } = Astro.props;
 
 const documentTitle = isHome ? siteConfig.name : `${title} | ${siteConfig.name}`;
@@ -176,7 +182,7 @@ const hasNotice = Astro.slots.has('notice');
     <slot name="head" />
   </head>
   <body>
-    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
+    <a class="skip-link" href={`#${skipTarget}`}>본문으로 건너뛰기</a>
     <SiteHeader />
     {
       hasNotice && (

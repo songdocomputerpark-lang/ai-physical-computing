@@ -50,7 +50,7 @@ describe('사이트 지도(src/config/nav.ts)', () => {
   });
 
   it('시작하기 아래에 학생용·보드 준비·교사용·점검이 있다', () => {
-    expect(getPage('start').children.map((page) => page.label)).toEqual(['학생용', '보드 준비', '교사용', '점검']);
+    expect(getPage('start').children.map((page) => page.label)).toEqual(['학생용', '보드 준비', '교사용 시작하기', '내 컴퓨터 점검']);
     expect(getPage('labs').children.map((page) => page.label)).toEqual([
       '영상처리 실습실',
       'ESP32 실습실',

@@ -322,3 +322,54 @@ test.describe('404 — 길을 잃은 사람을 다시 데려간다', () => {
     await expect(page.getByRole('search')).toHaveCount(2);
   });
 });
+
+// 판 1.3.0 검수 1차 고침(R1-003·R1-007·R1-009): 같은 영역 쪽은 제목 왼쪽선이 같고, 카드 격자에 홀로 남는 카드가 없고, 바닥글이 얇다.
+test.describe('쪽 틀 정렬·카드 격자·바닥글 높이', () => {
+  test.skip(({ isMobile }) => isMobile, '넓은 화면(1366×768)에서 본다');
+
+  test('교사용 자료실·도움·시작하기·용어사전: 쪽 제목의 왼쪽선이 모두 같다', async ({ page }) => {
+    const lefts = new Map<string, number>();
+    for (const path of ['./teacher/', './teacher/guides/', './teacher/standards/', './teacher/corrections/', './teacher/faq/', './teacher/real-pc/', './help/', './glossary/', './settings/', './credits/', './start/']) {
+      await page.goto(path);
+      const box = await page.locator('main h1').first().boundingBox();
+      lefts.set(path, Math.round(box?.x ?? -1));
+    }
+    expect(new Set(lefts.values()).size, JSON.stringify([...lefts])).toBe(1);
+  });
+
+  test('글줄은 글 읽기 폭(44rem = 704px)을 넘지 않는다', async ({ page }) => {
+    await page.goto('./teacher/faq/');
+    const widths = await page.locator('main > p.lead, main > .prose').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().width));
+    for (const width of widths) {
+      expect(width).toBeLessThanOrEqual(705);
+    }
+  });
+
+  for (const target of [
+    { path: './learn/u1/', selector: '.unit-outline__cards' },
+    { path: './teacher/', selector: '.teacher-cards' },
+    { path: './learn/', selector: '.unit-outline__cards' },
+  ]) {
+    test(`${target.path} ${target.selector}: 마지막 줄에 카드가 하나만 남지 않는다`, async ({ page }) => {
+      await page.goto(target.path);
+      const grids = await page.locator(target.selector).evaluateAll((lists) =>
+        lists.map((list) => {
+          const tops = [...list.children].map((child) => Math.round(child.getBoundingClientRect().top));
+          const last = tops[tops.length - 1];
+          return { count: tops.length, inLastRow: tops.filter((top) => top === last).length, rows: new Set(tops).size };
+        }),
+      );
+      for (const grid of grids) {
+        if (grid.count >= 4 && grid.rows > 1) {
+          expect(grid.inLastRow, JSON.stringify(grid)).toBeGreaterThanOrEqual(2);
+        }
+      }
+    });
+  }
+
+  test('바닥글은 얇다(홈 1366×768에서 420px 이하)', async ({ page }) => {
+    await page.goto('./');
+    const height = await page.locator('footer.site-footer').evaluate((element) => element.getBoundingClientRect().height);
+    expect(height).toBeLessThanOrEqual(420);
+  });
+});
