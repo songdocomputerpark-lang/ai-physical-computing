@@ -38,8 +38,15 @@ if (!fs.existsSync(PAGEFIND_RUNNER)) {
   process.exit(1);
 }
 
+// 차시 쪽에서 색인하지 않을 곳(판 1.3.0 검수 R3-013). 결과 카드의 설명은 Pagefind가 본문에서 검색어 둘레 글을 잘라 만들어서,
+// 그림 설명(<figcaption>의 "…사이트가 직접 그린 그림이에요.")과 8칸 이름(<h2> "핵심 개념" 같은 고정 소제목)이 차시 소개 글 바로 뒤에 붙어 나왔다.
+// 8칸 이름은 모든 차시에 같아 찾을 거리가 되지 않고, 그림 설명 안의 낱말은 같은 칸 본문에도 있다. 학생 눈에 보이는 화면은 그대로다.
+// 새 동작은 tests/e2e/search.spec.ts "차시 결과 설명에 그림 설명·칸 이름이 섞이지 않는다"가 빌드한 색인으로 확인한다.
+const LESSON_EXCLUDE_SELECTORS = ['article.lesson figcaption', 'article.lesson h2'];
+const excludeArgs = LESSON_EXCLUDE_SELECTORS.flatMap((selector) => ['--exclude-selectors', selector]);
+
 // 저장소 뿌리에서 돌린다 — Pagefind가 설정 파일(pagefind.yml 등)을 찾는 자리가 package.json의 옛 명령과 같게.
-const result = spawnSync(process.execPath, [PAGEFIND_RUNNER, '--site', label], { cwd: rootDir, stdio: 'inherit', windowsHide: true });
+const result = spawnSync(process.execPath, [PAGEFIND_RUNNER, '--site', label, ...excludeArgs], { cwd: rootDir, stdio: 'inherit', windowsHide: true });
 if (result.error) {
   console.error(`[검색 색인] Pagefind를 실행하지 못했어요: ${result.error.message}`);
   process.exit(1);

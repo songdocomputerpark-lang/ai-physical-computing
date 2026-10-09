@@ -235,7 +235,7 @@ describe('입력하면 결과를 보인다', () => {
     expect(all[0]?.getAttribute('href')).toBe(`${BASE}learn/u1/1-1-1/`);
     const last = all.at(-1);
     expect(last?.textContent).toContain('"서보" 전체 검색 결과 보기');
-    expect(last?.textContent).toContain('총 23건');
+    expect(last?.textContent).toContain('총 23개');
     expect(last?.getAttribute('href')).toBe(`${BASE}search/?q=${encodeURIComponent('서보')}`);
     expect(live.textContent).toBe(describeSuggestCount('서보', MAX_ITEMS, 23));
   });

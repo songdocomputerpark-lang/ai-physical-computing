@@ -109,6 +109,19 @@ test.describe('사이트 검색(색인과 결과)', () => {
     expect(hrefs).not.toContain(withBase('learn/u1/1-1-1/'));
   });
 
+  test('차시 결과 설명에 그림 설명과 칸 이름이 섞이지 않는다("손", R3-013)', async ({ page }) => {
+    // 색인에서 차시의 <figcaption>과 8칸 <h2>를 빼므로(scripts/search-index.mjs) "…사이트가 직접 그린 그림이에요. 핵심 개념. 손"처럼 이어 붙지 않는다.
+    await page.goto(searchUrl('손'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
+    await collectResultHrefs(page);
+    const lessonResults = resultItems(page).filter({ has: page.locator(`h3 a[href*="${withBase('learn/')}"]`) });
+    expect(await lessonResults.count()).toBeGreaterThan(0);
+    for (const text of await lessonResults.locator('.search-result__excerpt').allTextContents()) {
+      expect(text).not.toContain('사이트가 직접 그린 그림');
+      expect(text).not.toContain('핵심 개념');
+    }
+  });
+
   test('용어사전 결과는 그 낱말의 항목으로 바로 이어지고("픽셀 — 용어사전" → #pixel), 요약에 "함께 보면 좋은 낱말" 같은 라벨이 섞이지 않는다', async ({ page }) => {
     await page.goto(searchUrl('픽셀'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
