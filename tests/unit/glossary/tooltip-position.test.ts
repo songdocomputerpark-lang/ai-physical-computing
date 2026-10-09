@@ -57,4 +57,15 @@ describe('툴팁 위치 계산(src/components/glossary/tooltip-position.ts)', ()
     expect(isAnchorVisible(rect(10, PHONE.height), PHONE)).toBe(false);
     expect(isAnchorVisible(rect(-50, 10), PHONE)).toBe(false);
   });
+
+  // R2-022: 위에 놓으면 바로 위 소제목("핵심 개념")을 덮던 문제
+  it('위에 놓으면 소제목을 덮을 때는 아래 자리가 넉넉하면 아래에 놓고, 소제목이 없으면 그대로 위에 놓는다', () => {
+    const heading = { top: 150, bottom: 180 };
+    expect(computeTooltipPosition(rect(100, 200), { width: 200, height: 80 }, PHONE, undefined, undefined, [heading]).placement).toBe('below');
+    expect(computeTooltipPosition(rect(100, 200), { width: 200, height: 80 }, PHONE, undefined, undefined, [{ top: 20, bottom: 40 }]).placement).toBe('above');
+    // 아래에도 소제목이 있으면 원래대로 위
+    expect(
+      computeTooltipPosition(rect(100, 200), { width: 200, height: 80 }, PHONE, undefined, undefined, [heading, { top: 250, bottom: 280 }]).placement,
+    ).toBe('above');
+  });
 });

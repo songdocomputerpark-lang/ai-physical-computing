@@ -294,6 +294,30 @@ export function markRowHeaderTables(html: string): string {
   });
 }
 
+/** 글줄에 혼자 있는 링크에 붙는 클래스(LessonBody.astro가 눌리는 높이를 키운다) */
+export const LINK_LINE_CLASS = 'lesson-link-line';
+
+/**
+ * 문단(<p>)이나 목록 칸(<li>)에 링크 하나뿐인 줄(앞뒤에 다른 글이 없는 링크)에 클래스를 붙인다(R2-018).
+ * 이런 링크는 글줄 사이에 끼지 않고 혼자 한 줄이라 높이를 손가락 크기(44px)에 가깝게 키워도 앞뒤 줄을 가리지 않는다.
+ * 글 속에 낀 링크("…은 [오류 사전]에서 찾아봐요")는 줄 간격 때문에 키울 수 없어 대신 CSS ::after로 눌리는 면만 넓힌다.
+ * 용어 링크·[그림 크게 보기]·이미 클래스를 붙인 링크는 건드리지 않는다. 여러 번 불러도 같은 결과다.
+ */
+export function markLinkOnlyLines(html: string): string {
+  return html.replace(
+    /<(p|li)>(\s*)<a\b([^>]*)>((?:(?!<\/?a\b)[\s\S])*?)<\/a>(\s*)<\/\1>/gu,
+    (whole: string, tag: string, before: string, attrs: string, inner: string, after: string) => {
+      if (/glossary-term|figure-zoom|lesson-link-line/u.test(attrs)) {
+        return whole;
+      }
+      const withClass = /\sclass="([^"]*)"/u.test(attrs)
+        ? attrs.replace(/\sclass="([^"]*)"/u, (_m: string, names: string) => ` class="${names} ${LINK_LINE_CLASS}"`)
+        : `${attrs} class="${LINK_LINE_CLASS}"`;
+      return `<${tag}>${before}<a${withClass}>${inner}</a>${after}</${tag}>`;
+    },
+  );
+}
+
 /** 본문 그림은 화면에 가까워질 때 받는다(학습 페이지 속도, SPEC §9). */
 export function addLazyImageLoading(html: string): string {
   return html.replace(/<img\b(?![^>]*\sloading=)/giu, '<img loading="lazy" decoding="async"');
@@ -650,7 +674,7 @@ function templateWarnings(blocks: readonly WorkingSection[], options: LessonBody
  */
 export function planLessonBody(html: string, options: LessonBodyOptions): LessonBodyPlan {
   const warnings: string[] = [];
-  const rewritten = rewriteRootRelativeUrls(markRowHeaderTables(addImageZoomLinks(addLazyImageLoading(html))));
+  const rewritten = rewriteRootRelativeUrls(markLinkOnlyLines(markRowHeaderTables(addImageZoomLinks(addLazyImageLoading(html)))));
   warnings.push(...rewritten.warnings);
 
   const { intro, sections } = splitHtmlSections(rewritten.html);

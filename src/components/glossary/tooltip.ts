@@ -73,6 +73,22 @@ function scheduleHide(): void {
   }
 }
 
+/**
+ * 말풍선이 덮을 수 있는 자리(top~bottom)에 걸친 본문 소제목(h2·h3)의 세로 범위(R2-022 — 바로 위 "핵심 개념" 제목을 가리지 않게).
+ * 용어가 든 본문(main) 안의 제목만 본다. 화면 밖 제목은 금방 걸러진다.
+ */
+function headingBands(link: HTMLElement, top: number, bottom: number): { top: number; bottom: number }[] {
+  const scope = link.closest('main') ?? document;
+  const bands: { top: number; bottom: number }[] = [];
+  for (const heading of scope.querySelectorAll('h2, h3')) {
+    const rect = heading.getBoundingClientRect();
+    if (rect.height > 0 && rect.bottom > top && rect.top < bottom) {
+      bands.push({ top: rect.top, bottom: rect.bottom });
+    }
+  }
+  return bands;
+}
+
 function place(): void {
   frame = undefined;
   if (!open) {
@@ -89,7 +105,7 @@ function place(): void {
   tip.style.left = '0px';
   tip.style.top = '0px';
   const size = tip.getBoundingClientRect();
-  const position = computeTooltipPosition(anchor, size, viewport);
+  const position = computeTooltipPosition(anchor, size, viewport, undefined, undefined, headingBands(link, anchor.top - size.height - 16, anchor.bottom + size.height + 16));
   tip.style.left = `${position.left}px`;
   tip.style.top = `${position.top}px`;
   tip.dataset.placement = position.placement;

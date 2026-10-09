@@ -6,7 +6,9 @@
  * - 확인 퀴즈를 모두 맞히면 저절로 켜진다(quiz.ts의 apc:quiz-complete → lesson-progress.ts).
  * - 저장은 이 컴퓨터의 진도(src/lib/progress.ts)뿐이다. 자바스크립트가 꺼져 있으면 보이지 않는다.
  * - 이 컴포넌트의 스크립트가 차시를 열었을 때의 markSeen("열어 봤어요")과 단원 차시 목록의 진도 칠하기도 맡는다.
- * - 켜지면(data-done="true") 칭찬 한 줄과 "다음 차시 1-1-2 시작하기 →" 링크가 나타난다(R1-081). 숫자와 체크만 바뀌어 다음 할 일이 없던 것을 고쳤다.
+ * - 켜지면(data-done="true") "다 했다고 표시했어요" 한 줄, 되돌리는 법("한 번 더 누르세요"), "다음 차시 1-1-2 시작하기 →" 링크가 나타난다(R1-081).
+ *   숫자와 체크만 바뀌어 다음 할 일이 없던 것을 고쳤다. 줄 글은 퀴즈를 몇 개 맞혔는지와 상관없이 같은 중립적인 말이다 — "끝! 잘했어요"는
+ *   퀴즈를 하나만 풀고 눌러도 나와 점수 줄과 어긋났다(R2-019).
  *   다음 차시가 없으면(마지막 차시) 링크 없이 칭찬만. 두 글은 CSS로 번갈아 보이고, 링크는 켜졌을 때만 Tab 차례에 들어온다.
  */
 import Icon from '../common/Icon.astro';
@@ -36,10 +38,13 @@ const { lesson, next } = Astro.props;
 >
   <div class="lesson-done__text">
     <p class="lesson-done__title">
-      <span class="lesson-done__title-off">이 차시를 마쳤나요?</span>
-      <span class="lesson-done__title-on">{lesson.label} 끝! 잘했어요.</span>
+      <span class="lesson-done__title-off">이 차시를 다 했나요?</span>
+      <span class="lesson-done__title-on">{lesson.label} 다 했다고 표시했어요.</span>
     </p>
-    <p class="lesson-done__hint">표시해 두면 다음에 와서 어디까지 했는지 바로 알 수 있어요.</p>
+    <p class="lesson-done__hint">
+      <span class="lesson-done__hint-off">표시해 두면 다음에 와서 어디까지 했는지 바로 알 수 있어요.</span>
+      <span class="lesson-done__hint-on">잘못 눌렀다면 [이 차시 다 했어요]를 한 번 더 눌러요. 표시가 풀려요.</span>
+    </p>
   </div>
   <button type="button" class="button button--secondary lesson-done__button" aria-pressed="false" data-lesson-done-button>
     <span class="lesson-done__off" aria-hidden="true"><Icon name="circle" size="sm" /></span>
@@ -107,8 +112,17 @@ const { lesson, next } = Astro.props;
 
   /* 켜지면: 칭찬 한 줄 + 다음 차시로 가는 링크(눌러서 켜진 직후에도, 이미 켜진 채 다시 열었을 때도) */
   .lesson-done[data-done='true'] .lesson-done__title-off,
-  .lesson-done[data-done='true'] .lesson-done__hint {
+  .lesson-done[data-done='true'] .lesson-done__hint-off {
     display: none;
+  }
+
+  /* 켜진 뒤의 보조 글: 되돌리는 법(R2-019). 꺼져 있을 때는 숨긴다. */
+  .lesson-done__hint-on {
+    display: none;
+  }
+
+  .lesson-done[data-done='true'] .lesson-done__hint-on {
+    display: inline;
   }
 
   .lesson-done[data-done='true'] .lesson-done__title-on {

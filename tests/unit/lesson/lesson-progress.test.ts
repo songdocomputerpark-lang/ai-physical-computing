@@ -24,7 +24,7 @@ describe('unit-style — 단원 색·아이콘·몇 번째', () => {
 
   it('카드 클래스·짧은 이름·id 이음', () => {
     expect(unitCardClass(3)).toBe('card--u3');
-    expect(([1, 2, 3, 4] as const).map(unitShortName)).toEqual(['I단원', 'II단원', 'III단원', 'IV단원']);
+    expect(([1, 2, 3, 4] as const).map(unitShortName)).toEqual(['1단원', '2단원', '3단원', '4단원']);
     expect(progressIds(['u1/1-1-1', 'u1/1-1-2'])).toBe('u1/1-1-1,u1/1-1-2');
   });
 
@@ -138,7 +138,7 @@ describe('installLessonProgress — 열면 봤어요, 토글, 퀴즈 완료', ()
     expect(document.querySelector('[data-lesson-done]')?.getAttribute('data-done')).toBe('true');
     expect(readProgress().done).toEqual(['u1/1-1-1']);
     expect(status()).toBe(DONE_STATUS_TEXT.done);
-    expect(badge('u1/1-1-1')).toBe('마쳤어요');
+    expect(badge('u1/1-1-1')).toBe('다 했어요');
 
     button().click();
     expect(button().getAttribute('aria-pressed')).toBe('false');
@@ -317,5 +317,15 @@ describe('retargetSkipLink — 본문 건너뛰기가 차시 본문으로(R1-080
   it('건너뛰기 링크가 없어도 조용히 넘어간다', () => {
     document.body.innerHTML = '<article id="lesson-article"></article>';
     expect(() => retargetSkipLink(document)).not.toThrow();
+  });
+});
+
+describe('낭독 글: 되돌리는 법 안내(R2-019)', () => {
+  it('켰다는 두 글(직접 누름·퀴즈로 저절로)은 한 번 더 누르면 풀린다고 알리고, 점수를 칭찬하지 않는다', () => {
+    expect(DONE_STATUS_TEXT.done).toContain('한 번 더 누르면 풀려요');
+    expect(DONE_STATUS_TEXT.quiz).toContain('한 번 더 누르면 풀려요');
+    for (const text of Object.values(DONE_STATUS_TEXT)) {
+      expect(text).not.toContain('잘했어요');
+    }
   });
 });

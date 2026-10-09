@@ -16,9 +16,9 @@ import { QUIZ_COMPLETE_EVENT } from './quiz.ts';
 export const WIDE_QUERY = '(min-width: 64rem)';
 
 export const DONE_STATUS_TEXT = {
-  done: '다 했다고 표시했어요. 이 컴퓨터에만 저장돼요.',
+  done: '다 했다고 표시했어요. 이 컴퓨터에만 저장돼요. 한 번 더 누르면 풀려요.',
   undone: '표시를 지웠어요.',
-  quiz: '퀴즈를 모두 맞혀서 다 했다고 표시했어요.',
+  quiz: '퀴즈를 모두 맞혀서 다 했다고 표시했어요. 한 번 더 누르면 풀려요.',
 } as const;
 
 function setPressed(button: HTMLButtonElement, pressed: boolean): void {

@@ -1,6 +1,6 @@
 /**
  * 대단원마다 다른 색·아이콘(판 1.3.0 — 길 찾기용). 색은 tokens.css의 --unit-1~4, 카드 클래스는 global.css의 .card--u1~4.
- * 단원은 늘 글자("I단원")로도 적는다 — 색만으로 알리지 않는다.
+ * 단원은 늘 글자("1단원")로도 적는다 — 색만으로 알리지 않는다.
  */
 import type { IconName } from '../common/icons.ts';
 
@@ -13,8 +13,6 @@ const UNIT_ICONS: Readonly<Record<LessonUnitNumber, IconName>> = Object.freeze({
   4: 'lightbulb',
 });
 
-const UNIT_NUMERALS: Readonly<Record<LessonUnitNumber, string>> = Object.freeze({ 1: 'I', 2: 'II', 3: 'III', 4: 'IV' });
-
 /** 단원 아이콘 이름 */
 export function unitIcon(unit: LessonUnitNumber): IconName {
   return UNIT_ICONS[unit];
@@ -25,9 +23,9 @@ export function unitCardClass(unit: LessonUnitNumber): string {
   return `card--u${unit}`;
 }
 
-/** "I단원" 같은 짧은 이름 */
+/** "1단원" 같은 짧은 이름(로마 숫자는 큰 제목 앞 번호에만 — nav.ts 약속, R2-037) */
 export function unitShortName(unit: LessonUnitNumber): string {
-  return `${UNIT_NUMERALS[unit]}단원`;
+  return `${unit}단원`;
 }
 
 /** 차시 id 목록(u1/1-1-1 …)을 data-progress-unit 값으로 */

@@ -8,6 +8,7 @@ import {
   countOutline,
   difficultyText,
   findNeighbors,
+  findRecommendedNext,
   formatDuration,
   kindBadge,
   lessonStepLabel,
@@ -75,6 +76,27 @@ describe('차시 요약(src/components/lesson/lesson-data.ts)', () => {
     expect(findNeighbors(lessons, 'u1/v4')).toEqual({ previous: lessons[0], next: lessons[2] });
     expect(findNeighbors(lessons, 'u2/2-1-1').next).toBeUndefined();
     expect(findNeighbors(lessons, 'u9/none')).toEqual({});
+  });
+
+  it('다 했어요 뒤에 권하는 다음 차시는 선택 보충을 건너뛴다(R2-020)', () => {
+    const lessons = publishedLessons([
+      entry('u1/1-1-3', { order: 3, label: '1-1-3' }),
+      entry('u1/v1', { order: 3.1, kind: 'supplement', label: 'V1' }),
+      entry('u1/v2', { order: 3.2, kind: 'supplement', label: 'V2' }),
+      entry('u1/1-2-1', { order: 4, label: '1-2-1' }),
+      entry('u2/2-9-9', { unit: 2, order: 1, label: '2-9-9' }),
+      entry('u2/v9', { unit: 2, order: 2, kind: 'supplement', label: 'V9' }),
+    ]);
+    expect(findRecommendedNext(lessons, 'u1/1-1-3')?.id).toBe('u1/1-2-1');
+    // 차례(쪽 아래 이전·다음 카드)는 그대로 V1이다
+    expect(findNeighbors(lessons, 'u1/1-1-3').next?.id).toBe('u1/v1');
+    // 보충을 보는 중이면 차례대로
+    expect(findRecommendedNext(lessons, 'u1/v1')?.id).toBe('u1/v2');
+    expect(findRecommendedNext(lessons, 'u1/v2')?.id).toBe('u1/1-2-1');
+    // 끝에 보충만 남았으면 그 보충
+    expect(findRecommendedNext(lessons, 'u2/2-9-9')?.id).toBe('u2/v9');
+    expect(findRecommendedNext(lessons, 'u2/v9')).toBeUndefined();
+    expect(findRecommendedNext(lessons, 'u9/none')).toBeUndefined();
   });
 });
 
@@ -187,10 +209,10 @@ describe('뱃지·표시 문장', () => {
   });
 
   it('lessonStepLabel: 대단원 마무리는 읽히는 이름, 나머지는 차시 번호 그대로(R1-082)', () => {
-    expect(lessonStepLabel({ label: 'I-마무리', kind: 'review' })).toBe('I단원 마무리');
-    expect(lessonStepLabel({ label: 'II-마무리', kind: 'review' })).toBe('II단원 마무리');
-    expect(lessonStepLabel({ label: 'III-마무리', kind: 'review' })).toBe('III단원 마무리');
-    expect(lessonStepLabel({ label: 'IV-마무리', kind: 'review' })).toBe('IV단원 마무리');
+    expect(lessonStepLabel({ label: 'I-마무리', kind: 'review' })).toBe('1단원 마무리');
+    expect(lessonStepLabel({ label: 'II-마무리', kind: 'review' })).toBe('2단원 마무리');
+    expect(lessonStepLabel({ label: 'III-마무리', kind: 'review' })).toBe('3단원 마무리');
+    expect(lessonStepLabel({ label: 'IV-마무리', kind: 'review' })).toBe('4단원 마무리');
     expect(lessonStepLabel({ label: '마무리', kind: 'review' })).toBe('마무리');
     expect(lessonStepLabel({ label: '2-1-1', kind: 'textbook' })).toBe('2-1-1');
     expect(lessonStepLabel({ label: 'IV-프로젝트', kind: 'reading' })).toBe('IV-프로젝트');
@@ -227,7 +249,7 @@ describe('뱃지·표시 문장', () => {
     expect(labLink('esp32').href).toBe(getPage('labs-esp32').href);
   });
 
-  it('예제마다 경로의 첫 칸으로 실습실을 고른다(통신 차시의 보드 쪽 예제가 영상처리 실습실로 가지 않게 — P4-08)', () => {
+  it('예제마다 경로의 첫 칸으로 실습실을 고른다(통신 차시의 보드 쪽 예제가 영상 처리 실습실로 가지 않게 — P4-08)', () => {
     expect(labOfExampleFile('esp32/u4/c3-neopixel-count-rx.py')).toBe('esp32');
     expect(labOfExampleFile('vision/u4/c3-finger-count-send.py')).toBe('vision');
     expect(labOfExampleFile('desktop/01-screen-size.py')).toBe('vision');

@@ -48,14 +48,14 @@ const followingEntries = followingUnit
       section.items.flatMap((item) => (item.lesson ? [{ id: item.lesson.id, href: item.lesson.href, label: item.label, title: item.title }] : [])),
     )
   : [];
-const nextUnit = followingUnit && followingEntries.length > 0 ? { numeral: followingUnit.numeral, entries: followingEntries } : undefined;
+const nextUnit = followingUnit && followingEntries.length > 0 ? { numeral: String(followingUnit.unit), entries: followingEntries } : undefined;
 ---
 
 <BaseLayout title={unit.title} description={unit.description}>
   <header
     class:list={['unit-head', unitCardClass(unit.unit)]}
     data-progress-unit={progressIds(ids)}
-    data-progress-label={`${unit.numeral}단원`}
+    data-progress-label={`${unit.unit}단원`}
   >
     <span class:list={['card__icon', 'card__icon--lg', `card__icon--u${unit.unit}`]}>
       <Icon name={unitIcon(unit.unit)} size="lg" />
@@ -83,7 +83,7 @@ const nextUnit = followingUnit && followingEntries.length > 0 ? { numeral: follo
       </div>
     </div>
   </header>
-  {firstLesson && <LearnStart first={firstLesson} numeral={unit.numeral} scope="unit" unit={unit.unit} nextUnit={nextUnit} />}
+  {firstLesson && <LearnStart first={firstLesson} numeral={String(unit.unit)} scope="unit" unit={unit.unit} nextUnit={nextUnit} />}
   <LessonLegend hasPlanned={counts.planned > 0} />
   <UnitOutline sections={sections} headingLevel={2} unit={unit.unit} showNext />
 </BaseLayout>

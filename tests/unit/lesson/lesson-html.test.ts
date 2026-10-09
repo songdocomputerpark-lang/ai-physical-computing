@@ -5,6 +5,7 @@ import {
   addImageZoomLinks,
   addLazyImageLoading,
   decodeHtmlEntities,
+  markLinkOnlyLines,
   markRowHeaderTables,
   planLessonBody,
   rewriteRootRelativeUrls,
@@ -277,6 +278,27 @@ describe('주소·그림 도우미', () => {
     const { html: result, warnings } = rewriteRootRelativeUrls('<a href="/../x/">x</a>');
     expect(result).toBe('<a href="/../x/">x</a>');
     expect(warnings).toHaveLength(1);
+  });
+
+  it('글줄에 링크 하나뿐인 문단·목록 칸의 링크에만 클래스를 붙인다(R2-018)', () => {
+    expect(markLinkOnlyLines('<p><a href="/help/errors/">오류 사전</a></p>')).toBe(
+      '<p><a href="/help/errors/" class="lesson-link-line">오류 사전</a></p>',
+    );
+    expect(markLinkOnlyLines('<ul>\n<li><a href="/x/" class="foo">풀이 보기</a></li>\n</ul>')).toBe(
+      '<ul>\n<li><a href="/x/" class="foo lesson-link-line">풀이 보기</a></li>\n</ul>',
+    );
+    // 글 속에 낀 링크·링크가 둘인 줄·용어 링크·그림 크게 보기는 그대로
+    for (const same of [
+      '<p>뜻은 <a href="/x/">오류 사전</a>에서 찾아요.</p>',
+      '<p><a href="/a/">가</a> <a href="/b/">나</a></p>',
+      '<p><a class="glossary-term__link" href="/g/">패턴</a></p>',
+      '<p><a class="figure-zoom" href="/i.webp">그림 크게 보기</a></p>',
+    ]) {
+      expect(markLinkOnlyLines(same)).toBe(same);
+    }
+    // 두 번 불러도 한 번만
+    const once = markLinkOnlyLines('<p><a href="/x/">가</a></p>');
+    expect(markLinkOnlyLines(once)).toBe(once);
   });
 
   it('본문 그림(figure·문단 하나의 그림)에 [그림 크게 보기] 링크를 붙이고, 표 안 그림에는 붙이지 않는다(Phase 5 검토 사소 10)', () => {

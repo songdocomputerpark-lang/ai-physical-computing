@@ -4,10 +4,10 @@
  *
  * 마크업 약속(어느 구역이든 이 속성만 달면 된다)
  *   차시 하나    <li data-progress-lesson="u1/1-1-1"> … <span data-progress-badge></span> </li>
- *                → 이 요소에 data-progress-state="done|seen|none", 안의 [data-progress-badge]에 글("마쳤어요"/"열어 봤어요"/빈칸)
+ *                → 이 요소에 data-progress-state="done|seen|none", 안의 [data-progress-badge]에 글("다 했어요"/"열어 봤어요"/빈칸)
  *   단원 하나    <div data-progress-unit="u1/1-1-1,u1/1-1-2,…"> <p data-progress-count></p> <progress data-progress-bar></progress> </div>
  *                차시 id 목록은 data-progress-unit 값 또는 data-progress-ids(쉼표로 이음). 둘 다 목록이 아니면 안에 든 [data-progress-lesson]을 센다.
- *                → [data-progress-count]에 "18차시 중 3차시를 마쳤어요", [data-progress-bar]에 값(<progress>는 value·max, 그 밖은 role=img+aria-label과 CSS 변수)
+ *                → [data-progress-count]에 "18차시 중 3차시를 다 했어요", [data-progress-bar]에 값(<progress>는 value·max, 그 밖은 role=img+aria-label과 CSS 변수)
  *                → 단원에 본·끝낸 차시가 하나도 없으면 data-progress-empty를 붙이고 글은 비운다(CSS가 숨긴다 — "0개"를 처음 온 사람에게 크게 보이지 않게)
  *   준비 끝      칠한 단원에는 data-progress-ready가 붙는다.
  *   <html>       진도가 하나라도 있으면 data-progress-has를 붙인다(이어서 하기 띠 같은 것을 CSS로 보일 때).
@@ -33,21 +33,22 @@ import {
 } from '../../lib/progress.ts';
 
 /**
- * 차시 하나의 표시 글. 낱말을 둘로만 쓴다(R1-067): 끝까지 한 것은 "마쳤어요", 열어만 본 것은 "열어 봤어요".
- * [이 차시 다 했어요] 단추 글(하는 일)과 달리 이것은 상태를 말하는 글이라 "마쳤어요"로 통일한다.
+ * 차시 하나의 표시 글. 낱말을 둘로만 쓴다: 끝까지 한 것은 "다 했어요", 열어만 본 것은 "열어 봤어요".
+ * 처음에는 상태 글을 "마쳤어요"로 달리 썼으나(R1-067), 단추 [이 차시 다 했어요]·안내 "다 했다고 표시했어요"·개인정보 안내와
+ * 쪽마다 말이 달라 헷갈렸다(R2-021) → 전 쪽이 "다 했어요"와 "열어 봤어요" 두 낱말만 쓴다.
  */
-export const PROGRESS_BADGE_TEXT = { done: '마쳤어요', seen: '열어 봤어요', none: '' } as const;
+export const PROGRESS_BADGE_TEXT = { done: '다 했어요', seen: '열어 봤어요', none: '' } as const;
 
 /**
- * 단원 진도 글: 마친 차시가 있으면 "18차시 중 3차시를 마쳤어요", 열어 본 것만 있으면 "18차시 중 3차시를 열어 봤어요",
- * 아무것도 없으면 빈 글. (열어 본 것과 마친 것은 낱말도 다르고 막대에서도 연한 칸·진한 칸으로 다르다.)
+ * 단원 진도 글: 다 한 차시가 있으면 "18차시 중 3차시를 다 했어요", 열어 본 것만 있으면 "18차시 중 3차시를 열어 봤어요",
+ * 아무것도 없으면 빈 글. (열어 본 것과 다 한 것은 낱말도 다르고 막대에서도 연한 칸·진한 칸으로 다르다.)
  */
 export function describeUnitProgress(summary: { total: number; seen: number; done: number }): string {
   if (summary.total <= 0) {
     return '';
   }
   if (summary.done > 0) {
-    return `${summary.total}차시 중 ${summary.done}차시를 마쳤어요`;
+    return `${summary.total}차시 중 ${summary.done}차시를 다 했어요`;
   }
   if (summary.seen > 0) {
     return `${summary.total}차시 중 ${summary.seen}차시를 열어 봤어요`;

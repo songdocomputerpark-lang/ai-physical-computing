@@ -28,6 +28,11 @@ test.describe('발표 모드', () => {
     await openPresentation(page);
     const bar = page.getByRole('toolbar', { name: '발표 모드 조작' });
     await expect(bar).toBeVisible();
+    // R2-023: 시작 초점은 보이지 않는 main이 아니라 막대의 [다음 단계]이고, 단추 이름에 ◀ ▶ 기호가 없다
+    await expect(bar.getByRole('button', { name: '다음 단계', exact: true })).toBeFocused();
+    for (const name of await bar.getByRole('button').evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-label') ?? button.textContent ?? ''))) {
+      expect(name, '단추 이름에 기호 없음').not.toMatch(/[◀▶]/u);
+    }
 
     // 머리글·바닥글·차례·이전/다음·뱃지는 숨고, 첫 장은 차시 제목이다.
     await expect(page.locator('.site-header')).toBeHidden();
@@ -72,7 +77,8 @@ test.describe('발표 모드', () => {
     await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeHidden();
 
     // 용어 풀이 툴팁이 열려 있으면 Esc는 툴팁만 닫고 발표는 이어진다.
-    const term = page.locator('.glossary-term__link').first();
+    // 지금 단계에 보이는 용어(학습목표 칸의 "성취기준" 같은 앞 단계 용어는 숨어 있다 — R2-048)
+    const term = page.locator('.glossary-term__link:visible').first();
     await term.focus();
     await expect(term).toHaveAttribute('data-tooltip', 'open');
     await page.keyboard.press('Escape');
@@ -87,7 +93,7 @@ test.describe('발표 모드', () => {
     await expect(items.nth(2)).toBeVisible();
     await expect(items.nth(0)).toBeHidden();
     await expect(page.locator('section[data-section="teacher"]')).toBeHidden();
-    await expect(page.getByRole('button', { name: '다음 ▶' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: '다음 단계' })).toBeDisabled();
 
     // 보기(라디오)에 초점이 있으면 ←→는 보기를 고르고 단계는 그대로다.
     const choice = items.nth(2).getByRole('radio', { name: '센서' });
@@ -259,9 +265,10 @@ test.describe('발표 모드', () => {
     await page.goto('./learn/u1/1-1-1/');
     await openPresentation(page);
     const bar = page.getByRole('toolbar', { name: '발표 모드 조작' });
-    const previous = bar.getByRole('button', { name: '◀ 앞' });
+    // 접근 이름은 기호 없이 "앞 단계"·"다음 단계"(R2-023)
+    const previous = bar.getByRole('button', { name: '앞 단계', exact: true });
     await expect(previous).toBeDisabled();
-    const next = bar.getByRole('button', { name: '다음 ▶' });
+    const next = bar.getByRole('button', { name: '다음 단계', exact: true });
     // 따라하기 예제 단계가 나올 때까지 넘기며 단계마다 옆 넘침이 없는지 본다(단계 수는 화면 크기에 따라 달라진다 — 긴 칸을 더 나눔).
     let reached = 0;
     for (let step = 0; step < 30; step += 1) {

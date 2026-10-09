@@ -156,6 +156,23 @@ export function findNeighbors(
   return { previous: sorted[index - 1], next: sorted[index + 1] };
 }
 
+/**
+ * [이 차시 다 했어요] 뒤에 권하는 "다음 차시". 차례(findNeighbors)에서 바로 다음 차시이되, 지금 차시가 교과서 차시일 때는 선택 보충
+ * (kind: supplement — 건너뛰어도 되는 V1 같은 차시)을 건너뛰고 그 다음 차시를 권한다(R2-020). 보충 차시를 보는 중이면 차례대로 다음 차시.
+ * 건너뛰고 나면 권할 차시가 없을 때(끝에 보충만 남았을 때)는 바로 다음 차시를 그대로 돌려준다.
+ */
+export function findRecommendedNext(sorted: readonly LessonSummary[], id: string): LessonSummary | undefined {
+  const index = sorted.findIndex((lesson) => lesson.id === id);
+  if (index < 0) {
+    return undefined;
+  }
+  const following = sorted.slice(index + 1);
+  if (sorted[index]?.kind === 'supplement') {
+    return following[0];
+  }
+  return following.find((lesson) => lesson.kind !== 'supplement') ?? following[0];
+}
+
 /** 차시 파일 점검 결과 한 줄 */
 export interface LessonIssue {
   /** error는 빌드를 멈추고(같은 주소를 두 파일이 씀), warning은 빌드 로그에만 남긴다(PD-35). */
@@ -426,12 +443,13 @@ export function kindBadge(kind: LessonKind): string | undefined {
 
 /**
  * 차시 쪽 위의 [이전]·[다음] 단추에 쓰는 차시 이름. 대단원 마무리의 번호(I-마무리, II-마무리)는 코드처럼 보여 읽히는 말로 바꾼다
- * ("I단원 마무리"). 다른 차시는 차시 번호 그대로(R1-082). 아래쪽 이전·다음 카드(LessonPager)도 마무리 차시는 이 이름 하나만 쓴다(제목 "대단원 마무리"와 겹치지 않게).
+ * ("1단원 마무리" — 차례를 가리키는 이름은 숫자, R2-037). 다른 차시는 차시 번호 그대로(R1-082). 아래쪽 이전·다음 카드(LessonPager)도 마무리 차시는 이 이름 하나만 쓴다(제목 "대단원 마무리"와 겹치지 않게).
  */
 export function lessonStepLabel(lesson: Pick<LessonSummary, 'label' | 'kind'>): string {
   if (lesson.kind === 'review') {
     const numeral = /^(I{1,3}|IV)-마무리$/u.exec(lesson.label.trim())?.[1];
-    return numeral ? `${numeral}단원 마무리` : lesson.label;
+    const number = numeral ? ({ I: 1, II: 2, III: 3, IV: 4 } as Readonly<Record<string, number>>)[numeral] : undefined;
+    return number ? `${number}단원 마무리` : lesson.label;
   }
   return lesson.label;
 }
@@ -506,7 +524,7 @@ export function lessonDocumentTitle(lesson: Pick<LessonSummary, 'label' | 'title
 
 /** 실습실 링크. 예제 파일을 주면 ?example=로 붙인다(실습실이 Phase 2~4에서 읽는다). */
 /**
- * examples/ 뒤 경로의 첫 칸으로 그 예제가 도는 실습실을 고른다(esp32/ → ESP32, vision/·desktop/ → 영상처리). 모르면 undefined.
+ * examples/ 뒤 경로의 첫 칸으로 그 예제가 도는 실습실을 고른다(esp32/ → ESP32, vision/·desktop/ → 영상 처리). 모르면 undefined.
  * 통신 차시는 컴퓨터 쪽(vision/)과 보드 쪽(esp32/) 예제를 한 쌍으로 싣기 때문에, frontmatter의 lab 하나로 모든 예제를 열면
  * 한쪽이 틀린 실습실로 간다(P4-08에서 발견, 2026-09-24 통합에서 고침). 예제 갤러리(src/lab/gallery/cards.ts)도 같은 규칙이다.
  */

@@ -16,7 +16,7 @@
  *
  * 묶음 이름은 원고의 중단원 표기(INVENTORY §3.1, I단원 표지)를 따르고, IV단원은 원고가 없어 코드 폴더 이름을 따른다(PLAN §2.1).
  * 보충 차시(PD-07)는 I단원은 "영상 처리 기초"로, III단원 통신 보충(C1~C3)은 따로 묶었다. P1은 3-1-4의 사전 학습이라 01 안에 둔다.
- * IV단원 프로젝트 안내(IV-프로젝트, 주소 /learn/u4/project/)는 원고에 없는 읽기 자료라 "IV단원 프로젝트" 묶음으로 따로 둔다(Phase 5 통합, 2026-09-25).
+ * IV단원 프로젝트 안내(IV-프로젝트, 주소 /learn/u4/project/)는 원고에 없는 읽기 자료라 "4단원 프로젝트" 묶음으로 따로 둔다(Phase 5 통합, 2026-09-25).
  */
 import type { LESSON_KINDS, LESSON_SOURCES } from '../../config/content-schemas.ts';
 
@@ -235,7 +235,7 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
       }),
       section({
         key: 'u4-project',
-        title: 'IV단원 프로젝트',
+        title: '4단원 프로젝트',
         description: '배운 것을 모아 모둠이 우리 곁의 문제를 푸는 지능화 사물을 만드는 활동 안내예요. 교과서 원고가 없어 사이트가 새로 썼어요.',
         lessons: [guide('IV-프로젝트', 'project', '우리 곁의 문제를 푸는 지능화 사물 만들기', 7)],
       }),

@@ -1,16 +1,19 @@
 /**
  * 배우기 목록(/learn/)과 대단원 쪽에서 "어디부터 하지?"에 답하는 작은 스크립트(판 1.3.0).
  *
- * - 시작 카드([data-learn-start]): 진도가 없으면 "처음이면 I단원 1-1-1부터", 있으면 "이어서 하기"(/learn/은 지난번에 본 차시,
- *   대단원 쪽은 아직 안 본 첫 차시). 서버가 그린 글이 "처음" 상태라서 JS가 없어도 맞는 길을 보여 준다.
- *   바뀐 뒤에는 단추의 접근 이름에 가는 차시가 들어간다("1-1-2 … 이어서 하기" — 보이는 글 "이어서 하기"를 끝에 그대로 담아 2.5.3을 지킨다, R1-092).
- *   대단원 쪽에서 이 단원을 모두 봤으면 주 단추는 다음 대단원의 첫 안 본 차시로 가고, "처음부터 다시 보기"는 작은 보조 링크가 된다(R1-088).
- * - 다음에 볼 차시 표시(li[data-next]): 대단원 쪽 카드 가운데 아직 안 본 첫 차시에 표를 붙인다. 표는 카드 안에 떠 있어 자리를 밀지 않는다.
+ * - 시작 카드([data-learn-start]): 진도가 없으면 "처음이면 1단원 1-1-1부터". 있으면 두 가지 말만 쓴다(R2-021 — 쪽마다 다른 말로 부르지 않는다):
+ *     · 지난번에 본 차시를 아직 다 하지 않았으면 "지난번에 본 차시 … 이어서 하기"(이미 시작한 차시라 '이어서'가 맞다)
+ *     · 그 차시를 다 했으면 지난번 차시 바로 뒤의 안 본 차시 "다음에 볼 차시 … 시작하기"(처음 하는 차시라 '시작하기')
+ *   /learn/(모든 단원)과 대단원 쪽이 같은 규칙이다. 선택 보충(V1 같은 차시)은 다음에 볼 차시로 권하지 않는다(R2-020).
+ *   서버가 그린 글이 "처음" 상태라서 JS가 없어도 맞는 길을 보여 준다.
+ *   바뀐 뒤에는 단추의 접근 이름에 가는 차시가 들어간다("1-1-2 … 이어서 하기" — 보이는 글을 끝에 그대로 담아 2.5.3을 지킨다, R1-092).
+ *   대단원 쪽에서 이 단원을 모두 봤으면 주 단추는 다음 대단원의 다음 차시로 가고, "처음부터 다시 보기"는 작은 보조 링크가 된다(R1-088).
+ * - 다음에 볼 차시 표시(li[data-next]): 대단원 쪽 카드 가운데 지난번에 본 차시 바로 뒤의 안 본 차시에 표를 붙인다. 표는 카드 안에 떠 있어 자리를 밀지 않는다.
  *
  * 순수 함수(pickStart·startTexts)는 tests/unit/lesson/learn-progress.test.ts가, DOM 붙이기는 jsdom 시험과 tests/e2e/progress.spec.ts가 본다.
  * 진도는 src/lib/progress.ts로만 읽는다. 실습실 라이브러리를 가져오지 않는다.
  */
-import { firstUnseen, hasProgress, lessonStatus, type ProgressState } from '../../lib/progress.ts';
+import { hasProgress, lessonStatus, nextUnseen, type ProgressState } from '../../lib/progress.ts';
 import { watchProgress } from '../progress/progress-paint.ts';
 
 /** 시작 카드가 가리킬 수 있는 차시 하나(카드 목록에서 읽는다) */
@@ -21,8 +24,11 @@ export interface StartEntry {
   readonly title: string;
 }
 
-/** first 처음 · resume 지난번에 본 차시(/learn/) · next 다음에 볼 차시(대단원) · review 모두 봤어요(대단원) */
-export type StartMode = 'first' | 'resume' | 'next' | 'review';
+/**
+ * first 처음 · resume 지난번에 본 차시(아직 다 하지 않음) · next 다음에 볼 차시(안 본 차시) ·
+ * again 모두 봤고 지난번 차시도 다 함(/learn/ 전체) · review 이 단원을 모두 봤어요(대단원 쪽)
+ */
+export type StartMode = 'first' | 'resume' | 'next' | 'again' | 'review';
 
 export interface StartPick {
   readonly mode: StartMode;
@@ -30,27 +36,31 @@ export interface StartPick {
 }
 
 /**
- * 시작 카드에 보일 차시를 고른다.
- * scope 'all'(배우기 첫 쪽): 지난번에 본 차시가 목록에 있으면 resume, 아니면 첫 차시(first).
- * scope 'unit'(대단원 쪽): 아무것도 안 봤으면 first, 안 본 차시가 있으면 그 첫 차시(next), 모두 봤으면 review(첫 차시).
+ * 시작 카드에 보일 차시를 고른다(scope 'all' 배우기 첫 쪽, 'unit' 대단원 쪽 — 같은 규칙이고 entries 범위만 다르다).
+ * 1) entries에서 아무것도 안 봤으면 first(첫 차시).
+ * 2) 지난번에 본 차시가 entries에 있고 아직 다 하지 않았으면 resume(그 차시).
+ * 3) 안 본 차시가 남았으면 next — 지난번 차시 바로 뒤의 안 본 차시(없으면 첫 안 본 차시). 선택 보충은 건너뛴다.
+ * 4) 모두 봤으면 scope 'all'은 again(지난번 차시, 다시 보기), 'unit'은 review(첫 차시, 처음부터 다시 보기).
  */
 export function pickStart(state: ProgressState, entries: readonly StartEntry[], scope: 'all' | 'unit'): StartPick | null {
   const first = entries[0];
   if (!first) {
     return null;
   }
-  if (scope === 'all') {
-    const last = state.last ? entries.find((entry) => entry.id === state.last?.id) : undefined;
-    return last ? { mode: 'resume', entry: last } : { mode: 'first', entry: first };
-  }
   const ids = entries.map((entry) => entry.id);
-  const anySeen = ids.some((id) => lessonStatus(state, id) !== 'none');
-  if (!anySeen) {
+  if (!ids.some((id) => lessonStatus(state, id) !== 'none')) {
     return { mode: 'first', entry: first };
   }
-  const nextId = firstUnseen(state, ids);
+  const last = state.last ? entries.find((entry) => entry.id === state.last?.id) : undefined;
+  if (last && lessonStatus(state, last.id) !== 'done') {
+    return { mode: 'resume', entry: last };
+  }
+  const nextId = nextUnseen(state, ids);
   const next = nextId ? entries.find((entry) => entry.id === nextId) : undefined;
-  return next ? { mode: 'next', entry: next } : { mode: 'review', entry: first };
+  if (next) {
+    return { mode: 'next', entry: next };
+  }
+  return scope === 'all' && last ? { mode: 'again', entry: last } : { mode: 'review', entry: first };
 }
 
 export interface StartTexts {
@@ -62,23 +72,23 @@ export interface StartTexts {
   readonly button: string;
 }
 
-/** 다음 대단원으로 이어 줄 때 쓰는 값: 다음 대단원의 로마 숫자와, 그 단원에서 고른 차시 */
+/** 다음 대단원으로 이어 줄 때 쓰는 값: 다음 대단원의 번호(1~4)와, 그 단원에서 고른 차시 */
 export interface NextUnitPick {
   readonly numeral: string;
   readonly pick: StartPick;
 }
 
 /**
- * 고른 차시를 시작 카드에 쓸 글로. firstButton은 "처음이면 I단원 1-1-1부터"처럼 서버가 정한 처음 상태의 단추 글.
+ * 고른 차시를 시작 카드에 쓸 글로. firstButton은 "처음이면 1단원 1-1-1부터"처럼 서버가 정한 처음 상태의 단추 글.
  * nextUnit이 있으면(이 단원을 모두 본 대단원 쪽) 다음 대단원으로 가는 글을 쓴다 — 이때 pick은 쓰지 않는다.
  */
 export function startTexts(pick: StartPick, firstButton: string, nextUnit?: NextUnitPick): StartTexts {
   if (nextUnit && pick.mode === 'review') {
     const target = nextUnit.pick.entry;
     return {
-      kicker: nextUnit.pick.mode === 'next' ? `이 단원을 모두 봤어요. ${nextUnit.numeral}단원을 이어서 해요` : '이 단원을 모두 봤어요. 다음 단원이에요',
+      kicker: nextUnit.pick.mode === 'first' ? '이 단원을 모두 봤어요. 다음 단원이에요' : `이 단원을 모두 봤어요. ${nextUnit.numeral}단원을 이어서 해요`,
       title: `${nextUnit.numeral}단원 ${target.label} ${target.title}`.trim(),
-      button: nextUnit.pick.mode === 'next' ? `${nextUnit.numeral}단원 이어서 하기` : `${nextUnit.numeral}단원 시작하기`,
+      button: nextUnit.pick.mode === 'first' ? `${nextUnit.numeral}단원 시작하기` : `${nextUnit.numeral}단원 이어서 하기`,
     };
   }
   const title = `${pick.entry.label} ${pick.entry.title}`.trim();
@@ -86,7 +96,9 @@ export function startTexts(pick: StartPick, firstButton: string, nextUnit?: Next
     case 'resume':
       return { kicker: '지난번에 본 차시', title, button: '이어서 하기' };
     case 'next':
-      return { kicker: '다음에 볼 차시', title, button: '이어서 하기' };
+      return { kicker: '다음에 볼 차시', title, button: '시작하기' };
+    case 'again':
+      return { kicker: '지난번에 본 차시', title, button: '다시 보기' };
     case 'review':
       return { kicker: '이 단원을 모두 봤어요', title, button: '처음부터 다시 보기' };
     default:
@@ -120,7 +132,7 @@ function setText(element: Element | null, text: string): void {
 }
 
 /**
- * 서버가 카드에 실어 둔 "다음 대단원" 차시 목록(data-start-next-entries, JSON)과 로마 숫자(data-start-next-numeral)를 읽는다.
+ * 서버가 카드에 실어 둔 "다음 대단원" 차시 목록(data-start-next-entries, JSON)과 단원 번호(data-start-next-numeral, 1~4)를 읽는다.
  * 없거나 깨졌으면 undefined(마지막 대단원이거나 JSON을 못 읽음 — 그냥 "처음부터 다시 보기"로 둔다).
  */
 export function readNextUnit(card: HTMLElement): { numeral: string; entries: StartEntry[] } | undefined {
@@ -197,7 +209,7 @@ export function paintStart(card: HTMLElement, entries: readonly StartEntry[], st
 
 /** 대단원 쪽 카드 가운데 안 본 첫 차시에 data-next를 붙인다(다른 카드에서는 뗀다) */
 export function paintNextFlag(root: ParentNode, entries: readonly StartEntry[], state: ProgressState): void {
-  const nextId = firstUnseen(state, entries.map((entry) => entry.id));
+  const nextId = nextUnseen(state, entries.map((entry) => entry.id));
   const hasAny = hasProgress(state);
   for (const card of root.querySelectorAll<HTMLElement>('[data-progress-lesson]')) {
     const isNext = nextId !== null && card.getAttribute('data-progress-lesson') === nextId;

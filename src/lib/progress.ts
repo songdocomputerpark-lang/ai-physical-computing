@@ -271,15 +271,40 @@ export function lessonStatus(state: ProgressState, id: string): 'done' | 'seen' 
   return state.seen.includes(id) ? 'seen' : 'none';
 }
 
+/** 선택 보충 차시 id 모양: V·C·P + 숫자(u1/v1, u3/c2, u3/p1). 차시 파일의 kind: supplement와 같아야 한다(tests/unit/lesson/supplement-ids.test.ts가 맞춰 본다). */
+const SUPPLEMENT_ID_PATTERN = /^u[1-4]\/[vcp]\d+$/u;
+
+/** 건너뛰어도 되는 선택 보충 차시인지(배우기 목록의 "보충" 딱지가 붙는 차시) */
+export function isSupplementId(id: string): boolean {
+  return SUPPLEMENT_ID_PATTERN.test(id);
+}
+
 /**
- * 차례대로 놓인 차시 id 가운데 아직 한 번도 열지 않은 첫 차시(다음에 볼 차시). 모두 봤으면 null.
- * 대단원 쪽의 "다음에 볼 차시" 강조에 쓴다.
+ * 차례대로 놓인 차시 id 가운데 아직 한 번도 열지 않은 첫 차시. 모두 봤으면 null.
+ * 선택 보충(V1 같은 차시)은 건너뛴다 — 건너뛰어도 되는 차시를 "다음에 볼 차시"로 권하지 않는다(R2-020).
  */
 export function firstUnseen(state: ProgressState, ids: readonly string[]): string | null {
   for (const id of ids) {
-    if (lessonStatus(state, id) === 'none') {
+    if (!isSupplementId(id) && lessonStatus(state, id) === 'none') {
       return id;
     }
   }
   return null;
+}
+
+/**
+ * "다음에 볼 차시": 지난번에 본 차시(state.last) 바로 뒤에서 처음 안 연 차시. 뒤에 없으면(또는 지난번 차시가 묶음에 없으면)
+ * 묶음의 첫 안 연 차시(firstUnseen). 방금 1-1-3을 마쳤는데 안 열어 본 1-1-1로 되돌려 보내지 않기 위해서다(R2-021). 선택 보충은 건너뛴다.
+ */
+export function nextUnseen(state: ProgressState, ids: readonly string[]): string | null {
+  const lastId = state.last?.id;
+  const from = lastId === undefined ? -1 : ids.indexOf(lastId);
+  if (from >= 0) {
+    for (const id of ids.slice(from + 1)) {
+      if (!isSupplementId(id) && lessonStatus(state, id) === 'none') {
+        return id;
+      }
+    }
+  }
+  return firstUnseen(state, ids);
 }

@@ -118,12 +118,12 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
           </button>
         )}
         {panel.link && (
-          <a class="button button--secondary" href={panel.link.href}>
-            실습실에서 열기
+          <a class="button button--secondary" href={panel.link.href} aria-label={`실습실 쪽에서 크게 열기: ${panel.title}`}>
+            실습실 쪽에서 크게 열기
           </a>
         )}
         <p class="lesson-example__note">
-          [이 자리에서 실습실 열기]를 누르면 이 예제가 올라간 실습실이 바로 아래에 열려요. 처음 한 번은 파이썬을 받느라 시간이 걸려요(느린 인터넷에서는 2~3분).
+          [이 자리에서 실습실 열기]는 이 쪽 바로 아래에 실습실을 열어요. [실습실 쪽에서 크게 열기]는 실습실 쪽(다른 쪽)으로 옮겨 가서 큰 화면으로 열어요.
         </p>
       </div>
     </figure>
@@ -141,12 +141,13 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
    */
   const OPEN_LABEL = '이 자리에서 실습실 열기';
   const CLOSE_LABEL = '실습실 접기';
+  const WAIT_TEXT = '처음 한 번은 파이썬을 받느라 시간이 걸려요(느린 인터넷에서는 몇 분). 아래 실습실이 준비될 때까지 기다려 주세요.';
 
   /**
-   * 실습실 아래 줄: [실습실 접기]와 [실습실을 크게 열기]. 실습실(iframe) 안을 스크롤하다 보면 차시 본문으로 돌아오는 단추가
+   * 실습실 아래 줄: [실습실 접기]와 [실습실 쪽에서 크게 열기]. 실습실(iframe) 안을 스크롤하다 보면 차시 본문으로 돌아오는 단추가
    * 화면 위로 사라져 있어서, 틀 바로 아래에도 같은 단추를 둔다(2026-09-17 검토 반영 — 휴대폰에서 틀 안 스크롤에 갇히던 문제).
    */
-  function buildLabBar(toggle: () => void, labHref: string | undefined): HTMLElement {
+  function buildLabBar(toggle: () => void, labHref: string | undefined, exampleTitle: string): HTMLElement {
     const bar = document.createElement('div');
     bar.className = 'lesson-example__lab-bar';
     const close = document.createElement('button');
@@ -160,7 +161,8 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       const link = document.createElement('a');
       link.className = 'button button--secondary';
       link.href = labHref;
-      link.textContent = '실습실을 크게 열기';
+      link.textContent = '실습실 쪽에서 크게 열기';
+      link.setAttribute('aria-label', `실습실 쪽에서 크게 열기: ${exampleTitle}`);
       bar.append(link);
     }
     return bar;
@@ -183,7 +185,12 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
         // 카메라는 같은 사이트 안에서만 쓴다(학생 영상은 브라우저 밖으로 나가지 않는다 — SPEC §2).
         frame.allow = 'camera';
         frame.className = 'lesson-example__frame';
-        slot.append(frame, buildLabBar(toggle, slot.dataset.labHref));
+        // "처음 한 번은 시간이 걸려요"는 누르기 전 안내에 두지 않고 실습실이 열린 뒤에 보인다 — 본문 따라 하기 문단이 같은 말을 하는 차시가 많아
+        // 낭독기로 연달아 두 번 들렸다(R2-017). 여기서는 기다리는 학생에게만 한 번 말한다.
+        const wait = document.createElement('p');
+        wait.className = 'lesson-example__wait';
+        wait.textContent = WAIT_TEXT;
+        slot.append(wait, frame, buildLabBar(toggle, slot.dataset.labHref, button.dataset.exampleTitle ?? '예제'));
       }
       slot.toggleAttribute('hidden', !open);
       button.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -276,6 +283,8 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
     text-align: right;
     text-indent: 0;
     content: attr(data-line);
+    /* 낭독 이름에는 넣지 않는다(R2-015): 코드 영역 이름에 이미 "43줄"이 있어 줄마다 붙는 번호가 소음이었다. 대체 글을 비우는 문법을 모르는 옛 브라우저는 위 줄을 쓴다. */
+    content: attr(data-line) / '';
     user-select: none;
   }
 
@@ -390,6 +399,16 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       height: 80vh;
       height: 80svh;
     }
+  }
+
+  .lesson-example__lab :global(.lesson-example__wait) {
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
   }
 
   .lesson-example__lab :global(.lesson-example__lab-bar) {

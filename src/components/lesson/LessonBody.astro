@@ -163,6 +163,34 @@ const quizPrefix = `quiz-${idPrefix}`;
 
   /* 본문 속 용어 링크의 눌리는 면적(R1-070)은 용어 부품(GlossaryScope.astro)이 모든 쪽에 같이 넓힌다. */
 
+  /*
+   * 본문 속 그 밖의 링크의 눌리는 면적(R2-018): 글자 상자는 높이 18~20px뿐이라 손가락으로 빗맞았다("오류 사전" 63×20 등).
+   * ① 줄에 링크 하나뿐인 문단·목록 칸(lesson-html.ts markLinkOnlyLines가 .lesson-link-line을 붙인다)은 앞뒤 글줄이 없으니
+   *   높이를 44px(--target-min)까지 키운다. 휴대폰 폭이나 손가락 화면에서만(마우스 화면의 촘촘한 글 모양은 그대로).
+   * ② 글줄 사이에 끼는 링크는 줄 간격(글줄 높이 1.75) 때문에 키울 수 없다. 용어 링크(GlossaryScope.astro)와 같이 보이지 않는 ::after로
+   *   위아래 0.25em·좌우 0.15em만 넓혀 눌리는 곳을 약 28px로 한다(손가락 화면에서만 — 마우스 화면은 WCAG 2.5.8의 글 속 링크 예외).
+   */
+  @media (pointer: coarse), (max-width: 48rem) {
+    :global(.lesson-body a.lesson-link-line) {
+      display: inline-flex;
+      align-items: center;
+      min-block-size: var(--target-min);
+    }
+  }
+
+  @media (pointer: coarse) {
+    :global(.lesson-body a:not(.glossary-term__link, .button, .figure-zoom, .lesson-link-line, .card__link)) {
+      position: relative;
+    }
+
+    :global(.lesson-body a:not(.glossary-term__link, .button, .figure-zoom, .lesson-link-line, .card__link))::after {
+      position: absolute;
+      inset-block: -0.25em;
+      inset-inline: -0.15em;
+      content: '';
+    }
+  }
+
   :global(html[data-presenting] .lesson-body .figure-zoom) {
     display: none;
   }

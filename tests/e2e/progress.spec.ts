@@ -53,9 +53,9 @@ const LAST = {
 };
 
 test.describe('처음 온 사람: 진도 글이 보이지 않는다', () => {
-  test('배우기 첫 쪽은 "처음이면 I단원 1-1-1부터" 주 단추 하나이고, 진도 글·막대는 숨어 있으며, 진도를 저장하지 않는다', async ({ page }) => {
+  test('배우기 첫 쪽은 "처음이면 1단원 1-1-1부터" 주 단추 하나이고, 진도 글·막대는 숨어 있으며, 진도를 저장하지 않는다', async ({ page }) => {
     await page.goto('./learn/');
-    const start = page.getByRole('link', { name: '처음이면 I단원 1-1-1부터' });
+    const start = page.getByRole('link', { name: '처음이면 1단원 1-1-1부터' });
     await expect(start).toBeVisible();
     await expect(start).toHaveAttribute('href', withBase('learn/u1/1-1-1/'));
     // 채운 파랑 주 단추는 본문에 이것 하나뿐
@@ -102,7 +102,7 @@ test.describe('차시를 열고 닫는 흐름', () => {
     await expect(unit.locator('[data-progress-count]')).toHaveText('18차시 중 1차시를 열어 봤어요');
     // 막대는 글(위 줄)과 같은 말이라 화면 낭독기에서는 숨기고(aria-hidden), 이름만 달아 둔다
     await expect(unit.locator('[data-progress-bar]')).toHaveAttribute('aria-hidden', 'true');
-    await expect(unit.locator('[data-progress-bar]')).toHaveAttribute('aria-label', /I단원 18차시 중 1차시를 열어 봤어요/u);
+    await expect(unit.locator('[data-progress-bar]')).toHaveAttribute('aria-label', /1단원 18차시 중 1차시를 열어 봤어요/u);
   });
 
   test('[이 차시 다 했어요]: 켜고 끄면 aria-pressed·저장·낭독 글이 바뀌고, 다시 열어도 켜져 있다', async ({ page }) => {
@@ -119,11 +119,11 @@ test.describe('차시를 열고 닫는 흐름', () => {
     await page.reload();
     await expect(page.getByRole('button', { name: '이 차시 다 했어요' })).toHaveAttribute('aria-pressed', 'true');
 
-    // 대단원 쪽: 카드는 "마쳤어요", 진도 글은 "N차시를 마쳤어요"
+    // 대단원 쪽: 카드는 "다 했어요", 진도 글은 "N차시를 다 했어요"
     await page.goto(`.${learnUnits[0]!.path}`);
     const card = page.locator(`[data-progress-lesson="${LESSON_2}"]`);
-    await expect(card.locator('[data-progress-badge]')).toHaveText('마쳤어요');
-    await expect(page.locator('[data-progress-unit] [data-progress-count]').first()).toHaveText('18차시 중 1차시를 마쳤어요');
+    await expect(card.locator('[data-progress-badge]')).toHaveText('다 했어요');
+    await expect(page.locator('[data-progress-unit] [data-progress-count]').first()).toHaveText('18차시 중 1차시를 다 했어요');
 
     await page.goBack();
     await page.getByRole('button', { name: '이 차시 다 했어요' }).click();
@@ -159,16 +159,38 @@ test.describe('차시를 열고 닫는 흐름', () => {
 });
 
 test.describe('대단원 쪽: 다음에 볼 차시', () => {
-  test('안 본 첫 차시에 "다음에 볼 차시" 표와 시작 카드("이어서 하기")가 붙는다', async ({ page }) => {
+  test('지난번 차시를 다 했으면 그 뒤 안 본 차시에 "다음에 볼 차시" 표와 시작 카드("시작하기")가 붙는다', async ({ page }) => {
     await seed(page, { version: 1, seen: [LESSON_1], done: [LESSON_1], last: { ...LAST, id: LESSON_1, label: '1-1-1', href: withBase('learn/u1/1-1-1/') }, lastLab: null });
     await page.goto(`.${learnUnits[0]!.path}`);
     const next = page.locator('.lesson-card[data-next]');
     await expect(next).toHaveCount(1);
     await expect(next).toHaveAttribute('data-progress-lesson', LESSON_2);
     await expect(next.locator('[data-next-flag]')).toHaveText('다음에 볼 차시');
-    const start = page.getByRole('link', { name: '이어서 하기' });
+    // 처음 하는 차시라 "이어서 하기"가 아니라 "시작하기"(R2-021)
+    const start = page.locator('[data-learn-start]').getByRole('link', { name: /시작하기$/u });
     await expect(start).toHaveAttribute('href', withBase('learn/u1/1-1-2/'));
     await expect(page.locator('[data-learn-start]')).toHaveAttribute('data-start-mode', 'next');
+  });
+
+  test('1-1-3을 다 했으면 안 본 1-1-1이 아니라 1-2-1을 권하고, 선택 보충 V1은 권하지 않는다(R2-020·R2-021)', async ({ page }) => {
+    await seed(page, {
+      version: 1,
+      seen: ['u1/1-1-3'],
+      done: ['u1/1-1-3'],
+      last: { ...LAST, id: 'u1/1-1-3', label: '1-1-3', href: withBase('learn/u1/1-1-3/') },
+      lastLab: null,
+    });
+    await page.goto(`.${learnUnits[0]!.path}`);
+    const next = page.locator('.lesson-card[data-next]');
+    await expect(next).toHaveCount(1);
+    await expect(next).toHaveAttribute('data-progress-lesson', 'u1/1-2-1');
+    await expect(page.locator('[data-progress-lesson="u1/v1"]')).not.toHaveAttribute('data-next', /.*/u);
+    await expect(page.locator('[data-learn-start] [data-start-button]')).toHaveAttribute('href', withBase('learn/u1/1-2-1/'));
+    await expect(page.locator('[data-learn-start] [data-start-button-text]')).toHaveText('시작하기');
+    // 배우기 첫 쪽도 같은 규칙과 같은 말이다
+    await page.goto('./learn/');
+    await expect(page.locator('[data-learn-start] [data-start-kicker]')).toHaveText('다음에 볼 차시');
+    await expect(page.locator('[data-learn-start] [data-start-button-text]')).toHaveText('시작하기');
   });
 });
 
@@ -199,13 +221,13 @@ test.describe('차시 쪽 단원 차시 목록', () => {
     const current = nav.locator('a[aria-current="page"]');
     await expect(current).toHaveCount(1);
     await expect(current).toContainText('1-1-2');
-    // 마친 차시는 "마쳤어요" 글이 따라 읽힌다(링크 밖)
-    await expect(page.locator(`[data-lesson-nav] [data-progress-lesson="${LESSON_1}"] [data-progress-badge]`)).toHaveText('마쳤어요');
+    // 마친 차시는 "다 했어요" 글이 따라 읽힌다(링크 밖)
+    await expect(page.locator(`[data-lesson-nav] [data-progress-lesson="${LESSON_1}"] [data-progress-badge]`)).toHaveText('다 했어요');
     // 단원 진도 글: 펼친 머리와 접힌 요약 줄(좁은 화면에서 펼치지 않아도 보인다 — R1-087) 둘 다
     const counts = page.locator('[data-lesson-nav] [data-progress-count]');
     await expect(counts).toHaveCount(2);
-    await expect(counts.first()).toContainText('18차시 중 1차시를 마쳤어요');
-    await expect(counts.last()).toContainText('18차시 중 1차시를 마쳤어요');
+    await expect(counts.first()).toContainText('18차시 중 1차시를 다 했어요');
+    await expect(counts.last()).toContainText('18차시 중 1차시를 다 했어요');
     if (isMobile) {
       // 접힌 목록의 요약 줄에 진도 글이 보인다(목록을 펼치기 전)
       await expect(page.locator('[data-lesson-nav] > summary [data-progress-count]')).toBeVisible();
@@ -269,13 +291,29 @@ test.describe('판 1.3.0 검수 R1 — 다 했어요 뒤 다음 할 일 · 건�
     await expect(next).toBeVisible();
     await expect(next).toHaveAttribute('href', withBase('learn/u1/1-1-3/'));
     await expect(next).toContainText('다음 차시 1-1-3');
-    await expect(page.locator('.lesson-done__title-on')).toContainText('1-1-2 끝!');
+    // 퀴즈를 몇 개 맞혔는지와 상관없는 중립적인 말, 되돌리는 법 안내(R2-019)
+    await expect(page.locator('.lesson-done__title-on')).toContainText('1-1-2 다 했다고 표시했어요');
+    await expect(page.locator('.lesson-done__hint-on')).toBeVisible();
+    await expect(page.locator('.lesson-done__hint-on')).toContainText('한 번 더 눌러요');
+    await expect(page.locator('.lesson-done__hint-off')).toBeHidden();
+    await expect(page.locator('[data-lesson-done-status]')).toContainText('한 번 더 누르면 풀려요');
     await expect(page.locator('[data-lesson-done-status]')).toContainText('다음 차시: 1-1-3');
     // 다시 열어도(이미 다 했다고 표시한 차시) 링크가 보인다
     await page.reload();
     await expect(page.locator('[data-lesson-done-next]')).toBeVisible();
     await page.getByRole('button', { name: '이 차시 다 했어요' }).click();
     await expect(page.locator('[data-lesson-done-next]')).toBeHidden();
+  });
+
+  test('1-1-3에서 [이 차시 다 했어요]를 누르면 선택 보충 V1이 아니라 1-2-1을 권하고, 아래 카드에는 V1이 "건너뛰어도 돼요"와 함께 남는다(R2-020)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-3/');
+    await page.getByRole('button', { name: '이 차시 다 했어요' }).click();
+    const next = page.locator('[data-lesson-done-next]');
+    await expect(next).toHaveAttribute('href', withBase('learn/u1/1-2-1/'));
+    await expect(next).toContainText('다음 차시 1-2-1');
+    const pagerNext = page.getByRole('navigation', { name: '이전·다음 차시' }).getByRole('link', { name: /다음 차시/u });
+    await expect(pagerNext).toHaveAttribute('href', withBase('learn/u1/v1/'));
+    await expect(pagerNext).toContainText('건너뛰어도 돼요');
   });
 
   test('[본문으로 건너뛰기]는 차시 목록을 건너뛰고 본문으로 간다(R1-080)', async ({ page, isMobile }) => {
@@ -312,9 +350,9 @@ test.describe('판 1.3.0 검수 R1 — 다 했어요 뒤 다음 할 일 · 건�
     await expect(page.locator('.lesson__where')).toContainText('이 단원의 1번째 차시');
     await expect(page.locator('.lesson__where')).not.toContainText('차시 중');
     await page.goto('./learn/u2/2-1-1/');
-    await expect(page.getByRole('navigation', { name: '차시 이동' }).getByRole('link', { name: /^이전/u })).toContainText('I단원 마무리');
+    await expect(page.getByRole('navigation', { name: '차시 이동' }).getByRole('link', { name: /^이전/u })).toContainText('1단원 마무리');
     await page.goto('./learn/u3/3-1-1/');
-    await expect(page.getByRole('navigation', { name: '차시 이동' }).getByRole('link', { name: /^이전/u })).toContainText('II단원 마무리');
+    await expect(page.getByRole('navigation', { name: '차시 이동' }).getByRole('link', { name: /^이전/u })).toContainText('2단원 마무리');
   });
 
   test('보충 차시는 묶음 제목에 "(선택)"이, 차시 목록에 "보충" 칩이 붙는다(R1-086)', async ({ page, isMobile }) => {
@@ -345,7 +383,7 @@ test.describe('판 1.3.0 검수 R1 — 다 했어요 뒤 다음 할 일 · 건�
     await expect(start).toHaveAttribute('data-start-next', 'first');
     const primary = start.locator('.button--primary');
     await expect(primary).toHaveCount(1);
-    await expect(primary).toContainText('II단원 시작하기');
+    await expect(primary).toContainText('2단원 시작하기');
     await expect(primary).toHaveAttribute('href', withBase('learn/u2/2-1-1/'));
     const again = start.getByRole('link', { name: '처음부터 다시 보기' });
     await expect(again).toBeVisible();
@@ -362,7 +400,7 @@ test.describe('저장이 막히거나 깨진 값이어도 쪽은 멀쩡하다', 
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('./learn/');
-    await expect(page.getByRole('link', { name: '처음이면 I단원 1-1-1부터' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '처음이면 1단원 1-1-1부터' })).toBeVisible();
     await page.goto('./learn/u1/1-1-2/');
     await expect(page.getByRole('button', { name: '이 차시 다 했어요' })).toHaveAttribute('aria-pressed', 'false');
     expect(errors).toEqual([]);
@@ -372,7 +410,7 @@ test.describe('저장이 막히거나 깨진 값이어도 쪽은 멀쩡하다', 
     const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
     const page = await context.newPage();
     await page.goto('./learn/');
-    await expect(page.getByRole('link', { name: '처음이면 I단원 1-1-1부터' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '처음이면 1단원 1-1-1부터' })).toBeVisible();
     await page.goto('./learn/u1/1-1-2/');
     await expect(page.locator('[data-lesson-done]')).toBeHidden();
     await expect(page.getByText('이 단원 차시 목록 펼치기')).toBeVisible();

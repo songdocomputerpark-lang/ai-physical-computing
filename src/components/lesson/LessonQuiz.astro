@@ -4,6 +4,8 @@
  *
  * - 문항마다 fieldset(질문 = legend)과 라디오 단추 보기. 방향키로 고르고 [답 확인하기](Enter·Space)로 확인한다.
  * - 피드백 칸은 role="status"라서 화면 낭독기가 결과를 읽는다. 맞힌 표시는 색과 함께 "정답" 글자로도 보인다.
+ * - 단추([답 확인하기]·[정답과 풀이 보기])는 문제 묶음(fieldset) 밖 같은 칸에 있어서, 문제마다 접근 이름 앞에 "문제 N"을 붙인다
+ *   ("문제 2 답 확인하기" — 낭독기 링크·단추 목록에서 이름이 세 번 똑같지 않게, R2-024). 보이는 글은 그대로라 이름 안에 든다(2.5.3).
  * - 자바스크립트가 꺼져 있으면 버튼 대신 "정답과 풀이 보기" 접기 상자가 보인다.
  * - 정답·풀이는 사이트 검색 색인에서 뺀다(data-pagefind-ignore).
  * - 발표 모드(present.ts)는 문항마다 한 단계로 보여 준다(data-present-split·data-present-item).
@@ -47,10 +49,10 @@ const { items, idPrefix } = Astro.props;
               </ul>
             </fieldset>
             <div class="quiz__actions">
-              <button type="button" class="button button--primary" data-quiz-check>
+              <button type="button" class="button button--primary" data-quiz-check aria-label={`문제 ${index + 1} 답 확인하기`}>
                 답 확인하기
               </button>
-              <button type="button" class="button button--secondary" data-quiz-reveal hidden>
+              <button type="button" class="button button--secondary" data-quiz-reveal hidden aria-label={`문제 ${index + 1} 정답과 풀이 보기`}>
                 정답과 풀이 보기
               </button>
             </div>

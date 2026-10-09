@@ -148,7 +148,7 @@ test.describe('차시 페이지', () => {
     await expect(meta.locator('[data-meta="materials"]')).toContainText('따로 준비할 것 없음');
     await expect(meta.locator('[data-meta="difficulty"]')).toContainText('쉬움');
     await expect(meta.locator('[data-meta="pages"]')).toContainText('008~012쪽');
-    await expect(meta.locator('[data-meta="lab"]').getByRole('link', { name: '영상처리 실습실' })).toHaveAttribute(
+    await expect(meta.locator('[data-meta="lab"]').getByRole('link', { name: '영상 처리 실습실' })).toHaveAttribute(
       'href',
       withBase('labs/vision/'),
     );
@@ -165,7 +165,8 @@ test.describe('차시 페이지', () => {
     await expect(example.locator('.lesson-code')).toContainText('photos = [');
     await expect(example.locator('.lesson-code__line').first()).toHaveText(/^# 1-1-1 체험/u);
     await expect(example.getByRole('region', { name: /코드, \d+줄$/u })).toHaveCount(1);
-    await expect(example.getByRole('link', { name: '실습실에서 열기', exact: true })).toHaveAttribute(
+    // R2-016: 이 쪽 안에서 여는 단추와 이름이 겹치지 않게 "실습실 쪽에서 크게 열기: <예제 이름>"(예제 이름이 붙어 같은 쪽의 다른 예제 링크와도 구별된다)
+    await expect(example.getByRole('link', { name: /^실습실 쪽에서 크게 열기: ./u })).toHaveAttribute(
       'href',
       `${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u1/1-1-1-sort-vs-group.py')}`,
     );
@@ -201,6 +202,24 @@ test.describe('차시 페이지', () => {
     await expect(
       page.getByRole('navigation', { name: '이전·다음 차시' }).getByRole('link', { name: /이전 차시.*V3/u }),
     ).toHaveAttribute('href', withBase('learn/u1/v3/'));
+  });
+
+  test('차시 머리 정보: 항목 이름과 값 사이에 공백이 있어 "소요 시간50분"처럼 붙어 읽히지 않는다(R2-026)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const text = await page.locator('[data-meta="duration"]').evaluate((element) => element.textContent ?? '');
+    expect(text).toMatch(/^소요 시간\s+\d/u);
+    expect(await page.locator('[data-meta="materials"]').evaluate((element) => element.textContent ?? '')).toMatch(/^준비물\s+\S/u);
+  });
+
+  test('확인 퀴즈: [답 확인하기] 단추는 문제마다 이름이 달라서 낭독기 단추 목록에서 어느 문제인지 안다(R2-024)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const count = await page.locator('[data-quiz-item]').count();
+    expect(count).toBeGreaterThan(1);
+    for (let number = 1; number <= count; number += 1) {
+      await expect(page.getByRole('button', { name: `문제 ${number} 답 확인하기`, exact: true })).toHaveCount(1);
+    }
+    // 보이는 글은 그대로 "답 확인하기"(이름 안에 든다)
+    await expect(page.locator('[data-quiz-check]').first()).toHaveText('답 확인하기');
   });
 
   test('확인 퀴즈: 키보드로 오답을 확인하면 "다시 생각해 보세요", 정답이면 "정답이에요!"와 풀이', async ({ page }) => {

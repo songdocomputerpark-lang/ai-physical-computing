@@ -4,6 +4,8 @@
  * - 성취기준이 비어 있으면: 대응표에서 일부러 비운 차시는 "해당 없음(보충 차시)", 대응표에 없는 새 차시는 "성취기준 코드 확인 중"(DECISIONS C8)
  * - 소요 시간·난이도·가상 보드·실습실·교과서 쪽은 frontmatter에 적었을 때만 보인다.
  * - 뜻을 글자로 알린다(난이도 점은 꾸밈이라 화면 낭독기가 읽지 않는다).
+ * - <dt>와 <dd> 사이에는 공백 글자를 둔다({' '}): 화면 모양은 flex 간격이 잡지만, 검색 색인·낭독기가 읽는 글에서는 두 글이 붙어
+ *   "소요 시간50분. 준비물RGB"처럼 한 낱말이 됐다(R2-026). 글에는 공백이 있고 화면에는 보이지 않는다.
  */
 import {
   STANDARDS_NOTE,
@@ -16,6 +18,7 @@ import {
   virtualBoardText,
   type LessonSummary,
 } from './lesson-data.ts';
+import { glossaryEntryHref } from '../glossary/glossary.ts';
 
 interface Props {
   lesson: LessonSummary;
@@ -34,7 +37,8 @@ const emptyStandards = standardsEmptyText(lesson.label);
 <div class="lesson-meta">
   <dl class="lesson-meta__list">
     <div class="lesson-meta__item" data-meta="standards">
-      <dt>성취기준</dt>
+      {/* 학생에게 낯선 말이라 용어사전 풀이로 잇는다(R2-048). 링크 하나뿐이고 보이는 차례 = Tab 차례. */}
+      <dt><a class="lesson-meta__term" href={glossaryEntryHref('achievement-standard')}>성취기준</a></dt>{' '}
       <dd>
         {
           hasStandards ? (
@@ -48,19 +52,19 @@ const emptyStandards = standardsEmptyText(lesson.label);
     {
       duration && (
         <div class="lesson-meta__item" data-meta="duration">
-          <dt>소요 시간</dt>
+          <dt>소요 시간</dt>{' '}
           <dd>{duration}</dd>
         </div>
       )
     }
     <div class="lesson-meta__item" data-meta="materials">
-      <dt>준비물</dt>
+      <dt>준비물</dt>{' '}
       <dd>{materialsText(lesson.materials)}</dd>
     </div>
     {
       difficulty && lesson.difficulty && (
         <div class="lesson-meta__item" data-meta="difficulty">
-          <dt>난이도</dt>
+          <dt>난이도</dt>{' '}
           <dd>
             <span class="lesson-meta__dots" aria-hidden="true">
               {[1, 2, 3].map((step) => (
@@ -75,7 +79,7 @@ const emptyStandards = standardsEmptyText(lesson.label);
     {
       virtualBoard && (
         <div class="lesson-meta__item" data-meta="virtual-board">
-          <dt>가상 보드</dt>
+          <dt>가상 보드</dt>{' '}
           <dd>{virtualBoard}</dd>
         </div>
       )
@@ -83,7 +87,7 @@ const emptyStandards = standardsEmptyText(lesson.label);
     {
       lab && (
         <div class="lesson-meta__item" data-meta="lab">
-          <dt>실습실</dt>
+          <dt>실습실</dt>{' '}
           <dd>
             <a href={lab.href}>{lab.label}</a>
           </dd>
@@ -93,7 +97,7 @@ const emptyStandards = standardsEmptyText(lesson.label);
     {
       pages && (
         <div class="lesson-meta__item" data-meta="pages">
-          <dt>교과서</dt>
+          <dt>교과서</dt>{' '}
           <dd>{pages}</dd>
         </div>
       )
@@ -181,6 +185,12 @@ const emptyStandards = standardsEmptyText(lesson.label);
 
   .lesson-meta__dot--on {
     background: var(--color-accent);
+  }
+
+  .lesson-meta__term {
+    color: inherit;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.2em;
   }
 
   .lesson-meta__note {

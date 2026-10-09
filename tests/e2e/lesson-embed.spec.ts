@@ -37,11 +37,15 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     await expect(openButton).toHaveText('이 자리에서 실습실 열기');
     await expect(openButton).toHaveAttribute('aria-expanded', 'false');
     // "(준비 중)"이 붙은 링크는 더 없다.
-    await expect(page.getByRole('link', { name: /실습실에서 열기$/u }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /^실습실 쪽에서 크게 열기/u }).first()).toBeVisible();
     expect(await page.getByText('실습실은 아직 만들고 있어요.').count()).toBe(0);
     // 아직 iframe도, 실습실·Pyodide 요청도 없다.
     expect(await page.locator('iframe').count()).toBe(0);
     expect(labRequests, '누르기 전에는 실습실 파일을 받지 않는다').toEqual([]);
+    // R2-017: 누르기 전 안내에는 "처음 한 번은 … 시간이 걸려요"가 없다(본문 따라 하기 문단이 같은 말을 하므로 낭독기로 연달아 두 번 들렸다).
+    // 그 말은 실습실이 열린 뒤 실습실 위에 한 번만 보인다.
+    await expect(page.locator('.lesson-example__note').first()).not.toContainText('시간이 걸려요');
+    await expect(page.locator('.lesson-example__wait')).toHaveCount(0);
 
     // 키보드(Enter)로 연다 — 연 뒤에도 초점이 있는 단추가 화면 안에 있다(틀만 보이게 옮기면 단추가 화면 위로 밀려나
     // 초점 표시가 보이지 않았다 — 2026-09-26 Phase 6 사용성 검토 지적 10).
@@ -51,6 +55,7 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     await expect(openButton).toHaveText('실습실 접기');
     await expect(openButton).toBeFocused();
     await expect(openButton).toBeInViewport();
+    await expect(page.locator('.lesson-example__wait').first()).toContainText('시간이 걸려요');
 
     const frame = page.frameLocator('iframe.lesson-example__frame');
     const labRoot = frame.locator('[data-lab]');
@@ -88,10 +93,10 @@ test.describe('차시 페이지의 실습실 임베드', () => {
       expect(placement.labRight, '실습실 오른쪽이 본문 칸 오른쪽보다 나가지 않는다').toBeLessThanOrEqual(placement.articleRight + 1);
       expect(placement.labLeft, '실습실이 왼쪽 차시 목록 밑으로 들어가지 않는다').toBeGreaterThanOrEqual(placement.navRight);
     }
-    // 틀 바로 아래에도 [실습실 접기]와 [실습실을 크게 열기]가 있다.
+    // 틀 바로 아래에도 [실습실 접기]와 [실습실 쪽에서 크게 열기]가 있다.
     const bar = page.locator('.lesson-example__lab-bar').first();
     await expect(bar.getByRole('button', { name: '실습실 접기' })).toBeVisible();
-    await expect(bar.getByRole('link', { name: '실습실을 크게 열기' })).toHaveAttribute('href', /\/labs\/vision\/\?example=/u);
+    await expect(bar.getByRole('link', { name: /^실습실 쪽에서 크게 열기/u })).toHaveAttribute('href', /\/labs\/vision\/\?example=/u);
 
     // 아래 줄의 [실습실 접기]로 접으면 사라지고, 위 단추로 다시 펼 수 있다(iframe은 남겨 두어 다시 받지 않는다).
     await bar.getByRole('button', { name: '실습실 접기' }).click();
@@ -109,7 +114,7 @@ test.describe('차시 페이지의 실습실 임베드', () => {
 
   test('[실습실에서 열기]는 그 예제를 고른 채 실습실 페이지를 연다', async ({ page }) => {
     await page.goto(LESSON_PATH);
-    const link = page.getByRole('link', { name: /실습실에서 열기$/u }).first();
+    const link = page.getByRole('link', { name: /^실습실 쪽에서 크게 열기/u }).first();
     const href = await link.getAttribute('href');
     expect(href).toContain('labs/vision/');
     expect(decodeURIComponent(href ?? '')).toContain(EXAMPLE_FILE);

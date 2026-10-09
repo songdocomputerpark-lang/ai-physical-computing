@@ -22,7 +22,7 @@ function mount(): void {
       <li data-progress-lesson="u1/1-1-3"><a href="#c">1-1-3</a><span data-progress-badge></span></li>
       <li data-progress-lesson="bad id"><span data-progress-badge></span></li>
     </ul>
-    <section id="unit-a" data-progress-unit="${IDS.join(',')}" data-progress-label="I단원">
+    <section id="unit-a" data-progress-unit="${IDS.join(',')}" data-progress-label="1단원">
       <p data-progress-count></p>
       <progress id="bar-a" data-progress-bar></progress>
     </section>
@@ -58,7 +58,7 @@ afterEach(() => {
 
 describe('글 만들기', () => {
   it('describeUnitProgress', () => {
-    expect(describeUnitProgress({ total: 18, seen: 5, done: 3 })).toBe('18차시 중 3차시를 마쳤어요');
+    expect(describeUnitProgress({ total: 18, seen: 5, done: 3 })).toBe('18차시 중 3차시를 다 했어요');
     expect(describeUnitProgress({ total: 18, seen: 2, done: 0 })).toBe('18차시 중 2차시를 열어 봤어요');
     expect(describeUnitProgress({ total: 18, seen: 0, done: 0 })).toBe('');
     expect(describeUnitProgress({ total: 0, seen: 0, done: 0 })).toBe('');
@@ -71,7 +71,7 @@ describe('글 만들기', () => {
   });
 
   it('배지 글', () => {
-    expect(PROGRESS_BADGE_TEXT).toEqual({ done: '마쳤어요', seen: '열어 봤어요', none: '' });
+    expect(PROGRESS_BADGE_TEXT).toEqual({ done: '다 했어요', seen: '열어 봤어요', none: '' });
   });
 });
 
@@ -93,7 +93,7 @@ describe('차시 하나', () => {
     expect(state('u1/1-1-2')).toBe('seen');
     expect(state('u1/1-1-3')).toBe('none');
     const badges = [...document.querySelectorAll('#list [data-progress-badge]')].map((badge) => badge.textContent);
-    expect(badges).toEqual(['마쳤어요', '열어 봤어요', '', '']);
+    expect(badges).toEqual(['다 했어요', '열어 봤어요', '', '']);
     expect(document.documentElement.hasAttribute('data-progress-has')).toBe(true);
   });
 
@@ -126,11 +126,11 @@ describe('단원', () => {
     paintProgress();
     const unit = el('#unit-a');
     expect(unit.hasAttribute('data-progress-empty')).toBe(false);
-    expect(unit.querySelector('[data-progress-count]')?.textContent).toBe('3차시 중 1차시를 마쳤어요');
+    expect(unit.querySelector('[data-progress-count]')?.textContent).toBe('3차시 중 1차시를 다 했어요');
     const bar = el('#bar-a') as HTMLProgressElement;
     expect(bar.max).toBe(3);
     expect(bar.value).toBe(1);
-    expect(bar.getAttribute('aria-label')).toBe('I단원 3차시 중 1차시를 마쳤어요');
+    expect(bar.getAttribute('aria-label')).toBe('1단원 3차시 중 1차시를 다 했어요');
     expect(bar.style.getPropertyValue('--progress-done')).toBe('33%');
     expect(bar.style.getPropertyValue('--progress-seen')).toBe('67%');
   });
@@ -145,9 +145,9 @@ describe('단원', () => {
     setDone('u2/2-1-2', true, localStorage);
     paintProgress();
     const bar = el('#bar-b');
-    expect(el('#unit-b [data-progress-count]').textContent).toBe('2차시 중 1차시를 마쳤어요');
+    expect(el('#unit-b [data-progress-count]').textContent).toBe('2차시 중 1차시를 다 했어요');
     expect(bar.getAttribute('role')).toBe('img');
-    expect(bar.getAttribute('aria-label')).toBe('2차시 중 1차시를 마쳤어요');
+    expect(bar.getAttribute('aria-label')).toBe('2차시 중 1차시를 다 했어요');
     expect(bar.style.getPropertyValue('--progress-done')).toBe('50%');
   });
 
@@ -160,7 +160,7 @@ describe('단원', () => {
   it('차시 id 목록이 없으면 안에 든 [data-progress-lesson]을 센다', () => {
     setDone('u1/1-1-2', true, localStorage);
     paintProgress();
-    expect(el('#unit-c [data-progress-count]').textContent).toBe('2차시 중 1차시를 마쳤어요');
+    expect(el('#unit-c [data-progress-count]').textContent).toBe('2차시 중 1차시를 다 했어요');
   });
 
   it('칠한 값을 지우면(빈 진도) 다시 empty가 된다', () => {

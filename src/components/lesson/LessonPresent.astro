@@ -14,9 +14,10 @@
 <div class="lesson-present" data-lesson-present hidden data-pagefind-ignore>
   <p class="lesson-present__more" data-present-more hidden aria-hidden="true">▼ 아래에 더 있어요 (↓ · Space · 마우스 휠)</p>
   <div class="lesson-present__bar" role="toolbar" aria-label="발표 모드 조작">
-    <button type="button" class="button button--secondary" data-present-previous>◀ 앞</button>
+    {/* 접근 이름은 "앞 단계"·"다음 단계"(보이는 글 "앞"·"다음"이 이름 안에 들어 있다 — 2.5.3). 화살표 기호는 장식이라 숨긴다: 낭독기가 기호 이름을 읽지 않게(R2-023). */}
+    <button type="button" class="button button--secondary" data-present-previous aria-label="앞 단계"><span aria-hidden="true">◀</span> 앞</button>
     <p class="lesson-present__status" aria-live="polite" data-present-status></p>
-    <button type="button" class="button button--primary" data-present-next>다음 ▶</button>
+    <button type="button" class="button button--primary" data-present-next aria-label="다음 단계">다음 <span aria-hidden="true">▶</span></button>
     <button type="button" class="button button--secondary lesson-present__fullscreen" data-present-fullscreen aria-pressed="false">
       전체 화면
     </button>

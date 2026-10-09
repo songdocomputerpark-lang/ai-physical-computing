@@ -8,7 +8,8 @@
  *   → 다음 단계 · ← 앞 단계         Home · End  처음·끝         Esc  발표 모드 끝내기(전체 화면이면 먼저 전체 화면이 풀린다)
  *   PageDown · Space(단추·입력칸 밖에서)  한 화면 아래로 — 이 단계가 화면보다 길어 아래가 남았으면 스크롤하고, 끝이면 다음 단계 (R1-074)
  *   PageUp  한 화면 위로 — 맨 위면 앞 단계           ↓ · ↑  조금씩 스크롤(남은 내용이 있을 때만 움직인다)
- *   아래쪽 막대의 [◀ 앞] [다음 ▶] [전체 화면] [끝내기(Esc)]. 몇째 단계인지는 막대의 알림 칸(aria-live)이 읽어 준다.
+ *   아래쪽 막대의 [앞] [다음] [전체 화면] [끝내기(Esc)](이름은 "앞 단계"·"다음 단계" — 화살표 기호는 낭독기에서 숨김). 몇째 단계인지는 막대의 알림 칸(aria-live)이 읽어 준다.
+ *   발표를 시작하면 초점이 막대의 [다음 단계]에 놓인다(보이는 조작에 초점이 있어 Enter·Space·→로 바로 넘긴다, R2-023).
  *   보기(라디오 단추)에 초점이 있을 때 ←→는 보기를 고르는 데 쓰인다(가로챈 키가 아님). 실습실 틀(iframe) 안의 키도 가로채지 않는다.
  *   용어 풀이 툴팁이 열려 있으면 Esc는 툴팁만 닫는다(발표는 그대로).
  *
@@ -751,12 +752,15 @@ export function installLessonPresentation(doc: Document = document): void {
     if (event.defaultPrevented) {
       return;
     }
+    // 시작 초점이 [다음 단계]에 있으므로(R2-023) 그 단추 위의 Space도 본문 Space처럼 다룬다 — 이 단계 아래가 남았으면 한 화면 스크롤,
+    // 끝이면 다음 단계(통합 확인: 단추가 눌려 긴 단계의 아래쪽을 건너뛰었다). Enter는 단추 그대로 다음 단계.
+    const spaceOnNext = event.key === ' ' && nextButton !== null && doc.activeElement === nextButton;
     const command = presentCommandFor({
       key: event.key,
       ctrlKey: event.ctrlKey,
       altKey: event.altKey,
       metaKey: event.metaKey,
-      target: focusTarget(doc.activeElement),
+      target: spaceOnNext ? 'none' : focusTarget(doc.activeElement),
     });
     if (!command) {
       return;
@@ -815,7 +819,9 @@ export function installLessonPresentation(doc: Document = document): void {
     doc.defaultView?.addEventListener('resize', scheduleReplan);
     doc.defaultView?.addEventListener('scroll', updateMore, { passive: true });
     render();
-    main?.focus({ preventScroll: true });
+    // 시작 초점: 막대의 [다음 단계](마지막 단계뿐인 차시면 [끝내기]). 보이는 조작에 초점이 있어야 키보드·낭독기 사용자가 어디 있는지 안다 —
+    // 예전에는 보이지 않는 main에 놓였다(R2-023). 쪽을 움직이지 않는다(preventScroll).
+    (nextButton && !nextButton.disabled ? nextButton : (exitButton ?? main))?.focus({ preventScroll: true });
     // 느린 망에서는 글꼴(Pretendard)을 다 받기 전에 발표를 시작할 수 있다 — 대체 글꼴로 잰 자리가 조금 어긋나 막대에 걸리지 않게,
     // 글꼴을 다 받으면 한 번 더 나눈다(보고 있던 자리는 그대로, 이미 받았으면 같은 결과).
     void doc.fonts?.ready.then(() => scheduleReplan()).catch(() => undefined);

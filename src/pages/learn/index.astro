@@ -5,7 +5,7 @@
  * 카드는 차례표(src/components/lesson/curriculum.ts)와 content/lessons/의 md 파일을 합쳐 만든다.
  * 새 차시 md를 content/lessons/에 넣으면 코드를 고치지 않아도 여기에 카드가 생긴다(시나리오 E의 축소판).
  *
- * 판 1.3.0: 맨 위 시작 카드("처음이면 I단원 1-1-1부터" ↔ 진도가 있으면 "이어서 하기"), 단원마다 색 머리띠·진도 막대.
+ * 판 1.3.0: 맨 위 시작 카드("처음이면 1단원 1-1-1부터" ↔ 진도가 있으면 "이어서 하기" 또는 "시작하기"), 단원마다 색 머리띠·진도 막대.
  * 진도는 브라우저에서만 칠한다(HTML에 굽지 않는다) — 처음 온 사람에게는 진도 글이 보이지 않는다.
  */
 import { getCollection } from 'astro:content';
@@ -33,7 +33,7 @@ const firstLesson = firstUnit ? lessons.find((lesson) => lesson.id === firstUnit
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description} 카드를 누르면 그 차시로 가요.</p>
-  {firstUnit && firstLesson && <LearnStart first={firstLesson} numeral={firstUnit.unit.numeral} scope="all" unit={firstUnit.unit.unit} />}
+  {firstUnit && firstLesson && <LearnStart first={firstLesson} numeral={String(firstUnit.unit.unit)} scope="all" unit={firstUnit.unit.unit} />}
   <LessonLegend hasPlanned={hasPlanned} />
   {
     units.map(({ unit, sections, counts, ids }) => (
@@ -41,7 +41,7 @@ const firstLesson = firstUnit ? lessons.find((lesson) => lesson.id === firstUnit
         <header
           class:list={['learn-unit__header', unitCardClass(unit.unit)]}
           data-progress-unit={progressIds(ids)}
-          data-progress-label={`${unit.numeral}단원`}
+          data-progress-label={`${unit.unit}단원`}
         >
           <span class:list={['card__icon', 'card__icon--lg', `card__icon--u${unit.unit}`]}>
             <Icon name={unitIcon(unit.unit)} size="lg" />

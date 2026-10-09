@@ -1,14 +1,14 @@
 ---
 /**
  * 단원 차시 목록(판 1.3.0) — 지금 차시가 든 대단원의 묶음과 차시를 한눈에. 지금 차시는 aria-current="page"로 강조하고,
- * 차시마다 진도(안 봄·열어 봤어요·마쳤어요)를 목록 앞 표시로 보인다(링크 밖 [data-progress-badge], progress-paint.ts가 칠한다).
+ * 차시마다 진도(안 봄·열어 봤어요·다 했어요)를 목록 앞 표시로 보인다(링크 밖 [data-progress-badge], progress-paint.ts가 칠한다).
  *
  * 한 요소가 두 얼굴이다(링크를 두 벌 만들지 않는다):
  *   넓은 화면(64rem 이상) — 왼쪽에 붙어 따라오는 목록. lesson-progress.ts가 펼치고 요약 줄은 CSS가 숨긴다.
  *   좁은 화면 — 본문 위의 <details> "이 단원 차시 목록 펼치기"(Tab 정지점 하나). 펼치기 전에는 링크가 Tab 차례에 없다.
  * 차례는 DOM 순서 그대로 보이는 차례다(CSS order로 옮기지 않는다). 목록 앞에 [차시 목록 건너뛰기]가 있어 본문으로 바로 간다.
  * 발표 모드·임베드에서는 숨는다(data-present-hide·data-embed-hide).
- * 진도 요약("18차시 중 1차시를 마쳤어요")은 접힌 요약 줄에도 작게 함께 보인다 — 좁은 화면에서 목록을 펼치지 않아도 알 수 있게(R1-087).
+ * 진도 요약("18차시 중 1차시를 다 했어요")은 접힌 요약 줄에도 작게 함께 보인다 — 좁은 화면에서 목록을 펼치지 않아도 알 수 있게(R1-087).
  * 그래서 진도 단위(data-progress-unit)가 <details> 전체에 걸려 있고, 요약 줄과 펼친 머리의 두 [data-progress-count]를 한꺼번에 칠한다.
  * 보충·읽기 자료 차시에는 작은 종류 칩(보충)을 붙여 교과서 차시와 구별한다(R1-086).
  */
@@ -31,7 +31,7 @@ const ids = sections.flatMap((section) => section.items.flatMap((item) => (item.
   class:list={['more', 'lesson-nav', unitCardClass(unit.unit)]}
   data-lesson-nav
   data-progress-unit={progressIds(ids)}
-  data-progress-label={`${unit.numeral}단원`}
+  data-progress-label={`${unit.unit}단원`}
   data-present-hide
   data-embed-hide
   data-pagefind-ignore

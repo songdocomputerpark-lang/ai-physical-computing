@@ -8,8 +8,10 @@ import {
   firstUnseen,
   hasProgress,
   isLessonId,
+  isSupplementId,
   lessonStatus,
   markSeen,
+  nextUnseen,
   readProgress,
   rememberLab,
   sanitizeProgress,
@@ -146,7 +148,7 @@ describe('sanitizeProgress', () => {
   });
 
   it('lastLab도 같은 규칙이다', () => {
-    const lab = { path: '/ai-physical-computing/labs/vision/', title: '영상처리 실습실', at: 9 };
+    const lab = { path: '/ai-physical-computing/labs/vision/', title: '영상 처리 실습실', at: 9 };
     expect(sanitizeProgress({ version: 1, lastLab: lab }).lastLab).toEqual(lab);
     expect(sanitizeProgress({ version: 1, lastLab: { ...lab, path: 'https://x.test/' } }).lastLab).toBeNull();
     expect(sanitizeProgress({ version: 1, lastLab: { ...lab, title: 3 } }).lastLab).toBeNull();
@@ -302,6 +304,39 @@ describe('unitSummary·lessonStatus·firstUnseen', () => {
     expect(firstUnseen(emptyProgress(), ids)).toBe('u1/1-1-1');
     expect(firstUnseen({ ...emptyProgress(), seen: ids }, ids)).toBeNull();
   });
+
+  it('선택 보충 차시는 firstUnseen·nextUnseen이 건너뛴다(R2-020)', () => {
+    const withV = ['u1/1-1-3', 'u1/v1', 'u1/1-2-1'];
+    const state = { ...emptyProgress(), seen: ['u1/1-1-3'], done: ['u1/1-1-3'] };
+    expect(firstUnseen(state, withV)).toBe('u1/1-2-1');
+    // 보충만 남았으면 "안 본 차시 없음"
+    expect(firstUnseen({ ...state, seen: ['u1/1-1-3', 'u1/1-2-1'] }, withV)).toBeNull();
+    expect(nextUnseen({ ...state, seen: ['u1/1-1-3', 'u1/1-2-1'] }, withV)).toBeNull();
+  });
+
+  it('nextUnseen은 지난번에 본 차시 바로 뒤의 안 본 차시, 뒤에 없으면 첫 안 본 차시다(R2-021)', () => {
+    const last = (id: string) => ({ id, href: `/x/${id}/`, label: 'L', title: 'T', at: 1 });
+    const done3 = { ...emptyProgress(), seen: ['u1/1-1-3'], done: ['u1/1-1-3'], last: last('u1/1-1-3') };
+    // 1-1-1·1-1-2를 안 보고 1-1-3만 끝냈다: 뒤에 1-2-1이 있으니 1-2-1
+    expect(nextUnseen(done3, ids)).toBe('u1/1-2-1');
+    // 마지막 차시를 끝냈으면 앞의 안 본 첫 차시로 돌아간다
+    const doneLast = { ...emptyProgress(), seen: ['u1/1-2-1'], done: ['u1/1-2-1'], last: last('u1/1-2-1') };
+    expect(nextUnseen(doneLast, ids)).toBe('u1/1-1-1');
+    // 지난번 차시가 묶음에 없으면 firstUnseen과 같다
+    const other = { ...emptyProgress(), last: last('u2/2-1-1') };
+    expect(nextUnseen(other, ids)).toBe('u1/1-1-1');
+    expect(nextUnseen(emptyProgress(), ids)).toBe('u1/1-1-1');
+    expect(nextUnseen({ ...emptyProgress(), seen: ids }, ids)).toBeNull();
+  });
+
+  it('isSupplementId: V·C·P 보충 차시만 true', () => {
+    for (const id of ['u1/v1', 'u1/v5', 'u3/c2', 'u3/p1']) {
+      expect(isSupplementId(id)).toBe(true);
+    }
+    for (const id of ['u1/1-1-3', 'u1/review', 'u2/2-1-r', 'u4/project']) {
+      expect(isSupplementId(id)).toBe(false);
+    }
+  });
 });
 
 describe('이벤트', () => {
@@ -321,13 +356,13 @@ describe('이벤트', () => {
     const storage = new MemoryStorage();
     markSeen(L1, storage, 1);
     setDone('u1/1-1-1', true, storage);
-    rememberLab({ path: '/ai-physical-computing/labs/vision/', title: '영상처리 실습실' }, storage, 2);
+    rememberLab({ path: '/ai-physical-computing/labs/vision/', title: '영상 처리 실습실' }, storage, 2);
     clearProgress(storage);
     expect(events.map((event) => event.type)).toEqual(Array(4).fill(PROGRESS_CHANGED_EVENT));
     expect(PROGRESS_CHANGED_EVENT).toBe('apc:progress-changed');
     expect(events[0].detail.seen).toEqual(['u1/1-1-1']);
     expect(events[1].detail.done).toEqual(['u1/1-1-1']);
-    expect(events[2].detail.lastLab?.title).toBe('영상처리 실습실');
+    expect(events[2].detail.lastLab?.title).toBe('영상 처리 실습실');
     expect(events[3].detail).toEqual(emptyProgress());
   });
 
