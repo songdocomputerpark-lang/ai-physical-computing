@@ -2,7 +2,11 @@
 /**
  * 이전·다음 차시 링크. 순서는 대단원 → order(lesson-data.ts의 compareLessons)이고 대단원이 달라도 이어진다.
  * md가 있는 차시(draft 아님)만 잇는다. 준비 중인 차시는 건너뛴다.
+ *
+ * 판 1.3.0: 큰 카드로 — 카드 전체가 링크(공용 .card--link)이고, 가는 차시의 단원 색 띠와 화살표 아이콘이 붙는다.
+ * 문구("이전 차시"·"다음 차시"·"첫 번째 차시예요."·"마지막으로 준비된 차시예요.")와 링크 이름은 그대로다.
  */
+import Icon from '../common/Icon.astro';
 import type { LessonSummary } from './lesson-data.ts';
 
 interface Props {
@@ -18,12 +22,17 @@ const { previous, next } = Astro.props;
     <li class="lesson-pager__item lesson-pager__item--previous">
       {
         previous ? (
-          <a class="lesson-pager__link" href={previous.href} rel="prev">
-            <span class="lesson-pager__direction">← 이전 차시</span>{' '}
-            <span class="lesson-pager__title">
-              {previous.label} {previous.title}
-            </span>
-          </a>
+          <div class={`lesson-pager__card card card--link card--u${previous.unit}`}>
+            <a class="lesson-pager__link card__link" href={previous.href} rel="prev">
+              <span class="lesson-pager__direction">
+                <Icon name="arrow-left" size="sm" />
+                이전 차시
+              </span>{' '}
+              <span class="lesson-pager__title">
+                {previous.label} {previous.title}
+              </span>
+            </a>
+          </div>
         ) : (
           <span class="lesson-pager__empty">첫 번째 차시예요.</span>
         )
@@ -32,12 +41,17 @@ const { previous, next } = Astro.props;
     <li class="lesson-pager__item lesson-pager__item--next">
       {
         next ? (
-          <a class="lesson-pager__link" href={next.href} rel="next">
-            <span class="lesson-pager__direction">다음 차시 →</span>{' '}
-            <span class="lesson-pager__title">
-              {next.label} {next.title}
-            </span>
-          </a>
+          <div class={`lesson-pager__card card card--link card--u${next.unit}`}>
+            <a class="lesson-pager__link card__link" href={next.href} rel="next">
+              <span class="lesson-pager__direction">
+                다음 차시
+                <Icon name="arrow-right" size="sm" />
+              </span>{' '}
+              <span class="lesson-pager__title">
+                {next.label} {next.title}
+              </span>
+            </a>
+          </div>
         ) : (
           <span class="lesson-pager__empty">마지막으로 준비된 차시예요.</span>
         )
@@ -48,56 +62,78 @@ const { previous, next } = Astro.props;
 
 <style>
   .lesson-pager {
-    margin-block-start: var(--space-12);
-    padding-block-start: var(--space-6);
-    border-top: 1px solid var(--color-border);
+    margin-block-start: var(--space-8);
   }
 
   .lesson-pager__list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
     gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  .lesson-pager__item {
+    display: grid;
+    min-width: 0;
+  }
+
   .lesson-pager__item--next {
     text-align: end;
+  }
+
+  .lesson-pager__card {
+    display: grid;
+    align-content: center;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  /* 오른쪽(다음) 카드는 띠도 오른쪽에 둬서 "가는 방향"이 보인다 */
+  .lesson-pager__item--next .lesson-pager__card.card {
+    border-inline-start: 1px solid var(--color-border);
+    border-inline-end: 4px solid var(--card-unit);
   }
 
   .lesson-pager__link {
     display: grid;
     gap: var(--space-1);
-    min-height: 100%;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
-    color: var(--color-text);
     line-height: var(--leading-snug);
-    text-decoration: none;
-  }
-
-  .lesson-pager__link:hover {
-    border-color: var(--color-accent);
-    background: var(--color-accent-soft);
-    color: var(--color-text);
   }
 
   .lesson-pager__direction {
-    color: var(--color-accent-hover);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--card-unit);
     font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-bold);
+  }
+
+  .lesson-pager__item--next .lesson-pager__direction {
+    justify-content: flex-end;
   }
 
   .lesson-pager__title {
+    color: var(--color-text);
     font-weight: var(--weight-semibold);
   }
 
   .lesson-pager__empty {
-    display: block;
+    display: grid;
+    align-content: center;
     padding: var(--space-3) var(--space-4);
     color: var(--color-text-muted);
     font-size: var(--text-sm);
+  }
+
+  @media (max-width: 40rem) {
+    .lesson-pager__item--next {
+      text-align: start;
+    }
+
+    .lesson-pager__item--next .lesson-pager__direction {
+      justify-content: flex-start;
+    }
   }
 </style>

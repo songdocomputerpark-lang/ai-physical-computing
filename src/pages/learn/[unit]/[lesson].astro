@@ -6,7 +6,10 @@
  * 본문: 마크다운의 8칸(학습목표 → 왜 배울까 → 핵심 개념 → 따라하기 → 바꿔보기 → 도전 과제 → 확인 퀴즈 → 교사용)
  *       + 따라하기 예제(frontmatter examples) + 확인 퀴즈(frontmatter quiz)
  *       + 교사용 접기 끝의 "이 차시의 원고와 자료"(원천·성취기준·원본 안내·가린 편집본 — LessonTeacherInfo.astro, 저절로 붙음)
- * 끝: 이전·다음 차시, 발표 모드 막대(발표 중에만 보임 — LessonPresent.astro)
+ * 끝: [이 차시 다 했어요] 토글(LessonDone.astro), 이전·다음 차시, 발표 모드 막대(발표 중에만 보임 — LessonPresent.astro)
+ *
+ * 판 1.3.0: 쪽 폭을 default로 올리고 넓은 화면(64rem 이상)에서 2열 — 왼쪽에 붙어 따라오는 단원 차시 목록(LessonSidebar), 오른쪽에 본문(44rem 그대로).
+ * 좁은 화면에서는 본문 위의 <details>로 접힌다. 머리 위쪽에 "몇 번째 차시인지"와 작은 [이전]·[다음], 차시를 열면 "봤어요"를 저장한다.
  *
  * 차시 틀 규칙(lesson-rules.ts)을 빌드할 때 모두 돌려 빌드 기록에 [차시 틀] 경고로 남긴다 — 빌드는 멈추지 않는다(PD-35).
  * 같은 규칙을 엄격하게(오류면 실패) 돌리는 것은 npm run check:lessons다.
@@ -17,11 +20,14 @@
  * 용어사전만 고쳐도 차시 툴팁이 새 풀이로 바뀐다(src/components/glossary/GlossaryScope.astro, remark-glossary.mjs 머리말).
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
+import Icon from '../../../components/common/Icon.astro';
 import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import LessonBody from '../../../components/lesson/LessonBody.astro';
+import LessonDone from '../../../components/lesson/LessonDone.astro';
 import LessonMeta from '../../../components/lesson/LessonMeta.astro';
 import LessonPager from '../../../components/lesson/LessonPager.astro';
 import LessonPresent from '../../../components/lesson/LessonPresent.astro';
+import LessonSidebar from '../../../components/lesson/LessonSidebar.astro';
 import LessonToc from '../../../components/lesson/LessonToc.astro';
 import {
   checkLessons,
@@ -34,6 +40,7 @@ import {
 } from '../../../components/lesson/lesson-data.ts';
 import { planLessonBody } from '../../../components/lesson/lesson-html.ts';
 import { checkLessonRules, lessonSource } from '../../../components/lesson/lesson-rules.ts';
+import { lessonPosition, unitCardClass, unitIcon } from '../../../components/lesson/unit-style.ts';
 import { getLearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -83,64 +90,190 @@ const unit = getLearnUnit(lesson.unit);
 const kind = kindBadge(lesson.kind);
 const tocSections = plan.sections.flatMap((section) => (section.id ? [{ id: section.id, title: section.title }] : []));
 const { previous, next } = findNeighbors(lessons, lesson.id);
+const position = lessonPosition(lessons, lesson);
 ---
 
 <BaseLayout
   title={lessonDocumentTitle(lesson)}
   description={lesson.description}
-  width="narrow"
+  width="default"
   breadcrumb={lessonBreadcrumb(lesson)}
   ogType="article"
 >
-  <article class="lesson" data-lesson-id={lesson.id}>
-    <header class="lesson__header">
-      <p class="lesson__unit">
-        <a href={unit.href}>{unit.title}</a>
-      </p>
-      <h1 class="page-title lesson__title">
-        <span class="lesson__label">{lesson.label}</span>{' '}
-        {kind && <span class="lesson__kind">{kind}</span>}
-        {kind && ' '}
-        <span class="lesson__name">{lesson.title}</span>
-      </h1>
-      {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
-      <div data-present-hide>
-        <LessonMeta lesson={lesson} />
-        <p class="lesson__tools" data-pagefind-ignore>
-          <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
-            발표 모드
-          </button>
-          <span class="lesson__tools-note" id="lesson-present-note">
-            수업 중 프로젝터로 크게, 한 단계씩 보여 줘요. 키보드 → ←로 넘기고 Esc로 끝내요.
-          </span>
-        </p>
-      </div>
-    </header>
-    <LessonToc sections={tocSections} />
-    <GlossaryScope id="lesson">
-      <LessonBody
-        plan={plan}
-        examples={entry.data.examples}
-        quiz={entry.data.quiz}
-        lab={lesson.lab}
-        lessonId={lesson.id}
-        source={source}
-        teacher={teacher}
-      />
-    </GlossaryScope>
-    <LessonPager previous={previous} next={next} />
-  </article>
+  <div class="lesson-layout">
+    <LessonSidebar lesson={lesson} lessons={lessons} unit={unit} />
+    <article class="lesson" id="lesson-article" tabindex="-1" data-lesson-id={lesson.id}>
+      <header class="lesson__header">
+        <div class="lesson__where" data-present-hide data-pagefind-ignore>
+          <p class:list={['lesson__unit', unitCardClass(lesson.unit)]}>
+            <span class="lesson__unit-icon">
+              <Icon name={unitIcon(lesson.unit)} size="sm" />
+            </span>
+            <a href={unit.href}>{unit.title}</a>
+            {position && <span class="lesson__position">{position.total}차시 중 {position.index}번째</span>}
+          </p>
+          <nav class="lesson__step" aria-label="차시 이동">
+            {
+              previous && (
+                <a class="lesson__step-link" href={previous.href} rel="prev">
+                  <Icon name="arrow-left" size="sm" />
+                  <span>이전</span>
+                  <span class="lesson__step-label">{previous.label}</span>
+                </a>
+              )
+            }
+            {
+              next && (
+                <a class="lesson__step-link" href={next.href} rel="next">
+                  <span>다음</span>
+                  <span class="lesson__step-label">{next.label}</span>
+                  <Icon name="arrow-right" size="sm" />
+                </a>
+              )
+            }
+          </nav>
+        </div>
+        <h1 class="page-title lesson__title">
+          <span class="lesson__label">{lesson.label}</span>{' '}
+          {kind && <span class="lesson__kind">{kind}</span>}
+          {kind && ' '}
+          <span class="lesson__name">{lesson.title}</span>
+        </h1>
+        {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
+        <div data-present-hide>
+          <LessonMeta lesson={lesson} />
+          <p class="lesson__tools" data-pagefind-ignore>
+            <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
+              발표 모드
+            </button>
+            <span class="lesson__tools-note" id="lesson-present-note">
+              수업 중 프로젝터로 크게, 한 단계씩 보여 줘요. 키보드 → ←로 넘기고 Esc로 끝내요.
+            </span>
+          </p>
+        </div>
+      </header>
+      <LessonToc sections={tocSections} />
+      <GlossaryScope id="lesson">
+        <LessonBody
+          plan={plan}
+          examples={entry.data.examples}
+          quiz={entry.data.quiz}
+          lab={lesson.lab}
+          lessonId={lesson.id}
+          source={source}
+          teacher={teacher}
+        />
+      </GlossaryScope>
+      <LessonDone lesson={lesson} />
+      <LessonPager previous={previous} next={next} />
+    </article>
+  </div>
   <LessonPresent />
 </BaseLayout>
 
 <style>
+  /* 2열: 왼쪽 단원 차시 목록(64rem 이상) + 오른쪽 본문(44rem 그대로 — 그림·표·실습실 칸 폭을 지킨다) */
+  .lesson-layout {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--width-prose);
+    margin-inline: auto;
+  }
+
+  @media (min-width: 64rem) {
+    .lesson-layout {
+      grid-template-columns: minmax(13rem, 17rem) minmax(0, var(--width-prose));
+      justify-content: center;
+      align-items: start;
+      column-gap: var(--space-8);
+      max-width: none;
+    }
+  }
+
+  /* 발표 모드: 목록은 숨고(LessonPresent) 본문만 한 열로 가운데에 */
+  :global(html[data-presenting]) .lesson-layout {
+    display: block;
+    max-width: var(--width-prose);
+  }
+
+  .lesson {
+    min-width: 0;
+  }
+
+  .lesson:focus {
+    outline: none;
+  }
+
+  .lesson__where {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-block-end: var(--space-2);
+  }
+
   .lesson__unit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
   }
 
+  .lesson__unit-icon {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: var(--radius-full);
+    background: var(--card-unit-soft);
+    color: var(--card-unit);
+  }
+
   .lesson__unit a {
+    color: var(--card-unit);
+  }
+
+  .lesson__position {
     color: var(--color-text-muted);
+  }
+
+  .lesson__position::before {
+    margin-inline-end: var(--space-2);
+    content: '·';
+  }
+
+  .lesson__step {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .lesson__step-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-block-size: 2.25rem;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .lesson__step-link:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .lesson__step-label {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+    white-space: nowrap;
   }
 
   .lesson__title {

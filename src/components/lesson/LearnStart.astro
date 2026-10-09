@@ -1,0 +1,122 @@
+---
+/**
+ * 시작 카드 — "어디부터 하지?"에 답한다(판 1.3.0, 배우기 첫 쪽과 대단원 쪽).
+ *
+ * 서버가 그린 글은 "처음이라면" 상태다(JS가 꺼져 있어도 맞는 길). 진도가 있으면 learn-progress.ts가
+ * "이어서 하기"(배우기 첫 쪽: 지난번에 본 차시, 대단원 쪽: 아직 안 본 첫 차시)로 바꾼다. 글만 바뀌고 크기는 같아 쪽이 밀리지 않는다.
+ * 채운 파랑 주 단추는 이 쪽에 이것 하나뿐이다. 눌리는 곳은 단추(링크)이고, 접근 이름은 단추 글 하나다 — 차시 제목은 링크 밖에 둔다.
+ *
+ * props
+ *   first   처음 상태에서 가리킬 차시(차례의 첫 차시)
+ *   numeral 대단원 로마 숫자(I~IV) — "처음이면 I단원 1-1-1부터"
+ *   scope   all(배우기 첫 쪽) | unit(대단원 쪽)
+ */
+import Icon from '../common/Icon.astro';
+import type { LessonSummary } from './lesson-data.ts';
+
+interface Props {
+  first: LessonSummary;
+  numeral: string;
+  scope: 'all' | 'unit';
+  unit?: 1 | 2 | 3 | 4;
+}
+
+const { first, numeral, scope, unit } = Astro.props;
+const firstButton = `처음이면 ${numeral}단원 ${first.label}부터`;
+---
+
+<div
+  class:list={['learn-start', 'card', unit && `card--u${unit}`]}
+  data-learn-start
+  data-start-scope={scope}
+  data-start-first-text={firstButton}
+  data-start-mode="first"
+  data-embed-hide
+  data-present-hide
+  data-pagefind-ignore
+>
+  <span class:list={['card__icon', 'card__icon--lg', unit && `card__icon--u${unit}`]}>
+    <Icon name="play" size="lg" />
+  </span>
+  <div class="learn-start__text">
+    <p class="learn-start__kicker" data-start-kicker>처음이라면</p>
+    <p class="learn-start__title" data-start-title>{first.label} {first.title}</p>
+  </div>
+  <a class="button button--primary button--large learn-start__button" href={first.href} data-start-button>
+    <span data-start-button-text>{firstButton}</span>
+    <Icon name="arrow-right" size="sm" />
+  </a>
+</div>
+
+<script>
+  import { installProgressPaint } from '../progress/progress-paint.ts';
+  import { installLearnProgress } from './learn-progress.ts';
+
+  installProgressPaint();
+  installLearnProgress();
+</script>
+
+<style>
+  .learn-start {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    margin-block: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-5);
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+  }
+
+  .learn-start.card--u1,
+  .learn-start.card--u2,
+  .learn-start.card--u3,
+  .learn-start.card--u4 {
+    border-color: var(--card-unit);
+    background: var(--card-unit-soft);
+  }
+
+  .learn-start .card__icon {
+    background: var(--color-bg);
+  }
+
+  .learn-start__text {
+    min-width: 0;
+  }
+
+  .learn-start__kicker {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .learn-start__title {
+    /* 두 줄 자리를 미리 잡아 글이 바뀌어도 쪽이 밀리지 않는다 */
+    display: -webkit-box;
+    min-height: calc(2 * var(--leading-snug) * 1em);
+    overflow: hidden;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+
+  .learn-start__button {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  @media (min-width: 48rem) {
+    .learn-start {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .learn-start__button {
+      grid-column: auto;
+      justify-self: end;
+    }
+  }
+</style>

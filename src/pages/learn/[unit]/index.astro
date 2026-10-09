@@ -2,11 +2,17 @@
 /**
  * 대단원 페이지(/learn/u1/ ~ /learn/u4/) — 한 대단원의 묶음(중단원) > 차시 카드.
  * 대단원 이름·주소·설명은 사이트 지도(src/config/nav.ts의 learnUnits)에서 온다.
+ *
+ * 판 1.3.0: 단원 색 머리띠 + 진도 막대, 시작 카드("다음에 볼 차시"), 카드마다 진도 표시와 "다음에 볼 차시" 표.
+ * 진도는 브라우저에서만 칠한다(HTML에 굽지 않는다).
  */
 import { getCollection } from 'astro:content';
+import Icon from '../../../components/common/Icon.astro';
+import LearnStart from '../../../components/lesson/LearnStart.astro';
 import LessonLegend from '../../../components/lesson/LessonLegend.astro';
 import UnitOutline from '../../../components/lesson/UnitOutline.astro';
 import { buildUnitOutline, countOutline, lessonCountText, publishedLessons } from '../../../components/lesson/lesson-data.ts';
+import { progressIds, unitCardClass, unitIcon } from '../../../components/lesson/unit-style.ts';
 import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
@@ -26,19 +32,89 @@ const { unit } = Astro.props;
 const lessons = publishedLessons(await getCollection('lessons'));
 const sections = buildUnitOutline(unit.unit, lessons);
 const counts = countOutline(sections);
+const ids = sections.flatMap((section) => section.items.flatMap((item) => (item.lesson ? [item.lesson.id] : [])));
+const firstLesson = lessons.find((lesson) => lesson.id === ids[0]);
 ---
 
 <BaseLayout title={unit.title} description={unit.description}>
-  <h1 class="page-title">{unit.title}</h1>
-  <p class="lead">{unit.description}</p>
-  <p class="unit-count">{lessonCountText(counts)}</p>
+  <header
+    class:list={['unit-head', unitCardClass(unit.unit)]}
+    data-progress-unit={progressIds(ids)}
+    data-progress-label={`${unit.numeral}단원`}
+  >
+    <span class:list={['card__icon', 'card__icon--lg', `card__icon--u${unit.unit}`]}>
+      <Icon name={unitIcon(unit.unit)} size="lg" />
+    </span>
+    <div class="unit-head__text">
+      <h1 class="page-title">{unit.title}</h1>
+      <p class="lead">{unit.description}</p>
+      <p class="unit-count">{lessonCountText(counts)}</p>
+    </div>
+    <div class="unit-head__progress" data-pagefind-ignore>
+      <p class="unit-head__progress-text" data-progress-count />
+      <div class="progress-bar" data-progress-bar aria-hidden="true" />
+    </div>
+  </header>
+  {firstLesson && <LearnStart first={firstLesson} numeral={unit.numeral} scope="unit" unit={unit.unit} />}
   <LessonLegend hasPlanned={counts.planned > 0} />
-  <UnitOutline sections={sections} headingLevel={2} />
+  <UnitOutline sections={sections} headingLevel={2} unit={unit.unit} showNext />
 </BaseLayout>
 
 <style>
+  .unit-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--card-unit);
+    border-inline-start-width: 6px;
+    border-radius: var(--radius-lg);
+    background: var(--card-unit-soft);
+  }
+
+  .unit-head .card__icon {
+    background: var(--color-bg);
+  }
+
+  .unit-head__text {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .unit-head__text .lead {
+    margin-block-end: 0;
+  }
+
   .unit-count {
-    margin-block: calc(-1 * var(--space-4)) var(--space-6);
     font-weight: var(--weight-semibold);
+  }
+
+  .unit-head__progress {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: var(--space-1);
+  }
+
+  .unit-head__progress-text {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .unit-head__progress .progress-bar {
+    background: var(--color-bg);
+  }
+
+  @media (max-width: 40rem) {
+    .unit-head {
+      gap: var(--space-2) var(--space-3);
+      padding: var(--space-3) var(--space-4);
+    }
+
+    .unit-head .card__icon {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
   }
 </style>

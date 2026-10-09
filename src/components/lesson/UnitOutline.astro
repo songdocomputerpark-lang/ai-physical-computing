@@ -7,19 +7,24 @@
 // 주의: 이 머리말을 JSDoc 블록 주석으로 쓰면 Astro 컴파일러가 Props를 찾지 못해 props 타입 검사가 꺼졌다(2026-09-16 확인).
 import LessonCard from './LessonCard.astro';
 import type { OutlineSection } from './lesson-data.ts';
+import type { LessonUnitNumber } from './unit-style.ts';
 
 interface Props {
   sections: readonly OutlineSection[];
   headingLevel?: 2 | 3;
   contextId?: string;
+  /** 카드의 단원 색을 정하는 대단원 번호 */
+  unit?: LessonUnitNumber;
+  /** 카드에 "다음에 볼 차시" 표 자리를 둘지(대단원 쪽) */
+  showNext?: boolean;
 }
 
-const { sections, headingLevel = 2, contextId } = Astro.props;
+const { sections, headingLevel = 2, contextId, unit, showNext = false } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 const labelledBy = (key: string): string => (contextId ? `${key}-title ${contextId}` : `${key}-title`);
 ---
 
-<div class="unit-outline">
+<div class="unit-outline" style={unit ? `--unit-color: var(--unit-${unit})` : undefined}>
   {
     sections.map((section) => (
       <section class="unit-outline__section" aria-labelledby={labelledBy(section.key)}>
@@ -29,7 +34,7 @@ const labelledBy = (key: string): string => (contextId ? `${key}-title ${context
         {section.description && <p class="unit-outline__description">{section.description}</p>}
         <ul class="unit-outline__cards">
           {section.items.map((item) => (
-            <LessonCard item={item} />
+            <LessonCard item={item} unit={unit} showNext={showNext} />
           ))}
         </ul>
       </section>
@@ -50,6 +55,18 @@ const labelledBy = (key: string): string => (contextId ? `${key}-title ${context
 
   .unit-outline__title {
     font-size: var(--text-lg);
+  }
+
+  /* 묶음 제목 앞에 단원 색 짧은 막대(장식) */
+  .unit-outline__title::before {
+    display: inline-block;
+    inline-size: 0.35rem;
+    block-size: 1em;
+    margin-inline-end: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--unit-color, var(--color-accent));
+    content: '';
+    vertical-align: -0.1em;
   }
 
   .unit-outline__description {

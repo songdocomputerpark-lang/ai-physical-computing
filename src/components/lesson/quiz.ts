@@ -70,6 +70,14 @@ export function summarizeQuiz(states: readonly QuizState[]): string {
   return `${states.length}문항 가운데 ${correct}문항을 맞혔어요.`;
 }
 
+/** 모든 문항을 맞혔는지(문항이 하나도 없으면 false) — 차시 "다 했어요" 자동 표시(lesson-progress.ts)가 쓴다 */
+export function allCorrect(states: readonly QuizState[]): boolean {
+  return states.length > 0 && states.every((state) => state === 'correct');
+}
+
+/** 퀴즈의 모든 문항을 맞히면 퀴즈 상자([data-quiz])에서 위로 퍼지는 사건 이름(판 1.3.0 — 학습 진도 연결) */
+export const QUIZ_COMPLETE_EVENT = 'apc:quiz-complete';
+
 /** LessonQuiz.astro가 만든 퀴즈에 동작을 붙인다(여러 번 불러도 한 번만 붙는다). */
 export function enhanceQuizzes(root: ParentNode = document): void {
   for (const quiz of Array.from(root.querySelectorAll<HTMLElement>('[data-quiz]'))) {
@@ -83,6 +91,9 @@ export function enhanceQuizzes(root: ParentNode = document): void {
     const updateSummary = () => {
       if (summary) {
         summary.textContent = summarizeQuiz(states);
+      }
+      if (allCorrect(states)) {
+        quiz.dispatchEvent(new CustomEvent(QUIZ_COMPLETE_EVENT, { bubbles: true }));
       }
     };
     items.forEach((element, index) => {

@@ -2,9 +2,12 @@
 /**
  * 차시 카드 한 장(배우기·대단원 목록). UnitOutline.astro의 <ul> 안에 <li>로 들어간다.
  *
- * - md가 있는 차시(status ready): 카드 전체가 차시 페이지 링크. 링크 이름은 "차시 번호 (종류) 제목"
+ * - md가 있는 차시(status ready): 카드 전체가 차시 페이지 링크(공용 .card--link). 링크 이름은 "차시 번호 (종류) 제목"
  * - md가 없는 차시(status planned): 링크 없이 "준비 중" 딱지
  * - 코드만 있는 차시: "원고 없음" 딱지(PLAN §2.3)
+ * - 단원 색 왼쪽 띠(.card--u1~4)와 진도 표시: 링크 밖 [data-progress-badge]("봤어요"·"다 했어요")는 progress-paint.ts가 칠한다.
+ *   링크 안에는 진도 글을 넣지 않는다(링크 접근 이름이 바뀌면 안 된다).
+ * - showNext: 대단원 쪽에서만. "다음에 볼 차시" 표(learn-progress.ts가 안 본 첫 차시에 data-next를 붙이면 보인다).
  */
 import LessonTag from './LessonTag.astro';
 import {
@@ -15,12 +18,18 @@ import {
   pagesText,
   type OutlineItem,
 } from './lesson-data.ts';
+import { unitCardClass, type LessonUnitNumber } from './unit-style.ts';
 
 interface Props {
   item: OutlineItem;
+  /** 단원 색을 정하는 대단원 번호 */
+  unit?: LessonUnitNumber | undefined;
+  /** "다음에 볼 차시" 표 자리를 둘지 */
+  showNext?: boolean;
 }
 
-const { item } = Astro.props;
+const { item, unit, showNext = false } = Astro.props;
+const unitNumber = unit ?? item.lesson?.unit;
 const kind = kindBadge(item.kind);
 const badges = outlineBadges(item);
 const facts = item.lesson
@@ -32,10 +41,15 @@ const pages = item.source === 'manuscript' || item.source === 'manuscript-code' 
 const hasTags = badges.length > 0 || facts.length > 0 || pages !== undefined;
 ---
 
-<li class="lesson-card" id={item.key} data-status={item.status}>
+<li
+  class:list={['lesson-card', 'card', item.lesson && 'card--link', unitNumber && unitCardClass(unitNumber)]}
+  id={item.key}
+  data-status={item.status}
+  data-progress-lesson={item.lesson?.id}
+>
   {
     item.lesson ? (
-      <a class="lesson-card__heading lesson-card__link" href={item.lesson.href}>
+      <a class="lesson-card__heading lesson-card__link card__link" href={item.lesson.href}>
         <span class="lesson-card__label">{item.label}</span>{' '}
         {kind && <span class="lesson-card__kind">{kind}</span>}
         {kind && ' '}
@@ -71,32 +85,29 @@ const hasTags = badges.length > 0 || facts.length > 0 || pages !== undefined;
       </ul>
     )
   }
+  {
+    item.lesson && (
+      <span class="lesson-card__state" data-pagefind-ignore>
+        <span data-progress-badge />
+        {showNext && <span class="lesson-card__next" data-next-flag />}
+      </span>
+    )
+  }
 </li>
 
 <style>
   .lesson-card {
-    position: relative;
     display: grid;
     align-content: start;
     gap: var(--space-2);
     min-height: 100%;
     padding: var(--space-4);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
-    transition:
-      border-color var(--duration-fast) var(--ease-standard),
-      box-shadow var(--duration-fast) var(--ease-standard);
+    box-shadow: var(--shadow-sm);
   }
 
   .lesson-card[data-status='planned'] {
     border-style: dashed;
     background: var(--color-bg-subtle);
-  }
-
-  .lesson-card[data-status='ready']:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-md);
   }
 
   .lesson-card__heading {
@@ -113,14 +124,16 @@ const hasTags = badges.length > 0 || facts.length > 0 || pages !== undefined;
 
   .lesson-card__label {
     display: block;
-    color: var(--color-text-muted);
+    /* 오른쪽 위의 진도 표(봤어요·다음에 볼 차시)와 겹치지 않게 한 줄을 비워 둔다 */
+    min-height: 1.5rem;
+    color: var(--card-unit, var(--color-accent-hover));
     font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     letter-spacing: 0.01em;
   }
 
-  .lesson-card[data-status='ready'] .lesson-card__label {
-    color: var(--color-accent-hover);
+  .lesson-card[data-status='planned'] .lesson-card__label {
+    color: var(--color-text-muted);
   }
 
   .lesson-card__kind {
@@ -141,23 +154,6 @@ const hasTags = badges.length > 0 || facts.length > 0 || pages !== undefined;
     text-decoration: underline;
   }
 
-  /* 카드 전체를 누르는 곳으로 넓힌다(링크는 하나라서 화면 낭독기는 한 번만 읽는다). */
-  .lesson-card__link::after {
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-md);
-    content: '';
-  }
-
-  .lesson-card__link:focus-visible {
-    outline: none;
-  }
-
-  .lesson-card__link:focus-visible::after {
-    outline: var(--focus-ring-width) solid var(--color-focus);
-    outline-offset: var(--focus-ring-offset);
-  }
-
   .lesson-card .lesson-card__tags {
     display: flex;
     flex-wrap: wrap;
@@ -169,5 +165,55 @@ const hasTags = badges.length > 0 || facts.length > 0 || pages !== undefined;
 
   .lesson-card .lesson-card__tags li {
     margin: 0;
+  }
+
+  /* 카드 오른쪽 위에 떠 있는 진도 표: 자리를 차지하지 않아 칠한 뒤에도 쪽이 밀리지 않는다. 눌림은 카드 덮개가 받는다. */
+  .lesson-card__state {
+    position: absolute;
+    inset-block-start: var(--space-3);
+    inset-inline-end: var(--space-3);
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  .lesson-card__next {
+    display: none;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--card-unit, var(--color-accent));
+    color: var(--color-on-accent);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    line-height: 1.5rem;
+    white-space: nowrap;
+  }
+
+  .lesson-card[data-next] .lesson-card__next {
+    display: inline-block;
+  }
+
+  /* 다음에 볼 차시 카드는 단원 색 테두리로 한 번 더 눈에 띈다(움직임 없음) */
+  .lesson-card[data-next] {
+    border-color: var(--card-unit, var(--color-accent));
+    box-shadow:
+      0 0 0 1px var(--card-unit, var(--color-accent)),
+      var(--shadow-md);
+  }
+
+  @media (forced-colors: active) {
+    .lesson-card__next {
+      border: 1px solid CanvasText;
+      forced-color-adjust: none;
+      background: Highlight;
+      color: HighlightText;
+    }
+
+    .lesson-card[data-next] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
   }
 </style>

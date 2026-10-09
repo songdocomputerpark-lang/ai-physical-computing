@@ -1,0 +1,273 @@
+---
+/**
+ * 단원 차시 목록(판 1.3.0) — 지금 차시가 든 대단원의 묶음과 차시를 한눈에. 지금 차시는 aria-current="page"로 강조하고,
+ * 차시마다 진도(안 봄·봤어요·다 했어요)를 목록 앞 표시로 보인다(링크 밖 [data-progress-badge], progress-paint.ts가 칠한다).
+ *
+ * 한 요소가 두 얼굴이다(링크를 두 벌 만들지 않는다):
+ *   넓은 화면(64rem 이상) — 왼쪽에 붙어 따라오는 목록. lesson-progress.ts가 펼치고 요약 줄은 CSS가 숨긴다.
+ *   좁은 화면 — 본문 위의 <details> "이 단원 차시 목록 펼치기"(Tab 정지점 하나). 펼치기 전에는 링크가 Tab 차례에 없다.
+ * 차례는 DOM 순서 그대로 보이는 차례다(CSS order로 옮기지 않는다). 목록 앞에 [차시 목록 건너뛰기]가 있어 본문으로 바로 간다.
+ * 발표 모드·임베드에서는 숨는다(data-present-hide·data-embed-hide).
+ */
+import { buildUnitOutline, type LessonSummary } from './lesson-data.ts';
+import { progressIds, unitCardClass } from './unit-style.ts';
+import type { LearnUnit } from '../../config/nav.ts';
+
+interface Props {
+  lesson: LessonSummary;
+  lessons: readonly LessonSummary[];
+  unit: LearnUnit;
+}
+
+const { lesson, lessons, unit } = Astro.props;
+const sections = buildUnitOutline(unit.unit, lessons).filter((section) => section.items.some((item) => item.lesson));
+const ids = sections.flatMap((section) => section.items.flatMap((item) => (item.lesson ? [item.lesson.id] : [])));
+---
+
+<details
+  class:list={['more', 'lesson-nav', unitCardClass(unit.unit)]}
+  data-lesson-nav
+  data-present-hide
+  data-embed-hide
+  data-pagefind-ignore
+>
+  <summary>이 단원 차시 목록 펼치기</summary>
+  <div class="lesson-nav__scroll" data-lesson-nav-scroll>
+    <nav class="lesson-nav__nav" aria-label="단원 차시 목록">
+      <a class="lesson-nav__skip" href="#lesson-article">차시 목록 건너뛰기</a>
+      <div class="lesson-nav__head" data-progress-unit={progressIds(ids)} data-progress-label={`${unit.numeral}단원`}>
+        <p class="lesson-nav__unit">
+          <a href={unit.href}>{unit.title}</a>
+        </p>
+        <p class="lesson-nav__count" data-progress-count />
+        <div class="progress-bar" data-progress-bar aria-hidden="true" />
+      </div>
+      {
+        sections.map((section) => (
+          <div class="lesson-nav__group">
+            <p class="lesson-nav__group-title" id={`nav-${section.key}`}>
+              {section.title}
+            </p>
+            <ul class="lesson-nav__list" aria-labelledby={`nav-${section.key}`}>
+              {section.items.map((item) =>
+                item.lesson ? (
+                  <li class="lesson-nav__item" data-progress-lesson={item.lesson.id}>
+                    <a
+                      class="lesson-nav__link"
+                      href={item.lesson.href}
+                      aria-current={item.lesson.id === lesson.id ? 'page' : undefined}
+                    >
+                      <span class="lesson-nav__label">{item.label}</span>{' '}
+                      <span class="lesson-nav__title">{item.title}</span>
+                    </a>
+                    <span class="visually-hidden" data-progress-badge />
+                  </li>
+                ) : null,
+              )}
+            </ul>
+          </div>
+        ))
+      }
+    </nav>
+  </div>
+</details>
+
+<style>
+  .lesson-nav {
+    min-width: 0;
+  }
+
+  /* 공용 .more가 펼친 내용에 주는 바깥 여백은 쓰지 않는다(목록이 상자를 가득 채운다) */
+  .lesson-nav > .lesson-nav__scroll {
+    margin: 0;
+  }
+
+  .lesson-nav__nav {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+
+  /* 건너뛰기: 평소엔 안 보이고, 초점이 오면 나타난다 */
+  .lesson-nav__skip {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .lesson-nav__skip:focus {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    clip-path: none;
+    font-weight: var(--weight-semibold);
+  }
+
+  .lesson-nav__head {
+    display: grid;
+    gap: var(--space-1);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .lesson-nav__unit {
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson-nav__unit a {
+    color: var(--card-unit);
+  }
+
+  .lesson-nav__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  .lesson-nav__group {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .lesson-nav__group-title {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.02em;
+  }
+
+  .lesson-nav .lesson-nav__list {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lesson-nav .lesson-nav__item {
+    position: relative;
+    margin: 0;
+  }
+
+  /* 진도 표시(모양으로도 구별한다): 안 봄 = 빈 동그라미, 봤어요 = 가운데 점, 다 했어요 = 채운 동그라미 + 체크 */
+  .lesson-nav__item::before {
+    position: absolute;
+    inset-block-start: 0.65em;
+    inset-inline-start: var(--space-2);
+    box-sizing: border-box;
+    inline-size: 1rem;
+    block-size: 1rem;
+    border: 2px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    content: '';
+  }
+
+  .lesson-nav__item[data-progress-state='seen']::before {
+    border-color: var(--card-unit);
+    background: radial-gradient(circle, var(--card-unit) 0 28%, var(--color-bg) 32%);
+  }
+
+  .lesson-nav__item[data-progress-state='done']::before {
+    border-color: var(--color-success-text);
+    background: var(--color-success-text);
+  }
+
+  .lesson-nav__item[data-progress-state='done']::after {
+    position: absolute;
+    inset-block-start: calc(0.65em + 0.2rem);
+    inset-inline-start: calc(var(--space-2) + 0.33rem);
+    inline-size: 0.28rem;
+    block-size: 0.5rem;
+    border: solid var(--color-bg);
+    border-width: 0 2px 2px 0;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  .lesson-nav__link {
+    display: block;
+    padding: var(--space-2) var(--space-2) var(--space-2) calc(var(--space-2) + 1.5rem);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .lesson-nav__link:hover {
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+  }
+
+  .lesson-nav__label {
+    color: var(--card-unit);
+    font-weight: var(--weight-bold);
+  }
+
+  .lesson-nav__link[aria-current='page'] {
+    background: var(--card-unit-soft);
+    box-shadow: inset 4px 0 0 var(--card-unit);
+    font-weight: var(--weight-bold);
+  }
+
+  /* 넓은 화면: 왼쪽에 붙어 따라오는 목록(요약 줄은 숨김 — lesson-progress.ts가 펼친다) */
+  @media (min-width: 64rem) {
+    .lesson-nav[data-wide] {
+      position: sticky;
+      /* 머리글은 화면에 붙지 않으므로(SiteHeader.astro 머리말) 머리글 높이를 더하지 않는다 — 더하면 스크롤 뒤 위에 4rem 빈틈이 생긴다 */
+      inset-block-start: var(--space-4);
+      align-self: start;
+      border-radius: var(--radius-lg);
+      background: var(--color-bg);
+    }
+
+    .lesson-nav[data-wide] > summary {
+      display: none;
+    }
+
+    .lesson-nav[data-wide] .lesson-nav__scroll {
+      max-block-size: calc(100vh - var(--space-8));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+  }
+
+  /* 좁은 화면: 펼친 목록이 너무 길면 안에서 스크롤 */
+  @media (max-width: 63.99rem) {
+    .lesson-nav[open] .lesson-nav__scroll {
+      max-block-size: 60vh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .lesson-nav__link[aria-current='page'] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    .lesson-nav__item::before {
+      border-color: CanvasText;
+    }
+
+    .lesson-nav__item[data-progress-state='done']::before {
+      background: CanvasText;
+    }
+  }
+
+  @media print {
+    .lesson-nav {
+      display: none;
+    }
+  }
+</style>

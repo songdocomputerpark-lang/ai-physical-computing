@@ -4,11 +4,17 @@
  *
  * 카드는 차례표(src/components/lesson/curriculum.ts)와 content/lessons/의 md 파일을 합쳐 만든다.
  * 새 차시 md를 content/lessons/에 넣으면 코드를 고치지 않아도 여기에 카드가 생긴다(시나리오 E의 축소판).
+ *
+ * 판 1.3.0: 맨 위 시작 카드("처음이면 I단원 1-1-1부터" ↔ 진도가 있으면 "이어서 하기"), 단원마다 색 머리띠·진도 막대.
+ * 진도는 브라우저에서만 칠한다(HTML에 굽지 않는다) — 처음 온 사람에게는 진도 글이 보이지 않는다.
  */
 import { getCollection } from 'astro:content';
+import Icon from '../../components/common/Icon.astro';
+import LearnStart from '../../components/lesson/LearnStart.astro';
 import LessonLegend from '../../components/lesson/LessonLegend.astro';
 import UnitOutline from '../../components/lesson/UnitOutline.astro';
 import { buildUnitOutline, countOutline, lessonCountText, publishedLessons } from '../../components/lesson/lesson-data.ts';
+import { progressIds, unitCardClass, unitIcon } from '../../components/lesson/unit-style.ts';
 import { getPage, learnUnits } from '../../config/nav.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
@@ -16,26 +22,43 @@ const page = getPage('learn');
 const lessons = publishedLessons(await getCollection('lessons'));
 const units = learnUnits.map((unit) => {
   const sections = buildUnitOutline(unit.unit, lessons);
-  return { unit, sections, counts: countOutline(sections) };
+  const ids = sections.flatMap((section) => section.items.flatMap((item) => (item.lesson ? [item.lesson.id] : [])));
+  return { unit, sections, counts: countOutline(sections), ids };
 });
 const hasPlanned = units.some(({ counts }) => counts.planned > 0);
+const firstUnit = units.find(({ ids }) => ids.length > 0);
+const firstLesson = firstUnit ? lessons.find((lesson) => lesson.id === firstUnit.ids[0]) : undefined;
 ---
 
 <BaseLayout title={page.title} description={page.description}>
   <h1 class="page-title">{page.title}</h1>
   <p class="lead">{page.description} 카드를 누르면 그 차시로 가요.</p>
+  {firstUnit && firstLesson && <LearnStart first={firstLesson} numeral={firstUnit.unit.numeral} scope="all" unit={firstUnit.unit.unit} />}
   <LessonLegend hasPlanned={hasPlanned} />
   {
-    units.map(({ unit, sections, counts }) => (
+    units.map(({ unit, sections, counts, ids }) => (
       <section class="learn-unit" aria-labelledby={`${unit.id}-title`}>
-        <header class="learn-unit__header">
-          <h2 class="learn-unit__title" id={`${unit.id}-title`}>
-            <a href={unit.href}>{unit.title}</a>
-          </h2>
-          <p class="learn-unit__description">{unit.description}</p>
-          <p class="learn-unit__count">{lessonCountText(counts)}</p>
+        <header
+          class:list={['learn-unit__header', unitCardClass(unit.unit)]}
+          data-progress-unit={progressIds(ids)}
+          data-progress-label={`${unit.numeral}단원`}
+        >
+          <span class:list={['card__icon', 'card__icon--lg', `card__icon--u${unit.unit}`]}>
+            <Icon name={unitIcon(unit.unit)} size="lg" />
+          </span>
+          <div class="learn-unit__text">
+            <h2 class="learn-unit__title" id={`${unit.id}-title`}>
+              <a href={unit.href}>{unit.title}</a>
+            </h2>
+            <p class="learn-unit__description">{unit.description}</p>
+            <p class="learn-unit__count">{lessonCountText(counts)}</p>
+          </div>
+          <div class="learn-unit__progress" data-pagefind-ignore>
+            <p class="learn-unit__progress-text" data-progress-count />
+            <div class="progress-bar" data-progress-bar aria-hidden="true" />
+          </div>
         </header>
-        <UnitOutline sections={sections} headingLevel={3} contextId={`${unit.id}-title`} />
+        <UnitOutline sections={sections} headingLevel={3} contextId={`${unit.id}-title`} unit={unit.unit} />
       </section>
     ))
   }
@@ -44,14 +67,29 @@ const hasPlanned = units.some(({ counts }) => counts.planned > 0);
 <style>
   .learn-unit {
     margin-block-start: var(--space-12);
-    padding-block-start: var(--space-8);
-    border-top: 2px solid var(--color-border);
   }
 
   .learn-unit__header {
     display: grid;
-    gap: var(--space-2);
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-3) var(--space-4);
     margin-block-end: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--card-unit);
+    border-inline-start-width: 6px;
+    border-radius: var(--radius-lg);
+    background: var(--card-unit-soft);
+  }
+
+  .learn-unit__header .card__icon {
+    background: var(--color-bg);
+  }
+
+  .learn-unit__text {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
   }
 
   .learn-unit__title {
@@ -60,11 +98,13 @@ const hasPlanned = units.some(({ counts }) => counts.planned > 0);
 
   .learn-unit__title a {
     color: var(--color-text);
-    text-decoration-color: var(--color-accent-border);
+    text-decoration-color: var(--card-unit);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
   }
 
   .learn-unit__title a:hover {
-    color: var(--color-accent-hover);
+    color: var(--card-unit);
   }
 
   .learn-unit__description {
@@ -74,5 +114,49 @@ const hasPlanned = units.some(({ counts }) => counts.planned > 0);
   .learn-unit__count {
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
+  }
+
+  /* 진도: 막대는 단원 색. 처음 온 사람에게는 보이지 않고(visibility, 자리는 그대로) 본 차시가 생기면 나타난다. */
+  .learn-unit__progress {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: var(--space-1);
+  }
+
+  .learn-unit__progress-text {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .learn-unit__progress .progress-bar {
+    background: var(--color-bg);
+  }
+
+  @media (max-width: 40rem) {
+    .learn-unit__header {
+      gap: var(--space-2) var(--space-3);
+      padding: var(--space-3) var(--space-4);
+    }
+
+    .learn-unit__header .card__icon {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+
+    .learn-unit__title {
+      font-size: var(--text-xl);
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .learn-unit__header {
+      grid-template-columns: auto minmax(0, 1fr) minmax(12rem, 16rem);
+      align-items: center;
+    }
+
+    .learn-unit__progress {
+      grid-column: auto;
+    }
   }
 </style>

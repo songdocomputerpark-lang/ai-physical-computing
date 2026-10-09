@@ -1,0 +1,126 @@
+---
+/**
+ * [이 차시 다 했어요] 토글(판 1.3.0) — 차시 본문 아래, 이전·다음 차시 위. 8칸 본문 안이 아니라 밖이라 발표 모드의 단계 나누기에 끼지 않는다.
+ *
+ * - 버튼 이름은 늘 "이 차시 다 했어요"이고 켜짐은 aria-pressed로 알린다(이름이 바뀌지 않아야 화면 낭독기가 토글로 읽는다).
+ * - 확인 퀴즈를 모두 맞히면 저절로 켜진다(quiz.ts의 apc:quiz-complete → lesson-progress.ts).
+ * - 저장은 이 컴퓨터의 진도(src/lib/progress.ts)뿐이다. 자바스크립트가 꺼져 있으면 보이지 않는다.
+ * - 이 컴포넌트의 스크립트가 차시를 열었을 때의 markSeen("봤어요")과 단원 차시 목록의 진도 칠하기도 맡는다.
+ */
+import Icon from '../common/Icon.astro';
+import type { LessonSummary } from './lesson-data.ts';
+import { unitCardClass } from './unit-style.ts';
+
+interface Props {
+  lesson: LessonSummary;
+}
+
+const { lesson } = Astro.props;
+---
+
+<div
+  class:list={['lesson-done', 'card', unitCardClass(lesson.unit)]}
+  data-lesson-done
+  data-done="false"
+  data-lesson-id={lesson.id}
+  data-lesson-href={lesson.href}
+  data-lesson-label={lesson.label}
+  data-lesson-title={lesson.title}
+  data-present-hide
+  data-embed-hide
+  data-pagefind-ignore
+>
+  <div class="lesson-done__text">
+    <p class="lesson-done__title">이 차시를 마쳤나요?</p>
+    <p class="lesson-done__hint">표시해 두면 다음에 와서 어디까지 했는지 바로 알 수 있어요.</p>
+  </div>
+  <button type="button" class="button button--secondary lesson-done__button" aria-pressed="false" data-lesson-done-button>
+    <span class="lesson-done__off" aria-hidden="true"><Icon name="circle" size="sm" /></span>
+    <span class="lesson-done__on" aria-hidden="true"><Icon name="check-circle" size="sm" /></span>
+    <span>이 차시 다 했어요</span>
+  </button>
+  <p class="lesson-done__status" role="status" data-lesson-done-status></p>
+</div>
+
+<script>
+  import { installLessonNav, installLessonProgress } from './lesson-progress.ts';
+
+  installLessonProgress();
+  installLessonNav();
+</script>
+
+<style>
+  .lesson-done {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    margin-block-start: var(--space-8);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .lesson-done__title {
+    font-weight: var(--weight-bold);
+  }
+
+  .lesson-done__hint {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson-done__button {
+    gap: var(--space-2);
+  }
+
+  .lesson-done__status {
+    grid-column: 1 / -1;
+    color: var(--color-success-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .lesson-done__status:empty {
+    display: none;
+  }
+
+  .lesson-done__off {
+    display: inline-flex;
+  }
+
+  .lesson-done__on {
+    display: none;
+  }
+
+  /* 켜지면 초록 바탕 + 체크(색만이 아니라 아이콘 모양과 aria-pressed로도 알린다) */
+  .lesson-done[data-done='true'] .lesson-done__button {
+    border-color: var(--color-success-border);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+
+  .lesson-done[data-done='true'] .lesson-done__off {
+    display: none;
+  }
+
+  .lesson-done[data-done='true'] .lesson-done__on {
+    display: inline-flex;
+  }
+
+  @media (max-width: 40rem) {
+    .lesson-done {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* 진도는 자바스크립트로 저장한다 — 꺼져 있으면 단추가 없으니 상자도 숨긴다 */
+  :global(html:not(.js)) .lesson-done {
+    display: none;
+  }
+
+  @media print {
+    .lesson-done {
+      display: none;
+    }
+  }
+</style>

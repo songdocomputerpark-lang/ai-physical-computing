@@ -1,0 +1,186 @@
+// @vitest-environment jsdom
+// 배우기 목록·대단원 쪽의 시작 카드와 "다음에 볼 차시" 표(src/components/lesson/learn-progress.ts) — 순수 고르기와 DOM 칠하기.
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  installLearnProgress,
+  paintNextFlag,
+  paintStart,
+  pickStart,
+  readStartEntries,
+  startTexts,
+  type StartEntry,
+} from '../../../src/components/lesson/learn-progress.ts';
+import { emptyProgress, markSeen, setDone, type ProgressState } from '../../../src/lib/progress.ts';
+
+const ENTRIES: StartEntry[] = [
+  { id: 'u1/1-1-1', href: '/x/learn/u1/1-1-1/', label: '1-1-1', title: '인공지능 응용 프로그램과 에이전트' },
+  { id: 'u1/1-1-2', href: '/x/learn/u1/1-1-2/', label: '1-1-2', title: '인공지능의 능력' },
+  { id: 'u1/1-1-3', href: '/x/learn/u1/1-1-3/', label: '1-1-3', title: '정리' },
+];
+
+function stateWith(seen: string[], done: string[] = [], last: string | null = null): ProgressState {
+  return {
+    ...emptyProgress(),
+    seen,
+    done,
+    last: last ? { id: last, href: `/x/learn/${last}/`, label: 'L', title: 'T', at: 1 } : null,
+  };
+}
+
+describe('pickStart — 어느 차시를 가리킬까', () => {
+  it('차시가 하나도 없으면 null', () => {
+    expect(pickStart(emptyProgress(), [], 'all')).toBeNull();
+    expect(pickStart(emptyProgress(), [], 'unit')).toBeNull();
+  });
+
+  it('배우기 첫 쪽: 진도가 없으면 첫 차시(first), 지난번에 본 차시가 목록에 있으면 그 차시(resume)', () => {
+    expect(pickStart(emptyProgress(), ENTRIES, 'all')).toEqual({ mode: 'first', entry: ENTRIES[0] });
+    expect(pickStart(stateWith(['u1/1-1-2'], [], 'u1/1-1-2'), ENTRIES, 'all')).toEqual({ mode: 'resume', entry: ENTRIES[1] });
+  });
+
+  it('배우기 첫 쪽: 지난번 차시가 목록에 없으면(사라진 차시) 첫 차시로 돌아온다', () => {
+    expect(pickStart(stateWith(['u9/9-9-9'], [], 'u9/9-9-9'), ENTRIES, 'all')).toEqual({ mode: 'first', entry: ENTRIES[0] });
+  });
+
+  it('대단원 쪽: 아무것도 안 봤으면 first, 봤으면 안 본 첫 차시(next), 모두 봤으면 처음부터 다시(review)', () => {
+    expect(pickStart(emptyProgress(), ENTRIES, 'unit')).toEqual({ mode: 'first', entry: ENTRIES[0] });
+    expect(pickStart(stateWith(['u1/1-1-1']), ENTRIES, 'unit')).toEqual({ mode: 'next', entry: ENTRIES[1] });
+    // 건너뛰어 본 경우에도 "안 본 첫 차시"다
+    expect(pickStart(stateWith(['u1/1-1-2']), ENTRIES, 'unit')).toEqual({ mode: 'next', entry: ENTRIES[0] });
+    expect(pickStart(stateWith(['u1/1-1-1', 'u1/1-1-2'], ['u1/1-1-3']), ENTRIES, 'unit')).toEqual({ mode: 'review', entry: ENTRIES[0] });
+  });
+
+  it('끝낸(done) 차시도 본 차시로 센다', () => {
+    expect(pickStart(stateWith([], ['u1/1-1-1']), ENTRIES, 'unit')).toEqual({ mode: 'next', entry: ENTRIES[1] });
+  });
+});
+
+describe('startTexts — 카드에 쓸 글', () => {
+  const first = 'I단원 1-1-1부터';
+  it('처음이면 서버가 정한 단추 글을 그대로 쓴다', () => {
+    expect(startTexts({ mode: 'first', entry: ENTRIES[0]! }, first)).toEqual({
+      kicker: '처음이라면',
+      title: '1-1-1 인공지능 응용 프로그램과 에이전트',
+      button: first,
+    });
+  });
+
+  it('이어서 하기·다음에 볼 차시·모두 봤어요', () => {
+    expect(startTexts({ mode: 'resume', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '지난번에 본 차시', button: '이어서 하기' });
+    expect(startTexts({ mode: 'next', entry: ENTRIES[1]! }, first)).toMatchObject({ kicker: '다음에 볼 차시', button: '이어서 하기' });
+    expect(startTexts({ mode: 'review', entry: ENTRIES[0]! }, first)).toMatchObject({ kicker: '이 단원을 모두 봤어요', button: '처음부터 다시 보기' });
+  });
+
+  it('단추 글에는 차시 제목이 들어가지 않는다(링크 이름이 카드 링크와 겹치지 않게)', () => {
+    for (const mode of ['first', 'resume', 'next', 'review'] as const) {
+      expect(startTexts({ mode, entry: ENTRIES[0]! }, first).button).not.toContain('에이전트');
+    }
+  });
+});
+
+function mount(scope: 'all' | 'unit' = 'unit', withFlag = true): void {
+  document.body.innerHTML = `
+    <div data-learn-start data-start-scope="${scope}" data-start-first-text="처음이면 I단원 1-1-1부터" data-start-mode="first">
+      <p data-start-kicker>처음이라면</p>
+      <p data-start-title>1-1-1 인공지능 응용 프로그램과 에이전트</p>
+      <a data-start-button href="/x/learn/u1/1-1-1/"><span data-start-button-text>처음이면 I단원 1-1-1부터</span></a>
+    </div>
+    <ul>
+      ${ENTRIES.map(
+        (entry) => `<li class="lesson-card" data-progress-lesson="${entry.id}">
+          <a class="lesson-card__link" href="${entry.href}"><span class="lesson-card__label">${entry.label}</span> <span class="lesson-card__title">${entry.title}</span></a>
+          ${withFlag ? '<span data-next-flag></span>' : ''}
+        </li>`,
+      ).join('')}
+      <li class="lesson-card" data-progress-lesson="u1/1-1-4"><p class="lesson-card__heading">준비 중</p></li>
+    </ul>`;
+}
+
+const startEl = (): HTMLElement => document.querySelector('[data-learn-start]') as HTMLElement;
+const card = (id: string): HTMLElement => document.querySelector(`[data-progress-lesson="${id}"]`) as HTMLElement;
+
+describe('readStartEntries / paintStart / paintNextFlag', () => {
+  beforeEach(() => mount());
+
+  it('링크가 있는 카드만 읽는다(준비 중 카드는 뺀다)', () => {
+    expect(readStartEntries(document).map((entry) => entry.id)).toEqual(ENTRIES.map((entry) => entry.id));
+    expect(readStartEntries(document)[0]).toEqual(ENTRIES[0]);
+  });
+
+  it('paintStart: 이어서 하기로 바꾸고 링크 주소를 맞춘다', () => {
+    paintStart(startEl(), ENTRIES, stateWith(['u1/1-1-1']));
+    expect(startEl().getAttribute('data-start-mode')).toBe('next');
+    expect(startEl().querySelector('[data-start-kicker]')?.textContent).toBe('다음에 볼 차시');
+    expect(startEl().querySelector('[data-start-title]')?.textContent).toBe('1-1-2 인공지능의 능력');
+    expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('이어서 하기');
+    expect(startEl().querySelector('[data-start-button]')?.getAttribute('href')).toBe('/x/learn/u1/1-1-2/');
+  });
+
+  it('paintStart: 진도가 지워지면 처음 상태로 돌아온다', () => {
+    paintStart(startEl(), ENTRIES, stateWith(['u1/1-1-1']));
+    paintStart(startEl(), ENTRIES, emptyProgress());
+    expect(startEl().getAttribute('data-start-mode')).toBe('first');
+    expect(startEl().querySelector('[data-start-button-text]')?.textContent).toBe('처음이면 I단원 1-1-1부터');
+    expect(startEl().querySelector('[data-start-button]')?.getAttribute('href')).toBe('/x/learn/u1/1-1-1/');
+  });
+
+  it('paintNextFlag: 안 본 첫 차시에만 data-next, 진도가 없으면 "여기서 시작", 있으면 "다음에 볼 차시"', () => {
+    paintNextFlag(document, ENTRIES, emptyProgress());
+    expect(card('u1/1-1-1').hasAttribute('data-next')).toBe(true);
+    expect(card('u1/1-1-1').querySelector('[data-next-flag]')?.textContent).toBe('여기서 시작');
+    expect(card('u1/1-1-2').hasAttribute('data-next')).toBe(false);
+
+    paintNextFlag(document, ENTRIES, stateWith(['u1/1-1-1']));
+    expect(card('u1/1-1-1').hasAttribute('data-next')).toBe(false);
+    expect(card('u1/1-1-2').hasAttribute('data-next')).toBe(true);
+    expect(card('u1/1-1-2').querySelector('[data-next-flag]')?.textContent).toBe('다음에 볼 차시');
+  });
+
+  it('paintNextFlag: 모두 봤으면 표가 하나도 없다', () => {
+    paintNextFlag(document, ENTRIES, stateWith(ENTRIES.map((entry) => entry.id)));
+    expect(document.querySelectorAll('[data-next]')).toHaveLength(0);
+  });
+});
+
+describe('installLearnProgress — 진도가 바뀌면 다시 그린다', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+  afterEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  it('쪽에 시작 카드도 표 자리도 없으면 아무것도 듣지 않는다', () => {
+    document.body.innerHTML = '<p>없음</p>';
+    expect(() => installLearnProgress(document)()).not.toThrow();
+  });
+
+  it('등록하자마자 한 번 칠하고, markSeen·setDone 뒤 다시 칠한다', () => {
+    mount('unit');
+    const stop = installLearnProgress(document);
+    expect(startEl().getAttribute('data-start-mode')).toBe('first');
+    expect(card('u1/1-1-1').hasAttribute('data-next')).toBe(true);
+
+    markSeen({ id: 'u1/1-1-1', href: '/x/learn/u1/1-1-1/', label: '1-1-1', title: '첫 차시' });
+    expect(startEl().getAttribute('data-start-mode')).toBe('next');
+    expect(card('u1/1-1-2').hasAttribute('data-next')).toBe(true);
+
+    setDone('u1/1-1-2', true);
+    expect(card('u1/1-1-3').hasAttribute('data-next')).toBe(true);
+    stop();
+
+    // 멈춘 뒤에는 바뀌지 않는다
+    markSeen({ id: 'u1/1-1-3', href: '/x/learn/u1/1-1-3/', label: '1-1-3', title: '셋' });
+    expect(card('u1/1-1-3').hasAttribute('data-next')).toBe(true);
+  });
+
+  it('배우기 첫 쪽(scope all): 지난번에 본 차시로 "이어서 하기"', () => {
+    mount('all', false);
+    const stop = installLearnProgress(document);
+    markSeen({ id: 'u1/1-1-2', href: '/x/learn/u1/1-1-2/', label: '1-1-2', title: '인공지능의 능력' });
+    expect(startEl().getAttribute('data-start-mode')).toBe('resume');
+    expect(startEl().querySelector('[data-start-button]')?.getAttribute('href')).toBe('/x/learn/u1/1-1-2/');
+    stop();
+  });
+});
