@@ -212,7 +212,11 @@ describe('서비스 워커 — 쪽 캐시 열쇠에 검색어를 남기지 않�
     expect(html).not.toContain('data-apc-offline-page');
     // 한 번도 안 연 쪽은 그대로 안내 쪽
     const unknown = await worker.navigate(`${SITE}learn/u3/?x=1`);
-    expect(await unknown.text()).toContain('data-apc-offline-page');
+    const unknownHtml = await unknown.text();
+    expect(unknownHtml).toContain('data-apc-offline-page');
+    // 판 1.3.0(검토 R1-094): 안내문은 "한 번 열어 본 페이지"만 열린다고 말한다 — 열어 본 적 없는 실습실까지 열린다고 하지 않는다
+    expect(unknownHtml).toContain('한 번 열어 본 페이지</strong>뿐');
+    expect(unknownHtml).not.toContain('실습실은 연결 없이도 열려요');
   });
 
   it('활성화할 때 옛 판이 쪽 캐시에 검색어째 넣은 열쇠를 검색어 없는 열쇠로 옮기고 지운다(다른 캐시는 그대로)', async () => {

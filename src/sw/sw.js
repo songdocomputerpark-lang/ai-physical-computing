@@ -622,7 +622,8 @@ function offlinePage() {
   const body = OFFLINE
     ? `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 오프라인판 폴더의 <strong>시작하기.bat</strong>를 다시 실행한 뒤 새로고침해 주세요.</p>
 <p>서버 창(검은 창)을 닫으면 사이트가 멈춰요. 수업하는 동안에는 창을 닫지 말고 작게 줄여 두세요.</p>`
-    : `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 인터넷에 연결한 뒤 새로고침해 주세요.</p>`;
+    : `<p>이 페이지는 아직 이 컴퓨터에 저장되지 않았어요. 인터넷에 연결한 뒤 새로고침해 주세요.</p>
+<p>연결 없이 열리는 것은 <strong>한 번 열어 본 페이지</strong>뿐이에요. 수업 전에 인터넷이 될 때 실습실과 쓸 차시를 한 번씩 열어 두세요.</p>`;
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" /><title>${title}</title>
 <style>body{font-family:system-ui,'Malgun Gothic',sans-serif;margin:0;padding:2rem;line-height:1.7;color:#17191c}
@@ -630,7 +631,7 @@ h1{font-size:1.4rem}a{color:#0b5cab}</style></head><body>
 <main data-apc-offline-page>
 <h1>${title}</h1>
 ${body}
-<p>한 번 열어 본 페이지와 실습실은 연결 없이도 열려요. <a href="${homeHref}">홈으로 가기</a></p>
+<p><a href="${homeHref}">홈으로 가기</a></p>
 </main>
 </body></html>`;
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
