@@ -48,6 +48,9 @@ import {
   type PerfSample,
 } from './perf.ts';
 
+/** 재생 입력(합성 좌표) 선택지의 값 — src/lab/modules/mediapipe/replay-source.ts의 REPLAY_SOURCE_ID와 같다(그 모듈은 쓸 때만 받아 여기서 가져오지 않는다) */
+const REPLAY_SOURCE_VALUE = 'replay';
+
 export type Unit4Phase = 'idle' | 'prepare' | 'board' | 'link' | 'pc' | 'running' | 'stopping';
 
 /** 성능 기록을 남겨 두는 최대 개수(0.5초 간격이면 30분) */
@@ -68,6 +71,8 @@ export const UNIT4_TEXT = Object.freeze({
   /** 짝 목록에 없는 조합(두 칸에서 예제를 따로 골랐을 때)의 뒷말 — 짝이면 짝의 running 글(examples.ts PAIRS)이 붙는다 */
   runningAny: '컴퓨터 칸이 보낸 값이 블루투스로 보드 칸에 닿아요 — 보드 칸의 콘솔과 부품을 봐요.',
   runningNoLink: '컴퓨터 코드는 돌지만 보드와 아직 이어지지 않았어요. 보드 칸의 블루투스 조작 칸에서 [연결]을 눌러요.',
+  /** 카메라 없이 열린 샘플 입력(도형 영상 — 얼굴이 없다)을 재생 입력으로 바꿨을 때 상태 글 뒤에 붙는 말(R1-114) */
+  replaySwitched: '카메라가 없어서 입력을 재생 입력(합성 좌표)으로 바꿨어요 — 사이트가 만든 얼굴이 고개를 돌려요.',
   boardStopped: '보드가 멈췄어요. 좌표가 보드에 닿지 않아요 — [함께 정지]를 누른 뒤 [함께 실행]을 다시 눌러요.',
   noBle: '이 보드 예제는 블루투스를 쓰지 않아서 잇지 않고 컴퓨터 코드만 이어서 돌려요.',
   linkFailed: '블루투스가 아직 이어지지 않았어요. 보드 칸의 블루투스 조작 칸에서 [연결]을 눌러요.',
@@ -76,7 +81,7 @@ export const UNIT4_TEXT = Object.freeze({
   pcError: '컴퓨터 코드가 오류로 멈췄어요. 컴퓨터 칸의 콘솔과 풀이 카드를 봐요.',
   boardError: '보드 코드가 오류로 멈췄어요. 보드 칸의 콘솔과 풀이 카드를 봐요.',
   boardSlow: '보드 코드가 시작하지 않았어요. 보드 칸의 [실행]을 직접 눌러 보고, 콘솔에 오류가 있는지 봐요.',
-  pythonFailed: '파이썬을 준비하지 못했어요. 점검 페이지에서 브라우저와 네트워크를 확인해요.',
+  pythonFailed: '파이썬을 준비하지 못했어요. 내 컴퓨터 점검에서 브라우저와 네트워크를 확인해요.',
   pythonSlow: '파이썬 준비가 오래 걸려요. 네트워크가 느리면 몇 분 걸릴 수 있어요 — 기다렸다가 [함께 실행]을 다시 눌러요.',
   stopping: '두 칸을 멈추고 있어요…',
   stopped: '멈췄어요.',
@@ -216,6 +221,8 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   let prepareStartedAt = 0;
   /** 준비 단계가 컴퓨터 칸 OpenCV만 기다리는 중인가(보드는 돌고 있다) */
   let waitingPcPackages = false;
+  /** 이번 실행에서 샘플 입력을 재생 입력으로 바꿨는가(상태 글에 이유를 덧붙인다) */
+  let replayNotice = false;
   /** 준비 단계 동안 1초마다 글을 새로 쓴다(지난 시간) */
   let prepareTick: number | null = null;
 
@@ -263,7 +270,25 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     if (host && !bleConnected(boardRoot)) {
       return UNIT4_TEXT.runningNoLink;
     }
-    return host ? `${UNIT4_TEXT.running} ${pairRunningText() ?? UNIT4_TEXT.runningAny}` : UNIT4_TEXT.noBle;
+    const base = host ? `${UNIT4_TEXT.running} ${pairRunningText() ?? UNIT4_TEXT.runningAny}` : UNIT4_TEXT.noBle;
+    return replayNotice ? `${base} ${UNIT4_TEXT.replaySwitched}` : base;
+  };
+
+  /**
+   * 카메라 없이 열린 입력(샘플 — 도형 영상이라 얼굴이 없다)이면 재생 입력(합성 좌표)으로 바꾼다(R1-114). 4단원 컴퓨터 코드는 얼굴이 보일 때만 좌표를 보내는데,
+   * 카메라가 없거나 허용하지 않으면 입력이 샘플로 열려 "[함께 실행]을 눌렀는데 아무 일도 안 일어난" 것처럼 보였다. 재생 입력 선택지가 아직 없으면(mediapipe 모듈 전) 하지 않는다.
+   */
+  const useReplayInsteadOfSample = (): boolean => {
+    if (!visionSelect || visionSelect.value !== 'sample') {
+      return false;
+    }
+    if (visionSelect.querySelector(`option[value="${REPLAY_SOURCE_VALUE}"]`) === null) {
+      return false;
+    }
+    visionSelect.value = REPLAY_SOURCE_VALUE;
+    visionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    replayNotice = true;
+    return true;
   };
 
   /**
@@ -563,6 +588,14 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     const observer = new MutationObserver(syncInputOptions);
     observer.observe(visionSelect, { childList: true, subtree: true, attributes: true });
     observer.observe(visionRoot, { attributes: true, attributeFilter: ['data-vision-source'] });
+    // 카메라를 허용하지 않아 실행 중에 입력이 샘플로 바뀌면(웹캠 → 샘플) 재생 입력으로 다시 바꾼다(R1-114)
+    const sampleWatcher = new MutationObserver(() => {
+      if ((phase === 'pc' || phase === 'running') && useReplayInsteadOfSample()) {
+        render();
+      }
+    });
+    sampleWatcher.observe(visionRoot, { attributes: true, attributeFilter: ['data-vision-source'] });
+    cleanups.push(() => sampleWatcher.disconnect());
     cleanups.push(() => observer.disconnect());
     listen(visionSelect, 'change', syncInputOptions);
     listen(elements.input, 'change', () => {
@@ -622,6 +655,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     }
     const mine = ++generation;
     const cancelled = () => mine !== generation || disposed;
+    replayNotice = false;
 
     // ① 두 파이썬 준비
     if (!isReady(pc) || !isReady(board)) {
@@ -709,6 +743,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
         setPhase('pc', linkedText);
       }
       renderScreen();
+      useReplayInsteadOfSample();
       const done = pc.run();
       setPhase('running', null);
       const result = await done;

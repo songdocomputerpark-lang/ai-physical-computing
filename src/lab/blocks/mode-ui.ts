@@ -43,6 +43,7 @@ import { chooseRunCode, compatMessage } from './compat.ts';
 import type { GeneratedProgram } from './generator.ts';
 import type { BlocksKit } from './kit.ts';
 import { loadBlocksKit } from './loader.ts';
+import { dedupeToolboxCategoryIds } from './toolbox-ids.ts';
 import { BLOCKS_STORAGE, initialMode, isEditingKey, needsConvertConfirm, type BlocksMode } from './mode-rules.ts';
 import { findCommPreset } from './comm/index.ts';
 import { DEFAULT_PRESET_ID, findPreset } from './presets.ts';
@@ -190,10 +191,50 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
     lab.showMessage('블록 모드에서는 코드를 바로 고칠 수 없어요. 고치려면 [코드로 바꾸기]를 눌러요.');
   });
 
+  // 위쪽 조작 줄의 예제 고르기(선택 상자 + [예제 불러오기])는 코드 모드의 것이다. 블록 모드에서는 "블록 예시"가 따로 있어 예제 고르기가 두 곳이 되고,
+  // 위 줄의 이름은 블록으로 바뀐 코드와 어긋난다(R1-109) — 블록 모드에서는 숨기고 안내 한 줄로 바꾼다. 예제를 열려면 [코드]로 돌아가 거기서 고른다.
+  const exampleRow = root.querySelector<HTMLElement>('.lab__examples');
+  const exampleLoad = root.querySelector<HTMLElement>('[data-lab-example-load]');
+  const barNote = elements.bar.querySelector<HTMLElement>('[data-blocks-bar-note]');
+  const barNoteCode = barNote?.textContent ?? '';
+  const BAR_NOTE_BLOCKS = '블록 예시는 아래 [블록 예시]에서 골라요. 예제 이름으로 코드를 열려면 [코드]를 눌러 위의 예제 줄에서 골라요.';
+  /** [코드로 바꾸기] 뒤 예제 설명 줄을 대신하는 글(위 예제 이름은 처음 고른 예제라 지금 코드와 다르다) */
+  const CONVERTED_NOTE = '지금 코드는 블록에서 만든 코드예요. 위의 예제 이름은 처음 고른 예제라 이 코드와 달라요. 예제로 돌아가려면 [초기화]나 [예제 불러오기]를 눌러요.';
+  const exampleDescription = root.querySelector<HTMLElement>('[data-lab-example-description]');
+  let descriptionBackup: { text: string; hidden: boolean } | null = null;
+  const showConvertedNote = () => {
+    if (!exampleDescription) {
+      return;
+    }
+    descriptionBackup ??= { text: exampleDescription.textContent ?? '', hidden: exampleDescription.hidden !== false };
+    exampleDescription.textContent = CONVERTED_NOTE;
+    exampleDescription.hidden = false;
+  };
+  /** restore면 원래 설명으로(같은 예제로 되돌린 [초기화]), 아니면 되돌리지 않는다(다른 예제를 불러와 실습실 틀이 새 설명을 이미 적었다) */
+  const clearConvertedNote = (restore: boolean) => {
+    if (exampleDescription && descriptionBackup && restore) {
+      exampleDescription.textContent = descriptionBackup.text;
+      exampleDescription.hidden = descriptionBackup.hidden;
+    }
+    descriptionBackup = null;
+  };
+
   const renderMode = () => {
     elements.container.dataset.blocksMode = mode;
     root.dataset.blockMode = mode;
     elements.area.hidden = mode !== 'blocks';
+    if (exampleRow) {
+      exampleRow.hidden = mode === 'blocks';
+    }
+    if (exampleLoad) {
+      exampleLoad.hidden = mode === 'blocks';
+    }
+    if (barNote) {
+      barNote.textContent = mode === 'blocks' ? BAR_NOTE_BLOCKS : barNoteCode;
+    }
+    if (mode === 'blocks') {
+      clearConvertedNote(true);
+    }
     for (const button of elements.modeButtons) {
       button.setAttribute('aria-pressed', String(button.dataset.blocksModeButton === mode));
     }
@@ -355,6 +396,7 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
       zoom: { controls: true, wheel: false, pinch: true, startScale: narrow ? 0.72 : 0.85, maxScale: 1.6, minScale: 0.45, scaleSpeed: 1.15 },
       grid: { spacing: 24, length: 2, colour: '#e2e8f0', snap: false },
     });
+    dedupeToolboxCategoryIds(elements.workspaceHost);
     const stored = readItem(BLOCKS_STORAGE.workspace);
     let loaded = false;
     if (stored) {
@@ -435,7 +477,11 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
     if (convert && generatedCode !== null) {
       putCode(generatedCode, true);
       writeItem(BLOCKS_STORAGE.converted, generatedCode);
-      lab.showMessage('블록이 만든 코드를 편집칸으로 옮겼어요. 이제 코드를 직접 고쳐 [실행]해 봐요.');
+      // BOOT 버튼은 누르면 0이라 코드에 == 0이 나온다(블록 도구 설명에만 있던 말 — R1-111). 코드 줄에 주석을 더하면 줄 끝을 고치는 활동(시나리오 B)과
+      // 줄 번호가 어긋나서, 코드는 그대로 두고 옮겼다는 안내에 적는다.
+      const bootNote = /\bbutton\.value\(\) == 0\b/u.test(generatedCode) ? ' BOOT 버튼은 누르면 0이라서 코드에 == 0이 나와요.' : '';
+      lab.showMessage(`블록이 만든 코드를 편집칸으로 옮겼어요.${bootNote} 이제 코드를 직접 고쳐 [실행]해 봐요.`);
+      showConvertedNote();
     }
     mode = 'code';
     renderMode();
@@ -542,6 +588,11 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
   context.onLab('code', ({ source }) => {
     if (settingCode) {
       return;
+    }
+    if (source === 'example' || source === 'records-cleared' || source === 'share') {
+      clearConvertedNote(false);
+    } else if (source === 'reset') {
+      clearConvertedNote(true);
     }
     if (mode === 'blocks' && (source === 'example' || source === 'reset' || source === 'records-cleared')) {
       // 예제를 불러오거나 되돌렸다 — 학생이 고른 코드가 보이게 코드 모드로

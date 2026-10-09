@@ -71,3 +71,20 @@ describe('무엇을 할까요? 고르기', () => {
     expect(LAB_CHOICES[0]?.target).toBe('labs-vision');
   });
 });
+
+describe('실습실 안내 글(판 1.3.0 검수 R1-103)', () => {
+  it('실습실 수를 우리말 관형사로 말한다("실습실 다섯 곳")', async () => {
+    const { koreanCountWord } = await import('../../../src/pages/labs/_lab-cards.ts');
+    expect(koreanCountWord(5)).toBe('다섯');
+    expect(koreanCountWord(1)).toBe('한');
+    expect(koreanCountWord(10)).toBe('열');
+    expect(koreanCountWord(11)).toBe('11');
+    expect(koreanCountWord(0)).toBe('0');
+  });
+
+  it('4단원 카드 글: 같은 낱말("움직")이 겹치지 않고, "카메라와 보드가 없어도 돼요"처럼 조사가 있다', () => {
+    const info = labCardInfo('labs-unit4')!;
+    expect((info.useWhen.match(/움직/gu) ?? []).length).toBeLessThanOrEqual(2);
+    expect(info.needs.some((need) => need.text === '카메라와 보드가 없어도 돼요')).toBe(true);
+  });
+});

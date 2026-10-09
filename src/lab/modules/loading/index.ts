@@ -167,6 +167,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const cardsBox = find('cards');
   const prefetchButton = find<HTMLButtonElement>('prefetch');
   const prefetchStatus = find('prefetch-status');
+  /** 받는 동안 보이는 "처음 한 번만 걸려요" 안내의 크기 글자(R1-097) */
+  const expectSize = find('expect-size');
   /** 실습실 틀의 상태 줄 옆 진행 칸(LabShell.astro [data-lab-progress]) */
   const labProgress = root.querySelector<HTMLElement>('[data-lab-progress]');
 
@@ -179,6 +181,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const labPackages: readonly string[] | null =
     root.dataset.labPackages === undefined ? null : root.dataset.labPackages.split(/\s+/u).filter((name) => name !== '');
   const prefetchBytes = pyodidePrefetchBytesFor(labPackages);
+  if (expectSize) {
+    expectSize.textContent = `약 ${formatBytes(prefetchBytes)}`;
+  }
   /** 캐시에 넣어 둘 패키지: 실습실 패키지 + 이번 방문에 실제로 받은 패키지(학생 코드의 import로 받은 것) */
   const warmPackages = (): readonly string[] | null => (labPackages === null ? null : [...labPackages, ...runtime.loadedPackages]);
   setRootData('phase', 'idle');
@@ -418,8 +423,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
     // 제목: 파이썬 엔진은 준비됐는데 실습 파일(numpy·OpenCV)을 더 받는 동안 "파이썬을 준비하고 있어요"가 남아, 그사이 [실행]한 코드가 돌고 오류까지
     // 난 학생에게 "파이썬이 아직인데 왜 돌았지?"로 읽혔다(판 1.2.1 — 판 1.2.0 적대적 검토 E1).
-    const title =
-      snapshot.phase === 'ready'
+    // 받기를 미룬 실습실(휴대폰·데이터 절약 — loader/defer.ts): [실행]을 누르기 전에는 받는 중이 아니다. 무엇이 얼마나 걸리는지 먼저 알린다(R1-097).
+    const deferredWaiting = root.dataset.loadDeferred === 'yes' && runtime.state === 'unloaded';
+    const title = deferredWaiting
+      ? '[실행]을 누르면 파이썬 준비를 시작해요'
+      : snapshot.phase === 'ready'
         ? '실습 준비가 끝났어요'
         : snapshot.phase === 'failed'
           ? pythonReady()
@@ -435,7 +443,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
       stageLabel = snapshot.activeLabel;
       stageStartedAt = Date.now();
     }
-    if (lineText) {
+    if (lineText && deferredWaiting) {
+      lineText.textContent = `처음 한 번만 약 ${formatBytes(prefetchBytes)}를 받아요. 한 번 받으면 다음부터는 바로 열려요.`;
+    } else if (lineText) {
       // 초는 지금 받는 파일을 받기 시작한 때부터 센다(판 1.2.1 — 검토 E6: 처음부터 센 초가 "OpenCV 0B / 10.2MB · 139.1초"처럼 붙어 2분 넘게 0으로 읽혔다).
       // 받은 양을 셀 수 없는 받기가 길어지면 기대 시간을 함께 보인다(검토 E7 — 서비스 워커가 아직 맡지 않은 첫 방문은 2분 넘게 숫자가 움직이지 않는다).
       const stageMs = stageLabel === '' ? 0 : Date.now() - stageStartedAt;
@@ -894,7 +904,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
         return;
       case 'blocked':
         setRootData('fallback', 'blocked');
-        setNote(`인터넷에서도 이 사이트에서도 파이썬 파일을 받지 못했어요. 시작하기 > 점검 페이지(${CHECK_PAGE})에서 네트워크를 시험해 보세요.`);
+        setNote(`인터넷에서도 이 사이트에서도 파이썬 파일을 받지 못했어요. 시작하기 > 내 컴퓨터 점검(${CHECK_PAGE})에서 네트워크를 시험해 보세요.`);
         return;
       case 'site':
         // 서비스 워커가 이미 맡고 있으면 다시 부르지 않아도 예비 경로로 바뀐다.
@@ -903,7 +913,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
         return;
       case 'blocked-no-reload':
         setRootData('fallback', 'blocked');
-        setNote(`인터넷(jsDelivr)에서 파이썬 파일을 받지 못했어요. 새로고침하거나 시작하기 > 점검 페이지(${CHECK_PAGE})를 열어 보세요.`);
+        setNote(`인터넷(jsDelivr)에서 파이썬 파일을 받지 못했어요. 새로고침하거나 시작하기 > 내 컴퓨터 점검(${CHECK_PAGE})를 열어 보세요.`);
         return;
       case 'reload': {
         reloadGuard().take();

@@ -3,8 +3,8 @@
  *
  * 무엇을 보나
  *   1. 실습실 안내(/labs/): 맨 위 "무엇을 할까요?" 고르기 3개가 첫 화면에 보이고, 카드는 어디를 눌러도 열리며, 안의 작은 링크는 따로 눌린다.
- *   2. 영상처리·ESP32 실습실: 긴 설명은 접혀 있고(Tab 정지점 하나), [실행]·코치 줄이 첫 화면 위쪽에 들어온다. 코치 줄(① 예제 고르기 → ② [실행] → ③ 결과 보기)이
- *      Tab 정지점 없이 조작 줄 아래에 있고, 실행 횟수(data-run-count)로만 단계가 칠해진다. [실행] 접근 이름은 "실행" 그대로.
+ *   2. 영상처리·ESP32 실습실: 긴 설명은 접혀 있고(Tab 정지점 하나), [실행]·코치 줄이 첫 화면 위쪽에 들어온다. 코치 줄(① 예제를 골라요 → ② [실행]을 눌러요 → ③ 결과를 봐요)이
+ *      Tab 정지점 없이 조작 줄 묶음 아래에 있고, 실행 횟수(data-run-count)로만 단계가 칠해진다. [실행] 접근 이름은 "실행" 그대로.
  *   3. 4단원 통합 화면: 틀이 둘이어도 코치 줄은 한 번만.
  *   4. 차시 안 임베드(?embed=1)에서는 코치 줄과 긴 설명이 숨는다.
  *   5. 실습실 쪽을 열면 마지막 실습실이 기억된다(홈 "이어서 하기"용) — 임베드는 기억하지 않는다.
@@ -125,18 +125,20 @@ for (const lab of [
 
       const coach = page.getByRole('list', { name: '처음 쓰는 방법' });
       await expect(coach).toBeVisible();
-      await expect(coach.getByRole('listitem')).toHaveText(['예제 고르기', '[실행] 누르기', '결과 보기']);
+      await expect(coach.getByRole('listitem')).toHaveText(['예제를 골라요', '[실행]을 눌러요', '결과를 봐요']);
       // Tab 정지점이 없다
       expect(await coach.locator('a, button, input, select, textarea, summary, [tabindex]').count()).toBe(0);
-      // 조작 줄 바로 아래, 상태 줄 위
+      // 조작 줄 묶음(조작 줄 + 상태 줄 — 넓은 화면에서는 화면 위에 붙는 묶음, R1-096) 바로 아래. 코치 줄은 묶음 밖이라 붙지 않는다
       const order = await page.evaluate(() => {
+        const bar = document.querySelector('[data-lab-bar]')!.getBoundingClientRect();
         const toolbar = document.querySelector('[data-lab-toolbar]')!.getBoundingClientRect();
         const coachBox = document.querySelector('[data-lab-coach]')!.getBoundingClientRect();
         const status = document.querySelector('.lab__status')!.getBoundingClientRect();
-        return { toolbarBottom: toolbar.bottom, coachTop: coachBox.top, coachBottom: coachBox.bottom, statusTop: status.top };
+        return { barBottom: bar.bottom, toolbarBottom: toolbar.bottom, coachTop: coachBox.top, statusBottom: status.bottom };
       });
+      expect(order.coachTop).toBeGreaterThanOrEqual(order.barBottom - 1);
       expect(order.coachTop).toBeGreaterThanOrEqual(order.toolbarBottom);
-      expect(order.coachBottom).toBeLessThanOrEqual(order.statusTop);
+      expect(order.coachTop).toBeGreaterThanOrEqual(order.statusBottom - 1);
       // 준비 칸 자리는 비어 있다(준비 칸 전용)
       await expect(page.locator('[data-lab-coach]').locator('xpath=ancestor::*[@data-lab-intro]')).toHaveCount(0);
     });
@@ -203,6 +205,64 @@ for (const lab of [
       await page.goto(withBase(lab.path));
       await expect(page.locator('[data-lab-coach]')).toBeVisible();
       await expectNoHorizontalOverflow(page, `${lab.name}(320px)`);
+    });
+
+    // R1-096: [실행] 뒤 화면이 결과 칸으로 내려가면 [정지]·상태 줄이 화면 밖으로 나갔다 — 넓은 화면에서는 조작 줄 묶음이 화면 위에 붙는다.
+    test('넓은 화면에서는 조작 줄 묶음이 화면 위에 붙어, 화면을 한참 내려도 [정지]와 상태 줄이 보인다', async ({ page, isMobile }) => {
+      test.skip(isMobile, '붙는 줄은 넓고 높은 화면(틀 폭 72rem 이상)에서만 — 휴대폰은 아래 시험이 붙지 않음을 본다');
+      await freezeDevReloads(page);
+      await page.goto(withBase(lab.path));
+      await page.evaluate(() => window.scrollTo(0, 1500));
+      await expect(page.getByRole('button', { name: '정지', exact: true })).toBeInViewport();
+      await expect(page.getByRole('button', { name: '실행', exact: true })).toBeInViewport();
+      await expect(page.locator('[data-lab-status]')).toBeInViewport();
+      const info = await page.locator('[data-lab-bar]').evaluate((bar) => ({ top: bar.getBoundingClientRect().top, height: bar.getBoundingClientRect().height, position: getComputedStyle(bar).position }));
+      expect(info.position).toBe('sticky');
+      expect(info.top).toBeLessThanOrEqual(1);
+      // 붙는 높이는 [실행] 줄 하나 안팎이다(화면 높이 768의 1/6 안쪽 — 붙은 줄이 결과 칸을 먹지 않는다)
+      expect(info.height).toBeLessThan(768 / 6);
+    });
+
+    test('휴대폰 폭에서는 조작 줄 묶음이 붙지 않고, [실행]·[정지]·[초기화]가 한 줄이며 예제 선택 상자가 한 줄 전체 폭이다', async ({ page }) => {
+      await freezeDevReloads(page);
+      await page.setViewportSize({ width: 375, height: 812 });
+      await page.goto(withBase(lab.path));
+      expect(await page.locator('[data-lab-bar]').evaluate((bar) => getComputedStyle(bar).position)).not.toBe('sticky');
+      const tops = await Promise.all(
+        ['실행', '정지', '초기화'].map((name) => page.getByRole('button', { name, exact: true }).evaluate((button) => Math.round(button.getBoundingClientRect().top))),
+      );
+      expect(new Set(tops).size, `세 단추의 위쪽 위치 ${tops.join(', ')}`).toBe(1);
+      const select = await page.locator('[data-lab-example-select]').evaluate((element) => element.getBoundingClientRect().width);
+      expect(select).toBeGreaterThanOrEqual(260);
+      await expectNoHorizontalOverflow(page, `${lab.name}(375px 조작 줄)`);
+    });
+
+    // R1-102: 넓은 쪽(실습실)의 빵부스러기·제목이 머리글 칸(76rem)에 맞고, 편집기·패널 칸은 그보다 넓되 1600px에서 멈춘다.
+    test('1920 폭에서 빵부스러기·제목이 머리글 로고와 같은 줄에서 시작하고, 실습실 칸은 100rem(1600px)에서 멈춘다', async ({ page, isMobile }) => {
+      test.skip(isMobile, '넓은 화면에서만 본다');
+      await freezeDevReloads(page);
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.goto(withBase(lab.path));
+      const box = await page.evaluate(() => {
+        const left = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().left ?? Number.NaN;
+        const lab = document.querySelector('.lab')!.getBoundingClientRect();
+        return { logo: left('.site-header__brand'), crumb: left('.breadcrumb'), title: left('h1.page-title'), lab: lab.left, labWidth: lab.width };
+      });
+      expect(Math.abs(box.title - box.logo), `제목 ${box.title} · 로고 ${box.logo}`).toBeLessThanOrEqual(2);
+      expect(Math.abs(box.crumb - box.logo), `빵부스러기 ${box.crumb} · 로고 ${box.logo}`).toBeLessThanOrEqual(2);
+      expect(box.lab).toBeLessThan(box.title); // 편집기·패널 칸은 제목보다 넓은 칸을 쓴다
+      expect(box.labWidth).toBeLessThanOrEqual(1601);
+    });
+
+    // R1-108: 칸 배치는 화면 폭(@media)이 아니라 틀 폭(rem)으로 정한다 — html 글자 크기를 200%로 키우면 같은 화면에서도 한 열로 쌓인다.
+    test('글자를 200%로 키우면 칸이 좁은 세 칸이 아니라 한 열로 쌓이고 가로로 넘치지 않는다', async ({ page, isMobile }) => {
+      test.skip(isMobile, '데스크톱 화면(1366×768)에서 글자만 키워 본다');
+      await freezeDevReloads(page);
+      await page.goto(withBase(lab.path));
+      await page.addStyleTag({ content: 'html { font-size: 200% }' });
+      const columns = await page.locator('.lab__grid').evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
+      expect(columns).toBe(1);
+      await expectNoHorizontalOverflow(page, `${lab.name}(글자 200%)`);
     });
   });
 }
@@ -303,5 +363,60 @@ test.describe('예제 갤러리', () => {
     await page.setViewportSize(REFLOW_VIEWPORT);
     await page.goto(withBase('labs/gallery/'));
     await expectNoHorizontalOverflow(page, '예제 갤러리(320px)');
+  });
+});
+
+// R1-097(판 1.3.0 검수): 실습실을 열자마자 12.9MB 엔진을 받기 시작해, 데이터를 아끼는 중인 휴대폰에서도 학생이 정하기 전에 데이터를 썼다.
+test.describe('실습실 — 데이터 절약 모드에서는 [실행]을 눌러야 받는다', () => {
+  test.describe.configure({ timeout: 180_000 });
+  test.skip(({ isMobile }) => isMobile, '받는 일을 지켜보는 검사라 데스크톱 프로젝트에서만 돈다');
+
+  test('Save-Data면 열어도 파이썬을 받지 않고 크기를 알리며, [실행]을 누르면 받기 시작하고 [정지]로 예약을 거둘 수 있다', async ({ page }) => {
+    await freezeDevReloads(page);
+    const requested: string[] = [];
+    page.context().on('request', (request) => {
+      if (/\/pyodide(?:\.asm)?\.(?:mjs|js|wasm)(?:$|\?)/u.test(request.url())) {
+        requested.push(request.url());
+      }
+    });
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'connection', { value: { saveData: true, type: 'cellular', effectiveType: '4g' }, configurable: true });
+    });
+    await page.goto(withBase('labs/vision/'));
+    const root = page.locator('[data-lab]').first();
+    await expect(root).toHaveAttribute('data-load-deferred', 'yes');
+    await expect(root).toHaveAttribute('data-state', 'unloaded');
+    await expect(page.locator('[data-lab-status]')).toHaveText('[실행]을 누르면 시작해요.');
+    await expect(page.locator('[data-lab-message]')).toContainText('처음 한 번만');
+    await expect(page.locator('[data-lab-message]')).toContainText('MB');
+    await page.waitForTimeout(4000);
+    expect(requested, `받기 전에 요청한 파일: ${requested.join(', ')}`).toEqual([]);
+
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    await expect(root).toHaveAttribute('data-load-deferred', 'started');
+    await expect.poll(() => requested.length, { timeout: 60_000 }).toBeGreaterThan(0);
+    await page.getByRole('button', { name: '정지', exact: true }).click();
+  });
+});
+
+// R1-112(판 1.3.0 검수): 실행 중에 코드를 고치고 Ctrl+Enter를 눌러도 아무 안내 없이 무시돼 고친 코드가 적용된 줄 알았다.
+test.describe('실습실 — 실행 중에 다시 실행하면', () => {
+  test.describe.configure({ timeout: 240_000 });
+  test.skip(({ isMobile }) => isMobile, '가상 보드를 돌리는 검사라 데스크톱 프로젝트에서만 돈다');
+
+  test('Ctrl+Enter를 눌러도 새 코드가 돌지 않는다는 것과 먼저 [정지]를 누르라는 안내가 나온다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(withBase('labs/esp32/'));
+    const root = page.locator('[data-lab]').first();
+    await expect(root).toHaveAttribute('data-state', 'idle', { timeout: 180_000 });
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    await expect(root).toHaveAttribute('data-state', 'running', { timeout: 60_000 });
+    await page.locator('[data-lab-editor] .cm-content').click();
+    await page.keyboard.press('ControlOrMeta+Enter');
+    await expect(page.locator('[data-lab-message]')).toContainText('먼저 [정지]를 누르고');
+    // 안내만 하고 실행을 다시 시작하지 않는다(실행 횟수가 그대로)
+    await expect(root).toHaveAttribute('data-run-count', '1');
+    await page.getByRole('button', { name: '정지', exact: true }).click();
+    await expect(root).toHaveAttribute('data-state', 'idle', { timeout: 60_000 });
   });
 });

@@ -17,8 +17,8 @@ export type FlashStageKey = 'port' | 'chip' | 'file' | 'erase' | 'write' | 'veri
 /** 단계 이름과 기다릴 때의 설명(화면 논리도 같은 표를 쓴다) */
 export const FLASH_STAGES: readonly { readonly key: FlashStageKey; readonly name: string; readonly waiting: string }[] = Object.freeze([
   { key: 'port', name: '포트 고르기', waiting: '브라우저 창에서 보드가 꽂힌 포트(이름에 USB·CH340 같은 글자가 있는 것)를 골라요.' },
-  { key: 'chip', name: '보드 칩 확인', waiting: '보드를 굽기 모드로 바꾸고 ESP32 칩인지 확인해요.' },
-  { key: 'file', name: '펌웨어 파일 확인', waiting: '파일을 받아 크기와 지문(SHA-256)이 맞는지 확인해요.' },
+  { key: 'chip', name: '보드 칩 확인', waiting: '보드를 프로그램을 받는 상태(굽기 모드)로 바꾸고 ESP32 칩인지 확인해요.' },
+  { key: 'file', name: '펌웨어 파일 확인', waiting: '파일을 받아 깨지지 않았는지 크기와 지문(SHA-256)으로 확인해요.' },
   { key: 'erase', name: '보드 지우기', waiting: '"굽기 전에 보드를 모두 지우기"를 켰을 때만 해요.' },
   { key: 'write', name: '펌웨어 쓰기', waiting: '보드에 펌웨어를 보내요. 가장 오래 걸려요.' },
   { key: 'verify', name: '쓴 내용 확인', waiting: '보드에 들어간 내용이 파일과 같은지 확인해요.' },
@@ -26,7 +26,8 @@ export const FLASH_STAGES: readonly { readonly key: FlashStageKey; readonly name
 ]);
 
 export const STAGE_STATE_TEXT = Object.freeze({
-  waiting: '기다림',
+  // "기다림"만으로는 무엇을 기다리는지 몰라서 앞 단계가 끝나기를 기다린다고 말한다(판 1.3.0 검수 R1-048)
+  waiting: '차례를 기다려요',
   active: '진행 중',
   done: '끝',
   skipped: '건너뜀',

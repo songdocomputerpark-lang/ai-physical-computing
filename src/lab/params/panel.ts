@@ -287,6 +287,9 @@ class ParamPanelController implements ParamPanel {
         range.step = String(spec.step);
         const value = el('output', 'param__value');
         value.htmlFor.add(id);
+        // <output>은 암묵적으로 role="status"라 이름 없는 숫자("100", "0.5")가 따로 읽혔다(R1-107). 막대가 aria-valuetext로 값을 이미 알리므로
+        // 이 글자는 눈으로만 본다(역할 없음 — 화면 낭독기 탐색에서는 글로 읽히고, 값이 바뀔 때 알림은 하지 않는다).
+        value.setAttribute('role', 'none');
         const row = el('div', 'param__row');
         row.append(range, value);
         const minmax = el('span', 'param__minmax', `${spec.min} ~ ${spec.max}`);

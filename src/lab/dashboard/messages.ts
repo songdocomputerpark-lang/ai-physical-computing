@@ -86,7 +86,7 @@ export const dashText = {
   },
   /** 가상 보드는 열었는데 대시보드는 아직 연결 전(공개 중계 서버를 고른 경우 — 저절로 잇지 않는다) */
   labNeedsConnect(): string {
-    return '위 1단계의 [연결]을 눌러야 보드가 보낸 값이 그래프에 들어와요.';
+    return '아래 3단계의 [연결]을 눌러야 보드가 보낸 값이 그래프에 들어와요.';
   },
   /** 스위치를 눌렀지만 보내지 못해 모양을 그대로 둘 때 */
   switchNotSent(reason: string): string {

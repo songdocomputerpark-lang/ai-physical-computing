@@ -198,6 +198,35 @@ const { pairs } = Astro.props;
     gap: var(--space-2);
   }
 
+  /*
+   * 넓은 화면에서는 화면 위 가운데 가득이 아니라 오른쪽 아래 구석의 작은 카드로 띄운다(판 1.3.0 R1-114 — 위에 띄우면 아래 칸을 읽는 동안 제목·코드 윗줄을 가렸다).
+   * 위쪽 가운데는 휴대폰 폭(48rem 미만)에서만 그대로다: 휴대폰은 구석에 둘 자리가 없고, 아래쪽은 보드 조작 칸(4채널 터치 패드)을 가린 전례가 있다.
+   */
+  @media (min-width: 48rem) {
+    .unit4-float {
+      inset-block: auto var(--space-3);
+      inset-inline: auto var(--space-3);
+      flex-direction: column;
+      align-items: stretch;
+      max-inline-size: 26rem;
+      margin-inline: 0;
+    }
+
+    /* 세로로 쌓는 카드라 글 칸의 가로 기준 크기(18rem)가 높이가 되지 않게 */
+    .unit4-float__text {
+      flex: 0 1 auto;
+    }
+
+    .unit4-float__actions {
+      justify-content: flex-end;
+    }
+
+    :global(html:has(.unit4-float:not([hidden]))) {
+      scroll-padding-block-start: 0;
+      scroll-padding-block-end: 8rem;
+    }
+  }
+
   @media print {
     .unit4-float {
       display: none;

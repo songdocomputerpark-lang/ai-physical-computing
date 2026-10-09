@@ -47,6 +47,7 @@ import { VideoBlackWatcher } from './camera-stream.ts';
 import { codeShowsVideo } from './code-uses.ts';
 import { FpsMeter, FrameThrottle, SCREEN_KEYS, type VisionFrame } from './frame.ts';
 import { VISION_PACKAGES } from './examples.ts';
+import { outputHintFor } from './output-hints.ts';
 import {
   SourceOpenError,
   currentFileImage,
@@ -113,6 +114,8 @@ export interface VisionLabElements {
   /** "이 예제 실습 방법" 상자와 단계 목록(2026-09-24 Phase 4 통합 — 없으면 그리지 않는다) */
   readonly practiceBox?: HTMLElement | null;
   readonly practiceSteps?: HTMLElement | null;
+  /** 출력 칸 제목 아래 한 줄 설명(R1-101 — 없으면 그리지 않는다) */
+  readonly outputHint?: HTMLElement | null;
   /** [카메라] 고르기 칸(판 1.1.0 — 없으면 고르기 없이 알아서 고른 카메라만 쓴다) */
   readonly cameraRow?: HTMLElement | null;
   readonly cameraSelect?: HTMLSelectElement | null;
@@ -170,6 +173,7 @@ export function readVisionElements(root: HTMLElement): VisionLabElements | null 
     stageList: q(root, '[data-vision-stages]'),
     practiceBox: q(root, '[data-vision-practice]'),
     practiceSteps: q(root, '[data-vision-practice-steps]'),
+    outputHint: q(root, '[data-vision-output-hint]'),
     cameraRow: q(root, '[data-vision-camera]'),
     cameraSelect: q(root, '[data-vision-camera-select]'),
     cameraNotice: q(root, '[data-vision-camera-notice]'),
@@ -251,8 +255,14 @@ export class VisionLab {
     this.#wireControls();
     this.#wireCameras();
     this.#wireRuntime();
-    this.#cleanups.push(lab.on('example', () => this.#renderPractice()));
+    this.#cleanups.push(
+      lab.on('example', () => {
+        this.#renderPractice();
+        this.#renderOutputHint();
+      }),
+    );
     this.#renderPractice();
+    this.#renderOutputHint();
     this.#renderStages();
     this.#setInputState('closed');
     this.#setCameraCheck('idle');
@@ -265,7 +275,7 @@ export class VisionLab {
   }
 
   /**
-   * 느린 망에서 "준비됐어요. [실행]을 누르세요." 뒤 [실행]을 누르면, 파이썬 엔진 다음에 받는 numpy·OpenCV(약 13MB)를 다 받을 때까지
+   * 느린 망에서 "준비됐어요. [실행]을 눌러 봐요." 뒤 [실행]을 누르면, 파이썬 엔진 다음에 받는 numpy·OpenCV(약 13MB)를 다 받을 때까지
    * 코드가 시작하지 않는다. 그동안 입력·출력 칸이 "[실행]을 누르면 입력이 켜져요"·"입력이 꺼져 있어요"만 보여 몇 분 동안 멈춘 것처럼
    * 보였다(회선 전체 3G에서 4분 30초 — 2026-09-26 Phase 6 사용성 검토 지적 5). 기다리는 동안은 무엇을 받는지와 받은 양을 보이고
    * "다 받으면 저절로 시작해요"라고 알린다. 다 받거나 실행이 끝나면 원래 안내로 되돌린다.
@@ -317,6 +327,17 @@ export class VisionLab {
       }
       this.#renderInputStatus();
     }
+  }
+
+  /** 출력 칸 제목 아래 한 줄 설명(예제 id별 — output-hints.ts. 없으면 숨긴다) */
+  #renderOutputHint(): void {
+    const box = this.#elements.outputHint ?? null;
+    if (box === null) {
+      return;
+    }
+    const text = outputHintFor(this.lab.currentExample?.id);
+    box.textContent = text;
+    box.hidden = text === '';
   }
 
   /** "이 예제 실습 방법" 상자(예제의 practice 단계 — 없으면 숨긴다) */

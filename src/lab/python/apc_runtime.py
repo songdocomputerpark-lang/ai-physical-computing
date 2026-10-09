@@ -105,7 +105,7 @@ YIELD_INTERVAL_MS = 16
 # 조절 패널 값이 쌓이는 채널. src/lab/params/parse.ts의 PARAMS_CHANNEL과 같아야 한다.
 PARAMS_CHANNEL = "lab.params"
 
-STOP_MESSAGE = "[정지] 버튼으로 멈췄어요."
+STOP_MESSAGE = "[정지] 단추로 멈췄어요."
 LIMITED_MESSAGE = (
     "이 브라우저에는 JSPI(파이썬 기다리기 기능)가 없어서 입력이나 카메라를 기다리는 코드는 실행할 수 없어요. "
     "컴퓨터의 Chrome이나 Edge 최신판에서 열어 주세요."

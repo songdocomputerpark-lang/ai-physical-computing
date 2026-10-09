@@ -387,7 +387,7 @@ export function phaseText(snapshot: BoardSnapshot): string {
     case 'run':
       return '보드가 코드를 실행하고 있어요.';
     case 'idle':
-      return `코드는 끝났지만 Timer${snapshot.timers > 0 ? ` ${snapshot.timers}개` : ''}나 핀 인터럽트가 계속 돌고 있어요. 멈추려면 [정지]를 누르세요.`;
+      return `코드는 끝났지만 Timer${snapshot.timers > 0 ? ` ${snapshot.timers}개` : ''}나 핀 인터럽트가 계속 돌고 있어요. 멈추려면 [정지]를 눌러요.`;
     case 'end':
       return '코드가 끝났어요. 핀은 마지막 상태 그대로예요.';
     default:

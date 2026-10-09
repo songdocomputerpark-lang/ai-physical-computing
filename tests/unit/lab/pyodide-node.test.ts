@@ -128,7 +128,7 @@ describe.runIf(pyodideInstalled)('Node.js의 실제 Pyodide', () => {
       // get() 같은 입력 확인 지점에서도(양보 없이) 들어간다.
       expect(steps.params_get_checkpoint.value).toBe(3);
       // 학생 코드가 KeyboardInterrupt를 잡으면 새어 나오는 오류도 없다.
-      expect(steps.catch_keyboard_interrupt.value).toBe('caught [정지] 버튼으로 멈췄어요.');
+      expect(steps.catch_keyboard_interrupt.value).toBe('caught [정지] 단추로 멈췄어요.');
       expect(steps.catch_keyboard_interrupt.stopped).toBe(true);
       expect(steps.catch_keyboard_interrupt.escaped).toEqual([]);
 

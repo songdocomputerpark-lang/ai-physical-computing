@@ -223,3 +223,32 @@ describe('moveKeepingFocus', () => {
     expect(document.activeElement).toBe(run);
   });
 });
+
+describe('맨 위 자리의 제목 단계(R1-104)', () => {
+  /** 준비 칸에 제목(h3)과 카드 제목(h4)을 넣고, 실습실 칸 제목(.lab__heading h2)을 편집칸에 둔다 */
+  function withHeadings(): HTMLElement {
+    const root = rootOf('vision');
+    root.querySelector('.lab__editor')!.insertAdjacentHTML('afterbegin', '<h2 class="lab__heading">코드</h2>');
+    panelOf(root).querySelector('[data-loading-panel]')!.insertAdjacentHTML('afterbegin', '<h3 data-loading-title>준비</h3><h4 data-loading-card-title>카드</h4>');
+    return root;
+  }
+
+  it('맨 위 자리에 있는 동안은 실습실 칸 제목과 같은 단계(h2)로, 카드 제목은 한 단계 아래(h3)로 읽히고, 제자리로 돌아가면 태그 단계로 돌아간다', () => {
+    const root = withHeadings();
+    const panel = panelOf(root);
+    expect(placeInLoadingIntro(root, panel)).toBe(true);
+    expect(panel.querySelector('[data-loading-title]')?.getAttribute('aria-level')).toBe('2');
+    expect(panel.querySelector('[data-loading-card-title]')?.getAttribute('aria-level')).toBe('3');
+    endLoadingIntro(root);
+    expect(panel.querySelector('[data-loading-title]')?.hasAttribute('aria-level')).toBe(false);
+    expect(panel.querySelector('[data-loading-card-title]')?.hasAttribute('aria-level')).toBe(false);
+  });
+
+  it('칸 제목이 h3인 틀(4단원 통합 화면)에서는 같은 단계(3)다', () => {
+    const root = withHeadings();
+    root.querySelector('.lab__heading')!.outerHTML = '<h3 class="lab__heading">코드 — 컴퓨터 칸</h3>';
+    placeInLoadingIntro(root, panelOf(root));
+    expect(panelOf(root).querySelector('[data-loading-title]')?.getAttribute('aria-level')).toBe('3');
+    expect(panelOf(root).querySelector('[data-loading-card-title]')?.getAttribute('aria-level')).toBe('4');
+  });
+});

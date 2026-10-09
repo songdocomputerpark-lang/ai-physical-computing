@@ -139,7 +139,7 @@ describe('기록 지우기', () => {
   it('안내 문장', () => {
     expect(CLEAR_RECORDS_LABEL).toBe('이 컴퓨터에서 내 기록 지우기');
     expect(describeCleared(0)).toContain('지울 기록이 없었어요');
-    expect(describeCleared(3)).toBe('기록 3개를 지웠어요.');
+    expect(describeCleared(3)).toBe('기록 3개를 지웠어요. 어디까지 봤는지(진도)도 함께 지웠어요.');
   });
 });
 

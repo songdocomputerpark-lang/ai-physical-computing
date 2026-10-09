@@ -11,6 +11,9 @@
  * 쓰는 법: BaseLayout의 notice 슬롯에 넣는다.
  *   <BaseLayout title="…"><BrowserNotice slot="notice" /> … </BaseLayout>
  *
+ * 휴대폰(좁은 화면)에서는 제목 한 줄과 [자세히 보기]만 먼저 보이고 설명·점검 링크는 접혀 있다(판 1.3.0 검수 R1-098 — 예전에는 안내 상자가
+ * 높이 약 380px로 첫 화면의 1/3 이상을 덮고 쪽 제목이 그 아래로 밀렸다). 넓은 화면에서는 펼쳐 둔 채라 예전 모양 그대로다(자바스크립트가 접을지 정한다).
+ *
  * 처음 HTML에는 숨겨져 있다(hidden). 자바스크립트가 판단한 뒤에만 보이므로 권장 브라우저에서는 화면이 흔들리지 않는다.
  * 테스트·확인용으로 판단 결과를 data-variant(none·other-browser·update-browser)와
  * data-state(not-needed·dismissed·shown)에 적는다.
@@ -27,27 +30,26 @@ const checkHref = withBase('start/check/');
     <path d="M12 16.75v.5"></path>
   </svg>
   <div class="browser-notice__body">
-    <div class="browser-notice__text" data-notice-text="other-browser" hidden>
-      <p class="browser-notice__title">실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요</p>
-      <p>
+    <p class="browser-notice__title" data-notice-text="other-browser" hidden>실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요</p>
+    <p class="browser-notice__title" data-notice-text="update-browser" hidden>브라우저를 최신판으로 업데이트해 주세요</p>
+    <details class="browser-notice__more" open>
+      <summary>자세히 보기</summary>
+      <p data-notice-text="other-browser" hidden>
         지금 브라우저에서도 학습 페이지와 퀴즈는 볼 수 있어요. 코드를 실행하거나 보드를 연결하는 실습은 Chrome과 Edge
         최신판을 기준으로 만들어요.
       </p>
-    </div>
-    <div class="browser-notice__text" data-notice-text="update-browser" hidden>
-      <p class="browser-notice__title">브라우저를 최신판으로 업데이트해 주세요</p>
-      <p>
-        이 브라우저에는 파이썬 실습에 필요한 기능(JSPI)이 없어요. 업데이트한 뒤 점검 페이지에서 다시 확인해 주세요. 학습
+      <p data-notice-text="update-browser" hidden>
+        이 브라우저에는 파이썬 실습에 필요한 기능(JSPI)이 없어요. 업데이트한 뒤 내 컴퓨터 점검에서 다시 확인해 주세요. 학습
         페이지와 퀴즈는 지금도 볼 수 있어요.
       </p>
-    </div>
-    <p><a class="button button--secondary browser-notice__check" href={checkHref}>이 브라우저로 무엇이 되는지 점검하기</a></p>
+      <p><a class="button button--secondary browser-notice__check" href={checkHref}>내 컴퓨터 점검 열기</a></p>
+    </details>
   </div>
   <button type="button" class="browser-notice__close" data-browser-notice-close>
     <svg class="browser-notice__close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M6 6l12 12M18 6L6 18"></path>
     </svg>
-    안내 닫기
+    <span class="browser-notice__close-label">안내 닫기</span>
   </button>
 </aside>
 
@@ -77,6 +79,16 @@ const checkHref = withBase('start/check/');
     }
     notice.hidden = false;
     notice.dataset.state = 'shown';
+
+    // 좁은 화면(휴대폰)에서는 설명을 접어 두고 제목만 보인다. 넓은 화면은 펼친 채(예전 모양). 화면 폭이 바뀌면 따라간다.
+    const more = notice.querySelector<HTMLDetailsElement>('details.browser-notice__more');
+    if (more !== null && typeof matchMedia === 'function') {
+      const narrow = matchMedia('(max-width: 40rem)');
+      more.open = !narrow.matches;
+      narrow.addEventListener('change', (event) => {
+        more.open = !event.matches;
+      });
+    }
 
     notice.querySelector<HTMLButtonElement>('[data-browser-notice-close]')?.addEventListener('click', () => {
       // 저장하지 못해도(저장 공간이 막힌 브라우저) 이번 페이지에서는 닫는다.
@@ -131,9 +143,94 @@ const checkHref = withBase('start/check/');
     gap: var(--space-2);
   }
 
-  .browser-notice__text {
+  .browser-notice__more {
     display: grid;
-    gap: var(--space-1);
+    gap: var(--space-2);
+  }
+
+  .browser-notice__more > p {
+    margin: 0;
+  }
+
+  /* 넓은 화면에서는 늘 펼쳐 있어 "자세히 보기" 줄이 필요 없다(자바스크립트가 열어 둔다). 휴대폰에서만 보이는 접기 단추다. */
+  @media (min-width: 40.01rem) {
+    .browser-notice__more > summary {
+      display: none;
+    }
+  }
+
+  .browser-notice__more > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .browser-notice__more > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* 세모 표시는 테두리로 그린다(C68 규약 — flex인 summary는 기본 표식이 사라진다). 열리면 90도 돌고 전환은 없다. */
+  .browser-notice__more > summary::before {
+    content: '';
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.35em;
+    border-inline-width: 0.55em 0;
+    border-inline-start-color: currentColor;
+  }
+
+  .browser-notice__more[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  @media (forced-colors: active) {
+    .browser-notice__more > summary {
+      forced-color-adjust: auto;
+      list-style: revert;
+    }
+
+    .browser-notice__more > summary::before {
+      display: none;
+    }
+  }
+
+  /*
+   * 휴대폰: 제목 한 줄 + [자세히 보기] 한 줄 + 닫기만 먼저 보이게 안쪽 여백·글자를 줄이고, 닫기는 글자 없이 X만(이름 "안내 닫기"는 그대로 — 아래 sr-only).
+   * 설명·점검 링크는 접힌 칸 안이라 자리를 차지하지 않는다(예전 높이 약 380px → 약 130px).
+   */
+  @media (max-width: 40rem) {
+    .browser-notice {
+      flex-wrap: nowrap;
+      gap: var(--space-2) var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-inline-start-width: 0.25rem;
+    }
+
+    .browser-notice__title {
+      font-size: var(--text-base);
+    }
+
+    .browser-notice__close {
+      padding: var(--space-2);
+    }
+
+    .browser-notice__close-label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   .browser-notice__title {

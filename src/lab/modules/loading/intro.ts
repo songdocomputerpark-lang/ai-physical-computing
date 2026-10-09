@@ -21,6 +21,24 @@
 /** 실습실 틀이 그린 "첫 준비 동안 맨 위 칸 자리"(LabShell.astro) */
 export const LOADING_INTRO_SLOT_SELECTOR = '[data-lab-intro]';
 
+/**
+ * 맨 위 자리에 있는 동안 준비 칸의 제목 단계(판 1.3.0 검수 R1-104). 칸 제목은 제자리(입력·출력 아래)에서 h3이 맞지만, 맨 위 자리는 쪽 제목(h1) 바로 다음이라
+ * 제목 단계가 h1 → h3으로 건너뛰었다(axe heading-order). 맨 위에 있는 동안만 aria-level로 실습실 칸 제목(.lab__heading)과 같은 단계로 올리고,
+ * 그 안 카드 제목은 한 단계 아래로 한다. 제자리로 돌아가면 지운다(태그의 원래 단계가 맞다).
+ */
+function setIntroHeadingLevels(root: Element, panel: Element, on: boolean): void {
+  const title = panel.querySelector('[data-loading-title]');
+  const card = panel.querySelector('[data-loading-card-title]');
+  if (!on) {
+    title?.removeAttribute('aria-level');
+    card?.removeAttribute('aria-level');
+    return;
+  }
+  const level = Number.parseInt(/^H([1-6])$/u.exec(root.querySelector('.lab__heading')?.tagName ?? '')?.[1] ?? '2', 10);
+  title?.setAttribute('aria-level', String(level));
+  card?.setAttribute('aria-level', String(Math.min(level + 1, 6)));
+}
+
 /** 옮긴 칸 → 제자리 표시(빈 주석 노드). 칸을 되돌릴 때 그 자리 바로 앞에 넣고 표시는 지운다. */
 const homes = new WeakMap<Element, Comment>();
 
@@ -83,6 +101,7 @@ export function placeInLoadingIntro(root: HTMLElement, panel: HTMLElement): bool
   parent.insertBefore(marker, panel);
   homes.set(panel, marker);
   moveKeepingFocus(panel, slot, null);
+  setIntroHeadingLevels(root, panel, true);
   return true;
 }
 
@@ -104,6 +123,7 @@ export function endLoadingIntro(root: HTMLElement): void {
     moveKeepingFocus(element, marker.parentNode, marker);
     marker.remove();
     homes.delete(element);
+    setIntroHeadingLevels(root, element, false);
   }
 }
 

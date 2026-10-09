@@ -7,6 +7,10 @@
  * 겉과 카드 칸은 영역(section)이 아니라 이름 붙은 묶음(role="group")이다 — 영역 이름은 LabShell의 모듈 칸("준비 — 컴퓨터 칸" 등)이 맡아,
  * 한 쪽에 실습실 틀이 둘인 4단원 화면에서 같은 이름의 영역이 겹치지 않게 한다(axe landmark-unique, 2026-09-26 Phase 6 통합).
  */
+import { withBase } from '../../../lib/url.ts';
+
+// 받는 동안 보이는 "처음 한 번만 걸려요" 안내의 점검 링크(R1-097 — 막힌 학교 망이면 '잘 안 될 때'까지 내려가지 않아도 여기서 바로 간다)
+const checkHref = withBase('start/check/');
 ---
 
 <div class="loading" data-loading-panel data-collapsed="false" role="group" aria-labelledby="lab-loading-title">
@@ -24,6 +28,12 @@
     </div>
 
     <ol class="loading__stages" data-loading-stages></ol>
+
+    {/* 받는 동안만 보인다(받기를 미룬 휴대폰에서는 [실행] 전에는 숨김, 준비가 끝나거나 실패하면 숨김 — 아래 style). 크기는 index.ts가 채운다. */}
+    <p class="loading__expect" data-loading-expect>
+      <strong>처음 한 번만 걸려요.</strong> 파이썬(<span data-loading-expect-size>약 13MB</span>)을 받는 중이에요. 학교 인터넷이면 보통 1분 안팎이고,
+      느리면 몇 분 걸려요. 한 번 받으면 다음부터는 바로 열려요. 오래 그대로이면 <a href={checkHref}>내 컴퓨터 점검</a>을 해 봐요.
+    </p>
 
     <p class="loading__source" data-loading-source-text></p>
 
@@ -195,6 +205,24 @@
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /* "처음 한 번만 걸려요" 안내(R1-097): 받는 동안만. 받기를 미룬 실습실은 [실행] 전에는 숨기고(제목·진행 줄이 같은 말을 한다), 이 컴퓨터에 저장된 파일을 읽는 두 번째 방문부터는 "처음"이 아니라 숨기고, 끝나거나 실패하면 숨긴다 */
+  .loading__expect {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-inline-start: 3px solid var(--color-info-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  :global([data-lab][data-load-deferred='yes']) .loading__expect,
+  :global([data-lab][data-loading-source='cache']) .loading__expect,
+  :global([data-lab][data-loading-phase='ready']) .loading__expect,
+  :global([data-lab][data-loading-phase='failed']) .loading__expect {
+    display: none;
   }
 
   .loading__source:empty,

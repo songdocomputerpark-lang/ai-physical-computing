@@ -48,12 +48,12 @@ const mqttTemplate = labLink('esp32', 'esp32/templates/mqtt-pub-sub.py');
   <div class="prose" data-embed-hide>
     <h2 id="how">이렇게 해 봐요</h2>
     <ol>
-      <li><strong>연결</strong>: 통로를 [같은 컴퓨터 탭]으로 두고 [연결]을 눌러요(3단계에서 가상 보드를 열면 [같은 컴퓨터 탭]은 저절로 이어져요).</li>
-      <li><strong>보드 열기</strong>: [이 자리에서 가상 보드 열기]를 누르고, 실습실에서 [실행]을 눌러요.</li>
+      <li><strong>보드 열기</strong>: 1단계의 [이 자리에서 가상 보드 열기]를 누르고, 열린 실습실에서 [실행]을 눌러요. 통로가 처음 값인 [같은 컴퓨터 탭]이면 [연결]은 저절로 돼요.</li>
+      <li><strong>다른 통로로 연결</strong>: 인터넷의 공개 중계 서버를 쓰거나 친구와 접두어를 맞추려면 3단계의 [통로·접두어 바꾸기(고급)]를 열고 [연결]을 눌러요.</li>
       <li><strong>보기</strong>: 그래프와 게이지에 값이 들어오고, 로그에 주고받은 줄이 쌓여요.</li>
       <li><strong>보내기</strong>: 스위치를 누르면 보드의 내장 LED(GPIO2)가 켜지고, 다시 누르면 꺼져요.</li>
       <li><strong>직접 짜 보기</strong>: 보드 코드를 스스로 고쳐 보려면 ESP32 실습실에서 <a href={mqttTemplate.href}>통신 템플릿 3(와이파이 + MQTT)</a>을 열어요. 같은 토픽을 써서 이 대시보드와 그대로 주고받아요.</li>
-      <li><strong>두 탭으로</strong>: 3단계의 [새 탭에서 ESP32 실습실 열기]를 누르면 새 탭의 {esp32.title}이 같은 예제와 이 화면의 통신 접두어로 열려요. 거기서 [실행]하면 탭끼리도 똑같이 돼요.</li>
+      <li><strong>두 탭으로</strong>: 1단계의 [새 탭에서 ESP32 실습실 열기]를 누르면 새 탭의 {esp32.title}이 같은 예제와 이 화면의 통신 접두어로 열려요. 거기서 [실행]하면 탭끼리도 똑같이 돼요.</li>
     </ol>
 
     <h2 id="topics">토픽 이름</h2>

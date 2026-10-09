@@ -159,10 +159,10 @@ test.describe('펌웨어 굽기 화면', () => {
     await expect(missing).toBeVisible();
     await expect(missing).toContainText('펌웨어 파일 준비 중이에요');
     await expect(root.getByRole('button', { name: '펌웨어 굽기 시작' })).toBeDisabled();
-    // 단계 7개가 "기다림"으로 보인다
+    // 단계 7개가 "차례를 기다려요"로 보인다
     await expect(root.locator('[data-stage]')).toHaveCount(7);
     await expect(stage(root, 'write')).toContainText('펌웨어 쓰기');
-    await expect(stage(root, 'write')).toContainText('기다림');
+    await expect(stage(root, 'write')).toContainText('차례를 기다려요');
     // "수동으로 굽는 방법" 링크를 누르면 선생님용 접힘이 펴진다
     await missing.getByRole('link', { name: '수동으로 굽는 방법' }).click();
     const manual = root.locator('[data-firmware-manual]');

@@ -379,7 +379,7 @@ async function load(message: LoadMessage): Promise<void> {
       type: 'load-failed',
       message:
         '파이썬 엔진(Pyodide)을 받지 못했어요. 인터넷 연결과 학교 네트워크 설정을 확인한 뒤 새로고침해 주세요. ' +
-        '계속 같으면 시작하기의 점검 페이지 결과를 문제 알리기에 남겨 주세요.',
+        '계속 같으면 시작하기의 내 컴퓨터 점검 결과를 문제 알리기에 남겨 주세요.',
       details,
     });
     return;

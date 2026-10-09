@@ -95,12 +95,16 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
   const resetButton = find<HTMLButtonElement>('reset');
   const openLabButton = find<HTMLButtonElement>('open-lab');
   const labSlot = find<HTMLElement>('lab-slot');
-  const countText = find<HTMLElement>('count');
+  // 받은 메시지 수 글(data-dash-received). 위젯 판의 data-dash-count(위젯 수)와 이름이 겹치면 판 1.3.0에서 3단계가 판 뒤로 가며
+  // querySelector가 위젯 판을 먼저 찾아 위젯을 모두 글자로 덮었다(통합 확인 — [연결] 뒤 위젯이 사라짐).
+  const countText = find<HTMLElement>('received');
   const connectWarning = find<HTMLElement>('connect-warning');
   const copyPrefixButton = find<HTMLButtonElement>('copy-prefix');
   const checkNote = find<HTMLElement>('check-note');
   const labLink = root.querySelector<HTMLAnchorElement>('[data-dash-lab-link]');
   const labHint = find<HTMLElement>('lab-hint');
+  /** 통로·접두어 설정을 접어 둔 칸(판 1.3.0 R1-113 — 처음에는 접혀 있고, 공개 중계 서버·자동 통로를 쓰거나 접두어를 바꾸려면 학생이 연다) */
+  const advanced = find<HTMLDetailsElement>('advanced');
 
   const settings = readMqttSettings();
   // ESP32 실습실 MQTT 칸의 "대시보드를 새 탭에서" 링크로 열렸으면(?prefix=… — 2026-09-25 Phase 4 검토 반영) 그 접두어를 이 탭에서 쓴다.
@@ -112,7 +116,7 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
   const source = createMqttSource(session);
   let received = 0;
 
-  /** 1단계 안내 줄. level 'warn'이면 경고 모양(중계 서버 실패·탭 전환 — 다음 안내가 올 때까지 남는다) */
+  /** 연결 안내 줄(3단계 — 판 1.3.0 전에는 1단계). level 'warn'이면 경고 모양(중계 서버 실패·탭 전환 — 다음 안내가 올 때까지 남는다) */
   const showHint = (text: string, level: 'info' | 'warn' = 'info'): void => {
     if (hint !== null) {
       hint.textContent = text;
@@ -223,6 +227,10 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
     root.dataset.dashState = session.state;
     root.dataset.dashVia = session.via ?? '';
     root.dataset.dashModeValue = mode;
+    // 처음 값(같은 컴퓨터 탭)이 아닌 통로를 쓰고 있으면 설정 칸을 펴 둔다 — 저장된 설정으로 열렸을 때 무엇을 골랐는지 숨지 않게
+    if (advanced !== null && mode !== 'tab') {
+      advanced.open = true;
+    }
     if (stateText !== null) {
       const labels: Record<string, string> = {
         idle: '아직 연결하지 않았어요',
@@ -523,7 +531,7 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
     openLabButton.setAttribute('aria-expanded', open ? 'true' : 'false');
     openLabButton.textContent = open ? '가상 보드 접기' : '이 자리에서 가상 보드 열기';
     if (open) {
-      // 학생이 1단계 [연결]을 빼먹으면 보드가 보내는 값이 아무 데도 닿지 않았다(2026-09-25 Phase 4 검토 반영).
+      // 학생이 [연결](3단계)을 빼먹으면 보드가 보내는 값이 아무 데도 닿지 않았다(2026-09-25 Phase 4 검토 반영).
       // 같은 컴퓨터 탭이면 인터넷이 필요 없으니 [연결]까지 해 주고, 공개 중계 서버면(학생이 고르는 일) 무엇을 누를지 알린다.
       if (session.state !== 'open') {
         if (session.mode === 'tab') {

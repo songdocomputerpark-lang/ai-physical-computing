@@ -11,7 +11,7 @@ tags:
   - 마우스
   - 블루투스
   - BLE
-  - 브릿지
+  - 브리지
 packages:
   - opencv-python
 practice:

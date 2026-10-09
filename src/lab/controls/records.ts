@@ -14,9 +14,9 @@ import { clearOurs, type KeyedStorageLike, type StorageSource } from '../../lib/
 /** 버튼 이름(문서·안내와 같은 글자) */
 export const CLEAR_RECORDS_LABEL = '이 컴퓨터에서 내 기록 지우기';
 
-/** 확인 대화의 설명 */
+/** 확인 대화의 설명 — 진도(어디까지 봤는지)도 같은 머리말이라 함께 지워진다는 것을 알린다(판 1.3.0 R1-063) */
 export const CLEAR_RECORDS_CONFIRM_TEXT =
-  '이 브라우저에 자동 저장된 코드와 설정을 모두 지워요. 지운 기록은 되돌릴 수 없어요. 계속할까요?';
+  '이 브라우저에 자동 저장된 코드, 설정, 어디까지 봤는지(진도)를 모두 지워요. 지운 기록은 되돌릴 수 없어요. 계속할까요?';
 
 /** 공용 PC 안내(버튼 옆에 늘 보인다) */
 export const CLEAR_RECORDS_HINT =
@@ -50,5 +50,5 @@ export function clearAllRecords(sources: ClearRecordsSources = {}): number {
 export function describeCleared(removed: number): string {
   return removed === 0
     ? '지울 기록이 없었어요. 이 브라우저에는 이 사이트의 기록이 남아 있지 않아요.'
-    : `기록 ${removed}개를 지웠어요.`;
+    : `기록 ${removed}개를 지웠어요. 어디까지 봤는지(진도)도 함께 지웠어요.`;
 }

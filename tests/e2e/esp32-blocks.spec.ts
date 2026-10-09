@@ -355,3 +355,53 @@ test.describe('ESP32 실습실 블록 모드', () => {
     expect(await labRoot(page).getAttribute('data-board-wiring-override')).toBeNull();
   });
 });
+
+// 판 1.3.0 검수: R1-109(예제 고르기가 두 곳), R1-110(시작 예시가 거꾸로 동작하는 BOOT 하나뿐), R1-116(도구 상자 범주 id 중복)
+test.describe('ESP32 실습실 블록 모드 — 판 1.3.0 다듬기', () => {
+  test.describe.configure({ timeout: 300_000 });
+  test.skip(({ isMobile }) => isMobile, '데스크톱에서 한 번 본다(휴대폰 배치는 위에서 따로).');
+
+  test('블록 모드에서는 위쪽 예제 고르기가 숨고(블록 예시 하나만), [코드로 바꾸기] 뒤에는 예제 이름이 코드와 다르다는 안내가 보인다', async ({ page }) => {
+    await openEsp32Lab(page, '?blocks=1');
+    await waitBlocksReady(page);
+    await expect(page.locator('[data-lab-example-select]')).toBeHidden();
+    await expect(page.locator('[data-lab-example-load]')).toBeHidden();
+    await expect(page.locator('[data-blocks-preset]')).toBeVisible();
+    await expect(page.locator('[data-blocks-bar-note]')).toContainText('블록 예시는 아래');
+
+    await page.getByRole('button', { name: '코드로 바꾸기', exact: true }).click();
+    await expect(labRoot(page)).toHaveAttribute('data-block-mode', 'code');
+    await expect(page.locator('[data-lab-example-select]')).toBeVisible();
+    await expect(page.locator('[data-lab-example-load]')).toBeVisible();
+    await expect(page.locator('[data-lab-example-description]')).toContainText('블록에서 만든 코드');
+    // [초기화]하면 안내가 걷히고 원래 설명으로
+    await page.getByRole('button', { name: '초기화', exact: true }).click();
+    await page.getByRole('button', { name: '되돌리기', exact: true }).click();
+    await expect(page.locator('[data-lab-example-description]')).not.toContainText('블록에서 만든 코드');
+  });
+
+  test('BOOT 예시를 코드로 바꾸면 "누르면 0이라서 == 0"이라는 안내가 나온다', async ({ page }) => {
+    await openEsp32Lab(page, '?blocks=1');
+    await waitBlocksReady(page);
+    await loadPreset(page, 'boot-led');
+    await page.getByRole('button', { name: '코드로 바꾸기', exact: true }).click();
+    await expect(page.locator('[data-lab-message]')).toContainText('BOOT 버튼은 누르면 0');
+  });
+
+  test('블록 예시에 터치 센서를 누르면 LED가 켜지는 예시가 있다', async ({ page }) => {
+    await openEsp32Lab(page, '?blocks=1');
+    await waitBlocksReady(page);
+    await expect(page.locator('[data-blocks-preset] option[value="touch-led"]')).toHaveCount(1);
+    await loadPreset(page, 'touch-led');
+    await expect.poll(() => editorCode(page)).toContain('    if touch.value() == 1:');
+    await expect(blocksRoot(page)).toHaveAttribute('data-blocks-parts', 'builtin-led:2 touch-digital:17');
+  });
+
+  test('도구 상자 범주의 id가 문서에서 겹치지 않는다(#blocks-cat-board가 요소 하나)', async ({ page }) => {
+    await openEsp32Lab(page, '?blocks=1');
+    await waitBlocksReady(page);
+    for (const id of ['board', 'sensor', 'light', 'sound', 'motion', 'display', 'flow', 'wait', 'calc']) {
+      await expect(page.locator(`[id="blocks-cat-${id}"]`), id).toHaveCount(1);
+    }
+  });
+});

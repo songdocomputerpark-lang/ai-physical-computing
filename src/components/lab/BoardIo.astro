@@ -32,7 +32,8 @@ import '../../styles/board-drawing.css';
         <p class="board-io__practice-title">이 예제 실습 방법</p>
         <ol class="board-io__practice-steps" data-board-practice-steps></ol>
       </div>
-      <p class="board-io__phase" data-board-phase-text role="status" aria-live="polite">보드가 멈춰 있어요. [실행]을 누르면 보드를 새로 켜고 코드를 돌려요.</p>
+      {/* 낭독 영역이 아니다(R1-106): 실습실 틀의 상태 줄("실행 중이에요." 등, role="status")이 같은 말을 이미 한 번 알린다 — 둘이 거의 동시에 읽히던 것을 하나로 */}
+      <p class="board-io__phase" data-board-phase-text>보드가 멈춰 있어요. [실행]을 누르면 보드를 새로 켜고 코드를 돌려요.</p>
       {/*
         칸보다 그림이 넓으면(휴대폰 기본 화면, [그림 크게 보기]) 옆으로 밀어 봐야 한다 — 그 사실을 오른쪽 그늘과 아래 한 줄로 알린다
         (2026-09-18 검토 반영: 375px에서 크게 보기를 누르면 보드 왼쪽 40%만 보이고 더 볼 수 있다는 표시가 없어 그림이 깨진 줄 알았다).

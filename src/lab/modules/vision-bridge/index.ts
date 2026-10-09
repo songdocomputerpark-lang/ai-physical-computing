@@ -28,6 +28,7 @@
 import { listBridgeChannels, onBridgeChannelsChanged } from '../../bridge/index.ts';
 import { registerMqttChannel } from '../../mqtt/index.ts';
 import { withBase } from '../../../lib/url.ts';
+import { studentExampleTitle } from '../../controls/example-names.ts';
 import { revealElement } from '../../controls/reveal.ts';
 import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
@@ -250,9 +251,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
       return;
     }
     if (roleBand.hidden) {
+      // 조작 줄 묶음(.lab__bar — 조작 줄 + 상태 줄, 넓은 화면에서는 화면 위에 붙는다)의 앞에 둔다: 띠가 붙는 묶음 안에 들어가 높이를 더하지 않게(판 1.3.0 R1-096)
       const toolbar = context.root.querySelector('[data-lab-toolbar]');
-      if (toolbar !== null && toolbar.parentElement !== null) {
-        toolbar.parentElement.insertBefore(roleBand, toolbar);
+      const anchor = toolbar?.closest('[data-lab-bar]') ?? toolbar;
+      if (anchor !== null && anchor !== undefined && anchor.parentElement !== null) {
+        anchor.parentElement.insertBefore(roleBand, anchor);
       }
       const who = roleBand.querySelector('[data-bridge-role-who]');
       if (who !== null) {
@@ -401,7 +404,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     for (const example of BOARD_EXAMPLES) {
       const option = document.createElement('option');
       option.value = example.file;
-      option.textContent = example.label;
+      option.textContent = studentExampleTitle(example.label);
       exampleSelect.append(option);
     }
   }

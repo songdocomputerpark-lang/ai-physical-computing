@@ -95,6 +95,9 @@ export function createPythonEditor(options: PythonEditorOptions): PythonEditor {
     spellcheck: 'false',
     autocorrect: 'off',
     autocapitalize: 'off',
+    // contenteditable은 원래 Tab으로 초점을 받는다 — 같은 뜻을 tabindex로도 적어 둔다(판 1.3.0 검수 R1-105). axe(scrollable-region-focusable)는 스크롤 칸(.cm-scroller)
+    // 안에 "초점 받는 요소"가 있는지 보는데 contenteditable은 세지 않고 tabindex만 본다 — 이 한 줄로 스크롤 칸이 키보드로 닿는 것으로 읽힌다. Tab 차례는 그대로다.
+    tabindex: '0',
   };
   if (options.describedBy) {
     contentAttributes['aria-describedby'] = options.describedBy;

@@ -7,6 +7,9 @@
  * 좁은 화면에서는 같은 순서로 세로로 쌓인다. 보이는 차례 = DOM 차례(= Tab 차례)다 — 칸을 CSS로만 옮겨 보이게 하지 않는다(WCAG 2.4.3).
  * 화면 논리(에디터·실행기·자동 저장·공유 링크·내려받기)는 src/lab/controls/lab-shell.ts가 맡는다. 이 파일은 HTML·CSS만 그린다.
  *
+ * 조작 줄 묶음(.lab__bar = 조작 줄 + 상태 줄 + 안내 줄): 넓고 높은 화면에서는 화면 위에 붙는다(sticky, 판 1.3.0 R1-096). 틀(.lab)은 폭 컨테이너라
+ * 칸 배치·붙임이 화면 폭이 아니라 틀 폭(rem)을 따른다 — html 글자 크기를 키우면 같은 화면에서도 한 열로 쌓인다(R1-108).
+ *
  * 쓰는 법
  *   <LabShell labId="vision" examples={examples}>
  *     <div slot="io">카메라 입력·출력 캔버스</div>       ← P2-03이 넣는다(없으면 자리 상자)
@@ -32,7 +35,7 @@
  *                     PROGRESS 미해결 138). 두 칸에 함께 붙는 흉내 모듈 패널은 고정 id를 쓰므로 같은 id가 두 번 나오는데, 실습실 틀이
  *                     그런 id에 `--<꼬리>`를 붙이고 칸 안의 이름표(for)·aria 참조를 함께 고친다(lab-shell.ts scopeLabIds — 모듈이 붙기 전).
  *                     적지 않으면 labId를 꼬리로 쓴다. 칸이 하나인 쪽에서는 아무 일도 없다. contextLabel과 짝으로 준다.
- *   coach             (선택, 기본 true) 조작 줄 아래 "① 예제 고르기 → ② [실행] 누르기 → ③ 결과 보기" 코치 줄(판 1.3.0)을 그릴지.
+ *   coach             (선택, 기본 true) 조작 줄 묶음(.lab__bar) 아래 "① 예제를 골라요 → ② [실행]을 눌러요 → ③ 결과를 봐요" 코치 줄(판 1.3.0)을 그릴지.
  *                     한 쪽에 틀이 둘이면(4단원 통합 화면) 한 번만 보이게 첫 틀에만 두고 둘째에는 coach={false}를 준다.
  *                     코치 줄은 Tab 정지점이 없는 목록이고 차시 안 임베드(?embed=1)에서는 숨는다. 지금 단계 강조는 data-run-count를
  *                     읽는 CSS뿐이다(새 JS 상태 없음).
@@ -53,7 +56,9 @@ import { TAB_HINT } from '../../lab/editor/python-editor.ts';
 import { folderNameOf, modulesForLab } from '../../lab/modules/manifests.ts';
 import type { ModulePlacement } from '../../lab/modules/types.ts';
 import { STOP_GRACE_MS } from '../../lab/runtime/config.ts';
+import { studentExampleTitle } from '../../lab/controls/example-names.ts';
 import ClearRecordsButton from './ClearRecordsButton.astro';
+import LabPageFrame from './LabPageFrame.astro';
 import ParamPanel from './ParamPanel.astro';
 
 // Props는 import 바로 아래(첫 const 앞)에 둔다 — 앞에 const 선언이 있으면 Astro가 이 interface를 컴포넌트 props 형으로 잇지 않아
@@ -134,6 +139,8 @@ const sidePanels = modulePanels.filter((panel) => panel.placement === 'panel');
 const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 ---
 
+{/* 넓은 쪽의 폭 규약(전역 CSS만 — 판 1.3.0 R1-102). 아무것도 그리지 않는다. */}
+<LabPageFrame />
 <div
   class="lab"
   data-lab
@@ -154,47 +161,58 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 >
   <script is:inline type="application/json" data-lab-examples set:html={examplesJson} />
 
-  <div class="lab__toolbar" data-lab-toolbar>
-    <button type="button" class="button button--primary" data-lab-run disabled>실행</button>
-    <button type="button" class="button button--secondary" data-lab-stop disabled>정지</button>
-    <button type="button" class="lab-button" data-lab-reset>초기화</button>
-    <div class="lab__examples">
-      <label class="lab__examples-label" for={ids.exampleSelect}>예제</label>
-      <select id={ids.exampleSelect} class="lab__select" data-lab-example-select disabled={examples.length === 0}>
-        {examples.length === 0 && <option value="">예제가 아직 없어요</option>}
-        {
-          exampleGroups.map((group) =>
-            group.label === null ? (
-              group.items.map((example) => <option value={example.id}>{example.title}</option>)
-            ) : (
-              <optgroup label={group.label}>{group.items.map((example) => <option value={example.id}>{example.title}</option>)}</optgroup>
-            ),
-          )
-        }
-      </select>
-      <button type="button" class="lab-button" data-lab-example-load disabled={examples.length === 0}>예제 불러오기</button>
+  {/*
+    조작 줄 + 상태 줄 + 안내 줄을 한 묶음(.lab__bar)으로 둔다 — 넓은 화면에서는 이 묶음이 화면 위에 붙어(sticky) [실행] 뒤 화면이 결과 칸으로 내려가도
+    [정지]·상태 줄이 계속 보인다(판 1.3.0 검수 R1-096). 코치 줄은 묶음 밖(바로 아래)이라 붙지 않는다 — 붙는 높이를 줄이려는 것.
+    좁은 화면·낮은 화면에서는 붙이지 않는다: 붙은 줄이 화면을 먹고, 휴대폰에서는 보드 조작 칸을 가린 전례가 있다(아래 .lab__io-output 주석).
+  */}
+  <div class="lab__bar" data-lab-bar>
+    <div class="lab__toolbar" data-lab-toolbar>
+      <div class="lab__actions">
+        <button type="button" class="button button--primary" data-lab-run disabled>실행</button>
+        <button type="button" class="button button--secondary" data-lab-stop disabled>정지</button>
+        <button type="button" class="lab-button" data-lab-reset>초기화</button>
+      </div>
+      <div class="lab__examples">
+        <label class="lab__examples-label" for={ids.exampleSelect}>예제</label>
+        <select id={ids.exampleSelect} class="lab__select" data-lab-example-select disabled={examples.length === 0}>
+          {examples.length === 0 && <option value="">예제가 아직 없어요</option>}
+          {
+            exampleGroups.map((group) =>
+              group.label === null ? (
+                group.items.map((example) => <option value={example.id}>{studentExampleTitle(example.title)}</option>)
+              ) : (
+                <optgroup label={studentExampleTitle(group.label)}>{group.items.map((example) => <option value={example.id}>{studentExampleTitle(example.title)}</option>)}</optgroup>
+              ),
+            )
+          }
+        </select>
+      </div>
+      <div class="lab__tools">
+        <button type="button" class="lab-button" data-lab-example-load disabled={examples.length === 0}>예제 불러오기</button>
+        <button type="button" class="lab-button lab-button--quiet" data-lab-share>공유 링크</button>
+        <button type="button" class="lab-button lab-button--quiet" data-lab-download>.py 내려받기</button>
+      </div>
     </div>
-    <button type="button" class="lab-button" data-lab-share>공유 링크</button>
-    <button type="button" class="lab-button" data-lab-download>.py 내려받기</button>
+
+    <p class="lab__status">
+      <span class="lab__status-main" role="status" aria-live="polite" data-lab-status>아직 시작하지 않았어요.</span>
+      {/* 받은 양이 바뀔 때마다 바뀌어 낭독하지 않는다 — 준비 칸의 낭독 줄이 단계가 바뀔 때 알린다(loading/index.ts 머리말 6, 판 1.2.1) */}
+      <span class="lab__status-progress" data-lab-progress aria-live="off"></span>
+    </p>
+    <p class="lab__message" role="status" aria-live="polite" data-lab-message></p>
   </div>
 
   {
-    /* 처음 쓰는 방법 코치 줄(판 1.3.0). 조작 줄 아래·상태 줄 위 — 조작 줄 위에는 역할 띠가 오고, 준비 칸 자리([data-lab-intro])에는 아무것도 넣지 않는다. */
+    /* 처음 쓰는 방법 코치 줄(판 1.3.0). 조작 줄 묶음 바로 아래 — 조작 줄 위에는 역할 띠가 오고, 준비 칸 자리([data-lab-intro])에는 아무것도 넣지 않는다. */
     coach && (
       <ol class="lab__coach steps" aria-label="처음 쓰는 방법" data-lab-coach data-embed-hide>
-        <li>예제 고르기</li>
-        <li>[실행] 누르기</li>
-        <li>결과 보기</li>
+        <li>예제를 골라요</li>
+        <li>[실행]을 눌러요</li>
+        <li>결과를 봐요</li>
       </ol>
     )
   }
-
-  <p class="lab__status">
-    <span class="lab__status-main" role="status" aria-live="polite" data-lab-status>아직 시작하지 않았어요.</span>
-    {/* 받은 양이 바뀔 때마다 바뀌어 낭독하지 않는다 — 준비 칸의 낭독 줄이 단계가 바뀔 때 알린다(loading/index.ts 머리말 6, 판 1.2.1) */}
-    <span class="lab__status-progress" data-lab-progress aria-live="off"></span>
-  </p>
-  <p class="lab__message" role="status" aria-live="polite" data-lab-message></p>
 
   {/*
     지금 예제가 어느 차시에서 나오는지(예제 머리말 # @lesson / 사이드카 lesson). 차시에서 [실습실에서 열기]로 넘어온 학생이
@@ -370,15 +388,65 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 </script>
 
 <style>
+  /*
+   * 세로로 쌓는 틀. 예전에는 한 열 grid였는데, grid 항목은 자기 칸(행) 안에서만 붙어(sticky) 조작 줄 묶음이 화면에 붙지 못했다(R1-096).
+   * 세로 flex는 항목이 이 틀 전체 안에서 붙을 수 있다. 열 폭이 내용 폭으로 커지지 않게 항목에 min-width 0을 준다(예전 minmax(0, 1fr)와 같은 뜻 —
+   * 긴 예제 제목의 선택 상자가 좁은 화면을 옆으로 넘치게 하던 것, 2026-09-16 P2-03 375px 확인).
+   *
+   * 틀 자체가 폭 컨테이너(lab)다 — 아래 칸 배치(@container)가 화면 폭(@media는 html 글자 크기를 모른다)이 아니라 이 틀의 폭을 rem으로 재서,
+   * 글자를 키우면(html 글자 크기 200%) 같은 폭에서도 칸이 한 열로 쌓인다(R1-108). 틀 폭은 쪽 본문 폭이라 내용으로 정해지지 않는다.
+   */
   .lab {
-    display: grid;
-    /* 열 폭을 화면 폭에 맞춘다. 기본값(auto)이면 조작 줄의 내용 폭(긴 예제 제목의 선택 상자)만큼 열이 커져 좁은 화면이 옆으로 넘친다(2026-09-16 P2-03 375px 확인). */
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: var(--space-4);
     margin-block-end: var(--space-10);
+    container-name: lab;
+    container-type: inline-size;
+  }
+
+  .lab > * {
+    min-width: 0;
+  }
+
+  /*
+   * 조작 줄 + 상태 줄 + 안내 줄 묶음. 평소에는 그냥 위쪽에 있고, 넓고 높은 화면(아래 @container)에서만 화면 위에 붙는다.
+   * 상태 줄은 넓은 화면에서 조작 줄과 같은 줄에 앉아(남는 자리), 붙는 높이를 [실행] 한 줄만큼으로 줄인다.
+   */
+  .lab__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+    min-width: 0;
+  }
+
+  .lab__bar > .lab__status {
+    flex: 0 1 12rem;
+    min-width: 0;
+  }
+
+  .lab__bar > .lab__message {
+    flex: 1 1 100%;
+  }
+
+  /* 블록 모드(ESP32 실습실 — src/lab/blocks/mode-ui.ts가 data-block-mode를 적는다)에서는 "예제 고르기" 코치 줄이 맞지 않아 접는다(작업판이 위로 올라오게, R1-110) */
+  .lab[data-block-mode='blocks'] .lab__coach {
+    display: none;
   }
 
   .lab__toolbar {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* [실행]·[정지]·[초기화]: 늘 한 묶음(휴대폰에서도 한 줄 — 아래 좁은 화면 규칙) */
+  .lab__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -388,17 +456,137 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   /* 예제 제목이 길어도 좁은 화면에서 선택 상자가 줄어들게 한다(min-width 0이 없으면 플렉스 항목이 내용 폭만큼 커져 화면이 옆으로 넘친다 — 2026-09-16 P2-03 375px 확인). */
   .lab__examples {
     display: flex;
+    flex: 1 1 12rem;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 10rem;
+    max-width: 26rem;
+    padding-inline-start: var(--space-3);
+    border-inline-start: 1px solid var(--color-border);
+  }
+
+  /*
+   * 예제 선택 상자의 기본 폭은 가장 긴 예제 이름이라(약 500px), 좁은 틀의 세로 조작 줄(아래 @container)에서 그 폭이 줄 전체를 밀어
+   * 375px 화면에서 [초기화]가 화면 밖으로 나갔다(통합 확인 — 문서 폭 557px). 폭을 100%로 두면 내용 폭으로 커지지 않고 칸에 맞춰 늘고 준다.
+   */
+  .lab__examples > :global(.lab__select) {
+    width: 100%;
+  }
+
+  /* hidden은 display: flex에 지므로 따로 적는다(블록 모드는 예제 고르기 줄을 숨긴다 — src/lab/blocks/mode-ui.ts, R1-109) */
+  .lab__examples[hidden],
+  :global(.lab-button[hidden]) {
+    display: none;
+  }
+
+  /* 라벨 높이를 선택 상자(--target-min)와 같게 해서, 두 줄로 나뉘어도 글자가 칸의 가운데에 선다 */
+  .lab__examples-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+  }
+
+  /* [예제 불러오기]와 보조 단추(공유 링크·.py 내려받기). 보조 단추는 테두리 없는 작은 단추라 [실행]·[정지]·[초기화]와 위계가 갈린다(R1-099). */
+  .lab__tools {
+    display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
     min-width: 0;
-    max-width: 100%;
-    padding-inline-start: var(--space-2);
-    border-inline-start: 1px solid var(--color-border);
   }
 
-  .lab__examples-label {
-    font-weight: var(--weight-semibold);
+  /*
+   * 좁은 틀(휴대폰 폭, 틀 폭 48rem 미만 — 글자를 키우면 더 넓은 화면에서도): 조작 줄을 세 줄로 정리한다(R1-099).
+   *   ① [실행][정지][초기화] 한 줄(세 단추가 폭을 나눠 가짐, [실행]이 가장 넓다)  ② 예제 + 선택 상자 한 줄(전체 폭)  ③ [예제 불러오기]·공유·내려받기
+   * 예전에는 선택 상자가 8rem(약 160px)까지 줄어 "첫 실습: 웹캠 영상…"에서 잘렸고, 단추 여섯 개가 모양이 같아 어느 것이 중요한지 알 수 없었다.
+   */
+  @container lab (max-width: 47.99rem) {
+    .lab__toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-2);
+      width: 100%;
+    }
+
+    /* 세 단추를 같은 높이로 늘린다(가운데 맞춤이면 아이콘이 든 [실행]만 2px 높아 위 끝이 어긋났다 — 통합 확인 labs-ui 375px 시험) */
+    .lab__actions {
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: var(--space-2);
+    }
+
+    .lab__actions > :global(.button),
+    .lab__actions > :global(.lab-button) {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding-inline: var(--space-3);
+    }
+
+    .lab__actions > :global(.button[data-lab-run]) {
+      flex-grow: 1.6;
+    }
+
+    .lab__examples {
+      flex: none;
+      max-width: none;
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+
+    .lab__tools {
+      flex-wrap: wrap;
+      gap: var(--space-1) var(--space-2);
+    }
+
+    .lab__tools > :global(.lab-button:not(.lab-button--quiet)) {
+      padding-inline: var(--space-3);
+    }
+
+    .lab__bar > .lab__status {
+      flex: 1 1 100%;
+    }
+  }
+
+  /*
+   * 넓고 높은 화면에서 조작 줄 묶음을 화면 위에 붙인다(R1-096). [실행] 뒤 화면이 결과 칸으로 내려가면(reveal.ts) 예전에는 [정지]·상태 줄이 화면 밖이었다.
+   * - 틀 폭 72rem 이상(화면 약 1,200px 이상)이고 화면 높이 40rem(640px) 이상일 때만: 조작 줄이 한 줄로 들어가 붙는 높이가 [실행] 줄 하나(약 4rem)다.
+   *   그보다 좁거나(4단원 통합 화면의 반쪽 칸 포함) 낮은 화면은 붙이지 않는다 — 붙은 줄이 화면을 먹고, 글자를 키우면 줄이 여러 개가 된다.
+   * - 차시 안 임베드(?embed=1)는 iframe이 낮아 붙이지 않는다.
+   * - z-index: 아래 칸(.lab__grid)은 isolation으로 자기 안에 가둔다(CodeMirror 줄 번호 칸이 z-index 200이라 밑에서 올라와 줄을 덮는다).
+   * 붙는 동안 키보드 초점이 이 줄 밑에 숨지 않게 scroll-padding-top을 준다(WCAG 2.4.11 — 4단원 떠 있는 줄과 같은 방식). 그만큼은 reveal.ts에도 알린다(lab-shell.ts).
+   */
+  @container lab (min-width: 72rem) {
+    :global(:root:not([data-embed])) .lab__bar {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 5;
+      padding-block: var(--space-2);
+      background: var(--color-bg);
+      box-shadow: 0 1px 0 var(--color-border);
+    }
+  }
+
+  /* 낮은 화면(예: 가로로 눕힌 태블릿·작은 노트북 창)은 붙이지 않는다 — 위 규칙을 되돌린다. 아래 규칙이 뒤에 있어 같은 무게로 이긴다. */
+  @media (max-height: 39.99rem) {
+    :global(:root:not([data-embed])) .lab__bar {
+      position: static;
+      padding-block: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+
+  /* 붙는 동안 Tab으로 옮겨 간 초점이 붙은 줄 밑(화면 맨 위)에 숨지 않게 그만큼 아래에서 멈춘다(WCAG 2.4.11). 틀 폭 72rem ≈ 화면 76rem. */
+  @media (min-width: 76rem) and (min-height: 40rem) {
+    :global(html:not([data-embed]):has(.lab__bar)) {
+      scroll-padding-block-start: 6rem;
+    }
+  }
+
+  .lab__grid {
+    isolation: isolate;
   }
 
   /*
@@ -444,6 +632,16 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   :global(.lab-button--small) {
     min-height: 2.25rem;
     padding: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  /* 보조 단추(공유 링크·.py 내려받기): 테두리 없는 작은 글자 단추. 가리키면(hover) 위 .lab-button:hover처럼 테두리가 생긴다. 높이 36px ≥ 24px(WCAG 2.5.8). */
+  :global(.lab-button--quiet) {
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-3);
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-accent-hover);
     font-size: var(--text-sm);
   }
 
@@ -665,7 +863,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     gap: var(--space-4);
   }
 
-  @media (min-width: 64rem) {
+  @container lab (min-width: 60rem) {
     .lab__grid {
       grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
       grid-template-rows: auto auto auto auto;
@@ -728,9 +926,12 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     min-width: 0;
   }
 
+  /* 입력·출력 칸도 폭 컨테이너(lab-io) — 안의 두 칸 배치(VisionIo)가 칸 폭을 rem으로 재서 글자를 키우면 한 열로 쌓인다(R1-108) */
   .lab__io {
     grid-area: io;
     min-width: 0;
+    container-name: lab-io;
+    container-type: inline-size;
   }
 
   .lab__panel {

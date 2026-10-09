@@ -14,7 +14,7 @@ tags:
   - UART
   - 시리얼
   - 통신
-  - 브릿지
+  - 브리지
 packages: []
 smoke:
   outcome: error

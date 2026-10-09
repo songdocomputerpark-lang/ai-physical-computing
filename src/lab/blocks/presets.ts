@@ -2,6 +2,7 @@
  * 블록 모드의 예시 작업판(Blockly JSON 직렬화 모양 — Blockly.serialization.workspaces.load가 읽는다). 순수 데이터.
  *
  * - blink: 처음 블록 모드를 열 때 보이는 예시(사이트 예제 01 "내장 LED 깜빡이기"와 같은 동작) — [실행]만 눌러도 가상 보드가 움직인다.
+ * - touch-led: 터치 센서(IO17)를 누르면 LED — 누르면 켜지는 "버튼 → LED"의 가장 쉬운 시작(R1-110 — 예시가 거꾸로 동작하는 BOOT 하나뿐이었다).
  * - boot-led: BOOT 버튼(GPIO0)을 누르고 있으면 LED — "거꾸로 동작하는 버튼" 바꿔보기(PLAN PD-34): BOOT 버튼은 누르면 0이라 코드에 == 0이 나온다.
  *   코드로 바꾼 뒤 == 0을 == 1로 고치면 누르지 않을 때 켜지는 것을 확인한다(시나리오 B BOOT판).
  * - empty: 빈 작업판(시나리오 B는 여기서 "터치 센서를 누르면 LED"를 직접 만든다 — PD-34의 기본 입력은 터치 센서 GPIO17).
@@ -60,6 +61,31 @@ export const BLOCK_PRESETS: readonly BlocksPreset[] = Object.freeze([
             { type: 'apc_wait_seconds', inputs: { SECONDS: numberShadow(0.5) } },
             { type: 'apc_builtin_led', fields: { STATE: 'off' } },
             { type: 'apc_wait_seconds', inputs: { SECONDS: numberShadow(0.5) } },
+          ])!,
+        },
+      },
+    }),
+  },
+  {
+    id: 'touch-led',
+    title: '터치 센서를 누르면 LED 켜기',
+    description:
+      '터치 센서(IO17)를 누르고 있으면 내장 LED가 켜져요. 보드 그림 아래에 터치 센서가 나타나요 — 눌러 보세요. 누르면 1이라서 코드에도 == 1이 나와요(BOOT 버튼은 거꾸로라 == 0이에요).',
+    state: workspace({
+      type: 'apc_forever',
+      inputs: {
+        DO: {
+          block: chain([
+            {
+              type: 'controls_if',
+              extraState: { hasElse: true },
+              inputs: {
+                IF0: { block: { type: 'apc_touch_pressed', fields: { PIN: '17' } } },
+                DO0: { block: { type: 'apc_builtin_led', fields: { STATE: 'on' } } },
+                ELSE: { block: { type: 'apc_builtin_led', fields: { STATE: 'off' } } },
+              },
+            },
+            { type: 'apc_wait_ms', inputs: { MS: numberShadow(20) } },
           ])!,
         },
       },

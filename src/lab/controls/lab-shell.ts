@@ -50,6 +50,8 @@ import { STOP_GRACE_MS } from '../runtime/config.ts';
 import type { RuntimeState } from '../runtime/protocol.ts';
 import { withParticle } from '../../lib/korean.ts';
 import { readItem, writeItem } from '../../lib/storage.ts';
+import { deferredLoadMessage, readDeferEnv, shouldDeferEngineLoad } from '../loader/defer.ts';
+import { formatBytes, pyodidePrefetchBytesFor } from '../loader/pyodide-files.ts';
 import { endLoadingIntro } from '../modules/loading/intro.ts';
 import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatus } from './autosave.ts';
 import { downloadTextFile } from './download.ts';
@@ -62,11 +64,14 @@ import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickEx
 export const STATE_TEXT: Readonly<Record<RuntimeState, string>> = Object.freeze({
   unloaded: '아직 시작하지 않았어요.',
   loading: '파이썬을 준비하는 중이에요…',
-  idle: '준비됐어요. [실행]을 누르세요.',
+  idle: '준비됐어요. [실행]을 눌러 봐요.',
   running: '실행 중이에요.',
   stopping: '멈추는 중이에요…',
   failed: '파이썬을 준비하지 못했어요.',
 });
+
+/** 파이썬 받기를 미룬 실습실(휴대폰·데이터 절약 — loader/defer.ts)의 [실행] 전 상태 글 */
+export const DEFERRED_STATUS_TEXT = '[실행]을 누르면 시작해요.';
 
 /** 자동 저장 상태를 사람 말로 */
 export const SAVE_TEXT: Readonly<Record<AutosaveStatus, string>> = Object.freeze({
@@ -592,9 +597,43 @@ class LabShellController implements LabController {
     this.#wireDialogs();
     this.#wireRecordsCleared();
     this.#wirePageLifecycle();
+    // 휴대폰·데이터 절약 모드에서는 [실행]을 누를 때까지 받지 않는다(R1-097). 컴퓨터는 열자마자 받는다(지금처럼).
+    if (shouldDeferEngineLoad(readDeferEnv())) {
+      root.dataset.loadDeferred = 'yes';
+      const packages = root.dataset.labPackages === undefined ? null : root.dataset.labPackages.split(/\s+/u).filter((name) => name !== '');
+      this.showMessage(deferredLoadMessage(`약 ${formatBytes(pyodidePrefetchBytesFor(packages))}`));
+      if (this.#elements.statusText && !this.#runTarget) {
+        this.#elements.statusText.textContent = DEFERRED_STATUS_TEXT;
+      }
+    } else {
+      this.#startEngineLoad();
+    }
+  }
+
+  /** 파이썬 엔진 받기를 시작한다(여러 번 불러도 같은 약속 — runtime.load) */
+  #startEngineLoad(): void {
+    if (this.root.dataset.loadDeferred === 'yes') {
+      this.root.dataset.loadDeferred = 'started';
+    }
     this.runtime.load().catch(() => {
       // 실패 안내는 notice 이벤트와 상태 글이 보여 준다.
     });
+  }
+
+  /** 화면 위에 붙은 조작 줄 묶음의 높이(붙어 있지 않으면 0) — [실행] 뒤 화면을 옮길 때 칸을 그 아래에 놓는다(R1-096) */
+  #stickyInset(): number {
+    const bar = this.root.querySelector<HTMLElement>('[data-lab-bar]');
+    if (!bar) {
+      return 0;
+    }
+    try {
+      if (getComputedStyle(bar).position !== 'sticky') {
+        return 0;
+      }
+    } catch {
+      return 0;
+    }
+    return Math.ceil(bar.getBoundingClientRect().height);
   }
 
   get currentExample(): LabExample | null {
@@ -644,6 +683,20 @@ class LabShellController implements LabController {
       this.#renderRunButton();
       this.showMessage('파이썬을 준비하는 중이에요. 준비가 끝나면 바로 실행할게요.');
       this.#emit('run-pending', { code: this.getCode() });
+      if (this.root.dataset.loadDeferred === 'yes') {
+        // 받기를 미룬 실습실(휴대폰·데이터 절약)은 [실행]을 누른 지금 받기 시작한다 — 준비가 끝나면 위 예약이 실행한다(R1-097).
+        this.#startEngineLoad();
+      }
+      return null;
+    }
+    if (this.runtime.state === 'running' || this.runtime.state === 'stopping') {
+      // 실행 중에 다시 누른 [실행]·Ctrl+Enter는 새 코드를 돌리지 않는다. 아무 말도 없으면 고친 코드가 적용된 줄 안다(R1-112) —
+      // 자동으로 멈췄다 다시 시작하지는 않는다(학생 코드의 카메라·보드 연결이 말없이 끊기지 않게).
+      this.showMessage(
+        this.runtime.state === 'stopping'
+          ? '멈추는 중이에요. 다 멈춘 뒤에 [실행]을 다시 눌러 봐요.'
+          : '아직 실행 중이라 고친 코드는 적용되지 않았어요. 먼저 [정지]를 누르고 [실행]을 다시 눌러 봐요.',
+      );
       return null;
     }
     if (this.runtime.state !== 'idle' || this.#holdWaiting) {
@@ -698,7 +751,8 @@ class LabShellController implements LabController {
     const ioSection = this.#elements.ioSection;
     const wide = ioSection?.querySelector('[data-lab-reveal-on-run]') ?? ioSection;
     const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
-    revealTogether([wide, narrow], this.root.querySelector('[data-lab-param]'), { slack: 40, block: 'center' });
+    // 조작 줄 묶음이 화면 위에 붙어 있으면(넓은 화면 — LabShell.astro .lab__bar) 칸을 그 아래에 놓아 [정지]·상태 줄이 계속 보이게 한다(R1-096).
+    revealTogether([wide, narrow], this.root.querySelector('[data-lab-param]'), { slack: 40, block: 'center', inset: this.#stickyInset() });
   }
 
   stop(): Promise<StopResult> {
@@ -889,14 +943,14 @@ class LabShellController implements LabController {
       } else if (target) {
         this.root.dataset.state = 'idle';
         if (statusText) {
-          statusText.textContent = `${target.label}에서 실행할 수 있어요. [실행]을 누르세요.`;
+          statusText.textContent = `${target.label}에서 실행할 수 있어요. [실행]을 눌러 봐요.`;
         }
         stopButton.disabled = true;
       } else {
         const state = this.runtime.state;
         this.root.dataset.state = state;
         if (statusText) {
-          statusText.textContent = STATE_TEXT[state];
+          statusText.textContent = state === 'unloaded' && this.root.dataset.loadDeferred === 'yes' ? DEFERRED_STATUS_TEXT : STATE_TEXT[state];
         }
         stopButton.disabled = state !== 'running' && !this.#runReserved();
       }
@@ -1089,7 +1143,7 @@ class LabShellController implements LabController {
       }
       const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
       if (!this.#consoleNoticeHoldReveal) {
-        revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox });
+        revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox, inset: this.#stickyInset() });
       }
     }
     this.#consoleNoticeHoldReveal = false;

@@ -3,7 +3,7 @@
  *
  * 전에는 영상처리 실습실에서 `asyncio.run(main())` + `while True: … await asyncio.sleep(0.3)` 반복의 [정지]가 1초 안에 먹지 않아
  * "계산만 하는 반복문" 안내와 함께 파이썬을 다시 시작했다(실사이트 1.1.5 — [정지] 뒤 1,063ms에 killed). 이제는 학생 코드의 asyncio.sleep이
- * [정지]와 경주해 KeyboardInterrupt('stopped')로 1초 안에 멈추고, 정지 안내 카드는 "[정지] 버튼으로 멈췄어요 — 오류가 아니에요", 다시 [실행]이 된다.
+ * [정지]와 경주해 KeyboardInterrupt('stopped')로 1초 안에 멈추고, 정지 안내 카드는 "[정지] 단추로 멈췄어요 — 오류가 아니에요", 다시 [실행]이 된다.
  * 실측 정지 시간(data-stop-ms — [정지]를 누른 때부터 실행이 끝날 때까지)을 기록에 남긴다.
  * 컴퓨터 쪽 실습실 셋(영상처리·4단원 컴퓨터 칸·개발용 시험 페이지 — labId vision·dev)에서 본다. 워커·JSPI 동작이라 데스크톱만.
  */
@@ -78,7 +78,7 @@ test.describe('컴퓨터 쪽 asyncio [정지](미해결 223)', () => {
     // 정지 안내 카드: 오류가 아니라는 [정지] 카드(파란 안내) — "계산만 하는 반복문"(파이썬 다시 시작) 카드가 아니다
     const card = lab.locator('[data-errors-card]');
     await expect(card).toBeVisible();
-    await expect(card.locator('[data-errors-title]')).toHaveText('[정지] 버튼으로 멈췄어요 — 오류가 아니에요');
+    await expect(card.locator('[data-errors-title]')).toHaveText('[정지] 단추로 멈췄어요 — 오류가 아니에요');
     await expect(card).not.toContainText('계산만');
     // 실행이 끝난 뒤 뒤에서 더 돌지 않는다(tick이 늘지 않음 — 0.3초 간격의 세 배를 기다려 본다)
     const ticksAtStop = ((await consoleBox.textContent()) ?? '').match(/tick \d+/gu)?.length ?? 0;

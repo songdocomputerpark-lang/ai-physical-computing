@@ -42,6 +42,15 @@ async function openDashboard(page: Page): Promise<void> {
   await expect(page.locator('[data-dash-grid]')).toHaveAttribute('data-dash-count', '4');
 }
 
+/** 접어 둔 "통로·접두어 바꾸기(고급)" 칸을 연다(R1-113 — 처음에는 접혀 있다. 이미 열려 있으면 그대로) */
+async function openAdvanced(page: Page): Promise<void> {
+  const advanced = page.locator('[data-dash-advanced]');
+  if ((await advanced.getAttribute('open')) === null) {
+    await advanced.locator('summary').click();
+  }
+  await expect(page.locator('[data-dash-friend]')).toBeVisible();
+}
+
 /** [연결]을 누르고 통로가 열릴 때까지 기다린다(세 번까지 다시 누른다) */
 async function connectDashboard(page: Page): Promise<void> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -158,6 +167,7 @@ test.describe('대시보드 — 시나리오 D', () => {
     await openDashboard(page);
     await expect(page.locator('[data-dash-prefix]')).toHaveText(PREFIX);
 
+    await openAdvanced(page);
     await page.locator('[data-dash-friend]').fill(FRIEND_PREFIX);
     await page.getByRole('button', { name: '맞추기' }).click();
     await expect(page.locator('[data-dash-prefix]')).toHaveText(FRIEND_PREFIX);
@@ -232,6 +242,7 @@ test.describe('대시보드 — 시나리오 D', () => {
       ws.close();
     });
     await openDashboard(page);
+    await openAdvanced(page);
     await page.locator('[data-dash-mode]').selectOption('broker');
     await expect(page.locator('[data-dash-connect-warning]')).toBeVisible();
     await expect(page.locator('[data-dash-connect-warning]')).toContainText('누구나 보고 보낼 수 있어요');
@@ -409,5 +420,43 @@ test.describe('대시보드 — 보통 움직임', () => {
   test('보통 때는 게이지 바늘이 부드럽게 움직인다(전환 시간이 있다)', async ({ page }) => {
     await openDashboard(page);
     expect(await gaugeTransitionSeconds(page)).toBeGreaterThan(0.05);
+  });
+});
+
+// R1-113(판 1.3.0 검수): 대시보드가 용어(통로·접두어)로 시작하고 누를 것(가상 보드 열기)은 맨 아래였다 — 이제 누를 것이 맨 위다.
+test.describe('대시보드 — 첫 화면', () => {
+  test('첫 화면(1366×768)에 [이 자리에서 가상 보드 열기]가 보이고, 통로·접두어 설정은 접혀 있으며, 보드 열기가 설정보다 앞 차례다', async ({ page, isMobile }) => {
+    // 휴대폰 기기(터치·휴대폰 브라우저 안내 상자)는 창만 넓혀도 첫 화면이 다르다 — 데스크톱 첫 화면 기준 시험이다
+    test.skip(isMobile, '데스크톱 1366×768 첫 화면 기준');
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await openDashboard(page);
+    await expect(page.locator('[data-dash-open-lab]')).toBeInViewport({ ratio: 1 });
+    const advanced = page.locator('[data-dash-advanced]');
+    await expect(advanced).not.toHaveAttribute('open', /.*/u);
+    await expect(page.locator('[data-dash-friend]')).toBeHidden();
+    await expect(page.locator('[data-dash-mode]')).toBeHidden();
+    // 보이는 차례 = Tab 차례: 보드 열기 → 위젯 → 설정(접힌 칸 summary) 순서(DOM 차례)
+    const order = await page.evaluate(() => {
+      const open = document.querySelector('[data-dash-open-lab]')!;
+      const grid = document.querySelector('[data-dash-grid]')!;
+      const summary = document.querySelector('[data-dash-advanced] > summary')!;
+      const before = (a: Element, b: Element) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+      return { openBeforeGrid: before(open, grid), gridBeforeSettings: before(grid, summary) };
+    });
+    expect(order).toEqual({ openBeforeGrid: true, gridBeforeSettings: true });
+    // 접힌 칸을 열면 통로·접두어 설정이 보인다
+    await advanced.locator('summary').click();
+    await expect(page.locator('[data-dash-mode]')).toBeVisible();
+    await expect(page.locator('[data-dash-friend]')).toBeVisible();
+  });
+
+  test('폼 칸은 화면 끝까지 늘어나지 않는다(R1-102 — 1920 폭에서 선택 상자·입력 칸이 1800px로 늘던 것)', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await openDashboard(page);
+    await page.locator('[data-dash-advanced] > summary').click();
+    for (const selector of ['[data-dash-mode]', '[data-dash-broker]', '[data-dash-friend]']) {
+      const width = await page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
+      expect(width, selector).toBeLessThanOrEqual(520);
+    }
   });
 });

@@ -76,7 +76,7 @@ export const BUILTIN_FALLBACK_ENTRY: ErrorEntry = Object.freeze({
   fallback: true,
 });
 
-const STOP_MESSAGE_TEXT = '[정지] 버튼으로 멈췄어요.';
+const STOP_MESSAGE_TEXT = '[정지] 단추로 멈췄어요.';
 const KILLED_MESSAGE_TEXT = '1초 안에 멈추지 않아 파이썬을 다시 시작했어요.';
 
 interface Candidate {

@@ -383,7 +383,7 @@ test.describe('ESP32 실습실 — PWM·ADC 부품(P3-03)', () => {
 
     // f059 사이트판: 원고 152쪽 구간 — 원본에서 Button 2·3으로 잘못 나오던 패드 3·4
     await openExample(page, 'esp32/u2/2-1-3-adv-touch4-check-site.py');
-    await expect(page.locator('[data-lab-example-select] option:checked')).toContainText('(사이트판)');
+    await expect(page.locator('[data-lab-example-select] option:checked')).toContainText('(이 사이트용');
     const controls = page.locator('[data-board-part-controls="touch-analog-4ch"]');
     await run(page);
     await expect(consoleBox(page)).toContainText('ADC: 0 → No touch', { timeout: 30_000 });

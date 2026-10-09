@@ -56,7 +56,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('컴퓨터 쪽 asyncio — �
   };
   const expectStoppedQuietly = (record: StepRecord) => {
     expect(record.errorType).toBe('KeyboardInterrupt');
-    expect(record.errorMessage).toBe('KeyboardInterrupt: [정지] 버튼으로 멈췄어요.');
+    expect(record.errorMessage).toBe('KeyboardInterrupt: [정지] 단추로 멈췄어요.');
     expect(record.stopped).toBe(true);
     expect(record.stopLatencyMs).toBeDefined();
     expect(record.stopLatencyMs!).toBeLessThan(STOP_GRACE_MS);

@@ -43,6 +43,7 @@ const KNOWN_FALSE_POSITIVES: readonly { rule: string; target: RegExp; why: strin
     why:
       'CodeMirror 스크롤 칸(tabindex=-1) 안의 편집 영역(.cm-content)은 contenteditable이라 Tab으로 초점을 받고 방향키로 스크롤된다. ' +
       'axe는 contenteditable을 초점 받는 요소로 세지 않는다(axe-core lib/commons/dom/is-focusable.js — 기본 초점 요소와 tabindex만 본다). ' +
+      '판 1.3.0(R1-105)부터 편집 영역에 tabindex="0"을 적어(python-editor.ts) 보통은 걸리지 않는다 — 걸려도 같은 까닭이라 예외는 남긴다. ' +
       '키보드로 편집칸에 들어가고 나오는 것은 a11y-keyboard.spec.ts가 확인한다.',
   },
 ];

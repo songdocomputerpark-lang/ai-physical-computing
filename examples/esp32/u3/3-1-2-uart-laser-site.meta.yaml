@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 사이트판(PD-10 — PROGRESS 미해결 75): 원본(3-1-2-uart-laser.py, f082)과 줄 번호를 맞추려고 파이썬 파일에는 머리말을 넣지 않고,
 # 고친 줄 끝에만 `# [사이트판]`을 붙였어요. 제목·설명·배선·실습 방법은 여기에 적어요(src/lab/README.md 3절).
 # 이관 목록(scripts/examples-manifest.yaml)에 없는 파일이라 예제 스모크 대신 tests/e2e/bridge-vision-board.spec.ts의 "사이트판" 검사가 지켜요.
-title: "3-1-2 기본: UART로 받은 a·b로 레이저 켜고 끄기(사이트판 — sleep·핀 고침)"
+title: "3-1-2 기본: UART로 받은 a·b로 레이저 켜고 끄기(이 사이트용 — sleep·핀 고침)"
 description: 원본 파일에서 두 줄만 고친 판이에요. ① 2번 줄을 from time import sleep으로(원본은 import time만 해서 sleep(1)에서 NameError) ② 5번 줄의 핀을 원고 배선 그림·다른 예제와 같은 교차 결선(tx=17, rx=16)으로 바꿔서, a·b를 받을 때마다 레이저가 켜지고 꺼져요. 원본 파일과 나란히 놓고 무엇이 다른지 비교해 봐요.
 lesson: 3-1-2
 page: 190

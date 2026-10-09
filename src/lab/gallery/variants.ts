@@ -93,8 +93,9 @@ export const VARIANT_GROUPS: readonly VariantGroup[] = Object.freeze([
 
 /** 원본과 사이트판을 묶을 때 쓰는 값(PD-10 ②) */
 export const SITE_VERSION_GROUP = Object.freeze({
-  label: '원본과 사이트판',
-  note: '원본 코드에 줄을 더해 고친 사이트판이에요. 어디가 달라졌는지 견주어 봐요.',
+  // 학생에게 보이는 이름은 예제 이름과 같은 말(교과서 그대로 / 이 사이트용)로 쓴다(판 1.3.0 검수 R1-100)
+  label: '교과서 그대로와 이 사이트용',
+  note: '교과서 코드에 줄을 더해 이 사이트에서 잘 돌게 고친 판이에요. 어디가 달라졌는지 견주어 봐요.',
   /** 사이트판 파일 이름 끝 */
   suffix: '-site.py',
 });

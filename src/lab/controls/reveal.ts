@@ -60,6 +60,12 @@ export interface RevealTogetherOptions {
   margin?: number;
   /** 옮긴 뒤 칸이 조금 늘어나도(첫 결과가 오며 안내 줄이 생김) 함께 보이도록 남겨 둘 여유(px, 기본 0) */
   slack?: number;
+  /**
+   * 화면 위쪽을 덮고 있는 붙은 줄의 높이(px, 기본 0) — 실습실 조작 줄 묶음이 넓은 화면에서 화면 위에 붙는다(sticky, R1-096).
+   * 칸을 그 밑에 놓는다(margin에 더함). 그렇게 하면 둘이 한 화면에 안 들어갈 때는 남겨 둘 여유(slack)를 8px까지 줄여 한 번 더 본다 —
+   * 붙은 줄 때문에 [실행] 뒤 결과 칸과 조절 막대를 함께 보이던 것(시나리오 A)이 깨지지 않게.
+   */
+  inset?: number;
   /** 둘을 함께 보일 수 없어 첫 칸만 보일 때 화면 어디에 붙일지(기본 'start') */
   block?: ScrollLogicalPosition;
   /**
@@ -98,31 +104,62 @@ export function revealTogether(
   if (viewportHeight === 0 || (second.width === 0 && second.height === 0)) {
     return revealElement(first, fallbackOptions);
   }
-  const margin = options.margin ?? 8;
+  const inset = Math.max(0, options.inset ?? 0);
+  const margin = (options.margin ?? 8) + inset;
   const slack = options.slack ?? 0;
-  for (const candidate of candidates) {
-    const box = candidate.getBoundingClientRect();
-    if (box.width === 0 && box.height === 0) {
-      continue;
+  // 붙은 줄이 있으면 먼저 여유를 두고, 안 들어가면 여유를 줄여 다시 본다(앞 칸부터 — 넓은 칸이 우선)
+  const slacks = inset > 0 && slack > 8 ? [slack, 8] : [slack];
+  for (const trySlack of slacks) {
+    for (const candidate of candidates) {
+      const box = candidate.getBoundingClientRect();
+      if (box.width === 0 && box.height === 0) {
+        continue;
+      }
+      const top = Math.min(box.top, second.top);
+      const bottom = Math.max(box.bottom, second.bottom);
+      if (bottom - top + margin + trySlack > viewportHeight) {
+        continue;
+      }
+      if (top >= inset && bottom + trySlack <= viewportHeight) {
+        return false;
+      }
+      if (typeof window.scrollTo !== 'function') {
+        return false;
+      }
+      const target = Math.max(0, Math.round((window.scrollY || 0) + top - margin));
+      try {
+        window.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      } catch {
+        window.scrollTo(0, target);
+      }
+      return true;
     }
-    const top = Math.min(box.top, second.top);
-    const bottom = Math.max(box.bottom, second.bottom);
-    if (bottom - top + margin + slack > viewportHeight) {
-      continue;
+  }
+  // 붙은 줄 밑에 둘을 다 넣을 수 없으면(붙은 줄이 [실행] 직후 안내 글로 두세 줄이 된 때 등) 둘째 칸의 아래 끝을 화면 아래에 맞춘다 —
+  // 첫 칸의 윗부분만 붙은 줄에 조금 가리고 둘 다 화면에 남는다(통합 확인: 1366×768 시나리오 A에서 붙은 줄 높이 때문에 막대가 화면 밖에 남았다).
+  if (inset > 0 && typeof window.scrollTo === 'function') {
+    const edge = options.margin ?? 8;
+    for (const candidate of candidates) {
+      const box = candidate.getBoundingClientRect();
+      if (box.width === 0 && box.height === 0) {
+        continue;
+      }
+      const top = Math.min(box.top, second.top);
+      const bottom = Math.max(box.bottom, second.bottom);
+      if (bottom - top + edge * 2 > viewportHeight) {
+        continue;
+      }
+      if (top >= 0 && bottom + edge <= viewportHeight) {
+        return false;
+      }
+      const target = Math.max(0, Math.round((window.scrollY || 0) + bottom + edge - viewportHeight));
+      try {
+        window.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      } catch {
+        window.scrollTo(0, target);
+      }
+      return true;
     }
-    if (top >= 0 && bottom + slack <= viewportHeight) {
-      return false;
-    }
-    if (typeof window.scrollTo !== 'function') {
-      return false;
-    }
-    const target = Math.max(0, Math.round((window.scrollY || 0) + top - margin));
-    try {
-      window.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-    } catch {
-      window.scrollTo(0, target);
-    }
-    return true;
   }
   return revealElement(options.fallback ?? last, fallbackOptions);
 }

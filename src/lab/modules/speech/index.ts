@@ -43,7 +43,7 @@ interface ListenReply {
   message?: string;
 }
 
-const WAITING_TEXT = '파이썬이 한 마디를 기다리고 있어요. 문장을 적고 [보내기]를 누르세요.';
+const WAITING_TEXT = '파이썬이 한 마디를 기다리고 있어요. 문장을 적고 [보내기]를 눌러요.';
 const LISTENING_TEXT = '듣는 중이에요. 마이크에 대고 말해 보세요.';
 const IDLE_TEXT = '[실행]을 누르고 코드가 r.listen(...)에 닿으면 여기서 한 마디를 받아요.';
 const SERVER_NOTICE = '서버 인식을 골랐어요. 마이크 소리가 브라우저 회사 서버로 전송됩니다(교사가 사이트 설정에서 켠 상태).';

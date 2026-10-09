@@ -119,6 +119,43 @@ describe('두 칸을 함께 보이기(revealTogether)', () => {
     expect(far.calls).toEqual([{ behavior: 'smooth', block: 'start' }]);
   });
 
+  // R1-096: 조작 줄 묶음이 화면 위에 붙으면(넓은 화면 sticky) 칸을 그 밑에 놓는다. 둘이 안 들어가면 여유(slack)를 8px까지 줄여 한 번 더 본다.
+  it('붙은 줄(inset)이 있으면 칸을 그 밑에 놓는다 — 둘이 함께 들어오는 시나리오 A(결과 칸 + 조절 막대)가 깨지지 않게', () => {
+    const scrolls = stubWindow(0);
+    const narrow = fakeElement(700, 217);
+    const slider = fakeElement(1232, 112); // 700 ~ 1344 = 644px
+    expect(revealTogether([narrow.element], slider.element, { slack: 40, block: 'center', inset: 64 })).toBe(true);
+    expect(scrolls).toEqual([{ top: 700 - (8 + 64), behavior: 'smooth' }]);
+  });
+
+  it('붙은 줄 때문에 여유 40px가 안 들어가면 여유를 8px로 줄여 다시 본다', () => {
+    const scrolls = stubWindow(0);
+    const narrow = fakeElement(700, 217);
+    const slider = fakeElement(1268, 112); // 700 ~ 1380 = 680px: 680 + 72 + 40 > 768, 680 + 72 + 8 <= 768
+    expect(revealTogether([narrow.element], slider.element, { slack: 40, inset: 64 })).toBe(true);
+    expect(scrolls).toEqual([{ top: 700 - 72, behavior: 'smooth' }]);
+  });
+
+  it('붙은 줄이 높아 그 밑에 둘을 다 못 넣으면 둘째 칸의 아래 끝을 화면 아래에 맞춘다(통합 확인 — 시나리오 A 막대가 화면 밖에 남았다)', () => {
+    const scrolls = stubWindow(400);
+    const narrow = fakeElement(413, 218);
+    const slider = fakeElement(903, 113); // 413 ~ 1016 = 603px: 603 + (8 + 160) + 8 > 768, 603 + 16 <= 768
+    expect(revealTogether([narrow.element], slider.element, { slack: 40, block: 'center', inset: 160 })).toBe(true);
+    expect(scrolls).toEqual([{ top: 400 + 1016 + 8 - 768, behavior: 'smooth' }]);
+  });
+
+  it('붙은 줄에 가려진 칸(위쪽이 줄 높이보다 작다)은 이미 보인다고 보지 않는다', () => {
+    const scrolls = stubWindow(500);
+    const covered = fakeElement(30, 217); // 화면 위 30px — 붙은 줄(64px) 밑
+    const slider = fakeElement(400, 112);
+    expect(revealTogether([covered.element], slider.element, { slack: 40, inset: 64 })).toBe(true);
+    expect(scrolls).toEqual([{ top: 500 + 30 - 72, behavior: 'smooth' }]);
+    // 붙은 줄이 없으면(inset 0) 같은 배치가 이미 보인다
+    const none = stubWindow(500);
+    expect(revealTogether([fakeElement(30, 217).element], fakeElement(400, 112).element, { slack: 40 })).toBe(false);
+    expect(none).toEqual([]);
+  });
+
   it('둘을 합쳐 화면보다 크면 첫 칸만 보이고, 움직임 줄이기면 부드럽게 넘기지 않는다', () => {
     const scrolls = stubWindow(0, true);
     const output = fakeElement(1200, 500);

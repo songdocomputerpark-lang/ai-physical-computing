@@ -63,9 +63,9 @@ export const LAB_CARD_INFO: readonly LabCardInfo[] = Object.freeze([
     id: 'labs-unit4',
     icon: 'sparkles',
     unit: 4,
-    useWhen: '내 얼굴로 움직인 마우스를 보드가 따라 움직이게 하고 싶을 때',
+    useWhen: '내 얼굴로 마우스를 움직이고, 보드가 그대로 따라 하게 하고 싶을 때',
     needs: [
-      { text: '카메라와 보드 없어도 돼요', tone: 'ok', icon: 'check-circle' },
+      { text: '카메라와 보드가 없어도 돼요', tone: 'ok', icon: 'check-circle' },
       { text: '컴퓨터가 조금 바빠요', tone: 'note', icon: 'clock' },
     ],
   },
@@ -79,6 +79,12 @@ export const LAB_CARD_INFO: readonly LabCardInfo[] = Object.freeze([
     ],
   },
 ]);
+
+/** 수를 우리말 관형사로: 5 → "다섯"("실습실 다섯 곳"). 열 개를 넘으면 숫자 그대로 */
+export function koreanCountWord(count: number): string {
+  const words = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
+  return words[count] !== undefined && words[count] !== '' ? words[count]! : String(count);
+}
 
 /** 사이트 지도 id로 카드 정보를 찾는다(없으면 undefined) */
 export function labCardInfo(id: string): LabCardInfo | undefined {

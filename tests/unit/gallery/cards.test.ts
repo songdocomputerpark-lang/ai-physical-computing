@@ -265,7 +265,7 @@ describe('사본과 변형(PLAN §2.5)', () => {
       input('esp32', { id: 'u2-laser-rgb', file: 'esp32/u2/2-1-4-laser-rgb.py', title: '원본', code: '# 원본\n' }),
       input('esp32', { id: 'u2-laser-rgb-site', file: 'esp32/u2/2-1-4-laser-rgb-site.py', title: '사이트판', code: '# 사이트판\n' }),
     ]);
-    expect(cards[0].compare?.label).toBe('원본과 사이트판');
+    expect(cards[0].compare?.label).toBe('교과서 그대로와 이 사이트용');
     expect(cards[0].compare?.others[0].title).toBe('사이트판');
     expect(cards[1].compare?.others[0].title).toBe('원본');
   });

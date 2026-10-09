@@ -12,91 +12,46 @@ import { MQTT_BROKERS } from '../../../lab/mqtt/brokers.ts';
 import { WIDGET_KINDS } from '../../../lab/dashboard/defaults.ts';
 import { DASHBOARD_DEMO_FILE } from '../../../lab/dashboard/demo-code.ts';
 import { getPage } from '../../../config/nav.ts';
+import LabPageFrame from '../LabPageFrame.astro';
 
 // 두 탭 실습 링크의 뿌리 주소 — 스크립트가 ?example=과 지금 접두어(?prefix=)를 붙인다(dashboard-page.ts syncPrefix)
 const esp32Href = getPage('labs-esp32').href;
 const checkHref = getPage('start-check').href;
 ---
 
+{/* 넓은 쪽의 폭 규약(전역 CSS만 — 판 1.3.0 R1-102). 아무것도 그리지 않는다. */}
+<LabPageFrame />
 <section class="dash" data-dash-page data-dash-state="idle" data-dash-via="" data-dash-mode-value="tab" data-dash-ready="no">
-  <div class="dash__step">
-    <h2 class="dash__step-title">1. 통로를 고르고 연결해요</h2>
-
-    <p class="dash__warning" data-dash-warning data-dash-level="info" aria-live="polite"></p>
-
-    <div class="dash__row">
-      <label class="dash__label" for="dash-mode">통로</label>
-      <select id="dash-mode" class="dash__select" data-dash-mode>
-        <option value="tab">같은 컴퓨터 탭(인터넷 없이)</option>
-        <option value="broker">공개 중계 서버</option>
-        <option value="auto">중계 서버 먼저, 안 되면 탭</option>
-      </select>
-    </div>
-
-    <div class="dash__row">
-      <label class="dash__label" for="dash-broker">중계 서버</label>
-      <select id="dash-broker" class="dash__select" data-dash-broker>
-        {MQTT_BROKERS.map((broker) => <option value={broker.id}>{broker.label}{broker.url === '' ? '' : ` — ${broker.url}`}</option>)}
-      </select>
-    </div>
-
-    <div class="dash__row" data-dash-broker-url-row hidden>
-      <label class="dash__label" for="dash-broker-url">서버 주소</label>
-      <input
-        id="dash-broker-url"
-        class="dash__input dash__input--wide"
-        type="text"
-        data-dash-broker-url
-        autocomplete="off"
-        spellcheck="false"
-        placeholder="wss://broker.example.org:8084/mqtt"
-      />
-    </div>
-
-    <p class="dash__note" data-dash-broker-note></p>
-
-    <div class="dash__row">
-      {/* 이름표는 바로 앞 글자로 읽힌다. 역할 없는 <code>에 aria-labelledby를 달면 낭독기가 읽지 않는다(axe aria-prohibited-attr — Phase 6 접근성 점검) */}
-      <span class="dash__label" id="dash-prefix-label">통신 접두어</span>
-      <code class="dash__prefix" data-dash-prefix></code>
-      <button type="button" class="button button--secondary dash__small" data-dash-copy-prefix>복사</button>
-      <button type="button" class="button button--secondary dash__small" data-dash-new-prefix>새로 만들기</button>
-      <button type="button" class="button button--secondary dash__small" data-dash-pin aria-pressed="false">이 접두어 고정</button>
-    </div>
-
-    <div class="dash__row">
-      <label class="dash__label" for="dash-friend">친구 접두어</label>
-      <input
-        id="dash-friend"
-        class="dash__input"
-        type="text"
-        data-dash-friend
-        autocomplete="off"
-        spellcheck="false"
-        maxlength="12"
-        placeholder="예: 7kq2m9xd4hpt"
-      />
-      <button type="button" class="button button--secondary dash__small" data-dash-friend-apply>맞추기</button>
-    </div>
-
-    <div class="dash__row">
-      <button type="button" class="button button--primary dash__small" data-dash-connect aria-describedby="dash-connect-warning">연결</button>
-      <button type="button" class="button button--secondary dash__small" data-dash-disconnect disabled>끊기</button>
-      <span class="dash__state" data-dash-state-text aria-live="polite">아직 연결하지 않았어요</span>
-      <span class="dash__state" data-dash-count></span>
-    </div>
-    {/* [연결] 바로 아래 경고(PLAN §7.4 "연결 버튼 옆에 늘 표시") — 공개 중계 서버를 골랐으면 늘 보인다(2026-09-25 Phase 4 검토 반영) */}
-    <p class="dash__connect-warning" id="dash-connect-warning" data-dash-connect-warning hidden></p>
-
-    <p class="dash__hint" data-dash-hint aria-live="polite" hidden></p>
-    {/* 중계 서버에 못 붙었을 때만 보이는 점검 링크(학교망이 막았는지 확인하는 곳) */}
-    <p class="dash__note" data-dash-check-note hidden>
-      <a href={checkHref}>학교 네트워크 점검(시작하기 → 점검 페이지)</a>에서 공개 중계 서버가 열리는지 확인할 수 있어요.
+  {/*
+    판 1.3.0(R1-113): 이 화면은 용어(통로·중계 서버·접두어)로 시작해 정작 누를 것(가상 보드 열기)이 맨 아래였다. 이제 누를 것이 맨 위다:
+    ① 가상 보드로 시작(보드 없이 가능 — 같은 컴퓨터 탭은 저절로 이어진다) → ② 값이 보이는 위젯 → ③ 통로·접두어 설정은 "고급"으로 접어 둔다.
+    화면 요소는 모두 data-dash-* 표시로 찾으므로(dashboard-page.ts) 차례를 바꿔도 움직임은 그대로다. 채운 파랑 주 단추는 [가상 보드 열기] 하나(연결은 보조 단추).
+  */}
+  <div class="dash__step dash__step--start">
+    <h2 class="dash__step-title">1. 가상 보드로 시작해요 <span class="dash__tag">보드가 없어도 돼요</span></h2>
+    <p class="dash__note">
+      아래 단추를 누르면 이 자리에서 <strong>가상 ESP32 보드</strong>가 열려요(누르기 전에는 실습실 파일을 받지 않아요). 통로가 처음 값인
+      [같은 컴퓨터 탭]이면 [연결]도 저절로 해 줘요. 열린 실습실에서 [실행]을 누르면 보드가 0~100 사이 값을 보내고, 아래 그래프·게이지에 바로
+      나타나요. 스위치를 누르면 보드의 내장 LED(GPIO2)가 켜져요.
     </p>
+    <div class="dash__row">
+      <button type="button" class="button button--primary button--large" data-dash-open-lab aria-expanded="false">이 자리에서 가상 보드 열기</button>
+      {/* 두 탭으로: 새 탭의 ESP32 실습실이 같은 예제와 같은 접두어로 열린다(스크립트가 ?prefix=를 붙인다 — 2026-09-25 Phase 4 검토 반영) */}
+      <a
+        class="button button--secondary"
+        href={`${esp32Href}?example=${encodeURIComponent(DASHBOARD_DEMO_FILE)}`}
+        data-dash-lab-link
+        data-dash-lab-base={esp32Href}
+        target="_blank"
+        rel="noopener">새 탭에서 ESP32 실습실 열기</a
+      >
+    </div>
+    <p class="dash__note dash__lab-hint" data-dash-lab-hint role="status" hidden></p>
+    <div class="dash__lab-slot" data-dash-lab-slot hidden></div>
   </div>
 
   <div class="dash__step">
-    <h2 class="dash__step-title">2. 위젯을 놓아요</h2>
+    <h2 class="dash__step-title">2. 값을 보고 스위치를 눌러요</h2>
     <div class="dash__row">
       <span class="dash__label" id="dash-add-label">위젯 추가</span>
       {
@@ -130,26 +85,82 @@ const checkHref = getPage('start-check').href;
   </div>
 
   <div class="dash__step">
-    <h2 class="dash__step-title">3. 값을 보내는 보드를 열어요</h2>
-    <p class="dash__note">
-      아래 단추를 누르면 이 자리에서 <strong>가상 ESP32 보드</strong>가 열려요(누르기 전에는 실습실 파일을 받지 않아요). 통로가 [같은 컴퓨터 탭]이면
-      [연결]도 함께 해 줘요. 실습실에서 [실행]을 누르면 보드가 0~100 사이 값을 보내고, 위의 그래프·게이지에 바로 나타나요.
-      스위치를 누르면 보드의 내장 LED(GPIO2)가 켜져요.
-    </p>
+    <h2 class="dash__step-title">3. 통로와 접두어 <span class="dash__tag">처음에는 그대로 둬도 돼요</span></h2>
+    <p class="dash__warning" data-dash-warning data-dash-level="info" aria-live="polite"></p>
+    {/* 통로·접두어 설정은 접어 둔다. 공개 중계 서버를 고르거나(저장된 값 포함) 친구 접두어를 쓰려는 학생만 연다 — 위젯·연결 줄은 접힌 밖에 있다. */}
+    <details class="more dash__advanced" data-dash-advanced>
+      <summary>통로·접두어 바꾸기(고급)</summary>
+      <div class="dash__row">
+        <label class="dash__label" for="dash-mode">통로</label>
+        <select id="dash-mode" class="dash__select" data-dash-mode>
+          <option value="tab">같은 컴퓨터 탭(인터넷 없이)</option>
+          <option value="broker">공개 중계 서버</option>
+          <option value="auto">중계 서버 먼저, 안 되면 탭</option>
+        </select>
+      </div>
+
+      <div class="dash__row">
+        <label class="dash__label" for="dash-broker">중계 서버</label>
+        <select id="dash-broker" class="dash__select" data-dash-broker>
+          {MQTT_BROKERS.map((broker) => <option value={broker.id}>{broker.label}{broker.url === '' ? '' : ` — ${broker.url}`}</option>)}
+        </select>
+      </div>
+
+      <div class="dash__row" data-dash-broker-url-row hidden>
+        <label class="dash__label" for="dash-broker-url">서버 주소</label>
+        <input
+          id="dash-broker-url"
+          class="dash__input dash__input--wide"
+          type="text"
+          data-dash-broker-url
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="wss://broker.example.org:8084/mqtt"
+        />
+      </div>
+
+      <p class="dash__note" data-dash-broker-note></p>
+
+      <div class="dash__row">
+        {/* 이름표는 바로 앞 글자로 읽힌다. 역할 없는 <code>에 aria-labelledby를 달면 낭독기가 읽지 않는다(axe aria-prohibited-attr — Phase 6 접근성 점검) */}
+        <span class="dash__label" id="dash-prefix-label">통신 접두어</span>
+        <code class="dash__prefix" data-dash-prefix></code>
+        <button type="button" class="button button--secondary dash__small" data-dash-copy-prefix>복사</button>
+        <button type="button" class="button button--secondary dash__small" data-dash-new-prefix>새로 만들기</button>
+        <button type="button" class="button button--secondary dash__small" data-dash-pin aria-pressed="false">이 접두어 고정</button>
+      </div>
+
+      <div class="dash__row">
+        <label class="dash__label" for="dash-friend">친구 접두어</label>
+        <input
+          id="dash-friend"
+          class="dash__input"
+          type="text"
+          data-dash-friend
+          autocomplete="off"
+          spellcheck="false"
+          maxlength="12"
+          placeholder="예: 7kq2m9xd4hpt"
+        />
+        <button type="button" class="button button--secondary dash__small" data-dash-friend-apply>맞추기</button>
+      </div>
+
+    </details>
+
     <div class="dash__row">
-      <button type="button" class="button button--secondary" data-dash-open-lab aria-expanded="false">이 자리에서 가상 보드 열기</button>
-      {/* 두 탭으로: 새 탭의 ESP32 실습실이 같은 예제와 같은 접두어로 열린다(스크립트가 ?prefix=를 붙인다 — 2026-09-25 Phase 4 검토 반영) */}
-      <a
-        class="button button--secondary"
-        href={`${esp32Href}?example=${encodeURIComponent(DASHBOARD_DEMO_FILE)}`}
-        data-dash-lab-link
-        data-dash-lab-base={esp32Href}
-        target="_blank"
-        rel="noopener">새 탭에서 ESP32 실습실 열기</a
-      >
+      <button type="button" class="button button--secondary dash__small" data-dash-connect aria-describedby="dash-connect-warning">연결</button>
+      <button type="button" class="button button--secondary dash__small" data-dash-disconnect disabled>끊기</button>
+      <span class="dash__state" data-dash-state-text aria-live="polite">아직 연결하지 않았어요</span>
+      <span class="dash__state" data-dash-received></span>
     </div>
-    <p class="dash__note dash__lab-hint" data-dash-lab-hint role="status" hidden></p>
-    <div class="dash__lab-slot" data-dash-lab-slot hidden></div>
+    {/* [연결] 바로 아래 경고(PLAN §7.4 "연결 버튼 옆에 늘 표시") — 공개 중계 서버를 골랐으면 늘 보인다(2026-09-25 Phase 4 검토 반영) */}
+    <p class="dash__connect-warning" id="dash-connect-warning" data-dash-connect-warning hidden></p>
+
+    <p class="dash__hint" data-dash-hint aria-live="polite" hidden></p>
+    {/* 중계 서버에 못 붙었을 때만 보이는 점검 링크(학교망이 막았는지 확인하는 곳) */}
+    <p class="dash__note" data-dash-check-note hidden>
+      <a href={checkHref}>내 컴퓨터 점검</a>에서 공개 중계 서버가 열리는지 확인할 수 있어요.
+    </p>
   </div>
 </section>
 
@@ -193,8 +204,38 @@ const checkHref = getPage('start-check').href;
     font-weight: var(--weight-semibold);
   }
 
+  /* 1단계: 누를 것이 맨 위에 있다는 것이 눈에 띄게 왼쪽 띠(R1-113). 태그는 제목 옆 작은 알약. */
+  .dash__step--start {
+    border-inline-start: 4px solid var(--color-accent);
+  }
+
+  .dash__tag {
+    margin-inline-start: var(--space-2);
+    padding: 0.1em 0.7em;
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  /*
+   * 글·폼은 읽기 좋은 폭에서 멈춘다(판 1.3.0 R1-102): 이 쪽은 화면 가득 쓰는 넓은 쪽이라(width="wide") 1920 폭에서 선택 상자·입력 칸이 1800px로 늘고
+   * 경고 상자(Callout 704px)의 오른쪽이 비었다. 위젯 판(.dash__grid)과 가상 보드 틀(.dash__lab-slot)만 칸 폭을 다 쓴다.
+   */
+  .dash__step > :where(.dash__note, .dash__warning, .dash__connect-warning, .dash__hint, .dash__help, .dash__announce) {
+    max-width: 52rem;
+  }
+
+  .dash__advanced > :where(.dash__row, .dash__note) {
+    max-width: 52rem;
+  }
+
   .dash__select {
     flex: 1 1 14rem;
+    max-width: 30rem;
     min-width: 0;
     min-height: var(--target-min);
     padding: var(--space-1) var(--space-2);
@@ -206,6 +247,7 @@ const checkHref = getPage('start-check').href;
 
   .dash__input {
     flex: 1 1 10rem;
+    max-width: 24rem;
     min-width: 0;
     min-height: var(--target-min);
     padding: var(--space-1) var(--space-2);
@@ -217,6 +259,7 @@ const checkHref = getPage('start-check').href;
 
   .dash__input--wide {
     flex: 1 1 16rem;
+    max-width: 32rem;
   }
 
   .dash__small {

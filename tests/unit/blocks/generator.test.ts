@@ -388,3 +388,17 @@ describe('값 모양 도우미', () => {
     expect(textArgument('count')).toBe('str(count)');
   });
 });
+
+describe('블록 예시: 터치 센서를 누르면 LED(R1-110 — 누르면 켜지는 가장 쉬운 시작)', () => {
+  it('누르면 1이라 == 1로 확인하고, 터치 센서 배선을 알리며, 두 판의 줄 수가 같다', () => {
+    const preset = findPreset('touch-led');
+    expect(preset).not.toBeNull();
+    const program = generate(preset!.state);
+    expect(program.code).toContain('    if touch.value() == 1:');
+    expect(program.code).toContain('# @part touch-digital 17');
+    expect(program.code).toContain('sleep_ms(20)');
+    expect(program.wiring).toEqual([{ part: 'touch-digital', pin: 17, label: '터치 센서' }]);
+    expect(program.plan.conflicts).toEqual([]);
+    expect(sameLineCount(program.code, program.execCode)).toBe(true);
+  });
+});

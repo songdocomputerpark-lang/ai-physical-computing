@@ -179,7 +179,7 @@ describe('정지·다시 시작', () => {
     expect(explanation?.location).toBeNull();
     expect(explanation?.simplified).toBeNull();
     // 콘솔 한 줄은 "[오류 풀이]"가 아니라 "[안내]"로 시작한다(판 1.2.1 — 검토 E8: "[오류 풀이] … 오류가 아니에요"가 부딪혔다)
-    expect(consoleSummary(explanation!)).toBe('[안내] 정지 — [정지] 버튼으로 멈췄어요 — 오류가 아니에요. 자세한 내용은 콘솔 위 안내 카드에 있어요.');
+    expect(consoleSummary(explanation!)).toBe('[안내] 정지 — [정지] 단추로 멈췄어요 — 오류가 아니에요. 자세한 내용은 콘솔 위 안내 카드에 있어요.');
     // 기다리는 곳의 보기에 asyncio.sleep도 있다(asyncio 반복을 멈춘 학생 — 검토 E8)
     expect(explanation?.meaning).toContain('asyncio.sleep');
   });

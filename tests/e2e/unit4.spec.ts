@@ -983,3 +983,22 @@ test.describe('4단원 통합 화면 — 성능 기록', () => {
     expect(together.sentPerSec?.avg ?? 0).toBeGreaterThan(1);
   });
 });
+
+// R1-114(판 1.3.0 검수): 카메라가 없거나 허용하지 않으면 입력이 샘플(도형 영상 — 얼굴이 없다)이라 [함께 실행]을 눌러도 보드가 아무 일도 하지 않았다.
+// 이제 샘플이면 재생 입력(합성 좌표)으로 바꾸고, 상태 글에 그 까닭을 적는다.
+test.describe('4단원 통합 화면 — 카메라 없이 [함께 실행]', () => {
+  test.describe.configure({ mode: 'default', timeout: 600_000 });
+  test.skip(({ isMobile }) => isMobile, '파이썬 두 벌을 띄우는 검사라 데스크톱 프로젝트에서만 돈다');
+
+  test('입력이 샘플이면 재생 입력(합성 좌표)으로 바꿔서 돌고, 상태 글이 까닭을 알린다', async ({ page }) => {
+    await openUnit4(page);
+    await waitBothReady(page);
+    // 재생 입력 선택지는 mediapipe 모듈이 붙을 때 더해진다 — 있어야 바꿀 수 있다
+    await expect(bar(page).locator('[data-unit4-input] option[value="replay"]')).toHaveCount(1, { timeout: READY_TIMEOUT });
+    await chooseInput(page, 'sample');
+    await bar(page).locator('[data-unit4-run]').click();
+    await expect(pcLab(page)).toHaveAttribute('data-vision-source', 'replay', { timeout: READY_TIMEOUT });
+    await expect(bar(page).locator('[data-unit4-status]')).toContainText('재생 입력(합성 좌표)', { timeout: READY_TIMEOUT });
+    await stopTogether(page);
+  });
+});

@@ -94,7 +94,7 @@ test.describe('실습실 실행 대상(실제 보드 자리)', () => {
     const stopButton = page.getByRole('button', { name: '정지', exact: true });
     await expect(root).toHaveAttribute('data-run-target', '시험 보드');
     await expect(root).toHaveAttribute('data-state', 'idle');
-    await expect(page.locator('[data-lab-status]')).toHaveText('시험 보드에서 실행할 수 있어요. [실행]을 누르세요.');
+    await expect(page.locator('[data-lab-status]')).toHaveText('시험 보드에서 실행할 수 있어요. [실행]을 눌러 봐요.');
     await expect(runButton).toBeEnabled();
 
     // 2. 보통 실행

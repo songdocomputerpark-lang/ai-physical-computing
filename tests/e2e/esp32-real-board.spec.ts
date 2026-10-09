@@ -89,7 +89,7 @@ test.describe('ESP32 실습실 — 실제 보드 ① 연결·raw REPL(모의 시
     await expect(page.locator('[data-board-io]')).toBeHidden();
     await expect(realPanel(page)).toBeVisible();
     await expect(labRoot(page)).toHaveAttribute('data-run-target', '실제 보드');
-    await expect(page.locator('[data-lab-status]')).toHaveText('실제 보드에서 실행할 수 있어요. [실행]을 누르세요.');
+    await expect(page.locator('[data-lab-status]')).toHaveText('실제 보드에서 실행할 수 있어요. [실행]을 눌러 봐요.');
     await expect(realPanel(page).locator('[data-real-board-title]')).toHaveText('실제 보드가 연결되지 않았어요');
 
     // 2. 연결과 배너 판별
