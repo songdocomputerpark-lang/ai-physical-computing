@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
-<title id="title">따라하기 준비: 보드 A(esp32-01)와 보드 B(esp32-02)가 중계 서버를 거쳐 값과 명령을 주고받는다</title>
+<title id="title">따라 하기 준비: 보드 A(esp32-01)와 보드 B(esp32-02)가 중계 서버를 거쳐 값과 명령을 주고받는다</title>
 <desc id="desc">왼쪽 보드 A(통신 템플릿 3, esp32-01)는 esp32-01/rx를 받고 esp32-01/tx로 1초마다 숫자를 보낸다. 오른쪽 보드 B(친구 보드, esp32-02)에는 터치 센서가 있고, esp32-01/tx를 받고 터치하면 esp32-01/rx로 on, off를 보낸다. 가운데 중계 서버(같은 컴퓨터 탭 통로) 칸을 지나 파란 화살표가 보드 A에서 보드 B로 1, 2, 3을, 초록 화살표가 보드 B에서 보드 A로 on, off를 나른다. 아래에 1 두 예제를 같은 통신 접두어로 열어요, 2 보드 A, 보드 B 차례로 실행, 3 보드 B의 터치 센서를 누르면 보드 A의 LED가 켜져요가 적혀 있다. 사이트가 직접 그린 그림.</desc>
 <defs>
 <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1f5bd6"/></marker><marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3b9360"/></marker>

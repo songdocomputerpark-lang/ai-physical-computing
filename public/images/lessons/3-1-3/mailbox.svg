@@ -31,7 +31,7 @@
 <text x="272" y="118" text-anchor="middle" font-size="16" font-weight="700" fill="#17191c">보드</text>
 <text x="24" y="170" font-size="16" fill="#17191c">온 차례대로 모두 읽어요.</text>
 <text x="24" y="194" font-size="16" fill="#4a5361">한꺼번에 읽으면 'ba'처럼</text>
-<text x="24" y="216" font-size="16" fill="#4a5361">붙기도 해요(3-1-2 바꿔보기).</text>
+<text x="24" y="216" font-size="16" fill="#4a5361">붙기도 해요(3-1-2 바꿔 보기).</text>
 
 <!-- 오른쪽: 한 칸 -->
 <g font-size="16" fill="#7b8594">
