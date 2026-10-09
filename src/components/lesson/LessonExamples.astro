@@ -108,7 +108,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       )}
       {panel.rendered && panel.rendered.guideLines > 0 && (
         <p class="lesson-example__guide-note">
-          파일 끝의 실습실 안내 주석 {panel.rendered.guideLines}줄(바꿔볼 것, 왜 이런 결과가 나올까)은 이 쪽 본문과 같은 내용이라 여기서는 뺐어요. 실습실에서는 보여요.
+          파일 끝의 실습실 안내 주석 {panel.rendered.guideLines}줄(바꿔 볼 것, 왜 이런 결과가 나올까)은 이 차시 본문과 같은 내용이라 여기서는 뺐어요. 실습실에서는 보여요.
         </p>
       )}
       <div class="lesson-example__actions">
@@ -118,12 +118,12 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
           </button>
         )}
         {panel.link && (
-          <a class="button button--secondary" href={panel.link.href} aria-label={`실습실 쪽에서 크게 열기: ${panel.title}`}>
-            실습실 쪽에서 크게 열기
+          <a class="button button--secondary" href={panel.link.href} aria-label={`실습실에서 크게 열기: ${panel.title}`}>
+            실습실에서 크게 열기
           </a>
         )}
         <p class="lesson-example__note">
-          [이 자리에서 실습실 열기]는 이 쪽 바로 아래에 실습실을 열어요. [실습실 쪽에서 크게 열기]는 실습실 쪽(다른 쪽)으로 옮겨 가서 큰 화면으로 열어요.
+          [이 자리에서 실습실 열기]는 이 페이지 바로 아래에 실습실을 열어요. [실습실에서 크게 열기]는 실습실 페이지로 가서 큰 화면으로 열어요.
         </p>
       </div>
     </figure>
@@ -144,7 +144,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
   const WAIT_TEXT = '처음 한 번은 파이썬을 받느라 시간이 걸려요(느린 인터넷에서는 몇 분). 아래 실습실이 준비될 때까지 기다려 주세요.';
 
   /**
-   * 실습실 아래 줄: [실습실 접기]와 [실습실 쪽에서 크게 열기]. 실습실(iframe) 안을 스크롤하다 보면 차시 본문으로 돌아오는 단추가
+   * 실습실 아래 줄: [실습실 접기]와 [실습실에서 크게 열기]. 실습실(iframe) 안을 스크롤하다 보면 차시 본문으로 돌아오는 단추가
    * 화면 위로 사라져 있어서, 틀 바로 아래에도 같은 단추를 둔다(2026-09-17 검토 반영 — 휴대폰에서 틀 안 스크롤에 갇히던 문제).
    */
   function buildLabBar(toggle: () => void, labHref: string | undefined, exampleTitle: string): HTMLElement {
@@ -161,8 +161,8 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       const link = document.createElement('a');
       link.className = 'button button--secondary';
       link.href = labHref;
-      link.textContent = '실습실 쪽에서 크게 열기';
-      link.setAttribute('aria-label', `실습실 쪽에서 크게 열기: ${exampleTitle}`);
+      link.textContent = '실습실에서 크게 열기';
+      link.setAttribute('aria-label', `실습실에서 크게 열기: ${exampleTitle}`);
       bar.append(link);
     }
     return bar;

@@ -158,8 +158,11 @@ const position = lessonPosition(lessons, lesson);
             <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
               발표 모드
             </button>
+            {/* 키보드 문구는 키보드 쓰는 넓은 화면에만, 터치·좁은 화면에는 [앞]·[다음] 단추 안내(R3-004). 보이지 않는 쪽은 display:none이라 낭독기도 읽지 않는다. */}
             <span class="lesson__tools-note" id="lesson-present-note">
-              수업 중 프로젝터로 크게, 한 단계씩 보여 줘요. 키보드 → ←로 넘기고 Esc로 끝내요.
+              수업 중 프로젝터로 크게, 한 단계씩 보여 줘요.{' '}
+              <span class="lesson__tools-keys">키보드 → ←로 넘기고 Esc로 끝내요.</span>
+              <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>
             </span>
           </p>
         </div>
@@ -323,6 +326,21 @@ const position = lessonPosition(lessons, lesson);
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /* 키보드 안내는 터치 기기·좁은 화면(휴대폰)에서 [앞]·[다음] 단추 안내로 바꾼다(R3-004) */
+  .lesson__tools-touch {
+    display: none;
+  }
+
+  @media (pointer: coarse), (max-width: 40rem) {
+    .lesson__tools-keys {
+      display: none;
+    }
+
+    .lesson__tools-touch {
+      display: inline;
+    }
   }
 
   /* 발표 모드는 자바스크립트로 돈다 — 꺼져 있으면 단추가 없으니 설명도 숨긴다. */

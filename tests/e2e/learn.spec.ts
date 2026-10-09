@@ -165,8 +165,8 @@ test.describe('차시 페이지', () => {
     await expect(example.locator('.lesson-code')).toContainText('photos = [');
     await expect(example.locator('.lesson-code__line').first()).toHaveText(/^# 1-1-1 체험/u);
     await expect(example.getByRole('region', { name: /코드, \d+줄$/u })).toHaveCount(1);
-    // R2-016: 이 쪽 안에서 여는 단추와 이름이 겹치지 않게 "실습실 쪽에서 크게 열기: <예제 이름>"(예제 이름이 붙어 같은 쪽의 다른 예제 링크와도 구별된다)
-    await expect(example.getByRole('link', { name: /^실습실 쪽에서 크게 열기: ./u })).toHaveAttribute(
+    // R2-016: 이 페이지 안에서 여는 단추와 이름이 겹치지 않게 "실습실에서 크게 열기: <예제 이름>"(예제 이름이 붙어 같은 페이지의 다른 예제 링크와도 구별된다)
+    await expect(example.getByRole('link', { name: /^실습실에서 크게 열기: ./u })).toHaveAttribute(
       'href',
       `${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u1/1-1-1-sort-vs-group.py')}`,
     );
