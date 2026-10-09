@@ -127,9 +127,10 @@ test.describe('교사용 자료실', () => {
         await expect(link).toHaveAttribute('href', withBase(`/${HANDOUT_DOCS[doc].file}`));
         const response = await request.get(withBase(`/${HANDOUT_DOCS[doc].file}`));
         expect(response.status(), doc).toBe(200);
-        // 차시가 쓰는 쪽으로 바로 가는 링크는 같은 파일의 #page=쪽
-        for (const pageLink of await item.getByRole('link', { name: '그 쪽 열기' }).all()) {
+        // 차시가 쓰는 쪽으로 바로 가는 링크는 같은 파일의 #page=쪽. 눈에는 "PDF 열기"이고 낭독기 이름에는 차시와 쪽이 붙어 12개가 서로 다르게 읽힌다(R1-039)
+        for (const pageLink of await item.getByRole('link', { name: /^PDF 열기\(/u }).all()) {
           await expect(pageLink).toHaveAttribute('href', new RegExp(`^${withBase(`/${HANDOUT_DOCS[doc].file}`).replaceAll('.', '\\.')}#page=\\d+$`, 'u'));
+          await expect(pageLink).toHaveAccessibleName(/^PDF 열기\(.+ \d.*쪽\)$/u);
         }
       } else {
         await expect(item).toContainText('준비 중이에요');
@@ -339,10 +340,56 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(steps).toHaveCount(3);
     await expect(steps.nth(0).locator('a')).toHaveAttribute('href', getPage('start-check').href);
     await expect(steps.nth(1).locator('a')).toHaveAttribute('href', withBase(TEACHER_PATHS.guides));
-    await expect(steps.nth(2).locator('a')).toHaveAttribute('href', `${getPage('start-teacher').href}#presentation`);
-    // 발표 모드 단계가 가리키는 자리(교사용 시작하기의 #presentation)가 실제로 있다
+    // 판 1.3.0 검수 R1-034: 3단계는 설명 글이 아니라 발표 모드를 직접 해 볼 차시(1-1-1)로 간다
+    await expect(steps.nth(2).locator('a')).toHaveAttribute('href', /\/learn\/u1\/1-1-1\/$/u);
+    await expect(steps.nth(2)).toContainText('[발표 모드]');
+    await page.goto(await steps.nth(2).locator('a').getAttribute('href') ?? '');
+    await expect(page.getByRole('button', { name: /발표 모드/u }).first()).toBeAttached();
+    // 처음 오신 선생님은 3단계 위의 안내 줄로 교사용 시작하기에 간다(그 쪽 #presentation에는 쓰는 법이 있다)
+    await page.goto(at(TEACHER_PATHS.home));
+    await expect(page.locator('[data-teacher-first] a')).toHaveAttribute('href', getPage('start-teacher').href);
     await page.goto(`${getPage('start-teacher').href}#presentation`);
     await expect(page.locator('h2#presentation')).toBeVisible();
+  });
+
+  test('편집본 PDF 목록이 가린 까닭 설명보다 앞에 오고, 까닭은 접혀 있다(R1-038)', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.home));
+    const list = page.locator('[data-teacher-handouts] .handout-list');
+    const why = page.locator('[data-handout-why]');
+    await expect(why).not.toHaveAttribute('open', '');
+    const listBox = await list.boundingBox();
+    const whyBox = await why.boundingBox();
+    expect(listBox && whyBox && listBox.y < whyBox.y).toBe(true);
+    await why.locator('summary').click();
+    await expect(why).toContainText('원본 파일(PDF, PPTX)은 사이트에 올리지 않아요');
+  });
+
+  test('성취기준과 평가 쪽에 한 학기 배치 제안(사이트 제안) 표가 있다(R1-035)', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.standards));
+    const table = page.locator('table[data-semester-plan]');
+    await expect(table.locator('tbody tr')).toHaveCount(learnUnits.length + 1);
+    await expect(page.locator('h3#semester')).toContainText('사이트 제안');
+    await expect(page.locator('[data-semester-list] > li')).toHaveCount(2);
+    await expect(page.locator('[data-semester-list]')).toContainText('3학점');
+    await expect(page.locator('[data-semester-list]')).toContainText('4학점');
+  });
+
+  test('지도 요약 맨 위에 대단원 바로 가기 칩과 차시 번호 찾기가 있다(R1-036)', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.guides));
+    const jumps = page.getByRole('navigation', { name: '대단원으로 이동' });
+    await expect(jumps.getByRole('link')).toHaveCount(learnUnits.length);
+    for (const unit of learnUnits) {
+      await expect(jumps.locator(`a[href="#guide-unit-u${unit.unit}"]`)).toBeVisible();
+    }
+    const form = page.getByRole('form', { name: '차시 번호로 찾기' });
+    await form.getByLabel('차시 번호', { exact: true }).fill('1-2-3');
+    await form.getByRole('button', { name: '찾아가기' }).click();
+    const target = page.locator('[data-guide-index="1-2-3"]');
+    await expect(target).toBeInViewport();
+    await expect(target.locator('a').first()).toBeFocused();
+    await form.getByLabel('차시 번호', { exact: true }).fill('9-9-9');
+    await form.getByRole('button', { name: '찾아가기' }).click();
+    await expect(form.locator('[data-guide-find-message]')).toContainText('찾지 못했어요');
   });
 
   test('자료 카드는 아이콘이 있고 카드 어디를 눌러도 열린다', async ({ page }) => {
@@ -354,14 +401,14 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(page).toHaveURL(new RegExp(`${first.href}$`, 'u'));
   });
 
-  test('공용 PC 확인표(네 줄)와 교사용 시작하기·설정에 본 차시·끝낸 차시 표시가 남는 곳이 적혀 있다', async ({ page }) => {
+  test('공용 PC 확인표(네 줄)와 교사용 시작하기·설정에 본 차시와 "다 했어요" 표시가 남는 곳이 적혀 있다', async ({ page }) => {
     await page.goto(at(TEACHER_PATHS.home));
     const shared = page.locator('section[aria-labelledby="shared-pc"]');
     await expect(shared.locator('[data-shared-pc-checklist] > li')).toHaveCount(4);
-    await expect(shared).toContainText('본 차시·끝낸 차시 표시');
+    await expect(shared).toContainText('본 차시와 "다 했어요" 표시');
     await page.goto(getPage('start-teacher').href);
-    await expect(page.locator('h2#shared-pc + ul')).toContainText('본 차시·끝낸 차시 표시');
+    await expect(page.locator('h2#shared-pc + ul')).toContainText('본 차시와 "다 했어요" 표시');
     await page.goto(getPage('settings').href);
-    await expect(page.getByRole('main')).toContainText('본 차시·끝낸 차시 표시');
+    await expect(page.getByRole('main')).toContainText('본 차시와 "다 했어요" 표시');
   });
 });

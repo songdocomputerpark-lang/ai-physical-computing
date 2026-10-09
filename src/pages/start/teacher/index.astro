@@ -4,7 +4,8 @@
  * - 성취기준·평가 방향 표는 영역 요약만 두고, 자세한 표(성취기준 15개·이어지는 차시·평가할 때 볼 것)는 교사용 자료실 /teacher/standards/(P5-14)로
  *   잇는다(2026-09-25 Phase 5 통합). 학교 네트워크 체크리스트와 통신 수업 안내는 Phase 2·4에서 채웠다
  *   (2026-09-24 Phase 4 통합 — 공개 중계 서버 안전 규칙 PLAN §7.4·PD-29 "교사용 안내에 실물 구동 장치는 공개 브로커에 연결하지 않기").
- * - 개인정보 처리 안내는 초안이다(법률 자문 아님). 외부 연결 표의 사실과 링크는 2026-09-16에 공식 문서로 확인했다:
+ * - 개인정보 처리 안내는 법률 자문이 아니다(맨 끝에 한 번만 밝힌다). 맨 위에 결론 세 줄을 두고 외부 연결 표는 접어 둔다(판 1.3.0 R1-045).
+ *   외부 연결 표의 사실과 링크는 2026-09-16에 공식 문서로 확인했다:
  *   GitHub Pages 방문자 IP 기록(GitHub Docs "GitHub Pages란?"), jsDelivr 수집 항목(jsDelivr Privacy Policy, 2023-11-23 시행),
  *   test.mosquitto.org의 공개 발행·구독 안내, Chrome 음성 인식의 서버 처리(MDN SpeechRecognition).
  *   표의 데이터는 ./_connections.ts에 있고, 공개 중계 서버 줄은 실습실이 고를 수 있는 서버 목록(src/lab/mqtt/brokers.ts)에서 만든다
@@ -15,8 +16,10 @@ import Callout from '../../../components/common/Callout.astro';
 import ClearRecordsButton from '../../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../../config/nav.ts';
 import { PROGRESS_PRIVACY_NOTE } from '../../../config/privacy-text.ts';
+import { siteConfig } from '../../../config/site.ts';
+import { PYODIDE_CDN_INDEX_URL } from '../../../lab/runtime/config.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { connections } from './_connections.ts';
+import { connections, listedBrokers } from './_connections.ts';
 
 const page = getPage('start-teacher');
 const check = getPage('start-check');
@@ -31,18 +34,19 @@ const settings = getPage('settings');
 const visionLab = getPage('labs-vision');
 const iotLab = getPage('labs-iot');
 const unit4Lab = getPage('labs-unit4');
+const help = getPage('help');
 
 const toc = [
   { id: 'class-flow', title: '수업 운영' },
   { id: 'assessment', title: '평가: 성취기준·평가 방향 표' },
-  { id: 'privacy', title: '개인정보 처리 안내(초안)' },
+  { id: 'privacy', title: '개인정보 처리 안내' },
   { id: 'shared-pc', title: '여러 사람이 쓰는 컴퓨터' },
   { id: 'comm', title: '통신 수업(3·4단원)' },
   { id: 'network', title: '학교 네트워크 체크리스트' },
   { id: 'presentation', title: '발표 모드' },
 ] as const;
 
-const lessonFlow = ['학습목표', '왜 배울까', '핵심 개념', '따라하기', '바꿔보기', '도전 과제', '확인 퀴즈', '교사용'];
+const lessonFlow = ['학습목표', '왜 배울까', '핵심 개념', '따라 하기', '바꿔 보기', '도전 과제', '확인 퀴즈', '교사용'];
 
 const curriculumUrl = 'https://www.ice.go.kr/ice/na/ntt/selectNttInfo.do?mi=11997&bbsId=1999&nttSn=3299910';
 const standardAreas = [
@@ -57,48 +61,70 @@ const moeGuideUrl =
 
 interface NetworkItem {
   item: string;
+  /** 확인하는 방법(안전한 고정 문장이라 링크를 넣을 수 있다) */
   how: string;
+  /** 막혀 있을 때 할 일(같은 이유로 링크를 넣을 수 있다) */
   ifBlocked: string;
 }
 
-const networkChecklist: readonly NetworkItem[] = [
+/** 내가 교실에서 바로 할 수 있는 확인 */
+const myChecks: readonly NetworkItem[] = [
   {
     item: '사이트 주소(github.io)가 열리는지',
     how: '교실 컴퓨터에서 이 페이지가 열리면 통과예요.',
-    ifBlocked: '학교 인터넷 담당자에게 사이트 주소를 알려 주고 문의해요.',
+    ifBlocked: '학교 인터넷 담당 선생님께 사이트 주소를 알려 주고 문의해요.',
   },
   {
-    item: '브라우저 기능(카메라·USB·블루투스·JSPI)',
-    how: '점검 페이지에서 [결과 복사]를 눌러 모아 둬요.',
-    ifBlocked: '결과 표의 줄마다 붙은 대처 안내를 따라요.',
-  },
-  {
-    item: '파이썬 실행 파일(cdn.jsdelivr.net)을 받을 수 있는지',
-    how: '점검 페이지의 [시험하기] 버튼',
-    ifBlocked: '막혀도 이 사이트에 함께 올린 예비 파일로 저절로 바꿔 받아요. 둘 다 막히면 학교 전산 담당자에게 두 주소를 알려 열어 달라고 부탁해요.',
-  },
-  {
-    item: '공개 MQTT 브로커에 접속되는지',
-    how: '점검 페이지의 [시험하기] 버튼(중계 서버에 연결만 해 보고 곧바로 닫아요)',
-    ifBlocked: '통신 실습은 인터넷 없이 같은 컴퓨터의 탭끼리 주고받는 통로(기본값)로 끝까지 할 수 있어요.',
-  },
-  {
-    item: '보드 드라이버를 설치할 권한',
-    how: '보드를 꽂고 보드 준비 페이지의 [보드 연결]을 눌러 봐요(포트가 안 보이면 장치 관리자 그림 안내로 이어져요).',
-    ifBlocked: '보드 준비 페이지의 "전산 담당 선생님께 부탁하기" 글(start/board/#it-request)을 [부탁 글 복사]로 복사해 보내요.',
+    item: '브라우저 기능(카메라·USB 보드·블루투스·파이썬 기다리기)',
+    how: `<a href="${check.href}">${check.title}</a>에서 [결과 복사]를 눌러 모아 둬요.`,
+    ifBlocked: '결과 표의 줄마다 붙은 한 줄 대처를 따라요.',
   },
   {
     item: '브라우저가 최신판인지',
-    how: '점검 페이지의 JSPI 줄이 "지원"인지 봐요.',
-    ifBlocked: '교실 컴퓨터의 Chrome·Edge 업데이트를 요청해요.',
+    how: '내 컴퓨터 점검의 "파이썬 기다리기 기능(JSPI)" 줄이 "지원"인지 봐요.',
+    ifBlocked: '교실 컴퓨터의 Chrome이나 Edge를 최신판으로 업데이트해요. 권한이 없으면 아래 부탁 글을 전산 담당 선생님께 보내요.',
   },
   {
     item: '교실 화면 공유 프로그램의 가상 카메라',
-    how: '점검 페이지의 [카메라 켜서 확인하기]를 눌러 카메라마다 영상이 들어오는지 봐요(가상 카메라에는 "가상 카메라" 표시가 붙어요). 영상처리 실습실의 미리 보기로도 확인할 수 있어요.',
-    ifBlocked:
-      '실습실은 이름에 가상 카메라 낱말이 든 장치를 뒤로 미루고 진짜 카메라를 먼저 켜요. 까만 화면만 오면 안내와 [다른 카메라로 바꾸기]·[샘플로 계속]이 떠요. 그래도 까맣다면 장치 관리자 → 카메라 → 가상 카메라(예: EShare Virtual Camera)를 "디바이스 사용 안 함"으로 바꾸고 브라우저를 다시 열어요(운영자 컴퓨터에서 확인한 해결 방법). 화면 공유를 쓸 때는 다시 켜요.',
+    how: '내 컴퓨터 점검의 [카메라 켜서 확인하기]를 눌러 카메라마다 영상이 들어오는지 봐요. 가상 카메라에는 "가상 카메라" 표시가 붙어요.',
+    ifBlocked: `까만 화면만 오면 실습실이 안내를 띄워 줘요. 해결 방법은 <a href="${help.href}#camera-black">${help.title}</a>의 "카메라 화면이 까매요"에 있어요.`,
   },
 ];
+
+/** 전산 담당 선생님께 부탁해야 하는 확인 */
+const itChecks: readonly NetworkItem[] = [
+  {
+    item: '파이썬 실행 파일을 받는 곳(cdn.jsdelivr.net)이 열리는지',
+    how: `<a href="${check.href}#network">${check.title}</a>의 네트워크 점검에서 [시험하기]를 눌러 봐요.`,
+    ifBlocked: '막혀도 이 사이트에 함께 올린 예비 파일로 저절로 바꿔 받아요. 둘 다 막히면 아래 부탁 글을 전산 담당 선생님께 보내요.',
+  },
+  {
+    item: '통신 실습의 공개 MQTT 중계 서버가 열리는지(선택)',
+    how: '같은 네트워크 점검의 [시험하기]로 봐요. 연결만 해 보고 곧바로 닫아요.',
+    ifBlocked: '통신 실습은 인터넷 없이 같은 컴퓨터의 탭끼리 주고받는 통로(기본값)로 끝까지 할 수 있어요. 공개 중계 서버가 꼭 필요할 때만 부탁해요.',
+  },
+  {
+    item: '보드 드라이버를 설치할 권한',
+    how: `보드를 꽂고 <a href="${board.href}">${board.title}</a>의 [보드 연결]을 눌러 봐요. 포트가 안 보이면 안내가 이어져요.`,
+    ifBlocked: `<a href="${board.href}#it-request">${board.title}</a>의 "전산 담당 선생님께 부탁하기" 글을 [부탁 글 복사]로 복사해 보내요.`,
+  },
+];
+
+/** 전산 담당 선생님께 보낼 부탁 글(열어 달라고 할 주소는 사이트가 쓰는 곳만, 빌드 때 만든다) */
+const requestHosts = {
+  site: new URL(siteConfig.origin).host,
+  python: new URL(PYODIDE_CDN_INDEX_URL).host,
+  brokers: listedBrokers().map((broker) => new URL(broker.url).host),
+};
+const itRequestText = [
+  '안녕하세요. 정보 수업에서 "인공지능과 피지컬 컴퓨팅" 실습 사이트를 쓰려고 해요.',
+  '교실 컴퓨터에서 아래 주소에 접속할 수 있게 열어 주세요.',
+  `- ${requestHosts.site} (수업 사이트)`,
+  `- ${requestHosts.python} (파이썬 실행 파일)`,
+  ...(requestHosts.brokers.length > 0 ? [`- ${requestHosts.brokers.join(', ')} (통신 실습의 공개 중계 서버, WebSocket 연결 - 선택)`] : []),
+  '교실 컴퓨터의 Chrome이나 Edge가 최신판인지도 확인해 주세요.',
+  '점검 결과는 사이트의 내 컴퓨터 점검에서 [결과 복사]한 글을 함께 보내요.',
+].join('\n');
 ---
 
 <BaseLayout title={page.title} description={page.description}>
@@ -204,18 +230,26 @@ const networkChecklist: readonly NetworkItem[] = [
   </div>
 
   <div class="prose">
-    <h2 id="privacy">개인정보 처리 안내(초안)</h2>
+    <h2 id="privacy">개인정보 처리 안내</h2>
     <Callout type="참고" title="사이트 운영자는 개인정보를 모으거나 저장하지 않아요">
       <p>
         이 사이트에는 로그인·회원가입이 없고, 운영자가 방문 기록을 받는 서버도 없어요. 방문 통계 도구도 쓰지 않아요.
       </p>
     </Callout>
+    <h3>한눈에 보기</h3>
+    <ul data-privacy-summary>
+      <li>로그인이 없어요.</li>
+      <li>운영자는 학생의 개인정보를 받지 않아요. 학생이 쓴 코드와 설정은 그 컴퓨터의 브라우저에만 남아요.</li>
+      <li>코드, 통신 메시지, 보드 이름에 학생 이름이나 학번을 쓰지 않게 지도해 주세요.</li>
+    </ul>
     <p>
       다만 사이트를 열거나 일부 기능을 쓰면 브라우저가 아래 회사의 서버에 접속하고, 그 회사가 접속 정보를 처리해요. 사이트 운영자는 이
-      기록을 받지 않아요.
+      기록을 받지 않아요. 어떤 곳에 무엇이 가는지는 아래 표에 있어요.
     </p>
   </div>
 
+  <details class="teacher-details" data-connections-details>
+    <summary>외부로 연결되는 곳과 보내지는 것 표 보기(4곳)</summary>
   <div class="teacher-table" role="region" aria-labelledby="connections-caption" tabindex="0" data-scroll-shade>
     <table class="connections">
       <caption id="connections-caption">외부로 연결되는 곳과 보내지는 것</caption>
@@ -253,6 +287,7 @@ const networkChecklist: readonly NetworkItem[] = [
       </tbody>
     </table>
   </div>
+  </details>
 
   <div class="prose">
     <h3>사이트 안에서만 다루는 것</h3>
@@ -271,22 +306,21 @@ const networkChecklist: readonly NetworkItem[] = [
     <p>
       학교에서 학습지원 소프트웨어로 쓰려면 학교의 선정 절차가 필요할 수 있어요. <a href={moeGuideUrl}
         >교육부 안내(학습지원 소프트웨어 선정 기준, 2025-12-29)</a
-      >를 참고해 학교 기준으로 확인해 주세요. 이 안내는 초안이고 법률 자문이 아니에요.
+      >를 참고해 학교 기준으로 확인해 주세요. 이 안내는 사이트가 확인한 사실을 정리한 것이고 법률 자문이 아니에요. 학교의 개인정보 담당 선생님과도 함께 확인해 주세요.
     </p>
 
     <h2 id="shared-pc">여러 사람이 쓰는 컴퓨터</h2>
     <ul>
       <li>로그인이 없는 대신, 학생이 쓴 코드와 설정이 그 컴퓨터의 브라우저에 남아요. {PROGRESS_PRIVACY_NOTE}</li>
       <li>
-        수업이 끝나면 실습실 아래의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해 주세요. 이 사이트가 그 브라우저에 저장한
-        코드와 설정만 지워요(다른 사이트의 기록은 그대로). 교사용 컴퓨터에서는 아래 버튼으로 바로 지울 수 있어요.
+        수업이 끝나면 실습실 아래의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해 주세요. 이 사이트가 저장한 것만 지우고 다른 사이트의 기록은
+        그대로예요. 교사용 컴퓨터에서는 아래 단추로 바로 지울 수 있어요.
         <ClearRecordsButton id="teacher-clear-records" hint={false} />
       </li>
-      <li>통신 실습에서 쓰는 무작위 이름(통신 접두어 12글자)은 기본으로 탭을 닫으면 사라져요. [이 컴퓨터에 고정]을 누른 때만 이 컴퓨터에 남고, [기록 지우기]가 함께 지워요.</li>
       <li>
-        코드, 통신 메시지, 블루투스 보드 이름에 학생 이름·학번 같은 개인정보를 넣지 않게 지도해 주세요. 보드 이름은 "ESP32-07"처럼 자리
-        번호로 붙여요.
+        통신 실습에서 쓰는 무작위 이름(12글자)은 탭을 닫으면 사라져요. [이 컴퓨터에 고정]을 누른 때만 남고, 기록 지우기 단추가 함께 지워요.
       </li>
+      <li>보드 이름은 "ESP32-07"처럼 자리 번호로 붙이고, 학생 이름이나 학번은 넣지 않게 지도해 주세요.</li>
     </ul>
 
     <h2 id="comm">통신 수업(3·4단원)</h2>
@@ -310,7 +344,7 @@ const networkChecklist: readonly NetworkItem[] = [
       <li>
         블루투스 보드 이름은 <code>ESP32-07</code>처럼 자리 번호로 붙여요. 모든 보드가 <code>ESP32</code>로 광고하면 선택 창에서 내 보드를 고를 수
         없어요. 실제 보드와 블루투스로 잇는 기능은 기준 브라우저(컴퓨터용 Chrome·Edge)에서 돼요.
-        교실 기기에서 되는지는 <a href={check.href}>점검 페이지</a>의 "Web Bluetooth(블루투스)" 줄로 확인해요(아이폰·아이패드에는 없어요).
+        교실 기기에서 되는지는 <a href={check.href}>{check.title}</a>의 "Web Bluetooth(블루투스)" 줄로 확인해요(아이폰·아이패드에는 없어요).
         안 되면 가상 보드의 블루투스 칸으로 같은 실습을 해요.
       </li>
       <li>
@@ -329,7 +363,7 @@ const networkChecklist: readonly NetworkItem[] = [
 
   <div class="teacher-table" role="region" aria-labelledby="network-caption" tabindex="0" data-scroll-shade>
     <table>
-      <caption id="network-caption">학교 네트워크 체크리스트(틀)</caption>
+      <caption id="network-caption">학교 네트워크 체크리스트</caption>
       <thead>
         <tr>
           <th scope="col">확인할 것</th>
@@ -337,18 +371,45 @@ const networkChecklist: readonly NetworkItem[] = [
           <th scope="col">막혀 있으면</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody data-network-mine>
+        <tr>
+          <th scope="colgroup" colspan="3" class="teacher-table__group">내가 교실에서 확인할 것</th>
+        </tr>
         {
-          networkChecklist.map((row) => (
+          myChecks.map((row) => (
             <tr>
               <th scope="row">{row.item}</th>
-              <td>{row.how}</td>
-              <td>{row.ifBlocked}</td>
+              <td set:html={row.how} />
+              <td set:html={row.ifBlocked} />
+            </tr>
+          ))
+        }
+      </tbody>
+      <tbody data-network-it>
+        <tr>
+          <th scope="colgroup" colspan="3" class="teacher-table__group">전산 담당 선생님께 부탁할 것</th>
+        </tr>
+        {
+          itChecks.map((row) => (
+            <tr>
+              <th scope="row">{row.item}</th>
+              <td set:html={row.how} />
+              <td set:html={row.ifBlocked} />
             </tr>
           ))
         }
       </tbody>
     </table>
+  </div>
+
+  <div class="prose">
+    <h3 id="it-request-text">전산 담당 선생님께 보낼 부탁 글</h3>
+    <p>권한이 없거나 막혀 있을 때 그대로 복사해서 보내요. 필요 없는 줄은 지워도 돼요.</p>
+    <pre class="teacher-request" data-teacher-request-text data-scroll-focus="전산 담당 선생님께 보낼 부탁 글" data-scroll-shade>{itRequestText}</pre>
+    <p class="teacher-request__copy">
+      <button type="button" class="button button--secondary" data-teacher-request-copy>부탁 글 복사</button>
+      <span class="teacher-request__status" role="status" aria-live="polite" data-teacher-request-status></span>
+    </p>
   </div>
 
   <div class="prose">
@@ -362,7 +423,70 @@ const networkChecklist: readonly NetworkItem[] = [
   </div>
 </BaseLayout>
 
+<script>
+  // 전산 담당 부탁 글 복사(클립보드를 쓸 수 없으면 글을 골라 두어 Ctrl+C로 복사하게 한다)
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-teacher-request-copy]');
+  const requestText = document.querySelector<HTMLElement>('[data-teacher-request-text]');
+  const copyStatus = document.querySelector<HTMLElement>('[data-teacher-request-status]');
+  copyButton?.addEventListener('click', async () => {
+    const text = requestText?.textContent ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      if (copyStatus) {
+        copyStatus.textContent = '복사했어요. 메신저나 메일에 붙여 넣어요.';
+      }
+    } catch {
+      if (requestText) {
+        const range = document.createRange();
+        range.selectNodeContents(requestText);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      if (copyStatus) {
+        copyStatus.textContent = '글을 골라 두었어요. Ctrl+C를 눌러 복사해요.';
+      }
+    }
+  });
+</script>
+
 <style>
+  .teacher-details {
+    max-width: var(--width-prose);
+    margin-block: var(--space-4);
+  }
+
+  .teacher-details > summary {
+    min-height: var(--target-min);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .teacher-table__group {
+    background: var(--color-bg-subtle);
+    font-weight: var(--weight-bold);
+  }
+
+  .teacher-request {
+    max-width: var(--width-prose);
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .teacher-request__copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
   .teacher-toc {
     max-width: var(--width-prose);
     margin-block: 0 var(--space-8);

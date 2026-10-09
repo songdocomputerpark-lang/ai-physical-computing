@@ -65,8 +65,8 @@ export function brokerConnection(brokers: readonly MqttBrokerOption[] = MQTT_BRO
     .filter(Boolean)
     .join(', ');
   return {
-    where: '공개 MQTT 브로커(선택 기능)',
-    when: '통신 실습에서 통로를 "공개 중계 서버"로 고르고 [연결]을 누를 때, 또는 점검 페이지의 [시험하기]를 누를 때만. 기본 통로(같은 컴퓨터 탭)는 이 서버에 접속하지 않아요',
+    where: '공개 MQTT 브로커(인터넷으로 메시지를 주고받는 중계 서버, 선택 기능)',
+    when: '통신 실습에서 통로를 "공개 중계 서버"로 고르고 [연결]을 누를 때, 또는 내 컴퓨터 점검의 [시험하기]를 누를 때만. 기본 통로(같은 컴퓨터 탭)는 이 서버에 접속하지 않아요',
     what: 'IP 주소와 보낸 메시지. 메시지는 같은 주제(토픽) 이름을 아는 누구나 보고 보낼 수도 있어요. 점검 페이지는 연결만 해 보고 메시지를 보내지 않아요.',
     who: `중계 서버(브로커)를 운영하는 회사나 단체(${choices} — [주소 직접 입력]으로 넣은 서버는 그 서버를 운영하는 곳)`,
     links: listed.flatMap((broker) => {
@@ -80,7 +80,7 @@ export const connections: readonly Connection[] = [
   {
     where: 'GitHub Pages(사이트 파일을 보내 주는 곳)',
     when: '사이트를 열 때마다',
-    what: '접속한 컴퓨터의 IP 주소. GitHub는 보안을 위해 방문자의 IP 주소를 기록하고 보관한다고 안내해요.',
+    what: '접속한 컴퓨터의 IP 주소(인터넷 주소). GitHub는 보안을 위해 방문자의 IP 주소를 기록하고 보관한다고 안내해요.',
     who: 'GitHub',
     links: [
       { label: 'GitHub Pages 안내(데이터 수집)', url: 'https://docs.github.com/ko/pages/getting-started-with-github-pages/what-is-github-pages' },
@@ -89,7 +89,7 @@ export const connections: readonly Connection[] = [
   },
   {
     where: 'jsDelivr(파이썬 실행 파일을 보내 주는 콘텐츠 전송망)',
-    when: '실습실에서 파이썬을 처음 준비할 때(받은 파일은 이 컴퓨터에 저장해 두고 다시 써요), 또는 점검 페이지의 [시험하기]를 누를 때',
+    when: '실습실에서 파이썬을 처음 준비할 때(받은 파일은 이 컴퓨터에 저장해 두고 다시 써요), 또는 내 컴퓨터 점검의 [시험하기]를 누를 때',
     what: 'IP 주소, 브라우저 종류와 버전, 요청한 사이트의 도메인',
     who: 'jsDelivr와 트래픽을 전달하는 전송망 업체',
     links: [{ label: 'jsDelivr 개인정보처리방침(영어)', url: 'https://github.com/jsdelivr/jsdelivr/blob/master/Privacy%20Policy.md' }],

@@ -50,10 +50,13 @@ const next = [
           <a class="student-steps__link" href={`#${step.id}`}>
             {step.title}
           </a>
-          <span class="student-steps__time">약 {step.time}</span>
+          <span class="student-steps__time">
+            약 {step.time}
+            <span class="visually-hidden">,</span>
+          </span>
           <span class="student-steps__done" data-student-step-done hidden>
             <Icon name="check" size="sm" />
-            끝
+            끝냈어요
           </span>
         </li>
       ))
@@ -80,7 +83,7 @@ const next = [
     </div>
     <CameraPermissionFigures />
     <div class="prose">
-      <p>브라우저마다 창 모양과 버튼 글자가 조금 달라요. "허용"이라는 글자가 들어간 버튼을 고르면 돼요.</p>
+      <p>브라우저마다 창 모양과 단추 글자가 조금 달라요. "허용"이라는 글자가 들어간 단추를 고르면 돼요.</p>
       <Callout type="오류" title="카메라가 켜지지 않을 때">
         <ul>
           <li>노트북에 카메라 끄기 키나 가림막이 있다면 열어요.</li>

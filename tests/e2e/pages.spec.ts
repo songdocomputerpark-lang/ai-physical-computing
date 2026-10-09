@@ -18,6 +18,7 @@ import {
   issueTemplateUrl,
   repositoryFileUrl,
 } from '../../src/pages/contribute/_issue-templates.ts';
+import { koreanCountWord } from '../../src/pages/labs/_lab-cards.ts';
 import { LAB_PLANS } from '../../src/pages/labs/_labs.ts';
 
 /** 이 담당이 만든 사이트 지도 페이지 */
@@ -116,10 +117,11 @@ test.describe('이 담당의 페이지', () => {
       expect(plan, child.id).toBeDefined();
       const card = cards.filter({ has: page.getByRole('heading', { level: 2, name: child.title }) });
       await expect(card.getByRole('link', { name: child.title, exact: true })).toHaveAttribute('href', child.href);
-      // 실제 화면이 열린 실습실(_labs.ts의 open, 2026-09-16부터 영상처리)은 "열림", 나머지는 열리는 Phase를 보인다.
+      // 실제 화면이 열린 실습실(_labs.ts의 open, 2026-09-16부터 영상처리)은 아무 표시 없이(판 1.3.0 — 다섯 장 모두의 "열림" 배지는 정보가 아니라서 뺐다) "준비 중"만 없고,
+      // 나머지는 열리는 Phase를 보인다.
       if (plan?.open) {
-        await expect(card).toContainText('열림');
         await expect(card).not.toContainText('준비 중');
+        await expect(card).not.toContainText('열림');
       } else {
         await expect(card).toContainText(`Phase ${plan?.phase}`);
       }
@@ -130,7 +132,7 @@ test.describe('이 담당의 페이지', () => {
     const openTitles = labs.children.filter((_child, index) => openPlans[index]?.open).map((child) => child.title);
     const allOpen = [...labs.children, ...labs.children.flatMap((child) => child.children)].every((child) => LAB_PLANS.find((candidate) => candidate.id === child.id)?.open);
     await expect(page.locator('.labs-intro')).toContainText(
-      allOpen ? `${withParticle(openTitles.join(', '), '이/가')} 모두 열렸어요` : `${withParticle(openTitles.join(', '), '은/는')} 열렸어요`,
+      allOpen ? `실습실 ${koreanCountWord(labs.children.length)} 곳을 모두 쓸 수 있어요` : `${withParticle(openTitles.join(', '), '은/는')} 열렸어요`,
     );
 
     const checkPage = getPage('labs-esp32-check');
@@ -163,6 +165,7 @@ test.describe('이 담당의 페이지', () => {
 
   test('문제 해결은 질문 목록과 오류 사전 링크를 보이고, 목록 링크가 그 질문으로 간다', async ({ page }) => {
     await page.goto('./help/');
+    await page.locator('details[data-faq-toc-details] summary').click(); // 질문 목록은 증상 타일과 겹쳐 접혀 있다(R1-052)
     const toc = page.getByRole('navigation', { name: '질문 목록' });
     await expect(toc.getByRole('link')).toHaveCount(HELP_QUESTION_IDS.length);
     for (const id of HELP_QUESTION_IDS) {
@@ -316,6 +319,7 @@ test.describe('실습실 밖 쪽의 안내 글·표시(2026-09-30 최종 점검 
 
   test('교사용 시작하기: 외부 연결 표의 공개 중계 서버 줄에 실습실이 고를 수 있는 서버가 모두 있다(HiveMQ 포함)', async ({ page }) => {
     await page.goto(getPage('start-teacher').href);
+    await page.locator('details[data-connections-details] summary').click(); // 표는 접혀 있다(R1-045)
     const table = page.getByRole('table', { name: '외부로 연결되는 곳과 보내지는 것' });
     const mqtt = table.locator('tbody tr').filter({ hasText: 'MQTT' });
     await expect(mqtt).toContainText('HiveMQ');

@@ -4,6 +4,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { getPage } from '../../src/config/nav.ts';
 import { siteConfig } from '../../src/config/site.ts';
+import { checkDisplay } from '../../src/components/start/check-labels.ts';
 import { BROWSER_NOTICE_DISMISS_KEY, CHECK_ITEMS } from '../../src/lib/capabilities.ts';
 import { STORAGE_KEY_PREFIX } from '../../src/lib/storage.ts';
 
@@ -71,6 +72,10 @@ test.describe('시작하기 페이지', () => {
 
   test('보드 준비: 부품 대응표, 충전 전용 케이블 경고, 드라이버 공식 링크, Linux 안내', async ({ page }) => {
     await page.goto(getPage('start-board').href);
+    // 부품 표는 참고라 접혀 있다(R1-048) — 펼친 뒤에 보인다
+    const kitDetails = page.locator('details[data-kit-parts-details]');
+    await expect(kitDetails).not.toHaveAttribute('open', '');
+    await kitDetails.locator('summary').click();
     const kitTable = page.getByRole('table', { name: /키트 부품 이름과 범용 부품 이름/u });
     await expect(kitTable).toBeVisible();
     await expect(kitTable.locator('tbody tr')).toHaveCount(16);
@@ -109,6 +114,11 @@ test.describe('시작하기 페이지', () => {
 
   test('교사용: 외부 연결 표에 네 곳과 처리방침 링크, 성취기준 영역 표(자료실로 가는 링크), 공용 컴퓨터 안내가 있다', async ({ page }) => {
     await page.goto(getPage('start-teacher').href);
+    // 결론 세 줄이 맨 위에 있고 표는 접혀 있다(R1-045) — 펼친 뒤에 표를 본다
+    await expect(page.locator('[data-privacy-summary] > li')).toHaveCount(3);
+    const connectionsDetails = page.locator('details[data-connections-details]');
+    await expect(connectionsDetails).not.toHaveAttribute('open', '');
+    await connectionsDetails.locator('summary').click();
     const connections = page.getByRole('table', { name: '외부로 연결되는 곳과 보내지는 것' });
     const rows = connections.locator('tbody tr');
     await expect(rows).toHaveCount(4);
@@ -130,7 +140,13 @@ test.describe('시작하기 페이지', () => {
       );
     }
     await expect(page.getByText('[이 컴퓨터에서 내 기록 지우기]')).toBeVisible();
-    await expect(page.getByRole('table', { name: /학교 네트워크 체크리스트/u })).toBeVisible();
+    const network = page.getByRole('table', { name: /학교 네트워크 체크리스트/u });
+    await expect(network).toBeVisible();
+    // 교사가 할 일과 전산 담당 선생님께 부탁할 일이 나뉘고, 부탁 글은 한 덩어리로 복사한다(R1-046)
+    await expect(network.locator('tbody[data-network-mine] tr')).not.toHaveCount(0);
+    await expect(network.locator('tbody[data-network-it] tr')).not.toHaveCount(0);
+    await expect(page.locator('[data-teacher-request-text]')).toContainText('cdn.jsdelivr.net');
+    await expect(page.getByRole('button', { name: '부탁 글 복사' })).toBeVisible();
   });
 });
 
@@ -142,7 +158,12 @@ test.describe('점검 페이지', () => {
     await expect(rows).toHaveCount(CHECK_ITEMS.length);
     for (const item of CHECK_ITEMS) {
       const row = checkRow(page, item.id);
-      await expect(row.locator('th')).toContainText(item.label);
+      // 화면에는 하는 일 이름이 먼저, 영어 이름은 작은 보조 글씨로 함께(R1-041). 복사 글의 이름은 아래에서 기술 이름 그대로 확인한다
+      const shown = checkDisplay(item.id, item.label);
+      await expect(row.locator('th')).toContainText(shown.name);
+      if (shown.tech) {
+        await expect(row.locator('th .check-table__tech')).toHaveText(shown.tech);
+      }
       const status = await row.getAttribute('data-status');
       expect(['supported', 'unsupported', 'unknown'], item.id).toContain(status);
       await expect(row.locator('[data-check-status]')).toHaveText(/^(지원|미지원|확인 필요)$/u);
@@ -152,6 +173,17 @@ test.describe('점검 페이지', () => {
       }
     }
     await expect(page.locator('[data-check-counts]')).toContainText('지원');
+  });
+
+  test('네트워크 점검은 항목 목록이 접혀 있고, 휴대폰·태블릿 안내도 접혀 있다(R1-042)', async ({ page }) => {
+    await page.goto(getPage('start-check').href);
+    await waitForCheckReport(page);
+    const items = page.locator('details[data-network-items]');
+    await expect(items).not.toHaveAttribute('open', '');
+    await expect(page.locator('[data-network-run]')).toBeVisible();
+    await expect(page.locator('details[data-check-phone]')).not.toHaveAttribute('open', '');
+    // 여섯 곳의 항목은 접혀 있어도 문서에 있다(시험하기 한 번이 모두 시험한다)
+    await expect(page.locator('[data-network-item]')).not.toHaveCount(0);
   });
 
   test('컴퓨터 화면의 Chromium 계열에서 핵심 기능이 지원으로 나온다', async ({ page, isMobile }) => {
@@ -186,6 +218,8 @@ test.describe('점검 페이지', () => {
     await waitForCheckReport(page);
     await expect(checkRow(page, 'jspi')).toHaveAttribute('data-status', 'unsupported');
     await expect(checkRow(page, 'jspi').locator('[data-check-advice]')).toContainText('Chrome이나 Edge');
+    // 미지원이면 누가 무엇을 하면 되는지 한 줄이 긴 안내보다 먼저 있다(R1-041)
+    await expect(checkRow(page, 'jspi').locator('[data-check-quick]')).toContainText('최신판');
     await expect(checkRow(page, 'web-serial')).toHaveAttribute('data-status', 'unsupported');
     await expect(checkRow(page, 'web-serial').locator('[data-check-advice]')).toContainText('가상 보드');
     await expect(checkRow(page, 'web-bluetooth')).toHaveAttribute('data-status', 'unsupported');
@@ -231,10 +265,19 @@ test.describe('브라우저 권장 환경 안내', () => {
     const notice = page.locator('[data-browser-notice]');
     await expect(notice).toBeVisible();
     await expect(notice).toContainText('실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요');
-    await expect(notice.getByRole('link', { name: '이 브라우저로 무엇이 되는지 점검하기' })).toHaveAttribute(
+    // 휴대폰에서는 링크가 접힌 [자세히 보기] 안에 있다(R1-098) — 숨은 채로도 주소를 본다
+    await expect(notice.getByRole('link', { name: '내 컴퓨터 점검 열기', includeHidden: true })).toHaveAttribute(
       'href',
       getPage('start-check').href,
     );
+
+    // R1-098: 휴대폰에서는 제목 한 줄과 [자세히 보기]만 먼저 보이고(예전 높이 약 380px → 200px 미만), 설명·점검 링크는 접혀 있다
+    const box = await notice.boundingBox();
+    expect(box?.height ?? 9999).toBeLessThan(200);
+    const checkLink = notice.getByRole('link', { name: '내 컴퓨터 점검 열기' });
+    await expect(checkLink).toBeHidden();
+    await notice.getByText('자세히 보기', { exact: true }).click();
+    await expect(checkLink).toBeVisible();
 
     await notice.getByRole('button', { name: '안내 닫기' }).click();
     await expect(notice).toBeHidden();

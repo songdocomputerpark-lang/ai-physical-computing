@@ -40,16 +40,19 @@ const questions = [
   { id: 'school-network', title: '학교 네트워크에서 실습실이 열리지 않아요' },
   { id: 'clear-data', title: '공용 컴퓨터에서 내 기록을 지우고 싶어요' },
 ] as const;
-/** "무엇이 안 되나요?" 증상 타일 — 누르면 그 질문 자리(#id)나 오류 사전으로 간다 */
-const symptoms = [
-  { icon: 'camera', label: '카메라가 안 켜져요', href: `#${questions[0].id}` },
-  { icon: 'monitor', label: '카메라 화면이 까매요', href: `#${questions[1].id}` },
-  { icon: 'chip', label: '보드가 안 잡혀요', href: `#${questions[4].id}` },
-  { icon: 'alert', label: '오류 메시지가 나와요', href: errorsPage.href },
-  { icon: 'wifi', label: '느려요, 학교망에서 막혀요', href: `#${questions[5].id}` },
-  { icon: 'clock', label: '내 기록을 지우고 싶어요', href: `#${questions[6].id}` },
-] as const;
 const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData] = questions;
+/**
+ * "무엇이 안 되나요?" 증상 타일 — 누르면 그 질문 자리(#id)나 오류 사전으로 간다.
+ * 타일 글은 질문 제목과 같은 글(위 questions 한 곳)을 쓴다 — 두 목록이 같은 곳을 다른 이름으로 가리켜 낭독기가 두 번 읽던 문제(판 1.3.0 R1-052).
+ */
+const symptoms = [
+  { icon: 'camera', label: camera.title, href: `#${camera.id}` },
+  { icon: 'monitor', label: cameraBlack.title, href: `#${cameraBlack.id}` },
+  { icon: 'chip', label: boardPort.title, href: `#${boardPort.id}` },
+  { icon: 'alert', label: '오류 메시지가 나와요', href: errorsPage.href },
+  { icon: 'wifi', label: schoolNetwork.title, href: `#${schoolNetwork.id}` },
+  { icon: 'clock', label: clearData.title, href: `#${clearData.id}` },
+] as const;
 ---
 
 <BaseLayout title={page.title} description={page.description} width="narrow">
@@ -95,51 +98,62 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
   </section>
 
   <h2 class="help-heading">다른 질문 모두 보기</h2>
-  <nav class="faq-toc" aria-label="질문 목록">
-    <ol>
-      {
-        questions.map((question) => (
-          <li>
-            <a href={`#${question.id}`}>{question.title}</a>
-          </li>
-        ))
-      }
-    </ol>
-  </nav>
+  <details class="faq-toc-details" data-faq-toc-details>
+    <summary>질문 {questions.length}개 목록 펼치기</summary>
+    <nav class="faq-toc" aria-label="질문 목록">
+      <ol>
+        {
+          questions.map((question) => (
+            <li>
+              <a href={`#${question.id}`}>{question.title}</a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </details>
 
   <div class="prose faq">
     <section aria-labelledby={camera.id}>
       <h2 id={camera.id}>{camera.title}</h2>
-      <p>
-        실습실은 카메라를 쓰기 전에 브라우저가 카메라를 써도 되는지 물어봐요. 이때 허용해야 영상이 보여요. 허용하지 않았다면
-        아래 순서로 바꿔요.
+      <p class="faq-first" data-faq-first>
+        <strong>먼저 해 볼 것:</strong> 실습실은 카메라를 쓰기 전에 브라우저가 카메라를 써도 되는지 물어봐요. 이때 허용해야 영상이 보여요. {CAMERA_PERMISSION_STEP}해요. Chrome과 Edge 모두 같아요.
       </p>
-      <ol>
-        <li>{CAMERA_PERMISSION_STEP}해요. Chrome과 Edge 모두 같아요.</li>
-        <li>
-          아이콘에서 카메라가 보이지 않으면 주소창에 Chrome은 <code>chrome://settings/content/camera</code>, Edge는{' '}
-          <code>edge://settings/content/camera</code>를 적어 카메라 설정을 열고, 이 사이트를 <strong>허용</strong>으로 바꾼 뒤 새로고침해요.
-        </li>
-      </ol>
-      <p>
-        Windows 설정도 확인해요. Windows 11은 <strong>시작 → 설정 → 개인 정보 &amp; 보안 → 카메라</strong>에서{' '}
-        <strong>카메라 액세스</strong>와 <strong>데스크톱 앱이 카메라에 액세스하도록 허용</strong>이 켜져 있어야 브라우저가 카메라를 쓸 수
-        있어요.
+      <details class="faq-more-steps">
+        <summary>그래도 안 되면</summary>
+        <ol>
+          <li>
+            아이콘에서 카메라가 보이지 않으면 주소창에 Chrome은 <code>chrome://settings/content/camera</code>, Edge는{' '}
+            <code>edge://settings/content/camera</code>를 적어 카메라 설정을 열고, 이 사이트를 <strong>허용</strong>으로 바꾼 뒤 새로고침해요.
+          </li>
+          <li>
+            Windows 11은 <strong>시작 → 설정 → 개인 정보 &amp; 보안 → 카메라</strong>에서 <strong>카메라 액세스</strong>와{' '}
+            <strong>데스크톱 앱이 카메라에 액세스하도록 허용</strong>이 켜져 있어야 브라우저가 카메라를 쓸 수 있어요.
+          </li>
+          <li>화상 회의 프로그램 같은 다른 프로그램이 카메라를 쓰고 있거나 카메라 덮개가 닫혀 있어도 영상이 안 보일 수 있어요.</li>
+        </ol>
+      </details>
+      {/* 영어 오류 글로 찾는 학생도 이 질문에 닿게 보이는 글로 적는다(판 1.3.0 검수 R1-021 — "웹캠 permission denied"가 결과 0이었다) */}
+      <p class="faq-note" data-faq-english-errors>
+        오류 글이 영어로 <span lang="en">NotAllowedError</span>·<span lang="en">Permission denied</span>(허용하지 않음),{' '}
+        <span lang="en">NotFoundError</span>(카메라를 못 찾음), <span lang="en">NotReadableError</span>·<span lang="en">Could not start video source</span>(다른
+        프로그램이 카메라를 쓰는 중)로 나와도 이 질문이에요.
       </p>
-      <p>
-        다른 프로그램(화상 회의 프로그램 등)이 카메라를 쓰고 있거나 카메라 덮개가 닫혀 있어도 영상이 안 보일 수 있어요. 이
-        사이트에는 영상을 받아 저장하는 서버가 없어요.
-      </p>
+      <p class="faq-note">카메라 영상은 이 컴퓨터 안에서만 쓰여요. 이 사이트에는 영상을 받아 저장하는 서버가 없어요.</p>
     </section>
 
     <section aria-labelledby={cameraBlack.id}>
       <h2 id={cameraBlack.id}>{cameraBlack.title}</h2>
       <p>
         카메라를 켠 뒤 2초 넘게 까만 화면만 들어오면 실습실이 미리 보기 아래에 "카메라는 켜졌는데 화면이 까매요" 안내를 띄워요.
-        브라우저가 고른 카메라 장치가 까만 영상을 보내거나, 렌즈가 가려져 있는 거예요. 아래 순서로 확인해요.
+        브라우저가 고른 카메라 장치가 까만 영상을 보내거나, 렌즈가 가려져 있는 거예요.
       </p>
+      <p class="faq-first" data-faq-first>
+        <strong>먼저 해 볼 것:</strong> 노트북의 카메라 가림막(뚜껑)과 카메라 끄기 키(Fn + 카메라 그림)를 확인해요. 가린 것을 치우면 안내는 저절로 사라져요.
+      </p>
+      <details class="faq-more-steps">
+        <summary>그래도 까맣다면</summary>
       <ol>
-        <li>노트북의 카메라 가림막(뚜껑)과 카메라 끄기 키(Fn + 카메라 그림)를 확인해요. 가린 것을 치우면 안내는 저절로 사라져요.</li>
         <li>
           카메라가 두 대 이상이면 실습실 입력 칸의 <strong>[카메라]</strong>에서 다른 카메라를 골라요(안내 상자의 [다른 카메라로 바꾸기]도
           같아요). 화면 공유·방송 프로그램이 만든 가상 카메라에는 앞에 "가상 카메라:"가 붙어 있고, 실습실은 처음 켤 때 가상 카메라를 뒤로
@@ -147,13 +161,13 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
         </li>
         <li>화상 회의·카메라 앱이 카메라를 쓰고 있으면 그 프로그램을 닫아요.</li>
         <li>
-          교실 화면 공유 프로그램(EShare 등)의 <strong>가상 카메라</strong>가 깔려 있으면 Chrome·Edge가 실제 카메라를 못 찾을 수 있어요
-          (운영자 컴퓨터에서 실제로 겪고 해결한 문제예요). <strong>장치 관리자 → 카메라 → 'EShare Virtual Camera'에서 마우스 오른쪽 버튼
-          → 디바이스 사용 안 함</strong> → 브라우저를 모두 닫고 다시 열어요. 화면 공유를 쓸 때는 다시 <strong>디바이스 사용</strong>으로
-          바꿔요(관리자 권한이 필요할 수 있어요).
+          교실 화면 공유 프로그램(EShare 등)의 <strong>가상 카메라</strong>가 깔려 있으면 Chrome·Edge가 실제 카메라를 못 찾을 수 있어요.{' '}
+          <strong>장치 관리자 → 카메라 → 'EShare Virtual Camera'에서 마우스 오른쪽 버튼 → 디바이스 사용 안 함</strong>(가상 카메라 끄기)을 누르고 브라우저를
+          모두 닫았다가 다시 열어요. 화면 공유를 쓸 때는 다시 <strong>디바이스 사용</strong>으로 바꿔요(관리자 권한이 필요할 수 있어요).
         </li>
-        <li>Windows 카메라 앱에서는 보이는데 브라우저에서만 검은색이면 2번이나 4번이 가장 흔한 까닭이에요.</li>
       </ol>
+      <p>Windows 카메라 앱에서는 보이는데 브라우저에서만 까맣다면, 위의 "다른 카메라 고르기"나 "가상 카메라 끄기"가 가장 흔한 해결이에요.</p>
+      </details>
       <p>
         어느 카메라가 까만 영상을 보내는지는 <a href={checkPage.href}>{checkPage.title}</a> 페이지의 <strong>[카메라 켜서 확인하기]</strong>로
         카메라마다 한 번에 볼 수 있어요.
@@ -196,17 +210,23 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
       <h2 id={boardPort.id}>{boardPort.title}</h2>
       <p>포트는 컴퓨터가 보드와 신호를 주고받는 통로예요. 보드를 꽂아도 브라우저의 포트 선택 창에 보이지 않으면 하나씩 확인해요.</p>
       <ol>
-        <li>USB 케이블을 바꿔 봐요. 충전만 되는 케이블(충전 전용 케이블)은 데이터가 지나가지 않아서 보드가 보이지 않아요.</li>
+        <li>USB 케이블을 바꿔 봐요. 충전만 되는 케이블(충전 전용 케이블)은 데이터가 지나가지 않아서 보드가 보이지 않을 수 있어요.</li>
         <li>허브를 거치지 말고 컴퓨터의 USB 구멍에 바로 꽂아요. 다른 구멍에도 꽂아 봐요.</li>
-        <li>
-          보드의 USB 칩에 맞는 드라이버(장치를 쓰게 해 주는 프로그램)가 필요할 수 있어요. 칩이 CH340 계열이면{' '}
-          <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html">WCH 공식 드라이버</a>, CP210x 계열이면{' '}
-          <a href="https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers">Silicon Labs 공식 드라이버</a>를
-          써요. Windows는 인터넷에 연결돼 있으면 자동으로 설치하기도 하지만, 학교 컴퓨터는 관리자 권한이 필요하면 전산 담당
-          선생님께 부탁해요.
-        </li>
         <li>Thonny 같은 다른 프로그램이 보드에 연결돼 있으면 그 프로그램을 닫고 다시 시도해요.</li>
+        <li>
+          그래도 안 보이면 전산 담당 선생님께 부탁해요. 학교 컴퓨터는 드라이버(장치를 쓰게 해 주는 프로그램)를 설치할 관리자 권한이 필요할 수 있어요. 보내는 글은{' '}
+          <a href={`${boardPage.href}#it-request`}>{boardPage.title}의 부탁 글</a>에 있어요.
+        </li>
       </ol>
+      <details class="faq-more-steps">
+        <summary>드라이버를 직접 설치하려면</summary>
+        <p>
+          보드의 USB 칩 이름은 USB 단자 근처 작은 칩에 적힌 글자(예: CH340, CP2102)나 장치 관리자의 장치 이름에서 볼 수 있어요. 칩이 CH340 계열이면{' '}
+          <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html">WCH 공식 드라이버</a>, CP210x 계열이면{' '}
+          <a href="https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers">Silicon Labs 공식 드라이버</a>를 써요. Windows는 인터넷에
+          연결돼 있으면 드라이버를 저절로 설치하기도 해요.
+        </p>
+      </details>
       <p>
         보드를 처음 연결하는 전체 순서와 장치 관리자 그림, 전산 담당 선생님께 보낼 부탁 글은{' '}
         <a href={`${boardPage.href}#port-not-found`}>{boardPage.title} 페이지의 "연결이 안 될 때" 안내</a>에 있어요.
@@ -246,13 +266,16 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
         브라우저에 저장한 코드와 설정만 지우고, 다른 사이트의 기록은 건드리지 않아요.
       </p>
       <ClearRecordsButton id="help-clear-records" />
-      <p>브라우저에서 직접 지우려면 Chrome에서 아래 순서를 따라요.</p>
-      <ol>
-        <li>
-          <strong>더보기(⋮) → 설정 → 개인 정보 보호 및 보안 → 서드 파티 쿠키 → 모든 사이트 데이터 및 권한 보기</strong>로 가요.
-        </li>
-        <li>검색 칸에 <code>songdocomputerpark-lang</code>을 넣고, 찾은 사이트의 삭제 아이콘을 눌러 <strong>삭제</strong>해요.</li>
-      </ol>
+      <details class="faq-more-steps">
+        <summary>브라우저 설정에서 직접 지우려면(Chrome)</summary>
+        <ol>
+          <li>
+            <strong>더보기(⋮) → 설정 → 개인 정보 보호 및 보안 → 서드 파티 쿠키 → 모든 사이트 데이터 및 권한 보기</strong>로 가요. 메뉴 이름이 길지만 사이트별로
+            저장된 데이터를 보는 곳이에요.
+          </li>
+          <li>검색 칸에 <code>songdocomputerpark-lang</code>을 넣고, 찾은 사이트의 삭제 아이콘을 눌러 <strong>삭제</strong>해요.</li>
+        </ol>
+      </details>
       <p>
         처음부터 <strong>시크릿 창</strong>(더보기 → 새 시크릿 창, 단축키 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>)으로
         열어도 좋아요. 시크릿 창을 모두 닫으면 Chrome이 이 사이트에 저장된 데이터를 남기지 않아요.
@@ -367,6 +390,30 @@ const [camera, cameraBlack, browser, speech, boardPort, schoolNetwork, clearData
     background: var(--color-bg);
     color: var(--color-text);
     font: inherit;
+  }
+
+  .faq-toc-details > summary,
+  .faq-more-steps > summary {
+    min-height: var(--target-min);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .faq-first {
+    padding: var(--space-3) var(--space-4);
+    border-inline-start: 0.375rem solid var(--color-accent);
+    background: var(--color-accent-soft);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .faq-more-steps {
+    margin-block: var(--space-3);
+  }
+
+  .faq-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
   }
 
   .faq-toc {

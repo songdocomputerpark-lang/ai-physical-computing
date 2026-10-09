@@ -444,7 +444,7 @@ test.describe('보드 준비 페이지(P3-10)', () => {
     await expect(check.getByRole('button', { name: '보드 연결' })).toBeDisabled();
     await expect(check.locator('[data-connect-title]')).toHaveText('이 브라우저에서는 보드를 연결할 수 없어요');
     await expect(check.locator('[data-connect-detail]')).toContainText('컴퓨터용 Chrome이나 Edge');
-    await expect(check.getByRole('link', { name: '이 브라우저로 되는지 점검하기' })).toHaveAttribute('href', CHECK.href);
+    await expect(check.getByRole('link', { name: '내 컴퓨터 점검 열기' })).toHaveAttribute('href', CHECK.href);
     await portHelp(page).locator(':scope > summary').click();
     await expect(page.locator('#drivers')).toBeVisible();
   });

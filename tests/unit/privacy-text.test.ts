@@ -1,4 +1,4 @@
-// 개인정보·저장 안내의 "본 차시·끝낸 차시 표시" 문장(판 1.3.0) — 한 곳(src/config/privacy-text.ts)에서 적어 네 곳이 같은 말을 하게 한다.
+// 개인정보·저장 안내의 "본 차시와 "다 했어요" 표시" 문장(판 1.3.0) — 한 곳(src/config/privacy-text.ts)에서 적어 네 곳이 같은 말을 하게 한다.
 // 진도 저장(src/lib/progress.ts)이 실제로 저장하는 것과 문장이 어긋나지 않는지, 네 곳이 모두 그 문장을 쓰는지 지킨다.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,8 +18,8 @@ const PLACES = [
 ] as const;
 
 describe('진도 개인정보 문장', () => {
-  it('"본 차시·끝낸 차시 표시"가 이 브라우저에만 남는다고, 무엇이 남는지 말한다', () => {
-    expect(PROGRESS_PRIVACY_NOTE).toContain('본 차시·끝낸 차시 표시');
+  it('"본 차시와 "다 했어요" 표시"가 이 브라우저에만 남는다고, 무엇이 남는지 말한다', () => {
+    expect(PROGRESS_PRIVACY_NOTE).toContain('본 차시와 "다 했어요" 표시');
     expect(PROGRESS_PRIVACY_NOTE).toContain('이 브라우저에만');
     expect(PROGRESS_PRIVACY_NOTE).toContain('차시 번호');
     expect(PROGRESS_PRIVACY_NOTE).toContain('시각');

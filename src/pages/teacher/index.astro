@@ -6,6 +6,8 @@
  * - 가린 편집본 교안 PDF(PD-31): 파일 이름은 src/components/lesson/handouts.ts 한 곳. public/에 파일이 있으면 [편집본 열기],
  *   없으면 "준비 중". 어느 차시가 몇 쪽을 쓰는지는 차시 md의 handouts 칸에서 빌드 때 모은다(teacher-lessons.ts의 handoutUses).
  * - 판 1.3.0: 맨 위 "수업 준비 3단계"(점검 → 차시 지도 요약 → 발표 모드) 단계 칩, 자료 카드는 통째로 눌리는 카드(.card--link)에 아이콘.
+ *   처음 오신 선생님을 위한 "교사용 시작하기" 안내 줄이 3단계 위에 있고, 3단계는 발표 모드를 직접 해 볼 첫 차시(1-1-1)로 간다(R1-034).
+ * - 편집본 PDF 목록이 가린 까닭 설명보다 앞에 오고, 까닭은 접어 둔다(R1-038). [그 쪽 열기]는 낭독기에서도 구분되는 이름(R1-039).
  * - 평가 자료 자리, 여러 사람이 쓰는 컴퓨터(공용 PC) 확인표(#shared-pc), 앞으로 올라올 자료
  * 원본 파일(PDF·PPTX)을 올리지 않는 방침은 PLAN §3.2·§9.3 6번(PD-31). 준비 중 상자(ComingSoon)는 사이트 검색에서 빠진다.
  */
@@ -58,6 +60,8 @@ const esp32 = getPage('labs-esp32');
 const vision = getPage('labs-vision');
 const startTeacher = getPage('start-teacher');
 const check = getPage('start-check');
+/** 발표 모드를 직접 해 볼 차시: 기준 차시 1-1-1(없으면 첫 차시) */
+const tryLesson = lessons.find((lesson) => lesson.summary.label === '1-1-1') ?? lessons[0];
 
 /** 자료 카드 아이콘(teacher-pages.ts의 id) */
 const cardIcons: Record<string, 'list' | 'check-circle' | 'alert' | 'monitor' | 'lifebuoy'> = {
@@ -70,9 +74,14 @@ const cardIcons: Record<string, 'list' | 'check-circle' | 'alert' | 'monitor' | 
 
 /** 수업 준비 3단계 — 단계 칩 */
 const prepSteps = [
-  { id: 'check', title: '점검하기', note: '교실 컴퓨터에서 카메라·보드가 되는지 봐요', href: check.href },
+  { id: 'check', title: '교실 컴퓨터 점검', note: '카메라·보드·학교 네트워크가 되는지 봐요', href: check.href },
   { id: 'guides', title: '차시 지도 요약 보기', note: '수업할 차시의 지도 포인트를 읽어요', href: withBase(TEACHER_PATHS.guides) },
-  { id: 'present', title: '발표 모드로 수업하기', note: '프로젝터에 크게 띄우고 한 단계씩 넘겨요', href: `${startTeacher.href}#presentation` },
+  {
+    id: 'present',
+    title: '발표 모드 해 보기',
+    note: `${tryLesson?.summary.label ?? '1-1-1'} 차시에서 [발표 모드]를 눌러 프로젝터용 큰 화면을 미리 봐요`,
+    href: tryLesson?.summary.href ?? `${startTeacher.href}#presentation`,
+  },
 ] as const;
 ---
 
@@ -83,6 +92,9 @@ const prepSteps = [
 
   <section class="teacher-section teacher-section--wide" aria-labelledby="teacher-prep" data-teacher-prep>
     <h2 id="teacher-prep">수업 준비 3단계</h2>
+    <p class="teacher-prep__first" data-teacher-first>
+      처음 오셨다면 먼저 <a href={startTeacher.href}>{startTeacher.title}</a>(약 5분)를 읽어 보세요. 발표 모드 쓰는 법도 거기 있어요.
+    </p>
     <ol class="teacher-prep">
       {
         prepSteps.map((step) => (
@@ -104,7 +116,7 @@ const prepSteps = [
 
   <section class="teacher-section teacher-section--wide" aria-labelledby="teacher-materials">
     <h2 id="teacher-materials">자료 한눈에</h2>
-    <p class="teacher-section__intro">차시 페이지를 고치면 지도 요약, 성취기준 표, 원고 정정의 차시별 모음이 다음 배포 때 함께 바뀌어요.</p>
+    <p class="teacher-section__intro">지도 요약, 성취기준 표, 원고 정정의 차시별 모음은 차시 쪽 내용에서 저절로 모은 거예요. 아래 숫자는 지금 사이트 기준이에요.</p>
     <ul class="teacher-cards">
       {
         TEACHER_PAGES.map((item) => (
@@ -127,20 +139,7 @@ const prepSteps = [
 
   <section class="teacher-section" aria-labelledby="teacher-redacted" data-teacher-handouts>
     <h2 id="teacher-redacted">원본 파일 대신 가린 편집본을 올려요</h2>
-    <p>
-      수업 자료의 원본 파일(PDF, PPTX)은 사이트에 올리지 않아요. 원본에는 컴퓨터 안 폴더 경로와 개인 파일 이름, 블루투스 기기 주소, 학급 게시물 화면,
-      다른 곳에서 가져온 홍보 그림 속 사람 얼굴 같은 것이 들어 있기 때문이에요.
-    </p>
-    <p>
-      대신 이런 부분을 회색 상자로 지운 편집본만 올려요. 상자 아래의 글자와 그림까지 지워서 복사하거나 검색해도 나오지 않고, 파일 속에 숨은 정보(작성자,
-      만든 프로그램 같은 메타데이터)도 지웠어요. 쪽마다 무엇이 보이고 무엇을 가렸는지 확인한 기록도 남겼어요. 실행 화면 속 선생님 얼굴과 표지의 학교
-      이름은 저자가 공개를 허락해 그대로 두었어요. 교과서 원고는 PDF 파일로 올리지 않고 내용을 차시 페이지로 옮겼어요.
-    </p>
-    <p>
-      편집본은 저자(박상진, 김석전)의 자료로 CC BY-NC-SA 4.0 조건으로 나눠요. 다만 안에 든 다른 곳의 그림은 원래 조건을 따라요 — 블루투스 통신
-      수업 교안 20, 26, 31쪽의 손 랜드마크 번호 그림은 MediaPipe 공식 문서 그림(The MediaPipe Authors, Apache-2.0)이고, 4쪽의 OpenCV 로고와 발표
-      슬라이드 틀의 장식도 각 권리자의 것이에요. 자세한 목록은 <a href={withBase('credits/')}>출처와 라이선스</a>에 있어요.
-    </p>
+    <p>수업 교안은 개인 정보를 가린 PDF로 열어요. 차시 쪽의 교사용 칸에서도 같은 파일의 필요한 쪽으로 바로 열 수 있어요.</p>
     <ul class="handout-list">
       {
         handoutDocs.map((doc) => {
@@ -168,7 +167,9 @@ const prepSteps = [
                         {use.path && (
                           <>
                             {' '}
-                            <a href={withBase(use.path)}>그 쪽 열기</a>
+                            <a href={withBase(use.path)}>
+                              PDF 열기<span class="visually-hidden">({lessonHeading(use.lesson)} {use.pages}쪽)</span>
+                            </a>
                           </>
                         )}
                       </li>
@@ -181,13 +182,33 @@ const prepSteps = [
         })
       }
     </ul>
+    <details class="handout-why" data-handout-why>
+      <summary>왜 원본 대신 가린 편집본을 올리나요?</summary>
+      <div class="handout-why__body">
+        <p>
+          수업 자료의 원본 파일(PDF, PPTX)은 사이트에 올리지 않아요. 원본에는 컴퓨터 안 폴더 경로와 개인 파일 이름, 블루투스 기기 주소, 학급 게시물 화면,
+          다른 곳에서 가져온 홍보 그림 속 사람 얼굴 같은 것이 들어 있기 때문이에요.
+        </p>
+        <p>
+          대신 이런 부분을 회색 상자로 지운 편집본만 올려요. 상자 아래의 글자와 그림까지 지워서 복사하거나 검색해도 나오지 않고, 파일 속에 숨은 정보(작성자,
+          만든 프로그램 같은 메타데이터)도 지웠어요. 쪽마다 무엇이 보이고 무엇을 가렸는지 확인한 기록도 남겼어요. 실행 화면 속 선생님 얼굴과 표지의 학교
+          이름은 저자가 공개를 허락해 그대로 두었어요. 교과서 원고는 PDF 파일로 올리지 않고 내용을 차시 페이지로 옮겼어요.
+        </p>
+        <p>
+          편집본은 저자(박상진, 김석전)의 자료로 CC BY-NC-SA 4.0 조건으로 나눠요. 다만 안에 든 다른 곳의 그림은 원래 조건을 따라요 — 블루투스 통신
+          수업 교안 20, 26, 31쪽의 손 랜드마크 번호 그림은 MediaPipe 공식 문서 그림(The MediaPipe Authors, Apache-2.0)이고, 4쪽의 OpenCV 로고와 발표
+          슬라이드 틀의 장식도 각 권리자의 것이에요. 자세한 목록은 <a href={withBase('credits/')}>출처와 라이선스</a>에 있어요.
+        </p>
+      </div>
+    </details>
   </section>
 
   <section class="teacher-section" aria-labelledby="teacher-assessment">
     <h2 id="teacher-assessment">평가 자료</h2>
     <p>
       교과서 자료의 평가 계획서와 운영 계획서는 아직 없어요. 그 대신 <a href={withBase(TEACHER_PATHS.standards)}>성취기준과 평가 방향</a>에 성취기준 15개, 이어지는
-      차시, 과목 교육과정의 평가 방법(과정 중심 평가, 프로젝트 과정 30% 이상, 생성형 AI 도움 표시), 성취기준마다 평가할 때 볼 것을 모았어요. 차시마다의 자기
+      차시, 과목 교육과정의 평가 방법(과정 중심 평가, 프로젝트 과정 30% 이상, 생성형 AI 도움 표시), 성취기준마다 평가할 때 볼 것을 모았어요.
+      차시 {lessons.length}개를 3학점·4학점 한 학기에 나누는 <a href={`${withBase(TEACHER_PATHS.standards)}#semester`}>학기 배치 제안</a>(사이트 제안)도 있어요. 차시마다의 자기
       평가 문항과 관찰할 곳은 <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>의 "평가 포인트"에 있어요.
     </p>
   </section>
@@ -201,9 +222,8 @@ const prepSteps = [
     <h3 class="checklist-title">수업이 끝날 때</h3>
     <ul class="checklist" data-shared-pc-checklist>
       <li>
-        실습실 아래의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해요. 자동 저장된 코드, 글자 크기 같은 설정, 통신 실습의 이름처럼 이 사이트가 그
-        브라우저에 저장한 것만 지우고 다른 사이트의 기록은 그대로 둬요. 선생님 컴퓨터에서는 아래 단추로 바로 지울 수 있어요.{' '}
-        {PROGRESS_PRIVACY_NOTE}
+        실습실 아래의 <strong>[이 컴퓨터에서 내 기록 지우기]</strong>를 누르게 해요. 이 사이트가 저장한 코드, 설정, 통신 실습의 무작위 이름이 지워지고 다른 사이트의
+        기록은 그대로예요. 선생님 컴퓨터에서는 아래 단추로 바로 지울 수 있어요. {PROGRESS_PRIVACY_NOTE}
       </li>
       <li>
         <strong>[.py 내려받기]</strong>나 파일 목록의 [내려받기]로 받은 파일(예: 그린 그림, 화면 캡처)은 컴퓨터의 다운로드 폴더에 남아요. 다음 반이 보지 않게 지워요.
@@ -245,7 +265,7 @@ const prepSteps = [
   <section class="teacher-section" aria-labelledby="teacher-planned">
     <h2 id="teacher-planned">앞으로 올라올 자료</h2>
     <ul class="planned-list">
-      <li>평가 계획서와 운영 계획서: 자료를 받으면 올려요.</li>
+      <li>학교 서식의 평가 계획서와 운영 계획서: 자료를 받으면 올려요.</li>
       {
         missingHandouts.map((doc) => (
           <li>{doc.title} PDF: 쪽마다 확인을 마치면 올려요.</li>
@@ -360,6 +380,30 @@ const prepSteps = [
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  .teacher-prep__first {
+    max-width: var(--width-prose);
+    color: var(--color-text-muted);
+  }
+
+  .handout-why {
+    max-width: var(--width-prose);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .handout-why > summary {
+    min-height: var(--target-min);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .handout-why__body {
+    display: grid;
+    gap: var(--space-3);
+    margin-block-start: var(--space-3);
   }
 
   .teacher-card__description {

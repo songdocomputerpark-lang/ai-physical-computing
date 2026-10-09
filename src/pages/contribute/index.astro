@@ -11,6 +11,7 @@ import Callout from '../../components/common/Callout.astro';
 import { getPage } from '../../config/nav.ts';
 import { siteConfig } from '../../config/site.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withParticle } from '../../lib/korean.ts';
 import { withBase } from '../../lib/url.ts';
 import { ISSUE_TEMPLATES, issueChooserUrl, issueTemplateUrl, repositoryFileUrl } from './_issue-templates.ts';
 
@@ -72,7 +73,7 @@ const { content, software, exclusion } = siteConfig.license;
       <h2 id="contribute-add">자료나 코드를 보태고 싶다면</h2>
       <p>
         보태는 방법은 저장소의 <a href={repositoryFileUrl('CONTRIBUTING.md')}>기여 안내(CONTRIBUTING.md)</a>에 적어 두었어요.
-        보내 주신 글과 그림은 {content.shortName}로, 예제 코드와 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
+        보내 주신 글과 그림은 {withParticle(content.shortName, '으로/로')}, 예제 코드와 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
       </p>
       <p>
         교과서나 참고서를 찍은 사진, 출판사나 업체의 그림, 출처를 모르는 이미지는 보내지 마세요. 다른 사람이 만든 공개 자료를 쓰려면

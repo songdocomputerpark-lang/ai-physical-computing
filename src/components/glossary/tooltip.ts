@@ -101,7 +101,11 @@ function schedulePlace(): void {
   }
 }
 
-function openTooltip(link: HTMLAnchorElement): void {
+/**
+ * openedBy: 터치로 열면 'touch' — 말풍선 아래에 안내 줄(::after)이 붙어 키가 커지므로, 표시를 먼저 붙이고 크기를 잰다.
+ * (판 1.3.0 검수 R1-069: 표시를 위치 계산 뒤에 붙여 말풍선이 약 30px 낮게 놓이며 누른 낱말을 가렸다)
+ */
+function openTooltip(link: HTMLAnchorElement, openedBy?: 'touch'): void {
   const tip = tipFor(link);
   if (!tip) {
     return;
@@ -112,6 +116,11 @@ function openTooltip(link: HTMLAnchorElement): void {
     closeTooltip();
   }
   open = { link, tip };
+  if (openedBy) {
+    tip.dataset.openedBy = openedBy;
+  } else {
+    delete tip.dataset.openedBy;
+  }
   tip.hidden = false;
   link.dataset.tooltip = 'open';
   place();
@@ -246,10 +255,7 @@ function onClick(event: MouseEvent): void {
       // 첫 누름: 넘어가지 않고 풀이 말풍선을 띄운다.
       event.preventDefault();
       dismissedLink = null;
-      openTooltip(link);
-      if (open?.link === link) {
-        open.tip.dataset.openedBy = 'touch';
-      }
+      openTooltip(link, 'touch');
       openAtPress = null;
       return;
     }

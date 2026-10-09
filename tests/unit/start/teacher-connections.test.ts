@@ -66,7 +66,7 @@ describe('교사용 개인정보 안내 표 ↔ 공개 중계 서버 목록', ()
 
   it('교사용 시작하기 쪽이 이 표 데이터를 그대로 그린다', () => {
     const page = fs.readFileSync(path.join(rootDir, 'src', 'pages', 'start', 'teacher', 'index.astro'), 'utf8');
-    expect(page).toContain("import { connections } from './_connections.ts';");
+    expect(page).toContain("import { connections, listedBrokers } from './_connections.ts';");
     expect(page).toContain('connections.map((row)');
   });
 });

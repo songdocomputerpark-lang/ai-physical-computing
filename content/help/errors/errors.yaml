@@ -51,7 +51,7 @@ groups:
     title: ESP32 보드(가상 보드·실물 보드) 오류
     description: machine·time 같은 보드용 파이썬(MicroPython)과 부품(LCD·서보·네오픽셀 등)에서 나는 오류예요. 가상 보드와 실물 ESP32에서 같은 문구로 나요.
   - id: comm
-    title: 통신(브릿지·블루투스·와이파이·MQTT) 오류와 안내
+    title: 통신(브리지·블루투스·와이파이·MQTT) 오류와 안내
     description: 컴퓨터와 보드가 값을 주고받을 때 나는 오류예요. 한쪽이 아직 준비되지 않았거나, 받을 상대가 없거나, 보낼 글이 너무 길 때 나요.
   - id: flash
     title: 펌웨어 굽기·보드 연결 안내
@@ -1941,7 +1941,7 @@ entries:
   # ── 실습실 안내 ──
   - id: keyboard-interrupt
     group: lab
-    title: "[정지] 버튼으로 멈췄어요 — 오류가 아니에요"
+    title: "[정지] 단추로 멈췄어요 — 오류가 아니에요"
     level: notice
     types: [KeyboardInterrupt, StopRequested]
     meaning: "코드가 기다리는 곳(time.sleep, input, asyncio.sleep 등)에서 [정지] 신호를 받아 멈췄어요. PC에서 Ctrl+C를 누른 것과 같아요."
@@ -2193,7 +2193,7 @@ entries:
       line: 2
     cases:
       - "통신 템플릿 1(UART 에코)에서 보드는 9600bps인데 시리얼 창의 속도만 115200bps로 바꿔 보내면, 보드의 decode() 줄에서 나요. 지금 템플릿은 이 오류를 잡아 \"깨진 글자를 받았어요\"로 알리고 계속 돌아요."
-      - "속도가 달라도 늘 이 오류가 나지는 않아요. 깨진 바이트가 우연히 글자 규칙에 맞으면 오류 없이 엉뚱한 글자만 받아요(3-1-2 바꿔보기 1)."
+      - "속도가 달라도 늘 이 오류가 나지는 않아요. 깨진 바이트가 우연히 글자 규칙에 맞으면 오류 없이 엉뚱한 글자만 받아요(3-1-2 바꿔 보기 1)."
 
   - id: comm-bridge-on-board
     group: comm

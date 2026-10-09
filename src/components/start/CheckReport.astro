@@ -16,6 +16,7 @@
 import { siteConfig } from '../../config/site.ts';
 import { CHECK_ITEMS } from '../../lib/capabilities.ts';
 import CameraCheck from './camera-check/CameraCheck.astro';
+import { checkDisplay } from './check-labels.ts';
 ---
 
 <div class="check-report" data-check-report data-state="waiting" data-site-name={siteConfig.name} data-site-version={siteConfig.version}>
@@ -42,10 +43,13 @@ import CameraCheck from './camera-check/CameraCheck.astro';
     </thead>
     <tbody role="rowgroup">
       {
-        CHECK_ITEMS.map((item) => (
+        CHECK_ITEMS.map((item) => {
+          const display = checkDisplay(item.id, item.label);
+          return (
           <tr class="check-table__row" role="row" data-check-row={item.id} data-status="pending">
             <th class="check-table__item" scope="row" role="rowheader">
-              <span class="check-table__label">{item.label}</span>
+              <span class="check-table__label">{display.name}</span>
+              {display.tech && <span class="check-table__tech">{display.tech}</span>}
               <span class="check-table__needed">{item.neededFor}</span>
             </th>
             <td class="check-table__status" role="cell" data-pagefind-ignore>
@@ -58,11 +62,13 @@ import CameraCheck from './camera-check/CameraCheck.astro';
             </td>
             <td class="check-table__text" role="cell" data-pagefind-ignore>
               <p data-check-summary>점검하는 중이에요.</p>
+              <p class="check-table__quick" data-check-quick hidden />
               <p class="check-table__advice" data-check-advice hidden />
               <p class="check-table__detail" data-check-detail hidden />
             </td>
           </tr>
-        ))
+          );
+        })
       }
     </tbody>
   </table>
@@ -92,6 +98,7 @@ import CameraCheck from './camera-check/CameraCheck.astro';
     type CheckStatus,
   } from '../../lib/capabilities.ts';
   import { CAMERA_CHECK_RESULT_EVENT, type CameraCheckResultDetail } from './camera-check/camera-check-report.ts';
+  import { quickFixLine } from './check-labels.ts';
 
   const ICONS: Record<CheckStatus, string> = { supported: '✓', unsupported: '✕', unknown: '!' };
 
@@ -197,6 +204,7 @@ import CameraCheck from './camera-check/CameraCheck.astro';
         const summary = row.querySelector<HTMLElement>('[data-check-summary]');
         const advice = row.querySelector<HTMLElement>('[data-check-advice]');
         const detail = row.querySelector<HTMLElement>('[data-check-detail]');
+        const quick = row.querySelector<HTMLElement>('[data-check-quick]');
         if (icon) icon.textContent = ICONS[result.status];
         if (status) status.textContent = STATUS_LABELS[result.status];
         if (summary) summary.textContent = result.summary;
@@ -208,12 +216,18 @@ import CameraCheck from './camera-check/CameraCheck.astro';
           detail.textContent = result.detail ?? '';
           detail.hidden = !result.detail;
         }
+        if (quick) {
+          // 미지원이면 누가 무엇을 하면 되는지 한 줄을 먼저(긴 안내는 그 아래에 그대로)
+          quick.textContent = result.status === 'unsupported' ? quickFixLine(result.id) : '';
+          quick.hidden = quick.textContent === '';
+        }
       }
 
       const summary = summarizeReport(report);
       root.dataset.level = summary.level;
       baseLevel = summary.level;
-      verdict.textContent = summary.message;
+      // 모두 지원이면 "수업해도 된다"를 먼저 한 줄로(복사 글의 요약은 라이브러리 문구 그대로)
+      verdict.textContent = summary.level === 'ready' ? `이 정도면 수업할 수 있어요. ${summary.message}` : summary.message;
       counts.textContent = `지원 ${summary.counts.supported}개 · 미지원 ${summary.counts.unsupported}개 · 확인 필요 ${summary.counts.unknown}개`;
       baseText = formatReport(report, {
         siteName: root.dataset.siteName ?? '',
@@ -354,6 +368,20 @@ import CameraCheck from './camera-check/CameraCheck.astro';
 
   .check-table__label {
     display: block;
+    font-weight: var(--weight-semibold);
+  }
+
+  /* 영어 기술 이름: 하는 일 이름 아래의 작은 보조 글씨(R1-041) */
+  .check-table__tech {
+    display: block;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+  }
+
+  .check-table__quick {
+    margin-block-start: var(--space-2);
     font-weight: var(--weight-semibold);
   }
 

@@ -68,7 +68,7 @@ export const CONNECT_LINK_LABELS: Readonly<Record<ConnectLinkTarget, string>> = 
   'port-help': '케이블·장치 관리자·드라이버 확인하기',
   firmware: '3단계 펌웨어 굽기로 가기',
   'first-example': '4단계 첫 예제 실행하러 가기',
-  'check-page': '이 브라우저로 되는지 점검하기',
+  'check-page': '내 컴퓨터 점검 열기',
 });
 
 const link = (target: ConnectLinkTarget) => ({ target, label: CONNECT_LINK_LABELS[target] });

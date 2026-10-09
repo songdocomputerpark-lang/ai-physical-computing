@@ -7,9 +7,10 @@
  */
 import { CHECK_ITEMS, type CheckId } from '../../lib/capabilities.ts';
 import { withBase } from '../../lib/url.ts';
+import { checkDisplay } from './check-labels.ts';
 
 const QUICK_IDS: readonly CheckId[] = ['browser', 'jspi', 'camera-api'];
-const items = CHECK_ITEMS.filter((item) => QUICK_IDS.includes(item.id));
+const items = CHECK_ITEMS.filter((item) => QUICK_IDS.includes(item.id)).map((item) => ({ ...item, display: checkDisplay(item.id, item.label) }));
 const checkHref = withBase('start/check/');
 ---
 
@@ -25,7 +26,10 @@ const checkHref = withBase('start/check/');
             <span data-quick-status>확인 중</span>
           </span>
           <span class="quick-check__text">
-            <strong class="quick-check__label">{item.label}</strong>
+            <strong class="quick-check__label">
+              {item.display.name}
+              {item.display.tech && <span class="quick-check__tech"> ({item.display.tech})</span>}
+            </strong>
             <span class="quick-check__summary" data-quick-summary data-pagefind-ignore>
               점검하는 중이에요.
             </span>
@@ -196,5 +200,11 @@ const checkHref = withBase('start/check/');
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-1);
     }
+  }
+
+  .quick-check__tech {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
   }
 </style>

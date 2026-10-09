@@ -282,3 +282,45 @@ test.describe('용어사전 낱말 거르기(판 1.3.0)', () => {
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
   });
 });
+
+// ── 판 1.3.0 검수 R1-059~062 ──
+test.describe('용어사전 거르기 보강(R1-059~062)', () => {
+  test('거르는 동안 "풀이 보는 법"과 색인이 접혀 결과가 칸 바로 아래에서 시작하고, 다음 Tab과 Enter가 첫 결과로 간다', async ({ page }) => {
+    await page.goto('./glossary/');
+    const input = page.getByRole('searchbox', { name: '낱말로 찾기' });
+    await input.fill('센서');
+    await expect(page.locator('[data-glossary-how]')).toBeHidden();
+    const firstItem = page.locator('[data-glossary-item]:not([hidden])').first();
+    const inputBox = await input.boundingBox();
+    const itemBox = await firstItem.boundingBox();
+    // 결과가 입력칸에서 한 화면(768px) 안에 시작한다(전에는 약 850px 아래였다)
+    expect(inputBox && itemBox && itemBox.y - inputBox.y < 400).toBe(true);
+    await input.press('Enter');
+    await expect(firstItem).toBeFocused();
+    // 비우면 설명이 돌아온다
+    await input.fill('');
+    await expect(page.locator('[data-glossary-how]')).toBeVisible();
+  });
+
+  test('주소의 ?q=로 거르기 칸이 채워진다', async ({ page }) => {
+    await page.goto('./glossary/?q=' + encodeURIComponent('임계'));
+    await expect(page.getByRole('searchbox', { name: '낱말로 찾기' })).toHaveValue('임계');
+    await expect(page.locator('h3#threshold')).toBeVisible();
+    expect(await page.locator('[data-glossary-item]:not([hidden])').count()).toBeLessThan(await page.locator('[data-glossary-item]').count());
+  });
+
+  test('한 글자 틀린 낱말(임게값)도 비슷한 낱말을 찾아 준다', async ({ page }) => {
+    await page.goto('./glossary/');
+    await page.getByRole('searchbox', { name: '낱말로 찾기' }).fill('임게값');
+    await expect(page.locator('h3#threshold')).toBeVisible();
+    await expect(page.locator('[data-glossary-find-count]')).toContainText('비슷한 낱말');
+  });
+
+  test('낱말 수는 한 번만 보이고, 색인 링크의 낭독 이름은 글자와 낱말 수다', async ({ page }) => {
+    await page.goto('./glossary/');
+    await expect(page.locator('[data-glossary-find-count]')).toBeVisible();
+    await expect(page.locator('.glossary-index__count')).toBeHidden();
+    const first = page.getByRole('navigation', { name: '가나다·ABC로 찾기' }).getByRole('link').first();
+    await expect(first).toHaveAccessibleName(/^\S+ \(낱말 \d+개\)$/u);
+  });
+});

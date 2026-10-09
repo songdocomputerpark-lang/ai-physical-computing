@@ -43,7 +43,7 @@ const who = [
   },
   {
     key: 'check',
-    me: '내 컴퓨터가 되는지 볼래요',
+    me: '되는지 먼저 볼래요',
     page: check,
     text: '카메라, 보드 연결, 학교 네트워크를 자동으로 확인해요.',
     icon: 'monitor',
@@ -53,7 +53,7 @@ const who = [
 
 /** 처음이라면 이 순서로 — 단계 칩 */
 const order = [
-  { step: '점검하기', note: '', page: check },
+  { step: check.label, note: '', page: check },
   { step: '첫 실습 하기', note: '', page: student },
   { step: '보드 연결하기', note: '보드가 있을 때', page: board },
 ] as const;
@@ -98,7 +98,7 @@ const order = [
     }
   </ol>
 
-  <div class="prose start-more">
+  <div class="start-more">
     <Callout type="참고" title="하드웨어가 없어도 괜찮아요">
       <p>
         보드가 없는 학교도 가상 보드로 피지컬 실습을 끝까지 할 수 있게 만들어요. 실제 보드가 생기면 같은 코드를 그대로 보드에서 실행해요.

@@ -27,7 +27,9 @@ import {
 import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
 import { STANDARDS_LABEL } from '../../../components/lesson/teacher-info.ts';
 import { CURRICULUM_SOURCE, STANDARD_AREAS } from '../../../config/standards.ts';
+
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPage, learnUnits } from '../../../config/nav.ts';
 import { withBase } from '../../../lib/url.ts';
 
 const page = getTeacherPage('standards');
@@ -48,6 +50,37 @@ const genaiLessons = lessons.filter((lesson) => lesson.genai.length > 0);
 const genaiCount = genaiLessons.reduce((sum, lesson) => sum + lesson.genai.length, 0);
 const project = lessons.find((lesson) => lesson.summary.label === 'IV-프로젝트');
 const guidesHref = withBase(TEACHER_PATHS.guides);
+
+/** 한 학기 배치 제안(사이트 제안, R1-035): 대단원마다 차시 종류별 개수를 빌드 때 센다. 수업 한 시간(50분) = 차시 하나로 잡는다 */
+const unitPlan = learnUnits.map((unit) => {
+  const list = lessons.filter((lesson) => lesson.summary.unit === unit.unit);
+  const count = (kinds: readonly string[]) => list.filter((lesson) => kinds.includes(lesson.summary.kind)).length;
+  return {
+    label: unit.label,
+    textbook: count(['textbook']),
+    extra: count(['supplement', 'reading']),
+    review: count(['review']),
+    // 마무리 차시가 있으면 거기서 정리하고, 없는 대단원(프로젝트)은 단계별 기록으로 모은다
+    when: count(['review']) > 0 ? '대단원 마무리 차시에서 정리' : '프로젝트 단계별 기록',
+  };
+});
+const planTotal = {
+  textbook: unitPlan.reduce((sum, row) => sum + row.textbook, 0),
+  extra: unitPlan.reduce((sum, row) => sum + row.extra, 0),
+  review: unitPlan.reduce((sum, row) => sum + row.review, 0),
+};
+const WEEKS = 17;
+const semesters = [3, 4].map((credit) => {
+  const hours = credit * WEEKS;
+  const core = planTotal.textbook + planTotal.review;
+  const used = credit === 3 ? core : core + planTotal.extra;
+  const free = hours - used;
+  const text =
+    credit === 3
+      ? `교과서 차시와 마무리 ${core}시간을 넣으면 ${free}시간이 남아요. 남는 시간에 보충 차시 가운데 고른 것, 프로젝트 발표, 평가를 넣어요.`
+      : `보충·읽기까지 모든 차시 ${used}시간을 넣어도 ${free}시간이 남아요. 남는 시간은 프로젝트 발표, 평가, 여유로 써요.`;
+  return { credit, hours, text };
+});
 const sourceLink = (source: 'curriculum' | 'subject_list') =>
   source === 'curriculum' ? { href: CURRICULUM_SOURCE.url, text: '인천광역시교육청 게시물' } : { href: assessment.subjectList.url, text: '과목 목록' };
 
@@ -242,14 +275,66 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
   </ul>
 
   <div class="prose">
-    <h2 id="plans">평가 계획서와 운영 계획서</h2>
+    <h2 id="plans">한 학기 배치와 평가 계획</h2>
     <p>
-      교과서 자료의 평가 계획서, 운영 계획서 폴더는 비어 있어요. 자료가 들어오면 이 자리에 올려요. 그때까지는 위의 표, 차시별 평가 포인트, IV단원
-      프로젝트 안내의 채점 기준 예시를 바탕으로 학교의 평가 계획을 세워 주세요.
+      교과서 자료의 평가 계획서, 운영 계획서 폴더는 비어 있어요. 그래서 사이트가 차시 수를 바탕으로 <strong>한 학기에 어떻게 나눌지</strong> 제안해요. 교육청
+      승인 내용이 아니라 <strong>사이트 제안</strong>이니, 학교 사정에 맞게 고쳐 써요.
+    </p>
+    <h3 id="semester">한 학기 배치 제안(사이트 제안)</h3>
+    <p>
+      수업 한 시간(50분)을 차시 하나로 잡았어요. 차시마다 걸리는 시간은 <a href={guidesHref}>차시별 지도 요약</a>에서 볼 수 있어요.
+    </p>
+    <table data-semester-plan>
+      <caption>대단원별 차시 수와 평가 모으는 때(사이트 제안)</caption>
+      <thead>
+        <tr>
+          <th scope="col">대단원</th>
+          <th scope="col">교과서 차시</th>
+          <th scope="col">보충·읽기</th>
+          <th scope="col">마무리</th>
+          <th scope="col">평가 모으는 때</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          unitPlan.map((row) => (
+            <tr>
+              <th scope="row">{row.label}</th>
+              <td>{row.textbook}개</td>
+              <td>{row.extra}개</td>
+              <td>{row.review}개</td>
+              <td>{row.when}</td>
+            </tr>
+          ))
+        }
+        <tr>
+          <th scope="row">모두</th>
+          <td>{planTotal.textbook}개</td>
+          <td>{planTotal.extra}개</td>
+          <td>{planTotal.review}개</td>
+          <td>성취기준마다 볼 것은 위의 성취기준 표를 따라요</td>
+        </tr>
+      </tbody>
+    </table>
+    <ul data-semester-list>
+      {
+        semesters.map((semester) => (
+          <li>
+            <strong>
+              {semester.credit}학점 1학기(주 {semester.credit}시간 × {WEEKS}주 = {semester.hours}시간):
+            </strong>{' '}
+            {semester.text}
+          </li>
+        ))
+      }
+    </ul>
+    <p>
+      과정 중심 평가(수행평가)는 차시마다 도전 과제 기록과 자기 평가로 모으고, 프로젝트 과정의 비중(30% 이상)은 IV단원 프로젝트 안내의 단계별 기록으로 채워요. 학교에서
+      쓰던 평가 계획서와 운영 계획서 서식이 있으면 <a href={getPage('contribute').href}>{getPage('contribute').title}</a>의 방법으로 알려 주세요.
     </p>
   </div>
   <div data-pagefind-ignore>
-    <ComingSoon what="평가 계획서와 운영 계획서" when="자료를 받은 뒤 이 페이지" headingLevel={3} />
+    <ComingSoon what="학교 서식의 평가 계획서와 운영 계획서" when="자료를 받은 뒤 이 페이지" headingLevel={3} />
   </div>
 </BaseLayout>
 

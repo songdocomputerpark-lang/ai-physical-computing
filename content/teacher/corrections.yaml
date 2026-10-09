@@ -40,7 +40,7 @@ parts:
         fix: >-
           빈 줄인 13행에 `img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)`를 넣어요.
         note: >-
-          따라하기는 13행을 채운 사이트판 예제를 써요. 교과서 코드 파일(f026)은 14행이 `hands.process(img)`라 색 순서를 바꾸지 않고 넘겨요.
+          따라 하기는 13행을 채운 사이트판 예제를 써요. 교과서 코드 파일(f026)은 14행이 `hands.process(img)`라 색 순서를 바꾸지 않고 넘겨요.
       - page: "020"
         lesson: 1-1-3
         kind: figure
@@ -138,7 +138,7 @@ parts:
           6행을 5행과 같은 깊이로 들여 써요.
 
   - id: u2
-    title: II단원 원고(114~166쪽)
+    title: II단원 원고, 2-1 중단원(114~166쪽)
     items:
       - page: "116"
         lesson: 2-1-1
@@ -288,7 +288,7 @@ parts:
           코드 파일처럼 `<`로 써요.
 
   - id: u2c
-    title: II단원 원고(167~181쪽)
+    title: II단원 원고, 2-2 중단원(167~181쪽)
     items:
       - page: "169"
         lesson: 2-2-3

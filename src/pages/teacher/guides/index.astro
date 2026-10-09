@@ -6,6 +6,7 @@
  * 교사용 안내의 부분(지도안 요약 · 평가 포인트 · 자주 막히는 곳 · 원고에서 바꾼 곳)으로 바로 가는 링크.
  * 안내 글 전체는 대단원마다 한 페이지(/teacher/guides/u1/ …)에 있다 — src/pages/teacher/guides/[unit].astro.
  * 새 차시 md를 넣으면 코드 수정 없이 목록에 들어온다.
+ * 긴 목록(차시 45개)이라 맨 위에 대단원 바로 가기 칩 넷과 "차시 번호로 찾기"(예: 1-2-3)를 둔다(R1-036).
  */
 import { getCollection } from 'astro:content';
 import GuideLessonMeta from '../../../components/teacher/GuideLessonMeta.astro';
@@ -55,6 +56,29 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
   <p class="lead">{page.description}</p>
   <TeacherNav current="guides" />
 
+  <nav class="guide-jumps" aria-label="대단원으로 이동" data-guide-unit-jumps data-pagefind-ignore>
+    <ul class="guide-jumps__list">
+      {
+        learnUnits.map((unit) => (
+          <li>
+            <a class="guide-jumps__link" href={`#guide-unit-u${unit.unit}`}>
+              {unit.numeral}단원 <span class="guide-jumps__count">차시 {(byUnit.get(unit.unit) ?? []).length}개</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <form class="guide-find" aria-label="차시 번호로 찾기" data-guide-find novalidate data-pagefind-ignore>
+    <label class="guide-find__label" for="guide-find-input">차시 번호</label>
+    <div class="guide-find__row">
+      <input id="guide-find-input" class="guide-find__input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="예: 1-2-3" />
+      <button class="button button--secondary" type="submit">찾아가기</button>
+    </div>
+    <p class="guide-find__message" role="status" data-guide-find-message></p>
+  </form>
+
   <div class="prose">
     <p>
       차시 페이지 맨 아래의 교사용 칸(접혀 있는 안내)을 빌드할 때 모아 만든 목록이에요. 지금 차시는 {counts.all}개예요.{' '}
@@ -78,7 +102,7 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
             {unitLessons.map((lesson) => {
               const jumps = jumpsOf(lesson);
               return (
-                <li class="guide-index__item" data-guide-index={lesson.summary.label}>
+                <li class="guide-index__item" id={`guide-index-u${unit.unit}-${lesson.summary.slug}`} data-guide-index={lesson.summary.label}>
                   <h3 class="guide-index__title">
                     <a href={`${withBase(guidesUnitPath(unit.unit))}#${lesson.idPrefix.slice(0, -1)}`}>{lessonHeading(lesson)}</a>
                   </h3>
@@ -106,7 +130,102 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
   }
 </BaseLayout>
 
+<script>
+  // 차시 번호(1-2-3, V1, IV-프로젝트…)를 치고 [찾아가기]를 누르면 그 차시 줄로 가서 차시 이름 링크에 초점을 둔다. 자바스크립트가 없어도 위의 대단원 칩과 아래 목록은 그대로 쓸 수 있다.
+  const form = document.querySelector<HTMLFormElement>('[data-guide-find]');
+  const input = form?.querySelector<HTMLInputElement>('input');
+  const message = form?.querySelector<HTMLElement>('[data-guide-find-message]');
+  const normalize = (text: string): string => text.replace(/\s+/gu, '').replace(/[–—~]/gu, '-').toLowerCase();
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = normalize(input?.value ?? '');
+    if (!query || !message) {
+      if (message) message.textContent = '차시 번호를 써 주세요. 예: 1-2-3';
+      return;
+    }
+    const items = [...document.querySelectorAll<HTMLElement>('[data-guide-index]')];
+    const found = items.find((item) => normalize(item.dataset.guideIndex ?? '') === query) ?? items.find((item) => normalize(item.dataset.guideIndex ?? '').startsWith(query));
+    if (!found) {
+      message.textContent = `"${input?.value.trim()}" 차시를 찾지 못했어요. 1-2-3처럼 대단원-중단원-차시 번호로 써 보세요.`;
+      return;
+    }
+    const target = found.querySelector<HTMLAnchorElement>('a');
+    found.scrollIntoView({ block: 'start' });
+    target?.focus({ preventScroll: true });
+    message.textContent = `${found.dataset.guideIndex} 차시로 왔어요.`;
+  });
+</script>
+
 <style>
+  .guide-jumps__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .guide-jumps__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .guide-jumps__link:hover {
+    border-color: var(--color-accent);
+  }
+
+  .guide-jumps__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+  }
+
+  .guide-find {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 28rem;
+    margin-block-start: var(--space-4);
+  }
+
+  .guide-find__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .guide-find__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .guide-find__input {
+    flex: 1 1 10rem;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .guide-find__message {
+    min-height: 1.5em;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
   .guide-unit {
     margin-block-start: var(--space-10);
   }
@@ -129,6 +248,7 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
   }
 
   .guide-index__item {
+    scroll-margin-block-start: var(--space-4);
     padding: var(--space-3) var(--space-4);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
