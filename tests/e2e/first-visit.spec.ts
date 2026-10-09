@@ -2,7 +2,7 @@
  * 첫 방문 전송량·시간 측정(P2-14, PLAN §8.2 표의 완료 기준 "첫 방문 총 전송량(사전 캐시 포함)과 시간이 기록돼 있고
  * 사전 캐시가 PD-11 범위(셸만)를 넘지 않는다", 미해결 10번).
  *
- * 무엇을 재나: 캐시가 빈 새 브라우저에서 홈 → [카메라로 바로 해보기] → 실습실 준비 → [실행] → 첫 에지 화면까지
+ * 무엇을 재나: 캐시가 빈 새 브라우저에서 홈 → [카메라로 바로 해 보기] → 실습실 준비 → [실행] → 첫 에지 화면까지
  * **실제로 내려받은 바이트**를 모두 더한다. 파이썬 워커·서비스 워커가 받는 것까지 세려고
  * 브라우저 문맥 단위 이벤트(context.on('requestfinished'))와 `request.sizes()`(압축된 본문 + 머리말 크기)를 쓴다.
  * CDP(Network.loadingFinished)는 **페이지 대상에만** 붙어서 워커가 받는 Pyodide 20MB를 놓친다(2026-09-16 실측: 0.31MB로 나옴).
@@ -77,11 +77,11 @@ function estimateSeconds(bytes: number, requests: number): number {
   return bytes / FAST_3G.downloadThroughput + (requests * FAST_3G.latency) / 1000;
 }
 
-/** 홈 → [카메라로 바로 해보기] → 준비 → [실행] → 첫 에지 화면까지. 구간별 경과 시간(ms)을 돌려준다. */
+/** 홈 → [카메라로 바로 해 보기] → 준비 → [실행] → 첫 에지 화면까지. 구간별 경과 시간(ms)을 돌려준다. */
 async function firstVisitFlow(page: Page): Promise<{ toLab: number; toReady: number; toEdge: number }> {
   const started = Date.now();
   await page.goto(withBase(''));
-  await page.getByRole('link', { name: /카메라로 바로 해보기/u }).click();
+  await page.getByRole('link', { name: /카메라로 바로 해 보기/u }).click();
   await expect(page).toHaveURL(/labs\/vision\//u);
   const toLab = Date.now() - started;
 
@@ -146,7 +146,7 @@ test.describe('첫 방문 전송량·시간(P2-14)', () => {
     await page.waitForLoadState('load');
     const homeShown = Date.now() - started;
 
-    await page.getByRole('link', { name: /카메라로 바로 해보기/u }).click();
+    await page.getByRole('link', { name: /카메라로 바로 해 보기/u }).click();
     await expect(page).toHaveURL(/labs\/vision\//u);
     await expect(labRoot(page)).toBeVisible();
     const labShown = Date.now() - started;

@@ -1,5 +1,5 @@
 // 시나리오 A 자동 판정(SPEC §13, PLAN §8.7·§8.2 P2-04 완료 기준): 학생이 크롬만 있고 아무것도 모르는 상태에서
-// 홈 → [카메라로 바로 해보기] → (가짜) 웹캠 에지 결과를 보고 → 슬라이더로 임계값을 바꿔 변화를 본다. 설명을 읽지 않아도 되는 흐름이라
+// 홈 → [카메라로 바로 해 보기] → (가짜) 웹캠 에지 결과를 보고 → 슬라이더로 임계값을 바꿔 변화를 본다. 설명을 읽지 않아도 되는 흐름이라
 // 버튼 누르기·슬라이더 움직이기만 한다. 홈을 연 순간부터 슬라이더 효과가 보일 때까지의 시간을 재서 5분 안인지 확인하고 콘솔·주석에 남긴다
 // (P2-14가 첫 방문 전송량과 네트워크 속도 제한 측정을 더한다).
 //
@@ -22,7 +22,7 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
   test.skip(({ isMobile }) => isMobile, '실습실은 데스크톱 Chromium(JSPI·카메라)에서 확인한다');
   test.describe.configure({ timeout: SCENARIO_LIMIT_MS + 60_000 });
 
-  test('홈 → [카메라로 바로 해보기] → 웹캠 에지 결과 → 슬라이더로 임계값을 바꾸면 다음 프레임부터 결과가 달라진다(5분 안)', async ({ page }) => {
+  test('홈 → [카메라로 바로 해 보기] → 웹캠 에지 결과 → 슬라이더로 임계값을 바꾸면 다음 프레임부터 결과가 달라진다(5분 안)', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     const startedAt = Date.now();
@@ -32,7 +32,7 @@ test.describe('시나리오 A — 학생, 크롬만 있음, 아무것도 모름'
     const home = await page.goto(withBase(''));
     expect(home?.status()).toBe(200);
     const button = page.locator('[data-home-action="camera"]');
-    await expect(button).toContainText('카메라로 바로 해보기');
+    await expect(button).toContainText('카메라로 바로 해 보기');
     await expect(button).not.toContainText('준비 중');
     await button.click();
     await expect(page).toHaveURL((url) => url.pathname === VISION_PATH);

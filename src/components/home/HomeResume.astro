@@ -7,20 +7,44 @@
  * - 링크 주소·이름은 저장된 진도에서 와서 textContent·setAttribute로만 넣는다(마크업으로 해석되지 않음).
  * - 발표 모드·embed에서는 숨긴다(data-present-hide, data-embed-hide).
  * - 링크의 접근 이름은 "1-2-1 손 찾기 이어서 하기"처럼 이름 뒤에 동작이 붙는다.
+ * - 지난번 차시를 이미 끝냈으면(R1-030) 그 칸의 동작은 "다시 보기"로 바뀌고, 같은 대단원에서 안 연 첫 차시가 "다음에 볼 차시" 칸으로 따로 나온다.
+ * - 저장된 진도에 이제 없는 차시·실습실(옛 주소)이 있으면 그 칸을 숨긴다(R1-031). 맞는지 가릴 목록은 아래 JSON(data-home-index)으로 쪽에 실어 둔다:
+ *   차시 [id, 번호, 제목]을 차례대로, 실습실 쪽 주소(base 포함). 글은 모두 빌드 때 정해지고 home-resume.ts가 읽는다.
  */
+import { getCollection } from 'astro:content';
+import { flattenPages } from '../../config/nav.ts';
 import Icon from '../common/Icon.astro';
+import { publishedLessons } from '../lesson/lesson-data.ts';
 import { homeResume } from './home-content.ts';
+
+const lessons = publishedLessons(await getCollection('lessons'));
+const labPaths = flattenPages()
+  .filter((page) => page.path.startsWith('/labs/') && page.path !== '/labs/')
+  .map((page) => page.href);
+// JSON 안의 "<"를 유니코드 이스케이프(백슬래시 u003c)로 바꿔, 글 속의 닫는 script 태그가 쪽을 끊지 못하게 한다.
+const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, lesson.label, lesson.title]), labs: labPaths }).replace(/</gu, '\\u003c');
 ---
 
 <section class="resume" aria-labelledby="home-resume-title" data-home-resume data-embed-hide data-present-hide hidden>
   <h2 id="home-resume-title" class="resume__title">{homeResume.heading}</h2>
+  <script is:inline type="application/json" data-home-index set:html={indexJson} />
   <ul class="resume__list" role="list">
-    <li class="resume__item card card--link" data-resume-lesson hidden>
+    <li class="resume__item card card--link" data-resume-lesson data-go-open={homeResume.lesson.go} data-go-done={homeResume.lesson.goDone} hidden>
       <span class="card__icon"><Icon name="book" /></span>
       <div class="resume__text">
         <p class="resume__kicker">{homeResume.lesson.kicker}</p>
         <p class="resume__name">
-          <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go">{homeResume.lesson.go}</span></a>
+          <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go" data-resume-go>{homeResume.lesson.go}</span></a>
+        </p>
+      </div>
+      <span class="resume__arrow" aria-hidden="true"><Icon name="arrow-right" size="sm" /></span>
+    </li>
+    <li class="resume__item card card--link" data-resume-next hidden>
+      <span class="card__icon"><Icon name="flag" /></span>
+      <div class="resume__text">
+        <p class="resume__kicker">{homeResume.next.kicker}</p>
+        <p class="resume__name">
+          <a class="card__link" href="#" data-resume-link><span data-resume-name></span>{' '}<span class="resume__go">{homeResume.next.go}</span></a>
         </p>
       </div>
       <span class="resume__arrow" aria-hidden="true"><Icon name="arrow-right" size="sm" /></span>

@@ -1,6 +1,6 @@
 // 회선 전체를 느린 3G로 둔 시나리오 A 자동 측정(판 1.1.0 — PROGRESS 미해결 210, PLAN §11 위험 31). npm run perf:measure(perf 무리)에서만 돈다.
 //
-// 무엇을 재나: SPEC §13 시나리오 A(학생, 크롬만, 아무것도 모름) — 홈 → [카메라로 바로 해보기] → 실습실에서 곧바로 [실행](눌러 두면 준비가 끝나는
+// 무엇을 재나: SPEC §13 시나리오 A(학생, 크롬만, 아무것도 모름) — 홈 → [카메라로 바로 해 보기] → 실습실에서 곧바로 [실행](눌러 두면 준비가 끝나는
 // 대로 돈다 — scenario-a.spec.ts와 같은 흐름) → (가짜) 웹캠 에지 결과 → 슬라이더로 임계값 변화까지를, **브라우저 문맥의 모든 요청**(페이지·
 // 파이썬 워커·서비스 워커)이 한 느린 회선을 지나게 하고 잰다. 회선은 문맥 프록시(scripts/perf-line-proxy.mjs), 조건은 scripts/perf-rules.mjs의
 // LINE_PROFILES['3g'](DevTools "3G" 대역폭 400kbit/s 양방향 + 왕복 400ms, 새 연결 2왕복).
@@ -180,7 +180,7 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
   test.skip(({ isMobile }) => Boolean(isMobile), '망 조건 측정은 데스크톱 화면 하나로');
   test.skip(!IS_PERF_GROUP, 'npm run perf:measure에서만 잰다(회선 전체 3G라 10분 가까이 걸린다)');
 
-  test('홈 → [카메라로 바로 해보기] → [실행] → 첫 에지 → 슬라이더 효과(페이지·워커·서비스 워커가 한 회선)', async ({ browser, baseURL, request }, testInfo) => {
+  test('홈 → [카메라로 바로 해 보기] → [실행] → 첫 에지 → 슬라이더 효과(페이지·워커·서비스 워커가 한 회선)', async ({ browser, baseURL, request }, testInfo) => {
     const home = await request.get(withBase(''));
     test.skip((await home.text()).includes('/@vite/client'), '개발 서버는 파일을 묶지 않아 회선 수치가 뜻이 없어요 — 빌드 결과(npm run perf:measure)나 실사이트로 재요');
 
@@ -313,7 +313,7 @@ test.describe('회선 전체 3G에서 시나리오 A(미해결 210, perf 무리 
         .map(([host, bytes]) => `${host} ${mb(bytes)}`)
         .join('·');
       const summary =
-        `[회선 3G 시나리오 A] 홈 FCP ${seconds(homeFcp)} → [카메라로 바로 해보기] ${seconds(homeClick)} → 실습실 FCP ${seconds(labFcp)}·DCL ${seconds(labDcl)}·load ${seconds(labLoad)}·글꼴 켬 ${seconds(labFontOn)}` +
+        `[회선 3G 시나리오 A] 홈 FCP ${seconds(homeFcp)} → [카메라로 바로 해 보기] ${seconds(homeClick)} → 실습실 FCP ${seconds(labFcp)}·DCL ${seconds(labDcl)}·load ${seconds(labLoad)}·글꼴 켬 ${seconds(labFontOn)}` +
         ` → [실행] 켜짐 ${seconds(runButtonEnabled)}(누름 ${seconds(runClick)}) → 파이썬 준비·실행 시작 ${seconds(runStart)} → numpy·OpenCV 준비 ${seconds(packagesReady)}` +
         ` → 첫 에지 ${seconds(firstEdge)} → 슬라이더 효과 ${seconds(sliderEffect)} · 회선으로 받은 양 ${mb(final.down)}(${hostText}), 올린 양 ${mb(final.up)}, 연결 ${final.connections}개` +
         ` · 흰 픽셀 100:${(base * 100).toFixed(2)}% → 20:${(low * 100).toFixed(2)}% → 100:${(back * 100).toFixed(2)}%` +

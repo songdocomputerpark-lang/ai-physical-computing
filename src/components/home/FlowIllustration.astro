@@ -17,6 +17,7 @@
  * - 그림 좌표·타이밍을 바꾸면 아래 @keyframes의 이동 거리(px)와 백분율도 함께 고친다.
  */
 import { FLOW_TOGGLE_LABELS } from './flow-motion.ts';
+import { getLearnUnit } from '../../config/nav.ts';
 import { flowFigure } from './home-content.ts';
 import Icon from '../common/Icon.astro';
 
@@ -204,6 +205,11 @@ const HAND_JOINTS = [
               <span class="flow__label">{step.label}</span>
             </span>{' '}
             <span class="flow__detail">{step.detail}</span>
+            {/* 단계 글이 배움 지도의 길잡이가 되도록 그 단계를 배우는 대단원 쪽으로 이어 준다(R1-025). 이름 끝의 숨은 글이 어느 단계의 링크인지 알린다. */}
+            <a class="flow__go" href={getLearnUnit(step.unit).href}>
+              {getLearnUnit(step.unit).numeral}단원 {flowFigure.unitLinkLabel}
+              <span class="visually-hidden"> ({step.label})</span>
+            </a>
           </li>
         ))
       }
@@ -534,6 +540,24 @@ const HAND_JOINTS = [
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /* 단계 아래 단원 링크: 글만 링크처럼 보이고, 누르는 곳은 44px 높이를 지킨다 */
+  .flow__go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--target-min);
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .flow__go:hover {
+    color: var(--color-accent-hover);
   }
 
   .flow__controls {

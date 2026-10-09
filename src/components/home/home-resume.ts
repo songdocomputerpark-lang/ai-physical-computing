@@ -4,12 +4,15 @@
  *
  * 마크업 약속(HomeResume.astro · HomeMap.astro)
  *   [data-home-resume][hidden]            띠 전체. 진도가 있을 때만 hidden을 뗀다(처음 온 사람에게는 아무것도 안 보인다)
- *     [data-resume-lesson][hidden]        지난번에 본 차시 칸 — 안의 [data-resume-link](링크), [data-resume-name](이름 글)
+ *     script[data-home-index]             JSON {lessons: [[id, 번호, 제목], …], labs: [쪽 주소, …]} — 지금 사이트에 있는 차시·실습실 목록(없으면 거르지 않는다)
+ *     [data-resume-lesson][hidden]        지난번에 본 차시 칸 — 안의 [data-resume-link](링크), [data-resume-name](이름 글), [data-resume-go](동작 글),
+ *                                         data-go-open·data-go-done = 동작 글(끝낸 차시면 done 글: "다시 보기")
+ *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 보인다(같은 대단원에서 안 연 첫 차시)
  *     [data-resume-lab][hidden]           마지막으로 연 실습실 칸 — 같은 구조
  *   [data-home-map][data-learn-base]      배움 지도. data-learn-base = /learn/ 주소(base 포함), data-start-label·data-resume-label·data-replay-label = 단추 글
  *     [data-home-unit][data-progress-unit]  대단원 카드(차시 id 목록은 progress-paint가 센다)
- *       [data-unit-start]                 시작하기 링크: data-first-href(처음 차시), data-unit-name("I단원")
- *         [data-unit-start-label]         링크 안 글
+ *       [data-unit-start]                 단원 링크: data-first-href(처음 차시), data-unit-name("I단원")
+ *         [data-unit-start-label]         링크 안 글: "I단원 배우기" 꼴(단원 이름 + 단추 글)
  *
  * 글은 모두 textContent로만 넣는다(저장소 값이 마크업으로 해석되지 않게). 같은 상태를 여러 번 그려도 같은 결과다.
  * 실습실 라이브러리를 import하지 않는다 — 홈은 사전 캐시되는 쪽이라 작게 유지한다.
@@ -25,7 +28,47 @@ export interface MapLabels {
   readonly replay: string;
 }
 
-const DEFAULT_LABELS: MapLabels = { start: '시작하기', resume: '이어서 하기', replay: '다시 보기' };
+const DEFAULT_LABELS: MapLabels = { start: '배우기', resume: '계속하기', replay: '다시 보기' };
+const DEFAULT_GO_OPEN = '이어서 하기';
+const DEFAULT_GO_DONE = '다시 보기';
+
+/** 쪽에 실어 둔 "지금 있는 차시·실습실" 목록(HomeResume.astro의 JSON). 없거나 깨졌으면 null — 그때는 거르지 않는다. */
+interface HomeIndex {
+  /** 차시 id → { 번호, 제목 }, 사이트 차례대로 */
+  readonly lessons: ReadonlyMap<string, { readonly label: string; readonly title: string }>;
+  /** 실습실 쪽 주소(끝 / 없이 비교하려고 다듬은 것) */
+  readonly labs: ReadonlySet<string>;
+}
+
+function trimSlash(path: string): string {
+  return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+function readIndex(root: ParentNode): HomeIndex | null {
+  const script = root.querySelector('script[data-home-index]');
+  if (!script?.textContent) {
+    return null;
+  }
+  try {
+    const raw: unknown = JSON.parse(script.textContent);
+    if (typeof raw !== 'object' || raw === null) {
+      return null;
+    }
+    const { lessons, labs } = raw as { lessons?: unknown; labs?: unknown };
+    if (!Array.isArray(lessons) || !Array.isArray(labs)) {
+      return null;
+    }
+    const lessonMap = new Map<string, { label: string; title: string }>();
+    for (const row of lessons) {
+      if (Array.isArray(row) && typeof row[0] === 'string' && typeof row[1] === 'string' && typeof row[2] === 'string') {
+        lessonMap.set(row[0], { label: row[1], title: row[2] });
+      }
+    }
+    return { lessons: lessonMap, labs: new Set(labs.filter((path): path is string => typeof path === 'string').map(trimSlash)) };
+  } catch {
+    return null;
+  }
+}
 
 function setText(element: Element | null, text: string): void {
   if (element && element.textContent !== text) {
@@ -49,17 +92,61 @@ function fillItem(item: Element | null, href: string | null, name: string): bool
   return show;
 }
 
-/** 이어서 하기 띠를 채운다. 보일 칸이 하나도 없으면 띠 전체를 숨긴다. */
+/** 차시 id의 대단원 접두("u2/2-1-1" → "u2") */
+function unitOf(id: string): string {
+  return id.slice(0, id.indexOf('/'));
+}
+
+/**
+ * 이어서 하기 띠를 채운다. 보일 칸이 하나도 없으면 띠 전체를 숨긴다.
+ *  - 사이트에 없는 차시·실습실(옛 주소)은 칸을 숨긴다. 있는 차시는 번호·제목·주소를 지금 사이트 것으로 쓴다(저장된 옛 이름·주소가 아니라).
+ *  - 지난번 차시를 이미 끝냈으면 동작 글을 "다시 보기"로 바꾸고, 같은 대단원에서 아직 안 연 첫 차시를 "다음에 볼 차시" 칸으로 보인다.
+ */
 export function applyResume(root: ParentNode, state: ProgressState): void {
   const band = root.querySelector('[data-home-resume]');
   if (!band) {
     return;
   }
+  const index = readIndex(band);
+  const learnBase = root.querySelector('[data-home-map]')?.getAttribute('data-learn-base') ?? '';
   const last = state.last;
   const lab = state.lastLab;
-  const lessonShown = fillItem(band.querySelector('[data-resume-lesson]'), last ? last.href : null, last ? `${last.label} ${last.title}` : '');
-  const labShown = fillItem(band.querySelector('[data-resume-lab]'), lab ? lab.path : null, lab ? lab.title : '');
-  band.toggleAttribute('hidden', !(lessonShown || labShown));
+
+  // 지난번 차시: 목록이 있으면 목록에 있는 차시만
+  const known = last && index ? index.lessons.get(last.id) : undefined;
+  const lastValid = last !== null && (index === null || known !== undefined);
+  let lessonHref: string | null = null;
+  let lessonName = '';
+  if (last && lastValid) {
+    lessonHref = known && learnBase !== '' ? lessonHrefFromId(learnBase, last.id) : last.href;
+    lessonName = known ? `${known.label} ${known.title}` : `${last.label} ${last.title}`;
+  }
+  const lessonItem = band.querySelector('[data-resume-lesson]');
+  const lessonShown = fillItem(lessonItem, lessonHref, lessonName);
+  const lastDone = last !== null && lessonShown && lessonStatus(state, last.id) === 'done';
+  const goText = lastDone ? lessonItem?.getAttribute('data-go-done') : lessonItem?.getAttribute('data-go-open');
+  setText(lessonItem?.querySelector('[data-resume-go]') ?? null, goText || (lastDone ? DEFAULT_GO_DONE : DEFAULT_GO_OPEN));
+
+  // 다음에 볼 차시: 지난번 차시를 끝냈고, 같은 대단원에 안 연 차시가 남았을 때만
+  let nextHref: string | null = null;
+  let nextName = '';
+  if (last && lastDone && index && learnBase !== '') {
+    const unit = unitOf(last.id);
+    const ids = [...index.lessons.keys()].filter((id) => unitOf(id) === unit);
+    const nextId = firstUnseen(state, ids);
+    const next = nextId === null ? undefined : index.lessons.get(nextId);
+    if (nextId !== null && next) {
+      nextHref = lessonHrefFromId(learnBase, nextId);
+      nextName = `${next.label} ${next.title}`;
+    }
+  }
+  const nextShown = fillItem(band.querySelector('[data-resume-next]'), nextHref, nextName);
+
+  // 마지막 실습실: 목록이 있으면 목록에 있는 쪽만
+  const labValid = lab !== null && (index === null || index.labs.has(trimSlash(lab.path)));
+  const labShown = fillItem(band.querySelector('[data-resume-lab]'), lab && labValid ? lab.path : null, lab && labValid ? lab.title : '');
+
+  band.toggleAttribute('hidden', !(lessonShown || nextShown || labShown));
 }
 
 /**
@@ -98,9 +185,10 @@ export function applyMapProgress(root: ParentNode, state: ProgressState, fallbac
     if (link.getAttribute('href') !== href) {
       link.setAttribute('href', href);
     }
-    setText(link.querySelector('[data-unit-start-label]'), label);
+    // 눈에 보이는 글이 "I단원 배우기"처럼 단원 이름을 담으므로 따로 aria-label을 두지 않는다(보이는 글 = 접근 이름).
     const unitName = link.getAttribute('data-unit-name');
-    link.setAttribute('aria-label', unitName ? `${unitName} ${label}` : label);
+    setText(link.querySelector('[data-unit-start-label]'), unitName ? `${unitName} ${label}` : label);
+    link.removeAttribute('aria-label');
   }
 }
 

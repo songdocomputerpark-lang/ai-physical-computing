@@ -137,6 +137,26 @@ test.describe('홈 흐름 그림', () => {
     }
   });
 
+  // R1-025: 그림의 세 단계가 배움 지도의 길잡이다 — 각 단계가 그 단계를 배우는 대단원으로 이어진다.
+  test('단계마다 그 단계를 배우는 대단원 링크가 있고, 배움 지도 카드의 단계 칩과 말이 이어진다', async ({ page }) => {
+    await page.goto('./');
+    const steps = page.locator('[data-flow] figcaption li');
+    for (const [index, step] of flowFigure.steps.entries()) {
+      const unit = learnUnits.find((candidate) => candidate.unit === step.unit)!;
+      const link = steps.nth(index).getByRole('link');
+      await expect(link, step.label).toHaveAttribute('href', unit.href);
+      await expect(link, step.label).toContainText(`${unit.numeral}단원 ${flowFigure.unitLinkLabel}`);
+      await expect(link, step.label).toHaveAccessibleName(new RegExp(`${unit.numeral}단원 ${flowFigure.unitLinkLabel}.*${step.label}`, 'u'));
+      const box = await link.boundingBox();
+      expect(box!.height, `${step.label} 링크 높이`).toBeGreaterThanOrEqual(44);
+    }
+    // 배움 지도 카드마다 단원 이름 위에 단계 칩이 있다(색이 아니라 글로)
+    for (const unit of learnUnits) {
+      const card = page.locator('[data-home-unit]').nth(unit.unit - 1);
+      await expect(card.locator('.map__stage')).toContainText(homeMap.stages[unit.unit]);
+    }
+  });
+
   test.describe('운영체제의 동작 줄이기 설정이면', () => {
     test.use({ reducedMotion: 'reduce' });
 
@@ -204,21 +224,25 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
     for (const unit of learnUnits) {
       const titleLink = main.getByRole('heading', { level: 3, name: unit.label, exact: true }).getByRole('link');
       await expect(titleLink).toHaveAttribute('href', unit.href);
+      // 단추 글에 단원 이름이 들어 있다(머리글 메뉴 [시작하기]와 겹치지 않음, R1-027)
       const start = main.getByRole('link', { name: `${unit.numeral}단원 ${homeMap.startLabel}`, exact: true });
       await expect(start).toHaveAttribute('href', new RegExp(`${unit.path}[a-z0-9-]+/$`, 'u'));
     }
 
     // 바로 가기 타일 9개
     await expect(main.getByRole('heading', { level: 2, name: homeShortcuts.heading })).toBeVisible();
+    // 원칙 아래 안내 줄도 같은 이름('내 컴퓨터 점검', R1-010)이라 바로 가기 칸 안에서 찾는다
+    const shortcuts = main.locator('section.shortcuts');
     for (const item of homeShortcuts.items) {
-      await expect(main.getByRole('link', { name: item.label, exact: true })).toHaveAttribute('href', item.href);
+      await expect(shortcuts.getByRole('link', { name: item.label, exact: true })).toHaveAttribute('href', item.href);
     }
 
     await expect(main.getByRole('heading', { level: 2, name: homePrinciples.heading })).toBeVisible();
     for (const item of homePrinciples.items) {
       await expect(main.getByRole('heading', { level: 3, name: item.title, exact: true })).toBeVisible();
     }
-    await expect(main.getByRole('link', { name: homePrinciples.browserNote.linkLabel })).toHaveAttribute(
+    // 바로 가기 타일도 같은 이름('내 컴퓨터 점검', R1-010)이라 안내 줄 안에서 찾는다
+    await expect(main.locator('.principles__note').getByRole('link', { name: homePrinciples.browserNote.linkLabel })).toHaveAttribute(
       'href',
       homePrinciples.browserNote.href,
     );
@@ -330,15 +354,66 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await page.goto('./');
     const band = page.getByRole('region', { name: homeResume.heading });
     await expect(band).toBeVisible();
-    await expect(band.getByRole('link', { name: /1-1-1 카메라란 무엇일까 이어서 하기/u })).toHaveAttribute('href', lesson.href);
+    // 1-1-1은 이미 끝낸 차시라 "다시 보기"이고(R1-030), 같은 대단원의 안 연 첫 차시(1-1-2)가 "다음에 볼 차시"로 나온다.
+    // 차시 이름은 저장된 글이 아니라 지금 사이트의 것이라 제목은 가리지 않는다.
+    await expect(band.getByRole('link', { name: /^1-1-1 .+ 다시 보기$/u })).toHaveAttribute('href', lesson.href);
+    await expect(band.getByRole('link', { name: /이어서 하기/u })).toHaveCount(1);
+    await expect(band.getByRole('link', { name: /^1-1-2 .+ 이어서 하기$/u })).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
     await expect(band.getByRole('link', { name: /영상처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
 
     const card = page.locator('[data-home-unit]').first();
-    await expect(card.locator('[data-progress-count]')).toContainText('1개 끝냄');
+    await expect(card.locator('[data-progress-count]')).toContainText('1차시를 마쳤어요');
+    // 진도 막대는 같은 말이 글로 읽히므로 화면 낭독기에서 숨긴다(R1-032): 그림(role=img)으로 한 번 더 읽히지 않는다.
+    await expect(card.locator('[data-progress-bar]')).toHaveAttribute('aria-hidden', 'true');
+    await expect(card.getByRole('img', { name: /차시 중/u })).toHaveCount(0);
     await expect(page.locator('[data-home-unit]').nth(1)).toHaveAttribute('data-progress-empty', '');
     const resume = card.locator('[data-unit-start]');
-    await expect(resume).toHaveAccessibleName('I단원 이어서 하기');
+    await expect(resume).toHaveAccessibleName(`I단원 ${homeMap.resumeLabel}`);
     await expect(resume).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
+  });
+
+  test('지난번 차시를 아직 안 끝냈으면 "이어서 하기" 하나뿐이고 다음 차시 칸은 없다', async ({ page }) => {
+    const openState = { ...state, done: [] };
+    await page.addInitScript(
+      ({ key, value }) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // 저장을 막은 브라우저
+        }
+      },
+      { key: storageKey(PROGRESS_STORAGE_NAME), value: JSON.stringify(openState) },
+    );
+    await page.goto('./');
+    const band = page.getByRole('region', { name: homeResume.heading });
+    await expect(band).toBeVisible();
+    await expect(band.getByRole('link', { name: /^1-1-1 .+ 이어서 하기$/u })).toHaveAttribute('href', lesson.href);
+    await expect(band.getByText(homeResume.next.kicker)).toBeHidden();
+  });
+
+  // R1-031: 사이트에 없는 차시·실습실 id가 진도에 있어도 404로 가는 카드를 보이지 않는다.
+  test('사이트에 없는 차시·실습실이 진도에 있으면 그 카드를 보이지 않는다', async ({ page }) => {
+    const stale = {
+      version: 1,
+      seen: [],
+      done: [],
+      last: { id: 'u1/9-9-9', href: '/ai-physical-computing/learn/u1/9-9-9/', label: '9-9-9', title: '없는 차시', at: 1000 },
+      lastLab: { path: '/ai-physical-computing/labs/nonexistent/', title: '없는 실습실', at: 2000 },
+    };
+    await page.addInitScript(
+      ({ key, value }) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // 저장을 막은 브라우저
+        }
+      },
+      { key: storageKey(PROGRESS_STORAGE_NAME), value: JSON.stringify(stale) },
+    );
+    await page.goto('./');
+    await expect(page.locator('[data-home-unit]').first()).toHaveAttribute('data-progress-ready', '');
+    await expect(page.locator('[data-home-resume]')).toBeHidden();
+    await expect(page.locator('a[href*="9-9-9"], a[href*="nonexistent"]')).toHaveCount(0);
   });
 
   test('망가진 저장 값이 있어도 오류 없이 처음 온 사람처럼 보인다', async ({ page }) => {

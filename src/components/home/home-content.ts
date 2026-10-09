@@ -45,6 +45,8 @@ export interface FlowStep {
   readonly label: string;
   /** 그림에서 일어나는 일 한 줄 */
   readonly detail: string;
+  /** 이 단계를 배우는 대단원 번호 — 그림의 단계 글이 배움 지도의 길잡이가 되도록 그 단원 쪽으로 이어 준다(R1-025) */
+  readonly unit: 1 | 2 | 3 | 4;
 }
 
 /** 바로 가기 타일 하나(아이콘 위, 낱말 아래) */
@@ -85,15 +87,15 @@ export const homeHero = Object.freeze({
   /** 페이지 제목(h1). 줄로 나눠 두면 넓은 화면에서 이 자리에서 줄이 바뀐다. 이어 읽으면 한 문장이다. */
   titleLines: Object.freeze(['보고, 판단하고, 움직이는', '인공지능을 만들어요']),
   /**
-   * 한 문장 소개. 어떤 과목의 사이트인지 첫 화면에서 알 수 있게 과목 이름(교육감 승인 과목 "인공지능과 피지컬 컴퓨팅")을 넣는다.
+   * 두 문장 소개(한 문장에 꾸밈이 많으면 한 번에 안 읽혀 둘로 나눴다, 판 1.3.0 검수 R1-029). 어떤 과목의 사이트인지 첫 화면에서 알 수 있게 과목 이름(교육감 승인 과목 "인공지능과 피지컬 컴퓨팅")을 넣는다.
    * ESP32는 이 페이지에서 처음 나오는 전문용어라 괄호로 풀이한다.
    */
-  lead: "고등학교 '인공지능과 피지컬 컴퓨팅' 교과서 차례대로, 설치 없이 브라우저만으로 인공지능과 ESP32 보드(LED·모터를 움직이는 작은 컴퓨터)를 배우고 바로 실습하는 무료 사이트예요.",
+  lead: '고등학교 "인공지능과 피지컬 컴퓨팅" 교과서 순서대로 배우는 무료 사이트예요. 설치 없이 브라우저만으로 인공지능과 ESP32 보드(LED·모터를 움직이는 작은 컴퓨터)를 배우고 바로 실습해요.',
   /**
    * 큰 버튼 아래 한 줄 길잡이. 어느 것을 먼저 누를지 알려 준다. 버튼 이름을 다시 쓰지 않는다(같은 이름의 글이 둘이 되면 안 됨).
    * 색·모양이 아니라 순서("첫 번째")로 말한다(WCAG 1.3.3).
    */
-  guide: '처음이라면 첫 번째 버튼부터 눌러 보세요.',
+  guide: '처음이라면 첫 번째 단추부터 눌러 보세요.',
 });
 
 /**
@@ -104,7 +106,7 @@ export const homeHero = Object.freeze({
 export const homeActions: readonly HomeAction[] = Object.freeze([
   action({
     id: 'camera',
-    label: '카메라로 바로 해보기',
+    label: '카메라로 바로 해 보기',
     hint: '웹캠 영상을 코드로 바꿔 봐요',
     pageId: 'labs-vision',
     icon: 'camera',
@@ -113,7 +115,7 @@ export const homeActions: readonly HomeAction[] = Object.freeze([
   action({
     // 2026-09-17 P3-01에서 ESP32 실습실(가상 보드)이 열려 "준비 중" 표시를 뗐다.
     id: 'virtual-board',
-    label: '가상 ESP32 켜보기',
+    label: '가상 ESP32 켜 보기',
     hint: '보드가 없어도 화면에서 해요',
     pageId: 'labs-esp32',
     icon: 'chip',
@@ -137,16 +139,22 @@ export const flowFigure = Object.freeze({
   description:
     '카메라 화면에 손가락 두 개를 편 손이 보여요. 인공지능이 손가락 끝을 찾아 두 개라고 세고, 그 결과를 케이블로 받은 ESP32 보드가 LED 다섯 개 가운데 두 개를 켜요.',
   steps: Object.freeze<FlowStep[]>([
-    { id: 'see', label: '보고', detail: '카메라로 손을 봐요' },
-    { id: 'judge', label: '판단하고', detail: '손가락 수를 세요' },
-    { id: 'act', label: '움직여요', detail: '보드가 LED를 켜요' },
+    { id: 'see', label: '보고', detail: '카메라로 손을 봐요', unit: 1 },
+    { id: 'judge', label: '판단하고', detail: '손가락 수를 세요', unit: 1 },
+    { id: 'act', label: '움직여요', detail: '보드가 LED를 켜요', unit: 2 },
   ]),
+  /** 단계 아래 링크 글. "{I}단원 알아보기" — 배움 지도 카드 단추([I단원 배우기])와 이름이 겹치지 않게 다른 동사를 쓴다. */
+  unitLinkLabel: '알아보기',
 });
 
 /** 이어서 하기 띠(진도가 있을 때만 보인다 — home-resume.ts가 채운다). 처음 온 사람에게는 아무것도 보이지 않는다. */
 export const homeResume = Object.freeze({
-  heading: '이어서 하기',
-  lesson: Object.freeze({ kicker: '지난번에 본 차시', go: '이어서 하기' }),
+  /** 띠 머리. 배움 지도 카드 단추와 "이어서 하기"가 겹쳐 보이지 않게 머리는 "지난번 이어서"로 둔다(R1-027). */
+  heading: '지난번 이어서',
+  /** 지난번 차시 칸: 아직 안 끝낸 차시는 go, 이미 끝낸 차시는 goDone("다시 보기")로 바뀐다(R1-030). */
+  lesson: Object.freeze({ kicker: '마지막으로 본 차시', go: '이어서 하기', goDone: '다시 보기' }),
+  /** 지난번 차시를 이미 끝냈을 때만 보이는 칸: 같은 대단원에서 아직 안 연 첫 차시 */
+  next: Object.freeze({ kicker: '다음에 볼 차시', go: '이어서 하기' }),
   lab: Object.freeze({ kicker: '마지막으로 연 실습실', go: '다시 열기' }),
 });
 
@@ -159,10 +167,15 @@ export const homeSearch = Object.freeze({
 export const homeMap = Object.freeze({
   heading: '배움 지도',
   lead: 'I단원부터 차례로 따라가면 돼요.',
-  /** 카드 안 단추: 진도가 없을 때 / 진도가 있어 안 본 차시가 남았을 때 / 모두 봤을 때 */
-  startLabel: '시작하기',
-  resumeLabel: '이어서 하기',
+  /**
+   * 카드 안 단추: 진도가 없을 때 / 진도가 있어 안 본 차시가 남았을 때 / 모두 봤을 때.
+   * 화면에는 앞에 단원이 붙어 "I단원 배우기"로 보인다(머리글 메뉴 [시작하기]·이어서 하기 띠와 글자가 겹치지 않게, R1-027).
+   */
+  startLabel: '배우기',
+  resumeLabel: '계속하기',
   replayLabel: '다시 보기',
+  /** 대단원이 맡은 큰 그림의 단계 칩("보고→판단하고→움직여요" 그림과 이어진다, R1-025) */
+  stages: Object.freeze<Record<1 | 2 | 3 | 4, string>>({ 1: '보고·판단', 2: '움직여요', 3: '잇기', 4: '합치기' }),
   /** 대단원 번호 → 아이콘(영상 → 보드 → 통신 → 프로젝트) */
   unitIcons: Object.freeze<Record<1 | 2 | 3 | 4, IconName>>({ 1: 'camera', 2: 'chip', 3: 'signal', 4: 'lightbulb' }),
 });
@@ -205,7 +218,7 @@ export const homePrinciples = Object.freeze({
   ]),
   browserNote: Object.freeze({
     text: '실습실은 컴퓨터의 크롬(Chrome)이나 엣지(Edge) 브라우저를 권장해요.',
-    linkLabel: '내 컴퓨터에서 되는지 점검하기',
+    linkLabel: '내 컴퓨터 점검',
     pageId: 'start-check',
     href: getPage('start-check').href,
   }),

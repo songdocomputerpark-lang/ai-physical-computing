@@ -35,7 +35,7 @@ const SITE_PATHS = new Set(flattenPages().map((page) => page.href));
 
 describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
   it('큰 버튼은 SPEC §5의 이름 그대로 3개이고 순서도 같다', () => {
-    expect(homeActions.map((action) => action.label)).toEqual(['카메라로 바로 해보기', '가상 ESP32 켜보기', '내 보드 연결하기']);
+    expect(homeActions.map((action) => action.label)).toEqual(['카메라로 바로 해 보기', '가상 ESP32 켜 보기', '내 보드 연결하기']);
   });
 
   it('버튼은 영상처리 실습실, ESP32 실습실, 보드 준비 페이지로 간다', () => {
@@ -55,7 +55,7 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     }
   });
 
-  it('처음 온 학생에게 먼저 권하는 [카메라로 바로 해보기]만 주요 버튼이다', () => {
+  it('처음 온 학생에게 먼저 권하는 [카메라로 바로 해 보기]만 주요 버튼이다', () => {
     expect(homeActions.map((action) => action.variant)).toEqual(['primary', 'secondary', 'secondary']);
   });
 
@@ -90,10 +90,15 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
     }
   });
 
-  it('제목은 "보고, 판단하고, 움직이는"으로 시작하고, 소개는 한 문장이며 과목 이름과 ESP32 풀이가 있다', () => {
+  it('제목은 "보고, 판단하고, 움직이는"으로 시작하고, 소개는 두 문장이며 과목 이름과 ESP32 풀이가 있다(R1-029: 한 문장에 꾸밈 7개는 한 번에 안 읽혔다)', () => {
     expect(homeHero.titleLines.join(' ')).toBe('보고, 판단하고, 움직이는 인공지능을 만들어요');
-    expect(countSentences(homeHero.lead)).toBe(1);
+    expect(countSentences(homeHero.lead)).toBe(2);
     expect(homeHero.lead.endsWith('.')).toBe(true);
+    // 첫 문장은 과목과 "무료 사이트"만, 둘째 문장이 설치·ESP32 풀이를 맡는다
+    const [first, second] = homeHero.lead.split(/(?<=[.!?])\s+/u);
+    expect(first).toContain('인공지능과 피지컬 컴퓨팅');
+    expect(second).toContain('설치 없이');
+    expect(second).toMatch(/ESP32 보드\([^)]+\)/u);
     expect(homeHero.lead).toMatch(/ESP32 보드\([^)]+\)/u);
     expect(homeHero.lead).toContain('설치 없이');
     // 첫 화면에서 어떤 과목의 사이트인지 알 수 있게(SPEC §5 "30초 안에 이해", 2026-09-16 검토 반영)
@@ -102,6 +107,15 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
 });
 
 describe('흐름 그림 글(home-content.ts)', () => {
+  it('단계 글이 배움 지도로 이어진다: 보고·판단하고는 I단원, 움직여요는 II단원(R1-025)', () => {
+    expect(flowFigure.steps.map((step) => step.unit)).toEqual([1, 1, 2]);
+    expect(flowFigure.unitLinkLabel.length).toBeGreaterThan(0);
+    // 배움 지도 카드 단추([I단원 배우기])와 링크 이름이 같으면 같은 이름이 서로 다른 곳으로 가게 된다
+    expect(flowFigure.unitLinkLabel).not.toBe(homeMap.startLabel);
+    expect(flowFigure.unitLinkLabel).not.toBe(homeMap.resumeLabel);
+    expect(flowFigure.unitLinkLabel).not.toBe(homeMap.replayLabel);
+  });
+
   it('단계는 보고 → 판단하고 → 움직여요 3개이고 설명이 있다', () => {
     expect(flowFigure.steps.map((step) => step.label)).toEqual(['보고', '판단하고', '움직여요']);
     expect(flowFigure.steps.map((step) => step.id)).toEqual(['see', 'judge', 'act']);
@@ -134,9 +148,12 @@ describe('큰 버튼 아래 길잡이와 아이콘', () => {
 });
 
 describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () => {
-  it('이어서 하기 띠 글: 제목, 차시 칸(이어서 하기 — 배우기 시작 카드와 같은 낱말), 실습실 칸(다시 열기)', () => {
-    expect(homeResume.heading).toBe('이어서 하기');
+  it('이어서 하기 띠 글: 머리는 "지난번 이어서", 차시 칸(이어서 하기, 끝낸 차시면 다시 보기), 다음 차시 칸, 실습실 칸(다시 열기)', () => {
+    expect(homeResume.heading).toBe('지난번 이어서');
     expect(homeResume.lesson.go).toBe('이어서 하기');
+    expect(homeResume.lesson.goDone).toBe('다시 보기');
+    expect(homeResume.next.go).toBe('이어서 하기');
+    expect(homeResume.next.kicker).toBe('다음에 볼 차시');
     expect(homeResume.lab.go).toBe('다시 열기');
     expect(homeResume.lesson.kicker.length).toBeGreaterThan(0);
     expect(homeResume.lab.kicker.length).toBeGreaterThan(0);
@@ -149,7 +166,12 @@ describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () 
   it('배움 지도: 제목, 한 문장 안내, 단추 글 3가지, 단원마다 다른 아이콘', () => {
     expect(homeMap.heading).toBe('배움 지도');
     expect(countSentences(homeMap.lead)).toBe(1);
-    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['시작하기', '이어서 하기', '다시 보기']);
+    // 화면에는 앞에 단원이 붙어 "I단원 배우기"가 된다. 머리글 메뉴 [시작하기]·띠의 [이어서 하기]와 글자가 겹치지 않는다(R1-027).
+    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['배우기', '계속하기', '다시 보기']);
+    expect([homeMap.startLabel, homeMap.resumeLabel]).not.toContain('시작하기');
+    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).not.toContain(homeResume.lesson.go);
+    // 단원마다 큰 그림의 단계 칩이 하나씩 있고 서로 다르다(R1-025)
+    expect([1, 2, 3, 4].map((unit) => homeMap.stages[unit as 1 | 2 | 3 | 4])).toEqual(['보고·판단', '움직여요', '잇기', '합치기']);
     const icons = [1, 2, 3, 4].map((unit) => homeMap.unitIcons[unit as 1 | 2 | 3 | 4]);
     expect(new Set(icons).size).toBe(4);
     for (const icon of icons) {
