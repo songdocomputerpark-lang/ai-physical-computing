@@ -112,6 +112,27 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     expect(overflow, '가로 넘침').toBe(0);
   });
 
+  test('가장 좁은 휴대폰(320px)에서도 차시 안 실습실의 조작 줄이 틀 안에 들어간다(통합 확인, R3-005 뒤)', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', '휴대폰 화면에서만');
+    test.setTimeout(3 * 60_000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(LESSON_PATH);
+    await page.locator('[data-lesson-lab-open]').first().click();
+    const frame = page.frameLocator('iframe.lesson-example__frame');
+    await expect(frame.locator('[data-lab]')).toBeVisible({ timeout: LOAD_TIMEOUT });
+    await expect(frame.locator('[data-lab-example-name]')).toBeVisible();
+    // 틀 안 실습실 폭은 약 254px — [실행]의 넓은 옆 여백 때문에 세 단추(275px)가 틀을 넘어 [초기화]가 잘렸다
+    const inner = await frame.locator('html').evaluate(() => ({
+      overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      actionsRight: document.querySelector('.lab__actions')?.getBoundingClientRect().right ?? 0,
+      width: document.documentElement.clientWidth,
+    }));
+    expect(inner.overflow, '실습실 안 가로 넘침').toBe(0);
+    expect(inner.actionsRight, '[실행]·[정지]·[초기화] 오른쪽 끝').toBeLessThanOrEqual(inner.width);
+    const outer = await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth));
+    expect(outer, '차시 페이지 가로 넘침').toBe(0);
+  });
+
   test('[실습실에서 열기]는 그 예제를 고른 채 실습실 페이지를 연다', async ({ page }) => {
     await page.goto(LESSON_PATH);
     const link = page.getByRole('link', { name: /^실습실에서 크게 열기/u }).first();

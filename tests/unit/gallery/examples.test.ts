@@ -64,7 +64,7 @@ describe('저장소의 예제로 만든 갤러리', () => {
   it('원본과 사이트판, 자료의 변형이 "비교해 보기"로 이어진다', () => {
     const byFile = new Map(gallery.cards.map((card) => [card.file, card]));
     const site = byFile.get('esp32/u2/2-1-4-laser-rgb-site.py');
-    expect(site?.compare?.label).toBe('교과서 그대로와 이 사이트용');
+    expect(site?.compare?.label).toBe('교과서 그대로와 바로 실행 버전');
     expect(site?.compare?.others[0].anchor).toBe(byFile.get('esp32/u2/2-1-4-laser-rgb.py')?.anchor);
     expect(byFile.get('esp32/hw/uart2-rgb-text.py')?.compare?.others).toHaveLength(1);
     expect(byFile.get('vision/u3/3-1-4-hand-screenshot.py')?.compare?.id).toBe('hand-desktop');

@@ -234,6 +234,13 @@ for (const lab of [
       expect(new Set(tops).size, `세 단추의 위쪽 위치 ${tops.join(', ')}`).toBe(1);
       const select = await page.locator('[data-lab-example-select]').evaluate((element) => element.getBoundingClientRect().width);
       expect(select).toBeGreaterThanOrEqual(260);
+      // R3-005: 라벨 [예제]는 선택 상자 위에 있어 상자가 전체 폭을 쓰고, 고른 예제 이름 전체가 줄바꿈되어 아래에 보인다(선택 상자는 긴 이름을 자른다)
+      const label = await page.locator('.lab__examples-label').first().evaluate((element) => Math.round(element.getBoundingClientRect().bottom));
+      const selectTop = await page.locator('[data-lab-example-select]').evaluate((element) => Math.round(element.getBoundingClientRect().top));
+      expect(label, '라벨이 선택 상자 위에 있다').toBeLessThanOrEqual(selectTop);
+      const name = page.locator('[data-lab-example-name]');
+      await expect(name).toBeVisible();
+      expect((await name.textContent())?.trim().length ?? 0).toBeGreaterThan(0);
       await expectNoHorizontalOverflow(page, `${lab.name}(375px 조작 줄)`);
     });
 

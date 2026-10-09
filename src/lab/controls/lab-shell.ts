@@ -55,6 +55,7 @@ import { formatBytes, pyodidePrefetchBytesFor } from '../loader/pyodide-files.ts
 import { endLoadingIntro } from '../modules/loading/intro.ts';
 import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatus } from './autosave.ts';
 import { downloadTextFile } from './download.ts';
+import { exampleVersionNote } from './example-names.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
 import { isMostlyVisible, revealElement, revealTogether, stickyBarInset } from './reveal.ts';
@@ -242,6 +243,8 @@ interface ShellElements {
   stopButton: HTMLButtonElement;
   resetButton: HTMLButtonElement | null;
   exampleSelect: HTMLSelectElement | null;
+  /** 좁은 틀에서 고른 예제 이름 전체를 줄바꿈해 보이는 줄(선택 상자는 긴 이름을 잘라 보인다 — 판 1.3.0 검수 R3-005) */
+  exampleName: HTMLElement | null;
   exampleLoadButton: HTMLButtonElement | null;
   shareButton: HTMLButtonElement | null;
   downloadButton: HTMLButtonElement | null;
@@ -1016,6 +1019,7 @@ class LabShellController implements LabController {
     if (this.#elements.exampleSelect) {
       this.#elements.exampleSelect.value = example.id;
     }
+    this.#renderExampleName();
     this.#renderLessonLink();
     this.#renderExampleDescription();
     this.#emit('example', { example });
@@ -1294,6 +1298,21 @@ class LabShellController implements LabController {
     if (this.#elements.exampleLoadButton) {
       this.#elements.exampleLoadButton.disabled = empty;
     }
+    this.#renderExampleName();
+  }
+
+  /**
+   * 선택 상자에서 고른(아직 불러오기 전일 수도 있는) 예제의 이름 전체를 줄바꿈해 보인다.
+   * 휴대폰 폭에서는 선택 상자가 긴 이름을 중간에서 잘라 보였다(판 1.3.0 검수 R3-005). 화면에는 좁은 틀에서만 보이고(CSS),
+   * 선택 상자가 이미 같은 이름을 읽어 주므로 보조기기에는 숨긴다(aria-hidden).
+   */
+  #renderExampleName(): void {
+    const { exampleName, exampleSelect } = this.#elements;
+    if (!exampleName) {
+      return;
+    }
+    const selected = exampleSelect?.selectedOptions[0];
+    exampleName.textContent = exampleSelect && !exampleSelect.disabled && selected ? (selected.textContent ?? '').trim() : '';
   }
 
   /** "이 예제가 나오는 차시" 줄(예제에 lesson 값이 있을 때만) */
@@ -1318,7 +1337,9 @@ class LabShellController implements LabController {
     if (!box) {
       return;
     }
-    const description = this.#example?.description?.trim() ?? '';
+    // "바로 실행 버전"·"교과서 그대로" 이름이 붙은 예제는 두 판의 차이를 한 줄 덧붙인다(판 1.3.0 검수 R3-014)
+    const note = this.#example ? exampleVersionNote(this.#example.title) : '';
+    const description = [this.#example?.description?.trim() ?? '', note].filter((part) => part !== '').join(' ');
     box.textContent = description;
     box.hidden = description === '';
   }
@@ -1556,6 +1577,7 @@ class LabShellController implements LabController {
         this.reset();
       }
     });
+    listen(e.exampleSelect, 'change', () => this.#renderExampleName());
     listen(e.exampleLoadButton, 'click', () => {
       const id = e.exampleSelect?.value ?? '';
       if (!this.loadExample(id)) {
@@ -1753,6 +1775,7 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     stopButton,
     resetButton: query(root, '[data-lab-reset]'),
     exampleSelect: query(root, '[data-lab-example-select]'),
+    exampleName: query(root, '[data-lab-example-name]'),
     exampleLoadButton: query(root, '[data-lab-example-load]'),
     shareButton: query(root, '[data-lab-share]'),
     downloadButton: query(root, '[data-lab-download]'),

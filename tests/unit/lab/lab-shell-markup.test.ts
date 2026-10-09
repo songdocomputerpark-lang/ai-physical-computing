@@ -68,4 +68,8 @@ describe('코치 줄과 안내 글', () => {
     expect(markup).toContain('studentExampleTitle(example.title)');
     expect(markup).toContain('studentExampleTitle(group.label)');
   });
+
+  it('고른 예제 이름 전체를 보이는 줄이 선택 상자 바로 뒤에 있고, 선택 상자가 이미 읽어 주므로 보조기기에는 숨긴다(R3-005)', () => {
+    expect(markup).toContain('<span class="lab__example-name" data-lab-example-name aria-hidden="true"></span>');
+  });
 });

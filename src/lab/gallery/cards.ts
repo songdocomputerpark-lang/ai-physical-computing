@@ -25,6 +25,7 @@
  */
 import { getPage } from '../../config/nav.ts';
 import { readExampleMeta, type ExampleMeta } from '../controls/example-meta.ts';
+import { studentExampleTitle } from '../controls/example-names.ts';
 import type { ExampleSidecar } from '../controls/example-sidecar.ts';
 import type { LabExample } from '../controls/examples.ts';
 import { galleryFacetsOf, partIdsOf, type FacetSource, type GalleryFacets } from './facets.ts';
@@ -324,6 +325,8 @@ export function buildGallery(
     const keywords = normalizeKeywords(
       [
         example.title,
+        // 학생이 보는 이름("바로 실행 버전" 등)으로도 찾아지게 한다(R3-014)
+        studentExampleTitle(example.title),
         example.description ?? '',
         facets.tags.join(' '),
         parts.map((part) => partLabels[part] ?? part).join(' '),
@@ -340,7 +343,8 @@ export function buildGallery(
       labLabel: GALLERY_LAB_LABELS[input.lab],
       exampleId: example.id,
       file,
-      title: example.title,
+      // 카드 이름도 예제 선택 상자와 같은 학생 말로 쓴다 — "(이 사이트용)"의 뜻을 모르는 학생이 두 곳에서 다른 말을 보지 않게(판 1.3.0 검수 R3-014)
+      title: studentExampleTitle(example.title),
       description: example.description ?? null,
       group: example.group ?? GALLERY_LAB_LABELS[input.lab],
       sourceId: sidecar?.sourceId ?? null,

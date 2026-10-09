@@ -187,6 +187,8 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
             )
           }
         </select>
+        {/* 좁은 틀에서만 보이는 이름 전체 줄(R3-005) — 선택 상자가 이미 읽어 주므로 aria-hidden. 내용은 lab-shell.ts가 채운다. */}
+        <span class="lab__example-name" data-lab-example-name aria-hidden="true"></span>
       </div>
       <div class="lab__tools">
         <button type="button" class="lab-button" data-lab-example-load disabled={examples.length === 0}>예제 불러오기</button>
@@ -479,6 +481,23 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     width: 100%;
   }
 
+  /*
+   * 고른 예제 이름 전체(좁은 틀에서만 보임 — 아래 @container). 선택 상자는 한 줄이라 긴 이름("1-1-1 체험: 규칙대로 정렬하기와 예시에서 배워 묶기를 비교해요.")을
+   * 중간에서 잘라 보인다(native select라 줄바꿈이 안 된다 — 판 1.3.0 검수 R3-005). 넓은 틀에서는 선택 상자가 넓어 감춘다.
+   */
+  .lab__example-name {
+    display: none;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    overflow-wrap: anywhere;
+  }
+
+  .lab__example-name:empty {
+    display: none;
+  }
+
   /* hidden은 display: flex에 지므로 따로 적는다(블록 모드는 예제 고르기 줄을 숨긴다 — src/lab/blocks/mode-ui.ts, R1-109) */
   .lab__examples[hidden],
   :global(.lab-button[hidden]) {
@@ -530,15 +549,39 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
       padding-inline: var(--space-3);
     }
 
+    /*
+     * [실행]의 넓은 옆 여백(space-6, 아래 .button[data-lab-run])은 좁은 틀에서 줄인다 — 줄이지 않으면 휴대폰 320px 차시 안 실습실(틀 254px)에서
+     * 세 단추 합(275px)이 틀을 넘어 [초기화] 오른쪽 끝이 잘리고 실습실 안이 옆으로 밀렸다(판 1.3.0 검수 3바퀴 통합 확인).
+     */
     .lab__actions > :global(.button[data-lab-run]) {
       flex-grow: 1.6;
+      padding-inline: var(--space-4);
     }
 
+    /*
+     * 예제: 라벨을 선택 상자 위로 올려 선택 상자가 전체 폭을 쓰게 하고(옆에 두면 375px에서 272px), 고른 이름 전체를 아래에 줄바꿈해 보인다(R3-005).
+     * 세로 배치에서는 선택 상자의 flex-basis(8rem)가 높이가 되므로 flex: none으로 되돌린다.
+     */
     .lab__examples {
       flex: none;
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-1);
       max-width: none;
       padding-inline-start: 0;
       border-inline-start: 0;
+    }
+
+    .lab__examples-label {
+      min-height: 0;
+    }
+
+    .lab__examples > :global(.lab__select) {
+      flex: none;
+    }
+
+    .lab__example-name {
+      display: block;
     }
 
     .lab__tools {
@@ -548,6 +591,11 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
     .lab__tools > :global(.lab-button:not(.lab-button--quiet)) {
       padding-inline: var(--space-3);
+    }
+
+    /* 보조 단추(공유 링크·.py 내려받기)는 옆 여백을 줄여 [예제 불러오기]와 한 줄에 들어가게 한다(R3-005 — 375px에서 두 줄로 갈라졌다) */
+    .lab__tools > :global(.lab-button--quiet) {
+      padding-inline: var(--space-2);
     }
 
     .lab__bar > .lab__status {
