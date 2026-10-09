@@ -200,7 +200,7 @@ export const siteConfig = {
       /** 저장소의 라이선스 파일 */
       fileUrl: `${repositoryUrl}/blob/main/LICENSE`,
       appliesTo:
-        '사이트 소프트웨어(src/·scripts/·tests/와 사이트가 새로 쓴 소프트웨어, 컴포넌트 안에 코드로 그린 그림 포함)와 실습 예제 코드(examples/ — 교과서·수업 자료에서 옮긴 코드와 사이트판 포함, third-party/ 폴더의 다른 저작자 파일 제외)',
+        '사이트 소프트웨어(src/·scripts/·tests/와 사이트가 새로 쓴 소프트웨어, 컴포넌트 안에 코드로 그린 그림 포함)와 실습 예제 코드(examples/ — 교과서·수업 자료에서 옮긴 코드와 사이트판 포함, 다른 저작자 파일 제외)',
     },
     content: {
       spdx: 'CC-BY-NC-SA-4.0',

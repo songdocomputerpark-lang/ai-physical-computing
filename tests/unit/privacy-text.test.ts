@@ -31,6 +31,15 @@ describe('진도 개인정보 문장', () => {
     expect(PROGRESS_PRIVACY_NOTE).not.toContain('[');
   });
 
+  it('지우는 주체는 사람이다: "기록 지우기를 누르면 함께 지워져요"이고, 단추를 주어로 쓴 옛 문장이 어느 쪽에도 남지 않는다(R2-039)', () => {
+    expect(PROGRESS_PRIVACY_NOTE).toContain('기록 지우기를 누르면 함께 지워져요');
+    expect(PROGRESS_PRIVACY_NOTE).not.toContain('단추가 함께 지워요');
+    expect(PROGRESS_PRIVACY_NOTE).toContain('페이지 이름');
+    for (const [file] of PLACES) {
+      expect(read(file), file).not.toMatch(/단추가\s+(함께\s+)?지워요/u);
+    }
+  });
+
   it('네 곳이 모두 상수를 불러와 쓴다', () => {
     for (const [file, importPath] of PLACES) {
       const text = read(file);
@@ -45,7 +54,7 @@ describe('진도 개인정보 문장', () => {
       seen: ['u1/1-1-1'],
       done: [],
       last: { id: 'u1/1-1-1', href: '/x/', label: '1-1-1', title: '제목', at: 1, name: '아무개', score: 100 },
-      lastLab: { path: '/x/labs/vision/', title: '영상처리 실습실', at: 2, memo: '개인 메모' },
+      lastLab: { path: '/x/labs/vision/', title: '영상 처리 실습실', at: 2, memo: '개인 메모' },
       name: '아무개',
     });
     expect(Object.keys(state).sort()).toEqual(['done', 'last', 'lastLab', 'seen', 'version']);

@@ -115,9 +115,9 @@ test.describe('이 담당의 페이지', () => {
     for (const child of labs.children) {
       const plan = LAB_PLANS.find((candidate) => candidate.id === child.id);
       expect(plan, child.id).toBeDefined();
-      const card = cards.filter({ has: page.getByRole('heading', { level: 2, name: child.title }) });
+      const card = cards.filter({ has: page.getByRole('heading', { level: 3, name: child.title }) });
       await expect(card.getByRole('link', { name: child.title, exact: true })).toHaveAttribute('href', child.href);
-      // 실제 화면이 열린 실습실(_labs.ts의 open, 2026-09-16부터 영상처리)은 아무 표시 없이(판 1.3.0 — 다섯 장 모두의 "열림" 배지는 정보가 아니라서 뺐다) "준비 중"만 없고,
+      // 실제 화면이 열린 실습실(_labs.ts의 open, 2026-09-16부터 영상 처리)은 아무 표시 없이(판 1.3.0 — 다섯 장 모두의 "열림" 배지는 정보가 아니라서 뺐다) "준비 중"만 없고,
       // 나머지는 열리는 Phase를 보인다.
       if (plan?.open) {
         await expect(card).not.toContainText('준비 중');
@@ -127,12 +127,15 @@ test.describe('이 담당의 페이지', () => {
       }
       expect((await request.get(child.href)).status(), child.href).toBe(200);
     }
-    // 열린 실습실 이름을 쉼표로 이어 알린다(P2-03 영상처리, P3-01 ESP32, P4 통신·4단원 통합·갤러리). 아래 페이지까지 모두 열렸으면 "모두 열렸어요"(2026-09-24 Phase 4 통합).
+    // 열린 실습실 이름을 쉼표로 이어 알린다(P2-03 영상 처리, P3-01 ESP32, P4 통신·4단원 통합·갤러리). 아래 페이지까지 모두 열렸으면 "모두 열렸어요"(2026-09-24 Phase 4 통합).
     const openPlans = labs.children.map((child) => LAB_PLANS.find((candidate) => candidate.id === child.id));
     const openTitles = labs.children.filter((_child, index) => openPlans[index]?.open).map((child) => child.title);
     const allOpen = [...labs.children, ...labs.children.flatMap((child) => child.children)].every((child) => LAB_PLANS.find((candidate) => candidate.id === child.id)?.open);
-    await expect(page.locator('.labs-intro')).toContainText(
-      allOpen ? `실습실 ${koreanCountWord(labs.children.length)} 곳을 모두 쓸 수 있어요` : `${withParticle(openTitles.join(', '), '은/는')} 열렸어요`,
+    // R2-033: 안내 줄은 "모든 실습실" 제목 바로 아래에 있고, 갤러리를 실습실로 세지 않는다("실습실 네 곳과 예제 갤러리")
+    const roomCount = labs.children.filter((child) => child.id !== 'labs-gallery').length;
+    await expect(page.getByRole('heading', { level: 2, name: '모든 실습실' })).toBeVisible();
+    await expect(page.locator('.lab-cards__intro')).toContainText(
+      allOpen ? `실습실 ${koreanCountWord(roomCount)} 곳과 예제 갤러리를 모두 쓸 수 있어요` : `${withParticle(openTitles.join(', '), '은/는')} 열렸어요`,
     );
 
     const checkPage = getPage('labs-esp32-check');
@@ -207,7 +210,9 @@ test.describe('이 담당의 페이지', () => {
       repositoryFileUrl('CONTRIBUTING.md'),
     );
 
-    const thirdPartyLink = main.getByRole('link', { name: '제3자 권리 표기 자료 목록' });
+    // 판 1.3.0 R2-047: 학생이 읽는 글이라 "제3자 권리 표기 자료 목록"·"출처 등록부" 대신 "출처와 라이선스" 페이지로 한 줄 안내한다
+    await expect(main.getByRole('heading', { level: 2, name: `이슈 양식 ${ISSUE_TEMPLATES.length}가지` })).toBeVisible();
+    const thirdPartyLink = main.getByRole('link', { name: getPage('credits').title, exact: true });
     await expect(thirdPartyLink).toHaveAttribute('href', withBase('credits/#credits-third-party'));
     await thirdPartyLink.click();
     await expect(page.locator('#credits-third-party')).toBeVisible();
@@ -328,7 +333,7 @@ test.describe('실습실 밖 쪽의 안내 글·표시(2026-09-30 최종 점검 
     await expect(table).not.toContainText('생긴 뒤');
   });
 
-  test('설정: 영상처리 실습실에서 고른 카메라를 기억한다고 적고, 음성 방법을 고르는 곳은 칸 이름으로 가리킨다', async ({ page }) => {
+  test('설정: 영상 처리 실습실에서 고른 카메라를 기억한다고 적고, 음성 방법을 고르는 곳은 칸 이름으로 가리킨다', async ({ page }) => {
     await page.goto(getPage('settings').href);
     const main = page.getByRole('main');
     await expect(main).toContainText('고른 카메라');
@@ -356,7 +361,11 @@ test.describe('없는 주소(404)', () => {
       await expect(page.locator('main[data-pagefind-body]')).toHaveCount(0);
 
       const main = page.getByRole('main');
-      await expect(main.getByRole('link', { name: '첫 화면으로 가기' })).toHaveAttribute('href', withBase(''));
+      // R2-049: 빵부스러기·이름표와 같은 '홈'(첫 화면으로 가기가 아니다), 문제 해결은 카드로만 한 번
+      const linkList = main.locator('.link-list');
+      await expect(linkList.getByRole('link', { name: getPage('home').label, exact: true })).toHaveAttribute('href', withBase(''));
+      await expect(linkList.getByRole('link', { name: '첫 화면으로 가기' })).toHaveCount(0);
+      await expect(main.getByRole('link', { name: getPage('help').label, exact: true })).toHaveCount(1);
       await expect(main.getByRole('link', { name: getPage('search').title, exact: true })).toHaveAttribute('href', searchConfig.pageHref);
       for (const href of [withBase(''), searchConfig.pageHref, getPage('help').href, getPage('contribute').href]) {
         expect((await request.get(href)).status(), href).toBe(200);

@@ -88,7 +88,7 @@ const CHECK_ITEM_LIST: CheckItem[] = [
     label: 'JSPI(파이썬 기다리기 기능)',
     neededFor: '파이썬 코드가 카메라 화면이나 버튼 입력을 기다렸다가 이어서 실행하게 해 줘요.',
   },
-  { id: 'camera-api', label: '카메라 기능', neededFor: '영상처리 실습에서 웹캠을 켤 때 필요해요.' },
+  { id: 'camera-api', label: '카메라 기능', neededFor: '영상 처리 실습에서 웹캠을 켤 때 필요해요.' },
   { id: 'camera-device', label: '카메라 장치', neededFor: '웹캠이 연결되어 있는지 봐요. 허락을 묻는 창은 뜨지 않아요.' },
   { id: 'web-serial', label: 'Web Serial(USB 보드 연결)', neededFor: '실제 ESP32 보드를 USB 케이블로 연결할 때 필요해요.' },
   { id: 'web-bluetooth', label: 'Web Bluetooth(블루투스)', neededFor: '실제 보드와 블루투스로 신호를 주고받을 때 필요해요.' },
@@ -470,7 +470,7 @@ export function checkWebAssembly(env: CapabilityEnv): CheckResult {
       'webassembly',
       'unsupported',
       '이 브라우저에는 WebAssembly가 없어요.',
-      'Chrome이나 Edge 최신판으로 열어 주세요. 최신판에서도 같으면 학교나 기관의 보안 설정이 막았을 수 있으니 전산 담당자에게 이 결과를 보여 주세요.',
+      'Chrome이나 Edge 최신판으로 열어 주세요. 최신판에서도 같으면 학교나 기관의 보안 설정이 막았을 수 있으니 전산 담당 선생님께 이 결과를 보여 주세요.',
     );
   }
   try {
@@ -484,7 +484,7 @@ export function checkWebAssembly(env: CapabilityEnv): CheckResult {
       'webassembly',
       'unsupported',
       'WebAssembly가 있지만 실행이 막혀 있어요.',
-      '브라우저나 학교의 보안 설정이 WebAssembly를 막았을 수 있어요. 전산 담당자에게 이 결과를 보여 주세요.',
+      '브라우저나 학교의 보안 설정이 WebAssembly를 막았을 수 있어요. 전산 담당 선생님께 이 결과를 보여 주세요.',
     );
   }
   return makeResult('webassembly', 'supported', 'WebAssembly를 실행할 수 있어요.');

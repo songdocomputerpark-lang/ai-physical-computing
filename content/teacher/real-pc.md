@@ -20,11 +20,11 @@ checked: 2026-09-25
 | --- | --- | --- | --- |
 | 파이썬 | 3.10, 3.11, 3.12 가운데 하나 | 컴퓨터에서 도는 모든 예제 | PSF |
 | 토니(Thonny) | 4.1.7(파이썬 3.10이 함께 들어 있어요) | 코드를 쓰고 실행하기, 보드에 파일 저장하기 | MIT |
-| mediapipe | 0.10.21 | 손, 얼굴, 자세 인식(I단원, 3-1-2\~3-1-4, IV단원) | Apache-2.0 |
-| OpenCV(opencv-contrib-python), numpy | mediapipe를 설치하면 알맞은 판이 함께 설치돼요 | 카메라와 영상 처리(I단원 전체) | Apache-2.0, BSD |
+| mediapipe | 0.10.21 | 손, 얼굴, 자세 인식(1단원, 3-1-2\~3-1-4, 4단원) | Apache-2.0 |
+| OpenCV(opencv-contrib-python), numpy | mediapipe를 설치하면 알맞은 판이 함께 설치돼요 | 카메라와 영상 처리(1단원 전체) | Apache-2.0, BSD |
 | pyserial | 3.5 | 시리얼 통신(3-1-2) | BSD |
-| bleak | 3.0.2(원고 화면은 1.0.1) | 블루투스 통신(3-1-3, IV단원) | MIT |
-| PyAutoGUI | 0.9.54 | 마우스와 키보드 조작(보충 P1, 3-1-4, IV단원) | BSD |
+| bleak | 3.0.2(원고 화면은 1.0.1) | 블루투스 통신(3-1-3, 4단원) | MIT |
+| PyAutoGUI | 0.9.54 | 마우스와 키보드 조작(보충 P1, 3-1-4, 4단원) | BSD |
 | SpeechRecognition, PyAudio | 3.17.0, 0.2.14 | 음성 인식(1-4-3, 선택 차시) | BSD, MIT |
 | Pillow | 최신판 | 그림에 한글 쓰기(1-4-2) | MIT-CMU |
 
@@ -78,17 +78,17 @@ mediapipe 0.10.21은 OpenCV(opencv-contrib-python)와 2보다 낮은 판의 nump
 - 실습실에서 예제를 열고 <strong>[.py 내려받기]</strong>를 누르면 편집칸의 코드가 파일로 내려와요. 차시별 예제는 [예제 갤러리](/labs/gallery/)에서 찾을 수 있어요.
 - 이름 끝에 "사이트판"이 붙은 예제는 원본 코드 파일의 오류를 고친 판이에요(고친 줄 끝에 `# [사이트판]`). 진짜 PC에서도 그대로 돌아요. 원본 파일의 오류는 [교과서 원고 정정 목록](/teacher/corrections/#code-files)에 모았어요.
 - 코드 안의 `# @slider 0 255 1` 같은 표시는 실습실의 조절 막대를 만드는 주석이에요. 진짜 PC에서는 보통 주석이라 지우지 않아도 돼요.
-- 1-3-3 심화 예제가 읽는 `mask.png`는 교과서 자료에 없어요. 영상처리 실습실에서 그 예제를 [실행]하면 파일 목록에 사이트가 그린 `mask.png`가 보여요. [내려받기]로 받아 코드 파일과 같은 폴더에 두어요.
+- 1-3-3 심화 예제가 읽는 `mask.png`는 교과서 자료에 없어요. 영상 처리 실습실에서 그 예제를 [실행]하면 파일 목록에 사이트가 그린 `mask.png`가 보여요. [내려받기]로 받아 코드 파일과 같은 폴더에 두어요.
 - 1-4-2 심화 예제의 한글 글꼴 `C:/Windows/Fonts/malgun.ttf`(맑은 고딕)는 Windows에 들어 있어서 진짜 PC에서는 그대로 써요. 실습실은 이 글꼴 대신 사이트 글꼴(Pretendard)로 그려요.
 - 보충 C3의 컴퓨터 쪽 예제는 사이트 전용 `bridge` 모듈을 써서 진짜 PC에서는 돌지 않아요. 진짜 PC에서는 3-1-2처럼 pyserial로 보내요.
 
-## 4. 영상 인식 예제 돌리기(I단원)
+## 4. 영상 인식 예제 돌리기(1단원)
 
 - 웹캠이 있어야 해요. `cv2.VideoCapture(0)`의 0은 기본 웹캠이고, 외장 카메라를 달았으면 1이나 2로 바꿔 봐요(원고 198쪽).
 - 결과 창을 한 번 눌러 고른 뒤 q 키를 눌러야 끝나요. 키보드 입력은 선택된 창으로 가요.
 - 카메라가 켜졌는데 화면이 까맣다면 [카메라는 켜졌는데 화면이 까맣게만 보여요](/help/#camera-black)를 봐요.
 
-## 5. ESP32 보드를 토니로 쓰기(II단원)
+## 5. ESP32 보드를 토니로 쓰기(2단원)
 
 1. 보드를 USB 케이블로 컴퓨터에 이어요. 연결할 포트가 보이지 않으면 보드의 USB 칩에 맞는 :용어[드라이버]를 설치해요. CH340 계열은 [WCH 공식 드라이버](https://www.wch-ic.com/downloads/CH341SER_EXE.html), CP210x 계열은 [Silicon Labs 공식 드라이버](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers)예요. 원고 120쪽처럼 Windows가 스스로 설치하기도 해요. 자세한 확인 순서는 [보드 준비하기](/start/board/#port-not-found)에 있어요.
 2. 보드에 :용어[MicroPython] :용어[펌웨어]가 있어야 해요. 가장 쉬운 방법은 [보드 준비하기](/start/board/)의 펌웨어 굽기예요(브라우저에서 MicroPython v1.29.0을 구워요). 토니로 하려면 [도구]-[옵션]의 인터프리터 칸에서 "MicroPython (ESP32)"와 보드가 연결된 포트를 고른 뒤 "install or update MicroPython"을 눌러요. 원고 122쪽처럼 family는 ESP32, variant는 Espressif · ESP32 / WROOM을 골라요. 원고 화면의 판은 1.25.0이고, 사이트는 1.29.0으로 확인했어요.
@@ -102,14 +102,14 @@ mediapipe 0.10.21은 OpenCV(opencv-contrib-python)와 2보다 낮은 판의 nump
 | `gorillacell_dcmotors.py` | 팬 모터(2-2-3) |
 | `servo_library.py` | 서보모터(2-2-4) |
 | `mg90s_servo.py` | 서보모터(4-2-1, 4-2-2, 블루투스 수업 교안) |
-| `ESP32BLE.py` | 블루투스(3-1-3, IV단원, 보충 C3의 블루투스판) |
+| `ESP32BLE.py` | 블루투스(3-1-3, 4단원, 보충 C3의 블루투스판) |
 | `esp32_ble_util.py` | 블루투스(블루투스 수업 교안의 스마트폰 앱 예제 `ble-dabble-rgb.py`) |
 
 5. OLED(2-1-3)를 쓰려면 보드에 OLED 드라이버 파일이 있어야 하는데, 사이트는 이 파일을 아직 싣지 않아요. OLED 칩이 SSD1306이면 [micropython-lib의 ssd1306.py](https://github.com/micropython/micropython-lib/tree/master/micropython/drivers/display/ssd1306)(MIT)를 받아 보드에 저장해요. 원고 133쪽의 `sh1106.py`는 원래 출처를 확인하지 못해 사이트가 안내하지 않아요.
 6. 사이트 ESP32 실습실의 [실제 보드] 탭을 쓰면 토니 없이도 [실행]과 [보드에 저장]이 되고, 코드가 부르는 라이브러리 파일도 함께 올려 줘요(OLED 드라이버는 빼고).
 7. 토니와 사이트는 같은 보드 포트를 함께 쓸 수 없어요. 한쪽을 닫은 뒤 다른 쪽에서 연결해요.
 
-## 6. 통신 실습을 진짜 PC로 하기(III, IV단원)
+## 6. 통신 실습을 진짜 PC로 하기(3, 4단원)
 
 ### 시리얼 통신(3-1-2)
 
@@ -122,9 +122,9 @@ mediapipe 0.10.21은 OpenCV(opencv-contrib-python)와 2보다 낮은 판의 nump
 `boot.py`에 넣은 코드는 보드를 켤 때마다 돌아요. 다음 실습 전에는 보드의 `boot.py`를 지우거나 이름을 바꿔요. 사이트 ESP32 실습실의 [실제 보드] 탭에서 [boot.py 끄기]를 누르면 파일 이름을 `boot_off.py`로 바꿔 저절로 돌지 않게 해요(코드는 지워지지 않아요). 보드가 멈추지 않으면 [보드 되찾기]를 먼저 눌러요.
 :::
 
-### 블루투스 통신(3-1-3, IV단원)
+### 블루투스 통신(3-1-3, 4단원)
 
-1. 컴퓨터 쪽 코드는 `import bluetooth`로 PC용 블루투스 파일을 불러요. 저장소의 [examples/vision/lib/bluetooth.py](https://github.com/songdocomputerpark-lang/ai-physical-computing/blob/main/examples/vision/lib/bluetooth.py)를 받아 코드와 같은 폴더에 두어요(IV단원의 일부 예제는 같은 내용의 `bluetooth_lib.py`를 불러요). 이 파일은 bleak를 써요.
+1. 컴퓨터 쪽 코드는 `import bluetooth`로 PC용 블루투스 파일을 불러요. 저장소의 [examples/vision/lib/bluetooth.py](https://github.com/songdocomputerpark-lang/ai-physical-computing/blob/main/examples/vision/lib/bluetooth.py)를 받아 코드와 같은 폴더에 두어요(4단원의 일부 예제는 같은 내용의 `bluetooth_lib.py`를 불러요). 이 파일은 bleak를 써요.
 2. 보드에 `ESP32BLE.py`를 저장하고 보드 코드를 실행하면 콘솔에 "ESP32 블루투스 주소:"와 주소가 나와요. 그 주소를 컴퓨터 쪽 코드의 `bluetooth.init('…')` 자리에 붙여 넣어요(원고 197\~198쪽).
 3. 컴퓨터 쪽 코드는 "Local Python 3"에서 실행해요(원고 200쪽).
 
@@ -132,7 +132,7 @@ mediapipe 0.10.21은 OpenCV(opencv-contrib-python)와 2보다 낮은 판의 nump
 블루투스 기기 주소는 보드마다 다른 고유 번호예요. 과제 파일이나 게시판에 그대로 올리지 않고, 예시에는 `XX:XX:XX:XX:XX:XX`처럼 가려 적어요. 사이트는 브라우저가 주소로 연결하지 않아서 광고 이름(예: `ESP32-07`)으로 보드를 골라요. 보드 이름에는 학생 이름이나 학번 대신 자리 번호를 붙여요.
 :::
 
-### PyAutoGUI(보충 P1, 3-1-4, IV단원)
+### PyAutoGUI(보충 P1, 3-1-4, 4단원)
 
 - 진짜 마우스와 키보드가 움직여요. 코드가 도는 동안에는 마우스를 쓰기 어려우니, 멈추는 방법을 먼저 알려 주고 실행해요. 마우스를 화면 모서리로 힘껏 밀면(네 모서리 어디든 되고, 보통 왼쪽 위) 안전장치(FAILSAFE)가 코드를 멈춰요.
 - 내 코드 파일 이름을 `pyautogui.py`로 짓지 않아요. 파이썬이 설치된 PyAutoGUI 대신 내 파일을 불러와 오류가 나요.

@@ -214,7 +214,7 @@ test.describe('머리글 주 메뉴 — 좁은 화면 동작', () => {
       const box = await link.boundingBox();
       expect(box?.height ?? 0, item.label).toBeGreaterThanOrEqual(44);
     }
-    for (const label of ['학생용', '보드 준비', '영상처리 실습실', '파이썬 오류 사전']) {
+    for (const label of ['학생용', '보드 준비', '영상 처리 실습실', '파이썬 오류 사전']) {
       const box = await nav.getByRole('link', { name: label, exact: true }).boundingBox();
       expect(box?.height ?? 0, label).toBeGreaterThanOrEqual(44);
     }

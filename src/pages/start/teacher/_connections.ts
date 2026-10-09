@@ -97,7 +97,7 @@ export const connections: readonly Connection[] = [
   brokerConnection(),
   {
     where: '브라우저의 서버 음성 인식(선택 차시)',
-    when: '선택 차시 "말을 글로 바꾸는 기술"에서, 교사가 설정을 켠 브라우저로 학생이 고를 때만(기본은 꺼짐)',
+    when: '선택 차시 "말을 글로 바꾸는 기술"에서, 선생님이 설정을 켠 브라우저로 학생이 고를 때만(기본은 꺼짐)',
     what: '마이크로 말한 음성. Chrome 같은 일부 브라우저는 음성을 서버로 보내 글자로 바꿔요.',
     who: '브라우저 회사(예: Chrome은 Google)',
     links: [

@@ -62,7 +62,7 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
         learnUnits.map((unit) => (
           <li>
             <a class="guide-jumps__link" href={`#guide-unit-u${unit.unit}`}>
-              {unit.numeral}단원 <span class="guide-jumps__count">차시 {(byUnit.get(unit.unit) ?? []).length}개</span>
+              {unit.unit}단원 <span class="guide-jumps__count">차시 {(byUnit.get(unit.unit) ?? []).length}개</span>
             </a>
           </li>
         ))
@@ -81,7 +81,7 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
 
   <div class="prose">
     <p>
-      차시 페이지 맨 아래의 교사용 칸(접혀 있는 안내)을 빌드할 때 모아 만든 목록이에요. 지금 차시는 {counts.all}개예요.{' '}
+      각 차시 페이지 맨 아래 교사용 칸(접혀 있는 안내)의 내용을 한곳에 모은 목록이에요. 지금 차시는 {counts.all}개예요.{' '}
       {`교과서 원고를 옮긴 차시 ${counts.manuscript}개, 원고 없이 예제 코드를 바탕으로 사이트가 쓴 차시 ${counts.noManuscript}개, 교과서에 없어 사이트가 새로 쓴 차시 ${counts.supplement}개예요.`}
     </p>
     <p>

@@ -324,3 +324,42 @@ test.describe('용어사전 거르기 보강(R1-059~062)', () => {
     await expect(first).toHaveAccessibleName(/^\S+ \(낱말 \d+개\)$/u);
   });
 });
+
+// ── 판 1.3.0 검수 R2-040·R1-062 ──
+test.describe('용어사전 거르기 차례와 올라가기 단추(R2-040·R1-062)', () => {
+  test('제목이 같은 낱말이 풀이에만 들어 있는 낱말보다 앞에 서고, Enter가 그 낱말로 간다', async ({ page }) => {
+    await page.goto('./glossary/');
+    const input = page.getByRole('searchbox', { name: '낱말로 찾기' });
+    await input.fill('센서');
+    const visible = page.locator('[data-glossary-item]:not([hidden])');
+    expect(await visible.count()).toBeGreaterThan(1);
+    // 제목이 "센서"인 항목이 첫째다(풀이에 "센서"가 들어 있을 뿐인 항목은 뒤로 간다)
+    await expect(visible.first().locator('.glossary-entry__title')).toContainText(/^\s*센서/u);
+    await expect(page.locator('[data-glossary-find-count]')).toContainText('가장 알맞은 낱말');
+    // 눈에 보이는 차례 = 문서 차례 = Tab 차례: 결과가 거르기 칸 바로 아래 결과 자리에 모인다
+    expect(await page.locator('[data-glossary-results] > [data-glossary-item]:not([hidden])').count()).toBe(await visible.count());
+    await input.press('Enter');
+    await expect(visible.first()).toBeFocused();
+    // 비우면 항목이 원래 묶음의 제자리(가나다 차례)로 돌아간다
+    await input.fill('');
+    await expect(page.locator('[data-glossary-results] > *')).toHaveCount(0);
+    const order = await page.evaluate(() => [...document.querySelectorAll('[data-glossary-group] [data-glossary-item] h3')].map((h) => h.id));
+    expect(order.length).toBeGreaterThan(20);
+    expect(order).toContain('pixel');
+  });
+
+  test('쪽을 내려가면 "색인으로 올라가기"가 보이고, 누르면 색인으로 돌아가며, 색인이 보이면 숨는다', async ({ page }) => {
+    await page.goto('./glossary/');
+    const top = page.getByRole('link', { name: '색인으로 올라가기' });
+    await expect(top).toBeHidden();
+    await page.locator('[data-glossary-group]').nth(3).scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+    await expect(top).toBeVisible();
+    const box = await top.boundingBox();
+    expect(box && box.height >= 44).toBe(true);
+    await top.click();
+    await expect(page.locator('#glossary-index-title')).toBeInViewport();
+    await expect(top).toBeHidden();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+  });
+});

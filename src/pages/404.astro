@@ -86,9 +86,8 @@ const routes = [getPage('start'), getPage('learn'), getPage('labs'), help];
   <section class="not-found" aria-labelledby="not-found-links-title">
     <h2 id="not-found-links-title">이런 곳으로 가 보세요</h2>
     <ul class="link-list">
-      <li><a href={home.href}>첫 화면으로 가기</a></li>
+      <li><a href={home.href}>{home.label}</a></li>
       <li><a href={search.href}>{search.title}</a></li>
-      <li><a href={help.href}>{help.title}</a></li>
       <li><a href={contribute.href}>고장 난 링크 알리기({contribute.title})</a></li>
     </ul>
   </section>

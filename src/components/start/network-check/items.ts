@@ -46,7 +46,7 @@ const MQTT_ITEMS: readonly NetworkCheckItem[] = MQTT_BROKERS.filter((broker) => 
   display: broker.url,
   websocket: { url: broker.url, protocols: ['mqtt'] },
   advice:
-    '학교망이 이 주소(포트)의 WebSocket을 막았을 수 있어요. 통신 실습은 인터넷 없이 되는 "같은 컴퓨터 탭" 통로로 끝까지 할 수 있어요. 공개 중계 서버가 꼭 필요하면 학교 전산 담당자에게 이 주소를 열어 달라고 신청해요.',
+    '학교망이 이 주소(포트)의 WebSocket을 막았을 수 있어요. 통신 실습은 인터넷 없이 되는 "같은 컴퓨터 탭" 통로로 끝까지 할 수 있어요. 공개 중계 서버가 꼭 필요하면 전산 담당 선생님께 이 주소를 열어 달라고 신청해요.',
 }));
 
 export const NETWORK_CHECK_ITEMS: readonly NetworkCheckItem[] = Object.freeze([
@@ -64,7 +64,7 @@ export const NETWORK_CHECK_ITEMS: readonly NetworkCheckItem[] = Object.freeze([
     why: 'jsDelivr가 막혔을 때 이 사이트에 함께 올려 둔 같은 파일을 대신 받아요.',
     display: `${PYODIDE_SITE_INDEX_PATH}pyodide.mjs`,
     path: `${PYODIDE_SITE_INDEX_PATH}pyodide.mjs`,
-    advice: '이 사이트 자체가 막혀 있을 수 있어요. 주소창의 사이트 주소를 학교 전산 담당자에게 알려 열어 달라고 신청해 주세요.',
+    advice: '이 사이트 자체가 막혀 있을 수 있어요. 주소창의 사이트 주소를 전산 담당 선생님께 알려 열어 달라고 신청해 주세요.',
   },
   {
     id: 'mediapipe-wasm',
@@ -72,7 +72,7 @@ export const NETWORK_CHECK_ITEMS: readonly NetworkCheckItem[] = Object.freeze([
     why: '손·얼굴·자세 인식 실습에서 쓰는 계산 파일이에요. 이 사이트에서 받아요.',
     display: withBase('vendor/mediapipe/0.10.35/wasm/vision_wasm_internal.js'),
     path: withBase('vendor/mediapipe/0.10.35/wasm/vision_wasm_internal.js'),
-    advice: '사이트 안 파일이라 사이트가 열리면 보통 함께 열려요. 막히면 학교 전산 담당자에게 알려 주세요.',
+    advice: '사이트 안 파일이라 사이트가 열리면 보통 함께 열려요. 막히면 전산 담당 선생님께 알려 주세요.',
   },
   ...MQTT_ITEMS,
 ]);

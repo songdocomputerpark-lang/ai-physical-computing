@@ -264,7 +264,11 @@ test.describe('브라우저 권장 환경 안내', () => {
     await page.goto(getPage('start-student').href);
     const notice = page.locator('[data-browser-notice]');
     await expect(notice).toBeVisible();
-    await expect(notice).toContainText('실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요');
+    // R2-002: 휴대폰에서는 "컴퓨터의 Chrome·Edge" 한 가지 말만 하지 않고 이 기기 사정(읽기는 잘 되고 실습은 컴퓨터)을 말한다
+    await expect(notice).toHaveAttribute('data-device', 'phone');
+    await expect(notice).toContainText('휴대폰에서는 읽기가 가장 잘 돼요. 실습은 컴퓨터에서 해 주세요');
+    // 컴퓨터용 제목은 마크업에 함께 있지만(hidden) 보이지 않는다 — textContent가 아니라 보이는지로 본다
+    await expect(notice.getByText('실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요', { exact: true })).toBeHidden();
     // 휴대폰에서는 링크가 접힌 [자세히 보기] 안에 있다(R1-098) — 숨은 채로도 주소를 본다
     await expect(notice.getByRole('link', { name: '내 컴퓨터 점검 열기', includeHidden: true })).toHaveAttribute(
       'href',
@@ -402,14 +406,14 @@ test.describe('시작하기 새 모양(판 1.3.0)', () => {
     await expect(page.locator('[data-student-step="camera"]')).toHaveAttribute('data-done', '', { timeout: 10_000 });
   });
 
-  test('학생용: 영상처리 실습실을 연 적이 있으면(학습 진도의 마지막 실습실) ③에 "끝"이 붙는다', async ({ page }) => {
+  test('학생용: 영상 처리 실습실을 연 적이 있으면(학습 진도의 마지막 실습실) ③에 "끝"이 붙는다', async ({ page }) => {
     await page.goto(getPage('start-student').href);
     await expect(page.locator('[data-student-step="lab"]')).not.toHaveAttribute('data-done', '');
     await page.evaluate(
       ([key, path]) => {
         localStorage.setItem(
           key as string,
-          JSON.stringify({ version: 1, seen: [], done: [], last: null, lastLab: { path, title: '영상처리 실습실', at: 1700000000000 } }),
+          JSON.stringify({ version: 1, seen: [], done: [], last: null, lastLab: { path, title: '영상 처리 실습실', at: 1700000000000 } }),
         );
         window.dispatchEvent(new StorageEvent('storage', { key: key as string }));
       },

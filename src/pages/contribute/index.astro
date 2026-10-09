@@ -3,6 +3,8 @@
  * 기여·문의(PLAN §2.1 /contribute/, §8.1 P1-10) — GitHub Issues 안내, 이슈 양식(목록은 ./_issue-templates.ts), 개인정보 제보 방법, 기여물과 사이트의 라이선스.
  * 이슈 양식 이름·파일은 ./_issue-templates.ts, 라이선스 문구는 src/config/site.ts에서 온다.
  *
+ * 판 1.3.0 검수 R2-047: 학생이 읽는 글이라 소제목은 단추 이름과 같은 "이슈 양식"으로 맞추고, 라이선스 자세한 내용은 "출처와 라이선스" 페이지로 한 줄 안내한다(내부 파일 이름은 풀이 없이 쓰지 않는다).
+ *
  * 개인정보 제보를 공개 이슈로 받되 "위치만" 적게 하는 이유: 이 저장소에는 비공개로 받는 창구가 없다.
  * GitHub의 비공개 보고(private vulnerability reporting)는 꺼져 있고(2026-09-16 API 확인) 보안 취약점 신고용이다(GitHub 공식 문서).
  * GitHub 계정 나이 기준(13세 이상)은 GitHub Terms of Service B.3에서 확인했다(2026-09-16).
@@ -42,7 +44,7 @@ const { content, software, exclusion } = siteConfig.license;
     </section>
 
     <section aria-labelledby="contribute-templates">
-      <h2 id="contribute-templates">알림 양식 {ISSUE_TEMPLATES.length}가지</h2>
+      <h2 id="contribute-templates">이슈 양식 {ISSUE_TEMPLATES.length}가지</h2>
       <p>양식에 맞춰 쓰면 무엇을 고쳐야 하는지 빨리 알 수 있어요.</p>
       <ul class="template-list">
         {
@@ -102,9 +104,7 @@ const { content, software, exclusion } = siteConfig.license;
         </div>
       </div>
       <p>
-        {exclusion} 이런 자료는 출처 등록부(sources.yaml)에 하나씩 적혀 있고,{' '}
-        <a href={withBase('credits/#credits-third-party')}>제3자 권리 표기 자료 목록</a>과{' '}
-        <a href={creditsPage.href}>{creditsPage.title}</a> 페이지에서 확인할 수 있어요.
+        {exclusion} 어떤 자료가 그런지는 <a href={withBase('credits/#credits-third-party')}>{creditsPage.title}</a> 페이지에서 자세히 볼 수 있어요.
       </p>
     </section>
   </div>

@@ -28,7 +28,7 @@ export const ISSUE_TEMPLATES: readonly IssueTemplateLink[] = Object.freeze([
   {
     file: '1-lab-error.yml',
     name: '실습실·사이트 오류 알리기',
-    when: '실습실이 열리지 않거나, [실행]·보드 연결·버튼이 생각대로 움직이지 않을 때',
+    when: '실습실이 열리지 않거나, [실행]·보드 연결·단추가 생각대로 움직이지 않을 때',
   },
   {
     file: '2-lesson-error.yml',

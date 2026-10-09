@@ -106,6 +106,9 @@ group: 영상 처리             # 묶음 이름
     </Callout>
   </section>
 
+  {/* 거른 결과가 알맞은 차례(제목 일치 → 영어·다른 이름 일치 → 풀이 일치)로 모이는 자리. 거르지 않을 때는 비어 있고 숨어 있다(R2-040) */}
+  <div class="glossary-results" data-glossary-results hidden data-pagefind-ignore></div>
+
   {/* 묶음 머리(h2 "U"·"숫자·기호" 등)는 검색 색인에서 뺀다(data-pagefind-ignore — 기본값 "index": 글자만 색인에서 빠지고 id·aria-labelledby·
        색인 링크는 그대로, https://pagefind.app/docs/indexing/). id가 있는 제목이라 Pagefind가 항목 결과(sub_result)로 내서, 검색어 uasyncio가
        "U — 용어사전"으로, 숫자가 "숫자·기호"로 이어졌다(2026-10-02 최종 전수 점검 3바퀴 ST3-02). 고르는 규칙에서도 뺀다
@@ -142,12 +145,19 @@ group: 영상 처리             # 묶음 이름
       </p>
     </Callout>
   </div>
+
+  {/* 긴 쪽에서 어디서든 한 번에 색인으로 돌아오는 단추(R1-062). 쪽 끝에 놓여 있어 화면 아래에 붙어 따라오고, 색인(거르는 중에는 찾기 칸)이 보이는 동안은 숨는다. 자바스크립트가 없으면 늘 보인다. */}
+  <p class="glossary-top" data-glossary-top data-pagefind-ignore>
+    <a class="glossary-top__link" href="#glossary-index-title" data-glossary-top-link>색인으로 올라가기</a>
+  </p>
 </BaseLayout>
 
 <script>
   /**
-   * "낱말 거르기": 입력하면 맞는 낱말만 남긴다. 낱말이 하나도 안 남은 묶음은 접고, 거르는 동안에는 색인(가나다·ABC)도 접는다.
-   * 주소의 #낱말로 온 경우는 건드리지 않는다(입력이 비어 있으면 아무것도 숨기지 않는다).
+   * "낱말 거르기": 입력하면 맞는 낱말만 남긴다. 거르는 동안에는 색인(가나다·ABC)과 묶음을 접고,
+   * 맞는 낱말을 알맞은 차례(제목 일치 → 영어·다른 이름 일치 → 풀이 일치)로 한 줄에 세워 첫 낱말이 가장 알맞은 낱말이게 한다(R2-040).
+   * 눈에 보이는 차례와 Tab 차례가 같도록 낱말 칸 자체를 결과 자리로 옮기고, 입력을 지우면 제자리로 돌려놓는다.
+   * 주소의 #낱말로 온 경우는 건드리지 않는다(입력이 비어 있으면 아무것도 숨기지 않고 옮기지도 않는다).
    */
   const normalize = (text: string): string => text.toLowerCase().replace(/\s+/gu, '');
   const finder = document.querySelector<HTMLElement>('[data-glossary-find]');
@@ -155,14 +165,41 @@ group: 영상 처리             # 묶음 이름
   const count = document.querySelector<HTMLElement>('[data-glossary-find-count]');
   const index = document.querySelector<HTMLElement>('[data-glossary-index]');
   const how = document.querySelector<HTMLElement>('[data-glossary-how]');
+  const results = document.querySelector<HTMLElement>('[data-glossary-results]');
+  const topLink = document.querySelector<HTMLElement>('[data-glossary-top]');
+  const topAnchor = document.querySelector<HTMLAnchorElement>('[data-glossary-top-link]');
   const items = [...document.querySelectorAll<HTMLElement>('[data-glossary-item]')];
   const groups = [...document.querySelectorAll<HTMLElement>('[data-glossary-group]')];
-  if (finder && input && count && items.length > 0) {
+  if (finder && input && count && results && items.length > 0) {
     finder.hidden = false;
     const total = items.length;
     const texts = new Map(items.map((item) => [item, normalize(item.dataset.glossarySearch ?? '')]));
     /** 낱말 하나하나(표제어·영어 이름·다른 이름·풀이의 낱말) — 오타 한 글자를 봐 줄 때 쓴다 */
     const words = new Map(items.map((item) => [item, (item.dataset.glossarySearch ?? '').toLowerCase().split(/[^0-9a-z가-힣]+/u).filter((word) => word.length >= 2)]));
+    const titles = new Map(items.map((item) => [item, normalize(item.dataset.glossaryTitle ?? '')]));
+    const names = new Map(items.map((item) => [item, (item.dataset.glossaryNames ?? '').split('|').map(normalize).filter((name) => name !== '')]));
+    /** 알맞은 정도(작을수록 앞): 제목 일치 0, 영어·다른 이름 일치 1, 제목 시작 2, 이름 시작 3, 제목·이름에 들어 있음 4, 풀이·묶음에만 들어 있음 5 */
+    const rankOf = (item: HTMLElement, query: string): number => {
+      const title = titles.get(item) ?? '';
+      const others = names.get(item) ?? [];
+      if (title === query) return 0;
+      if (others.includes(query)) return 1;
+      if (title.startsWith(query)) return 2;
+      if (others.some((name) => name.startsWith(query))) return 3;
+      if (title.includes(query) || others.some((name) => name.includes(query))) return 4;
+      return 5;
+    };
+    /** 낱말이 원래 있던 묶음 안의 자리(그 묶음의 "색인으로 돌아가기" 줄 바로 앞) */
+    const homes = new Map(items.map((item) => [item, { parent: item.parentElement, before: item.parentElement?.querySelector(':scope > .glossary-group__back') ?? null }]));
+    let moved = false;
+    const putBack = () => {
+      if (!moved) return;
+      for (const item of items) {
+        const home = homes.get(item);
+        if (home?.parent) home.parent.insertBefore(item, home.before);
+      }
+      moved = false;
+    };
     const distanceWithinOne = (a: string, b: string): boolean => {
       if (Math.abs(a.length - b.length) > 1) return false;
       let i = 0;
@@ -170,6 +207,23 @@ group: 영상 처리             # 묶음 이름
       if (i === a.length && i === b.length) return true;
       if (a.length === b.length) return a.slice(i + 1) === b.slice(i + 1);
       return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+    };
+    // 색인(거르는 중에는 찾기 칸)이 화면에 보이는 동안은 "올라가기" 단추를 숨긴다. 숨은 단추는 Tab 차례에서도 빠진다.
+    const watcher =
+      topLink && 'IntersectionObserver' in window
+        ? new IntersectionObserver((entries) => {
+            const last = entries[entries.length - 1];
+            if (last) topLink.hidden = last.isIntersecting;
+          })
+        : null;
+    // 색인이 처음부터 보이니 처음에는 숨겨 두고, 관찰이 시작되면 보임 여부가 정한다
+    if (watcher && topLink) topLink.hidden = true;
+    let watched: HTMLElement | null = null;
+    const watchTarget = (target: HTMLElement | null) => {
+      if (!watcher || !topLink || !target || target === watched) return;
+      watcher.disconnect();
+      watcher.observe(target);
+      watched = target;
     };
     const apply = () => {
       const query = normalize(input.value);
@@ -180,12 +234,21 @@ group: 영상 처리             # 묶음 이름
         hits = new Set(items.filter((item) => (words.get(item) ?? []).some((word) => distanceWithinOne(query, word))));
         typo = hits.size > 0;
       }
+      putBack();
       let shown = 0;
       for (const item of items) {
         const match = hits.has(item);
         item.hidden = !match;
         if (match) shown += 1;
       }
+      // 거르는 중이면 맞는 낱말을 알맞은 차례로 결과 자리에 모은다(같은 점수면 가나다 차례를 그대로 둔다)
+      if (query !== '' && shown > 0) {
+        const ranked = items.filter((item) => hits.has(item)).map((item, order) => ({ item, order, rank: typo ? 0 : rankOf(item, query) }));
+        ranked.sort((a, b) => a.rank - b.rank || a.order - b.order);
+        for (const { item } of ranked) results.append(item);
+        moved = true;
+      }
+      results.hidden = !moved;
       for (const group of groups) {
         group.hidden = query !== '' && group.querySelector('[data-glossary-item]:not([hidden])') === null;
       }
@@ -199,19 +262,26 @@ group: 영상 처리             # 묶음 이름
           : shown === 0
             ? '맞는 낱말이 없어요. 다른 낱말로 찾아보거나 위 검색칸을 써 봐요.'
             : typo
-              ? `"${input.value.trim()}"와 비슷한 낱말 ${shown}개를 찾았어요. Enter 키를 누르면 첫 낱말로 가요.`
-              : `${total}개 가운데 ${shown}개를 찾았어요. Enter 키를 누르면 첫 낱말로 가요.`;
+              ? `"${input.value.trim()}"와 비슷한 낱말 ${shown}개를 찾았어요. Enter 키를 누르면 가장 알맞은 낱말로 가요.`
+              : `${total}개 가운데 ${shown}개를 찾았어요. Enter 키를 누르면 가장 알맞은 낱말로 가요.`;
+      watchTarget(query === '' ? index : finder);
+      if (topAnchor) {
+        topAnchor.href = query === '' ? '#glossary-index-title' : '#glossary-find-input';
+        topAnchor.textContent = query === '' ? '색인으로 올라가기' : '찾기 칸으로 올라가기';
+      }
     };
     input.addEventListener('input', apply);
     // Enter·아래 화살표: 첫 결과로 간다(결과가 칸 바로 아래에 있지만 눈으로 보지 않는 사람도 한 번에 옮겨 가게)
     input.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== 'ArrowDown') return;
-      const first = items.find((item) => !item.hidden);
+      // 결과 자리의 첫 낱말 = 가장 알맞은 낱말(눈에 보이는 첫 줄이자 다음 Tab이 닿는 곳)
+      const first = results.querySelector<HTMLElement>('[data-glossary-item]:not([hidden])');
       if (!first || normalize(input.value) === '') return;
       event.preventDefault();
       first.tabIndex = -1;
       first.focus();
     });
+    watchTarget(index);
     // 주소의 ?q=(검색 결과의 "용어사전에서 더 보기" 같은 링크)로 칸을 미리 채운다
     const asked = new URLSearchParams(window.location.search).get('q');
     if (asked !== null && asked.trim() !== '') {
@@ -234,6 +304,8 @@ group: 영상 처리             # 묶음 이름
   }
 
   .glossary-find[hidden],
+  .glossary-results[hidden],
+  .glossary-top[hidden],
   .glossary-index[hidden],
   .glossary-how[hidden],
   .glossary-group[hidden],
@@ -264,6 +336,50 @@ group: 영상 처리             # 묶음 이름
 
   .glossary-how {
     margin-block-start: var(--space-10);
+  }
+
+  /* 거른 결과 자리: 거르기 칸 바로 아래에서 시작한다 */
+  .glossary-results {
+    margin-block-start: var(--space-6);
+  }
+
+  /* 쪽 끝에 놓인 채 화면 아래에 붙어 따라오는 "올라가기" 단추. 거르기 칸·색인과 겹치지 않고(그 둘이 보이면 숨는다), 누르는 곳은 44px 이상이다. */
+  .glossary-top {
+    position: sticky;
+    inset-block-end: var(--space-4);
+    inline-size: fit-content;
+    margin-block: var(--space-6) 0;
+    margin-inline-start: auto;
+  }
+
+  .glossary-top__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    padding-inline: var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .glossary-top__link:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+  }
+
+  /* 단추가 붙어 있어도 Tab으로 닿은 낱말이 단추 뒤에 가려지지 않게 아래 여백을 둔다 */
+  :global(html) {
+    scroll-padding-block-end: 4.5rem;
+  }
+
+  @media print {
+    .glossary-top {
+      display: none;
+    }
   }
 
   .glossary-heading {

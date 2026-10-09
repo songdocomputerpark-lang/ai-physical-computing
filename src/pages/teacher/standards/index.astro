@@ -102,12 +102,13 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
         교육과정을 따른다는 것은 운영자가 확인했어요. 성취기준 문장은 사이트가 줄인 요약이라 "(사이트 요약)"을 붙였고, 원문은 게시물에서 봐요.
       </p>
       <p>
-        차시와 성취기준의 연결은 사이트가 붙였어요. 차시 페이지 머리의 뱃지와 교사용 칸의 "{STANDARDS_LABEL}" 줄이 같은 표를 따라요. 게시물은 문서 보기로
+        차시와 성취기준의 연결은 사이트가 붙였어요. 차시 페이지 머리의 배지와 교사용 칸의 "{STANDARDS_LABEL}" 줄이 같은 표를 따라요. 게시물은 문서 보기로
         읽었고 원문 파일(hwp)과 글자를 맞춰 보지는 않았어요.
       </p>
     </Callout>
 
     <h2 id="course">과목 정보</h2>
+    <p>출처를 따로 적지 않은 줄은 <a href={CURRICULUM_SOURCE.url}>인천광역시교육청 게시물</a>에서 가져왔어요.</p>
   </div>
   <dl class="course-facts" data-course-facts>
     {
@@ -117,7 +118,13 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
           <div class="course-facts__item">
             <dt>{fact.label}</dt>
             <dd>
-              <Fragment set:html={formatInline(fact.value)} /> <a class="course-facts__source" href={link.href}>({link.text})</a>
+              <Fragment set:html={formatInline(fact.value)} />
+              {fact.source !== 'curriculum' && (
+                <>
+                  {' '}
+                  <a class="course-facts__source" href={link.href}>({link.text})</a>
+                </>
+              )}
             </dd>
           </div>
         );
@@ -144,7 +151,7 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
           href="#genai">생성형 AI 활용 탐구 과제</a>).
       </li>
       <li>
-        프로젝트 과정의 비중은 {project ? <a href={project.summary.href}>IV단원 프로젝트 안내</a> : 'IV단원 프로젝트 안내'}의 단계별 기록(관찰 기록, 역할표,
+        프로젝트 과정의 비중은 {project ? <a href={project.summary.href}>4단원 프로젝트 안내</a> : '4단원 프로젝트 안내'}의 단계별 기록(관찰 기록, 역할표,
         시험 기록표, 점검표)으로 채울 수 있어요. 교사용 칸에 채점 기준 예시가 있어요.
       </li>
     </ul>
@@ -166,7 +173,7 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
   <div class="prose">
     <h2 id="standards">성취기준과 차시</h2>
     <p>
-      네 영역은 교과서의 I~IV단원과 이름이 같아요. "이어지는 차시"는 차시 md의 성취기준 칸에서 저절로 모아요. "평가할 때 볼 것"과 "모을 자료"는 차시
+      네 영역은 교과서의 1~4단원과 짝이에요. 영역 이름은 교육청 원문 표기대로 적어서 단원 이름과 띄어쓰기가 조금 달라요(예: 피지컬컴퓨팅, 피지컬 컴퓨팅). "이어지는 차시"는 각 차시의 성취기준 칸에서 자동으로 모은 것이에요. "평가할 때 볼 것"과 "모을 자료"는 차시
       교사용 칸의 평가 포인트를 바탕으로 사이트가 제안하는 글이니, 학교의 평가 계획에 맞게 고쳐 써요.
     </p>
   </div>
@@ -329,7 +336,7 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
       }
     </ul>
     <p>
-      과정 중심 평가(수행평가)는 차시마다 도전 과제 기록과 자기 평가로 모으고, 프로젝트 과정의 비중(30% 이상)은 IV단원 프로젝트 안내의 단계별 기록으로 채워요. 학교에서
+      과정 중심 평가(수행평가)는 차시마다 도전 과제 기록과 자기 평가로 모으고, 프로젝트 과정의 비중(30% 이상)은 4단원 프로젝트 안내의 단계별 기록으로 채워요. 학교에서
       쓰던 평가 계획서와 운영 계획서 서식이 있으면 <a href={getPage('contribute').href}>{getPage('contribute').title}</a>의 방법으로 알려 주세요.
     </p>
   </div>
