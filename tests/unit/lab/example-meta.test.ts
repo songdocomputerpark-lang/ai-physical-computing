@@ -91,7 +91,7 @@ describe('안내 상자(바꿔볼 것 3가지·왜 이런 결과가 나올까)',
   });
 });
 
-describe('저장소의 자체 제작 영상처리 예제', () => {
+describe('저장소의 자체 제작 영상 처리 예제', () => {
   const read = (file: string) => fs.readFileSync(path.join(ROOT, 'examples', 'vision', file), 'utf8');
 
   it('첫 실습(first-edge.py)은 제목·설명·태그·상자 두 개·슬라이더 두 개를 갖춘다', () => {

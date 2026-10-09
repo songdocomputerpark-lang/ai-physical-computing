@@ -44,7 +44,7 @@ describe('모은 파이썬 파일과 주인 모듈', () => {
 });
 
 describe('실습실별로 넣는 파일·흉내 표(pythonModulesForLab·shimTableForLab)', () => {
-  it('ESP32 실습실: 붙박이 + 보드 + 모든 실습실 모듈(러너 공통), 영상처리 전용(mediapipe·pyautogui·음성)은 없다', () => {
+  it('ESP32 실습실: 붙박이 + 보드 + 모든 실습실 모듈(러너 공통), 영상 처리 전용(mediapipe·pyautogui·음성)은 없다', () => {
     const files = Object.keys(pythonModulesForLab('esp32'));
     expect(files).toEqual(expect.arrayContaining(['apc_runtime.py', 'apc_shims.py', 'apc_cv2.py', 'machine.py', 'apc_board.py', 'apc_files.py']));
     for (const name of ['pyautogui.py', 'mediapipe.py', 'speech_recognition.py', 'apc_hello.py']) {
@@ -53,7 +53,7 @@ describe('실습실별로 넣는 파일·흉내 표(pythonModulesForLab·shimTab
     expect(shimTableForLab('esp32')).toEqual({ time: 'apc_board', builtins: 'apc_files' });
   });
 
-  it('영상처리 실습실: 가상 보드의 machine·time 흉내가 들어가지 않는다(영상처리 실습실 동작 그대로)', () => {
+  it('영상 처리 실습실: 가상 보드의 machine·time 흉내가 들어가지 않는다(영상 처리 실습실 동작 그대로)', () => {
     const files = Object.keys(pythonModulesForLab('vision'));
     expect(files).toEqual(expect.arrayContaining(['pyautogui.py', 'mediapipe.py', 'speech_recognition.py', 'apc_files.py']));
     for (const name of ['machine.py', 'micropython.py', 'apc_board.py', 'apc_board_time.py']) {
@@ -79,7 +79,7 @@ describe('실습실별로 넣는 파일·흉내 표(pythonModulesForLab·shimTab
 });
 
 describe('실행 때 import 문을 보고 패키지를 받는지(packagesFromImportsForLab — 판 1.1.3 LB2-01)', () => {
-  it('가상 보드가 붙는 ESP32 실습실(4단원 보드 칸·한 화면 보드 틀도 labId esp32)은 받지 않고, 영상처리·시험 실습실은 받는다', () => {
+  it('가상 보드가 붙는 ESP32 실습실(4단원 보드 칸·한 화면 보드 틀도 labId esp32)은 받지 않고, 영상 처리·시험 실습실은 받는다', () => {
     expect(packagesFromImportsForLab('esp32')).toBe(false);
     expect(packagesFromImportsForLab('vision')).toBe(true);
     expect(packagesFromImportsForLab('dev')).toBe(true);

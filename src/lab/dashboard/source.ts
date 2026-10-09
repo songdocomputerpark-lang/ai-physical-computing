@@ -25,7 +25,7 @@ export function decodeText(bytes: Uint8Array): string {
 
 /**
  * 브릿지(P4-01)로 온 글이 대시보드에서 쓰는 토픽 이름 — `bridge/<보낸 쪽>`.
- * 예: 영상처리 실습실의 [보내기] 패널이 보낸 값은 `bridge/pc`, 가상 보드가 보낸 값은 `bridge/board`.
+ * 예: 영상 처리 실습실의 [보내기] 패널이 보낸 값은 `bridge/pc`, 가상 보드가 보낸 값은 `bridge/board`.
  * 브릿지 메시지에는 토픽이 없어서(글자 한 줄만 나른다) 위젯이 고를 수 있게 이 자리에서 이름을 붙인다.
  */
 export function bridgeTopicOf(from: string): string {

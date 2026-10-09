@@ -1,6 +1,6 @@
 ---
 /**
- * 영상처리 실습실(PLAN §2.1 /labs/vision/, §8.2 P2-03, SPEC §6.1).
+ * 영상 처리 실습실(PLAN §2.1 /labs/vision/, §8.2 P2-03, SPEC §6.1).
  *
  * 실습실 공통 틀(src/components/lab/LabShell.astro)에 카메라 입력·출력 칸(src/components/lab/VisionIo.astro)을 넣고,
  * 화면 논리(src/lab/vision/vision-lab.ts)가 파이썬의 cv2 카메라·창 흉내(src/lab/python/apc_cv2.py)와 잇는다.
@@ -29,7 +29,7 @@ const checkPage = getPage('start-check');
 const studentPage = getPage('start-student');
 const cameraBlackHref = `${getPage('help').href}#camera-black`;
 
-// 저장소 뿌리의 examples/vision/(영상처리·손·얼굴·자세)과 examples/desktop/(pyautogui 가상 데스크톱, PLAN §2.5) 아래 .py 파일 전부(빌드 때 글자로 읽는다).
+// 저장소 뿌리의 examples/vision/(영상 처리·손·얼굴·자세)과 examples/desktop/(pyautogui 가상 데스크톱, PLAN §2.5) 아래 .py 파일 전부(빌드 때 글자로 읽는다).
 // 원본에서 옮긴 예제의 제목·설명은 옆의 사이드카(<이름>.meta.yaml, src/lab/controls/example-sidecar.ts — 빌드 전용)에서 읽는다.
 const exampleFiles = import.meta.glob<string>(['/examples/vision/**/*.py', '/examples/desktop/**/*.py'], { query: '?raw', eager: true, import: 'default' });
 const sidecarFiles = import.meta.glob<string>(['/examples/vision/**/*.meta.yaml', '/examples/desktop/**/*.meta.yaml'], { query: '?raw', eager: true, import: 'default' });
@@ -76,7 +76,7 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
       <ol class="vision-intro__steps">
         <li>[실행]을 누르면 파이썬과 OpenCV가 준비된 뒤 예제가 돌아요. 브라우저가 카메라 사용을 물으면 "허용"을 눌러요.</li>
         <li>카메라가 없거나 허용하지 않으면 실습실이 직접 그린 샘플 입력으로 똑같이 실습해요. 내 그림 파일을 넣을 수도 있어요.</li>
-        <li>출력 화면을 누른 뒤 <kbd>q</kbd> 키를 치면(또는 화면의 [q] 버튼) 예제가 끝나요. 코드를 고쳐 다시 [실행]해 봐요.</li>
+        <li>출력 화면을 누른 뒤 <kbd>q</kbd> 키를 치면(또는 화면의 [q] 단추) 예제가 끝나요. 코드를 고쳐 다시 [실행]해 봐요.</li>
       </ol>
     </details>
   </div>
@@ -106,7 +106,7 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
         <li>카메라가 없으면 입력 소스를 "샘플 입력"으로 골라도 실습은 똑같이 돼요.</li>
         <li>
           파이썬이 준비되지 않으면 <a href={checkPage.href}>{checkPage.title}</a> 페이지에서 브라우저와 네트워크를 확인해요. 처음 준비할
-          때 약 20MB를 받아서 학교 네트워크에서는 1분 안팎 걸릴 수 있어요. 휴대폰 데이터나 아주 느린 망에서는 몇 분(느린 3G는 7분 넘게)
+          때 약 26MB를 받아서 학교 네트워크에서는 1분 안팎 걸릴 수 있어요. 휴대폰 데이터나 아주 느린 망에서는 몇 분(느린 3G는 7분 넘게)
           걸리니, 교실에서는 수업 전에 준비 칸의 [이 컴퓨터에 실습 파일 미리 받기]를 눌러 두세요.
         </li>
         <li>처음이라면 <a href={studentPage.href}>{studentPage.title}</a>의 순서대로 따라 해요.</li>
@@ -122,7 +122,7 @@ const examples = visionExamplesFromFiles(exampleFiles, readExampleSidecars(sidec
   rememberCurrentLab();
 
   mountVisionLab(document.querySelector<HTMLElement>('[data-lab]')).catch((error: unknown) => {
-    console.error('영상처리 실습실을 준비하지 못했어요.', error);
+    console.error('영상 처리 실습실을 준비하지 못했어요.', error);
   });
 </script>
 

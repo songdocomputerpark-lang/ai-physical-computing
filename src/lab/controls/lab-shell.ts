@@ -2,7 +2,7 @@
  * 실습실 공통 조작의 화면 쪽 논리(PLAN §8.2 P2-02, SPEC §6.1 "위에 [실행] [정지] [초기화] [예제 불러오기] [공유 링크] 버튼").
  *
  * src/components/lab/LabShell.astro가 그린 HTML(data-lab-* 표시)을 찾아 코드 에디터(src/lab/editor/)·파이썬 실행기
- * (src/lab/runtime/client.ts)·자동 저장·공유 링크·내려받기·콘솔·input() 입력줄을 잇는다. 영상처리·ESP32·통신 실습실과
+ * (src/lab/runtime/client.ts)·자동 저장·공유 링크·내려받기·콘솔·input() 입력줄을 잇는다. 영상 처리·ESP32·통신 실습실과
  * 차시 임베드(P2-03 이후)는 이 컨트롤러를 그대로 쓰고, 카메라 프레임 같은 요청은 onRequest()로 받는다.
  *
  * 쓰는 법(페이지 스크립트에서)
@@ -45,7 +45,7 @@
  */
 import { canStepFontSize, readFontSize, saveFontSize, stepFontSize, DEFAULT_FONT_SIZE_PX } from '../editor/font-size.ts';
 import { createPythonEditor, type PythonEditor } from '../editor/python-editor.ts';
-import { PythonRuntime, type RunResult, type RuntimeRequest, type StopResult } from '../runtime/client.ts';
+import { ENGINE_FATAL_STATUS, PythonRuntime, type RunResult, type RuntimeRequest, type StopResult } from '../runtime/client.ts';
 import { STOP_GRACE_MS } from '../runtime/config.ts';
 import type { RuntimeState } from '../runtime/protocol.ts';
 import { withParticle } from '../../lib/korean.ts';
@@ -57,7 +57,7 @@ import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatu
 import { downloadTextFile } from './download.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
-import { isMostlyVisible, revealElement, revealTogether } from './reveal.ts';
+import { isMostlyVisible, revealElement, revealTogether, stickyBarInset } from './reveal.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickExampleLab, pickShareLab, type LabOnPage } from './share-link.ts';
 
 /** 실행기 상태를 사람 말로 */
@@ -135,6 +135,11 @@ export interface LabEvents {
   done: RunResult;
   /** 실행기 상태 */
   state: { state: RuntimeState };
+  /**
+   * 학생이 input() 입력줄에 적은 한 줄을 보냄(R2-005). 한 화면 모드의 가상 보드처럼 그 입력에 반응하는 칸이 입력줄과 멀리 있을 때,
+   * 모듈이 반응 칸을 화면에 보여 줄 수 있게 알린다.
+   */
+  'input-sent': { value: string };
   /** 자동 저장 상태 */
   save: { status: AutosaveStatus };
   /** 기록 지우기 뒤 */
@@ -199,7 +204,7 @@ export interface LabController {
   /**
    * 콘솔에 한 줄을 더한다. 콘솔이 화면 밖이면 결과 칸 아래에 "콘솔에 결과가 나왔어요"를 띄우고 처음 한 번 그쪽으로 화면을 옮기는데,
    * `options.reveal`이 false면 알림 칸은 띄우되 화면은 옮기지 않는다 — 그 줄을 쓴 모듈이 더 중요한 칸을 스스로 보여 줄 때
-   * (영상처리 실습실의 까만 화면 안내 — 1.1.0 검토 반영, 옮기면 안내 쪽으로 가던 화면을 되돌린다).
+   * (영상 처리 실습실의 까만 화면 안내 — 1.1.0 검토 반영, 옮기면 안내 쪽으로 가던 화면을 되돌린다).
    */
   appendConsole(text: string, kind?: ConsoleKind, options?: ConsoleAppendOptions): void;
   clearConsole(): void;
@@ -622,18 +627,7 @@ class LabShellController implements LabController {
 
   /** 화면 위에 붙은 조작 줄 묶음의 높이(붙어 있지 않으면 0) — [실행] 뒤 화면을 옮길 때 칸을 그 아래에 놓는다(R1-096) */
   #stickyInset(): number {
-    const bar = this.root.querySelector<HTMLElement>('[data-lab-bar]');
-    if (!bar) {
-      return 0;
-    }
-    try {
-      if (getComputedStyle(bar).position !== 'sticky') {
-        return 0;
-      }
-    } catch {
-      return 0;
-    }
-    return Math.ceil(bar.getBoundingClientRect().height);
+    return stickyBarInset(this.root);
   }
 
   get currentExample(): LabExample | null {
@@ -744,7 +738,7 @@ class LabShellController implements LabController {
     this.#emit('run', { code, runCount: this.#runCount, target });
     // 결과가 첫 화면 밖이면(검토 실측: 1366×768에서 출력 제목 y≈678, 375×812에서 y≈2,056) 결과 칸으로 화면을 옮긴다.
     // io 슬롯이 결과 부분에 data-lab-reveal-on-run(넓은 칸)·data-lab-reveal-on-run-min(꼭 보여야 하는 최소 칸)을 달아 두었으면 그것을,
-    // 없으면 입력·출력 칸 전체를 본다(영상처리 실습실: 출력 칸 전체 → 출력 화면 틀).
+    // 없으면 입력·출력 칸 전체를 본다(영상 처리 실습실: 출력 칸 전체 → 출력 화면 틀).
     // 조절 막대(@slider 등)가 있으면 결과와 첫 조절 막대를 한 화면에 함께 보인다 — 결과를 보면서 막대를 움직이게(시나리오 A 3단계).
     // 출력이 이미 보여도 막대가 화면 밖이면 옮긴다(1366×768 첫 실습에서 그랬다). 함께 못 넣으면 결과만 화면 가운데에 보인다.
     // 여유 40px: 첫 결과가 오면 입력 칸에 "카메라를 켰어요"·전달 속도 줄이 생겨 막대가 조금 내려간다.
@@ -950,7 +944,7 @@ class LabShellController implements LabController {
         const state = this.runtime.state;
         this.root.dataset.state = state;
         if (statusText) {
-          statusText.textContent = state === 'unloaded' && this.root.dataset.loadDeferred === 'yes' ? DEFERRED_STATUS_TEXT : STATE_TEXT[state];
+          statusText.textContent = state === 'unloaded' && this.root.dataset.loadDeferred === 'yes' ? DEFERRED_STATUS_TEXT : this.#stateText(state);
         }
         stopButton.disabled = state !== 'running' && !this.#runReserved();
       }
@@ -1374,6 +1368,11 @@ class LabShellController implements LabController {
     stopButton.disabled = state !== 'running';
   }
 
+  /** 파이썬 상태를 상태 줄 글로. 엔진이 치명 오류로 죽은 failed는 '준비하지 못했어요'가 아니라 이 기기에서 멈췄다고 말한다(R2-001). */
+  #stateText(state: RuntimeState): string {
+    return state === 'failed' && this.runtime.engineFatal ? ENGINE_FATAL_STATUS : STATE_TEXT[state];
+  }
+
   #hideInput(): void {
     this.#pendingInput = null;
     if (this.#elements.inputForm) {
@@ -1424,7 +1423,7 @@ class LabShellController implements LabController {
           this.#keepButtonFocus(() => {
             this.root.dataset.state = state;
             if (statusText) {
-              statusText.textContent = STATE_TEXT[state];
+              statusText.textContent = this.#stateText(state);
             }
             this.#paintRunButton();
             stopButton.disabled = state !== 'running' && !this.#runReserved();
@@ -1438,7 +1437,7 @@ class LabShellController implements LabController {
         if (state === 'idle' && this.#pendingRun) {
           /*
            * 준비되는 동안 눌러 둔 [실행]을 이제 실행한다. 바로 부르지 않고 한 박자(setTimeout 0) 미룬다:
-           * 실행기는 state 'idle' 바로 뒤에 'ready'를 알리고, 영상처리 실습실은 그때 OpenCV 미리 받기(loadPackages)를 워커에 보낸다.
+           * 실행기는 state 'idle' 바로 뒤에 'ready'를 알리고, 영상 처리 실습실은 그때 OpenCV 미리 받기(loadPackages)를 워커에 보낸다.
            * 실행을 먼저 보내면 워커가 "실행 중에는 패키지를 불러올 수 없어요"로 미리 받기를 거절해 콘솔에 헷갈리는 안내가 남는다
            * (실행 쪽 패키지 받기는 Pyodide의 패키지 잠금을 기다렸다가 이어진다 — 2026-09-17 확인).
            */
@@ -1503,7 +1502,14 @@ class LabShellController implements LabController {
       }
       inputForm.hidden = false;
       inputField.value = '';
-      inputField.focus();
+      if (this.root.dataset.bridgeFrame === 'on') {
+        // 입력에 반응하는 가상 보드가 입력줄 위쪽(수백~천 px)에 열려 있다 — 초점이 화면을 입력줄로 끌고 내려가면 학생은 반응 칸을 못 본다(R2-005).
+        // 그래서 화면은 그대로 두고, 입력줄이 어디 있는지 안내 줄에 적는다.
+        inputField.focus({ preventScroll: true });
+        this.showMessage('입력을 기다려요. 아래 콘솔의 입력 칸에 적고 Enter를 눌러요.');
+      } else {
+        inputField.focus();
+      }
       return;
     }
     const handler = this.#requestHandlers.get(request.kind);
@@ -1603,6 +1609,7 @@ class LabShellController implements LabController {
       this.appendConsole(`${value}\n`, 'input');
       this.#hideInput();
       request.reply(value);
+      this.#emit('input-sent', { value });
     });
   }
 

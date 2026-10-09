@@ -1,4 +1,4 @@
-// 영상처리 실습실의 순수 논리 단위 테스트(PLAN §8.2 P2-03): 예제 목록 만들기(src/lab/vision/examples.ts), 프레임 제한·fps·키 코드·
+// 영상 처리 실습실의 순수 논리 단위 테스트(PLAN §8.2 P2-03): 예제 목록 만들기(src/lab/vision/examples.ts), 프레임 제한·fps·키 코드·
 // 합성 샘플 장면(src/lab/vision/frame.ts), 파일 소스 크기 맞추기(sources.ts의 fitSize), 가짜 카메라용 합성 영상(scripts/gen-test-video.mjs).
 // 카메라·캔버스·워커가 필요한 동작은 브라우저 테스트(tests/e2e/lab-vision.spec.ts)에서 확인한다.
 import fs from 'node:fs';

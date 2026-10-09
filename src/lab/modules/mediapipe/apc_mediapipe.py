@@ -536,7 +536,7 @@ def _to_rgba_bytes(image):
     np = _require_numpy()
     rgb = np.ascontiguousarray(image)
     try:
-        import cv2  # 영상처리 실습실이 미리 받아 둔 OpenCV(없으면 numpy로)
+        import cv2  # 영상 처리 실습실이 미리 받아 둔 OpenCV(없으면 numpy로)
 
         rgba = cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA)
     except ImportError:

@@ -1,5 +1,5 @@
 /**
- * 영상처리 실습실의 카메라 안내 글(판 1.1.0, PROGRESS 미해결 121) — 글만 만드는 순수 함수라 Node 단위 테스트
+ * 영상 처리 실습실의 카메라 안내 글(판 1.1.0, PROGRESS 미해결 121) — 글만 만드는 순수 함수라 Node 단위 테스트
  * (tests/unit/camera/camera-notice.test.ts)가 문장을 그대로 검사한다. 화면에 붙이는 것은 vision-lab.ts.
  *
  * 1. 카메라를 켠 뒤의 한 줄(cameraOpenedMessage): 어떤 카메라를 켰는지, 가상 카메라를 건너뛰었는지, 고른 카메라를 못 열어 다른 것을 켰는지.
@@ -24,6 +24,22 @@ import { cameraName, type CameraDevice, type CameraKind } from './camera-devices
  * 뒤에 "해요."·"한 뒤 …"·"하거나 …"를 붙여 쓴다.
  */
 export const CAMERA_PERMISSION_STEP = '주소 표시줄 왼쪽의 사이트 정보 아이콘(자물쇠나 조절 막대 모양)에서 카메라를 "허용"으로 바꾸고 새로고침';
+
+/**
+ * 휴대폰·태블릿용 카메라 허용 되돌리기(R2-002). 휴대폰 브라우저에는 "주소 표시줄 왼쪽 사이트 정보 아이콘"이 없는 것이 많다(주소 표시줄 위치·메뉴가 브라우저마다 다르다).
+ * 그래서 아이콘 위치를 말하지 않고 브라우저의 사이트 설정에서 바꾸라고 한다. 뒤에 "해요."·"하거나 …"를 붙여 쓰는 것은 같다.
+ */
+export const CAMERA_PERMISSION_STEP_PHONE = '브라우저 주소 표시줄 근처나 메뉴의 "사이트 설정"에서 카메라를 "허용"으로 바꾸고 새로고침';
+
+/** 이 기기가 휴대폰·태블릿인지(사용자 에이전트 글자로 — 카메라 허용 안내 글을 고르는 데만 쓴다. 모르면 컴퓨터로 본다) */
+export function isPhoneLikeDevice(userAgent: string | undefined = typeof navigator === 'undefined' ? undefined : navigator.userAgent): boolean {
+  return typeof userAgent === 'string' && /Android|iPhone|iPad|iPod|Mobile/u.test(userAgent);
+}
+
+/** 이 기기에 맞는 카메라 허용 되돌리기 글 */
+export function cameraPermissionStep(userAgent?: string): string {
+  return isPhoneLikeDevice(userAgent) ? CAMERA_PERMISSION_STEP_PHONE : CAMERA_PERMISSION_STEP;
+}
 
 /** 카메라를 켠 뒤 입력 칸 안내 한 줄 */
 export function cameraOpenedMessage(info: {

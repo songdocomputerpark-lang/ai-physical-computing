@@ -385,11 +385,22 @@ async function load(message: LoadMessage): Promise<void> {
     return;
   }
 
+  // 엔진이 치명 오류로 죽으면(Pyodide의 fatal_error — 예: iPhone UA에서 SuspendError) 화면에 알린다. 알리지 않으면 [실행]이 끝나지 않고 '실행 중'으로 남는다.
+  try {
+    const api = (pyodide as unknown as { _api?: { on_fatal?: (error: unknown) => void } })._api;
+    if (api) {
+      api.on_fatal = (error: unknown) => {
+        post({ type: 'fatal', message: describeError(error) });
+      };
+    }
+  } catch {
+    // 알리는 길이 없으면 화면 쪽이 stderr 글자(Stack (most recent call first))로 알아챈다(client.ts isEngineFatalText).
+  }
   pyodide.setStdout(makeWriter('stdout', stdoutDecoder));
   pyodide.setStderr(makeWriter('stderr', stderrDecoder));
   pyodide.registerJsModule('_apc_bridge', bridge.api);
   pyodide.FS.mkdirTree(HELPER_DIR);
-  // 이 실습실(labId)에 붙는 흉내 모듈의 파일만 넣는다(없으면 모두). 가상 보드의 machine.py가 영상처리 실습실에 새지 않게(P3-01).
+  // 이 실습실(labId)에 붙는 흉내 모듈의 파일만 넣는다(없으면 모두). 가상 보드의 machine.py가 영상 처리 실습실에 새지 않게(P3-01).
   const pythonModules = pythonModulesForLab(message.labId);
   const shimTable = shimTableForLab(message.labId);
   packagesFromImports = packagesFromImportsForLab(message.labId);

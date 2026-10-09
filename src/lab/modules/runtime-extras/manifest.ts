@@ -19,7 +19,7 @@ import type { LabModuleManifest } from '../types.ts';
 const manifest: LabModuleManifest = {
   id: 'runtime-extras',
   title: '러너 공통(가상 파일·글꼴·저장 파일 내려받기)',
-  // 모든 실습실(영상처리·ESP32·통신·개발용 시험 페이지)에 붙는다 — 어느 실습실이든 파일을 읽고 쓰는 코드가 있다.
+  // 모든 실습실(영상 처리·ESP32·통신·개발용 시험 페이지)에 붙는다 — 어느 실습실이든 파일을 읽고 쓰는 코드가 있다.
   labs: '*',
   shims: { builtins: 'apc_files' },
   requestKinds: ['runtime-extras.font'],

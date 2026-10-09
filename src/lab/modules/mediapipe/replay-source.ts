@@ -1,5 +1,5 @@
 /**
- * 재생 입력 소스(PLAN §8.2 P2-08 손 · P2-09 얼굴·자세, PD-30) — 카메라 없이 인식 예제를 돌리는 입력. 영상처리 실습실의 입력 소스 등록표
+ * 재생 입력 소스(PLAN §8.2 P2-08 손 · P2-09 얼굴·자세, PD-30) — 카메라 없이 인식 예제를 돌리는 입력. 영상 처리 실습실의 입력 소스 등록표
  * (src/lab/vision/sources.ts registerVisionSource)에 kind 'replay'로 들어간다.
  *
  * - 프레임: 사람 영상이 아니라 합성 좌표(synthetic-hands·synthetic-face·synthetic-pose)의 **점과 선만** 어두운 바탕에 그린다. 사진·얼굴 이미지 없음.

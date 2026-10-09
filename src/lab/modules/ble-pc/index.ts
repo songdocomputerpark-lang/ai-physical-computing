@@ -76,7 +76,7 @@ export type BlePcTarget = 'virtual' | 'real' | 'tab';
 
 /**
  * 상대가 아직 없을 때 콘솔에 한 번 내는 안내.
- * present: 같은 화면에 가상 보드의 블루투스 조작 칸이 있나(4단원 통합 화면) — 없으면(영상처리 실습실 단독) 어디서 되는지 알려 준다.
+ * present: 같은 화면에 가상 보드의 블루투스 조작 칸이 있나(4단원 통합 화면) — 없으면(영상 처리 실습실 단독) 어디서 되는지 알려 준다.
  */
 export function noPeerNotice(present = true): string {
   if (present) {

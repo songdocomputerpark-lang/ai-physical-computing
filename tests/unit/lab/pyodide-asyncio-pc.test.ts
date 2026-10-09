@@ -1,7 +1,7 @@
-// 컴퓨터 쪽 실습실(영상처리·4단원 컴퓨터 칸·개발용)의 asyncio(src/lab/python/apc_asyncio.py — 판 1.2.0, PROGRESS 미해결 223)를 Node.js의 실제 Pyodide 314.0.7(JSPI)로 본다.
+// 컴퓨터 쪽 실습실(영상 처리·4단원 컴퓨터 칸·개발용)의 asyncio(src/lab/python/apc_asyncio.py — 판 1.2.0, PROGRESS 미해결 223)를 Node.js의 실제 Pyodide 314.0.7(JSPI)로 본다.
 // 전에는 학생 코드의 asyncio가 진짜 asyncio 그대로라 `asyncio.run` + `while True: … await asyncio.sleep(0.3)` 반복은 [정지]가 1초 안에 먹지 않아
 // "계산만 하는 반복문" 안내와 함께 파이썬을 다시 시작했다(실사이트 1.1.5 — [정지] 뒤 1,063ms에 killed). 같은 원리의 가상 보드 쪽은 판 1.1.5(C82).
-// 단계는 tests/unit/lab/helpers/pyodide-asyncio-pc-run.mjs(영상처리 실습실 워커와 같은 파일·차례). [정지]는 진행(학생 stdout)으로 누른다(C74 ②).
+// 단계는 tests/unit/lab/helpers/pyodide-asyncio-pc-run.mjs(영상 처리 실습실 워커와 같은 파일·차례). [정지]는 진행(학생 stdout)으로 누른다(C74 ②).
 // 정지 시간의 기준은 제품의 정지 유예(STOP_GRACE_MS 1초 — 넘으면 화면이 파이썬을 다시 시작한다).
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -64,7 +64,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('컴퓨터 쪽 asyncio — �
     expect(record.escaped.every((entry) => entry.endsWith('KeyboardInterrupt'))).toBe(true);
   };
 
-  it('영상처리 실습실 그대로 준비된다(가상 보드 파일 없음, 흉내 설치 실패 없음 — asyncio 흉내가 설치됨)', () => {
+  it('영상 처리 실습실 그대로 준비된다(가상 보드 파일 없음, 흉내 설치 실패 없음 — asyncio 흉내가 설치됨)', () => {
     expect(out.jspi).toBe(true);
     expect(out.labHasBoard).toBe(false);
     const first = stepOf('repro_223');

@@ -16,7 +16,7 @@ export const UNIT4_SCREEN_VALUE = `${UNIT4_SCREEN.width}x${UNIT4_SCREEN.height}`
 
 /**
  * 가상 데스크톱 모듈이 학생이 고른 해상도를 기억하는 저장 이름(src/lab/modules/desktop/index.ts의 storeName('screen')).
- * 페이지 기본 크기(3840×2160)는 여기에 적히지 않는다 — 영상처리 실습실의 1920×1080 예제까지 3840으로 열리지 않게(브라우저 테스트가 본다).
+ * 페이지 기본 크기(3840×2160)는 여기에 적히지 않는다 — 영상 처리 실습실의 1920×1080 예제까지 3840으로 열리지 않게(브라우저 테스트가 본다).
  */
 export const DESKTOP_SCREEN_STORAGE_NAME = 'module:desktop:screen';
 

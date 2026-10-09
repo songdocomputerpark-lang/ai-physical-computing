@@ -349,7 +349,7 @@ export class MqttConnection {
   private noticePrefixOnce(added: boolean): void {
     if (added && !this.prefixNoticed) {
       this.prefixNoticed = true;
-      this.notice(mqttText.prefixAdded(this.options.prefix));
+      this.notice(mqttText.prefixAdded(this.options.prefix, this.via));
     }
   }
 

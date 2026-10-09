@@ -3,7 +3,7 @@
  * DOM을 모르는 순수 계산만 둔다 — 값을 읽어 오는 일은 unit4-page.ts가 한다.
  *
  * 재는 것(0.5초마다 한 번 — SAMPLE_MS)
- *   · 입력 fps    영상처리 실습실이 파이썬에 카메라 장을 건네는 빈도([data-vision-input-status]의 data-fps).
+ *   · 입력 fps    영상 처리 실습실이 파이썬에 카메라 장을 건네는 빈도([data-vision-input-status]의 data-fps).
  *                 사이트가 일부러 15fps로 막는다(src/lab/vision/frame.ts) — 15에 가까울수록 여유가 있다는 뜻이다.
  *   · 출력 fps    cv2.imshow 창이 실제로 다시 그려진 빈도(창 상태 줄의 data-fps) ≈ 학생 코드 while 루프가 한 바퀴 도는 빈도.
  *   · 화면 fps    이 탭의 화면 그리기(requestAnimationFrame) 빈도. 60에 가까우면 버튼·그림이 부드럽다. 메인 스레드가 바쁘면 떨어진다
@@ -172,7 +172,7 @@ export function reportMarkdown(summary: PerfSummary, meta: ReportMeta = { where:
   lines.push(row('출력 창(cv2.imshow) fps', summary.outputFps, ''));
   lines.push(row('화면 그리기 fps(requestAnimationFrame)', summary.pageFps, ''));
   lines.push(row('긴 작업(50ms 넘는 일) 1초당 합', summary.longTaskMsPerSec, 'ms'));
-  lines.push(row(`보드에 닿은 줄 1초당 (최대 ${TARGET_SEND_PER_SEC})`, summary.sentPerSec, ''));
+  lines.push(row(`보드에 전해진 줄 1초당 (최대 ${TARGET_SEND_PER_SEC})`, summary.sentPerSec, ''));
   lines.push(row('탭 자바스크립트 힙', summary.heapMb, 'MB'));
   lines.push('');
   lines.push(`- 잰 시간: ${oneDecimal(summary.seconds)}초 · 표본 ${summary.samples}개(0.5초 간격)`);

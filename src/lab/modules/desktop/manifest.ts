@@ -3,8 +3,8 @@
  *
  * 학생 코드의 `import pyautogui`는 이 폴더의 pyautogui.py(워커가 /apc에 써 둔 파이썬 모듈)를 받는다. 진짜 pyautogui는 Pyodide에
  * 없으므로 덮어쓸 패키지가 없고(shims 없음), 파일 이름 = import 이름 규칙(python/modules.ts)으로 바로 import된다.
- * 화면 쪽(index.ts)은 영상처리 실습실(labs: vision)에 붙어 전체 폭(placement 'wide')의 가상 모니터를 그린다 — pyautogui 예제는
- * PLAN §2.5대로 영상처리 실습실 예제이고, 3-1-4(f091)·4단원(f095~f097·f104)은 카메라·손 인식과 함께 쓴다.
+ * 화면 쪽(index.ts)은 영상 처리 실습실(labs: vision)에 붙어 전체 폭(placement 'wide')의 가상 모니터를 그린다 — pyautogui 예제는
+ * PLAN §2.5대로 영상 처리 실습실 예제이고, 3-1-4(f091)·4단원(f095~f097·f104)은 카메라·손 인식과 함께 쓴다.
  *
  * 파이썬 파일이 둘이다: pyautogui.py(마우스·키보드·화면 캡처)와 webbrowser.py(가상 브라우저 창, P2-12).
  * 둘 다 진짜 패키지를 덮어쓰는 것이 아니라 없는 자리를 채우는 것이라 shims 표는 비어 있다(webbrowser는 표준 라이브러리지만

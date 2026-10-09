@@ -1,7 +1,7 @@
 // 통신 모듈은 쓸 때만 받는다(Phase 6 P6-02, PROGRESS 미해결 157 — 구역 A) 브라우저 테스트.
 //
 // 확인하는 것
-//  1. 영상처리 실습실을 첫 예제(에지 검출 — 통신 없음)로 열면 통신 모듈(그 실습실의 load 무리 comm — manifest에서 읽음)의
+//  1. 영상 처리 실습실을 첫 예제(에지 검출 — 통신 없음)로 열면 통신 모듈(그 실습실의 load 무리 comm — manifest에서 읽음)의
 //     화면 쪽 JS를 **한 바이트도 받지 않는다**(요청 목록으로 증명). 붙은 모듈 목록(data-lab-modules)에는 있고 waiting에 있다.
 //  2. 편집칸에 `import serial`을 넣으면 그때 무리째 받고 [보내기] 패널이 열리며, 통로 목록에 탭·MQTT(와 이 브라우저에 있으면
 //     USB 데이터 포트·블루투스)가 모두 있다 — 받는 차례가 바뀌어 목록에서 통로가 빠지던 Phase 4 검토 지적 1이 되살아나지 않는다.
@@ -23,7 +23,7 @@ const ESP32 = withBase('labs/esp32/');
 const MODULES_TIMEOUT = 120_000;
 const READY_TIMEOUT = 180_000;
 // 실습실마다 쓸 때 받는 통신 모듈 — manifest 파일에서 읽는다(판 1.1.0: 손으로 적은 목록은 새 모듈 bridge-pc(미해결 139)가 생기자 어긋났다).
-// 1.0.0 때: 영상처리 ble-pc·data-port·serial-pc·vision-bridge·web-bluetooth, ESP32 data-port·mqtt·vision-bridge·web-bluetooth.
+// 1.0.0 때: 영상 처리 ble-pc·data-port·serial-pc·vision-bridge·web-bluetooth, ESP32 data-port·mqtt·vision-bridge·web-bluetooth.
 const VISION_COMM = commModulesForLab('vision');
 const ESP32_COMM = commModulesForLab('esp32');
 
@@ -84,7 +84,7 @@ test.describe('통신 모듈은 쓸 때만 받는다(미해결 157)', () => {
     await freezeDevReloads(page);
   });
 
-  test('영상처리 실습실: 통신을 쓰지 않는 첫 예제에서는 통신 모듈 JS를 받지 않고, import serial을 적으면 그때 무리째 받는다', async ({ page }) => {
+  test('영상 처리 실습실: 통신을 쓰지 않는 첫 예제에서는 통신 모듈 JS를 받지 않고, import serial을 적으면 그때 무리째 받는다', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     const scripts = trackScripts(page);
@@ -136,7 +136,7 @@ test.describe('통신 모듈은 쓸 때만 받는다(미해결 157)', () => {
     const after = scripts.slice(scriptsBefore);
     const deferredBytes = after.reduce((sum, item) => sum + item.bytes, 0);
     console.log(
-      `[통신 모듈 지연] 영상처리 실습실 첫 예제: 스크립트 ${scriptsBefore}개·${kb(bytesBefore)}에 통신 모듈 청크 0개` +
+      `[통신 모듈 지연] 영상 처리 실습실 첫 예제: 스크립트 ${scriptsBefore}개·${kb(bytesBefore)}에 통신 모듈 청크 0개` +
         ` → import serial 뒤 더 받은 스크립트 ${after.length}개·${kb(deferredBytes)}(통신 모듈 청크 ${after.filter((item) => item.module !== null).length}개)` +
         ` — 통로 목록: ${channels.join(' ')}`,
     );

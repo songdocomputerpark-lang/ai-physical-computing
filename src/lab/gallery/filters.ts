@@ -20,7 +20,7 @@ export type GalleryLabId = (typeof GALLERY_LAB_IDS)[number];
 
 /** 실습실 이름(화면 글자). 사이트 지도의 이름과 같다. */
 export const GALLERY_LAB_LABELS: Readonly<Record<GalleryLabId, string>> = Object.freeze({
-  vision: '영상처리 실습실',
+  vision: '영상 처리 실습실',
   esp32: 'ESP32 실습실',
 });
 

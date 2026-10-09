@@ -1,5 +1,5 @@
 /**
- * 카메라 스트림 도우미(판 1.1.0, PROGRESS 미해결 121) — 영상처리 실습실의 웹캠 소스(sources.ts)와 점검 페이지의 카메라 확인
+ * 카메라 스트림 도우미(판 1.1.0, PROGRESS 미해결 121) — 영상 처리 실습실의 웹캠 소스(sources.ts)와 점검 페이지의 카메라 확인
  * (src/components/start/camera-check/)이 함께 쓴다. 가벼운 파일이라 점검 페이지가 실습실 전체를 싣지 않고 이것만 불러온다.
  *
  * - 카메라 목록(listCameras): enumerateDevices()는 허락을 묻지 않는다. 허락 전에는 이름이 비고 카메라가 한 개로 보일 수 있다.
@@ -10,7 +10,7 @@
  */
 import { BLACK_FRAME_LIMITS, BlackFrameWatch, measureLuma, type BlackVerdict, type BlackWatchSummary, type LumaStats } from './black-frame.ts';
 import { toCameraDevices, type CameraDevice } from './camera-devices.ts';
-import { CAMERA_PERMISSION_STEP } from './camera-notice.ts';
+import { cameraPermissionStep } from './camera-notice.ts';
 
 /** 소스를 열지 못한 이유(한국어 설명과 종류). 실습실이 종류에 따라 샘플 입력으로 바꾼다. */
 export class SourceOpenError extends Error {
@@ -32,7 +32,7 @@ export function describeCameraError(error: unknown): SourceOpenError {
   switch (name) {
     case 'NotAllowedError':
     case 'PermissionDeniedError':
-      return new SourceOpenError('denied', `카메라 사용을 허용하지 않았어요. ${CAMERA_PERMISSION_STEP}하거나, 샘플 입력으로 실습해요.`);
+      return new SourceOpenError('denied', `카메라 사용을 허용하지 않았어요. ${cameraPermissionStep()}하거나, 샘플 입력으로 실습해요.`);
     case 'NotFoundError':
     case 'DevicesNotFoundError':
     case 'OverconstrainedError':

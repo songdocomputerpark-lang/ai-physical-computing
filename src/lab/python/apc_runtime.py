@@ -392,7 +392,7 @@ def register_idle_hook(hook) -> None:
 
 def run_idle() -> None:
     """워커가 학생 코드가 오류 없이 끝난 뒤 부른다(runPythonAsync — 비동기 진입점). 등록된 대기 훅 가운데 하나라도 True를 돌려주는 동안
-    되풀이한다. 할 일이 없으면 곧바로 끝난다(영상처리 실습실처럼 대기 훅이 없으면 아무 일도 하지 않는다). [정지]를 누르면 KeyboardInterrupt로 끝난다.
+    되풀이한다. 할 일이 없으면 곧바로 끝난다(영상 처리 실습실처럼 대기 훅이 없으면 아무 일도 하지 않는다). [정지]를 누르면 KeyboardInterrupt로 끝난다.
     오류를 낸 훅은 콘솔에 알리고 빼서 같은 알림이 되풀이되지 않게 한다."""
     if len(_idle_hooks) == 0:
         return

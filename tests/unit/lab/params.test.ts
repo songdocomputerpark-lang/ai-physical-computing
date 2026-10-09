@@ -215,7 +215,7 @@ describe('값 글자 만들기·다시 읽기·간격 맞추기', () => {
   });
 });
 
-describe('저장소의 영상처리 예제', () => {
+describe('저장소의 영상 처리 예제', () => {
   it('첫 실습(examples/vision/first-edge.py)은 threshold·blur_size 슬라이더 두 개를 경고 없이 만든다', () => {
     const code = fs.readFileSync(path.join(ROOT, 'examples', 'vision', 'first-edge.py'), 'utf8');
     const { params, warnings } = parseParams(code);

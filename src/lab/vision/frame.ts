@@ -1,5 +1,5 @@
 /**
- * 영상처리 실습실의 순수 논리(PLAN §8.2 P2-03, CODE_MAPPING §3.1) — 화면 요소 없이 계산만 하는 부분을 모았다.
+ * 영상 처리 실습실의 순수 논리(PLAN §8.2 P2-03, CODE_MAPPING §3.1) — 화면 요소 없이 계산만 하는 부분을 모았다.
  * DOM·카메라·워커는 sources.ts·windows.ts·vision-lab.ts가 맡고, 이 파일은 Node 단위 테스트(tests/unit/lab/vision.test.ts)로 검사한다.
  *
  * - 프레임 모양(VisionFrame): 파이썬으로 보내는 RGBA 바이트(width·height·data). apc_cv2.py의 _frame_to_bgr가 읽는 모양과 같다.

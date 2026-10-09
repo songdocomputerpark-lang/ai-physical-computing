@@ -1,4 +1,4 @@
-// 영상처리 실습실 출력 칸 위의 한 줄 설명(판 1.3.0 검수 R1-101).
+// 영상 처리 실습실 출력 칸 위의 한 줄 설명(판 1.3.0 검수 R1-101).
 import { describe, expect, it } from 'vitest';
 import { OUTPUT_HINTS, outputHintFor } from '../../../src/lab/vision/output-hints.ts';
 

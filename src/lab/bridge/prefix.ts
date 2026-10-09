@@ -145,7 +145,7 @@ export function ensurePrefix(stores: PrefixStores = {}, random: RandomBytes = de
  * 주소에서 통신 접두어를 받는 이름들(2026-09-25 Phase 4 검토 반영). 다른 화면을 새 탭으로 열 때 접두어를 함께 넘겨
  * 학생이 무작위 12글자를 눈으로 보고 옮겨 적지 않게 한다.
  * - `prefix` — MQTT 칸 ↔ 대시보드 링크(`/labs/iot/dashboard/?prefix=…`, `/labs/esp32/?example=…&prefix=…`)
- * - `bridge` — 영상처리 [보내기] 패널이 여는 보드 화면(`/labs/esp32/?bridge=…` — 보드 쪽 [보내기] 패널도 함께 연다)
+ * - `bridge` — 영상 처리 [보내기] 패널이 여는 보드 화면(`/labs/esp32/?bridge=…` — 보드 쪽 [보내기] 패널도 함께 연다)
  */
 export const PREFIX_QUERY_NAMES = ['prefix', 'bridge'] as const;
 

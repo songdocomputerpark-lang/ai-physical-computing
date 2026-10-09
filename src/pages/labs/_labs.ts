@@ -17,7 +17,7 @@ export interface LabPlan {
   /**
    * ComingSoon의 when 값: "언제" 생기는지. 뒤에 "에 생겨요."가 붙는다.
    * "Phase"는 개발 용어라 "사이트를 만드는 n번째 단계(Phase n)"처럼 풀어 쓴다. 실습실 이름을 되풀이하지 않는다
-   * ("영상처리 실습실은 영상처리 실습실을 만드는 단계에 생겨요"처럼 읽히던 문장, 2026-09-16 검토 반영).
+   * ("영상 처리 실습실은 영상 처리 실습실을 만드는 단계에 생겨요"처럼 읽히던 문장, 2026-09-16 검토 반영).
    */
   readonly when: string;
   /** 준비되면 할 수 있는 일(짧은 문장 3개 안팎). 검색 색인에 들어간다. */
@@ -26,7 +26,7 @@ export interface LabPlan {
   readonly relatedIds: readonly string[];
   /**
    * 브라우저 권장 환경 안내(src/components/compat/BrowserNotice.astro)를 보일지(SPEC §9 "실습실은 Chrome/Edge에서").
-   * 코드를 실행하거나 보드를 연결하는 실습실이 실제로 생기면 true로 바꾼다(P2-03 영상처리, P3-07 ESP32·실물 점검, P4-06 통신).
+   * 코드를 실행하거나 보드를 연결하는 실습실이 실제로 생기면 true로 바꾼다(P2-03 영상 처리, P3-07 ESP32·실물 점검, P4-06 통신).
    * 자리 페이지 동안은 false: 휴대폰에서 안내가 첫 화면의 1/3을 차지해 제목을 밀어내고, 안내 하나 때문에 점검 코드(약 6KB)를
    * 받게 해서다(2026-09-16 검토 반영). 예제 카드를 읽는 갤러리는 늘 false.
    */
@@ -116,7 +116,7 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
     open: true,
   },
   {
-    // 2026-09-24 P4-09에서 실제 화면이 됨(src/pages/labs/unit4/index.astro — 영상처리 칸 + ESP32 칸 한 화면, [함께 실행], 성능 재기).
+    // 2026-09-24 P4-09에서 실제 화면이 됨(src/pages/labs/unit4/index.astro — 영상 처리 칸 + ESP32 칸 한 화면, [함께 실행], 성능 재기).
     id: 'labs-unit4',
     phase: 4,
     when: '사이트를 만드는 네 번째 단계(Phase 4)',

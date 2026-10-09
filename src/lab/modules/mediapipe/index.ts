@@ -3,7 +3,7 @@
  * 파이썬 짝은 같은 폴더의 apc_mediapipe.py(+ 학생이 import하는 mediapipe.py), 규약은 src/lab/README.md 4절.
  *
  * 하는 일
- * 1. 입력 소스 '재생 입력(합성 좌표)'(replay-source.ts)을 영상처리 실습실 목록에 더한다. 실습실 화면이 먼저 그려졌으면 <option>도 더한다.
+ * 1. 입력 소스 '재생 입력(합성 좌표)'(replay-source.ts)을 영상 처리 실습실 목록에 더한다. 실습실 화면이 먼저 그려졌으면 <option>도 더한다.
  * 2. 요청 처리(파이썬 → 화면). 요청 이름은 두 개뿐이고 payload.solution으로 갈린다('hands' | 'face_mesh' | 'face_detection' | 'pose'):
  *    - mediapipe.open  { solution, id, options{…} }
  *        → 입력 소스가 샘플(카메라 없음)이고 아직 열리지 않았으면 재생 입력으로 바꾼다(SPEC §6.1 "카메라 없을 때", PD-30).
@@ -206,7 +206,7 @@ const KIND_LABELS: Readonly<Record<ReplayKind, string>> = Object.freeze({ hands:
 async function mount(context: LabModuleContext): Promise<LabModuleHandle | void> {
   const vision = await context.vision();
   if (!vision) {
-    // 영상처리 실습실이 아니면(카메라 칸이 없으면) 할 일이 없다.
+    // 영상 처리 실습실이 아니면(카메라 칸이 없으면) 할 일이 없다.
     return undefined;
   }
   const replay = replaySource;

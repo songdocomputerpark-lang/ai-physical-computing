@@ -1,6 +1,6 @@
 /**
  * 카메라 장치 고르기의 순수 논리(판 1.1.0, PROGRESS 미해결 121) — 화면 요소·브라우저 없이 계산만 한다.
- * 영상처리 실습실(vision-lab.ts·sources.ts)과 점검 페이지의 카메라 확인(src/components/start/camera-check/)이 함께 쓰고,
+ * 영상 처리 실습실(vision-lab.ts·sources.ts)과 점검 페이지의 카메라 확인(src/components/start/camera-check/)이 함께 쓰고,
  * Node 단위 테스트(tests/unit/camera/camera-devices.test.ts)가 그대로 읽는다.
  *
  * 왜 필요한가
@@ -79,7 +79,7 @@ export const DEPRIORITIZED_CAMERA_PATTERNS: readonly CameraNamePattern[] = Objec
   { kind: 'infrared', name: 'IR(적외선)', pattern: /\bir\b|infrared|적외선/iu },
 ] satisfies CameraNamePattern[]);
 
-/** 영상처리 실습실이 학생이 고른 카메라(deviceId)를 이 브라우저에 기억하는 이름(src/lib/storage.ts 규칙 — [기록 지우기]가 함께 지운다) */
+/** 영상 처리 실습실이 학생이 고른 카메라(deviceId)를 이 브라우저에 기억하는 이름(src/lib/storage.ts 규칙 — [기록 지우기]가 함께 지운다) */
 export const VISION_CAMERA_STORAGE_NAME = 'vision:camera';
 
 /** 이름으로 카메라 종류를 가른다(이름이 비면 보통 카메라로 본다 — 허락 전에는 알 수 없으므로). */

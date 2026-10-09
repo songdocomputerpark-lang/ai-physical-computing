@@ -109,7 +109,7 @@ describe('주소 다루기', () => {
     expect(pyodidePrefetchUrls()[0]).toContain('cdn.jsdelivr.net');
   });
 
-  it('실습실이 쓰는 패키지만큼만 고른다: ESP32(가상 보드)는 파이썬 엔진만, 영상처리는 OpenCV와 기대는 numpy까지(P3-01, PD-04)', () => {
+  it('실습실이 쓰는 패키지만큼만 고른다: ESP32(가상 보드)는 파이썬 엔진만, 영상 처리는 OpenCV와 기대는 numpy까지(P3-01, PD-04)', () => {
     const core = PYODIDE_FALLBACK_FILES.filter((file) => file.kind === 'core');
     expect(pyodideFilesFor([]).map((file) => file.name)).toEqual(core.map((file) => file.name));
     expect(pyodidePrefetchBytesFor([])).toBe(PYODIDE_CORE_BYTES);

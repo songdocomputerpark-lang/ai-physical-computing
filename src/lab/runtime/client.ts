@@ -149,6 +149,19 @@ export const LIMITED_MODE_NOTICE =
   '이 브라우저에는 JSPI(파이썬 기다리기 기능)가 없어서 제한 모드로 실행해요. ' +
   '입력이나 카메라를 기다리는 코드는 실행할 수 없고, [정지]는 파이썬을 다시 시작하는 방식으로만 돼요. 한 번 실행되고 끝나는 코드는 돌아요.';
 
+/** 엔진이 죽었을 때 상태 줄에 보이는 글(lab-shell.ts가 STATE_TEXT.failed 대신 쓴다) */
+export const ENGINE_FATAL_STATUS = '파이썬 엔진이 이 기기에서 멈췄어요.';
+
+/** 엔진이 죽었을 때 콘솔·결과 줄에 보이는 안내(R2-001: 학생이 다음에 할 일을 말해 준다) */
+export const ENGINE_FATAL_NOTICE =
+  '파이썬 엔진이 이 기기에서 멈췄어요. 이 브라우저나 기기에서는 실행이 어려워요. ' +
+  '컴퓨터의 Chrome·Edge에서 이 실습실을 다시 열어 주세요. 쪽을 새로고침하면 코드는 그대로 남아 있어요.';
+
+/** Pyodide가 치명 오류로 죽을 때 stderr에 남기는 글인지(on_fatal 길이 막혔을 때의 보조 검사) */
+export function isEngineFatalText(text: string): boolean {
+  return /Pyodide has suffered a fatal error|Stack \(most recent call first\)|<no Python frame>/u.test(text);
+}
+
 function createDefaultWorker(): WorkerLike {
   return new Worker(new URL('./worker.ts', import.meta.url), { type: 'module', name: 'python-runtime' }) as unknown as WorkerLike;
 }
@@ -175,6 +188,8 @@ export class PythonRuntime {
   #nextRunId = 1;
   #nextTaskId = 1;
   #disposed = false;
+  /** 엔진이 치명 오류로 죽은 적이 있는지(죽은 뒤에는 다시 띄우지 않는다 — 같은 기기에서 또 죽는다) */
+  #fatal = false;
   /** 워커가 준비되기 전에 보낸 값(준비되면 순서대로 보낸다) */
   #queuedInputs: ToWorkerMessage[] = [];
 
@@ -188,6 +203,11 @@ export class PythonRuntime {
 
   get state(): RuntimeState {
     return this.#state;
+  }
+
+  /** 엔진이 치명 오류로 죽었는지(true면 상태가 failed이고 다시 실행할 수 없다 — 쪽을 새로 열어야 한다) */
+  get engineFatal(): boolean {
+    return this.#fatal;
   }
 
   /** 준비된 뒤의 정보(그 전에는 null) */
@@ -248,6 +268,9 @@ export class PythonRuntime {
   load(): Promise<RuntimeInfo> {
     if (this.#disposed) {
       return Promise.reject(new Error('이미 닫은 실행기예요. 새로 만들어 주세요.'));
+    }
+    if (this.#fatal) {
+      return Promise.reject(new Error(ENGINE_FATAL_STATUS));
     }
     return this.#readyPromise ?? this.#beginLoad();
   }
@@ -313,6 +336,11 @@ export class PythonRuntime {
           settle(true, message.info);
           return;
         }
+        if (message.type === 'fatal') {
+          this.#engineFatal(worker, message.message);
+          settle(false, new Error(ENGINE_FATAL_STATUS));
+          return;
+        }
         if (message.type === 'load-failed') {
           this.#setState('failed');
           const text = message.details.length > 0 ? `${message.message} (${message.details.join(' / ')})` : message.message;
@@ -369,6 +397,10 @@ export class PythonRuntime {
         return;
       case 'stderr':
         this.#emit('stderr', message.text);
+        // on_fatal 알림이 오지 않아도(옛 Pyodide·막힌 길) 엔진이 죽을 때 남기는 글로 알아챈다.
+        if (isEngineFatalText(message.text) && this.#worker) {
+          this.#engineFatal(this.#worker, message.text);
+        }
         return;
       case 'notice':
         this.#emit('notice', { level: message.level, text: message.text });
@@ -433,6 +465,39 @@ export class PythonRuntime {
       default:
         return;
     }
+  }
+
+  /**
+   * 엔진이 되살릴 수 없게 죽었다(R2-001). 워커를 끝내고, 실행 중이던 것은 오류로 끝내고, 안내를 알린 뒤 failed로 둔다.
+   * 알리지 않으면 상태 줄이 '실행 중이에요.'로 영영 남는다(iPhone 사용자 에이전트 실측).
+   */
+  #engineFatal(worker: WorkerLike, detail: string): void {
+    if (this.#fatal || this.#worker !== worker) {
+      return;
+    }
+    this.#fatal = true;
+    const run = this.#activeRun;
+    this.#worker = null;
+    this.#readyPromise = null;
+    this.#info = null;
+    this.#interruptBuffer = null;
+    worker.terminate();
+    this.#failTasks('파이썬 엔진이 멈춰서 취소했어요.');
+    this.#emit('notice', { level: 'error', text: ENGINE_FATAL_NOTICE });
+    if (run) {
+      this.#activeRun = null;
+      const result: RunResult = {
+        runId: run.id,
+        outcome: 'error',
+        error: { type: 'EngineFatalError', message: ENGINE_FATAL_STATUS, traceback: '' },
+        durationMs: now() - run.startedAt,
+      };
+      this.#emit('done', result);
+      run.resolve(result);
+    }
+    this.#setState('failed');
+    // 자세한 글(영어)은 개발자 콘솔에만 남긴다 — 학생 화면에는 위 안내만 보인다.
+    console.error('파이썬 엔진 치명 오류:', detail);
   }
 
   /** 학생 코드를 실행한다. 준비가 안 됐으면 먼저 load()를 기다린다. 끝나면(정지·오류 포함) 결과로 끝난다. */

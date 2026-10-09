@@ -2,7 +2,10 @@
 // 실제 Pyodide는 tests/unit/lab/pyodide-node.test.ts(Node)와 tests/e2e/lab-runtime.spec.ts(브라우저)에서 돈다.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  ENGINE_FATAL_NOTICE,
+  ENGINE_FATAL_STATUS,
   KILLED_NOTICE,
+  isEngineFatalText,
   LIMITED_MODE_NOTICE,
   PythonRuntime,
   type RuntimeNotice,
@@ -244,6 +247,45 @@ describe('실행(run)과 결과', () => {
     await expect(runtime.run('print')).rejects.toThrow('이미 실행 중');
     await runtime.stop();
     await first;
+  });
+});
+
+describe('엔진 치명 오류(R2-001)', () => {
+  it('실행 중에 엔진이 죽었다고 알리면 워커를 끝내고, 실행은 오류로 끝내며, 안내를 알리고 failed로 둔다(다시 띄우지 않는다)', async () => {
+    const { runtime, workers, states, notices } = makeRuntime();
+    await runtime.load();
+    const done = runtime.run('sleep');
+    await Promise.resolve();
+    expect(runtime.state).toBe('running');
+    workers[0].emit({ type: 'fatal', message: 'SuspendError: trying to suspend JS frames' });
+    const result = await done;
+    expect(result.outcome).toBe('error');
+    expect(result.error?.type).toBe('EngineFatalError');
+    expect(result.error?.message).toBe(ENGINE_FATAL_STATUS);
+    expect(workers[0].terminated).toBe(true);
+    expect(runtime.state).toBe('failed');
+    expect(runtime.engineFatal).toBe(true);
+    expect(states).toEqual(['loading', 'idle', 'running', 'failed']);
+    expect(notices.map((notice) => notice.text)).toContain(ENGINE_FATAL_NOTICE);
+    expect(ENGINE_FATAL_NOTICE).toContain('컴퓨터의 Chrome·Edge');
+    await expect(runtime.run('print')).rejects.toThrow(ENGINE_FATAL_STATUS);
+    expect(workers).toHaveLength(1);
+  });
+
+  it('on_fatal 알림이 없어도 stderr에 엔진이 죽을 때 남기는 글이 오면 같은 처리를 한다', async () => {
+    const { runtime, workers } = makeRuntime();
+    await runtime.load();
+    const done = runtime.run('sleep');
+    await Promise.resolve();
+    workers[0].emit({ type: 'stderr', text: 'Stack (most recent call first): <no Python frame>' });
+    expect((await done).error?.type).toBe('EngineFatalError');
+    expect(runtime.state).toBe('failed');
+  });
+
+  it('죽은 엔진 판별 글은 보통 파이썬 오류 글을 잡지 않는다', () => {
+    expect(isEngineFatalText("NameError: name 'x' is not defined")).toBe(false);
+    expect(isEngineFatalText('Traceback (most recent call last):')).toBe(false);
+    expect(isEngineFatalText('Pyodide has suffered a fatal error. Please report this to the Pyodide maintainers.')).toBe(true);
   });
 });
 

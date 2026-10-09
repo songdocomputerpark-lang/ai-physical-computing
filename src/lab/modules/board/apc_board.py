@@ -1677,7 +1677,7 @@ def pc_package_message(name):
     # 실물 MicroPython 글("no module named '…'", 소문자)을 그대로 앞에 둔다 — 오류 사전 board-import-no-module의 패턴.
     return (
         f"no module named '{name}' (컴퓨터용 파이썬 패키지라 실물 ESP32 보드에도 없어요 — "
-        "컴퓨터 쪽 코드는 영상처리 실습실에서 돌려요.)"
+        "컴퓨터 쪽 코드는 영상 처리 실습실에서 돌려요.)"
     )
 
 

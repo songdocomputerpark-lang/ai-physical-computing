@@ -240,7 +240,7 @@ describe('정지·다시 시작', () => {
       ['OverflowError', 'time.ticks_add(0, 2**29)', 'OverflowError: ticks interval overflow', 'board-ticks-overflow'],
       ['ImportError', 'from machine import PWM', 'ImportError: machine.PWM은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요).', 'board-not-emulated'],
       ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth' (가상 보드의 블루투스는 아직 흉내 내지 않아요)", 'board-not-emulated'],
-      // 영상처리 실습실(보드 흉내 없음)의 import machine은 예전처럼 "실습실을 옮기세요" 풀이
+      // 영상 처리 실습실(보드 흉내 없음)의 import machine은 예전처럼 "실습실을 옮기세요" 풀이
       ['ModuleNotFoundError', 'import machine', "ModuleNotFoundError: No module named 'machine'", 'module-not-found-site'],
       // 보드와 상관없는 ValueError는 원래 풀이
       ['ValueError', "int('x')", "ValueError: invalid literal for int() with base 10: 'x'", 'value-error-int'],
@@ -264,7 +264,7 @@ describe('정지·다시 시작', () => {
       ['TypeError', "uart.write('a')", "TypeError: unicode strings are not supported, please encode to bytes: 'a'", 'comm-serial-write-str'],
       // 새 예제용 bridge 모듈(P4-08): 받을 쪽 없음 / 보드(ESP32 실습실)에서 import
       ['BridgeNoPeer', 'bridge.send("3")', 'bridge.BridgeNoPeer: ESP32 실습실 탭을 찾지 못했어요. …', 'comm-no-peer'],
-      ['ModuleNotFoundError', 'import bridge', "ModuleNotFoundError: No module named 'bridge' (bridge는 컴퓨터(영상처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요.)", 'comm-bridge-on-board'],
+      ['ModuleNotFoundError', 'import bridge', "ModuleNotFoundError: No module named 'bridge' (bridge는 컴퓨터(영상 처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요.)", 'comm-bridge-on-board'],
       // 흉내가 붙지 않은 실습실의 컴퓨터 쪽 모듈
       ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth'", 'comm-pc-module-not-yet'],
       // 가상 BLE(P4-03): 연결 없이 알림 / 흉내 내지 않는 함수

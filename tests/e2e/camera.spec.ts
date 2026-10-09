@@ -6,7 +6,7 @@
 // - 'black' : 까만 캔버스 영상(가상 카메라가 쉬는 동안 보내는 화면)   - 'gray16': 제한 범위 검정(밝기 16)
 // - 'noise' : 어둡고 잡티가 조금 있는 영상(렌즈를 가린 카메라 흉내)    - 'none'  : 장을 한 장도 보내지 않음   - 'busy': 여는 순간 NotReadableError
 // 허락 전(granted false)에는 Chrome처럼 이름·id가 빈 카메라 한 개만 알려 주고, 첫 getUserMedia가 성공하면 이름이 채워진 목록을 준다.
-// 영상처리 실습실 검사는 [입력 켜기]만 쓰므로 파이썬을 기다리지 않는다(파이썬은 뒤에서 받아지지만 검사와 상관없다).
+// 영상 처리 실습실 검사는 [입력 켜기]만 쓰므로 파이썬을 기다리지 않는다(파이썬은 뒤에서 받아지지만 검사와 상관없다).
 // 1.1.0 검토 반영(2026-09-29): 안내 단추·점검 단추를 키보드로 눌러도 초점이 문서로 사라지지 않고, 휴대폰에서 안내가 화면 밖이면 화면 안으로 오고,
 // 풀리면 콘솔에도 한 줄, 점검 [결과 복사] 글에는 장치 이름 대신 번호·종류만(사람 이름이 든 장치 이름 — 연속성 카메라).
 // 실행: PW_BASE_URL=http://localhost:5001/ai-physical-computing/ npx playwright test tests/e2e/camera.spec.ts --project=desktop
@@ -171,7 +171,7 @@ async function severeAxe(page: Page, include: string): Promise<string[]> {
     .map((violation) => `${violation.id}: ${violation.nodes.map((node) => node.html.slice(0, 120)).join(' / ')}`);
 }
 
-test.describe('영상처리 실습실 — 카메라 고르기(모의 카메라 여러 대)', () => {
+test.describe('영상 처리 실습실 — 카메라 고르기(모의 카메라 여러 대)', () => {
   test.skip(({ isMobile }) => isMobile, '카메라 고르기 흐름은 데스크톱에서 확인한다(휴대폰 화면 배치는 아래 따로)');
   test.describe.configure({ timeout: 180_000 });
 
@@ -325,7 +325,7 @@ test.describe('영상처리 실습실 — 카메라 고르기(모의 카메라 �
   });
 });
 
-test.describe('영상처리 실습실 — 까만 화면 안내의 휴대폰 화면 배치', () => {
+test.describe('영상 처리 실습실 — 까만 화면 안내의 휴대폰 화면 배치', () => {
   test.skip(({ isMobile }) => !isMobile, '휴대폰 화면(375px)에서만 확인한다');
 
   test('안내가 떠도 화면이 옆으로 넘치지 않고 단추가 손가락 크기다 — 안내가 화면 밖(아래를 보는 중)이면 화면 안으로 온다', async ({ page }) => {

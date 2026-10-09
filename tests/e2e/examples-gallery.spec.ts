@@ -128,15 +128,15 @@ test.describe('예제 갤러리', () => {
     expect([...new Set(units)]).toEqual(['2']);
     await expect(page.locator('[data-gallery-count]')).toContainText(`예제 ${files.length}개를 골랐어요`);
     expect(page.url()).toContain('unit=2');
-    // 다른 칸의 개수도 지금 조건으로 다시 센다 — 2단원에는 영상처리 예제가 없으니 그 값은 0개로 흐리게 보인다(2026-09-25 Phase 4 검토 반영)
+    // 다른 칸의 개수도 지금 조건으로 다시 센다 — 2단원에는 영상 처리 예제가 없으니 그 값은 0개로 흐리게 보인다(2026-09-25 Phase 4 검토 반영)
     const visionChip = page.locator('label.gallery-chip').filter({ has: page.locator('input[data-gallery-filter="lab"][value="vision"]') });
     await expect(visionChip.locator('[data-gallery-chip-count]')).toHaveText('0개');
     await expect(visionChip).toHaveAttribute('data-empty', 'yes');
     const esp32Chip = page.locator('label.gallery-chip').filter({ has: page.locator('input[data-gallery-filter="lab"][value="esp32"]') });
     await expect(esp32Chip.locator('[data-gallery-chip-count]')).toHaveText(`${files.length}개`);
 
-    // 칸이 다르면 모두 맞아야 한다: 2단원 + 영상처리 실습실 → 영상처리에는 2단원 예제가 없다.
-    await chip(page, '실습실', /^영상처리 실습실/u).check();
+    // 칸이 다르면 모두 맞아야 한다: 2단원 + 영상 처리 실습실 → 영상 처리에는 2단원 예제가 없다.
+    await chip(page, '실습실', /^영상 처리 실습실/u).check();
     await expect(page.locator('[data-gallery]')).toHaveAttribute('data-gallery-visible', '0');
     await expect(page.locator('[data-gallery-empty]')).toBeVisible();
 

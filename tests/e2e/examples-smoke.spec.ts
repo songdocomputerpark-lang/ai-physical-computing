@@ -1,11 +1,11 @@
 /**
  * 이관 예제 전부(scripts/examples-manifest.yaml 기준)를 실습실에서 한 번씩 돌려 보는 스모크 테스트(P2-14, P3-01에서 실습실별로 나눔).
  *
- * 왜: 옮긴 예제(2026-09-18 기준 97개 — 영상처리 57·ESP32 40)는 원본 코드를 한 글자도 고치지 않고 옮긴 것이라(PD-10·PD-33), 흉내 모듈이 하나라도 어긋나면
+ * 왜: 옮긴 예제(2026-09-18 기준 97개 — 영상 처리 57·ESP32 40)는 원본 코드를 한 글자도 고치지 않고 옮긴 것이라(PD-10·PD-33), 흉내 모듈이 하나라도 어긋나면
  * 학생 화면에서 영어 트레이스백이 난다. 사람이 하나하나 눌러 볼 수 없으니 한 번에 돌려 결과를 대조한다.
  *
  * 실습실별로 돈다(P3-01): examples/esp32/ 아래 예제는 ESP32 실습실(가상 보드 — machine·time 흉내는 이 실습실 워커에만 있다),
- * 나머지(vision/·desktop/)는 영상처리 실습실. 실습실마다 테스트가 하나씩이고, 돌릴 예제가 없는 실습실은 건너뛴다.
+ * 나머지(vision/·desktop/)는 영상 처리 실습실. 실습실마다 테스트가 하나씩이고, 돌릴 예제가 없는 실습실은 건너뛴다.
  *
  * 무엇을 보나(예제 하나마다)
  *   1. [예제 불러오기]로 코드를 올리고 [실행] → 잠깐 기다린 뒤 [정지]
@@ -14,7 +14,7 @@
  *
  * 사이드카(<이름>.meta.yaml)의 선택 칸 — src/lab/controls/example-sidecar.ts
  *   smoke:
- *     input: sample | replay | webcam   (영상처리 실습실만. 적지 않으면 tags로 고른다: 손·얼굴·자세·mediapipe면 replay, 아니면 sample)
+ *     input: sample | replay | webcam   (영상 처리 실습실만. 적지 않으면 tags로 고른다: 손·얼굴·자세·mediapipe면 replay, 아니면 sample)
  *     outcome: ok | stopped | error     (적지 않으면 "error만 아니면 통과")
  *     error: AttributeError             (outcome이 error일 때 콘솔에 보여야 하는 오류 이름)
  *     seconds: 4                        (실행을 지켜보는 시간, 기본 3.5초)
@@ -66,7 +66,7 @@ interface SmokeCase {
   skip: string | null;
 }
 
-/** 예제가 도는 실습실: examples/esp32/는 ESP32 실습실, 나머지는 영상처리 실습실 */
+/** 예제가 도는 실습실: examples/esp32/는 ESP32 실습실, 나머지는 영상 처리 실습실 */
 function smokeLabOf(file: string): SmokeLabId {
   return file.startsWith('esp32/') ? 'esp32' : 'vision';
 }
@@ -283,18 +283,18 @@ test.describe('이관 예제 스모크(실습실에서 한 번씩 실행)', () =
   test.skip(({ isMobile }) => Boolean(isMobile), '같은 파이썬·같은 흉내 모듈이라 데스크톱에서 한 번만 돌린다.');
   test.describe.configure({ timeout: 20 * 60_000 });
 
-  test('영상처리 실습실 예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page, context }) => {
-    expect(allCases.filter((item) => item.lab === 'vision').length, '이관 목록(scripts/examples-manifest.yaml)에서 영상처리 예제를 읽지 못했어요').toBeGreaterThan(40);
+  test('영상 처리 실습실 예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page, context }) => {
+    expect(allCases.filter((item) => item.lab === 'vision').length, '이관 목록(scripts/examples-manifest.yaml)에서 영상 처리 예제를 읽지 못했어요').toBeGreaterThan(40);
     const selected = cases.filter((item) => item.lab === 'vision');
-    test.skip(selected.length === 0, 'SMOKE_ONLY에 맞는 영상처리 예제가 없어요.');
+    test.skip(selected.length === 0, 'SMOKE_ONLY에 맞는 영상 처리 예제가 없어요.');
     const { failures, pageErrors, ran } = await runSmoke(page, context, LABS.vision, selected);
-    console.log(`[예제 스모크 — 영상처리] ${ran}개 실행(건너뜀 ${selected.filter((item) => item.skip).length}개), 문제 ${failures.length}개`);
+    console.log(`[예제 스모크 — 영상 처리] ${ran}개 실행(건너뜀 ${selected.filter((item) => item.skip).length}개), 문제 ${failures.length}개`);
     expect(failures, `예제 스모크 실패:\n${failures.join('\n')}`).toEqual([]);
     expect(pageErrors, '페이지 오류').toEqual([]);
   });
 
   test('ESP32 실습실 예제를 모두 실행해도 파이썬 오류로 끝나지 않는다', async ({ page, context }) => {
-    // 교과서 ESP32 예제는 P3-02부터 이관 목록(examples/esp32/…)에 있다 — 목록을 읽지 못하면 건너뛰지 않고 실패한다(영상처리 검사와 같게,
+    // 교과서 ESP32 예제는 P3-02부터 이관 목록(examples/esp32/…)에 있다 — 목록을 읽지 못하면 건너뛰지 않고 실패한다(영상 처리 검사와 같게,
     // 2026-09-30 최종 점검 TD-01: "아직 없음" 가드가 남아 있으면 목록이 깨지는 회귀가 건너뜀(초록)으로 보인다).
     expect(allCases.filter((item) => item.lab === 'esp32').length, '이관 목록(scripts/examples-manifest.yaml)에서 ESP32 예제를 읽지 못했어요').toBeGreaterThan(40);
     const selected = cases.filter((item) => item.lab === 'esp32');

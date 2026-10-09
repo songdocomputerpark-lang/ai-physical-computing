@@ -1,5 +1,5 @@
 /**
- * 영상처리 실습실 ↔ 가상 보드 시리얼 선(P4-02, PLAN §8.4 설계 메모 ②·§7.3 "같은 컴퓨터 탭"). **DOM을 모르는 순수 논리**라
+ * 영상 처리 실습실 ↔ 가상 보드 시리얼 선(P4-02, PLAN §8.4 설계 메모 ②·§7.3 "같은 컴퓨터 탭"). **DOM을 모르는 순수 논리**라
  * 단위 테스트(tests/unit/bridge-serial/)가 진짜 BroadcastChannel로 그대로 검사한다.
  *
  * 무엇을 하나
@@ -175,7 +175,7 @@ export function resolvePrefix(options: { search?: string; stores?: PrefixStores;
 }
 
 /**
- * 영상처리 실습실과 가상 보드를 잇는 선 하나. 한 화면(iframe)이든 다른 탭이든 **같은 코드**로 쓴다(§7.2 규칙 6).
+ * 영상 처리 실습실과 가상 보드를 잇는 선 하나. 한 화면(iframe)이든 다른 탭이든 **같은 코드**로 쓴다(§7.2 규칙 6).
  */
 export class BridgeLink {
   private readonly options: BridgeLinkOptions;
@@ -755,12 +755,12 @@ export function shareSentPrinter(link: BridgeLink, write: (line: string) => void
   };
 }
 
-/** 실습실 화면 하나에 선 하나(영상처리의 serial 흉내와 [보내기] 패널이 같은 선을 쓴다) */
+/** 실습실 화면 하나에 선 하나(영상 처리의 serial 흉내와 [보내기] 패널이 같은 선을 쓴다) */
 const links = new WeakMap<object, BridgeLink>();
 
 /**
  * 이 실습실 화면의 선을 얻는다(없으면 만든다). 먼저 부른 쪽의 이름(from)으로 만들어지므로
- * 영상처리 실습실은 'pc', ESP32 실습실은 'board'을 넘긴다.
+ * 영상 처리 실습실은 'pc', ESP32 실습실은 'board'을 넘긴다.
  */
 export function getBridgeLink(key: object, options: BridgeLinkOptions): BridgeLink {
   const found = links.get(key);

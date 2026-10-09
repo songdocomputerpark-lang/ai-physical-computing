@@ -15,7 +15,7 @@ const checkHref = withBase('start/check/');
 
 <div class="loading" data-loading-panel data-collapsed="false" role="group" aria-labelledby="lab-loading-title">
   <div class="loading__head">
-    <h3 class="loading__title" id="lab-loading-title" data-loading-title>파이썬을 준비하고 있어요</h3>
+    <h2 class="loading__title" id="lab-loading-title" data-loading-title>파이썬을 준비하고 있어요</h2>
     {/* 진행 줄은 받은 양·초가 1초에 몇 번씩 바뀌어 낭독하지 않는다(aria-live="off"). 낭독은 아래 보이지 않는 상태 줄이 단계가 바뀔 때만(index.ts 머리말 6 — 판 1.2.1) */}
     <p class="loading__line" aria-live="off" data-loading-text></p>
     <p class="visually-hidden" role="status" aria-live="polite" data-loading-announce></p>
@@ -37,9 +37,17 @@ const checkHref = withBase('start/check/');
 
     <p class="loading__source" data-loading-source-text></p>
 
+    <div class="loading__actions">
+      <button type="button" class="lab-button" data-loading-prefetch>이 컴퓨터에 실습 파일 미리 받기</button>
+      <p class="loading__status" role="status" aria-live="polite" data-loading-prefetch-status></p>
+    </div>
+
+    <p class="loading__note" data-loading-note></p>
+
+    {/* 1분 개념 카드는 맨 끝에 둔다: 넓은 화면에서는 오른쪽 칸으로 올라가(아래 @container) 첫 화면 높이를 반으로 줄이고, DOM 차례 = 보이는 차례(왼쪽 칸을 다 읽은 뒤 오른쪽 칸)를 지킨다 — R2-006 */}
     <div class="loading__cards" data-loading-cards role="group" aria-label="기다리는 동안 읽는 1분 개념">
       <article class="loading__card" data-loading-card>
-        <h4 class="loading__card-title" data-loading-card-title></h4>
+        <h3 class="loading__card-title" data-loading-card-title></h3>
         <div class="loading__card-body" data-loading-card-body></div>
         <p class="loading__card-code"><code data-loading-card-code></code></p>
         <p class="loading__card-link"><a href="#" data-loading-card-link></a></p>
@@ -50,13 +58,6 @@ const checkHref = withBase('start/check/');
         <button type="button" class="lab-button lab-button--small" data-loading-next aria-label="다음 개념 카드">다음 →</button>
       </div>
     </div>
-
-    <div class="loading__actions">
-      <button type="button" class="lab-button" data-loading-prefetch>이 컴퓨터에 실습 파일 미리 받기</button>
-      <p class="loading__status" role="status" aria-live="polite" data-loading-prefetch-status></p>
-    </div>
-
-    <p class="loading__note" data-loading-note></p>
   </div>
 </div>
 
@@ -290,6 +291,32 @@ const checkHref = withBase('start/check/');
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * 넓은 틀(약 56rem 이상): 진행 막대·단계는 왼쪽, 1분 개념 카드는 오른쪽 칸으로 나란히 놓아 준비 칸이 첫 화면을 채우지 않게 한다(R2-006 —
+   * 1366×768에서 세로로 쌓으면 약 570px라 기다리는 동안 입력·출력 칸과 코드가 첫 화면 밖이었다). 카드가 DOM 끝에 있어 차례는 그대로다.
+   */
+  @container lab (min-width: 56rem) {
+    .loading__body {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      column-gap: var(--space-4);
+      row-gap: 0; /* 카드가 여러 줄에 걸치므로 줄 사이 간격은 왼쪽 칸 항목의 위 여백으로 준다(빈 줄마다 간격이 붙지 않게) */
+      align-items: start;
+    }
+
+    .loading__body > :not(.loading__cards) {
+      grid-column: 1;
+    }
+
+    .loading__body > :not(.loading__cards):not(:first-child) {
+      margin-block-start: var(--space-3);
+    }
+
+    .loading__body > .loading__cards {
+      grid-column: 2;
+      grid-row: 1 / span 8;
+    }
   }
 
   .loading__actions {

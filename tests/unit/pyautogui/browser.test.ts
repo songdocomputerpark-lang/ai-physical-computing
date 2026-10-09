@@ -41,8 +41,8 @@ describe('주소 살펴보기(허용 목록)', () => {
   });
 
   it('사이트 안 경로로 그 쪽을 찾는다', () => {
-    expect(entryOfPath('/labs/vision/')?.title).toBe('영상처리 실습실');
-    expect(entryOfPath('/labs/vision')?.title).toBe('영상처리 실습실'); // 끝 / 가 없어도
+    expect(entryOfPath('/labs/vision/')?.title).toBe('영상 처리 실습실');
+    expect(entryOfPath('/labs/vision')?.title).toBe('영상 처리 실습실'); // 끝 / 가 없어도
     expect(entryOfPath('/없는/쪽/')).toBeNull();
     expect(entryOfPath(null)).toBeNull();
   });

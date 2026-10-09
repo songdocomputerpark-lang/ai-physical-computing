@@ -416,14 +416,20 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   .lab__bar {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-1) var(--space-4);
     min-width: 0;
   }
 
+  /*
+   * 상태 글이 길어져도([실행] 옆 "실습 파일을 받는 중: …" 여러 줄) 조작 줄의 [실행]이 아래로 밀리지 않게 위쪽에 맞춘다(R2-003 —
+   * 가운데 맞춤이면 상태 글이 5줄로 늘 때 단추가 늘어난 높이의 절반만큼 내려갔다). 한 줄일 때는 단추 높이(min-block-size) 안에서 가운데에 앉는다.
+   */
   .lab__bar > .lab__status {
     flex: 0 1 12rem;
+    align-content: center;
     min-width: 0;
+    min-block-size: var(--target-min);
   }
 
   .lab__bar > .lab__message {
@@ -546,6 +552,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
     .lab__bar > .lab__status {
       flex: 1 1 100%;
+      min-block-size: 0;
     }
   }
 
@@ -939,6 +946,41 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     min-width: 0;
   }
 
+  /*
+   * 휴대폰(좁은 틀)에서 실행 중일 때 조절 막대(1~2개)를 화면 아래에 붙여 둔다(R2-007). 한 열로 쌓이는 좁은 틀에서는 조절 패널이 입력·출력 칸(가상 보드 그림) 아래
+   * 800px 넘게 떨어져 있어 LED를 보면서 막대를 움직일 수 없었다. 이 칸이 .lab__grid의 직접 자식이라 grid 안에서만 붙고(표 끝에서 풀림),
+   * 키보드 초점이 이 줄 밑에 숨지 않게 scroll-padding-bottom을 준다(WCAG 2.4.11). 막대가 3개 이상이거나 패널에 흉내 모듈 칸이 열려 있거나
+   * 화면이 낮으면(가로로 눕힌 휴대폰) 붙이지 않는다 — 화면을 너무 많이 먹는다.
+   */
+  @container lab (max-width: 47.99rem) {
+    @media (min-height: 40rem) {
+      :global(.lab[data-state='running']) .lab__panel:has(:global(.params[data-count='1']), :global(.params[data-count='2'])):not(:has(.lab__module:not([hidden]))) {
+        position: sticky;
+        inset-block-end: 0;
+        z-index: 4;
+        padding-block: var(--space-2);
+        background: var(--color-bg);
+        box-shadow: 0 -1px 0 var(--color-border), 0 -0.5rem 0.75rem -0.5rem rgb(0 0 0 / 0.18);
+      }
+
+      /* 붙은 동안은 자리를 아끼려고 긴 안내·도움말을 접어 둔다(막대 자체는 그대로) */
+      :global(.lab[data-state='running']) .lab__panel:has(:global(.params[data-count='1']), :global(.params[data-count='2'])):not(:has(.lab__module:not([hidden]))) :global(.params) {
+        min-height: 0;
+      }
+
+      :global(.lab[data-state='running']) .lab__panel:has(:global(.params[data-count='1']), :global(.params[data-count='2'])):not(:has(.lab__module:not([hidden]))) :global(.params__note),
+      :global(.lab[data-state='running']) .lab__panel:has(:global(.params[data-count='1']), :global(.params[data-count='2'])):not(:has(.lab__module:not([hidden]))) :global(.params__help) {
+        display: none;
+      }
+    }
+  }
+
+  @media (max-width: 47.99rem) and (min-height: 40rem) {
+    :global(:root:has(.lab[data-state='running'] .lab__panel .params:is([data-count='1'], [data-count='2']))) {
+      scroll-padding-block-end: 11rem;
+    }
+  }
+
   .lab__console {
     grid-area: console;
     min-width: 0;
@@ -1123,6 +1165,11 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
   .lab__placeholder code {
     font-family: var(--font-mono);
+  }
+
+  /* 아직 아무것도 안 찍은 콘솔은 낮게(R2-034 — 내용 없는 큰 빈 상자였다). 첫 출력이 오면 아래 기본 높이로 자란다. */
+  .lab-console:empty {
+    min-height: 5rem;
   }
 
   .lab-console {

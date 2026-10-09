@@ -10,7 +10,7 @@
  *
  * shims에 time을 적은 이유: apc_shims.install_available()은 "import할 수 있는 패키지"가 있을 때만 흉내 모듈의 install()을 부른다.
  * time은 늘 있으므로 실행 직전마다 apc_board.install()이 불려(멱등) import 훅·실행 훅이 걸린다. 이 표는 ESP32 실습실의 워커에만
- * 등록되므로(shimTableForLab) 영상처리 실습실의 time은 그대로다. 학생 코드의 `import time`이 MicroPython판이 되는 것은 import 훅이다.
+ * 등록되므로(shimTableForLab) 영상 처리 실습실의 time은 그대로다. 학생 코드의 `import time`이 MicroPython판이 되는 것은 import 훅이다.
  *
  * packagesFromImports: false — ESP32 실습실 워커는 실행 때 import 문을 보고 Pyodide 패키지(numpy·opencv-python …)를 받지 않는다
  * (실물 MicroPython에는 pip 패키지가 없다 — 판 1.1.3 최종 전수 점검 2바퀴 LB2-01). 준비 단계도 받지 않는다(LabShell pyodidePackages={[]}).

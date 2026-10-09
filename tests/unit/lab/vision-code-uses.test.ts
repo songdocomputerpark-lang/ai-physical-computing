@@ -1,4 +1,4 @@
-// 영상처리 실습실이 코드 글자만 보고 가르는 것(src/lab/vision/code-uses.ts) — 판 1.1.1 최종 점검.
+// 영상 처리 실습실이 코드 글자만 보고 가르는 것(src/lab/vision/code-uses.ts) — 판 1.1.1 최종 점검.
 // numpy·OpenCV를 받는 동안의 안내는 영상을 쓰는 코드에만 "영상이 여기에 나와요"를 붙인다(시리얼만 쓰는 3-1-2 컴퓨터 쪽 코드에는 붙이지 않는다).
 import fs from 'node:fs';
 import path from 'node:path';

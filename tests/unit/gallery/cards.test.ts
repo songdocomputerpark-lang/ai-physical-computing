@@ -61,7 +61,7 @@ describe('카드 한 장 만들기', () => {
     expect(card.title).toBe('웹캠 좌우 반전');
     expect(card.description).toBe('거울처럼 뒤집어요.');
     expect(card.group).toBe('1단원 교과서 실습');
-    expect(card.labLabel).toBe('영상처리 실습실');
+    expect(card.labLabel).toBe('영상 처리 실습실');
     expect(card.sourceId).toBe('f028');
     expect(card.page).toBe(28);
     expect(card.lines).toBe(1);
@@ -311,7 +311,7 @@ describe('묶음과 거르기 칸', () => {
     input('esp32', { id: 'e2', file: 'esp32/u3/b.py', group: '3단원 교과서 실습', code: 'import ubluetooth\n' }),
   ];
 
-  it('실습실 차례(영상처리 → ESP32)와 묶음 이름대로 나뉜다', () => {
+  it('실습실 차례(영상 처리 → ESP32)와 묶음 이름대로 나뉜다', () => {
     const { sections } = buildGallery(inputs);
     expect(sections.map((section) => section.label)).toEqual(['1단원 교과서 실습', '2단원 교과서 실습', '3단원 교과서 실습']);
     expect(sections[0].cards).toHaveLength(2);

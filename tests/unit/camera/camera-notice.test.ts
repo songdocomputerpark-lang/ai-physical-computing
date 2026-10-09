@@ -6,7 +6,7 @@
 //    보이지 않아요"를 먼저, 장치 관리자 문장엔 관리자 권한·다시 켜기, 가리개 문장엔 노트북 카메라 끄기 키(Fn).
 import { describe, expect, it } from 'vitest';
 import { toCameraDevices } from '../../../src/lab/vision/camera-devices.ts';
-import { CAMERA_PERMISSION_STEP, cameraNotice, cameraOpenedMessage, otherCameras } from '../../../src/lab/vision/camera-notice.ts';
+import { CAMERA_PERMISSION_STEP, CAMERA_PERMISSION_STEP_PHONE, cameraNotice, cameraPermissionStep, cameraOpenedMessage, otherCameras } from '../../../src/lab/vision/camera-notice.ts';
 
 const [virtualCam, realCam, secondReal, irCam] = toCameraDevices([
   { kind: 'videoinput', deviceId: 'v', label: 'EShare Virtual Camera' },
@@ -85,6 +85,17 @@ describe('까만 영상 안내(cameraNotice)', () => {
   it('카메라 허용을 되돌리는 문장은 한 곳(실습실·점검 페이지·도움말이 함께 쓴다)', () => {
     expect(CAMERA_PERMISSION_STEP).toContain('주소 표시줄 왼쪽의 사이트 정보 아이콘');
     expect(CAMERA_PERMISSION_STEP).toContain('"허용"으로 바꾸고 새로고침');
+  });
+
+  it('휴대폰·태블릿은 주소 표시줄 아이콘 대신 사이트 설정 안내를 쓴다(R2-002)', () => {
+    const iphone = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1';
+    const android = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36';
+    const desktop = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36';
+    expect(cameraPermissionStep(iphone)).toBe(CAMERA_PERMISSION_STEP_PHONE);
+    expect(cameraPermissionStep(android)).toBe(CAMERA_PERMISSION_STEP_PHONE);
+    expect(cameraPermissionStep(desktop)).toBe(CAMERA_PERMISSION_STEP);
+    expect(CAMERA_PERMISSION_STEP_PHONE).not.toContain('주소 표시줄 왼쪽');
+    expect(CAMERA_PERMISSION_STEP_PHONE).toContain('"허용"으로 바꾸고 새로고침');
   });
 
   it('카메라 없이 이어 가는 길·낭독 문장·콘솔 한 줄이 늘 있다(해요체)', () => {

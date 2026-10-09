@@ -2,13 +2,13 @@
 /**
  * 통신 실습실(SPEC §6.3 "통신 실습실(IoT Lab)", PLAN §2.1 /labs/iot/, §7·§8.4) — 2026-09-24 Phase 4 통합에서 자리 페이지를 실제 화면으로 바꿨다.
  *
- * 통신 실습은 **두 화면이 짝**을 이룬다: 컴퓨터 쪽 코드는 영상처리 실습실, 보드 쪽 코드는 ESP32 실습실(가상 보드)에서 돌고,
+ * 통신 실습은 **두 화면이 짝**을 이룬다: 컴퓨터 쪽 코드는 영상 처리 실습실, 보드 쪽 코드는 ESP32 실습실(가상 보드)에서 돌고,
  * 둘 사이는 [보내기] 패널·블루투스 칸·MQTT 칸이 고른 통로(같은 컴퓨터 탭·USB 데이터 포트·블루투스·공개 중계 서버)로 잇는다.
  * 그래서 이 페이지는 코드를 직접 돌리지 않고, SPEC §6.3의 개념 계단(유선 → 블루투스 → 와이파이·MQTT → 대시보드)과
  * AI → 피지컬 브릿지 예제로 가는 길을 한 곳에 모은다. 아래 페이지는 대시보드(labs-iot-dashboard)다.
  *
  * 예제 링크는 빌드 때 examples/의 파일을 읽어 만든다 — 제목은 사이드카(<이름>.meta.yaml) → 파일 머리말 순서(실습실 목록과 같은 규칙),
- * 여는 실습실은 경로의 첫 칸(esp32/ → ESP32, vision/ → 영상처리 — lesson-data.ts labOfExampleFile). 파일이 없으면 빌드가 멈춘다.
+ * 여는 실습실은 경로의 첫 칸(esp32/ → ESP32, vision/ → 영상 처리 — lesson-data.ts labOfExampleFile). 파일이 없으면 빌드가 멈춘다.
  * 공개 중계 서버 경고(PD-29)는 브릿지의 문장(bridgeText.publicBrokerNotice)을 그대로 써서 실습실 화면과 같은 말을 한다.
  */
 import fs from 'node:fs';
@@ -88,12 +88,12 @@ const steps: readonly Step[] = [
   {
     id: 'ble',
     short: '블루투스(BLE)',
-    title: '블루투스(BLE) — 교과서 3-1-3·4단원, 블루투스 교안',
+    title: '블루투스(BLE) — 교과서 3-1-3과 4단원, 블루투스 교안',
     lead: '선 없이 전파로 짧은 글을 주고받아요. 보드가 자기 이름을 알리면(광고) 컴퓨터나 스마트폰이 골라서 연결해요. 한 번에 20바이트까지 보내요.',
     examples: [exampleLink('esp32/bt/b1-ble-receive-print.py', '보드 쪽 첫 실습'), exampleLink('esp32/templates/ble-notify.py', '뼈대 코드')],
     how: [
       '가상 보드 그림 아래 "블루투스(BLE) 조작" 칸이 상대 기기(스마트폰·컴퓨터) 노릇을 해요. [연결]을 누르고 글자를 보내 봐요.',
-      `컴퓨터 쪽 블루투스 코드(3-1-3·4단원)와 보드를 한 화면에서 짝지어 돌리려면 ${unit4.title}을 열어요.`,
+      `컴퓨터 쪽 블루투스 코드(3-1-3과 4단원)와 보드를 한 화면에서 짝지어 돌리려면 ${unit4.title}을 열어요.`,
       '실제 보드는 ESP32 실습실의 블루투스 칸 [블루투스 보드 연결]로 이어요(컴퓨터용 Chrome·Edge). 보드 이름은 ESP32-07처럼 자리 번호로 붙여요.',
     ],
   },
@@ -129,7 +129,7 @@ const galleryLinks = (['uart', 'ble', 'wifi', 'mqtt', 'tab'] as const).map((kind
 
   <div class="prose iot-intro">
     <p>
-      통신 실습은 <strong>두 화면이 짝</strong>을 이뤄요. 컴퓨터 쪽 코드는 영상처리 실습실에서, 보드 쪽 코드는 ESP32 실습실에서 돌리고, 둘
+      통신 실습은 <strong>두 화면이 짝</strong>을 이뤄요. 컴퓨터 쪽 코드는 영상 처리 실습실에서, 보드 쪽 코드는 ESP32 실습실에서 돌리고, 둘
       사이를 아래 통로 가운데 하나로 이어요. 보드가 없어도 가상 보드와 같은 컴퓨터의 탭끼리 끝까지 해 볼 수 있고, 실제 보드와 변환기가 있으면 같은
       코드를 그대로 써요.
     </p>
@@ -170,15 +170,19 @@ const galleryLinks = (['uart', 'ble', 'wifi', 'mqtt', 'tab'] as const).map((kind
               {step.examples.map((example) => (
                 <li>
                   <span class="iot-examples__role">{example.role}</span>{' '}
-                  <a href={example.href}>{example.title}</a> <span class="iot-examples__lab">({example.lab})</span>
+                  <a href={example.href}>{example.title}</a> <span class="iot-examples__lab">{example.lab}</span>
                 </li>
               ))}
             </ul>
-            <ul class="iot-step__how">
-              {step.how.map((line) => (
-                <li>{line}</li>
-              ))}
-            </ul>
+            {/* 하는 방법 세 줄은 접어 둔다 — 단계 카드마다 링크 3줄 + 보조 설명 3줄이 비슷한 크기로 쌓여 쪽이 길고 읽기 힘들었다(R2-035) */}
+            <details class="iot-step__more">
+              <summary>이렇게 해요</summary>
+              <ul class="iot-step__how">
+                {step.how.map((line) => (
+                  <li>{line}</li>
+                ))}
+              </ul>
+            </details>
           </div>
         </li>
       ))
@@ -199,7 +203,7 @@ const galleryLinks = (['uart', 'ble', 'wifi', 'mqtt', 'tab'] as const).map((kind
 
   <h2 class="iot-heading" id="bridge">인공지능 → 보드(브리지)</h2>
   <div class="prose">
-    <p>영상처리 실습실이 알아낸 것(손가락 개수·좌표·윙크)을 보드로 보내 실제 장치를 움직여요. 인공지능이 알아낸 것으로 보드의 장치를 움직이는, 통신 실습의 마지막 단계예요.</p>
+    <p>영상 처리 실습실이 알아낸 것(손가락 개수·좌표·윙크)을 보드로 보내 실제 장치를 움직여요. 인공지능이 알아낸 것으로 보드의 장치를 움직이는, 통신 실습의 마지막 단계예요.</p>
   </div>
   <ul class="iot-bridge">
     <li class="card card--u3 iot-bridge__item">
@@ -209,7 +213,7 @@ const galleryLinks = (['uart', 'ble', 'wifi', 'mqtt', 'tab'] as const).map((kind
           bridgeExamples.map((example) => (
             <li>
               <span class="iot-examples__role">{example.role}</span> <a href={example.href}>{example.title}</a>{' '}
-              <span class="iot-examples__lab">({example.lab})</span>
+              <span class="iot-examples__lab">{example.lab}</span>
             </li>
           ))
         }
@@ -355,13 +359,47 @@ const galleryLinks = (['uart', 'ble', 'wifi', 'mqtt', 'tab'] as const).map((kind
     padding-inline-start: 1.2em;
   }
 
-  .iot-examples__role {
-    font-weight: var(--weight-semibold);
+  /* 주 링크는 굵게, 어느 쪽 코드인지·어느 실습실인지는 작은 꼬리표(알약)로 — 괄호 꼬리표가 줄을 길게 만들었다(R2-035) */
+  .iot-examples {
+    padding-inline-start: 0;
+    list-style: none;
   }
 
+  .iot-examples a {
+    font-weight: var(--weight-bold);
+  }
+
+  .iot-examples__role,
   .iot-examples__lab {
+    display: inline-block;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg-subtle);
     color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: 1.6;
+    vertical-align: 0.1em;
+  }
+
+  .iot-examples__role {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .iot-step__more > summary {
+    min-height: var(--target-min);
+    padding-block: var(--space-2);
+    color: var(--color-accent-hover);
     font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .iot-step__more[open] > summary {
+    margin-block-end: var(--space-1);
   }
 
   .iot-step__how {

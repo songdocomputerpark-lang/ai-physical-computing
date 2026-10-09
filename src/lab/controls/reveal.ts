@@ -15,19 +15,44 @@
 export interface RevealOptions {
   /** 화면 어디에 붙일지(기본 'start' — 칸의 제목이 화면 위쪽에 오게) */
   block?: ScrollLogicalPosition;
+  /**
+   * 화면 위쪽을 덮고 있는 붙은 줄의 높이(px, 기본 0). 0보다 크면 scrollIntoView 대신 직접 옮겨, 칸을 그 밑에 놓는다 —
+   * scrollIntoView는 붙은 줄을 몰라서 큰 칸을 가운데 맞추면 칸의 제목과 맨 위 단추가 붙은 줄 밑으로 들어갔다(R2-004).
+   * 칸이 붙은 줄 밑의 보이는 자리보다 크면 가운데 대신 칸의 위쪽(제목)을 보이는 자리의 맨 위에 맞춘다.
+   */
+  inset?: number;
+  /** inset을 쓸 때 붙은 줄 밑에 남길 여백(px, 기본 8) */
+  margin?: number;
 }
 
-/** 이 요소가 화면에 충분히 보이는지 */
-export function isMostlyVisible(element: Element, viewportHeight: number): boolean {
+/** 붙은 줄(위에 붙은 조작 줄 묶음)이 가린 높이를 뺀 보이는 자리에서, 이 요소가 화면에 충분히 보이는지 */
+export function isMostlyVisible(element: Element, viewportHeight: number, inset = 0): boolean {
   const rect = element.getBoundingClientRect();
   if (rect.height === 0 && rect.width === 0) {
     return true; // 숨어 있는 칸은 옮기지 않는다
   }
-  const visible = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+  const covered = Math.max(0, inset);
+  const visible = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, covered);
   if (visible <= 0) {
     return false;
   }
-  return visible >= Math.min(rect.height, viewportHeight * 0.5);
+  return visible >= Math.min(rect.height, Math.max(0, viewportHeight - covered) * 0.5);
+}
+
+/** 이 칸(root) 안의 조작 줄 묶음이 화면 위에 붙어 있으면 그 높이(px), 아니면 0 */
+export function stickyBarInset(root: ParentNode): number {
+  const bar = root.querySelector<HTMLElement>('[data-lab-bar]');
+  if (!bar) {
+    return 0;
+  }
+  try {
+    if (getComputedStyle(bar).position !== 'sticky') {
+      return 0;
+    }
+  } catch {
+    return 0;
+  }
+  return Math.ceil(bar.getBoundingClientRect().height);
 }
 
 export function prefersReducedMotion(): boolean {
@@ -44,8 +69,30 @@ export function revealElement(element: Element | null | undefined, options: Reve
     return false;
   }
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-  if (viewportHeight === 0 || isMostlyVisible(element, viewportHeight)) {
+  const inset = Math.max(0, options.inset ?? 0);
+  if (viewportHeight === 0 || isMostlyVisible(element, viewportHeight, inset)) {
     return false;
+  }
+  if (inset > 0 && typeof window.scrollTo === 'function') {
+    const rect = element.getBoundingClientRect();
+    const margin = options.margin ?? 8;
+    const room = viewportHeight - inset; // 붙은 줄 밑의 보이는 자리
+    const block = options.block ?? 'start';
+    let top: number; // 옮긴 뒤 칸 위 끝이 화면(뷰포트)에서 있을 자리
+    if (block === 'center' && rect.height + margin * 2 <= room) {
+      top = inset + (room - rect.height) / 2;
+    } else if (block === 'end' && rect.height + margin * 2 <= room) {
+      top = viewportHeight - margin - rect.height;
+    } else {
+      top = inset + margin; // 시작 맞춤이거나 칸이 보이는 자리보다 크면: 제목이 보이게 위 끝을 붙은 줄 밑에
+    }
+    const target = Math.max(0, Math.round((window.scrollY || 0) + rect.top - top));
+    try {
+      window.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    } catch {
+      window.scrollTo(0, target);
+    }
+    return true;
   }
   try {
     element.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: options.block ?? 'start' });
@@ -95,7 +142,10 @@ export function revealTogether(
   if (!first || !last) {
     return false;
   }
-  const fallbackOptions: RevealOptions = options.block ? { block: options.block } : {};
+  const fallbackOptions: RevealOptions = {
+    ...(options.block ? { block: options.block } : {}),
+    ...(options.inset !== undefined && options.inset > 0 ? { inset: options.inset } : {}),
+  };
   if (!secondary || typeof window === 'undefined') {
     return revealElement(first, fallbackOptions);
   }
@@ -126,7 +176,12 @@ export function revealTogether(
       if (typeof window.scrollTo !== 'function') {
         return false;
       }
-      const target = Math.max(0, Math.round((window.scrollY || 0) + top - margin));
+      // 붙은 줄이 있으면 남는 자리를 위쪽에 쓴다 — 둘째 칸의 아래 끝(+여유)을 화면 아래에 맞춰, 칸 위의 제목·[입력 끄기]가
+      // 붙은 줄 밑에 덜 가리게 한다(R2-004 통합 확인: 1366×768 영상 처리 첫 실습에서 남는 110px가 화면 아래에 비어 있었다).
+      const topTarget = (window.scrollY || 0) + top - margin;
+      const bottomTarget = (window.scrollY || 0) + bottom + trySlack - viewportHeight;
+      // 위로 옮길 때(칸이 화면 위쪽에 가려짐)는 덜 움직이는 위 끝 맞춤 그대로.
+      const target = Math.max(0, Math.round(inset > 0 && topTarget > (window.scrollY || 0) ? Math.min(topTarget, bottomTarget) : topTarget));
       try {
         window.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
       } catch {
@@ -161,5 +216,12 @@ export function revealTogether(
       return true;
     }
   }
-  return revealElement(options.fallback ?? last, fallbackOptions);
+  // 둘을 함께 못 넣으면 붙은 줄 밑 보이는 자리에 통째로 들어가는 가장 넓은 후보를 보인다(제목·[입력 끄기]까지 — R2-004 통합 확인:
+  // 1366×768 영상 처리 첫 실습에서 출력 칸 전체(497px)는 들어가는데 마지막 후보(출력 화면 틀)만 보여 제목이 붙은 줄 밑에 가렸다).
+  const room = viewportHeight - inset - (options.margin ?? 8) * 2;
+  const roomy = candidates.find((candidate) => {
+    const box = candidate.getBoundingClientRect();
+    return !(box.width === 0 && box.height === 0) && box.height <= room;
+  });
+  return revealElement(options.fallback ?? roomy ?? last, fallbackOptions);
 }

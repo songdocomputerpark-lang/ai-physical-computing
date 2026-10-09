@@ -99,7 +99,7 @@ export function registerBuiltinChannels(): void {
       id: DIRECT_CHANNEL_ID,
       label: '같은 화면 연결',
       available: () => true,
-      // 같은 접두어로 연 통로끼리 한 묶음이 된다(같은 탭 안에서 영상처리와 가상 보드를 잇는 한 화면 모드).
+      // 같은 접두어로 연 통로끼리 한 묶음이 된다(같은 탭 안에서 영상 처리와 가상 보드를 잇는 한 화면 모드).
       open: (options) => Promise.resolve(directHub(options.prefix ?? 'default', options.type).join(options.from)),
     });
   }

@@ -81,7 +81,7 @@ export interface LoadMessage {
   readonly forceLimited: boolean;
   /**
    * 이 워커를 쓰는 실습실(LabShell의 labId: vision, esp32, dev …). 있으면 워커가 그 실습실에 붙는 흉내 모듈 폴더(manifest.labs)의
-   * 파이썬 파일과 shims만 /apc에 넣는다 — 가상 보드의 machine.py·time 흉내가 영상처리 실습실에 새지 않게(P3-01, PD-04).
+   * 파이썬 파일과 shims만 /apc에 넣는다 — 가상 보드의 machine.py·time 흉내가 영상 처리 실습실에 새지 않게(P3-01, PD-04).
    * 없으면 예전처럼 모든 모듈을 넣는다(단위 테스트·시험용).
    */
   readonly labId?: string;
@@ -208,7 +208,7 @@ export interface NoticeMessage {
 export interface RequestMessage {
   readonly type: 'request';
   readonly requestId: number;
-  /** 요청 종류. 'input'(payload: { prompt: string })은 실습실 틀이, 'camera.*'는 영상처리 실습실이 처리한다(머리말 목록). */
+  /** 요청 종류. 'input'(payload: { prompt: string })은 실습실 틀이, 'camera.*'는 영상 처리 실습실이 처리한다(머리말 목록). */
   readonly kind: string;
   readonly payload: unknown;
 }
@@ -242,7 +242,17 @@ export interface TaskResultMessage {
   readonly error?: string;
 }
 
+/**
+ * 파이썬 엔진(Pyodide)이 되살릴 수 없는 치명 오류를 알림(판 1.3.0 R2-001 — iPhone 사용자 에이전트에서 'SuspendError: trying to suspend JS frames'로 엔진이 죽고
+ * 상태 줄이 '실행 중이에요.'로 남던 것). 워커는 이 뒤로 쓸 수 없다 — 화면은 워커를 끝내고 안내한다.
+ */
+export interface FatalMessage {
+  readonly type: 'fatal';
+  readonly message: string;
+}
+
 export type FromWorkerMessage =
+  | FatalMessage
   | ProgressMessage
   | PackageWaitMessage
   | ReadyMessage

@@ -1,6 +1,6 @@
 """컴퓨터 쪽 통신 모듈 `bridge` — 새 예제가 보드로 글자 한 줄을 보낼 때 쓴다(PLAN §7.6 "새 예제용 bridge 모듈", P4-08 구역 G).
 
-학생 코드에서 쓰는 법(영상처리 실습실)
+학생 코드에서 쓰는 법(영상 처리 실습실)
     import bridge
 
     bridge.send(str(count))        # 상태(지금 값). 앞에 보낸 값과 **같으면 보내지 않는다**(§7.2 규칙 4). 끝에 줄바꿈(\\n) 한 개를 붙인다.
@@ -37,7 +37,7 @@ import sys
 if "apc_board" in sys.modules:
     # ESP32 실습실 워커(가상 보드 흉내가 들어 있다) — 실물 MicroPython처럼 모듈이 없는 것으로 알린다.
     raise ModuleNotFoundError(
-        "No module named 'bridge' (bridge는 컴퓨터(영상처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요. "
+        "No module named 'bridge' (bridge는 컴퓨터(영상 처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요. "
         "보드는 컴퓨터가 보낸 줄을 UART(uart.readline())나 블루투스(ESP32BLE.read())로 받아요.)",
         name="bridge",
     )
@@ -124,7 +124,7 @@ def connect():
         reply = apc_runtime.request(REQUEST_OPEN, {"port": None, "baudrate": _AUTO_BAUD, "timeout": None})
     except Exception:  # 화면이 이 요청을 모르는 곳(흉내 모듈이 붙지 않은 화면)
         raise BridgeError(
-            "이 화면에서는 bridge로 보낼 수 없어요. 영상처리 실습실에서 [보내기] 패널이 있는 화면으로 열어요."
+            "이 화면에서는 bridge로 보낼 수 없어요. 영상 처리 실습실에서 [보내기] 패널이 있는 화면으로 열어요."
         ) from None
     reply = reply if isinstance(reply, dict) else {}
     if not reply.get("ok"):

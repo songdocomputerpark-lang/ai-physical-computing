@@ -33,7 +33,7 @@ import manifest from './manifest.ts';
 /** 다른 모듈·페이지가 데이터 포트 칸을 열고 싶을 때 보내는 창 이벤트 */
 export const DATA_PORT_SHOW_EVENT = 'apc:data-port-show';
 
-/** 코드에 이런 이름이 보이면 패널을 연다(영상처리는 pyserial, ESP32는 UART) */
+/** 코드에 이런 이름이 보이면 패널을 연다(영상 처리는 pyserial, ESP32는 UART) */
 export const DATA_PORT_CODE_PATTERN = /\bimport\s+serial\b|\bserial\s*\.\s*Serial\b|\bfrom\s+serial\b|\bmachine\s*\.\s*UART\b|\bUART\s*\(/u;
 
 /** 이 페이지의 연결 하나(브릿지 통로가 나중에 찾아 쓴다) */

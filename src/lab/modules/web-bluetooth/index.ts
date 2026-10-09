@@ -41,7 +41,7 @@ export const BLE_REAL_SHOW_EVENT: string = BLE_SHOW_EVENT;
 /**
  * 코드에 이런 이름이 보이면 패널을 연다.
  * - ESP32 실습실: 보드 코드가 쓰는 `ESP32BLE`·`ubluetooth`·`bluetooth`
- * - 영상처리 실습실: 컴퓨터 쪽 원본이 쓰는 `import bluetooth`·`bluetooth_lib`
+ * - 영상 처리 실습실: 컴퓨터 쪽 원본이 쓰는 `import bluetooth`·`bluetooth_lib`
  */
 export const BLE_CODE_PATTERN = /\bESP32BLE\b|\bu?bluetooth\b|\bbluetooth_lib\b/u;
 

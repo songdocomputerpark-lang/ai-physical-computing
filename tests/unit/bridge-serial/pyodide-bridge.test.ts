@@ -123,6 +123,6 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('새 예제용 bridge 모듈(
     const value = out.steps.esp32_guard!.value as [string, string];
     expect(value[0]).toBe('bridge');
     expect(value[1]).toContain("No module named 'bridge'");
-    expect(value[1]).toContain('영상처리 실습실');
+    expect(value[1]).toContain('영상 처리 실습실');
   });
 });

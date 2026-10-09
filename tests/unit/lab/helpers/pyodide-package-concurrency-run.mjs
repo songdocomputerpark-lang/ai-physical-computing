@@ -3,7 +3,7 @@
 // 마지막 줄의 JSON 한 줄을 읽는다.
 //
 // 워커(src/lab/runtime/worker.ts)와 같은 것을 쓴다: 다리(bridge.ts), 받기 줄·실행 계획(package-loads.ts — 워커의 prepareRun 그대로),
-// 붙박이 파이썬(src/lab/python/*.py)과 영상처리 실습실에 붙는 흉내 모듈 폴더의 .py·shims(manifest.ts의 labs가 vision 또는 '*' —
+// 붙박이 파이썬(src/lab/python/*.py)과 영상 처리 실습실에 붙는 흉내 모듈 폴더의 .py·shims(manifest.ts의 labs가 vision 또는 '*' —
 // python/modules.ts의 pythonModulesForLab·shimTableForLab과 같은 규칙). 실행 하나는 워커 run()과 같은 차례로 돈다
 // (beginRun → prepareRun → install_available → reset_for_run → 전역 잇기 → runPythonAsync → run_idle → 마무리).
 //
@@ -67,7 +67,7 @@ async function waitUntil(test, label, limitMs = 60_000) {
   }
 }
 
-// ── 영상처리 실습실의 파이썬 파일·shims(manifest의 labs가 vision 또는 '*') ──
+// ── 영상 처리 실습실의 파이썬 파일·shims(manifest의 labs가 vision 또는 '*') ──
 const pythonFiles = new Map();
 for (const file of fs.readdirSync(path.join(rootDir, 'src', 'lab', 'python'))) {
   if (file.endsWith('.py')) pythonFiles.set(file, path.join(rootDir, 'src', 'lab', 'python', file));
@@ -328,7 +328,7 @@ if (mode === 'late') {
   pyodide.registerJsModule('_probe', { loaded: () => 'opencv-python' in pyodide.loadedPackages && !loads.busy() });
   pyodide.FS.writeFile('/home/pyodide/helper_cv2b.py', 'import cv2\n');
   const preload = loads.load(['opencv-python']).catch(skip);
-  // C5) 예제가 적은 패키지(opencv-python — 사이드카 없는 영상처리 예제)는 미리 받기가 받는 중이면 시작을 막지 않는다: 편집칸 코드가 그것을 쓰지 않으면 곧바로
+  // C5) 예제가 적은 패키지(opencv-python — 사이드카 없는 영상 처리 예제)는 미리 받기가 받는 중이면 시작을 막지 않는다: 편집칸 코드가 그것을 쓰지 않으면 곧바로
   await runLikeWorker('example_packages_start_now', ['import time', "print('예제와 다른 코드')", 'time.sleep(0.05)', "print('끝')"].join('\n'), {
     packages: ['opencv-python'],
   });
@@ -388,7 +388,7 @@ if (mode === 'late') {
   // ── 판 1.2.0 방식 ──
   loads = workerLikeLoads();
 
-  // 1) 미리 받기(영상처리 실습실 VISION_PACKAGES)
+  // 1) 미리 받기(영상 처리 실습실 VISION_PACKAGES)
   const preload = loads.load(['opencv-python']).catch(skip);
   out.loadingAtStart = { keys: loads.loadingKeys(), imports: loads.loadingImports() };
 

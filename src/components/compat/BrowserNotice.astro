@@ -30,13 +30,18 @@ const checkHref = withBase('start/check/');
     <path d="M12 16.75v.5"></path>
   </svg>
   <div class="browser-notice__body">
-    <p class="browser-notice__title" data-notice-text="other-browser" hidden>실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요</p>
+    <p class="browser-notice__title" data-notice-text="other-browser" data-notice-device="computer" hidden>실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요</p>
+    <p class="browser-notice__title" data-notice-text="other-browser" data-notice-device="phone" hidden>휴대폰에서는 읽기가 가장 잘 돼요. 실습은 컴퓨터에서 해 주세요</p>
     <p class="browser-notice__title" data-notice-text="update-browser" hidden>브라우저를 최신판으로 업데이트해 주세요</p>
     <details class="browser-notice__more" open>
       <summary>자세히 보기</summary>
-      <p data-notice-text="other-browser" hidden>
+      <p data-notice-text="other-browser" data-notice-device="computer" hidden>
         지금 브라우저에서도 학습 페이지와 퀴즈는 볼 수 있어요. 코드를 실행하거나 보드를 연결하는 실습은 Chrome과 Edge
         최신판을 기준으로 만들어요.
+      </p>
+      <p data-notice-text="other-browser" data-notice-device="phone" hidden>
+        휴대폰에서도 학습 페이지와 퀴즈는 볼 수 있어요. 코드 실행은 일부만 되거나 멈출 수 있고, 실제 보드 연결(USB·블루투스)은
+        컴퓨터의 Chrome과 Edge 최신판을 기준으로 만들어요. 컴퓨터가 있으면 이 쪽 주소를 컴퓨터에서 열어 주세요.
       </p>
       <p data-notice-text="update-browser" hidden>
         이 브라우저에는 파이썬 실습에 필요한 기능(JSPI)이 없어요. 업데이트한 뒤 내 컴퓨터 점검에서 다시 확인해 주세요. 학습
@@ -56,6 +61,7 @@ const checkHref = withBase('start/check/');
 <script>
   import {
     decideBrowserNotice,
+    detectBrowser,
     envFromWindow,
     isBrowserNoticeDismissed,
     rememberBrowserNoticeDismissed,
@@ -63,6 +69,8 @@ const checkHref = withBase('start/check/');
 
   const env = envFromWindow(window);
   const variant = decideBrowserNotice(env);
+  // 휴대폰·태블릿이면 "컴퓨터의 Chrome·Edge" 한 가지 말만 하지 않고 이 기기 사정을 말한다(R2-002). 같은 안내 종류라 닫기 기억은 그대로 쓴다.
+  const device = detectBrowser(env).mobile ? 'phone' : 'computer';
 
   for (const notice of document.querySelectorAll<HTMLElement>('[data-browser-notice]')) {
     notice.dataset.variant = variant;
@@ -74,8 +82,10 @@ const checkHref = withBase('start/check/');
       notice.dataset.state = 'dismissed';
       continue;
     }
+    notice.dataset.device = device;
     for (const block of notice.querySelectorAll<HTMLElement>('[data-notice-text]')) {
-      block.hidden = block.dataset.noticeText !== variant;
+      const forDevice = block.dataset.noticeDevice;
+      block.hidden = block.dataset.noticeText !== variant || (forDevice !== undefined && forDevice !== device);
     }
     notice.hidden = false;
     notice.dataset.state = 'shown';

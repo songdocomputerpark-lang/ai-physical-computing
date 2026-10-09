@@ -16,7 +16,7 @@
  * 6. (병렬 제작 준비 2026-09-17) 소리: 배선에 소리 부품(정의 sound: true)이 있으면 [소리 켜기/끄기] 단추를 보이고, [실행] 때 AudioContext를 깨운다(board-audio.ts).
  * 7. (P3-06 블록 모드) 예제 목록에 없는 코드의 배선: 블록 모드가 실습실 뿌리에 알린 배선(data-board-wiring-override 속성 — src/lab/blocks/board-link.ts)이
  *    있으면 예제 배선 대신 그것을 그린다(블록이 쓰는 터치 센서·버저 등). 속성 하나만 믿고(보드는 따로 기억하지 않음) apc:board-wiring 이벤트·예제 바뀜에 다시 그린다.
- * 영상처리 실습실에는 붙지 않는다(manifest labs ['esp32']). io 슬롯이 없는 페이지(차시 임베드 등)에서는 조용히 아무것도 하지 않는다.
+ * 영상 처리 실습실에는 붙지 않는다(manifest labs ['esp32']). io 슬롯이 없는 페이지(차시 임베드 등)에서는 조용히 아무것도 하지 않는다.
  */
 import { BOARD_WIRING_EVENT, readAnnouncedWiring } from '../../blocks/board-link.ts';
 import { readExampleMeta } from '../../controls/example-meta.ts';

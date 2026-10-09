@@ -301,7 +301,7 @@ export function mountDashboard(root: HTMLElement): DashboardPage {
   };
 
   /**
-   * 브릿지(P4-01)로 오는 글도 함께 듣는다 — 영상처리 실습실의 [보내기] 패널이 보낸 값이 `bridge/pc` 토픽으로 들어온다.
+   * 브릿지(P4-01)로 오는 글도 함께 듣는다 — 영상 처리 실습실의 [보내기] 패널이 보낸 값이 `bridge/pc` 토픽으로 들어온다.
    * 같은 컴퓨터 탭 통로라 인터넷이 필요 없고, 접두어가 바뀌면 닫았다 다시 연다.
    */
   let bridge: BridgeChannel | null = null;

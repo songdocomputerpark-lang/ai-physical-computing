@@ -12,7 +12,7 @@ const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
 
 // 실습실마다 카드 묶음이 다르다(P3-11) — 두 묶음 모두 같은 규칙을 지킨다
 const CARD_SETS = [
-  ['영상처리', CONCEPT_CARDS],
+  ['영상 처리', CONCEPT_CARDS],
   ['ESP32', BOARD_CONCEPT_CARDS],
   ['시리얼 통신', SERIAL_CONCEPT_CARDS],
 ] as const;
@@ -54,11 +54,11 @@ describe.each(CARD_SETS)('1분 개념 카드(%s)', (_name, CONCEPT_CARDS) => {
 });
 
 describe('1분 개념 카드 공통', () => {
-  it('실습실에 맞는 묶음을 고른다(ESP32는 보드 카드, 나머지는 영상처리 카드)', () => {
+  it('실습실에 맞는 묶음을 고른다(ESP32는 보드 카드, 나머지는 영상 처리 카드)', () => {
     expect(cardsForLab('esp32')).toBe(BOARD_CONCEPT_CARDS);
     expect(cardsForLab('vision')).toBe(CONCEPT_CARDS);
     expect(cardsForLab('dev')).toBe(CONCEPT_CARDS);
-    // 판 1.2.1(검토 E4): 영상처리 실습실을 시리얼 통신 코드로 열면 통신 카드, 보드 실습실은 코드와 상관없이 보드 카드
+    // 판 1.2.1(검토 E4): 영상 처리 실습실을 시리얼 통신 코드로 열면 통신 카드, 보드 실습실은 코드와 상관없이 보드 카드
     expect(cardsForLab('vision', 'import serial \nimport time\nuart = serial.Serial("COM10", 115200)')).toBe(SERIAL_CONCEPT_CARDS);
     expect(cardsForLab('vision', 'import cv2, serial')).toBe(CONCEPT_CARDS);
     expect(cardsForLab('vision', 'from serial import Serial')).toBe(SERIAL_CONCEPT_CARDS);

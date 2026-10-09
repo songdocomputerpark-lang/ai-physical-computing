@@ -6,12 +6,12 @@
  * 받는 쪽 ESP32 실습실의 vision-bridge가 가상 블루투스에 넣는다(`apc:ble-write`). 보드의 알림(notify)은 같은 줄기로 돌아온다.
  *
  * 확인하는 것(두 탭 — 진짜 BroadcastChannel)
- *  1. 보드 탭(?bridge=<접두어>)에서 블루투스로 받는 교안 예제를 돌리고, 영상처리 탭(같은 접두어)에서 교과서 모양 코드
+ *  1. 보드 탭(?bridge=<접두어>)에서 블루투스로 받는 교안 예제를 돌리고, 영상 처리 탭(같은 접두어)에서 교과서 모양 코드
  *     `bluetooth.init(주소)` → `connected` → `send("x,y")`를 돌리면 보드 콘솔에 받은 값이 찍힌다. 이어진 곳은 data-ble-pc-target=tab,
  *     원본처럼 `Connected to …`가 한 번, 나간 줄은 `Sent: …`.
  *  2. 보드가 `ble.send()`(알림)로 보낸 값이 컴퓨터 탭 콘솔에 원본처럼 찍힌다(bluetooth.py _notification_handler 자리).
  *  3. 보드 탭이 [실행] 전이면 이어지지 않는다(실물 보드도 코드가 돌아야 광고한다) — connected가 거짓이고 보내지 않는다.
- *  4. 영상처리 실습실에서 bluetooth 코드를 열면(같은 문서에 보드가 없으니) [보내기] 패널이 열려 [ESP32 실습실 새 탭에서 열기]가 보인다.
+ *  4. 영상 처리 실습실에서 bluetooth 코드를 열면(같은 문서에 보드가 없으니) [보내기] 패널이 열려 [ESP32 실습실 새 탭에서 열기]가 보인다.
  *     패널 소개·예제 설명·실습 방법은 두 탭 블루투스 흐름을 말하고 "가상 USB-UART 변환기"를 말하지 않는다(1.1.0 교실 사용성 검토 지적 3).
  *  (3번) 이어지기 전에는 출력 화면 아래에 "블루투스: 아직 이을 보드가 없어서…" 줄이 남는다(지적 10), 이어지면(1번) 없다.
  *  5. 보드 탭이 8초 멈칫해(느린 PC) 컴퓨터 쪽 상대 목록에서 빠졌다 돌아와도 사람 조작 없이 3초 안에 다시 이어지고 값이 다시 흐른다
@@ -107,7 +107,7 @@ test.describe('컴퓨터 쪽 bluetooth 흉내 → 다른 탭의 ESP32 실습실(
   test.describe.configure({ mode: 'default', timeout: 420_000 });
   test.skip(({ isMobile }) => Boolean(isMobile), '두 탭·파이썬 두 벌 검사라 데스크톱에서만');
 
-  test('보드 탭이 블루투스로 받는 코드를 돌리면, 영상처리 탭의 bluetooth.send가 그 가상 보드에 닿는다', async ({ page, context }) => {
+  test('보드 탭이 블루투스로 받는 코드를 돌리면, 영상 처리 탭의 bluetooth.send가 그 가상 보드에 닿는다', async ({ page, context }) => {
     const board = await openBoard(context, `?example=${encodeURIComponent(BOARD_RECEIVE)}&bridge=${PREFIX_SEND}`);
     await expect(board.locator('[data-board-part="ble"]')).toBeVisible();
     await run(board);
@@ -242,7 +242,7 @@ test.describe('컴퓨터 쪽 bluetooth 흉내 → 다른 탭의 ESP32 실습실(
     await board.close();
   });
 
-  test('영상처리 실습실에서 bluetooth 코드를 열면 [보내기] 패널이 열린다(같은 문서에 보드가 없을 때 — 보드 쪽을 여는 길)', async ({ page }) => {
+  test('영상 처리 실습실에서 bluetooth 코드를 열면 [보내기] 패널이 열린다(같은 문서에 보드가 없을 때 — 보드 쪽을 여는 길)', async ({ page }) => {
     await openVision(page, `?example=${encodeURIComponent('vision/u3/3-1-3-hand-ble-xy.py')}`);
     await expect(page.locator('[data-lab-module-panel="vision-bridge"]')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('[data-bridge-open-tab]')).toBeVisible();
@@ -259,7 +259,7 @@ test.describe('컴퓨터 쪽 bluetooth 흉내 → 다른 탭의 ESP32 실습실(
     await expect(panel.locator('.bridge__hint:visible')).not.toContainText('uart.readline()');
     // 예제 설명 한 줄과 실습 방법 상자도 두 탭 흐름([ESP32 실습실 새 탭에서 열기])을 말한다
     await expect(page.locator('[data-lab-example-description]')).toContainText('[ESP32 실습실 새 탭에서 열기]');
-    await expect(page.locator('[data-lab-example-description]')).not.toContainText('영상처리 실습실에서만 돌리면');
+    await expect(page.locator('[data-lab-example-description]')).not.toContainText('영상 처리 실습실에서만 돌리면');
     await expect(page.locator('[data-vision-practice-steps] li').first()).toContainText('[ESP32 실습실 새 탭에서 열기]');
   });
 });

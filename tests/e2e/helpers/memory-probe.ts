@@ -29,7 +29,7 @@ export interface TargetMemory {
   /** WebAssembly.Memory 버퍼 크기 합(바이트) */
   readonly wasmBytes: number;
   readonly wasmMemories: number;
-  /** WebAssembly 인스턴스 수(파이썬 워커는 확장 모듈 .so마다 늘어 — OpenCV·numpy가 있는 영상처리 워커가 많다) */
+  /** WebAssembly 인스턴스 수(파이썬 워커는 확장 모듈 .so마다 늘어 — OpenCV·numpy가 있는 영상 처리 워커가 많다) */
   readonly wasmInstances: number;
   /** 자바스크립트 힙 사용(바이트) */
   readonly heapUsed: number;
@@ -463,7 +463,7 @@ export class MemoryProbe {
 
 const MB = 1024 * 1024;
 
-/** 워커를 영상처리 쪽(인스턴스가 많은 쪽 — OpenCV·numpy) 먼저로 늘어세운다 */
+/** 워커를 영상 처리 쪽(인스턴스가 많은 쪽 — OpenCV·numpy) 먼저로 늘어세운다 */
 export function workersByRole(sample: MemorySample): TargetMemory[] {
   return sample.targets.filter((item) => item.kind === 'worker').sort((a, b) => b.wasmInstances - a.wasmInstances || b.wasmBytes - a.wasmBytes);
 }

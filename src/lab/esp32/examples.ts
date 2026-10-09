@@ -2,7 +2,7 @@
  * examples/esp32/ 폴더의 .py 파일을 ESP32 실습실 예제 목록(LabExample[])으로 바꾼다(PLAN §8.3 P3-01, §2.6 "새 차시 = md 1개 + py 1개").
  *
  * ESP32 실습실 페이지(src/pages/labs/esp32/index.astro)가 빌드 때 import.meta.glob으로 읽은 파일 내용을 넘긴다.
- * 새 예제 = examples/esp32/ 아래 .py 하나(원칙 6). 규칙은 영상처리 실습실 목록(src/lab/vision/examples.ts)과 같다:
+ * 새 예제 = examples/esp32/ 아래 .py 하나(원칙 6). 규칙은 영상 처리 실습실 목록(src/lab/vision/examples.ts)과 같다:
  * - id: examples/esp32/ 뒤 경로를 하이픈으로 이은 것(esp32/first-blink.py → first-blink, esp32/u2/2-1-1-led.py → u2-2-1-1-led)
  * - 제목·설명: 사이드카(<이름>.meta.yaml) → 파일 머리말(첫 주석 줄·둘째 줄) → 파일 이름
  * - packages: 가상 보드는 Pyodide 코어만 쓴다(PD-04) — 미리 받을 패키지가 없다

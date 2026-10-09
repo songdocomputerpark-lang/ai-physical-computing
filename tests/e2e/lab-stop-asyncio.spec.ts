@@ -1,11 +1,11 @@
 /**
  * 컴퓨터 쪽 실습실의 asyncio [정지](판 1.2.0 — PROGRESS 미해결 223, src/lab/python/apc_asyncio.py).
  *
- * 전에는 영상처리 실습실에서 `asyncio.run(main())` + `while True: … await asyncio.sleep(0.3)` 반복의 [정지]가 1초 안에 먹지 않아
+ * 전에는 영상 처리 실습실에서 `asyncio.run(main())` + `while True: … await asyncio.sleep(0.3)` 반복의 [정지]가 1초 안에 먹지 않아
  * "계산만 하는 반복문" 안내와 함께 파이썬을 다시 시작했다(실사이트 1.1.5 — [정지] 뒤 1,063ms에 killed). 이제는 학생 코드의 asyncio.sleep이
  * [정지]와 경주해 KeyboardInterrupt('stopped')로 1초 안에 멈추고, 정지 안내 카드는 "[정지] 단추로 멈췄어요 — 오류가 아니에요", 다시 [실행]이 된다.
  * 실측 정지 시간(data-stop-ms — [정지]를 누른 때부터 실행이 끝날 때까지)을 기록에 남긴다.
- * 컴퓨터 쪽 실습실 셋(영상처리·4단원 컴퓨터 칸·개발용 시험 페이지 — labId vision·dev)에서 본다. 워커·JSPI 동작이라 데스크톱만.
+ * 컴퓨터 쪽 실습실 셋(영상 처리·4단원 컴퓨터 칸·개발용 시험 페이지 — labId vision·dev)에서 본다. 워커·JSPI 동작이라 데스크톱만.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { STOP_GRACE_MS } from '../../src/lab/runtime/config.ts';
@@ -61,7 +61,7 @@ test.describe('컴퓨터 쪽 asyncio [정지](미해결 223)', () => {
   test.skip(({ isMobile }) => isMobile, '워커·JSPI 동작은 데스크톱에서 확인한다');
   test.describe.configure({ timeout: 240_000 });
 
-  test('영상처리 실습실: asyncio.run + await asyncio.sleep 반복이 [정지] 1초 안에 KeyboardInterrupt로 멈추고, 안내 카드가 맞고, 다시 [실행]된다', async ({ page }) => {
+  test('영상 처리 실습실: asyncio.run + await asyncio.sleep 반복이 [정지] 1초 안에 KeyboardInterrupt로 멈추고, 안내 카드가 맞고, 다시 [실행]된다', async ({ page }) => {
     const pageErrors: string[] = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
     await page.goto(VISION_PATH);
@@ -74,7 +74,7 @@ test.describe('컴퓨터 쪽 asyncio [정지](미해결 223)', () => {
     await expect(lab).toHaveAttribute('data-state', 'running');
     const consoleBox = lab.locator('[data-lab-console]');
     await expect(consoleBox).toContainText('tick 2', { timeout: 30_000 });
-    await stopAndCheck(lab, '영상처리 실습실');
+    await stopAndCheck(lab, '영상 처리 실습실');
     // 정지 안내 카드: 오류가 아니라는 [정지] 카드(파란 안내) — "계산만 하는 반복문"(파이썬 다시 시작) 카드가 아니다
     const card = lab.locator('[data-errors-card]');
     await expect(card).toBeVisible();
@@ -109,7 +109,7 @@ test.describe('컴퓨터 쪽 asyncio [정지](미해결 223)', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('영상처리 실습실: Event만 기다리는 asyncio.run도 [정지]가 곧바로 먹는다(지켜보는 작업)', async ({ page }) => {
+  test('영상 처리 실습실: Event만 기다리는 asyncio.run도 [정지]가 곧바로 먹는다(지켜보는 작업)', async ({ page }) => {
     await page.goto(VISION_PATH);
     const lab = labRoot(page);
     await expect(lab).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
@@ -117,7 +117,7 @@ test.describe('컴퓨터 쪽 asyncio [정지](미해결 223)', () => {
     await expect(lab).toHaveAttribute('data-vision-packages', 'ready', { timeout: PACKAGES_TIMEOUT });
     await runIn(page, lab, ['import asyncio', 'async def main():', "    print('기다리는 중')", '    await asyncio.Event().wait()', 'asyncio.run(main())', ''].join('\n'));
     await expect(lab.locator('[data-lab-console]')).toContainText('기다리는 중', { timeout: 30_000 });
-    await stopAndCheck(lab, '영상처리 실습실 Event');
+    await stopAndCheck(lab, '영상 처리 실습실 Event');
   });
 
   test('4단원 통합 화면의 컴퓨터 칸에서도 [정지] 1초 안 — 보드 칸은 그대로', async ({ page }) => {

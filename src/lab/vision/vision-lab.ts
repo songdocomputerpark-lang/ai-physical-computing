@@ -1,5 +1,5 @@
 /**
- * 영상처리 실습실 화면 논리(PLAN §8.2 P2-03, SPEC §6.1, CODE_MAPPING §3.1) — 실습실 공통 틀(LabShell)에 카메라 입력과 출력 창을 잇는다.
+ * 영상 처리 실습실 화면 논리(PLAN §8.2 P2-03, SPEC §6.1, CODE_MAPPING §3.1) — 실습실 공통 틀(LabShell)에 카메라 입력과 출력 창을 잇는다.
  *
  * 흐름
  * 1. 페이지가 mountVisionLab(root)를 부르면 getLabController(root)로 컨트롤러를 받고, 입력 소스 고르기(sources.ts)·출력 창(windows.ts)을 만든다.
@@ -1365,10 +1365,10 @@ export class VisionLab {
 
 const mounted = new WeakMap<HTMLElement, Promise<VisionLab>>();
 
-/** 영상처리 실습실 뿌리([data-lab])에 카메라·창 논리를 붙인다. LabShell 컨트롤러가 준비될 때까지 기다린다. */
+/** 영상 처리 실습실 뿌리([data-lab])에 카메라·창 논리를 붙인다. LabShell 컨트롤러가 준비될 때까지 기다린다. */
 export function mountVisionLab(root: HTMLElement | null): Promise<VisionLab> {
   if (!root) {
-    return Promise.reject(new Error('영상처리 실습실 뿌리 요소([data-lab])를 찾지 못했어요.'));
+    return Promise.reject(new Error('영상 처리 실습실 뿌리 요소([data-lab])를 찾지 못했어요.'));
   }
   const existing = mounted.get(root);
   if (existing) {
@@ -1377,7 +1377,7 @@ export function mountVisionLab(root: HTMLElement | null): Promise<VisionLab> {
   const promise = getLabController(root).then((lab) => {
     const elements = readVisionElements(root);
     if (!elements) {
-      throw new Error('영상처리 실습실 화면 요소(data-vision-output-tabs·data-vision-output-stage)가 없어요.');
+      throw new Error('영상 처리 실습실 화면 요소(data-vision-output-tabs·data-vision-output-stage)가 없어요.');
     }
     const vision = new VisionLab(root, lab, elements);
     root.dispatchEvent(new CustomEvent(VISION_READY_EVENT, { detail: { vision } }));
@@ -1389,12 +1389,12 @@ export function mountVisionLab(root: HTMLElement | null): Promise<VisionLab> {
 
 /**
  * 흉내 모듈·페이지 스크립트가 VisionLab을 받는 방법(아직 안 만들어졌으면 만들어질 때까지 기다린다 — getLabController와 같은 방식).
- * 영상처리 실습실이 아닌 뿌리에서는 영원히 기다리므로, 모듈은 ctx.vision()(src/lab/modules/host.ts — data-vision-io가 없으면 null)을 쓴다.
+ * 영상 처리 실습실이 아닌 뿌리에서는 영원히 기다리므로, 모듈은 ctx.vision()(src/lab/modules/host.ts — data-vision-io가 없으면 null)을 쓴다.
  */
 export function getVisionLab(root: HTMLElement | null): Promise<VisionLab> {
   return new Promise((resolve, reject) => {
     if (!root) {
-      reject(new Error('영상처리 실습실 뿌리 요소([data-lab])를 찾지 못했어요.'));
+      reject(new Error('영상 처리 실습실 뿌리 요소([data-lab])를 찾지 못했어요.'));
       return;
     }
     const existing = mounted.get(root);

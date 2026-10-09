@@ -14,7 +14,7 @@ const manifest: LabModuleManifest = {
   title: '손·얼굴·자세 인식(mediapipe 흉내)',
   labs: ['vision'],
   shims: { mediapipe: 'apc_mediapipe' },
-  // numpy·opencv-python은 영상처리 실습실이 미리 받는다(VISION_PACKAGES). 이 모듈이 더 받을 Pyodide 패키지는 없다.
+  // numpy·opencv-python은 영상 처리 실습실이 미리 받는다(VISION_PACKAGES). 이 모듈이 더 받을 Pyodide 패키지는 없다.
   packages: [],
   requestKinds: ['mediapipe.open', 'mediapipe.detect'],
   eventKinds: [],

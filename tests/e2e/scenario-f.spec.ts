@@ -4,7 +4,7 @@
 // 그리고 **카메라 없이 합성 랜드마크 재생 입력(손가락 0~5개)만으로 통과해야 한다**(PD-30) — 웹캠이 없는 교실 PC에서도
 // 실습이 끝나야 하기 때문이다. 손 인식을 쓰는 검사는 모두 재생 입력('replay' + 동작 'count'·'two-hands')만 쓴다.
 //
-//  1. 시나리오 F(가상): 두 탭 — ESP32 실습실이 보드 쪽 예제를, 영상처리 실습실이 컴퓨터 쪽 예제를 돌린다.
+//  1. 시나리오 F(가상): 두 탭 — ESP32 실습실이 보드 쪽 예제를, 영상 처리 실습실이 컴퓨터 쪽 예제를 돌린다.
 //     재생 입력의 손가락이 하나씩 펴지는 동안 링의 켜진 LED 수(data-visual-count)가 늘고, 주먹이 되면 0으로 돌아간다.
 //  2. 한 화면 모드: [보내기] 패널의 [한 화면에 가상 보드 열기]로 연 iframe에서도 같은 코드가 그대로 짝지어 돈다.
 //  3. bridge 모듈 규칙(§7.2·§7.6): 값이 바뀔 때만 보낸다, 끝 문자 \n 한 개, event는 같은 값도 보낸다, send_bytes는 그대로, 보드 → 컴퓨터 receive().
@@ -88,7 +88,7 @@ async function openBoardLab(page: Page, query: string): Promise<void> {
 }
 
 /**
- * 영상처리 실습실을 연다. 손 인식을 쓰는 검사만 OpenCV 꾸러미까지 기다린다 —
+ * 영상 처리 실습실을 연다. 손 인식을 쓰는 검사만 OpenCV 꾸러미까지 기다린다 —
  * bridge 모듈만 쓰는 검사는 파이썬만 준비되면 된다(꾸러미를 매번 기다리면 검사가 두 배로 길어진다).
  */
 async function openVision(page: Page, query: string, options: { packages?: boolean } = {}): Promise<void> {
@@ -446,7 +446,7 @@ test.describe('시나리오 F — 손가락 개수만큼 네오픽셀 켜기(P4-
     expect(await waitDone(page, 90_000)).toBe('error');
     const console_ = page.locator('[data-lab-console]');
     await expect(console_).toContainText("ModuleNotFoundError: No module named 'bridge'");
-    await expect(console_).toContainText('컴퓨터(영상처리 실습실)에서 쓰는 사이트 모듈');
+    await expect(console_).toContainText('컴퓨터(영상 처리 실습실)에서 쓰는 사이트 모듈');
   });
 
   test('import bridge만 쓴 예제도 [보내기] 패널이 저절로 열린다', async ({ page }) => {

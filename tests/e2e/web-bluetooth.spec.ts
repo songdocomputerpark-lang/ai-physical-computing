@@ -129,9 +129,9 @@ test.describe('실제 블루투스 연결 화면', () => {
     await expect(panel(page)).toHaveAttribute('data-ble-real-state', 'idle');
   });
 
-  // 2026-09-25 Phase 4 검토 반영(완료 기준 지적 5): 영상처리 실습실의 원본 f089(bluetooth.init(...).send)가 같은 문서의 가상 보드에만 보내,
+  // 2026-09-25 Phase 4 검토 반영(완료 기준 지적 5): 영상 처리 실습실의 원본 f089(bluetooth.init(...).send)가 같은 문서의 가상 보드에만 보내,
   // 블루투스 칸에서 실제 보드를 이어도 좌표가 가지 않았다(부록 B-2 15번을 해 볼 수 없었다). 가상 보드가 없으면 이어진 실제 보드로 보낸다.
-  test('영상처리 실습실의 원본 f089: 블루투스 칸으로 이은 보드(가짜 블루투스)에 검지 좌표가 닿는다', async ({ page }) => {
+  test('영상 처리 실습실의 원본 f089: 블루투스 칸으로 이은 보드(가짜 블루투스)에 검지 좌표가 닿는다', async ({ page }) => {
     test.skip(test.info().project.name === 'mobile', 'OpenCV·손 인식까지 받는 무거운 검사라 데스크톱에서만 본다.');
     test.setTimeout(420_000);
     await installBleMock(page, { devices: [{ name: 'ESP32-07' }] });

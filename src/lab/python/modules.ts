@@ -11,7 +11,7 @@
  *
  * 실습실마다 넣는 모듈이 다르다(P3-01, PD-04): 워커가 load 메시지의 labId를 받으면 pythonModulesForLab(labId)로
  * 붙박이 + 그 실습실에 붙는 모듈 폴더(manifest.labs)의 파일만 넣고, shimTableForLab(labId)로 그 모듈들의 shims만 등록한다.
- * 그래서 가상 보드의 machine.py·time 흉내는 ESP32 실습실 워커에만 있고 영상처리 실습실에서는 `import machine`이 원래대로 없는 모듈이다.
+ * 그래서 가상 보드의 machine.py·time 흉내는 ESP32 실습실 워커에만 있고 영상 처리 실습실에서는 `import machine`이 원래대로 없는 모듈이다.
  * labId가 없으면(단위 테스트·옛 호출) 예전처럼 모든 모듈을 넣는다.
  *
  * 흉내 모듈을 더하는 법: src/lab/modules/<id>/ 폴더 하나(manifest.ts + index.ts + apc_<이름>.py + panel.astro?)를 만든다.

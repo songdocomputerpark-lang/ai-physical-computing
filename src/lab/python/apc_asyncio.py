@@ -1,4 +1,4 @@
-"""컴퓨터 쪽 실습실(영상처리·4단원 컴퓨터 칸·개발용 시험 페이지)의 asyncio — 학생 코드에만 주는 얇은 모듈(판 1.2.0, PROGRESS 미해결 223).
+"""컴퓨터 쪽 실습실(영상 처리·4단원 컴퓨터 칸·개발용 시험 페이지)의 asyncio — 학생 코드에만 주는 얇은 모듈(판 1.2.0, PROGRESS 미해결 223).
 
 왜: 학생 코드의 `asyncio.run(main())` + `while True: … await asyncio.sleep(0.3)` 반복은 [정지]가 1초 안에 먹지 않아 "계산만 하는 반복문"
 안내와 함께 파이썬을 다시 시작했다(실사이트 1.1.5 — [정지] 뒤 1,063ms에 killed). GitHub Pages에는 SharedArrayBuffer가 없어 [정지]는

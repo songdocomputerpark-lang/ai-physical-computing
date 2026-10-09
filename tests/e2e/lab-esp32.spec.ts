@@ -54,7 +54,7 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
     await expect(page.locator('[data-browser-notice]')).toHaveCount(1);
     await expect(labRoot(page)).toHaveAttribute('data-lab-id', 'esp32');
     await expect(labRoot(page)).toHaveAttribute('data-lab-modules', /\bboard\b/u);
-    // 영상처리 실습실의 모듈은 붙지 않는다
+    // 영상 처리 실습실의 모듈은 붙지 않는다
     expect((await labRoot(page).getAttribute('data-lab-modules')) ?? '').not.toMatch(/mediapipe|desktop|speech/u);
     await expect(labRoot(page)).toHaveAttribute('data-example', '01-first-blink');
 

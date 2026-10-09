@@ -1,14 +1,14 @@
 /**
- * "로딩되는 동안 읽는 1분 개념" 카드(PLAN §5.4, SPEC §6.1). 파이썬 엔진·OpenCV를 받는 동안(첫 방문 20MB 남짓) 읽을 거리다.
+ * "로딩되는 동안 읽는 1분 개념" 카드(PLAN §5.4, SPEC §6.1). 파이썬 엔진·OpenCV를 받는 동안(첫 방문 약 26MB — 코어 13.5MB·numpy 3MB·OpenCV 10.7MB, R2-044) 읽을 거리다.
  *
  * 규칙
  * - 사이트가 직접 쓴 글만 쓴다(원본 자료 인용 없음 — sources.yaml "사이트 자체 제작"). 고1이 처음 읽어도 이해되게 두세 문장.
  * - 용어는 용어사전 항목으로 이어 준다(링크는 withBase로 만든다 — 하위 경로가 빠지지 않게).
  * - 카드 순서 = 첫 실습(에지 검출)에서 실제로 일어나는 순서: 픽셀 → 회색 → 흐리게 → 에지 → 임계값.
  * - 여기 글을 고치면 tests/unit/loading/cards.test.ts의 길이·링크 검사가 함께 지킨다.
- * - (P3-11) 실습실마다 읽을 거리가 다르다: 영상처리는 사진·에지, ESP32는 핀·MicroPython. cardsForLab(labId)로 고른다.
- * - (판 1.2.1 — 판 1.2.0 적대적 검토 E4) 영상처리 실습실이라도 시리얼 통신 코드(3-1 단원의 컴퓨터 쪽 — `import serial`)로 열렸으면
- *   통신 카드를 보인다: 시리얼(UART) 차시를 기다리는 학생에게 "색을 버리면 계산이 빨라져요"(영상처리)가 나왔다. cardsForLab(labId, code).
+ * - (P3-11) 실습실마다 읽을 거리가 다르다: 영상 처리는 사진·에지, ESP32는 핀·MicroPython. cardsForLab(labId)로 고른다.
+ * - (판 1.2.1 — 판 1.2.0 적대적 검토 E4) 영상 처리 실습실이라도 시리얼 통신 코드(3-1 단원의 컴퓨터 쪽 — `import serial`)로 열렸으면
+ *   통신 카드를 보인다: 시리얼(UART) 차시를 기다리는 학생에게 "색을 버리면 계산이 빨라져요"(영상 처리)가 나왔다. cardsForLab(labId, code).
  */
 import { withBase } from '../../lib/url.ts';
 
@@ -172,7 +172,7 @@ export const SERIAL_CONCEPT_CARDS: readonly ConceptCard[] = Object.freeze([
 /** 코드가 컴퓨터 쪽 시리얼 통신(`import serial` — 사이트의 serial 흉내)을 쓰는지 */
 const SERIAL_IMPORT = /^[ \t]*(?:import[ \t]+serial\b|from[ \t]+serial\b)/mu;
 
-/** 이 실습실에서 보여 줄 카드(모르는 실습실은 영상처리 카드). code: 실습실을 연 예제 코드 — 시리얼 통신 코드면 통신 카드(판 1.2.1) */
+/** 이 실습실에서 보여 줄 카드(모르는 실습실은 영상 처리 카드). code: 실습실을 연 예제 코드 — 시리얼 통신 코드면 통신 카드(판 1.2.1) */
 export function cardsForLab(labId: string, code = ''): readonly ConceptCard[] {
   if (labId === 'esp32') {
     return BOARD_CONCEPT_CARDS;

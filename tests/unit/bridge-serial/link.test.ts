@@ -1,4 +1,4 @@
-// 영상처리 ↔ 가상 보드 선(src/lab/modules/vision-bridge/link.ts) 검사 — P4-02.
+// 영상 처리 ↔ 가상 보드 선(src/lab/modules/vision-bridge/link.ts) 검사 — P4-02.
 // **진짜 BroadcastChannel**(Node 전역)로 두 끝을 열어, 브라우저 두 탭·한 화면(iframe)에서 일어나는 일을 그대로 본다.
 // 확인하는 것: ① 접두어 정하기(주소 ?bridge= → 저장 → 새로 만들기) ② 상대 알아보기 ③ 바이트가 그대로 간다(속도·선 이름표까지)
 // ④ §7.6 병합 규칙(같은 한 글자 명령은 합쳐지고 다른 글자는 둘 다 나간다) ⑤ 상대가 없으면 한국어 오류.

@@ -1,8 +1,8 @@
 /**
- * 영상처리 ↔ 가상 보드 선([보내기] 패널·한 화면 모드) 모듈의 manifest — 순수 데이터(src/lab/README.md 4.2). P4-02.
+ * 영상 처리 ↔ 가상 보드 선([보내기] 패널·한 화면 모드) 모듈의 manifest — 순수 데이터(src/lab/README.md 4.2). P4-02.
  * 워커 번들에도 들어가므로 DOM·다른 모듈을 import하지 않는다.
  *
- * 왜 실습실 두 곳에 붙나: 선은 **양 끝이 있어야** 이어진다. 영상처리 실습실에서는 컴퓨터 쪽('pc')이 되어 [보내기] 패널과
+ * 왜 실습실 두 곳에 붙나: 선은 **양 끝이 있어야** 이어진다. 영상 처리 실습실에서는 컴퓨터 쪽('pc')이 되어 [보내기] 패널과
  * 한 화면 모드를 그리고, ESP32 실습실에서는 보드 쪽('board')이 되어 받은 바이트를 가상 USB-UART 변환기 부품에 넣는다.
  * 파이썬 파일이 없다 — 컴퓨터 쪽 파이썬(serial.py)은 serial-pc 모듈에, 보드 쪽은 이미 board 모듈의 UART 부품에 있다.
  *
@@ -14,7 +14,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'vision-bridge',
-  title: '영상처리 ↔ 가상 보드 선(보내기 패널)',
+  title: '영상 처리 ↔ 가상 보드 선(보내기 패널)',
   labs: ['vision', 'esp32'],
   shims: {},
   packages: [],

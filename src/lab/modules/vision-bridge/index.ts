@@ -1,8 +1,8 @@
 /**
- * 영상처리 실습실 ↔ 가상 보드 선의 화면 쪽(P4-02, PLAN §8.4 설계 메모·§7.3·§7.6).
+ * 영상 처리 실습실 ↔ 가상 보드 선의 화면 쪽(P4-02, PLAN §8.4 설계 메모·§7.3·§7.6).
  *
  * 한 폴더에 두 역할이 들어 있다(manifest.labs = ['vision', 'esp32'] — 선은 양 끝이 있어야 이어진다).
- *  - 영상처리 실습실('pc'): [보내기] 패널(통로 고르기·접두어·손으로 보내기·주고받은 글)과 **한 화면 모드**(iframe으로 ESP32 실습실).
+ *  - 영상 처리 실습실('pc'): [보내기] 패널(통로 고르기·접두어·손으로 보내기·주고받은 글)과 **한 화면 모드**(iframe으로 ESP32 실습실).
  *    파이썬 serial.py가 보낸 바이트는 serial-pc 모듈이 같은 선(link.ts)에 넣는다.
  *  - ESP32 실습실('board'): 받은 바이트를 가상 USB-UART 변환기 부품에 넣고(채널 'board.device.input'),
  *    보드가 내보낸 바이트를 컴퓨터로 돌려보낸다(이벤트 'board.uart.tx' 또는 부품 상태 'board.device'에서 늘어난 만큼 — board-uart.ts).
@@ -20,7 +20,7 @@
  *
  * 블루투스 줄기(판 1.1.0, PROGRESS 미해결 137): 컴퓨터 쪽 `bluetooth` 흉내(ble-pc)는 같은 문서에 가상 보드가 없으면 이 선의 블루투스
  * 줄기(봉투 type `ble.data` — link.ts BLE_ENVELOPE_TYPE)로 보낸다. 그래서
- *  - 영상처리 실습실: 코드가 bluetooth를 쓰고 같은 문서에 ESP32 실습실 칸이 없으면 이 패널을 연다 — [ESP32 실습실 새 탭에서 열기]·
+ *  - 영상 처리 실습실: 코드가 bluetooth를 쓰고 같은 문서에 ESP32 실습실 칸이 없으면 이 패널을 연다 — [ESP32 실습실 새 탭에서 열기]·
  *    [한 화면에 가상 보드 열기]가 보드 쪽을 여는 길이다(4단원 통합 화면처럼 같은 문서에 보드가 있으면 열지 않는다).
  *  - ESP32 실습실: 블루투스 줄기로 온 바이트를 가상 블루투스(`apc:ble-write` — 상대 기기가 RX 특성에 쓴 것)에 넣고,
  *    보드가 알림(notify)으로 내보낸 값(`apc:ble-notify`)을 같은 줄기로 컴퓨터에 돌려보낸다.
@@ -29,7 +29,7 @@ import { listBridgeChannels, onBridgeChannelsChanged } from '../../bridge/index.
 import { registerMqttChannel } from '../../mqtt/index.ts';
 import { withBase } from '../../../lib/url.ts';
 import { studentExampleTitle } from '../../controls/example-names.ts';
-import { revealElement } from '../../controls/reveal.ts';
+import { isMostlyVisible, revealElement, stickyBarInset } from '../../controls/reveal.ts';
 import { showPanelWhenUsed } from '../panel-when-used.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
 import { deviceInputFor, newBytesFrom, readUartDevice, readUartTxEvent } from './board-uart.ts';
@@ -55,7 +55,7 @@ const BLE_NOTIFY_EVENT = 'apc:ble-notify';
 
 /**
  * 한 화면 모드·새 탭에서 열 보드 예제(한 줄 = 짝 하나. 새 짝은 여기에 한 줄 더하면 된다).
- * 첫 줄이 기본값이고, 영상처리 예제가 짝을 알면(BOARD_PAIR_OF) 그 짝을 먼저 고른다(2026-09-24 통합 — 구역 G 요청 1).
+ * 첫 줄이 기본값이고, 영상 처리 예제가 짝을 알면(BOARD_PAIR_OF) 그 짝을 먼저 고른다(2026-09-24 통합 — 구역 G 요청 1).
  * 3-1-2의 기본 짝은 사이트판이다(PLAN §7.5 예시 2 "가상 보드 f082(사이트판)") — 원본 f082는 a를 한 번 받으면 NameError로 멈춰서
  * 두 화면이 이어지는 것을 끝까지 보기 어렵다. 원본은 바로 아래 줄에서 고를 수 있다(교과서 그대로 확인할 때).
  */
@@ -70,11 +70,11 @@ export const BOARD_EXAMPLES: readonly { file: string; label: string }[] = Object
   { file: 'esp32/bt/b10-two-values-rgb.py', label: '블루투스 교안 — 좌표 두 개로 RGB LED' },
   { file: 'esp32/u4/4-1-4-ble-lcd-rx.py', label: '4-1-4 — 블루투스로 받은 코 좌표를 LCD에' },
   { file: 'esp32/u4/4-2-1-adv-ble-data-lcd.py', label: '4-2-1 — 블루투스로 받은 마우스 좌표·클릭 표시를 LCD에' },
-  { file: 'esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer-site.py', label: '4-2-3 — 서보·RGB·레이저·버저(사이트판)' },
+  { file: 'esp32/u4/4-2-3-ble-servo-rgb-laser-buzzer-site.py', label: '4-2-2 짝 — 서보·RGB·레이저·버저(사이트판)' },
   { file: '', label: '빈 실습실로 열기' },
 ]);
 
-/** 영상처리 예제 → 한 화면 모드·새 탭에서 먼저 고를 보드 짝 예제(예제가 바뀌면 목록 선택을 맞춘다 — 구역 G 요청 1) */
+/** 영상 처리 예제 → 한 화면 모드·새 탭에서 먼저 고를 보드 짝 예제(예제가 바뀌면 목록 선택을 맞춘다 — 구역 G 요청 1) */
 export const BOARD_PAIR_OF: Readonly<Record<string, string>> = Object.freeze({
   'vision/u3/3-1-2-uart-key-send.py': 'esp32/u3/3-1-2-uart-laser-site.py',
   'vision/u3/3-1-2-adv-face-uart.py': 'esp32/u3/3-1-2-uart-laser-site.py',
@@ -88,7 +88,7 @@ export const BOARD_PAIR_OF: Readonly<Record<string, string>> = Object.freeze({
 });
 
 /**
- * 코드에 이 낱말이 보이면 패널을 연다(영상처리 실습실). pyserial 흉내(serial)와 새 예제용 bridge 모듈(P4-08)이 같은 선을 쓴다 —
+ * 코드에 이 낱말이 보이면 패널을 연다(영상 처리 실습실). pyserial 흉내(serial)와 새 예제용 bridge 모듈(P4-08)이 같은 선을 쓴다 —
  * bridge만 쓴 예제도 받을 쪽이 없으면 BridgeNoPeer가 "[보내기] 패널의 …"을 가리키므로 패널이 보여야 한다(2026-09-24 통합).
  */
 const PC_USE_PATTERN = /\bimport\s+serial\b|\bserial\s*\.\s*Serial\b|\blist_ports\b|\bimport\s+bridge\b|\bfrom\s+bridge\s+import\b/u;
@@ -123,7 +123,7 @@ export function bridgeCarryOf(role: 'pc' | 'board', code: string): 'ble' | 'uart
   return !PC_USE_PATTERN.test(code) && PC_BLE_PATTERN.test(code) ? 'ble' : 'uart';
 }
 
-/** 영상처리 실습실에서 선([보내기] 패널)을 쓰는 코드인가: serial·bridge, 또는 같은 문서에 보드가 없을 때의 bluetooth */
+/** 영상 처리 실습실에서 선([보내기] 패널)을 쓰는 코드인가: serial·bridge, 또는 같은 문서에 보드가 없을 때의 bluetooth */
 export function pcUsesLink(code: string, boardInDocument: boolean): boolean {
   return PC_USE_PATTERN.test(code) || (!boardInDocument && PC_BLE_PATTERN.test(code));
 }
@@ -168,7 +168,7 @@ export function boardLabUrl(options: { prefix: string; example?: string; embed?:
  * 출력 때 알림을 출력 화면 바로 아래(io 슬롯 안의 `[data-lab-io-output-anchor]` 뒤)로 옮긴 뒤면 칸 맨 끝에 둔다.
  * 전에는 늘 `insertBefore(틀, 알림)`이라, 컴퓨터 쪽을 한 번 [실행]한 뒤에는 알림이 직계 자식이 아니어서 NotFoundError로 조용히
  * 실패했다(판 1.1.1 최종 점검 — 3-1-2·C3 오류 상자가 시키는 "SerialException이 나면 [한 화면에 가상 보드 열기]"가 막혔다).
- * 알림 바로 앞(io 슬롯 안)에 넣지 않는 것은, 영상처리 실습실의 알림이 출력 칸(넓은 화면에서 오른쪽 반) 안이라 보드 틀이 반 폭이 되기 때문이다.
+ * 알림 바로 앞(io 슬롯 안)에 넣지 않는 것은, 영상 처리 실습실의 알림이 출력 칸(넓은 화면에서 오른쪽 반) 안이라 보드 틀이 반 폭이 되기 때문이다.
  */
 export function placeFrameHost(ioSection: HTMLElement, frameHost: HTMLElement): void {
   const notice = Array.from(ioSection.children).find((child) => child.hasAttribute('data-lab-io-output')) ?? null;
@@ -273,7 +273,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       runText.textContent = nextRun;
     }
     const peerText = roleBand.querySelector('[data-bridge-role-peer-text]');
-    const nextPeer = peer ? '컴퓨터 쪽(영상처리 실습실)과 이어졌어요.' : '컴퓨터 쪽(영상처리 실습실)을 기다려요.';
+    const nextPeer = peer ? '컴퓨터 쪽(영상 처리 실습실)과 이어졌어요.' : '컴퓨터 쪽(영상 처리 실습실)을 기다려요.';
     if (peerText !== null && peerText.textContent !== nextPeer) {
       peerText.textContent = nextPeer;
     }
@@ -307,11 +307,11 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }
     if (status.peers.length === 0) {
       return role === 'board'
-        ? `${status.label} 통로를 열고 컴퓨터(영상처리 실습실)를 기다려요.`
+        ? `${status.label} 통로를 열고 컴퓨터(영상 처리 실습실)를 기다려요.`
         : `${status.label} 통로를 열었어요. ESP32 실습실 화면을 열면 이어져요.`;
     }
     if (role === 'board') {
-      return '컴퓨터(영상처리 실습실)와 이어졌어요.';
+      return '컴퓨터(영상 처리 실습실)와 이어졌어요.';
     }
     if (boardRun === 'idle') {
       return '가상 ESP32 보드와 이어졌지만, 보드가 돌고 있지 않아요. 보드 쪽 화면에서 [실행]을 눌러요.';
@@ -353,7 +353,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
 
   // ── 통로 목록·접두어 ──
   // MQTT 통로도 두 실습실 모두에서 고를 수 있게 한다(PLAN §7.6 "같은 코드로 가상 보드·실제 보드·MQTT" — 2026-09-25 Phase 4 검토 반영:
-  // 전에는 MQTT 모듈이 붙는 ESP32 실습실에만 있어 영상처리 실습실의 [보내기] 패널에는 MQTT가 없었다). 두 번 불러도 한 번만 등록된다.
+  // 전에는 MQTT 모듈이 붙는 ESP32 실습실에만 있어 영상 처리 실습실의 [보내기] 패널에는 MQTT가 없었다). 두 번 불러도 한 번만 등록된다.
   registerMqttChannel();
   /**
    * 통로 목록을 (다시) 그린다. 흉내 모듈이 붙는 차례는 매번 달라서(블루투스·USB 데이터 포트가 이 패널보다 늦게 붙을 수 있다)
@@ -408,7 +408,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       exampleSelect.append(option);
     }
   }
-  // 영상처리 예제가 짝을 알면 보드에서 열 예제를 그 짝으로 맞춘다(학생이 목록을 고치면 그대로 둔다 — 예제를 바꿀 때만 다시 맞춘다).
+  // 영상 처리 예제가 짝을 알면 보드에서 열 예제를 그 짝으로 맞춘다(학생이 목록을 고치면 그대로 둔다 — 예제를 바꿀 때만 다시 맞춘다).
   const selectPair = (file: string | undefined): void => {
     const pair = file === undefined ? undefined : BOARD_PAIR_OF[file];
     if (exampleSelect !== null && pair !== undefined && [...exampleSelect.options].some((option) => option.value === pair)) {
@@ -729,7 +729,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
     });
   }
 
-  // 예제의 "실습 방법"은 이 패널이 아니라 입력·출력 칸 위(영상처리 — VisionIo)와 보드 그림 위(ESP32 — BoardIo)에 보인다
+  // 예제의 "실습 방법"은 이 패널이 아니라 입력·출력 칸 위(영상 처리 — VisionIo)와 보드 그림 위(ESP32 — BoardIo)에 보인다
   // (2026-09-24 Phase 4 통합: 두 곳에 같은 글이 겹쳐 보이던 것을 한 곳으로).
 
   // ── 언제 통로를 여나 ──
@@ -749,6 +749,20 @@ function mount(context: LabModuleContext): LabModuleHandle {
   context.onLab('code', ({ code }) => {
     renderCarry(code);
     autoConnect(code);
+  });
+  // 한 화면 모드에서 입력(input())을 보내면, 반응하는 가상 보드가 화면 밖(입력줄은 콘솔 아래, 보드는 입력·출력 칸 밑 — 1,600px 이상 떨어진다)일 때
+  // 보드를 화면 안으로 옮기고 안내한다. 학생이 a를 보내고도 레이저가 켜진 것을 못 보던 것을 막는다(R2-005). 코드가 계속 보내는 값에는 쓰지 않는다 — 입력줄에 적은 때만.
+  context.onLab('input-sent', () => {
+    if (role !== 'pc' || frame === null || frameHost === null || context.root.dataset.bridgeFrame !== 'on') {
+      return;
+    }
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const inset = stickyBarInset(context.root);
+    if (viewportHeight === 0 || isMostlyVisible(frameHost, viewportHeight, inset)) {
+      return;
+    }
+    revealElement(frameHost, { block: 'center', inset });
+    context.lab.showMessage('보드로 보냈어요. 위쪽 가상 보드에서 반응을 봐요. 다시 입력하려면 아래 콘솔로 내려가요.');
   });
   context.onLab('run', () => {
     // 실행을 새로 시작하면 지난 실행에서 밀려 있던 것을 버린다.

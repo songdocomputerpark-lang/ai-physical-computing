@@ -1,10 +1,10 @@
 /**
- * examples/ 폴더의 .py 파일을 영상처리 실습실 예제 목록(LabExample[])으로 바꾼다(PLAN §8.2 P2-03, §2.5·§2.6 "새 차시 = md 1개 + py 1개").
+ * examples/ 폴더의 .py 파일을 영상 처리 실습실 예제 목록(LabExample[])으로 바꾼다(PLAN §8.2 P2-03, §2.5·§2.6 "새 차시 = md 1개 + py 1개").
  *
- * 영상처리 실습실 페이지(src/pages/labs/vision/index.astro)가 빌드 때 import.meta.glob으로 읽은 파일 내용을 이 함수에 넘긴다.
+ * 영상 처리 실습실 페이지(src/pages/labs/vision/index.astro)가 빌드 때 import.meta.glob으로 읽은 파일 내용을 이 함수에 넘긴다.
  * 그래서 새 예제는 examples/vision/(또는 examples/desktop/) 아래에 .py 파일 하나를 두는 것으로 [예제 불러오기] 목록에 들어간다(원칙 6).
  *
- * 읽는 폴더(VISION_EXAMPLE_DIRS): vision/(영상처리·손·얼굴·자세), desktop/(pyautogui 가상 데스크톱 — PLAN §2.5는 영상처리 실습실 예제로 둔다).
+ * 읽는 폴더(VISION_EXAMPLE_DIRS): vision/(영상 처리·손·얼굴·자세), desktop/(pyautogui 가상 데스크톱 — PLAN §2.5는 영상 처리 실습실 예제로 둔다).
  * 그 안의 lib/(VISION_LIBRARY_DIRS)는 예제가 아니라 PC 전용 라이브러리 원본이라 목록에서 뺀다.
  *
  * 파일에서 읽는 것
@@ -13,7 +13,7 @@
  * - title·description·packages: ① 같은 이름의 사이드카(<이름>.meta.yaml — 원본에서 옮긴 예제, src/lab/controls/example-sidecar.ts)가 있으면 그것,
  *   ② 없으면 파일 머리말(첫 주석 줄 제목·둘째 줄 설명 — 사이트가 만든 예제, src/lab/controls/example-meta.ts), ③ 둘 다 없으면 파일 이름.
  * - file: examples/ 아래 경로(vision/first-edge.py). 차시 페이지의 [실습실에서 열기]가 붙이는 ?example= 값과 같다.
- * - packages: 사이드카에 적지 않았으면 opencv-python(numpy 포함)을 미리 받는다(영상처리 예제 기본값).
+ * - packages: 사이드카에 적지 않았으면 opencv-python(numpy 포함)을 미리 받는다(영상 처리 예제 기본값).
  * - group: [예제 불러오기] 선택 상자의 묶음 이름(폴더별, EXAMPLE_GROUPS). 묶음 순서도 이 표가 정한다.
  * - practice(실습 방법): 사이드카 practice → 머리말 "── 실습 방법 ──" 상자(ESP32 목록과 같은 규칙). 입력·출력 칸 위에 "이 예제 실습 방법"으로 보인다.
  * 순서: 묶음(EXAMPLE_GROUPS 순서) → 파일 이름(숫자는 크기순). 사이트 예제(first-edge)가 맨 앞이다.
@@ -25,7 +25,7 @@ import { readExampleMeta } from '../controls/example-meta.ts';
 import type { ExampleSidecar } from '../controls/example-sidecar.ts';
 import type { LabExample } from '../controls/examples.ts';
 
-/** examples/ 아래에서 영상처리 실습실이 읽는 폴더(첫 칸) */
+/** examples/ 아래에서 영상 처리 실습실이 읽는 폴더(첫 칸) */
 export const VISION_EXAMPLE_DIRS: readonly string[] = Object.freeze(['vision', 'desktop']);
 
 /** 예전 이름(다른 코드가 참고하던 값) */
@@ -38,7 +38,7 @@ export const VISION_EXAMPLES_DIR = 'vision';
  */
 export const VISION_LIBRARY_DIRS: readonly string[] = Object.freeze(['vision/lib/', 'desktop/lib/']);
 
-/** 영상처리 예제가 실행 전에 미리 받는 Pyodide 패키지(pyodide-lock.json 기준 이름. opencv-python이 numpy를 함께 받는다) */
+/** 영상 처리 예제가 실행 전에 미리 받는 Pyodide 패키지(pyodide-lock.json 기준 이름. opencv-python이 numpy를 함께 받는다) */
 export const VISION_PACKAGES: readonly string[] = Object.freeze(['opencv-python']);
 
 /**

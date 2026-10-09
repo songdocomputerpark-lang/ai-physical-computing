@@ -81,7 +81,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('가상 ESP32 보드의 파�
     return found;
   };
 
-  it('ESP32 실습실 워커와 같은 파일·흉내 표로 준비된다(보드 + 모든 실습실 모듈, 영상처리 전용 모듈은 없음)', () => {
+  it('ESP32 실습실 워커와 같은 파일·흉내 표로 준비된다(보드 + 모든 실습실 모듈, 영상 처리 전용 모듈은 없음)', () => {
     expect(out.jspi).toBe(true);
     expect(out.duplicate).toBeUndefined();
     expect(out.folders).toContain('board');

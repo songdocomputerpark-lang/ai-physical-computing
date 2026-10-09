@@ -1,7 +1,7 @@
-// 영상처리 실습실 ↔ 가상 보드 시리얼 선(P4-02, PLAN §8.4 설계 메모) 브라우저 테스트 — 구역 A.
+// 영상 처리 실습실 ↔ 가상 보드 시리얼 선(P4-02, PLAN §8.4 설계 메모) 브라우저 테스트 — 구역 A.
 //
 // 완료 기준: **원본 f084·f085(컴퓨터 쪽)와 f082(보드 쪽)를 한 글자도 고치지 않고 짝지어 돌린다.**
-//  1. 두 탭: ESP32 실습실 탭에서 f082를 돌리고, 영상처리 실습실 탭에서 f084를 돌려 a를 보내면 레이저 핀(GPIO18)이 1이 된다.
+//  1. 두 탭: ESP32 실습실 탭에서 f082를 돌리고, 영상 처리 실습실 탭에서 f084를 돌려 a를 보내면 레이저 핀(GPIO18)이 1이 된다.
 //     그 뒤 원본 f082의 결함(import time만 하고 sleep(1)을 부름) 그대로 NameError로 멈춘다 — 실물 보드와 같다(사이드카에 적어 둔 결과).
 //  2. 한 화면 모드: [보내기] 패널의 [한 화면에 가상 보드 열기]로 같은 탭 안 iframe에 ESP32 실습실을 띄워도 똑같이 된다.
 //  3. 속도 불일치: 컴퓨터가 9600, 보드가 115200이면 실물처럼 글자가 깨져 레이저가 켜지지 않는다(가상 UART의 reframe).
@@ -59,7 +59,7 @@ async function openBoardLab(page: Page, query: string): Promise<void> {
 }
 
 /**
- * 영상처리 실습실을 연다. 시리얼만 쓰는 검사는 파이썬만 준비되면 되고(packages: false),
+ * 영상 처리 실습실을 연다. 시리얼만 쓰는 검사는 파이썬만 준비되면 되고(packages: false),
  * 카메라·mediapipe를 쓰는 검사(f085)만 OpenCV 꾸러미까지 기다린다 — 꾸러미는 20MB가 넘어 매번 기다리면 검사가 두 배로 길어진다.
  */
 async function openVision(page: Page, query: string, options: { packages?: boolean } = {}): Promise<void> {
@@ -93,7 +93,7 @@ async function waitPeer(page: Page): Promise<void> {
   await expect(bridgePanel(page)).toHaveAttribute('data-bridge-peers', /[1-9]/u, { timeout: 30_000 });
 }
 
-test.describe('영상처리 ↔ 가상 보드 시리얼 선(P4-02)', () => {
+test.describe('영상 처리 ↔ 가상 보드 시리얼 선(P4-02)', () => {
   test.describe.configure({ timeout: 600_000 });
   test.skip(({ isMobile }) => Boolean(isMobile), '두 화면을 나란히 쓰는 실습이라 데스크톱에서만 본다(휴대폰은 한 화면 모드 안내만).');
 

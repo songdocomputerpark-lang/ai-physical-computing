@@ -89,7 +89,7 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — 펌웨어에 굳힌
       expect(record.errorMessage, name).not.toContain('가상 보드에 아직 없어요');
       // Pyodide의 영어 덧말(micropip.install …)이 콘솔·트레이스백에 남지 않는다
       expect(`${record.errorText ?? ''}\n${record.stderr}`, name).not.toContain('micropip');
-      // 오류 풀이: "보드에 그 모듈이 없어요"(cv2·numpy 같은 컴퓨터용 패키지는 보드에 없어요 — 영상처리 실습실에서)
+      // 오류 풀이: "보드에 그 모듈이 없어요"(cv2·numpy 같은 컴퓨터용 패키지는 보드에 없어요 — 영상 처리 실습실에서)
       expect(entryIdOf(record, code), name).toBe('board-import-no-module');
     }
   });

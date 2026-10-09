@@ -3,7 +3,7 @@
  *
  * 무엇을 보나
  *   1. 실습실 안내(/labs/): 맨 위 "무엇을 할까요?" 고르기 3개가 첫 화면에 보이고, 카드는 어디를 눌러도 열리며, 안의 작은 링크는 따로 눌린다.
- *   2. 영상처리·ESP32 실습실: 긴 설명은 접혀 있고(Tab 정지점 하나), [실행]·코치 줄이 첫 화면 위쪽에 들어온다. 코치 줄(① 예제를 골라요 → ② [실행]을 눌러요 → ③ 결과를 봐요)이
+ *   2. 영상 처리·ESP32 실습실: 긴 설명은 접혀 있고(Tab 정지점 하나), [실행]·코치 줄이 첫 화면 위쪽에 들어온다. 코치 줄(① 예제를 골라요 → ② [실행]을 눌러요 → ③ 결과를 봐요)이
  *      Tab 정지점 없이 조작 줄 묶음 아래에 있고, 실행 횟수(data-run-count)로만 단계가 칠해진다. [실행] 접근 이름은 "실행" 그대로.
  *   3. 4단원 통합 화면: 틀이 둘이어도 코치 줄은 한 번만.
  *   4. 차시 안 임베드(?embed=1)에서는 코치 줄과 긴 설명이 숨는다.
@@ -70,7 +70,7 @@ test.describe('실습실 안내(/labs/)', () => {
   test('카드는 어디를 눌러도 열리고, 카드 안의 작은 링크는 따로 눌린다', async ({ page }) => {
     await page.goto(withBase('labs/'));
     const esp32 = getPage('labs-esp32');
-    const card = page.locator('.lab-card', { has: page.getByRole('heading', { level: 2, name: esp32.title }) });
+    const card = page.locator('.lab-card', { has: page.getByRole('heading', { level: 3, name: esp32.title }) });
     // 제목이 아닌 설명 글 자리를 눌러도 카드의 큰 링크로 간다(덮개). 화면 밖은 elementFromPoint가 비므로 먼저 화면 안으로 굴린다.
     await card.scrollIntoViewIfNeeded();
     const topmost = await card.locator('.lab-card__description').evaluate((element) => {
@@ -109,7 +109,7 @@ test.describe('실습실 안내(/labs/)', () => {
 });
 
 for (const lab of [
-  { path: 'labs/vision/', name: '영상처리 실습실', intro: '.vision-intro' },
+  { path: 'labs/vision/', name: '영상 처리 실습실', intro: '.vision-intro' },
   { path: 'labs/esp32/', name: 'ESP32 실습실', intro: '.esp32-intro' },
 ]) {
   test.describe(`${lab.name} 첫 화면`, () => {
@@ -271,7 +271,7 @@ test.describe('Tab 차례', () => {
   test.skip(({ isMobile }) => isMobile, '키보드 걷기는 데스크톱에서 본다.');
   test.describe.configure({ timeout: 120_000 });
 
-  test('영상처리 실습실: 설명 접힘 칸이 조작 줄 앞에 하나 늘 뿐, 코치 줄에는 멈추지 않고 [실행]에 닿는다', async ({ page }) => {
+  test('영상 처리 실습실: 설명 접힘 칸이 조작 줄 앞에 하나 늘 뿐, 코치 줄에는 멈추지 않고 [실행]에 닿는다', async ({ page }) => {
     await freezeDevReloads(page);
     await page.goto(withBase('labs/vision/'));
     const trail: string[] = [];

@@ -2,7 +2,7 @@
 /**
  * 4단원 통합 화면(PLAN §8.4 P4-09, §7.5 예시 4, CODE_MAPPING §6.1 B4·B5, SPEC §7 통신).
  *
- * 한 문서에 실습실 틀(LabShell)을 **둘** 둔다 — 컴퓨터 칸은 영상처리(labId "vision": 카메라·얼굴 그물·가상 데스크톱),
+ * 한 문서에 실습실 틀(LabShell)을 **둘** 둔다 — 컴퓨터 칸은 영상 처리(labId "vision": 카메라·얼굴 그물·가상 데스크톱),
  * 보드 칸은 ESP32(labId "esp32": 가상 보드의 LCD·서보 2·RGB·레이저·버저·블루투스). LabShell.astro의 스크립트가
  * `[data-lab]`을 모두 찾아 따로 붙이므로 둘은 각자 파이썬 워커를 쓰고 서로를 건드리지 않는다(워커 두 벌 + MediaPipe —
  * PLAN §11 위험 25번이라 이 페이지가 성능을 재고, 잰 값은 `.cache/phase4-notes/zone-h-unit4.md`에 있다).
@@ -10,7 +10,7 @@
  * 컴퓨터 → 보드 길: 학생 코드의 `bluetooth.init(...).send("DATA,x,y,d,r")`
  *   → 흉내 모듈 ble-pc(src/lab/modules/ble-pc/) → P4-01 브릿지(초당 10회·상태 병합·클릭 이벤트 보존)
  *   → 창 이벤트 `apc:ble-write` → 가상 보드의 BLE 특성(P4-03) → 보드 코드의 `ESP32BLE.read()`.
- * 두 칸이 **같은 문서**에 있어서 창 이벤트로 바로 닿는다. (판 1.1.0부터는 영상처리 실습실 단독에서도 [보내기] 패널로 연 다른 탭의
+ * 두 칸이 **같은 문서**에 있어서 창 이벤트로 바로 닿는다. (판 1.1.0부터는 영상 처리 실습실 단독에서도 [보내기] 패널로 연 다른 탭의
  * ESP32 실습실에 블루투스 줄기로 닿는다 — PROGRESS 미해결 137. 두 칸을 한 화면에서 함께 보는 곳은 여기다.)
  *
  * 한 문서에 틀이 둘이라 생기던 일(같은 id·공유 링크·?example=)은 실습실 틀이 푼다(판 1.1.0, 미해결 138 — LabShell idSuffix·lab-shell.ts).
@@ -149,7 +149,7 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
 
   <section class="unit4-help" aria-labelledby="unit4-help-heading" data-embed-hide>
     <h2 id="unit4-help-heading" class="unit4-help__heading">잘 안 될 때</h2>
-    <Callout type="오류" title="좌표가 보드에 닿지 않아요">
+    <Callout type="오류" title="좌표가 보드에 전해지지 않아요">
       <ul>
         <li>보드 칸이 먼저 돌고 있어야 해요. [함께 실행]은 보드 코드를 먼저 돌리고 블루투스 [연결]까지 눌러 줘요.</li>
         <li>
@@ -175,7 +175,7 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
         <li>
           그래도 느리면 한 쪽씩 따로 해 봐요 — 컴퓨터 쪽은 <a href={visionPage.href}>{visionPage.title}</a>에서, 보드 쪽은{' '}
           <a href={esp32Page.href}>{esp32Page.title}</a>의 블루투스 조작 칸([좌표 보내기]·[클릭 보내기])으로요. 따로 연 두 실습실도
-          블루투스로 이을 수 있어요 — 영상처리 실습실의 [보내기] 패널에서 [ESP32 실습실 새 탭에서 열기]를 눌러요.
+          블루투스로 이을 수 있어요 — 영상 처리 실습실의 [보내기] 패널에서 [ESP32 실습실 새 탭에서 열기]를 눌러요.
         </li>
       </ul>
     </Callout>
@@ -267,7 +267,7 @@ const initialBoard = boardIds.has(defaultBoardExampleId()) ? defaultBoardExample
   /*
    * 실제 ESP32와 Web Bluetooth로 잇는 칸(web-bluetooth 모듈)은 이 화면에서 숨긴다. 이 화면의 컴퓨터 코드(bluetooth 흉내)는
    * 같은 화면의 가상 보드로만 보내서, 여기서 실제 보드를 이어도 학생 코드의 좌표가 그 보드로 가지 않는다(헛걸음이 된다).
-   * 실제 보드 블루투스 칸은 영상처리·ESP32 실습실 페이지에 그대로 있다.
+   * 실제 보드 블루투스 칸은 영상 처리·ESP32 실습실 페이지에 그대로 있다.
    */
   .unit4-grid > .unit4-pane :global([data-lab-module-panel='web-bluetooth']) {
     display: none;

@@ -61,6 +61,36 @@ describe('화면 안으로 옮기기(reveal.ts)', () => {
     expect(visible.calls).toEqual([]);
   });
 
+  // R2-004: 붙은 조작 줄(inset) 밑으로 큰 칸의 제목·맨 위 단추가 들어가던 것 — scrollIntoView는 붙은 줄을 모른다
+  it('붙은 줄(inset)이 있으면 직접 옮겨 칸의 위 끝을 그 밑에 둔다 — 큰 칸은 가운데 대신 제목이 보이게 위 끝을 맞춘다', () => {
+    const scrolls: ScrollToOptions[] = [];
+    vi.stubGlobal('window', {
+      innerHeight: 768,
+      scrollY: 594,
+      matchMedia: () => ({ matches: false }),
+      scrollTo: (options: ScrollToOptions) => {
+        scrolls.push(options);
+      },
+    });
+    vi.stubGlobal('document', { documentElement: { clientHeight: 768 } });
+    // 화면보다 큰 칸(1,000px)이 화면 밖: 가운데 맞춤이어도 위 끝을 붙은 줄(65px) + 여백 8px 밑에
+    const tall = fakeElement(1500, 1000);
+    expect(revealElement(tall.element, { block: 'center', inset: 65 })).toBe(true);
+    expect(tall.calls).toEqual([]); // scrollIntoView는 쓰지 않는다
+    expect(scrolls).toEqual([{ top: 594 + 1500 - (65 + 8), behavior: 'smooth' }]);
+    // 보이는 자리(768 - 65)에 들어가는 칸은 가운데 맞춤이 보이는 자리의 가운데다
+    scrolls.length = 0;
+    const small = fakeElement(2000, 300);
+    expect(revealElement(small.element, { block: 'center', inset: 65 })).toBe(true);
+    expect(scrolls).toEqual([{ top: Math.round(594 + 2000 - (65 + (768 - 65 - 300) / 2)), behavior: 'smooth' }]);
+  });
+
+  it('붙은 줄에 가려 윗부분이 안 보이는 칸은 충분히 보이는 것으로 치지 않는다(isMostlyVisible inset)', () => {
+    expect(isMostlyVisible(fakeElement(0, 200).element, 768)).toBe(true);
+    expect(isMostlyVisible(fakeElement(0, 200).element, 768, 150)).toBe(false); // 작은 칸의 3/4이 붙은 줄 밑
+    expect(isMostlyVisible(fakeElement(160, 200).element, 768, 150)).toBe(true);
+  });
+
   it('요소가 없거나 브라우저가 아니면 조용히 넘어간다', () => {
     expect(revealElement(null)).toBe(false);
     expect(revealElement(undefined)).toBe(false);
@@ -125,7 +155,8 @@ describe('두 칸을 함께 보이기(revealTogether)', () => {
     const narrow = fakeElement(700, 217);
     const slider = fakeElement(1232, 112); // 700 ~ 1344 = 644px
     expect(revealTogether([narrow.element], slider.element, { slack: 40, block: 'center', inset: 64 })).toBe(true);
-    expect(scrolls).toEqual([{ top: 700 - (8 + 64), behavior: 'smooth' }]);
+    // 남는 자리는 위쪽에 쓴다(R2-004): 막대 아래 끝 + 여유 40을 화면 아래에 — 위 끝 맞춤(700 - 72 = 628)보다 덜 내려 칸 위 제목이 덜 가린다
+    expect(scrolls).toEqual([{ top: 1344 + 40 - 768, behavior: 'smooth' }]);
   });
 
   it('붙은 줄 때문에 여유 40px가 안 들어가면 여유를 8px로 줄여 다시 본다', () => {
@@ -133,7 +164,7 @@ describe('두 칸을 함께 보이기(revealTogether)', () => {
     const narrow = fakeElement(700, 217);
     const slider = fakeElement(1268, 112); // 700 ~ 1380 = 680px: 680 + 72 + 40 > 768, 680 + 72 + 8 <= 768
     expect(revealTogether([narrow.element], slider.element, { slack: 40, inset: 64 })).toBe(true);
-    expect(scrolls).toEqual([{ top: 700 - 72, behavior: 'smooth' }]);
+    expect(scrolls).toEqual([{ top: 1380 + 8 - 768, behavior: 'smooth' }]);
   });
 
   it('붙은 줄이 높아 그 밑에 둘을 다 못 넣으면 둘째 칸의 아래 끝을 화면 아래에 맞춘다(통합 확인 — 시나리오 A 막대가 화면 밖에 남았다)', () => {
@@ -142,6 +173,17 @@ describe('두 칸을 함께 보이기(revealTogether)', () => {
     const slider = fakeElement(903, 113); // 413 ~ 1016 = 603px: 603 + (8 + 160) + 8 > 768, 603 + 16 <= 768
     expect(revealTogether([narrow.element], slider.element, { slack: 40, block: 'center', inset: 160 })).toBe(true);
     expect(scrolls).toEqual([{ top: 400 + 1016 + 8 - 768, behavior: 'smooth' }]);
+  });
+
+  // R2-004 통합 확인: 1366×768 영상 처리 실습(조작 줄 65px, 출력 칸 593~1090, 화면 틀 773~991) — 막대가 입력 칸 아래로 멀리 밀린 때(1500~1613)
+  it('둘을 함께 못 넣으면 붙은 줄 밑에 통째로 들어가는 가장 넓은 후보(제목이 든 출력 칸)를 보인다', () => {
+    const scrolls = stubWindow(0);
+    const wide = fakeElement(593, 497);
+    const narrow = fakeElement(773, 218);
+    const slider = fakeElement(1500, 113);
+    expect(revealTogether([wide.element, narrow.element], slider.element, { slack: 40, block: 'center', inset: 65 })).toBe(true);
+    // 보이는 자리(768 - 65 = 703) 가운데: 65 + (703 - 497) / 2 = 168
+    expect(scrolls).toEqual([{ top: 593 - 168, behavior: 'smooth' }]);
   });
 
   it('붙은 줄에 가려진 칸(위쪽이 줄 높이보다 작다)은 이미 보인다고 보지 않는다', () => {

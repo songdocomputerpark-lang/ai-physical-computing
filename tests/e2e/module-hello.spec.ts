@@ -58,12 +58,12 @@ test.describe('흉내 모듈 뼈대(hello)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('영상처리 실습실에는 hello 모듈이 붙지 않는다(labs 목록대로)', async ({ page }) => {
+  test('영상 처리 실습실에는 hello 모듈이 붙지 않는다(labs 목록대로)', async ({ page }) => {
     const response = await page.goto('labs/vision/');
     expect(response?.status()).toBe(200);
     await expect(labRoot(page)).toHaveAttribute('data-state', /idle|loading|unloaded/u);
     await expect(page.locator('[data-lab-module-panel="hello"]')).toHaveCount(0);
-    // 영상처리 실습실에는 다른 흉내 모듈(loading·errors·mediapipe·runtime-extras·desktop·speech)이 붙는다.
+    // 영상 처리 실습실에는 다른 흉내 모듈(loading·errors·mediapipe·runtime-extras·desktop·speech)이 붙는다.
     // 여기서 보는 것은 "hello는 붙지 않는다"뿐이다.
     await expect
       .poll(async () => await labRoot(page).getAttribute('data-lab-modules'), { timeout: 30_000 })

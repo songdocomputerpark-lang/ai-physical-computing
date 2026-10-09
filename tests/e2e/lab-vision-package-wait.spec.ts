@@ -1,5 +1,5 @@
 /**
- * 영상처리 실습실 — 패키지를 받는 동안의 [실행](판 1.2.0, PROGRESS 미해결 219)과 받는 중 안내.
+ * 영상 처리 실습실 — 패키지를 받는 동안의 [실행](판 1.2.0, PROGRESS 미해결 219)과 받는 중 안내.
  *
  * 실습실은 준비 직후 numpy·OpenCV(약 13MB)를 미리 받는다. 판 1.1.5까지는 받을 패키지가 없는 코드(3-1-1 바이트 변환기, 시리얼만 쓰는 3-1-2
  * 컴퓨터 쪽 등)도 그 받기가 끝날 때까지 시작하지 않았다(느린 학교망 첫 방문에 몇 분 — LC-06·U34-03). 이제는
@@ -50,7 +50,7 @@ async function packageWaitLog(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as unknown as { __apcWaitLog?: string[] }).__apcWaitLog ?? []);
 }
 
-test.describe('영상처리 실습실 — 패키지를 받는 동안의 [실행](미해결 219)', () => {
+test.describe('영상 처리 실습실 — 패키지를 받는 동안의 [실행](미해결 219)', () => {
   test.skip(({ isMobile }) => isMobile, '데스크톱에서 잰다(같은 코드).');
   test.describe.configure({ timeout: LOAD_TIMEOUT + PACKAGES_TIMEOUT + 60_000 });
 

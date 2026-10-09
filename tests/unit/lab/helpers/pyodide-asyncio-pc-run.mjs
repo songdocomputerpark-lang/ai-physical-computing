@@ -1,7 +1,7 @@
 // Node.js 실제 Pyodide 314.0.7로 컴퓨터 쪽 실습실의 asyncio(src/lab/python/apc_asyncio.py — 판 1.2.0, PROGRESS 미해결 223)를 검사하는 도우미.
 // tests/unit/lab/pyodide-asyncio-pc.test.ts가 `node --experimental-wasm-jspi 이 파일 <저장소 뿌리>`로 띄우고 마지막 줄의 JSON 한 줄을 읽는다.
 //
-// 영상처리 실습실 워커와 같게 준비한다: 다리(bridge.ts) → 붙박이 .py(src/lab/python/)와 영상처리 실습실에 붙는 흉내 모듈 폴더의 .py·shims
+// 영상 처리 실습실 워커와 같게 준비한다: 다리(bridge.ts) → 붙박이 .py(src/lab/python/)와 영상 처리 실습실에 붙는 흉내 모듈 폴더의 .py·shims
 // (manifest의 labs가 vision 또는 '*' — 가상 보드 파일은 없다) → apc_runtime.install() → register_shims. 실행 하나는 워커 run()처럼
 // beginRun → install_available → reset_for_run → 전역 잇기 → runPythonAsync → run_idle → unbind(마무리 훅) → endRun.
 // [정지]는 실제 시간이 아니라 진행으로 누른다(stopWhen — 학생 stdout에 그 글이 나오면, DECISIONS C74 ②). stopAfterMs는 안전망.
@@ -41,7 +41,7 @@ process.on('unhandledRejection', (reason) => {
 const lastLine = (error) => String(error && error.message ? error.message : error).trim().split('\n').slice(-1)[0];
 const sleepMs = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// ── 영상처리 실습실의 파이썬 파일·shims ──
+// ── 영상 처리 실습실의 파이썬 파일·shims ──
 const pythonFiles = new Map();
 for (const file of fs.readdirSync(path.join(rootDir, 'src', 'lab', 'python'))) {
   if (file.endsWith('.py')) pythonFiles.set(file, path.join(rootDir, 'src', 'lab', 'python', file));

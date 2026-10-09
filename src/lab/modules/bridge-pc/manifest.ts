@@ -1,5 +1,5 @@
 /**
- * 새 예제용 통신 모듈 `bridge`(컴퓨터 쪽 — 영상처리 실습실)의 manifest — 순수 데이터(src/lab/README.md 4.2).
+ * 새 예제용 통신 모듈 `bridge`(컴퓨터 쪽 — 영상 처리 실습실)의 manifest — 순수 데이터(src/lab/README.md 4.2).
  * PLAN §7.6 "새 예제용 bridge 모듈"(P4-08)의 파이썬 파일 bridge.py가 판 1.1.0(PROGRESS 미해결 139)에서 **자기 폴더·자기 이름**을 가졌다.
  * 전에는 vision-bridge의 하위 폴더(finger-count/)에 있어 manifest가 없었고, 그래서 serial-pc 모듈의 요청·이벤트 이름을 빌려 썼다
  * (README 4.7 "다른 모듈의 이름을 쓰지 않는다"의 예외). 이제 이름은 모두 `bridge-pc.`로 시작한다.

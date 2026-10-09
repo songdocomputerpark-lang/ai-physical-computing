@@ -107,7 +107,7 @@ export interface LabChoice {
 
 /**
  * 하고 싶은 일 3가지. 링크 글(ask)에는 실습실 이름을 넣지 않는다 — 아래 카드의 제목 링크와 이름이 겹치면
- * "영상처리 실습실" 같은 이름으로 링크를 찾는 사람·검사가 둘을 헷갈린다. 어느 실습실인지는 target의 제목을 따로 보인다.
+ * "영상 처리 실습실" 같은 이름으로 링크를 찾는 사람·검사가 둘을 헷갈린다. 어느 실습실인지는 target의 제목을 따로 보인다.
  */
 export const LAB_CHOICES: readonly LabChoice[] = Object.freeze([
   {

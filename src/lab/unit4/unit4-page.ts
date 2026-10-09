@@ -1,7 +1,7 @@
 /**
  * 4단원 통합 화면(/labs/unit4/)의 화면 논리 — PLAN §8.4 P4-09.
  *
- * 한 문서에 실습실 틀(LabShell)이 **두 개** 있다: 왼쪽(좁은 화면은 위)은 영상처리(labId "vision" — 카메라·얼굴 그물·가상 데스크톱),
+ * 한 문서에 실습실 틀(LabShell)이 **두 개** 있다: 왼쪽(좁은 화면은 위)은 영상 처리(labId "vision" — 카메라·얼굴 그물·가상 데스크톱),
  * 오른쪽(아래)은 ESP32(labId "esp32" — 가상 보드의 LCD·서보 2·RGB·레이저·버저·블루투스). 둘은 각자 파이썬 워커를 쓴다(워커 두 벌).
  * LabShell.astro의 스크립트가 `[data-lab]`을 모두 찾아 따로 붙이므로 둘이 서로를 건드리지 않는다.
  *
@@ -19,7 +19,7 @@
  *  4. [함께 실행] — ① 두 파이썬이 준비될 때까지 ② 보드 코드를 먼저 돌려 블루투스 광고를 기다리고 ③ [연결]을 누른 뒤 ④ 컴퓨터 코드를 돌린다.
  *     순서가 중요하다: 자료의 컴퓨터 코드(f104)는 `ble_device.connected`가 참일 때만 보내므로, 보드가 먼저 이어져 있어야 첫 프레임부터 나간다.
  *     [함께 정지] — 두 칸을 함께 멈춘다. 짝 예제 [이 짝 불러오기] — 두 칸의 예제를 한 번에 바꾼다.
- *  5. 입력 소스 고르기를 조작 줄에도 둔다(영상처리 칸의 선택 상자와 같은 값 — 한쪽을 바꾸면 다른 쪽도 따라간다).
+ *  5. 입력 소스 고르기를 조작 줄에도 둔다(영상 처리 칸의 선택 상자와 같은 값 — 한쪽을 바꾸면 다른 쪽도 따라간다).
  *  6. 성능 재기(perf.ts) — 컴퓨터 코드가 도는 동안 0.5초마다 입력·출력·화면 fps, 긴 작업, 보낸 줄, 힙을 모으고 [측정 기록 복사]로 마크다운 표.
  *
  * 테스트가 읽는 값: `[data-unit4]`의 data-unit4-phase(idle·prepare·board·link·pc·running·stopping), data-unit4-samples,
@@ -57,6 +57,20 @@ export type Unit4Phase = 'idle' | 'prepare' | 'board' | 'link' | 'pc' | 'running
 export const MAX_SAMPLES = 3600;
 
 /** 학생이 읽는 상태 글(한 곳) */
+/**
+ * 컴퓨터 코드가 쓰는 mediapipe solution에 맞는 재생 동작(R2-008). 얼굴(face_mesh·face_detection)이면 고개 돌리기, 자세면 팔 들기, 그 밖은 손(기본).
+ * 재생 동작 id는 src/lab/modules/mediapipe/sequences.ts의 DEFAULT_SEQUENCE_FOR_KIND와 같다(그 모듈은 쓸 때만 받아 여기서 가져오지 않는다).
+ */
+export function replaySolutionOfCode(code: string): { kind: 'hands' | 'face' | 'pose'; sequence: string } {
+  if (/face_mesh|face_detection|FaceMesh|FaceDetection/u.test(code)) {
+    return { kind: 'face', sequence: 'face-turn' };
+  }
+  if (/solutions\s*\.\s*pose|mp_pose|Pose\s*\(/u.test(code)) {
+    return { kind: 'pose', sequence: 'pose-raise' };
+  }
+  return { kind: 'hands', sequence: 'count' };
+}
+
 export const UNIT4_TEXT = Object.freeze({
   idle: '[함께 실행]을 누르면 보드 코드 → 블루투스 연결 → 컴퓨터 코드 차례로 돌아가요.',
   prepare: '파이썬을 준비하고 있어요(컴퓨터 칸·보드 칸 두 곳). 준비가 끝나면 바로 시작해요…',
@@ -69,11 +83,15 @@ export const UNIT4_TEXT = Object.freeze({
   pc: '컴퓨터 코드를 실행하고 있어요…',
   running: '두 칸이 함께 돌고 있어요.',
   /** 짝 목록에 없는 조합(두 칸에서 예제를 따로 골랐을 때)의 뒷말 — 짝이면 짝의 running 글(examples.ts PAIRS)이 붙는다 */
-  runningAny: '컴퓨터 칸이 보낸 값이 블루투스로 보드 칸에 닿아요 — 보드 칸의 콘솔과 부품을 봐요.',
+  runningAny: '컴퓨터 칸이 보낸 값이 블루투스로 보드 칸에 전해져요 — 보드 칸의 콘솔과 부품을 봐요.',
   runningNoLink: '컴퓨터 코드는 돌지만 보드와 아직 이어지지 않았어요. 보드 칸의 블루투스 조작 칸에서 [연결]을 눌러요.',
   /** 카메라 없이 열린 샘플 입력(도형 영상 — 얼굴이 없다)을 재생 입력으로 바꿨을 때 상태 글 뒤에 붙는 말(R1-114) */
   replaySwitched: '카메라가 없어서 입력을 재생 입력(합성 좌표)으로 바꿨어요 — 사이트가 만든 얼굴이 고개를 돌려요.',
-  boardStopped: '보드가 멈췄어요. 좌표가 보드에 닿지 않아요 — [함께 정지]를 누른 뒤 [함께 실행]을 다시 눌러요.',
+  /** 컴퓨터 코드가 손을 쓸 때의 같은 말(R2-008 — 안내가 실제 화면과 맞게 코드가 쓰는 것에 따라 고른다) */
+  replaySwitchedHands: '카메라가 없어서 입력을 재생 입력(합성 좌표)으로 바꿨어요 — 사이트가 만든 손이 손가락을 폈다 접어요.',
+  /** 컴퓨터 코드가 자세를 쓸 때의 같은 말 */
+  replaySwitchedPose: '카메라가 없어서 입력을 재생 입력(합성 좌표)으로 바꿨어요 — 사이트가 만든 사람이 팔을 들어요.',
+  boardStopped: '보드가 멈췄어요. 좌표가 보드에 전해지지 않아요 — [함께 정지]를 누른 뒤 [함께 실행]을 다시 눌러요.',
   noBle: '이 보드 예제는 블루투스를 쓰지 않아서 잇지 않고 컴퓨터 코드만 이어서 돌려요.',
   linkFailed: '블루투스가 아직 이어지지 않았어요. 보드 칸의 블루투스 조작 칸에서 [연결]을 눌러요.',
   pcDoneBoardRunning: '컴퓨터 코드가 끝났어요. 보드는 아직 돌고 있어요 — [함께 정지]로 멈춰요.',
@@ -223,6 +241,8 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   let waitingPcPackages = false;
   /** 이번 실행에서 샘플 입력을 재생 입력으로 바꿨는가(상태 글에 이유를 덧붙인다) */
   let replayNotice = false;
+  /** 바꾼 재생 입력이 만들어 내는 것(컴퓨터 코드가 쓰는 solution에 맞춘다 — 상태 글이 실제 화면과 같게) */
+  let replayKind: 'hands' | 'face' | 'pose' = 'face';
   /** 준비 단계 동안 1초마다 글을 새로 쓴다(지난 시간) */
   let prepareTick: number | null = null;
 
@@ -271,7 +291,9 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
       return UNIT4_TEXT.runningNoLink;
     }
     const base = host ? `${UNIT4_TEXT.running} ${pairRunningText() ?? UNIT4_TEXT.runningAny}` : UNIT4_TEXT.noBle;
-    return replayNotice ? `${base} ${UNIT4_TEXT.replaySwitched}` : base;
+    const switched =
+      replayKind === 'hands' ? UNIT4_TEXT.replaySwitchedHands : replayKind === 'pose' ? UNIT4_TEXT.replaySwitchedPose : UNIT4_TEXT.replaySwitched;
+    return replayNotice ? `${base} ${switched}` : base;
   };
 
   /**
@@ -288,6 +310,15 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     visionSelect.value = REPLAY_SOURCE_VALUE;
     visionSelect.dispatchEvent(new Event('change', { bubbles: true }));
     replayNotice = true;
+    // 재생 동작도 컴퓨터 코드가 쓰는 것에 맞춘다(R2-008). 코드가 mediapipe를 열 때 맞춰 주기를 기다리면, 그 전(또는 열기 전에 막힌 때)에는 기본 동작인
+    // 손이 그려지는데 안내는 "얼굴이 고개를 돌려요"라고 말해 서로 어긋났고, 코드는 얼굴을 못 찾아 아무 값도 보내지 않았다.
+    const solution = replaySolutionOfCode(pc.getCode());
+    replayKind = solution.kind;
+    const sequenceSelect = visionRoot.querySelector<HTMLSelectElement>('[data-mediapipe-sequence]');
+    if (sequenceSelect && Array.from(sequenceSelect.options).some((option) => option.value === solution.sequence) && sequenceSelect.value !== solution.sequence) {
+      sequenceSelect.value = solution.sequence;
+      sequenceSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     return true;
   };
 
@@ -367,12 +398,37 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   let floatDismissed: string | null = null;
   /** 떠 있는 줄에 굳이 띄우지 않는 글(처음 안내·멈춤) */
   const quietTexts = new Set<string>([UNIT4_TEXT.idle, UNIT4_TEXT.stopped]);
+  /** 두 칸이 안정되게 돌고 있을 때 떠 있는 줄이 스스로 접히기까지(밀리초) — 아래로 내려가 읽는 본문(GPIO 주의 상자·보드 그림)을 계속 가리지 않게(R2-009) */
+  const FLOAT_AUTO_HIDE_MS = 8000;
+  let floatAutoTimer: number | null = null;
+  /** 스스로 접힌 것인지([닫기]가 아니라) — 상태 글을 다시 보고 내려가면 또 몇 초 보이게 한다(통합 확인) */
+  let floatAutoDismissed = false;
+  cleanups.push(() => {
+    if (floatAutoTimer !== null) {
+      window.clearTimeout(floatAutoTimer);
+      floatAutoTimer = null;
+    }
+  });
   function renderFloat(text: string): void {
     const float = elements.float;
     if (!float) {
       return;
     }
     const wanted = !statusVisible && !quietTexts.has(text) && floatDismissed !== text;
+    // 준비·연결 단계는 글이 계속 바뀌고 학생이 기다리며 보므로 그대로 두고, 다 돌기 시작한("running") 뒤에만 몇 초 뒤 접는다. 상태가 바뀌어 새 글이 오면 다시 뜬다.
+    if (wanted && phase === 'running') {
+      if (floatAutoTimer === null) {
+        floatAutoTimer = window.setTimeout(() => {
+          floatAutoTimer = null;
+          floatDismissed = elements.floatText?.textContent ?? null;
+          floatAutoDismissed = true;
+          render();
+        }, FLOAT_AUTO_HIDE_MS);
+      }
+    } else if (floatAutoTimer !== null) {
+      window.clearTimeout(floatAutoTimer);
+      floatAutoTimer = null;
+    }
     if (elements.floatText && elements.floatText.textContent !== text) {
       elements.floatText.textContent = text;
     }
@@ -385,6 +441,11 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         statusVisible = entry.isIntersecting;
+      }
+      if (statusVisible && floatAutoDismissed) {
+        // 조작 줄의 상태 글을 다시 봤다 — 스스로 접은 것은 풀어, 다음에 아래로 내려가면 또 몇 초 떠 있게 한다
+        floatDismissed = null;
+        floatAutoDismissed = false;
       }
       render();
     });
@@ -399,6 +460,7 @@ export async function mountUnit4Page(root: HTMLElement | null): Promise<Unit4Pag
   });
   listen(elements.floatClose, 'click', () => {
     floatDismissed = elements.floatText?.textContent ?? null;
+    floatAutoDismissed = false;
     render();
   });
 

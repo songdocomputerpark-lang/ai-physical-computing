@@ -200,16 +200,22 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
   const BAR_NOTE_BLOCKS = '블록 예시는 아래 [블록 예시]에서 골라요. 예제 이름으로 코드를 열려면 [코드]를 눌러 위의 예제 줄에서 골라요.';
   /** [코드로 바꾸기] 뒤 예제 설명 줄을 대신하는 글(위 예제 이름은 처음 고른 예제라 지금 코드와 다르다) */
   const CONVERTED_NOTE = '지금 코드는 블록에서 만든 코드예요. 위의 예제 이름은 처음 고른 예제라 이 코드와 달라요. 예제로 돌아가려면 [초기화]나 [예제 불러오기]를 눌러요.';
+  /** 블록 모드에 들어와 있는 동안 예제 설명 줄을 대신하는 글(위 설명은 코드 모드에서 고른 예제의 것이라 작업판의 블록과 다르다 — R2-012) */
+  const BLOCKS_NOTE = '지금은 블록 모드예요. 작업판의 블록은 코드 모드에서 고른 예제와 달라요. 예제 설명은 [코드]로 돌아가면 다시 보여요.';
   const exampleDescription = root.querySelector<HTMLElement>('[data-lab-example-description]');
   let descriptionBackup: { text: string; hidden: boolean } | null = null;
-  const showConvertedNote = () => {
+  /** 예제 설명 줄을 지금 무엇이 대신하는지 */
+  let descriptionNote: 'blocks' | 'converted' | null = null;
+  const showDescriptionNote = (kind: 'blocks' | 'converted', text: string) => {
     if (!exampleDescription) {
       return;
     }
     descriptionBackup ??= { text: exampleDescription.textContent ?? '', hidden: exampleDescription.hidden !== false };
-    exampleDescription.textContent = CONVERTED_NOTE;
+    exampleDescription.textContent = text;
     exampleDescription.hidden = false;
+    descriptionNote = kind;
   };
+  const showConvertedNote = () => showDescriptionNote('converted', CONVERTED_NOTE);
   /** restore면 원래 설명으로(같은 예제로 되돌린 [초기화]), 아니면 되돌리지 않는다(다른 예제를 불러와 실습실 틀이 새 설명을 이미 적었다) */
   const clearConvertedNote = (restore: boolean) => {
     if (exampleDescription && descriptionBackup && restore) {
@@ -217,6 +223,7 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
       exampleDescription.hidden = descriptionBackup.hidden;
     }
     descriptionBackup = null;
+    descriptionNote = null;
   };
 
   const renderMode = () => {
@@ -233,6 +240,10 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
       barNote.textContent = mode === 'blocks' ? BAR_NOTE_BLOCKS : barNoteCode;
     }
     if (mode === 'blocks') {
+      clearConvertedNote(true);
+      showDescriptionNote('blocks', BLOCKS_NOTE);
+    } else if (descriptionNote === 'blocks') {
+      // 코드 모드로 돌아왔다 — 블록 모드 동안 가린 예제 설명을 되돌린다([코드로 바꾸기]는 이미 바꾼 코드 안내(converted)로 갈아 두었으니 건드리지 않는다)
       clearConvertedNote(true);
     }
     for (const button of elements.modeButtons) {
@@ -299,10 +310,21 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
     }, WORKSPACE_SAVE_DELAY_MS);
   };
 
+  /**
+   * Blockly가 글자 폭을 재려고 문서 맨 끝(body)에 붙이는 0×0 캔버스(blocklyComputeCanvas)를 화면 낭독기·검사 도구에서 감춘다(R2-014 — axe 'region':
+   * 랜드마크 밖 내용). 눈에도 낭독기에도 안 나오는 측정용이다. 블록을 만들 때 처음 붙는 경우가 있어 작업판을 만든 뒤와 코드를 다시 만들 때 부른다.
+   */
+  const hideBlocklyMeasureCanvas = () => {
+    for (const canvas of document.querySelectorAll('canvas.blocklyComputeCanvas')) {
+      canvas.setAttribute('aria-hidden', 'true');
+    }
+  };
+
   const regenerate = () => {
     if (!kit || !workspace) {
       return;
     }
+    hideBlocklyMeasureCanvas();
     try {
       program = kit.generate(workspace);
     } catch (error) {
@@ -397,6 +419,7 @@ export function mountBlocksMode(context: LabModuleContext): LabModuleHandle | vo
       grid: { spacing: 24, length: 2, colour: '#e2e8f0', snap: false },
     });
     dedupeToolboxCategoryIds(elements.workspaceHost);
+    hideBlocklyMeasureCanvas();
     const stored = readItem(BLOCKS_STORAGE.workspace);
     let loaded = false;
     if (stored) {

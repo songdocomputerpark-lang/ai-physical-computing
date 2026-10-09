@@ -191,7 +191,7 @@ test.describe('대시보드 — 시나리오 D', () => {
     await connectDashboard(page);
     await expect(page4(page)).toHaveAttribute('data-dash-bridge', 'on');
 
-    // 그래프가 영상처리 실습실 쪽 값을 보게 토픽을 바꾼다.
+    // 그래프가 영상 처리 실습실 쪽 값을 보게 토픽을 바꾼다.
     const chart = widget(page, 'chart-1');
     await chart.locator('[data-dash-settings]').click();
     await chart.locator('[data-dash-field="topic"]').fill('bridge/pc');

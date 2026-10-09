@@ -1,4 +1,4 @@
-// 영상처리 실습실 브라우저 테스트(PLAN §8.2 P2-03 완료 기준 "가짜 카메라로 출력 캔버스에 에지 영상이 그려진다"):
+// 영상 처리 실습실 브라우저 테스트(PLAN §8.2 P2-03 완료 기준 "가짜 카메라로 출력 캔버스에 에지 영상이 그려진다"):
 // /labs/vision/ 을 열어 Pyodide·numpy·OpenCV 준비 단계가 끝나고, 첫 예제(examples/vision/first-edge.py)를 [실행]하면
 // 가짜 카메라(playwright.config.ts의 합성 영상 640×480)의 프레임이 파이썬으로 가서 cv2.Canny 결과가 출력 창에 그려진다
 // (흰 에지 픽셀 비율 > 0). 출력 화면에서 q 키 → 정상 종료, [정지] → 1초 안에 멈춤, 카메라 거부 → 샘플 입력으로 자동 전환,
@@ -10,7 +10,7 @@ import { labRoot, setEditorCode, waitDone } from './helpers/lab.ts';
 import { expectNoHorizontalOverflow, expectParamsHelpReflows, REFLOW_VIEWPORT } from './helpers/reflow.ts';
 import { FRAME_TIMEOUT, VISION_PATH, collectRequests, openVisionLab, waitFrames, whiteRatio } from './helpers/vision.ts';
 
-test.describe('영상처리 실습실(가짜 카메라)', () => {
+test.describe('영상 처리 실습실(가짜 카메라)', () => {
   test.skip(({ isMobile }) => isMobile, '워커·JSPI·카메라 동작은 데스크톱 Chromium에서 확인한다');
   test.describe.configure({ timeout: 300_000 });
 
@@ -184,10 +184,10 @@ test.describe('영상처리 실습실(가짜 카메라)', () => {
 test.describe('좁은 화면', () => {
   test.skip(({ isMobile }) => !isMobile, '모바일 화면(375px)에서만 확인한다');
 
-  test('영상처리 실습실이 화면보다 넓어지지 않고 입력 칸 아래에 출력 칸이 온다', async ({ page }) => {
+  test('영상 처리 실습실이 화면보다 넓어지지 않고 입력 칸 아래에 출력 칸이 온다', async ({ page }) => {
     const response = await page.goto(VISION_PATH);
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('영상처리 실습실');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('영상 처리 실습실');
     await expect(page.locator('[data-lab-editor] .cm-editor')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
@@ -202,13 +202,13 @@ test.describe('좁은 화면', () => {
   test('가장 좁은 휴대폰(320px)에서도 조절 막대 값이 보이고, 조절 패널 도움말을 펼쳐도 가로로 넘치지 않는다', async ({ page }) => {
     await page.setViewportSize(REFLOW_VIEWPORT);
     await openVisionLab(page);
-    await expectNoHorizontalOverflow(page, '영상처리 실습실 320px');
+    await expectNoHorizontalOverflow(page, '영상 처리 실습실 320px');
     // 첫 예제(에지 검출)의 조절 막대 값 숫자가 화면 안에 있다
     const value = page.locator('output.param__value').first();
     await value.scrollIntoViewIfNeeded();
     const right = await value.evaluate((element) => element.getBoundingClientRect().right);
     expect(right).toBeLessThanOrEqual(REFLOW_VIEWPORT.width);
-    await expectParamsHelpReflows(page, '영상처리 실습실 320px');
+    await expectParamsHelpReflows(page, '영상 처리 실습실 320px');
     expect(await value.evaluate((element) => element.getBoundingClientRect().right)).toBeLessThanOrEqual(REFLOW_VIEWPORT.width);
   });
 });

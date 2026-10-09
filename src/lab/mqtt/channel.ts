@@ -1,5 +1,5 @@
 /**
- * 브릿지 통로 "mqtt"(P4-06) — 영상처리 실습실이 알아낸 값을 MQTT로 보내는 길(src/lab/README.md 9.6).
+ * 브릿지 통로 "mqtt"(P4-06) — 영상 처리 실습실이 알아낸 값을 MQTT로 보내는 길(src/lab/README.md 9.6).
  *
  * `channels/registry.ts`를 고치지 않고 여기서 `registerBridgeChannel`로 끼운다. 같은 글자 한 줄이 같은 컴퓨터 탭·
  * USB·블루투스·MQTT 어느 통로로도 나가는 규칙(PLAN §7.2 규칙 6)을 그대로 따른다.
@@ -158,7 +158,7 @@ let registered = false;
 
 /**
  * 브릿지 등록표에 MQTT 통로를 끼운다(두 번 불러도 괜찮다).
- * 화면 모듈이 붙을 때(`src/lab/modules/mqtt/index.ts`) 부르고, 다른 구역(영상처리 [보내기] 패널 등)도
+ * 화면 모듈이 붙을 때(`src/lab/modules/mqtt/index.ts`) 부르고, 다른 구역(영상 처리 [보내기] 패널 등)도
  * `import { registerMqttChannel } from '../../mqtt/index.ts'`로 부르면 그 실습실에서 통로 목록에 나온다.
  */
 export function registerMqttChannel(): void {

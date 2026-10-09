@@ -73,7 +73,7 @@ pyodide.setStdout({
 });
 pyodide.registerJsModule('_apc_bridge', bridge.api);
 pyodide.FS.mkdirTree('/apc');
-// 붙박이 도우미 + bridge.py만 넣는다(워커는 영상처리·ESP32 실습실에 bridge-pc 폴더의 .py를 넣는다 — src/lab/python/modules.ts)
+// 붙박이 도우미 + bridge.py만 넣는다(워커는 영상 처리·ESP32 실습실에 bridge-pc 폴더의 .py를 넣는다 — src/lab/python/modules.ts)
 for (const file of fs.readdirSync(path.join(rootDir, 'src', 'lab', 'python'))) {
   if (file.endsWith('.py')) pyodide.FS.writeFile(`/apc/${file}`, fs.readFileSync(path.join(rootDir, 'src', 'lab', 'python', file), 'utf8'));
 }

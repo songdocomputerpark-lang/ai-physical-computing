@@ -108,7 +108,7 @@ export interface LabModuleContext {
   setValue(name: string, value: unknown): void;
   /** 실습실 조작 이벤트(run·done·code·example …) — lab.on과 같지만 dispose 때 함께 풀린다. */
   onLab: LabController['on'];
-  /** 영상처리 실습실이면 VisionLab(카메라 프레임 훅 onFrame·출력 창·grabFrame), 아니면 null */
+  /** 영상 처리 실습실이면 VisionLab(카메라 프레임 훅 onFrame·출력 창·grabFrame), 아니면 null */
   vision(): Promise<VisionLab | null>;
   /** 이 모듈의 브라우저 저장 이름(src/lib/storage.ts 규칙): module:<id>:<name> */
   storageName(name: string): string;

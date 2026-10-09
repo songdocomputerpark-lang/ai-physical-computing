@@ -15,7 +15,7 @@ export const NOTICE_MARK = '실물 ESP32 보드(MicroPython)에는 없어요';
 /** 단계 이름 머리: 예제·차시 코드 블록·블록 모드 훑기 */
 export const SWEEP_PREFIX = { example: 'sweep:example:', lesson: 'sweep:lesson:', blocks: 'sweep:blocks' };
 
-/** 차시 코드 블록이 보드 코드인지 고르는 모듈(하나라도 import하면 보드 코드 — 컴퓨터 쪽 cv2·serial 블록은 영상처리 실습실 코드) */
+/** 차시 코드 블록이 보드 코드인지 고르는 모듈(하나라도 import하면 보드 코드 — 컴퓨터 쪽 cv2·serial 블록은 영상 처리 실습실 코드) */
 const BOARD_CODE_MODULES = new Set([
   'machine',
   'micropython',

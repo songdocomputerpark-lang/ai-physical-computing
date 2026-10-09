@@ -137,12 +137,35 @@ function reloadGuard(): { taken: boolean; take(): void } {
   };
 }
 
+/** 제목 요소의 단계만 바꾼다(속성·글·스코프 표시를 그대로 옮긴다). 이미 그 단계거나 없으면 아무것도 하지 않는다. */
+function retagHeading(element: Element | null, level: 2 | 3 | 4): void {
+  if (!element || element.tagName === `H${level}`) {
+    return;
+  }
+  const replacement = document.createElement(`h${level}`);
+  for (const attribute of Array.from(element.attributes)) {
+    replacement.setAttribute(attribute.name, attribute.value);
+  }
+  replacement.append(...Array.from(element.childNodes));
+  element.replaceWith(replacement);
+}
+
 function mount(context: LabModuleContext): LabModuleHandle {
   const { root, panel, runtime, lab } = context;
   const origin = location.origin;
   const tracker = new LoadingTracker({ origin });
   const cleanups: (() => void)[] = [];
   let disposed = false;
+
+  // 제목 단계(R2-013): 준비 칸 제목은 실습실 틀의 칸 제목(코드·입력과 출력)과 같은 단계, 개념 카드 제목은 그 한 단계 아래다.
+  // 쪽 제목(h1) 바로 아래 실습실이면 2·3, 차시 안에 넣은 실습실(칸 제목이 h3)이면 3·4 — 단계를 건너뛰지 않게 마크업의 기본(h2·h3)을 이 단계로 바꾼다.
+  if (panel) {
+    const shellLevel = root.querySelector('.lab__heading')?.tagName === 'H3' ? 3 : 2;
+    if (shellLevel === 3) {
+      retagHeading(panel.querySelector('[data-loading-title]'), 3);
+      retagHeading(panel.querySelector('[data-loading-card-title]'), 4);
+    }
+  }
 
   // ── 화면 요소(패널이 없을 수도 있다 — 그때도 data-* 표시는 그대로 갱신한다) ──
   const find = <T extends HTMLElement>(name: string): T | null => panel?.querySelector<T>(`[data-loading-${name}]`) ?? null;
@@ -414,7 +437,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       const amount = snapshot.text.replace(/\s*받는 중…/u, '').trim();
       labProgress.textContent =
         runtime.state !== 'running'
-          ? `실습 파일을 받는 중: ${amount} — 이 파일을 쓰는 코드는 [실행]하면 다 받은 뒤 시작해요.`
+          ? `실습 파일을 받는 중: ${amount} — [실행]하면 다 받은 뒤 시작해요.`
           : packageWait === 'start'
             ? `실행 전에 필요한 파일을 받는 중: ${amount} — 다 받으면 코드가 저절로 시작해요.`
             : packageWait === 'import'
@@ -572,7 +595,7 @@ function mount(context: LabModuleContext): LabModuleHandle {
       scheduleRender();
     }),
   );
-  // 실습실이 패키지까지 다 받으면(영상처리 실습실은 data-vision-packages="ready") 진행률을 끝으로 본다.
+  // 실습실이 패키지까지 다 받으면(영상 처리 실습실은 data-vision-packages="ready") 진행률을 끝으로 본다.
   const packagesObserver = new MutationObserver(() => {
     if (root.dataset.visionPackages === 'ready') {
       tracker.finish();
@@ -622,8 +645,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
     }),
   );
 
-  // ── 1분 개념 카드(실습실에 맞는 묶음 — 영상처리는 사진·에지, ESP32는 핀·MicroPython) ──
-  // 영상처리 실습실이 시리얼 통신 예제(3-1 단원 컴퓨터 쪽)로 열렸으면 통신 카드(판 1.2.1 — 검토 E4)
+  // ── 1분 개념 카드(실습실에 맞는 묶음 — 영상 처리는 사진·에지, ESP32는 핀·MicroPython) ──
+  // 영상 처리 실습실이 시리얼 통신 예제(3-1 단원 컴퓨터 쪽)로 열렸으면 통신 카드(판 1.2.1 — 검토 E4)
   const cards = cardsForLab(context.labId, lab.getCode());
   let cardIndex = 0;
   let cardTimer: ReturnType<typeof setInterval> | null = null;

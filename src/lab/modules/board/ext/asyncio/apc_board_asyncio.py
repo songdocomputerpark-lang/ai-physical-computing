@@ -12,7 +12,7 @@ MicroPython식 코드가 어긋났다.
 무엇: 이름은 MicroPython v1.29.0 extmod/asyncio(core.py — https://raw.githubusercontent.com/micropython/micropython/v1.29.0/extmod/asyncio/core.py,
 2026-10-02 확인)에 맞추고, 일은 진짜 asyncio(WebLoop)에 맡긴다. 모듈 하나를 `asyncio`·`uasyncio` 두 이름으로 보드 모듈 등록표에 올린다
 (apc_board.register_board_module — import 훅이 학생 코드(is_board_code)에만 준다. 등록표가 U_ALIASES의 uasyncio 줄보다 먼저다).
-sys.modules['asyncio']는 바꾸지 않는다 — Pyodide webloop·표준 라이브러리·영상처리 실습실·4단원 컴퓨터 칸은 진짜 asyncio 그대로다.
+sys.modules['asyncio']는 바꾸지 않는다 — Pyodide webloop·표준 라이브러리·영상 처리 실습실·4단원 컴퓨터 칸은 진짜 asyncio 그대로다.
 이 파일은 /apc에 있어 학생 코드가 아니므로 아래의 `import asyncio`는 진짜 asyncio를 받는다.
   - sleep(초)·sleep_ms(ms): apc_board.wait_ns_async로 잔다 — 보드의 time.sleep과 같은 일(가상 시계가 잔 만큼 늘어남·Timer·핀 인터럽트·화면 입력·
     [정지]면 곧바로 KeyboardInterrupt, 블록 전용 호환 모드가 쓰는 그 함수). 실물처럼 sleep(t)는 sleep_ms(int(t * 1000))(ESP32의 float는

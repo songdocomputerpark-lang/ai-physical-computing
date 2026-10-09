@@ -222,7 +222,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
   };
 
   const onDone = (result: RunResult): void => {
-    if (result.outcome === 'ok') {
+    // 엔진이 이 기기에서 죽은 것(client.ts ENGINE_FATAL_*)은 코드 잘못이 아니라서 풀이 카드를 만들지 않는다 — 상태 줄과 콘솔 안내가 할 일을 말해 준다(R2-001).
+    if (result.outcome === 'ok' || result.error?.type === 'EngineFatalError') {
       hideCard();
       return;
     }

@@ -134,6 +134,16 @@ describe('접두어(PD-29)', () => {
 
     const added = notices.filter((text) => text.includes('접두어를 붙여서'));
     expect(added).toHaveLength(1);
+    // R2-011: 인터넷을 안 쓰는 같은 컴퓨터 탭 통로에서는 "공개 중계 서버" 이야기 대신 이 컴퓨터 밖으로 나가지 않는다고 말한다
+    expect(added[0]).toContain('이 컴퓨터 밖으로 나가지 않아요');
+    expect(added[0]).not.toContain('공개 중계 서버는 온 세상');
+  });
+
+  it('공개 중계 서버 통로의 접두어 안내는 다른 사람의 메시지와 섞인다는 까닭을 말한다', () => {
+    const text = mqttText.prefixAdded(PREFIX, 'broker');
+    expect(text).toContain('공개 중계 서버는 온 세상이 함께 쓰는 곳');
+    expect(text).not.toContain('이 컴퓨터 밖으로 나가지 않아요');
+    expect(mqttText.prefixAdded(PREFIX)).toBe(text); // 통로를 모르면(연결 전) 예전 글
   });
 
   it('받은 토픽은 학생이 쓴 모양으로 돌려준다', async () => {

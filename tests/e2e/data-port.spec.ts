@@ -122,7 +122,7 @@ test.describe('USB 데이터 포트(모의 시리얼)', () => {
     await expect(panel(page).locator('[data-data-port-status]')).toContainText('보드 포트를 고른 것 같아요');
   });
 
-  test('영상처리·ESP32 실습실에도 붙지만 패널은 닫혀 있고 다른 화면을 건드리지 않는다', async ({ page }) => {
+  test('영상 처리·ESP32 실습실에도 붙지만 패널은 닫혀 있고 다른 화면을 건드리지 않는다', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await installSerialMock(page, TWO_PORTS);

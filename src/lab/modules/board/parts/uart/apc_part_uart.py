@@ -11,7 +11,7 @@ rx(변환기가 받는 핀) ← 보드 TX(17), tx(변환기가 보내는 핀) �
 - 속도: 패널에서 '자동'(보드 UART와 같게 — 실물 시리얼 프로그램은 직접 맞춰야 함) 또는 9600·115200bps를 고른다. 다르면 가상 선이 비트 단위로 깨뜨린다.
 - 실행 전에 보낸 것은 사라진다(보드가 켜지기 전에 보낸 글자를 받을 곳이 없음 — apc_board.on_device_input 규칙).
 - 보드가 선으로 내보낸 바이트는 이벤트 'board.uart.tx' {id, port, bytes, baud}로도 화면에 알린다(PLAN §8.4 설계 메모 ② —
-  영상처리 실습실의 serial 흉내·bridge 모듈로 가는 선(src/lab/modules/vision-bridge/)이 받는다. 2026-09-24 Phase 4 통합).
+  영상 처리 실습실의 serial 흉내·bridge 모듈로 가는 선(src/lab/modules/vision-bridge/)이 받는다. 2026-09-24 Phase 4 통합).
   상태의 rxTail(최근 512바이트)은 화면 칸 그리기용이고, 16ms 병합 사이에 512바이트를 넘게 와도 이벤트에는 빠짐없이 실린다.
 
 화면에 보내는 상태('board.device' state): {v, choice: 'auto'|9600|…, baud: 지금 쓰는 속도(자동이고 이어진 UART가 없으면 null), boardBaud,

@@ -12,7 +12,7 @@
  *      원본 파일의 결과(ModuleNotFoundError 등)는 예제 스모크(사이드카 smoke)가 지킨다.
  *   5. 성능 기록: 두 파이썬 + 얼굴 그물 + 가상 데스크톱 + 가상 보드를 함께 돌리며 fps·긴 작업·메모리(이 탭의 힙과 운영체제가 본 브라우저
  *      프로세스 메모리)를 재어 표로 남긴다(testInfo 첨부 + 표준 출력). `UNIT4_PERF=full`이면 웹캠(가짜 카메라)+얼굴 모델과
- *      영상처리·ESP32 실습실 단독 비교까지 잰다. `UNIT4_PERF_OUT=<파일>`이면 표를 그 파일에도 쓴다.
+ *      영상 처리·ESP32 실습실 단독 비교까지 잰다. `UNIT4_PERF_OUT=<파일>`이면 표를 그 파일에도 쓴다.
  *
  * 돌리는 법(병렬 제작 — 개발 서버): PW_BASE_URL=http://localhost:4708/ai-physical-computing/ npx playwright test tests/e2e/unit4.spec.ts --project=desktop --workers=1
  * 파이썬 두 벌을 띄우는 무거운 검사라 한 파일 안에서는 차례로 돈다(describe mode 'default'). 8GB 컴퓨터에서는 --workers=1을 권한다.
@@ -124,7 +124,7 @@ async function waitBothReady(page: Page): Promise<void> {
   await expect(boardLab(page)).toHaveAttribute('data-state', 'idle', { timeout: READY_TIMEOUT });
 }
 
-/** 조작 줄의 입력 고르기(영상처리 칸의 선택 상자와 같은 값) */
+/** 조작 줄의 입력 고르기(영상 처리 칸의 선택 상자와 같은 값) */
 async function chooseInput(page: Page, value: string): Promise<void> {
   const select = bar(page).locator('[data-unit4-input]');
   await expect(select.locator(`option[value="${value}"]`)).toHaveCount(1, { timeout: READY_TIMEOUT });
@@ -245,7 +245,7 @@ test.describe('4단원 통합 화면 — 순수 논리(브라우저 없이)', ()
     expect(summaryText(summarize([]))).toContain('아직 잰 값이 없어요');
     const table = reportMarkdown(summary, { where: '시험', input: '재생 입력', examples: 'a → b' });
     expect(table).toContain(`| 카메라 → 파이썬 입력 fps (최대 ${TARGET_INPUT_FPS}) | 12.0 | 13.0 | 14.0 | 2 |`);
-    expect(table).toContain('| 보드에 닿은 줄 1초당 (최대 10) | 9.0 | 9.5 | 10.0 | 2 |');
+    expect(table).toContain('| 보드에 전해진 줄 1초당 (최대 10) | 9.0 | 9.5 | 10.0 | 2 |');
     expect(table).toContain('- 입력: 재생 입력 · 예제: a → b');
 
     expect(ratePerSec(null, { count: 5, at: 1000 })).toBeNull();
@@ -377,7 +377,7 @@ test.describe('4단원 통합 화면 — 한 문서에 두 실습실', () => {
     await expect(pcLab(page)).toHaveAttribute('data-example', pcExampleId(DEFAULT_PC_FILE));
     await expect(boardLab(page)).toHaveAttribute('data-example', boardExampleId(DEFAULT_BOARD_FILE));
 
-    // 가상 모니터 3840×2160 — 그 값을 가상 데스크톱 모듈이 기억하지 않는다(영상처리 실습실의 1920×1080 예제에 번지지 않게)
+    // 가상 모니터 3840×2160 — 그 값을 가상 데스크톱 모듈이 기억하지 않는다(영상 처리 실습실의 1920×1080 예제에 번지지 않게)
     await expect(bar(page)).toHaveAttribute('data-unit4-screen', UNIT4_SCREEN_VALUE, { timeout: READY_TIMEOUT });
     await expect(pcLab(page).locator('[data-desktop-screen]')).toHaveValue(UNIT4_SCREEN_VALUE);
     await expect(bar(page).locator('[data-unit4-screen-note]')).toContainText('3840×2160');
@@ -538,6 +538,8 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
     expect([...lit]).toContain('true');
 
     // 상태 글이 화면 밖이면(아래 보드 칸을 보는 동안) 화면 위에 같은 글이 한 줄 떠 있다(2026-09-25 Phase 4 검토 반영 — 사용성 I6)
+    // 앞의 기다림 동안 떠 있던 줄은 8초 뒤 스스로 접혔을 수 있다(R2-009) — 조작 줄을 한 번 본 뒤 내려가면 다시 뜬다.
+    await bar(page).locator('[data-unit4-status]').scrollIntoViewIfNeeded();
     await page.locator('[data-board-io]').scrollIntoViewIfNeeded();
     await expect(bar(page).locator('[data-unit4-status]')).not.toBeInViewport();
     const float = bar(page).locator('[data-unit4-float]');
@@ -547,6 +549,10 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
     await float.getByRole('button', { name: '조작 줄 보기' }).click();
     await expect(bar(page).locator('[data-unit4-status]')).toBeInViewport();
     await expect(float).toBeHidden();
+    // R2-009: 두 칸이 다 돌기 시작한 뒤에는 떠 있는 줄이 몇 초 뒤 스스로 접힌다(아래 보드 쪽 주의 글과 보드 그림을 계속 가리지 않게)
+    await page.locator('[data-board-io]').scrollIntoViewIfNeeded();
+    await expect(float).toBeVisible();
+    await expect(float).toBeHidden({ timeout: 14_000 });
 
     // 가상 모니터 커서가 가운데(1920, 1080)에서 움직였다
     await expect(pcLab(page).locator('[data-desktop-cursor]')).toContainText('3840×2160');
@@ -657,12 +663,12 @@ test.describe('4단원 통합 화면 — [함께 실행](재생 입력, 카메�
   });
 });
 
-// ── 컴퓨터 쪽 bluetooth 흉내(ble-pc) — 이 화면이 기대는 모듈을 보드가 없는 영상처리 실습실에서 ──
+// ── 컴퓨터 쪽 bluetooth 흉내(ble-pc) — 이 화면이 기대는 모듈을 보드가 없는 영상 처리 실습실에서 ──
 
 test.describe('컴퓨터 쪽 bluetooth 흉내 — 보드가 없는 화면', () => {
   test.describe.configure({ mode: 'default', timeout: 300_000 });
 
-  test('영상처리 실습실만 열면 보드가 없다고 한 번 알리고, 연결 전 send는 2초에 한 번만 알린다', async ({ page }) => {
+  test('영상 처리 실습실만 열면 보드가 없다고 한 번 알리고, 연결 전 send는 2초에 한 번만 알린다', async ({ page }) => {
     test.skip(test.info().project.name !== 'desktop', '파이썬 흉내 동작이라 데스크톱에서만');
     const response = await page.goto(VISION_PATH);
     expect(response?.status()).toBe(200);
@@ -781,8 +787,8 @@ async function processMemory(browser: Browser): Promise<ProcessMemory | null> {
 }
 
 /**
- * 페이지 안에서 0.5초마다 재는 탐침(4단원 화면의 재기와 같은 값을 영상처리·ESP32 실습실 단독에서도 같은 방식으로 재려고 둔다).
- * 입력·출력 fps는 영상처리 칸의 data-fps, 보낸 줄은 ble-pc 모듈의 data-ble-pc-sent, 힙은 performance.memory.
+ * 페이지 안에서 0.5초마다 재는 탐침(4단원 화면의 재기와 같은 값을 영상 처리·ESP32 실습실 단독에서도 같은 방식으로 재려고 둔다).
+ * 입력·출력 fps는 영상 처리 칸의 data-fps, 보낸 줄은 ble-pc 모듈의 data-ble-pc-sent, 힙은 performance.memory.
  */
 async function startProbe(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -860,9 +866,9 @@ interface ScenarioResult {
 interface Scenario {
   readonly name: string;
   readonly url: string;
-  /** 'unit4' = [함께 실행], 'vision' = 영상처리 실습실 [실행], 'esp32' = ESP32 실습실 [실행] */
+  /** 'unit4' = [함께 실행], 'vision' = 영상 처리 실습실 [실행], 'esp32' = ESP32 실습실 [실행] */
   readonly mode: 'unit4' | 'vision' | 'esp32';
-  /** 영상처리 입력(replay·webcam) */
+  /** 영상 처리 입력(replay·webcam) */
   readonly input?: string;
   readonly seconds: number;
 }
@@ -959,7 +965,7 @@ test.describe('4단원 통합 화면 — 성능 기록', () => {
     if (full) {
       scenarios.push(
         { name: '4단원 통합 · 웹캠(가짜 카메라) + 얼굴 모델', url: UNIT4_PATH, mode: 'unit4', input: 'webcam', seconds: 15 },
-        { name: '영상처리 실습실만 · 재생 입력(f104)', url: `${VISION_PATH}?example=${encodeURIComponent(DEFAULT_PC_FILE)}`, mode: 'vision', input: 'replay', seconds: 15 },
+        { name: '영상 처리 실습실만 · 재생 입력(f104)', url: `${VISION_PATH}?example=${encodeURIComponent(DEFAULT_PC_FILE)}`, mode: 'vision', input: 'replay', seconds: 15 },
         { name: 'ESP32 실습실만(f110 사이트판)', url: `${ESP32_PATH}?example=${encodeURIComponent(DEFAULT_BOARD_FILE)}`, mode: 'esp32', seconds: 15 },
       );
     }

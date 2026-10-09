@@ -1,4 +1,4 @@
-// 영상처리 실습실 브라우저 테스트 공통 도구 — lab-vision.spec.ts(P2-03)와 scenario-a.spec.ts(P2-04)가 함께 쓴다.
+// 영상 처리 실습실 브라우저 테스트 공통 도구 — lab-vision.spec.ts(P2-03)와 scenario-a.spec.ts(P2-04)가 함께 쓴다.
 // 가짜 카메라(playwright.config.ts, scripts/gen-test-video.mjs의 합성 영상 640×480)로 /labs/vision/을 열고 출력 창의 픽셀을 잰다.
 import { expect, type Page } from '@playwright/test';
 import { withBase } from '../../../src/lib/url.ts';

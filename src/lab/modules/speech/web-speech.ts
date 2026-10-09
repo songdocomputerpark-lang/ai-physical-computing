@@ -110,7 +110,7 @@ export function describeOnDevice(status: OnDeviceStatus): string {
     case 'available':
       return '이 브라우저는 한국어를 기기 안에서 바로 알아들을 수 있어요. 음성이 밖으로 나가지 않아요.';
     case 'downloadable':
-      return '한국어 음성 팩을 한 번 받아 두면 기기 안에서 알아들을 수 있어요(아래 버튼).';
+      return '한국어 음성 팩을 한 번 받아 두면 기기 안에서 알아들을 수 있어요(아래 단추).';
     case 'downloading':
       return '한국어 음성 팩을 받는 중이에요. 잠시 뒤 다시 확인해 주세요.';
     case 'unavailable':

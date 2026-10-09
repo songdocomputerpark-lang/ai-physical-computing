@@ -87,7 +87,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     }
   });
 
-  test('모듈이 영상처리 실습실에 붙고, 패널과 재생 입력 선택지가 생긴다', async ({ page }) => {
+  test('모듈이 영상 처리 실습실에 붙고, 패널과 재생 입력 선택지가 생긴다', async ({ page }) => {
     await openVisionLab(page, '?example=vision/first-edge.py');
     await expect(labRoot(page)).toHaveAttribute('data-lab-modules', /(^|\s)mediapipe(\s|$)/u);
 

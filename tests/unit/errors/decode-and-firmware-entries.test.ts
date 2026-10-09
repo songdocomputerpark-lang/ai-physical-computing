@@ -90,13 +90,13 @@ describe('오류 사전 — 영어로 끝날 수 있는 값에는 조사 자리�
 // ModuleNotFoundError). 그런데 고치는 법이 "PC 파이썬에서 pip install로 설치해 돌려요"뿐이라, ESP32 실습실에서 `import tm1637`(보드용
 // 드라이버)을 친 학생에게 보드 코드도 pip로 설치하라고 읽혔다. 오류 사전 항목에는 실습실별 글을 고르는 칸이 없어 글 안에서 범위를 나눈다.
 describe('오류 사전 — 그런 이름의 모듈이 없어요(module-not-found)는 컴퓨터 쪽과 보드 쪽 고치는 법을 나눠 말한다', () => {
-  it("ESP32 실습실의 `import tm1637`도 이 항목이고, pip install로 설치하라는 줄은 컴퓨터 쪽(영상처리 실습실)에만 쓴다", () => {
+  it("ESP32 실습실의 `import tm1637`도 이 항목이고, pip install로 설치하라는 줄은 컴퓨터 쪽(영상 처리 실습실)에만 쓴다", () => {
     const explanation = pick(pyodideError('ModuleNotFoundError', "ModuleNotFoundError: No module named 'tm1637'", 1));
     expect(explanation?.entry.id).toBe('module-not-found');
     const fixes = explanation?.fix ?? [];
     const installLines = fixes.filter((line) => /pip install로 설치/u.test(line));
-    expect(installLines.length, 'pip install로 설치하는 줄이 있어야 해요(영상처리 실습실 안내)').toBeGreaterThan(0);
-    for (const line of installLines) expect(line, '설치 안내는 범위를 밝혀요').toMatch(/영상처리|컴퓨터 쪽/u);
+    expect(installLines.length, 'pip install로 설치하는 줄이 있어야 해요(영상 처리 실습실 안내)').toBeGreaterThan(0);
+    for (const line of installLines) expect(line, '설치 안내는 범위를 밝혀요').toMatch(/영상 처리|컴퓨터 쪽/u);
     const boardLine = fixes.find((line) => line.includes('보드 코드'));
     expect(boardLine, '보드 코드의 고치는 법 줄이 있어야 해요').toBeDefined();
     expect(boardLine).toMatch(/pip install을 쓸 수 없어요/u);

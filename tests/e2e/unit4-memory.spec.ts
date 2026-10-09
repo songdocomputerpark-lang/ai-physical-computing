@@ -1,6 +1,6 @@
 /**
  * 4단원 통합 화면을 오래 켜 둘 때 메모리가 **어디서** 느는지 가르는 개발용 측정(판 1.1.0, PROGRESS 미해결 136).
- * 판 1.1.0 결론(2026-09-29, 빌드 결과 660초): WebAssembly(영상처리 87MB·보드 30MB)와 워커 힙은 평평하고, 느는 것은 쪽의 Blink 힙(Oilpan)이
+ * 판 1.1.0 결론(2026-09-29, 빌드 결과 660초): WebAssembly(영상 처리 87MB·보드 30MB)와 워커 힙은 평평하고, 느는 것은 쪽의 Blink 힙(Oilpan)이
  * 잡아 둔 페이지다(살아 있는 객체 10~13MB인데 +310MB) — 콘솔에 오래 남는 출력 조각이 짧은 객체 사이에 흩어져 페이지를 붙잡는 조각남.
  * 표본마다 [콘솔 지우기]면 +57MB, 접힌 조각을 글자로만 두면(흉내) +56MB. 표와 고칠 곳은 PROGRESS 미해결 136 칸.
  * 통합이 console-fold.ts를 그렇게 고친 뒤(결정 C47) 같은 조건으로 다시 잰 값(2026-09-29, 판 1.1.0 빌드): 크롬 전용 메모리 652 → 729MB(+77MB,
@@ -193,7 +193,7 @@ test.describe('4단원 통합 화면 — 오래 켜 둘 때 메모리 가르기(
       `### 4단원 통합 화면 메모리(경우 ${MODE}${CLEAR_CONSOLE ? ' · 표본마다 [콘솔 지우기]' : ''}${FOLD_CAP > 0 ? ` · 콘솔마다 조각 ${FOLD_CAP}개까지(흉내)` : ''}${FOLD_TEXT ? ' · 접힌 조각을 글자로만(흉내)' : ''}, 실행 시작부터 ${Math.round((last.at - first.at) / 1000)}초)`,
       '',
       `- 렌더러: ${first.process?.rendererMb.toFixed(0) ?? '—'} → ${last.process?.rendererMb.toFixed(0) ?? '—'}MB · GPU 프로세스: ${gpuMb(first.process).toFixed(0)} → ${gpuMb(last.process).toFixed(0)}MB · 브라우저 전체: ${first.process?.totalMb.toFixed(0) ?? '—'} → ${last.process?.totalMb.toFixed(0) ?? '—'}MB (프로세스 종류: ${Object.keys(last.process?.byType ?? {}).join(', ') || '—'})`,
-      `- 워커1(영상처리 — 인스턴스 많은 쪽) WebAssembly +${growth(workerPick(0, 'wasmBytes'))}MB · 힙 +${growth(workerPick(0, 'heapUsed'))}MB · 바깥 +${growth(workerPick(0, 'backing'))}MB`,
+      `- 워커1(영상 처리 — 인스턴스 많은 쪽) WebAssembly +${growth(workerPick(0, 'wasmBytes'))}MB · 힙 +${growth(workerPick(0, 'heapUsed'))}MB · 바깥 +${growth(workerPick(0, 'backing'))}MB`,
       `- 워커2(보드) WebAssembly +${growth(workerPick(1, 'wasmBytes'))}MB · 힙 +${growth(workerPick(1, 'heapUsed'))}MB · 바깥 +${growth(workerPick(1, 'backing'))}MB`,
       `- 쪽: 힙 +${growth(pagePick('heapUsed'))}MB · 바깥 +${growth(pagePick('backing'))}MB · Blink +${growth(pagePick('embedder'))}MB · WebAssembly +${growth(pagePick('wasmBytes'))}MB`,
       `- DOM: ${first.dom?.nodes ?? '—'} → ${last.dom?.nodes ?? '—'} · 리스너 ${first.dom?.listeners ?? '—'} → ${last.dom?.listeners ?? '—'}`,

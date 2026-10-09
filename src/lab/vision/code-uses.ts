@@ -1,5 +1,5 @@
 /**
- * 영상처리 실습실이 코드 글자만 보고 가르는 것(순수 함수 — 단위 테스트 tests/unit/lab/vision-code-uses.test.ts).
+ * 영상 처리 실습실이 코드 글자만 보고 가르는 것(순수 함수 — 단위 테스트 tests/unit/lab/vision-code-uses.test.ts).
  */
 
 /**

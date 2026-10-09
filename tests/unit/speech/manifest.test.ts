@@ -15,7 +15,7 @@ describe('speech 모듈 manifest', () => {
     expect(validateManifests({ './speech/manifest.ts': { default: speechManifest } })).toEqual([]);
   });
 
-  it('영상처리 실습실에 붙고, 요청·채널 이름이 문서와 같다', () => {
+  it('영상 처리 실습실에 붙고, 요청·채널 이름이 문서와 같다', () => {
     expect(speechManifest).toMatchObject({
       id: 'speech',
       labs: ['vision'],

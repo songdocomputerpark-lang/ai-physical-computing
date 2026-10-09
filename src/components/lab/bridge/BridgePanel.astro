@@ -1,10 +1,10 @@
 ---
 /**
- * [보내기] 패널 — 영상처리 실습실과 가상 보드를 잇는 선의 화면 조각(P4-02, PLAN §7.6 "통로는 코드에 적지 않고 화면에서 고른다").
+ * [보내기] 패널 — 영상 처리 실습실과 가상 보드를 잇는 선의 화면 조각(P4-02, PLAN §7.6 "통로는 코드에 적지 않고 화면에서 고른다").
  * 흉내 모듈 vision-bridge의 panel.astro가 이 부품 하나만 그리고, 움직임은 src/lab/modules/vision-bridge/index.ts가
  * data-bridge-* 표시로 찾아 잇는다(이 파일은 HTML·CSS만).
  *
- * 두 실습실이 같은 패널을 쓴다 — 영상처리 실습실은 data-bridge-role="pc", ESP32 실습실은 "board"이고,
+ * 두 실습실이 같은 패널을 쓴다 — 영상 처리 실습실은 data-bridge-role="pc", ESP32 실습실은 "board"이고,
  * 자리(.bridge__pc-only·.bridge__board-only)가 역할에 따라 보이고 숨는다.
  *
  * 선이 실어 나르는 것(data-bridge-carry — index.ts가 코드를 보고 정함, 1.1.0 검토 반영): 'uart'(serial·bridge·UART — 가상 USB-UART 변환기)면
@@ -18,21 +18,21 @@
 
 <div class="bridge" data-bridge-panel data-bridge-role="pc" data-bridge-state="closed" data-bridge-carry="uart">
   <p class="bridge__intro bridge__pc-only bridge__carry-uart">
-    컴퓨터(영상처리 실습실)와 가상 ESP32 보드를 <strong>가상 USB-UART 변환기</strong>로 잇는 칸이에요. 파이썬 코드의{' '}
+    컴퓨터(영상 처리 실습실)와 가상 ESP32 보드를 <strong>가상 USB-UART 변환기</strong>로 잇는 칸이에요. 파이썬 코드의{' '}
     <code>serial.Serial(...)</code>이나 <code>bridge.send(...)</code>가 여기서 고른 통로로 나가요.
   </p>
   <p class="bridge__intro bridge__pc-only bridge__carry-ble">
-    컴퓨터(영상처리 실습실)의 <strong>블루투스 코드</strong>를 가상 ESP32 보드와 잇는 칸이에요. 파이썬 코드의{' '}
+    컴퓨터(영상 처리 실습실)의 <strong>블루투스 코드</strong>를 가상 ESP32 보드와 잇는 칸이에요. 파이썬 코드의{' '}
     <code>bluetooth.init()</code>·<code>send()</code>가 같은 컴퓨터의 다른 탭에 연 ESP32 실습실의 가상 블루투스에 닿아 보드 코드의{' '}
     <code>ESP32BLE.read()</code>로 가요. 아래 [ESP32 실습실 새 탭에서 열기]로 보드 탭을 열고, 그 탭에서 [실행]을 눌러요.
   </p>
   {/* 보드 쪽 탭의 소개글은 따로(2026-09-25 Phase 4 검토 반영 — 보드 탭에도 컴퓨터 쪽 문장이 보여 어느 탭이 무엇인지 헷갈렸다) */}
   <p class="bridge__intro bridge__board-only bridge__carry-uart">
-    이 탭은 <strong>보드 쪽</strong>이에요. 영상처리 실습실 탭(컴퓨터 쪽)이 보낸 글자가 가상 USB-UART 변환기로 들어와 보드 코드의{' '}
+    이 탭은 <strong>보드 쪽</strong>이에요. 영상 처리 실습실 탭(컴퓨터 쪽)이 보낸 글자가 가상 USB-UART 변환기로 들어와 보드 코드의{' '}
     <code>uart.readline()</code>으로 가요. 이 탭에서 먼저 [실행]을 눌러 두어야 보낸 글자를 받아요.
   </p>
   <p class="bridge__intro bridge__board-only bridge__carry-ble">
-    이 탭은 <strong>보드 쪽</strong>이에요. 영상처리 실습실 탭(컴퓨터 쪽)의 블루투스 코드가 보낸 값이 이 보드의 가상 블루투스로 들어와
+    이 탭은 <strong>보드 쪽</strong>이에요. 영상 처리 실습실 탭(컴퓨터 쪽)의 블루투스 코드가 보낸 값이 이 보드의 가상 블루투스로 들어와
     보드 코드의 <code>ESP32BLE.read()</code>로 가요. 이 탭에서 먼저 [실행]을 눌러 두면 블루투스 칸이 저절로 이어져요.
   </p>
 
@@ -137,7 +137,7 @@
   <span class="bridge-role__item" data-bridge-role-run>먼저 [실행]을 눌러 두어요. 그래야 컴퓨터 쪽이 보낸 글자를 받아요.</span>
   <span class="bridge-role__item bridge-role__peer" role="status">
     <span class="bridge-role__dot" aria-hidden="true"></span>
-    <span data-bridge-role-peer-text>컴퓨터 쪽(영상처리 실습실)을 기다려요.</span>
+    <span data-bridge-role-peer-text>컴퓨터 쪽(영상 처리 실습실)을 기다려요.</span>
   </span>
 </div>
 

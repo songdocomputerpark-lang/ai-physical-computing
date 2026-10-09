@@ -1,8 +1,8 @@
 // 패키지를 받는 동안의 실행(판 1.2.0, PROGRESS 미해결 219)을 Node.js의 실제 Pyodide 314.0.7로 확인한다.
-// 영상처리 실습실은 준비 직후 numpy·OpenCV(약 13MB)를 미리 받는다. 판 1.1.5까지 워커는 받을 패키지가 없는 코드(시리얼만 쓰는 3-1-2 컴퓨터 쪽 등)도
+// 영상 처리 실습실은 준비 직후 numpy·OpenCV(약 13MB)를 미리 받는다. 판 1.1.5까지 워커는 받을 패키지가 없는 코드(시리얼만 쓰는 3-1-2 컴퓨터 쪽 등)도
 // 그 받기가 끝날 때까지 시작하지 않았다(느린 학교망 첫 방문에 몇 분). 막혀 있던 까닭 둘을 먼저 재현하고(control), 판 1.2.0 방식이
 // 그 둘을 건드리지 않는지 본다(main) — 도우미 tests/unit/lab/helpers/pyodide-package-concurrency-run.mjs(워커와 같은 package-loads.ts·bridge.ts·
-// 파이썬 도우미·영상처리 실습실 흉내 모듈 폴더를 쓴다).
+// 파이썬 도우미·영상 처리 실습실 흉내 모듈 폴더를 쓴다).
 //   ① 받기는 한 줄(C39 ④): 겹친 loadPackage는 "Loading …"을 학생 콘솔로 흘린다 — 받을 것이 없는 실행은 loadPackage를 부르지 않아야 한다.
 //   ② 흉내 설치가 반쯤 받은 패키지를 건드림: 휠은 풀렸고 .so는 아직인 numpy를 import하면 ImportError가 나고, apc_mediapipe는 그때 np=None을 굳힌다.
 import { spawnSync } from 'node:child_process';
@@ -125,7 +125,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('패키지를 받는 동안�
       return;
     }
     expect(out.jspi).toBe(true);
-    // 영상처리 실습실 그대로: 붙박이 + 흉내 모듈 폴더(가상 보드 파일은 없다), asyncio 흉내(apc_asyncio)는 붙박이
+    // 영상 처리 실습실 그대로: 붙박이 + 흉내 모듈 폴더(가상 보드 파일은 없다), asyncio 흉내(apc_asyncio)는 붙박이
     expect(out.labFiles).toEqual(expect.arrayContaining(['apc_runtime.py', 'apc_shims.py', 'apc_cv2.py', 'apc_asyncio.py', 'apc_mediapipe.py', 'apc_files.py', 'serial.py']));
     expect(out.labFiles).not.toContain('apc_board.py');
     // 미리 받기가 줄에 서자마자 받는 중(import 이름)을 파이썬 문지기에 알렸다
