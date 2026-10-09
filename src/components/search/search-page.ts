@@ -13,6 +13,11 @@
  * 종류 거르기(판 1.3.0): 결과 위의 칩(전체·차시·실습실·용어사전·오류·예제·교사용)이 결과를 쪽 종류로 거른다. 주소에는 &type=이 붙는다.
  * Pagefind 색인에 종류 정보가 없어서(쪽 주소로 가린다) 거를 때는 결과 내용을 10개씩 받아 가며 맞는 것을 모은다 — 맞는 것이 10개 찰 때까지만 받는다.
  *
+ * 거르기·순서(판 1.3.0 검수 R1-011~014): Pagefind는 낱말이 정확히 없으면 낱말의 앞부분으로 물러서서 맞추므로 엉뚱한 글이 "검색 결과 N개"로 나왔다.
+ * 그래서 결과 내용을 받을 때마다 요약에 맞은 낱말이 검색어를 충분히 덮는 글만 남기고(search-rank.ts), 처음 받는 20개 안에서는 용어사전·오류 사전 항목,
+ * 제목에 낱말이 있는 글을 앞에 둔다. 처음 20개가 모두 걸러지면 "맞는 글 없음"이다. 맞는 글이 없으면 낱말을 하나씩 빼 다시 찾고(R1-021),
+ * 그래도 없으면 오타 같은 낱말을 "혹시 이 낱말인가요?"로 알린다(R1-012, search-hint.ts).
+ *
  * 화면 상태는 뿌리 요소의 data-state로 알린다(테스트가 기다리는 기준): idle · loading · results · empty · error
  */
 import { createSearchIcon } from './search-icons.ts';
@@ -20,14 +25,20 @@ import {
   KIND_ICON,
   KIND_LABEL,
   appendExcerpt,
+  evaluateResult,
   isFilterKind,
   loadPagefind,
+  orderEvaluated,
+  parseStringList,
+  planSearch,
   readSearchConfig,
-  toResultCard,
+  searchPlanned,
   type FilterKind,
   type PagefindResult,
   type ResultCard,
+  type SearchPlan,
 } from './search-core.ts';
+import { didYouMean, fallbackTerms, normalizeVocabulary, restoreCase } from './search-hint.ts';
 
 export { isGlossaryGroupAnchor, pickAnchoredResult } from './search-core.ts';
 
@@ -36,22 +47,61 @@ type TypeFilter = 'all' | FilterKind;
 
 /** 한 번에 보여 주는 결과 수 */
 export const PAGE_SIZE = 10;
+/** 처음에 한꺼번에 내용을 받아 걸러 내고 순서를 바로잡는 결과 수(받는 파일은 작고 함께 받는다) */
+export const RANK_WINDOW = 20;
+/** "찾는 중이에요"를 알리기 전에 기다리는 시간(밀리초): 빠른 컴퓨터에서는 알리지 않고 결과만 알리게 */
+const LOADING_NOTE_DELAY_MS = 500;
+/** 이만큼 지나도 결과가 없으면 느린 인터넷 안내를 덧붙인다(밀리초) */
+const SLOW_NOTE_DELAY_MS = 8000;
+/** history.state에 결과를 얼마나 펼쳤는지 적어 두는 이름 — 결과를 열었다 뒤로 오면 같은 만큼 펼친다(R1-020) */
+export const VIEW_STATE_KEY = 'apcSearchView';
+
+/** 뒤로 왔을 때 되살릴 화면: 어떤 검색어·종류에서, 몇 개 펼쳤고, 어디까지 내려갔는지 */
+export interface SavedView {
+  term: string;
+  filter: string;
+  shown: number;
+  scrollY: number;
+}
+
+/** history.state에서 저장한 화면을 읽는다(모양이 맞지 않으면 undefined) */
+export function readSavedView(state: unknown): SavedView | undefined {
+  if (typeof state !== 'object' || state === null) {
+    return undefined;
+  }
+  const saved = (state as Record<string, unknown>)[VIEW_STATE_KEY];
+  if (typeof saved !== 'object' || saved === null) {
+    return undefined;
+  }
+  const { term, filter, shown, scrollY } = saved as Record<string, unknown>;
+  if (typeof term !== 'string' || typeof filter !== 'string' || typeof shown !== 'number' || typeof scrollY !== 'number') {
+    return undefined;
+  }
+  return { term, filter, shown, scrollY };
+}
 /** 입력을 멈추고 이만큼 기다린 뒤 찾는다(밀리초). Pagefind 기본 화면의 기본값과 같다. */
 const INPUT_DELAY_MS = 300;
 /** 주소에서 결과 종류를 싣는 이름 */
 export const TYPE_PARAM = 'type';
 
-/** 종류 거르기 칩 아래의 안내 글(상태 줄) */
-export function describeResults(term: string, total: number, shown: number, filter: TypeFilter, hasMore: boolean): string {
+/** 종류 거르기 칩 아래의 안내 글(상태 줄). approximate면 걸러 낼 글이 더 있을 수 있어 "약"을 붙인다. */
+export function describeResults(
+  term: string,
+  total: number,
+  shown: number,
+  filter: TypeFilter,
+  hasMore: boolean,
+  approximate = false,
+): string {
   if (filter === 'all') {
     const part = shown < total ? ` 그중 ${shown}개를 보여 주고 있어요.` : '';
-    return `"${term}" 검색 결과 ${total}개예요.${part}`;
+    return `"${term}" 검색 결과 ${approximate ? '약 ' : ''}${total}개예요.${part}`;
   }
   const label = KIND_LABEL[filter];
   if (shown === 0) {
-    return `"${term}" 검색 결과 중 '${label}'에 맞는 글은 없어요. 다른 종류를 눌러 보세요.`;
+    return `"${term}" 검색 결과 중 "${label}"에 맞는 글은 없어요. 다른 종류를 눌러 보세요.`;
   }
-  return `"${term}" 검색 결과 중 '${label}' ${shown}개를 보여 주고 있어요.${hasMore ? ' 더 있어요.' : ''}`;
+  return `"${term}" 검색 결과 중 "${label}" ${shown}개를 보여 주고 있어요.${hasMore ? ' 더 있어요.' : ''}`;
 }
 
 /** 주소의 type 값을 거르기 값으로 바꾼다. 모르는 값은 전체. */
@@ -72,18 +122,35 @@ export function setupSearchPage(root: HTMLElement): void {
   if (!form || !input || !status || !resultsSection || !list || !moreButton || !emptyTips || !suggestions || !typeGroup) {
     return;
   }
+  // 쪽 HTML 끝의 작은 안내 스크립트가 "검색 화면이 아직 안 떴다"고 말하지 않도록 알린다
+  root.dataset.ready = 'true';
+  // 없어도 검색은 된다(오래된 쪽 HTML): 오타 제안 칸, 불러오기 실패 때의 길 안내 칸
+  const didYouMeanBox = root.querySelector<HTMLElement>('[data-search-didyou]');
+  const didYouMeanList = root.querySelector<HTMLElement>('[data-search-didyou-list]');
+  const errorLinks = root.querySelector<HTMLElement>('[data-search-error-links]');
 
   const config = readSearchConfig(root);
+  const vocabularyItems = parseStringList(root.dataset.vocab);
+  const vocabulary = normalizeVocabulary(vocabularyItems);
   const typeButtons = Array.from(typeGroup.querySelectorAll<HTMLButtonElement>('[data-type]'));
 
   /** 늦게 도착한 옛 검색 결과를 버리기 위한 번호 */
   let generation = 0;
   let inputTimer: number | undefined;
+  let loadingTimer: number | undefined;
+  let slowTimer: number | undefined;
   let currentTerm = '';
+  /** 낱말을 줄여 다시 찾았을 때 실제로 찾은 말(줄이지 않았으면 undefined) */
+  let reducedTerm: string | undefined;
+  let activePlan: SearchPlan | undefined;
   let filter: TypeFilter = parseTypeFilter(new URL(window.location.href).searchParams.get(TYPE_PARAM));
   let currentResults: PagefindResult[] = [];
-  /** 지금까지 내용을 받아 본 결과(앞에서부터 차례대로) */
+  /** 지금까지 내용을 받아 걸러 낸 뒤 남은 결과(앞에서부터 차례대로) */
   let cards: ResultCard[] = [];
+  /** 내용을 받아 본 Pagefind 결과 수(걸러 낸 것 포함) */
+  let scanned = 0;
+  /** 받아 보니 검색어와 맞지 않아 뺀 결과 수 */
+  let dropped = 0;
   let shownCount = 0;
 
   const setState = (state: SearchState) => {
@@ -95,7 +162,7 @@ export function setupSearchPage(root: HTMLElement): void {
   };
 
   const matched = (): ResultCard[] => (filter === 'all' ? cards : cards.filter((card) => card.kind === filter));
-  const hasUnscanned = (): boolean => cards.length < currentResults.length;
+  const hasUnscanned = (): boolean => scanned < currentResults.length;
 
   const paintTypeButtons = () => {
     for (const button of typeButtons) {
@@ -119,6 +186,21 @@ export function setupSearchPage(root: HTMLElement): void {
     }
     if (url.href !== window.location.href) {
       window.history.replaceState(window.history.state, '', url);
+    }
+  };
+
+  /** 지금 화면(검색어·종류·펼친 개수·내려간 자리)을 history.state에 적어 둔다 — 결과를 열었다가 뒤로 오면 되살린다(R1-020) */
+  const saveView = () => {
+    if (currentTerm === '' || root.dataset.state !== 'results') {
+      return;
+    }
+    try {
+      const previous: Record<string, unknown> =
+        typeof window.history.state === 'object' && window.history.state !== null ? (window.history.state as Record<string, unknown>) : {};
+      const view: SavedView = { term: currentTerm, filter, shown: shownCount, scrollY: Math.round(window.scrollY) };
+      window.history.replaceState({ ...previous, [VIEW_STATE_KEY]: view }, '', window.location.href);
+    } catch {
+      // 기록을 못 남겨도 검색은 된다
     }
   };
 
@@ -166,38 +248,104 @@ export function setupSearchPage(root: HTMLElement): void {
   };
 
   const describeCount = () => {
-    status.textContent = describeResults(currentTerm, currentResults.length, shownCount, filter, hasUnscanned() || shownCount < matched().length);
+    const more = hasUnscanned() || shownCount < matched().length;
+    // 걸러 낸 글이 있고 아직 다 안 살폈으면 개수는 어림이다
+    const total = Math.max(cards.length, currentResults.length - dropped);
+    const approximate = dropped > 0 && hasUnscanned();
+    if (reducedTerm !== undefined) {
+      status.textContent = `"${currentTerm}"에 꼭 맞는 글은 없어서 낱말을 줄여 찾았어요. ${describeResults(reducedTerm, total, shownCount, filter, more, approximate)}`;
+      return;
+    }
+    status.textContent = describeResults(currentTerm, total, shownCount, filter, more, approximate);
+  };
+
+  const clearLoadingNotes = () => {
+    window.clearTimeout(loadingTimer);
+    window.clearTimeout(slowTimer);
+  };
+
+  /** 찾는 동안의 안내: 잠깐 걸리면 "찾는 중이에요", 오래 걸리면 인터넷이 느려서 그렇다고 알린다(R1-022) */
+  const startLoadingNotes = (searchGeneration: number) => {
+    clearLoadingNotes();
+    const stillLoading = () => searchGeneration === generation && root.dataset.state === 'loading';
+    loadingTimer = window.setTimeout(() => {
+      if (stillLoading() && status.textContent === '') {
+        status.textContent = '찾는 중이에요…';
+      }
+    }, LOADING_NOTE_DELAY_MS);
+    slowTimer = window.setTimeout(() => {
+      if (stillLoading()) {
+        status.textContent = '찾는 중이에요… 인터넷이 느려서 조금 걸려요. 잠시만 기다려 주세요.';
+      }
+    }, SLOW_NOTE_DELAY_MS);
+  };
+
+  const hideHelpBoxes = () => {
+    emptyTips.hidden = true;
+    if (didYouMeanBox) {
+      didYouMeanBox.hidden = true;
+    }
+    if (errorLinks) {
+      errorLinks.hidden = true;
+    }
   };
 
   const showIdle = () => {
+    clearLoadingNotes();
     setState('idle');
     status.textContent = '';
     list.replaceChildren();
     resultsSection.hidden = true;
     moreButton.hidden = true;
-    emptyTips.hidden = true;
+    hideHelpBoxes();
     suggestions.hidden = false;
   };
 
   const showError = (error: unknown) => {
+    clearLoadingNotes();
     setState('error');
     status.textContent = '검색을 불러오지 못했어요. 인터넷 연결을 확인하고 페이지를 새로고침해 보세요.';
     resultsSection.hidden = true;
-    emptyTips.hidden = true;
+    hideHelpBoxes();
     suggestions.hidden = true;
+    // 검색이 안 되어도 갈 곳이 있게 배우기·홈 링크를 보인다(R1-024)
+    if (errorLinks) {
+      errorLinks.hidden = false;
+    }
     // 개발 서버(npm run dev)에는 검색 색인(dist/pagefind/)이 없다. npm run build 뒤 미리 보기에서 확인한다.
     console.warn('[사이트 검색] Pagefind를 불러오지 못했어요. 개발 서버라면 npm run build 뒤 npm run preview로 확인하세요.', error);
   };
 
-  /** 거르기에 맞는 결과가 target개가 될 때까지(또는 결과가 바닥날 때까지) 결과 내용을 10개씩 받아 모은다. false면 그동안 새 검색이 시작됐다. */
+  /** 결과 내용을 size개 받아 검색어와 맞는 글만 남기고 차례를 바로잡아 cards 뒤에 붙인다. false면 그동안 새 검색이 시작됐다. */
+  const scanBatch = async (size: number, searchGeneration: number): Promise<boolean> => {
+    const plan = activePlan;
+    if (!plan) {
+      return true;
+    }
+    const batch = currentResults.slice(scanned, scanned + size);
+    const dataList = await Promise.all(batch.map((result) => result.data()));
+    if (searchGeneration !== generation) {
+      return false;
+    }
+    const isFirst = scanned === 0;
+    scanned += batch.length;
+    const kept = orderEvaluated(dataList.map((data) => evaluateResult(data, plan, config, window.location.origin)));
+    dropped += batch.length - kept.length;
+    cards.push(...kept);
+    if (isFirst && kept.length === 0) {
+      // 처음 묶음이 모두 우연히 걸린 글이면 나머지도 그렇다고 보고 더 받지 않는다("asdfgh" 같은 엉뚱한 낱말)
+      dropped += currentResults.length - scanned;
+      scanned = currentResults.length;
+    }
+    return true;
+  };
+
+  /** 거르기에 맞는 결과가 target개가 될 때까지(또는 결과가 바닥날 때까지) 결과 내용을 받아 모은다. 처음에는 RANK_WINDOW개를 한꺼번에 받는다. false면 그동안 새 검색이 시작됐다. */
   const scanUntil = async (target: number, searchGeneration: number): Promise<boolean> => {
     while (matched().length < target && hasUnscanned()) {
-      const batch = currentResults.slice(cards.length, cards.length + PAGE_SIZE);
-      const dataList = await Promise.all(batch.map((result) => result.data()));
-      if (searchGeneration !== generation) {
+      if (!(await scanBatch(scanned === 0 ? RANK_WINDOW : PAGE_SIZE, searchGeneration))) {
         return false;
       }
-      cards.push(...dataList.map((data) => toResultCard(data, currentTerm, config, window.location.origin)));
     }
     return true;
   };
@@ -225,7 +373,57 @@ export function setupSearchPage(root: HTMLElement): void {
     await appendNextResults(searchGeneration, false);
   };
 
-  const runSearch = async (rawTerm: string) => {
+  /** 맞는 글이 없을 때: 안내 글, 바꿔 찾는 방법, 오타 같으면 "혹시 이 낱말인가요?" */
+  const showEmpty = (term: string) => {
+    clearLoadingNotes();
+    resultsSection.hidden = true;
+    moreButton.hidden = true;
+    hideHelpBoxes();
+    emptyTips.hidden = false;
+    status.textContent = `"${term}"에 맞는 글을 찾지 못했어요.`;
+    const rawGuess = didYouMean(term, vocabulary);
+    const guess = rawGuess === undefined ? undefined : restoreCase(rawGuess, vocabularyItems);
+    if (didYouMeanBox && didYouMeanList) {
+      didYouMeanList.replaceChildren();
+      if (guess !== undefined) {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.className = 'search-chip';
+        link.href = `${window.location.pathname}?${config.queryParam}=${encodeURIComponent(guess)}`;
+        link.textContent = guess;
+        item.append(link);
+        didYouMeanList.append(item);
+        didYouMeanBox.hidden = false;
+      }
+    }
+    setState('empty');
+  };
+
+  /** 한 번 찾아 본다: 결과가 있고 진짜 맞는 글이 하나라도 있으면 true. 이 말로는 맞는 글이 없으면 false. 새 검색이 시작됐으면 'stale'. */
+  const tryPlan = async (
+    plan: SearchPlan,
+    pagefind: { search: (term: string) => Promise<{ results: PagefindResult[] }> },
+    searchGeneration: number,
+  ): Promise<boolean | 'stale'> => {
+    const results = await searchPlanned(pagefind, plan.terms);
+    if (searchGeneration !== generation) {
+      return 'stale';
+    }
+    if (results.length === 0) {
+      return false;
+    }
+    currentResults = results;
+    cards = [];
+    scanned = 0;
+    dropped = 0;
+    activePlan = plan;
+    if (!(await scanUntil(PAGE_SIZE, searchGeneration))) {
+      return 'stale';
+    }
+    return cards.length > 0;
+  };
+
+  const runSearch = async (rawTerm: string, restore?: SavedView) => {
     const term = rawTerm.trim();
     generation += 1;
     const searchGeneration = generation;
@@ -236,34 +434,68 @@ export function setupSearchPage(root: HTMLElement): void {
     }
 
     setState('loading');
+    startLoadingNotes(searchGeneration);
+    // 찾는 동안에는 추천 낱말을 치운다: 결과가 오기 전에 눌러 엉뚱한 곳으로 가지 않게
+    suggestions.hidden = true;
+    if (errorLinks) {
+      errorLinks.hidden = true;
+    }
     try {
       const pagefind = await loadPagefind(config);
-      const response = await pagefind.search(term);
       if (searchGeneration !== generation) {
         return;
       }
       currentTerm = term;
-      currentResults = response.results;
+      reducedTerm = undefined;
+      activePlan = undefined;
+      currentResults = [];
       cards = [];
+      scanned = 0;
+      dropped = 0;
       shownCount = 0;
       list.replaceChildren();
-      suggestions.hidden = true;
 
-      if (currentResults.length === 0) {
-        resultsSection.hidden = true;
-        moreButton.hidden = true;
-        emptyTips.hidden = false;
-        status.textContent = `"${term}"에 맞는 글을 찾지 못했어요.`;
-        setState('empty');
+      const plan = planSearch(term);
+      let found = false;
+      if (plan) {
+        const attempts: SearchPlan[] = [plan, ...fallbackTerms(plan.display).map((words) => ({ display: plan.display, terms: [words] }))];
+        for (const [index, attempt] of attempts.entries()) {
+          const outcome = await tryPlan(attempt, pagefind, searchGeneration);
+          if (outcome === 'stale') {
+            return;
+          }
+          if (outcome) {
+            found = true;
+            reducedTerm = index > 0 ? attempt.terms[0] : undefined;
+            break;
+          }
+        }
+      }
+
+      if (!found) {
+        currentResults = [];
+        cards = [];
+        showEmpty(term);
         return;
       }
 
-      emptyTips.hidden = true;
+      hideHelpBoxes();
       resultsSection.hidden = false;
       paintTypeButtons();
       await appendNextResults(searchGeneration, false);
+      // 결과를 열었다가 뒤로 왔으면 펼쳤던 만큼 다시 펼치고 내려갔던 자리로 돌아간다
+      const restoring = restore !== undefined && restore.term === term && restore.filter === filter;
+      if (restoring) {
+        while (searchGeneration === generation && shownCount < restore.shown && (shownCount < matched().length || hasUnscanned())) {
+          await appendNextResults(searchGeneration, false);
+        }
+      }
       if (searchGeneration === generation) {
+        clearLoadingNotes();
         setState('results');
+        if (restoring) {
+          window.scrollTo(0, restore.scrollY);
+        }
       }
     } catch (error) {
       if (searchGeneration === generation) {
@@ -316,6 +548,10 @@ export function setupSearchPage(root: HTMLElement): void {
     });
   });
 
+  // 결과를 열기 직전에 펼친 개수·내려간 자리를 적어 둔다(뒤로 가기 때 되살림). 쪽을 떠날 때도 한 번 더 적는다.
+  list.addEventListener('click', saveView);
+  window.addEventListener('pagehide', saveView);
+
   // 종류 칩(라디오 모임): 화살표로 옮기면 바로 골라진다. 탭 정지점은 고른 칩 하나뿐이다.
   for (const button of typeButtons) {
     button.addEventListener('click', () => {
@@ -354,11 +590,16 @@ export function setupSearchPage(root: HTMLElement): void {
   );
 
   paintTypeButtons();
-  const initialTerm = new URL(window.location.href).searchParams.get(config.queryParam) ?? '';
+  const startParams = new URL(window.location.href).searchParams;
+  const initialTerm = startParams.get(config.queryParam) ?? '';
   if (initialTerm.trim() !== '') {
     input.value = initialTerm;
-    void runSearch(initialTerm);
+    void runSearch(initialTerm, readSavedView(window.history.state));
   } else {
     showIdle();
+    // 빈 검색(/search/?q=)으로 왔으면 바로 쓸 수 있게 입력칸에 초점을 둔다(R1-019: 전에는 초점이 쪽 맨 위로 사라졌다)
+    if (startParams.has(config.queryParam)) {
+      input.focus();
+    }
   }
 }

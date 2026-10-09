@@ -87,7 +87,7 @@ test.describe('머리글 자동 완성', () => {
     const count = await options.count();
     expect(count).toBeGreaterThanOrEqual(2);
     expect(count).toBeLessThanOrEqual(7); // 결과 6 + 전체 검색 줄
-    await expect(options.last()).toContainText('‘서보’ 전체 검색 결과 보기');
+    await expect(options.last()).toContainText('"서보" 전체 검색 결과 보기');
     // 항목은 Tab 정지점이 아니다
     expect(await options.evaluateAll((items) => items.every((item) => (item as HTMLElement).tabIndex === -1))).toBe(true);
     // 결과 주소는 사이트 안의 실제 주소다
@@ -176,7 +176,7 @@ test.describe('머리글 자동 완성', () => {
     await expect(listbox.getByRole('group', { name: /찾지 못했어요/u })).toBeVisible(FIRST_RESULTS);
     const options = listbox.getByRole('option');
     await expect(options.first()).toHaveText(searchConfig.popularWords[0]);
-    await expect(options.last()).toContainText('‘뷁쿍퓽’ 전체 검색 결과 보기');
+    await expect(options.last()).toContainText('"뷁쿍퓽" 전체 검색 결과 보기');
   });
 
   test('낭독 줄(aria-live)은 결과가 그려진 뒤에만 한 번 바뀐다', async ({ page }) => {
@@ -187,7 +187,78 @@ test.describe('머리글 자동 완성', () => {
     await expect(live).toHaveText('');
     await box.fill('서보');
     await expect(live).toContainText('추천', FIRST_RESULTS);
-    await expect(live).toContainText('위아래 화살표');
+    // 판 1.3.0 검수 R1-018: 타이핑마다 읽히는 줄은 짧게 "추천 N개"만. 키 쓰는 법은 입력칸의 aria-describedby 설명으로 한 번만.
+    await expect(live).toHaveText(/^추천 \d+개가 있어요\.$/u);
+    const describedBy = (await box.getAttribute('aria-describedby')) ?? '';
+    const hintId = describedBy.split(' ').at(-1) ?? '';
+    await expect(page.locator(`[id="${hintId}"]`)).toHaveText(/위아래 화살표/u);
+  });
+
+  test('아무것도 쓰지 않고 누른 Enter는 빈 검색 쪽을 열지 않는다 (R1-019)', async ({ page }) => {
+    await ensureSearchIndex(page);
+    await page.goto('./help/');
+    const box = await prepareHeaderBox(page);
+    const before = page.url();
+    await box.focus();
+    await box.press('Enter');
+    await box.press('Escape');
+    await box.press('Enter');
+    await page.waitForTimeout(300);
+    expect(page.url()).toBe(before);
+    await expect(box).toBeFocused();
+  });
+
+  test('엉뚱한 낱말(asdfgh)은 "추천 N개"가 아니라 "찾지 못했어요" + 추천 칩이다 (R1-011)', async ({ page }) => {
+    await ensureSearchIndex(page);
+    await page.goto('./help/');
+    const box = await prepareHeaderBox(page);
+    const live = headerForm(page).locator('[aria-live="polite"]');
+    await box.fill('asdfgh');
+    const listbox = await waitForResults(box);
+    await expect(live).toContainText('찾지 못했어요', FIRST_RESULTS);
+    await expect(listbox.getByRole('group')).toHaveAttribute('aria-label', /찾지 못했어요/u);
+  });
+
+  test('낮은 화면(200% 확대 683x384)에서도 목록이 화면 안에 들어오고 "전체 검색 결과 보기" 줄이 보인다 (R1-016)', async ({ page }) => {
+    await ensureSearchIndex(page);
+    await page.setViewportSize({ width: 683, height: 384 });
+    await page.goto('./help/');
+    const box = await prepareHeaderBox(page);
+    await box.fill('LE');
+    const listbox = await waitForResults(box);
+    const panel = listbox.locator('xpath=..');
+    const rect = await panel.evaluate((element) => {
+      const { top, bottom } = element.getBoundingClientRect();
+      return { top, bottom, viewport: window.innerHeight };
+    });
+    expect(rect.bottom).toBeLessThanOrEqual(rect.viewport + 0.5);
+    expect(rect.top).toBeGreaterThanOrEqual(-0.5);
+    await expect(listbox.getByRole('option').last()).toBeInViewport();
+    // 결과가 더 많으면 목록 안에서 스크롤된다(쪽 전체가 아니라)
+    const scrolls = await listbox.evaluate((element) => element.scrollHeight > element.clientHeight);
+    if (scrolls) {
+      const scrollYBefore = await page.evaluate(() => window.scrollY);
+      await listbox.hover();
+      await page.mouse.wheel(0, 300);
+      await page.waitForTimeout(100);
+      expect(await page.evaluate(() => window.scrollY)).toBe(scrollYBefore);
+    }
+  });
+
+  test('320px 화면에서 차시 이름이 "…"로 잘리지 않고 줄바꿈된다 (R1-017)', async ({ page }) => {
+    await ensureSearchIndex(page);
+    await page.setViewportSize({ width: 320, height: 760 });
+    await page.goto('./help/');
+    const box = await prepareHeaderBox(page);
+    await box.fill('LE');
+    const listbox = await waitForResults(box);
+    const clipped = await listbox.locator('.suggest__item .suggest__title').evaluateAll((titles) =>
+      titles.filter((title) => {
+        const style = getComputedStyle(title);
+        return style.whiteSpace === 'nowrap' || title.scrollWidth > title.clientWidth + 1;
+      }).length,
+    );
+    expect(clipped, '한 줄로 잘린 제목 수').toBe(0);
   });
 
   test('목록이 떠 있는 머리글·쪽에 axe 심각한 위반이 없다', async ({ page }) => {
@@ -232,7 +303,7 @@ test.describe('홈 큰 검색칸', () => {
     await box.fill('서보');
     await expect(box).toHaveAttribute('aria-expanded', 'true');
     const listbox = await waitForResults(box);
-    await expect(listbox.getByRole('option').last()).toContainText('‘서보’ 전체 검색 결과 보기');
+    await expect(listbox.getByRole('option').last()).toContainText('"서보" 전체 검색 결과 보기');
 
     // 추천 칩: 좁은 화면은 앞의 넷만 보인다
     const chips = page.locator('[data-home-search]').locator('xpath=..').getByRole('link');
@@ -303,7 +374,7 @@ test.describe('검색 쪽 종류 거르기', () => {
     const kinds = await resultItems(page).evaluateAll((items) => items.map((item) => (item as HTMLElement).dataset.kind));
     expect(kinds.length).toBeGreaterThan(0);
     expect(new Set(kinds)).toEqual(new Set(['glossary']));
-    await expect(page.getByRole('status')).toContainText("'용어사전'");
+    await expect(page.getByRole('status')).toContainText('"용어사전"');
     expect(kinds.length).toBeLessThanOrEqual(all);
 
     await typeGroup(page).getByRole('radio', { name: '전체' }).click();
@@ -329,7 +400,7 @@ test.describe('검색 쪽 종류 거르기', () => {
     await ensureSearchIndex(page);
     await page.goto('./search/?q=라이선스&type=error');
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
-    await expect(page.getByRole('status')).toContainText("'오류'에 맞는 글은 없어요");
+    await expect(page.getByRole('status')).toContainText('"오류"에 맞는 글은 없어요');
     await expect(resultItems(page)).toHaveCount(0);
   });
 

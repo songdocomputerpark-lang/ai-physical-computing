@@ -14,6 +14,17 @@
  * → results[].data() → { url, excerpt, meta.title, sub_results[] }. excerpt는 Pagefind가 글자를 이스케이프한 뒤 <mark>만 붙인 HTML이다.
  */
 
+import {
+  MIN_PARTIAL_LENGTH,
+  anchorKey,
+  coreWords,
+  isRelevant,
+  markPieces,
+  planSearch,
+  tierOf,
+  type SearchPlan,
+} from './search-rank.ts';
+
 /** 제목(id가 있는 h1~h6) 단위의 결과 */
 export interface PagefindSubResult {
   title: string;
@@ -83,7 +94,9 @@ export function isGlossaryGroupAnchor(url: string): boolean {
 
 /**
  * 항목 단위 페이지의 결과를 가장 잘 맞는 항목으로 바꾼다.
- * 제목이 검색어로 시작하는 항목(예: "픽셀" → "픽셀 Pixel")을 먼저 고르고, 없으면 검색어가 든 첫 항목, 그것도 없으면 첫 항목.
+ * 제목이 검색어로 시작하는 항목(예: "픽셀" → "픽셀 Pixel")을 먼저 고르고, 없으면 검색어가 든 첫 항목, 그다음엔 항목 id에 검색어가 든 항목, 요약에 검색어가 <mark>로 맞은 첫 항목
+ * (오류 사전: "NameError"는 제목이 한글 풀이라 제목으로는 못 찾고 항목 id(#name-error)나 요약의 맞은 낱말로 찾는다 — 전에는 엉뚱한 첫 항목 "오류 메시지 읽는 법"으로 이어졌다), 그것도 없으면 첫 항목.
+ * 검색어에 "임계값 뜻"처럼 뜻 묻는 말투가 섞여 있으면 그 말은 빼고 본다(coreWords).
  * 용어사전의 색인 묶음 머리(isGlossaryGroupAnchor)는 항목으로 보지 않는다.
  * 항목이 없으면(제목 앞의 글에서만 맞음) 페이지 결과를 그대로 쓴다. 순수 함수라 단위 테스트가 검사한다.
  */
@@ -95,10 +108,19 @@ export function pickAnchoredResult(data: PagefindResultData, term: string): Resu
   if (anchored.length === 0) {
     return { title: pageTitle, url: data.url, excerpt: data.excerpt };
   }
+  const words = coreWords(term);
   const needle = term.trim().toLowerCase();
-  const startsWith = anchored.find((sub) => sub.title.trim().toLowerCase().startsWith(needle));
-  const includes = anchored.find((sub) => sub.title.toLowerCase().includes(needle));
-  const chosen = startsWith ?? includes ?? anchored[0];
+  const titleOf = (sub: PagefindSubResult) => sub.title.trim().toLowerCase();
+  const startsWith =
+    anchored.find((sub) => titleOf(sub).startsWith(needle)) ?? anchored.find((sub) => words.some((word) => titleOf(sub).startsWith(word)));
+  const includes =
+    anchored.find((sub) => titleOf(sub).includes(needle)) ?? anchored.find((sub) => words.some((word) => titleOf(sub).includes(word)));
+  const byId = anchored.find((sub) => words.some((word) => word.length >= MIN_PARTIAL_LENGTH && anchorKey(sub.url).includes(word)));
+  const marked = anchored.find((sub) => {
+    const pieces = markPieces(sub.excerpt);
+    return words.some((word) => word.length >= MIN_PARTIAL_LENGTH && pieces.some((piece) => piece.startsWith(word)));
+  });
+  const chosen = startsWith ?? includes ?? byId ?? marked ?? anchored[0];
   return { title: `${chosen.title.trim()} — ${pageTitle}`, url: chosen.url, excerpt: chosen.excerpt };
 }
 
@@ -226,6 +248,37 @@ export function readSearchConfig(element: HTMLElement | null | undefined): Searc
 // Pagefind 불러오기
 
 const loaders = new Map<string, Promise<PagefindApi>>();
+const prefetched = new Set<string>();
+
+/**
+ * Pagefind가 차례로 받는 파일(pagefind.js → entry.json → pf_meta·wasm → 색인 → 조각)을 줄줄이 기다리지 않게, 이름을 이미 아는 파일을 미리 함께 받아 둔다
+ * (판 1.3.0 검수 R1-023: 지연 1500ms에서 첫 검색이 파일 일곱 번 왕복에 12초 넘게 걸렸다). 받아 둔 파일은 브라우저 캐시에서 Pagefind가 그대로 쓴다.
+ * - wasm(wasm.<언어>.pagefind, 언어 표시가 없으면 unknown)은 처음부터 알 수 있다.
+ * - pf_meta(pagefind.<언어>_<해시>.pf_meta)는 pagefind-entry.json의 해시를 읽어 바로 받는다.
+ * 이름 규칙이 달라지거나 받기가 실패해도 아무 일 없다 — Pagefind가 제 방식대로 받는다. 같은 폴더는 한 번만 한다.
+ */
+export function prefetchPagefindFiles(config: Pick<SearchConfig, 'bundlePath'>): void {
+  const base = config.bundlePath;
+  if (prefetched.has(base) || typeof fetch !== 'function') {
+    return;
+  }
+  prefetched.add(base);
+  const quiet = (name: string): Promise<Response | undefined> => fetch(`${base}${name}`).catch(() => undefined);
+  void quiet('wasm.unknown.pagefind');
+  void quiet('pagefind-entry.json')
+    .then((response) => response?.json() as Promise<{ languages?: Record<string, { hash?: string; wasm?: string | null }> }> | undefined)
+    .then((entry) => {
+      for (const language of Object.values(entry?.languages ?? {})) {
+        if (language.hash) {
+          void quiet(`pagefind.${language.hash}.pf_meta`);
+        }
+        if (language.wasm) {
+          void quiet(`wasm.${language.wasm}.pagefind`);
+        }
+      }
+    })
+    .catch(() => undefined);
+}
 
 /**
  * Pagefind를 한 번만 불러온다(같은 쪽의 자동 완성과 검색 화면이 함께 쓴다). 실패하면 비워서 다음에 다시 시도할 수 있다.
@@ -235,6 +288,7 @@ export function loadPagefind(config: Pick<SearchConfig, 'bundlePath' | 'baseUrl'
   const key = config.bundlePath;
   let promise = loaders.get(key);
   if (!promise) {
+    prefetchPagefindFiles(config);
     promise = (async () => {
       const pagefind = (await import(/* @vite-ignore */ `${config.bundlePath}pagefind.js`)) as PagefindApi;
       await pagefind.options({ baseUrl: config.baseUrl, excerptLength: EXCERPT_LENGTH });
@@ -290,6 +344,54 @@ export function toResultCard(data: PagefindResultData, term: string, config: Sea
       ? pickAnchoredResult(data, term)
       : { title: data.meta?.title?.trim() || data.url, url: data.url, excerpt: data.excerpt };
   return { ...view, kind: kindOfPath(path), trail: sectionTrail(path, config.sections) };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// 거르기·순서 (판 1.3.0 검수 R1-011~014 — 규칙은 search-rank.ts)
+
+/** 검색어를 찾을 계획으로 바꾸는 함수(search-rank.ts)를 다시 내보낸다 — 화면 코드가 이 파일 하나만 불러도 되게 */
+export { planSearch, type SearchPlan };
+
+/**
+ * 계획의 말들로 모두 찾아 결과를 하나로 합친다: 본 검색 결과가 앞, 같은 뜻 말로 찾은 결과가 뒤. 같은 쪽은 한 번만.
+ * 색인은 한 번만 받는다(search는 같은 색인을 쓴다).
+ */
+export async function searchPlanned(pagefind: Pick<PagefindApi, 'search'>, terms: readonly string[]): Promise<PagefindResult[]> {
+  const responses = await Promise.all(terms.map((term) => pagefind.search(term)));
+  const seen = new Set<string>();
+  const merged: PagefindResult[] = [];
+  for (const response of responses) {
+    for (const result of response.results) {
+      if (!seen.has(result.id)) {
+        seen.add(result.id);
+        merged.push(result);
+      }
+    }
+  }
+  return merged;
+}
+
+/** 결과 한 건을 그리기 전에 살핀 것: 그릴 모양, 진짜 맞는 글인가, 앞에 둘 차례(낮을수록 앞) */
+export interface EvaluatedResult {
+  card: ResultCard;
+  relevant: boolean;
+  tier: number;
+}
+
+/** Pagefind가 낱말의 앞부분으로 물러서서 맞춘 글(요약에 맞은 낱말이 검색어를 거의 덮지 못함)인지 살피고, 앞에 둘 차례를 정한다. */
+export function evaluateResult(data: PagefindResultData, plan: SearchPlan, config: SearchConfig, origin?: string): EvaluatedResult {
+  const card = toResultCard(data, plan.terms.join(' '), config, origin);
+  const pieces = [...markPieces(data.excerpt), ...(data.sub_results ?? []).flatMap((sub) => markPieces(sub.excerpt))];
+  return { card, relevant: isRelevant(plan.terms, pieces), tier: tierOf(card, plan.terms, plan.display) };
+}
+
+/** 진짜 맞는 글만 남기고 차례(tier)대로 늘어 놓는다. 차례가 같으면 Pagefind가 준 순서를 지킨다(안정 정렬). */
+export function orderEvaluated(list: readonly EvaluatedResult[]): ResultCard[] {
+  return list
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.relevant)
+    .sort((a, b) => a.item.tier - b.item.tier || a.index - b.index)
+    .map(({ item }) => item.card);
 }
 
 /** Pagefind 요약(HTML)에서 글자와 <mark>만 골라 target에 붙인다. 다른 태그는 글자만 남긴다. */

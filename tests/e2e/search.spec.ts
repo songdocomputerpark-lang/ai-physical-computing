@@ -186,7 +186,7 @@ test.describe('사이트 검색 화면', () => {
     await page.goto(searchUrl('뷁쿍퓽'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'empty');
     await expect(page.getByRole('status')).toHaveText('"뷁쿍퓽"에 맞는 글을 찾지 못했어요.');
-    await expect(page.getByText('조사를 빼고 낱말만 넣어요.', { exact: false })).toBeVisible();
+    await expect(page.getByText('"을/를/이/가" 같은 말은 빼고 낱말만 넣어요.', { exact: false })).toBeVisible();
     await expect(page.locator('[data-search-results-section]')).toBeHidden();
   });
 
@@ -217,6 +217,116 @@ test.describe('사이트 검색 화면', () => {
     const href = await firstLink.getAttribute('href');
     await page.keyboard.press('Enter');
     await expect.poll(() => new URL(page.url()).pathname).toBe(href);
+  });
+});
+
+// 판 1.3.0 검수 R1-011~014·019~021·022·024: 엉뚱한 낱말·오타·뜻 묻기·증상 문장, 빈 검색 초점, 뒤로 가기, 느린 망·실패 안내
+test.describe('검색 결과의 알맞음', () => {
+  test.skip(({ isMobile }) => isMobile, '검색 결과 내용은 화면 크기와 상관없어 데스크톱에서 확인한다');
+
+  for (const term of ['asdfgh', 'asdfqwer', 'qwertyuiop', 'zzqqxx', 'zzzz']) {
+    test(`엉뚱한 낱말 "${term}"은 "검색 결과 N개"가 아니라 "찾지 못했어요"이다 (R1-011)`, async ({ page }) => {
+      await page.goto(searchUrl(term));
+      await expect(searchRoot(page)).toHaveAttribute('data-state', 'empty', { timeout: 15_000 });
+      await expect(page.getByRole('status')).toHaveText(`"${term}"에 맞는 글을 찾지 못했어요.`);
+      await expect(resultItems(page)).toHaveCount(0);
+    });
+  }
+
+  test('오타 "임게값"은 "혹시 이 낱말인가요?"로 "임계값"을 제안하고, 누르면 알맞은 글이 나온다 (R1-012)', async ({ page }) => {
+    await page.goto(searchUrl('임게값'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'empty', { timeout: 15_000 });
+    const suggestion = page.getByRole('list', { name: '혹시 이 낱말인가요?' }).getByRole('link', { name: '임계값', exact: true });
+    await expect(suggestion).toBeVisible();
+    await suggestion.click();
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    await expect(resultItems(page).first().locator('h3 a')).toContainText('임계값');
+  });
+
+  test('"임계값 뜻"은 용어사전의 "임계값 Threshold" 항목이 맨 앞이다 (R1-013)', async ({ page }) => {
+    await page.goto(searchUrl('임계값 뜻'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    const first = resultItems(page).first().locator('h3 a');
+    await expect(first).toHaveAttribute('href', /\/glossary\/#threshold$/u);
+  });
+
+  test('"NameError"는 오류 사전의 NameError 항목이 맨 앞이다(원고 정정 목록이 아니라) (R1-013)', async ({ page }) => {
+    await page.goto(searchUrl('NameError'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    await expect(resultItems(page).first().locator('h3 a')).toHaveAttribute('href', /\/help\/errors\/#name-error$/u);
+  });
+
+  test('추천 낱말 "카메라가 안 켜져요"는 문제 해결 쪽이 맨 앞이다 (R1-014)', async ({ page }) => {
+    await page.goto(searchUrl('카메라가 안 켜져요'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    await expect(resultItems(page).first().locator('h3 a')).toHaveAttribute('href', getPage('help').href);
+  });
+
+  test('추천 낱말은 모두 알맞은 쪽이 맨 앞이다: 임계값→용어사전, NameError→오류 사전 (R1-014)', async ({ page }) => {
+    const expectations: Record<string, RegExp> = { 임계값: /\/glossary\/#threshold$/u, NameError: /\/help\/errors\/#name-error$/u };
+    for (const [term, href] of Object.entries(expectations)) {
+      expect(searchConfig.popularWords as readonly string[]).toContain(term);
+      await page.goto(searchUrl(term));
+      await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+      await expect(resultItems(page).first().locator('h3 a'), term).toHaveAttribute('href', href);
+    }
+  });
+
+  test('"수행평가"는 성취기준과 평가 방향 쪽이 나온다 (R1-013)', async ({ page }) => {
+    await page.goto(searchUrl('수행평가'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    expect(await collectResultHrefs(page)).toContain(withBase('teacher/standards/'));
+  });
+
+  test('한글+영어 증상 문장 "웹캠 permission denied"도 카메라 허용 풀이가 나온다 (R1-021)', async ({ page }) => {
+    await page.goto(searchUrl('웹캠 permission denied'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    expect(await collectResultHrefs(page)).toContain(getPage('help').href);
+  });
+
+  test('/search/?q= (빈 검색)으로 열면 입력칸에 초점이 있다 (R1-019)', async ({ page }) => {
+    await page.goto('./search/?q=');
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'idle');
+    await expect(pageSearchbox(page)).toBeFocused();
+  });
+
+  test('[결과 더 보기] 뒤 15번째 결과를 열었다가 뒤로 오면 펼친 만큼(20개) 그대로이다 (R1-020)', async ({ page }) => {
+    await page.goto(searchUrl('LED'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    await page.getByRole('button', { name: '결과 더 보기' }).click();
+    await expect(resultItems(page)).toHaveCount(20);
+    const link = resultItems(page).nth(14).locator('h3 a');
+    await link.scrollIntoViewIfNeeded();
+    await link.click();
+    await page.waitForLoadState('load');
+    await page.goBack();
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    await expect(resultItems(page)).toHaveCount(20);
+  });
+});
+
+test.describe('느린 인터넷과 불러오기 실패 안내', () => {
+  test.skip(({ isMobile }) => isMobile, '안내 글은 화면 크기와 상관없어 데스크톱에서 확인한다');
+
+  test('검색 도구가 늦게 오면 쪽을 열자마자 "찾는 중이에요"가 보이고 추천 낱말은 숨는다 (R1-022)', async ({ page }) => {
+    await page.route('**/pagefind/**', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      await route.fallback();
+    });
+    await page.goto(searchUrl('모터'), { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('status')).toContainText('찾는 중이에요');
+    await expect(pageSearchbox(page)).toHaveValue('모터');
+    await expect(page.locator('[data-search-suggestions]')).toBeHidden();
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 30_000 });
+  });
+
+  test('검색 도구를 못 받으면 안내와 함께 "배우기 차례로 가기"·"홈으로 가기" 링크가 보인다 (R1-024)', async ({ page }) => {
+    await page.route('**/pagefind/**', (route) => route.abort());
+    await page.goto(searchUrl('모터'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'error', { timeout: 15_000 });
+    await expect(page.getByRole('status')).toContainText('검색을 불러오지 못했어요');
+    await expect(page.getByRole('link', { name: '배우기 차례로 가기' })).toHaveAttribute('href', getPage('learn').href);
+    await expect(page.getByRole('link', { name: '홈으로 가기' })).toHaveAttribute('href', getPage('home').href);
   });
 });
 

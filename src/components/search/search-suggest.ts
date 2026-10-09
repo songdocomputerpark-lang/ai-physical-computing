@@ -9,7 +9,11 @@
  * - 비어 있을 때 초점을 주면 "많이 찾는 낱말" 칩을 보인다. 결과가 없으면 "찾지 못했어요" + 추천 칩.
  * - ↑↓ 로 고르고(aria-activedescendant — 초점은 입력칸에 그대로), 고른 뒤 Enter는 그 쪽으로 간다. 고르지 않은 Enter는 폼 제출(/search/?q=)이다.
  * - Esc는 목록을 닫고, 닫힌 채 한 번 더 누르면 입력을 비운다. 바깥을 누르거나 Tab으로 나가면 닫는다. 목록 항목은 Tab 정지점이 아니다(tabindex=-1).
- * - 낭독: 결과 개수를 안 보이는 안내 줄(aria-live=polite)로 한 번만 알린다. 입력마다 말하지 않고, 결과가 그려진 뒤에만 바꾼다.
+ * - 낭독: 결과 개수("추천 6개가 있어요.")만 안 보이는 안내 줄(aria-live=polite)로 알린다. 입력마다 말하지 않고, 결과가 그려진 뒤에만 바꾼다.
+ *   키 쓰는 법("위아래 화살표로 고르고 엔터")은 입력칸의 aria-describedby 설명으로 한 번만 읽힌다(R1-018).
+ * - 거르기·순서: 낱말 앞부분에 우연히 걸린 엉뚱한 글은 빼고(검색어를 거의 덮지 못하는 글), 용어사전·오류 사전 항목을 앞에 둔다(search-rank.ts, R1-011~013).
+ * - 자리: 목록은 입력칸 아래에 열리되 아래 자리가 모자라면(휴대폰 메뉴 맨 아래 검색칸) 위로 열고, 높이는 화면 안으로 제한해 안에서 스크롤한다.
+ *   "전체 결과 보기" 줄은 목록 맨 아래에 붙어 늘 보인다(R1-015·016).
  * - 한글 조합 중(isComposing)의 화살표·Enter·Esc는 건드리지 않는다.
  *
  * 항목은 <a role="option" tabindex="-1"> 이다 — 링크이면서 option이라(ARIA in HTML이 허용) 가운데·오른쪽 단추나 Ctrl+클릭도 되고,
@@ -19,16 +23,31 @@ import { createSearchIcon, type SearchIconName } from './search-icons.ts';
 import {
   KIND_ICON,
   KIND_LABEL,
+  evaluateResult,
   loadPagefind,
+  orderEvaluated,
   parseStringList,
+  planSearch,
+  prefetchPagefindFiles,
   readSearchConfig,
-  toResultCard,
+  searchPlanned,
   type ResultCard,
   type SearchConfig,
 } from './search-core.ts';
+import { didYouMean, normalizeVocabulary, restoreCase } from './search-hint.ts';
 
 /** 목록에 보이는 결과 수 */
 export const MAX_ITEMS = 6;
+/** 걸러 내고 순서를 바로잡으려고 내용을 받아 보는 결과 수(목록에는 MAX_ITEMS개만 보인다) */
+export const RANK_WINDOW = 10;
+/** 목록과 입력칸 사이 간격(px). --space-2와 같다 */
+const PANEL_GAP = 8;
+/** 화면 가장자리에 남길 여유(px) */
+const PANEL_MARGIN = 12;
+/** 아래 자리가 이보다 좁고 위가 더 넓으면 목록을 위로 연다(px) */
+const MIN_ROOM_BELOW = 220;
+/** 목록 높이의 아래 한도(px): 이보다 작게는 줄이지 않는다 */
+const MIN_PANEL_HEIGHT = 120;
 /** 입력을 멈추고 이만큼 기다린 뒤 찾는다(밀리초) */
 export const INPUT_DELAY_MS = 200;
 /** 찾는 글 길이 한도(아주 긴 붙여넣기가 색인 검색을 느리게 하지 않게) */
@@ -49,13 +68,18 @@ export function normalizeTerm(raw: string): string {
   return raw.trim().replace(/\s+/gu, ' ').slice(0, MAX_TERM_LENGTH);
 }
 
-/** 결과 개수 안내 글(상태 줄) */
-export function describeSuggestCount(term: string, shown: number, total: number): string {
-  if (total === 0) {
+/** 키 쓰는 법: 입력칸의 aria-describedby로 이어 한 번만 읽히게 한다(상태 줄에 되풀이하지 않는다) */
+export const KEY_HINT = '위아래 화살표로 고르고 엔터를 눌러요.';
+
+/**
+ * 결과 개수 안내 글(상태 줄): 타이핑마다 읽히므로 짧게 "추천 N개"만 알린다. "전체 보기" 줄은 개수에 세지 않는다(그 줄은 이름과 개수를 스스로 말한다).
+ * total은 0인지 가르는 데만 쓴다(전과 같은 호출 모양을 지키려고 남겼다).
+ */
+export function describeSuggestCount(term: string, shown: number, total = shown): string {
+  if (total === 0 || shown === 0) {
     return `"${term}"에 맞는 글을 찾지 못했어요. 추천 낱말이 있어요.`;
   }
-  const more = total > shown ? ` 전체 ${total}개 중 ${shown}개만 보여 줘요.` : '';
-  return `추천 ${shown}개가 있어요.${more} 위아래 화살표로 고르고 엔터를 눌러요.`;
+  return `추천 ${shown}개가 있어요.`;
 }
 
 /**
@@ -79,6 +103,7 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
   }
   form.dataset.suggestReady = 'true';
   const { config, popular } = shared;
+  const popularVocabulary = normalizeVocabulary(popular);
   const navigate = shared.navigate ?? ((href: string) => window.location.assign(href));
 
   counter += 1;
@@ -102,13 +127,19 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
   // role=status로 하지 않는다: 검색 쪽·404의 안내 줄(role=status)과 이름 없는 상태 줄이 한 쪽에 여럿이 되지 않게 aria-live만 단다.
   live.setAttribute('aria-live', 'polite');
   live.setAttribute('aria-atomic', 'true');
-  form.append(panel, live);
+  // 키 쓰는 법은 입력칸 설명으로 둔다(보이지 않는 글). 이미 설명이 달려 있으면 뒤에 잇는다.
+  const hint = document.createElement('span');
+  hint.className = 'visually-hidden';
+  hint.id = `${base}-hint`;
+  hint.textContent = KEY_HINT;
+  form.append(panel, live, hint);
 
   input.setAttribute('role', 'combobox');
   input.setAttribute('aria-autocomplete', 'list');
   input.setAttribute('aria-haspopup', 'listbox');
   input.setAttribute('aria-expanded', 'false');
   input.setAttribute('aria-controls', listId);
+  input.setAttribute('aria-describedby', [input.getAttribute('aria-describedby'), hint.id].filter(Boolean).join(' '));
 
   let options: HTMLAnchorElement[] = [];
   let active = -1;
@@ -135,21 +166,60 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
     if (option) {
       option.setAttribute('aria-selected', 'true');
       input.setAttribute('aria-activedescendant', option.id);
+      // 목록 안에서 스크롤되는 높이일 때 고른 줄이 보이게 한다
+      if (typeof option.scrollIntoView === 'function') {
+        option.scrollIntoView({ block: 'nearest' });
+      }
     } else {
       active = -1;
       input.removeAttribute('aria-activedescendant');
     }
   };
 
+  /**
+   * 목록의 자리와 높이를 화면에 맞춘다. 입력칸 아래 자리가 모자라고 위가 더 넓으면 위로 열고(휴대폰 메뉴 맨 아래 검색칸),
+   * 높이는 남는 자리 안으로 제한해 안에서 스크롤하게 한다(200% 확대처럼 화면이 낮을 때 "전체 결과 보기" 줄이 접히지 않게).
+   */
+  const place = () => {
+    if (panel.hidden) {
+      return;
+    }
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const rect = form.getBoundingClientRect();
+    const below = viewportHeight - rect.bottom - PANEL_GAP - PANEL_MARGIN;
+    const above = rect.top - PANEL_GAP - PANEL_MARGIN;
+    const opensUp = below < MIN_ROOM_BELOW && above > below;
+    panel.classList.toggle('suggest--up', opensUp);
+    panel.style.maxHeight = `${Math.max(MIN_PANEL_HEIGHT, Math.floor(opensUp ? above : below))}px`;
+  };
+
+  let placementListening = false;
+  const listenPlacement = (on: boolean) => {
+    if (on === placementListening) {
+      return;
+    }
+    placementListening = on;
+    if (on) {
+      window.addEventListener('resize', place);
+      window.addEventListener('scroll', place, { passive: true });
+    } else {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place);
+    }
+  };
+
   const show = () => {
     panel.hidden = false;
     input.setAttribute('aria-expanded', 'true');
+    place();
+    listenPlacement(true);
   };
 
   const hide = () => {
     pending = false;
     panel.hidden = true;
     input.setAttribute('aria-expanded', 'false');
+    listenPlacement(false);
     setActive(-1);
   };
 
@@ -200,7 +270,7 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
     link.href = searchHref(term);
     const label = document.createElement('span');
     label.className = 'suggest__title';
-    label.textContent = `‘${term}’ 전체 검색 결과 보기`;
+    label.textContent = `"${term}" 전체 검색 결과 보기`;
     link.append(label);
     if (total !== undefined && total > 0) {
       const count = document.createElement('span');
@@ -235,14 +305,21 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
     show();
   };
 
-  const showResults = (term: string, cards: readonly ResultCard[], total: number) => {
+  /** total이 undefined이면 전체 개수를 알 수 없다(걸러 낸 글이 있어 Pagefind의 개수가 맞지 않음) — 개수를 보이지 않는다 */
+  const showResults = (term: string, cards: readonly ResultCard[], total: number | undefined) => {
     pending = false;
     shownTerm = term;
     resetList();
     note.hidden = true;
     if (cards.length === 0) {
       const message = '찾지 못했어요 — 이런 낱말은 어때요?';
-      const words = popular.filter((word) => word !== term).slice(0, EMPTY_CHIPS);
+      // 오타 같으면 가장 가까운 추천 낱말을 맨 앞에 둔다(예: 임게값 → 임계값)
+      const guess = didYouMean(term, popularVocabulary);
+      const suggested = guess === undefined ? undefined : restoreCase(guess, popular);
+      const words = [...(suggested === undefined ? [] : [suggested]), ...popular.filter((word) => word !== term && word !== suggested)].slice(
+        0,
+        EMPTY_CHIPS,
+      );
       list.append(makeGroup(message, chipOptions(words)));
       list.append(fullSearchOption(term, undefined));
     } else {
@@ -266,7 +343,7 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
       list.append(fullSearchOption(term, total));
     }
     list.hidden = false;
-    announce(describeSuggestCount(term, cards.length, total));
+    announce(describeSuggestCount(term, cards.length, cards.length === 0 ? 0 : (total ?? cards.length)));
     show();
   };
 
@@ -295,20 +372,21 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
     }
     try {
       const pagefind = await loadPagefind(config);
-      const response = await pagefind.search(term);
+      const plan = planSearch(term);
+      const results = plan ? await searchPlanned(pagefind, plan.terms) : [];
       if (mine !== generation) {
         return;
       }
-      const top = response.results.slice(0, MAX_ITEMS);
-      const dataList = await Promise.all(top.map((result) => result.data()));
+      // 앞에서 RANK_WINDOW개의 내용을 받아 엉뚱하게 걸린 글을 빼고 순서를 바로잡은 뒤 MAX_ITEMS개를 보인다
+      const windowResults = results.slice(0, RANK_WINDOW);
+      const dataList = plan ? await Promise.all(windowResults.map((result) => result.data())) : [];
       if (mine !== generation) {
         return;
       }
-      showResults(
-        term,
-        dataList.map((data) => toResultCard(data, term, config, window.location.origin)),
-        response.results.length,
-      );
+      const ordered = plan ? orderEvaluated(dataList.map((data) => evaluateResult(data, plan, config, window.location.origin))) : [];
+      const dropped = dataList.length - ordered.length;
+      // 처음 묶음이 모두 걸러지면 나머지도 엉뚱한 글이라고 본다. 걸러 낸 글이 있으면 전체 개수는 알 수 없어 보이지 않는다.
+      showResults(term, ordered.slice(0, MAX_ITEMS), dropped > 0 ? undefined : results.length);
     } catch {
       if (mine === generation) {
         showFallback(term);
@@ -355,6 +433,15 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
     refresh(true);
   });
 
+  // 마우스를 올리면 이름을 아는 검색 파일(wasm·메타)을 미리 받기 시작한다: 입력 직후 첫 검색이 파일을 줄줄이 기다리지 않게(R1-023)
+  form.addEventListener(
+    'pointerenter',
+    () => {
+      prefetchPagefindFiles(config);
+    },
+    { once: true },
+  );
+
   input.addEventListener('click', () => {
     if (panel.hidden) {
       refresh(true);
@@ -399,6 +486,9 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
         if (!panel.hidden && option) {
           event.preventDefault();
           navigate(option.href);
+        } else if (normalizeTerm(input.value) === '') {
+          // 아무것도 쓰지 않고 누른 Enter는 빈 검색 쪽을 열 뿐이라 막는다: 입력칸에 초점을 두어 바로 쓸 수 있게 한다(R1-019)
+          event.preventDefault();
         }
         break;
       }

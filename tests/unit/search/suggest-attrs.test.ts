@@ -4,7 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { flattenPages, learnUnits } from '../../../src/config/nav.ts';
 import { searchConfig } from '../../../src/config/search.ts';
-import { parseSections, parseStringList } from '../../../src/components/search/search-core.ts';
+import { parseSections, parseStringList, planSearch } from '../../../src/components/search/search-core.ts';
 import { pathDepth, suggestConfigAttrs, suggestSections } from '../../../src/components/search/suggest-attrs.ts';
 
 const rootDir = path.resolve(import.meta.dirname, '..', '..', '..');
@@ -53,6 +53,13 @@ describe('많이 찾는 낱말(popularWords)', () => {
     expect([...searchConfig.popularWords]).toEqual(['손 인식', '임계값', 'LED', '서보', '블루투스', 'NameError', '카메라가 안 켜져요']);
   });
 
+  it('모두 찾을 계획이 서고(뜻 없는 입력이 아니다), "카메라가 안 켜져요"는 사이트 글의 말투로 바꿔 찾는다(R1-014)', () => {
+    for (const word of searchConfig.popularWords) {
+      expect(planSearch(word), word).not.toBeNull();
+    }
+    expect(planSearch('카메라가 안 켜져요')?.terms[0]).toBe('카메라가 켜지지 않아요');
+  });
+
   it('겹치지 않고, 앞뒤 공백·특수 글자가 없다(주소 이름에 그대로 실린다)', () => {
     expect(new Set(searchConfig.popularWords).size).toBe(searchConfig.popularWords.length);
     for (const word of searchConfig.popularWords) {
@@ -71,12 +78,12 @@ describe('많이 찾는 낱말(popularWords)', () => {
 
 describe('브라우저로 가는 코드에 무거운 것이 묶이지 않는다', () => {
   // 머리글 자동 완성 스크립트는 모든 쪽이 받는다. 사이트 설정·아이콘 표 전체·라이브러리를 끌어오지 않는다.
-  const files = ['search-suggest.ts', 'search-core.ts', 'search-icons.ts'];
+  const files = ['search-suggest.ts', 'search-core.ts', 'search-icons.ts', 'search-rank.ts', 'search-hint.ts'];
   it.each(files)('%s는 사이트 설정(site.ts)·공용 아이콘 표·실습실 라이브러리를 불러오지 않는다', (name) => {
     const text = readFileSync(path.join(rootDir, 'src', 'components', 'search', name), 'utf8');
     const imports = [...text.matchAll(/^\s*(?:import|export)[^'"]*from\s+['"]([^'"]+)['"]/gmu)].map((match) => match[1] ?? '');
     for (const target of imports) {
-      expect(target, `${name}: ${target}`).toMatch(/^\.\/search-(?:core|icons|suggest)\.ts$/u);
+      expect(target, `${name}: ${target}`).toMatch(/^\.\/search-(?:core|icons|suggest|rank|hint)\.ts$/u);
     }
     expect(text).not.toMatch(/pyodide|mediapipe|blockly|mqtt\.js|codemirror|esptool/iu);
   });

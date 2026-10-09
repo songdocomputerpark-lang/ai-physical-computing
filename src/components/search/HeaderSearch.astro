@@ -126,6 +126,10 @@ import { suggestConfigAttrs } from './suggest-attrs.ts';
     box-sizing: border-box;
     /* 좁은 칸(머리글)에서는 칸보다 넓게 펼치되 화면 밖으로 나가지 않는다 */
     width: max(100%, min(30rem, 100vw - 2 * var(--gutter)));
+    /* 높이는 화면 안으로: search-suggest.ts가 남는 자리에 맞춰 max-height를 다시 정한다(아래 자리가 모자라면 위로 열기, R1-015·016). 이 값은 스크립트가 늦을 때의 기본값. */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 8rem);
     padding: var(--space-2);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
@@ -142,15 +146,28 @@ import { suggestConfigAttrs } from './suggest-attrs.ts';
     display: none;
   }
 
+  /* 입력칸 아래 자리가 모자라 위로 여는 경우(휴대폰 메뉴 맨 아래 검색칸) */
+  .suggest--up {
+    inset-block-start: auto;
+    inset-block-end: calc(100% + var(--space-2));
+  }
+
   .suggest__note {
+    flex: none;
     margin: 0;
     padding: var(--space-2) var(--space-3);
     color: var(--color-text-muted);
   }
 
+  /* 목록이 길면 안에서 스크롤하고, "전체 결과 보기" 줄은 맨 아래에 붙어 늘 보인다 */
   .suggest__list {
     display: grid;
+    flex: 1 1 auto;
     gap: 2px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-block-end: calc(var(--target-min) + var(--space-2));
   }
 
   .suggest__option {
@@ -189,19 +206,26 @@ import { suggestConfigAttrs } from './suggest-attrs.ts';
     min-width: 0;
   }
 
+  /* 제목과 위치는 두 줄까지 줄바꿈한다: 320px 화면에서 차시 이름이 "…"로 잘리지 않게(R1-017) */
   .suggest__title {
+    display: -webkit-box;
     overflow: hidden;
     font-weight: var(--weight-semibold);
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .suggest__where {
+    display: -webkit-box;
     overflow: hidden;
     color: var(--color-text-muted);
     font-size: var(--text-xs);
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .suggest__count {
@@ -213,17 +237,23 @@ import { suggestConfigAttrs } from './suggest-attrs.ts';
 
   /* 마지막 줄(전체 검색 결과 보기): 위 결과와 선으로 나눈다 */
   .suggest__option--all {
+    position: sticky;
+    inset-block-end: 0;
     margin-block-start: var(--space-1);
     border-top: 1px solid var(--color-border);
     border-radius: 0 0 var(--radius-md) var(--radius-md);
+    background: var(--color-bg);
   }
 
   /* 이 줄은 글이 잘리면 안 되는 행동이라 줄을 바꿔서라도 다 보인다 */
   .suggest__option--all .suggest__title {
+    display: block;
     flex: 1 1 auto;
     color: var(--color-accent);
     white-space: normal;
     overflow-wrap: anywhere;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
   }
 
   .suggest__group {

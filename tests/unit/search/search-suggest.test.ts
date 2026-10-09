@@ -12,6 +12,7 @@ vi.mock('../../../src/components/search/search-core.ts', async (importOriginal) 
 
 import {
   INPUT_DELAY_MS,
+  KEY_HINT,
   MAX_ITEMS,
   attachSuggest,
   bootSuggest,
@@ -117,9 +118,10 @@ describe('순수 도우미', () => {
     expect(normalizeTerm('   ')).toBe('');
   });
 
-  it('describeSuggestCount: 개수를 한 번에 알리는 글', () => {
-    expect(describeSuggestCount('서보', 3, 3)).toBe('추천 3개가 있어요. 위아래 화살표로 고르고 엔터를 눌러요.');
-    expect(describeSuggestCount('서보', 6, 23)).toContain('전체 23개 중 6개만');
+  it('describeSuggestCount: 타이핑마다 읽히므로 짧게 "추천 N개"만 알린다(키 쓰는 법·전체 개수는 넣지 않는다, R1-018)', () => {
+    expect(describeSuggestCount('서보', 3, 3)).toBe('추천 3개가 있어요.');
+    expect(describeSuggestCount('서보', 6, 23)).toBe('추천 6개가 있어요.');
+    expect(describeSuggestCount('서보', 6, 23)).not.toContain('화살표');
     expect(describeSuggestCount('뷁', 0, 0)).toBe('"뷁"에 맞는 글을 찾지 못했어요. 추천 낱말이 있어요.');
   });
 
@@ -145,6 +147,23 @@ describe('붙이기와 ARIA 약속', () => {
     expect(panel.hidden).toBe(true);
     expect(input.hasAttribute('aria-activedescendant')).toBe(false);
     expect(loadPagefindMock).not.toHaveBeenCalled();
+  });
+
+  it('키 쓰는 법은 입력칸의 aria-describedby로 이어진 보이지 않는 글이다(상태 줄에 되풀이하지 않는다, R1-018)', () => {
+    const { form, input, live } = mount();
+    const describedBy = input.getAttribute('aria-describedby') ?? '';
+    const hint = document.getElementById(describedBy.split(' ').at(-1) ?? '');
+    expect(hint?.textContent).toBe(KEY_HINT);
+    expect(hint?.classList.contains('visually-hidden')).toBe(true);
+    expect(form.contains(hint)).toBe(true);
+    expect(live.textContent).not.toContain('화살표');
+  });
+
+  it('입력칸에 이미 설명이 달려 있으면 그 뒤에 잇는다', () => {
+    document.body.innerHTML = `<form id="f" action="${BASE}search/" data-suggest><input id="in" type="search" name="q" aria-describedby="help"><p id="help">도움말</p></form>`;
+    const form = document.querySelector<HTMLFormElement>('#f')!;
+    attachSuggest(form, { config, popular: POPULAR });
+    expect(form.querySelector('input')?.getAttribute('aria-describedby')).toMatch(/^help \S+-hint$/u);
   });
 
   it('안내 줄은 aria-live=polite이고 role=status가 아니다(쪽의 검색 안내 줄과 겹치지 않게)', () => {
@@ -215,10 +234,53 @@ describe('입력하면 결과를 보인다', () => {
     expect(all[0]?.textContent).toContain('차시 · 배우기 › I단원');
     expect(all[0]?.getAttribute('href')).toBe(`${BASE}learn/u1/1-1-1/`);
     const last = all.at(-1);
-    expect(last?.textContent).toContain('‘서보’ 전체 검색 결과 보기');
+    expect(last?.textContent).toContain('"서보" 전체 검색 결과 보기');
     expect(last?.textContent).toContain('23개');
     expect(last?.getAttribute('href')).toBe(`${BASE}search/?q=${encodeURIComponent('서보')}`);
     expect(live.textContent).toBe(describeSuggestCount('서보', MAX_ITEMS, 23));
+  });
+
+  it('낱말 앞부분에 우연히 걸린 엉뚱한 글은 빼서 "추천 N개"로 세지 않는다(R1-011: asdfgh → 코드 속 as)', async () => {
+    const stray: PagefindResultData[] = fakeResults(3).map((data) => ({ ...data, excerpt: 'import mediapipe <mark>as</mark> mp' }));
+    installPagefind({ asdfgh: stray });
+    const { input, list, live } = mount();
+    type(input, 'asdfgh');
+    await settle();
+    const group = list.querySelector('[role="group"]');
+    expect(group?.getAttribute('aria-label')).toContain('찾지 못했어요');
+    expect(options(list).every((o) => !o.classList.contains('suggest__item'))).toBe(true);
+    expect(live.textContent).toContain('찾지 못했어요');
+  });
+
+  it('같은 글자만 되풀이한 입력(zzzz)은 찾지도 않고 "찾지 못했어요"', async () => {
+    const { calls } = installPagefind({ zzzz: fakeResults(5) });
+    const { input, live } = mount();
+    type(input, 'zzzz');
+    await settle();
+    expect(calls).toEqual([]);
+    expect(live.textContent).toContain('찾지 못했어요');
+  });
+
+  it('걸러 낸 글이 있으면 전체 개수는 알 수 없어 "전체 검색 결과 보기" 줄에 개수를 쓰지 않는다', async () => {
+    const mixed: PagefindResultData[] = fakeResults(8).map((data, index) => ({
+      ...data,
+      excerpt: index % 2 === 0 ? '<mark>서보모터</mark>를 돌려요' : 'import <mark>as</mark> x',
+    }));
+    installPagefind({ 서보모터: mixed });
+    const { input, list } = mount();
+    type(input, '서보모터');
+    await settle();
+    const items = options(list).filter((o) => o.classList.contains('suggest__item'));
+    expect(items).toHaveLength(4);
+    expect(options(list).at(-1)?.textContent).not.toMatch(/\d+개/u);
+  });
+
+  it('오타(임게값)로 결과가 없으면 가장 가까운 추천 낱말(임계값)을 맨 앞 칩으로 보인다(R1-012)', async () => {
+    installPagefind({ 임게값: [] });
+    const { input, list } = mount();
+    type(input, '임게값');
+    await settle();
+    expect(options(list)[0]?.textContent).toBe('임계값');
   });
 
   it('옵션 이름이 제목과 위치 사이에 공백을 둔다("제목위치"로 붙지 않는다)', async () => {
@@ -238,7 +300,7 @@ describe('입력하면 결과를 보인다', () => {
     expect(group?.getAttribute('aria-label')).toContain('찾지 못했어요');
     const all = options(list);
     expect(all.slice(0, 5).map((o) => o.textContent)).toEqual(POPULAR.slice(0, 5));
-    expect(all.at(-1)?.textContent).toContain('‘뷁쿍퓽’ 전체 검색 결과 보기');
+    expect(all.at(-1)?.textContent).toContain('"뷁쿍퓽" 전체 검색 결과 보기');
     expect(live.textContent).toContain('찾지 못했어요');
   });
 
@@ -249,7 +311,7 @@ describe('입력하면 결과를 보인다', () => {
     await settle();
     const all = options(list);
     expect(all).toHaveLength(1);
-    expect(all[0]?.textContent).toContain('‘서보’ 전체 검색 결과 보기');
+    expect(all[0]?.textContent).toContain('"서보" 전체 검색 결과 보기');
     const submit = new Event('submit', { cancelable: true });
     expect(input.form?.dispatchEvent(submit)).toBe(true); // 막지 않는다
   });
@@ -273,7 +335,7 @@ describe('입력하면 결과를 보인다', () => {
     releaseFirst({ results: [] });
     await vi.advanceTimersByTimeAsync(0);
     expect(options(list)[0]?.textContent).toContain('1-1-1 제목 1');
-    expect(options(list).at(-1)?.textContent).toContain('‘빠름’');
+    expect(options(list).at(-1)?.textContent).toContain('"빠름"');
   });
 
   it('입력을 시작하면 많이 찾는 낱말 칩은 곧바로 치우고 "찾는 중이에요…"를 보인다', async () => {
@@ -346,6 +408,15 @@ describe('키보드', () => {
     expect(input.hasAttribute('aria-activedescendant')).toBe(false);
   });
 
+  it('아무것도 쓰지 않은 Enter는 빈 검색 쪽을 열지 않게 막는다(R1-019)', () => {
+    const { input } = mount();
+    input.dispatchEvent(new Event('focus'));
+    expect(press(input, 'Enter').defaultPrevented).toBe(true);
+    input.value = '   ';
+    expect(press(input, 'Enter').defaultPrevented).toBe(true);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('고른 뒤 Enter는 그 쪽으로 가고(폼 제출을 막는다), 고르지 않은 Enter는 폼 제출 그대로다', async () => {
     const { input, list } = await withResults();
     const plain = press(input, 'Enter');
@@ -413,6 +484,48 @@ describe('키보드', () => {
     const esc = press(input, 'Escape', { isComposing: true });
     expect(esc.defaultPrevented).toBe(false);
     expect(panel.hidden).toBe(false);
+  });
+});
+
+describe('목록의 자리와 높이(R1-015·016)', () => {
+  /** jsdom에는 자리 계산이 없어, 입력칸 폼의 위치를 가짜로 정하고 화면 높이를 바꿔 끼운다 */
+  function fakeLayout(form: HTMLFormElement, rect: { top: number; bottom: number }, viewportHeight: number) {
+    vi.spyOn(form, 'getBoundingClientRect').mockReturnValue({ ...rect, left: 0, right: 300, width: 300, height: rect.bottom - rect.top, x: 0, y: rect.top, toJSON: () => ({}) });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: viewportHeight });
+  }
+
+  it('아래 자리가 넉넉하면 아래로 열고, 높이를 남는 자리 안으로 제한한다(낮은 화면에서도 전체 보기 줄이 접히지 않게)', async () => {
+    installPagefind({ 서보: fakeResults(6) });
+    const { form, input, panel } = mount();
+    fakeLayout(form, { top: 60, bottom: 100 }, 384);
+    type(input, '서보');
+    await settle();
+    expect(panel.classList.contains('suggest--up')).toBe(false);
+    expect(parseInt(panel.style.maxHeight, 10)).toBe(384 - 100 - 8 - 12);
+  });
+
+  it('아래 자리가 모자라고 위가 넓으면 위로 연다(휴대폰 메뉴 맨 아래 검색칸)', async () => {
+    installPagefind({ 서보: fakeResults(6) });
+    const { form, input, panel } = mount();
+    fakeLayout(form, { top: 640, bottom: 690 }, 812);
+    type(input, '서보');
+    await settle();
+    expect(panel.classList.contains('suggest--up')).toBe(true);
+    expect(parseInt(panel.style.maxHeight, 10)).toBe(640 - 8 - 12);
+  });
+
+  it('닫으면 화면 크기 감시를 멈춘다(목록이 닫힌 채 계산하지 않는다)', async () => {
+    installPagefind({ 서보: fakeResults(2) });
+    const { form, input, panel } = mount();
+    fakeLayout(form, { top: 60, bottom: 100 }, 800);
+    type(input, '서보');
+    await settle();
+    press(input, 'Escape');
+    expect(panel.hidden).toBe(true);
+    const before = panel.style.maxHeight;
+    fakeLayout(form, { top: 60, bottom: 100 }, 400);
+    window.dispatchEvent(new Event('resize'));
+    expect(panel.style.maxHeight).toBe(before);
   });
 });
 
