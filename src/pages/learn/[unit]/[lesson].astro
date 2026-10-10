@@ -260,9 +260,12 @@ const position = lessonPosition(lessons, lesson);
     content: '·';
   }
 
+  /* 글꼴이 넓은 컴퓨터(맑은 고딕이 없는 리눅스 등)의 320px에서도 넘치지 않게 두 단추가 줄을 바꿀 수 있다(C83). */
   .lesson__step {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
+    min-width: 0;
   }
 
   .lesson__step-link {

@@ -355,8 +355,13 @@ const symptoms = [
     }
   }
 
+  /*
+   * 열을 minmax(0, 1fr)로 둔다(C83). auto 열이면 입력칸의 기본 너비(글꼴 따라 다름)가 열을 넓혀,
+   * 맑은 고딕이 없는 리눅스 Chromium에서 375px 화면을 22px 넘었다(판 1.3.0 CI).
+   */
   .help-errors {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
     margin-block-start: var(--space-8);
     padding: var(--space-5);
