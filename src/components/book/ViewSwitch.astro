@@ -1,0 +1,93 @@
+---
+/**
+ * 전환 줄(판 1.4.0 — DECISIONS C131) — 같은 절을 두 얼굴로 오가는 두 단추: [교과서 124~131쪽](출판본 그대로)과 [풀이·실습](8칸 차시·실습실·퀴즈).
+ * 교과서 쪽(/book/<id>/)과 웹 차시 쪽(/learn/uN/<label>/) 맨 위에 같은 줄을 둔다. 지금 쪽은 aria-current="page"로 알리고 모양도 다르다.
+ *
+ * - 짝이 없으면 그 단추를 그리지 않는다. 단추가 하나뿐이면(교과서에만 있는 절·보충 차시) 오갈 곳이 없으니 줄 자체를 그리지 않는다
+ *   (교과서 쪽은 머리의 쪽 배지가, 웹 차시 쪽은 머리의 칩이 같은 알림을 맡는다).
+ * - 링크는 평범한 <a>다(자바스크립트 없이 된다). 발표 모드·임베드·검색 색인에서는 빠진다.
+ * - 모양은 이 파일의 스타일이 맡는다. 두 쪽이 같은 부품이라 한 줄 모양이 어긋나지 않는다.
+ */
+import Icon from '../common/Icon.astro';
+
+interface Props {
+  /** 지금 어느 쪽인지 */
+  current: 'book' | 'lesson';
+  /** 교과서 쪽 링크와 쪽 범위 글("124~131"). 짝이 없으면 둘 다 없다 */
+  bookHref?: string | undefined;
+  bookPages?: string | undefined;
+  /** 웹 차시(풀이·실습) 링크. 짝이 없으면 없다 */
+  lessonHref?: string | undefined;
+}
+
+const { current, bookHref, bookPages, lessonHref } = Astro.props;
+const hasBook = Boolean(bookHref);
+const hasLesson = Boolean(lessonHref);
+---
+
+{
+  hasBook && hasLesson && (
+    <nav class="view-switch" aria-label="같은 내용을 보는 방법" data-view-switch data-present-hide data-embed-hide data-pagefind-ignore>
+      <a class="view-switch__link" href={bookHref} aria-current={current === 'book' ? 'page' : undefined} data-view="book">
+        <Icon name="book" size="sm" />
+        <span>교과서{bookPages ? ` ${bookPages}쪽` : ''}</span>
+      </a>
+      <a class="view-switch__link" href={lessonHref} aria-current={current === 'lesson' ? 'page' : undefined} data-view="lesson">
+        <Icon name="flask" size="sm" />
+        <span>풀이·실습</span>
+      </a>
+    </nav>
+  )
+}
+
+<style>
+  .view-switch {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    max-inline-size: 100%;
+    margin-block-end: var(--space-4);
+    padding: var(--space-1);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg-subtle);
+  }
+
+  .view-switch__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: var(--target-min);
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-full);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .view-switch__link:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  /* 지금 쪽: 채운 알약 + 글자("지금 보는 쪽"은 aria-current가 알린다 — 색만으로 구별하지 않게 테두리도 굵게) */
+  .view-switch__link[aria-current='page'] {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  @media (forced-colors: active) {
+    .view-switch__link[aria-current='page'] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+
+  @media print {
+    .view-switch {
+      display: none;
+    }
+  }
+</style>

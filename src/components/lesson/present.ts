@@ -23,7 +23,17 @@
  * 따라하기 예제·도전 과제 단계의 막대 글에는 예제·과제 제목을 함께 적는다(어느 예제인지 알 수 있게).
  *
  * 반대로 너무 잘게 나뉜 단계(제목 한 줄과 문장 하나뿐인 화면)는 이웃 단계와 합친다 — 합친 내용이 한 화면에 들어올 때만(mergeShort, R1-075).
+ *
+ * 주소로 바로 열기(판 1.4.0, DECISIONS C133): 쪽 주소에 ?view=slide가 있으면 발표 모드로 연다(교과서 쪽·웹 차시 쪽 모두). 기본은 읽기 화면이다 —
+ * 선생님이 "수업 화면" 링크를 학생에게 나눠 줄 때나 북마크에 쓴다. 단추([발표 모드]·[수업 화면으로])와 같은 enter()를 부르므로 동작은 같다.
+ * 교과서 쪽의 단계는 ##·### 제목과 상자 단위이고 쪽 표지(::쪽)는 단계를 나누지 않는다(표지는 내용 블록일 뿐 제목·상자 나눔 규칙에 없다).
  */
+
+/** 주소 검색 글(?view=slide …)이 발표 모드로 바로 열라는 뜻인지(별칭 view=present도 같다) */
+export function wantsSlideView(search: string): boolean {
+  const view = new URLSearchParams(search).get('view');
+  return view === 'slide' || view === 'present';
+}
 
 export type PresentBlockKind = 'h2' | 'h3' | 'break' | 'content' | 'split';
 
@@ -901,4 +911,13 @@ export function installLessonPresentation(doc: Document = document): void {
     }
   }
   openButton.hidden = false;
+  // ?view=slide — 쪽을 그린 다음 한 프레임 뒤에 연다(첫 그리기 전에 재면 높이가 0이라 단계 나누기가 어긋난다)
+  const win = doc.defaultView;
+  if (win && wantsSlideView(win.location.search)) {
+    win.requestAnimationFrame(() => {
+      if (!html.hasAttribute('data-presenting')) {
+        enter();
+      }
+    });
+  }
 }

@@ -1,0 +1,149 @@
+---
+/**
+ * 이전·다음 절 링크(판 1.4.0 교과서 쪽). 순서는 쪽 번호(book-data.ts publishedBooks)라 대단원이 달라도 이어진다.
+ * 모양은 웹 차시의 이전·다음 카드(LessonPager.astro)와 같은 공용 카드(.card--link)를 쓰고, 말만 "절"로 다르다.
+ * 발표 모드에서는 숨는다(.lesson-pager).
+ */
+import Icon from '../common/Icon.astro';
+import { bookLabel, type BookSummary } from './book-data.ts';
+
+interface Props {
+  previous?: BookSummary | undefined;
+  next?: BookSummary | undefined;
+}
+
+const { previous, next } = Astro.props;
+
+/** 카드에 보이는 이름: 절은 "2-1-3 OLED 제어하기", 그 밖은 "2단원 마무리"처럼 읽히는 이름 하나 */
+function pagerName(book: BookSummary): string {
+  return book.kind === 'section' ? `${bookLabel(book)} ${book.title}` : bookLabel(book);
+}
+
+function unitClass(book: BookSummary): string {
+  return book.unit ? `card--u${book.unit}` : '';
+}
+---
+
+<nav class="lesson-pager book-pager" aria-label="이전·다음 절" data-pagefind-ignore>
+  <ul class="book-pager__list">
+    <li class="book-pager__item book-pager__item--previous">
+      {
+        previous ? (
+          <div class:list={['book-pager__card', 'card', 'card--link', unitClass(previous)]}>
+            <a class="book-pager__link card__link" href={previous.href} rel="prev">
+              <span class="book-pager__direction">
+                <Icon name="arrow-left" size="sm" />
+                이전 절
+              </span>{' '}
+              <span class="book-pager__title">{pagerName(previous)}</span>
+            </a>
+          </div>
+        ) : (
+          <span class="book-pager__empty">첫 번째 쪽이에요.</span>
+        )
+      }
+    </li>
+    <li class="book-pager__item book-pager__item--next">
+      {
+        next ? (
+          <div class:list={['book-pager__card', 'card', 'card--link', unitClass(next)]}>
+            <a class="book-pager__link card__link" href={next.href} rel="next">
+              <span class="book-pager__direction">
+                다음 절
+                <Icon name="arrow-right" size="sm" />
+              </span>{' '}
+              <span class="book-pager__title">{pagerName(next)}</span>
+            </a>
+          </div>
+        ) : (
+          <span class="book-pager__empty">마지막 쪽이에요.</span>
+        )
+      }
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .book-pager {
+    margin-block-start: var(--space-8);
+  }
+
+  .book-pager__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .book-pager__item {
+    display: grid;
+    min-width: 0;
+  }
+
+  .book-pager__item--next {
+    text-align: end;
+  }
+
+  .book-pager__card {
+    display: grid;
+    align-content: center;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .book-pager__item--next .book-pager__card.card {
+    border-inline-start: 1px solid var(--color-border);
+    border-inline-end: 4px solid var(--card-unit, var(--color-accent));
+  }
+
+  .book-pager__link {
+    display: grid;
+    gap: var(--space-1);
+    line-height: var(--leading-snug);
+  }
+
+  .book-pager__direction {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--card-unit, var(--color-accent));
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+  }
+
+  .book-pager__item--next .book-pager__direction {
+    justify-content: flex-end;
+  }
+
+  .book-pager__title {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .book-pager__empty {
+    display: grid;
+    align-content: center;
+    padding: var(--space-4) var(--space-5);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 40rem) {
+    .book-pager__item--next {
+      text-align: start;
+    }
+
+    .book-pager__item--next .book-pager__direction {
+      justify-content: flex-start;
+    }
+  }
+
+  @media print {
+    .book-pager {
+      display: none;
+    }
+  }
+</style>

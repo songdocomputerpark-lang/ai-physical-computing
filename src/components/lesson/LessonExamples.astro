@@ -34,9 +34,14 @@ interface Props {
   source: string;
   /** 이 자리에서 그릴 예제 차례(0부터). 없으면 모두 */
   indexes?: readonly number[] | undefined;
+  /**
+   * 교과서 쪽(판 1.4.0 — 쪽 본문의 ::실습실[파일]): 예제 파일의 코드를 다시 보이지 않고 [이 자리에서 실습실 열기]·[실습실에서 크게 열기]만 그린다.
+   * 출판본 코드는 쪽 본문에 그대로 있고, 실습실은 같은 이름의 사이트판 예제(examples/)를 연다.
+   */
+  launcherOnly?: boolean;
 }
 
-const { examples, lab, source, indexes } = Astro.props;
+const { examples, lab, source, indexes, launcherOnly = false } = Astro.props;
 const EXAMPLES_DIR = path.resolve('examples');
 const numbered = examples.length > 1;
 
@@ -84,7 +89,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
     <div class="lesson-example-block" data-example-number={numbered ? panel.number : undefined}>
     <figure class="lesson-example" id={panel.key} data-lab={panel.lab} data-example-file={panel.file} aria-labelledby={`${panel.key}-title`}>
       <figcaption class="lesson-example__caption">
-        <span class="lesson-example__eyebrow">{numbered ? `따라 하기 예제 ${panel.number}` : '따라 하기 예제'}</span>
+        <span class="lesson-example__eyebrow">{launcherOnly ? '실습실에서 해 보기' : numbered ? `따라 하기 예제 ${panel.number}` : '따라 하기 예제'}</span>
         <span class="lesson-example__title" id={`${panel.key}-title`}>
           {panel.title}
         </span>
@@ -92,7 +97,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       </figcaption>
       {/* <pre> 안의 공백은 그대로 보이므로 <pre>와 <code> 사이에 줄바꿈·들여쓰기를 두지 않는다. */}
       {/* 코드 상자는 키보드로도 스크롤할 수 있게 초점을 받는다. 이름은 region 역할에 붙여야 화면 낭독기가 읽는다(일반 요소의 aria-label은 읽지 않을 수 있음). */}
-      {panel.rendered && panel.excerpt ? (
+      {launcherOnly ? null : panel.rendered && panel.excerpt ? (
         <Fragment>
           <p class="lesson-example__excerpt-note">코드 읽기가 가리키는 줄만 보여요(전체 {panel.rendered.lineCount}줄 가운데 {panel.excerpt.shown}줄). 줄 번호는 파일 그대로예요.</p>
           <pre class="lesson-code lesson-code--excerpt" tabindex="0" role="region" aria-label={`${panel.title} 코드 발췌, ${panel.excerpt.shown}줄`}><code set:html={panel.excerpt.html} /></pre>
@@ -106,7 +111,7 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
       ) : (
         <p class="lesson-example__missing">예제 파일을 준비하고 있어요.</p>
       )}
-      {panel.rendered && panel.rendered.guideLines > 0 && (
+      {!launcherOnly && panel.rendered && panel.rendered.guideLines > 0 && (
         <p class="lesson-example__guide-note">
           파일 끝의 실습실 안내 주석 {panel.rendered.guideLines}줄(바꿔 볼 것, 왜 이런 결과가 나올까)은 이 차시 본문과 같은 내용이라 여기서는 뺐어요. 실습실에서는 보여요.
         </p>

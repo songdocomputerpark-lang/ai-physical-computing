@@ -121,6 +121,14 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
     ],
   },
   {
+    id: 'book',
+    icon: 'textbook',
+    label: '교과서',
+    path: '/book/',
+    description: '출판본 교과서 「인공지능과 피지컬 컴퓨팅」을 문장·표·코드 그대로 웹에서 읽어요.',
+    inHeader: true,
+  },
+  {
     id: 'learn',
     icon: 'book',
     label: '배우기',

@@ -367,7 +367,10 @@ def overlap(a: list[float], b: list[float]) -> tuple[float, float]:
 
 
 def half_rect(page: pymupdf.Page, side: str) -> pymupdf.Rect:
-    """펼침면(교과서 두 쪽)에서 왼쪽·오른쪽 쪽의 자리. full이면 PDF 쪽 전체."""
+    """펼침면(교과서 두 쪽)에서 왼쪽·오른쪽 쪽의 자리. full이면 PDF 쪽 전체, trim이면 재단선 안쪽(출판본 교과서 — 쪽 가장자리의 재단 표시를 뺀 실제 한 쪽)."""
+    if side == "trim":
+        # trimbox가 없는 PDF는 pymupdf가 mediabox를 돌려준다. 재단 표시(바깥 여백)는 쪽 그림에 넣지 않는다.
+        return pymupdf.Rect(page.trimbox) & page.rect
     r = page.rect
     if side == "left":
         return pymupdf.Rect(r.x0, r.y0, r.x0 + r.width / 2, r.y1)

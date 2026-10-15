@@ -1,0 +1,237 @@
+---
+/**
+ * 교과서 차례 목록(판 1.4.0) — 대단원 > 중단원 > 절을 쪽 범위·매체와 함께 늘어놓는다(/book/ 첫 화면).
+ * 절 링크는 교과서 쪽(/book/<id>/)으로 간다. 짝 웹 차시가 있으면 "풀이·실습" 링크가 한 줄 더 있다.
+ * 쪽 안 #위치: 대단원 #unit-2, 중단원 #unit-2-part-1(교과서 쪽 빵부스러기가 여기로 온다 — book-data.ts bookUnitAnchor·bookPartAnchor).
+ * 홈의 차례 그림·카드는 홈 구역(C4)이 따로 만든다. 이 목록은 그림 없이 글로 찾는 사람·낭독기용 차례다.
+ */
+import Icon from '../common/Icon.astro';
+import { getLearnUnit } from '../../config/nav.ts';
+import { unitCardClass, unitIcon } from '../lesson/unit-style.ts';
+import type { LessonSummary } from '../lesson/lesson-data.ts';
+import { BOOK_MEDIA_INFO } from './book-media.ts';
+import {
+  bookLabel,
+  bookPagesLabel,
+  bookPartAnchor,
+  bookUnitAnchor,
+  bookUnitName,
+  findPairedLesson,
+  type BookSummary,
+  type BookToc,
+} from './book-data.ts';
+
+interface Props {
+  toc: BookToc;
+  lessons: readonly LessonSummary[];
+}
+
+const { toc, lessons } = Astro.props;
+
+/** 큰 제목 앞 로마 숫자 번호를 뗀 대단원 이름: "II. 피지컬 컴퓨팅" → "피지컬 컴퓨팅" */
+function unitTitle(unit: number): string {
+  return getLearnUnit(unit).label.replace(/^[IV]+\.\s*/u, '');
+}
+
+function mediaOf(book: BookSummary) {
+  return book.media.map((key) => ({ key, ...BOOK_MEDIA_INFO[key] }));
+}
+---
+
+<div class="book-toc">
+  {
+    toc.front && (
+      <p class="book-toc__front">
+        <a href={toc.front.href}>
+          <Icon name="book" size="sm" />
+          <span>{toc.front.title}</span>
+        </a>{' '}
+        <span class="book-toc__pages">{bookPagesLabel(toc.front.pages)}</span>
+      </p>
+    )
+  }
+  {
+    toc.units.map((unit) => (
+      <section class:list={['book-toc__unit', unitCardClass(unit.unit)]} id={bookUnitAnchor(unit.unit)} aria-labelledby={`${bookUnitAnchor(unit.unit)}-title`}>
+        <h2 class="book-toc__unit-title" id={`${bookUnitAnchor(unit.unit)}-title`}>
+          <span class="book-toc__unit-icon">
+            <Icon name={unitIcon(unit.unit)} size="md" />
+          </span>
+          <span class="book-toc__unit-no">{bookUnitName(unit.unit)}</span>
+          <span>{unitTitle(unit.unit)}</span>
+        </h2>
+        {
+          unit.intro && (
+            <p class="book-toc__extra">
+              <a href={unit.intro.href}>{bookLabel(unit.intro)}</a>{' '}
+              <span class="book-toc__pages">{bookPagesLabel(unit.intro.pages)}</span>
+            </p>
+          )
+        }
+        {
+          unit.parts.map((part) => (
+            <div class="book-toc__part">
+              <h3 class="book-toc__part-title" id={bookPartAnchor(unit.unit, part.index)}>
+                {part.title}
+              </h3>
+              <ul class="book-toc__list">
+                {part.items.map((book) => {
+                  const paired = findPairedLesson(book, lessons);
+                  return (
+                    <li class="book-toc__item">
+                      <a class="book-toc__link" href={book.href}>
+                        <span class="book-toc__label">{bookLabel(book)}</span>{' '}
+                        <span class="book-toc__title">{book.title}</span>
+                      </a>{' '}
+                      <span class="book-toc__pages">{bookPagesLabel(book.pages)}</span>
+                      {mediaOf(book).map((media) => (
+                        <span class="book-toc__media" title={media.note}>
+                          <Icon name={media.icon} size="sm" />
+                          <span>{media.label}</span>
+                        </span>
+                      ))}
+                      {paired && (
+                        <a class="book-toc__web" href={paired.href} aria-label={`${bookLabel(book)} 풀이·실습`}>
+                          풀이·실습
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))
+        }
+        {
+          unit.review && (
+            <p class="book-toc__extra">
+              <a href={unit.review.href}>{bookLabel(unit.review)}</a>{' '}
+              <span class="book-toc__pages">{bookPagesLabel(unit.review.pages)}</span>
+            </p>
+          )
+        }
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .book-toc {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .book-toc__front {
+    margin: 0;
+  }
+
+  .book-toc__front a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+
+  .book-toc__unit {
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-inline-start: 6px solid var(--card-unit);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-sm);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .book-toc__unit-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block: 0 var(--space-3);
+    font-size: var(--text-xl);
+  }
+
+  .book-toc__unit-icon {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: var(--radius-full);
+    background: var(--card-unit-soft);
+    color: var(--card-unit);
+  }
+
+  .book-toc__unit-no {
+    color: var(--card-unit);
+  }
+
+  .book-toc__extra {
+    margin-block: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+
+  .book-toc__part {
+    margin-block-start: var(--space-5);
+  }
+
+  .book-toc__part-title {
+    margin-block: 0 var(--space-2);
+    padding-block-end: var(--space-1);
+    border-block-end: 1px solid var(--color-border);
+    font-size: var(--text-lg);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .book-toc__list {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .book-toc__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    min-block-size: var(--target-min);
+    padding-block: var(--space-1);
+  }
+
+  .book-toc__link {
+    font-weight: var(--weight-semibold);
+  }
+
+  .book-toc__label {
+    color: var(--card-unit);
+    font-weight: var(--weight-bold);
+  }
+
+  .book-toc__pages {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .book-toc__media {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .book-toc__web {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2rem;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+</style>

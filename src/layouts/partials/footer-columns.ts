@@ -28,7 +28,8 @@ function column(id: string, head: NavPage, links: readonly NavPage[]): FooterCol
 
 export const footerColumns: readonly FooterColumn[] = Object.freeze([
   column('start', getPage('start'), getPage('start').children),
-  column('learn', getPage('learn'), learnUnits),
+  // 교과서(판 1.4.0)는 배우기 묶음 맨 앞 — 출판본을 그대로 읽는 곳이고, 아래 대단원 링크는 풀이·실습으로 간다
+  column('learn', getPage('learn'), [getPage('book'), ...learnUnits]),
   column('labs', getPage('labs'), getPage('labs').children),
   column('help', getPage('help'), [getPage('help-errors'), getPage('glossary'), getPage('search')]),
   {

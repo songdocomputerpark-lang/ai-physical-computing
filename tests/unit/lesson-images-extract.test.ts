@@ -224,3 +224,99 @@ describe.skipIf(!python)('원고 이미지 추출 도구(가짜 원고로 실제
     180_000,
   );
 });
+
+// ── 출판본 교과서 BOOK 원본(판 1.4.0): PDF 쪽에 재단 표시(바깥 여백)가 있어 쪽 좌표는 재단선 안쪽(trimbox)의 왼쪽 위 기준이다 ──
+const MAKE_BOOK_FIXTURE = [
+  'import sys',
+  'import pymupdf',
+  'path = sys.argv[1]',
+  'doc = pymupdf.open()',
+  'trim = pymupdf.Rect(36.85, 36.85, 632.126, 816.377)',
+  'for _ in range(296):',
+  '    page = doc.new_page(width=668.976, height=853.227)',
+  '    page.set_trimbox(trim)',
+  '# 1쪽: 재단 표시처럼 바깥 여백에 까만 선, 재단선 안쪽 왼쪽 위 모서리에 빨간 네모(0,0)-(20,20)',
+  'doc[0].draw_rect(pymupdf.Rect(2, 2, 30, 8), color=(0, 0, 0), fill=(0, 0, 0))',
+  'doc[0].draw_rect(pymupdf.Rect(36.85, 36.85, 56.85, 56.85), color=(1, 0, 0), fill=(1, 0, 0))',
+  '# 124쪽: 재단선 안쪽 기준 (100,100)-(200,200)에 파란 네모',
+  'doc[123].draw_rect(pymupdf.Rect(136.85, 136.85, 236.85, 236.85), color=(0, 0, 1), fill=(0, 0, 1))',
+  'doc.save(path)',
+].join('\n');
+
+const READ_PIXELS = [
+  'import json, sys',
+  'from PIL import Image',
+  'image = Image.open(sys.argv[1]).convert("RGB")',
+  'w, h = image.size',
+  'print(json.dumps({"size": [w, h], "corner": image.getpixel((1, 1)), "far": image.getpixel((w - 2, h - 2)), "center": image.getpixel((w // 2, h // 2))}))',
+].join('\n');
+
+describe.skipIf(!python)('출판본 교과서 BOOK 원본(재단선 안쪽 기준 좌표)', () => {
+  it(
+    'region은 재단선 안쪽의 왼쪽 위를 (0, 0)으로 하고, 교과서 앞 부속 그림은 public/images/book/ 바로 아래에 쓴다',
+    () => {
+      const root = makeTempDir('apc-book-root-');
+      const materials = makeTempDir('apc-book-materials-');
+      tempDirs.push(root, materials);
+      const pdf = path.join(materials, ...SOURCES.BOOK.file.split('/'));
+      fs.mkdirSync(path.dirname(pdf), { recursive: true });
+      const made = spawnSync(python![0]!, [...python!.slice(1), '-X', 'utf8', '-c', MAKE_BOOK_FIXTURE, pdf], { encoding: 'utf8' });
+      expect(made.status, made.stderr).toBe(0);
+
+      writeFiles(root, {
+        'sources.yaml': fs.readFileSync('sources.yaml'),
+        'scripts/image-exclusions.yaml': fs.readFileSync('scripts/image-exclusions.yaml'),
+        'content/lessons/u2/t-212.images.yaml': [
+          'images:',
+          '  - name: blue-box',
+          '    use: 시험',
+          '    alt: 흰 바탕 가운데 파란 네모가 있는 시험 그림',
+          '    from: { source: BOOK, page: 124, region: [90, 90, 210, 210], dpi: 144 }',
+          '',
+        ].join('\n'),
+        'content/book/front.images.yaml': [
+          'images:',
+          '  - name: cover',
+          '    use: 시험',
+          '    alt: 모서리에 빨간 네모가 있는 시험 표지 그림',
+          '    from: { source: BOOK, page: 1, region: [0, 0, 595.28, 779.53], dpi: 72 }',
+          '',
+        ].join('\n'),
+      });
+      const lesson = runCli(['t-212', '--root', root, '--materials', materials, '--skip-face-check']);
+      expect(lesson.status, lesson.stdout + lesson.stderr).toBe(0);
+      const front = runCli(['front', '--root', root, '--materials', materials, '--skip-face-check']);
+      expect(front.status, front.stdout + front.stderr).toBe(0);
+
+      const readPixels = (relative: string) => {
+        const out = spawnSync(python![0]!, [...python!.slice(1), '-X', 'utf8', '-c', READ_PIXELS, path.join(root, ...relative.split('/'))], { encoding: 'utf8' });
+        expect(out.status, out.stderr).toBe(0);
+        return JSON.parse(out.stdout) as { size: [number, number]; corner: number[]; far: number[]; center: number[] };
+      };
+
+      // 차시 목록의 BOOK 그림: 결과는 그 차시 그림 폴더, 가운데가 파랗다(재단선 안쪽 기준 (100,100)-(200,200)이 영역 [90,90,210,210]의 가운데)
+      const blue = readPixels('public/images/lessons/t-212/blue-box.webp');
+      expect(blue.center[2]).toBeGreaterThan(200);
+      expect(blue.center[0]).toBeLessThan(60);
+      expect(blue.corner.every((value) => value > 240)).toBe(true);
+
+      // 교과서 앞 부속 그림: public/images/book/ 바로 아래, 크기는 재단선 안쪽 한 쪽, 재단 표시(까만 선)는 없고 안쪽 모서리의 빨간 네모가 맨 왼쪽 위에 있다
+      const cover = readPixels('public/images/book/cover.webp');
+      expect(cover.size[0]).toBeGreaterThanOrEqual(594);
+      expect(cover.size[0]).toBeLessThanOrEqual(597);
+      expect(cover.size[1]).toBeGreaterThanOrEqual(779);
+      expect(cover.size[1]).toBeLessThanOrEqual(782);
+      expect(cover.corner[0]).toBeGreaterThan(200);
+      expect(cover.corner[1]).toBeLessThan(60);
+      expect(cover.far.every((value) => value > 240)).toBe(true);
+
+      // 목록에 file·sha256이 적히고 메타데이터가 없다
+      const record = parseDocument(fs.readFileSync(path.join(root, 'content/book/front.images.yaml'), 'utf8')).toJS() as { images: { file: string; sha256: string }[] };
+      expect(record.images[0]?.file).toBe('public/images/book/cover.webp');
+      const bytes = fs.readFileSync(path.join(root, 'public/images/book/cover.webp'));
+      expect(record.images[0]?.sha256).toBe(sha256Hex(bytes));
+      expect(inspectImageMetadata(bytes).problems).toEqual([]);
+    },
+    240_000,
+  );
+});

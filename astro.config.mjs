@@ -5,6 +5,7 @@ import { resolveBuildSettings, siteConfig } from './src/config/site.ts';
 import { clientBundleLicensePlugin } from './scripts/lib/bundle-license.mjs';
 import { esptoolStubGuardPlugin } from './scripts/lib/esptool-stub-guard.mjs';
 import { rehypePlugins, remarkPlugins } from './src/lib/markdown-plugins.mjs';
+import { shikiLineStart } from './src/lib/shiki-line-start.mjs';
 
 // 주소와 하위 경로는 src/config/site.ts 한 곳에서만 정한다(DECISIONS C7).
 // 빌드 환경 변수 APC_BASE(하위 경로 — 오프라인 배포판은 '/')·APC_OUT_DIR(결과 폴더, 기본 dist)도 site.ts가 읽는다(그 머리말).
@@ -47,8 +48,10 @@ export default defineConfig({
     // WCAG AA(글자 4.5:1)에 못 미친다. github-light-high-contrast는 코드 글자색이 모두 흰 바탕(#FFFFFF) 위에서 5.04:1 이상이다
     // (가장 낮은 주석 #66707B 5.04:1, 기본 글자 #0E1116 18.91:1 — 2026-09-16 @shikijs/themes 4.4.3의 색으로 WCAG 상대 휘도 공식 계산).
     // 바탕이 페이지와 같은 흰색이라 코드 블록 테두리는 src/styles/global.css의 .prose pre가 그린다.
+    // 교과서 쪽(판 1.4.0)의 코드 울타리 {start=15} — 줄 번호 시작값을 <pre>에 알리는 변환(src/lib/shiki-line-start.mjs). 코드 글자·색은 그대로다.
     shikiConfig: {
       theme: 'github-light-high-contrast',
+      transformers: [shikiLineStart()],
     },
   },
   vite: {

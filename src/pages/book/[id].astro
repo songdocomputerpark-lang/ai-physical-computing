@@ -1,0 +1,319 @@
+---
+/**
+ * 교과서 쪽(/book/2-1-2/) — 출판본 교과서(금성출판사 「인공지능과 피지컬 컴퓨팅」)의 절 하나를 문장·표·코드 그대로 보여 준다(판 1.4.0, DECISIONS C131).
+ *
+ * 머리: 빵부스러기(교과서 › 2단원 › 01 디스플레이 장치 제어) → 제목 → 쪽 배지 "교과서 124~131쪽" + 매체 아이콘 → 전환 줄(ViewSwitch)과 [수업 화면으로]
+ * 본문: content/book/<id>.md의 마크다운(쪽 표지 ::쪽[n]·교과서 꼭지 상자·코드 설명·그림·표). 8칸 차시 틀은 쓰지 않는다.
+ * 끝: [이 차시 다 했어요](짝 웹 차시와 같은 진도), 이전·다음 절
+ * 왼쪽: 교과서 차례(대단원 → 중단원 → 절) — 웹 차시 쪽의 단원 차시 목록과 같은 부품(LessonSidebar)이 같은 규칙(넓으면 왼쪽 nav, 좁으면 <details>)으로 그린다.
+ *
+ * 발표 모드(수업 화면): 웹 차시와 같은 부품(LessonPresent·present.ts)이 돈다. 주소 ?view=slide로 바로 열 수 있다(DECISIONS C133).
+ * 교과서 쪽의 발표 단계는 ##·### 제목과 상자 단위이고 쪽 표지(::쪽)는 단계를 나누지 않는다.
+ *
+ * 규칙(book-rules.ts)은 빌드할 때 모두 돌려 빌드 기록에 [교과서 쪽] 경고로 남긴다 — 빌드는 멈추지 않는다(PD-35).
+ * 엄격하게(오류면 실패) 돌리는 것은 npm run check:book, 출판본 글자와의 같음은 npm run book:fidelity.
+ * 새 절 = content/book/<id>.md 하나(와 그 절의 그림 목록)를 넣으면 쪽이 생긴다. 코드는 고치지 않는다.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { parse as parseYaml } from 'yaml';
+import { BOOK_MEDIA_INFO } from '../../components/book/book-media.ts';
+import BookPager from '../../components/book/BookPager.astro';
+import ViewSwitch from '../../components/book/ViewSwitch.astro';
+import { bookSidebarOutline } from '../../components/book/book-sidebar.ts';
+import { checkBookRules } from '../../components/book/book-rules.ts';
+import {
+  bookAsLesson,
+  bookBreadcrumb,
+  bookDocumentTitle,
+  bookLabel,
+  bookPagesLabel,
+  buildBookToc,
+  findBookNeighbors,
+  findPairedLesson,
+  publishedBooks,
+  type BookSummary,
+} from '../../components/book/book-data.ts';
+import { planBookBody } from '../../components/book/book-html.ts';
+import Icon from '../../components/common/Icon.astro';
+import GlossaryScope from '../../components/glossary/GlossaryScope.astro';
+import LessonBody from '../../components/lesson/LessonBody.astro';
+import LessonDone from '../../components/lesson/LessonDone.astro';
+import LessonPresent from '../../components/lesson/LessonPresent.astro';
+import LessonSidebar from '../../components/lesson/LessonSidebar.astro';
+import { publishedLessons, type LessonSummary } from '../../components/lesson/lesson-data.ts';
+import { unitCardClass, unitIcon } from '../../components/lesson/unit-style.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/book.css';
+
+/** 예제 사이드카(examples/…/<이름>.meta.yaml)의 제목 — 짝 웹 차시 frontmatter에 없는 예제(::실습실로만 부르는 예제)의 이름 */
+function sidecarTitle(file: string): string | undefined {
+  try {
+    const text = fs.readFileSync(path.resolve('examples', file.replace(/\.py$/u, '.meta.yaml')), 'utf8');
+    const title = (parseYaml(text) as { title?: unknown } | null)?.title;
+    return typeof title === 'string' && title.trim() !== '' ? title : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getStaticPaths() {
+  const entries = await getCollection('book');
+  const lessonEntries = await getCollection('lessons');
+  const books = publishedBooks(entries);
+  const lessons = publishedLessons(lessonEntries);
+  const entryById = new Map(entries.map((entry) => [entry.id, entry]));
+  const lessonEntryById = new Map(lessonEntries.map((entry) => [entry.id, entry]));
+  return books.flatMap((book) => {
+    const entry = entryById.get(book.id);
+    if (!entry) {
+      return [];
+    }
+    const paired = findPairedLesson(book, lessons);
+    // 짝 웹 차시가 이미 가진 예제 이름(제목)을 그대로 쓴다 — 쪽 본문의 ::실습실[파일]이 어느 예제인지 같은 이름으로 보이게
+    const pairedExamples = (paired ? lessonEntryById.get(paired.id)?.data.examples : undefined) ?? [];
+    return [
+      {
+        params: { id: book.id },
+        props: { entry, book, books, lessons, pairedExamples: pairedExamples.map((example) => ({ file: example.file, title: example.title })) },
+      },
+    ];
+  });
+}
+
+interface Props {
+  entry: CollectionEntry<'book'>;
+  book: BookSummary;
+  books: BookSummary[];
+  lessons: LessonSummary[];
+  pairedExamples: { file: string; title?: string | undefined }[];
+}
+
+const { entry, book, books, lessons, pairedExamples } = Astro.props;
+const source = entry.filePath ?? `content/book/${entry.id}.md`;
+const html = entry.rendered?.html ?? '';
+for (const issue of checkBookRules({ id: entry.id, data: entry.data, html, lessons })) {
+  console.warn(`[교과서 쪽] ${source}: [${issue.code}] ${issue.message}`);
+}
+const { plan, labFiles } = planBookBody(html);
+for (const warning of plan.warnings) {
+  console.warn(`[교과서 쪽] ${source}: ${warning}`);
+}
+// 쪽 본문의 ::실습실 자리 → 예제 하나(코드는 쪽에 이미 있어 단추만 그린다). 제목은 짝 웹 차시의 예제 제목을 따른다
+const labExamples = labFiles.map((file) => ({
+  file,
+  title: pairedExamples.find((example) => example.file === file)?.title ?? sidecarTitle(file) ?? `${book.title} 실습`,
+  parts: [],
+}));
+
+const toc = buildBookToc(books);
+const paired = findPairedLesson(book, lessons);
+const { previous, next } = findBookNeighbors(books, book.id);
+const outline = bookSidebarOutline(books, lessons, book);
+const kindText = book.kind === 'section' ? undefined : bookLabel(book);
+const done = bookAsLesson(book, paired);
+const nextForDone = next ? bookAsLesson(next, findPairedLesson(next, lessons)) : undefined;
+const unitClass = book.unit ? unitCardClass(book.unit) : '';
+const mediaInfos = book.media.map((key) => ({ key, ...BOOK_MEDIA_INFO[key] }));
+---
+
+<BaseLayout
+  title={bookDocumentTitle(book)}
+  description={`출판본 교과서 ${bookPagesLabel(book.pages).replace('교과서 ', '')}의 「${book.title}」을 문장·표·코드 그대로 보여 줘요.`}
+  width="default"
+  breadcrumb={bookBreadcrumb(book, toc)}
+  ogType="article"
+  skipTarget="lesson-article"
+>
+  <div class="book-layout">
+    <LessonSidebar outline={outline} />
+    <article class="lesson book-page" id="lesson-article" tabindex="-1" data-book-id={book.id}>
+      <header class="lesson__header book-header">
+        <p class:list={['book-header__where', unitClass]} data-present-hide data-pagefind-ignore>
+          <span class="book-header__icon">
+            <Icon name={book.unit ? unitIcon(book.unit) : 'book'} size="sm" />
+          </span>
+          <span class="book-header__unit">{book.unit ? `${book.unit}단원` : '교과서'}{book.part ? ` · ${book.part}` : ''}</span>
+        </p>
+        <h1 class="page-title book-header__title">
+          {kindText && <span class="book-header__label">{kindText}</span>}
+          {kindText && ' '}
+          {book.kind === 'section' && <span class="book-header__label">{book.id}</span>}
+          {book.kind === 'section' && ' '}
+          <span class="book-header__name">{book.title}</span>
+        </h1>
+        <p class="book-header__badges" data-present-hide data-pagefind-ignore>
+          <span class="book-badge">
+            <Icon name="book" size="sm" />
+            <span>{bookPagesLabel(book.pages)}</span>
+          </span>
+          {
+            mediaInfos.map((media) => (
+              <span class="book-badge" title={media.note}>
+                <Icon name={media.icon} size="sm" />
+                <span>{media.label}</span>
+              </span>
+            ))
+          }
+        </p>
+        <div data-present-hide>
+          <ViewSwitch current="book" bookHref={book.href} bookPages={book.pages} lessonHref={paired?.href} />
+          <p class="lesson__tools" data-pagefind-ignore>
+            <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
+              수업 화면으로
+            </button>
+            <span class="lesson__tools-note" id="lesson-present-note">
+              수업 중 프로젝터로 크게, 한 단계씩 보여 줘요.{' '}
+              <span class="lesson__tools-keys">키보드 → ←로 넘기고 Esc로 끝내요.</span>
+              <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>
+            </span>
+          </p>
+        </div>
+      </header>
+      <GlossaryScope id="book">
+        <LessonBody
+          plan={plan}
+          examples={labExamples}
+          quiz={[]}
+          lab={paired?.lab}
+          lessonId={`book-${book.id}`}
+          source={source}
+          launcherOnly={true}
+        />
+      </GlossaryScope>
+      {done && <LessonDone lesson={done} next={nextForDone} />}
+      <BookPager previous={previous} next={next} />
+    </article>
+  </div>
+  <LessonPresent />
+</BaseLayout>
+
+<script>
+  import { installProgressPaint } from '../../components/progress/progress-paint.ts';
+  import { installLessonNav, retargetSkipLink } from '../../components/lesson/lesson-progress.ts';
+
+  // [이 차시 다 했어요]가 있는 쪽은 그 부품(LessonDone)이 차례 펼치기·진도 칠하기를 한다. 없는 쪽(머리말)만 여기서 한다.
+  if (!document.querySelector('[data-lesson-done]')) {
+    installProgressPaint();
+    installLessonNav();
+    retargetSkipLink();
+  }
+</script>
+
+<style>
+  /* 2열: 왼쪽 교과서 차례(64rem 이상) + 오른쪽 본문(44rem — 웹 차시와 같은 폭) */
+  .book-layout {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--width-prose);
+    margin-inline: auto;
+  }
+
+  @media (min-width: 64rem) {
+    .book-layout {
+      grid-template-columns: minmax(13rem, 17rem) minmax(0, var(--width-prose));
+      justify-content: center;
+      align-items: start;
+      column-gap: var(--space-8);
+      max-width: none;
+    }
+  }
+
+  /* 발표 모드: 차례는 숨고(LessonPresent) 본문만 한 열로 가운데에 */
+  :global(html[data-presenting]) .book-layout {
+    display: block;
+    max-width: var(--width-prose);
+  }
+
+  .book-page {
+    min-width: 0;
+  }
+
+  .book-page:focus {
+    outline: none;
+  }
+
+  .book-header__where {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    margin-block-end: var(--space-2);
+    color: var(--card-unit, var(--color-accent));
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .book-header__icon {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: var(--radius-full);
+    background: var(--card-unit-soft, var(--color-accent-soft));
+  }
+
+  .book-header__title {
+    margin-block-start: var(--space-1);
+    font-weight: 800;
+  }
+
+  .book-header__label {
+    color: var(--card-unit, var(--color-accent-hover));
+  }
+
+  .book-header__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block: var(--space-3) var(--space-5);
+  }
+
+  .book-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block: 0 var(--space-6);
+  }
+
+  .lesson__tools-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 키보드 안내는 터치 기기·좁은 화면(휴대폰)에서 [앞]·[다음] 단추 안내로 바꾼다(웹 차시 쪽과 같은 규칙) */
+  .lesson__tools-touch {
+    display: none;
+  }
+
+  @media (pointer: coarse), (max-width: 40rem) {
+    .lesson__tools-keys {
+      display: none;
+    }
+
+    .lesson__tools-touch {
+      display: inline;
+    }
+  }
+
+  /* 발표 모드는 자바스크립트로 돈다 — 꺼져 있으면 단추가 없으니 설명도 숨긴다. */
+  :global(html:not(.js)) .lesson__tools {
+    display: none;
+  }
+</style>

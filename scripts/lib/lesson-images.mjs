@@ -10,6 +10,10 @@
 //   - 제3자 권리 그림(third_party: <키>)은 public/images/lessons/<폴더>/third-party/<키>/<name>.webp에 두고,
 //     sources.yaml의 category: third_party 항목이 public/images/lessons/*/third-party/<키>/** 로 그 폴더를 덮는다.
 //     출판 편집 삽화·컷(이름표 (삽)·(컷))은 운영자 결정 O10(2026-09-25)으로 운영자 자료라 third_party 없이 차시 그림 폴더에 바로 둔다.
+// ■ 교과서 쪽 그림(판 1.4.0, 결정 C135): 출판본 교과서 PDF가 원본 약칭 BOOK이다(인쇄 쪽 = PDF 쪽, 재단선 안쪽 595.28×779.53pt가 한 쪽 — 좌표(region)는 그 쪽의 왼쪽 위 기준).
+//   절에 웹 차시가 있으면 그 차시의 목록(content/lessons/uN/<차시>.images.yaml)에 `source: BOOK` 항목으로 적고 결과는 그 차시 그림 폴더에 둔다.
+//   교과서에만 있는 부분(4-2-3·uN-review·앞 부속)은 content/book/<id>.images.yaml에 적고 결과는 public/images/book/<id>/<name>.webp,
+//   앞 부속(front)의 표지·차례 그림은 public/images/book/<name>.webp(홈이 읽는다)에 둔다. 권리 규칙(스톡 멈춤 C11·제외 쪽 C26·O9)은 모든 원본과 같다.
 // ■ 옛 공용 기록 scripts/image-allowlist.yaml은 차시 밖 그림(사이트 화면 그림, 테스트 그림 등)과 도구 이전에 손으로 꺼낸 그림에 쓴다.
 // ■ 제외 쪽 scripts/image-exclusions.yaml(INVENTORY §6) — 목록에 적어도 꺼내지 않는다.
 //
@@ -23,8 +27,19 @@ import { toPosixPath } from './glob.mjs';
 import { findMatchingEntries } from './sources-registry.mjs';
 
 export const LESSONS_DIR = 'content/lessons';
+/** 교과서 쪽 md(content/book/<id>.md)와 그 옆의 그림 목록(<id>.images.yaml) 폴더 — 판 1.4.0 */
+export const BOOK_DIR = 'content/book';
 export const MANIFEST_SUFFIX = '.images.yaml';
 export const LESSON_IMAGE_ROOT = 'public/images/lessons';
+/** 교과서 쪽 전용 그림 폴더(content/book/*.images.yaml의 결과) — 판 1.4.0 */
+export const BOOK_IMAGE_ROOT = 'public/images/book';
+/** 그림 목록의 결과 폴더로 허용하는 뿌리들 */
+export const IMAGE_ROOTS = Object.freeze([LESSON_IMAGE_ROOT, BOOK_IMAGE_ROOT]);
+/**
+ * 앞 부속(front)의 그림 목록은 결과를 public/images/book/ 바로 아래에 둔다(표지 cover.webp·차례 toc-1.webp를 홈이 이 이름으로 읽는다).
+ * manifest.folder가 이 값이면 그렇게 둔다. 다른 교과서 목록의 folder는 `@book/<id>`(public/images/book/<id>/)다.
+ */
+export const BOOK_ROOT_FOLDER = '@book';
 export const LEGACY_IMAGE_ALLOWLIST = 'scripts/image-allowlist.yaml';
 export const EXCLUSIONS_FILE = 'scripts/image-exclusions.yaml';
 /** 쪽 미리 보기·얼굴 검사용 임시 파일 자리(git 제외) */
@@ -51,6 +66,8 @@ export const SOURCES = Object.freeze({
   U3: { label: '교과서 원고 III단원 01', file: '교과서_안/고등_인공지능과피지컬_3단원-1단원.pdf', kind: 'pdf', layout: 'spread', pageSize: [595.28, 779.53] },
   BT: { label: '블루투스 통신 수업 교안', file: '블루투스통신_수업교안/블루투스 통신 수업교안_0202.pdf', kind: 'pdf', layout: 'page', pageSize: [1440, 810] },
   PPT: { label: 'PyAutoGUI 수업 슬라이드', file: 'pyautugoui_소스코드/pyautogui_1122.py (1).pptx', kind: 'pptx', layout: 'slides', pageSize: [0, 0] },
+  // 출판본 교과서(판 1.4.0, 운영자 결정 O17): 쪽 = PDF 쪽(1:1). PDF 쪽에는 재단 표시(크롭 마크)가 있어 실제 한 쪽은 재단선 안쪽(trimbox)이다 — 쪽 좌표는 그 안쪽의 왼쪽 위 기준.
+  BOOK: { label: '출판본 교과서 「인공지능과 피지컬 컴퓨팅」', file: '22고등_인피컴(001-296).pdf', kind: 'pdf', layout: 'page', pageSize: [595.28, 779.53] },
 });
 
 /**
@@ -66,7 +83,7 @@ export const SPREADS = Object.freeze({
   U3: range(1, 14).map((n) => /** @type {const} */ ([n, 2 * n + 180, 2 * n + 181])),
 });
 /** 한 쪽짜리 원본의 쪽 수 */
-const PAGE_COUNTS = Object.freeze({ BT: 91, PPT: 23 });
+const PAGE_COUNTS = Object.freeze({ BT: 91, PPT: 23, BOOK: 296 });
 
 /**
  * @param {number} first
@@ -80,7 +97,7 @@ function range(first, last) {
 /**
  * @typedef {object} PageLocation
  * @property {number} pdfPage PDF 쪽(1부터). PPTX는 슬라이드 번호
- * @property {'left' | 'right' | 'full'} side 펼침면의 어느 쪽인지
+ * @property {'left' | 'right' | 'full' | 'trim'} side 펼침면의 어느 쪽인지(trim = 한 쪽짜리 PDF 쪽의 재단선 안쪽 — 출판본 BOOK)
  * @property {[number, number]} size 그 쪽의 크기(pt). 영역(region)은 이 크기 안이어야 한다
  */
 
@@ -108,7 +125,8 @@ export function locatePage(source, page) {
     return null;
   }
   const count = PAGE_COUNTS[/** @type {keyof typeof PAGE_COUNTS} */ (source)] ?? 0;
-  return page >= 1 && page <= count ? { pdfPage: page, side: 'full', size: info.pageSize } : null;
+  // BOOK은 재단선 안쪽(trimbox)이 한 쪽이다 — 일꾼(lesson_images_worker.py)의 half_rect가 side 'trim'을 trimbox로 풀어 준다.
+  return page >= 1 && page <= count ? { pdfPage: page, side: source === 'BOOK' ? 'trim' : 'full', size: info.pageSize } : null;
 }
 
 /**
@@ -300,7 +318,7 @@ function isBox(value) {
 /** @param {string} filePath */
 export function isManifestPath(filePath) {
   const posix = toPosixPath(filePath);
-  return posix.startsWith(`${LESSONS_DIR}/`) && posix.endsWith(MANIFEST_SUFFIX);
+  return (posix.startsWith(`${LESSONS_DIR}/`) || posix.startsWith(`${BOOK_DIR}/`)) && posix.endsWith(MANIFEST_SUFFIX);
 }
 
 /**
@@ -347,8 +365,12 @@ export function parseImageManifest(text, filePath) {
   const errors = [];
   const { slug, parent } = manifestNames(posix);
   if (!isManifestPath(posix) || !SLUG.test(slug)) {
-    return { manifest: null, errors: [`파일 위치·이름: content/lessons/<단원 폴더>/<차시 파일 이름>${MANIFEST_SUFFIX}로 두어요(영문 소문자·숫자·하이픈).`] };
+    return {
+      manifest: null,
+      errors: [`파일 위치·이름: content/lessons/<단원 폴더>/<차시 파일 이름>${MANIFEST_SUFFIX} 또는 content/book/<쪽 id>${MANIFEST_SUFFIX}로 두어요(영문 소문자·숫자·하이픈).`],
+    };
   }
+  const isBook = posix.startsWith(`${BOOK_DIR}/`);
   const document = parseDocument(text, { uniqueKeys: true });
   if (document.errors.length > 0) {
     return { manifest: null, errors: document.errors.map((error) => `YAML 문법 오류: ${error.message.split('\n')[0]}`) };
@@ -362,13 +384,18 @@ export function parseImageManifest(text, filePath) {
       errors.push(`맨 위의 모르는 이름 "${key}" — folder, images만 써요.`);
     }
   }
-  let folder = slug;
+  // 교과서 쪽 목록: 앞 부속(front)은 public/images/book/ 바로 아래, 그 밖은 public/images/book/<쪽 id>/ — folder 칸은 적지 않는다.
+  let folder = isBook ? (slug === 'front' ? BOOK_ROOT_FOLDER : `${BOOK_ROOT_FOLDER}/${slug}`) : slug;
   if (data.folder !== undefined) {
-    const allowed = [slug, `${parent}-${slug}`];
-    if (typeof data.folder !== 'string' || !allowed.includes(data.folder)) {
-      errors.push(`folder는 적지 않거나(기본 ${slug}) "${parent}-${slug}"로 적어요. 다른 차시와 결과 폴더가 겹치지 않게 하려는 약속이에요.`);
+    if (isBook) {
+      errors.push('교과서 쪽 그림 목록에는 folder를 적지 않아요(결과 폴더는 쪽 id가 정해요).');
     } else {
-      folder = data.folder;
+      const allowed = [slug, `${parent}-${slug}`];
+      if (typeof data.folder !== 'string' || !allowed.includes(data.folder)) {
+        errors.push(`folder는 적지 않거나(기본 ${slug}) "${parent}-${slug}"로 적어요. 다른 차시와 결과 폴더가 겹치지 않게 하려는 약속이에요.`);
+      } else {
+        folder = data.folder;
+      }
     }
   }
   if (!Array.isArray(data.images)) {
@@ -470,8 +497,8 @@ function buildEntry(raw, index, errors) {
   if (raw.privacy_override !== undefined && (typeof raw.privacy_override !== 'string' || [...raw.privacy_override.trim()].length < 10)) {
     errors.push(`${label}: privacy_override에는 제외 쪽에서 무엇을 잘라 냈는지 한 문장으로 적어요.`);
   }
-  if (raw.file !== undefined && (typeof raw.file !== 'string' || !toPosixPath(raw.file).startsWith(`${LESSON_IMAGE_ROOT}/`))) {
-    errors.push(`${label}: file은 ${LESSON_IMAGE_ROOT}/ 아래 경로예요(도구가 적어요).`);
+  if (raw.file !== undefined && (typeof raw.file !== 'string' || !IMAGE_ROOTS.some((root) => toPosixPath(raw.file).startsWith(`${root}/`)))) {
+    errors.push(`${label}: file은 ${LESSON_IMAGE_ROOT}/ 또는 ${BOOK_IMAGE_ROOT}/ 아래 경로예요(도구가 적어요).`);
   }
   if (raw.sha256 !== undefined && (typeof raw.sha256 !== 'string' || !SHA256.test(raw.sha256))) {
     errors.push(`${label}: sha256은 도구가 적는 64자리 16진수예요.`);
@@ -575,7 +602,24 @@ function buildFrom(raw, label, errors) {
  */
 export function outputPathFor(folder, entry) {
   const thirdParty = entry.thirdParty ? `third-party/${entry.thirdParty}/` : '';
-  return `${LESSON_IMAGE_ROOT}/${folder}/${thirdParty}${entry.name}.webp`;
+  return `${folderRoot(folder)}/${thirdParty}${entry.name}.webp`;
+}
+
+/**
+ * 목록의 결과 폴더(manifest.folder) → 저장소 경로(끝 슬래시 없음). 차시 목록은 public/images/lessons/<folder>,
+ * 교과서 쪽 목록은 public/images/book(front) 또는 public/images/book/<쪽 id>.
+ * @param {string} folder
+ */
+export function folderRoot(folder) {
+  if (folder === BOOK_ROOT_FOLDER) return BOOK_IMAGE_ROOT;
+  if (folder.startsWith(`${BOOK_ROOT_FOLDER}/`)) return `${BOOK_IMAGE_ROOT}/${folder.slice(BOOK_ROOT_FOLDER.length + 1)}`;
+  return `${LESSON_IMAGE_ROOT}/${folder}`;
+}
+
+/** 이 경로가 그림 목록이 관리하는 폴더(차시 그림·교과서 그림) 안인지 */
+export function isManagedImagePath(filePath) {
+  const posix = toPosixPath(filePath);
+  return IMAGE_ROOTS.some((root) => posix.startsWith(`${root}/`));
 }
 
 /**
@@ -922,8 +966,8 @@ export function collectImageRecords(files) {
       if (typeof imagePath !== 'string') {
         return; // 차시 목록에서 아직 꺼내지 않은 항목(file 없음)
       }
-      if (!isLegacy && !toPosixPath(imagePath).startsWith(`${LESSON_IMAGE_ROOT}/`)) {
-        errors.push({ file: filePath, message: `images의 ${index + 1}번째 항목: 차시 그림 목록의 file은 ${LESSON_IMAGE_ROOT}/ 아래 그림만 적어요(다른 그림은 ${LEGACY_IMAGE_ALLOWLIST}).` });
+      if (!isLegacy && !isManagedImagePath(imagePath)) {
+        errors.push({ file: filePath, message: `images의 ${index + 1}번째 항목: 차시 그림 목록의 file은 ${LESSON_IMAGE_ROOT}/ 또는 ${BOOK_IMAGE_ROOT}/ 아래 그림만 적어요(다른 그림은 ${LEGACY_IMAGE_ALLOWLIST}).` });
         return;
       }
       add(toPosixPath(imagePath), {
@@ -949,7 +993,7 @@ export function readImageRecords(rootDir) {
 }
 
 /**
- * content/lessons 아래의 그림 목록 파일(저장소 뿌리 기준 경로, 정렬).
+ * content/lessons·content/book 아래의 그림 목록 파일(저장소 뿌리 기준 경로, 정렬).
  * @param {string} rootDir
  * @returns {string[]}
  */
@@ -966,6 +1010,7 @@ export function listManifestFiles(rootDir) {
     }
   };
   walk(LESSONS_DIR);
+  walk(BOOK_DIR);
   return found.sort();
 }
 
@@ -973,9 +1018,10 @@ export function listManifestFiles(rootDir) {
  * 폴더 아래 래스터 그림 파일(저장소 뿌리 기준 경로).
  * @param {string} rootDir
  * @param {string} relative
+ * @param {boolean} [flat] true면 그 폴더 바로 안의 파일만(하위 폴더는 다른 목록의 몫 — 교과서 앞 부속 그림이 public/images/book/ 바로 아래라서)
  * @returns {string[]}
  */
-function listRasterFiles(rootDir, relative) {
+function listRasterFiles(rootDir, relative, flat = false) {
   /** @type {string[]} */
   const found = [];
   const walk = (/** @type {string} */ current) => {
@@ -983,8 +1029,9 @@ function listRasterFiles(rootDir, relative) {
     if (!fs.existsSync(absolute)) return;
     for (const dirent of fs.readdirSync(absolute, { withFileTypes: true })) {
       const child = `${current}/${dirent.name}`;
-      if (dirent.isDirectory()) walk(child);
-      else if (RASTER_EXTENSIONS.includes(path.posix.extname(dirent.name).toLowerCase())) found.push(child);
+      if (dirent.isDirectory()) {
+        if (!flat) walk(child);
+      } else if (RASTER_EXTENSIONS.includes(path.posix.extname(dirent.name).toLowerCase())) found.push(child);
     }
   };
   walk(relative);
@@ -1016,7 +1063,7 @@ export function validateLessonImages({ rootDir, registryEntries, exclusionRules 
     manifests.push(manifest);
     const owner = folderOwners.get(manifest.folder);
     if (owner) {
-      errors.push(`${manifestFile}: 결과 폴더 ${LESSON_IMAGE_ROOT}/${manifest.folder}/를 ${owner}도 써요. 한 폴더는 한 차시만 써요(folder: <단원 폴더>-<차시>).`);
+      errors.push(`${manifestFile}: 결과 폴더 ${folderRoot(manifest.folder)}/를 ${owner}도 써요. 한 폴더는 한 차시만 써요(folder: <단원 폴더>-<차시>).`);
     }
     folderOwners.set(manifest.folder, manifestFile);
     /** @type {Set<string>} */
@@ -1028,8 +1075,8 @@ export function validateLessonImages({ rootDir, registryEntries, exclusionRules 
         const { problem } = checkExclusionPolicy(entry, exclusionRules);
         if (problem) errors.push(`${label}: ${problem}`);
       } else if (entry.file) {
-        const folderRoot = `${LESSON_IMAGE_ROOT}/${manifest.folder}/`;
-        const thirdRoot = entry.thirdParty ? `${folderRoot}third-party/${entry.thirdParty}/` : folderRoot;
+        const ownRoot = `${folderRoot(manifest.folder)}/`;
+        const thirdRoot = entry.thirdParty ? `${ownRoot}third-party/${entry.thirdParty}/` : ownRoot;
         if (!entry.file.startsWith(thirdRoot) || (!entry.thirdParty && entry.file.split('/').includes('third-party'))) {
           errors.push(`${label}: origin 그림의 file은 ${thirdRoot} 안에 둬요.`);
         }
@@ -1067,7 +1114,7 @@ export function validateLessonImages({ rootDir, registryEntries, exclusionRules 
         warnings.push(`${label}: 눈 확인 기록이 아직 없어요(${review}). 그림을 열어 보고 reviewed를 적어야 커밋할 수 있어요.`);
       }
     }
-    for (const file of listRasterFiles(rootDir, `${LESSON_IMAGE_ROOT}/${manifest.folder}`)) {
+    for (const file of listRasterFiles(rootDir, folderRoot(manifest.folder), manifest.folder === BOOK_ROOT_FOLDER)) {
       if (!listed.has(file)) {
         errors.push(`${manifestFile}: ${file}이(가) 목록에 없어요. 쓰지 않는 그림이면 지우고, 쓰는 그림이면 목록에 적어요.`);
       }

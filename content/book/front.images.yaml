@@ -1,0 +1,79 @@
+# 교과서 앞 부속(표지·차례)의 그림 목록 — 허용 목록 + 눈 확인 기록(판 1.4.0, 운영자 결정 O17, DECISIONS C135)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본(출판본 교과서 PDF, 원본 약칭 BOOK)에서 꺼내요: npm run images:extract -- front
+# 결과는 public/images/book/ 바로 아래 WebP(메타데이터 없음) — 홈과 /book/ 첫 화면이 cover.webp·toc-1.webp·toc-2.webp 이름으로 읽어요.
+# 쪽 좌표 고르기: npm run images:show -- BOOK 4 (BOOK의 쪽 좌표는 재단선 안쪽 595.28×779.53pt의 왼쪽 위가 (0, 0)이에요)
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요). 적는 법은 MAINTENANCE.md 3절.
+#
+# 표지 1쪽, 차례 4·5쪽은 쪽 전체를 그림으로 그려요(글자와 그림이 섞인 쪽이라 region으로). 사진 출처가 스톡인 쪽(10·11·15·… 쪽)은 쓰지 않아요(결정 C11).
+
+images:
+  - name: cover
+    use: 교과서 첫 화면(/book/)과 홈의 표지 그림 — 출판본 1쪽(표지)
+    alt: "교과서 「인공지능과 피지컬 컴퓨팅」의 표지: 남색 세로 글씨 제목, 저자 이름 다섯 명, 한 손을 뻗어 손 모양을 인식시키는 학생 그림"
+    from:
+      source: BOOK
+      page: 1
+      region: [0, 0, 595.28, 779.53]
+      dpi: 112
+    max_width: 1000
+    quality: 88
+    file: public/images/book/cover.webp
+    width: 927
+    height: 1213
+    bytes: 35798
+    sha256: "0c1cee910b7c483cbb2ba812c114dafbac0cb5b67c7346c7c662f31afa80f8dc"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 1쪽(표지)을 재단선 안쪽만 그린 그림: 남색 세로 제목 \"인공지능과 피지컬 컴퓨팅\"·\"고등학교\" 칩, 저자 이름 다섯 명(책에 인쇄된 저자 표기 — 홈 출처 줄에도 쓰는 공개 이름), 손을 뻗어 손 모양 인식 화면을 켠 학생 일러스트(사진이 아니라 그린 그림, 권리 표기 없음). 재단 표시·indd 파일 이름 줄·화면 속 경로·기기 주소·학교명 없음"
+  - name: toc-1
+    use: 홈의 교과서 차례 그림(왼쪽 쪽) — 출판본 4쪽(차례 1단원·2단원)
+    alt: "교과서 차례 왼쪽 쪽: 1단원 영상 처리 인공지능(인공지능과 인식, 핸드 트래킹, 페이스 메시, 포즈 트래킹과 음성 인식)과 2단원 피지컬 컴퓨팅(디스플레이 장치 제어, 출력 장치 제어)의 절 이름과 시작 쪽"
+    from:
+      source: BOOK
+      page: 4
+      region: [0, 0, 595.28, 779.53]
+      dpi: 144
+    max_width: 1200
+    quality: 88
+    file: public/images/book/toc-1.webp
+    width: 1192
+    height: 1560
+    bytes: 82258
+    sha256: "f39291e4c849fd1937ecac3f51be7ffc4d797b793a918577d585420fa9f5c6d2"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 4쪽(이 책의 차례 1단원·2단원)을 재단선 안쪽만 그린 그림: 절 이름과 시작 쪽 숫자, 태양광 패널을 보는 학생 일러스트(그린 그림, 권리 표기 없음)뿐. 얼굴 사진·이름·경로·기기 주소·학교명 없음"
+  - name: toc-2
+    use: 홈의 교과서 차례 그림(오른쪽 쪽) — 출판본 5쪽(차례 3단원·4단원)
+    alt: "교과서 차례 오른쪽 쪽: 3단원 인공지능과 피지컬 컴퓨팅(인공지능 피지컬 통신 방법)과 4단원 지능화 사물 개발 프로젝트(얼굴 인식 기반 비접촉 마우스 컨트롤러 개발, 인공지능 신호 기반 물리적 피드백 시스템 제작)의 절 이름과 시작 쪽"
+    from:
+      source: BOOK
+      page: 5
+      region: [0, 0, 595.28, 779.53]
+      dpi: 144
+    max_width: 1200
+    quality: 88
+    file: public/images/book/toc-2.webp
+    width: 1192
+    height: 1560
+    bytes: 62600
+    sha256: "b8249767b40b3295811b314c2f49fbf9eb2c6f4def7e10567608e06cbee44836"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 5쪽(이 책의 차례 3단원·4단원)을 재단선 안쪽만 그린 그림: 절 이름과 시작 쪽 숫자, 파도·온도계 앞의 학생 일러스트(그린 그림, 권리 표기 없음)뿐. 얼굴 사진·이름·경로·기기 주소·학교명 없음"

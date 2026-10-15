@@ -25,9 +25,11 @@ interface Props {
   source: string;
   /** 교사용 접기 끝의 "이 차시의 원고와 자료"에 쓰는 값(plan에 teacher 자리가 있을 때만 쓰인다) */
   teacher?: { data: Pick<LessonData, 'kind' | 'pages' | 'standards' | 'handouts'> & Partial<Pick<LessonData, 'unit' | 'label'>>; source: LessonSource | undefined };
+  /** 교과서 쪽(판 1.4.0): 예제 자리에 코드 없이 [이 자리에서 실습실 열기]만 그린다(코드는 쪽 본문에 이미 있다) */
+  launcherOnly?: boolean;
 }
 
-const { plan, examples, quiz, lab, lessonId, source, teacher } = Astro.props;
+const { plan, examples, quiz, lab, lessonId, source, teacher, launcherOnly = false } = Astro.props;
 const idPrefix = lessonId.replace(/[^a-z\d-]/giu, '-');
 const quizPrefix = `quiz-${idPrefix}`;
 ---
@@ -38,7 +40,7 @@ const quizPrefix = `quiz-${idPrefix}`;
       part.type === 'html' ? (
         <Fragment set:html={part.html} />
       ) : part.slot === 'examples' ? (
-        <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} />
+        <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} launcherOnly={launcherOnly} />
       ) : part.slot === 'quiz' ? (
         <LessonQuiz items={quiz} idPrefix={quizPrefix} />
       ) : (
@@ -53,7 +55,7 @@ const quizPrefix = `quiz-${idPrefix}`;
           part.type === 'html' ? (
             <Fragment set:html={part.html} />
           ) : part.slot === 'examples' ? (
-            <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} />
+            <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} launcherOnly={launcherOnly} />
           ) : part.slot === 'quiz' ? (
             <LessonQuiz items={quiz} idPrefix={quizPrefix} />
           ) : (

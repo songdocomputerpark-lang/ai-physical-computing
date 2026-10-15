@@ -12,65 +12,69 @@
  * 그래서 진도 단위(data-progress-unit)가 <details> 전체에 걸려 있고, 요약 줄과 펼친 머리의 두 [data-progress-count]를 한꺼번에 칠한다.
  * 보충·읽기 자료 차시에는 작은 종류 칩(보충)을 붙여 교과서 차시와 구별한다(R1-086).
  */
-import { buildUnitOutline, kindBadge, type LessonSummary } from './lesson-data.ts';
 import { progressIds, unitCardClass } from './unit-style.ts';
+import { unitSidebarOutline, type SidebarOutline } from './sidebar-outline.ts';
 import type { LearnUnit } from '../../config/nav.ts';
+import type { LessonSummary } from './lesson-data.ts';
 
+/**
+ * 웹 차시 쪽은 lesson·lessons·unit을 넘기고, 다른 차례(교과서 쪽의 "교과서 차례", 판 1.4.0)는 outline을 직접 넘긴다 —
+ * 어느 쪽이든 같은 부품이 그려서 링크·진도 표시·펼치기·초점 규칙이 하나다(sidebar-outline.ts 머리말).
+ */
 interface Props {
-  lesson: LessonSummary;
-  lessons: readonly LessonSummary[];
-  unit: LearnUnit;
+  lesson?: LessonSummary;
+  lessons?: readonly LessonSummary[];
+  unit?: LearnUnit;
+  outline?: SidebarOutline;
 }
 
-const { lesson, lessons, unit } = Astro.props;
-const sections = buildUnitOutline(unit.unit, lessons).filter((section) => section.items.some((item) => item.lesson));
-const ids = sections.flatMap((section) => section.items.flatMap((item) => (item.lesson ? [item.lesson.id] : [])));
+const { lesson, lessons, unit, outline: given } = Astro.props;
+const outline = given ?? (lesson && lessons && unit ? unitSidebarOutline(unit, lessons, lesson.id) : undefined);
+if (!outline) {
+  throw new Error('LessonSidebar: lesson·lessons·unit 또는 outline을 넘겨요.');
+}
+const groups = outline.groups.filter((group) => group.items.length > 0);
+const ids = groups.flatMap((group) => group.items.flatMap((item) => (item.progressId ? [item.progressId] : [])));
+// 단원 진도(글·막대)는 웹 차시 쪽만 — 교과서 차례는 항목 앞 표시만 칠한다(같은 진도를 쓰는 짝이 없는 쪽이 섞여 "N차시 중"이 맞지 않는다).
+const progressAttrs = outline.showProgress ? { 'data-progress-unit': progressIds(ids), 'data-progress-label': outline.progressLabel ?? '' } : {};
 ---
 
 <details
-  class:list={['more', 'lesson-nav', unitCardClass(unit.unit)]}
-  data-lesson-nav
-  data-progress-unit={progressIds(ids)}
-  data-progress-label={`${unit.unit}단원`}
+  class:list={['more', 'lesson-nav', unitCardClass(outline.unit)]}
+  data-lesson-nav {...progressAttrs}
   data-present-hide
   data-embed-hide
   data-pagefind-ignore
 >
-  <summary>이 단원 차시 목록 펼치기{' '}<span class="lesson-nav__summary-count" data-progress-count /></summary>
+  <summary>{outline.summaryLabel}{' '}{outline.showProgress && <span class="lesson-nav__summary-count" data-progress-count />}</summary>
   <div class="lesson-nav__scroll" data-lesson-nav-scroll>
-    <nav class="lesson-nav__nav" aria-label="단원 차시 목록">
-      <a class="lesson-nav__skip" href="#lesson-article">차시 목록 건너뛰기</a>
+    <nav class="lesson-nav__nav" aria-label={outline.navLabel}>
+      <a class="lesson-nav__skip" href="#lesson-article">{outline.navLabel === '단원 차시 목록' ? '차시 목록 건너뛰기' : `${outline.navLabel} 건너뛰기`}</a>
       <div class="lesson-nav__head">
         <p class="lesson-nav__unit">
-          <a href={unit.href}>{unit.title}</a>
+          <a href={outline.titleHref}>{outline.title}</a>
         </p>
-        <p class="lesson-nav__count" data-progress-count />
-        <div class="progress-bar" data-progress-bar aria-hidden="true" />
+        {outline.showProgress && <p class="lesson-nav__count" data-progress-count />}
+        {outline.showProgress && <div class="progress-bar" data-progress-bar aria-hidden="true" />}
       </div>
       {
-        sections.map((section) => (
+        groups.map((group) => (
           <div class="lesson-nav__group">
-            <p class="lesson-nav__group-title" id={`nav-${section.key}`}>
-              {section.title}
+            <p class="lesson-nav__group-title" id={`nav-${group.key}`}>
+              {group.title}
             </p>
-            <ul class="lesson-nav__list" aria-labelledby={`nav-${section.key}`}>
-              {section.items.map((item) =>
-                item.lesson ? (
-                  <li class="lesson-nav__item" data-progress-lesson={item.lesson.id}>
-                    <a
-                      class="lesson-nav__link"
-                      href={item.lesson.href}
-                      aria-current={item.lesson.id === lesson.id ? 'page' : undefined}
-                    >
-                      <span class="lesson-nav__label">{item.label}</span>{' '}
-                      {kindBadge(item.kind) && <span class="lesson-nav__kind">{kindBadge(item.kind)}</span>}
-                      {kindBadge(item.kind) && ' '}
-                      <span class="lesson-nav__title">{item.title}</span>
-                    </a>
-                    <span class="visually-hidden" data-progress-badge />
-                  </li>
-                ) : null,
-              )}
+            <ul class="lesson-nav__list" aria-labelledby={`nav-${group.key}`}>
+              {group.items.map((item) => (
+                <li class="lesson-nav__item" data-progress-lesson={item.progressId}>
+                  <a class="lesson-nav__link" href={item.href} aria-current={item.id === outline.currentId ? 'page' : undefined}>
+                    <span class="lesson-nav__label">{item.label}</span>{' '}
+                    {item.badge && <span class="lesson-nav__kind">{item.badge}</span>}
+                    {item.badge && ' '}
+                    <span class="lesson-nav__title">{item.title}</span>
+                  </a>
+                  {item.progressId && <span class="visually-hidden" data-progress-badge />}
+                </li>
+              ))}
             </ul>
           </div>
         ))

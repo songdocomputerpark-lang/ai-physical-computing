@@ -49,10 +49,10 @@ describe('사이트 지도의 아이콘(nav.ts icon)', () => {
     }
   });
 
-  it('머리글 주 메뉴 여섯 곳의 아이콘은 서로 다르다(아이콘만 봐도 구분)', () => {
+  it('머리글 주 메뉴 일곱 곳의 아이콘은 서로 다르다(아이콘만 봐도 구분 — 판 1.4.0: 교과서는 닫힌 책 textbook)', () => {
     const icons = headerNav.map((page) => page.icon);
     expect(new Set(icons).size).toBe(icons.length);
-    expect(icons).toEqual(['flag', 'book', 'flask', 'teacher', 'lifebuoy', 'glossary']);
+    expect(icons).toEqual(['flag', 'textbook', 'book', 'flask', 'teacher', 'lifebuoy', 'glossary']);
   });
 });
 

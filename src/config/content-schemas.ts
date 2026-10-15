@@ -1,4 +1,5 @@
 // 콘텐츠 frontmatter 규칙(PLAN §2.6, DECISIONS C8, PD-21·PD-35) — src/content.config.ts가 쓴다.
+// 교과서 쪽(content/book/, 판 1.4.0 — DECISIONS C131) 규칙 bookSchema도 여기 있다. 쪽 본문·쪽 표지 규칙은 src/components/book/book-rules.ts.
 // 단위 테스트(tests/unit/content-schemas.test.ts)도 같은 규칙을 검사한다.
 //
 // - 빌드를 멈추는 것은 frontmatter 형식 오류뿐이다(PD-35). 본문 8칸(SPEC §7.2)이 빠졌다는 경고는 차시 검사(P5-02)가 맡는다.
@@ -12,6 +13,7 @@ import { EXAMPLE_COMM_KINDS } from '../lab/gallery/facets.ts';
 export const CONTENT_DIRS = Object.freeze({
   lessons: './content/lessons',
   glossary: './content/glossary',
+  book: './content/book',
 });
 
 /** 대단원 번호 */
@@ -213,5 +215,50 @@ export const glossarySchema = z.looseObject({
   draft: z.boolean().default(false),
 });
 
+/** 교과서 쪽의 매체 표시: 카메라 · 마이크 · 인터넷 · 보드(실제 보드 있으면 더 좋아요 — 가상 보드로도 끝까지 할 수 있다, SPEC 원칙 3) */
+export const BOOK_MEDIA = ['camera', 'mic', 'web', 'board'] as const;
+/**
+ * 교과서 쪽 id(파일 이름에서 .md를 뗀 것): 절 = 사이트 차시 번호(1-1-1 … 4-2-3), 대단원 시작 = u1-intro…u4-intro,
+ * 대단원 마무리 = u1-review…u4-review, 앞 부속(머리말·구성과 특징) = front.
+ */
+export const BOOK_ID_PATTERN = /^(?:[1-4]-[1-9]-[1-9]|u[1-4]-(?:intro|review)|front)$/u;
+/** 교과서 쪽 범위. 예: "124~131", 한 쪽이면 "8" */
+export const BOOK_PAGES_PATTERN = /^[1-9]\d{0,2}(?:~[1-9]\d{0,2})?$/u;
+
+/** 같음 검사(npm run book:fidelity)에서 글자 겹침이 모자라도 통과시킬 쪽과 그 까닭 */
+const fidelityExceptionSchema = z.object({
+  page: z.number({ error: '예외로 둘 쪽 번호(page)를 숫자로 적어요.' }).int().positive(),
+  reason: z.string({ error: '예외의 까닭(reason)을 적어요. 예: "회로 그림 안 글자"' }).min(1, { error: '예외의 까닭(reason)을 적어요. 예: "회로 그림 안 글자"' }),
+});
+
+/** 교과서 쪽(content/book/) frontmatter — 출판본(금성출판사 「인공지능과 피지컬 컴퓨팅」) 절 하나 = md 하나 */
+export const bookSchema = z.looseObject({
+  /** 쪽 id. 파일 이름과 같다(검사는 book-rules) */
+  id: z.string({ error: '쪽 id(id)를 적어요. 예: 2-1-2' }).regex(BOOK_ID_PATTERN, {
+    error: '쪽 id(id)는 절 번호(2-1-2), 대단원 시작(u2-intro)·마무리(u2-review), 앞 부속(front) 가운데 하나로 적어요.',
+  }),
+  /** 출판본 절 제목 그대로 */
+  title: z.string().min(1, { error: '제목(title)을 적어요.' }),
+  /** 대단원 번호 1~4. 앞 부속(front)만 적지 않는다 */
+  unit: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)], { error: '대단원 번호(unit)는 1, 2, 3, 4 중 하나로 적어요.' }).optional(),
+  /** 중단원(번호 포함, 출판본 그대로). 예: "01 디스플레이 장치 제어". 절만 적는다 */
+  part: z.string().min(1).optional(),
+  /** 중단원 안 순서(절 번호). 차례 정렬은 쪽 번호가 먼저라 보조 값이다 */
+  order: z.number({ error: '순서(order)를 숫자로 적어요.' }).nonnegative(),
+  /** 인쇄 쪽 범위. 예: "124~131" */
+  pages: z.string({ error: '쪽 범위(pages)를 글자로 적어요. 예: "124~131"' }).regex(BOOK_PAGES_PATTERN, { error: '쪽 범위(pages)는 "124~131"처럼 쪽 번호를 ~로 이어 적어요(한 쪽이면 "8").' }),
+  /** 짝 웹 차시(풀이·실습)의 차시 번호(label)나 파일 이름. 없으면 적지 않는다 */
+  lesson: z.string().min(1).optional(),
+  /** 매체(홈 카드·쪽 머리의 아이콘) */
+  media: z
+    .array(z.enum(BOOK_MEDIA, { error: `매체(media)는 ${BOOK_MEDIA.join('·')} 가운데 골라 적어요.` }))
+    .default([]),
+  /** 초안이면 true(차례·검색에서 뺀다) */
+  draft: z.boolean().default(false),
+  /** 같음 검사 예외 */
+  fidelity_exceptions: z.array(fidelityExceptionSchema).default([]),
+});
+
 export type LessonData = z.infer<typeof lessonSchema>;
 export type GlossaryData = z.infer<typeof glossarySchema>;
+export type BookData = z.infer<typeof bookSchema>;

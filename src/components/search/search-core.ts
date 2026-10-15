@@ -184,7 +184,8 @@ export function kindOfPath(path: string | undefined): ResultKind {
   if (path.startsWith('/teacher/') || path.startsWith('/start/teacher/')) {
     return 'teacher';
   }
-  if (path.startsWith('/learn/')) {
+  if (path.startsWith('/learn/') || path.startsWith('/book/')) {
+    // 교과서 쪽(/book/ — 판 1.4.0)도 차시 칩 안에 둔다(같은 절의 두 얼굴)
     return 'learn';
   }
   if (path.startsWith('/start/')) {

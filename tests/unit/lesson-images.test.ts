@@ -104,8 +104,17 @@ describe('원본 쪽 찾기(locatePage)', () => {
     expect(printedPageAt('BT', 7, 900)).toBe(7);
   });
 
-  it('원본 약칭은 INVENTORY 표기 약속의 일곱 가지다', () => {
-    expect(Object.keys(SOURCES)).toEqual(['U1', 'U2A', 'U2B', 'U2C', 'U3', 'BT', 'PPT']);
+  it('원본 약칭은 INVENTORY 표기 약속의 일곱 가지 + 출판본 교과서 BOOK(판 1.4.0)이다', () => {
+    expect(Object.keys(SOURCES)).toEqual(['U1', 'U2A', 'U2B', 'U2C', 'U3', 'BT', 'PPT', 'BOOK']);
+  });
+
+  it('출판본 교과서 BOOK은 인쇄 쪽 = PDF 쪽(1:1)이고 재단선 안쪽(trim)이 한 쪽이다', () => {
+    expect(locatePage('BOOK', 124)).toEqual({ pdfPage: 124, side: 'trim', size: [595.28, 779.53] });
+    expect(locatePage('BOOK', 1)).toMatchObject({ pdfPage: 1, side: 'trim' });
+    expect(locatePage('BOOK', 296)).toMatchObject({ pdfPage: 296 });
+    expect(locatePage('BOOK', 297)).toBeNull();
+    expect(locatePage('BOOK', 0)).toBeNull();
+    expect(printedPageAt('BOOK', 124, 100)).toBe(124);
   });
 });
 
@@ -232,6 +241,26 @@ describe('차시 그림 목록(parseImageManifest)', () => {
     expect(ok.manifest?.folder).toBe('u1-review');
     const bad = parseImageManifest('folder: 1-1-2\nimages: []\n', 'content/lessons/u1/review.images.yaml');
     expect(bad.errors.join('\n')).toContain('folder');
+  });
+
+  it('교과서 쪽 그림 목록(content/book/*.images.yaml, 판 1.4.0): 앞 부속(front)은 public/images/book/ 바로 아래, 그 밖은 public/images/book/<쪽 id>/', () => {
+    const entry = 'images:\n  - { name: cover, use: 표지, alt: 교과서 표지 그림이에요, from: { source: BOOK, page: 1, region: [0, 0, 595.28, 779.53] } }\n';
+    const front = parseImageManifest(entry, 'content/book/front.images.yaml');
+    expect(front.errors).toEqual([]);
+    expect(front.manifest?.folder).toBe('@book');
+    expect(outputPathFor(front.manifest!.folder, front.manifest!.images[0]!)).toBe('public/images/book/cover.webp');
+    const section = parseImageManifest(entry, 'content/book/4-2-3.images.yaml');
+    expect(section.manifest?.folder).toBe('@book/4-2-3');
+    expect(outputPathFor(section.manifest!.folder, section.manifest!.images[0]!)).toBe('public/images/book/4-2-3/cover.webp');
+    // 결과 폴더는 쪽 id가 정한다 — folder 칸은 쓰지 않는다
+    expect(parseImageManifest(`folder: x\n${entry}`, 'content/book/front.images.yaml').errors.join('\n')).toContain('folder');
+    // BOOK 쪽 좌표는 재단선 안쪽(595.28×779.53pt) 안이어야 한다
+    const outside = parseImageManifest('images:\n  - { name: a, use: 쓰는 곳, alt: 여덟 글자 넘는 설명이에요, from: { source: BOOK, page: 1, region: [0, 0, 668, 853] } }\n', 'content/book/front.images.yaml');
+    expect(outside.errors.join('\n')).toContain('쪽 크기');
+    // 웹 차시 목록에서도 source: BOOK을 쓸 수 있다(결과는 그 차시 그림 폴더)
+    const lesson = parseImageManifest(entry, 'content/lessons/u2/2-1-2.images.yaml');
+    expect(lesson.errors).toEqual([]);
+    expect(outputPathFor(lesson.manifest!.folder, lesson.manifest!.images[0]!)).toBe('public/images/lessons/2-1-2/cover.webp');
   });
 
   it('칸이 틀리면 한국어로 알린다', () => {
@@ -420,12 +449,21 @@ describe('눈 확인 기록 모으기(collectImageRecords)', () => {
     expect(errors.map((error) => error.message).join('\n')).toContain('기록은 한 곳에만');
   });
 
-  it('차시 그림 목록은 차시 그림 폴더(public/images/lessons/) 밖의 그림을 기록하지 못한다', () => {
+  it('차시 그림 목록은 차시 그림 폴더(public/images/lessons/)·교과서 그림 폴더(public/images/book/) 밖의 그림을 기록하지 못한다', () => {
     const { records, errors } = collectImageRecords([
       { path: 'content/lessons/u1/1-1-2.images.yaml', content: `images:\n  - { name: x, file: tests/e2e/shot.png, ${reviewed} }\n` },
     ]);
     expect(records.size).toBe(0);
     expect(errors[0]?.message).toContain('public/images/lessons/');
+    expect(errors[0]?.message).toContain('public/images/book/');
+  });
+
+  it('교과서 쪽 그림 목록(content/book/*.images.yaml)의 기록도 모은다(public/images/book/ 아래)', () => {
+    const { records, errors } = collectImageRecords([
+      { path: 'content/book/front.images.yaml', content: `images:\n  - { name: cover, file: public/images/book/cover.webp, sha256: ${'b'.repeat(64)}, ${reviewed} }\n` },
+    ]);
+    expect(errors).toEqual([]);
+    expect(records.get('public/images/book/cover.webp')).toMatchObject({ recordFile: 'content/book/front.images.yaml', sha256: 'b'.repeat(64) });
   });
 });
 

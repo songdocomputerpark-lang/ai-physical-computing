@@ -26,6 +26,13 @@
 //   생성형 AI에게 …를 물어보고 …해 보세요.            상자 끝에 "생성형 AI의 도움을 받은 부분을 표시해요…" 안내(GENAI_NOTE)가 저절로 붙는다
 //   :::
 //
+// 교과서 쪽(content/book/, 판 1.4.0)에서만 쓰는 꼭지 상자와 쪽 표지(book: true — 웹 차시에서 쓰면 npm run check:lessons가 오류로 막는다, 규칙 book-only)
+//   ::쪽[125]                                  ← 교과서 쪽이 바뀌는 자리마다 한 줄. <p class="book-page-mark" id="p125">교과서 125쪽</p>가 된다
+//   :::말풍선 / :::해보기[GenAI와 함께 탐구하기] / :::용어풀이[투과율] / :::연결레시피[센서 연결 레시피] / :::에러체크[LCD 출력 에러 체크 포인트]
+//   :::결과 / :::점검하기 / :::자기평가 / :::학습활동 / :::읽기자료[AI로 읽는 세상] / :::성취계획 / :::코드설명 / :::그림생략[교과서 10쪽 사진] / :::웹정정[무엇]
+//   ::실습실[esp32/u2/2-1-2-lcd-count.py]       ← 코드 바로 아래에 [이 자리에서 실습실 열기]를 둔다(자리 표시 <div data-book-lab>, src/components/book/book-html.ts가 부품으로 바꿈)
+//   쓰는 법 전체는 content/book/2-1-2.md(기준 쪽)와 MAINTENANCE.md의 교과서 쪽 절.
+//
 // 상자 종류는 아래 BOX_TYPES에 있다. 영어 이름(:::teacher 등)도 같은 뜻이다.
 // 모르는 이름(:::교사욯 같은 오타)은 상자로 바꾸지 않고 글자를 그대로 보여 주며, 빌드 로그에 경고를 남긴다(PD-35: 빌드는 멈추지 않음).
 //
@@ -54,6 +61,8 @@ import path from 'node:path';
  * @property {boolean} searchable 사이트 검색(Pagefind) 색인에 넣는지. false면 data-pagefind-ignore를 붙인다
  * @property {string} use 쓰임새와 근거
  * @property {string | undefined} note 상자 끝에 늘 붙는 안내 문장(<p class="box__note">). 없으면 붙이지 않는다
+ * @property {boolean} book 교과서 쪽(content/book/) 전용 상자인지. true면 웹 차시에서 쓸 수 없다(npm run check:lessons 규칙 book-only)
+ * @property {boolean} keepName 대괄호 글자를 제목으로 바꾸지 않고 "기본 제목: 대괄호 글자"로 보이는 상자인지(웹정정·그림생략 — 이름이 곧 뜻이라 늘 보여야 한다)
  */
 
 /**
@@ -78,7 +87,25 @@ export const BOX_TYPES = Object.freeze([
   boxType('참고', ['note'], 'note', '참고', false, '덧붙이는 설명'),
   boxType('더알아보기', ['more'], 'more', '더 알아보기', true, '본문 줄기 밖의 참고 표·자세한 설명을 접어 둔다(한 쪽 한 개념, SPEC §7.1 — 2026-09-25 Phase 5 검토 중요 3)'),
   boxType('교사용', ['teacher'], 'teacher', '지도 요약·평가 포인트 보기', true, '지도 요약·평가 포인트·자주 막히는 곳(SPEC §7.2 8번)', false),
+  // ── 교과서 쪽 전용(판 1.4.0, DECISIONS C134) — 출판본 꼭지 16종(.cache/v140/notes/a2 §3)을 모양 그대로. 제목은 늘 글자로 보인다 ──
+  bookBox('말풍선', 'bubble', '말풍선', '로봇 캐릭터가 건네는 한두 문장의 팁(출판본 말풍선)'),
+  bookBox('해보기', 'think', '해 보기', '생각해 보기·GenAI와 함께 탐구하기 활동(출판본 "해 보기")'),
+  bookBox('용어풀이', 'term', '용어 풀이', '본문 옆 ✽ 낱말과 뜻 2~4줄(출판본 용어 풀이 — 제목 칸에 낱말을 적는다)'),
+  bookBox('연결레시피', 'recipe', '연결 레시피', '2·3단원 회로 구성의 "○○ 연결 레시피" 판(색 점 범례 + 배선 사진)'),
+  bookBox('에러체크', 'errcheck', '에러 체크 포인트', '2단원 동작 테스트 뒤 "○○ 에러 체크 포인트" 표(에러 메시지·의미·원인)'),
+  bookBox('결과', 'result', '실행 결과', '"실행 결과" 칩 — 실행 화면 사진 + 설명(1·4단원은 뒤에 :::점검하기)'),
+  bookBox('점검하기', 'verify', '점검하기', '"결과"의 ❷ 점검하기 체크 목록(1·4단원)'),
+  bookBox('자기평가', 'selfcheck', '자기 평가', '절 끝의 "평가 항목 / 잘한 정도" 표'),
+  bookBox('학습활동', 'activity', '학습 활동', '절 마지막 쪽의 활동지(탐구·표 채우기·생성형 AI 과제)'),
+  bookBox('읽기자료', 'reading', '읽기 자료', '"AI로 읽는 세상" 한 쪽 읽기 글(제목 칸에 읽기 글 제목)'),
+  bookBox('성취계획', 'plan', '성취 계획', '중단원 시작 쪽 "나의 학업 성취 계획을 세워 보자" 질문 목록'),
+  bookBox('코드설명', 'codenote', '코드 설명', '코드 줄 옆에 붙은 설명 풍선(코드 블록 바로 뒤 번호 목록)'),
+  bookBox('그림생략', 'omitted', '그림 생략', '권리 때문에 싣지 못한 그림 자리(스톡 그림 — DECISIONS C11·C135). 제목 칸에 "교과서 n쪽 사진"', true),
+  bookBox('웹정정', 'webfix', '웹에서 바로잡은 곳', '출판본 코드·글의 오류를 원문은 두고 알리는 상자(DECISIONS C135). 제목 칸에 무엇을 바로잡았는지', true),
 ]);
+
+/** 교과서 쪽 전용 상자의 variant 목록(웹 차시 검사 book-only가 쓴다) */
+export const BOOK_BOX_VARIANTS = Object.freeze(BOX_TYPES.filter((type) => type.book).map((type) => type.variant));
 
 /**
  * @param {string} name
@@ -89,10 +116,24 @@ export const BOX_TYPES = Object.freeze([
  * @param {string} use
  * @param {boolean} [searchable] 사이트 검색 색인에 넣는지(기본 true)
  * @param {string} [note] 상자 끝에 늘 붙는 안내 문장
+ * @param {boolean} [book] 교과서 쪽 전용 상자인지
+ * @param {boolean} [keepName] 대괄호 글자를 "기본 제목: 글자"로 보일지
  * @returns {BoxType}
  */
-function boxType(name, aliases, variant, title, collapsible, use, searchable = true, note = undefined) {
-  return Object.freeze({ name, aliases: Object.freeze(aliases), variant, title, collapsible, searchable, use, note });
+function boxType(name, aliases, variant, title, collapsible, use, searchable = true, note = undefined, book = false, keepName = false) {
+  return Object.freeze({ name, aliases: Object.freeze(aliases), variant, title, collapsible, searchable, use, note, book, keepName });
+}
+
+/**
+ * 교과서 쪽 전용 상자(접히지 않고, 검색 색인에 들어가고, 영어 이름은 variant). 이름은 쪽에 늘 글자로 보인다.
+ * @param {string} name
+ * @param {string} variant
+ * @param {string} title
+ * @param {string} use
+ * @param {boolean} [keepName] 대괄호 글자를 "기본 제목: 글자"로 보일지(웹정정·그림생략)
+ */
+function bookBox(name, variant, title, use, keepName = false) {
+  return boxType(name, [variant], variant, title, false, use, true, undefined, true, keepName);
 }
 
 /** @type {Map<string, BoxType>} */
@@ -156,6 +197,9 @@ function transformChildren(parent, file) {
       }
       warnUnknownBox(node, file);
     }
+    if (node.type === 'leafDirective' && applyLeaf(node, file)) {
+      continue;
+    }
     const restored = restoreDirective(node);
     parent.children.splice(index, 1, ...restored);
     index += restored.length - 1;
@@ -170,7 +214,8 @@ function transformChildren(parent, file) {
 function applyBox(node, type) {
   const [first, ...rest] = node.children;
   const hasLabel = first?.type === 'paragraph' && first.data?.directiveLabel === true;
-  const titleChildren = hasLabel && first.children.length > 0 ? first.children : [textNode(type.title)];
+  const labelChildren = hasLabel && first.children.length > 0 ? first.children : undefined;
+  const titleChildren = !labelChildren ? [textNode(type.title)] : type.keepName ? [textNode(`${type.title}: `), ...labelChildren] : labelChildren;
   const body = hasLabel ? rest : node.children;
   const attributes = node.attributes ?? {};
 
@@ -197,6 +242,66 @@ function applyBox(node, type) {
     ...body,
     ...(type.note ? [{ type: 'paragraph', data: { hProperties: { className: ['box__note'] } }, children: [textNode(type.note)] }] : []),
   ];
+}
+
+/** 교과서 쪽 표지 지시자의 이름(::쪽[125]) — 영어 이름은 page */
+export const PAGE_MARK_NAMES = Object.freeze(['쪽', 'page']);
+/** 실습실 자리 지시자의 이름(::실습실[esp32/u2/x.py]) — 영어 이름은 lab */
+export const BOOK_LAB_NAMES = Object.freeze(['실습실', 'lab']);
+
+/** 지시자 라벨의 글자(자식 글자 노드를 이은 것). 라벨이 없으면 빈 글 */
+function labelText(node) {
+  const collect = (/** @type {any} */ item) =>
+    typeof item?.value === 'string' ? item.value : Array.isArray(item?.children) ? item.children.map(collect).join('') : '';
+  return (node.children ?? []).map(collect).join('').trim();
+}
+
+/**
+ * 한 줄 지시자(::쪽[125], ::실습실[파일])를 HTML로 바꾼다. 바꿨으면 true, 이 파일이 맡지 않는 지시자나 모양이 틀린 지시자면 false
+ * (false면 부른 쪽이 원래 글자로 되돌리고, 모양이 틀린 것은 빌드 로그에 경고한다 — 빌드는 멈추지 않는다, PD-35).
+ * - ::쪽[125]   → <p class="book-page-mark" id="p125" data-pagefind-ignore>교과서 125쪽</p> (검색 색인에서 뺀다 — 쪽 번호가 검색 결과 요약에 섞이지 않게)
+ * - ::실습실[x] → <div class="book-lab-slot" data-book-lab="x" data-pagefind-ignore></div> (자리 표시 — 부품으로 바꾸는 곳은 src/components/book/book-html.ts)
+ * @param {any} node
+ * @param {{ path?: string } | undefined} file
+ * @returns {boolean}
+ */
+function applyLeaf(node, file) {
+  const label = labelText(node);
+  if (PAGE_MARK_NAMES.includes(node.name)) {
+    if (!/^[1-9]\d{0,2}$/u.test(label)) {
+      warnLeaf(node, file, `::${node.name}[…]의 대괄호 안에는 쪽 번호(자연수)를 적어요. 예: ::쪽[125]`);
+      return false;
+    }
+    node.data = {
+      ...node.data,
+      hName: 'p',
+      hProperties: { className: ['book-page-mark'], id: `p${label}`, dataPagefindIgnore: '' },
+    };
+    node.children = [textNode(`교과서 ${label}쪽`)];
+    return true;
+  }
+  if (BOOK_LAB_NAMES.includes(node.name)) {
+    if (label === '' || /\s/u.test(label)) {
+      warnLeaf(node, file, `::${node.name}[…]의 대괄호 안에는 examples/ 뒤의 예제 파일 경로를 적어요. 예: ::실습실[esp32/u2/2-1-2-lcd-count.py]`);
+      return false;
+    }
+    node.data = { ...node.data, hName: 'div', hProperties: { className: ['book-lab-slot'], dataBookLab: label, dataPagefindIgnore: '' } };
+    node.children = [];
+    return true;
+  }
+  return false;
+}
+
+/**
+ * @param {any} node
+ * @param {{ path?: string } | undefined} file
+ * @param {string} message
+ */
+function warnLeaf(node, file, message) {
+  const line = node.position?.start?.line;
+  const filePath = file?.path ? path.relative(process.cwd(), file.path).split(path.sep).join('/') : '';
+  const where = filePath ? ` (${filePath}${line ? `:${line}` : ''})` : '';
+  console.warn(`[상자 문법] ${message}${where} — 글자 그대로 보여 줘요.`);
 }
 
 /**

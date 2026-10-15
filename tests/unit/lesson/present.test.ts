@@ -10,6 +10,7 @@ import {
   scrollTargetFor,
   splitTallSteps,
   unionBlocks,
+  wantsSlideView,
   type PresentSection,
   type PresentStep,
 } from '../../../src/components/lesson/present.ts';
@@ -228,5 +229,16 @@ describe('너무 잘게 나뉜 단계 합치기 도우미(R1-075)', () => {
     expect(mergedLabel('따라하기', '따라하기 · 예제 1: 손 찾기')).toBe('따라하기 · 예제 1: 손 찾기');
     expect(mergedLabel('핵심 개념 — A', '핵심 개념 — B')).toBe('핵심 개념 — A');
     expect(mergedLabel('핵심 개념', '핵심 개념')).toBe('핵심 개념');
+  });
+});
+
+describe('주소 별칭 ?view=slide(판 1.4.0, DECISIONS C133)', () => {
+  it('view=slide(별칭 view=present)면 발표 모드로 바로 열고, 그 밖에는 읽기 화면이 기본이다', () => {
+    expect(wantsSlideView('?view=slide')).toBe(true);
+    expect(wantsSlideView('?example=a.py&view=slide')).toBe(true);
+    expect(wantsSlideView('?view=present')).toBe(true);
+    expect(wantsSlideView('')).toBe(false);
+    expect(wantsSlideView('?view=read')).toBe(false);
+    expect(wantsSlideView('?slide=1')).toBe(false);
   });
 });

@@ -9,7 +9,7 @@
 //   example-focus     examples[].focus(발췌할 줄)가 파일 안의 줄인지(오류), 150줄 넘는 예제에 focus가 없는지(참고 — 차시에 통째로 펼치지 않게)
 //   fm-yaml-comment   frontmatter·그 차시 예제의 사이드카(.meta.yaml)에서 따옴표 없는 글 값이 " #" 주석으로 잘리는 곳(2026-09-25 Phase 5 검토 중요 1)
 //   img-file          본문 그림(/images/…)이 public/에 있는지, 바깥 주소 그림이 아닌지
-//   img-review        원고·화면 래스터 그림(public/images/lessons/)에 눈 확인 기록("통과")이 있는지(PD-32)
+//   img-review        원고·화면 래스터 그림(public/images/lessons/·public/images/book/)에 눈 확인 기록("통과")이 있는지(PD-32)
 //   img-alt-manifest  그림 목록(<차시>.images.yaml)의 alt와 본문 대체 글이 같은지(P5-01 제안)
 //   glossary          :용어[…]가 용어사전에 있는지(없으면 참고 — 새 낱말은 통합 때 사전에 넣는다), 그리고 용어사전 파일 자체가 규칙에 맞는지
 //                     (설정 칸·파일 이름·표제어/별칭/영어 이름 겹침 — 빌드가 멈추는 문제라 오류, 파일마다 한 줄. 2026-09-30 최종 점검 TD-08)
@@ -35,7 +35,7 @@ import { parseFocusRanges, splitExampleCode } from '../../src/components/lesson/
 import { checkLessonRules } from '../../src/components/lesson/lesson-rules.ts';
 import { glossarySchema, lessonSchema } from '../../src/config/content-schemas.ts';
 import { rehypePlugins, remarkPlugins } from '../../src/lib/markdown-plugins.mjs';
-import { LESSON_IMAGE_ROOT, RASTER_EXTENSIONS, listManifestFiles, parseImageManifest, readImageRecords, reviewedProblem } from './lesson-images.mjs';
+import { RASTER_EXTENSIONS, isManagedImagePath, listManifestFiles, parseImageManifest, readImageRecords, reviewedProblem } from './lesson-images.mjs';
 import { describeYamlCommentTrap, findYamlCommentTraps } from './yaml-comment-traps.mjs';
 
 export const LESSONS_ROOT = 'content/lessons';
@@ -243,6 +243,20 @@ function decodePath(value) {
 }
 
 /**
+ * 속성 값의 문자 참조(&quot; &amp; &#x27; &#39; …)를 글자로 되돌린다(그림 대체 글의 작은따옴표가 &#x27;로 적혀 나온다).
+ * @param {string} value
+ */
+function decodeAttribute(value) {
+  return value
+    .replace(/&#x([0-9a-f]+);/giu, (_whole, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/gu, (_whole, digits) => String.fromCodePoint(Number.parseInt(digits, 10)))
+    .replace(/&quot;/gu, '"')
+    .replace(/&lt;/gu, '<')
+    .replace(/&gt;/gu, '>')
+    .replace(/&amp;/gu, '&');
+}
+
+/**
  * HTML 안의 <img> 태그(주소·대체 글). 코드 블록 안 글자는 이미 &lt;로 바뀌어 있어 잡히지 않는다.
  * @param {string} html
  * @returns {{ src: string, alt: string | undefined }[]}
@@ -252,8 +266,60 @@ function imagesIn(html) {
     const attrs = match[1] ?? '';
     const src = /\ssrc="([^"]*)"/iu.exec(attrs)?.[1] ?? '';
     const altMatch = /\salt="([^"]*)"/iu.exec(attrs);
-    return { src: src.replace(/&amp;/gu, '&'), alt: altMatch ? altMatch[1].replace(/&quot;/gu, '"').replace(/&amp;/gu, '&').replace(/&#x3C;/giu, '<') : undefined };
+    return { src: src.replace(/&amp;/gu, '&'), alt: altMatch ? decodeAttribute(altMatch[1]) : undefined };
   });
+}
+
+/**
+ * 본문 HTML 속 그림(<img>)의 파일·눈 확인 기록·그림 목록 대체 글을 검사한다(차시 틀 검사와 교과서 쪽 검사 check:book이 함께 쓴다).
+ *   img-file          그림 파일이 public/ 아래에 있는지, 사이트 밖 주소가 아닌지
+ *   img-review        원고·화면 래스터 그림(public/images/lessons/·public/images/book/)에 눈 확인 기록("통과")이 있는지(PD-32)
+ *   img-alt-manifest  그림 목록(<차시>.images.yaml)의 alt와 본문 대체 글이 같은지
+ * @param {string} html
+ * @param {{ rootDir: string, images: ReturnType<typeof loadImageInfo> }} context
+ * @returns {CheckIssue[]}
+ */
+export function lessonImageIssues(html, context) {
+  const { rootDir } = context;
+  /** @type {CheckIssue[]} */
+  const issues = [];
+  for (const image of imagesIn(html)) {
+    if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/iu.test(image.src)) {
+      issues.push({ level: 'error', code: 'img-file', message: `그림 ${image.src}는 사이트 밖 주소예요. 그림은 public/images/ 아래에 두고 /images/…로 적어요(저작권·개인정보 확인 — PLAN §9).` });
+      continue;
+    }
+    if (!image.src.startsWith('/')) {
+      issues.push({ level: 'error', code: 'img-file', message: `그림 주소 "${image.src}"는 사이트 뿌리부터 적어요. 예: /images/lessons/1-2-1/flip.svg` });
+      continue;
+    }
+    const sitePath = decodePath(image.src.split(/[?#]/u)[0] ?? '');
+    const publicPath = `public${sitePath}`.normalize('NFC');
+    if (!fs.existsSync(path.join(rootDir, ...publicPath.split('/')))) {
+      issues.push({ level: 'error', code: 'img-file', message: `그림 파일 ${publicPath}이(가) 없어요.` });
+      continue;
+    }
+    const extension = path.posix.extname(publicPath).toLowerCase();
+    if (RASTER_EXTENSIONS.includes(extension) && isManagedImagePath(publicPath)) {
+      const record = context.images.records.get(publicPath);
+      const problem = record ? reviewedProblem(record.reviewed) : '눈 확인 기록이 없어요';
+      if (problem) {
+        issues.push({
+          level: 'error',
+          code: 'img-review',
+          message: `그림 ${publicPath}: ${problem}. 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 보고 그 차시의 그림 목록에 reviewed를 적어요(PD-32, MAINTENANCE.md 3-1).`,
+        });
+      }
+      const manifest = context.images.alts.get(publicPath);
+      if (manifest && (image.alt ?? '').trim() !== manifest.alt.trim()) {
+        issues.push({
+          level: 'error',
+          code: 'img-alt-manifest',
+          message: `그림 ${publicPath}의 대체 글이 그림 목록(${manifest.manifest})의 alt와 달라요. 목록의 alt를 그대로 옮겨요: "${manifest.alt}"`,
+        });
+      }
+    }
+  }
+  return issues;
 }
 
 /**
@@ -368,43 +434,8 @@ export async function checkLessonFile(file, context) {
     }
   }
 
-  // 본문 그림
-  for (const image of imagesIn(html)) {
-    if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/iu.test(image.src)) {
-      issues.push({ level: 'error', code: 'img-file', message: `그림 ${image.src}는 사이트 밖 주소예요. 그림은 public/images/ 아래에 두고 /images/…로 적어요(저작권·개인정보 확인 — PLAN §9).` });
-      continue;
-    }
-    if (!image.src.startsWith('/')) {
-      issues.push({ level: 'error', code: 'img-file', message: `그림 주소 "${image.src}"는 사이트 뿌리부터 적어요. 예: /images/lessons/1-2-1/flip.svg` });
-      continue;
-    }
-    const sitePath = decodePath(image.src.split(/[?#]/u)[0] ?? '');
-    const publicPath = `public${sitePath}`.normalize('NFC');
-    if (!fs.existsSync(path.join(rootDir, ...publicPath.split('/')))) {
-      issues.push({ level: 'error', code: 'img-file', message: `그림 파일 ${publicPath}이(가) 없어요.` });
-      continue;
-    }
-    const extension = path.posix.extname(publicPath).toLowerCase();
-    if (RASTER_EXTENSIONS.includes(extension) && publicPath.startsWith(`${LESSON_IMAGE_ROOT}/`)) {
-      const record = context.images.records.get(publicPath);
-      const problem = record ? reviewedProblem(record.reviewed) : '눈 확인 기록이 없어요';
-      if (problem) {
-        issues.push({
-          level: 'error',
-          code: 'img-review',
-          message: `그림 ${publicPath}: ${problem}. 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 보고 그 차시의 그림 목록에 reviewed를 적어요(PD-32, MAINTENANCE.md 3-1).`,
-        });
-      }
-      const manifest = context.images.alts.get(publicPath);
-      if (manifest && (image.alt ?? '').trim() !== manifest.alt.trim()) {
-        issues.push({
-          level: 'error',
-          code: 'img-alt-manifest',
-          message: `그림 ${publicPath}의 대체 글이 그림 목록(${manifest.manifest})의 alt와 달라요. 목록의 alt를 그대로 옮겨요: "${manifest.alt}"`,
-        });
-      }
-    }
-  }
+  // 본문 그림(함수 lessonImageIssues — 교과서 쪽 검사도 같은 규칙을 쓴다)
+  issues.push(...lessonImageIssues(html, context));
 
   // 용어사전
   const seenTerms = new Set();

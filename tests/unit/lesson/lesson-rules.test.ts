@@ -8,6 +8,7 @@ import {
   MAX_LESSON_MINUTES,
   MAX_PARAGRAPH_SENTENCES,
   checkLessonRules,
+  bookOnlyIssues,
   imageAltIssues,
   lessonSource,
   splitSentences,
@@ -496,5 +497,28 @@ describe('그림 대체 글(img-alt)', () => {
   it('코드 블록 속 <img 글자는 그림으로 세지 않는다', async () => {
     const html = await render('```html\n<img src="x.png">\n```');
     expect(imageAltIssues(html)).toEqual([]);
+  });
+});
+
+describe('교과서 쪽 전용 문법(book-only, 판 1.4.0)', () => {
+  it('웹 차시에서 교과서 꼭지 상자(:::말풍선 등)와 쪽 표지(::쪽[n])·실습실 자리(::실습실[파일])는 오류', async () => {
+    const box = bookOnlyIssues(await render(':::말풍선\n말이야.\n:::\n\n:::용어풀이[투과율]\n뜻이다.\n:::'));
+    expect(box).toHaveLength(1);
+    expect(box[0]).toMatchObject({ level: 'error', code: 'book-only' });
+    expect(box[0]?.message).toContain('bubble');
+    expect(box[0]?.message).toContain('term');
+    const mark = bookOnlyIssues(await render('::쪽[125]\n\n::실습실[esp32/u2/x.py]'));
+    expect(mark).toHaveLength(1);
+    expect(mark[0]?.message).toContain('::쪽[n]');
+  });
+
+  it('웹 차시의 보통 상자(왜그럴까·바꿔보기·도전·정답·교사용 …)는 그대로 된다', async () => {
+    expect(bookOnlyIssues(await render(':::왜그럴까\n이유\n:::\n\n:::정답\n1번\n:::\n\n:::교사용\n지도\n:::'))).toEqual([]);
+  });
+
+  it('차시 틀 검사(checkLessonRules)가 이 규칙을 함께 돌린다 — 규칙 표에도 있다', async () => {
+    expect(LESSON_RULES['book-only']).toBeTruthy();
+    const issues = await check({ markdown: `${markdownOf(BASE_SECTIONS)}\n\n:::코드설명\n- 줄\n:::` });
+    expect(issues.map((item) => item.code)).toContain('book-only');
   });
 });

@@ -15,13 +15,14 @@ import { parseDocument } from 'yaml';
 import { createFaceChecker, FaceCheckUnavailableError } from './face-check.mjs';
 import {
   EXCLUSIONS_FILE,
-  LESSON_IMAGE_ROOT,
+  IMAGE_ROOTS,
   SOURCES,
   WORK_DIR,
   checkExclusionPolicy,
   checkSourcesLink,
   exclusionFor,
   inspectImageMetadata,
+  isManagedImagePath,
   listManifestFiles,
   locatePage,
   manifestNames,
@@ -35,6 +36,11 @@ import {
 import { REGISTRY_FILE, parseRegistry } from './sources-registry.mjs';
 
 export const WORKER_FILE = fileURLToPath(new URL('./lesson_images_worker.py', import.meta.url));
+
+/** 결과 폴더 이름(@book/4-2-3 같은 것)을 임시 파일 이름에 쓸 수 있게 */
+function safeFolderName(folder) {
+  return folder.replace(/[@/\\]/gu, '_');
+}
 const IMPORT_CHECK = 'import pymupdf, PIL, numpy; from PIL import features; assert features.check("webp")';
 
 /**
@@ -105,9 +111,20 @@ function loadRules(rootDir) {
 }
 
 /**
- * 그림을 지운 뒤 비게 된 폴더(third-party/<키>/ 등)를 차시 그림 뿌리까지 거슬러 지운다.
+ * 저장소 경로가 속한 그림 뿌리(public/images/lessons 또는 public/images/book)의 절대 경로. 둘 다 아니면 차시 그림 뿌리.
+ * @param {string} rootDir
+ * @param {string} repoPath
+ */
+function imageRootFor(rootDir, repoPath) {
+  const posix = repoPath.split('\\').join('/');
+  const root = IMAGE_ROOTS.find((candidate) => posix.startsWith(`${candidate}/`)) ?? IMAGE_ROOTS[0];
+  return path.join(rootDir, root);
+}
+
+/**
+ * 그림을 지운 뒤 비게 된 폴더(third-party/<키>/ 등)를 그림 뿌리까지 거슬러 지운다.
  * @param {string} directory
- * @param {string} stopAt 이 폴더는 지우지 않는다(public/images/lessons)
+ * @param {string} stopAt 이 폴더는 지우지 않는다(public/images/lessons 또는 public/images/book)
  */
 function removeEmptyFolders(directory, stopAt) {
   let current = path.resolve(directory);
@@ -261,7 +278,7 @@ export async function extractLessonImages(options) {
         continue;
       }
       const location = /** @type {import('./lesson-images.mjs').PageLocation} */ (locatePage(entry.from.source, entry.from.page));
-      const rawName = `${manifest.folder}__${entry.name}.gray`;
+      const rawName = `${safeFolderName(manifest.folder)}__${entry.name}.gray`;
       /** @type {Record<string, unknown>} */
       const job = {
         id: `${manifestFile}#${entry.name}`,
@@ -306,7 +323,7 @@ export async function extractLessonImages(options) {
   const extractJobs = plans.filter((plan) => plan.job?.kind !== 'file').map((plan) => plan.job);
   const fileJobs = plans
     .filter((plan) => plan.job?.kind === 'file')
-    .map((plan) => ({ id: `${plan.manifestFile}#${plan.entry.name}`, file: path.join(rootDir, plan.out), face_raw: path.join(workDir, `${plan.manifest.folder}__${plan.entry.name}.gray`) }));
+    .map((plan) => ({ id: `${plan.manifestFile}#${plan.entry.name}`, file: path.join(rootDir, plan.out), face_raw: path.join(workDir, `${safeFolderName(plan.manifest.folder)}__${plan.entry.name}.gray`) }));
   const probe = runWorker(python, { cmd: 'probe' });
   const response = extractJobs.length > 0 ? runWorker(python, { cmd: 'extract', jobs: extractJobs }) : { results: [] };
   const fileResponse = fileJobs.length > 0 ? runWorker(python, { cmd: 'probe-files', jobs: fileJobs }) : { results: [] };
@@ -337,7 +354,7 @@ export async function extractLessonImages(options) {
     const fail = (/** @type {string} */ message) => {
       if (!isFileJob && fs.existsSync(outAbsolute)) {
         fs.rmSync(outAbsolute);
-        removeEmptyFolders(path.dirname(outAbsolute), path.join(rootDir, LESSON_IMAGE_ROOT));
+        removeEmptyFolders(path.dirname(outAbsolute), imageRootFor(rootDir, plan.out));
       }
       report.errors.push(`${label}: ${message}`);
       if (!isFileJob && plan.entry.file) {
@@ -462,9 +479,9 @@ export async function extractLessonImages(options) {
     }
     for (const oldFile of pending.oldFiles) {
       const oldAbsolute = path.join(rootDir, oldFile);
-      if (oldFile.startsWith(`${LESSON_IMAGE_ROOT}/`) && fs.existsSync(oldAbsolute)) {
+      if (isManagedImagePath(oldFile) && fs.existsSync(oldAbsolute)) {
         fs.rmSync(oldAbsolute);
-        removeEmptyFolders(path.dirname(oldAbsolute), path.join(rootDir, LESSON_IMAGE_ROOT));
+        removeEmptyFolders(path.dirname(oldAbsolute), imageRootFor(rootDir, oldFile));
         report.warnings.push(`${manifestFile}: 경로가 바뀌어 옛 그림 ${oldFile}을(를) 지웠어요.`);
       }
     }

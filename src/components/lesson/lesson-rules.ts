@@ -23,6 +23,7 @@ import {
 } from './html-tree.ts';
 import { LESSON_SECTIONS, planLessonBody, type LessonBodyPlan, type LessonSectionKey } from './lesson-html.ts';
 import { labOfExampleFile } from './lesson-data.ts';
+import { BOOK_BOX_VARIANTS } from '../../lib/remark-boxes.mjs';
 
 export type LessonRuleLevel = 'error' | 'warning';
 
@@ -104,6 +105,7 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'md-tilde': '물결표(~) 두 개가 취소선이 되지 않게(범위는 \\~)',
   'md-bold': '굵게(**)가 글자 그대로 남지 않게',
   'para-length': '학생 글 한 문단은 3문장 안(SPEC §7.1)',
+  'book-only': '교과서 쪽 전용 상자(:::말풍선 등)와 쪽 표지(::쪽[n])는 content/book에서만(판 1.4.0)',
 });
 
 function issue(level: LessonRuleLevel, code: string, message: string): LessonRuleIssue {
@@ -480,7 +482,7 @@ function proseTexts(node: HtmlElement): string[] {
  * - md-bold(경고): **[단추 이름]**를처럼 문장 부호 뒤에서 **를 닫고 바로 한글을 붙이면(CommonMark 규칙) 굵게가 되지 않고 **가 글자로 남는다
  *   → <strong>[…]</strong>로 쓰거나 **를 글자 뒤로 옮긴다.
  */
-function markdownTrapIssues(html: string): LessonRuleIssue[] {
+export function markdownTrapIssues(html: string): LessonRuleIssue[] {
   const tree = parseHtml(html);
   const issues: LessonRuleIssue[] = [];
   const strikes = findAll(tree, (element) => element.tag === 'del' || element.tag === 's');
@@ -505,6 +507,33 @@ function markdownTrapIssues(html: string): LessonRuleIssue[] {
         'md-bold',
         `굵게 표시(**)가 글자 그대로 남은 곳이 ${leftovers.length}곳 있어요(예: "${(leftovers[0] ?? '').trim().slice(0, 30)}"). 문장 부호 뒤에서 **를 닫고 바로 글자를 붙이면 굵게가 되지 않아요 — <strong>…</strong>로 쓰거나 **를 옮겨요.`,
       ),
+    );
+  }
+  return issues;
+}
+
+/* ───────────── 교과서 쪽 전용 문법(웹 차시에서는 오류) ───────────── */
+
+/**
+ * 교과서 쪽(content/book/, 판 1.4.0)에서만 쓰는 상자(:::말풍선·:::해보기 등 14종)와 쪽 표지(::쪽[125])가 웹 차시에 있으면 오류.
+ * 웹 차시는 8칸 틀(SPEC §7.2)이라 교과서 꼭지와 섞이지 않게 한다(DECISIONS C134).
+ */
+export function bookOnlyIssues(html: string): LessonRuleIssue[] {
+  const tree = parseHtml(html);
+  const boxVariants = BOOK_BOX_VARIANTS as readonly string[];
+  const found = findAll(tree, (element) => hasClass(element, 'box') && boxVariants.some((variant) => hasClass(element, `box--${variant}`)));
+  const marks = findAll(tree, (element) => hasClass(element, 'book-page-mark'));
+  const labs = findAll(tree, (element) => hasClass(element, 'book-lab-slot'));
+  const issues: LessonRuleIssue[] = [];
+  if (found.length > 0) {
+    const names = [...new Set(found.flatMap((element) => boxVariants.filter((variant) => hasClass(element, `box--${variant}`))))].join(', ');
+    issues.push(
+      issue('error', 'book-only', `교과서 쪽 전용 상자(${names})가 있어요. 웹 차시에서는 8칸 틀의 상자(왜그럴까·바꿔보기·도전·힌트·확인·오류·주의·참고·더알아보기)만 써요. 교과서 꼭지는 content/book/에 적어요.`),
+    );
+  }
+  if (marks.length > 0 || labs.length > 0) {
+    issues.push(
+      issue('error', 'book-only', '쪽 표지(::쪽[n])·실습실 자리(::실습실[파일])는 교과서 쪽(content/book/) 전용이에요. 웹 차시의 예제는 frontmatter examples와 ::예제로 적어요.'),
     );
   }
   return issues;
@@ -728,7 +757,7 @@ export function checkLessonRules(input: LessonRuleInput): LessonRuleIssue[] {
   } else {
     issues.push(...plan.warnings.map((warning) => issue('error', 'body-plan', warning)));
   }
-  issues.push(...imageAltIssues(html), ...headingIssues(html), ...markdownTrapIssues(html), ...paragraphLengthIssues(html, plan));
+  issues.push(...imageAltIssues(html), ...headingIssues(html), ...markdownTrapIssues(html), ...bookOnlyIssues(html), ...paragraphLengthIssues(html, plan));
   return issues;
 }
 

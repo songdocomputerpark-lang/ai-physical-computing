@@ -83,6 +83,8 @@ export const ICON_NAMES = [
   'unlock',
   'pause',
   'replay',
+  'mic',
+  'textbook',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -185,6 +187,10 @@ export const ICONS: Readonly<Record<IconName, readonly IconPart[]>> = {
   unlock: [rr(5, 11, 14, 10, 2), 'M8.5 11V7.5a3.5 3.5 0 0 1 6.8-1.2M12 15v2'],
   pause: ['M9 6.5v11M15 6.5v11'],
   replay: ['M4.5 12a7.5 7.5 0 1 0 2.2-5.3', 'M4.5 4.5v4h4'],
+  // 마이크(교과서 쪽의 매체 표시 — 판 1.4.0)
+  mic: [rr(9, 3, 6, 11, 3), 'M5.5 11a6.5 6.5 0 0 0 13 0', 'M12 17.5V21', 'M9 21h6'],
+  // 닫힌 교과서(사이트 지도 "교과서" — 배우기의 펼친 책 book과 모양으로 구별, 판 1.4.0)
+  textbook: [rr(5, 3, 14, 18, 2), 'M9.5 3v18', 'M13 8h3.5', 'M13 12h3.5'],
 };
 
 /** 이름이 아이콘 표에 있는지(타입을 믿을 수 없는 입력 확인용) */

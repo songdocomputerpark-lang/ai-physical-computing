@@ -2,7 +2,7 @@
 /**
  * 차시 페이지(/learn/u1/1-1-1/) — SPEC §7.2 차시 틀.
  *
- * 머리: 차시 번호·제목·한 줄 소개, 뱃지(성취기준·소요 시간·준비물·난이도·가상 보드·실습실·교과서 쪽), [발표 모드]
+ * 머리: 차시 번호·제목·한 줄 소개, 전환 줄(짝 교과서 쪽이 있으면 [교과서 n~m쪽] [풀이·실습] — 판 1.4.0), 뱃지(성취기준·소요 시간·준비물·난이도·가상 보드·실습실·교과서 쪽), [발표 모드]
  * 본문: 마크다운의 8칸(학습목표 → 왜 배울까 → 핵심 개념 → 따라하기 → 바꿔보기 → 도전 과제 → 확인 퀴즈 → 교사용)
  *       + 따라하기 예제(frontmatter examples) + 확인 퀴즈(frontmatter quiz)
  *       + 교사용 접기 끝의 "이 차시의 원고와 자료"(원천·성취기준·원본 안내·가린 편집본 — LessonTeacherInfo.astro, 저절로 붙음)
@@ -22,6 +22,8 @@
  * 용어사전만 고쳐도 차시 툴팁이 새 풀이로 바뀐다(src/components/glossary/GlossaryScope.astro, remark-glossary.mjs 머리말).
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { findPairedBook, publishedBooks, type BookSummary } from '../../../components/book/book-data.ts';
+import ViewSwitch from '../../../components/book/ViewSwitch.astro';
 import Icon from '../../../components/common/Icon.astro';
 import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import FlowPosition from '../../../components/lesson/FlowPosition.astro';
@@ -63,10 +65,14 @@ export async function getStaticPaths() {
   }
 
   const lessons = publishedLessons(entries);
+  // 짝 교과서 쪽(판 1.4.0) — 맨 위 전환 줄의 [교과서 n~m쪽]. 짝이 없는 차시(보충 등)는 줄 자체를 그리지 않는다.
+  const books = publishedBooks(await getCollection('book'));
   const entryById = new Map(entries.map((entry) => [entry.id, entry]));
   return lessons.flatMap((lesson) => {
     const entry = entryById.get(lesson.id);
-    return entry ? [{ params: { unit: `u${lesson.unit}`, lesson: lesson.slug }, props: { entry, lesson, lessons } }] : [];
+    return entry
+      ? [{ params: { unit: `u${lesson.unit}`, lesson: lesson.slug }, props: { entry, lesson, lessons, pairedBook: findPairedBook(lesson, books) } }]
+      : [];
   });
 }
 
@@ -74,9 +80,10 @@ interface Props {
   entry: CollectionEntry<'lessons'>;
   lesson: LessonSummary;
   lessons: LessonSummary[];
+  pairedBook?: BookSummary | undefined;
 }
 
-const { entry, lesson, lessons } = Astro.props;
+const { entry, lesson, lessons, pairedBook } = Astro.props;
 const source = entry.filePath ?? `content/lessons/${entry.id}.md`;
 const html = entry.rendered?.html ?? '';
 const plan = planLessonBody(html, {
@@ -151,6 +158,7 @@ const position = lessonPosition(lessons, lesson);
           <span class="lesson__name">{lesson.title}</span>
         </h1>
         {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
+        <ViewSwitch current="lesson" bookHref={pairedBook?.href} bookPages={pairedBook?.pages} lessonHref={lesson.href} />
         <div data-present-hide>
           <FlowPosition unit={lesson.unit} size="mini" />
           <LessonMeta lesson={lesson} />

@@ -9,7 +9,7 @@
 //   npm run images:extract -- 1-1-2                   그 차시 목록의 그림을 모두 꺼낸다(목록 파일 경로를 적어도 된다)
 //   npm run images:extract -- 1-1-2 --only cnn-stages  적은 이름의 그림만
 //   npm run images:extract -- --all                   모든 차시 목록
-//   npm run images:show -- U1 14                      원고 14쪽을 좌표 격자·그림 번호·권리 표기 자리와 함께 PNG로 그린다
+//   npm run images:show -- U1 14                      원고 14쪽을 좌표 격자·그림 번호·권리 표기 자리와 함께 PNG로 그린다(BOOK 124 = 출판본 교과서 124쪽 — 재단선 안쪽 한 쪽, 판 1.4.0)
 //                                                     (.cache/lesson-images/show/U1-014.png — git 제외, 이 컴퓨터에만)
 //   npm run images:check                              원본 없이 모든 목록 검사(npm test에도 들어 있다)
 // 선택: --materials <원본 폴더>  원본 위치(기본: 저장소 뿌리 = 운영자 PC. 그 밖에는 비공개 자료 저장소의 originals/)
@@ -90,7 +90,7 @@ function runShow() {
   const [source, pageText] = args.filter((arg) => !arg.startsWith('--'));
   const page = Number(pageText);
   if (!source || !Number.isInteger(page)) {
-    console.error('쓰는 법: npm run images:show -- <원본 약칭 U1|U2A|U2B|U2C|U3|BT|PPT> <쪽 번호>');
+    console.error('쓰는 법: npm run images:show -- <원본 약칭 U1|U2A|U2B|U2C|U3|BT|PPT|BOOK> <쪽 번호>');
     process.exitCode = 1;
     return;
   }
@@ -123,7 +123,7 @@ async function runExtract() {
   const targets = args.filter((arg) => !arg.startsWith('--'));
   const manifestFiles = all ? listManifestFiles(rootDir) : [...new Set(targets.flatMap((target) => resolveManifestTargets(rootDir, target)))];
   if (manifestFiles.length === 0) {
-    console.error(all ? '[원고 그림] 그림 목록(content/lessons/**/*.images.yaml)이 하나도 없어요.' : `[원고 그림] 목록을 찾지 못했어요: ${targets.join(' ') || '(차시 이름을 적어요. 예: npm run images:extract -- 1-1-2)'}`);
+    console.error(all ? '[원고 그림] 그림 목록(content/lessons/**/*.images.yaml, content/book/*.images.yaml)이 하나도 없어요.' : `[원고 그림] 목록을 찾지 못했어요: ${targets.join(' ') || '(차시 이름을 적어요. 예: npm run images:extract -- 1-1-2)'}`);
     process.exitCode = 1;
     return;
   }

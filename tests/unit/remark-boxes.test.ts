@@ -1,7 +1,7 @@
 import { markdownConfigDefaults, unified } from '@astrojs/markdown-remark';
 import remarkDirective from 'remark-directive';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import remarkBoxes, { BOX_TYPES, GENAI_NOTE, boxClassNames, findBoxType } from '../../src/lib/remark-boxes.mjs';
+import remarkBoxes, { BOOK_BOX_VARIANTS, BOX_TYPES, GENAI_NOTE, boxClassNames, findBoxType } from '../../src/lib/remark-boxes.mjs';
 import remarkGlossary from '../../src/lib/remark-glossary.mjs';
 
 type TreeNode = { type: string; name?: string; data?: Record<string, unknown>; children?: TreeNode[] };
@@ -27,10 +27,10 @@ afterEach(() => {
 });
 
 describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
-  it('상자 종류 12개의 이름(한국어·영어)이 겹치지 않고 모두 찾아진다', () => {
+  it('상자 종류 12개 + 교과서 꼭지 14개의 이름(한국어·영어)이 겹치지 않고 모두 찾아진다', () => {
     const names = BOX_TYPES.flatMap((type) => [type.name, ...type.aliases]);
     expect(new Set(names).size).toBe(names.length);
-    expect(BOX_TYPES.map((type) => type.name)).toEqual([
+    expect(BOX_TYPES.filter((type) => !type.book).map((type) => type.name)).toEqual([
       '왜그럴까',
       '바꿔보기',
       '도전',
@@ -44,6 +44,24 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
       '더알아보기',
       '교사용',
     ]);
+    // 교과서 쪽 전용(판 1.4.0, DECISIONS C134) — 웹 차시에서 쓰면 check:lessons가 오류로 막는다(book-only)
+    expect(BOX_TYPES.filter((type) => type.book).map((type) => type.name)).toEqual([
+      '말풍선',
+      '해보기',
+      '용어풀이',
+      '연결레시피',
+      '에러체크',
+      '결과',
+      '점검하기',
+      '자기평가',
+      '학습활동',
+      '읽기자료',
+      '성취계획',
+      '코드설명',
+      '그림생략',
+      '웹정정',
+    ]);
+    expect(BOOK_BOX_VARIANTS).toEqual(BOX_TYPES.filter((type) => type.book).map((type) => type.variant));
     for (const type of BOX_TYPES) {
       expect(findBoxType(type.name)).toBe(type);
       for (const alias of type.aliases) {
@@ -172,5 +190,55 @@ describe('용어 표시 문법(src/lib/remark-glossary.mjs)과 함께 쓰기', (
   it('대괄호 없는 :용어는 원래 글자로 남는다', async () => {
     const html = await render('분류:용어');
     expect(html).toContain('분류:용어');
+  });
+});
+
+describe('교과서 쪽 문법(판 1.4.0 — ::쪽[n]·::실습실[파일]·꼭지 상자)', () => {
+  it('::쪽[125]는 쪽 표지(id p125, 검색 색인 제외)가 된다', async () => {
+    const html = compact(await render('::쪽[125]\n\n본문이에요.'));
+    expect(html).toBe('<p class="book-page-mark" id="p125" data-pagefind-ignore="">교과서 125쪽</p><p>본문이에요.</p>');
+  });
+
+  it('쪽 번호가 아닌 ::쪽[…]은 글자 그대로 두고 경고한다', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const html = compact(await render('::쪽[abc]\n\n::쪽[0]\n\n::쪽'));
+    expect(html).toContain('<p>::쪽[abc]</p>');
+    expect(html).toContain('<p>::쪽[0]</p>');
+    expect(html).not.toContain('book-page-mark');
+    expect(warn).toHaveBeenCalledTimes(3);
+    expect(String(warn.mock.calls[0]?.[0])).toContain('쪽 번호(자연수)');
+  });
+
+  it('::실습실[파일]은 자리 표시 div가 된다(경로에 빈칸이 있으면 글자 그대로)', async () => {
+    const html = compact(await render('::실습실[esp32/u2/2-1-2-lcd-count.py]'));
+    expect(html).toBe('<div class="book-lab-slot" data-book-lab="esp32/u2/2-1-2-lcd-count.py" data-pagefind-ignore=""></div>');
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect(compact(await render('::실습실[a b.py]'))).toBe('<p>::실습실[a b.py]</p>');
+  });
+
+  it('교과서 꼭지 상자는 늘 글자 이름이 보이고 접히지 않는다', async () => {
+    const html = compact(await render(':::말풍선\n둘째 줄을 먼저 읽어.\n:::\n\n:::용어풀이[투과율]\n통과하는 정도이다.\n:::\n\n:::코드설명\n- **줄 2** 핀을 불러온다\n:::'));
+    expect(html).toContain('<div class="box box--bubble" data-box="bubble" role="note"><p class="box__title">말풍선</p>');
+    expect(html).toContain('<div class="box box--term" data-box="term" role="note"><p class="box__title">투과율</p>');
+    expect(html).toContain('<div class="box box--codenote" data-box="codenote" role="note"><p class="box__title">코드 설명</p>');
+    for (const type of BOX_TYPES.filter((candidate) => candidate.book)) {
+      expect(type.collapsible, type.name).toBe(false);
+      expect(type.searchable, type.name).toBe(true);
+    }
+  });
+
+  it('웹정정·그림생략은 대괄호 글자를 "기본 제목: 글자"로 보인다(이름이 곧 뜻이라 늘 보여야 한다)', async () => {
+    const html = compact(await render(':::웹정정[format 앞의 점]\n점이 빠졌어요.\n:::\n\n:::그림생략[교과서 10쪽 사진]\n사진은 싣지 않아요.\n:::\n\n:::용어풀이[투과율]\n뜻이다.\n:::'));
+    expect(html).toContain('<p class="box__title">웹에서 바로잡은 곳: format 앞의 점</p>');
+    expect(html).toContain('<p class="box__title">그림 생략: 교과서 10쪽 사진</p>');
+    expect(html).toContain('<p class="box__title">투과율</p>');
+    expect(html).toContain('<div class="box box--webfix" data-box="webfix" role="note">');
+    expect(BOX_TYPES.filter((type) => type.keepName).map((type) => type.name)).toEqual(['그림생략', '웹정정']);
+  });
+
+  it('상자 안에 상자(::::결과 > :::말풍선)도 된다', async () => {
+    const html = compact(await render('::::결과\n**제목**\n\n:::말풍선\n말이야.\n:::\n::::'));
+    expect(html).toContain('<div class="box box--result" data-box="result" role="note"><p class="box__title">실행 결과</p>');
+    expect(html).toContain('<div class="box box--bubble" data-box="bubble" role="note">');
   });
 });

@@ -15,6 +15,7 @@ import {
 /** PLAN §2.1 사이트 지도의 주소(대단원 제외). Phase 4 통합(2026-09-24)에서 대시보드(통신 실습실 아래)와 4단원 통합 실습실을 더했다 */
 const PLAN_PATHS = [
   '/',
+  '/book/',
   '/start/',
   '/start/student/',
   '/start/board/',
@@ -45,8 +46,8 @@ describe('사이트 지도(src/config/nav.ts)', () => {
     expect(siteMap[0].id).toBe('home');
   });
 
-  it('머리글 주 메뉴는 여섯 곳이고 순서가 정해져 있다', () => {
-    expect(headerNav.map((page) => page.label)).toEqual(['시작하기', '배우기', '실습실', '교사용 자료실', '문제 해결', '용어사전']);
+  it('머리글 주 메뉴는 일곱 곳이고 순서가 정해져 있다(판 1.4.0: 교과서가 배우기 앞)', () => {
+    expect(headerNav.map((page) => page.label)).toEqual(['시작하기', '교과서', '배우기', '실습실', '교사용 자료실', '문제 해결', '용어사전']);
   });
 
   it('시작하기 아래에 학생용·보드 준비·교사용·점검이 있다', () => {
