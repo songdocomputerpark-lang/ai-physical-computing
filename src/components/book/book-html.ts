@@ -10,7 +10,12 @@
  * - ::실습실[esp32/u2/2-1-2-lcd-count.py] → remark가 만든 자리 표시(<div class="book-lab-slot" data-book-lab="파일">)를
  *   예제 자리(slot examples)로 바꾼다. 화면은 LessonExamples.astro의 "누를 때만 iframe" 부품을 launcherOnly로 그린다(코드는 쪽에 이미 있다).
  *   상자·목록 안에 적은 자리는 쓰지 않고 지운다(웹 차시의 ::예제와 같은 약속).
+ * - ::회로[2-1-2-1] → remark가 만든 자리 표시(<div class="book-circuit-slot" data-book-circuit="번호">)를 회로 그림 목록(scripts/circuits/circuits.yaml)에서 읽은
+ *   <figure class="book-circuit">으로 바꾼다(그림 + 캡션 + [그림 크게 보기]). 목록은 호출하는 쪽(.astro)이 `circuits` 옵션으로 준다 — 이 파일은 파일을 읽지 않는다.
+ *   모르는 번호는 경고를 남기고 자리를 지운다(npm run check:book은 오류로 막는다). 상자(:::연결레시피) 안에 적어도 그대로 바뀐다.
  */
+import { circuitFigureHtml } from '../circuits/circuit-html.ts';
+import type { CircuitFigure } from '../circuits/circuits-schema.ts';
 import {
   addImageZoomLinks,
   addLazyImageLoading,
@@ -29,6 +34,18 @@ export interface BookLab {
   readonly file: string;
   /** 쪽에 보일 이름. 짝 웹 차시의 examples에 같은 파일이 있으면 그 제목을 쓴다 */
   readonly title: string;
+}
+
+/** 회로 그림 목록을 읽는 길(.astro가 circuits-data.ts의 값을 넘긴다) */
+export interface BookCircuitSource {
+  /** 캡션 끝에 붙는 고정 문장 */
+  readonly captionNote: string;
+  readonly find: (id: string) => CircuitFigure | undefined;
+}
+
+export interface BookBodyPlanOptions {
+  /** ::회로 자리를 바꿀 그림 목록. 주지 않으면 자리를 지우고 경고한다 */
+  readonly circuits?: BookCircuitSource;
 }
 
 export interface BookBodyPlan {
@@ -107,6 +124,28 @@ function placeLabSlots(part: LessonBodyPart, labFiles: string[], warnings: strin
   return pieces;
 }
 
+/** remark가 만든 회로 그림 자리 표시 한 줄 */
+const CIRCUIT_SLOT_PATTERN = /<div class="book-circuit-slot"[^>]*\sdata-book-circuit="([^"]*)"[^>]*><\/div>\n?/gu;
+
+/**
+ * ::회로 자리 표시를 회로 그림(<figure class="book-circuit">)으로 바꾼다. 목록에 없는 번호나 목록을 주지 않은 경우는 자리를 지우고 경고한다.
+ * 그림 주소는 /images/… 그대로 둔다 — 뒤의 rewriteRootRelativeUrls가 base를 붙인다.
+ */
+export function placeCircuitSlots(html: string, circuits: BookCircuitSource | undefined, warnings: string[]): string {
+  return html.replace(CIRCUIT_SLOT_PATTERN, (_whole: string, id: string) => {
+    if (!circuits) {
+      warnings.push(`::회로[${id}]를 그릴 그림 목록을 받지 못해 자리를 지웠어요.`);
+      return '';
+    }
+    const figure = circuits.find(id);
+    if (!figure) {
+      warnings.push(`::회로[${id}]는 회로 그림 목록(scripts/circuits/circuits.yaml)에 없는 번호예요. 자리를 지웠어요.`);
+      return '';
+    }
+    return circuitFigureHtml(figure, circuits.captionNote);
+  });
+}
+
 /** 이웃한 html 조각을 하나로 잇고 빈 조각을 뺀다 */
 function mergeHtmlParts(parts: readonly LessonBodyPart[]): LessonBodyPart[] {
   const merged: LessonBodyPart[] = [];
@@ -122,9 +161,10 @@ function mergeHtmlParts(parts: readonly LessonBodyPart[]): LessonBodyPart[] {
 }
 
 /** 쪽 본문 HTML을 칸으로 나누고 실습실 자리를 정한다 */
-export function planBookBody(html: string): BookBodyPlan {
+export function planBookBody(html: string, options: BookBodyPlanOptions = {}): BookBodyPlan {
   const warnings: string[] = [];
-  const rewritten = rewriteRootRelativeUrls(markLinkOnlyLines(markRowHeaderTables(addImageZoomLinks(addLazyImageLoading(decorateBookCaptions(decorateBookHeadings(html)))))));
+  const withCircuits = placeCircuitSlots(html, options.circuits, warnings);
+  const rewritten = rewriteRootRelativeUrls(markLinkOnlyLines(markRowHeaderTables(addImageZoomLinks(addLazyImageLoading(decorateBookCaptions(decorateBookHeadings(withCircuits)))))));
   warnings.push(...rewritten.warnings);
 
   const labFiles: string[] = [];

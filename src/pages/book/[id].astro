@@ -36,6 +36,7 @@ import {
   type BookSummary,
 } from '../../components/book/book-data.ts';
 import { planBookBody } from '../../components/book/book-html.ts';
+import { circuitById, circuitList } from '../../components/circuits/circuits-data.ts';
 import Icon from '../../components/common/Icon.astro';
 import GlossaryScope from '../../components/glossary/GlossaryScope.astro';
 import { lessonPartRefs } from '../../components/parts/lesson-parts-data.ts';
@@ -49,6 +50,7 @@ import { publishedLessons, type LessonSummary } from '../../components/lesson/le
 import { unitCardClass, unitIcon } from '../../components/lesson/unit-style.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/book.css';
+import '../../styles/circuits.css';
 
 /** 예제 사이드카(examples/…/<이름>.meta.yaml)의 제목 — 짝 웹 차시 frontmatter에 없는 예제(::실습실로만 부르는 예제)의 이름 */
 function sidecarTitle(file: string): string | undefined {
@@ -108,7 +110,8 @@ const html = entry.rendered?.html ?? '';
 for (const issue of checkBookRules({ id: entry.id, data: entry.data, html, lessons })) {
   console.warn(`[교과서 쪽] ${source}: [${issue.code}] ${issue.message}`);
 }
-const { plan, labFiles } = planBookBody(html);
+// ::회로[번호] 자리 → 키트 회로 구성 도구로 그린 배선 그림(scripts/circuits/circuits.yaml, 판 1.4.0 C5)
+const { plan, labFiles } = planBookBody(html, { circuits: { captionNote: circuitList.captionNote, find: circuitById } });
 for (const warning of plan.warnings) {
   console.warn(`[교과서 쪽] ${source}: ${warning}`);
 }

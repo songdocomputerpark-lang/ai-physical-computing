@@ -71,11 +71,12 @@ sources:
     category: third_party
     author: 고릴라셀(브릭셀) — 교과서 실습 키트 업체(기판 인쇄 상표 GORILLACELL·BRIXEL 기준)
     license: 원 권리자 보유 — 운영자가 받은 사용 허락(2026-10-15 확인, DECISIONS O17), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
-    used_in: "부품 사전(/start/parts/)의 입출력 부품 사진(public/images/parts/third-party/kit-vendor/ — 업체가 제공한 사진을 긴 변 800px 이하 WebP로 다시 저장한 것, 목록은 content/parts/parts.yaml)과 그 사진을 쓰는 보드 준비 쪽 키트 표·차시의 부품 사진 줄, 3-1-2 USB-UART 변환기 사진, 원고에 실린 2-1-1 ESP32 키트 보드 사진(원고 118쪽)과 3-1-2 변환기·레이저 배선 그림(원고 190쪽). 실제 키트를 이을 때 알아보도록 그대로 싣고, 가상 보드와 같은 모양의 그림은 사이트가 따로 그렸어요. 표기: 부품 사진: 고릴라셀(브릭셀) 제공, 허락받아 사용."
+    used_in: "부품 사전(/start/parts/)의 입출력 부품 사진(public/images/parts/third-party/kit-vendor/ — 업체가 제공한 사진을 긴 변 800px 이하 WebP로 다시 저장한 것, 목록은 content/parts/parts.yaml)과 그 사진을 쓰는 보드 준비 쪽 키트 표·차시의 부품 사진 줄, 3-1-2 USB-UART 변환기 사진, 원고에 실린 2-1-1 ESP32 키트 보드 사진(원고 118쪽)과 3-1-2 변환기·레이저 배선 그림(원고 190쪽), 키트 회로 구성 도구(circuit.gorillacell.kr)로 그린 차시별 배선 그림 23장(public/images/circuits/third-party/kit-vendor/ — 교과서 쪽·웹 차시의 실제 키트 배선 보기 칸·보드 준비 쪽, 목록은 scripts/circuits/circuits.yaml). 실제 키트를 이을 때 알아보도록 그대로 싣고, 가상 보드와 같은 모양의 그림은 사이트가 따로 그렸어요. 표기: 부품 사진·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용."
     rights: "고릴라셀(브릭셀)이 제공한 사진·그림이고 운영자가 사용 허락을 받았어요(운영자 확인 2026-10-15, 운영자 할 일 24번 해결 — DECISIONS O17·C136). 표기 문구는 '부품 사진: 고릴라셀(브릭셀) 제공, 허락받아 사용'이에요. 원고에서 꺼낸 그림은 원본 그림에 권리 표기 없음(2026-09-25 원고 그림 XMP 확인)이고 제품 카탈로그형이라 업체 자료로 두었어요. 사이트 CC BY-NC-SA 4.0·MIT는 이 사진·그림에 적용되지 않고, 다시 쓰려면 업체의 조건을 따라야 해요. 스톡 사진이나 판매 사이트 워터마크가 보이는 사진은 싣지 않았어요(DECISIONS C11)."
     paths:
       - public/images/lessons/*/third-party/kit-vendor/**
       - public/images/parts/third-party/kit-vendor/**
+      - public/images/circuits/third-party/kit-vendor/**
     fetched: 2026-10-15
 
   # 원고 속 스톡 그림(원본 권리 표기가 출판사가 아닌 스톡 작가·판매 사이트 — 예: 010쪽 Visual Generation Inc., 018쪽 BASHTA,

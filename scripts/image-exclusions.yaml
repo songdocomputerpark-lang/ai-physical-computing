@@ -49,6 +49,11 @@ exclusions:
     kind: path
     override: region
     reason: 출판본 125쪽 단계 2 캡처의 왼쪽 파일 탐색기에 학교명이 든 폴더 경로와 작업 파일 목록이 보여요. 그 탐색기를 뺀 영역만 쓸 수 있어요(판 1.4.0 구역 C1이 찾음 — 다른 쪽도 같은 종류의 캡처가 있으면 여기 더해요).
+  - source: BOOK
+    pages: [156]
+    kind: path
+    override: region
+    reason: 출판본 156쪽 단계 1 저장 화면 캡처의 왼쪽 파일 탐색기에 학교명이 든 폴더 경로와 작업 파일 목록이 보여요(125쪽과 같은 종류 — U2B 원고 156쪽과 같은 화면). 그 탐색기를 뺀 영역만 쓸 수 있어요(판 1.4.0 구역 C3 2단원이 찾고 C5가 더함).
 
   # ── 기기 주소 ──
   - source: U3
@@ -61,6 +66,12 @@ exclusions:
     kind: device-address
     override: region
     reason: 블루투스 기기 주소(MAC)가 보이는 화면. p84는 노트북 화면 사진 속 Thonny 셸의 주소 뒷부분(2026-09-25 가린 편집본을 만들며 찾아 Phase 5 통합에서 더함 — 얼굴 항목이 빠진 뒤에도 주소는 막아요).
+
+  - source: BOOK
+    pages: [251, 254, 262]
+    kind: device-address
+    override: region
+    reason: 출판본 251·254·262쪽의 파이썬 셸·콘솔 화면에 블루투스 기기 주소(MAC)처럼 보이는 값이 있어요(예제 코드는 교과서 쪽에서 XX:XX:XX:XX:XX:XX로 바꿔 적었어요 — 같음 검사 예외). 주소가 없는 영역만 쓸 수 있어요(251쪽의 LCD 연결 사진처럼 주소가 없는 부분은 region으로 꺼낼 수 있고, 판 1.4.0 구역 C3 4단원이 찾고 C5가 더함).
 
   # ── 학교명·학급 게시물·부적절한 문구 ──
   - source: BT

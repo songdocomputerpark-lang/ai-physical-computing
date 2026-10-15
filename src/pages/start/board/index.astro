@@ -16,6 +16,7 @@
  */
 import { getCollection } from 'astro:content';
 import Callout from '../../../components/common/Callout.astro';
+import CircuitFigure from '../../../components/circuits/CircuitFigure.astro';
 import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import FirmwareFlasher from '../../../components/lab/firmware/FirmwareFlasher.astro';
 import { CURRICULUM } from '../../../components/lesson/curriculum.ts';
@@ -156,6 +157,11 @@ const flow = [
 
     <h2 id="kit-parts">키트 부품 이름 맞춰 보기</h2>
     <p>지금 당장 필요하지 않은 참고 표예요. 부품을 사거나 찾을 때 펼쳐 봐요.</p>
+
+    <h3 id="kit-example">키트에 부품을 꽂는 예</h3>
+    <p>부품 모듈의 선을 확장 보드의 줄에 꽂아요. 검정 선은 GND, 빨강 선은 VCC, 노란 선은 신호선이에요. 아래 그림은 LCD를 21번(SDA)·22번(SCL) 핀에 꽂은 예예요.</p>
+    <p>배선이 있는 차시에는 차시 머리에 [실제 키트 배선 보기]가 있어요. 부품 모양은 <a href={withBase('start/parts/')}>부품 사전</a>에서 볼 수 있어요.</p>
+    <CircuitFigure id="2-1-2-1" />
   </div>
   <details class="board-details" data-kit-parts-details>
     <summary>키트 부품 이름 표 펼치기(16줄)</summary>

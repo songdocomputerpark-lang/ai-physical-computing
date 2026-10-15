@@ -87,8 +87,9 @@ import { withBase } from './url.ts';
  * · 5 = 여는 자리의 닫는 따옴표를 여는 따옴표로(판 1.2.1 — 머리말 4번 "반대 방향")
  * · 6 = (이 플러그인은 그대로) 교과서 쪽 문법(::쪽[n]·::실습실[파일]·교과서 꼭지 상자 14종 — src/lib/remark-boxes.mjs)이 마크다운 출력에 더해져 콘텐츠 캐시를 비움(판 1.4.0)
  * · 7 = (같은 까닭) 웹정정·그림생략 상자 제목이 "기본 제목: 대괄호 글자"로 바뀌어 캐시를 한 번 더 비움(판 1.4.0 개발 중 — 같은 판 안에서 올림)
+ * · 8 = (같은 까닭) ::회로[2-1-2-1] 지시자(회로 그림 자리 표시 div)가 마크다운 출력에 더해져 캐시를 비움(판 1.4.0 C5)
  */
-export const REHYPE_LESSON_POLISH_VERSION = 7;
+export const REHYPE_LESSON_POLISH_VERSION = 8;
 
 /** 좁은 화면용 그림 파일 이름의 끝: 원래 그림 agent-cycle.svg 옆의 agent-cycle.narrow.svg */
 export const NARROW_FIGURE_SUFFIX = '.narrow.svg';

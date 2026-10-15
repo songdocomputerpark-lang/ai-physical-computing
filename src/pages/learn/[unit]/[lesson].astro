@@ -25,6 +25,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { findPairedBook, publishedBooks, type BookSummary } from '../../../components/book/book-data.ts';
 import ViewSwitch from '../../../components/book/ViewSwitch.astro';
 import Icon from '../../../components/common/Icon.astro';
+import CircuitDetails from '../../../components/circuits/CircuitDetails.astro';
 import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import { lessonPartRefs } from '../../../components/parts/lesson-parts-data.ts';
 import PartPhotoStrip from '../../../components/parts/PartPhotoStrip.astro';
@@ -167,6 +168,7 @@ const position = lessonPosition(lessons, lesson);
           <FlowPosition unit={lesson.unit} size="mini" />
           <LessonMeta lesson={lesson} />
           <PartPhotoStrip parts={partRefs} label="준비물 사진" />
+          <CircuitDetails label={lesson.label} />
           <p class="lesson__tools" data-pagefind-ignore>
             <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
               발표 모드

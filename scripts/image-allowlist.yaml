@@ -1184,3 +1184,169 @@ images:
       by: claude
       date: 2026-10-15
       result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+
+# 회로 그림(판 1.4.0, DECISIONS O17·C136): scripts/circuits/circuits.yaml이 적는 배선 그림 23장(public/images/circuits/third-party/kit-vendor/).
+# 키트 업체(고릴라셀·브릭셀)의 회로 구성 도구(circuit.gorillacell.kr)로 그린 그림이고 운영자가 사용 허락을 받았어요(sources.yaml 키트 업체 항목).
+# 도구의 [이미지 저장] PNG에서 투명 여백을 자르고 WebP로 다시 저장했어요(npm run circuits:import — EXIF·XMP·ICC 없음, 투명 배경).
+# 메인 세션이 접촉 시트로 23장 모두 열어 보았어요(2026-10-16). 새 회로 그림을 더하면 같은 모양으로 한 장씩 적어요.
+  - path: public/images/circuits/third-party/kit-vendor/2-1-2-1.webp
+    sha256: "6ac114c3a3a731682f304e7efba4a8960cf27e371f697ca110a5da0e1850c6d1"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-2-1 LCD 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-2-2.webp
+    sha256: "764d6dd9f117be8233e7a0b94abbedb734d28149e825a531a49187210e5f2a3b"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-2-2 터치 센서 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-3-1.webp
+    sha256: "8662983cfe1821eb0db5c4cc5b83ae934f5cc8f92d4258740cbf0229cf365594"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-3-1 OLED 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-3-2.webp
+    sha256: "f8314ea489764416bd75c3481ad9dbde4cb2758961048c72719d81add32c54de"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-3-2 4채널 터치 센서 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-3-3.webp
+    sha256: "512c0df50266dfd03eb7b21f35aaf8a3b326a11c55e2b2feff267d69553ddf84"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-3-3 터치 센서와 OLED, RGB LED 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-4-1.webp
+    sha256: "9a395a0e818207f64bd95a611006f9c15e1f751993fbb56696240c266acfc8af"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-4-1 RGB LED 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-4-2.webp
+    sha256: "5347234a5667ef6cbcf659f958c2e5e892d17cb06a734a03eb4452443d687fb6"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-4-2 레이저 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-4-3.webp
+    sha256: "24ca69b2e770ec5edb8473d01a3455c118b0023dcc1f176068120d70d856fe89"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-4-3 레이저와 RGB LED 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-5-1.webp
+    sha256: "9bacd95d74ca51b905acc71a723b2998efbac0e5c1b0236ad1c3f56d718f8f9f"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-5-1 네오픽셀 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-1-5-2.webp
+    sha256: "8f967426d4eedad7d442a1c4232fdb19dab0edfa85bdc4294243a2a10a0aa8c5"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-1-5-2 네오픽셀과 4채널 터치 센서 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-1-1.webp
+    sha256: "72ed7122a06e33e3ac708e83b0c5938c73bf9875808e4434bc34986f682696ac"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-1-1 버저 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-1-2.webp
+    sha256: "624b6047f86d33449b8de23d38add2b9b68d42f072109c80437195ca91562909"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-1-2 터치 센서와 버저 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-2-1.webp
+    sha256: "276629f90f4bcca649f59589400e76e7b50ab4bedb9d24b7b0959d10892dc84c"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-2-1 MP3 플레이어 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-2-2.webp
+    sha256: "69ea18d7b7c099adae06b0126cb483a8c76bd21d9b18b10de3aaa5991c637d88"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-2-2 MP3 플레이어와 4채널 터치 센서 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-3-1.webp
+    sha256: "b41e678598454f9e7ad7dcca57ecf33eae543fb629b52c77ae5305af9257896e"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-3-1 팬 모터 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-4-1.webp
+    sha256: "c3946b143c0b818a371d208218278c073d6c39a12459a4120d3912ec22a41e75"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-4-1 서보모터 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/2-2-4-2.webp
+    sha256: "8719efda7f467f81b53f89ec09292918b424e2ec61bccb63c3852c83c3833e0a"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 2-2-4-2 서보모터 두 개 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/3-1-2-1.webp
+    sha256: "39162b1f56c8df1950fd1003e7b2853bbcbe32a3bf675d46367173ab1c3deec3"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 3-1-2-1 UART 변환기와 레이저 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/3-1-3-1.webp
+    sha256: "27426ae403fcebc356e23a7b82949f6095dd880a8a6cab4d9527b4d5e8ebe556"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 3-1-3-1 RGB LED 연결(블루투스 실습) → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/4-1-4-1.webp
+    sha256: "6ac114c3a3a731682f304e7efba4a8960cf27e371f697ca110a5da0e1850c6d1"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 4-1-4-1 LCD 연결(블루투스 실습) → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/4-2-1-1.webp
+    sha256: "6916732ad03fff521448b3be10daa0f7d88313d77da92cc69158e05f6ada9217"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 4-2-1-1 LCD와 서보모터 두 개 연결 → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/4-2-2-1.webp
+    sha256: "6916732ad03fff521448b3be10daa0f7d88313d77da92cc69158e05f6ada9217"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 4-2-2-1 LCD와 서보모터 연결(1장) → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/circuits/third-party/kit-vendor/4-2-2-2.webp
+    sha256: "ad92c0a789d89bec9b492bdcc76894506672d72e9ac4d0708f9655a1fcfddc1d"
+    source: "회로 구성 도구(circuit.gorillacell.kr) 4-2-2-2 RGB LED와 레이저 연결(2장) → [이미지 저장] PNG의 투명 여백을 자르고 WebP로 다시 저장(EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."

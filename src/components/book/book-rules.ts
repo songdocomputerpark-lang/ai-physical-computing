@@ -13,7 +13,7 @@
  * (글자가 출판본과 같은지는 npm run book:fidelity가 원본 PDF와 맞대어 본다 — 원본은 운영자 PC에만 있다, C138.)
  */
 import { BOOK_ID_PATTERN, EXAMPLE_FILE_PATTERN, type BookData } from '../../config/content-schemas.ts';
-import { BOOK_BOX_VARIANTS } from '../../lib/remark-boxes.mjs';
+import { BOOK_BOX_VARIANTS, BOOK_CIRCUIT_ID_PATTERN } from '../../lib/remark-boxes.mjs';
 import { childElements, findAll, hasClass, parseHtml, textContent, type HtmlElement } from '../lesson/html-tree.ts';
 import { imageAltIssues, markdownTrapIssues } from '../lesson/lesson-rules.ts';
 import { bookKindOf, bookPageList, lessonMatchesBook, parseBookPages, type BookKind } from './book-data.ts';
@@ -58,6 +58,7 @@ export const BOOK_RULES: Readonly<Record<string, string>> = Object.freeze({
   'book-box': '교과서 꼭지 상자(:::말풍선 등)와 정답 접기만',
   'book-heading': '제목 모양: ## 번호 제목 · ## 기본 실습 | 제목 · ### 단계 1 | 제목',
   'book-lab': '::실습실[파일]의 예제 경로 모양',
+  'book-circuit': '::회로[번호]의 그림 번호 모양(목록에 있는 번호인지는 check:book이 본다)',
   'img-alt': '그림 대체 글',
   'heading-h1': '본문에 # 제목(h1) 쓰지 않기',
   'md-tilde': '물결표(~) 두 개가 취소선이 되지 않게(범위는 \\~)',
@@ -257,13 +258,33 @@ function labIssues(tree: HtmlElement): BookRuleIssue[] {
   return issues;
 }
 
+/**
+ * ::회로[2-1-2-1](회로 그림 자리 — <div class="book-circuit-slot" data-book-circuit="번호">)의 번호 모양과 겹침.
+ * 모양이 틀린 지시자는 remark가 글자 그대로 되돌려 자리 표시가 아예 없다(빌드 로그에 [상자 문법] 경고) — 여기서는 만들어진 자리만 본다.
+ * 같은 쪽에 같은 그림을 두 번 넣으면 참고(warning)로 알린다. 목록(scripts/circuits/circuits.yaml)에 있는 번호인지는 파일을 읽는 check:book이 본다(이 규칙은 파일을 열지 않는다).
+ */
+function circuitIssues(tree: HtmlElement): BookRuleIssue[] {
+  const issues: BookRuleIssue[] = [];
+  const seen = new Set<string>();
+  for (const slot of findAll(tree, (element) => hasClass(element, 'book-circuit-slot'))) {
+    const id = slot.attrs['data-book-circuit'] ?? '';
+    if (!BOOK_CIRCUIT_ID_PATTERN.test(id)) {
+      issues.push(issue('error', 'book-circuit', `::회로[${id}]의 번호 모양이 맞지 않아요. "<차시 번호>-<그림 번호>"로 적어요. 예: ::회로[2-1-2-1]`));
+    } else if (seen.has(id)) {
+      issues.push(issue('warning', 'book-circuit', `::회로[${id}]가 이 쪽에 두 번 있어요. 한 번만 넣어요.`));
+    }
+    seen.add(id);
+  }
+  return issues;
+}
+
 /** 쪽 본문(HTML)의 규칙 문제 */
 export function bookBodyIssues(input: BookRuleInput): BookRuleIssue[] {
   const { id, data, html } = input;
   const tree = parseHtml(html);
   const trap = markdownTrapIssues(html).map((found) => issue(found.level, found.code, found.message));
   const alt = imageAltIssues(html).map((found) => issue(found.level, found.code, found.message));
-  return [...pageMarkIssues(html, data, tree), ...goalIssues(bookKindOf(id), tree), ...boxIssues(tree), ...headingIssues(tree), ...labIssues(tree), ...alt, ...trap];
+  return [...pageMarkIssues(html, data, tree), ...goalIssues(bookKindOf(id), tree), ...boxIssues(tree), ...headingIssues(tree), ...labIssues(tree), ...circuitIssues(tree), ...alt, ...trap];
 }
 
 /** 쪽 한 편의 규칙 문제를 모두 돌려준다(파일을 열지 않는 규칙만). 빌드는 경고로, check:book은 error를 실패로 다룬다 */

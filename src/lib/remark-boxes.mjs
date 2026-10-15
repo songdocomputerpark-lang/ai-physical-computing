@@ -31,6 +31,7 @@
 //   :::말풍선 / :::해보기[GenAI와 함께 탐구하기] / :::용어풀이[투과율] / :::연결레시피[센서 연결 레시피] / :::에러체크[LCD 출력 에러 체크 포인트]
 //   :::결과 / :::점검하기 / :::자기평가 / :::학습활동 / :::읽기자료[AI로 읽는 세상] / :::성취계획 / :::코드설명 / :::그림생략[교과서 10쪽 사진] / :::웹정정[무엇]
 //   ::실습실[esp32/u2/2-1-2-lcd-count.py]       ← 코드 바로 아래에 [이 자리에서 실습실 열기]를 둔다(자리 표시 <div data-book-lab>, src/components/book/book-html.ts가 부품으로 바꿈)
+//   ::회로[2-1-2-1]                            ← 키트 회로 구성 도구로 그린 배선 그림(scripts/circuits/circuits.yaml의 id). 자리 표시 <div data-book-circuit>를 book-html.ts가 <figure>로 바꿈
 //   쓰는 법 전체는 content/book/2-1-2.md(기준 쪽)와 MAINTENANCE.md의 교과서 쪽 절.
 //
 // 상자 종류는 아래 BOX_TYPES에 있다. 영어 이름(:::teacher 등)도 같은 뜻이다.
@@ -248,6 +249,10 @@ function applyBox(node, type) {
 export const PAGE_MARK_NAMES = Object.freeze(['쪽', 'page']);
 /** 실습실 자리 지시자의 이름(::실습실[esp32/u2/x.py]) — 영어 이름은 lab */
 export const BOOK_LAB_NAMES = Object.freeze(['실습실', 'lab']);
+/** 회로 그림 자리 지시자의 이름(::회로[2-1-2-1]) — 영어 이름은 circuit */
+export const BOOK_CIRCUIT_NAMES = Object.freeze(['회로', 'circuit']);
+/** 회로 그림 번호의 모양("<차시>-<번호>" — 예: 2-1-2-1, 4-2-2-2). 목록에 있는 번호인지는 npm run check:book이 본다 */
+export const BOOK_CIRCUIT_ID_PATTERN = /^[1-4]-[1-9]-[1-9]-[1-9]\d?$/u;
 
 /** 지시자 라벨의 글자(자식 글자 노드를 이은 것). 라벨이 없으면 빈 글 */
 function labelText(node) {
@@ -261,6 +266,8 @@ function labelText(node) {
  * (false면 부른 쪽이 원래 글자로 되돌리고, 모양이 틀린 것은 빌드 로그에 경고한다 — 빌드는 멈추지 않는다, PD-35).
  * - ::쪽[125]   → <p class="book-page-mark" id="p125" data-pagefind-ignore>교과서 125쪽</p> (검색 색인에서 뺀다 — 쪽 번호가 검색 결과 요약에 섞이지 않게)
  * - ::실습실[x] → <div class="book-lab-slot" data-book-lab="x" data-pagefind-ignore></div> (자리 표시 — 부품으로 바꾸는 곳은 src/components/book/book-html.ts)
+ * - ::회로[2-1-2-1] → <div class="book-circuit-slot" data-book-circuit="2-1-2-1" data-pagefind-ignore></div> (자리 표시 — 그림 목록 scripts/circuits/circuits.yaml을
+ *   읽어 <figure>로 바꾸는 곳은 book-html.ts. 목록을 여기서 읽지 않는 까닭: Astro 콘텐츠 캐시가 이 플러그인의 결과를 되살려, 그림 목록만 고쳐서는 쪽이 새로 그려지지 않는다)
  * @param {any} node
  * @param {{ path?: string } | undefined} file
  * @returns {boolean}
@@ -286,6 +293,15 @@ function applyLeaf(node, file) {
       return false;
     }
     node.data = { ...node.data, hName: 'div', hProperties: { className: ['book-lab-slot'], dataBookLab: label, dataPagefindIgnore: '' } };
+    node.children = [];
+    return true;
+  }
+  if (BOOK_CIRCUIT_NAMES.includes(node.name)) {
+    if (!BOOK_CIRCUIT_ID_PATTERN.test(label)) {
+      warnLeaf(node, file, `::${node.name}[…]의 대괄호 안에는 회로 그림 번호(차시 번호-그림 번호)를 적어요. 예: ::회로[2-1-2-1]`);
+      return false;
+    }
+    node.data = { ...node.data, hName: 'div', hProperties: { className: ['book-circuit-slot'], dataBookCircuit: label, dataPagefindIgnore: '' } };
     node.children = [];
     return true;
   }

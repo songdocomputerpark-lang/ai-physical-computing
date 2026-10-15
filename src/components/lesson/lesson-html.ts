@@ -236,8 +236,9 @@ const ZOOM_LINK_CLASS = 'figure-zoom';
  * 링크 글은 화면에 "그림 크게 보기"만 보이고, 화면 낭독기에는 그림의 대체 글을 덧붙여 읽힌다(숨긴 글 — global.css의 .visually-hidden).
  * 그림이 여럿인 차시에서 링크 목록으로 다니는 학생이 "그림 크게 보기"만 여러 번 듣고 어느 그림인지 모르던 것을 막는다
  * (WCAG 2.4.4 링크 목적, 2026-09-26 Phase 6 접근성 점검). 대체 글이 비었으면(꾸밈 그림) 덧붙이지 않는다.
+ * 회로 그림(src/components/circuits/circuit-html.ts)도 이 링크를 그대로 쓴다 — 그래서 export한다(판 1.4.0 C5).
  */
-function zoomLink(src: string, alt: string | undefined): string {
+export function zoomLink(src: string, alt: string | undefined): string {
   const name = alt?.trim() ? `<span class="visually-hidden">: ${alt.trim()}</span>` : '';
   return `<a class="${ZOOM_LINK_CLASS}" href="${src}" data-pagefind-ignore>그림 크게 보기${name}</a>`;
 }

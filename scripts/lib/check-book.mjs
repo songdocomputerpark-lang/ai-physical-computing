@@ -8,6 +8,7 @@
 //   fm-yaml-comment   따옴표 없는 글 값의 " #"가 YAML 주석으로 잘리는 곳
 //   box-unknown       모르는 상자 이름(:::말풍성 같은 오타 — 화면에 글자 그대로 보인다)
 //   book-lab-file     ::실습실[파일]의 예제 파일이 examples/ 아래에 있는지
+//   book-circuit-id   ::회로[번호]가 회로 그림 목록(scripts/circuits/circuits.yaml)에 있는 번호인지(모르는 번호면 오류), 그 그림의 출판본 쪽이 이 파일의 쪽 범위 안인지(오류)·짝 차시가 같은지(참고)
 //   img-file·img-review·img-alt-manifest  그림 파일·눈 확인 기록·그림 목록 대체 글(차시 틀 검사와 같은 규칙 — check-lessons.mjs의 lessonImageIssues)
 //   glossary          :용어[…]가 용어사전에 있는지(없으면 참고)
 //   book-pages-overlap 두 쪽 파일의 쪽 범위가 겹치는지(오류)
@@ -20,6 +21,7 @@ import path from 'node:path';
 import { parseDocument } from 'yaml';
 import { checkBookRules } from '../../src/components/book/book-rules.ts';
 import { bookPageList } from '../../src/components/book/book-data.ts';
+import { CIRCUITS_FILE, parseCircuitsYaml } from '../../src/components/circuits/circuits-schema.ts';
 import { findGlossaryMarkers, resolveGlossaryMarker } from '../../src/components/glossary/glossary.ts';
 import { bookSchema } from '../../src/config/content-schemas.ts';
 import {
@@ -67,6 +69,23 @@ export function listBookFiles(rootDir) {
 }
 
 /**
+ * 회로 그림 목록(scripts/circuits/circuits.yaml)에서 번호 → { 짝 차시, 출판본 쪽 }을 읽는다. 파일이 없거나 형식이 틀리면 figures 없이 이유만 돌려준다
+ * (::회로를 쓴 쪽에서만 그 이유를 오류로 알린다 — 회로를 안 쓰는 임시 저장소 시험이 목록 없이도 통과하게).
+ * @param {string} rootDir
+ * @returns {{ figures?: Map<string, { lesson: string, textbookPage: number }>, problem?: string }}
+ */
+export function loadCircuitFigures(rootDir) {
+  const file = path.join(rootDir, CIRCUITS_FILE);
+  if (!fs.existsSync(file)) return { problem: `회로 그림 목록 ${CIRCUITS_FILE}이(가) 없어요.` };
+  try {
+    const list = parseCircuitsYaml(fs.readFileSync(file, 'utf8'));
+    return { figures: new Map(list.figures.map((figure) => [figure.id, { lesson: figure.lesson, textbookPage: figure.textbookPage }])) };
+  } catch (error) {
+    return { problem: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
  * 웹 차시의 짝 찾기에 쓸 값(단원·차시 번호·파일 이름)만 가볍게 읽는다.
  * @param {string} rootDir
  * @returns {{ unit: 1 | 2 | 3 | 4, label: string, slug: string }[]}
@@ -89,7 +108,7 @@ export function readLessonKeys(rootDir) {
 /**
  * 쪽 파일 하나를 검사한다.
  * @param {string} file 저장소 뿌리 기준 경로
- * @param {{ rootDir: string, renderer: Awaited<ReturnType<typeof createLessonRenderer>>, glossary: ReturnType<typeof loadGlossary>['registry'], images: ReturnType<typeof loadImageInfo>, lessons: ReturnType<typeof readLessonKeys>, includeDrafts: boolean }} context
+ * @param {{ rootDir: string, renderer: Awaited<ReturnType<typeof createLessonRenderer>>, glossary: ReturnType<typeof loadGlossary>['registry'], images: ReturnType<typeof loadImageInfo>, lessons: ReturnType<typeof readLessonKeys>, includeDrafts: boolean, circuits?: ReturnType<typeof loadCircuitFigures> }} context
  * @returns {Promise<BookCheck & { data?: import('../../src/config/content-schemas.ts').BookData }>}
  */
 export async function checkBookFile(file, context) {
@@ -170,6 +189,9 @@ export async function checkBookFile(file, context) {
     }
   }
 
+  // ::회로[번호]의 그림 목록
+  issues.push(...circuitIssues(html, id, data, context.circuits ?? loadCircuitFigures(rootDir)));
+
   // 본문 그림(차시 틀 검사와 같은 규칙)
   issues.push(...lessonImageIssues(html, context));
 
@@ -191,6 +213,48 @@ export async function checkBookFile(file, context) {
 }
 
 /**
+ * ::회로[번호] 자리가 목록에 있는 번호인지, 그 그림의 출판본 쪽이 이 쪽 파일의 쪽 범위 안인지 본다.
+ * @param {string} html
+ * @param {string} id 쪽 id(2-1-2)
+ * @param {import('../../src/config/content-schemas.ts').BookData} data
+ * @param {ReturnType<typeof loadCircuitFigures>} circuits
+ * @returns {CheckIssue[]}
+ */
+function circuitIssues(html, id, data, circuits) {
+  /** @type {CheckIssue[]} */
+  const issues = [];
+  const slots = [...html.matchAll(/class="book-circuit-slot"[^>]*\sdata-book-circuit="([^"]*)"/gu)].map((match) => match[1] ?? '');
+  if (slots.length === 0) return issues;
+  if (!circuits.figures) {
+    issues.push({ level: 'error', code: 'book-circuit-id', message: `::회로를 썼는데 그림 목록을 읽지 못했어요. ${circuits.problem ?? ''}`.trim() });
+    return issues;
+  }
+  const pages = bookPageList(data.pages);
+  for (const slot of slots) {
+    const figure = circuits.figures.get(slot);
+    if (!figure) {
+      issues.push({
+        level: 'error',
+        code: 'book-circuit-id',
+        message: `::회로[${slot}]는 회로 그림 목록(${CIRCUITS_FILE})에 없는 번호예요. 있는 번호: ${[...circuits.figures.keys()].join(', ')}`,
+      });
+      continue;
+    }
+    if (pages.length > 0 && !pages.includes(figure.textbookPage)) {
+      issues.push({
+        level: 'error',
+        code: 'book-circuit-id',
+        message: `::회로[${slot}]의 그림은 출판본 ${figure.textbookPage}쪽 배선인데 이 파일의 쪽 범위(${data.pages}) 밖이에요. 그 쪽을 맡은 파일에 넣어요.`,
+      });
+    }
+    if (figure.lesson !== id) {
+      issues.push({ level: 'warning', code: 'book-circuit-id', message: `::회로[${slot}]는 ${figure.lesson} 차시의 그림인데 ${id} 쪽에 넣었어요. 맞는 자리인지 확인해요.` });
+    }
+  }
+  return issues;
+}
+
+/**
  * 모든 쪽을 검사한다.
  * @param {{ rootDir?: string, only?: string[], includeDrafts?: boolean }} [options]
  * @returns {Promise<BookCheckReport>}
@@ -206,6 +270,7 @@ export async function runBookCheck(options = {}) {
     glossary: glossary.registry,
     images: loadImageInfo(rootDir),
     lessons: readLessonKeys(rootDir),
+    circuits: loadCircuitFigures(rootDir),
     includeDrafts,
   };
   /** @type {(BookCheck & { data?: any })[]} */

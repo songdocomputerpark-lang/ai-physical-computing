@@ -105,7 +105,7 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'md-tilde': '물결표(~) 두 개가 취소선이 되지 않게(범위는 \\~)',
   'md-bold': '굵게(**)가 글자 그대로 남지 않게',
   'para-length': '학생 글 한 문단은 3문장 안(SPEC §7.1)',
-  'book-only': '교과서 쪽 전용 상자(:::말풍선 등)와 쪽 표지(::쪽[n])는 content/book에서만(판 1.4.0)',
+  'book-only': '교과서 쪽 전용 상자(:::말풍선 등)·쪽 표지(::쪽[n])·회로 그림 자리(::회로[번호])는 content/book에서만(판 1.4.0)',
 });
 
 function issue(level: LessonRuleLevel, code: string, message: string): LessonRuleIssue {
@@ -523,7 +523,7 @@ export function bookOnlyIssues(html: string): LessonRuleIssue[] {
   const boxVariants = BOOK_BOX_VARIANTS as readonly string[];
   const found = findAll(tree, (element) => hasClass(element, 'box') && boxVariants.some((variant) => hasClass(element, `box--${variant}`)));
   const marks = findAll(tree, (element) => hasClass(element, 'book-page-mark'));
-  const labs = findAll(tree, (element) => hasClass(element, 'book-lab-slot'));
+  const labs = findAll(tree, (element) => hasClass(element, 'book-lab-slot') || hasClass(element, 'book-circuit-slot'));
   const issues: LessonRuleIssue[] = [];
   if (found.length > 0) {
     const names = [...new Set(found.flatMap((element) => boxVariants.filter((variant) => hasClass(element, `box--${variant}`))))].join(', ');
@@ -533,7 +533,7 @@ export function bookOnlyIssues(html: string): LessonRuleIssue[] {
   }
   if (marks.length > 0 || labs.length > 0) {
     issues.push(
-      issue('error', 'book-only', '쪽 표지(::쪽[n])·실습실 자리(::실습실[파일])는 교과서 쪽(content/book/) 전용이에요. 웹 차시의 예제는 frontmatter examples와 ::예제로 적어요.'),
+      issue('error', 'book-only', '쪽 표지(::쪽[n])·실습실 자리(::실습실[파일])·회로 그림 자리(::회로[번호])는 교과서 쪽(content/book/) 전용이에요. 웹 차시의 예제는 frontmatter examples와 ::예제로 적고, 배선 그림은 차시 머리의 [실제 키트 배선 보기]가 저절로 보여 줘요.'),
     );
   }
   return issues;

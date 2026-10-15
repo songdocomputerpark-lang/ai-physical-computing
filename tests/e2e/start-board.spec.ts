@@ -482,6 +482,23 @@ test.describe('보드 준비 페이지(P3-10)', () => {
     await expect(portHelp(page)).toHaveAttribute('open', '');
   });
 
+  test('키트에 부품을 꽂는 예: LCD 배선 회로 그림(캡션·크게 보기)과 부품 사전 링크가 있고, 화면 폭을 넘지 않는다(판 1.4.0 C5)', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await page.goto(BOARD.href);
+    await expect(page.getByRole('heading', { level: 3, name: '키트에 부품을 꽂는 예' })).toBeVisible();
+    const figure = page.locator('figure.book-circuit[data-circuit="2-1-2-1"]');
+    await expect(figure).toHaveCount(1);
+    await figure.scrollIntoViewIfNeeded();
+    await expect.poll(() => figure.locator('img').evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(figure.locator('img')).toHaveAttribute('alt', /LCD/u);
+    await expect(figure.locator('figcaption')).toContainText('LCD를 21번(SDA)·22번(SCL) 핀에 연결해요.');
+    await expect(figure.getByRole('link', { name: /그림 크게 보기/u })).toBeVisible();
+    await expect(page.locator('.prose', { has: page.locator('#kit-example') }).getByRole('link', { name: '부품 사전' })).toHaveAttribute('href', /\/start\/parts\/$/u);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    expect(errors).toEqual([]);
+  });
+
   test('휴대폰 화면: 가로로 넘치지 않고 연결 확인·장치 관리자 그림·드라이버 표가 화면 폭에 들어간다', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', '휴대폰 화면에서만');
     const errors = collectPageErrors(page);

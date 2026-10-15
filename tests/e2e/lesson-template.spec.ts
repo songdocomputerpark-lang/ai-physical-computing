@@ -347,3 +347,38 @@ test.describe('교사용 접기 — 이 차시의 원고와 자료', () => {
     );
   });
 });
+
+// 웹 차시의 "실제 키트 배선 보기"(판 1.4.0 C5): 그 차시의 회로 그림을 기본 닫힘 접기로. 배선이 없는 차시에는 없다.
+test.describe('실제 키트 배선 보기', () => {
+  test('2-1-2: 준비물 사진 줄 뒤에 닫힌 접기가 있고, 열면 회로 그림 두 장이 보인다', async ({ page }) => {
+    await page.goto('./learn/u2/2-1-2/');
+    await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
+    const details = page.locator('details.circuit-details');
+    await expect(details).toHaveCount(1);
+    await expect(details).not.toHaveAttribute('open', /.*/u);
+    const summary = details.locator('summary');
+    await expect(summary).toContainText('실제 키트 배선 보기');
+    await expect(summary).toContainText('(2장)');
+    // 닫혀 있는 동안 그림은 보이지 않는다
+    await expect(details.locator('figure.book-circuit').first()).toBeHidden();
+    // 키보드로 연다
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    await expect(details).toHaveAttribute('open', '');
+    const figures = details.locator('figure.book-circuit');
+    await expect(figures).toHaveCount(2);
+    await figures.first().scrollIntoViewIfNeeded();
+    await expect.poll(() => figures.first().locator('img').evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(figures.first().locator('figcaption')).toContainText('LCD를 21번(SDA)·22번(SCL) 핀에 연결해요.');
+    await expect(figures.first().getByRole('link', { name: /그림 크게 보기/u })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+
+  test('배선이 없는 차시(1-1-1·2-1-1)에는 접기가 없다', async ({ page }) => {
+    for (const path of ['./learn/u1/1-1-1/', './learn/u2/2-1-1/']) {
+      await page.goto(path);
+      await expect(page.locator('details.circuit-details'), path).toHaveCount(0);
+    }
+  });
+});

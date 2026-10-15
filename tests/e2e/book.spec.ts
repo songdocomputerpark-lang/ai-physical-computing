@@ -172,3 +172,42 @@ test('가로로 넘치지 않는다(교과서 쪽·첫 화면)', async ({ page }
     expect(overflow, path).toBeLessThanOrEqual(1);
   }
 });
+
+// 회로 그림(판 1.4.0 C5): ::회로[번호] 지시자가 키트 회로 구성 도구로 그린 배선 그림(scripts/circuits/circuits.yaml)을 연결 레시피 바로 뒤에 놓는다.
+test.describe('회로 그림(::회로)', () => {
+  test('/book/2-1-2/: 연결 레시피 뒤에 회로 그림 두 장이 캡션·고정 문장·[그림 크게 보기]와 함께 보이고 그림이 받아진다', async ({ page }) => {
+    await page.goto('./book/2-1-2/');
+    await hideDevToolbar(page);
+    const figures = page.locator('figure.book-circuit');
+    await expect(figures).toHaveCount(2);
+    // 연결 레시피 상자 바로 뒤에 놓인다
+    await expect(page.locator('.box--recipe + figure.book-circuit')).toHaveCount(2);
+    await expect(figures.nth(0)).toHaveAttribute('data-circuit', '2-1-2-1');
+    await expect(figures.nth(1)).toHaveAttribute('data-circuit', '2-1-2-2');
+
+    const first = figures.first();
+    await first.scrollIntoViewIfNeeded();
+    const image = first.locator('img');
+    await expect(image).toHaveAttribute('alt', /^ESP32 실드 V3 보드 아래에 LCD가 있어요\./u);
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    const caption = first.locator('figcaption');
+    await expect(caption).toContainText('회로 그림');
+    await expect(caption).toContainText('LCD를 21번(SDA)·22번(SCL) 핀에 연결해요.');
+    await expect(caption).toContainText('브릭셀 회로 구성 도구로 그린 배선(ESP32 실드 V3). 교과서 사진의 보드와 모양이 달라도 같은 번호 핀에 꽂아요.');
+    // 핀 번호 글자가 작아 [그림 크게 보기]는 모든 화면 폭에서 보인다(눌러 열리는 곳은 그림 파일)
+    const zoom = caption.getByRole('link', { name: /그림 크게 보기/u });
+    await expect(zoom).toBeVisible();
+    await expect(zoom).toHaveAttribute('href', /\/images\/circuits\/third-party\/kit-vendor\/2-1-2-1\.webp$/u);
+    // 가로로 넘치지 않는다
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+
+  test('/book/4-2-2/: 그림이 두 장이고, 그리지 못한 버저 연결은 안내 문장으로 알린다', async ({ page }) => {
+    await page.goto('./book/4-2-2/');
+    await hideDevToolbar(page);
+    await expect(page.locator('figure.book-circuit')).toHaveCount(2);
+    await expect(page.locator('figure.book-circuit[data-circuit="4-2-2-2"] figcaption')).toContainText('이 그림에 없는 연결: 버저(2번 핀)');
+    await expect(page.locator('figure.book-circuit[data-circuit="4-2-2-1"] figcaption')).not.toContainText('이 그림에 없는 연결');
+  });
+});
