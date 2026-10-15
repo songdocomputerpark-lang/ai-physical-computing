@@ -4,7 +4,7 @@
 # 결과는 public/images/lessons/1-4-2/ 아래 WebP(메타데이터 없음). file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 #
 # 이 차시는 교과서 원고가 없던 곳이라 출판본 교과서(원본 약칭 BOOK, 판 1.4.0)에서만 꺼내요 — 교과서 쪽 /book/1-4-2/에 쓴다.
-# 94쪽·97쪽·101쪽의 사람 사진(실행 화면)은 운영자·공동 저자 본인 얼굴인지 확인되지 않아 꺼내지 않아요.
+# 94쪽·97쪽·101쪽의 사람 사진(실행 화면)은 운영자·공동 저자 본인 얼굴이라 꺼내요(2026-10-16 운영자 답 "사진사용" — 결정 O18).
 
 images:
   - name: program-structure
@@ -28,3 +28,85 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 얼굴·이름·경로·파일명·기기 주소·학교명 없음. 프로그램 구조 흐름도(둥근 상자 단계 이름 + 설명 글과 '처리' 묶음 표시)뿐이고 사람 사진은 없음"
+
+  # ── 실행 결과 사진 속 얼굴(2026-10-16 운영자 답 "사진사용" — 결정 O18, 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: ui-screen
+    use: 교과서 쪽 1-4-2 "4 자세 인식하기 프로그램 기능과 사용자 인터페이스" 실행 화면(출판본 94쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 고개를 옆으로 기울인 웹캠 화면. 왼쪽 위에 초록색 글자 자세가 틀어졌습니다!가 보이고, 얼굴과 어깨에 빨간 점이 찍혀 흰 선으로 이어져 있다"
+    from:
+      source: BOOK
+      page: 94
+      region: [224, 522, 484, 717]
+    file: public/images/lessons/1-4-2/ui-screen.webp
+    width: 795
+    height: 597
+    bytes: 23320
+    sha256: "eff5ec115fadf4019781d2b02704fb316b6e99c05e651e2b02aaeb6af5822c9e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 고개를 옆으로 기울임(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 94쪽). 왼쪽 위 초록 글자 자세가 틀어졌습니다!, 얼굴·어깨 빨간 점과 흰 선. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-diff
+    use: 교과서 쪽 1-4-2 기본 실습 단계 5 "실행 결과" 화면(출판본 97쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 고개를 기울인 웹캠 화면. 왼쪽 위에 노란색 글자 Diff: 60 px가 보이고, 얼굴에 빨간 점이, 두 어깨를 잇는 비스듬한 흰 선과 빨간 점이 그려져 있다"
+    from:
+      source: BOOK
+      page: 97
+      region: [197, 355, 538, 622]
+    file: public/images/lessons/1-4-2/result-diff.webp
+    width: 960
+    height: 752
+    bytes: 24164
+    sha256: "ecc575321336c7d1cd63bceba165202411eafe1ec8965a4b6d953432ac13d22a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 고개를 기울임(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 97쪽). 왼쪽 위 노란 Diff: 60 px 글자, 얼굴 빨간 점·어깨를 잇는 비스듬한 흰 선. 옆 설명 상자는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-straight
+    use: 교과서 쪽 1-4-2 심화 실습 단계 6 "실행 결과" 왼쪽 화면(바른 자세)(출판본 101쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 바르게 앉은 웹캠 화면. 왼쪽 위에 초록색 글자 바른 자세를 유지하고 있어요!가 보이고, 두 어깨를 잇는 흰 선이 거의 수평이다"
+    from:
+      source: BOOK
+      page: 101
+      region: [197, 246, 363, 386]
+    file: public/images/lessons/1-4-2/result-straight.webp
+    width: 508
+    height: 429
+    bytes: 12066
+    sha256: "52d0569adfaf9c162d2529da9b9a608f34e78d990df1eb7a63252a82bf7c17a4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 바르게 앉아 있음(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 101쪽 왼쪽 화면). 왼쪽 위 초록 글자 바른 자세를 유지하고 있어요!, 수평에 가까운 어깨 흰 선. 아래 설명 상자·말꼬리는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-tilted
+    use: 교과서 쪽 1-4-2 심화 실습 단계 6 "실행 결과" 오른쪽 화면(기울어진 자세)(출판본 101쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 몸을 한쪽으로 기울인 웹캠 화면. 왼쪽 위에 초록색 글자 자세가 틀어졌습니다!가 보이고, 두 어깨를 잇는 흰 선이 기울어져 있다"
+    from:
+      source: BOOK
+      page: 101
+      region: [374, 246, 541, 386]
+    file: public/images/lessons/1-4-2/result-tilted.webp
+    width: 511
+    height: 429
+    bytes: 11776
+    sha256: "36e9a00a5de480457daf03ca68be57fc52638d94b41ad11099cdaf11d6cdf291"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 몸을 기울임(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 101쪽 오른쪽 화면). 왼쪽 위 초록 글자 자세가 틀어졌습니다!, 기울어진 어깨 흰 선. 아래 설명 상자·말꼬리는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"

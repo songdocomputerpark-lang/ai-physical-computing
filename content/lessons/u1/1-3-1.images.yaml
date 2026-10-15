@@ -4,7 +4,7 @@
 # 결과는 public/images/lessons/1-3-1/ 아래 WebP(메타데이터 없음). file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 #
 # 이 차시는 교과서 원고가 없던 곳이라 출판본 교과서(원본 약칭 BOOK, 판 1.4.0)에서만 꺼내요 — 교과서 쪽 /book/1-3-1/에 쓴다.
-# 출판본의 사람 얼굴 사진(53쪽·54쪽·56쪽·57쪽·61쪽)은 운영자·공동 저자 본인 얼굴인지 확인되지 않아 꺼내지 않아요.
+# 출판본의 사람 얼굴 사진(53쪽·54쪽·56쪽·57쪽·61쪽)은 운영자·공동 저자 본인 얼굴이라 꺼내요(2026-10-16 운영자 답 "사진사용" — 결정 O18).
 
 images:
   - name: program-structure
@@ -28,3 +28,68 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 얼굴·이름·경로·파일명·기기 주소·학교명 없음. 프로그램 구조 흐름도(둥근 상자 단계 이름 + 설명 글과 '처리' 묶음 표시)뿐이고 사람 사진은 없음"
+
+  # ── 실행 결과 사진 속 얼굴(2026-10-16 운영자 답 "사진사용" — 결정 O18, 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: ui-screen
+    use: 교과서 쪽 1-3-1 "4 얼굴 방향 감지하기 프로그램 기능과 사용자 인터페이스" 실행 화면(출판본 54쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 고개를 왼쪽으로 돌린 웹캠 화면. 왼쪽 위에 흰 글자 Direction: Left와 초록색 글자 Left: 9, Right: 0이 보이고, 양쪽 눈 자리에 노란 점, 코 자리에 빨간 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 54
+      region: [212, 532, 504, 717]
+    file: public/images/lessons/1-3-1/ui-screen.webp
+    width: 893
+    height: 566
+    bytes: 19172
+    sha256: "d5eb551ad9187cd3e2b8ffa11af6be9efcb98f9f698b1fe6d52092d73d287923"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[426, 248, 115, 115], [271, 143, 313, 313]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 사람이 고개를 왼쪽으로 돌려 있음(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 54쪽). 왼쪽 위 Direction: Left·Left: 9·Right: 0 글자, 눈에 노란 점·코에 빨간 점·빨간 점선 사각형. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-landmarks
+    use: 교과서 쪽 1-3-1 기본 실습 단계 3 "실행 결과" 화면(출판본 56쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 정면을 보는 웹캠 화면. 얼굴 전체에 초록색 랜드마크 점이 촘촘하게 찍혀 있다"
+    from:
+      source: BOOK
+      page: 56
+      region: [183, 286, 525, 522]
+    file: public/images/lessons/1-3-1/result-landmarks.webp
+    width: 960
+    height: 663
+    bytes: 29918
+    sha256: "68e38e4d04cc75d3c4c424e316a1373e2ccf2b073cd31d1d5073e4c5525dde4b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[441, 322, 55, 55]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 사람이 정면을 보고 얼굴 전체에 초록 랜드마크 점이 찍힘(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 56쪽). 옆 설명 상자·글은 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-direction
+    use: 교과서 쪽 1-3-1 심화 실습 "실행 결과" 화면(출판본 61쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 고개를 왼쪽으로 돌린 웹캠 화면. 왼쪽 위에 Direction: Left, Left: 23, Right: 11 글자가 보이고, 눈에는 노란 점, 코에는 빨간 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 61
+      region: [197, 84, 539, 320]
+    file: public/images/lessons/1-3-1/result-direction.webp
+    width: 960
+    height: 663
+    bytes: 19176
+    sha256: "9269c712dfcc57d5834febd7b6cfb85fb755513da8fbe6fa77be1700715a8484"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 3
+      face_boxes: [[27, 155, 135, 135], [345, 323, 41, 41], [324, 184, 318, 318]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 사람이 고개를 왼쪽으로 돌려 있음(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 61쪽). 왼쪽 위 Direction: Left·Left: 23·Right: 11 글자, 눈에 노란 점·코에 빨간 점. 옆 설명 상자는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"

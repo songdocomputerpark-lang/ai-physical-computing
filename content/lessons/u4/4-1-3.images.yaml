@@ -6,6 +6,7 @@
 #
 # 출판본 교과서 232~247쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-1-3/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
 # 232쪽의 눈 그림(P1~P6 점이 찍힌 눈 모양)은 스톡(디파짓포토) 그림이라 꺼내지 않아요(결정 C11) — 교과서 쪽에는 :::그림생략으로 알려요.
+# 233쪽·239쪽·246쪽의 웹캠 화면 속 얼굴은 운영자·공동 저자 본인이라 꺼내요(2026-10-16 운영자 답 "사진사용" — 결정 O18).
 
 images:
   - name: program-structure
@@ -29,3 +30,68 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 출판본 구조 그림: 입력·처리·출력 칸이 화살표로 이어지고 칸마다 짧은 설명 글, 왼쪽에 처리 묶음 표시. 글자와 선뿐. 사람·얼굴·이름·경로·파일명·기기 주소·학교명 없음. 권리 표기 없음"
+
+  # ── 실행 결과 사진 속 얼굴(2026-10-16 운영자 답 "사진사용" — 결정 O18, 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: ui-screen
+    use: 교과서 쪽 4-1-3 "4 눈 깜빡임으로 마우스 제어하기 프로그램 기능과 사용자 인터페이스" 실행 화면(출판본 233쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 정면을 보는 웹캠 화면. 왼쪽 위에 콧등 좌표와 왼쪽·오른쪽 눈의 상태와 EAR 수치 글자가 보이고, 코에는 초록 점, 양쪽 눈에는 빨간 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 233
+      region: [352, 558, 568, 717]
+    file: public/images/lessons/4-1-3/ui-screen.webp
+    width: 661
+    height: 487
+    bytes: 20414
+    sha256: "aa1fa9ad4f81a222042a4e7dc5515b2ef3df51ae1a7b7d9037bb6955cd7b6ca4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[235, 155, 217, 217], [231, 196, 112, 112]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 사람이 정면을 봄(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 233쪽). 왼쪽 위 Nose_Control 좌표·Left Eye·Right Eye EAR 글자, 코 초록 점·눈 빨간 점·파란 십자. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-screen
+    use: 교과서 쪽 4-1-3 기본 실습 단계 11 뒤 "실행 결과" 화면(출판본 239쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 정면을 보는 웹캠 화면. 왼쪽 위에 콧등 좌표와 왼쪽·오른쪽 눈의 EAR 수치와 상태 글자가 보이고, 코에는 초록 점, 양쪽 눈에는 빨간 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 239
+      image: 25322
+    file: public/images/lessons/4-1-3/result-screen.webp
+    width: 813
+    height: 600
+    bytes: 26924
+    sha256: "bd921cd34d7f5f35b0ecea3aac59035803e3544260bf9be9527bc907966c2f75"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[309, 155, 259, 259], [310, 203, 125, 125]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면에 안경 쓴 사람이 정면을 봄(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 239쪽, 쪽에 말풍선이 겹친 곳이라 그림 원본에서 꺼냄 — 창 막대 없음). 왼쪽 위 Nose_Control 좌표·Left Eye·Right Eye EAR 글자. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-click
+    use: 교과서 쪽 4-1-3 심화 실습 "실행 결과" 화면(출판본 246쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 정면을 보는 웹캠 화면. 왼쪽 위에 콧등 좌표와 왼쪽·오른쪽 눈의 EAR 수치와 상태 글자가 보이고, 코에는 초록 점, 양쪽 눈에는 빨간 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 246
+      region: [183, 107, 525, 341]
+    file: public/images/lessons/4-1-3/result-click.webp
+    width: 960
+    height: 657
+    bytes: 26412
+    sha256: "577dd772b378392003560c770c7d7acf2e4d5ab04d920f5ad36096b7090daf9a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[380, 240, 250, 250], [366, 277, 129, 129]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 사람이 정면을 봄(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 246쪽). 왼쪽 위 Nose_Control 좌표·Left Eye·Right Eye EAR 글자. 옆 설명 상자는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"

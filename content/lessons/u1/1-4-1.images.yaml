@@ -4,7 +4,7 @@
 # 결과는 public/images/lessons/1-4-1/ 아래 WebP(메타데이터 없음). file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 #
 # 이 차시는 교과서 원고가 없던 곳이라 출판본 교과서(원본 약칭 BOOK, 판 1.4.0)에서만 꺼내요 — 교과서 쪽 /book/1-4-1/에 쓴다.
-# 84쪽·86쪽·91쪽의 사람 사진(실행 화면)은 운영자·공동 저자 본인 얼굴인지 확인되지 않아 꺼내지 않아요.
+# 84쪽·86쪽·91쪽의 사람 사진(실행 화면)은 운영자·공동 저자 본인 얼굴이라 꺼내요(2026-10-16 운영자 답 "사진사용" — 결정 O18).
 
 images:
   - name: pose-landmark-numbers
@@ -49,3 +49,68 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 얼굴·이름·경로·파일명·기기 주소·학교명 없음. 프로그램 구조 흐름도(둥근 상자 단계 이름 + 설명 글과 '처리' 묶음 표시)뿐이고 사람 사진은 없음"
+
+  # ── 실행 결과 사진 속 얼굴(2026-10-16 운영자 답 "사진사용" — 결정 O18, 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: ui-screen
+    use: 교과서 쪽 1-4-1 "4 포즈 인식하기 프로그램 기능과 사용자 인터페이스" 실행 화면(출판본 84쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 왼손을 번쩍 든 웹캠 화면. 왼쪽 위에 초록색 글자 Success!가 보이고, 얼굴과 어깨, 팔꿈치, 손목에 빨간 점이, 점 사이에 흰 선이 그려져 있다"
+    from:
+      source: BOOK
+      page: 84
+      region: [217, 532, 491, 717]
+    file: public/images/lessons/1-4-1/ui-screen.webp
+    width: 838
+    height: 566
+    bytes: 20802
+    sha256: "81338fec57ef25cced39bc132aa395c7d43ccd0f5a1b8bda599d7c58a60be18e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[385, 258, 145, 145]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 왼손을 번쩍 들고 있음(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 84쪽). 왼쪽 위 초록 Success! 글자, 얼굴·어깨·팔꿈치·손목의 빨간 점과 흰 선. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-pose
+    use: 교과서 쪽 1-4-1 기본 실습 단계 3 "실행 결과" 화면(출판본 86쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 두 팔을 위로 든 채 서 있는 웹캠 화면. 얼굴, 어깨, 팔꿈치, 손목, 엉덩이에 빨간 점이 찍히고 점들을 흰 선이 이어 몸의 윤곽을 그린다"
+    from:
+      source: BOOK
+      page: 86
+      region: [183, 285, 525, 551]
+    file: public/images/lessons/1-4-1/result-pose.webp
+    width: 960
+    height: 747
+    bytes: 26606
+    sha256: "be5a111b05a7a16ed62723eff68e3e61508434649f948084375e1bcff975ca25"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[417, 135, 143, 143]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 두 팔을 들고 서 있고 관절 빨간 점·흰 선이 몸의 윤곽을 그림(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 86쪽). 옆 설명 상자는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-success
+    use: 교과서 쪽 1-4-1 심화 실습 "실행 결과" 화면(출판본 91쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 왼손을 머리 위로 든 웹캠 화면. 왼쪽 위에 초록색 글자 Success!가 보이고, 얼굴과 어깨, 팔꿈치, 손목에 빨간 점이, 점 사이에 흰 선이 그려져 있다"
+    from:
+      source: BOOK
+      page: 91
+      region: [197, 84, 539, 331]
+    file: public/images/lessons/1-4-1/result-success.webp
+    width: 960
+    height: 693
+    bytes: 26486
+    sha256: "08515c8922f1e448ce6e696fd5cabd2697ed2adeb6a9bd1f94471706dd622393"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[452, 242, 192, 192]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 사람이 왼손을 머리 위로 들고 있음(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 91쪽). 왼쪽 위 초록 Success! 글자, 빨간 점과 흰 선. 옆 설명 상자는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"

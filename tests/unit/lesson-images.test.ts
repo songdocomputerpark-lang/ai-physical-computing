@@ -133,7 +133,7 @@ describe('제외 쪽(scripts/image-exclusions.yaml)', () => {
     ['BOOK', [125, 156], 'path'], // 출판본 125·156쪽: 저장 화면 캡처 속 학교명이 든 폴더 경로(판 1.4.0)
     ['BOOK', [251, 254, 262], 'device-address'], // 출판본 4단원 셸·콘솔 화면 속 기기 주소 모양 값(판 1.4.0)
     ['BOOK', [13, 15, 16, 33], 'face'], // 원고 U1 같은 쪽과 같은 사진(판 1.4.0)
-    ['BOOK', [53, 101, 218, 269], 'face'], // 본인 확인 전 실행 결과 얼굴(1단원 03·04·4단원 — 운영자 할 일 38, 대표 쪽만)
+    // 2026-10-16 할 일 38 답("사진사용", O18)으로 뺌: BOOK 53·54·…·269쪽 실행 결과 얼굴(1단원 03·04·4단원)은 더 이상 제외 쪽이 아니다
     ['BOOK', [22], 'path'], // 출판본 22쪽 캡처 속 사용자 폴더 경로(판 1.4.0)
     ['BOOK', [195, 197, 198], 'device-address'], // 원고 U3 같은 화면의 기기 주소(판 1.4.0)
     ['BOOK', [21], 'content'], // 원고 U1 21쪽과 같은 정치적 문구 배너(판 1.4.0)
@@ -147,6 +147,17 @@ describe('제외 쪽(scripts/image-exclusions.yaml)', () => {
       const exclusion = exclusionFor(realExclusions.rules, source, page);
       expect(exclusion, `${source} ${page}`).not.toBeNull();
       expect(exclusion?.kinds, `${source} ${page}`).toContain(kind);
+    }
+  });
+
+  it('운영자 답(2026-10-16, O18)으로 출판본 실행 결과 얼굴 24쪽은 제외 쪽이 아니고, 본인 확인 대상이 아닌 13·15·16·33·53·57쪽은 그대로 제외 쪽이다', () => {
+    // 53·57쪽은 페이스 메시 설명용 젊은 인물 사진이라 운영자·공동 저자 웹캠 사진과 다른 사람 — O18에 들지 않음(메인 세션 판단, 2026-10-16)
+    const answered = [54, 56, 61, 64, 66, 71, 76, 84, 86, 91, 94, 97, 101, 218, 221, 224, 230, 233, 239, 246, 249, 256, 260, 269];
+    for (const page of answered) {
+      expect(exclusionFor(realExclusions.rules, 'BOOK', page), `BOOK ${page}`).toBeNull();
+    }
+    for (const page of [13, 15, 16, 33, 53, 57]) {
+      expect(exclusionFor(realExclusions.rules, 'BOOK', page)?.kinds, `BOOK ${page}`).toContain('face');
     }
   });
 

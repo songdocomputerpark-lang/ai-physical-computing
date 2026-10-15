@@ -5,7 +5,7 @@
 # file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 #
 # 출판본 교과서 248~257쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-1-4/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
-# 249쪽·256쪽의 웹캠 화면(사람 얼굴이 나옴)은 본인 확인이 안 돼서 꺼내지 않아요 — 교과서 쪽에는 :::그림생략으로 알려요.
+# 249쪽·256쪽의 웹캠 화면(사람 얼굴이 나옴)은 운영자·공동 저자 본인 얼굴이라 꺼내요(2026-10-16 운영자 답 "사진사용" — 결정 O18).
 # 251쪽 파이썬 셸 화면의 블루투스 주소는 개인정보 모양이라 그림으로 꺼내지 않고 교과서 쪽에서 XX:XX:XX:XX:XX:XX로 바꿔 글로 적어요.
 
 images:
@@ -137,3 +137,69 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 출판본 256쪽 문자 LCD 사진: 파란 화면에 X 327 Y 186 글자뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+
+  # ── 실행 결과 사진 속 얼굴(2026-10-16 운영자 답 "사진사용" — 결정 O18, 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: ui-screen-webcam
+    use: 교과서 쪽 4-1-4 "4 얼굴 좌표 데이터 전송하기 프로그램 기능과 사용자 인터페이스" 웹캠 화면(출판본 249쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18) — 쪽에서는 LCD 사진이 이 화면의 오른쪽 아래를 가려서 그림 원본에서 꺼냄
+    alt: "안경을 쓴 사람이 정면을 보는 웹캠 화면. 왼쪽 위에 코의 좌표 X와 Y, 블루투스 연결 상태 글자가 보이고, 코에는 초록 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 249
+      image: 25489
+      crop: [0, 24, 963, 659]
+    file: public/images/lessons/4-1-4/ui-screen-webcam.webp
+    width: 960
+    height: 633
+    bytes: 22742
+    sha256: "289b476f6ccc1041060a62ec7710f021e162e754a7dc19939ba103d279215a4b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[487, 202, 109, 109], [335, 163, 279, 279]]
+      hidden: 원본 그림이 쪽에 보이는 모습과 달라요 — 눈 확인 때 쪽과 견줘요
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면에 안경 쓴 사람이 정면을 봄(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 249쪽, 쪽에서는 LCD 사진이 오른쪽 아래를 가린 곳이라 그림 원본에서 꺼내고 위쪽 창 제목 조각은 crop으로 뺌). 왼쪽 위 X:327 Y:186·BT: Connected 글자, 코 초록 점. 쪽 미리 보기와 견주어 가려진 곳에도 다른 글자·이름 없음 확인. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: ui-screen-lcd-photo
+    use: 교과서 쪽 4-1-4 "4 얼굴 좌표 데이터 전송하기 프로그램 기능과 사용자 인터페이스" 문자 LCD 사진(출판본 249쪽)
+    alt: "문자 LCD 모듈이 파란 바탕에 흰 글자로 코의 좌표 X와 Y 값을 보여 주는 사진"
+    from:
+      source: BOOK
+      page: 249
+      image: 25491
+    file: public/images/lessons/4-1-4/ui-screen-lcd-photo.webp
+    width: 672
+    height: 301
+    bytes: 25222
+    sha256: "063ed55bc1cb4aabcc923340aba7a22fe032d0070eac5ae353f0b5b91149b948"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 문자 LCD 모듈 사진(파란 바탕에 흰 글자 X:327 Y:186). 사람·얼굴 없음(출판본 249쪽). 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-webcam
+    use: 교과서 쪽 4-1-4 "영상 처리 동작 결과" 웹캠 화면(출판본 256쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "안경을 쓴 사람이 정면을 보는 웹캠 화면. 왼쪽 위에 코의 좌표 X와 Y, 블루투스 연결 상태 글자가 보이고, 코에는 초록 점이 찍혀 있다"
+    from:
+      source: BOOK
+      page: 256
+      region: [198.5, 154.5, 368, 300.5]
+    file: public/images/lessons/4-1-4/result-webcam.webp
+    width: 519
+    height: 447
+    bytes: 12744
+    sha256: "8f55129c4c868346ae1b05762765364e19fabe23d37b0b58796f1ba261134ca6"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[300, 129, 67, 67], [208, 100, 184, 184]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면에 안경 쓴 사람이 정면을 봄(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 256쪽). 왼쪽 위 X:327 Y:186·BT: Connected 글자, 코 초록 점. 쪽의 쉘 글·LCD 사진은 영역 밖(따로 꺼낸 그림). 이름·경로·파일명·기기 주소·학교명 없음"

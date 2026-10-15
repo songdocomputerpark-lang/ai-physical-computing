@@ -5,6 +5,7 @@
 # file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
 #
 # 출판본 교과서 212~222쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-1-1/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+# 218쪽·221쪽의 웹캠 화면 속 얼굴은 운영자·공동 저자 본인이라 꺼내요(2026-10-16 운영자 답 "사진사용" — 결정 O18).
 
 images:
   - name: system-flow-5steps
@@ -47,3 +48,47 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 출판본 216쪽 프로그램 화면 예: 분홍·청록 설명 칸과 선, 로봇 캐릭터 그림 위에 L_EYE·R_EYE·NOSE 표시, Left Eye·Cooldown 같은 화면 글. 사진 속 사람 없음(그린 로봇). 이름·경로·파일명·기기 주소·학교명 없음"
+
+  # ── 실행 결과 사진 속 얼굴(2026-10-16 운영자 답 "사진사용" — 결정 O18, 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: result-mesh
+    use: 교과서 쪽 4-1-1 기본 실습 단계 5 "실행 결과" 화면(얼굴 위 그물망)(출판본 218쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 사람이 정면을 보는 웹캠 화면. 얼굴 위에 초록색 그물망(페이스 메시)이 겹쳐 그려져 있다"
+    from:
+      source: BOOK
+      page: 218
+      image: 24885
+    file: public/images/lessons/4-1-1/result-mesh.webp
+    width: 848
+    height: 582
+    bytes: 27808
+    sha256: "dc7e3f24864ec773c8139066d0eec0b6a564350a2e769de6121e3860f4542eac"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[302, 115, 280, 280]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면에 사람이 정면을 보고 얼굴 위에 초록 그물망이 겹침(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 218쪽, 쪽에 말풍선이 겹친 곳이라 그림 원본에서 꺼냄 — 창 막대 없음). 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: result-points
+    use: 교과서 쪽 4-1-1 심화 실습 "실행 결과" 화면(눈과 코끝의 빨간 점)(출판본 221쪽, 운영자·공동 저자 본인 얼굴 — 결정 O18)
+    alt: "프로그램 창 안에 안경을 쓴 사람이 정면을 보는 웹캠 화면. 양쪽 눈과 코끝에 빨간 점이 하나씩 찍혀 있다"
+    from:
+      source: BOOK
+      page: 221
+      region: [198, 106, 539, 301]
+    file: public/images/lessons/4-1-1/result-points.webp
+    width: 960
+    height: 549
+    bytes: 14478
+    sha256: "7f231fecb7e45ff33f1dc19f1e91b2581ea544a2a5a9650712af84bf69b7c1ab"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[324, 172, 251, 251]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 사람이 정면을 보고 눈·코끝에 빨간 점(운영자·공동 저자 본인 얼굴 — 결정 O18, 출판본 221쪽). 옆 설명 상자는 영역 밖. 이름·경로·파일명·기기 주소·학교명 없음"
