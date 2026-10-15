@@ -1,0 +1,177 @@
+# 차시 1-2-2 "검지로 여는 디지털 스케치"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(판 1.4.0 — 교과서 쪽에서 쓰는 BOOK 그림만 있어요)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-2-2
+# 결과는 public/images/lessons/1-2-2/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 34
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+# reviewed는 그림을 한 장씩 열어 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명이 없는지 본 사람이 적어요.
+# 운영자·공동 저자 본인 얼굴(결정 O9)이 보이는 실행 화면(출판본 35·37·40쪽)은 꺼내도 돼요.
+
+images:
+
+  # ── 출판본 교과서 33~41쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/1-2-2/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: book-math-coordinates
+    use: 교과서 쪽 1-2-2 "수학 좌표계와 픽셀 좌표계" 옆 상자의 수학 좌표계 그림(출판본 34쪽)
+    alt: "수학 좌표계 그림. y축이 위쪽으로, x축이 오른쪽으로 늘어나는 좌표 평면에서 원점 (0, 0)은 왼쪽 아래, 점 (3, 1)은 오른쪽 위에 있다"
+    from:
+      source: BOOK
+      page: 34
+      region: [68, 167, 153, 255]
+    file: public/images/lessons/1-2-2/book-math-coordinates.webp
+    width: 261
+    height: 270
+    bytes: 2844
+    sha256: "76a6e2f40cf307a84d6ed21fe63ff4925b30422467719cc46a6fa5683cac1c01"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-09-1(컷))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 수학 좌표계(원점 (0, 0)과 점 (3, 1))를 그린 선 그림과 캡션 글자만 있음(출판 편집 컷). 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-pixel-screen-coordinates
+    use: 교과서 쪽 1-2-2 "수학 좌표계와 픽셀 좌표계" 옆 상자의 픽셀 좌표계 그림(출판본 34쪽)
+    alt: "픽셀 좌표계 그림. 모니터 화면의 왼쪽 위 모서리가 화면 좌표 (0, 0)이고 오른쪽으로 x축, 아래쪽으로 y축이 늘어나며 마우스 좌표 (x, y)가 화면 안에 표시되어 있다"
+    from:
+      source: BOOK
+      page: 34
+      region: [58, 271, 157, 366]
+    file: public/images/lessons/1-2-2/book-pixel-screen-coordinates.webp
+    width: 304
+    height: 291
+    bytes: 6284
+    sha256: "a2403e993abc5f851544ead897be75b83266c3e0a520f953af9a701f59facf26"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-08(컷))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 모니터 화면의 왼쪽 위 (0, 0)과 x축·y축, 마우스 좌표를 그린 선 그림과 캡션 글자만 있음(출판 편집 컷). 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-heart-hand
+    use: 교과서 쪽 1-2-2 "해 보기" 상자의 화면 — 손가락으로 하트를 그리는 화면(출판본 34쪽)
+    alt: "프로그램 창 안에서 손가락 끝으로 초록색 하트 모양 선을 그리는 화면"
+    from:
+      source: BOOK
+      page: 34
+      region: [372, 588, 512, 704]
+    file: public/images/lessons/1-2-2/book-heart-hand.webp
+    width: 429
+    height: 355
+    bytes: 5862
+    sha256: "3e6653b13a52977a30afaedfdfec8a26961b2b000fac4e6d9dcd47436bf50011"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 손가락 끝과 초록색 하트 선뿐인 화면(손가락과 손 일부만, 얼굴 없음). 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-hand-key-landmarks
+    use: 교과서 쪽 1-2-2 "손 주요 랜드마크" 옆 상자의 손 그림(출판본 35쪽)
+    alt: "손 주요 랜드마크 그림. 손에 0번부터 20번까지 번호가 붙은 점이 있고 손목 0번, 엄지 끝 4번, 검지 끝 8번, 중지 끝 12번, 약지 끝 16번, 새끼 끝 20번이 표시되어 있다"
+    from:
+      source: BOOK
+      page: 35
+      region: [422, 140, 544, 259]
+    file: public/images/lessons/1-2-2/book-hand-key-landmarks.webp
+    width: 373
+    height: 364
+    bytes: 11128
+    sha256: "6c17b57a7bf9ad1ae1b976bbf05442a613adb554043eded2d0b25c8a5b8366e6"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-09(컷)_수정)
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 펼친 손바닥 위 랜드마크 점과 0~20번 번호 그림만 있음(출판 편집 컷). 얼굴 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-sketch-ui
+    use: 교과서 쪽 1-2-2 "4 손 움직임 인식하기 프로그램 기능과 사용자 인터페이스" 옆 화면(출판본 35쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "웹캠 화면에서 검지 끝이 움직이며 초록색 선으로 하트 모양을 그리는 사용자 화면. 안경을 쓴 사람의 모습과 손이 보인다"
+    from:
+      source: BOOK
+      page: 35
+      region: [436, 608, 571, 717]
+    file: public/images/lessons/1-2-2/book-sketch-ui.webp
+    width: 414
+    height: 334
+    bytes: 7694
+    sha256: "123d2ffa6db1cbe85033147e7879d86ca4080792c576cd2cb858dcfd5b9d26aa"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 남성이 손가락으로 초록색 선을 그리는 모습(운영자·공동 저자 본인 — 결정 O9, 출판본 35쪽). 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-sketch-result
+    use: 교과서 쪽 1-2-2 기본 실습 "실행 결과" 화면(출판본 37쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "웹캠 화면 위에 검지로 초록색 선을 그린 실행 결과. 안경을 쓴 사람이 손가락으로 공중에서 선을 그리고 있다"
+    from:
+      source: BOOK
+      page: 37
+      region: [196, 469, 358, 596]
+    file: public/images/lessons/1-2-2/book-sketch-result.webp
+    width: 496
+    height: 389
+    bytes: 9770
+    sha256: "d479f3ba73d90c7f4e81c94ed938ee915288469460bb93d3c5c3f0a3294b5548"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[128, 147, 143, 143]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 37쪽 실행 결과: 웹캠 화면에 안경 쓴 남성(운영자·공동 저자 본인 — 결정 O9)과 손가락으로 그린 초록색 선. 오른쪽 가장자리에 옆 결과 상자의 연한 파란 말꼬리 조각이 조금 보임(글자 없음). 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-sketch-toggle-result
+    use: 교과서 쪽 1-2-2 심화 실습 "실행 결과" 화면(출판본 40쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "웹캠 화면 위에 손가락으로 글자 모양의 초록색 선을 그린 실행 결과. 안경을 쓴 사람의 얼굴 앞에 초록색 선이 겹쳐 있다"
+    from:
+      source: BOOK
+      page: 40
+      region: [181, 105, 500, 278]
+    file: public/images/lessons/1-2-2/book-sketch-toggle-result.webp
+    width: 960
+    height: 521
+    bytes: 16668
+    sha256: "640504f2ef9de4a209a35d8b7bd5dc798343eb949cdd3913ad8e74947274d77b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+  # ── 출판본 교과서 35쪽 프로그램 구조 흐름도(판 1.4.0, 원본 약칭 BOOK) ──
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 40쪽 실행 결과: 웹캠 화면에 안경 쓴 남성(운영자·공동 저자 본인 — 결정 O9)과 초록색 선으로 쓴 글자 모양. 옆 결과 상자에 가려지는 아래쪽은 빼고 잘랐음. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-program-structure
+    use: 교과서 쪽 1-2-2 "3 손 움직임 인식하기 프로그램 구조" 흐름도(출판본 35쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "손 움직임 인식하기 프로그램 구조 흐름도. 입력은 웹캠으로 실시간 손 영상을 받아 프레임 단위로 처리. 프레임 캡처는 영상 스트림에서 각 프레임 이미지를 순차적으로 추출. 손 인식 처리는 MediaPipe Hands로 검지 끝 좌표를 실시간으로 추출. 시각화는 연결된 검지 경로를 화면 위에 실시간으로 표시. 출력은 손끝으로 그린 선을 실시간으로 화면에 출력. 프레임 캡처, 손 인식 처리, 시각화의 세 단계는 처리 단계로 묶여 있다"
+    from:
+      source: BOOK
+      page: 35
+      region: [62, 365, 412, 580]
+    file: public/images/lessons/1-2-2/book-program-structure.webp
+    width: 960
+    height: 590
+    bytes: 31808
+    sha256: "8e091bd795deab152eaeb08b545bf9b198cbe3ae10c3aafa4a1ac32372fd29b7"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 입력·프레임 캡처·손 인식 처리·시각화·출력 단계를 초록 상자로 이은 흐름도(글자뿐). 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"

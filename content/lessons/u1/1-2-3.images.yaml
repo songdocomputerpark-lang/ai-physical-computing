@@ -56,3 +56,111 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 겹쳐 놓은 실행 화면 두 장(왼쪽 위 노란 글자 "Distance 58"과 작은 노란 원, "Distance 114"와 큰 노란 원)과 손 사진·빨간 점·흰 선만 있음. 결과 설명 글·점검표는 영역 밖. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+
+  # ── 출판본 교과서 42~51쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/1-2-3/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: book-euclid-diagram
+    use: 교과서 쪽 1-2-3 "1 손가락 거리 인식하기" 유클리드 거리 그림(출판본 43쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "유클리드 거리 그림. 점 p1(x1, y1)과 점 p2(x2, y2)를 잇는 파란 선분의 길이가 d이고, 유클리드 거리(d)는 루트 (x2-x1)의 제곱 더하기 (y2-y1)의 제곱이라는 식이 적혀 있다"
+    from:
+      source: BOOK
+      page: 43
+      region: [66, 104, 321, 258]
+    file: public/images/lessons/1-2-3/book-euclid-diagram.webp
+    width: 780
+    height: 471
+    bytes: 20972
+    sha256: "3ba9e431479ef3004acac6b8db7f08d4fba162e81d275f78150718bb6840616b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-07(컷))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 점 p1·p2를 잇는 파란 선분 d와 유클리드 거리 식 상자, 점선 격자만 있음(출판 편집 컷). 옆 말풍선·로봇은 영역 밖. 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-thumb-index-landmarks
+    use: 교과서 쪽 1-2-3 "엄지와 검지 랜드마크" 옆 상자의 손 그림(출판본 44쪽)
+    alt: "엄지 끝 4번과 검지 끝 8번 랜드마크를 빨간 네모로 짚은 손 랜드마크 그림"
+    from:
+      source: BOOK
+      page: 44
+      region: [52, 177, 162, 292]
+    file: public/images/lessons/1-2-3/book-thumb-index-landmarks.webp
+    width: 337
+    height: 352
+    bytes: 11470
+    sha256: "8e3f0aa1cc42798d42a6380c5d319415cac822df67ec62877172efa69a80c726"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[189, 26, 86, 86]]
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-09(컷)_수정)
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 펼친 손바닥 위 랜드마크 번호 그림과 엄지 끝(4)·검지 끝(8)을 짚은 빨간 네모만 있음(출판 편집 컷). 얼굴 검사 1곳은 손 모양을 잘못 본 것으로 얼굴 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-circle-ui
+    use: 교과서 쪽 1-2-3 "4 손가락 거리 인식하기 프로그램 기능과 사용자 인터페이스" 옆 화면(출판본 44쪽)
+    alt: "프로그램 창 왼쪽 위에 Distance 글자가 적히고 화면 가운데 노란 원이 그려진, 손의 엄지와 검지 끝이 벌어진 사용자 화면"
+    from:
+      source: BOOK
+      page: 44
+      region: [26, 603, 158, 717]
+    file: public/images/lessons/1-2-3/book-circle-ui.webp
+    width: 404
+    height: 349
+    bytes: 7472
+    sha256: "9972547365cb7c5b664dd0d2376b1819317db704f7b844315dac85175c249f31"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 노란 원과 Distance 글자, 벌린 손가락 일부(랜드마크 점·흰 선)만 있음. 얼굴 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-distance-kinds
+    use: 교과서 쪽 1-2-3 학습 활동 4번 — 유클리드·코사인·맨해튼 거리 비교 그림(출판본 51쪽)
+    alt: "점 두 개 사이의 거리를 재는 방식 세 가지 그림. 유클리드는 두 점을 곧은 선으로 잇고, 코사인은 원점에서 두 점으로 뻗은 선 사이의 각도를 보며, 맨해튼은 가로와 세로로 꺾어 잇는다"
+    from:
+      source: BOOK
+      page: 51
+      region: [221, 604, 405, 680]
+    file: public/images/lessons/1-2-3/book-distance-kinds.webp
+    width: 564
+    height: 233
+    bytes: 5286
+    sha256: "7e7cfb1ebb9b2e53e0f8f6a537195db660c1454a28a3c31b60fa9ead0397e7ef"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-11(컷))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+  # ── 출판본 교과서 44쪽 프로그램 구조 흐름도(판 1.4.0, 원본 약칭 BOOK) ──
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 유클리드·코사인·맨해튼 거리를 점 두 개와 화살표로 그린 선 그림 세 장과 캡션 글자만 있음(출판 편집 컷). 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-program-structure
+    use: 교과서 쪽 1-2-3 "3 손가락 거리 인식하기 프로그램 구조" 흐름도(출판본 44쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "손가락 거리 인식하기 프로그램 구조 흐름도. 입력은 웹캠으로 실시간 손 영상을 받아 프레임 단위로 처리. 프레임 캡처는 영상 스트림에서 각 프레임 이미지를 순차적으로 추출. 손 인식 처리는 MediaPipe Hands를 이용하여 손의 엄지와 검지 끝 관절 좌표를 실시간으로 추출해 두 점 사이의 거리 계산. 시각화는 계산된 거리 값을 바탕으로 원 또는 선의 크기나 형태를 변경하여 화면에 표현. 출력은 처리된 손 랜드마크와 도형이 실시간으로 화면에 출력. 프레임 캡처, 손 인식 처리, 시각화의 세 단계는 처리 단계로 묶여 있다"
+    from:
+      source: BOOK
+      page: 44
+      region: [178, 356, 525, 571]
+    file: public/images/lessons/1-2-3/book-program-structure.webp
+    width: 960
+    height: 595
+    bytes: 40382
+    sha256: "acf135565fdb1739da741cabbd934b74a9072444df85300dc6ef4d686b9c4db9"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 입력·프레임 캡처·손 인식 처리·시각화·출력 단계를 초록 상자로 이은 흐름도(글자뿐). 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"

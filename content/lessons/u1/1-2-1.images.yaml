@@ -34,3 +34,48 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 프로그램 창(제목 표시줄의 빨강·노랑·초록 네모) 속 손바닥을 편 손 사진과 관절마다 찍힌 빨간 점 21개·흰 선만 있음. 옆 결과 상자·말꼬리는 영역 밖. 얼굴·이름·글자·화면 속 경로·파일명·기기 주소·학교명 없음
+
+  # ── 출판본 교과서 24~32쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/1-2-1/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: book-webcam-result
+    use: 교과서 쪽 1-2-1 기본 실습 "실행 결과" 화면(출판본 29쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "프로그램 창 안에 안경을 쓴 남성이 웹캠 앞에 앉아 정면을 보고 있는 실행 화면"
+    from:
+      source: BOOK
+      page: 29
+      region: [212, 110, 533, 323]
+    file: public/images/lessons/1-2-1/book-webcam-result.webp
+    width: 960
+    height: 637
+    bytes: 16848
+    sha256: "0ca993ef806d57773e39ffdcce8ddd938643d5b4cf8b90e9f4a773664f06bb3e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[339, 545, 74, 74], [350, 194, 254, 254]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+  # ── 출판본 교과서 27쪽 프로그램 구조 흐름도(판 1.4.0, 원본 약칭 BOOK) ──
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 프로그램 창 속 웹캠 화면에 안경 쓴 남성이 정면을 보고 있음(운영자·공동 저자 본인 — 결정 O9, 출판본 29쪽). 얼굴 검사 2곳은 같은 얼굴의 큰 영역과 작은 조각. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-program-structure
+    use: 교과서 쪽 1-2-1 "3 웹캠으로 영상 인식하기 프로그램 구조" 흐름도(출판본 27쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "웹캠으로 영상 인식하기 프로그램 구조 흐름도. 입력은 실시간 웹캠 영상 스트림을 받아 프레임 단위 이미지 추출. 프레임 캡처는 영상 스트림에서 각 프레임 이미지를 순차적으로 추출. 손 인식 처리는 MediaPipe Hands로 손의 랜드마크를 실시간으로 추출. 시각화는 인식된 랜드마크를 선으로 연결해 손 형태를 화면에 표시. 출력은 생성된 손의 연결 선을 실시간으로 화면에 출력. 프레임 캡처, 손 인식 처리, 시각화의 세 단계는 처리 단계로 묶여 있다"
+    from:
+      source: BOOK
+      page: 27
+      region: [62, 356, 412, 571]
+    file: public/images/lessons/1-2-1/book-program-structure.webp
+    width: 960
+    height: 590
+    bytes: 33330
+    sha256: "27481fce27a2084c664e5e76a3f1e7d182b75a7f6ae70cbb943f5ed98277e820"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 입력·프레임 캡처·손 인식 처리·시각화·출력 단계를 초록 상자로 이은 흐름도(글자뿐). 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"

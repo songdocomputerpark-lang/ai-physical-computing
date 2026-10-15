@@ -108,3 +108,68 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 프로그램 창(제목 표시줄의 빨강·노랑·초록 점) 속 편 손바닥과 빨간 랜드마크 점·흰 선만 있음. 원고에서 창 왼쪽을 덮던 마스코트·말풍선은 영역 밖으로 뺌. 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+
+  # ── 출판본 교과서 13~18쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/1-1-2/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  - name: book-cnn-stages
+    use: 교과서 쪽 1-1-2 "2 딥러닝 기반의 인공지능 영상 인식 기술" 아래 그림 — CNN을 이용한 특징 추출 과정(출판본 14쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "CNN을 이용한 특징 추출 과정 그림. 최종 단계는 전체적인 형태를 분석하여 영상 속 객체를 분류하고, 예측 결과는 고양이이며 뒤쪽은 귀, 코, 눈 등의 복잡한 특징을 학습한다. 중간 단계는 감지된 특징들을 조합해 보다 복잡한 패턴이나 질감 인식. 초기 단계는 선이나 모서리처럼 단순하고 기본적인 시각적 특징을 감지하며 앞쪽은 곡선, 모서리 등의 단순한 특징을 학습한다. 입력은 고양이 그림이다"
+    from:
+      source: BOOK
+      page: 14
+      region: [62, 470, 523, 709]
+    file: public/images/lessons/1-1-2/book-cnn-stages.webp
+    width: 960
+    height: 498
+    bytes: 36624
+    sha256: "4c5b06d4d079bc4cf42aec446f143a41d849d34ca097f38b509d10f6d939b9e8"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-1-05(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — CNN의 초기·중간·최종 단계를 그린 출판 편집 삽화(고양이 그림, 선과 모서리 모양 상자, 설명 글 상자)만 있음. 사람 없음, 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-landmark-diagrams
+    use: 교과서 쪽 1-1-2 "랜드마크(Landmarks)" 상자 아래 그림 — 손·얼굴·자세 랜드마크 모양(출판본 16쪽)
+    alt: "손 랜드마크는 손목의 0번부터 손가락 끝까지 번호가 붙은 점 21개를 선으로 이은 모양이고, 얼굴 랜드마크는 얼굴 둘레와 눈, 코, 입에 번호가 붙은 점 478개를 찍은 모양이며, 자세 랜드마크는 몸의 관절 33곳에 점을 찍어 선으로 이은 모양이다"
+    from:
+      source: BOOK
+      page: 16
+      region: [108, 566, 466, 708]
+    file: public/images/lessons/1-1-2/book-landmark-diagrams.webp
+    width: 960
+    height: 380
+    bytes: 22936
+    sha256: "682712aa12613de44620fedbe5a390f83f2e9a7155bc5c7882c11bf56040c55f"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-04(컷)) / 출판 편집 삽화(이름표 인피컴_고1-1-04(컷)) / 출판 편집 삽화(이름표 인피컴_고1-1-04(컷))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 손(점 21개)·얼굴(점 478개)·자세(관절 33곳) 랜드마크 번호 그림과 캡션 글자만 있음(출판 편집 컷). 얼굴 사진은 없고 점과 번호로만 그려짐. 이름·경로·파일명·기기 주소·학교명 없음"
+  - name: book-gesture-hand
+    use: 교과서 쪽 1-1-2 "동작 인식(Gesture Recognition)" 카드의 손 사진(출판본 16쪽)
+    alt: "엄지를 치켜든 손을 가까이서 찍은 사진"
+    from:
+      source: BOOK
+      page: 16
+      region: [454, 205, 525, 288]
+    file: public/images/lessons/1-1-2/book-gesture-hand.webp
+    width: 218
+    height: 255
+    bytes: 4886
+    sha256: "c5a13c0663135cbab39d2a6d4a33273ff69d7ec9295fa677b4f0f0a5dfd72f22"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고1-1-03(컷))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 엄지를 치켜든 손 사진과 파란 랜드마크 점·흰 선만 있음(출판 편집 컷, 카드 테두리 포함). 얼굴 없음, 이름·경로·파일명·기기 주소·학교명 없음"
