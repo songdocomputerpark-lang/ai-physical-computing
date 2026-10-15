@@ -102,6 +102,15 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
         description: 'ESP32 보드를 컴퓨터에 연결하고, 보드에 기본 프로그램(펌웨어)을 넣는 방법을 알려 줘요.',
       },
       {
+        id: 'start-parts',
+        icon: 'plug',
+        label: '부품 사전',
+        title: '부품 사전',
+        path: '/start/parts/',
+        // 낱말 나열은 쉼표로(위 약속). 사진은 키트 업체(고릴라셀·브릭셀) 제공 — 출처는 바닥글 출처 줄과 /credits/
+        description: '센서, 화면, 모터 같은 부품이 실제로 어떻게 생겼는지 사진으로 찾아보고, 보드와 어떻게 이어지는지 알아봐요.',
+      },
+      {
         id: 'start-teacher',
         icon: 'teacher',
         // 바닥글·칩에서 '교사용'만 쓰면 차시 쪽 '교사용' 칸·머리글 '교사용 자료실'과 이름이 겹친다(판 1.3.0 검수 R1-072)

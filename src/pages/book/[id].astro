@@ -38,6 +38,9 @@ import {
 import { planBookBody } from '../../components/book/book-html.ts';
 import Icon from '../../components/common/Icon.astro';
 import GlossaryScope from '../../components/glossary/GlossaryScope.astro';
+import { lessonPartRefs } from '../../components/parts/lesson-parts-data.ts';
+import PartPhotoStrip from '../../components/parts/PartPhotoStrip.astro';
+import type { PartRef } from '../../components/parts/lesson-parts.ts';
 import LessonBody from '../../components/lesson/LessonBody.astro';
 import LessonDone from '../../components/lesson/LessonDone.astro';
 import LessonPresent from '../../components/lesson/LessonPresent.astro';
@@ -76,7 +79,15 @@ export async function getStaticPaths() {
     return [
       {
         params: { id: book.id },
-        props: { entry, book, books, lessons, pairedExamples: pairedExamples.map((example) => ({ file: example.file, title: example.title })) },
+        props: {
+          entry,
+          book,
+          books,
+          lessons,
+          pairedExamples: pairedExamples.map((example) => ({ file: example.file, title: example.title })),
+          // 준비물 사진 줄(판 1.4.0, C136): 짝 웹 차시의 예제가 쓰는 부품. 짝이 없는 절은 빈 목록
+          partRefs: lessonPartRefs(pairedExamples),
+        },
       },
     ];
   });
@@ -88,9 +99,10 @@ interface Props {
   books: BookSummary[];
   lessons: LessonSummary[];
   pairedExamples: { file: string; title?: string | undefined }[];
+  partRefs: PartRef[];
 }
 
-const { entry, book, books, lessons, pairedExamples } = Astro.props;
+const { entry, book, books, lessons, pairedExamples, partRefs } = Astro.props;
 const source = entry.filePath ?? `content/book/${entry.id}.md`;
 const html = entry.rendered?.html ?? '';
 for (const issue of checkBookRules({ id: entry.id, data: entry.data, html, lessons })) {
@@ -159,6 +171,7 @@ const mediaInfos = book.media.map((key) => ({ key, ...BOOK_MEDIA_INFO[key] }));
         </p>
         <div data-present-hide>
           <ViewSwitch current="book" bookHref={book.href} bookPages={book.pages} lessonHref={paired?.href} />
+          <PartPhotoStrip parts={partRefs} label="준비물 사진" />
           <p class="lesson__tools" data-pagefind-ignore>
             <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
               수업 화면으로

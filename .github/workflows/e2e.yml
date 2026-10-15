@@ -70,6 +70,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:lessons -- --complete
 
+      - name: 교과서 쪽 검사(check:book)
+        # 판 1.4.0(DECISIONS C131·C138): content/book/의 교과서 쪽 틀(쪽 표지 ::쪽·제목 차례·상자 이름·그림 대체 글 등)을 엄격하게 검사한다 — 오류가 있으면 실패(배포는 막지 않음, PD-35).
+        # 출판본 PDF와의 글자 같음(npm run book:fidelity)은 원본이 저장소에 없어(.gitignore) 이 곳에서는 돌지 않는다 — 운영자 PC 도구다.
+        # npm test에 넣지 않은 까닭은 차시 틀 검사와 같다(여러 구역이 한 폴더에서 동시에 쓰는 동안 남의 쓰다 만 쪽으로 단위 테스트가 깨지지 않게).
+        if: ${{ !cancelled() }}
+        run: npm run check:book
+
       - name: 타입 검사(astro check)
         if: ${{ !cancelled() }}
         run: npm run check

@@ -52,7 +52,7 @@ body:
     id: lesson
     attributes:
       label: 이어지는 차시(있으면)
-      placeholder: "예: 2-2-4 서보모터 활용하기"
+      placeholder: "예: 2-2-4 서보모터 제어하기"
     validations:
       required: false
   - type: textarea

@@ -7,14 +7,14 @@
  * - 라이선스 두 줄(학습 자료 CC BY-NC-SA 4.0, 사이트 프로그램과 예제 코드 MIT — 라이선스 요약 링크와 저장소의 라이선스 파일 링크)과
  *   제3자 자료 제외 문구, 출처와 라이선스 링크(P1-10 완료 기준 "바닥글에서 연결")
  * - 저장소·문제 알리기(GitHub Issues) 링크
- * 줄 차례(= 읽는 차례): 이름·판 → 만든 사람 → 저장소 링크 → 라이선스 두 줄 → 제3자 자료 제외 문구와 출처 링크.
+ * 줄 차례(= 읽는 차례): 이름·판 → 만든 사람 → 교과서·부품 사진 출처 줄(판 1.4.0, 모든 쪽) → 저장소 링크 → 라이선스 두 줄 → 제3자 자료 제외 문구와 출처 링크.
  * 얇게(R1-009, 판 1.3.0 검수): 넓은 화면에서 사이트 지도는 묶음마다 한 줄(제목 + 링크 이어 놓기), 사이트 정보는 줄바꿈 가능한 한 덩어리로 흘려
  * 약 570px였던 높이를 줄인다. 라이선스 두 줄·제3자 자료 제외 문구·출처 링크는 필수(P1-10, PD-26)라 글은 줄이지 않고 배치만 접는다.
  * 문구와 주소는 모두 src/config/site.ts에서 온다.
  */
 import { siteConfig } from '../../config/site.ts';
 import { withBase } from '../../lib/url.ts';
-import { footerColumns } from './footer-columns.ts';
+import { footerColumns, footerCreditText } from './footer-columns.ts';
 
 const { content, software, exclusion } = siteConfig.license;
 /** 버전별 바뀐 점(저장소 뿌리의 CHANGELOG.md — Phase 6 유지보수 문서) */
@@ -53,6 +53,7 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
         {siteConfig.name} <span class="site-footer__version" data-site-version={siteConfig.version}>버전 {siteConfig.version}</span> <a class="site-footer__changelog" href={changelogUrl}>바뀐 점 기록</a>
       </p>
       <p class="site-footer__maker">만든 사람: {siteConfig.author}</p>
+      <p class="site-footer__credit" data-site-credit>{footerCreditText()}</p>
       <ul class="site-footer__links">
         <li><a href={siteConfig.repositoryUrl}>GitHub 저장소</a></li>
         <li><a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a></li>
@@ -186,6 +187,13 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
     display: flex;
     flex-wrap: wrap;
     gap: 0 var(--space-6);
+  }
+
+  /* 교과서·부품 사진 출처 줄: 한 줄 전체를 쓰고 조금 흐리게(문구는 footer-columns.ts footerCreditText) */
+  .site-footer__credit {
+    flex-basis: 100%;
+    margin-block: var(--space-1);
+    color: var(--color-text-muted);
   }
 
   /* 제3자 자료 제외 문구와 출처 링크: 한 줄 전체를 쓰고 조금 흐리게 */

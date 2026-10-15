@@ -1,0 +1,324 @@
+---
+/**
+ * 홈 첫 화면 — 출판본 교과서의 표지(판 1.4.0, DECISIONS C132). 옛 HomeHero 자리.
+ *
+ * 위에서 아래(= 읽는 차례 = Tab 차례): 알약 "고등학교 · 교과서 32절 · 웹 차시 45편" → 제목(h1) "인공지능과 피지컬 컴퓨팅" → 한 줄 소개 → 큰 단추 셋 → 표지 그림 + 출판사·저자.
+ *  - 넓은 화면(48rem 이상): 표지 그림이 왼쪽, 글이 오른쪽(그림은 CSS order로 앞으로 — 그림은 초점을 받지 않아 Tab 차례는 그대로다).
+ *  - 좁은 화면: 글 → 단추 → 표지 순서로 쌓는다. 375×812에서 h1·소개·큰 단추 셋이 스크롤 없이 보여야 하기 때문이다(C109, tests/e2e/home.spec.ts).
+ * 첫 번째 단추 [1단원부터 시작]은 진도가 있으면 home-resume.ts가 "이어서 하기 + 차시 이름"으로 바꾼다(마크업 약속은 그 파일 머리말). 채운 파랑은 이 단추 하나뿐이다(C114).
+ * 알약의 수는 글에 적지 않고 데이터에서 센다: 절 = 출판본 차례(src/config/book-outline.ts), 웹 차시 = 공개 차시 목록.
+ * 글·링크는 home-content.ts(homeCover)에 있다.
+ * HTML 크기: 홈 HTML은 서비스 워커 사전 캐시 한도(파일 하나 160KB)에 바짝 붙어 있다 — 이 부품의 <style>은 is:global이다(Astro 범위 스타일은 모든 요소에 data-astro-cid 속성을 붙인다). 클래스 이름은 이 부품 고유(cover__ 접두어)라 겹치지 않는다.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지우므로 {' '}를 쓴다(CLAUDE.md).
+ */
+import { bookSectionCount } from '../../config/book-outline.ts';
+import { withBase } from '../../lib/url.ts';
+import Icon from '../common/Icon.astro';
+import { homeCover, homeCoverActions, homeCoverPill } from './home-content.ts';
+import { firstStart, type HomeUnit } from './home-lessons.ts';
+
+interface Props {
+  units: readonly HomeUnit[];
+  /** 공개된 웹 차시 수 */
+  lessonCount: number;
+}
+
+const { units, lessonCount } = Astro.props;
+const start = firstStart(units);
+const startHref = start?.href ?? units[0]?.href ?? withBase('learn/');
+const actions = homeCoverActions(startHref);
+const pill = homeCoverPill(bookSectionCount(), lessonCount);
+---
+
+<section class="cover" aria-labelledby="home-title">
+  <div class="cover__intro">
+    <p class="cover__pill">{pill}</p>
+    <h1 id="home-title" class="cover__title">
+      {
+        homeCover.titleLines.map((line, index) => (
+          <Fragment>
+            {index > 0 && ' '}
+            <span class="cover__title-line">{line}</span>
+          </Fragment>
+        ))
+      }
+    </h1>
+    <p class="cover__lead">{homeCover.lead}</p>
+    <ul class="cover__actions" role="list">
+      {
+        actions.map((action) =>
+          action.id === 'start' ? (
+            <li class="cover__action-item cover__action-item--start">
+              <a
+                class="cover__action cover__action--primary"
+                href={action.href}
+                data-home-action={action.id}
+                data-cover-start
+                data-first-href={action.href}
+                data-start-label={homeCover.startLabel}
+                data-resume-label={homeCover.resumeLabel}
+              >
+                <span class="cover__action-icon">
+                  <Icon name={action.icon} size="fill" />
+                </span>
+                <span class="cover__action-text">
+                  <span class="cover__action-label" data-cover-start-label>{action.label}</span>{' '}
+                  <span class="cover__action-name" data-cover-start-name hidden />
+                </span>
+                <span class="cover__action-arrow">
+                  <Icon name="arrow-right" size="fill" />
+                </span>
+              </a>
+            </li>
+          ) : (
+            <li class="cover__action-item">
+              <a class="cover__action cover__action--secondary" href={action.href} data-home-action={action.id}>
+                <span class="cover__action-icon">
+                  <Icon name={action.icon} size="fill" />
+                </span>
+                <span class="cover__action-text">
+                  <span class="cover__action-label">{action.label}</span>
+                </span>
+              </a>
+            </li>
+          ),
+        )
+      }
+    </ul>
+  </div>
+  <figure class="cover__book">
+    <img
+      class="cover__image"
+      src={withBase('images/book/cover.webp')}
+      width="927"
+      height="1213"
+      alt={homeCover.coverAlt}
+      decoding="async"
+    />
+    <figcaption class="cover__credit">
+      <span class="cover__publisher">{homeCover.publisher}</span>{' '}
+      <span class="cover__authors">{homeCover.authors.join('·')}</span>
+    </figcaption>
+  </figure>
+</section>
+
+<style is:global>
+  .cover {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .cover__intro,
+  .cover__book {
+    min-width: 0;
+  }
+
+  .cover__pill {
+    display: inline-block;
+    margin: 0;
+    padding: 0.125rem var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    line-height: 1.6;
+  }
+
+  .cover__title {
+    margin-block-start: var(--space-3);
+    font-size: clamp(2.25rem, 1.5rem + 3.2vw, 3.5rem);
+    font-weight: var(--weight-extrabold);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+
+  .cover__title-line {
+    display: inline-block;
+  }
+
+  .cover__lead {
+    max-width: 34rem;
+    margin-block-start: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+  }
+
+  .cover__actions {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 큰 단추: 아이콘 + 글. 누르는 곳은 높이 3.5rem(56px) 이상 */
+  .cover__action {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 3.5rem;
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius-lg);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    text-decoration: none;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .cover__action:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .cover__action--primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .cover__action--primary:hover {
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent-hover);
+    color: var(--color-on-accent);
+  }
+
+  .cover__action--primary:active {
+    border-color: var(--color-accent-active);
+    background: var(--color-accent-active);
+  }
+
+  .cover__action--secondary {
+    background: var(--color-bg);
+    color: var(--color-accent-hover);
+  }
+
+  .cover__action--secondary:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .cover__action-icon {
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .cover__action-text {
+    display: grid;
+    flex: 1 1 auto;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .cover__action-label {
+    font-size: var(--text-lg);
+  }
+
+  /* 이어서 할 때만 보이는 차시 이름. 파랑 바탕 위 글자: accent-soft는 accent 위 5.25 대비 */
+  .cover__action-name {
+    color: var(--color-accent-soft);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-snug);
+    overflow-wrap: anywhere;
+  }
+
+  .cover__action-arrow {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+
+  .cover__action:hover .cover__action-arrow {
+    transform: translateX(0.1875rem);
+  }
+
+  .cover__book {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .cover__image {
+    width: min(100%, 13rem);
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+
+  .cover__credit {
+    display: grid;
+    justify-items: center;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    text-align: center;
+  }
+
+  .cover__publisher {
+    color: var(--color-text);
+    font-weight: var(--weight-bold);
+  }
+
+  @media (min-width: 40rem) {
+    .cover {
+      padding: var(--space-8);
+    }
+
+    .cover__lead {
+      font-size: var(--text-lg);
+    }
+  }
+
+  /* 넓은 화면: 표지 그림이 왼쪽, 글이 오른쪽. 단추 셋은 한 줄에(첫 번째가 가장 넓다). */
+  @media (min-width: 48rem) {
+    .cover {
+      grid-template-columns: minmax(11rem, 17rem) minmax(0, 1fr);
+      gap: var(--space-8);
+      padding: var(--space-8) var(--space-10);
+    }
+
+    .cover__book {
+      order: -1;
+    }
+
+    .cover__image {
+      width: 100%;
+    }
+
+    .cover__actions {
+      grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .cover {
+      grid-template-columns: minmax(13rem, 19rem) minmax(0, 1fr);
+      gap: var(--space-12);
+    }
+  }
+
+  /* 아주 좁은 화면(320px)에서도 가장 긴 글자("1단원부터 시작")가 두 줄로 넘치지 않게 글자를 조금 줄인다 */
+  @media (max-width: 20.99rem) {
+    .cover {
+      padding: var(--space-4);
+    }
+
+    .cover__action-label {
+      font-size: var(--text-base);
+    }
+  }
+</style>

@@ -9,7 +9,7 @@
 // 확인하는 것
 //   1. 홈·차시·검색·출처 쪽이 열리고, 서비스 워커가 사이트 뿌리에서 오프라인 설정으로 쪽을 맡는다.
 //      작은 서버에 닿지 못하면 연 적 있는 쪽은 저장본, 안 연 쪽은 "작은 서버가 꺼져 있어요" 안내 쪽(홈 내용을 그 주소로 보이지 않음).
-//   2. 시나리오 A 오프라인: 홈 → [카메라로 바로 해 보기] → (가짜 카메라 — 카메라 권한이 localhost에서 된다) 에지 결과 →
+//   2. 시나리오 A 오프라인: 홈 → 바로 가기 [영상 처리 실습실] → (가짜 카메라 — 카메라 권한이 localhost에서 된다) 에지 결과 →
 //      조절 막대로 결과가 바뀐다 → 입력을 "샘플 입력"으로 바꿔도 에지 결과. 파이썬 엔진은 같은 사이트에서 받는다.
 //   3. ESP32 가상 보드 첫 예제(내장 LED 깜빡이기)와 [실제 보드] 탭(Web Serial이 localhost에서 "지원").
 //   4. 같은 컴퓨터 두 탭 통신(시나리오 D 두 탭판): 대시보드 기본 통로가 "같은 컴퓨터 탭"(공개 중계 서버 아님 — §5.6)이고,
@@ -136,7 +136,7 @@ test.describe('오프라인 배포판 — 인터넷 없이', () => {
     const home = await page.goto(withBase(''));
     expect(home?.status()).toBe(200);
     expect(new URL(page.url()).pathname).toBe('/');
-    await expect(page.locator('[data-home-action="camera"]')).toBeVisible();
+    await expect(page.locator('[data-home-action="start"]')).toBeVisible();
 
     // 서비스 워커: localhost는 보안 연결이라 등록되고, 설정은 오프라인판(Pyodide를 같은 사이트에서만 받음)
     const sw = await page.request.get(withBase('sw.js'));
@@ -206,18 +206,18 @@ test.describe('오프라인 배포판 — 인터넷 없이', () => {
       // 안 연 쪽은 안내 쪽(홈 내용이 그 주소로 뜨지 않는다)
       await page.goto(withBase('learn/u2/2-1-1/'));
       await expect(page.locator('h1')).toHaveText('이 컴퓨터의 작은 서버가 꺼져 있어요');
-      await expect(page.locator('[data-home-action="camera"]')).toHaveCount(0);
+      await expect(page.locator('[data-home-action="start"]')).toHaveCount(0);
       await expect(page.locator('body')).toContainText('시작하기.bat');
       // [홈으로 가기]는 저장해 둔 홈을 연다
       await page.getByRole('link', { name: '홈으로 가기' }).click();
-      await expect(page.locator('[data-home-action="camera"]')).toBeVisible();
+      await expect(page.locator('[data-home-action="start"]')).toBeVisible();
       expect(new URL(page.url()).pathname).toBe('/');
     } finally {
       await context.setOffline(false);
     }
   });
 
-  test('시나리오 A: 홈 → [카메라로 바로 해 보기] → 가짜 카메라 에지 결과 → 조절 막대 → 샘플 입력으로 바꿔도 에지 결과', async ({ page, context }) => {
+  test('시나리오 A: 홈 → 바로 가기 [영상 처리 실습실] → 가짜 카메라 에지 결과 → 조절 막대 → 샘플 입력으로 바꿔도 에지 결과', async ({ page, context }) => {
     test.setTimeout(LOAD_TIMEOUT + PACKAGES_TIMEOUT + 120_000);
     const network = await guardNetwork(context);
     const errors = collectErrors(page);
@@ -225,7 +225,7 @@ test.describe('오프라인 배포판 — 인터넷 없이', () => {
     const seconds = () => ((Date.now() - startedAt) / 1000).toFixed(1);
 
     await page.goto(withBase(''));
-    await page.locator('[data-home-action="camera"]').click();
+    await page.locator('[data-home-shortcut="labs-vision"]').click();
     await expect(page).toHaveURL((url) => url.pathname === VISION_PATH);
     await expect(labRoot(page)).toHaveAttribute('data-example', 'first-edge');
     await page.getByRole('button', { name: '실행', exact: true }).click();

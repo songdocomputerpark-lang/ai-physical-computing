@@ -4,16 +4,18 @@
  *
  * 마크업 약속(HomeResume.astro · HomeMap.astro)
  *   [data-home-resume][hidden]            띠 전체. 진도가 있을 때만 hidden을 뗀다(처음 온 사람에게는 아무것도 안 보인다)
- *     script[data-home-index]             JSON {lessons: [[id, 번호, 제목], …], labs: [쪽 주소, …]} — 지금 사이트에 있는 차시·실습실 목록(없으면 거르지 않는다)
+ *     script[data-home-index]             JSON {lessons: [[id, 번호, 제목, 교과서 쪽 주소?], …], labs: [쪽 주소, …]} — 지금 사이트에 있는 차시·실습실 목록(없으면 거르지 않는다).
+ *                                         네 번째 칸은 그 차시의 짝 교과서 쪽 주소(base 포함) — 있으면 "다음에 볼 차시"가 교과서 쪽으로 가고, 지난번에 연 곳이 그 쪽이면 거기로 돌아간다.
  *     [data-resume-lesson][hidden]        지난번에 본 차시 칸 — 안의 [data-resume-link](링크), [data-resume-name](이름 글), [data-resume-go](동작 글),
  *                                         data-go-open·data-go-done = 동작 글(끝낸 차시면 done 글: "다시 보기")
  *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 채운다(같은 대단원에서 안 연 첫 차시). 첫 화면 한 줄이 이 칸을 그대로 보이면
  *                                         같은 안내가 위아래로 두 번 보이지 않게 이 칸은 숨긴다(R3-007). 띠에는 "다시 보기" 칸(지난번 차시)이 남는다.
  *     [data-resume-lab][hidden]           마지막으로 연 실습실 칸 — 같은 구조
- *   [data-hero-resume][hidden]            첫 화면 큰 버튼 아래 "지난번 이어서" 한 줄(HomeHero.astro, R2-029) — 안의 [data-hero-resume-link]·[data-hero-resume-kicker]·[data-hero-resume-name].
- *                                         띠의 칸(다음에 볼 차시 > 지난번 차시 > 실습실) 중 첫 번째 칸에서 주소·머리글·이름을 복사한다(칸이 숨어 있어도 값은 읽힌다).
- *                                         보이면 [data-hero-guide]("처음이라면 첫 번째 단추부터…")는 숨긴다 — 돌아온 학생에게 어긋난 안내라서.
- *   [data-home-map][data-learn-base]      배움 지도. data-learn-base = /learn/ 주소(base 포함), data-start-label·data-resume-label·data-replay-label = 단추 글
+ *   [data-cover-start]                    표지의 첫 번째 큰 단추(HomeCover.astro, 판 1.4.0) — 처음엔 "1단원부터 시작"(data-first-href). 띠의 칸(다음에 볼 차시 > 지난번 차시)에서
+ *                                         주소·이름을 복사해 "이어서 하기 + 차시 이름"으로 바꾼다(실습실 칸은 쓰지 않는다 — 큰 단추는 배울 곳으로만 이어 준다).
+ *                                         안의 [data-cover-start-label](글, data-start-label·data-resume-label)·[data-cover-start-name](차시 이름, 이어서 할 때만 보임).
+ *   [data-learn-base]                     /learn/ 주소(base 포함, HomeLessons.astro가 단다). 차시 id로 웹 차시 주소를 만들 때 쓴다.
+ *   [data-home-map][data-learn-base]      (옛 배움 지도 — 판 1.4.0 홈은 쓰지 않는다) data-start-label·data-resume-label·data-replay-label = 단추 글
  *     [data-home-unit][data-progress-unit]  대단원 카드(차시 id 목록은 progress-paint가 센다)
  *       [data-unit-start]                 단원 링크: data-first-href(처음 차시), data-unit-name("1단원")
  *         [data-unit-start-label]         링크 안 글: "1단원 배우기" 꼴(단원 이름 + 단추 글)
@@ -39,7 +41,7 @@ const DEFAULT_GO_DONE = '다시 보기';
 /** 쪽에 실어 둔 "지금 있는 차시·실습실" 목록(HomeResume.astro의 JSON). 없거나 깨졌으면 null — 그때는 거르지 않는다. */
 interface HomeIndex {
   /** 차시 id → { 번호, 제목 }, 사이트 차례대로 */
-  readonly lessons: ReadonlyMap<string, { readonly label: string; readonly title: string }>;
+  readonly lessons: ReadonlyMap<string, { readonly label: string; readonly title: string; readonly bookHref?: string }>;
   /** 실습실 쪽 주소(끝 / 없이 비교하려고 다듬은 것) */
   readonly labs: ReadonlySet<string>;
 }
@@ -62,10 +64,10 @@ function readIndex(root: ParentNode): HomeIndex | null {
     if (!Array.isArray(lessons) || !Array.isArray(labs)) {
       return null;
     }
-    const lessonMap = new Map<string, { label: string; title: string }>();
+    const lessonMap = new Map<string, { label: string; title: string; bookHref?: string }>();
     for (const row of lessons) {
       if (Array.isArray(row) && typeof row[0] === 'string' && typeof row[1] === 'string' && typeof row[2] === 'string') {
-        lessonMap.set(row[0], { label: row[1], title: row[2] });
+        lessonMap.set(row[0], { label: row[1], title: row[2], ...(typeof row[3] === 'string' && row[3].startsWith('/') ? { bookHref: row[3] } : {}) });
       }
     }
     return { lessons: lessonMap, labs: new Set(labs.filter((path): path is string => typeof path === 'string').map(trimSlash)) };
@@ -102,29 +104,48 @@ function unitOf(id: string): string {
 }
 
 /**
- * 첫 화면의 "지난번 이어서" 한 줄을 띠의 한 칸으로 채운다. 칸이 없으면(item === null) 한 줄을 숨기고 처음 온 사람용 길잡이를 되살린다.
- * 한 줄을 보였으면 true를 돌려준다(R3-007: 띠가 같은 칸을 또 보이지 않으려고 부르는 쪽이 알아야 한다).
+ * 표지의 첫 번째 큰 단추를 띠의 한 칸에서 채운다(판 1.4.0). 칸이 있으면 "이어서 하기" + 차시 이름 + 그 주소로, 칸이 없으면(item === null) 처음 모습
+ * "1단원부터 시작"(data-first-href)으로 되돌린다. 단추를 바꿨으면 true를 돌려준다(R3-007: 띠가 같은 칸을 또 보이지 않으려고 부르는 쪽이 알아야 한다).
  * 글은 textContent·setAttribute로만 옮긴다(띠 칸에 이미 들어간 값이라 마크업이 아니다).
  */
-function fillHero(root: ParentNode, item: Element | null): boolean {
-  const hero = root.querySelector('[data-hero-resume]');
-  const guide = root.querySelector('[data-hero-guide]');
-  const link = hero?.querySelector<HTMLAnchorElement>('[data-hero-resume-link]') ?? null;
-  const source = item?.querySelector<HTMLAnchorElement>('[data-resume-link]') ?? null;
-  if (hero === null || link === null || item === null || source === null) {
-    hero?.setAttribute('hidden', '');
-    guide?.removeAttribute('hidden');
+function fillCover(root: ParentNode, item: Element | null): boolean {
+  const start = root.querySelector<HTMLAnchorElement>('[data-cover-start]');
+  if (start === null) {
     return false;
   }
-  hero.removeAttribute('hidden');
-  guide?.setAttribute('hidden', '');
-  const href = source.getAttribute('href') ?? '';
-  if (link.getAttribute('href') !== href) {
-    link.setAttribute('href', href);
+  const label = start.querySelector('[data-cover-start-label]');
+  const name = start.querySelector('[data-cover-start-name]');
+  const source = item?.querySelector<HTMLAnchorElement>('[data-resume-link]') ?? null;
+  if (item === null || source === null) {
+    const first = start.getAttribute('data-first-href');
+    if (first && start.getAttribute('href') !== first) {
+      start.setAttribute('href', first);
+    }
+    setText(label, start.getAttribute('data-start-label') ?? '1단원부터 시작');
+    name?.setAttribute('hidden', '');
+    start.removeAttribute('data-resuming');
+    return false;
   }
-  setText(link.querySelector('[data-hero-resume-kicker]'), item.querySelector('[data-resume-kicker]')?.textContent ?? '');
-  setText(link.querySelector('[data-hero-resume-name]'), item.querySelector('[data-resume-name]')?.textContent ?? '');
+  const href = source.getAttribute('href') ?? '';
+  if (start.getAttribute('href') !== href) {
+    start.setAttribute('href', href);
+  }
+  // 지난번 차시를 이미 끝냈으면 띠와 같은 말 "다시 보기", 아니면(안 끝냈거나 다음 차시) "이어서 하기"
+  const resumeLabel = start.getAttribute('data-resume-label') ?? DEFAULT_GO_OPEN;
+  const goText = item.hasAttribute('data-resume-lesson') ? item.querySelector('[data-resume-go]')?.textContent : null;
+  setText(label, goText || resumeLabel);
+  setText(name, item.querySelector('[data-resume-name]')?.textContent ?? '');
+  name?.removeAttribute('hidden');
+  start.setAttribute('data-resuming', '');
   return true;
+}
+
+/** 차시 id의 웹 차시 주소를 만든다. 짝 교과서 쪽이 있으면 그 쪽으로 — 단, 지난번에 연 곳이 웹 차시였다면(lastHref가 쪽 주소가 아니면) 웹 차시로 돌려보낸다. */
+function lessonTarget(learnBase: string, id: string, bookHref: string | undefined, lastHref: string | null): string {
+  if (bookHref !== undefined && (lastHref === null || trimSlash(lastHref) === trimSlash(bookHref))) {
+    return bookHref;
+  }
+  return lessonHrefFromId(learnBase, id);
 }
 
 /**
@@ -138,7 +159,7 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
     return;
   }
   const index = readIndex(band);
-  const learnBase = root.querySelector('[data-home-map]')?.getAttribute('data-learn-base') ?? '';
+  const learnBase = root.querySelector('[data-learn-base]')?.getAttribute('data-learn-base') ?? '';
   const last = state.last;
   const lab = state.lastLab;
 
@@ -148,7 +169,7 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
   let lessonHref: string | null = null;
   let lessonName = '';
   if (last && lastValid) {
-    lessonHref = known && learnBase !== '' ? lessonHrefFromId(learnBase, last.id) : last.href;
+    lessonHref = known && learnBase !== '' ? lessonTarget(learnBase, last.id, known.bookHref, last.href) : last.href;
     lessonName = known ? `${known.label} ${known.title}` : `${last.label} ${last.title}`;
   }
   const lessonItem = band.querySelector('[data-resume-lesson]');
@@ -166,7 +187,7 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
     const nextId = nextUnseen(state, ids); // 지난번 차시 바로 뒤의 안 본 차시(안 본 앞 차시로 되돌리지 않음, R2-021)
     const next = nextId === null ? undefined : index.lessons.get(nextId);
     if (nextId !== null && next) {
-      nextHref = lessonHrefFromId(learnBase, nextId);
+      nextHref = lessonTarget(learnBase, nextId, next.bookHref, null);
       nextName = `${next.label} ${next.title}`;
     }
   }
@@ -178,10 +199,10 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
   const labItem = band.querySelector('[data-resume-lab]');
   const labShown = fillItem(labItem, lab && labValid ? lab.path : null, lab && labValid ? lab.title : '');
 
-  // 첫 화면 한 줄: 끝낸 차시가 있으면 다음 차시, 아니면 지난번 차시, 그것도 없으면 마지막 실습실
-  const heroItem = nextShown ? nextItem : lessonShown ? lessonItem : labShown ? labItem : null;
-  const heroShown = fillHero(root, heroItem);
-  // 한 줄이 "다음에 볼 차시"를 이미 보이고 있으면 띠에서는 그 칸을 숨긴다 — 같은 안내는 한 번만(R3-007). 한 줄을 못 보인 때는 띠가 맡는다.
+  // 표지의 첫 번째 큰 단추: 끝낸 차시가 있으면 다음 차시, 아니면 지난번 차시(실습실은 큰 단추의 몫이 아니다 — 띠에서 다시 열면 된다)
+  const heroItem = nextShown ? nextItem : lessonShown ? lessonItem : null;
+  const heroShown = fillCover(root, heroItem);
+  // 큰 단추가 "다음에 볼 차시"를 이미 보이고 있으면 띠에서는 그 칸을 숨긴다 — 같은 안내는 한 번만(R3-007). 단추를 못 바꾼 때는 띠가 맡는다.
   const nextVisible = nextShown && !(heroShown && heroItem === nextItem);
   if (nextShown && !nextVisible) {
     nextItem?.setAttribute('hidden', '');

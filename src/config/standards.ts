@@ -50,7 +50,7 @@ export const STANDARD_AREAS: readonly StandardArea[] = Object.freeze([
 export const STANDARDS: readonly Standard[] = Object.freeze([
   { code: '12인피01-01', area: 1, summary: '영상인식 기술의 종류와 원리, 개발 환경 구성' },
   { code: '12인피01-02', area: 1, summary: '핸드 트래킹 구현과 특징점 활용' },
-  { code: '12인피01-03', area: 1, summary: '페이스 매시 구현과 특징점 활용' },
+  { code: '12인피01-03', area: 1, summary: '페이스 메시 구현과 특징점 활용' },
   { code: '12인피01-04', area: 1, summary: '포즈 트래킹 구현과 특징점 활용' },
   { code: '12인피02-01', area: 2, summary: '피지컬 컴퓨팅 시스템 이해와 개발 환경 구성' },
   { code: '12인피02-02', area: 2, summary: '디스플레이 장치 제어' },

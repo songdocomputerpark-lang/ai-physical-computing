@@ -168,6 +168,17 @@ export const siteConfig = {
     '프로그램을 설치하지 않고 브라우저만으로 인공지능(영상 처리)과 피지컬 컴퓨팅(ESP32 보드)을 배우고 실습하는 무료 교육 사이트',
   /** 저작자 표기(DECISIONS C2) */
   author: '박상진·김석전',
+  /**
+   * 웹으로 옮겨 보이는 출판본 교과서(판 1.4.0 — 운영자 허락·협의 2026-10-15, DECISIONS O17·C131). 홈 표지와 모든 쪽의 바닥글 출처 줄이 이 값을 쓴다.
+   * 저자는 책 표지에 인쇄된 차례 그대로다.
+   */
+  textbook: {
+    title: '인공지능과 피지컬 컴퓨팅',
+    publisher: '금성출판사',
+    authors: ['김석전', '박상진', '김승현', '김영준', '육동건'],
+  },
+  /** 부품 사진·회로 그림을 허락받아 쓰는 곳(DECISIONS C136). 바닥글 출처 줄의 "제공, 허락받아 사용" 앞에 붙는다. */
+  partsProvider: '고릴라셀(브릭셀)',
   /** GitHub Pages 도메인(DECISIONS C7) */
   origin: 'https://songdocomputerpark-lang.github.io',
   /**

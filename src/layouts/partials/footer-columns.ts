@@ -4,6 +4,7 @@
  * (tests/unit/footer-columns.test.ts가 빠진 쪽을 잡는다).
  */
 import { getPage, learnUnits, type NavPage } from '../../config/nav.ts';
+import { siteConfig } from '../../config/site.ts';
 
 export interface FooterLink {
   label: string;
@@ -38,3 +39,12 @@ export const footerColumns: readonly FooterColumn[] = Object.freeze([
     links: [getPage('teacher'), getPage('settings'), getPage('credits'), getPage('contribute')].map(link),
   },
 ]);
+
+/**
+ * 모든 쪽 바닥글의 출처 줄(판 1.4.0 — DECISIONS C132·C136). 교과서와 부품 사진·회로 그림의 출처를 한 줄로 알린다.
+ * 값은 src/config/site.ts(textbook·partsProvider)에서 온다. 문장은 tests/unit/footer-columns.test.ts가 글자까지 지킨다.
+ */
+export function footerCreditText(): string {
+  const { title, publisher, authors } = siteConfig.textbook;
+  return `교과서: 「${title}」(${publisher}, ${authors.join('·')}). 부품 사진·회로 그림: ${siteConfig.partsProvider} 제공, 허락받아 사용.`;
+}

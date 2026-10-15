@@ -119,7 +119,7 @@ export const READ_BUDGET_MS = 3000;
  * @typedef {object} PerfPage
  * @property {string} path base 뒤 경로(끝 /)
  * @property {string} label
- * @property {'home' | 'list' | 'lesson' | 'glossary' | 'teacher' | 'gallery' | 'help' | 'start' | 'other'} kind
+ * @property {'home' | 'list' | 'lesson' | 'book' | 'glossary' | 'teacher' | 'gallery' | 'help' | 'start' | 'other'} kind
  * @property {boolean} [timed] 느린 망 시간을 재는 쪽(학습 페이지 — 차시·목록·용어사전·교사용)
  * @property {boolean} [quick] 전체 브라우저 테스트(npm run test:e2e)에서도 무거운 라이브러리를 보는 대표 쪽
  */
@@ -138,6 +138,7 @@ export const PERF_PAGES = Object.freeze([
   { path: 'learn/u2/2-1-r/', label: '차시 2-1-R(읽기 자료)', kind: 'lesson', timed: true },
   { path: 'learn/u4/4-1-3/', label: '차시 4-1-3(HTML이 가장 큰 차시)', kind: 'lesson', timed: true, quick: true },
   { path: 'learn/u4/4-2-1/', label: '차시 4-2-1(두 번째로 큰 차시)', kind: 'lesson', timed: true },
+  { path: 'book/2-1-2/', label: '교과서 쪽 2-1-2(기준 쪽 — 판 1.4.0)', kind: 'book', timed: true, quick: true },
   { path: 'glossary/', label: '용어사전', kind: 'glossary', timed: true, quick: true },
   { path: 'teacher/', label: '교사용 자료실', kind: 'teacher', timed: true, quick: true },
   { path: 'teacher/guides/', label: '교사용 차시별 지도 요약', kind: 'teacher', timed: true },
@@ -151,6 +152,7 @@ export const PERF_PAGES = Object.freeze([
   { path: 'start/student/', label: '학생 시작하기', kind: 'start' },
   { path: 'start/teacher/', label: '교사 시작하기', kind: 'start' },
   { path: 'start/board/', label: '보드 준비(펌웨어 굽기 화면 — 누르기 전)', kind: 'start' },
+  { path: 'start/parts/', label: '부품 사전(사진 165장 — 늦게 받기 — 판 1.4.0)', kind: 'start' },
   { path: 'start/check/', label: '점검 페이지', kind: 'start' },
   { path: 'search/', label: '검색', kind: 'other' },
   { path: 'credits/', label: '출처', kind: 'other' },

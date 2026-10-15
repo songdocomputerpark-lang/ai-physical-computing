@@ -162,6 +162,12 @@ describe('측정하는 쪽', () => {
         expect(fs.existsSync(path.join(ROOT, 'content', 'lessons', lesson[1] ?? '', `${lesson[2]}.md`)), page.path).toBe(true);
         continue;
       }
+      const book = /^book\/([a-z0-9-]+)\/$/u.exec(page.path);
+      if (book) {
+        // 교과서 쪽(판 1.4.0): src/pages/book/[id].astro가 content/book/<id>.md마다 쪽을 만든다
+        expect(fs.existsSync(path.join(ROOT, 'content', 'book', `${book[1]}.md`)), page.path).toBe(true);
+        continue;
+      }
       if (/^learn\/u\d\/$/u.test(page.path)) {
         expect(fs.existsSync(path.join(ROOT, 'src', 'pages', 'learn', '[unit]')), page.path).toBe(true);
         continue;

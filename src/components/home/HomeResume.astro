@@ -3,28 +3,34 @@
  * 홈 "이어서 하기" 띠(판 1.3.0). 지난번에 본 차시와 마지막으로 연 실습실로 한 번에 돌아가게 한다.
  *
  * - 처음 온 사람에게는 아무것도 보이지 않는다: 띠는 hidden으로 나가고, 저장된 진도가 있을 때만 home-resume.ts가 hidden을 뗀다.
- *   hero 바로 아래라 첫 화면 밖이고, 처음에 자리를 잡아 두지 않으므로 처음 온 사람의 쪽이 밀리지 않는다.
- * - 띠는 첫 화면 아래라 돌아온 학생이 놓치기 쉬워(R2-029), 같은 길(다음에 볼 차시 > 지난번 차시 > 실습실)로 가는 한 줄을 첫 화면 큰 버튼 아래에도 둔다(HomeHero의 data-hero-resume). 그 줄은 이 띠의 칸에서 주소·이름·머리글을 복사한다.
+ *   표지(HomeCover) 바로 아래라 첫 화면 밖이고, 처음에 자리를 잡아 두지 않으므로 처음 온 사람의 쪽이 밀리지 않는다.
+ * - 띠는 첫 화면 아래라 돌아온 학생이 놓치기 쉬워(R2-029), 표지의 첫 번째 큰 단추(HomeCover의 data-cover-start)가 이 띠의 칸(다음에 볼 차시 > 지난번 차시)에서 주소·이름을 복사해 "이어서 하기 + 차시 이름"으로 바뀐다(판 1.4.0).
+ * - 차시 목록 JSON의 네 번째 칸은 그 차시의 짝 교과서 쪽 주소다(판 1.4.0). 있으면 "다음에 볼 차시"가 교과서 쪽으로 가고, 지난번에 연 곳이 그 쪽이면 거기로 돌아간다(웹 차시에서 끝냈으면 웹 차시로).
  * - 링크 주소·이름은 저장된 진도에서 와서 textContent·setAttribute로만 넣는다(마크업으로 해석되지 않음).
  * - 발표 모드·embed에서는 숨긴다(data-present-hide, data-embed-hide).
  * - 링크의 접근 이름은 "1-2-1 손 찾기 이어서 하기"처럼 이름 뒤에 동작이 붙는다.
  * - 지난번 차시를 이미 끝냈으면(R1-030) 그 칸의 동작은 "다시 보기"로 바뀌고, 같은 대단원에서 안 연 첫 차시가 "다음에 볼 차시" 칸으로 따로 나온다.
- *   그 "다음에 볼 차시"는 첫 화면 한 줄(HomeHero)이 같은 글로 이미 보이므로, 한 줄이 보이는 동안 이 칸은 숨긴다(R3-007: 같은 안내는 한 번만). 그래서 이 띠에는 "다시 보기" 칸이 남는다.
+ *   그 "다음에 볼 차시"는 표지의 큰 단추가 같은 곳으로 이미 이어 주므로, 단추가 바뀌어 있는 동안 이 칸은 숨긴다(R3-007: 같은 안내는 한 번만). 그래서 이 띠에는 "다시 보기" 칸이 남는다.
  * - 저장된 진도에 이제 없는 차시·실습실(옛 주소)이 있으면 그 칸을 숨긴다(R1-031). 맞는지 가릴 목록은 아래 JSON(data-home-index)으로 쪽에 실어 둔다:
  *   차시 [id, 번호, 제목]을 차례대로, 실습실 쪽 주소(base 포함). 글은 모두 빌드 때 정해지고 home-resume.ts가 읽는다.
  */
 import { getCollection } from 'astro:content';
 import { flattenPages } from '../../config/nav.ts';
+import { findPairedBook, publishedBooks } from '../book/book-data.ts';
 import Icon from '../common/Icon.astro';
 import { publishedLessons } from '../lesson/lesson-data.ts';
 import { homeResume } from './home-content.ts';
 
 const lessons = publishedLessons(await getCollection('lessons'));
+const books = publishedBooks(await getCollection('book'));
 const labPaths = flattenPages()
   .filter((page) => page.path.startsWith('/labs/') && page.path !== '/labs/')
   .map((page) => page.href);
 // JSON 안의 "<"를 유니코드 이스케이프(백슬래시 u003c)로 바꿔, 글 속의 닫는 script 태그가 쪽을 끊지 못하게 한다.
-const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, lesson.label, lesson.title]), labs: labPaths }).replace(/</gu, '\\u003c');
+// 네 번째 칸은 짝 교과서 쪽 주소(없으면 null) — 홈 카드가 교과서 쪽으로 가므로 "다음에 볼 차시"도 같은 쪽으로 보낸다(판 1.4.0).
+const bookHrefOf = (lesson: (typeof lessons)[number]): string | null =>
+  (books.find((book) => book.id === lesson.label.toLowerCase()) ?? findPairedBook(lesson, books))?.href ?? null;
+const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, lesson.label, lesson.title, bookHrefOf(lesson)]), labs: labPaths }).replace(/</gu, '\\u003c');
 ---
 
 <section class="resume" aria-labelledby="home-resume-title" data-home-resume data-embed-hide data-present-hide hidden>

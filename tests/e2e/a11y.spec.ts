@@ -4,7 +4,8 @@
 //   규칙은 태그로 거르지 않고 axe 기본 규칙을 모두 돌린다(WCAG 2.0·2.1·2.2 A/AA + 모범 사례). moderate·minor는 실패로 보지 않고
 //   테스트 결과의 annotations와 첨부(axe.json)에 남긴다 — 고칠 목록으로 본다.
 // 쪽 목록은 손으로 적지 않는다: 사이트 지도(src/config/nav.ts) 전부 + 대단원 4쪽 + 교사용 자료실 아래 쪽(teacher-pages.ts)과 지도 요약 4쪽
-//   + content/lessons의 차시 md 전부(draft 제외 — 새 차시 md를 넣으면 코드 수정 없이 검사에 들어온다) + 없는 주소(404 쪽).
+//   + content/lessons의 차시 md 전부(draft 제외 — 새 차시 md를 넣으면 코드 수정 없이 검사에 들어온다) + content/book의 교과서 쪽 md 전부(판 1.4.0) + 없는 주소(404 쪽).
+//   (부품 사전 /start/parts/는 사이트 지도에 올라 있어 위 지도 전부에 저절로 든다.)
 //   데스크톱(1366×768)·휴대폰(375×812) 두 프로젝트에서 모두 돈다(휴대폰은 접힌 메뉴·좁은 배치가 따로 있다).
 // 실습실은 파이썬 준비가 끝난 뒤(학생이 가장 오래 보는 화면)를 훑는다. 누르거나 실행한 뒤의 화면(퀴즈 채점·발표 모드·실행 결과·블록 모드·
 //   대화 상자 등)은 a11y-states.spec.ts, 키보드만으로 다니기·확대·움직임 줄이기는 a11y-keyboard.spec.ts.
@@ -120,6 +121,22 @@ function lessonPaths(): string[] {
     .sort();
 }
 
+/** content/book의 교과서 쪽 md(draft 제외) → 쪽 주소(base 없이, 판 1.4.0 — 새 교과서 md를 넣으면 코드 수정 없이 검사에 들어온다) */
+function bookPaths(): string[] {
+  if (!fs.existsSync('content/book')) {
+    return [];
+  }
+  return fs
+    .readdirSync('content/book')
+    .filter((name) => name.endsWith('.md'))
+    .flatMap((name) => {
+      const match = /^---\r?\n([\s\S]*?)\r?\n---/u.exec(fs.readFileSync(path.join('content/book', name), 'utf8'));
+      const data = (match ? parse(match[1] ?? '') : {}) as { draft?: boolean };
+      return data.draft === true ? [] : [`/book/${path.basename(name, '.md')}/`];
+    })
+    .sort();
+}
+
 /** 검사할 쪽 전부(겹치지 않게) */
 function a11yTargets(): A11yTarget[] {
   const paths = [
@@ -128,6 +145,7 @@ function a11yTargets(): A11yTarget[] {
     ...TEACHER_PAGES.map((page) => page.path),
     ...learnUnits.map((unit) => `/teacher/guides/u${unit.unit}/`),
     ...lessonPaths(),
+    ...bookPaths(),
   ];
   const unique = [...new Set(paths)];
   return [

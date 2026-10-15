@@ -111,10 +111,11 @@ async function installBoard(page: Page, options: { config?: SerialMockConfig; fi
 }
 
 test.describe('보드 준비 페이지(P3-10)', () => {
-  test('홈 [내 보드 연결하기] → 보드 준비: 순서 네 단계가 페이지 안 자리로 이어지고, 갈래 링크가 "연결이 안 될 때" 안내를 펼친다', async ({ page, isMobile }) => {
+  test('홈 바닥글 [보드 준비] → 보드 준비: 순서 네 단계가 페이지 안 자리로 이어지고, 갈래 링크가 "연결이 안 될 때" 안내를 펼친다', async ({ page, isMobile }) => {
     const errors = collectPageErrors(page);
     await page.goto(getPage('home').href);
-    await page.locator('[data-home-action="real-board"]').click();
+    // 판 1.4.0: 홈 큰 단추는 교과서 흐름이라 [내 보드 연결하기]가 없다 — 모든 쪽 바닥글의 사이트 지도에서 간다
+    await page.getByRole('navigation', { name: '사이트 지도' }).getByRole('link', { name: '보드 준비', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`${BOARD.href.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')}$`, 'u'));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(BOARD.title);
     await expect(connectCheck(page)).toHaveAttribute('data-mounted', 'true', { timeout: 30_000 });

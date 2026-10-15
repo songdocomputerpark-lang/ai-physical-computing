@@ -439,9 +439,9 @@ test.describe('서비스 워커(캐시·오프라인·예비 경로)', () => {
       // 안내 쪽의 [홈으로 가기]는 설치할 때 받아 둔 홈을 연다.
       await page.goto(withBase('learn/u3/'));
       await expect(page.locator('h1')).toHaveText('인터넷 연결이 없어요');
-      await expect(page.locator('[data-home-action="camera"]')).toHaveCount(0);
+      await expect(page.locator('[data-home-action="start"]')).toHaveCount(0);
       await page.getByRole('link', { name: '홈으로 가기' }).click();
-      await expect(page.locator('[data-home-action="camera"]')).toBeVisible();
+      await expect(page.locator('[data-home-action="start"]')).toBeVisible();
       await expect(page.locator('body')).toContainText('AI 피지컬 컴퓨팅');
     } finally {
       await context.setOffline(false);

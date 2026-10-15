@@ -1,0 +1,267 @@
+---
+/**
+ * 홈 "차례" — 출판본 교과서 4·5쪽 차례 그림 위에 절마다 투명 링크를 얹은 것(판 1.4.0, DECISIONS C132 · 설계 PLAN 1.4.0 §3-2).
+ * 주소 #toc: 표지의 [차례 보기] 단추가 여기로 온다.
+ *
+ * 넓은 화면(48rem 이상): 그림 두 장이 나란히 있고, 절 한 줄마다 투명한 링크(`<a class="toc-spot">`)가 그림 크기 대비 퍼센트 좌표로 겹친다(좌표 데이터: src/config/book-toc-spots.ts).
+ *   마우스를 올리거나 키보드 초점이 오면 보랏빛 칠과 테두리가 보인다. 링크 이름(title·aria-label)은 "2-1-2 LCD 제어하기"(번호와 제목 — 쪽은 그림에 인쇄돼 있다).
+ * 좁은 화면(48rem 미만): 그림 위 링크는 높이가 10px대로 줄어 눌리지 않는다 → **절 목록이 먼저**이고, 그림은 접힌 <details>(그림만, 링크 없음)다.
+ *   두 모습은 CSS로 바꾼다(숨은 쪽은 display:none이라 화면 낭독기·Tab 차례에 없다).
+ * 링크가 가는 곳은 home-lessons.ts가 정한다: 교과서 쪽(/book/<id>/) → 없으면 짝 웹 차시 → 둘 다 없으면 링크를 만들지 않는다.
+ * HTML 크기: 홈 HTML은 서비스 워커 사전 캐시 한도(파일 하나 160KB)에 바짝 붙어 있다 — 이 부품의 <style>은 is:global이다(Astro 범위 스타일은 모든 요소에 data-astro-cid 속성을 붙인다). 클래스 이름은 이 부품 고유(toc__·toc-spot 접두어)라 겹치지 않는다.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지우므로 글과 인라인 태그 사이에는 {' '}를 쓴다(CLAUDE.md).
+ */
+import { withBase } from '../../lib/url.ts';
+import { unitCardClass } from '../lesson/unit-style.ts';
+import { homeToc } from './home-content.ts';
+import type { HomeTocFigure, HomeTocListUnit } from './home-lessons.ts';
+
+interface Props {
+  figures: readonly HomeTocFigure[];
+  list: readonly HomeTocListUnit[];
+}
+
+const { figures, list } = Astro.props;
+---
+
+<section id="toc" class="toc" aria-labelledby="home-toc-title" data-home-toc>
+  <header class="toc__header">
+    <h2 id="home-toc-title" class="toc__title">{homeToc.heading}</h2>
+    <p class="toc__lead">{homeToc.lead}</p>
+  </header>
+
+  {/* 좁은 화면: 절 목록이 먼저 */}
+  <nav class="toc__list" aria-label={homeToc.listLabel} data-home-toc-list>
+    {
+      list.map((unit) => (
+        <section class:list={['toc__list-unit', unitCardClass(unit.unit)]}>
+          <h3 class="toc__list-unit-title">
+            <span class="toc__list-unit-no">{unit.name}</span>{' '}
+            <span>{unit.title}</span>
+          </h3>
+          {unit.groups.map((group) => (
+            <div class="toc__list-group">
+              <h4 class="toc__list-group-title">{group.title}</h4>
+              <ul class="toc__list-items" role="list">
+                {group.items.map((card) => (
+                  <li class="toc__list-item">
+                    {card.href ? (
+                      <a class="toc__list-link" href={card.href}>
+                        <b class="toc__list-no">{card.label}</b> {card.title}
+                      </a>
+                    ) : (
+                      <span class="toc__list-link toc__list-link--none">
+                        <b class="toc__list-no">{card.label}</b> {card.title}
+                      </span>
+                    )}
+                    {card.pagesLabel && <span class="toc__list-pages">{card.pagesLabel.replace(/^교과서 /u, '')}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      ))
+    }
+  </nav>
+
+  {/* 좁은 화면: 그림은 접어 둔다(그림만 — 눌러 가는 링크는 위 목록) */}
+  <details class="toc__details more" data-home-toc-details>
+    <summary>{homeToc.figureSummary}</summary>
+    <div class="toc__details-body">
+      {
+        figures.map(({ image }) => (
+          <img class="toc__details-image" src={withBase(image.src)} width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" />
+        ))
+      }
+    </div>
+  </details>
+
+  {/* 넓은 화면: 그림 두 장 + 투명 링크 */}
+  <div class="toc__figures" role="group" aria-label={homeToc.figureGroupLabel} data-home-toc-figures>
+    {
+      figures.map(({ image, spots }) => (
+        <div class="toc__page" data-toc-image={image.image}>
+          <img class="toc__image" src={withBase(image.src)} width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" />
+          {spots.map((spot) => (
+            <a class="toc-spot" href={spot.href} style={spot.style} title={spot.label} aria-label={spot.label} data-toc-spot={spot.id} />
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style is:global>
+  .toc {
+    margin-block-start: var(--space-12);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .toc__header {
+    margin-block-end: var(--space-5);
+  }
+
+  .toc__title {
+    font-size: var(--text-2xl);
+  }
+
+  .toc__lead {
+    max-width: 44rem;
+    margin-block-start: var(--space-1);
+    color: var(--color-text-muted);
+  }
+
+  /* ── 좁은 화면: 절 목록 ── */
+  .toc__list {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .toc__list-unit {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-inline-start: 6px solid var(--card-unit);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .toc__list-unit-title {
+    font-size: var(--text-lg);
+  }
+
+  .toc__list-unit-no {
+    color: var(--card-unit);
+  }
+
+  .toc__list-group {
+    margin-block-start: var(--space-3);
+  }
+
+  .toc__list-group-title {
+    padding-block-end: var(--space-1);
+    border-block-end: 1px solid var(--color-border);
+    font-size: var(--text-base);
+  }
+
+  .toc__list-items {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc__list-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--space-3);
+    min-height: var(--target-min);
+    padding-block: var(--space-1);
+    border-block-end: 1px solid var(--color-bg-muted);
+  }
+
+  .toc__list-item:last-child {
+    border-block-end: 0;
+  }
+
+  .toc__list-link {
+    font-weight: var(--weight-semibold);
+  }
+
+  .toc__list-link--none {
+    color: var(--color-text-muted);
+  }
+
+  .toc__list-no {
+    color: var(--card-unit);
+    font-weight: var(--weight-bold);
+  }
+
+  .toc__list-pages {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .toc__details {
+    margin-block-start: var(--space-4);
+  }
+
+  .toc__details-body {
+    display: grid;
+    gap: var(--space-3);
+    margin-block-start: var(--space-3);
+  }
+
+  .toc__details-image {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  /* ── 넓은 화면: 그림 + 링크 ── */
+  .toc__figures {
+    display: none;
+  }
+
+  .toc__page {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .toc__image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* 투명 링크: 평소에는 보이지 않고(테두리도 투명), 마우스를 올리거나 키보드 초점이 오면 보랏빛 칠 + 테두리 */
+  .toc-spot {
+    position: absolute;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .toc-spot:hover {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+
+  .toc-spot:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: 0;
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+
+  @media (min-width: 48rem) {
+    .toc__list,
+    .toc__details {
+      display: none;
+    }
+
+    .toc__figures {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .toc-spot:hover,
+    .toc-spot:focus-visible {
+      border-color: Highlight;
+      background: transparent;
+    }
+  }
+</style>

@@ -26,6 +26,8 @@ import { findPairedBook, publishedBooks, type BookSummary } from '../../../compo
 import ViewSwitch from '../../../components/book/ViewSwitch.astro';
 import Icon from '../../../components/common/Icon.astro';
 import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
+import { lessonPartRefs } from '../../../components/parts/lesson-parts-data.ts';
+import PartPhotoStrip from '../../../components/parts/PartPhotoStrip.astro';
 import FlowPosition from '../../../components/lesson/FlowPosition.astro';
 import LessonBody from '../../../components/lesson/LessonBody.astro';
 import LessonDone from '../../../components/lesson/LessonDone.astro';
@@ -97,6 +99,8 @@ for (const issue of checkLessonRules({ data: entry.data, html, slug: lesson.slug
   console.warn(`[차시 틀] ${source}: [${issue.code}] ${issue.message}`);
 }
 const teacher = { data: entry.data, source: lessonSource(entry.data, lesson.slug) };
+// 준비물 사진 줄(판 1.4.0, C136): 이 차시의 예제가 쓰는 가상 보드 부품의 실제 모습. 부품이 없는 차시(영상 처리 등)는 줄을 그리지 않는다.
+const partRefs = lessonPartRefs(entry.data.examples);
 
 const unit = getLearnUnit(lesson.unit);
 const kind = kindBadge(lesson.kind);
@@ -162,6 +166,7 @@ const position = lessonPosition(lessons, lesson);
         <div data-present-hide>
           <FlowPosition unit={lesson.unit} size="mini" />
           <LessonMeta lesson={lesson} />
+          <PartPhotoStrip parts={partRefs} label="준비물 사진" />
           <p class="lesson__tools" data-pagefind-ignore>
             <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">
               발표 모드

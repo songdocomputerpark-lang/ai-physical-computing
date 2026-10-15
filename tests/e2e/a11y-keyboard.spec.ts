@@ -223,7 +223,8 @@ async function tabWalk(page: Page, maxTabs: number): Promise<WalkResult> {
 
 /** Tab 걷기를 할 쪽(full: npm run test:a11y에서만) */
 const WALK_PAGES: readonly { label: string; path: string; maxTabs: number; full?: boolean; ready?: (page: Page) => Promise<void> }[] = [
-  { label: '홈', path: '', maxTabs: 120 },
+  // 판 1.4.0: 홈에 차례 그림 위 링크 32개와 차시 카드 60여 개가 더해졌다(머리글·바닥글 포함 Tab 150곳 안팎)
+  { label: '홈', path: '', maxTabs: 240 },
   { label: '차시 1-1-1(퀴즈·교사용·용어·발표 모드 단추)', path: 'learn/u1/1-1-1/', maxTabs: 400 },
   { label: '차시 2-1-1(보드 차시)', path: 'learn/u2/2-1-1/', maxTabs: 400, full: true },
   { label: '용어사전', path: 'glossary/', maxTabs: 900, full: true },
@@ -748,11 +749,11 @@ test.describe('움직임 줄이기 — 운영체제 설정을 켜면 움직이�
     );
   }
 
-  test('홈: 흐름 그림은 멈춘 완성 그림이고 [그림 멈추기] 단추가 없다', async ({ page }) => {
+  test('홈: 도는 애니메이션이 없다(판 1.4.0: 옛 흐름 그림은 홈에서 빠졌다)', async ({ page }) => {
     await freezeDevReloads(page);
     await page.goto(withBase(''));
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
-    await expect(page.locator('[data-flow]')).toHaveAttribute('data-state', 'static');
+    await expect(page.locator('[data-flow]')).toHaveCount(0);
     expect(await runningAnimations(page)).toEqual([]);
   });
 

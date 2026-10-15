@@ -12,7 +12,7 @@
  * - order  단원 안 순서. md frontmatter의 order와 같게 적는다. 보충 차시는 3.4처럼 소수로 사이에 넣는다.
  * - kind   textbook(교과서) · supplement(보충) · reading(읽기 자료) · review(대단원 마무리). content-schemas.ts와 같다.
  * - source 원천(PLAN §2.2 "원천" 칸): manuscript-code 원고+코드 · manuscript 원고만 · code-only 코드만(원고 없음) · supplement 보충(자료에 없음)
- * - pages  교과서 쪽. 코드만 있는 차시는 코드 파일 이름에 적힌 쪽이라 원고와 대조하지 못했다(PLAN §2.2).
+ * - pages  교과서 쪽. 원고가 없던(code-only) 차시도 출판본이 나와 판 1.4.0부터 출판본 절 범위다(예: 1-3-1 053~062 — DECISIONS C137). 제목도 출판본 절 이름이다.
  *
  * 묶음 이름은 원고의 중단원 표기(INVENTORY §3.1, I단원 표지)를 따르고, IV단원은 원고가 없어 코드 폴더 이름을 따른다(PLAN §2.1).
  * 보충 차시(PD-07)는 I단원은 "영상 처리 기초"로, III단원 통신 보충(C1~C3)은 따로 묶었다. P1은 3-1-4의 사전 학습이라 01 안에 둔다.
@@ -127,13 +127,13 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
       }),
       section({
         key: 'u1-03',
-        title: '03 페이스 매시',
+        title: '03 페이스 메시',
         middleUnit: 3,
         description: '교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
-          textbook('1-3-1', 'AI는 나의 방향을 알고 있다', 7, 'code-only', '파일명 p55·p58'),
-          textbook('1-3-2', 'AI는 나의 하품을 파악한다', 8, 'code-only', '파일명 p65·p68'),
-          textbook('1-3-3', '내 얼굴에 맞춤 필터 만들기', 9, 'code-only', '파일명 p75·p78'),
+          textbook('1-3-1', '방향을 감지하는 인공지능', 7, 'code-only', '053~062'),
+          textbook('1-3-2', '하품의 순간을 포착하는 인공지능', 8, 'code-only', '063~072'),
+          textbook('1-3-3', '인공지능 필터로 바꾸는 내 얼굴', 9, 'code-only', '073~081'),
         ],
       }),
       section({
@@ -142,9 +142,9 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         middleUnit: 4,
         description: '교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
-          textbook('1-4-1', '몸으로 말해요! 동작 감지 인공지능', 10, 'code-only', '파일명 p85·p88'),
-          textbook('1-4-2', '균형 잡힌 자세를 도와주는 인공지능', 11, 'code-only', '파일명 p95·p99'),
-          textbook('1-4-3', '말을 글로 바꾸는 기술(선택 차시)', 12, 'code-only', '파일명 p105·p108'),
+          textbook('1-4-1', '몸으로 말해요! 동작 감지 인공지능', 10, 'code-only', '083~092'),
+          textbook('1-4-2', '균형 잡힌 자세를 도와주는 인공지능', 11, 'code-only', '093~102'),
+          textbook('1-4-3', '말을 글로 바꾸는 기술(선택 차시)', 12, 'code-only', '103~111'),
         ],
       }),
       section({ key: 'u1-review', title: '대단원 마무리', lessons: [review('I', '112~113')] }),
@@ -173,8 +173,8 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         lessons: [
           textbook('2-2-1', '버저 제어하기', 6, 'manuscript-code', '155~160'),
           textbook('2-2-2', 'MP3 플레이어 제어하기', 7, 'manuscript-code', '161~166'),
-          textbook('2-2-3', '팬 모터 활용하기', 8, 'manuscript-code', '167~172'),
-          textbook('2-2-4', '서보모터 활용하기', 9, 'manuscript-code', '173~179'),
+          textbook('2-2-3', '팬 모터 제어하기', 8, 'manuscript-code', '167~172'),
+          textbook('2-2-4', '서보모터 제어하기', 9, 'manuscript-code', '173~179'),
         ],
       }),
       section({ key: 'u2-review', title: '대단원 마무리', lessons: [review('II', '180~181')] }),
@@ -218,10 +218,10 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         middleUnit: 1,
         description: '이 대단원은 교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
-          textbook('4-1-1', 'AI의 눈, 내 얼굴 인식', 1, 'code-only', '파일명 p216·p217·p219'),
-          textbook('4-1-2', '눈길 따라 움직이는 마우스 커서', 2, 'code-only', '파일명 p226'),
-          textbook('4-1-3', '윙크 한방에 더블클릭!', 3, 'code-only', '파일명 p234·p240'),
-          textbook('4-1-4', '보이지 않는 연결, 블루투스로 데이터 전송', 4, 'code-only', '파일명 p251·p252·p254'),
+          textbook('4-1-1', '내 얼굴을 인식하는 인공지능의 눈', 1, 'code-only', '213~222'),
+          textbook('4-1-2', '눈길 따라 움직이는 마우스 커서', 2, 'code-only', '223~231'),
+          textbook('4-1-3', '윙크 한 번으로 더블 클릭!', 3, 'code-only', '232~247'),
+          textbook('4-1-4', '블루투스로 데이터 전송하기', 4, 'code-only', '248~257'),
         ],
       }),
       section({
@@ -229,8 +229,8 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         title: '02 AI 신호를 현실로 물리적 피드백 시스템 제작',
         middleUnit: 2,
         lessons: [
-          textbook('4-2-1', '데이터, 하드웨어를 깨우다!', 5, 'code-only', '파일명 p261·p270·p272'),
-          textbook('4-2-2', '소리와 빛으로 상태를 알려줘', 6, 'code-only', '파일명 p278·p281'),
+          textbook('4-2-1', '얼굴을 따라 움직이는 서보모터', 5, 'code-only', '259~275'),
+          textbook('4-2-2', '소리와 빛으로 상태를 알려 줘', 6, 'code-only', '276~285'),
         ],
       }),
       section({

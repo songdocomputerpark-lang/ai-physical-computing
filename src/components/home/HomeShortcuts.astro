@@ -17,7 +17,7 @@ import { homeShortcuts } from './home-content.ts';
           <span class:list={['card__icon', 'card__icon--lg', item.unit && `card__icon--u${item.unit}`]}>
             <Icon name={item.icon} size="lg" />
           </span>
-          <a class="shortcut__link card__link" href={item.href}>
+          <a class="shortcut__link card__link" href={item.href} data-home-shortcut={item.pageId}>
             {item.label}
           </a>
         </li>

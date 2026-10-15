@@ -1,6 +1,6 @@
 // 부품 사전(/start/parts/)과 보드 준비 쪽 키트 표 사진 칸, 3-1-2 변환기 사진 브라우저 테스트(판 1.4.0, DECISIONS O17·C136).
 // 실행: npx playwright test tests/e2e/parts.spec.ts (빌드 후 미리 보기 서버를 띄운다, playwright.config.ts). desktop(1366×768)과 mobile(375×812) 두 화면에서 돈다.
-// 부품 사전은 아직 사이트 지도(src/config/nav.ts)에 없어서 주소를 여기 적는다 — 지도에 올라가면 getPage로 바꾼다.
+// 부품 사전은 사이트 지도(src/config/nav.ts)의 start-parts라 제목·주소는 getPage에서 읽는다(판 1.4.0).
 // 카드 수·분류 수는 데이터 파일(content/parts/parts.yaml)에서 읽으므로 사진을 더해도 이 검사는 그대로다.
 import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
@@ -8,7 +8,8 @@ import { PARTS_FILE, PART_CATEGORIES, parsePartsYaml } from '../../src/component
 import { getPage } from '../../src/config/nav.ts';
 
 const parts = parsePartsYaml(fs.readFileSync(PARTS_FILE, 'utf8'));
-const PARTS_URL = './start/parts/';
+const PARTS_PAGE = getPage('start-parts');
+const PARTS_URL = `.${PARTS_PAGE.path}`;
 const KIT_ROW_COUNT = 16;
 
 /** 페이지에서 난 자바스크립트 오류를 모은다. */
@@ -33,13 +34,13 @@ test.describe('부품 사전 쪽', () => {
     const errors = collectPageErrors(page);
     const response = await page.goto(PARTS_URL);
     expect(response?.status()).toBe(200);
-    await expect(page).toHaveTitle(/^부품 사전 \| /u);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('부품 사전');
+    await expect(page).toHaveTitle(new RegExp(`^${PARTS_PAGE.title} \\| `, 'u'));
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(PARTS_PAGE.title);
     expect(await page.evaluate(() => document.querySelectorAll('h1').length)).toBe(1);
     await expect(page.getByText('부품 사진: 고릴라셀(브릭셀) 제공, 허락받아 사용')).toBeVisible();
     await expect(page.locator('.parts-card')).toHaveCount(parts.length);
     // 현재 위치: 홈 › 시작하기 › 부품 사전
-    await expect(page.getByRole('navigation', { name: '현재 위치' }).locator('li')).toHaveText(['홈', '시작하기', '부품 사전']);
+    await expect(page.getByRole('navigation', { name: '현재 위치' }).locator('li')).toHaveText(['홈', getPage('start').label, PARTS_PAGE.label]);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     expect(errors).toEqual([]);
@@ -143,13 +144,53 @@ test.describe('보드 준비 쪽 키트 표의 사진 칸', () => {
 test.describe('3-1-2 차시의 USB-UART 변환기 사진', () => {
   test('새 부품 사진(c-007)이 뜨고 옛 그림 주소는 없다', async ({ page }) => {
     await page.goto('./learn/u3/3-1-2/');
-    const photo = page.locator('img[src$="/images/parts/third-party/kit-vendor/c-007-usb-to-uart-converter.webp"]');
+    // 본문 그림(figure) 하나 + 머리 칸 아래 준비물 사진 줄(판 1.4.0 C4)에도 같은 사진이 작게 있다 — 본문 그림만 본다
+    const figure = page.locator('figure', { has: page.locator('img[src$="/images/parts/third-party/kit-vendor/c-007-usb-to-uart-converter.webp"]') });
+    const photo = figure.locator('img');
+    await expect(figure).toHaveCount(1);
     await expect(photo).toHaveCount(1);
     await expect(photo).toHaveAttribute('alt', /USB-UART 변환기 사진$/u);
     await photo.scrollIntoViewIfNeeded();
     await expect.poll(() => photo.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await expect(page.locator('img[src*="3-1-2/third-party/kit-vendor/usb-uart-converter"]')).toHaveCount(0);
     // 사진 옆 설명에 "키트에 따라 모양이 다를 수 있어요"
-    await expect(page.locator('figure', { has: photo })).toContainText('키트에 따라 모양이 다를 수 있어요');
+    await expect(figure).toContainText('키트에 따라 모양이 다를 수 있어요');
+  });
+});
+
+// 준비물 사진 줄(판 1.4.0 C4): 웹 차시와 교과서 쪽 머리에 그 차시가 쓰는 부품의 실제 사진이 줄로 보인다. 부품이 없는 차시(영상 처리)는 줄이 없다.
+test.describe('준비물 사진 줄', () => {
+  for (const path of ['./learn/u2/2-1-2/', './book/2-1-2/']) {
+    test(`${path}: 문자 LCD·터치 센서 사진이 부품 사전 카드로 이어진다`, async ({ page }) => {
+      await page.goto(path);
+      const strip = page.getByRole('group', { name: '준비물 사진' });
+      await expect(strip).toBeVisible();
+      const links = strip.getByRole('link');
+      expect(await links.count()).toBeGreaterThanOrEqual(2);
+      for (const link of await links.all()) {
+        await expect(link).toHaveAttribute('href', /\/start\/parts\/#part-[a-z0-9-]+$/u);
+        await expect(link.locator('img')).toHaveAttribute('alt', '');
+        expect((await link.textContent())?.trim().length, '부품 이름 글자').toBeGreaterThan(0);
+      }
+      await expect(strip).toContainText('고릴라셀(브릭셀)');
+      // 사진을 모두 받았다
+      for (const image of await strip.locator('img').all()) {
+        await image.scrollIntoViewIfNeeded();
+        await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+      }
+    });
+  }
+
+  test('부품이 없는 차시(영상 처리 1-1-2)에는 줄이 없다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-2/');
+    await expect(page.getByRole('group', { name: '준비물 사진' })).toHaveCount(0);
+  });
+
+  test('모든 쪽 바닥글에 교과서·부품 사진 출처 줄이 있다(차시·교과서 쪽·부품 사전)', async ({ page }) => {
+    for (const path of ['./learn/u2/2-1-2/', './book/2-1-2/', `.${PARTS_PAGE.path}`]) {
+      await page.goto(path);
+      await expect(page.locator('[data-site-credit]'), path).toContainText('교과서: 「인공지능과 피지컬 컴퓨팅」(금성출판사, 김석전·박상진·김승현·김영준·육동건)');
+      await expect(page.locator('[data-site-credit]'), path).toContainText('부품 사진·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용.');
+    }
   });
 });

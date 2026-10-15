@@ -22,7 +22,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  background: var(--color-page);
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -59,6 +59,12 @@ h6 {
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
   text-wrap: balance;
+}
+
+/* 쪽 제목·큰 제목은 한 단계 더 굵게(판 1.4.0 C139) */
+h1,
+h2 {
+  font-weight: var(--weight-extrabold);
 }
 
 p,
@@ -522,7 +528,7 @@ textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-bg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 
 .card--link {

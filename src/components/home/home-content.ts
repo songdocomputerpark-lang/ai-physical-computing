@@ -7,10 +7,14 @@
  * - 학생이 보는 문장: "고1이 처음 읽어도 이해되는가?", 한 문단 3문장 이내, 전문용어는 처음 나올 때 풀이(SPEC §7.1).
  * - tests/unit/home/home-content.test.ts와 tests/e2e/home.spec.ts가 이 값을 읽어 검사한다.
  *
- * 판 1.3.0 홈 순서: 첫 화면(hero) → 이어서 하기 띠(진도가 있을 때만) → 큰 검색 → 배움 지도(대단원 4장) → 바로 가기 타일 → 원칙.
- * 배움 지도의 대단원 카드(차시 수·첫 차시·진도 차시 목록)는 차시 목록에서 만든다 — home-map.ts.
+ * 판 1.4.0 홈 순서(출판본 교과서 흐름 — DECISIONS C132): 표지(HomeCover) → 이어서 하기 띠(진도가 있을 때만) → 교과서 차례 그림(HomeToc) → 차시 목록(HomeLessons) → 큰 검색 → 바로 가기 타일 → 원칙.
+ * 차례 그림의 링크 자리·카드 자료는 home-lessons.ts가 교과서 쪽(content/book)·웹 차시(content/lessons)에서 만든다.
+ *
+ * 판 1.3.0 홈 순서(옛): 첫 화면(hero) → 이어서 하기 띠 → 큰 검색 → 배움 지도(대단원 4장) → 바로 가기 타일 → 원칙.
+ * 옛 첫 화면(HomeHero·FlowIllustration)과 배움 지도(HomeMap, home-map.ts)는 홈이 더 쓰지 않지만 지우지 않았고 아래 homeHero·homeActions·flowFigure·homeMap도 그대로 둔다.
  */
 import { getPage } from '../../config/nav.ts';
+import { siteConfig } from '../../config/site.ts';
 import type { IconName } from '../common/icons.ts';
 
 /** 첫 화면의 큰 버튼 하나 */
@@ -81,6 +85,74 @@ function shortcut(pageId: string, icon: IconName, options: { label?: string; uni
     ...(options.unit === undefined ? {} : { unit: options.unit }),
   });
 }
+
+/** 표지 단추 하나(판 1.4.0). id는 시험·스타일이 쓰는 이름 — data-home-action */
+export interface HomeCoverAction {
+  readonly id: 'start' | 'toc' | 'labs';
+  readonly label: string;
+  /** 같은 쪽 #위치나 사이트 지도 페이지 */
+  readonly href: string;
+  readonly icon: IconName;
+  readonly variant: 'primary' | 'secondary';
+}
+
+/**
+ * 판 1.4.0 홈 표지(출판본 교과서 「인공지능과 피지컬 컴퓨팅」, 금성출판사). 알약의 수(절·웹 차시)는 글에 적지 않고 데이터에서 센다(homeCoverPill).
+ * 표지 그림(public/images/book/cover.webp)에도 이름이 인쇄돼 있지만 화면 낭독기·검색을 위해 출판사·저자는 그림 밖 HTML 글자로도 적는다.
+ */
+export const homeCover = Object.freeze({
+  /** 페이지 제목(h1)을 줄로 나눠 둔다. 이어 읽으면 책 이름이다. */
+  titleLines: Object.freeze(['인공지능과', '피지컬 컴퓨팅']),
+  /** 한 줄 소개(두 문장 이내) */
+  lead: '교과서 「인공지능과 피지컬 컴퓨팅」을 웹에서 읽고, 설치 없이 브라우저에서 바로 실습해 보는 무료 사이트예요.',
+  /** 출판사·저자는 책 표지에 인쇄된 그대로 — 바닥글 출처 줄과 같은 값(src/config/site.ts textbook) */
+  publisher: siteConfig.textbook.publisher,
+  authors: siteConfig.textbook.authors,
+  coverAlt: `교과서 「${siteConfig.textbook.title}」 표지`,
+  /** 첫 번째 큰 단추 글. 진도가 있으면 home-resume.ts가 "이어서 하기"로 바꾼다(startLabel·resumeLabel을 마크업에 실어 보낸다). */
+  startLabel: '1단원부터 시작',
+  resumeLabel: '이어서 하기',
+});
+
+/** 알약 글: "고등학교 · 교과서 32절 · 웹 차시 45편" */
+export function homeCoverPill(sectionCount: number, lessonCount: number): string {
+  return `고등학교 · 교과서 ${sectionCount}절 · 웹 차시 ${lessonCount}편`;
+}
+
+/** 표지 큰 단추 둘(첫 번째 단추의 주소는 1단원 첫 절이라 화면이 데이터에서 정한다). 순서와 이름을 바꾸지 않는다. */
+export function homeCoverActions(startHref: string): readonly HomeCoverAction[] {
+  return Object.freeze([
+    Object.freeze({ id: 'start', label: homeCover.startLabel, href: startHref, icon: 'play', variant: 'primary' } as const),
+    Object.freeze({ id: 'toc', label: '차례 보기', href: '#toc', icon: 'list', variant: 'secondary' } as const),
+    Object.freeze({ id: 'labs', label: '실습실', href: getPage('labs').href, icon: 'flask', variant: 'secondary' } as const),
+  ]);
+}
+
+/** 차례(교과서 4·5쪽 그림) */
+export const homeToc = Object.freeze({
+  heading: '차례',
+  lead: '교과서 차례에서 배우고 싶은 절을 눌러요. 그림이 작아서 누르기 어려우면 아래 목록에서 골라도 돼요.',
+  /** 좁은 화면에서 그림을 접어 둔 칸의 이름 */
+  figureSummary: '교과서 차례 그림으로 보기',
+  /** 넓은 화면의 그림 묶음 이름(화면 낭독기용) */
+  figureGroupLabel: '교과서 차례 그림',
+  listLabel: '교과서 차례 목록',
+});
+
+/** 차시 목록(단원 → 중단원 → 카드) */
+export const homeLessons = Object.freeze({
+  heading: '차시 목록',
+  lead: '교과서 차례대로 모았어요. 카드를 누르면 교과서 쪽으로 가고, 교과서 쪽을 준비 중인 절은 풀이·실습으로 가요.',
+  /** 책에 없고 사이트가 더한 차시의 알약 */
+  webOnlyBadge: '웹에서 더함',
+  /** 교과서 쪽이 아직 없는 절이 풀이·실습으로 이어질 때 카드에 붙이는 작은 글 */
+  lessonDest: '풀이·실습으로 가요',
+  /** 갈 곳이 없는 카드(쪽 파일도 웹 차시도 없음)의 글 */
+  planned: '교과서 쪽을 준비 중이에요',
+  legendLabel: '아이콘 뜻',
+  /** 범례의 보드 줄 — 보드가 없어도 가상 보드로 끝까지 할 수 있다(원칙 3) */
+  legendBoard: '실제 보드 있으면 더 좋아요',
+});
 
 /** 첫 화면 제목과 한 문장 소개(SPEC §5: 스크롤 없이 30초 안에 "이 사이트가 뭔지" 알게) */
 export const homeHero = Object.freeze({
