@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "savedAt": "2026-10-15T00:00:00.000Z",
+  "components": [
+    {
+      "id": "board-003-1",
+      "partId": "board-003",
+      "x": 300,
+      "y": 211,
+      "rotation": 0
+    },
+    {
+      "id": "dis-013-2",
+      "partId": "dis-013",
+      "x": 200,
+      "y": 537,
+      "rotation": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "wire-1",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C4-G",
+      "toCompId": "dis-013-2",
+      "toPin": "dis-013-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-2",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C4-V",
+      "toCompId": "dis-013-2",
+      "toPin": "dis-013-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-3",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C4-S",
+      "toCompId": "dis-013-2",
+      "toPin": "dis-013-S",
+      "color": "#FACC15"
+    }
+  ]
+}

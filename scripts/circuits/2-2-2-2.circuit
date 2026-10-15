@@ -1,0 +1,108 @@
+{
+  "version": "1.0",
+  "savedAt": "2026-10-15T00:00:00.000Z",
+  "components": [
+    {
+      "id": "board-003-1",
+      "partId": "board-003",
+      "x": 666,
+      "y": 211,
+      "rotation": 0
+    },
+    {
+      "id": "o-002-2",
+      "partId": "o-002",
+      "x": 398,
+      "y": 537,
+      "rotation": 0
+    },
+    {
+      "id": "o-003-2s",
+      "partId": "o-003",
+      "x": 148,
+      "y": 537,
+      "rotation": 0
+    },
+    {
+      "id": "a-022-3",
+      "partId": "a-022",
+      "x": 397,
+      "y": 737,
+      "rotation": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "wire-1",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-L-L6-G",
+      "toCompId": "o-002-2",
+      "toPin": "o-002-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-2",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-L-L6-V",
+      "toCompId": "o-002-2",
+      "toPin": "o-002-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-3",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-L-L6-S",
+      "toCompId": "o-002-2",
+      "toPin": "o-002-S",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-4",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-L-L6-S2",
+      "toCompId": "o-002-2",
+      "toPin": "o-002-S2",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-5",
+      "fromCompId": "o-003-2s",
+      "fromPin": "o-003-G",
+      "toCompId": "o-002-2",
+      "toPin": "o-002-BOT-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-6",
+      "fromCompId": "o-003-2s",
+      "fromPin": "o-003-V",
+      "toCompId": "o-002-2",
+      "toPin": "o-002-BOT-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-7",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-R-R0-G",
+      "toCompId": "a-022-3",
+      "toPin": "a-022-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-8",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-R-R0-V",
+      "toCompId": "a-022-3",
+      "toPin": "a-022-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-9",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-R-R0-S",
+      "toCompId": "a-022-3",
+      "toPin": "a-022-S",
+      "color": "#FACC15"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "savedAt": "2026-10-15T00:00:00.000Z",
+  "components": [
+    {
+      "id": "board-003-1",
+      "partId": "board-003",
+      "x": 300,
+      "y": 211,
+      "rotation": 0
+    },
+    {
+      "id": "dis-002-2",
+      "partId": "dis-002",
+      "x": 214,
+      "y": 537,
+      "rotation": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "wire-1",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C5-G",
+      "toCompId": "dis-002-2",
+      "toPin": "dis-002-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-2",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C5-V",
+      "toCompId": "dis-002-2",
+      "toPin": "dis-002-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-3",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C5-S",
+      "toCompId": "dis-002-2",
+      "toPin": "dis-002-S",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-4",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C5-S2",
+      "toCompId": "dis-002-2",
+      "toPin": "dis-002-S2",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-5",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C5-S3",
+      "toCompId": "dis-002-2",
+      "toPin": "dis-002-S3",
+      "color": "#FACC15"
+    }
+  ]
+}

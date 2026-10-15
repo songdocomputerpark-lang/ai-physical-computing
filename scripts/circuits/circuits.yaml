@@ -1,0 +1,295 @@
+# 회로 구성 그림 목록 — 키트 업체의 회로 구성 도구(https://circuit.gorillacell.kr/)로 그리는 배선 그림 23장.
+#
+# 이 파일이 "그림의 원본 설명"이다. 한 그림 = 보드(ESP32 실드 V3) 하나 + 부품과 핀 번호. 거기서
+#   npm run circuits:build    → scripts/circuits/<id>.circuit (도구가 읽는 회로 파일, 손으로 고쳐도 되지만 이 목록과 달라지면 테스트가 알려 줘요)
+#   npm run circuits:export   → 도구를 열어 .circuit을 불러오고 [이미지 저장] → .cache/v140-staging/circuits/<id>.png   (운영자 PC에서, 인터넷 필요)
+#   npm run circuits:import   → 투명 여백을 자르고 WebP로 바꿔 public/images/circuits/third-party/kit-vendor/<id>.webp, 아래 `image`를 채움
+# 순서로 만든다(자세한 절차는 각 스크립트 머리말에 있다).
+#
+# 핀은 출판본 교과서 코드를 따른다(결정 C137). 출판본 쪽 글은 .cache/v140/textbook/pNNN.txt. 출판본과 사이트 예제가 다르면 `notes`에 적었다.
+# 실드 V3에 없는 핀(GPIO 2)은 그리지 않고 아래 `undrawable`에 남겼다.
+#
+# 칸 설명
+#   id             차시-번호. 파일 이름(<id>.circuit·<id>.png·<id>.webp)이 된다.
+#   lesson         차시 label(사이트 차시 번호).
+#   textbook_page  출판본에서 이 배선을 그린 쪽(쪽 번호는 출판본 그대로).
+#   parts          부품 이름은 차시 frontmatter `examples[].parts`와 같은 이름(lcd-i2c·oled-i2c·touch-digital·touch-analog-4ch·rgb-led·laser·
+#                  neopixel·buzzer·mp3·fan-motor·servo·uart-converter). pins의 글자는 부품 안 핀 이름이고 값은 보드 GPIO 번호다.
+#                  mp3는 module_tx(모듈 TX가 닿는 보드 핀)·module_rx(모듈 RX가 닿는 보드 핀),
+#                  uart-converter는 converter_tx·converter_rx(변환기 TX·RX가 닿는 보드 핀).
+#   caption        그림 설명(캡션) 한 줄. 캡션 맨 끝에 붙일 고정 문장은 `caption_note`.
+#   alt            그림을 못 보는 사람이 읽을 대체 글(고1이 읽는 말, "~예요"체, 위치 낱말 없이).
+#   notes          출판본과 사이트 예제가 다르거나 그림에서 정한 것.
+#   image          circuits:import가 채운다(file·width·height·bytes·sha256·png_sha256). 손으로 쓰지 않는다.
+
+version: 1
+tool:
+  url: https://circuit.gorillacell.kr/
+  board: board-003
+  board_name: ESP32 실드 V3
+  checked: 2026-10-15
+caption_note: 브릭셀 회로 구성 도구로 그린 배선(ESP32 실드 V3). 교과서 사진의 보드와 모양이 달라도 같은 번호 핀에 꽂아요.
+
+figures:
+  - id: 2-1-2-1
+    lesson: 2-1-2
+    textbook_page: 125
+    title: LCD 연결
+    parts:
+      - { part: lcd-i2c, pins: { sda: 21, scl: 22 } }
+    caption: LCD를 21번(SDA)·22번(SCL) 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 LCD가 있어요. 검정 선(GND)과 빨강 선(VCC)에 노란 선 두 개를 더해, LCD의 SDA와 SCL을 보드의 21번 핀과 22번 핀 줄에 이어요.
+
+  - id: 2-1-2-2
+    lesson: 2-1-2
+    textbook_page: 130
+    title: 터치 센서 연결
+    parts:
+      - { part: touch-digital, pins: { pin: 17 } }
+    caption: 터치 센서의 신호선(S)을 17번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 터치 센서가 있어요. 검정 선(GND)과 빨강 선(VCC)이 이어져 있고, 노란 선(신호) 하나가 터치 센서에서 보드의 17번 핀 줄로 가요.
+
+  - id: 2-1-3-1
+    lesson: 2-1-3
+    textbook_page: 133
+    title: OLED 연결
+    parts:
+      - { part: oled-i2c, pins: { sda: 21, scl: 22 } }
+    caption: OLED를 21번(SDA)·22번(SCL) 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 OLED가 있어요. 검정 선(GND)과 빨강 선(VCC)에 노란 선 두 개를 더해, OLED의 SDA와 SCL을 보드의 21번 핀과 22번 핀 줄에 이어요.
+
+  - id: 2-1-3-2
+    lesson: 2-1-3
+    textbook_page: 137
+    title: 4채널 터치 센서 연결
+    parts:
+      - { part: touch-analog-4ch, pins: { pin: 32 } }
+    caption: 4채널 터치 센서의 신호선(S)을 32번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 버튼이 네 개 있는 터치 센서가 있어요. 검정 선(GND)과 빨강 선(VCC)이 이어져 있고, 노란 선(신호) 하나가 보드의 32번 핀 줄로 가요.
+    notes:
+      - 출판본 코드 ADC(Pin(32))(137·138쪽)와 사이트 예제가 같다.
+
+  - id: 2-1-3-3
+    lesson: 2-1-3
+    textbook_page: 138
+    title: 터치 센서와 OLED, RGB LED 연결
+    parts:
+      - { part: oled-i2c, pins: { sda: 21, scl: 22 } }
+      - { part: touch-analog-4ch, pins: { pin: 32 } }
+      - { part: rgb-led, pins: { r: 12, g: 5, b: 4 } }
+    caption: OLED(21·22번), 4채널 터치 센서(32번), RGB LED(12·5·4번)를 함께 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 OLED, 4채널 터치 센서, RGB LED가 한 줄로 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 OLED가 21번·22번, 터치 센서가 32번, RGB LED의 빨강·초록·파랑이 12번·5번·4번 핀 줄로 가요.
+    notes:
+      - 출판본 코드(138쪽) PWM(Pin(12))·PWM(Pin(5))·PWM(Pin(4))를 따랐다. 실드에는 12·5·4가 한 열에 나란히 없어 RGB LED 선 세 줄이 서로 다른 열로 간다(2-1-3 사이트 예제도 같다).
+
+  - id: 2-1-4-1
+    lesson: 2-1-4
+    textbook_page: 143
+    title: RGB LED 연결
+    parts:
+      - { part: rgb-led, pins: { r: 27, g: 32, b: 33 } }
+    caption: RGB LED의 빨강(R)·초록(G)·파랑(B)을 27·32·33번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 RGB LED가 있어요. 검정 선(GND)과 빨강 선(VCC)에 노란 선 세 개를 더해, 빨강·초록·파랑 핀을 보드의 27번·32번·33번 핀 줄에 이어요.
+
+  - id: 2-1-4-2
+    lesson: 2-1-4
+    textbook_page: 144
+    title: 레이저 연결
+    parts:
+      - { part: laser, pins: { pin: 21 } }
+    caption: 레이저의 신호선(SIG)을 21번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 레이저 모듈이 있어요. 검정 선(GND)과 빨강 선(VCC)이 이어져 있고, 노란 선(신호) 하나가 보드의 21번 핀 줄로 가요.
+
+  - id: 2-1-4-3
+    lesson: 2-1-4
+    textbook_page: 146
+    title: 레이저와 RGB LED 연결
+    parts:
+      - { part: rgb-led, pins: { r: 27, g: 32, b: 33 } }
+      - { part: laser, pins: { pin: 21 } }
+    caption: RGB LED(27·32·33번)와 레이저(21번)를 함께 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 RGB LED와 레이저 모듈이 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 RGB LED가 27번·32번·33번, 레이저가 21번 핀 줄로 가요.
+    notes:
+      - 출판본 코드(146쪽)는 빨강(27)과 파랑(33)만 쓰고 초록(32)은 코드에 없다. 배선은 143쪽 그림대로 세 핀을 모두 이었다(사이트 예제 2-1-4-laser-rgb-site.py는 32번 줄을 더함).
+
+  - id: 2-1-5-1
+    lesson: 2-1-5
+    textbook_page: 149
+    title: 네오픽셀 연결
+    parts:
+      - { part: neopixel, pins: { pin: 23 } }
+    caption: 네오픽셀의 데이터선(DIN)을 23번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 동그란 네오픽셀 링이 있어요. 검정 선(GND)과 빨강 선(VCC)이 이어져 있고, 노란 선(데이터) 하나가 보드의 23번 핀 줄로 가요.
+
+  - id: 2-1-5-2
+    lesson: 2-1-5
+    textbook_page: 151
+    title: 네오픽셀과 4채널 터치 센서 연결
+    parts:
+      - { part: neopixel, pins: { pin: 23 } }
+      - { part: touch-analog-4ch, pins: { pin: 32 } }
+    caption: 네오픽셀(23번)과 4채널 터치 센서(32번)를 함께 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 네오픽셀 링과 4채널 터치 센서가 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 네오픽셀이 23번, 터치 센서가 32번 핀 줄로 가요.
+
+  - id: 2-2-1-1
+    lesson: 2-2-1
+    textbook_page: 156
+    title: 버저 연결
+    parts:
+      - { part: buzzer, pins: { pin: 15 } }
+    caption: 버저의 신호선(SIG)을 15번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 버저가 있어요. 검정 선(GND)과 빨강 선(VCC)이 이어져 있고, 노란 선(신호) 하나가 보드의 15번 핀 줄로 가요.
+
+  - id: 2-2-1-2
+    lesson: 2-2-1
+    textbook_page: 159
+    title: 터치 센서와 버저 연결
+    parts:
+      - { part: touch-digital, pins: { pin: 17 } }
+      - { part: buzzer, pins: { pin: 15 } }
+    caption: 터치 센서(17번)와 버저(15번)를 함께 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 터치 센서와 버저가 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 버저가 15번, 터치 센서가 17번 핀 줄로 가요.
+
+  - id: 2-2-2-1
+    lesson: 2-2-2
+    textbook_page: 162
+    title: MP3 플레이어 연결
+    parts:
+      - { part: mp3, pins: { module_tx: 16, module_rx: 17 } }
+    caption: MP3 플레이어의 TX를 16번, RX를 17번 핀에 연결하고 스피커를 이어요.
+    alt: ESP32 실드 V3 보드 아래에 MP3 플레이어와 스피커가 놓여 있어요. 검정 선(GND)과 빨강 선(VCC), 노란 선 두 개로 플레이어의 TX와 RX를 보드의 16번·17번 핀 줄에 잇고, 스피커의 두 선은 플레이어의 스피커 연결단에 이어요.
+    notes:
+      - 출판본 그림 글(162쪽)은 TX(16번 핀)·RX(17번 핀), 코드는 UART(2, baudrate=9600, tx=Pin(17), rx=Pin(16)) — 모듈 TX가 보드 RX(16번)로, 모듈 RX가 보드 TX(17번)에서 오는 올바른 결선이라 그림과 코드가 맞는다.
+      - 사이트 예제 frontmatter의 `mp3(rx=17, tx=16)`은 같은 배선(모듈 쪽 핀 이름)이다.
+
+  - id: 2-2-2-2
+    lesson: 2-2-2
+    textbook_page: 164
+    title: MP3 플레이어와 4채널 터치 센서 연결
+    parts:
+      - { part: mp3, pins: { module_tx: 16, module_rx: 17 } }
+      - { part: touch-analog-4ch, pins: { pin: 32 } }
+    caption: MP3 플레이어(TX 16번·RX 17번)와 4채널 터치 센서(32번)를 함께 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 스피커, MP3 플레이어, 4채널 터치 센서가 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 플레이어가 16번·17번, 터치 센서가 32번 핀 줄로 가요.
+    notes:
+      - 출판본 164쪽 그림 글은 터치 센서 S → 21번 핀인데 같은 쪽 코드는 ADC(Pin(32))다. 코드(32번)를 따랐다(결정 C137). 사이트 예제도 32번.
+
+  - id: 2-2-3-1
+    lesson: 2-2-3
+    textbook_page: 168
+    title: 팬 모터 연결
+    parts:
+      - { part: fan-motor, pins: { ina: 25, inb: 26 } }
+    caption: 팬 모터의 INA를 25번, INB를 26번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 팬 모터가 있어요. 검정 선(GND)과 빨강 선(VCC)에 노란 선 두 개를 더해, 팬 모터의 INA와 INB를 보드의 25번·26번 핀 줄에 이어요.
+
+  - id: 2-2-4-1
+    lesson: 2-2-4
+    textbook_page: 174
+    title: 서보모터 연결
+    parts:
+      - { part: servo, pins: { pin: 25 } }
+    caption: 서보모터의 신호선을 25번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 서보모터가 있어요. 검정 선(GND)과 빨강 선(VCC)이 이어져 있고, 노란 선(신호) 하나가 보드의 25번 핀 줄로 가요.
+
+  - id: 2-2-4-2
+    lesson: 2-2-4
+    textbook_page: 177
+    title: 서보모터 두 개 연결
+    parts:
+      - { part: servo, pins: { pin: 25 } }
+      - { part: servo, pins: { pin: 26 } }
+    caption: 서보모터 두 개를 각각 25번과 26번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 서보모터 두 개가 나란히 있어요. 서보모터마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 하나가 25번, 다른 하나가 26번 핀 줄로 가요.
+
+  - id: 3-1-2-1
+    lesson: 3-1-2
+    textbook_page: 190
+    title: UART 변환기와 레이저 연결
+    parts:
+      - { part: laser, pins: { pin: 18 } }
+      - { part: uart-converter, pins: { converter_tx: 17, converter_rx: 16 } }
+    caption: 레이저(18번)와 USB-UART 변환기(보드 TX 16번·RX 17번)를 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 레이저 모듈과 USB-UART 변환기가 놓여 있어요. 레이저는 검정 선(GND), 빨강 선(VCC), 노란 선으로 18번 핀 줄에 이어요. 변환기는 검정 선(GND)과 노란 선 두 개만 쓰는데, 두 선은 서로 엇갈려 변환기의 TX가 17번, RX가 16번 핀 줄로 가요.
+    notes:
+      - 출판본 코드(190·191쪽) UART(2, baudrate=115200, tx=16, rx=17)를 따랐다 — 보드 TX(16번)는 변환기 RX로, 변환기 TX는 보드 RX(17번)로 간다(엇갈림).
+      - 출판본 그림 글(190쪽)은 GND·VCC·GPIO 16번 핀·GPIO 17번 핀 순서라 변환기 TX→16·RX→17(곧은 연결)로 읽혀 코드와 맞지 않는다. 사이트 예제 3-1-2-uart-laser-site.py는 그림에 맞춰 tx=17, rx=16으로 고쳐 두었다 — 이 그림(코드 기준)과 반대다. 예제나 그림 중 하나를 맞춰야 한다.
+      - 변환기의 VCC 선은 잇지 않았다(변환기는 따로 C 타입 USB 케이블로 노트북에 연결 — 190쪽 안내). 실물 확인 전.
+
+  - id: 3-1-3-1
+    lesson: 3-1-3
+    textbook_page: 196
+    title: RGB LED 연결(블루투스 실습)
+    parts:
+      - { part: rgb-led, pins: { r: 25, g: 26, b: 27 } }
+    caption: RGB LED의 빨강·초록·파랑을 25·26·27번 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 RGB LED가 있어요. 검정 선(GND)과 빨강 선(VCC)에 노란 선 세 개를 더해, 빨강·초록·파랑 핀을 보드의 25번·26번·27번 핀 줄에 이어요.
+    notes:
+      - 출판본 196쪽 그림 글은 GND·5V·GPIO 25·26·27핀, 코드도 Pin(25)·Pin(26)·Pin(27). 사이트 예제 3-1-3-ble-xy-rgb.py의 핀 숫자도 같다(주석만 옛 27·32·33).
+
+  - id: 4-1-4-1
+    lesson: 4-1-4
+    textbook_page: 251
+    title: LCD 연결(블루투스 실습)
+    parts:
+      - { part: lcd-i2c, pins: { sda: 21, scl: 22 } }
+    caption: LCD를 21번(SDA)·22번(SCL) 핀에 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 LCD가 있어요. 검정 선(GND)과 빨강 선(VCC)에 노란 선 두 개를 더해, LCD의 SDA와 SCL을 보드의 21번 핀과 22번 핀 줄에 이어요.
+    notes:
+      - 출판본 251쪽 그림 글에는 GND·VCC·D9pin…처럼 핀 번호가 어긋나게 적혀 있다. 같은 단원 코드(252쪽) SoftI2C(scl=Pin(22), sda=Pin(21))를 따랐다.
+
+  - id: 4-2-1-1
+    lesson: 4-2-1
+    textbook_page: 270
+    title: LCD와 서보모터 두 개 연결
+    parts:
+      - { part: lcd-i2c, pins: { sda: 21, scl: 22 } }
+      - { part: servo, pins: { pin: 25 } }
+      - { part: servo, pins: { pin: 26 } }
+    caption: LCD(21·22번)와 서보모터 두 개(25번, 26번)를 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 LCD와 서보모터 두 개가 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 LCD가 21번·22번, 서보모터가 각각 25번과 26번 핀 줄로 가요.
+    notes:
+      - 출판본 272쪽 코드 설명 x축 서보 GPIO25, y축 서보 GPIO26.
+
+  - id: 4-2-2-1
+    lesson: 4-2-2
+    textbook_page: 277
+    title: LCD와 서보모터 연결(1장)
+    parts:
+      - { part: lcd-i2c, pins: { sda: 21, scl: 22 } }
+      - { part: servo, pins: { pin: 25 } }
+      - { part: servo, pins: { pin: 26 } }
+    caption: 4-2-2의 장치 중 LCD(21·22번)와 서보모터 두 개(25번, 26번)를 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 LCD와 서보모터 두 개가 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 LCD가 21번·22번, 서보모터가 각각 25번과 26번 핀 줄로 가요.
+    notes:
+      - 4-2-2는 부품이 여섯 개라 두 장으로 나눴다(이 그림 = 표시와 움직임, 다음 그림 = 알림 장치). 4-2-1-1과 같은 배선이다.
+
+  - id: 4-2-2-2
+    lesson: 4-2-2
+    textbook_page: 277
+    title: RGB LED와 레이저 연결(2장)
+    parts:
+      - { part: rgb-led, pins: { r: 27, g: 32, b: 33 } }
+      - { part: laser, pins: { pin: 18 } }
+    caption: 4-2-2의 알림 장치 중 RGB LED(27·32·33번)와 레이저(18번)를 연결해요.
+    alt: ESP32 실드 V3 보드 아래에 RGB LED와 레이저 모듈이 놓여 있어요. 부품마다 검정 선(GND)과 빨강 선(VCC)이 있고, 노란 신호선은 RGB LED의 빨강·초록·파랑이 27번·32번·33번, 레이저가 18번 핀 줄로 가요.
+    notes:
+      - 출판본 277·281쪽 표·코드: RGB LED 27·32·33, 레이저 18. 버저는 GPIO 2(PWM)인데 실드 V3에 2번 열이 없어 그리지 못했다(아래 undrawable).
+
+# 그릴 수 없는 핀(실드 V3에 열이 없음). 그림에서는 뺀다.
+undrawable:
+  - lesson: 4-2-2
+    textbook_page: 281
+    part: buzzer
+    pins: { pin: 2 }
+    reason: 그릴 수 없음(V3에 2번 열 없음)
+    note: 출판본 코드 buzzer = PWM(Pin(2, Pin.OUT))(281쪽). 사이트 예제 4-2-2-*도 2번. 2번 핀은 보드 위 부품 전용이라 실드의 3핀 헤더에 나오지 않는다.
+
+# 이번 목록에서 뺀 것(그림이 필요 없거나 출판본에 배선 그림이 없는 차시)
+skipped:
+  - lesson: 2-1-1
+    reason: 보드만 쓰는 차시(내장 LED 2번과 BOOT 0번)라서 보드 사진 한 장으로 충분하다. 보드 사진은 업체 사진 폴더에서 쓴다.
+  - lesson: 4-2-3
+    reason: 출판본 286~289쪽은 읽기 자료라서 배선 그림이 없다.
+  - lesson: 보충 차시(V1~V5, P1, C1~C3)
+    reason: 출판본에 없는 웹 전용 차시다. C1은 2-1-2-2, C3의 변환기 배선은 3-1-2-1과 같은 그림을 쓸 수 있다.

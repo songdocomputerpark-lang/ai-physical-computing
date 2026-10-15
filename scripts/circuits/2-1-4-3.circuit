@@ -1,0 +1,93 @@
+{
+  "version": "1.0",
+  "savedAt": "2026-10-15T00:00:00.000Z",
+  "components": [
+    {
+      "id": "board-003-1",
+      "partId": "board-003",
+      "x": 300,
+      "y": 211,
+      "rotation": 0
+    },
+    {
+      "id": "dis-009-2",
+      "partId": "dis-009",
+      "x": 159,
+      "y": 537,
+      "rotation": 0
+    },
+    {
+      "id": "dis-002-3",
+      "partId": "dis-002",
+      "x": 159,
+      "y": 737,
+      "rotation": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "wire-1",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C1-G",
+      "toCompId": "dis-009-2",
+      "toPin": "dis-009-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-2",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C1-V",
+      "toCompId": "dis-009-2",
+      "toPin": "dis-009-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-3",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C1-S",
+      "toCompId": "dis-009-2",
+      "toPin": "dis-009-S",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-4",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C7-G",
+      "toCompId": "dis-002-3",
+      "toPin": "dis-002-G",
+      "color": "black"
+    },
+    {
+      "id": "wire-5",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C7-V",
+      "toCompId": "dis-002-3",
+      "toPin": "dis-002-V",
+      "color": "red"
+    },
+    {
+      "id": "wire-6",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C7-S",
+      "toCompId": "dis-002-3",
+      "toPin": "dis-002-S",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-7",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C7-S2",
+      "toCompId": "dis-002-3",
+      "toPin": "dis-002-S2",
+      "color": "#FACC15"
+    },
+    {
+      "id": "wire-8",
+      "fromCompId": "board-003-1",
+      "fromPin": "ESP-C-C7-S3",
+      "toCompId": "dis-002-3",
+      "toPin": "dis-002-S3",
+      "color": "#FACC15"
+    }
+  ]
+}
