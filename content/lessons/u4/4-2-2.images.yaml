@@ -1,0 +1,95 @@
+# 차시 4-2-2 "소리와 빛으로 상태를 알려줘"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 4-2-2
+# 결과는 public/images/lessons/4-2-2/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 277
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 출판본 교과서 276~285쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-2-2/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+# 키트 업체(고릴라셀) 부품 사진이 든 그림은 third-party/kit-vendor(운영자 결정 O17).
+
+images:
+  - name: program-structure
+    use: 교과서 쪽 4-2-2 "3 클릭 신호에 따라 LED와 버저로 반응하기 프로그램 구조" — 입력부터 출력까지 여섯 칸 구조 그림(출판본 277쪽)
+    alt: "프로그램 구조 그림. 위에서 아래로 이어지는 여섯 칸이다. 입력(영상 처리) 웹캠으로 얼굴을 인식하고, MediaPipe로 얼굴 중심 좌표 (x, y)와 눈 깜빡임을 기반으로 더블 클릭, 우 클릭 신호 감지, 송신 데이터 문자열 생성 인식된 X, Y 좌표와 클릭 신호를 “DATA, X, Y, 더블 클릭, 우 클릭” 형식의 문자열로 변환, 처리 구간의 블루투스 연결 및 설정 영상 처리 측에서 대상 장치의 MAC 주소를 기반으로 BLE 연결을 초기화, 데이터 송신 수행 구성된 문자열을 일정한 주기로 블루투스를 통해 ESP32로 전송, 데이터 수신 및 파싱 ESP32가 문자열을 수신하고, 쉼표(,)를 기준으로 분리해 각 값을 변수에 저장, 출력 수신된 좌표와 클릭 신호를 LCD에 표시하거나, 서보모터, LED, 버저 등 다양한 외부 장치를 연동하여 시각·청각적 반응 출력"
+    from:
+      source: BOOK
+      page: 277
+      region: [62, 124, 416, 384]
+    file: public/images/lessons/4-2-2/program-structure.webp
+    width: 960
+    height: 705
+    bytes: 62266
+    sha256: "b7889cde39cd16549e70ef081077caf60b79bd03b9caa0db1aaf9bec67e2abfc"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 277쪽 구조 그림: 입력(영상 처리)부터 출력까지 여섯 칸이 화살표로 이어지고 칸마다 설명 글, 왼쪽에 처리 묶음 표시. 글자와 선뿐. 사람·얼굴·이름·경로·파일명·기기 주소·학교명 없음. 권리 표기 없음"
+  - name: hardware-parts
+    use: 교과서 쪽 4-2-2 "4 하드웨어 구성 요소 및 연결" — ESP32 확장 보드에 LCD·서보모터·버저·레이저·RGB LED를 이은 연결 그림과 설명 글(출판본 277쪽) — 키트 업체(고릴라셀) 제품 사진이라 third-party/kit-vendor
+    alt: "ESP32 확장 보드에 문자 LCD, 서보모터, 버저, 레이저, RGB LED를 이은 연결 그림. 글자 설명은 LCD는 I2C 21, 22번 핀, 서보모터는 25, 26번 핀, 버저·레이저·RGB LED는 5, 18, 27, 32, 33번 핀이다. 버저 더블 클릭 또는 우 클릭 신호가 감지될 때 짧은 음을 울려 클릭 이벤트를 청각적으로 알린다. 레이저 BLE 데이터를 수신하는 동안 켜져 있어 시스템이 동작 중임을 외부에 시각적으로 표시한다. RGB LED 더블 클릭이 감지되면 초록색(G), 우 클릭이 감지되면 파란색(B) LED가 켜져 클릭 상태를 시각적으로 알려 준다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 277
+      region: [68, 473, 540, 715]
+    file: public/images/lessons/4-2-2/third-party/kit-vendor/hardware-parts.webp
+    width: 960
+    height: 493
+    bytes: 67664
+    sha256: "16cd3211f491a3107edcc92f6bf8b201113a3466f5be8981bb2fc7a82c71989a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[321, 381, 74, 74]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 277쪽 하드웨어 연결 그림: ESP32 확장 보드(GORILLACELL 상표 인쇄)에 문자 LCD·서보모터·버저·레이저·RGB LED 모듈을 이은 제품 사진과 설명 글, 핀 번호. 모듈 기판의 상표 로고(캐릭터 그림)를 검사기가 얼굴로 짚었으나 사람 얼굴 아님. 키트 업체 자료라 third-party/kit-vendor(운영자 결정 O17). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: basic-result-table
+    use: 교과서 쪽 4-2-2 기본 실습 "실행 결과" — 더블 클릭·우 클릭일 때 RGB LED·LCD·서보모터 X·Y 모습 표 그림(출판본 280쪽) — 키트 업체 부품 사진이라 third-party/kit-vendor
+    alt: "표 그림. 열은 구분, 더블 클릭, 우 클릭이고 행은 RGB LED, LCD, 서보모터 X, 서보모터 Y이다. 더블 클릭일 때는 RGB LED의 초록색 불빛이, 우 클릭일 때는 파란색 불빛이 보이고, 그 아래에 각 경우의 LCD 화면 사진과 서보모터 X, 서보모터 Y의 회전 모습 그림이 있다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 280
+      region: [183, 203, 526, 469]
+    file: public/images/lessons/4-2-2/third-party/kit-vendor/basic-result-table.webp
+    width: 960
+    height: 745
+    bytes: 29728
+    sha256: "4537df39d71918d8e4dfa29b773ad2742ed3fa4ec35749be583f85ab6be35057"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 280쪽 결과 표: 더블 클릭·우 클릭 열마다 RGB LED 모듈(초록·파랑 불빛)·문자 LCD(좌표 글자)·서보모터 X·Y 그림. 키트 업체 부품 사진이라 third-party/kit-vendor(운영자 결정 O17). 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: adv-result-table
+    use: 교과서 쪽 4-2-2 심화 실습 "실행 결과" — 더블 클릭·우 클릭일 때 RGB LED·레이저·버저 모습 표 그림(출판본 284쪽) — 키트 업체 부품 사진이라 third-party/kit-vendor
+    alt: "표 그림. 열은 구분, 더블 클릭, 우 클릭이고 행은 RGB LED, 레이저, 버저이다. RGB LED 칸에는 초록색과 파란색 불빛 사진이, 레이저 칸에는 레이저 모듈이 켜진 사진이 있고, 버저 칸에는 두 열 모두 ON이라고 적혀 있다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 284
+      region: [183, 84, 525, 305]
+    file: public/images/lessons/4-2-2/third-party/kit-vendor/adv-result-table.webp
+    width: 960
+    height: 620
+    bytes: 31540
+    sha256: "2abed074b7897d6367adbb5c2e08ba481b776cdb300762b9d0abbc269c84de75"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[329, 458, 62, 62]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 284쪽 결과 표: RGB LED 모듈(초록·파랑 불빛)·레이저 모듈 사진과 버저 ON 글자. 모듈 기판의 상표 로고(캐릭터 그림)를 검사기가 얼굴로 짚었으나 사람 얼굴 아님. 키트 업체 부품 사진이라 third-party/kit-vendor(운영자 결정 O17). 사람·이름·경로·기기 주소·학교명 없음"

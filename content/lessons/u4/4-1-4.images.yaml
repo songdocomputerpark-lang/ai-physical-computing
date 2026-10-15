@@ -1,0 +1,134 @@
+# 차시 4-1-4 "보이지 않는 연결, 블루투스로 데이터 전송"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 4-1-4
+# 결과는 public/images/lessons/4-1-4/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 249
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 출판본 교과서 248~257쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-1-4/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+# 249쪽·256쪽의 웹캠 화면(사람 얼굴이 나옴)은 본인 확인이 안 돼서 꺼내지 않아요 — 교과서 쪽에는 :::그림생략으로 알려요.
+# 251쪽 파이썬 셸 화면의 블루투스 주소는 개인정보 모양이라 그림으로 꺼내지 않고 교과서 쪽에서 XX:XX:XX:XX:XX:XX로 바꿔 글로 적어요.
+
+images:
+  - name: program-structure
+    use: 교과서 쪽 4-1-4 "3 얼굴 좌표 데이터 전송하기 프로그램 구조" — 입력부터 출력까지 여섯 칸 구조 그림(출판본 249쪽)
+    alt: "프로그램 구조 그림. 위에서 아래로 이어지는 여섯 칸이다. 입력 웹캠으로 실시간 얼굴 영상을 받아 프레임 단위로 처리, 프레임 캡처 및 얼굴 검출 영상 스트림에서 얼굴을 인식하고, MediaPipe로 눈과 콧등의 위치 검출, 처리 구간의 좌표 변환 및 마우스 이동 얼굴 좌표를 화면 좌표로 변환하고, 마우스 커서를 해당 위치로 이동, 데이터 스트림 생성 접두어, x 좌표, y 좌표, 더블 클릭, 우 클릭 형식으로 제어 데이터를 구성, BLE 무선 전송 구성된 데이터를 블루투스를 통해 ESP32로 전송, 출력 ESP32에서 데이터를 분할해 변수로 저장하고, LCD에 출력하여 수신 내용을 확인"
+    from:
+      source: BOOK
+      page: 249
+      region: [65, 123, 411, 383]
+    file: public/images/lessons/4-1-4/program-structure.webp
+    width: 960
+    height: 721
+    bytes: 51530
+    sha256: "f0ba75d1002914632c33c2778186e35e6f70fa8ada24f2c5bf1f6f04671d617e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 구조 그림: 입력·처리·출력 칸이 화살표로 이어지고 칸마다 짧은 설명 글, 왼쪽에 처리 묶음 표시. 글자와 선뿐. 사람·얼굴·이름·경로·파일명·기기 주소·학교명 없음. 권리 표기 없음"
+  - name: thonny-interpreter
+    use: 교과서 쪽 4-1-4 기본 실습 단계 1 ❶ — 코드 편집기 아래쪽 인터프리터 목록에서 MicroPython(ESP32)을 고르는 화면(출판본 250쪽)
+    alt: "코드 편집기 아래쪽의 인터프리터 목록에서 MicroPython(ESP32)을 고르는 화면. 목록에는 Local Python 3 Thonny's Python, MicroPython (ESP32) USB Serial COM8, MicroPython (ESP8266) USB Serial COM8, MicroPython (제네릭) USB Serial COM8, CircuitPython (제네릭) USB Serial COM8, 인터프리터 환경설정이 있다"
+    from:
+      source: BOOK
+      page: 250
+      region: [182, 239, 359, 339]
+    file: public/images/lessons/4-1-4/thonny-interpreter.webp
+    width: 542
+    height: 307
+    bytes: 15602
+    sha256: "a09c90ccba779d07d119475b4b4cd12893117932d0048896fe3c2bc6655643bf"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 250쪽 코드 편집기 인터프리터 목록 캡처: Local Python 3, MicroPython (ESP32) 등 목록과 포트 이름(COM8)뿐. 사람·이름·경로·파일명·기기 주소·학교명 없음. 포트 번호 COM8은 개인정보 아님"
+  - name: lcd-wiring-photo
+    use: 교과서 쪽 4-1-4 기본 실습 단계 3 "LCD 연결하기" — 문자 LCD를 ESP32 확장 보드에 꽂은 연결 사진과 범례(출판본 251쪽) — 키트 업체(고릴라셀) 제품 사진이라 third-party/kit-vendor
+    alt: "문자 LCD의 선 네 개를 ESP32 확장 보드에 꽂은 연결 사진. 검정 선은 GND, 빨강 선은 VCC, 노랑 선 두 개는 D9pin이고 보드 쪽 핀 번호는 21, 22이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 251
+      region: [198, 600, 539, 715]
+    file: public/images/lessons/4-1-4/third-party/kit-vendor/lcd-wiring-photo.webp
+    width: 960
+    height: 325
+    bytes: 24390
+    sha256: "f32488f5de0b107b35f9413d14f52e77f74031e6da37b483c0421a2794241bdd"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 251쪽 연결 그림: GND·VCC·D9pin 범례와 문자 LCD를 ESP32 확장 보드(GORILLACELL 상표 인쇄)에 선으로 이은 제품 사진, 보드 쪽 핀 번호 21, 22. 키트 업체 자료라 third-party/kit-vendor(운영자 결정 O17). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: lcd-result
+    use: 교과서 쪽 4-1-4 기본 실습 "실행 결과" — 문자 LCD에 X와 Y 좌표가 나온 사진(출판본 253쪽)
+    alt: "문자 LCD 화면에 X 277, Y 202가 나온 사진"
+    from:
+      source: BOOK
+      page: 253
+      region: [263, 376, 477, 472]
+    file: public/images/lessons/4-1-4/lcd-result.webp
+    width: 655
+    height: 294
+    bytes: 20288
+    sha256: "c81bdcbdfaff4f24dfe657237d6465db6ed267de45de63fa785a1c3c5dbceed4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[414, 147, 26, 26]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 253쪽 문자 LCD 사진: 파란 화면에 X 277 Y 202 글자뿐. 사람·얼굴 없음(검사기가 짚은 곳은 LCD 글자 모양). 이름·경로·기기 주소·학교명 없음"
+  - name: shell-sent-lines
+    use: 교과서 쪽 4-1-4 심화 실습 "실행 결과" — 쉘 창에 전송한 좌표가 찍힌 화면(출판본 256쪽, 웹캠 화면은 뺌)
+    alt: "쉘 창에 전송한 좌표가 Sent x 354 y 198, Sent x 348 y 180, Sent x 318 y 164, Sent x 330 y 178, Sent x 322 y 186 으로 차례로 찍힌 화면"
+    from:
+      source: BOOK
+      page: 256
+      region: [381, 144, 511, 253]
+    file: public/images/lessons/4-1-4/shell-sent-lines.webp
+    width: 398
+    height: 334
+    bytes: 11448
+    sha256: "61cde44f8eb4a84d1ec17b94c97c3ed7ec20562c0f902ce8b6ddcf62f11eb9b4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[3, 150, 108, 108]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 256쪽 쉘 창 캡처: 쉘 제목 줄과 Sent 좌표 다섯 줄뿐. 사람·얼굴 없음(검사기가 짚은 곳은 글자 모양). 이름·경로·기기 주소·학교명 없음"
+  - name: lcd-xy-photo
+    use: 교과서 쪽 4-1-4 심화 실습 "실행 결과" — 문자 LCD에 X와 Y 좌표가 나온 사진(출판본 256쪽)
+    alt: "문자 LCD 화면에 X와 Y 좌표가 나온 사진"
+    from:
+      source: BOOK
+      page: 256
+      region: [378, 254, 512, 323]
+    file: public/images/lessons/4-1-4/lcd-xy-photo.webp
+    width: 411
+    height: 212
+    bytes: 9652
+    sha256: "89ac06fb841719daa61d94fd2002640546d720c6744a4851a3c792eca145b31d"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 256쪽 문자 LCD 사진: 파란 화면에 X 327 Y 186 글자뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"

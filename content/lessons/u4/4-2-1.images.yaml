@@ -1,0 +1,111 @@
+# 차시 4-2-1 "데이터, 하드웨어를 깨우다!"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 4-2-1
+# 결과는 public/images/lessons/4-2-1/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 260
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 출판본 교과서 258~275쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-2-1/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+# 260쪽·269쪽의 웹캠 화면(사람 얼굴이 나옴)은 본인 확인이 안 돼서 꺼내지 않아요 — 교과서 쪽에는 :::그림생략으로 알려요.
+
+images:
+  - name: program-structure
+    use: 교과서 쪽 4-2-1 "3 수신 데이터로 하드웨어 제어하기 프로그램 구조" — 입력부터 출력까지 여섯 칸 구조 그림(출판본 260쪽)
+    alt: "프로그램 구조 그림. 위에서 아래로 이어지는 여섯 칸이다. 입력(영상 처리) 웹캠으로 얼굴을 인식하고, MediaPipe로 얼굴 중심 좌표 (x, y)와 눈 깜빡임을 기반으로 더블 클릭, 우 클릭 신호 감지, 송신 데이터 문자열 생성 인식된 x, y 좌표와 클릭 신호를 “DATA, X, Y, 더블 클릭, 우 클릭” 형식의 문자열로 변환, 처리 구간의 블루투스 연결 및 설정 영상 처리 측에서 대상 장치의 MAC 주소를 기반으로 BLE 연결을 초기화, 데이터 송신 수행 구성된 문자열을 일정한 주기로 블루투스를 통해 ESP32로 전송, 데이터 수신 및 파싱 ESP32가 문자열을 수신하고, 쉼표(,)를 기준으로 분리해 각 값을 변수에 저장, 출력 수신된 좌표와 클릭 신호를 LCD에 표시하거나, 서보모터 등 외부 장치를 제어"
+    from:
+      source: BOOK
+      page: 260
+      region: [172, 123, 524, 383]
+    file: public/images/lessons/4-2-1/program-structure.webp
+    width: 960
+    height: 709
+    bytes: 58866
+    sha256: "86c0cf0fe38b9b74bc5434cdea6532c254d8ae3b4514ed254566e8654e610935"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 260쪽 구조 그림: 입력(영상 처리)부터 출력까지 여섯 칸이 화살표로 이어지고 칸마다 설명 글, 왼쪽에 처리 묶음 표시. 글자와 선뿐. 사람·얼굴·이름·경로·파일명·기기 주소·학교명 없음. 권리 표기 없음"
+  - name: shell-sent-lines
+    use: 교과서 쪽 4-2-1 기본 실습 "실행 결과" — 쉘 창에 전송한 데이터와 더블 클릭 메시지가 찍힌 화면(출판본 269쪽, 웹캠 화면은 뺌)
+    alt: "쉘 창에 Sent DATA. 3786, 1781, 0, 0, Sent DATA. 3743, 1853, 0, 0, 더블 클릭! (0.60초), Sent DATA. 3742, 1945, 1, 0, Sent DATA. 3737, 2009, 0, 0, Sent DATA. 3734, 2054, 0, 0 이 차례로 찍힌 화면"
+    from:
+      source: BOOK
+      page: 269
+      region: [211, 590, 367, 700]
+    file: public/images/lessons/4-2-1/shell-sent-lines.webp
+    width: 477
+    height: 337
+    bytes: 14882
+    sha256: "112b6738faa542dbd44c08556179a0fa49e1c06568b56ed20f092cc66f3b48e3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 269쪽 쉘 창 캡처: 쉘 제목 줄과 Sent DATA 좌표 줄들, 더블 클릭 메시지 한 줄뿐(웹캠 화면은 뺌). 사람·얼굴 없음. 이름·경로·기기 주소·학교명 없음"
+  - name: hardware-wiring
+    use: 교과서 쪽 4-2-1 심화 실습 단계 1 "하드웨어 구성 및 연결" — ESP32 보드·문자 LCD·서보모터 두 개의 연결 그림과 설명 글(출판본 270쪽) — 키트 업체(고릴라셀) 제품 사진이라 third-party/kit-vendor
+    alt: "ESP32 보드, 문자 LCD, 서보모터 두 개를 선으로 이은 연결 그림. 글자 설명은 ESP32 보드 중앙 제어 장치로 BLE 수신, 데이터 파싱, LCD 및 서보모터를 제어한다. LCD 수신된 좌표 및 클릭 정보를 실시간으로 표시한다. 서보모터 X 얼굴의 좌우 위치(x 좌표)에 따라 서보를 회전한다. 서보모터 Y 얼굴의 상하 위치(y 좌표)에 따라 서보를 회전한다. 보드 쪽 핀 번호는 LCD가 21, 22이고 서보모터가 25, 26이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 270
+      region: [182, 203, 525, 401]
+    file: public/images/lessons/4-2-1/third-party/kit-vendor/hardware-wiring.webp
+    width: 960
+    height: 555
+    bytes: 60796
+    sha256: "3c9014752c4cf289b75201d6eeef49298723de711b1e96ce7cd92cc24dc87064"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 270쪽 하드웨어 연결 그림: ESP32 확장 보드(GORILLACELL 상표 인쇄)·문자 LCD·서보모터 두 개를 선으로 이은 제품 사진과 설명 칸(ESP32 보드·LCD·서보모터 X·서보모터 Y), 핀 번호 21, 22와 25, 26. 키트 업체 자료라 third-party/kit-vendor(운영자 결정 O17). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: lcd-xy-click
+    use: 교과서 쪽 4-2-1 심화 실습 단계 2 "실행 결과" — 문자 LCD 두 줄에 좌표와 클릭 여부가 나온 사진(출판본 271쪽)
+    alt: "문자 LCD 두 줄에 X 1358 Y 624, d_c 0 r_c 0이 나온 사진"
+    from:
+      source: BOOK
+      page: 271
+      region: [274, 550, 459, 629]
+    file: public/images/lessons/4-2-1/lcd-xy-click.webp
+    width: 567
+    height: 242
+    bytes: 15132
+    sha256: "d9e87ebd2a96643cd50fcaf6cb988a2c9311e54bde439592b89172913d95ec9d"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 271쪽 문자 LCD 사진: 파란 화면 두 줄에 X 1358 Y 624, d_c 0 r_c 0 글자뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: result-table
+    use: 교과서 쪽 4-2-1 심화 실습 "실행 결과" — 얼굴 방향(정면·좌·우·상·하)에 따른 LCD 화면과 서보모터 X·Y의 회전 모습 표 그림(출판본 274쪽)
+    alt: "표 그림. 열은 얼굴 방향, LCD 출력 화면, 서보모터 X, 서보모터 Y이고 행은 정면, 좌, 우, 상, 하이다. 각 칸에는 그 방향일 때의 문자 LCD 사진과 서보모터 X, 서보모터 Y의 회전 모습 그림이 있다"
+    from:
+      source: BOOK
+      page: 274
+      region: [183, 106, 525, 425]
+    file: public/images/lessons/4-2-1/result-table.webp
+    width: 960
+    height: 896
+    bytes: 51680
+    sha256: "a6c0b003e7e8971b34f90f2fe22f9b79b286a7fe2fe84825e1e8afecea3a926f"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 274쪽 결과 표: 얼굴 방향 정면·좌·우·상·하 행마다 문자 LCD 사진(좌표 글자)과 서보모터 회전 그림 두 개. 사람·얼굴 없음. 이름·경로·기기 주소·학교명 없음"

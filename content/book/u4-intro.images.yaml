@@ -1,0 +1,31 @@
+# 교과서 4단원 시작 쪽(210~211쪽)의 그림 목록 — 허용 목록 + 눈 확인 기록(판 1.4.0, 운영자 결정 O17, DECISIONS C135)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본(출판본 교과서 PDF, 원본 약칭 BOOK)에서 꺼내요: npm run images:extract -- u4-intro
+# 결과는 public/images/book/u4-intro/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 211 (재단선 안쪽 쪽의 왼쪽 위가 (0, 0))
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+
+images:
+  - name: robot-wheelchair
+    use: 교과서 쪽 u4-intro 두 번째 쪽(211쪽) — 휠체어를 탄 학생과 휠체어를 밀어 주는 로봇이 정류장 앞 길을 함께 가는 삽화
+    alt: "휠체어를 탄 학생과 그 휠체어를 밀어 주는 로봇이 버스 정류장 앞 길을 함께 가는 그림"
+    from:
+      source: BOOK
+      page: 211
+      region: [0, 0, 595.28, 779.53]
+      dpi: 110
+    max_width: 900
+    quality: 86
+    file: public/images/book/u4-intro/robot-wheelchair.webp
+    width: 900
+    height: 1179
+    bytes: 39886
+    sha256: "7b013b71792417cabba15ffcca5d692d2d0a2086889e0bbd2a52708a95a1fc07"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      rights: 출판 편집 삽화(이름표 인피컴_고4(삽))
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 211쪽 삽화: 휠체어를 탄 학생과 휠체어를 밀어 주는 로봇이 정류장 앞 길을 가는 그린 그림(사진 아님, 출판 편집 삽화 — 운영자 결정 O10). 글자·이름·경로·파일명·기기 주소·학교명 없음"

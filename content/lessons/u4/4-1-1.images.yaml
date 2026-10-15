@@ -1,0 +1,49 @@
+# 차시 4-1-1 "AI의 눈, 내 얼굴 인식"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 4-1-1
+# 결과는 public/images/lessons/4-1-1/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 215
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 출판본 교과서 212~222쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/4-1-1/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+
+images:
+  - name: system-flow-5steps
+    use: 교과서 쪽 4-1-1 "5 시스템 구조 파악하기" — 입력·처리·전송·수신·출력 다섯 단계 구조 그림(출판본 215쪽)
+    alt: "시스템 구조 그림. 다섯 칸이 화살표로 이어진다. ❶ 입력 웹캠(얼굴 영상), ❷ 처리 얼굴 인식 및 좌표 클릭 정보 생성, ❸ 전송 데이터 무선 전송(Bluethooth 사용), ❹ 수신 제어 신호 해석(ESP32가 분석), ❺ 출력 하드웨어 동작(서보모터, OLED 등)"
+    from:
+      source: BOOK
+      page: 215
+      region: [65, 194, 539, 275]
+    file: public/images/lessons/4-1-1/system-flow-5steps.webp
+    width: 960
+    height: 164
+    bytes: 15742
+    sha256: "148122115150fce2d8c2d7e781fc38b6a4769fedd879dc5c1f4fb5f2966ce0e3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 215쪽 시스템 구조 그림: 입력(웹캠)·처리·전송·수신·출력 다섯 칸과 화살표, 글자뿐. 사람·얼굴·이름·경로·파일명·기기 주소·학교명 없음. 권리 표기 없음"
+  - name: ui-example-labels
+    use: 교과서 쪽 4-1-1 "6 사용자 인터페이스 구성하기" — 눈 상태·쿨다운·클릭 표시가 달린 프로그램 화면 예(출판본 216쪽)
+    alt: "얼굴의 움직임으로 마우스를 제어하는 프로그램 화면 예. 화면 위 설명 글은 다음과 같다. Left Eye, Right Eye 각 눈의 상태를 숫자로 표시 1=열림(OPEN) 0=닫힘(CLOSED). CLOSED, OPEN 현재 눈 상태를 텍스트와 색상으로 표시. Cooldown 클릭 동작이 지속적으로 발생하지 않도록 일정 시간 동작을 제한하는 쿨다운 시간(프레임 수). Left Eye Duration, Both Eyes Duration 눈 감김이 몇 프레임 동안 유지되고 있는지 보여줌. 이 값이 특정 기준 이상이면 클릭으로 인식. Double Click, Right Click 클릭 조건이 충족되었을 때 해당 클릭이 발생했음을 텍스트로 표시. 노란 점 + 노란 텍스트 얼굴의 주요 특징점을 표시하며, 각각의 위치를 기준으로 마우스 커서 이동과 클릭 여부를 계산. 화면 속 글은 Left Eye 1, Right Eye 0, CLOESD, OPEN, Cooldown 30, Left Eye Duration 0/10, Both Eyes Duration 0/10, Left Eye 0.5s Double Click, Both Eyes 0.5s Right Click, L_EYE, R_EYE, NOSE이다"
+    from:
+      source: BOOK
+      page: 216
+      region: [55, 139, 525, 408]
+    file: public/images/lessons/4-1-1/ui-example-labels.webp
+    width: 960
+    height: 550
+    bytes: 49934
+    sha256: "0d28d1923f2c48d5477cf5939f299d3b0bc26d177d8b4fdcd4fd3ccee0ddaeb9"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 출판본 216쪽 프로그램 화면 예: 분홍·청록 설명 칸과 선, 로봇 캐릭터 그림 위에 L_EYE·R_EYE·NOSE 표시, Left Eye·Cooldown 같은 화면 글. 사진 속 사람 없음(그린 로봇). 이름·경로·파일명·기기 주소·학교명 없음"
