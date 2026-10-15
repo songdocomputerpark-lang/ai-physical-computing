@@ -1,0 +1,201 @@
+# 부품 사전 데이터 — "부품 사전"(/start/parts/)과 보드 준비 쪽 키트 표의 사진 칸, 차시의 부품 사진 줄이 읽는 한 파일이에요.
+# 읽고 검사하는 곳: src/components/parts/parts-schema.ts(칸 규칙)·parts-data.ts(빌드 때 읽기), 검사 tests/unit/parts/.
+#
+# 새 부품 사진 = 사진 파일 하나 + 아래 목록에 한 줄이에요(코드는 고치지 않아요).
+#  1. 사진을 public/images/parts/third-party/kit-vendor/<id>.webp 로 넣어요. 다시 인코딩해서 넣어요 — 긴 변 800px 이하, WebP(품질 80 안팎),
+#     EXIF·XMP·ICC 같은 메타데이터 없이. 예(Pillow):
+#       python -c "from PIL import Image; im=Image.open('원본.png'); im.thumbnail((800,800)); c=Image.new(im.mode,im.size); c.paste(im); c.save('d-050-새-부품.webp','WEBP',quality=80,method=6)"
+#     원본에 sRGB가 아닌 색 프로필(ICC)이 있으면 sRGB로 바꾼 다음 저장해요. 새 이미지에 붙여 넣으면 메타데이터가 따라오지 않아요.
+#  2. 저장소 검사가 사진마다 눈 확인 기록을 요구해요: 사진을 열어 얼굴·이름·화면 속 경로·기기 주소가 없는지 보고,
+#     scripts/image-allowlist.yaml에 path·sha256·reviewed를 적어요(MAINTENANCE.md 3절).
+#  3. 아래 목록의 알맞은 분류 아래에 한 줄을 더해요. 목록 차례가 쪽에 보이는 차례예요.
+# 사진 권리: 고릴라셀(브릭셀)이 제공한 사진을 운영자가 허락받아 써요(DECISIONS O17·C136). sources.yaml의 "키트 업체의 제품 사진" 항목이
+# public/images/parts/third-party/kit-vendor/** 를 덮어요. 스톡 사진·워터마크가 보이는 사진은 쓰지 않아요(DECISIONS C11).
+#
+# 칸(한 줄 = 사진 한 장)
+#   id          (필수) 영문 소문자·숫자·하이픈. 사진 파일 이름과 같게 짓는 것을 권해요. 겹치면 안 돼요.
+#   file        사진 파일 이름. 적지 않으면 <id>.webp 예요.
+#   name        (필수) 고1이 아는 한국어 이름. 사진의 alt는 "<이름> 사진"으로 저절로 만들어져요.
+#   name_en     (필수) 영어 이름(기판이나 파일 이름의 영문).
+#   category    (필수) analog-sensor · digital-sensor · display · motor · i2c · comm · output · board · etc 중 하나(parts-schema.ts의 PART_CATEGORIES).
+#   connection  (필수) 보드와 어떻게 이어요? 예: 아날로그 입력(ADC), 디지털 입력, I2C, UART, PWM.
+#   site_part   가상 보드 부품 id(src/lab/modules/board/parts/ 폴더 이름). 하나 또는 [여러 개]. 있으면 카드에 "가상 보드에서 해 보기"가 생겨요.
+#   kit_name    보드 준비 쪽 키트 표(src/components/start/board/kit-parts.ts)의 kitName과 글자까지 같게. 키트 표의 사진 칸이 이 사진을 써요.
+#   note        모양이 달라질 수 있거나 헷갈리기 쉬운 부품에 한 줄 안내. 판이 다른 부품에는 "키트에 따라 모양이 다를 수 있어요."를 적어요.
+#
+# YAML 주의: 글 속에 쉼표·콜론·따옴표가 들면 값을 큰따옴표로 감싸요(한 줄 묶음 {…} 안에서는 쉼표가 칸 나눔이에요).
+parts:
+  # ── 아날로그 센서 ──
+  - {id: a-001-high-temperature-sensor, name: "고온 센서 기판", name_en: "High Temperature Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-002-high-temperature-sensor-prob, name: "고온 센서 탐침", name_en: "High Temperature Sensor Probe", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-003-water-temp, name: "수온 센서 기판", name_en: "Water Temperature Sensor Board", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-004-water-temp-prob, name: "수온 센서 탐침(방수 케이블형)", name_en: "Water Temperature Probe", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-005-ntc-temp, name: "NTC 온도 센서 기판", name_en: "NTC Temperature Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-006-light-sensor, name: "빛 센서(조도)", name_en: "Light Sensor (LDR)", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-007-uv-sensor-v2, name: "자외선(UV) 센서", name_en: "UV Sensor V2", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-008-moisture-sensor, name: "토양 수분 센서", name_en: "Soil Moisture Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-009-ph-sensor, name: "pH 센서 기판", name_en: "pH Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-010-ph-sensor-prob, name: "pH 전극 탐침", name_en: "pH Electrode Probe", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-011-electrical-conduction, name: "전기 전도도(TDS) 센서 기판", name_en: "Electrical Conduction (TDS) Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-012-electrical-conduction-sensor, name: "전기 전도도 탐침", name_en: "Electrical Conduction Probe", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-013-turbidity-sensor, name: "탁도 센서 기판", name_en: "Turbidity Sensor (AZDM01)", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-014-turbidity-sensor-prob, name: "탁도 센서 탐침", name_en: "Turbidity Sensor Head", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-015-water-sensor, name: "물 감지(빗살 전극) 센서", name_en: "Water Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-016-fine-dust, name: "미세먼지 센서 기판", name_en: "Fine Dust Sensor V2 (board)", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-017-fine-dust-prob, name: "미세먼지 센서 연결 케이블", name_en: "Fine Dust Sensor Cable", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-018-fine-dust-sensor, name: "미세먼지 센서 본체(광학식)", name_en: "Fine Dust Sensor (optical)", category: analog-sensor, connection: "미세먼지 센서 기판에 케이블로 연결"}
+  - {id: a-019-vibration-sensor, name: "진동 센서 기판", name_en: "Vibration Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)", note: "진동을 알아채는 \"센서\"예요. 진동을 만드는 진동 모터(모터·구동)와 달라요."}
+  - {id: a-020-vibration-sensor-prob, name: "진동 센서 소자(원판)", name_en: "Vibration Sensor Disc", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-021-magnet, name: "자기 감지 센서", name_en: "Magnet Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-022-analog-touch-sensor, name: "아날로그 터치 센서(4채널 패드)", name_en: "Analog Touch Sensor (4 pads)", category: analog-sensor, connection: "아날로그 입력 1개(패드마다 다른 값)", site_part: touch-analog-4ch, kit_name: "Analog Touch Sensor, 터치 센서(4채널)", note: "교과서 속 사진은 파란 기판이에요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: a-023-fsr-sensor, name: "압력(FSR) 센서 기판", name_en: "FSR Pressure Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-024-fsr-sensor-prob, name: "압력 센서 필름", name_en: "FSR Sensor Film", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-025-rotation-sensor, name: "회전(가변저항) 센서", name_en: "Rotation Sensor (potentiometer)", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-026-infinite-rotation-sensor, name: "무한 회전 센서", name_en: "Infinite Rotation Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-027-slider, name: "슬라이더 센서", name_en: "Slider Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-028-joystick, name: "조이스틱", name_en: "Joystick", category: analog-sensor, connection: "아날로그 입력 2개(X·Y)"}
+  - {id: a-029-line-finder, name: "라인 감지 센서", name_en: "Line Finder Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-030-sound-v2, name: "소리 센서(마이크)", name_en: "Sound Sensor V2", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-031-ir-object, name: "적외선 장애물 센서", name_en: "IR Obstacle Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-032-current-sensor-1a, name: "전류 센서(1A)", name_en: "Current Sensor 1A", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-033-current-sensor-1a-prob, name: "전류 센서 악어 클립 리드", name_en: "Current Sensor Clip Leads", category: analog-sensor, connection: "센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: a-034-voltage-sensor, name: "전압 센서", name_en: "Voltage Sensor", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-050-gas-mq2-lpg-smoke, name: "가스 센서 MQ-2(LPG·연기)", name_en: "Gas Sensor MQ-2", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-051-gas-mq3-alcohol, name: "가스 센서 MQ-3(알코올)", name_en: "Gas Sensor MQ-3", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-052-gas-mq4-methane, name: "가스 센서 MQ-4(메탄)", name_en: "Gas Sensor MQ-4", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-053-gas-mq5-lpg-naturalgas, name: "가스 센서 MQ-5(LPG·천연가스)", name_en: "Gas Sensor MQ-5", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-054-gas-mq6-lpg-butane, name: "가스 센서 MQ-6(LPG·부탄)", name_en: "Gas Sensor MQ-6", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-055-gas-mq7-co, name: "가스 센서 MQ-7(일산화탄소)", name_en: "Gas Sensor MQ-7", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-056-gas-mq8-hydrogen, name: "가스 센서 MQ-8(수소)", name_en: "Gas Sensor MQ-8", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-057-gas-mq9-co-methane, name: "가스 센서 MQ-9(일산화탄소·메탄)", name_en: "Gas Sensor MQ-9", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  - {id: a-058-gas-mq135-airquality, name: "가스 센서 MQ-135(공기질)", name_en: "Gas Sensor MQ-135", category: analog-sensor, connection: "아날로그 입력(ADC)"}
+  # ── 디지털 센서·스위치 ──
+  - {id: d-001-temp-and-humi-dht11, name: "온습도 센서 DHT11", name_en: "Temperature and Humidity Sensor DHT11", category: digital-sensor, connection: "디지털 입력(1선 통신)"}
+  - {id: d-002-temp-and-humi-dht22, name: "온습도 센서 DHT22", name_en: "Temperature and Humidity Sensor DHT22", category: digital-sensor, connection: "디지털 입력(1선 통신)"}
+  - {id: d-003-co2-sensor-z219d, name: "이산화탄소 센서 Z219D", name_en: "CO2 Sensor Z219D", category: digital-sensor, connection: "UART"}
+  - {id: d-004-pms7003-sensor, name: "미세먼지 센서 PMS7003", name_en: "Particulate Sensor PMS7003", category: digital-sensor, connection: "UART"}
+  - {id: d-005-pms3003-adapter, name: "미세먼지 센서 PMS3003 어댑터", name_en: "PMS3003 Adapter", category: digital-sensor, connection: "UART"}
+  - {id: d-006-pms3003-sensor, name: "미세먼지 센서 PMS3003", name_en: "Particulate Sensor PMS3003", category: digital-sensor, connection: "어댑터 기판에 연결"}
+  - {id: d-007-ultrasonic-sensor, name: "초음파 센서(세로형)", name_en: "Ultrasonic Sensor (HC-SR04 type)", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)"}
+  - {id: d-008-ultrasonic-sensor-adapter, name: "초음파 센서 어댑터", name_en: "Ultrasonic Sensor Adapter", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)"}
+  - {id: d-009-ultrasonic-sensor-v2, name: "초음파 센서 V2", name_en: "Ultrasonic Sensor V2", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)"}
+  - {id: d-010-water-level, name: "수위 센서 기판", name_en: "Water Level Sensor", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-011-water-level-prob, name: "수위 센서 탐침", name_en: "Water Level Sensor Probe", category: digital-sensor, connection: "수위 센서 기판에 이어서 쓰는 탐침·선"}
+  - {id: d-012-photoresistor, name: "포토레지스터 모듈", name_en: "Photoresistor Module", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-013-human-sensor, name: "인체 감지 센서(PIR)", name_en: "Human Body Sensor (PIR)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-015-tilt, name: "기울기 센서", name_en: "Tilt Switch Module", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-016-vibration, name: "진동 센서(스위치형)", name_en: "Vibration Sensor (switch type)", category: digital-sensor, connection: "디지털 입력", note: "진동을 알아채는 \"센서\"예요. 진동을 만드는 진동 모터(모터·구동)와 달라요."}
+  - {id: d-017-button-blue, name: "파란 버튼 모듈", name_en: "Push Button (blue)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-018-button-green, name: "초록 버튼 모듈", name_en: "Push Button (green)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-019-button-red, name: "빨간 버튼 모듈", name_en: "Push Button (red)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-020-button-yellow, name: "노란 버튼 모듈", name_en: "Push Button (yellow)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-021-locker-sw, name: "라커 스위치", name_en: "Rocker Switch", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-022-touch-sensor, name: "터치 센서(디지털)", name_en: "Touch Sensor (digital)", category: digital-sensor, connection: "디지털 입력", site_part: touch-digital, kit_name: "터치 센서"}
+  - {id: d-023-color-touch-sensor-red, name: "컬러 터치 센서(빨강)", name_en: "Color Touch Sensor (red)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-024-color-touch-sensor-blue, name: "컬러 터치 센서(파랑)", name_en: "Color Touch Sensor (blue)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-025-color-touch-sensor-green, name: "컬러 터치 센서(초록)", name_en: "Color Touch Sensor (green)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-026-color-touch-sensor-colorful, name: "컬러 터치 센서(무지개)", name_en: "Color Touch Sensor (colorful)", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-027-fire-sensor, name: "화염 감지 센서", name_en: "Fire (flame) Sensor", category: digital-sensor, connection: "디지털 입력"}
+  - {id: d-028-rotary-encoder, name: "로터리 엔코더", name_en: "Rotary Encoder", category: digital-sensor, connection: "디지털 입력 3개(돌림 두 개·누름 한 개)"}
+  - {id: d-029-fingerprint-sensor-as608, name: "지문 센서 AS608", name_en: "Fingerprint Sensor AS608", category: digital-sensor, connection: "UART(어댑터에 연결)"}
+  - {id: d-030-fingerprint-sensor-adapter, name: "지문 센서 UART 어댑터", name_en: "Fingerprint Sensor UART Adapter", category: digital-sensor, connection: "UART"}
+  - {id: d-031-gps, name: "GPS 모듈", name_en: "GPS Module", category: digital-sensor, connection: "UART"}
+  - {id: d-032-gps-antenna, name: "GPS 안테나", name_en: "GPS Antenna", category: digital-sensor, connection: "GPS 모듈에 연결하는 안테나"}
+  # ── 표시 장치 ──
+  - {id: dis-001-i2c-1602-lcd, name: "문자 LCD 16×2(I2C)", name_en: "I2C 1602 LCD (16x2)", category: display, connection: "I2C", site_part: lcd-i2c, kit_name: "LCD(2x16), 기판 1602A, 백팩 I2C Addr:0x20"}
+  - {id: dis-002-rgb-led, name: "RGB LED 모듈", name_en: "RGB LED Module", category: display, connection: "디지털 출력·PWM(색 밝기 조절)", site_part: rgb-led, kit_name: "RGB LED(교안: Led_rgb)"}
+  - {id: dis-003-traffic-light-led, name: "신호등 LED 모듈", name_en: "Traffic Light LED Module", category: display, connection: "디지털 출력 3개(빨강·노랑·초록)"}
+  - {id: dis-004-led-red, name: "빨간 LED 모듈", name_en: "Red LED Module", category: display, connection: "디지털 출력"}
+  - {id: dis-005-led-yellow, name: "노란 LED 모듈", name_en: "Yellow LED Module", category: display, connection: "디지털 출력"}
+  - {id: dis-006-led-blue, name: "파란 LED 모듈", name_en: "Blue LED Module", category: display, connection: "디지털 출력"}
+  - {id: dis-007-led-green, name: "초록 LED 모듈", name_en: "Green LED Module", category: display, connection: "디지털 출력"}
+  - {id: dis-008-laser-90, name: "레이저 모듈(세로형)", name_en: "Laser Module (vertical)", category: display, connection: "디지털 출력", site_part: laser, kit_name: "Laser 레이저", note: "판에 따라 레이저가 달린 방향이 달라요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: dis-009-laser-180, name: "레이저 모듈(가로형)", name_en: "Laser Module (horizontal)", category: display, connection: "디지털 출력", site_part: laser, note: "쓰임은 세로형 레이저 모듈과 같아요. 판에 따라 레이저가 달린 방향이 달라요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: dis-010-7segment, name: "7세그먼트 숫자 표시 모듈", name_en: "7-Segment Display", category: display, connection: "디지털 출력(DIO·CLK 두 선)"}
+  - {id: dis-011-oled-096-ssd1306, name: "OLED 0.96인치(SSD1306)", name_en: "OLED 0.96 inch SSD1306", category: display, connection: "I2C", site_part: oled-i2c, note: "교과서 키트의 OLED는 1.3인치(SH1106)예요. 0.96인치도 같은 방법으로 써요."}
+  - {id: dis-012-oled-1-3-sh1106, name: "OLED 1.3인치(SH1106)", name_en: "OLED 1.3 inch SH1106", category: display, connection: "I2C", site_part: oled-i2c, kit_name: "OLED(SH1106), 기판 OLED 1.3인치"}
+  - {id: dis-013-neo-pixels-ring, name: "네오픽셀 링(16구)", name_en: "NeoPixel Ring (16 LED)", category: display, connection: "데이터 입력 1핀(디지털 출력)", site_part: neopixel, kit_name: "16구 네오픽셀(3핀)"}
+  - {id: dis-014-neo-pixels-square, name: "네오픽셀 사각 배열", name_en: "NeoPixel Square Matrix", category: display, connection: "데이터 입력 1핀(디지털 출력)"}
+  - {id: dis-015-dot-matrix-8x8-spi, name: "도트 매트릭스 8×8(SPI)", name_en: "Dot Matrix 8x8 (SPI)", category: display, connection: "SPI"}
+  - {id: dis-016-dot-matrix-8x8-i2c, name: "도트 매트릭스 8×8(I2C)", name_en: "Dot Matrix 8x8 (I2C)", category: display, connection: "I2C"}
+  - {id: dis-017-dot-matrix-8x16-spi, name: "도트 매트릭스 8×16(SPI)", name_en: "Dot Matrix 8x16 (SPI)", category: display, connection: "SPI"}
+  - {id: dis-018-dot-matrix-8x16-i2c, name: "도트 매트릭스 8×16(I2C)", name_en: "Dot Matrix 8x16 (I2C)", category: display, connection: "I2C"}
+  # ── 모터·구동 ──
+  - {id: m-001-vibration-motor, name: "진동 모터(코인형)", name_en: "Vibration Motor", category: motor, connection: "디지털 출력(켜기·끄기)·PWM(세기)", site_part: vibration-motor, kit_name: "Vibration Motor 진동모터", note: "진동을 \"만드는\" 모터예요. 진동을 알아채는 진동 센서(아날로그·디지털 센서)와 달라요."}
+  - {id: m-002-fan-motor-l9110, name: "팬 모터 모듈(L9110)", name_en: "Fan Motor Driver (L9110)", category: motor, connection: "디지털 출력 2개(방향)·PWM(속도)", site_part: fan-motor, kit_name: "Fan Motor 선풍기"}
+  - {id: m-003-fan-motor-fan, name: "선풍기 날개", name_en: "Fan Blade (propeller)", category: motor, connection: "팬 모터 모듈의 축에 끼우는 날개"}
+  - {id: m-004-gear-motor, name: "기어 모터", name_en: "Gear Motor", category: motor, connection: "디지털 출력 2개(방향)·PWM(속도)"}
+  - {id: m-005-motor-wheel, name: "모터 바퀴", name_en: "Motor Wheel", category: motor, connection: "모터 축에 끼우는 바퀴"}
+  - {id: m-006-mg90s-servo, name: "서보모터 MG90S", name_en: "MG90S Micro Servo", category: motor, connection: "PWM 50Hz(각도 신호)", site_part: servo, kit_name: "MG90S Micro servo(교안 사진: SG90)", note: "수업 자료 속 사진은 SG90이고 키트의 서보는 MG90S예요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: m-008-geek-servo-360-5kg, name: "긱 서보 360(5kg, 연속 회전)", name_en: "Geek Servo 360 (5 kg)", category: motor, connection: "PWM(회전 방향·속도 신호)"}
+  - {id: m-009-gray-lego-servo, name: "레고 호환 서보(회색)", name_en: "Lego-compatible Servo (gray)", category: motor, connection: "PWM(각도 신호)"}
+  - {id: m-011-red-lego-dc-motor, name: "레고 호환 DC 모터(빨강)", name_en: "Lego-compatible DC Motor (red)", category: motor, connection: "모터 드라이버에 연결"}
+  - {id: m-013-step-motor-driver-a4988, name: "스텝 모터 드라이버 A4988", name_en: "Stepper Driver A4988", category: motor, connection: "디지털 출력(STEP·DIR)"}
+  - {id: m-014-step-motor, name: "스텝 모터", name_en: "Stepper Motor", category: motor, connection: "스텝 모터 드라이버에 연결"}
+  - {id: m-016-tt-motor-right, name: "TT 모터(오른쪽용)", name_en: "TT Motor (right)", category: motor, connection: "모터 드라이버에 연결"}
+  - {id: m-017-tt-motor-left, name: "TT 모터(왼쪽용)", name_en: "TT Motor (left)", category: motor, connection: "모터 드라이버에 연결"}
+  - {id: m-018-dual-motor-driver-i2c-pca9685, name: "듀얼 모터 드라이버(I2C, PCA9685)", name_en: "Dual Motor Driver I2C (PCA9685)", category: motor, connection: "I2C"}
+  - {id: m-019-l293dd-motor-driver, name: "모터 드라이버 L293DD", name_en: "Motor Driver L293DD", category: motor, connection: "디지털 출력·PWM(방향 AIN·BIN, 속도 PWMA·PWMB)"}
+  - {id: m-020-16ch-servo-motor-driver-i2c-pca9685, name: "16채널 서보 드라이버(I2C)", name_en: "16-ch Servo Driver (I2C, PCA9685)", category: motor, connection: "I2C"}
+  - {id: m-021-5v-buck-converter, name: "5V 전원 모듈(강압 컨버터)", name_en: "5V Buck Converter", category: motor, connection: "전원 모듈(신호선 없음)", note: "같은 이름의 사진이 두 장 있어요(V1·V2)."}
+  - {id: m-021-5v-buck-converter-v2, name: "5V 전원 모듈 V2(강압 컨버터)", name_en: "5V Buck Converter V2", category: motor, connection: "전원 모듈(신호선 없음)", note: "같은 이름의 사진이 두 장 있어요(V1·V2)."}
+  - {id: m-022-green-geek-servo-motor, name: "긱 서보 모터(초록, 소형)", name_en: "Geek Servo Motor (green, small)", category: motor, connection: "PWM(각도 신호)"}
+  - {id: m-023-orange-geek-servo-motor, name: "긱 서보 모터(주황, 소형)", name_en: "Geek Servo Motor (orange, small)", category: motor, connection: "PWM(각도 신호)"}
+  - {id: m-024-grey-geek-servo-360, name: "긱 서보 360(회색, 소형)", name_en: "Geek Servo 360 (grey, small)", category: motor, connection: "PWM(회전 방향·속도 신호)"}
+  - {id: m-025-red-square-geek-dc-motor, name: "긱 DC 모터(빨강, 사각)", name_en: "Geek DC Motor (red, square)", category: motor, connection: "모터 드라이버에 연결"}
+  - {id: m-026-blue-geek-dc-motor, name: "긱 DC 모터(파랑)", name_en: "Geek DC Motor (blue)", category: motor, connection: "모터 드라이버에 연결"}
+  # ── I2C 센서 ──
+  - {id: i2c-001-rtc-ds1307, name: "실시간 시계 DS1307(I2C)", name_en: "RTC DS1307 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-002-temp-and-humi-sht31, name: "온습도 센서 SHT31(I2C)", name_en: "Temperature and Humidity SHT31 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-003-non-contact-temp-sensor-max90614, name: "비접촉 온도 센서(I2C)", name_en: "Non-contact Temperature Sensor (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-004-co2-sgp30-sensor, name: "공기질 센서 SGP30(I2C)", name_en: "Air Quality SGP30 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-005-co2-ccs811-sensor, name: "이산화탄소 센서 CCS811(I2C)", name_en: "CO2 CCS811 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-006-barometric-altitude-bmp280, name: "기압·고도 센서 BMP280(I2C)", name_en: "Barometric Pressure BMP280 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-007-6axis-gyro-mpu6050, name: "6축 자이로·가속도 센서 MPU6050(I2C)", name_en: "6-Axis Gyro MPU6050 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-008-gesture-sensor-apds9960, name: "제스처·색·근접 센서 APDS-9960(I2C)", name_en: "Gesture Sensor APDS-9960 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-009-distance-sensor-vl053l0x, name: "거리 센서 VL53L0X(I2C)", name_en: "Distance Sensor VL53L0X (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-010-weight-sensor-i2c-hx711, name: "무게 센서 HX711 모듈(I2C)", name_en: "Weight Sensor HX711 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-011-weight-sensor-plate, name: "무게 센서 로드셀 판", name_en: "Load Cell Plate", category: i2c, connection: "무게 센서 모듈에 연결하는 판(로드셀)"}
+  - {id: i2c-012-color-sensor-tcs34725, name: "색 센서 TCS34725(I2C)", name_en: "Color Sensor TCS34725 (I2C)", category: i2c, connection: "I2C"}
+  - {id: i2c-013-heartbit-max30102, name: "심박·산소포화도 센서 MAX30102(I2C)", name_en: "Heart Rate Sensor MAX30102 (I2C)", category: i2c, connection: "I2C"}
+  # ── 통신 모듈 ──
+  - {id: c-001-bluetooth-4-0-jdy33, name: "블루투스 4.0 모듈(JDY-33)", name_en: "Bluetooth 4.0 Module (JDY-33)", category: comm, connection: "UART", note: "이 사이트의 가상 보드는 ESP32에 들어 있는 블루투스를 써요."}
+  - {id: c-002-wifi-esp12e, name: "와이파이 모듈(ESP-12E)", name_en: "WiFi Module (ESP-12E)", category: comm, connection: "UART", note: "이 사이트의 가상 보드는 ESP32에 들어 있는 와이파이를 써요."}
+  - {id: c-003-rf433mhz-tx, name: "433MHz 무선 송신 모듈", name_en: "433MHz RF Transmitter", category: comm, connection: "디지털 출력"}
+  - {id: c-004-rf433mhz-rx, name: "433MHz 무선 수신 모듈", name_en: "433MHz RF Receiver", category: comm, connection: "디지털 입력"}
+  - {id: c-005-ir-transmitter, name: "적외선 송신 모듈", name_en: "IR Transmitter", category: comm, connection: "디지털 출력"}
+  - {id: c-006-ir-receiver, name: "적외선 수신 모듈", name_en: "IR Receiver", category: comm, connection: "디지털 입력"}
+  - {id: c-007-usb-to-uart-converter, name: "USB-UART 변환기", name_en: "USB to UART Converter", category: comm, connection: "UART(TX·RX) + 컴퓨터와는 USB", site_part: uart, kit_name: "USB to UART Converter", note: "교과서 3-1-2 속 변환기는 파란 기판이에요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: c-008-wireless-uploader, name: "무선 업로드 모듈", name_en: "Wireless Uploader", category: comm, connection: "UART(무선으로 프로그램 올리기)", note: "이 사이트에서는 USB 케이블로 프로그램을 올려요."}
+  - {id: c-009-wireless-uploader-dongle, name: "USB 무선 업로더 동글", name_en: "Wireless Uploader USB Dongle", category: comm, connection: "컴퓨터의 USB 단자에 꽂음"}
+  - {id: c-010-esp32cam, name: "ESP32-CAM 카메라 보드", name_en: "ESP32-CAM Camera Board", category: comm, connection: "USB-UART 변환기로 프로그램 올림"}
+  # ── 출력 장치 ──
+  - {id: o-001-buzzer, name: "수동 버저", name_en: "Passive Buzzer (M_Buzzer)", category: output, connection: "PWM(음 높이 조절)", site_part: buzzer, kit_name: "M_Buzzer 수동버저", note: "교과서 속 사진은 파란 기판이에요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: o-002-mp3-player-kt403a, name: "MP3 플레이어 모듈(KT403A)", name_en: "MP3 Player Module (KT403A)", category: output, connection: "UART", site_part: mp3, kit_name: "MP3 Player MP3플레이어(원고: DFPlayer Mini)", note: "교과서에서는 이 부품을 DFPlayer Mini라고 불러요. 이 사진은 KT403A 칩이 든 모듈이에요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: o-003-mp3-player-speaker, name: "MP3 플레이어용 스피커", name_en: "MP3 Player Speaker", category: output, connection: "MP3 모듈의 스피커 단자에 연결"}
+  - {id: o-004-electromagnet, name: "전자석 모듈", name_en: "Electromagnet Module", category: output, connection: "디지털 출력"}
+  - {id: o-005-relay, name: "릴레이 모듈", name_en: "Relay Module (SRD-05VDC)", category: output, connection: "디지털 출력"}
+  - {id: o-006-pump-relay-v2, name: "펌프 릴레이 V2", name_en: "Pump Relay V2", category: output, connection: "디지털 출력(펌프를 켜고 끄는 스위치)"}
+  - {id: o-007-water-pump, name: "소형 물펌프", name_en: "Mini Water Pump", category: output, connection: "펌프 릴레이 모듈에 연결"}
+  - {id: o-008-tf-card-adapter-v2, name: "마이크로 SD 카드 어댑터 V2", name_en: "TF (microSD) Card Adapter V2", category: output, connection: "SPI"}
+  # ── 보드·실드 ──
+  - {id: board-001-mabit-shield-v2, name: "마빗(Mabit) 확장 실드 V2", name_en: "Mabit Shield V2", category: board, connection: "micro:bit를 꽂아서 씀"}
+  - {id: board-002-data-science-lab, name: "데이터 과학 실습 보드", name_en: "Data Science Lab Board", category: board, connection: "USB-C 케이블로 컴퓨터에 연결"}
+  - {id: board-003-esp32-shield-v3, name: "ESP32 확장 실드 V3", name_en: "ESP32 Shield V3", category: board, connection: "ESP32 개발 보드를 꽂아서 씀", kit_name: "확장 실드(기판 표기 ESP32 Shield V2)", note: "교과서 키트의 확장 실드는 기판에 \"ESP32 Shield V2\"라고 적혀 있고, 이 사진은 V3예요. 키트에 따라 모양이 다를 수 있어요."}
+  - {id: board-004-00duino-v3, name: "아두이노 호환 보드 00duino V3", name_en: "00duino V3", category: board, connection: "USB-C 케이블로 컴퓨터에 연결"}
+  - {id: board-005-arduino, name: "아두이노 호환 보드", name_en: "Arduino-compatible Board", category: board, connection: "USB 케이블로 컴퓨터에 연결"}
+  - {id: board-006-arduino-gorillashield, name: "아두이노용 고릴라 실드", name_en: "Arduino Gorilla Shield", category: board, connection: "아두이노 보드에 꽂아서 씀"}
+  - {id: board-007-rich-shield-v3, name: "리치 실드 V3", name_en: "Rich Shield V3", category: board, connection: "아두이노 보드에 꽂아서 씀"}
+  - {id: board-008-mega-superrich, name: "메가 슈퍼리치 실드", name_en: "Mega superRich Shield", category: board, connection: "아두이노 메가에 꽂아서 씀"}
+  - {id: board-009-esp-superrich, name: "ESP32 슈퍼리치 실습 보드", name_en: "ESP superRich Shield", category: board, connection: "USB 케이블로 컴퓨터에 연결"}
+  - {id: board-010-esp32, name: "ESP32 개발 보드(USB-C)", name_en: "ESP32 Development Board (ESP-WROOM-32)", category: board, connection: "USB-C 케이블로 컴퓨터에 연결", site_part: [builtin-led, boot-button], kit_name: "ESP32 개발 보드(모듈 표기 ESP-WROOM-32)", note: "교과서 키트의 보드는 기판 색이 달라요(같은 ESP-WROOM-32 종류예요). 키트에 따라 모양이 다를 수 있어요."}
+  - {id: board-011-dsl-mini-v2, name: "DSL 미니 V2 보드", name_en: "DSL Mini V2", category: board, connection: "USB 케이블로 컴퓨터에 연결"}
+  - {id: board-012-data-science-lab-mabit, name: "데이터 과학 실습 마빗(Mabit) 보드", name_en: "Data Science Lab Mabit", category: board, connection: "micro:bit를 꽂아서 씀"}
+  - {id: board-013-microbit, name: "micro:bit 보드", name_en: "micro:bit", category: board, connection: "USB 케이블로 컴퓨터에 연결"}
+  - {id: board-014-arduino-nano-shield, name: "아두이노 나노 실드", name_en: "Arduino Nano Shield", category: board, connection: "아두이노 나노를 꽂아서 씀"}
+  - {id: board-015-pico-py-shield, name: "라즈베리 파이 피코 실드", name_en: "Pico Py Shield", category: board, connection: "라즈베리 파이 피코를 꽂아서 씀"}
+  - {id: board-016-breadboard, name: "브레드보드", name_en: "Breadboard", category: board, connection: "부품과 전선을 꽂아 회로를 만듦(납땜 없음)"}
+  # ── 기타 ──
+  - {id: u-001-battery-case, name: "건전지 케이스", name_en: "Battery Case", category: etc, connection: "전원 공급(건전지를 넣어 씀)"}
+  - {id: u-002-solar-panel-3v, name: "태양전지 패널 3V", name_en: "Solar Panel 3V", category: etc, connection: "전원 공급(빛으로 전기를 만듦)"}
+  - {id: u-003-remote-control, name: "적외선 리모컨", name_en: "IR Remote Control", category: etc, connection: "적외선 신호 보내기(수신 모듈과 함께 씀)"}

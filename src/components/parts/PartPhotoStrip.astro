@@ -1,0 +1,111 @@
+---
+/**
+ * 부품 사진 줄(판 1.4.0, DECISIONS C136) — 예제나 차시가 쓰는 가상 보드 부품 id 목록을 받아 실제 부품의 작은 사진을 한 줄로 보여 준다.
+ * 사진을 누르면 부품 사전(/start/parts/)의 그 부품 카드로 간다. 사진이 있는 부품이 하나도 없으면 아무것도 그리지 않는다.
+ *
+ * 쓰는 법(차시·교과서 쪽 "준비물" 자리에서):
+ *   <PartPhotoStrip parts={example.parts} />            ← 차시 frontmatter examples[].parts 그대로({ part: lcd-i2c } · { type: touch_digital } 모두 읽음)
+ *   <PartPhotoStrip parts={['lcd-i2c', 'touch-digital']} label="이 차시에서 쓰는 부품" />
+ * 아직 어느 차시에도 끼우지 않았다(차시 쪽은 다른 구역이 고치는 중 — 메인이 합칠 때 끼운다).
+ *
+ * 사진은 이름 글자가 바로 옆에 있으므로 alt는 비운다(링크 이름 = 부품 이름 한 번). 줄이 화면보다 길면 줄이 바뀐다.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
+ */
+import { partPhotoSize, partsForSiteParts } from './parts-data.ts';
+import { partCardHref, partPhotoSrc } from './parts-schema.ts';
+
+interface Props {
+  /** 가상 보드 부품 id(예: 'lcd-i2c')나 차시 frontmatter의 parts 항목 */
+  parts: readonly (string | { readonly part?: string; readonly type?: string })[];
+  /** 줄 위의 작은 제목 */
+  label?: string;
+}
+
+const { parts, label = '쓰는 부품' } = Astro.props;
+const photos = partsForSiteParts(parts).map((part) => ({ part, size: partPhotoSize(part) }));
+---
+
+{
+  photos.length > 0 && (
+    <div class="part-strip" role="group" aria-label={label}>
+      <p class="part-strip__title">{label}</p>
+      <ul class="part-strip__list">
+        {photos.map(({ part, size }) => (
+          <li class="part-strip__item">
+            <a class="part-strip__link" href={partCardHref(part)}>
+              <img class="part-strip__photo" src={partPhotoSrc(part)} alt="" width={size.width} height={size.height} loading="lazy" decoding="async" />
+              <span class="part-strip__name">{part.name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="part-strip__credit">부품 사진: 고릴라셀(브릭셀) 제공. 키트에 따라 모양이 다를 수 있어요.</p>
+    </div>
+  )
+}
+
+<style>
+  .part-strip {
+    margin-block: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .part-strip__title {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .part-strip__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .part-strip__link {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-1);
+    width: 5.5rem;
+    color: var(--color-text);
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .part-strip__link:hover .part-strip__name {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  .part-strip__link:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .part-strip__photo {
+    width: 4.5rem;
+    height: 4.5rem;
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    object-fit: contain;
+  }
+
+  .part-strip__name {
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+  }
+
+  .part-strip__credit {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+</style>

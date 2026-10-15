@@ -44,12 +44,15 @@ test.describe('출처와 라이선스 페이지(P6-04)', () => {
     const thirdParty = page.locator('section[aria-labelledby="credits-third-party"]');
     await expect(thirdParty.locator('.credits__list > li')).toHaveCount(view.thirdParty.length);
     const kit = thirdParty.locator('article', {
-      has: page.getByRole('heading', { level: 3, name: '교과서 원고에 실린 키트 업체의 제품 사진·그림' }),
+      has: page.getByRole('heading', { level: 3, name: '키트 업체(고릴라셀·브릭셀)의 제품 사진·그림' }),
     });
     await expect(kit).toHaveCount(1);
     await expect(kit).toContainText('사이트 라이선스에서 제외');
     await expect(kit).toContainText('원본 그림에 권리 표기 없음');
     await expect(kit).toContainText('public/images/lessons/*/third-party/kit-vendor/**');
+    // 판 1.4.0(O17): 부품 사전 사진 폴더도 이 항목이 덮고, 운영자가 받은 사용 허락과 표기 문구가 보인다
+    await expect(kit).toContainText('public/images/parts/third-party/kit-vendor/**');
+    await expect(kit).toContainText('부품 사진: 고릴라셀(브릭셀) 제공, 허락받아 사용');
 
     const byLicense = page.locator('section[aria-labelledby="credits-by-license"]');
     const operator = byLicense.locator('article', {

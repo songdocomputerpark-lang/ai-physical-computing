@@ -2,8 +2,17 @@
 /**
  * 키트 모듈명 ↔ 범용 부품 대응표(SPEC §6.2, PLAN §8.1 P1-08 → §8.3 P3-10) — 보드 준비 페이지에서 쓴다.
  * 줄 데이터와 근거는 kit-parts.ts 머리말. 표 이름("키트 부품 이름과 범용 부품 이름")과 줄 수는 tests/e2e/start.spec.ts가 읽는다.
+ * 판 1.4.0(DECISIONS C136): "사진" 칸 — 부품 사전 데이터(content/parts/parts.yaml)에서 kit_name이 이 줄의 kitName과 같은 사진을 작게 보여 주고,
+ * 사진을 누르면 부품 사전의 그 카드로 간다. 사진이 없는 줄(USB 드라이브(CH340) — 보드 안의 칩)은 "사진 없음". 줄 수(16)는 그대로다.
  */
+import { partForKit, partPhotoSize } from '../../parts/parts-data.ts';
+import { partCardHref, partPhotoAlt, partPhotoSrc } from '../../parts/parts-schema.ts';
 import { KIT_PARTS } from './kit-parts.ts';
+
+const rows = KIT_PARTS.map((part) => {
+  const photo = partForKit(part.kitName);
+  return { part, photo, size: photo ? partPhotoSize(photo) : undefined };
+});
 ---
 
 <div class="kit-table" role="region" aria-labelledby="kit-table-caption" tabindex="0" data-scroll-shade>
@@ -12,6 +21,7 @@ import { KIT_PARTS } from './kit-parts.ts';
     <thead>
       <tr>
         <th scope="col">키트·원고 표기</th>
+        <th scope="col">사진</th>
         <th scope="col">범용 부품 이름</th>
         <th scope="col">연결 방식</th>
         <th scope="col">교과서 예제의 핀(예)</th>
@@ -20,9 +30,18 @@ import { KIT_PARTS } from './kit-parts.ts';
     </thead>
     <tbody>
       {
-        KIT_PARTS.map((part) => (
+        rows.map(({ part, photo, size }) => (
           <tr>
             <th scope="row">{part.kitName}</th>
+            <td class="kit-table__photo">
+              {photo && size ? (
+                <a href={partCardHref(photo)}>
+                  <img src={partPhotoSrc(photo)} alt={partPhotoAlt(photo)} width={size.width} height={size.height} loading="lazy" decoding="async" />
+                </a>
+              ) : (
+                <span class="kit-table__no-photo">사진 없음</span>
+              )}
+            </td>
             <td>
               {part.generic}
               {/* 줄바꿈은 Astro가 지우므로 공백을 글자로 넣는다(화면 낭독기·검색 색인에서 "실드)실물"처럼 붙지 않게). */}
@@ -55,7 +74,7 @@ import { KIT_PARTS } from './kit-parts.ts';
 
   table {
     width: 100%;
-    min-width: 56rem;
+    min-width: 62rem;
     border-collapse: collapse;
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
@@ -83,6 +102,36 @@ import { KIT_PARTS } from './kit-parts.ts';
 
   tbody th {
     font-weight: var(--weight-semibold);
+  }
+
+  /* 사진 칸: 정사각형 칸에 사진을 안에 맞춘다(48~64px). 사진 바탕이 흰색이라 칸도 흰색. */
+  .kit-table__photo {
+    width: 5rem;
+  }
+
+  .kit-table__photo a {
+    display: block;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+  }
+
+  .kit-table__photo a:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .kit-table__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .kit-table__no-photo {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
   }
 
   .kit-table__unconfirmed {

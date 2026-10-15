@@ -1,0 +1,195 @@
+---
+/**
+ * 부품 사전(판 1.4.0, DECISIONS C136, PLAN 1.4.0 §4) — 키트 업체(고릴라셀·브릭셀)가 제공한 입출력 부품 사진을 분류별로 모아 보여 준다.
+ * 데이터는 content/parts/parts.yaml 한 파일(새 사진 = 한 줄 — 머리말에 쓰는 법), 읽기·검사는 src/components/parts/parts-data.ts(빌드 전용).
+ * 분류 칩은 같은 쪽의 #cat-<분류>로 가는 링크라서 JS 없이도 된다. 카드는 id="part-<부품 id>"를 가져 키트 표·차시 사진 줄이 바로 찾아온다.
+ * 사이트 지도(src/config/nav.ts)에는 아직 없다 — 메인이 나중에 올린다. 그래서 쪽 제목·설명은 여기 적고 현재 위치(빵부스러기)는 직접 넘긴다.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
+ */
+import PartCard from '../../../components/parts/PartCard.astro';
+import { partGroups } from '../../../components/parts/parts-data.ts';
+import { PART_CATEGORY_ID_PREFIX } from '../../../components/parts/parts-schema.ts';
+import { getPage } from '../../../config/nav.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
+
+const title = '부품 사전';
+const description = '센서, 화면, 모터 같은 부품이 실제로 어떻게 생겼는지 사진으로 찾아보고, 보드와 어떻게 이어지는지 알아봐요.';
+const esp32Lab = getPage('labs-esp32');
+const startPage = getPage('start');
+const boardPage = getPage('start-board');
+
+const groups = partGroups.filter((group) => group.parts.length > 0);
+const total = groups.reduce((sum, group) => sum + group.parts.length, 0);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  breadcrumb={[{ label: '홈', href: withBase('') }, { label: startPage.label, href: startPage.href }, { label: title }]}
+>
+  <h1 class="page-title">{title}</h1>
+  <p class="lead parts-lead">센서, 화면, 모터 같은 부품이 실제로 어떻게 생겼는지 사진으로 찾아보는 곳이에요. 모두 {total}개예요.</p>
+  <p class="parts-credit">부품 사진: 고릴라셀(브릭셀) 제공, 허락받아 사용</p>
+
+  <div class="prose parts-help">
+    <ul>
+      <li>
+        '교과서 키트 부품' 표시가 있는 것은 교과서 실습에 쓰는 부품이에요. 키트 이름과 다른 회사 부품 이름을 맞춰 보려면 <a href={`${boardPage.href}#kit-parts`}>보드 준비하기의 키트 부품 표</a>를 봐요.
+      </li>
+      <li>
+        '가상 보드에서 해 보기'가 있는 부품은 실제 부품이 없어도 <a href={esp32Lab.href}>{esp32Lab.title}</a>의 가상 보드로 써 볼 수 있어요.
+      </li>
+      <li>이름에 '탐침'이 붙은 사진은 센서 기판에 이어서 쓰는 막대나 선이에요. 키트에 따라 부품 모양이 다를 수 있어요.</li>
+    </ul>
+  </div>
+
+  <nav class="parts-chips" id="parts-categories" aria-label="부품 분류">
+    <ul class="parts-chips__list">
+      {
+        groups.map((group) => (
+          <li>
+            <a class="parts-chips__link" href={`#${PART_CATEGORY_ID_PREFIX}${group.category.id}`}>
+              {group.category.label} <span class="parts-chips__count">{group.parts.length}개</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    groups.map((group) => (
+      <section class="parts-section" id={`${PART_CATEGORY_ID_PREFIX}${group.category.id}`} aria-labelledby={`${PART_CATEGORY_ID_PREFIX}${group.category.id}-title`}>
+        <div class="parts-section__head">
+          <h2 id={`${PART_CATEGORY_ID_PREFIX}${group.category.id}-title`}>{group.category.label}</h2>
+          <a class="parts-section__top" href="#parts-categories">분류 목록으로</a>
+        </div>
+        <p class="parts-section__desc">{group.category.description}</p>
+        <ul class="parts-grid">
+          {group.parts.map((part) => (
+            <PartCard part={part} labHref={esp32Lab.href} />
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style>
+  .parts-lead {
+    margin-block-end: var(--space-2);
+  }
+
+  .parts-credit {
+    margin-block: 0 var(--space-6);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .parts-help {
+    margin-block-end: var(--space-6);
+  }
+
+  /* 분류 칩: 같은 쪽의 분류로 가는 링크(JS 없이 동작). 휴대폰에서도 줄이 바뀌며 모두 보인다. */
+  .parts-chips {
+    margin-block-end: var(--space-8);
+  }
+
+  .parts-chips__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .parts-chips__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .parts-chips__link:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .parts-chips__link:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .parts-chips__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+  }
+
+  .parts-section {
+    margin-block-end: var(--space-10);
+  }
+
+  .parts-section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .parts-section__top {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    font-size: var(--text-sm);
+  }
+
+  .parts-section__desc {
+    max-width: var(--width-prose);
+    margin-block: var(--space-1) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 카드 격자: 휴대폰(375px) 2열 → 넓어질수록 3·4·5열 */
+  .parts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .parts-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .parts-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .parts-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+</style>

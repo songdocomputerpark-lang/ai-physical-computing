@@ -26,6 +26,7 @@ import KitPartsTable from '../../../components/start/board/KitPartsTable.astro';
 import PortHelp from '../../../components/start/board/PortHelp.astro';
 import { getLearnUnit, getPage } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
 
 const page = getPage('start-board');
 const esp32Lab = getPage('labs-esp32');
@@ -164,6 +165,7 @@ const flow = [
     <KitPartsTable />
     <div class="prose">
       <p class="board-note">표가 화면보다 넓으면 옆으로 밀어서 보세요. "실물 확인 전"은 원고 사진과 코드로만 확인해서, 실제 키트로 한 번 더 확인할 점이에요.</p>
+      <p class="board-note">사진은 부품 사전의 예시 사진이에요. 키트에 따라 모양이 다를 수 있어요. <a href={withBase('start/parts/')}>부품 사전에서 모두 보기</a></p>
     </div>
   </details>
   <div class="prose">

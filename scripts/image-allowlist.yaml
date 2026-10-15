@@ -23,5 +23,1164 @@
 # 도구가 생기기 전에 손으로 꺼낸 이미지는 use(쓰는 곳)·source(꺼낸 곳)·processing(다시 저장한 방법)을 함께 적어요.
 # 그림 안의 메타데이터(EXIF·XMP·ICC·글 조각)도 저장소 검사가 막아요.
 
-# 지금은 차시 밖 래스터 그림이 없어요. 생기면 위의 "적는 모양"대로 한 장씩 적어요(images: [] 대신 목록으로).
-images: []
+# 부품 사전 사진(판 1.4.0, DECISIONS O17·C136): content/parts/parts.yaml이 쓰는 public/images/parts/third-party/kit-vendor/의 사진 한 장씩이에요.
+# 키트 업체(고릴라셀·브릭셀)가 제공하고 운영자가 사용 허락을 받은 사진이고(sources.yaml 키트 업체 항목), 원본 폴더(입출력장치이미지/, 운영자 PC, git 제외)에서
+# Pillow로 다시 인코딩했어요(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 없음). 접촉 시트로 한 장씩 열어 얼굴·이름·경로·기기 주소·학교명이 없는지 봤어요.
+# 새 부품 사진을 더하면 같은 모양으로 한 장씩 적어요(content/parts/parts.yaml 머리말).
+# 그 밖의 차시 밖 래스터 그림이 생기면 위의 "적는 모양"대로 한 장씩 적어요.
+images:
+  - path: public/images/parts/third-party/kit-vendor/a-001-high-temperature-sensor.webp
+    sha256: "5b252347d5b106eee206faf8a9436574c3f268b58a7bc65ae4fa83805e561b99"
+    source: "입출력장치이미지/A_001_High_Temperature_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-002-high-temperature-sensor-prob.webp
+    sha256: "a251734648c7e0aa77c283289ad39e2712fbe39f958bf292bf73108f254df8ba"
+    source: "입출력장치이미지/A_002_High_Temperature_Sensor_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-003-water-temp.webp
+    sha256: "7d6a447805ee6a41a6c759abc42557c7cb92174dae4c47c97974818d92720980"
+    source: "입출력장치이미지/A_003_Water_Temp.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-004-water-temp-prob.webp
+    sha256: "712ae399e0975713e141fe4776fceca60a19724ed55f9d831af8c6a7fe8f31a8"
+    source: "입출력장치이미지/A_004_Water_Temp_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-005-ntc-temp.webp
+    sha256: "f2baedf379293cc6fd89b8d7746169c554831dcff48ff94afb7b1264505ecac8"
+    source: "입출력장치이미지/A_005_NTC_Temp.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-006-light-sensor.webp
+    sha256: "3349a44892d3001d75c285b550adfbc1d01d2ae1134f4d4a8487a87cbbcff388"
+    source: "입출력장치이미지/A_006_Light_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-007-uv-sensor-v2.webp
+    sha256: "99b0d14f0b391266572a8a58c1c43ea6fd0b17014ea547f6e5379cdbfe6e0011"
+    source: "입출력장치이미지/A_007_UV_Sensor_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-008-moisture-sensor.webp
+    sha256: "030618eec007c9f00c394da42623042476d8d76af0df3c4f64cde33c50294c2a"
+    source: "입출력장치이미지/A_008_Moisture_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-009-ph-sensor.webp
+    sha256: "dc63f24640b183d549be0295126ccf10e20f1c23ac22ebf6f4c7d4bfd7661b09"
+    source: "입출력장치이미지/A_009_PH_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-010-ph-sensor-prob.webp
+    sha256: "565df2c70087ad3d37fd16be08ca09dcf57f29f21d89384c598f9d43a5aa4522"
+    source: "입출력장치이미지/A_010_PH_Sensor_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-011-electrical-conduction.webp
+    sha256: "ce220b86f345744fe5db7377da17b9d476fb2eeee639c011f2f1155b16cfde26"
+    source: "입출력장치이미지/A_011_Electrical_Conduction.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-012-electrical-conduction-sensor.webp
+    sha256: "1a1baf2a3042a1e781cc847d6db69a7e9bc56b1fa84af2763d6dae9c11e61293"
+    source: "입출력장치이미지/A_012_Electrical_Conduction_sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-013-turbidity-sensor.webp
+    sha256: "bc2f2f1c66bb29e6805a9024f60702bebbbd856d071111b05c19c089e4920bdf"
+    source: "입출력장치이미지/A_013_Turbidity_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-014-turbidity-sensor-prob.webp
+    sha256: "ba485490b8b4654b4dc015f0366ff9bebb18f341a7ab82e9657955825043b7c9"
+    source: "입출력장치이미지/A_014_Turbidity_Sensor_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-015-water-sensor.webp
+    sha256: "9a2e7e7136e4938b58f2fff11dca876e6d38ed076a3e7fb6d5b74bf4af6dbbdd"
+    source: "입출력장치이미지/A_015_Water_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-016-fine-dust.webp
+    sha256: "7d9377a1c646cf9420cc4d838aeaaa2790fe57f1f20f869368e788e44fa8d5c7"
+    source: "입출력장치이미지/A_016_Fine_Dust.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-017-fine-dust-prob.webp
+    sha256: "8882e817b7e00e4333a8845bf4e407ed6889fb613227d45a02ad6e7fbde2bf5c"
+    source: "입출력장치이미지/A_017_Fine_Dust_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-018-fine-dust-sensor.webp
+    sha256: "f7d72ac5c866ae277db82cfb3ea9ed9478e5424eafae339dd382c75ff6d64998"
+    source: "입출력장치이미지/A_018_Fine_Dust_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-019-vibration-sensor.webp
+    sha256: "07a72d67546ca7c12369e1204b093543eab181fd251fbfb635cd58a7e0384397"
+    source: "입출력장치이미지/A_019_Vibration_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-020-vibration-sensor-prob.webp
+    sha256: "16e77a51e4940019ca5f6a6ddb89d643b46cfe37206291b1b3256d1b5547fb0f"
+    source: "입출력장치이미지/A_020_Vibration_Sensor_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-021-magnet.webp
+    sha256: "c3e5aa9ff04788a2390a3dad7eca7de02103b681e9441a5253a2d862787a4e23"
+    source: "입출력장치이미지/A_021_Magnet.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-022-analog-touch-sensor.webp
+    sha256: "5ab6b379e0f296a646841970f0a7c8d0c551ebdca170f338f4382ddc1f58a4f9"
+    source: "입출력장치이미지/A_022_Analog_Touch_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-023-fsr-sensor.webp
+    sha256: "051e379f3f33542f27b1ab338751c8478752576056f6af086d5a64687d4bbc54"
+    source: "입출력장치이미지/A_023_FSR_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-024-fsr-sensor-prob.webp
+    sha256: "64cf3b601ab9aed4e980d5a1398279cd7e659cf9e17c9792a0e1a39b7204ddf9"
+    source: "입출력장치이미지/A_024_FSR_Sensor_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-025-rotation-sensor.webp
+    sha256: "d4ffd5263e97a78fb147c1a55def14294b45e558ec94b029ebcde63518877c51"
+    source: "입출력장치이미지/A_025_Rotation_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-026-infinite-rotation-sensor.webp
+    sha256: "95cec2f66102ab934e7fcc40d03e6f97fad704d7b1b64b6b8404ed488cfe1e9d"
+    source: "입출력장치이미지/A_026_Infinite_Rotation_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-027-slider.webp
+    sha256: "b1dd2e23687efb0496386e9a4fe01207f9a2d4943419637cf70e6200867a3834"
+    source: "입출력장치이미지/A_027_Slider.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-028-joystick.webp
+    sha256: "5aceda1e9cb5d891a75f2896b6b41aec6df9e8d1e0f353fe3f514083c2fb5623"
+    source: "입출력장치이미지/A_028_Joystick.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-029-line-finder.webp
+    sha256: "103a7d4cf1b5408346499825061169fbcbd4f9671805dc1a99d703ea54b7e85a"
+    source: "입출력장치이미지/A_029_Line_Finder.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-030-sound-v2.webp
+    sha256: "81dbcdd7af3fb06a75d6efa1f1dbe4b9c8767f83464b5b0b8dd2812efb8764d9"
+    source: "입출력장치이미지/A_030_Sound_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-031-ir-object.webp
+    sha256: "1c31029f7dc962b26b85e80c20183cf67fc56bce5923beb43fea591c49bd21c6"
+    source: "입출력장치이미지/A_031_IR_Object.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-032-current-sensor-1a.webp
+    sha256: "6225551ca064b2209cd058bb7e6234b1e01da6fcc3916d32e735efff405d2180"
+    source: "입출력장치이미지/A_032_Current_Sensor_1A.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-033-current-sensor-1a-prob.webp
+    sha256: "b5eddf1e96fbe94f84386745d4c9deed7b9ba1d3b95e3a4779878a7f00750270"
+    source: "입출력장치이미지/A_033_Current_Sensor_1A_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-034-voltage-sensor.webp
+    sha256: "d2919c9f3c53779fddb2706fac8fa1b343e86f44c890b5508ba3f15a39788820"
+    source: "입출력장치이미지/A_034_Voltage_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-050-gas-mq2-lpg-smoke.webp
+    sha256: "54b777707fd45c8eb438feede88babcfe76b1732ee1b6e1e7670b4540cce494e"
+    source: "입출력장치이미지/A_050_Gas_MQ2_LPG_Smoke.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-051-gas-mq3-alcohol.webp
+    sha256: "e79c25c39b6229bf5a90b7386f77693a1f03892a9cc426d14c8dee1270a8bf09"
+    source: "입출력장치이미지/A_051_Gas_MQ3_Alcohol.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-052-gas-mq4-methane.webp
+    sha256: "af15b791de30aae7f51a2f5d3b15be10ede7c187a9a4d8581c90b3c77fe3eff2"
+    source: "입출력장치이미지/A_052_Gas_MQ4_Methane.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-053-gas-mq5-lpg-naturalgas.webp
+    sha256: "7ad8138c2acaa208b29d54f5f7af84961c9e4e7836736c87bebf4c142e9757c3"
+    source: "입출력장치이미지/A_053_Gas_MQ5_LPG_NaturalGas.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-054-gas-mq6-lpg-butane.webp
+    sha256: "6b5c8c79d3cac56f2397e387551c32ff1a838855437bd5682dfc60ee4e3ae3ef"
+    source: "입출력장치이미지/A_054_Gas_MQ6_LPG_Butane.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-055-gas-mq7-co.webp
+    sha256: "7abb2db6d19afd8f78120f099956fd3c126e201b13cd65694b28bec27a11c076"
+    source: "입출력장치이미지/A_055_Gas_MQ7_CO.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-056-gas-mq8-hydrogen.webp
+    sha256: "984bebf757c28ed8b82372d2c270e94f60dcbc08d272b2a80ee8e6894760290c"
+    source: "입출력장치이미지/A_056_Gas_MQ8_Hydrogen.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-057-gas-mq9-co-methane.webp
+    sha256: "bb8b18aa14adc77923632f684c5e88c37471bcfa5fd71bf26a493e0ff34e263f"
+    source: "입출력장치이미지/A_057_Gas_MQ9_CO_Methane.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/a-058-gas-mq135-airquality.webp
+    sha256: "51f3d3cbe4c807f3845117b467303c89b164e8f4c2ba25e19a31b0e49a9ba062"
+    source: "입출력장치이미지/A_058_Gas_MQ135_AirQuality.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-001-mabit-shield-v2.webp
+    sha256: "5f251ff5f2dfedd1309329d3435892989643ad006c347350691872ccccb8e4fa"
+    source: "입출력장치이미지/BOARD_001_Mabit_Shield_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-002-data-science-lab.webp
+    sha256: "11b68cbcb09b22247ec548494c58b51c152ba39cc78fa56f1d1730cec0143721"
+    source: "입출력장치이미지/BOARD_002_Data_Science_Lab.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-003-esp32-shield-v3.webp
+    sha256: "ba8279008e033f3cee311f3efcf7acc02953724b695302d00b32006150edbb1f"
+    source: "입출력장치이미지/BOARD_003_ESP32_Shield_V3.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-004-00duino-v3.webp
+    sha256: "b53ea5b055c4f108e06c5f8a1a713b43e5b13ec35b1c30e4610a2ed7d28c52c4"
+    source: "입출력장치이미지/BOARD_004_00duino_V3.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-005-arduino.webp
+    sha256: "06d3808956fe27c431ac806f6ad043a34b1465e887cb4e77d76a0b359e311cf3"
+    source: "입출력장치이미지/BOARD_005_arduino.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-006-arduino-gorillashield.webp
+    sha256: "7a8d9a57009809d24c34d60735295b9dcbb8fbf976b00c8580e50fc329e21bc7"
+    source: "입출력장치이미지/BOARD_006_arduino_GorillaShield.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-007-rich-shield-v3.webp
+    sha256: "0796516a54941377ea5c5000dffa09c8912bb541f049dbffa93616205111a74b"
+    source: "입출력장치이미지/BOARD_007_Rich Shield V3.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-008-mega-superrich.webp
+    sha256: "fb008f3c635f24f320b22deb954f44f1cfa51436b002a4d56557631ca6f7e91c"
+    source: "입출력장치이미지/BOARD_008_Mega_superRich.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-009-esp-superrich.webp
+    sha256: "80928ba78a2679f5103f7ae3f92a6d0c2e0d0b0e1d1f0f7b00872162aa0952b8"
+    source: "입출력장치이미지/BOARD_009_ESP_superRich.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-010-esp32.webp
+    sha256: "be89a3d90ec43fed509e4498ed9b7e220f5a896a1c6469666160e6d4e80085bf"
+    source: "입출력장치이미지/BOARD_010_ESP32.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-011-dsl-mini-v2.webp
+    sha256: "78e2944bbdd03e333de5e754348139918607f270abeb55f7510870af2cea7494"
+    source: "입출력장치이미지/BOARD_011_DSL Mini V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-012-data-science-lab-mabit.webp
+    sha256: "92c10b6d86d62a3a46412bc99af74e400191a3db46a64fc4f6d568d3fbaa7905"
+    source: "입출력장치이미지/BOARD_012_Data Science Lab Mabit.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-013-microbit.webp
+    sha256: "7fbf3ab2479536c71a9e25a7cf32e008f3757e7b590ffe07f959d145e184c927"
+    source: "입출력장치이미지/BOARD_013_microbit.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). micro:bit 보드 제품 사진(다른 회사 제품, 업체 제공 사진 묶음 안에 있어 같이 실음). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-014-arduino-nano-shield.webp
+    sha256: "fb503d8efda887a5dd8ea78f51434b58d4502467ffe2337553d65fec409d988e"
+    source: "입출력장치이미지/BOARD_014_Arduino_Nano_Shield.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-015-pico-py-shield.webp
+    sha256: "128144f02711d567b158576a4d974149f870fe322f9a70641fa6720d4dfae8b9"
+    source: "입출력장치이미지/BOARD_015_Pico_Py Shield.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/board-016-breadboard.webp
+    sha256: "56e5f5638121426b63a160d2068fc17051d13441dbf6e941e96964d5e70aada8"
+    source: "입출력장치이미지/breadboard.png → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 투명 배경(바깥 모서리 투명). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-001-bluetooth-4-0-jdy33.webp
+    sha256: "6bbd86a77b97fc33fc36e8ff7608edf3fccd1fb52e8da748476491211f187c48"
+    source: "입출력장치이미지/C_001_Bluetooth_4.0_JDY33.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-002-wifi-esp12e.webp
+    sha256: "0f4abf143de8bf7a35498d64fecdce2904abf2bef11d05f17f8f9cae4b05737e"
+    source: "입출력장치이미지/C_002_WiFi_ESP12E.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-003-rf433mhz-tx.webp
+    sha256: "ec49439b1afe540812b7f457fdc8ebdb73f6cec9d7ec3710a77445e462c3f6f7"
+    source: "입출력장치이미지/C_003_RF433MHz_Tx.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-004-rf433mhz-rx.webp
+    sha256: "e71c24ba990c81bea2362a2665c90d71cffb2845777bb78d25927b0d0ec7fc69"
+    source: "입출력장치이미지/C_004_RF433MHz_Rx.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-005-ir-transmitter.webp
+    sha256: "038ed7bb46f13b8058811d822fa0a947dcdf4c33a789ed4b3aad61819d9b84ad"
+    source: "입출력장치이미지/C_005_IR_Transmitter.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-006-ir-receiver.webp
+    sha256: "b28e638c7ba5fc09f39b7bb4d25915c8d287d4103d3a068f15eebeaa73e67360"
+    source: "입출력장치이미지/C_006_IR_Receiver.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-007-usb-to-uart-converter.webp
+    sha256: "defb0f5edccd43a1fd2fdd90248b1da1d8e5ad686a1da7758bfa08bf5914c9dd"
+    source: "입출력장치이미지/C_007_USB_to_UART_Converter.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-008-wireless-uploader.webp
+    sha256: "30ede12d1d771c8b7de89da11c7c0a595ec7baf33f6761d4ceff50a2ddf1e31f"
+    source: "입출력장치이미지/C_008_Wireless_Uploader.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-009-wireless-uploader-dongle.webp
+    sha256: "c0b643888741d3d1b0ef88b563c9ec9c88b2016a322bd279004af62e98f4d9df"
+    source: "입출력장치이미지/C_009_Wireless_Uploader_Dongle.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/c-010-esp32cam.webp
+    sha256: "ecbdaa67a72b309c2610b0d766a8b51f40e45c1ae2324d9863651ac0e7fe2c13"
+    source: "입출력장치이미지/C_010_ESP32CAM.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-001-temp-and-humi-dht11.webp
+    sha256: "856101b6a3441b81b49d736ea1ec9764d3e6e593332366e5299e7e5d23f43991"
+    source: "입출력장치이미지/D_001_Temp_and_Humi_DHT11.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-002-temp-and-humi-dht22.webp
+    sha256: "8f2ff8ad270601c8825f11989b46193689e12bd500baa5481e33e8f37a03c338"
+    source: "입출력장치이미지/D_002_Temp_and_Humi_DHT22.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-003-co2-sensor-z219d.webp
+    sha256: "65a23640370aceb91640ac9b3b1050a0903daeb55f7eb00c1763f423d022bc4e"
+    source: "입출력장치이미지/D_003_CO2_Sensor_Z219D.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-004-pms7003-sensor.webp
+    sha256: "817eff7383f854ac8506e4c7b21634a7706001644e4ea3d7f857cfaaae4dd4ee"
+    source: "입출력장치이미지/D_004_PMS7003_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-005-pms3003-adapter.webp
+    sha256: "0d989317e6c68000ad8058027b85854237d8254a41ae693ae97662170c78b8db"
+    source: "입출력장치이미지/D_005_PMS3003_adapter.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-006-pms3003-sensor.webp
+    sha256: "2ef3cdd6463c759469d0cffd36db4340e854bbc178828eac670a602c51845ade"
+    source: "입출력장치이미지/D_006_PMS3003_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-007-ultrasonic-sensor.webp
+    sha256: "e891040ac7362fdefd70abbdc3fe73927ae87278864b5aac49c10839f1995458"
+    source: "입출력장치이미지/D_007_Ultrasonic_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-008-ultrasonic-sensor-adapter.webp
+    sha256: "1389b2677977774ddcbfded2f249d6c3c0583495b23ea951c80fe8b7febe1a5a"
+    source: "입출력장치이미지/D_008_Ultrasonic_Sensor_Adapter.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-009-ultrasonic-sensor-v2.webp
+    sha256: "abb6a74f833b086d489b8d4d54386c212d97061944b5ece1290da2586c81cb83"
+    source: "입출력장치이미지/D_009_Ultrasonic_Sensor_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-010-water-level.webp
+    sha256: "95f5d2f92d359a6994854481f21b1f6776c494cd087044c0c0a09eccf901c32b"
+    source: "입출력장치이미지/D_010_Water_Level.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-011-water-level-prob.webp
+    sha256: "8116b6e3679ed2e044e6d4f678f5e6e1112274145227e812d6682f5b6e0cdde3"
+    source: "입출력장치이미지/D_011_Water_Level_prob.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-012-photoresistor.webp
+    sha256: "4215693dcd2d5f91c6b6ff9868bc61ec063abf515daf1e817e1610e23465cdd8"
+    source: "입출력장치이미지/D_012_Photoresistor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-013-human-sensor.webp
+    sha256: "0138a383eebbd375317e31231f9faaf4ea1781c812967b61f11d87cf09549779"
+    source: "입출력장치이미지/D_013_Human_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-015-tilt.webp
+    sha256: "eda3e05a98beb64ff536679b2e0b43a94ed121d489f30df8d1138491fdf0f51a"
+    source: "입출력장치이미지/D_015_Tilt.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-016-vibration.webp
+    sha256: "2e68de510b6ce2e48d0968676cb32238312a7212c75c424cdcb131c5e2265be2"
+    source: "입출력장치이미지/D_016_Vibration.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-017-button-blue.webp
+    sha256: "9f8ea289acac1e27164fefe8c2571aa424d851a0266e91b89461002e521cc7d5"
+    source: "입출력장치이미지/D_017_Button_Blue.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-018-button-green.webp
+    sha256: "fe2038dd74ad09f9ba0ac5ac994a5c4c2b1c173485e0f823d864e830e83924e7"
+    source: "입출력장치이미지/D_018_Button_Green.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-019-button-red.webp
+    sha256: "e68b284e3e0b2ba42de1e11461ccb5add8499f953fc53f472f863e5030424fd0"
+    source: "입출력장치이미지/D_019_Button_Red.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-020-button-yellow.webp
+    sha256: "d905b2ad070362025669be9b34e33ddd9a06bae81539a51d2c141c95130e9c4f"
+    source: "입출력장치이미지/D_020_Button_Yellow.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-021-locker-sw.webp
+    sha256: "54a35e965d481d92f5fb17f1095fe5308d050b1368090d90c544e7e9306ad25b"
+    source: "입출력장치이미지/D_021_Locker_SW.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-022-touch-sensor.webp
+    sha256: "411620bd69941cfdc6a3b966990e40117f1e7326fd280e8ecaa0a5d981449b01"
+    source: "입출력장치이미지/D_022_Touch_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-023-color-touch-sensor-red.webp
+    sha256: "3251c4e86327b26c805cbff1a3d49c939acd906c4a269a055c419e823321cbc2"
+    source: "입출력장치이미지/D_023_Color_Touch_Sensor_Red.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-024-color-touch-sensor-blue.webp
+    sha256: "f0c0fd86efdff049b3dd67780b0002349e8ab31dc52287460544a08ed1883990"
+    source: "입출력장치이미지/D_024_Color_Touch_Sensor_Blue.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-025-color-touch-sensor-green.webp
+    sha256: "547de664b4b750578f4838bb0d44535ae122f2c74af6517b9540c6a196df744b"
+    source: "입출력장치이미지/D_025_Color_Touch_Sensor_Green.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-026-color-touch-sensor-colorful.webp
+    sha256: "8aede33f772b6b306f502f5e071f305fed0e5551d28575c8f42b6c5d8c5f7331"
+    source: "입출력장치이미지/D_026_Color_Touch_Sensor_Colorful.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-027-fire-sensor.webp
+    sha256: "ddac070934d20cbf7f3963226f66f38f6e1ef553088113f1992cb1b7c8a11529"
+    source: "입출력장치이미지/D_027_Fire_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-028-rotary-encoder.webp
+    sha256: "5422acaee9758ba1fc22e74f22f8fdc18d7a72bd177e2d1ad3f073426835d4ae"
+    source: "입출력장치이미지/D_028_Rotary_Encoder.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-029-fingerprint-sensor-as608.webp
+    sha256: "0bd99794c092b91072b6d71a4d6fd2b9e3f7e1c0d9235ebe4a2456b0cc56c837"
+    source: "입출력장치이미지/D_029_Fingerprint_Sensor_AS608.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-030-fingerprint-sensor-adapter.webp
+    sha256: "aa74b3cae0676ae4d28bf180dff4f95151b9ec33a9429bb6da91dd0cc13d0e2d"
+    source: "입출력장치이미지/D_030_Fingerprint_Sensor_Adapter.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-031-gps.webp
+    sha256: "39828af3c45530017fe84a6773501b294e09708056a4f93162acea8ddb478cc1"
+    source: "입출력장치이미지/D_031_GPS.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/d-032-gps-antenna.webp
+    sha256: "2436a9209d7ad22a815038591358c673c4fb1a7baaacfb38be9f8e19912e575e"
+    source: "입출력장치이미지/D_032_GPS_Antenna.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-001-i2c-1602-lcd.webp
+    sha256: "834dda90279bcc5e8cf6827f23a7353aed9e1f62b5059173730f4dd9c0a020e7"
+    source: "입출력장치이미지/DIS_001_I2C_1602_LCD.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-002-rgb-led.webp
+    sha256: "c8d024e3bd0cc69a46c0f4170d64ec5cf8a40e3e9504be292c20c36233546dde"
+    source: "입출력장치이미지/DIS_002_RGB_LED.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-003-traffic-light-led.webp
+    sha256: "7187d80157f7fd635f7a19417e59c36a251b702c9b3383824ae7f072340b16ee"
+    source: "입출력장치이미지/DIS_003_Traffic_Light_LED.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-004-led-red.webp
+    sha256: "8becd4d74dbe471957255412a9bc023c2b8d6d1d8f9746fa8935da81c5130f56"
+    source: "입출력장치이미지/DIS_004_LED_Red.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-005-led-yellow.webp
+    sha256: "4d26952b1a2c4540dede9ed37843c2b1bb8a2a1ba76ccfecdf9d3bf1928c6a04"
+    source: "입출력장치이미지/DIS_005_LED_Yellow.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-006-led-blue.webp
+    sha256: "648dcb9ba1f5c43afd6f027701ebbbe1d8904dec165e5f5a52de62f9a7aea070"
+    source: "입출력장치이미지/DIS_006_LED_Blue.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-007-led-green.webp
+    sha256: "0badd048d1a73896dea13c0d58a2c81222dc40dd7d2f33730831344f18f74446"
+    source: "입출력장치이미지/DIS_007_LED_Green.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-008-laser-90.webp
+    sha256: "a727688481429454996a9c2dc16fa220b7c10f94d0520cbd5957456acb73e5b1"
+    source: "입출력장치이미지/DIS_008_Laser_90.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-009-laser-180.webp
+    sha256: "723df0418a787ae2d87bbab768fbb03d0b5c5a943b44074955a764f62c12703d"
+    source: "입출력장치이미지/DIS_009_Laser_180.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-010-7segment.webp
+    sha256: "ae3da8c98c2ba5948fbfa95c2396a19ae5bd4b916e59ccbbafcaffab28aa2ed9"
+    source: "입출력장치이미지/DIS_010_7Segment.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-011-oled-096-ssd1306.webp
+    sha256: "3405dc4b7c359f3065d3efe893296218840f7a8c7ac1692bc4fa6663cedf5f0a"
+    source: "입출력장치이미지/DIS_011_OLED_096_SSD1306.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-012-oled-1-3-sh1106.webp
+    sha256: "b2909ccc300b6db47a13c4e02f259ff6e803404c7352ce9c1bac4fbf1c2ae652"
+    source: "입출력장치이미지/DIS_012_OLED_1.3_SH1106.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-013-neo-pixels-ring.webp
+    sha256: "db6e74f9fc1d5b82bfeca065664b47016a7d230b57d1480a81f73843b4431a09"
+    source: "입출력장치이미지/DIS_013_Neo_Pixels_Ring.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-014-neo-pixels-square.webp
+    sha256: "020557a2bc70bf2e212d7e19b6d9097af7b059e3fa000780e42e489fd2cd7029"
+    source: "입출력장치이미지/DIS_014_Neo_Pixels_Square.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-015-dot-matrix-8x8-spi.webp
+    sha256: "5492c3c9b2b449f5a0bbf988f474524c5dccd1e587fa21094a0ba33eae5ff1d8"
+    source: "입출력장치이미지/DIS_015_Dot_Matrix_8x8_SPI.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-016-dot-matrix-8x8-i2c.webp
+    sha256: "7ed610d199ce5f546639414ea85ae1970534601da881f3fe750fdf0aab1611e5"
+    source: "입출력장치이미지/DIS_016_Dot_Matrix_8x8_I2C.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-017-dot-matrix-8x16-spi.webp
+    sha256: "f92bfff0ef3745070ef3d232b55691c2663048d9c39be19758cb82f63653c8f2"
+    source: "입출력장치이미지/DIS_017_Dot_Matrix_8x16_SPI.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/dis-018-dot-matrix-8x16-i2c.webp
+    sha256: "15fb0536f4be22c078eb6f8f0de190b8f8c26a55e8819e32acb068a6ca40d8fa"
+    source: "입출력장치이미지/DIS_018_Dot_Matrix_8x16_I2C.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-001-rtc-ds1307.webp
+    sha256: "f51f295ebcafd0dbc8ea48fa5779857e786c0b98066dc4c4277bd454bf2559a0"
+    source: "입출력장치이미지/I2C_001_RTC_DS1307.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-002-temp-and-humi-sht31.webp
+    sha256: "c201fc1efdb798dc33643d0db341c38f0b8a4421f7d83c5cd4ab52dc55a84008"
+    source: "입출력장치이미지/I2C_002_Temp_and_Humi_SHT31.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-003-non-contact-temp-sensor-max90614.webp
+    sha256: "67632dff7e610e2113cb9708d20a6190a590c97269cc13f15babdb6ddfe9b66a"
+    source: "입출력장치이미지/I2C_003_Non_Contact_Temp_Sensor_MAX90614.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-004-co2-sgp30-sensor.webp
+    sha256: "c332cfce455cef39cffe566c0c174b99db58fa7d3263974904ab0d22bfb08f63"
+    source: "입출력장치이미지/I2C_004_CO2_SGP30_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-005-co2-ccs811-sensor.webp
+    sha256: "21700e8163125fa815024d500bbd576ab1e41717558684fb6bbbff1241dc0f02"
+    source: "입출력장치이미지/I2C_005_CO2_CCS811_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-006-barometric-altitude-bmp280.webp
+    sha256: "3b8eaeabbde34a08e47290ea9dfb653767346de7c9dde56efa52499bec0a6618"
+    source: "입출력장치이미지/I2C_006_Barometric_Altitude_BMP280.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-007-6axis-gyro-mpu6050.webp
+    sha256: "0248b05bbff552be828399abef71e2553a42734898f0da62cea2d9c292dea472"
+    source: "입출력장치이미지/I2C_007_6Axis_Gyro_MPU6050.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-008-gesture-sensor-apds9960.webp
+    sha256: "0a1931be6be18c02089bcac82fdc351a4f095243a317b14613b2b59a240be0d8"
+    source: "입출력장치이미지/I2C_008_Gesture_Sensor_APDS9960.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-009-distance-sensor-vl053l0x.webp
+    sha256: "6d7e2da38fc6a70532f2f9a3cebdb3d4580ec9ecfef85d5de6c132b85a827937"
+    source: "입출력장치이미지/I2C_009_Distance_Sensor_VL053L0x.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-010-weight-sensor-i2c-hx711.webp
+    sha256: "fc8fff94a9fac5f3f20551ac1e628734c19435efa5865cc0ebf414ba9905ff33"
+    source: "입출력장치이미지/I2C_010_Weight_Sensor_I2C_HX711.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-011-weight-sensor-plate.webp
+    sha256: "4afe4b129e8cd3d4243a0488eabc0fd4a200b149cc3a7d6c9c06f3418a46da52"
+    source: "입출력장치이미지/I2C_011_Weight_Sensor_Plate.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-012-color-sensor-tcs34725.webp
+    sha256: "0051b31ac2ee2f0afdc34fa2aec5863c33d0cba2c82d1c292e1a0fe718ec8cfc"
+    source: "입출력장치이미지/I2C_012_Color_Sensor_TCS34725.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/i2c-013-heartbit-max30102.webp
+    sha256: "b510195c4b048edba5ec18a6cf4537490056f7907ef468f1bfed07477aae7910"
+    source: "입출력장치이미지/I2C_013_Heartbit_MAX30102.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-001-vibration-motor.webp
+    sha256: "0fe54906cb2333069a6018ee7efaefa1bf8bb78d51defc3ff0b101279ce2fb3d"
+    source: "입출력장치이미지/M_001_Vibration_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-002-fan-motor-l9110.webp
+    sha256: "6565197606082f08b0f0092cb617912c0b8daed7ad887ec62e111e4892241b28"
+    source: "입출력장치이미지/M_002_Fan_Motor_L9110.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-003-fan-motor-fan.webp
+    sha256: "8a6d7148ee6d39484cc613a6039f24e131d0a53ce22f675983d7fabf8a68c1aa"
+    source: "입출력장치이미지/M_003_Fan_Motor_Fan.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-004-gear-motor.webp
+    sha256: "4aa990e51014dba7ba49d57bbb1cfe619dbe39d6947d166df8378fe0bf2d197c"
+    source: "입출력장치이미지/M_004_Gear_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-005-motor-wheel.webp
+    sha256: "981bc9428722a2a06dcbbe2cede536844fc359648ca6156633f401e9b74e3438"
+    source: "입출력장치이미지/M_005_Motor_Wheel.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-006-mg90s-servo.webp
+    sha256: "3b3853281b35c4f173a23a6754468c925df95d24586298ff32df9c57326b9c5d"
+    source: "입출력장치이미지/M_006_MG90S_Servo.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-008-geek-servo-360-5kg.webp
+    sha256: "33303438ac929658409d63d228f18120bcaa2de43104893580cef0d1c50703d4"
+    source: "입출력장치이미지/M_008_Geek_Servo_360_5Kg.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 치수 표기(mm·inch)가 그림 안에 있음. 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-009-gray-lego-servo.webp
+    sha256: "4c2f4032b500eacfdaa5c21c7db1ea335e1ca0c9a62fdb708f471739eb6d9bd0"
+    source: "입출력장치이미지/M_009_Gray_Lego_Servo.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-011-red-lego-dc-motor.webp
+    sha256: "2cf32ee874dc514e82a976e4003db668e9712b64542d0278e41155ec733afd52"
+    source: "입출력장치이미지/M_011_Red_Lego_DC_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-013-step-motor-driver-a4988.webp
+    sha256: "f02306b26bc64c07858e7d73e1b52bb760e509608584541157ff521699ff4433"
+    source: "입출력장치이미지/M_013_Step_Motor_Driver_A4988.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-014-step-motor.webp
+    sha256: "7add4565c0df8dd4885de22295bb62def0264b821d6a06d7874edd162046cb66"
+    source: "입출력장치이미지/M_014_Step_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 모터 몸체에 인쇄된 제조사 글자(Usongshine)가 보임, 판매 사이트 워터마크 없음. 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-016-tt-motor-right.webp
+    sha256: "42ecf3945d66ca5594fbf7ced320b26225c2deff66ebb343341872cd54234519"
+    source: "입출력장치이미지/M_016_TT_Motor_Right.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-017-tt-motor-left.webp
+    sha256: "fb8ddbff0620036434abc6bc18380c35b6f34be771da89ef17ffbb7d1754c2ae"
+    source: "입출력장치이미지/M_017_TT_Motor_Left.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-018-dual-motor-driver-i2c-pca9685.webp
+    sha256: "cb8ccff2db5eca93174b8c53c8550973ddbea6427a7b2d1377dbc8fbae0699f4"
+    source: "입출력장치이미지/M_018_Dual_Motor_Driver_I2C_PCA9685.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-019-l293dd-motor-driver.webp
+    sha256: "63772d0abad35240f5bb755dc07fcf937bf48f9039bfc2aee8fde61d6c8eeec3"
+    source: "입출력장치이미지/M_019_L293DD_Motor_Driver.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-020-16ch-servo-motor-driver-i2c-pca9685.webp
+    sha256: "48accb1c4c7dbdacf1d4780242635f3152335fd6dde9211aa8dbafddcbf0ff6f"
+    source: "입출력장치이미지/M_020_16Ch_Servo_Motor_Driver_I2C_PCA9685.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-021-5v-buck-converter.webp
+    sha256: "e06d2a940482b97edf7665a46bcded83a7282c4463689cdcedb94a606a3c910b"
+    source: "입출력장치이미지/M_021_5V_Buck_Converter.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-021-5v-buck-converter-v2.webp
+    sha256: "8811f04423629a3fe3fa37e453baf3e42d67dd154d13b6b4d7f8a3eb52612b42"
+    source: "입출력장치이미지/M_021_5V_Buck_Converter_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 투명 배경(모서리 일부 투명). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-022-green-geek-servo-motor.webp
+    sha256: "75fb380c6a4804874e6a6f7b881528cf1d351811167f2de931e57022c5bb4e8a"
+    source: "입출력장치이미지/M_022_Green_Geek_Servo_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-023-orange-geek-servo-motor.webp
+    sha256: "97eafd2c9d4c59160f0f2507b84ad604754ff69c18f5e712f1670d3e4b1ebf10"
+    source: "입출력장치이미지/M_023_Orange_Geek__Servo_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-024-grey-geek-servo-360.webp
+    sha256: "108e3fa63b0cbb8ded352225a4d20bba6c6147f557ae2e1d298d65172c460686"
+    source: "입출력장치이미지/M_024_Grey_Geek_Servo_360.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-025-red-square-geek-dc-motor.webp
+    sha256: "accb3f9567877395b21a0bfe36242dd491350b283558c04990e54d42f06f1e07"
+    source: "입출력장치이미지/M_025_Red_Square_Geek_DC_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/m-026-blue-geek-dc-motor.webp
+    sha256: "b30635233c677c7c8957948b8015ef61a21597c623ae01df568ccd05618b6825"
+    source: "입출력장치이미지/M_026_Blue_Geek__DC_Motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-001-buzzer.webp
+    sha256: "c5790846011ce54a341a777d851a3ba858a8fa59072ba6c96f528f5d077ffd96"
+    source: "입출력장치이미지/O_001_Buzzer.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-002-mp3-player-kt403a.webp
+    sha256: "5e4a520ee35c5c364d72f2665a54c581263fb035e5ba95eab45f6a8cc69873f0"
+    source: "입출력장치이미지/O_002_MP3_Player_KT403A.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-003-mp3-player-speaker.webp
+    sha256: "b6fb5fd599838b0dea680d747a564ef4088383fbe8625953cfc75cad2f5e5e74"
+    source: "입출력장치이미지/O_003_MP3_Player_Speaker.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-004-electromagnet.webp
+    sha256: "721574d83b22f88168adc9a9415bd4e0748f19c79dba56c8083916bc6fe2d176"
+    source: "입출력장치이미지/O_004_Electromagnet.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-005-relay.webp
+    sha256: "98fdce548674e3312962a0367ff7fc5b819fc844dcee6b36d3f9288047b6af35"
+    source: "입출력장치이미지/O_005_Relay.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-006-pump-relay-v2.webp
+    sha256: "ef6e1de8c842a2875a424dea055780cf7eaa0e092cc2ab819d9e07f478ff7621"
+    source: "입출력장치이미지/O_006_Pump_Relay_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-007-water-pump.webp
+    sha256: "db318b4534faea1f3d71094252f20a5f3dbbd246a4621c2ad2108cf2adedec3d"
+    source: "입출력장치이미지/O_007_Water_Pump.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/o-008-tf-card-adapter-v2.webp
+    sha256: "0d5c5ff864dac0d73593f7f6effa2f39ca2918c66940a8d31837488de45677cb"
+    source: "입출력장치이미지/O_008_TF_Card_Adapter_V2.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/u-001-battery-case.webp
+    sha256: "bbb9bef37a49cc616bdef82347ed798c8000571e195b10b36dbf11c83aba5fac"
+    source: "입출력장치이미지/U_001_Battery_Case.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/u-002-solar-panel-3v.webp
+    sha256: "12cabe6757163fc6e30467cf33c8cd3569d14395b6ddd9cb25e02d3a2b50339e"
+    source: "입출력장치이미지/U_002_Solar_Panel_3V.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
+  - path: public/images/parts/third-party/kit-vendor/u-003-remote-control.webp
+    sha256: "52c47b185578548a450259955e6afb424f3af11a72a2cc6991233c602e378de7"
+    source: "입출력장치이미지/U_003_Remote_Control.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"
+    reviewed:
+      by: claude
+      date: 2026-10-15
+      result: "통과 — 키트 업체 부품 제품 사진 한 장(접촉 시트로 한 장씩 확인). 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음, 업체 상표(BRIXEL·GORILLACELL)와 기판·부품에 인쇄된 글자만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O17."
