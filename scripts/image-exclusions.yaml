@@ -84,3 +84,30 @@ exclusions:
     kind: content
     override: never
     reason: 누리집 캡처 상단의 정치적 문구 배너(학교 배포물로 알맞지 않음). 설치 화면이라 사이트에 필요도 없어요.
+
+  # ── 출판본 교과서(BOOK)에서 원고와 같은 쪽·새로 찾은 쪽(판 1.4.0 통합 — 구역 C3 요청을 메인이 더함) ──
+  - source: BOOK
+    pages: [13, 15, 16, 33]
+    kind: face
+    override: region
+    reason: 원고 U1 같은 쪽과 같은 사진 — 교복 차림 청소년·증명사진 형태 인물·스마트폰 화면 속 인물의 얼굴(실존 여부 미확인). 같은 쪽의 손·동물·풍경 컷만 쓸 수 있어요.
+  - source: BOOK
+    pages: [53, 54, 56, 57, 61, 64, 66, 71, 76, 84, 86, 91, 94, 97, 101, 218, 221, 224, 230, 233, 239, 246, 249, 256, 260, 269]
+    kind: face
+    override: region
+    reason: 실행 결과 사진 속 얼굴 — 운영자·공동 저자 본인인지 아직 확인 전(원고가 없던 1단원 03·04와 4단원). 교과서 쪽은 그림생략으로 두었어요. 운영자가 본인이라고 답하면 이 줄을 빼고 사진을 꺼내요(운영자 할 일 38).
+  - source: BOOK
+    pages: [22]
+    kind: path
+    override: region
+    reason: 출판본 22쪽 단계 3 오른쪽 캡처에 사용자 폴더 경로가 보여요. 그 부분을 뺀 영역만 쓸 수 있어요.
+  - source: BOOK
+    pages: [195, 197, 198]
+    kind: device-address
+    override: region
+    reason: 원고 U3 같은 쪽과 같은 화면 — 블루투스 기기 주소(MAC)가 보이는 콘솔. 주소가 없는 영역만 쓸 수 있어요(교과서 쪽 글은 XX:XX:XX:XX:XX:XX로 바꿔 적었어요).
+  - source: BOOK
+    pages: [21]
+    kind: content
+    override: never
+    reason: 원고 U1 21쪽과 같은 누리집 캡처 — 상단의 정치적 문구 배너(학교 배포물로 알맞지 않음). 교과서 쪽은 그림생략.

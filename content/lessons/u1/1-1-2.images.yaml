@@ -134,6 +134,7 @@ images:
   - name: book-landmark-diagrams
     use: 교과서 쪽 1-1-2 "랜드마크(Landmarks)" 상자 아래 그림 — 손·얼굴·자세 랜드마크 모양(출판본 16쪽)
     alt: "손 랜드마크는 손목의 0번부터 손가락 끝까지 번호가 붙은 점 21개를 선으로 이은 모양이고, 얼굴 랜드마크는 얼굴 둘레와 눈, 코, 입에 번호가 붙은 점 478개를 찍은 모양이며, 자세 랜드마크는 몸의 관절 33곳에 점을 찍어 선으로 이은 모양이다"
+    privacy_override: 같은 쪽의 사람 얼굴이 든 사진(본인 확인 전 또는 원고와 같은 얼굴 쪽)과 겹치지 않는 영역만 꺼냄 — 얼굴 검사 0
     from:
       source: BOOK
       page: 16
@@ -155,6 +156,7 @@ images:
   - name: book-gesture-hand
     use: 교과서 쪽 1-1-2 "동작 인식(Gesture Recognition)" 카드의 손 사진(출판본 16쪽)
     alt: "엄지를 치켜든 손을 가까이서 찍은 사진"
+    privacy_override: 같은 쪽의 사람 얼굴이 든 사진(본인 확인 전 또는 원고와 같은 얼굴 쪽)과 겹치지 않는 영역만 꺼냄 — 얼굴 검사 0
     from:
       source: BOOK
       page: 16

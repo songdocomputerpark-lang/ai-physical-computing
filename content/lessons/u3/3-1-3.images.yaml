@@ -17,6 +17,7 @@ images:
   - name: book-ble-flow
     use: 교과서 쪽 3-1-3 "2 인식한 좌표를 하드웨어에 전달하는 방법" — 카메라 입력부터 데이터 활용까지 네 칸 흐름 그림(출판본 195쪽). 그림 속 글자를 대체 글에 옮김
     alt: "손가락 좌표가 ESP32까지 가는 네 단계 흐름도. 카메라 입력 단계의 설명은 OpenCV와 Mediapipe로 손가락 좌표(x, y) 추출. 데이터 전송 단계의 설명은 b.send('120, 200') 형식으로 블루투스를 통해 전송. 데이터 수신 단계의 설명은 ESP32에서 문자열을 읽고, 쉼표(,)를 기준으로 값 분리. 데이터 활용 단계의 설명은 좌표 값에 따라 LED 색상을 제어."
+    privacy_override: 같은 쪽의 기기 주소(MAC) 모양 값이 보이는 콘솔 화면과 겹치지 않는 영역만 꺼냄
     from:
       source: BOOK
       page: 195
@@ -29,6 +30,7 @@ images:
     checks:
       metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
       faces: 0
+      excluded_page: 제외 쪽(device-address) — privacy_override로 일부만 꺼냄
       tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
     reviewed:
       by: claude
@@ -58,23 +60,25 @@ images:
   - name: book-bleak-install
     use: 교과서 쪽 3-1-3 기본 실습 "블루투스 통신을 위한 bleak 라이브러리 설치" 화면(출판본 198쪽)
     alt: "MicroPython 장치 @ COM27를 위한 패키지 관리 창에 bleak를 검색한 결과 화면. bleak 이름 아래에 마지막 안정화 버전 1.0.1, 요약 Bluetooth Low Energy platform Agnostic Klient, 제작자 Henrik Blidh, License MIT가 보인다"
+    privacy_override: 같은 쪽의 기기 주소(MAC) 모양 값이 보이는 콘솔 화면과 겹치지 않는 영역(패키지 관리 창 캡처 한 장)만 꺼냄
     from:
       source: BOOK
       page: 198
-      image: 22770
+      region: [194, 158, 508, 265]
     file: public/images/lessons/3-1-3/book-bleak-install.webp
-    width: 706
-    height: 242
-    bytes: 22444
-    sha256: "59d1cf9a4ad03087763bd9b3052bee589516ec0fa8a8811fb8d1c2fa61d4dc31"
+    width: 960
+    height: 328
+    bytes: 29032
+    sha256: "9b9a9c58922433c3e49dfa136d9f12c65d10bca89c1318e47a7a723147948e43"
     checks:
       metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
       faces: 0
+      excluded_page: 제외 쪽(device-address) — privacy_override로 일부만 꺼냄
       tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
     reviewed:
       by: claude
       date: 2026-10-16
-      result: "통과 — Thonny 패키지 관리 창(MicroPython 장치 @ COM27)에 bleak를 검색한 화면: 검색칸, 검색 단추, 인스톨 항목, bleak 소개(1.0.1, MIT, PyPI 주소). 사람·이름·컴퓨터 폴더 경로·기기 주소·학교명 없음(COM27은 포트 번호뿐)"
+      result: "통과 — Thonny 패키지 관리 창(MicroPython 장치 @ COM27)에 bleak를 검색한 화면을 쪽 영역으로 다시 꺼냄: 검색칸·검색 단추·인스톨 목록·bleak 소개(1.0.1, MIT, PyPI 주소, 요구 사항 줄). 사람·이름·폴더 경로·기기 주소·학교명 없음(COM27은 포트 번호뿐)"
   - name: book-run-target-menu
     use: 교과서 쪽 3-1-3 기본 실습 단계 7 "Local Python 3로 변경하여 실행하기" — 실행 환경 고르기 화면(출판본 200쪽)
     alt: "코드 편집기 아래 오른쪽 구석의 실행 환경 이름을 빨간 네모로 짚고, 그 위에 펼쳐진 목록에서 Local Python 3 · Thonny's Python 항목을 고르도록 빨간 화살표로 이은 화면"
@@ -132,7 +136,6 @@ images:
       metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
       faces: 0
       tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
-
     reviewed:
       by: claude
       date: 2026-10-16
