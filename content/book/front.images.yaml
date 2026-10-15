@@ -77,3 +77,46 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 출판본 5쪽(이 책의 차례 3단원·4단원)을 재단선 안쪽만 그린 그림: 절 이름과 시작 쪽 숫자, 파도·온도계 앞의 학생 일러스트(그린 그림, 권리 표기 없음)뿐. 얼굴 사진·이름·경로·기기 주소·학교명 없음"
+
+  # ── 머리말·이 책의 구성과 특징(2~3쪽, 구역 C3-④ 판 1.4.0) ──
+  - name: preface-illustration
+    use: 교과서 쪽 front 머리말(2쪽) 아래 삽화 — 노트북을 든 사람과 자율주행 자동차 그림
+    alt: "노트북을 든 사람이 서 있고, 그 옆에 파란 자율주행 자동차와 길 안내 표지, 구름 그림이 있으며 자동차에서 무선 신호가 퍼져 나가는 그림"
+    from:
+      source: BOOK
+      page: 2
+      region: [154.5, 459, 437.5, 643.5]
+    file: public/images/book/preface-illustration.webp
+    width: 866
+    height: 564
+    bytes: 25084
+    sha256: "0fb88e6279e8fd2ed30b9f62e6481994f5ef4cf908d27278e46797855ddafd83"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 노트북을 든 사람과 파란 자율주행 자동차, 길 안내 표지, 구름이 있는 그린 삽화뿐(사진 아님, 권리 표기 없음). 이름·경로·기기 주소·학교명 없음"
+  - name: features-unit-end
+    use: 교과서 쪽 front 이 책의 구성과 특징(3쪽) "단원 마무리" 옆 쪽 모양 그림 — 대단원 마무리하기 쪽
+    alt: "대단원 마무리하기 쪽 모양 그림. 문제로 점검, 서술형, 프로그래밍으로 점검 문제가 여러 칸에 나뉘어 있다"
+    from:
+      source: BOOK
+      page: 3
+      region: [90, 508, 321, 660]
+    file: public/images/book/features-unit-end.webp
+    width: 707
+    height: 466
+    bytes: 28620
+    sha256: "bae37c3e2687e80fedfd6392e2049b42c4a0cad4ccbc5072f2b8ff7ae77451b6"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 대단원 마무리하기 쪽 모양을 줄여 그린 작은 그림: 문제·서술형·프로그래밍 점검 칸 틀과 읽을 수 없을 만큼 작은 글씨뿐(출판사가 만든 화면 구성 그림, 권리 표기 없음). 사람 얼굴·이름·경로·기기 주소·학교명 없음"

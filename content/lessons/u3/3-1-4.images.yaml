@@ -1,0 +1,96 @@
+# 차시 3-1-4 "손과 동작으로 컴퓨터 제어하기"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 3-1-4
+# 결과는 public/images/lessons/3-1-4/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 202
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 출판본 교과서 201~207쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/3-1-4/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+# 웹캠 실행 화면 사진 셋(202·204·206쪽)에는 운영자·공동 저자 본인의 얼굴이 나와요(결정 O9 — 원고 III단원 202·204·206쪽과 같은 사진). 202쪽과 206쪽 사진 위에 겹쳐진
+# 마우스 포인터는 스톡(디파짓포토) 그림이라 꺼내지 않아요(결정 C11) — 쪽에 박힌 사진 원본만 꺼내서 포인터가 들어오지 않아요.
+
+images:
+  - name: book-program-structure
+    use: 교과서 쪽 3-1-4 "3 프로그램 구조" — 입력부터 출력까지 여섯 칸 구조 그림(출판본 202쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "손 동작으로 컴퓨터를 제어하는 프로그램 구조도. 입력은 웹캠을 통한 실시간 비디오 스트림이다. 프레임 캡처는 실시간 영상에서 프레임 단위 이미지 추출이다. 손 특징점 추출은 MediaPipe로 손을 인식하고 21개 손가락 특징점 좌표 추출이다. 동작 판별은 엄지와 검지 위치 비교(스크린숏 동작 여부 판별)이다. 커서 위치 매핑은 검지 끝 좌표를 실제 모니터 해상도에 맞춰 변환이다. 출력은 마우스 커서를 손가락 위치에 맞춰 이동, 스크린숏 촬영 및 화면에 알림 표시이다. 프레임 캡처부터 커서 위치 매핑까지 다섯 칸은 처리 단계로 묶여 있다."
+    from:
+      source: BOOK
+      page: 202
+      region: [150, 125, 545, 395]
+    file: public/images/lessons/3-1-4/book-program-structure.webp
+    width: 960
+    height: 656
+    bytes: 35788
+    sha256: "fed0c2df31f1c532e0d2a9da6b6bf39f86ec0f81325ff981f16ed017dcffe6f2"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 입력부터 출력까지 여섯 칸 구조도(처리 묶음 괄호 포함)와 칸 속 글자뿐인 출판사 그림. 사람 얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: book-hand-pointer-photo
+    use: 교과서 쪽 3-1-4 "4 기능과 사용자 인터페이스" — 검지로 커서를 조종하는 웹캠 화면 사진(출판본 202쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9, 겹친 마우스 포인터는 뺌)
+    alt: "웹캠 화면 속 안경을 쓴 남성이 오른손 검지를 세워 들고 있고, 그 손가락 관절마다 빨간 점과 선이 그려져 있다"
+    from:
+      source: BOOK
+      page: 202
+      image: 23139
+    file: public/images/lessons/3-1-4/book-hand-pointer-photo.webp
+    width: 636
+    height: 388
+    bytes: 15248
+    sha256: "2a0b103a9f1f2f5266eec814cc80c244d529ae2c1f57525ca2f6fd59cb77bce9"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[206, 55, 176, 176]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 쪽에 박힌 사진 원본만 꺼냄(그 위에 겹쳐진 스톡 마우스 포인터는 사진에 없음 — 쪽 미리 보기와 견줌). 웹캠 화면 속 안경을 쓴 남성 한 명과 검지를 세운 손의 관절 빨간 점·선. 원고 III단원 202쪽과 같은 사진(픽셀 일치 확인)으로 운영자·공동 저자 본인 얼굴이라 공개할 수 있음(결정 O9). 이름·경로·기기 주소·학교명 없음"
+  - name: book-screenshot-result
+    use: 교과서 쪽 3-1-4 기본 실습 "결과" — 엄지를 올려 스크린숏을 찍은 화면(출판본 204쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "웹캠 화면 속 안경을 쓴 남성이 엄지를 위로 올린 손을 들고 있고 손 관절마다 점과 선이 그려져 있으며, 화면 왼쪽 위에 Screenshot Captured! 글자가 보인다"
+    from:
+      source: BOOK
+      page: 204
+      image: 23503
+    file: public/images/lessons/3-1-4/book-screenshot-result.webp
+    width: 626
+    height: 474
+    bytes: 23052
+    sha256: "0bf8a25c3d4b57aefe81f0b4a2247fb0a8407ce91a5f3d9240eb90cd14740952"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[213, 84, 187, 187]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면 속 안경을 쓴 남성 한 명, 엄지를 올린 손의 관절 점·선, 왼쪽 위 초록 Screenshot Captured! 글자. 원고 III단원 204쪽과 같은 사진(픽셀 일치 확인)으로 운영자·공동 저자 본인 얼굴이라 공개할 수 있음(결정 O9). 이름·경로·기기 주소·학교명 없음"
+  - name: book-mouse-result
+    use: 교과서 쪽 3-1-4 심화 실습 "결과" — 검지로 마우스 커서를 움직이는 화면(출판본 206쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9, 겹친 마우스 포인터는 뺌)
+    alt: "웹캠 화면 속 안경을 쓴 남성이 오른손 검지를 세워 들고 있고, 그 손의 관절마다 빨간 점과 선이 그려져 있다"
+    from:
+      source: BOOK
+      page: 206
+      image: 23528
+    file: public/images/lessons/3-1-4/book-mouse-result.webp
+    width: 636
+    height: 475
+    bytes: 16564
+    sha256: "f50d4156c469b1dce802b4a6d2584878a1dab0ca41a6afe40e5fb8213005e6a6"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[211, 124, 168, 168]]
+      hidden: 원본 그림이 쪽에 보이는 모습과 달라요 — 눈 확인 때 쪽과 견줘요
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 쪽에 박힌 사진 원본만 꺼냄(쪽에서는 결과 설명 상자와 스톡 마우스 포인터가 사진 일부를 가렸는데, 사진 원본에는 포인터가 없고 가려졌던 아래쪽까지 같은 사진의 일부로 보임). 웹캠 화면 속 안경을 쓴 남성 한 명과 검지를 세운 손의 관절 빨간 점·선. 원고 III단원 206쪽과 같은 사진(픽셀 일치 확인)으로 운영자·공동 저자 본인 얼굴이라 공개할 수 있음(결정 O9). 이름·경로·기기 주소·학교명 없음"

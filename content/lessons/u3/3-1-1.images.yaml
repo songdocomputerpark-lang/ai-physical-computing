@@ -1,0 +1,30 @@
+# 차시 3-1-1 "인공지능과 하드웨어 통신의 이해"의 원고 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 3-1-1
+# 결과는 public/images/lessons/3-1-1/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 185
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 출판본 교과서 184~188쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/3-1-1/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt).
+
+images:
+  - name: book-data-flow
+    use: 교과서 쪽 3-1-1 "2 데이터 흐름 정리" — 영상 처리부터 제어까지 다섯 칸 흐름 그림(출판본 185쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "인공지능 프로그램에서 얻은 값이 ESP32에 닿기까지의 다섯 단계 흐름도. 영상 처리 단계의 설명은 전송할 결과를 ‘c’와 같은 문자열 형태로 준비. 데이터 변환 단계의 설명은 이 문자열을 bytes 형태로 변환. 전송 단계의 설명은 변환된 데이터를 블루투스를 통해 전송. 수신 단계의 설명은 ESP32는 수신된 바이트 데이터를 아스키코드로 해석하여 다시 문자열로 변환. 제어 단계의 설명은 하드웨어는 해석된 문자열을 조건문으로 처리해 실제 동작을 수행."
+    from:
+      source: BOOK
+      page: 185
+      region: [84, 495, 415, 718]
+    file: public/images/lessons/3-1-1/book-data-flow.webp
+    width: 960
+    height: 647
+    bytes: 33658
+    sha256: "e9838cb5a1791ee2ea88a37b7a2ba11b049a63b4e15e4eeaaf9987143691f653"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 영상 처리·데이터 변환·전송·수신·제어 다섯 칸 흐름도(둥근 칸과 화살표, 칸 속 글자)뿐인 출판사 그림. 사람 얼굴·이름·경로·기기 주소·학교명 없음"

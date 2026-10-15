@@ -77,3 +77,151 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 같은 보드·변환기·레이저 모듈 연결 사진에서 레이저 빛이 꺼진 모습. 사람·손·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+
+  # ── 출판본 교과서 189~194쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/3-1-2/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  # 194쪽 실행 결과 사진의 얼굴은 운영자·공동 저자 본인이에요(결정 O9 — 원고 III단원 194쪽과 같은 사진).
+  - name: book-uart-converter-photo
+    use: 교과서 쪽 3-1-2 "1 시리얼 통신" 아래 USB to UART 변환기 사진(출판본 189쪽, 키트 업체 제품 사진이라 third-party/kit-vendor)
+    third_party: kit-vendor
+    alt: "파란 기판에 USB-C 단자와 GND, VCC, TX, RX 네 개의 핀이 달린 USB to UART 변환기 사진. 기판에 USB to UART Converter와 Power Logic 글자가 인쇄되어 있다"
+    from:
+      source: BOOK
+      page: 189
+      region: [70, 323.7, 143.4, 389.8]
+    file: public/images/lessons/3-1-2/third-party/kit-vendor/book-uart-converter-photo.webp
+    width: 225
+    height: 203
+    bytes: 7574
+    sha256: "5654d5fd07c83783fc0c934d7b6771d598372d964eb96cfdbb4e0e0e2a32d89a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 파란 USB to UART 변환기 기판 제품 사진 한 장(USB-C 단자, GND·VCC·TX·RX 핀, 기판에 인쇄된 글자와 로고). 키트 업체 제품 사진이라 third-party/kit-vendor(운영자 결정 O17). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: book-wiring-laser-uart
+    use: 교과서 쪽 3-1-2 "3 회로 구성" 연결 레시피 판의 배선 사진(출판본 190쪽, 키트 업체 제품 사진이라 third-party/kit-vendor)
+    third_party: kit-vendor
+    alt: "ESP32 확장 보드에 레이저 모듈과 UART 변환기를 여러 색 선으로 이은 연결 사진. 레이저 모듈은 GND, VCC, GPIO 18번 핀에, UART 변환기는 GND, VCC, GPIO 16번 핀과 GPIO 17번 핀에 이어져 있다"
+    from:
+      source: BOOK
+      page: 190
+      region: [169.4, 144, 483.2, 293]
+    file: public/images/lessons/3-1-2/third-party/kit-vendor/book-wiring-laser-uart.webp
+    width: 960
+    height: 456
+    bytes: 85386
+    sha256: "f5aa9e9cdca778bc48876451d7dbb1a83b58e3de7d0a9b4f22be4a1f5079926d"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — ESP32 확장 보드(GORILLACELL 상표 인쇄)에 레이저 모듈과 UART 변환기를 검정·빨강·노랑 선으로 이은 제품 사진뿐(쪽의 연한 회색 판 바탕 그대로). 키트 업체 자료라 third-party/kit-vendor(O17). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: book-boot-save-dialog
+    use: 교과서 쪽 3-1-2 "5 마이크로 파이썬 device boot.py 파일로 저장" 옆 저장 창 화면(출판본 191쪽)
+    alt: "Save to MicroPython device 창에서 MicroPython device 목록에 boot.py가 파란색으로 골라져 있고, 아래 파일 이름 칸에 boot.py가 적혀 있다"
+    from:
+      source: BOOK
+      page: 191
+      region: [275.5, 128, 399, 199.5]
+    file: public/images/lessons/3-1-2/book-boot-save-dialog.webp
+    width: 378
+    height: 220
+    bytes: 3132
+    sha256: "3338cf9daec5bea582fab90f1aa340b54e48a8f0de2893bcc04f93a63dc38785"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — Save to MicroPython device 창: MicroPython device 목록에 boot.py(364 bytes) 하나, 파일 이름 칸 boot.py, OK·Cancel 단추뿐. 사람·이름·컴퓨터 폴더 경로·기기 주소·학교명 없음"
+  - name: book-result-laser-on
+    use: 교과서 쪽 3-1-2 기본 실습 "결과" — a 문자를 받으면 레이저가 켜진 사진(출판본 192쪽)
+    alt: "ESP32 보드와 UART 변환기, 레이저 모듈이 선으로 이어져 있고 레이저 모듈 앞에 붉은 빛이 켜진 사진. 사진 아래 설명 글은 ‘a’ 문자를 받으면 레이저 출력이다"
+    from:
+      source: BOOK
+      page: 192
+      image: 22389
+    file: public/images/lessons/3-1-2/book-result-laser-on.webp
+    width: 591
+    height: 434
+    bytes: 22570
+    sha256: "4684d1d8f44dfa07046669fb2782517dccc949cd052d0b5675d70b85d8a93f01"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[388, 332, 51, 51]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 흰 바닥 위의 ESP32 보드·확장 보드·USB-UART 변환기·레이저 모듈과 USB 케이블, 레이저 앞의 붉은 빛. 사람·손·얼굴 없음(OpenCV가 얼굴로 본 [388, 332, 51, 51]은 레이저 모듈의 렌즈와 스티커 무늬 — 같은 사진을 원고에서 이미 확인함). 이름·경로·기기 주소·학교명 없음"
+  - name: book-result-laser-off
+    use: 교과서 쪽 3-1-2 기본 실습 "결과" — b 문자를 받으면 레이저가 꺼진 사진(출판본 192쪽)
+    alt: "같은 ESP32 보드, UART 변환기, 레이저 모듈 연결에서 레이저 빛이 꺼진 사진. 사진 아래 설명 글은 ‘b’ 문자를 받으면 레이저 멈춤이다"
+    from:
+      source: BOOK
+      page: 192
+      image: 22390
+    file: public/images/lessons/3-1-2/book-result-laser-off.webp
+    width: 570
+    height: 426
+    bytes: 20292
+    sha256: "2a8f1ffe69bb8bda2d467b464fb7853ab8554304cdb092a36abd558445570bbc"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 같은 보드·변환기·레이저 모듈 연결 사진에서 레이저 빛이 꺼진 모습. 사람·손·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: book-face-detected
+    use: 교과서 쪽 3-1-2 심화 실습 "결과" — 얼굴이 인식되어 초록 네모가 그려진 웹캠 화면(출판본 194쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "웹캠 화면 속 안경을 쓴 남성의 얼굴에 초록색 네모가 그려져 있다. 사진 아래 설명 글은 Face Detected → a 전송이다"
+    from:
+      source: BOOK
+      page: 194
+      image: 22402
+    file: public/images/lessons/3-1-2/book-face-detected.webp
+    width: 746
+    height: 595
+    bytes: 13530
+    sha256: "4288bf95d8fe0c8de52e052e34456ac5d4850adb0e87f6b950ea1e1dc4e2eb1d"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[265, 153, 231, 231]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면 속 안경을 쓴 남성 한 명의 얼굴과 초록 네모. 원고 III단원 194쪽과 같은 사진(픽셀 일치 확인)으로 그 얼굴은 운영자·공동 저자 본인이라 공개할 수 있음(결정 O9). 이름·경로·기기 주소·학교명 없음"
+  - name: book-face-lost
+    use: 교과서 쪽 3-1-2 심화 실습 "결과" — 얼굴이 사라져 빈 벽만 보이는 웹캠 화면(출판본 194쪽)
+    alt: "사람이 없이 밝은 회색 벽만 흐릿하게 보이는 웹캠 화면. 사진 아래 설명 글은 Face Lost → b 전송이다"
+    from:
+      source: BOOK
+      page: 194
+      image: 22404
+    file: public/images/lessons/3-1-2/book-face-lost.webp
+    width: 641
+    height: 482
+    bytes: 4710
+    sha256: "a22740611acb6254d814c0f064fd3ab71c8b042545d00ecd1224927d38a04ddb"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 밝은 회색 벽만 흐릿하게 보이는 웹캠 화면(사람·글자 없음). 이름·경로·기기 주소·학교명 없음"

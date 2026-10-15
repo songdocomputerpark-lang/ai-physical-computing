@@ -10,4 +10,130 @@
 # 이 차시에서 쓰지 않아요. 196쪽 배선 그림(키트 업체 제품 그림)은 차시 본문이 쓰지 않아 목록에서 뺐어요(2026-09-25 Phase 5 검토 안전 3 — 쓰지 않는 그림이
 # 배포되고 있었어요). 배선은 가상 보드의 배선도가 보여 줘요.
 
-images: []
+images:
+  # ── 출판본 교과서 195~200쪽 그림(판 1.4.0, 원본 약칭 BOOK — 교과서 쪽 /book/3-1-3/에 쓴다. 좌표는 재단선 안쪽 쪽의 왼쪽 위 기준 pt) ──
+  # 197·198쪽은 블루투스 기기 주소(MAC)가 글자로 보이는 쪽이에요 — 코드와 결과 글은 XX:XX:XX:XX:XX:XX로 바꿔 쓰고, 그림은 주소가 없는 캡처만 꺼내요.
+  # 200쪽 사진의 얼굴은 운영자·공동 저자 본인이에요(결정 O9 — 원고 III단원 200쪽과 같은 사진).
+  - name: book-ble-flow
+    use: 교과서 쪽 3-1-3 "2 인식한 좌표를 하드웨어에 전달하는 방법" — 카메라 입력부터 데이터 활용까지 네 칸 흐름 그림(출판본 195쪽). 그림 속 글자를 대체 글에 옮김
+    alt: "손가락 좌표가 ESP32까지 가는 네 단계 흐름도. 카메라 입력 단계의 설명은 OpenCV와 Mediapipe로 손가락 좌표(x, y) 추출. 데이터 전송 단계의 설명은 b.send('120, 200') 형식으로 블루투스를 통해 전송. 데이터 수신 단계의 설명은 ESP32에서 문자열을 읽고, 쉼표(,)를 기준으로 값 분리. 데이터 활용 단계의 설명은 좌표 값에 따라 LED 색상을 제어."
+    from:
+      source: BOOK
+      page: 195
+      region: [76, 370, 405, 545]
+    file: public/images/lessons/3-1-3/book-ble-flow.webp
+    width: 960
+    height: 510
+    bytes: 27242
+    sha256: "090a9583a0d67a43d7703f049317819ce71fabd18339eb468c2b858ba11bc471"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 카메라 입력·데이터 전송·데이터 수신·데이터 활용 네 칸 흐름도와 칸 속 글자뿐인 출판사 그림. 사람 얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: book-wiring-rgb-led
+    use: 교과서 쪽 3-1-3 "4 회로 구성" 연결 레시피 판의 배선 사진(출판본 196쪽, 키트 업체 제품 사진이라 third-party/kit-vendor)
+    third_party: kit-vendor
+    alt: "ESP32 확장 보드에 RGB LED 모듈을 여러 색 선으로 이은 연결 사진. RGB LED 모듈은 GND, 5V, GPIO 25핀, GPIO 26핀, GPIO 27핀에 이어져 있다"
+    from:
+      source: BOOK
+      page: 196
+      region: [272.6, 130.7, 505.5, 231]
+    file: public/images/lessons/3-1-3/third-party/kit-vendor/book-wiring-rgb-led.webp
+    width: 713
+    height: 308
+    bytes: 43342
+    sha256: "3cc6f27f9afca7ca7b5228a41cd1b8a2cc17d1fd982406b57ffa1b02f058d9b4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — ESP32 확장 보드(GORILLACELL 상표 인쇄)에 RGB LED 모듈을 여러 색 선으로 이은 제품 사진뿐(OpenCV가 얼굴로 본 곳은 모듈 위의 로고). 키트 업체 자료라 third-party/kit-vendor(O17). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: book-bleak-install
+    use: 교과서 쪽 3-1-3 기본 실습 "블루투스 통신을 위한 bleak 라이브러리 설치" 화면(출판본 198쪽)
+    alt: "MicroPython 장치 @ COM27를 위한 패키지 관리 창에 bleak를 검색한 결과 화면. bleak 이름 아래에 마지막 안정화 버전 1.0.1, 요약 Bluetooth Low Energy platform Agnostic Klient, 제작자 Henrik Blidh, License MIT가 보인다"
+    from:
+      source: BOOK
+      page: 198
+      image: 22770
+    file: public/images/lessons/3-1-3/book-bleak-install.webp
+    width: 706
+    height: 242
+    bytes: 22444
+    sha256: "59d1cf9a4ad03087763bd9b3052bee589516ec0fa8a8811fb8d1c2fa61d4dc31"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — Thonny 패키지 관리 창(MicroPython 장치 @ COM27)에 bleak를 검색한 화면: 검색칸, 검색 단추, 인스톨 항목, bleak 소개(1.0.1, MIT, PyPI 주소). 사람·이름·컴퓨터 폴더 경로·기기 주소·학교명 없음(COM27은 포트 번호뿐)"
+  - name: book-run-target-menu
+    use: 교과서 쪽 3-1-3 기본 실습 단계 7 "Local Python 3로 변경하여 실행하기" — 실행 환경 고르기 화면(출판본 200쪽)
+    alt: "코드 편집기 아래 오른쪽 구석의 실행 환경 이름을 빨간 네모로 짚고, 그 위에 펼쳐진 목록에서 Local Python 3 · Thonny's Python 항목을 고르도록 빨간 화살표로 이은 화면"
+    from:
+      source: BOOK
+      page: 200
+      region: [182, 258, 502, 402]
+    file: public/images/lessons/3-1-3/book-run-target-menu.webp
+    width: 960
+    height: 432
+    bytes: 16600
+    sha256: "06e62b7102dbc4fc7315e3fee81b263fbdec4730407dc704edd3a59f519d58a5"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — Thonny 빈 편집기와 쉘 시작 글(MicroPython v1.26.1 ESP32), 오른쪽 아래 실행 환경 이름(USB Serial @ COM6)과 펼쳐진 실행 환경 목록, 빨간 네모와 화살표뿐. 사람·이름·폴더 경로·기기 주소·학교명 없음(COM6은 포트 번호뿐)"
+  - name: book-finger-result
+    use: 교과서 쪽 3-1-3 기본 실습 "결과" — 손끝 좌표를 전송하는 웹캠 화면(출판본 200쪽, 운영자·공동 저자 본인 얼굴 — 결정 O9)
+    alt: "웹캠 화면 속 안경을 쓴 남성이 한 손의 검지를 세워 들고 있고, 그 손의 관절마다 파란 점과 선이 그려져 있다"
+    from:
+      source: BOOK
+      page: 200
+      image: 23129
+    file: public/images/lessons/3-1-3/book-finger-result.webp
+    width: 737
+    height: 676
+    bytes: 24682
+    sha256: "155be6841c1239cb3bc61ec2b80149b872382d8917fbfb01811d464cf87d1fac"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[350, 148, 233, 233]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 웹캠 화면 속 안경을 쓴 남성 한 명과 손의 파란 관절 점·선. 원고 III단원 200쪽과 같은 사진(픽셀 일치 확인)으로 운영자·공동 저자 본인이라 공개할 수 있음(결정 O9). 이름·경로·기기 주소·학교명 없음"
+  - name: book-sent-shell
+    use: 교과서 쪽 3-1-3 기본 실습 "결과" — 전송한 좌표가 쉘에 찍힌 화면(출판본 200쪽)
+    alt: "쉘 창에 Sent: 355, 152, Sent: 355, 151, Sent: 354, 154, Sent: 355, 152, Sent: 355, 152, Sent: 359, 151, Sent: 359, 151, Sent: 359, 151, Sent: 358, 153, Sent: 357, 153, Sent: 356, 153 줄이 차례로 찍혀 있다"
+    from:
+      source: BOOK
+      page: 200
+      image: 23130
+    file: public/images/lessons/3-1-3/book-sent-shell.webp
+    width: 238
+    height: 200
+    bytes: 7604
+    sha256: "7846faf19c79e53a61115f2931bb74c274e4ae44acc123cdba42c01b40481ab7"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 쉘 창에 Sent: 355, 152부터 Sent: 356, 153까지 좌표 11줄. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
