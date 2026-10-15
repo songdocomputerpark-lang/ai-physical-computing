@@ -111,6 +111,21 @@ test.describe('?view=slide 발표 모드', () => {
     await expect(page.locator('[data-lesson-present]')).toHaveAttribute('data-present-step', '2');
     await page.keyboard.press('Escape');
     await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
+    // 끝낸 뒤 주소에서 ?view=slide가 사라져 새로 고쳐도 읽기 화면이다(2026-10-16 화면 검수)
+    expect(new URL(page.url()).search).toBe('');
+    await page.reload();
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
+  });
+
+  test('발표를 끝내면 다른 주소 값(?example=)은 그대로 두고 view만 지운다', async ({ page }) => {
+    await page.goto('./book/2-1-2/?foo=1&view=slide#p124');
+    await hideDevToolbar(page);
+    await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
+    const url = new URL(page.url());
+    expect(url.search).toBe('?foo=1');
+    expect(url.hash).toBe('#p124');
   });
 
   test('주소에 view=slide가 없으면 읽기 화면이고, 웹 차시도 ?view=slide를 받는다', async ({ page }) => {
@@ -209,5 +224,106 @@ test.describe('회로 그림(::회로)', () => {
     await expect(page.locator('figure.book-circuit')).toHaveCount(2);
     await expect(page.locator('figure.book-circuit[data-circuit="4-2-2-2"] figcaption')).toContainText('이 그림에 없는 연결: 버저(2번 핀)');
     await expect(page.locator('figure.book-circuit[data-circuit="4-2-2-1"] figcaption')).not.toContainText('이 그림에 없는 연결');
+  });
+});
+
+test.describe('화면 검수 반영(2026-10-16): 캡션 겹침·준비물 사진·제목 중복·묶음 나누기', () => {
+  // 좁은 화면에서만 보이는 [그림 크게 보기] 단추가 바로 아래 캡션(▲ …)을 가리지 않는다 — 단추 상자와 캡션 상자가 겹치지 않아야 한다(휴대폰 375·태블릿 768)
+  for (const width of [375, 768]) {
+    for (const id of ['2-1-3', '1-2-2', '2-2-2']) {
+      test(`/book/${id}/ 폭 ${width}: [그림 크게 보기] 단추가 그림 캡션과 겹치지 않는다`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 812 });
+        await page.goto(`./book/${id}/`);
+        await hideDevToolbar(page);
+        const captions = page.locator('.book-caption');
+        const count = await captions.count();
+        expect(count).toBeGreaterThan(0);
+        for (let index = 0; index < count; index += 1) {
+          const caption = captions.nth(index);
+          await caption.scrollIntoViewIfNeeded();
+          const gap = await caption.evaluate((element) => {
+            // 캡션 바로 앞 문단의 [그림 크게 보기]가 단추로 보이는 곳(≤48rem)이면 두 상자의 세로 간격(겹치면 음수)을 잰다
+            const zoom = element.previousElementSibling?.querySelector<HTMLElement>('.figure-zoom');
+            if (!zoom || zoom.getClientRects().length === 0) {
+              return null;
+            }
+            return element.getBoundingClientRect().top - zoom.getBoundingClientRect().bottom;
+          });
+          if (gap !== null) {
+            expect(gap, `${id} 캡션 ${index + 1}번이 단추와 겹쳐요`).toBeGreaterThanOrEqual(0);
+          }
+        }
+      });
+    }
+  }
+
+  test('/book/2-1-3/ 준비물 사진 줄은 교과서 키트의 OLED 1.3인치(SH1106)를 보여 준다(0.96인치 SSD1306이 아님)', async ({ page }) => {
+    await page.goto('./book/2-1-3/');
+    const strip = page.getByRole('group', { name: '준비물 사진' });
+    await expect(strip).toContainText('OLED 1.3인치(SH1106)');
+    await expect(strip).not.toContainText('SSD1306');
+    await expect(strip.locator('a[href$="#part-dis-012-oled-1-3-sh1106"]')).toHaveCount(1);
+  });
+
+  test('1단원 "실행 결과" 상자는 제목이 한 번만 나온다', async ({ page }) => {
+    await page.goto('./book/1-2-3/');
+    const boxes = page.locator('.box--result');
+    expect(await boxes.count()).toBeGreaterThan(0);
+    for (let index = 0; index < (await boxes.count()); index += 1) {
+      const box = boxes.nth(index);
+      await expect(box.locator('.box__title')).toHaveText('실행 결과');
+      // 상자 안 본문에 같은 낱말의 굵은 글이 또 없다
+      await expect(box.locator('strong', { hasText: /^실행 결과$/u })).toHaveCount(0);
+    }
+  });
+
+  test('/book/3-1-2/ 연결 레시피의 두 묶음(레이저 / UART 변환기)은 목록 둘이다', async ({ page }) => {
+    await page.goto('./book/3-1-2/');
+    const recipe = page.locator('.box--recipe').first();
+    const lists = recipe.locator('ul');
+    await expect(lists).toHaveCount(2);
+    await expect(lists.nth(0).locator('li')).toHaveText(['GND', 'VCC', 'GPIO 18번 핀']);
+    await expect(lists.nth(1).locator('li')).toHaveText(['GND', 'VCC', 'GPIO 16번 핀', 'GPIO 17번 핀']);
+    // 묶음 사이가 한 칸 이상 벌어져 있다(목록 안 줄 간격보다 크다)
+    const [firstBottom, secondTop, lineGap] = await recipe.evaluate((element) => {
+      const [first, second] = Array.from(element.querySelectorAll('ul')).map((list) => list.getBoundingClientRect());
+      const items = Array.from(element.querySelectorAll('ul')[0]!.querySelectorAll('li')).map((item) => item.getBoundingClientRect());
+      return [first!.bottom, second!.top, items[1]!.top - items[0]!.bottom];
+    });
+    expect(secondTop - firstBottom).toBeGreaterThan(lineGap + 4);
+  });
+
+  test('/book/3-1-3/ 용어풀이 속 바이트 출력(b로 시작하는 글)은 곧은 따옴표 코드로 보인다', async ({ page }) => {
+    await page.goto('./book/3-1-3/');
+    const code = page.locator('code', { hasText: "b'\\xXX" });
+    await expect(code).toHaveCount(1);
+    await expect(code).toHaveText("b'\\xXX\\xXX\\xXX\\xXX\\xXX\\xXX'");
+  });
+
+  test('머리말·마무리 쪽 제목은 같은 말을 되풀이하지 않는다(쪽 머리와 왼쪽 차례 모두)', async ({ page }) => {
+    await page.goto('./book/front/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('머리말과 이 책의 구성과 특징');
+    await page.goto('./book/u1-review/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('대단원 마무리하기');
+    const nav = page.locator('nav[aria-label="교과서 차례"]');
+    // 상자가 접혀 있는 좁은 화면에서도 글은 문서에 있으므로 textContent로 본다
+    const text = (await nav.first().evaluate((element) => element.textContent ?? '')).replace(/\s+/gu, ' ');
+    expect(text).not.toContain('머리말 머리말과');
+    expect(text).not.toContain('1단원 마무리 대단원 마무리하기');
+    expect(text).toContain('머리말과 이 책의 구성과 특징');
+    expect(text).toContain('대단원 마무리하기');
+    // 제목이 번호 이름과 다른 말이면 번호 이름이 그대로 남는다
+    await page.goto('./book/u2-intro/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('2단원 시작 피지컬 컴퓨팅');
+  });
+
+  test('웹 차시 왼쪽 차례의 마무리 항목은 로마 숫자 대신 "2단원 마무리"로 보인다', async ({ page }) => {
+    await page.goto('./learn/u2/2-2-1/');
+    const nav = page.locator('nav[aria-label="단원 차시 목록"]');
+    const text = (await nav.first().evaluate((element) => element.textContent ?? '')).replace(/\s+/gu, ' ');
+    expect(text).toContain('2단원 마무리');
+    expect(text).not.toContain('II-마무리');
+    // 주소는 그대로다
+    await expect(nav.first().locator('a[href$="/learn/u2/review/"]')).toHaveCount(1);
   });
 });

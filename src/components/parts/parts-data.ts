@@ -36,7 +36,7 @@ export const allParts: readonly PartEntry[] = parsePartsYaml(source);
 export const partGroups: readonly PartGroup[] = groupPartsByCategory(allParts);
 
 /**
- * 가상 보드 부품 id(들)에 맞는 사진 부품 — 부품 id마다 가장 먼저 나오는 한 장. 차시 frontmatter의 examples[].parts를 그대로 넘겨도 된다
+ * 가상 보드 부품 id(들)에 맞는 사진 부품 — 부품 id마다 한 장(여럿이면 교과서 키트 부품 먼저 — parts-schema.ts). 차시 frontmatter의 examples[].parts를 그대로 넘겨도 된다
  * (`{ part: lcd-i2c }`·`{ type: touch_digital }` 모두 읽음). 사진이 없는 부품 id는 건너뛴다.
  */
 export function partsForSiteParts(ids: readonly (string | { readonly part?: string; readonly type?: string })[]): PartEntry[] {

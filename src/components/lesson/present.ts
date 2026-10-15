@@ -35,6 +35,20 @@ export function wantsSlideView(search: string): boolean {
   return view === 'slide' || view === 'present';
 }
 
+/**
+ * 발표 모드를 끝낼 때 주소에서 "발표로 열어 줘" 표시(view=slide·present)만 지운 검색 글 — 다른 값(?example=…)은 그대로 두고,
+ * 지울 것이 없으면 받은 글 그대로다. 남겨 두면 새로 고침이 다시 발표 모드로 열려 Esc로 끝낸 학생이 읽기 화면으로 돌아오지 못한다(2026-10-16 화면 검수).
+ */
+export function searchWithoutSlideView(search: string): string {
+  if (!wantsSlideView(search)) {
+    return search;
+  }
+  const params = new URLSearchParams(search);
+  params.delete('view');
+  const rest = params.toString();
+  return rest === '' ? '' : `?${rest}`;
+}
+
 export type PresentBlockKind = 'h2' | 'h3' | 'break' | 'content' | 'split';
 
 export interface PresentBlock {
@@ -856,6 +870,15 @@ export function installLessonPresentation(doc: Document = document): void {
       void doc.exitFullscreen().catch(() => undefined);
     }
     enteredFullscreen = false;
+    // 주소의 ?view=slide를 지운다 — 새로 고치거나 주소를 복사해도 읽기 화면으로 열리게(주소가 바뀔 뿐 기록 칸은 새로 만들지 않는다)
+    const win = doc.defaultView;
+    if (win && wantsSlideView(win.location.search)) {
+      try {
+        win.history.replaceState(win.history.state, '', `${win.location.pathname}${searchWithoutSlideView(win.location.search)}${win.location.hash}`);
+      } catch {
+        // 주소를 바꾸지 못해도(샌드박스 iframe 등) 발표 끝내기는 그대로
+      }
+    }
     // 발표를 끝낸 자리(마지막으로 본 칸)에서 이어 읽게 한다. 초점도 그 자리(첫 블록 — 보통 칸 제목)에 둔다: 쪽 맨 위 [발표 모드]로 돌리면
     // 초점이 화면 밖에 있어 보이지 않고 다음 Tab이 쪽 위 "이 차시의 차례"로 뛰어 읽던 자리를 잃었다(2026-09-26 Phase 6 사용성 검토 지적 10).
     if (anchor) {

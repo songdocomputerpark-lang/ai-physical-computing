@@ -102,6 +102,20 @@ describe('가상 보드·키트 표와의 짝', () => {
     }
   });
 
+  it('같은 가상 부품 id에 사진이 여럿이면 사진 줄은 교과서 키트 사진을 고른다(2-1-3은 OLED 1.3인치 SH1106 — 본문·코드·회로 그림과 같은 부품)', () => {
+    expect(pickPartsForSiteParts(parts, ['oled-i2c']).map((part) => part.id)).toEqual(['dis-012-oled-1-3-sh1106']);
+    expect(pickPartsForSiteParts(parts, ['laser']).map((part) => part.id)).toEqual(['dis-008-laser-90']);
+    // 어느 가상 부품이든 사진이 여럿이면 뽑힌 사진은 키트 사진이어야 한다(키트 사진이 하나라도 있는 한)
+    const siteIds = new Set(parts.flatMap((part) => part.siteParts));
+    for (const siteId of siteIds) {
+      const candidates = parts.filter((part) => part.siteParts.includes(siteId));
+      const [picked] = pickPartsForSiteParts(parts, [siteId]);
+      if (candidates.some((part) => part.kitName !== undefined)) {
+        expect(picked?.kitName, `${siteId}: 사진 줄이 키트 사진을 골라야 해요`).toBeDefined();
+      }
+    }
+  });
+
   it('kit_name은 모두 보드 준비 쪽 키트 표(kit-parts.ts)의 kitName과 글자까지 같다', () => {
     const kitNames = new Set(KIT_PARTS.map((part) => part.kitName));
     for (const part of parts) {

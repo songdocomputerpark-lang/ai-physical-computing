@@ -8,6 +8,7 @@ import {
   planPresentationSteps,
   presentCommandFor,
   scrollTargetFor,
+  searchWithoutSlideView,
   splitTallSteps,
   unionBlocks,
   wantsSlideView,
@@ -240,5 +241,15 @@ describe('주소 별칭 ?view=slide(판 1.4.0, DECISIONS C133)', () => {
     expect(wantsSlideView('')).toBe(false);
     expect(wantsSlideView('?view=read')).toBe(false);
     expect(wantsSlideView('?slide=1')).toBe(false);
+  });
+
+  it('searchWithoutSlideView: 발표를 끝낼 때 view=slide·present만 지우고 다른 값은 그대로, 지울 것이 없으면 받은 글 그대로', () => {
+    expect(searchWithoutSlideView('?view=slide')).toBe('');
+    expect(searchWithoutSlideView('?view=present')).toBe('');
+    expect(searchWithoutSlideView('?example=a.py&view=slide')).toBe('?example=a.py');
+    expect(searchWithoutSlideView('?view=slide&example=a.py&embed=1')).toBe('?example=a.py&embed=1');
+    expect(searchWithoutSlideView('')).toBe('');
+    expect(searchWithoutSlideView('?view=read')).toBe('?view=read');
+    expect(searchWithoutSlideView('?example=a.py')).toBe('?example=a.py');
   });
 });

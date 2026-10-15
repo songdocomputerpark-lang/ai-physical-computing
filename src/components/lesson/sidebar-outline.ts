@@ -4,7 +4,7 @@
  * 순수 함수라 Vitest로 검사한다(tests/unit/lesson/ · tests/unit/book/).
  */
 import type { LearnUnit } from '../../config/nav.ts';
-import { buildUnitOutline, kindBadge, type LessonSummary } from './lesson-data.ts';
+import { buildUnitOutline, kindBadge, lessonStepLabel, type LessonSummary } from './lesson-data.ts';
 
 export interface SidebarItem {
   /** 지금 쪽인지 가릴 때 쓰는 id(쪽마다 다르다) */
@@ -49,11 +49,14 @@ export function unitSidebarOutline(unit: LearnUnit, lessons: readonly LessonSumm
     .map((section) => ({
       key: section.key,
       title: section.title,
-      items: section.items.flatMap((item): SidebarItem[] =>
-        item.lesson
-          ? [{ id: item.lesson.id, progressId: item.lesson.id, href: item.lesson.href, label: item.label, title: item.title, badge: kindBadge(item.kind) }]
-          : [],
-      ),
+      items: section.items.flatMap((item): SidebarItem[] => {
+        if (!item.lesson) {
+          return [];
+        }
+        // 대단원 마무리는 코드 같은 번호(II-마무리) 대신 읽히는 이름 하나("2단원 마무리")만 — 번호 이름과 제목이 같은 말을 하지 않게(LessonPager와 같은 규칙, 번호 값 자체와 주소는 그대로)
+        const [label, title] = item.kind === 'review' ? ['', lessonStepLabel(item.lesson)] : [item.label, item.title];
+        return [{ id: item.lesson.id, progressId: item.lesson.id, href: item.lesson.href, label, title, badge: kindBadge(item.kind) }];
+      }),
     }));
   return {
     navLabel: '단원 차시 목록',

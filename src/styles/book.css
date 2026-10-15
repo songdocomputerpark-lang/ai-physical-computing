@@ -239,6 +239,11 @@
   padding-inline-start: 0;
 }
 
+/* 부품마다 선 묶음이 따로인 레시피(3-1-2 레이저 / UART 변환기): 출판본처럼 묶음 사이를 한 칸 띄운다(목록 둘로 나누는 법은 MAINTENANCE.md 13-2) */
+.book-page .box--recipe ul + ul {
+  margin-block-start: var(--space-4);
+}
+
 /* 에러 체크 포인트 */
 .book-page .box--errcheck {
   --box-bg: #fbf6f2;
@@ -328,6 +333,17 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   text-align: center;
+}
+
+/*
+ * 좁은 화면(48rem 이하)에는 그림 문단 끝에 [그림 크게 보기] 단추가 붙는다(LessonBody.astro .figure-zoom — 높이 2.5rem).
+ * 캡션을 그림 쪽으로 끌어올리는 위의 음수 여백이 그대로면 캡션이 단추 밑으로 8px 겹쳐 글자 위쪽이 가려졌다(2026-10-16 화면 검수 1).
+ * 단추 바로 뒤의 캡션은 끌어올리지 않고 단추와 한 칸 띄운다(단추가 없는 넓은 화면·단추 없는 그림은 그대로).
+ */
+@media (max-width: 48rem) {
+  .book-page :has(.figure-zoom) + .book-caption {
+    margin-block-start: var(--space-2);
+  }
 }
 
 /* 코드 설명 목록: 줄 번호 표지(**줄 2**)를 모양으로 구별 */

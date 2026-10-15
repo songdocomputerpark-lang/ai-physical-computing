@@ -223,14 +223,18 @@ export function groupPartsByCategory(parts: readonly PartEntry[]): PartGroup[] {
 }
 
 /**
- * 가상 보드 부품 id(들)에 맞는 사진 부품을 돌려준다 — 부품 id마다 **데이터 파일에서 가장 먼저 나오는 사진 한 장**(같은 사진은 한 번만).
+ * 가상 보드 부품 id(들)에 맞는 사진 부품을 돌려준다 — 부품 id마다 **사진 한 장**(같은 사진은 한 번만).
+ * 같은 부품 id를 가리키는 사진이 여럿이면(OLED 0.96인치 SSD1306·1.3인치 SH1106, 세로형·가로형 레이저) **교과서 키트 부품(kit_name이 있는 사진)을 먼저** 고르고,
+ * 키트 부품이 없거나 모두 키트 부품이면 데이터 파일에서 먼저 나오는 것을 고른다 — 교과서·차시의 본문과 코드는 키트 부품 기준이기 때문이다(2026-10-16 화면 검수).
+ * 새 사진을 더할 때 따로 적을 칸은 없다: 키트 표에 있는 부품이면 kit_name을 적는 것만으로 대표가 된다.
  * 차시의 사진 줄(PartPhotoStrip)이 쓴다. 사진이 없는 부품 id(ble 같은)는 조용히 건너뛰고, 차례는 받은 id의 차례다.
  */
 export function pickPartsForSiteParts(parts: readonly PartEntry[], siteIds: readonly string[]): PartEntry[] {
   const picked: PartEntry[] = [];
   const seen = new Set<string>();
   for (const siteId of siteIds) {
-    const found = parts.find((part) => part.siteParts.includes(siteId));
+    const candidates = parts.filter((part) => part.siteParts.includes(siteId));
+    const found = candidates.find((part) => part.kitName !== undefined) ?? candidates[0];
     if (found && !seen.has(found.id)) {
       seen.add(found.id);
       picked.push(found);

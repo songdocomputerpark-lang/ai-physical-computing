@@ -118,6 +118,26 @@ describe('순수 도우미', () => {
     expect(pickPartsForSiteParts(parts, [])).toEqual([]);
   });
 
+  it('pickPartsForSiteParts: 같은 부품 id를 가리키는 사진이 여럿이면 교과서 키트 부품(kit_name)을 먼저, 키트 부품이 없으면 먼저 나온 것을 고른다', () => {
+    const oled096 = '  - {id: dis-011-oled-096, name: "OLED 0.96", name_en: "OLED 0.96", category: display, connection: "I2C", site_part: oled-i2c}';
+    const oled13 = '  - {id: dis-012-oled-13, name: "OLED 1.3", name_en: "OLED 1.3", category: display, connection: "I2C", site_part: oled-i2c, kit_name: "OLED(SH1106)"}';
+    const laserA = '  - {id: dis-008-laser-a, name: "레이저 A", name_en: "Laser A", category: display, connection: "디지털 출력", site_part: laser}';
+    const laserB = '  - {id: dis-009-laser-b, name: "레이저 B", name_en: "Laser B", category: display, connection: "디지털 출력", site_part: laser}';
+    const kitFirst = '  - {id: dis-020-kit-first, name: "키트 앞", name_en: "Kit first", category: display, connection: "I2C", site_part: kit-twice, kit_name: "앞"}';
+    const kitSecond = '  - {id: dis-021-kit-second, name: "키트 뒤", name_en: "Kit second", category: display, connection: "I2C", site_part: kit-twice, kit_name: "뒤"}';
+    const many = parsePartsYaml(yaml(oled096, oled13, laserA, laserB, kitFirst, kitSecond));
+    // 사진 파일 목록에서는 키트 사진이 뒤에 있어도 키트 사진이 뽑힌다
+    expect(pickPartsForSiteParts(many, ['oled-i2c']).map((part) => part.id)).toEqual(['dis-012-oled-13']);
+    // 키트 사진이 하나도 없으면 먼저 나온 사진
+    expect(pickPartsForSiteParts(many, ['laser']).map((part) => part.id)).toEqual(['dis-008-laser-a']);
+    // 키트 사진이 둘이면 그중 먼저 나온 사진
+    expect(pickPartsForSiteParts(many, ['kit-twice']).map((part) => part.id)).toEqual(['dis-020-kit-first']);
+    // 목록의 차례가 바뀌어도 같은 사진이 뽑히고, 받은 id 차례를 지킨다
+    const reversed = parsePartsYaml(yaml(oled13, oled096));
+    expect(pickPartsForSiteParts(reversed, ['oled-i2c']).map((part) => part.id)).toEqual(['dis-012-oled-13']);
+    expect(pickPartsForSiteParts(many, ['oled-i2c', 'kit-twice']).map((part) => part.id)).toEqual(['dis-012-oled-13', 'dis-020-kit-first']);
+  });
+
   it('siteIdsOf: 문자열과 { part } · { type }(밑줄은 하이픈)을 읽는다', () => {
     expect(siteIdsOf(['lcd-i2c', { part: 'touch-digital', pin: 17 } as { part: string }, { type: 'touch_analog_4ch' }, {}])).toEqual(['lcd-i2c', 'touch-digital', 'touch-analog-4ch']);
   });

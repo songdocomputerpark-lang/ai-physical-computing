@@ -6,6 +6,7 @@ import {
   bookDocumentTitle,
   bookKindOf,
   bookLabel,
+  bookNameParts,
   bookPageList,
   bookPagesLabel,
   bookPartAnchor,
@@ -79,6 +80,24 @@ describe('쪽 id와 요약', () => {
     expect(bookLabel(byId('front'))).toBe('머리말');
     expect(bookDocumentTitle(byId('2-1-2'))).toBe('2-1-2 LCD 제어하기 — 교과서 124~131쪽');
     expect(bookDocumentTitle(byId('u2-review'))).toBe('2단원 마무리 — 교과서 180~181쪽');
+  });
+});
+
+describe('제목 앞 번호 이름(bookNameParts) — 같은 말이 겹치면 한 번만', () => {
+  const books = publishedBooks(ENTRIES);
+  const byId = (id: string) => books.find((book) => book.id === id)!;
+
+  it('절은 번호와 제목을 그대로, 대단원 시작은 "2단원 시작" + 제목', () => {
+    expect(bookNameParts(byId('2-1-2'))).toEqual({ label: '2-1-2', title: 'LCD 제어하기' });
+    expect(bookNameParts(byId('u2-intro'))).toEqual({ label: '2단원 시작', title: '피지컬 컴퓨팅' });
+  });
+
+  it('제목이 번호 이름의 끝 낱말을 이미 말하면(머리말·마무리) 번호 이름은 비고 출판본 제목은 그대로다', () => {
+    expect(bookNameParts({ ...byId('front'), title: '머리말과 이 책의 구성과 특징' })).toEqual({ label: '', title: '머리말과 이 책의 구성과 특징' });
+    expect(bookNameParts(byId('u2-review'))).toEqual({ label: '', title: '대단원 마무리하기' });
+    // 제목이 다른 말이면 번호 이름이 남는다
+    expect(bookNameParts({ ...byId('front'), title: '이 책의 구성' })).toEqual({ label: '머리말', title: '이 책의 구성' });
+    expect(bookNameParts({ ...byId('u2-review'), title: '정리 문제' })).toEqual({ label: '2단원 마무리', title: '정리 문제' });
   });
 });
 

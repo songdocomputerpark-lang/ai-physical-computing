@@ -61,6 +61,10 @@ describe('부품 사전 컴포넌트(Container API)', () => {
     expect(partsForSiteParts([{ part: 'lcd-i2c' }, { type: 'touch_digital' }]).map((part) => part.id)).toEqual(['dis-001-i2c-1602-lcd', 'd-022-touch-sensor']);
   });
 
+  it('partsForSiteParts: 같은 가상 부품에 사진이 둘이면 교과서 키트 사진(OLED 1.3인치 SH1106)을 고른다', () => {
+    expect(partsForSiteParts([{ part: 'oled-i2c', id: 'oled' } as { part: string }]).map((part) => part.id)).toEqual(['dis-012-oled-1-3-sh1106']);
+  });
+
   it('KitPartsTable: 줄 수 16은 그대로이고 "사진" 칸이 생겼으며, 사진은 키트 표 줄과 kit_name으로 이어진다', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(KitPartsTable);

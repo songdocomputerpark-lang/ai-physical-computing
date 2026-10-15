@@ -8,7 +8,7 @@ import { withBase } from '../../lib/url.ts';
 import type { LessonSummary } from '../lesson/lesson-data.ts';
 import type { SidebarGroup, SidebarItem, SidebarOutline } from '../lesson/sidebar-outline.ts';
 import {
-  bookLabel,
+  bookNameParts,
   bookProgressId,
   bookUnitName,
   buildBookToc,
@@ -20,12 +20,14 @@ import {
 function toItem(book: BookSummary, lessons: readonly LessonSummary[]): SidebarItem {
   const paired = findPairedLesson(book, lessons);
   const progressId = bookProgressId(book, paired);
+  // 제목이 번호 이름과 같은 말을 하면 번호 이름은 비운다("머리말 머리말과 …" 방지 — bookNameParts). 묶음 제목이 이미 "2단원 마무리"를 말한다
+  const { label, title } = bookNameParts(book);
   return {
     id: book.id,
     ...(progressId ? { progressId } : {}),
     href: book.href,
-    label: bookLabel(book),
-    title: book.title,
+    label,
+    title,
   };
 }
 

@@ -67,7 +67,8 @@ const progressAttrs = outline.showProgress ? { 'data-progress-unit': progressIds
               {group.items.map((item) => (
                 <li class="lesson-nav__item" data-progress-lesson={item.progressId}>
                   <a class="lesson-nav__link" href={item.href} aria-current={item.id === outline.currentId ? 'page' : undefined}>
-                    <span class="lesson-nav__label">{item.label}</span>{' '}
+                    {item.label && <span class="lesson-nav__label">{item.label}</span>}
+                    {item.label && ' '}
                     {item.badge && <span class="lesson-nav__kind">{item.badge}</span>}
                     {item.badge && ' '}
                     <span class="lesson-nav__title">{item.title}</span>

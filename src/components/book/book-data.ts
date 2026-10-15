@@ -198,6 +198,21 @@ export function bookLabel(book: Pick<BookSummary, 'id' | 'kind' | 'unit'>): stri
   }
 }
 
+/**
+ * 쪽 제목 앞에 붙는 번호 이름과 제목을 한 쌍으로 — **같은 말이 겹치면 한 번만 보인다**(2026-10-16 화면 검수).
+ * 번호 이름(bookLabel)의 끝 낱말("머리말"·"시작"·"마무리")을 제목이 이미 말하면 번호 이름을 비운다:
+ * "머리말" + "머리말과 이 책의 구성과 특징" → 제목만, "1단원 마무리" + "대단원 마무리하기" → 제목만("1단원"은 머리의 "1단원" 줄·차례 묶음 제목이 말한다).
+ * 절은 번호(2-1-2)가 낱말이 아니라 늘 그대로다. 출판본 제목 글은 바꾸지 않는다(C131). 머리(h1)·왼쪽 차례가 같이 쓴다.
+ */
+export function bookNameParts(book: Pick<BookSummary, 'id' | 'kind' | 'unit' | 'title'>): { readonly label: string; readonly title: string } {
+  const label = bookLabel(book);
+  if (book.kind === 'section') {
+    return { label, title: book.title };
+  }
+  const keyword = label.split(' ').at(-1) ?? label;
+  return { label: book.title.includes(keyword) ? '' : label, title: book.title };
+}
+
 /** 브라우저 탭·검색 결과 제목. 예: "2-1-2 LCD 제어하기 — 교과서 124~131쪽", "2단원 시작 — 교과서 114~115쪽" */
 export function bookDocumentTitle(book: BookSummary): string {
   const name = book.kind === 'section' ? `${bookLabel(book)} ${book.title}` : bookLabel(book);

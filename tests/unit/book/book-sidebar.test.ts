@@ -35,6 +35,15 @@ describe('교과서 차례(bookSidebarOutline)', () => {
     ]);
   });
 
+  it('제목이 번호 이름과 같은 말을 하는 항목(머리말·마무리)은 번호 이름을 비워 한 번만 보인다', () => {
+    const items = outline.groups.flatMap((group) => group.items);
+    expect(items.find((item) => item.id === 'front')).toMatchObject({ label: '', title: '머리말' });
+    expect(items.find((item) => item.id === 'u2-review')).toMatchObject({ label: '', title: '대단원 마무리하기' });
+    // 다른 말이면 번호 이름이 남는다
+    expect(items.find((item) => item.id === 'u2-intro')).toMatchObject({ label: '2단원 시작', title: '피지컬 컴퓨팅' });
+    expect(items.find((item) => item.id === '2-1-2')).toMatchObject({ label: '2-1-2', title: 'LCD 제어하기' });
+  });
+
   it('지금 쪽 id·이름·색·진도: 짝 웹 차시가 있으면 그 진도 id, 없으면 쪽 전용 id, 앞 부속은 진도 없음', () => {
     expect(outline.currentId).toBe('2-1-2');
     expect(outline.navLabel).toBe('교과서 차례');
@@ -57,5 +66,16 @@ describe('웹 차시 단원 목록(unitSidebarOutline)', () => {
     expect(outline.progressLabel).toBe('2단원');
     const item = outline.groups.flatMap((group) => group.items).find((candidate) => candidate.id === 'u2/2-1-2');
     expect(item).toMatchObject({ progressId: 'u2/2-1-2', label: '2-1-2', href: '/ai-physical-computing/learn/u2/2-1-2/' });
+  });
+
+  it('대단원 마무리 항목은 "II-마무리" 대신 읽히는 이름 "2단원 마무리" 하나만 보인다(차시 id·주소는 그대로)', () => {
+    const withReview = [
+      ...lessons,
+      toLessonSummary({ id: 'u2/review', data: lessonSchema.parse({ title: '대단원 마무리하기', unit: 2, order: 99, kind: 'review', label: 'II-마무리' }) }),
+    ];
+    const outline = unitSidebarOutline(getLearnUnit(2), withReview, 'u2/review');
+    const review = outline.groups.flatMap((group) => group.items).find((candidate) => candidate.id === 'u2/review');
+    expect(review).toMatchObject({ progressId: 'u2/review', label: '', title: '2단원 마무리', href: '/ai-physical-computing/learn/u2/review/' });
+    expect(JSON.stringify(outline)).not.toContain('II-마무리');
   });
 });

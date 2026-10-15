@@ -20,6 +20,7 @@
 #   category    (필수) analog-sensor · digital-sensor · display · motor · i2c · comm · output · board · etc 중 하나(parts-schema.ts의 PART_CATEGORIES).
 #   connection  (필수) 보드와 어떻게 이어요? 예: 아날로그 입력(ADC), 디지털 입력, I2C, UART, PWM.
 #   site_part   가상 보드 부품 id(src/lab/modules/board/parts/ 폴더 이름). 하나 또는 [여러 개]. 있으면 카드에 "가상 보드에서 해 보기"가 생겨요.
+#               같은 부품 id를 가리키는 사진이 여럿이면 차시의 사진 줄은 kit_name이 있는(교과서 키트) 사진을 먼저 보여 줘요(parts-schema.ts pickPartsForSiteParts).
 #   kit_name    보드 준비 쪽 키트 표(src/components/start/board/kit-parts.ts)의 kitName과 글자까지 같게. 키트 표의 사진 칸이 이 사진을 써요.
 #   note        모양이 달라질 수 있거나 헷갈리기 쉬운 부품에 한 줄 안내. 판이 다른 부품에는 "키트에 따라 모양이 다를 수 있어요."를 적어요.
 #

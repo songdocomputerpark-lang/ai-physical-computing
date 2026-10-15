@@ -27,7 +27,7 @@ import {
   bookAsLesson,
   bookBreadcrumb,
   bookDocumentTitle,
-  bookLabel,
+  bookNameParts,
   bookPagesLabel,
   buildBookToc,
   findBookNeighbors,
@@ -126,7 +126,8 @@ const toc = buildBookToc(books);
 const paired = findPairedLesson(book, lessons);
 const { previous, next } = findBookNeighbors(books, book.id);
 const outline = bookSidebarOutline(books, lessons, book);
-const kindText = book.kind === 'section' ? undefined : bookLabel(book);
+// 제목 앞 번호 이름(절은 번호, 시작·마무리·머리말은 읽히는 이름) — 제목이 같은 말을 이미 하면 비어서 한 번만 보인다(book-data.ts bookNameParts)
+const { label: headingLabel } = bookNameParts(book);
 const done = bookAsLesson(book, paired);
 const nextForDone = next ? bookAsLesson(next, findPairedLesson(next, lessons)) : undefined;
 const unitClass = book.unit ? unitCardClass(book.unit) : '';
@@ -152,10 +153,8 @@ const mediaInfos = book.media.map((key) => ({ key, ...BOOK_MEDIA_INFO[key] }));
           <span class="book-header__unit">{book.unit ? `${book.unit}단원` : '교과서'}{book.part ? ` · ${book.part}` : ''}</span>
         </p>
         <h1 class="page-title book-header__title">
-          {kindText && <span class="book-header__label">{kindText}</span>}
-          {kindText && ' '}
-          {book.kind === 'section' && <span class="book-header__label">{book.id}</span>}
-          {book.kind === 'section' && ' '}
+          {headingLabel && <span class="book-header__label">{headingLabel}</span>}
+          {headingLabel && ' '}
           <span class="book-header__name">{book.title}</span>
         </h1>
         <p class="book-header__badges" data-present-hide data-pagefind-ignore>
