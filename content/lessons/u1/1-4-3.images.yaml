@@ -1,0 +1,49 @@
+# 차시 1-4-3 "말을 글로 바꾸는 기술"의 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-4-3
+# 결과는 public/images/lessons/1-4-3/ 아래 WebP(메타데이터 없음). file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 이 차시는 교과서 원고가 없던 곳이라 출판본 교과서(원본 약칭 BOOK, 판 1.4.0)에서만 꺼내요 — 교과서 쪽 /book/1-4-3/에 쓴다.
+# 103쪽 마이크·스마트폰 그림은 스톡 그림이라 꺼내지 않아요(C11). 106쪽·110쪽 실행 결과 화면은 글이라 교과서 쪽에 글(코드 칸)로 옮겨요.
+
+images:
+  - name: program-structure
+    use: 교과서 쪽 1-4-3 "3 음성 인식하기 프로그램 구조" 흐름도(출판본 104쪽)
+    alt: "음성 인식하기 프로그램 구조 흐름도. 입력, 마이크를 통해 음성을 입력. 입력 확인, 마이크 상태를 점검하고 입력 오류 발생 시 사용자에게 안내. 음성 변환, 입력된 음성을 디지털 신호로 변환하고, STT 기술을 통해 텍스트로 변환. 오류 처리, 음성 인식 또는 서버 통신 과정에서 발생할 수 있는 오류를 처리. 키워드 탐지, 변환된 텍스트에서 키워드 탐지. 입력 확인부터 키워드 탐지까지의 네 단계는 처리 단계로 묶여 있고, 마지막 출력 단계는 키워드에 따라 화면을 출력하거나 프로그램을 종료하며, 키워드가 없으면 다음 입력 대기"
+    from:
+      source: BOOK
+      page: 104
+      region: [178, 118, 527, 389]
+    file: public/images/lessons/1-4-3/program-structure.webp
+    width: 960
+    height: 746
+    bytes: 43050
+    sha256: "4c6bbbd3c3724353f6cd1e6eda3e402476dd68fc1420f9e9a213cefa92117fc5"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 얼굴·이름·경로·파일명·기기 주소·학교명 없음. 프로그램 구조 흐름도(둥근 상자 단계 이름 + 설명 글과 '처리' 묶음 표시)뿐이고 사람 사진은 없음"
+  - name: interaction-flow
+    use: 교과서 쪽 1-4-3 "4 음성 인식하기 프로그램 기능 및 사용자 인터랙션" 옆 흐름도(출판본 104쪽)
+    alt: "사용자 음성 입력, 예 사용자 음성 시작해. 음성 텍스트 변환. 인식 결과 텍스트 출력, 예 인식된 내용 시작. 키워드 탐지. 키워드 탐지 결과에 따라 감지 없음이거나 키워드에 맞는 프로그램 반응으로 나뉘는 흐름도"
+    from:
+      source: BOOK
+      page: 104
+      region: [52, 503, 183, 716]
+    file: public/images/lessons/1-4-3/interaction-flow.webp
+    width: 401
+    height: 652
+    bytes: 16874
+    sha256: "108ef09a401368dd63ec8b512813691df6f5e2aa8e87c5f024d0de0cd486338e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 음성 인식 흐름(사용자 음성 입력 → 음성 텍스트 변환 → 인식 결과 출력 → 키워드 탐지 → 감지 없음/프로그램 반응)을 파랑 상자로 그린 그림뿐. 얼굴·이름·경로·기기 주소·학교명 없음"

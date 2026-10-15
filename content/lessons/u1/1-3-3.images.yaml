@@ -1,0 +1,72 @@
+# 차시 1-3-3 "내 얼굴에 맞춤 필터 만들기"의 그림 목록 — 허용 목록 + 눈 확인 기록(PLAN §8.5 P5-01, PD-18·PD-32)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 1-3-3
+# 결과는 public/images/lessons/1-3-3/ 아래 WebP(메타데이터 없음). file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 이 차시는 교과서 원고가 없던 곳이라 출판본 교과서(원본 약칭 BOOK, 판 1.4.0)에서만 꺼내요 — 교과서 쪽 /book/1-3-3/에 쓴다.
+# 74쪽 실행 화면·80쪽 실행 결과는 얼굴 전체를 이모지 마스크가 덮어 얼굴이 보이지 않는 사진이라 꺼내요(얼굴 검사 0).
+# 76쪽 실행 결과(얼굴이 보이는 사진)는 운영자·공동 저자 본인 얼굴인지 확인되지 않아 꺼내지 않아요.
+
+images:
+  - name: program-structure
+    use: 교과서 쪽 1-3-3 "3 마스크 합성하기 프로그램 구조" 흐름도(출판본 74쪽)
+    alt: "마스크 합성하기 프로그램 구조 흐름도. 입력, 웹캠으로 실시간 얼굴 영상을 받아 프레임 단위로 처리. 프레임 캡처, 영상 스트림에서 각 프레임 이미지를 순차적으로 추출. 페이스 메시 검출, 얼굴의 상하좌우 주요 4개 랜드마크 추출. 위치 계산 및 시각화, 추출한 좌표 기준으로 시각화. 이미지 합성 처리, 마스크 이미지를 얼굴 위에 합성. 입력부터 이미지 합성 처리까지의 다섯 단계는 처리 단계로 묶여 있고, 마지막 출력 단계는 사각형 또는 마스크 이미지를 화면에 출력한다"
+    from:
+      source: BOOK
+      page: 74
+      region: [178, 118, 527, 389]
+    file: public/images/lessons/1-3-3/program-structure.webp
+    width: 960
+    height: 746
+    bytes: 36994
+    sha256: "7f2e1021e27e17e274e60a38f6335aa9fdfefec58153f8ff2a6d4b294060b481"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 얼굴·이름·경로·파일명·기기 주소·학교명 없음. 프로그램 구조 흐름도(둥근 상자 단계 이름 + 설명 글과 '처리' 묶음 표시)뿐이고 사람 사진은 없음"
+  - name: ui-mask-screen
+    use: 교과서 쪽 1-3-3 "4 마스크 합성하기 프로그램 기능과 사용자 인터페이스" 실행 화면(출판본 74쪽) — 얼굴 전체를 이모지 마스크가 덮고 있음
+    alt: "웹캠으로 찍은 사람의 얼굴 전체를 웃는 노란 이모지 마스크가 가리고, 마스크 가장자리에 빨간 하트가 붙은 프로그램 실행 화면"
+    from:
+      source: BOOK
+      page: 74
+      region: [211, 530, 498, 747]
+    file: public/images/lessons/1-3-3/ui-mask-screen.webp
+    width: 878
+    height: 664
+    bytes: 17882
+    sha256: "9b21a0c4177140914ab8c1b8b7398fd0667dfd09f8fd5f4b0f60412ccdbede6e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[290, 188, 254, 254]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과(운영자 확인 권장) — 웹캠 화면에 얼굴 전체를 노란 웃는 이모지 마스크와 빨간 하트가 덮어 눈·코·입이 보이지 않는 실행 화면. 머리카락·귀·목·셔츠 윗부분만 보임. OpenCV가 얼굴로 본 1곳은 이모지의 웃는 얼굴(사람 얼굴 없음). 이름·경로·파일명·기기 주소·학교명 없음. 출판본 74쪽, 얼굴이 가려지지 않은 사진(53·54·56쪽 등)은 꺼내지 않음"
+  - name: mask-result
+    use: 교과서 쪽 1-3-3 심화 실습 "실행 결과" 사진(출판본 80쪽) — 얼굴 전체를 이모지 마스크가 덮고 있음, 사진 오른쪽의 설명 상자는 뺌
+    alt: "웹캠 영상 속 사람의 얼굴 위에 웃는 노란 이모지 마스크가 씌워진 실행 결과 화면"
+    from:
+      source: BOOK
+      page: 80
+      region: [183, 278, 333, 431]
+    file: public/images/lessons/1-3-3/mask-result.webp
+    width: 460
+    height: 468
+    bytes: 11870
+    sha256: "835956871e29ba26d533adcc25dcfcea008c07bf534aad328bb91fa6c05df885"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[183, 155, 172, 172]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과(운영자 확인 권장) — 같은 이모지 마스크가 얼굴 전체를 덮은 실행 결과 사진(오른쪽의 설명 상자는 뺌). 눈·코·입이 보이지 않고 머리카락·귀·목·셔츠 윗부분만 보임. OpenCV가 얼굴로 본 1곳은 이모지의 웃는 얼굴(사람 얼굴 없음). 이름·경로·파일명·기기 주소·학교명 없음"
