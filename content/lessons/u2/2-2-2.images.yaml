@@ -49,3 +49,105 @@ images:
       by: claude
       date: 2026-09-25
       result: "통과 — 흰 바탕 위 확장 보드에 꽂은 ESP32, 'MP3 Player' 모듈, 둥근 스피커, 'Analog Touch Sensor' 글자가 적힌 4채널 터치 센서와 3색·4색 케이블, 2번 패드를 누르는 손가락 하나만 있음(손가락 끝뿐이고 지문·반지·손목 등 알아볼 만한 것은 없음). 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람 얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: mp3-speaker-photo
+    use: "교과서 쪽 2-2-2 \"1 MP3의 이해\" 아래 그림 — MP3 플레이어와 스피커(출판본 161쪽)"
+    alt: "스피커와 빨간 MP3 플레이어 모듈을 선으로 이은 사진. 글자는 스피커와 MP3 플레이어이다"
+    from:
+      source: BOOK
+      page: 161
+      region: [122, 324, 362, 466]
+    file: public/images/lessons/2-2-2/mp3-speaker-photo.webp
+    width: 734
+    height: 435
+    bytes: 20558
+    sha256: "62db39367c4a32538452b86d4ab1686d8736912646011ff69bb2c505c7271f06"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[400, 104, 48, 48]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 스피커와 빨간 MP3 플레이어 모듈을 선으로 이은 제품 사진에 스피커·MP3 플레이어 이름표 화살표뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: mp3-wiring-photo
+    use: "교과서 쪽 2-2-2 \"3 회로 구성\" MP3 플레이어 연결 레시피 판의 배선 그림(출판본 162쪽, 키트 업체 제품 사진)"
+    alt: "MP3 플레이어 모듈과 스피커를 ESP32 확장 보드에 선으로 이은 연결 그림. 검정 선은 GND, 빨강 선은 VCC, 노랑 선 두 개는 TX(16번 핀)와 RX(17번 핀)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 162
+      region: [231, 130, 505, 262]
+    file: public/images/lessons/2-2-2/third-party/kit-vendor/mp3-wiring-photo.webp
+    width: 838
+    height: 405
+    bytes: 47870
+    sha256: "189367412bc8bd114608e5e25d634331dc21d7a3fbbb507147ac960ab922d096"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — MP3 플레이어 모듈·스피커와 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: mp3-announcement-result
+    use: "교과서 쪽 2-2-2 기본 실습 \"실행 결과\" — 안내 방송 출력 사진과 셸 화면(출판본 163쪽)"
+    alt: "스피커와 MP3 플레이어 모듈을 이은 ESP32 보드 사진 옆에, 셸에 안내 방송 출력이 두 줄 찍힌 화면이 있다"
+    from:
+      source: BOOK
+      page: 163
+      region: [195, 640, 449, 718]
+    file: public/images/lessons/2-2-2/mp3-announcement-result.webp
+    width: 777
+    height: 239
+    bytes: 18668
+    sha256: "ca23f10886e20aab9c15ad3c210fd96d5945c728ee622c1263b764a89dfba0c8"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — USB 케이블이 꽂힌 ESP32 보드와 스피커, MP3 모듈 사진과 셸 출력(안내 방송 출력)뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: mp3-touch-play-result
+    use: "교과서 쪽 2-2-2 심화 실습 \"실행 결과\" — 터치 센서로 다음 곡을 재생하는 사진과 셸 화면(출판본 165쪽)"
+    alt: "ESP32 보드에 이은 MP3 플레이어와 스피커, 4채널 터치 센서 사진 옆에 오른쪽 화살표가 있고, 그 옆의 셸 화면에 ADC 값이 줄마다 출력되며 다음 곡을 알리는 줄이 보인다"
+    from:
+      source: BOOK
+      page: 165
+      region: [195, 485, 482, 562]
+    file: public/images/lessons/2-2-2/mp3-touch-play-result.webp
+    width: 878
+    height: 236
+    bytes: 21834
+    sha256: "03859667248545d5c467102b251bf4866c67aab8516b54f3225dda9dd39ba298"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 스피커·MP3 모듈·4채널 터치 센서를 이은 ESP32 보드 사진과 셸 출력(ADC 값·다음 곡)뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: mp3-touch-stop-result
+    use: "교과서 쪽 2-2-2 심화 실습 \"실행 결과\" — 터치 센서로 재생을 멈추는 사진과 셸 화면(출판본 165쪽)"
+    alt: "같은 장치에서 손가락으로 터치 센서의 다른 버튼을 누르는 사진 옆에 오른쪽 화살표가 있고, 그 옆의 셸 화면에 정지를 알리는 줄이 보인다"
+    from:
+      source: BOOK
+      page: 165
+      region: [195, 605, 482, 686]
+    file: public/images/lessons/2-2-2/mp3-touch-stop-result.webp
+    width: 878
+    height: 248
+    bytes: 20498
+    sha256: "56b8d5620cfb42d069f5757630e9892db3676d0eb32fb4f3f2c49e94a9018b11"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 같은 장치의 터치 센서를 손가락으로 누르는 사진(손가락만 보임)과 셸 출력(ADC 값·정지)뿐. 얼굴·이름·경로·기기 주소·학교명 없음"

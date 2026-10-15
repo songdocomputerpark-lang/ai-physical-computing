@@ -50,3 +50,125 @@ images:
       by: claude
       date: 2026-09-25
       result: "통과 — 흰 바탕 위 ESP32 개발 보드, 확장 보드, 케이블과 꺼진 레이저 모듈, 파랗게 켜진 RGB LED 모듈만 있음. checks.faces 1곳([309, 280, 60, 60])은 파랗게 빛나는 둥근 LED 머리 부분이고 사람 얼굴이 아님. 기판에 키트 상표 글자와 로고가 보임. 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: led-emission-diagram
+    use: "교과서 쪽 2-1-4 \"LED의 발광 원리\" 용어 풀이의 반도체 그림(출판본 142쪽)"
+    alt: "위쪽 파란 P형 층의 정공과 아래쪽 분홍 N형 층의 전자가 만나는 모습을 그린 그림. 위로는 빛 화살표가, 아래로는 열 화살표가 나가고 양극(+)과 음극(-) 표시가 있다"
+    from:
+      source: BOOK
+      page: 142
+      region: [54, 594, 164, 714]
+    file: public/images/lessons/2-1-4/led-emission-diagram.webp
+    width: 337
+    height: 368
+    bytes: 7940
+    sha256: "af41a3f71b4f5ec8127286f3d8c9b78c7c920f2ccf09ecae48b282499b10863f"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — P형·N형 반도체 층, 정공·전자 점, 빛·열 화살표와 +/- 기호만 있는 출판사 그림. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: rgb-wiring-photo
+    use: "교과서 쪽 2-1-4 \"3 RGB LED 회로 구성하기\" 연결 레시피 판의 배선 그림(출판본 143쪽, 키트 업체 제품 사진)"
+    alt: "RGB LED 모듈의 선 다섯 개를 ESP32 확장 보드에 꽂은 연결 그림. 검정 선은 GND, 빨강 선은 VCC, 노랑·초록·파랑 선은 각각 Red(27번 핀), Green(32번 핀), Blue(33번 핀)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 143
+      region: [225, 138, 516, 280]
+    file: public/images/lessons/2-1-4/third-party/kit-vendor/rgb-wiring-photo.webp
+    width: 890
+    height: 435
+    bytes: 54576
+    sha256: "823dcf4cbb2a660651bdddaad8c967914433b0301809cc31482aa11ec8afb484"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — RGB LED 모듈과 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 다섯 가닥 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: laser-wiring-photo
+    use: "교과서 쪽 2-1-4 \"5 레이저 회로 구성하기\" 연결 레시피 판의 배선 그림(출판본 144쪽, 키트 업체 제품 사진)"
+    alt: "레이저 모듈의 선 세 개를 ESP32 확장 보드에 꽂은 연결 그림. 검정 선은 GND, 빨강 선은 VCC, 노랑 선은 SIG(21번 핀)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 144
+      region: [228, 130, 511, 265]
+    file: public/images/lessons/2-1-4/third-party/kit-vendor/laser-wiring-photo.webp
+    width: 865
+    height: 414
+    bytes: 50058
+    sha256: "e846ab2abd39528cb60bdcd12925e32e28b9a08045fdda61e587adb22357ffbc"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 레이저 모듈과 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 세 가닥 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: rgb-siren-result
+    use: "교과서 쪽 2-1-4 기본 실습 1 \"동작 결과\" — RGB LED 밝기가 변하는 사진 다섯 장(출판본 145쪽)"
+    alt: "ESP32 보드에 이은 RGB LED 모듈의 빨간 불이 왼쪽에서 오른쪽으로 갈수록 밝아졌다 어두워지는 사진 다섯 장과 오른쪽을 향한 빨간 화살표"
+    from:
+      source: BOOK
+      page: 145
+      region: [66, 624, 543, 718]
+    file: public/images/lessons/2-1-4/rgb-siren-result.webp
+    width: 960
+    height: 190
+    bytes: 32226
+    sha256: "8b20e8a310d1edac2f4b02ef1c16a83272c8e169d98bbc197c8d10de059feecd"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — ESP32 보드에 이은 RGB LED 모듈의 빨간 불 밝기 변화 사진 다섯 장과 빨간 화살표뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: rgb-laser-on
+    use: "교과서 쪽 2-1-4 기본 실습 2 \"실행 결과\" — 레이저가 켜지고 빨간 LED가 켜진 사진(출판본 146쪽)"
+    alt: "ESP32 보드에 이은 레이저 모듈이 켜져 있고 RGB LED 모듈에 빨간 불이 들어온 사진"
+    from:
+      source: BOOK
+      page: 146
+      region: [183.6, 601.2, 341.6, 700.5]
+    file: public/images/lessons/2-1-4/rgb-laser-on.webp
+    width: 484
+    height: 305
+    bytes: 23468
+    sha256: "25f624f3f7927854192cebdb92ff6422529387ac0a544de62532894831e33f5e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — USB 케이블과 선으로 이은 ESP32 보드, 레이저 모듈과 빨간 불이 켜진 RGB LED 모듈 사진뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: rgb-laser-off
+    use: "교과서 쪽 2-1-4 기본 실습 2 \"실행 결과\" — 레이저가 꺼지고 파란 LED가 켜진 사진(출판본 146쪽)"
+    alt: "같은 보드에서 레이저가 꺼지고 RGB LED 모듈에 파란 불이 들어온 사진"
+    from:
+      source: BOOK
+      page: 146
+      region: [350.5, 601.2, 508.4, 700.6]
+    file: public/images/lessons/2-1-4/rgb-laser-off.webp
+    width: 484
+    height: 305
+    bytes: 23106
+    sha256: "7eafc7168af3455e86ee955741cc1e2afca11ff401bd671ce7ded91f69591113"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 같은 장치에서 레이저가 꺼지고 RGB LED 모듈에 파란 불이 켜진 사진뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"

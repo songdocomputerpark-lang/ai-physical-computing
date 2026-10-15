@@ -50,3 +50,125 @@ images:
       by: claude
       date: 2026-09-25
       result: "통과 — 흰 바탕 위 'ESP32 Shield V2' 확장 보드에 꽂은 ESP32 개발 보드, USB 케이블, 두 줄의 3색 케이블과 나란히 놓인 서보모터 두 개(검은 팔)만 있음. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: servo-wiring-photo
+    use: "교과서 쪽 2-2-4 \"3 회로 구성\" 서보모터 연결하기 판의 배선 그림(출판본 174쪽, 키트 업체 제품 사진)"
+    alt: "서보모터의 선 세 개를 ESP32 확장 보드에 꽂은 연결 그림. 검정(갈색) 선은 GND, 빨강 선은 VCC, 노랑 선은 GPIO 25번 핀이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 174
+      region: [217, 131, 506, 276]
+    file: public/images/lessons/2-2-4/third-party/kit-vendor/servo-wiring-photo.webp
+    width: 884
+    height: 444
+    bytes: 71316
+    sha256: "bf11bc2f3788d62363940ceca05966c8c8fc3d33bcce2fdae191c1394b10b23b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[293, 159, 100, 100]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 서보모터와 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 세 가닥 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: servo-lib-save-screen
+    use: "교과서 쪽 2-2-4 \"4 동작 테스트\" 단계 1 — servo_library.py를 마이크로파이썬 장치에 저장하는 화면(출판본 174쪽)"
+    alt: "코드 편집기에 servo_library.py의 ServoMotor 클래스 코드가 열려 있고, 파일 메뉴의 '...(으)로 저장'과 저장 위치를 묻는 창의 'MicroPython device'를 고르는 화면. 설명 글은 '파일 → ..(으)로 저장 클릭'과 'servo_library.py으로 저장'이다"
+    from:
+      source: BOOK
+      page: 174
+      region: [188, 396, 528, 604]
+    file: public/images/lessons/2-2-4/servo-lib-save-screen.webp
+    width: 960
+    height: 589
+    bytes: 43096
+    sha256: "d5754d4d94bb51c9950ef07a165944509ba9c48f234586fab3d4b78e2a2fdb55"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기에 열린 servo_library.py 코드(ServoMotor 클래스)와 저장 위치 창(MicroPython device)을 빨간 선으로 짚은 화면. 파일 목록에는 라이브러리 파일 이름 두어 개만 보임. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: servo-angle-result
+    use: "교과서 쪽 2-2-4 동작 테스트 \"실행 결과\" — 서보모터가 0도·90도·180도로 움직이는 사진과 날개 그림(출판본 175쪽)"
+    alt: "ESP32 보드에 이은 서보모터 사진 옆에, 서보모터 날개의 자리를 왼쪽 180˚, 가운데 세로 90˚, 오른쪽 0˚로 나타낸 그림이 있다"
+    from:
+      source: BOOK
+      page: 175
+      region: [195, 378, 499, 478]
+    file: public/images/lessons/2-2-4/servo-angle-result.webp
+    width: 930
+    height: 307
+    bytes: 19324
+    sha256: "7dda5042cec64b955f893c565da79814fd9fa3e61caa4e8808d8908d5365033b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 서보모터를 단 ESP32 보드 사진과 서보 날개의 180˚·90˚·0˚ 위치 그림뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: servo-sweep-result
+    use: "교과서 쪽 2-2-4 기본 실습 \"실행 결과\" — 서보모터 날개가 움직이는 사진 두 장(출판본 176쪽)"
+    alt: "서보모터를 단 ESP32 보드 사진 두 장. 서보모터 날개의 방향이 서로 다르다"
+    from:
+      source: BOOK
+      page: 176
+      region: [181, 438, 519, 563]
+    file: public/images/lessons/2-2-4/servo-sweep-result.webp
+    width: 960
+    height: 356
+    bytes: 43460
+    sha256: "f9ef20e70e630f1fd11c88119683c6fd91b4fb1c3de8c6c0b4c6c232e16cadb1"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 서보모터를 단 ESP32 확장 보드 사진 두 장뿐(날개 방향만 다름). 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: servo-two-result
+    use: "교과서 쪽 2-2-4 심화 실습 1 \"실행 결과\" — 서보모터 두 개를 이은 사진(출판본 177쪽)"
+    alt: "ESP32 확장 보드에 서보모터 두 개를 선으로 이은 사진"
+    from:
+      source: BOOK
+      page: 177
+      region: [196, 449, 540, 654]
+    file: public/images/lessons/2-2-4/servo-two-result.webp
+    width: 960
+    height: 572
+    bytes: 47118
+    sha256: "9d4afd146aa30282febec303bcf574007b8eb111762b3f24f16aa213f4640155"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 서보모터 두 개를 선으로 이은 ESP32 확장 보드 사진뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: servo-keyboard-photo
+    use: "교과서 쪽 2-2-4 심화 실습 2 \"실행 결과\" — 키보드로 제어하는 서보모터 사진(출판본 178쪽)"
+    alt: "ESP32 보드에 이은 서보모터 사진"
+    from:
+      source: BOOK
+      page: 178
+      region: [359, 574, 512, 684]
+    file: public/images/lessons/2-2-4/servo-keyboard-photo.webp
+    width: 469
+    height: 337
+    bytes: 20336
+    sha256: "4ea9fa08148a71bf776e1a9921722be143be7bfbb9acbe71222d19ab028d3e05"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 서보모터를 단 ESP32 확장 보드 사진뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"

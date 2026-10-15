@@ -1,0 +1,70 @@
+# 차시 2-2-3 "팬 모터 활용하기"의 그림 목록 — 허용 목록 + 눈 확인 기록(판 1.4.0, 운영자 결정 O17, DECISIONS C135)
+#
+# 여기에 적은 그림만 원고 이미지 추출 도구가 원본에서 꺼내요: npm run images:extract -- 2-2-3
+# 결과는 public/images/lessons/2-2-3/ 아래 WebP(메타데이터 없음). 쪽 좌표 고르기: npm run images:show -- BOOK 168
+# file·width·height·bytes·sha256·checks는 도구가 적어요(손으로 고치지 않아요).
+#
+# 이 목록의 그림은 모두 출판본 교과서(원본 약칭 BOOK) 167~172쪽에서 꺼낸 것이고 교과서 쪽 /book/2-2-3/에 써요.
+# 167쪽 일상생활 속 팬 모터 사진 두 장은 스톡 사진(교과서 296쪽 사진 출처)이라 꺼내지 않았어요.
+images:
+  - name: fan-wiring-photo
+    use: "교과서 쪽 2-2-3 \"3 회로 구성\" 팬 모터 연결 레시피 판의 배선 그림(출판본 168쪽, 키트 업체 제품 사진)"
+    alt: "팬 모터 모듈의 선 네 개를 ESP32 확장 보드에 꽂은 연결 그림. 검정 선은 GND, 빨강 선은 VCC, 노랑 선 두 개는 INA(GPIO 25번 핀)와 INB(GPIO 26번 핀)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 168
+      region: [264, 132, 498, 238]
+    file: public/images/lessons/2-2-3/third-party/kit-vendor/fan-wiring-photo.webp
+    width: 716
+    height: 325
+    bytes: 44146
+    sha256: "7da423c641281b3926b2ebe57a3f0f0d0f1222fce43d3e4cc4415e1f2e259ff4"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 팬 모터 모듈과 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: fan-lib-save-screen
+    use: "교과서 쪽 2-2-3 \"5 라이브러리 사용하기\" 단계 1 — 라이브러리 파일을 마이크로파이썬 장치에 저장하는 화면(출판본 169쪽)"
+    alt: "코드 편집기에서 라이브러리 파일의 '...(으)로 저장'을 고르고, 저장 위치를 묻는 창에서 'MicroPython device'를 고르는 화면. 설명 글은 '파일 → ..(으)로 저장 클릭'과 'gorillacell_dcmotor.py으로 저장'이다"
+    from:
+      source: BOOK
+      page: 169
+      region: [203, 302, 545, 490]
+    file: public/images/lessons/2-2-3/fan-lib-save-screen.webp
+    width: 960
+    height: 528
+    bytes: 46860
+    sha256: "0fb15940a11011064433e956b1dafa22476f60f6fd1cba6e812155545058e29a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기에서 gorillacell_dcmotors 코드가 열린 화면과 저장 위치 창(MicroPython device)을 빨간 선으로 짚은 그림뿐. 파일 목록에는 라이브러리 파일 이름 두어 개만 보임. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: fan-speed-result
+    use: "교과서 쪽 2-2-3 기본 실습 \"실행 결과\" — 팬 모터 날개가 도는 사진 두 장(출판본 170쪽)"
+    alt: "손가락으로 잡은 팬 모터의 빨간 날개가 천천히 도는 모습과 빠르게 도는 모습을 찍은 사진 두 장"
+    from:
+      source: BOOK
+      page: 170
+      region: [183, 464, 436, 587]
+    file: public/images/lessons/2-2-3/fan-speed-result.webp
+    width: 774
+    height: 377
+    bytes: 19458
+    sha256: "4468f0a3106ab08243b74d17da5d459dfd26566b92b46aaf3c8708f559644667"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 손가락으로 잡은 팬 모터 날개(위쪽에 확장 보드 핀 일부) 사진 두 장. 손과 날개만 보이고 얼굴 없음. 이름·경로·기기 주소·학교명 없음"

@@ -35,3 +35,510 @@ images:
       by: claude
       date: 2026-09-25
       result: 통과 — 빨간 ESP32 개발 보드를 꽂은 파란 확장 보드 사진과 원고 이름표(리셋·부트 버튼, ESP32-WROOM-32 모듈, USB-C 포트, 전원 버튼, 입출력 핀 영역, I2C 통신 영역, 고속 통신 핀)만 있음. 기판에 키트 상표 글자와 로고가 보임(업체 제품 사진으로 보여 제3자 kit-vendor로 둠 — 실제 키트 연결 안내용). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음
+  - name: flow-input-process-output
+    use: "교과서 쪽 2-1-1 \"1 피지컬 컴퓨팅\" — 입력 장치, 처리 장치, 출력 장치로 이어지는 구성 그림(출판본 117쪽)"
+    alt: "손가락으로 누르는 그림의 입력 장치에서 반도체 칩 그림의 처리 장치로, 다시 컴퓨터 모니터 그림의 출력 장치로 화살표가 이어지는 피지컬 컴퓨팅의 구성"
+    from:
+      source: BOOK
+      page: 117
+      region: [74, 372, 420, 468]
+    file: public/images/lessons/2-1-1/flow-input-process-output.webp
+    width: 960
+    height: 267
+    bytes: 10786
+    sha256: "9023a16aaab347e15c0ae8b831b267ef5e75254f4f8a6ae3d5299644f78cbebe"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 입력 장치(손가락)·처리 장치(칩)·출력 장치(모니터) 아이콘과 화살표, 이름 글자뿐인 출판사 그림. 사람 얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: esp32-board-labeled
+    use: "교과서 쪽 2-1-1 \"3 하드웨어 구성 이해\" — ESP32 구성 이름표 그림(출판본 118쪽, 키트 업체 제품 사진)"
+    alt: "파란 확장 보드에 빨간 ESP32 개발 보드를 꽂은 사진에 이름표를 단 그림. 이름표는 리셋 버튼, 부트 버튼(펌웨어 업로드 시 사용), ESP32-WROOM-32 모듈(Wi-Fi+Bluetooth 기능을 가진 MCU), ESP 개발 보드(USB-C 포트를 통해 프로그램 업로드 및 전원 공급), 전원 버튼, 리셋 버튼, 실드(아두이노에 조립 블록처럼 꽂아 다양한 센서나 장치를 연결하여 기능을 추가), 입출력 핀 영역을 3개의 영역으로 나누어 입력 장치, 출력 장치, 통신·제어 장치로 구분하여 활용 가능, 고속 통신 방식 4개의 신호선 사용, I2C 통신 영역(GPIO 21, 22)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 118
+      region: [55, 133, 525, 442]
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/esp32-board-labeled.webp
+    width: 960
+    height: 632
+    bytes: 82668
+    sha256: "23594a5fb9349d7dd84ed097b7471b1925776fded06a58e28e8e956fdfad5c75"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 파란 확장 보드에 꽂은 빨간 ESP32 개발 보드 사진과 이름표(리셋·부트 버튼, ESP32-WROOM-32 모듈, 전원 버튼, 실드, 입출력 핀 영역, 고속 통신, I2C 영역)만 있음. 기판에 키트 상표 글자와 로고가 보임(업체 제품 사진이라 kit-vendor). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: connect-usb-cable
+    use: "교과서 쪽 2-1-1 \"하드웨어 세팅\" ❶ — 보드와 컴퓨터를 케이블로 연결한 사진(출판본 118쪽, 키트 업체 제품 사진)"
+    alt: "파란 확장 보드에 꽂은 ESP32 개발 보드의 USB-C 포트에 검정 케이블이 연결된 사진"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 118
+      region: [67, 555.3, 184.4, 628.2]
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/connect-usb-cable.webp
+    width: 360
+    height: 224
+    bytes: 17418
+    sha256: "6f6365e50a527e3413c55fbda32fff46279c74988b41c71bb0aa658e64d95a64"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 보드의 USB-C 포트에 검정 케이블을 꽂은 보드 사진뿐(키트 상표 글자 보임, kit-vendor). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: connect-sensor-cable
+    use: "교과서 쪽 2-1-1 \"하드웨어 세팅\" ❷ — 보드의 핀에 센서 케이블을 연결한 사진(출판본 118쪽, 키트 업체 제품 사진)"
+    alt: "USB 케이블이 연결된 같은 보드의 노란 핀 줄 한 곳에 검정, 빨강, 노랑 세 가닥 선이 꽂힌 사진"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 118
+      region: [67, 630.4, 184.4, 703.3]
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/connect-sensor-cable.webp
+    width: 360
+    height: 224
+    bytes: 17878
+    sha256: "6d24d075fbc41b9813041bfc4e8020fb50bbbc7ba3bcdd07a010d658d1c7164f"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 같은 보드의 핀 줄에 검정·빨강·노랑 세 가닥 선을 꽂은 보드 사진뿐(kit-vendor). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: actuator-pinouts
+    use: "교과서 쪽 2-1-1 \"주요 액추에이터 구성\" — 부품 열 가지의 사진과 핀 이름(출판본 119쪽, 키트 업체 제품 사진)"
+    alt: "주요 액추에이터 열 가지의 사진과 핀 이름. RGB LED 5핀은 GND, VCC, R, G, B. 버저 3핀은 GND, VCC, SIG. LCD 4핀은 GND, VCC, SDA, SCL. OLED 4핀은 GND, VCC, SDA, SCL. MP3 Player 4핀은 GND, VCC, TX, RX. 팬 모터 4핀은 GND, VCC, InA, InB. 레이저 3핀은 GND, VCC, SIG. 네오픽셀 3핀은 GND, VCC, DIN. 진동 모터 3핀은 GND, VCC, SIG. 서보모터 3핀은 GND, VCC, SIG"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 119
+      region: [85, 92, 535, 712]
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/actuator-pinouts.webp
+    width: 960
+    height: 1323
+    bytes: 70272
+    sha256: "7dca3bfe820acafef786222e4abcc4662ae3102804f578c2b65152d6fd3b5e04"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 부품 열 가지(RGB LED·버저·LCD·OLED·MP3·팬 모터·레이저·네오픽셀·진동 모터·서보모터)의 제품 사진과 핀 이름 글자뿐(kit-vendor). 부품 사진에 키트 로고가 보임. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: ch340-board
+    use: "교과서 쪽 2-1-1 \"드라이버 설치\" — 드라이버 설치를 설명하는 ESP32 보드 사진(출판본 120쪽, 키트 업체 제품 사진)"
+    alt: "파란 확장 보드에 빨간 ESP32 개발 보드를 꽂은 사진"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 120
+      region: [173.4, 155.3, 406.8, 316.9]
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/ch340-board.webp
+    width: 714
+    height: 494
+    bytes: 82716
+    sha256: "5a07f8652b5bdbb1ab56a642752a6c05572130905bbad6660572f12eece57732"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[620, 19, 49, 49]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 파란 확장 보드에 꽂은 빨간 ESP32 개발 보드 사진뿐(kit-vendor). 얼굴 검출 1곳은 보드에 인쇄된 고릴라 로고 오탐이며 사람 얼굴 없음. 이름·경로·기기 주소·학교명 없음"
+  - name: ch340-step1
+    use: "교과서 쪽 2-1-1 \"드라이버 설치\" ❶ 검색창에 CH340 드라이버를 검색한 화면(출판본 120쪽)"
+    alt: "검색창에 CH340 드라이버를 입력해 검색한 결과 화면. 첫 결과는 CH340 Drivers for Windows, Mac and Linux라는 제목의 사이트"
+    from:
+      source: BOOK
+      page: 120
+      region: [89, 424.1, 278.1, 500.5]
+    file: public/images/lessons/2-1-1/ch340-step1.webp
+    width: 579
+    height: 234
+    bytes: 11464
+    sha256: "dfb1b89e12d07b8f50df28053e42c3e1ae92adc66b2e3401988600e930f2cb95"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 검색창에 CH340 드라이버를 입력한 검색 결과 화면(첫 결과 사이트 제목과 주소 일부)뿐. 로그인 이름·개인 경로·기기 주소·학교명 없음"
+  - name: ch340-step2
+    use: "교과서 쪽 2-1-1 \"드라이버 설치\" ❷ 사이트에서 운영 체제에 맞는 설치 파일 고르기(출판본 120쪽)"
+    alt: "드라이버 안내 사이트에서 Windows 쪽 설치 파일 항목을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 120
+      region: [319.2, 424.1, 470.3, 495]
+    file: public/images/lessons/2-1-1/ch340-step2.webp
+    width: 463
+    height: 218
+    bytes: 10094
+    sha256: "4ac7d2b3b61486563b334865f45cd369e7f52050e254ec2db91a43fb531b52d3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 드라이버 안내 웹페이지의 Windows 항목을 빨간 네모로 짚은 화면뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: ch340-step3
+    use: "교과서 쪽 2-1-1 \"드라이버 설치\" ❸ 내려받은 압축을 푼 설치 파일(출판본 120쪽)"
+    alt: "CH34x_Install_Windows_v3_4라는 이름의 설치 파일 아이콘"
+    from:
+      source: BOOK
+      page: 120
+      region: [138.4, 542.6, 230.9, 639.8]
+    file: public/images/lessons/2-1-1/ch340-step3.webp
+    width: 284
+    height: 298
+    bytes: 2742
+    sha256: "58f3cc4e7268b2ade39eddfb958d320eb686685d6f2c28c037845918685f3084"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 설치 파일 아이콘과 파일 이름(CH34x_Install_Windows_v3_4.EXE)뿐. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: ch340-step4
+    use: "교과서 쪽 2-1-1 \"드라이버 설치\" ❹ INSTALL 버튼으로 설치 완료(출판본 120쪽)"
+    alt: "드라이버 설치 창에서 INSTALL 버튼을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 120
+      region: [319.3, 542, 470.2, 641.4]
+    file: public/images/lessons/2-1-1/ch340-step4.webp
+    width: 462
+    height: 305
+    bytes: 8220
+    sha256: "ccd62818af7ae6853aa43b2162d6d0ff03c1d7529a3319ed3ddf6c828d933937"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 드라이버 설치 창(INSTALL 버튼을 빨간 네모로 짚음)뿐. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: thonny-step1
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설치\" ❶ 토니 공식 웹사이트 찾기(출판본 121쪽)"
+    alt: "검색창에 Thonny를 입력한 검색 결과 화면. 첫 결과는 Thonny, Python IDE for beginners 사이트"
+    from:
+      source: BOOK
+      page: 121
+      region: [96.9, 147, 299.9, 253.1]
+    file: public/images/lessons/2-1-1/thonny-step1.webp
+    width: 621
+    height: 325
+    bytes: 12516
+    sha256: "8161c9f188bd8583d27680fc32d3bb93119614067ca5b97c056a454adb4a4e85"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 검색창에 Thonny를 입력한 검색 결과 화면뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-step2
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설치\" ❷ 우측 상단에서 운영 체제 선택(출판본 121쪽)"
+    alt: "토니 공식 웹사이트의 오른쪽 위 내려받기 단추를 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 121
+      region: [352.2, 148, 465.7, 257.7]
+    file: public/images/lessons/2-1-1/thonny-step2.webp
+    width: 348
+    height: 337
+    bytes: 10636
+    sha256: "6ca89c816e0eae39d96ab5a99e03f9066bf2dc29f1d0b52a1deb0963f59b5d83"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 토니 공식 웹사이트 첫 화면(내려받기 단추를 빨간 네모로 짚음)뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-step3
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설치\" ❸ 운영 체제에 맞는 설치 파일 내려받기(출판본 121쪽)"
+    alt: "토니 내려받기 목록에서 Windows 설치 파일 항목을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 121
+      region: [111, 321.3, 285.6, 448.5]
+    file: public/images/lessons/2-1-1/thonny-step3.webp
+    width: 535
+    height: 390
+    bytes: 27446
+    sha256: "80b5a29da37b9b83ca715d27423cfe87c09b4ae41a655fb0e945efe4112b7f6c"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 토니 내려받기 목록(Windows 항목을 빨간 네모로 짚음)뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-step4
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설치\" ❹ Install mode 설정(출판본 121쪽)"
+    alt: "Select install mode 창. Install for me only와 Install for all users 두 가지 가운데 고르는 화면"
+    from:
+      source: BOOK
+      page: 121
+      region: [328.3, 321.1, 489.3, 448.8]
+    file: public/images/lessons/2-1-1/thonny-step4.webp
+    width: 493
+    height: 391
+    bytes: 13696
+    sha256: "359b6fb111298fbd7df6784cbb9b4628043b3d24cb5968e447f52221482e3d8c"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — Select install mode 창뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-step5
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설치\" ❺ Install 버튼으로 설치(출판본 121쪽)"
+    alt: "Ready to Install 창에서 오른쪽 아래의 Install 버튼을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 121
+      region: [116.4, 511.9, 280.3, 640.1]
+    file: public/images/lessons/2-1-1/thonny-step5.webp
+    width: 502
+    height: 393
+    bytes: 11558
+    sha256: "c52e9cdbdd60e52768d9882fe591bfb4799487c4ccca422394d34d68a314713a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — Ready to Install 창(설치 위치에 일반 이름 user가 든 Windows 기본 경로 C:₩Users₩user₩AppData₩Local₩Programs₩Thonny)뿐. 실제 사용자 이름·기기 주소·학교명 없음"
+  - name: thonny-step6
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설치\" ❻ Finish 버튼으로 설치 완료(출판본 121쪽)"
+    alt: "Great success! 창에서 오른쪽 아래의 Finish 버튼을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 121
+      region: [326.4, 512, 491.3, 641.7]
+    file: public/images/lessons/2-1-1/thonny-step6.webp
+    width: 505
+    height: 397
+    bytes: 19350
+    sha256: "8c0e43e4b6d1d868d76963c7c8494d92a262d17bc274ce6d2b2ae8e9bcc4fe93"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 설치가 끝났다는 Great success 창(Finish 버튼을 빨간 네모로 짚음)뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-set1
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설정\" ❶ 도구 옵션 클릭(출판본 122쪽)"
+    alt: "토니 창의 도구 메뉴에서 옵션 항목을 고르는 화면"
+    from:
+      source: BOOK
+      page: 122
+      region: [105.1, 128.9, 263.3, 234.2]
+    file: public/images/lessons/2-1-1/thonny-set1.webp
+    width: 485
+    height: 323
+    bytes: 9868
+    sha256: "68bb5fe4ff155f725017d83dbca5cdd9afd85ea4b1ea9d5c07b4d420f360e158"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 토니의 도구 메뉴에서 옵션을 고르는 화면. 왼쪽 파일 탐색기에 일반 이름 user의 Windows 기본 폴더(3D Objects·Documents·Downloads 등)만 보이고 실제 사용자 이름·학교명·기기 주소 없음"
+  - name: thonny-set2
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설정\" ❷ 인터프리터 종류와 포트 선택(출판본 122쪽)"
+    alt: "옵션 창의 인터프리터 탭에서 위쪽 칸에 MicroPython(ESP32), 아래쪽 칸에 USB Serial 포트를 고르는 화면"
+    from:
+      source: BOOK
+      page: 122
+      region: [332.4, 128.8, 457.2, 242.6]
+    file: public/images/lessons/2-1-1/thonny-set2.webp
+    width: 382
+    height: 348
+    bytes: 15452
+    sha256: "e20bddaa2d3adeaa4992c6291b63ece4d46fead025e77611bc55744b1be9186c"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 토니 옵션 창의 인터프리터 탭(MicroPython(ESP32)와 USB Serial @ COM3를 빨간 네모로 짚음)뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-set3
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설정\" ❸ install or update MicroPython 클릭(출판본 122쪽)"
+    alt: "옵션 창 아래쪽의 install or update MicroPython 글자를 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 122
+      region: [104.6, 349.7, 263.7, 420.6]
+    file: public/images/lessons/2-1-1/thonny-set3.webp
+    width: 487
+    height: 217
+    bytes: 9144
+    sha256: "67f0cbbb4ef23983c7e00b1fb57de1f610fbe23806eedcbea3b06eefe85aacfa"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 옵션 창 아래 install or update MicroPython 글자를 빨간 네모로 짚은 화면뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-set4
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설정\" ❹ 새 창에서 네 개 칸 선택(출판본 122쪽)"
+    alt: "Install MicroPython 창에서 Target port, MicroPython family, variant, version 네 칸을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 122
+      region: [314.9, 305.5, 474.7, 420.6]
+    file: public/images/lessons/2-1-1/thonny-set4.webp
+    width: 490
+    height: 352
+    bytes: 21162
+    sha256: "423c89dc7bf2ab7f99a7c32bafe1e7a3c068c9382d4305dec982c5642a3eaef3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — Install MicroPython 창(Target port USB Serial @ COM3, ESP32, 1.25.0 등 네 칸을 빨간 네모로 짚음)뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-set5
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설정\" ❺ 설치 버튼 클릭(출판본 122쪽)"
+    alt: "Install MicroPython 창에서 네 칸을 고른 뒤 오른쪽 아래 설치 버튼을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 122
+      region: [104.2, 526.1, 264, 642]
+    file: public/images/lessons/2-1-1/thonny-set5.webp
+    width: 490
+    height: 355
+    bytes: 21376
+    sha256: "e721cf9787ddc9ce42e6b1ca9a4eff574e0a96773c668bd0b2130213ced98258"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 같은 창에서 설치 버튼을 빨간 네모로 짚은 화면뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: thonny-set6
+    use: "교과서 쪽 2-1-1 \"마이크로파이썬 에디터 설정\" ❻ 설치 완료 뒤 확인 버튼 클릭(출판본 122쪽)"
+    alt: "설치가 끝났다는 창에서 확인 버튼을 빨간 네모로 짚은 화면"
+    from:
+      source: BOOK
+      page: 122
+      region: [315.1, 526, 474.3, 638]
+    file: public/images/lessons/2-1-1/thonny-set6.webp
+    width: 487
+    height: 344
+    bytes: 19016
+    sha256: "a007882ecb341c98e345cc07465d8b3feddb8fd06eb2aff02bae351a1d16f684"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 설치가 끝난 뒤 확인 버튼을 빨간 네모로 짚은 옵션 창 화면뿐. 개인 이름·경로·기기 주소·학교명 없음"
+  - name: blink-board-photo
+    use: "교과서 쪽 2-1-1 \"동작 테스트 결과\" — 보드의 D2 LED 위치(출판본 123쪽, 키트 업체 제품 사진)"
+    alt: "파란 확장 보드에 꽂은 빨간 ESP32 개발 보드 사진. 보드 위의 작은 LED에서 빨간 선이 뻗어 나와 D2 LED라는 글자를 가리킨다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 123
+      region: [80, 270, 324, 374]
+    file: public/images/lessons/2-1-1/third-party/kit-vendor/blink-board-photo.webp
+    width: 746
+    height: 319
+    bytes: 33202
+    sha256: "5dfb6a90c5193f0010309aabb6b8251d39e55ce8b86c6efd22ea8ef11aed46d1"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 파란 확장 보드에 꽂은 빨간 ESP32 보드 사진과 D2 LED 글자·선뿐(kit-vendor). 사람·이름·경로·기기 주소·학교명 없음"
+  - name: boot-file-screen
+    use: "교과서 쪽 2-1-1 \"boot.py와 main.py 차이점\" — boot.py 파일이 있는 편집기 화면(출판본 123쪽)"
+    alt: "편집기 왼쪽의 파일 목록에 boot.py가 보이고 오른쪽 코드 칸에는 from machine import Pin으로 시작하는 RGB LED 켜기 코드(2_led rgb.py 탭)가 열린 화면"
+    from:
+      source: BOOK
+      page: 123
+      region: [81.1, 510.6, 223.1, 561.1]
+    file: public/images/lessons/2-1-1/boot-file-screen.webp
+    width: 435
+    height: 156
+    bytes: 10456
+    sha256: "93c336ee605992a7ddbdde84de85e644fc2d5ea9716c897ffd1dec6748af15c9"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기 파일 목록(boot.py)과 RGB LED 코드(r=Pin(27...) 세 줄)만 보이는 화면. 경로는 일반 이름 COM·Users 표시뿐이며 실제 사용자 이름·기기 주소·학교명 없음"
+  - name: main-file-screen
+    use: "교과서 쪽 2-1-1 \"boot.py와 main.py 차이점\" — main.py 파일이 있는 편집기 화면(출판본 123쪽)"
+    alt: "편집기 왼쪽의 파일 목록에 boot.py와 main.py가 보이고 main.py 탭에 같은 RGB LED 켜기 코드가 열린 화면"
+    from:
+      source: BOOK
+      page: 123
+      region: [245.9, 510.6, 400, 560.8]
+    file: public/images/lessons/2-1-1/main-file-screen.webp
+    width: 472
+    height: 155
+    bytes: 10438
+    sha256: "e97c3e3f176a19e13953a0ce7034a52958d71a2bc0fca24311f0c8efdd4137ae"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기 파일 목록(boot.py·main.py)과 main.py의 RGB LED 코드만 보이는 화면. 경로는 일반 이름 COM·Users 표시뿐이며 실제 사용자 이름·기기 주소·학교명 없음"

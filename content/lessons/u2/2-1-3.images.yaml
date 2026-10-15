@@ -28,3 +28,247 @@ images:
       by: claude
       date: 2026-09-25
       result: "통과 — 초록 받침에 끼운 파란 기판 OLED 모듈(글자 OLED 1.3, I2C, 핀 이름 GND·VCC·SDA·SCL)과 화면의 시에르핀스키 삼각형 무늬, 4색 케이블만 있음. 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: oled-coordinate-photo
+    use: "교과서 쪽 2-1-3 \"1 OLED의 이해\" 아래 그림 — OLED(SH1106)의 좌표 체계 사진(출판본 132쪽)"
+    alt: "파란 바탕의 OLED(1.3인치) 사진. 왼쪽의 픽셀 좌표계 원점 이름표가 가리키는 왼쪽 위 모서리가 (0, 0), 오른쪽 아래 모서리가 (127, 63)이고 가운데에 128 x 64(Pixel)라고 적혀 있다"
+    from:
+      source: BOOK
+      page: 132
+      region: [186, 376, 452, 492]
+    file: public/images/lessons/2-1-3/oled-coordinate-photo.webp
+    width: 814
+    height: 355
+    bytes: 17964
+    sha256: "c885b667c062c0bab1136850dae55ea7542231a4c434f2b9ab6c6039981fdc1b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 파란 OLED(1.3인치) 제품 사진 위에 픽셀 좌표계 원점 이름표와 (0, 0)·(127, 63) 좌표 글자만 얹힌 그림. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: pixel-axes-arrows
+    use: "교과서 쪽 2-1-3 \"픽셀 좌표계\" 용어 풀이의 원점에서 뻗은 화살표 그림(출판본 132쪽)"
+    alt: "원점 (0, 0)에서 오른쪽으로 가는 화살표와 아래쪽으로 가는 화살표 두 개가 그려진 그림"
+    from:
+      source: BOOK
+      page: 132
+      region: [64, 513, 155, 630]
+    file: public/images/lessons/2-1-3/pixel-axes-arrows.webp
+    width: 279
+    height: 358
+    bytes: 976
+    sha256: "402a959df701588b8e9010fad8cedbc9cff018d7193cb1027ba5496cd8b10c6a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — (0, 0) 글자와 오른쪽·아래쪽 화살표 두 개뿐인 단순 그림. 얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: oled-wiring-photo
+    use: "교과서 쪽 2-1-3 \"3 회로 구성\" OLED 연결 레시피 판의 배선 그림(출판본 133쪽, 키트 업체 제품 사진)"
+    alt: "OLED의 선 네 개를 ESP32 확장 보드에 꽂은 연결 그림. 검정 선은 GND, 빨강 선은 VCC, 노랑 선 두 개는 SDA(21번 핀)와 SCL(22번 핀)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 133
+      region: [203, 131, 511, 262]
+    file: public/images/lessons/2-1-3/third-party/kit-vendor/oled-wiring-photo.webp
+    width: 942
+    height: 402
+    bytes: 52354
+    sha256: "a1c23c797c1210e4f314eabaa8b86ad6fea74fa5cbf714e56b16fa76ca8dd1b3"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — OLED 모듈과 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 검정·빨강·노랑 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: sh1106-open
+    use: "교과서 쪽 2-1-3 \"4 OLED 동작 테스트\" 단계 1 — sh1106.py 라이브러리 파일을 연 화면(출판본 133쪽)"
+    alt: "코드 편집기에 sh1106.py 라이브러리 파일이 열린 화면. 위쪽 주석에 MicroPython SH1106 OLED driver, I2C interface라고 적혀 있고 from micropython import const, import framebuf, import time 줄과 SET_CONTRAST 같은 명령 상수가 이어진다"
+    from:
+      source: BOOK
+      page: 133
+      region: [206, 386, 529, 514]
+    file: public/images/lessons/2-1-3/sh1106-open.webp
+    width: 960
+    height: 381
+    bytes: 26218
+    sha256: "1a8a6e00717e3fe2ac310e4d6a2dc0337d2990c16710f74d35fa387b0ecc2a25"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[45, 165, 63, 63]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기에 열린 sh1106.py 라이브러리 코드(주석·상수)뿐인 화면 조각. 얼굴 검출 1곳은 글자 오탐. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: sh1106-save-device
+    use: "교과서 쪽 2-1-3 \"4 OLED 동작 테스트\" 단계 2 — 라이브러리를 마이크로파이썬 장치에 저장하기(출판본 133쪽)"
+    alt: "편집기 파일 메뉴에서 '...(으)로 저장'을 고르고 저장 위치를 묻는 창에서 'MicroPython 장치'를 고르는 화면. 설명 글은 '파일 → ...(으)로 저장 클릭'과 '마이크로파이썬 장치 선택'이다"
+    from:
+      source: BOOK
+      page: 133
+      region: [203, 545, 545, 708]
+    file: public/images/lessons/2-1-3/sh1106-save-device.webp
+    width: 960
+    height: 458
+    bytes: 40336
+    sha256: "e9af1610a4fb33e85a7a7e34f2698d77c38d044dae8c91a9d948e5bc082e0380"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기 파일 메뉴의 ...(으)로 저장과 저장 위치 창(MicroPython 장치)을 빨간 네모·화살표로 짚은 화면. 파일 목록에 mp3player.py 같은 예제 파일 이름만 보임. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: sh1106-file-name
+    use: "교과서 쪽 2-1-3 \"4 OLED 동작 테스트\" 단계 3 — 라이브러리 파일 이름 적기(출판본 134쪽)"
+    alt: "MicroPython 장치에 저장하는 창에서 파일 이름 칸에 sh1106.py를 적고 확인을 누르는 화면. 설명 글은 'sh1106.py' 파일명 입력 및 확인이다"
+    from:
+      source: BOOK
+      page: 134
+      region: [193, 75, 516, 262]
+    file: public/images/lessons/2-1-3/sh1106-file-name.webp
+    width: 960
+    height: 557
+    bytes: 44426
+    sha256: "52fd74bef7f6bd9af9ccc09a6f03cd87c1af1fe72c7d511465602795a2aefd1a"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 2
+      face_boxes: [[181, 179, 49, 49], [151, 196, 44, 44]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — MicroPython 장치에 저장하는 창에서 파일 이름 sh1106.py를 적는 화면. 왼쪽 탐색기에 일반 이름 COM·Users 표시와 boot.py만 보임. 얼굴 검출 2곳은 글자 오탐. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: sh1106-installed
+    use: "교과서 쪽 2-1-3 \"4 OLED 동작 테스트\" 단계 4 — 장치에 설치된 라이브러리 파일 확인(출판본 134쪽)"
+    alt: "MicroPython 장치 목록에 boot.py와 sh1106.py가 보이고 sh1106.py 코드가 열린 화면. 설명 글은 '마이크로파이썬 장치에 설치한 라이브러리 파일명과 from 뒤에 작성된 파일명이 동일해야 함.'이다"
+    from:
+      source: BOOK
+      page: 134
+      region: [193, 316, 520, 545]
+    file: public/images/lessons/2-1-3/sh1106-installed.webp
+    width: 960
+    height: 672
+    bytes: 56924
+    sha256: "54e56f4f0d2a0e768b69b0be9c87173795d8de0c97f3ed8d92272c2fe5197f91"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[238, 238, 63, 63]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — MicroPython 장치 목록에 sh1106.py가 보이는 편집기 화면과 설명 글. 일반 이름 COM·Users 표시뿐이며 얼굴 검출 1곳은 글자 오탐. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: fractal-result
+    use: "교과서 쪽 2-1-3 기본 실습 \"실행 결과\" — 프랙털 이미지 사진과 삼각형 분할 그림(출판본 136쪽)"
+    alt: "OLED에 작은 삼각형이 겹겹이 나뉘어 찍힌 시에르핀스키 삼각형이 보이는 사진 옆에, 꼭짓점이 (64, 0), (0, 64), (128, 64)인 큰 삼각형을 가운데 위 삼각형 하나와 나머지 세 삼각형으로 나눈 그림이 있다. 그림에는 64, 64, 32, 64라는 길이가 적혀 있다"
+    from:
+      source: BOOK
+      page: 136
+      region: [182, 617, 520, 717]
+    file: public/images/lessons/2-1-3/fractal-result.webp
+    width: 960
+    height: 285
+    bytes: 23198
+    sha256: "f5f5b6fc2126cec93827a5abeaba44840d7cc3e5b27ddcd4ab3518368c6d456b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 녹색 받침에 놓인 OLED에 시에르핀스키 삼각형이 나온 사진과 삼각형 분할 도식(64·32 길이 글자)뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: touch4-shell-result
+    use: "교과서 쪽 2-1-3 심화 실습 \"실행 결과\" — 4채널 터치 센서 값을 셸에 출력한 사진(출판본 139쪽)"
+    alt: "ESP32 확장 보드와 4채널 터치 센서 모듈을 선으로 이은 사진 옆에, 터치 센서 값이 줄마다 출력된 셸 화면이 있다. 화면에는 ADC 값과 Button 1, Button 2, No touch 같은 글자가 보인다"
+    from:
+      source: BOOK
+      page: 139
+      region: [196, 484, 455, 598]
+    file: public/images/lessons/2-1-3/touch4-shell-result.webp
+    width: 792
+    height: 349
+    bytes: 36348
+    sha256: "f5bfc714448f4cdeb0e5f92eeda68826f6e9e7cf19608bb37f63e5fae29aa0b8"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — ESP32 보드와 4채널 터치 센서를 선으로 이은 사진과 셸 출력(ADC 값·Button 글자)뿐. 편집기 줄에 %Run -c $EDITOR_CONTENT만 보임. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: touch4-oled-rgb-result
+    use: "교과서 쪽 2-1-3 심화 실습 \"실행 결과\" — 터치 센서 버튼 네 개를 차례로 누르며 RGB LED 색이 바뀌는 사진(출판본 139쪽)"
+    alt: "4채널 터치 센서의 버튼을 손가락으로 차례로 누르는 사진 네 장이 오른쪽 화살표로 이어진다. 누를 때마다 보드 위의 RGB LED가 빨강, 초록, 파랑, 흰색으로 바뀐다"
+    from:
+      source: BOOK
+      page: 139
+      region: [196, 628, 541, 717]
+    file: public/images/lessons/2-1-3/touch4-oled-rgb-result.webp
+    width: 960
+    height: 248
+    bytes: 32454
+    sha256: "2c05f11a3300aafb0948292d230f69ad6bfe0ea4424e9fa13820b37adc6c765f"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 4채널 터치 센서 버튼을 손가락으로 누르는 사진 네 장(손가락만 보임)과 빨간 화살표뿐. 얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: bounce-animation
+    use: "교과서 쪽 2-1-3 \"해 보기\" 과제 1 — 공이 튀는 OLED 애니메이션 사진 세 장(출판본 140쪽)"
+    alt: "OLED 사진 세 장이 오른쪽 화살표로 이어지고, 장마다 작은 공이 다른 자리에 있어 공이 화면 안에서 움직이는 모습을 보여 준다"
+    from:
+      source: BOOK
+      page: 140
+      region: [58, 168, 505, 258]
+    file: public/images/lessons/2-1-3/bounce-animation.webp
+    width: 960
+    height: 194
+    bytes: 16202
+    sha256: "303575bb2ce29bbefdcf0a4d4a6cb358906f7abda327bb6194adefee8187cdff"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 파란 OLED 사진 세 장과 회색 화살표 두 개(작은 공 위치만 다름)뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: smile-sine-oled
+    use: "교과서 쪽 2-1-3 \"해 보기\" 과제 2 — OLED의 스마일과 사인 곡선 사진(출판본 140쪽)"
+    alt: "OLED에 웃는 얼굴 그림이 나온 사진과 사인 곡선이 나온 사진 두 장"
+    from:
+      source: BOOK
+      page: 140
+      region: [132, 325, 418, 414]
+    file: public/images/lessons/2-1-3/smile-sine-oled.webp
+    width: 875
+    height: 273
+    bytes: 27664
+    sha256: "a6a1b6f8736f76c88648378548ea3876c35b152cb09509c61bf1fd42a10fa4be"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — OLED에 웃는 얼굴 그림과 사인 곡선이 나온 사진 두 장뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"

@@ -32,3 +32,166 @@ images:
       by: claude
       date: 2026-09-25
       result: "통과 — 흰 바탕 위 ESP32 개발 보드(빨간 기판)를 꽂은 확장 보드, USB 케이블, 3색 케이블과 '수동버저' 글자가 적힌 버저 모듈만 있음. checks.faces 1곳([63, 207, 100, 100])은 흰 바탕과 확장 보드의 전원 스위치, 빨간 리셋 버튼이고 사람 얼굴이 아님. 기판에 키트 상표 글자와 로고가 보임(INVENTORY §5.2 업체 제품 사진). 사람·얼굴·이름·화면 속 경로·파일명·기기 주소·학교명 없음"
+  - name: buzzer-principle-diagram
+    use: "교과서 쪽 2-2-1 \"버저에서 소리가 나는 원리\" 용어 풀이의 그림(출판본 155쪽)"
+    alt: "디지털 신호의 네모 파형이 진동판에 닿아 진동판이 떨리고 음파가 퍼져 나가는 그림. 글자는 디지털 신호, 진동판, 음파이다"
+    from:
+      source: BOOK
+      page: 155
+      region: [431, 450, 540, 536]
+    file: public/images/lessons/2-2-1/buzzer-principle-diagram.webp
+    width: 334
+    height: 264
+    bytes: 6466
+    sha256: "dab5d5a8560e4ec6910b9d2adb07b9ca6bb0f5bd7d7e94b8a39cd4edd433232e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 디지털 신호 네모 파형, 진동판, 음파 곡선과 글자 세 개뿐인 출판사 그림. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: buzzer-wiring-photo
+    use: "교과서 쪽 2-2-1 \"3 회로 구성\" 버저 연결 레시피 판의 배선 그림(출판본 156쪽, 키트 업체 제품 사진)"
+    alt: "버저 모듈의 선 세 개를 ESP32 확장 보드에 꽂은 연결 그림. 검정 선은 GND, 빨강 선은 VCC, 노랑 선은 SIG(15번 핀)이다"
+    third_party: kit-vendor
+    from:
+      source: BOOK
+      page: 156
+      region: [214, 139, 507, 272]
+    file: public/images/lessons/2-2-1/third-party/kit-vendor/buzzer-wiring-photo.webp
+    width: 896
+    height: 407
+    bytes: 49428
+    sha256: "2e358d14ad876594c5508a599192dbb16300ef37883563e728b38c722bdaea7b"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 버저 모듈과 ESP32 확장 보드(키트 상표 글자 보임, kit-vendor)를 검정·빨강·노랑 선으로 이은 그림뿐. 사람·이름·경로·기기 주소·학교명 없음"
+  - name: buzzer-lib-save-menu
+    use: "교과서 쪽 2-2-1 \"4 동작 테스트\" 단계 1 — 편집기 파일 메뉴에서 ...(으)로 저장 고르기(출판본 156쪽)"
+    alt: "코드 편집기의 파일 메뉴에서 '...(으)로 저장'을 빨간 네모로 짚은 화면. 화면 위의 설명 글은 '파일 → ..(으)로 저장 클릭'이다"
+    from:
+      source: BOOK
+      page: 156
+      region: [193, 355, 516, 516]
+    file: public/images/lessons/2-2-1/buzzer-lib-save-menu.webp
+    width: 960
+    height: 479
+    bytes: 41130
+    sha256: "e8c9149d10ceb61ce65ed6d0607cb2b21f38f5f4bb1649e2950e71c5b9dcacab"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 편집기 파일 메뉴의 ...(으)로 저장을 빨간 네모로 짚은 화면과 설명 글뿐. 왼쪽 아래에 Windows 기본 폴더 이름(Music·OneDrive·Pictures 등)만 보임. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: buzzer-lib-save-device
+    use: "교과서 쪽 2-2-1 \"4 동작 테스트\" 단계 1 — 저장 위치로 마이크로파이썬 장치 고르기(출판본 156쪽)"
+    alt: "저장 위치를 묻는 창에서 'MicroPython 장치' 단추를 빨간 네모로 짚은 화면. 빨간 네모 아래의 설명 글은 '마이크로파이썬 장치 선택'이다"
+    privacy_override: "왼쪽 파일 탐색기(학교명이 든 폴더 경로와 작업 파일 목록)와 그 위의 말풍선을 잘라 낸 오른쪽 영역만 꺼냄"
+    from:
+      source: BOOK
+      page: 156
+      region: [270, 548, 514, 708]
+    file: public/images/lessons/2-2-1/buzzer-lib-save-device.webp
+    width: 747
+    height: 489
+    bytes: 35954
+    sha256: "17db7aaaca407103328ea5c70dd8c9e90ed2c3d16924bcf44ed88fc3ee4636ff"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 학교명이 든 폴더 경로와 작업 파일 목록이 있는 왼쪽 파일 탐색기를 잘라 낸 영역(제외 쪽 BOOK 156, privacy_override): 편집기 코드 일부, 'Where to save to?' 창과 빨간 네모, 아래 설명 글만 남음. 얼굴·이름·경로·파일명 목록·기기 주소·학교명 없음"
+  - name: buzzer-lib-file-name
+    use: "교과서 쪽 2-2-1 \"4 동작 테스트\" 단계 1 — 라이브러리 파일 이름 적기(출판본 157쪽)"
+    alt: "MicroPython 장치에 저장하는 창에서 파일 이름 칸에 buzzer.py를 적고 확인을 누르는 화면. 설명 글은 'buzzer.py' 파일명 입력 및 확인이다"
+    from:
+      source: BOOK
+      page: 157
+      region: [200, 72, 460, 212]
+    file: public/images/lessons/2-2-1/buzzer-lib-file-name.webp
+    width: 796
+    height: 429
+    bytes: 21322
+    sha256: "77c5e04fb6e270f12cf69667d7a90cf196ea79d322f0f272083070ea79cc708e"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — MicroPython 장치에 저장하는 창에서 파일 이름 buzzer.py를 적는 화면. 왼쪽 탐색기에 일반 이름 COM·Users 표시와 Windows 기본 폴더 이름만 보임. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: buzzer-lib-installed
+    use: "교과서 쪽 2-2-1 \"4 동작 테스트\" 단계 1 — 설치한 라이브러리 파일 확인(출판본 157쪽)"
+    alt: "MicroPython 장치 목록에 boot.py와 buzzer.py가 보이고, 편집기에는 from buzzer import *로 시작하는 코드가 열린 화면"
+    from:
+      source: BOOK
+      page: 157
+      region: [200, 212, 370, 308]
+    file: public/images/lessons/2-2-1/buzzer-lib-installed.webp
+    width: 521
+    height: 294
+    bytes: 18404
+    sha256: "8f5cff83452db2cb4b710575ac28d2f67448ca4421c0079635bdcd3b7044c5c7"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — MicroPython 장치 목록에 buzzer.py가 보이는 편집기 화면과 from buzzer import * 코드뿐. 일반 이름 COM·Users 표시만 보임. 개인 경로·이름·기기 주소·학교명 없음"
+  - name: buzzer-scale-result
+    use: "교과서 쪽 2-2-1 기본 실습 \"실행 결과\" — 음계 출력 사진과 셸 화면(출판본 158쪽)"
+    alt: "ESP32 보드에 이은 버저 사진 옆에, 셸에 도, 레, 미, 파, 솔, 라, 시, 도(높은)가 한 줄씩 출력된 화면이 있다"
+    from:
+      source: BOOK
+      page: 158
+      region: [181, 547, 500, 664]
+    file: public/images/lessons/2-2-1/buzzer-scale-result.webp
+    width: 960
+    height: 353
+    bytes: 25278
+    sha256: "77cb646603d5c057313ca60fa25783c09ee852144e71eed4cec86fc9332ce8ee"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 1
+      face_boxes: [[53, 153, 75, 75]]
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 버저를 이은 ESP32 보드 사진과 셸 출력(도·레·미·파·솔·라·시·도(높은))뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
+  - name: buzzer-touch-result
+    use: "교과서 쪽 2-2-1 심화 실습 \"실행 결과\" — 터치 센서 사진과 셸 화면(출판본 159쪽)"
+    alt: "ESP32 보드에 이은 4채널 터치 센서를 손가락으로 누르는 사진 옆에, 셸에 buzzer on과 buzzer off가 번갈아 출력된 화면이 있다"
+    from:
+      source: BOOK
+      page: 159
+      region: [195, 620, 458, 718]
+    file: public/images/lessons/2-2-1/buzzer-touch-result.webp
+    width: 805
+    height: 300
+    bytes: 23562
+    sha256: "c8cdc68aa9f51f932025e9ed6a32a4b80d38b89058f3a756fbd3eda6299b5140"
+    checks:
+      metadata: 없음(EXIF·XMP·ICC·글 조각 없음, 다시 인코딩)
+      faces: 0
+      tool: PyMuPDF 1.28.2 · Pillow 12.2.0 · OpenCV 4.11.0(얼굴 검사)
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 터치 센서를 이은 ESP32 보드 사진과 셸 출력(buzzer on·off)뿐. 사람·얼굴·이름·경로·기기 주소·학교명 없음"
