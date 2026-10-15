@@ -695,7 +695,7 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 | P2-11 가상 데스크톱 ① | 가상 모니터(논리 해상도 기본 1920×1080), 커서, `size`·`position`·`moveTo`·`moveRel`·`click`·`doubleClick`·`rightClick`·`dragTo`·`dragRel`·`typewrite`·`press`·`hotkey`·**`keyDown`·`keyUp`·`scroll`**(SPEC §3.2 요구, 자료 코드는 안 씀), `PAUSE` 0.1초·`FAILSAFE` 흉내, 아이콘·우클릭 메뉴·메모장·그림판 | f016~f022, f091이 돈다(f022는 "왜 별이 안 될까" 탐구와 사이트판) | Playwright |
 | P2-12 가상 데스크톱 ② | 가상 브라우저 창 + 자체 제작 검색 연습 페이지(실제 포털 화면 모사 금지), `webbrowser.open`, `screenshot`(Pillow 이미지·가상 파일·내려받기), 스페이스 키로 하는 자체 제작 미니게임 2~3종. **설계 기준:** 기존 게임의 캐릭터·장애물·화면 구성·음악을 흉내 내지 않는다(공룡 게임류 금지, SPEC §6.1·§8), 도형·색만 쓰는 자체 규칙 | f023~f025, f090, f095~f097, f121, f127이 돈다. f024 원본의 `enter`는 AttributeError + 한국어 설명 | Playwright |
 | P2-13 음성 인식 흉내(선택 차시) | `speech_recognition` 흉내: ① 온디바이스 인식 가능 여부 확인 → ② 안 되면 **사이트 설정에서 "서버 음성 인식 허용(교사용)"을 켠 브라우저에서만** "음성이 브라우저 회사 서버로 전송됩니다" 고지와 선택지를 보인다(기본 꺼짐) → ③ 기본은 글자 입력(§10). 교사용 안내에 "14세 미만 학생 수업에서는 켜지 않기" | f044, f045가 글자 입력 모드로 돌고, 크롬에서 온디바이스 가능 여부가 표시된다. 설정을 켜지 않으면 서버 전송 선택지가 보이지 않는다 | Playwright(글자 입력 모드·설정 꺼짐), 온디바이스는 운영자 PC 확인 |
-| P2-14 차시 연결과 시나리오 A 점검 | 차시 페이지에 실습실 임베드(예제가 미리 로드된 상태), 1-2-1과 보충 V4 연결, 홈 [카메라로 바로 해 보기] → 첫 실습 흐름 | 홈에서 시작해 5분 안에 에지 결과를 보고 슬라이더로 바꾼다. **첫 방문 총 전송량**(사전 캐시 포함)과 시간이 기록돼 있고 사전 캐시가 PD-11 범위(셸만)를 넘지 않는다 | Playwright 시간·전송량 측정(네트워크 속도 제한 포함) + 운영자 웹캠 확인 요청(운영자 할 일 1번) |
+| P2-14 차시 연결과 시나리오 A 점검 | 차시 페이지에 실습실 임베드(예제가 미리 로드된 상태), 1-2-1과 보충 V4 연결, 홈 [카메라로 바로 해 보기] → 첫 실습 흐름(판 1.4.0부터 홈 바로 가기 [영상 처리 실습실] — C152) | 홈에서 시작해 5분 안에 에지 결과를 보고 슬라이더로 바꾼다. **첫 방문 총 전송량**(사전 캐시 포함)과 시간이 기록돼 있고 사전 캐시가 PD-11 범위(셸만)를 넘지 않는다 | Playwright 시간·전송량 측정(네트워크 속도 제한 포함) + 운영자 웹캠 확인 요청(운영자 할 일 1번) |
 
 - **완료 기준:** 시나리오 A 자동 테스트 통과(가짜 카메라). 운영자 PC의 실제 웹캠 확인은 "확인 필요"로 남긴다(DECISIONS §3).
 - **예상 위험:** tasks-vision이 모듈 워커에서 안 돌 수 있음(화면 쪽 추론으로 전환), Tasks 모델과 레거시 결과 차이(임계값을 슬라이더로 드러냄), 저사양 PC 성능, Node 테스트에서 JSPI 조건, 손이 나오는 테스트 영상이 없음(합성 랜드마크 재생 입력으로 단위 테스트와 카메라 없는 PC를 함께 해결 — PD-30, 실물은 운영자).
@@ -1086,7 +1086,7 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 
 | 시나리오 | SPEC 통과 기준 | 자동 판정 | 사람 판정 |
 |---|---|---|---|
-| A 학생, 크롬만 | 홈 → [카메라로 바로 해 보기] → 5분 안에 웹캠 에지 결과, 슬라이더로 임계값 변화 | Playwright: 가짜 카메라, 시작부터 캔버스 픽셀 변화까지 시간 측정(`scenario-a.spec.ts` — 속도 제한 없는 빠른 망 값). 느린 망은 따로: 학습 페이지 FCP는 `perf:measure`가 DevTools "3G"로, 실습실은 `perf:measure`의 `perf-scenario-a.spec.ts`가 회선 전체를 3G로 느리게 해 잰다(1.0.0·1.1.0 빌드 첫 에지 7분 14초~7분 28초 — §11 위험 31, 2026-09-26 검토 손 측정 7분 9초) | 운영자 PC 크롬 실제 웹캠 한 번 |
+| A 학생, 크롬만 | 홈 → 바로 가기 [영상 처리 실습실](판 1.4.0부터 — 그 전에는 홈 큰 단추 [카메라로 바로 해 보기], DECISIONS C152) → 5분 안에 웹캠 에지 결과, 슬라이더로 임계값 변화 | Playwright: 가짜 카메라, 시작부터 캔버스 픽셀 변화까지 시간 측정(`scenario-a.spec.ts` — 속도 제한 없는 빠른 망 값). 느린 망은 따로: 학습 페이지 FCP는 `perf:measure`가 DevTools "3G"로, 실습실은 `perf:measure`의 `perf-scenario-a.spec.ts`가 회선 전체를 3G로 느리게 해 잰다(1.0.0·1.1.0 빌드 첫 에지 7분 14초~7분 28초 — §11 위험 31, 2026-09-26 검토 손 측정 7분 9초) | 운영자 PC 크롬 실제 웹캠 한 번 |
 | B 하드웨어 없는 학교 | 블록으로 "버튼 누르면 LED" → 코드 모드에서 한 줄 수정 → 즉시 반영 | Playwright: 블록 배치 → 가상 터치 센서 누름(PD-34) → 가상 LED 상태 → 코드 수정 → 재실행. 추가로 WebKit에서 블록 전용 호환 모드(PD-27)로 블록 부분까지 | — |
 | C 보드 있는 교사, 첫 연결 | 보드 준비 → 드라이버 안내 → 펌웨어 굽기 → 예제 실행 → 실제 LED, 15분 | 화면 흐름과 raw REPL 모의 테스트까지 | 운영자가 키보드·보드로 시간 재기(부록 B) |
 | D 통신 | 대시보드에 가상(또는 실제) ESP32 값 그래프, 스위치로 LED, 두 탭끼리도 | Playwright 두 페이지: 같은 컴퓨터 탭 통로 + 공개 브로커 | 실제 보드는 운영자 |
@@ -1217,6 +1217,34 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 - **숫자:** 찾은 문제 138 → 55 → 20건(3바퀴는 중요 이상 0건). 커밋은 개편 7(`599f5d1..0fdf73c`) + 1바퀴 8(`8c9f66b..d098c96`) + 2바퀴 5(`8f51f66..8e23d22`) + 3바퀴 7(`deb7880..978e0eb`) + 최종 검증 기록 커밋(코드 고침 없음). 바뀐 파일 486개(+21,044·−2,752줄, `9fc63c0..978e0eb`).
 - **부분만 고친 것·하지 않은 것(까닭):** 서비스 워커 설치 때 Pagefind 색인 저장 안 함(864KB — 사전 캐시 범위 PD-11·700KB 예산과 충돌), 용어 말풍선 닫기 단추 없음(role=tooltip 안에 단추 불가 — 바깥 누르기·Esc), 숨김 풀이 낭독(R1-091 — DOM 이동이 큰 변경), 실습실 안내 글의 "실물" 47곳(e2e 단정), 4단원 첫 화면 주 단추 셋, 검색 종류 필터 `data-pagefind-filter`, PageLinks 카드 모양·embed 작은 모드. 남은 것은 PROGRESS 미해결 229~.
 - **최종 검증(2026-10-10 — 이 PC Windows 11·Edge·8GB, 무거운 검사는 하나씩):** 타입 검사 972파일 오류 0·경고 0(힌트 3 — 전부터), 단위 285파일 3,685건 + Container 2파일 7건 모두 통과(3분 11초), 빌드 83쪽(Pagefind 79쪽·27,848낱말, 서비스 워커 셸 6개 207KB/700KB — 1.2.1의 4개 135KB에서 머리글 검색 스크립트·홈 HTML이 늘어남), `check:links`(HTML 83·CSS 1·사이트 안 주소 9,555)·`check:lessons -- --complete` 45/45·`check:repo -- --dist dist`(699파일)·`--worktree`(1,930파일) 통과. `test:e2e -- --workers=2` 1,736건 — 1,194 통과·541 건너뜀·실패 0·흔들림 1(2.1시간 — `ble-pc-tab.spec.ts:200` 두 탭 블루투스 8초 멈칫 뒤 값 3번째에서 15초 초과, 다시 시도 통과·혼자 workers 1·retries 0로 5/5 통과 → 느림 흔들림). `test:a11y` 292건 — 235 통과·56 건너뜀·흔들림 1(`a11y-keyboard.spec.ts:451` 영상 처리 실습실 준비 30초 초과, 혼자 3번 통과) — axe critical·serious 0. `perf:measure` 12/12(23분): 3G 학습 쪽 FCP 가장 늦은 2,356ms(1-1-1 — C15 한도 3,000ms, 1.2.1은 2,312ms), Slow 4G 1,464ms, 실습실 밖 64쪽·서비스 워커 사전 캐시에서 무거운 라이브러리 0건, 회선 3G 시나리오 A 첫 에지 7분 14초(1.2.1과 같음). 머리글 자동 완성 스크립트가 모든 쪽에 더한 것: `HeaderSearch` 모듈 6,654B + 공용 조각 `search-hint` 10,183B = 16.8KB(gzip 7.2KB) — 모듈 스크립트라 첫 그리기를 막지 않고, Pagefind는 초점·입력 때만. 오프라인판 1.3.0 zip은 기록 커밋 `09cda6a` 뒤 깨끗한 작업 폴더에서 만들었다 — `.cache/offline/apc-offline-1.3.0.zip` 72,821,049바이트(항목 863개, 풀면 107.8MB), SHA-256 `926185540e98c508672633b10d9c390eee78c1449aa8fa30a2a489d790c05eba`, `test:offline` 9/9(111.8초) — 릴리스 올리기는 운영자 할 일 37.
+
+### 8.14 판 1.4.0 구현 메모(금성출판사 교과서를 웹으로, 2026-10-15~16)
+
+운영자 요청(2026-10-15): 「인공지능과 피지컬 컴퓨팅」 출판본 교과서를 웹에 그대로 싣고, 같은 출판사 중학교판 같은 홈 흐름으로, 고릴라셀(브릭셀) 부품 사진·회로 그림을 쓴다. 질문 셋(업체 사진·회로 그림 허락 / 출판사 표지·이름 협의 / 출판본 전문 공개)에 모두 허락(O17). 기존 웹 차시·주소·진도·저장된 코드는 그대로 두고 교과서 쪽을 더해 판 **1.4.0**(둘째 자리, MAINTENANCE 10-1). 가지 `feat/v140-textbook-web`(main `1822b04` 위, 구역 커밋 `1822b04..2ca9e66` 15개 + 통합 문서·판 커밋). 설계서(`.cache/v140/PLAN.md`)·조사 메모(a1 사진·a2 차례·a3 브릭셀 흐름·a4 회로)·구역 보고(`notes/c*.md`)·요청(`requests/`)은 이 PC의 `.cache/v140/`(git 밖)에만 있다. 결정은 O17·C131~C154.
+
+- **구조 한 줄:** 새 콘텐츠 모음 `content/book/`(교과서 쪽 41편 — 절 32·대단원 시작 4·마무리 4·앞 부속 1) + 새 쪽 `/book/`·`/book/<id>/`. 기존 웹 차시(8칸·실습실·퀴즈·교사용)는 "풀이·실습"으로 그대로 두고 두 쪽 맨 위의 전환 줄로 잇는다(C131·C140). 8칸 차시 규칙은 교과서 쪽에 적용하지 않고 `src/components/book/book-rules.ts`가 따로 지키며, 교과서 쪽 전용 문법을 웹 차시에서 쓰면 `check:lessons`가 `book-only`로 막는다(C134).
+- **구역(로컬은 한 번에 하나 — C130, 모델은 구역 에이전트 sonnet·설계와 통합은 메인):**
+
+| 구역 | 맡은 일 | 고친 파일(주인) | 커밋 |
+|---|---|---|---|
+| C1 교과서 바탕 | 모음·스키마·쪽 문법·꼭지 상자·`check:book`·`book:fidelity`·원고 그림 도구의 새 원본 `BOOK`·기준 쪽 `2-1-2.md` | `content-schemas.ts`·`content.config.ts`·`remark-boxes.mjs`·`shiki-line-start.mjs`·`src/pages/book/**`·`src/components/book/**`·`present.ts`·`nav.ts`·`scripts/lib/lesson-images*`·`scripts/lib/{check-book,book-fidelity}.mjs` | `bf66683` |
+| C2 부품 사진 | 사진 165장·`parts.yaml`·부품 사전·키트 표 사진 칸·3-1-2 변환기 사진 | `public/images/parts/**`·`content/parts/**`·`src/pages/start/parts/**`·`src/components/parts/**`·`KitPartsTable`·`sources.yaml` | `fb19d9b` |
+| 회로 도구(조사 A4 이어서) | 목록·`.circuit` 23개·내보내기·들이기 | `scripts/circuits/**` | `546215b` |
+| C3 본문 옮기기 | 다섯 범위 — ① 1단원 01·02(6~51쪽) ② 1단원 03·04+마무리(52~113) ③ 2단원(114~181, 2-1-2 제외) ④ 3단원+앞 부속(182~209, 2~3) ⑤ 4단원(210~291) | `content/book/<범위>.md`·그림 목록·`public/images/lessons/<차시>/` | ② `31cb4cc` ⑤ `4c205d1` ③ `0884d3e` ① `a1e8369` ④ `10692c7` |
+| C4 홈 흐름·디자인 | 표지·차례 그림·카드·바닥글 출처·준비물 사진 줄·제목 정리·CI 한 단계 | `index.astro`·`src/components/home/**`·`footer`·`global.css`·`tokens.css`·`book-outline.ts`·`book-toc-spots.ts`·`e2e.yml` | `3ec886a` |
+| C5 회로 그림 연결 | `::회로`·웹 차시 접기·보드 준비 쪽·제외 쪽 | `src/components/circuits/**`·`remark-boxes.mjs`·`book-html.ts`·`[lesson].astro`·`start/board` | `08948c5` |
+| 통합 | 제외 쪽 BOOK 줄·문서·판 | `scripts/image-exclusions.yaml`·문서·`package.json` | `2ca9e66` + 문서·판 커밋 |
+
+  그 밖의 커밋: `10320e6`(원본 폴더·출판본 PDF를 git에서 뺌), `f1f588c`(설계·결정), `36b52a9`·`07228b0`(진행 기록). 개발 서버는 C4·C5가 4952·4953, 화면 검수가 4961을 썼고 같은 폴더에는 서버를 하나만 띄웠다(C130).
+- **새 공용 파일(다른 쪽이 따라야 할 규약):**
+  - 교과서 쪽: `bookSchema`(`content-schemas.ts`), 문법 `remark-boxes.mjs`(`::쪽`·`::실습실`·`::회로`·꼭지 상자 14종 `book: true`·`keepName`), 코드 줄 번호 `src/lib/shiki-line-start.mjs`(`{start=N}`), 부품·순수 함수 `src/components/book/*`, 차례 일반화 `src/components/lesson/sidebar-outline.ts`, 스타일 `src/styles/book.css`, 콘텐츠 캐시 비우기 `REHYPE_LESSON_POLISH_VERSION` 5 → 8.
+  - 검사: `scripts/check-book.mjs`·`scripts/check-book-fidelity.mjs` + `scripts/lib/{check-book,book-fidelity}.mjs`·`book_text_worker.py`, 단위 시험 `tests/unit/{book,home,parts,circuits}/`, 브라우저 `tests/e2e/{book,home,parts}.spec.ts`, CI "테스트"에 `check:book` 한 단계.
+  - 그림: 원고 도구의 `BOOK`(좌표 재단선 안쪽 595.28×779.53pt 왼쪽 위 — `side: 'trim'`), 교과서에만 있는 쪽의 목록 `content/book/*.images.yaml` → `public/images/book/`, 제외 쪽 `scripts/image-exclusions.yaml` BOOK 줄 8묶음.
+  - 부품·회로: `content/parts/parts.yaml`·`src/components/parts/*`·`src/pages/start/parts/`, `scripts/circuits/{circuits.yaml,*.circuit,build/export/import}`·`src/components/circuits/*`·`src/styles/circuits.css`.
+  - 홈: `src/components/home/{HomeCover,HomeToc,HomeLessons}.astro`·`home-lessons.ts`, 데이터 `src/config/{book-outline,book-toc-spots}.ts`, 바닥글 출처 `site.ts`의 `textbook`·`partsProvider`. 옛 `HomeHero`·`FlowIllustration`·`HomeMap`은 쓰는 곳만 뺐다(옛 시험이 읽어 파일은 남김).
+- **숫자:** 교과서 쪽 41편(쪽 표지 288개·파이썬 코드 칸 290개·`::실습실` 80곳·`::회로` 23곳), 웹정정 37곳(출판본 인쇄 오류), 그림생략 63곳, 원고 그림 도구의 BOOK 항목 155개, 부품 사진 165장(168 → 165, C150), 회로 그림 23장, 제외 쪽 BOOK 8묶음 40쪽. 변경 592파일(+32,223·−709줄, `1822b04..2ca9e66`).
+- **막은 것·하지 않은 것(까닭):** 스톡 사진·권리자 표기 그림·본인 확인 전 얼굴 26쪽·기기 주소와 사용자 폴더 경로가 보이는 캡처는 꺼내지 않고 `그림생략`/`region`(C145·C146), 용어사전에 없는 낱말은 새 항목을 만들지 않고 목록만(C147·PROGRESS 미해결 241), 웹 차시 본문 속 옛 제목 링크 글은 그대로(미해결 239), 홈 HTML 사전 캐시 한도는 올리지 않음(C151·미해결 238).
+- **통합 검증(2026-10-16):** 정적 검사 — 타입 검사·`npm test`·`check:lessons`(45편)·`check:book`(41편)·`book:fidelity`·`npm run build`·`check:links`·`check:repo -- --worktree`는 03시 19분에 모두 통과했다(`.cache/v140/notes/RESUME.md` 기록). **브라우저 전체 검사(`npm run test:e2e`·`test:a11y`·`perf:measure` 혼자·오프라인판 `build:offline`/`test:offline`)와 내장 브라우저 눈 확인(1366·375) 결과는 통합 검증을 맡은 메인이 이 자리에 적는다.**
 
 ---
 
