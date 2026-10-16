@@ -613,6 +613,8 @@ describe('원본 이름 목록 만들기', () => {
     expect(problems.map((problem) => problem.detail).join('\n')).not.toContain(secret);
     const placeholders = [
       repoFile('examples/esp32/u3/ok.py', 'wlan.connect("classroom-wifi", "my-password")\nsta.connect("이름", "비밀번호")\nWIFI_PASSWORD = "1234"\n'),
+      // 키트 장치 도감(브릭셀 쪽 코드, 판 1.5.0) 8.07이 그대로 쓰는 자리표시자
+      repoFile('examples/esp32/kit/ch8/ok.py', "SSID = 'my_wifi_name'\nPASSWORD = 'my_wifi_password'\n"),
       repoFile('content/lessons/u3/ok.md', '`wlan.connect("이름", "비밀번호")`\npassword = ""\n'),
       // 사이트 코드·검사는 가짜 값이 있어도 이 규칙으로 보지 않는다(예제·차시에서만)
       repoFile('src/lab/mock.ts', `wlan.connect("x", "${secret}")\n`),

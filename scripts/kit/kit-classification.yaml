@@ -1,0 +1,156 @@
+# 키트 장치 도감 — 장치별 분류·가상 보드 배선 표 (판 1.5.0, 구역 K1)
+#
+# scripts/kit/generate-kit.mjs가 .cache/v150/kit.json(브릭셀 쪽에서 뽑은 장치·코드)과 이 표를 합쳐
+# examples/esp32/kit/**(코드 + 사이드카)와 content/kit/devices.yaml을 만들어요. 이 표는 "사람이 정한 것"만 담아요.
+# 코드 글은 이 표에 없어요(브릭셀 쪽 글 그대로 옮겨요) — 코드가 쓰는 문자 LCD(I2cLcd)는 생성기가 코드를 보고 배선에 저절로 더해요.
+#
+# 칸(장치 id = d-<장>-<번호 두 자리>)
+#   support   A    지금 있는 가상 보드 부품·흉내로 끝까지 돼요
+#             B1   판 1.5.0의 범용 부품 4종(sensor-digital·sensor-analog·joystick·output-digital)으로 돼요
+#             B2   부품 + 흉내 모듈(SPI·I2C 칩 레지스터·dht·1-Wire·UART 프레임 …)이 더 있어야 해서 이번 판에는 실제 보드에서만
+#             C    더 어려운 것(타이밍 파형·상태 기계·큰 초기화 순서·파일 시스템) — 실제 보드에서만
+#   virtual   (선택) 가상 보드에서 되는 정도. full 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만.
+#             적지 않으면 A·B1은 full, B2·C는 real-only. 코드마다 다르면 virtual_steps: [1단계, 2단계].
+#   reason    partial·real-only인 까닭 한 문장("…아직 없어서" 꼴 — 연습 방법과 도감 쪽에 그대로 보여요)
+#   parts     가상 보드 배선(예제 사이드카 parts와 같은 모양 — src/lab/modules/board/wiring-spec.ts). 핀은 브릭셀 실드 V3 규칙 그대로.
+#             문자 LCD는 코드에 I2cLcd( 가 있으면 생성기가 더하므로 적지 않아요.
+#             options는 범용 부품의 화면 표시용 값(color 등)이에요.
+#   tags      갤러리·검색 낱말(장 이름·연결 방식·문자 LCD 낱말은 생성기가 더해요)
+#   slug      예제 파일 이름에 쓰는 영문 이름(적지 않으면 회로 그림 파일 이름에서)
+#   note      도감 쪽에 보일 참고 글
+#   libs      라이브러리 목록을 손으로 고칠 때(적지 않으면 카드의 Library 칸과 코드의 import로 정함)
+#
+# 새 장치를 더하는 법은 content/kit/devices.yaml 머리말을 보세요.
+
+# ── 2장 디스플레이 ──
+d-2-01: { support: B1, tags: [LED, PWM, 깜빡이기], parts: [{ part: output-digital, pin: 4, label: LED, options: { color: red } }] }
+d-2-02: { support: B1, slug: traffic-led, tags: [신호등, LED], parts: [{ part: output-digital, id: green-led, pin: 23, label: 초록 LED, options: { color: green } }, { part: output-digital, id: yellow-led, pin: 25, label: 노랑 LED, options: { color: yellow } }, { part: output-digital, id: red-led, pin: 26, label: 빨강 LED, options: { color: red } }] }
+d-2-03: { support: A, slug: rgb-led, tags: [RGB LED, PWM, 색], parts: [{ part: rgb-led, pins: { r: 23, g: 25, b: 26 }, label: RGB LED }] }
+d-2-04: { support: A, tags: [레이저, 출력], parts: [{ part: laser, pin: 4, label: 레이저 }] }
+d-2-05: { support: A, slug: lcd-i2c, tags: [LCD, I2C, 글자 표시] }
+d-2-06: { support: B2, slug: 7segment, tags: [7세그먼트, TM1637], reason: "TM1637 7세그먼트 표시 장치(2선 통신)의 흉내가 가상 보드에 아직 없어서" }
+d-2-07: { support: A, slug: oled-096, tags: [OLED, I2C, SSD1306], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 0.96인치(128×64) }], note: "가상 보드에서는 OLED 부품이 ssd1306 드라이버를 대신해요. 실제 보드에는 ssd1306.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
+# 2026-10-16 호환 검사: 가상 보드의 sh1106 흉내(src/lab/modules/board/parts/oled-i2c/sh1106.py)가 브릭셀 코드의 SH1106_I2C(128, 64, i2c, None, addr=0x3C) 호출(robert-hh 판 — 4번째 자리 res)을
+# 받지 못해 TypeError("got multiple values for argument 'addr'")로 멈춘다. 흉내를 고치면 아래 virtual·reason을 지우고 generate-kit.mjs --force로 다시 만든다.
+d-2-08: { support: A, virtual: real-only, reason: "가상 보드의 sh1106 흉내가 이 코드의 호출 모양(SH1106_I2C(128, 64, i2c, None, addr=0x3C))을 아직 받지 못해서", slug: oled-13, tags: [OLED, I2C, SH1106], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 1.3인치(128×64) }], note: "가상 보드에서는 OLED 부품이 sh1106 드라이버를 대신해요. 실제 보드에는 sh1106.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
+d-2-09: { support: B2, slug: dotmatrix-8x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서" }
+d-2-10: { support: B2, slug: dotmatrix-16x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서" }
+d-2-11: { support: B2, slug: dotmatrix-8x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-2-12: { support: B2, slug: dotmatrix-16x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-2-13: { support: A, slug: neopixel-ring, tags: [네오픽셀, 링, RGB], parts: [{ part: neopixel, pin: 23, label: RGB 링(NeoPixel 16) }] }
+d-2-14: { support: B1, virtual: partial, slug: neopixel-square, tags: [네오픽셀, RGB], parts: [{ part: neopixel, pin: 23, label: RGB 매트릭스(NeoPixel) }], reason: "가상 보드의 네오픽셀 그림은 16개 링이라 17번째 불빛부터는 그림에 나오지 않아서(코드는 그대로 돌아요)", note: "브릭셀 네오픽셀 매트릭스 모듈은 코드에 불빛 수(NUM_OF_LED)가 18개로 적혀 있고, 64개짜리 8x8 판이면 64로 바꾸라고 안내해요." }
+
+# ── 3장 디지털 센서 ──
+d-3-01: { support: B1, slug: button, tags: [버튼, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 버튼 }] }
+d-3-02: { support: B1, slug: rocker-switch, tags: [스위치, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 로커 스위치 }] }
+d-3-03: { support: A, slug: touch, tags: [터치 센서, 디지털 입력], parts: [{ part: touch-digital, pin: 23, label: 터치 센서 }] }
+d-3-04: { support: B1, slug: color-touch, tags: [터치 센서, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 컬러 터치 센서 }] }
+d-3-05: { support: B1, slug: vibration-sensor, tags: [진동 센서, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 진동 센서 }] }
+d-3-06: { support: B1, slug: tilt, tags: [기울기 센서, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 기울기 센서 }] }
+d-3-07: { support: B1, slug: fire, tags: [화재 센서, 불꽃, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 화재 센서 }] }
+d-3-08: { support: B1, slug: pir, tags: [PIR, 인체 감지, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: PIR 인체 감지 센서 }] }
+d-3-09: { support: B1, slug: line-finder, tags: [라인 감지, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 라인 감지 센서 }] }
+d-3-10: { support: B1, slug: ir-object, tags: [IR 장애물, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: IR 장애물 감지 센서 }] }
+d-3-11: { support: B2, slug: ultrasonic, tags: [초음파, 거리], reason: "초음파 센서가 소리를 쏘고 돌아오는 시간을 재는 기능(time_pulse_us)과 센서 흉내가 가상 보드에 아직 없어서" }
+d-3-12: { support: B2, slug: dht11, tags: [온습도, DHT11], reason: "온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서" }
+d-3-13: { support: B2, slug: dht22, tags: [온습도, DHT22], reason: "온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서" }
+d-3-14: { support: B2, slug: rotary, tags: [로터리 인코더, 회전], reason: "로터리 인코더가 돌 때 나오는 두 신호(직교 신호)의 흉내가 가상 보드에 아직 없어서" }
+d-3-15: { support: B1, slug: photoresistor, tags: [포토레지스터, 속도 센서, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 포토레지스터·속도 센서 }] }
+d-3-16: { support: B2, slug: water-temp, tags: [수온, DS18B20, 1-Wire], reason: "수온 센서를 읽는 onewire·ds18x20 모듈과 센서 흉내가 가상 보드에 아직 없어서" }
+d-3-17: { support: B1, slug: float-switch, tags: [수위, 플로트 스위치, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 수위 센서(플로트 스위치) }] }
+d-3-18: { support: B2, slug: pms7003, tags: [미세먼지, PMS7003, UART], reason: "미세먼지 센서가 UART로 보내는 값(32바이트 프레임)의 흉내가 가상 보드에 아직 없어서" }
+d-3-19: { support: B2, slug: pms3003, tags: [미세먼지, PMS3003, UART], reason: "미세먼지 센서가 UART로 보내는 값(프레임)의 흉내가 가상 보드에 아직 없어서" }
+d-3-20: { support: B2, slug: ze19d, tags: [이산화탄소, CO2, UART], reason: "CO2 센서가 UART로 보내는 값(9바이트 명령·응답)의 흉내가 가상 보드에 아직 없어서" }
+d-3-21: { support: C, slug: fingerprint, tags: [지문, AS608, UART], reason: "지문 센서의 UART 통신 규약(등록·검색·삭제) 흉내가 가상 보드에 아직 없어서", note: "이 지문 센서 라이브러리(pyfingerprint.py)는 사용 조건이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요." }
+
+# ── 4장 아날로그 센서 ──
+d-4-01: { support: B1, slug: potentiometer, tags: [가변저항, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 가변저항 }] }
+d-4-02: { support: B1, slug: cont-rotation-pot, tags: [가변저항, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 연속 회전 가변저항 }] }
+d-4-03: { support: B1, slug: slider, tags: [슬라이더, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 슬라이더 가변저항 }] }
+d-4-04: { support: B1, slug: joystick, tags: [조이스틱, 아날로그 입력, ADC], parts: [{ part: joystick, pins: { x: 32, y: 33 }, label: 조이스틱 }] }
+d-4-05: { support: B1, slug: light, tags: [조도, 빛, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 조도 센서(LDR), options: { label_low: 어두움, label_high: 밝음 } }] }
+d-4-06: { support: A, slug: analog-touch, tags: [터치 센서, 아날로그 입력, ADC], parts: [{ part: touch-analog-4ch, pin: 32, label: 아날로그 터치 센서(4칸) }] }
+d-4-07: { support: B1, slug: fsr, tags: [압력, FSR, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: FSR 압력 센서, options: { label_low: 안 누름, label_high: 세게 누름 } }] }
+d-4-08: { support: B1, slug: soil-moisture, tags: [토양 수분, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 토양 수분 센서, options: { label_low: 물속, label_high: 공기 중 } }] }
+d-4-09: { support: B1, slug: ntc-temp, tags: [온도, NTC, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: NTC 온도 센서 }] }
+d-4-10: { support: B1, slug: sound, tags: [소리, 마이크, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 사운드 센서, options: { label_low: 조용함, label_high: 시끄러움 } }] }
+d-4-11: { support: B1, slug: fine-dust, tags: [미세먼지, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 미세먼지 센서 }, { part: output-digital, id: dust-led, pin: 33, label: 미세먼지 센서 LED }] }
+d-4-12: { support: B1, slug: uv, tags: [자외선, UV, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 자외선 센서 }] }
+d-4-13: { support: B1, slug: ph, tags: [pH, 산성, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: pH 센서 }] }
+d-4-14: { support: B1, slug: tds, tags: [전기전도도, TDS, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 전기전도도(TDS) 센서 }] }
+d-4-15: { support: B1, slug: turbidity, tags: [탁도, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 탁도 센서 }] }
+d-4-16: { support: B1, slug: rain, tags: [빗물, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 빗물 감지 센서 }] }
+d-4-17: { support: B1, slug: vibration-analog, tags: [진동, 피에조, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 진동 센서(피에조) }] }
+d-4-18: { support: B1, slug: current, tags: [전류, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 전류 센서 }] }
+d-4-19: { support: B1, slug: voltage, tags: [전압, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 전압 센서 }] }
+d-4-20: { support: B1, slug: ktype, tags: [고온, 열전대, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 고온 센서(K형) }] }
+d-4-21: { support: B1, slug: mq2, tags: [가스, MQ2, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ2 가스 센서 }] }
+d-4-22: { support: B1, slug: mq3, tags: [가스, MQ3, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ3 가스 센서 }] }
+d-4-23: { support: B1, slug: mq4, tags: [가스, MQ4, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ4 가스 센서 }] }
+d-4-24: { support: B1, slug: mq5, tags: [가스, MQ5, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ5 가스 센서 }] }
+d-4-25: { support: B1, slug: mq6, tags: [가스, MQ6, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ6 가스 센서 }] }
+d-4-26: { support: B1, slug: mq7, tags: [가스, MQ7, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ7 가스 센서 }] }
+d-4-27: { support: B1, slug: mq8, tags: [가스, MQ8, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ8 가스 센서 }] }
+d-4-28: { support: B1, slug: mq9, tags: [가스, MQ9, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ9 가스 센서 }] }
+d-4-29: { support: B1, slug: mq135, tags: [가스, MQ135, 공기질, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: MQ135 가스 센서 }] }
+d-4-30: { support: B1, slug: magnet, tags: [자석, 자기장, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 자석 감지 센서 }] }
+
+# ── 5장 I2C 고급 센서 ──
+d-5-01: { support: B2, slug: sht30, tags: [온습도, SHT30, I2C], reason: "SHT30 온습도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+d-5-02: { support: B2, slug: weight, tags: [무게, HX711, I2C], reason: "무게 센서 모듈(I2C 주소 0x63)의 흉내가 가상 보드에 아직 없어서" }
+d-5-03: { support: B2, slug: mlx90614, tags: [비접촉 온도, MLX90614, I2C], reason: "MLX90614 비접촉 온도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+d-5-04: { support: B2, slug: rtc, tags: [시계, RTC, DS3231, I2C], reason: "DS3231 실시간 시계 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서", note: "가상 보드의 machine.RTC(보드 안 시계)와는 다른 부품이에요 — 이 도감의 RTC는 DS3231 모듈을 I2C로 읽어요." }
+d-5-05: { support: B2, slug: tcs34725, tags: [색상 센서, TCS34725, I2C], reason: "TCS34725 색상 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+d-5-06: { support: B2, slug: mpu6050, tags: [자이로, 가속도, MPU6050, I2C], reason: "MPU6050 6축 자이로 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+d-5-07: { support: C, slug: max30102, tags: [심박, MAX30102, I2C], reason: "MAX30102 심박 센서 칩의 측정 순서와 심박 계산 흉내가 가상 보드에 아직 없어서" }
+d-5-08: { support: B2, slug: bmp280, tags: [기압, 고도, BMP280, I2C], reason: "BMP280 기압 센서 칩(보정 계수 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+d-5-09: { support: C, slug: vl53l0x, tags: [거리, VL53L0X, I2C], reason: "VL53L0X 거리 센서 칩의 긴 초기화 순서 흉내가 가상 보드에 아직 없어서" }
+d-5-10: { support: C, slug: gesture, tags: [제스처, APDS9960, I2C], reason: "APDS9960 제스처 센서 칩의 측정 대기열 흉내가 가상 보드에 아직 없어서", note: "이 제스처 센서 라이브러리(apds9960.py)는 사용 조건(GPL)이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요." }
+d-5-11: { support: B2, slug: sgp30, tags: [공기질, SGP30, I2C], reason: "SGP30 공기질 센서 칩(명령과 CRC)의 흉내가 가상 보드에 아직 없어서" }
+d-5-12: { support: B2, slug: ccs811, tags: [공기질, CCS811, I2C], reason: "CCS811 공기질 센서 칩(앱 시작·상태 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+
+# ── 6장 모터 ──
+d-6-01: { support: A, slug: vibration-motor, tags: [진동 모터, 출력], parts: [{ part: vibration-motor, pin: 23, label: 진동 모터 }], note: "사이트 가상 보드의 진동 모터 기본 핀은 19번이지만, 이 도감의 브릭셀 실드 배선은 23번이라 예제마다 23번으로 적었어요." }
+d-6-02: { support: B2, slug: dc-motor, tags: [DC 모터, PCA9685, I2C], reason: "듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-6-03: { support: A, slug: fan-motor, tags: [팬 모터, 선풍기, PWM], parts: [{ part: fan-motor, pins: { ina: 25, inb: 26 }, label: 팬 모터 }], note: "사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요. 브릭셀 쪽 파일과 rotate()·stop() 사용법은 같고 기본 속도와 속도 범위(0~100 / 0~99)만 조금 달라요." }
+d-6-04: { support: A, slug: gear-motor, tags: [기어 모터, PWM], parts: [{ part: fan-motor, pins: { ina: 25, inb: 26 }, label: 기어 모터(팬 모터 그림) }], note: "가상 보드에는 기어 모터 그림이 없어서 같은 방식으로 도는 팬 모터 그림이 대신해요. 사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요." }
+d-6-05: { support: A, slug: servo, tags: [서보 모터, PWM, 각도], parts: [{ part: servo, pin: 25, label: 서보 모터(MG90S) }] }
+d-6-06: { support: B1, virtual: partial, slug: geekservo, tags: [서보 모터, 연속 회전, PWM], parts: [{ part: servo, pin: 25, label: 긱 서보(360도 연속 회전) }], reason: "가상 보드의 서보 그림은 각도를 보여 주는 서보라서 연속 회전 서보의 회전 속도와 방향은 그림으로 나오지 않아서(보내는 펄스 폭은 그대로 확인할 수 있어요)" }
+d-6-07: { support: B2, slug: stepper, tags: [스텝 모터, A4988], reason: "스텝 모터 드라이버(STEP 펄스를 세어 돌리는 부품)의 흉내가 가상 보드에 아직 없어서" }
+d-6-08: { support: B2, slug: dual-motor, tags: [모터 드라이버, PCA9685, I2C], reason: "듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-6-09: { support: B2, slug: pca9685, tags: [서보 드라이버, PCA9685, I2C], reason: "16채널 서보 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-6-10: { support: B1, virtual: partial, slug: l293dd, tags: [모터 드라이버, L293DD, PWM], parts: [{ part: output-digital, id: ain1, pin: 16, label: 모터 A 방향 1(AIN1) }, { part: output-digital, id: pwma, pin: 17, label: 모터 A 속도(PWMA) }, { part: output-digital, id: ain2, pin: 18, label: 모터 A 방향 2(AIN2) }, { part: output-digital, id: bin1, pin: 19, label: 모터 B 방향 1(BIN1) }, { part: output-digital, id: pwmb, pin: 13, label: 모터 B 속도(PWMB) }, { part: output-digital, id: bin2, pin: 14, label: 모터 B 방향 2(BIN2) }], reason: "가상 보드에는 모터 두 개 그림이 없어서 여섯 신호선을 표시등으로만 보여 주기 때문에(모터가 도는 모습은 나오지 않아요)" }
+
+# ── 7장 출력 ──
+d-7-01: { support: A, slug: buzzer, tags: [부저, 소리, PWM], parts: [{ part: buzzer, pin: 23, label: 부저 }], note: "사이트 교과서 예제의 버저는 15번 핀이지만, 이 도감의 브릭셀 실드 배선은 23번이라 예제마다 23번으로 적었어요." }
+d-7-02: { support: B1, slug: electromagnet, tags: [전자석, 출력], parts: [{ part: output-digital, pin: 23, label: 전자석, options: { kind: load } }] }
+d-7-03: { support: B1, slug: relay, tags: [릴레이, 출력], parts: [{ part: output-digital, pin: 23, label: 릴레이, options: { kind: relay } }] }
+d-7-04: { support: B1, slug: pumprelay, tags: [펌프, 릴레이, 출력], parts: [{ part: output-digital, pin: 23, label: 펌프 릴레이, options: { kind: relay } }] }
+d-7-05: { support: A, slug: mp3, tags: [MP3, 소리, UART], parts: [{ part: mp3, pins: { rx: 26, tx: 25 }, label: MP3 플레이어 }], note: "사이트 교과서 예제의 MP3 모듈은 TX 17·RX 16이지만, 이 도감의 브릭셀 실드 배선은 모듈 TX→25번, 모듈 RX→26번이에요." }
+
+# ── 8장 통신 ──
+d-8-01: { support: C, slug: ir-rx, tags: [적외선, 리모컨, IR], reason: "리모컨(IR) 신호의 타이밍 파형을 만드는 흉내가 가상 보드에 아직 없어서" }
+d-8-02: { support: C, slug: ir-tx, tags: [적외선, 리모컨, IR], reason: "IR 신호를 보내는 esp32.RMT 기능의 흉내가 가상 보드에 아직 없어서" }
+d-8-03: { support: C, slug: rf433-rx, tags: [무선, RF433], reason: "RF433 수신기의 펄스 읽기(time_pulse_us)와 신호 흉내가 가상 보드에 아직 없어서" }
+d-8-04: { support: C, slug: rf433-tx, tags: [무선, RF433], reason: "RF433 송신기가 보내는 펄스 신호와 짝이 되는 수신기 흉내가 가상 보드에 아직 없어서" }
+d-8-05: { support: B2, slug: bluetooth, tags: [블루투스, JDY-33, UART], reason: "블루투스 모듈(JDY-33)과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서", note: "사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원). 이 도감의 JDY-33은 UART로 연결하는 별도 모듈이에요." }
+d-8-06: { support: B2, slug: bluetooth-ble, tags: [블루투스, BLE, UART], reason: "블루투스 BLE 모듈과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서", note: "8.05와 같은 모듈 사진·회로 그림을 써요. 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원)." }
+d-8-07: { support: C, slug: wifi, tags: [와이파이, ESP12E, AT 명령, UART], reason: "WiFi 모듈(ESP12E)의 AT 명령 응답 흉내가 가상 보드에 아직 없어서" }
+d-8-08: { support: B2, slug: gps, tags: [GPS, 위치, UART], reason: "GPS 모듈이 UART로 보내는 위치 글(NMEA 문장) 흉내가 가상 보드에 아직 없어서" }
+d-8-09: { support: C, slug: tfcard, tags: [TF 카드, SD 카드, SPI, 파일], reason: "TF 카드(machine.SDCard·SPI)와 가상 파일 시스템이 가상 보드에 아직 없어서" }
+
+# ── 1장 시작하기 소절의 코드 12개 (키: "<소절 번호>#<그 소절의 몇 번째 코드>") ──
+# 칸은 장치와 같고, 장치 카드가 없어서 title(소절 이름 뒤에 붙는 말)·description을 직접 적어요.
+intro:
+  "1.5.4#1": { slug: hello-world, title: 내장 LED 깜빡이기, description: "내장 LED(GPIO 2)를 1초 간격으로 깜빡여 MicroPython 펌웨어가 잘 들어갔는지 확인해요.", difficulty: 1, tags: [Hello World, 내장 LED, 시작하기] }
+  "1.6#1": { slug: basics, title: 마이크로파이썬 기초 문법 모음, description: "변수·조건문·반복문·함수와 machine 모듈 가져오기(Pin·ADC·PWM·UART·SPI·I2C)를 한눈에 보는 견본 코드예요.", difficulty: 1, tags: [파이썬 기초, 문법, 시작하기], virtual: real-only, reason: "machine.SPI가 가상 보드에 아직 없어서 첫 줄의 가져오기(import)에서 멈추기 때문에" }
+  "1.7.1#1": { slug: gpio, title: GPIO 입출력, description: "BOOT 버튼(GPIO 0)을 누르는 동안 내장 LED(GPIO 2)를 켜요.", difficulty: 1, tags: [GPIO, 버튼, 내장 LED, 시작하기] }
+  "1.7.2#1": { slug: adc, title: ADC 아날로그 값 읽기, description: "GPIO 32에 이은 아날로그 센서의 값(0~4095)을 1초마다 읽어 전압으로 바꿔 보여 줘요.", difficulty: 1, tags: [ADC, 아날로그 입력, 시작하기], parts: [{ part: sensor-analog, pin: 32, label: 아날로그 센서(가변저항) }] }
+  "1.7.3#1": { slug: pwm, title: PWM으로 LED 숨쉬기, description: "내장 LED(GPIO 2)의 밝기를 PWM으로 서서히 밝게 했다가 어둡게 해요.", difficulty: 1, tags: [PWM, 내장 LED, 시작하기] }
+  "1.7.4#1": { slug: timer, title: 타이머로 LED 깜빡이기, description: "0.5초마다 부르는 타이머로 내장 LED(GPIO 2)를 깜빡여요.", difficulty: 2, tags: [타이머, Timer, 내장 LED, 시작하기] }
+  "1.7.5#1": { slug: uart, title: UART 시리얼 통신, description: "UART2(TX 17·RX 16)로 글을 보내고, 받은 글을 그대로 되돌려 보내는 에코 코드예요.", difficulty: 2, tags: [UART, 시리얼, 시작하기], parts: [{ part: uart, pins: { rx: 17, tx: 16 }, label: USB-UART 변환기(컴퓨터 시리얼 창) }] }
+  "1.7.6#1": { slug: wifi-station, title: 와이파이 공유기에 연결하기, description: "ESP32를 와이파이 공유기에 연결하고 받은 IP 주소를 보여 줘요. 공유기 이름과 비밀번호 자리에는 본인 것을 적어야 해요.", difficulty: 2, tags: [와이파이, WiFi, network, 시작하기] }
+  "1.7.6#2": { slug: wifi-ap, title: 와이파이 핫스팟 만들기, description: "ESP32를 와이파이 핫스팟(AP 모드)으로 만들고 이름과 IP 주소를 보여 줘요.", difficulty: 2, tags: [와이파이, WiFi, 핫스팟, network, 시작하기] }
+  "1.7.7#1": { slug: brx-ble, title: 브릭셀 무선 연결 통로(brx_ble.py), practice: ["이 파일은 브릭셀 웹 쪽의 [무선 연결 설치]가 쓰는 참고용 코드예요. 이 사이트에서는 [실행]하지 않아도 돼요.", "보드의 대화 창(REPL)을 USB와 블루투스 두 길로 함께 여는 방법을 읽어 보세요. 이 사이트에서 실제 보드에 연결할 때는 [실제 보드] 탭(USB)을 써요."], description: "브릭셀 웹 쪽의 [무선 연결 설치]가 보드의 /lib에 올리는 파일이에요. 브릭셀 웹 쪽 전용이라 이 사이트에서는 쓰지 않고 참고용으로만 실었어요.", difficulty: 3, tags: [블루투스, BLE, 참고용, 시작하기], virtual: real-only, reason: "브릭셀 웹 쪽의 무선 연결 설치 전용 파일이고 os.dupterm 같은 보드 기능이 가상 보드에 없어서", note: "이 사이트에서는 쓰지 않는 참고용 코드예요. 이 사이트에서 보드에 연결하려면 [실제 보드] 탭(USB)을 쓰세요." }
+  "1.7.7#2": { slug: boot-block, title: 브릭셀 무선 연결 boot.py 블록, practice: ["이 블록은 브릭셀 웹 쪽의 [무선 연결 설치]가 boot.py에 넣는 참고용 코드예요. 이 사이트에서는 [실행]하지 않아도 돼요.", "brx_ble.py가 보드에 있어야 동작해요. 이 사이트에서 실제 보드에 연결할 때는 [실제 보드] 탭(USB)을 써요."], description: "브릭셀 웹 쪽의 [무선 연결 설치]가 boot.py에 넣는 블록이에요. 브릭셀 웹 쪽 전용이라 이 사이트에서는 쓰지 않고 참고용으로만 실었어요.", difficulty: 2, tags: [블루투스, BLE, 참고용, 시작하기], virtual: real-only, reason: "브릭셀 웹 쪽의 무선 연결 설치 전용 코드이고 brx_ble.py가 보드에 있어야 해서", note: "이 사이트에서는 쓰지 않는 참고용 코드예요. 이 사이트에서 보드에 연결하려면 [실제 보드] 탭(USB)을 쓰세요." }
+  "1.7.7#3": { slug: ble-uart-server, title: 블루투스 UART 서버 직접 만들기, description: "Nordic UART Service(NUS)로 휴대폰과 글을 주고받는 블루투스 서버예요. 연결되기 전에는 내장 LED가 깜빡이고, 연결되면 켜져요.", difficulty: 3, tags: [블루투스, BLE, NUS, 시작하기], parts: [{ part: ble, pin: 12, label: 블루투스(BLE) }] }

@@ -3,7 +3,7 @@
 // tests/unit/lab/pyodide-board-module-notices.test.ts가 공유 도우미(pyodide-board-run.mjs --steps=이 파일)로 돌린다(src/lab/README.md 7.9).
 // 받는 도구: step(이름, 코드, { … }), pyodide, rootDir.
 //
-// 뒤쪽 "거짓 알림 0" 훑기: examples/esp32/**(보드 라이브러리 lib/ 빼고)의 예제마다, 차시 md의 보드 코드 블록마다, 블록 모드가 만드는 import마다
+// 뒤쪽 "거짓 알림 0" 훑기: examples/esp32/**(보드 라이브러리 lib/ 빼고, 키트 도감의 virtual: real-only 예제도 빼고)의 예제마다, 차시 md의 보드 코드 블록마다, 블록 모드가 만드는 import마다
 // 그 import 문만 학생 코드로 다시 돌려(exec — 실패하는 import는 넘김) 알림이 하나도 나오지 않는지 본다. 보드 라이브러리(examples/esp32/lib/**)는
 // 화면(modules/board/index.ts)처럼 /board/lib/<파일 이름>에 넣는다.
 import fs from 'node:fs';
@@ -260,6 +260,12 @@ export default async function moduleNoticeSteps({ step, pyodide, rootDir }) {
   const unparsed = [];
   for (const file of walkPython(examplesDir, ['lib'])) {
     const relative = path.relative(path.join(rootDir, 'examples'), file).replace(/\\/gu, '/');
+    // 키트 장치 도감(판 1.5.0)의 "실제 보드에서만"(사이드카 virtual: real-only) 예제는 가상 보드가 아직 모르는 모듈(dht·onewire·SPI·pca9685 …)을
+    // 일부러 쓴다 — 그 알림은 거짓이 아니라 맞는 알림이라 이 훑기에서 뺀다(가상 보드에서 끝까지 되는 full·partial 예제는 그대로 훑는다).
+    if (relative.startsWith('esp32/kit/')) {
+      const sidecarPath = file.replace(/\.py$/u, '.meta.yaml');
+      if (fs.existsSync(sidecarPath) && /^virtual:\s*real-only\s*$/mu.test(fs.readFileSync(sidecarPath, 'utf8'))) continue;
+    }
     const source = fs.readFileSync(file, 'utf8');
     let statements = toList(extractStrict(source));
     if (statements === null) {

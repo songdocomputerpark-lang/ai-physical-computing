@@ -1350,3 +1350,708 @@ images:
       by: claude
       date: 2026-10-16
       result: "통과 — 메인 세션 접촉 시트 눈 확인 2026-10-16 — 얼굴·개인정보 없음. 투명 배경에 보드·부품·선 그림과 부품에 인쇄된 글자만 보임(사람·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음). 메타데이터 없음. 사용 허락 DECISIONS O17."
+
+# 키트 장치 도감 회로 그림(판 1.5.0, DECISIONS O19·C155): content/kit/devices.yaml의 circuit 칸이 가리키는 public/images/kit/circuits/third-party/kit-vendor/ 의 그림 100장이에요.
+# 키트 업체(고릴라셀·브릭셀)의 Thonny + ESP32 쪽 회로 그림(circuits_imags/)을 운영자가 그대로 싣도록 허락했어요(sources.yaml 키트 업체 항목).
+# Pillow로 다시 인코딩했어요(npm 명령 없이 scripts/kit/import-circuit-images.py — WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음, 8.06은 8.05와 같은 그림이라 파일이 없어요).
+# 접촉 시트(한 장에 12장)로 100장을 모두 열어 보았어요(2026-10-16). 새 회로 그림을 더하면 같은 모양으로 한 장씩 적어요.
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-01.webp
+    sha256: "87bef60b66ff86358711afeaf0e4885e4d86c5d4ac013a48e58be99dbd801492"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_01_led.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-02.webp
+    sha256: "a13240f86e1ae8fa48bfb6420bf7749217974452c270677215fc2f0680a2eaf0"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_02_traffic_led.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-03.webp
+    sha256: "0e102fc8b16b232e8c945d8fcf7ffdb4a810cbf07b70f3172445756a2cadf5d0"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_03_rgb_led.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-04.webp
+    sha256: "9ecff9cad3f7b86bb6be385aa9d3420c89bc928b6463ba6f6a1c08c59bd89862"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_04_laser.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-05.webp
+    sha256: "66cea1704c6f4e6247753c5108c9975edc92b24b71dac9d593438333e811d40d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_05_lcd_i2c.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-06.webp
+    sha256: "a10d8ee7bf2f00814be99a4da70a1cc3efd500990ed620b4c30c714c21779f6d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_06_7segment.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-07.webp
+    sha256: "57d05dff45d4a5ea1604d8326672b9edd033fafbd700ab3c555853c6f3a1e20d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_07_oled_096.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-08.webp
+    sha256: "fe9e2205bff95289383a724a1914deb13a38ef014b1b4ee769068b748e158683"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_08_oled_13.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-09.webp
+    sha256: "62406a115ce4d649b1a9c057b6e14138970b2c30dfce10a18d10acd9b856243f"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_09_dotmatrix_8x8_spi.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-10.webp
+    sha256: "83f7ddc992038d5045f457943ad6c19abaa9a2678119317014c696409dbbe6a9"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_10_dotmatrix_16x8_spi.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-11.webp
+    sha256: "00850908284430e9e701850b03a57f80a9069d3debfe52e3525201ab44e9427b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_11_dotmatrix_8x8_i2c.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-12.webp
+    sha256: "dbad8762a202f385d03f2163093e5c55cd7c58dd274134da6448914f72593d7a"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_12_dotmatrix_16x8_i2c.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-13.webp
+    sha256: "c3205cf0117c98b778e081a481124cbc92cf68a1e85eaef6482e7c92d5f0d29a"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_13_neopixel_ring.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-2-14.webp
+    sha256: "04b5b388981154225ca0a7d48ef03c4e3d10e3a27d679e15aefd0369766c58e6"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_2_14_neopixel_square.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-01.webp
+    sha256: "0d219cfa090584fe77b5be52e9be044554959844cb508ddf4c730504200b25a6"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_01_button.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-02.webp
+    sha256: "79d130e640c54ef711c3b5e814abb0fe4a57136d3e87cb10f89e1737a88215e7"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_02_rocker_switch.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-03.webp
+    sha256: "42a0bfa861d4d348eb20344877091d4b9b0a64440845ad1b405fec638a1d4a00"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_03_touch.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-04.webp
+    sha256: "f4e2903665ad171f16b5c4032a4f3b03d592ea8f3c60a305340f24acd955da35"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_04_color_touch.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-05.webp
+    sha256: "e3f0e17a4a9d1bb7eecb424cbb78272affad823968792f7b513d67742c5e1ca3"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_05_vibration_sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-06.webp
+    sha256: "829d8ffe18022ffd8ab432fc80afe27d45cd4fb316cfa7f68b9d242f4a2255d9"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_06_tilt.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-07.webp
+    sha256: "8d976a5930c06d493e56c656ccfc1bbc41176fb36669fc568506f3cd0fb595a4"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_07_fire.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-08.webp
+    sha256: "4f7e59e881e53e08b1b9de336fb7cef2c93e243f9a5f7cb42a59ae7350404072"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_08_pir.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-09.webp
+    sha256: "ed0f98e4b2896b1e50467d310742417109873f4a2808eaed3b34710078eaf5b8"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_09_line_finder.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-10.webp
+    sha256: "39e08d0f61a0fbb7756c1901ffc907f2c204cd1cf60bcc81921fadfe9f693b4b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_10_ir_object.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-11.webp
+    sha256: "9131fdafcb8aa2530df6d9e0c105ea7f3fe389e3214da8c50adcc9650e7f58e5"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_11_ultrasonic.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-12.webp
+    sha256: "66d67e1679e9135197dd05985bd57355bfe46f60dbee21adf17123b9a29dfed2"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_12_dht11.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-13.webp
+    sha256: "2a882eaa7e5281fe7f587bdcfa343fc9cf626382be2266ff86c5451b7505da4b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_13_dht22.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-14.webp
+    sha256: "58d8dbd99ad1cfb9d619f2db6f498697aa6dce7396d74a2604e1c71460f609e9"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_14_rotary.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-15.webp
+    sha256: "d8c556dc8d2da7997b4500193ceb92eadc8d555e5fbbc2d55b8be90dde80d955"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_15_photoresistor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-16.webp
+    sha256: "9fd9d6ca1f5c60eb2eadef074907a056e7cf3b8aa849c4d3594c3ffbce55047b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_16_water_temp.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-17.webp
+    sha256: "9d68c5cdf73cc2f2a49302810928201a7c6925c29e0cb98b313d5b190b68afe2"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_17_floatswitch.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-18.webp
+    sha256: "dc6388ef76ac0385a447c076944dd32da99aae5ec6fb255aac5c354446f360aa"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_18_pms7003.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-19.webp
+    sha256: "c73ef8557fbfb2476b8411c6941b0fbae5789795a24ace8c45876fea412d3cc1"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_19_pms3003.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-20.webp
+    sha256: "992766413879c7ba1762abafcd613788bd613c8e91bebf6c365633dc2e12a999"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_20_ze19d.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-3-21.webp
+    sha256: "ede855c6685b5d9f4d1403b40ac6620902ccc78c5408d060a9e359ba436a5e13"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_3_21_fingerprint.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-01.webp
+    sha256: "39a5883089566d62c13d337e992eb32d6edbecc93c3e9e7a950e565317456380"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_01_potentiometer.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-02.webp
+    sha256: "8a5f49c2c3dd6c2ccfca186de4ef4418d350eaef67961a85c13d4d7cdb897135"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_02_cont_rotation_pot.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-03.webp
+    sha256: "fabc6a1cd4fa7ae7774ed2408c5962807ece628cdf0ef034ef79fae71e60e5b6"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_03_slider.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-04.webp
+    sha256: "a40ccac3853d6577fe5dc744457080d0d4dfd79403cb198451098852be994d9d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_04_joystick.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-05.webp
+    sha256: "4740d49f6e49021e2ea9bf776f3211053067dc7b35874919e5b65303ce1ddb92"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_05_light.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-06.webp
+    sha256: "73a0c4b66893d416bfba2a4852a28dc1a2c5ff4a36878d136c213aee5c7176d8"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_06_analog_touch.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-07.webp
+    sha256: "c9e9bf93c1ce785d094aa5e1f8777b850ca96e743b8b0cc8523568dcdcd070fc"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_07_fsr.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-08.webp
+    sha256: "17f5b04da6cb19b437ff400a96f0fda7775412fe4bdce3f03ef5b0c29fdfb623"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_08_soil_moisture.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-09.webp
+    sha256: "c37723ad1085720cee036ae4118b03ad347177c84e79a7c1c1654f8f88ad9ebc"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_09_ntc_temp.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-10.webp
+    sha256: "7cb339d6fe247c5dbf6336de3ebb712794bdddef772ff7d24f168561a7b73e13"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_10_sound.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-11.webp
+    sha256: "9147abc6fbf4477a241bc833c12308101e9048988dea8f45e2a6b41c67ce1eb8"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_11_fine_dust.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-12.webp
+    sha256: "1749135733a36f419ea048af872c7efb9831b01f10fdbb4a05e12ada8a695a9d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_12_uv.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-13.webp
+    sha256: "10759f4691588ff457219edf7ec2800251d45796269cf0754c4995b1313dbf87"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_13_ph.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-14.webp
+    sha256: "03f580d21d632a1d723733e71f6db58e627b3953d37cd01f74d21f5e94c7cd15"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_14_tds.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-15.webp
+    sha256: "0eb90b9ae23b013cc6fb2bef2d97116b794a2fd186342d77ef395a9be7dd6ca6"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_15_turbidity.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-16.webp
+    sha256: "6b9ac73ef5bdbb086cf0ae2f63ccf2de821511949a398e668ff2d4e0596af1c3"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_16_rain.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-17.webp
+    sha256: "ece4381a96e334065668709e7fbd16d1470d5ebc7e502b6d0abf841f3f0b0bc3"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_17_vibration_analog.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-18.webp
+    sha256: "ac0fc6e265447bec3c85009ebc549c0aea27399686e6d4e3be14d57a10db2ece"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_18_current.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-19.webp
+    sha256: "e0ee56991513b8574ec6ae8aa673b356a0c1c2cb77861809458aa0dc99f82be2"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_19_voltage.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-20.webp
+    sha256: "2f5d652b7b63a73e47f8c9e06511f973cba1347dffd85624e45c0cc1418defb6"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_20_ktype.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-21.webp
+    sha256: "a02af4e1035214da6467c1299ce98b07b9b23575a39dbe9635cd28edf5365600"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_21_mq2.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-22.webp
+    sha256: "bc98be1c0c24eaaf7c03a1ae7bd4522af9e4c9cf42317e5a079b3233d963088b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_22_mq3.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-23.webp
+    sha256: "530c0270ede15b269d7eb212c0bc624fc1c0c83373bceb8eaf53bbaefa24faba"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_23_mq4.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-24.webp
+    sha256: "1e8b7059b4b707ed6e0cb994c3a3ce9a8f5ee9feddc257d09ff1ef3de4864836"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_24_mq5.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-25.webp
+    sha256: "17027f527819bf386722014609b6d188270b30f4641908f53d5741b773908650"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_25_mq6.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-26.webp
+    sha256: "24d40cb1af0a1cbdae86168d6390bbcab8f3fe0f44d6db1a34fb3b307bffde6d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_26_mq7.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-27.webp
+    sha256: "1aaf6962f9d76117c2ef4e9054da5fd18e7a42db07f669bae1e26f4b913d1974"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_27_mq8.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-28.webp
+    sha256: "f0dcf6f52a03e57d8ff0134150a6514fd7c6118b82347e9553154c3c5a716c95"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_28_mq9.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-29.webp
+    sha256: "3b7b17f631fb7c519c8824767f013302c07450bdc37dafcde8487b3c4425afc0"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_29_mq135.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-4-30.webp
+    sha256: "02940074c9b4619e6a500982f7d406094277f97bcdbc554ce032c434b0d1b96a"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_4_30_magnet.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-01.webp
+    sha256: "c83915c2661a33d8fa099c5d0d4849d8547e3ed748c1bcb1c8b007ff4c639e31"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_01_sht30.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-02.webp
+    sha256: "df71f07b5da835863dad67830497e83173267e0f622e4132986068b3e4e2ff23"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_02_weight.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-03.webp
+    sha256: "c998c9ccac7b3be25e96bcd6dc165536cb384c516defa5f461bbef5db3078846"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_03_mlx90614.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-04.webp
+    sha256: "60d2a4b8b2645f496f406a4ef9c4e4b4e452b6fd1d8b9dd59b60ea529f7f5030"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_04_rtc.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-05.webp
+    sha256: "89f3a7f26aa74c08e03d7b44494bc1ffcd9c30687cbd4ef6103abb4d772e0569"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_05_tcs34725.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-06.webp
+    sha256: "e37c2b8c2d5abf7b6b170da9fe60f032d75b7e30e9f415f496ce69a9f69b7759"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_06_mpu6050.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-07.webp
+    sha256: "b111876e0cb6ee818fbfbbc80ba65fb841f99ddf4582fab1aee1376bc94d7b1e"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_07_max30102.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-08.webp
+    sha256: "293fdfdd6112ac6c86b2309c07068129f81ec5540f9315a0fee80cd6d06b4863"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_08_bmp280.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-09.webp
+    sha256: "a487b2da51ebbfd2a9007f4d14104c0d5a0b8b12fb28278f9fc111721aee4eb9"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_09_vl53l0x.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-10.webp
+    sha256: "78719f41936ead57d2b3644f88a5ddb4782ca9ef10b8c4c6f42b20378de52554"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_10_gesture.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-11.webp
+    sha256: "792aeace7ff7ea80b59658cfb3e45aa686710a72a32fa26c3fd6021a2846c458"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_11_sgp30.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-5-12.webp
+    sha256: "1fe021e2adb82be07219f026424d192ddaec02c71a4070bb83d8de2185581d34"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_5_12_ccs811.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-01.webp
+    sha256: "dc358a36eeac4afaa63a416eae9378d9f7ae599f78603476783096b2ecc2f20d"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_01_vibration_motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-02.webp
+    sha256: "0e889dd941f4ed0cc37080e8c50081ffa5dd2d10ce9110aec89f05d5085f82e7"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_02_dc_motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-03.webp
+    sha256: "f32746b53a4765d4dc383ba7b886d665d6d933a5e3ac30841b9d2ffbcb1d216e"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_03_fan_motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-04.webp
+    sha256: "2ca80e5dcaad1318cf0435a71a2051942d02e974c10e12c602b75424f7d4446a"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_04_gear_motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-05.webp
+    sha256: "73d87ec57c87ff19f04b49fd3198c6369f1f63f548cc8a117a21cfcf9cadce39"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_05_servo.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-06.webp
+    sha256: "513228d99a4a93a868bdb82720ebfe7a865dbc7afa0da82547401ac7f1924058"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_06_geekservo.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-07.webp
+    sha256: "45dc7b3562d184220f324a319e040644c7b7089b0738d75e5cb733a7fc8f988f"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_07_stepper.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-08.webp
+    sha256: "0e889dd941f4ed0cc37080e8c50081ffa5dd2d10ce9110aec89f05d5085f82e7"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_08_dual_motor.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-09.webp
+    sha256: "75e2a027081b42b16277554e5f3aa4e748bf46c3fd509341a24c2869d99769f7"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_09_pca9685.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-6-10.webp
+    sha256: "e68b5149b45ec1690abb92a3cace3ce0c355708b02109ae94a732570303f84c3"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_6_10_l293dd.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-7-01.webp
+    sha256: "86b85f7dc2ccc5731c7fdc98e7904d3115a91dcbf6d5c51aa8d361086594a06c"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_7_01_buzzer.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-7-02.webp
+    sha256: "551abf513db7385ab0f64f61269bded14603e45f5c00a5189664634fdb828357"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_7_02_electromagnet.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-7-03.webp
+    sha256: "63543f380e4367ebb6289bd06e7a354964b6dd69592a1ff9dec25f05b752387b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_7_03_relay.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-7-04.webp
+    sha256: "a6f180f658990dcb98a8702b3ea84db9971c370b6abd32e97f986c30eec0d229"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_7_04_pumprelay.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-7-05.webp
+    sha256: "8ee998e709629a931058476aab4babec077dac122907e511aa69fbfe895d0030"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_7_05_mp3.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-01.webp
+    sha256: "463790ae9e32149c18e0012d013fd6691ea70c7e74c1e5dedebc0342d83f1a27"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_01_ir_rx.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-02.webp
+    sha256: "9067a2fe5ce1a94a37994791e3195730b903d0f955510e4d5a33b1a0f5fbe514"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_02_ir_tx.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-03.webp
+    sha256: "249b1fcedb424f49f2a4e601f04bf5fd1bd1b430815858e8111062d4be67da3a"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_03_rf433_rx.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-04.webp
+    sha256: "207c6d0e1412bffe31ee3478231796b5513d8ad07b34752691ffb9444f4d3bd0"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_04_rf433_tx.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-05.webp
+    sha256: "d7b41912506655dae39ba597a637fda9306977791d2feabdf072e474ecdb6d81"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_05_bluetooth.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-07.webp
+    sha256: "53301942929e8118868d92ce8a68fab63f339763228a2ff7efa446e7fcea0cb4"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_07_wifi.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-08.webp
+    sha256: "d40a9eb8be39fbbe6c5f5cf3d98c881b493fa5aa1704986aa9967dbd75755e11"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_08_gps.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."
+  - path: public/images/kit/circuits/third-party/kit-vendor/d-8-09.webp
+    sha256: "3636f96b5f80e22722adf78d677199e2e15336b30745c7189a86571e1b22a91b"
+    source: "https://brixel.gorillacell.kr/07_thonny/03_esp32/circuits_imags/circuit_8_09_tfcard.webp → Pillow로 다시 인코딩(WebP, 긴 변 1600px 이하, EXIF·XMP·ICC 없음)"
+    reviewed:
+      by: claude
+      date: 2026-10-16
+      result: "통과 — 접촉 시트로 한 장씩 눈 확인 2026-10-16 — 사람·얼굴·손·이름·화면 속 경로·파일명·기기 주소·학교명 없음. 흰 배경에 키트 보드(ESP32 Shield V3)·부품·색 전선 그림과 기판·부품에 인쇄된 글자(BRIXEL·GORILLACELL 상표, 핀 번호)만 보임. 메타데이터 없음(다시 인코딩). 사용 허락 DECISIONS O19."

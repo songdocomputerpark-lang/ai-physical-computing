@@ -71,13 +71,33 @@ sources:
     category: third_party
     author: 고릴라셀(브릭셀) — 교과서 실습 키트 업체(기판 인쇄 상표 GORILLACELL·BRIXEL 기준)
     license: 원 권리자 보유 — 운영자가 받은 사용 허락(2026-10-15 확인, DECISIONS O17), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
-    used_in: "부품 사전(/start/parts/)의 입출력 부품 사진(public/images/parts/third-party/kit-vendor/ — 업체가 제공한 사진을 긴 변 800px 이하 WebP로 다시 저장한 것, 목록은 content/parts/parts.yaml)과 그 사진을 쓰는 보드 준비 쪽 키트 표·차시의 부품 사진 줄, 3-1-2 USB-UART 변환기 사진, 원고에 실린 2-1-1 ESP32 키트 보드 사진(원고 118쪽)과 3-1-2 변환기·레이저 배선 그림(원고 190쪽), 키트 회로 구성 도구(circuit.gorillacell.kr)로 그린 차시별 배선 그림 23장(public/images/circuits/third-party/kit-vendor/ — 교과서 쪽·웹 차시의 실제 키트 배선 보기 칸·보드 준비 쪽, 목록은 scripts/circuits/circuits.yaml). 실제 키트를 이을 때 알아보도록 그대로 싣고, 가상 보드와 같은 모양의 그림은 사이트가 따로 그렸어요. 표기: 부품 사진·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용."
+    used_in: "부품 사전(/start/parts/)의 입출력 부품 사진(public/images/parts/third-party/kit-vendor/ — 업체가 제공한 사진을 긴 변 800px 이하 WebP로 다시 저장한 것, 목록은 content/parts/parts.yaml)과 그 사진을 쓰는 보드 준비 쪽 키트 표·차시의 부품 사진 줄, 3-1-2 USB-UART 변환기 사진, 원고에 실린 2-1-1 ESP32 키트 보드 사진(원고 118쪽)과 3-1-2 변환기·레이저 배선 그림(원고 190쪽), 키트 회로 구성 도구(circuit.gorillacell.kr)로 그린 차시별 배선 그림 23장(public/images/circuits/third-party/kit-vendor/ — 교과서 쪽·웹 차시의 실제 키트 배선 보기 칸·보드 준비 쪽, 목록은 scripts/circuits/circuits.yaml), 키트 장치 도감(/labs/esp32/kit/)의 회로 그림 100장(public/images/kit/circuits/third-party/kit-vendor/ — 브릭셀 Thonny ESP32 쪽의 회로 그림을 긴 변 1600px 이하 WebP로 다시 저장한 것, 장치 목록 content/kit/devices.yaml, DECISIONS O19). 실제 키트를 이을 때 알아보도록 그대로 싣고, 가상 보드와 같은 모양의 그림은 사이트가 따로 그렸어요. 표기: 부품 사진·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용."
     rights: "고릴라셀(브릭셀)이 제공한 사진·그림이고 운영자가 사용 허락을 받았어요(운영자 확인 2026-10-15, 운영자 할 일 24번 해결 — DECISIONS O17·C136). 표기 문구는 '부품 사진: 고릴라셀(브릭셀) 제공, 허락받아 사용'이에요. 원고에서 꺼낸 그림은 원본 그림에 권리 표기 없음(2026-09-25 원고 그림 XMP 확인)이고 제품 카탈로그형이라 업체 자료로 두었어요. 사이트 CC BY-NC-SA 4.0·MIT는 이 사진·그림에 적용되지 않고, 다시 쓰려면 업체의 조건을 따라야 해요. 스톡 사진이나 판매 사이트 워터마크가 보이는 사진은 싣지 않았어요(DECISIONS C11)."
     paths:
       - public/images/lessons/*/third-party/kit-vendor/**
       - public/images/parts/third-party/kit-vendor/**
       - public/images/circuits/third-party/kit-vendor/**
+      - public/images/kit/circuits/third-party/kit-vendor/**
     fetched: 2026-10-15
+
+  # 키트 장치 도감(판 1.5.0, DECISIONS O19·C155~C158): 브릭셀(고릴라셀) Thonny + ESP32 쪽(https://brixel.gorillacell.kr/07_thonny/03_esp32/)의
+  # 장치 101개 예제 코드 202개와 1장 시작하기 코드 12개를 한 글자도 고치지 않고 싣는다(줄 끝 LF만). 운영자가 그대로 싣도록 허락했다("들어감(그대로 싣기)", 2026-10-16).
+  # 이 코드는 위 "교과서·수업 자료의 예제 코드" 항목(MIT, 운영자 자체 자료)이 아니라 업체 자료라 따로 둔다 — 그 항목은 이 폴더의 .py를 뺀다(exclude_paths).
+  # 같은 폴더의 사이드카(.meta.yaml)는 사이트가 쓴 설명이라 예제 코드 항목에 남는다.
+  - name: 키트 업체(고릴라셀·브릭셀)의 장치 도감 예제 코드와 보드 라이브러리
+    category: third_party
+    author: 고릴라셀(브릭셀) — 교과서 실습 키트 업체(기판 인쇄 상표 GORILLACELL·BRIXEL 기준)
+    license: 원 권리자 보유 — 운영자가 받은 사용 허락(2026-10-16 확인, DECISIONS O19), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
+    url: https://brixel.gorillacell.kr/07_thonny/03_esp32/
+    used_in: "키트 장치 도감(/labs/esp32/kit/)과 ESP32 실습실 예제 목록의 장치 101개 예제 코드 202개와 1장 시작하기 코드 12개(examples/esp32/kit/ch*/*.py — 브릭셀 '마이크로파이썬 시작하기' 쪽의 코드를 줄 끝 LF만 바꿔 그대로 옮김, 핀은 브릭셀 ESP32 실드 V3 규칙 그대로), 그 예제들이 import하는 고릴라셀 자체 보드 라이브러리 4개(gorillacell_servo.py·gorillacell_stepper.py·gorillacell_wifi.py·gorillacell_mp3_player.py — examples/esp32/lib/third-party/). 가상 보드는 /board/lib/에 넣고, 실물 보드는 [실행]·[보드에 저장]이 함께 올려요. 표기: 예제 코드·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용."
+    rights: "브릭셀 쪽(https://brixel.gorillacell.kr/07_thonny/03_esp32/)의 예제 코드와 gorillacell_* 라이브러리 파일에는 라이선스·저작권 문구가 없고(2026-10-16 확인), 쪽 바닥글에도 사용 조건이 없어요. 브릭셀 이용약관(https://brixel.gorillacell.kr/15_legal/terms.html, 시행 2026-08-15) 제18조는 교육 콘텐츠의 복제·배포·개작에 재단의 사전 승낙을 요구하고 제19조는 수업 목적의 이용을 자유롭게 허용하며 출처 표시를 요청해요. 운영자가 고릴라셀(브릭셀)에게서 이 코드·그림을 사이트에 그대로 싣는 허락을 받았다고 확인했어요(2026-10-16, DECISIONS O19). 원 권리는 고릴라셀(브릭셀)에게 있고 사이트 CC BY-NC-SA 4.0·MIT는 적용되지 않아요."
+    paths:
+      - examples/esp32/kit/**/*.py
+      - examples/esp32/lib/third-party/gorillacell_servo.py
+      - examples/esp32/lib/third-party/gorillacell_stepper.py
+      - examples/esp32/lib/third-party/gorillacell_wifi.py
+      - examples/esp32/lib/third-party/gorillacell_mp3_player.py
+    fetched: 2026-10-16
 
   # 원고 속 스톡 그림(원본 권리 표기가 출판사가 아닌 스톡 작가·판매 사이트 — 예: 010쪽 Visual Generation Inc., 018쪽 BASHTA,
   # 141쪽 rancz, 155쪽 Firuz Mukhtarov, 173쪽 Chris Putnam)은 결정 C11(docs/DECISIONS.md, 2026-09-25)로 사이트에 쓰지 않아 항목이 없어요.
@@ -94,6 +114,8 @@ sources:
     exclude_paths:
       # 코드 파일만 뺀다 — 같은 폴더의 사이드카(.meta.yaml)는 사이트가 쓴 설명이라 이 항목에 남는다(2026-09-18 Phase 4 준비).
       - examples/**/third-party/**/*.py
+      # 키트 장치 도감의 예제 코드는 고릴라셀(브릭셀) 자료라 위 "키트 업체의 장치 도감 예제 코드" 항목이 덮어요(판 1.5.0, DECISIONS O19)
+      - examples/esp32/kit/**/*.py
     fetched: 2026-09-15
 
   # ── 사이트 자체 제작 ──
@@ -735,3 +757,89 @@ sources:
     paths:
       - examples/esp32/lib/third-party/mg90s_servo.py
     fetched: 2026-09-18
+
+  # ── 키트 장치 도감의 보드 라이브러리(판 1.5.0, DECISIONS O19·C158) ──
+  # 브릭셀 Thonny ESP32 쪽 9장 "라이브러리" 표에서, 사용 조건이 **파일 안에 분명한 것**(MIT·Apache-2.0)만 원래 머리말 그대로 싣는다(줄 끝 LF만 바꿈, scripts/kit/install-libraries.mjs).
+  # 조건 표시가 없는 제3자 파일(ssd1306·sh1106·max7219·tcs34725·mpu6050·max30105·bmp280·vl53l0x·pca9685)과 GPL apds9960·독일 자유 소프트웨어 라이선스 pyfingerprint,
+  # MIT이지만 파일 머리말에 저작자 이메일 주소가 있어 저장소 개인정보 검사가 막는 micropygps는 싣지 않고 장치 쪽에서 브릭셀 내려받기 주소로만 이어 준다. 고릴라셀 자체 4개(gorillacell_servo 등)는 위 "키트 업체의 장치 도감 예제 코드" 항목이 덮는다.
+  # 가상 보드는 /board/lib/에 넣고, 실물 보드는 [실행]·[보드에 저장]이 함께 올려요. 저작권·라이선스 고지는 각 파일 머리말에 있어요.
+  - name: micropython-tm1637(tm1637.py)
+    category: library
+    author: Mike Causer(mcauser)
+    license: MIT
+    url: https://github.com/mcauser/micropython-tm1637
+    used_in: "4자리 7세그먼트 표시 장치(TM1637) 라이브러리 tm1637.py(examples/esp32/lib/third-party/tm1637.py) — 키트 장치 도감 2.06이 import해요. 브릭셀 쪽에서 받은 파일(MIT 전문이 머리말에 있음)을 줄 끝 LF로만 바꿔 그대로 실었어요."
+    paths:
+      - examples/esp32/lib/third-party/tm1637.py
+    fetched: 2026-10-16
+
+  - name: micropython-mlx90614(mlx90614.py)
+    category: library
+    author: Mike Causer(mcauser)
+    license: MIT
+    url: https://github.com/mcauser/micropython-mlx90614
+    used_in: "MLX90614 비접촉 온도 센서 라이브러리 mlx90614.py(examples/esp32/lib/third-party/mlx90614.py) — 키트 장치 도감 5.03이 import해요. 브릭셀 쪽에서 받은 파일(MIT 전문이 머리말에 있음)을 줄 끝 LF로만 바꿔 그대로 실었어요."
+    paths:
+      - examples/esp32/lib/third-party/mlx90614.py
+    fetched: 2026-10-16
+
+  - name: HT16K33-Python(ht16k33.py)
+    category: library
+    author: Tony Smith(smittytone)
+    license: MIT
+    url: https://github.com/smittytone/HT16K33-Python
+    used_in: "HT16K33 도트 매트릭스(I2C) 라이브러리 ht16k33.py(examples/esp32/lib/third-party/ht16k33.py) — 키트 장치 도감 2.11·2.12가 import해요. 브릭셀 쪽에서 받은 파일(MIT 전문이 머리말에 있음)을 줄 끝 LF로만 바꿔 그대로 실었어요."
+    paths:
+      - examples/esp32/lib/third-party/ht16k33.py
+    fetched: 2026-10-16
+
+  - name: micropython-hcsr04(hcsr04.py)
+    category: library
+    author: Roberto Sánchez(rsc1975)
+    license: Apache-2.0
+    url: https://github.com/rsc1975/micropython-hcsr04
+    used_in: "HC-SR04 초음파 센서 라이브러리 hcsr04.py(examples/esp32/lib/third-party/hcsr04.py) — 키트 장치 도감 3.11이 import해요. 브릭셀 쪽에서 받은 파일(__license__ 줄이 Apache License 2.0과 전문 주소를 밝힘)을 줄 끝 LF로만 바꿔 그대로 실었어요. Apache License 2.0 전문: https://www.apache.org/licenses/LICENSE-2.0"
+    paths:
+      - examples/esp32/lib/third-party/hcsr04.py
+    fetched: 2026-10-16
+
+  - name: micropython-sht30(sht30.py)
+    category: library
+    author: Roberto Sánchez(rsc1975)
+    license: Apache-2.0
+    url: https://github.com/rsc1975/micropython-sht30
+    used_in: "SHT30 온습도 센서(I2C) 라이브러리 sht30.py(examples/esp32/lib/third-party/sht30.py) — 키트 장치 도감 5.01이 import해요. 브릭셀 쪽에서 받은 파일(__license__ 줄이 Apache License 2.0과 전문 주소를 밝힘)을 줄 끝 LF로만 바꿔 그대로 실었어요. Apache License 2.0 전문: https://www.apache.org/licenses/LICENSE-2.0"
+    paths:
+      - examples/esp32/lib/third-party/sht30.py
+    fetched: 2026-10-16
+
+  - name: micropython-rotary(rotary_irq.py)
+    category: library
+    author: Mike Teachman
+    license: MIT
+    url: https://github.com/miketeachman/micropython-rotary
+    used_in: "로터리 인코더 라이브러리 rotary_irq.py(examples/esp32/lib/third-party/rotary_irq.py) — 키트 장치 도감 3.14가 import해요. 브릭셀 쪽에서 받은 파일(머리말에 'The MIT License (MIT)'와 저작권 줄)을 줄 끝 LF로만 바꿔 그대로 실었어요."
+    paths:
+      - examples/esp32/lib/third-party/rotary_irq.py
+    fetched: 2026-10-16
+
+  - name: micropython-samples(ds3231.py)
+    category: library
+    author: Peter Hinch
+    license: MIT
+    url: https://github.com/peterhinch/micropython-samples/tree/master/DS3231
+    used_in: "DS3231 실시간 시계(I2C) 라이브러리 ds3231.py(examples/esp32/lib/third-party/ds3231.py) — 키트 장치 도감 5.04가 import해요. 브릭셀 쪽에서 받은 파일(머리말에 'Released under the MIT license'와 저작권 줄)을 줄 끝 LF로만 바꿔 그대로 실었어요."
+    paths:
+      - examples/esp32/lib/third-party/ds3231.py
+    fetched: 2026-10-16
+
+  - name: micropython_ir(ir_rx.py·ir_tx.py)
+    category: library
+    author: Peter Hinch
+    license: MIT
+    url: https://github.com/peterhinch/micropython_ir
+    used_in: "적외선(IR) 수신·송신 라이브러리 ir_rx.py·ir_tx.py(examples/esp32/lib/third-party/) — 키트 장치 도감 8.01·8.02가 import해요. 브릭셀 쪽에서 받은 파일(MIT 전문이 머리말에 있음)을 줄 끝 LF로만 바꿔 그대로 실었어요. ir_tx.py의 array('H', 0 for _ in range(asize)) 줄은 MicroPython에서만 되는 문법이라 일반 파이썬으로는 읽히지 않아요(원본 그대로)."
+    paths:
+      - examples/esp32/lib/third-party/ir_rx.py
+      - examples/esp32/lib/third-party/ir_tx.py
+    fetched: 2026-10-16

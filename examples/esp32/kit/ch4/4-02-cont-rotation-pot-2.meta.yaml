@@ -1,0 +1,36 @@
+# 예제 설명(사이드카). 코드는 고릴라셀(브릭셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 예제를 한 글자도 고치지 않고 옮긴 것이고,
+# 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
+# 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
+# virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
+title: "4.02 연속 회전 가변저항 — 2단계: 회전 방향과 바퀴 수 세기"
+description: 값이 40 넘게 커지면 한쪽, 작아지면 반대쪽으로 돌리는 중이에요. 값이 2000 이상 갑자기 뛰면 한 바퀴 돈 거예요.
+difficulty: 2
+tags:
+  - 아날로그 센서
+  - 가변저항
+  - 아날로그 입력
+  - ADC
+  - 키트 도감
+  - 문자 LCD
+kit:
+  device: d-4-02
+  step: 2
+source: brixel
+source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-4-02
+virtual: full
+virtual_ok: true
+parts:
+  - part: sensor-analog
+    pin: 32
+    label: 연속 회전 가변저항
+  - part: lcd-i2c
+    id: lcd
+    pins:
+      sda: 21
+      scl: 22
+    label: 문자 LCD(16×2)
+practice:
+  - "[실행]을 눌러요."
+  - 보드 그림 아래 ‹연속 회전 가변저항› 조작 칸의 슬라이더를 움직이거나 숫자 칸에 값(0~4095)을 적어 센서 값을 바꿔 보세요. 콘솔 글자와 문자 LCD 글자가 어떻게 바뀌는지 봐요.
+  - 다 봤으면 [정지]를 눌러요.
+packages: []

@@ -40,6 +40,15 @@ export const ESP32_EXAMPLE_GROUPS: readonly { readonly key: string; readonly lab
   { key: 'esp32/bt', label: '블루투스 통신 수업교안 실습' },
   { key: 'esp32/templates', label: '통신 템플릿(베껴 쓰는 뼈대 코드)' },
   { key: 'esp32/hw', label: '부품 라이브러리 시험 코드' },
+  // 키트 장치 도감(판 1.5.0, 브릭셀 Thonny ESP32 예제 — examples/esp32/kit/ch<장>/). 장마다 한 묶음이라 예제 목록이 한 줄로 길어지지 않는다.
+  { key: 'esp32/kit/ch1', label: '키트 도감 1장 시작하기' },
+  { key: 'esp32/kit/ch2', label: '키트 도감 2장 디스플레이' },
+  { key: 'esp32/kit/ch3', label: '키트 도감 3장 디지털 센서' },
+  { key: 'esp32/kit/ch4', label: '키트 도감 4장 아날로그 센서' },
+  { key: 'esp32/kit/ch5', label: '키트 도감 5장 I2C 고급 센서' },
+  { key: 'esp32/kit/ch6', label: '키트 도감 6장 모터' },
+  { key: 'esp32/kit/ch7', label: '키트 도감 7장 출력' },
+  { key: 'esp32/kit/ch8', label: '키트 도감 8장 통신' },
 ]);
 
 /** glob 경로(/examples/esp32/a.py)에서 examples/ 아래 경로(esp32/a.py)를 뽑는다. esp32 폴더 밖·라이브러리 폴더면 null. */
@@ -67,6 +76,10 @@ export function esp32ExampleIdFromFile(file: string): string {
 
 export function esp32ExampleGroupKey(file: string): string {
   const parts = file.split('/');
+  // 키트 장치 도감은 장(ch2~ch8)마다 한 묶음(esp32/kit/ch3/…) — 그 밖의 폴더는 한 칸 아래까지만
+  if (parts[1] === 'kit' && parts.length >= 4) {
+    return `${parts[0]}/${parts[1]}/${parts[2]}`;
+  }
   return parts.length >= 3 ? `${parts[0]}/${parts[1]}` : (parts[0] ?? '');
 }
 

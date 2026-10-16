@@ -484,7 +484,7 @@ function isPlaceholderPhone(value) {
 const WIFI_CONNECT = /(?<![A-Za-z0-9_])(?:wlan|sta(?:_if)?|station|wifi|nic|network)\s*\.\s*connect\(\s*(['"])([^'"\n]*)\1\s*,\s*(['"])([^'"\n]*)\3/giu;
 const PASSWORD_ASSIGN = /(?<![A-Za-z0-9_])(?:wifi_?password|wlan_?password|wifi_?pw|password|passwd|pwd)\s*[:=]\s*(['"])([^'"\n]*)\1/giu;
 const PLACEHOLDER_SECRET =
-  /^(?:|1234|12345678|0000|00000000|password|passwd|my-password|my_password|mypassword|your-password|your_password|yourpassword|비밀번호|와이파이 ?비밀번호|교실 ?와이파이 ?비밀번호|\*+|x+|…|\.{3}|<[^>]*>|\{[^}]*\}|\$\{[^}]*\})$/iu;
+  /^(?:|1234|12345678|0000|00000000|password|passwd|my-password|my_password|my[-_]wifi[-_]password|mypassword|your-password|your_password|yourpassword|비밀번호|와이파이 ?비밀번호|교실 ?와이파이 ?비밀번호|\*+|x+|…|\.{3}|<[^>]*>|\{[^}]*\}|\$\{[^}]*\})$/iu;
 
 /**
  * 예제·차시 글에서 자리표시자가 아닌 와이파이 비밀번호 모양을 찾는다(값은 알리지 않는다).

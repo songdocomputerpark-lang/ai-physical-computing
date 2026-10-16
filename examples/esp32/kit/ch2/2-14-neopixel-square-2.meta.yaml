@@ -1,0 +1,29 @@
+# 예제 설명(사이드카). 코드는 고릴라셀(브릭셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 예제를 한 글자도 고치지 않고 옮긴 것이고,
+# 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
+# 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
+# virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
+title: "2.14 RGB 매트릭스 디스플레이 (NeoPixel 64) — 2단계: 무지개 물결"
+description: LED 마다 무지개 색을 다르게 정하고 조금씩 밀어서 물결처럼 보여요. BOOT 버튼을 누르면 속도가 바뀌어요.
+difficulty: 2
+tags:
+  - 디스플레이
+  - 네오픽셀
+  - RGB
+  - 키트 도감
+kit:
+  device: d-2-14
+  step: 2
+source: brixel
+source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-2-14
+virtual: partial
+virtual_reason: 가상 보드의 네오픽셀 그림은 16개 링이라 17번째 불빛부터는 그림에 나오지 않아서(코드는 그대로 돌아요)
+parts:
+  - part: neopixel
+    pin: 23
+    label: RGB 매트릭스(NeoPixel)
+practice:
+  - "[실행]을 눌러요."
+  - 보드 그림의 BOOT 버튼을 눌러 보세요. 보드 그림의 "RGB 매트릭스(NeoPixel)"이(가) 코드대로 켜지고 꺼지고 움직이는지 봐요. 콘솔에 나오는 글자를 봐요.
+  - 가상 보드의 네오픽셀 그림은 16개 링이라 17번째 불빛부터는 그림에 나오지 않아서(코드는 그대로 돌아요) 일부만 보여요.
+packages: []
+note: 브릭셀 네오픽셀 매트릭스 모듈은 코드에 불빛 수(NUM_OF_LED)가 18개로 적혀 있고, 64개짜리 8x8 판이면 64로 바꾸라고 안내해요.

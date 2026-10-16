@@ -1,0 +1,4553 @@
+# 키트 장치 도감 데이터 — 브릭셀(고릴라셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 장치 101개와 1장 시작하기 코드 12개 (판 1.5.0)
+# 읽는 곳: 키트 장치 도감 쪽 /labs/esp32/kit/ 와 장치 쪽 /labs/esp32/kit/<id>/ (K3), ESP32 실습실 예제 목록·예제 갤러리는 이 파일이 아니라 예제 사이드카(kit 칸)를 읽어요.
+# 허락·표기: 운영자가 고릴라셀(브릭셀) 예제와 그림을 그대로 싣도록 허락했어요(DECISIONS O19). 표기 "고릴라셀(브릭셀) 제공, 허락받아 사용".
+#
+# 이 파일은 scripts/kit/generate-kit.mjs가 처음 만들었고, 그 뒤로는 사람이 고쳐요(다시 돌려도 --force가 없으면 덮어쓰지 않아요).
+#
+# 새 장치를 더하는 법 (코드는 고치지 않아요)
+#  1. 코드: examples/esp32/kit/ch<장>/<장>-<번호 두 자리>-<영문 이름>-<단계>.py 를 단계마다 하나씩(보통 1단계·2단계). 줄 끝은 LF.
+#  2. 사이드카: 같은 이름의 .meta.yaml — title·description·difficulty(1~3)·tags·kit: { device: <id>, step: <단계> }·source·virtual·parts·practice
+#     (본보기: examples/esp32/kit/ch3/3-11-ultrasonic-1.meta.yaml). parts 칸은 가상 보드 배선이에요(핀은 코드가 쓰는 핀 그대로).
+#  3. 이 파일의 devices 목록에 한 줄(아래 칸). 장 이름은 chapters, 사진은 content/parts/parts.yaml의 part id, 회로 그림은
+#     public/images/kit/circuits/third-party/kit-vendor/<id>.webp 에 둬요(다시 인코딩·메타데이터 없음·눈 확인 기록 scripts/image-allowlist.yaml).
+#  4. 라이브러리가 필요하면 libraries에 적어요. 사이트가 싣는 파일(site: true)은 examples/esp32/lib/third-party/<이름>.py + sources.yaml 항목이 있어야 하고,
+#     싣지 않는 파일은 site: false + url(브릭셀 내려받기 주소)만 적어요. 사용 조건이 분명하지 않은 파일은 싣지 않아요(DECISIONS C158).
+#
+# 칸
+#   id          d-<장>-<번호 두 자리> (브릭셀 카드 닻과 같음)
+#   number      카드 번호 글자("3.11")        chapter  장(2~8)
+#   name / name_en   한국어 이름 / 영어 이름   description  카드 설명
+#   interface / pins / gpio   카드의 기본 정보(브릭셀 글 그대로)
+#   part        content/parts/parts.yaml 의 부품 사진 id (부품 사전 /start/parts/ 로 이어져요)    part_variants   같은 코드로 도는 다른 색·크기 사진
+#   libraries   [{ name, file, site, url?, note? }]
+#   wiring      배선 줄(브릭셀 글 그대로 — 안에 적힌 다른 장치 번호는 브릭셀 쪽의 옛 번호예요)
+#   circuit     회로 그림 파일 이름(public/images/kit/circuits/third-party/kit-vendor/ 안, 8.06은 8.05와 같은 그림)
+#   steps       [{ n, kind, title, file, virtual, points }]  file 은 examples/ 뒤 경로(예제 id 는 경로를 하이픈으로 이은 것: esp32/kit/ch3/3-11-ultrasonic-1.py → kit-ch3-3-11-ultrasonic-1)
+#   support     A 지금 있는 가상 부품으로 / B1 범용 부품 4종으로 / B2 흉내 모듈이 더 있어야 함 / C 어려움   virtual  full / partial / real-only (단계마다 다를 수 있어 steps에도 있음)
+#   virtual_reason   partial·real-only 인 까닭   note   참고 글
+source:
+  name: 고릴라셀(브릭셀) 마이크로파이썬 시작하기 — Thonny + ESP32 개발 키트
+  url: https://brixel.gorillacell.kr/07_thonny/03_esp32/
+  fetched: 2026-10-16
+chapters:
+  - n: 1
+    name: 마이크로파이썬 시작하기
+  - n: 2
+    name: 디스플레이
+  - n: 3
+    name: 디지털 센서
+  - n: 4
+    name: 아날로그 센서
+  - n: 5
+    name: I2C 고급 센서
+  - n: 6
+    name: 모터
+  - n: 7
+    name: 출력
+  - n: 8
+    name: 통신
+intro:
+  - number: "1.5.4"
+    title: Hello World 마이크로파이썬
+    sub: 내장 LED 깜빡이기
+    file: esp32/kit/ch1/1-5-4-hello-world.py
+    virtual: full
+  - number: "1.6"
+    title: 마이크로파이썬 기초
+    sub: 마이크로파이썬 기초 문법 모음
+    file: esp32/kit/ch1/1-6-basics.py
+    virtual: real-only
+    virtual_reason: machine.SPI가 가상 보드에 아직 없어서 첫 줄의 가져오기(import)에서 멈추기 때문에
+  - number: "1.7.1"
+    title: GPIO 입출력
+    sub: GPIO 입출력
+    file: esp32/kit/ch1/1-7-1-gpio.py
+    virtual: full
+  - number: "1.7.2"
+    title: ADC (아날로그-디지털 변환기)
+    sub: ADC 아날로그 값 읽기
+    file: esp32/kit/ch1/1-7-2-adc.py
+    virtual: full
+  - number: "1.7.3"
+    title: PWM (펄스 폭 변조)
+    sub: PWM으로 LED 숨쉬기
+    file: esp32/kit/ch1/1-7-3-pwm.py
+    virtual: full
+  - number: "1.7.4"
+    title: 타이머
+    sub: 타이머로 LED 깜빡이기
+    file: esp32/kit/ch1/1-7-4-timer.py
+    virtual: full
+  - number: "1.7.5"
+    title: 시리얼 UART
+    sub: UART 시리얼 통신
+    file: esp32/kit/ch1/1-7-5-uart.py
+    virtual: full
+  - number: "1.7.6"
+    title: WiFi (내장)
+    sub: 와이파이 공유기에 연결하기
+    file: esp32/kit/ch1/1-7-6-wifi-station.py
+    virtual: full
+  - number: "1.7.6"
+    title: WiFi (내장)
+    sub: 와이파이 핫스팟 만들기
+    file: esp32/kit/ch1/1-7-6-wifi-ap.py
+    virtual: full
+  - number: "1.7.7"
+    title: Bluetooth 무선 연결 (웹 BLE)
+    sub: 브릭셀 무선 연결 통로(brx_ble.py)
+    file: esp32/kit/ch1/1-7-7-brx-ble.py
+    virtual: real-only
+    virtual_reason: 브릭셀 웹 쪽의 무선 연결 설치 전용 파일이고 os.dupterm 같은 보드 기능이 가상 보드에 없어서
+    note: 이 사이트에서는 쓰지 않는 참고용 코드예요. 이 사이트에서 보드에 연결하려면 [실제 보드] 탭(USB)을 쓰세요.
+  - number: "1.7.7"
+    title: Bluetooth 무선 연결 (웹 BLE)
+    sub: 브릭셀 무선 연결 boot.py 블록
+    file: esp32/kit/ch1/1-7-7-boot-block.py
+    virtual: real-only
+    virtual_reason: 브릭셀 웹 쪽의 무선 연결 설치 전용 코드이고 brx_ble.py가 보드에 있어야 해서
+    note: 이 사이트에서는 쓰지 않는 참고용 코드예요. 이 사이트에서 보드에 연결하려면 [실제 보드] 탭(USB)을 쓰세요.
+  - number: "1.7.7"
+    title: Bluetooth 무선 연결 (웹 BLE)
+    sub: 블루투스 UART 서버 직접 만들기
+    file: esp32/kit/ch1/1-7-7-ble-uart-server.py
+    virtual: full
+devices:
+  - id: d-2-01
+    number: "2.01"
+    chapter: 2
+    name: LED
+    name_en: LED
+    description: LED(발광 다이오드)는 순방향 전압이 인가되면 빛을 방출합니다. 키트에는 빨강, 초록, 파랑, 노랑 4가지 색상이 포함됩니다.
+    interface: Digital / PWM
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 4
+    part: dis-004-led-red
+    part_variants:
+      - part: dis-005-led-yellow
+        label: 노란 LED
+      - part: dis-006-led-blue
+        label: 파란 LED
+      - part: dis-007-led-green
+        label: 초록 LED
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 4
+    circuit: d-2-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: LED 켜고 끄기
+        file: esp32/kit/ch2/2-01-led-1.py
+        virtual: full
+        points:
+          - led.on() 으로 켜고 led.off() 로 꺼요. 1초마다 번갈아 바뀌어요.
+          - 출력 창에 '켜짐/꺼짐' 이 같이 나와요. LED 가 안 보이면 S 선이 GPIO 4 인지 확인하세요.
+          - sleep(1) 의 숫자를 바꿔 깜빡이는 속도를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 숨쉬는 LED (PWM 밝기 조절)
+        file: esp32/kit/ch2/2-01-led-2.py
+        virtual: full
+        points:
+          - PWM 은 켜고 끄기를 아주 빠르게 반복해서 밝기를 조절해요. duty_u16 값이 클수록 밝아요.
+          - BOOT 버튼을 누르면 '숨쉬기' 와 '깜빡이' 모드가 바뀌어요.
+          - step 숫자를 줄이면 더 천천히 숨 쉬어요.
+    support: B1
+    virtual: full
+  - id: d-2-02
+    number: "2.02"
+    chapter: 2
+    name: 신호등 LED
+    name_en: Traffic Light LED
+    description: 3개의 LED(빨강, 노랑, 초록)가 있는 미니 신호등입니다.
+    interface: Digital / PWM
+    pins: 5 pins (GND, VCC, Green, Yellow, Red)
+    gpio: GPIO 23, 25, 26
+    part: dis-003-traffic-light-led
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - Green → GPIO 23
+      - Yellow → GPIO 25
+      - Red → GPIO 26
+    circuit: d-2-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 신호등 불 하나씩 켜기
+        file: esp32/kit/ch2/2-02-traffic-led-1.py
+        virtual: full
+        points:
+          - 초록 → 노랑 → 빨강 순서로 0.7초씩 켜졌다 꺼져요.
+          - 출력 창에 지금 켜진 색이 나와요. 순서가 다르면 선이 바뀌어 꽂힌 거예요.
+          - lights 목록의 순서를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 보행자 버튼 신호등
+        file: esp32/kit/ch2/2-02-traffic-led-2.py
+        virtual: full
+        points:
+          - 초록불이 켜진 동안 BOOT 버튼을 누르면 곧바로 초록불이 깜빡이고 노란불, 빨간불로 바뀌어요.
+          - wait() 함수가 시간을 기다리면서 버튼도 같이 살펴봐요.
+          - wait(8000) 과 sleep_ms(5000) 의 숫자를 바꿔 신호 시간을 조절해 보세요.
+    support: B1
+    virtual: full
+  - id: d-2-03
+    number: "2.03"
+    chapter: 2
+    name: RGB LED
+    name_en: RGB LED
+    description: 하나의 패키지에 3색 LED(빨강, 초록, 파랑). 여러 LED를 켜서 색상을 조합합니다.
+    interface: Digital / PWM
+    pins: 5 pins (GND, VCC, Red, Green, Blue)
+    gpio: GPIO 23, 25, 26
+    part: dis-002-rgb-led
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - Red → GPIO 23
+      - Green → GPIO 25
+      - Blue → GPIO 26
+    circuit: d-2-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 일곱 가지 색 켜기
+        file: esp32/kit/ch2/2-03-rgb-led-1.py
+        virtual: full
+        points:
+          - 빨강·초록·파랑을 켜고(1) 끄는(0) 조합으로 일곱 색을 만들어요.
+          - 출력 창에 지금 색 이름이 나와요. 색이 이름과 다르면 선 순서를 확인하세요.
+          - colors 목록에 (이름, 빨강, 초록, 파랑) 을 더해 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 무지개 색으로 변하는 LED
+        file: esp32/kit/ch2/2-03-rgb-led-2.py
+        virtual: full
+        points:
+          - PWM 으로 세 색의 밝기를 따로 정해 수많은 색을 만들어요.
+          - wheel() 이 번호(0~255) 하나를 무지개 색으로 바꿔 줘요.
+          - BOOT 버튼을 누르면 밝기가 약 → 중 → 강으로 바뀌어요.
+    support: A
+    virtual: full
+  - id: d-2-04
+    number: "2.04"
+    chapter: 2
+    name: 레이저
+    name_en: LASER
+    description: LASER(유도 방출에 의한 광 증폭)는 매우 좁은 광선을 생성합니다.
+    interface: Digital / PWM
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 4
+    part: dis-008-laser-90
+    part_variants:
+      - part: dis-009-laser-180
+        label: 레이저 180
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 4
+    circuit: d-2-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 레이저 켜고 끄기
+        file: esp32/kit/ch2/2-04-laser-1.py
+        virtual: full
+        points:
+          - 1초 켜고 1초 끄기를 계속 반복해요. 출력 창에도 상태가 나와요.
+          - 레이저는 사람이나 동물의 눈에 절대 비추지 마세요. 벽이나 종이에 비춰 확인하세요.
+          - 멈추기 버튼을 누르면 레이저가 꺼져요.
+      - n: 2
+        kind: 심화 예제
+        title: 레이저 SOS 신호 보내기
+        file: esp32/kit/ch2/2-04-laser-2.py
+        virtual: full
+        points:
+          - 모스 부호로 S(짧게 3번) O(길게 3번) S(짧게 3번) 를 보내요.
+          - DOT 숫자를 바꾸면 신호 속도가 바뀌어요.
+          - 벽에 비춰 친구가 신호를 읽어 보게 해 보세요.
+    support: A
+    virtual: full
+  - id: d-2-05
+    number: "2.05"
+    chapter: 2
+    name: I2C LCD 디스플레이
+    name_en: LCD with I2C Interface
+    description: HD44780 드라이버의 16x2 LCD, PCF8574 I2C 인터페이스(주소 0x20)로 간편화.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: dis-001-i2c-1602-lcd
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+    circuit: d-2-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 기능 하나씩 보기 → 마지막 글자 남기기
+        file: esp32/kit/ch2/2-05-lcd-i2c-1.py
+        virtual: full
+        points:
+          - 기능을 하나 할 때마다 sleep() 으로 1~2초 기다려서 화면이 바뀌는 걸 눈으로 볼 수 있어요.
+          - lcd.clear() 는 화면을 지우는 것이라 마지막에 쓰지 않아요 — 끝 글자가 남아 있어야 성공을 확인할 수 있어요.
+          - lcd.setcursor(x, y) 로 글자를 쓸 자리(칸 x, 줄 y — 0부터 셈)를 고릅니다.
+          - 글자가 전혀 안 보이면 LCD 뒤 파란 나사(명암 조절)를 돌려 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: LCD 스톱워치 + 버튼 횟수 세기
+        file: esp32/kit/ch2/2-05-lcd-i2c-2.py
+        virtual: full
+        points:
+          - 첫 줄에 지난 시간(분:초), 둘째 줄에 BOOT 버튼을 누른 횟수가 나와요.
+          - 화면을 지우지 않고 바뀐 줄만 덮어써서 깜빡이지 않아요.
+          - show(1, ...) 의 글자를 바꿔 다른 정보를 보여 줘 보세요.
+    support: A
+    virtual: full
+  - id: d-2-06
+    number: "2.06"
+    chapter: 2
+    name: 4자리 7세그먼트 디스플레이
+    name_en: 4-Digit 7-Segment Display
+    description: TM1637 칩으로 구동되는 4자리 7세그먼트 디스플레이.
+    interface: Serial I2C-like
+    pins: 4 pins (GND, VCC, DIO, CLK)
+    gpio: DIO=GPIO 21, CLK=GPIO 22
+    part: dis-010-7segment
+    libraries:
+      - name: tm1637
+        file: tm1637.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - DIO → GPIO 21
+      - CLK → GPIO 22
+    circuit: d-2-06.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 숫자·시계·글자 모양 보기
+        file: esp32/kit/ch2/2-06-7segment-1.py
+        virtual: real-only
+        points:
+          - number , numbers , show , temperature 로 여러 가지 모양을 보여 줘요.
+          - 마지막에 밝기를 0 에서 7 까지 올려 봐요.
+          - tm.number(1234) 의 숫자를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 60초 카운트다운 타이머
+        file: esp32/kit/ch2/2-06-7segment-2.py
+        virtual: real-only
+        points:
+          - 60초에서 0초까지 줄어들고 가운데 점(:)이 깜빡여요. 0이 되면 0000 이 깜빡여요.
+          - BOOT 버튼을 누르면 처음부터 다시 시작해요.
+          - TOTAL 숫자를 바꿔 시간을 조절해 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: TM1637 7세그먼트 표시 장치(2선 통신)의 흉내가 가상 보드에 아직 없어서
+  - id: d-2-07
+    number: "2.07"
+    chapter: 2
+    name: 0.96 OLED 디스플레이 (SSD1306)
+    name_en: 0.96 OLED Display (SSD1306)
+    description: SSD1306 드라이버의 0.96인치 128x64 단색 OLED 디스플레이 (I2C 주소 0x3C).
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: dis-011-oled-096-ssd1306
+    libraries:
+      - name: ssd1306
+        file: ssd1306.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.03%20ssd1306.py
+        note: 가상 보드에서는 OLED 부품이 대신해요
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+    circuit: d-2-07.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: OLED 글자·도형·반전 보기
+        file: esp32/kit/ch2/2-07-oled-096-1.py
+        virtual: full
+        points:
+          - 글자 화면, 도형 화면, 색 반전을 차례로 보여 줘요.
+          - oled.text(글자, x, y) 로 글자를 써요. 글자는 영어와 숫자만 나와요.
+          - oled.show() 를 불러야 화면에 나타나요.
+      - n: 2
+        kind: 심화 예제
+        title: 튕기는 공 애니메이션
+        file: esp32/kit/ch2/2-07-oled-096-2.py
+        virtual: full
+        points:
+          - 공이 벽에 부딪혀 튕겨요. 부딪힌 횟수가 위쪽에 보여요.
+          - BOOT 버튼을 누르면 횟수가 0 으로 돌아가요.
+          - dx , dy 숫자를 바꾸면 공 속도와 방향이 바뀌어요.
+    support: A
+    virtual: full
+    note: 가상 보드에서는 OLED 부품이 ssd1306 드라이버를 대신해요. 실제 보드에는 ssd1306.py를 보드에 올려야 해요(아래 라이브러리 링크).
+  - id: d-2-08
+    number: "2.08"
+    chapter: 2
+    name: 1.3 OLED 디스플레이 (SH1106)
+    name_en: 1.3 OLED Display (SH1106)
+    description: SH1106 드라이버의 1.3인치 128x64 단색 OLED 디스플레이 (I2C 주소 0x3C).
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: dis-012-oled-1-3-sh1106
+    libraries:
+      - name: sh1106
+        file: sh1106.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.04%20sh1106.py
+        note: 가상 보드에서는 OLED 부품이 대신해요
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+    circuit: d-2-08.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 1.3 OLED 글자·도형·반전 보기
+        file: esp32/kit/ch2/2-08-oled-13-1.py
+        virtual: real-only
+        points:
+          - 글자 화면, 도형 화면, 색 반전을 차례로 보여 줘요.
+          - 0.96 OLED 와 쓰는 방법이 같고 SH1106_I2C 만 달라요.
+          - 아무것도 안 보이면 주소 0x3C 와 SDA/SCL 선을 확인하세요.
+      - n: 2
+        kind: 심화 예제
+        title: 로딩 막대 애니메이션
+        file: esp32/kit/ch2/2-08-oled-13-2.py
+        virtual: real-only
+        points:
+          - 막대가 0% 에서 100% 까지 차올라요.
+          - BOOT 버튼을 누르면 빠르게 ↔ 느리게 바뀌어요.
+          - rect 는 테두리, fill_rect 는 속이 찬 네모예요.
+    support: A
+    virtual: real-only
+    virtual_reason: 가상 보드의 sh1106 흉내가 이 코드의 호출 모양(SH1106_I2C(128, 64, i2c, None, addr=0x3C))을 아직 받지 못해서
+    note: 가상 보드에서는 OLED 부품이 sh1106 드라이버를 대신해요. 실제 보드에는 sh1106.py를 보드에 올려야 해요(아래 라이브러리 링크).
+  - id: d-2-09
+    number: "2.09"
+    chapter: 2
+    name: 8x8 도트 매트릭스 (SPI)
+    name_en: 8x8 Dot Matrix (SPI)
+    description: SPI를 통해 MAX7219 칩으로 구동되는 8x8 도트 매트릭스 디스플레이.
+    interface: Serial SPI
+    pins: 5 pins (GND, VCC, DIN, CLK, CS)
+    gpio: DIN=GPIO 23, CLK=GPIO 25, CS=GPIO 26
+    part: dis-015-dot-matrix-8x8-spi
+    libraries:
+      - name: max7219
+        file: max7219.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.05%20max7219.py
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - DIN → GPIO 23
+      - CLK → GPIO 25
+      - CS → GPIO 26
+    circuit: d-2-09.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 도트 매트릭스 글자·테두리 보기
+        file: esp32/kit/ch2/2-09-dotmatrix-8x8-spi-1.py
+        virtual: real-only
+        points:
+          - 글자, 테두리, 전체 켜기를 차례로 보여 줘요. 전체 켜기에서 안 켜지는 점이 없는지 확인해요.
+          - brightness(0~15) 로 밝기를 바꿔요.
+          - display.show() 를 불러야 화면에 나타나요.
+      - n: 2
+        kind: 심화 예제
+        title: 전자 주사위
+        file: esp32/kit/ch2/2-09-dotmatrix-8x8-spi-2.py
+        virtual: real-only
+        points:
+          - BOOT 버튼을 누르면 숫자가 빠르게 바뀌다가 하나에서 멈춰요.
+          - 눈(점)의 위치는 PIPS 에 적혀 있어요.
+          - 출력 창에도 주사위 결과가 나와요.
+    support: B2
+    virtual: real-only
+    virtual_reason: SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서
+  - id: d-2-10
+    number: "2.10"
+    chapter: 2
+    name: 16x8 도트 매트릭스 (SPI)
+    name_en: 16x8 Dot Matrix (SPI)
+    description: 8x8의 두 배 너비인 16x8 도트 매트릭스, SPI를 통해 MAX7219으로 구동.
+    interface: Serial SPI
+    pins: 5 pins (GND, VCC, DIN, CLK, CS)
+    gpio: DIN=GPIO 23, CLK=GPIO 25, CS=GPIO 26
+    part: dis-017-dot-matrix-8x16-spi
+    libraries:
+      - name: max7219
+        file: max7219.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.05%20max7219.py
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - DIN → GPIO 23
+      - CLK → GPIO 25
+      - CS → GPIO 26
+    circuit: d-2-10.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 16x8 매트릭스 글자·테두리·흐르는 글자
+        file: esp32/kit/ch2/2-10-dotmatrix-16x8-spi-1.py
+        virtual: real-only
+        points:
+          - 글자 Hi , 테두리, 흐르는 글자를 차례로 보여 줘요.
+          - marquee(글) 는 글을 오른쪽에서 왼쪽으로 흘려요.
+          - 글이 거꾸로 보이면 Max7219(16, 8, spi, cs, False) 의 마지막 값을 True 로 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 두 자리 숫자 카운터
+        file: esp32/kit/ch2/2-10-dotmatrix-16x8-spi-2.py
+        virtual: real-only
+        points:
+          - 1초마다 숫자가 하나씩 올라가요(00~99).
+          - BOOT 버튼을 누르면 멈추고, 다시 누르면 계속 가요.
+          - n = (n + 1) % 100 이 99 다음에 0 으로 돌아가게 해요.
+    support: B2
+    virtual: real-only
+    virtual_reason: SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서
+  - id: d-2-11
+    number: "2.11"
+    chapter: 2
+    name: 8x8 도트 매트릭스 (I2C)
+    name_en: 8x8 Dot Matrix (I2C)
+    description: HT16K33 드라이버를 사용하는 I2C 인터페이스의 8x8 도트 매트릭스.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: dis-016-dot-matrix-8x8-i2c
+    libraries:
+      - name: ht16k33
+        file: ht16k33.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+    circuit: d-2-11.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 알파벳 한 글자씩 보기
+        file: esp32/kit/ch2/2-11-dotmatrix-8x8-i2c-1.py
+        virtual: real-only
+        points:
+          - HT16K33Matrix8x8 로 알파벳을 한 글자씩 보여 줘요.
+          - clear() 로 지우고 set_character() 로 글자를 정한 뒤 draw() 로 화면에 그려요.
+          - 글자 방향이 틀리면 set_angle() 의 숫자(0, 90, 180, 270)를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 비 내리는 화면
+        file: esp32/kit/ch2/2-11-dotmatrix-8x8-i2c-2.py
+        virtual: real-only
+        points:
+          - 점 하나가 위에서 아래로 떨어지는 빗방울이에요. plot(x, y) 로 점 하나를 켜요.
+          - BOOT 버튼을 누르면 밝기가 3단계로 바뀌어요.
+          - random.getrandbits(2) == 0 의 숫자를 바꾸면 비가 더 많이/적게 와요.
+    support: B2
+    virtual: real-only
+    virtual_reason: HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서
+  - id: d-2-12
+    number: "2.12"
+    chapter: 2
+    name: 16x8 도트 매트릭스 (I2C)
+    name_en: 16x8 Dot Matrix (I2C)
+    description: HT16K33 드라이버를 사용하는 I2C 인터페이스의 16x8 도트 매트릭스.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: dis-018-dot-matrix-8x16-i2c
+    libraries:
+      - name: ht16k33
+        file: ht16k33.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+    circuit: d-2-12.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 글자 흘려 보내기
+        file: esp32/kit/ch2/2-12-dotmatrix-16x8-i2c-1.py
+        virtual: real-only
+        points:
+          - HT16K33Matrix16x8 로 글자를 왼쪽으로 흘려 보내요.
+          - scroll_text(글) 는 글이 다 지나갈 때까지 기다려요.
+          - 글자 방향이 틀리면 set_angle() 의 숫자를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 이퀄라이저 막대
+        file: esp32/kit/ch2/2-12-dotmatrix-16x8-i2c-2.py
+        virtual: real-only
+        points:
+          - 16줄이 음악 막대처럼 위아래로 움직여요.
+          - BOOT 버튼을 누르면 멈추고, 다시 누르면 계속돼요.
+          - delta 목록의 숫자를 바꾸면 움직임이 달라져요.
+    support: B2
+    virtual: real-only
+    virtual_reason: HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서
+  - id: d-2-13
+    number: "2.13"
+    chapter: 2
+    name: RGB 링 디스플레이 (NeoPixel 16)
+    name_en: RGB Ring Display (NeoPixel 16)
+    description: 링 형태로 배열된 16개의 개별 주소 지정 RGB LED (WS2812/NeoPixel).
+    interface: Digital
+    pins: 3 pins (GND, VCC, DIN)
+    gpio: GPIO 23
+    part: dis-013-neo-pixels-ring
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - DIN → GPIO 23
+    circuit: d-2-13.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 링 색 켜기와 한 칸씩 돌기
+        file: esp32/kit/ch2/2-13-neopixel-ring-1.py
+        virtual: full
+        points:
+          - 링의 LED 16개를 빨강, 초록, 파랑으로 켜고 한 칸씩 돌아요.
+          - 밝기는 40 으로 낮췄어요. 255 로 올리면 눈이 부셔요.
+          - np.write() 를 불러야 LED 에 반영돼요.
+      - n: 2
+        kind: 심화 예제
+        title: 꼬리 달린 불빛 돌리기
+        file: esp32/kit/ch2/2-13-neopixel-ring-2.py
+        virtual: full
+        points:
+          - 불빛 하나가 꼬리를 달고 링을 돌아요. 꼬리는 뒤로 갈수록 어두워져요.
+          - BOOT 버튼을 누르면 방향과 색이 바뀌어요.
+          - TAIL 숫자를 바꿔 꼬리 길이를 바꿔 보세요.
+    support: A
+    virtual: full
+  - id: d-2-14
+    number: "2.14"
+    chapter: 2
+    name: RGB 매트릭스 디스플레이 (NeoPixel 64)
+    name_en: RGB Matrix Display (NeoPixel 64)
+    description: 8x8 매트릭스 형태의 64개 개별 주소 지정 RGB LED (WS2812/NeoPixel).
+    interface: Digital
+    pins: 3 pins (GND, VCC, DIN)
+    gpio: GPIO 23
+    part: dis-014-neo-pixels-square
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - DIN → GPIO 23
+    circuit: d-2-14.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 불빛 하나씩 켜기와 전체 색
+        file: esp32/kit/ch2/2-14-neopixel-square-1.py
+        virtual: partial
+        points:
+          - LED 를 한 개씩 차례로 켠 뒤 전체를 초록, 파랑, 하양으로 바꿔요.
+          - 밝기는 20 으로 낮췄어요. 높이면 전류가 많이 흘러요.
+          - NUM_OF_LED 는 브릭셀 모듈(18개)에 맞춰 두었어요. 64개짜리 판이면 64 로 바꾸세요.
+      - n: 2
+        kind: 심화 예제
+        title: 무지개 물결
+        file: esp32/kit/ch2/2-14-neopixel-square-2.py
+        virtual: partial
+        points:
+          - LED 마다 무지개 색을 다르게 정하고 조금씩 밀어서 물결처럼 보여요.
+          - BOOT 버튼을 누르면 속도가 바뀌어요.
+          - LEVEL 숫자로 밝기를 바꿔 보세요.
+    support: B1
+    virtual: partial
+    virtual_reason: 가상 보드의 네오픽셀 그림은 16개 링이라 17번째 불빛부터는 그림에 나오지 않아서(코드는 그대로 돌아요)
+    note: 브릭셀 네오픽셀 매트릭스 모듈은 코드에 불빛 수(NUM_OF_LED)가 18개로 적혀 있고, 64개짜리 8x8 판이면 64로 바꾸라고 안내해요.
+  - id: d-3-01
+    number: "3.01"
+    chapter: 3
+    name: 버튼
+    name_en: Buttons
+    description: 푸시 버튼 스위치. 브릭셀 키트에는 4가지 색상 버튼(파랑, 초록, 빨강, 노랑)이 있습니다.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-017-button-blue
+    part_variants:
+      - part: d-018-button-green
+        label: 초록 버튼
+      - part: d-019-button-red
+        label: 빨간 버튼
+      - part: d-020-button-yellow
+        label: 노란 버튼
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 버튼 눌림 확인
+        file: esp32/kit/ch3/3-01-button-1.py
+        virtual: full
+        points:
+          - 시작할 때 버튼을 누르고 있지 않으면 그 값이 '안 눌림'이 돼요.
+          - 버튼을 누르면 LCD 와 출력 창 글자가 '눌렸어요!'로 바뀌어요.
+          - 글자가 반대로 나오면 ■ 멈추기 후 손을 떼고 다시 ▶ 눌러 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 버튼 누른 횟수 세기 + 길게 누르면 초기화
+        file: esp32/kit/ch3/3-01-button-2.py
+        virtual: full
+        points:
+          - 버튼을 누르는 순간과 떼는 순간을 따로 알아내서 한 번 누를 때 한 번만 세요.
+          - 30밀리초마다 확인해서 버튼이 떨리는 잡음(채터링)을 줄여요.
+          - 1000을 바꾸면 '길게 누르기' 기준 시간이 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-02
+    number: "3.02"
+    chapter: 3
+    name: 스위치·로커
+    name_en: Switch | Rocker
+    description: 두 가지 안정 상태(ON/OFF)를 가진 로커 스위치.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-021-locker-sw
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 스위치 켜짐/꺼짐 확인
+        file: esp32/kit/ch3/3-02-rocker-switch-1.py
+        virtual: full
+        points:
+          - 스위치 값이 1이면 ON, 0이면 OFF 예요.
+          - 스위치를 바꾸면 출력 글자, LCD, 내장 LED 가 같이 바뀌어요.
+          - sleep_ms 숫자를 바꾸면 확인 속도가 달라져요.
+      - n: 2
+        kind: 심화 예제
+        title: ON 으로 켠 횟수와 켜 둔 시간 재기
+        file: esp32/kit/ch3/3-02-rocker-switch-2.py
+        virtual: full
+        points:
+          - ON 으로 바뀌는 순간에만 횟수를 세요.
+          - ticks_ms 로 켜진 시간을 재서 LCD 에 초 단위로 보여 줘요.
+          - 250 을 바꾸면 LED 깜빡임 속도가 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-03
+    number: "3.03"
+    chapter: 3
+    name: 터치 센서
+    name_en: Touch Sensor
+    description: 인체 터치를 감지하는 정전식 터치 센서.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-022-touch-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 터치 감지 확인
+        file: esp32/kit/ch3/3-03-touch-1.py
+        virtual: full
+        points:
+          - 손가락을 대면 값이 1이 되어 '만졌어요!'가 나와요.
+          - 손가락을 떼면 다시 '안 만졌어요'로 돌아가요.
+          - LCD 는 영어로 같은 내용을 보여 줘요.
+      - n: 2
+        kind: 심화 예제
+        title: 터치할 때마다 LED 켰다 껐다 (터치 스위치)
+        file: esp32/kit/ch3/3-03-touch-2.py
+        virtual: full
+        points:
+          - 손가락을 계속 대고 있어도 한 번만 바뀌어요. (대는 순간만 알아내요)
+          - led.value(not led.value()) 는 지금 상태를 반대로 바꾸는 방법이에요.
+          - 터치 센서로 만든 전등 스위치라고 생각해 보세요.
+    support: A
+    virtual: full
+  - id: d-3-04
+    number: "3.04"
+    chapter: 3
+    name: 컬러 터치 센서
+    name_en: Color Touch Sensor
+    description: 빨강, 초록, 파랑 및 다색 변형이 있는 컬러 터치 센서.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-023-color-touch-sensor-red
+    part_variants:
+      - part: d-024-color-touch-sensor-blue
+        label: 파랑
+      - part: d-025-color-touch-sensor-green
+        label: 초록
+      - part: d-026-color-touch-sensor-colorful
+        label: 컬러풀
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 컬러 터치 감지 확인
+        file: esp32/kit/ch3/3-04-color-touch-1.py
+        virtual: full
+        points:
+          - 색깔 판을 만지면 값이 1이 되어 '만졌어요!'가 나와요.
+          - 센서 색(빨강·초록·파랑 등)과 상관없이 같은 방식으로 동작해요.
+      - n: 2
+        kind: 심화 예제
+        title: 연속 터치 세기 (한 번·두 번·세 번)
+        file: esp32/kit/ch3/3-04-color-touch-2.py
+        virtual: full
+        points:
+          - 0.6초(600) 동안 새 터치가 없으면 묶음이 끝났다고 봐요.
+          - 한 번, 두 번, 세 번을 다른 명령으로 쓸 수 있어요.
+          - 600 을 바꾸면 이어서 터치해야 하는 시간이 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-05
+    number: "3.05"
+    chapter: 3
+    name: 진동 센서
+    name_en: Vibration Sensor
+    description: 진동을 감지합니다. 진동이 감지되면 로직 1을 출력합니다.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-016-vibration
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 진동 감지 확인
+        file: esp32/kit/ch3/3-05-vibration-sensor-1.py
+        virtual: full
+        points:
+          - 센서가 흔들리면 값이 1이 돼요.
+          - 흔들림이 아주 짧아서 글자가 잠깐 나타났다 사라질 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 흔들림 세기 단계 알아내기
+        file: esp32/kit/ch3/3-05-vibration-sensor-2.py
+        virtual: full
+        points:
+          - 2초 동안 센서 값이 0에서 1로 바뀐 횟수를 세어요.
+          - 횟수가 많을수록 더 세게 흔든 거예요. LCD 는 2초마다 갱신돼요.
+          - 5, 20 숫자를 바꾸면 단계 기준이 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-06
+    number: "3.06"
+    chapter: 3
+    name: 기울기 센서
+    name_en: Tilt Sensor
+    description: 수직 위치에서의 기울기를 감지합니다.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-015-tilt
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-06.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 기울기 감지 확인
+        file: esp32/kit/ch3/3-06-tilt-1.py
+        virtual: full
+        points:
+          - 센서 안의 작은 금속 공이 움직이면 값이 바뀌어요.
+          - 어느 방향에서 1이 되는지 직접 돌려 보며 찾아보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 쓰러짐 경보 (2초 이상 기울어지면)
+        file: esp32/kit/ch3/3-06-tilt-2.py
+        virtual: full
+        points:
+          - 기울어진 시간을 재서 2초(2000)가 지나야 경보를 켜요.
+          - 기울어진 동안 LCD 에 시간이 올라가고, 경보가 되면 FALL ALERT! 가 나와요.
+          - 2000 을 바꾸면 경보까지 걸리는 시간이 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-07
+    number: "3.07"
+    chapter: 3
+    name: 화재 센서
+    name_en: Fire Sensor
+    description: 적외선을 이용한 화재 감지 센서.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-027-fire-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-07.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 불꽃 감지 확인
+        file: esp32/kit/ch3/3-07-fire-1.py
+        virtual: full
+        points:
+          - 센서가 불꽃의 적외선을 느끼면 값이 바뀌어요.
+          - 센서 뒤 작은 나사로 민감도를 조절할 수 있어요.
+          - 값이 반대로 나오면 센서 종류에 따라 0/1 이 반대일 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 화재 경보기 (3번 연속 감지되면 경보)
+        file: esp32/kit/ch3/3-07-fire-2.py
+        virtual: full
+        points:
+          - 연속 감지 횟수( hits )가 3이 되어야 경보가 켜져요.
+          - 한 번 켜진 경보는 불꽃이 3초 동안 없어질 때까지 유지돼요.
+          - 3, 3000 숫자를 바꿔 민감도를 조절해 보세요.
+    support: B1
+    virtual: full
+  - id: d-3-08
+    number: "3.08"
+    chapter: 3
+    name: PIR 센서·인체 감지 센서
+    name_en: PIR Sensor | Human Sensor
+    description: 열을 발산하는 물체(사람, 동물)를 감지하는 수동 적외선 센서. 침입자 경보 감지에 사용됩니다.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-013-human-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-08.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 사람 움직임 감지 확인
+        file: esp32/kit/ch3/3-08-pir-1.py
+        virtual: full
+        points:
+          - 사람이나 동물처럼 열이 있는 물체가 움직이면 값이 1이 돼요.
+          - 가만히 있으면 감지되지 않고, 한 번 감지되면 몇 초간 1이 유지돼요.
+      - n: 2
+        kind: 심화 예제
+        title: 방문자 카운터
+        file: esp32/kit/ch3/3-08-pir-2.py
+        virtual: full
+        points:
+          - 센서 값이 0에서 1로 바뀔 때마다 방문자를 1명씩 세어요.
+          - 앞 사람과의 시간 차이도 알려 줘요.
+          - 5000 을 바꾸면 LED 가 켜져 있는 시간이 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-09
+    number: "3.09"
+    chapter: 3
+    name: 라인 감지 센서
+    name_en: Line Detection Sensor
+    description: IR 트랜시버를 사용하여 어두운/밝은 표면을 감지하는 근접 센서 (라인 추적용).
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-029-line-finder
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SIG → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-09.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 라인(검은 선) 감지 확인
+        file: esp32/kit/ch3/3-09-line-finder-1.py
+        virtual: full
+        points:
+          - 검은 선 위에서는 값이 1, 흰 바닥 위에서는 0이에요.
+          - 센서와 바닥 사이 거리가 너무 멀면 잘 구별하지 못해요.
+      - n: 2
+        kind: 심화 예제
+        title: 선 건넌 횟수 세기
+        file: esp32/kit/ch3/3-09-line-finder-2.py
+        virtual: full
+        points:
+          - 값이 0에서 1로 바뀔 때(선에 올라갈 때)만 횟수를 세어요.
+          - 이 원리로 라인트레이서 자동차가 선을 따라가요.
+          - 값이 반대로 나오면 센서 뒤 나사로 감도를 조절해 보세요.
+    support: B1
+    virtual: full
+  - id: d-3-10
+    number: "3.10"
+    chapter: 3
+    name: IR 장애물 감지 센서
+    name_en: IR Obstacle Avoidance Sensor
+    description: 근처 물체를 감지하는 적외선 장애물 회피 센서.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-031-ir-object
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SIG → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-10.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 장애물 감지 확인
+        file: esp32/kit/ch3/3-10-ir-object-1.py
+        virtual: full
+        points:
+          - 센서가 쏜 적외선이 물체에 반사되어 돌아오면 감지돼요.
+          - 검은색 물체는 적외선을 잘 반사하지 않아 감지가 약할 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 지나간 물건 개수 세기
+        file: esp32/kit/ch3/3-10-ir-object-2.py
+        virtual: full
+        points:
+          - 물체가 나타났다가 사라질 때 1개로 세어요.
+          - 물체가 센서 앞에 머문 시간도 같이 보여 줘요.
+          - 30 을 바꾸면 무시할 잡음의 길이가 달라져요.
+    support: B1
+    virtual: full
+  - id: d-3-11
+    number: "3.11"
+    chapter: 3
+    name: 초음파 센서 (HC-SR04)
+    name_en: Ultrasonic Sensor (HC-SR04)
+    description: "음파 주파수를 이용하여 거리를 측정합니다. 공식: 거리 = 시간 x 340m/s / 2."
+    interface: Digital
+    pins: 4 pins (GND, VCC, ECHO, TRIG)
+    gpio: "ECHO=GPIO 23, TRIG=GPIO 25 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-009-ultrasonic-sensor-v2
+    libraries:
+      - name: hcsr04
+        file: hcsr04.py
+        site: true
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - ECHO → GPIO 23
+      - TRIG → GPIO 25
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-11.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 거리 재기
+        file: esp32/kit/ch3/3-11-ultrasonic-1.py
+        virtual: real-only
+        points:
+          - 센서가 소리를 쏘고 돌아오는 시간으로 거리를 계산해요.
+          - 물체가 없거나 너무 멀면 '너무 멀거나 물체가 없어요'가 나와요.
+          - echo_timeout_us=30000 이 기다리는 최대 시간이에요.
+      - n: 2
+        kind: 심화 예제
+        title: 침입자 감지기
+        file: esp32/kit/ch3/3-11-ultrasonic-2.py
+        virtual: real-only
+        points:
+          - 3번 잰 거리의 평균으로 판단해서 더 믿을 수 있어요.
+          - LIMIT 숫자를 바꾸면 경보가 울리는 거리가 달라져요.
+          - 물체가 안 보이면 오류가 나도 멈추지 않고 넘어가요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 초음파 센서가 소리를 쏘고 돌아오는 시간을 재는 기능(time_pulse_us)과 센서 흉내가 가상 보드에 아직 없어서
+  - id: d-3-12
+    number: "3.12"
+    chapter: 3
+    name: 온습도 센서 (DHT11)
+    name_en: Temp & Humidity (DHT11)
+    description: "DHT11 센서: 0-50°C (±1°C), 20-90% RH (±1%). 마이크로파이썬 내장 모듈."
+    interface: Digital (1-Wire)
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-001-temp-and-humi-dht11
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 5V
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-12.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 온도·습도 읽기
+        file: esp32/kit/ch3/3-12-dht11-1.py
+        virtual: real-only
+        points:
+          - DHT11 은 1초에 한 번보다 자주 읽을 수 없어서 2초마다 읽어요.
+          - 읽기에 실패해도 멈추지 않고 안내 글을 보여 줘요.
+      - n: 2
+        kind: 심화 예제
+        title: 최고·최저 온도 기록 + 더위 경보
+        file: esp32/kit/ch3/3-12-dht11-2.py
+        virtual: real-only
+        points:
+          - t_max , t_min 이 지금까지의 가장 높은/낮은 온도를 기억해요.
+          - 3번 연속 넘어야 경보가 켜져서 잠깐의 튀는 값은 무시해요.
+          - HOT 숫자를 바꾸면 경보 온도가 달라져요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서
+  - id: d-3-13
+    number: "3.13"
+    chapter: 3
+    name: 온습도 센서 (DHT22)
+    name_en: 3.56. 온습도 센서 (DHT22)
+    description: 공기의 온도와 습도를 함께 알려 주는 센서예요. DHT11 보다 넓은 범위를 더 정확하게 재요.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-002-temp-and-humi-dht22
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-13.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 온도·습도 읽기
+        file: esp32/kit/ch3/3-13-dht22-1.py
+        virtual: real-only
+        points:
+          - dht.DHT22 로 만든 센서에서 measure() 를 부른 뒤 온도와 습도를 꺼내요.
+          - DHT22 는 2초에 한 번만 읽을 수 있어서 2초마다 값이 바뀌어요.
+          - 센서를 손으로 감싸 쥐면 온도가, 입김을 불면 습도가 올라가요.
+      - n: 2
+        kind: 심화 예제
+        title: 불쾌지수와 최저·최고 온도
+        file: esp32/kit/ch3/3-13-dht22-2.py
+        virtual: real-only
+        points:
+          - 온도와 습도를 식에 넣어 불쾌지수를 계산하고 4단계로 알려 줘요.
+          - 불쾌지수가 75 이상이면 보드의 LED 가 켜져요.
+          - t_min , t_max 는 켠 뒤로 가장 낮았던/높았던 온도를 기억해요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서
+  - id: d-3-14
+    number: "3.14"
+    chapter: 3
+    name: 로터리 인코더
+    name_en: Rotary Encoder
+    description: 내장 푸시 버튼 스위치가 있는 20단계 로터리 인코더. 2상 신호를 사용합니다.
+    interface: Digital
+    pins: 5 pins (GND, VCC, SA, SB, SW)
+    gpio: "SA=GPIO 23, SB=GPIO 25, SW=GPIO 26 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-028-rotary-encoder
+    libraries:
+      - name: rotary_irq
+        file: rotary_irq.py
+        site: true
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SA → GPIO 23
+      - SB → GPIO 25
+      - SW → GPIO 26
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-14.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 돌린 위치와 누름 확인
+        file: esp32/kit/ch3/3-14-rotary-1.py
+        virtual: real-only
+        points:
+          - 돌릴 때마다 위치가 0~19 사이에서 바뀌어요. 19 다음은 다시 0이에요.
+          - 돌리는 방향이 반대면 reverse=True 를 False 로 바꿔 보세요.
+          - 누르는 값이 반대로 나오면 == 1 을 == 0 으로 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 볼륨 다이얼 (LED 밝기 조절)
+        file: esp32/kit/ch3/3-14-rotary-2.py
+        virtual: real-only
+        points:
+          - RANGE_BOUNDED 는 0과 19 끝에서 멈춰요. (끝에서 안 넘어가요)
+          - duty_u16 숫자가 클수록 LED 가 밝아져요.
+          - "'#' * now 로 막대 그래프처럼 보여 줘요."
+    support: B2
+    virtual: real-only
+    virtual_reason: 로터리 인코더가 돌 때 나오는 두 신호(직교 신호)의 흉내가 가상 보드에 아직 없어서
+  - id: d-3-15
+    number: "3.15"
+    chapter: 3
+    name: 포토레지스터·속도 센서
+    name_en: Photoresistor | Speed Sensor
+    description: 속도 센서로도 사용할 수 있는 포토레지스터 모듈.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: d-012-photoresistor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-15.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 빛 가려짐 확인
+        file: esp32/kit/ch3/3-15-photoresistor-1.py
+        virtual: full
+        points:
+          - sensor.value() 가 1 이면 빛이 가려진 거예요. 0 이면 빛이 들어와요.
+          - 센서 홈 사이에 종이나 손가락을 넣었다 빼 보세요. LCD 글자도 같이 바뀌어요.
+          - 값이 반대로 나오면 센서 방향 때문이에요. 그대로 쓰면 돼요.
+      - n: 2
+        kind: 심화 예제
+        title: 바퀴 속도 재기 (초당 가려진 횟수 세기)
+        file: esp32/kit/ch3/3-15-photoresistor-2.py
+        virtual: full
+        points:
+          - 빛이 안 가려졌다가 가려지는 순간만 한 번으로 세요.
+          - 바퀴 구멍이 1개면 '1분에 가려진 횟수' 가 곧 분당 회전수(RPM)예요.
+          - LCD 는 1초에 한 번만 바꿔서 센서 읽는 속도를 방해하지 않아요.
+    support: B1
+    virtual: full
+  - id: d-3-16
+    number: "3.16"
+    chapter: 3
+    name: 수온 센서 (DS18B20)
+    name_en: Water Temperature Sensor (DS18B20)
+    description: 1-Wire 프로토콜을 사용하는 방수 DS18B20 디지털 온도 센서.
+    interface: Digital (1-Wire)
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: a-003-water-temp
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-16.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 물 온도 재기
+        file: esp32/kit/ch3/3-16-water-temp-1.py
+        virtual: real-only
+        points:
+          - ds.scan() 이 센서를 찾으면 개수가 1 이상으로 나와요. 0 이면 배선을 다시 보세요.
+          - 온도를 재려면 약 0.75초가 걸려서 sleep_ms(750) 으로 기다려요.
+          - 방 안 공기, 차가운 물, 따뜻한 물에서 LCD 값이 어떻게 다른지 비교해 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 최저·최고 온도와 목표 온도 알림
+        file: esp32/kit/ch3/3-16-water-temp-2.py
+        virtual: real-only
+        points:
+          - min , max 로 지금까지의 가장 낮은 값과 높은 값을 계속 갱신해요.
+          - TARGET 를 바꾸면 알림이 켜지는 온도를 바꿀 수 있어요.
+          - LCD 윗줄은 지금 온도, 아랫줄은 최저·최고 온도예요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 수온 센서를 읽는 onewire·ds18x20 모듈과 센서 흉내가 가상 보드에 아직 없어서
+  - id: d-3-17
+    number: "3.17"
+    chapter: 3
+    name: 수위 센서 (플로트 스위치)
+    name_en: 3.57. 수위 센서 (플로트 스위치)
+    description: 물에 뜨는 부력체가 위아래로 움직이며 수위를 켜짐/꺼짐으로 알려 주는 센서예요. 프로브(막대)가 딸려 있어요.
+    interface: Digital
+    pins: 3 pins (G, V, S) + 프로브 2 pins
+    gpio: "S=GPIO 23 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-010-water-level
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+      - 프로브 → 모듈의 프로브 단자 2개에 연결
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-17.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 수위 켜짐/꺼짐 읽기
+        file: esp32/kit/ch3/3-17-float-switch-1.py
+        virtual: full
+        points:
+          - 물에 뜨는 부력체가 올라가면 값이 바뀌어요( 1 또는 0 ).
+          - 컵에 물을 천천히 채우면서 LCD 의 FULL / LOW 가 바뀌는 순간을 찾아보세요.
+          - 값이 반대로 나오면 WET 을 0 으로 바꿔요.
+      - n: 2
+        kind: 심화 예제
+        title: 물 넘침 경보와 상태 변화 기록
+        file: esp32/kit/ch3/3-17-float-switch-2.py
+        virtual: full
+        points:
+          - 물이 차면 보드의 파란 LED 가 깜빡이고 LCD 에 FULL! OVERFLOW 가 나와요.
+          - 수위가 바뀔 때마다 '켠 뒤 몇 초'와 '앞 상태가 얼마나 유지됐는지'를 출력 창에 적어요.
+          - 30ms 동안 같은 값일 때만 변화로 인정해서 물결에 의한 떨림을 걸러요.
+    support: B1
+    virtual: full
+  - id: d-3-18
+    number: "3.18"
+    chapter: 3
+    name: 미세먼지 센서 (PMS7003)
+    name_en: 3.59. 미세먼지 센서 (PMS7003)
+    description: 공기 중 미세먼지(PM1.0·PM2.5·PM10)의 양을 레이저로 재서 알려 주는 센서예요. 어댑터 없이 4핀으로 바로 연결해요.
+    interface: UART
+    pins: 4 pins (G, V, RX, TX)
+    gpio: "모듈 TX=GPIO 25 (보드 RX), 모듈 RX=GPIO 26 (보드 TX) (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-004-pms7003-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX (모듈) → GPIO 25
+      - RX (모듈) → GPIO 26
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-18.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 미세먼지 값 읽기
+        file: esp32/kit/ch3/3-18-pms7003-1.py
+        virtual: real-only
+        points:
+          - 센서가 1초마다 32바이트 묶음을 보내요. 머리글자 0x42 0x4D 로 시작을 찾아요.
+          - 묶음의 앞 30바이트를 더한 값이 마지막 2바이트와 같을 때만 믿고 PM 값을 꺼내요.
+          - 단위는 ug/m3 예요. 켠 직후 30초쯤은 값이 불안정해요.
+      - n: 2
+        kind: 심화 예제
+        title: 미세먼지 단계와 최근 평균
+        file: esp32/kit/ch3/3-18-pms7003-2.py
+        virtual: real-only
+        points:
+          - PM2.5 값으로 좋음/보통/나쁨/매우 나쁨을 알려 줘요.
+          - recent 에 최근 10개를 모아 평균을 내서 값이 튀어도 흐름을 볼 수 있어요.
+          - 나쁨 이상이면 보드 LED 가 켜져요. 기준 숫자를 바꿔 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 미세먼지 센서가 UART로 보내는 값(32바이트 프레임)의 흉내가 가상 보드에 아직 없어서
+  - id: d-3-19
+    number: "3.19"
+    chapter: 3
+    name: 미세먼지 센서 (PMS3003)
+    name_en: 3.60. 미세먼지 센서 (PMS3003)
+    description: PMS7003 보다 조금 오래된 모델의 미세먼지 센서예요. 센서에 딸린 어댑터를 보드에 4핀으로 연결해요.
+    interface: UART
+    pins: 4 pins (G, V, RX, TX) — 어댑터
+    gpio: "어댑터 TX=GPIO 25 (보드 RX), 어댑터 RX=GPIO 26 (보드 TX) (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-006-pms3003-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX (어댑터) → GPIO 25
+      - RX (어댑터) → GPIO 26
+      - 센서 ↔ 어댑터 → 센서 케이블을 어댑터(D_005)에 꽂기
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-19.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 미세먼지 값 읽기
+        file: esp32/kit/ch3/3-19-pms3003-1.py
+        virtual: real-only
+        points:
+          - PMS3003 은 24바이트 묶음을 보내요(PMS7003 은 32바이트). 머리글자는 같아요.
+          - 앞 22바이트를 더한 값이 마지막 2바이트와 같을 때만 믿고 PM 값을 꺼내요.
+          - 단위는 ug/m3 예요. 켠 직후 30초쯤은 값이 불안정해요.
+      - n: 2
+        kind: 심화 예제
+        title: 미세먼지 단계와 최근 평균
+        file: esp32/kit/ch3/3-19-pms3003-2.py
+        virtual: real-only
+        points:
+          - PM2.5 값으로 좋음/보통/나쁨/매우 나쁨을 알려 줘요.
+          - 최근 10개의 평균을 함께 보여 줘서 흐름을 알 수 있어요.
+          - 나쁨 이상이면 보드 LED 가 켜져요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 미세먼지 센서가 UART로 보내는 값(프레임)의 흉내가 가상 보드에 아직 없어서
+  - id: d-3-20
+    number: "3.20"
+    chapter: 3
+    name: CO2 센서 (ZE19D)
+    name_en: 3.61. CO2 센서 (ZE19D)
+    description: 공기 중 이산화탄소(CO2) 농도를 ppm 으로 알려 주는 센서예요. 교실 환기가 필요한지 판단할 때 써요.
+    interface: UART
+    pins: 4 pins (G, V, RX, TX)
+    gpio: "모듈 TX=GPIO 25 (보드 RX), 모듈 RX=GPIO 26 (보드 TX) (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: d-003-co2-sensor-z219d
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX (모듈) → GPIO 25
+      - RX (모듈) → GPIO 26
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-20.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: CO2 농도 읽기
+        file: esp32/kit/ch3/3-20-ze19d-1.py
+        virtual: real-only
+        points:
+          - 센서에 9바이트 명령을 보내면 9바이트로 대답해요. 대답의 3·4번째 바이트가 농도예요.
+          - CO2(ppm) = 위쪽 바이트 × 256 + 아래쪽 바이트 로 계산해요.
+          - 입김을 불면 값이 확 올라가고, 환기하면 천천히 내려가요.
+      - n: 2
+        kind: 심화 예제
+        title: 환기 판단기 (1000ppm)
+        file: esp32/kit/ch3/3-20-ze19d-2.py
+        virtual: real-only
+        points:
+          - 1000ppm 이상이면 LCD 에 OPEN WINDOW 가 나오고 보드 LED 가 켜져요.
+          - 처음 1000 을 넘는 순간만 alerts 횟수로 세요.
+          - LIMIT 숫자를 바꿔 우리 교실에 맞는 기준을 정해 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: CO2 센서가 UART로 보내는 값(9바이트 명령·응답)의 흉내가 가상 보드에 아직 없어서
+  - id: d-3-21
+    number: "3.21"
+    chapter: 3
+    name: 지문 센서 (AS608)
+    name_en: Fingerprint Sensor (AS608)
+    description: 생체 인식을 위한 AS608 칩의 광학 지문 센서.
+    interface: Digital (UART)
+    pins: 4 pins (GND, VCC, TX, RX)
+    gpio: TX=GPIO 25, RX=GPIO 26
+    part: d-029-fingerprint-sensor-as608
+    libraries:
+      - name: pyfingerprint
+        file: pyfingerprint.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.19%20pyfingerprint.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX → GPIO 25
+      - RX → GPIO 26
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-3-21.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 지문 센서 연결 확인
+        file: esp32/kit/ch3/3-21-fingerprint-1.py
+        virtual: real-only
+        points:
+          - 센서에 짧은 메시지를 보내 대답이 오면 연결이 맞는 거예요. 선이 반대면 자동으로 바꿔서 다시 해 봐요.
+          - 연결이 되면 저장된 지문 개수와 손가락이 올려졌는지를 출력 창과 LCD 로 알려 줘요.
+          - "'연결 성공' 에 나온 TX_PIN , RX_PIN 숫자를 2단계 코드에 똑같이 적어 주세요."
+      - n: 2
+        kind: 심화 예제
+        title: 지문 등록하고 알아맞히기 (BOOT 버튼으로 등록)
+        file: esp32/kit/ch3/3-21-fingerprint-2.py
+        virtual: real-only
+        points:
+          - BOOT 버튼을 누르면 같은 손가락을 두 번 읽어 서로 같을 때만 저장해요.
+          - 손가락을 올리면 저장된 지문과 비교해 번호와 일치 점수를 알려 주고, LCD 에도 결과가 나와요.
+          - 지문이 일치하면 LED 가 1초 켜져요. 지문 정보는 센서 안에만 저장돼요.
+    support: C
+    virtual: real-only
+    virtual_reason: 지문 센서의 UART 통신 규약(등록·검색·삭제) 흉내가 가상 보드에 아직 없어서
+    note: 이 지문 센서 라이브러리(pyfingerprint.py)는 사용 조건이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요.
+  - id: d-4-01
+    number: "4.01"
+    chapter: 4
+    name: 가변저항
+    name_en: Potentiometer
+    description: 아날로그 입력용 가변저항(회전식).
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-025-rotation-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가변저항 값 읽기
+        file: esp32/kit/ch4/4-01-potentiometer-1.py
+        virtual: full
+        points:
+          - 손잡이를 돌리면 값이 0에서 4095까지 변해요.
+          - ATTN_11DB 는 0~3.3V 전체를 읽도록 하는 설정이에요.
+      - n: 2
+        kind: 심화 예제
+        title: LED 밝기 조절 다이얼
+        file: esp32/kit/ch4/4-01-potentiometer-2.py
+        virtual: full
+        points:
+          - v * 16 으로 0~4095 를 0~65520 으로 키워요.
+          - "막대( # )가 길수록 밝은 거예요."
+          - 멈추면 LED 설정이 해제돼요.
+    support: B1
+    virtual: full
+  - id: d-4-02
+    number: "4.02"
+    chapter: 4
+    name: 연속 회전 가변저항
+    name_en: Continuous Rotation Potentiometer
+    description: 연속 회전 가변저항(무한 회전).
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-026-infinite-rotation-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 연속 회전 가변저항 값 읽기
+        file: esp32/kit/ch4/4-02-cont-rotation-pot-1.py
+        virtual: full
+        points:
+          - 끝없이 돌아가는 가변저항이에요. 한 바퀴 돌면 값이 처음으로 돌아와요.
+          - 돌리는 방향에 따라 값이 커지거나 작아져요.
+      - n: 2
+        kind: 심화 예제
+        title: 회전 방향과 바퀴 수 세기
+        file: esp32/kit/ch4/4-02-cont-rotation-pot-2.py
+        virtual: full
+        points:
+          - 값이 40 넘게 커지면 한쪽, 작아지면 반대쪽으로 돌리는 중이에요.
+          - 값이 2000 이상 갑자기 뛰면 한 바퀴 돈 거예요.
+          - turns 가 양수면 한쪽, 음수면 반대쪽으로 돈 바퀴 수예요.
+    support: B1
+    virtual: full
+  - id: d-4-03
+    number: "4.03"
+    chapter: 4
+    name: 슬라이더 가변저항
+    name_en: Slider Switch Potentiometer
+    description: 선형 아날로그 입력을 위한 슬라이더형 가변저항.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-027-slider
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 슬라이더 값 읽기
+        file: esp32/kit/ch4/4-03-slider-1.py
+        virtual: full
+        points:
+          - 왼쪽 끝은 0에 가깝고 오른쪽 끝은 4095 에 가까워요.
+          - 값이 반대로 나오면 슬라이더 방향이 반대일 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 5단계 레벨 표시기
+        file: esp32/kit/ch4/4-03-slider-2.py
+        virtual: full
+        points:
+          - 값을 4096 으로 나눈 몫으로 5단계(0~4)로 나눠요.
+          - 단계가 바뀔 때만 글자를 보여 줘서 출력 창이 조용해요. LCD 는 계속 갱신돼요.
+          - wait 계산식을 바꾸면 깜빡임 속도가 달라져요.
+    support: B1
+    virtual: full
+  - id: d-4-04
+    number: "4.04"
+    chapter: 4
+    name: 조이스틱
+    name_en: Joystick
+    description: X, Y 출력을 가진 2축 아날로그 조이스틱.
+    interface: Analog
+    pins: 4 pins (GND, VCC, X, Y)
+    gpio: "X=GPIO 32, Y=GPIO 33 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-028-joystick
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - X → GPIO 32
+      - Y → GPIO 33
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 조이스틱 X·Y 값 읽기
+        file: esp32/kit/ch4/4-04-joystick-1.py
+        virtual: full
+        points:
+          - X 는 좌우, Y 는 위아래 값이에요.
+          - 아무것도 안 건드려도 정확히 가운데 값이 아닐 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 방향 알아맞히기 (위·아래·왼쪽·오른쪽)
+        file: esp32/kit/ch4/4-04-joystick-2.py
+        virtual: full
+        points:
+          - X, Y 중 더 많이 벗어난 쪽을 밀린 방향으로 정해요.
+          - GAP 이 클수록 더 세게 밀어야 방향이 인식돼요.
+          - 실제 위/아래·좌/우가 반대면 dx , dy 앞에 - 를 붙여 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-05
+    number: "4.05"
+    chapter: 4
+    name: 조도 센서 (LDR)
+    name_en: Light Sensor (LDR)
+    description: 광의존성 저항(LDR)은 빛의 강도에 따라 저항이 변합니다.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-006-light-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 밝기 값 읽기
+        file: esp32/kit/ch4/4-05-light-1.py
+        virtual: full
+        points:
+          - 빛이 밝을수록 값이 커져요.
+          - 손으로 가리면 값이 뚝 떨어지는 걸 볼 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 자동 가로등
+        file: esp32/kit/ch4/4-05-light-2.py
+        virtual: full
+        points:
+          - 켜는 기준(60%)과 끄는 기준(75%)을 다르게 해서 깜빡거림을 막아요.
+          - 시작할 때의 밝기를 기준으로 삼아서 어느 방에서나 쓸 수 있어요.
+          - 60, 75 숫자를 바꾸면 민감도가 달라져요.
+    support: B1
+    virtual: full
+  - id: d-4-06
+    number: "4.06"
+    chapter: 4
+    name: 아날로그 터치 센서
+    name_en: Analog Touch Sensor
+    description: 단일 아날로그 핀에 4개의 고유 터치 입력이 있는 정전식 터치 센서.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-022-analog-touch-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-06.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 몇 번 버튼을 눌렀는지 확인
+        file: esp32/kit/ch4/4-06-analog-touch-1.py
+        virtual: full
+        points:
+          - 한 개의 핀으로 4개의 버튼을 구별해요. 버튼마다 값이 달라요.
+          - 값이 조금 다르게 나오면 범위 숫자를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 비밀번호 맞추기 (1-3-2-4)
+        file: esp32/kit/ch4/4-06-analog-touch-2.py
+        virtual: full
+        points:
+          - 버튼을 뗐다가 다시 눌러야 다음 숫자로 인정해요.
+          - SECRET 리스트를 바꾸면 나만의 비밀번호를 만들 수 있어요.
+          - 값 범위가 안 맞으면 1단계에서 값을 확인하고 숫자를 고쳐 보세요.
+    support: A
+    virtual: full
+  - id: d-4-07
+    number: "4.07"
+    chapter: 4
+    name: FSR 압력 센서
+    name_en: FSR Sensor
+    description: 압력 감지 저항 - 물리적 압력에 따라 저항이 변합니다.
+    interface: Analog
+    pins: 3 pins (GND, VCC, SIG)
+    gpio: "GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-023-fsr-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SIG → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-07.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 누르는 힘 값 읽기
+        file: esp32/kit/ch4/4-07-fsr-1.py
+        virtual: full
+        points:
+          - "세게 누를수록 값이 커지고 막대( # )가 길어져요."
+          - 아무것도 안 누르면 값이 0 근처예요.
+      - n: 2
+        kind: 심화 예제
+        title: 누른 힘 측정기 (최대 힘 기록)
+        file: esp32/kit/ch4/4-07-fsr-2.py
+        virtual: full
+        points:
+          - 누르는 동안 가장 큰 값( peak )을 계속 기억해요.
+          - 손가락을 뗐을 때 최대 값으로 약함/보통/세게를 알려 줘요.
+          - 300, 1000, 2500 숫자를 바꿔 기준을 조절해 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-08
+    number: "4.08"
+    chapter: 4
+    name: 토양 수분 센서
+    name_en: Soil Moisture Sensor
+    description: 정전식 토양 수분 센서(부식 방지).
+    interface: Analog
+    pins: 3 pins (GND, VCC, AOUT)
+    gpio: GPIO 32
+    part: a-008-moisture-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - AOUT → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-08.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 수분 값 읽기
+        file: esp32/kit/ch4/4-08-soil-moisture-1.py
+        virtual: full
+        points:
+          - soil.read() 는 0~4095 사이 숫자를 돌려줘요. 물이 많을수록 숫자가 작아져요.
+          - 출력 창과 LCD 에 같은 값이 나와요. 공기 중과 물컵(선까지만)에서 값을 비교해 보세요.
+          - 센서 아랫부분의 하얀 선 위로는 물에 담그지 마세요.
+      - n: 2
+        kind: 심화 예제
+        title: 흙이 말랐는지 알려 주는 화분 도우미
+        file: esp32/kit/ch4/4-08-soil-moisture-2.py
+        virtual: full
+        points:
+          - 10번 읽은 값의 평균을 써서 숫자가 덜 흔들려요.
+          - AIR , WATER 숫자를 내 센서에 맞게 고치면 %가 정확해져요.
+          - LCD 에는 퍼센트와 상태(영어)가 나오고, 30% 아래면 보드 LED 도 켜져요.
+    support: B1
+    virtual: full
+  - id: d-4-09
+    number: "4.09"
+    chapter: 4
+    name: NTC 온도 센서
+    name_en: NTC Temperature Sensor
+    description: 온도 측정을 위한 NTC(부온도 계수) 서미스터.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-005-ntc-temp
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-09.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 온도 센서 값 읽기
+        file: esp32/kit/ch4/4-09-ntc-temp-1.py
+        virtual: full
+        points:
+          - ntc.read() 는 0~4095 숫자예요. 온도가 바뀌면 숫자도 바뀌어요.
+          - 손가락으로 센서를 10초 감싸면 LCD 숫자가 어느 쪽으로 움직이는지 관찰해 보세요.
+          - 손을 떼면 서서히 처음 값으로 돌아와요.
+      - n: 2
+        kind: 심화 예제
+        title: 온도가 바뀌면 알려 주는 감시기
+        file: esp32/kit/ch4/4-09-ntc-temp-2.py
+        virtual: full
+        points:
+          - 처음 값의 평균을 기준값으로 삼아요.
+          - LIMIT 를 작게 하면 더 예민하게 알려 줘요.
+          - LCD 에 기준(Base)과 지금(Now) 값이 같이 나와요.
+    support: B1
+    virtual: full
+  - id: d-4-10
+    number: "4.10"
+    chapter: 4
+    name: 사운드 센서·마이크
+    name_en: Sound Sensor | Microphone
+    description: 소리 레벨을 감지하는 사운드 센서/마이크 모듈.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-030-sound-v2
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-10.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 소리 크기 읽기
+        file: esp32/kit/ch4/4-10-sound-1.py
+        virtual: full
+        points:
+          - 소리는 값이 위아래로 흔들리는 거라서, 짧은 시간 동안 가장 큰 값과 가장 작은 값의 차이를 소리 크기로 봐요.
+          - "조용할 때와 박수칠 때 막대( # )가 얼마나 달라지는지 출력 창과 LCD 에서 보세요."
+          - 센서 뒤쪽 파란 나사로 민감도를 조절할 수 있는 모델도 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 박수 세기와 LED 켜고 끄기
+        file: esp32/kit/ch4/4-10-sound-2.py
+        virtual: full
+        points:
+          - 처음 1초 동안 조용한 소리 크기를 재서 박수 기준( threshold )을 자동으로 정해요.
+          - 한 번 친 소리가 길게 이어져도 한 번으로 세도록 0.4초 동안은 다시 세지 않아요.
+          - LCD 에는 박수 횟수와 지금 소리 크기(Lv), 기준(T)이 나와요.
+    support: B1
+    virtual: full
+  - id: d-4-11
+    number: "4.11"
+    chapter: 4
+    name: 미세먼지 센서
+    name_en: Fine Dust Sensor
+    description: 대기질 모니터링을 위한 미세먼지(PM) 센서.
+    interface: Analog
+    pins: 4 pins (G, V, S, LED)
+    gpio: S=GPIO 32, LED=GPIO 33
+    part: a-016-fine-dust
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 5V
+      - S → GPIO 32
+      - LED → GPIO 33
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-11.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 미세먼지 센서 값 읽기
+        file: esp32/kit/ch4/4-11-fine-dust-1.py
+        virtual: full
+        points:
+          - 센서 안의 LED 를 아주 짧게(0.28ms) 켜고 그 순간의 빛 세기를 읽는 방식이에요.
+          - 20번 읽은 평균을 써서 값이 덜 흔들려요.
+          - 먼지(향 연기, 먼지떨이)를 센서 구멍 근처에서 만들면 값이 올라가요.
+      - n: 2
+        kind: 심화 예제
+        title: 공기 상태 신호등 (좋음·보통·나쁨)
+        file: esp32/kit/ch4/4-11-fine-dust-2.py
+        virtual: full
+        points:
+          - 처음 기준값과 비교해서 rise (올라간 정도)로 상태를 나눠요.
+          - 50, 200 숫자를 바꾸면 신호등이 바뀌는 기준을 바꿀 수 있어요.
+          - 향이나 분필 가루를 센서 앞에서 흔들어 LCD 가 BAD! 로 바뀌는지 해 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-12
+    number: "4.12"
+    chapter: 4
+    name: 자외선 센서 V2 (GUVA-S12SD)
+    name_en: 3.48. 자외선 센서 V2 (GUVA-S12SD)
+    description: 햇빛 속 자외선(UV)의 세기를 전압으로 알려 주는 센서예요. 전압이 높을수록 자외선이 강해요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-007-uv-sensor-v2
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-12.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 자외선 전압 읽기
+        file: esp32/kit/ch4/4-12-uv-1.py
+        virtual: full
+        points:
+          - read_mv() 가 0~4095 값(원시값)과 전압(mV)을 함께 돌려줘요.
+          - 센서에 밝은 빛을 비추면 전압이 올라가요. 손으로 가리면 내려가요.
+      - n: 2
+        kind: 심화 예제
+        title: UV 지수와 오늘의 단계
+        file: esp32/kit/ch4/4-12-uv-2.py
+        virtual: full
+        points:
+          - 전압(mV)을 100으로 나누면 UV 지수가 돼요. (근사식이라 대략적인 값이에요)
+          - 3 미만 낮음, 6 미만 보통, 8 미만 높음, 그 이상 매우 높음으로 나눠요.
+          - max_uvi 는 켠 뒤로 가장 센 자외선 값을 기억해요. 햇빛 아래에서 얼마나 올라가는지 보세요.
+          - 자외선 지수가 높을 땐 모자와 선크림이 필요해요.
+    support: B1
+    virtual: full
+  - id: d-4-13
+    number: "4.13"
+    chapter: 4
+    name: pH 센서 (E-201-C 프로브 + 변환 모듈)
+    name_en: 3.49. pH 센서 (E-201-C 프로브 + 변환 모듈)
+    description: 물이 산성인지 염기성(알칼리성)인지 pH 값으로 알려 주는 센서예요. 사용 전에 꼭 보정(맞춤)이 필요해요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-009-ph-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-13.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: pH 전압 읽기
+        file: esp32/kit/ch4/4-13-ph-1.py
+        virtual: full
+        points:
+          - pH 센서는 물의 성질에 따라 전압이 조금씩 달라져요.
+          - 프로브 끝(유리 부분)은 깨지기 쉬우니 부딪히지 않게 조심해요.
+          - 이 전압을 pH 숫자로 바꾸려면 2단계의 '보정'이 필요해요.
+      - n: 2
+        kind: 심화 예제
+        title: pH 값 계산 + 산성/중성/염기성 판정
+        file: esp32/kit/ch4/4-13-ph-2.py
+        virtual: full
+        points:
+          - 10번 평균을 내서 값이 덜 흔들려요.
+          - PH7_MV 와 SLOPE_MV 를 내 센서에 맞게 바꾸면 pH 가 정확해져요.
+          - pH 6.5 미만은 산성, 7.5 초과는 염기성, 그 사이는 중성이에요.
+          - 식초·레몬즙·비눗물을 재 보고 예상과 비교해 보세요(먼저 선생님과 함께).
+    support: B1
+    virtual: full
+  - id: d-4-14
+    number: "4.14"
+    chapter: 4
+    name: 전기전도도(TDS) 센서
+    name_en: 3.50. 전기전도도(TDS) 센서
+    description: 물에 녹아 있는 물질의 양(TDS, ppm)을 전기가 통하는 정도로 알려 주는 센서예요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-011-electrical-conduction
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-14.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: TDS 값 읽기
+        file: esp32/kit/ch4/4-14-tds-1.py
+        virtual: full
+        points:
+          - 전압(v)을 식에 넣어 TDS(ppm)를 구해요. 숫자가 클수록 물에 녹은 물질이 많아요.
+          - 센서를 공기 중에 두면 0 근처, 물에 담그면 올라가요.
+          - 프로브 금속 부분이 모두 물에 잠기게 해 주세요.
+      - n: 2
+        kind: 심화 예제
+        title: 물 종류 알아맞히기 (정수 / 수돗물 / 소금물)
+        file: esp32/kit/ch4/4-14-tds-2.py
+        virtual: full
+        points:
+          - 20번 평균을 내서 숫자가 덜 튀어요.
+          - 50 미만은 정수, 500 미만은 수돗물, 그 이상은 소금물로 나눠요. 숫자를 바꿔 보세요.
+          - 소금을 조금씩 더 넣으면 TDS 가 어떻게 올라가는지 관찰해 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-15
+    number: "4.15"
+    chapter: 4
+    name: 탁도 센서 (TSW-30)
+    name_en: 3.51. 탁도 센서 (TSW-30)
+    description: 물이 얼마나 흐린지(탁한 정도)를 빛이 통과하는 양으로 알려 주는 센서예요. 맑을수록 전압이 높아요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-013-turbidity-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-15.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 탁도 전압 읽기
+        file: esp32/kit/ch4/4-15-turbidity-1.py
+        virtual: full
+        points:
+          - 맑은 물일수록 빛이 잘 통과해서 전압이 높아요.
+          - 물에 우유를 한두 방울 떨어뜨리면 값이 내려가는 걸 볼 수 있어요.
+          - 센서의 전자 부분(전선 쪽)이 물에 젖지 않게 조심해요.
+      - n: 2
+        kind: 심화 예제
+        title: 맑음/탁함 3단계와 변한 정도(%)
+        file: esp32/kit/ch4/4-15-turbidity-2.py
+        virtual: full
+        points:
+          - 켤 때의 값( base )을 기준으로 지금 값이 몇 %인지 계산해요.
+          - 90% 이상 맑음, 60% 이상 약간 탁함, 그보다 낮으면 탁함이에요. 숫자를 바꿔 보세요.
+          - 깨끗한 물에서 시작한 뒤 흙·우유를 조금씩 넣어 변화를 확인해 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-16
+    number: "4.16"
+    chapter: 4
+    name: 빗물 감지 센서
+    name_en: Rain Sensor
+    description: 센서 판의 노출된 무늬(트레이스)에 빗물이 닿으면 저항이 줄어 아날로그 값이 올라가는 빗물 감지 센서. 젖은 면적이 넓을수록 값이 커져 비의 세기를 짐작할 수 있다.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-015-water-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-16.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 빗물 값 보기
+        file: esp32/kit/ch4/4-16-rain-1.py
+        virtual: full
+        points:
+          - 물방울이 무늬 사이를 이으면 전기가 흘러 값이 올라가요. 젖은 곳이 넓을수록 더 커져요.
+          - 마르면 값이 다시 내려가요 — 휴지로 닦아 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 비 세기 판정 + 비 시작 알림
+        file: esp32/kit/ch4/4-16-rain-2.py
+        virtual: full
+        points:
+          - 시작할 때 잰 «마른 값» 보다 얼마나 올랐는지로 맑음·이슬비·비·폭우를 나눠요.
+          - LEVELS 의 숫자를 바꾸면 판정 기준이 바뀌어요.
+          - 비가 오기 시작하면 출력 창에 알림이 뜨고 보드 LED 가 켜져요.
+    support: B1
+    virtual: full
+  - id: d-4-17
+    number: "4.17"
+    chapter: 4
+    name: 진동 센서 (아날로그, 피에조)
+    name_en: 3.53. 진동 센서 (아날로그, 피에조)
+    description: 두드리거나 흔들릴 때 생기는 진동을 전압으로 알려 주는 센서예요. 값이 순간적으로 확 튀어요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-019-vibration-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-17.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 진동 값 읽기
+        file: esp32/kit/ch4/4-17-vibration-analog-1.py
+        virtual: full
+        points:
+          - 가만히 있을 땐 값이 0 근처고, 두드리면 순간 커져요.
+          - 값이 너무 빨리 변해서 출력 창이 빠르게 올라가요. 두드릴 때 값을 잘 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 두드림 세기와 두드린 횟수
+        file: esp32/kit/ch4/4-17-vibration-analog-2.py
+        virtual: full
+        points:
+          - 50ms 동안 가장 큰 값을 '두드림 세기'로 써요. 순간값보다 훨씬 안정적이에요.
+          - THRESH 를 넘으면 한 번 센 뒤 200ms 쉬어서 한 번 두드린 걸 여러 번 세지 않아요.
+          - 세게 두드리면 Power 숫자가 커지는지 비교해 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-18
+    number: "4.18"
+    chapter: 4
+    name: 전류 센서 1A (ACS712 계열)
+    name_en: 3.54. 전류 센서 1A (ACS712 계열)
+    description: 전선에 흐르는 전류의 세기를 알려 주는 센서예요. 전류가 0일 때 출력은 전원 전압의 절반쯤이에요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-032-current-sensor-1a
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-18.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 전류 센서 값 읽기
+        file: esp32/kit/ch4/4-18-current-1.py
+        virtual: full
+        points:
+          - 측정 단자에 아무것도 연결하지 않으면 전류가 0이라서 값이 거의 일정해요.
+          - 이 값이 '영점'이에요. 2단계에서 시작할 때 영점을 스스로 잡아요.
+      - n: 2
+        kind: 심화 예제
+        title: 전류(mA) 재기와 최대 전류
+        file: esp32/kit/ch4/4-18-current-2.py
+        virtual: full
+        points:
+          - 켤 때 영점을 100번 평균으로 잡아서, 지금 전압과의 차이로 전류를 계산해요.
+          - SENS 를 내 모듈 감도에 맞게 바꿔야 mA 가 정확해요.
+          - max_ma 는 켠 뒤 가장 컸던 전류를 기억해요.
+    support: B1
+    virtual: full
+  - id: d-4-19
+    number: "4.19"
+    chapter: 4
+    name: 전압 센서 (분압 5:1)
+    name_en: 3.55. 전압 센서 (분압 5:1)
+    description: 건전지나 배터리의 전압을 안전하게 재는 센서예요. 입력 전압을 5분의 1로 줄여서 ESP32 가 읽어요.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-034-voltage-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-19.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 전압 재기
+        file: esp32/kit/ch4/4-19-voltage-1.py
+        virtual: full
+        points:
+          - ADC 전압에 5를 곱하면 재려는 건전지의 전압이 돼요.
+          - 측정 단자의 + 와 - 를 맞게 연결해야 해요.
+          - 아무것도 연결하지 않으면 0V 근처가 나와요.
+      - n: 2
+        kind: 심화 예제
+        title: 건전지 잔량 알아보기
+        file: esp32/kit/ch4/4-19-voltage-2.py
+        virtual: full
+        points:
+          - 1.3V 이상은 새것, 1.1V 이상은 쓸만함, 그보다 낮으면 교체예요. 숫자를 바꿔 보세요.
+          - 20번 평균으로 숫자가 덜 흔들려요.
+          - 새 건전지와 오래 쓴 건전지를 비교해 보세요.
+    support: B1
+    virtual: full
+  - id: d-4-20
+    number: "4.20"
+    chapter: 4
+    name: 고온 센서 (K형 열전대)
+    name_en: 3.58. 고온 센서 (K형 열전대)
+    description: K형 열전대 프로브로 수백 °C 까지 재는 고온 센서. 모듈 안의 증폭 회로가 온도를 아날로그 전압(S 핀)으로 내보낸다 — 얼음물·끓는 물 두 점으로 보정해 °C 로 바꾼다.
+    interface: Analog
+    pins: 3 pins (G, V, S) + 열전대 프로브(나사 단자)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-001-high-temperature-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - 프로브 → 나사 단자(+/−)
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-20.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 출력 전압 보기
+        file: esp32/kit/ch4/4-20-ktype-1.py
+        virtual: full
+        points:
+          - 모듈이 열전대의 아주 작은 전압을 키워 S 핀으로 내보내요.
+          - 프로브 끝을 데우면 mV 값이 올라가요. 모듈마다 값이 달라 2단계에서 보정해요.
+      - n: 2
+        kind: 심화 예제
+        title: 두 점 보정 + 과열 경보
+        file: esp32/kit/ch4/4-20-ktype-2.py
+        virtual: full
+        points:
+          - MV_0C · MV_100C 에 얼음물·끓는 물에서 잰 값을 넣으면 °C 로 바뀌어요.
+          - ALARM_C 를 넘으면 보드 LED 가 켜지고 LCD 에 HOT! 이 떠요.
+          - 뜨거운 물은 꼭 어른과 함께 다뤄요.
+    support: B1
+    virtual: full
+  - id: d-4-21
+    number: "4.21"
+    chapter: 4
+    name: MQ2 가스 센서
+    name_en: MQ2 Gas Sensor
+    description: LPG, 연기를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-050-gas-mq2-lpg-smoke
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-21.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-21-mq2-1.py
+        virtual: full
+        points:
+          - MQ2 는 LPG(가스레인지 연료)와 연기에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 라이터 가스(불은 붙이지 말고 가스만) 같은 것은 선생님과 함께, 환기되는 곳에서만 조금 시험해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-21-mq2-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-22
+    number: "4.22"
+    chapter: 4
+    name: MQ3 가스 센서
+    name_en: MQ3 Gas Sensor
+    description: 알코올을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-051-gas-mq3-alcohol
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-22.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-22-mq3-1.py
+        virtual: full
+        points:
+          - MQ3 는 술(알코올) 증기에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 손소독제를 묻힌 솜을 센서에서 5~10cm 떨어진 곳에 가져가 보세요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-22-mq3-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-23
+    number: "4.23"
+    chapter: 4
+    name: MQ4 가스 센서
+    name_en: MQ4 Gas Sensor
+    description: 메탄을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-052-gas-mq4-methane
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-23.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-23-mq4-1.py
+        virtual: full
+        points:
+          - MQ4 는 메탄(도시가스 성분)에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 도시가스 냄새 같은 위험한 가스는 직접 시험하지 말고, 선생님이 안전하게 준비한 것으로만 해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-23-mq4-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-24
+    number: "4.24"
+    chapter: 4
+    name: MQ5 가스 센서
+    name_en: MQ5 Gas Sensor
+    description: LPG, 천연가스를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-053-gas-mq5-lpg-naturalgas
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-24.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-24-mq5-1.py
+        virtual: full
+        points:
+          - MQ5 는 LPG와 천연가스에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 위험한 가스는 직접 시험하지 말고, 선생님이 안전하게 준비한 것으로만 해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-24-mq5-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-25
+    number: "4.25"
+    chapter: 4
+    name: MQ6 가스 센서
+    name_en: MQ6 Gas Sensor
+    description: LPG, 부탄을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-054-gas-mq6-lpg-butane
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-25.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-25-mq6-1.py
+        virtual: full
+        points:
+          - MQ6 는 LPG와 부탄에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 라이터 가스(불은 붙이지 말고 가스만)는 선생님과 환기되는 곳에서 조금만 시험해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-25-mq6-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-26
+    number: "4.26"
+    chapter: 4
+    name: MQ7 가스 센서
+    name_en: MQ7 Gas Sensor
+    description: 일산화탄소를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-055-gas-mq7-co
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-26.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-26-mq7-1.py
+        virtual: full
+        points:
+          - MQ7 는 일산화탄소(CO)에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 일산화탄소는 독성이 있어 직접 만들지 말고, 센서 값이 흔들리는 것만 관찰해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-26-mq7-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-27
+    number: "4.27"
+    chapter: 4
+    name: MQ8 가스 센서
+    name_en: MQ8 Gas Sensor
+    description: 수소를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-056-gas-mq8-hydrogen
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-27.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-27-mq8-1.py
+        virtual: full
+        points:
+          - MQ8 는 수소에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 수소 가스는 폭발 위험이 있어 직접 시험하지 말고, 센서 값이 흔들리는 것만 관찰해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-27-mq8-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-28
+    number: "4.28"
+    chapter: 4
+    name: MQ9 가스 센서
+    name_en: MQ9 Gas Sensor
+    description: CO, 메탄을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-057-gas-mq9-co-methane
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-28.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-28-mq9-1.py
+        virtual: full
+        points:
+          - MQ9 는 일산화탄소와 메탄 같은 가연성 가스에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 위험한 가스는 직접 시험하지 말고, 선생님이 안전하게 준비한 것으로만 해요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-28-mq9-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-29
+    number: "4.29"
+    chapter: 4
+    name: MQ135 가스 센서
+    name_en: MQ135 Gas Sensor
+    description: 대기질을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 32
+    part: a-058-gas-mq135-airquality
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-29.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가스 값 읽기 + 예열
+        file: esp32/kit/ch4/4-29-mq135-1.py
+        virtual: full
+        points:
+          - MQ135 는 공기 오염(암모니아·벤젠·이산화탄소 등)에 반응하는 센서예요. 값이 클수록 그 가스가 많다는 뜻이에요.
+          - 센서 안의 열선이 뜨거워져야 안정돼서, 처음엔 값이 흔들려요. 정확히 쓰려면 1~2분 예열하세요.
+          - "센서 표면이 매우 뜨거워요. 손으로 만지지 마세요. 시험 방법: 숨을 가까이서 불어 보거나, 손소독제 솜을 가까이 가져가 값이 오르는지 보세요."
+      - n: 2
+        kind: 심화 예제
+        title: 깨끗한 공기 기준 가스 알리미
+        file: esp32/kit/ch4/4-29-mq135-2.py
+        virtual: full
+        points:
+          - 깨끗한 공기에서 잰 평균을 기준값으로 삼고, 거기서 많이 오르면 경고해요. LCD 에도 OK 와 ALERT! 로 나와요.
+          - limit 계산식의 // 2 , 200 을 바꾸면 민감도를 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 안전 장치로 쓰지 마세요.
+    support: B1
+    virtual: full
+  - id: d-4-30
+    number: "4.30"
+    chapter: 4
+    name: 자석 감지 센서
+    name_en: Magnet Sensor
+    description: 홀 소자로 자석의 자기장을 감지하는 아날로그 센서. 자석이 가까울수록 값이 기준에서 크게 바뀌고, N극·S극에 따라 오르내리는 방향이 다르다.
+    interface: Analog
+    pins: 3 pins (G, V, S)
+    gpio: "S=GPIO 32 (+ LCD: SDA=GPIO 21, SCL=GPIO 22)"
+    part: a-021-magnet
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 32
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-4-30.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 자기장 값 보기
+        file: esp32/kit/ch4/4-30-magnet-1.py
+        virtual: full
+        points:
+          - 자석을 가까이 대면 값이 기준에서 오르거나 내려가요 — 어느 쪽인지는 극(N/S)에 따라 달라요.
+          - 멀리 떨어뜨리면 처음 값으로 돌아와요.
+      - n: 2
+        kind: 심화 예제
+        title: 극 판정 + 지나간 횟수 세기
+        file: esp32/kit/ch4/4-30-magnet-2.py
+        virtual: full
+        points:
+          - 시작할 때 잰 값을 «자석 없음» 기준으로 써요.
+          - 기준보다 THRESH 이상 오르면 N, 내려가면 S 로 판정하고, 새로 다가올 때마다 한 번 세요.
+          - 문에 자석을 붙이면 문이 열리고 닫힌 횟수를 셀 수 있어요.
+    support: B1
+    virtual: full
+  - id: d-5-01
+    number: "5.01"
+    chapter: 5
+    name: I2C 온습도 센서 (SHT30)
+    name_en: Temp & Humidity I2C (SHT30)
+    description: SHT30 칩(주소 0x44)을 사용하는 I2C 온습도 센서.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22 (LCD 도 같은 I2C 단자)
+    part: i2c-002-temp-and-humi-sht31
+    libraries:
+      - name: sht30
+        file: sht30.py
+        site: true
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 온도·습도 읽기 (I2C)
+        file: esp32/kit/ch5/5-01-sht30-1.py
+        virtual: real-only
+        points:
+          - I2C 센서와 LCD 는 SDA, SCL 두 선을 함께 써요. 주소(0x44, 0x20)로 구별해요.
+          - 입김을 불면 습도 숫자가 크게 올라가는 걸 볼 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 불쾌지수 계산기
+        file: esp32/kit/ch5/5-01-sht30-2.py
+        virtual: real-only
+        points:
+          - 온도와 습도 두 값을 계산식에 넣어 하나의 숫자로 바꿔요.
+          - 입김을 불면 습도가 올라가서 불쾌지수도 올라가요.
+          - 68, 75, 80 숫자를 바꿔 단계 기준을 달리해 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: SHT30 온습도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-02
+    number: "5.02"
+    chapter: 5
+    name: 무게 센서 (HX711)
+    name_en: Weight Sensor (HX711)
+    description: 로드셀 무게 모듈. 모듈 안의 마이컴이 무게(g)를 계산해 I2C(주소 0x63)로 보내 줍니다 — 3바이트 [0xFF, 상위, 하위] , 무게 = 상위×256 + 하위. 모듈의 PEEL 버튼 = 영점, CALIBRATE = 보정.
+    interface: I2C (주소 0x63, 100kHz)
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22 (I2C 주소 0x63, LCD 도 같은 I2C 단자)
+    part: i2c-010-weight-sensor-i2c-hx711
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 무게 읽기 (I2C)
+        file: esp32/kit/ch5/5-02-weight-1.py
+        virtual: real-only
+        points:
+          - 이 무게 센서는 안에 작은 컴퓨터가 있어서 무게를 g 로 계산해 I2C 로 보내 줘요. 주소는 0x63 이에요.
+          - i2c.readfrom(0x63, 3) 으로 3바이트를 받아 상위 x 256 + 하위 로 무게를 만들어요.
+          - LCD(0x20)와 무게 센서(0x63)는 SDA·SCL 두 선을 함께 쓰고 주소로 구별해요.
+      - n: 2
+        kind: 심화 예제
+        title: 물건 올림 감지 + 최대 무게 기록
+        file: esp32/kit/ch5/5-02-weight-2.py
+        virtual: real-only
+        points:
+          - BOOT 버튼을 누르면 지금 무게를 0으로 삼아서 그릇 무게를 뺄 수 있어요.
+          - LIMIT 보다 무거워지는 순간과 가벼워지는 순간을 알아내서 올림/내림을 알려 줘요.
+          - 가장 무거웠던 무게( biggest )를 기억해서 LCD 아랫줄에 보여 줘요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 무게 센서 모듈(I2C 주소 0x63)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-03
+    number: "5.03"
+    chapter: 5
+    name: 비접촉 온도 센서 (MLX90614)
+    name_en: Non-Contact Temp Sensor (MLX90614)
+    description: MLX90614 칩을 사용하는 적외선 비접촉 온도 센서.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-003-non-contact-temp-sensor-max90614
+    libraries:
+      - name: mlx90614
+        file: mlx90614.py
+        site: true
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 주변·물체 온도 읽기
+        file: esp32/kit/ch5/5-03-mlx90614-1.py
+        virtual: real-only
+        points:
+          - read_ambient_temp() 는 센서 자체 주변 온도, read_object_temp() 는 센서가 바라보는 물체의 온도예요.
+          - 손바닥, 찬 컵, 따뜻한 컵을 향해 센서를 가져가 LCD 값이 바뀌는 것을 보세요.
+          - 물체와 가까울수록(2~5cm) 값이 정확해요.
+      - n: 2
+        kind: 심화 예제
+        title: 열이 있는지 알려 주는 체온 체커
+        file: esp32/kit/ch5/5-03-mlx90614-2.py
+        virtual: real-only
+        points:
+          - 5번 잰 값의 평균을 써서 숫자가 덜 흔들려요.
+          - FEVER , WARM 숫자를 바꾸면 판단 기준을 바꿀 수 있어요.
+          - 이 장치는 학습용이에요. 실제 건강 판단에는 쓰지 마세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: MLX90614 비접촉 온도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-04
+    number: "5.04"
+    chapter: 5
+    name: RTC·실시간 시계
+    name_en: RTC | Real Time Clock
+    description: 정확한 시간 유지를 위한 DS3231 칩의 실시간 시계 모듈.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-001-rtc-ds1307
+    libraries:
+      - name: ds3231
+        file: ds3231.py
+        site: true
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 현재 시각 읽기
+        file: esp32/kit/ch5/5-04-rtc-1.py
+        virtual: real-only
+        points:
+          - rtc.get_time() 은 년·월·일·시·분·초·요일을 한꺼번에 돌려줘요.
+          - "시각이 틀리면 set_time 줄의 # 을 지우고 지금 시각으로 한 번만 실행한 뒤 다시 # 을 붙이세요."
+          - 보드를 껐다 켜도 동전 건전지 덕분에 시계는 계속 가요. LCD 에도 시계가 나와요.
+      - n: 2
+        kind: 심화 예제
+        title: 스톱워치 (BOOT 버튼으로 시작·멈춤)
+        file: esp32/kit/ch5/5-04-rtc-2.py
+        virtual: real-only
+        points:
+          - BOOT 버튼은 누르면 0, 떼면 1 이 돼요.
+          - 시작할 때 RTC 초를 기억해 두고, 지금 초와의 차이를 재요.
+          - RTC 는 1초 단위라서 1초보다 짧은 시간은 잴 수 없어요. 시간은 LCD 에도 나와요.
+    support: B2
+    virtual: real-only
+    virtual_reason: DS3231 실시간 시계 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+    note: 가상 보드의 machine.RTC(보드 안 시계)와는 다른 부품이에요 — 이 도감의 RTC는 DS3231 모듈을 I2C로 읽어요.
+  - id: d-5-05
+    number: "5.05"
+    chapter: 5
+    name: RGB 색상 센서 (TCS34725)
+    name_en: RGB Color Sensor (TCS34725)
+    description: 색상 값 감지를 위한 TCS34725 칩의 RGB 색상 센서.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-012-color-sensor-tcs34725
+    libraries:
+      - name: tcs34725
+        file: tcs34725.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.13%20tcs34725.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 빛의 빨강·초록·파랑 값 읽기
+        file: esp32/kit/ch5/5-05-tcs34725-1.py
+        virtual: real-only
+        points:
+          - sensor.read(True) 는 빨강(R)·초록(G)·파랑(B)·전체 밝기(C) 값을 차례로 돌려줘요.
+          - 빨간 종이를 대면 R 값이 가장 크게 올라가요. LCD 에서도 확인하세요.
+          - 센서와 색종이 사이는 1~2cm 로 일정하게 유지하세요.
+      - n: 2
+        kind: 심화 예제
+        title: 색 이름 알아맞히기
+        file: esp32/kit/ch5/5-05-tcs34725-2.py
+        virtual: real-only
+        points:
+          - 세 색을 더한 값에서 각 색이 차지하는 비율로 가장 센 색을 골라요.
+          - 비율 숫자(42, 35, 25)는 조명에 따라 달라서, 안 맞으면 바꿔 보세요.
+          - LCD 에는 색 이름이 영어로 나오고, 빨간색이면 LED 가 켜져요.
+    support: B2
+    virtual: real-only
+    virtual_reason: TCS34725 색상 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-06
+    number: "5.06"
+    chapter: 5
+    name: 6축 자이로 (MPU6050)
+    name_en: 6-Axis Gyro (MPU6050)
+    description: "MPU6050을 사용하는 6축 MEMS 센서: 3축 가속도계 + 3축 자이로스코프."
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-007-6axis-gyro-mpu6050
+    libraries:
+      - name: mpu6050
+        file: mpu6050.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.14%20mpu6050.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-06.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 가속도·자이로 값 읽기
+        file: esp32/kit/ch5/5-06-mpu6050-1.py
+        virtual: real-only
+        points:
+          - 가만히 놓으면 중력 때문에 한 축이 1 에 가까워요(1g).
+          - 센서를 기울이면 세 축 값이 서로 나눠 가져요. LCD 에서 보세요.
+          - GyX (LCD 의 Gx)는 돌아가는 빠르기예요. 돌릴 때만 커져요.
+      - n: 2
+        kind: 심화 예제
+        title: 기울기 방향 알림과 흔들기 세기
+        file: esp32/kit/ch5/5-06-mpu6050-2.py
+        virtual: real-only
+        points:
+          - 가속도 세 값을 합친 힘( strength )이 1g 에서 크게 벗어나면 흔들린 거예요.
+          - 기울기는 X, Y 값이 0.4 를 넘는지로 판단해요. 숫자를 바꾸면 더 예민해져요.
+          - LCD 에는 기울기 방향과 흔든 횟수가 나와요.
+    support: B2
+    virtual: real-only
+    virtual_reason: MPU6050 6축 자이로 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-07
+    number: "5.07"
+    chapter: 5
+    name: 심박 센서 (MAX30102)
+    name_en: Heart Rate Sensor (MAX30102)
+    description: MAX30102 칩을 사용하는 심박수 및 혈중 산소 센서.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-013-heartbit-max30102
+    libraries:
+      - name: max30105
+        file: max30105.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.15%20max30105.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-07.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 손가락 빛 반사 값 읽기
+        file: esp32/kit/ch5/5-07-max30102-1.py
+        virtual: real-only
+        points:
+          - 센서의 빛이 손가락에서 얼마나 반사되는지 숫자로 보여 줘요.
+          - 손가락을 올리면 적색 값(LCD 의 Red)이 40000 넘게 커져요.
+          - 너무 세게 누르면 피가 안 흘러서 값이 이상해져요. 살짝만 올리세요.
+      - n: 2
+        kind: 심화 예제
+        title: 심박수(BPM) 재기
+        file: esp32/kit/ch5/5-07-max30102-2.py
+        virtual: real-only
+        points:
+          - checkForBeat 가 맥박의 '한 번 뜀' 을 찾아 줘요.
+          - 뛰는 사이 시간으로 1분 심박수를 계산하고 최근 4번의 평균을 LCD 에 보여 줘요.
+          - 손가락이 흔들리면 값이 튀어요. 편안하게 대고 기다려 보세요.
+    support: C
+    virtual: real-only
+    virtual_reason: MAX30102 심박 센서 칩의 측정 순서와 심박 계산 흉내가 가상 보드에 아직 없어서
+  - id: d-5-08
+    number: "5.08"
+    chapter: 5
+    name: 기압 센서 (BMP280)
+    name_en: Pressure Sensor (BMP280)
+    description: BMP280 칩을 사용하는 기압 및 고도 센서.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-006-barometric-altitude-bmp280
+    libraries:
+      - name: bmp280
+        file: bmp280.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.16%20bmp280.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-08.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 온도·기압·고도 읽기
+        file: esp32/kit/ch5/5-08-bmp280-1.py
+        virtual: real-only
+        points:
+          - getPress() 는 Pa 단위라서 100 으로 나누면 hPa(헥토파스칼)가 돼요. 보통 1000 안팎이에요.
+          - 고도는 바다 높이의 기압을 기준으로 한 계산값이라 날씨에 따라 몇십 m 틀릴 수 있어요.
+          - 센서를 손으로 감싸면 LCD 의 온도가 올라가는 것을 볼 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 높이가 얼마나 변했나 (상대 고도)
+        file: esp32/kit/ch5/5-08-bmp280-2.py
+        virtual: real-only
+        points:
+          - 높이가 올라갈수록 기압이 조금씩 낮아져요. 이 차이로 높이 변화를 알아요.
+          - 5번 읽은 평균을 써서 숫자가 덜 흔들려요.
+          - 1m 이상 바뀌면 LED 가 켜져요. LCD 에는 높이 변화와 UP/DOWN/SAME 이 나와요.
+    support: B2
+    virtual: real-only
+    virtual_reason: BMP280 기압 센서 칩(보정 계수 레지스터)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-09
+    number: "5.09"
+    chapter: 5
+    name: 거리 센서 (VL53L0X)
+    name_en: Distance Sensor (VL53L0X)
+    description: VL53L0X 칩을 사용하는 TOF(비행 시간) 레이저 거리 센서.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-009-distance-sensor-vl053l0x
+    libraries:
+      - name: vl53l0x
+        file: vl53l0x.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.17%20vl53l0x.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-09.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 거리 재기
+        file: esp32/kit/ch5/5-09-vl53l0x-1.py
+        virtual: real-only
+        points:
+          - tof.read() 는 밀리미터(mm) 단위로 거리를 돌려줘요. 10mm = 1cm 예요.
+          - 빛을 쏘고 돌아오는 시간으로 재서 아주 정확해요(약 3cm ~ 120cm).
+          - 검은 물체나 투명한 물체는 거리가 부정확할 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 주차 도우미 (가까울수록 빠르게 깜빡)
+        file: esp32/kit/ch5/5-09-vl53l0x-2.py
+        virtual: real-only
+        points:
+          - 거리가 가까울수록 gap (깜빡 간격)이 짧아져서 LED 가 빨리 깜빡여요.
+          - 100mm 아래에서는 LED 가 계속 켜지고 LCD 에 STOP! 이 나와요. 숫자를 바꿔 보세요.
+          - 멈추면 finally 로 센서를 끄고 LED 도 꺼요.
+    support: C
+    virtual: real-only
+    virtual_reason: VL53L0X 거리 센서 칩의 긴 초기화 순서 흉내가 가상 보드에 아직 없어서
+  - id: d-5-10
+    number: "5.10"
+    chapter: 5
+    name: 제스처 센서 (APDS9960)
+    name_en: Gesture Sensor (APDS9960)
+    description: APDS9960 칩을 사용하는 제스처, 근접, 주변광, 색상 센서.
+    interface: Serial I2C
+    pins: 6 pins (GND, VCC, SDA, SCL, INT, LED)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: i2c-008-gesture-sensor-apds9960
+    libraries:
+      - name: apds9960
+        file: apds9960.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.18%20apds9960.py
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-10.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 손 동작(제스처) 읽기
+        file: esp32/kit/ch5/5-10-gesture-1.py
+        virtual: real-only
+        points:
+          - isGestureAvailable() 이 True 일 때 readGesture() 로 움직임 방향을 읽어요.
+          - 방향은 왼쪽·오른쪽·위·아래·가까이·멀리 숫자(1~6)로 나오고, LCD 에는 영어(LEFT 등)로 보여 줘요.
+          - 손을 너무 느리게 움직이면 인식이 안 돼요. 부드럽고 빠르게 휙!
+      - n: 2
+        kind: 심화 예제
+        title: 손 가까이 감지와 밝기 알림
+        file: esp32/kit/ch5/5-10-gesture-2.py
+        virtual: real-only
+        points:
+          - readProximity() 는 손이 가까울수록 커지는 0~255 값이에요.
+          - readAmbientLight() 는 주변이 밝을수록 커져요. 손으로 가리면 줄어들어요.
+          - NEAR , DARK 숫자는 방 밝기에 따라 다르니 LCD 의 값을 보고 바꿔 주세요.
+    support: C
+    virtual: real-only
+    virtual_reason: APDS9960 제스처 센서 칩의 측정 대기열 흉내가 가상 보드에 아직 없어서
+    note: 이 제스처 센서 라이브러리(apds9960.py)는 사용 조건(GPL)이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요.
+  - id: d-5-11
+    number: "5.11"
+    chapter: 5
+    name: 공기질 센서 (SGP30)
+    name_en: 3.62. 공기질 센서 (SGP30)
+    description: 공기 속 eCO2(등가 이산화탄소)와 TVOC(휘발성 유기화합물)를 알려 주는 I2C 센서예요. 냄새·환기 실험에 좋아요.
+    interface: I2C
+    pins: 4 pins (G, V, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22 (LCD 와 같은 I2C 선, SGP30 주소 0x58)
+    part: i2c-004-co2-sgp30-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-11.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: eCO2·TVOC 읽기
+        file: esp32/kit/ch5/5-11-sgp30-1.py
+        virtual: real-only
+        points:
+          - LCD 와 SGP30 이 같은 i2c 선을 쓰고 주소만 달라요(LCD 0x20, SGP30 0x58).
+          - 0x2003 명령으로 측정을 시작하고, 1초마다 0x2008 명령으로 6바이트를 읽어요.
+          - 켠 뒤 15초 동안은 400ppm / 0ppb 가 나와요. 그동안 기다려 주세요.
+      - n: 2
+        kind: 심화 예제
+        title: 공기 상태 판단과 환기 알림
+        file: esp32/kit/ch5/5-11-sgp30-2.py
+        virtual: real-only
+        points:
+          - eCO2 와 TVOC 를 각각 단계로 나눠 알려 줘요.
+          - 둘 중 하나라도 나쁘면 보드 LED 가 켜져요.
+          - recent 로 최근 10번 평균을 내서 값이 튀어도 흐름을 볼 수 있어요.
+    support: B2
+    virtual: real-only
+    virtual_reason: SGP30 공기질 센서 칩(명령과 CRC)의 흉내가 가상 보드에 아직 없어서
+  - id: d-5-12
+    number: "5.12"
+    chapter: 5
+    name: 공기질 센서 (CCS811)
+    name_en: 3.63. 공기질 센서 (CCS811)
+    description: eCO2 와 TVOC 를 알려 주는 또 하나의 I2C 공기질 센서예요. SGP30 과 값을 비교해 보면 재미있어요.
+    interface: I2C
+    pins: 4 pins (G, V, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22 (LCD 와 같은 I2C 선, CCS811 주소 0x5A/0x5B)
+    part: i2c-005-co2-ccs811-sensor
+    libraries:
+      - name: i2c_lcd
+        file: i2c_lcd.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - LCD SDA → GPIO 21
+      - LCD SCL → GPIO 22
+      - LCD VCC → 5V
+      - LCD GND → GND
+    circuit: d-5-12.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: eCO2·TVOC 읽기
+        file: esp32/kit/ch5/5-12-ccs811-1.py
+        virtual: real-only
+        points:
+          - 0xF4 로 측정 프로그램을 시작하고 MEAS_MODE (0x01)에 0x10 을 써서 1초마다 측정해요.
+          - 0x02 번 레지스터에서 8바이트를 읽으면 앞 4바이트가 eCO2·TVOC 예요.
+          - 처음 20분쯤은 센서가 길들여지는 시간이라 값이 흔들려요.
+      - n: 2
+        kind: 심화 예제
+        title: 변화 화살표와 환기 알리미
+        file: esp32/kit/ch5/5-12-ccs811-2.py
+        virtual: real-only
+        points:
+          - 이전 값과 비교해 올라가는지/내려가는지/비슷한지 알려 줘요.
+          - eCO2 가 1500 이상이거나 TVOC 가 220 이상이면 보드 LED 가 켜져요.
+          - max_eco2 는 켠 뒤로 가장 나빴던 값을 기억해요.
+    support: B2
+    virtual: real-only
+    virtual_reason: CCS811 공기질 센서 칩(앱 시작·상태 레지스터)의 흉내가 가상 보드에 아직 없어서
+  - id: d-6-01
+    number: "6.01"
+    chapter: 6
+    name: 진동 모터
+    name_en: Vibration Motor
+    description: 햅틱 피드백(진동)을 위한 불균형 질량의 DC 모터.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: m-001-vibration-motor
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+    circuit: d-6-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 부르르 진동 테스트
+        file: esp32/kit/ch6/6-01-vibration-motor-1.py
+        virtual: full
+        points:
+          - value(1) 이면 진동하고 value(0) 이면 멈춰요.
+          - sleep_ms() 숫자를 바꿔 진동 시간을 조절해 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 진동으로 신호 보내기 (패턴 고르기)
+        file: esp32/kit/ch6/6-01-vibration-motor-2.py
+        virtual: full
+        points:
+          - 핸드폰 진동처럼 짧고 긴 진동을 섞으면 서로 다른 신호가 돼요.
+          - patterns 에 (진동 ms, 쉬는 ms) 를 적어 나만의 패턴을 추가해 보세요.
+          - 눈으로 볼 수 없는 알림을 손으로 전달하는 방법이에요.
+    support: A
+    virtual: full
+    note: 사이트 가상 보드의 진동 모터 기본 핀은 19번이지만, 이 도감의 브릭셀 실드 배선은 23번이라 예제마다 23번으로 적었어요.
+  - id: d-6-02
+    number: "6.02"
+    chapter: 6
+    name: DC 모터
+    name_en: DC Motor
+    description: 극성으로 방향을 제어하는 DC 모터. 듀얼 모터 드라이버(Chapter 4.10)와 함께 사용.
+    interface: Digital
+    pins: 2 wires (Red, Black)
+    gpio: 듀얼 모터 드라이버 사용 (SDA=GPIO 21, SCL=GPIO 22)
+    part: m-011-red-lego-dc-motor
+    part_variants:
+      - part: m-025-red-square-geek-dc-motor
+        label: 빨강 사각 긱 DC 2Kg
+      - part: m-026-blue-geek-dc-motor
+        label: 하늘색 긱 DC 0.7Kg
+      - part: m-016-tt-motor-right
+        label: TT 모터(오른쪽)
+      - part: m-017-tt-motor-left
+        label: TT 모터(왼쪽)
+    libraries:
+      - name: pca9685
+        file: pca9685.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.23%20pca9685.py
+    wiring:
+      - 모터 검정 선 → 듀얼 모터 드라이버(4.10) Motor A 검정 단자
+      - 모터 빨강 선 → 듀얼 모터 드라이버(4.10) Motor A 빨강 단자
+      - 드라이버 SDA → GPIO 21
+      - 드라이버 SCL → GPIO 22
+      - 드라이버 Motor Power → 모터용 전원(건전지 박스 등)
+    circuit: d-6-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: DC 모터 앞으로·뒤로
+        file: esp32/kit/ch6/6-02-dc-motor-1.py
+        virtual: real-only
+        points:
+          - speed(0, 값) 에서 0 은 Motor A 예요. 값이 양수면 앞으로, 음수면 뒤로 돌아요.
+          - 값의 크기(0~4095)가 클수록 빨리 돌아요.
+          - 코드를 멈추면 모터도 자동으로 멈춰요.
+      - n: 2
+        kind: 심화 예제
+        title: 천천히 빨라졌다 느려지기
+        file: esp32/kit/ch6/6-02-dc-motor-2.py
+        virtual: real-only
+        points:
+          - 급하게 출발하지 않고 속도를 조금씩 올리는 것을 «소프트 스타트» 라고 해요.
+          - 너무 낮은 속도에서는 모터가 안 돌 수 있어요(정상).
+          - range() 의 간격 200 을 바꿔 가속 모습을 바꿔 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서
+  - id: d-6-03
+    number: "6.03"
+    chapter: 6
+    name: 팬 모터
+    name_en: Fan Motor
+    description: L9110 드라이버가 있는 DC 팬 모터. INA/INB로 회전 방향을 제어합니다.
+    interface: Digital
+    pins: 4 pins (GND, VCC, INA, INB)
+    gpio: INA=GPIO 25, INB=GPIO 26
+    part: m-002-fan-motor-l9110
+    libraries:
+      - name: gorillacell_dcmotors
+        file: gorillacell_dcmotors.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - INA → GPIO 25
+      - INB → GPIO 26
+    circuit: d-6-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 선풍기 돌려 보기
+        file: esp32/kit/ch6/6-03-fan-motor-1.py
+        virtual: full
+        points:
+          - rotate('cw') 는 시계 방향, rotate('ccw') 는 반시계 방향이에요.
+          - stop() 으로 멈춰요. 코드를 멈추면 팬도 자동으로 꺼져요.
+          - 방향을 바꾸면 바람이 나오는 쪽이 달라져요.
+      - n: 2
+        kind: 심화 예제
+        title: 바람 세기 단계 (BOOT 버튼)
+        file: esp32/kit/ch6/6-03-fan-motor-2.py
+        virtual: full
+        points:
+          - 속도 숫자(0~99)가 클수록 바람이 세요.
+          - 선풍기의 «약·중·강» 버튼이 이런 원리예요.
+          - 너무 낮은 숫자에서는 팬이 안 돌 수 있어요. levels 숫자를 바꿔 보세요.
+    support: A
+    virtual: full
+    note: 사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요. 브릭셀 쪽 파일과 rotate()·stop() 사용법은 같고 기본 속도와 속도 범위(0~100 / 0~99)만 조금 달라요.
+  - id: d-6-04
+    number: "6.04"
+    chapter: 6
+    name: 기어 모터
+    name_en: Gear Motor
+    description: 로봇 응용을 위한 기어 시스템이 있는 고토크 모터.
+    interface: Digital
+    pins: 4 pins (GND, VCC, INA, INB)
+    gpio: INA=GPIO 25, INB=GPIO 26
+    part: m-004-gear-motor
+    libraries:
+      - name: gorillacell_dcmotors
+        file: gorillacell_dcmotors.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - INA → GPIO 25
+      - INB → GPIO 26
+    circuit: d-6-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 기어 모터 돌려 보기
+        file: esp32/kit/ch6/6-04-gear-motor-1.py
+        virtual: full
+        points:
+          - 기어 모터는 느리지만 힘이 세요.
+          - speed 는 0~99 예요. 숫자가 클수록 빨리 돌아요.
+          - 코드를 멈추면 모터도 자동으로 멈춰요.
+      - n: 2
+        kind: 심화 예제
+        title: 부드럽게 출발하고 부드럽게 멈추기
+        file: esp32/kit/ch6/6-04-gear-motor-2.py
+        virtual: full
+        points:
+          - 로봇이 갑자기 튀어 나가지 않도록 속도를 조금씩 바꾸는 방법이에요.
+          - 낮은 속도에서는 모터가 움직이지 않을 수 있어요(정상).
+          - range() 의 11 을 바꾸면 가속하는 빠르기가 달라져요.
+    support: A
+    virtual: full
+    note: 가상 보드에는 기어 모터 그림이 없어서 같은 방식으로 도는 팬 모터 그림이 대신해요. 사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요.
+  - id: d-6-05
+    number: "6.05"
+    chapter: 6
+    name: 서보 모터 (MG90S)
+    name_en: Servo Motor (MG90S)
+    description: PWM을 통한 0-180° 정밀 각도 위치 제어가 가능한 회전 액추에이터.
+    interface: PWM
+    pins: 3 wires (Brown=GND, Red=VCC, Orange=Signal)
+    gpio: Signal=GPIO 25
+    part: m-006-mg90s-servo
+    libraries:
+      - name: gorillacell_servo
+        file: gorillacell_servo.py
+        site: true
+    wiring:
+      - Brown → GND
+      - Red → 5V
+      - Orange → GPIO 25
+    circuit: d-6-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 서보 모터 각도 움직이기
+        file: esp32/kit/ch6/6-05-servo-1.py
+        virtual: full
+        points:
+          - rotate(각도) 로 0~180도 사이의 원하는 각도로 움직여요.
+          - 서보는 정한 각도에서 멈춰 그 자리를 지켜요.
+          - (0, 90, 180, 90) 의 숫자를 바꿔 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 천천히 왔다 갔다 (BOOT 버튼으로 속도 바꾸기)
+        file: esp32/kit/ch6/6-05-servo-2.py
+        virtual: full
+        points:
+          - 각도를 2도씩 조금씩 바꾸면 부드럽게 움직여요.
+          - delay 가 작을수록 빨리 움직여요.
+          - 로봇 팔·문 여닫기처럼 부드러운 움직임에 쓰는 방법이에요.
+    support: A
+    virtual: full
+  - id: d-6-06
+    number: "6.06"
+    chapter: 6
+    name: 긱 서보모터 (그린·그레이·오렌지 등)
+    name_en: 4.11. 긱 서보모터 (그린·그레이·오렌지 등)
+    description: 보드에 바로 연결해서 쓰는 서보모터예요. 연속회전형은 펄스 폭으로 속도와 방향을, 각도형은 정해진 각도를 정해요.
+    interface: PWM
+    pins: 3 pins (G, V, S)
+    gpio: S=GPIO 25
+    part: m-022-green-geek-servo-motor
+    part_variants:
+      - part: m-024-grey-geek-servo-360
+        label: 회색 긱 서보(360도 각도형)
+      - part: m-023-orange-geek-servo-motor
+        label: 주황 긱 서보
+      - part: m-008-geek-servo-360-5kg
+        label: 긱 서보 360도 5Kg
+      - part: m-009-gray-lego-servo
+        label: 그레이 레고 서보
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 5V
+      - S → GPIO 25
+    circuit: d-6-06.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 정지·정방향·역방향
+        file: esp32/kit/ch6/6-06-geekservo-1.py
+        virtual: partial
+        points:
+          - 서보는 50Hz(20ms 마다) 펄스의 폭으로 움직여요. 1500µs 가 가운데(정지)예요.
+          - 연속회전형(초록·360도형)은 각도 대신 속도예요. 1.5ms 정지, 더 크면 정방향, 더 작으면 역방향이에요.
+          - SPEED 를 키우면 더 빨라져요. 각도형 서보는 돌지 않고 정해진 각도로 움직여요.
+          - 꼭 try/finally 로 끝에서 정지 펄스를 보내고 deinit() 해요.
+      - n: 2
+        kind: 심화 예제
+        title: BOOT 버튼으로 속도 단계 바꾸기
+        file: esp32/kit/ch6/6-06-geekservo-2.py
+        virtual: partial
+        points:
+          - levels 리스트에 펄스 폭 10단계가 들어 있어요. 버튼을 누를 때마다 다음 단계로 가요.
+          - 정지에서 멀수록(1500 − 펄스 폭의 차이가 클수록) 빨라요. 출력 창에 속도(%)가 나와요.
+          - 정지(1500µs)에서도 서보가 조금 돌면, 서보 뒤의 작은 나사(트림)를 돌려 맞춰요.
+    support: B1
+    virtual: partial
+    virtual_reason: 가상 보드의 서보 그림은 각도를 보여 주는 서보라서 연속 회전 서보의 회전 속도와 방향은 그림으로 나오지 않아서(보내는 펄스 폭은 그대로 확인할 수 있어요)
+  - id: d-6-07
+    number: "6.07"
+    chapter: 6
+    name: 스텝 모터
+    name_en: Stepper Motor
+    description: 단계별 정밀 회전 제어를 위한 A4988 드라이버가 있는 스텝 모터.
+    interface: Digital
+    pins: 4 pins (GND, VCC, DIR, STEP)
+    gpio: DIR=GPIO 25, STEP=GPIO 26
+    part: m-013-step-motor-driver-a4988
+    part_variants:
+      - part: m-014-step-motor
+        label: 스텝 모터(NEMA 17)
+    libraries:
+      - name: gorillacell_stepper
+        file: gorillacell_stepper.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - DIR → GPIO 25
+      - STEP → GPIO 26
+    circuit: d-6-07.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 스텝 모터 각도만큼 돌리기
+        file: esp32/kit/ch6/6-07-stepper-1.py
+        virtual: real-only
+        points:
+          - rotate(각도, 방향) 으로 정한 각도만큼만 돌아요.
+          - 서보와 달리 계속 돌 수도 있고, 한 칸(스텝)씩 정확히 움직여요.
+          - 모터가 안 돌면 드라이버의 9V 전원 연결을 확인하세요.
+          - 파란 스위치를 바꿨다면 코드의 MICRO 를 표의 값으로 바꿔야 각도가 맞아요.
+      - n: 2
+        kind: 심화 예제
+        title: 초침 시계 (BOOT 버튼으로 방향 바꾸기)
+        file: esp32/kit/ch6/6-07-stepper-2.py
+        virtual: real-only
+        points:
+          - rotate(9, 방향) 은 9도씩 돌아요. 40번이면 360도, 한 바퀴예요.
+          - 스텝 모터는 정해진 각도만큼 정확히 움직이는 게 장점이에요.
+          - "9 를 다른 숫자(예: 18)로 바꾸면 초침이 더 크게 움직여요."
+    support: B2
+    virtual: real-only
+    virtual_reason: 스텝 모터 드라이버(STEP 펄스를 세어 돌리는 부품)의 흉내가 가상 보드에 아직 없어서
+  - id: d-6-08
+    number: "6.08"
+    chapter: 6
+    name: 듀얼 모터 드라이버 (PCA9685)
+    name_en: Dual Motor Driver (PCA9685)
+    description: PCA9685 + L293D 듀얼 모터 드라이버. I2C 주소 0x40. 2개의 DC 모터를 독립 제어.
+    interface: Serial I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22
+    part: m-018-dual-motor-driver-i2c-pca9685
+    libraries:
+      - name: pca9685
+        file: pca9685.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.23%20pca9685.py
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+    circuit: d-6-08.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 모터 두 개 같이 돌리기
+        file: esp32/kit/ch6/6-08-dual-motor-1.py
+        virtual: real-only
+        points:
+          - cw() 는 두 모터를 시계 방향으로, ccw() 는 반시계 방향으로 돌려요.
+          - stp() 는 두 모터를 한꺼번에 멈춰요.
+          - 모터가 안 돌면 Motor Power 단자의 전원을 확인하세요.
+      - n: 2
+        kind: 심화 예제
+        title: 로봇 자동차처럼 움직이기
+        file: esp32/kit/ch6/6-08-dual-motor-2.py
+        virtual: real-only
+        points:
+          - 두 바퀴의 속도 차이로 자동차가 방향을 바꿔요.
+          - 속도가 음수이면 그 바퀴는 거꾸로 돌아요.
+          - moves 에 동작을 더해 나만의 주행 경로를 만들어 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서
+  - id: d-6-09
+    number: "6.09"
+    chapter: 6
+    name: 16채널 서보 드라이버 (PCA9685)
+    name_en: 4.14. 16채널 서보 드라이버 (PCA9685)
+    description: I2C 선 2개만으로 서보모터를 최대 16개까지 움직이는 드라이버예요. 로봇 팔·보행 로봇에 쓰여요.
+    interface: I2C
+    pins: 4 pins (GND, VCC, SDA, SCL)
+    gpio: SDA=GPIO 21, SCL=GPIO 22 (I2C 주소 0x40)
+    part: m-020-16ch-servo-motor-driver-i2c-pca9685
+    libraries:
+      - name: pca9685
+        file: pca9685.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.23%20pca9685.py
+    wiring:
+      - GND → GND
+      - VCC → 3V3
+      - SDA → GPIO 21
+      - SCL → GPIO 22
+      - V+ → 서보용 전원(건전지 5~6V) + / −
+      - 채널 0~3 → 서보 연결(신호선이 위쪽)
+    circuit: d-6-09.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 서보 한 개 스윕(0~180도)
+        file: esp32/kit/ch6/6-09-pca9685-1.py
+        virtual: real-only
+        points:
+          - PCA9685 라이브러리의 freq(50) 으로 서보용 50Hz 를 만들어요.
+          - 각도 → 펄스 폭(500~2500µs) → 12비트 값(0~4095) 순서로 바꿔서 duty() 로 보내요.
+          - 서보 전원은 드라이버의 V+ 단자에 따로 연결해야 힘이 나요.
+      - n: 2
+        kind: 심화 예제
+        title: 서보 여러 개 순차 동작과 물결
+        file: esp32/kit/ch6/6-09-pca9685-2.py
+        virtual: real-only
+        points:
+          - 채널 번호만 바꾸면 한 드라이버로 서보를 여러 개 움직여요.
+          - 차례로 90도 → 차례로 0도 → 한 칸씩 늦은 사인(sin) 파형으로 물결 모양을 만들어요.
+          - 끝날 때 모두 90도로 돌린 뒤 신호를 끊어( release ) 서보를 쉬게 해요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 16채널 서보 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서
+  - id: d-6-10
+    number: "6.10"
+    chapter: 6
+    name: L293DD 모터 드라이버
+    name_en: 6.10. L293DD 모터 드라이버
+    description: L293DD 칩으로 DC 모터 2개(A·B)의 방향과 속도를 따로 조절하는 모터 드라이버. 커넥터는 모터 A·B 마다 2개씩(같은 모터를 어느 쪽에 꽂아도 된다)이고, 아래 2핀(GND·VM)으로 모터 전원을 따로 넣는다.
+    interface: Digital + PWM
+    pins: 8 pins (GND, VCC, AIN1, PWMA, AIN2, BIN1, PWMB, BIN2) + 모터 커넥터 A·B + 모터 전원
+    gpio: AIN1=16, PWMA=17, AIN2=18, BIN1=19, PWMB=13, BIN2=14
+    part: m-019-l293dd-motor-driver
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - AIN1 → GPIO 16
+      - PWMA → GPIO 17
+      - AIN2 → GPIO 18
+      - BIN1 → GPIO 19
+      - PWMB → GPIO 13
+      - BIN2 → GPIO 14
+      - Motor A / Motor B → DC 모터 (각 채널 커넥터 2개 중 하나)
+      - Motor Power (GND·VM) → 모터용 배터리
+    circuit: d-6-10.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 모터 A·B 차례로 돌리기
+        file: esp32/kit/ch6/6-10-l293dd-1.py
+        virtual: partial
+        points:
+          - AIN1 · AIN2 중 어느 쪽이 1이냐로 방향이, PWMA 의 듀티로 속도가 정해져요(B 도 같아요).
+          - 모터 전원(VM)에 배터리를 꽂아야 모터가 힘 있게 돌아요. 보드 USB 전원만으로는 약할 수 있어요.
+          - 멈추기를 누르면 finally 에서 두 모터를 모두 멈춰요.
+      - n: 2
+        kind: 심화 예제
+        title: 두 바퀴 자동차 움직임 + 일시 정지
+        file: esp32/kit/ch6/6-10-l293dd-2.py
+        virtual: partial
+        points:
+          - 두 모터를 같은 방향으로 돌리면 직진, 반대로 돌리면 제자리 회전이에요.
+          - ramp() 가 속도를 10씩 올렸다 내려 출발·정지가 부드러워요.
+          - BOOT 버튼으로 언제든 일시 정지하고 다시 시작할 수 있어요.
+    support: B1
+    virtual: partial
+    virtual_reason: 가상 보드에는 모터 두 개 그림이 없어서 여섯 신호선을 표시등으로만 보여 주기 때문에(모터가 도는 모습은 나오지 않아요)
+  - id: d-7-01
+    number: "7.01"
+    chapter: 7
+    name: 부저
+    name_en: Buzzer
+    description: PWM 신호를 사용하여 소리/톤을 생성하는 부저 모듈.
+    interface: Digital / PWM
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: o-001-buzzer
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+    circuit: d-7-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 음계 들어 보기
+        file: esp32/kit/ch7/7-01-buzzer-1.py
+        virtual: full
+        points:
+          - freq() 로 소리 높이(Hz)를, duty_u16() 으로 소리 켜기/끄기를 정해요.
+          - 숫자(Hz)가 클수록 높은 소리가 나요.
+          - notes 목록의 숫자를 바꿔 나만의 음계를 만들어 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 반짝반짝 작은 별 (BOOT 버튼으로 빠르게)
+        file: esp32/kit/ch7/7-01-buzzer-2.py
+        virtual: full
+        points:
+          - song 은 (음 높이, 박자 수) 짝의 목록이에요.
+          - 음 사이에 아주 짧게 쉬어서 같은 음이 끊겨 들려요.
+          - 다른 노래의 음을 song 에 넣어 연주해 보세요.
+    support: A
+    virtual: full
+    note: 사이트 교과서 예제의 버저는 15번 핀이지만, 이 도감의 브릭셀 실드 배선은 23번이라 예제마다 23번으로 적었어요.
+  - id: d-7-02
+    number: "7.02"
+    chapter: 7
+    name: 전자석
+    name_en: Electromagnet
+    description: 전기 신호를 자기력으로 변환하여 금속 물체를 끌어당깁니다.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: o-004-electromagnet
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+    circuit: d-7-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 자석 켜고 끄기
+        file: esp32/kit/ch7/7-02-electromagnet-1.py
+        virtual: full
+        points:
+          - value(1) 이면 자석이 되고 value(0) 이면 자석이 사라져요.
+          - 오래 켜 두면 뜨거워지니 계속 켜 두지 마세요.
+          - 코드를 멈추면 자동으로 전자석이 꺼져요.
+      - n: 2
+        kind: 심화 예제
+        title: 버튼으로 켜고, 10초 뒤 자동 꺼짐
+        file: esp32/kit/ch7/7-02-electromagnet-2.py
+        virtual: full
+        points:
+          - BOOT 버튼을 누를 때마다 자석이 켜졌다 꺼졌다 해요.
+          - 켜진 시간을 ticks_ms() 로 재서 10초가 지나면 스스로 꺼요.
+          - LIMIT 숫자를 바꿔 자동으로 꺼지는 시간을 조절해 보세요.
+    support: B1
+    virtual: full
+  - id: d-7-03
+    number: "7.03"
+    chapter: 7
+    name: 릴레이
+    name_en: Relay
+    description: 전기적으로 제어되는 전기 스위치. 로직 1=COM→NO, 로직 0=COM→NC.
+    interface: Digital
+    pins: 3 pins (G, V, S) + NO, COM, NC
+    gpio: GPIO 23
+    part: o-005-relay
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+    circuit: d-7-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 딸깍! 릴레이 켜고 끄기
+        file: esp32/kit/ch7/7-03-relay-1.py
+        virtual: full
+        points:
+          - 켜질 때와 꺼질 때 딸깍 소리가 나요.
+          - value(1) = COM 과 NO 연결, value(0) = COM 과 NC 연결이에요.
+          - 안전을 위해 선생님과 함께 낮은 전압(건전지 정도)만 연결하세요.
+      - n: 2
+        kind: 심화 예제
+        title: 버튼 누르면 5초 동안 켜지는 타이머
+        file: esp32/kit/ch7/7-03-relay-2.py
+        virtual: full
+        points:
+          - 복도 센서등처럼 «한 번 누르면 잠깐 켜지는» 장치를 만드는 방법이에요.
+          - 켜진 동안 또 누르면 시간이 연장돼요.
+          - ON_TIME 을 바꿔 켜 두는 시간을 조절해 보세요.
+    support: B1
+    virtual: full
+  - id: d-7-04
+    number: "7.04"
+    chapter: 7
+    name: 펌프 릴레이 V2 + 워터 펌프
+    name_en: 4.12. 펌프 릴레이 V2 + 워터 펌프
+    description: 디지털 신호 하나로 워터 펌프를 켜고 끄는 모듈이에요. 릴레이와 펌프 구동 회로가 하나로 합쳐져 있어요.
+    interface: Digital
+    pins: 3 pins (G, V, S) + 펌프 2 pins
+    gpio: S=GPIO 23
+    part: o-006-pump-relay-v2
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 5V
+      - S → GPIO 23
+      - 펌프 → 릴레이 모듈의 펌프 단자 2개에 연결
+    circuit: d-7-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 펌프 2초 켜고 끄기
+        file: esp32/kit/ch7/7-04-pumprelay-1.py
+        virtual: full
+        points:
+          - relay.value(1) 이면 릴레이가 켜져 펌프가 돌고, 0 이면 꺼져요.
+          - 펌프를 물 없이 오래 돌리면 고장 나요. 물에 담근 상태에서만 시험해요.
+          - 멈출 때도 finally 로 꼭 꺼서 펌프가 계속 돌지 않게 해요.
+      - n: 2
+        kind: 심화 예제
+        title: 버튼으로 급수 + 안전 차단
+        file: esp32/kit/ch7/7-04-pumprelay-2.py
+        virtual: full
+        points:
+          - BOOT 버튼을 누르고 있는 동안만 펌프가 돌아요(물 주기 버튼).
+          - 5초가 넘으면 자동으로 꺼요. 한 번 떼었다가 다시 눌러야 켜져요.
+          - MAX_MS 를 바꿔 우리 화분이나 실험에 맞는 안전 시간을 정해 보세요.
+    support: B1
+    virtual: full
+  - id: d-7-05
+    number: "7.05"
+    chapter: 7
+    name: MP3 플레이어
+    name_en: MP3 Player
+    description: TF 카드에서 오디오 파일을 재생하기 위한 KT403A 칩의 MP3 플레이어 모듈.
+    interface: Serial UART
+    pins: 4 pins (GND, VCC, TX, RX)
+    gpio: TX→GPIO 25(Rx), RX→GPIO 26(Tx)
+    part: o-002-mp3-player-kt403a
+    libraries:
+      - name: gorillacell_mp3_player
+        file: gorillacell_mp3_player.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX → GPIO 25 (Rx)
+      - RX → GPIO 26 (Tx)
+    circuit: d-7-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 음악 재생·일시정지
+        file: esp32/kit/ch7/7-05-mp3-1.py
+        virtual: full
+        points:
+          - playIndex(1) 은 TF 카드의 1번 곡을 재생해요.
+          - pause() 로 잠시 멈추고 play() 로 이어서 들어요.
+          - 소리가 안 나면 TF 카드 안의 MP3 파일과 스피커 연결을 확인하세요.
+      - n: 2
+        kind: 심화 예제
+        title: BOOT 버튼 MP3 플레이어
+        file: esp32/kit/ch7/7-05-mp3-2.py
+        virtual: full
+        points:
+          - 누른 시간을 재서 짧게/길게 눌렀는지 구분해요.
+          - 소리 크기는 5씩 올라가고 30 다음에는 5 로 돌아가요.
+          - playPrevious() 로 이전 곡 재생 기능도 만들어 보세요.
+    support: A
+    virtual: full
+    note: 사이트 교과서 예제의 MP3 모듈은 TX 17·RX 16이지만, 이 도감의 브릭셀 실드 배선은 모듈 TX→25번, 모듈 RX→26번이에요.
+  - id: d-8-01
+    number: "8.01"
+    chapter: 8
+    name: IR 수신기
+    name_en: IR Receiver
+    description: 리모컨 응용을 위한 VS1838 포토다이오드를 사용하는 적외선 수신기.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 25
+    part: c-006-ir-receiver
+    part_variants:
+      - part: u-003-remote-control
+        label: 적외선 리모컨
+    libraries:
+      - name: ir_rx
+        file: ir_rx.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 5V
+      - S → GPIO 25
+    circuit: d-8-01.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 리모컨 신호 읽기
+        file: esp32/kit/ch8/8-01-ir-rx-1.py
+        virtual: real-only
+        points:
+          - 리모컨 버튼마다 서로 다른 코드(숫자)가 나와요.
+          - 코드는 0x16 처럼 16진수로 보여요.
+          - 리모컨 종류에 따라 코드가 달라요. 안 나오면 다른 리모컨으로 해 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 리모컨으로 보드 LED 조종하기
+        file: esp32/kit/ch8/8-01-ir-rx-2.py
+        virtual: real-only
+        points:
+          - 받은 코드를 if 로 비교해서 하고 싶은 일을 정해요.
+          - 먼저 step1 으로 내 리모컨의 코드를 확인한 뒤 KEY_ 숫자를 바꾸세요.
+          - 깜빡이기는 시간을 재서( ticks_ms ) 처리하니 다른 키도 바로 반응해요.
+    support: C
+    virtual: real-only
+    virtual_reason: 리모컨(IR) 신호의 타이밍 파형을 만드는 흉내가 가상 보드에 아직 없어서
+  - id: d-8-02
+    number: "8.02"
+    chapter: 8
+    name: IR 송신기
+    name_en: IR Transmitter
+    description: IR 신호(리모컨)를 전송하기 위한 적외선 송신기.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: c-005-ir-transmitter
+    libraries:
+      - name: ir_tx
+        file: ir_tx.py
+        site: true
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+    circuit: d-8-02.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 리모컨 신호 보내기
+        file: esp32/kit/ch8/8-02-ir-tx-1.py
+        virtual: real-only
+        points:
+          - send(주소, 코드) 가 NEC 리모컨 신호(시작 신호 + 32칸)를 만들어 보내요.
+          - 휴대폰 카메라로 보면 적외선이 보라색으로 깜빡여 보여요.
+          - IR 수신기(5.01)가 있다면 코드가 똑같이 나오는지 비교해 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: BOOT 버튼 = 리모컨 버튼
+        file: esp32/kit/ch8/8-02-ir-tx-2.py
+        virtual: real-only
+        points:
+          - 버튼을 누르면 send() 로 한 번 보내고 다음 코드로 넘어가요.
+          - 수신기가 있는 다른 ESP32(5.01 step2)의 LED 를 조종할 수도 있어요.
+          - keys 에 다른 코드를 넣어 내 리모컨을 만들어 보세요.
+    support: C
+    virtual: real-only
+    virtual_reason: IR 신호를 보내는 esp32.RMT 기능의 흉내가 가상 보드에 아직 없어서
+  - id: d-8-03
+    number: "8.03"
+    chapter: 8
+    name: RF433 수신기
+    name_en: RF433 Receiver
+    description: 433MHz RF 무선 수신 모듈.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 25
+    part: c-004-rf433mhz-rx
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 5V
+      - S → GPIO 25
+    circuit: d-8-03.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 전파 잡음 확인하기
+        file: esp32/kit/ch8/8-03-rf433-rx-1.py
+        virtual: real-only
+        points:
+          - 수신기는 신호가 없을 때도 주변 전파를 잡음으로 내보내요.
+          - RF433 송신기(5.04)가 신호를 보내면 숫자와 LED 모습이 달라져요.
+          - 송신기를 가까이 가져가 숫자가 어떻게 바뀌는지 관찰해 보세요.
+      - n: 2
+        kind: 심화 예제
+        title: 숫자 메시지 받기 (송신기 5.04 step2 와 짝)
+        file: esp32/kit/ch8/8-03-rf433-rx-2.py
+        virtual: real-only
+        points:
+          - 송신기는 «시작 신호 + 8개의 짧은/긴 펄스» 로 숫자 하나를 보내요.
+          - 펄스가 짧으면 0, 길면 1 로 읽어 8칸을 숫자로 합쳐요.
+          - 주변 잡음 때문에 가끔 못 받을 수 있어요. 송신기를 가까이 대 보세요.
+    support: C
+    virtual: real-only
+    virtual_reason: RF433 수신기의 펄스 읽기(time_pulse_us)와 신호 흉내가 가상 보드에 아직 없어서
+  - id: d-8-04
+    number: "8.04"
+    chapter: 8
+    name: RF433 송신기
+    name_en: RF433 Transmitter
+    description: 433MHz RF 무선 송신 모듈.
+    interface: Digital
+    pins: 3 pins (G, V, S)
+    gpio: GPIO 23
+    part: c-003-rf433mhz-tx
+    libraries: []
+    wiring:
+      - G → GND
+      - V → 3V3
+      - S → GPIO 23
+    circuit: d-8-04.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 전파 쏘아 보기
+        file: esp32/kit/ch8/8-04-rf433-tx-1.py
+        virtual: real-only
+        points:
+          - 송신기는 켜졌다 꺼졌다 하는 모양으로 전파에 신호를 실어요.
+          - 수신기 5.03 이 있다면 신호를 보낼 때만 숫자가 달라지는지 보세요.
+          - 보내는 동안 보드 LED 가 켜져요.
+      - n: 2
+        kind: 심화 예제
+        title: 숫자 메시지 보내기 (BOOT 버튼)
+        file: esp32/kit/ch8/8-04-rf433-tx-2.py
+        virtual: real-only
+        points:
+          - 숫자를 8칸(0/1)으로 바꿔서 «짧은 펄스 = 0, 긴 펄스 = 1» 로 보내요.
+          - 같은 신호를 3번 보내 수신기가 놓칠 확률을 줄여요.
+          - 수신기를 3~5m 안에서 시험하세요. 안 받아지면 가까이 가져가 보세요.
+    support: C
+    virtual: real-only
+    virtual_reason: RF433 송신기가 보내는 펄스 신호와 짝이 되는 수신기 흉내가 가상 보드에 아직 없어서
+  - id: d-8-05
+    number: "8.05"
+    chapter: 8
+    name: 블루투스 클래식
+    name_en: Bluetooth Classic
+    description: HC-06 칩을 사용하는 블루투스 모듈. 9600 보드의 UART 직렬 인터페이스.
+    interface: Serial UART
+    pins: 4 pins (GND, VCC, TX, RX)
+    gpio: TX→GPIO 25(Rx), RX→GPIO 26(Tx)
+    part: c-001-bluetooth-4-0-jdy33
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX → GPIO 25 (Rx)
+      - RX → GPIO 26 (Tx)
+    circuit: d-8-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 블루투스로 문자 주고받기
+        file: esp32/kit/ch8/8-05-bluetooth-1.py
+        virtual: real-only
+        points:
+          - bt.write() 로 글자를 보내고 bt.read() 로 받은 글자를 읽어요.
+          - 휴대폰에서 모듈에 연결하면 1초마다 Hello Bluetooth 가 와요.
+          - 휴대폰에서 글자를 보내면 이 화면에 나타나요.
+      - n: 2
+        kind: 심화 예제
+        title: 휴대폰으로 LED 조종하기
+        file: esp32/kit/ch8/8-05-bluetooth-2.py
+        virtual: real-only
+        points:
+          - 휴대폰이 보낸 글자를 한 줄씩 모아 ON · OFF · BLINK 인지 비교해요.
+          - 대문자로 바꿔( upper() ) 비교하니 소문자로 보내도 돼요.
+          - 앱에서 보낼 때 줄 끝에 줄바꿈(Enter)이 붙도록 설정하세요. BOOT 버튼은 반대로 보드 → 휴대폰으로 글자를 보내요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 블루투스 모듈(JDY-33)과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서
+    note: 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원). 이 도감의 JDY-33은 UART로 연결하는 별도 모듈이에요.
+  - id: d-8-06
+    number: "8.06"
+    chapter: 8
+    name: 블루투스 4.0·BLE
+    name_en: Bluetooth 4.0 | BLE
+    description: "JDY-32 칩의 BLE(Bluetooth Low Energy) 모듈. 듀얼 모드: BT v3.0 SPP 또는 BT v4.2 BLE."
+    interface: Serial UART
+    pins: 4 pins (GND, VCC, TX, RX)
+    gpio: TX→GPIO 25(Rx), RX→GPIO 26(Tx)
+    part: c-001-bluetooth-4-0-jdy33
+    libraries: []
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX → GPIO 25 (Rx)
+      - RX → GPIO 26 (Tx)
+    circuit: d-8-05.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: BLE 로 문자 주고받기
+        file: esp32/kit/ch8/8-06-bluetooth-ble-1.py
+        virtual: real-only
+        points:
+          - BLE 는 전기를 아주 조금 쓰는 블루투스예요.
+          - 휴대폰 앱에서 모듈을 찾아 연결한 뒤 글자를 주고받아 보세요.
+          - 연결되지 않았을 때는 보낸 글자가 휴대폰에 도착하지 않아요.
+      - n: 2
+        kind: 심화 예제
+        title: 휴대폰으로 LED 밝기 조절하기
+        file: esp32/kit/ch8/8-06-bluetooth-ble-2.py
+        virtual: real-only
+        points:
+          - B5 처럼 «글자 + 숫자» 로 보내면 숫자만 꺼내 밝기로 써요.
+          - PWM 의 duty_u16() 값이 클수록 LED 가 밝아요.
+          - 앱에서 보낼 때 줄 끝에 줄바꿈이 붙도록 설정하세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: 블루투스 BLE 모듈과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서
+    note: 8.05와 같은 모듈 사진·회로 그림을 써요. 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원).
+  - id: d-8-07
+    number: "8.07"
+    chapter: 8
+    name: WiFi (ESP12E 모듈)
+    name_en: WiFi (ESP12E Module)
+    description: UART AT 명령을 통해 무선 인터넷 연결을 제공하는 ESP12E(ESP8266EX) WiFi 모듈.
+    interface: Serial UART
+    pins: 4 pins (GND, VCC, TX, RX)
+    gpio: TX→GPIO 25(Rx), RX→GPIO 26(Tx)
+    part: c-002-wifi-esp12e
+    libraries:
+      - name: gorillacell_wifi
+        file: gorillacell_wifi.py
+        site: true
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX → GPIO 25 (Rx)
+      - RX → GPIO 26 (Tx)
+    circuit: d-8-07.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: WiFi 모듈 살아 있는지 확인
+        file: esp32/kit/ch8/8-07-wifi-1.py
+        virtual: real-only
+        points:
+          - AT 는 모듈에게 «살아 있니?» 하고 묻는 명령이에요.
+          - OK 가 나오면 모듈과 보드가 잘 연결된 거예요.
+          - 대답이 없으면 TX·RX 선이 바뀌지 않았는지, 스위치가 UART 쪽인지 확인하세요.
+      - n: 2
+        kind: 심화 예제
+        title: 공유기에 접속하고 IP 주소 알아내기
+        file: esp32/kit/ch8/8-07-wifi-2.py
+        virtual: real-only
+        points:
+          - sta_init() 은 공유기에 접속될 때까지 기다려요.
+          - 접속이 안 되고 멈춰 있으면 이름과 비밀번호를 다시 확인하고 «멈추기» 를 누르세요.
+          - IP 주소를 알면 휴대폰 브라우저로 이 모듈과 대화하는 웹서버도 만들 수 있어요.
+    support: C
+    virtual: real-only
+    virtual_reason: WiFi 모듈(ESP12E)의 AT 명령 응답 흉내가 가상 보드에 아직 없어서
+  - id: d-8-08
+    number: "8.08"
+    chapter: 8
+    name: GPS
+    name_en: GPS
+    description: 위치(위도, 경도) 및 시간 데이터를 위한 GPS 모듈.
+    interface: Serial UART
+    pins: 4 pins (GND, VCC, TX, RX)
+    gpio: TX→GPIO 25(Rx), RX→GPIO 26(Tx)
+    part: d-031-gps
+    libraries:
+      - name: micropygps
+        file: micropygps.py
+        site: false
+        url: https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/Library%206.27%20micropygps.py
+    wiring:
+      - GND → GND
+      - VCC → 5V
+      - TX → GPIO 25 (Rx)
+      - RX → GPIO 26 (Tx)
+    circuit: d-8-08.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: GPS 신호 확인하기
+        file: esp32/kit/ch8/8-08-gps-1.py
+        virtual: real-only
+        points:
+          - «받은 글자 수» 가 늘어나면 모듈과 보드의 연결은 잘 된 거예요.
+          - 위성 신호를 잡으면 valid 가 참이 되고 위도·경도가 나와요.
+          - 건물 안에서는 위치를 못 찾는 게 보통이에요.
+      - n: 2
+        kind: 심화 예제
+        title: 움직인 거리 재기 (BOOT 버튼으로 0부터 다시)
+        file: esp32/kit/ch8/8-08-gps-2.py
+        virtual: real-only
+        points:
+          - 2초마다 위치를 기억해 두 점 사이의 거리를 더해요.
+          - GPS 는 가만히 있어도 조금씩 흔들려서 3m 이하는 무시해요.
+          - 야외에서 걸으며 거리가 늘어나는지 확인해 보세요.
+    support: B2
+    virtual: real-only
+    virtual_reason: GPS 모듈이 UART로 보내는 위치 글(NMEA 문장) 흉내가 가상 보드에 아직 없어서
+  - id: d-8-09
+    number: "8.09"
+    chapter: 8
+    name: TF 카드 어댑터 V2
+    name_en: 5.10. TF 카드 어댑터 V2
+    description: 마이크로SD(TF) 카드에 파일을 저장하고 읽는 모듈이에요. 센서 값을 기록하는 데이터 로거를 만들 수 있어요.
+    interface: SPI
+    pins: 6 pins (GND, VCC, MOSI, MISO, SCK, CS)
+    gpio: "VSPI 단자: SI(MOSI)=23, SO(MISO)=19, SCK=18, CS=5"
+    part: o-008-tf-card-adapter-v2
+    libraries: []
+    wiring:
+      - G → GND (VSPI 단자)
+      - V → 3V3 (VSPI 단자)
+      - SI → GPIO 23 (MOSI)
+      - SO → GPIO 19 (MISO)
+      - SCK → GPIO 18
+      - CS → GPIO 5
+    circuit: d-8-09.webp
+    steps:
+      - n: 1
+        kind: 기본 동작 테스트
+        title: 카드 연결 + 파일 쓰기·읽기·목록
+        file: esp32/kit/ch8/8-09-tfcard-1.py
+        virtual: real-only
+        points:
+          - SDCard(slot=2, …) 로 카드를 만들고 os.mount(sd, '/sd') 로 '/sd' 폴더처럼 쓸 수 있게 해요.
+          - 그 뒤로는 일반 파일처럼 open('/sd/파일') 로 쓰고 읽어요.
+          - 프로그램을 끝낼 때 os.umount('/sd') 로 연결을 끊어야 카드를 안전하게 뺄 수 있어요.
+      - n: 2
+        kind: 심화 예제
+        title: 1초마다 CSV 로 기록하는 데이터 로거
+        file: esp32/kit/ch8/8-09-tfcard-2.py
+        virtual: real-only
+        points:
+          - 1초마다 한 줄씩 log.csv 에 적고 flush() 로 바로 카드에 저장해요.
+          - BOOT 버튼을 누르면 파일을 닫고 카드 연결을 안전하게 끊어요.
+          - free_mem 자리에 센서 값을 넣으면 나만의 측정 기록 장치가 돼요.
+    support: C
+    virtual: real-only
+    virtual_reason: TF 카드(machine.SDCard·SPI)와 가상 파일 시스템이 가상 보드에 아직 없어서

@@ -1,0 +1,29 @@
+# 예제 설명(사이드카). 코드는 고릴라셀(브릭셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 예제를 한 글자도 고치지 않고 옮긴 것이고,
+# 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
+# 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
+# virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
+title: "6.01 진동 모터 — 2단계: 진동으로 신호 보내기 (패턴 고르기)"
+description: 핸드폰 진동처럼 짧고 긴 진동을 섞으면 서로 다른 신호가 돼요. patterns 에 (진동 ms, 쉬는 ms) 를 적어 나만의 패턴을 추가해 보세요.
+difficulty: 2
+tags:
+  - 모터
+  - 진동 모터
+  - 출력
+  - 키트 도감
+kit:
+  device: d-6-01
+  step: 2
+source: brixel
+source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-6-01
+virtual: full
+virtual_ok: true
+parts:
+  - part: vibration-motor
+    pin: 23
+    label: 진동 모터
+practice:
+  - "[실행]을 눌러요."
+  - 보드 그림의 BOOT 버튼을 눌러 보세요. 보드 그림의 "진동 모터"이(가) 코드대로 켜지고 꺼지고 움직이는지 봐요. 콘솔에 나오는 글자를 봐요.
+  - 다 봤으면 [정지]를 눌러요.
+packages: []
+note: 사이트 가상 보드의 진동 모터 기본 핀은 19번이지만, 이 도감의 브릭셀 실드 배선은 23번이라 예제마다 23번으로 적었어요.

@@ -1,0 +1,31 @@
+# 예제 설명(사이드카). 코드는 고릴라셀(브릭셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 예제를 한 글자도 고치지 않고 옮긴 것이고,
+# 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
+# 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
+# virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
+title: "6.04 기어 모터 — 1단계: 기어 모터 돌려 보기"
+description: 기어 모터는 느리지만 힘이 세요. speed 는 0~99 예요. 숫자가 클수록 빨리 돌아요.
+difficulty: 1
+tags:
+  - 모터
+  - 기어 모터
+  - PWM
+  - 키트 도감
+kit:
+  device: d-6-04
+  step: 1
+source: brixel
+source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-6-04
+virtual: full
+virtual_ok: true
+parts:
+  - part: fan-motor
+    pins:
+      ina: 25
+      inb: 26
+    label: 기어 모터(팬 모터 그림)
+practice:
+  - "[실행]을 눌러요."
+  - 보드 그림의 "기어 모터(팬 모터 그림)"이(가) 코드대로 켜지고 꺼지고 움직이는지 봐요. 콘솔에 나오는 글자를 봐요.
+  - 다 봤으면 [정지]를 눌러요.
+packages: []
+note: 가상 보드에는 기어 모터 그림이 없어서 같은 방식으로 도는 팬 모터 그림이 대신해요. 사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요.
