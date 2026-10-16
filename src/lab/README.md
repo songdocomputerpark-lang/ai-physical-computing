@@ -671,7 +671,7 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
   1. 차시 md frontmatter `examples: [{ file: esp32/u2/2-1-2-adv-touch-check.py, parts: [{ type: touch_digital, pin: 17 }] }]` — PLAN §2.6의 `type`·밑줄 이름도 받는다(`touch_digital` → `touch-digital`, 스키마는 `src/config/content-schemas.ts`의 `partSchema`). 실습실 페이지가 `wiringByFile`로 넘긴다.
   2. 사이드카 `parts: [{ part: touch-digital, pin: 17 }]`(원본에서 옮긴 예제 — 이관 목록의 `meta.parts`로 처음 만든다).
   3. 예제 파일 머리말 `# @part touch-digital 17` · `# @part rgb-led r=27 g=32 b=33 as rgb`(사이트가 만든 예제 — 새 예제 = .py 하나).
-- **한 줄의 칸**: `part`(또는 `type`) 부품 id — 필수 / `id` 배선 안 이름(없으면 부품 id, 겹치면 `-2`·`-3`) / `pin` 핀이 하나뿐인 부품의 GPIO(`17`·`"GPIO17"`도 받음) / `pins` 역할 → GPIO / `label` 화면 이름(가상 보드가 아직 모르는 부품의 안내 문장에 쓴다). 틀린 줄은 빼고 빌드 경고만(PD-35).
+- **한 줄의 칸**: `part`(또는 `type`) 부품 id — 필수 / `id` 배선 안 이름(없으면 부품 id, 겹치면 `-2`·`-3`) / `pin` 핀이 하나뿐인 부품의 GPIO(`17`·`"GPIO17"`도 받음) / `pins` 역할 → GPIO / `label` 화면 이름(부품 그림의 제목·조작 칸 제목·화면 낭독기 이름이 되고, 가상 보드가 아직 모르는 부품의 안내 문장에도 쓴다) / `options` 부품마다 정한 설정 `{ 이름: 값 }`(판 1.5.0 — 값은 글자·숫자·참거짓만, 이름은 영문 소문자·숫자·밑줄. 범용 부품 4종이 읽는다, 7.5). 틀린 줄은 빼고 빌드 경고만(PD-35).
 - **배선 검사**(`parts.ts resolveWiring` → `WiringIssue { level, code, text, gpio? }`, 그림 아래 목록에 "오류:·주의:·참고:" 글과 함께 오류 → 주의 → 참고 순서로 보인다 — 색만으로 알리지 않음):
 
 | code | 수준 | 언제 |
@@ -689,6 +689,7 @@ MicroPython v1.29.0 ESP32 포트 소스(`ports/esp32/machine_pin.c`·`machine_pi
 | `shared-output` | 참고 | 한 핀에 출력 부품 여럿(같은 신호를 함께 받음 — f110의 GPIO2 버저 + 내장 LED) |
 | `strapping` | 주의 | 스트래핑 핀(0·2·5·12·15 — Espressif GPIO 문서)에 **바깥** 부품 |
 | `site-assigned` | 참고 | 부품의 `defaultPinsNotice`(사이트가 정한 기본 핀을 그대로 씀 — 진동 모터 GPIO19) |
+| `bad-option` | 주의 | 배선 줄의 `options`가 부품에 안 맞음(철자 틀린 설정 이름·범위 밖 값 — 부품의 `checkOptions`가 문장으로 알림, 판 1.5.0). 틀린 설정은 기본값으로 돌려 쓴다 |
 
 - **파이썬 쪽 배선 안내**(코드가 배선과 어긋나게 핀을 씀)는 7.2절 끝.
 - **배선도 그리기**(`layout.ts planBoardDrawing` → `board-drawing.ts`): 보드는 교과서 키트와 같은 30핀 개발 보드(원고 118쪽 사진의 핀 순서 — 위 줄 5V·GND·13·12·14·27·26·25·33·32·35·34·39(VN)·36(VP)·EN, 아래 줄 3V3·GND·15·2·4·16·17·5·18·19·21·RX·TX·22·23)를 사이트가 그린 것이고, 스트래핑 핀에 ▲ 표시(GPIO0은 BOOT 버튼 그림에). 바깥 부품이 있으면 보드 아래 **브레드보드**에 한 줄로 놓고, 핀 머리에서 부품 윗변 신호 자리까지 꺾은선(아래 줄 핀은 보드 밑으로, 위 줄 핀은 보드 위와 오른쪽을 돌아), 보드 3V3·GND에서 레일로, 부품 아랫변 전원 다리에서 레일로 선을 긋는다(닿는 점에 동그라미). 세로선은 칸을 나눠 겹쳐 그려지지 않고(핀 머리 x ≡ 6, 부품 신호 자리 x ≡ 15 — 18로 나눈 나머지), 흔한 배선은 엇갈리지 않게 줄 순서를 정한다(`board-layout.test.ts`). 핀 머리는 코드가 쓰면 흰 고리(`data-used`), 1(HIGH)이면 노란 빛(`data-high`), 마우스를 올리면 설명(같은 내용이 핀 표에 글자로).
@@ -716,7 +717,8 @@ parts/<새 부품>/
 |---|---|
 | `id`·`title`·`description` | 폴더 이름과 같은 id(영문 소문자·숫자·하이픈), 한국어 이름·한 줄 설명(화면 낭독기) |
 | `onboard?` | 개발 보드에 붙은 부품이면 true(핀이 `defaultPins`로 고정, 배선에 늘 들어감) |
-| `pins` | `[{ role, label, direction: 'out'\|'in' }]` — role은 배선 표 `pins`의 열쇠. out = 보드가 움직임(LED), in = 부품이 값을 줌(버튼) |
+| `pins` | `[{ role, label, direction: 'out'\|'in', optional? }]` — role은 배선 표 `pins`의 열쇠. out = 보드가 움직임(LED), in = 부품이 값을 줌(버튼). `optional: true`(판 1.5.0)면 배선에 그 핀을 안 적어도 오류가 아니고 `instance.pins`에서 빠진다(조이스틱의 버튼 핀 sw). 필수 핀이 빠지면 여전히 `missing-pin` 오류 |
+| `checkOptions?(options)` | (판 1.5.0) 배선 줄의 `options`(`instance.options`로 부품이 읽는 값)가 맞는지 보고 문제 문장 목록을 돌려준다(없으면 빈 목록). 문장마다 배선 목록에 주의 `bad-option`으로 보인다. 읽기·검사 도우미는 `part-options.ts`(`readOptions(raw, 규칙)` — 이름·형·범위를 규칙으로 적으면 값과 한국어 문제 문장이 나온다) |
 | `defaultPins?` | role → GPIO(onboard는 필수) |
 | `size` | 그림 크기(SVG 단위). 보드에 붙은 부품의 자리는 `layout.ts`의 `ONBOARD_ANCHORS`(기판 왼쪽 칸), 바깥 부품은 배선도 계획이 브레드보드에 놓는다(7.4) |
 | `anchors?` | (바깥 부품) 신호선이 닿는 자리 role → `{ x, y }`(부품 그림 기준). x는 **18의 배수 + 9**(검사함). 없으면 윗변에 pins 순서대로 9·27·45… |
@@ -734,7 +736,7 @@ parts/<새 부품>/
 - **단위 테스트(P3-02 규칙 — 부품 하나 = 테스트 파일 하나):** `tests/unit/lab/board-part-<부품 id>.test.ts`를 새로 만들어 그 부품의 `visual`·`interaction.drive`·기본 핀·배선 줄임 표기를 검사한다(DOM 없이, 스냅샷 도우미 `tests/unit/lab/helpers/board-snapshot.ts`). 여러 사람이 부품을 동시에 더해도 같은 파일을 고치지 않게 — `board-parts.test.ts`는 레지스트리·배선 검사만 보고, 부품 폴더마다 이 파일이 있는지 확인한다. 파이썬 흉내가 있으면 `tests/unit/lab/helpers/pyodide-board-run.mjs`에 단계를 더하고 `pyodide-board.test.ts`에서 확인한다. 화면은 `tests/e2e/lab-esp32-parts.spec.ts`처럼 `data-visual-*`를 읽는다.
 - **부품 id(P3-11 통합에서 확정 — 사이드카·차시 md가 이 이름으로 배선을 적는다):** `touch-digital`(sig)·`vibration-motor`(sig)·`rgb-led`(r·g·b)·`laser`(sig)·`buzzer`(sig)·`servo`(sig)·`fan-motor`(ina·inb)·`touch-analog-4ch`(sig)·`lcd-i2c`(sda·scl)·`oled-i2c`(sda·scl)·`neopixel`(din)·`uart`(rx·tx)·`mp3`(rx·tx — 모듈 쪽 이름)·`ble`(led — Phase 4 P4-03, 보드 안 블루투스 무선과 `ESP32BLE.py`의 상태 LED). 병렬 제작 준비 때 적었던 `neopixel-ring`·`mp3-player`는 쓰지 않는다(구역 C가 짧은 이름으로 만들었고, 그 이름을 쓴 사이드카·차시는 없었다).
 
-**지금 있는 부품(Phase 4 통합 기준 16개 — P3-11의 15개 + `ble`):** 보드에 붙은 `builtin-led`(IO2, 밝기는 PWM duty)·`boot-button`(IO0, 누르면 0),
+**지금 있는 부품(Phase 4 통합 기준 16개 — P3-11의 15개 + `ble`. 판 1.5.0에서 아래 범용 부품 4종을 더해 20개):** 보드에 붙은 `builtin-led`(IO2, 밝기는 PWM duty)·`boot-button`(IO0, 누르면 0),
 `touch-digital`(sig, 기본 17 — 누르는 동안 1)·`vibration-motor`(sig, 기본 19 — 사이트 배정, 실물 확인 전),
 `rgb-led`(r·g·b, 기본 핀 없음 — 1이면 켜짐)·`laser`(sig)·`buzzer`(sig, `sound: true`)·`servo`(sig, 프로필 mg90s·servo40)·
 `fan-motor`(ina·inb, 기본 25·26)·`touch-analog-4ch`(sig, 기본 32 — 조작 칸의 [패드 1~4]),
@@ -743,6 +745,33 @@ parts/<새 부품>/
 `mp3`(rx·tx, 기본 17·16 — DFPlayer, `sound: true`),
 `ble`(led, 기본 12 — 보드 안 블루투스와 `ESP32BLE.py`의 연결 상태 LED. 선은 필요 없지만 상태 LED 핀이 스트래핑 핀이라 배선 검사가 "주의"를 낸다 — 자료의 실제 사정이라 그대로 둔다.
 조작 칸이 상대 기기(스마트폰·컴퓨터) 노릇: [연결]·[연결 끊기]·글자 보내기·a·b·c·좌표·가상 스마트폰 앱 단추·주고받은 기록. 다른 모듈은 창 이벤트 `apc:ble-write`(detail `{bytes}`)로 값을 넣고 `apc:ble-notify`로 보드 알림을 받는다 — 상수 `parts/ble/part.ts`의 `BLE_WRITE_EVENT`·`BLE_NOTIFY_EVENT`).
+
+**범용 부품 4종(판 1.5.0, 결정 C157 — 키트 장치 도감의 B1 48장치):** 센서 하나마다 부품을 하나씩 만들지 않고, 값이 하나·둘인 센서·출력 장치를
+부품 넷으로 흉내 낸다. 화면 이름은 배선의 `label`, 모양을 고르는 설정은 `options`(7.4)이며 파이썬 파일은 따로 없다(핀·ADC 전압만으로 코드가 읽는다).
+핀 번호는 정해 둔 기본이 없다(예제마다 `pin`·`pins`로 적는다 — 키트 실드는 디지털 23·25·26, 아날로그 32·33, LED·레이저 4). 조작은 모두 보드 그림 아래
+"<이름> 조작" 칸이고(키보드·화면 낭독기가 기본으로 된다, 끌기에는 숫자 칸·슬라이더 같은 대안이 있다 — C19), 설정의 철자·범위가 틀리면 배선 목록에 주의 `bad-option`.
+
+| 부품 id | 핀(role) | 설정 `options` | 조작 칸 | 코드가 읽는 것 |
+|---|---|---|---|---|
+| `sensor-digital` | `sig`(입력) | `active_low`(참거짓, 기본 false — 감지하면 0인 모듈) | [누르고 있는 동안 감지](마우스·손가락·Space·Enter) + [켜 두기] 체크 — 움직임·기울기·불꽃처럼 계속 1인 센서. 그림의 모듈을 눌러도 된다 | `Pin(n, Pin.IN).value()` — 감지 중 1(`active_low`면 0), 아니면 그 반대 |
+| `sensor-analog` | `sig`(입력, ADC) | `unit`(값 뒤 글자, 6글자까지)·`min`·`max`(슬라이더 범위, 0~4095)·`value`(처음 값, 기본 2048)·`label_low`·`label_high`(양 끝 이름, 8글자까지) | 슬라이더(0~100 %, 화살표 1 %, Home·End 양 끝) + 값 직접 쓰기 숫자 칸 | `ADC(Pin(n))`에 `atten(ADC.ATTN_11DB)`·12비트일 때 `read()`가 슬라이더 값 **그대로**(소수 밀리볼트라 4채널 터치처럼 +1이 없다), 디지털로는 1.65V 문턱(2048 이상 1) |
+| `joystick` | `x`·`y`(입력, ADC)·`sw`(입력, **안 적어도 됨**) | 없음 | X·Y 슬라이더 + [가운데로] + (sw가 있으면) [버튼 누르고 있기] + 마우스·손가락용 패드(놓으면 가운데로 돌아옴, 낭독기에는 숨김) | X·Y는 `ADC` 0~4095(가운데 2048, 오른쪽·위쪽이 큼), `sw`는 누르면 0·떼면 1(모듈의 풀업) |
+| `output-digital` | `sig`(출력) | `kind`(`led` 기본·`relay`·`load`)·`color`(`red` 기본·`yellow`·`green`·`blue`·`white`, LED일 때) | 없음(보여 주기만 — 소리는 내지 않는다, 버저는 `buzzer`) | `Pin(n, Pin.OUT).on()`이 켜고 PWM이면 켜진 비율만큼. 34~39번 핀이면 `input-only-output` 오류 |
+
+사이드카 `parts:`에 적는 법(예):
+
+```yaml
+parts:
+  - { part: sensor-digital, pin: 23, label: 움직임 센서 }                       # 눌렀을 때 0인 모듈이면 options: { active_low: true }
+  - { part: sensor-analog, pin: 32, label: 조도 센서, options: { unit: '', label_low: 어두움, label_high: 밝음 } }
+  - { part: joystick, label: 조이스틱, pins: { x: 32, y: 33 } }                  # 버튼 핀이 있으면 pins: { x: 32, y: 33, sw: 27 } — 핀이 셋이라 pin: 하나로는 못 적는다
+  - { part: output-digital, pin: 4, label: 빨강 LED, options: { color: red } }    # 릴레이: options: { kind: relay }
+```
+
+공용 도우미는 부품 폴더 밖 `board/` 바로 아래에 있다: `part-options.ts`(설정 읽기·검사), `part-text.ts`(SVG 글 줄이기 `fitText`·낭독 설명 `createPartDescriber`), `part-controls.ts`(누르고 있는 동안
+눌리는 단추 `createHoldButton`). 각 부품의 순수 논리는 부품 폴더의 `*-model.ts`(단위 테스트·Node Pyodide 단계가 같은 계산을 쓴다). 테스트:
+`tests/unit/lab/board-part-{sensor-digital,sensor-analog,joystick,output-digital}.test.ts`(jsdom — 그림·조작 칸까지)·`pyodide-board-generic-parts.test.ts`(실제 Pyodide,
+단계 `helpers/board-steps/generic-parts.mjs`).
 
 부품이 스스로 만든 상태 글은 `visual.summary`에 담는다 — 화면 낭독기 이름의 상태 자리에 그대로 쓰이므로(서보 각도·버저 Hz·팬 방향처럼
 `lit`·`on`·`pressed`로 말할 수 없는 것) 부품이 DOM 속성을 직접 건드리지 않아도 된다. 보드 그림 글자·부품 글자 크기는 공용 CSS

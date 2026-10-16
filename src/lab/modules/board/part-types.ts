@@ -19,6 +19,11 @@ export interface PartPin {
   readonly label: string;
   /** 보드 쪽에서 본 방향: 'out' = 보드가 부품을 움직임(LED·버저), 'in' = 부품이 보드에 값을 줌(버튼·센서) */
   readonly direction: 'out' | 'in';
+  /**
+   * (판 1.5.0) true면 배선에 이 핀을 적지 않아도 된다(조이스틱의 버튼 핀 sw처럼 모듈마다 있을 수도, 없을 수도 있는 핀).
+   * 적지 않으면 배선 검사가 "핀 번호가 없어요" 오류를 내지 않고 그 핀을 없는 것으로 둔다(instance.pins에 빠짐).
+   */
+  readonly optional?: boolean;
 }
 
 /** 학생이 화면에서 누르는 입력 부품의 조작 방식 — 마우스·터치·키보드 처리는 보드 화면(view.ts)이 공통으로 한다 */
@@ -46,7 +51,15 @@ export interface WiringEntry {
   readonly pin?: number;
   /** 화면에 보일 이름(선택). 가상 보드가 아직 모르는 부품이면 안내 문장에 이 이름을 쓴다. */
   readonly label?: string;
+  /**
+   * (판 1.5.0) 부품마다 정한 설정 — 글자·숫자·참거짓 값만. 범용 부품(sensor-analog의 unit·min·max, output-digital의 color 등)이 읽는다.
+   * 어떤 설정이 있는지·값이 맞는지는 부품의 checkOptions가 본다(틀리면 배선 목록에 주의 bad-option).
+   */
+  readonly options?: PartOptions;
 }
+
+/** 배선 한 줄의 설정(options) — 값은 글자·숫자·참거짓만(JSON으로 화면까지 가야 해서) */
+export type PartOptions = Readonly<Record<string, string | number | boolean>>;
 
 /** 검사를 마친 배선 한 줄 */
 export interface PartInstance {
@@ -54,6 +67,8 @@ export interface PartInstance {
   readonly id: string;
   readonly pins: Readonly<Record<string, number>>;
   readonly label: string;
+  /** (판 1.5.0) 배선 줄의 options(없으면 undefined). 부품의 render·visual·controls가 instance.options로 읽는다 */
+  readonly options?: PartOptions;
   /** pins가 모두 부품의 defaultPins에서 왔는지(배선이 핀을 따로 적지 않음) — 사이트 배정 핀 안내(notice)에 쓴다 */
   readonly usesDefaultPins: boolean;
 }
@@ -171,6 +186,11 @@ export interface PartDefinition {
    */
   readonly defaultPinsNotice?: string;
   readonly interaction?: PartInteraction;
+  /**
+   * (판 1.5.0) 배선 줄의 options가 이 부품에 맞는지 본다 — 사람이 읽는 문제 문장 목록(없으면 빈 목록). 있으면 배선 검사가 문장마다
+   * 주의(code bad-option)를 낸다(철자 틀린 설정 이름·범위 밖 값이 조용히 무시되지 않게). options를 적은 배선에서만 부른다. 순수 함수.
+   */
+  checkOptions?(options: PartOptions): readonly string[];
   /** 파이썬 쪽 부품 흉내 모듈 이름(apc_part_<이름>) — 같은 폴더에 그 .py가 있어야 한다 */
   readonly python?: string;
   /**

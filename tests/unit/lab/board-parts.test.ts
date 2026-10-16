@@ -75,6 +75,12 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
         './parts/g/part.ts': { default: undefined as never },
         './parts/h/part.ts': { default: part({ id: 'h', anchors: { sig: { x: 10, y: 0 }, nope: { x: 9, y: 0 } }, power: { gnd: { x: 1 } } as never, defaultPinsNotice: '' }) },
         './parts/i/part.ts': { default: part({ id: 'i', sound: 'yes' as never, controls: {} as never }) },
+        './parts/j/part.ts': {
+          default: part({ id: 'j', checkOptions: 'x' as never, pins: [{ role: 'sig', label: '신호', direction: 'in', optional: 'yes' as never }] }),
+        },
+        './parts/k/part.ts': {
+          default: part({ id: 'k', onboard: true, defaultPins: { sig: 2 }, pins: [{ role: 'sig', label: '신호', direction: 'in', optional: true }] }),
+        },
       },
       { f: [] },
     );
@@ -96,6 +102,50 @@ describe('부품 정의 검사(validatePartDefinitions)', () => {
     expect(text).toMatch(/defaultPinsNotice는 안내 한 문장/u);
     expect(text).toContain('i/part.ts: sound는 true 또는 false');
     expect(text).toContain('i/part.ts: controls는 (host, api)');
+    expect(text).toContain('j/part.ts: checkOptions는 (options) =>');
+    expect(text).toContain('j/part.ts: 핀 "sig"의 optional은 true 또는 false');
+    expect(text).toContain('k/part.ts: 보드에 붙은 부품(onboard)의 핀 "sig"은 optional일 수 없어요');
+  });
+});
+
+describe('배선 줄의 options와 안 적어도 되는 핀(optional) — 판 1.5.0 범용 부품', () => {
+  const pair = () =>
+    new Map<string, PartDefinition>([
+      [
+        'dev',
+        part({
+          id: 'dev',
+          pins: [
+            { role: 'a', label: 'A', direction: 'in' },
+            { role: 'b', label: 'B', direction: 'in', optional: true },
+          ],
+          checkOptions: (given) => Object.keys(given).filter((name) => name !== 'ok').map((name) => `"${name}"은 없는 설정이에요.`),
+        }),
+      ],
+    ]);
+
+  it('optional 핀은 적지 않아도 오류 없이 빠지고, 적으면 들어가며, 필수 핀이 빠지면 여전히 오류', () => {
+    const definitions = pair();
+    const without = resolveWiring([{ part: 'dev', pins: { a: 23 } }], definitions);
+    expect(without.issues).toEqual([]);
+    expect(without.instances.find((instance) => instance.part === 'dev')?.pins).toEqual({ a: 23 });
+    expect(resolveWiring([{ part: 'dev', pins: { a: 23, b: 25 } }], definitions).instances.find((instance) => instance.part === 'dev')?.pins).toEqual({ a: 23, b: 25 });
+    expect(codes(resolveWiring([{ part: 'dev', pins: { b: 25 } }], definitions).issues)).toContain('missing-pin');
+    // 적은 optional 핀이 ESP32에 없는 번호면 그건 오류
+    expect(codes(resolveWiring([{ part: 'dev', pins: { a: 23, b: 24 } }], definitions).issues)).toContain('invalid-gpio');
+    // 안 적은 optional 핀은 입력 핀 방향 표(board.wiring)에도 없다
+    expect(wiringValue(without.instances, [], definitions).parts.find((item) => item.part === 'dev')).toMatchObject({ pins: { a: 23 }, directions: { a: 'in' } });
+  });
+
+  it('options는 부품 줄(instance)로 오고, 부품의 checkOptions가 알린 문장은 주의 bad-option으로 보인다(options를 적은 줄만)', () => {
+    const definitions = pair();
+    const resolved = resolveWiring([{ part: 'dev', pins: { a: 23 }, options: { ok: 1, typo: true } }], definitions);
+    expect(resolved.instances.find((instance) => instance.part === 'dev')?.options).toEqual({ ok: 1, typo: true });
+    expect(resolved.issues).toEqual([{ level: 'warning', code: 'bad-option', text: 'dev 부품(dev)의 설정(options): "typo"은 없는 설정이에요.' }]);
+    expect(resolveWiring([{ part: 'dev', pins: { a: 23 }, options: { ok: 1 } }], definitions).issues).toEqual([]);
+    // options를 적지 않은 줄은 instance에 options 칸도 없다
+    const plain = resolveWiring([{ part: 'dev', pins: { a: 23 } }], definitions).instances.find((instance) => instance.part === 'dev');
+    expect(plain && 'options' in plain).toBe(false);
   });
 });
 

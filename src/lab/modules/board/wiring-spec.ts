@@ -9,7 +9,8 @@
  * 2. 사이드카(<이름>.meta.yaml) parts: [{ part: touch-digital, pin: 17 }, { part: lcd-i2c, id: lcd, pins: { sda: 21, scl: 22 }, label: 문자 LCD }]
  * 3. 예제 파일 머리말(사이트가 만든 예제)  # @part touch-digital 17   /   # @part rgb-led r=27 g=32 b=33 as rgb
  *
- * 한 줄의 칸: part(또는 type) 부품 id — 필수 / id 배선 안에서 부르는 이름 / pin 핀이 하나뿐인 부품의 GPIO / pins role → GPIO / label 화면 이름.
+ * 한 줄의 칸: part(또는 type) 부품 id — 필수 / id 배선 안에서 부르는 이름 / pin 핀이 하나뿐인 부품의 GPIO / pins role → GPIO / label 화면 이름 /
+ * options 부품마다 정한 설정(판 1.5.0 — 범용 부품 sensor-analog·output-digital 등. 값은 글자·숫자·참거짓만, 이름은 영문 소문자·숫자·밑줄).
  * 틀린 줄은 버리고 까닭을 errors에 한국어로 모은다(빌드는 경고만 — PD-35).
  */
 import type { WiringEntry } from './part-types.ts';
@@ -87,6 +88,24 @@ export function normalizeWiringItem(raw: unknown, where: string): { entry: Wirin
     }
   }
   const label = typeof item.label === 'string' && item.label.trim() !== '' ? item.label.trim() : undefined;
+  let options: Record<string, string | number | boolean> | undefined;
+  if (item.options !== undefined && item.options !== null) {
+    if (typeof item.options !== 'object' || Array.isArray(item.options)) {
+      errors.push(`${where}: ${part}의 options는 { 이름: 값 } 모양으로 적어서 빼고 읽었어요. 예: options: { unit: lux }`);
+    } else {
+      const found: Record<string, string | number | boolean> = {};
+      for (const [name, value] of Object.entries(item.options as Record<string, unknown>)) {
+        if (!ROLE_PATTERN.test(name) || (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') || (typeof value === 'number' && !Number.isFinite(value))) {
+          errors.push(`${where}: ${part}의 options에서 "${name}: ${String(value)}"은(는) 이름이 영문 소문자·숫자·밑줄이고 값이 글자·숫자·참거짓이어야 해서 빼고 읽었어요.`);
+          continue;
+        }
+        found[name] = value;
+      }
+      if (Object.keys(found).length > 0) {
+        options = found;
+      }
+    }
+  }
   return {
     entry: {
       part,
@@ -94,6 +113,7 @@ export function normalizeWiringItem(raw: unknown, where: string): { entry: Wirin
       ...(pin === undefined ? {} : { pin }),
       ...(pins === undefined ? {} : { pins }),
       ...(label === undefined ? {} : { label }),
+      ...(options === undefined ? {} : { options }),
     },
     errors,
   };

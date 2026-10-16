@@ -52,6 +52,23 @@ describe('배선 한 줄 맞추기', () => {
   });
 });
 
+describe('배선 줄의 options(판 1.5.0 범용 부품)', () => {
+  it('options: 글자·숫자·참거짓 값만 받아 그대로 싣고, 모양이 틀린 값은 빼고 까닭을 한국어로 알린다', () => {
+    const ok = normalizeWiringSpecs([{ part: 'sensor-analog', pin: 32, label: '조도 센서', options: { unit: 'lux', min: 500, active_low: false, label_low: '어두움' } }], '사이드카');
+    expect(ok.errors).toEqual([]);
+    expect(ok.entries).toEqual([{ part: 'sensor-analog', pin: 32, label: '조도 센서', options: { unit: 'lux', min: 500, active_low: false, label_low: '어두움' } }]);
+    // YAML에서 온 빈 options·null은 칸을 만들지 않는다
+    expect(normalizeWiringItem({ part: 'x', options: {} }, 'here').entry).toEqual({ part: 'x' });
+    expect(normalizeWiringItem({ part: 'x', options: null }, 'here').entry).toEqual({ part: 'x' });
+    const bad = normalizeWiringItem({ part: 'sensor-analog', pin: 32, options: { ok: 1, nested: { a: 1 }, Bad: 2, list: [1], nan: Number.NaN } }, '사이드카 parts 1번째');
+    expect(bad.entry).toEqual({ part: 'sensor-analog', pin: 32, options: { ok: 1 } });
+    expect(bad.errors).toHaveLength(4);
+    expect(bad.errors.join('\n')).toContain('"nested: [object Object]"');
+    expect(normalizeWiringItem({ part: 'x', options: ['a'] }, '사이드카').errors[0]).toContain('options는 { 이름: 값 } 모양');
+    expect(normalizeWiringItem({ part: 'x', options: ['a'] }, '사이드카').entry).toEqual({ part: 'x' });
+  });
+});
+
 describe('머리말 # @part 한 줄', () => {
   it('부품 이름 + 핀 번호 / 역할=핀 / as 이름', () => {
     expect(parsePartDirective('touch-digital 17')).toEqual({ part: 'touch-digital', pin: '17' });

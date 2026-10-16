@@ -88,6 +88,12 @@ export function validatePartDefinitions(
         if (typeof pin.label !== 'string' || pin.label.trim() === '') {
           errors.push(`${where}: 핀 "${pin.role}"의 label(사람이 읽는 이름)을 적어요.`);
         }
+        if (pin.optional !== undefined && typeof pin.optional !== 'boolean') {
+          errors.push(`${where}: 핀 "${pin.role}"의 optional은 true 또는 false로 적어요(배선에 안 적어도 되는 핀이면 true).`);
+        }
+        if (pin.optional === true && definition.onboard) {
+          errors.push(`${where}: 보드에 붙은 부품(onboard)의 핀 "${pin.role}"은 optional일 수 없어요.`);
+        }
         const fixed = definition.defaultPins?.[pin.role];
         if (definition.onboard && !isValidGpio(fixed)) {
           errors.push(`${where}: 보드에 붙은 부품(onboard)은 핀 "${pin.role}"의 defaultPins를 ESP32 GPIO 번호로 적어요.`);
@@ -143,6 +149,9 @@ export function validatePartDefinitions(
     }
     if (definition.controls !== undefined && typeof definition.controls !== 'function') {
       errors.push(`${where}: controls는 (host, api) => { update?, destroy? } 함수예요.`);
+    }
+    if (definition.checkOptions !== undefined && typeof definition.checkOptions !== 'function') {
+      errors.push(`${where}: checkOptions는 (options) => 문제 문장 목록 함수예요.`);
     }
     if (definition.python !== undefined) {
       if (!PART_PYTHON_PATTERN.test(definition.python)) {
@@ -211,7 +220,8 @@ function joinNames(names: readonly string[]): string {
  * 핀 번호 없음(missing-pin)·ESP32에 없는 핀(invalid-gpio)·부품에 없는 역할(unknown-role)·보드 부품 핀 고정(onboard-fixed)·
  * 입력 전용 핀(34~39)의 출력 부품(input-only-output)·핀 머리가 없는 핀(not-on-header)·스트래핑 핀의 바깥 부품(strapping)·
  * 한 핀의 입력 부품 둘(shared-input)·한 핀의 입력·출력 부품(input-output-same-pin)·한 핀의 출력 부품 여럿(shared-output)·
- * 사이트가 정한 기본 핀(site-assigned, 부품의 defaultPinsNotice).
+ * 사이트가 정한 기본 핀(site-assigned, 부품의 defaultPinsNotice)·부품 설정의 문제(bad-option, 부품의 checkOptions — 판 1.5.0).
+ * 부품 핀에 optional이 있으면 배선에 안 적어도 오류가 아니다(그 핀은 instance.pins에서 빠진다).
  */
 export function resolveWiring(entries: readonly WiringEntry[], definitions: ReadonlyMap<string, PartDefinition> = PART_DEFINITIONS): ResolvedWiring {
   const issues: WiringIssue[] = [];
@@ -310,6 +320,10 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
         });
         gpio = fixed;
       }
+      if (gpio === undefined && pin.optional === true) {
+        // (판 1.5.0) 안 적어도 되는 핀(조이스틱의 sw): 없는 것으로 두고 그림·입력·검사에서 뺀다
+        continue;
+      }
       if (gpio === undefined) {
         issues.push({ level: 'error', code: 'missing-pin', text: `${definition.title}(${id})의 ${pin.label} 핀 번호가 배선에 없어요. pin이나 pins로 적어요.` });
         usable = false;
@@ -345,7 +359,20 @@ export function resolveWiring(entries: readonly WiringEntry[], definitions: Read
       continue;
     }
     const usesDefaultPins = definition.pins.every((pin) => definition.defaultPins?.[pin.role] !== undefined && pins[pin.role] === definition.defaultPins[pin.role]);
-    instances.push({ part: entry.part, id, pins, label: entry.label ?? definition.title, usesDefaultPins });
+    instances.push({
+      part: entry.part,
+      id,
+      pins,
+      label: entry.label ?? definition.title,
+      ...(entry.options === undefined ? {} : { options: entry.options }),
+      usesDefaultPins,
+    });
+    if (entry.options !== undefined && definition.checkOptions) {
+      // (판 1.5.0) 철자 틀린 설정 이름·범위 밖 값이 조용히 무시되지 않게 — 부품이 문장으로 알려 주면 주의로 보인다
+      for (const problem of definition.checkOptions(entry.options)) {
+        issues.push({ level: 'warning', code: 'bad-option', text: `${definition.title}(${id})의 설정(options): ${problem}` });
+      }
+    }
   }
 
   // 핀마다 이은 부품을 모아 겹침·스트래핑 핀을 본다
