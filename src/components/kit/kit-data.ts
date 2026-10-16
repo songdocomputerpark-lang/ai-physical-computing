@@ -3,7 +3,7 @@
  * content/kit/devices.yaml을 Vite의 ?raw로 글자로 가져와 kit-schema.ts로 검사한다(부품 사전 parts-data.ts와 같은 방법).
  * 형식이 틀리면 여기서 오류가 나서 빌드가 멈춘다. yaml 패키지가 브라우저 번들에 들어가면 출처 검사가 실패하므로 <script>에서는 쓰지 않는다.
  *
- * 코드(.py)는 kit-code.ts에서 따로 읽는다 — 도감 첫 쪽은 코드가 필요 없어서, 코드 214개를 모듈 그래프에 끌어오지 않게 나눴다.
+ * 코드(.py)는 kit-code.ts에서 따로 읽는다 — 도감 첫 쪽은 코드가 필요 없어서, 코드 212개를 모듈 그래프에 끌어오지 않게 나눴다.
  *
  * 쓰는 곳: src/pages/labs/esp32/kit/index.astro(첫 쪽), [id].astro(장치 쪽), 부품 사전 쪽 src/pages/start/parts/index.astro(예제 보기 링크).
  */

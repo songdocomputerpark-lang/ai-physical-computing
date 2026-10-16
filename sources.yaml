@@ -81,7 +81,7 @@ sources:
     fetched: 2026-10-15
 
   # 키트 장치 도감(판 1.5.0, DECISIONS O19·C155~C158): 브릭셀(고릴라셀) Thonny + ESP32 쪽(https://brixel.gorillacell.kr/07_thonny/03_esp32/)의
-  # 장치 101개 예제 코드 202개와 1장 시작하기 코드 12개를 한 글자도 고치지 않고 싣는다(줄 끝 LF만). 운영자가 그대로 싣도록 허락했다("들어감(그대로 싣기)", 2026-10-16).
+  # 장치 101개 예제 코드 202개와 1장 시작하기 코드 10개(브릭셀 웹 전용 1.7.7 두 개는 뺌)를 한 글자도 고치지 않고 싣는다(줄 끝 LF만). 운영자가 그대로 싣도록 허락했다("들어감(그대로 싣기)", 2026-10-16).
   # 이 코드는 위 "교과서·수업 자료의 예제 코드" 항목(MIT, 운영자 자체 자료)이 아니라 업체 자료라 따로 둔다 — 그 항목은 이 폴더의 .py를 뺀다(exclude_paths).
   # 같은 폴더의 사이드카(.meta.yaml)는 사이트가 쓴 설명이라 예제 코드 항목에 남는다.
   - name: 키트 업체(고릴라셀·브릭셀)의 장치 도감 예제 코드와 보드 라이브러리
@@ -89,7 +89,7 @@ sources:
     author: 고릴라셀(브릭셀) — 교과서 실습 키트 업체(기판 인쇄 상표 GORILLACELL·BRIXEL 기준)
     license: 원 권리자 보유 — 운영자가 받은 사용 허락(2026-10-16 확인, DECISIONS O19), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외
     url: https://brixel.gorillacell.kr/07_thonny/03_esp32/
-    used_in: "키트 장치 도감(/labs/esp32/kit/)과 ESP32 실습실 예제 목록의 장치 101개 예제 코드 202개와 1장 시작하기 코드 12개(examples/esp32/kit/ch*/*.py — 브릭셀 '마이크로파이썬 시작하기' 쪽의 코드를 줄 끝 LF만 바꿔 그대로 옮김, 핀은 브릭셀 ESP32 실드 V3 규칙 그대로), 그 예제들이 import하는 고릴라셀 자체 보드 라이브러리 4개(gorillacell_servo.py·gorillacell_stepper.py·gorillacell_wifi.py·gorillacell_mp3_player.py — examples/esp32/lib/third-party/). 가상 보드는 /board/lib/에 넣고, 실물 보드는 [실행]·[보드에 저장]이 함께 올려요. 표기: 예제 코드·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용."
+    used_in: "키트 장치 도감(/labs/esp32/kit/)과 ESP32 실습실 예제 목록의 장치 101개 예제 코드 202개와 1장 시작하기 코드 10개(브릭셀 웹 전용 1.7.7 두 개는 뺌)(examples/esp32/kit/ch*/*.py — 브릭셀 '마이크로파이썬 시작하기' 쪽의 코드를 줄 끝 LF만 바꿔 그대로 옮김, 핀은 브릭셀 ESP32 실드 V3 규칙 그대로), 그 예제들이 import하는 고릴라셀 자체 보드 라이브러리 4개(gorillacell_servo.py·gorillacell_stepper.py·gorillacell_wifi.py·gorillacell_mp3_player.py — examples/esp32/lib/third-party/). 가상 보드는 /board/lib/에 넣고, 실물 보드는 [실행]·[보드에 저장]이 함께 올려요. 표기: 예제 코드·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용."
     rights: "브릭셀 쪽(https://brixel.gorillacell.kr/07_thonny/03_esp32/)의 예제 코드와 gorillacell_* 라이브러리 파일에는 라이선스·저작권 문구가 없고(2026-10-16 확인), 쪽 바닥글에도 사용 조건이 없어요. 브릭셀 이용약관(https://brixel.gorillacell.kr/15_legal/terms.html, 시행 2026-08-15) 제18조는 교육 콘텐츠의 복제·배포·개작에 재단의 사전 승낙을 요구하고 제19조는 수업 목적의 이용을 자유롭게 허용하며 출처 표시를 요청해요. 운영자가 고릴라셀(브릭셀)에게서 이 코드·그림을 사이트에 그대로 싣는 허락을 받았다고 확인했어요(2026-10-16, DECISIONS O19). 원 권리는 고릴라셀(브릭셀)에게 있고 사이트 CC BY-NC-SA 4.0·MIT는 적용되지 않아요."
     paths:
       - examples/esp32/kit/**/*.py
@@ -801,6 +801,8 @@ sources:
     used_in: "HC-SR04 초음파 센서 라이브러리 hcsr04.py(examples/esp32/lib/third-party/hcsr04.py) — 키트 장치 도감 3.11이 import해요. 브릭셀 쪽에서 받은 파일(__license__ 줄이 Apache License 2.0과 전문 주소를 밝힘)을 줄 끝 LF로만 바꿔 그대로 실었어요. Apache License 2.0 전문: https://www.apache.org/licenses/LICENSE-2.0"
     paths:
       - examples/esp32/lib/third-party/hcsr04.py
+      - public/licenses/apache-2.0.txt  # Apache-2.0 원문(sht30.py 항목도 같은 파일을 notice로 씀 — 경로는 한 항목에만)
+    notice: public/licenses/apache-2.0.txt
     fetched: 2026-10-16
 
   - name: micropython-sht30(sht30.py)
@@ -811,6 +813,7 @@ sources:
     used_in: "SHT30 온습도 센서(I2C) 라이브러리 sht30.py(examples/esp32/lib/third-party/sht30.py) — 키트 장치 도감 5.01이 import해요. 브릭셀 쪽에서 받은 파일(__license__ 줄이 Apache License 2.0과 전문 주소를 밝힘)을 줄 끝 LF로만 바꿔 그대로 실었어요. Apache License 2.0 전문: https://www.apache.org/licenses/LICENSE-2.0"
     paths:
       - examples/esp32/lib/third-party/sht30.py
+    notice: public/licenses/apache-2.0.txt
     fetched: 2026-10-16
 
   - name: micropython-rotary(rotary_irq.py)

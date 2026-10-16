@@ -27,6 +27,7 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 | 출판본 교과서 본문을 쪽으로 옮기거나 고쳐요(`content/book/`), 교과서 쪽 검사·같음 검사 | [13절](#13-교과서-쪽출판본-본문-고치기더하기-판-140) |
 | 부품 사진을 더해요(부품 사전 — `content/parts/parts.yaml` 한 줄) | [14절](#14-부품-사진-더하기-판-140) |
 | 회로 그림을 다시 만들거나 더해요(`circuits:build`·`export`·`import`, 교과서 쪽 `::회로`) | [15절](#15-회로-그림-다시-만들기-판-140) |
+| 키트 장치 도감(`/labs/esp32/kit/`)의 장치·코드·회로 그림·라이브러리를 더하거나 브릭셀 쪽에서 다시 뽑아요 | [16절](#16-키트-장치-도감-고치기더하기-판-150) |
 
 **처음 보는 낱말** — 이 문서에 자주 나오는 말이에요.
 
@@ -1395,3 +1396,66 @@ npm run images:check               # 그림 목록·눈 확인 기록(원본 없
 6. **쪽에 넣기:** 교과서 쪽에 `::회로[2-1-2-1]` 한 줄(13-2의 7번). 웹 차시는 따로 하지 않아도 그 차시 번호의 그림이 차시 머리의 닫힌 "실제 키트 배선 보기(n장)"에 저절로 뜨고, 보드 준비 쪽(`/start/board/`)의 한 장은 `CircuitFigure`에 id를 적어요.
 7. **검사:** `npm test`(`tests/unit/circuits/` — 목록·`.circuit`·교과서 쪽의 `::회로`가 그림을 빠짐없이 한 번씩 넣었는지) → `npm run check:book` → `npm run check:sources` → `npm run check:repo -- --worktree`.
 8. **도구 사이트가 바뀌어 export가 안 될 때:** `scripts/circuits/export-circuits.mjs` 머리말의 순서(① 불러오기 입력칸에 파일 넣기 ② 그림이 멈출 때까지 기다림 ③ [이미지 저장])와 `circuits.yaml`의 `tool` 칸(주소·보드·확인한 날)을 맞춰요. 보드 판이 바뀌면(V3 → 새 판) `tool.board`를 고치고 23장을 다시 받아요.
+
+## 16. 키트 장치 도감 고치기·더하기 (판 1.5.0)
+
+키트 장치 도감(`/labs/esp32/kit/`)은 고릴라셀(브릭셀)의 「마이크로파이썬 시작하기 — Thonny + ESP32 개발 키트」 쪽(https://brixel.gorillacell.kr/07_thonny/03_esp32/)에 있는 **장치 101개(2~8장)와 1장 시작하기 코드 10개**를 운영자 허락(O19)으로 싣은 거예요. 코드는 브릭셀 글 그대로(주석·핀·LCD 주소 0x20 포함)이고, 핀은 브릭셀 ESP32 실드 V3 규칙(디지털 23·25·26, 아날로그 32·33, UART 25·26, I2C 21·22, 레이저·LED 4, 네오픽셀 23)이에요. 교과서 예제와 핀이 다르므로(RGB 27·32·33, 부저 15 등) 폴더를 나눠 섞이지 않게 했어요(C156). 새 장치 = 코드 파일 + 사이드카 + `devices.yaml` 한 줄이고, 쪽 코드는 고치지 않아요.
+
+| 무엇 | 어디 |
+|---|---|
+| 장치 목록(도감 쪽·부품 사전·갤러리가 읽어요) | `content/kit/devices.yaml` — 맨 위 주석에 칸 설명과 새 장치 더하는 법이 있어요 |
+| 예제 코드 | `examples/esp32/kit/ch<장>/<장>-<번호 두 자리>-<영문 이름>-<단계>.py` (1장은 `ch1/1-7-3-pwm.py` 꼴) — 줄 끝 LF |
+| 사이드카(제목·설명·배선·실습 방법) | 같은 이름의 `.meta.yaml` — 본보기 `ch3/3-01-button-1.meta.yaml`(가상 보드에서 끝까지), `ch3/3-11-ultrasonic-1.meta.yaml`(실제 보드에서만) |
+| 회로 그림 100장 | `public/images/kit/circuits/third-party/kit-vendor/d-<장>-<번호>.webp` |
+| 보드 라이브러리 | `examples/esp32/lib/third-party/` |
+| 뽑기·만들기 도구와 분류 표 | `scripts/kit/` — `extract-brixel.py`, `generate-kit.mjs`, `kit-classification.yaml`, `install-libraries.mjs`, `import-circuit-images.py`, `allowlist-circuits.mjs` |
+| 쪽(도감 첫 쪽·장치 쪽 101개) | `src/pages/labs/esp32/kit/`, 부품 `src/components/kit/` |
+
+### 16-1. 장치(코드)를 손으로 더하거나 고치기
+
+1. **코드:** `examples/esp32/kit/ch<장>/`에 단계마다 파일 하나(보통 1단계·2단계). 줄 끝은 LF, 파일 끝 줄바꿈은 하나. 브릭셀 글은 고치지 않아요(고칠 것이 있으면 사이드카 `note`나 장치 쪽 "알아 두기"에 적어요).
+2. **사이드카:** 같은 이름의 `.meta.yaml`에 `title`·`description`·`difficulty`(1~3)·`tags`(`키트 도감` 포함)·`kit: { device: d-3-11, step: 1 }`·`source: brixel`·`source_url`·`virtual`·`parts`·`practice`를 적어요. 글 속에 `낱말: `처럼 콜론+공백이 들면 줄 전체를 작은따옴표로 감싸요(YAML 함정).
+3. **`devices.yaml`에 한 줄:** `id`(`d-<장>-<번호 두 자리>`, 브릭셀 카드 닻과 같음)·`number`·`chapter`·`name`·`name_en`·`part`(부품 사진 id — `content/parts/parts.yaml`, 14절)·`libraries`·`wiring`·`circuit`·`steps`(단계마다 `file`은 `examples/` 뒤 경로)·`support`·`virtual`. 칸 하나하나는 파일 맨 위 주석에 있어요. 틀리면 빌드가 한국어 문제 목록으로 멈춰요(`src/components/kit/kit-schema.ts`).
+4. **회로 그림·라이브러리:** 16-4, 16-5.
+5. **시험의 숫자:** 장치 101·코드 212·1장 10·회로 그림 100·분류 A 14 / B1 48 / B2 29 / C 10이 시험에 박혀 있어요. 장치를 더하면 `tests/unit/kit/kit-devices-data.test.ts`·`kit-view.test.ts`, `tests/unit/lab/lazy-examples.test.ts`, `tests/e2e/lab-esp32-kit.spec.ts`의 숫자도 함께 고쳐요.
+
+실습실 예제 목록(묶음 "키트 도감 N장 …")과 갤러리 카드는 폴더만 맞으면 저절로 나와요. 코드는 실습실 HTML이 아니라 `/labs/esp32/kit-code/ch<N>/<이름>.json`에서 **고를 때** 받아요(C161) — 새 예제를 더해도 HTML은 선택 상자 한 줄만 늘어요.
+
+### 16-2. 가상 보드에서 되게 하기 — `virtual`과 `parts`
+
+- `virtual`은 사이드카와 `devices.yaml`(단계마다, 장치 전체)에 적어요. **`full`** 가상 보드에서 끝까지 / **`partial`** 돌지만 일부 모습이 달라요(예: 2.14는 코드가 18구인데 가상 링은 16구) / **`real-only`** 실제 보드에서만(가상 보드에 `machine.SPI`·`time_pulse_us`·`dht`·`onewire`·MAX7219 같은 것이 아직 없어서 한국어 알림으로 멈춰요). `partial`·`real-only`에는 `virtual_reason`(…"아직 없어서" 꼴 한 문장)을 꼭 적고, `real-only`는 `virtual_ok: false`예요(갤러리의 "하드웨어 없이 되나" 칸). `real-only` 예제는 "거짓 알림 0" 훑기에서 빠져요(C165).
+- `support`는 분류예요: **A** 지금 있는 부품으로 / **B1** 범용 부품 4종으로 / **B2** 흉내 모듈이 더 있어야 함 / **C** 더 어려움(타이밍 파형·상태 기계·파일 시스템). B2·C는 `real-only`예요. 이번 판의 B2·C 39장치(`dht`·1-Wire·SPI·I2C 레지스터 장치·`time_pulse_us` …)는 다음 판 후보예요(PROGRESS 미해결).
+- **`parts`(가상 보드 배선):** 핀은 코드가 쓰는 핀 그대로 적어요(`- { part: sensor-digital, pin: 23, label: 버튼 }`). 지금 있는 부품(`rgb-led`·`laser`·`buzzer`·`servo`·`neopixel`·`lcd-i2c`·`oled-i2c`·`uart`·`mp3` …)이나 **범용 부품 4종**을 써요: `sensor-digital`(디지털 입력 1핀, `options.active_low`)·`sensor-analog`(ADC 1핀, `options.unit·min·max·value·label_low·label_high`)·`joystick`(`pins: { x, y, sw }`, `sw`는 안 적어도 돼요)·`output-digital`(출력 1핀, `options.kind: led|relay|load`·`color`). 설정 표와 본보기는 `src/lab/README.md` 7.5 "범용 부품 4종"이고, 화면 이름은 `label`이에요. 문자 LCD는 코드에 `I2cLcd(`가 있으면 생성기가 배선에 더해 줘요.
+- **practice(실습 방법)** 글은 보드 그림 아래 "‹label› 조작" 칸의 이름으로 적어요("조절 막대"가 아니라). 아날로그 센서 슬라이더는 한 칸이 범위의 1 %(약 41)라 판정 구간이 좁으면 숫자 칸으로 정확한 값을 넣게 안내해요(C160).
+- 센서가 값 하나짜리가 아니면(통신 규약이 있는 칩) 범용 부품으로는 안 돼요. 새 부품 폴더(2-2)와 `machine` 확장(`src/lab/modules/board/ext/`, README 7.9·7.10)을 만든 뒤 사이드카의 `virtual`·`support`를 바꿔요.
+
+### 16-3. 브릭셀 쪽에서 다시 뽑기
+
+브릭셀 쪽이 바뀌었을 때만 해요(운영자 PC·인터넷, 파이썬 3 + `beautifulsoup4`). 새로 늘어난 장치·그림이 O19의 허락 범위인지 운영자에게 먼저 확인해요. 원본 HTML과 뽑은 결과(`.cache/v150/`)는 git 밖이라 이 PC에만 있어요 — 다른 컴퓨터에서는 처음부터 받아요.
+
+1. 쪽을 받아 `.cache/v150/src/esp32.html`에 저장해요(`curl.exe -o .cache/v150/src/esp32.html https://brixel.gorillacell.kr/07_thonny/03_esp32/`).
+2. `python scripts/kit/extract-brixel.py` → `.cache/v150/kit.json`(장치 카드·단계 코드·1장 코드). 기본값은 `--html`·`--out` 인자로 바꿔요.
+3. `node scripts/kit/generate-kit.mjs --dry-run`으로 요약을 보고 `node scripts/kit/generate-kit.mjs`를 돌려요. 코드(`.py`)는 늘 kit.json에서 다시 쓰고, **이미 있는 사이드카와 `devices.yaml`은 건너뛰어요**(사람이 고친 글을 지키려고). `--force`는 사이드카와 `devices.yaml` 전부를 다시 쓰므로, 손으로 고친 글이 있으면 날아가요 — `git diff`를 먼저 보고, 한두 장치만 바꿀 때는 손으로 고쳐요(16-1).
+4. 분류(`support`·`virtual`·`parts`·`tags`·`slug`·`note`·`libs`·`reason`)는 `scripts/kit/kit-classification.yaml`이 정해요(칸 설명은 그 파일 맨 위). 이 사이트에서 쓰지 않는 코드(예: 브릭셀 웹의 [무선 연결 설치] 전용 1.7.7 둘)는 그 장치·소절에 `skip: <까닭>`을 적으면 만들지 않아요(C164).
+5. 만든 뒤 `git status`·`git diff`로 달라진 파일을 보고, 16-6의 검사를 돌려요.
+
+### 16-4. 회로 그림 받기·다시 인코딩·눈 확인
+
+회로 그림 100장(8.06은 8.05와 같은 그림이라 `d-8-05.webp`를 함께 가리켜요)은 브릭셀 쪽의 그림을 받아 다시 저장한 거예요.
+
+1. 브릭셀 쪽의 회로 그림(`circuits_imags/circuit_<장>_<번호>_<이름>.webp`)을 `.cache/v150-staging/circuits/`에 받아요(한 장씩 천천히).
+2. `python scripts/kit/import-circuit-images.py` — Pillow로 **다시 인코딩**해(긴 변 1600px 이하, WebP 품질 80, EXIF·XMP·ICC 같은 메타데이터 없이) `d-<장>-<번호>.webp`로 `public/images/kit/circuits/third-party/kit-vendor/`에 쓰고 결과 목록(`.cache/v150-staging/circuits-out.json`)을 남겨요.
+3. **눈 확인(사람 몫):** 접촉 시트(12장씩)로 그림을 한 장씩 열어 사람·얼굴·손·이름·화면 속 경로·기기 주소·학교명이 없는지 봐요(이 100장은 흰 바탕에 ESP32 Shield V3·부품·색 전선·기판 인쇄 글자뿐이었어요). 본 다음에만 `node scripts/kit/allowlist-circuits.mjs --apply`로 `scripts/image-allowlist.yaml` 끝에 `path`·`sha256`·`source`·`reviewed`를 적어요(`--apply`가 없으면 몇 줄인지만 알려 줘요, 같은 경로는 건너뛰고 sha256이 바뀐 그림은 새로 눈 확인하라고 멈춰요). 기록이 없으면 커밋이 막혀요(3-2).
+4. 출처 등록은 이미 돼 있어요 — `sources.yaml`의 키트 업체 항목(`kit-vendor`)이 `public/images/kit/circuits/third-party/kit-vendor/**`를 덮어요. `devices.yaml`의 `circuit:` 칸에 파일 이름을 적어요.
+
+### 16-5. 라이브러리를 싣는 기준 (C158·C166)
+
+- **싣는 것:** 파일 안에 사용 조건이 분명한 것 — MIT·Apache-2.0·고릴라셀 자체. **원래 머리말 그대로**, 줄 끝만 LF로, 끝 줄바꿈 하나만 보태요(`node scripts/kit/install-libraries.mjs [--from .cache/v150-staging/libs] [--download] [--check]` — `--check`는 받은 파일과 같은지만 봐요). `examples/esp32/lib/third-party/<이름>.py`와 사이드카 `<이름>.meta.yaml`을 두고 `sources.yaml`에 항목(`license`·`url`·`used_in`·`paths`)을 더해요. 보드 라이브러리 등록은 폴더를 glob으로 읽어서 따로 없고, 실제 보드에서는 [실행]·[보드에 저장]이 올려요. Apache-2.0 파일은 파일 안 `__license__` 줄과 `sources.yaml`의 전문 주소로 표시해요. 이미 있던 `i2c_lcd.py`(사이트판 MIT 고지)·`gorillacell_dcmotors.py`(교과서 PWM판)는 브릭셀판으로 바꾸지 않아요(API가 같아 6.03·6.04가 사이트판으로 돌아요).
+- **싣지 않는 것:** 사용 조건 표시가 없는 파일, GPL(`apds9960`)·사용 조건이 맞지 않는 것(`pyfingerprint`), 저작자 이메일 주소가 머리말에 있어 `check:repo`가 막는 것(`micropygps`), 가상 보드가 부품으로 대신해 주는 드라이버 이름(`ssd1306`·`sh1106` — 같은 이름 파일을 싣지 않아요). 이런 파일은 `devices.yaml`의 `libraries`에 `site: false`와 브릭셀 내려받기 주소(`https://brixel.gorillacell.kr/07_thonny/03_esp32/downloads/libs/…`)만 적어요 — 장치 쪽이 "브릭셀에서 받기" 링크를 보여 줘요. 싣는 파일 이름 표는 `generate-kit.mjs`의 `SITE_LIBS`·`LINK_LIBS`와 `install-libraries.mjs`의 `LIBS`예요.
+
+### 16-6. 검사
+
+1. `npx vitest run tests/unit/kit tests/unit/lab/lazy-examples.test.ts tests/unit/lab/board-libraries.test.ts` — 장치 목록 짜임(장치마다 사진·회로 그림·코드 파일·배선 줄, 사이드카의 `virtual`·`kit`·배선 문제), 쪽 부품의 순수 함수, 지연 받기(HTML 증가가 gzip 15KB 안인지), 보드 라이브러리 등록을 봐요. 새 가상 보드 부품이면 `tests/unit/lab/board-part-<부품 id>.test.ts`(2-2).
+2. `npm run check:sources`(출처) → `npm run check:repo -- --worktree`(저장소 검사 — 그림 눈 확인 기록·개인정보 모양·이메일).
+3. `npm run build` → `npm run check:links`(키트 예제의 받을 주소 212개도 봐요). 브라우저로 쪽을 볼 때는 `npx playwright test tests/e2e/kit.spec.ts tests/e2e/lab-esp32-kit.spec.ts`. 같은 폴더에서 Playwright를 둘 이상 동시에 돌리지 않아요(`test-results/`를 서로 지워 무너져요 — 꼭 나눠 돌릴 때는 `--output`을 다르게).
+4. 판을 올리기 전에 ESP32 실습실 HTML(`dist/labs/esp32/index.html`)이 지난 판보다 gzip으로 15KB 넘게 늘지 않았는지, 홈 HTML이 사전 캐시 한도 160KB 안인지(C151) 확인해요.
