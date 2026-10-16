@@ -26,6 +26,7 @@ const page = getPage('labs-esp32');
 const boardPage = getPage('start-board');
 const checkPage = getPage('start-check');
 const errorsPage = getPage('help-errors');
+const kitPage = getPage('labs-esp32-kit');
 
 // 예제 목록(차시 링크·차시 md 배선 포함 — 만드는 법은 ./_lab-examples.ts 머리말). 키트 예제는 목록 자리만(코드는 고를 때 받는다).
 const { examples } = await esp32LabExamples();
@@ -42,6 +43,7 @@ const { examples } = await esp32LabExamples();
   */}
   <div class="esp32-intro" data-embed-hide>
     <p>ESP32는 LED, 모터 같은 부품을 움직이는 작은 컴퓨터예요. 보드가 없어도 가상 보드로 해요.</p>
+    <p>키트에 든 센서·모터 하나하나의 예제는 <a href={kitPage.href} data-esp32-kit-link>{kitPage.title}</a>에서 골라 열 수 있어요.</p>
     <details class="more">
       <summary>처음 쓰는 법 자세히</summary>
       <p>가상 보드가 실제 보드와 같은 파이썬 코드(보드용 파이썬인 MicroPython)를 돌려요.</p>
