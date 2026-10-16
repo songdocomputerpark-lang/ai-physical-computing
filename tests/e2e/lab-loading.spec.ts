@@ -16,6 +16,19 @@ const SW_PATH = withBase('sw.js');
 /** 예비본 표에 적힌 pyodide.mjs의 원본 크기 — 서비스 워커가 바꿔 준 파일이 진짜 그 파일인지 확인하는 데 쓴다. */
 const PYODIDE_MJS_BYTES = findPyodideFile('pyodide.mjs')!.size;
 
+/**
+ * 파이썬 엔진을 처음 받는 동안 [실행]을 눌러 두는 시험 둘(vision "예약됐다가 준비가 끝나면 돈다"·esp32 "보드 라이브러리를 다 넣은 뒤에 돈다")의
+ * 시험 제한 시간. 이 둘은 Playwright 기본값 30초로 돌다가 전체 실행(workers 3)에서 걸렸다(판 1.5.0, 2026-10-16: 47.0·42.6초·36.3초에서 시험 제한).
+ * 사이트가 느려진 것이 아니라 제한이 빡빡했다 — 재 본 숫자(판 1.4.0 빌드와 1.5.0 빌드를 번갈아, 같은 PC):
+ *  - 혼자 돌리면 vision 15~17초·esp32 12~18초(두 빌드 같음). 시간의 대부분은 CDN에서 pyodide.asm.wasm(약 10MB)을 받는 것 + 이 시험이 일부러 늦춘 4초다.
+ *  - 브라우저 셋이 동시에 받으면(workers 3) 제한을 180초로 풀고 9번씩 잰 값: vision 가운데 29초·최대 38초(1.4.0 빌드 30초·36초),
+ *    esp32 가운데 25초·최대 28초(1.4.0 빌드 29초·35초) — 가운데 값이 30초 언저리라 두 빌드 모두 제한 30초에서는 절반쯤 걸렸다.
+ *  - 보드 라이브러리 쓰기는 원인이 아니다: [실행] 직전 "준비됨 → 코드 시작"이 1.4.0(라이브러리 7개) 175~220ms, 1.5.0(20개) 157~167ms.
+ * 시험 안의 기다림(패널 30초·실행 시작 90~150초)은 처음부터 더 길게 잡혀 있고, 이 파일의 다른 준비 시험도 모두 3~4분을 둔다.
+ * 제한은 재 본 최댓값(전체 실행 47초)의 두 배를 넘게 둔다.
+ */
+const COLD_START_TEST_TIMEOUT = LOAD_TIMEOUT + 30_000;
+
 /** 빌드된 사이트에만 있는 서비스 워커 파일이 있는지(없으면 서비스 워커 검사는 건너뛴다) */
 async function hasServiceWorkerFile(page: Page): Promise<boolean> {
   const response = await page.request.get(SW_PATH, { failOnStatusCode: false });
@@ -255,6 +268,7 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
 
   test('준비하는 동안 준비 패널이 편집칸 위에 있고, 그때 누른 [실행]은 예약됐다가 준비가 끝나면 돈다(2026-09-17 검토 반영)', async ({ page, context }) => {
     test.skip(test.info().project.name === 'mobile', '배치 순서는 데스크톱에서 잰다(모바일은 같은 규칙으로 세로로 쌓인다).');
+    test.setTimeout(COLD_START_TEST_TIMEOUT); // 까닭과 숫자는 위 COLD_START_TEST_TIMEOUT
     // 빠른 회선·캐시에서도 "준비 중"인 때를 확실히 잡으려고 파이썬 엔진 파일을 몇 초 늦게 준다(워커·서비스 워커 요청도 문맥 경로 규칙을 따른다).
     await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 4000));
@@ -332,6 +346,7 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
   // 2026-09-25 Phase 4 검토 반영(사용성 C1 — 실사이트 재현): 준비 중에 누른 [실행]이 보드 라이브러리(i2c_lcd 등)를 다 넣기 전에 돌아
   // `ImportError: no module named 'i2c_lcd'`로 거짓 오류가 났다. 실습실 틀이 모듈의 "준비 뒤 할 일"(holdRun)을 기다린 뒤에 보낸다.
   test('준비 중에 누른 [실행]은 보드 라이브러리를 다 넣은 뒤에 돈다(ESP32 문자 LCD 예제가 거짓 ImportError 없이 끝난다)', async ({ page, context }) => {
+    test.setTimeout(COLD_START_TEST_TIMEOUT); // 까닭과 숫자는 위 COLD_START_TEST_TIMEOUT
     await context.route(/pyodide\.asm\.wasm$/u, async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 4000));
       await route.continue();
