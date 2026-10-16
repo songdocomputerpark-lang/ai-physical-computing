@@ -174,6 +174,14 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
             path: '/labs/esp32/check/',
             description: '가지고 있는 키트 보드가 사이트 예제대로 움직이는지 하나씩 확인해요.',
           },
+          {
+            id: 'labs-esp32-kit',
+            icon: 'plug',
+            label: '키트 장치 도감',
+            path: '/labs/esp32/kit/',
+            // 개수는 데이터(content/kit/devices.yaml)에서 세어 쪽 안에 보이고, 이 설명에는 적지 않는다(장치를 더해도 이 줄을 고치지 않게). 낱말 나열은 쉼표로.
+            description: '키트에 든 센서, 화면, 모터 같은 장치를 하나씩 골라 사진, 배선, 회로 그림, 예제 코드를 살펴봐요.',
+          },
         ],
       },
       {

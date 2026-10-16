@@ -6,6 +6,7 @@
  * 사이트 지도(src/config/nav.ts)의 start-parts('부품 사전' — 시작하기 아래, 보드 준비 뒤)로 올라와 있어 제목·설명·주소는 거기서 읽는다(판 1.4.0). 현재 위치(빵부스러기)는 아래에서 직접 넘긴다.
  * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
  */
+import { kitDevicesByPart } from '../../../components/kit/kit-data.ts';
 import PartCard from '../../../components/parts/PartCard.astro';
 import { partGroups } from '../../../components/parts/parts-data.ts';
 import { PART_CATEGORY_ID_PREFIX } from '../../../components/parts/parts-schema.ts';
@@ -17,6 +18,7 @@ const page = getPage('start-parts');
 const title = page.title;
 const description = page.description;
 const esp32Lab = getPage('labs-esp32');
+const kitPage = getPage('labs-esp32-kit');
 const startPage = getPage('start');
 const boardPage = getPage('start-board');
 
@@ -37,6 +39,9 @@ const total = groups.reduce((sum, group) => sum + group.parts.length, 0);
     <ul>
       <li>
         '교과서 키트 부품' 표시가 있는 것은 교과서 실습에 쓰는 부품이에요. 키트 이름과 다른 회사 부품 이름을 맞춰 보려면 <a href={`${boardPage.href}#kit-parts`}>보드 준비하기의 키트 부품 표</a>를 봐요.
+      </li>
+      <li>
+        '예제 보기'가 있는 부품은 <a href={kitPage.href}>{kitPage.title}</a>에서 배선과 예제 코드를 볼 수 있어요.
       </li>
       <li>
         '가상 보드에서 해 보기'가 있는 부품은 실제 부품이 없어도 <a href={esp32Lab.href}>{esp32Lab.title}</a>의 가상 보드로 써 볼 수 있어요.
@@ -69,7 +74,7 @@ const total = groups.reduce((sum, group) => sum + group.parts.length, 0);
         <p class="parts-section__desc">{group.category.description}</p>
         <ul class="parts-grid">
           {group.parts.map((part) => (
-            <PartCard part={part} labHref={esp32Lab.href} />
+            <PartCard part={part} labHref={esp32Lab.href} kitDevices={kitDevicesByPart.get(part.id) ?? []} />
           ))}
         </ul>
       </section>

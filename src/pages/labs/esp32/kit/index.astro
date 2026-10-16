@@ -1,0 +1,295 @@
+---
+/**
+ * 키트 장치 도감 첫 쪽(판 1.5.0, DECISIONS O19·C155) — 브릭셀 ESP32 개발 키트에 든 장치를 장(2~8장)별 카드로 모아 보여 주고, 카드를 누르면 장치 쪽으로 간다.
+ * 맨 위에 1장 "시작하기" 코드(LED 켜기·값 읽기 같은 ESP32 기본 기능)를 목록으로 둔다.
+ *
+ * 데이터는 content/kit/devices.yaml 한 파일(새 장치 = 목록 한 줄 + 코드 파일 — 파일 머리말에 쓰는 법). 개수는 모두 데이터에서 센다.
+ * 읽기·검사는 src/components/kit/kit-data.ts(빌드 전용), 화면 값은 kit-view.ts(순수 함수). 장치 쪽은 [id].astro.
+ * 사이트 지도(src/config/nav.ts)의 labs-esp32-kit('키트 장치 도감' — 실습실 › ESP32 실습실 아래)이라 제목·설명·빵부스러기는 지도에서 읽는다.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
+ */
+import { partPhotoSize } from '../../../../components/parts/parts-data.ts';
+import KitDeviceCard from '../../../../components/kit/KitDeviceCard.astro';
+import KitLegend from '../../../../components/kit/KitLegend.astro';
+import KitVirtualBadge from '../../../../components/kit/KitVirtualBadge.astro';
+import { kitData, kitPart } from '../../../../components/kit/kit-data.ts';
+import { KIT_CHAPTER_DESCRIPTIONS, chapterAnchor, chapterGroups, stepLabHref } from '../../../../components/kit/kit-view.ts';
+import { getPage } from '../../../../config/nav.ts';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+
+const page = getPage('labs-esp32-kit');
+const labPage = getPage('labs-esp32');
+const partsPage = getPage('start-parts');
+const boardPage = getPage('start-board');
+
+const groups = chapterGroups(kitData);
+const total = kitData.devices.length;
+const introChapter = kitData.chapters.find((chapter) => chapter.n === 1);
+const intro = kitData.intro;
+
+/** 장치 카드 값(사진 부품·사진 크기)을 한 번에 만든다 */
+const withPhoto = (device: (typeof kitData.devices)[number]) => {
+  const part = kitPart(device);
+  return { device, part, photo: partPhotoSize(part) };
+};
+
+const chips = [
+  ...(introChapter && intro.length > 0 ? [{ n: 1, label: `1장 ${introChapter.name}`, count: intro.length }] : []),
+  ...groups.map((group) => ({ n: group.chapter.n, label: `${group.chapter.n}장 ${group.chapter.name}`, count: group.devices.length })),
+];
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">브릭셀 ESP32 개발 키트에 든 장치 {total}개를 사진, 배선, 회로 그림, 예제 코드로 하나씩 알아봐요.</p>
+  <p class="kit-credit" data-kit-credit>장치 사진·회로 그림·예제 코드: 고릴라셀(브릭셀) 제공, 허락받아 사용</p>
+
+  <div class="prose kit-help">
+    <ul>
+      <li>
+        장치를 고르면 <strong>어느 핀에 꽂는지</strong>(배선표)와 <strong>어떻게 연결하는지</strong>(회로 그림), 기본 코드와 심화 코드를 볼 수 있어요.
+      </li>
+      <li>
+        코드는 [실습실에서 열기]를 누르면 <a href={labPage.href}>{labPage.title}</a>에 바로 올라와요. 보드가 없어도 가상 보드로 돌려 볼 수 있는 장치가 많고, 아래 딱지로 알려 줘요.
+      </li>
+      <li>
+        장치 사진만 보고 싶다면 <a href={partsPage.href}>{partsPage.title}</a>을, 보드를 처음 연결한다면 <a href={boardPage.href}>{boardPage.title}</a> 쪽을 먼저 봐요.
+      </li>
+    </ul>
+  </div>
+
+  <KitLegend />
+
+  <nav class="kit-chips" id="kit-chapters" aria-label="장 목록">
+    <ul class="kit-chips__list">
+      {
+        chips.map((chip) => (
+          <li>
+            <a class="kit-chips__link" href={`#${chapterAnchor(chip.n)}`}>
+              {chip.label} <span class="kit-chips__count">{chip.count}개</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    introChapter && intro.length > 0 && (
+      <section class="kit-chapter" id={chapterAnchor(1)} aria-labelledby={`${chapterAnchor(1)}-title`}>
+        <div class="kit-chapter__head">
+          <h2 id={`${chapterAnchor(1)}-title`}>1장 {introChapter.name}</h2>
+          <a class="kit-chapter__top" href="#kit-chapters">장 목록으로</a>
+        </div>
+        <p class="kit-chapter__desc">{KIT_CHAPTER_DESCRIPTIONS[1]}</p>
+        <ul class="kit-intro">
+          {intro.map((item) => (
+            <li class="kit-intro__item" data-kit-intro={item.number}>
+              <div class="kit-intro__text">
+                <p class="kit-intro__title">
+                  <span class="kit-intro__no">{item.number}</span>{' '}{item.title}
+                </p>
+                <p class="kit-intro__sub">{item.sub}</p>
+                {item.note && <p class="kit-intro__note">{item.note}</p>}
+              </div>
+              <div class="kit-intro__side">
+                <KitVirtualBadge value={item.virtual} />
+                <a
+                  class="button button--secondary kit-intro__open"
+                  href={stepLabHref(item.file)}
+                  aria-label={`실습실에서 열기: ${item.number} ${item.title}, ${item.sub}`}
+                >
+                  실습실에서 열기
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    groups.map((group) => (
+      <section class="kit-chapter" id={chapterAnchor(group.chapter.n)} aria-labelledby={`${chapterAnchor(group.chapter.n)}-title`}>
+        <div class="kit-chapter__head">
+          <h2 id={`${chapterAnchor(group.chapter.n)}-title`}>{group.chapter.n}장 {group.chapter.name}</h2>
+          <a class="kit-chapter__top" href="#kit-chapters">장 목록으로</a>
+        </div>
+        <p class="kit-chapter__desc">{group.description}</p>
+        <ul class="kit-grid">
+          {group.devices.map((device) => {
+            const card = withPhoto(device);
+            return <KitDeviceCard device={card.device} part={card.part} photo={card.photo} />;
+          })}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style>
+  .kit-credit {
+    margin-block: 0 var(--space-6);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .kit-help {
+    margin-block-end: var(--space-2);
+  }
+
+  /* 장 칩: 같은 쪽의 장으로 가는 링크(JS 없이 동작). 휴대폰에서도 줄이 바뀌며 모두 보인다. */
+  .kit-chips {
+    margin-block-end: var(--space-8);
+  }
+
+  .kit-chips__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-chips__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .kit-chips__link:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .kit-chips__link:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .kit-chips__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+  }
+
+  .kit-chapter {
+    margin-block-end: var(--space-10);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .kit-chapter__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .kit-chapter__top {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    font-size: var(--text-sm);
+  }
+
+  .kit-chapter__desc {
+    max-width: var(--width-prose);
+    margin-block: var(--space-1) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 카드 격자: 휴대폰(375px) 2열 → 넓어질수록 3·4·5열 */
+  .kit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .kit-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .kit-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .kit-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  /* 1장 시작하기: 카드 대신 한 줄씩(번호 · 이름 · 딱지 · 열기) */
+  .kit-intro {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-intro__item {
+    display: grid;
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .kit-intro__title {
+    margin: 0;
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  .kit-intro__no {
+    color: var(--unit-2);
+    font-weight: var(--weight-bold);
+  }
+
+  .kit-intro__sub,
+  .kit-intro__note {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .kit-intro__side {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  @media (min-width: 48rem) {
+    .kit-intro__item {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+  }
+</style>

@@ -12,7 +12,7 @@ import {
   siteMap,
 } from '../../src/config/nav.ts';
 
-/** PLAN §2.1 사이트 지도의 주소(대단원 제외). Phase 4 통합(2026-09-24)에서 대시보드(통신 실습실 아래)와 4단원 통합 실습실을 더했다 */
+/** PLAN §2.1 사이트 지도의 주소(대단원 제외). Phase 4 통합(2026-09-24)에서 대시보드(통신 실습실 아래)와 4단원 통합 실습실을, 판 1.5.0에서 키트 장치 도감(ESP32 실습실 아래)을 더했다 */
 const PLAN_PATHS = [
   '/',
   '/book/',
@@ -27,6 +27,7 @@ const PLAN_PATHS = [
   '/labs/vision/',
   '/labs/esp32/',
   '/labs/esp32/check/',
+  '/labs/esp32/kit/',
   '/labs/iot/',
   '/labs/iot/dashboard/',
   '/labs/unit4/',
@@ -61,6 +62,7 @@ describe('사이트 지도(src/config/nav.ts)', () => {
       '예제 갤러리',
     ]);
     expect(getPage('labs-iot').children.map((page) => page.label)).toEqual(['대시보드']);
+    expect(getPage('labs-esp32').children.map((page) => page.label)).toEqual(['실물 점검 도우미', '키트 장치 도감']);
   });
 
   it('모든 링크(href)는 base가 붙고 /로 끝나며, 설명과 제목이 있다', () => {
@@ -92,6 +94,8 @@ describe('사이트 지도(src/config/nav.ts)', () => {
       'labs-esp32',
       'labs-esp32-check',
     ]);
+    // 키트 장치 쪽(/labs/esp32/kit/d-3-11/)은 지도에 없는 쪽이라 가장 가까운 위 쪽(키트 장치 도감)까지 찾는다
+    expect(navTrail('/ai-physical-computing/labs/esp32/kit/d-3-11/').map((page) => page.id)).toEqual(['home', 'labs', 'labs-esp32', 'labs-esp32-kit']);
   });
 
   it('사이트 지도에 없는 차시 주소는 가장 가까운 대단원까지 찾는다', () => {

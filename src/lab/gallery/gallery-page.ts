@@ -8,6 +8,8 @@
  * ④ "비교해 보기"로 건너뛸 카드가 거르기에 걸려 숨어 있으면 거르기를 먼저 푼다.
  * ⑤ 고를 때마다 칸마다의 개수를 **지금 조건으로** 다시 센다 — "그 값을 고르면 몇 개가 되나"(2026-09-25 Phase 4 검토 반영:
  *    "쉬움 6 + 4단원 23"을 고르면 1개만 남는데 개수는 그대로라 헷갈렸다). 0개가 되는 값은 흐리게 보인다(data-empty).
+ * ⑥ 키트 장치 도감 예제 상자(`[data-gallery-kit]`, 판 1.5.0): 맨 끝에 접힌 채 있다가, 거르기·낱말 찾기로 키트 카드가 나오면 저절로 펼쳐진다.
+ *    사용자가 직접 열고 닫은 뒤에는 그 뜻을 따른다. 안의 카드가 하나도 안 남으면 상자째 숨긴다. 주소의 #카드가 상자 안이면 펼친다.
  *
  * 카드 값은 카드 요소의 `data-*`에만 있다(같은 값을 JSON으로 한 번 더 싣지 않는다 — 목록이 길어져도 받는 양이 늘지 않게).
  * 화면을 건드리는 것은 카드의 `hidden` 속성뿐이라, 예제가 수백 개가 되어도 거르기 한 번은 속성 바꾸기 몇 번으로 끝난다.
@@ -140,7 +142,24 @@ export function mountGallery(root: HTMLElement | null): GalleryController | null
   const partIds = [...new Set(cards.flatMap((card) => card.parts))];
   const chipInputs = [...root.querySelectorAll<HTMLInputElement>('input[data-gallery-filter]')];
   const virtualInput = root.querySelector<HTMLInputElement>('[data-gallery-virtual]');
+  const kitBox = root.querySelector<HTMLDetailsElement>('[data-gallery-kit]');
   let visible = cards.length;
+  // 키트 상자: 우리가 열고 닫은 것(곧 오는 toggle 이벤트)과 사용자가 연 것을 가르는 표시
+  let kitProgrammatic: boolean | null = null;
+  let kitManual = false;
+  kitBox?.addEventListener('toggle', () => {
+    if (kitProgrammatic !== null && kitBox.open === kitProgrammatic) {
+      kitProgrammatic = null;
+      return;
+    }
+    kitManual = true;
+  });
+  const setKitOpen = (open: boolean): void => {
+    if (kitBox && kitBox.open !== open) {
+      kitProgrammatic = open;
+      kitBox.open = open;
+    }
+  };
 
   /** 칸마다의 개수를 지금 조건으로 다시 센다(카드 수백 장 × 값 수십 개라도 한 번에 몇 밀리초) */
   const renderCounts = (state: GalleryFilterState): void => {
@@ -182,6 +201,17 @@ export function mountGallery(root: HTMLElement | null): GalleryController | null
       }
     }
     const filtering = hasAnyFilter(state);
+    if (kitBox) {
+      const kitShown = kitBox.querySelectorAll('[data-gallery-card]:not([hidden])').length;
+      kitBox.hidden = kitShown === 0;
+      const kitBadge = kitBox.querySelector<HTMLElement>('[data-gallery-kit-count]');
+      if (kitBadge) {
+        kitBadge.textContent = `${kitShown}개`;
+      }
+      if (!kitManual) {
+        setKitOpen(filtering && kitShown > 0);
+      }
+    }
     if (countText) {
       countText.textContent = filtering ? `예제 ${visible}개를 골랐어요(전체 ${cards.length}개).` : `예제 ${cards.length}개가 모두 보여요.`;
     }
@@ -249,6 +279,15 @@ export function mountGallery(root: HTMLElement | null): GalleryController | null
   const initial = filterStateFromQuery(window.location.search, partIds);
   writeControls(root, initial);
   render(initial);
+  // 주소의 #카드(검색 결과·북마크)가 접힌 키트 상자 안이면 펼치고, 사용자가 연 것으로 친다(거르기가 바뀌어도 닫지 않는다)
+  if (kitBox && window.location.hash.length > 1) {
+    const target = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    if (target && kitBox.contains(target)) {
+      kitManual = true;
+      setKitOpen(true);
+      target.scrollIntoView();
+    }
+  }
   root.dataset.galleryReady = 'yes';
 
   return {

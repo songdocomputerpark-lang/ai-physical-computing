@@ -190,7 +190,7 @@ test.describe('준비물 사진 줄', () => {
     for (const path of ['./learn/u2/2-1-2/', './book/2-1-2/', `.${PARTS_PAGE.path}`]) {
       await page.goto(path);
       await expect(page.locator('[data-site-credit]'), path).toContainText('교과서: 「인공지능과 피지컬 컴퓨팅」(금성출판사, 김석전·박상진·김승현·김영준·육동건)');
-      await expect(page.locator('[data-site-credit]'), path).toContainText('부품 사진·회로 그림: 고릴라셀(브릭셀) 제공, 허락받아 사용.');
+      await expect(page.locator('[data-site-credit]'), path).toContainText('부품 사진·회로 그림·키트 예제 코드: 고릴라셀(브릭셀) 제공, 허락받아 사용.');
     }
   });
 });

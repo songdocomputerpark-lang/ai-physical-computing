@@ -137,10 +137,17 @@ function bookPaths(): string[] {
     .sort();
 }
 
+/**
+ * 키트 장치 쪽(/labs/esp32/kit/<id>/ — 판 1.5.0, 101개)은 모두 같은 틀이라 대표 둘만 훑는다: 가상 보드로 바로 되는 장치(2.01 LED — 다른 모양 사진·큰 단추)와
+ * 실제 보드에서 해 보는 장치(3.11 초음파 센서 — 까닭·보조 단추·라이브러리). 도감 첫 쪽(/labs/esp32/kit/)은 사이트 지도에 있어 위 지도 전부에 저절로 든다.
+ */
+const KIT_DEVICE_PAGES = ['/labs/esp32/kit/d-2-01/', '/labs/esp32/kit/d-3-11/'];
+
 /** 검사할 쪽 전부(겹치지 않게) */
 function a11yTargets(): A11yTarget[] {
   const paths = [
     ...flattenPages().map((page) => page.path),
+    ...KIT_DEVICE_PAGES,
     ...learnUnits.map((unit) => unit.path),
     ...TEACHER_PAGES.map((page) => page.path),
     ...learnUnits.map((unit) => `/teacher/guides/u${unit.unit}/`),

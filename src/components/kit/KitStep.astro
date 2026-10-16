@@ -1,0 +1,155 @@
+---
+/**
+ * 장치 쪽의 코드 단계 하나(판 1.5.0) — "1단계 · 거리 재기"(기본 동작 테스트) 또는 "2단계 · …"(심화 예제).
+ * 순서: 제목 → 가상 보드 딱지 + 한 줄 풀이(안 되는 까닭) → 이 코드에서 볼 것(브릭셀 요점) → 코드 → [실습실에서 열기].
+ * 코드는 브릭셀 글 그대로(KitCode.astro). 가상 보드로 끝까지 되는 단계(full)는 [실습실에서 열기]가 큰 단추이고,
+ * 일부만 되는 단계(partial)는 단추 옆에 "달라 보이는 점", 실제 보드에서만 되는 단계(real-only)는 코드 열기 단추를 작게 하고 보드 준비 쪽 길을 먼저 보인다.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
+ */
+import { getPage } from '../../config/nav.ts';
+import KitCode from './KitCode.astro';
+import KitVirtualBadge from './KitVirtualBadge.astro';
+import type { KitCodeView } from './kit-code.ts';
+import type { KitDevice, KitStep } from './kit-schema.ts';
+import { deviceTitle, stepLabHref } from './kit-view.ts';
+
+interface Props {
+  device: KitDevice;
+  step: KitStep;
+  code: KitCodeView;
+}
+
+const { device, step, code } = Astro.props;
+const boardPage = getPage('start-board');
+const label = `${deviceTitle(device)} ${step.n}단계`;
+const id = `step-${step.n}`;
+---
+
+<section class="kit-step" id={id} aria-labelledby={`${id}-title`} data-kit-step={step.n} data-kit-virtual-level={step.virtual}>
+  <h2 class="kit-step__title" id={`${id}-title`}>{step.n}단계 · {step.title}</h2>
+  <p class="kit-step__kind">{step.kind}</p>
+  <div class="kit-step__status">
+    <KitVirtualBadge value={step.virtual} />
+    {
+      step.virtual === 'full' && <p class="kit-step__explain">보드가 없어도 [실습실에서 열기]를 누르면 가상 보드에서 이 코드를 끝까지 돌려 볼 수 있어요.</p>
+    }
+    {
+      step.virtual === 'partial' && (
+        <p class="kit-step__explain">가상 보드에서 이 코드는 돌지만, 그림으로 보이는 모습이 실제와 조금 달라요.</p>
+      )
+    }
+    {
+      step.virtual === 'real-only' && (
+        <p class="kit-step__explain">
+          이 코드는 실제 키트로 해 봐요. 보드를 컴퓨터에 연결하는 방법은 <a href={boardPage.href}>{boardPage.title}</a>에 있어요.
+        </p>
+      )
+    }
+    {device.virtualReason && step.virtual !== 'full' && <p class="kit-step__reason"><strong>까닭</strong> {device.virtualReason}</p>}
+  </div>
+  {
+    step.points.length > 0 && (
+      <div class="kit-step__points">
+        <h3 class="kit-step__points-title">이 코드에서 볼 것</h3>
+        <ul>
+          {step.points.map((point) => (
+            <li>{point}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+  <p class="kit-step__file">examples/{step.file}</p>
+  <KitCode name={label} html={code.html} lineCount={code.lineCount} />
+  <div class="kit-step__actions">
+    <a
+      class:list={['button', step.virtual === 'real-only' ? 'button--secondary' : 'button--primary']}
+      href={stepLabHref(step.file)}
+      aria-label={`${step.virtual === 'real-only' ? '실습실에서 코드 열기' : '실습실에서 열기'}: ${label}`}
+      data-kit-open={step.n}
+    >
+      {step.virtual === 'real-only' ? '실습실에서 코드 열기' : '실습실에서 열기'}
+    </a>
+    {
+      step.virtual === 'real-only' && (
+        <p class="kit-step__hint">실습실에서 코드를 열어 읽어 보고, 실제 보드를 연결해 [실행]할 수 있어요.</p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .kit-step {
+    margin-block-start: var(--space-8);
+  }
+
+  .kit-step__title {
+    margin-block-end: var(--space-1);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .kit-step__kind {
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .kit-step__status {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    margin-block-end: var(--space-4);
+  }
+
+  .kit-step__explain,
+  .kit-step__reason {
+    margin: 0;
+    max-width: var(--width-prose);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .kit-step__reason {
+    color: var(--color-text-muted);
+  }
+
+  .kit-step__points {
+    max-width: var(--width-prose);
+    margin-block-end: var(--space-4);
+  }
+
+  .kit-step__points-title {
+    margin-block-end: var(--space-1);
+    font-size: var(--text-base);
+  }
+
+  .kit-step__points ul {
+    margin: 0;
+    padding-inline-start: 1.25em;
+    line-height: var(--leading-body);
+  }
+
+  .kit-step__file {
+    margin: 0 0 var(--space-1);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    overflow-wrap: anywhere;
+  }
+
+  .kit-step__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    margin-block-start: var(--space-3);
+  }
+
+  .kit-step__hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+</style>

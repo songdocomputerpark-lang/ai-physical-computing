@@ -1,0 +1,152 @@
+---
+/**
+ * 이전·다음 장치 링크(판 1.5.0 키트 장치 쪽). 순서는 장치 번호 차례라 장이 달라도 이어진다(2.14 → 3.01).
+ * 모양은 교과서 쪽의 이전·다음 카드(BookPager.astro)와 같은 공용 카드(.card--link)를 쓰고, 말만 "장치"로 다르다.
+ */
+import Icon from '../common/Icon.astro';
+import type { KitDevice } from './kit-schema.ts';
+import { deviceTitle, kitDeviceHref, kitIndexHref } from './kit-view.ts';
+
+interface Props {
+  previous?: KitDevice | undefined;
+  next?: KitDevice | undefined;
+}
+
+const { previous, next } = Astro.props;
+---
+
+<nav class="kit-pager" aria-label="이전·다음 장치" data-pagefind-ignore>
+  <ul class="kit-pager__list">
+    <li class="kit-pager__item kit-pager__item--previous">
+      {
+        previous ? (
+          <div class="kit-pager__card card card--link card--u2">
+            <a class="kit-pager__link card__link" href={kitDeviceHref(previous.id)} rel="prev">
+              <span class="kit-pager__direction">
+                <Icon name="arrow-left" size="sm" />
+                이전 장치
+              </span>{' '}
+              <span class="kit-pager__title">{deviceTitle(previous)}</span>
+            </a>
+          </div>
+        ) : (
+          <span class="kit-pager__empty">첫 번째 장치예요.</span>
+        )
+      }
+    </li>
+    <li class="kit-pager__item kit-pager__item--next">
+      {
+        next ? (
+          <div class="kit-pager__card card card--link card--u2">
+            <a class="kit-pager__link card__link" href={kitDeviceHref(next.id)} rel="next">
+              <span class="kit-pager__direction">
+                다음 장치
+                <Icon name="arrow-right" size="sm" />
+              </span>{' '}
+              <span class="kit-pager__title">{deviceTitle(next)}</span>
+            </a>
+          </div>
+        ) : (
+          <span class="kit-pager__empty">마지막 장치예요.</span>
+        )
+      }
+    </li>
+  </ul>
+  <p class="kit-pager__back"><a href={kitIndexHref()}>키트 장치 도감 첫 쪽으로</a></p>
+</nav>
+
+<style>
+  .kit-pager {
+    margin-block-start: var(--space-10);
+  }
+
+  .kit-pager__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-pager__item {
+    display: grid;
+    min-width: 0;
+  }
+
+  .kit-pager__item--next {
+    text-align: end;
+  }
+
+  .kit-pager__card {
+    display: grid;
+    align-content: center;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .kit-pager__item--next .kit-pager__card.card {
+    border-inline-start: 1px solid var(--color-border);
+    border-inline-end: 4px solid var(--card-unit, var(--color-accent));
+  }
+
+  .kit-pager__link {
+    display: grid;
+    gap: var(--space-1);
+    line-height: var(--leading-snug);
+  }
+
+  .kit-pager__direction {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--card-unit, var(--color-accent));
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+  }
+
+  .kit-pager__item--next .kit-pager__direction {
+    justify-content: flex-end;
+  }
+
+  .kit-pager__title {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .kit-pager__empty {
+    display: grid;
+    align-content: center;
+    padding: var(--space-4) var(--space-5);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .kit-pager__back {
+    margin-block: var(--space-4) 0;
+    text-align: center;
+  }
+
+  .kit-pager__back a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+  }
+
+  @media (max-width: 40rem) {
+    .kit-pager__item--next {
+      text-align: start;
+    }
+
+    .kit-pager__item--next .kit-pager__direction {
+      justify-content: flex-start;
+    }
+  }
+
+  @media print {
+    .kit-pager {
+      display: none;
+    }
+  }
+</style>

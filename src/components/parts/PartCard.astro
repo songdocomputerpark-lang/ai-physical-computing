@@ -2,10 +2,11 @@
 /**
  * 부품 사전의 카드 하나(판 1.4.0, DECISIONS C136) — 사진 · 이름 · 영어 이름 · 연결 방식 · (교과서 키트 표시) · (가상 보드에서 해 보기) · (안내 한 줄).
  * 공용 카드 모양(.card — src/styles/global.css)을 쓰고 이 컴포넌트 안의 스타일은 카드 속 배치만 다룬다.
- * 카드가 통째로 눌리는 카드(.card--link)가 아니다 — 안의 링크(가상 보드에서 해 보기)만 눌린다.
+ * 카드가 통째로 눌리는 카드(.card--link)가 아니다 — 안의 링크(가상 보드에서 해 보기, 키트 장치 도감의 예제 보기)만 눌린다.
  * <li>를 그리므로 <ul> 안에서 쓴다. id="part-<부품 id>"는 키트 표의 사진·차시의 사진 줄이 이 카드로 오는 #위치다.
  * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
  */
+import { deviceTitle, kitDeviceHref } from '../kit/kit-view.ts';
 import { partPhotoSize } from './parts-data.ts';
 import { PART_CARD_ID_PREFIX, partPhotoAlt, partPhotoSrc, type PartEntry } from './parts-schema.ts';
 
@@ -13,9 +14,11 @@ interface Props {
   part: PartEntry;
   /** 가상 보드 실습실(ESP32 실습실)의 링크 — 쪽이 사이트 지도에서 한 번 구해 넘긴다 */
   labHref: string;
+  /** 이 사진을 쓰는 키트 장치(판 1.5.0 키트 장치 도감 — 장치 쪽의 코드·배선으로 이어진다). 없으면 빈 목록 */
+  kitDevices?: readonly { readonly id: string; readonly number: string; readonly name: string }[];
 }
 
-const { part, labHref } = Astro.props;
+const { part, labHref, kitDevices = [] } = Astro.props;
 const size = partPhotoSize(part);
 ---
 
@@ -34,6 +37,21 @@ const size = partPhotoSize(part);
     part.siteParts.length > 0 && (
       <p class="parts-card__try">
         <a href={labHref} aria-label={`가상 보드에서 해 보기: ${part.name}`}>가상 보드에서 해 보기</a>
+      </p>
+    )
+  }
+  {
+    kitDevices.length > 0 && (
+      <p class="parts-card__kit">
+        {kitDevices.map((device) => {
+          // 보이는 글(예제 보기)을 낭독 이름의 맨 앞에 두어, 보이는 글과 이름이 어긋나지 않게 한다(WCAG 2.5.3)
+          const text = kitDevices.length > 1 ? `${device.number} 예제 보기` : '예제 보기';
+          return (
+            <a href={kitDeviceHref(device.id)} aria-label={`${text}: ${deviceTitle(device)}, 키트 장치 도감`}>
+              {text}
+            </a>
+          );
+        })}
       </p>
     )
   }
@@ -116,6 +134,22 @@ const size = partPhotoSize(part);
   }
 
   .parts-card__try a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+  }
+
+  /* 키트 장치 도감의 [예제 보기](판 1.5.0) — 가상 보드 링크(.parts-card__try)와 같은 모양, 장치가 둘이면 나란히 */
+  .parts-card__kit {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-3);
+    margin: 0;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  .parts-card__kit a {
     display: inline-flex;
     align-items: center;
     min-height: var(--target-min);

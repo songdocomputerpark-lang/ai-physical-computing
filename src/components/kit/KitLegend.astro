@@ -1,0 +1,64 @@
+---
+/**
+ * 도감 첫 쪽의 범례(판 1.5.0) — 카드의 가상 보드 딱지 세 가지가 무슨 뜻인지. 딱지 모양은 KitVirtualBadge와 같다.
+ * 풀이 글은 kit-view.ts의 KIT_VIRTUAL_INFO 한 곳.
+ */
+import KitVirtualBadge from './KitVirtualBadge.astro';
+import { KIT_VIRTUAL_INFO, KIT_VIRTUAL_ORDER } from './kit-view.ts';
+---
+
+<section class="kit-legend" aria-labelledby="kit-legend-title">
+  <h2 class="kit-legend__title" id="kit-legend-title">카드의 딱지는 이런 뜻이에요</h2>
+  <ul class="kit-legend__list">
+    {
+      KIT_VIRTUAL_ORDER.map((value) => (
+        <li class="kit-legend__item">
+          <KitVirtualBadge value={value} />
+          <span class="kit-legend__explain">{KIT_VIRTUAL_INFO[value].explain}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .kit-legend {
+    margin-block: var(--space-6);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .kit-legend__title {
+    margin-block-end: var(--space-3);
+    font-size: var(--text-base);
+  }
+
+  .kit-legend__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-legend__item {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-1);
+  }
+
+  .kit-legend__explain {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  @media (min-width: 48rem) {
+    .kit-legend__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+  }
+</style>

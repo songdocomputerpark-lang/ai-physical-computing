@@ -107,12 +107,20 @@ test.describe('예제 갤러리', () => {
     expect(hrefs).toHaveLength(files.length);
     expect(hrefs.every((href) => href.includes('?example='))).toBe(true);
 
-    // 두 실습실 예제는 모두 하드웨어 없이 된다(사이트 규칙 — 2026-09-25 Phase 4 검토 반영: 전에는 "하드웨어 없이 되는 예제 37개"로 보였다).
-    // 거르는 것이 없는 단추 대신 한 줄 안내를 보이고, 카드마다 같은 딱지를 달지 않는다.
-    await expect(page.locator('[data-gallery-all-virtual]')).toBeVisible();
-    await expect(page.locator('[data-gallery-virtual]')).toHaveCount(0);
-    const virtualValues = await page.$$eval('[data-gallery-card]', (list) => [...new Set(list.map((card) => (card as HTMLElement).dataset.virtual ?? ''))]);
-    expect(virtualValues).toEqual(['yes']);
+    // 교과서·사이트 예제는 모두 하드웨어 없이 된다(사이트 규칙 — 2026-09-25 Phase 4 검토 반영). 판 1.5.0부터 키트 장치 도감 예제 가운데 실제 보드에서만
+    // 되는 것(사이드카 virtual_ok: false)이 갤러리에 들어와 "모두 가상으로 된다"는 한 줄 안내 대신 "하드웨어 없이 되는 것만" 거르기 단추가 보인다.
+    const virtualByFile = await page.$$eval('[data-gallery-card]', (list) =>
+      list.map((card) => [(card as HTMLElement).dataset.file ?? '', (card as HTMLElement).dataset.virtual ?? ''] as const),
+    );
+    const outsideKit = virtualByFile.filter(([file]) => !file.startsWith('esp32/kit/'));
+    expect(outsideKit.length).toBeGreaterThan(50);
+    expect([...new Set(outsideKit.map(([, value]) => value))]).toEqual(['yes']);
+    const kitValues = [...new Set(virtualByFile.filter(([file]) => file.startsWith('esp32/kit/')).map(([, value]) => value))].sort();
+    expect(kitValues.every((value) => value === 'yes' || value === 'no')).toBe(true);
+    if (kitValues.includes('no')) {
+      await expect(page.locator('[data-gallery-all-virtual]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-virtual]')).toHaveCount(1);
+    }
   });
 
   test('태그를 고르면 그 예제만 남고 주소에 실린다', async ({ page }) => {

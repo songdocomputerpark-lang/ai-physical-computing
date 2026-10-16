@@ -1,0 +1,75 @@
+---
+/**
+ * 키트 도감의 코드 상자(판 1.5.0) — 브릭셀 쪽 코드를 한 글자도 고치지 않고 줄 번호와 함께 보여 준다. 모양은 차시 따라 하기 예제의 코드 상자와 같다
+ * (LessonExamples.astro: 줄 번호는 data-line, 복사할 때 따라가지 않음, 긴 줄은 줄 번호 뒤에서 접음, 줄 전체가 주석(#)인 줄만 흐린 색 — 글자 대비를 4.5:1 넘게 지킨다).
+ * 색 강조(Shiki)를 쓰지 않는 까닭: 차시 코드 상자와 한 모양이고, 장치 쪽 101개 × 코드 둘의 HTML이 커지지 않으며, 대비를 늘 지킨다.
+ *
+ * 코드 글은 호출하는 쪽이 만든 HTML(kit-code.ts의 kitCodeView)을 받는다. 넘치는 동안만 Tab으로 밀어 볼 수 있게 data-scroll-focus를 단다
+ * (src/components/common/scroll-focus.ts — 줄을 접어 보통은 넘치지 않는다). <pre>와 <code> 사이에는 줄바꿈·들여쓰기를 두지 않는다(공백이 그대로 보인다).
+ */
+interface Props {
+  /** 코드 상자 이름(낭독기가 읽는다). 예: "3.11 초음파 센서 1단계 거리 재기" */
+  name: string;
+  html: string;
+  lineCount: number;
+}
+
+const { name, html, lineCount } = Astro.props;
+---
+
+<pre class="kit-code" data-scroll-focus={`${name} 코드, ${lineCount}줄`} data-scroll-shade><code set:html={html} /></pre>
+
+<style>
+  .kit-code {
+    margin: 0;
+    padding: var(--space-3) var(--space-4) var(--space-3) 0;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    overflow-x: auto;
+    tab-size: 4;
+  }
+
+  .kit-code:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+
+  /*
+   * 줄마다 블록: 긴 줄은 줄 번호 뒤에서 접는다(첫 줄만 왼쪽으로 내어 쓰는 방법 — 이어지는 줄은 코드 칸의 시작에 맞춘다).
+   * 줄 번호는 data-line. 번호는 복사되지 않는다(::before).
+   */
+  .kit-code :global(.lesson-code__line) {
+    display: block;
+    min-height: 1.6em;
+    padding-inline-start: 4.25em;
+    text-indent: -4.25em;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .kit-code :global(.lesson-code__line)::before {
+    display: inline-block;
+    width: 3.25em;
+    padding-inline-end: 1em;
+    color: var(--color-text-muted);
+    text-align: right;
+    text-indent: 0;
+    content: attr(data-line);
+    /* 낭독 이름에는 넣지 않는다: 코드 영역 이름에 이미 줄 수가 있어 줄마다 붙는 번호가 소음이다. 대체 글을 비우는 문법을 모르는 옛 브라우저는 위 줄을 쓴다. */
+    content: attr(data-line) / '';
+    user-select: none;
+  }
+
+  .kit-code :global(.lesson-code__line--comment) {
+    color: var(--color-text-muted);
+  }
+
+  /* 줄 사이 줄바꿈 글자: 글자 그대로의 코드·검색 색인용이라 화면에서는 숨긴다(example-code.ts LINE_BREAK_HTML) */
+  .kit-code :global(.lesson-code__nl) {
+    display: none;
+  }
+</style>

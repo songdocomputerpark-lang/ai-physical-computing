@@ -85,6 +85,21 @@ export const LAB_PLANS: readonly LabPlan[] = Object.freeze([
     open: true,
   },
   {
+    // 2026-10-16 판 1.5.0에서 열림(src/pages/labs/esp32/kit/ — 첫 쪽 + 장치 쪽). 코드를 직접 돌리지 않는 안내 쪽이라 브라우저 권장 환경 안내는 두지 않는다
+    // (코드를 돌리는 곳은 [실습실에서 열기]로 가는 ESP32 실습실이다).
+    id: 'labs-esp32-kit',
+    phase: 3,
+    when: '사이트를 만드는 세 번째 단계(Phase 3)',
+    features: [
+      '키트에 든 장치를 장(디스플레이, 센서, 모터 …)별로 모아 사진과 함께 찾아봐요.',
+      '장치마다 배선표와 회로 그림으로 어느 핀에 꽂는지 확인해요.',
+      '기본 코드와 심화 코드를 ESP32 실습실에서 바로 열어 가상 보드로 돌려 봐요.',
+    ],
+    relatedIds: ['labs-esp32', 'start-parts', 'start-board'],
+    browserNotice: false,
+    open: true,
+  },
+  {
     // 2026-09-24 Phase 4 통합에서 실제 화면이 됨(src/pages/labs/iot/index.astro). 통신 실습은 두 실습실이 짝을 이뤄 돌기 때문에
     // 이 페이지는 코드를 직접 돌리지 않고, 통신 계단(유선 → 블루투스 → 와이파이·MQTT → 대시보드)과 AI → 피지컬 브릿지 예제로 가는 길을 모은다.
     // 코드를 실행하지 않는 안내 페이지라 브라우저 권장 환경 안내는 두지 않는다(실행하는 곳 — 대시보드·두 실습실 — 에 있다).

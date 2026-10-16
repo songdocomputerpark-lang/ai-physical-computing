@@ -1,0 +1,547 @@
+---
+/**
+ * 키트 장치 쪽(/labs/esp32/kit/d-3-11/) — 장치 하나를 사진 · 장치 정보 · 배선표 · 회로 그림 · 코드 두 단계(기본 → 심화)로 보여 준다(판 1.5.0, DECISIONS C155).
+ *
+ * 머리: 빵부스러기(홈 › 실습실 › ESP32 실습실 › 키트 장치 도감 › 3장 디지털 센서) → 제목 "3.11 초음파 센서 (HC-SR04)" → 가상 보드 딱지
+ * 본문: 장치 정보(사진 · 연결 방식 · 핀 · GPIO · 부품 번호 · 라이브러리) → 배선표 → 회로 그림([그림 크게 보기]) → 1단계 · 2단계(코드 + [실습실에서 열기])
+ * 끝: 이전·다음 장치, 출처 줄
+ * 왼쪽: 지금 장의 장치 목록(LessonSidebar — 교과서 쪽의 교과서 차례와 같은 부품·같은 규칙: 넓으면 왼쪽 nav, 좁으면 <details>)
+ *
+ * 새 장치 = content/kit/devices.yaml에 한 줄 + 코드 파일(examples/esp32/kit/) — 이 쪽 코드는 고치지 않는다(getStaticPaths가 장치마다 쪽을 만든다).
+ * 코드는 브릭셀 쪽 글 그대로를 빌드 때 읽어 이 쪽 HTML에 넣는다(KitCode.astro). 사진·회로 그림은 lazy(주 사진만 처음부터 — 첫 화면에 있다).
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
+ */
+import { partPhotoSize } from '../../../../components/parts/parts-data.ts';
+import { PART_CARD_ID_PREFIX, PARTS_PAGE_PATH, partPhotoAlt, partPhotoSrc } from '../../../../components/parts/parts-schema.ts';
+import { circuitFigureHtml } from '../../../../components/circuits/circuit-html.ts';
+import type { CircuitFigure } from '../../../../components/circuits/circuits-schema.ts';
+import Icon from '../../../../components/common/Icon.astro';
+import KitPager from '../../../../components/kit/KitPager.astro';
+import KitStep from '../../../../components/kit/KitStep.astro';
+import KitVirtualBadge from '../../../../components/kit/KitVirtualBadge.astro';
+import { kitCodeView } from '../../../../components/kit/kit-code.ts';
+import { kitCircuitSize, kitData, kitPart } from '../../../../components/kit/kit-data.ts';
+import { KIT_CIRCUIT_DIR, type KitDevice } from '../../../../components/kit/kit-schema.ts';
+import { kitSidebarOutline } from '../../../../components/kit/kit-sidebar.ts';
+import {
+  LIBRARY_HELP,
+  circuitAlt,
+  circuitCaption,
+  circuitHref,
+  connectionLabel,
+  deviceNeighbors,
+  deviceTitle,
+  kitIndexHref,
+  libraryStatus,
+  partNumberOf,
+  pinNameHint,
+  pinsLabel,
+  splitWiring,
+} from '../../../../components/kit/kit-view.ts';
+import LessonSidebar from '../../../../components/lesson/LessonSidebar.astro';
+import { getPage } from '../../../../config/nav.ts';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../../lib/url.ts';
+import '../../../../styles/circuits.css';
+
+export function getStaticPaths() {
+  return kitData.devices.map((device) => ({ params: { id: device.id }, props: { device } }));
+}
+
+interface Props {
+  device: KitDevice;
+}
+
+const { device } = Astro.props;
+const title = deviceTitle(device);
+const chapter = kitData.chapters.find((candidate) => candidate.n === device.chapter);
+const chapterLabel = `${device.chapter}장 ${chapter?.name ?? ''}`.trim();
+const { previous, next } = deviceNeighbors(kitData.devices, device.id);
+const outline = kitSidebarOutline(kitData, device);
+
+const home = getPage('home');
+const labs = getPage('labs');
+const esp32 = getPage('labs-esp32');
+const kitPage = getPage('labs-esp32-kit');
+const boardPage = getPage('start-board');
+const breadcrumb = [
+  { label: home.label, href: home.href },
+  { label: labs.label, href: labs.href },
+  { label: esp32.label, href: esp32.href },
+  { label: kitPage.label, href: kitPage.href },
+  { label: chapterLabel, href: kitIndexHref(device.chapter) },
+  { label: title },
+];
+
+const part = kitPart(device);
+const photo = partPhotoSize(part);
+const variants = device.partVariants.map((variant) => {
+  const variantPart = kitPart(device, variant.part);
+  return { label: variant.label, part: variantPart, size: partPhotoSize(variantPart) };
+});
+const cardHref = withBase(`${PARTS_PAGE_PATH}#${PART_CARD_ID_PREFIX}${part.id}`);
+
+const circuitSize = kitCircuitSize(device);
+const circuitFigure: CircuitFigure = {
+  id: device.id,
+  lesson: device.number,
+  textbookPage: 0,
+  title: `${title} 연결`,
+  caption: circuitCaption(device),
+  alt: circuitAlt(device),
+  file: `${KIT_CIRCUIT_DIR}/${device.circuit}`,
+  width: circuitSize.width,
+  height: circuitSize.height,
+  parts: [],
+};
+const circuitNote = '고릴라셀(브릭셀)이 제공한 회로 그림이에요(ESP32 실드 V3 기준). 실드 없이 보드에 직접 꽂는다면 같은 번호의 핀(GPIO)에 꽂아요.';
+const circuitHtml = circuitFigureHtml(circuitFigure, circuitNote, circuitHref(device));
+
+const steps = device.steps.map((step) => ({ step, code: kitCodeView(step.file) }));
+const wiring = device.wiring.map((line) => splitWiring(line));
+const pinHint = pinNameHint(device.pins);
+const hasSiteLibrary = device.libraries.some((library) => library.site);
+const hasExternalLibrary = device.libraries.some((library) => !library.site);
+const sourceHref = `${kitData.source.url}#${device.id}`;
+const description = `${title}의 사진, 배선표, 회로 그림과 기본·심화 예제 코드예요. ${device.description}`.slice(0, 160);
+---
+
+<BaseLayout title={title} description={description} width="default" breadcrumb={breadcrumb} ogType="article" skipTarget="lesson-article">
+  <div class="kit-layout">
+    <LessonSidebar outline={outline} />
+    <article class="kit-page" id="lesson-article" tabindex="-1" data-kit-device={device.id} data-kit-chapter={device.chapter}>
+      <header class="kit-header">
+        <p class="kit-header__where">
+          <span class="kit-header__icon"><Icon name="plug" size="sm" /></span>
+          <span>{chapterLabel}</span>
+        </p>
+        <h1 class="page-title kit-header__title">
+          <span class="kit-header__no">{device.number}</span>{' '}<span class="kit-header__name">{device.name}</span>
+        </h1>
+        <p class="kit-header__en" lang="en">{device.nameEn}</p>
+        <p class="kit-header__desc">{device.description}</p>
+        <KitVirtualBadge value={device.virtual} />
+        {device.note && <p class="kit-header__note"><strong>알아 두기</strong> {device.note}</p>}
+      </header>
+
+      <section class="kit-info" aria-labelledby="kit-info-title">
+        <h2 id="kit-info-title">장치 정보</h2>
+        <div class="kit-info__body">
+          <figure class="kit-info__figure">
+            <div class="kit-info__photo">
+              <img src={partPhotoSrc(part)} alt={partPhotoAlt(part)} width={photo.width} height={photo.height} decoding="async" />
+            </div>
+            <figcaption><a href={cardHref}>부품 사전에서 보기</a></figcaption>
+          </figure>
+          <dl class="kit-facts">
+            <div class="kit-facts__row">
+              <dt>연결 방식</dt>
+              <dd>{connectionLabel(device.interface)}</dd>
+            </div>
+            <div class="kit-facts__row">
+              <dt>장치의 핀</dt>
+              <dd>{pinsLabel(device.pins)}</dd>
+            </div>
+            <div class="kit-facts__row">
+              <dt>보드의 GPIO</dt>
+              <dd>{device.gpio}</dd>
+            </div>
+            <div class="kit-facts__row">
+              <dt>부품 번호</dt>
+              <dd><code>{partNumberOf(part.id)}</code></dd>
+            </div>
+            <div class="kit-facts__row">
+              <dt>라이브러리</dt>
+              <dd>
+                {
+                  device.libraries.length === 0 ? (
+                    '따로 필요하지 않아요'
+                  ) : (
+                    <ul class="kit-libs">
+                      {device.libraries.map((library) => (
+                        <li class="kit-libs__item" data-kit-library={library.file}>
+                          <code>{library.file}</code> — {libraryStatus(library)}
+                          {library.note && <span class="kit-libs__note">{library.note}</span>}
+                          {!library.site && library.url && (
+                            <a class="kit-libs__get" href={library.url} target="_blank" rel="noopener noreferrer">
+                              브릭셀에서 받기<span class="visually-hidden"> ({library.file}, 새 창)</span><Icon name="external" size="sm" />
+                            </a>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                }
+              </dd>
+            </div>
+          </dl>
+        </div>
+        {
+          device.libraries.length > 0 && (
+            <p class="kit-info__help">
+              {hasSiteLibrary && LIBRARY_HELP.site}
+              {hasSiteLibrary && hasExternalLibrary && ' '}
+              {hasExternalLibrary && LIBRARY_HELP.external}
+            </p>
+          )
+        }
+        {
+          variants.length > 0 && (
+            <div class="kit-variants">
+              <h3 class="kit-variants__title">같은 코드로 도는 다른 모양</h3>
+              <ul class="kit-variants__list">
+                {variants.map((variant) => (
+                  <li class="kit-variants__item">
+                    <img
+                      src={partPhotoSrc(variant.part)}
+                      alt={`${variant.label} 사진`}
+                      width={variant.size.width}
+                      height={variant.size.height}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <span>{variant.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </section>
+
+      <section class="kit-wiring" aria-labelledby="kit-wiring-title">
+        <h2 id="kit-wiring-title">배선표</h2>
+        <p class="kit-wiring__help">
+          장치의 핀을 보드의 어느 핀에 꽂는지 적었어요. 핀 번호는 브릭셀 ESP32 실드(V3, 보드 위에 끼워 쓰는 확장 판)에 맞춘 거예요.{pinHint && ` ${pinHint}`}
+        </p>
+        <div class="kit-wiring__table" data-scroll-focus="배선표" data-scroll-shade>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">장치의 핀</th>
+                <th scope="col">보드의 핀</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                wiring.map((row) => (
+                  <tr>
+                    <td>{row.device}</td>
+                    <td>{row.board}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="kit-circuit" aria-labelledby="kit-circuit-title">
+        <h2 id="kit-circuit-title">회로 그림</h2>
+        <Fragment set:html={circuitHtml} />
+      </section>
+
+      {steps.map(({ step, code }) => <KitStep device={device} step={step} code={code} />)}
+
+      <KitPager previous={previous} next={next} />
+
+      <p class="kit-source" data-kit-source>
+        장치 사진·회로 그림·예제 코드: 고릴라셀(브릭셀) 제공, 허락받아 사용.{' '}
+        <a href={sourceHref} target="_blank" rel="noopener noreferrer">
+          브릭셀의 원래 쪽<span class="visually-hidden"> ({title}, 새 창)</span><Icon name="external" size="sm" />
+        </a>
+        {device.virtual === 'real-only' && <span> 보드를 연결하는 방법은 <a href={boardPage.href}>{boardPage.title}</a>에 있어요.</span>}
+      </p>
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  import { installLessonNav, retargetSkipLink } from '../../../../components/lesson/lesson-progress.ts';
+
+  // 왼쪽 장치 목록: 넓은 화면에서는 펼치고 좁은 화면에서는 접는다. [본문으로 건너뛰기]는 목록 대신 본문 글로 간다.
+  installLessonNav();
+  retargetSkipLink();
+</script>
+
+<style>
+  /* 2열: 왼쪽 장치 목록(64rem 이상) + 오른쪽 본문(44rem — 차시·교과서 쪽과 같은 폭) */
+  .kit-layout {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--width-prose);
+    margin-inline: auto;
+  }
+
+  @media (min-width: 64rem) {
+    .kit-layout {
+      grid-template-columns: minmax(13rem, 17rem) minmax(0, var(--width-prose));
+      justify-content: center;
+      align-items: start;
+      column-gap: var(--space-8);
+      max-width: none;
+    }
+  }
+
+  .kit-page {
+    min-width: 0;
+  }
+
+  .kit-page:focus {
+    outline: none;
+  }
+
+  .kit-header__where {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    margin-block-end: var(--space-2);
+    color: var(--unit-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .kit-header__icon {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: var(--radius-full);
+    background: var(--unit-2-soft);
+  }
+
+  .kit-header__title {
+    margin-block-start: var(--space-1);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .kit-header__no {
+    color: var(--unit-2);
+  }
+
+  .kit-header__en {
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+  }
+
+  .kit-header__desc {
+    max-width: var(--width-prose);
+    margin-block: 0 var(--space-3);
+    line-height: var(--leading-body);
+  }
+
+  .kit-header__note {
+    max-width: var(--width-prose);
+    margin-block: var(--space-3) 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-info-border);
+    border-radius: var(--radius-md);
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .kit-info,
+  .kit-wiring,
+  .kit-circuit {
+    margin-block-start: var(--space-8);
+  }
+
+  .kit-info__body {
+    display: grid;
+    gap: var(--space-4);
+    margin-block-start: var(--space-3);
+  }
+
+  @media (min-width: 36rem) {
+    .kit-info__body {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .kit-info__figure {
+    display: grid;
+    gap: var(--space-1);
+    justify-items: start;
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .kit-info__photo {
+    inline-size: min(100%, 12rem);
+    aspect-ratio: 1 / 1;
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+
+  .kit-info__photo img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: contain;
+  }
+
+  .kit-info__figure a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+  }
+
+  .kit-facts {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .kit-facts__row {
+    display: grid;
+    gap: var(--space-1) var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .kit-facts__row:first-child {
+    border-block-start: 0;
+  }
+
+  .kit-facts dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .kit-facts dd {
+    margin: 0;
+    line-height: var(--leading-snug);
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 30rem) {
+    .kit-facts__row {
+      grid-template-columns: 8rem minmax(0, 1fr);
+    }
+  }
+
+  .kit-libs {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-libs__note {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .kit-libs__get {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--target-min);
+    margin-inline-start: var(--space-2);
+  }
+
+  .kit-info__help {
+    max-width: var(--width-prose);
+    margin-block: var(--space-3) 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .kit-variants {
+    margin-block-start: var(--space-4);
+  }
+
+  .kit-variants__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-base);
+  }
+
+  .kit-variants__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-variants__item {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-1);
+    inline-size: 5.5rem;
+    font-size: var(--text-xs);
+    text-align: center;
+  }
+
+  .kit-variants__item img {
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+    padding: 2px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    object-fit: contain;
+  }
+
+  .kit-wiring__help {
+    max-width: var(--width-prose);
+    margin-block: var(--space-1) var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .kit-wiring__table {
+    overflow-x: auto;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+  }
+
+  .kit-wiring__table table {
+    inline-size: 100%;
+    border-collapse: collapse;
+  }
+
+  .kit-wiring__table th,
+  .kit-wiring__table td {
+    padding: var(--space-2) var(--space-4);
+    border-block-end: 1px solid var(--color-border);
+    text-align: start;
+    overflow-wrap: anywhere;
+  }
+
+  .kit-wiring__table thead th {
+    background: var(--color-bg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .kit-wiring__table tbody tr:last-child td {
+    border-block-end: 0;
+  }
+
+  .kit-source {
+    margin-block: var(--space-8) 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .kit-source :global(.icon) {
+    vertical-align: -0.2em;
+    margin-inline-start: 0.2em;
+  }
+</style>
