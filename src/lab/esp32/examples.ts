@@ -10,11 +10,14 @@
  * - parts(배선, P3-02): 차시 md frontmatter의 examples[].parts(페이지가 wiringByFile로 넘김) → 사이드카 parts → 파일 머리말 `# @part` 순서로
  *   처음 찾은 곳만 쓴다(src/lab/README.md 7.4). 틀린 줄은 빼고 까닭을 onWarning으로 알린다(빌드 경고만 — PD-35).
  * - practice(실습 방법, P3-02): 사이드카 practice → 머리말 "── 실습 방법 ──" 상자. 보드 그림 위에 "이 예제 실습 방법"으로 보인다.
+ * - (판 1.5.0) 키트 장치 도감(esp32/kit/)은 고를 때 받는 예제다 — esp32ExamplesFromFiles는 모든 예제를 코드째 돌려주고(갤러리·시험),
+ *   실습실 페이지만 splitLazyEsp32Examples로 나눠 HTML에는 목록 자리만 심는다(src/lab/controls/lazy-examples.ts — LabShell이 그중 id·파일·받을 주소만 JSON에).
  * 이 파일은 빌드(페이지)에서만 쓴다 — yaml 같은 빌드 전용 패키지는 import하지 않고 사이드카는 페이지가 미리 읽어 넘긴다.
  */
 import { readExampleMeta } from '../controls/example-meta.ts';
 import type { ExampleSidecar } from '../controls/example-sidecar.ts';
 import type { LabExample } from '../controls/examples.ts';
+import { lazyPayloadOf, toLazyEntry, type LazyExamplePayload } from '../controls/lazy-examples.ts';
 import type { WiringEntry } from '../modules/board/part-types.ts';
 import { normalizeWiringSpecs } from '../modules/board/wiring-spec.ts';
 import type { ExampleLessonLinks } from '../vision/examples.ts';
@@ -50,6 +53,55 @@ export const ESP32_EXAMPLE_GROUPS: readonly { readonly key: string; readonly lab
   { key: 'esp32/kit/ch7', label: '키트 도감 7장 출력' },
   { key: 'esp32/kit/ch8', label: '키트 도감 8장 통신' },
 ]);
+
+/**
+ * (판 1.5.0) 고를 때 받는 예제 폴더 — 키트 장치 도감(examples/esp32/kit/). 실습실 HTML에는 목록 자리만 심고 코드·설명·배선은
+ * 빌드가 따로 만든 JSON(KIT_CODE_ROUTE 아래, src/pages/labs/esp32/kit-code/)에서 받는다(src/lab/controls/lazy-examples.ts, DECISIONS C15·C151).
+ * 교과서·이관·사이트 예제는 지금처럼 HTML에 심는다(첫 예제·차시 링크가 곧바로 열리게).
+ */
+export const ESP32_LAZY_DIR = 'esp32/kit/';
+
+/** 따로 받는 예제 JSON이 놓이는 사이트 안 경로(base 뒤, 끝 / 포함) */
+export const KIT_CODE_ROUTE = 'labs/esp32/kit-code/';
+
+/** examples/ 아래 경로가 고를 때 받는 예제인지 */
+export function isLazyEsp32File(file: string | null | undefined): boolean {
+  return typeof file === 'string' && file.startsWith(ESP32_LAZY_DIR) && file.endsWith('.py');
+}
+
+/** esp32/kit/ch3/3-11-ultrasonic-1.py → ch3/3-11-ultrasonic-1 (JSON 경로의 이름 부분 — 정적 경로 매개변수) */
+export function kitCodeParam(file: string): string {
+  if (!isLazyEsp32File(file)) {
+    throw new Error(`고를 때 받는 예제(${ESP32_LAZY_DIR})가 아니에요: ${file}`);
+  }
+  return file.slice(ESP32_LAZY_DIR.length).replace(/\.py$/u, '');
+}
+
+/** esp32/kit/ch3/3-11-ultrasonic-1.py → labs/esp32/kit-code/ch3/3-11-ultrasonic-1.json (base 없이 — 페이지가 withBase로 붙인다) */
+export function kitCodePath(file: string): string {
+  return `${KIT_CODE_ROUTE}${kitCodeParam(file)}.json`;
+}
+
+/**
+ * 실습실 목록을 HTML에 심을 것과 따로 받을 것으로 나눈다. 고를 때 받는 예제는 목록 자리(toLazyEntry)로 바꾸고
+ * 그 내용(lazyPayloadOf)을 경로 매개변수와 함께 돌려준다. urlOf는 examples/ 아래 경로 → 받을 주소(사이트 안 주소, withBase 포함).
+ */
+export function splitLazyEsp32Examples(
+  examples: readonly LabExample[],
+  urlOf: (file: string) => string,
+): { examples: LabExample[]; payloads: { param: string; file: string; payload: LazyExamplePayload }[] } {
+  const embedded: LabExample[] = [];
+  const payloads: { param: string; file: string; payload: LazyExamplePayload }[] = [];
+  for (const example of examples) {
+    if (example.file !== undefined && isLazyEsp32File(example.file)) {
+      embedded.push(toLazyEntry(example, urlOf(example.file)));
+      payloads.push({ param: kitCodeParam(example.file), file: example.file, payload: lazyPayloadOf(example) });
+    } else {
+      embedded.push(example);
+    }
+  }
+  return { examples: embedded, payloads };
+}
 
 /** glob 경로(/examples/esp32/a.py)에서 examples/ 아래 경로(esp32/a.py)를 뽑는다. esp32 폴더 밖·라이브러리 폴더면 null. */
 export function esp32ExampleFileFromPath(globPath: string): string | null {

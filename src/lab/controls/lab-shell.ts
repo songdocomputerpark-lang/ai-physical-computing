@@ -42,6 +42,14 @@
  *   라이브러리보다 먼저 워커에 닿아 "가상 보드에 아직 없어요"라는 거짓 오류로 멈추던 것을 막는다.
  * - 실행을 시작하면 결과 칸(과 조절 막대가 있으면 첫 막대)이 첫 화면 밖일 때 그쪽으로 화면을 옮긴다(reveal.ts, 움직임 줄이기면 바로 옮김).
  * - 예제에 차시 정보(lesson)가 있으면 조작 줄 아래에 "이 예제가 나오는 차시" 링크를 보인다(차시에서 넘어온 학생이 돌아갈 길).
+ *
+ * 고를 때 받는 예제(판 1.5.0 — 키트 장치 도감, lazy-examples.ts. HTML에는 목록 자리만 있고 코드·설명·배선은 codeUrl의 JSON)
+ * - [예제 불러오기]: 받는 동안 편집칸은 앞 예제 그대로 두고 "받는 중"을 알린다. 받으면 보통 예제처럼 바꿔 끼운다(저장본이 있으면 저장본).
+ *   그동안 누른 [실행]은 holdRun으로 기다렸다가 받은 코드를 돌린다.
+ * - 처음 열 때(?example=·저장된 마지막 예제·공유 링크 ex=): 저장본·공유 코드가 있으면 그것을 곧바로 보이고 뒤에서 받아 배선·[초기화] 기준을 채운다.
+ *   없으면 편집칸에 자리 글(LAZY_PENDING_CODE)을 읽기 전용으로 두고 받은 코드로 바꾼다. 자리 글인 동안 [실행]·공유·내려받기·[초기화]는 하지 않는다.
+ * - 받지 못하면 안내 줄에 까닭과 [다시 받기](data-lab-example-retry)를 보이고, 기다리던 [실행]은 버린다(다른 코드가 대신 돌지 않게).
+ * - 시험이 읽는 값: 뿌리의 data-example-fetch(loading·done·failed — 마지막 받기), data-example-pending(자리 글인 동안 loading·failed).
  */
 import { canStepFontSize, readFontSize, saveFontSize, stepFontSize, DEFAULT_FONT_SIZE_PX } from '../editor/font-size.ts';
 import { createPythonEditor, type PythonEditor } from '../editor/python-editor.ts';
@@ -57,6 +65,15 @@ import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatu
 import { downloadTextFile } from './download.ts';
 import { exampleVersionNote } from './example-names.ts';
 import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
+import {
+  LAZY_FAILED_CODE,
+  LAZY_PENDING_CODE,
+  fetchLazyExample,
+  fillLazyTitles,
+  isLazyExample,
+  lazyFailureMessage,
+  type LazyExampleEntry,
+} from './lazy-examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
 import { isMostlyVisible, revealElement, revealTogether, stickyBarInset } from './reveal.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickExampleLab, pickShareLab, type LabOnPage } from './share-link.ts';
@@ -246,6 +263,8 @@ interface ShellElements {
   /** 좁은 틀에서 고른 예제 이름 전체를 줄바꿈해 보이는 줄(선택 상자는 긴 이름을 잘라 보인다 — 판 1.3.0 검수 R3-005) */
   exampleName: HTMLElement | null;
   exampleLoadButton: HTMLButtonElement | null;
+  /** (판 1.5.0) 고를 때 받는 예제를 받지 못했을 때만 보이는 [다시 받기] */
+  exampleRetry: HTMLButtonElement | null;
   shareButton: HTMLButtonElement | null;
   downloadButton: HTMLButtonElement | null;
   editorHost: HTMLElement;
@@ -298,7 +317,15 @@ function readExamples(root: HTMLElement): LabExample[] {
   }
   try {
     const parsed: unknown = JSON.parse(script.textContent ?? '[]');
-    return Array.isArray(parsed) ? (parsed as LabExample[]) : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    // 고를 때 받는 예제(판 1.5.0)는 제목 없이 심겨 있다 — 선택 상자의 <option> 글자로 채운다(lazy-examples.ts embeddedExampleJson)
+    const options = new Map<string, string>();
+    for (const option of root.querySelectorAll<HTMLOptionElement>('[data-lab-example-select] option')) {
+      options.set(option.value, option.textContent ?? '');
+    }
+    return fillLazyTitles(parsed, (id) => options.get(id) ?? null);
   } catch {
     return [];
   }
@@ -465,8 +492,17 @@ class LabShellController implements LabController {
   readonly labId: string;
   readonly runtime: PythonRuntime;
   readonly editor: PythonEditor;
-  readonly examples: readonly LabExample[];
+  /** 예제 목록. 고를 때 받는 예제(판 1.5.0)는 받은 뒤 같은 자리를 받은 예제로 바꾼다 */
+  readonly #examples: LabExample[];
   #example: LabExample | null = null;
+  /** (판 1.5.0) 받는 중인 예제(id → 약속) — 같은 예제를 두 번 받지 않게 */
+  readonly #lazyLoads = new Map<string, Promise<LabExample>>();
+  /** 마지막 받기 요청 번호 — 받는 동안 다른 예제를 고르면 앞 요청의 결과는 쓰지 않는다 */
+  #lazyRequest = 0;
+  /** 편집칸에 예제 코드 대신 자리 글이 있는지(그동안 읽기 전용, [실행]·공유·내려받기·[초기화]는 하지 않는다) */
+  #codePending: 'loading' | 'failed' | null = null;
+  /** 받지 못한 받기를 되풀이하는 함수([다시 받기]) */
+  #retryLazy: (() => void) | null = null;
   readonly #elements: ShellElements;
   readonly #listeners = new Map<keyof LabEvents, Set<LabListener<keyof LabEvents>>>();
   readonly #requestHandlers = new Map<string, RequestHandler>();
@@ -519,7 +555,7 @@ class LabShellController implements LabController {
     this.#elements = elements;
     this.labId = root.dataset.labId ?? 'lab';
     this.#runLabel = elements.runButton.textContent?.trim() || '실행';
-    this.examples = readExamples(root);
+    this.#examples = readExamples(root);
     const forceLimited = new URLSearchParams(window.location.search).get('limited') === '1';
     // labId를 넘기면 워커가 이 실습실에 붙는 흉내 모듈의 파이썬 파일만 넣는다(가상 보드의 machine·time 흉내는 ESP32 실습실에만, P3-01).
     this.runtime = new PythonRuntime({ forceLimited, labId: this.labId });
@@ -549,6 +585,7 @@ class LabShellController implements LabController {
     this.#example = initial;
     this.#autosave = this.#createAutosave(initial);
     const restored = this.#autosave.restore();
+    const initialLazy = isLazyExample(initial) ? initial : null;
     let doc: string;
     let source: CodeSource;
     if (share?.code !== undefined) {
@@ -557,6 +594,11 @@ class LabShellController implements LabController {
     } else if (restored !== null) {
       doc = restored;
       source = 'restore';
+    } else if (initialLazy) {
+      // 고를 때 받는 예제(판 1.5.0): 받는 동안 자리 글을 읽기 전용으로 둔다(받으면 #settleLazyInitial이 바꿔 넣는다)
+      doc = LAZY_PENDING_CODE;
+      source = 'example';
+      this.#codePending = 'loading';
     } else {
       doc = this.#originalCode();
       source = 'example';
@@ -576,6 +618,7 @@ class LabShellController implements LabController {
       },
     });
     this.#applyFontSize(false);
+    this.#renderCodePending();
     this.#renderExampleSelect();
     this.#renderLessonLink();
     this.#renderExampleDescription();
@@ -616,6 +659,14 @@ class LabShellController implements LabController {
     } else {
       this.#startEngineLoad();
     }
+    // 4. 처음 예제가 고를 때 받는 예제면 받는다(판 1.5.0 — 받는 동안 [실행]은 기다린다)
+    if (initialLazy) {
+      this.#settleLazyInitial(initialLazy);
+    }
+  }
+
+  get examples(): readonly LabExample[] {
+    return this.#examples;
   }
 
   /** 파이썬 엔진 받기를 시작한다(여러 번 불러도 같은 약속 — runtime.load) */
@@ -710,6 +761,11 @@ class LabShellController implements LabController {
       if (this.#holdCancelled || this.#disposed || this.#runTarget || this.runtime.state !== 'idle') {
         return null;
       }
+    }
+    if (this.#codePending !== null) {
+      // 편집칸에 예제 코드 대신 자리 글이 있다(고를 때 받는 예제를 아직 받지 못함 — 판 1.5.0)
+      this.showMessage(this.#pendingRunMessage());
+      return null;
     }
     const code = this.getCode();
     this.#beginRun(code, null);
@@ -832,6 +888,10 @@ class LabShellController implements LabController {
 
   async #runOnTarget(target: LabRunTarget): Promise<RunResult | null> {
     if (this.#targetRun) {
+      return null;
+    }
+    if (this.#codePending !== null) {
+      this.showMessage(this.#pendingRunMessage());
       return null;
     }
     const code = this.getCode();
@@ -995,6 +1055,12 @@ class LabShellController implements LabController {
   }
 
   reset(): void {
+    const example = this.#example;
+    if (isLazyExample(example)) {
+      // [초기화]의 기준(예제 원래 코드)을 아직 받지 못했다 — 저장본·공유 코드로 연 키트 예제(판 1.5.0). 받은 뒤 되돌린다.
+      this.#withResolvedExample(example, () => this.reset(), () => this.reset());
+      return;
+    }
     const original = this.#originalCode();
     this.setCode(original, { save: false });
     this.#autosave.forget();
@@ -1004,9 +1070,215 @@ class LabShellController implements LabController {
   }
 
   loadExample(id: string): boolean {
-    const example = findExample(this.examples, id);
+    const example = findExample(this.#examples, id);
     if (!example) {
       return false;
+    }
+    if (isLazyExample(example)) {
+      this.#loadLazyExample(example);
+      return true;
+    }
+    // 받는 중이던 다른 예제는 버린다(나중에 고른 예제가 이긴다)
+    this.#lazyRequest += 1;
+    this.#hideRetry();
+    this.#applyExample(example);
+    return true;
+  }
+
+  // ───────────── 고를 때 받는 예제(판 1.5.0 — lazy-examples.ts, 머리말 "고를 때 받는 예제") ─────────────
+
+  /** 예제를 받아(이미 받았으면 그대로) 목록 자리를 받은 예제로 바꾼다. 받는 중이면 같은 약속을 돌려준다 */
+  #resolveExample(example: LabExample): Promise<LabExample> {
+    if (!isLazyExample(example)) {
+      return Promise.resolve(example);
+    }
+    const pending = this.#lazyLoads.get(example.id);
+    if (pending) {
+      return pending;
+    }
+    this.root.dataset.exampleFetch = 'loading';
+    const promise = fetchLazyExample(example).then(
+      (resolved) => {
+        this.#lazyLoads.delete(example.id);
+        const index = this.#examples.findIndex((item) => item.id === resolved.id);
+        if (index >= 0) {
+          this.#examples[index] = resolved;
+        }
+        this.root.dataset.exampleFetch = 'done';
+        return resolved;
+      },
+      (error: unknown) => {
+        this.#lazyLoads.delete(example.id);
+        this.root.dataset.exampleFetch = 'failed';
+        throw error;
+      },
+    );
+    this.#lazyLoads.set(example.id, promise);
+    return promise;
+  }
+
+  /** [예제 불러오기]로 고른 예제를 받아서 바꿔 끼운다. 받는 동안 편집칸은 앞 예제 그대로이고 [실행]은 기다린다 */
+  #loadLazyExample(entry: LazyExampleEntry): void {
+    const request = ++this.#lazyRequest;
+    this.#hideRetry();
+    this.showMessage(`"${entry.title}" 예제 코드를 받는 중이에요…`);
+    const task = this.#resolveExample(entry).then(
+      (resolved) => {
+        if (request === this.#lazyRequest) {
+          this.#applyExample(resolved);
+        }
+      },
+      (error: unknown) => {
+        if (request !== this.#lazyRequest) {
+          return;
+        }
+        // 선택 상자는 지금 편집칸의 예제로 되돌린다(받지 못한 예제가 열린 것처럼 보이지 않게)
+        this.#renderExampleSelect();
+        this.#lazyFailed(entry, error, () => this.#loadLazyExample(entry), true);
+      },
+    );
+    this.holdRun(task);
+  }
+
+  /**
+   * 처음 고른 예제가 고를 때 받는 예제일 때: 받아서 지금 예제로 삼는다. 편집칸이 자리 글이면 받은 코드로 바꾸고,
+   * 저장본·공유 코드를 보이는 중이면 편집칸은 그대로 두고 배선·실습 방법·설명·[초기화] 기준만 채운다('example' 이벤트 — 보드가 다시 그린다).
+   */
+  #settleLazyInitial(entry: LazyExampleEntry): void {
+    const request = ++this.#lazyRequest;
+    this.#hideRetry();
+    // ?example= 파일을 못 찾아 대신 연 예제·파이썬 받기를 미룬 실습실(휴대폰 — 받을 양 안내)이면 그 안내를 덮지 않는다(편집칸 자리 글이 대신 알린다)
+    const quiet = this.root.dataset.exampleMissing !== undefined || this.root.dataset.loadDeferred === 'yes';
+    if (this.#codePending !== null) {
+      this.#codePending = 'loading';
+      this.#setCodeQuietly(LAZY_PENDING_CODE);
+      this.#renderCodePending();
+      if (!quiet) {
+        this.showMessage(`"${entry.title}" 예제 코드를 받는 중이에요…`);
+      }
+    }
+    const task = this.#resolveExample(entry).then(
+      (resolved) => {
+        if (request !== this.#lazyRequest || this.#example?.id !== resolved.id) {
+          return;
+        }
+        if (this.#adoptResolved(resolved)) {
+          this.#emit('code', { code: resolved.code, source: 'example' });
+          if (!quiet) {
+            this.showMessage(`"${resolved.title}" 예제를 불러왔어요.`);
+          }
+        }
+      },
+      (error: unknown) => {
+        if (request !== this.#lazyRequest || this.#example?.id !== entry.id) {
+          return;
+        }
+        this.#lazyFailed(entry, error, () => this.#settleLazyInitial(entry), this.#codePending !== null);
+      },
+    );
+    this.holdRun(task);
+  }
+
+  /** 지금 예제(아직 받지 않은 자리)를 받은 뒤 then을 부른다 — [초기화]·기록 지우기가 원래 코드를 알아야 할 때 */
+  #withResolvedExample(entry: LazyExampleEntry, then: () => void, retry: () => void): void {
+    const request = ++this.#lazyRequest;
+    this.#hideRetry();
+    this.showMessage(`"${entry.title}" 예제 원래 코드를 받는 중이에요…`);
+    const task = this.#resolveExample(entry).then(
+      (resolved) => {
+        if (request !== this.#lazyRequest || this.#example?.id !== resolved.id) {
+          return;
+        }
+        this.#adoptResolved(resolved);
+        then();
+      },
+      (error: unknown) => {
+        if (request === this.#lazyRequest) {
+          this.#lazyFailed(entry, error, retry, true);
+        }
+      },
+    );
+    this.holdRun(task);
+  }
+
+  /**
+   * 받은 예제를 지금 예제로 삼는다(설명·차시 줄을 다시 그리고 'example'을 알린다). 편집칸이 자리 글이었으면 받은 코드로 바꾸고 true
+   * ('code' 이벤트·안내는 부르는 쪽이 — 까닭이 다르다).
+   */
+  #adoptResolved(resolved: LabExample): boolean {
+    this.#example = resolved;
+    let placed = false;
+    if (this.#codePending !== null) {
+      this.#codePending = null;
+      this.#setCodeQuietly(resolved.code);
+      this.#renderCodePending();
+      placed = true;
+    }
+    this.#renderLessonLink();
+    this.#renderExampleDescription();
+    this.#emit('example', { example: resolved });
+    return placed;
+  }
+
+  /**
+   * 받기가 실패했다: 안내 줄에 까닭과 [다시 받기]. replacing이면(받은 코드로 편집칸을 바꾸려던 받기) 기다리던 [실행]을 버린다 —
+   * 그대로 두면 학생이 고른 예제 대신 편집칸의 다른 코드가 돈다.
+   */
+  #lazyFailed(entry: LabExample, error: unknown, retry: () => void, replacing: boolean): void {
+    if (this.#codePending !== null) {
+      this.#codePending = 'failed';
+      this.#setCodeQuietly(LAZY_FAILED_CODE);
+      this.#renderCodePending();
+    }
+    if (replacing && this.#holdWaiting) {
+      this.#holdCancelled = true;
+    }
+    this.#retryLazy = retry;
+    this.showMessage(lazyFailureMessage(entry.title, error));
+    if (this.#elements.exampleRetry) {
+      this.#elements.exampleRetry.hidden = false;
+    }
+  }
+
+  #hideRetry(): void {
+    this.#retryLazy = null;
+    if (this.#elements.exampleRetry) {
+      this.#elements.exampleRetry.hidden = true;
+    }
+  }
+
+  /** 편집칸 잠금과 뿌리 표시(data-example-pending)를 #codePending에 맞춘다 */
+  #renderCodePending(): void {
+    this.editor.setReadOnly(this.#codePending !== null);
+    if (this.#codePending === null) {
+      delete this.root.dataset.examplePending;
+    } else {
+      this.root.dataset.examplePending = this.#codePending;
+    }
+  }
+
+  /** 자동 저장·'code' 이벤트 없이 편집칸 글만 바꾼다(부르는 쪽이 알맞은 까닭으로 알린다) */
+  #setCodeQuietly(code: string): void {
+    this.#suppressAutosave = true;
+    try {
+      this.editor.setValue(code);
+    } finally {
+      this.#suppressAutosave = false;
+    }
+  }
+
+  /** 자리 글인 동안 [실행]·공유·내려받기·[초기화]를 누르면 보이는 안내 */
+  #pendingRunMessage(): string {
+    return this.#codePending === 'failed'
+      ? '예제 코드를 받지 못해서 할 수 없어요. [다시 받기]를 누르거나 다른 예제를 골라 주세요.'
+      : '예제 코드를 아직 받는 중이에요. 다 받은 뒤에 다시 눌러 주세요.';
+  }
+
+  /** 보통 예제(코드가 있는 예제)로 바꿔 끼운다 — 저장본이 있으면 저장본 */
+  #applyExample(example: LabExample): void {
+    if (this.#codePending !== null) {
+      this.#codePending = null;
+      this.#renderCodePending();
     }
     this.#autosave.flush();
     this.#example = example;
@@ -1025,7 +1297,6 @@ class LabShellController implements LabController {
     this.#emit('example', { example });
     this.#emit('code', { code: this.getCode(), source: 'example' });
     this.showMessage(restored !== null ? `"${example.title}" 예제의 저장된 코드를 불러왔어요.` : `"${example.title}" 예제를 불러왔어요.`);
-    return true;
   }
 
   appendConsole(text: string, kind: ConsoleKind = 'stdout', options: ConsoleAppendOptions = {}): void {
@@ -1566,6 +1837,10 @@ class LabShellController implements LabController {
       void this.stop();
     });
     listen(e.resetButton, 'click', () => {
+      if (this.#codePending !== null) {
+        this.showMessage(this.#pendingRunMessage());
+        return;
+      }
       if (this.getCode() === this.#originalCode()) {
         this.showMessage(this.#example ? '지금 코드가 이미 예제 원래 코드예요.' : '지금 코드가 이미 처음 코드예요.');
         return;
@@ -1584,8 +1859,25 @@ class LabShellController implements LabController {
         this.showMessage('불러올 예제를 먼저 골라 주세요.');
       }
     });
-    listen(e.shareButton, 'click', () => this.#openShare());
+    listen(e.exampleRetry, 'click', () => {
+      const retry = this.#retryLazy;
+      // 누른 [다시 받기]가 숨으므로 초점을 예제 선택 상자로 옮긴다(초점이 문서로 사라지지 않게 — C63)
+      this.#hideRetry();
+      (e.exampleSelect ?? e.runButton).focus({ preventScroll: true });
+      retry?.();
+    });
+    listen(e.shareButton, 'click', () => {
+      if (this.#codePending !== null) {
+        this.showMessage(this.#pendingRunMessage());
+        return;
+      }
+      this.#openShare();
+    });
     listen(e.downloadButton, 'click', () => {
+      if (this.#codePending !== null) {
+        this.showMessage(this.#pendingRunMessage());
+        return;
+      }
       const ok = downloadTextFile(exampleFileName(this.#example), this.getCode());
       this.showMessage(ok ? `${exampleFileName(this.#example)} 파일로 내려받아요.` : '이 브라우저에서는 파일 내려받기를 시작하지 못했어요.');
     });
@@ -1716,13 +2008,28 @@ class LabShellController implements LabController {
       const removed = (event as CustomEvent<{ removed?: number }>).detail?.removed ?? 0;
       this.#fontSizePx = DEFAULT_FONT_SIZE_PX;
       this.#applyFontSize(false);
-      const original = this.#originalCode();
-      this.setCode(original, { save: false });
+      const done = '기록을 지웠어요. 편집칸은 예제 원래 코드로 돌아갔어요.';
+      const backToOriginal = () => {
+        const original = this.#originalCode();
+        this.setCode(original, { save: false });
+        this.#emit('code', { code: original, source: 'records-cleared' });
+      };
       this.#autosave.forget();
       this.#setSaveState('idle');
-      this.#emit('code', { code: original, source: 'records-cleared' });
+      const example = this.#example;
+      if (isLazyExample(example)) {
+        // 원래 코드를 아직 받지 못한 예제(판 1.5.0) — 받은 뒤 되돌린다. 저장본은 이미 지웠다.
+        this.#emit('records-cleared', { removed });
+        const later = () => {
+          backToOriginal();
+          this.showMessage(done);
+        };
+        this.#withResolvedExample(example, later, later);
+        return;
+      }
+      backToOriginal();
       this.#emit('records-cleared', { removed });
-      this.showMessage('기록을 지웠어요. 편집칸은 예제 원래 코드로 돌아갔어요.');
+      this.showMessage(done);
     };
     document.addEventListener(RECORDS_CLEARED_EVENT, handler);
     this.#cleanups.push(() => document.removeEventListener(RECORDS_CLEARED_EVENT, handler));
@@ -1777,6 +2084,7 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     exampleSelect: query(root, '[data-lab-example-select]'),
     exampleName: query(root, '[data-lab-example-name]'),
     exampleLoadButton: query(root, '[data-lab-example-load]'),
+    exampleRetry: query(root, '[data-lab-example-retry]'),
     shareButton: query(root, '[data-lab-share]'),
     downloadButton: query(root, '[data-lab-download]'),
     editorHost,

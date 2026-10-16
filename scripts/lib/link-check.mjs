@@ -3,7 +3,8 @@
 // 읽는 주소
 // - HTML: a·area·link의 href, script·img·iframe·audio·video·source·track·embed의 src, img·source의 srcset,
 //   video의 poster, object의 data, form의 action, SVG use·image의 href(xlink:href),
-//   사이트 주소로 시작하는 공유 미리보기 meta(og:url·og:image·twitter:image)의 content
+//   사이트 주소로 시작하는 공유 미리보기 meta(og:url·og:image·twitter:image)의 content,
+//   실습실 예제 목록 JSON(<script data-lab-examples>)의 codeUrl — 고를 때 받는 예제의 코드 파일(판 1.5.0, extractLabExampleCodeUrls)
 // - CSS: url(…)과 @import
 // - #위치: 가리키는 페이지에 그 id(또는 a 요소의 name)가 있는지
 //
@@ -228,6 +229,37 @@ export function extractHtmlReferences(html, site) {
 }
 
 /**
+ * 실습실 예제 목록 JSON(LabShell의 `<script type="application/json" data-lab-examples>`)에 적힌 받을 주소(codeUrl)를 읽는다.
+ * 판 1.5.0부터 키트 장치 도감 예제는 코드를 HTML에 심지 않고 이 주소(빌드가 만든 JSON 파일)에서 고를 때 받는다
+ * (src/lab/controls/lazy-examples.ts) — <script> 안 글자는 다른 주소처럼 읽지 않으므로 여기서 따로 꺼내 같은 검사를 한다.
+ * @param {string} html
+ * @returns {string[]}
+ */
+export function extractLabExampleCodeUrls(html) {
+  /** @type {string[]} */
+  const refs = [];
+  for (const match of html.matchAll(/<script\b[^>]*\bdata-lab-examples\b[^>]*>([\s\S]*?)<\/script\s*>/giu)) {
+    /** @type {unknown} */
+    let parsed;
+    try {
+      parsed = JSON.parse(match[1] ?? '[]');
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(parsed)) {
+      continue;
+    }
+    for (const item of parsed) {
+      const codeUrl = item && typeof item === 'object' ? /** @type {Record<string, unknown>} */ (item).codeUrl : undefined;
+      if (typeof codeUrl === 'string' && codeUrl !== '') {
+        refs.push(codeUrl);
+      }
+    }
+  }
+  return refs;
+}
+
+/**
  * CSS에서 url(…)과 @import 주소를 읽는다.
  * @param {string} css
  * @returns {string[]}
@@ -387,6 +419,9 @@ export function checkLinks(distDir, site, options = {}) {
       const { refs, ids } = extractHtmlReferences(html, site);
       idCache.set(file, ids);
       for (const ref of refs) {
+        checkReference(file, ref);
+      }
+      for (const ref of extractLabExampleCodeUrls(html)) {
         checkReference(file, ref);
       }
     } else if (file.endsWith('.css')) {

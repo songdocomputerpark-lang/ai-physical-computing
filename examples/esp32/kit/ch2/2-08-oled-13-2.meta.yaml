@@ -16,9 +16,8 @@ kit:
   step: 2
 source: brixel
 source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-2-08
-virtual: real-only
-virtual_reason: 가상 보드의 sh1106 흉내가 이 코드의 호출 모양(SH1106_I2C(128, 64, i2c, None, addr=0x3C))을 아직 받지 못해서
-virtual_ok: false
+virtual: full
+virtual_ok: true
 parts:
   - part: oled-i2c
     id: oled
@@ -27,8 +26,8 @@ parts:
       scl: 22
     label: OLED 1.3인치(128×64)
 practice:
-  - 가상 보드의 sh1106 흉내가 이 코드의 호출 모양(SH1106_I2C(128, 64, i2c, None, addr=0x3C))을 아직 받지 못해서 여기서는 끝까지 돌지 않아요. 실제 키트가 있다면 실제 보드에서 해 보세요.
-  - 실제 보드에서는 [실제 보드] 탭에서 보드를 연결하고 [실행]을 눌러요. 배선은 이 장치 쪽의 배선표와 회로 그림을 보세요.
-  - 실제 보드에서 코드가 끝나지 않으면 [정지]를 눌러요.
+  - "[실행]을 눌러요."
+  - 보드 그림의 BOOT 버튼을 눌러 보세요. 콘솔에 나오는 글자를 봐요.
+  - 다 봤으면 [정지]를 눌러요.
 packages: []
 note: 가상 보드에서는 OLED 부품이 sh1106 드라이버를 대신해요. 실제 보드에는 sh1106.py를 보드에 올려야 해요(아래 라이브러리 링크).

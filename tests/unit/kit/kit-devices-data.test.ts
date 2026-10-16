@@ -92,9 +92,11 @@ describe('키트 장치 도감 자료(content/kit/devices.yaml)', () => {
     }
   });
 
-  it('장 이름표는 1~8장이고 1장 시작하기 코드는 12개다', () => {
+  it('장 이름표는 1~8장이고 1장 시작하기 코드는 10개다(브릭셀 쪽 12개 가운데 웹 전용 1.7.7 brx_ble.py·boot.py 블록은 싣지 않음 — 판 1.5.0 K3a)', () => {
     expect(data.chapters.map((chapter) => chapter.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(data.intro).toHaveLength(12);
+    expect(data.intro).toHaveLength(10);
+    expect(data.intro.map((item) => item.file)).not.toContain('esp32/kit/ch1/1-7-7-brx-ble.py');
+    expect(data.intro.map((item) => item.file)).not.toContain('esp32/kit/ch1/1-7-7-boot-block.py');
   });
 
   it('장치마다 사진 id(부품 사전)·회로 그림 파일·배선 줄·두 단계가 있고 단계 파일이 실제로 있다', () => {
@@ -148,7 +150,7 @@ describe('키트 장치 도감 자료(content/kit/devices.yaml)', () => {
     expect(present.has('pyfingerprint.py')).toBe(false);
   });
 
-  it('1장 시작하기 코드 12개의 파일이 있다', () => {
+  it('1장 시작하기 코드 10개의 파일이 있다', () => {
     for (const item of data.intro) {
       expect(kitFiles, item.number).toContain(item.file);
       expect(item.file).toMatch(/^esp32\/kit\/ch1\//u);
@@ -157,8 +159,8 @@ describe('키트 장치 도감 자료(content/kit/devices.yaml)', () => {
 });
 
 describe('키트 장치 도감 예제 파일(examples/esp32/kit/**)', () => {
-  it('코드 214개(장치 202 + 1장 12)이고 모두 사이드카가 짝으로 있다', () => {
-    expect(kitFiles).toHaveLength(214);
+  it('코드 212개(장치 202 + 1장 10)이고 모두 사이드카가 짝으로 있다', () => {
+    expect(kitFiles).toHaveLength(212);
     for (const file of kitFiles) {
       expect(Object.keys(sidecarRaw), file).toContain(`/examples/${file.replace(/\.py$/u, '.meta.yaml')}`);
     }
@@ -201,7 +203,7 @@ describe('키트 장치 도감 예제 파일(examples/esp32/kit/**)', () => {
     for (const item of data.intro) {
       byFile.set(item.file, { device: '', step: 0, virtual: item.virtual });
     }
-    expect(byFile.size).toBe(214);
+    expect(byFile.size).toBe(212);
     for (const file of kitFiles) {
       const expected = byFile.get(file);
       expect(expected, `${file}이(가) devices.yaml에 없어요`).toBeDefined();

@@ -42,6 +42,11 @@ export interface LabExample {
   readonly parts?: readonly WiringEntry[];
   /** 실습 방법 단계(선택, P3-02): 사이드카 practice → 머리말 "실습 방법" 상자. ESP32 실습실이 보드 그림 위에 보인다 */
   readonly practice?: readonly string[];
+  /**
+   * (판 1.5.0) 고를 때 받는 예제: code는 빈 글자이고 코드·설명·배선은 이 주소의 JSON에서 받는다(src/lab/controls/lazy-examples.ts).
+   * 키트 장치 도감 예제가 ESP32 실습실 HTML을 키우지 않게 한다(DECISIONS C15·C151). 받은 뒤에는 이 칸이 없는 보통 예제로 바뀐다.
+   */
+  readonly codeUrl?: string;
 }
 
 /** 예제 id 모양 */
@@ -85,6 +90,15 @@ export function validateExamples(examples: readonly LabExample[]): string[] {
     }
     if (example.file !== undefined && !isValidExampleFile(example.file)) {
       errors.push(`${where}: file "${String(example.file)}"은(는) examples/ 아래 .py 경로여야 해요(예: vision/u1/1-2-1-flip.py).`);
+    }
+    if (example.codeUrl !== undefined) {
+      // 고를 때 받는 예제(판 1.5.0): 사이트 안 주소(/로 시작)이고, 코드를 HTML에 함께 심지 않는다
+      if (typeof example.codeUrl !== 'string' || !example.codeUrl.startsWith('/') || example.codeUrl.startsWith('//')) {
+        errors.push(`${where}: codeUrl "${String(example.codeUrl)}"은(는) /로 시작하는 사이트 안 주소여야 해요(withBase()로 만들어요).`);
+      }
+      if (example.code !== '') {
+        errors.push(`${where}: codeUrl이 있는 예제는 code를 빈 글자로 둬요(코드는 그 주소에서 받아요).`);
+      }
     }
   });
   return errors;

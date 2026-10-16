@@ -25,7 +25,7 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { python } from '@codemirror/lang-python';
 import { bracketMatching, indentOnInput, indentUnit, syntaxHighlighting } from '@codemirror/language';
-import { EditorState, type Extension } from '@codemirror/state';
+import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import {
   EditorView,
   drawSelection,
@@ -85,6 +85,11 @@ export interface PythonEditor {
   focus(): void;
   hasFocus(): boolean;
   setFontSize(px: number): void;
+  /**
+   * (판 1.5.0) 학생이 고치지 못하게 잠그거나 푼다 — 고를 때 받는 예제의 코드를 받는 동안(lab-shell.ts). 초점·선택·복사는 그대로 되고
+   * setValue 같은 코드의 바꾸기는 잠가도 된다(EditorState.readOnly는 입력·명령만 막는다). 화면 낭독기에는 aria-readonly로 알린다.
+   */
+  setReadOnly(readOnly: boolean): void;
   destroy(): void;
 }
 
@@ -129,7 +134,13 @@ export function createPythonEditor(options: PythonEditorOptions): PythonEditor {
     passTabFromEntry = false;
   };
 
+  // 잠금(setReadOnly) 자리 — 처음에는 풀려 있다
+  const readOnlyCompartment = new Compartment();
+  const readOnlyExtension = (readOnly: boolean): Extension =>
+    readOnly ? [EditorState.readOnly.of(true), EditorView.contentAttributes.of({ 'aria-readonly': 'true' })] : [];
+
   const extensions: Extension[] = [
+    readOnlyCompartment.of(readOnlyExtension(false)),
     lineNumbers(),
     highlightActiveLineGutter(),
     highlightSpecialChars(),
@@ -225,6 +236,9 @@ export function createPythonEditor(options: PythonEditorOptions): PythonEditor {
     focus: () => view.focus(),
     hasFocus: () => view.hasFocus,
     setFontSize,
+    setReadOnly: (readOnly) => {
+      view.dispatch({ effects: readOnlyCompartment.reconfigure(readOnlyExtension(readOnly)) });
+    },
     destroy: () => {
       ownerDocument.removeEventListener('keydown', onDocumentKeydown, true);
       ownerDocument.removeEventListener('pointerdown', onDocumentPointerdown, true);

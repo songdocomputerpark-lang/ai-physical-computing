@@ -7,6 +7,7 @@
  *
  * 입력
  *   - kit.json   scripts/kit/extract-brixel.py가 브릭셀(고릴라셀) Thonny ESP32 쪽 HTML에서 뽑은 장치 101개·코드 202개·1장 코드 12개
+ *                (1장 코드 가운데 분류 표에 skip을 적은 것은 싣지 않는다 — 1.7.7 brx_ble.py·boot.py 블록, 판 1.5.0 K3a. 그래서 1장은 10개)
  *   - kit-classification.yaml   사람이 정한 분류·가상 보드 배선·까닭(그 파일 머리말에 칸 설명)
  * 출력 (모두 저장소 뿌리 기준)
  *   - examples/esp32/kit/ch<장>/<번호>-<이름>-<단계>.py      브릭셀 쪽 코드를 한 글자도 고치지 않고(줄 끝 LF, 끝 줄바꿈 하나만) 옮김
@@ -317,7 +318,7 @@ const kit = JSON.parse(fs.readFileSync(KIT_PATH, 'utf8'));
 const classification = readYaml(CLASS_PATH);
 const introClassification = classification.intro ?? {};
 
-const stats = { py: 0, sidecars: 0, sidecarsSkipped: 0, virtual: { full: 0, partial: 0, 'real-only': 0 }, support: {}, problems: [] };
+const stats = { py: 0, sidecars: 0, sidecarsSkipped: 0, virtual: { full: 0, partial: 0, 'real-only': 0 }, support: {}, problems: [], skipped: [] };
 const outputs = []; // 쓴 파일 기록
 
 function emitExample({ file, code, sidecar }) {
@@ -409,7 +410,7 @@ for (const device of kit.devices) {
   });
 }
 
-// 1장 소절 코드 12개
+// 1장 소절 코드(kit.json 12개 — 분류 표의 skip은 빼서 10개)
 const introOut = [];
 const seenIntro = new Map();
 for (const item of kit.intro) {
@@ -418,6 +419,11 @@ for (const item of kit.intro) {
   seenIntro.set(key, true);
   if (!cls) {
     stats.problems.push(`1장 ${key}: kit-classification.yaml의 intro에 분류가 없어요.`);
+    continue;
+  }
+  if (typeof cls.skip === 'string' && cls.skip.trim() !== '') {
+    // 싣지 않기로 한 코드(까닭은 분류 표의 skip) — 예제 파일·사이드카·devices.yaml 줄을 만들지 않는다
+    stats.skipped.push(`${key}: ${cls.skip}`);
     continue;
   }
   const file = `${KIT_DIR}/ch1/${item.number.replace(/\./gu, '-')}-${cls.slug}.py`;
@@ -464,7 +470,7 @@ for (const id of Object.keys(classification)) {
 }
 
 // ── devices.yaml ──
-const DEVICES_HEADER = `# 키트 장치 도감 데이터 — 브릭셀(고릴라셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 장치 101개와 1장 시작하기 코드 12개 (판 1.5.0)
+const DEVICES_HEADER = `# 키트 장치 도감 데이터 — 브릭셀(고릴라셀) '마이크로파이썬 시작하기'(Thonny + ESP32 개발 키트) 쪽의 장치 101개와 1장 시작하기 코드 10개 (판 1.5.0)
 # 읽는 곳: 키트 장치 도감 쪽 /labs/esp32/kit/ 와 장치 쪽 /labs/esp32/kit/<id>/ (K3), ESP32 실습실 예제 목록·예제 갤러리는 이 파일이 아니라 예제 사이드카(kit 칸)를 읽어요.
 # 허락·표기: 운영자가 고릴라셀(브릭셀) 예제와 그림을 그대로 싣도록 허락했어요(DECISIONS O19). 표기 "고릴라셀(브릭셀) 제공, 허락받아 사용".
 #
@@ -513,6 +519,9 @@ if (!FORCE && fs.existsSync(DEVICES_PATH)) {
 console.log(`장치 ${devicesOut.length}개, 1장 코드 ${introOut.length}개, 코드 파일 ${stats.py}개 (사이드카 새로 ${stats.sidecars}개, 건너뜀 ${stats.sidecarsSkipped}개)`);
 console.log(`분류: ${Object.entries(stats.support).map(([key, value]) => `${key} ${value}`).join(' · ')} (장치 기준)`);
 console.log(`가상 보드(코드 기준): full ${stats.virtual.full} · partial ${stats.virtual.partial} · real-only ${stats.virtual['real-only']}`);
+for (const skipped of stats.skipped) {
+  console.log(`싣지 않음(분류 표 skip): ${skipped}`);
+}
 if (DRY) {
   console.log('--dry-run: 파일을 쓰지 않았어요.');
 }

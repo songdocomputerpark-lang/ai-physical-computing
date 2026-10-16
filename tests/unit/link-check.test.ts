@@ -6,6 +6,7 @@ import {
   checkLinks,
   extractCssReferences,
   extractHtmlReferences,
+  extractLabExampleCodeUrls,
   formatLinkReport,
   siteFromHomepage,
 } from '../../scripts/lib/link-check.mjs';
@@ -202,6 +203,34 @@ describe('링크 검사(checkLinks)', () => {
       ['/demo/labs/esp32/?example=vision/u4/c3-finger-count-send.py', 'example-wrong-lab'],
     ]);
     expect(formatLinkReport(report, site)).toContain('예제를 싣지 않는 실습실로 열어요');
+  });
+
+  it('실습실 예제 목록 JSON의 codeUrl(고를 때 받는 키트 예제 — 판 1.5.0)이 빌드 결과의 파일을 가리키는지 본다', () => {
+    const examples = [
+      { id: 'first', title: '첫 예제', code: 'print(1)\n', file: 'esp32/first.py' },
+      { id: 'kit-a', title: '키트 A', code: '', file: 'esp32/kit/ch2/2-01-led-1.py', codeUrl: '/demo/labs/esp32/kit-code/ch2/2-01-led-1.json?v=1.5.0' },
+      { id: 'kit-b', title: '키트 B', code: '', file: 'esp32/kit/ch2/2-01-led-2.py', codeUrl: '/demo/labs/esp32/kit-code/ch2/2-01-led-2.json?v=1.5.0' },
+      { id: 'kit-c', title: '키트 C</script>', code: '', codeUrl: '/labs/esp32/kit-code/ch2/2-02-x-1.json' },
+    ];
+    const json = JSON.stringify(examples).replace(/</gu, '\\u003c');
+    const html = page(`<div data-lab><script type="application/json" data-lab-examples>${json}</script></div>`);
+    expect(extractLabExampleCodeUrls(html)).toEqual([
+      '/demo/labs/esp32/kit-code/ch2/2-01-led-1.json?v=1.5.0',
+      '/demo/labs/esp32/kit-code/ch2/2-01-led-2.json?v=1.5.0',
+      '/labs/esp32/kit-code/ch2/2-02-x-1.json',
+    ]);
+    // 스크립트 안 다른 주소는 여전히 읽지 않는다(목록 JSON의 codeUrl만)
+    expect(extractHtmlReferences(html, site).refs).toEqual([]);
+    const dist = makeDist({
+      'index.html': page('<p>홈</p>'),
+      'labs/esp32/index.html': html,
+      'labs/esp32/kit-code/ch2/2-01-led-1.json': '{}',
+    });
+    const report = checkLinks(dist, site, { examplesDir: dist });
+    expect(report.problems.map((problem) => [problem.ref, problem.kind])).toEqual([
+      ['/demo/labs/esp32/kit-code/ch2/2-01-led-2.json?v=1.5.0', 'not-found'],
+      ['/labs/esp32/kit-code/ch2/2-02-x-1.json', 'base-missing'],
+    ]);
   });
 
   it('404 페이지의 상대 주소와 CSS가 가리키는 없는 파일을 찾아낸다', () => {

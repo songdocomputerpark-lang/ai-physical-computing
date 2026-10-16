@@ -30,9 +30,9 @@ d-2-04: { support: A, tags: [레이저, 출력], parts: [{ part: laser, pin: 4, 
 d-2-05: { support: A, slug: lcd-i2c, tags: [LCD, I2C, 글자 표시] }
 d-2-06: { support: B2, slug: 7segment, tags: [7세그먼트, TM1637], reason: "TM1637 7세그먼트 표시 장치(2선 통신)의 흉내가 가상 보드에 아직 없어서" }
 d-2-07: { support: A, slug: oled-096, tags: [OLED, I2C, SSD1306], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 0.96인치(128×64) }], note: "가상 보드에서는 OLED 부품이 ssd1306 드라이버를 대신해요. 실제 보드에는 ssd1306.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
-# 2026-10-16 호환 검사: 가상 보드의 sh1106 흉내(src/lab/modules/board/parts/oled-i2c/sh1106.py)가 브릭셀 코드의 SH1106_I2C(128, 64, i2c, None, addr=0x3C) 호출(robert-hh 판 — 4번째 자리 res)을
-# 받지 못해 TypeError("got multiple values for argument 'addr'")로 멈춘다. 흉내를 고치면 아래 virtual·reason을 지우고 generate-kit.mjs --force로 다시 만든다.
-d-2-08: { support: A, virtual: real-only, reason: "가상 보드의 sh1106 흉내가 이 코드의 호출 모양(SH1106_I2C(128, 64, i2c, None, addr=0x3C))을 아직 받지 못해서", slug: oled-13, tags: [OLED, I2C, SH1106], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 1.3인치(128×64) }], note: "가상 보드에서는 OLED 부품이 sh1106 드라이버를 대신해요. 실제 보드에는 sh1106.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
+# 2026-10-16 K3a: 가상 보드의 sh1106 흉내(src/lab/modules/board/parts/oled-i2c/sh1106.py)가 브릭셀 코드의 SH1106_I2C(128, 64, i2c, None, addr=0x3C) 호출
+# (robert-hh 판 — 넷째 자리 res)도 받게 고쳐 virtual(real-only)·reason을 지웠다(교과서 판 SH1106_I2C(128, 64, i2c, 0x3D)도 그대로 된다).
+d-2-08: { support: A, slug: oled-13, tags: [OLED, I2C, SH1106], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 1.3인치(128×64) }], note: "가상 보드에서는 OLED 부품이 sh1106 드라이버를 대신해요. 실제 보드에는 sh1106.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
 d-2-09: { support: B2, slug: dotmatrix-8x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서" }
 d-2-10: { support: B2, slug: dotmatrix-16x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서" }
 d-2-11: { support: B2, slug: dotmatrix-8x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
@@ -141,6 +141,7 @@ d-8-09: { support: C, slug: tfcard, tags: [TF 카드, SD 카드, SPI, 파일], r
 
 # ── 1장 시작하기 소절의 코드 12개 (키: "<소절 번호>#<그 소절의 몇 번째 코드>") ──
 # 칸은 장치와 같고, 장치 카드가 없어서 title(소절 이름 뒤에 붙는 말)·description을 직접 적어요.
+# skip: <까닭>을 적은 코드는 싣지 않아요(예제 파일·사이드카·devices.yaml 줄을 만들지 않음 — 1.7.7의 둘, 판 1.5.0 K3a). 그래서 실리는 것은 10개예요.
 intro:
   "1.5.4#1": { slug: hello-world, title: 내장 LED 깜빡이기, description: "내장 LED(GPIO 2)를 1초 간격으로 깜빡여 MicroPython 펌웨어가 잘 들어갔는지 확인해요.", difficulty: 1, tags: [Hello World, 내장 LED, 시작하기] }
   "1.6#1": { slug: basics, title: 마이크로파이썬 기초 문법 모음, description: "변수·조건문·반복문·함수와 machine 모듈 가져오기(Pin·ADC·PWM·UART·SPI·I2C)를 한눈에 보는 견본 코드예요.", difficulty: 1, tags: [파이썬 기초, 문법, 시작하기], virtual: real-only, reason: "machine.SPI가 가상 보드에 아직 없어서 첫 줄의 가져오기(import)에서 멈추기 때문에" }
@@ -151,6 +152,6 @@ intro:
   "1.7.5#1": { slug: uart, title: UART 시리얼 통신, description: "UART2(TX 17·RX 16)로 글을 보내고, 받은 글을 그대로 되돌려 보내는 에코 코드예요.", difficulty: 2, tags: [UART, 시리얼, 시작하기], parts: [{ part: uart, pins: { rx: 17, tx: 16 }, label: USB-UART 변환기(컴퓨터 시리얼 창) }] }
   "1.7.6#1": { slug: wifi-station, title: 와이파이 공유기에 연결하기, description: "ESP32를 와이파이 공유기에 연결하고 받은 IP 주소를 보여 줘요. 공유기 이름과 비밀번호 자리에는 본인 것을 적어야 해요.", difficulty: 2, tags: [와이파이, WiFi, network, 시작하기] }
   "1.7.6#2": { slug: wifi-ap, title: 와이파이 핫스팟 만들기, description: "ESP32를 와이파이 핫스팟(AP 모드)으로 만들고 이름과 IP 주소를 보여 줘요.", difficulty: 2, tags: [와이파이, WiFi, 핫스팟, network, 시작하기] }
-  "1.7.7#1": { slug: brx-ble, title: 브릭셀 무선 연결 통로(brx_ble.py), practice: ["이 파일은 브릭셀 웹 쪽의 [무선 연결 설치]가 쓰는 참고용 코드예요. 이 사이트에서는 [실행]하지 않아도 돼요.", "보드의 대화 창(REPL)을 USB와 블루투스 두 길로 함께 여는 방법을 읽어 보세요. 이 사이트에서 실제 보드에 연결할 때는 [실제 보드] 탭(USB)을 써요."], description: "브릭셀 웹 쪽의 [무선 연결 설치]가 보드의 /lib에 올리는 파일이에요. 브릭셀 웹 쪽 전용이라 이 사이트에서는 쓰지 않고 참고용으로만 실었어요.", difficulty: 3, tags: [블루투스, BLE, 참고용, 시작하기], virtual: real-only, reason: "브릭셀 웹 쪽의 무선 연결 설치 전용 파일이고 os.dupterm 같은 보드 기능이 가상 보드에 없어서", note: "이 사이트에서는 쓰지 않는 참고용 코드예요. 이 사이트에서 보드에 연결하려면 [실제 보드] 탭(USB)을 쓰세요." }
-  "1.7.7#2": { slug: boot-block, title: 브릭셀 무선 연결 boot.py 블록, practice: ["이 블록은 브릭셀 웹 쪽의 [무선 연결 설치]가 boot.py에 넣는 참고용 코드예요. 이 사이트에서는 [실행]하지 않아도 돼요.", "brx_ble.py가 보드에 있어야 동작해요. 이 사이트에서 실제 보드에 연결할 때는 [실제 보드] 탭(USB)을 써요."], description: "브릭셀 웹 쪽의 [무선 연결 설치]가 boot.py에 넣는 블록이에요. 브릭셀 웹 쪽 전용이라 이 사이트에서는 쓰지 않고 참고용으로만 실었어요.", difficulty: 2, tags: [블루투스, BLE, 참고용, 시작하기], virtual: real-only, reason: "브릭셀 웹 쪽의 무선 연결 설치 전용 코드이고 brx_ble.py가 보드에 있어야 해서", note: "이 사이트에서는 쓰지 않는 참고용 코드예요. 이 사이트에서 보드에 연결하려면 [실제 보드] 탭(USB)을 쓰세요." }
+  "1.7.7#1": { skip: "브릭셀 웹 쪽 [무선 연결 설치] 전용 파일(brx_ble.py)이라 이 사이트에는 싣지 않아요(판 1.5.0 K3a)" }
+  "1.7.7#2": { skip: "브릭셀 웹 쪽 [무선 연결 설치]가 boot.py에 넣는 블록이라 이 사이트에는 싣지 않아요(판 1.5.0 K3a)" }
   "1.7.7#3": { slug: ble-uart-server, title: 블루투스 UART 서버 직접 만들기, description: "Nordic UART Service(NUS)로 휴대폰과 글을 주고받는 블루투스 서버예요. 연결되기 전에는 내장 LED가 깜빡이고, 연결되면 켜져요.", difficulty: 3, tags: [블루투스, BLE, NUS, 시작하기], parts: [{ part: ble, pin: 12, label: 블루투스(BLE) }] }

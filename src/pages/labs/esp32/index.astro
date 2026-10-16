@@ -7,64 +7,28 @@
  * 가상 보드는 Pyodide 코어만 쓴다(PD-04) — OpenCV·numpy를 받지 않는다(LabShell pyodidePackages={[]}: 준비 모듈의 미리 받기도 파이썬 엔진만,
  * 실행 때도 import 문을 보고 받지 않는다 — 보드 모듈 manifest packagesFromImports: false, 판 1.1.3).
  *
- * 예제 목록: examples/esp32/ 아래 .py(보드 라이브러리 폴더 esp32/lib/ 제외)를 빌드 때 모두 읽는다(src/lab/esp32/examples.ts).
+ * 예제 목록: examples/esp32/ 아래 .py(보드 라이브러리 폴더 esp32/lib/ 제외)를 빌드 때 모두 읽는다(src/lab/esp32/examples.ts — 만드는 곳은 ./_lab-examples.ts).
  * 새 예제는 .py 파일 하나를 그 폴더에 두면 [예제 불러오기]에 들어간다(원칙 6).
+ * (판 1.5.0) 키트 장치 도감 예제(examples/esp32/kit/)는 목록 자리만 심고 코드는 고를 때 받는다(./kit-code/[...file].json.ts, src/lab/controls/lazy-examples.ts).
  * 배선도(P3-02): 예제마다 차시 md frontmatter의 examples[].parts → 사이드카 parts → 머리말 `# @part` 순서로 배선을 정해(README 7.4)
  * LabExample.parts로 넘기면 가상 보드가 부품을 놓고 선을 긋는다. 배선 글이 틀린 줄은 빼고 빌드 경고만 낸다(PD-35).
  * 블록 모드(P3-06)·실제 보드 연결(P3-07~)은 이어서 더한다.
  */
-import { getCollection } from 'astro:content';
 import BrowserNotice from '../../../components/compat/BrowserNotice.astro';
 import Callout from '../../../components/common/Callout.astro';
 import BoardIo from '../../../components/lab/BoardIo.astro';
 import LabShell from '../../../components/lab/LabShell.astro';
-import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { getPage } from '../../../config/nav.ts';
-import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
-import { esp32ExamplesFromFiles } from '../../../lab/esp32/examples.ts';
-import type { WiringEntry } from '../../../lab/modules/board/part-types.ts';
-import { normalizeWiringSpecs } from '../../../lab/modules/board/wiring-spec.ts';
-import type { ExampleLessonLink } from '../../../lab/vision/examples.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { esp32LabExamples } from './_lab-examples.ts';
 
 const page = getPage('labs-esp32');
 const boardPage = getPage('start-board');
 const checkPage = getPage('start-check');
 const errorsPage = getPage('help-errors');
 
-const exampleFiles = import.meta.glob<string>('/examples/esp32/**/*.py', { query: '?raw', eager: true, import: 'default' });
-const sidecarFiles = import.meta.glob<string>('/examples/esp32/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' });
-
-// 예제를 싣는 차시로 돌아가는 링크(영상 처리 실습실과 같은 규칙 — frontmatter examples[].file → 사이드카·머리말 @lesson)
-const lessonEntries = (await getCollection('lessons')).filter((entry) => !entry.data.draft);
-const summaries = new Map(publishedLessons(lessonEntries).map((lesson) => [lesson.id, lesson]));
-const byFile: Record<string, ExampleLessonLink> = {};
-const bySlug: Record<string, ExampleLessonLink> = {};
-const wiringByFile: Record<string, WiringEntry[]> = {};
-const warnWiring = (text: string) => console.warn(`[ESP32 실습실 배선] ${text}`);
-for (const entry of lessonEntries) {
-  // 차시 md의 배선(examples[].parts)은 차시 링크와 상관없이 읽는다(차시가 목록에 아직 안 보여도 예제 배선은 맞게).
-  for (const example of entry.data.examples) {
-    if (example.parts.length > 0 && wiringByFile[example.file] === undefined) {
-      const normalized = normalizeWiringSpecs(example.parts, `content/lessons/${entry.id}.md examples(${example.file})`);
-      normalized.errors.forEach(warnWiring);
-      if (normalized.entries.length > 0) {
-        wiringByFile[example.file] = normalized.entries;
-      }
-    }
-  }
-  const lesson = summaries.get(entry.id);
-  if (!lesson) {
-    continue;
-  }
-  const kindLabel = lesson.kind === 'supplement' ? `${KIND_LABELS.supplement} ` : '';
-  const link = { href: lesson.href, label: `${kindLabel}${lesson.label} ${lesson.title}` };
-  bySlug[lesson.slug] = link;
-  for (const example of entry.data.examples) {
-    byFile[example.file] ??= link;
-  }
-}
-const examples = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug }, { wiringByFile, onWarning: warnWiring });
+// 예제 목록(차시 링크·차시 md 배선 포함 — 만드는 법은 ./_lab-examples.ts 머리말). 키트 예제는 목록 자리만(코드는 고를 때 받는다).
+const { examples } = await esp32LabExamples();
 ---
 
 <BaseLayout title={page.title} description={page.description} width="wide">

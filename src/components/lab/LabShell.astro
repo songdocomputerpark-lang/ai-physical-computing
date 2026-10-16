@@ -20,6 +20,7 @@
  * props
  *   labId             실습실 이름(영문 소문자·숫자·하이픈). 자동 저장 이름 editor:<labId>:<예제 id>에 쓴다. 예: vision, esp32, iot, dev
  *   examples          예제 목록(src/lab/controls/examples.ts의 LabExample[]). 비어 있으면 [예제 불러오기]가 꺼진다.
+ *                     codeUrl이 있는 예제(판 1.5.0 — 코드는 빈 글자)는 고를 때 그 주소에서 코드를 받는다(src/lab/controls/lazy-examples.ts).
  *   initialExampleId  (선택) 처음 고를 예제 id. 없으면 ?example=(examples/ 경로) → 저장된 마지막 예제 → 첫 예제.
  *   editorTitle       (선택) 편집칸 제목(기본 "코드")
  *   headingLevel      (선택) 칸 제목의 단계 2 또는 3(기본 2). 차시 안에 넣을 때 3.
@@ -52,6 +53,7 @@
  */
 import Callout from '../common/Callout.astro';
 import { assertValidExamples, type LabExample } from '../../lab/controls/examples.ts';
+import { embeddedExampleJson } from '../../lab/controls/lazy-examples.ts';
 import { TAB_HINT } from '../../lab/editor/python-editor.ts';
 import { folderNameOf, modulesForLab } from '../../lab/modules/manifests.ts';
 import type { ModulePlacement } from '../../lab/modules/types.ts';
@@ -117,7 +119,8 @@ const ids = {
 const hasIo = Astro.slots.has('io');
 const hasPanel = Astro.slots.has('panel');
 // JSON 안의 <를 유니코드로 바꿔 </script>가 스크립트를 끊지 못하게 한다.
-const examplesJson = JSON.stringify(examples).replace(/</gu, '\\u003c');
+// 고를 때 받는 예제(판 1.5.0)는 제목·묶음 없이 id·파일·받을 주소만 심는다 — 제목은 아래 선택 상자의 <option>에 있다(lazy-examples.ts embeddedExampleJson)
+const examplesJson = JSON.stringify(examples.map(embeddedExampleJson)).replace(/</gu, '\\u003c');
 
 // [예제 불러오기] 선택 상자: group이 있는 예제는 같은 이름끼리 optgroup으로 묶는다(목록 순서 유지, 없는 것은 그대로).
 const exampleGroups: { label: string | null; items: LabExample[] }[] = [];
@@ -203,6 +206,8 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
       <span class="lab__status-progress" data-lab-progress aria-live="off"></span>
     </p>
     <p class="lab__message" role="status" aria-live="polite" data-lab-message></p>
+    {/* 고를 때 받는 예제(판 1.5.0 — 키트 장치 도감)를 받지 못했을 때만 보인다. 까닭은 바로 위 안내 줄(lab-shell.ts #lazyFailed) */}
+    <button type="button" class="lab-button lab-button--small" data-lab-example-retry hidden>다시 받기</button>
   </div>
 
   {

@@ -379,11 +379,17 @@ test.describe('ESP32 실습실 — 가상 보드 핵심', () => {
   test('ESP32 예제 전부의 import 줄을 한 번에 돌려도 "실물 펌웨어에 없는 모듈" 알림이 하나도 나오지 않는다(미해결 222)', async ({ page }) => {
     test.skip(test.info().project.name === 'mobile', '실행 결과는 화면 크기와 상관없어 데스크톱에서 한 번만 본다.');
     const examplesDir = path.join(process.cwd(), 'examples', 'esp32');
+    // 키트 장치 도감(판 1.5.0)의 "실제 보드에서만"(사이드카 virtual: real-only) 예제는 가상 보드가 아직 모르는 모듈(dht·onewire·SPI …)을
+    // 부르는 것이 맞아서 뺀다 — Node 쪽 훑기(tests/unit/lab/helpers/board-steps/module-notices.mjs)와 같은 규칙
+    const realOnly = (file: string): boolean => {
+      const sidecar = file.replace(/\.py$/u, '.meta.yaml');
+      return file.split(path.sep).includes('kit') && fs.existsSync(sidecar) && /^virtual:\s*real-only\s*$/mu.test(fs.readFileSync(sidecar, 'utf8'));
+    };
     const walk = (dir: string): string[] =>
       fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) return entry.name === 'lib' ? [] : walk(full);
-        return entry.name.endsWith('.py') ? [full] : [];
+        return entry.name.endsWith('.py') && !realOnly(full) ? [full] : [];
       });
     const statements = [
       ...new Set(
