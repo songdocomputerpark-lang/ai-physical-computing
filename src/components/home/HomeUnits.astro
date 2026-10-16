@@ -1,0 +1,254 @@
+---
+/**
+ * 홈 "무엇을 배우나요?" — 단원 4장 카드(판 1.6.0, DECISIONS C172). 주소 #units. 옛 HomeLessons(차시 카드 45장, 휴대폰 8,498px)를 줄인 것이다.
+ *
+ * 카드 하나 = 단원 하나: 단원 색 띠·아이콘·"1단원" + 단원 이름·한 줄 설명·처음 할 차시·편 수("13편")·"웹에서 더함 n편"(글자만, 알약 아님)·진도(막대와 글)·[1단원 열기].
+ *  - 카드를 어디 눌러도 그 단원의 따라 하기 차시 목록(/learn/uN/)으로 간다 — [열기] 링크의 ::after 덮개(.card__link). Tab 정류장은 카드마다 이 링크 하나다.
+ *  - 진도가 있고 안 본 차시가 남으면 단추가 "1단원 이어서 하기"로 바뀌어 안 본 첫 차시(따라 하기 쪽)로 간다(home-resume.ts `applyMapProgress` — 마크업 약속은 그 파일 머리말).
+ *    진도 막대·글은 본 차시가 있는 단원에서만 자리를 차지한다(처음 온 사람에게는 카드가 낮고, 칠한 뒤에도 쪽이 밀리지 않는다).
+ *  - 45편 전체 목록은 홈에 한 번만 두면 되므로(차례 그림이 교과서 원문을 모두 보인다) 카드 아래 링크로 /learn/(따라 하기)에 보낸다.
+ * 숫자·처음 할 차시는 home-lessons.ts의 unitStats가 센다 — 새 교과서 쪽이나 웹 차시 md를 넣으면 코드를 고치지 않아도 따라온다.
+ * 이 요소의 data-learn-base는 home-resume.ts가 차시 id로 웹 차시 주소를 만들 때 쓴다.
+ * 이 부품의 <style>은 is:global이다(홈 HTML 사전 캐시 한도 — Astro 범위 스타일은 모든 요소에 속성을 붙인다). 클래스는 units__ 접두어.
+ * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지우므로 글과 인라인 태그 사이에는 {' '}를 쓴다(CLAUDE.md).
+ */
+import { getPage } from '../../config/nav.ts';
+import { withBase } from '../../lib/url.ts';
+import Icon from '../common/Icon.astro';
+import { unitCardClass, unitIcon } from '../lesson/unit-style.ts';
+import { homeUnits } from './home-content.ts';
+import { unitStats, type HomeUnit } from './home-lessons.ts';
+
+interface Props {
+  units: readonly HomeUnit[];
+}
+
+const { units } = Astro.props;
+const learnBase = withBase('learn/');
+const all = getPage('learn');
+---
+
+<section
+  id="units"
+  class="units"
+  aria-labelledby="home-units-title"
+  data-home-units
+  data-learn-base={learnBase}
+  data-start-label={homeUnits.openLabel}
+  data-resume-label={homeUnits.resumeLabel}
+  data-replay-label={homeUnits.replayLabel}
+>
+  <header class="units__header">
+    <h2 id="home-units-title" class="units__title">{homeUnits.heading}</h2>
+    <p class="units__lead">{homeUnits.lead}</p>
+  </header>
+  <ol class="units__grid" role="list" aria-label={homeUnits.listLabel}>
+    {
+      units.map((unit) => {
+        const stats = unitStats(unit);
+        return (
+          <li
+            class:list={['units__card', 'card', 'card--link', unitCardClass(unit.unit)]}
+            data-home-unit
+            data-progress-unit={unit.progressIds.join(',')}
+            data-progress-label={unit.name}
+          >
+            <div class="units__top">
+              <span class:list={['card__icon', 'card__icon--lg', `card__icon--u${unit.unit}`]}>
+                <Icon name={unitIcon(unit.unit)} size="lg" />
+              </span>
+              <h3 class="units__name">
+                <span class="units__no">{unit.name}</span>{' '}
+                <span>{unit.title}</span>
+              </h3>
+            </div>
+            <p class="units__description">{unit.description}</p>
+            <p class="units__meta">
+              <span class="units__count">{homeUnits.countText(stats.total)}</span>
+              {stats.webOnly > 0 && <span class="units__extra">{homeUnits.webOnlyText(stats.webOnly)}</span>}
+            </p>
+            {
+              stats.first && (
+                <p class="units__first">
+                  <span class="units__first-kicker">{homeUnits.firstKicker}</span>{' '}
+                  <b class="units__first-no">{stats.first.label}</b> {stats.first.title}
+                </p>
+              )
+            }
+            <div class="units__progress" aria-live="off">
+              <p class="units__progress-text" data-progress-count></p>
+              <div class="progress-bar" data-progress-bar aria-hidden="true"></div>
+            </div>
+            <a
+              class="card__link button button--secondary units__open"
+              href={unit.href}
+              data-unit-start
+              data-first-href={unit.href}
+              data-unit-name={unit.name}
+            >
+              <span data-unit-start-label>{`${unit.name} ${homeUnits.openLabel}`}</span>
+              <Icon name="arrow-right" size="sm" />
+            </a>
+          </li>
+        );
+      })
+    }
+  </ol>
+  <p class="units__all">
+    <a href={all.href} data-home-units-all>{homeUnits.allLinkLabel}</a>
+  </p>
+</section>
+
+<style is:global>
+  .units {
+    margin-block-start: var(--space-10);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .units__title {
+    font-size: var(--text-2xl);
+  }
+
+  .units__lead {
+    max-width: 44rem;
+    margin-block-start: var(--space-1);
+    color: var(--color-text-muted);
+  }
+
+  .units__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .units__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border-inline-start: 6px solid var(--card-unit);
+  }
+
+  .units__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .units__name {
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+  }
+
+  .units__no {
+    color: var(--card-unit);
+  }
+
+  .units__description {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .units__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .units__count {
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--card-unit-soft);
+    color: var(--card-unit);
+    font-weight: var(--weight-bold);
+    line-height: 1.75rem;
+  }
+
+  .units__extra {
+    color: var(--color-text-muted);
+  }
+
+  .units__first {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .units__first-kicker {
+    color: var(--color-text-muted);
+  }
+
+  .units__first-no {
+    color: var(--card-unit);
+  }
+
+  /* 진도: 본 차시가 있는 단원에서만 자리를 차지한다(처음 온 사람에게는 카드가 낮다) */
+  .units__progress {
+    display: none;
+    gap: var(--space-1);
+  }
+
+  .units__card[data-progress-ready]:not([data-progress-empty]) .units__progress {
+    display: grid;
+  }
+
+  .units__progress-text {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: 1.25rem;
+  }
+
+  /* [열기] 단추 = 카드 전체를 누르는 링크(.card__link). 글자 색은 .card__link가 아니라 단추 모양을 따른다. 카드 맨 아래에 모인다. */
+  .units__card .units__open {
+    align-self: stretch;
+    margin-block-start: auto;
+    color: var(--color-accent-hover);
+    text-decoration: none;
+  }
+
+  .units__card .units__open:hover {
+    text-decoration: none;
+  }
+
+  .units__all {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-sm);
+  }
+
+  .units__all a {
+    display: inline-block;
+    padding-block: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+
+  @media (min-width: 40rem) {
+    .units__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .units__card {
+      padding: var(--space-5);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .units__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .units__top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

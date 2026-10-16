@@ -1,0 +1,101 @@
+---
+/**
+ * 홈 맨 위 안심 띠(판 1.6.0, DECISIONS C172) — "설치 없음 · 무료 · 보드 없어도 됨 · 카메라 영상은 내 컴퓨터 밖으로 안 나감".
+ * 처음 들어온 학생·보호자·교사가 3초 안에 알고 싶은 네 가지다. 전에는 "설치 없이·무료·보드 없어도"가 홈 맨 끝(원칙 칸)에 있었고
+ * 학부모가 가장 걱정하는 "카메라 영상은 어디로 가나요?"는 홈 어디에도 없었다(walk-parent-browse).
+ * 표지(HomeCover) 바로 위에 두어 375×812 첫 화면에 띠 + 제목 + 사람별 큰 단추 셋이 함께 들어온다(tests/e2e/home.spec.ts).
+ *  - 아이콘은 꾸밈이고 글이 뜻을 전한다(색·그림만으로 알리지 않는다). 띠 전체의 이름은 homeTrust.label.
+ *  - 글은 home-content.ts(homeTrust)에 있고, 카메라 문장은 src/config/privacy-text.ts 한 곳에서 온다.
+ *  - 휴대폰은 짧은 셋이 한 줄(좁으면 줄이 바뀜) + 카메라 문장이 아래 한 줄을 다 쓴다, 넓은 화면은 한 줄 네 칸. 눌리는 곳이 아니므로 초점을 받지 않는다(Tab 정류장 0).
+ * 이 부품의 <style>은 is:global이다(홈 HTML은 서비스 워커 사전 캐시 한도에 가깝다 — Astro 범위 스타일은 모든 요소에 속성을 붙인다). 클래스는 trust 접두어라 겹치지 않는다.
+ */
+import Icon from '../common/Icon.astro';
+import { homeTrust } from './home-content.ts';
+---
+
+<section class="trust" aria-label={homeTrust.label} data-home-trust>
+  <ul class="trust__list" role="list">
+    {
+      homeTrust.items.map((item) => (
+        <li class="trust__item" data-trust={item.id}>
+          <span class="trust__icon">
+            <Icon name={item.icon} size="fill" />
+          </span>
+          <span class="trust__text">{item.text}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style is:global>
+  .trust {
+    margin-block-end: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-accent-soft);
+  }
+
+  .trust__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .trust__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-1);
+    min-width: 0;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  /* accent-soft 바탕 위 아이콘: accent-hover(대비 5:1 이상) */
+  .trust__icon {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-block-start: 0.0625rem;
+    color: var(--color-accent-hover);
+  }
+
+  .trust__text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* 휴대폰: 카메라 문장은 길어서 아래 한 줄을 다 쓴다 */
+  .trust__item[data-trust='camera'] {
+    flex-basis: 100%;
+  }
+
+  @media (min-width: 40rem) {
+    .trust {
+      padding-inline: var(--space-6);
+    }
+
+    .trust__list {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+    }
+
+    .trust__item[data-trust='camera'] {
+      flex-basis: auto;
+    }
+
+    .trust__item {
+      align-items: center;
+    }
+
+    .trust__icon {
+      margin-block-start: 0;
+    }
+  }
+</style>

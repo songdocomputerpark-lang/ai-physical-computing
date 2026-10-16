@@ -1,15 +1,16 @@
-// 홈 화면 브라우저 테스트(PLAN §8.1 P1-05 완료 기준, SPEC §5 홈 화면 요구, 판 1.4.0 출판본 교과서 흐름 — DECISIONS C132).
+// 홈 화면 브라우저 테스트(PLAN §8.1 P1-05 완료 기준, SPEC §5 홈 화면 요구, 판 1.4.0 출판본 교과서 흐름 — DECISIONS C132, 판 1.6.0 "3초 안에 네 가지" — C172·C173).
 // playwright.config.ts의 두 화면 크기(desktop 1366×768, mobile 375×812)에서 모두 돈다.
-//   ① 스크롤 없이 표지: 제목·한 줄 소개·큰 단추 3개가 화면 안에 다 보이는지(C109 — 휴대폰은 표지 그림이 단추 아래)
+//   ⓪ 안심 띠: 설치 없음·무료·보드 없어도 됨·카메라 영상은 내 컴퓨터 밖으로 안 나감 — 첫 화면에 보인다
+//   ① 스크롤 없이 표지: 안심 띠·제목·한 줄 소개·사람별 큰 단추 3개(학생·선생님·키트)·"누가 만들었나"가 화면 안에 다 보이는지(C109·C172 — 휴대폰은 표지 그림이 단추 아래)
 //   ② Tab 키만으로 큰 단추 3개에 닿는지(초점 테두리가 보이고 화면이 밀리지 않는지)
-//   ③ 차례(#toc): 넓은 화면은 교과서 4·5쪽 그림 위 투명 링크, 좁은 화면은 절 목록이 먼저이고 그림은 접힘
-//   ④ 차시 목록(#lessons): 단원 머리·중단원·카드(번호·제목·쪽·매체 아이콘 + 글자)·"웹에서 더함"·범례, 카드 전체가 눌림, 진도 칠하기
-//   ⑤ 스크롤 뒤 큰 검색·바로 가기 타일·원칙과 홈의 사이트 안 링크, 저장된 진도가 있을 때 이어서 하기 띠와 첫 번째 큰 단추
+//   ③ 단원 카드(#units): 4장(단원 색·설명·처음 할 차시·편 수·[N단원 열기]), 카드 전체가 눌림, 진도 칠하기, 옛 차시 카드 목록이 없음
+//   ④ 차례(#toc): 넓은 화면은 교과서 4·5쪽 그림 위 투명 링크, 좁은 화면은 단원별 접이식 절 목록(그림은 접힘)
+//   ⑤ 스크롤 뒤 큰 검색·바로 가기 타일·원칙과 홈의 사이트 안 링크, 쪽 길이(휴대폰 6,000px 이하), 저장된 진도가 있을 때 이어서 하기 띠와 첫 번째 큰 단추
 // 주소는 baseURL 기준 상대 경로('./')로 연다(앞에 /를 붙이면 base가 빠진다).
 // 글과 주소는 src/components/home/home-content.ts와 출판본 차례(src/config/book-outline.ts)에서 읽으므로, 문구를 바꾸거나 교과서 쪽이 늘어도 이 파일은 고치지 않아도 된다.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { BOOK_OUTLINE_SECTIONS, bookSectionCount } from '../../src/config/book-outline.ts';
-import { homeCover, homeLessons, homePrinciples, homeResume, homeSearch, homeShortcuts, homeToc } from '../../src/components/home/home-content.ts';
+import { homeCover, homePrinciples, homeResume, homeSearch, homeShortcuts, homeToc, homeTrust, homeUnits } from '../../src/components/home/home-content.ts';
 import { unitTitleOf } from '../../src/components/home/home-lessons.ts';
 import { learnUnits } from '../../src/config/nav.ts';
 import { PROGRESS_STORAGE_NAME } from '../../src/lib/progress.ts';
@@ -24,9 +25,14 @@ const VIEWPORTS: Readonly<Record<string, { width: number; height: number }>> = {
 /** "큰 단추"로 보는 최소 높이(px). 사이트의 누르는 곳 최소 크기 44px보다 크게 잡았다. */
 const LARGE_BUTTON_MIN_HEIGHT = 56;
 
-/** 큰 단추 셋의 이름·순서(homeCoverActions) */
-const ACTION_IDS = ['start', 'toc', 'labs'] as const;
-const ACTION_LABELS = [homeCover.startLabel, '차례 보기', '실습실'] as const;
+/** 큰 단추 셋의 이름·순서(homeCoverActions) — 사람으로 나눈다: 학생 · 선생님 · 키트가 있어요 */
+const ACTION_IDS = ['start', 'teacher', 'kit'] as const;
+const ACTION_WHO = ['학생', '선생님', '키트가 있어요'] as const;
+const ACTION_LABELS = [homeCover.startLabel, '수업 준비', '보드 켜기'] as const;
+
+/** 홈 쪽 길이 한도(px). 판 1.5.0은 휴대폰 15,429px(같은 45편을 차례와 차시 카드로 두 번 보였다) — 판 1.6.0 목표 6,000px 이하(C172) */
+const MOBILE_PAGE_MAX = 6000;
+const DESKTOP_PAGE_MAX = 4500;
 
 function expectedViewport(projectName: string): { width: number; height: number } {
   const viewport = VIEWPORTS[projectName];
@@ -55,13 +61,37 @@ async function seedProgress(page: Page, state: unknown): Promise<void> {
   );
 }
 
-/** 카드 하나(번호 글자로 찾는다. 예: 2-1-2, V1) */
-function card(page: Page, label: string): Locator {
-  return page.locator(`[data-home-card="${label}"]`);
+/** 단원 카드 하나(1~4) */
+function unitCard(page: Page, unit: number) {
+  return page.locator('[data-home-unit]').nth(unit - 1);
 }
 
+test.describe('홈 안심 띠(맨 위)', () => {
+  test('설치 없음 · 무료 · 보드 없어도 됨 · 카메라 영상은 내 컴퓨터 밖으로 안 나감 — 네 칸이 이 순서로 첫 화면에 보인다', async ({ page }, testInfo) => {
+    const viewport = expectedViewport(testInfo.project.name);
+    await page.goto('./');
+    const trust = page.locator('[data-home-trust]');
+    await expect(trust).toBeVisible();
+    await expect(trust).toHaveAttribute('aria-label', homeTrust.label);
+    const items = trust.locator('[data-trust]');
+    await expect(items).toHaveCount(4);
+    await expect(items).toHaveText(['설치 없음', '무료', '보드 없어도 됨', '카메라 영상은 내 컴퓨터 밖으로 안 나감']);
+    for (const item of await items.all()) {
+      await expect(item).toBeInViewport({ ratio: 1 });
+      expect(await item.locator('svg[aria-hidden="true"]').count(), '아이콘은 꾸밈').toBe(1);
+    }
+    // 띠가 표지(제목) 바로 위에 있다
+    const trustBox = (await trust.boundingBox())!;
+    const titleBox = (await page.locator('#home-title').boundingBox())!;
+    expect(trustBox.y + trustBox.height, '띠는 제목 위').toBeLessThanOrEqual(titleBox.y);
+    expect(trustBox.y + trustBox.height).toBeLessThanOrEqual(viewport.height);
+    // 눌리는 곳이 아니라서 초점을 받지 않는다(Tab 정류장 0)
+    expect(await trust.locator('a, button, [tabindex]').count()).toBe(0);
+  });
+});
+
 test.describe('홈 표지(스크롤 없이)', () => {
-  test('제목·한 줄 소개·큰 단추 3개가 화면 안에 다 보인다', async ({ page }, testInfo) => {
+  test('안심 띠·제목·한 줄 소개·사람별 큰 단추 3개·"누가 만들었나"가 화면 안에 다 보인다', async ({ page }, testInfo) => {
     const viewport = expectedViewport(testInfo.project.name);
     expect(page.viewportSize()).toEqual(viewport);
 
@@ -71,6 +101,7 @@ test.describe('홈 표지(스크롤 없이)', () => {
     await page.evaluate(() => document.fonts.ready);
     const main = page.getByRole('main');
 
+    await expect(page.locator('[data-home-trust]')).toBeInViewport({ ratio: 1 });
     const title = main.getByRole('heading', { level: 1 });
     await expect(title).toHaveText(homeCover.titleLines.join(' '));
     await expect(title).toBeInViewport({ ratio: 1 });
@@ -80,6 +111,7 @@ test.describe('홈 표지(스크롤 없이)', () => {
     await expect(actions).toHaveCount(ACTION_IDS.length);
     for (const [index, id] of ACTION_IDS.entries()) {
       const link = main.locator(`[data-home-action="${id}"]`);
+      await expect(link, id).toContainText(ACTION_WHO[index]!);
       await expect(link, id).toContainText(ACTION_LABELS[index]!);
       await expect(link, id).toBeVisible();
       await expect(link, id).toBeInViewport({ ratio: 1 });
@@ -89,15 +121,22 @@ test.describe('홈 표지(스크롤 없이)', () => {
       expect(box!.y + box!.height, `${id} 단추 아래 끝`).toBeLessThanOrEqual(viewport.height);
       expect(box!.height, `${id} 단추 높이`).toBeGreaterThanOrEqual(LARGE_BUTTON_MIN_HEIGHT);
     }
-    // 단추가 가는 곳: 1단원 첫 절(교과서 쪽이 있으면 그 쪽, 없으면 웹 차시) · 같은 쪽 차례 · 실습실 안내
-    await expect(main.locator('[data-home-action="start"]')).toHaveAttribute('href', /\/(?:book|learn\/u1)\/1-1-1\/$/u);
-    await expect(main.locator('[data-home-action="toc"]')).toHaveAttribute('href', '#toc');
-    await expect(main.locator('[data-home-action="labs"]')).toHaveAttribute('href', /\/labs\/$/u);
+    // 단추가 가는 곳: 학생 = 1단원 첫 절의 따라 하기 쪽(코드·실습이 있는 쪽) · 선생님 = 교사용 시작하기 · 키트 = 보드 준비하기
+    await expect(main.locator('[data-home-action="start"]')).toHaveAttribute('href', /\/learn\/u1\/1-1-1\/$/u);
+    await expect(main.locator('[data-home-action="teacher"]')).toHaveAttribute('href', /\/start\/teacher\/$/u);
+    await expect(main.locator('[data-home-action="kit"]')).toHaveAttribute('href', /\/start\/board\/$/u);
+
+    // "누가 만들었나" 한 줄(저자 5명·금성출판사·부품 출처)이 375에서도 첫 화면 안에 있다
+    for (const text of [homeCover.publisher, homeCover.authors.join('·'), homeCover.partsCredit]) {
+      const credit = main.getByText(text, { exact: true });
+      await expect(credit, text).toBeVisible();
+      await expect(credit, text).toBeInViewport({ ratio: 1 });
+    }
 
     expect(await page.evaluate(() => window.scrollY), '스크롤하지 않았다').toBe(0);
   });
 
-  test('채운 파랑 주 단추는 첫 번째 하나뿐이다', async ({ page }) => {
+  test('채운 파랑 주 단추는 첫 번째(학생) 하나뿐이다', async ({ page }) => {
     await page.goto('./');
     const backgrounds = await page.locator('[data-home-action]').evaluateAll((links) => links.map((link) => getComputedStyle(link).backgroundColor));
     const accent = await page.evaluate(() => {
@@ -171,11 +210,75 @@ test.describe('홈 표지(스크롤 없이)', () => {
   });
 });
 
-test.describe('홈 차례(#toc)', () => {
-  test('[차례 보기]를 누르면 같은 쪽의 차례로 간다', async ({ page }) => {
+test.describe('홈 단원 카드(#units)', () => {
+  test('"무엇을 배우나요?" 아래 단원 카드 4장: 단원 색·"N단원 이름"·한 줄 설명·편 수·처음 할 차시·[N단원 열기]', async ({ page }) => {
     await page.goto('./');
-    await page.locator('[data-home-action="toc"]').click();
-    await expect(page).toHaveURL(/#toc$/u);
+    const units = page.locator('[data-home-units]');
+    await expect(units.getByRole('heading', { level: 2, name: homeUnits.heading, exact: true })).toBeVisible();
+    await expect(units.getByText(homeUnits.lead)).toBeVisible();
+    await expect(page.locator('[data-home-unit]')).toHaveCount(learnUnits.length);
+    for (const unit of learnUnits) {
+      const card = unitCard(page, unit.unit);
+      await expect(card.getByRole('heading', { level: 3, name: `${unit.unit}단원 ${unitTitleOf(unit)}`, exact: true }), `${unit.unit}단원`).toBeVisible();
+      await expect(card, `${unit.unit}단원`).toContainText(unit.description);
+      await expect(card.locator('.units__count'), `${unit.unit}단원 편 수`).toHaveText(/^\d+편$/u);
+      await expect(card.locator('.units__first'), `${unit.unit}단원 처음 할 차시`).toContainText(`${homeUnits.firstKicker} ${unit.unit}-1-1`);
+      const open = card.getByRole('link', { name: `${unit.unit}단원 ${homeUnits.openLabel}`, exact: true });
+      await expect(open, `${unit.unit}단원`).toHaveAttribute('href', new RegExp(`/learn/u${unit.unit}/$`, 'u'));
+    }
+    // 1단원에는 사이트가 더한 보충 차시가 있어 "그중 웹에서 더함 n편"이 글자로 보인다(알약이 아니다)
+    await expect(unitCard(page, 1).locator('.units__extra')).toHaveText(/^그중 웹에서 더함 \d+편$/u);
+  });
+
+  test('45편 전체 목록은 홈에 한 번만: 옛 차시 카드 목록(차시 목록 제목·카드 45장·매체 칩)이 없고, 전체 목록 링크는 따라 하기로 간다', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.locator('[data-home-lessons]')).toHaveCount(0);
+    await expect(page.locator('[data-home-card]')).toHaveCount(0);
+    await expect(page.locator('.hc-chip')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: '차시 목록', exact: true })).toHaveCount(0);
+    const all = page.locator('[data-home-units-all]');
+    await expect(all).toHaveText(homeUnits.allLinkLabel);
+    await expect(all).toHaveAttribute('href', /\/learn\/$/u);
+  });
+
+  test('카드 전체가 눌린다: 카드 빈 곳을 누르면 그 단원의 따라 하기 목록으로 간다', async ({ page }) => {
+    await page.goto('./');
+    const card = unitCard(page, 2);
+    await card.scrollIntoViewIfNeeded();
+    const box = (await card.boundingBox())!;
+    // 카드 오른쪽 위 근처(빈 곳)를 누른다 — 단추 링크의 덮개가 카드 전체를 덮는다.
+    await page.mouse.click(box.x + box.width - 12, box.y + 12);
+    await expect(page).toHaveURL(/\/learn\/u2\/$/u);
+  });
+
+  test('Tab 정류장은 카드마다 [N단원 열기] 하나이고, 초점 테두리가 카드 둘레에 보인다', async ({ page }) => {
+    await page.goto('./');
+    const card = unitCard(page, 1);
+    expect(await card.locator('a, button').count()).toBe(1);
+    const link = card.getByRole('link');
+    await link.focus();
+    const outline = await link.evaluate((element) => {
+      const after = getComputedStyle(element, '::after');
+      return { style: after.outlineStyle, width: Number.parseFloat(after.outlineWidth) };
+    });
+    expect(outline.style).not.toBe('none');
+    expect(outline.width).toBeGreaterThanOrEqual(2);
+  });
+
+  test('처음 온 사람에게는 진도 글이 보이지 않는다', async ({ page }) => {
+    await page.goto('./');
+    const head = unitCard(page, 1);
+    await expect(head).toHaveAttribute('data-progress-ready', '');
+    await expect(head).toHaveAttribute('data-progress-empty', '');
+    await expect(head.locator('[data-progress-count]')).toBeHidden();
+    await expect(head.getByRole('link')).toHaveText(`1단원 ${homeUnits.openLabel}`);
+    await expect(page.locator('html')).not.toHaveAttribute('data-progress-has', '');
+  });
+});
+
+test.describe('홈 차례(#toc)', () => {
+  test('#toc 주소로 열면 같은 쪽의 차례로 간다', async ({ page }) => {
+    await page.goto('./#toc');
     await expect(page.getByRole('heading', { level: 2, name: homeToc.heading, exact: true })).toBeInViewport();
   });
 
@@ -257,136 +360,46 @@ test.describe('홈 차례(#toc)', () => {
     expect(geometry.lcd!.top).toBeCloseTo(716 / 1560, 2);
   });
 
-  test('좁은 화면: 절 목록이 먼저이고 그림은 접혀 있다(눌러 펼치면 그림이 보인다)', async ({ page }, testInfo) => {
+  test('좁은 화면: 단원별 접이식 절 목록이 먼저이고(닫힌 채 4줄) 그림은 접혀 있다(눌러 펼치면 그림이 보인다)', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', '좁은 화면 전용');
     await page.goto('./');
     const list = page.locator('[data-home-toc-list]');
     const details = page.locator('[data-home-toc-details]');
+    const units = list.locator('[data-home-toc-unit]');
     await expect(list).toBeVisible();
     await expect(details).toBeVisible();
     await expect(page.locator('[data-home-toc-figures]')).toBeHidden();
     await expect(page.locator('[data-toc-spot]').first()).toBeHidden();
+    // 단원마다 닫힌 접이식 4개 — 절 링크는 열기 전에는 보이지 않는다(홈이 짧다)
+    await expect(units).toHaveCount(learnUnits.length);
+    for (const unit of await units.all()) {
+      await expect(unit).not.toHaveAttribute('open', '');
+    }
+    await expect(list.getByRole('link').first()).toBeHidden();
     const listBox = (await list.boundingBox())!;
+    expect(listBox.height, '닫힌 단원 4줄').toBeLessThan(400);
     const detailsBox = (await details.boundingBox())!;
     expect(listBox.y + listBox.height, '목록이 그림 칸보다 먼저').toBeLessThanOrEqual(detailsBox.y);
-    // 목록: 교과서에 실린 절 모두(+마무리·읽기 자료), 보충 차시는 없다
-    const links = list.getByRole('link');
-    expect(await links.count()).toBeGreaterThanOrEqual(BOOK_OUTLINE_SECTIONS.length - 1);
-    await expect(list.getByText('V1', { exact: true })).toHaveCount(0);
+    // 목록(문서 안): 교과서에 실린 절 모두(+마무리·읽기 자료), 보충 차시는 없다
+    expect(await list.locator('a[href]').count()).toBeGreaterThanOrEqual(BOOK_OUTLINE_SECTIONS.length - 1);
+    expect(await list.getByText('V1', { exact: true }).count()).toBe(0);
+    // 1단원을 펼치면 절 링크가 보이고 손가락이 닿을 만큼 크다
+    await units.first().locator('summary').click();
+    await expect(units.first()).toHaveAttribute('open', '');
+    const firstLink = units.first().getByRole('link').first();
+    await expect(firstLink).toBeVisible();
+    const box = (await firstLink.boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(24);
     // 그림은 눌러 펼친다
     await expect(details).not.toHaveAttribute('open', '');
     await details.getByText(homeToc.figureSummary).click();
     await expect(details).toHaveAttribute('open', '');
     await expect(details.getByRole('img').first()).toBeVisible();
-    // 목록 링크의 누르는 곳은 손가락이 닿을 만큼 크다
-    const box = (await list.getByRole('link').first().boundingBox())!;
-    expect(box.height).toBeGreaterThanOrEqual(24);
-  });
-});
-
-test.describe('홈 차시 목록(#lessons)', () => {
-  test('단원 머리 4개(단원 색 + "1단원" 글자) · 중단원 소제목 · 범례 한 줄이 있다', async ({ page }) => {
-    await page.goto('./');
-    const lessons = page.locator('[data-home-lessons]');
-    await expect(lessons.getByRole('heading', { level: 2, name: homeLessons.heading, exact: true })).toBeVisible();
-    for (const unit of learnUnits) {
-      const head = lessons.getByRole('heading', { level: 3, name: `${unit.unit}단원 ${unitTitleOf(unit)}`, exact: true });
-      await expect(head).toBeVisible();
-    }
-    // 중단원: 출판본 이름 그대로
-    await expect(lessons.getByRole('heading', { level: 4, name: '01 디스플레이 장치 제어', exact: true })).toBeVisible();
-    await expect(lessons.getByRole('heading', { level: 4, name: '03 페이스 메시', exact: true })).toBeVisible();
-    // 범례: 카메라·마이크·인터넷·보드 + "실제 보드 있으면 더 좋아요"
-    const legend = page.locator('[data-home-legend]');
-    for (const text of [homeLessons.legendLabel, '카메라', '마이크', '인터넷', '보드', homeLessons.legendBoard]) {
-      await expect(legend).toContainText(text);
-    }
-  });
-
-  test('절마다 카드가 하나씩 있고(번호·제목·교과서 a~b쪽), 새 교과서 쪽이 생기면 그 쪽으로 이어진다', async ({ page }) => {
-    await page.goto('./');
-    for (const section of BOOK_OUTLINE_SECTIONS) {
-      const item = card(page, section.id);
-      await expect(item, section.id).toHaveCount(1);
-      await expect(item, section.id).toContainText(section.id);
-      await expect(item, section.id).toContainText(/교과서 \d+(?:~\d+)?쪽/u);
-      const links = item.getByRole('link');
-      if ((await links.count()) > 0) {
-        // 교과서 쪽이 있으면 /book/<id>/, 없으면 짝 웹 차시 /learn/…
-        await expect(links.first(), section.id).toHaveAttribute('href', new RegExp(`/(?:book/${section.id}|learn/u${section.unit}/${section.id})/$`, 'u'));
-      }
-    }
-    // 교과서 기준 쪽 2-1-2는 교과서 쪽으로 가고, 카드 이름은 "번호 제목"이다
-    const lcd = card(page, '2-1-2');
-    await expect(lcd.getByRole('link', { name: '2-1-2 LCD 제어하기', exact: true })).toHaveAttribute('href', /\/book\/2-1-2\/$/u);
-    await expect(lcd).toContainText('교과서 124~131쪽');
-  });
-
-  test('매체는 아이콘 + 글자로 보인다(2-1-2는 보드, 1-1-2는 카메라)', async ({ page }) => {
-    await page.goto('./');
-    await expect(card(page, '2-1-2').locator('.hc-chip')).toHaveText(['보드']);
-    await expect(card(page, '1-1-2').locator('.hc-chip')).toHaveText(['카메라']);
-    for (const chip of await page.locator('.hc-chip').all()) {
-      expect(await chip.locator('svg').count(), '아이콘이 있다').toBe(1);
-      expect(await chip.locator('svg').getAttribute('aria-hidden'), '아이콘은 꾸밈').toBe('true');
-      expect((await chip.textContent())?.trim().length, '글자도 있다').toBeGreaterThan(0);
-    }
-  });
-
-  test('보충 차시는 "웹에서 더함" 알약과 웹 차시 링크이고, 교과서 쪽 표시는 없다', async ({ page }) => {
-    await page.goto('./');
-    const supplement = card(page, 'V1');
-    await expect(supplement).toContainText(homeLessons.webOnlyBadge);
-    await expect(supplement).not.toContainText('교과서 ');
-    await expect(supplement.getByRole('link')).toHaveAttribute('href', /\/learn\/u1\/v1\/$/u);
-    expect(await page.locator('.hc-badge').count()).toBeGreaterThanOrEqual(10);
-  });
-
-  test('대단원 마무리하기 카드가 4단원까지 있다(4단원은 교과서 쪽만)', async ({ page }) => {
-    await page.goto('./');
-    for (const unit of learnUnits) {
-      const item = card(page, `${unit.unit}단원`);
-      await expect(item).toHaveCount(1);
-      await expect(item).toContainText('마무리');
-      await expect(item).toContainText('교과서 ');
-    }
-  });
-
-  test('카드 전체가 눌린다: 카드 빈 곳을 누르면 그 절의 교과서 쪽으로 간다', async ({ page }) => {
-    await page.goto('./');
-    const lcd = card(page, '2-1-2');
-    await lcd.scrollIntoViewIfNeeded();
-    const box = (await lcd.boundingBox())!;
-    // 카드 오른쪽 아래 근처(빈 곳)를 누른다 — 제목 링크의 덮개가 카드 전체를 덮는다.
-    await page.mouse.click(box.x + box.width - 10, box.y + box.height - 10);
-    await expect(page).toHaveURL(/\/book\/2-1-2\/$/u);
-  });
-
-  test('Tab으로 카드 링크에 닿으면 초점 테두리가 카드 둘레에 보인다', async ({ page }) => {
-    await page.goto('./');
-    const link = card(page, '1-1-1').getByRole('link').first();
-    await link.focus();
-    const outline = await link.evaluate((element) => {
-      const after = getComputedStyle(element, '::after');
-      return { style: after.outlineStyle, width: Number.parseFloat(after.outlineWidth) };
-    });
-    expect(outline.style).not.toBe('none');
-    expect(outline.width).toBeGreaterThanOrEqual(2);
-  });
-
-  test('처음 온 사람에게는 진도 글이 보이지 않는다', async ({ page }) => {
-    await page.goto('./');
-    const head = page.locator('[data-home-lesson-unit] [data-progress-unit]').first();
-    await expect(head).toHaveAttribute('data-progress-ready', '');
-    await expect(head).toHaveAttribute('data-progress-empty', '');
-    await expect(head.locator('[data-progress-count]')).toBeHidden();
-    await expect(card(page, '1-1-1').locator('[data-progress-badge]')).toBeHidden();
-    await expect(page.locator('html')).not.toHaveAttribute('data-progress-has', '');
   });
 });
 
 test.describe('홈 아래쪽(스크롤 뒤)', () => {
-  test('큰 검색·바로 가기·원칙이 있고, 홈의 사이트 안 링크가 모두 열린다', async ({ page, request }) => {
+  test('큰 검색·바로 가기·"어떻게 되나요?"가 있고, 홈의 사이트 안 링크가 모두 열린다', async ({ page, request }) => {
     // 링크가 60개쯤이라 개발 서버(쪽마다 처음 열 때 컴파일)에서는 기본 30초를 넘길 수 있다 — 빌드 결과에서는 몇 초다
     test.setTimeout(180_000);
     await page.goto('./');
@@ -405,6 +418,7 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
       await expect(shortcuts.getByRole('link', { name: item.label, exact: true })).toHaveAttribute('href', item.href);
     }
 
+    // "어떻게 되나요?" 세 줄(띠의 설치 없음·보드 없어도·무료를 풀어 준다)
     await expect(main.getByRole('heading', { level: 2, name: homePrinciples.heading })).toBeVisible();
     for (const item of homePrinciples.items) {
       await expect(main.getByRole('heading', { level: 3, name: item.title, exact: true })).toBeVisible();
@@ -415,13 +429,21 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
       homePrinciples.browserNote.href,
     );
 
-    // 사이트 안 링크(차례 그림 위 투명 링크·절 목록·카드·타일)가 모두 열린다. 같은 주소는 한 번만 본다.
+    // 사이트 안 링크(차례 그림 위 투명 링크·절 목록·단원 카드·타일)가 모두 열린다. 같은 주소는 한 번만 본다.
     const hrefs = await main.locator('a[href]').evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href') ?? ''))]);
     const internal = hrefs.filter((href) => href.startsWith('/'));
     expect(internal.length).toBeGreaterThanOrEqual(BOOK_OUTLINE_SECTIONS.length + homeShortcuts.items.length);
     for (const href of internal) {
       expect((await request.get(href)).status(), href).toBe(200);
     }
+  });
+
+  test('쪽 길이: 휴대폰 6,000px 이하·넓은 화면 4,500px 이하(판 1.5.0은 휴대폰 15,429px — 45편을 두 번 보였다)', async ({ page }, testInfo) => {
+    await page.goto('./');
+    await page.evaluate(() => document.fonts.ready);
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    console.log(`[홈 쪽 길이] ${testInfo.project.name}: ${height}px`);
+    expect(height).toBeLessThanOrEqual(testInfo.project.name === 'mobile' ? MOBILE_PAGE_MAX : DESKTOP_PAGE_MAX);
   });
 
   test('제목 구조: 본문에 h1이 하나이고 단계를 건너뛰지 않으며, 홈은 사이트 검색 색인에서 빠진다', async ({ page }) => {
@@ -466,12 +488,13 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     lastLab: { path: '/ai-physical-computing/labs/vision/', title: '영상 처리 실습실', at: 2000 },
   };
 
-  // R2-029(판 1.4.0 표지): 돌아온 학생은 스크롤 없이 첫 화면에서 첫 번째 큰 단추가 "이어서 하기"가 되어 있다.
-  test('저장된 진도가 있으면 첫 번째 큰 단추가 "이어서 하기" + 다음에 볼 차시로 바뀐다', async ({ page }) => {
+  // R2-029(판 1.4.0 표지): 돌아온 학생은 스크롤 없이 첫 화면에서 첫 번째 큰 단추(학생)가 "이어서 하기"가 되어 있다.
+  test('저장된 진도가 있으면 학생 큰 단추가 "이어서 하기" + 다음에 볼 차시로 바뀐다', async ({ page }) => {
     await seedProgress(page, state);
     await page.goto('./');
     const start = page.locator('[data-home-action="start"]');
     await expect(start).toHaveAttribute('data-resuming', '');
+    await expect(start).toContainText('학생');
     await expect(start).toContainText(homeResume.lesson.go);
     await expect(start).not.toContainText(homeCover.startLabel);
     // 1-1-1을 끝냈으니 다음에 볼 차시(1-1-2)로 간다 — 교과서 쪽이 있으면 그 쪽, 없으면 웹 차시
@@ -479,10 +502,11 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(start.locator('[data-cover-start-name]')).toContainText('1-1-2');
     await expect(start).toBeInViewport({ ratio: 1 });
     // 다른 두 단추는 그대로
-    await expect(page.locator('[data-home-action="toc"]')).toContainText('차례 보기');
+    await expect(page.locator('[data-home-action="teacher"]')).toContainText('수업 준비');
+    await expect(page.locator('[data-home-action="kit"]')).toContainText('보드 켜기');
   });
 
-  test('처음 온 사람에게는 "1단원부터 시작"이고 이어서 하기 표시가 없다', async ({ page }) => {
+  test('처음 온 사람에게는 "처음부터 배우기"이고 이어서 하기 표시가 없다', async ({ page }) => {
     await page.goto('./');
     const start = page.locator('[data-home-action="start"]');
     await expect(start).toContainText(homeCover.startLabel);
@@ -490,7 +514,7 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(start.locator('[data-cover-start-name]')).toBeHidden();
   });
 
-  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글, 카드의 "다 했어요"가 나타나고 다음에 볼 차시 안내는 한 번만 보인다', async ({ page }) => {
+  test('저장된 진도가 있으면 이어서 하기 띠, 단원 진도 글·단추, 단원 카드가 나타나고 다음에 볼 차시 안내는 한 번만 보인다', async ({ page }) => {
     await seedProgress(page, state);
     await page.goto('./');
     const band = page.getByRole('region', { name: homeResume.heading });
@@ -502,25 +526,21 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(band.getByRole('link', { name: /^1-1-2 / })).toHaveCount(0);
     await expect(band.getByRole('link', { name: /영상 처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
 
-    // 단원 머리: "N차시 중 M차시를 다 했어요" + 막대(낭독기에는 글로만)
-    const head = page.locator('[data-home-lesson-unit="1"] [data-progress-unit]');
+    // 단원 카드: "N차시 중 M차시를 다 했어요" + 막대(낭독기에는 글로만), 단추는 "1단원 이어서 하기" → 안 본 첫 차시(따라 하기 쪽)
+    const head = unitCard(page, 1);
     await expect(head.locator('[data-progress-count]')).toContainText(/차시 중 1차시를 다 했어요$/u);
     await expect(head.locator('[data-progress-bar]')).toHaveAttribute('aria-hidden', 'true');
-    // 카드: 끝낸 차시는 "다 했어요", 안 본 차시는 표시 없음 — 진도는 링크 밖이라 링크 이름은 그대로
-    await expect(card(page, '1-1-1')).toHaveAttribute('data-progress-state', 'done');
-    await expect(card(page, '1-1-1').locator('[data-progress-badge]')).toHaveText('다 했어요');
-    await expect(card(page, '1-1-1').getByRole('link').first()).toHaveAccessibleName(/^1-1-1 [^\s].*$/u);
-    await expect(card(page, '1-1-1').getByRole('link').first()).not.toContainText('다 했어요');
-    await expect(card(page, '1-1-2')).toHaveAttribute('data-progress-state', 'none');
-    await expect(card(page, '1-1-2').locator('[data-progress-badge]')).toBeHidden();
-    await expect(page.locator('[data-home-lesson-unit="2"] [data-progress-unit]')).toHaveAttribute('data-progress-empty', '');
+    await expect(head.getByRole('link')).toHaveText(`1단원 ${homeUnits.resumeLabel}`);
+    await expect(head.getByRole('link')).toHaveAttribute('href', /\/learn\/u1\/1-1-2\/$/u);
+    await expect(unitCard(page, 2)).toHaveAttribute('data-progress-empty', '');
+    await expect(unitCard(page, 2).getByRole('link')).toHaveText(`2단원 ${homeUnits.openLabel}`);
   });
 
-  test('교과서 쪽을 연 진도(짝 웹 차시와 같은 진도 id)도 카드에 "열어 봤어요"로 칠한다', async ({ page }) => {
+  test('교과서 쪽을 연 진도(짝 웹 차시와 같은 진도 id)도 그 단원 카드에 "열어 봤어요"로 센다', async ({ page }) => {
     await seedProgress(page, { version: 1, seen: ['u2/2-1-2'], done: [], last: null, lastLab: null });
     await page.goto('./');
-    await expect(card(page, '2-1-2')).toHaveAttribute('data-progress-state', 'seen');
-    await expect(card(page, '2-1-2').locator('[data-progress-badge]')).toHaveText('열어 봤어요');
+    await expect(unitCard(page, 2).locator('[data-progress-count]')).toContainText(/차시 중 1차시를 열어 봤어요$/u);
+    await expect(unitCard(page, 2).getByRole('link')).toHaveText(`2단원 ${homeUnits.resumeLabel}`);
   });
 
   test('지난번 차시를 아직 안 끝냈으면 큰 단추와 띠가 모두 그 차시 "이어서 하기"다', async ({ page }) => {
@@ -546,7 +566,7 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     };
     await seedProgress(page, stale);
     await page.goto('./');
-    await expect(page.locator('[data-home-lesson-unit="1"] [data-progress-unit]')).toHaveAttribute('data-progress-ready', '');
+    await expect(unitCard(page, 1)).toHaveAttribute('data-progress-ready', '');
     await expect(page.locator('[data-home-resume]')).toBeHidden();
     await expect(page.locator('a[href*="9-9-9"], a[href*="nonexistent"]')).toHaveCount(0);
     await expect(page.locator('[data-home-action="start"]')).toContainText(homeCover.startLabel);

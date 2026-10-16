@@ -11,11 +11,11 @@
  *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 채운다(같은 대단원에서 안 연 첫 차시). 첫 화면 한 줄이 이 칸을 그대로 보이면
  *                                         같은 안내가 위아래로 두 번 보이지 않게 이 칸은 숨긴다(R3-007). 띠에는 "다시 보기" 칸(지난번 차시)이 남는다.
  *     [data-resume-lab][hidden]           마지막으로 연 실습실 칸 — 같은 구조
- *   [data-cover-start]                    표지의 첫 번째 큰 단추(HomeCover.astro, 판 1.4.0) — 처음엔 "1단원부터 시작"(data-first-href). 띠의 칸(다음에 볼 차시 > 지난번 차시)에서
+ *   [data-cover-start]                    표지의 첫 번째 큰 단추(HomeCover.astro, 판 1.4.0 — 판 1.6.0부터 [학생 처음부터 배우기]) — 처음엔 "처음부터 배우기"(data-first-href, 1단원 첫 절의 따라 하기 쪽). 띠의 칸(다음에 볼 차시 > 지난번 차시)에서
  *                                         주소·이름을 복사해 "이어서 하기 + 차시 이름"으로 바꾼다(실습실 칸은 쓰지 않는다 — 큰 단추는 배울 곳으로만 이어 준다).
  *                                         안의 [data-cover-start-label](글, data-start-label·data-resume-label)·[data-cover-start-name](차시 이름, 이어서 할 때만 보임).
- *   [data-learn-base]                     /learn/ 주소(base 포함, HomeLessons.astro가 단다). 차시 id로 웹 차시 주소를 만들 때 쓴다.
- *   [data-home-map][data-learn-base]      (옛 배움 지도 — 판 1.4.0 홈은 쓰지 않는다) data-start-label·data-resume-label·data-replay-label = 단추 글
+ *   [data-learn-base]                     /learn/ 주소(base 포함, HomeUnits.astro가 단다). 차시 id로 웹 차시 주소를 만들 때 쓴다.
+ *   [data-home-units][data-learn-base]    홈 단원 4장 카드 묶음(판 1.6.0, HomeUnits.astro. 옛 배움 지도 HomeMap.astro는 [data-home-map] — 같은 약속) data-start-label·data-resume-label·data-replay-label = 단추 글
  *     [data-home-unit][data-progress-unit]  대단원 카드(차시 id 목록은 progress-paint가 센다)
  *       [data-unit-start]                 단원 링크: data-first-href(처음 차시), data-unit-name("1단원")
  *         [data-unit-start-label]         링크 안 글: "1단원 배우기" 꼴(단원 이름 + 단추 글)
@@ -105,7 +105,7 @@ function unitOf(id: string): string {
 
 /**
  * 표지의 첫 번째 큰 단추를 띠의 한 칸에서 채운다(판 1.4.0). 칸이 있으면 "이어서 하기" + 차시 이름 + 그 주소로, 칸이 없으면(item === null) 처음 모습
- * "1단원부터 시작"(data-first-href)으로 되돌린다. 단추를 바꿨으면 true를 돌려준다(R3-007: 띠가 같은 칸을 또 보이지 않으려고 부르는 쪽이 알아야 한다).
+ * "처음부터 배우기"(data-first-href)로 되돌린다. 단추를 바꿨으면 true를 돌려준다(R3-007: 띠가 같은 칸을 또 보이지 않으려고 부르는 쪽이 알아야 한다).
  * 글은 textContent·setAttribute로만 옮긴다(띠 칸에 이미 들어간 값이라 마크업이 아니다).
  */
 function fillCover(root: ParentNode, item: Element | null): boolean {
@@ -121,7 +121,7 @@ function fillCover(root: ParentNode, item: Element | null): boolean {
     if (first && start.getAttribute('href') !== first) {
       start.setAttribute('href', first);
     }
-    setText(label, start.getAttribute('data-start-label') ?? '1단원부터 시작');
+    setText(label, start.getAttribute('data-start-label') ?? '처음부터 배우기');
     name?.setAttribute('hidden', '');
     start.removeAttribute('data-resuming');
     return false;
@@ -140,9 +140,12 @@ function fillCover(root: ParentNode, item: Element | null): boolean {
   return true;
 }
 
-/** 차시 id의 웹 차시 주소를 만든다. 짝 교과서 쪽이 있으면 그 쪽으로 — 단, 지난번에 연 곳이 웹 차시였다면(lastHref가 쪽 주소가 아니면) 웹 차시로 돌려보낸다. */
+/**
+ * 차시 id의 목적지 주소. 기본은 실습이 있는 따라 하기 쪽(/learn/)이고, 지난번에 연 곳이 그 차시의 교과서 원문 쪽이었을 때만
+ * 거기로 돌려보낸다(판 1.6.0 C173 — "다음 차시"는 늘 따라 하기 쪽; 걷기 조사에서 학생이 글만 있는 교과서 쪽에 떨어져 실습이 없다고 느꼈다).
+ */
 function lessonTarget(learnBase: string, id: string, bookHref: string | undefined, lastHref: string | null): string {
-  if (bookHref !== undefined && (lastHref === null || trimSlash(lastHref) === trimSlash(bookHref))) {
+  if (bookHref !== undefined && lastHref !== null && trimSlash(lastHref) === trimSlash(bookHref)) {
     return bookHref;
   }
   return lessonHrefFromId(learnBase, id);
@@ -217,7 +220,8 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
  *  - 모두 봤으면 "다시 보기" → 첫 차시
  */
 export function applyMapProgress(root: ParentNode, state: ProgressState, fallback: MapLabels = DEFAULT_LABELS): void {
-  const map = root.querySelector<HTMLElement>('[data-home-map]');
+  // 판 1.6.0: 홈의 단원 카드(HomeUnits.astro)는 [data-home-units], 옛 배움 지도(HomeMap.astro)는 [data-home-map] — 같은 속성 약속을 쓴다
+  const map = root.querySelector<HTMLElement>('[data-home-map], [data-home-units]');
   const learnBase = map?.getAttribute('data-learn-base') ?? '';
   const labels: MapLabels = {
     start: map?.getAttribute('data-start-label') || fallback.start,

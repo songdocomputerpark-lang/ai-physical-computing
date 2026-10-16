@@ -17,3 +17,24 @@
  */
 export const PROGRESS_PRIVACY_NOTE =
   '어디까지 봤는지(본 차시와 "다 했어요" 표시)도 이 브라우저에만 남아요. 저장하는 것은 차시 번호, 본 시각, 마지막에 연 페이지 이름뿐이고, 기록 지우기를 누르면 함께 지워져요.';
+
+/**
+ * 홈 맨 위 안심 띠(HomeTrust, 판 1.6.0 — DECISIONS C172)의 "카메라 영상은 어디로 가나요?"에 대한 짧은 대답.
+ * 학부모 걷기에서 가장 큰 걱정이었는데 홈에 없었다(walk-parent-browse). 사실의 근거는 서버가 없다는 것이다 —
+ * 영상은 브라우저 안에서만 처리되고(SPEC §2 서버 제로), 사이트 안내(`/start/student/`)와 실습실 입력 칸도 같은 말을 한다.
+ * 띠의 다른 세 칸(설치 없음·무료·보드 없어도 됨)은 home-content.ts의 homeTrust에 있다.
+ */
+export const CAMERA_PRIVACY_BRIEF = '카메라 영상은 내 컴퓨터 밖으로 안 나감';
+
+/**
+ * 보호자 안내(/start/parent/, 판 1.6.0 R6)와 바닥글 "개인정보 안내" 줄이 함께 쓰는 문장.
+ * 사실의 근거는 CAMERA_PRIVACY_BRIEF와 같다 — 서버가 없고(SPEC §2 서버 제로) 영상은 브라우저 안에서만 처리된다. 사이트 안내(`/start/student/`)와 같은 말이다.
+ * 쓰는 곳은 tests/unit/privacy-text.test.ts가 지킨다.
+ */
+export const CAMERA_PRIVACY_SENTENCE = '카메라 영상은 이 컴퓨터 밖으로 나가지 않아요. 사이트에는 영상을 받는 서버가 없고, 영상은 브라우저 안에서만 처리돼요.';
+
+/** 로그인·가입·이름 묻기가 없다는 사실(보호자 안내). 이 사이트에는 입력 양식 가운데 이름이나 학번을 받는 곳이 없다 */
+export const NO_ACCOUNT_SENTENCE = '로그인과 회원가입이 없고, 이름이나 학번을 묻지 않아요.';
+
+/** 바닥글의 개인정보 한 줄(링크 글자는 따로) — 보호자 안내의 #privacy로 이어진다 */
+export const FOOTER_PRIVACY_SENTENCE = '카메라 영상은 이 컴퓨터 밖으로 나가지 않아요.';

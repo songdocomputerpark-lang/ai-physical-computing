@@ -9,7 +9,7 @@
  * - href: 화면에 쓰는 링크. path에 base를 붙인 값이고 withBase()로만 만든다(직접 적지 않는다).
  * - 아래 페이지(children)의 path는 위 페이지 path로 시작한다.
  * - 페이지 파일은 같은 경로에 둔다: '/start/student/' → src/pages/start/student/index.astro
- * - 대단원(배우기 아래 I~IV)은 learnUnits에 따로 둔다. 머리글·바닥글에는 나오지 않고 현재 위치 계산과 배우기 화면에서 쓴다.
+ * - 대단원(따라 하기 아래 I~IV)은 learnUnits에 따로 둔다. 머리글·바닥글에는 나오지 않고 현재 위치 계산과 따라 하기 화면에서 쓴다.
  * - description의 낱말 나열은 가운뎃점(·) 대신 쉼표로 쓴다. 사이트 검색(Pagefind)이 "손·얼굴"을 한 낱말로 묶어
  *   "얼굴"로 찾히지 않기 때문이다(P1-11, 2026-09-16 확인). 짧은 이름(label)의 가운뎃점은 그대로 둔다.
  *   긴 제목(title)은 좁은 화면에서 가운뎃점 앞에서 줄이 바뀌어 "·브라우저"처럼 보이므로 "와"로 이어 쓴다(예: 학교 네트워크와 브라우저).
@@ -120,6 +120,15 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
         description: '수업 운영 방법, 평가, 개인정보 처리 안내를 모았어요.',
       },
       {
+        id: 'start-parent',
+        icon: 'info',
+        // 판 1.6.0(C172, 학부모 걷기): 보호자가 고를 칸이 없어 학생·선생님 칸을 골라야 했다. 이름은 '학생용 시작하기'·'교사용 시작하기'와 짝으로 '보호자 안내'.
+        label: '보호자 안내',
+        title: '보호자 안내',
+        path: '/start/parent/',
+        description: '학부모님·보호자님이 궁금해하는 비용, 설치, 개인정보, 휴대폰, 문의 방법을 짧게 모았어요.',
+      },
+      {
         id: 'start-check',
         icon: 'check-circle',
         label: '내 컴퓨터 점검',
@@ -132,17 +141,19 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
   {
     id: 'book',
     icon: 'textbook',
-    label: '교과서',
+    // 판 1.6.0(C173): 메뉴 이름은 "교과서 원문" — 같은 45편의 실습 쪽은 "따라 하기"다. id·주소는 그대로.
+    label: '교과서 원문',
     path: '/book/',
-    description: '출판본 교과서 「인공지능과 피지컬 컴퓨팅」을 문장·표·코드 그대로 웹에서 읽어요.',
+    description: '출판본 교과서 「인공지능과 피지컬 컴퓨팅」의 문장·표·코드를 그대로 웹에서 읽어요.',
     inHeader: true,
   },
   {
     id: 'learn',
     icon: 'book',
-    label: '배우기',
+    // 판 1.6.0(C173): "배우기"(풀이·실습) → "따라 하기". 코드를 직접 실행하며 따라 하는 쪽이라는 뜻이다. id·주소는 그대로.
+    label: '따라 하기',
     path: '/learn/',
-    description: '교과서 차례대로 단원과 차시를 공부해요.',
+    description: '교과서 차례대로 예제를 따라 하며 코드를 직접 실행해 봐요.',
     inHeader: true,
   },
   {
@@ -357,7 +368,7 @@ function buildPage(input: NavPageInput): NavPage {
 /** 사이트 지도(최상위 페이지 목록, 홈이 맨 앞) */
 export const siteMap: readonly NavPage[] = Object.freeze(SITE_MAP_INPUT.map(buildPage));
 
-/** 대단원 I~IV(배우기 아래) */
+/** 대단원 I~IV(따라 하기 아래) */
 export const learnUnits: readonly LearnUnit[] = Object.freeze(
   LEARN_UNIT_INPUT.map(({ unit, numeral, ...input }) => Object.freeze({ ...buildPage(input), unit, numeral })),
 );
@@ -419,7 +430,7 @@ function trailChildren(page: NavPage): readonly NavPage[] {
 /**
  * 홈에서 지금 주소까지 거쳐 가는 페이지 목록(현재 위치 표시용).
  * navTrail('/ai-physical-computing/start/student/') → [홈, 시작하기, 학생용]
- * 사이트 지도에 없는 더 깊은 주소는 가장 가까운 위 페이지까지만 돌려준다. 예: '/learn/u1/1-2-1/' → [홈, 배우기, I. 영상 처리 인공지능]
+ * 사이트 지도에 없는 더 깊은 주소는 가장 가까운 위 페이지까지만 돌려준다. 예: '/learn/u1/1-2-1/' → [홈, 따라 하기, I. 영상 처리 인공지능]
  */
 export function navTrail(pathname: string): NavPage[] {
   const target = normalizePagePath(pathname);

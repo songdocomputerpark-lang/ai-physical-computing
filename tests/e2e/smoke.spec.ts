@@ -292,7 +292,7 @@ test.describe('현재 위치(빵부스러기)', () => {
 test.describe('404 — 길을 잃은 사람을 다시 데려간다', () => {
   test.skip(({ isMobile }) => isMobile, '404 동작은 데스크톱에서 확인한다');
 
-  test('주 경로 카드 넷(시작하기·배우기·실습실·문제 해결)이 있고 카드 어디를 눌러도 이동한다', async ({ page }) => {
+  test('주 경로 카드 넷(시작하기·따라 하기·실습실·문제 해결)이 있고 카드 어디를 눌러도 이동한다', async ({ page }) => {
     await page.goto('./no-such-page/');
     const routes = page.locator('.not-found__route');
     await expect(routes).toHaveCount(4);

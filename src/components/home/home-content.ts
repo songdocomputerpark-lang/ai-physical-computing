@@ -7,13 +7,17 @@
  * - 학생이 보는 문장: "고1이 처음 읽어도 이해되는가?", 한 문단 3문장 이내, 전문용어는 처음 나올 때 풀이(SPEC §7.1).
  * - tests/unit/home/home-content.test.ts와 tests/e2e/home.spec.ts가 이 값을 읽어 검사한다.
  *
- * 판 1.4.0 홈 순서(출판본 교과서 흐름 — DECISIONS C132): 표지(HomeCover) → 이어서 하기 띠(진도가 있을 때만) → 교과서 차례 그림(HomeToc) → 차시 목록(HomeLessons) → 큰 검색 → 바로 가기 타일 → 원칙.
+ * 판 1.6.0 홈 순서(처음 들어온 사람도 알기 쉽게 — DECISIONS C172·C173): 안심 띠(HomeTrust) → 표지(HomeCover: 사람별 큰 단추 셋) → 이어서 하기 띠(진도가 있을 때만) → 단원 4장 카드(HomeUnits, 주소 #units)
+ *   → 교과서 차례(HomeToc, 주소 #toc) → 큰 검색 → 바로 가기 타일 → 원칙("어떻게 되나요?"). 45편 전체 목록은 홈에 두지 않고 따라 하기(/learn/)에 둔다(옛 차시 카드 목록 HomeLessons는 홈이 더 쓰지 않는다).
+ *
+ * 판 1.4.0 홈 순서(옛 — DECISIONS C132): 표지(HomeCover) → 이어서 하기 띠(진도가 있을 때만) → 교과서 차례 그림(HomeToc) → 차시 목록(HomeLessons) → 큰 검색 → 바로 가기 타일 → 원칙.
  * 차례 그림의 링크 자리·카드 자료는 home-lessons.ts가 교과서 쪽(content/book)·웹 차시(content/lessons)에서 만든다.
  *
  * 판 1.3.0 홈 순서(옛): 첫 화면(hero) → 이어서 하기 띠 → 큰 검색 → 배움 지도(대단원 4장) → 바로 가기 타일 → 원칙.
  * 옛 첫 화면(HomeHero·FlowIllustration)과 배움 지도(HomeMap, home-map.ts)는 홈이 더 쓰지 않지만 지우지 않았고 아래 homeHero·homeActions·flowFigure·homeMap도 그대로 둔다.
  */
 import { getPage } from '../../config/nav.ts';
+import { CAMERA_PRIVACY_BRIEF } from '../../config/privacy-text.ts';
 import { siteConfig } from '../../config/site.ts';
 import type { IconName } from '../common/icons.ts';
 
@@ -86,9 +90,15 @@ function shortcut(pageId: string, icon: IconName, options: { label?: string; uni
   });
 }
 
-/** 표지 단추 하나(판 1.4.0). id는 시험·스타일이 쓰는 이름 — data-home-action */
+/**
+ * 표지 큰 단추 하나(판 1.6.0 — 사람으로 나눈다, DECISIONS C172). id는 시험·스타일이 쓰는 이름 — data-home-action.
+ * 'start'(학생)는 옛 이름을 그대로 둔다: 진도가 있으면 home-resume.ts가 이 단추를 "이어서 하기"로 바꾸고(data-cover-start), 다른 시험도 이 이름으로 홈을 알아본다.
+ */
 export interface HomeCoverAction {
-  readonly id: 'start' | 'toc' | 'labs';
+  readonly id: 'start' | 'teacher' | 'kit';
+  /** 누구를 위한 단추인지(작은 글자): "학생"·"선생님"·"키트가 있어요" */
+  readonly who: string;
+  /** 단추의 큰 글자: "처음부터 배우기" 따위. 눈에 보이는 글 = 접근 이름("학생 처음부터 배우기") */
   readonly label: string;
   /** 같은 쪽 #위치나 사이트 지도 페이지 */
   readonly href: string;
@@ -99,18 +109,21 @@ export interface HomeCoverAction {
 /**
  * 판 1.4.0 홈 표지(출판본 교과서 「인공지능과 피지컬 컴퓨팅」, 금성출판사). 알약의 수(절·웹 차시)는 글에 적지 않고 데이터에서 센다(homeCoverPill).
  * 표지 그림(public/images/book/cover.webp)에도 이름이 인쇄돼 있지만 화면 낭독기·검색을 위해 출판사·저자는 그림 밖 HTML 글자로도 적는다.
+ * 판 1.6.0: "설치 없이·무료"는 위 안심 띠(homeTrust)가 말하므로 소개 글에서 뺐다(첫 화면에서 같은 말을 두 번 하지 않는다). 부품 출처 줄(partsCredit)이 더해졌다.
  */
 export const homeCover = Object.freeze({
   /** 페이지 제목(h1)을 줄로 나눠 둔다. 이어 읽으면 책 이름이다. */
   titleLines: Object.freeze(['인공지능과', '피지컬 컴퓨팅']),
   /** 한 줄 소개(두 문장 이내) */
-  lead: '교과서 「인공지능과 피지컬 컴퓨팅」을 웹에서 읽고, 설치 없이 브라우저에서 바로 실습해 보는 무료 사이트예요.',
+  lead: '고등학교 교과서 「인공지능과 피지컬 컴퓨팅」을 웹에서 읽고, 브라우저에서 바로 실습해 보는 사이트예요.',
   /** 출판사·저자는 책 표지에 인쇄된 그대로 — 바닥글 출처 줄과 같은 값(src/config/site.ts textbook) */
   publisher: siteConfig.textbook.publisher,
   authors: siteConfig.textbook.authors,
+  /** 부품 사진·회로 그림·키트 예제 코드의 출처(바닥글 출처 줄과 같은 업체 — src/config/site.ts partsProvider) */
+  partsCredit: `부품 사진·회로 그림·예제 코드: ${siteConfig.partsProvider} 제공`,
   coverAlt: `교과서 「${siteConfig.textbook.title}」 표지`,
-  /** 첫 번째 큰 단추 글. 진도가 있으면 home-resume.ts가 "이어서 하기"로 바꾼다(startLabel·resumeLabel을 마크업에 실어 보낸다). */
-  startLabel: '1단원부터 시작',
+  /** 학생 단추의 큰 글자. 진도가 있으면 home-resume.ts가 "이어서 하기"로 바꾼다(startLabel·resumeLabel을 마크업에 실어 보낸다). */
+  startLabel: '처음부터 배우기',
   resumeLabel: '이어서 하기',
 });
 
@@ -119,19 +132,70 @@ export function homeCoverPill(sectionCount: number, lessonCount: number): string
   return `고등학교 · 교과서 ${sectionCount}절 · 웹 차시 ${lessonCount}편`;
 }
 
-/** 표지 큰 단추 둘(첫 번째 단추의 주소는 1단원 첫 절이라 화면이 데이터에서 정한다). 순서와 이름을 바꾸지 않는다. */
+/**
+ * 표지 큰 단추 셋(판 1.6.0, DECISIONS C172) — 사람으로 나눈다: [학생 — 처음부터 배우기] · [선생님 — 수업 준비] · [키트가 있어요 — 보드 켜기].
+ * 학생 단추의 주소는 1단원 첫 절의 따라 하기 쪽(/learn/u1/1-1-1/)이라 화면이 데이터에서 정해 넘긴다. 선생님·키트 단추는 사이트 지도의 쪽이다.
+ * 채운 파랑 주 단추는 학생 하나뿐이다(C114). 순서와 이름을 바꾸지 않는다.
+ */
 export function homeCoverActions(startHref: string): readonly HomeCoverAction[] {
   return Object.freeze([
-    Object.freeze({ id: 'start', label: homeCover.startLabel, href: startHref, icon: 'play', variant: 'primary' } as const),
-    Object.freeze({ id: 'toc', label: '차례 보기', href: '#toc', icon: 'list', variant: 'secondary' } as const),
-    Object.freeze({ id: 'labs', label: '실습실', href: getPage('labs').href, icon: 'flask', variant: 'secondary' } as const),
+    Object.freeze({ id: 'start', who: '학생', label: homeCover.startLabel, href: startHref, icon: 'play', variant: 'primary' } as const),
+    Object.freeze({ id: 'teacher', who: '선생님', label: '수업 준비', href: getPage('start-teacher').href, icon: 'teacher', variant: 'secondary' } as const),
+    Object.freeze({ id: 'kit', who: '키트가 있어요', label: '보드 켜기', href: getPage('start-board').href, icon: 'chip', variant: 'secondary' } as const),
   ]);
 }
+
+/** 안심 띠의 한 칸 */
+export interface HomeTrustItem {
+  readonly id: 'install' | 'free' | 'no-board' | 'camera';
+  readonly icon: IconName;
+  /** 눈에 보이는 글(아이콘은 꾸밈이라 글이 뜻을 전한다) */
+  readonly text: string;
+}
+
+/**
+ * 맨 위 안심 띠(판 1.6.0, DECISIONS C172): 처음 들어온 사람(학생·보호자·교사)이 3초 안에 알고 싶은 네 가지.
+ * 학부모 걷기에서 "카메라 영상이 어디로 가나요?"가 가장 큰 걱정이었는데 홈 끝의 원칙 칸에도 없었다(walk-parent-browse). 카메라 문장은 privacy-text.ts 한 곳에서 온다.
+ */
+export const homeTrust = Object.freeze({
+  /** 띠 전체의 이름(화면 낭독기용 — 눈에는 보이지 않는다) */
+  label: '이 사이트는',
+  items: Object.freeze<HomeTrustItem[]>([
+    { id: 'install', icon: 'browser', text: '설치 없음' },
+    { id: 'free', icon: 'unlock', text: '무료' },
+    { id: 'no-board', icon: 'monitor', text: '보드 없어도 됨' },
+    { id: 'camera', icon: 'camera', text: CAMERA_PRIVACY_BRIEF },
+  ]),
+});
+
+/**
+ * 단원 4장 카드(판 1.6.0, DECISIONS C172) — 45편 목록을 홈에서 한 번만 보이려고 차시 카드 목록을 이 카드로 줄였다. 전체 목록은 /learn/.
+ * 단원 설명 한 줄은 사이트 지도(nav.ts learnUnits)의 것이다. 카드 안 숫자는 home-lessons.ts의 unitStats가 센다.
+ */
+export const homeUnits = Object.freeze({
+  heading: '무엇을 배우나요?',
+  /** 학부모 걷기 제안: 만드는 것 두 가지를 예로 든다 */
+  lead: '카메라로 손·얼굴을 알아보는 인공지능을 만들고, 작은 컴퓨터 보드로 불빛·소리·모터를 움직여 봐요. 단원을 누르면 따라 하기 차시가 나와요.',
+  /** 카드 단추: 진도가 없으면 "1단원 열기"(단원 목록 쪽), 안 본 차시가 남았으면 "1단원 이어서 하기"(home-resume.ts가 바꾼다) */
+  openLabel: '열기',
+  resumeLabel: '이어서 하기',
+  replayLabel: '다시 보기',
+  /** 카드 안 "처음 할 차시" 머리 */
+  firstKicker: '처음 할 차시',
+  /** "13편" — 열 수 있는 편 수 */
+  countText: (count: number): string => `${count}편`,
+  /** 편 수 가운데 책에 없고 사이트가 더한 편 수(글자만 — 알약 아님). "18편 웹에서 더함 5편"만 보면 더해서 23편인 줄 알기 쉬워 "그중"을 붙인다. */
+  webOnlyText: (count: number): string => `그중 웹에서 더함 ${count}편`,
+  /** 카드 아래 전체 목록 링크 */
+  allLinkLabel: '차시 전체 목록 보기',
+  /** 단원 카드 네 장을 묶는 목록의 이름(화면 낭독기용) */
+  listLabel: '단원 네 개',
+});
 
 /** 차례(교과서 4·5쪽 그림) */
 export const homeToc = Object.freeze({
   heading: '차례',
-  lead: '교과서 차례에서 배우고 싶은 절을 눌러요. 그림이 작아서 누르기 어려우면 아래 목록에서 골라도 돼요.',
+  lead: '읽고 싶은 절을 눌러요. 교과서 원문이 열려요.',
   /** 좁은 화면에서 그림을 접어 둔 칸의 이름 */
   figureSummary: '교과서 차례 그림으로 보기',
   /** 넓은 화면의 그림 묶음 이름(화면 낭독기용) */
@@ -276,9 +340,12 @@ export const homeShortcuts = Object.freeze({
   ]),
 });
 
-/** "설치 없이, 브라우저만으로" 원칙(SPEC §2 절대 원칙 1~3을 짧게) */
+/**
+ * "어떻게 되나요?" 세 줄(SPEC §2 절대 원칙 1~3을 짧게). 판 1.6.0: 같은 내용의 한 줄 요약이 맨 위 안심 띠(homeTrust)로 올라갔고,
+ * 여기는 띠의 "설치 없음·보드 없어도·무료"가 어떻게 되는지 풀어 주는 아래 칸이다(제목도 "설치 없이, 브라우저만으로"에서 바꿨다 — 띠와 같은 말을 되풀이하지 않는다).
+ */
 export const homePrinciples = Object.freeze({
-  heading: '설치 없이, 브라우저만으로',
+  heading: '어떻게 되나요?',
   items: Object.freeze<HomePrinciple[]>([
     {
       icon: 'browser',
@@ -293,7 +360,7 @@ export const homePrinciples = Object.freeze({
     {
       icon: 'unlock',
       title: '가입 없이 무료예요',
-      body: '로그인이나 회원가입 없이 누구나 바로 쓸 수 있어요.',
+      body: '로그인이나 회원가입 없이 누구나 바로 쓸 수 있어요. 카메라 영상도 이 컴퓨터 밖으로 나가지 않아요.',
     },
   ]),
   browserNote: Object.freeze({

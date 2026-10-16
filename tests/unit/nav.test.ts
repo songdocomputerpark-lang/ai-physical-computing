@@ -21,6 +21,7 @@ const PLAN_PATHS = [
   '/start/board/',
   '/start/parts/',
   '/start/teacher/',
+  '/start/parent/',
   '/start/check/',
   '/learn/',
   '/labs/',
@@ -48,12 +49,12 @@ describe('사이트 지도(src/config/nav.ts)', () => {
     expect(siteMap[0].id).toBe('home');
   });
 
-  it('머리글 주 메뉴는 일곱 곳이고 순서가 정해져 있다(판 1.4.0: 교과서가 배우기 앞)', () => {
-    expect(headerNav.map((page) => page.label)).toEqual(['시작하기', '교과서', '배우기', '실습실', '교사용 자료실', '문제 해결', '용어사전']);
+  it('머리글 주 메뉴는 일곱 곳이고 순서가 정해져 있다(판 1.4.0: 교과서가 따라 하기 앞, 판 1.6.0: 이름은 교과서 원문·따라 하기 — C173)', () => {
+    expect(headerNav.map((page) => page.label)).toEqual(['시작하기', '교과서 원문', '따라 하기', '실습실', '교사용 자료실', '문제 해결', '용어사전']);
   });
 
-  it('시작하기 아래에 학생용·보드 준비·부품 사전·교사용·점검이 있다(판 1.4.0: 부품 사전은 보드 준비 바로 뒤)', () => {
-    expect(getPage('start').children.map((page) => page.label)).toEqual(['학생용', '보드 준비', '부품 사전', '교사용 시작하기', '내 컴퓨터 점검']);
+  it('시작하기 아래에 학생용·보드 준비·부품 사전·교사용·보호자·점검이 있다(판 1.4.0: 부품 사전은 보드 준비 바로 뒤, 판 1.6.0: 보호자 안내는 교사용 바로 뒤)', () => {
+    expect(getPage('start').children.map((page) => page.label)).toEqual(['학생용', '보드 준비', '부품 사전', '교사용 시작하기', '보호자 안내', '내 컴퓨터 점검']);
     expect(getPage('labs').children.map((page) => page.label)).toEqual([
       '영상 처리 실습실',
       'ESP32 실습실',

@@ -41,6 +41,8 @@ export interface HomeCard {
   readonly target: HomeCardTarget;
   /** 진도 칠하기에 쓰는 차시 id(u2/2-1-2). 웹 차시나 교과서 쪽이 하나도 없으면 없다 */
   readonly progressId?: string;
+  /** 짝 웹 차시(따라 하기 쪽, /learn/…)의 주소 — 교과서 쪽이 있어 href가 /book/…이어도 따로 둔다(판 1.6.0: 홈 [학생] 단추가 실습이 있는 쪽으로 간다). 웹 차시가 없으면 없다 */
+  readonly lessonHref?: string;
   /** 책에 없고 사이트가 더한 차시("웹에서 더함" 알약) */
   readonly webOnly: boolean;
 }
@@ -59,7 +61,9 @@ export interface HomeUnit {
   readonly name: string;
   /** 로마 숫자를 뗀 대단원 이름 */
   readonly title: string;
-  /** 대단원 차시 목록(배우기 쪽) */
+  /** 대단원이 무엇을 배우는지 한 줄(사이트 지도 nav.ts의 설명 — 단원 카드가 보인다) */
+  readonly description: string;
+  /** 대단원 차시 목록(따라 하기 쪽) */
   readonly href: string;
   readonly groups: readonly HomeGroup[];
   /** 단원 진도를 셀 차시 id(중복 없음, 카드 차례) */
@@ -103,6 +107,7 @@ function sectionCard(id: string, sources: CardSources, lesson: LessonSummary | u
     ...(href ? { href } : {}),
     target,
     ...(progressId ? { progressId } : {}),
+    ...(lesson ? { lessonHref: lesson.href } : {}),
     webOnly: false,
   };
 }
@@ -124,6 +129,7 @@ function reviewCard(unit: OutlineUnit, sources: CardSources, lesson: LessonSumma
     ...(href ? { href } : {}),
     target,
     ...(progressId ? { progressId } : {}),
+    ...(lesson ? { lessonHref: lesson.href } : {}),
     webOnly: false,
   };
 }
@@ -143,7 +149,7 @@ function webOnlyCard(item: OutlineItem): HomeCard {
     media: [],
     ...(lesson ? { href: lesson.href } : {}),
     target: hasLesson ? 'lesson' : 'none',
-    ...(lesson ? { progressId: lesson.id } : {}),
+    ...(lesson ? { progressId: lesson.id, lessonHref: lesson.href } : {}),
     webOnly: isSupplement,
   };
 }
@@ -226,6 +232,7 @@ export function buildHomeUnits(units: readonly LearnUnit[], books: readonly Book
       unit: unit.unit,
       name: `${unit.unit}단원`,
       title: unitTitleOf(unit),
+      description: unit.description,
       href: unit.href,
       groups: Object.freeze(groups.map((group) => Object.freeze({ ...group, cards: Object.freeze(group.cards) }))),
       progressIds: Object.freeze(ids),
@@ -242,6 +249,36 @@ export function allCards(units: readonly HomeUnit[]): HomeCard[] {
 export function firstStart(units: readonly HomeUnit[]): { readonly href: string; readonly label: string; readonly title: string } | undefined {
   const first = units[0]?.groups.flatMap((group) => group.cards).find((card) => card.kind === 'section' && card.href);
   return first?.href ? { href: first.href, label: first.label, title: first.title } : undefined;
+}
+
+/**
+ * 홈 [학생 — 처음부터 배우기] 단추가 가는 곳(판 1.6.0, DECISIONS C172·C173): 1단원 첫 절의 **짝 웹 차시**(따라 하기 — 코드·실습이 있는 쪽).
+ * 교과서 원문(/book/…)은 글만 있어 처음 온 학생이 "코드·실습이 없다"고 느꼈다(walk-student-first). 짝 웹 차시가 하나도 없으면 undefined.
+ */
+export function firstPracticeStart(units: readonly HomeUnit[]): { readonly href: string; readonly label: string; readonly title: string } | undefined {
+  const first = units[0]?.groups.flatMap((group) => group.cards).find((card) => card.kind === 'section' && card.lessonHref);
+  return first?.lessonHref ? { href: first.lessonHref, label: first.label, title: first.title } : undefined;
+}
+
+/** 단원 카드에 보이는 숫자와 "처음 할 차시" */
+export interface HomeUnitStats {
+  /** 열 수 있는 편 수(링크가 있는 카드) */
+  readonly total: number;
+  /** 그 가운데 책에 없고 사이트가 더한 편 수 */
+  readonly webOnly: number;
+  /** 처음 할 차시: 단원 첫 절(링크가 있는 것) */
+  readonly first?: { readonly label: string; readonly title: string };
+}
+
+/** 단원 하나의 카드 숫자(편 수·웹에서 더한 편 수·처음 할 차시). 갈 곳이 없는 카드(링크 없이 이름만)는 세지 않는다. */
+export function unitStats(unit: HomeUnit): HomeUnitStats {
+  const openable = unit.groups.flatMap((group) => group.cards).filter((card) => card.href);
+  const first = openable.find((card) => card.kind === 'section');
+  return {
+    total: openable.length,
+    webOnly: openable.filter((card) => card.webOnly).length,
+    ...(first ? { first: { label: first.label, title: first.title } } : {}),
+  };
 }
 
 /* ───────────── 차례 그림 위 링크 ───────────── */

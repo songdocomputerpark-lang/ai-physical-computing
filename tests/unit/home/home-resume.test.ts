@@ -298,7 +298,8 @@ describe('표지의 첫 번째 큰 단추', () => {
   });
 });
 
-// 판 1.4.0: 홈 카드가 교과서 쪽으로 가므로 "다음에 볼 차시"도 짝 교과서 쪽이 있으면 그 쪽으로 간다(차시 목록 JSON의 네 번째 칸)
+// 판 1.6.0(C173): "다음에 볼 차시"는 늘 따라 하기 쪽(/learn/)으로 간다 — 짝 교과서 쪽(차시 목록 JSON의 네 번째 칸)이 있어도.
+// 교과서 쪽으로 돌려보내는 것은 지난번에 연 곳이 바로 그 교과서 쪽이었을 때뿐이다(걷기 조사: 학생이 글만 있는 쪽에 떨어져 실습이 없다고 느꼈다).
 describe('짝 교과서 쪽이 있는 차시', () => {
   const BOOK_212 = '/ai-physical-computing/book/2-1-2/';
   const withBook = (): void =>
@@ -313,17 +314,17 @@ describe('짝 교과서 쪽이 있는 차시', () => {
     last: { id: 'u2/2-1-1', href: `${BASE}u2/2-1-1/`, label: '2-1-1', title: '영상 처리 기초', at: 5 },
   });
 
-  it('다음에 볼 차시가 교과서 쪽으로 이어진다(큰 단추도 같은 곳)', () => {
+  it('다음에 볼 차시는 짝 교과서 쪽이 있어도 따라 하기 쪽으로 이어진다(큰 단추도 같은 곳 — C173)', () => {
     withBook();
     applyResume(document, doneFirst());
-    expect(q('[data-cover-start]').getAttribute('href')).toBe(BOOK_212);
+    expect(q('[data-cover-start]').getAttribute('href')).toBe(`${BASE}u2/2-1-2/`);
   });
 
-  it('큰 단추가 없으면 띠의 "다음에 볼 차시" 칸이 교과서 쪽으로 간다', () => {
+  it('큰 단추가 없으면 띠의 "다음에 볼 차시" 칸도 따라 하기 쪽으로 간다', () => {
     withBook();
     q('[data-cover-start]').remove();
     applyResume(document, doneFirst());
-    expect(q('[data-resume-next] [data-resume-link]').getAttribute('href')).toBe(BOOK_212);
+    expect(q('[data-resume-next] [data-resume-link]').getAttribute('href')).toBe(`${BASE}u2/2-1-2/`);
   });
 
   it('지난번에 연 곳이 그 교과서 쪽이면 거기로 돌아가고, 웹 차시였으면 웹 차시로 간다', () => {
@@ -390,6 +391,46 @@ describe('배움 지도 단추', () => {
     applyMapProgress(document, emptyProgress());
     expect(label()).toBe('1단원 배우기');
     expect(start().getAttribute('href')).toBe(`${BASE}u1/1-1-1/`);
+  });
+});
+
+// 판 1.6.0: 홈의 단원 4장 카드(HomeUnits.astro)는 [data-home-units] — 옛 배움 지도(data-home-map)와 같은 속성 약속을 쓴다. 처음 모습은 단원 목록 쪽(/learn/u1/) "1단원 열기".
+describe('홈 단원 카드 단추(data-home-units)', () => {
+  const UNIT_HREF = `${BASE}u1/`;
+  const mountUnits = (): void => {
+    document.body.innerHTML = `
+    <section data-home-units data-learn-base="${BASE}" data-start-label="열기" data-resume-label="이어서 하기" data-replay-label="다시 보기">
+      <div data-home-unit data-progress-unit="${IDS.join(',')}">
+        <p data-progress-count></p>
+        <div class="progress-bar" data-progress-bar aria-hidden="true"></div>
+        <a data-unit-start data-first-href="${UNIT_HREF}" data-unit-name="1단원" href="${UNIT_HREF}"><span data-unit-start-label>1단원 열기</span></a>
+      </div>
+    </section>`;
+  };
+  const start = (): HTMLElement => q('[data-unit-start]');
+  const label = (): string | null => q('[data-unit-start-label]').textContent;
+
+  it('본 차시가 없으면 [1단원 열기] → 단원 목록 쪽(처음 모습)', () => {
+    mountUnits();
+    applyMapProgress(document, emptyProgress());
+    expect(label()).toBe('1단원 열기');
+    expect(start().getAttribute('href')).toBe(UNIT_HREF);
+  });
+
+  it('일부를 봤으면 [1단원 이어서 하기] → 안 본 첫 차시(따라 하기 쪽)', () => {
+    mountUnits();
+    applyMapProgress(document, { ...emptyProgress(), seen: ['u1/1-1-1'] });
+    expect(label()).toBe('1단원 이어서 하기');
+    expect(start().getAttribute('href')).toBe(`${BASE}u1/1-1-2/`);
+  });
+
+  it('모두 봤으면 [1단원 다시 보기], 진도가 지워지면 처음 모습으로 돌아와 단원 목록 쪽으로 간다', () => {
+    mountUnits();
+    applyMapProgress(document, { ...emptyProgress(), seen: [...IDS] });
+    expect(label()).toBe('1단원 다시 보기');
+    applyMapProgress(document, emptyProgress());
+    expect(label()).toBe('1단원 열기');
+    expect(start().getAttribute('href')).toBe(UNIT_HREF);
   });
 });
 

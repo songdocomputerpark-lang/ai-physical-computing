@@ -1,11 +1,14 @@
 ---
 /**
- * 홈 첫 화면 — 출판본 교과서의 표지(판 1.4.0, DECISIONS C132). 옛 HomeHero 자리.
+ * 홈 첫 화면 — 출판본 교과서의 표지(판 1.4.0, DECISIONS C132) + 사람별 큰 단추 셋(판 1.6.0, DECISIONS C172). 옛 HomeHero 자리.
  *
- * 위에서 아래(= 읽는 차례 = Tab 차례): 알약 "고등학교 · 교과서 32절 · 웹 차시 45편" → 제목(h1) "인공지능과 피지컬 컴퓨팅" → 한 줄 소개 → 큰 단추 셋 → 표지 그림 + 출판사·저자.
+ * 위에서 아래(= 읽는 차례 = Tab 차례): 알약 "고등학교 · 교과서 32절 · 웹 차시 45편" → 제목(h1) "인공지능과 피지컬 컴퓨팅" → 한 줄 소개 → 큰 단추 셋 → 표지 그림 + "누가 만들었나"(출판사·저자·부품 출처).
+ *  - 큰 단추 셋은 사람으로 나눈다: [학생 처음부터 배우기](파랑 주 단추) · [선생님 수업 준비] · [키트가 있어요 보드 켜기]. 작은 글자 줄(누구용)이 위, 큰 글자(할 일)가 아래다.
  *  - 넓은 화면(48rem 이상): 표지 그림이 왼쪽, 글이 오른쪽(그림은 CSS order로 앞으로 — 그림은 초점을 받지 않아 Tab 차례는 그대로다).
- *  - 좁은 화면: 글 → 단추 → 표지 순서로 쌓는다. 375×812에서 h1·소개·큰 단추 셋이 스크롤 없이 보여야 하기 때문이다(C109, tests/e2e/home.spec.ts).
- * 첫 번째 단추 [1단원부터 시작]은 진도가 있으면 home-resume.ts가 "이어서 하기 + 차시 이름"으로 바꾼다(마크업 약속은 그 파일 머리말). 채운 파랑은 이 단추 하나뿐이다(C114).
+ *  - 좁은 화면: 글 → 단추 → 표지 순서로 쌓는다. 표지는 작은 그림 + 글을 가로로 놓아 "누가 만들었나"가 첫 화면에 들어온다.
+ *    375×812에서 안심 띠(HomeTrust)·h1·소개·큰 단추 셋이 스크롤 없이 보여야 한다(C109·C172, tests/e2e/home.spec.ts).
+ * 학생 단추는 진도가 있으면 home-resume.ts가 "이어서 하기 + 차시 이름"으로 바꾼다(마크업 약속은 그 파일 머리말 — data-cover-start 등). 채운 파랑은 이 단추 하나뿐이다(C114).
+ * 학생 단추가 처음 가는 곳은 1단원 첫 절의 따라 하기 쪽(/learn/u1/1-1-1/ — 코드·실습이 있는 쪽, C173). 교과서 원문(/book/…)은 글만 있어 처음 온 학생이 막다른 길로 느꼈다.
  * 알약의 수는 글에 적지 않고 데이터에서 센다: 절 = 출판본 차례(src/config/book-outline.ts), 웹 차시 = 공개 차시 목록.
  * 글·링크는 home-content.ts(homeCover)에 있다.
  * HTML 크기: 홈 HTML은 서비스 워커 사전 캐시 한도(파일 하나 160KB)에 바짝 붙어 있다 — 이 부품의 <style>은 is:global이다(Astro 범위 스타일은 모든 요소에 data-astro-cid 속성을 붙인다). 클래스 이름은 이 부품 고유(cover__ 접두어)라 겹치지 않는다.
@@ -15,7 +18,7 @@ import { bookSectionCount } from '../../config/book-outline.ts';
 import { withBase } from '../../lib/url.ts';
 import Icon from '../common/Icon.astro';
 import { homeCover, homeCoverActions, homeCoverPill } from './home-content.ts';
-import { firstStart, type HomeUnit } from './home-lessons.ts';
+import { firstPracticeStart, firstStart, type HomeUnit } from './home-lessons.ts';
 
 interface Props {
   units: readonly HomeUnit[];
@@ -24,7 +27,8 @@ interface Props {
 }
 
 const { units, lessonCount } = Astro.props;
-const start = firstStart(units);
+// 학생 단추: 따라 하기 쪽(짝 웹 차시) → 없으면 교과서 쪽 → 없으면 따라 하기 목록
+const start = firstPracticeStart(units) ?? firstStart(units);
 const startHref = start?.href ?? units[0]?.href ?? withBase('learn/');
 const actions = homeCoverActions(startHref);
 const pill = homeCoverPill(bookSectionCount(), lessonCount);
@@ -62,6 +66,7 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
                   <Icon name={action.icon} size="fill" />
                 </span>
                 <span class="cover__action-text">
+                  <span class="cover__action-who">{action.who}</span>{' '}
                   <span class="cover__action-label" data-cover-start-label>{action.label}</span>{' '}
                   <span class="cover__action-name" data-cover-start-name hidden />
                 </span>
@@ -77,7 +82,11 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
                   <Icon name={action.icon} size="fill" />
                 </span>
                 <span class="cover__action-text">
+                  <span class="cover__action-who">{action.who}</span>{' '}
                   <span class="cover__action-label">{action.label}</span>
+                </span>
+                <span class="cover__action-arrow">
+                  <Icon name="arrow-right" size="fill" />
                 </span>
               </a>
             </li>
@@ -97,7 +106,8 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
     />
     <figcaption class="cover__credit">
       <span class="cover__publisher">{homeCover.publisher}</span>{' '}
-      <span class="cover__authors">{homeCover.authors.join('·')}</span>
+      <span class="cover__authors">{homeCover.authors.join('·')}</span>{' '}
+      <span class="cover__parts" data-cover-parts>{homeCover.partsCredit}</span>
     </figcaption>
   </figure>
 </section>
@@ -105,9 +115,9 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
 <style is:global>
   .cover {
     display: grid;
-    gap: var(--space-6);
+    gap: var(--space-4);
     align-items: center;
-    padding: var(--space-5);
+    padding: var(--space-4);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
     background: var(--color-bg);
@@ -132,8 +142,8 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
   }
 
   .cover__title {
-    margin-block-start: var(--space-3);
-    font-size: clamp(2.25rem, 1.5rem + 3.2vw, 3.5rem);
+    margin-block-start: var(--space-2);
+    font-size: clamp(2rem, 1.4rem + 3vw, 3.5rem);
     font-weight: var(--weight-extrabold);
     line-height: 1.15;
     letter-spacing: -0.03em;
@@ -145,7 +155,7 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
 
   .cover__lead {
     max-width: 34rem;
-    margin-block-start: var(--space-3);
+    margin-block-start: var(--space-2);
     color: var(--color-text-muted);
     font-size: var(--text-base);
     line-height: var(--leading-snug);
@@ -153,13 +163,13 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
 
   .cover__actions {
     display: grid;
-    gap: var(--space-3);
-    margin: var(--space-5) 0 0;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
     padding: 0;
     list-style: none;
   }
 
-  /* 큰 단추: 아이콘 + 글. 누르는 곳은 높이 3.5rem(56px) 이상 */
+  /* 큰 단추: 아이콘 + (누구용 작은 글자 / 할 일 큰 글자) + 화살표. 누르는 곳은 높이 3.5rem(56px) 이상 */
   .cover__action {
     display: flex;
     align-items: center;
@@ -216,8 +226,24 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
   .cover__action-text {
     display: grid;
     flex: 1 1 auto;
-    gap: 0.125rem;
+    gap: 0.0625rem;
     min-width: 0;
+  }
+
+  /* 누구용인지: 작은 글자(파랑 바탕 위에서는 accent-soft — accent 위 5.25 대비) */
+  .cover__action-who {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    opacity: 1;
+  }
+
+  .cover__action--primary .cover__action-who {
+    color: var(--color-accent-soft);
+  }
+
+  .cover__action--secondary .cover__action-who {
+    color: var(--color-text-muted);
   }
 
   .cover__action-label {
@@ -244,28 +270,30 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
     transform: translateX(0.1875rem);
   }
 
+  /* 표지: 좁은 화면은 작은 그림 + "누가 만들었나" 글을 가로로(첫 화면에 들어오게), 넓은 화면은 그림이 크고 글이 아래 */
   .cover__book {
-    display: grid;
-    justify-items: center;
-    gap: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     margin: 0;
   }
 
   .cover__image {
-    width: min(100%, 13rem);
+    flex: none;
+    width: 4.5rem;
     height: auto;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
   }
 
   .cover__credit {
     display: grid;
-    justify-items: center;
+    gap: 0.125rem;
+    min-width: 0;
     color: var(--color-text-muted);
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     line-height: var(--leading-snug);
-    text-align: center;
   }
 
   .cover__publisher {
@@ -273,13 +301,26 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
     font-weight: var(--weight-bold);
   }
 
+  .cover__parts {
+    text-wrap: balance;
+  }
+
   @media (min-width: 40rem) {
     .cover {
+      gap: var(--space-6);
       padding: var(--space-8);
     }
 
     .cover__lead {
       font-size: var(--text-lg);
+    }
+
+    .cover__credit {
+      font-size: var(--text-sm);
+    }
+
+    .cover__image {
+      width: 6rem;
     }
   }
 
@@ -292,15 +333,26 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
     }
 
     .cover__book {
+      display: grid;
       order: -1;
+      justify-items: center;
+      gap: var(--space-2);
     }
 
     .cover__image {
       width: 100%;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+    }
+
+    .cover__credit {
+      justify-items: center;
+      text-align: center;
     }
 
     .cover__actions {
-      grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
     }
   }
 
@@ -311,10 +363,14 @@ const pill = homeCoverPill(bookSectionCount(), lessonCount);
     }
   }
 
-  /* 아주 좁은 화면(320px)에서도 가장 긴 글자("1단원부터 시작")가 두 줄로 넘치지 않게 글자를 조금 줄인다 */
+  /* 아주 좁은 화면(320px)에서도 가장 긴 글자가 넘치지 않게 글자를 조금 줄인다 */
   @media (max-width: 20.99rem) {
     .cover {
-      padding: var(--space-4);
+      padding: var(--space-3);
+    }
+
+    .cover__action {
+      padding-inline: var(--space-3);
     }
 
     .cover__action-label {

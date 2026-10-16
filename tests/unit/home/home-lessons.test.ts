@@ -7,7 +7,9 @@ import {
   buildHomeUnits,
   buildTocFigures,
   buildTocList,
+  firstPracticeStart,
   firstStart,
+  unitStats,
   unitTitleOf,
   type HomeCard,
   type HomeUnit,
@@ -176,6 +178,59 @@ describe('firstStart — [1단원부터 시작]이 가는 곳', () => {
     const first = book('1-1-1', '인공지능 응용 프로그램과 에이전트', 1, '01 인공지능과 인식', '8~12', []);
     expect(firstStart(build([first], lessons))).toMatchObject({ href: '/ai-physical-computing/book/1-1-1/' });
     expect(firstStart(build([], []))).toBeUndefined();
+  });
+});
+
+describe('firstPracticeStart — [학생 처음부터 배우기]가 가는 곳(판 1.6.0, C172·C173)', () => {
+  const lessons = publishedLessons([
+    { id: 'u1/1-1-1', data: { title: '인공지능 응용 프로그램과 에이전트', unit: 1, order: 1, kind: 'textbook', label: '1-1-1', standards: [], materials: [], examples: [] } as never },
+  ]);
+
+  it('교과서 쪽이 있어도 짝 웹 차시(따라 하기 — 코드·실습이 있는 쪽)로 간다. 카드의 href는 교과서 쪽 그대로', () => {
+    const first = book('1-1-1', '인공지능 응용 프로그램과 에이전트', 1, '01 인공지능과 인식', '8~12', []);
+    const units = build([first], lessons);
+    expect(firstStart(units)).toMatchObject({ href: '/ai-physical-computing/book/1-1-1/' });
+    expect(firstPracticeStart(units)).toMatchObject({ label: '1-1-1', href: '/ai-physical-computing/learn/u1/1-1-1/' });
+    expect(find(units, '1-1-1')).toMatchObject({ href: '/ai-physical-computing/book/1-1-1/', lessonHref: '/ai-physical-computing/learn/u1/1-1-1/' });
+  });
+
+  it('웹 차시가 하나도 없으면(교과서 쪽만) undefined — 부르는 쪽이 교과서 쪽으로 물러난다', () => {
+    const first = book('1-1-1', '인공지능 응용 프로그램과 에이전트', 1, '01 인공지능과 인식', '8~12', []);
+    expect(firstPracticeStart(build([first], []))).toBeUndefined();
+    expect(firstPracticeStart(build([], []))).toBeUndefined();
+  });
+
+  it('웹 차시만 있어도 웹 차시 주소다(카드 href와 lessonHref가 같다)', () => {
+    const units = build([], lessons);
+    expect(firstPracticeStart(units)).toMatchObject({ href: '/ai-physical-computing/learn/u1/1-1-1/' });
+    expect(find(units, '1-1-1').lessonHref).toBe('/ai-physical-computing/learn/u1/1-1-1/');
+  });
+});
+
+describe('unitStats — 단원 카드의 숫자와 처음 할 차시(판 1.6.0)', () => {
+  const lessons = publishedLessons([
+    { id: 'u1/1-1-1', data: { title: '인공지능 응용 프로그램과 에이전트', unit: 1, order: 1, kind: 'textbook', label: '1-1-1', standards: [], materials: [], examples: [] } as never },
+    { id: 'u1/1-1-2', data: { title: '손 인식', unit: 1, order: 2, kind: 'textbook', label: '1-1-2', standards: [], materials: [], examples: [] } as never },
+    { id: 'u1/v1', data: { title: '사진은 숫자다', unit: 1, order: 3.1, kind: 'supplement', label: 'V1', standards: [], materials: [], examples: [] } as never },
+    { id: 'u1/v2', data: { title: '픽셀', unit: 1, order: 3.2, kind: 'supplement', label: 'V2', standards: [], materials: [], examples: [] } as never },
+  ]);
+
+  it('열 수 있는 편(링크가 있는 카드)만 세고, 그 가운데 사이트가 더한 편 수를 따로 센다', () => {
+    const stats = unitStats(build([], lessons)[0]!);
+    expect(stats.total).toBe(4);
+    expect(stats.webOnly).toBe(2);
+    expect(stats.first).toEqual({ label: '1-1-1', title: '인공지능 응용 프로그램과 에이전트' });
+  });
+
+  it('갈 곳이 없는 카드(링크 없이 이름만)는 세지 않는다 — 아무것도 없으면 0편이고 처음 할 차시도 없다', () => {
+    const stats = unitStats(build([], [])[1]!);
+    expect(stats).toEqual({ total: 0, webOnly: 0 });
+  });
+
+  it('단원 설명은 사이트 지도(nav.ts)의 한 줄 설명이다', () => {
+    const units = build([], []);
+    expect(units.map((unit) => unit.description)).toEqual(learnUnits.map((unit) => unit.description));
+    expect(units[0]!.description).toContain('카메라');
   });
 });
 

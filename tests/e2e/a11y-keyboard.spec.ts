@@ -664,7 +664,7 @@ async function horizontalOverflow(page: Page): Promise<{ overflow: number; offen
 /** 확대·글자 크기 검사를 할 쪽(글 쪽 + 실습실 틀, full: npm run test:a11y에서만) */
 const ZOOM_PAGES: readonly { label: string; path: string; lab?: boolean; full?: boolean }[] = [
   { label: '홈', path: '' },
-  { label: '배우기', path: 'learn/', full: true },
+  { label: '따라 하기', path: 'learn/', full: true },
   { label: '차시 1-1-1', path: 'learn/u1/1-1-1/' },
   { label: '차시 3-1-1(표·더알아보기)', path: 'learn/u3/3-1-1/' },
   { label: '차시 4-2-1(긴 예제 발췌)', path: 'learn/u4/4-2-1/', full: true },

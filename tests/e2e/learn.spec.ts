@@ -32,11 +32,11 @@ async function expectNoHorizontalScroll(page: import('@playwright/test').Page, l
   expect(overflow, label).toBeLessThanOrEqual(0);
 }
 
-test.describe('배우기 목록', () => {
+test.describe('따라 하기 목록', () => {
   test('대단원 4개 > 묶음 > 차시 카드가 보이고, 차례표의 차시가 모두 공개돼 "준비 중" 카드가 없으며, 사이트 해설·보충 표시가 붙는다', async ({ page }) => {
     const response = await page.goto('./learn/');
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole('heading', { level: 1, name: '배우기' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '따라 하기' })).toBeVisible();
     for (const unit of learnUnits) {
       await expect(page.getByRole('heading', { level: 2, name: unit.label })).toBeVisible();
     }
@@ -117,13 +117,13 @@ test.describe('배우기 목록', () => {
     await expect(pre).not.toHaveAttribute('data-scroll-focus-added', /.*/u);
   });
 
-  test('대단원 페이지 4개가 열리고 현재 위치가 홈 › 배우기 › 대단원이다', async ({ page }) => {
+  test('대단원 페이지 4개가 열리고 현재 위치가 홈 › 따라 하기 › 대단원이다', async ({ page }) => {
     for (const unit of learnUnits) {
       const response = await page.goto(`.${unit.path}`);
       expect(response?.status(), unit.path).toBe(200);
       await expect(page.getByRole('heading', { level: 1, name: unit.label })).toBeVisible();
       const breadcrumb = page.getByRole('navigation', { name: '현재 위치' });
-      await expect(breadcrumb.getByRole('link', { name: '배우기' })).toHaveAttribute('href', withBase('learn/'));
+      await expect(breadcrumb.getByRole('link', { name: '따라 하기' })).toHaveAttribute('href', withBase('learn/'));
       await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText(unit.label);
       await expect(page.locator('.lesson-card').first()).toBeVisible();
     }

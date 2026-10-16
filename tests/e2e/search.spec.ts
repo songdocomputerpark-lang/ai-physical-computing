@@ -333,12 +333,12 @@ test.describe('느린 인터넷과 불러오기 실패 안내', () => {
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 30_000 });
   });
 
-  test('검색 도구를 못 받으면 안내와 함께 "배우기 차례로 가기"·"홈으로 가기" 링크가 보인다 (R1-024)', async ({ page }) => {
+  test('검색 도구를 못 받으면 안내와 함께 "따라 하기 차례로 가기"·"홈으로 가기" 링크가 보인다 (R1-024)', async ({ page }) => {
     await page.route('**/pagefind/**', (route) => route.abort());
     await page.goto(searchUrl('모터'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'error', { timeout: 15_000 });
     await expect(page.getByRole('status')).toContainText('검색을 불러오지 못했어요');
-    await expect(page.getByRole('link', { name: '배우기 차례로 가기' })).toHaveAttribute('href', getPage('learn').href);
+    await expect(page.getByRole('link', { name: '따라 하기 차례로 가기' })).toHaveAttribute('href', getPage('learn').href);
     await expect(page.getByRole('link', { name: '홈으로 가기' })).toHaveAttribute('href', getPage('home').href);
   });
 });

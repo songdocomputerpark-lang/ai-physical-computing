@@ -1,11 +1,11 @@
 ---
 /**
  * 홈 "차례" — 출판본 교과서 4·5쪽 차례 그림 위에 절마다 투명 링크를 얹은 것(판 1.4.0, DECISIONS C132 · 설계 PLAN 1.4.0 §3-2).
- * 주소 #toc: 표지의 [차례 보기] 단추가 여기로 온다.
+ * 주소 #toc. (판 1.6.0: 표지 단추가 사람별 셋으로 바뀌어 [차례 보기]는 없다 — 단원 카드 아래에서 스크롤로 닿는다.)
  *
  * 넓은 화면(48rem 이상): 그림 두 장이 나란히 있고, 절 한 줄마다 투명한 링크(`<a class="toc-spot">`)가 그림 크기 대비 퍼센트 좌표로 겹친다(좌표 데이터: src/config/book-toc-spots.ts).
  *   마우스를 올리거나 키보드 초점이 오면 보랏빛 칠과 테두리가 보인다. 링크 이름(title·aria-label)은 "2-1-2 LCD 제어하기"(번호와 제목 — 쪽은 그림에 인쇄돼 있다).
- * 좁은 화면(48rem 미만): 그림 위 링크는 높이가 10px대로 줄어 눌리지 않는다 → **절 목록이 먼저**이고, 그림은 접힌 <details>(그림만, 링크 없음)다.
+ * 좁은 화면(48rem 미만): 그림 위 링크는 높이가 10px대로 줄어 눌리지 않는다 → **절 목록이 먼저**이고(판 1.6.0부터 단원마다 접이식 <details> — 닫아 두면 4줄), 그림은 접힌 <details>(그림만, 링크 없음)다.
  *   두 모습은 CSS로 바꾼다(숨은 쪽은 display:none이라 화면 낭독기·Tab 차례에 없다).
  * 링크가 가는 곳은 home-lessons.ts가 정한다: 교과서 쪽(/book/<id>/) → 없으면 짝 웹 차시 → 둘 다 없으면 링크를 만들지 않는다.
  * HTML 크기: 홈 HTML은 서비스 워커 사전 캐시 한도(파일 하나 160KB)에 바짝 붙어 있다 — 이 부품의 <style>은 is:global이다(Astro 범위 스타일은 모든 요소에 data-astro-cid 속성을 붙인다). 클래스 이름은 이 부품 고유(toc__·toc-spot 접두어)라 겹치지 않는다.
@@ -34,11 +34,13 @@ const { figures, list } = Astro.props;
   <nav class="toc__list" aria-label={homeToc.listLabel} data-home-toc-list>
     {
       list.map((unit) => (
-        <section class:list={['toc__list-unit', unitCardClass(unit.unit)]}>
-          <h3 class="toc__list-unit-title">
-            <span class="toc__list-unit-no">{unit.name}</span>{' '}
-            <span>{unit.title}</span>
-          </h3>
+        <details class:list={['toc__list-unit', 'more', unitCardClass(unit.unit)]} data-home-toc-unit={unit.unit}>
+          <summary class="toc__list-unit-summary">
+            <h3 class="toc__list-unit-title">
+              <span class="toc__list-unit-no">{unit.name}</span>{' '}
+              <span>{unit.title}</span>
+            </h3>
+          </summary>
           {unit.groups.map((group) => (
             <div class="toc__list-group">
               <h4 class="toc__list-group-title">{group.title}</h4>
@@ -60,7 +62,7 @@ const { figures, list } = Astro.props;
               </ul>
             </div>
           ))}
-        </section>
+        </details>
       ))
     }
   </nav>
@@ -118,8 +120,8 @@ const { figures, list } = Astro.props;
     gap: var(--space-4);
   }
 
-  .toc__list-unit {
-    padding: var(--space-4);
+  /* 판 1.6.0: 단원마다 접이식 — 닫아 두면 4줄이라 휴대폰 홈이 짧다(펼친 절 목록은 단원마다 700px 안팎). 공용 .more 모양을 단원 색 카드로 덮는다. */
+  .toc__list-unit.more {
     border: 1px solid var(--color-border);
     border-inline-start: 6px solid var(--card-unit);
     border-radius: var(--radius-lg);
@@ -127,7 +129,13 @@ const { figures, list } = Astro.props;
     box-shadow: var(--shadow-card);
   }
 
+  .toc__list-unit.more > summary {
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-text);
+  }
+
   .toc__list-unit-title {
+    margin: 0;
     font-size: var(--text-lg);
   }
 
@@ -136,7 +144,7 @@ const { figures, list } = Astro.props;
   }
 
   .toc__list-group {
-    margin-block-start: var(--space-3);
+    margin-block-start: var(--space-1);
   }
 
   .toc__list-group-title {

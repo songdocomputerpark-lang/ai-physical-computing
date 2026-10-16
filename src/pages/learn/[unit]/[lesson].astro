@@ -36,7 +36,9 @@ import LessonMeta from '../../../components/lesson/LessonMeta.astro';
 import LessonPager from '../../../components/lesson/LessonPager.astro';
 import LessonPresent from '../../../components/lesson/LessonPresent.astro';
 import LessonSidebar from '../../../components/lesson/LessonSidebar.astro';
+import LessonTasks from '../../../components/lesson/LessonTasks.astro';
 import LessonToc from '../../../components/lesson/LessonToc.astro';
+import TeacherButton from '../../../components/lesson/TeacherButton.astro';
 import {
   checkLessons,
   findNeighbors,
@@ -49,6 +51,7 @@ import {
   type LessonSummary,
 } from '../../../components/lesson/lesson-data.ts';
 import { planLessonBody } from '../../../components/lesson/lesson-html.ts';
+import { buildLessonTasks } from '../../../components/lesson/lesson-tasks.ts';
 import { checkLessonRules, lessonSource } from '../../../components/lesson/lesson-rules.ts';
 import { lessonPosition, unitCardClass, unitIcon } from '../../../components/lesson/unit-style.ts';
 import { getLearnUnit } from '../../../config/nav.ts';
@@ -100,6 +103,9 @@ for (const issue of checkLessonRules({ data: entry.data, html, slug: lesson.slug
   console.warn(`[차시 틀] ${source}: [${issue.code}] ${issue.message}`);
 }
 const teacher = { data: entry.data, source: lessonSource(entry.data, lesson.slug) };
+// 머리의 "이 차시에서 할 일" 카드 세 칸(판 1.6.0 C174) — 8칸 틀이 아닌 차시(읽기 자료 등)는 칸이 모자라 카드를 만들지 않는다
+const teacherId = plan.sections.find((section) => section.key === 'teacher')?.id;
+const tasks = buildLessonTasks({ plan, exampleCount: entry.data.examples.length, quizCount: entry.data.quiz.length, duration: lesson.duration });
 // 준비물 사진 줄(판 1.4.0, C136): 이 차시의 예제가 쓰는 가상 보드 부품의 실제 모습. 부품이 없는 차시(영상 처리 등)는 줄을 그리지 않는다.
 const partRefs = lessonPartRefs(entry.data.examples);
 
@@ -163,7 +169,16 @@ const position = lessonPosition(lessons, lesson);
           <span class="lesson__name">{lesson.title}</span>
         </h1>
         {lesson.description && <p class="lead lesson__lead">{lesson.description}</p>}
-        <ViewSwitch current="lesson" bookHref={pairedBook?.href} bookPages={pairedBook?.pages} lessonHref={lesson.href} />
+        {tasks && <LessonTasks tasks={tasks} />}
+        {/* 전환 줄 옆의 [선생님용](판 1.6.0 C175) — 교사용 접기가 있는 차시만. 두 단추가 한 줄에 놓이게 묶는다. */}
+        {
+          (pairedBook || teacherId) && (
+            <div class="lesson__switchrow" data-present-hide data-embed-hide>
+              <ViewSwitch current="lesson" bookHref={pairedBook?.href} bookPages={pairedBook?.pages} lessonHref={lesson.href} />
+              {teacherId && <TeacherButton href={`#${teacherId}`} samePage />}
+            </div>
+          )
+        }
         <div data-present-hide>
           <FlowPosition unit={lesson.unit} size="mini" />
           <LessonMeta lesson={lesson} />
@@ -330,6 +345,20 @@ const position = lessonPosition(lessons, lesson);
 
   .lesson__lead {
     margin-block-end: var(--space-5);
+  }
+
+  /* 전환 줄 + [선생님용]: 한 줄에 나란히(좁으면 줄을 바꾼다). 두 단추의 아래 여백은 이 묶음이 맡는다. */
+  .lesson__switchrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block-end: var(--space-4);
+  }
+
+  .lesson__switchrow :global(.view-switch),
+  .lesson__switchrow :global(.teacher-button) {
+    margin-block-end: 0;
   }
 
   .lesson__tools {

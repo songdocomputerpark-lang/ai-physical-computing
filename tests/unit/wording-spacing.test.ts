@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { getPage } from '../../src/config/nav.ts';
 
 const TEXT_EXTENSIONS = new Set(['.ts', '.mjs', '.astro', '.css', '.md', '.yaml', '.yml', '.json', '.py', '.txt', '.svg']);
 
@@ -53,5 +54,30 @@ describe('낱말 띄어쓰기 통일(R2-038)', () => {
         'src/pages/teacher/standards/index.astro', // 영역 이름이 원문 표기라는 안내 문장의 보기
       ].sort(),
     );
+  });
+});
+
+// 메뉴 이름(판 1.6.0, DECISIONS C173) — 같은 45편의 두 쪽을 처음 온 사람이 구별하게 한다: 글만 있는 쪽은 "교과서 원문", 코드를 직접 실행하며 따라 하는 쪽은 "따라 하기".
+// 옛 이름 "배우기"("풀이·실습")는 쪽 이름으로 더 쓰지 않는다. 동사로서의 "배우기"(예: "처음부터 배우기" 단추)는 그대로다.
+/** 주석이 아닌 줄만 훑는다(글에 나가는 낱말만 본다) */
+function visibleHits(pattern: RegExp): string[] {
+  return shippedFiles()
+    .filter((file) =>
+      fs
+        .readFileSync(file, 'utf8')
+        .split(/\r?\n/u)
+        .some((line) => !/^\s*(?:\/\/|\*|\/\*|<!--|#)/u.test(line) && pattern.test(line)),
+    )
+    .map((file) => file.split(path.sep).join('/'));
+}
+
+describe('메뉴 이름(C173)', () => {
+  it('머리글 메뉴의 두 이름은 "교과서 원문"·"따라 하기"이고 id·주소는 그대로다', () => {
+    expect(getPage('book')).toMatchObject({ label: '교과서 원문', title: '교과서 원문', path: '/book/' });
+    expect(getPage('learn')).toMatchObject({ label: '따라 하기', title: '따라 하기', path: '/learn/' });
+  });
+
+  it('옛 쪽 이름 "배우기 페이지·쪽·차례·목록·메뉴"를 쓴 글이 없다 — "따라 하기"로 쓴다', () => {
+    expect(visibleHits(/배우기 (?:페이지|쪽|차례|목록|메뉴)/u)).toEqual([]);
   });
 });

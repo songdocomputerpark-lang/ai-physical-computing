@@ -1,16 +1,17 @@
 ---
 /**
- * 홈(PLAN §8.1 P1-05, SPEC §5 홈 화면 요구, 판 1.3.0 개편, 판 1.4.0 출판본 교과서 흐름 — DECISIONS C132)
+ * 홈(PLAN §8.1 P1-05, SPEC §5 홈 화면 요구, 판 1.3.0 개편, 판 1.4.0 출판본 교과서 흐름 — DECISIONS C132, 판 1.6.0 "3초 안에 네 가지" — C172)
  * 위에서부터
- *  1. 표지(스크롤 없이): 알약 "고등학교 · 교과서 32절 · 웹 차시 45편", 제목, 한 줄 소개, 큰 단추 3개(1단원부터 시작·차례 보기·실습실), 교과서 표지 그림 — HomeCover
+ *  0. 안심 띠: 설치 없음 · 무료 · 보드 없어도 됨 · 카메라 영상은 내 컴퓨터 밖으로 안 나감 — HomeTrust
+ *  1. 표지(스크롤 없이): 알약 "고등학교 · 교과서 32절 · 웹 차시 45편", 제목, 한 줄 소개, 사람별 큰 단추 3개(학생 처음부터 배우기·선생님 수업 준비·키트가 있어요 보드 켜기), 교과서 표지 그림과 "누가 만들었나" — HomeCover
  *  2. 이어서 하기 띠(저장된 진도가 있을 때만 보임) — HomeResume
- *  3. 교과서 차례 그림 위 투명 링크(좁은 화면은 절 목록이 먼저) — HomeToc, 주소 #toc
- *  4. 차시 목록: 단원 머리 → 중단원 → 카드(교과서 쪽으로) — HomeLessons, 주소 #lessons
+ *  3. 단원 4장 카드: 단원 색·한 줄 설명·처음 할 차시·편 수·진도·[열기] — HomeUnits, 주소 #units (45편 전체 목록은 홈에 두지 않고 /learn/에 둔다)
+ *  4. 교과서 차례 그림 위 투명 링크(좁은 화면은 단원별 접이식 절 목록) — HomeToc, 주소 #toc
  *  5. 큰 검색 "무엇을 찾나요?" — HomeFind(구역 B의 HomeSearch)
  *  6. 바로 가기 타일 9개 — HomeShortcuts
- *  7. 설치 없이 브라우저만으로(원칙 3가지) — HomePrinciples
+ *  7. 어떻게 되나요?(설치·보드·가입 세 줄) — HomePrinciples
  * 홈의 글과 링크는 src/components/home/home-content.ts, 차례·카드 자료는 home-lessons.ts(교과서 쪽 content/book + 웹 차시 content/lessons + 출판본 차례 src/config/book-outline.ts)에서 만든다.
- * 새 교과서 md나 새 웹 차시 md를 넣으면 코드를 고치지 않아도 카드가 늘거나 그 쪽으로 이어진다.
+ * 새 교과서 md나 새 웹 차시 md를 넣으면 코드를 고치지 않아도 숫자가 바뀌거나 그 쪽으로 이어진다.
  *
  * 사이트 검색 색인에서는 뺀다(searchIndex={false}). 홈 글은 다른 페이지를 짧게 모은 소개라서,
  * 같은 낱말로 검색하면 실제 페이지와 겹쳐 나와 결과만 길어지기 때문이다.
@@ -21,11 +22,12 @@ import { getCollection } from 'astro:content';
 import { publishedBooks } from '../components/book/book-data.ts';
 import HomeCover from '../components/home/HomeCover.astro';
 import HomeFind from '../components/home/HomeFind.astro';
-import HomeLessons from '../components/home/HomeLessons.astro';
 import HomePrinciples from '../components/home/HomePrinciples.astro';
 import HomeResume from '../components/home/HomeResume.astro';
 import HomeShortcuts from '../components/home/HomeShortcuts.astro';
 import HomeToc from '../components/home/HomeToc.astro';
+import HomeTrust from '../components/home/HomeTrust.astro';
+import HomeUnits from '../components/home/HomeUnits.astro';
 import { buildHomeUnits, buildTocFigures, buildTocList } from '../components/home/home-lessons.ts';
 import { publishedLessons } from '../components/lesson/lesson-data.ts';
 import { learnUnits } from '../config/nav.ts';
@@ -40,10 +42,11 @@ const tocList = buildTocList(units);
 ---
 
 <BaseLayout title={siteConfig.name} isHome searchIndex={false}>
+  <HomeTrust />
   <HomeCover units={units} lessonCount={lessons.length} />
   <HomeResume />
+  <HomeUnits units={units} />
   <HomeToc figures={figures} list={tocList} />
-  <HomeLessons units={units} />
   <HomeFind />
   <HomeShortcuts />
   <HomePrinciples />
