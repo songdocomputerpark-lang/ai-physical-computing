@@ -21,13 +21,15 @@
  * 줄바꿈이 든 글자와 태그가 이어지는 곳이 없게 짰다(CLAUDE.md .astro 줄바꿈 공백 함정).
  */
 import { getCollection } from 'astro:content';
-import { flattenPages, getPage, learnUnits } from '../../config/nav.ts';
+import { flattenPages, getPage } from '../../config/nav.ts';
 import { searchConfig } from '../../config/search.ts';
+import { unitTrailSections } from '../../lib/display-names.ts';
 import { withBase } from '../../lib/url.ts';
 import Icon from '../common/Icon.astro';
 import { FILTER_KINDS, KIND_ICON, KIND_LABEL } from './search-core.ts';
 
-const sections = [...flattenPages(), ...learnUnits].map((page) => ({ path: page.path, label: page.label }));
+// 결과 위치 줄의 대단원 이름은 "1단원 영상 처리 인공지능"(로마 숫자 없이 — C127, 판 1.6.0 display-names.ts)
+const sections = [...flattenPages().map((page) => ({ path: page.path, label: page.label })), ...unitTrailSections()];
 /** 처음 화면의 예시 낱말. 사이트에 실제로 있는 낱말만 둔다(차시가 생기면 차시 낱말로 바꾼다). */
 const exampleWords = ['픽셀', '카메라', '라이선스'];
 /** 처음 화면에는 예시 낱말 뒤에 많이 찾는 낱말을 잇는다(예시와 겹치는 것은 뺀다) */

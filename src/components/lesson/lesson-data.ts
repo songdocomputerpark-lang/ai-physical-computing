@@ -11,6 +11,7 @@
 import type { LAB_IDS, LessonData } from '../../config/content-schemas.ts';
 import { getLearnUnit, getPage, type BreadcrumbItem } from '../../config/nav.ts';
 import { unmappedReason } from '../../config/standards.ts';
+import { pageRangeText, reviewUnitOf, unitName, unitNumberName } from '../../lib/display-names.ts';
 import { withParticle } from '../../lib/korean.ts';
 import { withBase } from '../../lib/url.ts';
 import { CURRICULUM, type LessonKind, type LessonSource, type UnitCurriculum } from './curriculum.ts';
@@ -447,9 +448,20 @@ export function kindBadge(kind: LessonKind): string | undefined {
  */
 export function lessonStepLabel(lesson: Pick<LessonSummary, 'label' | 'kind'>): string {
   if (lesson.kind === 'review') {
-    const numeral = /^(I{1,3}|IV)-마무리$/u.exec(lesson.label.trim())?.[1];
-    const number = numeral ? ({ I: 1, II: 2, III: 3, IV: 4 } as Readonly<Record<string, number>>)[numeral] : undefined;
-    return number ? `${number}단원 마무리` : lesson.label;
+    const number = reviewUnitOf(lesson.label);
+    return number ? `${unitNumberName(number)} 마무리` : lesson.label;
+  }
+  return lesson.label;
+}
+
+/**
+ * 차시 제목(h1)·브라우저 탭·검색 결과 제목 앞의 번호 글. 대단원 마무리는 "I-마무리" 대신 "1단원"(제목 "대단원 마무리"와 이어 "1단원 대단원 마무리" —
+ * "1단원 마무리 대단원 마무리"처럼 같은 말이 겹치지 않게, 판 1.6.0 C127 적용 누락 고침). 다른 차시는 차시 번호 그대로.
+ */
+export function lessonHeadingLabel(lesson: Pick<LessonSummary, 'label' | 'kind'>): string {
+  if (lesson.kind === 'review') {
+    const number = reviewUnitOf(lesson.label);
+    return number ? unitNumberName(number) : lesson.label;
   }
   return lesson.label;
 }
@@ -458,7 +470,7 @@ export function lessonStepLabel(lesson: Pick<LessonSummary, 'label' | 'kind'>): 
 export const SITE_WRITTEN_BADGE = '사이트 해설';
 
 /** 위 딱지의 풀이(범례·대단원 쪽 안내·마우스 올림 설명에 같은 말을 쓴다) */
-export const SITE_WRITTEN_NOTE = '교과서 원고가 없어서 예제 코드를 바탕으로 사이트가 본문을 쓴 차시예요.';
+export const SITE_WRITTEN_NOTE = '예제 코드를 바탕으로 사이트가 쉽게 다시 쓴 설명이 있는 차시예요. 책에 있는 글 그대로는 교과서 원문에서 읽어요.';
 
 export interface Badge {
   readonly text: string;
@@ -508,18 +520,15 @@ export function materialsText(materials: readonly string[]): string {
   return materials.length > 0 ? materials.join(', ') : '따로 준비할 것 없음';
 }
 
-/** 교과서 쪽. "008~012" → "008~012쪽", 숫자가 아닌 표기("파일명 p55·p58")는 그대로 */
+/** 교과서 쪽. "8~12" → "8~12쪽"(옛 표기 "008~012"도 앞 0 없이 — 화면 표기 한 곳 src/lib/display-names.ts, 판 1.6.0), 숫자가 아닌 표기("파일명 p55·p58")는 그대로 */
 export function pagesText(pages: string | undefined): string | undefined {
-  if (pages === undefined) {
-    return undefined;
-  }
-  return /^[\d~·,\s-]+$/u.test(pages) ? `${pages}쪽` : pages;
+  return pageRangeText(pages);
 }
 
-/** 브라우저 탭·검색 결과 제목. 예: "V4 (보충) 블러와 에지" */
+/** 브라우저 탭·검색 결과 제목. 예: "V4 (보충) 블러와 에지", "1단원 대단원 마무리" */
 export function lessonDocumentTitle(lesson: Pick<LessonSummary, 'label' | 'title' | 'kind'>): string {
   const badge = kindBadge(lesson.kind);
-  return `${lesson.label}${badge ? ` (${badge})` : ''} ${lesson.title}`;
+  return `${lessonHeadingLabel(lesson)}${badge ? ` (${badge})` : ''} ${lesson.title}`;
 }
 
 /** 실습실 링크. 예제 파일을 주면 ?example=로 붙인다(실습실이 Phase 2~4에서 읽는다). */
@@ -547,15 +556,18 @@ export function labLink(lab: LabId, exampleFile?: string): { label: string; href
   };
 }
 
-/** 차시 페이지의 현재 위치(홈 › 배우기 › 대단원 › 차시) */
-export function lessonBreadcrumb(lesson: Pick<LessonSummary, 'unit' | 'label' | 'title'>): BreadcrumbItem[] {
+/** 차시 페이지의 현재 위치(홈 › 따라 하기 › 1단원 영상 처리 인공지능 › 차시 — 단원 이름은 숫자로, C127·판 1.6.0) */
+export function lessonBreadcrumb(
+  lesson: Pick<LessonSummary, 'unit' | 'label' | 'title'> & Partial<Pick<LessonSummary, 'kind'>>,
+): BreadcrumbItem[] {
   const home = getPage('home');
   const learn = getPage('learn');
   const unit = getLearnUnit(lesson.unit);
+  const label = lesson.kind ? lessonHeadingLabel({ label: lesson.label, kind: lesson.kind }) : lesson.label;
   return [
     { label: home.label, href: home.href },
     { label: learn.label, href: learn.href },
-    { label: unit.label, href: unit.href },
-    { label: `${lesson.label} ${lesson.title}` },
+    { label: unitName(lesson.unit), href: unit.href },
+    { label: `${label} ${lesson.title}` },
   ];
 }

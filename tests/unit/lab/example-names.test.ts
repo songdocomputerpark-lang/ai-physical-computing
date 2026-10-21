@@ -1,6 +1,11 @@
 // 예제 선택 상자의 이름을 학생 말로 다듬는 함수(판 1.3.0 검수 R1-100).
 import { describe, expect, it } from 'vitest';
-import { exampleVersionNote, studentExampleTitle } from '../../../src/lab/controls/example-names.ts';
+import {
+  exampleVersionNote,
+  lessonExampleNumbers,
+  numberedExampleTitle,
+  studentExampleTitle,
+} from '../../../src/lab/controls/example-names.ts';
 
 describe('studentExampleTitle', () => {
   it('"(사이트판)"은 "(바로 실행 버전)", "원본 파일"은 "교과서 그대로"로 바꾼다', () => {
@@ -59,5 +64,36 @@ describe('exampleVersionNote', () => {
     expect(exampleVersionNote('1-1-2 기본 실습(사이트판)')).toContain('막힘없이');
     expect(exampleVersionNote('3-1-2 기본: 레이저(교과서 그대로)')).toContain('고치지 않은');
     expect(exampleVersionNote('1-1-2 기본 실습: 손 관절')).toBe('');
+  });
+});
+
+// 예제 번호 한 벌(판 1.6.0 C173·C128 ⑥ 확장 — walk-teacher-new B1·A-10): 교과서 쪽 "예제 2" = 따라 하기 쪽 "예제 2" = 수업 화면 막대 "예제 2".
+describe('lessonExampleNumbers', () => {
+  const lesson = ['esp32/u2/a.py', 'esp32/u2/b.py', 'esp32/u2/c.py'];
+
+  it('따라 하기 쪽: 차시 frontmatter 차례가 번호다(1부터)', () => {
+    expect(lessonExampleNumbers(lesson)).toEqual([1, 2, 3]);
+  });
+
+  it('교과서 쪽: 보이는 차례가 달라도 짝 차시의 번호를 쓰고, 차시 목록에 없는 확인 코드는 번호가 없다', () => {
+    expect(lessonExampleNumbers(lesson, ['esp32/u2/a.py', 'esp32/u2/check.py', 'esp32/u2/c.py', 'esp32/u2/b.py'])).toEqual([
+      1,
+      undefined,
+      3,
+      2,
+    ]);
+  });
+
+  it('차시 예제가 하나뿐이면 번호를 붙이지 않는다("따라 하기 예제"로만)', () => {
+    expect(lessonExampleNumbers(['vision/u1/a.py'])).toEqual([undefined]);
+    expect(lessonExampleNumbers(['vision/u1/a.py'], ['vision/u1/a.py', 'vision/u1/b.py'])).toEqual([undefined, undefined]);
+    expect(lessonExampleNumbers([], ['vision/u1/a.py'])).toEqual([undefined]);
+  });
+});
+
+describe('numberedExampleTitle', () => {
+  it('번호가 있으면 "예제 n: 이름", 없으면 이름만', () => {
+    expect(numberedExampleTitle(2, '기본 실습 1: 0부터 5까지 세기')).toBe('예제 2: 기본 실습 1: 0부터 5까지 세기');
+    expect(numberedExampleTitle(undefined, 'LCD 숫자 확인')).toBe('LCD 숫자 확인');
   });
 });

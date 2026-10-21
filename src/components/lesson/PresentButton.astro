@@ -1,0 +1,67 @@
+---
+/**
+ * [수업 화면] 단추와 한 줄 안내(판 1.6.0, DECISIONS C173) — 웹 차시 쪽과 교과서 쪽 머리가 같은 부품을 쓴다.
+ * 예전에는 웹 차시 쪽 이름이 "발표 모드", 교과서 쪽 이름이 "수업 화면으로"라 선생님이 설명 글(FAQ)을 찾지 못했다(walk-teacher-new A1).
+ * 이름은 어디서나 "수업 화면" 하나다(FAQ 제목·교사용 자료실 카드·교사용 시작하기·막대 이름 — tests/unit/wording-spacing.test.ts가 옛 이름을 막는다).
+ *
+ * - 단추는 자바스크립트가 되면 보인다(data-present-open hidden → present.ts가 연다). 꺼져 있으면 안내도 숨긴다.
+ * - 키 안내는 기호가 아니라 글로 쓴다(walk-a11y-keyboard 10 — "→ ←"는 낭독기·처음 온 학생이 읽기 어렵다). 터치 기기·좁은 화면에서는 [앞]·[다음] 안내로 바꾼다(R3-004).
+ * - 주소 ?view=slide로 열어도 같다(C133). 단계 주소 #slide=N은 present.ts 머리말.
+ */
+interface Props {
+  /** 바로 위 칸(차시 정보 칩 줄)의 아래 여백과 겹쳐 붙일 때(웹 차시 쪽) */
+  tight?: boolean;
+}
+
+const { tight = false } = Astro.props;
+---
+
+<p class:list={['lesson__tools', { 'lesson__tools--tight': tight }]} data-pagefind-ignore>
+  <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">수업 화면</button>
+  {/* 키보드 문구는 키보드 쓰는 넓은 화면에만, 터치·좁은 화면에는 [앞]·[다음] 단추 안내(R3-004). 보이지 않는 쪽은 display:none이라 낭독기도 읽지 않는다. */}
+  <span class="lesson__tools-note" id="lesson-present-note">
+    수업 중 프로젝터로 크게, 한 단계씩 보여 줘요.{' '}
+    <span class="lesson__tools-keys">오른쪽·왼쪽 화살표 키로 넘기고 Esc로 끝내요. 내용이 길면 아래 화살표 키나 Space로 내려요.</span>
+    <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>
+  </span>
+</p>
+
+<style>
+  .lesson__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block: 0 var(--space-6);
+  }
+
+  .lesson__tools--tight {
+    margin-block-start: calc(-1 * var(--space-3));
+  }
+
+  .lesson__tools-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 키보드 안내는 터치 기기·좁은 화면(휴대폰)에서 [앞]·[다음] 단추 안내로 바꾼다(R3-004) */
+  .lesson__tools-touch {
+    display: none;
+  }
+
+  @media (pointer: coarse), (max-width: 40rem) {
+    .lesson__tools-keys {
+      display: none;
+    }
+
+    .lesson__tools-touch {
+      display: inline;
+    }
+  }
+
+  /* 수업 화면은 자바스크립트로 돈다 — 꺼져 있으면 단추가 없으니 설명도 숨긴다. */
+  :global(html:not(.js)) .lesson__tools {
+    display: none;
+  }
+</style>

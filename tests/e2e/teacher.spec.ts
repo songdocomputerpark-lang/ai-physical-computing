@@ -21,7 +21,8 @@ const at = (path: string): string => `.${path}`;
 const TEACHER_ROOM = [
   { path: TEACHER_PATHS.home, title: getPage('teacher').title, current: '자료실 첫 화면' },
   ...TEACHER_PAGES.map((item) => ({ path: item.path, title: item.title, current: item.label })),
-  ...learnUnits.map((unit) => ({ path: guidesUnitPath(unit.unit), title: `${unit.label} 지도 요약`, current: '지도 요약' })),
+  // 대단원 지도 요약 제목은 "2단원 피지컬 컴퓨팅 지도 요약"(판 1.6.0 — C127, 걷기 B-50)
+  ...learnUnits.map((unit) => ({ path: guidesUnitPath(unit.unit), title: `${unit.unit}단원 ${unit.label.replace(/^[IVX]+\.\s*/u, '')} 지도 요약`, current: '지도 요약' })),
 ];
 
 const readText = (file: string): string => fs.readFileSync(file, 'utf8');

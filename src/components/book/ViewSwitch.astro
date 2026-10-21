@@ -1,14 +1,18 @@
 ---
 /**
- * 전환 줄(판 1.4.0 — DECISIONS C131) — 같은 절을 두 얼굴로 오가는 두 단추: [교과서 124~131쪽](출판본 그대로)과 [풀이·실습](8칸 차시·실습실·퀴즈).
- * 교과서 쪽(/book/<id>/)과 웹 차시 쪽(/learn/uN/<label>/) 맨 위에 같은 줄을 둔다. 지금 쪽은 aria-current="page"로 알리고 모양도 다르다.
+ * 전환 줄(판 1.4.0 — DECISIONS C131, 판 1.6.0 C173) — 같은 절을 두 얼굴로 오가는 두 칸: [교과서 원문 124~131쪽](출판본 그대로)과 [따라 하기](8칸 차시·실습실·퀴즈).
+ * 교과서 쪽(/book/<id>/)과 웹 차시 쪽(/learn/uN/<label>/) 맨 위에 같은 줄을 둔다. 이름은 머리글 메뉴 이름과 같다(src/lib/display-names.ts — 옛 이름 "교과서"·"풀이·실습").
  *
- * - 짝이 없으면 그 단추를 그리지 않는다. 단추가 하나뿐이면(교과서에만 있는 절·보충 차시) 오갈 곳이 없으니 줄 자체를 그리지 않는다
+ * - 짝이 없으면 그 칸을 그리지 않는다. 칸이 하나뿐이면(교과서에만 있는 절·보충 차시) 오갈 곳이 없으니 줄 자체를 그리지 않는다(C140)
  *   (교과서 쪽은 머리의 쪽 배지가, 웹 차시 쪽은 머리의 칩이 같은 알림을 맡는다).
- * - 링크는 평범한 <a>다(자바스크립트 없이 된다). 발표 모드·임베드·검색 색인에서는 빠진다.
+ * - 지금 보는 쪽은 링크가 아니라 글자다(aria-current="page") — 자기 자신으로 가는 링크는 Tab 정류장만 하나 늘렸다(walk-a11y-keyboard 13).
+ *   다른 쪽만 평범한 <a>다(자바스크립트 없이 된다). 수업 화면·임베드·검색 색인에서는 빠진다.
+ * - 쪽 범위("124~131쪽")는 이 줄에만 한 번 보인다 — 두 쪽 머리의 다른 쪽 칩은 짝이 있으면 그리지 않는다(walk-teacher-new·B-90).
  * - 모양은 이 파일의 스타일이 맡는다. 두 쪽이 같은 부품이라 한 줄 모양이 어긋나지 않는다.
  */
 import Icon from '../common/Icon.astro';
+import { getPage } from '../../config/nav.ts';
+import { bookViewLabel, lessonViewName } from '../../lib/display-names.ts';
 
 interface Props {
   /** 지금 어느 쪽인지 */
@@ -16,26 +20,35 @@ interface Props {
   /** 교과서 쪽 링크와 쪽 범위 글("124~131"). 짝이 없으면 둘 다 없다 */
   bookHref?: string | undefined;
   bookPages?: string | undefined;
-  /** 웹 차시(풀이·실습) 링크. 짝이 없으면 없다 */
+  /** 웹 차시(따라 하기) 링크. 짝이 없으면 없다 */
   lessonHref?: string | undefined;
 }
 
 const { current, bookHref, bookPages, lessonHref } = Astro.props;
 const hasBook = Boolean(bookHref);
 const hasLesson = Boolean(lessonHref);
+const items = [
+  { view: 'book', href: bookHref, label: bookViewLabel(bookPages), icon: getPage('book').icon },
+  { view: 'lesson', href: lessonHref, label: lessonViewName(), icon: getPage('learn').icon },
+] as const;
 ---
 
 {
   hasBook && hasLesson && (
     <nav class="view-switch" aria-label="같은 내용을 보는 방법" data-view-switch data-present-hide data-embed-hide data-pagefind-ignore>
-      <a class="view-switch__link" href={bookHref} aria-current={current === 'book' ? 'page' : undefined} data-view="book">
-        <Icon name="book" size="sm" />
-        <span>교과서{bookPages ? ` ${bookPages}쪽` : ''}</span>
-      </a>
-      <a class="view-switch__link" href={lessonHref} aria-current={current === 'lesson' ? 'page' : undefined} data-view="lesson">
-        <Icon name="flask" size="sm" />
-        <span>풀이·실습</span>
-      </a>
+      {items.map((item) =>
+        item.view === current ? (
+          <span class="view-switch__link" aria-current="page" data-view={item.view}>
+            <Icon name={item.icon} size="sm" />
+            <span>{item.label}</span>
+          </span>
+        ) : (
+          <a class="view-switch__link" href={item.href} data-view={item.view}>
+            <Icon name={item.icon} size="sm" />
+            <span>{item.label}</span>
+          </a>
+        ),
+      )}
     </nav>
   )
 }
@@ -67,7 +80,7 @@ const hasLesson = Boolean(lessonHref);
     white-space: nowrap;
   }
 
-  .view-switch__link:hover {
+  a.view-switch__link:hover {
     background: var(--color-accent-soft);
     color: var(--color-accent-hover);
   }

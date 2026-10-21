@@ -16,6 +16,7 @@ import {
   labOfExampleFile,
   lessonBreadcrumb,
   lessonDocumentTitle,
+  lessonHeadingLabel,
   lessonSlug,
   materialsText,
   outlineBadges,
@@ -200,7 +201,7 @@ describe('뱃지·표시 문장', () => {
 
   it('카드 딱지: 준비 중·사이트 해설(R1-085 — 학생에게는 "원고 없음" 대신), 종류 표시: 보충·읽기 자료', () => {
     expect(outlineBadges({ status: 'planned', source: 'code-only' }).map((badge) => badge.text)).toEqual(['준비 중', '사이트 해설']);
-    expect(outlineBadges({ status: 'ready', source: 'code-only' })[0]?.note).toBe('교과서 원고가 없어서 예제 코드를 바탕으로 사이트가 본문을 쓴 차시예요.');
+    expect(outlineBadges({ status: 'ready', source: 'code-only' })[0]?.note).toBe('예제 코드를 바탕으로 사이트가 쉽게 다시 쓴 설명이 있는 차시예요. 책에 있는 글 그대로는 교과서 원문에서 읽어요.');
     expect(outlineBadges({ status: 'ready', source: 'manuscript' })).toEqual([]);
     expect(kindBadge('supplement')).toBe('보충');
     expect(kindBadge('reading')).toBe('읽기 자료');
@@ -231,7 +232,8 @@ describe('뱃지·표시 문장', () => {
     expect(virtualBoardText(undefined)).toBeUndefined();
     expect(materialsText([])).toBe('따로 준비할 것 없음');
     expect(materialsText(['웹캠', '샘플 이미지'])).toBe('웹캠, 샘플 이미지');
-    expect(pagesText('008~012')).toBe('008~012쪽');
+    // 쪽 범위는 앞 0 없이(판 1.6.0 — 화면 표기 한 곳 src/lib/display-names.ts, C137 "8~12쪽" 한 벌)
+    expect(pagesText('008~012')).toBe('8~12쪽');
     expect(pagesText('141')).toBe('141쪽');
     expect(pagesText('파일명 p55·p58')).toBe('파일명 p55·p58');
   });
@@ -240,6 +242,10 @@ describe('뱃지·표시 문장', () => {
     expect(lessonDocumentTitle({ label: 'V4', title: '블러와 에지', kind: 'supplement' })).toBe('V4 (보충) 블러와 에지');
     expect(lessonDocumentTitle({ label: '2-1-R', title: 'OLED 디스플레이', kind: 'reading' })).toBe('2-1-R (읽기 자료) OLED 디스플레이');
     expect(lessonDocumentTitle({ label: '1-1-1', title: '에이전트', kind: 'textbook' })).toBe('1-1-1 에이전트');
+    // 대단원 마무리는 "I-마무리" 대신 "1단원"(C127 적용 누락 고침, 판 1.6.0 — 걷기 B-16·B-50)
+    expect(lessonDocumentTitle({ label: 'II-마무리', title: '대단원 마무리', kind: 'review' })).toBe('2단원 대단원 마무리');
+    expect(lessonHeadingLabel({ label: 'IV-마무리', kind: 'review' })).toBe('4단원');
+    expect(lessonHeadingLabel({ label: '1-1-1', kind: 'textbook' })).toBe('1-1-1');
   });
 
   it('실습실 링크는 사이트 지도 주소 뒤에 ?example=예제 경로를 붙인다', () => {
@@ -259,12 +265,17 @@ describe('뱃지·표시 문장', () => {
     );
   });
 
-  it('차시 현재 위치는 홈 › 배우기 › 대단원 › 차시(마지막 칸은 링크 없음)', () => {
+  it('차시 현재 위치는 홈 › 따라 하기 › 대단원 › 차시(마지막 칸은 링크 없음)', () => {
     expect(lessonBreadcrumb({ unit: 1, label: '1-1-1', title: '에이전트' })).toEqual([
       { label: '홈', href: getPage('home').href },
-      { label: '배우기', href: getPage('learn').href },
-      { label: getLearnUnit(1).label, href: getLearnUnit(1).href },
+      { label: '따라 하기', href: getPage('learn').href },
+      // 단원 이름은 숫자로(로마 숫자는 큰 제목 앞 번호에만 — C127, 판 1.6.0)
+      { label: '1단원 영상 처리 인공지능', href: getLearnUnit(1).href },
       { label: '1-1-1 에이전트' },
+    ]);
+    expect(lessonBreadcrumb({ unit: 2, label: 'II-마무리', title: '대단원 마무리', kind: 'review' }).slice(2)).toEqual([
+      { label: '2단원 피지컬 컴퓨팅', href: getLearnUnit(2).href },
+      { label: '2단원 대단원 마무리' },
     ]);
   });
 });

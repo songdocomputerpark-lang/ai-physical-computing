@@ -4,6 +4,7 @@
  * 순수 함수라 Vitest로 검사한다(tests/unit/lesson/ · tests/unit/book/).
  */
 import type { LearnUnit } from '../../config/nav.ts';
+import { unitName } from '../../lib/display-names.ts';
 import { buildUnitOutline, kindBadge, lessonStepLabel, type LessonSummary } from './lesson-data.ts';
 
 export interface SidebarItem {
@@ -61,7 +62,8 @@ export function unitSidebarOutline(unit: LearnUnit, lessons: readonly LessonSumm
   return {
     navLabel: '단원 차시 목록',
     summaryLabel: '이 단원 차시 목록 펼치기',
-    title: unit.title,
+    // 단원 이름은 숫자로("1단원 영상 처리 인공지능" — 로마 숫자는 큰 제목 앞 번호에만, C127·판 1.6.0)
+    title: unitName(unit.unit),
     titleHref: unit.href,
     unit: unit.unit,
     currentId,

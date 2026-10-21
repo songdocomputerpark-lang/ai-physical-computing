@@ -17,6 +17,7 @@ import ClearRecordsButton from '../../../components/lab/ClearRecordsButton.astro
 import { getPage } from '../../../config/nav.ts';
 import { PROGRESS_PRIVACY_NOTE } from '../../../config/privacy-text.ts';
 import { siteConfig } from '../../../config/site.ts';
+import { prefetchSizeRows } from '../../../lab/loader/prefetch-sizes.ts';
 import { PYODIDE_CDN_INDEX_URL } from '../../../lab/runtime/config.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { connections, listedBrokers } from './_connections.ts';
@@ -31,9 +32,10 @@ const standardsHref = `${teacherRoom.href}standards/`;
 const faqHref = `${teacherRoom.href}faq/`;
 const learn = getPage('learn');
 const settings = getPage('settings');
-const visionLab = getPage('labs-vision');
 const iotLab = getPage('labs-iot');
 const unit4Lab = getPage('labs-unit4');
+/** 실습실마다 미리 받는 양(파일 표에서 계산 — src/lab/loader/prefetch-sizes.ts, 선생님 FAQ와 같은 숫자) */
+const prefetchRows = prefetchSizeRows();
 const help = getPage('help');
 
 const toc = [
@@ -43,7 +45,7 @@ const toc = [
   { id: 'shared-pc', title: '여러 사람이 쓰는 컴퓨터' },
   { id: 'comm', title: '통신 수업(3·4단원)' },
   { id: 'network', title: '학교 네트워크 체크리스트' },
-  { id: 'presentation', title: '발표 모드' },
+  { id: 'presentation', title: '수업 화면' },
 ] as const;
 
 const lessonFlow = ['학습목표', '왜 배울까', '핵심 개념', '따라 하기', '바꿔 보기', '도전 과제', '확인 퀴즈', '교사용'];
@@ -165,9 +167,19 @@ const itRequestText = [
         알려 주면 사이트를 고쳐요.
       </li>
       <li>
-        <strong>교실 컴퓨터마다 한 번:</strong> <a href={visionLab.href}>{visionLab.title}</a>을 열고 준비 패널의{' '}
-        <strong>[이 컴퓨터에 실습 파일 미리 받기]</strong>를 눌러요. 이 단추로 미리 받는 파일은 약 26MB예요. 받아 두면 수업 중에 인터넷이 느리거나 끊겨도
-        실습실이 바로 열려요.
+        <strong>교실 컴퓨터마다, 수업할 실습실마다 한 번:</strong> 실습실을 열고 준비 패널의{' '}
+        <strong>[이 컴퓨터에 실습 파일 미리 받기]</strong>를 눌러요. 받아 두면 수업 중에 인터넷이 느리거나 끊겨도 실습실이 바로 열려요. 미리 받는 양은 실습실마다 달라요.
+        <ul class="prefetch-sizes" data-prefetch-sizes>
+          {
+            prefetchRows.map((row) => (
+              <li data-prefetch-row={row.id}>
+                <a href={getPage(row.pageId).href}>{row.label}</a>{' '}
+                <strong>{row.text}</strong>
+              </li>
+            ))
+          }
+        </ul>
+        통신·4단원 통합 실습실은 두 실습실이 파이썬 엔진을 나눠 써서 영상 처리 실습실과 같은 양이에요.
       </li>
     </ol>
 
@@ -418,12 +430,12 @@ const itRequestText = [
   </div>
 
   <div class="prose">
-    <h2 id="presentation">발표 모드</h2>
-    <p>발표 모드는 프로젝터로 차시 페이지를 보여 줄 때 글씨를 크게 하고 한 단계씩 넘겨 보는 화면이에요.</p>
+    <h2 id="presentation">수업 화면</h2>
+    <p>수업 화면은 프로젝터로 차시 페이지를 보여 줄 때 글씨를 크게 하고 한 단계씩 넘겨 보는 화면이에요.</p>
     <p>
-      차시 페이지 머리의 <strong>[발표 모드]</strong>를 누르면 글씨가 커지고, 오른쪽·왼쪽 화살표 키로 한 단계씩 넘겨요(Home 처음, End 끝, Esc
-      끝내기). 교사용 칸은 발표 화면에 나오지 않아요. 자세한 것은 <a href={`${faqHref}#발표-모드는-어떻게-쓰나요`}>선생님이 자주 묻는 질문</a>에
-      있어요.
+      따라 하기 차시 페이지와 교과서 원문 페이지 머리의 <strong>[수업 화면]</strong>을 누르면 글씨가 커지고, 오른쪽·왼쪽 화살표 키로 한 단계씩
+      넘겨요(Home 처음, End 끝, Esc 끝내기). 교사용 칸은 수업 화면에 나오지 않아요. 자세한 것은{' '}
+      <a href={`${faqHref}#수업-화면은-어떻게-쓰나요`}>선생님이 자주 묻는 질문</a>에 있어요.
     </p>
   </div>
 </BaseLayout>

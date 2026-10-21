@@ -13,7 +13,7 @@ describe('이 차시의 원고와 자료(buildTeacherInfo)', () => {
       source: 'manuscript',
       handoutExists: none,
     });
-    expect(info.source).toBe('교과서 원고(008~012쪽)의 글, 그림, 표를 차시 틀에 맞게 옮기고 고1 눈높이로 다듬었어요.');
+    expect(info.source).toBe('교과서 원고(8~12쪽)의 글, 그림, 표를 차시 틀에 맞게 옮기고 고1 눈높이로 다듬었어요.');
     expect(info.noManuscript).toBe(false);
     expect(info.standards).toEqual([{ code: '12인피01-01', area: '인공지능 영상인식', summary: '영상인식 기술의 종류와 원리, 개발 환경 구성' }]);
     expect(info.standardsPending).toBeUndefined();

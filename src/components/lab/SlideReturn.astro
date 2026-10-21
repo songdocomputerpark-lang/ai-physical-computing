@@ -1,0 +1,57 @@
+---
+/**
+ * 실습실 맨 위의 "← 수업 화면으로"(판 1.6.0 — 수업 화면의 [실습실에서 크게 열기]가 새 탭으로 연 실습실에서만, 주소 ?from=slide&n=N).
+ * 동작·돌아갈 주소 규칙은 src/lab/controls/slide-return.ts 머리말. 차시 안 임베드에서는 숨는다(data-embed-hide).
+ */
+---
+
+<p class="lab__slide-return" data-lab-slide-return data-embed-hide hidden>
+  <a class="lab__slide-return-link" href="#"><span aria-hidden="true">←</span> 수업 화면으로</a>
+  <span class="lab__slide-return-note">수업 화면에서 보던 단계로 돌아가요.</span>
+</p>
+
+<script>
+  import { installSlideReturn } from '../../lab/controls/slide-return.ts';
+  import { BASE_PATH } from '../../lib/url.ts';
+
+  installSlideReturn(document, BASE_PATH);
+</script>
+
+<style>
+  .lab__slide-return {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lab__slide-return[hidden] {
+    display: none;
+  }
+
+  .lab__slide-return-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-block-size: var(--target-min);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .lab__slide-return-link:hover {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .lab__slide-return-note {
+    color: var(--color-text-muted);
+  }
+</style>

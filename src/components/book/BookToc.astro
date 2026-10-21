@@ -1,12 +1,13 @@
 ---
 /**
  * 교과서 차례 목록(판 1.4.0) — 대단원 > 중단원 > 절을 쪽 범위·매체와 함께 늘어놓는다(/book/ 첫 화면).
- * 절 링크는 교과서 쪽(/book/<id>/)으로 간다. 짝 웹 차시가 있으면 "풀이·실습" 링크가 한 줄 더 있다.
+ * 절 링크는 교과서 쪽(/book/<id>/)으로 간다. 짝 웹 차시가 있으면 [따라 하기] 링크가 한 줄 더 있다(판 1.6.0 C173 — 옛 이름 "풀이·실습",
+ * 이름·대단원 주제는 화면 표기 한 곳 src/lib/display-names.ts).
  * 쪽 안 #위치: 대단원 #unit-2, 중단원 #unit-2-part-1(교과서 쪽 빵부스러기가 여기로 온다 — book-data.ts bookUnitAnchor·bookPartAnchor).
  * 홈의 차례 그림·카드는 홈 구역(C4)이 따로 만든다. 이 목록은 그림 없이 글로 찾는 사람·낭독기용 차례다.
  */
 import Icon from '../common/Icon.astro';
-import { getLearnUnit } from '../../config/nav.ts';
+import { lessonViewName, unitTopic } from '../../lib/display-names.ts';
 import { unitCardClass, unitIcon } from '../lesson/unit-style.ts';
 import type { LessonSummary } from '../lesson/lesson-data.ts';
 import { BOOK_MEDIA_INFO } from './book-media.ts';
@@ -28,10 +29,10 @@ interface Props {
 
 const { toc, lessons } = Astro.props;
 
-/** 큰 제목 앞 로마 숫자 번호를 뗀 대단원 이름: "II. 피지컬 컴퓨팅" → "피지컬 컴퓨팅" */
-function unitTitle(unit: number): string {
-  return getLearnUnit(unit).label.replace(/^[IV]+\.\s*/u, '');
-}
+/** 대단원 주제 이름(큰 제목 앞 로마 숫자 번호를 뗀 것): "피지컬 컴퓨팅" */
+const unitTitle = (unit: number): string => unitTopic(unit);
+/** 짝 웹 차시 링크 글(메뉴 이름과 같은 "따라 하기") */
+const lessonName = lessonViewName();
 
 function mediaOf(book: BookSummary) {
   return book.media.map((key) => ({ key, ...BOOK_MEDIA_INFO[key] }));
@@ -91,8 +92,8 @@ function mediaOf(book: BookSummary) {
                         </span>
                       ))}
                       {paired && (
-                        <a class="book-toc__web" href={paired.href} aria-label={`${bookLabel(book)} 풀이·실습`}>
-                          풀이·실습
+                        <a class="book-toc__web" href={paired.href} aria-label={`${bookLabel(book)} ${lessonName}`}>
+                          {lessonName}
                         </a>
                       )}
                     </li>

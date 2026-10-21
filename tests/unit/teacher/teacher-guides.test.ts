@@ -182,7 +182,7 @@ describe('교사용 자료실 데이터 파일(teacher-data-schema.ts)', () => {
 
 describe('뱃지·주소 도우미(teacher-lessons.ts)', () => {
   it('원천 뱃지와 성취기준 자리 이름', () => {
-    expect(sourceBadge('manuscript-code', '014~018')).toEqual({ text: '원고와 코드 · 교과서 014~018쪽', tone: 'manuscript' });
+    expect(sourceBadge('manuscript-code', '014~018')).toEqual({ text: '원고와 코드 · 교과서 14~18쪽', tone: 'manuscript' });
     expect(sourceBadge('code-only', '파일명 p216')).toEqual({ text: '원고 없음(코드 기준) · 파일명 p216', tone: 'no-manuscript' });
     expect(sourceBadge('supplement', undefined).tone).toBe('supplement');
     expect(sourceBadge(undefined, undefined).tone).toBe('unknown');

@@ -132,11 +132,11 @@ describe('교과서 차례(대단원 > 중단원 > 절)', () => {
     ]);
   });
 
-  it('#위치 이름과 빵부스러기: 홈 › 교과서 › 2단원 › 중단원 › 절', () => {
+  it('#위치 이름과 빵부스러기: 홈 › 교과서 원문 › 2단원 › 중단원 › 절(둘째 칸은 메뉴 이름 그대로 — 판 1.6.0 C173)', () => {
     expect(bookUnitAnchor(2)).toBe('unit-2');
     expect(bookPartAnchor(2, 1)).toBe('unit-2-part-1');
     const crumbs = bookBreadcrumb(publishedBooks(ENTRIES).find((book) => book.id === '2-1-2')!, toc);
-    expect(crumbs.map((crumb) => crumb.label)).toEqual(['홈', '교과서', '2단원', '01 디스플레이 장치 제어', '2-1-2 LCD 제어하기']);
+    expect(crumbs.map((crumb) => crumb.label)).toEqual(['홈', '교과서 원문', '2단원', '01 디스플레이 장치 제어', '2-1-2 LCD 제어하기']);
     expect(crumbs[1]?.href).toBe('/ai-physical-computing/book/');
     expect(crumbs[2]?.href).toBe('/ai-physical-computing/book/#unit-2');
     expect(crumbs[3]?.href).toBe('/ai-physical-computing/book/#unit-2-part-1');

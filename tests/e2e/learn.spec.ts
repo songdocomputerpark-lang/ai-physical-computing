@@ -139,7 +139,8 @@ test.describe('차시 페이지', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/1-1-1\s+인공지능 응용 프로그램과 에이전트/u);
 
     const breadcrumb = page.getByRole('navigation', { name: '현재 위치' });
-    await expect(breadcrumb.getByRole('link', { name: 'I. 영상 처리 인공지능' })).toHaveAttribute('href', withBase('learn/u1/'));
+    // 단원 이름은 숫자로(로마 숫자는 큰 제목 앞 번호에만 — C127, 판 1.6.0)
+    await expect(breadcrumb.getByRole('link', { name: '1단원 영상 처리 인공지능' })).toHaveAttribute('href', withBase('learn/u1/'));
     await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText('1-1-1 인공지능 응용 프로그램과 에이전트');
 
     const meta = page.locator('.lesson-meta');
@@ -147,7 +148,9 @@ test.describe('차시 페이지', () => {
     await expect(meta.locator('[data-meta="duration"]')).toContainText('50분');
     await expect(meta.locator('[data-meta="materials"]')).toContainText('따로 준비할 것 없음');
     await expect(meta.locator('[data-meta="difficulty"]')).toContainText('쉬움');
-    await expect(meta.locator('[data-meta="pages"]')).toContainText('008~012쪽');
+    // 짝 교과서 쪽이 있으면 쪽 범위는 전환 줄 [교과서 원문 8~12쪽]에 한 번만(판 1.6.0 — B-90), 앞 0 없이
+    await expect(meta.locator('[data-meta="pages"]')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: '같은 내용을 보는 방법' })).toContainText('교과서 원문 8~12쪽');
     await expect(meta.locator('[data-meta="lab"]').getByRole('link', { name: '영상 처리 실습실' })).toHaveAttribute(
       'href',
       withBase('labs/vision/'),

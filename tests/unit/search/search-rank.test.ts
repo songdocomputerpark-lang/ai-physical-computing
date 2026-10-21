@@ -227,3 +227,9 @@ describe('보호자 동의어(판 1.6.0 R6)', () => {
     expect(planSearch('손 인식')?.terms).toEqual(['손 인식']);
   });
 });
+
+describe('수업 화면 동의어(판 1.6.0 R2 — C173 이름 하나)', () => {
+  it.each(['발표 모드', '발표모드', '프로젝터', '빔 프로젝터로 보여 주기'])('"%s"를 찾으면 "수업 화면"으로도 찾는다', (text) => {
+    expect(planSearch(text)?.terms).toContain('수업 화면');
+  });
+});

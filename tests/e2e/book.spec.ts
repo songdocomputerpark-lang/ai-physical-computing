@@ -1,4 +1,5 @@
-// 교과서 쪽(판 1.4.0, DECISIONS C131~C134) — 기준 쪽 /book/2-1-2/(LCD 제어하기, 교과서 124~131쪽)와 /book/ 첫 화면, 두 화면 전환 줄, ?view=slide 발표 모드.
+// 교과서 쪽(판 1.4.0, DECISIONS C131~C134) — 기준 쪽 /book/2-1-2/(LCD 제어하기, 교과서 124~131쪽)와 /book/ 첫 화면, 두 화면 전환 줄, ?view=slide 수업 화면.
+// 판 1.6.0(C173): 두 쪽 이름은 "교과서 원문"·"따라 하기", 쪽 범위는 전환 줄에 한 번, 프로젝터 화면 이름은 "수업 화면"(단계 주소 #slide=N).
 // 데스크톱·휴대폰 두 프로젝트에서 돈다. 글자가 출판본과 같은지는 npm run book:fidelity(원본 PDF가 있는 운영자 PC)가 본다.
 import { expect, test, type Page } from '@playwright/test';
 
@@ -16,7 +17,9 @@ test.describe('교과서 쪽 /book/2-1-2/', () => {
     await expect(crumbs).toContainText('교과서');
     await expect(crumbs.getByRole('link', { name: '2단원' })).toHaveAttribute('href', /\/book\/#unit-2$/u);
     await expect(crumbs).toContainText('01 디스플레이 장치 제어');
-    await expect(page.locator('.book-badge').first()).toContainText('교과서 124~131쪽');
+    // 쪽 범위는 한 번만(판 1.6.0, B-90): 짝 웹 차시가 있는 쪽은 배지가 아니라 전환 줄 [교과서 원문 124~131쪽]이 말한다
+    await expect(page.locator('[data-book-pages]')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: '같은 내용을 보는 방법' })).toContainText('교과서 원문 124~131쪽');
     await expect(page.locator('.book-badge', { hasText: '보드' })).toBeVisible();
 
     // 쪽 표지: 124~131쪽이 차례대로 하나씩
@@ -78,19 +81,28 @@ test.describe('교과서 쪽 /book/2-1-2/', () => {
   });
 });
 
-test.describe('전환 줄: 교과서 쪽 ↔ 풀이·실습(웹 차시)', () => {
-  test('두 방향으로 오갈 수 있고 지금 쪽은 aria-current="page"다', async ({ page }) => {
+test.describe('전환 줄: 교과서 원문 ↔ 따라 하기(판 1.6.0 이름 — C173)', () => {
+  test('두 방향으로 오갈 수 있고, 지금 쪽은 링크가 아닌 글자(aria-current="page")다', async ({ page }) => {
     await page.goto('./book/2-1-2/');
     const switchBar = page.getByRole('navigation', { name: '같은 내용을 보는 방법' });
-    await expect(switchBar.getByRole('link', { name: '교과서 124~131쪽' })).toHaveAttribute('aria-current', 'page');
-    await expect(switchBar.getByRole('link', { name: '풀이·실습' })).not.toHaveAttribute('aria-current', 'page');
-    await switchBar.getByRole('link', { name: '풀이·실습' }).click();
+    // 지금 쪽은 자기 자신으로 가는 링크가 아니다(Tab 정류장을 늘리지 않는다 — walk-a11y-keyboard 13)
+    const here = switchBar.locator('[aria-current="page"]');
+    await expect(here).toHaveText('교과서 원문 124~131쪽');
+    await expect(here).not.toHaveAttribute('href', /.*/u);
+    await expect(switchBar.getByRole('link')).toHaveCount(1);
+    await switchBar.getByRole('link', { name: '따라 하기' }).click();
     await expect(page).toHaveURL(/\/learn\/u2\/2-1-2\/$/u);
 
     const back = page.getByRole('navigation', { name: '같은 내용을 보는 방법' });
-    await expect(back.getByRole('link', { name: '풀이·실습' })).toHaveAttribute('aria-current', 'page');
-    await back.getByRole('link', { name: '교과서 124~131쪽' }).click();
+    await expect(back.locator('[aria-current="page"]')).toHaveText('따라 하기');
+    await back.getByRole('link', { name: '교과서 원문 124~131쪽' }).click();
     await expect(page).toHaveURL(/\/book\/2-1-2\/$/u);
+  });
+
+  test('따라 하기 쪽 머리의 칩 줄에는 교과서 쪽 칸이 없다(쪽 범위는 전환 줄에 한 번 — B-90)', async ({ page }) => {
+    await page.goto('./learn/u2/2-1-2/');
+    await expect(page.locator('[data-meta="pages"]')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: '같은 내용을 보는 방법' })).toContainText('교과서 원문 124~131쪽');
   });
 
   test('짝 교과서 쪽이 없는 웹 차시(보충)에는 전환 줄이 없다', async ({ page }) => {
@@ -99,8 +111,8 @@ test.describe('전환 줄: 교과서 쪽 ↔ 풀이·실습(웹 차시)', () => 
   });
 });
 
-test.describe('?view=slide 발표 모드', () => {
-  test('교과서 쪽에 ?view=slide로 들어가면 발표 모드로 열리고 Esc로 끝낸다', async ({ page }) => {
+test.describe('?view=slide·#slide=N 수업 화면', () => {
+  test('교과서 쪽에 ?view=slide로 들어가면 수업 화면으로 열리고 Esc로 끝낸다', async ({ page }) => {
     await page.goto('./book/2-1-2/?view=slide');
     await hideDevToolbar(page);
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
@@ -117,7 +129,7 @@ test.describe('?view=slide 발표 모드', () => {
     await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
   });
 
-  test('발표를 끝내면 다른 주소 값(?example=)은 그대로 두고 view만 지운다', async ({ page }) => {
+  test('수업 화면을 끝내면 다른 주소 값(?example=)과 열 때의 #위치는 그대로 두고 view·#slide만 지운다', async ({ page }) => {
     await page.goto('./book/2-1-2/?foo=1&view=slide#p124');
     await hideDevToolbar(page);
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
@@ -135,11 +147,62 @@ test.describe('?view=slide 발표 모드', () => {
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
   });
 
-  test('[수업 화면으로] 단추로도 열린다', async ({ page }) => {
+  test('[수업 화면] 단추로도 열린다 — 웹 차시 쪽과 같은 이름·같은 부품(판 1.6.0 C173)', async ({ page }) => {
     await page.goto('./book/2-1-2/');
     await hideDevToolbar(page);
-    await page.getByRole('button', { name: '수업 화면으로' }).click();
+    await expect(page.getByRole('button', { name: '수업 화면으로' })).toHaveCount(0);
+    await page.getByRole('button', { name: '수업 화면', exact: true }).click();
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+  });
+
+  test('단계 주소 #slide=N: 넘길 때마다 주소 끝이 바뀌고, 그 주소로 열면 그 단계, 끝내면 지운다(walk-teacher-new A3)', async ({ page }) => {
+    await page.goto('./book/2-1-2/#slide=3');
+    await hideDevToolbar(page);
+    await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+    const present = page.locator('[data-lesson-present]');
+    await expect(present).toHaveAttribute('data-present-step', '3');
+    const total = await present.getAttribute('data-present-total');
+    await page.keyboard.press('ArrowRight');
+    await expect(present).toHaveAttribute('data-present-step', '4');
+    await expect.poll(() => new URL(page.url()).hash).toBe('#slide=4');
+    // 총수는 넘기는 동안 바뀌지 않는다(B-39)
+    await page.keyboard.press('ArrowRight');
+    await expect(present).toHaveAttribute('data-present-total', total ?? '');
+    // 새로 고쳐도 그 단계
+    await page.reload();
+    await hideDevToolbar(page);
+    await expect(present).toHaveAttribute('data-present-step', '5');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
+    expect(new URL(page.url()).hash).toBe('');
+  });
+
+  test('수업 화면 중 [실습실에서 크게 열기]는 새 탭 + ?from=slide&n=단계로 열리고, 실습실 맨 위에 "← 수업 화면으로"가 그 단계로 돌아간다', async ({ page, context, isMobile }) => {
+    test.skip(isMobile, '프로젝터(넓은 화면) 시험');
+    await page.goto('./book/2-1-2/?view=slide');
+    await hideDevToolbar(page);
+    const present = page.locator('[data-lesson-present]');
+    await expect(present).toHaveAttribute('data-present-total', /\d+/u);
+    const bigOpen = page.locator('a[data-lab-big-open]');
+    for (let press = 0; press < 80 && !(await bigOpen.first().isVisible()); press += 1) {
+      await page.keyboard.press('ArrowRight');
+    }
+    const link = bigOpen.filter({ visible: true }).first();
+    await expect(link).toBeVisible();
+    const step = await present.getAttribute('data-present-step');
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('href', new RegExp(`[?&]from=slide&n=${step}$`, 'u'));
+    const [lab] = await Promise.all([context.waitForEvent('page'), link.click()]);
+    await lab.waitForLoadState('domcontentloaded');
+    const back = lab.locator('[data-lab-slide-return] a');
+    await expect(back).toBeVisible({ timeout: 30_000 });
+    await expect(back).toHaveText(/수업 화면으로/u);
+    await expect(back).toHaveAttribute('href', new RegExp(`/book/2-1-2/#slide=${step}$`, 'u'));
+    await lab.close();
+    // 끝내면 링크가 원래 주소·같은 탭으로 돌아온다
+    await page.keyboard.press('Escape');
+    await expect(bigOpen.first()).not.toHaveAttribute('target', /.*/u);
+    await expect(bigOpen.first()).not.toHaveAttribute('href', /from=slide/u);
   });
 });
 
@@ -159,24 +222,24 @@ test.describe('차례: 왼쪽 교과서 차례(좁은 화면은 접힘) · /book
     await expect(nav.getByRole('link', { name: /2-1-2 LCD 제어하기/u })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('/book/ 첫 화면: 대단원 > 중단원 > 절 목록과 쪽 범위·풀이·실습 링크', async ({ page }) => {
+  test('/book/ 첫 화면: 대단원 > 중단원 > 절 목록과 쪽 범위·[따라 하기] 링크', async ({ page }) => {
     await page.goto('./book/');
     await expect(page.getByRole('heading', { level: 1, name: '교과서' })).toBeVisible();
     const lcd = page.locator('.book-toc__item', { hasText: 'LCD 제어하기' });
     await expect(lcd.getByRole('link', { name: /2-1-2 LCD 제어하기/u })).toHaveAttribute('href', /\/book\/2-1-2\/$/u);
     await expect(lcd).toContainText('교과서 124~131쪽');
-    await expect(lcd.getByRole('link', { name: '2-1-2 풀이·실습' })).toHaveAttribute('href', /\/learn\/u2\/2-1-2\/$/u);
+    await expect(lcd.getByRole('link', { name: '2-1-2 따라 하기' })).toHaveAttribute('href', /\/learn\/u2\/2-1-2\/$/u);
     await expect(page.locator('#unit-2')).toBeAttached();
     await expect(page.locator('#unit-2-part-1')).toBeAttached();
   });
 
-  test('머리글 메뉴에 "교과서"가 배우기 앞에 있다', async ({ page }) => {
+  test('머리글 메뉴에 "교과서 원문"이 "따라 하기" 앞에 있다(판 1.6.0 이름 — C173)', async ({ page }) => {
     await page.goto('./book/');
     const labels = await page.locator('.site-header nav a').allTextContents();
     const compact = labels.map((label) => label.replace(/\s+/gu, ' ').trim());
-    const book = compact.indexOf('교과서');
+    const book = compact.indexOf('교과서 원문');
     expect(book).toBeGreaterThanOrEqual(0);
-    expect(compact.indexOf('배우기')).toBeGreaterThan(book);
+    expect(compact.indexOf('따라 하기')).toBeGreaterThan(book);
   });
 });
 
@@ -325,5 +388,32 @@ test.describe('화면 검수 반영(2026-10-16): 캡션 겹침·준비물 사진
     expect(text).not.toContain('II-마무리');
     // 주소는 그대로다
     await expect(nav.first().locator('a[href$="/learn/u2/review/"]')).toHaveCount(1);
+  });
+});
+
+test.describe('교과서 쪽 /book/2-1-1/ — 설치 단락 앞 "이 사이트에서는 설치 없이" 안내(판 1.6.0 C176)', () => {
+  test('"4 피지컬 컴퓨팅 개발 환경 설정" 제목 바로 아래, 출판본 "드라이버 설치" 앞에 안내 상자가 있고 보드 준비하기·ESP32 실습실로 가는 링크가 있다', async ({ page }) => {
+    await page.goto('./book/2-1-1/');
+    await hideDevToolbar(page);
+    const box = page.locator('.box--webnote');
+    await expect(box).toHaveCount(1);
+    await expect(box.locator('.box__title')).toHaveText('이 사이트에서는 설치 없이');
+    await expect(box).toContainText('드라이버와 토니(Thonny) 설치는 이 사이트에서는 하지 않아도 돼요');
+    await expect(box.getByRole('link', { name: 'ESP32 실습실 열기' })).toHaveAttribute('href', /\/labs\/esp32\/$/u);
+    await expect(box.getByRole('link', { name: '보드 준비하기' })).toHaveAttribute('href', /\/start\/board\/$/u);
+    // 위치: 4 제목 → 안내 상자 → **드라이버 설치**(출판본 원문은 그대로 이어진다)
+    const order = await page.evaluate(() => {
+      const heading = [...document.querySelectorAll('.lesson-body h2')].find((element) => element.textContent?.includes('피지컬 컴퓨팅 개발 환경 설정'));
+      const note = document.querySelector('.box--webnote');
+      const driver = [...document.querySelectorAll('.lesson-body strong')].find((element) => element.textContent?.trim() === '드라이버 설치');
+      if (!heading || !note || !driver) return null;
+      const before = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return [before(heading, note), before(note, driver)];
+    });
+    expect(order).toEqual([true, true]);
+    // 출판본 쪽 표지는 그대로(120쪽 안, 쪽 번호 표지가 상자보다 앞)
+    await expect(page.locator('#p120')).toBeAttached();
+    // 파랑 안내 상자 모양(출판본 꼭지와 구별) — 제목이 늘 글자로 보인다
+    await expect(box).toHaveAttribute('data-box', 'webnote');
   });
 });

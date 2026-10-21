@@ -1,4 +1,5 @@
-// 차시 틀(PLAN §8.5 P5-02) — 발표 모드·교사용 접기의 "이 차시의 원고와 자료"·성취기준 표시를 기준 차시 1-1-1에서 키보드로 확인한다.
+// 차시 틀(PLAN §8.5 P5-02) — 수업 화면(옛 이름 "발표 모드" — 판 1.6.0 C173)·교사용 접기의 "이 차시의 원고와 자료"·성취기준 표시를 기준 차시 1-1-1에서 키보드로 확인한다.
+// 판 1.6.0: 첫 장은 제목 + 학습 목표, 막대 글은 가장 가까운 이름 20글자 안(전체 이름은 낭독 칸 data-present-announce), 마지막 단계는 aria-disabled + "Esc로 끝내기".
 // 퀴즈 즉시 피드백·교사용 접기 열고 닫기는 learn.spec.ts에 있다. 데스크톱·휴대폰 두 프로젝트 모두에서 돈다.
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
@@ -7,7 +8,7 @@ async function openPresentation(page: Page) {
   // 개발 서버에만 있는 Astro 개발 도구 막대(astro-dev-toolbar)가 휴대폰 폭에서 발표 막대의 [다음 ▶]를 가려 클릭이 막힌다
   // (PW_BASE_URL로 개발 서버를 시험할 때 — 2026-09-28 겪음). 빌드 결과에는 이 막대가 없어 아무 일도 없다(a11y spec이 axe에서 빼는 것과 같은 까닭).
   await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
-  const open = page.getByRole('button', { name: '발표 모드' });
+  const open = page.getByRole('button', { name: '수업 화면', exact: true });
   await expect(open).toBeVisible();
   await open.focus();
   await page.keyboard.press('Enter');
@@ -21,12 +22,17 @@ function status(page: Page) {
   return page.locator('[data-present-status]');
 }
 
-test.describe('발표 모드', () => {
+/** 막대 글(20글자 안)과 달리 줄이지 않은 단계 이름 — 낭독기가 듣는 칸 */
+function announce(page: Page) {
+  return page.locator('[data-present-announce]');
+}
+
+test.describe('수업 화면', () => {
   test('키보드로 열고, →·←·Home·End로 한 단계씩 넘기고, Esc로 끝내면 제자리로 돌아온다', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
     const normalRoot = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).fontSize));
     await openPresentation(page);
-    const bar = page.getByRole('toolbar', { name: '발표 모드 조작' });
+    const bar = page.getByRole('toolbar', { name: '수업 화면 조작' });
     await expect(bar).toBeVisible();
     // R2-023: 시작 초점은 보이지 않는 main이 아니라 막대의 [다음 단계]이고, 단추 이름에 ◀ ▶ 기호가 없다
     await expect(bar.getByRole('button', { name: '다음 단계', exact: true })).toBeFocused();
@@ -34,14 +40,16 @@ test.describe('발표 모드', () => {
       expect(name, '단추 이름에 기호 없음').not.toMatch(/[◀▶]/u);
     }
 
-    // 머리글·바닥글·차례·이전/다음·뱃지는 숨고, 첫 장은 차시 제목이다.
+    // 머리글·바닥글·차례·이전/다음·뱃지는 숨고, 첫 장은 차시 제목(+ 한 화면에 들어가면 학습 목표 — 판 1.6.0)이다.
     await expect(page.locator('.site-header')).toBeHidden();
     await expect(page.locator('.site-footer')).toBeHidden();
     await expect(page.getByRole('navigation', { name: '이 차시의 차례' })).toBeHidden();
     await expect(page.getByRole('navigation', { name: '이전·다음 차시' })).toBeHidden();
     await expect(page.locator('.lesson-meta')).toBeHidden();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(status(page)).toHaveText(/^1 \/ \d+ · 1-1-1 인공지능 응용 프로그램과 에이전트$/u);
+    // 막대 글은 20글자 안으로 줄이고(…), 낭독 칸은 줄이지 않은 이름이다(walk-teacher-new A5)
+    await expect(status(page)).toHaveText(/^1 \/ \d+ · 1-1-1 인공지능 응용 프로그램과…$/u);
+    await expect(announce(page)).toContainText('1-1-1 인공지능 응용 프로그램과 에이전트');
     const total = Number(await page.locator('[data-lesson-present]').getAttribute('data-present-total'));
     expect(total).toBeGreaterThan(10);
 
@@ -54,20 +62,35 @@ test.describe('발표 모드', () => {
       expect(presentingRoot).toBeGreaterThanOrEqual(normalRoot);
     }
 
-    await page.keyboard.press('ArrowRight');
-    await expect(status(page)).toHaveText(`2 / ${total} · 학습목표`);
-    await expect(page.getByRole('heading', { level: 2, name: '학습목표' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toBeHidden();
+    // 첫 장에 학습 목표가 함께 보이면(제목만 있는 빈 첫 장 금지 — walk-teacher-new A8) 둘째 장은 "왜 배울까"다.
+    // 제목과 학습 목표가 한 화면에 안 들어가는 화면이면 예전처럼 둘째 장이 학습목표다(fitToBar가 되돌린다).
+    const goalHeading = page.getByRole('heading', { level: 2, name: '학습목표' });
+    const goalsOnTitle = await goalHeading.isVisible();
+    if (goalsOnTitle) {
+      await expect(page.locator('html')).toHaveAttribute('data-present-title', 'goals');
+    } else {
+      await page.keyboard.press('ArrowRight');
+      await expect(status(page)).toHaveText(`2 / ${total} · 학습목표`);
+      await expect(goalHeading).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1 })).toBeHidden();
+    }
+    const whyStep = goalsOnTitle ? 2 : 3;
     await expect(page.getByRole('heading', { level: 2, name: '왜 배울까' })).toBeHidden();
 
     await page.keyboard.press('ArrowRight');
-    await expect(status(page)).toHaveText(`3 / ${total} · 왜 배울까`);
+    await expect(status(page)).toHaveText(`${whyStep} / ${total} · 왜 배울까`);
+    await expect(page.getByRole('heading', { level: 1 })).toBeHidden();
+    await expect(goalHeading).toBeHidden();
     await page.keyboard.press('ArrowLeft');
-    await expect(status(page)).toHaveText(`2 / ${total} · 학습목표`);
+    await expect(status(page)).toHaveText(new RegExp(`^${whyStep - 1} \\/ ${total} · `, 'u'));
+    await expect(goalHeading).toBeVisible();
+    // 단계 주소: 지금 단계가 주소 끝 #slide=N에 적힌다(판 1.6.0)
+    await expect.poll(() => new URL(page.url()).hash).toBe(`#slide=${whyStep - 1}`);
 
     // 핵심 개념은 ### 제목마다 한 단계. 한 화면보다 긴 칸(왜 배울까의 문단 + 그림 등)은 화면 크기에 따라 "(이어서)" 단계로 더 나뉘므로
     // (2026-09-25 Phase 5 검토 중요 5) 단계 번호를 적지 않고 그 단계가 나올 때까지 넘긴다.
-    const conceptLabel = /^\d+ \/ \d+ · 핵심 개념 — 인공지능과 사람의 지능$/u;
+    // 막대 글은 가장 가까운 이름(### 제목)만 — 전체 "핵심 개념 — 인공지능과 사람의 지능"은 낭독 칸에
+    const conceptLabel = /^\d+ \/ \d+ · 인공지능과 사람의 지능$/u;
     for (let press = 0; press < 6 && !conceptLabel.test((await status(page).textContent()) ?? ''); press += 1) {
       await page.keyboard.press('ArrowRight');
     }
@@ -75,6 +98,7 @@ test.describe('발표 모드', () => {
     const conceptStatus = (await status(page).textContent()) ?? '';
     await expect(page.getByRole('heading', { level: 3, name: '인공지능과 사람의 지능' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeHidden();
+    await expect(announce(page)).toContainText('핵심 개념 — 인공지능과 사람의 지능');
 
     // 용어 풀이 툴팁이 열려 있으면 Esc는 툴팁만 닫고 발표는 이어진다.
     // 지금 단계에 보이는 용어(학습목표 칸의 "성취기준" 같은 앞 단계 용어는 숨어 있다 — R2-048)
@@ -93,7 +117,10 @@ test.describe('발표 모드', () => {
     await expect(items.nth(2)).toBeVisible();
     await expect(items.nth(0)).toBeHidden();
     await expect(page.locator('section[data-section="teacher"]')).toBeHidden();
-    await expect(page.getByRole('button', { name: '다음 단계' })).toBeDisabled();
+    // 끝 단계의 [다음 단계]는 disabled가 아니라 aria-disabled — 초점이 남는다(walk-a11y-keyboard 5). 막대에 "마지막 단계예요"(A-21)
+    await expect(page.getByRole('button', { name: '다음 단계' })).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('[data-present-end]')).toBeVisible();
+    await expect(page.locator('[data-present-end]')).toContainText('마지막 단계예요');
 
     // 보기(라디오)에 초점이 있으면 ←→는 보기를 고르고 단계는 그대로다.
     const choice = items.nth(2).getByRole('radio', { name: '센서' });
@@ -127,7 +154,7 @@ test.describe('발표 모드', () => {
     await expect(bar).toBeHidden();
     await expect(page.locator('[data-present-off]')).toHaveCount(0);
     await expect(page.locator('.site-header')).toBeVisible();
-    // 마지막으로 본 칸(확인 퀴즈) 쪽으로 돌아오고, 초점도 그 칸 제목에 있다 — 쪽 맨 위 [발표 모드]로 돌리면 초점이 화면 밖이라 보이지 않고
+    // 마지막으로 본 칸(확인 퀴즈) 쪽으로 돌아오고, 초점도 그 칸 제목에 있다 — 쪽 맨 위 [수업 화면]으로 돌리면 초점이 화면 밖이라 보이지 않고
     // 다음 Tab이 쪽 위로 뛰었다(2026-09-26 Phase 6 사용성 검토 지적 10).
     const quizHeading = page.getByRole('heading', { level: 2, name: '확인 퀴즈' });
     await expect(quizHeading).toBeInViewport();
@@ -138,6 +165,33 @@ test.describe('발표 모드', () => {
     const after = await page.evaluate(() => document.activeElement?.closest('section[data-section]')?.getAttribute('data-section') ?? 'none');
     expect(after, '다음 Tab은 확인 퀴즈 칸 안의 조작으로 간다').toBe('quiz');
     await expect(quizHeading).not.toHaveAttribute('tabindex');
+    // 끝내면 주소의 #slide=N이 지워진다(새로 고쳐도 읽기 화면)
+    expect(new URL(page.url()).hash).toBe('');
+  });
+
+  test('마지막 단계: [다음 단계]를 눌러도 초점이 그 단추에 남고, 막대 둘째 줄이 "마지막 단계예요 · Esc로 끝내기"다(A-21)', async ({ page, isMobile }) => {
+    test.skip(isMobile, '키보드 조작은 데스크톱에서 본다(휴대폰은 [끝내기] 안내)');
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentation(page);
+    const bar = page.getByRole('toolbar', { name: '수업 화면 조작' });
+    const next = bar.getByRole('button', { name: '다음 단계', exact: true });
+    const present = page.locator('[data-lesson-present]');
+    const total = (await present.getAttribute('data-present-total')) ?? '';
+    await expect(page.locator('[data-present-end]')).toBeHidden();
+    await page.keyboard.press('End');
+    await page.keyboard.press('ArrowLeft');
+    await next.focus();
+    await page.keyboard.press('Enter');
+    await expect(present).toHaveAttribute('data-present-step', total);
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+    await expect(next).toBeFocused();
+    await expect(page.locator('[data-present-end]')).toContainText('마지막 단계예요 · Esc로 끝내기');
+    // 한 번 더 눌러도 단계는 그대로, 초점도 그대로(BODY로 사라지지 않는다)
+    await page.keyboard.press('Enter');
+    await expect(present).toHaveAttribute('data-present-step', total);
+    await expect(next).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
   });
 
   // 2026-09-26 Phase 6 사용성 검토 지적 2: 1366×768에서 1-1-1 31단계 가운데 10, 1-1-2 45단계 가운데 12에서 그림 설명·문단 둘째 줄·
@@ -242,7 +296,7 @@ test.describe('발표 모드', () => {
   });
 
   // R1-078: 발표 중 Tab은 막대의 단추만 돌고, 쪽 맨 위의 [본문으로 건너뛰기]로 새지 않는다.
-  test('발표 중에는 [본문으로 건너뛰기]가 숨고 Tab이 슬라이드 밖으로 새지 않는다', async ({ page, isMobile }) => {
+  test('수업 화면 중에는 [본문으로 건너뛰기]가 숨고 Tab이 슬라이드 밖으로 새지 않는다', async ({ page, isMobile }) => {
     test.skip(isMobile, '키보드 조작은 데스크톱에서 본다');
     await page.goto('./learn/u1/1-1-1/');
     await openPresentation(page);
@@ -261,13 +315,13 @@ test.describe('발표 모드', () => {
     await expect(page.locator('.skip-link')).toBeAttached();
   });
 
-  test('막대의 단추로도 넘기고 끝내며, 발표 화면은 옆으로 넘치지 않는다', async ({ page }) => {
+  test('막대의 단추로도 넘기고 끝내며, 수업 화면은 옆으로 넘치지 않는다', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
     await openPresentation(page);
-    const bar = page.getByRole('toolbar', { name: '발표 모드 조작' });
-    // 접근 이름은 기호 없이 "앞 단계"·"다음 단계"(R2-023)
+    const bar = page.getByRole('toolbar', { name: '수업 화면 조작' });
+    // 접근 이름은 기호 없이 "앞 단계"·"다음 단계"(R2-023). 첫 단계의 [앞 단계]는 aria-disabled(판 1.6.0 — 초점을 잃지 않게)
     const previous = bar.getByRole('button', { name: '앞 단계', exact: true });
-    await expect(previous).toBeDisabled();
+    await expect(previous).toHaveAttribute('aria-disabled', 'true');
     const next = bar.getByRole('button', { name: '다음 단계', exact: true });
     // 따라하기 예제 단계가 나올 때까지 넘기며 단계마다 옆 넘침이 없는지 본다(단계 수는 화면 크기에 따라 달라진다 — 긴 칸을 더 나눔).
     let reached = 0;
@@ -281,8 +335,9 @@ test.describe('발표 모드', () => {
       }
     }
     expect(reached, '따라하기 예제 단계').toBeGreaterThan(2);
-    // 막대 글에 어느 예제인지(예제 제목)가 함께 보인다.
-    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 따라 하기 — 코드 읽기 · 규칙대로 정렬하기와 예시에서 배워 묶기$`, 'u'));
+    // 막대 글에 어느 예제인지(예제 제목 — 20글자 안으로 줄임)가 보이고, 낭독 칸에는 칸·소제목까지 줄이지 않은 이름이 있다.
+    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 규칙대로 정렬하기와 예시에서 배워…$`, 'u'));
+    await expect(announce(page)).toContainText('따라 하기 — 코드 읽기 · 규칙대로 정렬하기와 예시에서 배워 묶기');
     // 따라하기 예제 단계에서도 [이 자리에서 실습실 열기]를 쓸 수 있다(실습실은 누르기 전에 받지 않는다).
     await expect(page.locator('.lesson-example')).toBeVisible();
     await expect(page.locator('iframe')).toHaveCount(0);
@@ -294,12 +349,12 @@ test.describe('발표 모드', () => {
 
 });
 
-test.describe('발표 모드 — 자바스크립트가 꺼져 있을 때', () => {
+test.describe('수업 화면 — 자바스크립트가 꺼져 있을 때', () => {
   test.use({ javaScriptEnabled: false });
 
-  test('[발표 모드] 단추와 안내가 보이지 않는다(본문은 그대로 읽힌다)', async ({ page }) => {
+  test('[수업 화면] 단추와 안내가 보이지 않는다(본문은 그대로 읽힌다)', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
-    await expect(page.getByRole('button', { name: '발표 모드' })).toBeHidden();
+    await expect(page.getByRole('button', { name: '수업 화면', exact: true })).toBeHidden();
     await expect(page.locator('.lesson__tools')).toBeHidden();
     await expect(page.getByRole('heading', { level: 2, name: '핵심 개념' })).toBeVisible();
   });
@@ -313,7 +368,8 @@ test.describe('교사용 접기 — 이 차시의 원고와 자료', () => {
     await page.keyboard.press('Enter');
     const info = details.locator('[data-lesson-teacher-info]');
     await expect(info.getByRole('heading', { level: 3, name: '이 차시의 원고와 자료' })).toBeVisible();
-    await expect(info.locator('[data-teacher-info="source"]')).toContainText('교과서 원고(008~012쪽)');
+    // 쪽 범위는 앞 0 없이(판 1.6.0 — display-names.ts)
+    await expect(info.locator('[data-teacher-info="source"]')).toContainText('교과서 원고(8~12쪽)');
     const standards = info.locator('[data-teacher-info="standards"]');
     await expect(standards).toContainText('성취기준(인천광역시교육청 승인 교육과정, 차시 연결은 사이트가 붙임)');
     await expect(standards).toContainText('[12인피01-01] 인공지능 영상인식 — 영상인식 기술의 종류와 원리, 개발 환경 구성(사이트 요약)');
@@ -380,5 +436,229 @@ test.describe('실제 키트 배선 보기', () => {
       await page.goto(path);
       await expect(page.locator('details.circuit-details'), path).toHaveCount(0);
     }
+  });
+});
+
+// 판 1.6.0(C174·C175) — 차시 머리 "이 차시에서 할 일" 카드, 긴 핵심 개념 접기, [선생님용] 단추와 교사용 접기 요약 줄·채점 기준, 수업 화면 속 실습실 한 화면.
+test.describe('차시 첫 화면 — 이 차시에서 할 일 카드(C174)', () => {
+  test('제목 바로 아래에 읽기·따라 하기·확인 세 칸이 있고, 누르면 그 칸으로 간다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const tasks = page.getByRole('navigation', { name: '이 차시에서 할 일' });
+    await expect(tasks).toBeVisible();
+    await expect(tasks).toContainText('약 50분');
+    const links = tasks.getByRole('link');
+    await expect(links).toHaveCount(3);
+    // 번호의 마침표는 CSS(::after)가 그려서 글자에는 번호·제목·설명이 띄어 이어진다
+    await expect(links.nth(0)).toHaveText(/^1\s*읽기\s*개념 3가지$/u);
+    await expect(links.nth(1)).toHaveText(/^2\s*따라 하기\s*예제 1개$/u);
+    await expect(links.nth(2)).toHaveText(/^3\s*확인\s*퀴즈 3문제$/u);
+    // 누를 곳은 손가락 크기(높이 44px 안팎 이상)
+    for (const height of await links.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) {
+      expect(height).toBeGreaterThanOrEqual(43.5);
+    }
+
+    // 주소의 #위치는 한글이 %로 인코딩되어 보이므로 풀어서 본다
+    const hash = () => decodeURIComponent(new URL(page.url()).hash);
+    await links.nth(1).click();
+    await expect.poll(hash).toBe('#따라-하기');
+    await expect(page.getByRole('heading', { level: 2, name: '따라 하기' })).toBeInViewport();
+    await tasks.scrollIntoViewIfNeeded();
+    await links.nth(2).click();
+    await expect.poll(hash).toBe('#확인-퀴즈');
+    await expect(page.getByRole('heading', { level: 2, name: '확인 퀴즈' })).toBeInViewport();
+  });
+
+  test('휴대폰(375×812) 첫 화면에 제목과 세 칸이 함께 보인다', async ({ page, isMobile }) => {
+    test.skip(!isMobile, '휴대폰 화면 시험');
+    await page.goto('./learn/u1/1-1-1/');
+    const viewportHeight = page.viewportSize()?.height ?? 812;
+    await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+    const tasks = page.getByRole('navigation', { name: '이 차시에서 할 일' });
+    const box = await tasks.boundingBox();
+    expect(box, '카드 상자').not.toBeNull();
+    expect((box?.y ?? 0) + (box?.height ?? 0), '카드 아래 끝이 첫 화면 안').toBeLessThanOrEqual(viewportHeight);
+    // 세 칸이 한 줄에 나란히(줄바꿈 없이)
+    const tops = await tasks.getByRole('link').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+  });
+
+  test('수업 화면(발표 모드)과 실습실 임베드에서는 보이지 않는다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/?embed=1');
+    await expect(page.getByRole('navigation', { name: '이 차시에서 할 일' })).toBeHidden();
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentation(page);
+    await expect(page.getByRole('navigation', { name: '이 차시에서 할 일' })).toBeHidden();
+  });
+
+  test('읽기 자료·대단원 마무리처럼 8칸 틀이 아닌 차시에는 카드가 없다', async ({ page }) => {
+    await page.goto('./learn/u1/review/');
+    await expect(page.getByRole('navigation', { name: '이 차시에서 할 일' })).toHaveCount(0);
+  });
+});
+
+test.describe('긴 핵심 개념 접기(C174)', () => {
+  test('소제목이 셋인 1-1-1은 첫 소제목만 펴 보이고, 나머지 둘은 접힌 상자 안에 있다 — 열면 보이고, #링크로 오면 저절로 열린다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const fold = page.locator('details[data-concepts-fold]');
+    await expect(fold).toHaveCount(1);
+    await expect(fold).not.toHaveAttribute('open', /.*/u);
+    await expect(fold.locator('summary')).toHaveText('개념 2가지 더 읽기: 기존 응용 프로그램과 인공지능 응용 프로그램 · 에이전트');
+    await expect(page.getByRole('heading', { level: 3, name: '인공지능과 사람의 지능' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeHidden();
+
+    await fold.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(fold).toHaveAttribute('open', '');
+    await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeVisible();
+
+    // 주소의 #위치가 접힌 상자 안의 제목이면 상자를 열고 그 자리로 간다
+    await page.goto('./learn/u1/1-1-1/#에이전트');
+    await expect(page.locator('details[data-concepts-fold]')).toHaveAttribute('open', '');
+    await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeInViewport();
+  });
+
+  test('수업 화면은 접기를 펼친 채 ### 제목마다 한 장씩 보이고, 끝내면 읽던 자리가 접기 안이라 연 채로 둔다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const fold = page.locator('details[data-concepts-fold]');
+    await expect(fold).not.toHaveAttribute('open', /.*/u);
+    await openPresentation(page);
+    await expect(fold).toHaveAttribute('open', '');
+    // 앞 단계의 끝과 합쳐지면 "(이어서)"가 붙는다(수업 화면이 한 화면에 맞추며 나눈다)
+    // 막대 글은 가장 가까운 이름(### 제목)만(판 1.6.0 R2 — shortStepLabel)
+    const agent = /^\d+ \/ \d+ · 에이전트( \(이어서\))?$/u;
+    for (let press = 0; press < 20 && !agent.test((await status(page).textContent()) ?? ''); press += 1) {
+      await page.keyboard.press('ArrowRight');
+    }
+    await expect(status(page)).toHaveText(agent);
+    await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: '인공지능과 사람의 지능' })).toBeHidden();
+    // 접기 제목 줄은 슬라이드에 나오지 않는다
+    await expect(fold.locator('summary')).toBeHidden();
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting', /.*/u);
+    // 읽던 자리가 접기 안이라 닫으면 그 자리로 돌아갈 수 없으므로 연 채 둔다
+    await expect(fold).toHaveAttribute('open', '');
+    await expect(page.getByRole('heading', { level: 3, name: '에이전트' })).toBeInViewport();
+  });
+
+  test('수업 화면을 끝낼 때 읽던 자리가 접기 밖이면 처음처럼 닫는다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentation(page);
+    await expect(page.locator('details[data-concepts-fold]')).toHaveAttribute('open', '');
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting', /.*/u);
+    await expect(page.locator('details[data-concepts-fold]')).not.toHaveAttribute('open', /.*/u);
+  });
+});
+
+test.describe('[선생님용] 단추와 교사용 접기 요약 줄(C175)', () => {
+  test('차시 쪽: [선생님용]을 누르면 교사용 접기가 열리고 요약 줄(퀴즈 정답·평가 포인트·채점 기준·지도 요약)이 맨 위에 보인다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const button = page.getByRole('link', { name: '선생님용' });
+    await expect(button).toBeVisible();
+    const details = page.locator('details.box--teacher');
+    await expect(details).not.toHaveAttribute('open', /.*/u);
+    await button.click();
+    await expect(details).toHaveAttribute('open', '');
+    await expect(details.locator('summary')).toBeFocused();
+    await expect(details.locator('summary')).toBeInViewport();
+
+    const summary = details.locator('[data-lesson-teacher-summary]');
+    await expect(summary).toBeVisible();
+    // 요약 줄은 접기 제목 줄 바로 아래(첫 내용)에 있다
+    const firstIsSummary = await details.evaluate((element) => element.querySelector(':scope > summary + *')?.hasAttribute('data-lesson-teacher-summary'));
+    expect(firstIsSummary).toBe(true);
+    await expect(summary).toContainText('퀴즈 정답 3개');
+    await expect(summary).toContainText('1번 ② 학습');
+    await expect(summary).toContainText('3번 ② 액추에이터');
+    for (const name of ['평가 포인트', '채점 기준', '지도 요약', '자주 막히는 곳']) {
+      await expect(summary.getByRole('link', { name }), name).toBeVisible();
+    }
+    // 채점 기준 바로 가기 → 표(잘함·보통·노력 요함)
+    await summary.getByRole('link', { name: '채점 기준' }).click();
+    await expect(details.getByRole('heading', { level: 3, name: '채점 기준' })).toBeInViewport();
+    const table = details.locator('table').filter({ hasText: '관찰 항목' });
+    await expect(table.getByRole('columnheader')).toHaveText(['관찰 항목', '잘함', '보통', '노력 요함']);
+    expect(await table.locator('tbody tr').count()).toBeGreaterThanOrEqual(2);
+    expect(await table.locator('tbody tr').count()).toBeLessThanOrEqual(3);
+  });
+
+  test('교사용 접기가 있는 차시에는 짝 교과서 쪽이 없는 보충 차시에도 [선생님용]이 있다', async ({ page }) => {
+    for (const path of ['./learn/u2/2-1-2/', './learn/u1/v4/']) {
+      await page.goto(path);
+      await expect(page.getByRole('link', { name: '선생님용' }), path).toHaveCount(1);
+    }
+  });
+
+  test('교과서 쪽: [선생님용]이 짝 차시의 교사용 접기로 곧바로 가고, 짝 차시가 없는 쪽에는 단추가 없다', async ({ page }) => {
+    await page.goto('./book/2-1-2/');
+    const button = page.getByRole('link', { name: '선생님용' });
+    await expect(button).toBeVisible();
+    await expect(button).toHaveAttribute('href', withBase('learn/u2/2-1-2/#교사용'));
+    await button.click();
+    await expect(page).toHaveURL(/\/learn\/u2\/2-1-2\/#(교사용|%EA%B5%90%EC%82%AC%EC%9A%A9)$/u);
+    await expect(page.locator('details.box--teacher')).toHaveAttribute('open', '');
+    await expect(page.locator('[data-lesson-teacher-summary]')).toBeVisible();
+
+    // 짝 웹 차시가 없는 교과서 쪽(표지·머리말)에는 단추가 없다
+    await page.goto('./book/front/');
+    await expect(page.getByRole('link', { name: '선생님용' })).toHaveCount(0);
+  });
+
+  test('수업 화면(발표 모드)에서는 [선생님용]도 교사용 접기도 보이지 않는다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentation(page);
+    await expect(page.getByRole('link', { name: '선생님용' })).toBeHidden();
+    await expect(page.locator('details.box--teacher')).toBeHidden();
+  });
+});
+
+test.describe('수업 화면 속 실습실 — [실행]과 결과가 한 화면(C175)', () => {
+  test('발표 중에 연 실습실은 compact 모양이고, [실행]과 가상 보드 그림이 틀 안 한 화면에 들어온다 — 끝내면 compact가 풀린다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '프로젝터(넓은 화면) 시험');
+    test.setTimeout(240_000);
+    await page.goto('./learn/u2/2-1-2/');
+    await openPresentation(page);
+    const openButton = page.locator('[data-lesson-lab-open]').first();
+    for (let press = 0; press < 80 && !(await openButton.isVisible()); press += 1) {
+      await page.keyboard.press('ArrowRight');
+      await page.waitForTimeout(120);
+    }
+    await expect(openButton).toBeVisible();
+    await openButton.click();
+
+    const frameElement = page.locator('iframe.lesson-example__frame').first();
+    await expect(frameElement).toBeVisible();
+    const frame = page.frameLocator('iframe.lesson-example__frame').first();
+    const run = frame.locator('[data-lab-run]').first();
+    await expect(run).toBeVisible({ timeout: 90_000 });
+    await expect(frame.locator('html')).toHaveAttribute('data-embed-compact', '');
+    // 파이썬 엔진을 받는 동안에는 틀 위에 준비 패널이 더 보이므로, 준비가 끝난 뒤의 모습으로 잰다
+    await expect(frame.locator('[data-lab-status]')).toContainText('준비됐어요', { timeout: 120_000 });
+    // 준비가 끝나면 몇 초 뒤 준비 패널이 접힌다(1분 개념 카드가 있던 자리가 줄어든다)
+    await expect(frame.locator('[data-loading-panel]')).toHaveAttribute('data-collapsed', 'true', { timeout: 30_000 });
+    // 틀의 윗선이 화면 맨 위 근처이고, 틀의 아래 끝은 아래 막대 위다
+    const viewport = page.viewportSize()?.height ?? 768;
+    await expect.poll(async () => (await frameElement.boundingBox())?.y ?? 9999, { timeout: 10_000 }).toBeLessThan(60);
+    const frameBox = await frameElement.boundingBox();
+    const barTop = await page.locator('.lesson-present__bar').evaluate((element) => element.getBoundingClientRect().top);
+    expect((frameBox?.y ?? 0) + (frameBox?.height ?? 0)).toBeLessThanOrEqual(barTop + 1);
+    expect(frameBox?.height ?? 0).toBeLessThanOrEqual(viewport);
+
+    // [실행]도 가상 보드 그림의 아래 끝도 틀(=화면) 안에 있다 — 한 화면에 [실행]과 결과(LCD)가 함께 보인다
+    const runBox = await run.boundingBox();
+    const stageBox = await frame.locator('[data-board-stage]').boundingBox();
+    expect(runBox, '[실행] 자리').not.toBeNull();
+    expect(stageBox, '가상 보드 그림 자리').not.toBeNull();
+    expect(runBox?.y ?? 0).toBeGreaterThanOrEqual(frameBox?.y ?? 0);
+    expect((stageBox?.y ?? 0) + (stageBox?.height ?? 0), '보드 그림 아래 끝이 틀 안').toBeLessThanOrEqual((frameBox?.y ?? 0) + (frameBox?.height ?? 0) + 1);
+    // compact에서 줄인 안내(실습 방법 상자)는 틀 안에서 보이지 않는다
+    await expect(frame.locator('[data-board-practice]')).toBeHidden();
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting', /.*/u);
+    await expect(frame.locator('html')).not.toHaveAttribute('data-embed-compact', /.*/u);
   });
 });

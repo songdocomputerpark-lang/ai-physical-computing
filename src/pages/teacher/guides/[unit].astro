@@ -20,6 +20,7 @@ import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, type
 import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
 import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { unitName } from '../../../lib/display-names.ts';
 import { withBase } from '../../../lib/url.ts';
 
 export async function getStaticPaths() {
@@ -38,8 +39,10 @@ interface Props {
 
 const { unit, lessons } = Astro.props;
 const guides = getTeacherPage('guides');
-const title = `${unit.label} 지도 요약`;
-const description = `${unit.label}의 차시마다 교사용 안내(지도안 요약, 평가 포인트, 자주 막히는 곳, 원고에서 바꾼 곳)를 한 페이지에 모았어요.`;
+// 단원 이름은 숫자로 "2단원 피지컬 컴퓨팅"(판 1.6.0 — C127 적용 누락, 걷기 B-50: 검색 결과에 "II. 피지컬 컴퓨팅 지도 요약"이 남았다)
+const unitLabel = unitName(unit.unit);
+const title = `${unitLabel} 지도 요약`;
+const description = `${unitLabel}의 차시마다 교사용 안내(지도안 요약, 평가 포인트, 자주 막히는 곳, 원고에서 바꾼 곳)를 한 페이지에 모았어요.`;
 const otherUnits = learnUnits.filter((candidate) => candidate.unit !== unit.unit);
 const anchorOf = (lesson: TeacherLesson): string => lesson.idPrefix.slice(0, -1);
 const withGuide = lessons.filter((lesson) => lesson.guide);
@@ -49,7 +52,7 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
   title={title}
   description={description}
   width="narrow"
-  breadcrumb={teacherBreadcrumb(unit.label, [{ label: guides.title, href: guides.href }])}
+  breadcrumb={teacherBreadcrumb(unitLabel, [{ label: guides.title, href: guides.href }])}
 >
   <h1 class="page-title">{title}</h1>
   <p class="lead">{description}</p>
@@ -118,7 +121,7 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
       {
         otherUnits.map((other) => (
           <li>
-            <a href={withBase(guidesUnitPath(other.unit))}>{other.label}</a>
+            <a href={withBase(guidesUnitPath(other.unit))}>{unitName(other.unit)}</a>
           </li>
         ))
       }

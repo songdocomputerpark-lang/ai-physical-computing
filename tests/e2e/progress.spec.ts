@@ -261,12 +261,12 @@ test.describe('차시 쪽 단원 차시 목록', () => {
     await expect(page.getByRole('navigation', { name: '차시 이동' }).getByRole('link', { name: /^이전/u })).toHaveCount(0);
   });
 
-  test('발표 모드에서는 단원 차시 목록·위쪽 줄·다 했어요 상자가 숨고, 끝내면 돌아온다', async ({ page, isMobile }) => {
-    test.skip(isMobile, '발표 모드는 데스크톱에서 본다(휴대폰은 lesson-template.spec이 본다)');
+  test('수업 화면에서는 단원 차시 목록·위쪽 줄·다 했어요 상자가 숨고, 끝내면 돌아온다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '수업 화면은 데스크톱에서 본다(휴대폰은 lesson-template.spec이 본다)');
     await page.goto('./learn/u1/1-1-2/');
     await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
     await expect(page.getByRole('navigation', { name: '단원 차시 목록' })).toBeVisible();
-    await page.getByRole('button', { name: '발표 모드' }).click();
+    await page.getByRole('button', { name: '수업 화면', exact: true }).click();
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
     await expect(page.getByRole('navigation', { name: '단원 차시 목록' })).toBeHidden();
     await expect(page.getByRole('navigation', { name: '차시 이동' })).toBeHidden();

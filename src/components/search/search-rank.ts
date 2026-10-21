@@ -39,6 +39,8 @@ export const SYNONYMS: readonly { pattern: RegExp; extra: string }[] = [
   { pattern: /permission\s*denied|notallowederror/iu, extra: '카메라 허용' },
   // 판 1.6.0 R6(걷기 보고 A-15 — 학부모가 "학부모"를 쳐도 결과가 없었다): 같은 사람을 부르는 말은 보호자 안내(/start/parent/)로 모인다
   { pattern: /학부모|학부형|부모님|보호자/u, extra: '보호자 안내' },
+  // 판 1.6.0 R2(C173): 프로젝터용 한 단계씩 넘기는 화면의 이름은 "수업 화면" 하나 — 옛 이름(발표 모드)·프로젝터·빔으로 찾아도 그 설명(교사 FAQ)이 나오게
+  { pattern: /발표\s*모드|프로젝터|빔\s*프로젝터/u, extra: '수업 화면' },
 ];
 
 /** 원고 정정 목록은 교사용 점검 자료라 학생 검색의 앞에 오지 않게 한다(이런 말을 적었을 때만 앞에 둔다) */

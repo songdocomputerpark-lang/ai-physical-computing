@@ -17,6 +17,7 @@ import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, type
 import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
 import { learnUnits } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { unitName } from '../../../lib/display-names.ts';
 import { withBase } from '../../../lib/url.ts';
 
 const page = getTeacherPage('guides');
@@ -97,7 +98,7 @@ function jumpsOf(lesson: TeacherLesson): { label: string; href: string }[] {
         <section class="guide-unit" aria-labelledby={`guide-unit-u${unit.unit}`} data-guide-unit={unit.unit}>
           <h2 id={`guide-unit-u${unit.unit}`}>{unit.label}</h2>
           <p class="guide-unit__all">
-            <a href={withBase(guidesUnitPath(unit.unit))}>{unit.label} 지도 요약 전체 보기</a> (차시 {unitLessons.length}개)
+            <a href={withBase(guidesUnitPath(unit.unit))}>{unitName(unit.unit)} 지도 요약 전체 보기</a> (차시 {unitLessons.length}개)
           </p>
           <ol class="guide-index">
             {unitLessons.map((lesson) => {

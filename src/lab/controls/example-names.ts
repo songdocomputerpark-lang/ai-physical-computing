@@ -36,3 +36,26 @@ export function exampleVersionNote(title: string): string {
   }
   return '';
 }
+
+/**
+ * 예제 번호 한 벌(판 1.6.0, DECISIONS C173·C128 ⑥ 확장 — walk-teacher-new B1·A-10): **차시 frontmatter examples의 차례(1부터)가 그 예제의 번호**다.
+ * 따라 하기 쪽(/learn/)·교과서 원문 쪽의 ::실습실 자리(/book/)·수업 화면 막대("예제 2: …")·지도안 글(차시 md 교사용 칸의 "예제 2")이 모두 이 번호를 쓴다 —
+ * 예전에는 교과서 쪽이 ::실습실이 나온 차례로 따로 세어 같은 코드가 교과서 쪽 "예제 4", 따라 하기 쪽 "예제 2"였다.
+ * - lessonFiles: 짝 차시 frontmatter examples의 파일(examples/ 뒤 경로) 차례. shownFiles: 이 쪽에 보이는 예제 파일 차례(따라 하기 쪽은 lessonFiles 그대로).
+ * - 차시 예제가 하나뿐이면 번호를 붙이지 않는다(따라 하기 쪽이 "따라 하기 예제"로만 보이는 것과 같게).
+ * - 차시 목록에 없는 파일(교과서 쪽에만 있는 확인 코드)은 번호가 없다(undefined) — 다른 쪽의 "예제 n"과 헷갈리지 않게 이름만 보인다.
+ */
+export function lessonExampleNumbers(lessonFiles: readonly string[], shownFiles: readonly string[] = lessonFiles): (number | undefined)[] {
+  if (lessonFiles.length < 2) {
+    return shownFiles.map(() => undefined);
+  }
+  return shownFiles.map((file) => {
+    const index = lessonFiles.indexOf(file);
+    return index < 0 ? undefined : index + 1;
+  });
+}
+
+/** 예제 이름 앞에 번호를 붙인 글: "예제 2: 기본 실습 1: 0부터 5까지 세기". 번호가 없으면 이름만(수업 화면 막대·교과서 쪽 실습실 칸이 쓴다) */
+export function numberedExampleTitle(number: number | undefined, title: string): string {
+  return number === undefined ? title : `예제 ${number}: ${title}`;
+}

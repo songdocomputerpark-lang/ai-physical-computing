@@ -4,8 +4,9 @@
  * 머리글 검색 폼(HeaderSearch.astro)이 이 속성을 달면, 같은 쪽의 홈 큰 검색·404 검색칸 같은 다른 data-suggest 폼도 이 설정을 함께 쓴다.
  * 설정을 브라우저 코드에서 불러오지 않고 속성으로 넘기는 까닭은 SearchPage.astro 머리말과 같다(site.ts가 번들에 묶이지 않게).
  */
-import { flattenPages, learnUnits } from '../../config/nav.ts';
+import { flattenPages } from '../../config/nav.ts';
 import { searchConfig } from '../../config/search.ts';
+import { unitTrailSections } from '../../lib/display-names.ts';
 
 /** 위치 표시에 쓸 위 페이지 이름 표의 깊이 한도(경로 칸 수). 머리글은 모든 쪽 HTML에 들어가므로 앞의 두 칸까지만 둔다. */
 const MAX_SECTION_DEPTH = 2;
@@ -15,9 +16,9 @@ export function pathDepth(path: string): number {
   return path.split('/').filter(Boolean).length;
 }
 
-/** 위치 표시용 이름 표: 사이트 지도와 대단원 가운데 깊이가 한도 안인 것 */
+/** 위치 표시용 이름 표: 사이트 지도와 대단원 가운데 깊이가 한도 안인 것. 대단원은 "1단원 영상 처리 인공지능"(로마 숫자 없이 — C127, 판 1.6.0) */
 export function suggestSections(maxDepth = MAX_SECTION_DEPTH): { path: string; label: string }[] {
-  return [...flattenPages(), ...learnUnits]
+  return [...flattenPages(), ...unitTrailSections()]
     .filter((page) => page.path !== '/' && pathDepth(page.path) <= maxDepth)
     .map((page) => ({ path: page.path, label: page.label }));
 }

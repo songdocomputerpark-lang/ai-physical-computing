@@ -4,12 +4,13 @@
  * - 쪽 md(content/book/<id>.md) 하나 → BookSummary(주소·쪽 범위·매체·짝 웹 차시 이름)
  * - 교과서 차례(대단원 → 중단원 → 절): 같은 데이터를 /book/ 첫 화면·왼쪽 차례(LessonSidebar)·이전/다음 절이 함께 쓴다.
  *   차례의 순서는 **쪽 번호**가 정한다(출판본 차례와 같은 순서 — order는 보조 값).
- * - 웹 차시 "풀이·실습"(/learn/uN/<label>/)과의 짝: frontmatter lesson(차시 번호나 파일 이름)으로 잇는다. 양쪽 쪽의 전환 줄(ViewSwitch)이 쓴다.
+ * - 웹 차시 "따라 하기"(/learn/uN/<label>/ — 판 1.6.0 전 이름 "풀이·실습")와의 짝: frontmatter lesson(차시 번호나 파일 이름)으로 잇는다. 양쪽 쪽의 전환 줄(ViewSwitch)이 쓴다.
  *
  * 주소 규칙: /book/<id>/ — content/book/2-1-2.md → /book/2-1-2/ (id는 파일 이름, 절 번호·u2-intro·u2-review·front).
  */
 import type { BookData } from '../../config/content-schemas.ts';
 import { getPage, type BreadcrumbItem } from '../../config/nav.ts';
+import { textbookPagesText } from '../../lib/display-names.ts';
 import { withBase } from '../../lib/url.ts';
 import type { LessonSummary } from '../lesson/lesson-data.ts';
 
@@ -77,9 +78,9 @@ export function bookPageList(pages: string): number[] {
   return range ? Array.from({ length: range.end - range.start + 1 }, (_, index) => range.start + index) : [];
 }
 
-/** 배지·단추 글: "교과서 124~131쪽", 한 쪽이면 "교과서 8쪽" */
+/** 배지·단추 글: "교과서 124~131쪽", 한 쪽이면 "교과서 8쪽"(앞 0 없이 — 화면 표기 한 곳 src/lib/display-names.ts, 판 1.6.0) */
 export function bookPagesLabel(pages: string): string {
-  return `교과서 ${pages}쪽`;
+  return textbookPagesText(pages);
 }
 
 /** 쪽 주소(base 없음) */
@@ -227,13 +228,14 @@ export function bookPartAnchor(unit: number, partIndex: number): string {
   return `unit-${unit}-part-${partIndex}`;
 }
 
-/** 빵부스러기: 홈 › 교과서 › 2단원 › 01 디스플레이 장치 제어 › LCD 제어하기 */
+/** 빵부스러기: 홈 › 교과서 원문 › 2단원 › 01 디스플레이 장치 제어 › LCD 제어하기(둘째 칸 이름은 메뉴 이름 그대로 — 판 1.6.0 C173) */
 export function bookBreadcrumb(book: BookSummary, toc?: BookToc): BreadcrumbItem[] {
   const home = getPage('home');
-  const bookHome = withBase('book/');
+  const bookPage = getPage('book');
+  const bookHome = bookPage.href;
   const items: BreadcrumbItem[] = [
     { label: home.label, href: home.href },
-    { label: '교과서', href: bookHome },
+    { label: bookPage.label, href: bookHome },
   ];
   if (book.unit !== undefined) {
     items.push({ label: bookUnitName(book.unit), href: `${bookHome}#${bookUnitAnchor(book.unit)}` });
@@ -246,7 +248,7 @@ export function bookBreadcrumb(book: BookSummary, toc?: BookToc): BreadcrumbItem
   return items;
 }
 
-/* ───────────── 웹 차시(풀이·실습)와의 짝 ───────────── */
+/* ───────────── 웹 차시(따라 하기)와의 짝 ───────────── */
 
 type LessonKey = Pick<LessonSummary, 'unit' | 'label' | 'slug'>;
 
