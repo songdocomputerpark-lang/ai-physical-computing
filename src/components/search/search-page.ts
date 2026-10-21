@@ -163,7 +163,11 @@ export function setupSearchPage(root: HTMLElement): void {
     }
   };
 
-  const matched = (): ResultCard[] => (filter === 'all' ? cards : cards.filter((card) => kindMatchesFilter(card.kind, filter)));
+  const matched = (): ResultCard[] => {
+    // let 변수는 안쪽 콜백에서 좁혀지지 않으므로 지금 값을 const로 잡는다
+    const kind = filter;
+    return kind === 'all' ? cards : cards.filter((card) => kindMatchesFilter(card.kind, kind));
+  };
   const hasUnscanned = (): boolean => scanned < currentResults.length;
 
   const paintTypeButtons = () => {
