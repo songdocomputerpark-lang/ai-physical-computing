@@ -335,3 +335,16 @@ export function consoleSummary(explanation: Explanation): string {
   }
   return `[오류 풀이] ${explanation.typeLabel} — ${explanation.title}${where}. 자세한 풀이는 콘솔 위 "오류 풀이" 카드에 있어요.`;
 }
+
+/**
+ * 실습실 안내 줄에 적는 "오류로 끝났어요: …" 문장(판 1.6.0 C176 — 걷기 보고 walk-student-board 27).
+ * 파이썬·MicroPython이 낸 오류는 학생이 트레이스백에서 같은 이름(NameError 등)을 보므로 이름을 그대로 적는다.
+ * 사이트가 만든 오류(BoardNotConnected 같은 이름은 사이트 안에서만 쓰는 영어 이름 — 트레이스백이 없다)는 이름 대신 풀이 카드 제목(한국어)을 적는다.
+ * 영어 이름은 카드 머리에 그대로 남는다.
+ */
+export function endedMessage(explanation: Explanation, options: { readonly traceback: string }): string {
+  const siteMade = options.traceback.trim() === '';
+  const what = siteMade ? explanation.title : explanation.typeLabel;
+  const where = explanation.locationText === null ? '' : ` — ${explanation.locationText}`;
+  return `오류로 끝났어요: ${what}${where}. 아래 풀이 카드에 고치는 방법이 있어요.`;
+}

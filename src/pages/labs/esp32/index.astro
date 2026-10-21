@@ -30,6 +30,8 @@ const kitPage = getPage('labs-esp32-kit');
 
 // 예제 목록(차시 링크·차시 md 배선 포함 — 만드는 법은 ./_lab-examples.ts 머리말). 키트 예제는 목록 자리만(코드는 고를 때 받는다).
 const { examples } = await esp32LabExamples();
+// 선택 상자 맨 위 "처음이라면 이것 하나" 묶음에 놓을 예제(examples/esp32/01-first-blink.py — 기본으로 열리는 첫 예제, 판 1.6.0 C176)
+const STARTER_EXAMPLE_ID = '01-first-blink';
 ---
 
 <BaseLayout title={page.title} description={page.description} width="wide">
@@ -43,6 +45,11 @@ const { examples } = await esp32LabExamples();
   */}
   <div class="esp32-intro" data-embed-hide>
     <p>ESP32는 LED, 모터 같은 부품을 움직이는 작은 컴퓨터예요. 보드가 없어도 가상 보드로 해요.</p>
+    {/* 판 1.6.0 C176(걷기 보고 walk-student-board 14): 예제가 수백 개라 무엇부터 할지 몰랐다 — 선택 상자 맨 위 묶음("처음이라면 이것 하나")을 알리고, 이름이 비슷한 두 LED를 가른다 */}
+    <p>
+      처음이라면 예제 목록 맨 위의 <strong>"처음이라면 이것 하나"</strong>(내장 LED 깜빡이기)부터 해 봐요. <strong>내장 LED</strong>는 보드에 붙어 있는 LED이고,
+      키트의 <strong>LED 모듈</strong>은 선으로 꽂아 쓰는 LED라서 서로 다른 부품이에요.
+    </p>
     <details class="more">
       <summary>처음 쓰는 법 자세히</summary>
       <p>가상 보드가 실제 보드와 같은 파이썬 코드(보드용 파이썬인 MicroPython)를 돌려요.</p>
@@ -65,7 +72,7 @@ const { examples } = await esp32LabExamples();
     </details>
   </div>
 
-  <LabShell labId="esp32" examples={examples} pyodidePackages={[]}>
+  <LabShell labId="esp32" examples={examples} pyodidePackages={[]} starterExampleId={STARTER_EXAMPLE_ID}>
     <BoardIo slot="io" />
   </LabShell>
 
@@ -73,8 +80,12 @@ const { examples } = await esp32LabExamples();
     <h2 id="esp32-help-heading" class="esp32-help__heading">알아 두면 좋아요</h2>
     <Callout type="참고" title="보드가 없어도 괜찮아요">
       <p>
-        모든 실습을 화면 속 가상 보드로 끝까지 할 수 있어요. 실제 보드가 있으면 입력·출력 칸 위의 [실제 보드] 탭에서 같은 코드를 USB로 보낼 수
+        교과서 실습은 모두 화면 속 가상 보드로 끝까지 할 수 있어요. 실제 보드가 있으면 입력·출력 칸 위의 [실제 보드] 탭에서 같은 코드를 USB로 보낼 수
         있어요(컴퓨터용 Chrome·Edge). 처음 연결하는 순서는 <a href={boardPage.href}>{boardPage.title}</a>에 있어요.
+      </p>
+      <p>
+        다만 <a href={kitPage.href}>{kitPage.title}</a>의 일부 센서(초음파·온습도 센서 등)는 가상 보드에 아직 없어서 실제 보드가 있어야 해요. 그런 예제는
+        [실행]이 회색이고 "이 예제는 실제 보드가 필요해요"라고 알려 줘요.
       </p>
     </Callout>
     <Callout type="주의" title="가상 보드와 실제 보드가 다른 점">

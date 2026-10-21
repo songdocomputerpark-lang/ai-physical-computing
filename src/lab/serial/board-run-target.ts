@@ -216,6 +216,40 @@ export function virtualOnlyModuleNotice(name: string): string {
   return `이 코드가 쓰는 ${withParticle(name, '은/는')} 가상 보드에만 있어요. 실제 보드에서 돌리려면 ${file} 파일을 Thonny 같은 도구로 보드에 먼저 올려야 해요(사이트가 아직 이 파일을 주지 않아요). [가상 보드] 탭에서는 그대로 돌아요.`;
 }
 
+/**
+ * [실제 보드] 탭에서 [실행]을 쉬는 동안 상태 줄에 적는 글(LabRunTarget.idleStatus — 판 1.6.0 C176, 걷기 보고 walk-student-board 26).
+ * 연결도 안 됐는데 "실제 보드에서 실행할 수 있어요"라 적혀 있어서, 학생이 [실행]부터 눌러 포트 선택 창을 맞닥뜨렸다 — 연결 전에는 할 일을 먼저 말한다.
+ * 보드가 이어진 뒤(그 밖의 상태)는 null이라 기본 글이 나온다.
+ */
+export function realBoardIdleStatus(connection: Pick<BoardConnection, 'supported' | 'isOpen' | 'state'>): string | null {
+  if (!connection.supported) {
+    return '이 브라우저에서는 실제 보드를 연결할 수 없어요. [가상 보드] 탭에서 해요.';
+  }
+  if (connection.state === 'no-micropython') {
+    return '보드에 MicroPython이 아직 없어요. 아래 안내를 따라 해요.';
+  }
+  if (connection.state === 'busy') {
+    return '보드가 멈추지 않아요. 아래 안내를 따라 해요.';
+  }
+  if (connection.isOpen) {
+    return null;
+  }
+  switch (connection.state) {
+    case 'idle':
+      return '먼저 [보드 연결]을 눌러요.';
+    case 'choosing':
+    case 'opening':
+    case 'checking':
+      return '보드를 연결하는 중이에요…';
+    case 'lost':
+      return '보드 연결이 끊겼어요. [다시 연결]을 눌러요.';
+    case 'error':
+      return '보드를 잇지 못했어요. 아래 안내를 따라 해요.';
+    default:
+      return null;
+  }
+}
+
 export function createRealBoardRunTarget(connection: BoardConnection, options: RealBoardRunTargetOptions = {}): LabRunTarget {
   const now = options.now ?? (() => (typeof performance !== 'undefined' ? performance.now() : Date.now()));
   const connectOnRun = options.connectOnRun !== false;
@@ -224,6 +258,8 @@ export function createRealBoardRunTarget(connection: BoardConnection, options: R
   let bootLoopNoticed = false;
   return {
     label: REAL_BOARD_TARGET_LABEL,
+    idleStatus: () => realBoardIdleStatus(connection),
+    onIdleStatusChange: (listener) => connection.subscribe(() => listener()),
     async run(code: string, context: LabRunContext): Promise<RunResult> {
       const startedAt = now();
       const runId = context.runCount;

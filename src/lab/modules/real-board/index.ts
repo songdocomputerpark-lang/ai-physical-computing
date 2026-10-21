@@ -318,6 +318,15 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
 
   listen(virtualTab, 'click', () => select('virtual'));
   listen(realTab, 'click', () => select('real'));
+  // 실습실 안내 줄의 "[실제 보드] 탭"(LabShell .lab__run-note — 실제 보드 전용 예제를 가상 보드 탭에서 열었을 때, 판 1.6.0 C176):
+  // 탭을 가진 이 모듈이 붙은 틀에서만 글이 단추가 되어 누르면 [실제 보드] 탭으로 옮겨 간다.
+  const noteTab = root.querySelector<HTMLElement>('[data-lab-run-note-tab]');
+  const noteButton = root.querySelector<HTMLButtonElement>('[data-lab-run-note-real]');
+  if (noteTab && noteButton) {
+    noteTab.hidden = true;
+    noteButton.hidden = false;
+    listen(noteButton, 'click', () => select('real', { focus: true }));
+  }
   listen(tablist, 'keydown', (event) => {
     const focused = TARGET_ORDER.find((kind) => tabs[kind] === document.activeElement) ?? current;
     const next = nextTabForKey(event.key, focused);

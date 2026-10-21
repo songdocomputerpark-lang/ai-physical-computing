@@ -163,7 +163,8 @@ describe('ESP32 실습실 — 키트 예제만 고를 때 받는다(src/lab/esp3
     for (const example of examples) {
       if (isLazyExample(example)) {
         expect(example.code).toBe('');
-        expect(Object.keys(example).sort()).toEqual(['code', 'codeUrl', 'file', 'group', 'id', 'title']);
+        // virtual(판 1.6.0 C176)은 실제 보드 전용·일부만 되는 예제에만 있다(그 밖에는 칸이 없다)
+        expect(Object.keys(example).sort()).toEqual(example.virtual === undefined ? ['code', 'codeUrl', 'file', 'group', 'id', 'title'] : ['code', 'codeUrl', 'file', 'group', 'id', 'title', 'virtual']);
       } else {
         expect(example.code.length, example.id).toBeGreaterThan(0);
         expect(isLazyEsp32File(example.file)).toBe(false);
@@ -188,5 +189,78 @@ describe('ESP32 실습실 — 키트 예제만 고를 때 받는다(src/lab/esp3
     const gzip = (text: string) => zlib.gzipSync(Buffer.from(text, 'utf8')).length;
     expect(gzip(lazyJson) + gzip(options)).toBeLessThan(15 * 1024);
     expect(gzip(lazyJson) * 10).toBeLessThan(gzip(fullJson));
+  });
+});
+
+describe('가상 보드에서 되는 정도(virtual) — 실제 보드 전용 예제는 [실행]이 회색(판 1.6.0 C176)', () => {
+  const REAL_ONLY: LabExample = { ...FULL, id: 'kit-ch3-3-11-ultrasonic-1', file: 'esp32/kit/ch3/3-11-ultrasonic-1.py', virtual: 'real-only' };
+  const urlOf = (file: string) => `/ai-physical-computing/${kitCodePath(file)}?v=1.6.0`;
+
+  it('목록 자리와 HTML에 심는 모양에 virtual이 남고(받기 전에도 [실행]이 알맞게 보이게), JSON과 합친 예제에도 있다', () => {
+    const entry = toLazyEntry(REAL_ONLY, URL);
+    expect(entry.virtual).toBe('real-only');
+    expect(embeddedExampleJson(entry)).toEqual({ id: REAL_ONLY.id, code: '', file: REAL_ONLY.file, codeUrl: URL, virtual: 'real-only' });
+    expect(lazyPayloadOf(REAL_ONLY).virtual).toBe('real-only');
+    expect(mergeLazyExample(entry, JSON.parse(JSON.stringify(lazyPayloadOf(REAL_ONLY)))).virtual).toBe('real-only');
+    // JSON에 virtual이 없어도 목록 자리의 값을 지킨다
+    const { virtual: _dropped, ...withoutVirtual } = lazyPayloadOf(REAL_ONLY);
+    expect(mergeLazyExample(entry, JSON.parse(JSON.stringify(withoutVirtual))).virtual).toBe('real-only');
+    // 모르는 글은 버린다
+    expect(mergeLazyExample(toLazyEntry(FULL, URL), { ...lazyPayloadOf(FULL), virtual: 'whatever' }).virtual).toBeUndefined();
+  });
+
+  it('키트 장치 쪽 링크(device)는 JSON에만 있고(목록 자리에는 없다) 받아 합치면 보통 예제에 붙는다 — 모양이 틀린 값은 버린다', () => {
+    const withDevice: LabExample = { ...FULL, device: { href: '/ai-physical-computing/labs/esp32/kit/d-4-01/', label: '4.01 회전(가변저항) 센서' } };
+    const entry = toLazyEntry(withDevice, URL);
+    expect(entry).not.toHaveProperty('device');
+    expect(embeddedExampleJson(entry)).not.toHaveProperty('device');
+    expect(lazyPayloadOf(withDevice).device).toEqual(withDevice.device);
+    expect(mergeLazyExample(entry, JSON.parse(JSON.stringify(lazyPayloadOf(withDevice)))).device).toEqual(withDevice.device);
+    expect(mergeLazyExample(entry, { ...lazyPayloadOf(withDevice), device: { href: 3 } }).device).toBeUndefined();
+    expect(mergeLazyExample(toLazyEntry(FULL, URL), lazyPayloadOf(FULL)).device).toBeUndefined();
+  });
+
+  it('다음 단계(nextStep, "다음 단계: 2단계 · … →")는 JSON에만 있고 받아 합치면 붙는다 — 모양이 틀린 값은 버린다', () => {
+    const first: LabExample = { ...FULL, nextStep: { id: 'kit-ch3-3-11-ultrasonic-2', href: '/ai-physical-computing/labs/esp32/?example=esp32%2Fkit%2Fch3%2F3-11-ultrasonic-2.py', label: '2단계 · 침입자 감지기' } };
+    const entry = toLazyEntry(first, URL);
+    expect(entry).not.toHaveProperty('nextStep');
+    expect(embeddedExampleJson(entry)).not.toHaveProperty('nextStep');
+    expect(lazyPayloadOf(first).nextStep).toEqual(first.nextStep);
+    expect(mergeLazyExample(entry, JSON.parse(JSON.stringify(lazyPayloadOf(first)))).nextStep).toEqual(first.nextStep);
+    expect(mergeLazyExample(entry, { ...lazyPayloadOf(first), nextStep: { id: 'x' } }).nextStep).toBeUndefined();
+    expect(mergeLazyExample(toLazyEntry(FULL, URL), lazyPayloadOf(FULL)).nextStep).toBeUndefined();
+  });
+
+  it('끝까지 되는 예제에는 virtual 칸이 없다', () => {
+    expect(toLazyEntry(FULL, URL)).not.toHaveProperty('virtual');
+    expect(embeddedExampleJson(toLazyEntry(FULL, URL))).not.toHaveProperty('virtual');
+    expect(lazyPayloadOf(FULL)).not.toHaveProperty('virtual');
+  });
+
+  it('저장소 사이드카의 virtual(real-only·partial)이 키트 예제에만 붙고, 교과서·사이트 예제에는 하나도 없다', () => {
+    const files = readExampleGlob('.py', ['esp32']);
+    const sidecars = readExampleSidecars(readExampleGlob('.meta.yaml', ['esp32']));
+    const all = esp32ExamplesFromFiles(files, sidecars);
+    const marked = all.filter((example) => example.virtual !== undefined);
+    expect(marked.length).toBeGreaterThan(70);
+    expect(marked.every((example) => isLazyEsp32File(example.file)), '키트 밖 예제에 virtual').toBe(true);
+    expect(new Set(marked.map((example) => example.virtual))).toEqual(new Set(['real-only', 'partial']));
+    // 장치 쪽 3.11(초음파)의 두 단계는 실제 보드 전용
+    expect(all.find((example) => example.id === 'kit-ch3-3-11-ultrasonic-1')?.virtual).toBe('real-only');
+    // 끝까지 되는 키트 예제(4.01 가변저항)는 칸이 없다
+    expect(all.find((example) => example.id === 'kit-ch4-4-01-potentiometer-1')?.virtual).toBeUndefined();
+    // 장치 쪽 링크(device)는 build에서 options.deviceByFile로 붙는다 — 여기서는 주지 않아 칸이 없다
+    expect(all.some((example) => example.device !== undefined)).toBe(false);
+    const withLinks = esp32ExamplesFromFiles(files, sidecars, {}, { deviceByFile: { 'esp32/kit/ch3/3-11-ultrasonic-1.py': { href: '/x/', label: '3.11 초음파 센서 V2' } } });
+    expect(withLinks.find((example) => example.id === 'kit-ch3-3-11-ultrasonic-1')?.device).toEqual({ href: '/x/', label: '3.11 초음파 센서 V2' });
+    expect(withLinks.filter((example) => example.device !== undefined)).toHaveLength(1);
+    // 다음 단계(nextStep)도 options.nextStepByFile로 붙는다(1단계에만)
+    const next = { id: 'kit-ch3-3-11-ultrasonic-2', href: '/x/?example=2', label: '2단계 · 침입자 감지기' };
+    const withNext = esp32ExamplesFromFiles(files, sidecars, {}, { nextStepByFile: { 'esp32/kit/ch3/3-11-ultrasonic-1.py': next } });
+    expect(withNext.find((example) => example.id === 'kit-ch3-3-11-ultrasonic-1')?.nextStep).toEqual(next);
+    expect(withNext.filter((example) => example.nextStep !== undefined)).toHaveLength(1);
+    // 나눈 뒤 목록 자리에도 그대로
+    const { examples } = splitLazyEsp32Examples(all, urlOf);
+    expect(examples.find((example) => example.id === 'kit-ch3-3-11-ultrasonic-1')?.virtual).toBe('real-only');
   });
 });

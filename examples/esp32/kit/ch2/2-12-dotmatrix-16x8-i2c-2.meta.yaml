@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "2.12 16x8 도트 매트릭스 (I2C) — 2단계: 이퀄라이저 막대"
+title: "2.12 도트 매트릭스 8×16(I2C) — 2단계: 이퀄라이저 막대"
 description: 16줄이 음악 막대처럼 위아래로 움직여요. BOOT 버튼을 누르면 멈추고, 다시 누르면 계속돼요.
 difficulty: 2
 tags:

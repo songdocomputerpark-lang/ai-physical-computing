@@ -2,8 +2,10 @@
 /**
  * 키트 장치 쪽(/labs/esp32/kit/d-3-11/) — 장치 하나를 사진 · 장치 정보 · 배선표 · 회로 그림 · 코드 두 단계(기본 → 심화)로 보여 준다(판 1.5.0, DECISIONS C155).
  *
- * 머리: 빵부스러기(홈 › 실습실 › ESP32 실습실 › 키트 장치 도감 › 3장 디지털 센서) → 제목 "3.11 초음파 센서 (HC-SR04)" → 가상 보드 딱지
- * 본문: 장치 정보(사진 · 연결 방식 · 핀 · GPIO · 부품 번호 · 라이브러리) → 배선표 → 회로 그림([그림 크게 보기]) → 1단계 · 2단계(코드 + [실습실에서 열기])
+ * 머리: 빵부스러기(홈 › 실습실 › ESP32 실습실 › 키트 장치 도감 › 3장 디지털 센서) → 제목 "3.11 초음파 센서 V2"(부품 사전과 같은 이름) → 부제(영어 이름·브릭셀 이름)
+ *       → 가상 보드 딱지 + 한 줄 풀이 → "LCD도 필요해요"(코드가 I2cLcd를 쓸 때) → 이 쪽의 차례(코드·배선표·회로 그림 바로 가기)
+ * 본문(판 1.6.0 C176 — 걷기 보고 walk-kit-user 1): 장치 정보(사진 · 연결 방식 · 핀 · GPIO · 라이브러리 — 내부 부품 번호 dis-004는 학생 눈에 개발자 말이라 뺐다) → 1단계 · 2단계(**[실습실에서 열기]가 코드 위**)
+ *       → 배선표 → 회로 그림([그림 크게 보기]는 이 쪽 안의 창 + 선 색 범례). 예전에는 코드·단추가 맨 아래라 첫 단추가 쪽 위에서 2,600px 아래였다.
  * 끝: 이전·다음 장치, 출처 줄
  * 왼쪽: 지금 장의 장치 목록(LessonSidebar — 교과서 쪽의 교과서 차례와 같은 부품·같은 규칙: 넓으면 왼쪽 nav, 좁으면 <details>)
  *
@@ -15,6 +17,7 @@ import { partPhotoSize } from '../../../../components/parts/parts-data.ts';
 import { PART_CARD_ID_PREFIX, PARTS_PAGE_PATH, partPhotoAlt, partPhotoSrc } from '../../../../components/parts/parts-schema.ts';
 import { circuitFigureHtml } from '../../../../components/circuits/circuit-html.ts';
 import type { CircuitFigure } from '../../../../components/circuits/circuits-schema.ts';
+import CircuitZoom from '../../../../components/circuits/CircuitZoom.astro';
 import Icon from '../../../../components/common/Icon.astro';
 import KitPager from '../../../../components/kit/KitPager.astro';
 import KitStep from '../../../../components/kit/KitStep.astro';
@@ -24,16 +27,19 @@ import { kitCircuitSize, kitData, kitPart } from '../../../../components/kit/kit
 import { KIT_CIRCUIT_DIR, type KitDevice } from '../../../../components/kit/kit-schema.ts';
 import { kitSidebarOutline } from '../../../../components/kit/kit-sidebar.ts';
 import {
+  CIRCUIT_COLOR_LEGEND,
+  KIT_VIRTUAL_INFO,
+  LCD_NEEDED,
   LIBRARY_HELP,
   circuitAlt,
   circuitCaption,
   circuitHref,
-  connectionLabel,
+  deviceConnectionLabel,
+  deviceNeedsLcd,
   deviceNeighbors,
   deviceTitle,
   kitIndexHref,
   libraryStatus,
-  partNumberOf,
   pinNameHint,
   pinsLabel,
   splitWiring,
@@ -98,6 +104,8 @@ const circuitNote = '고릴라셀(브릭셀)이 제공한 회로 그림이에요
 const circuitHtml = circuitFigureHtml(circuitFigure, circuitNote, circuitHref(device));
 
 const steps = device.steps.map((step) => ({ step, code: kitCodeView(step.file) }));
+const needsLcd = deviceNeedsLcd(device, steps.map(({ code }) => code.usesLcd));
+const virtualInfo = KIT_VIRTUAL_INFO[device.virtual];
 const wiring = device.wiring.map((line) => splitWiring(line));
 const pinHint = pinNameHint(device.pins);
 const hasSiteLibrary = device.libraries.some((library) => library.site);
@@ -118,10 +126,37 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
         <h1 class="page-title kit-header__title">
           <span class="kit-header__no">{device.number}</span>{' '}<span class="kit-header__name">{device.name}</span>
         </h1>
-        <p class="kit-header__en" lang="en">{device.nameEn}</p>
+        <p class="kit-header__sub">
+          <span lang="en">{device.nameEn}</span>
+          {device.brixelName && <span class="kit-header__brixel" data-kit-brixel-name>브릭셀 이름: {device.brixelName}</span>}
+        </p>
         <p class="kit-header__desc">{device.description}</p>
-        <KitVirtualBadge value={device.virtual} />
+        <div class="kit-header__badges">
+          <KitVirtualBadge value={device.virtual} />
+          {
+            device.virtual !== 'full' && (
+              <span class="kit-header__badge-note" data-kit-virtual-explain>
+                {virtualInfo.explain}
+                {device.virtual === 'real-only' && <>{' '}처음이면 <a href={boardPage.href} data-kit-board-link>{boardPage.title}</a>를 먼저 해요.</>}
+              </span>
+            )
+          }
+        </div>
+        {
+          needsLcd && (
+            <p class="kit-header__lcd" data-kit-lcd>
+              <strong>{LCD_NEEDED.title}</strong> {LCD_NEEDED.text}
+            </p>
+          )
+        }
         {device.note && <p class="kit-header__note"><strong>알아 두기</strong> {device.note}</p>}
+        <nav class="kit-jump" aria-label="이 쪽의 차례" data-kit-jump>
+          <ul class="kit-jump__list">
+            {steps.map(({ step }) => <li><a href={`#step-${step.n}`}>{step.n}단계 코드</a></li>)}
+            <li><a href="#kit-wiring-title">배선표</a></li>
+            <li><a href="#kit-circuit-title">회로 그림</a></li>
+          </ul>
+        </nav>
       </header>
 
       <section class="kit-info" aria-labelledby="kit-info-title">
@@ -136,7 +171,7 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
           <dl class="kit-facts">
             <div class="kit-facts__row">
               <dt>연결 방식</dt>
-              <dd>{connectionLabel(device.interface)}</dd>
+              <dd>{deviceConnectionLabel(device.interface, part.connection)}</dd>
             </div>
             <div class="kit-facts__row">
               <dt>장치의 핀</dt>
@@ -145,10 +180,6 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
             <div class="kit-facts__row">
               <dt>보드의 GPIO</dt>
               <dd>{device.gpio}</dd>
-            </div>
-            <div class="kit-facts__row">
-              <dt>부품 번호</dt>
-              <dd><code>{partNumberOf(part.id)}</code></dd>
             </div>
             <div class="kit-facts__row">
               <dt>라이브러리</dt>
@@ -209,6 +240,8 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
         }
       </section>
 
+      {steps.map(({ step, code }) => <KitStep device={device} step={step} code={code} />)}
+
       <section class="kit-wiring" aria-labelledby="kit-wiring-title">
         <h2 id="kit-wiring-title">배선표</h2>
         <p class="kit-wiring__help">
@@ -239,9 +272,9 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
       <section class="kit-circuit" aria-labelledby="kit-circuit-title">
         <h2 id="kit-circuit-title">회로 그림</h2>
         <Fragment set:html={circuitHtml} />
+        <CircuitZoom />
+        <p class="kit-circuit__legend" data-kit-circuit-legend>{CIRCUIT_COLOR_LEGEND}</p>
       </section>
-
-      {steps.map(({ step, code }) => <KitStep device={device} step={step} code={code} />)}
 
       <KitPager previous={previous} next={next} />
 
@@ -250,7 +283,6 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
         <a href={sourceHref} target="_blank" rel="noopener noreferrer">
           브릭셀의 원래 쪽<span class="visually-hidden"> ({title}, 새 창)</span><Icon name="external" size="sm" />
         </a>
-        {device.virtual === 'real-only' && <span> 보드를 연결하는 방법은 <a href={boardPage.href}>{boardPage.title}</a>에 있어요.</span>}
       </p>
     </article>
   </div>
@@ -321,9 +353,84 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
     color: var(--unit-2);
   }
 
-  .kit-header__en {
+  .kit-header__sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
     margin: 0 0 var(--space-3);
     color: var(--color-text-muted);
+  }
+
+  /* 넓은 화면에서는 영어 이름 옆에 "· 브릭셀 이름", 좁은 화면에서는 줄이 나뉘므로 점 없이 다음 줄에 */
+  .kit-header__brixel::before {
+    margin-inline-end: var(--space-3);
+    content: '·';
+  }
+
+  @media (max-width: 36rem) {
+    .kit-header__sub {
+      flex-direction: column;
+    }
+
+    .kit-header__brixel::before {
+      content: none;
+    }
+  }
+
+  .kit-header__badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .kit-header__badge-note {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .kit-header__lcd {
+    max-width: var(--width-prose);
+    margin-block: var(--space-3) 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  /* 이 쪽의 차례: 코드·배선표·회로 그림으로 바로 가는 알약 링크(쪽이 길어서 — 코드가 위지만 배선표를 먼저 찾는 사람도 있다) */
+  .kit-jump {
+    margin-block-start: var(--space-4);
+  }
+
+  .kit-jump__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit-jump__list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .kit-jump__list a:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
   }
 
   .kit-header__desc {
@@ -531,6 +638,14 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
 
   .kit-wiring__table tbody tr:last-child td {
     border-block-end: 0;
+  }
+
+  .kit-circuit__legend {
+    max-width: var(--width-prose);
+    margin-block: var(--space-2) 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
   }
 
   .kit-source {

@@ -48,7 +48,8 @@ export const KIT_VIRTUAL_INFO: Readonly<Record<KitVirtual, KitVirtualInfo>> = Ob
   },
   'real-only': {
     value: 'real-only',
-    label: '실제 보드에서',
+    // "실제 보드에서"만 쓰면 문장이 끝나지 않아 "실제 보드에서 …무엇을?"로 읽혔다(판 1.6.0 C176, 걷기 보고 walk-kit-user 2)
+    label: '실제 보드에서 해 보세요',
     explain: '가상 보드에는 아직 이 장치를 흉내 내는 부분이 없어요. 키트 보드를 연결해서 해 봐요.',
     icon: 'plug',
   },
@@ -83,12 +84,25 @@ export function connectionLabel(interfaceText: string): string {
   return CONNECTION_LABELS[interfaceText.trim()] ?? interfaceText;
 }
 
+/**
+ * 장치 쪽 "연결 방식" 글. 브릭셀 글이 그냥 "Digital"이면 켜짐·꺼짐 하나만 말하는 것처럼 읽힌다 — 부품 사전이 부품마다 더 알맞게 적어 둔 글
+ * (예: 초음파 센서 "디지털 입출력(TRIG 보내기·ECHO 받기)")이 "디지털"로 시작하면 그 글을 쓴다. 두 쪽이 같은 부품을 같은 말로 부르게 한다
+ * (판 1.6.0 C176, 걷기 보고 walk-kit-user 15·B-69). 그 밖의 글(PWM·I2C·UART …)은 connectionLabel 그대로.
+ */
+export function deviceConnectionLabel(interfaceText: string, partConnection?: string): string {
+  const dictionary = partConnection?.trim() ?? '';
+  if (interfaceText.trim() === 'Digital' && dictionary.startsWith('디지털')) {
+    return dictionary;
+  }
+  return connectionLabel(interfaceText);
+}
+
 /** 표에 있는 연결 방식 글(시험이 데이터와 대조한다) */
 export function knownConnectionTexts(): string[] {
   return Object.keys(CONNECTION_LABELS);
 }
 
-/** 카드·장치 쪽 제목 글: "3.11 초음파 센서 (HC-SR04)" */
+/** 카드·장치 쪽 제목 글: "3.11 초음파 센서 V2"(번호 + 부품 사전과 같은 이름 — 브릭셀의 원래 이름 "초음파 센서 (HC-SR04)"는 장치 쪽 부제) */
 export function deviceTitle(device: Pick<KitDevice, 'number' | 'name'>): string {
   return `${device.number} ${device.name}`;
 }
@@ -218,9 +232,43 @@ export function deviceIndexByPart(devices: readonly KitDevice[]): Map<string, Ki
   return index;
 }
 
-/** 부품 번호 글: 부품 사진 id의 앞 두 토막("d-009-ultrasonic-sensor-v2" → "d-009") — 포장지의 부품 번호와 맞춰 보는 용도 */
+/**
+ * 부품 번호 글: 부품 사진 id의 앞 두 토막("d-009-ultrasonic-sensor-v2" → "d-009") — 포장지의 부품 번호와 맞춰 보는 용도.
+ * 판 1.6.0 C176부터 장치 쪽의 "장치 정보"에는 보이지 않는다(학생 눈에는 내부 번호 "dis-004"가 개발자 말 — 걷기 보고 walk-kit-user 17). 다시 보일 때 쓴다.
+ */
 export function partNumberOf(partId: string): string {
   return partId.split('-').slice(0, 2).join('-');
+}
+
+/** 코드가 문자 LCD(I2cLcd)를 쓰는지 — 장치 쪽의 "LCD도 필요해요" 줄을 코드 글에서 판단한다(판 1.6.0 C176) */
+export function usesLcd(code: string): boolean {
+  return /\bI2cLcd\b/u.test(code);
+}
+
+/**
+ * 이 장치로 실제 보드에서 할 때 문자 LCD도 꽂아야 하는지: 코드(단계마다 usesLcd)가 I2cLcd를 쓰고, 장치 자신이 LCD가 아닐 때.
+ * 64개 장치가 값을 LCD에도 보여 주는데, 그 줄은 LCD가 없으면 `I2cLcd(...)`에서 멈춘다(걷기 보고 walk-kit-user 6).
+ */
+export function deviceNeedsLcd(device: Pick<KitDevice, 'name' | 'brixelName'>, stepUsesLcd: readonly boolean[]): boolean {
+  if (/LCD/iu.test(device.name) || /LCD/iu.test(device.brixelName ?? '')) {
+    return false;
+  }
+  return stepUsesLcd.some(Boolean);
+}
+
+/** "LCD도 필요해요" 줄의 굵은 말과 풀이(한 줄) */
+export const LCD_NEEDED = Object.freeze({
+  title: 'LCD도 필요해요.',
+  text: '이 코드는 값을 문자 LCD(16×2)에도 보여 줘요. 실제 보드에서는 LCD를 꽂지 않으면 I2cLcd 줄에서 멈춰요. 꽂는 방법은 배선표의 "LCD" 줄이고, 가상 보드에는 LCD가 저절로 그려져요.',
+});
+
+/** 회로 그림 아래 선 색 범례(글자) — 키트 회로 도구가 그린 그림의 선 색 규칙(검정·빨강·노랑·초록) */
+export const CIRCUIT_COLOR_LEGEND = '선 색: 검정 = GND(접지) · 빨강 = VCC(전원) · 노랑·초록 = 신호선';
+
+/** examples/esp32/kit/ch3/3-11-ultrasonic-1.py → 3-11-ultrasonic-1.py (코드 위에 보이는 파일 이름) */
+export function fileNameOf(file: string): string {
+  const at = file.lastIndexOf('/');
+  return at < 0 ? file : file.slice(at + 1);
 }
 
 /** 코드 한 단계의 [실습실에서 열기] 주소(차시의 [실습실에서 열기]와 같은 규칙 — 예제 파일은 examples/ 뒤 경로) */

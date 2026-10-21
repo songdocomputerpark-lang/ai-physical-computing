@@ -10,12 +10,14 @@
  * 받을 주소 끝의 `?v=<사이트 판>`은 서비스 워커의 static 캐시(먼저 주고 뒤에서 새로 받음 — 검색어까지 열쇠)가 판이 바뀐 뒤 옛 코드를 주지 않게 한다.
  */
 import { getCollection } from 'astro:content';
+import { KIT_FILE, parseKitYaml } from '../../../components/kit/kit-schema.ts';
+import { deviceTitle, kitDeviceHref, stepLabHref } from '../../../components/kit/kit-view.ts';
 import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { siteConfig } from '../../../config/site.ts';
 import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
 import type { LabExample } from '../../../lab/controls/examples.ts';
 import type { LazyExamplePayload } from '../../../lab/controls/lazy-examples.ts';
-import { esp32ExamplesFromFiles, kitCodePath, splitLazyEsp32Examples } from '../../../lab/esp32/examples.ts';
+import { esp32ExampleIdFromFile, esp32ExamplesFromFiles, kitCodePath, splitLazyEsp32Examples } from '../../../lab/esp32/examples.ts';
 import type { WiringEntry } from '../../../lab/modules/board/part-types.ts';
 import { normalizeWiringSpecs } from '../../../lab/modules/board/wiring-spec.ts';
 import type { ExampleLessonLink } from '../../../lab/vision/examples.ts';
@@ -23,6 +25,46 @@ import { withBase } from '../../../lib/url.ts';
 
 const exampleFiles = import.meta.glob<string>('/examples/esp32/**/*.py', { query: '?raw', eager: true, import: 'default' });
 const sidecarFiles = import.meta.glob<string>('/examples/esp32/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' });
+const kitFiles = import.meta.glob<string>('/content/kit/*.yaml', { query: '?raw', eager: true, import: 'default' });
+
+/**
+ * (판 1.6.0 C176) 키트 도감 예제 → 그 장치 쪽 링크(배선표·회로 그림). 실습실 위에 "이 장치의 배선표·회로 그림"으로 보인다(걷기 보고 walk-kit-user 5).
+ * 장치 쪽이 있는 것은 단계 코드 파일(steps[].file)뿐이다 — 1장 시작하기 코드(intro[].file)는 장치가 아니라서 링크가 없다.
+ */
+function kitDeviceLinks(): Record<string, { href: string; label: string }> {
+  const source = kitFiles[`/${KIT_FILE}`];
+  if (source === undefined) {
+    return {};
+  }
+  const links: Record<string, { href: string; label: string }> = {};
+  for (const device of parseKitYaml(source).devices) {
+    for (const step of device.steps) {
+      links[step.file] = { href: kitDeviceHref(device.id), label: deviceTitle(device) };
+    }
+  }
+  return links;
+}
+
+/**
+ * (판 1.6.0 C176) 키트 도감 예제 → 같은 장치의 다음 단계 예제. 실습실 예제 설명 줄 옆에 "다음 단계: 2단계 · … →"로 보인다(걷기 보고 walk-kit-user 83).
+ * 마지막 단계와 1장 시작하기 코드(intro — 단계가 아님)에는 없다. 링크 주소는 장치 쪽의 [실습실에서 열기]와 같은 규칙(stepLabHref).
+ */
+function kitNextSteps(): Record<string, { id: string; href: string; label: string }> {
+  const source = kitFiles[`/${KIT_FILE}`];
+  if (source === undefined) {
+    return {};
+  }
+  const next: Record<string, { id: string; href: string; label: string }> = {};
+  for (const device of parseKitYaml(source).devices) {
+    device.steps.forEach((step, index) => {
+      const following = device.steps[index + 1];
+      if (following) {
+        next[step.file] = { id: esp32ExampleIdFromFile(following.file), href: stepLabHref(following.file), label: `${following.n}단계 · ${following.title}` };
+      }
+    });
+  }
+  return next;
+}
 
 export interface Esp32LabExamples {
   /** 실습실 HTML에 심는 목록(키트 예제는 목록 자리) */
@@ -67,7 +109,7 @@ async function build(): Promise<Esp32LabExamples> {
       byFile[example.file] ??= link;
     }
   }
-  const all = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug }, { wiringByFile, onWarning: warnWiring });
+  const all = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug }, { wiringByFile, deviceByFile: kitDeviceLinks(), nextStepByFile: kitNextSteps(), onWarning: warnWiring });
   return splitLazyEsp32Examples(all, kitCodeUrl);
 }
 

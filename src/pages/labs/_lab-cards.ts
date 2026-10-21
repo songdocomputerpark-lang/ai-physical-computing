@@ -45,7 +45,8 @@ export const LAB_CARD_INFO: readonly LabCardInfo[] = Object.freeze([
     unit: 2,
     useWhen: 'LED, 버저, 모터 같은 부품을 코드로 움직여 보고 싶을 때',
     needs: [
-      { text: '보드 없어도 돼요', tone: 'ok', icon: 'check-circle' },
+      { text: '교과서 실습은 보드 없이', tone: 'ok', icon: 'check-circle' },
+      { text: '일부 센서는 보드 필요', tone: 'note', icon: 'plug' },
       { text: '보드가 있으면 USB로 연결', tone: 'note', icon: 'plug' },
     ],
   },

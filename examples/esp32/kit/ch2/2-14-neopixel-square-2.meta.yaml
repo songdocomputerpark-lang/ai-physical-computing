@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "2.14 RGB 매트릭스 디스플레이 (NeoPixel 64) — 2단계: 무지개 물결"
+title: "2.14 네오픽셀 사각 배열 — 2단계: 무지개 물결"
 description: LED 마다 무지개 색을 다르게 정하고 조금씩 밀어서 물결처럼 보여요. BOOT 버튼을 누르면 속도가 바뀌어요.
 difficulty: 2
 tags:
@@ -20,7 +20,7 @@ virtual_reason: 가상 보드의 네오픽셀 그림은 16개 링이라 17번째
 parts:
   - part: neopixel
     pin: 23
-    label: RGB 매트릭스(NeoPixel)
+    label: "네오픽셀 사각 배열"
 practice:
   - "[실행]을 눌러요."
   - 보드 그림의 BOOT 버튼을 눌러 보세요. 보드 그림의 "RGB 매트릭스(NeoPixel)"이(가) 코드대로 켜지고 꺼지고 움직이는지 봐요. 콘솔에 나오는 글자를 봐요.

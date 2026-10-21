@@ -8,6 +8,7 @@
  * 여기서는 이미 객체가 된 데이터(YAML을 읽은 것, 또는 panel.astro가 페이지에 심은 JSON)를 검사해 ErrorCatalog로 만든다.
  * 형식이 틀리면 어디가 틀렸는지 한국어로 모아 알린다(빌드가 멈춰 바로 알 수 있게).
  */
+import { brokenLinkProblems } from './link-text.ts';
 
 /** 항목 id·묶음 id 모양: 영문 소문자로 시작, 소문자·숫자·하이픈 */
 export const ENTRY_ID_PATTERN = /^[a-z][a-z0-9-]*$/u;
@@ -144,6 +145,10 @@ function checkPlaceholders(entry: ErrorEntry, where: string, problems: string[])
   }
   const texts = [entry.title, entry.meaning, ...entry.why, ...entry.fix, ...entry.mistakes];
   for (const body of texts) {
+    // 글 속 사이트 링크 [글자](/주소/) 모양 검사(link-text.ts — 판 1.6.0 C176)
+    for (const problem of brokenLinkProblems(body)) {
+      problems.push(`${where}: ${problem}`);
+    }
     for (const match of body.matchAll(PLACEHOLDER_PATTERN)) {
       const name = match[1];
       if (name === undefined) {

@@ -74,7 +74,10 @@ export interface KitDevice {
   /** "3.11" */
   readonly number: string;
   readonly chapter: number;
+  /** 이 사이트의 이름 — 부품 사전(content/parts/parts.yaml)의 `name`과 같다(판 1.6.0 C176: 같은 부품을 부르는 이름은 하나). 한 부품 사진을 둘 이상의 장치가 쓸 때만 장치마다 다르다 */
   readonly name: string;
+  /** 브릭셀 카드의 원래 한국어 이름("초음파 센서 (HC-SR04)") — name과 다를 때만. 장치 쪽 머리 아래에 "브릭셀 이름"으로 남겨 부품 이름(모델 이름)으로 찾을 수 있게 한다 */
+  readonly brixelName?: string;
   readonly nameEn: string;
   readonly description: string;
   /** 브릭셀 카드의 연결 방식 글("Digital / PWM") */
@@ -318,12 +321,14 @@ export function parseKitYaml(source: string, file: string = KIT_FILE): KitData {
       problems.push(`${where}: 가상 보드에서 끝까지 되지 않는 장치는 virtual_reason(까닭)을 적어요.`);
     }
     const note = optional(where, item, 'note');
+    const brixelName = optional(where, item, 'brixel_name');
 
     devices.push({
       id,
       number,
       chapter,
       name: str(where, item, 'name'),
+      ...(brixelName === undefined ? {} : { brixelName }),
       nameEn: str(where, item, 'name_en'),
       description: str(where, item, 'description'),
       interface: str(where, item, 'interface'),

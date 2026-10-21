@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "4.03 슬라이더 가변저항 — 1단계: 슬라이더 값 읽기"
+title: "4.03 슬라이더 센서 — 1단계: 슬라이더 값 읽기"
 description: 왼쪽 끝은 0에 가깝고 오른쪽 끝은 4095 에 가까워요. 값이 반대로 나오면 슬라이더 방향이 반대일 수 있어요.
 difficulty: 1
 tags:
@@ -22,7 +22,7 @@ virtual_ok: true
 parts:
   - part: sensor-analog
     pin: 32
-    label: 슬라이더 가변저항
+    label: "슬라이더 센서"
   - part: lcd-i2c
     id: lcd
     pins:

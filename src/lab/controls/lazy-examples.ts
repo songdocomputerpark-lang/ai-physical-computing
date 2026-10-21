@@ -16,7 +16,7 @@
  * 이 파일은 순수 함수와 받기 하나뿐이다 — 빌드(페이지·JSON 파일 만들기)와 화면이 함께 쓴다(yaml 같은 빌드 전용 패키지를 import하지 않는다).
  */
 import type { WiringEntry } from '../modules/board/part-types.ts';
-import type { LabExample } from './examples.ts';
+import { exampleVirtualOf, type ExampleVirtual, type LabExample } from './examples.ts';
 
 /** 받기를 기다리는 최대 시간(밀리초). 넘으면 실패로 보고 [다시 받기]를 보인다 — 느린 학교 망에서도 수 KB짜리 JSON은 몇 초면 온다 */
 export const LAZY_EXAMPLE_TIMEOUT_MS = 20_000;
@@ -31,7 +31,7 @@ export const LAZY_FAILED_CODE = '# 예제 코드를 받지 못했어요. 위의 
 export type LazyExampleEntry = LabExample & { readonly codeUrl: string };
 
 /** 실습실 HTML의 목록 JSON에 심는 고를 때 받는 예제(제목·묶음 없음 — 머리말) */
-export type EmbeddedLazyEntry = Pick<LazyExampleEntry, 'id' | 'code' | 'file' | 'codeUrl'>;
+export type EmbeddedLazyEntry = Pick<LazyExampleEntry, 'id' | 'code' | 'file' | 'codeUrl' | 'virtual'>;
 
 /** 따로 받는 JSON 한 개의 모양(예제 하나) */
 export interface LazyExamplePayload {
@@ -43,8 +43,14 @@ export interface LazyExamplePayload {
   readonly description?: string;
   readonly packages?: readonly string[];
   readonly lesson?: { readonly href: string; readonly label: string };
+  /** (판 1.6.0) 이 예제의 키트 장치 쪽 링크(배선표·회로 그림) */
+  readonly device?: { readonly href: string; readonly label: string };
+  /** (판 1.6.0) 같은 장치의 다음 단계 예제(실습실 "다음 단계 →" 링크) */
+  readonly nextStep?: { readonly id: string; readonly href: string; readonly label: string };
   readonly parts?: readonly WiringEntry[];
   readonly practice?: readonly string[];
+  /** (판 1.6.0) 가상 보드에서 되는 정도(partial·real-only만 — 목록 자리에도 있어 받기 전에도 [실행]이 알맞게 보인다) */
+  readonly virtual?: ExampleVirtual;
 }
 
 /** 받기가 실패한 까닭(화면 글에 그대로 쓴다) */
@@ -71,6 +77,7 @@ export function toLazyEntry(example: LabExample, codeUrl: string): LazyExampleEn
     code: '',
     ...(example.file !== undefined ? { file: example.file } : {}),
     ...(example.group !== undefined ? { group: example.group } : {}),
+    ...(example.virtual !== undefined ? { virtual: example.virtual } : {}),
     codeUrl,
   };
 }
@@ -83,7 +90,14 @@ export function embeddedExampleJson(example: LabExample): LabExample | EmbeddedL
   if (!isLazyExample(example)) {
     return example;
   }
-  return { id: example.id, code: '', ...(example.file !== undefined ? { file: example.file } : {}), codeUrl: example.codeUrl };
+  return {
+    id: example.id,
+    code: '',
+    ...(example.file !== undefined ? { file: example.file } : {}),
+    // 실제 보드 전용·일부만 되는 예제는 받기 전에도 [실행]이 알맞게 보이도록 목록 자리에 같이 둔다(약 42 + 3개 — 판 1.6.0 C176)
+    ...(example.virtual !== undefined ? { virtual: example.virtual } : {}),
+    codeUrl: example.codeUrl,
+  };
 }
 
 /**
@@ -110,8 +124,11 @@ export function lazyPayloadOf(example: LabExample): LazyExamplePayload {
     ...(example.description !== undefined ? { description: example.description } : {}),
     ...(example.packages !== undefined ? { packages: example.packages } : {}),
     ...(example.lesson !== undefined ? { lesson: example.lesson } : {}),
+    ...(example.device !== undefined ? { device: example.device } : {}),
+    ...(example.nextStep !== undefined ? { nextStep: example.nextStep } : {}),
     ...(example.parts !== undefined ? { parts: example.parts } : {}),
     ...(example.practice !== undefined ? { practice: example.practice } : {}),
+    ...(example.virtual !== undefined ? { virtual: example.virtual } : {}),
   };
 }
 
@@ -144,12 +161,21 @@ export function mergeLazyExample(entry: LazyExampleEntry, payload: unknown): Lab
     ...(entry.file !== undefined ? { file: entry.file } : {}),
     ...(entry.group !== undefined ? { group: entry.group } : {}),
   };
+  const virtual = exampleVirtualOf(payload.virtual) ?? entry.virtual;
   const description = typeof payload.description === 'string' && payload.description.trim() !== '' ? payload.description : undefined;
   const packages = stringArray(payload.packages);
   const practice = stringArray(payload.practice);
   const lesson =
     isRecord(payload.lesson) && typeof payload.lesson.href === 'string' && typeof payload.lesson.label === 'string'
       ? { href: payload.lesson.href, label: payload.lesson.label }
+      : undefined;
+  const device =
+    isRecord(payload.device) && typeof payload.device.href === 'string' && typeof payload.device.label === 'string'
+      ? { href: payload.device.href, label: payload.device.label }
+      : undefined;
+  const nextStep =
+    isRecord(payload.nextStep) && typeof payload.nextStep.id === 'string' && typeof payload.nextStep.href === 'string' && typeof payload.nextStep.label === 'string'
+      ? { id: payload.nextStep.id, href: payload.nextStep.href, label: payload.nextStep.label }
       : undefined;
   const parts =
     Array.isArray(payload.parts) && payload.parts.every((part) => isRecord(part) && typeof part.part === 'string')
@@ -161,8 +187,11 @@ export function mergeLazyExample(entry: LazyExampleEntry, payload: unknown): Lab
     ...(description !== undefined ? { description } : {}),
     ...(packages !== null ? { packages } : {}),
     ...(lesson !== undefined ? { lesson } : {}),
+    ...(device !== undefined ? { device } : {}),
+    ...(nextStep !== undefined ? { nextStep } : {}),
     ...(parts !== undefined && parts.length > 0 ? { parts } : {}),
     ...(practice !== null && practice.length > 0 ? { practice } : {}),
+    ...(virtual !== undefined ? { virtual } : {}),
   };
 }
 

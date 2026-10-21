@@ -6,7 +6,7 @@
  * 쓰는 곳: src/pages/labs/esp32/kit/[id].astro. 코드 상자의 줄 모양은 차시 따라 하기 예제와 같다(example-code.ts codeLinesToHtml).
  */
 import { codeLinesToHtml } from '../lesson/example-code.ts';
-import { kitCodeLines } from './kit-view.ts';
+import { kitCodeLines, usesLcd } from './kit-view.ts';
 
 const codes = import.meta.glob<string>('/examples/esp32/kit/**/*.py', { query: '?raw', eager: true, import: 'default' });
 
@@ -14,6 +14,8 @@ export interface KitCodeView {
   /** 코드 상자 HTML(줄마다 줄 번호 data-line) */
   readonly html: string;
   readonly lineCount: number;
+  /** 코드가 문자 LCD(I2cLcd)를 쓰는지 — 장치 쪽 "LCD도 필요해요" 줄(kit-view.ts deviceNeedsLcd) */
+  readonly usesLcd: boolean;
 }
 
 /** 예제 파일(examples/ 뒤 경로) → 코드 상자 값. 파일이 없으면 한국어 오류로 빌드를 멈춘다 */
@@ -23,5 +25,5 @@ export function kitCodeView(file: string): KitCodeView {
     throw new Error(`키트 예제 파일 examples/${file}을(를) 찾지 못했어요. content/kit/devices.yaml의 steps.file을 확인해요.`);
   }
   const lines = kitCodeLines(code);
-  return { html: codeLinesToHtml(lines), lineCount: lines.length };
+  return { html: codeLinesToHtml(lines), lineCount: lines.length, usesLcd: usesLcd(code) };
 }

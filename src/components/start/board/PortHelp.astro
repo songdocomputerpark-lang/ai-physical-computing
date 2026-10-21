@@ -41,7 +41,7 @@ const itRequestText = [
       <h3 id="check-cable">케이블과 USB 단자 확인하기</h3>
       <ul>
         <li>충전만 되는 케이블(충전 전용 케이블)은 데이터가 지나가지 않아요. 다른 케이블로 바꿔 보는 것이 가장 빨라요(<a href="#cable">케이블 그림 보기</a>).</li>
-        <li>USB 허브나 연장선 대신 컴퓨터 본체의 USB 단자에 바로 꽂아요.</li>
+        <li>USB 허브나 연장선 대신 컴퓨터의 USB 단자(노트북은 옆면)에 바로 꽂아요.</li>
         <li>보드에 전원 표시등이 있다면 켜졌는지 봐요.</li>
         <li>포트 선택 창을 닫고, 케이블을 뽑았다가 다시 꽂은 뒤 [보드 연결]을 다시 눌러요. 꽂기 전에는 없다가 꽂은 뒤 새로 생긴 항목이 보드예요.</li>
       </ul>
@@ -59,6 +59,20 @@ const itRequestText = [
         </li>
         <li><strong>기타 장치</strong> 아래에 느낌표(!)가 붙은 장치가 생기면 드라이버가 없는 거예요. 다음 단계로 가요.</li>
         <li>꽂아도 목록이 전혀 바뀌지 않으면 케이블이나 USB 단자 문제일 가능성이 커요. 첫 단계로 돌아가요.</li>
+      </ul>
+    </li>
+    <li class="port-steps__item" id="mac-chromebook">
+      <h3>맥이나 크롬북이라면</h3>
+      <ul>
+        <li>
+          <strong>맥:</strong> 포트 선택 창에서 이름에 <code>usbserial</code>이나 <code>wchusbserial</code>이 들어간 항목(예: cu.usbserial-1420)이 보드예요. 그런 항목이 안 보이면 아래
+          "드라이버 설치하기" 표의 macOS(CH34XSER_MAC.ZIP)를 설치하고 보드를 다시 꽂아요.
+        </li>
+        <li>
+          <strong>크롬북:</strong> 드라이버를 따로 설치하지 않아요. 포트 선택 창에서 이름에 <code>CH340</code>이나 <code>USB Serial</code>이 들어간 항목을 골라요. 학교에서 USB 연결을 막아 둔 크롬북이면 목록이 비어
+          있을 수 있어요 — 그때는 선생님께 알려 주세요.
+        </li>
+        <li>맥·크롬북에도 장치 관리자는 없어요. 보드를 뽑았다가 다시 꽂으면서 포트 선택 창의 목록에 새로 생기는 항목이 보드예요.</li>
       </ul>
     </li>
     <li class="port-steps__item" id="drivers">
@@ -159,7 +173,7 @@ const itRequestText = [
 
 <script>
   // 주소가 #port-not-found(또는 그 안의 #위치)로 열리거나 그곳을 가리키는 링크를 누르면 안내를 펼친다.
-  const INNER_TARGETS = ['check-cable', 'device-manager', 'drivers', 'it-request', 'hardware-id', 'linux', 'still-not-working'];
+  const INNER_TARGETS = ['check-cable', 'device-manager', 'mac-chromebook', 'drivers', 'it-request', 'hardware-id', 'linux', 'still-not-working'];
 
   const openFor = (hash: string, scroll: boolean) => {
     const id = decodeURIComponent(hash.replace(/^#/u, ''));

@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "5.10 제스처 센서 (APDS9960) — 1단계: 손 동작(제스처) 읽기"
+title: "5.10 제스처·색·근접 센서 APDS-9960(I2C) — 1단계: 손 동작(제스처) 읽기"
 description: isGestureAvailable() 이 True 일 때 readGesture() 로 움직임 방향을 읽어요. 방향은 왼쪽·오른쪽·위·아래·가까이·멀리 숫자(1~6)로 나오고, LCD 에는 영어(LEFT 등)로 보여 줘요.
 difficulty: 1
 tags:

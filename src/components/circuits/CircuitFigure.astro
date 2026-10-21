@@ -8,6 +8,7 @@
  * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 그림 HTML은 한 덩어리 문자열로 만든다.
  */
 import '../../styles/circuits.css';
+import CircuitZoom from './CircuitZoom.astro';
 import { withBase } from '../../lib/url.ts';
 import { circuitFigureHtml } from './circuit-html.ts';
 import { circuitById, circuitList } from './circuits-data.ts';
@@ -29,3 +30,4 @@ const html = circuitFigureHtml(figure, circuitList.captionNote, withBase(circuit
 ---
 
 <Fragment set:html={html} />
+<CircuitZoom />

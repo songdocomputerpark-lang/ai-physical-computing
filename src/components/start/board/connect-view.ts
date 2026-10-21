@@ -212,7 +212,7 @@ export function describeConnectOutcome(outcome: ConnectOutcome, support: Connect
         ...base(
           'danger',
           '보드 연결이 끊겼어요',
-          'USB 케이블이 빠졌거나 흔들렸어요. 케이블을 다시 꽂고 [보드 연결]을 다시 눌러요. 자주 끊기면 다른 케이블이나 컴퓨터 본체의 다른 USB 단자로 바꿔요.',
+          'USB 케이블이 빠졌거나 흔들렸어요. 케이블을 다시 꽂고 [보드 연결]을 다시 눌러요. 자주 끊기면 다른 케이블이나 컴퓨터의 다른 USB 단자로 바꿔요.',
         ),
         links: [link('port-help')],
         info: portInfo(outcome.port),

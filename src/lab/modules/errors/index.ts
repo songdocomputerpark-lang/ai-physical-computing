@@ -16,8 +16,9 @@
  */
 import { withBase } from '../../../lib/url.ts';
 import { catalogFromJson, type ErrorCatalog } from '../../errors/catalog-schema.ts';
-import { consoleSummary, explain, shortenMessage, type Explanation } from '../../errors/explain.ts';
+import { consoleSummary, endedMessage, explain, shortenMessage, type Explanation } from '../../errors/explain.ts';
 import { clearHighlight, ERROR_LINE_EVENT, highlightLine, type ErrorLineDetail } from '../../errors/highlight.ts';
+import { splitLinkText } from '../../errors/link-text.ts';
 import { revealElement } from '../../controls/reveal.ts';
 import type { RunResult } from '../../runtime/client.ts';
 import type { LabModule, LabModuleContext, LabModuleHandle } from '../types.ts';
@@ -78,7 +79,10 @@ export function readCatalog(panel: HTMLElement): ErrorCatalog | null {
   return catalogFromJson(script?.textContent ?? null);
 }
 
-/** 목록(ul·ol)을 글 목록으로 채운다. 비어 있으면 담은 상자를 숨긴다. */
+/**
+ * 목록(ul·ol)을 글 목록으로 채운다. 비어 있으면 담은 상자를 숨긴다.
+ * 글 속 `[글자](/사이트/안/주소/)`는 사이트 안 링크로 그린다(link-text.ts — 판 1.6.0 C176, 예: 보드 오류 카드의 "보드 준비 페이지").
+ */
 function fillList(box: HTMLElement | null, list: HTMLElement | null, items: readonly string[]): void {
   if (!list) {
     return;
@@ -86,7 +90,16 @@ function fillList(box: HTMLElement | null, list: HTMLElement | null, items: read
   list.replaceChildren();
   for (const item of items) {
     const li = document.createElement('li');
-    li.textContent = item;
+    for (const piece of splitLinkText(item)) {
+      if (piece.href === undefined) {
+        li.append(piece.text);
+        continue;
+      }
+      const link = document.createElement('a');
+      link.href = withBase(piece.href);
+      link.textContent = piece.text;
+      li.append(link);
+    }
     list.append(li);
   }
   if (box) {
@@ -215,8 +228,8 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
      * 그래서 ① 조작 줄 아래 안내 줄에 무엇이 났는지 적고 ② 카드가 화면 밖이면 카드로 내려 준다. 정지는 오류가 아니라 그대로 둔다.
      */
     if (result.outcome === 'error') {
-      const where = explanation.locationText === null ? '' : ` — ${explanation.locationText}`;
-      lab.showMessage(`오류로 끝났어요: ${explanation.typeLabel}${where}. 아래 풀이 카드에 고치는 방법이 있어요.`);
+      // 사이트가 만든 오류(BoardNotConnected 등)는 영어 이름 대신 한국어 제목을 적는다(endedMessage — 판 1.6.0 C176)
+      lab.showMessage(endedMessage(explanation, { traceback: result.error?.traceback ?? '' }));
       revealElement(card);
     }
   };

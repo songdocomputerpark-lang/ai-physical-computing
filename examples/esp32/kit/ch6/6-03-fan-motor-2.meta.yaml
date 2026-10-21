@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "6.03 팬 모터 — 2단계: 바람 세기 단계 (BOOT 버튼)"
+title: "6.03 팬 모터 모듈(L9110) — 2단계: 바람 세기 단계 (BOOT 버튼)"
 description: 속도 숫자(0~99)가 클수록 바람이 세요. 선풍기의 «약·중·강» 버튼이 이런 원리예요.
 difficulty: 2
 tags:
@@ -23,7 +23,7 @@ parts:
     pins:
       ina: 25
       inb: 26
-    label: 팬 모터
+    label: "팬 모터 모듈(L9110)"
 practice:
   - "[실행]을 눌러요."
   - 보드 그림의 BOOT 버튼을 눌러 보세요. 보드 그림의 "팬 모터"이(가) 코드대로 켜지고 꺼지고 움직이는지 봐요. 콘솔에 나오는 글자를 봐요.

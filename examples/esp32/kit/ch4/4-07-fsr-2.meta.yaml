@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "4.07 FSR 압력 센서 — 2단계: 누른 힘 측정기 (최대 힘 기록)"
+title: "4.07 압력(FSR) 센서 기판 — 2단계: 누른 힘 측정기 (최대 힘 기록)"
 description: 누르는 동안 가장 큰 값( peak )을 계속 기억해요. 손가락을 뗐을 때 최대 값으로 약함/보통/세게를 알려 줘요.
 difficulty: 2
 tags:
@@ -23,7 +23,7 @@ virtual_ok: true
 parts:
   - part: sensor-analog
     pin: 32
-    label: FSR 압력 센서
+    label: "압력(FSR) 센서 기판"
     options:
       label_low: 안 누름
       label_high: 세게 누름

@@ -89,11 +89,15 @@ test.describe('ESP32 실습실 — 실제 보드 ① 연결·raw REPL(모의 시
     await expect(page.locator('[data-board-io]')).toBeHidden();
     await expect(realPanel(page)).toBeVisible();
     await expect(labRoot(page)).toHaveAttribute('data-run-target', '실제 보드');
-    await expect(page.locator('[data-lab-status]')).toHaveText('실제 보드에서 실행할 수 있어요. [실행]을 눌러 봐요.');
+    // 연결 전 상태 줄은 할 일을 먼저 말한다(판 1.6.0 C176 — 걷기 보고 walk-student-board 26), 노란 [보드에 저장] 경고는 단추가 보인 뒤에만 보인다
+    await expect(page.locator('[data-lab-status]')).toHaveText('먼저 [보드 연결]을 눌러요.');
     await expect(realPanel(page).locator('[data-real-board-title]')).toHaveText('실제 보드가 연결되지 않았어요');
+    await expect(realPanel(page).locator('.real-board__warn')).toBeHidden();
 
     // 2. 연결과 배너 판별
     await connect(page);
+    await expect(page.locator('[data-lab-status]')).toHaveText('실제 보드에서 실행할 수 있어요. [실행]을 눌러 봐요.');
+    await expect(realPanel(page).locator('.real-board__warn')).toBeVisible();
     await expect(realPanel(page)).toHaveAttribute('data-real-board-version', 'v1.29.0');
     await expect(realPanel(page)).toHaveAttribute('data-real-board-chip', 'CH340');
     await expect(realPanel(page).locator('[data-real-board-title]')).toHaveText('실제 보드가 연결됐어요');
@@ -221,6 +225,39 @@ test.describe('ESP32 실습실 — 실제 보드 ① 연결·raw REPL(모의 시
     expect(errors).toEqual([]);
   });
 
+  test('[실제 보드] 탭 첫 줄 "처음이면 → 보드 준비하기"(연결되면 사라짐)와, 연결 없이 [실행]해 난 오류 카드의 안내가 링크다(판 1.6.0 C176, 걷기 보고 walk-student-board 1·2)', async ({ page, isMobile }) => {
+    test.skip(isMobile, '데스크톱에서 본다.');
+    const errors = await openLab(page, { ports: [{ id: 'board' }] });
+    await chooseRealTab(page);
+    const first = realPanel(page).locator('[data-real-board-first]');
+    await expect(first).toBeVisible();
+    await expect(first).toContainText('처음이면');
+    await expect(first.getByRole('link', { name: '보드 준비하기' })).toHaveAttribute('href', withBase('start/board/'));
+    // 첫 줄은 상태 글보다 앞(탭 첫 줄)이다
+    const before = await page.evaluate(() => {
+      const panel = document.querySelector('[data-real-board]');
+      const line = panel?.querySelector('[data-real-board-first]');
+      const status = panel?.querySelector('[data-real-board-status]');
+      return line && status ? Boolean(line.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING) : null;
+    });
+    expect(before).toBe(true);
+
+    // 선택 창을 닫고 [실행] → 오류 카드 "실제 보드가 연결되지 않았어요" — 안내 글자가 링크
+    await serialMock(page).chooseNext(null);
+    await run(page, "print('x')", 'error');
+    const card = page.locator('[data-lab-module-panel="errors"]');
+    await expect(card).toContainText('실제 보드가 연결되지 않았어요');
+    const fix = card.locator('[data-errors-fix]');
+    await expect(fix.getByRole('link', { name: '보드 준비 페이지' })).toHaveAttribute('href', withBase('start/board/#port-not-found'));
+    await expect(fix.getByRole('link', { name: '보드 준비하기' })).toHaveAttribute('href', withBase('start/board/'));
+    await expect(first).toBeVisible();
+
+    // 연결되면 첫 줄은 필요 없다
+    await connect(page);
+    await expect(first).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
   test('Web Serial이 없는 브라우저: 안내만 보이고 [실행]은 [가상 보드] 안내로 끝난다', async ({ page, isMobile }) => {
     test.skip(isMobile, '데스크톱에서 본다.');
     await page.addInitScript(() => {
@@ -237,6 +274,8 @@ test.describe('ESP32 실습실 — 실제 보드 ① 연결·raw REPL(모의 시
     await expect(realPanel(page).locator('[data-real-board-title]')).toHaveText('이 브라우저에서는 실제 보드를 연결할 수 없어요');
     await expect(realPanel(page).getByRole('button', { name: '보드 연결' })).toBeHidden();
     await expect(realPanel(page).locator('[data-real-board-port-help]')).toBeHidden();
+    // 이 브라우저로는 보드 준비도 못 하니 "처음이면 → 보드 준비하기" 첫 줄도 숨는다
+    await expect(realPanel(page).locator('[data-real-board-first]')).toBeHidden();
     await run(page, "print('x')", 'error');
     await expect(page.locator('[data-lab-result]')).toHaveText('오류로 끝났어요: 이 브라우저에서는 실제 보드를 연결할 수 없어요.');
     await expect(consoleBox(page)).toContainText('[가상 보드] 탭에서 같은 코드를 실행할 수 있어요');

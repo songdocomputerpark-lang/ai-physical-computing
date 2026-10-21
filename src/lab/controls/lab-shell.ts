@@ -127,6 +127,12 @@ export interface ConsoleAppendOptions {
 }
 
 /**
+ * 실제 보드 전용 예제를 가상 보드 탭에서 [실행]하려 할 때 안내 줄에 적는 글(판 1.6.0 C176). 까닭과 갈 길은 바로 아래 안내 줄(.lab__run-note)이 늘 보이고 있어서
+ * 같은 말을 되풀이하지 않고 "눌렀지만 코드는 안 돈다"만 알린다(화면 낭독기는 이 줄을 role=status로 읽는다).
+ */
+export const REAL_ONLY_RUN_MESSAGE = '이 예제는 가상 보드에서 실행할 수 없어요. 바로 아래 안내를 따라 해요.';
+
+/**
  * [실행]이 holdRun 약속을 기다리는 최대 시간(밀리초). 넘으면 기다리지 않고 실행한다 — 모듈 하나가 멈춰도 실습실이 막히지 않게.
  * 보드 라이브러리 6개(약 60KB)를 워커에 쓰는 데는 수십 ms, 가상 파일(mask.png) 그리기는 수백 ms면 끝난다(2026-09-25 실측).
  */
@@ -183,6 +189,13 @@ export interface LabRunTarget {
   run(code: string, context: LabRunContext): Promise<RunResult>;
   /** [정지]를 눌렀을 때 — run이 돌려준 약속이 곧 'stopped'로 끝나게 한다(실제 보드: Ctrl-C) */
   stop(): Promise<void> | void;
+  /**
+   * (판 1.6.0 C176) 쉬는 동안(실행 중이 아닐 때) 상태 줄에 적을 글. null이거나 이 칸이 없으면 기본 글 "<대상>에서 실행할 수 있어요. [실행]을 눌러 봐요."
+   * 실제 보드는 연결 전에 "먼저 [보드 연결]을 눌러요"를 적는다 — 연결도 안 됐는데 "실행할 수 있어요"라 적혀 있었다(걷기 보고 walk-student-board 26).
+   */
+  idleStatus?(): string | null;
+  /** idleStatus의 글이 바뀔 수 있을 때(연결 상태가 바뀔 때) 부를 처리기를 단다. 돌려주는 함수가 푼다. 셸이 대상을 끼울 때 달고 뗄 때 푼다. */
+  onIdleStatusChange?(listener: () => void): () => void;
 }
 
 export interface LabRunContext {
@@ -281,8 +294,17 @@ interface ShellElements {
   /** "이 예제가 나오는 차시" 줄과 그 링크 */
   lessonBox: HTMLElement | null;
   lessonLink: HTMLAnchorElement | null;
+  /** (판 1.6.0) "이 장치의 배선표와 회로 그림" 줄과 그 링크 — 키트 도감 예제만 */
+  deviceBox: HTMLElement | null;
+  deviceLink: HTMLAnchorElement | null;
+  /** (판 1.6.0) "다음 단계: 2단계 · … →" 줄과 그 링크 — 키트 도감 1단계 예제만 */
+  nextBox: HTMLElement | null;
+  nextLink: HTMLAnchorElement | null;
   /** 예제 한 줄 설명(사이드카 description) 자리 */
   exampleDescription: HTMLElement | null;
+  /** (판 1.6.0) 이 예제가 가상 보드에서 되는 정도 안내 줄과 그 안의 글 두 가지(real-only·partial) */
+  runNote: HTMLElement | null;
+  runNoteTexts: HTMLElement[];
   limitedNotice: HTMLElement | null;
   consoleBox: HTMLElement;
   consoleClear: HTMLButtonElement | null;
@@ -496,6 +518,8 @@ class LabShellController implements LabController {
   readonly #examples: LabExample[];
   #example: LabExample | null = null;
   /** (판 1.5.0) 받는 중인 예제(id → 약속) — 같은 예제를 두 번 받지 않게 */
+  /** (판 1.6.0) [실행]이 실제 보드 전용 예제 때문에 막혀 안내 줄에 REAL_ONLY_RUN_MESSAGE를 적었는지 */
+  #realOnlyMessageShown = false;
   readonly #lazyLoads = new Map<string, Promise<LabExample>>();
   /** 마지막 받기 요청 번호 — 받는 동안 다른 예제를 고르면 앞 요청의 결과는 쓰지 않는다 */
   #lazyRequest = 0;
@@ -545,6 +569,8 @@ class LabShellController implements LabController {
 
   /** 실행 대상(setRunTarget)과, 그 대상이 돌고 있는 동안의 기록·input 줄 약속 */
   #runTarget: LabRunTarget | null = null;
+  /** 실행 대상의 idleStatus 변화 구독을 푸는 함수(판 1.6.0 C176) */
+  #stopIdleWatch: (() => void) | null = null;
   #targetRun: { readonly startedAt: number; stopRequestedAt: number | null } | null = null;
   #targetPromptResolve: ((value: string | null) => void) | null = null;
   /** 실행 대상이 이번 실행 동안만 바꾼 상태 글(ctx.setStatus) */
@@ -621,7 +647,9 @@ class LabShellController implements LabController {
     this.#renderCodePending();
     this.#renderExampleSelect();
     this.#renderLessonLink();
+    this.#renderDeviceLink();
     this.#renderExampleDescription();
+    this.#paintRunBlock();
     // 공유 링크로 열었을 때는 보이는 코드가 저장본이 아니므로 "저장됨"을 보이지 않는다(고치면 그때 저장된다).
     this.#setSaveState(source === 'restore' ? 'saved' : 'idle');
     if (share) {
@@ -718,6 +746,9 @@ class LabShellController implements LabController {
     if (this.#runTarget) {
       return this.#runOnTarget(this.#runTarget);
     }
+    if (this.#blockedByRealOnly()) {
+      return null;
+    }
     /*
      * 파이썬을 받는 동안(unloaded·loading) 누른 [실행]은 버리지 않고 예약한다. 느린 학교 네트워크에서는 준비에 몇 분이 걸려서
      * (PLAN §5.1 Fast 3G 계산값 약 3.6분) 예전처럼 단추를 꺼 두면 학생의 첫 클릭이 아무 반응 없이 사라졌다(2026-09-17 검토 반영).
@@ -759,6 +790,10 @@ class LabShellController implements LabController {
       this.#holdWaiting = false;
       this.#renderRunButton();
       if (this.#holdCancelled || this.#disposed || this.#runTarget || this.runtime.state !== 'idle') {
+        return null;
+      }
+      // 기다리는 동안 받은 예제가 실제 보드 전용이었을 수 있다(고를 때 받는 예제의 virtual은 목록 자리에도 있지만, 받은 뒤 값으로 한 번 더 본다)
+      if (this.#blockedByRealOnly()) {
         return null;
       }
     }
@@ -875,6 +910,13 @@ class LabShellController implements LabController {
       throw new Error('실행 중에는 실행 대상을 바꿀 수 없어요. [정지]한 뒤에 바꿔요.');
     }
     this.#runTarget = target;
+    // 쉬는 동안의 상태 글이 바뀔 수 있는 대상(실제 보드 — 연결 상태)이면 바뀔 때 다시 그린다(판 1.6.0 C176)
+    this.#stopIdleWatch?.();
+    this.#stopIdleWatch = target?.onIdleStatusChange?.(() => {
+      if (this.#runTarget === target && !this.#targetRun) {
+        this.#renderTargetState();
+      }
+    }) ?? null;
     if (target && this.#pendingRun) {
       // 파이썬을 기다리며 눌러 둔 [실행]은 대상이 바뀌었으니 취소한다(학생이 대상을 보고 다시 누른다).
       this.#pendingRun = false;
@@ -1000,7 +1042,7 @@ class LabShellController implements LabController {
       } else if (target) {
         this.root.dataset.state = 'idle';
         if (statusText) {
-          statusText.textContent = `${target.label}에서 실행할 수 있어요. [실행]을 눌러 봐요.`;
+          statusText.textContent = target.idleStatus?.() ?? `${target.label}에서 실행할 수 있어요. [실행]을 눌러 봐요.`;
         }
         stopButton.disabled = true;
       } else {
@@ -1215,7 +1257,9 @@ class LabShellController implements LabController {
       placed = true;
     }
     this.#renderLessonLink();
+    this.#renderDeviceLink();
     this.#renderExampleDescription();
+    this.#renderRunButton();
     this.#emit('example', { example: resolved });
     return placed;
   }
@@ -1293,7 +1337,9 @@ class LabShellController implements LabController {
     }
     this.#renderExampleName();
     this.#renderLessonLink();
+    this.#renderDeviceLink();
     this.#renderExampleDescription();
+    this.#renderRunButton();
     this.#emit('example', { example });
     this.#emit('code', { code: this.getCode(), source: 'example' });
     this.showMessage(restored !== null ? `"${example.title}" 예제의 저장된 코드를 불러왔어요.` : `"${example.title}" 예제를 불러왔어요.`);
@@ -1485,6 +1531,8 @@ class LabShellController implements LabController {
     }
     this.#disposed = true;
     this.#resolveTargetPrompt(null);
+    this.#stopIdleWatch?.();
+    this.#stopIdleWatch = null;
     for (const cleanup of this.#cleanups.splice(0)) {
       cleanup();
     }
@@ -1602,6 +1650,44 @@ class LabShellController implements LabController {
     lessonBox.hidden = false;
   }
 
+  /** "이 장치의 배선표와 회로 그림" 줄(예제에 device 값이 있을 때만 — 키트 장치 도감 예제, 판 1.6.0 C176) */
+  #renderDeviceLink(): void {
+    this.#renderNextStep();
+    const { deviceBox, deviceLink } = this.#elements;
+    if (!deviceBox || !deviceLink) {
+      return;
+    }
+    const device = this.#example?.device;
+    if (!device) {
+      deviceBox.hidden = true;
+      return;
+    }
+    deviceLink.href = device.href;
+    deviceLink.textContent = device.label;
+    deviceBox.hidden = false;
+  }
+
+  /**
+   * "다음 단계: 2단계 · … →" 줄(예제에 nextStep 값이 있을 때만 — 키트 장치 도감 1단계, 판 1.6.0 C176). 링크를 누르면 주소로 가는 대신
+   * 이 실습실에서 그 예제를 바로 연다(loadExample — [예제 불러오기]와 같다: 코드는 예제마다 자동 저장돼 있어 잃지 않는다). 스크립트가 안 돌 때를 위해 href는 그 예제를 여는 주소.
+   */
+  #renderNextStep(): void {
+    const { nextBox, nextLink } = this.#elements;
+    if (!nextBox || !nextLink) {
+      return;
+    }
+    const next = this.#example?.nextStep;
+    if (!next) {
+      nextBox.hidden = true;
+      delete nextLink.dataset.labNextId;
+      return;
+    }
+    nextLink.href = next.href;
+    nextLink.textContent = `${next.label} →`;
+    nextLink.dataset.labNextId = next.id;
+    nextBox.hidden = false;
+  }
+
   /** 지금 예제의 한 줄 설명(사이드카 description)을 조작 줄 아래에 보인다 */
   #renderExampleDescription(): void {
     const box = this.#elements.exampleDescription;
@@ -1635,6 +1721,75 @@ class LabShellController implements LabController {
    * run()이 무시하고, 그동안 [정지]가 켜져 예약을 거둘 수 있다(stop()).
    */
   #paintRunButton(): void {
+    this.#paintRunButtonBase();
+    this.#paintRunBlock();
+  }
+
+  /**
+   * (판 1.6.0 C176) 지금 예제가 가상 보드에서 어느 정도 되는지: 사이드카 `virtual: real-only`/`partial`(LabExample.virtual). 실행 대상(실제 보드)이 끼워져 있으면
+   * 실제 보드에서 하는 것이 맞는 길이라 null. 예제를 아직 받는 중이면(목록 자리) 목록 자리에도 같은 값이 있어 그대로 쓴다.
+   */
+  #virtualLevel(): 'partial' | 'real-only' | null {
+    if (this.#runTarget) {
+      return null;
+    }
+    const level = this.#example?.virtual;
+    return level === 'partial' || level === 'real-only' ? level : null;
+  }
+
+  /** 가상 보드에서 못 도는 예제면 안내 줄에 까닭을 적고 true — [실행]·Ctrl+Enter가 코드를 보내기 전에 부른다 */
+  #blockedByRealOnly(): boolean {
+    if (this.#virtualLevel() !== 'real-only') {
+      return false;
+    }
+    this.showMessage(REAL_ONLY_RUN_MESSAGE);
+    this.#realOnlyMessageShown = true;
+    return true;
+  }
+
+  /**
+   * [실행] 단추에 "실제 보드 전용" 표시를 달고(회색·aria-disabled — 초점은 받아서 키보드로도 까닭을 읽는다) 안내 줄(#renderRunNote)을 맞춘다.
+   * 부를 때마다 단추의 aria-disabled가 방금 그려진 값이라 여기서는 더하기만 한다.
+   */
+  #paintRunBlock(): void {
+    const { runButton } = this.#elements;
+    const level = this.#virtualLevel();
+    if (level === 'real-only') {
+      runButton.setAttribute('aria-disabled', 'true');
+      runButton.dataset.labRunBlocked = 'real-only';
+    } else {
+      delete runButton.dataset.labRunBlocked;
+      // [실제 보드] 탭으로 옮기거나 다른 예제를 고르면 "실행할 수 없어요" 안내를 걷는다(그대로 두면 실제 보드 탭에서도 남아 있었다) — 다른 글로 바뀐 안내는 건드리지 않는다
+      if (this.#realOnlyMessageShown) {
+        this.#realOnlyMessageShown = false;
+        if (this.#elements.messageText?.textContent === REAL_ONLY_RUN_MESSAGE) {
+          this.showMessage('');
+        }
+      }
+    }
+    this.#renderRunNote(level);
+  }
+
+  /** 안내 줄: level에 맞는 글 하나만 보이고, 보이는 동안 [실행]이 그 글로 설명된다(aria-describedby). */
+  #renderRunNote(level: 'partial' | 'real-only' | null): void {
+    const { runNote, runNoteTexts, runButton } = this.#elements;
+    if (!runNote) {
+      return;
+    }
+    for (const text of runNoteTexts) {
+      text.hidden = text.dataset.labRunNoteText !== level;
+    }
+    runNote.hidden = level === null;
+    if (level === null) {
+      runButton.removeAttribute('aria-describedby');
+      delete this.root.dataset.virtualLevel;
+    } else {
+      runButton.setAttribute('aria-describedby', runNote.id);
+      this.root.dataset.virtualLevel = level;
+    }
+  }
+
+  #paintRunButtonBase(): void {
     const { runButton, stopButton } = this.#elements;
     const state = this.runtime.state;
     if (this.#runTarget) {
@@ -1853,6 +2008,17 @@ class LabShellController implements LabController {
       }
     });
     listen(e.exampleSelect, 'change', () => this.#renderExampleName());
+    // "다음 단계 →" 링크: 이 실습실에서 바로 연다(수정 키를 누른 클릭·새 탭은 그대로 주소로)
+    listen(e.nextLink, 'click', (event) => {
+      const id = e.nextLink?.dataset.labNextId;
+      if (!id || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      if (this.loadExample(id)) {
+        event.preventDefault();
+        e.exampleSelect?.focus({ preventScroll: true });
+      }
+    });
     listen(e.exampleLoadButton, 'click', () => {
       const id = e.exampleSelect?.value ?? '';
       if (!this.loadExample(id)) {
@@ -2099,7 +2265,13 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     messageText: query(root, '[data-lab-message]'),
     lessonBox: query(root, '[data-lab-lesson]'),
     lessonLink: query(root, '[data-lab-lesson-link]'),
+    deviceBox: query(root, '[data-lab-device]'),
+    deviceLink: query(root, '[data-lab-device-link]'),
+    nextBox: query(root, '[data-lab-next]'),
+    nextLink: query(root, '[data-lab-next-link]'),
     exampleDescription: query(root, '[data-lab-example-description]'),
+    runNote: query(root, '[data-lab-run-note]'),
+    runNoteTexts: [...root.querySelectorAll<HTMLElement>('[data-lab-run-note-text]')],
     limitedNotice: query(root, '[data-lab-limited]'),
     consoleBox,
     consoleClear: query(root, '[data-lab-console-clear]'),

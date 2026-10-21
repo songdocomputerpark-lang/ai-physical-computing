@@ -35,6 +35,16 @@ export interface LabExample {
    */
   readonly lesson?: { readonly href: string; readonly label: string };
   /**
+   * (판 1.6.0 C176) 이 예제가 나오는 키트 장치 쪽(배선표·회로 그림이 있는 /labs/esp32/kit/<id>/). 실습실 위에 "이 장치의 배선표·회로 그림" 링크가 생겨,
+   * 키트 도감에서 코드를 열어 온 학생이 배선을 보러 돌아갈 길이 글로만 있던 것을 고친다(걷기 보고 walk-kit-user 5). 키트 도감 예제(사이드카 kit.device)만 있다.
+   */
+  readonly device?: { readonly href: string; readonly label: string };
+  /**
+   * (판 1.6.0 C176) 키트 장치 도감의 다음 단계 예제(1단계 → 2단계). 실습실 예제 설명 줄 옆에 "다음 단계: 2단계 · … →" 링크가 생긴다(걷기 보고 walk-kit-user 83) —
+   * 누르면 이 실습실에서 그 예제를 바로 연다(id로 loadExample, href는 스크립트가 안 돌 때를 위한 주소). 마지막 단계에는 없다.
+   */
+  readonly nextStep?: { readonly id: string; readonly href: string; readonly label: string };
+  /**
    * ESP32 실습실 예제의 배선(선택, PD-05 "예제별 배선"). 가상 보드가 이 부품들을 그리고 선을 긋고 파이썬에 알린다
    * (src/lab/modules/board/part-types.ts WiringEntry — 보드에 붙은 내장 LED·BOOT 버튼은 적지 않아도 늘 있다).
    * 페이지가 차시 md frontmatter → 사이드카 → 예제 머리말 `# @part` 순서로 채운다(src/lab/esp32/examples.ts, README 7.4).
@@ -47,6 +57,20 @@ export interface LabExample {
    * 키트 장치 도감 예제가 ESP32 실습실 HTML을 키우지 않게 한다(DECISIONS C15·C151). 받은 뒤에는 이 칸이 없는 보통 예제로 바뀐다.
    */
   readonly codeUrl?: string;
+  /**
+   * (판 1.6.0 C176) 가상 보드에서 되는 정도 — 사이드카 `virtual: partial | real-only`(키트 장치 도감 예제). 적지 않으면(교과서·이관 예제 전부) 가상 보드에서 끝까지 된다.
+   * real-only면 가상 보드 탭에서 [실행]이 회색이 되고 까닭 안내 줄이 보이며, partial이면 노란 안내만 보인다(lab-shell.ts #paintRunBlock).
+   * 실행 대상(실제 보드)을 고르면 둘 다 보이지 않는다.
+   */
+  readonly virtual?: ExampleVirtual;
+}
+
+/** 가상 보드에서 끝까지 되지 않는 정도(끝까지 되는 예제는 적지 않는다) */
+export type ExampleVirtual = 'partial' | 'real-only';
+
+/** 알 수 없는 글을 ExampleVirtual로(아니면 undefined) */
+export function exampleVirtualOf(value: unknown): ExampleVirtual | undefined {
+  return value === 'partial' || value === 'real-only' ? value : undefined;
 }
 
 /** 예제 id 모양 */

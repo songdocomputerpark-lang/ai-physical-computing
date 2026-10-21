@@ -29,7 +29,7 @@ describe('보드 준비 페이지 부품(Container API)', () => {
     expect(count(html, /<summary[\s>]/gu)).toBe(1);
     expect(count(html, /<details[\s>]/gu)).toBe(1);
     expect(html).toContain('>포트 선택 창에 보드가 안 보여요</summary>');
-    const order = ['id="check-cable"', 'id="device-manager"', 'id="drivers"', 'id="it-request"', 'id="hardware-id"', 'id="linux"', 'id="still-not-working"'].map((hook) => html.indexOf(hook));
+    const order = ['id="check-cable"', 'id="device-manager"', 'id="mac-chromebook"', 'id="drivers"', 'id="it-request"', 'id="hardware-id"', 'id="linux"', 'id="still-not-working"'].map((hook) => html.indexOf(hook));
     expect(order.every((position) => position > 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(html).toContain('href="https://www.wch-ic.com/downloads/CH341SER_EXE.html"');

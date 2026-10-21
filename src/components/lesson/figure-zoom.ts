@@ -126,8 +126,9 @@ export function installFigureZoom(doc: Document = document): () => void {
     }
     const target = event.target instanceof Element ? event.target : null;
     const link = target?.closest<HTMLAnchorElement>('a.figure-zoom') ?? null;
-    if (!link || !isSvgHref(link.getAttribute('href'))) {
-      return; // 사진은 전처럼 파일을 연다
+    // SVG 그림, 그리고 data-figure-zoom 표시가 있는 링크(회로 그림 — circuit-html.ts, 판 1.6.0 C176)는 창으로. 그 밖의 사진은 전처럼 파일을 연다
+    if (!link || !(isSvgHref(link.getAttribute('href')) || link.hasAttribute('data-figure-zoom'))) {
+      return;
     }
     const source = imageFor(link);
     if (!source || typeof HTMLDialogElement === 'undefined') {

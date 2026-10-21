@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "5.08 기압 센서 (BMP280) — 1단계: 온도·기압·고도 읽기"
+title: "5.08 기압·고도 센서 BMP280(I2C) — 1단계: 온도·기압·고도 읽기"
 description: getPress() 는 Pa 단위라서 100 으로 나누면 hPa(헥토파스칼)가 돼요. 보통 1000 안팎이에요. 고도는 바다 높이의 기압을 기준으로 한 계산값이라 날씨에 따라 몇십 m 틀릴 수 있어요.
 difficulty: 1
 tags:

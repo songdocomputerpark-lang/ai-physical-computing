@@ -23,7 +23,9 @@ import { getPage } from '../../../config/nav.ts';
 import { errorCatalog } from '../../../lab/errors/catalog-data.ts';
 import { entriesByGroup } from '../../../lab/errors/catalog-schema.ts';
 import { entryPreview } from '../../../lab/errors/explain.ts';
+import { plainLinkText, splitLinkText } from '../../../lab/errors/link-text.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { withBase } from '../../../lib/url.ts';
 
 const page = getPage('help-errors');
 const helpPage = getPage('help');
@@ -115,7 +117,7 @@ const total = errorCatalog.entries.length;
             class="errors-entry"
             data-errors-entry-item={entry.id}
             data-errors-level={entry.level}
-            data-errors-search={[entry.id, preview.title, ...entry.types, preview.meaning, ...preview.mistakes].join(' ')}
+            data-errors-search={[entry.id, preview.title, ...entry.types, preview.meaning, ...preview.mistakes].map(plainLinkText).join(' ')}
             data-errors-match={JSON.stringify({ t: entry.types, p: entry.patterns, b: entry.tracebackPatterns, q: entry.priority })}
           >
             {/* 오류 이름·제목으로 찾을 때 이 항목이 코드 조각·원고 정정 목록보다 앞에 오게 무게를 더 준다(판 1.3.0 검수 R1-013, Pagefind 기본 1) */}
@@ -146,15 +148,15 @@ const total = errorCatalog.entries.length;
             {preview.why.length > 0 && (
               <>
                 <h4 class="errors-entry__subtitle">왜 났을까요</h4>
-                <ul>{preview.why.map((line) => <li>{line}</li>)}</ul>
+                <ul>{preview.why.map((line) => <li>{splitLinkText(line).map((piece) => (piece.href === undefined ? piece.text : <a href={withBase(piece.href)}>{piece.text}</a>))}</li>)}</ul>
               </>
             )}
             <h4 class="errors-entry__subtitle">이렇게 고쳐요</h4>
-            <ol>{preview.fix.map((line) => <li>{line}</li>)}</ol>
+            <ol>{preview.fix.map((line) => <li>{splitLinkText(line).map((piece) => (piece.href === undefined ? piece.text : <a href={withBase(piece.href)}>{piece.text}</a>))}</li>)}</ol>
             {preview.mistakes.length > 0 && (
               <>
                 <h4 class="errors-entry__subtitle">자주 하는 실수</h4>
-                <ul>{preview.mistakes.map((line) => <li>{line}</li>)}</ul>
+                <ul>{preview.mistakes.map((line) => <li>{splitLinkText(line).map((piece) => (piece.href === undefined ? piece.text : <a href={withBase(piece.href)}>{piece.text}</a>))}</li>)}</ul>
               </>
             )}
             {entry.example && (

@@ -65,7 +65,7 @@ export const BOOK_RULES: Readonly<Record<string, string>> = Object.freeze({
   'md-bold': '굵게(**)가 글자 그대로 남지 않게',
 });
 
-/** 교과서 쪽에서 쓸 수 있는 상자: 교과서 꼭지 14종 + 정답 접기(대단원 마무리 정답) */
+/** 교과서 쪽에서 쓸 수 있는 상자: 교과서 꼭지 14종 + 사이트 안내 상자(웹안내) + 정답 접기(대단원 마무리 정답) */
 export const BOOK_ALLOWED_BOXES: readonly string[] = Object.freeze([...(BOOK_BOX_VARIANTS as readonly string[]), 'answer']);
 
 function issue(level: BookRuleLevel, code: string, message: string): BookRuleIssue {
@@ -215,7 +215,7 @@ function boxIssues(tree: HtmlElement): BookRuleIssue[] {
       issue(
         'error',
         'book-box',
-        `교과서 쪽에서 쓸 수 없는 상자가 있어요: ${[...unknown].join(', ')}. 쓸 수 있는 상자: 말풍선·해보기·용어풀이·연결레시피·에러체크·결과·점검하기·자기평가·학습활동·읽기자료·성취계획·코드설명·그림생략·웹정정, 그리고 정답 접기. 웹 차시용 상자(왜그럴까·도전·교사용 등)는 쓰지 않아요.`,
+        `교과서 쪽에서 쓸 수 없는 상자가 있어요: ${[...unknown].join(', ')}. 쓸 수 있는 상자: 말풍선·해보기·용어풀이·연결레시피·에러체크·결과·점검하기·자기평가·학습활동·읽기자료·성취계획·코드설명·그림생략·웹정정·웹안내, 그리고 정답 접기. 웹 차시용 상자(왜그럴까·도전·교사용 등)는 쓰지 않아요.`,
       ),
     );
   }

@@ -25,6 +25,10 @@ import type { ExampleLessonLinks } from '../vision/examples.ts';
 export interface Esp32ExampleOptions {
   /** 차시 md frontmatter가 정한 배선: examples/ 뒤 경로(esp32/u2/a.py) → 배선 목록(이미 맞춘 모양) */
   readonly wiringByFile?: Readonly<Record<string, readonly WiringEntry[]>>;
+  /** (판 1.6.0 C176) 키트 장치 도감 예제의 장치 쪽 링크: examples/ 뒤 경로(esp32/kit/ch3/3-11-ultrasonic-1.py) → { href, label } */
+  readonly deviceByFile?: Readonly<Record<string, { readonly href: string; readonly label: string }>>;
+  /** (판 1.6.0 C176) 키트 장치 도감의 다음 단계 예제: examples/ 뒤 경로(1단계 파일) → { id, href, label }(2단계 예제) */
+  readonly nextStepByFile?: Readonly<Record<string, { readonly id: string; readonly href: string; readonly label: string }>>;
   /** 배선 글을 읽다 뺀 줄의 까닭(페이지가 빌드 경고로 찍는다) */
   onWarning?(text: string): void;
 }
@@ -189,8 +193,11 @@ export function esp32ExamplesFromFiles(
       ...(sidecar?.packages && sidecar.packages.length > 0 ? { packages: sidecar.packages } : {}),
       group: groupLabel(esp32ExampleGroupKey(file)),
       ...(lesson ? { lesson } : {}),
+      ...(options.deviceByFile?.[file] ? { device: options.deviceByFile[file] } : {}),
+      ...(options.nextStepByFile?.[file] ? { nextStep: options.nextStepByFile[file] } : {}),
       ...(parts.length > 0 ? { parts } : {}),
       ...(practice.length > 0 ? { practice } : {}),
+      ...(sidecar?.virtual ? { virtual: sidecar.virtual } : {}),
     });
   }
   examples.sort((a, b) => {

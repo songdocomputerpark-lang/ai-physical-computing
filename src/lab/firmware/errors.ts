@@ -86,7 +86,7 @@ const BOOT_STEPS: readonly string[] = [
   '그래도 안 되면 BOOT 버튼을 누른 채 EN(또는 RST) 버튼을 한 번 눌렀다 떼고, BOOT 버튼을 계속 누른 채로 [다시 시도]를 눌러요.',
 ];
 
-const CABLE_STEP = 'USB 허브·연장선 대신 컴퓨터 본체의 USB 단자에 바로 꽂고, 데이터를 주고받는 케이블(충전 전용이 아닌 것)인지 확인해요.';
+const CABLE_STEP = 'USB 허브·연장선 대신 컴퓨터의 USB 단자(노트북은 옆면)에 바로 꽂고, 데이터를 주고받는 케이블(충전 전용이 아닌 것)인지 확인해요.';
 
 function describe(error: unknown): { name: string; message: string; chain: string } {
   const lines: string[] = [];

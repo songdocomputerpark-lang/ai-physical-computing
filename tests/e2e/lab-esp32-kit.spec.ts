@@ -62,6 +62,21 @@ async function chooseExample(page: Page, id: string): Promise<void> {
 test.describe('ESP32 실습실 — 키트 장치 도감 예제는 고를 때 받는다', () => {
   test.describe.configure({ timeout: 180_000 });
 
+  test('예제 목록 맨 위는 "처음이라면 이것 하나" 묶음(내장 LED 깜빡이기)이고, 그 예제는 다른 묶음에 또 나오지 않는다(판 1.6.0 C176 — 걷기 보고 walk-student-board 14)', async ({ page }) => {
+    await openEsp32Lab(page);
+    const select = page.locator('[data-lab-example-select]');
+    const groups = select.locator('optgroup');
+    await expect(groups.first()).toHaveAttribute('label', '처음이라면 이것 하나');
+    await expect(groups.first().locator('option')).toHaveCount(1);
+    await expect(groups.first().locator('option')).toHaveAttribute('value', '01-first-blink');
+    await expect(select.locator('option[value="01-first-blink"]')).toHaveCount(1);
+    // 처음 열리는 예제는 그대로 내장 LED 깜빡이기
+    await expect(select).toHaveValue('01-first-blink');
+    // 쪽 위 한 줄: 내장 LED와 LED 모듈을 가른다
+    await expect(page.locator('.esp32-intro')).toContainText('내장 LED');
+    await expect(page.locator('.esp32-intro')).toContainText('LED 모듈');
+  });
+
   test('HTML에는 목록 자리만 있고, 고르면 그 예제 JSON 하나를 받아 편집칸·배선·실습 방법이 채워진다(사전 캐시 밖)', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
@@ -133,6 +148,154 @@ test.describe('ESP32 실습실 — 키트 장치 도감 예제는 고를 때 받
 
     await page.getByRole('button', { name: '정지', exact: true }).click();
     await expect(labRoot(page)).toHaveAttribute('data-outcome', 'stopped', { timeout: 30_000 });
+  });
+
+  test.describe('가상 보드에서 되는 정도(사이드카 virtual) — 실제 보드 전용 예제는 [실행]이 회색(판 1.6.0 C176, 걷기 보고 walk-kit-user 3)', () => {
+    const REAL_ONLY_ID = 'kit-ch3-3-11-ultrasonic-1';
+    const PARTIAL_ID = 'kit-ch2-2-14-neopixel-square-1';
+    const runButton = (page: Page) => page.locator('[data-lab-run]');
+    const note = (page: Page) => page.locator('[data-lab-run-note]');
+
+    test('실습실 HTML의 목록 자리에 virtual이 있다(받기 전에도 알맞게): 실제 보드 전용·일부만 되는 키트 예제에만, 교과서·사이트 예제에는 없다', async ({ page }) => {
+      await openEsp32Lab(page);
+      const embedded = await page.locator('script[data-lab-examples]').evaluate((element) => JSON.parse(element.textContent ?? '[]') as (EmbeddedExample & { virtual?: string })[]);
+      expect(embedded.find((example) => example.id === REAL_ONLY_ID)?.virtual).toBe('real-only');
+      expect(embedded.find((example) => example.id === PARTIAL_ID)?.virtual).toBe('partial');
+      expect(embedded.filter((example) => example.virtual !== undefined).every((example) => example.file?.startsWith('esp32/kit/'))).toBe(true);
+      expect(embedded.find((example) => example.id === KIT_ID)?.virtual).toBeUndefined();
+    });
+
+    test('끝까지 되는 예제(첫 실습·4.01 가변저항)에서는 안내 줄이 없고 [실행]은 평소대로다', async ({ page }) => {
+      await openEsp32Lab(page);
+      await expect(note(page)).toBeHidden();
+      await expect(runButton(page)).not.toHaveAttribute('aria-disabled', 'true');
+      await expect(runButton(page)).not.toHaveAttribute('data-lab-run-blocked', /.*/u);
+      await chooseExample(page, KIT_ID);
+      await expectEditorToContain(page, KIT_CODE_LINE);
+      await expect(note(page)).toBeHidden();
+      await expect(runButton(page)).not.toHaveAttribute('data-lab-run-blocked', /.*/u);
+      await expect(labRoot(page)).not.toHaveAttribute('data-virtual-level', /.*/u);
+    });
+
+    test('실제 보드 전용 예제(3.11 초음파): 가상 보드 탭에서 [실행]은 회색(aria-disabled)이고 까닭 한 줄이 보이며, 눌러도 코드는 돌지 않는다', async ({ page }) => {
+      await openEsp32Lab(page);
+      await chooseExample(page, REAL_ONLY_ID);
+      await expectEditorToContain(page, 'HCSR04');
+      await expect(labRoot(page)).toHaveAttribute('data-virtual-level', 'real-only');
+      await expect(runButton(page)).toHaveAttribute('aria-disabled', 'true');
+      await expect(runButton(page)).toHaveAttribute('data-lab-run-blocked', 'real-only');
+      // 초점은 받고(aria-disabled) 설명이 연결돼 있다
+      const noteId = await note(page).getAttribute('id');
+      await expect(runButton(page)).toHaveAttribute('aria-describedby', noteId!);
+      await expect(note(page)).toBeVisible();
+      await expect(note(page)).toContainText('이 예제는 실제 보드가 필요해요.');
+      await expect(note(page)).toContainText('[실제 보드] 탭에서 실행하거나, 처음이면 보드 준비하기를 먼저 해요.');
+      await expect(note(page).getByRole('link', { name: '보드 준비하기' })).toHaveAttribute('href', withBase('start/board/'));
+      // 안내 글에 빨간 오류 카드는 없다(눌러 보기 전에도, 눌러 본 뒤에도)
+      await expect(page.locator('[data-errors-card]')).toBeHidden();
+      await runButton(page).click({ force: true });
+      await expect(message(page)).toContainText('이 예제는 가상 보드에서 실행할 수 없어요');
+      await expect(labRoot(page)).toHaveAttribute('data-run-count', '0');
+      await expect(page.locator('[data-lab-console]')).not.toContainText('ImportError');
+      await expect(page.locator('[data-errors-card]')).toBeHidden();
+      // Ctrl+Enter도 같다
+      await page.locator('.cm-content').click();
+      await page.keyboard.press('Control+Enter');
+      await expect(labRoot(page)).toHaveAttribute('data-run-count', '0');
+    });
+
+    test('안내 줄의 [실제 보드] 탭 단추를 누르면 탭이 바뀌어 [실행]이 평소대로 켜지고, 안내·"실행할 수 없어요" 줄이 걷히고, 탭 첫 줄에 보드 준비하기 링크가 있다', async ({ page }) => {
+      await openEsp32Lab(page);
+      await chooseExample(page, REAL_ONLY_ID);
+      await expect(labRoot(page)).toHaveAttribute('data-virtual-level', 'real-only');
+      await runButton(page).click({ force: true });
+      await expect(message(page)).toContainText('실행할 수 없어요');
+      await note(page).getByRole('button', { name: '[실제 보드] 탭' }).click();
+      await expect(page.locator('[data-board-target-tab="real"]')).toHaveAttribute('aria-selected', 'true');
+      await expect(note(page)).toBeHidden();
+      await expect(runButton(page)).not.toHaveAttribute('aria-disabled', 'true');
+      await expect(runButton(page)).not.toHaveAttribute('data-lab-run-blocked', /.*/u);
+      await expect(message(page)).toHaveText('');
+      // 연결 전 [실제 보드] 탭 첫 줄: "처음이면 → 보드 준비하기"
+      const first = page.locator('[data-real-board-first]');
+      await expect(first).toBeVisible();
+      await expect(first).toContainText('처음이면');
+      await expect(first.getByRole('link', { name: '보드 준비하기' })).toHaveAttribute('href', withBase('start/board/'));
+      // 가상 보드 탭으로 돌아오면 다시 회색
+      await page.locator('[data-board-target-tab="virtual"]').click();
+      await expect(runButton(page)).toHaveAttribute('data-lab-run-blocked', 'real-only');
+      await expect(note(page)).toBeVisible();
+      // 다른 예제(끝까지 되는 것)를 고르면 풀린다
+      await chooseExample(page, '01-first-blink');
+      await expect(labRoot(page)).toHaveAttribute('data-example', '01-first-blink');
+      await expect(runButton(page)).not.toHaveAttribute('data-lab-run-blocked', /.*/u);
+      await expect(note(page)).toBeHidden();
+    });
+
+    test('일부만 되는 예제(2.14 RGB 매트릭스)는 노란 안내만 있고 [실행]은 막히지 않는다', async ({ page }) => {
+      await openEsp32Lab(page);
+      await chooseExample(page, PARTIAL_ID);
+      await expectEditorToContain(page, 'NeoPixel');
+      await expect(labRoot(page)).toHaveAttribute('data-virtual-level', 'partial');
+      await expect(note(page)).toBeVisible();
+      await expect(note(page)).toContainText('가상 보드에서 돌지만 실제와 조금 달라요.');
+      await expect(runButton(page)).not.toHaveAttribute('aria-disabled', 'true');
+      await expect(runButton(page)).not.toHaveAttribute('data-lab-run-blocked', /.*/u);
+    });
+
+    test('키트 예제를 열면 실습실 위에 "이 장치의 배선표와 회로 그림" 링크가 생기고(그 장치 쪽으로), 교과서·사이트 예제에는 없다(걷기 보고 walk-kit-user 5)', async ({ page }) => {
+      await openEsp32Lab(page);
+      const deviceLine = page.locator('[data-lab-device]');
+      await expect(deviceLine).toBeHidden();
+      await chooseExample(page, REAL_ONLY_ID);
+      await expectEditorToContain(page, 'HCSR04');
+      await expect(deviceLine).toBeVisible();
+      await expect(deviceLine).toContainText('이 장치의 배선표와 회로 그림');
+      const link = deviceLine.getByRole('link', { name: '3.11 초음파 센서 V2', exact: true });
+      await expect(link).toHaveAttribute('href', withBase('labs/esp32/kit/d-3-11/'));
+      // 끝까지 되는 키트 예제도 같은 줄(4.01 장치 쪽)
+      await chooseExample(page, KIT_ID);
+      await expectEditorToContain(page, KIT_CODE_LINE);
+      await expect(deviceLine.getByRole('link')).toHaveAttribute('href', withBase('labs/esp32/kit/d-4-01/'));
+      // 교과서 예제로 돌아오면 줄이 사라진다
+      await chooseExample(page, '01-first-blink');
+      await expect(deviceLine).toBeHidden();
+      // 링크를 누르면 그 장치 쪽(배선표·회로 그림)으로 간다
+      await chooseExample(page, REAL_ONLY_ID);
+      await expect(deviceLine).toBeVisible();
+      await link.click();
+      await expect(page).toHaveURL(new RegExp(`/labs/esp32/kit/d-3-11/$`, 'u'));
+      await expect(page.locator('#kit-wiring-title')).toBeAttached();
+    });
+
+    test('키트 1단계 예제를 열면 "다음 단계: 2단계 · … →" 링크가 생기고, 누르면 이 실습실에서 2단계 예제가 바로 열린다. 마지막 단계·교과서 예제에는 없다(걷기 보고 walk-kit-user 83)', async ({ page }) => {
+      await openEsp32Lab(page);
+      const nextLine = page.locator('[data-lab-next]');
+      await expect(nextLine).toBeHidden();
+      await chooseExample(page, REAL_ONLY_ID);
+      await expectEditorToContain(page, 'HCSR04');
+      await expect(nextLine).toBeVisible();
+      await expect(nextLine).toContainText('다음 단계:');
+      const link = nextLine.getByRole('link', { name: /^2단계 · .+ →$/u });
+      await expect(link).toHaveAttribute('href', /\?example=esp32%2Fkit%2Fch3%2F3-11-ultrasonic-2\.py$/u);
+      // 누르면 주소로 가지 않고(같은 쪽) 2단계 예제가 열린다 — 2단계(마지막)에는 다음 단계 줄이 없다
+      await link.click();
+      await expect(labRoot(page)).toHaveAttribute('data-example', 'kit-ch3-3-11-ultrasonic-2');
+      await expect(page).toHaveURL(new RegExp(`/labs/esp32/$`, 'u'));
+      await expect(nextLine).toBeHidden();
+      // 교과서 예제에도 없다
+      await chooseExample(page, '01-first-blink');
+      await expect(nextLine).toBeHidden();
+    });
+
+    test('?example= 주소로 바로 열어도(받는 동안에도) 실제 보드 전용이면 처음부터 회색이다', async ({ page }) => {
+      await openEsp32Lab(page, `?example=esp32/kit/ch3/3-11-ultrasonic-1.py`);
+      await expect(labRoot(page)).toHaveAttribute('data-example', REAL_ONLY_ID);
+      await expect(runButton(page)).toHaveAttribute('data-lab-run-blocked', 'real-only');
+      await expect(note(page)).toBeVisible();
+      await expectEditorToContain(page, 'HCSR04');
+      await expect(runButton(page)).toHaveAttribute('data-lab-run-blocked', 'real-only');
+    });
   });
 
   test.describe('주소로 바로 열기·받기 실패', () => {

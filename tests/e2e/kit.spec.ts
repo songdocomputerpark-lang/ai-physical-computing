@@ -64,13 +64,13 @@ test.describe('키트 장치 도감 첫 쪽', () => {
     expect(errors).toEqual([]);
   });
 
-  test('범례: 가상 보드 딱지 세 가지(가상 보드로 바로 · 일부만 가상 · 실제 보드에서)가 글자로 풀이와 함께 있다', async ({ page }) => {
+  test('범례: 가상 보드 딱지 세 가지(가상 보드로 바로 · 일부만 가상 · 실제 보드에서 해 보세요)가 글자로 풀이와 함께 있다', async ({ page }) => {
     await page.goto(KIT_URL);
     const legend = page.getByRole('region', { name: '카드의 딱지는 이런 뜻이에요' });
     await expect(legend.locator('[data-kit-virtual]')).toHaveCount(3);
     await expect(legend.locator('[data-kit-virtual="full"]')).toHaveText('가상 보드로 바로');
     await expect(legend.locator('[data-kit-virtual="partial"]')).toHaveText('일부만 가상');
-    await expect(legend.locator('[data-kit-virtual="real-only"]')).toHaveText('실제 보드에서');
+    await expect(legend.locator('[data-kit-virtual="real-only"]')).toHaveText('실제 보드에서 해 보세요');
     await expect(legend).toContainText('보드가 없어도 실습실의 가상 보드에서 끝까지 돌려 볼 수 있어요.');
   });
 
@@ -122,7 +122,7 @@ test.describe('키트 장치 도감 첫 쪽', () => {
     await expect(link).toHaveAttribute('href', kitDeviceHref('d-3-11'));
     // 카드에는 괄호 풀이 없는 짧은 연결 방식(장치 쪽 표에는 풀이가 있다)
     await expect(card.locator('.kit-card__connection')).toHaveText('디지털');
-    await expect(card.locator('[data-kit-virtual]')).toHaveText('실제 보드에서');
+    await expect(card.locator('[data-kit-virtual]')).toHaveText('실제 보드에서 해 보세요');
     // 휴대폰에서도 카드 전체가 눌린다(덮개) — 설명 자리를 눌러도 같은 주소
     await card.scrollIntoViewIfNeeded();
     const topmost = await card.locator('.kit-card__connection').evaluate((element) => {
@@ -184,7 +184,9 @@ test.describe('장치 쪽 — 가상 보드로 바로 되는 장치(2.01 LED)', 
     await expect(page).toHaveTitle(new RegExp(`^${deviceTitle(led)} \\| `, 'u'));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(deviceTitle(led));
     expect(await page.evaluate(() => document.querySelectorAll('h1').length)).toBe(1);
-    await expect(page.locator('.kit-header__en')).toHaveText(led.nameEn);
+    await expect(page.locator('.kit-header__sub')).toContainText(led.nameEn);
+    // 같은 부품을 부르는 이름은 하나(부품 사전 이름) — 브릭셀의 원래 이름은 부제로 남는다(판 1.6.0 C176)
+    await expect(page.locator('.kit-header__sub [data-kit-brixel-name]')).toHaveText(`브릭셀 이름: ${led.brixelName}`);
     await expect(page.locator('.kit-header__desc')).toContainText(led.description.slice(0, 20));
     await expect(page.locator('.kit-header [data-kit-virtual]')).toHaveText('가상 보드로 바로');
     // 홈 › 실습실 › ESP32 실습실 › 키트 장치 도감 › 2장 디스플레이 › 2.01 LED
@@ -201,7 +203,7 @@ test.describe('장치 쪽 — 가상 보드로 바로 되는 장치(2.01 LED)', 
     expect(errors).toEqual([]);
   });
 
-  test('장치 정보: 사진(alt)·연결 방식·핀·GPIO·부품 번호, 부품 사전 링크, 같은 코드로 도는 다른 모양 세 가지', async ({ page }) => {
+  test('장치 정보: 사진(alt)·연결 방식·핀·GPIO(내부 부품 번호는 안 보인다), 부품 사전 링크, 같은 코드로 도는 다른 모양 세 가지', async ({ page }) => {
     await page.goto(deviceUrl('d-2-01'));
     const info = page.getByRole('region', { name: '장치 정보' });
     const photo = info.getByRole('img', { name: '빨간 LED 모듈 사진' });
@@ -212,7 +214,9 @@ test.describe('장치 쪽 — 가상 보드로 바로 되는 장치(2.01 LED)', 
     await expect(facts).toContainText('디지털 / PWM(밝기·세기 조절)');
     await expect(facts).toContainText('핀 3개 (G, V, S)');
     await expect(facts).toContainText(led.gpio);
-    await expect(facts).toContainText('dis-004');
+    // 내부 부품 번호(dis-004)는 개발자 말이라 장치 정보에서 뺐다(판 1.6.0 C176 — 걷기 보고 walk-kit-user 17)
+    await expect(facts).not.toContainText('dis-004');
+    await expect(facts).not.toContainText('부품 번호');
     await expect(facts).toContainText('따로 필요하지 않아요');
     const variants = info.locator('.kit-variants__item');
     await expect(variants).toHaveCount(led.partVariants.length);
@@ -227,7 +231,8 @@ test.describe('장치 쪽 — 가상 보드로 바로 되는 장치(2.01 LED)', 
     await expect(table.locator('tbody tr').nth(0).locator('td')).toHaveText(['G', 'GND']);
     const figure = page.locator('figure.book-circuit');
     const image = figure.getByRole('img');
-    await expect(image).toHaveAttribute('alt', /^2\.01 LED 회로 그림\. 연결: G는 GND, V는 3V3, S는 GPIO 4\.$/u);
+    // 대체 글도 부품 사전과 같은 이름으로 시작한다(판 1.6.0 C176 — "2.01 빨간 LED 모듈 회로 그림. …")
+    await expect(image).toHaveAttribute('alt', `${deviceTitle(led)} 회로 그림. 연결: G는 GND, V는 3V3, S는 GPIO 4.`);
     await expect(image).toHaveAttribute('loading', 'lazy');
     await expect(image).toHaveAttribute('width', /^\d+$/u);
     await image.scrollIntoViewIfNeeded();
@@ -254,7 +259,8 @@ test.describe('장치 쪽 — 가상 보드로 바로 되는 장치(2.01 LED)', 
       const code = fs.readFileSync(path.join('examples', ...step.file.split('/')), 'utf8');
       const shown = await section.locator('pre.kit-code').evaluate((element) => element.textContent ?? '');
       expect(shown.replace(/^ $/gmu, '')).toBe(kitCodeLines(code).join('\n'));
-      await expect(section.locator('.kit-step__file')).toHaveText(`examples/${step.file}`);
+      // 개발자 경로(examples/esp32/kit/…) 대신 파일 이름만(판 1.6.0 C176)
+      await expect(section.locator('.kit-step__file')).toHaveText(`코드 파일: ${step.file.split('/').pop()}`);
       const open = section.getByRole('link', { name: `실습실에서 열기: ${deviceTitle(led)} ${step.n}단계` });
       await expect(open).toHaveAttribute('href', stepLabHref(step.file));
       await expect(open).toHaveText('실습실에서 열기');
@@ -272,7 +278,7 @@ test.describe('장치 쪽 — 가상 보드로 바로 되는 장치(2.01 LED)', 
     const source = page.locator('[data-kit-source]');
     await expect(source).toContainText('장치 사진·회로 그림·예제 코드: 고릴라셀(브릭셀) 제공, 허락받아 사용.');
     await expect(source.getByRole('link', { name: /브릭셀의 원래 쪽/u })).toHaveAttribute('href', `${data.source.url}#d-2-01`);
-    await expect(page.locator('[data-site-credit]')).toContainText('부품 사진·회로 그림·키트 예제 코드: 고릴라셀(브릭셀) 제공, 허락받아 사용.');
+    await expect(page.locator('[data-site-credit]')).toContainText('부품 사진·회로 그림·키트 예제 코드: 고릴라셀(브릭셀, 실습 키트 제조사) 제공, 허락받아 사용.');
   });
 });
 
@@ -281,13 +287,19 @@ test.describe('장치 쪽 — 실제 보드에서 해 보는 장치(3.11 초음�
 
   test('딱지·까닭·보드 준비 안내·라이브러리 상태(사이트가 싣고 있어요)', async ({ page }) => {
     await page.goto(deviceUrl('d-3-11'));
-    await expect(page.locator('.kit-header [data-kit-virtual]')).toHaveText('실제 보드에서');
+    await expect(page.locator('.kit-header [data-kit-virtual]')).toHaveText('실제 보드에서 해 보세요');
+    // 딱지가 끝난 문장이고, 첫 화면에 뜻이 한 줄로 풀려 있다(걷기 보고 walk-kit-user 2)
+    await expect(page.locator('[data-kit-virtual-explain]')).toContainText('가상 보드에는 아직 이 장치를 흉내 내는 부분이 없어요');
+    // 연결 방식은 부품 사전과 같은 말(판 1.6.0 C176 — 걷기 보고 walk-kit-user B-69)
+    await expect(page.locator('.kit-facts')).toContainText('디지털 입출력(TRIG 보내기·ECHO 받기)');
+    // "보드 준비하기" 링크는 쪽 한 곳(머리)에만 — 전에는 단계마다·출처 줄에도 있어 한 쪽에 세 번이었다(걷기 보고 walk-kit-user 20, 판 1.6.0 C176)
     const board = getPage('start-board');
+    await expect(page.locator('#lesson-article').getByRole('link', { name: board.title, exact: true })).toHaveCount(1);
+    await expect(page.locator('.kit-header [data-kit-virtual-explain]').getByRole('link', { name: board.title, exact: true })).toHaveAttribute('href', board.href);
     for (const step of sonar.steps) {
       const section = page.locator(`[data-kit-step="${step.n}"]`);
-      await expect(section.locator('[data-kit-virtual]')).toHaveText('실제 보드에서');
+      await expect(section.locator('[data-kit-virtual]')).toHaveText('실제 보드에서 해 보세요');
       await expect(section).toContainText('이 코드는 실제 키트로 해 봐요.');
-      await expect(section.getByRole('link', { name: board.title, exact: true })).toHaveAttribute('href', board.href);
       await expect(section.locator('.kit-step__reason')).toContainText(sonar.virtualReason!);
       // 가상으로 끝까지 안 되는 단계는 코드 열기가 보조 단추다
       const open = section.getByRole('link', { name: `실습실에서 코드 열기: ${deviceTitle(sonar)} ${step.n}단계` });
@@ -323,6 +335,98 @@ test.describe('장치 쪽 — 실제 보드에서 해 보는 장치(3.11 초음�
   });
 });
 
+test.describe('장치 쪽 — 코드가 위, 배선은 아래 · LCD 줄 · 회로 그림 크게 보기(판 1.6.0 C176)', () => {
+  const sonar = device('d-3-11');
+
+  test('사진·장치 정보 → 1·2단계 코드와 [실습실에서 열기] → 배선표 → 회로 그림 순서이고, 첫 [실습실에서 열기]가 쪽 위에서 멀지 않다(예전 2,600px)', async ({ page, isMobile }) => {
+    await page.goto(deviceUrl('d-3-11'));
+    const tops = await page.evaluate(() => {
+      const y = (selector: string) => Math.round((document.querySelector(selector)?.getBoundingClientRect().top ?? -1) + window.scrollY);
+      return { info: y('#kit-info-title'), open1: y('[data-kit-open="1"]'), open2: y('[data-kit-open="2"]'), wiring: y('#kit-wiring-title'), circuit: y('#kit-circuit-title') };
+    });
+    expect(tops.info).toBeGreaterThan(0);
+    expect(tops.open1).toBeGreaterThan(tops.info);
+    expect(tops.open2).toBeGreaterThan(tops.open1);
+    expect(tops.wiring).toBeGreaterThan(tops.open2);
+    expect(tops.circuit).toBeGreaterThan(tops.wiring);
+    expect(tops.open1, `첫 [실습실에서 열기] 위치 ${tops.open1}px`).toBeLessThan(isMobile ? 2300 : 1400);
+    // 단추가 그 단계의 코드 상자 위에 있다
+    for (const n of [1, 2]) {
+      const section = page.locator(`[data-kit-step="${n}"]`);
+      const open = await section.locator(`[data-kit-open="${n}"]`).boundingBox();
+      const code = await section.locator('pre.kit-code').boundingBox();
+      expect(open!.y, `${n}단계 단추가 코드 위`).toBeLessThan(code!.y);
+    }
+  });
+
+  test('쪽 위 "이 쪽의 차례" 알약 링크: 1단계·2단계 코드·배선표·회로 그림 자리로 간다', async ({ page }) => {
+    await page.goto(deviceUrl('d-3-11'));
+    const jump = page.getByRole('navigation', { name: '이 쪽의 차례' });
+    await expect(jump.getByRole('link')).toHaveText(['1단계 코드', '2단계 코드', '배선표', '회로 그림']);
+    await expect(jump.getByRole('link', { name: '1단계 코드' })).toHaveAttribute('href', '#step-1');
+    await expect(jump.getByRole('link', { name: '2단계 코드' })).toHaveAttribute('href', '#step-2');
+    await expect(jump.getByRole('link', { name: '배선표' })).toHaveAttribute('href', '#kit-wiring-title');
+    await expect(jump.getByRole('link', { name: '회로 그림' })).toHaveAttribute('href', '#kit-circuit-title');
+    await jump.getByRole('link', { name: '배선표' }).click();
+    await expect(page.locator('#kit-wiring-title')).toBeInViewport();
+  });
+
+  test('"LCD도 필요해요" 줄: 코드가 I2cLcd를 쓰는 장치(3.11)에만 — LCD 장치(2.05)와 LCD를 안 쓰는 장치에는 없다', async ({ page }) => {
+    const usesLcdFile = (file: string) => /\bI2cLcd\b/u.test(fs.readFileSync(path.join('examples', ...file.split('/')), 'utf8'));
+    await page.goto(deviceUrl('d-3-11'));
+    const line = page.locator('[data-kit-lcd]');
+    await expect(line).toBeVisible();
+    await expect(line).toContainText('LCD도 필요해요.');
+    await expect(line).toContainText('I2cLcd 줄에서 멈춰요');
+    // 배선표에 LCD 줄이 있어 "배선표의 LCD 줄"이 맞다
+    await expect(page.getByRole('table').locator('tbody tr', { hasText: 'LCD SDA' })).toHaveCount(1);
+    // LCD 자신(2.05)은 LCD가 필요하다고 알리지 않는다
+    await page.goto(deviceUrl('d-2-05'));
+    await expect(page.locator('[data-kit-lcd]')).toHaveCount(0);
+    // LCD를 안 쓰는 장치 하나(데이터에서 고른다)
+    const noLcd = data.devices.find((item) => item.steps.every((step) => !usesLcdFile(step.file)))!;
+    await page.goto(deviceUrl(noLcd.id));
+    await expect(page.locator('[data-kit-lcd]')).toHaveCount(0);
+  });
+
+  test('회로 그림 아래 선 색 범례(글자)와 [그림 크게 보기]는 파일로 나가지 않고 이 쪽 안의 창이 열린다(닫기 단추·Esc, 초점 돌아옴)', async ({ page }) => {
+    await page.goto(deviceUrl('d-3-11'));
+    const legend = page.locator('[data-kit-circuit-legend]');
+    await expect(legend).toContainText('선 색: 검정 = GND(접지) · 빨강 = VCC(전원) · 노랑·초록 = 신호선');
+    const zoom = page.locator('figure.book-circuit').getByRole('link', { name: /그림 크게 보기/u });
+    await expect(zoom).toHaveAttribute('data-figure-zoom', '');
+    const urlBefore = page.url();
+    await zoom.scrollIntoViewIfNeeded();
+    await zoom.click();
+    const dialog = page.locator('dialog.figure-zoom-dialog');
+    await expect(dialog).toBeVisible();
+    expect(page.url()).toBe(urlBefore);
+    await expect(dialog.locator('img')).toHaveAttribute('src', /\/images\/kit\/circuits\/third-party\/kit-vendor\/d-3-11\.webp$/u);
+    await expect(dialog.getByRole('button', { name: '닫기' })).toBeFocused();
+    // 창 모양(figure-zoom.css) — 화면 가득
+    const box = await dialog.boundingBox();
+    const viewport = page.viewportSize()!;
+    expect(box!.width).toBeGreaterThanOrEqual(viewport.width - 2);
+    await dialog.getByRole('button', { name: '닫기' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(zoom).toBeFocused();
+    await zoom.click();
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+  });
+
+  test('3.11 쪽은 가로로 넘치지 않고 스크립트 오류도 없다', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await page.goto(deviceUrl('d-3-11'));
+    await expectNoHorizontalOverflow(page);
+    expect(errors).toEqual([]);
+    expect(sonar.brixelName).toBe('초음파 센서 (HC-SR04)');
+    await expect(page.locator('[data-kit-brixel-name]')).toHaveText('브릭셀 이름: 초음파 센서 (HC-SR04)');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('3.11 초음파 센서 V2');
+  });
+});
+
 test.describe('장치 쪽 — 일부만 가상인 장치(2.14 RGB 매트릭스)', () => {
   test('딱지 "일부만 가상"과 까닭이 보이고 [실습실에서 열기]는 큰 단추다', async ({ page }) => {
     const matrix = device('d-2-14');
@@ -350,11 +454,11 @@ test.describe('장치 쪽 — 왼쪽 장치 목록', () => {
       await expect(nav).toHaveAttribute('data-wide', '');
       await expect(nav).toHaveJSProperty('open', true);
     }
-    await expect(list.getByRole('link', { name: '3.11 초음파 센서 (HC-SR04)' })).toHaveAttribute('aria-current', 'page');
-    await expect(list.getByRole('link', { name: '3.12 온습도 센서 (DHT11)' })).toHaveAttribute('href', kitDeviceHref('d-3-12'));
+    await expect(list.getByRole('link', { name: deviceTitle(device('d-3-11')), exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(list.getByRole('link', { name: deviceTitle(device('d-3-12')), exact: true })).toHaveAttribute('href', kitDeviceHref('d-3-12'));
     // 지금 장의 장치만 펼쳐 있고 다른 장은 도감 첫 쪽의 그 장으로 간다
-    await expect(list.getByRole('link', { name: '3.01 버튼' })).toBeVisible();
-    await expect(list.getByRole('link', { name: '4.01 가변저항' })).toHaveCount(0);
+    await expect(list.getByRole('link', { name: deviceTitle(device('d-3-01')), exact: true })).toBeVisible();
+    await expect(list.getByRole('link', { name: deviceTitle(device('d-4-01')), exact: true })).toHaveCount(0);
     await expect(list.getByRole('link', { name: '4장 아날로그 센서' })).toHaveAttribute('href', kitIndexHref(4));
     await expect(list.getByRole('link', { name: '키트 장치 도감 첫 쪽' })).toHaveAttribute('href', kitIndexHref());
   });
@@ -370,7 +474,7 @@ test.describe('부품 사전의 "예제 보기" 링크', () => {
   test('부품 사진마다 그 사진을 쓰는 장치 쪽으로 가는 링크가 있고, 사진 하나가 두 장치를 쓰면 번호가 붙은 링크 둘이다', async ({ page }) => {
     await page.goto(getPage('start-parts').href);
     const ultrasonic = page.locator('#part-d-009-ultrasonic-sensor-v2');
-    const sonarLink = ultrasonic.getByRole('link', { name: '예제 보기: 3.11 초음파 센서 (HC-SR04), 키트 장치 도감' });
+    const sonarLink = ultrasonic.getByRole('link', { name: `예제 보기: ${deviceTitle(device('d-3-11'))}, 키트 장치 도감` });
     await expect(sonarLink).toHaveAttribute('href', kitDeviceHref('d-3-11'));
     await expect(sonarLink).toHaveText('예제 보기');
     // JDY-33 한 사진을 8.05와 8.06이 함께 쓴다

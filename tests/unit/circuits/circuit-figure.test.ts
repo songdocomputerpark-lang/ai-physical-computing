@@ -117,9 +117,9 @@ describe('회로 그림 HTML(circuitFigureHtml)', () => {
     expect(html).toContain(`width="${figure.width}" height="${figure.height}" loading="lazy" decoding="async"`);
     expect(html).toContain('<span class="book-circuit__tag">회로 그림</span> LCD를 21번(SDA)·22번(SCL) 핀에 연결해요.');
     expect(html).toContain(`<span class="book-circuit__note">${NOTE}</span>`);
-    expect(html).toContain('<a class="figure-zoom" href="/images/circuits/third-party/kit-vendor/2-1-2-1.webp" data-pagefind-ignore>그림 크게 보기<span class="visually-hidden">: ESP32 실드 V3 보드 아래에 LCD가 있어요.');
+    expect(html).toContain('<a class="figure-zoom" href="/images/circuits/third-party/kit-vendor/2-1-2-1.webp" data-pagefind-ignore data-figure-zoom>그림 크게 보기<span class="visually-hidden">: ESP32 실드 V3 보드 아래에 LCD가 있어요.');
     expect(html.match(/<figure/gu)).toHaveLength(1);
-    expect(html.match(/figure-zoom/gu)).toHaveLength(1);
+    expect(html.match(/class="figure-zoom"/gu)).toHaveLength(1);
   });
 
   it('src를 받아 base를 붙인 주소로 그릴 수 있고, 글자는 HTML 글자 참조로 안전하게 넣는다', () => {
@@ -165,7 +165,7 @@ describe('::회로[번호] 지시자(remark → 자리 표시 → 그림)', () =
     expect(html).toContain('<figure class="book-circuit" data-circuit="2-1-2-1"');
     expect(html).toContain('src="/ai-physical-computing/images/circuits/third-party/kit-vendor/2-1-2-1.webp"');
     expect(html).toContain('href="/ai-physical-computing/images/circuits/third-party/kit-vendor/2-1-2-1.webp"');
-    expect(html.match(/figure-zoom/gu)).toHaveLength(1);
+    expect(html.match(/class="figure-zoom"/gu)).toHaveLength(1);
     expect(html.match(/loading="lazy"/gu)).toHaveLength(1);
     expect(plan.warnings).toEqual([]);
     // 상자 안에 적어도 그대로 바뀐다

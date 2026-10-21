@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "2.04 레이저 — 1단계: 레이저 켜고 끄기"
+title: "2.04 레이저 모듈(세로형) — 1단계: 레이저 켜고 끄기"
 description: 1초 켜고 1초 끄기를 계속 반복해요. 출력 창에도 상태가 나와요. 레이저는 사람이나 동물의 눈에 절대 비추지 마세요. 벽이나 종이에 비춰 확인하세요.
 difficulty: 1
 tags:
@@ -20,7 +20,7 @@ virtual_ok: true
 parts:
   - part: laser
     pin: 4
-    label: 레이저
+    label: "레이저 모듈(세로형)"
 practice:
   - "[실행]을 눌러요."
   - 보드 그림의 "레이저"이(가) 코드대로 켜지고 꺼지고 움직이는지 봐요. 콘솔에 나오는 글자를 봐요.

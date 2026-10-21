@@ -243,6 +243,15 @@ test.describe('보드 준비 페이지(P3-10)', () => {
     const copied = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/gu, '\n');
     expect(copied).toBe(requestText);
 
+    // 맥·크롬북: 장치 관리자가 없는 컴퓨터의 안내(판 1.6.0 C176 — 걷기 보고 walk-student-board 38), USB 단자는 노트북 옆면까지 말한다
+    await expect(help.locator('#check-cable')).toContainText('USB 단자');
+    await expect(help.locator('#check-cable').locator('xpath=..')).toContainText('노트북은 옆면');
+    const mac = page.locator('#mac-chromebook');
+    await expect(mac.getByRole('heading', { name: '맥이나 크롬북이라면' })).toBeVisible();
+    await expect(mac).toContainText('usbserial');
+    await expect(mac).toContainText('CH340');
+    await expect(mac).toContainText('CH34XSER_MAC.ZIP');
+
     // Linux: dialout·brltty·snap Chromium
     const linux = page.locator('#linux');
     await expect(linux).toContainText('sudo usermod -a -G dialout $USER');

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { loadCatalogFromYaml } from '../../../src/lab/errors/catalog-build.ts';
 import { BUILTIN_PLACEHOLDERS, type ErrorCatalog } from '../../../src/lab/errors/catalog-schema.ts';
-import { consoleSummary, describeLocation, entryPreview, explain, fillTemplate, shortenMessage } from '../../../src/lab/errors/explain.ts';
+import { consoleSummary, describeLocation, endedMessage, entryPreview, explain, fillTemplate, shortenMessage } from '../../../src/lab/errors/explain.ts';
 
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 
@@ -361,5 +361,25 @@ describe('사전 페이지용 미리 채우기(entryPreview)', () => {
     const entry = catalog.entries.find((item) => item.fallback)!;
     expect(entry.example).not.toBeNull();
     expect(entryPreview(entry).meaning).toContain('RuntimeError 오류가 났어요');
+  });
+});
+
+describe('endedMessage — 실습실 안내 줄 "오류로 끝났어요: …"(판 1.6.0 C176)', () => {
+  it('파이썬이 낸 오류는 학생이 트레이스백에서 보는 이름을 그대로 적는다', () => {
+    const found = fixtures.cases['name-error-in-function']!;
+    const explanation = explainFixture('name-error-in-function');
+    expect(endedMessage(explanation, { traceback: found.traceback })).toBe('오류로 끝났어요: NameError — 내 코드 2번째 줄(함수 show 안). 아래 풀이 카드에 고치는 방법이 있어요.');
+  });
+
+  it('사이트가 만든 오류(트레이스백 없음)는 영어 이름 대신 한국어 제목을 적는다 — BoardNotConnected', () => {
+    const explanation = explain(catalog, {
+      outcome: 'error',
+      error: { type: 'BoardNotConnected', message: '실제 보드가 연결되지 않았어요.', traceback: '' },
+    });
+    expect(explanation).not.toBeNull();
+    expect(explanation!.typeLabel).toBe('BoardNotConnected');
+    const text = endedMessage(explanation!, { traceback: '' });
+    expect(text).toBe('오류로 끝났어요: 실제 보드가 연결되지 않았어요. 아래 풀이 카드에 고치는 방법이 있어요.');
+    expect(text).not.toContain('BoardNotConnected');
   });
 });

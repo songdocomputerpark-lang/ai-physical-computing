@@ -57,6 +57,10 @@ describe('md → 비교할 문장 단위(mdPageUnits)', () => {
     '출판본에 없는 알림 글이에요.',
     ':::',
     '',
+    ':::웹안내[이 사이트에서는 설치 없이]',
+    '사이트가 더한 안내 글이에요. [보드 준비하기](/start/board/)',
+    ':::',
+    '',
     '::실습실[esp32/u2/x.py]',
     '',
     ':::결과',
@@ -79,6 +83,9 @@ describe('md → 비교할 문장 단위(mdPageUnits)', () => {
     expect(units).toContain('from machine import Pin');
     expect(units).toContain('핀을 불러온다');
     expect(units.join('\n')).not.toContain('출판본에 없는');
+    // 웹안내(판 1.6.0 C176)도 웹정정처럼 출판본에 없는 글이라 세지 않는다 — 제목도, 안의 글도
+    expect(units.join('\n')).not.toContain('사이트가 더한');
+    expect(units.join('\n')).not.toContain('설치 없이');
     expect(units.join('\n')).not.toContain('줄 7');
     expect(units.join('\n')).not.toContain('esp32');
   });

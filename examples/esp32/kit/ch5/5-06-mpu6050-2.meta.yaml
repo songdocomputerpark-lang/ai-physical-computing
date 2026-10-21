@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "5.06 6축 자이로 (MPU6050) — 2단계: 기울기 방향 알림과 흔들기 세기"
+title: "5.06 6축 자이로·가속도 센서 MPU6050(I2C) — 2단계: 기울기 방향 알림과 흔들기 세기"
 description: 가속도 세 값을 합친 힘( strength )이 1g 에서 크게 벗어나면 흔들린 거예요. 기울기는 X, Y 값이 0.4 를 넘는지로 판단해요. 숫자를 바꾸면 더 예민해져요.
 difficulty: 2
 tags:

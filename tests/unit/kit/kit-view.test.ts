@@ -7,8 +7,10 @@ import { describe, expect, it } from 'vitest';
 import { KIT_CIRCUIT_DIR, KIT_FILE, KitFormatError, parseKitYaml, type KitData } from '../../../src/components/kit/kit-schema.ts';
 import { kitSidebarOutline } from '../../../src/components/kit/kit-sidebar.ts';
 import {
+  CIRCUIT_COLOR_LEGEND,
   KIT_CHAPTER_DESCRIPTIONS,
   KIT_VIRTUAL_INFO,
+  LCD_NEEDED,
   KIT_VIRTUAL_ORDER,
   chapterAnchor,
   chapterGroups,
@@ -17,10 +19,13 @@ import {
   circuitHref,
   connectionLabel,
   connectionShort,
+  deviceConnectionLabel,
   deviceIndexByPart,
+  deviceNeedsLcd,
   deviceNeighbors,
   deviceTitle,
   devicesForPart,
+  fileNameOf,
   kitCodeLines,
   kitDeviceHref,
   kitDevicePath,
@@ -31,6 +36,7 @@ import {
   pinsLabel,
   splitWiring,
   stepLabHref,
+  usesLcd,
 } from '../../../src/components/kit/kit-view.ts';
 import { isIconName } from '../../../src/components/common/icons.ts';
 import { PARTS_FILE, parsePartsYaml } from '../../../src/components/parts/parts-schema.ts';
@@ -231,6 +237,22 @@ describe('글 만들기', () => {
     expect(connectionLabel('Bluetooth LE')).toBe('Bluetooth LE');
   });
 
+  it('장치 쪽 연결 방식: 브릭셀 글이 그냥 "Digital"이고 부품 사전 글이 "디지털"로 시작하면 부품 사전 글을 쓴다(초음파 센서 TRIG·ECHO)', () => {
+    expect(deviceConnectionLabel('Digital', '디지털 입출력(TRIG 보내기·ECHO 받기)')).toBe('디지털 입출력(TRIG 보내기·ECHO 받기)');
+    // 부품 사전 글이 없거나 디지털이 아니면, PWM·I2C 같은 다른 글은 학생 말 표(connectionLabel) 그대로
+    expect(deviceConnectionLabel('Digital')).toBe('디지털(켜짐·꺼짐)');
+    expect(deviceConnectionLabel('Digital', '아날로그 입력(ADC)')).toBe('디지털(켜짐·꺼짐)');
+    expect(deviceConnectionLabel('Digital / PWM', '디지털 출력')).toBe('디지털 / PWM(밝기·세기 조절)');
+    expect(deviceConnectionLabel('Serial I2C', 'I2C')).toBe('I2C 통신(선 두 개로 통신)');
+  });
+
+  it('진짜 데이터: 3.11 초음파 센서의 연결 방식이 부품 사전과 같은 말이다', () => {
+    const sonar = data.devices.find((device) => device.id === 'd-3-11')!;
+    const part = parts.find((candidate) => candidate.id === sonar.part)!;
+    expect(deviceConnectionLabel(sonar.interface, part.connection)).toBe(part.connection);
+    expect(part.connection).toContain('TRIG');
+  });
+
   it('핀 수 글은 "N pins"를 "핀 N개"로 바꾼다', () => {
     expect(pinsLabel('3 pins (G, V, S)')).toBe('핀 3개 (G, V, S)');
     expect(pinsLabel('3 pins (G, V, S) + 프로브 2 pins')).toBe('핀 3개 (G, V, S) + 프로브 핀 2개');
@@ -292,5 +314,87 @@ describe('왼쪽 장치 목록(kitSidebarOutline)', () => {
   it('1장 시작하기 코드가 없으면 다른 장 목록에서 1장을 뺀다', () => {
     const without = kitSidebarOutline({ ...data, intro: [] }, device);
     expect(without.groups[2]!.items.map((item) => item.label)).not.toContain('1장');
+  });
+});
+
+describe('판 1.6.0 C176 — 키트 장치 쪽의 말과 이름(걷기 보고 walk-kit-user)', () => {
+  it('"실제 보드에서" 딱지는 끝나는 문장("실제 보드에서 해 보세요")이다', () => {
+    expect(KIT_VIRTUAL_INFO['real-only'].label).toBe('실제 보드에서 해 보세요');
+    expect(KIT_VIRTUAL_INFO.full.label).toBe('가상 보드로 바로');
+    expect(KIT_VIRTUAL_INFO.partial.label).toBe('일부만 가상');
+  });
+
+  it('코드가 I2cLcd를 쓰는지는 코드 글에서 판단한다(낱말 경계 — 이름이 비슷한 변수는 아니다)', () => {
+    expect(usesLcd('from i2c_lcd import I2cLcd\nlcd = I2cLcd(i2c, 0x20, 2, 16)')).toBe(true);
+    expect(usesLcd('lcd = I2cLcd(i2c, 0x27, 2, 16)')).toBe(true);
+    expect(usesLcd('print("LCD 없이 글자만")')).toBe(false);
+    expect(usesLcd('class MyI2cLcdFake: pass')).toBe(false);
+  });
+
+  it('"LCD도 필요해요"는 코드가 LCD를 쓰고 장치 자신이 LCD가 아닐 때만 — 장치 101개 가운데 64개', () => {
+    expect(deviceNeedsLcd({ name: '초음파 센서 V2' }, [true, true])).toBe(true);
+    expect(deviceNeedsLcd({ name: '초음파 센서 V2' }, [false, false])).toBe(false);
+    expect(deviceNeedsLcd({ name: '문자 LCD 16×2(I2C)' }, [true, true])).toBe(false);
+    expect(deviceNeedsLcd({ name: 'I2C 장치', brixelName: 'I2C LCD 디스플레이' }, [true])).toBe(false);
+    const needing = data.devices.filter((device) => {
+      const flags = device.steps.map((step) => usesLcd(fs.readFileSync(path.join(root, 'examples', step.file), 'utf8')));
+      return deviceNeedsLcd(device, flags);
+    });
+    expect(needing).toHaveLength(63); // 64개가 LCD를 쓰고, 그 가운데 LCD 장치(2.05) 하나는 빠진다
+    // LCD가 필요하다고 알리는 장치는 배선표에 LCD 줄이 있다 — "배선표의 LCD 줄이 꽂는 방법"이 맞아야 한다
+    for (const device of needing) {
+      expect(
+        device.wiring.some((line) => line.includes('LCD')),
+        `${device.id} 배선표의 LCD 줄`,
+      ).toBe(true);
+    }
+    expect(LCD_NEEDED.title).toContain('LCD');
+    expect(LCD_NEEDED.text).toContain('I2cLcd');
+  });
+
+  it('회로 그림 선 색 범례는 검정·빨강·노랑·초록을 글자로 말한다', () => {
+    for (const word of ['검정', 'GND', '빨강', 'VCC', '노랑', '초록', '신호']) {
+      expect(CIRCUIT_COLOR_LEGEND).toContain(word);
+    }
+  });
+
+  it('코드 위에는 개발자 경로 대신 파일 이름만 보인다', () => {
+    expect(fileNameOf('esp32/kit/ch3/3-11-ultrasonic-1.py')).toBe('3-11-ultrasonic-1.py');
+    expect(fileNameOf('a.py')).toBe('a.py');
+  });
+
+  it('같은 부품을 부르는 이름은 하나: 장치 이름 = 부품 사전 이름(부품 사진 하나를 둘 이상의 장치가 쓸 때만 다르다), 원래 이름은 브릭셀 이름으로 남는다', () => {
+    const byId = new Map(parts.map((part) => [part.id, part]));
+    const counts = new Map<string, number>();
+    for (const device of data.devices) {
+      counts.set(device.part, (counts.get(device.part) ?? 0) + 1);
+    }
+    const shared: string[] = [];
+    for (const device of data.devices) {
+      const part = byId.get(device.part)!;
+      if ((counts.get(device.part) ?? 0) > 1) {
+        shared.push(device.id);
+        continue;
+      }
+      expect(device.name, `${device.id}: 장치 이름이 부품 사전(${part.id}) 이름과 같아야 해요`).toBe(part.name);
+      if (device.brixelName !== undefined) {
+        expect(device.brixelName, `${device.id}: 브릭셀 이름은 이름과 달라야 해요`).not.toBe(device.name);
+      }
+    }
+    expect(shared).toEqual(['d-8-05', 'd-8-06']);
+    // 쪽 제목·부품 사전 카드가 같은 글자를 쓰도록 deviceTitle은 번호 + 이름이다
+    const ultrasonic = data.devices.find((device) => device.id === 'd-3-11')!;
+    expect(deviceTitle(ultrasonic)).toBe('3.11 초음파 센서 V2');
+    expect(ultrasonic.brixelName).toBe('초음파 센서 (HC-SR04)');
+  });
+
+  it('예제 제목(실습실 목록·갤러리)도 같은 이름으로 시작한다: "<번호> <이름> — <단계 제목>"', () => {
+    for (const device of data.devices) {
+      for (const step of device.steps) {
+        const sidecar = fs.readFileSync(path.join(root, 'examples', step.file.replace(/[.]py$/u, '.meta.yaml')), 'utf8');
+        const title = /^title:\s*"?(.+?)"?\s*$/mu.exec(sidecar)?.[1] ?? '';
+        expect(title.startsWith(`${device.number} ${device.name} — `), `${device.id} ${step.n}단계 제목 "${title}"`).toBe(true);
+      }
+    }
   });
 });

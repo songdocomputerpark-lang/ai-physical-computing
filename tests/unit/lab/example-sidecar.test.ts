@@ -57,6 +57,14 @@ describe('사이드카 읽기', () => {
     expect('practice' in parseExampleSidecar('title: 제목\n')).toBe(false);
   });
 
+  it('virtual(가상 보드에서 되는 정도, 판 1.6.0 C176): real-only·partial만 칸이 생기고, full·적지 않음·모르는 글은 칸이 없다', () => {
+    expect(parseExampleSidecar('title: 제목\nvirtual: real-only\n').virtual).toBe('real-only');
+    expect(parseExampleSidecar('title: 제목\nvirtual: partial\n').virtual).toBe('partial');
+    for (const source of ['title: 제목\nvirtual: full\n', 'title: 제목\n', 'title: 제목\nvirtual: 아무말\n', 'title: 제목\nvirtual: 3\n']) {
+      expect('virtual' in parseExampleSidecar(source), source).toBe(false);
+    }
+  });
+
   it('사이드카 경로를 예제 경로로 바꾸고 묶음으로 읽는다', () => {
     expect(examplePathForSidecar('/examples/vision/u1/a.meta.yaml')).toBe('/examples/vision/u1/a.py');
     expect(examplePathForSidecar('/examples/vision/u1/a.yaml')).toBeNull();

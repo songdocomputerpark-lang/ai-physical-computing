@@ -1,0 +1,71 @@
+/*
+ * [그림 크게 보기]의 크게 보기 창(src/components/lesson/figure-zoom.ts가 body 끝에 만드는 <dialog class="figure-zoom-dialog">) — 화면 가득,
+ * 그림 칸은 옆·아래로 밀어 본다.
+ *
+ * 차시 쪽은 같은 규칙을 LessonBody.astro가 :global로 갖고 있다(판 1.1.0). 키트 장치 쪽(판 1.6.0 C176)은 LessonBody를 쓰지 않으므로 이 파일을 가져와
+ * 같은 모양을 쓴다(부품 `import '../../../../styles/figure-zoom.css'`). 두 곳의 규칙은 같다 — 한쪽을 고치면 다른 쪽도 맞춘다(PROGRESS 미해결: LessonBody가
+ * 이 파일을 가져오게 합치기).
+ */
+.figure-zoom-dialog {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.figure-zoom-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.figure-zoom-dialog::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+.figure-zoom-dialog__bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+.figure-zoom-dialog__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.figure-zoom-dialog__close {
+  flex: none;
+  min-height: 2.75rem;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.figure-zoom-dialog__scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: var(--space-4);
+  overscroll-behavior: contain;
+}
+
+.figure-zoom-dialog__scroll img {
+  display: block;
+  max-width: none;
+  margin-inline: auto;
+  background: #fff;
+}

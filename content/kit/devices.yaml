@@ -16,7 +16,10 @@
 # 칸
 #   id          d-<장>-<번호 두 자리> (브릭셀 카드 닻과 같음)
 #   number      카드 번호 글자("3.11")        chapter  장(2~8)
-#   name / name_en   한국어 이름 / 영어 이름   description  카드 설명
+#   name        이 사이트의 이름 = 부품 사전(content/parts/parts.yaml)의 name. 같은 부품을 부르는 이름은 하나예요(판 1.6.0 — tests/unit/kit/이 맞는지 봐요).
+#               한 사진을 둘 이상의 장치가 쓰면(8.05·8.06) 장치마다 달라도 돼요.
+#   brixel_name 브릭셀 카드의 원래 한국어 이름(name과 다를 때만) — 장치 쪽 머리 아래에 "브릭셀 이름"으로 보여서 HC-SR04 같은 모델 이름으로도 찾아요.
+#   name_en     영어 이름                    description  카드 설명
 #   interface / pins / gpio   카드의 기본 정보(브릭셀 글 그대로)
 #   part        content/parts/parts.yaml 의 부품 사진 id (부품 사전 /start/parts/ 로 이어져요)    part_variants   같은 코드로 도는 다른 색·크기 사진
 #   libraries   [{ name, file, site, url?, note? }]
@@ -102,7 +105,8 @@ devices:
   - id: d-2-01
     number: "2.01"
     chapter: 2
-    name: LED
+    name: "빨간 LED 모듈"
+    brixel_name: "LED"
     name_en: LED
     description: LED(발광 다이오드)는 순방향 전압이 인가되면 빛을 방출합니다. 키트에는 빨강, 초록, 파랑, 노랑 4가지 색상이 포함됩니다.
     interface: Digital / PWM
@@ -146,7 +150,8 @@ devices:
   - id: d-2-02
     number: "2.02"
     chapter: 2
-    name: 신호등 LED
+    name: "신호등 LED 모듈"
+    brixel_name: "신호등 LED"
     name_en: Traffic Light LED
     description: 3개의 LED(빨강, 노랑, 초록)가 있는 미니 신호등입니다.
     interface: Digital / PWM
@@ -185,7 +190,8 @@ devices:
   - id: d-2-03
     number: "2.03"
     chapter: 2
-    name: RGB LED
+    name: "RGB LED 모듈"
+    brixel_name: "RGB LED"
     name_en: RGB LED
     description: 하나의 패키지에 3색 LED(빨강, 초록, 파랑). 여러 LED를 켜서 색상을 조합합니다.
     interface: Digital / PWM
@@ -224,7 +230,8 @@ devices:
   - id: d-2-04
     number: "2.04"
     chapter: 2
-    name: 레이저
+    name: "레이저 모듈(세로형)"
+    brixel_name: "레이저"
     name_en: LASER
     description: LASER(유도 방출에 의한 광 증폭)는 매우 좁은 광선을 생성합니다.
     interface: Digital / PWM
@@ -264,7 +271,8 @@ devices:
   - id: d-2-05
     number: "2.05"
     chapter: 2
-    name: I2C LCD 디스플레이
+    name: "문자 LCD 16×2(I2C)"
+    brixel_name: "I2C LCD 디스플레이"
     name_en: LCD with I2C Interface
     description: HD44780 드라이버의 16x2 LCD, PCF8574 I2C 인터페이스(주소 0x20)로 간편화.
     interface: Serial I2C
@@ -306,7 +314,8 @@ devices:
   - id: d-2-06
     number: "2.06"
     chapter: 2
-    name: 4자리 7세그먼트 디스플레이
+    name: "7세그먼트 숫자 표시 모듈"
+    brixel_name: "4자리 7세그먼트 디스플레이"
     name_en: 4-Digit 7-Segment Display
     description: TM1637 칩으로 구동되는 4자리 7세그먼트 디스플레이.
     interface: Serial I2C-like
@@ -348,7 +357,8 @@ devices:
   - id: d-2-07
     number: "2.07"
     chapter: 2
-    name: 0.96 OLED 디스플레이 (SSD1306)
+    name: "OLED 0.96인치(SSD1306)"
+    brixel_name: "0.96 OLED 디스플레이 (SSD1306)"
     name_en: 0.96 OLED Display (SSD1306)
     description: SSD1306 드라이버의 0.96인치 128x64 단색 OLED 디스플레이 (I2C 주소 0x3C).
     interface: Serial I2C
@@ -392,7 +402,8 @@ devices:
   - id: d-2-08
     number: "2.08"
     chapter: 2
-    name: 1.3 OLED 디스플레이 (SH1106)
+    name: "OLED 1.3인치(SH1106)"
+    brixel_name: "1.3 OLED 디스플레이 (SH1106)"
     name_en: 1.3 OLED Display (SH1106)
     description: SH1106 드라이버의 1.3인치 128x64 단색 OLED 디스플레이 (I2C 주소 0x3C).
     interface: Serial I2C
@@ -436,7 +447,8 @@ devices:
   - id: d-2-09
     number: "2.09"
     chapter: 2
-    name: 8x8 도트 매트릭스 (SPI)
+    name: "도트 매트릭스 8×8(SPI)"
+    brixel_name: "8x8 도트 매트릭스 (SPI)"
     name_en: 8x8 Dot Matrix (SPI)
     description: SPI를 통해 MAX7219 칩으로 구동되는 8x8 도트 매트릭스 디스플레이.
     interface: Serial SPI
@@ -480,7 +492,8 @@ devices:
   - id: d-2-10
     number: "2.10"
     chapter: 2
-    name: 16x8 도트 매트릭스 (SPI)
+    name: "도트 매트릭스 8×16(SPI)"
+    brixel_name: "16x8 도트 매트릭스 (SPI)"
     name_en: 16x8 Dot Matrix (SPI)
     description: 8x8의 두 배 너비인 16x8 도트 매트릭스, SPI를 통해 MAX7219으로 구동.
     interface: Serial SPI
@@ -524,7 +537,8 @@ devices:
   - id: d-2-11
     number: "2.11"
     chapter: 2
-    name: 8x8 도트 매트릭스 (I2C)
+    name: "도트 매트릭스 8×8(I2C)"
+    brixel_name: "8x8 도트 매트릭스 (I2C)"
     name_en: 8x8 Dot Matrix (I2C)
     description: HT16K33 드라이버를 사용하는 I2C 인터페이스의 8x8 도트 매트릭스.
     interface: Serial I2C
@@ -566,7 +580,8 @@ devices:
   - id: d-2-12
     number: "2.12"
     chapter: 2
-    name: 16x8 도트 매트릭스 (I2C)
+    name: "도트 매트릭스 8×16(I2C)"
+    brixel_name: "16x8 도트 매트릭스 (I2C)"
     name_en: 16x8 Dot Matrix (I2C)
     description: HT16K33 드라이버를 사용하는 I2C 인터페이스의 16x8 도트 매트릭스.
     interface: Serial I2C
@@ -608,7 +623,8 @@ devices:
   - id: d-2-13
     number: "2.13"
     chapter: 2
-    name: RGB 링 디스플레이 (NeoPixel 16)
+    name: "네오픽셀 링(16구)"
+    brixel_name: "RGB 링 디스플레이 (NeoPixel 16)"
     name_en: RGB Ring Display (NeoPixel 16)
     description: 링 형태로 배열된 16개의 개별 주소 지정 RGB LED (WS2812/NeoPixel).
     interface: Digital
@@ -645,7 +661,8 @@ devices:
   - id: d-2-14
     number: "2.14"
     chapter: 2
-    name: RGB 매트릭스 디스플레이 (NeoPixel 64)
+    name: "네오픽셀 사각 배열"
+    brixel_name: "RGB 매트릭스 디스플레이 (NeoPixel 64)"
     name_en: RGB Matrix Display (NeoPixel 64)
     description: 8x8 매트릭스 형태의 64개 개별 주소 지정 RGB LED (WS2812/NeoPixel).
     interface: Digital
@@ -684,7 +701,8 @@ devices:
   - id: d-3-01
     number: "3.01"
     chapter: 3
-    name: 버튼
+    name: "파란 버튼 모듈"
+    brixel_name: "버튼"
     name_en: Buttons
     description: 푸시 버튼 스위치. 브릭셀 키트에는 4가지 색상 버튼(파랑, 초록, 빨강, 노랑)이 있습니다.
     interface: Digital
@@ -735,7 +753,8 @@ devices:
   - id: d-3-02
     number: "3.02"
     chapter: 3
-    name: 스위치·로커
+    name: "라커 스위치"
+    brixel_name: "스위치·로커"
     name_en: Switch | Rocker
     description: 두 가지 안정 상태(ON/OFF)를 가진 로커 스위치.
     interface: Digital
@@ -779,7 +798,8 @@ devices:
   - id: d-3-03
     number: "3.03"
     chapter: 3
-    name: 터치 센서
+    name: "터치 센서(디지털)"
+    brixel_name: "터치 센서"
     name_en: Touch Sensor
     description: 인체 터치를 감지하는 정전식 터치 센서.
     interface: Digital
@@ -823,7 +843,8 @@ devices:
   - id: d-3-04
     number: "3.04"
     chapter: 3
-    name: 컬러 터치 센서
+    name: "컬러 터치 센서(빨강)"
+    brixel_name: "컬러 터치 센서"
     name_en: Color Touch Sensor
     description: 빨강, 초록, 파랑 및 다색 변형이 있는 컬러 터치 센서.
     interface: Digital
@@ -873,7 +894,8 @@ devices:
   - id: d-3-05
     number: "3.05"
     chapter: 3
-    name: 진동 센서
+    name: "진동 센서(스위치형)"
+    brixel_name: "진동 센서"
     name_en: Vibration Sensor
     description: 진동을 감지합니다. 진동이 감지되면 로직 1을 출력합니다.
     interface: Digital
@@ -959,7 +981,8 @@ devices:
   - id: d-3-07
     number: "3.07"
     chapter: 3
-    name: 화재 센서
+    name: "화염 감지 센서"
+    brixel_name: "화재 센서"
     name_en: Fire Sensor
     description: 적외선을 이용한 화재 감지 센서.
     interface: Digital
@@ -1003,7 +1026,8 @@ devices:
   - id: d-3-08
     number: "3.08"
     chapter: 3
-    name: PIR 센서·인체 감지 센서
+    name: "인체 감지 센서(PIR)"
+    brixel_name: "PIR 센서·인체 감지 센서"
     name_en: PIR Sensor | Human Sensor
     description: 열을 발산하는 물체(사람, 동물)를 감지하는 수동 적외선 센서. 침입자 경보 감지에 사용됩니다.
     interface: Digital
@@ -1089,7 +1113,8 @@ devices:
   - id: d-3-10
     number: "3.10"
     chapter: 3
-    name: IR 장애물 감지 센서
+    name: "적외선 장애물 센서"
+    brixel_name: "IR 장애물 감지 센서"
     name_en: IR Obstacle Avoidance Sensor
     description: 근처 물체를 감지하는 적외선 장애물 회피 센서.
     interface: Digital
@@ -1132,7 +1157,8 @@ devices:
   - id: d-3-11
     number: "3.11"
     chapter: 3
-    name: 초음파 센서 (HC-SR04)
+    name: "초음파 센서 V2"
+    brixel_name: "초음파 센서 (HC-SR04)"
     name_en: Ultrasonic Sensor (HC-SR04)
     description: "음파 주파수를 이용하여 거리를 측정합니다. 공식: 거리 = 시간 x 340m/s / 2."
     interface: Digital
@@ -1181,7 +1207,8 @@ devices:
   - id: d-3-12
     number: "3.12"
     chapter: 3
-    name: 온습도 센서 (DHT11)
+    name: "온습도 센서 DHT11"
+    brixel_name: "온습도 센서 (DHT11)"
     name_en: Temp & Humidity (DHT11)
     description: "DHT11 센서: 0-50°C (±1°C), 20-90% RH (±1%). 마이크로파이썬 내장 모듈."
     interface: Digital (1-Wire)
@@ -1225,7 +1252,8 @@ devices:
   - id: d-3-13
     number: "3.13"
     chapter: 3
-    name: 온습도 센서 (DHT22)
+    name: "온습도 센서 DHT22"
+    brixel_name: "온습도 센서 (DHT22)"
     name_en: 3.56. 온습도 센서 (DHT22)
     description: 공기의 온도와 습도를 함께 알려 주는 센서예요. DHT11 보다 넓은 범위를 더 정확하게 재요.
     interface: Digital
@@ -1270,7 +1298,8 @@ devices:
   - id: d-3-14
     number: "3.14"
     chapter: 3
-    name: 로터리 인코더
+    name: "로터리 엔코더"
+    brixel_name: "로터리 인코더"
     name_en: Rotary Encoder
     description: 내장 푸시 버튼 스위치가 있는 20단계 로터리 인코더. 2상 신호를 사용합니다.
     interface: Digital
@@ -1320,7 +1349,8 @@ devices:
   - id: d-3-15
     number: "3.15"
     chapter: 3
-    name: 포토레지스터·속도 센서
+    name: "포토레지스터 모듈"
+    brixel_name: "포토레지스터·속도 센서"
     name_en: Photoresistor | Speed Sensor
     description: 속도 센서로도 사용할 수 있는 포토레지스터 모듈.
     interface: Digital
@@ -1364,7 +1394,8 @@ devices:
   - id: d-3-16
     number: "3.16"
     chapter: 3
-    name: 수온 센서 (DS18B20)
+    name: "수온 센서 기판"
+    brixel_name: "수온 센서 (DS18B20)"
     name_en: Water Temperature Sensor (DS18B20)
     description: 1-Wire 프로토콜을 사용하는 방수 DS18B20 디지털 온도 센서.
     interface: Digital (1-Wire)
@@ -1406,7 +1437,8 @@ devices:
   - id: d-3-17
     number: "3.17"
     chapter: 3
-    name: 수위 센서 (플로트 스위치)
+    name: "수위 센서 기판"
+    brixel_name: "수위 센서 (플로트 스위치)"
     name_en: 3.57. 수위 센서 (플로트 스위치)
     description: 물에 뜨는 부력체가 위아래로 움직이며 수위를 켜짐/꺼짐으로 알려 주는 센서예요. 프로브(막대)가 딸려 있어요.
     interface: Digital
@@ -1451,7 +1483,8 @@ devices:
   - id: d-3-18
     number: "3.18"
     chapter: 3
-    name: 미세먼지 센서 (PMS7003)
+    name: "미세먼지 센서 PMS7003"
+    brixel_name: "미세먼지 센서 (PMS7003)"
     name_en: 3.59. 미세먼지 센서 (PMS7003)
     description: 공기 중 미세먼지(PM1.0·PM2.5·PM10)의 양을 레이저로 재서 알려 주는 센서예요. 어댑터 없이 4핀으로 바로 연결해요.
     interface: UART
@@ -1497,7 +1530,8 @@ devices:
   - id: d-3-19
     number: "3.19"
     chapter: 3
-    name: 미세먼지 센서 (PMS3003)
+    name: "미세먼지 센서 PMS3003"
+    brixel_name: "미세먼지 센서 (PMS3003)"
     name_en: 3.60. 미세먼지 센서 (PMS3003)
     description: PMS7003 보다 조금 오래된 모델의 미세먼지 센서예요. 센서에 딸린 어댑터를 보드에 4핀으로 연결해요.
     interface: UART
@@ -1544,7 +1578,8 @@ devices:
   - id: d-3-20
     number: "3.20"
     chapter: 3
-    name: CO2 센서 (ZE19D)
+    name: "이산화탄소 센서 Z219D"
+    brixel_name: "CO2 센서 (ZE19D)"
     name_en: 3.61. CO2 센서 (ZE19D)
     description: 공기 중 이산화탄소(CO2) 농도를 ppm 으로 알려 주는 센서예요. 교실 환기가 필요한지 판단할 때 써요.
     interface: UART
@@ -1590,7 +1625,8 @@ devices:
   - id: d-3-21
     number: "3.21"
     chapter: 3
-    name: 지문 센서 (AS608)
+    name: "지문 센서 AS608"
+    brixel_name: "지문 센서 (AS608)"
     name_en: Fingerprint Sensor (AS608)
     description: 생체 인식을 위한 AS608 칩의 광학 지문 센서.
     interface: Digital (UART)
@@ -1641,7 +1677,8 @@ devices:
   - id: d-4-01
     number: "4.01"
     chapter: 4
-    name: 가변저항
+    name: "회전(가변저항) 센서"
+    brixel_name: "가변저항"
     name_en: Potentiometer
     description: 아날로그 입력용 가변저항(회전식).
     interface: Analog
@@ -1684,7 +1721,8 @@ devices:
   - id: d-4-02
     number: "4.02"
     chapter: 4
-    name: 연속 회전 가변저항
+    name: "무한 회전 센서"
+    brixel_name: "연속 회전 가변저항"
     name_en: Continuous Rotation Potentiometer
     description: 연속 회전 가변저항(무한 회전).
     interface: Analog
@@ -1727,7 +1765,8 @@ devices:
   - id: d-4-03
     number: "4.03"
     chapter: 4
-    name: 슬라이더 가변저항
+    name: "슬라이더 센서"
+    brixel_name: "슬라이더 가변저항"
     name_en: Slider Switch Potentiometer
     description: 선형 아날로그 입력을 위한 슬라이더형 가변저항.
     interface: Analog
@@ -1814,7 +1853,8 @@ devices:
   - id: d-4-05
     number: "4.05"
     chapter: 4
-    name: 조도 센서 (LDR)
+    name: "빛 센서(조도)"
+    brixel_name: "조도 센서 (LDR)"
     name_en: Light Sensor (LDR)
     description: 광의존성 저항(LDR)은 빛의 강도에 따라 저항이 변합니다.
     interface: Analog
@@ -1857,7 +1897,8 @@ devices:
   - id: d-4-06
     number: "4.06"
     chapter: 4
-    name: 아날로그 터치 센서
+    name: "아날로그 터치 센서(4채널 패드)"
+    brixel_name: "아날로그 터치 센서"
     name_en: Analog Touch Sensor
     description: 단일 아날로그 핀에 4개의 고유 터치 입력이 있는 정전식 터치 센서.
     interface: Analog
@@ -1900,7 +1941,8 @@ devices:
   - id: d-4-07
     number: "4.07"
     chapter: 4
-    name: FSR 압력 센서
+    name: "압력(FSR) 센서 기판"
+    brixel_name: "FSR 압력 센서"
     name_en: FSR Sensor
     description: 압력 감지 저항 - 물리적 압력에 따라 저항이 변합니다.
     interface: Analog
@@ -1987,7 +2029,8 @@ devices:
   - id: d-4-09
     number: "4.09"
     chapter: 4
-    name: NTC 온도 센서
+    name: "NTC 온도 센서 기판"
+    brixel_name: "NTC 온도 센서"
     name_en: NTC Temperature Sensor
     description: 온도 측정을 위한 NTC(부온도 계수) 서미스터.
     interface: Analog
@@ -2031,7 +2074,8 @@ devices:
   - id: d-4-10
     number: "4.10"
     chapter: 4
-    name: 사운드 센서·마이크
+    name: "소리 센서(마이크)"
+    brixel_name: "사운드 센서·마이크"
     name_en: Sound Sensor | Microphone
     description: 소리 레벨을 감지하는 사운드 센서/마이크 모듈.
     interface: Analog
@@ -2075,7 +2119,8 @@ devices:
   - id: d-4-11
     number: "4.11"
     chapter: 4
-    name: 미세먼지 센서
+    name: "미세먼지 센서 기판"
+    brixel_name: "미세먼지 센서"
     name_en: Fine Dust Sensor
     description: 대기질 모니터링을 위한 미세먼지(PM) 센서.
     interface: Analog
@@ -2120,7 +2165,8 @@ devices:
   - id: d-4-12
     number: "4.12"
     chapter: 4
-    name: 자외선 센서 V2 (GUVA-S12SD)
+    name: "자외선(UV) 센서"
+    brixel_name: "자외선 센서 V2 (GUVA-S12SD)"
     name_en: 3.48. 자외선 센서 V2 (GUVA-S12SD)
     description: 햇빛 속 자외선(UV)의 세기를 전압으로 알려 주는 센서예요. 전압이 높을수록 자외선이 강해요.
     interface: Analog
@@ -2164,7 +2210,8 @@ devices:
   - id: d-4-13
     number: "4.13"
     chapter: 4
-    name: pH 센서 (E-201-C 프로브 + 변환 모듈)
+    name: "pH 센서 기판"
+    brixel_name: "pH 센서 (E-201-C 프로브 + 변환 모듈)"
     name_en: 3.49. pH 센서 (E-201-C 프로브 + 변환 모듈)
     description: 물이 산성인지 염기성(알칼리성)인지 pH 값으로 알려 주는 센서예요. 사용 전에 꼭 보정(맞춤)이 필요해요.
     interface: Analog
@@ -2209,7 +2256,8 @@ devices:
   - id: d-4-14
     number: "4.14"
     chapter: 4
-    name: 전기전도도(TDS) 센서
+    name: "전기 전도도(TDS) 센서 기판"
+    brixel_name: "전기전도도(TDS) 센서"
     name_en: 3.50. 전기전도도(TDS) 센서
     description: 물에 녹아 있는 물질의 양(TDS, ppm)을 전기가 통하는 정도로 알려 주는 센서예요.
     interface: Analog
@@ -2253,7 +2301,8 @@ devices:
   - id: d-4-15
     number: "4.15"
     chapter: 4
-    name: 탁도 센서 (TSW-30)
+    name: "탁도 센서 기판"
+    brixel_name: "탁도 센서 (TSW-30)"
     name_en: 3.51. 탁도 센서 (TSW-30)
     description: 물이 얼마나 흐린지(탁한 정도)를 빛이 통과하는 양으로 알려 주는 센서예요. 맑을수록 전압이 높아요.
     interface: Analog
@@ -2297,7 +2346,8 @@ devices:
   - id: d-4-16
     number: "4.16"
     chapter: 4
-    name: 빗물 감지 센서
+    name: "물 감지(빗살 전극) 센서"
+    brixel_name: "빗물 감지 센서"
     name_en: Rain Sensor
     description: 센서 판의 노출된 무늬(트레이스)에 빗물이 닿으면 저항이 줄어 아날로그 값이 올라가는 빗물 감지 센서. 젖은 면적이 넓을수록 값이 커져 비의 세기를 짐작할 수 있다.
     interface: Analog
@@ -2340,7 +2390,8 @@ devices:
   - id: d-4-17
     number: "4.17"
     chapter: 4
-    name: 진동 센서 (아날로그, 피에조)
+    name: "진동 센서 기판"
+    brixel_name: "진동 센서 (아날로그, 피에조)"
     name_en: 3.53. 진동 센서 (아날로그, 피에조)
     description: 두드리거나 흔들릴 때 생기는 진동을 전압으로 알려 주는 센서예요. 값이 순간적으로 확 튀어요.
     interface: Analog
@@ -2383,7 +2434,8 @@ devices:
   - id: d-4-18
     number: "4.18"
     chapter: 4
-    name: 전류 센서 1A (ACS712 계열)
+    name: "전류 센서(1A)"
+    brixel_name: "전류 센서 1A (ACS712 계열)"
     name_en: 3.54. 전류 센서 1A (ACS712 계열)
     description: 전선에 흐르는 전류의 세기를 알려 주는 센서예요. 전류가 0일 때 출력은 전원 전압의 절반쯤이에요.
     interface: Analog
@@ -2426,7 +2478,8 @@ devices:
   - id: d-4-19
     number: "4.19"
     chapter: 4
-    name: 전압 센서 (분압 5:1)
+    name: "전압 센서"
+    brixel_name: "전압 센서 (분압 5:1)"
     name_en: 3.55. 전압 센서 (분압 5:1)
     description: 건전지나 배터리의 전압을 안전하게 재는 센서예요. 입력 전압을 5분의 1로 줄여서 ESP32 가 읽어요.
     interface: Analog
@@ -2470,7 +2523,8 @@ devices:
   - id: d-4-20
     number: "4.20"
     chapter: 4
-    name: 고온 센서 (K형 열전대)
+    name: "고온 센서 기판"
+    brixel_name: "고온 센서 (K형 열전대)"
     name_en: 3.58. 고온 센서 (K형 열전대)
     description: K형 열전대 프로브로 수백 °C 까지 재는 고온 센서. 모듈 안의 증폭 회로가 온도를 아날로그 전압(S 핀)으로 내보낸다 — 얼음물·끓는 물 두 점으로 보정해 °C 로 바꾼다.
     interface: Analog
@@ -2514,7 +2568,8 @@ devices:
   - id: d-4-21
     number: "4.21"
     chapter: 4
-    name: MQ2 가스 센서
+    name: "가스 센서 MQ-2(LPG·연기)"
+    brixel_name: "MQ2 가스 센서"
     name_en: MQ2 Gas Sensor
     description: LPG, 연기를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2558,7 +2613,8 @@ devices:
   - id: d-4-22
     number: "4.22"
     chapter: 4
-    name: MQ3 가스 센서
+    name: "가스 센서 MQ-3(알코올)"
+    brixel_name: "MQ3 가스 센서"
     name_en: MQ3 Gas Sensor
     description: 알코올을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2602,7 +2658,8 @@ devices:
   - id: d-4-23
     number: "4.23"
     chapter: 4
-    name: MQ4 가스 센서
+    name: "가스 센서 MQ-4(메탄)"
+    brixel_name: "MQ4 가스 센서"
     name_en: MQ4 Gas Sensor
     description: 메탄을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2646,7 +2703,8 @@ devices:
   - id: d-4-24
     number: "4.24"
     chapter: 4
-    name: MQ5 가스 센서
+    name: "가스 센서 MQ-5(LPG·천연가스)"
+    brixel_name: "MQ5 가스 센서"
     name_en: MQ5 Gas Sensor
     description: LPG, 천연가스를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2690,7 +2748,8 @@ devices:
   - id: d-4-25
     number: "4.25"
     chapter: 4
-    name: MQ6 가스 센서
+    name: "가스 센서 MQ-6(LPG·부탄)"
+    brixel_name: "MQ6 가스 센서"
     name_en: MQ6 Gas Sensor
     description: LPG, 부탄을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2734,7 +2793,8 @@ devices:
   - id: d-4-26
     number: "4.26"
     chapter: 4
-    name: MQ7 가스 센서
+    name: "가스 센서 MQ-7(일산화탄소)"
+    brixel_name: "MQ7 가스 센서"
     name_en: MQ7 Gas Sensor
     description: 일산화탄소를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2778,7 +2838,8 @@ devices:
   - id: d-4-27
     number: "4.27"
     chapter: 4
-    name: MQ8 가스 센서
+    name: "가스 센서 MQ-8(수소)"
+    brixel_name: "MQ8 가스 센서"
     name_en: MQ8 Gas Sensor
     description: 수소를 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2822,7 +2883,8 @@ devices:
   - id: d-4-28
     number: "4.28"
     chapter: 4
-    name: MQ9 가스 센서
+    name: "가스 센서 MQ-9(일산화탄소·메탄)"
+    brixel_name: "MQ9 가스 센서"
     name_en: MQ9 Gas Sensor
     description: CO, 메탄을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2866,7 +2928,8 @@ devices:
   - id: d-4-29
     number: "4.29"
     chapter: 4
-    name: MQ135 가스 센서
+    name: "가스 센서 MQ-135(공기질)"
+    brixel_name: "MQ135 가스 센서"
     name_en: MQ135 Gas Sensor
     description: 대기질을 감지하는 가스 센서. 가스 농도에 비례하는 아날로그 출력.
     interface: Analog
@@ -2910,7 +2973,8 @@ devices:
   - id: d-4-30
     number: "4.30"
     chapter: 4
-    name: 자석 감지 센서
+    name: "자기 감지 센서"
+    brixel_name: "자석 감지 센서"
     name_en: Magnet Sensor
     description: 홀 소자로 자석의 자기장을 감지하는 아날로그 센서. 자석이 가까울수록 값이 기준에서 크게 바뀌고, N극·S극에 따라 오르내리는 방향이 다르다.
     interface: Analog
@@ -2953,7 +3017,8 @@ devices:
   - id: d-5-01
     number: "5.01"
     chapter: 5
-    name: I2C 온습도 센서 (SHT30)
+    name: "온습도 센서 SHT31(I2C)"
+    brixel_name: "I2C 온습도 센서 (SHT30)"
     name_en: Temp & Humidity I2C (SHT30)
     description: SHT30 칩(주소 0x44)을 사용하는 I2C 온습도 센서.
     interface: Serial I2C
@@ -3001,7 +3066,8 @@ devices:
   - id: d-5-02
     number: "5.02"
     chapter: 5
-    name: 무게 센서 (HX711)
+    name: "무게 센서 HX711 모듈(I2C)"
+    brixel_name: "무게 센서 (HX711)"
     name_en: Weight Sensor (HX711)
     description: 로드셀 무게 모듈. 모듈 안의 마이컴이 무게(g)를 계산해 I2C(주소 0x63)로 보내 줍니다 — 3바이트 [0xFF, 상위, 하위] , 무게 = 상위×256 + 하위. 모듈의 PEEL 버튼 = 영점, CALIBRATE = 보정.
     interface: I2C (주소 0x63, 100kHz)
@@ -3047,7 +3113,8 @@ devices:
   - id: d-5-03
     number: "5.03"
     chapter: 5
-    name: 비접촉 온도 센서 (MLX90614)
+    name: "비접촉 온도 센서(I2C)"
+    brixel_name: "비접촉 온도 센서 (MLX90614)"
     name_en: Non-Contact Temp Sensor (MLX90614)
     description: MLX90614 칩을 사용하는 적외선 비접촉 온도 센서.
     interface: Serial I2C
@@ -3096,7 +3163,8 @@ devices:
   - id: d-5-04
     number: "5.04"
     chapter: 5
-    name: RTC·실시간 시계
+    name: "실시간 시계 DS1307(I2C)"
+    brixel_name: "RTC·실시간 시계"
     name_en: RTC | Real Time Clock
     description: 정확한 시간 유지를 위한 DS3231 칩의 실시간 시계 모듈.
     interface: Serial I2C
@@ -3146,7 +3214,8 @@ devices:
   - id: d-5-05
     number: "5.05"
     chapter: 5
-    name: RGB 색상 센서 (TCS34725)
+    name: "색 센서 TCS34725(I2C)"
+    brixel_name: "RGB 색상 센서 (TCS34725)"
     name_en: RGB Color Sensor (TCS34725)
     description: 색상 값 감지를 위한 TCS34725 칩의 RGB 색상 센서.
     interface: Serial I2C
@@ -3196,7 +3265,8 @@ devices:
   - id: d-5-06
     number: "5.06"
     chapter: 5
-    name: 6축 자이로 (MPU6050)
+    name: "6축 자이로·가속도 센서 MPU6050(I2C)"
+    brixel_name: "6축 자이로 (MPU6050)"
     name_en: 6-Axis Gyro (MPU6050)
     description: "MPU6050을 사용하는 6축 MEMS 센서: 3축 가속도계 + 3축 자이로스코프."
     interface: Serial I2C
@@ -3246,7 +3316,8 @@ devices:
   - id: d-5-07
     number: "5.07"
     chapter: 5
-    name: 심박 센서 (MAX30102)
+    name: "심박·산소포화도 센서 MAX30102(I2C)"
+    brixel_name: "심박 센서 (MAX30102)"
     name_en: Heart Rate Sensor (MAX30102)
     description: MAX30102 칩을 사용하는 심박수 및 혈중 산소 센서.
     interface: Serial I2C
@@ -3296,7 +3367,8 @@ devices:
   - id: d-5-08
     number: "5.08"
     chapter: 5
-    name: 기압 센서 (BMP280)
+    name: "기압·고도 센서 BMP280(I2C)"
+    brixel_name: "기압 센서 (BMP280)"
     name_en: Pressure Sensor (BMP280)
     description: BMP280 칩을 사용하는 기압 및 고도 센서.
     interface: Serial I2C
@@ -3346,7 +3418,8 @@ devices:
   - id: d-5-09
     number: "5.09"
     chapter: 5
-    name: 거리 센서 (VL53L0X)
+    name: "거리 센서 VL53L0X(I2C)"
+    brixel_name: "거리 센서 (VL53L0X)"
     name_en: Distance Sensor (VL53L0X)
     description: VL53L0X 칩을 사용하는 TOF(비행 시간) 레이저 거리 센서.
     interface: Serial I2C
@@ -3396,7 +3469,8 @@ devices:
   - id: d-5-10
     number: "5.10"
     chapter: 5
-    name: 제스처 센서 (APDS9960)
+    name: "제스처·색·근접 센서 APDS-9960(I2C)"
+    brixel_name: "제스처 센서 (APDS9960)"
     name_en: Gesture Sensor (APDS9960)
     description: APDS9960 칩을 사용하는 제스처, 근접, 주변광, 색상 센서.
     interface: Serial I2C
@@ -3447,7 +3521,8 @@ devices:
   - id: d-5-11
     number: "5.11"
     chapter: 5
-    name: 공기질 센서 (SGP30)
+    name: "공기질 센서 SGP30(I2C)"
+    brixel_name: "공기질 센서 (SGP30)"
     name_en: 3.62. 공기질 센서 (SGP30)
     description: 공기 속 eCO2(등가 이산화탄소)와 TVOC(휘발성 유기화합물)를 알려 주는 I2C 센서예요. 냄새·환기 실험에 좋아요.
     interface: I2C
@@ -3493,7 +3568,8 @@ devices:
   - id: d-5-12
     number: "5.12"
     chapter: 5
-    name: 공기질 센서 (CCS811)
+    name: "이산화탄소 센서 CCS811(I2C)"
+    brixel_name: "공기질 센서 (CCS811)"
     name_en: 3.63. 공기질 센서 (CCS811)
     description: eCO2 와 TVOC 를 알려 주는 또 하나의 I2C 공기질 센서예요. SGP30 과 값을 비교해 보면 재미있어요.
     interface: I2C
@@ -3539,7 +3615,8 @@ devices:
   - id: d-6-01
     number: "6.01"
     chapter: 6
-    name: 진동 모터
+    name: "진동 모터(코인형)"
+    brixel_name: "진동 모터"
     name_en: Vibration Motor
     description: 햅틱 피드백(진동)을 위한 불균형 질량의 DC 모터.
     interface: Digital
@@ -3576,7 +3653,8 @@ devices:
   - id: d-6-02
     number: "6.02"
     chapter: 6
-    name: DC 모터
+    name: "레고 호환 DC 모터(빨강)"
+    brixel_name: "DC 모터"
     name_en: DC Motor
     description: 극성으로 방향을 제어하는 DC 모터. 듀얼 모터 드라이버(Chapter 4.10)와 함께 사용.
     interface: Digital
@@ -3629,7 +3707,8 @@ devices:
   - id: d-6-03
     number: "6.03"
     chapter: 6
-    name: 팬 모터
+    name: "팬 모터 모듈(L9110)"
+    brixel_name: "팬 모터"
     name_en: Fan Motor
     description: L9110 드라이버가 있는 DC 팬 모터. INA/INB로 회전 방향을 제어합니다.
     interface: Digital
@@ -3713,7 +3792,8 @@ devices:
   - id: d-6-05
     number: "6.05"
     chapter: 6
-    name: 서보 모터 (MG90S)
+    name: "서보모터 MG90S"
+    brixel_name: "서보 모터 (MG90S)"
     name_en: Servo Motor (MG90S)
     description: PWM을 통한 0-180° 정밀 각도 위치 제어가 가능한 회전 액추에이터.
     interface: PWM
@@ -3753,7 +3833,8 @@ devices:
   - id: d-6-06
     number: "6.06"
     chapter: 6
-    name: 긱 서보모터 (그린·그레이·오렌지 등)
+    name: "긱 서보 모터(초록, 소형)"
+    brixel_name: "긱 서보모터 (그린·그레이·오렌지 등)"
     name_en: 4.11. 긱 서보모터 (그린·그레이·오렌지 등)
     description: 보드에 바로 연결해서 쓰는 서보모터예요. 연속회전형은 펄스 폭으로 속도와 방향을, 각도형은 정해진 각도를 정해요.
     interface: PWM
@@ -3801,7 +3882,8 @@ devices:
   - id: d-6-07
     number: "6.07"
     chapter: 6
-    name: 스텝 모터
+    name: "스텝 모터 드라이버 A4988"
+    brixel_name: "스텝 모터"
     name_en: Stepper Motor
     description: 단계별 정밀 회전 제어를 위한 A4988 드라이버가 있는 스텝 모터.
     interface: Digital
@@ -3847,7 +3929,8 @@ devices:
   - id: d-6-08
     number: "6.08"
     chapter: 6
-    name: 듀얼 모터 드라이버 (PCA9685)
+    name: "듀얼 모터 드라이버(I2C, PCA9685)"
+    brixel_name: "듀얼 모터 드라이버 (PCA9685)"
     name_en: Dual Motor Driver (PCA9685)
     description: PCA9685 + L293D 듀얼 모터 드라이버. I2C 주소 0x40. 2개의 DC 모터를 독립 제어.
     interface: Serial I2C
@@ -3890,7 +3973,8 @@ devices:
   - id: d-6-09
     number: "6.09"
     chapter: 6
-    name: 16채널 서보 드라이버 (PCA9685)
+    name: "16채널 서보 드라이버(I2C)"
+    brixel_name: "16채널 서보 드라이버 (PCA9685)"
     name_en: 4.14. 16채널 서보 드라이버 (PCA9685)
     description: I2C 선 2개만으로 서보모터를 최대 16개까지 움직이는 드라이버예요. 로봇 팔·보행 로봇에 쓰여요.
     interface: I2C
@@ -3935,7 +4019,8 @@ devices:
   - id: d-6-10
     number: "6.10"
     chapter: 6
-    name: L293DD 모터 드라이버
+    name: "모터 드라이버 L293DD"
+    brixel_name: "L293DD 모터 드라이버"
     name_en: 6.10. L293DD 모터 드라이버
     description: L293DD 칩으로 DC 모터 2개(A·B)의 방향과 속도를 따로 조절하는 모터 드라이버. 커넥터는 모터 A·B 마다 2개씩(같은 모터를 어느 쪽에 꽂아도 된다)이고, 아래 2핀(GND·VM)으로 모터 전원을 따로 넣는다.
     interface: Digital + PWM
@@ -3980,7 +4065,8 @@ devices:
   - id: d-7-01
     number: "7.01"
     chapter: 7
-    name: 부저
+    name: "수동 버저"
+    brixel_name: "부저"
     name_en: Buzzer
     description: PWM 신호를 사용하여 소리/톤을 생성하는 부저 모듈.
     interface: Digital / PWM
@@ -4018,7 +4104,8 @@ devices:
   - id: d-7-02
     number: "7.02"
     chapter: 7
-    name: 전자석
+    name: "전자석 모듈"
+    brixel_name: "전자석"
     name_en: Electromagnet
     description: 전기 신호를 자기력으로 변환하여 금속 물체를 끌어당깁니다.
     interface: Digital
@@ -4055,7 +4142,8 @@ devices:
   - id: d-7-03
     number: "7.03"
     chapter: 7
-    name: 릴레이
+    name: "릴레이 모듈"
+    brixel_name: "릴레이"
     name_en: Relay
     description: 전기적으로 제어되는 전기 스위치. 로직 1=COM→NO, 로직 0=COM→NC.
     interface: Digital
@@ -4092,7 +4180,8 @@ devices:
   - id: d-7-04
     number: "7.04"
     chapter: 7
-    name: 펌프 릴레이 V2 + 워터 펌프
+    name: "펌프 릴레이 V2"
+    brixel_name: "펌프 릴레이 V2 + 워터 펌프"
     name_en: 4.12. 펌프 릴레이 V2 + 워터 펌프
     description: 디지털 신호 하나로 워터 펌프를 켜고 끄는 모듈이에요. 릴레이와 펌프 구동 회로가 하나로 합쳐져 있어요.
     interface: Digital
@@ -4130,7 +4219,8 @@ devices:
   - id: d-7-05
     number: "7.05"
     chapter: 7
-    name: MP3 플레이어
+    name: "MP3 플레이어 모듈(KT403A)"
+    brixel_name: "MP3 플레이어"
     name_en: MP3 Player
     description: TF 카드에서 오디오 파일을 재생하기 위한 KT403A 칩의 MP3 플레이어 모듈.
     interface: Serial UART
@@ -4172,7 +4262,8 @@ devices:
   - id: d-8-01
     number: "8.01"
     chapter: 8
-    name: IR 수신기
+    name: "적외선 수신 모듈"
+    brixel_name: "IR 수신기"
     name_en: IR Receiver
     description: 리모컨 응용을 위한 VS1838 포토다이오드를 사용하는 적외선 수신기.
     interface: Digital
@@ -4216,7 +4307,8 @@ devices:
   - id: d-8-02
     number: "8.02"
     chapter: 8
-    name: IR 송신기
+    name: "적외선 송신 모듈"
+    brixel_name: "IR 송신기"
     name_en: IR Transmitter
     description: IR 신호(리모컨)를 전송하기 위한 적외선 송신기.
     interface: Digital
@@ -4257,7 +4349,8 @@ devices:
   - id: d-8-03
     number: "8.03"
     chapter: 8
-    name: RF433 수신기
+    name: "433MHz 무선 수신 모듈"
+    brixel_name: "RF433 수신기"
     name_en: RF433 Receiver
     description: 433MHz RF 무선 수신 모듈.
     interface: Digital
@@ -4295,7 +4388,8 @@ devices:
   - id: d-8-04
     number: "8.04"
     chapter: 8
-    name: RF433 송신기
+    name: "433MHz 무선 송신 모듈"
+    brixel_name: "RF433 송신기"
     name_en: RF433 Transmitter
     description: 433MHz RF 무선 송신 모듈.
     interface: Digital
@@ -4413,7 +4507,8 @@ devices:
   - id: d-8-07
     number: "8.07"
     chapter: 8
-    name: WiFi (ESP12E 모듈)
+    name: "와이파이 모듈(ESP-12E)"
+    brixel_name: "WiFi (ESP12E 모듈)"
     name_en: WiFi (ESP12E Module)
     description: UART AT 명령을 통해 무선 인터넷 연결을 제공하는 ESP12E(ESP8266EX) WiFi 모듈.
     interface: Serial UART
@@ -4455,7 +4550,8 @@ devices:
   - id: d-8-08
     number: "8.08"
     chapter: 8
-    name: GPS
+    name: "GPS 모듈"
+    brixel_name: "GPS"
     name_en: GPS
     description: 위치(위도, 경도) 및 시간 데이터를 위한 GPS 모듈.
     interface: Serial UART
@@ -4498,7 +4594,8 @@ devices:
   - id: d-8-09
     number: "8.09"
     chapter: 8
-    name: TF 카드 어댑터 V2
+    name: "마이크로 SD 카드 어댑터 V2"
+    brixel_name: "TF 카드 어댑터 V2"
     name_en: 5.10. TF 카드 어댑터 V2
     description: 마이크로SD(TF) 카드에 파일을 저장하고 읽는 모듈이에요. 센서 값을 기록하는 데이터 로거를 만들 수 있어요.
     interface: SPI

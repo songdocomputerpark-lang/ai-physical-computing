@@ -2,7 +2,7 @@
 # 제목·설명·배선(parts)·실습 방법(practice)은 이 사이트가 적었어요. 핀은 브릭셀 ESP32 실드 V3 규칙 그대로예요(교과서 예제와 핀이 다를 수 있어요).
 # 만든 방법: scripts/kit/generate-kit.mjs — 다시 돌려도 이 파일은 건너뛰어요(--force를 줄 때만 덮어써요). 사람이 고친 글은 이 파일에 직접 적어요.
 # virtual: full 가상 보드에서 끝까지 / partial 돌지만 일부 모습이 달라요 / real-only 실제 보드에서만(까닭은 virtual_reason).
-title: "4.12 자외선 센서 V2 (GUVA-S12SD) — 2단계: UV 지수와 오늘의 단계"
+title: "4.12 자외선(UV) 센서 — 2단계: UV 지수와 오늘의 단계"
 description: 전압(mV)을 100으로 나누면 UV 지수가 돼요. (근사식이라 대략적인 값이에요) 3 미만 낮음, 6 미만 보통, 8 미만 높음, 그 이상 매우 높음으로 나눠요.
 difficulty: 2
 tags:
@@ -23,7 +23,7 @@ virtual_ok: true
 parts:
   - part: sensor-analog
     pin: 32
-    label: 자외선 센서
+    label: "자외선(UV) 센서"
   - part: lcd-i2c
     id: lcd
     pins:

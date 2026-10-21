@@ -125,7 +125,7 @@ export function renderFirmwareFlasherHtml(options: FirmwareFlasherMarkupOptions)
     '<div class="fw__run" data-firmware-run>',
     '<div class="fw__options">',
     `<label class="fw__check"><input type="checkbox" data-firmware-erase aria-describedby="${eraseHintId}"><span>굽기 전에 보드를 모두 지우기</span></label>`,
-    `<p class="fw__hint" id="${eraseHintId}">처음 MicroPython을 넣는 보드이거나, 굽고 나서도 보드가 이상하게 움직이면 켜요. 보드에 저장한 파일(main.py 등)도 지워지고 시간이 더 걸려요.</p>`,
+    `<p class="fw__hint" id="${eraseHintId}">새 보드라면 켜도 돼요(지울 파일이 없어요). 이미 쓰던 보드라면 켜지 마세요 — 보드에 저장한 파일(main.py 등)도 지워지고 시간이 더 걸려요. 굽고 나서도 보드가 이상하게 움직일 때만 켜고 다시 구워요.</p>`,
     '</div>',
     '<div class="fw__actions">',
     '<button type="button" class="button button--primary button--large" data-firmware-start disabled>펌웨어 굽기 시작</button>',

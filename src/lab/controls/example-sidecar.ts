@@ -19,6 +19,7 @@
  *   parts        (ESP32 예제) 배선 목록 — [{ part: touch-digital, pin: 17 }] 모양(src/lab/modules/board/wiring-spec.ts, README 7.4).
  *                틀린 줄은 빼고 까닭을 partErrors에 모은다(빌드는 경고만 — PD-35)
  *   practice     (선택) 실습 방법 — 실습실에서 무엇을 누르고 무엇을 보는지 단계 목록(ESP32 실습실이 보드 그림 위에 보인다, P3-02)
+ *   virtual      (ESP32 키트 도감 예제, 판 1.6.0) 가상 보드에서 되는 정도 — full | partial | real-only. partial·real-only는 실습실이 [실행]을 회색/노란 안내로 알린다. 적지 않으면 full
  *   unit·difficulty·virtual_ok·comm   예제 갤러리(P4-11) 태그 — 단원 1~4, 난이도 1~3, 하드웨어 없이 되나, 통신 방식 목록.
  *                규약과 합치는 규칙은 src/lab/gallery/facets.ts(차시가 싣는 예제는 차시가 먼저, 가리키기만 한 예제는 사이드카가 먼저). 모르면 적지 않는다 — 단 difficulty는 차시에 싣지 않은 예제면 꼭
  *   smoke        예제 스모크 테스트(tests/e2e/examples-smoke.spec.ts)가 기대하는 결과. 이 파서는 읽지 않고 그 테스트만 본다.
@@ -27,6 +28,7 @@
 import YAML from 'yaml';
 import { normalizeCommKinds } from '../gallery/facets.ts';
 import type { WiringEntry } from '../modules/board/part-types.ts';
+import { exampleVirtualOf, type ExampleVirtual } from './examples.ts';
 import { normalizeWiringSpecs } from '../modules/board/wiring-spec.ts';
 
 export const SIDECAR_SUFFIX = '.meta.yaml';
@@ -51,6 +53,8 @@ export interface ExampleSidecar {
   readonly difficulty: number | null;
   readonly virtualOk: boolean | null;
   readonly comm: readonly string[];
+  /** (판 1.6.0) 가상 보드에서 되는 정도 — partial·real-only만 이 칸이 있다(적지 않았거나 full이면 끝까지 되는 예제라 칸이 없다) */
+  readonly virtual?: ExampleVirtual;
 }
 
 /** 정수 칸 읽기(범위 밖·정수가 아니면 null) */
@@ -99,6 +103,7 @@ export function parseExampleSidecar(source: string): ExampleSidecar {
     difficulty: intInRange(data.difficulty, 1, 3),
     virtualOk: typeof data.virtual_ok === 'boolean' ? data.virtual_ok : null,
     comm: normalizeCommKinds(data.comm),
+    ...(exampleVirtualOf(data.virtual) === undefined ? {} : { virtual: exampleVirtualOf(data.virtual) }),
   };
 }
 

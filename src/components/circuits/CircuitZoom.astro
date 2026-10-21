@@ -1,0 +1,17 @@
+---
+/**
+ * 회로 그림의 [그림 크게 보기]를 이 쪽 안의 크게 보기 창으로 여는 부품(판 1.6.0 C176 — 걷기 보고 walk-kit-user 10).
+ *
+ * 회로 그림 링크(circuit-html.ts)는 data-figure-zoom 표시가 있고, 이 부품이 그 링크를 가진 쪽에 창 모양(src/styles/figure-zoom.css)과
+ * 여는 스크립트(src/components/lesson/figure-zoom.ts — 차시 그림과 같은 창)를 넣는다. 회로 그림을 그리는 쪽(CircuitFigure.astro·키트 장치 쪽)이 한 번 둔다.
+ * 스크립트는 쪽마다 한 번만 실려 여러 곳에 둬도 창은 하나다. 차시 쪽은 LessonBody가 이미 같은 창을 설치한다(한 번 더 설치돼도 먼저 연 쪽이 이벤트를 막아 두 번 열리지 않는다).
+ * 화면에는 아무것도 그리지 않는다.
+ */
+import '../../styles/figure-zoom.css';
+---
+
+<script>
+  import { installFigureZoom } from '../lesson/figure-zoom.ts';
+
+  installFigureZoom();
+</script>

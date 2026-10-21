@@ -55,9 +55,10 @@ describe('규칙 표', () => {
     }
   });
 
-  it('쓸 수 있는 상자는 교과서 꼭지 14종 + 정답', () => {
-    expect(BOOK_ALLOWED_BOXES).toHaveLength(15);
+  it('쓸 수 있는 상자는 교과서 꼭지 14종 + 사이트 안내(웹안내, 판 1.6.0) + 정답', () => {
+    expect(BOOK_ALLOWED_BOXES).toHaveLength(16);
     expect(BOOK_ALLOWED_BOXES).toContain('bubble');
+    expect(BOOK_ALLOWED_BOXES).toContain('webnote');
     expect(BOOK_ALLOWED_BOXES).toContain('answer');
     expect(BOOK_ALLOWED_BOXES).not.toContain('teacher');
   });
