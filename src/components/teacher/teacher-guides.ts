@@ -152,6 +152,25 @@ export function splitGuideSections(html: string): { intro: string; sections: Tea
   return { intro: html.slice(0, starts[0]), sections };
 }
 
+/** 지도 요약 모음 쪽에서 ### 제목 앞에 붙이는 차시 번호의 class(모양은 그 쪽 스타일이 준다) */
+export const GUIDE_HEADING_LABEL_CLASS = 'guide__h3-label';
+
+/**
+ * 모음 쪽(/teacher/guides/uN/)에서는 "평가 포인트" 같은 제목이 차시마다 되풀이된다. 바로 가기로 한 제목에 닿으면 그 제목이 화면 맨 위에 붙고 차시 이름은
+ * 위로 사라져 어느 차시인지 알 수 없었다(판 1.6.0 C175, 걷기 B-48). 그래서 맨 위 단계 <h3>의 글 앞에 차시 번호를 붙인다 — "2-1-2 평가 포인트".
+ * 상자 안의 <h3>과 id·바로 가기 링크는 그대로다. 제목 글을 읽는 쪽(extractTeacherGuide의 sections·isChangeSection)은 이 함수를 부르기 전의 글을 쓴다.
+ */
+export function labelGuideHeadings(html: string, label: string): string {
+  const safe = label.replace(/&/gu, '&amp;').replace(/</gu, '&lt;').replace(/>/gu, '&gt;');
+  const starts = findMatches(html, /<h3\b[^>]*>/iu).filter((match) => match.topLevel);
+  let out = html;
+  for (const match of [...starts].reverse()) {
+    const at = match.index + match.text.length;
+    out = `${out.slice(0, at)}<span class="${GUIDE_HEADING_LABEL_CLASS}">${safe}</span> ${out.slice(at)}`;
+  }
+  return out;
+}
+
 /**
  * 차시 본문 HTML(entry.rendered.html)에서 교사용 접기를 꺼낸다. 교사용 칸이나 :::교사용 상자가 없으면 undefined.
  * 사이트 뿌리 주소(/images/…, /learn/…)에는 base를 붙이고, 그림은 늦게 받게 한다(차시 페이지와 같은 처리 — lesson-html.ts).

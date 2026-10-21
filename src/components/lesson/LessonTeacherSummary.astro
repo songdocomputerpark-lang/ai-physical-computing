@@ -1,0 +1,79 @@
+---
+/**
+ * 교사용 접기 맨 위 "한눈에 보기" 줄(판 1.6.0, DECISIONS C175) — 퀴즈 정답과 평가 포인트·채점 기준·지도 요약으로 가는 길.
+ * 내용은 teacher-summary.ts가 만든다. 접기 안이라 사이트 검색 색인에서 빠진다(상자의 data-pagefind-ignore).
+ * 바로 가기는 접기 안의 ### 제목이 있을 때만 보인다("있는 것만"). 접기를 연 채라 링크가 곧바로 그 자리로 간다.
+ */
+import type { LessonData } from '../../config/content-schemas.ts';
+import type { TeacherHeading } from './lesson-html.ts';
+import { quizAnswerKey, teacherSummaryLinks } from './teacher-summary.ts';
+
+interface Props {
+  quiz: LessonData['quiz'];
+  headings: readonly TeacherHeading[];
+  /** 제목 id가 겹치지 않게 붙이는 앞머리 */
+  idPrefix: string;
+}
+
+const { quiz, headings, idPrefix } = Astro.props;
+const links = teacherSummaryLinks(headings);
+const answers = quizAnswerKey(quiz);
+const keyId = `${idPrefix}-quiz-key`;
+---
+
+{
+  (answers.length > 0 || links.length > 0) && (
+    <div class="lesson-teacher-summary" data-lesson-teacher-summary>
+      <p class="lesson-teacher-summary__links">
+        <strong>한눈에 보기</strong>
+        {answers.length > 0 && (
+          <>
+            {' '}
+            <a href={`#${keyId}`}>퀴즈 정답 {answers.length}개</a>
+          </>
+        )}
+        {links.map((link) => (
+          <>
+            {' · '}
+            <a href={link.href}>{link.label}</a>
+          </>
+        ))}
+      </p>
+      {answers.length > 0 && (
+        <p class="lesson-teacher-summary__key" id={keyId}>
+          <strong>확인 퀴즈 정답</strong>
+          {answers.map((answer, index) => (
+            <>
+              {index > 0 ? ' · ' : ' '}
+              <span class="lesson-teacher-summary__answer">
+                {answer.number}번 {answer.mark} {answer.text}
+              </span>
+            </>
+          ))}
+        </p>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .lesson-teacher-summary {
+    display: grid;
+    gap: var(--space-2);
+    margin-block: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson-teacher-summary p {
+    margin: 0;
+  }
+
+  .lesson-teacher-summary__answer {
+    overflow-wrap: anywhere;
+  }
+</style>

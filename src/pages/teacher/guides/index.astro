@@ -29,10 +29,11 @@ const counts = {
   supplement: lessons.filter((lesson) => lesson.source === 'supplement').length,
 };
 
-/** 교사용 안내에서 바로 갈 부분(제목의 앞부분으로 찾는다 — 차시 틀 검사 lesson-rules.ts의 TEACHER_HEADINGS와 같은 이름) */
+/** 교사용 안내에서 바로 갈 부분(제목의 앞부분으로 찾는다 — 차시 틀 검사 lesson-rules.ts의 TEACHER_HEADINGS와 같은 이름, 채점 기준은 선택 칸 — 판 1.6.0 C175) */
 const JUMPS = [
   { key: '지도안 요약', label: '지도안 요약' },
   { key: '평가 포인트', label: '평가 포인트' },
+  { key: '채점 기준', label: '채점 기준' },
   { key: '자주 막히는 곳', label: '자주 막히는 곳' },
 ] as const;
 

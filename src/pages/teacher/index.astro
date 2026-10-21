@@ -5,8 +5,10 @@
  * - 자료실의 아래 페이지(지도 요약 · 성취기준과 평가 · 원고 정정 · 진짜 PC에서 돌리기 · 자주 묻는 질문) 카드 — 목록은 teacher-pages.ts
  * - 가린 편집본 교안 PDF(PD-31): 파일 이름은 src/components/lesson/handouts.ts 한 곳. public/에 파일이 있으면 [편집본 열기],
  *   없으면 "준비 중". 어느 차시가 몇 쪽을 쓰는지는 차시 md의 handouts 칸에서 빌드 때 모은다(teacher-lessons.ts의 handoutUses).
- * - 판 1.3.0: 맨 위 "수업 준비 3단계"(점검 → 차시 지도 요약 → 발표 모드) 단계 칩, 자료 카드는 통째로 눌리는 카드(.card--link)에 아이콘.
- *   처음 오신 선생님을 위한 "교사용 시작하기" 안내 줄이 3단계 위에 있고, 3단계는 발표 모드를 직접 해 볼 첫 차시(1-1-1)로 간다(R1-034).
+ * - 판 1.3.0: 맨 위 "수업 준비" 단계 칩, 자료 카드는 통째로 눌리는 카드(.card--link)에 아이콘.
+ *   처음 오신 선생님을 위한 "교사용 시작하기" 안내 줄이 단계 위에 있고, 3단계는 수업 화면을 직접 해 볼 첫 차시(1-1-1)로 간다(R1-034).
+ * - 판 1.6.0(C175): 3단계 → **4단계**(점검 → 차시 지도 요약 → 수업 화면 → 평가·과제 받는 법). 4단계는 이 쪽의 "평가 자료" 상자로 가고, 그 상자는
+ *   편집본 PDF 목록(열한 줄) 위로 올렸다(걷기 B-45: 평가로 가는 길이 쪽 한가운데라 머리 검색으로 찾았다). 상자 글의 "채점 기준이 있는 차시 수"는 빌드 때 센다.
  * - 편집본 PDF 목록이 가린 까닭 설명보다 앞에 오고, 까닭은 접어 둔다(R1-038). [그 쪽 열기]는 낭독기에서도 구분되는 이름(R1-039).
  * - 평가 자료 자리, 여러 사람이 쓰는 컴퓨터(공용 PC) 확인표(#shared-pc), 앞으로 올라올 자료
  * 원본 파일(PDF·PPTX)을 올리지 않는 방침은 PLAN §3.2·§9.3 6번(PD-31). 준비 중 상자(ComingSoon)는 사이트 검색에서 빠진다.
@@ -19,6 +21,7 @@ import { HANDOUT_DOCS, type HandoutDocId } from '../../components/lesson/handout
 import TeacherNav from '../../components/teacher/TeacherNav.astro';
 import { handoutFileExists, handoutFileSize } from '../../components/teacher/handout-files.ts';
 import { loadMarkdownDoc } from '../../components/teacher/markdown-docs.ts';
+import { squashTitle } from '../../components/teacher/teacher-guides.ts';
 import { loadCorrections } from '../../components/teacher/teacher-data.ts';
 import { TEACHER_PATHS, buildTeacherLessons, handoutUses, lessonHeading } from '../../components/teacher/teacher-lessons.ts';
 import { TEACHER_PAGES } from '../../components/teacher/teacher-pages.ts';
@@ -60,8 +63,10 @@ const esp32 = getPage('labs-esp32');
 const vision = getPage('labs-vision');
 const startTeacher = getPage('start-teacher');
 const check = getPage('start-check');
-/** 발표 모드를 직접 해 볼 차시: 기준 차시 1-1-1(없으면 첫 차시) */
+/** 수업 화면을 직접 해 볼 차시: 기준 차시 1-1-1(없으면 첫 차시) */
 const tryLesson = lessons.find((lesson) => lesson.summary.label === '1-1-1') ?? lessons[0];
+/** "### 채점 기준" 표가 교사용 칸에 있는 차시 수(판 1.6.0 C175 — 새 차시에 표를 더하면 저절로 늘어난다) */
+const rubricCount = lessons.filter((lesson) => lesson.guide?.sections.some((section) => squashTitle(section.title).startsWith('채점기준'))).length;
 
 /** 자료 카드 아이콘(teacher-pages.ts의 id) */
 const cardIcons: Record<string, 'list' | 'check-circle' | 'alert' | 'monitor' | 'lifebuoy'> = {
@@ -72,15 +77,21 @@ const cardIcons: Record<string, 'list' | 'check-circle' | 'alert' | 'monitor' | 
   faq: 'lifebuoy',
 };
 
-/** 수업 준비 3단계 — 단계 칩 */
+/** 수업 준비 4단계 — 단계 칩(판 1.6.0: 평가·과제 받는 법을 4단계로 더함) */
 const prepSteps = [
   { id: 'check', title: '교실 컴퓨터 점검', note: '카메라·보드·학교 네트워크가 되는지 봐요', href: check.href },
   { id: 'guides', title: '차시 지도 요약 보기', note: '수업할 차시의 지도 포인트를 읽어요', href: withBase(TEACHER_PATHS.guides) },
   {
     id: 'present',
-    title: '발표 모드 해 보기',
-    note: `${tryLesson?.summary.label ?? '1-1-1'} 차시에서 [발표 모드]를 눌러 프로젝터용 큰 화면을 미리 봐요`,
+    title: '수업 화면 해 보기',
+    note: `${tryLesson?.summary.label ?? '1-1-1'} 차시에서 [수업 화면]을 눌러 프로젝터용 큰 화면을 미리 봐요`,
     href: tryLesson?.summary.href ?? `${startTeacher.href}#presentation`,
+  },
+  {
+    id: 'assess',
+    title: '평가·과제 받는 법',
+    note: '채점 기준 표와, 학생 과제를 받는 방법을 봐요',
+    href: '#teacher-assessment',
   },
 ] as const;
 ---
@@ -91,9 +102,9 @@ const prepSteps = [
   <TeacherNav current="home" />
 
   <section class="teacher-section teacher-section--wide" aria-labelledby="teacher-prep" data-teacher-prep>
-    <h2 id="teacher-prep">수업 준비 3단계</h2>
+    <h2 id="teacher-prep">수업 준비 4단계</h2>
     <p class="teacher-prep__first" data-teacher-first>
-      처음 오셨다면 먼저 <a href={startTeacher.href}>{startTeacher.title}</a>(약 5분)를 읽어 보세요. 발표 모드 쓰는 법도 거기 있어요.
+      처음 오셨다면 먼저 <a href={startTeacher.href}>{startTeacher.title}</a>(약 5분)를 읽어 보세요. 수업 화면 쓰는 법도 거기 있어요.
     </p>
     <ol class="teacher-prep">
       {
@@ -134,6 +145,27 @@ const prepSteps = [
           </li>
         ))
       }
+    </ul>
+  </section>
+
+  <section class="teacher-section" aria-labelledby="teacher-assessment" data-teacher-assessment>
+    <h2 id="teacher-assessment">평가 자료</h2>
+    <p>
+      교과서 자료의 평가 계획서와 운영 계획서는 아직 없어요. 그 대신 아래 자료가 있어요.
+    </p>
+    <ul class="teacher-assessment__list">
+      <li>
+        <strong>차시마다 채점 기준 표</strong>: 관찰 항목마다 잘함·보통·노력 요함을 한 줄씩 적은 표예요. 지금 {rubricCount}개 차시에 있고, 나머지 차시는 차례로 더해 가요.{' '}
+        <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>에서 차시 아래 바로 가기 "채점 기준"을 누르거나, 차시 페이지 머리의 <strong>[선생님용]</strong>을 눌러요. 평가 포인트(자기 평가 문항·관찰할 곳)도 같은 곳에 있어요.
+      </li>
+      <li>
+        <strong>학생 과제 받는 법</strong>: 실습실의 <strong>[공유 링크]</strong>는 편집칸의 코드만 주소에 담아서, 로그인 없이 학생이 보내 준 주소를 열어 과제를 볼 수 있어요. 주소가 너무 길면{' '}
+        <strong>[.py 내려받기]</strong> 파일을 함께 내게 해요. 자세한 것은 <a href={`${withBase(TEACHER_PATHS.standards)}#methods`}>성취기준과 평가 방향의 평가 방법</a>에 있어요.
+      </li>
+      <li>
+        <a href={withBase(TEACHER_PATHS.standards)}>성취기준과 평가 방향</a>: 성취기준 15개와 이어지는 차시, 과목 교육과정의 평가 방법(과정 중심 평가, 프로젝트 과정 30% 이상, 생성형 AI 도움 표시), 성취기준마다 평가할 때 볼 것.
+        차시 {lessons.length}개를 3학점·4학점 한 학기에 나누는 <a href={`${withBase(TEACHER_PATHS.standards)}#semester`}>학기 배치 제안</a>(사이트 제안)도 있어요.
+      </li>
     </ul>
   </section>
 
@@ -203,16 +235,6 @@ const prepSteps = [
     </details>
   </section>
 
-  <section class="teacher-section" aria-labelledby="teacher-assessment">
-    <h2 id="teacher-assessment">평가 자료</h2>
-    <p>
-      교과서 자료의 평가 계획서와 운영 계획서는 아직 없어요. 그 대신 <a href={withBase(TEACHER_PATHS.standards)}>성취기준과 평가 방향</a>에 성취기준 15개, 이어지는
-      차시, 과목 교육과정의 평가 방법(과정 중심 평가, 프로젝트 과정 30% 이상, 생성형 AI 도움 표시), 성취기준마다 평가할 때 볼 것을 모았어요.
-      차시 {lessons.length}개를 3학점·4학점 한 학기에 나누는 <a href={`${withBase(TEACHER_PATHS.standards)}#semester`}>학기 배치 제안</a>(사이트 제안)도 있어요. 차시마다의 자기
-      평가 문항과 관찰할 곳은 <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>의 "평가 포인트"에 있어요.
-    </p>
-  </section>
-
   <section class="teacher-section" aria-labelledby="shared-pc">
     <h2 id="shared-pc">여러 사람이 쓰는 컴퓨터(공용 PC)에서</h2>
     <p>
@@ -272,9 +294,6 @@ const prepSteps = [
           <li>{doc.title} PDF: 쪽마다 확인을 마치면 올려요.</li>
         ))
       }
-      <li>
-        교과서 1단원 03, 04와 4단원 원고: 지금은 예제 코드를 바탕으로 사이트가 쓴 본문이에요("원고 없음" 표시). 원고를 받으면 원고 문장으로 바꿔요.
-      </li>
       <li>인터넷이 없는 교실에서 쓰는 오프라인 배포판</li>
     </ul>
     <p class="planned-note">
@@ -334,10 +353,10 @@ const prepSteps = [
     line-height: var(--leading-snug);
   }
 
-  /* 수업 준비 3단계: 번호 원(CSS 숫자 — 목록 번호는 낭독기가 알려 주므로 번호 글자는 읽히지 않게)과 한 줄 안내 */
+  /* 수업 준비 4단계(판 1.6.0): 번호 원(CSS 숫자 — 목록 번호는 낭독기가 알려 주므로 번호 글자는 읽히지 않게)과 한 줄 안내. 넓은 화면에서는 네 칸이 한 줄에 */
   .teacher-prep {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
     gap: var(--space-3);
     margin: 0;
     padding: 0;
@@ -461,7 +480,8 @@ const prepSteps = [
   }
 
   .checklist,
-  .planned-list {
+  .planned-list,
+  .teacher-assessment__list {
     display: grid;
     gap: var(--space-2);
     margin: 0;

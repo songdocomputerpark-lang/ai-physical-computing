@@ -1,0 +1,164 @@
+---
+/**
+ * "이 차시에서 할 일" 카드 세 칸(판 1.6.0, DECISIONS C174) — 제목·한 줄 소개 바로 아래에서 ① 읽기 ② 따라 하기 ③ 확인으로 바로 간다.
+ * 휴대폰에서도 제목과 함께 첫 화면에 들어오게 세 칸을 한 줄로 나란히 둔다(375px에서 칸 하나 약 105px — 제목과 한 줄 설명이 모두 짧은 이유).
+ * 글(예제 수·퀴즈 문항 수·개념 소제목 수·소요 시간)은 lesson-tasks.ts가 차시에서 센다. 링크는 같은 쪽의 칸 제목(#위치)이라 자바스크립트가 없어도 된다.
+ * 발표 모드·실습실 임베드·검색 색인에서는 빠진다.
+ */
+import Icon from '../common/Icon.astro';
+import type { LessonTasks } from './lesson-tasks.ts';
+
+interface Props {
+  tasks: LessonTasks;
+}
+
+const { tasks } = Astro.props;
+---
+
+<nav class="lesson-tasks" aria-labelledby="lesson-tasks-title" data-lesson-tasks data-present-hide data-embed-hide data-pagefind-ignore>
+  <p class="lesson-tasks__heading">
+    <span class="lesson-tasks__title" id="lesson-tasks-title">{tasks.heading}</span>
+    {tasks.time && <span class="lesson-tasks__time">{tasks.time}</span>}
+  </p>
+  <ol class="lesson-tasks__list">
+    {
+      tasks.cards.map((card, index) => (
+        <li class="lesson-tasks__item">
+          <a class="lesson-tasks__card" href={card.href} data-task={card.key}>
+            <span class="lesson-tasks__name">
+              <span class="lesson-tasks__icon">
+                <Icon name={card.icon} size="sm" />
+              </span>
+              <span>
+                <span class="lesson-tasks__step">{index + 1}</span>{' '}
+                {card.title}
+              </span>
+            </span>{' '}
+            <span class="lesson-tasks__detail">{card.detail}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .lesson-tasks {
+    margin-block: 0 var(--space-5);
+  }
+
+  .lesson-tasks__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-3);
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .lesson-tasks__title {
+    font-weight: var(--weight-bold);
+  }
+
+  .lesson-tasks__time {
+    color: var(--color-text-muted);
+  }
+
+  .lesson-tasks__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lesson-tasks__item {
+    min-width: 0;
+  }
+
+  /* 카드 하나가 통째로 눌린다(높이 44px 이상). 제목은 한 줄, 설명은 그 아래 한 줄. */
+  .lesson-tasks__card {
+    display: grid;
+    align-content: center;
+    gap: 0.125rem;
+    block-size: 100%;
+    min-block-size: var(--target-min);
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+  }
+
+  .lesson-tasks__card:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .lesson-tasks__name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    white-space: nowrap;
+  }
+
+  .lesson-tasks__icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--color-accent);
+  }
+
+  .lesson-tasks__step {
+    color: var(--color-accent-hover);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lesson-tasks__step::after {
+    content: '.';
+  }
+
+  .lesson-tasks__detail {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  /* 폭이 좁은 휴대폰(약 416px 이하)에서는 칸 하나가 105px 안팎이라 아이콘을 빼야 "2. 따라 하기"가 한 줄에 들어간다(번호가 차례를 알린다) */
+  @media (max-width: 26rem) {
+    .lesson-tasks__icon {
+      display: none;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .lesson-tasks__card {
+      padding: var(--space-3) var(--space-4);
+    }
+
+    .lesson-tasks__name {
+      font-size: var(--text-base);
+    }
+
+    .lesson-tasks__detail {
+      font-size: var(--text-sm);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .lesson-tasks__card {
+      border-color: CanvasText;
+    }
+  }
+
+  @media print {
+    .lesson-tasks {
+      display: none;
+    }
+  }
+</style>

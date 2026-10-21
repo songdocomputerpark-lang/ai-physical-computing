@@ -71,6 +71,10 @@ async function freezeDevReloads(page: Page): Promise<void> {
 /** 본문 그림(<figure> 안 사이트 SVG)을 모두 받게 하고, 고른 그림·보이는 폭을 읽는다 */
 async function readFigures(page: Page): Promise<FigureInfo[]> {
   await page.evaluate(() => {
+    // 핵심 개념 칸의 둘째 소제목부터는 접힌 상자 안에 있다(판 1.6.0 C174) — 접힌 그림은 폭이 0이라 펼친 뒤에 잰다.
+    for (const fold of document.querySelectorAll<HTMLDetailsElement>('details[data-concepts-fold]')) {
+      fold.open = true;
+    }
     for (const image of document.querySelectorAll<HTMLImageElement>('.lesson-body figure img')) {
       image.loading = 'eager';
     }

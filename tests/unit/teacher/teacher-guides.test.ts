@@ -10,6 +10,7 @@ import {
   guideIdPrefix,
   headingIdBefore,
   isChangeSection,
+  labelGuideHeadings,
   resolveRelativeUrls,
   teacherBoxBodies,
 } from '../../../src/components/teacher/teacher-guides.ts';
@@ -98,6 +99,21 @@ describe('차시 교사용 접기 꺼내기(teacher-guides.ts)', () => {
     for (const title of ['지도안 요약(50분, 사이트가 제안하는 흐름)', '평가 포인트', '자주 막히는 곳', '보충 차시를 둔 까닭', '함께 쓰는 교안 예제', '정답 한눈에 보기', '이 차시의 예제 파일 한눈에']) {
       expect(isChangeSection(title), title).toBe(false);
     }
+  });
+
+  it('모음 쪽 ### 제목 앞에 차시 번호를 붙인다 — 맨 위 단계 제목만, id·링크·제목 글 목록은 그대로(판 1.6.0 B-48)', () => {
+    const guide = extractTeacherGuide(LESSON_HTML, OPTIONS);
+    const labeled = labelGuideHeadings(guide?.html ?? '', '1-1-1');
+    // 상자 밖(맨 위 단계) 제목 셋 모두에 번호가 붙는다
+    expect(labeled.split('<span class="guide__h3-label">1-1-1</span> ')).toHaveLength(4);
+    expect(labeled).toContain(`id="${OPTIONS.idPrefix}평가-포인트">`);
+    expect(labeled).toContain(`<h3 id="${OPTIONS.idPrefix}평가-포인트"><span class="guide__h3-label">1-1-1</span> 평가 포인트</h3>`);
+    // 제목 글 목록(바로 가기 칩이 읽는 것)은 번호를 붙이기 전의 글이다
+    expect(guide?.sections.map((section) => section.title)).toEqual(['지도안 요약(50분)', '평가 포인트', '원고에서 바꾼 곳']);
+    // 상자 안의 h3은 건드리지 않고, 제목이 없으면 그대로다
+    const nested = '<div class="box"><h3 id="안쪽">안쪽 제목</h3></div><h3 id="바깥">바깥 제목</h3>';
+    expect(labelGuideHeadings(nested, 'V1')).toBe('<div class="box"><h3 id="안쪽">안쪽 제목</h3></div><h3 id="바깥"><span class="guide__h3-label">V1</span> 바깥 제목</h3>');
+    expect(labelGuideHeadings('<p>제목 없음</p>', '1-1-1')).toBe('<p>제목 없음</p>');
   });
 
   it('생성형 AI 상자는 제목·글과 바로 앞 제목의 id를 돌려준다', () => {

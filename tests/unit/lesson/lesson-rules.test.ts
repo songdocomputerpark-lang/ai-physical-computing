@@ -55,7 +55,8 @@ const BASE_SECTIONS: Sections = {
   바꿔보기: ':::바꿔보기\n1. 하나를 바꿔요.\n2. 둘을 바꿔요.\n3. 셋을 바꿔요.\n:::',
   '도전 과제': '::::도전[도전 과제: 해 보기]\n과제예요.\n\n:::힌트\n힌트예요.\n:::\n::::',
   '확인 퀴즈': '세 문제로 확인해요.\n\n::퀴즈',
-  교사용: ':::교사용\n### 지도안 요약(50분)\n요약\n\n### 평가 포인트\n- 포인트\n\n### 자주 막히는 곳\n- 막히는 곳\n:::',
+  교사용:
+    ':::교사용\n### 지도안 요약(50분)\n요약\n\n### 평가 포인트\n- 포인트\n\n### 채점 기준\n\n| 관찰 항목 | 잘함 | 보통 | 노력 요함 |\n| --- | --- | --- | --- |\n| 개념 설명 | 근거를 들어 설명함 | 설명하나 근거가 약함 | 설명하지 못함 |\n| 코드 실행 | 바꿔 실행하고 이유를 말함 | 실행만 함 | 실행하지 못함 |\n\n### 자주 막히는 곳\n- 막히는 곳\n:::',
 };
 
 function markdownOf(sections: Sections, before = ''): string {
@@ -321,6 +322,57 @@ describe('본문 8칸 규칙', () => {
     expect((await check({ sections: outside })).find((item) => item.code === 'teacher-box')?.message).toContain('상자 밖');
     const missing = withSection('교사용', ':::교사용\n### 지도안 요약\n요약\n\n### 자주 막히는 곳\n- 곳\n:::');
     expect((await check({ sections: missing })).find((item) => item.code === 'teacher-box')?.message).toContain('평가 포인트');
+  });
+
+  describe('teacher-rubric: 교사용 접기의 "### 채점 기준" 표(판 1.6.0 C175)', () => {
+    /** 채점 기준 칸만 바꾼 교사용 접기 */
+    const teacherWith = (rubric: string | undefined) =>
+      withSection(
+        '교사용',
+        `:::교사용\n### 지도안 요약(50분)\n요약\n\n### 평가 포인트\n- 포인트\n\n${rubric === undefined ? '' : `${rubric}\n\n`}### 자주 막히는 곳\n- 막히는 곳\n:::`,
+      );
+    const GOOD = '### 채점 기준\n\n| 관찰 항목 | 잘함 | 보통 | 노력 요함 |\n| --- | --- | --- | --- |\n| 하나 | 가 | 나 | 다 |\n| 둘 | 가 | 나 | 다 |';
+
+    it('채점 기준이 없으면 참고 한 줄(실패 아님), 모양이 맞으면 아무 문제도 없다', async () => {
+      const none = await check({ sections: teacherWith(undefined) });
+      expect(codes(none, 'warning')).toEqual(['teacher-rubric']);
+      expect(codes(none, 'error')).toEqual([]);
+      expect(none.find((item) => item.code === 'teacher-rubric')?.message).toContain('채점 기준');
+      expect(await check({ sections: teacherWith(GOOD) })).toEqual([]);
+      // 관찰 항목 세 줄까지는 된다.
+      expect(await check({ sections: teacherWith(`${GOOD}\n| 셋 | 가 | 나 | 다 |`) })).toEqual([]);
+    });
+
+    it('표가 없거나 머리줄이 다르면 오류 — 지금 적힌 머리줄을 알려 준다', async () => {
+      const noTable = await check({ sections: teacherWith('### 채점 기준\n\n표 대신 글만 있어요.') });
+      expect(codes(noTable, 'error')).toEqual(['teacher-rubric']);
+      expect(noTable.find((item) => item.code === 'teacher-rubric')?.message).toContain('표가 없어요');
+
+      const wrongHead = GOOD.replace('| 관찰 항목 | 잘함 | 보통 | 노력 요함 |', '| 관찰 항목 | 상 | 중 | 하 |');
+      const wrong = await check({ sections: teacherWith(wrongHead) });
+      expect(codes(wrong, 'error')).toEqual(['teacher-rubric']);
+      expect(wrong.find((item) => item.code === 'teacher-rubric')?.message).toContain('| 관찰 항목 | 상 | 중 | 하 |');
+
+      const swapped = GOOD.replace('| 관찰 항목 | 잘함 | 보통 | 노력 요함 |', '| 관찰 항목 | 보통 | 잘함 | 노력 요함 |');
+      expect(codes(await check({ sections: teacherWith(swapped) }), 'error')).toEqual(['teacher-rubric']);
+    });
+
+    it('관찰 항목이 1개거나 4개 이상이면, 빈 칸이 있으면 오류', async () => {
+      const one = await check({ sections: teacherWith(GOOD.replace('\n| 둘 | 가 | 나 | 다 |', '')) });
+      expect(one.find((item) => item.code === 'teacher-rubric')?.message).toContain('1개');
+      const four = await check({ sections: teacherWith(`${GOOD}\n| 셋 | 가 | 나 | 다 |\n| 넷 | 가 | 나 | 다 |`) });
+      expect(four.find((item) => item.code === 'teacher-rubric')?.message).toContain('4개');
+      const empty = await check({ sections: teacherWith(GOOD.replace('| 둘 | 가 | 나 | 다 |', '| 둘 | 가 |  | 다 |')) });
+      expect(empty.find((item) => item.code === 'teacher-rubric')?.message).toContain('빈 칸');
+    });
+
+    it('채점 기준 칸의 표만 본다 — 다른 칸의 표나 다음 ### 아래 표는 세지 않는다', async () => {
+      const otherTable = `### 채점 기준\n\n표는 다음 칸에 있어요.\n\n### 자주 막히는 곳\n\n${GOOD.replace('### 채점 기준\n\n', '')}`;
+      const issues = await check({
+        sections: withSection('교사용', `:::교사용\n### 지도안 요약\n요약\n\n### 평가 포인트\n- 포인트\n\n${otherTable}\n:::`),
+      });
+      expect(issues.find((item) => item.code === 'teacher-rubric')?.message).toContain('표가 없어요');
+    });
   });
 
   it('heading-h1: 본문에 # 제목을 쓰면 오류', async () => {

@@ -69,6 +69,13 @@ export const QUIZ_ITEMS = 3;
 export const MIN_ALT_LENGTH = 8;
 /** 교사용 접기 안에 꼭 있어야 하는 ### 제목(앞부분만 맞으면 된다 — "지도안 요약(50분, …)"도 된다) */
 export const TEACHER_HEADINGS = ['지도안 요약', '평가 포인트', '자주 막히는 곳'] as const;
+/** 교사용 접기의 선택 칸 "### 채점 기준"(판 1.6.0 C175) — 있으면 아래 표 모양을 검사하고, 없으면 참고만 남긴다 */
+export const RUBRIC_HEADING = '채점 기준';
+/** 채점 기준 표의 단계 열(머리줄의 둘째~넷째 칸, 이 차례로) */
+export const RUBRIC_LEVELS = ['잘함', '보통', '노력 요함'] as const;
+/** 채점 기준 표의 관찰 항목(몸통 줄) 수 */
+export const RUBRIC_MIN_ROWS = 2;
+export const RUBRIC_MAX_ROWS = 3;
 
 /** 규칙 이름 → 한 줄 설명(문서·검사 결과 머리말에 쓴다) */
 export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
@@ -100,6 +107,7 @@ export const LESSON_RULES: Readonly<Record<string, string>> = Object.freeze({
   'box-challenge': '도전 과제 1~2개와 힌트 접기',
   'box-genai': '생성형 AI 활용 탐구 상자는 도전 과제 칸에만',
   'teacher-box': '교사용 칸은 :::교사용 접기 안에, 지도안 요약·평가 포인트·자주 막히는 곳',
+  'teacher-rubric': '교사용 접기의 "### 채점 기준" 표(잘함·보통·노력 요함 × 관찰 항목 2~3개) — 없으면 참고, 있으면 모양 검사',
   'img-alt': '그림 대체 글',
   'heading-h1': '본문에 # 제목(h1) 쓰지 않기',
   'md-tilde': '물결표(~) 두 개가 취소선이 되지 않게(범위는 \\~)',
@@ -420,8 +428,61 @@ function contentIssues(plan: LessonBodyPlan, data: LessonData): LessonRuleIssue[
         issues.push(issue('error', 'teacher-box', `교사용 접기에 "### ${required}"을(를) 적어요(SPEC §7.2 8번: 지도안 요약·평가 포인트·자주 막히는 곳).`));
       }
     }
+    if (teacherBoxes.length > 0) {
+      issues.push(...rubricIssues(teacherBoxes));
+    }
   }
   return issues;
+}
+
+/** 표 한 줄의 칸 글(머리 칸·보통 칸 모두) */
+function rowCells(row: HtmlElement): string[] {
+  return childElements(row)
+    .filter((cell) => cell.tag === 'th' || cell.tag === 'td')
+    .map((cell) => textContent(cell).replace(/\s+/gu, ' ').trim());
+}
+
+/**
+ * teacher-rubric: 교사용 접기의 "### 채점 기준"(판 1.6.0 C175). 칸이 없으면 참고 한 줄, 있으면 표 모양을 본다 —
+ * 머리줄 "관찰 항목 | 잘함 | 보통 | 노력 요함", 몸통 2~3줄, 빈 칸 없음. 모양이 틀리면 오류(채점 기준은 선생님이 그대로 쓰는 평가 자료라 어긋나면 안 된다).
+ */
+export function rubricIssues(teacherBoxes: readonly HtmlElement[]): LessonRuleIssue[] {
+  const example = `| 관찰 항목 | ${RUBRIC_LEVELS.join(' | ')} |`;
+  for (const box of teacherBoxes) {
+    const nodes = childElements(box);
+    const start = nodes.findIndex((element) => element.tag === 'h3' && squash(textContent(element)).startsWith(squash(RUBRIC_HEADING)));
+    if (start < 0) {
+      continue;
+    }
+    const nextHeading = nodes.findIndex((element, position) => position > start && element.tag === 'h3');
+    const part = nodes.slice(start + 1, nextHeading < 0 ? nodes.length : nextHeading);
+    const table = part.find((element) => element.tag === 'table');
+    if (!table) {
+      return [issue('error', 'teacher-rubric', `"### ${RUBRIC_HEADING}" 아래에 표가 없어요. 이렇게 적어요: ${example}`)];
+    }
+    const rows = findAll(table, (element) => element.tag === 'tr').map(rowCells);
+    const [head = [], ...body] = rows;
+    const levels = head.slice(1);
+    if (head.length !== 1 + RUBRIC_LEVELS.length || RUBRIC_LEVELS.some((level, index) => squash(levels[index] ?? '') !== squash(level))) {
+      return [
+        issue('error', 'teacher-rubric', `채점 기준 표의 머리줄은 ${example} 이어야 해요(지금: ${head.length > 0 ? `| ${head.join(' | ')} |` : '머리줄 없음'}).`),
+      ];
+    }
+    if (body.length < RUBRIC_MIN_ROWS || body.length > RUBRIC_MAX_ROWS) {
+      return [issue('error', 'teacher-rubric', `채점 기준 표의 관찰 항목(몸통 줄)은 ${RUBRIC_MIN_ROWS}~${RUBRIC_MAX_ROWS}개로 적어요(지금 ${body.length}개).`)];
+    }
+    if (body.some((row) => row.length !== head.length || row.some((cell) => cell === ''))) {
+      return [issue('error', 'teacher-rubric', '채점 기준 표에 빈 칸이 있어요. 관찰 항목마다 잘함·보통·노력 요함 칸을 모두 채워요.')];
+    }
+    return [];
+  }
+  return [
+    issue(
+      'warning',
+      'teacher-rubric',
+      `교사용 접기에 "### ${RUBRIC_HEADING}"이 없어요. 수행평가에 쓰도록 관찰 항목(${RUBRIC_MIN_ROWS}개에서 ${RUBRIC_MAX_ROWS}개) × ${RUBRIC_LEVELS.join('·')} 표를 더하면 좋아요(본보기: 1-1-1, MAINTENANCE.md 1-5).`,
+    ),
+  ];
 }
 
 /* ───────────── 그림·제목(모든 종류) ───────────── */
@@ -750,6 +811,8 @@ export function checkLessonRules(input: LessonRuleInput): LessonRuleIssue[] {
       exampleCount: data.examples.length,
       quizCount: data.quiz.length,
       checkTemplate: false,
+      // 틀 검사는 접지 않은 원래 HTML을 본다(핵심 개념 접기는 화면용 — lesson-html.ts foldConceptHtml, 판 1.6.0 C174)
+      foldConcepts: false,
     });
   const issues: LessonRuleIssue[] = [...frontmatterIssues(input)];
   if (usesLessonTemplate(data.kind)) {

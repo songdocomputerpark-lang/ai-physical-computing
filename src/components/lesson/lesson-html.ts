@@ -15,6 +15,9 @@
  *    상자·목록 안에 적은 표시는 쓰지 않고 지운다.)
  * - 그림·링크 주소는 사이트 뿌리부터 적는다: ![설명](/images/lessons/u1/그림.webp), [용어사전](/glossary/)
  *   이 파일이 base(/ai-physical-computing)를 붙인다. base는 src/config/site.ts 한 곳에서만 정한다(DECISIONS C7).
+ * - "핵심 개념" 칸에 ### 소제목이 3개 이상이면 둘째부터 이 파일이 빌드 때 <details class="more concepts-fold">로 감싼다(판 1.6.0 C174 — 마크다운은 그대로).
+ *   소제목 id는 그대로라 #링크로 오면 상자가 저절로 열리고(details.ts), 수업 화면(present.ts)은 상자를 펼친 채 ###마다 한 장씩 보여 준다.
+ * - 교사용 접기(:::교사용) 제목 줄 바로 아래에는 "한눈에 보기" 요약 줄 자리(teacher-summary), 맨 끝에는 "이 차시의 원고와 자료" 자리(teacher)가 저절로 들어간다.
  */
 import { BASE_PATH, withBase } from '../../lib/url.ts';
 
@@ -35,8 +38,9 @@ export type LessonSlot = 'examples' | 'quiz';
 /**
  * 본문 조각의 자리 종류. examples·quiz는 마크다운 표시 줄(::예제·::퀴즈)로 정하고,
  * teacher는 이 파일이 교사용 접기(:::교사용 상자) 맨 끝에 저절로 넣는다(원고·성취기준·원본 안내 — LessonTeacherInfo.astro, P5-02).
+ * teacher-summary는 같은 접기 맨 위(제목 줄 바로 아래)에 저절로 넣는 "한눈에 보기" 줄이다(퀴즈 정답·바로 가기 — LessonTeacherSummary.astro, 판 1.6.0 C175).
  */
-export type LessonPartSlot = LessonSlot | 'teacher';
+export type LessonPartSlot = LessonSlot | 'teacher' | 'teacher-summary';
 
 /** 마크다운에 한 줄로 적는 자리 표시 */
 export const LESSON_MARKERS: Readonly<Record<LessonSlot, string>> = Object.freeze({ examples: '::예제', quiz: '::퀴즈' });
@@ -52,7 +56,15 @@ export type LessonBodyPart =
       readonly slot: LessonPartSlot;
       /** examples 자리에서 그릴 예제의 차례(0부터, frontmatter examples 기준). 적힌 순서대로 그린다 */
       readonly examples?: readonly number[];
+      /** teacher-summary 자리에서 바로 가기로 보일 교사용 ### 제목들(id가 있는 것만) */
+      readonly headings?: readonly TeacherHeading[];
     };
+
+/** 교사용 접기 안의 ### 제목 하나(요약 줄의 바로 가기) */
+export interface TeacherHeading {
+  readonly id: string;
+  readonly title: string;
+}
 
 export interface LessonBodySection {
   readonly key?: LessonSectionKey;
@@ -70,6 +82,10 @@ export interface LessonBodyPlan {
   readonly sections: readonly LessonBodySection[];
   /** 빌드 로그에 남길 경고(차시 파일 경로는 부르는 쪽이 붙인다) */
   readonly warnings: readonly string[];
+  /** "핵심 개념" 칸의 ### 소제목 수(접기 전 기준 — "이 차시에서 할 일" 카드의 "개념 n가지"). 칸이 없으면 0. 교과서 쪽(book-html.ts)은 채우지 않는다 */
+  readonly conceptTopics?: number;
+  /** 핵심 개념 칸에서 둘째 ### 이후를 접었는지(판 1.6.0 C174) */
+  readonly conceptsFolded?: boolean;
 }
 
 export interface LessonBodyOptions {
@@ -84,6 +100,11 @@ export interface LessonBodyOptions {
    * :::교사용 상자가 없으면 교사용 칸 끝에, 교사용 칸도 없으면 넣지 않는다.
    */
   readonly teacherInfo?: boolean;
+  /**
+   * "핵심 개념" 칸에서 둘째 ### 이후를 접을지(기본 true — 판 1.6.0 C174). false면 칸을 그대로 두고 소제목 수도 세지 않는다.
+   * 차시 틀 검사(lesson-rules.ts)가 접지 않은 원래 HTML을 볼 때 쓴다.
+   */
+  readonly foldConcepts?: boolean;
 }
 
 function squash(text: string): string {
@@ -604,7 +625,30 @@ function matchingCloseIndex(html: string, openIndex: number): number {
   return -1;
 }
 
-/** 교사용 칸의 :::교사용 상자 맨 끝(</details> 앞)에 teacher 자리를 넣는다. */
+/** 맨 위 단계 <h3>의 제목(id가 있는 것만)을 차례대로 읽는다 — 교사용 접기 요약 줄의 바로 가기에 쓴다 */
+export function topLevelH3Headings(html: string): TeacherHeading[] {
+  const starts = findMatches(html, /<h3\b[^>]*>/iu).filter((match) => match.topLevel);
+  const headings: TeacherHeading[] = [];
+  for (const match of starts) {
+    const chunk = html.slice(match.index);
+    const open = /^<h3\b([^>]*)>/iu.exec(chunk);
+    const closeIndex = chunk.search(/<\/h3>/iu);
+    const id = /\sid="([^"]*)"/iu.exec(open?.[1] ?? '')?.[1];
+    if (!open || closeIndex < 0 || !id) {
+      continue;
+    }
+    const title = decodeHtmlEntities(chunk.slice(open[0].length, closeIndex).replace(/<[^>]*>/gu, ''))
+      .replace(/\s+/gu, ' ')
+      .trim();
+    headings.push({ id: decodeHtmlEntities(id), title });
+  }
+  return headings;
+}
+
+/**
+ * 교사용 칸의 :::교사용 상자 맨 끝(</details> 앞)에 teacher 자리를, 맨 위(제목 줄 </summary> 바로 뒤)에 teacher-summary 자리를 넣는다.
+ * 요약 줄(판 1.6.0 C175)은 교사가 접기를 열자마자 퀴즈 정답과 평가·채점·지도안으로 가는 길을 한눈에 보게 하려는 것이다.
+ */
 function placeTeacherInfo(blocks: WorkingSection[]): void {
   const teacher = blocks.find((block) => !block.intro && block.key === 'teacher');
   if (!teacher) {
@@ -626,16 +670,74 @@ function placeTeacherInfo(blocks: WorkingSection[]): void {
     if (close < 0) {
       continue;
     }
+    // 제목 줄(<summary>…</summary>) 바로 뒤. 제목 줄이 없으면 여는 태그 바로 뒤.
+    const afterOpen = last.index + last.text.length;
+    const summary = /^\s*<summary\b[^>]*>[\s\S]*?<\/summary>/iu.exec(part.html.slice(afterOpen, close));
+    const topAt = afterOpen + (summary ? summary[0].length : 0);
+    const headings = topLevelH3Headings(part.html.slice(topAt, close));
     teacher.parts.splice(
       index,
       1,
-      { type: 'html', html: part.html.slice(0, close) },
+      { type: 'html', html: part.html.slice(0, topAt) },
+      { type: 'slot', slot: 'teacher-summary', headings },
+      { type: 'html', html: part.html.slice(topAt, close) },
       { type: 'slot', slot: 'teacher' },
       { type: 'html', html: part.html.slice(close) },
     );
     return;
   }
   teacher.parts.push({ type: 'slot', slot: 'teacher' });
+}
+
+/** 핵심 개념 칸에서 이 수 이상의 ### 소제목이 있으면 둘째부터 접는다(판 1.6.0 C174) */
+export const CONCEPT_FOLD_MIN_TOPICS = 3;
+
+/** 접힌 상자를 가리키는 표시(발표 모드가 펼쳐 한 단계씩 나누고, 시험이 찾는다) */
+export const CONCEPT_FOLD_ATTR = 'data-concepts-fold';
+
+export interface ConceptFold {
+  readonly html: string;
+  /** 맨 위 단계 ### 소제목 수(접기 전) */
+  readonly topics: number;
+  readonly folded: boolean;
+}
+
+/**
+ * "핵심 개념" 칸 HTML(## 제목부터 칸 끝까지)에서 둘째 ### 소제목부터 끝까지를 `<details class="more">`로 감싼다.
+ * 소제목이 3개 미만이면 그대로 둔다. 제목의 id는 그대로라 #링크로 오면 접기를 펼치고 그 자리로 간다(details.ts openDetailsFor).
+ * 상자(.box) 안의 ###은 소제목으로 세지 않는다(맨 위 단계 것만). 순수 함수 — lesson-html.test.ts가 검사한다.
+ */
+export function foldConceptHtml(html: string): ConceptFold {
+  const starts = findMatches(html, /<h3\b[^>]*>/iu)
+    .filter((match) => match.topLevel)
+    .map((match) => match.index);
+  if (starts.length < CONCEPT_FOLD_MIN_TOPICS) {
+    return { html, topics: starts.length, folded: false };
+  }
+  const titles = topLevelH3Headings(html.slice(starts[1] ?? 0)).map((heading) => heading.title);
+  const hiddenCount = starts.length - 1;
+  const names = titles.length > 0 ? `: ${titles.map(escapeHtml).join(' · ')}` : '';
+  const summary = `<summary>개념 ${hiddenCount}가지 더 읽기${names}</summary>`;
+  const at = starts[1] ?? html.length;
+  return {
+    html: `${html.slice(0, at)}<details class="more concepts-fold" ${CONCEPT_FOLD_ATTR}>${summary}\n${html.slice(at)}</details>\n`,
+    topics: starts.length,
+    folded: true,
+  };
+}
+
+/** 핵심 개념 칸을 접는다. 칸 안에 자리 표시(예제·퀴즈)가 섞여 있으면 건드리지 않는다. */
+function foldConceptSection(blocks: WorkingSection[]): { topics: number; folded: boolean } {
+  const concepts = blocks.find((block) => !block.intro && block.key === 'concepts');
+  if (!concepts || concepts.parts.length === 0 || !concepts.parts.every((part) => part.type === 'html')) {
+    return { topics: 0, folded: false };
+  }
+  const joined = concepts.parts.map((part) => (part.type === 'html' ? part.html : '')).join('');
+  const result = foldConceptHtml(joined);
+  if (result.folded) {
+    concepts.parts = [{ type: 'html', html: result.html }];
+  }
+  return { topics: result.topics, folded: result.folded };
 }
 
 function templateWarnings(blocks: readonly WorkingSection[], options: LessonBodyOptions): string[] {
@@ -699,11 +801,14 @@ export function planLessonBody(html: string, options: LessonBodyOptions): Lesson
   if (options.checkTemplate) {
     warnings.push(...templateWarnings(blocks, options));
   }
+  const concepts = options.foldConcepts === false ? { topics: 0, folded: false } : foldConceptSection(blocks);
 
   const [introBlock, ...rest] = blocks;
   return {
     intro: introBlock?.parts ?? [],
     sections: rest.map(({ key, id, title, generated, parts }) => ({ key, id, title, generated, parts })),
     warnings,
+    conceptTopics: concepts.topics,
+    conceptsFolded: concepts.folded,
   };
 }

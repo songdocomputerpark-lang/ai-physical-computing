@@ -4,13 +4,17 @@ import { describe, expect, it } from 'vitest';
 import {
   addImageZoomLinks,
   addLazyImageLoading,
+  CONCEPT_FOLD_ATTR,
+  CONCEPT_FOLD_MIN_TOPICS,
   decodeHtmlEntities,
+  foldConceptHtml,
   markLinkOnlyLines,
   markRowHeaderTables,
   planLessonBody,
   rewriteRootRelativeUrls,
   sectionKeyFromHeading,
   splitHtmlSections,
+  topLevelH3Headings,
   type LessonBodyOptions,
   type LessonBodyPlan,
 } from '../../../src/components/lesson/lesson-html.ts';
@@ -230,13 +234,18 @@ describe('차시 본문 나누기(planLessonBody)', () => {
       await render(lessonMarkdown({ teacherBody: ':::교사용\n### 지도안 요약\n요약\n\n:::힌트\n안쪽 접기\n:::\n:::' })),
       { ...FULL, teacherInfo: true },
     );
-    expect(shape(plan).at(-1)).toBe('teacher[html,teacher,html]');
+    // 판 1.6.0(C175): 접기 제목 줄 바로 뒤에 요약 줄(teacher-summary) 자리도 함께 넣는다.
+    expect(shape(plan).at(-1)).toBe('teacher[html,teacher-summary,html,teacher,html]');
     const teacher = plan.sections.at(-1);
-    const [before, , after] = teacher?.parts ?? [];
+    const [opening, summary, before, , after] = teacher?.parts ?? [];
     // 안쪽 접기(힌트)가 끝난 뒤, 교사용 상자의 닫는 태그 바로 앞이다.
     expect(before?.type === 'html' && before.html).toContain('안쪽 접기');
     expect(before?.type === 'html' && before.html.trimEnd().endsWith('</details>')).toBe(true);
     expect(after?.type === 'html' && after.html.startsWith('</details>')).toBe(true);
+    // 요약 줄 자리는 제목 줄(</summary>) 바로 뒤이고, 접기 안 ### 제목을 바로 가기 후보로 들고 있다.
+    expect(opening?.type === 'html' && opening.html.trimEnd().endsWith('</summary>')).toBe(true);
+    expect(summary?.type === 'slot' && summary.slot).toBe('teacher-summary');
+    expect(summary?.type === 'slot' && summary.headings?.map((heading) => heading.title)).toEqual(['지도안 요약']);
 
     const noBox = planLessonBody(await render(lessonMarkdown({ teacherBody: '접지 않은 글' })), { ...FULL, teacherInfo: true });
     expect(shape(noBox).at(-1)).toBe('teacher[html,teacher]');
@@ -349,5 +358,74 @@ describe('주소·그림 도우미', () => {
     expect(intro).toBe('<p>머리말</p>');
     expect(sections).toEqual([{ key: undefined, id: 'a', title: 'R&D x', html: '<h2 id="a">R&amp;D <code>x</code></h2><p>본문</p>' }]);
     expect(decodeHtmlEntities('&lt;p&gt; &#39;a&#x27; &quot;b&quot; &unknown;')).toBe(`<p> 'a' "b" &unknown;`);
+  });
+});
+
+describe('핵심 개념 접기(판 1.6.0 C174)', () => {
+  const topic = (id: string, title: string) => `<h3 id="${id}">${title}</h3>\n<p>${title} 설명</p>\n`;
+
+  it('소제목(###)이 3개 이상이면 둘째부터 끝까지를 <details class="more">로 감싼다 — 첫째 소제목은 그대로 보인다', () => {
+    expect(CONCEPT_FOLD_MIN_TOPICS).toBe(3);
+    const section = `<h2 id="핵심-개념">핵심 개념</h2>\n${topic('a', '첫째')}${topic('b', '둘째')}${topic('c', '셋째')}`;
+    const result = foldConceptHtml(section);
+    expect(result.topics).toBe(3);
+    expect(result.folded).toBe(true);
+    const open = result.html.indexOf(`<details class="more concepts-fold" ${CONCEPT_FOLD_ATTR}>`);
+    expect(open).toBeGreaterThan(result.html.indexOf('첫째 설명'));
+    expect(open).toBeLessThan(result.html.indexOf('<h3 id="b">'));
+    expect(result.html).toContain('<summary>개념 2가지 더 읽기: 둘째 · 셋째</summary>');
+    expect(result.html.trimEnd().endsWith('</details>')).toBe(true);
+    // 제목 id는 그대로라 #링크가 접기 안의 제목을 가리킬 수 있다.
+    expect(result.html).toContain('<h3 id="c">');
+    // 글은 하나도 지워지지 않는다(상자 껍데기와 제목 줄만 빼면 원래 글과 같다).
+    const stripped = result.html.replace(/<details[^>]*>|<summary>[^<]*<\/summary>\n?|<\/details>\n?/gu, '');
+    expect(stripped).toBe(section);
+  });
+
+  it('소제목이 2개 이하면 접지 않는다(개수만 센다)', () => {
+    const two = `<h2 id="x">핵심 개념</h2>\n${topic('a', '첫째')}${topic('b', '둘째')}`;
+    expect(foldConceptHtml(two)).toEqual({ html: two, topics: 2, folded: false });
+    const none = '<h2 id="x">핵심 개념</h2>\n<p>글</p>';
+    expect(foldConceptHtml(none)).toEqual({ html: none, topics: 0, folded: false });
+  });
+
+  it('상자 안의 ###은 소제목으로 세지 않는다', () => {
+    const boxed = `<h2 id="x">핵심 개념</h2>\n${topic('a', '첫째')}<details class="box box--note"><summary>참고</summary><h3 id="in1">안쪽 1</h3><h3 id="in2">안쪽 2</h3></details>\n${topic('b', '둘째')}`;
+    const result = foldConceptHtml(boxed);
+    expect(result.topics).toBe(2);
+    expect(result.folded).toBe(false);
+  });
+
+  it('제목 글자의 HTML 글자 참조는 풀어 쓰고 다시 안전하게 적는다', () => {
+    const section = `<h2 id="x">핵심 개념</h2>\n${topic('a', '첫째')}${topic('b', 'A &amp; B &lt;c&gt;')}${topic('c', '셋째')}`;
+    const result = foldConceptHtml(section);
+    expect(result.html).toContain('<summary>개념 2가지 더 읽기: A &amp; B &lt;c&gt; · 셋째</summary>');
+  });
+
+  it('planLessonBody는 핵심 개념 칸만 접고 소제목 수를 알려 준다 — foldConcepts: false면 그대로', async () => {
+    const markdown = lessonMarkdown().replace('## 핵심 개념\n\n개념', '## 핵심 개념\n\n### 하나\n\n글 하나\n\n### 둘\n\n글 둘\n\n### 셋\n\n글 셋');
+    const plan = planLessonBody(await render(markdown), FULL);
+    expect(plan.conceptTopics).toBe(3);
+    expect(plan.conceptsFolded).toBe(true);
+    const concepts = plan.sections.find((section) => section.key === 'concepts');
+    expect(concepts?.parts).toHaveLength(1);
+    const text = concepts?.parts[0]?.type === 'html' ? concepts.parts[0].html : '';
+    expect(text).toContain('data-concepts-fold');
+    expect(text).toContain('개념 2가지 더 읽기: 둘 · 셋');
+    // 다른 칸은 건드리지 않는다.
+    expect(html({ ...plan, sections: plan.sections.filter((section) => section.key !== 'concepts') })).not.toContain('data-concepts-fold');
+
+    const plain = planLessonBody(await render(markdown), { ...FULL, foldConcepts: false });
+    expect(plain.conceptsFolded).toBe(false);
+    expect(html(plain)).not.toContain('data-concepts-fold');
+  });
+
+  it('교사용 접기의 ### 제목은 맨 위 단계 것만 id와 함께 읽는다', () => {
+    const inner =
+      '<h3 id="a">지도안 요약(50분)</h3><p>x</p><details class="box"><h3 id="in">안쪽</h3></details><h3>id 없는 제목</h3><h3 id="c">평가 &amp; 점검</h3>';
+    expect(topLevelH3Headings(inner)).toEqual([
+      { id: 'a', title: '지도안 요약(50분)' },
+      { id: 'c', title: '평가 & 점검' },
+    ]);
   });
 });

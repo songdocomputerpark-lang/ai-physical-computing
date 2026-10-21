@@ -95,6 +95,24 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
   <p class="lead">{page.description}</p>
   <TeacherNav current="standards" />
 
+  {/* 이 쪽의 차례(판 1.6.0 C175, 걷기 B-46·B-47): 쪽이 길어서(375에서 약 15,000px) 맨 위에서 바로 갈 곳을 알약 링크로. 성취기준 표는 영역(1)~(4)마다 따로 간다. */}
+  <nav class="std-jump" aria-label="이 쪽의 차례" data-std-jump data-pagefind-ignore>
+    <ul class="std-jump__list">
+      <li><a href="#course">과목 정보</a></li>
+      <li><a href="#methods">평가 방법</a></li>
+      <li><a href="#considerations">고려 사항</a></li>
+      {
+        STANDARD_AREAS.map((area) => (
+          <li>
+            <a href={`#std-area-${area.area}`}>성취기준 ({area.area}) {area.name}</a>
+          </li>
+        ))
+      }
+      <li><a href="#genai">생성형 AI 활용 탐구 과제</a></li>
+      <li><a href="#semester">한 학기 배치</a></li>
+    </ul>
+  </nav>
+
   <div class="prose">
     <Callout type="참고" title="이 표의 근거">
       <p>
@@ -145,7 +163,7 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
         실습실의 <strong>[공유 링크]</strong>는 편집칸의 코드만 주소에 담아요. 로그인 없이 과제로 받을 수 있고, 주소가 2,000자를 넘으면 <strong>[.py 내려받기]</strong> 파일을
         함께 내도록 알려 줘요(16,000자를 넘는 코드는 링크로 만들지 않아요).
       </li>
-      <li>차시마다 도전 과제에 채울 표와 관찰 기록 칸이 있어요. 선생님이 볼 곳은 <a href={guidesHref}>차시별 지도 요약</a>의 "평가 포인트"에 모여 있어요.</li>
+      <li>차시마다 도전 과제에 채울 표와 관찰 기록 칸이 있어요. 선생님이 볼 곳은 <a href={guidesHref}>차시별 지도 요약</a>의 "평가 포인트"와, 표를 채운 차시의 "채점 기준"(잘함·보통·노력 요함)에 모여 있어요.</li>
       <li>
         원고의 생성형 AI 활용 탐구 과제는 주로 차시의 도전 과제 칸에 두었고, 상자 끝에 "생성형 AI의 도움을 받은 부분을 표시해요"라는 안내가 저절로 붙어요(아래 <a
           href="#genai">생성형 AI 활용 탐구 과제</a>).
@@ -346,6 +364,44 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
 </BaseLayout>
 
 <style>
+  /* 이 쪽의 차례 알약 링크(키트 도감 쪽 .kit-jump와 같은 모양) */
+  .std-jump {
+    margin-block: 0 var(--space-6);
+  }
+
+  .std-jump__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .std-jump__list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .std-jump__list a:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+  }
+
+  @media print {
+    .std-jump {
+      display: none;
+    }
+  }
+
   .course-facts {
     display: grid;
     gap: var(--space-2);

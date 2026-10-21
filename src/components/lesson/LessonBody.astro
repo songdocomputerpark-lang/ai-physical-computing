@@ -11,6 +11,7 @@ import type { LessonSource } from './curriculum.ts';
 import LessonExamples from './LessonExamples.astro';
 import LessonQuiz from './LessonQuiz.astro';
 import LessonTeacherInfo from './LessonTeacherInfo.astro';
+import LessonTeacherSummary from './LessonTeacherSummary.astro';
 import type { LabId } from './lesson-data.ts';
 import type { LessonBodyPlan } from './lesson-html.ts';
 
@@ -43,6 +44,8 @@ const quizPrefix = `quiz-${idPrefix}`;
         <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} launcherOnly={launcherOnly} />
       ) : part.slot === 'quiz' ? (
         <LessonQuiz items={quiz} idPrefix={quizPrefix} />
+      ) : part.slot === 'teacher-summary' ? (
+        teacher && <LessonTeacherSummary quiz={quiz} headings={part.headings ?? []} idPrefix={idPrefix} />
       ) : (
         teacher && <LessonTeacherInfo data={teacher.data} source={teacher.source} idPrefix={idPrefix} />
       ),
@@ -58,6 +61,8 @@ const quizPrefix = `quiz-${idPrefix}`;
             <LessonExamples examples={examples} lab={lab} source={source} indexes={part.examples} launcherOnly={launcherOnly} />
           ) : part.slot === 'quiz' ? (
             <LessonQuiz items={quiz} idPrefix={quizPrefix} />
+          ) : part.slot === 'teacher-summary' ? (
+            teacher && <LessonTeacherSummary quiz={quiz} headings={part.headings ?? []} idPrefix={idPrefix} />
           ) : (
             teacher && <LessonTeacherInfo data={teacher.data} source={teacher.source} idPrefix={idPrefix} />
           ),
@@ -88,6 +93,36 @@ const quizPrefix = `quiz-${idPrefix}`;
 
   :global(.lesson-body .lesson-section > h3) {
     margin-block-start: var(--space-8);
+  }
+
+  /*
+   * 핵심 개념의 접힌 상자(details.concepts-fold — lesson-html.ts foldConceptHtml, 판 1.6.0 C174): 둘째 ### 이후가 이 안에 있다.
+   * 칸의 맨 위 글처럼 읽히게 상자 모양(회색 바탕·테두리)은 접힌 제목 줄에만 두고, 펼친 내용은 바탕 없이 칸의 간격 그대로 보인다.
+   */
+  :global(.lesson-body .lesson-section > .concepts-fold) {
+    margin-block-start: var(--space-4);
+  }
+
+  :global(.lesson-body .concepts-fold[open]) {
+    border-color: transparent;
+    background: none;
+  }
+
+  :global(.lesson-body .concepts-fold[open] > summary) {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+  }
+
+  :global(.lesson-body .concepts-fold > :not(summary)) {
+    margin-inline: 0;
+  }
+
+  :global(.lesson-body .concepts-fold > h3) {
+    margin-block-start: var(--space-8);
+  }
+
+  :global(.lesson-body .concepts-fold > :not(summary) + :not(summary, h3)) {
+    margin-block-start: var(--space-4);
   }
 
   /* 칸의 ## 제목 앞에 굵은 막대를 둬서 틀의 칸이 눈에 띄게 한다. */

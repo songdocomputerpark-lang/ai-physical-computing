@@ -5,7 +5,7 @@
  * 그 대단원의 모든 차시 md에서 "## 교사용" 칸의 :::교사용 접기를 빌드 때 꺼내 차시 순서대로 펼쳐 보인다
  * (지도안 요약 · 평가 포인트 · 자주 막히는 곳 · 원고에서 바꾼 곳 …). 손으로 옮겨 적은 글이 없어서
  * 새 차시 md를 넣거나 교사용 칸을 고치면 코드 수정 없이 이 페이지가 따라 바뀐다(SPEC 원칙 6).
- * 꺼내는 규칙과 id·#링크 바꾸기는 src/components/teacher/teacher-guides.ts.
+ * 꺼내는 규칙과 id·#링크 바꾸기는 src/components/teacher/teacher-guides.ts. 차시마다 되풀이되는 ### 제목 앞에는 차시 번호를 붙인다("2-1-2 평가 포인트" — 판 1.6.0, labelGuideHeadings).
  *
  * 사이트 검색: 차시 페이지에서는 교사용 접기가 검색에서 빠지고(remark-boxes.mjs) 자료실에서 색인된다.
  * 단, 대단원 마무리의 교사용 안내에는 정답 표가 들어 있어 학생 검색 결과에 보이지 않게 색인에서 뺀다.
@@ -15,6 +15,7 @@ import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import GuideLessonMeta from '../../../components/teacher/GuideLessonMeta.astro';
 import TeacherNav from '../../../components/teacher/TeacherNav.astro';
 import { handoutLinesOf } from '../../../components/teacher/handout-files.ts';
+import { labelGuideHeadings } from '../../../components/teacher/teacher-guides.ts';
 import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, type TeacherLesson } from '../../../components/teacher/teacher-lessons.ts';
 import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
 import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
@@ -91,7 +92,7 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
           {lesson.guide ? (
             <div class="guide__body prose" data-pagefind-ignore={answerKeys ? '' : undefined} data-guide-body>
               <GlossaryScope id={anchor}>
-                <Fragment set:html={lesson.guide.html} />
+                <Fragment set:html={labelGuideHeadings(lesson.guide.html, lesson.summary.label)} />
               </GlossaryScope>
             </div>
           ) : (
@@ -197,6 +198,11 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
     margin-block-start: var(--space-6);
     font-size: var(--text-lg);
     scroll-margin-block-start: var(--space-4);
+  }
+
+  /* 제목 앞의 차시 번호("2-1-2 평가 포인트") — 바로 가기로 제목에 닿아도 어느 차시인지 알게(판 1.6.0 C175, 걷기 B-48) */
+  .guide__body :global(.guide__h3-label) {
+    color: var(--color-accent-hover);
   }
 
   .guide__body :global(table) {

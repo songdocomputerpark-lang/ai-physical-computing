@@ -1,0 +1,90 @@
+---
+/**
+ * [선생님용] 단추(판 1.6.0, DECISIONS C175) — 차시 쪽·교과서 쪽 머리의 전환 줄 옆에서 그 차시의 교사용 접기(퀴즈 정답·평가 포인트·채점 기준·지도 요약)로 곧바로 간다.
+ * 교사가 교과서 쪽에서 시작해도 "풀이·실습" 쪽 맨 아래 접힌 교사용 칸을 스스로 찾지 않아도 된다(walk-teacher-new B2).
+ *
+ * - 같은 쪽(차시 쪽)이면 `#<교사용 제목 id>` 링크이고, 누르면 접기를 펼치고 그 자리로 간다. 자바스크립트가 없어도 링크는 그 칸으로 간다.
+ * - 다른 쪽(교과서 쪽 → 짝 차시)이면 `<차시 주소>#<교사용 제목 id>` 링크이고, 차시 쪽의 details.ts가 #위치를 보고 접기를 펼친다.
+ * - 단추 자체는 학생에게도 보이지만 조용한 모양(윤곽선 알약)이라 주된 행동으로 읽히지 않는다. 발표 모드·임베드·검색 색인에서는 빠진다.
+ * 전환 줄(ViewSwitch.astro)과 같은 부품이 아니라 따로 둔다 — 전환 줄은 "같은 내용을 보는 방법" 둘이고 이 단추는 선생님용 안내다.
+ */
+import Icon from '../common/Icon.astro';
+
+interface Props {
+  /** 링크 주소(같은 쪽이면 #위치, 다른 쪽이면 base가 붙은 차시 주소#위치) */
+  href: string;
+  /** 같은 쪽 안에서 접기를 펼치고 초점을 옮길지(차시 쪽 true) */
+  samePage?: boolean;
+}
+
+const { href, samePage = false } = Astro.props;
+---
+
+<a
+  class="teacher-button"
+  href={href}
+  data-teacher-button
+  data-teacher-open={samePage ? '' : undefined}
+  data-present-hide
+  data-embed-hide
+  data-pagefind-ignore
+>
+  <Icon name="teacher" size="sm" />
+  <span>선생님용</span>
+</a>
+
+<script>
+  /*
+   * 같은 쪽 단추: 교사용 접기를 펼치고, 링크의 기본 동작(그 제목으로 스크롤)이 끝난 뒤 접기 제목(summary)에 초점을 둔다.
+   * 주소가 이미 #교사용이어도 누를 때마다 펼치고 옮긴다(hashchange는 같은 주소에서 일어나지 않는다).
+   */
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('a[data-teacher-open]')) {
+    link.addEventListener('click', () => {
+      let id = link.getAttribute('href')?.replace(/^#/u, '') ?? '';
+      try {
+        id = decodeURIComponent(id);
+      } catch {
+        // 깨진 퍼센트 글자면 그대로 쓴다
+      }
+      const heading = document.getElementById(id);
+      const box = heading?.nextElementSibling;
+      if (box instanceof HTMLDetailsElement) {
+        box.open = true;
+        const summary = box.querySelector('summary');
+        window.setTimeout(() => summary?.focus({ preventScroll: true }), 0);
+      }
+    });
+  }
+</script>
+
+<style>
+  .teacher-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: var(--target-min);
+    margin-block-end: var(--space-4);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  .teacher-button:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  @media print {
+    .teacher-button {
+      display: none;
+    }
+  }
+</style>

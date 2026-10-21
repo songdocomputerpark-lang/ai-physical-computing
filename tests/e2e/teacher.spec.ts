@@ -332,20 +332,32 @@ test.describe('교사용 자료실 — 좁은 화면(375px)', () => {
 
 // ── 판 1.3.0: 교사용 자료실 첫 화면의 "수업 준비 3단계"와 개인정보 문장 ──
 test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
-  test('수업 준비 3단계(점검 → 차시 지도 요약 → 발표 모드)가 번호 순서대로 눌리는 카드로 있다', async ({ page }) => {
+  test('수업 준비 4단계(점검 → 차시 지도 요약 → 수업 화면 → 평가·과제 받는 법)가 번호 순서대로 눌리는 카드로 있다', async ({ page }) => {
     await page.goto(at(TEACHER_PATHS.home));
     const prep = page.locator('[data-teacher-prep]');
-    await expect(prep.getByRole('heading', { level: 2, name: '수업 준비 3단계' })).toBeVisible();
+    await expect(prep.getByRole('heading', { level: 2, name: '수업 준비 4단계' })).toBeVisible();
     const steps = prep.locator('[data-teacher-prep-step]');
-    await expect(steps).toHaveCount(3);
+    await expect(steps).toHaveCount(4);
     await expect(steps.nth(0).locator('a')).toHaveAttribute('href', getPage('start-check').href);
     await expect(steps.nth(1).locator('a')).toHaveAttribute('href', withBase(TEACHER_PATHS.guides));
-    // 판 1.3.0 검수 R1-034: 3단계는 설명 글이 아니라 발표 모드를 직접 해 볼 차시(1-1-1)로 간다
+    // 판 1.3.0 검수 R1-034: 3단계는 설명 글이 아니라 수업 화면을 직접 해 볼 차시(1-1-1)로 간다(이름은 판 1.6.0 C173)
     await expect(steps.nth(2).locator('a')).toHaveAttribute('href', /\/learn\/u1\/1-1-1\/$/u);
-    await expect(steps.nth(2)).toContainText('[발표 모드]');
+    await expect(steps.nth(2)).toContainText('[수업 화면]');
+    // 판 1.6.0(C175, 걷기 B-45): 4단계 "평가·과제 받는 법"은 이 쪽의 평가 자료 상자(편집본 PDF 목록 위)로 간다
+    await expect(steps.nth(3).locator('a')).toHaveAttribute('href', '#teacher-assessment');
+    const assessment = page.locator('[data-teacher-assessment]');
+    await expect(assessment.getByRole('heading', { level: 2, name: '평가 자료' })).toBeVisible();
+    await expect(assessment).toContainText('채점 기준');
+    await expect(assessment).toContainText('[공유 링크]');
+    const assessmentBox = await assessment.boundingBox();
+    const handoutsBox = await page.locator('[data-teacher-handouts]').boundingBox();
+    expect(assessmentBox && handoutsBox && assessmentBox.y < handoutsBox.y, '평가 자료 상자가 편집본 PDF 목록보다 위').toBe(true);
+    await steps.nth(3).locator('a').click();
+    await expect(assessment.getByRole('heading', { level: 2, name: '평가 자료' })).toBeInViewport();
+    await page.goto(at(TEACHER_PATHS.home));
     await page.goto(await steps.nth(2).locator('a').getAttribute('href') ?? '');
-    await expect(page.getByRole('button', { name: /발표 모드/u }).first()).toBeAttached();
-    // 처음 오신 선생님은 3단계 위의 안내 줄로 교사용 시작하기에 간다(그 쪽 #presentation에는 쓰는 법이 있다)
+    await expect(page.getByRole('button', { name: /수업 화면/u }).first()).toBeAttached();
+    // 처음 오신 선생님은 단계 위의 안내 줄로 교사용 시작하기에 간다(그 쪽 #presentation에는 쓰는 법이 있다)
     await page.goto(at(TEACHER_PATHS.home));
     await expect(page.locator('[data-teacher-first] a')).toHaveAttribute('href', getPage('start-teacher').href);
     await page.goto(`${getPage('start-teacher').href}#presentation`);
@@ -372,6 +384,24 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(page.locator('[data-semester-list] > li')).toHaveCount(2);
     await expect(page.locator('[data-semester-list]')).toContainText('3학점');
     await expect(page.locator('[data-semester-list]')).toContainText('4학점');
+  });
+
+  test('성취기준과 평가 쪽 맨 위에 "이 쪽의 차례" 알약 링크가 있고, 영역 링크는 그 영역 표로 간다(판 1.6.0 B-46)', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.standards));
+    const jump = page.getByRole('navigation', { name: '이 쪽의 차례' });
+    await expect(jump).toBeVisible();
+    for (const name of ['과목 정보', '평가 방법', '고려 사항', '생성형 AI 활용 탐구 과제', '한 학기 배치']) {
+      await expect(jump.getByRole('link', { name }), name).toBeVisible();
+    }
+    // 차례는 표보다 위에 있다
+    const jumpBox = await jump.boundingBox();
+    const firstTable = await page.locator('[data-standard-area="1"]').boundingBox();
+    expect(jumpBox && firstTable && jumpBox.y < firstTable.y).toBe(true);
+    await jump.getByRole('link', { name: /^성취기준 \(3\)/u }).click();
+    await expect(page.locator('#std-area-3')).toBeInViewport();
+    await jump.scrollIntoViewIfNeeded();
+    await jump.getByRole('link', { name: '평가 방법' }).click();
+    await expect(page.locator('h2#methods')).toBeInViewport();
   });
 
   test('지도 요약 맨 위에 대단원 바로 가기 칩과 차시 번호 찾기가 있다(R1-036)', async ({ page }) => {
