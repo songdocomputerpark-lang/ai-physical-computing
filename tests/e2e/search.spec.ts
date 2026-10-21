@@ -152,6 +152,39 @@ test.describe('사이트 검색(색인과 결과)', () => {
     await expect(page.locator('h3#ex-vision-u4-c3-finger-count-send')).toBeInViewport();
   });
 
+  // 판 1.6.0 R6(걷기 보고 A-15·B-2·B-71·B-72·B-95): 학부모가 "학부모"를 쳐도 결과가 없었고, 같은 제목이 둘이었고, 부품 사전은 쪽 맨 위로만 갔고, 키트 도감 쪽의 종류가 "실습실"이었다.
+  test('"학부모"·"부모님"으로 찾으면 보호자 안내가 맨 앞이다(같은 뜻의 다른 말)', async ({ page }) => {
+    for (const word of ['학부모', '부모님']) {
+      await page.goto(searchUrl(word));
+      await expect(searchRoot(page), word).toHaveAttribute('data-state', 'results');
+      await expect(resultItems(page).first().locator('h3 a'), word).toHaveAttribute('href', getPage('start-parent').href);
+    }
+  });
+
+  test('같은 제목의 교과서 쪽과 따라 하기 쪽은 제목 뒤 "(교과서 원문)"·"(따라 하기)"로 갈린다', async ({ page }) => {
+    await page.goto(searchUrl('1-1-1'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
+    await collectResultHrefs(page);
+    const book = resultItems(page).filter({ has: page.locator(`h3 a[href="${withBase('book/1-1-1/')}"]`) });
+    const learn = resultItems(page).filter({ has: page.locator(`h3 a[href="${withBase('learn/u1/1-1-1/')}"]`) });
+    await expect(book.locator('.search-result__title')).toHaveText(/ \(교과서 원문\)$/u);
+    await expect(learn.locator('.search-result__title')).toHaveText(/ \(따라 하기\)$/u);
+  });
+
+  test('부품 사전 결과는 그 부품 항목으로 바로 이어지고("… — 부품 사전" → #part-…-name), 키트 장치 도감 쪽의 종류 이름은 "키트 장치 도감"이다', async ({ page }) => {
+    await page.goto(searchUrl('초음파'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results');
+    const hrefs = await collectResultHrefs(page);
+    const partsBase = getPage('start-parts').href;
+    expect(hrefs.some((href) => new RegExp(`^${partsBase}#part-.+-name$`, 'u').test(href)), JSON.stringify(hrefs.slice(0, 8))).toBe(true);
+    const partResult = resultItems(page).filter({ has: page.locator(`h3 a[href^="${partsBase}#part-"]`) }).first();
+    await expect(partResult.locator('.search-result__title')).toHaveText(/— 부품 사전$/u);
+    await expect(partResult.locator('.search-result__excerpt')).not.toContainText('연결 방식');
+    // 키트 장치 도감 쪽(/labs/esp32/kit/d-…/)의 종류 이름
+    const kitResult = resultItems(page).filter({ has: page.locator(`h3 a[href^="${getPage('labs-esp32-kit').href}d-"]`) }).first();
+    await expect(kitResult.locator('.search-result__kind')).toHaveText('키트 장치 도감');
+  });
+
   test('용어사전의 가나다·ABC 색인 묶음 머리("U"·"숫자·기호")로는 이어 주지 않는다(2026-10-02 최종 전수 점검 3바퀴 ST3-02)', async ({ page }) => {
     // 전에는 uasyncio → "U — 용어사전"(#index-u, 요약 "U."), 숫자 → 용어사전 결과가 "숫자·기호"(#index-etc)였다. 묶음 머리 글자는 색인에서
     // 빠졌고(data-pagefind-ignore), 고르는 규칙도 머리를 뺀다(search-page.ts isGlossaryGroupAnchor). 결과 개수는 엔진 결과라 보지 않는다.

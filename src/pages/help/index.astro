@@ -19,6 +19,7 @@ import ClearRecordsButton from '../../components/lab/ClearRecordsButton.astro';
 import { getPage } from '../../config/nav.ts';
 import { PROGRESS_PRIVACY_NOTE } from '../../config/privacy-text.ts';
 import { errorCatalog } from '../../lab/errors/catalog-data.ts';
+import { prefetchSizeSummary } from '../../lab/loader/prefetch-sizes.ts';
 import { CAMERA_PERMISSION_STEP } from '../../lab/vision/camera-notice.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
@@ -236,7 +237,7 @@ const symptoms = [
     <section aria-labelledby={schoolNetwork.id}>
       <h2 id={schoolNetwork.id}>{schoolNetwork.title}</h2>
       <p>
-        실습실은 처음 열 때 브라우저에서 파이썬을 실행하는 프로그램 같은 큰 파일(처음 한 번 약 26MB)을 내려받아요. 느린 네트워크에서는
+        실습실은 처음 열 때 브라우저에서 파이썬을 실행하는 프로그램 같은 큰 파일을 내려받아요(처음 한 번만, 실습실마다 달라요: {prefetchSizeSummary()}). 느린 네트워크에서는
         몇 분 걸리고, 한 번 받은 파일은 브라우저에 저장해 두어 다음부터 빨라져요.
       </p>
       <p>

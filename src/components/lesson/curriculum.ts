@@ -12,7 +12,9 @@
  * - order  단원 안 순서. md frontmatter의 order와 같게 적는다. 보충 차시는 3.4처럼 소수로 사이에 넣는다.
  * - kind   textbook(교과서) · supplement(보충) · reading(읽기 자료) · review(대단원 마무리). content-schemas.ts와 같다.
  * - source 원천(PLAN §2.2 "원천" 칸): manuscript-code 원고+코드 · manuscript 원고만 · code-only 코드만(원고 없음) · supplement 보충(자료에 없음)
- * - pages  교과서 쪽. 원고가 없던(code-only) 차시도 출판본이 나와 판 1.4.0부터 출판본 절 범위다(예: 1-3-1 053~062 — DECISIONS C137). 제목도 출판본 절 이름이다.
+ * - pages  교과서 쪽. 원고가 없던(code-only) 차시도 출판본이 나와 판 1.4.0부터 출판본 절 범위다(DECISIONS C137). 제목도 출판본 절 이름이다.
+ *          판 1.6.0부터 짝 교과서 쪽(content/book/<id>.md pages)과 같은 값 한 벌이다 — 중단원 첫 절은 중단원 시작(성취 계획) 쪽부터(예: 1-3-1 052~062,
+ *          2-1-1 116~123). 셋(교과서 쪽·웹 차시 frontmatter·이 표)은 tests/unit/book/pages-one-set.test.ts가 대조한다.
  *
  * 묶음 이름은 원고의 중단원 표기(INVENTORY §3.1, I단원 표지)를 따르고, IV단원은 원고가 없어 코드 폴더 이름을 따른다(PLAN §2.1).
  * 보충 차시(PD-07)는 I단원은 "영상 처리 기초"로, III단원 통신 보충(C1~C3)은 따로 묶었다. P1은 3-1-4의 사전 학습이라 01 안에 둔다.
@@ -129,9 +131,9 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         key: 'u1-03',
         title: '03 페이스 메시',
         middleUnit: 3,
-        description: '교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
+        description: '이 절의 설명은 예제 코드를 바탕으로 사이트가 쉽게 다시 쓴 글이에요. 책에 있는 글 그대로는 교과서 원문에서 읽어요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
-          textbook('1-3-1', '방향을 감지하는 인공지능', 7, 'code-only', '053~062'),
+          textbook('1-3-1', '방향을 감지하는 인공지능', 7, 'code-only', '052~062'),
           textbook('1-3-2', '하품의 순간을 포착하는 인공지능', 8, 'code-only', '063~072'),
           textbook('1-3-3', '인공지능 필터로 바꾸는 내 얼굴', 9, 'code-only', '073~081'),
         ],
@@ -140,9 +142,9 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         key: 'u1-04',
         title: '04 포즈 트래킹과 음성 인식',
         middleUnit: 4,
-        description: '교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
+        description: '이 절의 설명은 예제 코드를 바탕으로 사이트가 쉽게 다시 쓴 글이에요. 책에 있는 글 그대로는 교과서 원문에서 읽어요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
-          textbook('1-4-1', '몸으로 말해요! 동작 감지 인공지능', 10, 'code-only', '083~092'),
+          textbook('1-4-1', '몸으로 말해요! 동작 감지 인공지능', 10, 'code-only', '082~092'),
           textbook('1-4-2', '균형 잡힌 자세를 도와주는 인공지능', 11, 'code-only', '093~102'),
           textbook('1-4-3', '말을 글로 바꾸는 기술(선택 차시)', 12, 'code-only', '103~111'),
         ],
@@ -158,9 +160,9 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         title: '01 디스플레이 장치 제어',
         middleUnit: 1,
         lessons: [
-          textbook('2-1-1', '피지컬 컴퓨팅 및 개발 환경의 이해', 1, 'manuscript-code', '117~123'),
+          textbook('2-1-1', '피지컬 컴퓨팅 및 개발 환경의 이해', 1, 'manuscript-code', '116~123'),
           textbook('2-1-2', 'LCD 제어하기', 2, 'manuscript-code', '124~131'),
-          textbook('2-1-3', 'OLED 제어하기', 3, 'manuscript-code', '132~140'),
+          textbook('2-1-3', 'OLED 제어하기', 3, 'manuscript-code', '132~141'),
           reading('2-1-R', '인공지능 시대의 OLED 디스플레이', 3.5, '141'),
           textbook('2-1-4', 'RGB LED와 레이저 제어하기', 4, 'manuscript-code', '142~147'),
           textbook('2-1-5', '네오픽셀 제어하기', 5, 'manuscript-code', '148~153'),
@@ -171,7 +173,7 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         title: '02 출력 장치 제어',
         middleUnit: 2,
         lessons: [
-          textbook('2-2-1', '버저 제어하기', 6, 'manuscript-code', '155~160'),
+          textbook('2-2-1', '버저 제어하기', 6, 'manuscript-code', '154~160'),
           textbook('2-2-2', 'MP3 플레이어 제어하기', 7, 'manuscript-code', '161~166'),
           textbook('2-2-3', '팬 모터 제어하기', 8, 'manuscript-code', '167~172'),
           textbook('2-2-4', '서보모터 제어하기', 9, 'manuscript-code', '173~179'),
@@ -188,7 +190,7 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         title: '01 인공지능 피지컬 통신 방법',
         middleUnit: 1,
         lessons: [
-          textbook('3-1-1', '인공지능과 하드웨어 통신의 이해', 1, 'manuscript', '185~188'),
+          textbook('3-1-1', '인공지능과 하드웨어 통신의 이해', 1, 'manuscript', '184~188'),
           textbook('3-1-2', '인공지능 모델과 시리얼 통신', 2, 'manuscript-code', '189~194'),
           textbook('3-1-3', '인공지능과 블루투스 통신', 3, 'manuscript-code', '195~200'),
           supplement('P1', 'PyAutoGUI로 컴퓨터 조작하기', 3.5),
@@ -216,9 +218,9 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         key: 'u4-01',
         title: '01 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발',
         middleUnit: 1,
-        description: '이 대단원은 교과서 원고가 없어 예제 코드를 바탕으로 사이트가 본문을 써요. 카드의 "사이트 해설"이 그 표시예요.',
+        description: '이 대단원의 설명은 예제 코드를 바탕으로 사이트가 쉽게 다시 쓴 글이에요. 책에 있는 글 그대로는 교과서 원문에서 읽어요. 카드의 "사이트 해설"이 그 표시예요.',
         lessons: [
-          textbook('4-1-1', '내 얼굴을 인식하는 인공지능의 눈', 1, 'code-only', '213~222'),
+          textbook('4-1-1', '내 얼굴을 인식하는 인공지능의 눈', 1, 'code-only', '212~222'),
           textbook('4-1-2', '눈길 따라 움직이는 마우스 커서', 2, 'code-only', '223~231'),
           textbook('4-1-3', '윙크 한 번으로 더블 클릭!', 3, 'code-only', '232~247'),
           textbook('4-1-4', '블루투스로 데이터 전송하기', 4, 'code-only', '248~257'),
@@ -229,14 +231,14 @@ export const CURRICULUM: readonly UnitCurriculum[] = Object.freeze([
         title: '02 AI 신호를 현실로 물리적 피드백 시스템 제작',
         middleUnit: 2,
         lessons: [
-          textbook('4-2-1', '얼굴을 따라 움직이는 서보모터', 5, 'code-only', '259~275'),
+          textbook('4-2-1', '얼굴을 따라 움직이는 서보모터', 5, 'code-only', '258~275'),
           textbook('4-2-2', '소리와 빛으로 상태를 알려 줘', 6, 'code-only', '276~285'),
         ],
       }),
       section({
         key: 'u4-project',
         title: '4단원 프로젝트',
-        description: '배운 것을 모아 모둠이 우리 곁의 문제를 푸는 지능화 사물을 만드는 활동 안내예요. 교과서 원고가 없어 사이트가 새로 썼어요.',
+        description: '배운 것을 모아 모둠이 우리 곁의 문제를 푸는 지능화 사물을 만드는 활동 안내예요. 사이트가 새로 쓴 글이에요.',
         lessons: [guide('IV-프로젝트', 'project', '우리 곁의 문제를 푸는 지능화 사물 만들기', 7)],
       }),
     ]),

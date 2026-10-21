@@ -3,7 +3,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { PROGRESS_PRIVACY_NOTE } from '../../src/config/privacy-text.ts';
+import {
+  CAMERA_PRIVACY_SENTENCE,
+  FOOTER_PRIVACY_SENTENCE,
+  NO_ACCOUNT_SENTENCE,
+  PROGRESS_PRIVACY_NOTE,
+} from '../../src/config/privacy-text.ts';
 import { emptyProgress, sanitizeProgress } from '../../src/lib/progress.ts';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
@@ -61,5 +66,29 @@ describe('진도 개인정보 문장', () => {
     expect(Object.keys(state.last ?? {}).sort()).toEqual(['at', 'href', 'id', 'label', 'title']);
     expect(Object.keys(state.lastLab ?? {}).sort()).toEqual(['at', 'path', 'title']);
     expect(Object.keys(emptyProgress()).sort()).toEqual(['done', 'last', 'lastLab', 'seen', 'version']);
+  });
+});
+
+describe('보호자 안내·바닥글 문장(판 1.6.0 R6)', () => {
+  it('카메라 영상은 이 컴퓨터 밖으로 나가지 않는다고, 서버가 없다고 말한다(학생용 시작하기와 같은 사실)', () => {
+    expect(CAMERA_PRIVACY_SENTENCE).toContain('카메라 영상은 이 컴퓨터 밖으로 나가지 않아요');
+    expect(CAMERA_PRIVACY_SENTENCE).toContain('영상을 받는 서버가 없고');
+    expect(read('src/pages/start/student/index.astro')).toContain('이 사이트에는 영상을 받는 서버가 없어요');
+    expect(FOOTER_PRIVACY_SENTENCE).toBe('카메라 영상은 이 컴퓨터 밖으로 나가지 않아요.');
+    expect(NO_ACCOUNT_SENTENCE).toContain('로그인과 회원가입이 없고');
+  });
+
+  it('보호자 안내가 세 문장과 진도 문장을 불러와 쓰고, 바닥글은 한 줄 문장을 쓴다', () => {
+    const parent = read('src/pages/start/parent/index.astro');
+    for (const name of ['CAMERA_PRIVACY_SENTENCE', 'NO_ACCOUNT_SENTENCE', 'PROGRESS_PRIVACY_NOTE']) {
+      expect(parent, name).toContain(`{${name}}`);
+    }
+    expect(parent).toContain("from '../../../config/privacy-text.ts'");
+    expect(read('src/layouts/partials/SiteFooter.astro')).toContain('{FOOTER_PRIVACY_SENTENCE}');
+  });
+
+  it('보호자 안내에는 운영자 이메일·전화번호를 적지 않는다(저장소 검사가 막는 개인 연락처 — 연락은 담당 선생님 → 기여·문의 쪽)', () => {
+    const parent = read('src/pages/start/parent/index.astro');
+    expect(parent).not.toMatch(/mailto:|@[a-z0-9-]+\.[a-z]{2,}|\d{2,3}-\d{3,4}-\d{4}/iu);
   });
 });

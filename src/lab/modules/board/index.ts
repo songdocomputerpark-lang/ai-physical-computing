@@ -156,6 +156,9 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
       scrollHint: io.querySelector<HTMLElement>('[data-board-scroll-hint]'),
       wiringEmpty: io.querySelector<HTMLElement>('[data-board-wiring-empty]'),
       controls: io.querySelector<HTMLElement>('[data-board-controls]'),
+      hintPress: io.querySelector<HTMLElement>('[data-board-hint-press]'),
+      hintNames: io.querySelector<HTMLElement>('[data-board-hint-names]'),
+      hintControls: io.querySelector<HTMLElement>('[data-board-hint-controls]'),
     },
     {
       definitions: PART_DEFINITIONS,

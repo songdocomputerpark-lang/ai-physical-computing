@@ -178,6 +178,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   const bar = find('bar');
   const fill = find('fill');
   const stageList = find<HTMLOListElement>('stages');
+  /** [자세히] 접기 — 평소 닫혀 있고, 받기에 실패하면 펼친다(어느 파일에서 막혔는지 보이게) */
+  const detailBox = find<HTMLDetailsElement>('detail');
   const sourceText = find('source-text');
   const noteText = find('note');
   const cardTitle = find('card-title');
@@ -495,6 +497,9 @@ function mount(context: LabModuleContext): LabModuleHandle {
       }
     }
     renderStages(snapshot.stages);
+    if (detailBox && snapshot.phase === 'failed') {
+      detailBox.open = true;
+    }
     if (sourceText) {
       // 받는 동안은 지금 하는 일로, 다 받은 뒤에는 한 일로 말한다(판 1.2.1 — 검토 E2: 첫 받기 31초부터 "받았어요"가 보였다)
       const loadingNow = snapshot.phase === 'loading';

@@ -27,15 +27,18 @@ const checkHref = withBase('start/check/');
       <div class="loading__bar-fill" data-loading-fill></div>
     </div>
 
-    <ol class="loading__stages" data-loading-stages></ol>
-
     {/* 받는 동안만 보인다(받기를 미룬 휴대폰에서는 [실행] 전에는 숨김, 준비가 끝나거나 실패하면 숨김 — 아래 style). 크기는 index.ts가 채운다. */}
     <p class="loading__expect" data-loading-expect>
       <strong>처음 한 번만 걸려요.</strong> 파이썬(<span data-loading-expect-size>약 13MB</span>)을 받는 중이에요. 학교 인터넷이면 보통 1분 안팎이고,
       느리면 몇 분 걸려요. 한 번 받으면 다음부터는 바로 열려요. 오래 그대로이면 <a href={checkHref}>내 컴퓨터 점검</a>을 해 봐요.
     </p>
 
-    <p class="loading__source" data-loading-source-text></p>
+    {/* 개발자 낱말(파이썬 엔진 Pyodide·numpy·OpenCV·받는 곳 jsDelivr)과 파일별 받은 양은 평소 접어 둔다 — 코드를 밀어내지 않게(판 1.6.0 R6, 걷기 보고 B-8). 받기에 실패하면 index.ts가 저절로 펼친다 */}
+    <details class="more loading__detail" data-loading-detail>
+      <summary>자세히 — 받는 파일과 받는 곳</summary>
+      <ol class="loading__stages" data-loading-stages></ol>
+      <p class="loading__source" data-loading-source-text></p>
+    </details>
 
     <div class="loading__actions">
       <button type="button" class="lab-button" data-loading-prefetch>이 컴퓨터에 실습 파일 미리 받기</button>

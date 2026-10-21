@@ -146,14 +146,6 @@ function describeError(error: unknown): string {
   return String(error);
 }
 
-function hostOf(url: string): string {
-  try {
-    return new URL(url).host || url;
-  } catch {
-    return url;
-  }
-}
-
 /** Pyodide의 PythonError(파이썬 예외)인지 */
 function isPythonError(error: unknown): error is Error & { type: string } {
   return error instanceof Error && typeof (error as { type?: unknown }).type === 'string';
@@ -363,8 +355,14 @@ async function load(message: LoadMessage): Promise<void> {
     return;
   }
   const details: string[] = [];
-  for (const indexUrl of message.indexUrls) {
-    post({ type: 'progress', stage: 'core', message: `파이썬 엔진(Pyodide)을 받는 중… (${hostOf(indexUrl)})` });
+  for (const [attempt, indexUrl] of message.indexUrls.entries()) {
+    // 학생 말로(판 1.6.0 R6 — 걷기 보고 B-74): "파이썬 엔진(Pyodide)을 받는 중… (cdn.jsdelivr.net)"은 개발자 낱말이라 상태 줄에서 코드를 밀어냈다.
+    // 엔진 이름·받는 곳은 준비 칸의 [자세히]에 있다(src/lab/modules/loading/panel.astro). 첫 주소가 막혀 다음 주소로 넘어가면 그렇다고만 알린다.
+    post({
+      type: 'progress',
+      stage: 'core',
+      message: attempt === 0 ? '파이썬을 내려받는 중이에요(약 13MB, 처음 한 번만)' : '다른 곳에서 파이썬을 다시 내려받는 중이에요',
+    });
     try {
       const module = (await import(/* @vite-ignore */ `${indexUrl}pyodide.mjs`)) as PyodideModule;
       pyodide = await module.loadPyodide({ indexURL: indexUrl });

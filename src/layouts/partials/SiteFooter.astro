@@ -7,11 +7,17 @@
  * - 라이선스 두 줄(학습 자료 CC BY-NC-SA 4.0, 사이트 프로그램과 예제 코드 MIT — 라이선스 요약 링크와 저장소의 라이선스 파일 링크)과
  *   제3자 자료 제외 문구, 출처와 라이선스 링크(P1-10 완료 기준 "바닥글에서 연결")
  * - 저장소·문제 알리기(GitHub Issues) 링크
- * 줄 차례(= 읽는 차례): 이름·판 → 만든 사람 → 교과서·부품 사진 출처 줄(판 1.4.0, 모든 쪽) → 저장소 링크 → 라이선스 두 줄 → 제3자 자료 제외 문구와 출처 링크.
+ * 줄 차례(= 읽는 차례): 이름·판 → 만든 사람 → 연락 → 개인정보 안내 → 교과서·부품 사진 출처 줄(판 1.4.0, 모든 쪽) → "자세히(개발자용)" 접기
+ * (저장소 링크 → 라이선스 두 줄 → 제3자 자료 제외 문구와 출처 링크).
+ * 판 1.6.0 R6(걷기 보고 A-17·B-57): 학부모가 바닥글에서 찾는 것은 만든 사람·연락·개인정보·출처 네 줄이고, 라이선스·GitHub 낱말은 그 사이를 가렸다.
+ * 그래서 앞의 넷은 보이게 두고(개인정보 한 줄은 /start/parent/#privacy로) 개발자용 줄은 닫힌 `<details>` 안으로 옮겼다 — 내용·링크는 그대로 있고 접힌 안에서도 연결된다
+ * (P1-10 완료 기준 "바닥글에서 연결"은 접힌 칸이 열리면 보이는 것으로 지킨다. 사이트 지도의 "사이트 정보 › 출처와 라이선스"는 늘 보인다).
  * 얇게(R1-009, 판 1.3.0 검수): 넓은 화면에서 사이트 지도는 묶음마다 한 줄(제목 + 링크 이어 놓기), 사이트 정보는 줄바꿈 가능한 한 덩어리로 흘려
  * 약 570px였던 높이를 줄인다. 라이선스 두 줄·제3자 자료 제외 문구·출처 링크는 필수(P1-10, PD-26)라 글은 줄이지 않고 배치만 접는다.
  * 문구와 주소는 모두 src/config/site.ts에서 온다.
  */
+import { getPage } from '../../config/nav.ts';
+import { FOOTER_PRIVACY_SENTENCE } from '../../config/privacy-text.ts';
 import { siteConfig } from '../../config/site.ts';
 import { withBase } from '../../lib/url.ts';
 import { footerColumns, footerCreditText } from './footer-columns.ts';
@@ -19,6 +25,9 @@ import { footerColumns, footerCreditText } from './footer-columns.ts';
 const { content, software, exclusion } = siteConfig.license;
 /** 버전별 바뀐 점(저장소 뿌리의 CHANGELOG.md — Phase 6 유지보수 문서) */
 const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
+const contribute = getPage('contribute');
+/** 보호자 안내의 개인정보 칸(src/pages/start/parent/index.astro 의 id="privacy") */
+const privacyHref = `${getPage('start-parent').href}#privacy`;
 ---
 
 <footer class="site-footer">
@@ -53,23 +62,28 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
         {siteConfig.name} <span class="site-footer__version" data-site-version={siteConfig.version}>버전 {siteConfig.version}</span> <a class="site-footer__changelog" href={changelogUrl}>바뀐 점 기록</a>
       </p>
       <p class="site-footer__maker">만든 사람: {siteConfig.author}</p>
+      <p class="site-footer__contact" data-footer-contact>궁금한 점은 담당 선생님께 먼저 물어보세요. <a href={contribute.href}>문의하는 방법</a></p>
+      <p class="site-footer__privacy" data-footer-privacy>{FOOTER_PRIVACY_SENTENCE} <a href={privacyHref}>개인정보 안내</a></p>
       <p class="site-footer__credit" data-site-credit>{footerCreditText()}</p>
-      <ul class="site-footer__links">
-        <li><a href={siteConfig.repositoryUrl}>GitHub 저장소</a></li>
-        <li><a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a></li>
-      </ul>
-      <ul class="site-footer__licenses">
-        {/* 줄바꿈은 Astro가 지우므로 가운뎃점 앞뒤 공백을 한 줄에 적는다. */}
-        <li>
-          학습 자료: <a href={content.url} rel="license">{content.shortName}</a> · <a href={content.fileUrl}>라이선스 안내(LICENSE-CONTENT.md)</a>
-        </li>
-        <li>
-          사이트 프로그램과 예제 코드: <a href={software.url} rel="license">{software.shortName}</a> · <a href={software.fileUrl}>라이선스 전문(LICENSE)</a>
-        </li>
-      </ul>
-      <p class="site-footer__exclusion">
-        {exclusion} 해당 자료는 <a href={withBase('credits/')}>출처와 라이선스</a>에 모아 두었어요.
-      </p>
+      <details class="more site-footer__dev" data-footer-dev>
+        <summary>자세히(개발자용)</summary>
+        <ul class="site-footer__links">
+          <li><a href={siteConfig.repositoryUrl}>GitHub 저장소</a></li>
+          <li><a href={siteConfig.issuesUrl}>문제 알리기(GitHub Issues)</a></li>
+        </ul>
+        <ul class="site-footer__licenses">
+          {/* 줄바꿈은 Astro가 지우므로 가운뎃점 앞뒤 공백을 한 줄에 적는다. */}
+          <li>
+            학습 자료: <a href={content.url} rel="license">{content.shortName}</a> · <a href={content.fileUrl}>라이선스 안내(LICENSE-CONTENT.md)</a>
+          </li>
+          <li>
+            사이트 프로그램과 예제 코드: <a href={software.url} rel="license">{software.shortName}</a> · <a href={software.fileUrl}>라이선스 전문(LICENSE)</a>
+          </li>
+        </ul>
+        <p class="site-footer__exclusion">
+          {exclusion} 해당 자료는 <a href={withBase('credits/')}>출처와 라이선스</a>에 모아 두었어요.
+        </p>
+      </details>
     </div>
   </div>
 </footer>
@@ -196,10 +210,50 @@ const changelogUrl = `${siteConfig.repositoryUrl}/blob/main/CHANGELOG.md`;
     color: var(--color-text-muted);
   }
 
-  /* 제3자 자료 제외 문구와 출처 링크: 한 줄 전체를 쓰고 조금 흐리게 */
+  /* 제3자 자료 제외 문구와 출처 링크: 접힌 "자세히(개발자용)" 안에서 한 줄 전체를 쓰고 조금 흐리게 */
   .site-footer__exclusion {
     flex-basis: 100%;
     color: var(--color-text-muted);
+  }
+
+  /* 연락·개인정보 줄: 만든 사람 줄과 같은 크기(링크 위아래 여백은 아래 .site-footer__about p a가 24px 이상으로 만든다) */
+  .site-footer__contact,
+  .site-footer__privacy {
+    color: var(--color-text);
+  }
+
+  /*
+   * "자세히(개발자용)" 접기(판 1.6.0 R6): GitHub 저장소·문제 알리기·라이선스 두 줄·제3자 자료 제외 문구. 가로를 다 써서 위 네 줄 아래에 한 줄로 앉는다.
+   * 칸 모양과 ▶ 표시는 공용 .more(global.css)가 그린다 — 여기서는 크기·여백만 바닥글에 맞춘다.
+   */
+  .site-footer__dev {
+    flex-basis: 100%;
+    margin-block-start: var(--space-1);
+    background: transparent;
+    font-size: var(--text-sm);
+  }
+
+  .site-footer__dev > summary {
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+  }
+
+  .site-footer__dev > summary:hover {
+    color: var(--color-accent-hover);
+  }
+
+  /* 바닥글의 `ul { margin: 0 }`이 공용 .more의 안쪽 여백보다 세므로 접힌 안의 여백을 다시 준다 */
+  .site-footer__dev > :not(summary) {
+    margin-block: 0;
+    margin-inline: var(--space-4);
+  }
+
+  .site-footer__dev > :not(summary) + :not(summary) {
+    margin-block-start: var(--space-2);
+  }
+
+  .site-footer__dev > :not(summary):last-child {
+    margin-block-end: var(--space-3);
   }
 
   /*

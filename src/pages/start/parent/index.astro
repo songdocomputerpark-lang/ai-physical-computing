@@ -1,0 +1,166 @@
+---
+/**
+ * 보호자 안내(판 1.6.0 R6, DECISIONS C172 보충 — 학부모 걷기 walk-parent-browse 5·7·8·9).
+ *
+ * 학부모(보호자)가 아이 사이트를 처음 보러 와서 3분 안에 알고 싶은 다섯 가지를 보호자 말로 짧게 답한다:
+ * ① 어떤 사이트·누가 만들었나 ② 비용과 준비물(돈이 드나·설치하거나 사야 할 게 있나) ③ 개인정보·카메라 영상 ④ 휴대폰으로 되나 ⑤ 궁금한 점은 어디에.
+ * 걷기에서 학부모는 이 답을 찾는 데 17단계가 걸렸다 — 답이 학생용·교사용 깊은 곳에 흩어져 있고 "학부모" 검색은 결과가 없었다.
+ *
+ * - 사실은 새로 만들지 않는다: 개인정보 문장은 src/config/privacy-text.ts(학생용 시작하기·교사용 시작하기와 같은 말), 만든 이·교과서는 src/config/site.ts,
+ *   외부 연결 표는 교사용 시작하기(#privacy)에 이미 있어 링크한다(이 쪽에 표를 복사하지 않는다).
+ * - 연락처: 사이트에 운영자 이메일은 없다(저장소 검사가 이메일 모양을 막고, 개인 연락처를 공개 사이트에 두지 않는다). 그래서 "먼저 담당 선생님 → 사이트 문제는 기여·문의의 GitHub 이슈".
+ * - 검색: "학부모·부모님·보호자·학부형"을 찾으면 이 쪽이 나오도록 글 안에 그 낱말을 자연스럽게 쓴다(src/components/search/search-rank.ts SYNONYMS가 같은 뜻 낱말을 함께 찾는다).
+ * - 375 화면에서 두 화면 안에 들어오게 짧게 쓴다(tests/e2e/start.spec.ts가 쪽 높이를 본다).
+ */
+import Icon from '../../../components/common/Icon.astro';
+import { getPage } from '../../../config/nav.ts';
+import {
+  CAMERA_PRIVACY_SENTENCE,
+  NO_ACCOUNT_SENTENCE,
+  PROGRESS_PRIVACY_NOTE,
+} from '../../../config/privacy-text.ts';
+import { siteConfig } from '../../../config/site.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const page = getPage('start-parent');
+const student = getPage('start-student');
+const teacher = getPage('start-teacher');
+const book = getPage('book');
+const contribute = getPage('contribute');
+const credits = getPage('credits');
+const { title: bookTitle, publisher } = siteConfig.textbook;
+/** 교사용 시작하기의 개인정보 처리 안내(표) */
+const privacyTableHref = `${teacher.href}#privacy`;
+
+/** 맨 위 요약 칩 — 보호자가 가장 먼저 묻는 세 가지를 한눈에 */
+const quick = [
+  { id: 'free', icon: 'unlock', text: '무료' },
+  { id: 'install', icon: 'browser', text: '설치 없음' },
+  { id: 'camera', icon: 'camera', text: '카메라 영상은 밖으로 안 나가요' },
+] as const;
+---
+
+<BaseLayout title={page.title} description={page.description} width="narrow">
+  <h1 class="page-title">{page.title}</h1>
+  <p class="lead">보호자세요? 학부모님이 궁금해하는 것을 다섯 가지로 짧게 모았어요.</p>
+
+  <ul class="parent-quick" aria-label="먼저 세 가지만" data-parent-quick>
+    {
+      quick.map((item) => (
+        <li class="parent-quick__item" data-parent-quick-item={item.id}>
+          <span class="parent-quick__icon"><Icon name={item.icon} size="sm" /></span>
+          <span>{item.text}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="prose parent">
+    <section aria-labelledby="parent-about">
+      <h2 id="parent-about">누가 만든 어떤 사이트인가요?</h2>
+      <p>
+        {publisher} 교과서 「{bookTitle}」을 브라우저에서 읽고 직접 해 보는 학습 사이트예요. 교과서를 함께 쓴 선생님({siteConfig.author})이 돈을 벌려는 목적 없이(비영리) 만들어 공개해요.
+      </p>
+      <p>
+        아이는 카메라로 손과 얼굴을 알아보는 인공지능을 만들고, 작은 컴퓨터 보드(ESP32)로 불빛과 모터를 움직여 봐요.
+      </p>
+    </section>
+
+    <section aria-labelledby="parent-cost">
+      <h2 id="parent-cost">비용과 준비물은 어떤가요?</h2>
+      <p>
+        사이트와 교과서 글은 무료예요. 설치도 가입도 없이 브라우저로 바로 해요. 준비물은 컴퓨터 한 대면 되고, 실제 보드(키트)는 있으면 더 좋지만 꼭 사지 않아도 돼요. 없어도 화면 속 가상 보드로 끝까지 할 수 있어요.
+      </p>
+    </section>
+
+    <section aria-labelledby="privacy">
+      <h2 id="privacy">개인정보와 카메라 영상은 어떻게 되나요?</h2>
+      <p>{CAMERA_PRIVACY_SENTENCE}</p>
+      <p>{NO_ACCOUNT_SENTENCE} 아이가 쓴 코드와 설정은 그 컴퓨터의 브라우저에만 남아요.</p>
+      <details class="more" data-parent-privacy-more>
+        <summary>더 자세히 알고 싶어요</summary>
+        <ul>
+          <li>{PROGRESS_PRIVACY_NOTE}</li>
+          <li>사이트를 열 때 파일을 보내 주는 회사(GitHub 등)는 접속 정보를 처리해요. 사이트 운영자는 그 기록을 받지 않아요. 어디에 무엇이 가는지는 <a href={privacyTableHref}>교사용 시작하기의 개인정보 처리 안내</a>에 표로 있어요.</li>
+          <li>음성 인식 차시는 기본이 글자 입력이라 목소리가 나가지 않아요. 선생님이 켠 컴퓨터에서 마이크를 고르면 목소리가 브라우저 회사의 서버로 가요.</li>
+          <li>통신 실습에서 아이가 공개 중계 서버를 고르면 메시지가 인터넷의 공개 서버로 가요. 이름이나 연락처는 보내지 않게 선생님이 안내해요.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section aria-labelledby="parent-phone">
+      <h2 id="parent-phone">휴대폰으로도 되나요?</h2>
+      <p>
+        읽기와 퀴즈는 휴대폰과 태블릿도 돼요. 부모님 휴대폰으로 함께 읽어 봐도 좋아요. 코드를 실행하는 실습은 컴퓨터의 Chrome(크롬)이나 Edge(엣지)에서 해요.
+      </p>
+    </section>
+
+    <section aria-labelledby="parent-contact">
+      <h2 id="parent-contact">궁금한 점은 어디에 물어보나요?</h2>
+      <p>
+        먼저 담당 선생님께 물어봐 주세요. 선생님도 답하기 어려운 것은 <a href={contribute.href}>{contribute.title}</a> 쪽에서 사이트 운영자에게 알릴 수 있어요. 그곳은 누구나 볼 수 있는 게시판이라 아이 이름이나 연락처는 적지 마세요.
+      </p>
+    </section>
+  </div>
+
+  <p class="parent-next">
+    아이와 함께 보려면 <a href={student.href}>{student.title}</a>, 교과서 글은 <a href={book.href}>{book.label}</a>, 사용 허락과 출처는 <a href={credits.href}>{credits.title}</a>에서 볼 수 있어요.
+  </p>
+</BaseLayout>
+
+<style>
+  /* 맨 위 요약 칩 셋: 휴대폰에서도 한 줄에 다 들어오거나 두 줄로 접힌다. 눌리는 곳이 아니라 초점을 받지 않는다. */
+  .parent-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    margin: var(--space-4) 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .parent-quick__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  .parent-quick__icon {
+    display: inline-flex;
+    color: var(--color-accent-hover);
+  }
+
+  /* 질문 다섯 개를 촘촘히: 제목 위 여백을 줄이고 문단은 읽기 좋은 줄 간격 그대로 */
+  .parent > section + section {
+    margin-block-start: var(--space-6);
+  }
+
+  .parent h2 {
+    margin-block: 0 var(--space-1);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .parent p {
+    margin-block: 0 var(--space-2);
+    line-height: var(--leading-snug);
+  }
+
+  .parent .more {
+    margin-block-start: var(--space-2);
+  }
+
+  .parent-next {
+    margin-block-start: var(--space-8);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

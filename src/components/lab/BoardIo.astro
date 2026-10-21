@@ -53,9 +53,14 @@ import '../../styles/board-drawing.css';
         <h3 id="board-controls-heading" class="board-io__heading">부품 조작</h3>
         <div class="board-io__controls-list" data-board-controls-list></div>
       </section>
-      <p class="board-io__hint">
-        누를 수 있는 부품(BOOT 버튼·터치 센서)은 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있어요. 4채널 터치 센서는
-        그림 아래 "부품 조작" 칸의 [패드] 단추(Space·Enter를 누르고 있기)와 값 막대(화살표 키)로 조작해요.
+      {/*
+        누르는 법 안내는 이 예제의 그림에 있는 부품만 말한다(판 1.6.0 R6, 걷기 보고 B-79 — 초음파 센서 예제에도 "터치 센서·4채널 터치 센서" 안내가 늘 보였다).
+        view.ts가 배선을 그릴 때마다 누를 수 있는 부품 이름([data-board-hint-names])을 채우고, "부품 조작" 칸이 있을 때만 둘째 문장([data-board-hint-controls])을 보인다.
+        글자는 자바스크립트가 돌기 전에도 맞도록 보드에 늘 붙은 BOOT 버튼 기준으로 적어 둔다.
+      */}
+      <p class="board-io__hint" data-board-hint>
+        <span data-board-hint-press>누를 수 있는 부품(<span data-board-hint-names>BOOT 버튼</span>)은 마우스나 손가락으로 누르고 있거나, Tab 키로 옮겨 Space나 Enter를 누르고 있어요.</span>{' '}
+        <span data-board-hint-controls hidden>그림 아래 "부품 조작" 칸이 있는 부품은 그 칸의 단추(Space·Enter를 누르고 있기)와 값 막대(화살표 키)로 조작해요.</span>
       </p>
       <details class="board-io__legend">
         <summary>그림 읽는 법</summary>

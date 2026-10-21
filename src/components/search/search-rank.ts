@@ -37,6 +37,8 @@ const SYMPTOM_REWRITES: readonly { pattern: RegExp; to: string }[] = [
 export const SYNONYMS: readonly { pattern: RegExp; extra: string }[] = [
   { pattern: /수행\s*평가/u, extra: '과정 중심 평가' },
   { pattern: /permission\s*denied|notallowederror/iu, extra: '카메라 허용' },
+  // 판 1.6.0 R6(걷기 보고 A-15 — 학부모가 "학부모"를 쳐도 결과가 없었다): 같은 사람을 부르는 말은 보호자 안내(/start/parent/)로 모인다
+  { pattern: /학부모|학부형|부모님|보호자/u, extra: '보호자 안내' },
 ];
 
 /** 원고 정정 목록은 교사용 점검 자료라 학생 검색의 앞에 오지 않게 한다(이런 말을 적었을 때만 앞에 둔다) */

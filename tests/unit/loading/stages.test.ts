@@ -86,7 +86,9 @@ describe('LoadingTracker', () => {
     expect(core?.estimated).toBe(false);
     expect(snapshot.percent).toBe(Math.round((4_799_109 / PYODIDE_CORE_BYTES) * 100));
     expect(snapshot.source).toBe('cdn');
-    expect(snapshot.text).toContain('파이썬 엔진');
+    // 판 1.6.0 R6: 한 줄 글은 학생 말(엔진 이름 Pyodide는 [자세히]의 단계 줄에만)
+    expect(snapshot.text).toMatch(/^파이썬을 내려받는 중이에요 · \d+\.\dMB \/ 12\.9MB$/u);
+    expect(snapshot.text).not.toContain('Pyodide');
   });
 
   it('패키지 단계는 실행기 progress로 시작·끝난다', () => {
@@ -195,7 +197,8 @@ describe('LoadingTracker', () => {
     const snapshot = track.snapshot();
     expect(snapshot.stages[0]?.estimated).toBe(true);
     expect(snapshot.percent).toBeNull(); // 막대는 "받는 중" 줄무늬
-    expect(snapshot.text).toBe('파이썬 엔진(Pyodide) 받는 중… (약 12.9MB)');
+    expect(snapshot.text).toBe('파이썬을 내려받는 중이에요(약 13MB, 처음 한 번만)');
+    expect(snapshot.stages[0]?.label).toBe('파이썬 엔진(Pyodide)'); // 이름은 [자세히]의 단계 줄에 그대로 있다
   });
 
   it('바이트가 한 번이라도 오면 그때부터 백분율을 말한다', () => {

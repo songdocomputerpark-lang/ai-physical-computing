@@ -17,6 +17,14 @@ test.describe('공통 레이아웃', () => {
     const footer = page.getByRole('contentinfo');
     await expect(footer).toContainText(`버전 ${siteConfig.version}`);
     await expect(footer).toContainText(`만든 사람: ${siteConfig.author}`);
+    // 판 1.6.0 R6: 보이는 네 줄은 만든 사람·연락·개인정보·출처이고, 라이선스·GitHub 줄은 닫힌 "자세히(개발자용)" 안에 있다
+    await expect(footer.locator('[data-footer-contact] a')).toHaveAttribute('href', withBase('contribute/'));
+    await expect(footer.getByRole('link', { name: '개인정보 안내' })).toHaveAttribute('href', withBase('start/parent/#privacy'));
+    await expect(footer.locator('[data-site-credit]')).toContainText('고릴라셀(브릭셀, 실습 키트 제조사)');
+    const dev = footer.locator('[data-footer-dev]');
+    await expect(dev).not.toHaveAttribute('open', '');
+    await expect(dev.locator('summary')).toHaveText('자세히(개발자용)');
+    await dev.locator('summary').click();
     await expect(footer).toContainText(siteConfig.license.content.shortName);
     await expect(footer).toContainText(siteConfig.license.software.shortName);
     await expect(footer).toContainText(siteConfig.license.exclusion);
@@ -269,6 +277,8 @@ test.describe('바닥글 사이트 지도 — 다섯 묶음', () => {
 
   test('모든 링크를 누르는 곳이 24px 이상이다(WCAG 2.5.8)', async ({ page }) => {
     await page.goto('./');
+    // 닫힌 "자세히(개발자용)" 안의 링크는 화면에 없으므로 먼저 펼쳐 모두 잰다
+    await page.locator('[data-footer-dev] > summary').click();
     const heights = await page.locator('.site-footer a').evaluateAll((links) => links.map((link) => [link.textContent?.trim(), link.getBoundingClientRect().height]));
     for (const [label, height] of heights) {
       expect(height as number, String(label)).toBeGreaterThanOrEqual(24);

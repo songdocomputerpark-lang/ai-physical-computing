@@ -9,6 +9,7 @@
  *   comm     통신 방식(시리얼·블루투스·MQTT …)
  *   part     가상 보드 부품
  *   virtual  하드웨어 없이 끝까지 되는 예제
+ *   real     실제 보드가 있어야 끝까지 되는 예제(판 1.6.0 — 키트 장치 도감의 virtual: real-only)
  *   meta     난이도·교과서 쪽처럼 덧붙임 정보
  *   word     사이드카·차시에 적은 자유 낱말
  * 뜻은 색만이 아니라 글자로도 전한다. 글자만으로 무엇인지 알기 어려운 딱지(부품 이름)에는 prefix로 앞말을 붙인다.
@@ -17,7 +18,7 @@
  * 범위 스타일을 쓰면 Astro가 요소마다 붙이는 표시(data-astro-cid-…)만으로 페이지가 수십 KB 커지기 때문이다(P4-11 측정).
  */
 interface Props {
-  tone: 'lab' | 'unit' | 'comm' | 'part' | 'virtual' | 'meta' | 'word';
+  tone: 'lab' | 'unit' | 'comm' | 'part' | 'virtual' | 'real' | 'meta' | 'word';
   /** 화면 낭독기에만 읽히는 앞말. 예: "부품" */
   prefix?: string;
 }

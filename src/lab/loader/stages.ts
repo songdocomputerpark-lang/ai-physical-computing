@@ -13,7 +13,7 @@
  */
 import type { RuntimeState } from '../runtime/protocol.ts';
 import type { DownloadMessage, DownloadSource, LoadingStageDetail } from './constants.ts';
-import { PYODIDE_CORE_BYTES, findPyodideFile, formatBytes, packageWheelSize, parsePyodideUrl } from './pyodide-files.ts';
+import { PYODIDE_CORE_BYTES, approxMegabytes, findPyodideFile, formatBytes, packageWheelSize, parsePyodideUrl } from './pyodide-files.ts';
 
 export type StageState = 'pending' | 'active' | 'done' | 'failed';
 
@@ -58,6 +58,12 @@ export const STAGE_LABELS: Readonly<Record<string, string>> = Object.freeze({
   pillow: 'Pillow(그림 다루기)',
   models: '인식 모델(MediaPipe)',
 });
+
+/**
+ * 파이썬 엔진을 받는 동안 한 줄 글(판 1.6.0 R6 — 걷기 보고 B-8·B-31·B-74): "파이썬 엔진(Pyodide) 12.9MB / numpy…"처럼 개발자 낱말이 코드를 밀어내지 않게
+ * 학생 말로 쓴다. 엔진·패키지 이름과 받는 곳(jsDelivr)은 준비 칸의 [자세히]에만 있다(panel.astro).
+ */
+export const CORE_DOWNLOADING_TEXT = '파이썬을 내려받는 중이에요';
 
 export function stageLabel(id: string): string {
   return STAGE_LABELS[id] ?? `${id}(파이썬 패키지)`;
@@ -383,7 +389,14 @@ export class LoadingTracker {
         // 받은 양을 셀 수 없는 방문: 표에서 아는 크기를 "약"으로만 알린다.
         const together = estimatedTogether.length > 1 ? estimatedTogether : [active];
         const knownTotal = together.every((stage) => stage.total !== null) ? together.reduce((sum, stage) => sum + (stage.total ?? 0), 0) : null;
-        text = knownTotal !== null ? `${activeLabel} 받는 중… (약 ${formatBytes(knownTotal)})` : `${activeLabel} 받는 중…`;
+        if (together.some((stage) => stage.id === 'core')) {
+          // 파이썬 엔진이 함께 받는 중이면 엔진·패키지 이름 대신 학생 말로(이름은 [자세히]의 단계 줄에 있다)
+          text = knownTotal !== null ? `${CORE_DOWNLOADING_TEXT}(${approxMegabytes(knownTotal)}, 처음 한 번만)` : CORE_DOWNLOADING_TEXT;
+        } else {
+          text = knownTotal !== null ? `${activeLabel} 받는 중… (약 ${formatBytes(knownTotal)})` : `${activeLabel} 받는 중…`;
+        }
+      } else if (active.id === 'core') {
+        text = active.total !== null ? `${CORE_DOWNLOADING_TEXT} · ${formatBytes(active.received)} / ${formatBytes(active.total)}` : CORE_DOWNLOADING_TEXT;
       } else {
         text = active.total !== null ? `${active.label} ${formatBytes(active.received)} / ${formatBytes(active.total)}` : `${active.label} 받는 중…`;
       }

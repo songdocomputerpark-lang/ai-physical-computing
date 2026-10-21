@@ -30,6 +30,23 @@ const facts = [
   `${card.lines}줄`,
   card.sourceId === null ? null : `자료 코드 ${card.sourceId}`,
 ].filter((text): text is string => text !== null);
+
+// 같은 글자의 딱지는 한 번만(판 1.6.0 R6, 걷기 보고 B-36): "진동 알림" 카드에 부품 딱지 "터치 센서"와 낱말 딱지 "터치 센서"가 둘 다 있었다.
+// 앞에서 이미 보인 딱지(실습실·단원·통신·부품) 글자와 같은 낱말은 뺀다(공백·대소문자는 같게 본다).
+const normalizeTag = (text: string): string => text.replace(/\s+/gu, '').toLowerCase();
+const shownTags = new Set(
+  [
+    card.labLabel,
+    facets.unit === null ? '' : `${facets.unit}단원`,
+    ...facets.comm.map((kind) => EXAMPLE_COMM_LABELS[kind] ?? kind),
+    ...facets.parts.map((part) => partLabels[part] ?? part),
+  ].map(normalizeTag),
+);
+// 낱말 딱지(사이드카·차시에 적은 자유 낱말 — Pin·sleep 같은 함수 이름도 있다)는 "배우는 말:" 머리 뒤에 따로 모은다
+const wordTags = facets.tags.filter((tag, index, all) => {
+  const key = normalizeTag(tag);
+  return !shownTags.has(key) && all.findIndex((other) => normalizeTag(other) === key) === index;
+});
 ---
 
 <li
@@ -75,7 +92,13 @@ const facts = [
         <GalleryTag tone="virtual">하드웨어 없이 가능</GalleryTag>
       </li>
     )}
-    {facets.tags.map((tag) => (
+    {card.realOnly && (
+      <li>
+        <GalleryTag tone="real">실제 보드 필요</GalleryTag>
+      </li>
+    )}
+    {wordTags.length > 0 && <li class="gallery-card__words-label">배우는 말:</li>}
+    {wordTags.map((tag) => (
       <li>
         <GalleryTag tone="word">{tag}</GalleryTag>
       </li>

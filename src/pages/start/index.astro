@@ -3,6 +3,7 @@
  * 시작하기 개요(PLAN §2.1, §8.1 P1-08) — "누구세요?" 큰 카드로 맞는 안내를 고르고, 처음이라면 점검 → 첫 실습 → 보드 순서의 단계 칩으로 안내한다.
  * 판 1.3.0: 카드 통째로 눌림(.card--link) + 아이콘. 처음 온 학생에게는 학생 카드가 "처음이면 여기"로 먼저 눈에 띈다(채운 단추는 쓰지 않는다).
  * 카드와 단계 칩은 같은 쪽으로 가는 링크가 겹치지만, 하나는 "나는 누구" 길이고 하나는 "처음이면 이 순서" 길이라 둘 다 둔다.
+ * 판 1.6.0 R6: [보호자예요] 카드를 더해 다섯 장이 됐다(학부모 걷기 — 고를 칸이 없었다). 다섯 장이 3+2로 균형 있게 놓이도록 공용 격자 규칙(.card-grid, global.css R1-007)을 함께 단다.
  */
 import Callout from '../../components/common/Callout.astro';
 import Icon from '../../components/common/Icon.astro';
@@ -13,6 +14,7 @@ const page = getPage('start');
 const student = getPage('start-student');
 const board = getPage('start-board');
 const teacher = getPage('start-teacher');
+const parent = getPage('start-parent');
 const check = getPage('start-check');
 
 /** "누구세요?" 카드 — 이름(page.title)이 링크의 접근 이름 뒷부분이 된다 */
@@ -31,6 +33,14 @@ const who = [
     page: teacher,
     text: '수업 운영, 평가, 개인정보 처리 안내를 모았어요.',
     icon: 'teacher',
+    first: false,
+  },
+  {
+    key: 'parent',
+    me: '보호자예요',
+    page: parent,
+    text: '무료인지, 준비물, 개인정보를 짧게 답해요.',
+    icon: 'info',
     first: false,
   },
   {
@@ -64,7 +74,7 @@ const order = [
   <p class="lead">설치할 프로그램은 없어요. 나에게 맞는 안내를 골라 시작해요.</p>
 
   <h2 class="start-heading">어떤 안내가 필요한가요?</h2>
-  <ul class="start-who">
+  <ul class="start-who card-grid">
     {
       who.map((item) => (
         <li class:list={['card', 'card--link', 'start-who__card', { 'start-who__card--first': item.first }]} data-start-who={item.key}>

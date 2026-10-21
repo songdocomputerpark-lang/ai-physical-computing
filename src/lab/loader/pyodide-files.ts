@@ -233,4 +233,12 @@ export function formatBytes(bytes: number): string {
   return `${mb >= 100 ? Math.round(mb) : mb.toFixed(1)}MB`;
 }
 
+/**
+ * 바이트 → "약 26MB"(정수 MB). 준비 칸의 한 줄과 교사용 안내가 "약 13MB·약 26MB"처럼 외우기 쉬운 숫자를 쓰게 한다(판 1.6.0 R6).
+ * 자세한 칸(formatBytes — 12.9MB)과 달리 반올림해 적는다.
+ */
+export function approxMegabytes(bytes: number): string {
+  return `약 ${Math.round(bytes / (1024 * 1024))}MB`;
+}
+
 export { PYODIDE_VERSION };

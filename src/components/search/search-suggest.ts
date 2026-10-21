@@ -23,6 +23,7 @@ import { createSearchIcon, type SearchIconName } from './search-icons.ts';
 import {
   KIND_ICON,
   KIND_LABEL,
+  displayTitle,
   evaluateResult,
   loadPagefind,
   orderEvaluated,
@@ -330,7 +331,7 @@ export function attachSuggest(form: HTMLFormElement, shared: SuggestShared): voi
         text.className = 'suggest__text';
         const title = document.createElement('span');
         title.className = 'suggest__title';
-        title.textContent = card.title;
+        title.textContent = displayTitle(card);
         const where = document.createElement('span');
         where.className = 'suggest__where';
         where.textContent = suggestWhere(card);

@@ -55,3 +55,40 @@ describe('R1-010 점검 쪽 이름', () => {
     expect(page.description).toContain('학교 네트워크');
   });
 });
+
+describe('판 1.6.0 R6 바닥글: 만든 사람·연락·개인정보·출처 네 줄은 보이고 라이선스·GitHub는 접는다', () => {
+  it('보이는 줄: 만든 사람 → 연락 → 개인정보 안내 → 출처 줄, 그 뒤에 닫힌 "자세히(개발자용)"', () => {
+    const maker = footer.indexOf('class="site-footer__maker"');
+    const contact = footer.indexOf('data-footer-contact');
+    const privacy = footer.indexOf('data-footer-privacy');
+    const credit = footer.indexOf('data-site-credit');
+    const dev = footer.indexOf('data-footer-dev');
+    expect(maker).toBeGreaterThan(0);
+    expect(contact).toBeGreaterThan(maker);
+    expect(privacy).toBeGreaterThan(contact);
+    expect(credit).toBeGreaterThan(privacy);
+    expect(dev).toBeGreaterThan(credit);
+    expect(footer).toContain('<summary>자세히(개발자용)</summary>');
+    // 닫혀 있다(open 속성 없음)
+    expect(footer).not.toMatch(/<details[^>]*data-footer-dev[^>]*\sopen[\s>]/u);
+  });
+
+  it('GitHub 저장소·문제 알리기·라이선스 두 줄·제3자 자료 제외 문구는 접힌 안에 있다(내용·링크는 그대로)', () => {
+    const dev = footer.slice(footer.indexOf('data-footer-dev'), footer.indexOf('</details>'));
+    expect(dev).toContain('GitHub 저장소');
+    expect(dev).toContain('문제 알리기(GitHub Issues)');
+    expect(dev).toContain('rel="license"');
+    expect(dev).toContain('{exclusion}');
+    // 접힌 밖(보이는 줄)에는 라이선스 낱말이 없다
+    const visible = footer.slice(footer.indexOf('<div class="site-footer__about">'), footer.indexOf('data-footer-dev'));
+    expect(visible).not.toContain('rel="license"');
+    expect(visible).not.toContain('GitHub 저장소');
+  });
+
+  it('개인정보 줄은 보호자 안내의 #privacy로, 연락 줄은 기여·문의로 잇는다', () => {
+    expect(footer).toContain("getPage('start-parent').href}#privacy");
+    expect(footer).toContain("getPage('contribute')");
+    expect(footer).toContain('개인정보 안내</a>');
+    expect(footer).toContain('FOOTER_PRIVACY_SENTENCE');
+  });
+});

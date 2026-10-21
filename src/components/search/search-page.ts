@@ -25,8 +25,10 @@ import {
   KIND_ICON,
   KIND_LABEL,
   appendExcerpt,
+  displayTitle,
   evaluateResult,
   isFilterKind,
+  kindMatchesFilter,
   loadPagefind,
   orderEvaluated,
   parseStringList,
@@ -161,7 +163,7 @@ export function setupSearchPage(root: HTMLElement): void {
     }
   };
 
-  const matched = (): ResultCard[] => (filter === 'all' ? cards : cards.filter((card) => card.kind === filter));
+  const matched = (): ResultCard[] => (filter === 'all' ? cards : cards.filter((card) => kindMatchesFilter(card.kind, filter)));
   const hasUnscanned = (): boolean => scanned < currentResults.length;
 
   const paintTypeButtons = () => {
@@ -227,7 +229,7 @@ export function setupSearchPage(root: HTMLElement): void {
     const link = document.createElement('a');
     link.className = 'card__link';
     link.href = card.url;
-    link.textContent = card.title;
+    link.textContent = displayTitle(card);
     heading.append(link);
     body.append(heading);
 

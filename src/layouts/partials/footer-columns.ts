@@ -42,9 +42,10 @@ export const footerColumns: readonly FooterColumn[] = Object.freeze([
 
 /**
  * 모든 쪽 바닥글의 출처 줄(판 1.4.0 — DECISIONS C132·C136, 판 1.5.0에서 키트 장치 도감의 예제 코드를 더함 — O19). 교과서와 부품 사진·회로 그림·키트 예제 코드의 출처를 한 줄로 알린다.
- * 값은 src/config/site.ts(textbook·partsProvider)에서 온다. 문장은 tests/unit/footer-columns.test.ts가 글자까지 지킨다.
+ * 값은 src/config/site.ts(textbook·partsProviderWithRole)에서 온다. 문장은 tests/unit/footer-columns.test.ts가 글자까지 지킨다.
+ * 판 1.6.0 R6: 업체 이름에 "실습 키트 제조사"를 붙였다(걷기 보고 B-57 — 어떤 회사인지 몰라 출처를 알아보지 못했다).
  */
 export function footerCreditText(): string {
   const { title, publisher, authors } = siteConfig.textbook;
-  return `교과서: 「${title}」(${publisher}, ${authors.join('·')}). 부품 사진·회로 그림·키트 예제 코드: ${siteConfig.partsProvider} 제공, 허락받아 사용.`;
+  return `교과서: 「${title}」(${publisher}, ${authors.join('·')}). 부품 사진·회로 그림·키트 예제 코드: ${siteConfig.partsProviderWithRole} 제공, 허락받아 사용.`;
 }

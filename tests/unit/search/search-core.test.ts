@@ -5,9 +5,13 @@ import {
   FILTER_KINDS,
   KIND_ICON,
   KIND_LABEL,
+  VARIANT_BOOK,
+  VARIANT_LEARN,
   appendExcerpt,
+  displayTitle,
   isFilterKind,
   isGlossaryGroupAnchor,
+  kindMatchesFilter,
   kindOfPath,
   parseSections,
   parseStringList,
@@ -16,6 +20,7 @@ import {
   sectionTrail,
   sitePathOf,
   toResultCard,
+  variantOfPath,
   type ResultKind,
   type SearchConfig,
 } from '../../../src/components/search/search-core.ts';
@@ -45,6 +50,9 @@ describe('쪽 종류(kindOfPath)', () => {
     ['/learn/u1/v4/', 'learn'],
     ['/labs/vision/', 'lab'],
     ['/labs/esp32/check/', 'lab'],
+    // 판 1.6.0 R6: 키트 장치 도감(첫 쪽과 장치 쪽)은 "실습실"이 아니라 자기 이름으로(걷기 보고 B-71)
+    ['/labs/esp32/kit/', 'kit'],
+    ['/labs/esp32/kit/d-3-11/', 'kit'],
     ['/labs/iot/dashboard/', 'lab'],
     ['/labs/gallery/', 'example'],
     ['/glossary/', 'glossary'],
@@ -148,6 +156,7 @@ describe('결과 모양(toResultCard)', () => {
       excerpt: '요약 <mark>픽셀</mark>',
       kind: 'learn',
       trail: '배우기 › I단원',
+      variant: '따라 하기',
     });
   });
 
@@ -188,5 +197,50 @@ describe('요약 그리기(appendExcerpt)', () => {
     expect(target.querySelector('mark')?.textContent).toBe('픽셀');
     expect(target.querySelector('b, script, img')).toBeNull();
     expect(target.textContent).toContain('앞 픽셀 뒤 굵게');
+  });
+});
+
+describe('키트 장치 도감 종류(판 1.6.0 R6)', () => {
+  it('종류 이름은 "키트 장치 도감"이고, [실습실] 거르기 칩에도 함께 걸린다(칩을 따로 늘리지 않는다)', () => {
+    expect(KIND_LABEL.kit).toBe('키트 장치 도감');
+    expect(kindMatchesFilter('kit', 'lab')).toBe(true);
+    expect(kindMatchesFilter('lab', 'lab')).toBe(true);
+    expect(kindMatchesFilter('lab', 'example')).toBe(false);
+    expect(kindMatchesFilter('kit', 'example')).toBe(false);
+    expect(FILTER_KINDS as readonly string[]).not.toContain('kit');
+  });
+});
+
+describe('같은 제목의 두 쪽 구별(variantOfPath·displayTitle — 판 1.6.0 R6)', () => {
+  it('교과서 쪽(/book/<절>/)은 "교과서 원문", 따라 하기 쪽(/learn/<단원>/<차시>/)은 "따라 하기"이고 그 밖의 쪽은 없다', () => {
+    expect(variantOfPath('/book/2-1-2/')).toBe('교과서 원문');
+    expect(variantOfPath('/learn/u2/2-1-2/')).toBe('따라 하기');
+    expect(variantOfPath('/book/')).toBeUndefined();
+    expect(variantOfPath('/learn/')).toBeUndefined();
+    expect(variantOfPath('/learn/u2/')).toBeUndefined();
+    expect(variantOfPath('/labs/vision/')).toBeUndefined();
+    expect(variantOfPath(undefined)).toBeUndefined();
+  });
+
+  it('이름은 머리글 메뉴 이름(nav.ts)과 같다 — 메뉴 이름이 바뀌면 이 시험이 알려 준다', async () => {
+    const { getPage } = await import('../../../src/config/nav.ts');
+    expect(VARIANT_BOOK).toBe(getPage('book').label);
+    expect(VARIANT_LEARN).toBe(getPage('learn').label);
+  });
+
+  it('같은 제목의 두 결과는 제목 뒤 이름으로 갈린다(같은 글자 크기의 한 글 — 작은 회색 보조 글이 아니다)', () => {
+    const title = '1-1-1 인공지능 응용 프로그램과 에이전트';
+    const book = toResultCard({ url: `${BASE}book/1-1-1/`, excerpt: '', meta: { title } }, '1-1-1', config);
+    const learn = toResultCard({ url: `${BASE}learn/u1/1-1-1/`, excerpt: '', meta: { title } }, '1-1-1', config);
+    expect(displayTitle(book)).toBe(`${title} (교과서 원문)`);
+    expect(displayTitle(learn)).toBe(`${title} (따라 하기)`);
+    expect(displayTitle(book)).not.toBe(displayTitle(learn));
+    // 이름은 화면에 그릴 때만 붙는다 — 카드의 제목은 그대로라 순서 정하기(tierOf)가 "교과서"라는 낱말에 속지 않는다
+    expect(book.title).toBe(title);
+  });
+
+  it('차시·절이 아닌 쪽 제목은 그대로다', () => {
+    const card = toResultCard({ url: `${BASE}labs/vision/`, excerpt: '', meta: { title: '영상 처리 실습실' } }, '영상', config);
+    expect(displayTitle(card)).toBe('영상 처리 실습실');
   });
 });

@@ -44,6 +44,13 @@ export interface BoardViewElements {
   readonly wiringEmpty?: HTMLElement | null;
   /** 부품 조작 칸 영역([data-board-controls] — 안의 [data-board-controls-list]에 부품마다 칸을 넣는다) */
   readonly controls?: HTMLElement | null;
+  /**
+   * 누르는 법 안내(판 1.6.0 R6): hintPress = 누를 수 있는 부품 문장, hintNames = 그 안의 부품 이름 자리, hintControls = "부품 조작" 칸 문장.
+   * 배선을 그릴 때마다 이 예제의 그림에 있는 부품만 말하게 고친다(초음파 센서 예제에 터치 센서 안내가 보이지 않게).
+   */
+  readonly hintPress?: HTMLElement | null;
+  readonly hintNames?: HTMLElement | null;
+  readonly hintControls?: HTMLElement | null;
 }
 
 export interface BoardViewOptions {
@@ -335,6 +342,29 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
 
   const controlsList = elements.controls?.querySelector<HTMLElement>('[data-board-controls-list]') ?? elements.controls ?? null;
 
+  /**
+   * 누르는 법 안내를 이 예제의 그림에 맞춘다(판 1.6.0 R6): 누를 수 있는(interaction) 부품의 이름만 나열하고, 그런 부품이 없으면 첫 문장을 숨기며,
+   * "부품 조작" 칸이 있을 때만 둘째 문장을 보인다. 보드에 늘 붙은 BOOT 버튼은 어느 예제에서나 누를 수 있으므로 첫 문장은 보통 남는다.
+   */
+  const renderHint = () => {
+    const labels: string[] = [];
+    for (const part of mounted) {
+      const label = part.definition.interaction?.label;
+      if (label && !labels.includes(label)) {
+        labels.push(label);
+      }
+    }
+    if (elements.hintNames) {
+      elements.hintNames.textContent = labels.join('·');
+    }
+    if (elements.hintPress) {
+      elements.hintPress.hidden = labels.length === 0;
+    }
+    if (elements.hintControls) {
+      elements.hintControls.hidden = !mounted.some((part) => part.controls !== null);
+    }
+  };
+
   /** 부품 조작 칸을 만든다(정의에 controls가 있고 index.ts가 도구를 줄 때만) */
   const mountControls = (part: MountedPart) => {
     const { definition, instance } = part;
@@ -467,6 +497,7 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
       if (elements.controls) {
         elements.controls.hidden = !mounted.some((part) => part.controls !== null);
       }
+      renderHint();
       stage.dataset.boardExternal = String(plan.breadboard !== null);
       if (elements.wiringEmpty) {
         elements.wiringEmpty.hidden = plan.breadboard !== null;

@@ -105,3 +105,22 @@ test.describe('출처와 라이선스 페이지(P6-04)', () => {
     expect(overflow.page).toBeLessThanOrEqual(0);
   });
 });
+
+// 바닥글 출처·라이선스 줄(판 1.6.0 R6, 걷기 보고 A-17·B-57): 만든 사람·연락·개인정보·출처 네 줄은 보이고 라이선스·GitHub는 접힌 "자세히(개발자용)" 안에 있다.
+// 라이선스 의무 문구(제3자 자료 제외 문구 + 출처와 라이선스 링크, PD-26)는 접힌 안에서도 그대로이고, 사이트 지도의 "사이트 정보 › 출처와 라이선스"는 늘 보인다.
+test.describe('바닥글 출처·라이선스(판 1.6.0)', () => {
+  test('출처 줄에 키트 제조사 설명이 있고, 라이선스·GitHub 줄은 접혀 있다가 열면 출처와 라이선스 링크가 보인다', async ({ page }) => {
+    await page.goto('./credits/');
+    const footer = page.locator('footer.site-footer');
+    await expect(footer.locator('[data-site-credit]')).toContainText('고릴라셀(브릭셀, 실습 키트 제조사)');
+    // 사이트 지도의 링크는 접지 않아도 보인다
+    await expect(footer.locator('nav[aria-label="사이트 지도"]').getByRole('link', { name: '출처와 라이선스', exact: true })).toBeVisible();
+    const dev = footer.locator('[data-footer-dev]');
+    await expect(dev).not.toHaveAttribute('open', '');
+    await expect(dev.locator('.site-footer__exclusion')).toBeHidden();
+    await dev.locator('summary').click();
+    await expect(dev.locator('.site-footer__exclusion')).toBeVisible();
+    await expect(dev.getByRole('link', { name: '출처와 라이선스', exact: true })).toHaveAttribute('href', withBase('credits/'));
+    await expect(dev.getByRole('link', { name: 'GitHub 저장소' })).toBeVisible();
+  });
+});

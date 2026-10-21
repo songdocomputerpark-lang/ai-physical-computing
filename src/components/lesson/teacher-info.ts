@@ -83,7 +83,9 @@ function sourceText(source: LessonSource | undefined, data: TeacherInfoInput['da
         ? `교과서 원고${range}의 대단원 마무리 문항을 옮겼어요.`
         : `교과서 원고${range}의 글, 그림, 표를 차시 틀에 맞게 옮기고 고1 눈높이로 다듬었어요.`;
     case 'code-only':
-      return `${NO_MANUSCRIPT_TEXT}이에요. 교과서 원고가 아직 없어서 ${codeOnlyBasis(data, where)}을 바탕으로 썼어요. 원고를 받으면 원고로 바꿔요.`;
+      // 판 1.6.0 R6(걷기 보고 B-49·B-60): 출판본 교과서 쪽(/book/)이 생긴 뒤에도 "교과서 원고가 아직 없어서 … 원고를 받으면 바꿔요"가 남아 지금 상태와 달랐다.
+      // 따라 하기 글이 어디서 왔는지(코드 기준으로 사이트가 쉽게 다시 씀)와 책 그대로의 글은 어디서 읽는지를 말한다. 맨 앞 "원고 없음: …" 문구(PLAN §2.3)는 그대로다.
+      return `${NO_MANUSCRIPT_TEXT}이에요. 따라 하기 글은 교과서 글을 옮긴 것이 아니라 ${codeOnlyBasis(data, where)}을 바탕으로 사이트가 쉽게 다시 쓴 글이에요. 책에 있는 글 그대로는 교과서 원문에서 읽어요.`;
     case 'supplement':
       return data.kind === 'reading'
         ? '사이트가 새로 쓴 읽기 자료: 교과서 원고에 없는 활동 안내를 사이트가 썼어요.'

@@ -5,6 +5,9 @@
  * 카드가 통째로 눌리는 카드(.card--link)가 아니다 — 안의 링크(가상 보드에서 해 보기, 키트 장치 도감의 예제 보기)만 눌린다.
  * <li>를 그리므로 <ul> 안에서 쓴다. id="part-<부품 id>"는 키트 표의 사진·차시의 사진 줄이 이 카드로 오는 #위치다.
  * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지운다(CLAUDE.md) — 글과 인라인 태그를 한 줄에 둔다.
+ * 검색(판 1.6.0 R6, 걷기 보고 B-70·B-72): 이름 제목(h3)에 위치 이름(id="part-<부품 id>-name")을 두어 /start/parts/가 항목 단위 결과가 되게 한다(src/config/search.ts anchorPages —
+ * 전에는 결과가 쪽 맨 위로 가서 18,650px 중 가운데쯤의 부품을 직접 찾아야 했다). 딱지·링크 줄(연결 방식 이름표·교과서 키트 부품·가상 보드에서 해 보기·예제 보기)은
+ * data-pagefind-ignore로 색인에서 뺀다 — 결과 조각에 "…부품 사전에서 보기 연결 방식디지털"처럼 이름표가 섞여 기계 글이 되던 것을 막는다(연결 방식의 값(dd)은 찾을 수 있게 둔다).
  */
 import { deviceTitle, kitDeviceHref } from '../kit/kit-view.ts';
 import { partPhotoSize } from './parts-data.ts';
@@ -26,23 +29,23 @@ const size = partPhotoSize(part);
   <div class="parts-card__photo">
     <img src={partPhotoSrc(part)} alt={partPhotoAlt(part)} width={size.width} height={size.height} loading="lazy" decoding="async" />
   </div>
-  <h3 class="parts-card__name">{part.name}</h3>
+  <h3 class="parts-card__name" id={`${PART_CARD_ID_PREFIX}${part.id}-name`}>{part.name}</h3>
   <p class="parts-card__en" lang="en">{part.nameEn}</p>
   <dl class="parts-card__facts">
-    <dt>연결 방식</dt>
+    <dt data-pagefind-ignore>연결 방식</dt>
     <dd>{part.connection}</dd>
   </dl>
-  {part.kitName !== undefined && <p class="parts-card__badge">교과서 키트 부품</p>}
+  {part.kitName !== undefined && <p class="parts-card__badge" data-pagefind-ignore>교과서 키트 부품</p>}
   {
     part.siteParts.length > 0 && (
-      <p class="parts-card__try">
+      <p class="parts-card__try" data-pagefind-ignore>
         <a href={labHref} aria-label={`가상 보드에서 해 보기: ${part.name}`}>가상 보드에서 해 보기</a>
       </p>
     )
   }
   {
     kitDevices.length > 0 && (
-      <p class="parts-card__kit">
+      <p class="parts-card__kit" data-pagefind-ignore>
         {kitDevices.map((device) => {
           // 보이는 글(예제 보기)을 낭독 이름의 맨 앞에 두어, 보이는 글과 이름이 어긋나지 않게 한다(WCAG 2.5.3)
           const text = kitDevices.length > 1 ? `${device.number} 예제 보기` : '예제 보기';

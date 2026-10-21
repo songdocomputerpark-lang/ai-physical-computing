@@ -217,3 +217,13 @@ describe('평가와 순서(evaluateResult · orderEvaluated)', () => {
     expect(merged.map((result) => result.id)).toEqual(['a', 'b', 'c']);
   });
 });
+
+describe('보호자 동의어(판 1.6.0 R6)', () => {
+  it.each(['학부모', '부모님', '보호자', '학부형 안내', '학부모 개인정보'])('"%s"를 찾으면 보호자 안내 쪽 낱말로도 찾는다', (text) => {
+    expect(planSearch(text)?.terms).toContain('보호자 안내');
+  });
+
+  it('보호자 말이 없는 검색에는 덧붙이지 않는다', () => {
+    expect(planSearch('손 인식')?.terms).toEqual(['손 인식']);
+  });
+});

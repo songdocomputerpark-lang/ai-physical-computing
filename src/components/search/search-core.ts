@@ -128,12 +128,14 @@ export function pickAnchoredResult(data: PagefindResultData, term: string): Resu
 // 쪽 종류
 
 /** 결과가 어떤 종류의 쪽인가 */
-export type ResultKind = 'learn' | 'lab' | 'glossary' | 'error' | 'example' | 'teacher' | 'start' | 'help' | 'other';
+export type ResultKind = 'learn' | 'lab' | 'kit' | 'glossary' | 'error' | 'example' | 'teacher' | 'start' | 'help' | 'other';
 
 /** 종류의 한국어 이름(칩·카드·목록에 보인다) */
 export const KIND_LABEL: Readonly<Record<ResultKind, string>> = {
   learn: '차시',
   lab: '실습실',
+  // 판 1.6.0 R6(걷기 보고 B-71): "3.11 초음파 센서"의 종류가 "실습실"이라 실습실이 열릴 줄 알았지만 실제는 키트 장치 도감 쪽이다
+  kit: '키트 장치 도감',
   glossary: '용어사전',
   error: '오류',
   example: '예제',
@@ -147,6 +149,7 @@ export const KIND_LABEL: Readonly<Record<ResultKind, string>> = {
 export const KIND_ICON = {
   learn: 'book',
   lab: 'flask',
+  kit: 'plug',
   glossary: 'glossary',
   error: 'alert',
   example: 'grid',
@@ -164,6 +167,11 @@ export function isFilterKind(value: unknown): value is FilterKind {
   return typeof value === 'string' && (FILTER_KINDS as readonly string[]).includes(value);
 }
 
+/** 종류 거르기 칩이 이 결과를 보이는가. 키트 장치 도감 쪽도 실습실에 딸린 쪽이라 [실습실] 칩에 함께 걸린다(칩을 따로 늘리지 않는다). */
+export function kindMatchesFilter(kind: ResultKind, filter: FilterKind): boolean {
+  return kind === filter || (kind === 'kit' && filter === 'lab');
+}
+
 /** 사이트 안 경로(base 없음, 예: /labs/gallery/)로 쪽 종류를 가린다. 순수 함수. */
 export function kindOfPath(path: string | undefined): ResultKind {
   if (path === undefined) {
@@ -177,6 +185,9 @@ export function kindOfPath(path: string | undefined): ResultKind {
   }
   if (path.startsWith('/labs/gallery/')) {
     return 'example';
+  }
+  if (path.startsWith('/labs/esp32/kit/')) {
+    return 'kit';
   }
   if (path.startsWith('/labs/')) {
     return 'lab';
@@ -335,6 +346,37 @@ export interface ResultCard extends ResultView {
   kind: ResultKind;
   /** 위 페이지 이름들("배우기 › I단원"). 없으면 빈 글 */
   trail: string;
+  /** 같은 제목으로 두 쪽이 나오는 차시·절의 구별 이름(교과서 쪽이면 "교과서 원문", 따라 하기 쪽이면 "따라 하기"). 그 밖의 쪽은 없다 */
+  variant?: string;
+}
+
+/**
+ * 같은 차시가 교과서 쪽(/book/<절>/)과 따라 하기 쪽(/learn/<대단원>/<차시>/)에서 제목이 똑같이 나와 어느 쪽인지 알 수 없었다(판 1.6.0 R6, 걷기 보고 B-2·B-95:
+ * "1-1-1 인공지능 응용 프로그램과 에이전트"가 둘 — 다른 점은 11px 회색 글뿐). 제목 뒤에 이름을 **같은 글자 크기로** 붙여 보인다.
+ * 이름은 머리글 메뉴(src/config/nav.ts의 교과서 원문·따라 하기)와 같아야 하고, 단위 시험(tests/unit/search/search-core.test.ts)이 맞는지 본다.
+ * 차례를 정하는 일(tierOf)은 이 글자를 보지 않는다 — "교과서"를 검색해도 모든 쪽 제목이 맞는 것으로 앞서지 않게 화면에 그릴 때만 붙인다(displayTitle).
+ */
+export const VARIANT_BOOK = '교과서 원문';
+export const VARIANT_LEARN = '따라 하기';
+
+/** 사이트 안 경로(base 없음, 예: /book/2-1-2/)로 구별 이름을 가린다. 차시·절 쪽이 아니면 undefined */
+export function variantOfPath(path: string | undefined): string | undefined {
+  if (path === undefined) {
+    return undefined;
+  }
+  const segments = path.split('/').filter((segment) => segment !== '');
+  if (segments[0] === 'book' && segments.length === 2) {
+    return VARIANT_BOOK;
+  }
+  if (segments[0] === 'learn' && segments.length === 3) {
+    return VARIANT_LEARN;
+  }
+  return undefined;
+}
+
+/** 화면에 보이는 제목: 구별 이름이 있으면 제목 뒤에 "(교과서 원문)"처럼 붙인다 */
+export function displayTitle(card: Pick<ResultCard, 'title' | 'variant'>): string {
+  return card.variant === undefined ? card.title : `${card.title} (${card.variant})`;
 }
 
 /** Pagefind 결과 한 건을 화면에 그릴 모양으로 바꾼다. 항목 단위 쪽(anchorPages)은 가장 맞는 항목으로 이어 준다. */
@@ -344,7 +386,8 @@ export function toResultCard(data: PagefindResultData, term: string, config: Sea
     path !== undefined && config.anchorPages.includes(path)
       ? pickAnchoredResult(data, term)
       : { title: data.meta?.title?.trim() || data.url, url: data.url, excerpt: data.excerpt };
-  return { ...view, kind: kindOfPath(path), trail: sectionTrail(path, config.sections) };
+  const variant = variantOfPath(path);
+  return { ...view, kind: kindOfPath(path), trail: sectionTrail(path, config.sections), ...(variant === undefined ? {} : { variant }) };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

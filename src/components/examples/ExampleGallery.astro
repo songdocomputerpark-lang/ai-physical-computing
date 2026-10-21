@@ -127,6 +127,10 @@ const gallery = buildGallery(inputs, { byFile, bySlug }, { partLabels, commLabel
 gallery.notes.forEach(warn);
 // 모든 예제가 하드웨어 없이 되면 카드마다 같은 딱지를 달지 않는다(거르기 칸 위 한 줄 안내로 충분하다)
 const allVirtual = gallery.cards.length > 0 && gallery.virtualOkCount === gallery.cards.length;
+// 실제 보드가 있어야 하는 예제(키트 장치 도감의 real-only)가 있으면 그 예외에만 "실제 보드 필요" 딱지를 달고, 나머지 대부분에는 "하드웨어 없이 가능"을 달지 않는다
+// (판 1.6.0 R6 — 카드 수백 장에 같은 초록 딱지가 붙으면 예외가 묻힌다. 거르기 칸의 [하드웨어 없이 가능]은 그대로 있다)
+const realOnlyCount = gallery.cards.filter((card) => card.realOnly).length;
+const showVirtualTag = !allVirtual && realOnlyCount === 0;
 
 // 키트 장치 도감 예제(판 1.5.0): 묶음 안의 카드가 모두 examples/esp32/kit/ 아래 파일이면 키트 묶음이다 — 맨 끝 접힌 상자로 보낸다
 const isKitSection = (section: (typeof gallery.sections)[number]) =>
@@ -163,7 +167,7 @@ const kitPage = getPage('labs-esp32-kit');
         </h2>
         <ul class="gallery-section__cards">
           {section.cards.map((card) => (
-            <ExampleCard card={card} partLabels={partLabels} showVirtualTag={!allVirtual} />
+            <ExampleCard card={card} partLabels={partLabels} showVirtualTag={showVirtualTag} />
           ))}
         </ul>
       </section>
@@ -193,7 +197,7 @@ const kitPage = getPage('labs-esp32-kit');
             </h2>
             <ul class="gallery-section__cards">
               {section.cards.map((card) => (
-                <ExampleCard card={card} partLabels={partLabels} showVirtualTag={!allVirtual} />
+                <ExampleCard card={card} partLabels={partLabels} showVirtualTag={showVirtualTag} />
               ))}
             </ul>
           </section>
@@ -587,6 +591,16 @@ const kitPage = getPage('labs-esp32-kit');
     --tag-text: var(--color-success-text);
   }
 
+  /* 실제 보드가 있어야 하는 예제(판 1.6.0): 글자가 뜻을 전하고, 굵은 테두리로 다른 딱지보다 눈에 띄게 한다 */
+  .gallery .gallery-tag--real {
+    --tag-bg: var(--color-warning-bg);
+    --tag-border: var(--color-warning-text);
+    --tag-text: var(--color-warning-text);
+
+    border-width: 2px;
+    font-weight: var(--weight-bold);
+  }
+
   .gallery .gallery-tag--meta,
   .gallery .gallery-tag--word {
     --tag-bg: var(--color-bg);
@@ -594,5 +608,54 @@ const kitPage = getPage('labs-esp32-kit');
     --tag-text: var(--color-text-muted);
 
     font-weight: var(--weight-medium);
+  }
+
+  /* 낱말 딱지(Pin·sleep 같은 함수 이름 포함) 앞 머리글: "배우는 말:" */
+  .gallery .gallery-card__words-label {
+    align-self: center;
+    margin-inline-start: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+
+  /*
+   * 주소의 #카드로 도착한 카드(검색 결과·링크·"차시에서 이 예제 보기")를 잠깐 눈에 띄게 한다(판 1.6.0 R6, 걷기 보고 B-73 — 카드 371장 한가운데로 와서
+   * 대상 카드가 어디 있는지 알 수 없었다). 자바스크립트 없이 :target(제목 id)을 쓴다. 굵은 테두리가 남아 색을 못 보는 사람도 알아본다.
+   * 움직임을 줄이면 바탕이 서서히 옅어지는 변화 없이 표시만 남는다.
+   */
+  .gallery .gallery-card:has(> .gallery-card__title:target) {
+    border-color: var(--color-accent);
+    outline: 3px solid var(--color-accent-border);
+    outline-offset: 2px;
+    animation: gallery-arrive 4s ease-out;
+  }
+
+  @keyframes gallery-arrive {
+    from {
+      background: var(--color-accent-soft);
+    }
+
+    to {
+      background: var(--color-bg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery .gallery-card:has(> .gallery-card__title:target) {
+      background: var(--color-accent-soft);
+      animation: none;
+    }
+  }
+
+  :root[data-motion='reduce'] .gallery .gallery-card:has(> .gallery-card__title:target) {
+    background: var(--color-accent-soft);
+    animation: none;
+  }
+
+  @media (forced-colors: active) {
+    .gallery .gallery-card:has(> .gallery-card__title:target) {
+      outline-color: Highlight;
+    }
   }
 </style>

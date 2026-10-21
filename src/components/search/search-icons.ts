@@ -18,6 +18,7 @@ export const SEARCH_ICON_NAMES = [
   'flag',
   'lifebuoy',
   'list',
+  'plug',
   'arrow-right',
 ] as const;
 
@@ -40,6 +41,7 @@ export const SEARCH_ICON_PATHS: Readonly<Record<SearchIconName, string>> = {
   lifebuoy:
     'M3 12a9 9 0 1 0 18 0 9 9 0 1 0 -18 0z M8.5 12a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0 -7 0z M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9',
   list: 'M9 6.5h11M9 12h11M9 17.5h11 M4.5 6.5h.01 M4.5 12h.01 M4.5 17.5h.01',
+  plug: 'M9 2.5v4M15 2.5v4 M8 6.5h8a2 2 0 0 1 2 2v3.5a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-3.5a2 2 0 0 1 2 -2z M12 14v2.5A4.5 4.5 0 0 1 7.5 21H6',
   'arrow-right': 'M5 12h14M13 6l6 6-6 6',
 };
 

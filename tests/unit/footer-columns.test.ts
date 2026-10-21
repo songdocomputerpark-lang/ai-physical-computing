@@ -10,7 +10,7 @@ const footerHrefs = footerColumns.flatMap((column) => [...(column.href ? [column
 describe('바닥글 사이트 지도 묶음', () => {
   it('다섯 묶음이고 순서가 정해져 있다', () => {
     expect(footerColumns.map((column) => column.id)).toEqual(['start', 'learn', 'labs', 'help', 'site']);
-    expect(footerColumns.map((column) => column.title)).toEqual(['시작하기', '배우기', '실습실', '문제 해결', '사이트 정보']);
+    expect(footerColumns.map((column) => column.title)).toEqual(['시작하기', '따라 하기', '실습실', '문제 해결', '사이트 정보']);
   });
 
   it('홈을 뺀 사이트 지도의 쪽과 대단원 I~IV가 한 번 이상 나온다(머리글 하위 쪽 포함)', () => {

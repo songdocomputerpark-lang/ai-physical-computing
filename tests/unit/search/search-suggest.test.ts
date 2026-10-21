@@ -288,7 +288,7 @@ describe('입력하면 결과를 보인다', () => {
     const { input, list } = mount();
     type(input, '서보');
     await settle();
-    expect(options(list)[0]?.textContent).toBe('1-1-1 제목 1 차시 · 배우기 › I단원');
+    expect(options(list)[0]?.textContent).toBe('1-1-1 제목 1 (따라 하기) 차시 · 배우기 › I단원');
   });
 
   it('결과가 없으면 "찾지 못했어요" + 추천 칩(검색어와 같은 것은 뺀다) + 전체 검색 줄', async () => {

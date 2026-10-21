@@ -133,6 +133,11 @@ export interface GalleryCard {
   readonly facets: GalleryFacets;
   /** 낱말 찾기용 글자(소문자) */
   readonly keywords: string;
+  /**
+   * 실제 보드가 있어야 끝까지 되는 예제인가(판 1.6.0 R6 — 걷기 보고 B-73): 키트 장치 도감 예제 가운데 사이드카 `virtual: real-only`인 것.
+   * 카드에 "실제 보드 필요" 딱지가 붙고, "하드웨어 없이 가능"은 붙지 않는다(facets.virtualOk도 false).
+   */
+  readonly realOnly: boolean;
   readonly compare: GalleryCompare | null;
   /** 코드가 똑같아 이 카드로 합친 다른 파일(보통 비어 있다 — §7.1 사본은 애초에 하나만 옮긴다) */
   readonly sameCode: readonly string[];
@@ -313,10 +318,12 @@ export function buildGallery(
     const unit = merged.unit ?? unitFromExampleFile(file);
     const comm = merged.comm.length > 0 ? merged.comm : commKindsFromCode(example.code);
     const parts = merged.parts.length > 0 ? merged.parts : partIdsOf(example.parts?.map((entry) => ({ part: entry.part })) ?? []);
+    // 실제 보드가 있어야 하는 예제(사이드카 virtual: real-only)는 하드웨어 없이 끝까지 되지 않는다 — 규칙(virtualOkByRule)보다 먼저 본다
+    const realOnly = example.virtual === 'real-only';
     const facets: GalleryFacets = Object.freeze({
       unit,
       difficulty: merged.difficulty,
-      virtualOk: merged.virtualOk ?? virtualOkByRule(input.lab),
+      virtualOk: realOnly ? false : (merged.virtualOk ?? virtualOkByRule(input.lab)),
       comm: Object.freeze(comm),
       parts: Object.freeze(parts),
       tags: merged.tags,
@@ -354,6 +361,7 @@ export function buildGallery(
       labHref: labExampleHref(input.lab, file),
       facets,
       keywords,
+      realOnly,
       compare: null,
       sameCode: [],
     };
