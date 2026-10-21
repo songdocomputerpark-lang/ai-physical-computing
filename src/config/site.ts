@@ -179,6 +179,11 @@ export const siteConfig = {
   },
   /** 부품 사진·회로 그림을 허락받아 쓰는 곳(DECISIONS C136). 바닥글 출처 줄의 "제공, 허락받아 사용" 앞에 붙는다. */
   partsProvider: '고릴라셀(브릭셀)',
+  /**
+   * 바닥글 출처 줄에서만 쓰는 풀이 붙은 이름(판 1.6.0 R6, 걷기 보고 B-57): "고릴라셀(브릭셀) 제공"만으로는 어떤 회사인지 몰라 학부모가 출처를 알아보지 못했다.
+   * 다른 쪽(부품 사전·키트 장치 도감)은 한 줄 출처라 partsProvider 그대로 쓴다.
+   */
+  partsProviderWithRole: '고릴라셀(브릭셀, 실습 키트 제조사)',
   /** GitHub Pages 도메인(DECISIONS C7) */
   origin: 'https://songdocomputerpark-lang.github.io',
   /**

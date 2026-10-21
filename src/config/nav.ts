@@ -126,7 +126,7 @@ const SITE_MAP_INPUT: readonly NavPageInput[] = [
         label: '보호자 안내',
         title: '보호자 안내',
         path: '/start/parent/',
-        description: '학부모님·보호자님이 궁금해하는 비용, 설치, 개인정보, 휴대폰, 문의 방법을 짧게 모았어요.',
+        description: '학부모님과 보호자님이 궁금해하는 비용, 설치, 개인정보, 휴대폰, 문의 방법을 짧게 모았어요.',
       },
       {
         id: 'start-check',

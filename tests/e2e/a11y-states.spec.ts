@@ -1,5 +1,5 @@
 // 접근성 자동 검사 — 누르거나 실행한 뒤의 화면(PLAN §8.6 P6-03, Phase 6 구역 B). a11y.spec.ts는 쪽을 연 그대로를 보고, 여기서는
-// 학생이 실제로 만나는 다음 화면을 axe로 훑는다: 퀴즈 채점·교사용 접기·더알아보기·용어 풀이·발표 모드·차시 안 실습실(iframe)·휴대폰 메뉴,
+// 학생이 실제로 만나는 다음 화면을 axe로 훑는다: 퀴즈 채점·교사용 접기·더알아보기·용어 풀이·수업 화면·차시 안 실습실(iframe)·휴대폰 메뉴,
 // 실습실의 실행 결과(출력 창·조절 막대·핀 표·배선도·부품 조작 칸)·오류 풀이 카드·대화 상자·블록 모드·[실제 보드] 탭·[보내기] 패널·흉내 모듈 패널.
 //
 // 판정은 a11y.spec.ts와 같다: axe 기본 규칙 전부, 영향도 critical·serious 0. 도구 오판(CodeMirror 스크롤 칸)만 그 규칙·그 요소에서 뺀다.
@@ -108,7 +108,7 @@ test.describe('차시 화면 — 누른 뒤', () => {
   // 한 검사에서 axe를 여러 번 돌린다(화면마다 몇 초) — 기본 30초로는 느린 컴퓨터에서 모자란다.
   test.describe.configure({ timeout: 180_000 });
 
-  test('1-1-1: 퀴즈 채점·교사용 접기·용어 풀이·발표 모드', async ({ page }, testInfo) => {
+  test('1-1-1: 퀴즈 채점·교사용 접기·용어 풀이·수업 화면', async ({ page }, testInfo) => {
     const found: string[] = [];
     await freezeDevReloads(page);
     await page.goto(withBase('learn/u1/1-1-1/'));
@@ -136,15 +136,15 @@ test.describe('차시 화면 — 누른 뒤', () => {
     await scanState(page, testInfo, '용어 풀이', found);
     await page.keyboard.press('Escape');
 
-    // 발표 모드(첫 장·둘째 장)
-    const open = page.getByRole('button', { name: '발표 모드' });
+    // 수업 화면(옛 이름 "발표 모드" — 판 1.6.0 C173: 첫 장·둘째 장·마지막 장)
+    const open = page.getByRole('button', { name: '수업 화면', exact: true });
     await open.click();
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
-    await scanState(page, testInfo, '발표 모드 첫 장', found);
+    await scanState(page, testInfo, '수업 화면 첫 장', found);
     await page.keyboard.press('ArrowRight');
-    await scanState(page, testInfo, '발표 모드 둘째 장', found);
+    await scanState(page, testInfo, '수업 화면 둘째 장', found);
     await page.keyboard.press('End');
-    await scanState(page, testInfo, '발표 모드 마지막 장(퀴즈)', found);
+    await scanState(page, testInfo, '수업 화면 마지막 장(퀴즈)', found);
     await page.keyboard.press('Escape');
     await expect(page.locator('html')).not.toHaveAttribute('data-presenting', '');
 
@@ -340,6 +340,30 @@ test.describe('실습실 — 실행한 뒤', () => {
       await scanState(page, testInfo, '실제 보드 탭', found);
     }
 
+    expect(found, found.join('\n')).toEqual([]);
+  });
+
+  test('ESP32 실습실: 실제 보드 전용 예제(회색 [실행]·안내 줄·눌렀을 때 안내)와 [실제 보드] 탭 첫 줄, 일부만 되는 예제의 노란 안내(판 1.6.0 C176)', async ({ page }, testInfo) => {
+    test.setTimeout(LAB_READY_TIMEOUT + 240_000);
+    const found: string[] = [];
+    await freezeDevReloads(page);
+    await openEsp32Example(page, 'esp32/kit/ch3/3-11-ultrasonic-1.py');
+    await expect(page.locator('[data-lab-run]')).toHaveAttribute('data-lab-run-blocked', 'real-only');
+    await expect(page.locator('[data-lab-run-note]')).toBeVisible();
+    await scanState(page, testInfo, '실제 보드 전용 예제 — 회색 [실행]·안내 줄', found);
+    // 눌러 본 뒤(안내 줄 role=status에 "실행할 수 없어요")
+    await page.locator('[data-lab-run]').click({ force: true });
+    await expect(page.locator('[data-lab-message]')).toContainText('실행할 수 없어요');
+    await scanState(page, testInfo, '실제 보드 전용 예제 — 눌러 본 뒤', found);
+    // 안내 줄의 [실제 보드] 탭 단추 → 탭 첫 줄 "처음이면 → 보드 준비하기"
+    await page.locator('[data-lab-run-note-real]').click();
+    await expect(page.locator('[data-real-board-first]')).toBeVisible();
+    await scanState(page, testInfo, '[실제 보드] 탭 — 처음이면 보드 준비하기 첫 줄', found);
+    // 일부만 되는 예제: 노란 안내
+    await openEsp32Example(page, 'esp32/kit/ch2/2-14-neopixel-square-1.py');
+    await expect(page.locator('[data-lab-run-note]')).toBeVisible();
+    await expect(page.locator('[data-lab-run]')).not.toHaveAttribute('data-lab-run-blocked', /.*/u);
+    await scanState(page, testInfo, '일부만 되는 예제 — 노란 안내', found);
     expect(found, found.join('\n')).toEqual([]);
   });
 

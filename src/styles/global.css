@@ -233,6 +233,47 @@ textarea {
   padding-block: var(--space-2) var(--space-4);
 }
 
+/*
+ * 발표 모드(수업 화면) 안의 실습실 — [실행]과 결과(보드 그림·출력 창)가 한 화면에 함께 보이게(판 1.6.0, DECISIONS C175, walk-teacher-new A2).
+ * 바깥 쪽의 [이 자리에서 실습실 열기](LessonExamples.astro)가 발표 중에만 이 문서(iframe)의 <html>에 data-embed-compact를 붙인다.
+ * 슬라이드 높이(화면 − 아래 막대) 안에 들어오도록 ① 예제 설명·실습 방법·보기 칸 등 본문에 이미 있는 안내를 접고 ② 코드 칸 높이를 제한하고
+ * ③ 가상 보드 그림 위의 제목 줄과 [실제 보드] 탭 줄을 뺀다(수업 화면은 가상 보드를 보여 주는 자리 — 실제 보드는 [실습실에서 크게 열기]).
+ * 선택자를 :root[data-embed][data-embed-compact]로 쓰는 까닭: 실습실 틀의 범위 스타일(.lab__bar[data-astro-cid] > .lab__status[data-astro-cid] …)과 무게가 같아 나중에 읽힌 쪽이 이기므로 한 단계 더 무겁게 해 둔다.
+ * 실습실 틀 자체는 그대로다. 이 규칙은 발표 중 iframe 안에서만 걸린다(발표를 끝내면 바깥 쪽이 속성을 뗀다).
+ */
+:root[data-embed][data-embed-compact] .lab__example-desc,
+:root[data-embed][data-embed-compact] .blocks-bar,
+:root[data-embed][data-embed-compact] .lab__hint--before,
+:root[data-embed][data-embed-compact] .lab__records,
+:root[data-embed][data-embed-compact] [data-board-practice],
+:root[data-embed][data-embed-compact] .board-io__head,
+:root[data-embed][data-embed-compact] .board-io__hint,
+:root[data-embed][data-embed-compact] [data-lab-module-panel='real-board'] {
+  display: none;
+}
+
+:root[data-embed][data-embed-compact] .lab__editor-host .cm-editor {
+  max-height: 22rem;
+}
+
+/* 상태 줄은 [실행] 줄 아래 한 줄로("준비됐어요" + "준비 끝"이 두 줄로 쪼개지지 않게) */
+:root[data-embed][data-embed-compact] .lab__bar > .lab__status {
+  flex: 1 1 100%;
+  min-block-size: 0;
+}
+
+:root[data-embed][data-embed-compact] .board-io__phase {
+  margin-block: 0;
+}
+
+/* 가상 보드 그림은 칸 폭·틀 높이에 맞춰 줄인다(비율 그대로 — 가로로 밀어 보던 그림이 한 화면에 모두 들어온다) */
+:root[data-embed][data-embed-compact] .board-io__stage .board-stage__svg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 12rem);
+}
+
 .page-notice__inner {
   width: min(100% - 2 * var(--gutter), var(--width-page));
   margin-inline: auto;

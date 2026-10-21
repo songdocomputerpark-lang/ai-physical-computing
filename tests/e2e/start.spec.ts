@@ -9,7 +9,7 @@ import { BROWSER_NOTICE_DISMISS_KEY, CHECK_ITEMS } from '../../src/lib/capabilit
 import { STORAGE_KEY_PREFIX } from '../../src/lib/storage.ts';
 
 const HANGUL = /[가-힣]/u;
-const START_PAGE_IDS = ['start', 'start-student', 'start-board', 'start-teacher', 'start-check'] as const;
+const START_PAGE_IDS = ['start', 'start-student', 'start-board', 'start-teacher', 'start-parent', 'start-check'] as const;
 const FIREFOX_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0';
 
 /** 페이지에서 난 자바스크립트 오류를 모은다. */
@@ -45,10 +45,10 @@ test.describe('시작하기 페이지', () => {
     });
   }
 
-  test('개요는 학생용·보드 준비·교사용·점검으로 연결된다', async ({ page }) => {
+  test('개요는 학생용·보드 준비·교사용·보호자·점검으로 연결된다', async ({ page }) => {
     await page.goto(getPage('start').href);
     const main = page.locator('main');
-    for (const id of ['start-student', 'start-board', 'start-teacher', 'start-check']) {
+    for (const id of ['start-student', 'start-board', 'start-teacher', 'start-parent', 'start-check']) {
       const target = getPage(id);
       await expect(main.locator(`a[href="${target.href}"]`).first()).toBeVisible();
     }
@@ -266,7 +266,7 @@ test.describe('브라우저 권장 환경 안내', () => {
     await expect(notice).toBeVisible();
     // R2-002: 휴대폰에서는 "컴퓨터의 Chrome·Edge" 한 가지 말만 하지 않고 이 기기 사정(읽기는 잘 되고 실습은 컴퓨터)을 말한다
     await expect(notice).toHaveAttribute('data-device', 'phone');
-    await expect(notice).toContainText('휴대폰에서는 읽기가 가장 잘 돼요. 실습은 컴퓨터에서 해 주세요');
+    await expect(notice).toContainText('읽기는 휴대폰도 돼요 · 실습은 컴퓨터(크롬·엣지)에서 해요');
     // 컴퓨터용 제목은 마크업에 함께 있지만(hidden) 보이지 않는다 — textContent가 아니라 보이는지로 본다
     await expect(notice.getByText('실습실은 컴퓨터의 Chrome이나 Edge에서 열어 주세요', { exact: true })).toBeHidden();
     // 휴대폰에서는 링크가 접힌 [자세히 보기] 안에 있다(R1-098) — 숨은 채로도 주소를 본다
@@ -332,11 +332,12 @@ test.describe('다른 브라우저로 열었을 때', () => {
 
 // ── 판 1.3.0 "설명 없이 쓰는 사이트": 시작하기 개요의 "누구세요?" 카드·단계 칩, 학생용의 단계 칩·끝 표시·큰 주 단추 ──
 test.describe('시작하기 새 모양(판 1.3.0)', () => {
-  test('개요: "누구세요?" 카드 네 장이 통째로 눌리고, 학생 카드가 "처음이면 여기부터"로 먼저 보인다', async ({ page }) => {
+  test('개요: "누구세요?" 카드 다섯 장(판 1.6.0: 보호자 카드 추가)이 통째로 눌리고, 학생 카드가 "처음이면 여기부터"로 먼저 보인다', async ({ page }) => {
     await page.goto(getPage('start').href);
     const expected = [
       ['student', getPage('start-student').href],
       ['teacher', getPage('start-teacher').href],
+      ['parent', getPage('start-parent').href],
       ['board', getPage('start-board').href],
       ['check', getPage('start-check').href],
     ] as const;
@@ -420,5 +421,65 @@ test.describe('시작하기 새 모양(판 1.3.0)', () => {
       [`${STORAGE_KEY_PREFIX}progress:v1`, getPage('labs-vision').href],
     );
     await expect(page.locator('[data-student-step="lab"]')).toHaveAttribute('data-done', '');
+  });
+});
+
+// 보호자 안내(판 1.6.0 R6, 걷기 보고: 학부모는 "누가 만들었나·무료인가·카메라 영상은 어디로"를 17단계 만에 찾았고 학부모 입구가 없었다).
+test.describe('보호자 안내(/start/parent/)', () => {
+  test('시작하기 개요에 [보호자예요] 카드가 있고 누르면 보호자 안내로 간다', async ({ page }) => {
+    await page.goto(getPage('start').href);
+    const card = page.locator('[data-start-who="parent"]');
+    await expect(card).toContainText('보호자예요');
+    await expect(card.locator('a.card__link')).toHaveAttribute('href', getPage('start-parent').href);
+    await card.locator('a.card__link').click();
+    await expect(page).toHaveURL(new RegExp(`${getPage('start-parent').href}$`, 'u'));
+  });
+
+  test('다섯 가지 질문(무엇·비용과 준비물·개인정보·휴대폰·문의)에 짧게 답하고, 카메라 영상 문장은 서버가 없다고 말한다', async ({ page }) => {
+    await page.goto(getPage('start-parent').href);
+    const headings = page.locator('main h2');
+    await expect(headings).toHaveCount(5);
+    for (const text of ['누가 만든 어떤 사이트인가요?', '비용과 준비물은 어떤가요?', '개인정보와 카메라 영상은 어떻게 되나요?', '휴대폰으로도 되나요?', '궁금한 점은 어디에 물어보나요?']) {
+      await expect(page.getByRole('heading', { level: 2, name: text })).toBeVisible();
+    }
+    const privacy = page.locator('#privacy').locator('xpath=ancestor::section');
+    await expect(privacy).toContainText('카메라 영상은 이 컴퓨터 밖으로 나가지 않아요');
+    await expect(privacy).toContainText('영상을 받는 서버가 없고');
+    await expect(page.locator('main')).toContainText('무료예요');
+    await expect(page.locator('main')).toContainText('설치도 가입도 없이');
+    await expect(page.locator('main')).toContainText(`${siteConfig.author}`);
+    // 문의: 먼저 담당 선생님, 그다음 기여·문의 쪽(운영자 이메일은 공개하지 않는다)
+    const contact = page.locator('#parent-contact').locator('xpath=ancestor::section');
+    await expect(contact).toContainText('담당 선생님께');
+    await expect(contact.getByRole('link', { name: getPage('contribute').title })).toHaveAttribute('href', getPage('contribute').href);
+    await expect(page.locator('main a[href^="mailto:"]')).toHaveCount(0);
+  });
+
+  test('자세히(예외·접속 정보)는 접혀 있고, 교사용 시작하기의 개인정보 처리 안내 표로 이어진다', async ({ page }) => {
+    await page.goto(getPage('start-parent').href);
+    const more = page.locator('[data-parent-privacy-more]');
+    await expect(more).not.toHaveAttribute('open', '');
+    await more.locator('summary').click();
+    await expect(more).toContainText('음성 인식');
+    await expect(more).toContainText('공개 중계 서버');
+    await expect(more.getByRole('link', { name: /개인정보 처리 안내/u })).toHaveAttribute('href', `${getPage('start-teacher').href}#privacy`);
+  });
+
+  test('휴대폰 375 화면에서 다섯 가지 답이 두 화면 안에 들어온다(가로로 넘치지 않는다)', async ({ page, isMobile }) => {
+    test.skip(!isMobile, '모바일 화면(375폭 안팎)에서만 높이를 본다');
+    await page.goto(getPage('start-parent').href);
+    const viewportHeight = page.viewportSize()?.height ?? 812;
+    const bottom = await page.locator('.parent-next').evaluate((element) => element.getBoundingClientRect().bottom + window.scrollY);
+    expect(bottom, '보호자 안내의 마지막 줄 위치(px)').toBeLessThanOrEqual(2 * viewportHeight);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test('기여·문의 맨 위에 "먼저 담당 선생님께 → 운영자" 연락 순서가 있고 보호자 안내로 이어진다', async ({ page }) => {
+    await page.goto(getPage('contribute').href);
+    const contact = page.locator('[data-contribute-contact]');
+    await expect(contact).toContainText('먼저 담당 선생님께 물어보세요');
+    await expect(contact).toContainText('학생 이름이나 연락처는 적지 마세요');
+    await expect(contact.getByRole('link', { name: getPage('start-parent').title })).toHaveAttribute('href', getPage('start-parent').href);
   });
 });

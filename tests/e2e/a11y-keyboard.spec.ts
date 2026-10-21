@@ -63,6 +63,8 @@ interface FocusStep {
   readonly visible: boolean;
   readonly obscuredBy: string | null;
   readonly indicator: boolean;
+  /** 본문(<main>) 안의 요소인지 — 머리글·바닥글은 모든 쪽이 같아서 본문 정류장 수만 따로 셀 때 쓴다 */
+  readonly inMain?: boolean;
 }
 
 /**
@@ -173,7 +175,7 @@ async function inspectFocus(page: Page): Promise<FocusStep> {
     element.blur();
     const blurred = snapshot();
     element.focus({ preventScroll: true });
-    return { inside: true, label: describe(element), key, visible, obscuredBy, indicator: focused !== blurred };
+    return { inside: true, label: describe(element), key, visible, obscuredBy, indicator: focused !== blurred, inMain: element.closest('main') !== null };
   });
 }
 
@@ -223,9 +225,9 @@ async function tabWalk(page: Page, maxTabs: number): Promise<WalkResult> {
 
 /** Tab 걷기를 할 쪽(full: npm run test:a11y에서만) */
 const WALK_PAGES: readonly { label: string; path: string; maxTabs: number; full?: boolean; ready?: (page: Page) => Promise<void> }[] = [
-  // 판 1.4.0: 홈에 차례 그림 위 링크 32개와 차시 카드 60여 개가 더해졌다(머리글·바닥글 포함 Tab 150곳 안팎)
-  { label: '홈', path: '', maxTabs: 240 },
-  { label: '차시 1-1-1(퀴즈·교사용·용어·발표 모드 단추)', path: 'learn/u1/1-1-1/', maxTabs: 400 },
+  // 판 1.6.0(C177): 차례 그림 위 링크 32개는 Tab 차례에서 빠지고 차시 카드 60여 개는 단원 카드 4장으로 줄었다(머리글·바닥글 포함 Tab 40곳 안 — 아래 '판 1.6.0' 시험이 40곳 한도를 건다)
+  { label: '홈', path: '', maxTabs: 100 },
+  { label: '차시 1-1-1(퀴즈·교사용·용어·수업 화면 단추)', path: 'learn/u1/1-1-1/', maxTabs: 400 },
   { label: '차시 2-1-1(보드 차시)', path: 'learn/u2/2-1-1/', maxTabs: 400, full: true },
   { label: '용어사전', path: 'glossary/', maxTabs: 900, full: true },
   { label: '교사용 자료실', path: 'teacher/', maxTabs: 150, full: true },
@@ -288,6 +290,11 @@ test.describe('키보드만으로 — 여닫는 것', () => {
   test('차시: 교사용 접기·더알아보기를 Enter로 열고 닫으며, 용어 풀이는 초점을 받으면 뜨고 Esc로 닫힌다', async ({ page }) => {
     await freezeDevReloads(page);
     await page.goto(withBase('learn/u1/1-1-2/'));
+    // 판 1.6.0(C174): 긴 핵심 개념은 둘째 ### 이후가 접힌 상자(details.concepts-fold) 안에 있어, 그 안의 더알아보기는 바깥 상자를 먼저 열어야 초점을 받는다.
+    const fold = page.locator('details.concepts-fold');
+    await fold.locator('> summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(fold).toHaveAttribute('open', '');
     const more = page.locator('details.box--more > summary').first();
     await more.focus();
     await page.keyboard.press('Enter');
@@ -768,5 +775,184 @@ test.describe('움직임 줄이기 — 운영체제 설정을 켜면 움직이�
     expect(await runningAnimations(page)).toEqual([]);
     await waitLabsIdle(page);
     expect(await runningAnimations(page)).toEqual([]);
+  });
+});
+
+// ── 판 1.6.0 구역 R5(DECISIONS C177): 건너뛰기·홈 Tab 정류장·초점 도착점·사이드바 요약 글 ──
+test.describe('키보드만으로 — 건너뛰기와 홈의 Tab 정류장(판 1.6.0)', () => {
+  test.skip(({ isMobile }) => isMobile, '키보드 조작은 데스크톱에서 본다');
+  test.describe.configure({ timeout: 120_000 });
+
+  /** 지금 초점 요소의 모습(이름·화면 안 위치) */
+  const focusState = (page: Page) =>
+    page.evaluate(() => {
+      const active = document.activeElement as HTMLElement | null;
+      if (!active || active === document.body) {
+        return { id: '', tag: 'body', text: '', top: 0, bottom: 0, height: window.innerHeight, inMain: false };
+      }
+      const rect = active.getBoundingClientRect();
+      return {
+        id: active.id,
+        tag: active.tagName.toLowerCase(),
+        text: (active.getAttribute('aria-label') ?? active.textContent ?? '').replace(/\s+/gu, ' ').trim().slice(0, 60),
+        top: rect.top,
+        bottom: rect.bottom,
+        height: window.innerHeight,
+        inMain: Boolean(active.closest('main')),
+      };
+    });
+
+  for (const target of [
+    { label: '홈', path: '', destination: 'main-content' },
+    { label: '차시 1-1-1', path: 'learn/u1/1-1-1/', destination: 'lesson-article' },
+    { label: '교과서 쪽 1-1-1', path: 'book/1-1-1/', destination: 'lesson-article' },
+    { label: '용어사전', path: 'glossary/', destination: 'main-content' },
+  ]) {
+    test(`${target.label}: 첫 Tab이 [본문으로 건너뛰기]이고(화면에 보임), Enter를 누르면 본문 뿌리로 초점이 간다`, async ({ page }) => {
+      await freezeDevReloads(page);
+      await page.goto(withBase(target.path));
+      const skip = page.locator('a.skip-link');
+      // 평소에는 화면 밖에 있다
+      expect(await skip.evaluate((link) => link.getBoundingClientRect().bottom), '초점 전에는 화면 위 밖').toBeLessThanOrEqual(0);
+      await page.keyboard.press('Tab');
+      await expect(skip).toBeFocused();
+      await expect(skip).toHaveText('본문으로 건너뛰기');
+      const box = (await skip.boundingBox())!;
+      expect(box.y, '초점이 오면 화면 안에 나타난다').toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height).toBeLessThan(200);
+      await expect(skip).toHaveAttribute('href', `#${target.destination}`);
+      await page.keyboard.press('Enter');
+      await expect.poll(() => focusState(page).then((state) => state.id)).toBe(target.destination);
+      // 건너뛴 뒤 다음 Tab은 본문 안으로 간다(머리글로 돌아가지 않는다)
+      await page.keyboard.press('Tab');
+      expect((await focusState(page)).inMain, '본문 뿌리 다음 Tab은 본문 안').toBe(true);
+    });
+  }
+
+  test('임베드(?embed=1)에서는 건너뛰기 링크가 숨는다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(`${withBase('learn/u1/1-1-1/')}?embed=1`);
+    await expect(page.locator('a.skip-link')).toBeHidden();
+  });
+
+  test('홈: 본문 Tab 정류장이 40곳 안(전체 80곳 안)이고, 차례 그림 위 링크 32개는 한 곳도 Tab 차례에 없다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(withBase(''));
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+    const walk = await tabWalk(page, 120);
+    expect(walk.problems, walk.problems.join('\n')).toEqual([]);
+    expect(walk.finished, '홈 끝까지 걸어 봤다').toBe(true);
+    // 머리글(10곳)과 바닥글(36곳)은 모든 쪽이 같다 — [본문으로 건너뛰기]가 머리글을 넘기고, 본문 정류장만 40곳 안으로 센다.
+    // 쪽 전체는 옛 142곳(그림 위 링크 32 + 차시 카드 47 + …)에서 줄었는지 80곳 안으로 지킨다.
+    const inMain = walk.steps.filter((step) => step.inMain);
+    test.info().annotations.push({ type: 'Tab 정류장', description: `홈 전체 ${walk.steps.length}곳 · 본문 ${inMain.length}곳` });
+    expect(inMain.length, `홈 본문 Tab 정류장 ${inMain.length}곳 — ${inMain.map((step) => step.label).join(' / ')}`).toBeLessThanOrEqual(40);
+    expect(walk.steps.length, `홈 전체 Tab 정류장 ${walk.steps.length}곳`).toBeLessThanOrEqual(80);
+    // 걸으면서 한 번도 그림 위 링크를 지나지 않았다
+    expect(walk.steps.filter((step) => step.label.includes('toc-spot'))).toEqual([]);
+    const spots = page.locator('[data-toc-spot]');
+    expect(await spots.count()).toBeGreaterThanOrEqual(30);
+    for (const spot of await spots.all()) {
+      expect(await spot.getAttribute('tabindex')).toBe('-1');
+    }
+  });
+
+  test('홈 차례: Tab이 닿는 "키보드로는 아래 절 목록을 써요"가 보이고, Enter로 절 목록(단원 접이식)에 닿는다 — 그림 위 링크는 마우스로 그대로 누른다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(withBase(''));
+    const hint = page.locator('[data-toc-keyboard]');
+    // 초점 전에는 화면에 보이지 않는 크기(키보드·화면 낭독기만 닿는다)
+    expect((await hint.boundingBox())!.width).toBeLessThanOrEqual(2);
+    // 제목 "차례"에서 시작해 Tab으로 안내까지 간다
+    await page.locator('#toc').focus();
+    await page.keyboard.press('Tab');
+    await expect(hint).toBeFocused();
+    const box = (await hint.boundingBox())!;
+    expect(box.width, '초점이 오면 큰 글 한 줄로 나타난다').toBeGreaterThan(200);
+    expect(await hint.evaluate((link) => Number.parseFloat(getComputedStyle(link).fontSize))).toBeGreaterThanOrEqual(18);
+    await expect(hint).toContainText('키보드로는 아래 절 목록을 써요');
+    await expect(hint).toContainText('절 목록으로');
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/#toc-list$/u);
+    // 목록으로 간 뒤 다음 Tab은 첫 단원 접이식 요약이다
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement?.closest('[data-home-toc-unit]')?.getAttribute('data-home-toc-unit') ?? '')).toBe('1');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-home-toc-unit="1"]')).toHaveAttribute('open', '');
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('href') ?? '')).toMatch(/\/(?:book|learn\/u\d)\/[a-z0-9-]+\/$/u);
+    // 그림 위 링크는 마우스로 그대로 눌린다
+    await page.locator('[data-toc-spot="2-1-2"]').click();
+    await expect(page).toHaveURL(/\/(?:book|learn\/u2)\/2-1-2\/$/u);
+  });
+
+  test('홈 #toc 주소로 오면 초점이 제목 "차례"에 놓이고 제목이 화면 위에 숨지 않는다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(`${withBase('')}#toc`);
+    await expect.poll(() => focusState(page).then((state) => state.id)).toBe('toc');
+    const state = await focusState(page);
+    expect(state.tag).toBe('h2');
+    expect(state.text).toBe('차례');
+    expect(state.top, '제목 윗변이 화면 안(여유 포함)').toBeGreaterThanOrEqual(8);
+    expect(state.bottom).toBeLessThan(state.height);
+  });
+
+  test('차시 왼쪽 목록 요약 글: 닫혀 있으면 "…펼치기", 키보드로 열면 "…접기"로 바뀐다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.setViewportSize({ width: 900, height: 800 });
+    await page.goto(withBase('learn/u1/1-1-1/'));
+    const nav = page.locator('details.lesson-nav');
+    const summary = nav.locator('summary');
+    const visibleText = async () => (await summary.evaluate((element) => (element as HTMLElement).innerText)).replace(/\s+/gu, ' ');
+    await expect(nav).not.toHaveAttribute('open', '');
+    expect(await visibleText()).toContain('이 단원 차시 목록 펼치기');
+    expect(await visibleText()).not.toContain('접기');
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    await expect(nav).toHaveAttribute('open', '');
+    // 보이는 글(innerText)이 바뀐다 — 숨은 쪽 글은 낭독되지 않는다
+    expect(await visibleText()).toContain('이 단원 차시 목록 접기');
+    expect(await visibleText()).not.toContain('펼치기');
+    await page.keyboard.press('Enter');
+    await expect(nav).not.toHaveAttribute('open', '');
+    expect(await visibleText()).toContain('이 단원 차시 목록 펼치기');
+  });
+
+  test('차시 본문 건너뛰기 뒤 첫 링크(빵부스러기)의 초점 테두리가 화면 맨 위에 붙어 잘리지 않는다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(withBase('learn/u1/1-1-1/'));
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => focusState(page).then((state) => state.id)).toBe('lesson-article');
+    await page.keyboard.press('Tab');
+    const state = await focusState(page);
+    expect(state.inMain).toBe(true);
+    // 초점 테두리(3px + 간격 2px)가 들어갈 만큼 위 여유가 있다
+    expect(state.top, `첫 링크 「${state.text}」의 윗변 ${state.top}px`).toBeGreaterThanOrEqual(5);
+  });
+
+  test('카드 링크에 Tab으로 가서 화면이 움직였다면 카드 전체(아랫변까지)가 화면에 들어온다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(withBase('learn/'));
+    expect(await page.locator('.card--link a.card__link').count()).toBeGreaterThan(8);
+    let scrolledCards = 0;
+    for (let press = 0; press < 120 && scrolledCards < 3; press += 1) {
+      await page.keyboard.press('Tab');
+      const info = await page.evaluate(() => {
+        const active = document.activeElement;
+        const card = active?.matches('a.card__link') ? (active.closest('.card') as HTMLElement | null) : null;
+        if (!card) {
+          return null;
+        }
+        const rect = card.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, height: window.innerHeight, scrollY: window.scrollY };
+      });
+      if (info && info.scrollY > 0) {
+        scrolledCards += 1;
+        expect(info.top, '카드 윗변이 화면 안').toBeGreaterThanOrEqual(0);
+        expect(info.bottom, '카드 아랫변이 화면 안').toBeLessThanOrEqual(info.height);
+      }
+    }
+    expect(scrolledCards, '화면이 움직인 카드를 지나 보았다').toBeGreaterThan(0);
   });
 });

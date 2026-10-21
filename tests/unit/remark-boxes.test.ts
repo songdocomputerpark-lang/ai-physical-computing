@@ -60,6 +60,7 @@ describe('상자 문법(src/lib/remark-boxes.mjs)', () => {
       '코드설명',
       '그림생략',
       '웹정정',
+      '웹안내',
     ]);
     expect(BOOK_BOX_VARIANTS).toEqual(BOX_TYPES.filter((type) => type.book).map((type) => type.variant));
     for (const type of BOX_TYPES) {
@@ -234,6 +235,13 @@ describe('교과서 쪽 문법(판 1.4.0 — ::쪽[n]·::실습실[파일]·꼭�
     expect(html).toContain('<p class="box__title">투과율</p>');
     expect(html).toContain('<div class="box box--webfix" data-box="webfix" role="note">');
     expect(BOX_TYPES.filter((type) => type.keepName).map((type) => type.name)).toEqual(['그림생략', '웹정정']);
+  });
+
+  it('웹안내는 출판본 옆에 놓는 사이트 글 — 대괄호 글자가 제목이 되고(없으면 "이 사이트에서는"), 안의 링크는 그대로 남는다(판 1.6.0 C176)', async () => {
+    const html = compact(await render(':::웹안내[이 사이트에서는 설치 없이]\n브라우저만으로 돼요.\n\n- [보드 준비하기](/start/board/)\n:::\n\n:::웹안내\n제목 없는 안내예요.\n:::'));
+    expect(html).toContain('<div class="box box--webnote" data-box="webnote" role="note"><p class="box__title">이 사이트에서는 설치 없이</p>');
+    expect(html).toContain('<p class="box__title">이 사이트에서는</p>');
+    expect(html).toContain('<a href="/start/board/">보드 준비하기</a>');
   });
 
   it('상자 안에 상자(::::결과 > :::말풍선)도 된다', async () => {

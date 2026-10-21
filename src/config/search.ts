@@ -42,7 +42,9 @@ export const searchConfig = {
    */
   // 예제 갤러리(P4-11)도 카드 제목(h3#ex-<실습실>-<예제 id>)마다 항목 결과를 낸다(2026-09-24 Phase 4 통합).
   // 선생님이 자주 묻는 질문(P5-14)은 질문(h3 id)마다 결과를 낸다(2026-09-25 Phase 5 통합).
-  anchorPages: ['/glossary/', '/help/errors/', '/labs/gallery/', '/teacher/faq/'],
+  // 부품 사전(/start/parts/)은 부품 카드(li id="part-<부품 id>"의 h3)마다 결과를 낸다(판 1.6.0 R6, 걷기 보고 B-72 — 전에는 "초음파"를 찾으면 쪽 맨 위로 가서 18,650px 중
+  // 가운데쯤의 항목을 직접 찾아야 했다). 키트 장치 도감은 장치마다 쪽이 따로라 이 목록에 넣지 않는다(결과의 쪽 자체가 항목이다 — 종류 이름은 search-core.ts의 kit).
+  anchorPages: ['/glossary/', '/help/errors/', '/labs/gallery/', '/teacher/faq/', '/start/parts/'],
   /**
    * 많이 찾는 낱말(판 1.3.0). 검색칸이 비어 있을 때 초점을 주면 칩으로 보이고(자동 완성), 홈 큰 검색 아래와 검색 쪽 처음 화면에도 나온다.
    * 모두 사이트에 실제로 있는 낱말이어야 한다 — 결과가 없는 추천은 처음 온 사람을 헷갈리게 한다(tests/e2e/search-suggest.spec.ts가 빌드한 색인으로 확인).
@@ -52,5 +54,6 @@ export const searchConfig = {
    * 찾을 때 search-rank.ts planSearch가 사이트 글의 말투로 바꿔 찾는다(문제 해결이 맨 앞). 임계값은 용어사전 항목, NameError는 오류 사전 항목이 맨 앞이다
    * (tests/e2e/search.spec.ts가 빌드한 색인으로 확인).
    */
-  popularWords: ['손 인식', '임계값', 'LED', '서보', '블루투스', 'NameError', '카메라가 안 켜져요'],
+  // 판 1.6.0 R6(걷기 보고 B-81): 키트로 센서를 꽂는 학생이 찾는 길이 칩에 없었다 — "센서 배선"(부품 사전·키트 장치 도감·보드 준비가 맞는다)을 더한다.
+  popularWords: ['손 인식', '임계값', 'LED', '서보', '블루투스', 'NameError', '센서 배선', '카메라가 안 켜져요'],
 } as const;

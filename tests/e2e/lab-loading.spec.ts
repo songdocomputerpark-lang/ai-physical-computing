@@ -86,7 +86,10 @@ test.describe('준비 진행률과 1분 개념 카드', () => {
     await expect(panel).toBeVisible({ timeout: 30_000 });
     await expect(labRoot(page)).toHaveAttribute('data-loading-phase', /loading|ready/u, { timeout: LOAD_TIMEOUT });
 
-    // 단계 줄: ① 파이썬 엔진 → ② numpy → ③ OpenCV
+    // 단계 줄: ① 파이썬 엔진 → ② numpy → ③ OpenCV (판 1.6.0 R6: 평소에는 접힌 [자세히] 안에 있다 — 한 줄 글은 학생 말이다)
+    await expect(page.locator('[data-loading-panel] [data-loading-text]')).not.toContainText('Pyodide');
+    await expect(page.locator('[data-loading-detail]')).not.toHaveAttribute('open', '');
+    await page.locator('[data-loading-detail] > summary').click();
     const core = page.locator('[data-loading-stage="core"]');
     await expect(core).toBeVisible();
     await expect(core).toContainText('파이썬 엔진');

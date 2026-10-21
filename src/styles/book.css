@@ -321,6 +321,13 @@
   --box-title: var(--color-warning-text);
 }
 
+/* 웹 안내(판 1.6.0 C176): 출판본 원문 옆에 놓는 이 사이트의 글 — 파랑 안내색이라 출판본 꼭지와 구별된다 */
+.book-page .box--webnote {
+  --box-bg: var(--color-info-bg);
+  --box-border: var(--color-info-border);
+  --box-title: var(--color-info-text);
+}
+
 /* 표(자기 평가·에러 체크 포인트): 상자 폭에 맞춘다 */
 .book-page .box table {
   inline-size: 100%;
