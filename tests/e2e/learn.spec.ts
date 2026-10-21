@@ -177,6 +177,10 @@ test.describe('차시 페이지', () => {
     await expect(example.getByRole('button', { name: '이 자리에서 실습실 열기' })).toBeVisible();
     await expect(page.locator('iframe')).toHaveCount(0);
 
+    // 판 1.6.0(C174): 긴 핵심 개념의 둘째 ### 뒤는 닫힌 접기 안이라 그 안 그림은 펼쳐야 받는다(지연 받기)
+    for (const fold of await page.locator('details.concepts-fold > summary').all()) {
+      await fold.click();
+    }
     for (const image of await page.locator('.lesson-body img').all()) {
       await image.scrollIntoViewIfNeeded();
       await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);

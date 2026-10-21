@@ -155,6 +155,10 @@ test.describe('차시 화면 — 누른 뒤', () => {
     const found: string[] = [];
     await freezeDevReloads(page);
     await page.goto(withBase('learn/u1/1-1-2/'));
+    // 판 1.6.0(C174): 긴 핵심 개념의 둘째 ### 뒤는 닫힌 접기 안이라, 그 안의 더알아보기는 바깥 접기를 먼저 연다
+    for (const fold of await page.locator('details.concepts-fold > summary').all()) {
+      await fold.click();
+    }
     for (const summary of await page.locator('details.box--more > summary').all()) {
       await summary.click();
     }
