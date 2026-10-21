@@ -204,11 +204,14 @@ const hasNotice = Astro.slots.has('notice');
     <SiteFooter />
     {/* 오프라인 준비(PD-11, P2-05). 실패해도 사이트는 그대로 돈다. 주소에 ?sw=off를 붙이면 등록을 풀고 이 사이트 캐시를 지운다. */}
     {/* 넘치는 표·그림 칸을 키보드로도 밀어 보게(넘치는 동안만 Tab 차례에 — src/components/common/scroll-focus.ts, Phase 6 접근성 점검) */}
+    {/* 카드 링크에 키보드 초점이 오면 카드 전체를 화면에 넣는다(판 1.6.0, C177 — src/components/common/card-focus.ts) */}
     <script>
+      import { installCardFocusScroll } from '../components/common/card-focus.ts';
       import { installScrollFocus } from '../components/common/scroll-focus.ts';
       import { registerServiceWorker } from '../lab/loader/sw-client.ts';
 
       installScrollFocus();
+      installCardFocusScroll();
       void registerServiceWorker();
     </script>
   </body>

@@ -10,6 +10,13 @@
  * 링크가 가는 곳은 home-lessons.ts가 정한다: 교과서 쪽(/book/<id>/) → 없으면 짝 웹 차시 → 둘 다 없으면 링크를 만들지 않는다.
  * HTML 크기: 홈 HTML은 서비스 워커 사전 캐시 한도(파일 하나 160KB)에 바짝 붙어 있다 — 이 부품의 <style>은 is:global이다(Astro 범위 스타일은 모든 요소에 data-astro-cid 속성을 붙인다). 클래스 이름은 이 부품 고유(toc__·toc-spot 접두어)라 겹치지 않는다.
  * 줄바꿈이 든 글과 태그 사이 공백은 Astro가 지우므로 글과 인라인 태그 사이에는 {' '}를 쓴다(CLAUDE.md).
+ *
+ * 키보드(판 1.6.0, DECISIONS C177, 걷기 보고 walk-a11y-keyboard 7·17·22):
+ *  - 그림 위 투명 링크 32개는 tabindex="-1"이다 — 마우스·손가락으로는 그대로 누르고, Tab 정류장에서는 뺀다(홈 Tab 정류장 142개의 가장 큰 덩어리였다).
+ *  - 그 대신 넓은 화면에도 절 목록(단원별 접이식, 닫힌 채 4줄)을 그림 아래에 둔다. 목록이 Tab이 닿는 길이다.
+ *  - Tab이 그림 자리에서 처음 닿는 곳은 "키보드로는 아래 절 목록을 써요 · 절 목록으로" 한 줄(`.toc__kbd`)이다. 평소에는 화면 낭독기에만 보이다가 초점이 오면 큰 글로 나타나고, 누르면 목록으로 간다.
+ *  - `#toc` 주소로 오면(건너뛰기·바로 가기) 제목 "차례"가 곧 도착점이라 초점이 거기 놓인다: 제목에 id="toc"·tabindex="-1"을 둔다(걷기 보고 22 — 전에는 초점이 body에 남았다).
+ * DOM 순서 = 보이는 순서: 넓은 화면은 안내 → 그림 → 목록, 좁은 화면은 목록 → 접힌 그림(그림 둘째 칸은 넓은 화면에서 숨고, 안내·그림 칸은 좁은 화면에서 숨는다).
  */
 import { withBase } from '../../lib/url.ts';
 import { unitCardClass } from '../lesson/unit-style.ts';
@@ -24,14 +31,32 @@ interface Props {
 const { figures, list } = Astro.props;
 ---
 
-<section id="toc" class="toc" aria-labelledby="home-toc-title" data-home-toc>
+<section class="toc" aria-labelledby="toc" data-home-toc>
   <header class="toc__header">
-    <h2 id="home-toc-title" class="toc__title">{homeToc.heading}</h2>
+    <h2 id="toc" class="toc__title" tabindex="-1">{homeToc.heading}</h2>
     <p class="toc__lead">{homeToc.lead}</p>
   </header>
 
-  {/* 좁은 화면: 절 목록이 먼저 */}
-  <nav class="toc__list" aria-label={homeToc.listLabel} data-home-toc-list>
+  {/* 넓은 화면: Tab이 그림 자리에서 처음 닿는 곳(그림 위 링크는 Tab 차례에 없다) — 평소에는 화면 낭독기에만 보이다가 초점이 오면 큰 글로 나타난다 */}
+  <a class="toc__kbd" href="#toc-list" data-toc-keyboard>{homeToc.keyboardHint}{' '}<span class="toc__kbd-go">{homeToc.keyboardGo}</span></a>
+
+  {/* 넓은 화면: 그림 두 장 + 투명 링크(마우스·손가락 전용 — tabindex="-1"로 Tab 차례에서 뺀다. 키보드는 위 안내 한 줄과 아래 목록) */}
+  <div class="toc__figures" role="group" aria-label={homeToc.figureGroupLabel} data-home-toc-figures>
+    {
+      figures.map(({ image, spots }) => (
+        <div class="toc__page" data-toc-image={image.image}>
+          <img class="toc__image" src={withBase(image.src)} width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" />
+          {spots.map((spot) => (
+            <a class="toc-spot" href={spot.href} style={spot.style} title={spot.label} aria-label={spot.label} data-toc-spot={spot.id} tabindex="-1" />
+          ))}
+        </div>
+      ))
+    }
+  </div>
+
+  {/* 절 목록: 좁은 화면은 첫머리(눌러 가는 길), 넓은 화면은 그림 아래(키보드가 쓰는 길) */}
+  <p class="toc__list-lead">{homeToc.listLead}</p>
+  <nav id="toc-list" class="toc__list" aria-label={homeToc.listLabel} data-home-toc-list>
     {
       list.map((unit) => (
         <details class:list={['toc__list-unit', 'more', unitCardClass(unit.unit)]} data-home-toc-unit={unit.unit}>
@@ -78,33 +103,20 @@ const { figures, list } = Astro.props;
       }
     </div>
   </details>
-
-  {/* 넓은 화면: 그림 두 장 + 투명 링크 */}
-  <div class="toc__figures" role="group" aria-label={homeToc.figureGroupLabel} data-home-toc-figures>
-    {
-      figures.map(({ image, spots }) => (
-        <div class="toc__page" data-toc-image={image.image}>
-          <img class="toc__image" src={withBase(image.src)} width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" />
-          {spots.map((spot) => (
-            <a class="toc-spot" href={spot.href} style={spot.style} title={spot.label} aria-label={spot.label} data-toc-spot={spot.id} />
-          ))}
-        </div>
-      ))
-    }
-  </div>
 </section>
 
 <style is:global>
   .toc {
     margin-block-start: var(--space-12);
-    scroll-margin-block-start: var(--space-4);
   }
 
   .toc__header {
     margin-block-end: var(--space-5);
   }
 
+  /* 제목이 #toc의 도착점이다 — 머리글이 붙어 있지 않아도 윗줄 초점 테두리가 화면 위에 붙어 잘리지 않게 여유를 둔다(걷기 보고 22) */
   .toc__title {
+    scroll-margin-block-start: var(--space-4);
     font-size: var(--text-2xl);
   }
 
@@ -114,10 +126,17 @@ const { figures, list } = Astro.props;
     color: var(--color-text-muted);
   }
 
-  /* ── 좁은 화면: 절 목록 ── */
+  /* ── 키보드 안내(넓은 화면 전용): 그림 위 링크는 Tab 차례에 없으므로, Tab이 닿는 첫 자리에서 "아래 절 목록을 써요"를 큰 글로 알린다 ── */
+  .toc__kbd,
+  .toc__list-lead {
+    display: none;
+  }
+
+  /* ── 절 목록: 좁은 화면은 첫머리, 넓은 화면은 그림 아래 ── */
   .toc__list {
     display: grid;
     gap: var(--space-4);
+    scroll-margin-block-start: var(--space-4);
   }
 
   /* 판 1.6.0: 단원마다 접이식 — 닫아 두면 4줄이라 휴대폰 홈이 짧다(펼친 절 목록은 단원마다 700px 안팎). 공용 .more 모양을 단원 색 카드로 덮는다. */
@@ -253,7 +272,6 @@ const { figures, list } = Astro.props;
   }
 
   @media (min-width: 48rem) {
-    .toc__list,
     .toc__details {
       display: none;
     }
@@ -262,6 +280,47 @@ const { figures, list } = Astro.props;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-4);
+    }
+
+    /* 평소에는 화면 낭독기·키보드만 닿는다(보이지 않음) — 초점이 오면 그림 위에 큰 글 한 줄로 나타난다 */
+    .toc__kbd {
+      position: absolute;
+      display: block;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .toc__kbd:focus {
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      margin-block-end: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      overflow: visible;
+      border: 2px solid var(--color-accent-border);
+      border-radius: var(--radius-md);
+      background: var(--color-accent-soft);
+      clip-path: none;
+      color: var(--color-accent-hover);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-bold);
+      text-decoration: none;
+      white-space: normal;
+    }
+
+    .toc__kbd-go {
+      margin-inline-start: var(--space-2);
+      text-decoration: underline;
+    }
+
+    /* 그림 아래 목록: 그림과 목록 사이에 한 줄 안내 */
+    .toc__list-lead {
+      display: block;
+      margin-block: var(--space-5) var(--space-2);
+      color: var(--color-text-muted);
     }
   }
 

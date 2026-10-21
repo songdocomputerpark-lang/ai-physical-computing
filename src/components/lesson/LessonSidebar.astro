@@ -37,6 +37,8 @@ const groups = outline.groups.filter((group) => group.items.length > 0);
 const ids = groups.flatMap((group) => group.items.flatMap((item) => (item.progressId ? [item.progressId] : [])));
 // 단원 진도(글·막대)는 웹 차시 쪽만 — 교과서 차례는 항목 앞 표시만 칠한다(같은 진도를 쓰는 짝이 없는 쪽이 섞여 "N차시 중"이 맞지 않는다).
 const progressAttrs = outline.showProgress ? { 'data-progress-unit': progressIds(ids), 'data-progress-label': outline.progressLabel ?? '' } : {};
+// 열렸을 때의 요약 글: "…펼치기" → "…접기"(걷기 보고 9 · 종합 B-86 — 열어도 글이 "펼치기"라 닫는 방법을 몰랐다). 끝이 "펼치기"가 아닌 글은 그대로 둔다.
+const closeLabel = outline.summaryLabel.replace(/펼치기$/u, '접기');
 ---
 
 <details
@@ -46,7 +48,11 @@ const progressAttrs = outline.showProgress ? { 'data-progress-unit': progressIds
   data-embed-hide
   data-pagefind-ignore
 >
-  <summary>{outline.summaryLabel}{' '}{outline.showProgress && <span class="lesson-nav__summary-count" data-progress-count />}</summary>
+  <summary>
+    <span class="lesson-nav__label-closed" data-swap={closeLabel !== outline.summaryLabel ? '' : undefined}>{outline.summaryLabel}</span>
+    {closeLabel !== outline.summaryLabel && <span class="lesson-nav__label-open">{closeLabel}</span>}
+    {outline.showProgress && <span class="lesson-nav__summary-count" data-progress-count />}
+  </summary>
   <div class="lesson-nav__scroll" data-lesson-nav-scroll>
     <nav class="lesson-nav__nav" aria-label={outline.navLabel}>
       <a class="lesson-nav__skip" href="#lesson-article">{outline.navLabel === '단원 차시 목록' ? '차시 목록 건너뛰기' : `${outline.navLabel} 건너뛰기`}</a>
@@ -236,6 +242,19 @@ const progressAttrs = outline.showProgress ? { 'data-progress-unit': progressIds
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
     line-height: 1.25rem;
+  }
+
+  /* 요약 줄 글: 닫혀 있으면 "…펼치기", 열리면 "…접기"(두 글 중 하나만 보이고 낭독된다 — display:none은 접근 이름에서도 빠진다) */
+  .lesson-nav__label-open {
+    display: none;
+  }
+
+  .lesson-nav[open] > summary > .lesson-nav__label-open {
+    display: inline;
+  }
+
+  .lesson-nav[open] > summary > .lesson-nav__label-closed[data-swap] {
+    display: none;
   }
 
   /* 접힌 요약 줄의 진도 글: 오른쪽에 작게 */

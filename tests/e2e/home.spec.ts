@@ -287,7 +287,8 @@ test.describe('홈 차례(#toc)', () => {
     await page.goto('./');
     const figures = page.locator('[data-home-toc-figures]');
     await expect(figures).toBeVisible();
-    await expect(page.locator('[data-home-toc-list]')).toBeHidden();
+    // 판 1.6.0(C177): 그림 위 링크는 Tab 차례에서 빠지고, 키보드는 그림 아래 절 목록(단원별 접이식)을 쓴다 — 넓은 화면에도 목록이 보인다
+    await expect(page.locator('[data-home-toc-list]')).toBeVisible();
     await expect(page.locator('[data-home-toc-details]')).toBeHidden();
     await expect(figures.locator('.toc__page')).toHaveCount(2);
     for (const image of await figures.getByRole('img').all()) {
@@ -308,6 +309,7 @@ test.describe('홈 차례(#toc)', () => {
       expect(await spot.getAttribute('title'), `${id} title`).toBe(label);
       expect(await spot.getAttribute('href'), `${id} 주소`).toMatch(new RegExp(`^${base}/(?:book|learn/u\\d)/[a-z0-9-]+/$`, 'u'));
       expect(await spot.textContent(), `${id}: 글자는 없다(투명 링크)`).toBe('');
+      expect(await spot.getAttribute('tabindex'), `${id}: Tab 차례에서 뺀다(키보드는 절 목록)`).toBe('-1');
     }
   });
 
