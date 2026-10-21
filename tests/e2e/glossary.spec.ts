@@ -184,6 +184,10 @@ test.describe('용어 툴팁', () => {
     await page.goto('./learn/u1/1-1-1/');
     await expect(page.locator('glossary-term'), '표시 자리 태그가 남지 않아요').toHaveCount(0);
     const body = page.locator('.lesson-body');
+    // 판 1.6.0(C174): "에이전트"는 긴 핵심 개념의 둘째 ### 뒤라 닫힌 접기 안에 있다 — 펼쳐야 링크로 보인다
+    for (const fold of await body.locator('details.concepts-fold > summary').all()) {
+      await fold.click();
+    }
     const term = body.getByRole('link', { name: '에이전트', exact: true });
     await expect(term, '같은 글의 같은 낱말은 첫 번째만 링크').toHaveCount(1);
     await expect(term).toHaveAttribute('href', withBase('glossary/#agent'));

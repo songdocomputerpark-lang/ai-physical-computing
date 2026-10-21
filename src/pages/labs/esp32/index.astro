@@ -45,13 +45,17 @@ const STARTER_EXAMPLE_ID = '01-first-blink';
   */}
   <div class="esp32-intro" data-embed-hide>
     <p>ESP32는 LED, 모터 같은 부품을 움직이는 작은 컴퓨터예요. 보드가 없어도 가상 보드로 해요.</p>
-    {/* 판 1.6.0 C176(걷기 보고 walk-student-board 14): 예제가 수백 개라 무엇부터 할지 몰랐다 — 선택 상자 맨 위 묶음("처음이라면 이것 하나")을 알리고, 이름이 비슷한 두 LED를 가른다 */}
-    <p>
-      처음이라면 예제 목록 맨 위의 <strong>"처음이라면 이것 하나"</strong>(내장 LED 깜빡이기)부터 해 봐요. <strong>내장 LED</strong>는 보드에 붙어 있는 LED이고,
-      키트의 <strong>LED 모듈</strong>은 선으로 꽂아 쓰는 LED라서 서로 다른 부품이에요.
-    </p>
     <details class="more">
       <summary>처음 쓰는 법 자세히</summary>
+      {/*
+        판 1.6.0 C176(걷기 보고 walk-student-board 14): 예제가 수백 개라 무엇부터 할지 몰랐다 — 선택 상자 맨 위 묶음("처음이라면 이것 하나")을
+        알리고, 이름이 비슷한 두 LED를 가른다. 접기 밖에 두면 [실행]이 1366×768 첫 화면 가운데 아래로 밀려(labs-ui.spec) 접기 맨 앞에 둔다
+        — 그 예제는 처음부터 열려 있고 선택 상자에도 이름이 보인다.
+      */}
+      <p>
+        처음이라면 예제 목록 맨 위의 <strong>"처음이라면 이것 하나"</strong>(내장 LED 깜빡이기)부터 해 봐요. <strong>내장 LED</strong>는 보드에 붙어 있는 LED이고,
+        키트의 <strong>LED 모듈</strong>은 선으로 꽂아 쓰는 LED라서 서로 다른 부품이에요.
+      </p>
       <p>가상 보드가 실제 보드와 같은 파이썬 코드(보드용 파이썬인 MicroPython)를 돌려요.</p>
       <ol class="esp32-intro__steps">
         <li>[실행]을 누르면 파이썬이 준비된 뒤 가상 보드가 코드를 돌려요. 코드가 핀을 바꾸면 보드 그림과 "핀 상태" 표가 함께 바뀌어요.</li>

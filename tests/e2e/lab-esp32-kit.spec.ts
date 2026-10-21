@@ -72,7 +72,7 @@ test.describe('ESP32 실습실 — 키트 장치 도감 예제는 고를 때 받
     await expect(select.locator('option[value="01-first-blink"]')).toHaveCount(1);
     // 처음 열리는 예제는 그대로 내장 LED 깜빡이기
     await expect(select).toHaveValue('01-first-blink');
-    // 쪽 위 한 줄: 내장 LED와 LED 모듈을 가른다
+    // "처음 쓰는 법 자세히" 맨 앞: 내장 LED와 LED 모듈을 가른다(접기 밖에 두면 [실행]이 첫 화면 가운데 아래로 밀림)
     await expect(page.locator('.esp32-intro')).toContainText('내장 LED');
     await expect(page.locator('.esp32-intro')).toContainText('LED 모듈');
   });
