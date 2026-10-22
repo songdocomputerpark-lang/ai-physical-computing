@@ -1,10 +1,12 @@
 // 수업 화면 판 1.7.0(PROGRESS 미해결 259·260·271 — 다시 걷기 walk-a11y-keyboard N1~N4·walk-teacher-new A2) — 새 순수 함수(DOM 없이).
 // 단계 목록(절 이름으로 건너뛰기)·막대 글 줄이기·거의 빈 뒤 단계 붙이기·안쪽 조각 단계는 합치지 않음. 화면 동작은 tests/e2e/lesson-template.spec.ts·book.spec.ts.
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   CONTINUED_LABEL,
   FIT_MIN_ZOOM,
   LATE_FIT_MIN_ZOOM,
+  MORE_KEY_HINTS,
   SHORT_TAIL_RATIO,
   STATUS_LABEL_LENGTHS,
   TAIL_MIN_ZOOM,
@@ -67,6 +69,31 @@ describe('단계 목록(미해결 271 — 절 이름으로 건너뛰기)', () =>
     ]);
   });
 
+  it('예제·도전 과제 단계는 그 이름이 처음 나오는 단계를 칸 아래 줄(sub)로 — "(이어서)"·퀴즈 단계는 빼고 같은 이름은 한 번(교사 다시 걷기 m2)', () => {
+    const steps: PresentStep[] = [
+      { section: 0, blocks: [0, 1], label: '2-1-2 LCD 제어하기', title: true },
+      { section: 1, blocks: [0, 1], label: '4 동작 테스트' },
+      { section: 1, blocks: [0, 2], label: '4 동작 테스트 · 예제 1: 출력 테스트: LCD에 글자 쓰기(교과서 127쪽)' },
+      { section: 1, blocks: [0, 2], label: '4 동작 테스트 · 예제 1: 출력 테스트: LCD에 글자 쓰기(교과서 127쪽) (이어서)' },
+      { section: 1, blocks: [0, 3], label: '4 동작 테스트 · 예제 2: 기본 실습 1: 0부터 5까지 세기' },
+      { section: 2, blocks: [0, 1], label: '도전 과제 · 도전 과제 1: 우리 주변 인공지능' },
+      { section: 3, blocks: [0, 1], item: 0, label: '확인 퀴즈 (1/3)' },
+    ];
+    expect(stepListEntries(steps, ['학습 목표', '4 동작 테스트', '도전 과제', '확인 퀴즈'])).toEqual([
+      { step: 1, label: '2-1-2 LCD 제어하기' },
+      { step: 2, label: '4 동작 테스트' },
+      { step: 3, label: '예제 1: 출력 테스트: LCD에 글자 쓰기(교과서 127쪽)', sub: true },
+      { step: 5, label: '예제 2: 기본 실습 1: 0부터 5까지 세기', sub: true },
+      // 칸의 첫 단계가 곧 도전 과제면 칸 줄과 아래 줄이 같은 단계를 가리킨다
+      { step: 6, label: '도전 과제' },
+      { step: 6, label: '도전 과제 1: 우리 주변 인공지능', sub: true },
+      { step: 7, label: '확인 퀴즈' },
+    ]);
+    // 지금 단계가 예제 단계면 그 아래 줄이 지금 항목
+    const entries = stepListEntries(steps, ['학습 목표', '4 동작 테스트', '도전 과제', '확인 퀴즈']);
+    expect(entries[currentListEntry(entries, 4)]?.label).toMatch(/^예제 1/u);
+  });
+
   it('지금 단계가 든 항목: 그 단계보다 앞에서 시작하는 마지막 항목, 목록이 비면 -1', () => {
     const entries = [
       { step: 1, label: '제목' },
@@ -92,6 +119,16 @@ describe('막대 글(walk-a11y-keyboard 11 — 150%에서 "(이어서)"가 말�
     expect(statusText(4, 20, '1 인공지능의 정의 및 특징 (이어서)')).toBe('4 / 20 · 1 인공지능의 정의 및 특징 (이어서)');
     expect(statusText(4, 20, '1 인공지능의 정의 및 특징 (이어서)', 8)).toBe('4 / 20 · 1 인공지능의… (이어서)');
     expect(statusText(26, 27, '확인 퀴즈 (2/3)', 8)).toBe('26 / 27 · 확인 퀴즈 (2/3)');
+  });
+
+  it('"아래에 더 있어요" 키 안내: 첫 값은 막대 마크업 글과 같고, 차례로 짧아져 마지막은 안내 없음(키보드 다시 걷기 N4 — 150%에서 "· Sp…"로 잘림)', () => {
+    const markup = readFileSync('src/components/lesson/LessonPresent.astro', 'utf8');
+    expect(markup).toContain(`<span class="lesson-present__more-keys">${MORE_KEY_HINTS[0]}</span>`);
+    const lengths = MORE_KEY_HINTS.map((hint) => hint.length);
+    expect([...lengths].sort((a, b) => b - a)).toEqual(lengths);
+    expect(MORE_KEY_HINTS[MORE_KEY_HINTS.length - 1]).toBe('');
+    // 키 이름은 기호가 아니라 글(C — 화살표 기호 금지)
+    expect(MORE_KEY_HINTS.join(' ')).not.toMatch(/[→←↓↑]/u);
   });
 
   it('continuedLabel: "(이어서)"는 한 번만 붙는다', () => {

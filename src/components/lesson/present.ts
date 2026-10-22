@@ -340,6 +340,9 @@ export function tailMergeZoom(blockHeight: number, overflow: number, min: number
   return zoom >= min ? zoom : null;
 }
 
+/** "아래에 더 있어요" 뒤 키 안내 — 막대가 좁으면 차례로 짧게(마지막은 안내 없이) */
+export const MORE_KEY_HINTS: readonly string[] = ['(아래 화살표 키 · Space · 마우스 휠)', '(아래 화살표 · Space)', '(Space)', ''];
+
 /** 막대가 좁으면 단계 이름을 이 글자 수로 차례로 더 줄여 본다(판 1.7.0 — 150% 확대에서 "(이어서)"가 말줄임표에 잘렸다, walk-a11y-keyboard 11) */
 export const STATUS_LABEL_LENGTHS: readonly number[] = [20, 16, 12, 8];
 
@@ -351,17 +354,22 @@ export function statusText(stepNumber: number, total: number, label: string, max
 export interface StepListEntry {
   /** 갈 단계 번호(1부터) */
   readonly step: number;
-  /** 목록에 보일 이름 — 칸(##) 제목, 제목 장은 차시 제목, 머리 상자 장은 그 이름 */
+  /** 목록에 보일 이름 — 칸(##) 제목, 제목 장은 차시 제목, 머리 상자 장은 그 이름, 예제·도전 과제 단계는 그 이름 */
   readonly label: string;
+  /** 칸 아래 줄(예제·도전 과제 단계 — 판 1.7.0 교사 다시 걷기 m2: 실습실이 있는 단계를 목록에서 바로 고른다) */
+  readonly sub?: boolean;
 }
 
 /**
  * 단계 목록(판 1.7.0, 미해결 271 — 종합 §4-5 ③ "절 이름으로 건너뛰기"): 제목 장·머리 상자 장과, 칸마다 그 칸의 첫 단계 하나(순수 함수).
  * 학습 목표를 합친 제목 장은 그 칸(학습 목표)을 대신한다. 칸 제목이 비면 그 단계의 막대 이름을 쓴다.
+ * 따라 하기 예제·도전 과제 단계(막대 이름 끝이 " · 예제 1: …")는 그 이름이 처음 나오는 단계를 칸 아래 줄(sub)로 더한다 — 실습실이 있는 단계로
+ * 곧바로 간다("(이어서)"·퀴즈 "(1/3)" 단계는 빼고, 같은 이름은 한 번).
  */
 export function stepListEntries(steps: readonly PresentStep[], sectionTitles: readonly string[]): StepListEntry[] {
   const entries: StepListEntry[] = [];
   const seen = new Set<number>();
+  const seenBreaks = new Set<string>();
   steps.forEach((step, index) => {
     if (step.title || step.section < 0) {
       entries.push({ step: index + 1, label: step.label });
@@ -370,12 +378,22 @@ export function stepListEntries(steps: readonly PresentStep[], sectionTitles: re
       }
       return;
     }
-    if (seen.has(step.section)) {
+    if (!seen.has(step.section)) {
+      seen.add(step.section);
+      const title = sectionTitles[step.section]?.replace(/\s+/gu, ' ').trim() ?? '';
+      entries.push({ step: index + 1, label: title || shortStepLabel(step.label) });
+    }
+    const label = step.label.replace(/\s+/gu, ' ').trim();
+    const dot = label.lastIndexOf(' · ');
+    if (dot < 0 || /\((?:이어서|\d+\/\d+)\)$/u.test(label)) {
       return;
     }
-    seen.add(step.section);
-    const title = sectionTitles[step.section]?.replace(/\s+/gu, ' ').trim() ?? '';
-    entries.push({ step: index + 1, label: title || shortStepLabel(step.label) });
+    const name = label.slice(dot + 3).trim();
+    const key = `${step.section}:${name}`;
+    if (name !== '' && !seenBreaks.has(key)) {
+      seenBreaks.add(key);
+      entries.push({ step: index + 1, label: name, sub: true });
+    }
   });
   return entries;
 }
@@ -828,6 +846,8 @@ export function installLessonPresentation(doc: Document = document): void {
   const listToggle = root.querySelector<HTMLButtonElement>('[data-present-list-open]');
   const list = root.querySelector<HTMLElement>('[data-present-list]');
   const listItems = root.querySelector<HTMLElement>('[data-present-list-items]');
+  const inLabNote = root.querySelector<HTMLElement>('[data-present-inlab]');
+  const bar = root.querySelector<HTMLElement>('.lesson-present__bar');
   const lessonTitle = article.querySelector('h1')?.textContent?.replace(/\s+/gu, ' ').trim() ?? '';
 
   let sections: DomSection[] = [];
@@ -1494,6 +1514,7 @@ export function installLessonPresentation(doc: Document = document): void {
       }
     }
     steps = mergeShort(fitToBar(splitTallSteps(base, models, (section, block) => heights.get(`${section}:${block}`) ?? 0, availableHeight(contentTop ?? 0))));
+    planSignature = layoutSignature();
     if (keep) {
       const kinds = models[keep.section]?.blocks ?? [];
       const anchor = keep.blocks.find((block) => kinds[block]?.kind !== 'h2' && kinds[block]?.kind !== 'h3') ?? keep.blocks[0];
@@ -1506,6 +1527,32 @@ export function installLessonPresentation(doc: Document = document): void {
       );
       index = found >= 0 ? found : Math.min(index, steps.length - 1);
     }
+  };
+
+  /**
+   * 단계를 나눌 때의 화면 모습 — 창 크기·기기 화소비·뿌리 글자 크기·막대 높이(판 1.7.0 키보드 다시 걷기 N1). [수업 화면] 단추로 켠 직후의 첫 나누기가
+   * 큰 글씨·막대가 다 자리 잡기 전 모습으로 재어져(그 환경에서 막대 65px — 실제 80px) 150%에서 책 20단계 가운데 12단계가 막대 밑으로 넘쳤고,
+   * 같은 쪽을 #slide=N으로 열거나 창을 1px 바꾸면 36단계로 다시 나뉘었다. 켠 뒤 두 프레임·글꼴 준비 뒤·막대 크기가 바뀔 때 이 모습이 나눌 때와
+   * 다르면 한 번 더 나눈다(보던 자리는 그대로) — 켜는 길이 달라도 같은 화면이면 같은 단계가 된다.
+   */
+  let planSignature = '';
+  const layoutSignature = (): string =>
+    [
+      win?.innerWidth ?? 0,
+      win?.innerHeight ?? 0,
+      win?.devicePixelRatio ?? 1,
+      win ? win.getComputedStyle(html).fontSize : '',
+      Math.round(bar?.getBoundingClientRect().height ?? 0),
+    ].join('|');
+
+  /** 화면 모습이 나눌 때와 다르면 다시 나눈다(처음 나누기를 기다리는 동안·수업 화면 밖에서는 아무것도 안 한다) */
+  const recheckPlan = () => {
+    if (!html.hasAttribute('data-presenting') || !settled || layoutSignature() === planSignature) {
+      return;
+    }
+    closeList(Boolean(list?.contains(doc.activeElement)));
+    replan(steps[index]);
+    render();
   };
 
   let replanTimer: number | undefined;
@@ -1722,10 +1769,13 @@ export function installLessonPresentation(doc: Document = document): void {
     writeHash();
   };
 
-  /** 막대 높이를 쪽 아래 여백과 "더 있어요" 띠 자리에 쓰도록 CSS 변수로 알린다(막대 높이는 단계마다 같지만 창 크기에 따라 다르다) */
+  /**
+   * 막대 높이를 쪽 아래 여백·"더 있어요" 띠·수업 화면 속 실습실 틀 높이에 쓰도록 CSS 변수로 알린다. 그릴 때마다, 그리고 막대 크기가 바뀔 때마다
+   * (ResizeObserver — barObserver) 실제 막대를 잰다(판 1.7.0 교사 다시 걷기 m3: 변수가 67px로 낡아 실제 97px 막대 밑에 실습실 틀 아래 18px이 깔렸다).
+   */
   const syncBarHeight = () => {
-    const height = root.querySelector<HTMLElement>('.lesson-present__bar')?.offsetHeight ?? 0;
-    if (height > 0) {
+    const height = Math.ceil(bar?.getBoundingClientRect().height ?? 0);
+    if (height > 0 && html.style.getPropertyValue('--present-bar-h') !== `${height}px`) {
       html.style.setProperty('--present-bar-h', `${height}px`);
     }
   };
@@ -1764,6 +1814,24 @@ export function installLessonPresentation(doc: Document = document): void {
       return;
     }
     more.hidden = !(html.hasAttribute('data-presenting') && win && hasMoreBelow(contentBottom(), win.scrollY, barTop()));
+    fitMoreKeys();
+  };
+
+  /**
+   * "아래에 더 있어요" 뒤 키 안내가 막대에 다 안 들어가면 MORE_KEY_HINTS 차례로 줄인다(판 1.7.0 키보드 다시 걷기 N4 — 150%에서
+   * "(아래 화살표 키 · Sp…"로 잘려 Space·마우스 휠이 안 보였다). 키 이름은 글로 쓴다(C: 기호 대신 글).
+   */
+  const moreKeys = more?.querySelector<HTMLElement>('.lesson-present__more-keys') ?? null;
+  const fitMoreKeys = () => {
+    if (!more || !moreKeys || more.hidden) {
+      return;
+    }
+    for (const hint of MORE_KEY_HINTS) {
+      moreKeys.textContent = hint;
+      if (more.scrollWidth <= more.clientWidth + 1) {
+        return;
+      }
+    }
   };
 
   /** Space·PageDown·PageUp(한 화면)·↓·↑(조금씩)로 쪽을 스크롤한다. 움직였으면 true, 움직일 수 없으면 false */
@@ -1799,6 +1867,74 @@ export function installLessonPresentation(doc: Document = document): void {
     }
   };
 
+  /*
+   * ── 수업 화면 속 실습실 안의 키(판 1.7.0 교사 다시 걷기 M1) ──
+   * 실습실 틀(같은 사이트 iframe) 안을 한 번 누르면 키가 틀 문서로 가서 →·Esc·PageDown 같은 수업 화면 키가 멎었다(프레젠터 리모컨도). 틀 문서(contentWindow)에
+   * 직접 듣기를 걸어(실습실 코드는 건드리지 않는다): Esc → 초점을 슬라이드(막대의 [다음 단계])로 돌린다(수업 화면은 그대로 — 한 번 더 Esc면 끝).
+   * PageDown·PageUp(리모컨) → 편집칸·입력칸이 아니면 슬라이드로 돌아와 다음·앞 단계. →·←는 편집칸 커서 이동이라 넘기지 않는다.
+   * 틀이 먼저 쓰는 키는 건드리지 않는다: 이미 처리된 키(defaultPrevented — 편집칸 자동 완성 닫기 등), 열린 대화 상자·자동 완성 목록,
+   * 출력 화면(영상 처리 cv2.waitKey로 키를 넘기는 칸). 초점이 틀 안에 있는 동안 막대 둘째 줄에 "실습실 안에서는 키가 실습실로 가요 · Esc로 슬라이드".
+   */
+  const hookedFrameDocs = new WeakSet<Document>();
+  const isLabFrame = (element: Element | null): element is HTMLIFrameElement =>
+    element instanceof HTMLIFrameElement && element.matches('iframe.lesson-example__frame') && body.contains(element);
+
+  /** 초점이 실습실 틀 안에 있는지 다시 보고 막대 안내를 켜고 끈다 */
+  const syncInLab = () => {
+    const inLab = html.hasAttribute('data-presenting') && isLabFrame(doc.activeElement);
+    if (inLabNote) {
+      inLabNote.hidden = !inLab;
+    }
+    root.toggleAttribute('data-present-in-lab', inLab);
+  };
+
+  /** 초점을 실습실 틀 밖 슬라이드(막대의 [다음 단계] — 끝 단계면 [끝내기])로 돌린다 */
+  const leaveLab = () => {
+    (nextButton && index < steps.length - 1 ? nextButton : (exitButton ?? nextButton))?.focus({ preventScroll: true });
+    syncInLab();
+  };
+
+  const onFrameKeydown = (event: KeyboardEvent, frameDoc: Document) => {
+    if (!html.hasAttribute('data-presenting') || event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey) {
+      return;
+    }
+    const active = frameDoc.activeElement;
+    if (active?.closest('[data-vision-output-stage]') || frameDoc.querySelector('dialog[open], .cm-tooltip-autocomplete')) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      leaveLab();
+      return;
+    }
+    const editing = Boolean(active?.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], .cm-editor'));
+    if ((event.key === 'PageDown' || event.key === 'PageUp') && !editing && settled) {
+      event.preventDefault();
+      leaveLab();
+      go(index + (event.key === 'PageDown' ? 1 : -1));
+    }
+  };
+
+  /** 실습실 틀 문서에 키·초점 듣기를 건다(문서마다 한 번 — 틀이 다시 읽히면 새 문서에 다시) */
+  const hookLabFrame = (frame: HTMLIFrameElement) => {
+    let frameDoc: Document | null = null;
+    try {
+      frameDoc = frame.contentDocument;
+    } catch {
+      return; // 다른 출처로 바뀐 틀은 건드릴 수 없다
+    }
+    const frameWin = frameDoc?.defaultView;
+    if (!frameDoc || !frameWin || hookedFrameDocs.has(frameDoc)) {
+      return;
+    }
+    hookedFrameDocs.add(frameDoc);
+    const target = frameDoc;
+    // 창(window)의 거품 단계에서 듣는다 — 편집칸(CodeMirror) 같은 틀 안 요소가 먼저 키를 쓰고, 쓴 키는 defaultPrevented로 알 수 있다
+    frameWin.addEventListener('keydown', (event) => onFrameKeydown(event, target));
+    frameWin.addEventListener('focus', syncInLab);
+    target.addEventListener('focusin', syncInLab);
+  };
+
   /* ── 단계 목록(판 1.7.0, 미해결 271): 막대의 단계 이름 단추 → 칸 이름 목록 → 고르면 그 칸의 첫 단계, 초점은 그 단계 첫 제목 ── */
   const listOpen = () => Boolean(list && !list.hidden);
 
@@ -1816,7 +1952,7 @@ export function installLessonPresentation(doc: Document = document): void {
         const item = doc.createElement('li');
         const button = doc.createElement('button');
         button.type = 'button';
-        button.className = 'lesson-present__list-item';
+        button.className = entry.sub ? 'lesson-present__list-item lesson-present__list-item--sub' : 'lesson-present__list-item';
         button.dataset.presentGoto = String(entry.step);
         const name = doc.createElement('span');
         name.textContent = entry.label;
@@ -2009,6 +2145,17 @@ export function installLessonPresentation(doc: Document = document): void {
         })
       : null;
 
+  /** 막대 크기가 바뀌면(창 크기·글꼴·둘째 줄) 막대 높이 변수를 다시 쓴다 — 그 변수만 바꾸므로 막대 크기는 다시 바뀌지 않는다 */
+  const barObserver =
+    typeof ResizeObserver === 'function' && bar
+      ? new ResizeObserver(() => {
+          if (html.hasAttribute('data-presenting')) {
+            syncBarHeight();
+            win?.requestAnimationFrame(recheckPlan);
+          }
+        })
+      : null;
+
   /** 수업 화면을 연다. startStep(1부터)을 주면 처음 나누기가 끝난 뒤 그 단계로 간다(#slide=N) */
   const enter = (startStep?: number) => {
     hashBeforeEnter = win && slideNumberFromHash(win.location.hash) === undefined ? win.location.hash : '';
@@ -2035,6 +2182,15 @@ export function installLessonPresentation(doc: Document = document): void {
     win?.addEventListener('resize', scheduleReplan);
     win?.addEventListener('scroll', updateMore, { passive: true });
     contentObserver?.observe(article);
+    if (bar) {
+      barObserver?.observe(bar);
+    }
+    doc.addEventListener('focusin', syncInLab);
+    win?.addEventListener('focus', syncInLab);
+    // 수업 화면을 켜기 전에 열어 둔 실습실 틀에도 키 듣기를 건다
+    for (const frame of body.querySelectorAll<HTMLIFrameElement>('iframe.lesson-example__frame')) {
+      hookLabFrame(frame);
+    }
     if (!settled && status) {
       // 글꼴·크기 모르는 그림을 받는 동안(느린 망)은 단계 수를 보이지 않는다 — 다 받고 한 번에 나눈 수가 끝까지 그대로다
       status.textContent = '수업 화면을 준비하고 있어요…';
@@ -2046,6 +2202,11 @@ export function installLessonPresentation(doc: Document = document): void {
     // 시작 초점: 막대의 [다음 단계](마지막 단계면 [끝내기]). 보이는 조작에 초점이 있어야 키보드·낭독기 사용자가 어디 있는지 안다 —
     // 예전에는 보이지 않는 main에 놓였다(R2-023). 쪽을 움직이지 않는다(preventScroll).
     (nextButton && (index < steps.length - 1 || !settled) ? nextButton : (exitButton ?? main))?.focus({ preventScroll: true });
+    if (settled) {
+      // 곧바로 나눈 경우(그림·글꼴을 이미 받음 — [수업 화면] 단추로 켠 흔한 길): 큰 글씨·막대가 자리 잡은 두 프레임 뒤와 글꼴 준비 뒤에 한 번 더 본다
+      win?.requestAnimationFrame(() => win.requestAnimationFrame(recheckPlan));
+      void doc.fonts?.ready.then(() => win?.requestAnimationFrame(recheckPlan)).catch(() => undefined);
+    }
     if (!settled) {
       const timeout = new Promise((resolve) => win?.setTimeout(resolve, 2500));
       void Promise.race([Promise.all(loads), timeout]).then(() => {
@@ -2094,6 +2255,13 @@ export function installLessonPresentation(doc: Document = document): void {
     win?.removeEventListener('resize', scheduleReplan);
     win?.removeEventListener('scroll', updateMore);
     contentObserver?.disconnect();
+    barObserver?.disconnect();
+    doc.removeEventListener('focusin', syncInLab);
+    win?.removeEventListener('focus', syncInLab);
+    if (inLabNote) {
+      inLabNote.hidden = true;
+    }
+    root.removeAttribute('data-present-in-lab');
     // 슬라이드 안을 내려 둔 채 끝내면 그 스크롤 값이 읽기 화면에 남아 엉뚱한 곳이 보였다 — 맨 위로 되돌린 뒤 끝낸다
     win?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     clearMarks();
@@ -2149,6 +2317,9 @@ export function installLessonPresentation(doc: Document = document): void {
   body.addEventListener(
     'load',
     (event) => {
+      if (isLabFrame(event.target instanceof Element ? event.target : null)) {
+        hookLabFrame(event.target as HTMLIFrameElement);
+      }
       if (html.hasAttribute('data-presenting') && event.target instanceof HTMLIFrameElement && openLabSlot()?.contains(event.target)) {
         win?.requestAnimationFrame(() => {
           alignOpenLab();

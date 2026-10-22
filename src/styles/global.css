@@ -336,6 +336,14 @@ textarea {
   }
 }
 
+/*
+ * ⑦ 첫 준비 동안 편집칸 앞 자리(.lab__intro)에 들어오는 준비 칸(진행률·1분 개념 카드)은 수업 화면 속 실습실에서 접는다 — 처음 몇 초 동안 그 칸이
+ * 위를 차지해 가상 LCD가 틀 밖 아래에 있다가 준비가 끝나면 올라왔다(판 1.7.0 교사 다시 걷기 m6). 받는 양·단계는 조작 줄의 상태 줄이 그대로 알린다.
+ */
+:root[data-embed][data-embed-compact] .lab__intro {
+  display: none;
+}
+
 :root[data-embed][data-embed-compact] .board-io__phase {
   margin-block: 0;
 }

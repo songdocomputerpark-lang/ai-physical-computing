@@ -679,6 +679,32 @@ test.describe('수업 화면 속 실습실 — [실행]과 결과가 한 화면(
       })
       .toBe(true);
     await frame.locator('html').evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }));
+    // 막대 높이 변수는 실제 막대 높이와 같다(판 1.7.0 교사 다시 걷기 m3 — 변수 67px·실제 97px라 틀 아래가 막대에 깔렸다)
+    const barSizes = await page.locator('.lesson-present__bar').evaluate((element) => ({
+      actual: Math.ceil(element.getBoundingClientRect().height),
+      variable: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--present-bar-h')),
+    }));
+    expect(Math.abs(barSizes.actual - barSizes.variable), `막대 ${barSizes.actual}px · 변수 ${barSizes.variable}px`).toBeLessThanOrEqual(1);
+    // 실습실 안에 초점이 가면 키가 실습실로 간다는 안내가 막대에 뜨고, →는 단계를 넘기지 않으며(편집칸 커서 이동 등), Esc는 슬라이드로 돌아온다
+    // (판 1.7.0 교사 다시 걷기 M1 — 예전에는 실습실 안을 누르면 →·Esc가 멎고 안내가 없었다)
+    const present = page.locator('[data-lesson-present]');
+    const stepBefore = await present.getAttribute('data-present-step');
+    await run.focus();
+    await expect(page.locator('[data-present-inlab]')).toBeVisible();
+    await expect(page.locator('[data-present-inlab]')).toContainText('Esc로 슬라이드');
+    await page.keyboard.press('ArrowRight');
+    await expect(present).toHaveAttribute('data-present-step', stepBefore ?? '');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+    await expect(page.locator('[data-present-next]')).toBeFocused();
+    await expect(page.locator('[data-present-inlab]')).toBeHidden();
+    // 실습실 안(편집칸이 아닌 곳)에서 리모컨의 PageDown은 슬라이드로 돌아와 다음 단계
+    await run.focus();
+    await page.keyboard.press('PageDown');
+    await expect(present).not.toHaveAttribute('data-present-step', stepBefore ?? '');
+    await expect(page.locator('[data-present-next]')).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(present).toHaveAttribute('data-present-step', stepBefore ?? '');
     // 다른 단계에 갔다가 돌아와도 틀의 윗선이 화면 맨 위에 다시 맞춰진다(예전에는 단계를 다시 그리면 틀이 예제 제목 아래로 내려가 아래가 막대에 가렸다)
     await page.locator('[data-present-next]').click();
     await page.locator('[data-present-previous]').click();
@@ -727,6 +753,34 @@ test.describe('수업 화면 — 150% 확대(911×512)에서 넘치는 단계 0(
     const reports = await walkAllSteps(page, '/learn/u1/1-1-1/ 150%');
     test.info().annotations.push({ type: '단계 수', description: String(reports.length) });
   });
+
+  // 판 1.7.0 키보드 다시 걷기 N1: [수업 화면] 단추로 켠 계획(웹 29·책 20단계, 12~18단계가 넘침)과 #slide=N 주소로 연 계획(웹 41·책 36)이 달랐다.
+  // 같은 화면이면 켜는 길이 달라도 단계 수와 같은 번호의 단계가 같아야 한다(present.ts recheckPlan — 켠 뒤 화면 모습이 바뀌면 다시 나눔).
+  for (const path of ['./learn/u1/1-1-1/', './book/1-1-1/']) {
+    test(`${path}: [수업 화면] 단추로 켠 단계 수·16단계가 #slide=16 주소로 연 것과 같다`, async ({ page }) => {
+      await page.goto(path);
+      await openPresentationByButton(page);
+      await page.waitForTimeout(800);
+      const present = page.locator('[data-lesson-present]');
+      const status = page.locator('[data-present-status]');
+      const totalByButton = await present.getAttribute('data-present-total');
+      await page.keyboard.press('End');
+      await page.keyboard.press('Home');
+      for (let press = 1; press < 16; press += 1) {
+        await page.keyboard.press('ArrowRight');
+      }
+      await expect(present).toHaveAttribute('data-present-step', '16');
+      const labelByButton = (await status.textContent()) ?? '';
+      await page.goto('about:blank');
+      await page.goto(`${path}#slide=16`);
+      await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+      await expect(present).not.toHaveAttribute('data-present-settling', /.*/u);
+      await page.waitForTimeout(800);
+      expect(await present.getAttribute('data-present-total'), '단추로 켠 단계 수 = 주소로 연 단계 수').toBe(totalByButton);
+      await expect(present).toHaveAttribute('data-present-step', '16');
+      await expect(status).toHaveText(labelByButton);
+    });
+  }
 
   test('슬라이드 안 단추(퀴즈 [답 확인하기])에 초점이 있을 때 →로 넘기면 초점이 새 단계의 첫 제목에 놓인다(N4 — 예전에는 보이지 않는 MAIN)', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
@@ -779,6 +833,9 @@ test.describe('수업 화면 — 단계 목록(미해결 271: 절 이름으로 �
     }
     // 소제목(###)·퀴즈 문항은 따로 나오지 않는다 — 칸마다 하나
     expect(new Set(names).size).toBe(names.length);
+    // 따라 하기 예제·도전 과제 단계는 칸 아래 줄로 나온다(판 1.7.0 교사 다시 걷기 m2 — 실습실이 있는 단계로 바로)
+    expect(names.some((name) => name.startsWith('도전 과제 1'))).toBe(true);
+    expect(await list.locator('.lesson-present__list-item--sub').count()).toBeGreaterThanOrEqual(2);
     // ↓로 이웃 항목, 목록 안에서 →는 단계를 넘기지 않는다
     await page.keyboard.press('ArrowDown');
     await expect(items.nth(1)).toBeFocused();
