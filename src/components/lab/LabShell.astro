@@ -661,14 +661,12 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
    * 넓고 높은 화면에서 조작 줄 묶음을 화면 위에 붙인다(R1-096). [실행] 뒤 화면이 결과 칸으로 내려가면(reveal.ts) 예전에는 [정지]·상태 줄이 화면 밖이었다.
    * - 틀 폭 72rem 이상(화면 약 1,200px 이상)이고 화면 높이 40rem(640px) 이상일 때만: 조작 줄이 한 줄로 들어가 붙는 높이가 [실행] 줄 하나(약 4rem)다.
    *   그보다 좁거나(4단원 통합 화면의 반쪽 칸 포함) 낮은 화면은 붙이지 않는다 — 붙은 줄이 화면을 먹고, 글자를 키우면 줄이 여러 개가 된다.
-   * - 차시 안 임베드(?embed=1)는 iframe이 낮아 붙이지 않는다. 다만 수업 화면 속 실습실(data-embed-compact — 틀 한 장이 화면 한 쪽)은
-   *   틀 폭 72rem·높이 40rem이 되면 임베드여도 붙인다(판 1.6.0 C105 보충 — [실행]과 결과가 한 화면에, walk-teacher-new A2). 폭·높이 조건은 같아 휴대폰 틀은 그대로다.
+   * - 차시 안 임베드(?embed=1)는 iframe이 낮아 붙이지 않는다. 다만 수업 화면 속 실습실(data-embed-compact — 틀 한 장이 화면 한 쪽)은 아래 따로 둔 규칙으로 붙인다.
    * - z-index: 아래 칸(.lab__grid)은 isolation으로 자기 안에 가둔다(CodeMirror 줄 번호 칸이 z-index 200이라 밑에서 올라와 줄을 덮는다).
    * 붙는 동안 키보드 초점이 이 줄 밑에 숨지 않게 scroll-padding-top을 준다(WCAG 2.4.11 — 4단원 떠 있는 줄과 같은 방식). 그만큼은 reveal.ts에도 알린다(lab-shell.ts).
    */
   @container lab (min-width: 72rem) {
-    :global(:root:not([data-embed])) .lab__bar,
-    :global(:root[data-embed-compact]) .lab__bar {
+    :global(:root:not([data-embed])) .lab__bar {
       position: sticky;
       inset-block-start: 0;
       z-index: 5;
@@ -680,8 +678,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
   /* 낮은 화면(예: 가로로 눕힌 태블릿·작은 노트북 창)은 붙이지 않는다 — 위 규칙을 되돌린다. 아래 규칙이 뒤에 있어 같은 무게로 이긴다. */
   @media (max-height: 39.99rem) {
-    :global(:root:not([data-embed])) .lab__bar,
-    :global(:root[data-embed-compact]) .lab__bar {
+    :global(:root:not([data-embed])) .lab__bar {
       position: static;
       padding-block: 0;
       background: transparent;
@@ -691,7 +688,38 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
   /* 붙는 동안 Tab으로 옮겨 간 초점이 붙은 줄 밑(화면 맨 위)에 숨지 않게 그만큼 아래에서 멈춘다(WCAG 2.4.11). 틀 폭 72rem ≈ 화면 76rem. */
   @media (min-width: 76rem) and (min-height: 40rem) {
-    :global(html:not([data-embed]):has(.lab__bar)),
+    :global(html:not([data-embed]):has(.lab__bar)) {
+      scroll-padding-block-start: 6rem;
+    }
+  }
+
+  /*
+   * 수업 화면 속 실습실(data-embed-compact, 판 1.6.0 C189 → 판 1.7.0 미해결 259): 조작 줄이 [실행][정지][초기화] + 상태 줄 하나뿐이라(global.css compact 규칙 —
+   * 예제 고르기·도구 단추를 접음) 붙어도 낮다. 그래서 틀 폭 28rem·틀 높이 22rem 이상이면 붙인다 — 틀 안 문서(약 1,400px)를 내려도 [실행]이 틀 맨 위에 남는다.
+   * 예전에는 위 규칙(틀 폭 72rem·높이 40rem)을 같이 써서 1366×768 슬라이드의 틀(폭 약 66rem·높이 약 40rem 미만)에서는 붙지 않았다.
+   * 휴대폰 틀(폭 약 20rem)은 그대로 붙이지 않는다.
+   */
+  @container lab (min-width: 28rem) {
+    :global(:root[data-embed-compact]) .lab__bar {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 5;
+      padding-block: var(--space-2);
+      background: var(--color-bg);
+      box-shadow: 0 1px 0 var(--color-border);
+    }
+  }
+
+  @media (max-height: 21.99rem) {
+    :global(:root[data-embed-compact]) .lab__bar {
+      position: static;
+      padding-block: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+
+  @media (min-width: 30rem) and (min-height: 22rem) {
     :global(html[data-embed-compact]:has(.lab__bar)) {
       scroll-padding-block-start: 6rem;
     }

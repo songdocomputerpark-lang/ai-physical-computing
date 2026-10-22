@@ -2,6 +2,7 @@
 // 판 1.6.0(C173): 두 쪽 이름은 "교과서 원문"·"따라 하기", 쪽 범위는 전환 줄에 한 번, 프로젝터 화면 이름은 "수업 화면"(단계 주소 #slide=N).
 // 데스크톱·휴대폰 두 프로젝트에서 돈다. 글자가 출판본과 같은지는 npm run book:fidelity(원본 PDF가 있는 운영자 PC)가 본다.
 import { expect, test, type Page } from '@playwright/test';
+import { ZOOM_150, openPresentationByButton, walkAllSteps } from './helpers/present.ts';
 
 async function hideDevToolbar(page: Page) {
   // 개발 서버에만 있는 Astro 개발 도구 막대가 아래쪽 단추를 가리는 것을 막는다(빌드 결과에는 없다 — lesson-template.spec.ts와 같은 까닭)
@@ -415,5 +416,72 @@ test.describe('교과서 쪽 /book/2-1-1/ — 설치 단락 앞 "이 사이트�
     await expect(page.locator('#p120')).toBeAttached();
     // 파랑 안내 상자 모양(출판본 꼭지와 구별) — 제목이 늘 글자로 보인다
     await expect(box).toHaveAttribute('data-box', 'webnote');
+  });
+});
+
+// 판 1.7.0(PROGRESS 미해결 261 #21 — walk-student-first): 375에서 /book/1-1-1/ 인식·학습·추론 표(4칸)가 451px로 넘쳐 "추론" 열이 잘렸다.
+// 교과서 쪽의 4칸 표는 칸 최소 폭(차시 쪽 규칙 7.5em)을 풀고 칸 옆 여백을 줄여 화면 폭에 들어간다(src/styles/book.css). 출판본 글은 그대로다.
+test.describe('교과서 쪽 4칸 표가 휴대폰 폭에 들어간다(판 1.7.0)', () => {
+  for (const id of ['1-1-1', '3-1-1']) {
+    test(`/book/${id}/ 375: 4칸 표가 옆으로 넘치지 않고 마지막 열 글이 화면 안에 있다`, async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 812 });
+      await page.goto(`./book/${id}/`);
+      const tables = page.locator('.lesson-body table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5)))');
+      expect(await tables.count(), '4칸 표').toBeGreaterThan(0);
+      for (const table of await tables.all()) {
+        await table.scrollIntoViewIfNeeded();
+        const size = await table.evaluate((element) => {
+          const lastHeader = element.querySelector('tr > :last-child');
+          return {
+            scroll: element.scrollWidth,
+            client: element.clientWidth,
+            lastRight: lastHeader?.getBoundingClientRect().right ?? 0,
+            viewport: document.documentElement.clientWidth,
+            // 어절(띄어 쓴 낱말) 가운데서 끊긴 줄이 없다(keep-all 그대로) — 칸마다 가장 긴 낱말 폭이 칸 안쪽 폭보다 작거나 같다
+            cramped: [...element.querySelectorAll('th, td')].some((cell) => cell.scrollWidth > cell.clientWidth + 1),
+          };
+        });
+        expect(size.scroll, '표가 옆으로 넘치지 않는다').toBeLessThanOrEqual(size.client + 1);
+        expect(size.lastRight, '마지막 열(예: 추론)이 화면 안').toBeLessThanOrEqual(size.viewport + 1);
+        expect(size.cramped, '칸 안 글이 칸 밖으로 넘치지 않는다').toBe(false);
+      }
+      await expect(tables.first().locator('tr').first()).toContainText(id === '1-1-1' ? '추론' : '설명');
+    });
+  }
+});
+
+// 판 1.7.0(PROGRESS 미해결 260·270 — 다시 걷기 walk-a11y-keyboard 4·N3): 150%에서 교과서 쪽 수업 화면 11/20단계의 글이 막대 밑으로 넘치고
+// 알림 알약이 마지막 글줄을 덮었으며, 7/20단계는 그림 설명 한 줄뿐인 거의 빈 단계였다.
+test.describe('교과서 쪽 수업 화면 — 150% 확대(911×512)', () => {
+  test.skip(({ isMobile }) => isMobile, '데스크톱 창을 150%로 키운 화면을 본다');
+  test.use(ZOOM_150);
+
+  test('/book/1-1-1/: 모든 단계가 막대 위에서 끝나고, 그림 설명 "▲ 인공지능의 핵심 요소별 구현 예시"는 그 표와 같은 단계에 있다', async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.goto('./book/1-1-1/');
+    await openPresentationByButton(page);
+    await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+    await walkAllSteps(page, '/book/1-1-1/ 150%');
+    // 그림 설명이 보이는 단계에는 표도 보인다(설명 한 줄만 따로 있는 거의 빈 단계가 없다)
+    const caption = page.locator('.lesson-body p', { hasText: '▲ 인공지능의 핵심 요소별 구현 예시' });
+    const present = page.locator('[data-lesson-present]');
+    const total = Number(await present.getAttribute('data-present-total'));
+    await page.keyboard.press('Home');
+    let seen = 0;
+    for (let step = 1; step <= total; step += 1) {
+      await expect(present).toHaveAttribute('data-present-step', String(step));
+      if (await caption.isVisible()) {
+        seen += 1;
+        const tableShown = await caption.evaluate((element) => {
+          const section = element.closest('section');
+          return [...(section?.querySelectorAll('table') ?? [])].some((table) => !table.closest('[data-present-off]') && table.getClientRects().length > 0);
+        });
+        expect(tableShown, `${step}/${total}단계: 그림 설명과 표가 같은 단계`).toBe(true);
+      }
+      if (step < total) {
+        await page.keyboard.press('ArrowRight');
+      }
+    }
+    expect(seen, '그림 설명이 보이는 단계').toBeGreaterThan(0);
   });
 });

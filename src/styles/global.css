@@ -234,6 +234,45 @@ textarea {
 }
 
 /*
+ * 차시 안 실습실 높이 맞춤(판 1.7.0, PROGRESS 미해결 261 #13 — 375에서 상자 속 상자 스크롤). 차시 쪽(LessonExamples.astro)이 틀 높이를 이 문서 높이에
+ * 맞추는 동안 뿌리에 data-embed-fit을 붙인다(수업 화면 동안은 떼고 data-embed-compact를 붙인다 — 아래 덩이). 스크롤은 차시 쪽 하나뿐이다.
+ * ① 틀 안 창이 문서 전체라 스스로 굴러가지 않게 세로 넘침을 막는다(재는 동안 생기는 1px 남짓의 차이로 스크롤 막대가 깜빡이지 않게).
+ * ② 편집칸·블록 작업판의 높이는 예전처럼 "화면" 높이의 몇 %로 — 틀 안 vh는 이제 문서 전체라 쓸 수 없어 차시 쪽이 바깥 화면 높이의 1%를 --embed-vh로 준다.
+ *    값은 LabShell.astro(.lab__editor-host 52vh)·BlocksPanel.astro(작업판 66vh·64vh, 블록 모드 편집칸 30vh)와 같다 — 그쪽을 바꾸면 여기도.
+ * ③ 확인 대화 상자([초기화]·[공유 링크]·[기록 지우기])는 틀 창(문서 전체)의 가운데가 아니라 바깥 화면에 보이는 띠의 가운데에 —
+ *    차시 쪽이 열린 대화 상자에 --embed-view-top·--embed-view-height를 붙인다.
+ * 선택자에 :root[data-embed][data-embed-fit]를 쓰는 까닭은 compact 덩이와 같다(실습실 틀의 범위 스타일보다 한 단계 무겁게).
+ */
+:root[data-embed][data-embed-fit] {
+  overflow-y: hidden;
+}
+
+:root[data-embed][data-embed-fit] .lab:not([data-block-mode='blocks']) .lab__editor-host {
+  height: clamp(18rem, calc(var(--embed-vh, 1vh) * 52), 40rem);
+}
+
+:root[data-embed][data-embed-fit] .lab[data-block-mode='blocks'] .lab__editor-host {
+  height: clamp(11rem, calc(var(--embed-vh, 1vh) * 30), 20rem);
+}
+
+:root[data-embed][data-embed-fit] .blocks-area__workspace {
+  height: clamp(24rem, calc(var(--embed-vh, 1vh) * 66), 46rem);
+}
+
+@media (max-width: 40rem) {
+  :root[data-embed][data-embed-fit] .blocks-area__workspace {
+    height: clamp(22rem, calc(var(--embed-vh, 1vh) * 64), 30rem);
+  }
+}
+
+:root[data-embed][data-embed-fit] dialog:modal {
+  inset-block: calc(var(--embed-view-top, 0px) + var(--embed-view-height, 100vh) / 2) auto;
+  max-block-size: calc(var(--embed-view-height, 100vh) - 2 * var(--space-4));
+  margin-block: 0;
+  translate: 0 -50%;
+}
+
+/*
  * 발표 모드(수업 화면) 안의 실습실 — [실행]과 결과(보드 그림·출력 창)가 한 화면에 함께 보이게(판 1.6.0, DECISIONS C175, walk-teacher-new A2).
  * 바깥 쪽의 [이 자리에서 실습실 열기](LessonExamples.astro)가 발표 중에만 이 문서(iframe)의 <html>에 data-embed-compact를 붙인다.
  * 슬라이드 높이(화면 − 아래 막대) 안에 들어오도록 ① 예제 설명·실습 방법·보기 칸 등 본문에 이미 있는 안내를 접고 ② 코드 칸 높이를 제한하고
@@ -256,10 +295,45 @@ textarea {
   max-height: 22rem;
 }
 
-/* 상태 줄은 [실행] 줄 아래 한 줄로("준비됐어요" + "준비 끝"이 두 줄로 쪼개지지 않게) */
+/*
+ * 판 1.7.0(PROGRESS 미해결 259 — 다시 걷기 walk-teacher-new A2: 가상 LCD 아래 약 25px가 틀 밖·막대 밑, 틀 안을 내리면 [실행]이 화면 밖):
+ * ④ [예제] 고르기·[예제 불러오기]·공유 링크·.py 내려받기를 접는다 — 수업 화면은 예제 하나를 보여 주는 자리(다른 예제는 다음 단계)라서, 조작 줄이
+ *    [실행][정지][초기화] + 상태 줄 하나가 된다. 그래서 틀 위에 붙여도 낮다(LabShell.astro의 compact 붙이기).
+ * ⑤ "입력과 출력" 칸 제목은 화면 낭독기에만 남긴다(칸 이름은 그대로) — 보드 그림이 그만큼 위로 온다.
+ * ⑥ 넓은 틀(48rem 이상)에서는 보드 그림의 최소 폭(32rem — 휴대폰 글자 크기용, BoardIo.astro)을 풀어 칸 폭·틀 높이에 맞춘다(옆으로 밀어 보지 않게).
+ */
+:root[data-embed][data-embed-compact] .lab__examples,
+:root[data-embed][data-embed-compact] .lab__tools {
+  display: none;
+}
+
+:root[data-embed][data-embed-compact] .lab__io > .lab__heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 상태 줄은 [실행][정지][초기화] 옆 남은 자리에 한 줄로(좁으면 아래 줄로 — "준비됐어요" + "준비 끝"이 두 줄로 쪼개지지 않게 12rem 이상) */
+:root[data-embed][data-embed-compact] .lab__bar > .lab__toolbar {
+  flex: 0 1 auto;
+}
+
 :root[data-embed][data-embed-compact] .lab__bar > .lab__status {
-  flex: 1 1 100%;
+  flex: 1 1 12rem;
+  align-self: center;
   min-block-size: 0;
+}
+
+@media (min-width: 48rem) {
+  :root[data-embed][data-embed-compact] .board-io__stage .board-stage__svg {
+    min-width: 0;
+  }
 }
 
 :root[data-embed][data-embed-compact] .board-io__phase {

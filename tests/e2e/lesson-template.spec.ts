@@ -3,6 +3,7 @@
 // 퀴즈 즉시 피드백·교사용 접기 열고 닫기는 learn.spec.ts에 있다. 데스크톱·휴대폰 두 프로젝트 모두에서 돈다.
 import { expect, test, type Page } from '@playwright/test';
 import { withBase } from '../../src/lib/url.ts';
+import { ZOOM_150, openPresentationByButton, walkAllSteps } from './helpers/present.ts';
 
 async function openPresentation(page: Page) {
   // 개발 서버에만 있는 Astro 개발 도구 막대(astro-dev-toolbar)가 휴대폰 폭에서 발표 막대의 [다음 ▶]를 가려 클릭이 막힌다
@@ -47,8 +48,9 @@ test.describe('수업 화면', () => {
     await expect(page.getByRole('navigation', { name: '이전·다음 차시' })).toBeHidden();
     await expect(page.locator('.lesson-meta')).toBeHidden();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    // 막대 글은 20글자 안으로 줄이고(…), 낭독 칸은 줄이지 않은 이름이다(walk-teacher-new A5)
-    await expect(status(page)).toHaveText(/^1 \/ \d+ · 1-1-1 인공지능 응용 프로그램과…$/u);
+    // 막대 글은 20글자 안으로 줄이고(…), 낭독 칸은 줄이지 않은 이름이다(walk-teacher-new A5).
+    // 막대가 좁으면(휴대폰) 16·12·8글자로 더 줄인다(판 1.7.0 — present.ts STATUS_LABEL_LENGTHS)
+    await expect(status(page)).toHaveText(/^1 \/ \d+ · 1-1-1 인공지능[^·]*…$/u);
     await expect(announce(page)).toContainText('1-1-1 인공지능 응용 프로그램과 에이전트');
     const total = Number(await page.locator('[data-lesson-present]').getAttribute('data-present-total'));
     expect(total).toBeGreaterThan(10);
@@ -336,7 +338,8 @@ test.describe('수업 화면', () => {
     }
     expect(reached, '따라하기 예제 단계').toBeGreaterThan(2);
     // 막대 글에 어느 예제인지(예제 제목 — 20글자 안으로 줄임)가 보이고, 낭독 칸에는 칸·소제목까지 줄이지 않은 이름이 있다.
-    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 규칙대로 정렬하기와 예시에서 배워…$`, 'u'));
+    // 막대가 좁으면(휴대폰) 이름을 더 줄인다(판 1.7.0 — STATUS_LABEL_LENGTHS)
+    await expect(status(page)).toHaveText(new RegExp(`^${reached} \\/ \\d+ · 규칙대로[^·]*…$`, 'u'));
     await expect(announce(page)).toContainText('따라 하기 — 코드 읽기 · 규칙대로 정렬하기와 예시에서 배워 묶기');
     // 따라하기 예제 단계에서도 [이 자리에서 실습실 열기]를 쓸 수 있다(실습실은 누르기 전에 받지 않는다).
     await expect(page.locator('.lesson-example')).toBeVisible();
@@ -657,8 +660,147 @@ test.describe('수업 화면 속 실습실 — [실행]과 결과가 한 화면(
     // compact에서 줄인 안내(실습 방법 상자)는 틀 안에서 보이지 않는다
     await expect(frame.locator('[data-board-practice]')).toBeHidden();
 
+    // 판 1.7.0(미해결 259): 가상 보드 그림(가상 LCD) 아래 끝이 아래 막대 위다 — 다시 걷기에서 LCD 아래 약 25px가 막대에 가렸다
+    const svgBox = await frame.locator('[data-board-stage] svg.board-stage__svg').boundingBox();
+    expect(svgBox, '가상 보드 그림').not.toBeNull();
+    expect((svgBox?.y ?? 0) + (svgBox?.height ?? 0), '가상 보드 그림 아래 끝이 막대 위').toBeLessThanOrEqual(barTop + 1);
+    // 틀이 화면 안이면 "아래에 더 있어요"는 뜨지 않는다(틀 아래 [실습실 접기] 줄은 세지 않는다 — 예전에는 알림이 보드 그림을 덮었다)
+    await expect(page.locator('[data-present-more]')).toBeHidden();
+    // compact에서는 예제 고르기·도구 단추를 접어 조작 줄이 [실행][정지][초기화] + 상태 줄이고, "입력과 출력" 칸 제목은 낭독기에만
+    await expect(frame.locator('[data-lab-example-select]')).toBeHidden();
+    await expect(frame.locator('[data-lab-share]')).toBeHidden();
+    // 틀 안 문서를 내려도 [실행]이 틀 맨 위에 붙어 남는다(예전에는 화면 밖으로 사라졌다)
+    expect(await frame.locator('[data-lab-bar]').evaluate((element) => getComputedStyle(element).position)).toBe('sticky');
+    await frame.locator('html').evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' as ScrollBehavior }));
+    await expect
+      .poll(async () => {
+        const box = await run.boundingBox();
+        return box ? box.y >= (frameBox?.y ?? 0) - 1 && box.y + box.height <= (frameBox?.y ?? 0) + (frameBox?.height ?? 0) : false;
+      })
+      .toBe(true);
+    await frame.locator('html').evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }));
+    // 다른 단계에 갔다가 돌아와도 틀의 윗선이 화면 맨 위에 다시 맞춰진다(예전에는 단계를 다시 그리면 틀이 예제 제목 아래로 내려가 아래가 막대에 가렸다)
+    await page.locator('[data-present-next]').click();
+    await page.locator('[data-present-previous]').click();
+    await expect.poll(async () => (await frameElement.boundingBox())?.y ?? 9999, { timeout: 10_000 }).toBeLessThan(60);
+    const again = await frameElement.boundingBox();
+    expect((again?.y ?? 0) + (again?.height ?? 0)).toBeLessThanOrEqual(barTop + 1);
+
     await page.keyboard.press('Escape');
     await expect(page.locator('html')).not.toHaveAttribute('data-presenting', /.*/u);
     await expect(frame.locator('html')).not.toHaveAttribute('data-embed-compact', /.*/u);
+  });
+});
+
+// 판 1.7.0(PROGRESS 미해결 259·260·270·271 — 다시 걷기 walk-a11y-keyboard N1~N5·walk-teacher-new A2·N3)
+test.describe('[수업 화면] 단추 자리(미해결 259)', () => {
+  test('전환 줄 바로 아래 — 보드 차시(2-1-2)도 1366×768 첫 화면 안이고, 칩 줄·준비물 사진보다 앞이다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '교실 컴퓨터(1366×768) 첫 화면을 본다');
+    await page.setViewportSize({ width: 1366, height: 768 });
+    for (const path of ['./learn/u2/2-1-2/', './book/2-1-2/', './learn/u1/1-1-1/']) {
+      await page.goto(path);
+      const button = page.getByRole('button', { name: '수업 화면', exact: true });
+      await expect(button, path).toBeVisible();
+      const box = await button.boundingBox();
+      expect((box?.y ?? 9999) + (box?.height ?? 0), `${path} [수업 화면] 아래 끝(예전 2-1-2는 y≈985)`).toBeLessThanOrEqual(768);
+      const order = await page.evaluate(() => {
+        const tools = document.querySelector('.lesson__tools');
+        return [...document.querySelectorAll('.lesson-meta, .part-strip')].every(
+          (later) => Boolean(tools && tools.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING),
+        );
+      });
+      expect(order, `${path}: [수업 화면]이 칩 줄·준비물 사진 앞`).toBe(true);
+    }
+  });
+});
+
+test.describe('수업 화면 — 150% 확대(911×512)에서 넘치는 단계 0(미해결 260·270)', () => {
+  test.skip(({ isMobile }) => isMobile, '데스크톱 창을 150%로 키운 화면을 본다(휴대폰은 다른 시험)');
+  test.use(ZOOM_150);
+
+  test('1-1-1 따라 하기: 모든 단계가 막대 위에서 끝나고 "아래에 더 있어요"가 없으며, 막대 글·마지막 단계 둘째 줄이 잘리지 않는다', async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentationByButton(page);
+    // 첫 장: 차시 제목이 보이고(학습 목표가 함께 들어가면 함께, 아니면 둘째 장이 학습 목표 — 어느 쪽이든 넘치지 않는다)
+    await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+    const reports = await walkAllSteps(page, '/learn/u1/1-1-1/ 150%');
+    test.info().annotations.push({ type: '단계 수', description: String(reports.length) });
+  });
+
+  test('슬라이드 안 단추(퀴즈 [답 확인하기])에 초점이 있을 때 →로 넘기면 초점이 새 단계의 첫 제목에 놓인다(N4 — 예전에는 보이지 않는 MAIN)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentationByButton(page);
+    const status = page.locator('[data-present-status]');
+    await page.keyboard.press('End');
+    await page.keyboard.press('ArrowLeft');
+    await expect(status).toHaveText(/확인 퀴즈 \(2\/3\)$/u);
+    const check = page.locator('[data-quiz-item]:not([data-present-off]) [data-quiz-check]');
+    await check.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(status).toHaveText(/확인 퀴즈 \(3\/3\)$/u);
+    const heading = page.getByRole('heading', { level: 2, name: '확인 퀴즈' });
+    await expect(heading).toBeFocused();
+    await expect(heading).toBeInViewport();
+    expect(await page.evaluate(() => document.activeElement?.matches(':focus-visible') ?? false), '초점 테두리가 보인다').toBe(true);
+    // 제목에서는 ←·→가 그대로 단계를 넘기고, 같은 제목이 보이는 단계면 초점도 그대로다
+    await page.keyboard.press('ArrowLeft');
+    await expect(status).toHaveText(/확인 퀴즈 \(2\/3\)$/u);
+    await expect(heading).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(status).toHaveText(/확인 퀴즈 \(3\/3\)$/u);
+    // 다음 Tab은 새 문항 안(첫 보기)으로 간다
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[data-quiz-item]:not([data-present-off])')))).toBe(true);
+  });
+});
+
+test.describe('수업 화면 — 단계 목록(미해결 271: 절 이름으로 건너뛰기)', () => {
+  test('막대의 단계 이름을 누르면 칸 이름 목록이 열리고, 고르면 그 칸의 첫 단계·첫 제목으로 간다 — Esc는 목록만 닫는다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '키보드 조작은 데스크톱에서 본다');
+    await page.goto('./learn/u1/1-1-1/');
+    await openPresentationByButton(page);
+    const present = page.locator('[data-lesson-present]');
+    const toggle = page.getByRole('button', { name: /단계 목록 열기/u });
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    const list = page.getByRole('navigation', { name: /단계 목록/u });
+    await expect(list).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    const items = list.getByRole('button');
+    // 지금 단계(1)가 든 항목에 초점, 표시는 aria-current="step"
+    await expect(items.first()).toBeFocused();
+    await expect(items.first()).toHaveAttribute('aria-current', 'step');
+    const names = await items.evaluateAll((buttons) => buttons.map((button) => button.querySelector('span')?.textContent?.trim() ?? ''));
+    for (const name of ['왜 배울까', '핵심 개념', '따라 하기', '확인 퀴즈']) {
+      expect(names, name).toContain(name);
+    }
+    // 소제목(###)·퀴즈 문항은 따로 나오지 않는다 — 칸마다 하나
+    expect(new Set(names).size).toBe(names.length);
+    // ↓로 이웃 항목, 목록 안에서 →는 단계를 넘기지 않는다
+    await page.keyboard.press('ArrowDown');
+    await expect(items.nth(1)).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(present).toHaveAttribute('data-present-step', '1');
+    // Esc는 목록만 닫고 수업 화면은 그대로, 초점은 단계 이름 단추로
+    await page.keyboard.press('Escape');
+    await expect(list).toBeHidden();
+    await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
+    await expect(toggle).toBeFocused();
+    // 다시 열어 "확인 퀴즈"를 고르면 그 칸의 첫 단계로 가고, 초점은 그 칸 제목
+    await toggle.click();
+    await list.getByRole('button', { name: /^확인 퀴즈/u }).click();
+    await expect(list).toBeHidden();
+    await expect(page.locator('[data-present-status]')).toHaveText(/· 확인 퀴즈( \(1\/3\))?$/u);
+    await expect(page.getByRole('heading', { level: 2, name: '확인 퀴즈' })).toBeFocused();
+    // 목록 밖을 누르면 닫힌다
+    await toggle.click();
+    await expect(list).toBeVisible();
+    await page.locator('h2').filter({ visible: true }).first().click();
+    await expect(list).toBeHidden();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('html')).not.toHaveAttribute('data-presenting');
   });
 });

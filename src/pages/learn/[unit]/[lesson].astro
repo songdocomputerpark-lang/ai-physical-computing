@@ -2,8 +2,9 @@
 /**
  * 차시 페이지(/learn/u1/1-1-1/) — SPEC §7.2 차시 틀.
  *
- * 머리: 차시 번호·제목·한 줄 소개, 전환 줄(짝 교과서 쪽이 있으면 [교과서 원문 n~m쪽] [따라 하기] — 판 1.4.0, 이름은 판 1.6.0 C173), 뱃지(성취기준·소요 시간·준비물·난이도·가상 보드·실습실,
- *       교과서 쪽은 짝이 없을 때만 — 쪽 범위는 전환 줄에 한 번), [수업 화면](PresentButton — 옛 이름 "발표 모드")
+ * 머리: 차시 번호·제목·한 줄 소개, 전환 줄(짝 교과서 쪽이 있으면 [교과서 원문 n~m쪽] [따라 하기] — 판 1.4.0, 이름은 판 1.6.0 C173),
+ *       [수업 화면](PresentButton — 옛 이름 "발표 모드", 판 1.7.0부터 전환 줄 바로 아래), 뱃지(성취기준·소요 시간·준비물·난이도·가상 보드·실습실,
+ *       교과서 쪽은 짝이 없을 때만 — 쪽 범위는 전환 줄에 한 번), 준비물 사진·실제 키트 배선 보기
  * 판 1.6.0(C174·C175): 한 줄 소개 바로 아래에 "이 차시에서 할 일" 카드 세 칸(LessonTasks — 읽기·따라 하기·확인), 전환 줄 옆에 [선생님용] 단추(TeacherButton —
  *       교사용 접기를 열고 그리로), `## 핵심 개념`의 소제목이 3개 이상이면 둘째부터 접힌 상자(lesson-html.ts foldConceptHtml), 교사용 접기 맨 위 요약 줄(LessonTeacherSummary)
  * 본문: 마크다운의 8칸(학습목표 → 왜 배울까 → 핵심 개념 → 따라하기 → 바꿔보기 → 도전 과제 → 확인 퀴즈 → 교사용)
@@ -186,12 +187,16 @@ const position = lessonPosition(lessons, lesson);
           )
         }
         <div data-present-hide>
+          {/*
+            [수업 화면]은 전환 줄 바로 아래(판 1.7.0, 미해결 259·260 — 교과서 쪽과 같은 자리). 예전에는 준비물 사진·회로 접기 뒤라
+            보드 차시(2-1-2)에서 1366×768 첫 화면 밖(y≈985)이었고, 키보드로는 [본문으로 건너뛰기] 뒤 10번째 정류장이었다(지금 8번째).
+          */}
+          <PresentButton />
           <FlowPosition unit={lesson.unit} size="mini" />
           {/* 쪽 범위는 전환 줄에 한 번만(판 1.6.0 — 짝 교과서 쪽이 있으면 칩 줄의 "교과서 n~m쪽"은 그리지 않는다) */}
           <LessonMeta lesson={lesson} hidePages={Boolean(pairedBook)} />
           <PartPhotoStrip parts={partRefs} label="준비물 사진" />
           <CircuitDetails label={lesson.label} />
-          <PresentButton tight />
         </div>
       </header>
       <LessonToc sections={tocSections} />
