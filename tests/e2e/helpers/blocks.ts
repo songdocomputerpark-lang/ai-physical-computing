@@ -155,6 +155,13 @@ async function scrollWorkspaceBy(page: Page, dx: number, dy: number): Promise<vo
  * 컴퓨터(도구 상자 왼쪽)와 휴대폰(도구 상자 위쪽) 모두.
  */
 export async function dragFromToolbox(page: Page, options: { category: string; type: string; pick?: FlyoutPick; to: DropTarget }): Promise<void> {
+  // 실습실 준비 칸은 준비가 끝나고 1.5초 뒤(PANEL_COLLAPSE_DELAY_MS) 저절로 접히며 제자리(입력·출력 아래)로 옮겨 가서, 그 위의 작업판이
+  // 휴대폰 폭에서 수백 px 올라간다. 좌표를 잰 뒤 끄는 사이에 접히면 잡은 자리가 빈 곳이 되어 블록이 놓이지 않았다(미해결 228 — 2026-10-21 원인 확인).
+  // 접힌 뒤에 잰다.
+  const loadingPanel = page.locator('[data-loading-panel]');
+  if ((await loadingPanel.count()) > 0) {
+    await expect(loadingPanel.first()).toHaveAttribute('data-collapsed', 'true', { timeout: 15_000 });
+  }
   await workspaceHost(page).scrollIntoViewIfNeeded();
   await openCategory(page, options.category);
   const pick = options.pick ?? {};
