@@ -13,10 +13,11 @@
 import { getCollection } from 'astro:content';
 import GlossaryScope from '../../../components/glossary/GlossaryScope.astro';
 import GuideLessonMeta from '../../../components/teacher/GuideLessonMeta.astro';
+import RubricTools from '../../../components/teacher/RubricTools.astro';
 import TeacherNav from '../../../components/teacher/TeacherNav.astro';
 import { handoutLinesOf } from '../../../components/teacher/handout-files.ts';
 import { labelGuideHeadings } from '../../../components/teacher/teacher-guides.ts';
-import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, type TeacherLesson } from '../../../components/teacher/teacher-lessons.ts';
+import { buildTeacherLessons, guidesUnitPath, lessonHeading, lessonsByUnit, rubricSectionOf, type TeacherLesson } from '../../../components/teacher/teacher-lessons.ts';
 import { getTeacherPage, teacherBreadcrumb } from '../../../components/teacher/teacher-pages.ts';
 import { learnUnits, type LearnUnit } from '../../../config/nav.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -42,7 +43,7 @@ const guides = getTeacherPage('guides');
 // 단원 이름은 숫자로 "2단원 피지컬 컴퓨팅"(판 1.6.0 — C127 적용 누락, 걷기 B-50: 검색 결과에 "II. 피지컬 컴퓨팅 지도 요약"이 남았다)
 const unitLabel = unitName(unit.unit);
 const title = `${unitLabel} 지도 요약`;
-const description = `${unitLabel}의 차시마다 교사용 안내(지도안 요약, 평가 포인트, 자주 막히는 곳, 원고에서 바꾼 곳)를 한 페이지에 모았어요.`;
+const description = `${unitLabel}의 차시마다 교사용 안내(지도안 요약, 평가 포인트, 채점 기준 표, 자주 막히는 곳, 원고에서 바꾼 곳)를 한 페이지에 모았어요.`;
 const otherUnits = learnUnits.filter((candidate) => candidate.unit !== unit.unit);
 const anchorOf = (lesson: TeacherLesson): string => lesson.idPrefix.slice(0, -1);
 const withGuide = lessons.filter((lesson) => lesson.guide);
@@ -82,6 +83,7 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
     lessons.map((lesson) => {
       const anchor = anchorOf(lesson);
       const answerKeys = lesson.summary.kind === 'review';
+      const rubric = rubricSectionOf(lesson);
       return (
         <article class="guide" aria-labelledby={anchor} data-guide-lesson={lesson.summary.label}>
           <h2 id={anchor} class="guide__title">
@@ -92,6 +94,11 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
             <span>{lesson.summary.title}</span>
           </h2>
           <GuideLessonMeta lesson={lesson} handouts={handoutLinesOf(lesson)} />
+          {rubric && rubric.id && (
+            <div class="guide__tools" data-guide-tools>
+              <RubricTools targetId={rubric.id} title={lessonHeading(lesson)} />
+            </div>
+          )}
           {lesson.guide ? (
             <div class="guide__body prose" data-pagefind-ignore={answerKeys ? '' : undefined} data-guide-body>
               <GlossaryScope id={anchor}>
@@ -194,6 +201,11 @@ const withGuide = lessons.filter((lesson) => lesson.guide);
 
   .guide__body {
     margin-block-start: var(--space-4);
+  }
+
+  /* 채점 기준 표의 [표 인쇄]·[표 복사] 단추 줄(판 1.7.0 Z3) */
+  .guide__tools {
+    margin-block-start: var(--space-3);
   }
 
   /* 모은 글의 ### 제목(지도안 요약, 평가 포인트 …) — 차시 제목(h2)보다 작게 */

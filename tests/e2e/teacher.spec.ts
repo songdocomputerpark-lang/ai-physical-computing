@@ -325,9 +325,53 @@ test.describe('교사용 자료실 — 좁은 화면(375px)', () => {
     }
     await page.goto(at(TEACHER_PATHS.standards));
     const firstRow = page.locator('[role="table"] [role="row"][id^="std-"]').first();
+    // 판 1.7.0(Z3, B-47): 좁은 화면에서는 영역 네 칸이 모두 접혀 있다 — 첫 영역을 펴야 표 줄이 보인다
+    await page.locator('#std-area-1').click();
     await expect(firstRow).toBeVisible();
     const display = await firstRow.evaluate((element) => getComputedStyle(element).display);
     expect(display).not.toBe('table-row');
+  });
+
+  test('성취기준 쪽: 영역 네 칸은 접혀 있고, 맨 위 차례의 영역 링크가 그 칸을 펴며, 넓히면 모두 펴진다(판 1.7.0 Z3, B-47)', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.standards));
+    const areas = page.locator('details[data-std-area-details]');
+    await expect(areas).toHaveCount(4);
+    for (let index = 0; index < 4; index += 1) {
+      await expect(areas.nth(index), `영역 ${index + 1}`).not.toHaveAttribute('open', '');
+    }
+    // 접힌 칸의 제목 줄에 성취기준 개수가 보인다
+    await expect(page.locator('#std-area-1')).toContainText('성취기준');
+    // 쪽이 짧아졌다: 접힌 네 칸이 한 화면 남짓(옛 약 15,000px)
+    const areaTop = await page.locator('[data-standard-area="1"]').evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+    const areaBottom = await page.locator('[data-standard-area="4"]').evaluate((element) => element.getBoundingClientRect().bottom + window.scrollY);
+    expect(areaBottom - areaTop, '접힌 영역 네 칸의 높이').toBeLessThan(700);
+    // 차례의 영역 링크가 그 칸을 편다
+    await page.getByRole('navigation', { name: '이 쪽의 차례' }).getByRole('link', { name: /^성취기준 \(3\)/u }).click();
+    await expect(areas.nth(2)).toHaveAttribute('open', '');
+    await expect(page.locator('#std-area-3')).toBeInViewport();
+    await expect(areas.nth(0)).not.toHaveAttribute('open', '');
+    // 주소의 #std-… 위치(차시 쪽의 성취기준 칩이 오는 길)도 그 칸을 편다
+    await page.goto(`${at(TEACHER_PATHS.standards)}#${standardAnchor(STANDARDS[0]?.code ?? '')}`);
+    await expect(areas.nth(0)).toHaveAttribute('open', '');
+    // 넓히면 모두 펴진다
+    await page.setViewportSize({ width: 1200, height: 800 });
+    for (let index = 0; index < 4; index += 1) {
+      await expect(areas.nth(index), `넓힌 뒤 영역 ${index + 1}`).toHaveAttribute('open', '');
+    }
+  });
+});
+
+test.describe('성취기준 쪽 — 넓은 화면(판 1.7.0 Z3)', () => {
+  test.skip(({ isMobile }) => isMobile, '데스크톱에서만 확인한다');
+
+  test('영역 네 칸이 모두 펴져 있다', async ({ page }) => {
+    await page.goto(at(TEACHER_PATHS.standards));
+    const areas = page.locator('details[data-std-area-details]');
+    await expect(areas).toHaveCount(4);
+    for (let index = 0; index < 4; index += 1) {
+      await expect(areas.nth(index), `영역 ${index + 1}`).toHaveAttribute('open', '');
+    }
+    await expect(page.locator('[role="table"] [role="row"][id^="std-"]').first()).toBeVisible();
   });
 });
 
@@ -341,8 +385,9 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(steps).toHaveCount(4);
     await expect(steps.nth(0).locator('a')).toHaveAttribute('href', getPage('start-check').href);
     await expect(steps.nth(1).locator('a')).toHaveAttribute('href', withBase(TEACHER_PATHS.guides));
-    // 판 1.3.0 검수 R1-034: 3단계는 설명 글이 아니라 수업 화면을 직접 해 볼 차시(1-1-1)로 간다(이름은 판 1.6.0 C173)
-    await expect(steps.nth(2).locator('a')).toHaveAttribute('href', /\/learn\/u1\/1-1-1\/$/u);
+    // 판 1.3.0 검수 R1-034: 3단계는 설명 글이 아니라 수업 화면을 직접 해 볼 차시(1-1-1)로 간다(이름은 판 1.6.0 C173).
+    // 판 1.7.0(Z3, 걷기 N3): 그냥 차시 쪽이 아니라 수업 화면이 바로 켜지는 주소(?view=slide, C133)로 간다
+    await expect(steps.nth(2).locator('a')).toHaveAttribute('href', /\/learn\/u1\/1-1-1\/\?view=slide$/u);
     await expect(steps.nth(2)).toContainText('[수업 화면]');
     // 판 1.6.0(C175, 걷기 B-45): 4단계 "평가·과제 받는 법"은 이 쪽의 평가 자료 상자(편집본 PDF 목록 위)로 간다
     await expect(steps.nth(3).locator('a')).toHaveAttribute('href', '#teacher-assessment');
@@ -350,6 +395,17 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(assessment.getByRole('heading', { level: 2, name: '평가 자료' })).toBeVisible();
     await expect(assessment).toContainText('채점 기준');
     await expect(assessment).toContainText('[공유 링크]');
+    // 판 1.7.0(Z3, 미해결 258): 첫 줄이 "학생용 평가지는 아직 없어요 — 대신 정답표·채점 기준 표"이고 예시 차시(2-1-2)의 선생님용 칸으로 가는 링크가 있다
+    const first = assessment.locator('[data-teacher-assessment-first]');
+    await expect(first).toContainText('평가지(학습지·문항지)는 아직 없어요');
+    await expect(first).toContainText('확인 퀴즈와 정답표');
+    await expect(first).toContainText('채점 기준 표');
+    await expect(first.locator('[data-teacher-assessment-example]')).toHaveAttribute('href', /\/learn\/u2\/2-1-2\/#/u);
+    await expect(assessment.locator('[data-teacher-assessment-tools]')).toContainText('[표 인쇄]');
+    await expect(assessment.locator('[data-teacher-assessment-tools]')).toContainText('[표 복사]');
+    const firstBox = await first.boundingBox();
+    const headingBox = await assessment.getByRole('heading', { level: 2, name: '평가 자료' }).boundingBox();
+    expect(firstBox && headingBox && firstBox.y - headingBox.y < 80, '평가지 안내는 평가 자료 제목 바로 아래 첫 줄').toBe(true);
     const assessmentBox = await assessment.boundingBox();
     const handoutsBox = await page.locator('[data-teacher-handouts]').boundingBox();
     expect(assessmentBox && handoutsBox && assessmentBox.y < handoutsBox.y, '평가 자료 상자가 편집본 PDF 목록보다 위').toBe(true);
@@ -358,6 +414,7 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await page.goto(at(TEACHER_PATHS.home));
     await page.goto(await steps.nth(2).locator('a').getAttribute('href') ?? '');
     await expect(page.getByRole('button', { name: /수업 화면/u }).first()).toBeAttached();
+    await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
     // 처음 오신 선생님은 단계 위의 안내 줄로 교사용 시작하기에 간다(그 쪽 #presentation에는 쓰는 법이 있다)
     await page.goto(at(TEACHER_PATHS.home));
     await expect(page.locator('[data-teacher-first] a')).toHaveAttribute('href', getPage('start-teacher').href);
@@ -441,5 +498,110 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(page.locator('h2#shared-pc + ul')).toContainText('본 차시와 "다 했어요" 표시');
     await page.goto(getPage('settings').href);
     await expect(page.getByRole('main')).toContainText('본 차시와 "다 했어요" 표시');
+  });
+});
+
+// ── 판 1.7.0(Z3, 미해결 258): 채점 기준 표만 인쇄하거나 복사한다 ──
+test.describe('채점 기준 표 인쇄·복사(판 1.7.0 Z3)', () => {
+  test.skip(({ isMobile, browserName }) => isMobile || browserName !== 'chromium', '데스크톱 Chromium에서만 확인한다(클립보드 권한)');
+
+  /** 차시 쪽에서 교사용 접기를 연다 */
+  async function openTeacherBox(page: Page) {
+    const box = page.locator('details.box--teacher').first();
+    await box.locator('summary').first().click();
+    await expect(box).toHaveAttribute('open', '');
+    return box;
+  }
+
+  test('차시 교사용 칸 맨 위(한눈에 보기)에 [표 인쇄]·[표 복사]가 있고, 복사하면 탭으로 나눈 표가 클립보드에 들어간다', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto(at('/learn/u2/2-1-2/'));
+    const box = await openTeacherBox(page);
+    const tools = box.locator('[data-rubric-tools]');
+    await expect(tools).toBeVisible();
+    await expect(tools.getByRole('button', { name: '표 인쇄' })).toBeVisible();
+    // 단추는 한눈에 보기 상자 안에 있다
+    await expect(box.locator('[data-lesson-teacher-summary] [data-rubric-tools]')).toHaveCount(1);
+    await tools.getByRole('button', { name: '표 복사' }).click();
+    await expect(tools.locator('[data-rubric-status]')).toContainText('표를 복사했어요');
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    const lines = copied.split('\n');
+    expect(lines[0]).toBe(['관찰 항목', '잘함', '보통', '노력 요함'].join('\t'));
+    expect(lines.length, '머리 줄 + 관찰 항목 2~3줄').toBeGreaterThanOrEqual(3);
+    expect(lines.length).toBeLessThanOrEqual(4);
+    for (const line of lines) {
+      expect(line.split('\t'), line).toHaveLength(4);
+    }
+    // 화면의 표와 같은 글이다
+    const firstCell = (await box.locator('h3:has-text("채점 기준") ~ table').first().locator('tbody tr').first().locator('td, th').first().innerText()).trim();
+    expect(lines[1]?.split('\t')[0]).toBe(firstCell.replace(/\s+/gu, ' '));
+  });
+
+  test('[표 인쇄]는 이 표만 담은 인쇄 상자를 붙이고, 인쇄 화면에서는 쪽의 나머지를 숨기며, 인쇄가 끝나면 치운다', async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as unknown as { __printed: unknown[] }).__printed = [];
+      window.print = () => {
+        const root = document.querySelector('[data-rubric-print-root]');
+        (window as unknown as { __printed: unknown[] }).__printed.push({
+          attribute: document.documentElement.hasAttribute('data-rubric-printing'),
+          heading: root?.querySelector('h1')?.textContent ?? '',
+          rows: root?.querySelectorAll('tr').length ?? 0,
+          ids: root?.querySelectorAll('[id]').length ?? 0,
+        });
+      };
+    });
+    await page.goto(at('/learn/u2/2-1-2/'));
+    const box = await openTeacherBox(page);
+    await box.locator('[data-rubric-tools]').getByRole('button', { name: '표 인쇄' }).click();
+    const printed = await page.evaluate(() => (window as unknown as { __printed: Record<string, unknown>[] }).__printed);
+    expect(printed).toHaveLength(1);
+    expect(printed[0]?.attribute).toBe(true);
+    expect(String(printed[0]?.heading)).toMatch(/2-1-2.*채점 기준$/u);
+    expect(Number(printed[0]?.rows)).toBeGreaterThanOrEqual(3);
+    expect(printed[0]?.ids, '복사본에는 id가 없다').toBe(0);
+    // 인쇄 화면(print 미디어)에서는 인쇄 상자만 보인다
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.locator('[data-rubric-print-root]')).toBeVisible();
+    await expect(page.locator('main#main-content')).toBeHidden();
+    await expect(page.locator('header').first()).toBeHidden();
+    await expect(page.locator('[data-rubric-print-root] table tbody tr').first()).toBeVisible();
+    // 인쇄가 끝났다는 신호가 오면 상자와 표시를 치운다 — 그 뒤의 일반 인쇄는 쪽 전체다
+    await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+    await expect(page.locator('[data-rubric-print-root]')).toHaveCount(0);
+    await expect(page.locator('html')).not.toHaveAttribute('data-rubric-printing');
+    await expect(page.locator('main#main-content')).toBeVisible();
+    await page.emulateMedia({ media: 'screen' });
+  });
+
+  test('지도 요약 쪽(/teacher/guides/uN/)은 채점 기준 표가 있는 차시마다 단추 줄이 있고, 단추가 가리키는 제목과 표가 있다', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    for (const unit of learnUnits) {
+      await page.goto(at(guidesUnitPath(unit.unit)));
+      const bars = page.locator('[data-rubric-tools]');
+      const headings = page.locator('.guide__body h3', { hasText: '채점 기준' });
+      await expect(bars, `${unit.unit}단원 단추 줄`).toHaveCount(await headings.count());
+      for (const bar of await bars.all()) {
+        const id = (await bar.getAttribute('data-rubric-target')) ?? '';
+        expect(id, '표 제목 id').not.toBe('');
+        await expect(page.locator(`h3[id="${id}"]`), id).toHaveCount(1);
+        await expect(bar).toBeVisible();
+        // 이 단추 줄이 가리키는 제목 다음에 표가 있다
+        expect(await page.locator(`h3[id="${id}"] ~ table`).count(), id).toBeGreaterThan(0);
+      }
+    }
+    // 2단원: 단추 이름에 차시 이름이 들어 있어 낭독기에서 어느 차시의 표인지 알 수 있다
+    await page.goto(at(guidesUnitPath(2)));
+    const second = page.getByRole('button', { name: /^2-1-3 .*채점 기준 표 복사$/u });
+    await second.scrollIntoViewIfNeeded();
+    await second.click();
+    const bar = page.locator('[data-rubric-tools]', { has: second });
+    await expect(bar.locator('[data-rubric-status]')).toContainText('표를 복사했어요');
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied.split('\n')[0]).toBe(['관찰 항목', '잘함', '보통', '노력 요함'].join('\t'));
+  });
+
+  test('채점 기준 표가 없는 차시(대단원 마무리)에는 단추 줄이 없다', async ({ page }) => {
+    await page.goto(at('/learn/u2/review/'));
+    await expect(page.locator('[data-rubric-tools]')).toHaveCount(0);
   });
 });

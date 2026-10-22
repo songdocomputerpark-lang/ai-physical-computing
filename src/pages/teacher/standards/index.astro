@@ -7,6 +7,9 @@
  * - 과목 정보·평가 방법·고려 사항·"평가할 때 볼 것"(사이트 제안)·비워 둔 까닭: content/teacher/assessment.yaml
  * - 생성형 AI 활용 탐구 과제: 차시 본문의 :::생성형AI 상자를 빌드 때 모은다
  * 화면 표기는 "성취기준(인천광역시교육청 승인 교육과정, 차시 연결은 사이트가 붙임)"(PLAN §2.2). 요약 문장에는 "(사이트 요약)"을 붙인다.
+ * 판 1.7.0(Z3, 미해결 272 ③·걷기 B-47): 성취기준 표는 영역(1)~(4)마다 접는 칸(<details class="more">, 제목은 summary 안 h3)이다. 자바스크립트가 켜지고
+ * 화면이 좁으면(표가 카드로 쌓이는 47.99rem 아래 — 휴대폰에서 이 쪽이 약 10화면이었다) 모두 접어 두고, 맨 위 차례의 영역 링크나 주소 #std-area-N이 그 칸을 펼친다.
+ * 넓은 화면과 자바스크립트가 꺼진 경우, 인쇄할 때는 펼쳐 있다.
  */
 import { getCollection } from 'astro:content';
 import Callout from '../../../components/common/Callout.astro';
@@ -163,7 +166,7 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
         실습실의 <strong>[공유 링크]</strong>는 편집칸의 코드만 주소에 담아요. 로그인 없이 과제로 받을 수 있고, 주소가 2,000자를 넘으면 <strong>[.py 내려받기]</strong> 파일을
         함께 내도록 알려 줘요(16,000자를 넘는 코드는 링크로 만들지 않아요).
       </li>
-      <li>차시마다 도전 과제에 채울 표와 관찰 기록 칸이 있어요. 선생님이 볼 곳은 <a href={guidesHref}>차시별 지도 요약</a>의 "평가 포인트"와, 표를 채운 차시의 "채점 기준"(잘함·보통·노력 요함)에 모여 있어요.</li>
+      <li>차시마다 도전 과제에 채울 표와 관찰 기록 칸이 있어요. 선생님이 볼 곳은 <a href={guidesHref}>차시별 지도 요약</a>의 "평가 포인트"와 "채점 기준"(잘함·보통·노력 요함 표 — 교과서·보충 차시마다 있어요)에 모여 있어요. 표만 인쇄하거나 복사하는 단추도 거기 있어요.</li>
       <li>
         원고의 생성형 AI 활용 탐구 과제는 주로 차시의 도전 과제 칸에 두었고, 상자 끝에 "생성형 AI의 도움을 받은 부분을 표시해요"라는 안내가 저절로 붙어요(아래 <a
           href="#genai">생성형 AI 활용 탐구 과제</a>).
@@ -201,58 +204,62 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
       const areaRows = rows.filter((row) => row.standard.area === area.area);
       return (
         <section class="std-area" aria-labelledby={`std-area-${area.area}`} data-standard-area={area.area}>
-          <h3 id={`std-area-${area.area}`} class="std-area__title">
-            ({area.area}) {area.name}
-          </h3>
-          <div class="std-table" role="region" aria-labelledby={`std-caption-${area.area}`} tabindex="0" data-scroll-shade>
-            <table role="table">
-              <caption id={`std-caption-${area.area}`}>({area.area}) {area.name} 영역의 성취기준과 평가 방향</caption>
-              <thead role="rowgroup">
-                <tr role="row">
-                  <th scope="col" role="columnheader">성취기준(사이트 요약)</th>
-                  <th scope="col" role="columnheader">이어지는 차시</th>
-                  <th scope="col" role="columnheader">평가할 때 볼 것(사이트 제안)</th>
-                </tr>
-              </thead>
-              <tbody role="rowgroup">
-                {areaRows.map((row) => {
-                  const detail = assessment.standards[row.standard.code];
-                  return (
-                    <tr id={row.anchor} data-standard={row.standard.code} role="row">
-                      <th scope="row" role="rowheader">
-                        <span class="std-table__code">[{row.standard.code}]</span> {row.standard.summary}
-                      </th>
-                      <td role="cell" data-label="이어지는 차시">
-                        {row.lessons.length > 0 ? (
-                          <ul class="std-table__lessons">
-                            {row.lessons.map((lesson) => (
-                              <li>
-                                <a href={lesson.summary.href}>{lessonHeading(lesson)}</a>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span class="std-table__none">아직 이어진 차시가 없어요.</span>
-                        )}
-                      </td>
-                      <td role="cell" data-label="평가할 때 볼 것(사이트 제안)">
-                        {detail ? (
-                          <>
-                            <p set:html={formatInline(detail.look)} />
-                            <p class="std-table__evidence">
-                              <strong>모을 자료:</strong> <Fragment set:html={formatInline(detail.evidence)} />
-                            </p>
-                          </>
-                        ) : (
-                          <span class="std-table__none">준비 중</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <details class="more std-area__details" open data-std-area-details>
+            <summary>
+              <h3 id={`std-area-${area.area}`} class="std-area__title">
+                ({area.area}) {area.name} <span class="std-area__count">성취기준 {areaRows.length}개</span>
+              </h3>
+            </summary>
+            <div class="std-table" role="region" aria-labelledby={`std-caption-${area.area}`} tabindex="0" data-scroll-shade>
+              <table role="table">
+                <caption id={`std-caption-${area.area}`}>({area.area}) {area.name} 영역의 성취기준과 평가 방향</caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" role="columnheader">성취기준(사이트 요약)</th>
+                    <th scope="col" role="columnheader">이어지는 차시</th>
+                    <th scope="col" role="columnheader">평가할 때 볼 것(사이트 제안)</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  {areaRows.map((row) => {
+                    const detail = assessment.standards[row.standard.code];
+                    return (
+                      <tr id={row.anchor} data-standard={row.standard.code} role="row">
+                        <th scope="row" role="rowheader">
+                          <span class="std-table__code">[{row.standard.code}]</span> {row.standard.summary}
+                        </th>
+                        <td role="cell" data-label="이어지는 차시">
+                          {row.lessons.length > 0 ? (
+                            <ul class="std-table__lessons">
+                              {row.lessons.map((lesson) => (
+                                <li>
+                                  <a href={lesson.summary.href}>{lessonHeading(lesson)}</a>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span class="std-table__none">아직 이어진 차시가 없어요.</span>
+                          )}
+                        </td>
+                        <td role="cell" data-label="평가할 때 볼 것(사이트 제안)">
+                          {detail ? (
+                            <>
+                              <p set:html={formatInline(detail.look)} />
+                              <p class="std-table__evidence">
+                                <strong>모을 자료:</strong> <Fragment set:html={formatInline(detail.evidence)} />
+                              </p>
+                            </>
+                          ) : (
+                            <span class="std-table__none">준비 중</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </section>
       );
     })
@@ -363,6 +370,28 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
   </div>
 </BaseLayout>
 
+<script>
+  import { installCollapsibleHelpers } from '../../../components/lesson/details.ts';
+
+  // 좁은 화면(성취기준 표가 카드로 쌓이는 폭)에서는 영역 네 칸을 모두 접어 둔다 — 쪽이 약 10화면이라 맨 위 차례의 영역 링크로 필요한 영역만 펴게(판 1.7.0 Z3, 걷기 B-47).
+  // 자바스크립트가 꺼져 있으면 모두 펼쳐 있다. 넓어지면 모두 펴고, 인쇄할 때는 펼쳐 인쇄한다. 주소의 #std-area-N·#std-… 위치는 그 칸을 펴 준다(installCollapsibleHelpers).
+  const narrow = window.matchMedia('(max-width: 47.99rem)');
+  const areas = [...document.querySelectorAll<HTMLDetailsElement>('details[data-std-area-details]')];
+  if (narrow.matches) {
+    for (const area of areas) {
+      area.open = false;
+    }
+  }
+  installCollapsibleHelpers();
+  narrow.addEventListener('change', (event) => {
+    if (!event.matches) {
+      for (const area of areas) {
+        area.open = true;
+      }
+    }
+  });
+</script>
+
 <style>
   /* 이 쪽의 차례 알약 링크(키트 도감 쪽 .kit-jump와 같은 모양) */
   .std-jump {
@@ -464,8 +493,22 @@ const lessonAt = (lesson: TeacherLesson, anchor: string | undefined) => (anchor 
     margin-block-start: var(--space-8);
   }
 
+  /* 영역 제목은 접는 칸의 요약 줄 안에 있다(제목 글자·id는 그대로 — 차례의 #std-area-N이 이 제목으로 온다) */
   .std-area__title {
-    font-size: var(--text-xl);
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    scroll-margin-block-start: var(--space-4);
+  }
+
+  .std-area__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+  }
+
+  .std-area__details > summary {
+    padding-block: var(--space-3);
   }
 
   .std-table {

@@ -34,6 +34,14 @@ export function teacherSummaryLinks(headings: readonly TeacherHeading[]): Teache
   });
 }
 
+/**
+ * 접기 안 "### 채점 기준" 제목의 id(없으면 undefined) — [표 인쇄]·[표 복사] 단추 줄(RubricTools.astro)이 이 제목 다음의 표를 가져간다(판 1.7.0 Z3).
+ * 제목 글자를 찾는 규칙은 바로 가기와 같다(teacherSummaryLinks의 '채점기준').
+ */
+export function rubricTargetId(headings: readonly TeacherHeading[]): string | undefined {
+  return headings.find((heading) => squash(heading.title).startsWith('채점기준'))?.id || undefined;
+}
+
 export interface QuizAnswerLike {
   readonly choices: readonly string[];
   readonly answer: number;

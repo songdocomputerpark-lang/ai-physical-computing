@@ -1,5 +1,6 @@
-// 채점 기준 표(### 채점 기준)를 채운 차시 10편 — 1-1-1(본보기) + 2단원 9편(판 1.6.0 C175). 실제 md를 읽어 표 모양을 지킨다.
-// 나머지 차시는 아직 표가 없다(PROGRESS 미해결) — 이 목록에 더할 때 이 시험이 모양을 지켜 준다.
+// 채점 기준 표(### 채점 기준)가 있어야 하는 차시 — 교과서 차시(kind: textbook)와 보충 차시(kind: supplement) 40편 전부(판 1.7.0 Z3, 미해결 269).
+// 1-1-1(본보기)과 2단원 9편은 판 1.6.0 C175, 나머지 30편은 판 1.7.0에서 채웠다. 실제 md를 읽어 표 모양을 지킨다.
+// 대단원 마무리(kind: review)·읽기 자료·프로젝트 안내(kind: reading)는 평가 칸을 따로 쓰므로 표를 두지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import { markdownConfigDefaults, unified } from '@astrojs/markdown-remark';
@@ -10,19 +11,34 @@ import { RUBRIC_LEVELS, rubricIssues } from '../../../src/components/lesson/less
 import remarkBoxes from '../../../src/lib/remark-boxes.mjs';
 import remarkGlossary from '../../../src/lib/remark-glossary.mjs';
 
-/** 채점 기준을 채운 차시(content/lessons/<단원>/<파일>.md) */
-const RUBRIC_LESSONS = [
-  'u1/1-1-1',
-  'u2/2-1-1',
-  'u2/2-1-2',
-  'u2/2-1-3',
-  'u2/2-1-4',
-  'u2/2-1-5',
-  'u2/2-2-1',
-  'u2/2-2-2',
-  'u2/2-2-3',
-  'u2/2-2-4',
-] as const;
+const LESSON_ROOT = path.resolve('content', 'lessons');
+
+/** 표가 있어야 하는 종류(frontmatter의 kind) */
+const RUBRIC_KINDS = new Set(['textbook', 'supplement']);
+
+/** 표가 있어야 하는 차시 id(<단원 폴더>/<파일 이름>) — content/lessons를 읽어 저절로 모은다(새 차시를 더하면 이 시험이 표를 요구한다) */
+function lessonsNeedingRubric(): string[] {
+  const ids: string[] = [];
+  for (const unit of fs.readdirSync(LESSON_ROOT)) {
+    const folder = path.join(LESSON_ROOT, unit);
+    if (!fs.statSync(folder).isDirectory()) {
+      continue;
+    }
+    for (const file of fs.readdirSync(folder)) {
+      if (!file.endsWith('.md')) {
+        continue;
+      }
+      const text = fs.readFileSync(path.join(folder, file), 'utf8');
+      const kind = /^kind:\s*(\S+)\s*$/mu.exec(text)?.[1];
+      if (kind && RUBRIC_KINDS.has(kind)) {
+        ids.push(`${unit}/${file.replace(/\.md$/u, '')}`);
+      }
+    }
+  }
+  return ids.sort();
+}
+
+const RUBRIC_LESSONS = lessonsNeedingRubric();
 
 async function renderLesson(id: string): Promise<string> {
   const text = fs.readFileSync(path.resolve('content', 'lessons', `${id}.md`), 'utf8');
@@ -32,7 +48,15 @@ async function renderLesson(id: string): Promise<string> {
   return (await renderer.render(body)).code;
 }
 
-describe('채점 기준 표를 채운 차시', () => {
+describe('채점 기준 표가 있어야 하는 차시', () => {
+  it('교과서·보충 차시를 모두 찾는다(2026-10-22 기준 40편 — 대단원 마무리·읽기 자료·프로젝트 안내 5편은 뺀다)', () => {
+    expect(RUBRIC_LESSONS.length).toBeGreaterThanOrEqual(40);
+    expect(RUBRIC_LESSONS).toContain('u1/1-1-1');
+    expect(RUBRIC_LESSONS).toContain('u4/4-2-2');
+    expect(RUBRIC_LESSONS).not.toContain('u2/review');
+    expect(RUBRIC_LESSONS).not.toContain('u4/project');
+  });
+
   for (const id of RUBRIC_LESSONS) {
     it(`${id}: 표 모양이 맞고(잘함·보통·노력 요함 × 관찰 항목 2~3개) 빈 칸이 없다`, async () => {
       const tree = parseHtml(await renderLesson(id));

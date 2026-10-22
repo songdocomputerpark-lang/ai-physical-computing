@@ -9,6 +9,9 @@
  *   처음 오신 선생님을 위한 "교사용 시작하기" 안내 줄이 단계 위에 있고, 3단계는 수업 화면을 직접 해 볼 첫 차시(1-1-1)로 간다(R1-034).
  * - 판 1.6.0(C175): 3단계 → **4단계**(점검 → 차시 지도 요약 → 수업 화면 → 평가·과제 받는 법). 4단계는 이 쪽의 "평가 자료" 상자로 가고, 그 상자는
  *   편집본 PDF 목록(열한 줄) 위로 올렸다(걷기 B-45: 평가로 가는 길이 쪽 한가운데라 머리 검색으로 찾았다). 상자 글의 "채점 기준이 있는 차시 수"는 빌드 때 센다.
+ * - 판 1.7.0(Z3, 미해결 258·259·269): 평가 자료 상자 첫 줄이 "학생에게 나눠 줄 평가지(학습지·문항지)는 아직 없어요 — 대신 확인 퀴즈 정답표와 채점 기준 표"이고
+ *   예시 차시(2-1-2)의 교사용 칸으로 가는 링크가 붙는다. 채점 기준 표는 교과서·보충 차시 모두에 있고(개수는 빌드 때 센다) 표만 인쇄·복사하는 단추가 있다(RubricTools.astro).
+ *   2단계 "수업 화면 해 보기" 카드는 수업 화면이 바로 켜지는 주소(?view=slide, DECISIONS C133)로 간다.
  * - 편집본 PDF 목록이 가린 까닭 설명보다 앞에 오고, 까닭은 접어 둔다(R1-038). [그 쪽 열기]는 낭독기에서도 구분되는 이름(R1-039).
  * - 평가 자료 자리, 여러 사람이 쓰는 컴퓨터(공용 PC) 확인표(#shared-pc), 앞으로 올라올 자료
  * 원본 파일(PDF·PPTX)을 올리지 않는 방침은 PLAN §3.2·§9.3 6번(PD-31). 준비 중 상자(ComingSoon)는 사이트 검색에서 빠진다.
@@ -21,9 +24,8 @@ import { HANDOUT_DOCS, type HandoutDocId } from '../../components/lesson/handout
 import TeacherNav from '../../components/teacher/TeacherNav.astro';
 import { handoutFileExists, handoutFileSize } from '../../components/teacher/handout-files.ts';
 import { loadMarkdownDoc } from '../../components/teacher/markdown-docs.ts';
-import { squashTitle } from '../../components/teacher/teacher-guides.ts';
 import { loadCorrections } from '../../components/teacher/teacher-data.ts';
-import { TEACHER_PATHS, buildTeacherLessons, handoutUses, lessonHeading } from '../../components/teacher/teacher-lessons.ts';
+import { TEACHER_PATHS, buildTeacherLessons, handoutUses, lessonHeading, rubricExpected, rubricSectionOf } from '../../components/teacher/teacher-lessons.ts';
 import { TEACHER_PAGES } from '../../components/teacher/teacher-pages.ts';
 import { getPage } from '../../config/nav.ts';
 import { PROGRESS_PRIVACY_NOTE } from '../../config/privacy-text.ts';
@@ -65,8 +67,14 @@ const startTeacher = getPage('start-teacher');
 const check = getPage('start-check');
 /** 수업 화면을 직접 해 볼 차시: 기준 차시 1-1-1(없으면 첫 차시) */
 const tryLesson = lessons.find((lesson) => lesson.summary.label === '1-1-1') ?? lessons[0];
-/** "### 채점 기준" 표가 교사용 칸에 있는 차시 수(판 1.6.0 C175 — 새 차시에 표를 더하면 저절로 늘어난다) */
-const rubricCount = lessons.filter((lesson) => lesson.guide?.sections.some((section) => squashTitle(section.title).startsWith('채점기준'))).length;
+/** 수업 화면이 바로 켜지는 주소(?view=slide — present.ts wantsSlideView, DECISIONS C133). 예전에는 그냥 차시 쪽이라 거기서 [수업 화면]을 또 찾아야 했다(판 1.7.0, 걷기 N3) */
+const tryHref = tryLesson ? `${tryLesson.summary.href}?view=slide` : `${startTeacher.href}#presentation`;
+/** "### 채점 기준" 표가 교사용 칸에 있는 차시 수(새 차시에 표를 더하면 저절로 늘어난다)와 표가 있어야 하는 차시 수(교과서·보충 차시) */
+const rubricCount = lessons.filter((lesson) => rubricSectionOf(lesson) !== undefined).length;
+const rubricTarget = lessons.filter(rubricExpected).length;
+const rubricAll = rubricCount >= rubricTarget;
+/** 평가 자료 상자가 보여 줄 예시 차시: 2-1-2(LCD) — 걷기에서 교사가 따라간 차시. 없으면 표가 있는 첫 차시 */
+const exampleLesson = lessons.find((lesson) => lesson.summary.label === '2-1-2' && rubricSectionOf(lesson)) ?? lessons.find((lesson) => rubricSectionOf(lesson));
 
 /** 자료 카드 아이콘(teacher-pages.ts의 id) */
 const cardIcons: Record<string, 'list' | 'check-circle' | 'alert' | 'monitor' | 'lifebuoy'> = {
@@ -84,8 +92,8 @@ const prepSteps = [
   {
     id: 'present',
     title: '수업 화면 해 보기',
-    note: `${tryLesson?.summary.label ?? '1-1-1'} 차시에서 [수업 화면]을 눌러 프로젝터용 큰 화면을 미리 봐요`,
-    href: tryLesson?.summary.href ?? `${startTeacher.href}#presentation`,
+    note: `${tryLesson?.summary.label ?? '1-1-1'} 차시가 프로젝터용 큰 화면으로 바로 열려요(끝내기는 Esc). 다른 차시는 쪽 위쪽의 [수업 화면] 단추로 열어요`,
+    href: tryHref,
   },
   {
     id: 'assess',
@@ -150,13 +158,26 @@ const prepSteps = [
 
   <section class="teacher-section" aria-labelledby="teacher-assessment" data-teacher-assessment>
     <h2 id="teacher-assessment">평가 자료</h2>
-    <p>
-      교과서 자료의 평가 계획서와 운영 계획서는 아직 없어요. 그 대신 아래 자료가 있어요.
+    <p class="teacher-assessment__first" data-teacher-assessment-first>
+      <strong>학생에게 나눠 줄 평가지(학습지·문항지)는 아직 없어요.</strong> 그 대신 교과서 차시와 보충 차시마다 <strong>확인 퀴즈와 정답표</strong>, 그리고{' '}
+      <strong>채점 기준 표</strong>(관찰 항목마다 잘함·보통·노력 요함)가 교사용 칸에 있어요.{' '}
+      {exampleLesson && (
+        <>
+          예를 들어 <a href={`${exampleLesson.summary.href}#교사용`} data-teacher-assessment-example>{lessonHeading(exampleLesson)}의 선생님용 칸</a>을 열어 보세요.
+        </>
+      )}
     </p>
+    <p>교과서 자료의 평가 계획서와 운영 계획서도 아직 없어요. 그 대신 아래 자료가 있어요.</p>
     <ul class="teacher-assessment__list">
-      <li>
-        <strong>차시마다 채점 기준 표</strong>: 관찰 항목마다 잘함·보통·노력 요함을 한 줄씩 적은 표예요. 지금 {rubricCount}개 차시에 있고, 나머지 차시는 차례로 더해 가요.{' '}
-        <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>에서 차시 아래 바로 가기 "채점 기준"을 누르거나, 차시 페이지 머리의 <strong>[선생님용]</strong>을 눌러요. 평가 포인트(자기 평가 문항·관찰할 곳)도 같은 곳에 있어요.
+      <li data-teacher-assessment-rubric>
+        <strong>차시마다 채점 기준 표</strong>: {rubricAll ? `교과서·보충 차시 ${rubricTarget}개 모두에 있어요(대단원 마무리·읽기 자료·프로젝트 안내는 빼고요).` : `지금 ${rubricCount}개 차시에 있고, 나머지 차시는 차례로 더해 가요.`}{' '}
+        차시 페이지 머리의 <strong>[선생님용]</strong>을 누르면 교사용 칸이 열리고, 맨 위 "한눈에 보기"에서 퀴즈 정답과 채점 기준으로 바로 가요. 평가 포인트(자기 평가 문항·관찰할 곳)도 같은 곳에 있어요.{' '}
+        <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>에는 대단원마다 모두 모아 두었어요.
+      </li>
+      <li data-teacher-assessment-tools>
+        <strong>채점 기준 표만 인쇄하거나 복사하기</strong>: 교사용 칸 맨 위와 <a href={withBase(TEACHER_PATHS.guides)}>차시별 지도 요약</a>의 차시마다 <strong>[표 인쇄]</strong>와 <strong>[표 복사]</strong>{' '}
+        단추가 있어요. [표 인쇄]는 그 표만 인쇄 창에 보내고, [표 복사]는 표를 탭으로 나눈 글로 복사해서 한글·엑셀·구글 시트에 붙여 넣으면 칸마다 들어가요. 모두 이 컴퓨터 안에서만
+        하고 서버로 아무것도 보내지 않아요.
       </li>
       <li>
         <strong>학생 과제 받는 법</strong>: 실습실의 <strong>[공유 링크]</strong>는 편집칸의 코드만 주소에 담아서, 로그인 없이 학생이 보내 준 주소를 열어 과제를 볼 수 있어요. 주소가 너무 길면{' '}

@@ -36,7 +36,7 @@ export const TEACHER_PAGES: readonly TeacherPage[] = Object.freeze([
     label: '지도 요약',
     title: '차시별 지도 요약',
     path: TEACHER_PATHS.guides,
-    description: '모든 차시의 교사용 안내(지도안 요약, 평가 포인트, 자주 막히는 곳)를 대단원마다 한 페이지에 모았어요.',
+    description: '모든 차시의 교사용 안내(지도안 요약, 평가 포인트, 채점 기준 표, 자주 막히는 곳)를 대단원마다 한 페이지에 모았어요. 채점 기준 표는 표만 인쇄하거나 복사할 수 있어요.',
   }),
   page({
     id: 'standards',

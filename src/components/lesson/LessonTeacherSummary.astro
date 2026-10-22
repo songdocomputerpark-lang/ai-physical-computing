@@ -3,10 +3,13 @@
  * 교사용 접기 맨 위 "한눈에 보기" 줄(판 1.6.0, DECISIONS C175) — 퀴즈 정답과 평가 포인트·채점 기준·지도 요약으로 가는 길.
  * 내용은 teacher-summary.ts가 만든다. 접기 안이라 사이트 검색 색인에서 빠진다(상자의 data-pagefind-ignore).
  * 바로 가기는 접기 안의 ### 제목이 있을 때만 보인다("있는 것만"). 접기를 연 채라 링크가 곧바로 그 자리로 간다.
+ * 판 1.7.0(Z3, 미해결 258): 접기에 "### 채점 기준" 제목이 있으면 맨 아래에 [표 인쇄]·[표 복사] 단추 줄(RubricTools.astro)이 붙는다 —
+ * 채점 기준 표만 종이나 한글·엑셀로 가져가려고(쪽 하나를 통째로 인쇄하면 수십 장이다). 단추는 자바스크립트가 켜져야 보인다.
  */
 import type { LessonData } from '../../config/content-schemas.ts';
+import RubricTools from '../teacher/RubricTools.astro';
 import type { TeacherHeading } from './lesson-html.ts';
-import { quizAnswerKey, teacherSummaryLinks } from './teacher-summary.ts';
+import { quizAnswerKey, rubricTargetId, teacherSummaryLinks } from './teacher-summary.ts';
 
 interface Props {
   quiz: LessonData['quiz'];
@@ -19,6 +22,7 @@ const { quiz, headings, idPrefix } = Astro.props;
 const links = teacherSummaryLinks(headings);
 const answers = quizAnswerKey(quiz);
 const keyId = `${idPrefix}-quiz-key`;
+const rubricId = rubricTargetId(headings);
 ---
 
 {
@@ -52,6 +56,7 @@ const keyId = `${idPrefix}-quiz-key`;
           ))}
         </p>
       )}
+      {rubricId && <RubricTools targetId={rubricId} />}
     </div>
   )
 }

@@ -11,7 +11,16 @@ import type { LessonSource } from '../lesson/curriculum.ts';
 import { HANDOUT_DOCS, handoutPath, type HandoutDocId } from '../lesson/handouts.ts';
 import { lessonSource } from '../lesson/lesson-rules.ts';
 import { compareLessons, pagesText, toLessonSummary, type LessonSummary } from '../lesson/lesson-data.ts';
-import { extractTeacherGuide, genAiTasks, guideIdPrefix, isChangeSection, type GenAiTask, type TeacherGuide } from './teacher-guides.ts';
+import {
+  extractTeacherGuide,
+  genAiTasks,
+  guideIdPrefix,
+  isChangeSection,
+  squashTitle,
+  type GenAiTask,
+  type TeacherGuide,
+  type TeacherGuideSection,
+} from './teacher-guides.ts';
 
 /** getCollection('lessons') 항목에서 쓰는 부분 */
 export interface TeacherLessonEntry {
@@ -182,6 +191,19 @@ export function handoutUses(lessons: readonly TeacherLesson[], exists: (doc: Han
 /** 차시 교사용 접기의 "…바꾼 곳" 부분만 */
 export function changeSectionsOf(lesson: TeacherLesson): TeacherGuide['sections'] {
   return lesson.guide?.sections.filter((section) => isChangeSection(section.title)) ?? [];
+}
+
+/**
+ * 차시 교사용 접기의 "### 채점 기준" 부분(없으면 undefined) — 지도 요약 쪽의 [표 인쇄]·[표 복사](RubricTools.astro)와 자료실 첫 화면의 개수가 쓴다.
+ * 제목을 찾는 규칙은 lesson-rules.ts의 teacher-rubric(제목이 "채점 기준"으로 시작)과 같다.
+ */
+export function rubricSectionOf(lesson: TeacherLesson): TeacherGuideSection | undefined {
+  return lesson.guide?.sections.find((section) => squashTitle(section.title).startsWith('채점기준'));
+}
+
+/** 채점 기준 표가 있어야 하는 차시인지 — 교과서 차시(textbook)와 보충 차시(supplement). 대단원 마무리·읽기 자료·프로젝트 안내는 평가 칸을 따로 쓴다(판 1.7.0 Z3) */
+export function rubricExpected(lesson: TeacherLesson): boolean {
+  return lesson.summary.kind === 'textbook' || lesson.summary.kind === 'supplement';
 }
 
 /** 대단원 번호로 묶는다(1~4 순서, 차시가 없는 대단원은 빈 목록) */

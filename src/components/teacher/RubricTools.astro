@@ -1,0 +1,131 @@
+---
+/**
+ * 채점 기준 표 위의 [표 인쇄]·[표 복사] 단추 줄(판 1.7.0 구역 Z3, 미해결 258).
+ * 차시 교사용 접기 맨 위 "한눈에 보기"(LessonTeacherSummary.astro)와 지도 요약 쪽(/teacher/guides/uN/)의 차시마다 쓴다.
+ * 움직임은 rubric-tools.ts — 이 단추 줄은 자바스크립트가 켜져야 보인다(hidden → 켜지면 보임). 서버로 아무것도 보내지 않는다.
+ *
+ * - targetId: 표 바로 앞 "### 채점 기준" 제목의 id(지도 요약 쪽은 차시 앞머리가 붙은 id). 그 제목 다음 표가 대상이다.
+ * - title: 인쇄 제목과 단추 이름에 쓸 차시 이름(예: "2-1-2 LCD 제어하기"). 없으면 쪽의 첫 제목을 쓴다.
+ * 인쇄 규칙: 이 표만 담은 상자(.rubric-print-root)가 붙을 때(html[data-rubric-printing]) 쪽의 나머지를 인쇄에서 숨긴다.
+ */
+interface Props {
+  targetId: string;
+  title?: string | undefined;
+}
+
+const { targetId, title } = Astro.props;
+const prefix = title ? `${title} ` : '';
+---
+
+<p class="rubric-tools" data-rubric-tools data-rubric-target={targetId} data-rubric-title={title} hidden data-pagefind-ignore data-present-hide data-embed-hide>
+  <strong class="rubric-tools__label">채점 기준 표</strong>
+  <button type="button" class="button button--secondary rubric-tools__button" data-rubric-print aria-label={`${prefix}채점 기준 표 인쇄`}>표 인쇄</button>
+  <button type="button" class="button button--secondary rubric-tools__button" data-rubric-copy aria-label={`${prefix}채점 기준 표 복사`}>표 복사</button>
+  <span class="rubric-tools__status" role="status" data-rubric-status></span>
+</p>
+
+<script>
+  import { installRubricTools } from './rubric-tools.ts';
+
+  installRubricTools();
+</script>
+
+<style>
+  .rubric-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+  }
+
+  /* hidden 속성이 아래 display를 이기게 한다(자바스크립트가 켜지기 전에는 보이지 않는다) */
+  .rubric-tools[hidden] {
+    display: none;
+  }
+
+  .rubric-tools__label {
+    font-weight: var(--weight-semibold);
+  }
+
+  .rubric-tools__button {
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .rubric-tools__status {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>
+
+<style is:global>
+  /*
+   * 표만 인쇄: [표 인쇄]가 이 표만 담은 상자(.rubric-print-root)를 <body> 끝에 붙이고 <html>에 data-rubric-printing을 단다(rubric-tools.ts).
+   * 평소(화면)에는 상자가 보이지 않고, 인쇄할 때는 그 상자 말고 <body>의 모든 것(건너뛰기 링크·머리글·본문·바닥글)을 숨긴다.
+   */
+  .rubric-print-root {
+    display: none;
+  }
+
+  @media print {
+    .rubric-tools {
+      display: none !important;
+    }
+
+    html[data-rubric-printing] body > :not(.rubric-print-root) {
+      display: none !important;
+    }
+
+    html[data-rubric-printing] .rubric-print-root {
+      display: block;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #000;
+      font-size: 11pt;
+      line-height: 1.45;
+    }
+
+    .rubric-print-root h1 {
+      margin: 0 0 8pt;
+      font-size: 16pt;
+    }
+
+    .rubric-print-root p {
+      margin: 0 0 8pt;
+    }
+
+    .rubric-print-root table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .rubric-print-root th,
+    .rubric-print-root td {
+      padding: 6pt 8pt;
+      border: 1px solid #000;
+      text-align: start;
+      vertical-align: top;
+    }
+
+    .rubric-print-root th {
+      background: #e8e8e8;
+      font-weight: 700;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .rubric-print-root tr {
+      break-inside: avoid;
+    }
+
+    .rubric-print-root__source {
+      margin: 10pt 0 0;
+      color: #333;
+      font-size: 9pt;
+      overflow-wrap: anywhere;
+    }
+  }
+</style>
