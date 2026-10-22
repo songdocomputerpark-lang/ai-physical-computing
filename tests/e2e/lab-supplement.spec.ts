@@ -298,10 +298,11 @@ test.describe('보충 V1~V5 예제(가짜 카메라·샘플 입력)', () => {
       await test.step(`차시 ${example.lesson}`, async () => {
         const response = await page.goto(withBase(`learn/u1/${example.lesson}/`));
         expect(response?.status()).toBe(200);
-        // 따라하기 칸의 예제 코드 블록(파일 경로와 코드가 그대로 보인다)
+        // 따라하기 칸의 예제 코드 블록(코드가 그대로 보인다). 저장소 경로(examples/…)는 학생에게 만드는 사람 말이라 보이지 않는다(판 1.7.0, 미해결 272 ② B-10) —
+        // 어느 파일인지는 data-example-file과 [실습실에서 크게 열기]의 ?example=이 알린다.
         const figure = page.locator(`figure.lesson-example[data-example-file="${example.file}"]`);
         await expect(figure).toHaveCount(1);
-        await expect(figure).toContainText(`examples/${example.file}`);
+        await expect(figure).not.toContainText(`examples/${example.file}`);
         await expect(figure.locator('pre.lesson-code')).toContainText(example.codeMark);
         // [실습실에서 열기] 링크(P2-14에서 "(준비 중)"을 뗀다)
         const link = figure.getByRole('link');

@@ -7,12 +7,20 @@
  * - 뜻을 글자로 알린다(난이도 점은 꾸밈이라 화면 낭독기가 읽지 않는다).
  * - <dt>와 <dd> 사이에는 공백 글자를 둔다({' '}): 화면 모양은 flex 간격이 잡지만, 검색 색인·낭독기가 읽는 글에서는 두 글이 붙어
  *   "소요 시간50분. 준비물RGB"처럼 한 낱말이 됐다(R2-026). 글에는 공백이 있고 화면에는 보이지 않는다.
+ *
+ * 판 1.7.0(PROGRESS 미해결 272 ④·261 — 종합 T10 "차시 머리가 틀로 가득", walk-student-first #4·#8):
+ * - 늘 보이는 칩은 둘 — 소요 시간·난이도. 나머지(성취기준·준비물·가상 보드·실습실·교과서 쪽과 성취기준 풀이 한 줄)는 같은 줄 끝의 닫힌
+ *   [차시 정보 ▸](<details>) 안에 둔다. 학생이 처음 읽는 자리에 성취기준 코드·개발자 칩이 늘어서 본문이 아래로 밀렸다. 펼치면 칩들이 다음 줄에 그대로 보인다.
+ *   칸 표시(data-meta)·글은 그대로라 검색 색인·낭독기·시험이 읽는 글은 같다(접혀 있어도 문서에 있다).
+ * - "실습실" 칸은 그 실습실 첫 화면이 아니라 **이 차시 예제를 고른 채로** 연다(lesson-data.ts lessonLabLink — 같은 실습실의 첫 예제 `?example=`,
+ *   예제가 여럿이면 예제 1부터, 통신 실습실은 짝 안내 쪽). 무엇이 열리는지 링크 옆에 한 줄로 적는다.
+ * - 슬롯(기본): 펼친 [차시 정보] 칸 끝에 쪽이 더 넣을 것(종합 7-2 "차시 정보 ▸"에 큰 그림 칩·준비물 사진을 함께 두자는 안 — 넣을지는 머리 자리를 맡은 쪽이 정한다).
  */
 import {
   STANDARDS_NOTE,
   difficultyText,
   formatDuration,
-  labLink,
+  lessonLabLink,
   materialsText,
   pagesText,
   standardsEmptyText,
@@ -20,6 +28,7 @@ import {
   type LessonSummary,
 } from './lesson-data.ts';
 import { glossaryEntryHref } from '../glossary/glossary.ts';
+import { withParticle } from '../../lib/korean.ts';
 
 interface Props {
   lesson: LessonSummary;
@@ -32,88 +41,110 @@ const duration = formatDuration(lesson.duration);
 const difficulty = difficultyText(lesson.difficulty);
 const virtualBoard = virtualBoardText(lesson.virtualOk);
 const pages = hidePages ? undefined : pagesText(lesson.pages);
-const lab = lesson.lab ? labLink(lesson.lab) : undefined;
+const lab = lessonLabLink(lesson.lab, lesson.exampleFiles ?? []);
+// 링크 옆 한 줄: 무엇이 열리는지(예제를 고른 채로 여는지, 예제가 여럿이면 몇 번부터인지)
+const labNote = lab?.exampleFile
+  ? lab.exampleNumber === undefined
+    ? '이 차시 예제가 골라진 채로 열려요'
+    : `이 차시 ${withParticle(`예제 ${lab.exampleNumber}`, '이/가')} 골라진 채로 열려요`
+  : undefined;
 const hasStandards = lesson.standards.length > 0;
 const emptyStandards = standardsEmptyText(lesson.label);
 ---
 
 <div class="lesson-meta">
-  <dl class="lesson-meta__list">
-    <div class="lesson-meta__item" data-meta="standards">
-      {/* 학생에게 낯선 말이라 용어사전 풀이로 잇는다(R2-048). 링크 하나뿐이고 보이는 차례 = Tab 차례. */}
-      <dt><a class="lesson-meta__term" href={glossaryEntryHref('achievement-standard')}>성취기준</a></dt>{' '}
-      <dd>
+  <div class="lesson-meta__row">
+    {
+      (duration || (difficulty && lesson.difficulty)) && (
+        <dl class="lesson-meta__list">
+          {duration && (
+            <div class="lesson-meta__item" data-meta="duration">
+              <dt>소요 시간</dt>{' '}
+              <dd>{duration}</dd>
+            </div>
+          )}
+          {difficulty && lesson.difficulty && (
+            <div class="lesson-meta__item" data-meta="difficulty">
+              <dt>난이도</dt>{' '}
+              <dd>
+                <span class="lesson-meta__dots" aria-hidden="true">
+                  {[1, 2, 3].map((step) => (
+                    <span class:list={['lesson-meta__dot', { 'lesson-meta__dot--on': step <= (lesson.difficulty ?? 0) }]} />
+                  ))}
+                </span>
+                {difficulty}
+              </dd>
+            </div>
+          )}
+        </dl>
+      )
+    }
+    <details class="lesson-meta__more" data-lesson-meta-more>
+      <summary class="lesson-meta__summary">차시 정보</summary>
+      <dl class="lesson-meta__list lesson-meta__list--more">
+        <div class="lesson-meta__item" data-meta="standards">
+          {/* 학생에게 낯선 말이라 용어사전 풀이로 잇는다(R2-048). 링크 하나뿐이고 보이는 차례 = Tab 차례. */}
+          <dt><a class="lesson-meta__term" href={glossaryEntryHref('achievement-standard')}>성취기준</a></dt>{' '}
+          <dd>
+            {
+              hasStandards ? (
+                lesson.standards.map((code) => <span class="lesson-meta__code">[{code}]</span>)
+              ) : (
+                <span class:list={[emptyStandards.intentional ? 'lesson-meta__none' : 'lesson-meta__pending']}>{emptyStandards.text}</span>
+              )
+            }
+          </dd>
+        </div>
+        <div class="lesson-meta__item" data-meta="materials">
+          <dt>준비물</dt>{' '}
+          <dd>{materialsText(lesson.materials)}</dd>
+        </div>
         {
-          hasStandards ? (
-            lesson.standards.map((code) => <span class="lesson-meta__code">[{code}]</span>)
-          ) : (
-            <span class:list={[emptyStandards.intentional ? 'lesson-meta__none' : 'lesson-meta__pending']}>{emptyStandards.text}</span>
+          virtualBoard && (
+            <div class="lesson-meta__item" data-meta="virtual-board">
+              <dt>가상 보드</dt>{' '}
+              <dd>{virtualBoard}</dd>
+            </div>
           )
         }
-      </dd>
-    </div>
-    {
-      duration && (
-        <div class="lesson-meta__item" data-meta="duration">
-          <dt>소요 시간</dt>{' '}
-          <dd>{duration}</dd>
-        </div>
-      )
-    }
-    <div class="lesson-meta__item" data-meta="materials">
-      <dt>준비물</dt>{' '}
-      <dd>{materialsText(lesson.materials)}</dd>
-    </div>
-    {
-      difficulty && lesson.difficulty && (
-        <div class="lesson-meta__item" data-meta="difficulty">
-          <dt>난이도</dt>{' '}
-          <dd>
-            <span class="lesson-meta__dots" aria-hidden="true">
-              {[1, 2, 3].map((step) => (
-                <span class:list={['lesson-meta__dot', { 'lesson-meta__dot--on': step <= (lesson.difficulty ?? 0) }]} />
-              ))}
-            </span>
-            {difficulty}
-          </dd>
-        </div>
-      )
-    }
-    {
-      virtualBoard && (
-        <div class="lesson-meta__item" data-meta="virtual-board">
-          <dt>가상 보드</dt>{' '}
-          <dd>{virtualBoard}</dd>
-        </div>
-      )
-    }
-    {
-      lab && (
-        <div class="lesson-meta__item" data-meta="lab">
-          <dt>실습실</dt>{' '}
-          <dd>
-            <a href={lab.href}>{lab.label}</a>
-          </dd>
-        </div>
-      )
-    }
-    {
-      pages && (
-        <div class="lesson-meta__item" data-meta="pages">
-          <dt>교과서</dt>{' '}
-          <dd>{pages}</dd>
-        </div>
-      )
-    }
-  </dl>
-  {hasStandards && <p class="lesson-meta__note">{STANDARDS_NOTE}</p>}
+        {
+          lab && (
+            <div class="lesson-meta__item" data-meta="lab">
+              <dt>실습실</dt>{' '}
+              <dd>
+                <a href={lab.href} data-lesson-meta-lab>{lab.label}</a>{' '}
+                {labNote && <span class="lesson-meta__sub">{labNote}</span>}
+              </dd>
+            </div>
+          )
+        }
+        {
+          pages && (
+            <div class="lesson-meta__item" data-meta="pages">
+              <dt>교과서</dt>{' '}
+              <dd>{pages}</dd>
+            </div>
+          )
+        }
+      </dl>
+      {hasStandards && <p class="lesson-meta__note">{STANDARDS_NOTE}</p>}
+      {/* 펼친 칸 끝에 더 넣을 것(예: 큰 그림 자리 FlowPosition) — 쪽이 슬롯으로 넘긴다. 없으면 아무것도 그리지 않는다 */}
+      <slot />
+    </details>
+  </div>
 </div>
 
 <style>
   .lesson-meta {
-    display: grid;
-    gap: var(--space-2);
     margin-block-end: var(--space-6);
+  }
+
+  /* 칩 둘과 [차시 정보 ▸]가 한 줄(좁으면 줄을 바꾼다). 펼치면 접기 칸이 다음 줄 전체를 쓰고 그 안에 나머지 칩이 이어진다. */
+  .lesson-meta__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
   }
 
   .lesson-meta__list {
@@ -149,11 +180,76 @@ const emptyStandards = standardsEmptyText(lesson.label);
     font-weight: var(--weight-semibold);
   }
 
+  /* [차시 정보 ▸]: 칩과 같은 높이의 단추 모양(손가락으로 누르기 쉽게 44px). 세모는 global.css .more와 같은 그림(C68 — 테두리 세모). */
+  .lesson-meta__more {
+    min-width: 0;
+  }
+
+  .lesson-meta__more[open] {
+    flex: 1 1 100%;
+  }
+
+  .lesson-meta__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: var(--target-min);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .lesson-meta__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .lesson-meta__summary::after {
+    flex: none;
+    inline-size: 0;
+    block-size: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-block-width: 0.35em;
+    border-inline-width: 0.5em 0;
+    border-inline-start-color: currentColor;
+    content: '';
+  }
+
+  .lesson-meta__more[open] > .lesson-meta__summary::after {
+    transform: rotate(90deg);
+  }
+
+  .lesson-meta__summary:hover {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-soft);
+  }
+
+  .lesson-meta__summary:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* 펼친 내용: [차시 정보 ▾] 아래로 칩 줄과 성취기준 풀이 한 줄 */
+  .lesson-meta__list--more {
+    margin-block-start: var(--space-2);
+  }
+
   /* 실습실 링크: 글자 높이(약 20px)뿐이라 누르기 어려웠다(R1-070) — 칩 안에서 눌리는 곳만 위아래로 넓힌다 */
   .lesson-meta__item[data-meta='lab'] a {
     display: inline-block;
     margin-block: -0.6rem;
     padding-block: 0.6rem;
+  }
+
+  .lesson-meta__sub {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
   }
 
   .lesson-meta__code {
@@ -197,8 +293,25 @@ const emptyStandards = standardsEmptyText(lesson.label);
   }
 
   .lesson-meta__note {
+    margin-block: var(--space-2) 0;
     color: var(--color-text-muted);
     font-size: var(--text-xs);
     line-height: var(--leading-snug);
+  }
+
+  /* 강제 색(윈도 고대비): 세모 색을 미리 정할 수 없어 브라우저 기본 표식으로(global.css .more와 같은 규칙 — C68) */
+  @media (forced-colors: active) {
+    .lesson-meta__summary {
+      display: list-item;
+      list-style: revert;
+    }
+
+    .lesson-meta__summary::-webkit-details-marker {
+      display: revert;
+    }
+
+    .lesson-meta__summary::after {
+      content: none;
+    }
   }
 </style>

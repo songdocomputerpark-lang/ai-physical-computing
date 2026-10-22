@@ -15,6 +15,7 @@ import {
   labLink,
   labOfExampleFile,
   lessonBreadcrumb,
+  lessonLabLink,
   lessonDocumentTitle,
   lessonHeadingLabel,
   lessonSlug,
@@ -263,6 +264,40 @@ describe('뱃지·표시 문장', () => {
     expect(labLink(labOfExampleFile('esp32/u3/3-1-2-uart-laser.py')!, 'esp32/u3/3-1-2-uart-laser.py').href).toBe(
       `${getPage('labs-esp32').href}?example=esp32%2Fu3%2F3-1-2-uart-laser.py`,
     );
+  });
+
+  // 판 1.7.0(PROGRESS 미해결 261 — walk-student-first #4): 차시 머리 "실습실" 칸이 실습실 첫 화면이 아니라 이 차시 예제를 고른 채로 연다
+  it('차시 머리 실습실 칸(lessonLabLink): 같은 실습실의 첫 예제를 ?example=로 열고, 여럿이면 그 번호를 함께 준다', () => {
+    const vision = getPage('labs-vision').href;
+    const esp32 = getPage('labs-esp32').href;
+    // 예제 하나: 번호 없이 그 예제
+    expect(lessonLabLink('vision', ['vision/u1/1-1-1-sort-vs-group.py'])).toEqual({
+      label: getPage('labs-vision').label,
+      href: `${vision}?example=vision%2Fu1%2F1-1-1-sort-vs-group.py`,
+      exampleFile: 'vision/u1/1-1-1-sort-vs-group.py',
+    });
+    // 예제 여럿: 예제 1부터
+    expect(lessonLabLink('esp32', ['esp32/u2/a.py', 'esp32/u2/b.py'])).toMatchObject({
+      href: `${esp32}?example=esp32%2Fu2%2Fa.py`,
+      exampleFile: 'esp32/u2/a.py',
+      exampleNumber: 1,
+    });
+    // 컴퓨터 쪽·보드 쪽이 섞인 차시: frontmatter lab과 같은 실습실의 첫 예제(번호는 차시 차례 그대로)
+    expect(lessonLabLink('vision', ['esp32/u3/board.py', 'vision/u3/pc.py'])).toMatchObject({
+      href: `${vision}?example=vision%2Fu3%2Fpc.py`,
+      exampleNumber: 2,
+    });
+    // 그 실습실 예제가 없으면 실습실 첫 화면, 통신 실습실은 짝 안내 쪽, lab이 없으면 칸 없음
+    expect(lessonLabLink('esp32', ['vision/u1/a.py'])).toEqual(labLink('esp32'));
+    expect(lessonLabLink('esp32', [])).toEqual(labLink('esp32'));
+    expect(lessonLabLink('iot', ['esp32/u3/board.py', 'vision/u3/pc.py'])).toEqual(labLink('iot'));
+    expect(lessonLabLink(undefined, ['vision/u1/a.py'])).toBeUndefined();
+  });
+
+  it('차시 요약에 따라 하기 예제 파일 차례가 들어간다(lessonLabLink가 쓴다)', () => {
+    const summary = toLessonSummary(entry('u1/1-1-1', { label: '1-1-1', lab: 'vision', examples: [{ file: 'vision/u1/a.py' }, { file: 'esp32/u1/b.py' }] }));
+    expect(summary.exampleFiles).toEqual(['vision/u1/a.py', 'esp32/u1/b.py']);
+    expect(toLessonSummary(entry('u1/v4')).exampleFiles).toEqual([]);
   });
 
   it('차시 현재 위치는 홈 › 따라 하기 › 대단원 › 차시(마지막 칸은 링크 없음)', () => {

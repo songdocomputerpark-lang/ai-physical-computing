@@ -39,7 +39,11 @@ describe('따라 하기 예제 안내 낱말(R3-010·R3-011)', () => {
   });
 
   it("안내 문장은 '바꿔 볼 것'으로 띄어 쓴다(주석 머리말 '바꿔볼 것 3가지'는 파서가 글자 그대로 읽으므로 그대로)", () => {
-    expect(examples).toContain('(바꿔 볼 것, 왜 이런 결과가 나올까)');
+    // 판 1.7.0(미해결 272 ② B-10): 그 낱말이 들어 있던 "…안내 주석 n줄(바꿔 볼 것, …)은 여기서는 뺐어요" 안내와 저장소 경로 줄은 지웠다 — 만드는 사람 말이었다
+    expect(examples).not.toContain('여기서는 뺐어요');
+    expect(examples).not.toContain('lesson-example__file');
     expect(examples).not.toContain('(바꿔볼 것,');
+    // 대신 주석 풀이 한 줄
+    expect(examples).toContain('#으로 시작하는 흐린 줄은 사람이 읽는 설명(주석)이라 실행되지 않아요.');
   });
 });

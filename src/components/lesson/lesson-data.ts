@@ -14,6 +14,7 @@ import { unmappedReason } from '../../config/standards.ts';
 import { pageRangeText, reviewUnitOf, unitName, unitNumberName } from '../../lib/display-names.ts';
 import { withParticle } from '../../lib/korean.ts';
 import { withBase } from '../../lib/url.ts';
+import { lessonExampleNumbers } from '../../lab/controls/example-names.ts';
 import { CURRICULUM, type LessonKind, type LessonSource, type UnitCurriculum } from './curriculum.ts';
 
 export type LabId = (typeof LAB_IDS)[number];
@@ -80,6 +81,11 @@ export interface LessonSummary {
   readonly lab?: LabId;
   readonly standards: readonly string[];
   readonly materials: readonly string[];
+  /**
+   * 따라 하기 예제 파일(frontmatter examples[].file — examples/ 뒤 경로) 차례(판 1.7.0). 차시 머리 "실습실" 칸이 이 차시 첫 예제로 가는 데 쓴다(lessonLabLink).
+   * 교과서 쪽을 이 모양으로 바꾼 값(book-data.ts bookAsLesson)에는 없다.
+   */
+  readonly exampleFiles?: readonly string[];
   /** 사이트 안 경로(base 없음). 예: /learn/u1/1-1-1/ */
   readonly path: string;
   /** base를 붙인 링크 */
@@ -122,6 +128,7 @@ export function toLessonSummary(entry: LessonEntryLike): LessonSummary {
     lab: data.lab,
     standards: data.standards,
     materials: data.materials,
+    exampleFiles: (data.examples ?? []).map((example) => example.file),
     path,
     href: withBase(path),
   };
@@ -554,6 +561,43 @@ export function labLink(lab: LabId, exampleFile?: string): { label: string; href
     label: page.label,
     href: exampleFile ? `${page.href}?example=${encodeURIComponent(exampleFile)}` : page.href,
   };
+}
+
+/** 차시 머리 "실습실" 칸의 링크(lessonLabLink) */
+export interface LessonLabLink {
+  readonly label: string;
+  readonly href: string;
+  /** 이 링크가 고른 채로 여는 예제(examples/ 뒤 경로). 실습실 첫 화면으로 가면 없다 */
+  readonly exampleFile?: string;
+  /** 그 예제의 번호(차시 예제가 둘 이상일 때만 — example-names.ts lessonExampleNumbers와 같은 번호) */
+  readonly exampleNumber?: number;
+}
+
+/**
+ * 차시 머리 "실습실" 칸의 링크(판 1.7.0, 미해결 261 — walk-student-first #4: 칩이 이 차시 예제가 아니라 실습실 첫 화면으로 갔다).
+ * 규칙(DECISIONS 판 1.7.0 Z1):
+ * - frontmatter `lab`이 영상 처리·ESP32면 **이 차시 따라 하기의 첫 예제 가운데 그 실습실에서 도는 첫 예제**를 고른 채로 연다 —
+ *   주소는 [실습실에서 크게 열기]와 같은 `?example=`(labLink). 차시 예제가 여럿이면 예제 1부터(학생이 따라 하기에서 처음 만나는 예제)이고,
+ *   나머지 예제는 실습실의 예제 고르기 칸과 따라 하기의 [실습실에서 크게 열기]로 연다. 통신 차시처럼 컴퓨터 쪽·보드 쪽 예제가 섞여 있으면
+ *   frontmatter `lab`과 같은 실습실의 예제만 본다(labOfExampleFile — 다른 실습실 예제를 고르면 실습실이 "없는 예제"로 알린다).
+ * - 그 실습실 예제가 하나도 없으면(예제 없는 차시) 실습실 첫 화면.
+ * - `lab: iot`(통신 실습실)은 예제를 고르는 쪽이 아니라 두 실습실 짝을 안내하는 쪽이라 그 쪽 그대로(짝 한쪽만 열면 반쪽 실습이 된다).
+ * - `lab`이 없으면 칸을 그리지 않는다(undefined).
+ */
+export function lessonLabLink(lab: LabId | undefined, exampleFiles: readonly string[] = []): LessonLabLink | undefined {
+  if (!lab) {
+    return undefined;
+  }
+  if (lab === 'iot') {
+    return labLink(lab);
+  }
+  const index = exampleFiles.findIndex((file) => labOfExampleFile(file) === lab);
+  const file = index < 0 ? undefined : exampleFiles[index];
+  if (file === undefined) {
+    return labLink(lab);
+  }
+  const number = lessonExampleNumbers(exampleFiles)[index];
+  return { ...labLink(lab, file), exampleFile: file, ...(number === undefined ? {} : { exampleNumber: number }) };
 }
 
 /** 차시 페이지의 현재 위치(홈 › 따라 하기 › 1단원 영상 처리 인공지능 › 차시 — 단원 이름은 숫자로, C127·판 1.6.0) */

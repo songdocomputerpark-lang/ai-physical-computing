@@ -6,7 +6,8 @@
  *   2. 누르면 그 자리에 <iframe>이 생기고, 안의 실습실이 그 차시의 예제를 **미리 올린 채로** 열린다.
  *   3. 임베드 안에서는 머리글·바닥글이 숨고(?embed=1), 실습실 틀은 그대로 보인다.
  *   4. [실습실에서 열기]는 "(준비 중)" 없이 같은 예제로 실습실 페이지를 연다.
- *   5. 좁은 화면에서 가로로 넘치지 않는다. 틀은 화면 높이를 넘지 않고(휴대폰에서 틀 안 스크롤에 갇히지 않게), 틀 바로 아래에 [실습실 접기]가 있다.
+ *   5. 좁은 화면에서 가로로 넘치지 않는다. 틀 높이는 안쪽 문서 높이에 맞춰 스크롤이 차시 쪽 하나뿐이고(판 1.7.0 — 예전에는 화면 높이를 넘지 않게 해
+ *      틀 안 스크롤에 갇히지 않게 했다), 틀 바로 아래에 [실습실 접기]가 있다. [실행]해도 [실행]과 코드가 화면에 남는다(미해결 261 #13·#14).
  *   6. 실습실 페이지로 넘어간 학생에게는 "이 예제가 나오는 차시" 링크가 보여 차시로 돌아갈 수 있다. 없는 예제 이름이면 조용히 넘기지 않고 알린다.
  */
 import { expect, test } from '@playwright/test';
@@ -73,13 +74,26 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     // 같은 차시 안이라 "이 예제가 나오는 차시" 줄은 임베드에서 숨는다.
     await expect(frame.locator('[data-lab-lesson]')).toBeHidden();
 
-    // 틀은 화면 높이를 넘지 않는다(2026-09-17 검토: 375×812에서 1,024px 틀 안 스크롤에 갇히던 문제).
-    const sizes = await page.evaluate(() => {
-      const frameElement = document.querySelector('iframe.lesson-example__frame');
-      return { frame: frameElement?.getBoundingClientRect().height ?? 0, viewport: window.innerHeight };
-    });
-    expect(sizes.frame).toBeGreaterThan(300);
-    expect(sizes.frame, '실습실 틀 높이').toBeLessThanOrEqual(sizes.viewport);
+    // 판 1.7.0(미해결 261 #13 — walk-student-first: 375에서 342×650 틀 안 문서 3,146px, 쪽·틀·코드 칸·콘솔이 겹쳐 스크롤):
+    // 틀이 읽히면 틀 높이를 안쪽 문서 높이에 맞춰 스크롤은 차시 쪽 하나뿐이다(안쪽 뿌리 data-embed-fit, 틀 data-fit).
+    // (예전 규칙 "틀은 화면 높이를 넘지 않는다"는 틀 안 스크롤에 갇히지 않게 하려던 것 — 틀이 스스로 스크롤하지 않으니 이제 필요 없다)
+    const iframe = page.locator('iframe.lesson-example__frame');
+    await expect(iframe).toHaveAttribute('data-fit', '', { timeout: LOAD_TIMEOUT });
+    await expect(frame.locator('html')).toHaveAttribute('data-embed-fit', '');
+    await expect
+      .poll(async () => {
+        const outer = await iframe.evaluate((element) => element.getBoundingClientRect().height);
+        const inner = await frame.locator('html').evaluate((html) => ({ height: html.getBoundingClientRect().height, scroll: html.scrollHeight, client: html.clientHeight }));
+        // 틀 높이 = 안쪽 문서 높이(올림 1px 안), 안쪽은 스스로 스크롤할 것이 없다
+        return Math.abs(outer - inner.height) <= 1.5 && inner.scroll <= inner.client + 1;
+      }, { message: '틀 높이가 안쪽 문서 높이와 같고 틀 안이 스크롤되지 않는다', timeout: 15_000 })
+      .toBe(true);
+    const fitted = await iframe.evaluate((element) => element.getBoundingClientRect().height);
+    expect(fitted, '실습실 전체가 틀 안에 들어간다(편집칸 + 입력·출력 + 콘솔)').toBeGreaterThan(600);
+    // 편집칸 높이는 예전처럼 바깥 화면 높이로 잰다(틀 안 vh는 문서 전체라 쓰지 않는다 — global.css --embed-vh): 화면보다 크지 않다
+    const editorHeight = await frame.locator('[data-lab-editor]').evaluate((element) => element.getBoundingClientRect().height);
+    const viewportHeight = await page.evaluate(() => window.innerHeight);
+    expect(editorHeight, '편집칸 높이').toBeLessThan(viewportHeight);
     // 넓은 화면(왼쪽에 단원 차시 목록이 붙는 64rem 이상)에서는 실습실 칸이 본문 칸 안에 들어간다 — 목록 밑으로 들어가거나 오른쪽이 잘려
     // 가로 스크롤이 생기던 것(1443 > 1366)을 고쳤다(R1-079).
     if ((page.viewportSize()?.width ?? 0) >= 1024) {
@@ -131,6 +145,30 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     expect(inner.actionsRight, '[실행]·[정지]·[초기화] 오른쪽 끝').toBeLessThanOrEqual(inner.width);
     const outer = await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth));
     expect(outer, '차시 페이지 가로 넘침').toBe(0);
+  });
+
+  // 판 1.7.0(미해결 261 #14 — walk-student-first): [실행] 뒤 틀 안이 결과 칸(빈 영상 칸)으로 내려가 코드와 [실행]이 사라졌다.
+  // 높이 맞춤 틀에서는 실습실의 "화면 안으로 옮기기"가 바깥 쪽 화면으로 재고 바깥 쪽을 굴리며, 보이는 조작 줄을 화면 밖으로 밀지 않는다(src/lab/controls/reveal.ts).
+  test('차시 안 실습실에서 [실행]해도 [실행] 단추와 코드가 화면에 남고, 틀 안은 스크롤되지 않는다', async ({ page }) => {
+    test.setTimeout(4 * 60_000);
+    await page.goto(withBase('learn/u1/1-1-1/'));
+    await page.locator('[data-lesson-lab-open]').first().click();
+    const iframe = page.locator('iframe.lesson-example__frame');
+    const frame = page.frameLocator('iframe.lesson-example__frame');
+    const lab = frame.locator('[data-lab]');
+    await expect(lab).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    await expect(iframe).toHaveAttribute('data-fit', '', { timeout: LOAD_TIMEOUT });
+    const run = frame.getByRole('button', { name: '실행', exact: true });
+    await run.scrollIntoViewIfNeeded();
+    await run.click();
+    await expect(lab).toHaveAttribute('data-outcome', 'ok', { timeout: LOAD_TIMEOUT });
+    await expect(frame.locator('[data-lab-console]')).toContainText('사진1');
+    // 결과 알림이 뜨고 화면 옮기기(부드럽게)가 끝날 때까지
+    await page.waitForTimeout(1_000);
+    await expect(run).toBeInViewport();
+    await expect(frame.locator('[data-lab-editor]')).toBeInViewport({ ratio: 0.25 });
+    // 스크롤은 바깥 쪽 하나 — 틀 안 문서는 굴러가 있지 않다
+    expect(await frame.locator('html').evaluate(() => window.scrollY)).toBe(0);
   });
 
   test('[실습실에서 열기]는 그 예제를 고른 채 실습실 페이지를 연다', async ({ page }) => {

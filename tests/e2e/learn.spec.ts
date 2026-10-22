@@ -144,17 +144,25 @@ test.describe('차시 페이지', () => {
     await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText('1-1-1 인공지능 응용 프로그램과 에이전트');
 
     const meta = page.locator('.lesson-meta');
-    await expect(meta.locator('[data-meta="standards"]')).toContainText('[12인피01-01]');
+    // 판 1.7.0(미해결 272 ④): 늘 보이는 칩은 소요 시간·난이도 둘, 나머지는 닫힌 [차시 정보] 안(글은 문서에 그대로 있다)
+    await expect(meta.locator('[data-meta="duration"]')).toBeVisible();
     await expect(meta.locator('[data-meta="duration"]')).toContainText('50분');
-    await expect(meta.locator('[data-meta="materials"]')).toContainText('따로 준비할 것 없음');
+    await expect(meta.locator('[data-meta="difficulty"]')).toBeVisible();
     await expect(meta.locator('[data-meta="difficulty"]')).toContainText('쉬움');
+    await expect(meta.locator('[data-meta="standards"]')).toBeHidden();
+    await expect(meta.locator('[data-meta="standards"]')).toContainText('[12인피01-01]');
+    await expect(meta.locator('[data-meta="materials"]')).toContainText('따로 준비할 것 없음');
     // 짝 교과서 쪽이 있으면 쪽 범위는 전환 줄 [교과서 원문 8~12쪽]에 한 번만(판 1.6.0 — B-90), 앞 0 없이
     await expect(meta.locator('[data-meta="pages"]')).toHaveCount(0);
     await expect(page.getByRole('navigation', { name: '같은 내용을 보는 방법' })).toContainText('교과서 원문 8~12쪽');
+    await meta.locator('summary', { hasText: '차시 정보' }).click();
+    await expect(meta.locator('[data-meta="standards"]')).toBeVisible();
+    // 실습실 칸은 실습실 첫 화면이 아니라 이 차시 예제를 고른 채로 연다(판 1.7.0, 미해결 261 — walk-student-first #4)
     await expect(meta.locator('[data-meta="lab"]').getByRole('link', { name: '영상 처리 실습실' })).toHaveAttribute(
       'href',
-      withBase('labs/vision/'),
+      `${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u1/1-1-1-sort-vs-group.py')}`,
     );
+    await expect(meta.locator('[data-meta="lab"]')).toContainText('이 차시 예제가 골라진 채로 열려요');
 
     for (const title of ['학습목표', '왜 배울까', '핵심 개념', '따라 하기', '바꿔 보기', '도전 과제', '확인 퀴즈', '교사용']) {
       await expect(page.getByRole('heading', { level: 2, name: title, exact: true })).toBeVisible();
@@ -168,6 +176,10 @@ test.describe('차시 페이지', () => {
     await expect(example.locator('.lesson-code')).toContainText('photos = [');
     await expect(example.locator('.lesson-code__line').first()).toHaveText(/^# 1-1-1 체험/u);
     await expect(example.getByRole('region', { name: /코드, \d+줄$/u })).toHaveCount(1);
+    // 판 1.7.0(미해결 272 ② B-10): 카드에 저장소 경로(examples/…)와 "…여기서는 뺐어요" 안내가 없고, 주석 풀이 한 줄이 있다
+    await expect(example).not.toContainText('examples/');
+    await expect(example).not.toContainText('뺐어요');
+    await expect(example.locator('.lesson-example__comment-note')).toContainText('#으로 시작하는 흐린 줄은 사람이 읽는 설명(주석)이라 실행되지 않아요.');
     // R2-016: 이 페이지 안에서 여는 단추와 이름이 겹치지 않게 "실습실에서 크게 열기: <예제 이름>"(예제 이름이 붙어 같은 페이지의 다른 예제 링크와도 구별된다)
     await expect(example.getByRole('link', { name: /^실습실에서 크게 열기: ./u })).toHaveAttribute(
       'href',
@@ -192,6 +204,32 @@ test.describe('차시 페이지', () => {
     await pager.getByRole('link', { name: /다음 차시/u }).click();
     // 차례표 순서대로 1-1-1 다음은 1-1-2다(보충 V1~V5는 1-1-3 뒤, order 3.1~3.5).
     await expect(page).toHaveURL(new RegExp(`${withBase('learn/u1/1-1-2/')}$`, 'u'));
+  });
+
+  // 판 1.7.0(미해결 272 ④ — walk-student-first #20·B-12): "바꿔 볼 것"이 실습실 상자 밑 멀리 있어 코드를 고치러 다시 올라가야 했다
+  test('바꿔 보기 제목 밑 "↑ 실습실로"는 따라 하기 예제의 실습실 단추로 데려가 초점을 준다(실습실은 여전히 누를 때만 받는다)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-1/');
+    const trySection = page.locator('section.lesson-section[data-section="try"]');
+    const back = trySection.getByRole('link', { name: /^실습실로/u });
+    await expect(back).toBeVisible();
+    await expect(back).toHaveText(/↑\s*실습실로/u);
+    await back.click();
+    const open = page.locator('[data-lesson-lab-open]').first();
+    await expect(open).toBeFocused();
+    await expect(open).toBeInViewport();
+    await expect(page.locator('iframe')).toHaveCount(0);
+  });
+
+  // 판 1.7.0(미해결 271 B-44): 카드 이름 = 차시 frontmatter 제목을 실습실 고르기 칸과 같은 규칙(example-names.ts)으로 다듬은 것
+  test('예제 카드 이름은 학생 말로 다듬은 차시 제목이다(쪽 번호 앞 0 없음, "사이트판" → "바로 실행 버전")', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-2/');
+    await expect(page.locator('figure.lesson-example[data-example-file="vision/u1/1-1-2-hands-first-site.py"] .lesson-example__title')).toHaveText(
+      'MediaPipe로 손 관절 점 그리기(교과서 17쪽 코드)',
+    );
+    await page.goto('./learn/u2/2-1-3/');
+    await expect(page.locator('figure.lesson-example[data-example-file="esp32/u2/2-1-3-adv-touch4-check-site.py"] .lesson-example__title')).toHaveText(
+      '심화 실습 1단계: 4채널 터치 센서 값 읽기(교과서 137쪽, 바로 실행 버전)',
+    );
   });
 
   test('1-1-3 다음은 보충 V1이다(보충 차시는 교과서 차시 사이에 order로 끼운다)', async ({ page }) => {

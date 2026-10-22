@@ -334,6 +334,22 @@
   margin-block: var(--space-2);
 }
 
+/*
+ * 좁은 화면의 4칸 표(판 1.7.0, PROGRESS 미해결 261 #21 — walk-student-first: /book/1-1-1/ 375에서 표 451px > 343px라 "추론" 열이 화면 밖에 잘렸다).
+ * 451px는 차시 쪽 규칙(LessonBody.astro — 40rem 이하에서 4칸 이상 표의 칸마다 최소 폭 7.5em)이 만든 폭이다. 그 규칙은 3-1-1 통신 방식 표처럼 칸이
+ * 3~6글자로 눌려 한 줄씩 끊기던 웹 차시 표를 옆으로 밀어 보게 한 것이고, 교과서 원문 쪽의 4칸 표 둘(1-1-1 인식·학습·추론, 3-1-1 수신 처리 단계)은
+ * 낱말을 자르지 않고도 화면 폭에 들어간다 — 가장 긴 낱말("받아들이는"·"구별하도록" 5글자, 15px 글자에 64.8px — Pretendard 한글 폭 0.864em로 잼)과
+ * 칸 옆 여백 8px로 표 최소 폭이 약 303px(1-1-1)·약 299px(3-1-1)이라 343px 안이다. 그래서 교과서 쪽의 4칸 표만 그 최소 폭을 풀고 칸 옆 여백을 줄여
+ * 네 열이 한 화면에 들어오게 한다. 출판본 표 글은 그대로다(낱말 가운데서 끊지 않는다 — 전역 word-break: keep-all 그대로).
+ * 5칸 이상 표와 그래도 넘치는 더 좁은 화면(320px)은 전처럼 표만 옆으로 밀어 보고 안쪽 가장자리 그늘이 알린다(global.css .prose table·data-scroll-more, C19).
+ */
+@media (max-width: 40rem) {
+  .book-page .lesson-body table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))) :is(th, td) {
+    min-width: 0;
+    padding-inline: var(--space-2);
+  }
+}
+
 /* 그림 아래 캡션(▲ …): 가운데, 작게 */
 .book-page .book-caption {
   margin-block-start: calc(-1 * var(--space-2));
