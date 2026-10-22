@@ -16,6 +16,9 @@
  *  - 그 대신 넓은 화면에도 절 목록(단원별 접이식, 닫힌 채 4줄)을 그림 아래에 둔다. 목록이 Tab이 닿는 길이다.
  *  - Tab이 그림 자리에서 처음 닿는 곳은 "키보드로는 아래 절 목록을 써요 · 절 목록으로" 한 줄(`.toc__kbd`)이다. 평소에는 화면 낭독기에만 보이다가 초점이 오면 큰 글로 나타나고, 누르면 목록으로 간다.
  *  - `#toc` 주소로 오면(건너뛰기·바로 가기) 제목 "차례"가 곧 도착점이라 초점이 거기 놓인다: 제목에 id="toc"·tabindex="-1"을 둔다(걷기 보고 22 — 전에는 초점이 body에 남았다).
+ *  - 판 1.7.0(다시 걷기 walk-a11y-keyboard N5, 미해결 260): "절 목록으로"를 누르면 도착점 절 목록(`<nav id="toc-list" tabindex="-1">`)에 초점이 놓인다
+ *    (전에는 화면만 내려가고 초점은 BODY). 안내 한 줄은 초점을 받는 순간 1px에서 큰 상자로 커지는데 브라우저는 커지기 전 자리로 화면을 맞춰
+ *    150% 확대에서 상자 아래 28px가 화면 밖이었다 — 커진 뒤 한 번 더 가장 가까운 만큼 옮기고(아래 스크립트), 위아래 여유(scroll-margin)를 둔다.
  * DOM 순서 = 보이는 순서: 넓은 화면은 안내 → 그림 → 목록, 좁은 화면은 목록 → 접힌 그림(그림 둘째 칸은 넓은 화면에서 숨고, 안내·그림 칸은 좁은 화면에서 숨는다).
  */
 import { withBase } from '../../lib/url.ts';
@@ -56,7 +59,7 @@ const { figures, list } = Astro.props;
 
   {/* 절 목록: 좁은 화면은 첫머리(눌러 가는 길), 넓은 화면은 그림 아래(키보드가 쓰는 길) */}
   <p class="toc__list-lead">{homeToc.listLead}</p>
-  <nav id="toc-list" class="toc__list" aria-label={homeToc.listLabel} data-home-toc-list>
+  <nav id="toc-list" class="toc__list" aria-label={homeToc.listLabel} tabindex="-1" data-home-toc-list>
     {
       list.map((unit) => (
         <details class:list={['toc__list-unit', 'more', unitCardClass(unit.unit)]} data-home-toc-unit={unit.unit}>
@@ -105,6 +108,20 @@ const { figures, list } = Astro.props;
   </details>
 </section>
 
+<script>
+  // "절 목록으로"는 초점을 받으면 1px에서 큰 글 한 줄로 커진다 — 커진 뒤(다음 프레임) 상자 전체가 화면에 들도록 가장 가까운 만큼만 옮긴다
+  // (scroll-margin만큼 여유, 이미 다 보이면 움직이지 않는다 — 판 1.7.0, walk-a11y-keyboard N5).
+  for (const link of document.querySelectorAll<HTMLElement>('[data-toc-keyboard]')) {
+    link.addEventListener('focus', () => {
+      requestAnimationFrame(() => {
+        if (document.activeElement === link) {
+          link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
+      });
+    });
+  }
+</script>
+
 <style is:global>
   .toc {
     margin-block-start: var(--space-12);
@@ -137,6 +154,15 @@ const { figures, list } = Astro.props;
     display: grid;
     gap: var(--space-4);
     scroll-margin-block-start: var(--space-4);
+  }
+
+  /* "절 목록으로"의 도착점(tabindex="-1") — 키보드로 오면 목록 전체에 초점 테두리, 마우스로 누른 초점에는 그리지 않는다 */
+  .toc__list:focus {
+    outline-offset: var(--space-1);
+  }
+
+  .toc__list:focus:not(:focus-visible) {
+    outline: none;
   }
 
   /* 판 1.6.0: 단원마다 접이식 — 닫아 두면 4줄이라 휴대폰 홈이 짧다(펼친 절 목록은 단원마다 700px 안팎). 공용 .more 모양을 단원 색 카드로 덮는다. */
@@ -295,6 +321,7 @@ const { figures, list } = Astro.props;
 
     .toc__kbd:focus {
       position: static;
+      scroll-margin-block: var(--space-6);
       inline-size: auto;
       block-size: auto;
       margin-block-end: var(--space-3);

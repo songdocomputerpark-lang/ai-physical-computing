@@ -7,22 +7,19 @@
  * - 단추는 자바스크립트가 되면 보인다(data-present-open hidden → present.ts가 연다). 꺼져 있으면 안내도 숨긴다.
  * - 키 안내는 기호가 아니라 글로 쓴다(walk-a11y-keyboard 10 — "→ ←"는 낭독기·처음 온 학생이 읽기 어렵다). 터치 기기·좁은 화면에서는 [앞]·[다음] 안내로 바꾼다(R3-004).
  * - 주소 ?view=slide로 열어도 같다(C133). 단계 주소 #slide=N은 present.ts 머리말.
+ * - 자리는 두 쪽 모두 전환 줄 바로 아래다(판 1.7.0, 미해결 259 — 보드 차시에서 준비물 사진 뒤라 첫 화면 밖이었다). 그래서 예전의 tight(칩 줄 아래에 붙이기)는 없다.
+ * - 막대의 단계 이름을 누르면 큰 제목(##)으로 고르는 단계 목록이 열린다(판 1.7.0, 미해결 271) — 안내 끝 한 문장.
  */
-interface Props {
-  /** 바로 위 칸(차시 정보 칩 줄)의 아래 여백과 겹쳐 붙일 때(웹 차시 쪽) */
-  tight?: boolean;
-}
-
-const { tight = false } = Astro.props;
 ---
 
-<p class:list={['lesson__tools', { 'lesson__tools--tight': tight }]} data-pagefind-ignore>
+<p class="lesson__tools" data-pagefind-ignore>
   <button type="button" class="button button--secondary" data-present-open hidden aria-describedby="lesson-present-note">수업 화면</button>
   {/* 키보드 문구는 키보드 쓰는 넓은 화면에만, 터치·좁은 화면에는 [앞]·[다음] 단추 안내(R3-004). 보이지 않는 쪽은 display:none이라 낭독기도 읽지 않는다. */}
   <span class="lesson__tools-note" id="lesson-present-note">
     수업 중 프로젝터로 크게, 한 단계씩 보여 줘요.{' '}
     <span class="lesson__tools-keys">오른쪽·왼쪽 화살표 키로 넘기고 Esc로 끝내요. 내용이 길면 아래 화살표 키나 Space로 내려요.</span>
-    <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>
+    <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>{' '}
+    <span class="lesson__tools-list">아래 막대의 단계 이름을 누르면 큰 제목 목록에서 골라 갈 수 있어요.</span>
   </span>
 </p>
 
@@ -32,11 +29,7 @@ const { tight = false } = Astro.props;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2) var(--space-3);
-    margin-block: 0 var(--space-6);
-  }
-
-  .lesson__tools--tight {
-    margin-block-start: calc(-1 * var(--space-3));
+    margin-block: 0 var(--space-5);
   }
 
   .lesson__tools-note {

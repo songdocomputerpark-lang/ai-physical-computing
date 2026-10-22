@@ -63,6 +63,15 @@ describe('홈 차례(HomeToc)의 키보드 길', () => {
     // 같은 id가 둘이 되지 않는다
     expect(homeTocSource.match(/<[a-z0-9]+\s[^>]*\bid="toc"/gu)).toHaveLength(1);
   });
+
+  it('판 1.7.0(walk-a11y-keyboard N5): "절 목록으로"의 도착점 절 목록은 초점을 받고(tabindex="-1"), 안내 상자는 커진 뒤 화면 안으로 다시 맞춘다', () => {
+    expect(homeTocSource).toMatch(/<nav id="toc-list"[^>]*tabindex="-1"/u);
+    // 마우스로 누른 초점에는 테두리를 그리지 않는다(키보드 초점만)
+    expect(homeTocSource).toMatch(/\.toc__list:focus:not\(:focus-visible\)\s*\{\s*outline:\s*none/u);
+    // 커진 상자 위아래 여유 + 초점 뒤 한 번 더 가장 가까운 만큼(nearest) 옮기기
+    expect(homeTocSource).toMatch(/\.toc__kbd:focus\s*\{[^}]*scroll-margin-block:\s*var\(--space-6\)/u);
+    expect(homeTocSource).toMatch(/\[data-toc-keyboard\][\s\S]*scrollIntoView\(\{ block: 'nearest'/u);
+  });
 });
 
 describe('초점 도착점의 여유(global.css)', () => {

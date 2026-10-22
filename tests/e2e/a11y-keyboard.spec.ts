@@ -956,3 +956,49 @@ test.describe('키보드만으로 — 건너뛰기와 홈의 Tab 정류장(판 1
     expect(scrolledCards, '화면이 움직인 카드를 지나 보았다').toBeGreaterThan(0);
   });
 });
+
+// 판 1.7.0(PROGRESS 미해결 260 — 다시 걷기 walk-a11y-keyboard N5·19): 홈 "절 목록으로"의 초점 상자 아래가 150% 화면 밖이었고 Enter 뒤 초점이 BODY,
+// 따라 하기 쪽의 [수업 화면] 앞 Tab 정류장이 10개였다(옛 걷기 7개).
+test.describe('키보드만으로 — 판 1.7.0 홈 차례·[수업 화면]까지의 길', () => {
+  test.skip(({ isMobile }) => isMobile, '키보드 조작은 데스크톱에서 본다');
+
+  test('홈 150%(911×512): "절 목록으로"에 초점이 오면 상자 전체가 화면 안이고, Enter 뒤 초점이 절 목록(nav#toc-list)에 놓인다', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.setViewportSize({ width: 911, height: 512 });
+    await page.goto(withBase(''));
+    const hint = page.locator('[data-toc-keyboard]');
+    await page.locator('#toc').focus();
+    await page.keyboard.press('Tab');
+    await expect(hint).toBeFocused();
+    await expect
+      .poll(async () => {
+        const box = await hint.boundingBox();
+        return box ? box.y >= 0 && box.y + box.height <= 512 : false;
+      }, { message: '초점 상자 아래 끝이 화면 안' })
+      .toBe(true);
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/#toc-list$/u);
+    await expect(page.locator('#toc-list')).toBeFocused();
+    expect(await page.evaluate(() => document.activeElement?.matches(':focus-visible') ?? false), '도착점에 초점 테두리').toBe(true);
+    // 다음 Tab은 첫 단원 접이식
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement?.closest('[data-home-toc-unit]')?.getAttribute('data-home-toc-unit') ?? '')).toBe('1');
+  });
+
+  test('따라 하기 1-1-1: [본문으로 건너뛰기] 뒤 Tab 8번 안에 [수업 화면]이 있다(전환 줄 바로 아래 — 칩 줄·실습실 칩보다 앞)', async ({ page }) => {
+    await freezeDevReloads(page);
+    await page.goto(withBase('learn/u1/1-1-1/'));
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id ?? '')).toBe('lesson-article');
+    let presses = 0;
+    for (; presses < 20; presses += 1) {
+      await page.keyboard.press('Tab');
+      const name = await page.evaluate(() => (document.activeElement as HTMLElement | null)?.textContent?.replace(/\s+/gu, ' ').trim() ?? '');
+      if (name === '수업 화면') {
+        break;
+      }
+    }
+    expect(presses + 1, '[본문으로 건너뛰기] 뒤 [수업 화면]까지 Tab 수').toBeLessThanOrEqual(8);
+  });
+});
