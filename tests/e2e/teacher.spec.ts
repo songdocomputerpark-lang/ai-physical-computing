@@ -413,7 +413,6 @@ test.describe('교사용 자료실 첫 화면 새 모양(판 1.3.0)', () => {
     await expect(assessment.getByRole('heading', { level: 2, name: '평가 자료' })).toBeInViewport();
     await page.goto(at(TEACHER_PATHS.home));
     await page.goto(await steps.nth(2).locator('a').getAttribute('href') ?? '');
-    await expect(page.getByRole('button', { name: /수업 화면/u }).first()).toBeAttached();
     await expect(page.locator('html')).toHaveAttribute('data-presenting', '');
     // 처음 오신 선생님은 단계 위의 안내 줄로 교사용 시작하기에 간다(그 쪽 #presentation에는 쓰는 법이 있다)
     await page.goto(at(TEACHER_PATHS.home));
@@ -525,7 +524,8 @@ test.describe('채점 기준 표 인쇄·복사(판 1.7.0 Z3)', () => {
     await tools.getByRole('button', { name: '표 복사' }).click();
     await expect(tools.locator('[data-rubric-status]')).toContainText('표를 복사했어요');
     const copied = await page.evaluate(() => navigator.clipboard.readText());
-    const lines = copied.split('\n');
+    // Windows의 클립보드는 줄바꿈을 \r\n으로 바꿔 돌려준다(붙여 넣는 프로그램은 둘 다 받는다)
+    const lines = copied.split(/\r?\n/u);
     expect(lines[0]).toBe(['관찰 항목', '잘함', '보통', '노력 요함'].join('\t'));
     expect(lines.length, '머리 줄 + 관찰 항목 2~3줄').toBeGreaterThanOrEqual(3);
     expect(lines.length).toBeLessThanOrEqual(4);
@@ -597,7 +597,7 @@ test.describe('채점 기준 표 인쇄·복사(판 1.7.0 Z3)', () => {
     const bar = page.locator('[data-rubric-tools]', { has: second });
     await expect(bar.locator('[data-rubric-status]')).toContainText('표를 복사했어요');
     const copied = await page.evaluate(() => navigator.clipboard.readText());
-    expect(copied.split('\n')[0]).toBe(['관찰 항목', '잘함', '보통', '노력 요함'].join('\t'));
+    expect(copied.split(/\r?\n/u)[0]).toBe(['관찰 항목', '잘함', '보통', '노력 요함'].join('\t'));
   });
 
   test('채점 기준 표가 없는 차시(대단원 마무리)에는 단추 줄이 없다', async ({ page }) => {

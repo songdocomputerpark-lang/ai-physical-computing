@@ -46,7 +46,8 @@
  * 판 1.7.0(다시 걷기 walk-a11y-keyboard N1~N4·walk-teacher-new A2, PROGRESS 미해결 259·260·271):
  * - 150% 확대에서도 단계가 막대 위에서 끝나게: 도전 과제 상자도 줄이고(실습실이 있는 예제 상자는 줄이지 않는다), 0.72배로도 안 들어가는 상자·목록·표는
  *   안쪽 조각(상자 속 문단·목록 칸·표의 줄 — 상자 제목·표 머리는 늘 보임)으로 나눠 "(이어서)" 단계를 만들고(part), 코드 칸이 있는 블록은 코드 칸만 낮춘다(fit.codeMax).
- *   그림 설명 한 줄처럼 거의 빈 뒤 단계는 앞 단계에 붙인다(줄여 넣은 블록은 조금 더 줄여서 — 0.72배까지).
+ *   그림 설명 한 줄처럼 거의 빈 뒤 단계는 앞 단계에 붙인다(줄여 넣은 블록은 조금 더 줄여서 — TAIL_MIN_ZOOM 0.66배까지, 안 되면 표의 마지막 줄과 함께).
+ *   단계 맨 끝의 쪽 표지(다음 쪽의 시작)는 숨기고, 표 칸 속 그림은 화면 높이의 22%까지만, 퀴즈 문항·머리 상자(성취 계획)도 0.72배까지 줄인다(통합 시험).
  *   나눈 뒤에도 그려 보니 조금 넘치면(글꼴을 늦게 받는 등) 그 단계만 0.85배까지 줄인다(lateFit — 단계 수는 그대로).
  * - "▼ 아래에 더 있어요"는 막대 가운데 둘째 줄에 뜬다(LessonPresent.astro) — 막대 위에 뜬 알약이 막대 바로 위 글줄을 덮었다. 휴대폰은 예전 알약.
  *   내용 크기가 바뀌면(글꼴·그림·채점 결과·실습실 열기) 다시 센다(ResizeObserver).
@@ -305,6 +306,22 @@ export function isMergeable(first: PresentStep, second: PresentStep): boolean {
   );
 }
 
+/**
+ * 거의 빈 뒤 단계를 앞 단계에 붙일 수 있는가(순수 함수, 판 1.7.0): 같은 칸이고 둘 다 제목 장·퀴즈 문항이 아니며, 뒤 단계는 안쪽 조각 단계가 아닐 때.
+ * 앞 단계는 안쪽 조각 단계여도 된다 — 표를 줄 단위로 나눈 마지막 조각 뒤의 그림 설명 한 줄을 그 조각에 붙인다(그 블록의 조각 범위는 그대로).
+ */
+export function isTailMergeable(previous: PresentStep, tail: PresentStep): boolean {
+  return (
+    previous.section >= 0 &&
+    previous.section === tail.section &&
+    previous.item === undefined &&
+    tail.item === undefined &&
+    tail.part === undefined &&
+    !previous.title &&
+    !tail.title
+  );
+}
+
 /** 뒤 단계의 내용이 쓸 수 있는 높이의 이 비율 이하면 "거의 빈 단계"로 보고 앞 단계에 붙여 본다(그림 설명 한 줄·쪽 표지 — 판 1.7.0, walk-a11y-keyboard N3) */
 export const SHORT_TAIL_RATIO = 0.2;
 
@@ -543,6 +560,12 @@ export function presentCommandFor(event: PresentKeyContext): PresentCommand | un
 export const FIT_MIN_ZOOM = 0.72;
 
 /**
+ * 거의 빈 뒤 단계(그림 설명 한 줄)를 앞 블록에 붙일 때만 쓰는 하한(판 1.7.0 통합 시험): 그림이 든 표를 0.70배로 줄이면 그림 설명이 표와 한 화면에
+ * 드는데 0.72배 하한 때문에 설명 한 줄만 따로 한 단계였다. 0.66배여도 150%에서 표 글자가 약 14px(기기 화소 21px)라 읽힌다.
+ */
+export const TAIL_MIN_ZOOM = 0.66;
+
+/**
  * 나눈 단계를 실제로 그렸더니 조금 넘칠 때(글꼴·그림을 늦게 받아 줄이 늘어난 경우 등 — walk-a11y-keyboard N1) 그 단계 전체를 줄이는 하한(판 1.7.0).
  * 단계 수는 바꾸지 않는다. 이보다 더 줄여야 하면 줄이지 않고 "아래에 더 있어요"로 스크롤한다.
  */
@@ -599,10 +622,13 @@ const LATE_FIT_WINDOW_MS = 1500;
 
 const scrollTopNow = (win: Window | null | undefined) => win?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
 
+/** 목록 칸(li) 안을 나눌 수 있는 블록 자식(문단·표·목록·코드 등) — 칸에 바로 든 글자가 있으면(빽빽한 목록) 나누지 않는다 */
+const LI_BLOCK_CHILD = 'p, table, ul, ol, pre, div, figure, blockquote, h4, h5, h6';
+
 /**
  * 블록 안쪽 조각을 나눌 수 있는 블록의 바로 아래 조각들(판 1.7.0): 목록(ul·ol)은 칸(li), 표는 몸통의 줄(tr — 머리 thead는 늘 보임),
- * 보통 상자(div.box)는 제목(.box__title)을 뺀 자식, 표 하나만 감싼 칸은 그 표의 줄. 조각이 둘 미만이면 null(나누지 않는다).
- * 접는 상자(details — 힌트 등)·그림·코드는 나누지 않는다.
+ * 보통 상자(div.box)는 제목(.box__title)을 뺀 자식, 표 하나만 감싼 칸은 그 표의 줄, 문단·표가 든 목록 칸(li)은 그 블록 자식
+ * (교과서 쪽 학습 활동: 상자 > 번호 목록 > 칸 > 문단 + 표). 조각이 없으면 null. 접는 상자(details — 힌트 등)·그림·코드는 나누지 않는다.
  */
 function childLeaves(element: HTMLElement): HTMLElement[] | null {
   let leaves: HTMLElement[] = [];
@@ -612,10 +638,14 @@ function childLeaves(element: HTMLElement): HTMLElement[] | null {
     leaves = Array.from(element.querySelectorAll<HTMLElement>(':scope > tbody > tr'));
   } else if (element.matches('div.box')) {
     leaves = Array.from(element.children).filter((child): child is HTMLElement => isPresentable(child) && !child.matches('.box__title'));
+  } else if (element.matches('li')) {
+    const looseText = Array.from(element.childNodes).some((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim() !== '');
+    const kids = Array.from(element.children).filter((child): child is HTMLElement => isPresentable(child));
+    leaves = !looseText && kids.length > 0 && kids.every((child) => child.matches(LI_BLOCK_CHILD)) ? kids : [];
   } else if (element.childElementCount === 1 && element.firstElementChild instanceof HTMLTableElement) {
     leaves = Array.from(element.firstElementChild.querySelectorAll<HTMLElement>(':scope > tbody > tr'));
   }
-  return leaves.length >= 2 ? leaves : null;
+  return leaves.length > 0 ? leaves : null;
 }
 
 /** 블록 안쪽 조각 계획: 차례대로 늘어놓은 조각과, 조각을 품은 칸(블록 자신·펼친 표·목록 — 그 칸의 조각 번호 범위) */
@@ -624,9 +654,12 @@ interface LeafPlan {
   readonly groups: readonly { readonly element: HTMLElement; readonly from: number; readonly to: number }[];
 }
 
+/** 안쪽 조각을 펴 들어가는 깊이 한도(상자 > 번호 목록 > 칸 > 표 > 줄) */
+const LEAF_DEPTH = 4;
+
 /**
- * 블록을 안쪽 조각으로 편다. 조각 하나가 한 화면(room)보다 크고 그 조각도 나눌 수 있으면(상자 속의 긴 표·목록) 한 단계 더 편다(두 단계까지).
- * 나눌 수 없으면 null.
+ * 블록을 안쪽 조각으로 편다. 조각 하나가 한 화면(room)보다 크거나 혼자뿐이고 그 조각도 나눌 수 있으면(상자 속의 번호 목록, 목록 칸 속의 긴 표)
+ * 한 단계 더 편다(LEAF_DEPTH까지). 조각이 둘보다 적으면 null.
  */
 function planLeaves(block: HTMLElement, room: number): LeafPlan | null {
   if (!childLeaves(block)) {
@@ -636,8 +669,9 @@ function planLeaves(block: HTMLElement, room: number): LeafPlan | null {
   const groups: { element: HTMLElement; from: number; to: number }[] = [];
   const walk = (element: HTMLElement, depth: number) => {
     const from = leaves.length;
-    for (const kid of childLeaves(element) ?? []) {
-      if (depth < 2 && kid.getBoundingClientRect().height > room && childLeaves(kid)) {
+    const kids = childLeaves(element) ?? [];
+    for (const kid of kids) {
+      if (depth < LEAF_DEPTH && (kids.length === 1 || kid.getBoundingClientRect().height > room) && childLeaves(kid)) {
         walk(kid, depth + 1);
       } else {
         leaves.push(kid);
@@ -841,7 +875,7 @@ export function installLessonPresentation(doc: Document = document): void {
   /** 블록 안쪽 조각 계획("칸:블록" → 조각) — 단계를 다시 나눌 때마다 새로 정한다(fitToBar의 splitInside) */
   const leafPlans = new Map<string, LeafPlan>();
 
-  const intro = () => Array.from(body.children).filter((child) => isPresentable(child) && !child.matches('section.lesson-section'));
+  const intro = (): HTMLElement[] => Array.from(body.children).filter((child): child is HTMLElement => isPresentable(child) && !child.matches('section.lesson-section'));
   /** 머리 상자 가운데 단계를 만들 내용(교과서 쪽 쪽 표지는 빼고) */
   const introContent = () => intro().filter((child) => !child.matches(INTRO_SKIP_SELECTOR));
   /** 머리 상자 장의 이름: 첫 상자의 제목(교과서 쪽 "성취 계획") 또는 "들어가며" */
@@ -872,14 +906,29 @@ export function installLessonPresentation(doc: Document = document): void {
         hide(group.element);
         continue;
       }
-      const first = Math.max(part.from, group.from);
-      const item = plan.leaves[first];
-      if (group.element instanceof HTMLOListElement && first > group.from && item instanceof HTMLLIElement && item.parentElement === group.element) {
-        numberedItems.set(item, item.getAttribute('value'));
-        item.value = group.element.start + (first - group.from);
+      // 번호 목록: 보이는 첫 조각이 든 칸(li — 조각 자신이거나 그 조상)이 첫 칸이 아니면 그 칸에 원래 번호를 적는다
+      const list = group.element;
+      if (list instanceof HTMLOListElement) {
+        let node: Element | null = plan.leaves[Math.max(part.from, group.from)] ?? null;
+        while (node && node.parentElement !== list) {
+          node = node.parentElement;
+        }
+        const items = Array.from(list.children).filter((child): child is HTMLLIElement => child instanceof HTMLLIElement);
+        const position = node instanceof HTMLLIElement ? items.indexOf(node) : -1;
+        if (node instanceof HTMLLIElement && position > 0) {
+          numberedItems.set(node, node.getAttribute('value'));
+          node.value = list.start + position;
+        }
       }
     }
   };
+
+  /** 단계의 블록 번호 → 요소. 칸 밖 머리 상자 장(section −1, intro)은 머리 상자(introContent) 차례(판 1.7.0) */
+  const blockElementOf = (step: PresentStep, block: number): HTMLElement | undefined =>
+    step.section < 0 ? (step.intro && !step.title ? introContent()[block] : undefined) : sections[step.section]?.children[block];
+  /** 단계의 블록 번호 → 종류. 머리 상자는 내용 블록 */
+  const blockKindOf = (step: PresentStep, block: number): PresentBlockKind | undefined =>
+    step.section < 0 ? (blockElementOf(step, block) ? 'content' : undefined) : sections[step.section]?.model.blocks[block]?.kind;
 
   /** 단계 하나를 보이게 표시만 바꾼다(막대·초점·스크롤은 render가) */
   const applyStep = (step: PresentStep) => {
@@ -894,6 +943,20 @@ export function installLessonPresentation(doc: Document = document): void {
     if (!step.intro) {
       for (const child of intro()) {
         hide(child);
+      }
+    } else {
+      // 머리 상자 장(교과서 쪽 성취 계획 등): 마지막 상자 뒤의 쪽 표지("교과서 9쪽" — 다음 쪽의 시작)는 숨긴다(판 1.7.0 — 150%에서 그만큼 막대 밑으로 들어갔다)
+      const items = intro();
+      const lastContent = items.reduce((last, child, childIndex) => (child.matches(INTRO_SKIP_SELECTOR) ? last : childIndex), -1);
+      items.forEach((child, childIndex) => {
+        if (childIndex > lastContent && child.matches(INTRO_SKIP_SELECTOR)) {
+          hide(child);
+        }
+      });
+      // 머리 상자 하나가 한 화면보다 커 안쪽 조각으로 나눈 단계(블록 번호 = introContent 차례)
+      const introBlock = step.part ? introContent()[step.part.block] : undefined;
+      if (step.part && step.section < 0 && introBlock) {
+        applyPart(step.part, leafPlans.get(`${step.section}:${step.part.block}`), introBlock);
       }
     }
     sections.forEach((section, sectionIndex) => {
@@ -918,8 +981,30 @@ export function installLessonPresentation(doc: Document = document): void {
         }
       });
     });
+    // 단계 맨 끝의 쪽 표지("교과서 10쪽" — 다음 쪽의 시작)는 숨긴다: 이 단계에는 그 쪽 내용이 없다. 그만큼 앞 내용·그림 설명이 한 화면에 든다
+    // (판 1.7.0 통합 시험 — 150%에서 표 뒤 그림 설명 + 쪽 표지가 혼자 한 단계였다). 내용이 쪽 표지뿐인 단계는 그대로 둔다.
+    const stepSection = sections[step.section];
+    if (stepSection && step.item === undefined) {
+      const contentBlocks = step.blocks.filter((block) => {
+        const kind = stepSection.model.blocks[block]?.kind;
+        return kind !== 'h2' && kind !== 'h3';
+      });
+      let end = contentBlocks.length;
+      while (end > 1 && stepSection.children[contentBlocks[end - 1] ?? -1]?.matches(INTRO_SKIP_SELECTOR)) {
+        end -= 1;
+      }
+      const hasRealContent = contentBlocks.slice(0, end).some((block) => !stepSection.children[block]?.matches(INTRO_SKIP_SELECTOR));
+      if (hasRealContent) {
+        for (const block of contentBlocks.slice(end)) {
+          const mark = stepSection.children[block];
+          if (mark) {
+            hide(mark);
+          }
+        }
+      }
+    }
     // 한 화면보다 큰 블록 하나는 정해 둔 비율로 줄인다(CSS zoom — 자리까지 함께 줄어 막대 위에서 끝난다)
-    const fitted = step.fit ? sections[step.section]?.children[step.fit.block] : undefined;
+    const fitted = step.fit ? blockElementOf(step, step.fit.block) : undefined;
     if (fitted && step.fit && step.fit.zoom < 1) {
       fitted.style.setProperty('zoom', String(step.fit.zoom));
       zoomedElements.add(fitted);
@@ -1019,9 +1104,26 @@ export function installLessonPresentation(doc: Document = document): void {
         const headings = leading.filter((block) => kinds[block]?.kind === 'h2' || kinds[block]?.kind === 'h3');
         if (splitElement && splitElement.getBoundingClientRect().bottom > limit && headings.length < leading.length) {
           fitted.push({ section: step.section, blocks: leading, label: step.label.replace(/\s*\(\d+\/\d+\)$/u, '') });
-          fitted.push({ ...step, blocks: [...headings, splitBlock] });
+          // 문항 단계는 아래 문항 맞추기를 한 번 더 거친다(제목 + 문항만이라 이 갈래로 다시 오지 않는다)
+          queue.unshift({ ...step, blocks: [...headings, splitBlock] });
           continue;
         }
+      }
+      if (section && step.item !== undefined) {
+        // 퀴즈 문항이 막대 밑으로 들어가면 문항을 0.72배까지 줄인다(판 1.7.0 — 150% 확대에서 1/3 문항이 52px 넘쳤다). 보기 칸 높이 44px × 0.72 ≈ 32px라
+        // 누르는 칸 24px(WCAG 2.5.8)보다 크다. 채점 결과는 채점할 때 보이는 곳으로 옮겨 온다(아래 click 듣기).
+        applyStep(step);
+        scrollTopNow(win);
+        const splitBlock = step.blocks[step.blocks.length - 1] ?? -1;
+        const box = section.children[splitBlock]?.getBoundingClientRect();
+        const zoom = box && box.bottom > limit ? fitZoomFor(box.height, limit - box.top) : 1;
+        fitted.push(zoom < 1 ? { ...step, fit: { block: splitBlock, zoom } } : step);
+        continue;
+      }
+      if (step.section < 0 && step.intro && !step.title) {
+        // 머리 상자 장(교과서 쪽 성취 계획 등 — 판 1.7.0, 150%에서 149px 넘쳤다): 상자가 하나면 내용 블록 하나처럼 맞춘다
+        fitted.push(...(introContent().length === 1 ? fitSingle(step, 0, limit) : [step]));
+        continue;
       }
       if (!section || step.item !== undefined || step.blocks.length < 1) {
         fitted.push(step);
@@ -1060,17 +1162,17 @@ export function installLessonPresentation(doc: Document = document): void {
 
   /**
    * 제목 + 내용 블록 하나인 단계가 막대 밑으로 들어갈 때 한 화면에 맞춘다(판 1.6.0 줄이기 + 판 1.7.0, 미해결 260 — 150% 확대에서 넘치는 단계 0).
-   * ① 0.72배까지 줄여 들어가면 줄인다 — 내용 블록과 도전 과제 상자. 퀴즈 문항(split)과 실습실을 여는 예제 상자는 줄이지 않는다(보기·실습실 틀 크기).
+   * ① 0.72배까지 줄여 들어가면 줄인다 — 내용 블록·도전 과제 상자·머리 상자(성취 계획). 실습실을 여는 예제 상자는 줄이지 않는다(실습실 틀 크기).
+   *    퀴즈 문항(split)은 fitToBar의 문항 갈래가 따로 줄인다.
    * ② 0.72배로도 안 들어가는 상자·목록·표는 안쪽 조각으로 나눈다(splitInside — "(이어서)" 단계).
    * ③ 코드 칸이 있으면(예제 상자·긴 코드) 코드 칸만 낮춘다(fit.codeMax — 코드 칸 안에서 스크롤, 네 줄보다는 낮추지 않는다).
    * ④ 그래도 안 되면 0.72배로 줄인 채 스크롤한다("아래에 더 있어요"). 실습실 예제 상자는 그대로 둔다.
    * 이미 연 실습실 틀이 든 블록은 건드리지 않는다(틀 높이가 이미 한 화면이다).
    */
   const fitSingle = (chunk: PresentStep, block: number, limit: number): PresentStep[] => {
-    const section = sections[chunk.section];
-    const element = section?.children[block];
-    const kind = section?.model.blocks[block]?.kind;
-    if (!section || !element || kind === 'split' || kind === 'h2' || kind === 'h3') {
+    const element = blockElementOf(chunk, block);
+    const kind = blockKindOf(chunk, block);
+    if (!element || kind === 'split' || kind === 'h2' || kind === 'h3') {
       return [chunk];
     }
     applyStep(chunk);
@@ -1102,7 +1204,7 @@ export function installLessonPresentation(doc: Document = document): void {
    * 나뉜 조각 하나가 그래도 넘치면(조각이 큰 표 한 줄 등) 그 조각 단계만 블록째 줄인다. 둘로 못 나누면 null.
    */
   const splitInside = (chunk: PresentStep, block: number, limit: number): PresentStep[] | null => {
-    const element = sections[chunk.section]?.children[block];
+    const element = blockElementOf(chunk, block);
     if (!element) {
       return null;
     }
@@ -1152,7 +1254,7 @@ export function installLessonPresentation(doc: Document = document): void {
    * 맞추고(넘친 만큼은 스크롤), 다른 블록은 null(0.72배 줄이기로 넘긴다).
    */
   const fitCode = (chunk: PresentStep, block: number, limit: number, bestEffort: boolean): PresentStep | null => {
-    const element = sections[chunk.section]?.children[block];
+    const element = blockElementOf(chunk, block);
     const code = element ? visibleCode(element) : null;
     if (!element || !code) {
       return null;
@@ -1184,7 +1286,8 @@ export function installLessonPresentation(doc: Document = document): void {
     let bottom = 0;
     for (const block of step.blocks) {
       const element = section.children[block];
-      if (element) {
+      // 숨긴 블록(끝의 쪽 표지 등 — 크기 0)은 재지 않는다
+      if (element && !element.hasAttribute(OFF)) {
         const box = element.getBoundingClientRect();
         top = Math.min(top, box.top);
         bottom = Math.max(bottom, box.bottom);
@@ -1223,12 +1326,26 @@ export function installLessonPresentation(doc: Document = document): void {
       // 뒤 단계가 새 소제목(###)으로 시작하면 붙이지 않는다 — 다시 보이는 제목("(이어서)")만 있는 뒤 단계가 대상이다.
       const kinds = previous ? (sections[previous.section]?.model.blocks ?? []) : [];
       const tailHeadingsRepeat = step.blocks.every((block) => (kinds[block]?.kind !== 'h2' && kinds[block]?.kind !== 'h3') || Boolean(previous?.blocks.includes(block)));
-      if (previous && isMergeable(previous, step) && !step.fit && previous.fit?.codeMax === undefined && tailHeadingsRepeat) {
+      if (previous && isTailMergeable(previous, step) && !step.fit && previous.fit?.codeMax === undefined && tailHeadingsRepeat) {
         const tail = contentExtentOf(step);
         if (tail && tail.bottom - tail.top <= SHORT_TAIL_RATIO * (limit - tail.top)) {
           const joined = joinTail(previous, step, limit);
           if (joined) {
             merged[merged.length - 1] = joined;
+            continue;
+          }
+          // 붙여서 안 들어가면, 앞 단계가 안쪽 조각(표의 줄 등)을 나눈 단계일 때 그 마지막 조각을 뒤 단계로 넘긴다 —
+          // 그림 설명이 표의 마지막 줄과 함께 보인다(판 1.7.0 통합 시험: 150%에서 표를 줄 단위로 나눈 뒤 그림 설명만 한 단계에 남았다).
+          const moved = moveLastLeaf(previous, step, limit);
+          if (moved) {
+            merged[merged.length - 1] = moved[0];
+            merged.push(moved[1]);
+            continue;
+          }
+          // 앞 단계가 블록 하나를 통째로 줄여 넣은 단계(표 등)면, 그 블록을 안쪽 조각으로 다시 나누고 마지막 조각에 붙인다
+          const resplit = resplitForTail(previous, step, limit);
+          if (resplit) {
+            merged.splice(merged.length - 1, 1, ...resplit);
             continue;
           }
         }
@@ -1251,13 +1368,85 @@ export function installLessonPresentation(doc: Document = document): void {
     for (const block of step.blocks) {
       const kind = section.model.blocks[block]?.kind;
       const element = section.children[block];
-      if (element && kind !== 'h2' && kind !== 'h3') {
+      if (element && kind !== 'h2' && kind !== 'h3' && !element.hasAttribute(OFF)) {
         const box = element.getBoundingClientRect();
         top = Math.min(top, box.top);
         bottom = Math.max(bottom, box.bottom);
       }
     }
     return Number.isFinite(top) ? { top, bottom } : null;
+  };
+
+  /**
+   * 앞 단계(안쪽 조각 단계, 조각 둘 이상)의 마지막 조각을 거의 빈 뒤 단계로 옮긴 두 단계. 뒤 단계가 들어가지 않으면 그 블록을 0.72배까지 줄여 보고,
+   * 그래도 안 되면 null.
+   */
+  const moveLastLeaf = (previous: PresentStep, tail: PresentStep, limit: number): [PresentStep, PresentStep] | null => {
+    const part = previous.part;
+    if (!part || part.to <= part.from) {
+      return null;
+    }
+    const kept: PresentStep = { ...previous, part: { ...part, to: part.to - 1 } };
+    const base: PresentStep = { ...tail, blocks: unionBlocks(tail.blocks, [part.block]), part: { block: part.block, from: part.to, to: part.to } };
+    const fitted = zoomToFit(base, part.block, limit);
+    return fitted ? [kept, fitted] : null;
+  };
+
+  /**
+   * 단계(base — 줄이지 않은 모습)가 막대 위에서 끝나게 블록 하나를 줄인 단계. 줄이지 않아도 들어가면 그대로, TAIL_MIN_ZOOM보다 더 줄여야 하면 null
+   * (거의 빈 뒤 단계를 붙이는 데만 쓴다).
+   * 블록을 z배로 줄이면 아래 내용이 (1 − z) × 높이만큼 올라온다는 어림(tailMergeZoom)으로 시작해, 그려 보아 남은 만큼 몇 번 더 줄인다
+   * (여백 겹침 등으로 어림이 몇 px 모자랐다 — 판 1.7.0 통합 시험).
+   */
+  const zoomToFit = (base: PresentStep, block: number, limit: number): PresentStep | null => {
+    const extent = extentOf(base);
+    const element = blockElementOf(base, block);
+    if (!extent || !element) {
+      return null;
+    }
+    if (extent.bottom <= limit) {
+      return base;
+    }
+    const height = element.getBoundingClientRect().height;
+    let zoom = tailMergeZoom(height, extent.bottom - limit, TAIL_MIN_ZOOM);
+    for (let attempt = 0; attempt < 4 && zoom !== null && zoom < 1; attempt += 1) {
+      const candidate: PresentStep = { ...base, fit: { block, zoom } };
+      const after = extentOf(candidate);
+      if (!after) {
+        return null;
+      }
+      if (after.bottom <= limit) {
+        return candidate;
+      }
+      zoom = Math.floor((zoom - (after.bottom - limit) / height) * 100) / 100;
+      if (zoom < TAIL_MIN_ZOOM) {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  /**
+   * 앞 단계가 블록 하나(표 등)를 통째로 줄여 넣어 거의 빈 뒤 단계(그림 설명)가 붙지 않을 때: 그 블록을 안쪽 조각으로 나누고, 마지막 조각에 뒤 단계를
+   * 붙이거나(joinTail) 마지막 조각을 뒤 단계로 옮긴다(moveLastLeaf). 단계 수는 같고 그림 설명이 표의 마지막 줄과 함께 보인다(판 1.7.0 통합 시험 —
+   * 150%에서 그림이 든 표를 0.75배로 줄인 다음 단계가 그림 설명 한 줄뿐이었다). 안 되면 null.
+   */
+  const resplitForTail = (previous: PresentStep, tail: PresentStep, limit: number): PresentStep[] | null => {
+    const { fit, ...rest } = previous;
+    if (!fit || fit.codeMax !== undefined || previous.part) {
+      return null;
+    }
+    const parts = splitInside(rest, fit.block, limit);
+    const last = parts?.[parts.length - 1];
+    if (!parts || !last || parts.length < 2) {
+      return null;
+    }
+    const joined = joinTail(last, tail, limit);
+    if (joined) {
+      return [...parts.slice(0, -1), joined];
+    }
+    const moved = moveLastLeaf(last, tail, limit);
+    return moved ? [...parts.slice(0, -1), ...moved] : null;
   };
 
   /** 거의 빈 뒤 단계를 앞 단계에 붙인 단계 — 들어가지 않으면 null. 앞 단계의 줄여 넣은 블록은 tailMergeZoom만큼 더 줄인다 */
@@ -1271,17 +1460,9 @@ export function installLessonPresentation(doc: Document = document): void {
     if (extent.bottom <= limit) {
       return base;
     }
-    const element = fit ? sections[base.section]?.children[fit.block] : undefined;
-    if (!fit || !element) {
-      return null;
-    }
-    const zoom = tailMergeZoom(element.getBoundingClientRect().height, extent.bottom - limit);
-    if (zoom === null || zoom >= 1) {
-      return null;
-    }
-    const zoomed: PresentStep = { ...base, fit: { block: fit.block, zoom } };
-    const after = extentOf(zoomed);
-    return after && after.bottom <= limit ? zoomed : null;
+    // 줄일 블록: 앞 단계가 줄여 넣은 블록, 없으면 안쪽 조각을 나눈 블록(표의 마지막 줄 묶음 등)
+    const zoomBlock = fit?.block ?? rest.part?.block;
+    return zoomBlock === undefined ? null : zoomToFit(base, zoomBlock, limit);
   };
 
   /**
@@ -1469,7 +1650,12 @@ export function installLessonPresentation(doc: Document = document): void {
       return;
     }
     const section = sections[step.section];
-    const targets: HTMLElement[] = step.title ? [...(header ? [header] : []), ...(section ? [section.element] : [])] : section ? [section.element] : [];
+    const introTargets = step.intro && !step.title ? intro().filter((child) => !child.hasAttribute(OFF)) : [];
+    const targets: HTMLElement[] = step.title
+      ? [...(header ? [header] : []), ...(section ? [section.element] : [])]
+      : section
+        ? [section.element]
+        : introTargets;
     if (targets.length === 0) {
       return;
     }

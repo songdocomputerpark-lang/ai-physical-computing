@@ -795,10 +795,11 @@ test.describe('수업 화면 — 단계 목록(미해결 271: 절 이름으로 �
     await expect(list).toBeHidden();
     await expect(page.locator('[data-present-status]')).toHaveText(/· 확인 퀴즈( \(1\/3\))?$/u);
     await expect(page.getByRole('heading', { level: 2, name: '확인 퀴즈' })).toBeFocused();
-    // 목록 밖을 누르면 닫힌다
+    // 목록 밖을 누르면 닫힌다. 목록은 막대 위 가운데에 슬라이드를 덮고 뜨므로(프로젝터용 큰 목록) 덮이지 않는 왼쪽 위 빈자리를 누른다
+    // (통합 시험에서 슬라이드 제목을 눌렀더니 목록 항목이 그 자리를 덮어 클릭이 막혔다 — 덮는 것이 맞는 모습이라 시험을 고침)
     await toggle.click();
     await expect(list).toBeVisible();
-    await page.locator('h2').filter({ visible: true }).first().click();
+    await page.mouse.click(8, 8);
     await expect(list).toBeHidden();
     await page.keyboard.press('Escape');
     await expect(page.locator('html')).not.toHaveAttribute('data-presenting');

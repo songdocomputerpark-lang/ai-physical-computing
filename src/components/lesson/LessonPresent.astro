@@ -145,6 +145,16 @@ import Icon from '../common/Icon.astro';
     object-fit: contain;
   }
 
+  /*
+   * 표 칸 속 그림(교과서 쪽 "인공지능 구현 예시" 표 등)은 화면 높이의 22%까지만 — 큰 글씨에서 그림 한 줄이 한 화면을 다 써
+   * 150%에서 표를 나누고도 그림 설명이 혼자 다음 단계로 밀렸다(판 1.7.0 통합 시험). 그림 칸 크기는 폭(100%, 9rem 안)과 width·height 속성의
+   * 비율로 받기 전에도 정해져야 단계 나누기가 맞으므로 width는 그대로 두고 높이만 막아 그림을 칸 안에 맞춘다(object-fit — 비율 그대로).
+   */
+  html[data-presenting] .lesson-body td img {
+    max-height: 22vh;
+    object-fit: contain;
+  }
+
   /* 학생 한 명이 쓰는 안내(키보드 조작법·실습실 여는 법·파일 경로)는 프로젝터에 필요 없다 */
   html[data-presenting] .quiz__guide,
   html[data-presenting] .lesson-example__note,

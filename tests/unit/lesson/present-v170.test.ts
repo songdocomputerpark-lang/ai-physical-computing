@@ -7,10 +7,12 @@ import {
   LATE_FIT_MIN_ZOOM,
   SHORT_TAIL_RATIO,
   STATUS_LABEL_LENGTHS,
+  TAIL_MIN_ZOOM,
   STEP_LABEL_MAX,
   continuedLabel,
   currentListEntry,
   isMergeable,
+  isTailMergeable,
   planPresentationSteps,
   statusText,
   stepListEntries,
@@ -109,6 +111,17 @@ describe('한 화면 맞추기(미해결 260 — 150% 확대에서 넘치는 단
     expect(isMergeable(plain, { ...plain, blocks: [0, 4] })).toBe(true);
   });
 
+  it('isTailMergeable: 거의 빈 뒤 단계는 안쪽 조각 단계(표의 마지막 줄 묶음) 뒤에도 붙일 수 있고, 뒤 단계 자신이 조각이면 안 된다(통합 시험)', () => {
+    const lastRows: PresentStep = { section: 1, blocks: [0, 5], label: '1 인공지능의 정의 (이어서)', part: { block: 5, from: 1, to: 1 }, fit: { block: 5, zoom: 0.86 } };
+    const caption: PresentStep = { section: 1, blocks: [0, 6, 7], label: '1 인공지능의 정의 (이어서)' };
+    expect(isTailMergeable(lastRows, caption)).toBe(true);
+    expect(isMergeable(lastRows, caption)).toBe(false);
+    expect(isTailMergeable(caption, lastRows)).toBe(false);
+    expect(isTailMergeable(lastRows, { ...caption, section: 2 })).toBe(false);
+    expect(isTailMergeable({ ...lastRows, title: true }, caption)).toBe(false);
+    expect(isTailMergeable(lastRows, { ...caption, item: 0 })).toBe(false);
+  });
+
   it('tailMergeZoom: 거의 빈 뒤 단계를 붙여 넘친 만큼, 앞 블록을 (1 − 넘침/높이)배로 — 0.72배보다 더 줄여야 하면 붙이지 않는다', () => {
     // 표 높이 440px, 그림 설명 한 줄을 붙여 40px 넘침 → 0.9배
     expect(tailMergeZoom(440, 40)).toBe(0.9);
@@ -128,5 +141,9 @@ describe('한 화면 맞추기(미해결 260 — 150% 확대에서 넘치는 단
     expect(SHORT_TAIL_RATIO).toBeLessThanOrEqual(0.25);
     expect(LATE_FIT_MIN_ZOOM).toBeGreaterThan(FIT_MIN_ZOOM);
     expect(LATE_FIT_MIN_ZOOM).toBeLessThan(1);
+    // 그림 설명을 표에 붙일 때만 조금 더 줄인다(0.66 — 통합 시험)
+    expect(TAIL_MIN_ZOOM).toBeLessThan(FIT_MIN_ZOOM);
+    expect(TAIL_MIN_ZOOM).toBeGreaterThanOrEqual(0.6);
+    expect(tailMergeZoom(341, 102, TAIL_MIN_ZOOM)).toBe(0.7);
   });
 });
