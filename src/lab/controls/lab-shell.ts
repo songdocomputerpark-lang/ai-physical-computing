@@ -75,7 +75,8 @@ import {
   type LazyExampleEntry,
 } from './lazy-examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
-import { isMostlyVisible, revealElement, revealTogether, stickyBarInset } from './reveal.ts';
+import { isEmbedFit, isMostlyVisible, revealElement, revealTogether, revealWhole, stickyBarInset } from './reveal.ts';
+import { finishedStatusText } from './finished-status.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickExampleLab, pickShareLab, type LabOnPage } from './share-link.ts';
 
 /** 실행기 상태를 사람 말로 */
@@ -545,6 +546,12 @@ class LabShellController implements LabController {
   #consoleNoticeHoldReveal = false;
   /** 알림 글자 쓰기를 모으는 화면 그리기 예약 */
   #consoleNoticeFrame: number | null = null;
+  /** 알림 칸([data-lab-io-output])의 원래 자리 — 차시 안 실습실에서 조작 줄 아래로 옮긴 칸을 되돌릴 때(판 1.7.0) */
+  #ioOutputHome: { readonly parent: Node; readonly next: Node | null } | null = null;
+  /** 콘솔의 마지막 "── 실행 N ──" 줄 — [콘솔 보기 ↓]가 이번 실행의 첫 줄부터 보이게(판 1.7.0, 다시 걷기 N2) */
+  #lastRunHeader: HTMLElement | null = null;
+  /** 차시 안 실습실에서 상태 줄에 "끝났어요"를 남긴 실행의 결과(다음 [실행]까지) — 알림을 걷으면 "바로 아래" 말을 뗀다 */
+  #finishedOutcome: RunResult['outcome'] | null = null;
   #fontSizePx = DEFAULT_FONT_SIZE_PX;
   #pendingInput: RuntimeRequest | null = null;
   /** 파이썬을 받는 동안 누른 [실행] — 준비가 끝나면 바로 실행한다 */
@@ -579,6 +586,9 @@ class LabShellController implements LabController {
   constructor(root: HTMLElement, elements: ShellElements) {
     this.root = root;
     this.#elements = elements;
+    if (elements.ioOutputBox?.parentNode) {
+      this.#ioOutputHome = { parent: elements.ioOutputBox.parentNode, next: elements.ioOutputBox.nextSibling };
+    }
     this.labId = root.dataset.labId ?? 'lab';
     this.#runLabel = elements.runButton.textContent?.trim() || '실행';
     this.#examples = readExamples(root);
@@ -815,6 +825,7 @@ class LabShellController implements LabController {
 
   /** 실행을 시작할 때 파이썬 실행기·실행 대상이 함께 하는 일: 번호·결과 지우기·콘솔 머리줄·'run' 이벤트·결과 칸으로 화면 옮기기 */
   #beginRun(code: string, target: string | null): void {
+    this.#finishedOutcome = null;
     this.#runCount += 1;
     this.root.dataset.runCount = String(this.#runCount);
     this.root.dataset.outcome = '';
@@ -1351,6 +1362,9 @@ class LabShellController implements LabController {
     span.className = `lab-console__line lab-console__line--${kind}`;
     span.textContent = text;
     box.append(span);
+    if (kind === 'notice' && text.startsWith('── 실행 ')) {
+      this.#lastRunHeader = span;
+    }
     while (box.childNodes.length > MAX_CONSOLE_LINES) {
       box.firstChild?.remove();
     }
@@ -1452,19 +1466,40 @@ class LabShellController implements LabController {
        * 방법(sticky)은 휴대폰에서 보드 조작 칸(4채널 터치 패드)을 덮어 손가락이 닿지 않아 쓰지 않는다 — 리눅스 CI에서 드러남).
        */
       const ioSection = this.#elements.ioSection;
-      const anchor = ioSection?.querySelector<HTMLElement>('[data-lab-io-output-anchor]') ?? null;
-      if (anchor !== null && anchor.nextElementSibling !== ioOutputBox) {
-        anchor.after(ioOutputBox);
-      }
-      const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
-      if (!this.#consoleNoticeHoldReveal) {
-        revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox, inset: this.#stickyInset() });
+      if (isEmbedFit()) {
+        /*
+         * 차시 안 실습실(높이 맞춤 틀, 판 1.7.0 — 다시 걷기 walk-student-first N1 major): [실행] 뒤에도 조작 줄과 코드가 화면에 남는 대신 콘솔은
+         * 1,200~1,750px 아래이고, 그 사이에 이 예제와 상관없을 수 있는 입력·출력 칸이 낀다. 그래서 알림을 조작 줄 바로 아래에 띄운다 —
+         * [실행]을 누른 자리에서 "콘솔에 결과가 나왔어요 + 마지막 줄 + [콘솔 보기 ↓]"가 보인다. 조작 줄을 지키며 알림이 보이게만 옮긴다(reveal.ts).
+         */
+        const bar = this.root.querySelector<HTMLElement>('[data-lab-bar]');
+        if (bar && bar.nextElementSibling !== ioOutputBox) {
+          bar.after(ioOutputBox);
+        }
+        if (!this.#consoleNoticeHoldReveal) {
+          revealTogether([ioOutputBox], ioOutputBox, { margin: 8 });
+        }
+      } else {
+        const anchor = ioSection?.querySelector<HTMLElement>('[data-lab-io-output-anchor]') ?? null;
+        if (anchor !== null && anchor.nextElementSibling !== ioOutputBox) {
+          anchor.after(ioOutputBox);
+        } else if (anchor === null) {
+          this.#restoreIoOutputHome();
+        }
+        const narrow = ioSection?.querySelector('[data-lab-reveal-on-run-min]') ?? null;
+        if (!this.#consoleNoticeHoldReveal) {
+          revealTogether(narrow ? [narrow] : [ioOutputBox], ioOutputBox, { margin: 8, fallback: narrow ?? ioOutputBox, inset: this.#stickyInset() });
+        }
       }
     }
     this.#consoleNoticeHoldReveal = false;
   }
 
   #resetConsoleOutputNotice(): void {
+    if (this.#finishedOutcome !== null && this.#consoleNewLines > 0 && this.#elements.statusText && this.runtime.state === 'idle') {
+      // 학생이 콘솔까지 왔거나 [콘솔 보기 ↓]를 눌러 알림이 할 일을 다 했다 — 상태 줄은 "끝났어요"만
+      this.#elements.statusText.textContent = finishedStatusText(this.#finishedOutcome, { outputBelow: false });
+    }
     this.#consoleTail.length = 0;
     this.#consoleNewLines = 0;
     this.#consoleNoticeHoldReveal = false;
@@ -1486,9 +1521,54 @@ class LabShellController implements LabController {
     }
   }
 
+  /** 알림 칸을 원래 자리(입력·출력 칸 끝)로 되돌린다 — 차시 안에서 조작 줄 아래로 옮겼다가 수업 화면 등 높이 맞춤이 아닌 때가 되면 */
+  #restoreIoOutputHome(): void {
+    const box = this.#elements.ioOutputBox;
+    const home = this.#ioOutputHome;
+    if (!box || !home || box.parentNode === home.parent) {
+      return;
+    }
+    const next = home.next && home.next.parentNode === home.parent ? home.next : null;
+    home.parent.insertBefore(box, next);
+  }
+
+  /** 콘솔 상자 안을 이번 실행의 첫 줄("── 실행 N ──")이 맨 위에 오게 굴린다(줄이 상자보다 많을 때만) */
+  #scrollConsoleToRunStart(): void {
+    const box = this.#elements.consoleBox;
+    const header = this.#lastRunHeader;
+    if (!header?.isConnected || header.parentNode !== box || box.scrollHeight <= box.clientHeight + 1) {
+      return;
+    }
+    let padding = 0;
+    try {
+      padding = Number.parseFloat(getComputedStyle(box).paddingTop) || 0;
+    } catch {
+      padding = 0;
+    }
+    box.scrollTop = Math.max(0, box.scrollTop + header.getBoundingClientRect().top - box.getBoundingClientRect().top - box.clientTop - padding);
+  }
+
   /** [콘솔 보기]: 콘솔로 화면을 옮기고 초점을 준다(키보드만 쓰는 학생도 바로 읽게). */
   #jumpToConsole(): void {
     const box = this.#elements.consoleBox;
+    if (isEmbedFit()) {
+      /*
+       * 차시 안 실습실(높이 맞춤 틀, 판 1.7.0 — 다시 걷기 N2: 콘솔 위쪽이 화면 밖 −146~206에 도착, 이번 실행의 앞줄은 상자 안에서 위로 숨음).
+       * ① 알림을 먼저 걷는다 — 알림은 조작 줄 아래(콘솔보다 위)라 걷으면 콘솔이 그만큼 올라간다. 재고 나서 걷으면 그만큼 빗나갔다.
+       * ② 틀 높이 맞춤(차시 쪽 ResizeObserver)이 따라온 뒤(두 번째 화면 그리기)에 콘솔 칸 전체가 화면에 들어오게 바깥 쪽을 굴린다(제목부터).
+       * ③ 콘솔 상자 안은 이번 실행의 첫 줄이 맨 위에 오게.
+       */
+      this.#resetConsoleOutputNotice();
+      this.#scrollConsoleToRunStart();
+      try {
+        box.focus({ preventScroll: true });
+      } catch {
+        box.focus();
+      }
+      const section = box.closest('.lab__console') ?? box;
+      requestFrame(() => requestFrame(() => revealWhole(section, { margin: 12 })));
+      return;
+    }
     revealElement(box.closest('.lab__console') ?? box, { block: 'start' });
     try {
       box.focus({ preventScroll: true });
@@ -1856,6 +1936,21 @@ class LabShellController implements LabController {
     this.root.dataset.stopMs = result.stopMs === undefined ? '' : String(Math.round(result.stopMs));
   }
 
+  /**
+   * 차시 안 실습실(높이 맞춤 틀)에서 실행이 끝나면 상태 줄을 처음 글("준비됐어요. [실행]을 눌러 봐요.")로 돌리지 않고 "끝났어요"로 둔다
+   * (판 1.7.0 — 다시 걷기 walk-student-first N1, finished-status.ts). 실행기는 'idle'을 알린 뒤 'done'을 알리므로 여기서 덮어쓴다.
+   * 실습실 단독 쪽·수업 화면 속 실습실·실행 대상(실제 보드)은 예전 그대로.
+   */
+  #showFinishedStatus(result: RunResult): void {
+    const { statusText } = this.#elements;
+    this.#finishedOutcome = null;
+    if (!statusText || this.#runTarget || !isEmbedFit()) {
+      return;
+    }
+    this.#finishedOutcome = result.outcome;
+    statusText.textContent = finishedStatusText(result.outcome, { outputBelow: this.#consoleNewLines > 0 && this.#consoleVisible === false });
+  }
+
   #wireRuntime(): void {
     const { stopButton, statusText, progressText, limitedNotice } = this.#elements;
     const runtime = this.runtime;
@@ -1870,7 +1965,11 @@ class LabShellController implements LabController {
           this.#keepButtonFocus(() => {
             this.root.dataset.state = state;
             if (statusText) {
-              statusText.textContent = this.#stateText(state);
+              // 차시 안 실습실에서 실행이 끝난 뒤 다시 'idle'이 와도(패키지 받기 등) "끝났어요"를 지킨다(판 1.7.0 — #showFinishedStatus)
+              statusText.textContent =
+                state === 'idle' && this.#finishedOutcome !== null
+                  ? finishedStatusText(this.#finishedOutcome, { outputBelow: this.#consoleNewLines > 0 && this.#consoleVisible === false })
+                  : this.#stateText(state);
             }
             this.#paintRunButton();
             stopButton.disabled = state !== 'running' && !this.#runReserved();
@@ -1928,6 +2027,7 @@ class LabShellController implements LabController {
         this.#hideInput();
         this.#resolveTargetPrompt(null);
         this.#showResult(result);
+        this.#showFinishedStatus(result);
         this.#emit('done', result);
       }),
       runtime.on('request', (request) => this.#handleRequest(request)),

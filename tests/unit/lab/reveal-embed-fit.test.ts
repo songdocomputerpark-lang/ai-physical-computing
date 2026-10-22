@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { EMBED_FIT_ATTRIBUTE, embedFitView, isMostlyVisible, revealElement, revealTogether } from '../../../src/lab/controls/reveal.ts';
+import { EMBED_FIT_ATTRIBUTE, embedFitView, isEmbedFit, isMostlyVisible, revealElement, revealTogether, revealWhole } from '../../../src/lab/controls/reveal.ts';
 
 function box(top: number, height: number, width = 300) {
   return { top, bottom: top + height, height, width, left: 0, right: width, x: 0, y: top, toJSON: () => ({}) };
@@ -159,6 +159,28 @@ describe('차시 안 실습실(높이 맞춤 틀)의 보이는 자리', () => {
     const below = stubFitFrame({ frameTop: 1200, frameHeight: 3000, outerHeight: 812, outerScroll: 0 });
     expect(revealElement(fakeElement(2000, 200).element)).toBe(true);
     expect(below.outerScrolls).toEqual([{ top: 1200 + 2000 - 8, behavior: 'smooth' }]);
+  });
+
+  // 판 1.7.0 다시 걷기 N2: [콘솔 보기 ↓]가 콘솔 위쪽을 화면 밖(−146~206)에 둔 채 끝났다 — 도착점은 통째로 화면에
+  it('revealWhole: 위·아래 끝이 모두 화면 안이면 그대로, 아니면 위 끝을 화면 위 끝 + 여백에 맞춘다(반쯤 보여도 옮긴다)', () => {
+    const { outerScrolls } = stubFitFrame({ frameTop: -1000, frameHeight: 3146, outerHeight: 812, outerScroll: 6000 });
+    expect(isEmbedFit()).toBe(true);
+    // 콘솔 칸 854~1,304(틀 안) — 화면 띠 1,000~1,812에서 위쪽 146px가 잘림: revealElement는 "충분히 보임"일 수 있지만 revealWhole은 옮긴다
+    const consoleSection = fakeElement(854, 450).element;
+    expect(revealWhole(consoleSection, { margin: 12 })).toBe(true);
+    expect(outerScrolls).toEqual([{ top: 6000 + (854 - 1012), behavior: 'smooth' }]);
+    // 통째로 보이면 움직이지 않는다
+    outerScrolls.length = 0;
+    expect(revealWhole(fakeElement(1100, 400).element, { margin: 12 })).toBe(false);
+    expect(outerScrolls).toEqual([]);
+    // 화면보다 큰 칸은 위 끝(제목)부터
+    expect(revealWhole(fakeElement(1500, 1200).element, { margin: 12 })).toBe(true);
+    expect(outerScrolls).toEqual([{ top: 6000 + (1500 - 1012), behavior: 'smooth' }]);
+  });
+
+  it('isEmbedFit: 뿌리 표시가 없으면 거짓(실습실 단독 쪽·수업 화면 속 실습실)', () => {
+    stubFitFrame({ frameTop: 0, frameHeight: 3000, outerHeight: 812, outerScroll: 0, fit: false });
+    expect(isEmbedFit()).toBe(false);
   });
 
   it('가운데 맞춤·가까운 쪽 맞춤도 띠 안에서 계산한다', () => {

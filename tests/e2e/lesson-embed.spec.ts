@@ -169,6 +169,74 @@ test.describe('차시 페이지의 실습실 임베드', () => {
     await expect(frame.locator('[data-lab-editor]')).toBeInViewport({ ratio: 0.25 });
     // 스크롤은 바깥 쪽 하나 — 틀 안 문서는 굴러가 있지 않다
     expect(await frame.locator('html').evaluate(() => window.scrollY)).toBe(0);
+
+    // 판 1.7.0 다시 걷기 N1(major): 결과 콘솔은 1,200~1,750px 아래라, [실행] 줄 바로 아래에 "콘솔에 결과가 나왔어요 + 마지막 줄 + [콘솔 보기 ↓]"가 뜨고
+    // 상태 줄은 처음 글("준비됐어요. [실행]을 눌러 봐요.")로 돌아가지 않는다
+    const notice = frame.locator('[data-lab-io-output]');
+    await expect(notice).toBeVisible();
+    await expect(notice).toContainText('콘솔에 결과가 나왔어요.');
+    await expect(notice).toBeInViewport();
+    expect(await frame.locator('[data-lab-bar]').evaluate((bar) => bar.nextElementSibling?.hasAttribute('data-lab-io-output') ?? false), '알림이 조작 줄 바로 아래').toBe(true);
+    await expect(frame.locator('[data-lab-status]')).toHaveText('실행이 끝났어요. 결과가 바로 아래에 나왔어요.');
+    await expect(run).toBeInViewport();
+
+    // N2: [콘솔 보기 ↓]는 콘솔 칸의 제목까지 화면 안에 데려가고, 콘솔 상자는 이번 실행의 첫 줄부터 보인다
+    await notice.getByRole('button', { name: '콘솔 보기 ↓' }).click();
+    const consoleHeading = frame.getByRole('heading', { name: '콘솔', exact: true });
+    await expect(consoleHeading).toBeInViewport({ ratio: 1 });
+    await expect(frame.locator('[data-lab-console]')).toBeFocused();
+    await expect(frame.locator('[data-lab-console] .lab-console__line', { hasText: '── 실행 1 ──' })).toBeInViewport({ ratio: 1 });
+    await expect(notice).toBeHidden();
+    await expect(frame.locator('[data-lab-status]')).toHaveText('실행이 끝났어요.');
+
+    // N5: 바꿔 보기의 "↑ 실습실에서 코드 고치기"는 펼친 실습실의 조작 줄을 화면 위에 두고 [실행]에 초점 — 바로 아래 코드 칸이 보인다
+    const back = page.locator('section.lesson-section[data-section="try"]').getByRole('link', { name: '실습실에서 코드 고치기', exact: true });
+    await back.scrollIntoViewIfNeeded();
+    await back.click();
+    await expect(run).toBeFocused();
+    await expect(run).toBeInViewport();
+    await expect(frame.locator('[data-lab-editor]')).toBeInViewport({ ratio: 0.25 });
+  });
+
+  // 판 1.7.0 다시 걷기 walk-a11y-keyboard N2(major): 수업 화면 슬라이드에서 Enter로 실습실을 열면 틀 윗선이 화면 맨 위로 가 [실습실 접기]가 화면 밖(−92~−36)인데
+  // 초점이 거기 남았다 → 초점은 화면 안의 실습실로(틀 → 읽히면 [실행])
+  test('수업 화면에서 키보드로 [이 자리에서 실습실 열기]를 누르면 초점이 화면 안의 실습실 [실행]으로 간다', async ({ page, isMobile }) => {
+    test.skip(isMobile, '프로젝터(넓은 화면) 수업 화면');
+    test.setTimeout(4 * 60_000);
+    await page.goto(`${withBase('learn/u1/1-1-1/')}?view=slide`);
+    await expect(page.locator('html')).toHaveAttribute('data-presenting', /.*/u);
+    const openButton = page.locator('[data-lesson-lab-open]').first();
+    for (let press = 0; press < 80 && !(await openButton.isVisible()); press += 1) {
+      await page.keyboard.press('ArrowRight');
+      await page.waitForTimeout(120);
+    }
+    await expect(openButton).toBeVisible();
+    await openButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(openButton).toHaveAttribute('aria-expanded', 'true');
+    const frame = page.frameLocator('iframe.lesson-example__frame').first();
+    const run = frame.locator('[data-lab-run]');
+    await expect(run).toBeFocused({ timeout: LOAD_TIMEOUT });
+    await expect(run).toBeInViewport();
+    await expect(openButton).not.toBeFocused();
+    await page.keyboard.press('Escape');
+  });
+
+  // 실습실 단독 쪽은 예전 그대로(판 1.7.0 N1 고침은 차시 안 높이 맞춤 틀에서만): 알림은 입력·출력 칸 안, 상태 줄은 처음 글로 돌아간다
+  test('실습실 단독 쪽의 [실행] 뒤 알림 자리와 상태 줄은 바뀌지 않는다', async ({ page }) => {
+    test.setTimeout(4 * 60_000);
+    await page.goto(`${withBase('labs/vision/')}?example=${encodeURIComponent('vision/u1/1-1-1-sort-vs-group.py')}`);
+    const lab = page.locator('[data-lab]');
+    await expect(lab).toHaveAttribute('data-state', 'idle', { timeout: LOAD_TIMEOUT });
+    await page.getByRole('button', { name: '실행', exact: true }).click();
+    await expect(lab).toHaveAttribute('data-outcome', 'ok', { timeout: LOAD_TIMEOUT });
+    await expect(page.locator('html')).not.toHaveAttribute('data-embed-fit', /.*/u);
+    await expect(page.locator('[data-lab-status]')).toHaveText('준비됐어요. [실행]을 눌러 봐요.');
+    const placement = await page.locator('[data-lab-io-output]').evaluate((box) => ({
+      inIo: Boolean(box.closest('[data-lab-io]')),
+      afterBar: box.previousElementSibling?.hasAttribute('data-lab-bar') ?? false,
+    }));
+    expect(placement).toEqual({ inIo: true, afterBar: false });
   });
 
   test('[실습실에서 열기]는 그 예제를 고른 채 실습실 페이지를 연다', async ({ page }) => {

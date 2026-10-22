@@ -413,7 +413,36 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
     applyFitAll();
   }).observe(root, { attributes: true, attributeFilter: ['data-presenting'] });
 
-  /** 지금 펼쳐 둔 예제 가운데 마지막으로 연 것(바꿔 보기의 "↑ 실습실로"가 그리로 간다) */
+  /*
+   * 수업 화면에서 연 실습실은 틀 윗선이 화면 맨 위로 가서(틀 한 장 = 슬라이드 — 위 scrollIntoView·present.ts) 방금 누른 [실습실 접기]가
+   * 화면 위로 밀려났다 — 키보드로 열면 초점이 화면 밖(−92~−36px)에 남아 보이지 않았다(판 1.7.0 다시 걷기 walk-a11y-keyboard N2 major, WCAG 2.4.7·2.4.11).
+   * 그래서 수업 화면에서는 초점을 틀 안으로 옮긴다: 곧바로 틀 자체(화면 안), 틀이 읽히고 [실행]이 켜지면 [실행](compact 조작 줄 맨 앞 — 틀 위에 붙어 늘 보인다).
+   * 그 사이 학생이 초점을 다른 곳으로 옮겼으면(틀·누른 단추·문서 몸이 아닌 곳) 그만둔다. 15초 안에 [실행]이 안 켜지면 틀에 둔다.
+   */
+  const focusIntoLab = (frame: HTMLIFrameElement, button: HTMLButtonElement) => {
+    frame.focus({ preventScroll: true });
+    const started = performance.now();
+    const tryRun = () => {
+      const active = document.activeElement;
+      if (active && active !== frame && active !== button && active !== document.body) {
+        return;
+      }
+      const doc = frameDocument(frame);
+      const run = doc?.querySelector<HTMLButtonElement>('[data-lab-run]');
+      if (doc && doc.readyState !== 'loading' && run && !run.disabled && !run.closest('[hidden]')) {
+        run.focus({ preventScroll: true });
+        if (doc.activeElement === run) {
+          return;
+        }
+      }
+      if (performance.now() - started < 15_000) {
+        window.setTimeout(tryRun, 200);
+      }
+    };
+    tryRun();
+  };
+
+  /** 지금 펼쳐 둔 예제 가운데 마지막으로 연 것(바꿔 보기의 "↑ 실습실에서 코드 고치기"가 그리로 간다) */
   let lastOpenedButton: HTMLButtonElement | null = null;
 
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-lesson-lab-open]')) {
@@ -456,6 +485,12 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
         // 발표 모드에서는 틀 한 장이 화면 한 쪽을 쓰므로(높이 = 화면 − 아래 막대) 틀의 윗선을 화면 맨 위에 둔다 — 그래야 [실행]과 결과가 함께 보인다.
         (root.hasAttribute('data-presenting') ? slot : button).scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
         syncCompact();
+        if (root.hasAttribute('data-presenting')) {
+          const frame = slot.querySelector<HTMLIFrameElement>('iframe.lesson-example__frame');
+          if (frame) {
+            focusIntoLab(frame, button);
+          }
+        }
       } else {
         if (lastOpenedButton === button) {
           lastOpenedButton = null;
@@ -469,14 +504,41 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
   }
 
   /*
-   * 바꿔 보기 칸의 "↑ 실습실로"(판 1.7.0, 미해결 272 ④ — walk-student-first #20·B-12: "바꿔 볼 것"이 실습실 상자 밑 약 1,400~2,000px라
-   * 코드를 고치려면 다시 올라가야 했다). 바꿔 보기 제목 바로 밑에 따라 하기 예제로 올라가는 링크를 둔다 — 누르면 마지막으로 펼친 실습실의
-   * [실습실 접기] 단추(펼친 것이 없으면 첫 예제의 [이 자리에서 실습실 열기])를 화면 맨 위에 두고 그 단추에 초점을 준다(그 아래가 실습실).
-   * 스크립트가 넣는 링크라 자바스크립트가 없으면 없다(없어도 본문은 그대로 읽힌다). 수업 화면에서는 숨는다(data-present-hide).
+   * 바꿔 보기 칸의 "↑ 실습실에서 코드 고치기"(판 1.7.0, 미해결 272 ④ — walk-student-first #20·B-12: "바꿔 볼 것"이 실습실 상자 밑 약 1,400~2,000px라
+   * 코드를 고치려면 다시 올라가야 했다). 바꿔 보기 제목 바로 밑에 따라 하기 예제로 올라가는 링크를 둔다.
+   * - 펼쳐 둔 실습실이 있고 높이 맞춤이 붙었으면(틀이 읽힘): 그 실습실의 조작 줄([실행]·[정지])을 화면 위 끝 + 8px에 두고 [실행]에 초점 —
+   *   바로 아래가 코드 칸이라 고치고 [실행]하면 된다(다시 걷기 N5: 예전에는 [실습실 접기] 단추가 맨 위라 휴대폰 안내 상자 168px에 가려 코드 칸이 화면 밖이었다).
+   *   [실행]이 꺼져 있으면(파이썬을 받는 중) 초점은 [실습실 접기]에.
+   * - 아니면 첫 예제의 [이 자리에서 실습실 열기](펼쳐 둔 것이 있으면 그 [실습실 접기])를 화면 맨 위에 두고 그 단추에 초점.
+   * 보이는 글이 할 일을 말한다("코드 고치기" — 예전에는 낭독기에만 있었다). 스크립트가 넣는 링크라 자바스크립트가 없으면 없다. 수업 화면에서는 숨는다(data-present-hide).
    */
   const trySection = document.querySelector<HTMLElement>('.lesson-body section.lesson-section[data-section="try"]');
   const firstOpenButton = document.querySelector<HTMLButtonElement>('.lesson-body [data-lesson-lab-open]');
   const tryHeading = trySection?.querySelector<HTMLElement>(':scope > h2');
+
+  /** 펼쳐 둔 실습실 틀 안의 조작 줄을 화면 위 끝 + 8px에 두고 [실행]에 초점. 틀이 아직 안 읽혔거나 맞춤이 없으면 false */
+  const showLabBar = (button: HTMLButtonElement, smooth: boolean): boolean => {
+    const frame = button.closest('.lesson-example-block')?.querySelector<HTMLIFrameElement>('iframe.lesson-example__frame');
+    if (!frame || !frame.hasAttribute('data-fit') || frame.closest('[hidden]')) {
+      return false;
+    }
+    const doc = frameDocument(frame);
+    const bar = doc?.querySelector<HTMLElement>('[data-lab-bar]');
+    if (!bar) {
+      return false;
+    }
+    const top = frame.getBoundingClientRect().top + frame.clientTop + bar.getBoundingClientRect().top;
+    window.scrollTo({ top: Math.max(0, Math.round(window.scrollY + top - 8)), behavior: smooth ? 'smooth' : 'auto' });
+    const run = doc?.querySelector<HTMLButtonElement>('[data-lab-run]');
+    if (run && !run.disabled) {
+      run.focus({ preventScroll: true });
+    }
+    if (!run || doc?.activeElement !== run) {
+      button.focus({ preventScroll: true });
+    }
+    return true;
+  };
+
   if (trySection && tryHeading && firstOpenButton && !trySection.querySelector('[data-lesson-back-to-lab]')) {
     const line = document.createElement('p');
     line.className = 'lesson-back-to-lab';
@@ -487,14 +549,14 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
     const arrow = document.createElement('span');
     arrow.setAttribute('aria-hidden', 'true');
     arrow.textContent = '↑ ';
-    const hint = document.createElement('span');
-    hint.className = 'visually-hidden';
-    hint.textContent = ' 올라가서 코드 고치기';
-    link.append(arrow, '실습실로', hint);
+    link.append(arrow, '실습실에서 코드 고치기');
     link.addEventListener('click', (event) => {
       const target = lastOpenedButton?.isConnected ? lastOpenedButton : firstOpenButton;
       event.preventDefault();
       const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      if (lastOpenedButton?.isConnected && showLabBar(lastOpenedButton, !reduceMotion)) {
+        return;
+      }
       target.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
       target.focus({ preventScroll: true });
     });
@@ -715,6 +777,11 @@ const panels = (indexes ?? examples.map((_, index) => index)).flatMap((index) =>
   :global(.lesson-body .lesson-back-to-lab a:hover) {
     border-color: var(--color-accent-border);
     background: var(--color-accent-soft);
+  }
+
+  .lesson-example__lab :global(.lesson-example__frame:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
   }
 
   .lesson-example__lab :global(.lesson-example__wait) {

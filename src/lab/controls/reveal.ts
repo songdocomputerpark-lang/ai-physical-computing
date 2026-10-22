@@ -214,6 +214,38 @@ export function revealElement(element: Element | null | undefined, options: Reve
   return revealElementWithin(element, options, undefined);
 }
 
+/** 이 문서가 차시 안 실습실의 높이 맞춤 틀인가(차시 쪽이 뿌리에 data-embed-fit을 붙였고 바깥 쪽을 볼 수 있다) */
+export function isEmbedFit(): boolean {
+  return embedFitView() !== undefined;
+}
+
+/**
+ * 학생이 누른 단추의 도착점([콘솔 보기 ↓] 등)을 **통째로** 화면에 넣는다(판 1.7.0 — 다시 걷기 walk-student-first N2: 콘솔 위쪽이 화면 밖 −146~206에 도착).
+ * revealElement는 "충분히 보이면"(큰 칸은 화면 절반) 움직이지 않아 제목이 잘린 채 남을 수 있다. 여기서는 위·아래 끝이 모두 화면(위 여백 margin 안쪽) 안이어야
+ * 그대로 두고, 아니면 위 끝을 화면 위 끝 + margin에 맞춘다(화면보다 큰 칸도 위 끝 — 제목부터 읽게). 높이 맞춤 틀이면 바깥 쪽을 굴린다. 옮겼으면 true.
+ */
+export function revealWhole(element: Element | null | undefined, options: { margin?: number } = {}): boolean {
+  if (!element || typeof window === 'undefined') {
+    return false;
+  }
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  const rect = element.getBoundingClientRect();
+  if (viewportHeight === 0 || (rect.width === 0 && rect.height === 0)) {
+    return false;
+  }
+  const fit = embedFitView();
+  const band = visibleBand(viewportHeight, fit);
+  const margin = options.margin ?? 8;
+  if (rect.top >= band.top + margin && rect.bottom <= band.bottom) {
+    return false;
+  }
+  const delta = rect.top - (band.top + margin);
+  if (Math.abs(delta) < 1) {
+    return false;
+  }
+  return scrollByDelta(delta, fit);
+}
+
 export interface RevealTogetherOptions {
   /** 화면 위쪽에 남길 여백(px, 기본 8) */
   margin?: number;

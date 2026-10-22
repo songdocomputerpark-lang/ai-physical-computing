@@ -207,12 +207,12 @@ test.describe('차시 페이지', () => {
   });
 
   // 판 1.7.0(미해결 272 ④ — walk-student-first #20·B-12): "바꿔 볼 것"이 실습실 상자 밑 멀리 있어 코드를 고치러 다시 올라가야 했다
-  test('바꿔 보기 제목 밑 "↑ 실습실로"는 따라 하기 예제의 실습실 단추로 데려가 초점을 준다(실습실은 여전히 누를 때만 받는다)', async ({ page }) => {
+  test('바꿔 보기 제목 밑 "↑ 실습실에서 코드 고치기"는 (실습실을 안 열었으면) 따라 하기 예제의 [이 자리에서 실습실 열기]로 데려가 초점을 준다(실습실은 여전히 누를 때만 받는다)', async ({ page }) => {
     await page.goto('./learn/u1/1-1-1/');
     const trySection = page.locator('section.lesson-section[data-section="try"]');
-    const back = trySection.getByRole('link', { name: /^실습실로/u });
+    const back = trySection.getByRole('link', { name: '실습실에서 코드 고치기', exact: true });
     await expect(back).toBeVisible();
-    await expect(back).toHaveText(/↑\s*실습실로/u);
+    await expect(back).toHaveText(/↑\s*실습실에서 코드 고치기/u);
     await back.click();
     const open = page.locator('[data-lesson-lab-open]').first();
     await expect(open).toBeFocused();
