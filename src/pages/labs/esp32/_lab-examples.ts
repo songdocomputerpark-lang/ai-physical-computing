@@ -14,6 +14,7 @@ import { KIT_FILE, parseKitYaml } from '../../../components/kit/kit-schema.ts';
 import { deviceTitle, kitDeviceHref, stepLabHref } from '../../../components/kit/kit-view.ts';
 import { KIND_LABELS, publishedLessons } from '../../../components/lesson/lesson-data.ts';
 import { siteConfig } from '../../../config/site.ts';
+import { withLessonExampleTitles, type LessonExampleName } from '../../../lab/controls/example-names.ts';
 import { readExampleSidecars } from '../../../lab/controls/example-sidecar.ts';
 import type { LabExample } from '../../../lab/controls/examples.ts';
 import type { LazyExamplePayload } from '../../../lab/controls/lazy-examples.ts';
@@ -86,6 +87,8 @@ async function build(): Promise<Esp32LabExamples> {
   const byFile: Record<string, ExampleLessonLink> = {};
   const bySlug: Record<string, ExampleLessonLink> = {};
   const wiringByFile: Record<string, WiringEntry[]> = {};
+  // 판 1.7.0(미해결 271 B-44): 고르기 칸의 예제 이름을 차시 카드·수업 화면과 한 벌로(example-names.ts withLessonExampleTitles)
+  const namesByFile: Record<string, LessonExampleName> = {};
   const warnWiring = (text: string) => console.warn(`[ESP32 실습실 배선] ${text}`);
   for (const entry of lessonEntries) {
     // 차시 md의 배선(examples[].parts)은 차시 링크와 상관없이 읽는다(차시가 목록에 아직 안 보여도 예제 배선은 맞게).
@@ -107,9 +110,13 @@ async function build(): Promise<Esp32LabExamples> {
     bySlug[lesson.slug] = link;
     for (const example of entry.data.examples) {
       byFile[example.file] ??= link;
+      namesByFile[example.file] ??= { label: lesson.label, title: example.title };
     }
   }
-  const all = esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug }, { wiringByFile, deviceByFile: kitDeviceLinks(), nextStepByFile: kitNextSteps(), onWarning: warnWiring });
+  const all = withLessonExampleTitles(
+    esp32ExamplesFromFiles(exampleFiles, readExampleSidecars(sidecarFiles), { byFile, bySlug }, { wiringByFile, deviceByFile: kitDeviceLinks(), nextStepByFile: kitNextSteps(), onWarning: warnWiring }),
+    namesByFile,
+  );
   return splitLazyEsp32Examples(all, kitCodeUrl);
 }
 

@@ -290,7 +290,7 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
 </BaseLayout>
 
 <script>
-  import { kitNavScrollTop } from '../../../../components/kit/kit-sidebar.ts';
+  import { kitNavScrollTop } from '../../../../components/kit/kit-nav-scroll.ts';
   import { installLessonNav, retargetSkipLink, WIDE_QUERY } from '../../../../components/lesson/lesson-progress.ts';
 
   // 왼쪽 장치 목록: 넓은 화면에서는 펼치고 좁은 화면에서는 접는다. [본문으로 건너뛰기]는 목록 대신 본문 글로 간다.
@@ -298,7 +298,7 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
   retargetSkipLink();
 
   // 목록의 처음 스크롤 위치(판 1.7.0, 미해결 264 #20): installLessonNav는 지금 장치를 칸 가운데로 맞춰 위쪽 "도감 첫 쪽"·장 제목이 반쯤 잘렸다.
-  // 여기서 장 제목이 맨 위에 오게(또는 처음 한 화면 안이면 맨 위부터) 다시 맞춘다 — 규칙은 kit-sidebar.ts kitNavScrollTop.
+  // 여기서 장 제목이 맨 위에 오게(또는 처음 한 화면 안이면 맨 위부터) 다시 맞춘다 — 규칙은 kit-nav-scroll.ts kitNavScrollTop.
   const alignKitNav = (): void => {
     const scroller = document.querySelector<HTMLElement>('[data-lesson-nav-scroll]');
     const current = scroller?.querySelector<HTMLElement>('[aria-current="page"]');
