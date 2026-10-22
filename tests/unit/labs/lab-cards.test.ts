@@ -47,8 +47,8 @@ describe('실습실 카드 정보', () => {
 });
 
 describe('무엇을 할까요? 고르기', () => {
-  it('3개이고 모두 사이트 지도의 열린 실습실로 간다', () => {
-    expect(LAB_CHOICES).toHaveLength(3);
+  it('4개이고 모두 사이트 지도의 열린 쪽으로 간다', () => {
+    expect(LAB_CHOICES).toHaveLength(4);
     for (const choice of LAB_CHOICES) {
       expect(() => getPage(choice.target), choice.ask).not.toThrow();
       expect(getLabPlan(choice.target).open, choice.ask).toBe(true);
@@ -69,6 +69,11 @@ describe('무엇을 할까요? 고르기', () => {
 
   it('첫 고르기(처음이면 여기서)는 영상 처리 실습실이다', () => {
     expect(LAB_CHOICES[0]?.target).toBe('labs-vision');
+  });
+
+  it('넷째 고르기는 키트 장치 도감이다(판 1.7.0, 미해결 265 — /labs/ 첫 화면에서 도감을 찾을 수 있어야 한다)', () => {
+    expect(LAB_CHOICES[3]?.target).toBe('labs-esp32-kit');
+    expect(LAB_CHOICES[3]?.ask).toContain('키트');
   });
 });
 

@@ -92,7 +92,7 @@ const VIRTUAL_DRIVER_NOTES = {
 
 // ── 고정 글 ──
 const LCD_PART = Object.freeze({ part: 'lcd-i2c', id: 'lcd', pins: { sda: 21, scl: 22 }, label: '문자 LCD(16×2)' });
-const DEFAULT_REAL_ONLY = '이 예제에 필요한 흉내가 가상 보드에 아직 없어서';
+const DEFAULT_REAL_ONLY = '이 예제에 필요한 부분이 가상 보드에 아직 없어서';
 
 // ── 도우미 ──
 const pad2 = (n) => String(n).padStart(2, '0');

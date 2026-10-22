@@ -8,7 +8,14 @@
  *         #port-not-found "포트 선택 창에 보드가 안 보여요"(PortHelp: 케이블 → 장치 관리자 그림 → 드라이버·자동 설치 근거·전산 담당 부탁 글 → Linux)
  *   3단계 #firmware      MicroPython 굽기(FirmwareFlasher, P3-09)
  *   4단계 #first-example 2-1-1 차시의 내장 LED 예제를 ESP32 실습실 [실제 보드]에서 실행
- *   참고  #kit-parts     키트 모듈명 ↔ 범용 부품 표, #safety 안전
+ *   참고  #kit-parts     키트 모듈명 ↔ 범용 부품 표(꽂는 예·표는 접힌 상자 안), #safety 안전
+ *
+ * 쪽 길이(판 1.7.0, 미해결 262 옛 #4 — 걷기 보고 walk-student-board: 쪽 높이 6,054px, 오른쪽 40%가 빈 칸):
+ *   ① "순서 한눈에 보기"는 64rem 이상에서 오른쪽 빈 칸으로 옮겨 따라오고(sticky, 키가 낮은 화면은 따라오지 않음), 지금 보는 단계에 aria-current="step"을 단다.
+ *      좁은 화면에서는 전처럼 쪽 맨 위에 한 번만 나온다(DOM 순서도 그대로 — 차례가 본문 앞).
+ *   ② "키트에 부품을 꽂는 예"(회로 그림)와 "키트 부품 이름 표"는 지금 당장 필요하지 않은 참고라 하나의 접힌 상자(details[data-kit-parts-details]) 안으로.
+ *      제목 #kit-parts는 상자 밖에 두어 다른 쪽의 링크(부품 사전·1단계)가 상자를 열지 않고도 닿고, 안쪽 #kit-example은 브라우저가 상자를 열어 준다.
+ *   단계 순서(1→4)와 details#port-not-found(연결이 안 될 때 — PortHelp 안에는 details를 더 두지 않는다)는 그대로다.
  * 다른 곳이 쓰는 #위치: #port-not-found(실습실 실제 보드 패널·굽기 화면·도움말), #firmware(실습실 "펌웨어 굽기 안내"), #drivers·#linux.
  * 드라이버는 만든 회사의 공식 페이지 링크로만 안내하고 파일은 올리지 않는다(INVENTORY §2, SPEC 원칙 1의 허용 예외). 주소·근거는 src/components/start/board/links.ts.
  * 2-1-1 차시 md(P5)가 생기면 그 차시로, 없으면 II단원 차례로 잇는다(빌드할 때 content/lessons를 읽는다).
@@ -31,6 +38,7 @@ import { withBase } from '../../../lib/url.ts';
 
 const page = getPage('start-board');
 const esp32Lab = getPage('labs-esp32');
+const kitPage = getPage('labs-esp32-kit');
 
 /** 시나리오 C의 첫 예제: 교과서 2-1-1 "동작 테스트: 내장 LED 깜빡이기"(원본 f046, 사이드카 examples/esp32/u2/2-1-1-blink-check.meta.yaml) */
 const FIRST_LESSON_LABEL = '2-1-1';
@@ -66,7 +74,9 @@ const flow = [
     </Callout>
   </div>
 
-  <nav class="board-flow" aria-labelledby="board-flow-title">
+  <div class="board-layout" data-page-wide>
+  <div class="board-layout__side">
+  <nav class="board-flow" aria-labelledby="board-flow-title" data-board-flow>
     <h2 class="board-flow__title" id="board-flow-title">순서 한눈에 보기</h2>
     <p class="board-flow__note">처음 연결하는 보드 한 대에 15분쯤으로 잡아요(펌웨어 굽기 1~2분 포함). 실제 보드로 재 본 값은 아니에요.</p>
     <ol class="board-flow__list">
@@ -89,8 +99,11 @@ const flow = [
         ))
       }
     </ol>
+    <p class="board-flow__more">맨 아래 참고: <a href="#kit-parts">키트 부품 이름</a> · <a href="#safety">안전하게 쓰기</a></p>
   </nav>
+  </div>
 
+  <div class="board-layout__main">
   <div class="prose">
     <h2 id="kit-list"><span class="board-step">1단계</span> 준비물과 케이블 확인하기</h2>
     <ul>
@@ -99,6 +112,7 @@ const flow = [
       <li>컴퓨터와 컴퓨터용 Chrome이나 Edge 최신판(보드 연결과 펌웨어 굽기는 컴퓨터에서 해요)</li>
       <li>실습할 부품 모듈(차시마다 달라요 — 이름은 아래 <a href="#kit-parts">키트 부품 이름 맞춰 보기</a> 표에 있어요)</li>
     </ul>
+    <p class="board-kit-link" data-board-kit-link>키트에 든 센서·부품을 하나씩 찾아보려면 <a href={kitPage.href}>{kitPage.title}</a>에서 사진, 배선, 예제 코드를 볼 수 있어요.</p>
 
     <h3 id="cable">USB 케이블 확인하기</h3>
     <Callout type="참고" title="충전 전용 케이블로는 연결되지 않아요">
@@ -156,16 +170,16 @@ const flow = [
     </Callout>
 
     <h2 id="kit-parts">키트 부품 이름 맞춰 보기</h2>
-    <p>지금 당장 필요하지 않은 참고 표예요. 부품을 사거나 찾을 때 펼쳐 봐요.</p>
-
-    <h3 id="kit-example">키트에 부품을 꽂는 예</h3>
-    <p>부품 모듈의 선을 확장 보드의 줄에 꽂아요. 검정 선은 GND, 빨강 선은 VCC, 노란 선은 신호선이에요. 아래 그림은 LCD를 21번(SDA)·22번(SCL) 핀에 꽂은 예예요.</p>
-    <p>배선이 있는 차시에는 차시 머리에 [실제 키트 배선 보기]가 있어요. 부품 모양은 <a href={withBase('start/parts/')}>부품 사전</a>에서 볼 수 있어요.</p>
-    <CircuitFigure id="2-1-2-1" />
+    <p>지금 당장 필요하지 않은 참고예요. 부품을 사거나 찾을 때 아래 상자를 펼쳐 봐요.</p>
   </div>
   <details class="board-details" data-kit-parts-details>
-    <summary>키트 부품 이름 표 펼치기(16줄)</summary>
+    <summary>키트에 부품을 꽂는 예와 부품 이름 표 펼치기(16줄)</summary>
     <div class="prose">
+      <h3 id="kit-example">키트에 부품을 꽂는 예</h3>
+      <p>부품 모듈의 선을 확장 보드의 줄에 꽂아요. 검정 선은 GND, 빨강 선은 VCC, 노란 선은 신호선이에요. 아래 그림은 LCD를 21번(SDA)·22번(SCL) 핀에 꽂은 예예요.</p>
+      <p>배선이 있는 차시에는 차시 머리에 [실제 키트 배선 보기]가 있어요. 부품 모양은 <a href={withBase('start/parts/')}>부품 사전</a>에서 볼 수 있어요.</p>
+      <CircuitFigure id="2-1-2-1" />
+      <h3 id="kit-name-table">키트 부품 이름 표</h3>
       <p>교과서 키트의 부품 이름과, 다른 회사 부품을 살 때 찾아보는 범용 이름을 나란히 적었어요. 핀 번호는 차시마다 달라서, 실습할 때는 그 차시의 배선도(ESP32 실습실 보드 그림)를 따라요.</p>
     </div>
     <KitPartsTable />
@@ -186,9 +200,102 @@ const flow = [
       </ul>
     </Callout>
   </div>
+  </div>
+  </div>
 </BaseLayout>
 
+<script>
+  // "순서 한눈에 보기"에서 지금 보는 단계에 aria-current="step"을 단다(스크롤할 때만 — 링크를 눌러 이동해도 같은 규칙이 맞춘다).
+  // 기준선: 화면 위에서 30% 지점을 지난 마지막 단계 제목. 아직 1단계 제목에 닿기 전이면 아무 것도 달지 않는다.
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-board-flow] .board-flow__link')];
+  const headings = links.map((link) => document.getElementById(decodeURIComponent(link.hash.replace(/^#/u, ''))));
+
+  const update = (): void => {
+    const line = window.innerHeight * 0.3;
+    let current = -1;
+    headings.forEach((heading, index) => {
+      if (heading && heading.getBoundingClientRect().top <= line) {
+        current = index;
+      }
+    });
+    links.forEach((link, index) => {
+      if (index === current) {
+        link.setAttribute('aria-current', 'step');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
+
+  if (links.length > 0 && headings.every((heading) => heading !== null)) {
+    let queued = false;
+    const schedule = (): void => {
+      if (queued) {
+        return;
+      }
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        update();
+      });
+    };
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    update();
+  }
+</script>
+
 <style>
+  /*
+   * 두 칸 틀(판 1.7.0, 미해결 262): 좁은 화면은 한 칸(차례가 본문 앞에 한 번), 64rem 이상은 왼쪽 본문 + 오른쪽 "순서 한눈에 보기"(따라옴).
+   * 본문 칸의 글 덩어리는 전처럼 글 읽기 폭(44rem)을 넘지 않고, 접힌 상자의 표만 칸 폭을 다 쓴다.
+   */
+  .board-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+  }
+
+  .board-layout__side,
+  .board-layout__main {
+    min-width: 0;
+  }
+
+  .board-layout__main > :global(*) {
+    max-width: var(--width-prose);
+  }
+
+  .board-layout__main > :global(details) {
+    max-width: none;
+  }
+
+  @media (min-width: 64rem) {
+    .board-layout {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+      column-gap: var(--space-10);
+      align-items: start;
+    }
+
+    .board-layout__side {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .board-layout__main {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+
+  /* 키가 충분한 화면에서만 따라온다 — 낮은 화면에서 차례가 화면보다 길어 아래가 잘리는 일이 없게(스크롤 칸을 만들지 않는다) */
+  @media (min-width: 64rem) and (min-height: 44rem) {
+    .board-layout__side {
+      position: sticky;
+      inset-block-start: var(--space-4);
+    }
+  }
+
   .board-details {
     margin-block: var(--space-4);
   }
@@ -201,7 +308,7 @@ const flow = [
 
   .board-flow {
     max-width: var(--width-prose);
-    margin-block: var(--space-8) var(--space-4);
+    margin-block: 0 var(--space-4);
     padding: var(--space-5);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-lg);
@@ -331,6 +438,48 @@ const flow = [
 
   .first-example__lesson {
     font-weight: var(--weight-semibold);
+  }
+
+  /* 지금 보는 단계(board-flow.ts 아래 스크립트가 aria-current="step"을 단다) — 색만이 아니라 테두리 두께와 번호 칸 모양으로도 구별한다 */
+  .board-flow__link[aria-current='step'] {
+    border-width: 2px;
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    padding: calc(var(--space-2) - 1px) calc(var(--space-3) - 1px);
+  }
+
+  .board-flow__link[aria-current='step'] .board-flow__number {
+    border-radius: var(--radius-sm);
+  }
+
+  .board-flow__more {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .board-kit-link {
+    font-size: var(--text-sm);
+  }
+
+  /* 옆 칸의 차례: 설명(hint)은 본문 제목 아래에 이미 있으니 이름만 보여 짧게 */
+  @media (min-width: 64rem) {
+    .board-flow {
+      padding: var(--space-4);
+    }
+
+    .board-flow__hint {
+      display: none;
+    }
+
+    .board-flow__title {
+      font-size: var(--text-base);
+    }
+
+    .board-flow__branch {
+      padding-inline-start: var(--space-3);
+    }
   }
 
   @media (max-width: 30rem) {

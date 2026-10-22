@@ -289,7 +289,7 @@ test.describe('장치 쪽 — 실제 보드에서 해 보는 장치(3.11 초음�
     await page.goto(deviceUrl('d-3-11'));
     await expect(page.locator('.kit-header [data-kit-virtual]')).toHaveText('실제 보드에서 해 보세요');
     // 딱지가 끝난 문장이고, 첫 화면에 뜻이 한 줄로 풀려 있다(걷기 보고 walk-kit-user 2)
-    await expect(page.locator('[data-kit-virtual-explain]')).toContainText('가상 보드에는 아직 이 장치를 흉내 내는 부분이 없어요');
+    await expect(page.locator('[data-kit-virtual-explain]')).toContainText('가상 보드에는 아직 이 장치가 없어요');
     // 연결 방식은 부품 사전과 같은 말(판 1.6.0 C176 — 걷기 보고 walk-kit-user B-69)
     await expect(page.locator('.kit-facts')).toContainText('디지털 입출력(TRIG 보내기·ECHO 받기)');
     // "보드 준비하기" 링크는 쪽 한 곳(머리)에만 — 전에는 단계마다·출처 줄에도 있어 한 쪽에 세 번이었다(걷기 보고 walk-kit-user 20, 판 1.6.0 C176)
@@ -414,6 +414,41 @@ test.describe('장치 쪽 — 코드가 위, 배선은 아래 · LCD 줄 · 회�
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
+  });
+
+  test('회로 그림은 넓은 화면에서 더 크게(1366에서 760px 이상), 좁은 화면에서는 [그림 크게 보기]가 큰 단추이고 안내 줄이 있다(판 1.7.0, 미해결 264 #9)', async ({ page }, testInfo) => {
+    await page.goto(deviceUrl('d-3-11'));
+    await expect(page.locator('[data-kit-circuit-hint]')).toContainText('[그림 크게 보기]');
+    const image = page.locator('figure.book-circuit img');
+    await image.scrollIntoViewIfNeeded();
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    const zoomBox = await page.locator('figure.book-circuit').getByRole('link', { name: /그림 크게 보기/u }).boundingBox();
+    const imageBox = await image.boundingBox();
+    if (testInfo.project.name === 'mobile') {
+      // 단추는 칸 폭을 다 쓰고(눌러 보라고 눈에 띔) 높이도 손가락 크기(44px 안팎)
+      expect(zoomBox!.width).toBeGreaterThanOrEqual(imageBox!.width - 4);
+      expect(zoomBox!.height).toBeGreaterThanOrEqual(40);
+    } else {
+      // 전에는 본문 칸(44rem)에 맞춰 678px — 본문 칸을 52rem까지 넓혀 그림이 더 커졌다
+      expect(imageBox!.width).toBeGreaterThanOrEqual(760);
+    }
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test('왼쪽 장치 목록은 맨 위가 잘리지 않고 시작한다: 지금 장치가 든 장 제목이 칸 안에 보인다(판 1.7.0, 미해결 264 #20)', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', '넓은 화면(64rem 이상)의 왼쪽 목록만');
+    await page.goto(deviceUrl('d-3-11'));
+    const scroller = page.locator('[data-lesson-nav-scroll]');
+    await expect(scroller).toBeVisible();
+    const scrollerBox = await scroller.boundingBox();
+    const title = page.locator('#nav-kit-ch-3');
+    const current = page.locator('[data-lesson-nav-scroll] [aria-current="page"]');
+    await expect(current).toBeVisible();
+    const titleBox = await title.boundingBox();
+    const currentBox = await current.boundingBox();
+    // 장 제목과 지금 장치가 모두 스크롤 칸 안에 들어 있다(칸 위 끝에서 잘리지 않음)
+    expect(titleBox!.y).toBeGreaterThanOrEqual(scrollerBox!.y - 1);
+    expect(currentBox!.y + currentBox!.height).toBeLessThanOrEqual(scrollerBox!.y + scrollerBox!.height + 1);
   });
 
   test('3.11 쪽은 가로로 넘치지 않고 스크립트 오류도 없다', async ({ page }) => {

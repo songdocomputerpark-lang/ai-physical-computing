@@ -271,6 +271,7 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
 
       <section class="kit-circuit" aria-labelledby="kit-circuit-title">
         <h2 id="kit-circuit-title">회로 그림</h2>
+        <p class="kit-circuit__hint" data-kit-circuit-hint>그림 속 글자가 작아서 선 이름이 안 읽히면, 그림 아래 [그림 크게 보기]를 눌러요.</p>
         <Fragment set:html={circuitHtml} />
         <CircuitZoom />
         <p class="kit-circuit__legend" data-kit-circuit-legend>{CIRCUIT_COLOR_LEGEND}</p>
@@ -289,11 +290,35 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
 </BaseLayout>
 
 <script>
-  import { installLessonNav, retargetSkipLink } from '../../../../components/lesson/lesson-progress.ts';
+  import { kitNavScrollTop } from '../../../../components/kit/kit-sidebar.ts';
+  import { installLessonNav, retargetSkipLink, WIDE_QUERY } from '../../../../components/lesson/lesson-progress.ts';
 
   // 왼쪽 장치 목록: 넓은 화면에서는 펼치고 좁은 화면에서는 접는다. [본문으로 건너뛰기]는 목록 대신 본문 글로 간다.
   installLessonNav();
   retargetSkipLink();
+
+  // 목록의 처음 스크롤 위치(판 1.7.0, 미해결 264 #20): installLessonNav는 지금 장치를 칸 가운데로 맞춰 위쪽 "도감 첫 쪽"·장 제목이 반쯤 잘렸다.
+  // 여기서 장 제목이 맨 위에 오게(또는 처음 한 화면 안이면 맨 위부터) 다시 맞춘다 — 규칙은 kit-sidebar.ts kitNavScrollTop.
+  const alignKitNav = (): void => {
+    const scroller = document.querySelector<HTMLElement>('[data-lesson-nav-scroll]');
+    const current = scroller?.querySelector<HTMLElement>('[aria-current="page"]');
+    const group = current?.closest<HTMLElement>('.lesson-nav__group');
+    if (!scroller || !current || !group || scroller.clientHeight === 0 || scroller.scrollHeight <= scroller.clientHeight + 1) {
+      return;
+    }
+    const boxTop = scroller.getBoundingClientRect().top - scroller.scrollTop;
+    const currentTop = current.getBoundingClientRect().top - boxTop;
+    scroller.scrollTop = kitNavScrollTop({
+      groupTop: group.getBoundingClientRect().top - boxTop,
+      currentTop,
+      currentBottom: currentTop + current.getBoundingClientRect().height,
+      viewport: scroller.clientHeight,
+    });
+  };
+  alignKitNav();
+  if (typeof window.matchMedia === 'function') {
+    window.matchMedia(WIDE_QUERY).addEventListener('change', () => requestAnimationFrame(alignKitNav));
+  }
 </script>
 
 <style>
@@ -305,9 +330,13 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
     margin-inline: auto;
   }
 
+  /*
+   * 본문 칸은 넓은 화면에서 52rem까지 넓힌다(판 1.7.0, 미해결 264 #9 — 회로 그림이 1366에서 678px라 선 이름이 안 읽혔다).
+   * 그림을 뺀 나머지 덩어리는 전처럼 글 읽기 폭(44rem)을 넘지 않게 아래에서 막는다.
+   */
   @media (min-width: 64rem) {
     .kit-layout {
-      grid-template-columns: minmax(13rem, 17rem) minmax(0, var(--width-prose));
+      grid-template-columns: minmax(13rem, 17rem) minmax(0, 52rem);
       justify-content: center;
       align-items: start;
       column-gap: var(--space-8);
@@ -317,6 +346,39 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
 
   .kit-page {
     min-width: 0;
+  }
+
+  .kit-page > :global(:not(.kit-circuit)) {
+    max-inline-size: var(--width-prose);
+  }
+
+  .kit-circuit :global(.book-circuit) {
+    max-inline-size: 100%;
+  }
+
+  .kit-circuit__hint {
+    max-width: var(--width-prose);
+    margin-block: var(--space-1) var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 좁은 화면(휴대폰)에서는 그림 글자가 5px쯤이라 [그림 크게 보기]가 사실상 읽는 길이다 — 눈에 띄는 큰 단추로(카드 안 규칙이 더 세서 같은 겹 선택자로 덮는다) */
+  @media (max-width: 40rem) {
+    .kit-circuit :global(.book-circuit .book-circuit__caption .figure-zoom) {
+      inline-size: 100%;
+      min-block-size: var(--target-min);
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+
+    .kit-circuit :global(.book-circuit .book-circuit__caption .figure-zoom:hover) {
+      border-color: var(--color-accent-hover);
+      background: var(--color-accent-hover);
+      color: var(--color-on-accent);
+    }
   }
 
   .kit-page:focus {

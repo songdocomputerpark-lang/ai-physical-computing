@@ -50,7 +50,7 @@ export const KIT_VIRTUAL_INFO: Readonly<Record<KitVirtual, KitVirtualInfo>> = Ob
     value: 'real-only',
     // "실제 보드에서"만 쓰면 문장이 끝나지 않아 "실제 보드에서 …무엇을?"로 읽혔다(판 1.6.0 C176, 걷기 보고 walk-kit-user 2)
     label: '실제 보드에서 해 보세요',
-    explain: '가상 보드에는 아직 이 장치를 흉내 내는 부분이 없어요. 키트 보드를 연결해서 해 봐요.',
+    explain: '가상 보드에는 아직 이 장치가 없어요. 키트 보드를 연결해서 해 봐요.',
     icon: 'plug',
   },
 });

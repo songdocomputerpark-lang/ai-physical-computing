@@ -494,6 +494,12 @@ test.describe('보드 준비 페이지(P3-10)', () => {
   test('키트에 부품을 꽂는 예: LCD 배선 회로 그림(캡션·크게 보기)과 부품 사전 링크가 있고, 화면 폭을 넘지 않는다(판 1.4.0 C5)', async ({ page }) => {
     const errors = collectPageErrors(page);
     await page.goto(BOARD.href);
+    // 판 1.7.0(미해결 262): 꽂는 예와 이름 표는 하나의 접힌 상자 안 — 제목 "키트 부품 이름 맞춰 보기"는 상자 밖에 보이고, 펼치면 꽂는 예가 보인다
+    const reference = page.locator('details[data-kit-parts-details]');
+    await expect(reference).not.toHaveAttribute('open', '');
+    await expect(page.getByRole('heading', { level: 2, name: '키트 부품 이름 맞춰 보기' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: '키트에 부품을 꽂는 예' })).toBeHidden();
+    await reference.locator(':scope > summary').click();
     await expect(page.getByRole('heading', { level: 3, name: '키트에 부품을 꽂는 예' })).toBeVisible();
     const figure = page.locator('figure.book-circuit[data-circuit="2-1-2-1"]');
     await expect(figure).toHaveCount(1);
@@ -505,6 +511,34 @@ test.describe('보드 준비 페이지(P3-10)', () => {
     await expect(page.locator('.prose', { has: page.locator('#kit-example') }).getByRole('link', { name: '부품 사전' })).toHaveAttribute('href', /\/start\/parts\/$/u);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
+    expect(errors).toEqual([]);
+  });
+
+  test('쪽이 짧아졌다: 넓은 화면은 차례가 오른쪽에 따라오고 지금 단계를 알리며, 참고 상자는 접혀 있고, 키트 장치 도감 링크가 있다(판 1.7.0, 미해결 262·265)', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', '데스크톱 넓은 화면에서만');
+    await page.setViewportSize({ width: 1366, height: 768 });
+    const errors = collectPageErrors(page);
+    await openBoardPage(page);
+    const flow = page.getByRole('navigation', { name: '순서 한눈에 보기' });
+    // 1단계 제목보다 먼저(DOM 차례) 오른쪽 칸에 있고, 본문(1단계 제목)은 그 왼쪽에 있다
+    const flowBox = await flow.boundingBox();
+    const stepBox = await page.locator('#kit-list').boundingBox();
+    expect(flowBox!.x).toBeGreaterThan(stepBox!.x + 400);
+    // 3단계까지 내려가도 차례가 화면 안에 남고, 지금 단계에 aria-current="step"이 붙는다
+    await page.locator('#firmware').scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, 200));
+    await expect(flow).toBeInViewport();
+    await expect(flow.locator('.board-flow__link[aria-current="step"]')).toHaveCount(1);
+    await expect(flow.locator('.board-flow__link[aria-current="step"]')).toHaveAttribute('href', '#firmware');
+    // 참고 상자는 접혀 있고, 맨 위 "맨 아래 참고" 줄이 #kit-parts·#safety로 간다
+    await expect(page.locator('details[data-kit-parts-details]')).not.toHaveAttribute('open', '');
+    await expect(flow.getByRole('link', { name: '키트 부품 이름' })).toHaveAttribute('href', '#kit-parts');
+    await expect(flow.getByRole('link', { name: '안전하게 쓰기' })).toHaveAttribute('href', '#safety');
+    // 키트 장치 도감 링크(미해결 265)
+    await expect(page.locator('[data-board-kit-link]').getByRole('link', { name: getPage('labs-esp32-kit').title })).toHaveAttribute('href', getPage('labs-esp32-kit').href);
+    // 쪽 높이: 접기 전 6,054px(1.6.0 걷기)보다 눈에 띄게 줄었다
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(height).toBeLessThan(5400);
     expect(errors).toEqual([]);
   });
 

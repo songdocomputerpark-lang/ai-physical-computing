@@ -35,11 +35,16 @@ describe('부품 사전 컴포넌트(Container API)', () => {
 
   it('PartCard: kit_name·site_part·note가 없는 부품에는 키트 표시·가상 보드 링크·안내가 없다', async () => {
     const container = await AstroContainer.create();
-    const plain = allParts.find((part) => part.id === 'd-007-ultrasonic-sensor')!;
+    // 초음파 센서 세 카드(d-007~009)는 판 1.7.0부터 서로 어떻게 다른지 안내가 붙어서, 안내가 없는 부품은 고온 센서 기판으로 본다
+    const plain = allParts.find((part) => part.id === 'a-001-high-temperature-sensor')!;
     const html = await container.renderToString(PartCard, { props: { part: plain, labHref: '/ai-physical-computing/labs/esp32/' } });
     expect(html).not.toContain('교과서 키트 부품');
     expect(html).not.toContain('가상 보드에서 해 보기');
     expect(html).not.toContain('parts-card__note');
+    const ultrasonic = allParts.find((part) => part.id === 'd-007-ultrasonic-sensor')!;
+    const noted = await container.renderToString(PartCard, { props: { part: ultrasonic, labHref: '/ai-physical-computing/labs/esp32/' } });
+    expect(noted).toContain('parts-card__note');
+    expect(noted).toContain('세로로 긴 모양');
   }, 120_000);
 
   it('PartPhotoStrip: 부품 id·{ part }·{ type }을 받아 사진 줄을 그리고 각 사진은 부품 사전의 카드로 가며, 사진 없는 부품만이면 아무것도 그리지 않는다', async () => {

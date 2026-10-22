@@ -157,7 +157,12 @@ const prepareHref = withBase('start/board/');
     line-height: var(--leading-snug);
   }
 
+  /* 글 속 링크라도 누르는 자리는 단추만큼(44px) — 375에서 높이 18px이던 것(판 1.7.0, 미해결 262, WCAG 2.5.8) */
   .real-board__first :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    padding-inline: var(--space-1);
     font-weight: var(--weight-bold);
     color: inherit;
   }

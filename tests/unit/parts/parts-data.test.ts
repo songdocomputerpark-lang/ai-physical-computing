@@ -140,6 +140,19 @@ describe('가상 보드·키트 표와의 짝', () => {
   });
 });
 
+describe('이름이 비슷한 부품 카드', () => {
+  it('초음파 센서 세 카드(세로형·어댑터·V2)에는 서로 어떻게 다르게 생겼는지 한 줄씩 붙어 있고, 같은 글이 없다(판 1.7.0, 미해결 264 #7)', () => {
+    const byId = new Map(parts.map((part) => [part.id, part]));
+    const ids = ['d-007-ultrasonic-sensor', 'd-008-ultrasonic-sensor-adapter', 'd-009-ultrasonic-sensor-v2'];
+    const notes = ids.map((id) => byId.get(id)?.note);
+    for (const [index, note] of notes.entries()) {
+      expect(note, ids[index]).toBeTypeOf('string');
+      expect(note!.length, ids[index]).toBeGreaterThan(10);
+    }
+    expect(new Set(notes).size).toBe(3);
+  });
+});
+
 describe('눈 확인 기록과 출처 등록부', () => {
   const { records, errors } = readImageRecords(root);
   const registry = parseRegistry(fs.readFileSync(path.join(root, 'sources.yaml'), 'utf8'));

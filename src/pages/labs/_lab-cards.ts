@@ -107,7 +107,7 @@ export interface LabChoice {
 }
 
 /**
- * 하고 싶은 일 3가지. 링크 글(ask)에는 실습실 이름을 넣지 않는다 — 아래 카드의 제목 링크와 이름이 겹치면
+ * 하고 싶은 일 4가지. 링크 글(ask)에는 실습실 이름을 넣지 않는다 — 아래 카드의 제목 링크와 이름이 겹치면
  * "영상 처리 실습실" 같은 이름으로 링크를 찾는 사람·검사가 둘을 헷갈린다. 어느 실습실인지는 target의 제목을 따로 보인다.
  */
 export const LAB_CHOICES: readonly LabChoice[] = Object.freeze([
@@ -132,5 +132,13 @@ export const LAB_CHOICES: readonly LabChoice[] = Object.freeze([
     icon: 'signal',
     unit: 3,
     hint: '컴퓨터가 알아낸 것을 보드로 보내요',
+  },
+  {
+    // 키트에 든 센서·부품을 하나씩 찾아보는 곳(판 1.7.0, 미해결 265 — 키트 걷기에서 "/labs/ 첫 화면에서 도감 찾기 어려움"이 두 판째 남았다)
+    ask: '키트 센서·부품 하나씩 보기',
+    target: 'labs-esp32-kit',
+    icon: 'plug',
+    unit: 2,
+    hint: '사진, 배선, 예제 코드를 한 장치씩 봐요',
   },
 ]);

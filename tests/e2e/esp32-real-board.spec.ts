@@ -141,6 +141,8 @@ test.describe('ESP32 실습실 — 실제 보드 ① 연결·raw REPL(모의 시
     await page.getByRole('button', { name: '정지', exact: true }).click();
     await expect(labRoot(page)).toHaveAttribute('data-outcome', 'stopped', { timeout: BOARD_TIMEOUT });
     await expect(page.locator('[data-lab-result]')).toHaveText('[정지]를 눌러 멈췄어요(KeyboardInterrupt).');
+    // 멈춘 뒤에는 "실행 중에는 실행할 곳을 바꿀 수 없어요" 줄이 남지 않는다(판 1.7.0, 미해결 262)
+    await expect(page.locator('[data-lab-message]')).toHaveText('');
     expect((await board.writtenText()).slice(writtenBeforeStop)).toMatch(/^\x03+$/u);
     await expect(realPanel(page)).toHaveAttribute('data-real-board-state', 'ready');
 
@@ -233,6 +235,9 @@ test.describe('ESP32 실습실 — 실제 보드 ① 연결·raw REPL(모의 시
     await expect(first).toBeVisible();
     await expect(first).toContainText('처음이면');
     await expect(first.getByRole('link', { name: '보드 준비하기' })).toHaveAttribute('href', withBase('start/board/'));
+    // 누르는 자리: 휴대폰에서도 24px 이상(WCAG 2.5.8 — 판 1.7.0, 미해결 262)
+    const linkBox = await first.getByRole('link', { name: '보드 준비하기' }).boundingBox();
+    expect(linkBox?.height ?? 0).toBeGreaterThanOrEqual(24);
     // 첫 줄은 상태 글보다 앞(탭 첫 줄)이다
     const before = await page.evaluate(() => {
       const panel = document.querySelector('[data-real-board]');

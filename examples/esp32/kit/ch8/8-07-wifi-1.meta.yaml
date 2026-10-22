@@ -18,10 +18,10 @@ kit:
 source: brixel
 source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-8-07
 virtual: real-only
-virtual_reason: WiFi 모듈(ESP12E)의 AT 명령 응답 흉내가 가상 보드에 아직 없어서
+virtual_reason: WiFi 모듈(ESP12E)과 그 AT 명령 응답이 가상 보드에 아직 없어서
 virtual_ok: false
 practice:
-  - WiFi 모듈(ESP12E)의 AT 명령 응답 흉내가 가상 보드에 아직 없어서 여기서는 끝까지 돌지 않아요. 실제 키트가 있다면 실제 보드에서 해 보세요.
+  - WiFi 모듈(ESP12E)과 그 AT 명령 응답이 가상 보드에 아직 없어서 여기서는 끝까지 돌지 않아요. 실제 키트가 있다면 실제 보드에서 해 보세요.
   - 실제 보드에서는 [실제 보드] 탭에서 보드를 연결하고 [실행]을 눌러요. 배선은 이 장치 쪽의 배선표와 회로 그림을 보세요.
   - 실제 보드에서 코드가 끝나지 않으면 [정지]를 눌러요.
 packages: []

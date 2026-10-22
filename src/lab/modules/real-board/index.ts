@@ -37,6 +37,9 @@ export const TARGET_HINTS: Readonly<Record<BoardTargetKind, string>> = Object.fr
   real: '[실행]을 누르면 코드가 USB로 연결한 실제 ESP32에서 돌아요. 화면 속 가상 보드는 쉬어요.',
 });
 
+/** 실행 중에 탭을 바꾸려 할 때 도구 줄 아래에 띄우는 안내(실행이 끝나면 지운다) */
+export const TAB_BLOCKED_TEXT = '실행 중에는 실행할 곳을 바꿀 수 없어요. [정지]한 뒤에 바꿔요.';
+
 /** 탭 키보드: 지금 초점 탭에서 누른 키로 옮겨 갈 탭(없으면 null) — WAI-ARIA Tabs 가로 목록 */
 export function nextTabForKey(key: string, focused: BoardTargetKind): BoardTargetKind | null {
   const index = TARGET_ORDER.indexOf(focused);
@@ -291,11 +294,27 @@ function mount(context: LabModuleContext): LabModuleHandle | void {
     lab.showMessage(text);
     messageShown = text !== '';
   };
+  // "실행 중에는 실행할 곳을 바꿀 수 없어요" 줄은 [정지]한 뒤에도 남아 "아직 막혔나?" 하게 했다(판 1.6.0 다시 걷기 student-board B, 미해결 262).
+  // 실행이 끝나거나 실행기 상태가 쉼으로 돌아오면, 그 줄이 아직 이 글일 때만 지운다(다른 안내가 덮었으면 그대로 둔다).
+  const messageElement = root.querySelector<HTMLElement>('[data-lab-message]');
+  const clearTabBlockedMessage = () => {
+    if (messageElement?.textContent === TAB_BLOCKED_TEXT) {
+      say('');
+    }
+  };
+  cleanups.push(lab.on('done', clearTabBlockedMessage));
+  cleanups.push(
+    lab.on('state', ({ state }) => {
+      if (state !== 'running' && state !== 'stopping') {
+        clearTabBlockedMessage();
+      }
+    }),
+  );
   const select = (next: BoardTargetKind, options: { focus?: boolean } = {}) => {
     if (next !== current) {
       const state = root.dataset.state;
       if (state === 'running' || state === 'stopping') {
-        say('실행 중에는 실행할 곳을 바꿀 수 없어요. [정지]한 뒤에 바꿔요.');
+        say(TAB_BLOCKED_TEXT);
         tabs[current]?.focus();
         return;
       }

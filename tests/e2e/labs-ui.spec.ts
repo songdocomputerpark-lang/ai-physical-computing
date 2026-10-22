@@ -2,7 +2,7 @@
  * 실습실 구역 화면 개편(판 1.3.0 "설명 없이 쓰는 사이트" X 구역) 브라우저 테스트.
  *
  * 무엇을 보나
- *   1. 실습실 안내(/labs/): 맨 위 "무엇을 할까요?" 고르기 3개가 첫 화면에 보이고, 카드는 어디를 눌러도 열리며, 안의 작은 링크는 따로 눌린다.
+ *   1. 실습실 안내(/labs/): 맨 위 "무엇을 할까요?" 고르기 4개가 첫 화면에 보이고, 카드는 어디를 눌러도 열리며, 안의 작은 링크는 따로 눌린다.
  *   2. 영상 처리·ESP32 실습실: 긴 설명은 접혀 있고(Tab 정지점 하나), [실행]·코치 줄이 첫 화면 위쪽에 들어온다. 코치 줄(① 예제를 골라요 → ② [실행]을 눌러요 → ③ 결과를 봐요)이
  *      Tab 정지점 없이 조작 줄 묶음 아래에 있고, 실행 횟수(data-run-count)로만 단계가 칠해진다. [실행] 접근 이름은 "실행" 그대로.
  *   3. 4단원 통합 화면: 틀이 둘이어도 코치 줄은 한 번만.
@@ -46,12 +46,13 @@ async function readStoredProgress(page: Page): Promise<{ lastLab?: { path: strin
 }
 
 test.describe('실습실 안내(/labs/)', () => {
-  test('"무엇을 할까요?" 고르기 3개가 첫 화면에 보이고 각각 실습실로 간다', async ({ page }) => {
+  test('"무엇을 할까요?" 고르기 4개가 첫 화면에 보이고 각각 실습실·도감으로 간다', async ({ page, isMobile }) => {
     await page.goto(withBase('labs/'));
     await expect(page.getByRole('heading', { level: 2, name: '무엇을 할까요?' })).toBeVisible();
     const choose = page.locator('.choose__item');
-    await expect(choose).toHaveCount(3);
-    const targets = ['labs-vision', 'labs-esp32', 'labs-iot'];
+    await expect(choose).toHaveCount(4);
+    // 넷째는 키트 장치 도감(판 1.7.0, 미해결 265)
+    const targets = ['labs-vision', 'labs-esp32', 'labs-iot', 'labs-esp32-kit'];
     for (let index = 0; index < targets.length; index += 1) {
       const target = getPage(targets[index]!);
       const link = choose.nth(index).locator('a.card__link');
@@ -60,8 +61,10 @@ test.describe('실습실 안내(/labs/)', () => {
       await expect(link).not.toContainText(target.title);
       await expect(choose.nth(index)).toContainText(target.title);
       await expect(link).toHaveAccessibleDescription(new RegExp(target.title, 'u'));
-      // 첫 화면(스크롤 0)에 모두 들어온다
-      await expect(choose.nth(index)).toBeInViewport();
+      // 첫 화면(스크롤 0)에 들어온다 — 한 줄에 한 장씩 쌓이는 휴대폰에서는 넷째가 첫 화면 밖이어도 된다(맨 위 가까이라 곧 보인다)
+      if (!isMobile || index < 3) {
+        await expect(choose.nth(index)).toBeInViewport();
+      }
     }
     // 셋째 칸은 4단원 통합 실습실로 가는 작은 링크도 있다
     await expect(choose.nth(2).getByRole('link', { name: getPage('labs-unit4').title, exact: true })).toHaveAttribute('href', getPage('labs-unit4').href);

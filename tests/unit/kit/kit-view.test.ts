@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { KIT_CIRCUIT_DIR, KIT_FILE, KitFormatError, parseKitYaml, type KitData } from '../../../src/components/kit/kit-schema.ts';
-import { kitSidebarOutline } from '../../../src/components/kit/kit-sidebar.ts';
+import { kitNavScrollTop, kitSidebarOutline } from '../../../src/components/kit/kit-sidebar.ts';
 import {
   CIRCUIT_COLOR_LEGEND,
   KIT_CHAPTER_DESCRIPTIONS,
@@ -314,6 +314,27 @@ describe('왼쪽 장치 목록(kitSidebarOutline)', () => {
   it('1장 시작하기 코드가 없으면 다른 장 목록에서 1장을 뺀다', () => {
     const without = kitSidebarOutline({ ...data, intro: [] }, device);
     expect(without.groups[2]!.items.map((item) => item.label)).not.toContain('1장');
+  });
+});
+
+describe('장치 목록의 처음 스크롤 위치(kitNavScrollTop — 판 1.7.0, 미해결 264 #20)', () => {
+  const viewport = 600;
+
+  it('지금 장치가 처음 한 화면 안이면 맨 위부터 — 위가 잘리지 않는다', () => {
+    expect(kitNavScrollTop({ groupTop: 90, currentTop: 200, currentBottom: 240, viewport })).toBe(0);
+  });
+
+  it('처음 한 화면 밖이어도 장 제목부터 지금 장치까지 한 화면에 들어오면 장 제목이 맨 위에 온다', () => {
+    expect(kitNavScrollTop({ groupTop: 150, currentTop: 640, currentBottom: 680, viewport })).toBe(150);
+  });
+
+  it('장이 길어 그것도 안 되면 지금 장치가 위에서 40% 자리에 온다(위아래가 모두 이어져 보인다)', () => {
+    expect(kitNavScrollTop({ groupTop: 150, currentTop: 1000, currentBottom: 1040, viewport })).toBe(760);
+  });
+
+  it('칸 높이를 모르면(접혀 있음) 0이고 음수는 나오지 않는다', () => {
+    expect(kitNavScrollTop({ groupTop: 0, currentTop: 10, currentBottom: 40, viewport: 0 })).toBe(0);
+    expect(kitNavScrollTop({ groupTop: -5, currentTop: 10, currentBottom: 900, viewport: 100 })).toBeGreaterThanOrEqual(0);
   });
 });
 

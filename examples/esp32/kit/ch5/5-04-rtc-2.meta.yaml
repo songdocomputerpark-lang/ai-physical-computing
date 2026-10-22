@@ -19,7 +19,7 @@ kit:
 source: brixel
 source_url: https://brixel.gorillacell.kr/07_thonny/03_esp32/#d-5-04
 virtual: real-only
-virtual_reason: DS3231 실시간 시계 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+virtual_reason: DS3231 실시간 시계 칩(I2C 레지스터)이 가상 보드에 아직 없어서
 virtual_ok: false
 parts:
   - part: lcd-i2c
@@ -29,7 +29,7 @@ parts:
       scl: 22
     label: 문자 LCD(16×2)
 practice:
-  - DS3231 실시간 시계 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서 여기서는 끝까지 돌지 않아요. 실제 키트가 있다면 실제 보드에서 해 보세요.
+  - DS3231 실시간 시계 칩(I2C 레지스터)이 가상 보드에 아직 없어서 여기서는 끝까지 돌지 않아요. 실제 키트가 있다면 실제 보드에서 해 보세요.
   - 실제 보드에서는 [실제 보드] 탭에서 보드를 연결하고 [실행]을 눌러요. 배선은 이 장치 쪽의 배선표와 회로 그림을 보세요.
   - 실제 보드에서 코드가 끝나지 않으면 [정지]를 눌러요.
 packages: []

@@ -353,7 +353,7 @@ devices:
           - TOTAL 숫자를 바꿔 시간을 조절해 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: TM1637 7세그먼트 표시 장치(2선 통신)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: TM1637 7세그먼트 표시 장치(2선 통신)가 가상 보드에 아직 없어서
   - id: d-2-07
     number: "2.07"
     chapter: 2
@@ -488,7 +488,7 @@ devices:
           - 출력 창에도 주사위 결과가 나와요.
     support: B2
     virtual: real-only
-    virtual_reason: SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: SPI(machine.SPI)와 MAX7219 도트 매트릭스가 가상 보드에 아직 없어서
   - id: d-2-10
     number: "2.10"
     chapter: 2
@@ -533,7 +533,7 @@ devices:
           - n = (n + 1) % 100 이 99 다음에 0 으로 돌아가게 해요.
     support: B2
     virtual: real-only
-    virtual_reason: SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: SPI(machine.SPI)와 MAX7219 도트 매트릭스가 가상 보드에 아직 없어서
   - id: d-2-11
     number: "2.11"
     chapter: 2
@@ -576,7 +576,7 @@ devices:
           - random.getrandbits(2) == 0 의 숫자를 바꾸면 비가 더 많이/적게 와요.
     support: B2
     virtual: real-only
-    virtual_reason: HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: HT16K33 도트 매트릭스(I2C 칩)가 가상 보드에 아직 없어서
   - id: d-2-12
     number: "2.12"
     chapter: 2
@@ -619,7 +619,7 @@ devices:
           - delta 목록의 숫자를 바꾸면 움직임이 달라져요.
     support: B2
     virtual: real-only
-    virtual_reason: HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: HT16K33 도트 매트릭스(I2C 칩)가 가상 보드에 아직 없어서
   - id: d-2-13
     number: "2.13"
     chapter: 2
@@ -1203,7 +1203,7 @@ devices:
           - 물체가 안 보이면 오류가 나도 멈추지 않고 넘어가요.
     support: B2
     virtual: real-only
-    virtual_reason: 초음파 센서가 소리를 쏘고 돌아오는 시간을 재는 기능(time_pulse_us)과 센서 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 초음파 센서가 소리를 쏘고 돌아오는 시간을 재는 기능과 이 센서가 가상 보드에 아직 없어서
   - id: d-3-12
     number: "3.12"
     chapter: 3
@@ -1248,7 +1248,7 @@ devices:
           - HOT 숫자를 바꾸면 경보 온도가 달라져요.
     support: B2
     virtual: real-only
-    virtual_reason: 온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 온습도 센서를 읽는 dht 모듈과 이 센서가 가상 보드에 아직 없어서
   - id: d-3-13
     number: "3.13"
     chapter: 3
@@ -1294,7 +1294,7 @@ devices:
           - t_min , t_max 는 켠 뒤로 가장 낮았던/높았던 온도를 기억해요.
     support: B2
     virtual: real-only
-    virtual_reason: 온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 온습도 센서를 읽는 dht 모듈과 이 센서가 가상 보드에 아직 없어서
   - id: d-3-14
     number: "3.14"
     chapter: 3
@@ -1345,7 +1345,7 @@ devices:
           - "'#' * now 로 막대 그래프처럼 보여 줘요."
     support: B2
     virtual: real-only
-    virtual_reason: 로터리 인코더가 돌 때 나오는 두 신호(직교 신호)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 로터리 인코더가 돌 때 나오는 두 신호(직교 신호)를 만드는 부분이 가상 보드에 아직 없어서
   - id: d-3-15
     number: "3.15"
     chapter: 3
@@ -1433,7 +1433,7 @@ devices:
           - LCD 윗줄은 지금 온도, 아랫줄은 최저·최고 온도예요.
     support: B2
     virtual: real-only
-    virtual_reason: 수온 센서를 읽는 onewire·ds18x20 모듈과 센서 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 수온 센서를 읽는 onewire·ds18x20 모듈과 이 센서가 가상 보드에 아직 없어서
   - id: d-3-17
     number: "3.17"
     chapter: 3
@@ -1526,7 +1526,7 @@ devices:
           - 나쁨 이상이면 보드 LED 가 켜져요. 기준 숫자를 바꿔 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: 미세먼지 센서가 UART로 보내는 값(32바이트 프레임)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 미세먼지 센서가 UART로 보내는 값(32바이트 프레임)을 만드는 부분이 가상 보드에 아직 없어서
   - id: d-3-19
     number: "3.19"
     chapter: 3
@@ -1574,7 +1574,7 @@ devices:
           - 나쁨 이상이면 보드 LED 가 켜져요.
     support: B2
     virtual: real-only
-    virtual_reason: 미세먼지 센서가 UART로 보내는 값(프레임)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 미세먼지 센서가 UART로 보내는 값(프레임)을 만드는 부분이 가상 보드에 아직 없어서
   - id: d-3-20
     number: "3.20"
     chapter: 3
@@ -1621,7 +1621,7 @@ devices:
           - LIMIT 숫자를 바꿔 우리 교실에 맞는 기준을 정해 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: CO2 센서가 UART로 보내는 값(9바이트 명령·응답)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: CO2 센서가 UART로 보내는 값(9바이트 명령·응답)을 만드는 부분이 가상 보드에 아직 없어서
   - id: d-3-21
     number: "3.21"
     chapter: 3
@@ -1672,7 +1672,7 @@ devices:
           - 지문이 일치하면 LED 가 1초 켜져요. 지문 정보는 센서 안에만 저장돼요.
     support: C
     virtual: real-only
-    virtual_reason: 지문 센서의 UART 통신 규약(등록·검색·삭제) 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 지문 센서의 UART 통신 규약(등록·검색·삭제)을 처리하는 부분이 가상 보드에 아직 없어서
     note: 이 지문 센서 라이브러리(pyfingerprint.py)는 사용 조건이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요.
   - id: d-4-01
     number: "4.01"
@@ -3062,7 +3062,7 @@ devices:
           - 68, 75, 80 숫자를 바꿔 단계 기준을 달리해 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: SHT30 온습도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: SHT30 온습도 센서 칩(I2C 레지스터)이 가상 보드에 아직 없어서
   - id: d-5-02
     number: "5.02"
     chapter: 5
@@ -3109,7 +3109,7 @@ devices:
           - 가장 무거웠던 무게( biggest )를 기억해서 LCD 아랫줄에 보여 줘요.
     support: B2
     virtual: real-only
-    virtual_reason: 무게 센서 모듈(I2C 주소 0x63)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 무게 센서 모듈(I2C 주소 0x63)이 가상 보드에 아직 없어서
   - id: d-5-03
     number: "5.03"
     chapter: 5
@@ -3159,7 +3159,7 @@ devices:
           - 이 장치는 학습용이에요. 실제 건강 판단에는 쓰지 마세요.
     support: B2
     virtual: real-only
-    virtual_reason: MLX90614 비접촉 온도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: MLX90614 비접촉 온도 센서 칩(I2C 레지스터)이 가상 보드에 아직 없어서
   - id: d-5-04
     number: "5.04"
     chapter: 5
@@ -3209,7 +3209,7 @@ devices:
           - RTC 는 1초 단위라서 1초보다 짧은 시간은 잴 수 없어요. 시간은 LCD 에도 나와요.
     support: B2
     virtual: real-only
-    virtual_reason: DS3231 실시간 시계 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: DS3231 실시간 시계 칩(I2C 레지스터)이 가상 보드에 아직 없어서
     note: 가상 보드의 machine.RTC(보드 안 시계)와는 다른 부품이에요 — 이 도감의 RTC는 DS3231 모듈을 I2C로 읽어요.
   - id: d-5-05
     number: "5.05"
@@ -3261,7 +3261,7 @@ devices:
           - LCD 에는 색 이름이 영어로 나오고, 빨간색이면 LED 가 켜져요.
     support: B2
     virtual: real-only
-    virtual_reason: TCS34725 색상 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: TCS34725 색상 센서 칩(I2C 레지스터)이 가상 보드에 아직 없어서
   - id: d-5-06
     number: "5.06"
     chapter: 5
@@ -3312,7 +3312,7 @@ devices:
           - LCD 에는 기울기 방향과 흔든 횟수가 나와요.
     support: B2
     virtual: real-only
-    virtual_reason: MPU6050 6축 자이로 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: MPU6050 6축 자이로 칩(I2C 레지스터)이 가상 보드에 아직 없어서
   - id: d-5-07
     number: "5.07"
     chapter: 5
@@ -3363,7 +3363,7 @@ devices:
           - 손가락이 흔들리면 값이 튀어요. 편안하게 대고 기다려 보세요.
     support: C
     virtual: real-only
-    virtual_reason: MAX30102 심박 센서 칩의 측정 순서와 심박 계산 흉내가 가상 보드에 아직 없어서
+    virtual_reason: MAX30102 심박 센서 칩과 그 측정 순서·심박 계산이 가상 보드에 아직 없어서
   - id: d-5-08
     number: "5.08"
     chapter: 5
@@ -3414,7 +3414,7 @@ devices:
           - 1m 이상 바뀌면 LED 가 켜져요. LCD 에는 높이 변화와 UP/DOWN/SAME 이 나와요.
     support: B2
     virtual: real-only
-    virtual_reason: BMP280 기압 센서 칩(보정 계수 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: BMP280 기압 센서 칩(보정 계수 레지스터)이 가상 보드에 아직 없어서
   - id: d-5-09
     number: "5.09"
     chapter: 5
@@ -3465,7 +3465,7 @@ devices:
           - 멈추면 finally 로 센서를 끄고 LED 도 꺼요.
     support: C
     virtual: real-only
-    virtual_reason: VL53L0X 거리 센서 칩의 긴 초기화 순서 흉내가 가상 보드에 아직 없어서
+    virtual_reason: VL53L0X 거리 센서 칩과 그 긴 초기화 순서가 가상 보드에 아직 없어서
   - id: d-5-10
     number: "5.10"
     chapter: 5
@@ -3516,7 +3516,7 @@ devices:
           - NEAR , DARK 숫자는 방 밝기에 따라 다르니 LCD 의 값을 보고 바꿔 주세요.
     support: C
     virtual: real-only
-    virtual_reason: APDS9960 제스처 센서 칩의 측정 대기열 흉내가 가상 보드에 아직 없어서
+    virtual_reason: APDS9960 제스처 센서 칩과 그 측정 대기열이 가상 보드에 아직 없어서
     note: 이 제스처 센서 라이브러리(apds9960.py)는 사용 조건(GPL)이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요.
   - id: d-5-11
     number: "5.11"
@@ -3564,7 +3564,7 @@ devices:
           - recent 로 최근 10번 평균을 내서 값이 튀어도 흐름을 볼 수 있어요.
     support: B2
     virtual: real-only
-    virtual_reason: SGP30 공기질 센서 칩(명령과 CRC)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: SGP30 공기질 센서 칩(명령과 CRC)이 가상 보드에 아직 없어서
   - id: d-5-12
     number: "5.12"
     chapter: 5
@@ -3611,7 +3611,7 @@ devices:
           - max_eco2 는 켠 뒤로 가장 나빴던 값을 기억해요.
     support: B2
     virtual: real-only
-    virtual_reason: CCS811 공기질 센서 칩(앱 시작·상태 레지스터)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: CCS811 공기질 센서 칩(앱 시작·상태 레지스터)이 가상 보드에 아직 없어서
   - id: d-6-01
     number: "6.01"
     chapter: 6
@@ -3703,7 +3703,7 @@ devices:
           - range() 의 간격 200 을 바꿔 가속 모습을 바꿔 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: 듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 듀얼 모터 드라이버(PCA9685 I2C 칩)가 가상 보드에 아직 없어서
   - id: d-6-03
     number: "6.03"
     chapter: 6
@@ -3925,7 +3925,7 @@ devices:
           - "9 를 다른 숫자(예: 18)로 바꾸면 초침이 더 크게 움직여요."
     support: B2
     virtual: real-only
-    virtual_reason: 스텝 모터 드라이버(STEP 펄스를 세어 돌리는 부품)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 스텝 모터 드라이버(STEP 펄스를 세어 돌리는 부품)가 가상 보드에 아직 없어서
   - id: d-6-08
     number: "6.08"
     chapter: 6
@@ -3969,7 +3969,7 @@ devices:
           - moves 에 동작을 더해 나만의 주행 경로를 만들어 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: 듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 듀얼 모터 드라이버(PCA9685 I2C 칩)가 가상 보드에 아직 없어서
   - id: d-6-09
     number: "6.09"
     chapter: 6
@@ -4015,7 +4015,7 @@ devices:
           - 끝날 때 모두 90도로 돌린 뒤 신호를 끊어( release ) 서보를 쉬게 해요.
     support: B2
     virtual: real-only
-    virtual_reason: 16채널 서보 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 16채널 서보 드라이버(PCA9685 I2C 칩)가 가상 보드에 아직 없어서
   - id: d-6-10
     number: "6.10"
     chapter: 6
@@ -4303,7 +4303,7 @@ devices:
           - 깜빡이기는 시간을 재서( ticks_ms ) 처리하니 다른 키도 바로 반응해요.
     support: C
     virtual: real-only
-    virtual_reason: 리모컨(IR) 신호의 타이밍 파형을 만드는 흉내가 가상 보드에 아직 없어서
+    virtual_reason: 리모컨(IR) 신호의 타이밍 파형을 만드는 부분이 가상 보드에 아직 없어서
   - id: d-8-02
     number: "8.02"
     chapter: 8
@@ -4345,7 +4345,7 @@ devices:
           - keys 에 다른 코드를 넣어 내 리모컨을 만들어 보세요.
     support: C
     virtual: real-only
-    virtual_reason: IR 신호를 보내는 esp32.RMT 기능의 흉내가 가상 보드에 아직 없어서
+    virtual_reason: IR 신호를 보내는 esp32.RMT 기능이 가상 보드에 아직 없어서
   - id: d-8-03
     number: "8.03"
     chapter: 8
@@ -4384,7 +4384,7 @@ devices:
           - 주변 잡음 때문에 가끔 못 받을 수 있어요. 송신기를 가까이 대 보세요.
     support: C
     virtual: real-only
-    virtual_reason: RF433 수신기의 펄스 읽기(time_pulse_us)와 신호 흉내가 가상 보드에 아직 없어서
+    virtual_reason: RF433 수신기가 펄스(짧은 신호)의 길이를 재는 기능과 이 신호를 만드는 부분이 가상 보드에 아직 없어서
   - id: d-8-04
     number: "8.04"
     chapter: 8
@@ -4423,7 +4423,7 @@ devices:
           - 수신기를 3~5m 안에서 시험하세요. 안 받아지면 가까이 가져가 보세요.
     support: C
     virtual: real-only
-    virtual_reason: RF433 송신기가 보내는 펄스 신호와 짝이 되는 수신기 흉내가 가상 보드에 아직 없어서
+    virtual_reason: RF433 송신기가 보내는 펄스 신호를 받는 수신기가 가상 보드에 아직 없어서
   - id: d-8-05
     number: "8.05"
     chapter: 8
@@ -4462,8 +4462,8 @@ devices:
           - 앱에서 보낼 때 줄 끝에 줄바꿈(Enter)이 붙도록 설정하세요. BOOT 버튼은 반대로 보드 → 휴대폰으로 글자를 보내요.
     support: B2
     virtual: real-only
-    virtual_reason: 블루투스 모듈(JDY-33)과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서
-    note: 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원). 이 도감의 JDY-33은 UART로 연결하는 별도 모듈이에요.
+    virtual_reason: 블루투스 모듈(JDY-33)과 그 짝인 휴대폰 쪽이 가상 보드에 아직 없어서
+    note: 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 쓰는 부품이 따로 있어요(실습실 3·4단원). 이 도감의 JDY-33은 UART로 연결하는 별도 모듈이에요.
   - id: d-8-06
     number: "8.06"
     chapter: 8
@@ -4502,8 +4502,8 @@ devices:
           - 앱에서 보낼 때 줄 끝에 줄바꿈이 붙도록 설정하세요.
     support: B2
     virtual: real-only
-    virtual_reason: 블루투스 BLE 모듈과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서
-    note: 8.05와 같은 모듈 사진·회로 그림을 써요. 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원).
+    virtual_reason: 블루투스 BLE 모듈과 그 짝인 휴대폰 쪽이 가상 보드에 아직 없어서
+    note: 8.05와 같은 모듈 사진·회로 그림을 써요. 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 쓰는 부품이 따로 있어요(실습실 3·4단원).
   - id: d-8-07
     number: "8.07"
     chapter: 8
@@ -4546,7 +4546,7 @@ devices:
           - IP 주소를 알면 휴대폰 브라우저로 이 모듈과 대화하는 웹서버도 만들 수 있어요.
     support: C
     virtual: real-only
-    virtual_reason: WiFi 모듈(ESP12E)의 AT 명령 응답 흉내가 가상 보드에 아직 없어서
+    virtual_reason: WiFi 모듈(ESP12E)과 그 AT 명령 응답이 가상 보드에 아직 없어서
   - id: d-8-08
     number: "8.08"
     chapter: 8
@@ -4590,7 +4590,7 @@ devices:
           - 야외에서 걸으며 거리가 늘어나는지 확인해 보세요.
     support: B2
     virtual: real-only
-    virtual_reason: GPS 모듈이 UART로 보내는 위치 글(NMEA 문장) 흉내가 가상 보드에 아직 없어서
+    virtual_reason: GPS 모듈이 UART로 보내는 위치 글(NMEA 문장)을 만드는 부분이 가상 보드에 아직 없어서
   - id: d-8-09
     number: "8.09"
     chapter: 8

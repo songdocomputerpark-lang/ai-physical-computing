@@ -77,9 +77,9 @@ parts:
   - {id: d-004-pms7003-sensor, name: "미세먼지 센서 PMS7003", name_en: "Particulate Sensor PMS7003", category: digital-sensor, connection: "UART"}
   - {id: d-005-pms3003-adapter, name: "미세먼지 센서 PMS3003 어댑터", name_en: "PMS3003 Adapter", category: digital-sensor, connection: "UART"}
   - {id: d-006-pms3003-sensor, name: "미세먼지 센서 PMS3003", name_en: "Particulate Sensor PMS3003", category: digital-sensor, connection: "어댑터 기판에 연결"}
-  - {id: d-007-ultrasonic-sensor, name: "초음파 센서(세로형)", name_en: "Ultrasonic Sensor (HC-SR04 type)", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)"}
-  - {id: d-008-ultrasonic-sensor-adapter, name: "초음파 센서 어댑터", name_en: "Ultrasonic Sensor Adapter", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)"}
-  - {id: d-009-ultrasonic-sensor-v2, name: "초음파 센서 V2", name_en: "Ultrasonic Sensor V2", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)"}
+  - {id: d-007-ultrasonic-sensor, name: "초음파 센서(세로형)", name_en: "Ultrasonic Sensor (HC-SR04 type)", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)", note: "소리 구멍(원통) 두 개가 위아래로 놓인 세로로 긴 모양이에요. \"초음파 센서 V2\"와 같은 TRIG·ECHO 방식이에요."}
+  - {id: d-008-ultrasonic-sensor-adapter, name: "초음파 센서 어댑터", name_en: "Ultrasonic Sensor Adapter", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)", note: "노란 소켓이 달린 사각 어댑터 기판이에요. 소리 구멍(원통)은 이 기판에 없고, GND·VCC·TRIG·ECHO 핀 이름이 인쇄돼 있어요."}
+  - {id: d-009-ultrasonic-sensor-v2, name: "초음파 센서 V2", name_en: "Ultrasonic Sensor V2", category: digital-sensor, connection: "디지털 입출력(TRIG 보내기·ECHO 받기)", note: "빨간 틀 안에 소리 구멍(원통) 두 개가 나란히 있는 가로로 긴 모양이에요. 키트 장치 도감 3.11이 이 모양을 써요."}
   - {id: d-010-water-level, name: "수위 센서 기판", name_en: "Water Level Sensor", category: digital-sensor, connection: "디지털 입력"}
   - {id: d-011-water-level-prob, name: "수위 센서 탐침", name_en: "Water Level Sensor Probe", category: digital-sensor, connection: "수위 센서 기판에 이어서 쓰는 탐침·선"}
   - {id: d-012-photoresistor, name: "포토레지스터 모듈", name_en: "Photoresistor Module", category: digital-sensor, connection: "디지털 입력"}

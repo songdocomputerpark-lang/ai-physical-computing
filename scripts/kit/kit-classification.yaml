@@ -28,15 +28,15 @@ d-2-02: { support: B1, slug: traffic-led, tags: [신호등, LED], parts: [{ part
 d-2-03: { support: A, slug: rgb-led, tags: [RGB LED, PWM, 색], parts: [{ part: rgb-led, pins: { r: 23, g: 25, b: 26 }, label: RGB LED }] }
 d-2-04: { support: A, tags: [레이저, 출력], parts: [{ part: laser, pin: 4, label: 레이저 }] }
 d-2-05: { support: A, slug: lcd-i2c, tags: [LCD, I2C, 글자 표시] }
-d-2-06: { support: B2, slug: 7segment, tags: [7세그먼트, TM1637], reason: "TM1637 7세그먼트 표시 장치(2선 통신)의 흉내가 가상 보드에 아직 없어서" }
+d-2-06: { support: B2, slug: 7segment, tags: [7세그먼트, TM1637], reason: "TM1637 7세그먼트 표시 장치(2선 통신)가 가상 보드에 아직 없어서" }
 d-2-07: { support: A, slug: oled-096, tags: [OLED, I2C, SSD1306], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 0.96인치(128×64) }], note: "가상 보드에서는 OLED 부품이 ssd1306 드라이버를 대신해요. 실제 보드에는 ssd1306.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
 # 2026-10-16 K3a: 가상 보드의 sh1106 흉내(src/lab/modules/board/parts/oled-i2c/sh1106.py)가 브릭셀 코드의 SH1106_I2C(128, 64, i2c, None, addr=0x3C) 호출
 # (robert-hh 판 — 넷째 자리 res)도 받게 고쳐 virtual(real-only)·reason을 지웠다(교과서 판 SH1106_I2C(128, 64, i2c, 0x3D)도 그대로 된다).
 d-2-08: { support: A, slug: oled-13, tags: [OLED, I2C, SH1106], parts: [{ part: oled-i2c, id: oled, pins: { sda: 21, scl: 22 }, label: OLED 1.3인치(128×64) }], note: "가상 보드에서는 OLED 부품이 sh1106 드라이버를 대신해요. 실제 보드에는 sh1106.py를 보드에 올려야 해요(아래 라이브러리 링크)." }
-d-2-09: { support: B2, slug: dotmatrix-8x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서" }
-d-2-10: { support: B2, slug: dotmatrix-16x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스의 흉내가 가상 보드에 아직 없어서" }
-d-2-11: { support: B2, slug: dotmatrix-8x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
-d-2-12: { support: B2, slug: dotmatrix-16x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-2-09: { support: B2, slug: dotmatrix-8x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스가 가상 보드에 아직 없어서" }
+d-2-10: { support: B2, slug: dotmatrix-16x8-spi, tags: [도트 매트릭스, SPI, MAX7219], reason: "SPI(machine.SPI)와 MAX7219 도트 매트릭스가 가상 보드에 아직 없어서" }
+d-2-11: { support: B2, slug: dotmatrix-8x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)가 가상 보드에 아직 없어서" }
+d-2-12: { support: B2, slug: dotmatrix-16x8-i2c, tags: [도트 매트릭스, I2C, HT16K33], reason: "HT16K33 도트 매트릭스(I2C 칩)가 가상 보드에 아직 없어서" }
 d-2-13: { support: A, slug: neopixel-ring, tags: [네오픽셀, 링, RGB], parts: [{ part: neopixel, pin: 23, label: RGB 링(NeoPixel 16) }] }
 d-2-14: { support: B1, virtual: partial, slug: neopixel-square, tags: [네오픽셀, RGB], parts: [{ part: neopixel, pin: 23, label: RGB 매트릭스(NeoPixel) }], reason: "가상 보드의 네오픽셀 그림은 16개 링이라 17번째 불빛부터는 그림에 나오지 않아서(코드는 그대로 돌아요)", note: "브릭셀 네오픽셀 매트릭스 모듈은 코드에 불빛 수(NUM_OF_LED)가 18개로 적혀 있고, 64개짜리 8x8 판이면 64로 바꾸라고 안내해요." }
 
@@ -51,17 +51,17 @@ d-3-07: { support: B1, slug: fire, tags: [화재 센서, 불꽃, 디지털 입�
 d-3-08: { support: B1, slug: pir, tags: [PIR, 인체 감지, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: PIR 인체 감지 센서 }] }
 d-3-09: { support: B1, slug: line-finder, tags: [라인 감지, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 라인 감지 센서 }] }
 d-3-10: { support: B1, slug: ir-object, tags: [IR 장애물, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: IR 장애물 감지 센서 }] }
-d-3-11: { support: B2, slug: ultrasonic, tags: [초음파, 거리], reason: "초음파 센서가 소리를 쏘고 돌아오는 시간을 재는 기능(time_pulse_us)과 센서 흉내가 가상 보드에 아직 없어서" }
-d-3-12: { support: B2, slug: dht11, tags: [온습도, DHT11], reason: "온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서" }
-d-3-13: { support: B2, slug: dht22, tags: [온습도, DHT22], reason: "온습도 센서를 읽는 dht 모듈과 센서 흉내가 가상 보드에 아직 없어서" }
-d-3-14: { support: B2, slug: rotary, tags: [로터리 인코더, 회전], reason: "로터리 인코더가 돌 때 나오는 두 신호(직교 신호)의 흉내가 가상 보드에 아직 없어서" }
+d-3-11: { support: B2, slug: ultrasonic, tags: [초음파, 거리], reason: "초음파 센서가 소리를 쏘고 돌아오는 시간을 재는 기능과 이 센서가 가상 보드에 아직 없어서" }
+d-3-12: { support: B2, slug: dht11, tags: [온습도, DHT11], reason: "온습도 센서를 읽는 dht 모듈과 이 센서가 가상 보드에 아직 없어서" }
+d-3-13: { support: B2, slug: dht22, tags: [온습도, DHT22], reason: "온습도 센서를 읽는 dht 모듈과 이 센서가 가상 보드에 아직 없어서" }
+d-3-14: { support: B2, slug: rotary, tags: [로터리 인코더, 회전], reason: "로터리 인코더가 돌 때 나오는 두 신호(직교 신호)를 만드는 부분이 가상 보드에 아직 없어서" }
 d-3-15: { support: B1, slug: photoresistor, tags: [포토레지스터, 속도 센서, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 포토레지스터·속도 센서 }] }
-d-3-16: { support: B2, slug: water-temp, tags: [수온, DS18B20, 1-Wire], reason: "수온 센서를 읽는 onewire·ds18x20 모듈과 센서 흉내가 가상 보드에 아직 없어서" }
+d-3-16: { support: B2, slug: water-temp, tags: [수온, DS18B20, 1-Wire], reason: "수온 센서를 읽는 onewire·ds18x20 모듈과 이 센서가 가상 보드에 아직 없어서" }
 d-3-17: { support: B1, slug: float-switch, tags: [수위, 플로트 스위치, 디지털 입력], parts: [{ part: sensor-digital, pin: 23, label: 수위 센서(플로트 스위치) }] }
-d-3-18: { support: B2, slug: pms7003, tags: [미세먼지, PMS7003, UART], reason: "미세먼지 센서가 UART로 보내는 값(32바이트 프레임)의 흉내가 가상 보드에 아직 없어서" }
-d-3-19: { support: B2, slug: pms3003, tags: [미세먼지, PMS3003, UART], reason: "미세먼지 센서가 UART로 보내는 값(프레임)의 흉내가 가상 보드에 아직 없어서" }
-d-3-20: { support: B2, slug: ze19d, tags: [이산화탄소, CO2, UART], reason: "CO2 센서가 UART로 보내는 값(9바이트 명령·응답)의 흉내가 가상 보드에 아직 없어서" }
-d-3-21: { support: C, slug: fingerprint, tags: [지문, AS608, UART], reason: "지문 센서의 UART 통신 규약(등록·검색·삭제) 흉내가 가상 보드에 아직 없어서", note: "이 지문 센서 라이브러리(pyfingerprint.py)는 사용 조건이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요." }
+d-3-18: { support: B2, slug: pms7003, tags: [미세먼지, PMS7003, UART], reason: "미세먼지 센서가 UART로 보내는 값(32바이트 프레임)을 만드는 부분이 가상 보드에 아직 없어서" }
+d-3-19: { support: B2, slug: pms3003, tags: [미세먼지, PMS3003, UART], reason: "미세먼지 센서가 UART로 보내는 값(프레임)을 만드는 부분이 가상 보드에 아직 없어서" }
+d-3-20: { support: B2, slug: ze19d, tags: [이산화탄소, CO2, UART], reason: "CO2 센서가 UART로 보내는 값(9바이트 명령·응답)을 만드는 부분이 가상 보드에 아직 없어서" }
+d-3-21: { support: C, slug: fingerprint, tags: [지문, AS608, UART], reason: "지문 센서의 UART 통신 규약(등록·검색·삭제)을 처리하는 부분이 가상 보드에 아직 없어서", note: "이 지문 센서 라이브러리(pyfingerprint.py)는 사용 조건이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요." }
 
 # ── 4장 아날로그 센서 ──
 d-4-01: { support: B1, slug: potentiometer, tags: [가변저항, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 가변저항 }] }
@@ -96,29 +96,29 @@ d-4-29: { support: B1, slug: mq135, tags: [가스, MQ135, 공기질, 아날로�
 d-4-30: { support: B1, slug: magnet, tags: [자석, 자기장, 아날로그 입력, ADC], parts: [{ part: sensor-analog, pin: 32, label: 자석 감지 센서 }] }
 
 # ── 5장 I2C 고급 센서 ──
-d-5-01: { support: B2, slug: sht30, tags: [온습도, SHT30, I2C], reason: "SHT30 온습도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
-d-5-02: { support: B2, slug: weight, tags: [무게, HX711, I2C], reason: "무게 센서 모듈(I2C 주소 0x63)의 흉내가 가상 보드에 아직 없어서" }
-d-5-03: { support: B2, slug: mlx90614, tags: [비접촉 온도, MLX90614, I2C], reason: "MLX90614 비접촉 온도 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
-d-5-04: { support: B2, slug: rtc, tags: [시계, RTC, DS3231, I2C], reason: "DS3231 실시간 시계 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서", note: "가상 보드의 machine.RTC(보드 안 시계)와는 다른 부품이에요 — 이 도감의 RTC는 DS3231 모듈을 I2C로 읽어요." }
-d-5-05: { support: B2, slug: tcs34725, tags: [색상 센서, TCS34725, I2C], reason: "TCS34725 색상 센서 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
-d-5-06: { support: B2, slug: mpu6050, tags: [자이로, 가속도, MPU6050, I2C], reason: "MPU6050 6축 자이로 칩(I2C 레지스터)의 흉내가 가상 보드에 아직 없어서" }
-d-5-07: { support: C, slug: max30102, tags: [심박, MAX30102, I2C], reason: "MAX30102 심박 센서 칩의 측정 순서와 심박 계산 흉내가 가상 보드에 아직 없어서" }
-d-5-08: { support: B2, slug: bmp280, tags: [기압, 고도, BMP280, I2C], reason: "BMP280 기압 센서 칩(보정 계수 레지스터)의 흉내가 가상 보드에 아직 없어서" }
-d-5-09: { support: C, slug: vl53l0x, tags: [거리, VL53L0X, I2C], reason: "VL53L0X 거리 센서 칩의 긴 초기화 순서 흉내가 가상 보드에 아직 없어서" }
-d-5-10: { support: C, slug: gesture, tags: [제스처, APDS9960, I2C], reason: "APDS9960 제스처 센서 칩의 측정 대기열 흉내가 가상 보드에 아직 없어서", note: "이 제스처 센서 라이브러리(apds9960.py)는 사용 조건(GPL)이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요." }
-d-5-11: { support: B2, slug: sgp30, tags: [공기질, SGP30, I2C], reason: "SGP30 공기질 센서 칩(명령과 CRC)의 흉내가 가상 보드에 아직 없어서" }
-d-5-12: { support: B2, slug: ccs811, tags: [공기질, CCS811, I2C], reason: "CCS811 공기질 센서 칩(앱 시작·상태 레지스터)의 흉내가 가상 보드에 아직 없어서" }
+d-5-01: { support: B2, slug: sht30, tags: [온습도, SHT30, I2C], reason: "SHT30 온습도 센서 칩(I2C 레지스터)이 가상 보드에 아직 없어서" }
+d-5-02: { support: B2, slug: weight, tags: [무게, HX711, I2C], reason: "무게 센서 모듈(I2C 주소 0x63)이 가상 보드에 아직 없어서" }
+d-5-03: { support: B2, slug: mlx90614, tags: [비접촉 온도, MLX90614, I2C], reason: "MLX90614 비접촉 온도 센서 칩(I2C 레지스터)이 가상 보드에 아직 없어서" }
+d-5-04: { support: B2, slug: rtc, tags: [시계, RTC, DS3231, I2C], reason: "DS3231 실시간 시계 칩(I2C 레지스터)이 가상 보드에 아직 없어서", note: "가상 보드의 machine.RTC(보드 안 시계)와는 다른 부품이에요 — 이 도감의 RTC는 DS3231 모듈을 I2C로 읽어요." }
+d-5-05: { support: B2, slug: tcs34725, tags: [색상 센서, TCS34725, I2C], reason: "TCS34725 색상 센서 칩(I2C 레지스터)이 가상 보드에 아직 없어서" }
+d-5-06: { support: B2, slug: mpu6050, tags: [자이로, 가속도, MPU6050, I2C], reason: "MPU6050 6축 자이로 칩(I2C 레지스터)이 가상 보드에 아직 없어서" }
+d-5-07: { support: C, slug: max30102, tags: [심박, MAX30102, I2C], reason: "MAX30102 심박 센서 칩과 그 측정 순서·심박 계산이 가상 보드에 아직 없어서" }
+d-5-08: { support: B2, slug: bmp280, tags: [기압, 고도, BMP280, I2C], reason: "BMP280 기압 센서 칩(보정 계수 레지스터)이 가상 보드에 아직 없어서" }
+d-5-09: { support: C, slug: vl53l0x, tags: [거리, VL53L0X, I2C], reason: "VL53L0X 거리 센서 칩과 그 긴 초기화 순서가 가상 보드에 아직 없어서" }
+d-5-10: { support: C, slug: gesture, tags: [제스처, APDS9960, I2C], reason: "APDS9960 제스처 센서 칩과 그 측정 대기열이 가상 보드에 아직 없어서", note: "이 제스처 센서 라이브러리(apds9960.py)는 사용 조건(GPL)이 사이트에 싣기에 맞지 않아 싣지 않았어요. 브릭셀 쪽에서 내려받아 보드에 올려요." }
+d-5-11: { support: B2, slug: sgp30, tags: [공기질, SGP30, I2C], reason: "SGP30 공기질 센서 칩(명령과 CRC)이 가상 보드에 아직 없어서" }
+d-5-12: { support: B2, slug: ccs811, tags: [공기질, CCS811, I2C], reason: "CCS811 공기질 센서 칩(앱 시작·상태 레지스터)이 가상 보드에 아직 없어서" }
 
 # ── 6장 모터 ──
 d-6-01: { support: A, slug: vibration-motor, tags: [진동 모터, 출력], parts: [{ part: vibration-motor, pin: 23, label: 진동 모터 }], note: "사이트 가상 보드의 진동 모터 기본 핀은 19번이지만, 이 도감의 브릭셀 실드 배선은 23번이라 예제마다 23번으로 적었어요." }
-d-6-02: { support: B2, slug: dc-motor, tags: [DC 모터, PCA9685, I2C], reason: "듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-6-02: { support: B2, slug: dc-motor, tags: [DC 모터, PCA9685, I2C], reason: "듀얼 모터 드라이버(PCA9685 I2C 칩)가 가상 보드에 아직 없어서" }
 d-6-03: { support: A, slug: fan-motor, tags: [팬 모터, 선풍기, PWM], parts: [{ part: fan-motor, pins: { ina: 25, inb: 26 }, label: 팬 모터 }], note: "사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요. 브릭셀 쪽 파일과 rotate()·stop() 사용법은 같고 기본 속도와 속도 범위(0~100 / 0~99)만 조금 달라요." }
 d-6-04: { support: A, slug: gear-motor, tags: [기어 모터, PWM], parts: [{ part: fan-motor, pins: { ina: 25, inb: 26 }, label: 기어 모터(팬 모터 그림) }], note: "가상 보드에는 기어 모터 그림이 없어서 같은 방식으로 도는 팬 모터 그림이 대신해요. 사이트가 싣는 gorillacell_dcmotors.py는 교과서 169쪽 판이에요." }
 d-6-05: { support: A, slug: servo, tags: [서보 모터, PWM, 각도], parts: [{ part: servo, pin: 25, label: 서보 모터(MG90S) }] }
 d-6-06: { support: B1, virtual: partial, slug: geekservo, tags: [서보 모터, 연속 회전, PWM], parts: [{ part: servo, pin: 25, label: 긱 서보(360도 연속 회전) }], reason: "가상 보드의 서보 그림은 각도를 보여 주는 서보라서 연속 회전 서보의 회전 속도와 방향은 그림으로 나오지 않아서(보내는 펄스 폭은 그대로 확인할 수 있어요)" }
-d-6-07: { support: B2, slug: stepper, tags: [스텝 모터, A4988], reason: "스텝 모터 드라이버(STEP 펄스를 세어 돌리는 부품)의 흉내가 가상 보드에 아직 없어서" }
-d-6-08: { support: B2, slug: dual-motor, tags: [모터 드라이버, PCA9685, I2C], reason: "듀얼 모터 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
-d-6-09: { support: B2, slug: pca9685, tags: [서보 드라이버, PCA9685, I2C], reason: "16채널 서보 드라이버(PCA9685 I2C 칩)의 흉내가 가상 보드에 아직 없어서" }
+d-6-07: { support: B2, slug: stepper, tags: [스텝 모터, A4988], reason: "스텝 모터 드라이버(STEP 펄스를 세어 돌리는 부품)가 가상 보드에 아직 없어서" }
+d-6-08: { support: B2, slug: dual-motor, tags: [모터 드라이버, PCA9685, I2C], reason: "듀얼 모터 드라이버(PCA9685 I2C 칩)가 가상 보드에 아직 없어서" }
+d-6-09: { support: B2, slug: pca9685, tags: [서보 드라이버, PCA9685, I2C], reason: "16채널 서보 드라이버(PCA9685 I2C 칩)가 가상 보드에 아직 없어서" }
 d-6-10: { support: B1, virtual: partial, slug: l293dd, tags: [모터 드라이버, L293DD, PWM], parts: [{ part: output-digital, id: ain1, pin: 16, label: 모터 A 방향 1(AIN1) }, { part: output-digital, id: pwma, pin: 17, label: 모터 A 속도(PWMA) }, { part: output-digital, id: ain2, pin: 18, label: 모터 A 방향 2(AIN2) }, { part: output-digital, id: bin1, pin: 19, label: 모터 B 방향 1(BIN1) }, { part: output-digital, id: pwmb, pin: 13, label: 모터 B 속도(PWMB) }, { part: output-digital, id: bin2, pin: 14, label: 모터 B 방향 2(BIN2) }], reason: "가상 보드에는 모터 두 개 그림이 없어서 여섯 신호선을 표시등으로만 보여 주기 때문에(모터가 도는 모습은 나오지 않아요)" }
 
 # ── 7장 출력 ──
@@ -129,14 +129,14 @@ d-7-04: { support: B1, slug: pumprelay, tags: [펌프, 릴레이, 출력], parts
 d-7-05: { support: A, slug: mp3, tags: [MP3, 소리, UART], parts: [{ part: mp3, pins: { rx: 26, tx: 25 }, label: MP3 플레이어 }], note: "사이트 교과서 예제의 MP3 모듈은 TX 17·RX 16이지만, 이 도감의 브릭셀 실드 배선은 모듈 TX→25번, 모듈 RX→26번이에요." }
 
 # ── 8장 통신 ──
-d-8-01: { support: C, slug: ir-rx, tags: [적외선, 리모컨, IR], reason: "리모컨(IR) 신호의 타이밍 파형을 만드는 흉내가 가상 보드에 아직 없어서" }
-d-8-02: { support: C, slug: ir-tx, tags: [적외선, 리모컨, IR], reason: "IR 신호를 보내는 esp32.RMT 기능의 흉내가 가상 보드에 아직 없어서" }
-d-8-03: { support: C, slug: rf433-rx, tags: [무선, RF433], reason: "RF433 수신기의 펄스 읽기(time_pulse_us)와 신호 흉내가 가상 보드에 아직 없어서" }
-d-8-04: { support: C, slug: rf433-tx, tags: [무선, RF433], reason: "RF433 송신기가 보내는 펄스 신호와 짝이 되는 수신기 흉내가 가상 보드에 아직 없어서" }
-d-8-05: { support: B2, slug: bluetooth, tags: [블루투스, JDY-33, UART], reason: "블루투스 모듈(JDY-33)과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서", note: "사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원). 이 도감의 JDY-33은 UART로 연결하는 별도 모듈이에요." }
-d-8-06: { support: B2, slug: bluetooth-ble, tags: [블루투스, BLE, UART], reason: "블루투스 BLE 모듈과 휴대폰 쪽 흉내가 가상 보드에 아직 없어서", note: "8.05와 같은 모듈 사진·회로 그림을 써요. 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 흉내 내는 부품이 따로 있어요(실습실 3·4단원)." }
-d-8-07: { support: C, slug: wifi, tags: [와이파이, ESP12E, AT 명령, UART], reason: "WiFi 모듈(ESP12E)의 AT 명령 응답 흉내가 가상 보드에 아직 없어서" }
-d-8-08: { support: B2, slug: gps, tags: [GPS, 위치, UART], reason: "GPS 모듈이 UART로 보내는 위치 글(NMEA 문장) 흉내가 가상 보드에 아직 없어서" }
+d-8-01: { support: C, slug: ir-rx, tags: [적외선, 리모컨, IR], reason: "리모컨(IR) 신호의 타이밍 파형을 만드는 부분이 가상 보드에 아직 없어서" }
+d-8-02: { support: C, slug: ir-tx, tags: [적외선, 리모컨, IR], reason: "IR 신호를 보내는 esp32.RMT 기능이 가상 보드에 아직 없어서" }
+d-8-03: { support: C, slug: rf433-rx, tags: [무선, RF433], reason: "RF433 수신기가 펄스(짧은 신호)의 길이를 재는 기능과 이 신호를 만드는 부분이 가상 보드에 아직 없어서" }
+d-8-04: { support: C, slug: rf433-tx, tags: [무선, RF433], reason: "RF433 송신기가 보내는 펄스 신호를 받는 수신기가 가상 보드에 아직 없어서" }
+d-8-05: { support: B2, slug: bluetooth, tags: [블루투스, JDY-33, UART], reason: "블루투스 모듈(JDY-33)과 그 짝인 휴대폰 쪽이 가상 보드에 아직 없어서", note: "사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 쓰는 부품이 따로 있어요(실습실 3·4단원). 이 도감의 JDY-33은 UART로 연결하는 별도 모듈이에요." }
+d-8-06: { support: B2, slug: bluetooth-ble, tags: [블루투스, BLE, UART], reason: "블루투스 BLE 모듈과 그 짝인 휴대폰 쪽이 가상 보드에 아직 없어서", note: "8.05와 같은 모듈 사진·회로 그림을 써요. 사이트 가상 보드에는 ESP32 안의 블루투스(BLE)를 쓰는 부품이 따로 있어요(실습실 3·4단원)." }
+d-8-07: { support: C, slug: wifi, tags: [와이파이, ESP12E, AT 명령, UART], reason: "WiFi 모듈(ESP12E)과 그 AT 명령 응답이 가상 보드에 아직 없어서" }
+d-8-08: { support: B2, slug: gps, tags: [GPS, 위치, UART], reason: "GPS 모듈이 UART로 보내는 위치 글(NMEA 문장)을 만드는 부분이 가상 보드에 아직 없어서" }
 d-8-09: { support: C, slug: tfcard, tags: [TF 카드, SD 카드, SPI, 파일], reason: "TF 카드(machine.SDCard·SPI)와 가상 파일 시스템이 가상 보드에 아직 없어서" }
 
 # ── 1장 시작하기 소절의 코드 12개 (키: "<소절 번호>#<그 소절의 몇 번째 코드>") ──

@@ -90,6 +90,11 @@ test.describe('부품 사전 쪽', () => {
     // 판이 다를 수 있는 부품에는 안내가 붙는다
     await expect(page.locator('#part-o-002-mp3-player-kt403a')).toContainText('키트에 따라 모양이 다를 수 있어요');
     await expect(page.locator('#part-board-003-esp32-shield-v3')).toContainText('V3');
+
+    // 이름이 비슷한 초음파 센서 세 카드는 서로 어떻게 다르게 생겼는지 한 줄씩 있다(판 1.7.0, 미해결 264 #7)
+    await expect(ultrasonic.locator('.parts-card__note')).toContainText('세로로 긴 모양');
+    await expect(page.locator('#part-d-008-ultrasonic-sensor-adapter .parts-card__note')).toContainText('노란 소켓');
+    await expect(page.locator('#part-d-009-ultrasonic-sensor-v2 .parts-card__note')).toContainText('가로로 긴 모양');
   });
 
   test('열 수: 휴대폰(375px)은 2열, 넓은 화면(1366px)은 5열이고 사진이 모두 칸 안에 들어온다', async ({ page, isMobile }) => {
