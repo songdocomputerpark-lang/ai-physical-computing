@@ -8,13 +8,14 @@
  * - tests/unit/home/home-content.test.ts와 tests/e2e/home.spec.ts가 이 값을 읽어 검사한다.
  *
  * 판 1.6.0 홈 순서(처음 들어온 사람도 알기 쉽게 — DECISIONS C172·C173): 안심 띠(HomeTrust) → 표지(HomeCover: 사람별 큰 단추 셋) → 이어서 하기 띠(진도가 있을 때만) → 단원 4장 카드(HomeUnits, 주소 #units)
- *   → 교과서 차례(HomeToc, 주소 #toc) → 큰 검색 → 바로 가기 타일 → 원칙("어떻게 되나요?"). 45편 전체 목록은 홈에 두지 않고 따라 하기(/learn/)에 둔다(옛 차시 카드 목록 HomeLessons는 홈이 더 쓰지 않는다).
+ *   → 교과서 차례(HomeToc, 주소 #toc) → 큰 검색 → 바로 가기 타일 → 원칙("어떻게 되나요?"). 45편 전체 목록은 홈에 두지 않고 따라 하기(/learn/)에 둔다.
+ *   판 1.7.0: 옛 차시 카드 목록(HomeLessons.astro·homeLessons 글)과 옛 배움 지도(HomeMap.astro·home-map.ts)는 홈이 쓰지 않아 지웠다.
  *
  * 판 1.4.0 홈 순서(옛 — DECISIONS C132): 표지(HomeCover) → 이어서 하기 띠(진도가 있을 때만) → 교과서 차례 그림(HomeToc) → 차시 목록(HomeLessons) → 큰 검색 → 바로 가기 타일 → 원칙.
  * 차례 그림의 링크 자리·카드 자료는 home-lessons.ts가 교과서 쪽(content/book)·웹 차시(content/lessons)에서 만든다.
  *
  * 판 1.3.0 홈 순서(옛): 첫 화면(hero) → 이어서 하기 띠 → 큰 검색 → 배움 지도(대단원 4장) → 바로 가기 타일 → 원칙.
- * 옛 첫 화면(HomeHero·FlowIllustration)과 배움 지도(HomeMap, home-map.ts)는 홈이 더 쓰지 않지만 지우지 않았고 아래 homeHero·homeActions·flowFigure·homeMap도 그대로 둔다.
+ * 옛 첫 화면(HomeHero·FlowIllustration)은 홈이 더 쓰지 않지만 아직 지우지 않았고 아래 homeHero·homeActions·flowFigure도 그대로 둔다(옛 시험이 이 글을 지킨다).
  */
 import { getPage } from '../../config/nav.ts';
 import { CAMERA_PRIVACY_BRIEF } from '../../config/privacy-text.ts';
@@ -127,21 +128,28 @@ export const homeCover = Object.freeze({
   resumeLabel: '이어서 하기',
 });
 
-/** 알약 글: "고등학교 · 교과서 32절 · 웹 차시 45편" */
+/**
+ * 알약 글: "고등학교 · 교과서 원문 32절 · 따라 하기 45편".
+ * 판 1.7.0(미해결 268 ②, 걷기 B-58): 옛 글 "교과서 32절 · 웹 차시 45편"은 "웹 차시"가 사이트 안쪽 말이고 숫자 둘이 무엇인지 풀이가 없었다.
+ * 머리글 메뉴의 두 이름(교과서 원문·따라 하기, C173)을 그대로 써서 숫자 둘이 메뉴 두 개의 크기임을 알린다. 375 폭 한 줄에 들어가는 길이(약 28자)다.
+ */
 export function homeCoverPill(sectionCount: number, lessonCount: number): string {
-  return `고등학교 · 교과서 ${sectionCount}절 · 웹 차시 ${lessonCount}편`;
+  return `고등학교 · 교과서 원문 ${sectionCount}절 · 따라 하기 ${lessonCount}편`;
 }
 
 /**
- * 표지 큰 단추 셋(판 1.6.0, DECISIONS C172) — 사람으로 나눈다: [학생 — 처음부터 배우기] · [선생님 — 수업 준비] · [키트가 있어요 — 보드 켜기].
+ * 표지 큰 단추 셋(판 1.6.0, DECISIONS C172) — 사람으로 나눈다: [학생 — 처음부터 배우기] · [선생님 — 수업 준비] · [키트가 있어요 — 보드 준비].
  * 학생 단추의 주소는 1단원 첫 절의 따라 하기 쪽(/learn/u1/1-1-1/)이라 화면이 데이터에서 정해 넘긴다. 선생님·키트 단추는 사이트 지도의 쪽이다.
  * 채운 파랑 주 단추는 학생 하나뿐이다(C114). 순서와 이름을 바꾸지 않는다.
+ * 판 1.7.0(미해결 262): 키트 단추 이름을 "보드 켜기"에서 "보드 준비"로 — "켜기"는 전원을 켜는 일로 읽히고, 가는 쪽의 이름(메뉴 "보드 준비"·쪽 제목 "보드 준비하기")과 달라 같은 곳이 이름 셋이 됐다.
+ * 메뉴 이름과 글자까지 같게 두고, "수업 준비"와 짝을 이루는 두 낱말이라 큰 단추 안에서 한 줄에 들어간다(1366 폭의 셋째 칸은 글 자리가 약 89px — "보드 준비하기"는 두 줄로 꺾였다).
+ * 보드가 없어도 되는 길(가상 보드)은 이 단추가 아니라 "키트가 있어요" 글자가 가른다 — 키트가 없는 학생은 학생 단추(1단원)로 시작하면 되고, 가상 보드 실습은 2단원 차시에서 실습실로 열린다.
  */
 export function homeCoverActions(startHref: string): readonly HomeCoverAction[] {
   return Object.freeze([
     Object.freeze({ id: 'start', who: '학생', label: homeCover.startLabel, href: startHref, icon: 'play', variant: 'primary' } as const),
     Object.freeze({ id: 'teacher', who: '선생님', label: '수업 준비', href: getPage('start-teacher').href, icon: 'teacher', variant: 'secondary' } as const),
-    Object.freeze({ id: 'kit', who: '키트가 있어요', label: '보드 켜기', href: getPage('start-board').href, icon: 'chip', variant: 'secondary' } as const),
+    Object.freeze({ id: 'kit', who: '키트가 있어요', label: '보드 준비', href: getPage('start-board').href, icon: 'chip', variant: 'secondary' } as const),
   ]);
 }
 
@@ -211,21 +219,6 @@ export const homeToc = Object.freeze({
   listLead: '그림 대신 목록에서 골라도 돼요.',
 });
 
-/** 차시 목록(단원 → 중단원 → 카드) */
-export const homeLessons = Object.freeze({
-  heading: '차시 목록',
-  lead: '교과서 차례대로 모았어요. 카드를 누르면 교과서 원문 쪽으로 가고, 교과서 원문 쪽이 없는 절은 따라 하기 쪽으로 가요.',
-  /** 책에 없고 사이트가 더한 차시의 알약 */
-  webOnlyBadge: '웹에서 더함',
-  /** 교과서 원문 쪽이 없는 절이 따라 하기 쪽으로 이어질 때 카드에 붙이는 작은 글(판 1.6.0 C173 — 옛 이름 "풀이·실습") */
-  lessonDest: '따라 하기로 가요',
-  /** 갈 곳이 없는 카드(쪽 파일도 웹 차시도 없음)의 글 */
-  planned: '교과서 쪽을 준비 중이에요',
-  legendLabel: '아이콘 뜻',
-  /** 범례의 보드 줄 — 보드가 없어도 가상 보드로 끝까지 할 수 있다(원칙 3) */
-  legendBoard: '실제 보드 있으면 더 좋아요',
-});
-
 /** 첫 화면 제목과 한 문장 소개(SPEC §5: 스크롤 없이 30초 안에 "이 사이트가 뭔지" 알게) */
 export const homeHero = Object.freeze({
   /** 페이지 제목(h1). 줄로 나눠 두면 넓은 화면에서 이 자리에서 줄이 바뀐다. 이어 읽으면 한 문장이다. */
@@ -287,7 +280,7 @@ export const flowFigure = Object.freeze({
     { id: 'judge', label: '판단하고', detail: '손가락 수를 세요', unit: 1 },
     { id: 'act', label: '움직여요', detail: '보드가 LED를 켜요', unit: 2 },
   ]),
-  /** 단계 아래 링크 글. "{1}단원 알아보기" — 배움 지도 카드 단추([1단원 배우기])와 이름이 겹치지 않게 다른 동사를 쓴다. */
+  /** 단계 아래 링크 글. "{1}단원 알아보기" — 단원 카드 단추([1단원 열기])와 이름이 겹치지 않게 다른 동사를 쓴다. */
   unitLinkLabel: '알아보기',
 });
 
@@ -295,7 +288,10 @@ export const flowFigure = Object.freeze({
 export const homeResume = Object.freeze({
   /** 띠 머리. 같은 행동은 같은 말이라(R3-006) 카드 단추도 "이어서 하기"를 쓴다. 머리는 "지난번 이어서"로 둔다(R1-027). */
   heading: '지난번 이어서',
-  /** 지난번 차시 칸: 아직 안 끝낸 차시는 go, 이미 끝낸 차시는 goDone("다시 보기")로 바뀐다(R1-030). */
+  /**
+   * 지난번 차시 칸: 아직 안 끝낸 차시는 go, 이미 끝낸 차시는 goDone("다시 보기")로 바뀐다(R1-030).
+   * 표지의 큰 단추가 이 칸의 차시를 "이어서 하기"로 이미 이으면(안 끝낸 차시) 같은 안내가 두 번 보이지 않게 이 칸은 숨는다(판 1.7.0, 미해결 264 #22).
+   */
   lesson: Object.freeze({ kicker: '지난번에 열어 본 차시', go: '이어서 하기', goDone: '다시 보기' }),
   /**
    * 지난번 차시를 이미 끝냈을 때만 채우는 칸: 같은 대단원에서 그 뒤로 아직 안 연 차시. 처음 여는 차시라 [시작하기](배우기 쪽과 같은 말, R2-021).
@@ -310,26 +306,14 @@ export const homeSearch = Object.freeze({
   heading: '무엇을 찾나요?',
 });
 
-/** 배움 지도: 대단원 4장이 화살표로 이어진 길 */
+/**
+ * 단원 몫 글 한 벌(옛 "배움 지도"가 쓰던 칩 글 — 판 1.7.0에서 지도 부품은 지우고 이 글만 남겼다).
+ * 대단원이 맡은 큰 그림의 단계 이름("보고→판단하고→움직여요" 그림과 이어진다, R1-025). 네 낱말이 모두 "-기" 꼴이다(R3-012).
+ * 흐름 그림의 단계 이름(보고 / 판단하고 / 움직여요)은 문장을 이어 읽는 말이고, 이 글은 단원 몫을 가리키는 이름이라 층위가 다르다.
+ * 차시 머리의 "이 단원은 큰 그림의 … 칸이에요"(lesson/unit-about.ts UNIT_ABOUT.role)와 같은 글이어야 한다(tests/unit/lesson/unit-about.test.ts가 대조).
+ */
 export const homeMap = Object.freeze({
-  heading: '배움 지도',
-  lead: '1단원부터 차례로 따라가면 돼요.',
-  /**
-   * 카드 안 단추: 진도가 없을 때 / 진도가 있어 안 본 차시가 남았을 때 / 모두 봤을 때.
-   * 화면에는 앞에 단원이 붙어 "1단원 배우기"로 보인다(머리글 메뉴 [시작하기]와 글자가 겹치지 않게, R1-027).
-   * 이어 하는 단추는 띠·배우기 쪽과 같은 말 "이어서 하기"다 — 같은 행동은 같은 말(R3-006). 이름이 "1단원 …"으로 시작해 링크 이름은 겹치지 않는다.
-   */
-  startLabel: '배우기',
-  resumeLabel: '이어서 하기',
-  replayLabel: '다시 보기',
-  /**
-   * 대단원이 맡은 큰 그림의 단계 칩("보고→판단하고→움직여요" 그림과 이어진다, R1-025). 네 낱말이 모두 "-기" 꼴이다(R3-012).
-   * 흐름 그림의 단계 이름(보고 / 판단하고 / 움직여요)은 문장을 이어 읽는 말이고, 이 칩은 단원 몫을 가리키는 이름이라 층위가 다르다.
-   * 차시 머리의 "이 단원은 큰 그림의 … 칸이에요"(lesson/unit-about.ts UNIT_ABOUT.role)와 같은 글이어야 한다.
-   */
   stages: Object.freeze<Record<1 | 2 | 3 | 4, string>>({ 1: '보고 판단하기', 2: '움직이기', 3: '잇기', 4: '합치기' }),
-  /** 대단원 번호 → 아이콘(영상 → 보드 → 통신 → 프로젝트) */
-  unitIcons: Object.freeze<Record<1 | 2 | 3 | 4, IconName>>({ 1: 'camera', 2: 'chip', 3: 'signal', 4: 'lightbulb' }),
 });
 
 /** 바로 가기 타일 9개(네이버식 아이콘 칸). 실습실 4개는 1~4단원 색을 따른다. */
@@ -363,7 +347,8 @@ export const homePrinciples = Object.freeze({
     {
       icon: 'monitor',
       title: '보드가 없어도 돼요',
-      body: '모든 보드 실습을 화면 속 가상 보드로 끝까지 할 수 있어요. 실제 보드도 같은 코드로 움직여요.',
+      // 판 1.7.0(미해결 264 #4): "모든 보드 실습"이라고 하면 키트 일부 센서 예제(실제 보드가 필요한 것)와 부딪혔다 — 실습실 쪽(labs/esp32)과 같은 말로 쓴다.
+      body: '교과서 실습은 보드 없이 화면 속 가상 보드로 끝까지 할 수 있어요. 키트의 일부 센서 예제는 실제 보드가 필요해요. 실제 보드도 같은 코드로 움직여요.',
     },
     {
       icon: 'unlock',
@@ -371,8 +356,12 @@ export const homePrinciples = Object.freeze({
       body: '로그인이나 회원가입 없이 누구나 바로 쓸 수 있어요. 카메라 영상도 이 컴퓨터 밖으로 나가지 않아요.',
     },
   ]),
+  /**
+   * 홈에서 "휴대폰으로도 되나요?"에 답하는 한 줄(판 1.7.0, 미해결 263 #6 — 보호자 안내 /start/parent/ 와 같은 말: 읽기는 휴대폰도, 코드를 실행하는 실습은 컴퓨터의 크롬·엣지).
+   * 전에는 "권장해요"라서 휴대폰에서 실습이 되는지 안 되는지 알 수 없었다.
+   */
   browserNote: Object.freeze({
-    text: '실습실은 컴퓨터의 크롬(Chrome)이나 엣지(Edge) 브라우저를 권장해요.',
+    text: '읽기는 휴대폰도 돼요. 코드를 실행하는 실습은 컴퓨터의 크롬(Chrome)이나 엣지(Edge) 브라우저에서 해요.',
     linkLabel: '내 컴퓨터 점검',
     pageId: 'start-check',
     href: getPage('start-check').href,

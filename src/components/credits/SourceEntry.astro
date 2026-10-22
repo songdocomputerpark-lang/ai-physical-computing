@@ -3,7 +3,18 @@
 // dt와 dd 사이의 {' '}: Astro가 태그 사이 줄바꿈을 지워 사이트 검색 색인에서 "분류실행"처럼 글자가 붙으므로 공백을 글자로 넣는다(P1-11).
 // 사이트 검색 색인(data-pagefind-ignore): 사용 위치·적용 파일·npm·고지 파일 칸은 개발 도구 설명이라 학생 검색어(예: 픽셀)에 걸리면
 // 결과가 흐려지므로 빼고, 이름·분류·저작자·라이선스·권리 문구·원래 자료 주소만 찾히게 둔다(2026-09-16 검토 반영).
-import { categoryLabel, formatKoreanDate, isExcluded, noticeFilesOf, publicFileHref, type SourceEntry } from '../../lib/credits.ts';
+// 판 1.7.0(걷기 B-56): 처음 온 사람이 읽는 줄에는 결정 번호(DECISIONS O17)·할 일 번호·저장소 폴더 경로를 두지 않는다. 라이선스·권리 문구·이름은
+// stripDeveloperRefs로 그런 참조만 뺀 글을 보이고, 사용 위치·적용 파일·npm·고지 파일 칸과 뺀 글의 원문은 접힌 "자세히(개발자용)" 안에 그대로 둔다
+// (닫혀 있어도 글은 HTML에 있어 화면 낭독기·검사가 읽을 수 있고, 눈에는 접힌 한 줄만 보인다).
+import {
+  categoryLabel,
+  formatKoreanDate,
+  isExcluded,
+  noticeFilesOf,
+  publicFileHref,
+  stripDeveloperRefs,
+  type SourceEntry,
+} from '../../lib/credits.ts';
 
 interface Props {
   entry: SourceEntry;
@@ -18,10 +29,19 @@ const Heading = headingLevel === 3 ? 'h3' : 'h4';
 const noticeHref = entry.notice ? publicFileHref(entry.notice) : undefined;
 /** 대표 고지 말고 이 항목이 함께 싣는 고지 파일(paths에 적힌 public/licenses/… 또는 NOTICE·LICENSE 파일, 2026-09-26 P6-04) */
 const extraNotices = noticeFilesOf(entry).filter((file) => file !== entry.notice);
+const shownName = stripDeveloperRefs(entry.name);
+const shownLicense = stripDeveloperRefs(entry.license);
+const shownRights = entry.rights ? stripDeveloperRefs(entry.rights) : undefined;
+/** 개발자용 칸에 원문을 그대로 두는 글(보이는 글에서 개발자용 참조를 뺀 것만) */
+const originals = [
+  shownName !== entry.name ? { label: '등록부의 이름(원문)', text: entry.name } : undefined,
+  showLicense && shownLicense !== entry.license ? { label: '등록부의 라이선스(원문)', text: entry.license } : undefined,
+  entry.rights && shownRights !== entry.rights ? { label: '등록부의 권리 문구(원문)', text: entry.rights } : undefined,
+].filter((item): item is { label: string; text: string } => item !== undefined);
 ---
 
 <article class="source-entry">
-  <Heading class="source-entry__name">{entry.name}</Heading>
+  <Heading class="source-entry__name">{shownName}</Heading>
   {isExcluded(entry) && <p class="source-entry__flag">사이트 라이선스에서 제외 — 원래 조건을 따라요</p>}
   <dl class="source-entry__fields">
     <div>
@@ -36,7 +56,7 @@ const extraNotices = noticeFilesOf(entry).filter((file) => file !== entry.notice
       showLicense && (
         <div>
           <dt>라이선스</dt>{' '}
-          <dd>{entry.license}</dd>
+          <dd>{shownLicense}</dd>
         </div>
       )
     }
@@ -44,90 +64,16 @@ const extraNotices = noticeFilesOf(entry).filter((file) => file !== entry.notice
       entry.rights && (
         <div>
           <dt>권리 문구(원문 그대로)</dt>{' '}
-          <dd class="source-entry__rights">{entry.rights}</dd>
+          <dd class="source-entry__rights">{shownRights}</dd>
         </div>
       )
     }
-    <div data-pagefind-ignore>
-      <dt>사용 위치</dt>{' '}
-      <dd>{entry.used_in}</dd>
-    </div>
     {
       entry.url && (
         <div>
           <dt>원래 자료</dt>{' '}
           <dd>
             <a href={entry.url}>{entry.url}</a>
-          </dd>
-        </div>
-      )
-    }
-    {
-      entry.paths.length > 0 && (
-        <div data-pagefind-ignore>
-          <dt>적용 파일(경로 패턴)</dt>{' '}
-          <dd>
-            <ul class="source-entry__codes">
-              {entry.paths.map((pattern) => (
-                <li>
-                  <code>{pattern}</code>
-                </li>
-              ))}
-            </ul>
-            {entry.exclude_paths.length > 0 && (
-              <>
-                <p class="source-entry__note">다음 경로는 빼요.</p>
-                <ul class="source-entry__codes">
-                  {entry.exclude_paths.map((pattern) => (
-                    <li>
-                      <code>{pattern}</code>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </dd>
-        </div>
-      )
-    }
-    {
-      entry.npm.length > 0 && (
-        <div data-pagefind-ignore>
-          <dt>npm 패키지</dt>{' '}
-          <dd>
-            <ul class="source-entry__codes">
-              {entry.npm.map((packageName) => (
-                <li>
-                  <code>{packageName}</code>
-                </li>
-              ))}
-            </ul>
-          </dd>
-        </div>
-      )
-    }
-    {
-      entry.notice && (
-        <div data-pagefind-ignore>
-          <dt>고지 전문 파일</dt>{' '}
-          <dd>{noticeHref ? <a href={noticeHref}><code>{entry.notice}</code></a> : <code>{entry.notice}</code>}</dd>
-        </div>
-      )
-    }
-    {
-      extraNotices.length > 0 && (
-        <div data-pagefind-ignore>
-          <dt>함께 싣는 고지 파일</dt>{' '}
-          <dd>
-            <ul class="source-entry__codes">
-              {extraNotices.map((file) => (
-                <li>
-                  <a href={publicFileHref(file)}>
-                    <code>{file}</code>
-                  </a>
-                </li>
-              ))}
-            </ul>
           </dd>
         </div>
       )
@@ -143,6 +89,93 @@ const extraNotices = noticeFilesOf(entry).filter((file) => file !== entry.notice
       )
     }
   </dl>
+  <details class="source-entry__dev" data-pagefind-ignore data-credits-dev>
+    <summary>자세히(개발자용)</summary>
+    <dl class="source-entry__fields">
+      <div>
+        <dt>사용 위치</dt>{' '}
+        <dd>{entry.used_in}</dd>
+      </div>
+      {
+        originals.map((item) => (
+          <div>
+            <dt>{item.label}</dt>{' '}
+            <dd class="source-entry__rights">{item.text}</dd>
+          </div>
+        ))
+      }
+      {
+        entry.paths.length > 0 && (
+          <div data-pagefind-ignore>
+            <dt>적용 파일(경로 패턴)</dt>{' '}
+            <dd>
+              <ul class="source-entry__codes">
+                {entry.paths.map((pattern) => (
+                  <li>
+                    <code>{pattern}</code>
+                  </li>
+                ))}
+              </ul>
+              {entry.exclude_paths.length > 0 && (
+                <>
+                  <p class="source-entry__note">다음 경로는 빼요.</p>
+                  <ul class="source-entry__codes">
+                    {entry.exclude_paths.map((pattern) => (
+                      <li>
+                        <code>{pattern}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </dd>
+          </div>
+        )
+      }
+      {
+        entry.npm.length > 0 && (
+          <div data-pagefind-ignore>
+            <dt>npm 패키지</dt>{' '}
+            <dd>
+              <ul class="source-entry__codes">
+                {entry.npm.map((packageName) => (
+                  <li>
+                    <code>{packageName}</code>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        )
+      }
+      {
+        entry.notice && (
+          <div data-pagefind-ignore>
+            <dt>고지 전문 파일</dt>{' '}
+            <dd>{noticeHref ? <a href={noticeHref}><code>{entry.notice}</code></a> : <code>{entry.notice}</code>}</dd>
+          </div>
+        )
+      }
+      {
+        extraNotices.length > 0 && (
+          <div data-pagefind-ignore>
+            <dt>함께 싣는 고지 파일</dt>{' '}
+            <dd>
+              <ul class="source-entry__codes">
+                {extraNotices.map((file) => (
+                  <li>
+                    <a href={publicFileHref(file)}>
+                      <code>{file}</code>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        )
+      }
+    </dl>
+  </details>
 </article>
 
 <style>
@@ -168,6 +201,17 @@ const extraNotices = noticeFilesOf(entry).filter((file) => file !== entry.notice
     background: var(--color-warning-bg);
     color: var(--color-warning-text);
     font-size: 0.9rem;
+  }
+  .source-entry__dev {
+    margin-top: 0.75rem;
+  }
+  .source-entry__dev > summary {
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+  .source-entry__dev > .source-entry__fields {
+    margin-top: 0.6rem;
   }
   .source-entry__fields {
     display: grid;

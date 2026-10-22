@@ -28,7 +28,7 @@ const LARGE_BUTTON_MIN_HEIGHT = 56;
 /** 큰 단추 셋의 이름·순서(homeCoverActions) — 사람으로 나눈다: 학생 · 선생님 · 키트가 있어요 */
 const ACTION_IDS = ['start', 'teacher', 'kit'] as const;
 const ACTION_WHO = ['학생', '선생님', '키트가 있어요'] as const;
-const ACTION_LABELS = [homeCover.startLabel, '수업 준비', '보드 켜기'] as const;
+const ACTION_LABELS = [homeCover.startLabel, '수업 준비', '보드 준비'] as const;
 
 /** 홈 쪽 길이 한도(px). 판 1.5.0은 휴대폰 15,429px(같은 45편을 차례와 차시 카드로 두 번 보였다) — 판 1.6.0 목표 6,000px 이하(C172) */
 const MOBILE_PAGE_MAX = 6000;
@@ -154,7 +154,7 @@ test.describe('홈 표지(스크롤 없이)', () => {
   test('알약은 데이터에서 센 수이고, 출판사·저자와 표지 그림이 있다', async ({ page }, testInfo) => {
     await page.goto('./');
     const main = page.getByRole('main');
-    await expect(main.getByText(new RegExp(`^고등학교 · 교과서 ${bookSectionCount()}절 · 웹 차시 \\d+편$`, 'u'))).toBeVisible();
+    await expect(main.getByText(new RegExp(`^고등학교 · 교과서 원문 ${bookSectionCount()}절 · 따라 하기 \\d+편$`, 'u'))).toBeVisible();
     // 교과서 절 수는 출판본 차례에서 센다
     expect(bookSectionCount()).toBe(BOOK_OUTLINE_SECTIONS.length);
     await expect(main.getByText(homeCover.publisher, { exact: true })).toHaveCount(1);
@@ -430,6 +430,9 @@ test.describe('홈 아래쪽(스크롤 뒤)', () => {
       'href',
       homePrinciples.browserNote.href,
     );
+    // 판 1.7.0(미해결 263 #6·264 #4): 휴대폰으로 되는 범위와, 보드 없이 되는 범위(키트 일부 센서 예제는 보드 필요)를 홈 글이 정확히 말한다
+    await expect(main.locator('.principles__note')).toContainText('읽기는 휴대폰도 돼요');
+    await expect(main.locator('.principle').filter({ hasText: '보드가 없어도 돼요' })).toContainText('키트의 일부 센서 예제는 실제 보드가 필요해요');
 
     // 사이트 안 링크(차례 그림 위 투명 링크·절 목록·단원 카드·타일)가 모두 열린다. 같은 주소는 한 번만 본다.
     const hrefs = await main.locator('a[href]').evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href') ?? ''))]);
@@ -505,7 +508,7 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(start).toBeInViewport({ ratio: 1 });
     // 다른 두 단추는 그대로
     await expect(page.locator('[data-home-action="teacher"]')).toContainText('수업 준비');
-    await expect(page.locator('[data-home-action="kit"]')).toContainText('보드 켜기');
+    await expect(page.locator('[data-home-action="kit"]')).toContainText('보드 준비');
   });
 
   test('처음 온 사람에게는 "처음부터 배우기"이고 이어서 하기 표시가 없다', async ({ page }) => {
@@ -545,7 +548,8 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(unitCard(page, 2).getByRole('link')).toHaveText(`2단원 ${homeUnits.resumeLabel}`);
   });
 
-  test('지난번 차시를 아직 안 끝냈으면 큰 단추와 띠가 모두 그 차시 "이어서 하기"다', async ({ page }) => {
+  // 판 1.7.0 미해결 264 #22: 같은 "이어서 하기"가 홈에 두 번 보이던 것 — 큰 단추가 그 차시를 이으면 띠는 실습실 칸만 남긴다.
+  test('지난번 차시를 아직 안 끝냈으면 그 차시 "이어서 하기"는 큰 단추 하나뿐이고, 띠에는 실습실만 남는다', async ({ page }) => {
     await seedProgress(page, { ...state, done: [] });
     await page.goto('./');
     const start = page.locator('[data-home-action="start"]');
@@ -553,8 +557,19 @@ test.describe('홈 진도 표시(이어서 하기)', () => {
     await expect(start).toContainText(homeResume.lesson.go);
     const band = page.getByRole('region', { name: homeResume.heading });
     await expect(band).toBeVisible();
-    await expect(band.getByRole('link', { name: /^1-1-1 .+ 이어서 하기$/u })).toHaveAttribute('href', lesson.href);
+    await expect(band.getByRole('link', { name: /^1-1-1 / })).toHaveCount(0);
+    await expect(band.getByRole('link', { name: /이어서 하기/u })).toHaveCount(0);
+    await expect(band.getByRole('link', { name: /영상 처리 실습실 다시 열기/u })).toHaveAttribute('href', state.lastLab.path);
     await expect(band.getByText(homeResume.next.kicker)).toBeHidden();
+    // 홈 전체에서 "1-1-1 … 이어서 하기"로 끝나는 링크는 큰 단추 하나(Tab 정류장도 하나)다
+    await expect(page.getByRole('link', { name: /1-1-1.*이어서 하기|이어서 하기.*1-1-1/u })).toHaveCount(1);
+  });
+
+  test('지난번 차시만 있고 실습실을 안 열었으면 띠가 통째로 없다(큰 단추 하나가 이어 준다)', async ({ page }) => {
+    await seedProgress(page, { ...state, done: [], lastLab: null });
+    await page.goto('./');
+    await expect(page.locator('[data-home-action="start"]')).toHaveAttribute('data-resuming', '');
+    await expect(page.locator('[data-home-resume]')).toBeHidden();
   });
 
   // R1-031: 사이트에 없는 차시·실습실 id가 진도에 있어도 404로 가는 카드를 보이지 않는다.

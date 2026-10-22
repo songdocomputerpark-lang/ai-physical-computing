@@ -7,7 +7,8 @@
  * <mark>를 붙여 두므로, 그 낱말이 검색어를 얼마나 덮는지 보아 "진짜 맞는 글"만 남긴다(relevance).
  *
  * 순서: Pagefind의 점수는 코드 조각·허브 쪽이 앞에 올 때가 있어, 받아 온 첫 묶음 안에서만 다시 늘어 놓는다(tierOf):
- *   0 = 용어사전·오류 사전의 항목이 낱말과 바로 맞음(정의형 질문의 답)  1 = 쪽 제목에 낱말이 있음  2 = 그 밖  3 = 학생 검색에서는 뒤로 미룰 쪽(원고 정정 목록)
+ *   0 = 용어사전·오류 사전의 항목이 낱말과 바로 맞음(정의형 질문의 답)  1 = 쪽 제목에 낱말이 있음  2 = 그 밖
+ *   2.5 = 교사용 쪽(교사 낱말이 없는 검색에서는 학생이 읽는 결과 뒤로, 판 1.7.0)  3 = 학생 검색에서는 뒤로 미룰 쪽(원고 정정 목록)
  */
 
 /** 맞춘 낱말이 검색 낱말을 이만큼 덮어야 "진짜 맞음"이다(0~1). 3글자 중 2글자(0.67)·5글자 중 3글자(0.6)는 맞고, 6글자 중 2글자(0.33)·4글자 중 2글자(0.5)는 아니다. */
@@ -41,10 +42,18 @@ export const SYNONYMS: readonly { pattern: RegExp; extra: string }[] = [
   { pattern: /학부모|학부형|부모님|보호자/u, extra: '보호자 안내' },
   // 판 1.6.0 R2(C173): 프로젝터용 한 단계씩 넘기는 화면의 이름은 "수업 화면" 하나 — 옛 이름(발표 모드)·프로젝터·빔으로 찾아도 그 설명(교사 FAQ)이 나오게
   { pattern: /발표\s*모드|프로젝터|빔\s*프로젝터/u, extra: '수업 화면' },
+  // 판 1.7.0 자리: 교사 평가 길(구역 Z3)이 쓰는 "평가지·학습지·문항지 → 평가 자료" 동의어는 통합 때 이 표에 한 줄로 더한다(예: { pattern: /평가지|학습지|문항지/u, extra: '평가 자료' }).
 ];
 
 /** 원고 정정 목록은 교사용 점검 자료라 학생 검색의 앞에 오지 않게 한다(이런 말을 적었을 때만 앞에 둔다) */
 const CORRECTION_QUERY = /정정|교정|원고|오탈자/u;
+
+/**
+ * 교사용 쪽(/teacher/·/start/teacher/)을 찾으려는 말. 이런 낱말이 검색어(또는 같은 뜻으로 덧붙인 말)에 없으면 교사용 결과는 학생이 읽는 결과 뒤로 간다
+ * (판 1.7.0, 미해결 268 ⑤ — 걷기 때 "첫 차시"를 검색하면 맨 위 셋이 교사용 지도 요약이었다). 교사 FAQ가 "프로젝터"·"발표 모드"로 찾아지도록
+ * 동의어로 덧붙인 "수업 화면"의 "수업"도 여기에 걸려, 그 검색에서는 앞에 그대로 남는다.
+ */
+const TEACHER_QUERY = /교사|선생|지도\s*요약|지도안|평가|채점|수업|교안|성취\s*기준|자료실|정답|해설|정정|교정|원고|오탈자|수행|학급/u;
 
 /** 검색어를 낱말로 나눈다: 소문자, 글자·숫자만 */
 export function splitWords(text: string): string[] {
@@ -75,6 +84,25 @@ export interface SearchPlan {
 }
 
 /** 입력을 찾을 계획으로 바꾼다. 뜻 없는 입력이면 null(결과 없음으로 보인다). */
+/**
+ * 활용 어미(판 1.7.0, 미해결 268 ④): 한글 낱말이 이 말로 끝나면 어미를 뗀 줄기로도 찾는다 — "깜빡여요"·"깜빡이면"·"깜빡이기" → "깜빡".
+ * Pagefind는 낱말의 앞부분만 맞춰 끝 변화가 다르면("깜빡여요" ↔ "깜빡이기") 서로 못 찾는다. 줄기 두 글자 이상일 때만 떼고, 영어·숫자가 섞인 낱말은 건드리지 않는다.
+ * 규칙을 작게 두려고 사이트 글에 실제로 많이 쓰이는 어미만 적는다(길이가 긴 것부터 맞춘다).
+ */
+const VERB_ENDINGS: readonly string[] = ['했어요', '였어요', '합니다', '입니다', '해서', '하면', '하는', '해요', '하기', '이면', '이는', '이기', '여요'].sort(
+  (a, b) => b.length - a.length,
+);
+const MIN_STEM_LENGTH = 2;
+
+/** 낱말 하나의 줄기. 어미가 없거나 줄기가 짧거나 한글이 아닌 글자가 섞였으면 undefined */
+export function stemOf(word: string): string | undefined {
+  if (!/^[가-힣]+$/u.test(word)) {
+    return undefined;
+  }
+  const ending = VERB_ENDINGS.find((candidate) => word.endsWith(candidate) && word.length - candidate.length >= MIN_STEM_LENGTH);
+  return ending === undefined ? undefined : word.slice(0, word.length - ending.length);
+}
+
 export function planSearch(raw: string): SearchPlan | null {
   const display = raw.trim().replace(/\s+/gu, ' ');
   if (display === '' || isNonsenseQuery(display)) {
@@ -89,6 +117,13 @@ export function planSearch(raw: string): SearchPlan | null {
     primary = kept.join(' ');
   }
   const extras = SYNONYMS.filter(({ pattern }) => pattern.test(display)).map(({ extra }) => extra);
+  // 끝 변화가 다른 같은 말(깜빡여요 ↔ 깜빡이기)도 찾게 줄기를 덧붙인다 — 이미 있는 말과 겹치면 더하지 않는다
+  for (const word of primary.split(' ')) {
+    const stem = stemOf(word);
+    if (stem !== undefined && stem !== primary && !extras.includes(stem)) {
+      extras.push(stem);
+    }
+  }
   return { display, terms: [primary, ...extras.filter((extra) => extra !== primary)] };
 }
 
@@ -187,12 +222,16 @@ function containsAllWords(text: string, terms: readonly string[]): boolean {
  * 0.5 = 오류 사전 항목의 이름이나 id가 그러함("NameError" → #name-error)
  * 1   = 쪽(항목) 제목이 검색어의 모든 낱말을 담거나, 용어사전 풀이가 낱말을 바로 맞춤
  * 2   = 그 밖
+ * 2.5 = 교사용 쪽인데 교사 낱말(TEACHER_QUERY)이 없는 검색 — 학생이 읽는 결과 뒤로
  * 3   = 뒤로 미룸(원고 정정 목록)
  * 낱말이 여럿인 검색어("손 인식")는 낱말 하나만 맞는 항목("음성 인식")을 앞에 두지 않으려고 모든 낱말이 맞아야 한다.
  */
 export function tierOf(subject: RankSubject, terms: readonly string[], display = ''): number {
   if (/\/teacher\/corrections\//u.test(subject.url) && !CORRECTION_QUERY.test(display || terms.join(' '))) {
     return 3;
+  }
+  if (subject.kind === 'teacher' && !TEACHER_QUERY.test(`${display} ${terms.join(' ')}`)) {
+    return 2.5;
   }
   const entry = (subject.kind === 'glossary' || subject.kind === 'error') && subject.url.includes('#');
   if (entry) {

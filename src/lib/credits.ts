@@ -165,6 +165,30 @@ const LICENSE_URLS: Readonly<Partial<Record<string, string>>> = {
   'LGPL-2.1-or-later': 'https://spdx.org/licenses/LGPL-2.1-or-later.html',
 };
 
+/**
+ * 개발자용 참조 한 조각인지: 결정 번호(DECISIONS O17·C136)·할 일 번호(운영자 할 일 24번)·계획 문서 위치(PD-26, PLAN §8.1)·저장소 폴더 경로(public/…·src/…).
+ * 처음 온 사람(학부모·학생)이 읽는 출처 쪽에는 필요 없어서 접힌 "자세히(개발자용)" 안으로 옮긴다(판 1.7.0, 걷기 B-56).
+ */
+const DEVELOPER_PIECE =
+  /DECISIONS|운영자 할 일|\bPD-\d|\b(?:PLAN|INVENTORY)\s*§|^[CO]\d+(?:[·~,\s]+[CO]?\d+)*$|(?:^|[\s(/])(?:public|src|content|examples|scripts|docs|tests)\//u;
+
+/**
+ * 등록부 글(라이선스·권리 문구·이름·적용 범위)에서 개발자용 참조만 뺀 글. 괄호 안의 쉼표·줄표(—)로 나뉜 조각 가운데 개발자용 참조인 조각만 버리고,
+ * 남은 조각이 없으면 괄호째 지운다. 개발자용 조각이 하나도 없는 괄호는 글자 하나 바꾸지 않는다.
+ * 예) "(2026-10-15 확인, DECISIONS O17)" → "(2026-10-15 확인)", "운영자 사용 허락(O5)" → "운영자 사용 허락", "싣지 않았어요(DECISIONS C11)." → "싣지 않았어요."
+ * 바꾼 글은 부르는 쪽이 원문과 견줘 알 수 있다(같으면 바뀐 것이 없다).
+ */
+export function stripDeveloperRefs(text: string): string {
+  return text.replace(/(\s*)\(([^()]*)\)/gu, (whole: string, space: string, inner: string) => {
+    const pieces = inner.split(/,\s+|\s+—\s+/u);
+    const kept = pieces.filter((piece) => !DEVELOPER_PIECE.test(piece.trim()));
+    if (kept.length === pieces.length) {
+      return whole;
+    }
+    return kept.length === 0 ? '' : `${space}(${kept.join(', ')})`;
+  });
+}
+
 /** 분류의 화면 이름 */
 export function categoryLabel(category: string): string {
   return (CATEGORY_LABELS as Readonly<Record<string, string>>)[category] ?? category;

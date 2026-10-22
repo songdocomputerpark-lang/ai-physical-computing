@@ -5,6 +5,9 @@
  *
  * 판 1.3.0 검수 R2-047: 학생이 읽는 글이라 소제목은 단추 이름과 같은 "이슈 양식"으로 맞추고, 라이선스 자세한 내용은 "출처와 라이선스" 페이지로 한 줄 안내한다(내부 파일 이름은 풀이 없이 쓰지 않는다).
  *
+ * 판 1.7.0(미해결 268 ③, 걷기 A-18 뒷부분): 처음 온 사람(학부모·학생)에게 필요한 것만 펼쳐 둔다 — 맨 위 연락 순서 줄 → "알려 주세요"(이슈로 알리는 길과 [이슈 양식 고르기]) → "개인정보를 발견했다면".
+ * 이슈 양식 목록·자료/코드 기여(CONTRIBUTING.md)·라이선스 파일 안내는 접힌 "자세히(개발자용)"([data-contribute-dev]) 안으로 옮겼다. 맨 위 연락 줄(data-contribute-contact)은 그대로다.
+ *
  * 개인정보 제보를 공개 이슈로 받되 "위치만" 적게 하는 이유: 이 저장소에는 비공개로 받는 창구가 없다.
  * GitHub의 비공개 보고(private vulnerability reporting)는 꺼져 있고(2026-09-16 API 확인) 보안 취약점 신고용이다(GitHub 공식 문서).
  * GitHub 계정 나이 기준(13세 이상)은 GitHub Terms of Service B.3에서 확인했다(2026-09-16).
@@ -34,9 +37,9 @@ const { content, software, exclusion } = siteConfig.license;
 
   <div class="prose contribute">
     <section aria-labelledby="contribute-issues">
-      <h2 id="contribute-issues">GitHub Issues로 알려 주세요</h2>
+      <h2 id="contribute-issues">사이트의 문제를 알리려면</h2>
       <p>
-        틀린 곳, 사이트 문제, 필요한 자료는 GitHub Issues(깃허브 이슈)에 글로 남겨 주세요. 이슈는 누구나 볼 수 있는 공개
+        틀린 곳, 고장 난 곳, 필요한 자료는 GitHub(깃허브)의 이슈 게시판에 글로 남겨 주세요. 이슈 게시판은 누구나 볼 수 있는 공개
         게시판이에요. 막힌 문제라면 먼저 <a href={helpPage.href}>{helpPage.title}</a> 페이지를 확인해 보세요.
       </p>
       <p>
@@ -46,23 +49,6 @@ const { content, software, exclusion } = siteConfig.license;
       <p>
         <a class="button button--primary" href={issueChooserUrl}>이슈 양식 고르기</a>
       </p>
-    </section>
-
-    <section aria-labelledby="contribute-templates">
-      <h2 id="contribute-templates">이슈 양식 {ISSUE_TEMPLATES.length}가지</h2>
-      <p>양식에 맞춰 쓰면 무엇을 고쳐야 하는지 빨리 알 수 있어요.</p>
-      <ul class="template-list">
-        {
-          ISSUE_TEMPLATES.map((template) => (
-            <li class="template-list__item">
-              <a class="template-list__link" href={issueTemplateUrl(template)}>
-                {template.name}
-              </a>
-              <p class="template-list__when">{template.when}</p>
-            </li>
-          ))
-        }
-      </ul>
     </section>
 
     <section aria-labelledby="contribute-privacy">
@@ -76,42 +62,62 @@ const { content, software, exclusion } = siteConfig.license;
       </Callout>
     </section>
 
-    <section aria-labelledby="contribute-add">
-      <h2 id="contribute-add">자료나 코드를 보태고 싶다면</h2>
-      <p>
-        보태는 방법은 저장소의 <a href={repositoryFileUrl('CONTRIBUTING.md')}>기여 안내(CONTRIBUTING.md)</a>에 적어 두었어요.
-        보내 주신 글과 그림은 {withParticle(content.shortName, '으로/로')}, 예제 코드와 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
-      </p>
-      <p>
-        교과서나 참고서를 찍은 사진, 출판사나 업체의 그림, 출처를 모르는 이미지는 보내지 마세요. 다른 사람이 만든 공개 자료를 쓰려면
-        출처와 라이선스를 함께 알려 주세요.
-      </p>
-    </section>
+    <details class="contribute-dev" data-contribute-dev>
+      <summary>자세히(개발자용)</summary>
+      <section aria-labelledby="contribute-templates">
+        <h2 id="contribute-templates">이슈 양식 {ISSUE_TEMPLATES.length}가지</h2>
+        <p>양식에 맞춰 쓰면 무엇을 고쳐야 하는지 빨리 알 수 있어요.</p>
+        <ul class="template-list">
+          {
+            ISSUE_TEMPLATES.map((template) => (
+              <li class="template-list__item">
+                <a class="template-list__link" href={issueTemplateUrl(template)}>
+                  {template.name}
+                </a>
+                <p class="template-list__when">{template.when}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
 
-    <section aria-labelledby="contribute-license">
-      <h2 id="contribute-license">사이트의 라이선스</h2>
-      <p>라이선스는 자료를 쓰고, 고치고, 나눠 줄 수 있는 조건을 적은 약속이에요.</p>
-      <!-- dt·dd처럼 붙어 있는 요소는 사이트 검색 색인에서 글자가 이어 붙으므로 제목(h3)과 문단(p)으로 나눈다. -->
-      <div class="license-list">
-        <div class="license-list__item">
-          <h3 class="license-list__name">학습 자료 — {content.shortName}</h3>
-          <p>
-            {content.name}. 적용: {content.appliesTo}.{' '}
-            <a href={repositoryFileUrl('LICENSE-CONTENT.md')}>라이선스 안내(LICENSE-CONTENT.md)</a>
-          </p>
+      <section aria-labelledby="contribute-add">
+        <h2 id="contribute-add">자료나 코드를 보태고 싶다면</h2>
+        <p>
+          보태는 방법은 저장소의 <a href={repositoryFileUrl('CONTRIBUTING.md')}>기여 안내(CONTRIBUTING.md)</a>에 적어 두었어요.
+          보내 주신 글과 그림은 {withParticle(content.shortName, '으로/로')}, 예제 코드와 사이트 프로그램 코드는 {software.shortName} 라이선스로 공개돼요.
+        </p>
+        <p>
+          교과서나 참고서를 찍은 사진, 출판사나 업체의 그림, 출처를 모르는 이미지는 보내지 마세요. 다른 사람이 만든 공개 자료를 쓰려면
+          출처와 라이선스를 함께 알려 주세요.
+        </p>
+      </section>
+
+      <section aria-labelledby="contribute-license">
+        <h2 id="contribute-license">사이트의 라이선스</h2>
+        <p>라이선스는 자료를 쓰고, 고치고, 나눠 줄 수 있는 조건을 적은 약속이에요.</p>
+        <!-- dt·dd처럼 붙어 있는 요소는 사이트 검색 색인에서 글자가 이어 붙으므로 제목(h3)과 문단(p)으로 나눈다. -->
+        <div class="license-list">
+          <div class="license-list__item">
+            <h3 class="license-list__name">학습 자료 — {content.shortName}</h3>
+            <p>
+              {content.name}. 적용: {content.appliesTo}.{' '}
+              <a href={repositoryFileUrl('LICENSE-CONTENT.md')}>라이선스 안내(LICENSE-CONTENT.md)</a>
+            </p>
+          </div>
+          <div class="license-list__item">
+            <h3 class="license-list__name">사이트 프로그램과 예제 코드 — {software.shortName}</h3>
+            <p>
+              {software.name}. 적용: {software.appliesTo}.{' '}
+              <a href={repositoryFileUrl('LICENSE')}>라이선스 전문(LICENSE)</a>
+            </p>
+          </div>
         </div>
-        <div class="license-list__item">
-          <h3 class="license-list__name">사이트 프로그램과 예제 코드 — {software.shortName}</h3>
-          <p>
-            {software.name}. 적용: {software.appliesTo}.{' '}
-            <a href={repositoryFileUrl('LICENSE')}>라이선스 전문(LICENSE)</a>
-          </p>
-        </div>
-      </div>
-      <p>
-        {exclusion} 어떤 자료가 그런지는 <a href={withBase('credits/#credits-third-party')}>{creditsPage.title}</a> 페이지에서 자세히 볼 수 있어요.
-      </p>
-    </section>
+        <p>
+          {exclusion} 어떤 자료가 그런지는 <a href={withBase('credits/#credits-third-party')}>{creditsPage.title}</a> 페이지에서 자세히 볼 수 있어요.
+        </p>
+      </section>
+    </details>
   </div>
 </BaseLayout>
 
@@ -127,7 +133,24 @@ const { content, software, exclusion } = siteConfig.license;
     line-height: var(--leading-snug);
   }
 
-  .contribute > section + section {
+  .contribute > section + section,
+  .contribute > details {
+    margin-block-start: var(--space-10);
+  }
+
+  /* 접힌 "자세히(개발자용)": 눈에는 한 줄만 보인다. 안의 소제목 사이 간격은 위쪽 구역과 같게 */
+  .contribute-dev > summary {
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .contribute-dev[open] > summary {
+    margin-block-end: var(--space-6);
+  }
+
+  .contribute-dev > section + section {
     margin-block-start: var(--space-10);
   }
 

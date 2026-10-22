@@ -1,13 +1,13 @@
 /**
- * 홈의 진도 부분(판 1.3.0): "이어서 하기" 띠와 배움 지도 카드의 단추를 저장된 진도로 바꾼다.
+ * 홈의 진도 부분(판 1.3.0): "이어서 하기" 띠와 단원 카드(판 1.6.0 이후 HomeUnits)의 단추를 저장된 진도로 바꾼다.
  * 진도는 HTML에 굽지 않고 브라우저에서만 그린다(서비스 워커·오프라인판에서 캐시된 홈도 같게 보이게).
  *
- * 마크업 약속(HomeResume.astro · HomeMap.astro)
+ * 마크업 약속(HomeResume.astro · HomeUnits.astro)
  *   [data-home-resume][hidden]            띠 전체. 진도가 있을 때만 hidden을 뗀다(처음 온 사람에게는 아무것도 안 보인다)
  *     script[data-home-index]             JSON {lessons: [[id, 번호, 제목, 교과서 쪽 주소?], …], labs: [쪽 주소, …]} — 지금 사이트에 있는 차시·실습실 목록(없으면 거르지 않는다).
- *                                         네 번째 칸은 그 차시의 짝 교과서 쪽 주소(base 포함) — 있으면 "다음에 볼 차시"가 교과서 쪽으로 가고, 지난번에 연 곳이 그 쪽이면 거기로 돌아간다.
+ *                                         네 번째 칸은 그 차시의 짝 교과서 쪽 주소(base 포함) — "다음에 볼 차시"는 늘 따라 하기 쪽(C173)이고, 지난번에 연 곳이 그 교과서 쪽이었을 때만 거기로 돌아간다.
  *     [data-resume-lesson][hidden]        지난번에 본 차시 칸 — 안의 [data-resume-link](링크), [data-resume-name](이름 글), [data-resume-go](동작 글),
- *                                         data-go-open·data-go-done = 동작 글(끝낸 차시면 done 글: "다시 보기")
+ *                                         data-go-open·data-go-done = 동작 글(끝낸 차시면 done 글: "다시 보기"). 표지의 큰 단추가 이 칸을 그대로 보이면(안 끝낸 차시) 같은 안내가 두 번 보이지 않게 이 칸은 숨긴다(판 1.7.0, 미해결 264 #22).
  *     [data-resume-next][hidden]          다음에 볼 차시 칸 — 지난번 차시를 끝냈을 때만 채운다(같은 대단원에서 안 연 첫 차시). 첫 화면 한 줄이 이 칸을 그대로 보이면
  *                                         같은 안내가 위아래로 두 번 보이지 않게 이 칸은 숨긴다(R3-007). 띠에는 "다시 보기" 칸(지난번 차시)이 남는다.
  *     [data-resume-lab][hidden]           마지막으로 연 실습실 칸 — 같은 구조
@@ -15,28 +15,36 @@
  *                                         주소·이름을 복사해 "이어서 하기 + 차시 이름"으로 바꾼다(실습실 칸은 쓰지 않는다 — 큰 단추는 배울 곳으로만 이어 준다).
  *                                         안의 [data-cover-start-label](글, data-start-label·data-resume-label)·[data-cover-start-name](차시 이름, 이어서 할 때만 보임).
  *   [data-learn-base]                     /learn/ 주소(base 포함, HomeUnits.astro가 단다). 차시 id로 웹 차시 주소를 만들 때 쓴다.
- *   [data-home-units][data-learn-base]    홈 단원 4장 카드 묶음(판 1.6.0, HomeUnits.astro. 옛 배움 지도 HomeMap.astro는 [data-home-map] — 같은 약속) data-start-label·data-resume-label·data-replay-label = 단추 글
+ *   [data-home-units][data-learn-base]    홈 단원 4장 카드 묶음(판 1.6.0, HomeUnits.astro) data-start-label·data-resume-label·data-replay-label = 단추 글
  *     [data-home-unit][data-progress-unit]  대단원 카드(차시 id 목록은 progress-paint가 센다)
  *       [data-unit-start]                 단원 링크: data-first-href(처음 차시), data-unit-name("1단원")
- *         [data-unit-start-label]         링크 안 글: "1단원 배우기" 꼴(단원 이름 + 단추 글)
+ *         [data-unit-start-label]         링크 안 글: "1단원 열기" 꼴(단원 이름 + 단추 글)
  *
  * 글은 모두 textContent로만 넣는다(저장소 값이 마크업으로 해석되지 않게). 같은 상태를 여러 번 그려도 같은 결과다.
  * 실습실 라이브러리를 import하지 않는다 — 홈은 사전 캐시되는 쪽이라 작게 유지한다.
  */
 import { installProgressPaint, watchProgress } from '../progress/progress-paint.ts';
 import { firstUnseen, isLessonId, nextUnseen, lessonStatus, type ProgressState } from '../../lib/progress.ts';
-import { lessonHrefFromId } from './home-map.ts';
 
-/** 지도 카드 단추 글. 마크업(HomeMap.astro)의 data-start-label·data-resume-label·data-replay-label이 우선이고, 없으면 이 기본값이다. */
+/** 단원 카드 단추 글. 마크업(HomeUnits.astro)의 data-start-label·data-resume-label·data-replay-label이 우선이고, 없으면 이 기본값이다(카드는 "1단원 열기" 꼴 — 판 1.7.0에서 옛 "배우기"를 걷었다). */
 export interface MapLabels {
   readonly start: string;
   readonly resume: string;
   readonly replay: string;
 }
 
-const DEFAULT_LABELS: MapLabels = { start: '배우기', resume: '이어서 하기', replay: '다시 보기' };
+const DEFAULT_LABELS: MapLabels = { start: '열기', resume: '이어서 하기', replay: '다시 보기' };
 const DEFAULT_GO_OPEN = '이어서 하기';
 const DEFAULT_GO_DONE = '다시 보기';
+
+/**
+ * 차시 id("u1/1-2-1")와 /learn/ 주소(base 포함, 끝 /)로 따라 하기 차시 주소를 만든다. 차시 주소 규칙(lessonPath: /learn/u{단원}/{이름}/)이 id와 같은 모양이라 id만 있으면 된다.
+ * (판 1.7.0: 옛 home-map.ts에서 옮겼다 — 그 파일의 나머지(배움 지도 카드 자료)는 홈이 쓰지 않아 지웠다.)
+ */
+export function lessonHrefFromId(learnBase: string, id: string): string {
+  const base = learnBase.endsWith('/') ? learnBase : `${learnBase}/`;
+  return `${base}${id}/`;
+}
 
 /** 쪽에 실어 둔 "지금 있는 차시·실습실" 목록(HomeResume.astro의 JSON). 없거나 깨졌으면 null — 그때는 거르지 않는다. */
 interface HomeIndex {
@@ -205,23 +213,27 @@ export function applyResume(root: ParentNode, state: ProgressState): void {
   // 표지의 첫 번째 큰 단추: 끝낸 차시가 있으면 다음 차시, 아니면 지난번 차시(실습실은 큰 단추의 몫이 아니다 — 띠에서 다시 열면 된다)
   const heroItem = nextShown ? nextItem : lessonShown ? lessonItem : null;
   const heroShown = fillCover(root, heroItem);
-  // 큰 단추가 "다음에 볼 차시"를 이미 보이고 있으면 띠에서는 그 칸을 숨긴다 — 같은 안내는 한 번만(R3-007). 단추를 못 바꾼 때는 띠가 맡는다.
+  // 큰 단추가 어떤 칸을 이미 보이고 있으면 띠에서는 그 칸을 숨긴다 — 같은 안내는 한 번만(R3-007, 판 1.7.0 미해결 264 #22: 안 끝낸 차시는 큰 단추와 띠가 같은 "이어서 하기"를 두 번 보였다).
+  // 단추를 못 바꾼 때(표지가 없는 쪽)는 띠가 맡는다. 끝낸 차시는 큰 단추가 "다음에 볼 차시"를 이으므로 띠에는 "다시 보기" 칸이 남는다.
   const nextVisible = nextShown && !(heroShown && heroItem === nextItem);
   if (nextShown && !nextVisible) {
     nextItem?.setAttribute('hidden', '');
   }
-  band.toggleAttribute('hidden', !(lessonShown || nextVisible || labShown));
+  const lessonVisible = lessonShown && !(heroShown && heroItem === lessonItem);
+  if (lessonShown && !lessonVisible) {
+    lessonItem?.setAttribute('hidden', '');
+  }
+  band.toggleAttribute('hidden', !(lessonVisible || nextVisible || labShown));
 }
 
 /**
- * 배움 지도 카드의 단추를 진도에 맞춘다.
- *  - 본 차시가 없으면 "시작하기" → 첫 차시
+ * 단원 카드(HomeUnits)의 단추를 진도에 맞춘다.
+ *  - 본 차시가 없으면 "열기" → 단원 목록 쪽(처음 모습)
  *  - 본 차시가 있고 안 본 차시가 남았으면 "이어서 하기" → 안 본 첫 차시
  *  - 모두 봤으면 "다시 보기" → 첫 차시
  */
 export function applyMapProgress(root: ParentNode, state: ProgressState, fallback: MapLabels = DEFAULT_LABELS): void {
-  // 판 1.6.0: 홈의 단원 카드(HomeUnits.astro)는 [data-home-units], 옛 배움 지도(HomeMap.astro)는 [data-home-map] — 같은 속성 약속을 쓴다
-  const map = root.querySelector<HTMLElement>('[data-home-map], [data-home-units]');
+  const map = root.querySelector<HTMLElement>('[data-home-units]');
   const learnBase = map?.getAttribute('data-learn-base') ?? '';
   const labels: MapLabels = {
     start: map?.getAttribute('data-start-label') || fallback.start,
@@ -250,7 +262,7 @@ export function applyMapProgress(root: ParentNode, state: ProgressState, fallbac
     if (link.getAttribute('href') !== href) {
       link.setAttribute('href', href);
     }
-    // 눈에 보이는 글이 "1단원 배우기"처럼 단원 이름을 담으므로 따로 aria-label을 두지 않는다(보이는 글 = 접근 이름).
+    // 눈에 보이는 글이 "1단원 열기"처럼 단원 이름을 담으므로 따로 aria-label을 두지 않는다(보이는 글 = 접근 이름).
     const unitName = link.getAttribute('data-unit-name');
     setText(link.querySelector('[data-unit-start-label]'), unitName ? `${unitName} ${label}` : label);
     link.removeAttribute('aria-label');

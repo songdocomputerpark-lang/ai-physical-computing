@@ -5,7 +5,8 @@
  * - 처음 온 사람에게는 아무것도 보이지 않는다: 띠는 hidden으로 나가고, 저장된 진도가 있을 때만 home-resume.ts가 hidden을 뗀다.
  *   표지(HomeCover) 바로 아래라 첫 화면 밖이고, 처음에 자리를 잡아 두지 않으므로 처음 온 사람의 쪽이 밀리지 않는다.
  * - 띠는 첫 화면 아래라 돌아온 학생이 놓치기 쉬워(R2-029), 표지의 첫 번째 큰 단추(HomeCover의 data-cover-start)가 이 띠의 칸(다음에 볼 차시 > 지난번 차시)에서 주소·이름을 복사해 "이어서 하기 + 차시 이름"으로 바뀐다(판 1.4.0).
- * - 차시 목록 JSON의 네 번째 칸은 그 차시의 짝 교과서 쪽 주소다(판 1.4.0). 있으면 "다음에 볼 차시"가 교과서 쪽으로 가고, 지난번에 연 곳이 그 쪽이면 거기로 돌아간다(웹 차시에서 끝냈으면 웹 차시로).
+ * - 차시 목록 JSON의 네 번째 칸은 그 차시의 짝 교과서 쪽 주소다(판 1.4.0). "다음에 볼 차시"는 늘 따라 하기 쪽으로 가고(C173), 지난번에 연 곳이 그 교과서 쪽이었을 때만 거기로 돌아간다(웹 차시에서 끝냈으면 웹 차시로).
+ * - 표지의 큰 단추가 지난번 차시(안 끝낸 차시)를 이미 "이어서 하기"로 이으면 이 띠의 같은 칸은 숨긴다(판 1.7.0, 미해결 264 #22 — 같은 안내를 두 번 보이지 않는다). 그러면 띠에는 실습실 칸만 남고, 실습실도 없으면 띠가 통째로 숨는다.
  * - 링크 주소·이름은 저장된 진도에서 와서 textContent·setAttribute로만 넣는다(마크업으로 해석되지 않음).
  * - 발표 모드·embed에서는 숨긴다(data-present-hide, data-embed-hide).
  * - 링크의 접근 이름은 "1-2-1 손 찾기 이어서 하기"처럼 이름 뒤에 동작이 붙는다.
@@ -27,7 +28,7 @@ const labPaths = flattenPages()
   .filter((page) => page.path.startsWith('/labs/') && page.path !== '/labs/')
   .map((page) => page.href);
 // JSON 안의 "<"를 유니코드 이스케이프(백슬래시 u003c)로 바꿔, 글 속의 닫는 script 태그가 쪽을 끊지 못하게 한다.
-// 네 번째 칸은 짝 교과서 쪽 주소(없으면 null) — 홈 카드가 교과서 쪽으로 가므로 "다음에 볼 차시"도 같은 쪽으로 보낸다(판 1.4.0).
+// 네 번째 칸은 짝 교과서 쪽 주소(없으면 null) — 지난번에 연 곳이 그 교과서 쪽이었을 때 돌아갈 곳이다(판 1.4.0, 다음 차시는 늘 따라 하기 쪽 — C173).
 const bookHrefOf = (lesson: (typeof lessons)[number]): string | null =>
   (books.find((book) => book.id === lesson.label.toLowerCase()) ?? findPairedBook(lesson, books))?.href ?? null;
 const indexJson = JSON.stringify({ lessons: lessons.map((lesson) => [lesson.id, lesson.label, lesson.title, bookHrefOf(lesson)]), labs: labPaths }).replace(/</gu, '\\u003c');

@@ -324,6 +324,30 @@ test.describe('검색 결과의 알맞음', () => {
     expect(await collectResultHrefs(page)).toContain(withBase('teacher/standards/'));
   });
 
+  // 판 1.7.0(미해결 268 ⑤): 걷기 때 "첫 차시"를 찾으면 맨 위 셋이 교사용 지도 요약이었다 — 교사 낱말이 없는 검색은 학생이 읽는 결과가 먼저다.
+  test('교사 낱말이 없는 "첫 차시" 검색은 학생이 읽는 결과가 앞이고 교사용 쪽은 그 뒤다', async ({ page }) => {
+    await page.goto(searchUrl('첫 차시'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    // 처음 그려진 묶음(차례를 다시 늘어 놓는 범위) 안에서 본다
+    const hrefs = await resultItems(page).locator('h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+    const isTeacher = (href: string) => /\/teacher\//u.test(href);
+    const students = hrefs.filter((href) => !isTeacher(href)).length;
+    expect(students).toBeGreaterThan(0);
+    expect(hrefs.slice(0, Math.min(3, students)).filter(isTeacher)).toEqual([]);
+    // 교사 낱말이 있으면 교사용 쪽을 미루지 않는다
+    await page.goto(searchUrl('교사용 시작하기'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    const teacherHrefs = await resultItems(page).locator('h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+    expect(teacherHrefs.slice(0, 5).some(isTeacher)).toBe(true);
+  });
+
+  // 판 1.7.0(미해결 268 ④): "깜빡이기"와 "깜빡여요"처럼 끝 변화만 다른 말도 서로 찾는다(줄기 "깜빡"을 함께 찾는다)
+  test('끝 변화가 다른 말도 찾는다: "깜빡여요"로 찾으면 "깜빡이기"가 든 결과가 나온다', async ({ page }) => {
+    await page.goto(searchUrl('깜빡여요'));
+    await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });
+    await expect(resultItems(page).locator('mark').filter({ hasText: '깜빡' }).first()).toBeVisible();
+  });
+
   test('한글+영어 증상 문장 "웹캠 permission denied"도 카메라 허용 풀이가 나온다 (R1-021)', async ({ page }) => {
     await page.goto(searchUrl('웹캠 permission denied'));
     await expect(searchRoot(page)).toHaveAttribute('data-state', 'results', { timeout: 15_000 });

@@ -11,6 +11,7 @@ import {
   isExcluded,
   isNoticeFilePath,
   noticeFilesOf,
+  stripDeveloperRefs,
 } from '../../src/lib/credits.ts';
 
 const OPERATOR_LICENSE = '운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)';
@@ -188,5 +189,59 @@ describe('고지 전문 파일(2026-09-26 P6-04)', () => {
     expect(SOURCE_OFFER).toMatch(/적어도 3년/u);
     expect(SOURCE_OFFER).toMatch(/무료/u);
     expect(SOURCE_OFFER).toContain('/issues');
+  });
+});
+
+// 판 1.7.0(미해결 268 ①, 걷기 B-56): 출처 쪽의 눈에 보이는 줄에는 결정 번호·할 일 번호·저장소 폴더 경로를 두지 않는다 — 접힌 "자세히(개발자용)"에 원문이 있다.
+describe('개발자용 참조 빼기(stripDeveloperRefs)', () => {
+  it('괄호 안의 결정 번호·할 일 번호·폴더 경로 조각만 버리고 나머지는 그대로 둔다', () => {
+    expect(stripDeveloperRefs('원 권리자 보유 — 운영자가 받은 사용 허락(2026-10-15 확인, DECISIONS O17), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외')).toBe(
+      '원 권리자 보유 — 운영자가 받은 사용 허락(2026-10-15 확인), 사이트 CC BY-NC-SA 4.0·MIT 적용 제외',
+    );
+    expect(stripDeveloperRefs('운영자가 사용 허락을 받았어요(운영자 확인 2026-10-15, 운영자 할 일 24번 해결 — DECISIONS O17·C136). 표기 문구는 그대로예요.')).toBe(
+      '운영자가 사용 허락을 받았어요(운영자 확인 2026-10-15). 표기 문구는 그대로예요.',
+    );
+    expect(stripDeveloperRefs('학습 자료(content/ — 차시 본문·용어사전 등)와 그림 파일(public/images/)')).toBe('학습 자료(차시 본문·용어사전 등)와 그림 파일');
+  });
+
+  it('남은 조각이 없는 괄호는 앞 공백까지 지운다', () => {
+    expect(stripDeveloperRefs('운영자 사용 허락(O5), 사이트 적용 제외')).toBe('운영자 사용 허락, 사이트 적용 제외');
+    expect(stripDeveloperRefs('싣지 않았어요 (DECISIONS C11).')).toBe('싣지 않았어요.');
+    expect(stripDeveloperRefs('펌웨어 굽기 목록(public/firmware/manifest.json)')).toBe('펌웨어 굽기 목록');
+    expect(stripDeveloperRefs('제외 문구예요(PD-26, PLAN §8.1).')).toBe('제외 문구예요.');
+    expect(stripDeveloperRefs('플래셔 스텁은 싣지 않아요(PD-38).')).toBe('플래셔 스텁은 싣지 않아요.');
+    expect(stripDeveloperRefs('같은 뼈대예요(DECISIONS C12 — 파일 맨 앞 주석과 public/licenses/esp32ble.txt).')).toBe('같은 뼈대예요.');
+  });
+
+  it('개발자용 조각이 없는 괄호는 글자 하나 바꾸지 않는다(날짜·줄표·파일 이름·패키지 설명)', () => {
+    for (const same of [
+      'TechToTinker 글(025)에 표기가 없음(2026-09-15 확인, 2026-10-01 이 주소로 다시 확인 — 사이트 바닥의 저작권 줄만 있음).',
+      'Pillow 12.2.0(Pyodide 패키지 pillow)',
+      'micropython_ir(ir_rx.py·ir_tx.py)',
+      'python_lcd(i2c_lcd.py 사이트 배포본)',
+      '운영자 자체 자료(박상진·김석전, 운영자 확인 2026-09-15)',
+      '글 없음',
+    ]) {
+      expect(stripDeveloperRefs(same), same).toBe(same);
+    }
+  });
+
+  it('실제 sources.yaml: 라이선스·권리 문구·이름·사이트 라이선스 적용 범위를 걸러 낸 글에 결정 번호·할 일 번호·폴더 경로가 남지 않는다', () => {
+    const { entries } = parseRegistry(fs.readFileSync(new URL('../../sources.yaml', import.meta.url), 'utf8'));
+    const developerLeft = /DECISIONS|운영자 할 일|\b(?:public|src|content|examples|scripts|docs|tests)\/|\([CO]\d+\)/u;
+    const left: string[] = [];
+    for (const entry of entries) {
+      for (const [field, value] of [
+        ['name', entry.name],
+        ['license', entry.license],
+        ['rights', entry.rights ?? ''],
+      ] as const) {
+        const shown = stripDeveloperRefs(value);
+        if (developerLeft.test(shown)) {
+          left.push(`${entry.name} — ${field}: ${shown.slice(0, 80)}`);
+        }
+      }
+    }
+    expect(left).toEqual([]);
   });
 });

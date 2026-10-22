@@ -192,6 +192,13 @@ test.describe('이 담당의 페이지', () => {
     await page.goto('./contribute/');
     const main = page.getByRole('main');
     await expect(main.getByRole('link', { name: '이슈 양식 고르기' })).toHaveAttribute('href', issueChooserUrl);
+    // 판 1.7.0(미해결 268 ③): 개인정보 안내는 펼쳐져 있고, 이슈 양식 목록·기여 안내·라이선스 파일은 접힌 "자세히(개발자용)" 안에 있다 — 열고 확인한다
+    await expect(main.getByRole('heading', { level: 2, name: '개인정보를 발견했다면' })).toBeVisible();
+    const dev = main.locator('[data-contribute-dev]');
+    await expect(dev).not.toHaveAttribute('open', '');
+    await expect(dev.locator('summary')).toHaveText('자세히(개발자용)');
+    await expect(main.getByRole('heading', { level: 2, name: `이슈 양식 ${ISSUE_TEMPLATES.length}가지` })).toBeHidden();
+    await dev.locator('summary').click();
     for (const template of ISSUE_TEMPLATES) {
       await expect(main.getByRole('link', { name: template.name, exact: true })).toHaveAttribute('href', issueTemplateUrl(template));
     }

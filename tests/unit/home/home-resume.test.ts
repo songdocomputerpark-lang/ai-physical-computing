@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
-// 홈 진도 부분(src/components/home/home-resume.ts) — 이어서 하기 띠, 표지의 첫 번째 큰 단추(판 1.4.0), 옛 배움 지도 단추를 진짜 DOM(jsdom)에서 확인한다.
+// 홈 진도 부분(src/components/home/home-resume.ts) — 이어서 하기 띠, 표지의 첫 번째 큰 단추(판 1.4.0), 단원 카드 단추를 진짜 DOM(jsdom)에서 확인한다.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { applyMapProgress, applyResume, installHomeProgress } from '../../../src/components/home/home-resume.ts';
+import { applyMapProgress, applyResume, installHomeProgress, lessonHrefFromId } from '../../../src/components/home/home-resume.ts';
 import { emptyProgress, markSeen, rememberLab, setDone, type ProgressState } from '../../../src/lib/progress.ts';
 
 const BASE = '/ai-physical-computing/learn/';
 const IDS = ['u1/1-1-1', 'u1/1-1-2', 'u1/1-1-3'];
 const LAB = '/ai-physical-computing/labs/vision/';
+/** 홈 단원 카드의 처음 모습 주소: 단원 목록 쪽(판 1.6.0) */
+const UNIT_HREF = `${BASE}u1/`;
 /** 쪽에 실리는 "지금 있는 차시·실습실" 목록(HomeResume.astro)과 같은 모양. 2단원 차시 둘이 더 있다. */
 type IndexRow = readonly [string, string, string] | readonly [string, string, string, string | null];
 const INDEX: { lessons: readonly IndexRow[]; labs: readonly string[] } = {
@@ -31,11 +33,11 @@ function mount(withIndex = true, index: { lessons: readonly IndexRow[]; labs: re
         <li data-resume-lab hidden><p data-resume-kicker>마지막으로 연 실습실</p><a data-resume-link href="#"><span data-resume-name></span> <span>다시 열기</span></a></li>
       </ul>
     </section>
-    <section data-home-map data-learn-base="${BASE}" data-start-label="배우기" data-resume-label="이어서 하기" data-replay-label="다시 보기">
+    <section data-home-units data-learn-base="${BASE}" data-start-label="열기" data-resume-label="이어서 하기" data-replay-label="다시 보기">
       <div data-home-unit data-progress-unit="${IDS.join(',')}">
         <p data-progress-count></p>
         <div class="progress-bar" data-progress-bar aria-hidden="true"></div>
-        <a data-unit-start data-first-href="${BASE}u1/1-1-1/" data-unit-name="1단원" href="${BASE}u1/1-1-1/"><span data-unit-start-label>1단원 배우기</span></a>
+        <a data-unit-start data-first-href="${UNIT_HREF}" data-unit-name="1단원" href="${UNIT_HREF}"><span data-unit-start-label>1단원 열기</span></a>
       </div>
     </section>`;
 }
@@ -68,7 +70,8 @@ describe('이어서 하기 띠', () => {
     expect(q('[data-resume-lab]').hasAttribute('hidden')).toBe(true);
   });
 
-  it('지난번에 본 차시가 있으면 띠와 차시 칸이 보이고, 링크·이름이 채워진다', () => {
+  it('지난번에 본 차시가 있으면 띠와 차시 칸이 보이고, 링크·이름이 채워진다(표지의 큰 단추가 없는 쪽 — 큰 단추가 있으면 아래 "같은 안내는 한 번만")', () => {
+    q('[data-cover-start]').remove();
     applyResume(document, withLast());
     expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(false);
     expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(false);
@@ -99,6 +102,67 @@ describe('이어서 하기 띠', () => {
     applyResume(document, withLast());
     applyResume(document, emptyProgress());
     expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(true);
+  });
+
+  // 판 1.7.0 미해결 264 #22: 안 끝낸 차시는 큰 단추("이어서 하기 + 차시 이름")와 띠의 "지난번에 열어 본 차시"가 같은 말·같은 주소로 두 번 보였다(걷기 walk-a11y-keyboard #16, walk-kit-user #22).
+  describe('같은 안내는 한 번만(큰 단추가 이어 주는 칸은 띠에서 숨는다)', () => {
+    it('안 끝낸 차시: 큰 단추가 그 차시로 이어 주면 띠의 지난번 차시 칸은 숨고, 띠에는 실습실 칸만 남는다', () => {
+      applyResume(document, { ...withLast(), lastLab: { path: LAB, title: '영상 처리 실습실', at: 2 } });
+      expect(q('[data-cover-start-label]').textContent).toBe('이어서 하기');
+      expect(q('[data-cover-start]').getAttribute('href')).toBe(`${BASE}u1/1-1-1/`);
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(true);
+      expect(q('[data-resume-next]').hasAttribute('hidden')).toBe(true);
+      expect(q('[data-resume-lab]').hasAttribute('hidden')).toBe(false);
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(false);
+    });
+
+    it('안 끝낸 차시뿐이고 실습실이 없으면 띠가 통째로 숨는다(큰 단추 하나만 남는다)', () => {
+      applyResume(document, withLast());
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(true);
+      expect(q('[data-cover-start]').hasAttribute('data-resuming')).toBe(true);
+    });
+
+    it('큰 단추가 없는 쪽에서는 띠가 지난번 차시를 보인다(안내가 사라지지 않는다)', () => {
+      q('[data-cover-start]').remove();
+      applyResume(document, withLast());
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(false);
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(false);
+    });
+
+    it('끝낸 차시: 큰 단추는 다음 차시, 띠는 "다시 보기" 칸이라 서로 다른 안내다(둘 다 보인다)', () => {
+      applyResume(document, {
+        ...emptyProgress(),
+        seen: ['u2/2-1-1'],
+        done: ['u2/2-1-1'],
+        last: { id: 'u2/2-1-1', href: `${BASE}u2/2-1-1/`, label: '2-1-1', title: '영상 처리 기초', at: 5 },
+      });
+      expect(q('[data-cover-start]').getAttribute('href')).toBe(`${BASE}u2/2-1-2/`);
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(false);
+      expect(q('[data-resume-go]').textContent).toBe('다시 보기');
+      expect(q('[data-resume-next]').hasAttribute('hidden')).toBe(true);
+    });
+
+    it('단원을 다 열어 다음 차시가 없으면 큰 단추가 지난번 차시를 "다시 보기"로 이으므로 띠의 같은 칸은 숨는다', () => {
+      applyResume(document, {
+        ...emptyProgress(),
+        seen: ['u2/2-1-1', 'u2/2-1-2'],
+        done: ['u2/2-1-1', 'u2/2-1-2'],
+        last: { id: 'u2/2-1-2', href: `${BASE}u2/2-1-2/`, label: '2-1-2', title: 'LED 켜기', at: 5 },
+      });
+      expect(q('[data-cover-start-label]').textContent).toBe('다시 보기');
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(true);
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(true);
+    });
+
+    it('다시 그려도 같은 결과다(진도를 지웠다가 다시 쌓아도 칸이 되살아나지 않고, 큰 단추가 못 이으면 되돌아온다)', () => {
+      applyResume(document, withLast());
+      applyResume(document, withLast());
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(true);
+      applyResume(document, emptyProgress());
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(true);
+      applyResume(document, withLast());
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(true);
+    });
   });
 
   it('안 끝낸 차시면 동작 글은 "이어서 하기"이고 "다음에 볼 차시" 칸은 숨어 있다', () => {
@@ -214,6 +278,7 @@ describe('이어서 하기 띠', () => {
 
     it('목록(JSON)이 없는 쪽에서는 거르지 않고 저장된 값을 그대로 쓴다', () => {
       mount(false);
+      q('[data-cover-start]').remove();
       applyResume(document, stale());
       expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(false);
       expect(q('[data-resume-lab]').hasAttribute('hidden')).toBe(false);
@@ -356,15 +421,15 @@ describe('짝 교과서 쪽이 있는 차시', () => {
   });
 });
 
-describe('배움 지도 단추', () => {
+describe('단원 카드 단추 — 쪽 전체 마크업 안에서', () => {
   const start = (): HTMLElement => q('[data-unit-start]');
   const label = (): string | null => q('[data-unit-start-label]').textContent;
 
   // R1-027: 단추 글에 단원이 들어 있어 머리글 메뉴 [시작하기]와 겹치지 않는다(이어 하는 단추는 띠와 같은 말 [이어서 하기], R3-006). 보이는 글이 곧 접근 이름이라 aria-label은 없다.
-  it('본 차시가 없으면 [1단원 배우기] → 첫 차시', () => {
+  it('본 차시가 없으면 [1단원 열기] → 단원 목록 쪽(처음 모습)', () => {
     applyMapProgress(document, emptyProgress());
-    expect(label()).toBe('1단원 배우기');
-    expect(start().getAttribute('href')).toBe(`${BASE}u1/1-1-1/`);
+    expect(label()).toBe('1단원 열기');
+    expect(start().getAttribute('href')).toBe(UNIT_HREF);
     expect(start().hasAttribute('aria-label')).toBe(false);
   });
 
@@ -380,21 +445,27 @@ describe('배움 지도 단추', () => {
     expect(start().getAttribute('href')).toBe(`${BASE}u1/1-1-3/`);
   });
 
-  it('모두 봤으면 [1단원 다시 보기] → 첫 차시', () => {
+  it('모두 봤으면 [1단원 다시 보기] → 단원 목록 쪽', () => {
     applyMapProgress(document, { ...emptyProgress(), seen: [...IDS] });
     expect(label()).toBe('1단원 다시 보기');
-    expect(start().getAttribute('href')).toBe(`${BASE}u1/1-1-1/`);
+    expect(start().getAttribute('href')).toBe(UNIT_HREF);
   });
 
   it('진도가 지워지면 처음 모습으로 돌아온다', () => {
     applyMapProgress(document, { ...emptyProgress(), seen: ['u1/1-1-1'] });
     applyMapProgress(document, emptyProgress());
-    expect(label()).toBe('1단원 배우기');
-    expect(start().getAttribute('href')).toBe(`${BASE}u1/1-1-1/`);
+    expect(label()).toBe('1단원 열기');
+    expect(start().getAttribute('href')).toBe(UNIT_HREF);
+  });
+
+  it('마크업에 단추 글이 없으면 기본 글 "열기"를 쓴다(옛 "배우기"가 아니다 — 판 1.7.0)', () => {
+    q('[data-home-units]').removeAttribute('data-start-label');
+    applyMapProgress(document, emptyProgress());
+    expect(label()).toBe('1단원 열기');
   });
 });
 
-// 판 1.6.0: 홈의 단원 4장 카드(HomeUnits.astro)는 [data-home-units] — 옛 배움 지도(data-home-map)와 같은 속성 약속을 쓴다. 처음 모습은 단원 목록 쪽(/learn/u1/) "1단원 열기".
+// 판 1.6.0: 홈의 단원 4장 카드(HomeUnits.astro)는 [data-home-units]. 처음 모습은 단원 목록 쪽(/learn/u1/) "1단원 열기".
 describe('홈 단원 카드 단추(data-home-units)', () => {
   const UNIT_HREF = `${BASE}u1/`;
   const mountUnits = (): void => {
@@ -439,10 +510,14 @@ describe('installHomeProgress(저장소와 이벤트)', () => {
     const stop = installHomeProgress();
     try {
       expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(true);
-      expect(q('[data-unit-start-label]').textContent).toBe('1단원 배우기');
+      expect(q('[data-unit-start-label]').textContent).toBe('1단원 열기');
 
       markSeen({ id: 'u1/1-1-1', href: `${BASE}u1/1-1-1/`, label: '1-1-1', title: '카메라란 무엇일까' });
-      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(false);
+      // 표지의 큰 단추가 지난번 차시를 "이어서 하기"로 이으므로 띠의 같은 칸은 숨고, 띠에 보일 칸이 없으니 띠도 숨는다(판 1.7.0, 미해결 264 #22)
+      expect(q('[data-cover-start-label]').textContent).toBe('이어서 하기');
+      expect(q('[data-cover-start-name]').textContent).toBe('1-1-1 카메라란 무엇일까');
+      expect(q('[data-resume-lesson]').hasAttribute('hidden')).toBe(true);
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(true);
       expect(q('[data-resume-lesson] [data-resume-name]').textContent).toBe('1-1-1 카메라란 무엇일까');
       expect(q('[data-unit-start-label]').textContent).toBe('1단원 이어서 하기');
       // 단원 진도 글은 progress-paint가 칠한다
@@ -453,6 +528,7 @@ describe('installHomeProgress(저장소와 이벤트)', () => {
       expect(q('[data-progress-count]').textContent).toBe('3차시 중 1차시를 다 했어요');
 
       rememberLab({ path: '/ai-physical-computing/labs/esp32/', title: 'ESP32 실습실' });
+      expect(q('[data-home-resume]').hasAttribute('hidden')).toBe(false);
       expect(q('[data-resume-lab]').hasAttribute('hidden')).toBe(false);
       // 끝낸 차시를 마지막으로 보았으니 동작 글은 "다시 보기"다(1-1-2가 남아 있어 다음 칸도 나온다)
       expect(q('[data-resume-go]').textContent).toBe('다시 보기');
@@ -462,5 +538,12 @@ describe('installHomeProgress(저장소와 이벤트)', () => {
     } finally {
       stop();
     }
+  });
+});
+
+describe('lessonHrefFromId', () => {
+  it('id("u1/1-2-1")를 /learn/ 주소 뒤에 이어 차시 주소를 만든다(끝의 /는 한 번만)', () => {
+    expect(lessonHrefFromId('/ai-physical-computing/learn/', 'u1/1-2-1')).toBe('/ai-physical-computing/learn/u1/1-2-1/');
+    expect(lessonHrefFromId('/ai-physical-computing/learn', 'u2/2-1-r')).toBe('/ai-physical-computing/learn/u2/2-1-r/');
   });
 });

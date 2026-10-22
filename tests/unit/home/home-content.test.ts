@@ -18,6 +18,7 @@ import {
   homeResume,
   homeSearch,
   homeShortcuts,
+  homeUnits,
 } from '../../../src/components/home/home-content.ts';
 import { ICON_NAMES } from '../../../src/components/common/icons.ts';
 import { flattenPages, getPage } from '../../../src/config/nav.ts';
@@ -107,13 +108,13 @@ describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
 });
 
 describe('흐름 그림 글(home-content.ts)', () => {
-  it('단계 글이 배움 지도로 이어진다: 보고·판단하고는 1단원, 움직여요는 2단원(R1-025)', () => {
+  it('단계 글이 단원 쪽으로 이어진다: 보고·판단하고는 1단원, 움직여요는 2단원(R1-025)', () => {
     expect(flowFigure.steps.map((step) => step.unit)).toEqual([1, 1, 2]);
     expect(flowFigure.unitLinkLabel.length).toBeGreaterThan(0);
-    // 배움 지도 카드 단추([1단원 배우기])와 링크 이름이 같으면 같은 이름이 서로 다른 곳으로 가게 된다
-    expect(flowFigure.unitLinkLabel).not.toBe(homeMap.startLabel);
-    expect(flowFigure.unitLinkLabel).not.toBe(homeMap.resumeLabel);
-    expect(flowFigure.unitLinkLabel).not.toBe(homeMap.replayLabel);
+    // 단원 카드 단추([1단원 열기])와 링크 이름이 같으면 같은 이름이 서로 다른 곳으로 가게 된다
+    expect(flowFigure.unitLinkLabel).not.toBe(homeUnits.openLabel);
+    expect(flowFigure.unitLinkLabel).not.toBe(homeUnits.resumeLabel);
+    expect(flowFigure.unitLinkLabel).not.toBe(homeUnits.replayLabel);
   });
 
   it('단계는 보고 → 판단하고 → 움직여요 3개이고 설명이 있다', () => {
@@ -147,7 +148,7 @@ describe('큰 버튼 아래 길잡이와 아이콘', () => {
   });
 });
 
-describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () => {
+describe('이어서 하기·큰 검색·단원 글(home-content.ts)', () => {
   it('이어서 하기 띠 글: 머리는 "지난번 이어서", 차시 칸(이어서 하기, 끝낸 차시면 다시 보기), 다음 차시 칸(시작하기), 실습실 칸(다시 열기)', () => {
     expect(homeResume.heading).toBe('지난번 이어서');
     expect(homeResume.lesson.go).toBe('이어서 하기');
@@ -163,25 +164,17 @@ describe('이어서 하기·큰 검색·배움 지도 글(home-content.ts)', () 
     expect(homeSearch.heading).toBe('무엇을 찾나요?');
   });
 
-  it('배움 지도: 제목, 한 문장 안내, 단추 글 3가지, 단원마다 다른 아이콘', () => {
-    expect(homeMap.heading).toBe('배움 지도');
-    expect(countSentences(homeMap.lead)).toBe(1);
-    // 화면에는 앞에 단원이 붙어 "1단원 배우기"가 된다. 머리글 메뉴 [시작하기]와 글자가 겹치지 않는다(R1-027).
-    // 이어 하는 단추는 띠·배우기 쪽과 같은 말이다 — 같은 행동은 같은 말(R3-006)
-    expect([homeMap.startLabel, homeMap.resumeLabel, homeMap.replayLabel]).toEqual(['배우기', '이어서 하기', '다시 보기']);
-    expect(homeMap.resumeLabel).toBe(homeResume.lesson.go);
-    expect([homeMap.startLabel, homeMap.resumeLabel]).not.toContain('시작하기');
+  it('단원 카드 단추 글은 띠와 같은 말이다(같은 행동은 같은 말, R3-006) — "열기"·"이어서 하기"·"다시 보기"', () => {
+    expect([homeUnits.openLabel, homeUnits.resumeLabel, homeUnits.replayLabel]).toEqual(['열기', '이어서 하기', '다시 보기']);
+    expect(homeUnits.resumeLabel).toBe(homeResume.lesson.go);
+    expect([homeUnits.openLabel, homeUnits.resumeLabel]).not.toContain('시작하기');
     expect(homeResume.lesson.kicker).toBe('지난번에 열어 본 차시');
-    // 단원마다 큰 그림의 단계 칩이 하나씩 있고 서로 다르다(R1-025)
+  });
+
+  it('단원 몫 글: 네 단원이 서로 다른 "-기" 꼴 낱말이다(R1-025·R3-012) — 차시 머리와 같은 글', () => {
     expect([1, 2, 3, 4].map((unit) => homeMap.stages[unit as 1 | 2 | 3 | 4])).toEqual(['보고 판단하기', '움직이기', '잇기', '합치기']);
-    // 네 낱말이 모두 "-기" 꼴이다(R3-012)
     for (const unit of [1, 2, 3, 4]) {
       expect(homeMap.stages[unit as 1 | 2 | 3 | 4], `${unit}단원 단계 칩`).toMatch(/기$/u);
-    }
-    const icons = [1, 2, 3, 4].map((unit) => homeMap.unitIcons[unit as 1 | 2 | 3 | 4]);
-    expect(new Set(icons).size).toBe(4);
-    for (const icon of icons) {
-      expect(ICON_NAMES as readonly string[]).toContain(icon);
     }
   });
 });
@@ -233,7 +226,11 @@ describe('바로 가기 타일과 원칙(home-content.ts)', () => {
       expect(ICON_NAMES as readonly string[], item.title).toContain(item.icon);
     }
     expect(homePrinciples.browserNote.href).toBe(getPage('start-check').href);
-    expect(countSentences(homePrinciples.browserNote.text)).toBe(1);
+    // 판 1.7.0(미해결 263 #6): 휴대폰으로 되는 범위(읽기)와 안 되는 범위(실습)를 한 줄에 — 보호자 안내와 같은 말
+    expect(countSentences(homePrinciples.browserNote.text)).toBe(2);
+    expect(homePrinciples.browserNote.text).toContain('읽기는 휴대폰도 돼요');
+    expect(homePrinciples.browserNote.text).toContain('실습은 컴퓨터');
+    expect(homePrinciples.browserNote.text).not.toContain('권장');
   });
 });
 

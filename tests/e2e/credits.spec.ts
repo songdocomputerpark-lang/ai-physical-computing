@@ -66,6 +66,30 @@ test.describe('출처와 라이선스 페이지(P6-04)', () => {
     await expect(operator).toContainText('public/teacher/handouts/*.pdf');
   });
 
+  // 판 1.7.0(미해결 268 ①, 걷기 B-56): 눈에 보이는 줄에는 결정 번호·할 일 번호·저장소 폴더 경로가 없고, 접힌 "자세히(개발자용)"를 열면 원문이 그대로 있다.
+  test('결정 번호·할 일 번호·폴더 경로는 접힌 "자세히(개발자용)" 안에만 있다', async ({ page }) => {
+    await page.goto('./credits/');
+    // 접힌 칸을 뺀 글(열리지 않아 눈에 안 보이는 글)에는 개발자용 참조가 없다
+    const outside = await page.locator('.credits').evaluate((root) => {
+      const clone = root.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll('[data-credits-dev]').forEach((node) => node.remove());
+      return clone.textContent ?? '';
+    });
+    expect(outside).not.toMatch(/DECISIONS|운영자 할 일|sources\.yaml|public\/images\/|content\/lessons/u);
+    // 항목 카드마다 접힌 칸이 있고, 처음에는 모두 닫혀 있다
+    const dev = page.locator('.credits [data-credits-dev]');
+    expect(await dev.count()).toBeGreaterThan(view.thirdParty.length);
+    await expect(page.locator('.credits [data-credits-dev][open]')).toHaveCount(0);
+    await expect(dev.first().locator('summary')).toHaveText('자세히(개발자용)');
+    // 열면 원문이 그대로 나온다
+    const kit = page.locator('section[aria-labelledby="credits-third-party"] article', {
+      has: page.getByRole('heading', { level: 3, name: '키트 업체(고릴라셀·브릭셀)의 제품 사진·그림' }),
+    });
+    await kit.locator('[data-credits-dev] summary').click();
+    await expect(kit.locator('[data-credits-dev]')).toContainText('public/images/parts/third-party/kit-vendor/**');
+    await expect(kit.locator('[data-credits-dev]')).toContainText('DECISIONS O17');
+  });
+
   test('고지 전문 파일 모음의 파일이 모두 열리고, 저장소의 파일과 바이트까지 같다', async ({ page, request }) => {
     // 링크 글자는 한 번에 읽고, 파일은 한꺼번에 받는다.
     await page.goto('./credits/');

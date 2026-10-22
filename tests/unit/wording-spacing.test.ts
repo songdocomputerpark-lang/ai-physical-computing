@@ -57,6 +57,53 @@ describe('낱말 띄어쓰기 통일(R2-038)', () => {
   });
 });
 
+// 키트 글의 개발자 낱말(판 1.7.0 구역 Z4, 미해결 266) — 키트 장치 도감·실습실 안내에서 학생이 읽는 글에 사이트 만드는 사람의 말("흉내"·machine.time_pulse_us)을 쓰지 않는다.
+// 가상 보드에 없는 것은 "…가 가상 보드에 아직 없어서"로 쓴다. 데이터(YAML)는 주석을 빼고 값만 본다 — 코드 주석의 "흉내 모듈"은 개발 문서의 이름이라 그대로다.
+describe('키트 글의 개발자 낱말(Z4, 미해결 266)', () => {
+  const KIT_DEVELOPER_WORDS = /흉내|time_pulse_us/u;
+
+  function stringsOf(value: unknown, found: string[] = []): string[] {
+    if (typeof value === 'string') {
+      found.push(value);
+    } else if (Array.isArray(value)) {
+      value.forEach((item) => stringsOf(item, found));
+    } else if (value !== null && typeof value === 'object') {
+      Object.values(value).forEach((item) => stringsOf(item, found));
+    }
+    return found;
+  }
+
+  it('키트 장치 목록·분류 표·예제 사이드카의 글에 "흉내"·time_pulse_us가 없다', async () => {
+    const { parse } = await import('yaml');
+    const files = [
+      'content/kit/devices.yaml',
+      'scripts/kit/kit-classification.yaml',
+      ...walk('examples/esp32/kit', (file) => file.endsWith('.meta.yaml')),
+    ].map((file) => file.split(path.sep).join('/'));
+    const offenders = files.filter((file) => stringsOf(parse(fs.readFileSync(file, 'utf8'))).some((text) => KIT_DEVELOPER_WORDS.test(text)));
+    expect(offenders).toEqual([]);
+  });
+
+  it('생성기의 기본 까닭 글(DEFAULT_REAL_ONLY)과 가상 보드 단계 설명(KIT_VIRTUAL_INFO)에도 없다 — 장치를 더할 때 옛 말이 다시 생기지 않게', async () => {
+    const generator = fs.readFileSync('scripts/kit/generate-kit.mjs', 'utf8');
+    const defaultReason = /const DEFAULT_REAL_ONLY = '([^']*)'/u.exec(generator)?.[1] ?? '';
+    expect(defaultReason).not.toBe('');
+    expect(KIT_DEVELOPER_WORDS.test(defaultReason)).toBe(false);
+    const { KIT_VIRTUAL_INFO } = await import('../../src/components/kit/kit-view.ts');
+    for (const info of Object.values(KIT_VIRTUAL_INFO)) {
+      expect(KIT_DEVELOPER_WORDS.test(info.label), info.label).toBe(false);
+      expect(KIT_DEVELOPER_WORDS.test(info.explain), info.explain).toBe(false);
+    }
+  });
+
+  it('ESP32 실습실 첫 줄은 홈과 같은 말이다: 교과서 실습은 보드 없이 가상 보드로 끝까지, 키트의 일부 센서 예제는 실제 보드가 필요해요(미해결 264 #4)', () => {
+    const lab = fs.readFileSync('src/pages/labs/esp32/index.astro', 'utf8');
+    expect(lab).toContain('교과서 실습은 보드 없이 가상 보드로 끝까지, 키트의 일부 센서 예제는 실제 보드가 필요해요');
+    // 옛 첫 줄("보드가 없어도 가상 보드로 해요.")은 바로 아래 "이 예제는 실제 보드가 필요해요" 상자와 맞부딪쳤다
+    expect(lab).not.toContain('보드가 없어도 가상 보드로 해요.');
+  });
+});
+
 // 메뉴 이름(판 1.6.0, DECISIONS C173) — 같은 45편의 두 쪽을 처음 온 사람이 구별하게 한다: 글만 있는 쪽은 "교과서 원문", 코드를 직접 실행하며 따라 하는 쪽은 "따라 하기".
 // 옛 이름 "배우기"("풀이·실습")는 쪽 이름으로 더 쓰지 않는다. 동사로서의 "배우기"(예: "처음부터 배우기" 단추)는 그대로다.
 /** 주석이 아닌 줄만 훑는다(글에 나가는 낱말만 본다) */
@@ -149,5 +196,31 @@ describe('수업 화면·두 쪽 이름(R2)', () => {
 
   it('옛 전환 줄 이름 "풀이·실습"을 화면 글에 쓰지 않는다 — "따라 하기"로 쓴다', () => {
     expect(shownHits(/풀이·실습/u)).toEqual([]);
+  });
+});
+
+// 홈·출처·문의 글(판 1.7.0 구역 Z5 — 미해결 262·263 #6·264 #4·268). 한 번 고친 글이 되돌아오지 않게 낱말로 막는다. 주석 줄은 보지 않는다.
+describe('홈·출처·문의 글(Z5)', () => {
+  const isCommentLine = (line: string) => /^\s*(?:\/\/|\*|\/\*|<!--|#|\{\/\*)/u.test(line);
+  const loadedZ5 = shippedFiles()
+    .map((file) => file.split(path.sep).join('/'))
+    .filter((file) => file !== 'src/lab/README.md')
+    .map((file) => ({ file, lines: fs.readFileSync(file, 'utf8').split(/\r?\n/u).filter((line) => !isCommentLine(line)) }));
+  const z5Hits = (pattern: RegExp): string[] => loadedZ5.filter(({ lines }) => lines.some((line) => pattern.test(line))).map(({ file }) => file);
+
+  it('"모든 보드 실습"이라고 하지 않는다 — 키트의 일부 센서 예제는 실제 보드가 필요하므로 "교과서 실습은 보드 없이 … 키트의 일부 센서 예제는 실제 보드가 필요해요"로 쓴다(264 #4)', () => {
+    expect(z5Hits(/모든 보드 실습/u)).toEqual([]);
+  });
+
+  it('홈의 키트 단추 이름은 "보드 켜기"가 아니라 메뉴 이름과 같은 "보드 준비"이다(262)', () => {
+    expect(z5Hits(/보드 켜기/u)).toEqual([]);
+  });
+
+  it('홈 알약에 사이트 안쪽 말 "웹 차시 N편"을 쓰지 않는다 — 메뉴 이름 "따라 하기 N편"으로 쓴다(268 ②)', () => {
+    expect(z5Hits(/절 · 웹 차시/u)).toEqual([]);
+  });
+
+  it('홈 맨 아래 안내가 "권장해요"로 끝나지 않는다 — 휴대폰으로 되는 범위(읽기)를 말한다(263 #6)', () => {
+    expect(z5Hits(/브라우저를 권장해요/u)).toEqual([]);
   });
 });

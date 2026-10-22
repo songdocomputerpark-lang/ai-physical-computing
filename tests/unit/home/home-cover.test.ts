@@ -2,7 +2,7 @@
 // 화면에 실제로 보이는지(375×812 첫 화면에 안심 띠·h1·사람별 큰 단추 셋)는 브라우저 테스트(tests/e2e/home.spec.ts)가 확인한다.
 import { describe, expect, it } from 'vitest';
 import { ICON_NAMES } from '../../../src/components/common/icons.ts';
-import { homeCover, homeCoverActions, homeCoverPill, homeLessons, homeToc, homeTrust, homeUnits } from '../../../src/components/home/home-content.ts';
+import { homeCover, homeCoverActions, homeCoverPill, homeToc, homeTrust, homeUnits } from '../../../src/components/home/home-content.ts';
 import { getPage } from '../../../src/config/nav.ts';
 import { CAMERA_PRIVACY_BRIEF } from '../../../src/config/privacy-text.ts';
 import { siteConfig } from '../../../src/config/site.ts';
@@ -37,21 +37,28 @@ describe('표지(homeCover)', () => {
   });
 
   it('알약의 수는 글에 적지 않고 받은 수로 만든다', () => {
-    expect(homeCoverPill(32, 45)).toBe('고등학교 · 교과서 32절 · 웹 차시 45편');
-    expect(homeCoverPill(30, 41)).toBe('고등학교 · 교과서 30절 · 웹 차시 41편');
+    expect(homeCoverPill(32, 45)).toBe('고등학교 · 교과서 원문 32절 · 따라 하기 45편');
+    expect(homeCoverPill(30, 41)).toBe('고등학교 · 교과서 원문 30절 · 따라 하기 41편');
+  });
+
+  it('알약은 사이트 안쪽 말 "웹 차시"를 쓰지 않고 머리글 메뉴의 두 이름을 그대로 쓴다(미해결 268 ②)', () => {
+    const pill = homeCoverPill(32, 45);
+    expect(pill).not.toContain('웹 차시');
+    expect(pill).toContain(getPage('book').label);
+    expect(pill).toContain(getPage('learn').label);
   });
 });
 
 describe('표지 큰 단추(homeCoverActions) — 사람으로 나눈다(C172)', () => {
   const actions = homeCoverActions('/ai-physical-computing/learn/u1/1-1-1/');
 
-  it('순서는 [학생 처음부터 배우기] · [선생님 수업 준비] · [키트가 있어요 보드 켜기]이다', () => {
+  it('순서는 [학생 처음부터 배우기] · [선생님 수업 준비] · [키트가 있어요 보드 준비]이다', () => {
     expect(actions.map((action) => action.id)).toEqual(['start', 'teacher', 'kit']);
     expect(actions.map((action) => action.who)).toEqual(['학생', '선생님', '키트가 있어요']);
-    expect(actions.map((action) => action.label)).toEqual(['처음부터 배우기', '수업 준비', '보드 켜기']);
+    expect(actions.map((action) => action.label)).toEqual(['처음부터 배우기', '수업 준비', '보드 준비']);
   });
 
-  it('주소: 학생은 받은 주소(실습이 있는 따라 하기 쪽), 선생님은 교사용 시작하기, 키트는 보드 준비하기', () => {
+  it('주소: 학생은 받은 주소(실습이 있는 따라 하기 쪽), 선생님은 교사용 시작하기, 키트는 보드 준비하기(쪽 이름)', () => {
     expect(actions[0]!.href).toBe('/ai-physical-computing/learn/u1/1-1-1/');
     expect(actions[1]!.href).toBe(getPage('start-teacher').href);
     expect(actions[1]!.href).toMatch(/\/start\/teacher\/$/u);
@@ -121,17 +128,10 @@ describe('단원 4장 카드 글(homeUnits)', () => {
   });
 });
 
-describe('차례·차시 목록 글', () => {
-  it('차례 제목은 "차례"이고 짧은 글 두 문장 안이다(옛 차시 목록 글도 그대로 있다)', () => {
+describe('차례 글', () => {
+  it('차례 제목은 "차례"이고 짧은 글 두 문장 안이다', () => {
     expect(homeToc.heading).toBe('차례');
-    expect(homeLessons.heading).toBe('차시 목록');
     expect(countSentences(homeToc.lead)).toBeLessThanOrEqual(2);
-    expect(countSentences(homeLessons.lead)).toBeLessThanOrEqual(2);
-  });
-
-  it('보충 차시 알약은 "웹에서 더함"이고, 보드는 "실제 보드 있으면 더 좋아요"로 알린다(가상 보드로 끝까지 할 수 있다)', () => {
-    expect(homeLessons.webOnlyBadge).toBe('웹에서 더함');
-    expect(homeLessons.legendBoard).toBe('실제 보드 있으면 더 좋아요');
   });
 });
 

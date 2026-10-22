@@ -1,5 +1,5 @@
 /**
- * 홈의 "차례"(HomeToc)와 "차시 목록"(HomeLessons)이 함께 쓰는 자료를 만든다(판 1.4.0 — DECISIONS C132). 순수 함수라 Vitest로 검사한다(tests/unit/home/home-lessons.test.ts).
+ * 홈의 "차례"(HomeToc)와 단원 카드(HomeUnits)가 쓰는 자료를 만든다(판 1.4.0 — DECISIONS C132. 옛 차시 카드 목록 HomeLessons.astro는 판 1.7.0에서 지웠다). 순수 함수라 Vitest로 검사한다(tests/unit/home/home-lessons.test.ts).
  *
  * 재료
  *  - 출판본 차례(src/config/book-outline.ts): 절 32개·중단원 9개·대단원 마무리 4개의 이름과 쪽 — 쪽 파일이 아직 없어도 홈이 모든 절을 보이게 한다.

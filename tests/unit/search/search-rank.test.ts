@@ -9,6 +9,7 @@ import {
   markPieces,
   planSearch,
   splitWords,
+  stemOf,
   tierOf,
   anchorKey,
 } from '../../../src/components/search/search-rank.ts';
@@ -231,5 +232,100 @@ describe('보호자 동의어(판 1.6.0 R6)', () => {
 describe('수업 화면 동의어(판 1.6.0 R2 — C173 이름 하나)', () => {
   it.each(['발표 모드', '발표모드', '프로젝터', '빔 프로젝터로 보여 주기'])('"%s"를 찾으면 "수업 화면"으로도 찾는다', (text) => {
     expect(planSearch(text)?.terms).toContain('수업 화면');
+  });
+});
+
+// 판 1.7.0(미해결 268 ④): 끝 변화가 다른 같은 말을 서로 찾게 한다 — 줄기를 덧붙이는 작은 규칙과 오탐 시험.
+describe('활용 어미 줄기(stemOf · planSearch) — 깜빡여요 ↔ 깜빡이기', () => {
+  it.each([
+    ['깜빡이기', '깜빡'],
+    ['깜빡여요', '깜빡'],
+    ['깜빡이면', '깜빡'],
+    ['깜빡이는', '깜빡'],
+    ['깜빡입니다', '깜빡'],
+    ['인식하기', '인식'],
+    ['인식해요', '인식'],
+    ['인식했어요', '인식'],
+    ['모니터링하면', '모니터링'],
+  ])('"%s"의 줄기는 "%s"이다', (word, stem) => {
+    expect(stemOf(word)).toBe(stem);
+  });
+
+  it.each(['하기', '이기', '해요', '여요', '되기', '카메라', 'NameError', 'led하기', 'cv2하면', '서보모터', '1단원', '손', ''])('"%s"는 줄기를 만들지 않는다(어미만 있거나 줄기가 한 글자이거나 영어·숫자가 섞임)', (word) => {
+    expect(stemOf(word)).toBeUndefined();
+  });
+
+  it('줄기로도 찾는다: "깜빡여요"·"LED 깜빡이기" → 본 검색 뒤에 "깜빡"을 덧붙인다', () => {
+    expect(planSearch('깜빡여요')?.terms).toEqual(['깜빡여요', '깜빡']);
+    expect(planSearch('LED 깜빡이기')?.terms).toEqual(['LED 깜빡이기', '깜빡']);
+    expect(planSearch('손 인식하기')?.terms).toEqual(['손 인식하기', '인식']);
+  });
+
+  it('오탐을 막는다: 어미가 없는 낱말·기존 규칙(뜻 묻는 말투·증상 말투·붙여 쓴 낱말)의 결과는 그대로다', () => {
+    expect(planSearch('카메라')?.terms).toEqual(['카메라']);
+    expect(planSearch('하기')?.terms).toEqual(['하기']);
+    expect(planSearch('임계값 뜻')?.terms).toEqual(['임계값']);
+    expect(planSearch('카메라가 안 켜져요')?.terms).toEqual(['카메라가 켜지지 않아요']);
+    expect(planSearch('따라하기')?.terms).toEqual(['따라 하기']);
+    expect(planSearch('센서 배선')?.terms).toEqual(['센서 배선']);
+    expect(planSearch('NameError')?.terms).toEqual(['NameError']);
+  });
+
+  it('같은 줄기는 한 번만 덧붙이고 동의어와 함께 쓸 수 있다', () => {
+    expect(planSearch('인식하기 인식해요')?.terms).toEqual(['인식하기 인식해요', '인식']);
+    expect(planSearch('학부모 인식하기')?.terms).toEqual(['학부모 인식하기', '보호자 안내', '인식']);
+  });
+});
+
+// 판 1.7.0(미해결 268 ⑤): 교사 낱말이 없는 검색에서는 교사용 결과가 학생이 읽는 결과 뒤로 간다.
+describe('교사용 결과는 학생 결과 뒤로(tierOf 2.5)', () => {
+  const entry = (kind: string, title: string, url: string, excerpt = '') => ({ kind, title, url, excerpt });
+  const guide = entry('teacher', '1단원 지도 요약 — 선생님용 자료실', `${BASE}teacher/guides/u1/`);
+  const lesson = entry('learn', '1-1-1 인공지능 응용 프로그램과 에이전트', `${BASE}learn/u1/1-1-1/`);
+
+  it('"첫 차시"처럼 교사 낱말이 없으면 교사용 쪽은 2.5, 학생 쪽은 그대로(제목에 낱말이 없으면 2)', () => {
+    expect(tierOf(guide, ['첫 차시'], '첫 차시')).toBe(2.5);
+    expect(tierOf(lesson, ['첫 차시'], '첫 차시')).toBe(2);
+    expect(tierOf(entry('teacher', '지도 요약 첫 차시', `${BASE}teacher/guides/`), ['첫 차시'], '첫 차시')).toBe(2.5);
+  });
+
+  it('교사용 시작하기(/start/teacher/)도 같다', () => {
+    expect(tierOf(entry('teacher', '교사용 시작하기', `${BASE}start/teacher/`), ['시작하기'], '시작하기')).toBe(2.5);
+  });
+
+  it.each(['교사용 자료', '선생님 안내', '평가 기준', '채점 기준', '수업 준비', '교안', '성취기준', '성취 기준', '자료실', '정답', '해설', '원고 정정', '수행평가'])(
+    '교사 낱말이 있는 "%s" 검색에서는 교사용 쪽을 뒤로 미루지 않는다',
+    (text) => {
+      const plan = planSearch(text);
+      expect(plan).not.toBeNull();
+      expect(tierOf(guide, plan!.terms, plan!.display)).toBeLessThan(2.5);
+    },
+  );
+
+  it('같은 뜻으로 덧붙인 말에 교사 낱말이 있으면 미루지 않는다: "프로젝터"·"발표 모드"는 교사 FAQ가 앞에 남는다', () => {
+    const faq = entry('teacher', '프로젝터에 어떻게 띄우나요? — 선생님 자주 묻는 질문', `${BASE}teacher/faq/#projector`);
+    for (const text of ['프로젝터', '발표 모드']) {
+      const plan = planSearch(text)!;
+      expect(plan.terms).toContain('수업 화면');
+      expect(tierOf(faq, plan.terms, plan.display), text).toBeLessThan(2.5);
+    }
+  });
+
+  it('원고 정정 목록은 여전히 3이다(교사 낱말이 있어도 정정 낱말이 없으면 뒤)', () => {
+    const corrections = entry('teacher', '교과서 원고 정정 목록', `${BASE}teacher/corrections/`);
+    expect(tierOf(corrections, ['첫 차시'], '첫 차시')).toBe(3);
+    expect(tierOf(corrections, ['수업 준비'], '수업 준비')).toBe(3);
+  });
+
+  it('차례를 늘어 놓으면 학생 쪽 결과가 교사용 결과보다 앞이다(Pagefind가 교사용을 먼저 주어도)', () => {
+    const plan = planSearch('첫 차시')!;
+    const pages: PagefindResultData[] = [
+      { url: `${BASE}teacher/guides/u1/`, excerpt: '<mark>첫 차시</mark> 안내', meta: { title: '1단원 지도 요약' } },
+      { url: `${BASE}start/teacher/`, excerpt: '<mark>첫 차시</mark>', meta: { title: '교사용 시작하기' } },
+      { url: `${BASE}learn/u1/1-1-1/`, excerpt: '<mark>첫 차시</mark>에서 해요', meta: { title: '1-1-1 인공지능 응용 프로그램' } },
+      { url: `${BASE}book/1-1-1/`, excerpt: '<mark>첫 차시</mark>', meta: { title: '1-1-1 인공지능 응용 프로그램' } },
+    ];
+    const ordered = orderEvaluated(pages.map((data) => evaluateResult(data, plan, config, 'https://example.invalid')));
+    expect(ordered.map((card) => card.kind)).toEqual(['learn', 'learn', 'teacher', 'teacher']);
   });
 });

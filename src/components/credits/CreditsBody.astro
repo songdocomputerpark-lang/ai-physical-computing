@@ -3,23 +3,31 @@
 // 페이지 껍데기(src/pages/credits/index.astro)와 나눠 두었다.
 // 공통 레이아웃(P1-05)이 생기면 껍데기만 그 레이아웃으로 바꾸고 이 본문은 그대로 감싼다.
 // 제목 단계: 페이지 제목(h1)은 껍데기가 맡고, 이 본문은 h2부터 쓴다.
+// 판 1.7.0(걷기 B-56): 결정 번호·할 일 번호·저장소 폴더 경로·등록부 파일 이름은 접힌 "자세히(개발자용)" 안으로 옮겼다(stripDeveloperRefs — 항목 카드는 SourceEntry.astro).
+// 다시 나누는 파일의 알림(REDISTRIBUTION_NOTICES)은 라이선스가 요구하는 글이라 그대로 둔다.
 import registryText from '../../../sources.yaml?raw';
 import { siteConfig } from '../../config/site.ts';
-import { REDISTRIBUTION_NOTICES, buildCreditsView, publicFileHref } from '../../lib/credits.ts';
+import { REDISTRIBUTION_NOTICES, buildCreditsView, publicFileHref, stripDeveloperRefs } from '../../lib/credits.ts';
 import SourceEntry from './SourceEntry.astro';
 
 const view = buildCreditsView(registryText);
 const { software, content, exclusion } = siteConfig.license;
 const registryUrl = `${siteConfig.repositoryUrl}/blob/main/sources.yaml`;
+const shownContentApplies = stripDeveloperRefs(content.appliesTo);
+const shownSoftwareApplies = stripDeveloperRefs(software.appliesTo);
 /** 알림 칸의 고지 파일 링크 글자: 파일 이름만(모음 목록은 사이트 안 경로 전체 — NOTICE.txt·LICENSE.txt처럼 같은 이름이 있어서) */
 const fileName = (filePath: string) => filePath.split('/').pop() ?? filePath;
 ---
 
 <div class="credits">
-  <p>
-    이 사이트에 쓰인 자료가 어디서 왔고, 어떤 조건으로 쓸 수 있는지 모아 둔 페이지예요. 목록은 저장소의{' '}
-    <a href={registryUrl}>출처 등록부(sources.yaml)</a>로 사이트를 만들 때 자동으로 만들어져요.
-  </p>
+  <p>이 사이트에 쓰인 자료가 어디서 왔고, 어떤 조건으로 쓸 수 있는지 모아 둔 페이지예요. 목록은 사이트를 만들 때 자동으로 만들어져요.</p>
+  <details class="credits__dev" data-pagefind-ignore data-credits-dev>
+    <summary>자세히(개발자용)</summary>
+    <p>
+      목록의 원본은 저장소의{' '}
+      <a href={registryUrl}>출처 등록부(sources.yaml)</a>예요. 아래 카드마다 접힌 &quot;자세히(개발자용)&quot;에는 자료를 쓴 위치, 적용되는 파일 경로, 결정 번호 같은 개발자용 설명이 있어요.
+    </p>
+  </details>
 
   <section aria-labelledby="credits-site-license">
     <h2 id="credits-site-license">이 사이트의 라이선스</h2>
@@ -30,14 +38,26 @@ const fileName = (filePath: string) => filePath.split('/').pop() ?? filePath;
     <dl class="credits__licenses">
       <div>
         <dt><a href={content.url}>{content.shortName}</a></dt>{' '}
-        <dd>{content.name}. 적용: {content.appliesTo}</dd>
+        <dd>{content.name}. 적용: {shownContentApplies}</dd>
       </div>
       <div>
         <dt><a href={software.url}>{software.shortName}</a></dt>{' '}
-        <dd>{software.name}. 적용: {software.appliesTo}</dd>
+        <dd>{software.name}. 적용: {shownSoftwareApplies}</dd>
       </div>
     </dl>
     <p>{exclusion}</p>
+    {
+      (shownContentApplies !== content.appliesTo || shownSoftwareApplies !== software.appliesTo) && (
+        <details class="credits__dev" data-pagefind-ignore data-credits-dev>
+          <summary>자세히(개발자용)</summary>
+          <p>적용되는 폴더 전체예요.</p>
+          <ul>
+            <li>{content.shortName}: {content.appliesTo}</li>
+            <li>{software.shortName}: {software.appliesTo}</li>
+          </ul>
+        </details>
+      )
+    }
   </section>
 
   <section aria-labelledby="credits-redistribution">
@@ -97,9 +117,17 @@ const fileName = (filePath: string) => filePath.split('/').pop() ?? filePath;
       view.licenseGroups.map((group, index) => (
         <section class="credits__group" aria-labelledby={`credits-license-${index + 1}`}>
           <h3 id={`credits-license-${index + 1}`}>
-            {group.licenseUrl ? <a href={group.licenseUrl}>{group.license}</a> : group.license}{' '}
+            {group.licenseUrl ? <a href={group.licenseUrl}>{stripDeveloperRefs(group.license)}</a> : stripDeveloperRefs(group.license)}{' '}
             <span class="credits__count">— 자료 {group.entries.length}개</span>
           </h3>
+          {
+            stripDeveloperRefs(group.license) !== group.license && (
+              <details class="credits__dev" data-pagefind-ignore data-credits-dev>
+                <summary>자세히(개발자용)</summary>
+                <p>등록부의 라이선스 원문: {group.license}</p>
+              </details>
+            )
+          }
           <ul class="credits__list">
             {group.entries.map((entry) => (
               <li>
@@ -123,7 +151,7 @@ const fileName = (filePath: string) => filePath.split('/').pop() ?? filePath;
         view.noticeFiles.map((file) => (
           <li>
             <a href={file.href}>{file.path.slice('public/'.length)}</a>
-            <span class="credits__file-for"> — {file.entries.join(' · ')}</span>
+            <span class="credits__file-for"> — {file.entries.map((name) => stripDeveloperRefs(name)).join(' · ')}</span>
           </li>
         ))
       }
@@ -166,6 +194,19 @@ const fileName = (filePath: string) => filePath.split('/').pop() ?? filePath;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .credits__dev {
+    margin: 0.5rem 0 0;
+  }
+  .credits__dev > summary {
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+  .credits__dev > p,
+  .credits__dev > ul {
+    margin: 0.5rem 0 0;
+    overflow-wrap: anywhere;
   }
   .credits__count {
     margin-left: 0.4rem;
