@@ -377,6 +377,41 @@ test.describe('없는 주소(404)', () => {
       for (const href of [withBase(''), searchConfig.pageHref, getPage('help').href, getPage('contribute').href]) {
         expect((await request.get(href)).status(), href).toBe(200);
       }
+      // 판 1.7.1(C224): 군더더기가 없는 그냥 없는 주소에는 "혹시 이 쪽을…" 안내가 없다(자리는 있고 숨어 있음)
+      await expect(page.locator('[data-not-found-suggest]')).toHaveCount(1);
+      await expect(page.locator('[data-not-found-suggest]')).toBeHidden();
+    });
+  }
+
+  // 판 1.7.1(C224): 메신저·채팅이 한국어 문장 속 주소에 괄호·조사를 붙여 링크로 만든 경우(2026-10-23 운영자가 겪음)
+  for (const { from, to, title } of [
+    { from: './)가', to: '', title: siteConfig.name },
+    { from: './learn/u1/1-1-1/에서', to: 'learn/u1/1-1-1/', title: '1-1-1' },
+    { from: './book/2-1-2/).', to: 'book/2-1-2/', title: '2-1-2' },
+  ]) {
+    test(`${from} — 404에서 괄호·조사를 뗀 쪽을 "혹시 이 쪽을 찾으셨나요?"로 알리고, 누르면 그 쪽이 열린다`, async ({ page, baseURL }) => {
+      // GitHub Pages는 이런 주소에도 dist/404.html을 404로 준다(2026-10-23 실사이트 확인). astro preview는 '/'로 끝나지 않는 주소에
+      // trailingSlash 안내 쪽을 따로 내므로, 시험에서는 그 주소에 사이트의 404 응답을 그대로 돌려준다.
+      const badPath = new URL(from, baseURL).pathname;
+      await page.route(
+        (url) => url.pathname === badPath,
+        async (route) => route.fulfill({ response: await route.fetch({ url: new URL('./no-such-page/', baseURL).href }) }),
+      );
+      const response = await page.goto(from);
+      expect(response?.status()).toBe(404);
+      const suggest = page.locator('[data-not-found-suggest]');
+      await expect(suggest).toBeVisible();
+      await expect(suggest).toContainText('혹시 이 쪽을 찾으셨나요?');
+      const link = suggest.locator('[data-not-found-suggest-link]');
+      await expect(link).toHaveAttribute('href', withBase(to));
+      await expect(link).toContainText(title);
+      // 안내는 제목 바로 아래(검색 상자보다 위)
+      const suggestBox = await suggest.boundingBox();
+      const searchBox = await page.getByRole('search', { name: '사이트에서 찾아보기' }).boundingBox();
+      expect(suggestBox && searchBox && suggestBox.y < searchBox.y).toBe(true);
+      const [navigation] = await Promise.all([page.waitForNavigation(), link.click()]);
+      expect(navigation?.status()).toBe(200);
+      await expect(page).toHaveURL(new RegExp(`${withBase(to).replace(/[/.]/gu, '\\$&')}$`, 'u'));
     });
   }
 

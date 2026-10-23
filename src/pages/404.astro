@@ -9,10 +9,15 @@
  * (시작하기·배우기·실습실·문제 해결 — 카드 전체가 눌린다) ③ 기존 링크 목록 순으로 둔다.
  * 검색 상자 폼의 data-suggest가 머리글과 같은 검색 자동 완성을 켠다(구역 B의 search-suggest.ts — 머리글 폼 스크립트가 쪽마다 불러 와 이 폼도 켠다).
  * data-not-found-search는 이 폼을 가리키는 표시다.
+ *
+ * 판 1.7.1(C224): 메신저·채팅이 한국어 문장 속 주소에 괄호·조사를 붙여 링크로 만들면("…/ai-physical-computing/)가") 여기로 온다.
+ * 제목 아래 [data-not-found-suggest] 줄은 스크립트가 주소의 군더더기를 떼고(src/lib/address-cleanup.ts cleanPagePath) 그 쪽이 정말 있는지
+ * 받아 본 뒤에만 "혹시 이 쪽을 찾으셨나요?" + 그 쪽 제목 링크로 보인다. 그냥 없는 쪽·인터넷이 끊긴 때는 그대로 숨는다.
  */
 import Icon from '../components/common/Icon.astro';
 import { getPage } from '../config/nav.ts';
 import { searchConfig } from '../config/search.ts';
+import { siteConfig } from '../config/site.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const home = getPage('home');
@@ -31,6 +36,11 @@ const routes = [getPage('start'), getPage('learn'), getPage('labs'), help];
 >
   <h1 class="page-title">페이지를 찾을 수 없어요</h1>
   <p class="lead">주소가 바뀌었거나 아직 없는 페이지예요. 주소를 다시 확인하거나 아래에서 찾아보세요.</p>
+  <p class="not-found__suggest" data-not-found-suggest data-site-name={siteConfig.name} hidden>
+    <span class="not-found__suggest-lead">혹시 이 쪽을 찾으셨나요?</span>
+    <a class="not-found__suggest-link" href={home.href} data-not-found-suggest-link>{home.label}</a>
+    <span class="not-found__suggest-note">주소 끝에 괄호나 글자가 붙어 있었어요. 위 링크를 눌러 주세요.</span>
+  </p>
 
   <section class="not-found" aria-labelledby="not-found-search-title">
     <h2 id="not-found-search-title">사이트에서 찾아보기</h2>
@@ -93,7 +103,64 @@ const routes = [getPage('start'), getPage('learn'), getPage('labs'), help];
   </section>
 </BaseLayout>
 
+<script>
+  import { cleanPagePath, pageTitleFromHtml } from '../lib/address-cleanup.ts';
+
+  // 주소 끝의 괄호·조사·마침표를 떼어 본 주소의 쪽이 정말 있을 때만 그 쪽을 알린다(받아 보기 전에는 숨김 — 틀린 안내를 하지 않게)
+  const box = document.querySelector<HTMLElement>('[data-not-found-suggest]');
+  const link = box?.querySelector<HTMLAnchorElement>('[data-not-found-suggest-link]');
+  const target = cleanPagePath(window.location.pathname);
+  if (box && link && target) {
+    void (async () => {
+      try {
+        const response = await fetch(target, { credentials: 'same-origin' });
+        if (!response.ok) {
+          return;
+        }
+        const title = pageTitleFromHtml(await response.text(), box.dataset.siteName ?? '');
+        link.href = `${target}${window.location.search}${window.location.hash}`;
+        link.textContent = title ?? target;
+        box.hidden = false;
+      } catch {
+        // 인터넷이 끊겼거나 받지 못하면 안내하지 않는다(아래 검색·카드는 그대로)
+      }
+    })();
+  }
+</script>
+
 <style>
+  /* 판 1.7.1(C224): 고친 주소 안내 — 제목 바로 아래 강조 상자, 링크는 크게(가장 먼저 누를 곳) */
+  .not-found__suggest {
+    display: grid;
+    gap: var(--space-1);
+    max-width: var(--width-prose);
+    margin-block-start: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-accent-border);
+    border-inline-start-width: 4px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+  }
+
+  .not-found__suggest[hidden] {
+    display: none;
+  }
+
+  .not-found__suggest-lead {
+    font-weight: var(--weight-semibold);
+  }
+
+  .not-found__suggest-link {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .not-found__suggest-note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
   /* 칸 너비 minmax(0, 1fr)와 입력칸 width 100%: 입력칸 기본 너비가 좁은 화면에서 칸을 넓히지 않게(SearchPage.astro와 같은 이유). */
   .not-found {
     display: grid;
