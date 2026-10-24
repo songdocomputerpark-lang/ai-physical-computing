@@ -28,7 +28,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'board',
-  title: '가상 ESP32 보드(machine·time 흉내)',
+  title: '가상 ESP32 보드(machine·time)',
   labs: ['esp32'],
   shims: { time: 'apc_board' },
   packages: [],

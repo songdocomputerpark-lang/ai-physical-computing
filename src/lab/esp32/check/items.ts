@@ -72,7 +72,7 @@ export const CHECK_ITEMS: readonly CheckItem[] = Object.freeze([
   {
     id: 'basics',
     b2: 16,
-    title: '가상 보드가 흉내 낸 기본 동작(Pin·BOOT·떠 있는 핀)',
+    title: '가상 보드의 기본 동작(Pin·BOOT·떠 있는 핀)',
     why: '가상 보드가 맞춘 Pin 모양·BOOT 버튼 값·아무것도 잇지 않은 핀의 값이 실물과 같은지 봐요.',
     minutes: 5,
     wiring: [],
@@ -152,7 +152,7 @@ export const CHECK_ITEMS: readonly CheckItem[] = Object.freeze([
     id: 'modules',
     b2: 6,
     title: '펌웨어에 든 모듈(neopixel·ubluetooth·PWM·ADC)',
-    why: '사이트가 흉내 낸 이름이 실물 v1.29.0 펌웨어에도 있는지 봐요.',
+    why: '사이트가 가상 보드에 넣은 이름이 실물 v1.29.0 펌웨어에도 있는지 봐요.',
     minutes: 3,
     wiring: [],
     code: [

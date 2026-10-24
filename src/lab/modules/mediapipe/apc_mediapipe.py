@@ -1161,7 +1161,7 @@ def _module(name, doc, **attributes):
 
 hands = _module(
     "mediapipe.solutions.hands",
-    "MediaPipe Hands(사이트 흉내 — 추론은 브라우저의 MediaPipe Tasks Vision).",
+    "MediaPipe Hands(사이트가 대신하는 모듈 — 추론은 브라우저의 MediaPipe Tasks Vision).",
     Hands=Hands,
     HandLandmark=HandLandmark,
     HAND_CONNECTIONS=HAND_CONNECTIONS,
@@ -1175,7 +1175,7 @@ hands = _module(
 
 drawing_utils = _module(
     "mediapipe.solutions.drawing_utils",
-    "MediaPipe 그리기 도우미(사이트 흉내 — 레거시 소스를 옮겨 진짜 cv2로 그린다).",
+    "MediaPipe 그리기 도우미(사이트가 대신하는 모듈 — 레거시 소스를 옮겨 진짜 cv2로 그린다).",
     DrawingSpec=DrawingSpec,
     WHITE_COLOR=WHITE_COLOR,
     BLACK_COLOR=BLACK_COLOR,
@@ -1190,7 +1190,7 @@ drawing_utils = _module(
 
 face_mesh = _module(
     "mediapipe.solutions.face_mesh",
-    "MediaPipe Face Mesh(사이트 흉내 — 추론은 브라우저의 MediaPipe Tasks Vision).",
+    "MediaPipe Face Mesh(사이트가 대신하는 모듈 — 추론은 브라우저의 MediaPipe Tasks Vision).",
     FaceMesh=FaceMesh,
     FACEMESH_TESSELATION=FACEMESH_TESSELATION,
     FACEMESH_CONTOURS=FACEMESH_CONTOURS,
@@ -1209,7 +1209,7 @@ face_mesh = _module(
 
 face_detection = _module(
     "mediapipe.solutions.face_detection",
-    "MediaPipe Face Detection(사이트 흉내 — 얼굴 상자는 0~1 값).",
+    "MediaPipe Face Detection(사이트가 대신하는 모듈 — 얼굴 상자는 0~1 값).",
     FaceDetection=FaceDetection,
     FaceKeyPoint=FaceKeyPoint,
     get_key_point=get_key_point,
@@ -1217,7 +1217,7 @@ face_detection = _module(
 
 pose = _module(
     "mediapipe.solutions.pose",
-    "MediaPipe Pose(사이트 흉내 — 한 사람 33점).",
+    "MediaPipe Pose(사이트가 대신하는 모듈 — 한 사람 33점).",
     Pose=Pose,
     PoseLandmark=PoseLandmark,
     POSE_CONNECTIONS=POSE_CONNECTIONS,
@@ -1225,7 +1225,7 @@ pose = _module(
 
 drawing_styles = _module(
     "mediapipe.solutions.drawing_styles",
-    "MediaPipe 기본 스타일(사이트 흉내).",
+    "MediaPipe 기본 스타일(사이트가 대신하는 모듈).",
     get_default_hand_landmarks_style=get_default_hand_landmarks_style,
     get_default_hand_connections_style=get_default_hand_connections_style,
     get_default_face_mesh_tesselation_style=get_default_face_mesh_tesselation_style,
@@ -1236,7 +1236,7 @@ drawing_styles = _module(
 
 solutions = _module(
     "mediapipe.solutions",
-    "MediaPipe Solutions(레거시 API 모양의 사이트 흉내): hands·face_mesh·face_detection·pose·drawing_utils·drawing_styles.",
+    "MediaPipe Solutions(레거시 API 모양의 사이트 모듈): hands·face_mesh·face_detection·pose·drawing_utils·drawing_styles.",
     hands=hands,
     face_mesh=face_mesh,
     face_detection=face_detection,

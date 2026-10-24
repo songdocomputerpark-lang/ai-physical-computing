@@ -127,7 +127,7 @@ def install_deferred() -> list[str]:
         if _install_one(module_name, shim_name):
             installed.append(module_name)
         for name, reason in _last_failures[before:]:
-            apc_runtime.notice(f"사이트 흉내 모듈({name})을 준비하지 못했어요({reason}). 실행은 이어서 해요.", "warn")
+            apc_runtime.notice(f"사이트가 대신하는 모듈({name})을 준비하지 못했어요({reason}). 실행은 이어서 해요.", "warn")
     apc_runtime.set_deferred_shims(_deferred)
     return installed
 

@@ -18,7 +18,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'serial-pc',
-  title: '컴퓨터 쪽 시리얼(pyserial 흉내)',
+  title: '컴퓨터 쪽 시리얼(pyserial)',
   labs: ['vision'],
   shims: {},
   packages: [],

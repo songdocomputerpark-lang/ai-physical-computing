@@ -239,7 +239,7 @@ describe('정지·다시 시작', () => {
       ['ValueError', 'Timer(0).init(period=0)', 'ValueError: Timer period is too short for this timer', 'board-timer-period'],
       ['OverflowError', 'time.ticks_add(0, 2**29)', 'OverflowError: ticks interval overflow', 'board-ticks-overflow'],
       ['ImportError', 'from machine import PWM', 'ImportError: machine.PWM은(는) 가상 보드에 아직 없어요(실물 ESP32에는 있어요).', 'board-not-emulated'],
-      ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth' (가상 보드의 블루투스는 아직 흉내 내지 않아요)", 'board-not-emulated'],
+      ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth' (가상 보드의 블루투스는 아직 쓸 수 없어요)", 'board-not-emulated'],
       // 영상 처리 실습실(보드 흉내 없음)의 import machine은 예전처럼 "실습실을 옮기세요" 풀이
       ['ModuleNotFoundError', 'import machine', "ModuleNotFoundError: No module named 'machine'", 'module-not-found-site'],
       // 보드와 상관없는 ValueError는 원래 풀이
@@ -255,7 +255,7 @@ describe('정지·다시 시작', () => {
     expect(timer?.fix.join('\n')).toContain('3번째 줄');
   });
 
-  it('통신 오류(Phase 4): 흉내 모듈이 내는 문구마다 통신 묶음의 맞는 풀이가 붙는다', () => {
+  it('통신 오류(Phase 4): 사이트 모듈이 내는 문구마다 통신 묶음의 맞는 풀이가 붙는다', () => {
     const trace = (line: number, code: string, last: string, inner = '/apc/serial.py') =>
       ['Traceback (most recent call last):', `  File "main.py", line ${line}, in <module>`, `    ${code}`, `  File "${inner}", line 90, in open`, '    raise error', last].join('\n');
     const cases: [string, string, string, string][] = [
@@ -267,7 +267,7 @@ describe('정지·다시 시작', () => {
       ['ModuleNotFoundError', 'import bridge', "ModuleNotFoundError: No module named 'bridge' (bridge는 컴퓨터(영상 처리 실습실)에서 쓰는 사이트 모듈이라 ESP32 보드에는 없어요.)", 'comm-bridge-on-board'],
       // 흉내가 붙지 않은 실습실의 컴퓨터 쪽 모듈
       ['ModuleNotFoundError', 'import bluetooth', "ModuleNotFoundError: No module named 'bluetooth'", 'comm-pc-module-not-yet'],
-      // 가상 BLE(P4-03): 연결 없이 알림 / 흉내 내지 않는 함수
+      // 가상 BLE(P4-03): 연결 없이 알림 / 아직 없는 함수
       ['OSError', 'ble.send("COUNT,1")', 'OSError: [Errno 128] ENOTCONN', 'comm-ble-not-connected'],
       ['AttributeError', 'bluetooth.BLE().gap_scan(2000)', "AttributeError: 'BLE' object has no attribute 'gap_scan' (가상 보드의 블루투스는 …)", 'comm-ble-not-supported'],
       // MQTT(P4-06·P4-10)

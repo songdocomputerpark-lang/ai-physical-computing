@@ -50,7 +50,7 @@ test.describe('영상 처리 실습실(가짜 카메라)', () => {
     await expect(page.locator('canvas[data-vision-window="edges"]')).toBeVisible();
     await expect(labRoot(page)).toHaveAttribute('data-vision-input-state', 'open');
     expect(leaked).toEqual([]);
-    // 실행 준비(reset_for_run)가 동기 진입점에서 양보를 시도하면 "흉내 모듈 초기화 중 오류 … Cannot stack switch"가 콘솔에 남는다
+    // 실행 준비(reset_for_run)가 동기 진입점에서 양보를 시도하면 "사이트 모듈 초기화 중 오류 … Cannot stack switch"가 콘솔에 남는다
     // (2026-09-16 실사이트 첫 실행에서 발견해 고침). 콘솔에 그런 알림이 없어야 한다.
     await expect(page.locator('[data-lab-console]')).not.toContainText('초기화 중 오류');
     await expect(page.locator('[data-lab-console]')).not.toContainText('Cannot stack switch');

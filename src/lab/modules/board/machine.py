@@ -193,7 +193,7 @@ class Pin:
             if wake is not None and trigger in (apc_board.WAKE_LOW, apc_board.WAKE_HIGH):
                 apc_board.BOARD.warn_once(
                     ("wake", self._apc_gpio),
-                    "가상 보드는 잠자기(deepsleep·lightsleep)에서 핀으로 깨우는 기능(wake)을 흉내 내지 않아요. 실물 보드에서 확인해요.",
+                    "가상 보드에는 잠자기(deepsleep·lightsleep)에서 핀으로 깨우는 기능(wake)이 아직 없어요. 실물 보드에서 확인해요.",
                 )
                 apc_board.BOARD.set_irq(self._apc_gpio, None, 0, wake)
             else:

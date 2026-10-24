@@ -271,7 +271,7 @@ class Mp3Module:
             self.ignored += 1
             self._set_issue(
                 "unsupported",
-                f"명령 0x{cmd:02X}은(는) 가상 MP3 모듈이 흉내 내지 않아요(자료마다 뜻이 달라요). 실물 모듈에서 확인해요.",
+                f"명령 0x{cmd:02X}은(는) 가상 MP3 모듈에 아직 없어요(자료마다 뜻이 달라요). 실물 모듈에서 확인해요.",
             )
             return
         if self.status == "sleep" and cmd not in (0x0B, 0x0C, 0x43, 0x44):

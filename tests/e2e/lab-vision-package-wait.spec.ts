@@ -88,7 +88,7 @@ test.describe('영상 처리 실습실 — 패키지를 받는 동안의 [실행
     await expect(root).toHaveAttribute('data-vision-package-wait', 'no');
     await expect(root).toHaveAttribute('data-vision-packages', 'ready', { timeout: PACKAGES_TIMEOUT });
     await expect(consoleBox).not.toContainText('Loading');
-    await expect(consoleBox).not.toContainText('흉내 모듈');
+    await expect(consoleBox).not.toContainText('대신하는 모듈');
 
     // 다 받은 뒤에는 cv2도 그대로(흉내가 설치돼 창 함수가 사이트 것)
     await runCode(page, "import cv2\nprint('cv2', cv2.__version__, cv2.imshow.__module__)\n");

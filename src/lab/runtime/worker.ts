@@ -293,7 +293,7 @@ function installShims(): void {
     failures = (result?.toJs() as string[][] | undefined) ?? [];
     result?.destroy();
   } catch (error) {
-    post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈을 준비하지 못했어요(${lastErrorLine(error)}). 실행은 이어서 해요.` });
+    post({ type: 'notice', level: 'warn', text: `사이트가 대신하는 모듈을 준비하지 못했어요(${lastErrorLine(error)}). 실행은 이어서 해요.` });
     return;
   }
   if (failures.length === 0 || packageLoads?.busy() === true) {
@@ -301,7 +301,7 @@ function installShims(): void {
   }
   const names = failures.map(([name]) => name).join(', ');
   const reasons = failures.map(([, reason]) => reason).join(' / ');
-  post({ type: 'notice', level: 'warn', text: `사이트 흉내 모듈(${names})을 준비하지 못했어요(${reasons}). 실행은 이어서 해요.` });
+  post({ type: 'notice', level: 'warn', text: `사이트가 대신하는 모듈(${names})을 준비하지 못했어요(${reasons}). 실행은 이어서 해요.` });
 }
 
 /**
@@ -428,7 +428,7 @@ async function load(message: LoadMessage): Promise<void> {
     try {
       pyodide.runPython(`import json, apc_shims\napc_shims.register_shims(json.loads(${JSON.stringify(JSON.stringify(shimTable))}))`);
     } catch (error) {
-      post({ type: 'notice', level: 'warn', text: `흉내 모듈 표를 등록하지 못했어요: ${describeError(error)}` });
+      post({ type: 'notice', level: 'warn', text: `사이트가 대신하는 모듈 표를 등록하지 못했어요: ${describeError(error)}` });
     }
   }
 

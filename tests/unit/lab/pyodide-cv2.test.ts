@@ -120,7 +120,7 @@ describe.runIf(pyodideInstalled && nodeHasJspi)('Node.js의 실제 Pyodide + ope
       expect(out.steps.window_closed.value).toBe(0); // 실행 중에 화면에서 창을 닫으면 0.0
       expect(out.steps.stale_keys_cleared.value).toBe(-1); // 실행 전에 들어온 키는 reset_for_run이 비운다
       // 초기화 함수는 동기 진입점(runPython)에서 양보를 시도하지 않는다 — 시도하면 "Cannot stack switch" 오류가 알림으로 새어 나온다(2026-09-16 실사이트에서 발견).
-      expect(out.notices.filter((text) => text.includes('흉내 모듈 초기화 중 오류'))).toEqual([]);
+      expect(out.notices.filter((text) => text.includes('사이트 모듈 초기화 중 오류'))).toEqual([]);
       expect(out.steps.waitkey_queue.value).toEqual([27, 100, -1, -1]);
       expect(out.steps.waitkey_zero_stops.errorType).toBe('KeyboardInterrupt');
       expect(out.steps.waitkey_zero_stops.stopped).toBe(true);

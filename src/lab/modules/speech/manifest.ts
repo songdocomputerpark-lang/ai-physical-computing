@@ -11,7 +11,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'speech',
-  title: '말을 글로 바꾸기(speech_recognition 흉내)',
+  title: '말을 글로 바꾸기(speech_recognition)',
   labs: ['vision'],
   shims: {},
   packages: [],

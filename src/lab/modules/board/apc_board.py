@@ -1691,7 +1691,7 @@ def not_yet_module_message(name, shown=None):
     if NOT_YET_MODULES.get(name) == "firmware" or name in FIRMWARE_ONLY_MODULES:
         return (
             f"No module named '{label}' (가상 보드에 아직 없어요 — 실물 ESP32 펌웨어에는 들어 있는 모듈이에요. "
-            "지금 판의 가상 보드는 이 모듈을 흉내 내지 않아요 — 실물 보드에서 확인해요.)"
+            "이 모듈은 지금 판의 가상 보드에 들어 있지 않아요 — 실물 보드에서 확인해요.)"
         )
     return (
         f"No module named '{label}' (가상 보드에 아직 없어요 — 사이트가 주는 부품 라이브러리 {name}.py를 가상 보드가 찾지 못했어요. "
@@ -1712,7 +1712,7 @@ def _bluetooth_placeholder(name):
     # 오류 사전이 찾는 글이라 그대로 둔다.
     def factory():
         raise ModuleNotFoundError(
-            f"No module named '{name}' (가상 보드의 블루투스는 아직 흉내 내지 않아요 — 지금 판의 가상 보드에서 블루투스 확장을 불러오지 못했어요. "
+            f"No module named '{name}' (가상 보드의 블루투스는 아직 쓸 수 없어요 — 지금 판의 가상 보드에서 블루투스 확장을 불러오지 못했어요. "
             "실물 ESP32에는 있는 모듈이에요 — 실물 보드에서 확인해요.)",
             name=name,
         )
@@ -1726,7 +1726,7 @@ def _network_placeholder(name):
 
     def factory():
         raise ModuleNotFoundError(
-            f"No module named '{name}' (가상 보드의 와이파이는 아직 흉내 내지 않아요 — 지금 판의 가상 보드에서 와이파이 확장을 불러오지 못했어요. "
+            f"No module named '{name}' (가상 보드의 와이파이는 아직 쓸 수 없어요 — 지금 판의 가상 보드에서 와이파이 확장을 불러오지 못했어요. "
             "실물 ESP32에는 있는 모듈이에요 — 실물 보드에서 확인해요.)",
             name=name,
         )

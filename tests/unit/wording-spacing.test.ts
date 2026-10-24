@@ -57,21 +57,22 @@ describe('낱말 띄어쓰기 통일(R2-038)', () => {
   });
 });
 
+/** YAML·JSON에서 읽은 값 속의 글(문자열)을 모두 모은다 — 키(이름)는 보지 않고 값만 본다 */
+function stringsOf(value: unknown, found: string[] = []): string[] {
+  if (typeof value === 'string') {
+    found.push(value);
+  } else if (Array.isArray(value)) {
+    value.forEach((item) => stringsOf(item, found));
+  } else if (value !== null && typeof value === 'object') {
+    Object.values(value).forEach((item) => stringsOf(item, found));
+  }
+  return found;
+}
+
 // 키트 글의 개발자 낱말(판 1.7.0 구역 Z4, 미해결 266) — 키트 장치 도감·실습실 안내에서 학생이 읽는 글에 사이트 만드는 사람의 말("흉내"·machine.time_pulse_us)을 쓰지 않는다.
 // 가상 보드에 없는 것은 "…가 가상 보드에 아직 없어서"로 쓴다. 데이터(YAML)는 주석을 빼고 값만 본다 — 코드 주석의 "흉내 모듈"은 개발 문서의 이름이라 그대로다.
 describe('키트 글의 개발자 낱말(Z4, 미해결 266)', () => {
   const KIT_DEVELOPER_WORDS = /흉내|time_pulse_us/u;
-
-  function stringsOf(value: unknown, found: string[] = []): string[] {
-    if (typeof value === 'string') {
-      found.push(value);
-    } else if (Array.isArray(value)) {
-      value.forEach((item) => stringsOf(item, found));
-    } else if (value !== null && typeof value === 'object') {
-      Object.values(value).forEach((item) => stringsOf(item, found));
-    }
-    return found;
-  }
 
   it('키트 장치 목록·분류 표·예제 사이드카의 글에 "흉내"·time_pulse_us가 없다', async () => {
     const { parse } = await import('yaml');
@@ -101,6 +102,18 @@ describe('키트 글의 개발자 낱말(Z4, 미해결 266)', () => {
     expect(lab).toContain('교과서 실습은 보드 없이 가상 보드로 끝까지, 키트의 일부 센서 예제는 실제 보드가 필요해요');
     // 옛 첫 줄("보드가 없어도 가상 보드로 해요.")은 바로 아래 "이 예제는 실제 보드가 필요해요" 상자와 맞부딪쳤다
     expect(lab).not.toContain('보드가 없어도 가상 보드로 해요.');
+  });
+});
+
+// 오류 사전의 개발자 낱말(미해결 283) — 학생이 읽는 오류 풀이(제목·뜻·원인·고치는 법·예시 오류 문구)에 사이트 만드는 사람의 말 "흉내"를 쓰지 않는다.
+// 없는 것은 "…가 가상 보드에 아직 없어요", 사이트가 대신하는 것은 "같은 이름·같은 사용법으로 대신 움직이는 사이트 모듈"로 쓴다.
+// 사전이 알아보는 콘솔 문구(patterns)와 파이썬이 내는 문구는 짝이라 함께 고친다(board-not-emulated 등). 코드 주석의 "흉내 모듈"은 개발 문서의 이름이라 그대로다.
+describe('오류 사전의 개발자 낱말(미해결 283)', () => {
+  it('content/help/errors/errors.yaml의 모든 값에 "흉내"가 없다', async () => {
+    const { parse } = await import('yaml');
+    const texts = stringsOf(parse(fs.readFileSync('content/help/errors/errors.yaml', 'utf8')));
+    expect(texts.length).toBeGreaterThan(500); // 사전을 못 읽어 빈 채로 통과하는 일을 막는다
+    expect(texts.filter((text) => text.includes('흉내'))).toEqual([]);
   });
 });
 
@@ -154,6 +167,10 @@ describe('쉬운 말·낡은 문장(R6)', () => {
   it('선생님 FAQ·자료실에 "원고가 자료에 없어요"·"앞으로 올라올 자료: 교과서 1단원 03" 같은 낡은 안내가 없다(B-49)', () => {
     expect(seen(/원고가 자료에 없어요/u)).toEqual([]);
     expect(seen(/교과서 1단원 03, 04와 4단원 원고/u)).toEqual([]);
+  });
+
+  it('가상 보드 칸 아래 안내도 보드 문장 한 벌(C217)이다 — "보드가 없어도 모든 실습을 할 수 있어요"는 키트의 실제 보드 전용 예제와 어긋난다(미해결 289)', () => {
+    expect(seen(/보드가 없어도 모든 실습/u)).toEqual([]);
   });
 
   it('휴대폰 안내 띠는 "읽기는 휴대폰도 돼요 · 실습은 컴퓨터(크롬·엣지)에서 해요"이다 — "읽기가 가장 잘 돼요"는 쓰지 않는다(A-16)', () => {

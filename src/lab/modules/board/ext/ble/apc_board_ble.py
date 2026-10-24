@@ -611,7 +611,7 @@ class BLE:
             apc_board.BOARD.warn_once(
                 ("ble-notify-truncated", str(value.handle)),
                 f"보드가 보낸 값이 {len(payload)}바이트여서 앞 {limit}바이트만 갔어요. 블루투스 알림은 한 번에 "
-                f"MTU({RADIO.mtu})에서 3을 뺀 만큼만 보낼 수 있어요. 가상 보드는 기본 MTU {RADIO.mtu}로 흉내 내요 — "
+                f"MTU({RADIO.mtu})에서 3을 뺀 만큼만 보낼 수 있어요. 가상 보드의 MTU는 기본으로 {RADIO.mtu}예요 — "
                 "실물은 연결할 때 컴퓨터·스마트폰과 MTU를 더 크게 정하면 잘리지 않을 수 있어요.",
             )
             payload = payload[:limit]
@@ -632,7 +632,7 @@ class BLE:
 
     def __getattr__(self, name):
         raise AttributeError(
-            f"'BLE' object has no attribute '{name}' (가상 보드의 블루투스는 주변기기(광고·연결 받기·특성 읽고 쓰기)만 흉내 내요. "
+            f"'BLE' object has no attribute '{name}' (가상 보드의 블루투스에는 주변기기(광고·연결 받기·특성 읽고 쓰기)만 있어요. "
             "스캔·페어링·중앙 장치 역할은 아직 없어요.)"
         )
 

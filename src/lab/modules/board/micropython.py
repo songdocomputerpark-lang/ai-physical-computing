@@ -59,7 +59,7 @@ def schedule(function, arg):
 
 
 def _memory_notice():
-    apc_runtime.notice("가상 보드는 보드 메모리를 흉내 내지 않아요. 실물 ESP32의 메모리 정보는 실물 보드에서 확인해요.")
+    apc_runtime.notice("가상 보드에는 보드 메모리 정보가 없어요. 실물 ESP32의 메모리 정보는 실물 보드에서 확인해요.")
 
 
 def mem_info(*args):

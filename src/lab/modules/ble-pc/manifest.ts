@@ -22,7 +22,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'ble-pc',
-  title: '컴퓨터 쪽 블루투스(bluetooth 흉내)',
+  title: '컴퓨터 쪽 블루투스(bluetooth)',
   labs: ['vision'],
   shims: {},
   packages: [],

@@ -159,5 +159,5 @@ class SSD1306_SPI(SSD1306):
 
     def __init__(self, width, height, spi, dc, res, cs, external_vcc=False):
         raise NotImplementedError(
-            "가상 보드는 SPI로 잇는 OLED(SSD1306_SPI)를 흉내 내지 않아요. 교과서 키트의 OLED는 I2C라 SSD1306_I2C(128, 64, i2c)를 써요. SPI 연결은 실물 보드에서 확인해요."
+            "가상 보드에는 SPI로 잇는 OLED(SSD1306_SPI)가 아직 없어요. 교과서 키트의 OLED는 I2C라 SSD1306_I2C(128, 64, i2c)를 써요. SPI 연결은 실물 보드에서 확인해요."
         )

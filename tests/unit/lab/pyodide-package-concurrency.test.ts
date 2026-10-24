@@ -172,7 +172,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('패키지를 받는 동안�
     expect(out.marks.some(([, text]) => /^guard-released numpy loaded=.*numpy/u.test(text))).toBe(true);
     // 기다린 자리가 apc_mediapipe 자신의 import 도중이었어도 흉내 설치 실패 알림이 없다(판 1.2.0 통합 — 덜 만들어진 모듈의 install()을
     // 부르지 않고 맨 바깥 import가 끝난 뒤 설치, apc_shims._initializing·apc_runtime._retry_deferred)
-    expect(helperNp.posted.filter((message) => message.type === 'notice' && /흉내 모듈/u.test(message.text ?? ''))).toEqual([]);
+    expect(helperNp.posted.filter((message) => message.type === 'notice' && /대신하는 모듈/u.test(message.text ?? ''))).toEqual([]);
     // 미뤄 둔 mediapipe 흉내는 numpy를 다 받은 뒤 설치되어 np가 None이 아니고(대조와 반대) install()이 불렸다
     expect(out.mediapipeAfterWait).toEqual([true, true, true]);
 

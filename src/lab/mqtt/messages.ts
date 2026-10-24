@@ -89,7 +89,7 @@ export const mqttText = {
       return '공개 중계 서버(MQTT)';
     }
     if (via === 'tab') {
-      return '같은 컴퓨터 탭(MQTT 흉내)';
+      return '같은 컴퓨터 탭(MQTT 방식)';
     }
     return 'MQTT';
   },

@@ -468,9 +468,9 @@ class UART:
                 raise ValueError("invalid flow control mask")
             self._flow = flow
         if self._invert:
-            self._warn_once("invert", "가상 보드는 UART 선 반전(invert)을 흉내 내지 않아요. 실물 보드에서 확인해요.")
+            self._warn_once("invert", "가상 보드에는 UART 선 반전(invert)이 아직 없어요. 실물 보드에서 확인해요.")
         if self._flow:
-            self._warn_once("flow", "가상 보드는 하드웨어 흐름 제어(RTS·CTS)를 흉내 내지 않아요. 실물 보드에서 확인해요.")
+            self._warn_once("flow", "가상 보드에는 하드웨어 흐름 제어(RTS·CTS)가 아직 없어요. 실물 보드에서 확인해요.")
         # 설정을 바꾸면 전에 받은 바이트를 버린다(uart_flush_input)
         self._rx_queue = []
         self._connect_pins()
@@ -671,7 +671,7 @@ class UART:
         if self._is_repl():
             self._warn_once(
                 "repl-read",
-                "UART0은 USB로 컴퓨터와 이어진 REPL 통로라 가상 보드에서는 읽기를 흉내 내지 않아요. 컴퓨터에서 글자를 받으려면 input()을 써요.",
+                "UART0은 USB로 컴퓨터와 이어진 REPL 통로라 가상 보드에서는 읽을 수 없어요. 컴퓨터에서 글자를 받으려면 input()을 써요.",
             )
             return None
         if not self._wait_arrival(self._timeout):

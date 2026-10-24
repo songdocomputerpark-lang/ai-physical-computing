@@ -16,6 +16,7 @@ import { BOOK_ID_PATTERN, EXAMPLE_FILE_PATTERN, type BookData } from '../../conf
 import { BOOK_BOX_VARIANTS, BOOK_CIRCUIT_ID_PATTERN } from '../../lib/remark-boxes.mjs';
 import { childElements, findAll, hasClass, parseHtml, textContent, type HtmlElement } from '../lesson/html-tree.ts';
 import { imageAltIssues, markdownTrapIssues } from '../lesson/lesson-rules.ts';
+import { particle } from '../../lib/korean.ts';
 import { bookKindOf, bookPageList, lessonMatchesBook, parseBookPages, type BookKind } from './book-data.ts';
 
 export type BookRuleLevel = 'error' | 'warning';
@@ -222,26 +223,29 @@ function boxIssues(tree: HtmlElement): BookRuleIssue[] {
   return issues;
 }
 
-/** ## 번호 제목("1 장치 이해") · ## 기본 실습 | 제목 · ## 심화 실습 | 제목 · ## 학습 목표 */
+/** ## 번호 제목("1 장치 이해") · ## 기본 실습 | 제목 · ## 심화 실습 | 제목 · ## 학습 목표 — 절·대단원 마무리 쪽만(머리말·단원 여는 쪽은 출판본 제목이 자유 모양이라 보지 않는다) */
 const H2_PATTERNS = [/^학습 목표$/u, /^\d+ \S.*$/u, /^(?:기본|심화) 실습 \| \S.*$/u];
 const H3_PATTERNS = [/^단계 \d+ \| \S.*$/u];
 
-function headingIssues(tree: HtmlElement): BookRuleIssue[] {
+function headingIssues(kind: BookKind, tree: HtmlElement): BookRuleIssue[] {
   const issues: BookRuleIssue[] = [];
   const text = (element: HtmlElement) => textContent(element).normalize('NFC').replace(/\s+/gu, ' ').trim();
   for (const element of findAll(tree, (candidate) => candidate.tag === 'h1')) {
     issues.push(issue('error', 'heading-h1', `본문에 # 제목(h1)이 있어요("${text(element)}"). 쪽 제목은 frontmatter title이 맡으니 절 안의 큰 제목은 ##, 단계는 ###로 적어요.`));
   }
+  if (kind === 'front' || kind === 'intro') {
+    return issues;
+  }
   for (const element of findAll(tree, (candidate) => candidate.tag === 'h2')) {
     if (!H2_PATTERNS.some((pattern) => pattern.test(text(element)))) {
       issues.push(
-        issue('warning', 'book-heading', `## "${text(element)}"는 출판본 제목 모양이 아니에요. ## 학습 목표 · ## 1 장치 이해(번호 + 띄어쓰기 + 제목) · ## 기본 실습 | 제목 · ## 심화 실습 | 제목 가운데 하나로 적어요.`),
+        issue('warning', 'book-heading', `## "${text(element)}"${particle(text(element), '은/는')} 출판본 제목 모양이 아니에요. ## 학습 목표 · ## 1 장치 이해(번호 + 띄어쓰기 + 제목) · ## 기본 실습 | 제목 · ## 심화 실습 | 제목 가운데 하나로 적어요.`),
       );
     }
   }
   for (const element of findAll(tree, (candidate) => candidate.tag === 'h3')) {
     if (!H3_PATTERNS.some((pattern) => pattern.test(text(element)))) {
-      issues.push(issue('warning', 'book-heading', `### "${text(element)}"는 단계 제목 모양이 아니에요. ### 단계 1 | 제목 처럼 적어요.`));
+      issues.push(issue('warning', 'book-heading', `### "${text(element)}"${particle(text(element), '은/는')} 단계 제목 모양이 아니에요. ### 단계 1 | 제목 처럼 적어요.`));
     }
   }
   return issues;
@@ -284,7 +288,7 @@ export function bookBodyIssues(input: BookRuleInput): BookRuleIssue[] {
   const tree = parseHtml(html);
   const trap = markdownTrapIssues(html).map((found) => issue(found.level, found.code, found.message));
   const alt = imageAltIssues(html).map((found) => issue(found.level, found.code, found.message));
-  return [...pageMarkIssues(html, data, tree), ...goalIssues(bookKindOf(id), tree), ...boxIssues(tree), ...headingIssues(tree), ...labIssues(tree), ...circuitIssues(tree), ...alt, ...trap];
+  return [...pageMarkIssues(html, data, tree), ...goalIssues(bookKindOf(id), tree), ...boxIssues(tree), ...headingIssues(bookKindOf(id), tree), ...labIssues(tree), ...circuitIssues(tree), ...alt, ...trap];
 }
 
 /** 쪽 한 편의 규칙 문제를 모두 돌려준다(파일을 열지 않는 규칙만). 빌드는 경고로, check:book은 error를 실패로 다룬다 */

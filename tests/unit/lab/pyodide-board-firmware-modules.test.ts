@@ -29,7 +29,7 @@ function entryIdOf(record: BoardStepRecord, code: string): string | undefined {
 describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — 펌웨어에 굳힌 모듈 import(실제 Pyodide, JSPI)', () => {
   const out = runBoardSteps('tests/unit/lab/helpers/board-steps/firmware-modules.mjs');
 
-  it('흉내 내지 않는 펌웨어 모듈은 "가상 보드에 아직 없어요 — 펌웨어에는 들어 있어요" 안내가 든 ModuleNotFoundError', () => {
+  it('가상 보드에 없는 펌웨어 모듈은 "가상 보드에 아직 없어요 — 펌웨어에는 들어 있어요" 안내가 든 ModuleNotFoundError', () => {
     for (const name of [...FIRMWARE_MODULE_NAMES, 'requests', 'ssl']) {
       const record = stepOf(out, `import_${name}`);
       expect(record.errorType, name).toBe('ModuleNotFoundError');

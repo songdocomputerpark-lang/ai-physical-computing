@@ -118,7 +118,7 @@ describe.skipIf(!boardPyodideReady)('OLED — framebuf·드라이버 흉내·SSD
     expect(record.value).toEqual([[255, 1, 0x17, 2, true], 64, [0xaa, 0xf0, 0xaa], 0, [17, 7]]);
   });
 
-  it('OLED가 없거나 주소가 다르면 드라이버를 만들 때 ENODEV + 한국어 안내, SPI OLED는 한국어로 흉내 내지 않는다고 알린다', () => {
+  it('OLED가 없거나 주소가 다르면 드라이버를 만들 때 ENODEV + 한국어 안내, SPI OLED는 가상 보드에 아직 없다고 한국어로 알린다', () => {
     const missing = stepOf(out, 'no_oled');
     expect(missing.errorType).toBe('OSError');
     expect(missing.errorMessage).toBe('OSError: [Errno 19] ENODEV');

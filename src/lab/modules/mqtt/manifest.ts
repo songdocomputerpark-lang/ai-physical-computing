@@ -14,7 +14,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'mqtt',
-  title: 'MQTT 통신(network·umqtt.simple 흉내)',
+  title: 'MQTT 통신(network·umqtt.simple)',
   labs: ['esp32'],
   shims: {},
   packages: [],

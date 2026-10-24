@@ -350,7 +350,7 @@ def _run_tick_hooks() -> None:
             except KeyboardInterrupt:
                 raise
             except Exception as error:  # 한 모듈의 훅 오류가 실행을 막지 않게 한다.
-                notice(f"흉내 모듈 훅 오류: {type(error).__name__}: {error}", "warn")
+                notice(f"사이트 모듈 훅 오류: {type(error).__name__}: {error}", "warn")
     finally:
         _in_tick_hooks = False
 
@@ -376,7 +376,7 @@ def _run_wait_hooks() -> None:
             except KeyboardInterrupt:
                 raise
             except Exception as error:  # 한 모듈의 훅 오류가 기다리기를 막지 않게 한다.
-                notice(f"흉내 모듈 대기 전 훅 오류: {type(error).__name__}: {error}", "warn")
+                notice(f"사이트 모듈 대기 전 훅 오류: {type(error).__name__}: {error}", "warn")
     finally:
         _in_wait_hooks = False
 
@@ -406,7 +406,7 @@ def run_idle() -> None:
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception as error:  # noqa: BLE001 — 훅 하나의 오류로 실행 결과를 바꾸지 않는다
-                notice(f"흉내 모듈 대기 훅 오류: {type(error).__name__}: {error}", "warn")
+                notice(f"사이트 모듈 대기 훅 오류: {type(error).__name__}: {error}", "warn")
                 if hook in _idle_hooks:
                     _idle_hooks.remove(hook)
         if not busy:
@@ -647,7 +647,7 @@ def reset_for_run() -> None:
         try:
             hook()
         except Exception as error:  # 한 모듈의 초기화 실패가 실행을 막지 않게 한다.
-            notice(f"흉내 모듈 초기화 중 오류: {type(error).__name__}: {error}", "warn")
+            notice(f"사이트 모듈 초기화 중 오류: {type(error).__name__}: {error}", "warn")
 
 
 def install() -> None:

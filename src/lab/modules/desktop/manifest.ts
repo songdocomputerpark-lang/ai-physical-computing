@@ -22,7 +22,7 @@ import type { LabModuleManifest } from '../types.ts';
 
 const manifest: LabModuleManifest = {
   id: 'desktop',
-  title: '가상 데스크톱(pyautogui 흉내)',
+  title: '가상 데스크톱(pyautogui)',
   labs: ['vision'],
   shims: {},
   requestKinds: ['desktop.screenshot'],
