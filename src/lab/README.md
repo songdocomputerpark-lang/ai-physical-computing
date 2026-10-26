@@ -85,7 +85,7 @@ import cv2
 
 ## 3. 사이드카 — 원본에서 옮긴 예제의 제목·설명 `<이름>.meta.yaml`
 
-원본에서 옮긴 예제는 코드에 한 글자도 더하지 않으므로(줄 끝 CRLF → LF만), 제목·설명은 **같은 이름의 YAML 파일**에 적어요. 처음 한 번은 이관 도구(6절)가 만들고, 그 뒤로는 사람이 고쳐요(도구가 덮어쓰지 않아요). 한 예제 = 한 파일이라 여러 사람이 동시에 고쳐도 부딪히지 않아요.
+원본에서 옮긴 예제는 코드에 한 글자도 더하지 않으므로(줄 끝 CRLF → LF만), 제목·설명은 **같은 이름의 YAML 파일**에 적어요. 판 1.8.0에서 최신 판 라이브러리에 맞게 다시 쓴 예제(6절 `rewritten`)도 같은 이름·같은 사이드카를 그대로 써요. 처음 한 번은 이관 도구(6절)가 만들고, 그 뒤로는 사람이 고쳐요(도구가 덮어쓰지 않아요). 한 예제 = 한 파일이라 여러 사람이 동시에 고쳐도 부딪히지 않아요.
 
 ```yaml
 # examples/vision/u1/1-2-1-webcam-flip.meta.yaml
@@ -156,7 +156,7 @@ src/lab/modules/hands/                 ← 폴더 이름 = 모듈 id(영문 소�
 import type { LabModuleManifest } from '../types.ts';
 const manifest: LabModuleManifest = {
   id: 'hands',                              // 폴더 이름과 같아야 함
-  title: '손 인식(mediapipe.solutions.hands 흉내)',
+  title: '손 인식(mediapipe Tasks API 흉내)',
   labs: ['vision'],                         // 붙는 실습실(LabShell labId). '*' = 모두. 개발 시험 페이지는 'dev'
   shims: { mediapipe: 'apc_mediapipe' },    // 학생이 import하는 패키지 → 이 폴더의 흉내 모듈(받아 둔 패키지가 있을 때만 install() 호출)
   packages: [],                             // 실습실이 준비될 때 미리 받을 Pyodide 패키지(선택)
@@ -580,6 +580,7 @@ npm run examples:verify              # 원본 없이 기록과 대조(sha256·�
 - 새 항목은 `scripts/examples-manifest.yaml`의 `examples:`에 `id`(CODE_MAPPING 코드 id)·`source`(zip 이름)·`member`(zip 안 경로)·`target`(`examples/…py`)·`author`(`operator` | `third_party`)·`meta`(사이드카 씨앗 — ESP32 예제는 배선 `parts`와 스모크 기대 `smoke`도 씨앗에 적으면 사이드카로 옮겨요)를 적고 스크립트를 돌려요. 다른 저작자 파일은 `third-party/` 폴더 아래로만(PD-26). 원본 결함으로 구문 오류가 나는 파일(f074)은 `expect_syntax_error: true`.
 - 구문 검사는 이 컴퓨터의 파이썬 3(`python`·`python3`·`py -3`)의 `ast.parse`로 하고, 없으면 Node의 가벼운 검사만 해요(기록에 `syntax_checker`로 남아요).
 - 옮긴 파일은 고치지 않아요. 사이트판 수정이 필요하면 파일을 따로 두고(PD-10) 차시 md·사이드카에 적어요.
+- **최신 판으로 다시 쓴 파일(판 1.8.0 — DECISIONS O22·C226):** 라이브러리 판이 바뀌어 원본 사용법이 더는 돌지 않는 예제(mediapipe 1.1.1의 Tasks API·sounddevice 녹음·bleak 3.0 — 49개)는 같은 파일 이름 그대로 다시 쓰고, 이관 목록 항목에 `rewritten { version, reason, lines, sha256 }`을 적어요: `node scripts/import-examples.mjs --rewritten f026 f029 --version 1.8.0 --reason "까닭"`(지금 파일의 줄 수·SHA-256을 적음 — 이미 있으면 그 둘만 고침). `examples:verify`는 그 기록과 대조하고, 이관(`examples:import`)은 그 파일을 원본으로 덮어쓰지 않고 건너뛰어요. 다시 쓴 파일의 사이드카 첫 줄 주석은 "이 코드 파일은 판 1.8.0에서 … 다시 썼어요".
 
 ---
 
