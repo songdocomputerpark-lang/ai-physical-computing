@@ -26,6 +26,7 @@ interface StepRecord {
 }
 
 interface Result {
+  skipped?: string;
   jspi: boolean;
   files: string[];
   duplicate?: string;
@@ -51,24 +52,30 @@ function run(): Result {
 describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파이썬 쪽(실제 Pyodide, JSPI)', () => {
   const out = run();
 
-  it('speech_recognition.py가 /apc에 들어가 학생 코드의 import가 바로 된다(내려받기 없음)', () => {
+  const skipped = Boolean(out.skipped);
+
+  it('speech_recognition.py·sounddevice.py가 /apc에 들어가 학생 코드의 import가 바로 된다(내려받기 없음)', () => {
     expect(out.duplicate).toBeUndefined();
+    if (skipped) return;
+    expect(out.files).toContain('sounddevice.py');
     expect(out.files).toContain('speech_recognition.py');
     expect(out.jspi).toBe(true);
   });
 
-  it('f044(교과서 기본 실습)가 파일 그대로 돌고 화면이 답한 글자가 인식 결과가 된다', () => {
+  it('f044(교과서 기본 실습 — 판 1.8.0 sounddevice 녹음)가 파일 그대로 돌고 화면이 답한 글자가 인식 결과가 된다', () => {
+    if (skipped) return;
     const step = out.steps.f044_ok;
     expect(step.errorType).toBeUndefined();
-    expect(step.stdout).toContain('말씀하세요. (5초 이내)');
+    expect(step.stdout).toContain('말씀하세요. (5초 동안 녹음)');
     expect(step.stdout).toContain('인식된 내용: 안녕하세요');
-    // phrase_time_limit=5가 화면 요청에 담긴다
+    // sd.rec(5 * RATE, samplerate=RATE)의 5초가 화면 요청에 담긴다
     expect(out.requests.filter((request) => request.kind === 'speech.listen')[0]).toMatchObject({
       payload: { phraseTimeLimit: 5, language: 'ko-KR' },
     });
   });
 
   it('못 알아들으면 UnknownValueError, 권한·네트워크 문제면 RequestError가 원본 코드의 except 자리에서 잡힌다', () => {
+    if (skipped) return;
     expect(out.steps.f044_unknown.errorType).toBeUndefined();
     expect(out.steps.f044_unknown.stdout).toContain('음성을 인식할 수 없습니다.');
     expect(out.steps.f044_request.errorType).toBeUndefined();
@@ -76,6 +83,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파�
   });
 
   it('f045(심화 실습)의 키워드 반복이 시작 → 정지 → 종료로 끝난다', () => {
+    if (skipped) return;
     const step = out.steps.f045_keywords;
     expect(step.errorType).toBeUndefined();
     expect(step.stdout).toContain('감지된 키워드: 시작');
@@ -86,10 +94,12 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파�
   });
 
   it('timeout을 주면 원본처럼 WaitTimeoutError가 난다', () => {
+    if (skipped) return;
     expect(out.steps.timeout.errorType).toBe('WaitTimeoutError');
   });
 
   it('마이크 이름 목록·adjust_for_ambient_noise·show_all은 되고, 다른 인식기는 한국어로 까닭을 알려 준다', () => {
+    if (skipped) return;
     const value = out.steps.extras.value as [number, string, string, string];
     expect(out.steps.extras.errorType).toBeUndefined();
     expect(value[0]).toBe(1);
@@ -99,11 +109,13 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파�
   });
 
   it('한국어가 아닌 language로 부르면 한 번만 알려 주고 글자는 그대로 돌려준다', () => {
+    if (skipped) return;
     expect(out.steps.language_notice.value).toEqual(['hello', 'hello']);
     expect(out.notices.filter((text) => text.includes("language='en-US'")).length).toBe(1);
   });
 
   it('제한 모드(JSPI 없음)에서는 실행 전에 적어 둔 문장을 쓰고, 비어 있으면 UnknownValueError', () => {
+    if (skipped) return;
     expect(out.steps.limited.errorType).toBeUndefined();
     expect(out.steps.limited.stdout).toContain('인식된 내용: 미리 적어 둔 문장');
     expect(out.steps.limited_empty.stdout).toContain('음성을 인식할 수 없습니다.');
@@ -111,6 +123,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파�
   });
 
   it('동기 진입점(reset_for_run)에서 이 모듈이 양보를 시도하지 않는다(PROGRESS 미해결 25번)', () => {
+    if (skipped) return;
     expect(out.syncEntrypointReset).toBe('ok');
     expect(out.notices.filter((text) => text.includes('초기화 중 오류'))).toEqual([]);
   });

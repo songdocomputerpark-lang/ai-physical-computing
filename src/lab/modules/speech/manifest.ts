@@ -6,6 +6,8 @@
  * 브라우저에서 아예 받을 수 없다 — CODE_MAPPING §3.5, 소켓 비작동 확인됨). 그래서 "받아 둔 진짜 패키지를 덮어쓰는" shims 방식 대신
  * 같은 폴더의 `speech_recognition.py`를 워커가 /apc(sys.path 맨 앞)에 넣어 **학생 코드의 `import speech_recognition as sr`가
  * 바로 이 파일을 불러오게** 한다. 그래서 내려받기 0바이트로 f044·f045가 그대로 돈다.
+ * 판 1.8.0: 토니 5.0(파이썬 3.14)에는 PyAudio가 없어 예제가 sounddevice로 녹음한다 — 같은 폴더의 `sounddevice.py`가 같은 방법으로
+ * `import sounddevice as sd`를 받는다(녹음 자리에서 음성 패널에 한 마디를 부탁, speech_recognition.py와 짝).
  */
 import type { LabModuleManifest } from '../types.ts';
 

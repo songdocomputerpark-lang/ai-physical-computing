@@ -11,7 +11,7 @@ UART_TX_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 class BLEUARTBridge:
     def __init__(self, address):
         self.address = address
-        self.client = BleakClient(address)
+        self.client = BleakClient(address, timeout=60)  # bleak 3: 연결 제한 시간(초)은 만들 때 넘겨요
         self.connected = False
         self.connection_event = threading.Event()
         self.loop = asyncio.new_event_loop()
@@ -31,7 +31,7 @@ class BLEUARTBridge:
 
     async def _connect(self):
         try:
-            await self.client.connect(timeout=60)
+            await self.client.connect()
             self.connected = True
             self.connection_event.set()
             print(f"Connected to {self.address}")

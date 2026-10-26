@@ -394,8 +394,8 @@ function mount(context: LabModuleContext): LabModuleHandle {
   };
   document.addEventListener(RECORDS_CLEARED_EVENT, onRecordsCleared);
 
-  // 패널은 코드가 speech_recognition을 쓸 때만 연다(영상 처리 첫 실습에는 필요 없다 — 2026-09-17 검토 반영).
-  const panelGate = showPanelWhenUsed(context, /\bspeech_recognition\b|\bsr\s*\.\s*Recognizer\b/u);
+  // 패널은 코드가 speech_recognition·sounddevice(판 1.8.0 — 파이썬 3.14용 녹음)를 쓸 때만 연다(영상 처리 첫 실습에는 필요 없다 — 2026-09-17 검토 반영).
+  const panelGate = showPanelWhenUsed(context, /\bspeech_recognition\b|\bsounddevice\b|\bsr\s*\.\s*Recognizer\b/u);
 
   context.onRequest('speech.listen', (request) => {
     panelGate.show();

@@ -29,14 +29,18 @@ describe('speech 모듈 manifest', () => {
   });
 
   it('폴더에 manifest.ts·index.ts·panel.astro와 파이썬 모듈이 있다', () => {
-    for (const file of ['manifest.ts', 'index.ts', 'panel.astro', 'speech_recognition.py', 'settings.ts', 'web-speech.ts']) {
+    for (const file of ['manifest.ts', 'index.ts', 'panel.astro', 'speech_recognition.py', 'sounddevice.py', 'settings.ts', 'web-speech.ts']) {
       expect(fs.existsSync(path.join(MODULE_DIR, file)), file).toBe(true);
     }
   });
 
-  it('파이썬 파일 이름이 학생 코드의 import 이름과 같다(import speech_recognition as sr)', () => {
-    const pythonFiles = fs.readdirSync(MODULE_DIR).filter((file) => file.endsWith('.py'));
-    expect(pythonFiles).toEqual(['speech_recognition.py']);
+  it('파이썬 파일 이름이 학생 코드의 import 이름과 같다(import speech_recognition as sr · import sounddevice as sd)', () => {
+    const pythonFiles = fs.readdirSync(MODULE_DIR).filter((file) => file.endsWith('.py')).sort();
+    expect(pythonFiles).toEqual(['sounddevice.py', 'speech_recognition.py']);
+    const recorder = fs.readFileSync(path.join(MODULE_DIR, 'sounddevice.py'), 'utf8');
+    for (const name of ['def rec(', 'def wait(', 'import speech_recognition as _sr']) {
+      expect(recorder, name).toContain(name);
+    }
     const source = fs.readFileSync(path.join(MODULE_DIR, 'speech_recognition.py'), 'utf8');
     // 규약(4.4): apc_runtime의 함수만 쓰고 js·_apc_bridge를 직접 만지지 않는다.
     expect(source).not.toMatch(/^import js$/mu);
@@ -58,19 +62,22 @@ describe('speech 모듈 manifest', () => {
 describe('교과서 예제(f044·f045)', () => {
   const exampleDir = path.join(ROOT, 'examples', 'vision', 'u1');
 
-  it('두 예제가 있고 speech_recognition을 그대로 쓴다(원본 코드는 고치지 않는다 — PD-10)', () => {
+  it('두 예제가 있고 speech_recognition과 sounddevice 녹음을 쓴다(판 1.8.0 — 파이썬 3.14에는 PyAudio가 없어 sr.Microphone 대신)', () => {
     for (const name of ['1-4-3-speech-once.py', '1-4-3-adv-speech-keywords.py']) {
       const source = fs.readFileSync(path.join(exampleDir, name), 'utf8');
       expect(source, name).toContain('import speech_recognition as sr');
+      expect(source, name).toContain('import sounddevice as sd');
+      expect(source, name).toContain('sr.AudioData(recording.tobytes(), RATE, 2)');
       expect(source, name).toContain('recognize_google');
+      expect(source, name).not.toContain('sr.Microphone');
     }
   });
 
-  it('사이드카에 차시·설명이 있고 내려받을 패키지가 없다', () => {
+  it('사이드카에 차시·설명이 있고 녹음 배열에 쓰는 numpy만 미리 받는다', () => {
     for (const name of ['1-4-3-speech-once.meta.yaml', '1-4-3-adv-speech-keywords.meta.yaml']) {
       const text = fs.readFileSync(path.join(exampleDir, name), 'utf8');
       expect(text, name).toContain('lesson: 1-4-3');
-      expect(text, name).toMatch(/packages: \[\]/u);
+      expect(text, name).toMatch(/packages: \[numpy\]/u);
       expect(text, name).toContain('말');
     }
   });

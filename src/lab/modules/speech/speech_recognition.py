@@ -18,6 +18,8 @@
 
 왜 흉내가 필요한가(CODE_MAPPING §3.5, 확인됨)
 - 진짜 라이브러리는 마이크 녹음에 PyAudio(네이티브)를, 인식에 HTTP 전송을 쓴다. 브라우저 안 파이썬(Pyodide)에는 둘 다 없다.
+- 판 1.8.0: 토니 5.0(파이썬 3.14)에는 PyAudio 설치 파일이 없어 사이트 예제는 sounddevice로 녹음해 `sr.AudioData(바이트, 16000, 2)`로 감싼다.
+  같은 폴더의 sounddevice.py가 그 녹음 자리를 맡고, 여기의 AudioData가 그 녹음의 글자를 이어받는다(아래 AudioData).
 - 브라우저의 음성 인식(Web Speech API)은 **창(window)에서만** 쓸 수 있어 워커에서 부를 수 없다.
   그래서 `listen()`은 apc_runtime.request('speech.listen')으로 화면에 부탁하고, 화면이 글자를 답한다.
 
@@ -55,6 +57,10 @@ EMPTY_TEXT_MESSAGE = "받은 문장이 없어요. '말 대신 적을 문장' 칸
 
 _notified_limited = False
 _notified_language = False
+_notified_play = False
+
+#: sounddevice.rec()가 받아 둔 마지막 한 마디(AudioData). sr.AudioData(바이트, …)가 이어받는다.
+_state = {"last_recording": None}
 
 
 class RequestError(Exception):
@@ -73,10 +79,27 @@ class AudioData:
     """`listen()`이 돌려주는 것. 원본은 소리 데이터를 담지만, 이 사이트는 화면이 알아들은 **글자**를 담는다.
 
     학생 코드는 이 값을 `recognize_google()`에 넘기기만 하므로 쓰는 법은 같다.
+    판 1.8.0: 원본처럼 `sr.AudioData(소리 바이트, 표본 빠르기, 칸 크기)`로도 만든다(sounddevice로 녹음한 경우 — 이때는
+    sounddevice.rec()가 받아 둔 "마지막 녹음"의 글자를 이어받는다).
     """
 
-    def __init__(self, text="", failure=None, message="", mode="text"):
-        self.text = str(text)
+    def __init__(self, frame_data=None, sample_rate=None, sample_width=None, *, text=None, failure=None, message="", mode="text"):
+        self.frame_data = frame_data if isinstance(frame_data, (bytes, bytearray)) else b""
+        if frame_data is not None and text is None and failure is None:
+            if not isinstance(frame_data, (bytes, bytearray)):
+                raise TypeError("AudioData의 첫 값은 녹음한 소리 바이트예요. 예: sr.AudioData(recording.tobytes(), 16000, 2)")
+            if not (isinstance(sample_rate, int) and sample_rate > 0):
+                raise AssertionError("Sample rate must be a positive integer")
+            if not (isinstance(sample_width, int) and 1 <= sample_width <= 4):
+                raise AssertionError("Sample width must be between 1 and 4 inclusive")
+            recorded = _state["last_recording"]
+            if recorded is None:
+                text, failure, message, mode = "", "unknown", "녹음한 소리가 없어요. 먼저 sd.rec(…)와 sd.wait()로 녹음해요.", "text"
+            else:
+                text, failure, message, mode = recorded.text, recorded.failure, recorded.message, recorded.mode
+        self.sample_rate = sample_rate if isinstance(sample_rate, int) else 16000
+        self.sample_width = sample_width if isinstance(sample_width, int) else 2
+        self.text = "" if text is None else str(text)
         #: None(성공) · "unknown"(못 알아들음) · "request"(권한·네트워크·미지원)
         self.failure = failure
         self.message = str(message)
@@ -129,6 +152,32 @@ def _notice_once(flag_name, text, level="info"):
     apc_runtime.notice(text, level)
 
 
+def _listen_once(phrase_time_limit=None, timeout=None):
+    """화면에 한 마디를 부탁해 AudioData로 받는다(listen()과 sounddevice.rec()가 함께 쓴다)."""
+    payload = {
+        "phraseTimeLimit": float(phrase_time_limit) if isinstance(phrase_time_limit, (int, float)) else None,
+        "timeout": float(timeout) if isinstance(timeout, (int, float)) else None,
+        "language": SITE_LANGUAGE,
+    }
+    if not apc_runtime.can_wait():
+        # 제한 모드(JSPI 없음): 기다릴 수 없으므로 실행 전에 적어 둔 문장을 쓴다(카메라의 camera.frame과 같은 방식).
+        _notice_once("_notified_limited", LIMITED_NOTICE, "warn")
+        text = apc_runtime.get(TEXT_VALUE, "")
+        text = "" if text is None else str(text).strip()
+        if text == "":
+            return AudioData(failure="unknown", message=EMPTY_TEXT_MESSAGE, mode="text")
+        return AudioData(text=text, mode="text")
+    return _audio_from_reply(apc_runtime.request(REQUEST_LISTEN, payload))
+
+
+def _record_for_sounddevice(seconds, sample_rate):
+    """sounddevice.rec()가 부른다: 한 마디를 받아 '마지막 녹음'으로 적어 둔다(sr.AudioData(바이트, …)가 이어받음)."""
+    audio = _listen_once(phrase_time_limit=seconds)
+    audio.sample_rate = sample_rate
+    _state["last_recording"] = audio
+    return audio
+
+
 def _audio_from_reply(reply):
     """화면이 답한 사전을 AudioData로 바꾼다."""
     if not isinstance(reply, dict):
@@ -164,20 +213,7 @@ class Recognizer:
         - phrase_time_limit: 음성으로 받을 때 최대 몇 초까지 들을지(글자 입력 방식에서는 재촉하지 않는다).
         - timeout: 이 시간 안에 말이 시작되지 않으면 원본처럼 WaitTimeoutError.
         """
-        payload = {
-            "phraseTimeLimit": float(phrase_time_limit) if isinstance(phrase_time_limit, (int, float)) else None,
-            "timeout": float(timeout) if isinstance(timeout, (int, float)) else None,
-            "language": SITE_LANGUAGE,
-        }
-        if not apc_runtime.can_wait():
-            # 제한 모드(JSPI 없음): 기다릴 수 없으므로 실행 전에 적어 둔 문장을 쓴다(카메라의 camera.frame과 같은 방식).
-            _notice_once("_notified_limited", LIMITED_NOTICE, "warn")
-            text = apc_runtime.get(TEXT_VALUE, "")
-            text = "" if text is None else str(text).strip()
-            if text == "":
-                return AudioData(failure="unknown", message=EMPTY_TEXT_MESSAGE, mode="text")
-            return AudioData(text=text, mode="text")
-        return _audio_from_reply(apc_runtime.request(REQUEST_LISTEN, payload))
+        return _listen_once(phrase_time_limit=phrase_time_limit, timeout=timeout)
 
     def listen_in_background(self, source, callback, phrase_time_limit=None):
         """원본은 따로 스레드를 돌린다. 브라우저 파이썬에는 스레드가 없어 쓸 수 없다."""
@@ -223,9 +259,11 @@ class Recognizer:
 
 def _reset():
     """실행이 시작될 때 안내 표시를 되돌린다(동기 진입점 — 양보하는 함수를 쓰지 않는다)."""
-    global _notified_limited, _notified_language
+    global _notified_limited, _notified_language, _notified_play
     _notified_limited = False
     _notified_language = False
+    _notified_play = False
+    _state["last_recording"] = None
 
 
 apc_runtime.register_reset_hook(_reset)

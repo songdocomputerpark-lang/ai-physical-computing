@@ -1,5 +1,8 @@
 # 라이브러리 불러오기
-import speech_recognition as sr  
+import sounddevice as sd         # 마이크로 소리 녹음
+import speech_recognition as sr  # 음성 인식
+
+RATE = 16000  # 1초에 소리를 16000번 기록 (녹음 품질)
 
 # 인식할 키워드 목록 정의
 KEYWORDS = ["시작", "정지", "종료"]
@@ -13,13 +16,14 @@ def recognize_and_control():
     r = sr.Recognizer()  # 음성 인식 도구 객체 생성
 
     # 마이크로부터 음성 입력받기
-    with sr.Microphone() as source:  # 마이크 장치 사용 준비
-        if not is_running:
-            print("프로그램을 시작하려면 '시작'이라고 말하세요.")  # 실행 전 안내 메시지 출력
-        else:
-            print("명령어를 말하세요. ('정지' 또는 '종료')")  # 실행 중일 때 안내 메시지 출력
+    if not is_running:
+        print("프로그램을 시작하려면 '시작'이라고 말하세요.")  # 실행 전 안내 메시지 출력
+    else:
+        print("명령어를 말하세요. ('정지' 또는 '종료')")  # 실행 중일 때 안내 메시지 출력
 
-        audio = r.listen(source, phrase_time_limit=5)  # 최대 5초간 음성 입력받기
+    recording = sd.rec(5 * RATE, samplerate=RATE, channels=1, dtype='int16')  # 5초 동안 녹음 시작
+    sd.wait()  # 녹음이 끝날 때까지 기다리기
+    audio = sr.AudioData(recording.tobytes(), RATE, 2)  # 녹음한 소리를 음성 인식 도구가 읽는 형식으로 감싸기
 
     try:
         text = r.recognize_google(audio, language='ko-KR')  # 입력된 음성을 한글 텍스트로 변환

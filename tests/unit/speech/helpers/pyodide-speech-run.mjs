@@ -38,7 +38,18 @@ function finish() {
   finishJson(out);
 }
 
-const pyodide = await loadPyodide();
+// 판 1.8.0부터 f044·f045는 sounddevice로 녹음해 numpy 배열을 쓴다 → numpy 휠을 받는다(pyodide-cv2 검사와 같은 캐시, 못 받으면 건너뜀).
+const cacheDir = path.join(rootDir, '.cache', 'pyodide-packages');
+fs.mkdirSync(cacheDir, { recursive: true });
+const pyodide = await loadPyodide({ packageCacheDir: cacheDir });
+try {
+  await pyodide.loadPackage('numpy');
+  pyodide.runPython('import numpy');
+} catch (error) {
+  out.skipped = `numpy를 불러오지 못했어요(네트워크?): ${error instanceof Error ? error.message.trim().split('\n').at(-1) : String(error)}`;
+  finish();
+  await new Promise(() => {}); // finish()가 결과를 다 내보내고 끝낼 때까지 아래 단계를 돌리지 않는다
+}
 let jspi = false;
 let stdout = '';
 
