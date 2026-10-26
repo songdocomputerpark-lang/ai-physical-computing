@@ -16,7 +16,7 @@ import { FRAME_TIMEOUT, collectRequests, openVisionLab, waitFrames } from './hel
 const ROOT = process.cwd();
 const example = (relativePath: string): string => fs.readFileSync(path.join(ROOT, 'examples', relativePath), 'utf8');
 
-/** 교안 계단 11(f119): FaceMesh(refine_landmarks=True) + FACEMESH_TESSELATION 그리기. ESC로 끝낸다. */
+/** 교안 계단 11(f119): FaceLandmarker(478점) + FACE_LANDMARKS_TESSELATION 그리기. ESC로 끝낸다. */
 const FACEMESH_POINTS = example('vision/opmp/11-facemesh-points.py');
 /** 교안 계단 14(f122): 눈 감김 판정("Opend"/"Closed"). ESC로 끝낸다. */
 const EYE_CLOSED = example('vision/opmp/14-eye-closed.py');
@@ -126,7 +126,7 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
     await expect(panel.locator('[data-mediapipe-sequence-note]')).toContainText('입을');
   });
 
-  test('교안 계단 11(f119)을 고치지 않고 돌리면 얼굴 그물이 그려지고 ESC로 끝난다', async ({ page }) => {
+  test('교안 계단 11(f119) 예제를 그대로 돌리면 얼굴 그물이 그려지고 ESC로 끝난다', async ({ page }) => {
     const requests = collectRequests(page);
     const leaked: string[] = [];
     page.on('pageerror', (error) => leaked.push(error.message));
@@ -259,7 +259,8 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
     await expect(page.locator('[data-lab-console]')).not.toContainText('Traceback');
   });
 
-  // 이관한 얼굴·자세 예제(PD-33)를 한 페이지에서 차례로 돌린다. 코드 파일은 그대로 읽어 넣고(한 글자도 고치지 않음), 창 이름과 끝내는 키만 표에 적는다.
+  // 이관한 얼굴·자세 예제(PD-33 — 판 1.8.0부터 mediapipe 1.1.1 Tasks API로 다시 쓴 판)를 한 페이지에서 차례로 돌린다. 코드 파일은 그대로 읽어
+  // 넣고(한 글자도 고치지 않음), 창 이름과 끝내는 키만 표에 적는다.
   const SWEEP: readonly { file: string; id: string; window: string; key: string; sequence?: string; outcome?: 'ok' | 'error'; endsWith?: string }[] = [
     { file: 'vision/u1/1-3-1-face-mesh.py', id: 'f034', window: 'FaceMesh Landmarks', key: 'q', sequence: 'face-turn' },
     { file: 'vision/u1/1-3-2-yawn-mouth.py', id: 'f036', window: 'Mouth Landmarks', key: 'q', sequence: 'face-yawn' },
@@ -267,11 +268,11 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
     { file: 'vision/opmp/12-facemesh-numbers.py', id: 'f120', window: 'Face', key: 'Escape' },
     { file: 'vision/opmp/17-nose-position.py', id: 'f125', window: 'Face', key: 'Escape' },
     { file: 'vision/u1/1-4-1-pose-skeleton.py', id: 'f040', window: 'Pose Tracking', key: 'q', sequence: 'pose-raise' },
-    // 원본 마지막 줄의 오타(cv2.destoyAllWindows)는 PC에서도 AttributeError로 끝난다 — 고치지 않고 그대로 재현하는지 본다(PD-10).
-    { file: 'vision/opmp/15-pose-landmarks.py', id: 'f123', window: 'Pose', key: 'Escape', outcome: 'error', endsWith: 'destoyAllWindows' },
+    // 판 1.8.0에서 다시 쓰며 원본 마지막 줄의 오타(cv2.destoyAllWindows — PC에서도 AttributeError)를 고쳤다 → 이제 정상 종료.
+    { file: 'vision/opmp/15-pose-landmarks.py', id: 'f123', window: 'Pose', key: 'Escape' },
   ];
 
-  test('이관한 얼굴·자세 예제 7개가 모두 고치지 않고 돌고 원본의 종료 키로 끝난다', async ({ page }) => {
+  test('이관한 얼굴·자세 예제 7개가 모두 그대로 돌고 원본의 종료 키로 끝난다', async ({ page }) => {
     const leaked: string[] = [];
     page.on('pageerror', (error) => leaked.push(error.message));
     await openVisionLab(page);
@@ -299,23 +300,25 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
     expect(leaked).toEqual([]);
   });
 
-  test('얼굴 검출(FaceDetection)은 0~1 상자와 점 6개를 주고, 모델이 없으면 한국어로 알린다', async ({ page }) => {
+  test('얼굴 상자(FaceDetector)는 픽셀 정수 상자와 점 6개를 준다(mediapipe 1.1.1과 같음)', async ({ page }) => {
     await openVisionLab(page);
     await chooseSource(page, 'replay');
     await setEditorCode(
       page,
       [
         'import cv2, mediapipe as mp',
-        'detector = mp.solutions.face_detection.FaceDetection(min_detection_confidence=0.5)',
+        'from mediapipe.tasks.python import vision',
+        "options = vision.FaceDetectorOptions(base_options=mp.tasks.BaseOptions(model_asset_path='blaze_face_short_range.tflite'), min_detection_confidence=0.5)",
+        'detector = vision.FaceDetector.create_from_options(options)',
         'print("엔진", detector.engine)',
         'cap = cv2.VideoCapture(0)',
         'ret, frame = cap.read()',
         'rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)',
-        'result = detector.process(rgb)',
-        'box = result.detections[0].location_data.relative_bounding_box',
-        'print("상자", round(box.xmin, 2), round(box.ymin, 2), round(box.width, 2), round(box.height, 2))',
-        'print("점", len(result.detections[0].location_data.relative_keypoints))',
-        'mp.solutions.drawing_utils.draw_detection(frame, result.detections[0])',
+        'result = detector.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb))',
+        'box = result.detections[0].bounding_box',
+        'print("상자", box.origin_x, box.origin_y, box.width, box.height)',
+        'print("점", len(result.detections[0].keypoints))',
+        'vision.drawing_utils.draw_detection(frame, result.detections[0])',
         'cv2.imshow("Face Detection", frame)',
         'cv2.waitKey(1)',
         'cap.release()',
@@ -326,11 +329,12 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
 
     const text = await consoleText(page);
     expect(text).toContain('엔진 replay');
-    const box = /상자 ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)/u.exec(text);
+    // 1.x의 bounding_box는 0~1 비율이 아니라 픽셀 정수다(origin_x·origin_y·width·height)
+    const box = /상자 (\d+) (\d+) (\d+) (\d+)/u.exec(text);
     expect(box, text).not.toBeNull();
     for (const value of box!.slice(1).map(Number)) {
       expect(value).toBeGreaterThan(0);
-      expect(value).toBeLessThanOrEqual(1);
+      expect(value).toBeLessThanOrEqual(640);
     }
     expect(text).toContain('점 6');
     expect(text).not.toContain('Traceback');
@@ -344,14 +348,16 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
       page,
       [
         'import cv2, mediapipe as mp',
-        'face = mp.solutions.face_mesh.FaceMesh(max_num_faces=1)',
-        'pose = mp.solutions.pose.Pose()',
+        'from mediapipe.tasks.python import vision',
+        'BaseOptions = mp.tasks.BaseOptions',
+        "face = vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=BaseOptions(model_asset_path='face_landmarker.task'), num_faces=1))",
+        "pose = vision.PoseLandmarker.create_from_options(vision.PoseLandmarkerOptions(base_options=BaseOptions(model_asset_path='pose_landmarker_full.task')))",
         'print("얼굴 엔진", face.engine, "자세 엔진", pose.engine)',
         'cap = cv2.VideoCapture(0)',
         'ret, frame = cap.read()',
-        'rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)',
-        'print("얼굴", face.process(rgb).multi_face_landmarks)',
-        'print("자세", pose.process(rgb).pose_landmarks)',
+        'image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))',
+        'print("얼굴", face.detect(image).face_landmarks)',
+        'print("자세", pose.detect(image).pose_landmarks)',
         'cap.release()',
       ].join('\n'),
     );
@@ -360,7 +366,7 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
 
     const text = await consoleText(page);
     if (text.includes('얼굴 엔진 ready')) {
-      // 운영자가 모델을 넣은 뒤: 가짜 카메라 영상에는 사람이 없으므로 None이 나오는 것이 정상이다.
+      // 운영자가 모델을 넣은 뒤: 가짜 카메라 영상에는 사람이 없으므로 빈 리스트가 나오는 것이 정상이다(mediapipe 1.x는 None 대신 []).
       expect(text).toContain('자세 엔진 ready');
     } else {
       expect(text).toContain('얼굴 엔진 missing-model');
@@ -368,8 +374,8 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
       expect(text).toContain('models/pose_landmarker_full.task');
       expect(text).toContain('재생 입력');
     }
-    expect(text).toContain('얼굴 None');
-    expect(text).toContain('자세 None');
+    expect(text).toContain('얼굴 []');
+    expect(text).toContain('자세 []');
     expect(text).not.toContain('Traceback');
 
     // 엔진·모델은 늘 같은 사이트에서만 받는다(PD-02·PD-03).

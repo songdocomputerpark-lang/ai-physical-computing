@@ -3,8 +3,10 @@
 # ==========================================
 import cv2          # 컴퓨터 비전 (카메라, 영상처리)
 import mediapipe as mp  # 얼굴 인식 라이브러리
+from mediapipe.tasks.python import vision  # MediaPipe 영상 인식 도구 모음
 import pyautogui    # 마우스 자동 제어 라이브러리
 import numpy as np  # 수학 계산을 위한 라이브러리 (EAR 계산용)
+import time         # 시간 관련 함수 (영상 프레임마다 시각을 붙이는 데 사용)
 
 pyautogui.FAILSAFE = False  # 마우스가 모서리에 가도 프로그램이 멈추지 않게 설정
 pyautogui.PAUSE = 0.01      # 마우스 움직임 속도 조절 (0.01초 간격)
@@ -41,8 +43,8 @@ def calculate_ear(eye_points, landmarks, frame_width, frame_height):
     # 눈의 6개 특징점 좌표 가져오기
     points = []
     for point_id in eye_points:
-        x = int(landmarks.landmark[point_id].x * frame_width)
-        y = int(landmarks.landmark[point_id].y * frame_height)
+        x = int(landmarks[point_id].x * frame_width)
+        y = int(landmarks[point_id].y * frame_height)
         points.append((x, y))  # 튜플로 저장
     # 두 점 사이의 거리를 계산하는 간단한 함수
     def distance(p1, p2):
@@ -60,13 +62,13 @@ def calculate_ear(eye_points, landmarks, frame_width, frame_height):
 # ==========================================
 # 4. 카메라 및 얼굴 인식 설정
 # ==========================================
-mp_face_mesh = mp.solutions.face_mesh # MediaPipe로 얼굴 특징점 찾는 도구 만들기
-face_mesh = mp_face_mesh.FaceMesh(
-    max_num_faces=1,                # 최대 1명의 얼굴만 인식
-    refine_landmarks=True,          # 정확한 특징점 찾기
-    min_detection_confidence=0.5,   # 얼굴 감지 민감도 (0~1, 높을수록 정확)
-    min_tracking_confidence=0.5     # 얼굴 추적 민감도 (0~1, 높을수록 정확)
-)
+options = vision.FaceLandmarkerOptions( # MediaPipe로 얼굴 특징점 찾는 도구의 설정
+    base_options=mp.tasks.BaseOptions(model_asset_path='face_landmarker.task'),  # 얼굴 인식 모델 파일(이 코드와 같은 폴더)
+    running_mode=vision.RunningMode.VIDEO,  # 영상 모드: 프레임을 차례로 넣어요
+    num_faces=1,                        # 최대 1명의 얼굴만 인식 (눈동자 점까지 늘 478개)
+    min_face_detection_confidence=0.5,  # 얼굴 감지 민감도 (0~1, 높을수록 정확)
+    min_tracking_confidence=0.5)        # 얼굴 추적 민감도 (0~1, 높을수록 정확)
+face_mesh = vision.FaceLandmarker.create_from_options(options)  # 얼굴 특징점 찾는 도구 만들기
 
 cap = cv2.VideoCapture(0)# 카메라 연결하기 (0: 기본카메라, 1,2: 외장카메라)
 
@@ -88,18 +90,18 @@ while cap.isOpened():  # 카메라가 켜져있는 동안 계속 반복
     # ------------------------------------------
     # 5-2. 얼굴 특징점 찾기
     # ------------------------------------------
-    results = face_mesh.process(cv2.cvtColor(frame, # 얼굴 특징점 감지 (RGB 색상으로 변환 후 처리)
-                                             cv2.COLOR_BGR2RGB))
+    mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))  # RGB 색상으로 변환해 MediaPipe 사진 형식으로 감싸기
+    results = face_mesh.detect_for_video(mp_img, int(time.time() * 1000))  # 얼굴 특징점 감지 (지금 시각(밀리초)과 함께)
 
-    if results.multi_face_landmarks:  # 얼굴이 감지되었을 때만 실행
-        face_landmarks = results.multi_face_landmarks[0]  # 첫 번째 얼굴 정보 가져오기
+    if results.face_landmarks:  # 얼굴이 감지되었을 때만 실행 (얼굴이 없으면 빈 리스트)
+        face_landmarks = results.face_landmarks[0]  # 첫 번째 얼굴 정보 가져오기 (점 478개의 리스트)
         
         # ------------------------------------------
         # 6. 코와 눈의 좌표 계산하기  # 특정 특징점 번호로 좌표 가져오기
         # ------------------------------------------
-        nose = face_landmarks.landmark[6]    # 코 특징점 (번호: 6)
-        left_eye = face_landmarks.landmark[468]   # 왼쪽 눈 특징점 (번호: 468)
-        right_eye = face_landmarks.landmark[473]  # 오른쪽 눈 특징점 (번호: 473)
+        nose = face_landmarks[6]    # 코 특징점 (번호: 6)
+        left_eye = face_landmarks[468]   # 왼쪽 눈 특징점 (번호: 468)
+        right_eye = face_landmarks[473]  # 오른쪽 눈 특징점 (번호: 473)
         
         coordinates = [  # 비율 좌표(0~1)를 실제 픽셀 좌표로 변환
             ("Nose", int(nose.x * w), int(nose.y * h)),          # 코 좌표
@@ -230,6 +232,7 @@ while cap.isOpened():  # 카메라가 켜져있는 동안 계속 반복
 # ==========================================
 # 14. 프로그램 종료 처리 # 사용한 자원들 정리하기
 # ==========================================
+face_mesh.close()       # 얼굴 인식 모델 닫기
 cap.release()           # 카메라 연결 해제
 cv2.destroyAllWindows() # 모든 창 닫기
 print("프로그램이 종료되었습니다.")

@@ -7,6 +7,7 @@
 # prepare_and_send_ble_data(): 데이터 전송만 담당
 import cv2
 import mediapipe as mp
+from mediapipe.tasks.python import vision  # MediaPipe 영상 인식 도구 모음
 import pyautogui
 import numpy as np
 import time, bluetooth  #블루투스 라이브러리 호출
@@ -43,13 +44,13 @@ both_eyes_close_start = 0
 LEFT_EYE_POINTS = [33, 160, 158, 133, 153, 144]
 RIGHT_EYE_POINTS = [362, 385, 387, 263, 373, 380]
 
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(
-    max_num_faces=1,
-    refine_landmarks=True,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
+options = vision.FaceLandmarkerOptions(  # 얼굴 인식 설정
+    base_options=mp.tasks.BaseOptions(model_asset_path='face_landmarker.task'),  # 얼굴 인식 모델 파일(이 코드와 같은 폴더)
+    running_mode=vision.RunningMode.VIDEO,  # 영상 모드: 프레임을 차례로 넣어요
+    num_faces=1,
+    min_face_detection_confidence=0.5,
+    min_tracking_confidence=0.5)
+face_mesh = vision.FaceLandmarker.create_from_options(options)  # 얼굴 인식 모델 준비
 
 # ===== 블루투스 설정 =====
 BLUETOOTH_DEVICE_ADDRESS = "XX:XX:XX:XX:XX:XX"#실제주소로 대체할것
@@ -66,8 +67,8 @@ except Exception as e:
 def calculate_ear(eye_points, landmarks, w, h):
     points = []
     for point_id in eye_points:
-        x = int(landmarks.landmark[point_id].x * w)
-        y = int(landmarks.landmark[point_id].y * h)
+        x = int(landmarks[point_id].x * w)
+        y = int(landmarks[point_id].y * h)
         points.append([x, y])
     
     points = np.array(points)
@@ -224,7 +225,8 @@ while cap.isOpened():
     frame = cv2.flip(frame, 1)
     h, w, _ = frame.shape
     
-    results = face_mesh.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))  # RGB로 바꿔 MediaPipe 사진 형식으로 감싸기
+    results = face_mesh.detect_for_video(mp_img, int(time.time() * 1000))  # 지금 시각(밀리초)과 함께 얼굴 찾기
 
     # 현재 프레임의 마우스 좌표와 클릭 상태 초기화
     mouse_x, mouse_y = previous_mouse_x, previous_mouse_y
@@ -234,10 +236,10 @@ while cap.isOpened():
     is_double_click = False
     is_right_click = False
 
-    if results.multi_face_landmarks:
-        face_landmarks = results.multi_face_landmarks[0]
+    if results.face_landmarks:
+        face_landmarks = results.face_landmarks[0]  # 첫 번째 얼굴(점 478개의 리스트)
         
-        nose = face_landmarks.landmark[6]
+        nose = face_landmarks[6]
         nose_x, nose_y = int(nose.x * w), int(nose.y * h)
         
         left_ear = calculate_ear(LEFT_EYE_POINTS, face_landmarks, w, h)
@@ -266,6 +268,7 @@ while cap.isOpened():
         print("기준점 재설정...")
 
 # ===== 프로그램 종료 처리 =====
+face_mesh.close()  # 얼굴 인식 모델 닫기
 cap.release()
 cv2.destroyAllWindows()
 print("프로그램 종료")

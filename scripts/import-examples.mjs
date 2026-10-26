@@ -7,12 +7,14 @@
 //   node scripts/import-examples.mjs --materials <폴더>   원본 폴더 위치(기본: 목록의 materials_root — 운영자 PC는 저장소 뿌리)
 //   node scripts/import-examples.mjs --no-python      파이썬 없이 가벼운 구문 검사만(파이썬 3이 있으면 ast.parse를 쓴다)
 //   node scripts/import-examples.mjs --dry-run        쓰지 않고 검사만
+//   node scripts/import-examples.mjs --rewritten f026 [--version 1.8.0 --reason "…"]
+//                                                     사이트가 최신 판으로 다시 쓴 파일의 기록(rewritten)을 지금 파일로 적는다(판 1.8.0, C226)
 // 원본 코드 파일은 줄 끝(CRLF → LF)만 바뀌고, 제목·설명은 옆의 <이름>.meta.yaml(사이드카)에 적는다(src/lab/README.md 3절).
 // 자세한 규칙은 scripts/lib/import-examples.mjs 머리말.
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findPython, importExamples, verifyExamples } from './lib/import-examples.mjs';
+import { findPython, importExamples, recordRewritten, verifyExamples } from './lib/import-examples.mjs';
 
 const rootDir = fileURLToPath(new URL('..', import.meta.url));
 const args = process.argv.slice(2);
@@ -28,12 +30,24 @@ function readOption(name) {
 }
 
 const materials = readOption('--materials');
+const rewrittenVersion = readOption('--version');
+const rewrittenReason = readOption('--reason');
+const rewritten = args.includes('--rewritten');
 const verify = args.includes('--verify');
 const noPython = args.includes('--no-python');
 const dryRun = args.includes('--dry-run');
 const ids = args.filter((arg) => !arg.startsWith('--'));
 
-if (verify) {
+if (rewritten) {
+  const result = recordRewritten({ rootDir, ids, version: rewrittenVersion, reason: rewrittenReason, write: !dryRun });
+  for (const item of result.results) {
+    console.log(`[예제 기록] 다시 쓴 파일 ${item.id} → ${item.target} — ${item.lines}줄, sha256 ${item.sha256.slice(0, 12)}…`);
+  }
+  if (!result.ok) {
+    console.error(`[예제 기록] 실패\n- ${result.errors.join('\n- ')}`);
+    process.exitCode = 1;
+  }
+} else if (verify) {
   const result = verifyExamples({ rootDir });
   if (result.ok) {
     console.log(`[예제 대조] ${result.checked}/${result.total}개가 기록과 같아요.`);
@@ -57,8 +71,8 @@ if (verify) {
     ...(materials ? { materialsRoot: path.resolve(materials) } : {}),
   });
   for (const item of result.results) {
-    const mark = item.ok ? '옮김' : '실패';
-    const detail = item.ok ? `${item.lines}줄, 구문 ${item.syntax}(${item.syntaxChecker}), 사이드카 ${item.sidecar === 'created' ? '새로 만듦' : item.sidecar === 'kept' ? '그대로' : '안 씀'}` : item.problems[0] ?? '';
+    const mark = item.rewritten ? '건너뜀' : item.ok ? '옮김' : '실패';
+    const detail = item.rewritten ? '최신 판으로 다시 쓴 파일이라 원본으로 덮어쓰지 않아요' : item.ok ? `${item.lines}줄, 구문 ${item.syntax}(${item.syntaxChecker}), 사이드카 ${item.sidecar === 'created' ? '새로 만듦' : item.sidecar === 'kept' ? '그대로' : '안 씀'}` : item.problems[0] ?? '';
     console.log(`[예제 이관] ${mark} ${item.id} → ${item.target} — ${detail}`);
   }
   if (result.ok) {

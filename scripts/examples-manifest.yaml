@@ -50,6 +50,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 48
+      sha256: 4e0c91105a44eb3af3328d657a488d789cdb4e3ed37b20550c37613568d19791
   - id: f027
     source: textbook
     member: "1. 영상 처리 인공지능/1.1. 인공지능과 인식/3. 인공지능 인식 개발 환경/[고등] 1-1-3_기본 실습 코드(p23).py"
@@ -98,6 +103,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 40
+      sha256: 9900841846057a0c302d638215b8d2865bc1a651e33c305a98ad27ac128c040a
   - id: f030
     source: textbook
     member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/2. 검지로 여는 디지털 스케치/[고등] 1-2-2_기본 실습 코드(p36).py"
@@ -114,6 +124,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 68
+      sha256: 436b9ea5e25171b6cc250d2f91d9994fc53a6fc848f0925fbf1570f55f67124b
   - id: f031
     source: textbook
     member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/2. 검지로 여는 디지털 스케치/[고등] 1-2-2_심화 실습 코드(p38).py"
@@ -130,6 +145,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 77
+      sha256: 319970c9cf819859e44c36be97ba7cd5b3fcc7b517670787fee599ebe743c9d2
   - id: f032
     source: textbook
     member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/3. 손끝 사이의 거리, 컴퓨터가 알아채다/[고등] 1-2-3_기본 실습 코드(p45).py"
@@ -146,6 +166,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 54
+      sha256: 91c5ef96580f428a0a73197a15daab96a7795982987ef5115aec9a347588cd1a
   - id: f033
     source: textbook
     member: "1. 영상 처리 인공지능/1.2. 핸드 트래킹/3. 손끝 사이의 거리, 컴퓨터가 알아채다/[고등] 1-2-3_심화 실습 코드(p48).py"
@@ -162,6 +187,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 69
+      sha256: 06c0e58e751c487d4365a835bb64e8a39f4c1040aea1d0079bce9fa2a66b7d63
   - id: f034
     source: textbook
     member: "1. 영상 처리 인공지능/1.3. 페이스매시/1. AI는 나의 방향을 알고 있다.(방향을 감지하는 인공지능)/[고등] 1-3-1_기본 실습 코드(p55).py"
@@ -178,6 +208,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 46
+      sha256: 2de7b251b2ad4fdda25027d181ddf5dcff5ac94305c439d36926c18336fee0e3
   - id: f035
     source: textbook
     member: "1. 영상 처리 인공지능/1.3. 페이스매시/1. AI는 나의 방향을 알고 있다.(방향을 감지하는 인공지능)/[고등] 1-3-1_심화 실습 코드(p58).py"
@@ -194,6 +229,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 84
+      sha256: 41ec898b996da35a3c94313d301d944c5efdcb66af0c6f65c066011f0c845263
   - id: f036
     source: textbook
     member: "1. 영상 처리 인공지능/1.3. 페이스매시/2. AI는 나의 하품을 파악한다(하품의 순간을 포착하는 인공지능)/1.3.2. 하품감지_기본과제(p65).py"
@@ -210,6 +250,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 52
+      sha256: e68b19d2351a598f9bb6d28b3d22626b817bf0436a171d37ee99892d6d7465cb
   - id: f037
     source: textbook
     member: "1. 영상 처리 인공지능/1.3. 페이스매시/2. AI는 나의 하품을 파악한다(하품의 순간을 포착하는 인공지능)/1.3.2._하품감지_심화과제(p68).py"
@@ -226,6 +271,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 103
+      sha256: 39300c633386716df6a0ff6f5e7f3d3b918bd4a0cf08b8d5922619e33c5fe27b
   - id: f038
     source: textbook
     member: "1. 영상 처리 인공지능/1.3. 페이스매시/3. 내 얼굴에 맞춤 필터 만들기(인공지능 필터로 바꾸는 내 얼굴)/[고등] 1-3-3_기본 실습 코드(p75).py"
@@ -242,6 +292,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 54
+      sha256: 04da74159bb830bd9656c3ff815a6af580b1f8e308d880f1c1081697c0f01952
   - id: f039
     source: textbook
     member: "1. 영상 처리 인공지능/1.3. 페이스매시/3. 내 얼굴에 맞춤 필터 만들기(인공지능 필터로 바꾸는 내 얼굴)/[고등] 1-3-3_심화 실습 코드(p78).py"
@@ -258,6 +313,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 101
+      sha256: 282a8ad1bf982601623bead219a550cccffdc672148fad049d347544323958c6
   - id: f040
     source: textbook
     member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/1. 몸으로 말해요! 동작 감지 인공지능/[고등] 1-4-1_기본 실습 코드(p85).PY"
@@ -274,6 +334,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 47
+      sha256: 06258dc3e03ee9f157a2cf885938224afb808a2fdae5997f80ffbfe673890de5
   - id: f041
     source: textbook
     member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/1. 몸으로 말해요! 동작 감지 인공지능/[고등] 1-4-1_심화 실습 코드(p88).py"
@@ -290,6 +355,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 76
+      sha256: 88700637dbf02449588d42ef1641b2704e50728cbc47123b80635e43a5b9f257
   - id: f042
     source: textbook
     member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/2. 균형 잡힌 자세를 도와주는 인공지능/[고등] 1-4-2_기본 실습 코드(p95).py"
@@ -306,6 +376,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 70
+      sha256: 250b1d88dd7cf52fdc72effa33cdc414d4658b67068070dc0bf272882d3ee5d2
   - id: f043
     source: textbook
     member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/2. 균형 잡힌 자세를 도와주는 인공지능/[고등] 1-4-2_심화 실습 코드(p99).py"
@@ -323,6 +398,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 85
+      sha256: b26759d3195324239554daaf05197897678cc97b7896961cd15204f7a2a5a0a0
   - id: f044
     source: textbook
     member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/3. 말을 글로 바꾸는 기술/[고등] 1-4-3_기본 실습 코드(p105).py"
@@ -340,6 +420,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 파이썬 3.14용 PyAudio 휠이 없어 sr.Microphone 대신 sounddevice로 녹음해 sr.AudioData로 넘기게 다시 썼다(SpeechRecognition 3.17)
+      lines: 31
+      sha256: 836ec3d66033b9e1341a57854c080c001a7387ead117567f9fb7523fa5a9cc29
   - id: f045
     source: textbook
     member: "1. 영상 처리 인공지능/1.4. 포즈트래킹과 음성/3. 말을 글로 바꾸는 기술/[고등] 1-4-3_심화 실습 코드(p108).py"
@@ -357,6 +442,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 파이썬 3.14용 PyAudio 휠이 없어 sr.Microphone 대신 sounddevice로 녹음해 sr.AudioData로 넘기게 다시 썼다(SpeechRecognition 3.17)
+      lines: 69
+      sha256: 644315d06bfd8acf7ad8a6bbbdc49be75dc93d549bce1935e04a4a5a13d1dd49
 
   # ── opmp.zip OpenCV·MediaPipe 입문 계단(f118~f136, CODE_MAPPING §2.5, BT 교안 p7~35) → examples/vision/opmp/ ──
   # 파일 이름 앞의 두 자리 숫자는 zip 파일의 번호(= 계단 순서)라 [예제 불러오기] 목록도 그 순서로 보인다.
@@ -402,6 +492,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 35
+      sha256: cd2166fb02b3bf19e879956efdce3062c12cabe4a2d59b84f0da0f1a041b1932
   - id: f131
     source: opmp
     member: "4_자유자재로꾸미기.py"
@@ -416,6 +511,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 47
+      sha256: b76b97af9d89d4e9cf8a480a42202bbf7fe55358f53d6fed3d44c8abc9d765d1
   - id: f132
     source: opmp
     member: "5_손가락 반전.py"
@@ -430,6 +530,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 48
+      sha256: 73eb8ebfb4f922d593ab8cea1b5dd316264ec7bda2e159a623f0319c8716e82d
   - id: f133
     source: opmp
     member: "6_손가락 좌표 확인하기.py"
@@ -444,6 +549,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 50
+      sha256: 7338a1ae52cddeafd896fadd2608f0c20c2ca421ff10cbb646c0e5c25823b2b0
   - id: f134
     source: opmp
     member: "7_화면상의 손가락 위치 정확하게 출력하기.py"
@@ -458,6 +568,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 52
+      sha256: 39a75bdc150be448f05b0b6d3d958004b1d4681c0e426e4b4f18d3bf20970e4c
   - id: f135
     source: opmp
     member: "8_손가락 랜드마크에 점 그리기(검지손가락 인식).py"
@@ -472,6 +587,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 53
+      sha256: f8ea047efe3d964ac5d4e27e0a7cb1b4da101b7bdbbdafd47cf62817ccfdfae6
   - id: f136
     source: opmp
     member: "9_접혀있는 손가락 감지하여 출력하기.py"
@@ -486,6 +606,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 70
+      sha256: f8a63d80b97be3843a7b6526f3cdce4ac2255deb3a3f35b17f706eccfa6db4da
   - id: f118
     source: opmp
     member: "10_동시에 출력하기.py"
@@ -500,6 +625,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 87
+      sha256: 234fd57de82bfe2957244c75fbcc2d318752f4ab55a52e3996a92bd6df2e841b
   - id: f119
     source: opmp
     member: "11_facemesh_landmakr점 띄우기.py"
@@ -514,6 +644,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 36
+      sha256: 286dcf4109792bac3e275947ae4f81f5d4e40b555b04d3ddc8b9de340de0e23b
   - id: f120
     source: opmp
     member: "12_얼굴에 랜드마크 번호 띄우기.py"
@@ -528,6 +663,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 49
+      sha256: 5266883afc9ae0d350ba76003b7277428eca7c8c12709bcef5794a2583ef8d08
   - id: f121
     source: opmp
     member: "13_입술을 감지하여 입을 열면 키보드 동작.py"
@@ -542,6 +682,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 62
+      sha256: 339c72f45dfc8d2c4b63ce1008cad9798f80d8cbee6511a2a0f2912075011c82
   - id: f122
     source: opmp
     member: "14_눈의 상대거리를 이용해 감은 눈 확인.py"
@@ -556,6 +701,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 72
+      sha256: 4c19d7b7cd97dbdec8388ff6c7243bdbccdfb9e4fe7318c3c37bdd0014014966
   - id: f123
     source: opmp
     member: "15_포즈 랜드마크 그려보기.py"
@@ -570,6 +720,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 45
+      sha256: 66084545accdfe0c64a53adf6fc1bde73a24ac10667cde02d4ee6e90e8b20e1f
   - id: f124
     source: opmp
     member: "16_0_deque.py"
@@ -599,6 +754,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 38
+      sha256: abba73811bdb9988886e9e5e705c04cf94c0700448976a81bde5d873154f2751
   - id: f126
     source: opmp
     member: "18_코 끝의 움직임 방향 감지하기.py"
@@ -613,6 +773,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 51
+      sha256: 35dadd0ba8850226665a5f23ede3a0a98fefe1514faba8d74ed2a62c14000112
   - id: f127
     source: opmp
     member: "19_코 끝으로 마우스 컨트롤 하기.py"
@@ -627,6 +792,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-16
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 89
+      sha256: 44446f383fded18e9ba476d2c836f1b7be930011139c0c4dda4079948a1ee70f
 
   # ── pyautogui 예제(pg.zip, f016~f025, CODE_MAPPING §2.6) → examples/desktop/ ──
   # 가상 데스크톱(P2-11·P2-12)에서 돈다. 파일 이름의 두 자리 숫자는 zip 파일의 번호(= 슬라이드 순서).
@@ -801,6 +971,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 56
+      sha256: 4e0b425f37ee2bce3f6f684f4b3b5dc00bf4449861cfbb98d9bb49106f159693
   - id: f091
     source: textbook
     member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/4. 손과 동작으로 컴퓨터 제어하기/심화실습_손가락으로 마우스 커서조종하는 프로그램 만들기(p205).py"
@@ -817,6 +992,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 63
+      sha256: 9f2454b9cacacc539c825b0373037507de997c1b2776819646eff63d61775e7a
 
   # ── 교과서 4단원 4-1-1~4-1-3 PC 쪽(f092~f097, CODE_MAPPING §2.4) → examples/vision/u4/ ──
   # 원고 없이 코드만 있는 차시라 쪽 번호는 파일 이름의 (p…) 값이에요. 얼굴 그물(mediapipe 흉내)과 가상 데스크톱으로 돈다.
@@ -852,6 +1032,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 59
+      sha256: b50a6f0a4d349d97cdc3f5aeabceb43f8b9615d4ae60383370e93e0e411d310c
   - id: f094
     source: textbook
     member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/1. AI의 눈, 내 얼굴 인식/4.1.1_03_심화_눈코 특징점찍기(p219).py"
@@ -868,6 +1053,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 60
+      sha256: 289357cf757abefe424c270dd72414c410edc0b535f12ce9b839e0294a0a3cdd
   - id: f095
     source: textbook
     member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/2. 눈길 따라 움직이는 마우스 커서 🖱/4.1.2_02_심화_코좌표 마우스 추적_주석처리 버전(p226).py"
@@ -884,6 +1074,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 208
+      sha256: f1478a02d1d20bcb4cdf56ebce538156b2bffcc586d8357a5af467f055c150d0
   - id: f096
     source: textbook
     member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/3. 윙크 한방에 더블클릭! 😉/4.1.3_01_기본_눈깜박임 표시하기_V2(p234).py"
@@ -900,6 +1095,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 238
+      sha256: 65eebadbd1dcc8a6a92a7388abef31768c01b3b13c6700202ec72cd42eb0f463
   - id: f097
     source: textbook
     member: "4. 지능화 사물 개발 프로젝트/4.1. 얼굴 인식 기반 비접촉 마우스 컨트롤러 개발/3. 윙크 한방에 더블클릭! 😉/4.1.3_02_심화_마우스 클릭제어(p240).py"
@@ -916,6 +1116,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-17
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 276
+      sha256: e52850947bbfe4006b7d8ccba4bedacb5d910226fae398df8fedc3fb2ce9dab6
 
   # ── 교과서 2단원 2-1-1·2-1-2 보드 쪽(f046·f052·f053, CODE_MAPPING §2.2) → examples/esp32/u2/, HW 자료 시험 코드(f015, §2.8) → examples/esp32/hw/ ──
   # ESP32 실습실의 가상 보드에서 돈다(P3-02). 바깥 부품의 배선은 사이드카 parts(src/lab/README.md 7.4)로 정하고, 보드에 붙은 내장 LED(GPIO2)·
@@ -1728,6 +1933,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 53
+      sha256: 890ca9bedc39784efa9ec083c796f2beab755d0cfbe55c71cddc35c275e47d3a
 
   # ── 3단원 3.1.3 블루투스 통신(f086~f089) ──
   - id: f086
@@ -1807,6 +2017,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: bleak 3.0에서 BleakClient의 timeout을 만들 때 넘기는 것으로 바뀌어 맞춰 고쳤다
+      lines: 78
+      sha256: f6fbdd9df5aa5a3ae31482fcbfd1abea728d451133a5721c3a0e93d6a7366a89
   - id: f089
     source: textbook
     member: "3. 인공지능과 피지컬 컴퓨팅/3.1. 인공지능 피지컬 통신 방법/3. 인공지능과 블루투스 통신/기본실습 영상처리로 인한 손끝 좌표를 블루투스로 ESP32에보내기(p198).py"
@@ -1826,6 +2041,11 @@ examples:
     syntax_checker: python-ast
     redacted: 1
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 78
+      sha256: 55ff388df70eab670dec325b8ca00f40c3f52c3a3e0c27427b62cde691b72fe7
 
   # ── 4단원 4.1.4 블루투스로 데이터 전송(f098~f100) ──
   - id: f098
@@ -1883,6 +2103,11 @@ examples:
     syntax_checker: python-ast
     redacted: 1
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 53
+      sha256: ed0e4ffff4bf161921cd6ec62c69bde622ec1ab68762819c787bab84679bfa16
 
   # ── 4단원 4.2.1~4.2.3 물리적 피드백(f104~f116) ──
   - id: f104
@@ -1904,6 +2129,11 @@ examples:
     syntax_checker: python-ast
     redacted: 1
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 278
+      sha256: b0403fce67a9330096716ee3e23503b2131e586cb0d097fcb478c05aa51dd07b
   - id: f105
     source: textbook
     member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/1. 데이터, 하드웨어를 깨우다!/4.2.1_02_심화_ESP32_BLE_DATA_RX(p270).py"
@@ -2070,6 +2300,11 @@ examples:
     syntax_checker: python-ast
     redacted: 1
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 278
+      sha256: c34f11fd01a5b2031e776004b8ecdf09c52e20bed393ab5e7e8723eab0c81771
   - id: f115
     source: textbook
     member: "4. 지능화 사물 개발 프로젝트/4.2. AI 신호를 현실로 물리적 피드백 시스템 제작/2. 소리와 빛으로 상태를 알려줘/4.2.3_02_기본_ESP32_BLE_servo_RGB_laser_buzzer.py"
@@ -2101,6 +2336,11 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: bleak 3.0에서 BleakClient의 timeout을 만들 때 넘기는 것으로 바뀌어 맞춰 고쳤다
+      lines: 78
+      sha256: f6fbdd9df5aa5a3ae31482fcbfd1abea728d451133a5721c3a0e93d6a7366a89
 
   # ── 블루투스 통신 수업교안(f137·f147~f149·f157·f158) ──
   # 파일 이름의 b숫자는 교안 실습 순서예요(b5는 앞서 옮긴 LCD 실습 f144).
@@ -2204,6 +2444,11 @@ examples:
     syntax_checker: python-ast
     redacted: 1
     imported: 2026-09-18
+    rewritten:
+      version: 1.8.0
+      reason: 토니 5.0(파이썬 3.14)의 mediapipe 1.1.1에는 옛 mp.solutions가 없어 Tasks API(vision.HandLandmarker 등)로 다시 썼다 — 구조·변수 이름·화면 글자는 그대로, 진짜 1.1.1과 사이트 실습실이 같은 결과(2026-10-26 대조)
+      lines: 77
+      sha256: ecbee62b5825862c3943858a1f8cf74c6ac28896964478c18d7c8d730999e2a3
 
   # ── HW 라이브러리 zip(f002) ──
   - id: f002
@@ -2223,7 +2468,6 @@ examples:
     syntax: ok
     syntax_checker: python-ast
     imported: 2026-09-18
-
   # ── HW 라이브러리 zip의 버저 라이브러리(f008) — 이관 도구 항목으로 두지 않은 사이트판(Phase 6 구역 F, PROGRESS 미해결 175, 2026-09-26) ──
   # 보드 라이브러리 examples/esp32/lib/third-party/buzzer.py(사이드카 buzzer.meta.yaml)는 원본 buzzer.py(hw zip 멤버 buzzer.py — 163줄·CRLF·끝 줄바꿈 없음,
   # SHA-256 eab4ac1d59d0f366df6365b9ac7a058e4bac72063b507f8d2a61f64e465d9d71)에서 게임 음악 선율 목록 mario(원본 128~141번 줄 — 설명 주석 2줄과 목록 12줄)를

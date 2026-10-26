@@ -1,12 +1,18 @@
 # ▶ 라이브러리 불러오기
+import time         # time: 영상 프레임마다 시각을 붙이는 데 쓰는 라이브러리
 import cv2          # OpenCV: 실시간 영상 처리 및 출력용 라이브러리
 import mediapipe as mp # MediaPipe: 손 랜드마크 검출 라이브러리
+from mediapipe.tasks.python import vision # MediaPipe 영상 인식 도구 모음
 import pyautogui    # PyAutoGUI: 키보드/마우스 제어 (마우스 커서 이동) 라이브러리
 
 # ▶ MediaPipe 손 인식 모델 초기화
-mp_hands = mp.solutions.hands  # MediaPipe hands 모듈 가져오기
-hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7) # 손 1개만 처리, 최소 감지 신뢰도 설정
-mp_draw = mp.solutions.drawing_utils  # 손 랜드마크를 그리기 위한 유틸리티 가져오기
+options = vision.HandLandmarkerOptions(                                         # 손 인식 설정
+    base_options=mp.tasks.BaseOptions(model_asset_path='hand_landmarker.task'), # 손 인식 모델 파일(이 코드와 같은 폴더)
+    running_mode=vision.RunningMode.VIDEO,                                      # 영상 모드: 프레임을 차례로 넣어요
+    num_hands=1,                                                                # 손 1개만 처리
+    min_hand_detection_confidence=0.7)                                          # 최소 감지 신뢰도 설정
+hands = vision.HandLandmarker.create_from_options(options)  # 손 인식 모델 준비
+mp_draw = vision.drawing_utils  # 손 랜드마크를 그리기 위한 유틸리티 가져오기
 
 # ▶ 화면 해상도 가져오기
 screen_width, screen_height = pyautogui.size() # 현재 모니터의 가로 및 세로 해상도 픽셀 값 가져오기
@@ -24,16 +30,17 @@ while cap.isOpened():  # 웹캠이 열려있는 동안 계속 반복
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # BGR → RGB로 변환 (MediaPipe는 RGB 사용)
 
     # ▶ MediaPipe 손 인식 실행
-    result = hands.process(image_rgb)  # 손 랜드마크 검출
+    mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)  # MediaPipe가 읽는 사진 형식으로 감싸기
+    result = hands.detect_for_video(mp_img, int(time.time() * 1000))     # 지금 시각(밀리초)과 함께 손 랜드마크 검출
 
     # ▶ 손이 인식된 경우 → 검지손가락 좌표 추출 및 마우스 커서 이동
-    if result.multi_hand_landmarks:  # 손이 검출되면
-        for hand_landmarks in result.multi_hand_landmarks:  # 검출된 각 손마다 반복 (여기선 1개)
+    if result.hand_landmarks:  # 손이 검출되면
+        for hand_landmarks in result.hand_landmarks:  # 검출된 각 손마다 반복 (여기선 1개)
             # 손 랜드마크와 연결선 그리기
-            mp_draw.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            mp_draw.draw_landmarks(image, hand_landmarks, vision.HandLandmarksConnections.HAND_CONNECTIONS)
 
             # 검지손가락 끝(INDEX_FINGER_TIP) 랜드마크의 좌표 가져오기
-            index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+            index_tip = hand_landmarks[8]  # 8번 점: 검지 끝
 
             # 검지손가락의 정규화된 좌표(0.0~1.0)를 실제 화면 픽셀 좌표로 변환
             # 웹캠 영상의 크기가 아닌, 실제 모니터 해상도에 맞춰 변환하여 마우스 커서 이동
@@ -51,5 +58,6 @@ while cap.isOpened():  # 웹캠이 열려있는 동안 계속 반복
         break
 
 # ▶ 자원 해제
+hands.close()               # 손 인식 모델 닫기
 cap.release()               # 웹캠 연결 해제
 cv2.destroyAllWindows()     # 모든 OpenCV 창 닫기

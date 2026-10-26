@@ -93,9 +93,9 @@ test.describe('러너 공통(가상 파일·input()·콘솔 접기·글꼴)', ()
     expect(errors).toEqual([]);
   });
 
-  test('f039 사이트판의 numpy 합성이 교과서 원본의 3중 반복과 같은 그림을 훨씬 빨리 만든다', async ({ page }) => {
+  test('f039 예제의 numpy 합성이 교과서 원본의 3중 반복과 같은 그림을 훨씬 빨리 만든다', async ({ page }) => {
     // 얼굴 인식(mediapipe)은 다른 묶음(P2-08·P2-09)이라 여기서는 합성 부분만 본다: 사이트가 넣어 준 mask.png를 읽어
-    // ① 교과서 원본(1-3-3-adv-face-mask.py 43~51행)의 파이썬 3중 반복과 ② 사이트판(…-site.py)의 numpy 한 줄이 같은 결과인지.
+    // ① 교과서 원본(교과서 078쪽 코드)의 파이썬 3중 반복과 ② 벡터 합성(판 1.8.0부터 1-3-3-adv-face-mask.py가 쓰는 방식)이 같은 결과인지.
     await openLabAndWaitReady(page);
     await runCode(
       page,
@@ -264,7 +264,7 @@ test.describe('러너 공통(가상 파일·input()·콘솔 접기·글꼴)', ()
   });
 
   test('PC 글꼴 경로를 사이트 글꼴 파일로 바꿔 PIL이 연다(글꼴이 없으면 멈추지 않고 알린다)', async ({ page }) => {
-    // f043(examples/vision/u1/1-4-2-adv-posture-korean.py)의 글꼴·한글 출력 부분 그대로: 5·13·14행과 54~58행.
+    // f043(examples/vision/u1/1-4-2-adv-posture-korean.py)의 글꼴·한글 출력 부분 그대로: 7·17·18행과 59~65행.
     const fontCode = [
       'import cv2, numpy as np',
       'from PIL import ImageFont, ImageDraw, Image',

@@ -16,11 +16,11 @@ import { FRAME_TIMEOUT, collectRequests, openVisionLab, waitFrames } from './hel
 const ROOT = process.cwd();
 const example = (relativePath: string): string => fs.readFileSync(path.join(ROOT, 'examples', relativePath), 'utf8');
 
-/** 교과서 1-1-2(f026): Hands() 기본값, BGR을 그대로 process()에 넣고 draw_landmarks로 그린 뒤 q로 끝낸다. */
+/** 교과서 1-1-2(f026, 판 1.8.0 최신 판 코드): HandLandmarker(VIDEO·손 2개) + detect_for_video, draw_landmarks로 그린 뒤 q로 끝낸다. */
 const HANDS_FIRST = example('vision/u1/1-1-2-hands-first.py');
-/** 교안 계단 9(f136): max_num_hands=1, 스타일 지정, 검지 끝 좌표 출력, 접힌 손가락 문자열. ESC로 끝낸다. */
+/** 교안 계단 9(f136): num_hands=1, 스타일 지정, 검지 끝 좌표 출력, 접힌 손가락 문자열. ESC로 끝낸다. */
 const FOLDED_FINGERS = example('vision/opmp/09-folded-fingers.py');
-/** 교안 계단 10(f118): max_num_hands=3, multi_handedness와 zip. ESC로 끝낸다. */
+/** 교안 계단 10(f118): num_hands=3, hand_landmarks와 handedness를 zip. ESC로 끝낸다. */
 const BOTH_HANDS = example('vision/opmp/10-both-hands.py');
 
 /** 입력 소스를 고른다(실습실 화면의 <select>). */
@@ -29,7 +29,7 @@ async function chooseSource(page: Page, id: string): Promise<void> {
   await expect(labRoot(page)).toHaveAttribute('data-vision-source', id);
 }
 
-/** 출력 창 캔버스에서 학생 코드가 그린 빨간 점(레거시 기본 색 RED_COLOR)의 픽셀 수 */
+/** 출력 창 캔버스에서 학생 코드가 그린 빨간 점(drawing_utils 기본 색 RED_COLOR)의 픽셀 수 */
 async function redPixels(page: Page, windowName: string): Promise<number> {
   return page.locator(`canvas[data-vision-window="${windowName}"]`).evaluate((element) => {
     const canvas = element as HTMLCanvasElement;
@@ -118,7 +118,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     expect(await page.evaluate(() => window.localStorage.getItem('ai-physical-computing:module:mediapipe:replay-sequence'))).toBe('pinch');
   });
 
-  test('교과서 1-1-2(f026)를 고치지 않고 돌리면 합성 손 위에 관절 점이 그려지고 q 키로 끝난다', async ({ page }) => {
+  test('교과서 1-1-2(f026) 예제를 그대로 돌리면 합성 손 위에 관절 점이 그려지고 q 키로 끝난다', async ({ page }) => {
     const requests = collectRequests(page);
     const leaked: string[] = [];
     page.on('pageerror', (error) => leaked.push(error.message));
@@ -157,7 +157,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     expect(requests.urls.filter((url) => /storage\.googleapis\.com|google-analytics|googleapis\.com/u.test(url))).toEqual([]);
   });
 
-  test('교안 계단 9(f136)를 고치지 않고 돌리면 검지 끝 좌표가 출력되고 ESC로 끝난다', async ({ page }) => {
+  test('교안 계단 9(f136) 예제를 그대로 돌리면 검지 끝 좌표가 출력되고 ESC로 끝난다', async ({ page }) => {
     await openVisionLab(page);
     await chooseSource(page, 'replay');
     await page.locator('[data-mediapipe-sequence]').selectOption('count');
@@ -175,7 +175,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     await expect(page.locator('[data-lab-console]')).not.toContainText('Traceback');
   });
 
-  test('교안 계단 10(f118)의 두 손 예제가 돌고, 손 좌우 이름(Left·Right)이 레거시 모양으로 온다', async ({ page }) => {
+  test('교안 계단 10(f118)의 두 손 예제가 돌고, 손 좌우 이름(Left·Right)이 Tasks API 모양으로 온다', async ({ page }) => {
     await openVisionLab(page);
     await chooseSource(page, 'replay');
     await page.locator('[data-mediapipe-sequence]').selectOption('two-hands');
@@ -186,19 +186,21 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     expect(await waitDone(page, 30_000)).toBe('ok');
     await expect(page.locator('[data-lab-console]')).not.toContainText('Traceback');
 
-    // 결과 객체를 직접 확인한다(레거시 mp.solutions 모양 그대로).
+    // 결과 객체를 직접 확인한다(mediapipe 1.1.1 Tasks API 모양 그대로 — 같은 코드를 진짜 1.1.1에서 돌려 본 출력과 같다).
     await setEditorCode(
       page,
       [
         'import cv2, mediapipe as mp',
-        'hands = mp.solutions.hands.Hands()',
+        'from mediapipe.tasks.python import vision',
+        "options = vision.HandLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path='hand_landmarker.task'), num_hands=2)",
+        'hands = vision.HandLandmarker.create_from_options(options)',
         'cap = cv2.VideoCapture(0)',
         'ret, frame = cap.read()',
         'rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)',
-        'result = hands.process(rgb)',
-        'print("손", len(result.multi_hand_landmarks), "관절", len(result.multi_hand_landmarks[0].landmark))',
-        'print("좌우", sorted(h.classification[0].label for h in result.multi_handedness))',
-        'print("검지끝", round(result.multi_hand_landmarks[0].landmark[8].x, 3) > 0)',
+        'result = hands.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb))',
+        'print("손", len(result.hand_landmarks), "관절", len(result.hand_landmarks[0]))',
+        'print("좌우", sorted(h[0].category_name for h in result.handedness))',
+        'print("검지끝", round(result.hand_landmarks[0][8].x, 3) > 0)',
         'cap.release()',
       ].join('\n'),
     );
@@ -218,15 +220,17 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
       page,
       [
         'import cv2, mediapipe as mp',
-        'hands = mp.solutions.hands.Hands(max_num_hands=1)',
+        'from mediapipe.tasks.python import vision',
+        "options = vision.HandLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path='hand_landmarker.task'), num_hands=1)",
+        'hands = vision.HandLandmarker.create_from_options(options)',
         'cap = cv2.VideoCapture(0)',
         'ret, frame = cap.read()',
-        'plain = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))',
-        'flipped = hands.process(cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB))',
-        'a = plain.multi_hand_landmarks[0].landmark[0].x',
-        'b = flipped.multi_hand_landmarks[0].landmark[0].x',
-        'print("그대로", round(a, 3), plain.multi_handedness[0].classification[0].label)',
-        'print("뒤집음", round(b, 3), flipped.multi_handedness[0].classification[0].label)',
+        'plain = hands.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))',
+        'flipped = hands.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)))',
+        'a = plain.hand_landmarks[0][0].x',
+        'b = flipped.hand_landmarks[0][0].x',
+        'print("그대로", round(a, 3), plain.handedness[0][0].category_name)',
+        'print("뒤집음", round(b, 3), flipped.handedness[0][0].category_name)',
         'print("합", round(a + b, 2))',
         'cap.release()',
       ].join('\n'),
@@ -258,13 +262,15 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
       page,
       [
         'import cv2, mediapipe as mp',
-        'hands = mp.solutions.hands.Hands()',
+        'from mediapipe.tasks.python import vision',
+        "options = vision.HandLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path='hand_landmarker.task'))",
+        'hands = vision.HandLandmarker.create_from_options(options)',
         'print("엔진", hands.engine)',
         'cap = cv2.VideoCapture(0)',
         'ret, frame = cap.read()',
         'rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)',
-        'result = hands.process(rgb)',
-        'print("손", result.multi_hand_landmarks)',
+        'result = hands.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb))',
+        'print("손", result.hand_landmarks)',
         'cap.release()',
       ].join('\n'),
     );
@@ -274,7 +280,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     const engine = await page.locator('[data-mediapipe-engine]').textContent();
     const console_ = page.locator('[data-lab-console]');
     if (engine === '준비됨') {
-      // 운영자가 모델을 넣은 뒤: 가짜 카메라 영상에는 손이 없으므로 None이 나오는 것이 정상이다.
+      // 운영자가 모델을 넣은 뒤: 가짜 카메라 영상에는 손이 없으므로 빈 리스트가 나오는 것이 정상이다(mediapipe 1.x는 None 대신 []).
       await expect(console_).toContainText('엔진 ready');
     } else {
       expect(engine).toBe('모델 없음');
@@ -282,7 +288,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
       await expect(console_).toContainText('models/hand_landmarker.task');
       await expect(console_).toContainText('재생 입력');
     }
-    await expect(console_).toContainText('손 None');
+    await expect(console_).toContainText('손 []');
     await expect(console_).not.toContainText('Traceback');
 
     // 엔진·모델은 늘 같은 사이트에서만 받는다(PD-02·PD-03). 모델을 넣은 뒤에도 이 검사는 그대로 지켜져야 한다.
@@ -298,8 +304,8 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     expect(requests.urls.filter((url) => /storage\.googleapis\.com|googleapis\.com|google-analytics/u.test(url))).toEqual([]);
   });
 
-  // 이관한 손 예제(PD-33)를 한 페이지에서 차례로 돌린다. 코드 파일은 그대로 읽어 넣고(한 글자도 고치지 않음), 창 이름과 끝내는 키만
-  // 표에 적는다. 각 예제가 ① 오류 없이 돌고 ② 출력 창에 그림이 생기고 ③ 원본의 종료 키로 정상적으로 끝나는지 본다.
+  // 이관한 손 예제(PD-33 — 판 1.8.0부터 mediapipe 1.1.1 Tasks API로 다시 쓴 판)를 한 페이지에서 차례로 돌린다. 코드 파일은 그대로 읽어 넣고
+  // (한 글자도 고치지 않음), 창 이름과 끝내는 키만 표에 적는다. 각 예제가 ① 오류 없이 돌고 ② 출력 창에 그림이 생기고 ③ 원본의 종료 키로 정상적으로 끝나는지 본다.
   const SWEEP: readonly { file: string; id: string; window: string; key: string }[] = [
     { file: 'vision/opmp/01-cam-window.py', id: 'f128', window: 'Hand Tracking', key: 'Escape' },
     { file: 'vision/opmp/02-cam-size.py', id: 'f129', window: 'Hand Tracking', key: 'Escape' },
@@ -316,7 +322,7 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
     { file: 'vision/u1/1-2-3-adv-distance-circle.py', id: 'f033', window: 'Circle with Distance', key: 'q' },
   ];
 
-  test('이관한 손 예제 13개가 모두 고치지 않고 돌고 원본의 종료 키로 끝난다', async ({ page }) => {
+  test('이관한 손 예제 13개가 모두 그대로 돌고 원본의 종료 키로 끝난다', async ({ page }) => {
     const leaked: string[] = [];
     page.on('pageerror', (error) => leaked.push(error.message));
     await openVisionLab(page);
@@ -343,11 +349,13 @@ test.describe('손 인식(mediapipe 흉내) — 재생 입력', () => {
       page,
       [
         'import cv2, mediapipe as mp',
-        'hands = mp.solutions.hands.Hands(max_num_hands=1)',
+        'from mediapipe.tasks.python import vision',
+        "options = vision.HandLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path='hand_landmarker.task'), num_hands=1)",
+        'hands = vision.HandLandmarker.create_from_options(options)',
         'cap = cv2.VideoCapture(0)',
         'ret, frame = cap.read()',
-        'result = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))',
-        'print("손", len(result.multi_hand_landmarks))',
+        'result = hands.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))',
+        'print("손", len(result.hand_landmarks))',
         'cap.release()',
       ].join('\n'),
     );

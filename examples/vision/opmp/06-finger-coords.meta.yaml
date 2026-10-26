@@ -1,4 +1,4 @@
-# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 예제 설명(사이드카). 이 코드 파일은 판 1.8.0에서 최신 판 라이브러리에 맞게 다시 썼어요(기록: scripts/examples-manifest.yaml의 rewritten). 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "단계 6: 손가락 좌표 확인하기"
 description: 검지 끝(8번 점)의 x, y, z 값을 콘솔에 출력해요.
@@ -14,4 +14,5 @@ packages:
 # ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
 # 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
 # 출력 창 'Hand Tracking' · ESC로 끝내요.
-# 주의: print(landmark)가 매 프레임 x·y·z 세 줄을 찍어 콘솔이 빨리 차요. [콘솔 지우기]로 비우면 돼요.
+# 주의: print(finger_point)가 매 프레임 NormalizedLandmark(x=…, y=…, z=…, visibility=None, presence=None, name=None) 한 줄을 찍어 콘솔이 빨리 차요
+#       (손 점에는 visibility·presence 값이 없어서 None이에요). [콘솔 지우기]로 비우면 돼요.

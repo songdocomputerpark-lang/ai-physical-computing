@@ -1,7 +1,7 @@
-# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 예제 설명(사이드카). 이 코드 파일은 판 1.8.0에서 최신 판 라이브러리에 맞게 다시 썼어요(기록: scripts/examples-manifest.yaml의 rewritten). 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "1-4-1 심화 실습: 왼손 들기 알아채기"
-description: 왼쪽 손목이 기준선보다 위에 있으면 성공이라고 알려 줘요.
+description: 왼쪽 손목이 기준선보다 위에 있으면 성공이라고 알려 줘요. 기준선(TARGET_Y)은 조절 패널의 막대로 바꿀 수 있어요.
 lesson: 1-4-1
 page: 88
 source_id: f041
@@ -13,5 +13,5 @@ packages:
 
 # ── 실습실에서 돌릴 때(P2-09에서 브라우저로 확인, 2026-09-16) ──
 # 필요한 입력: '재생 입력' + 재생 동작 '손 들기'.
-# 출력 창 'Mirror Pose Game' · q로 끝내요. 왼손이 올라가면 'Success!'가 떠요.
-# 주의: 원본은 사람을 못 찾은 첫 장에서 left_wrist_y가 없어 NameError가 나요(PC에서도 같아요). 재생 입력에는 늘 사람이 있어 괜찮아요.
+# 출력 창 'Mirror Pose Game' · q로 끝내요. 왼손이 올라가면 'Success!'가 떠요. 조절 패널에 TARGET_Y 막대가 생겨요.
+# 판 1.8.0: 옛 사이트판의 @slider(18행)와 left_wrist_y = 1.0 처음 값(19행)을 이 파일에 합쳤어요 — 교과서 코드는 사람을 못 찾은 첫 장에서 NameError가 나요.

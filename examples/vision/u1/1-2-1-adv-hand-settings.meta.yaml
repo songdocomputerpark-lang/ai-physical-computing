@@ -1,4 +1,4 @@
-# 예제 설명(사이드카). 원본 코드 파일은 줄 번호를 지키려고 고치지 않고, 제목·설명은 여기에 적어요(src/lab/README.md 3절).
+# 예제 설명(사이드카). 이 코드 파일은 판 1.8.0에서 최신 판 라이브러리에 맞게 다시 썼어요(기록: scripts/examples-manifest.yaml의 rewritten). 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "1-2-1 심화 실습: 손의 랜드마크 표시하기(손 인식 설정 바꿔 보기)"
 description: 손 개수와 인식 신뢰도 설정을 바꿔 가며 손 관절을 그려요.
@@ -15,5 +15,5 @@ packages:
 # ── 실습실에서 돌릴 때(P2-08에서 브라우저로 확인, 2026-09-16) ──
 # 필요한 입력: '재생 입력(합성 손 좌표)' — 카메라가 없어도 돼요. 웹캠으로 하려면 public/models/hand_landmarker.task가 있어야 해요.
 # 출력 창 'Hand Tracking' · q 키로 끝내요.
-# 주의: max_num_hands=1, min_detection_confidence=0.5 — 조절 패널 안 '인식(mediapipe)' 칸에서 실행 중에 값을 바꿔 볼 수 있어요(코드의 숫자는 그대로예요).
+# 주의: num_hands=1, min_hand_detection_confidence=0.5 — 조절 패널 안 '인식(mediapipe)' 칸에서 실행 중에 값을 바꿔 볼 수 있어요(코드의 숫자는 그대로예요).
 # 주의: waitKey(30)이라 키를 눌렀을 때 반응이 조금 느려요(원본 그대로).

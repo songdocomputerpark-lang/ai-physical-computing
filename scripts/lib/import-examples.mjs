@@ -15,6 +15,10 @@
 // 5. 같은 이름의 사이드카(<대상>.meta.yaml — 제목·설명·차시·쪽·태그·패키지, ESP32 예제면 배선 parts·스모크 기대 smoke)가 없으면 항목의 meta로 만든다. 있으면 건드리지 않는다.
 //    원본 코드 파일에는 머리말을 넣지 않는다(src/lab/README.md 2절). 사이트는 사이드카를 읽는다(src/lab/controls/example-sidecar.ts).
 // 6. --verify: 원본 없이(CI·다른 컴퓨터) examples/의 파일이 기록(sha256·줄 수)과 같은지 본다. tests/unit/import-examples.test.ts가 저장소에 대고 돌린다.
+// 7. 최신 판으로 다시 쓴 파일(판 1.8.0 — 운영자 결정 O22, DECISIONS C226): 항목에 rewritten {version, reason, lines, sha256}이 있으면
+//    그 파일은 원본이 아니라 사이트가 다시 쓴 코드다. --verify는 rewritten의 기록과 대조하고, 이관은 그 파일을 원본으로 덮어쓰지 않고 건너뛴다.
+//    원래 기록(lines·sha256·imported)은 "어느 원본에서 왔는가"의 증거로 그대로 둔다. 다시 쓴 뒤 기록을 고치려면
+//    node scripts/import-examples.mjs --rewritten f026 f027 [--reason "…"] [--version 1.8.0] (지금 파일의 줄 수·SHA-256을 rewritten에 적는다).
 //
 // 저작자 구분(author): operator(운영자 자료, DECISIONS O2~O5) / third_party(다른 저작자 — 대상 경로에 third-party/ 폴더가 있어야 한다, PD-26).
 // 추출 사본(extracted/flat)은 줄 끝이 손상돼 있으므로 쓰지 않는다(PD-33). 원본 폴더 위치는 목록의 materials_root 또는 --materials로 정한다
@@ -71,6 +75,7 @@ export const PRIVACY_KINDS = Object.freeze(['mac']);
  * @property {Record<string, unknown>} [meta] 사이드카를 처음 만들 때 쓸 제목·설명 등
  * @property {number} [lines]        기록: 줄 수
  * @property {string} [sha256]       기록: 옮긴 파일의 SHA-256
+ * @property {{ version: string, reason: string, lines: number, sha256: string }} [rewritten] 사이트가 최신 판으로 다시 쓴 파일의 기록(위 7번)
  * @property {string} [syntax]       기록: ok | error-expected
  * @property {string} [syntax_checker] 기록: python-ast | node-light
  * @property {string} [imported]     기록: 날짜 YYYY-MM-DD
@@ -427,6 +432,24 @@ export function parseManifest(text) {
         notice = `${noticeLines.join('\n')}\n`;
       }
     }
+    /** @type {{ version: string, reason: string, lines: number, sha256: string } | undefined} */
+    let rewritten;
+    if (entry.rewritten !== undefined) {
+      const value = entry.rewritten;
+      if (
+        value === null ||
+        typeof value !== 'object' ||
+        typeof value.version !== 'string' ||
+        typeof value.reason !== 'string' ||
+        typeof value.lines !== 'number' ||
+        typeof value.sha256 !== 'string' ||
+        !/^[0-9a-f]{64}$/u.test(value.sha256)
+      ) {
+        errors.push(`${label}: rewritten은 version(판)·reason(까닭)·lines(줄 수)·sha256(64자리)을 모두 적어요. 지금 파일로 다시 적기: node scripts/import-examples.mjs --rewritten ${id || '<id>'}`);
+      } else {
+        rewritten = { version: value.version, reason: value.reason, lines: value.lines, sha256: value.sha256 };
+      }
+    }
     if (entry.meta !== undefined && (entry.meta === null || typeof entry.meta !== 'object' || Array.isArray(entry.meta))) {
       errors.push(`${label}: meta는 title·description 등을 가진 사전으로 적어요.`);
     }
@@ -445,6 +468,7 @@ export function parseManifest(text) {
       ...(typeof entry.syntax === 'string' ? { syntax: entry.syntax } : {}),
       ...(typeof entry.syntax_checker === 'string' ? { syntax_checker: entry.syntax_checker } : {}),
       ...(entry.imported !== undefined ? { imported: String(entry.imported) } : {}),
+      ...(rewritten ? { rewritten } : {}),
     }));
   });
   return { doc, materialsRoot, sources, examples, errors };
@@ -664,6 +688,22 @@ export function importExamples(options) {
   const entryNodes = manifest.doc.get('examples');
 
   selected.forEach((entry) => {
+    if (entry.rewritten) {
+      // 사이트가 최신 판으로 다시 쓴 파일은 원본으로 덮어쓰지 않는다(위 7번).
+      results.push({
+        id: entry.id,
+        target: entry.target,
+        ok: true,
+        lines: entry.rewritten.lines,
+        sha256: entry.rewritten.sha256,
+        syntax: 'ok',
+        syntaxChecker: 'none',
+        problems: [],
+        sidecar: 'skipped',
+        rewritten: true,
+      });
+      return;
+    }
     /** @type {string[]} */
     let problems = [];
     let converted = null;
@@ -722,12 +762,13 @@ export function importExamples(options) {
   if (write && results.some((result) => result.ok)) {
     fs.writeFileSync(manifest.absolutePath, manifest.doc.toString({ lineWidth: 0 }), 'utf8');
   }
-  const okCount = results.length - failed.length;
+  const skipped = results.filter((result) => result.rewritten).length;
+  const okCount = results.length - failed.length - skipped;
   return {
     ok: errors.length === 0,
     results,
     errors,
-    summary: `${okCount}개 옮김, ${failed.length}개 실패${write ? '' : '(쓰지 않음)'}`,
+    summary: `${okCount}개 옮김, ${skipped}개 건너뜀(최신 판으로 다시 쓴 파일), ${failed.length}개 실패${write ? '' : '(쓰지 않음)'}`,
   };
 }
 
@@ -754,15 +795,20 @@ export function verifyExamples(options) {
     const data = fs.readFileSync(targetPath);
     const text = data.toString('utf8');
     const hash = sha256Hex(data);
-    if (hash !== entry.sha256) {
-      problems.push(`${entry.id}: ${entry.target}의 내용이 기록과 달라요(sha256). 원본에서 다시 옮기거나(node scripts/import-examples.mjs ${entry.id}) 사이트판 수정이면 PD-10 규칙대로 별도 파일로 둬요.`);
+    const expected = entry.rewritten ?? entry;
+    if (hash !== expected.sha256) {
+      problems.push(
+        entry.rewritten
+          ? `${entry.id}: ${entry.target}은 최신 판으로 다시 쓴 파일인데 내용이 rewritten 기록과 달라요(sha256). 일부러 고쳤으면 기록을 다시 적어요: node scripts/import-examples.mjs --rewritten ${entry.id}`
+          : `${entry.id}: ${entry.target}의 내용이 기록과 달라요(sha256). 원본에서 다시 옮기거나(node scripts/import-examples.mjs ${entry.id}) 사이트판 수정이면 PD-10 규칙대로 별도 파일로 둬요.`,
+      );
     }
     if (text.includes('\r')) {
       problems.push(`${entry.id}: ${entry.target}에 CR(\\r)이 남아 있어요(줄 끝은 LF만).`);
     }
     const lines = countLfLines(text);
-    if (lines !== entry.lines) {
-      problems.push(`${entry.id}: ${entry.target}의 줄 수(${lines})가 기록(${entry.lines})과 달라요.`);
+    if (lines !== expected.lines) {
+      problems.push(`${entry.id}: ${entry.target}의 줄 수(${lines})가 기록(${expected.lines})과 달라요.`);
     }
     const sidecarPath = path.resolve(rootDir, ...sidecarPathFor(entry.target).split('/'));
     if (!fs.existsSync(sidecarPath)) {
@@ -771,4 +817,52 @@ export function verifyExamples(options) {
     checked += 1;
   }
   return { ok: problems.length === 0, problems, checked, total: manifest.examples.length };
+}
+
+/**
+ * 최신 판으로 다시 쓴 파일의 기록(rewritten)을 지금 파일로 적는다(위 7번). 이미 있으면 줄 수·SHA-256만 고치고, 없으면 version·reason도 새로 적는다.
+ * @param {{ rootDir: string, ids: string[], version?: string, reason?: string, manifestPath?: string, write?: boolean }} options
+ */
+export function recordRewritten(options) {
+  const rootDir = path.resolve(options.rootDir);
+  const manifest = loadManifest(rootDir, options.manifestPath ?? MANIFEST_FILE);
+  /** @type {string[]} */
+  const errors = [...manifest.errors.filter((message) => !message.includes('rewritten'))];
+  /** @type {{ id: string, target: string, lines: number, sha256: string }[]} */
+  const results = [];
+  const entryNodes = /** @type {YAML.YAMLSeq} */ (manifest.doc.get('examples'));
+  for (const id of options.ids) {
+    const index = manifest.examples.findIndex((entry) => entry.id === id);
+    if (index < 0) {
+      errors.push(`목록에 id "${id}" 항목이 없어요.`);
+      continue;
+    }
+    const entry = manifest.examples[index];
+    const targetPath = path.resolve(rootDir, ...entry.target.split('/'));
+    if (!fs.existsSync(targetPath)) {
+      errors.push(`${id}: 대상 파일 ${entry.target}이(가) 없어요.`);
+      continue;
+    }
+    const data = fs.readFileSync(targetPath);
+    const text = data.toString('utf8');
+    if (text.includes('\r')) {
+      errors.push(`${id}: ${entry.target}에 CR(\\r)이 있어요. 줄 끝을 LF로 바꾼 뒤 다시 적어요.`);
+      continue;
+    }
+    const record = { lines: countLfLines(text), sha256: sha256Hex(data) };
+    const node = /** @type {YAML.YAMLMap} */ (entryNodes.get(index));
+    const current = node.get('rewritten');
+    const version = options.version ?? (current && typeof current === 'object' && 'get' in current ? String(current.get('version')) : undefined);
+    const reason = options.reason ?? (current && typeof current === 'object' && 'get' in current ? String(current.get('reason')) : undefined);
+    if (!version || !reason || version === 'undefined' || reason === 'undefined') {
+      errors.push(`${id}: 처음 적을 때는 --version과 --reason을 함께 적어요(예: --version 1.8.0 --reason "mediapipe 1.1.1로 다시 씀").`);
+      continue;
+    }
+    node.set('rewritten', manifest.doc.createNode({ version, reason, lines: record.lines, sha256: record.sha256 }));
+    results.push({ id, target: entry.target, ...record });
+  }
+  if ((options.write ?? true) && errors.length === 0 && results.length > 0) {
+    fs.writeFileSync(manifest.absolutePath, manifest.doc.toString({ lineWidth: 0 }), 'utf8');
+  }
+  return { ok: errors.length === 0, results, errors };
 }

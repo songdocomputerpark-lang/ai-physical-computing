@@ -1,14 +1,20 @@
+import time
 import cv2
 import mediapipe as mp
+from mediapipe.tasks.python import vision
 import bluetooth
 
 # 블루투스 초기화
 b = bluetooth.init("XX:XX:XX:XX:XX:XX")
 
-# Mediapipe Hands 초기화
-mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
-hands = mp_hands.Hands(max_num_hands=1)
+# Mediapipe 손 인식 초기화(모델 파일 hand_landmarker.task는 이 코드와 같은 폴더)
+options = vision.HandLandmarkerOptions(
+    base_options=mp.tasks.BaseOptions(model_asset_path='hand_landmarker.task'),
+    running_mode=vision.RunningMode.VIDEO,
+    num_hands=1
+)
+hands = vision.HandLandmarker.create_from_options(options)
+mp_drawing = vision.drawing_utils
 
 # 손 추적 스타일 설정
 line_style = mp_drawing.DrawingSpec(
@@ -34,12 +40,14 @@ while True:
         break
 
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = hands.process(image)
+    # 사진 형식으로 감싸 지금 시각(밀리초)과 함께 손 인식
+    mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=image)
+    results = hands.detect_for_video(mp_img, int(time.time() * 1000))
 
-    if results.multi_hand_landmarks:
-        for hand_landmarks in results.multi_hand_landmarks:
+    if results.hand_landmarks:
+        for hand_landmarks in results.hand_landmarks:
             # 손가락 좌표 추출
-            finger_point = hand_landmarks.landmark[8]
+            finger_point = hand_landmarks[8]
             finger_x = int(finger_point.x * width)
             finger_y = int(finger_point.y * height)
 
@@ -52,9 +60,9 @@ while True:
             mp_drawing.draw_landmarks(
                 frame,
                 hand_landmarks,
-                mp_hands.HAND_CONNECTIONS,
-                line_style,
-                circle_style
+                vision.HandLandmarksConnections.HAND_CONNECTIONS,
+                circle_style,
+                line_style
             )
 
     # 영상 출력
@@ -64,5 +72,6 @@ while True:
     if cv2.waitKey(1) == 27:
         break
 
+hands.close()
 cap.release()
 cv2.destroyAllWindows()

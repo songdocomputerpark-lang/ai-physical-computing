@@ -6,7 +6,7 @@
 //   f091 검지로 커서 움직이기 → 가상 데스크톱 커서가 처음 자리(960, 540)에서 움직임
 //   f092 웹캠 켜기 → 창이 뜨고 q로 끝남
 //   f093 얼굴 그물망 → 초록 선이 그려짐
-//   f094 눈·코 점 → refine_landmarks=True의 468·473번까지 빨간 점이 찍힘(IndexError 없음)
+//   f094 눈·코 점 → FaceLandmarker는 늘 478점이라 468·473번까지 빨간 점이 찍힘(IndexError 없음)
 //   f095 코로 커서 움직이기 → 화면 크기 1920×1080을 읽고, 기준점을 잡은 뒤 커서가 움직임
 //   f096 눈 깜박임 표시 → 창에 글자·점이 그려지고 q로 끝남
 //   f097 두 눈 깜박임으로 오른쪽 클릭 → 재생 입력 '눈 깜빡이기'에서 "우클릭 실행!"이 콘솔에 나옴
@@ -143,7 +143,7 @@ test.describe('교과서 3·4단원 PC 쪽 예제(f090~f097) — 재생 입력',
     await pressStopKey(page, 'q');
     expect(await waitDone(page, 60_000), 'f093').toBe('ok');
 
-    // f094: refine_landmarks=True라 468·473번(눈 가운데)까지 있어 IndexError 없이 빨간 점 세 개가 찍힌다.
+    // f094: FaceLandmarker는 늘 478점(눈동자 포함)이라 468·473번(눈 가운데)까지 있어 IndexError 없이 빨간 점 세 개가 찍힌다.
     await loadExample(page, 'u4-4-1-1-adv-eye-nose-points');
     await run(page);
     await waitFrames(page, 'Camera Feed', 3);
