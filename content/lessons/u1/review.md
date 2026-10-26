@@ -19,7 +19,7 @@ quiz:
   - q: 다음 가운데 MediaPipe 모델에 대한 설명으로 옳지 않은 것은 무엇일까요?
     choices: ["객체 감지 – 영상 속 특정 물체를 찾아내고 위치를 표시해요.", "제스처 인식 – 얼굴 표정을 감지해 468개 지점을 분석해요.", "이미지 분류 – 입력 이미지를 여러 종류 가운데 하나로 분류해요.", "포즈 랜드마크 감지 – 몸의 주요 관절을 추적해 동작을 분석해요.", "이미지 분할 – 이미지를 픽셀 단위로 나눠 배경과 물체를 구분해요."]
     answer: 1
-    explain: 얼굴의 468개 지점을 분석하는 것은 얼굴 랜드마크 감지예요. 제스처(동작) 인식은 손동작이나 몸짓을 알아봐요.
+    explain: 얼굴의 468개 지점(최신 MediaPipe는 눈동자 점까지 478개)을 분석하는 것은 얼굴 랜드마크 감지예요. 제스처(동작) 인식은 손동작이나 몸짓을 알아봐요.
   - q: MediaPipe Pose 모델로 사용자가 왼손을 들었는지 판단하는 방법으로 가장 알맞은 것은 무엇일까요?
     choices: ["왼손 손목의 x 좌표값이 정해 둔 임계값보다 커졌는지 판단해요.", "왼손 손목의 y 좌표값이 정해 둔 임계값보다 작아졌는지 판단해요.", "왼손 손목의 z 좌표값이 양수에서 음수로 바뀌었는지 판단해요.", "왼손 손가락 랜드마크의 총개수가 늘었는지 확인해요.", "손가락 끝과 손바닥 중심의 거리를 재서 손가락이 펴졌는지 판단해요."]
     answer: 1
@@ -65,7 +65,7 @@ quiz:
 | `1` | 좌우로 뒤집어요(좌우 반전, 거울 모드). |
 | `-1` | 위아래와 좌우를 한꺼번에 뒤집어요. |
 
-그래서 거울 모드는 `frame = cv2.flip(frame, 1)`처럼 써요. 1-4-1 기본 실습 19행에서도 이렇게 영상을 뒤집어요.
+그래서 거울 모드는 `frame = cv2.flip(frame, 1)`처럼 써요. 1-4-1 기본 실습 23행에서도 이렇게 영상을 뒤집어요.
 :::
 
 ### 9번(논술형)
@@ -90,15 +90,22 @@ FaceMesh는 눈 둘레의 좌표를 알려 줘요. EAR은 눈의 세로 거리 �
 다음 프로그램은 OpenCV와 MediaPipe Pose로 웹캠 영상에서 사람의 포즈(관절 위치)를 찾아요. 빈칸에 들어갈 코드를 써 보세요.
 
 ```python
+import time
 import cv2
 import mediapipe as mp
+from mediapipe.tasks.python import vision
 
 cap = cv2.VideoCapture(0)
-pose = mp.solutions.pose.Pose()
+options = vision.PoseLandmarkerOptions(
+    base_options=mp.tasks.BaseOptions(model_asset_path='pose_landmarker_lite.task'),
+    running_mode=vision.RunningMode.VIDEO)
+pose = vision.PoseLandmarker.create_from_options(options)
 
 while True:
     ret, frame = cap.read()
-    results = pose.process( ____________ )
+    rgb = ____________
+    mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+    results = pose.detect_for_video(mp_img, int(time.time() * 1000))
 ```
 
 :::참고[도움말]
@@ -108,7 +115,7 @@ OpenCV는 영상을 BGR 순서로 읽어 오지만, MediaPipe Pose는 RGB 순서
 :::정답
 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`
 
-OpenCV의 `VideoCapture`는 BGR 순서로 영상을 주지만, MediaPipe Pose의 `pose.process()`는 RGB 영상을 받아요. 그래서 넘기기 전에 BGR을 RGB로 바꿔야 랜드마크를 정확하게 찾아요. 1-4-1 기본 실습의 20~22행이 바로 이 모양이에요.
+OpenCV의 `VideoCapture`는 BGR 순서로 영상을 주지만, MediaPipe Pose는 RGB 영상을 받아요(`mp.ImageFormat.SRGB`가 RGB 순서라는 뜻이에요). 그래서 `mp.Image`로 감싸 `pose.detect_for_video()`에 넘기기 전에 BGR을 RGB로 바꿔야 랜드마크를 정확하게 찾아요. 1-4-1 기본 실습의 24\~27행이 바로 이 모양이에요.
 :::
 
 ### 11번
@@ -169,6 +176,7 @@ SpeechRecognition 라이브러리는 마이크로 들은 말을 `listen()`으로
 - 문장 끝을 해요체로 바꾸고, 보기의 "엑추에이터"는 사이트 전체에서 쓰는 "액추에이터"로 맞췄어요.
 - 2번 해설의 "기본적으로 환경, 센서, 지능적 처리, 엑추에이터 네 가지 구성 요소"는 1-1-1(원고 011쪽)이 목표까지 다섯 가지로 적은 것과 부딪혀서, "목표를 이루려고 … 움직이는 시스템"으로 다듬었어요.
 - 8번 예시 답안의 `cv2.fiip()`는 `cv2.flip()`의 오타라 바로잡았어요.
+- 10번 코드는 원고에서 옛 MediaPipe(0.10.21 이하)의 `mp.solutions.pose.Pose()`와 `pose.process()`를 썼어요. 이 사이트는 토니 5.0(파이썬 3.14)과 mediapipe 1.1.1 기준이라 같은 빈칸(BGR → RGB 변환)을 묻도록 Tasks API(`vision.PoseLandmarker`, `detect_for_video()`)로 다시 썼어요(판 1.8.0 — 운영자 결정). 원고 코드는 mediapipe 0.10.30부터 `AttributeError: module 'mediapipe' has no attribute 'solutions'`로 멈춰요. 정답 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`는 그대로예요.
 - 11번 코드의 6행은 원고에서 5행보다 한 칸 더 들여 써 있어 그대로 옮기면 파이썬 들여쓰기 오류(IndentationError)가 나요. 5행과 같게 맞췄어요.
 - 9번 해설에 사이트가 그린 EAR 그림을 더하고, 1-3-2의 입 모양 비율(MAR)과 이어 주는 문장을 보탰어요. 11번 해설에는 목소리가 서버로 간다는 것과 사이트의 글자 입력 방법을 보탰어요.
 :::

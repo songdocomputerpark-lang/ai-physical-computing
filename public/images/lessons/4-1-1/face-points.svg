@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="title desc">
 <title id="title">얼굴 그물망의 점 번호: 두 눈 사이 콧등 6번, 코끝 1번, 두 눈동자 가운데 468번과 473번</title>
-<desc id="desc">왼쪽에 얼굴 윤곽과 눈, 코, 입 위로 가는 회색 그물망 선이 그려져 있다. 두 눈 사이 콧등에 빨간 점(6번), 코끝에 노란 점(1번), 두 눈동자 가운데에 파란 점(468번, 473번)이 찍혀 있다. 오른쪽에는 세 점의 뜻과, 얼굴 그물 점 468개(0~467번)에 refine_landmarks=True일 때 눈동자 점 10개(468~477번)가 더해져 모두 478개라는 설명이 있다. 사이트가 직접 그린 그림.</desc>
+<desc id="desc">왼쪽에 얼굴 윤곽과 눈, 코, 입 위로 가는 회색 그물망 선이 그려져 있다. 두 눈 사이 콧등에 빨간 점(6번), 코끝에 노란 점(1번), 두 눈동자 가운데에 파란 점(468번, 473번)이 찍혀 있다. 오른쪽에는 세 점의 뜻과, 얼굴 그물 점 468개(0~467번)에 눈동자 점 10개(468~477번)가 더해져 FaceLandmarker는 늘 478개라는 설명이 있다. 사이트가 직접 그린 그림.</desc>
 <rect width="640" height="400" fill="#ffffff"/>
 <g font-family="'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif">
 <text x="320" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#17191c">얼굴 그물망: 점마다 번호가 정해져 있어요</text>
@@ -71,7 +71,7 @@
 <g font-size="16" fill="#17191c">
 <text x="356" y="292">얼굴 그물 점 0~467번: 468개</text>
 <text x="356" y="320">눈동자 점 468~477번: 10개</text>
-<text x="356" y="352" font-weight="700" fill="#1a4cb4">refine_landmarks=True면 478개</text>
+<text x="356" y="352" font-weight="700" fill="#1a4cb4">FaceLandmarker는 늘 478개</text>
 </g>
 </g>
 </svg>

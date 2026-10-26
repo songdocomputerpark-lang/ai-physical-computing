@@ -223,8 +223,8 @@ test.describe('차시 페이지', () => {
   // 판 1.7.0(미해결 271 B-44): 카드 이름 = 차시 frontmatter 제목을 실습실 고르기 칸과 같은 규칙(example-names.ts)으로 다듬은 것
   test('예제 카드 이름은 학생 말로 다듬은 차시 제목이다(쪽 번호 앞 0 없음, "사이트판" → "바로 실행 버전")', async ({ page }) => {
     await page.goto('./learn/u1/1-1-2/');
-    await expect(page.locator('figure.lesson-example[data-example-file="vision/u1/1-1-2-hands-first-site.py"] .lesson-example__title')).toHaveText(
-      'MediaPipe로 손 관절 점 그리기(교과서 17쪽 코드)',
+    await expect(page.locator('figure.lesson-example[data-example-file="vision/u1/1-1-2-hands-first.py"] .lesson-example__title')).toHaveText(
+      'MediaPipe로 손 관절 점 그리기(교과서 17쪽, 최신 판 코드)',
     );
     await page.goto('./learn/u2/2-1-3/');
     await expect(page.locator('figure.lesson-example[data-example-file="esp32/u2/2-1-3-adv-touch4-check-site.py"] .lesson-example__title')).toHaveText(

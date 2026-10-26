@@ -288,14 +288,17 @@ test.describe('교사용 자료실', () => {
       const id = decodeURIComponent(((await link.getAttribute('href')) ?? '').slice(1));
       await expect(page.locator(`h2[id="${id}"]`)).toHaveText(await link.innerText());
     }
-    // 설치 파일을 재배포하지 않고 공식 주소만 적는다(SPEC 원칙 1, PLAN §9.4 D)
-    const official = /^https:\/\/(?:www\.python\.org|thonny\.org|github\.com\/(?:thonny|micropython|songdocomputerpark-lang)\/|pypi\.org\/project\/|www\.wch-ic\.com|www\.silabs\.com)/u;
+    // 설치 파일을 재배포하지 않고 공식 주소만 적는다(SPEC 원칙 1, PLAN §9.4 D). 판 1.8.0: MediaPipe 모델 파일의 공식 저장소·안내도 공식 주소다.
+    const official =
+      /^https:\/\/(?:www\.python\.org|thonny\.org|github\.com\/(?:thonny|micropython|songdocomputerpark-lang)\/|pypi\.org\/project\/|www\.wch-ic\.com|www\.silabs\.com|storage\.googleapis\.com\/mediapipe-models\/|ai\.google\.dev\/edge\/mediapipe\/)/u;
     const external = await page.locator('main a[href^="http"]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
     expect(external.length).toBeGreaterThan(0);
     for (const href of external) {
       expect(href, href).toMatch(official);
     }
-    await expect(page.getByRole('main')).toContainText('mediapipe==0.10.21');
+    // 판 1.8.0: 토니 5.0 + mediapipe 1.1.1 기준(모델 파일 받는 절이 있다)
+    await expect(page.getByRole('main')).toContainText('mediapipe 1.1.1');
+    await expect(page.locator('h3[id="모델-파일-받기"]')).toHaveText('모델 파일 받기');
   });
 
   test('자주 묻는 질문: 질문 목록이 파일의 묶음·질문과 같고 모두 그 질문으로 간다', async ({ page }) => {

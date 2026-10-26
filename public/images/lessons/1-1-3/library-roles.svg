@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="title desc">
 <title id="title">손 인식 프로그램에서 OpenCV와 MediaPipe가 나눠 맡는 일</title>
-<desc id="desc">왼쪽에서 오른쪽으로 흐르는 네 칸. 웹캠에서 온 영상을 ① OpenCV가 프레임(사진 한 장)으로 읽고(cap.read), ② MediaPipe가 그 사진에서 손 랜드마크를 찾고(hands.process), ③ OpenCV가 찾은 점을 그려 화면에 보여 준다(cv2.imshow). 그다음 다시 ①로 돌아가 다음 프레임을 읽는다. OpenCV 칸은 파란 테두리, MediaPipe 칸은 초록 테두리이고, 칸마다 라이브러리 이름이 적혀 있다. 사이트가 직접 그린 그림(INVENTORY S17).</desc>
+<desc id="desc">왼쪽에서 오른쪽으로 흐르는 네 칸. 웹캠에서 온 영상을 ① OpenCV가 프레임(사진 한 장)으로 읽고(cap.read), ② MediaPipe가 그 사진에서 손 랜드마크를 찾고(detect_for_video), ③ OpenCV가 찾은 점을 그려 화면에 보여 준다(cv2.imshow). 그다음 다시 ①로 돌아가 다음 프레임을 읽는다. OpenCV 칸은 파란 테두리, MediaPipe 칸은 초록 테두리이고, 칸마다 라이브러리 이름이 적혀 있다. 사이트가 직접 그린 그림(INVENTORY S17).</desc>
 <defs>
 <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
 <path d="M0 0 L10 5 L0 10 Z" fill="#4a5361"/>
@@ -29,7 +29,7 @@
 <text x="392" y="112" font-size="18" font-weight="700" fill="#17191c">② 손 찾기</text>
 <text x="392" y="140" font-size="16" fill="#4a5361">관절 21곳의</text>
 <text x="392" y="162" font-size="16" fill="#4a5361">위치(랜드마크)</text>
-<text x="392" y="202" font-size="16" fill="#17191c" font-family="Consolas, 'Courier New', monospace">hands.process()</text>
+<text x="392" y="202" font-size="13" fill="#17191c" font-family="Consolas, 'Courier New', monospace">detect_for_video()</text>
 <line x1="472" y1="130" x2="490" y2="130" stroke="#4a5361" stroke-width="2.5" marker-end="url(#arrow)"/>
 
 <rect x="496" y="40" width="132" height="180" rx="14" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
