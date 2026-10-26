@@ -62,10 +62,10 @@ export const MAX_SAMPLES = 3600;
  * 재생 동작 id는 src/lab/modules/mediapipe/sequences.ts의 DEFAULT_SEQUENCE_FOR_KIND와 같다(그 모듈은 쓸 때만 받아 여기서 가져오지 않는다).
  */
 export function replaySolutionOfCode(code: string): { kind: 'hands' | 'face' | 'pose'; sequence: string } {
-  if (/face_mesh|face_detection|FaceMesh|FaceDetection/u.test(code)) {
+  if (/FaceLandmarker|FaceDetector|face_mesh|face_detection|FaceMesh|FaceDetection/u.test(code)) {
     return { kind: 'face', sequence: 'face-turn' };
   }
-  if (/solutions\s*\.\s*pose|mp_pose|Pose\s*\(/u.test(code)) {
+  if (/PoseLandmarker|solutions\s*\.\s*pose|mp_pose|\bPose\s*\(/u.test(code)) {
     return { kind: 'pose', sequence: 'pose-raise' };
   }
   return { kind: 'hands', sequence: 'count' };

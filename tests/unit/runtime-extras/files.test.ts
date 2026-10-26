@@ -106,7 +106,7 @@ describe('파일 패널을 열 코드인지(usesWorkFiles, 2026-09-17 검토 반
     const notUsing = [
       ['import cv2', 'cap = cv2.VideoCapture(0)', 'edges = cv2.Canny(gray, threshold, threshold * 2)', 'cv2.imshow("edges", edges)'].join('\n'),
       "webbrowser.open('https://www.google.com')",
-      'hands = mp.solutions.hands.Hands()',
+      'hands = vision.HandLandmarker.create_from_options(options)',
       "print('open 이라는 낱말만 있어요')",
       'reopen(x)',
     ];

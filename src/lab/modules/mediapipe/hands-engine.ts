@@ -11,7 +11,8 @@
  *   (b') 모듈 워커 + 모듈 글루(forVisionTasks(base, true)): 뜬다(165ms). 다만 공유 파일 두 개(scripts/vendor-assets.mjs의 복사 목록 +11.2MB,
  *       src/lab/runtime/worker.ts의 모듈 확장 자리)를 고쳐야 해서 병렬 제작 단계에서는 못 한다.
  *
- * Tasks와 레거시의 차이(파이썬 쪽 apc_mediapipe.py 머리말에도 적음): Tasks numHands 기본 1 → 레거시 max_num_hands 기본 2를 이 모듈이 맞춘다,
+ * 판 1.8.0부터 파이썬 쪽은 mediapipe 1.1.1 Tasks 모양(HandLandmarkerOptions — num_hands 기본 1)이고 그 값을 아래 옛 이름 칸으로 옮겨 보낸다.
+ * 아래는 옛 레거시 형식과 Tasks의 차이(이 칸 이름이 생긴 까닭): Tasks numHands 기본 1 → 레거시 max_num_hands 기본 2를 이 모듈이 맞춘다,
  * 레거시 min_detection_confidence → minHandDetectionConfidence, min_tracking_confidence → minTrackingConfidence, 레거시에 없는
  * minHandPresenceConfidence는 0.5(Tasks 기본) 고정, model_complexity는 무시(Tasks 손 모델은 한 종류). 좌표계(0~1, z는 손목 기준)와
  * handedness 이름(거울 셀카 기준 Left/Right)은 같다. 모델은 레거시와 달라 같은 신뢰도에서 결과가 조금 다를 수 있다.
@@ -53,12 +54,16 @@ export interface HandTaskOptions {
   readonly runningMode: RunningMode;
 }
 
-/** 레거시 Hands(...) 인자 모양(파이썬 apc_mediapipe.Hands가 mediapipe.open payload.options로 보낸다) */
+/**
+ * 파이썬이 mediapipe.open payload.options로 보내는 손 설정. 판 1.8.0부터 파이썬은 HandLandmarkerOptions(num_hands·min_hand_detection_confidence·
+ * min_hand_presence_confidence·min_tracking_confidence·running_mode)를 이 이름으로 옮겨 보낸다(이름은 판 1.8.0 전 레거시 Hands(...) 때부터 쓰던 것).
+ */
 export interface LegacyHandsOptions {
   readonly staticImageMode?: unknown;
   readonly maxNumHands?: unknown;
   readonly modelComplexity?: unknown;
   readonly minDetectionConfidence?: unknown;
+  readonly minPresenceConfidence?: unknown;
   readonly minTrackingConfidence?: unknown;
 }
 
@@ -92,7 +97,7 @@ export function taskOptionsFromLegacy(legacy: LegacyHandsOptions | null | undefi
   return {
     numHands: Math.round(clampNumber(source.maxNumHands, 1, MAX_NUM_HANDS, DEFAULT_HAND_TASK_OPTIONS.numHands)),
     minHandDetectionConfidence: clampNumber(source.minDetectionConfidence, 0, 1, DEFAULT_HAND_TASK_OPTIONS.minHandDetectionConfidence),
-    minHandPresenceConfidence: DEFAULT_HAND_TASK_OPTIONS.minHandPresenceConfidence,
+    minHandPresenceConfidence: clampNumber(source.minPresenceConfidence, 0, 1, DEFAULT_HAND_TASK_OPTIONS.minHandPresenceConfidence),
     minTrackingConfidence: clampNumber(source.minTrackingConfidence, 0, 1, DEFAULT_HAND_TASK_OPTIONS.minTrackingConfidence),
     runningMode: asBoolean(source.staticImageMode) ? 'IMAGE' : 'VIDEO',
   };

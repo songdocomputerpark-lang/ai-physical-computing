@@ -69,7 +69,7 @@ export const HAND_SEQUENCE_INFO: Readonly<Record<HandSequenceId, { readonly labe
   'two-hands': { label: '두 손', description: '왼손(Left)과 오른손(Right)이 함께 보이며 천천히 흔들려요.', seconds: 4 },
 });
 
-/** MediaPipe 손 연결표(21쌍) — mp.solutions.hands.HAND_CONNECTIONS와 같다. 뼈대 그리기와 테스트가 쓴다. */
+/** MediaPipe 손 연결표(21쌍) — vision.HandLandmarksConnections.HAND_CONNECTIONS와 같은 쌍이다. 뼈대 그리기와 테스트가 쓴다. */
 export const HAND_CONNECTIONS: readonly (readonly [number, number])[] = Object.freeze([
   [0, 1], [1, 2], [2, 3], [3, 4], // 엄지
   [0, 5], [5, 6], [6, 7], [7, 8], // 검지

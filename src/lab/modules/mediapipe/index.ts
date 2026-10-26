@@ -16,7 +16,7 @@
  *        재생 입력에서는 넘어온 이미지의 방향 표시를 보고 `cv2.flip(frame, 1)` 여부를 알아내 좌표를 함께 뒤집는다(mirror.ts) —
  *        진짜 카메라+모델은 "파이썬이 넘긴 배열"로 추론해 저절로 맞지만(CODE_MAPPING §3.1), 재생 입력은 그려 둔 좌표를 돌려주기 때문이다.
  * 3. 패널(panel.astro): 엔진 상태, 재생 동작 고르기(저장 이름 module:mediapipe:replay-sequence — [기록 지우기]가 지움),
- *    손 개수·신뢰도 조절 막대(코드의 Hands(...) 값에서 시작해 실행 중에 바꿔 보기 — 다음 process()부터 반영, 코드 값은 그대로),
+ *    손 개수·신뢰도 조절 막대(코드의 HandLandmarkerOptions(...) 값에서 시작해 실행 중에 바꿔 보기 — 다음 process()부터 반영, 코드 값은 그대로),
  *    저사양 모드(자세 모델을 가벼운 것으로, 저장 이름 module:mediapipe:low-spec — PD-20).
  *
  * 추론 위치 결정(2026-09-16 직접 실험, Edge 153 + 개발 서버, 측정값과 근거는 .cache/phase2-requests/mediapipe.md): **화면(메인 스레드)에서 추론한다.**
@@ -269,7 +269,7 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
       }
     }
     if (elements.codeOptions) {
-      elements.codeOptions.textContent = `코드의 값: 손 ${codeOptions.numHands}개, 검출 신뢰도 ${codeOptions.minHandDetectionConfidence.toFixed(2)}, 추적 신뢰도 ${codeOptions.minTrackingConfidence.toFixed(2)}, ${codeOptions.runningMode === 'IMAGE' ? '사진 모드(static_image_mode=True)' : '영상 모드'}`;
+      elements.codeOptions.textContent = `코드의 값: 손 ${codeOptions.numHands}개, 검출 신뢰도 ${codeOptions.minHandDetectionConfidence.toFixed(2)}, 추적 신뢰도 ${codeOptions.minTrackingConfidence.toFixed(2)}, ${codeOptions.runningMode === 'IMAGE' ? '사진 모드(running_mode=IMAGE)' : '영상 모드'}`;
     }
   };
 
@@ -395,7 +395,7 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
     const payload = (request.payload ?? {}) as OpenPayload;
     const solution = typeof payload.solution === 'string' ? payload.solution : 'hands';
     if (!SUPPORTED_SOLUTIONS.includes(solution)) {
-      request.fail(`이 실습실은 mediapipe.solutions.${solution}을(를) 아직 지원하지 않아요(손·얼굴 그물·얼굴 검출·자세만 돼요).`);
+      request.fail(`이 실습실은 ${solution} 작업을 아직 지원하지 않아요(손·얼굴 그물·얼굴 상자·자세만 돼요).`);
       return;
     }
     activeSolution = solution;
@@ -507,7 +507,7 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
     const payload = (request.payload ?? {}) as DetectPayload;
     const solution = typeof payload.solution === 'string' ? payload.solution : 'hands';
     if (!SUPPORTED_SOLUTIONS.includes(solution)) {
-      request.fail(`이 실습실은 mediapipe.solutions.${solution}을(를) 아직 지원하지 않아요(손·얼굴 그물·얼굴 검출·자세만 돼요).`);
+      request.fail(`이 실습실은 ${solution} 작업을 아직 지원하지 않아요(손·얼굴 그물·얼굴 상자·자세만 돼요).`);
       return;
     }
     activeSolution = solution;
@@ -560,7 +560,7 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
   };
 
   // 패널은 코드가 mediapipe를 쓸 때만 연다(에지 검출 첫 실습에는 필요 없다 — 2026-09-17 검토 반영).
-  const panelGate = showPanelWhenUsed(context, /\bmediapipe\b|\bmp\s*\.\s*solutions\b/u);
+  const panelGate = showPanelWhenUsed(context, /\bmediapipe\b/u);
 
   context.onRequest(REQUEST_OPEN, (request) => {
     panelGate.show();

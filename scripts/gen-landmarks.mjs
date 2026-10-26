@@ -5,10 +5,12 @@
 //   2. tests/fixtures/landmarks/face-pose.json — 합성 얼굴·자세의 **간추린 기록**(예제가 쓰는 번호만 몇 장씩 + 합계 지문).
 //      얼굴은 한 장이 478점이라 전체를 적으면 수 MB가 되므로 간추린다(Node 테스트는 synthetic-face.ts를 바로 불러 쓴다).
 //   3. src/lab/modules/mediapipe/face-connections.ts — 화면 쪽이 쓰는 얼굴·자세 연결표(TS, 압축 문자열)
-//   4. src/lab/modules/mediapipe/apc_mp_tables.py — 파이썬 흉내 모듈이 쓰는 레거시 이름의 연결표(FACEMESH_*, POSE_CONNECTIONS)
+//   4. src/lab/modules/mediapipe/apc_mp_tables.py — 파이썬 흉내 모듈이 쓰는 연결표(mediapipe 1.x 파이썬 판의 이름 FACE_LANDMARKS_*·POSE_LANDMARKS,
+//      차례도 같게 — 판 1.8.0에서 레거시 FACEMESH_*·frozenset을 바꿈)
 //
 // 3·4의 연결표는 **설치된 @mediapipe/tasks-vision 패키지**(node_modules, Apache-2.0)에서 그대로 읽는다. 사람 얼굴을 찍은 데이터가 아니라
-// 얼굴 그물의 "몇 번 점과 몇 번 점을 잇는가" 표다. 레거시 mp.solutions의 FACEMESH_*와 같은 데이터이며 고지는 apc_mediapipe.py 머리말에 있다.
+// 얼굴 그물의 "몇 번 점과 몇 번 점을 잇는가" 표다. mediapipe 1.x 파이썬 판의 FaceLandmarksConnections와 같은 데이터이며 고지는 apc_mediapipe.py 머리말에 있다.
+// 단 코 윤곽(FACE_LANDMARKS_NOSE)은 tasks-vision 0.10.35에 없어 mediapipe 1.1.1 파이썬 판(face_landmarker.py)의 표를 아래 상수로 옮겨 둔다.
 // 어긋남은 tests/unit/mediapipe/connections.test.ts가 매번 패키지와 다시 대조해서 잡는다(패키지 판을 올리면 이 스크립트를 다시 돌린다).
 //
 //   node scripts/gen-landmarks.mjs            # 넷 다 만든다
@@ -187,22 +189,49 @@ export const POSE_CONNECTIONS: readonly (readonly [number, number])[] = decode('
 `;
 }
 
-/** 파이썬 쪽 연결표 파일 내용 */
+/**
+ * 코 윤곽 연결표(25쌍) — @mediapipe/tasks-vision 0.10.35에는 없고 mediapipe 1.1.1 파이썬 판
+ * (mediapipe/tasks/python/vision/face_landmarker.py의 FaceLandmarksConnections.FACE_LANDMARKS_NOSE)에 있다.
+ * Copyright The MediaPipe Authors, Apache License 2.0(고지는 apc_mediapipe.py 머리말). 2026-10-26 설치한 휠에서 그대로 옮겼다.
+ */
+export const FACE_LANDMARKS_NOSE = Object.freeze([
+  [168, 6], [6, 197], [197, 195], [195, 5], [5, 4], [4, 1], [1, 19], [19, 94], [94, 2], [98, 97], [97, 2], [2, 326], [326, 327],
+  [327, 294], [294, 278], [278, 344], [344, 440], [440, 275], [275, 4], [4, 45], [45, 220], [220, 115], [115, 48], [48, 64], [64, 98],
+]);
+
+/** 레거시 이름 → mediapipe 1.x 파이썬 판(FaceLandmarksConnections)의 이름 */
+export const PYTHON_FACE_NAMES = Object.freeze({
+  FACEMESH_LIPS: 'FACE_LANDMARKS_LIPS',
+  FACEMESH_LEFT_EYE: 'FACE_LANDMARKS_LEFT_EYE',
+  FACEMESH_LEFT_EYEBROW: 'FACE_LANDMARKS_LEFT_EYEBROW',
+  FACEMESH_LEFT_IRIS: 'FACE_LANDMARKS_LEFT_IRIS',
+  FACEMESH_RIGHT_EYE: 'FACE_LANDMARKS_RIGHT_EYE',
+  FACEMESH_RIGHT_EYEBROW: 'FACE_LANDMARKS_RIGHT_EYEBROW',
+  FACEMESH_RIGHT_IRIS: 'FACE_LANDMARKS_RIGHT_IRIS',
+  FACEMESH_FACE_OVAL: 'FACE_LANDMARKS_FACE_OVAL',
+  FACEMESH_CONTOURS: 'FACE_LANDMARKS_CONTOURS',
+  FACEMESH_TESSELATION: 'FACE_LANDMARKS_TESSELATION',
+});
+
+/** 파이썬 쪽 연결표 파일 내용(튜플의 튜플 — 차례가 그리기 결과를 정하므로 1.x 파이썬 판과 같은 차례로 적는다) */
 export function buildConnectionsPy(tables) {
-  const block = (name, pairs) => `${name} = frozenset([\n${pythonPairs(pairs)}\n])`;
+  const block = (name, pairs) => `${name} = (\n${pythonPairs(pairs)}\n)`;
+  const faceBlocks = Object.entries(PYTHON_FACE_NAMES).map(([legacy, name]) => block(name, tables.face[legacy]));
   return `"""얼굴·자세 연결표(MediaPipe 규격) — ${GENERATED_NOTE}
 
 출처: @mediapipe/tasks-vision ${tables.version}의 FaceLandmarker.FACE_LANDMARKS_*·PoseLandmarker.POSE_CONNECTIONS를 그대로 옮겼다
-(Copyright The MediaPipe Authors, Apache License 2.0 — 고지 전문 public/licenses/mediapipe-tasks-vision.txt, 출처 항목은 sources.yaml).
-레거시 mediapipe 파이썬 판의 FACEMESH_*·POSE_CONNECTIONS와 같은 데이터이고 이름도 같다. apc_mediapipe.py가 이 표를 학생 코드에 내보낸다.
+(코 윤곽 FACE_LANDMARKS_NOSE만 mediapipe 1.1.1 파이썬 판에서 — scripts/gen-landmarks.mjs의 상수).
+Copyright The MediaPipe Authors, Apache License 2.0 — 고지 전문 public/licenses/mediapipe-tasks-vision.txt, 출처 항목은 sources.yaml.
+mediapipe 1.x 파이썬 판(vision.FaceLandmarksConnections·PoseLandmarksConnections)과 같은 이름·같은 차례다. apc_mediapipe.py가 Connection 목록으로 바꿔 내보낸다.
 """
 
-FACEMESH_NUM_LANDMARKS = 468
-FACEMESH_NUM_LANDMARKS_WITH_IRISES = 478
+FACE_NUM_LANDMARKS = 478
 
-${Object.entries(tables.face).map(([name, pairs]) => block(name, pairs)).join('\n\n')}
+${faceBlocks.join('\n\n')}
 
-${block('POSE_CONNECTIONS', tables.pose)}
+${block('FACE_LANDMARKS_NOSE', FACE_LANDMARKS_NOSE)}
+
+${block('POSE_LANDMARKS', tables.pose)}
 `;
 }
 

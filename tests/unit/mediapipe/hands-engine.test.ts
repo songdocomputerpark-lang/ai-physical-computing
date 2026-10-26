@@ -17,7 +17,7 @@ import {
 } from '../../../src/lab/modules/mediapipe/hands-engine.ts';
 import { siteConfig } from '../../../src/config/site.ts';
 
-describe('레거시 Hands(...) 인자 → Tasks 옵션', () => {
+describe('파이썬이 보낸 손 설정(mediapipe.open options) → Tasks 옵션', () => {
   it('인자가 없으면 레거시 기본값(손 2개·신뢰도 0.5·영상 모드)을 쓴다 — Tasks 기본 numHands=1과 다르다', () => {
     expect(taskOptionsFromLegacy(null)).toEqual(DEFAULT_HAND_TASK_OPTIONS);
     expect(taskOptionsFromLegacy({})).toMatchObject({ numHands: 2, runningMode: 'VIDEO', minHandDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });

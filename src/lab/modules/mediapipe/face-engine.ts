@@ -1,9 +1,13 @@
 /**
  * 얼굴 인식 엔진 두 가지(PLAN §8.2 P2-09, CODE_MAPPING §3.2.3·§3.2.4) — 공통 뼈대는 task-engine.ts.
  *
- * 1. FaceEngine — Tasks FaceLandmarker(얼굴 그물 478점). 레거시 FaceMesh(...) 인자를 Tasks 옵션으로 옮긴다.
- *    Tasks는 늘 478점(눈동자 포함)을 주고, refine_landmarks=False면 **파이썬 쪽이 앞 468개만** 잘라 쓴다(레거시와 같은 개수).
- * 2. FaceDetectionEngine — Tasks FaceDetector(얼굴 상자). Tasks 상자는 픽셀이라 여기서 0~1로 바꿔 레거시 relative_bounding_box 모양으로 만든다.
+ * 1. FaceEngine — Tasks FaceLandmarker(얼굴 그물 478점). 파이썬이 보낸 설정(mediapipe.open options)을 Tasks 옵션으로 옮긴다.
+ *    Tasks는 늘 478점(눈동자 포함)을 주고, 판 1.8.0부터 파이썬 쪽(mediapipe 1.1.1 모양)도 늘 478점을 그대로 쓴다.
+ * 2. FaceDetectionEngine — Tasks FaceDetector(얼굴 상자). Tasks 상자는 픽셀이라 여기서 0~1로 바꿔 넘기고(재생 입력과 같은 모양),
+ *    파이썬 쪽이 프레임 크기를 곱해 진짜 1.1.1처럼 픽셀 정수 bounding_box로 되돌린다.
+ *
+ * 옵션 칸 이름(maxNumFaces·refineLandmarks 등)과 함수 이름의 "Legacy"는 판 1.8.0 전 레거시 FaceMesh(...) 때부터 쓰던 주고받는 형식 이름이다
+ * — 파이썬 쪽 apc_mediapipe.py가 Tasks 설정(num_faces 등)을 이 이름으로 옮겨 보낸다.
  *
  * 모델 파일(같은 사이트 public/models/): face_landmarker.task(3.58MB), blaze_face_short_range.tflite(224KB). 없으면 'missing-model'이 되고
  * 실습실이 재생 입력(합성 얼굴 좌표)으로 잇는다 — 카메라도 모델도 없이 실습을 끝낼 수 있어야 한다(SPEC §2).
@@ -47,6 +51,8 @@ export interface LegacyFaceMeshOptions {
   readonly maxNumFaces?: unknown;
   readonly refineLandmarks?: unknown;
   readonly minDetectionConfidence?: unknown;
+  /** 판 1.8.0: 파이썬 FaceLandmarkerOptions.min_face_presence_confidence */
+  readonly minPresenceConfidence?: unknown;
   readonly minTrackingConfidence?: unknown;
 }
 
@@ -70,7 +76,7 @@ export function taskOptionsFromLegacyFaceMesh(legacy: LegacyFaceMeshOptions | nu
   return {
     numFaces: Math.round(clampNumber(source.maxNumFaces, 1, MAX_NUM_FACES, DEFAULT_FACE_TASK_OPTIONS.numFaces)),
     minFaceDetectionConfidence: clampNumber(source.minDetectionConfidence, 0, 1, DEFAULT_FACE_TASK_OPTIONS.minFaceDetectionConfidence),
-    minFacePresenceConfidence: DEFAULT_FACE_TASK_OPTIONS.minFacePresenceConfidence,
+    minFacePresenceConfidence: clampNumber(source.minPresenceConfidence, 0, 1, DEFAULT_FACE_TASK_OPTIONS.minFacePresenceConfidence),
     minTrackingConfidence: clampNumber(source.minTrackingConfidence, 0, 1, DEFAULT_FACE_TASK_OPTIONS.minTrackingConfidence),
     runningMode: asBoolean(source.staticImageMode) ? 'IMAGE' : 'VIDEO',
   };
@@ -134,17 +140,23 @@ export class FaceEngine extends TaskEngine<FaceTaskOptions, FaceLandmarker, Dete
 
 export interface FaceDetectionTaskOptions {
   readonly minDetectionConfidence: number;
+  /** 겹친 상자 하나로 합치는 기준(Tasks 기본 0.3) */
+  readonly minSuppressionThreshold: number;
   readonly runningMode: RunningMode;
 }
 
 export interface LegacyFaceDetectionOptions {
+  readonly staticImageMode?: unknown;
   readonly minDetectionConfidence?: unknown;
+  /** 판 1.8.0: 파이썬 FaceDetectorOptions.min_suppression_threshold */
+  readonly minSuppressionThreshold?: unknown;
   readonly modelSelection?: unknown;
 }
 
-/** 레거시 기본값(solutions/face_detection.py): model_selection=0(2m 이내), 신뢰도 0.5 */
+/** 기본값(Tasks FaceDetector — 가까운 얼굴 모델, 신뢰도 0.5, 겹침 0.3) */
 export const DEFAULT_FACE_DETECTION_OPTIONS: FaceDetectionTaskOptions = Object.freeze({
   minDetectionConfidence: 0.5,
+  minSuppressionThreshold: 0.3,
   runningMode: 'VIDEO',
 });
 
@@ -160,7 +172,8 @@ export function taskOptionsFromLegacyFaceDetection(legacy: LegacyFaceDetectionOp
   const source = legacy ?? {};
   return {
     minDetectionConfidence: clampNumber(source.minDetectionConfidence, 0, 1, DEFAULT_FACE_DETECTION_OPTIONS.minDetectionConfidence),
-    runningMode: 'VIDEO',
+    minSuppressionThreshold: clampNumber(source.minSuppressionThreshold, 0, 1, DEFAULT_FACE_DETECTION_OPTIONS.minSuppressionThreshold),
+    runningMode: asBoolean(source.staticImageMode) ? 'IMAGE' : 'VIDEO',
   };
 }
 
@@ -201,11 +214,18 @@ const FACE_DETECTION_SPEC: TaskEngineSpec<FaceDetectionTaskOptions, FaceDetector
       baseOptions: { modelAssetBuffer: model, delegate },
       runningMode: options.runningMode,
       minDetectionConfidence: options.minDetectionConfidence,
+      minSuppressionThreshold: options.minSuppressionThreshold,
     }),
-  apply: (task, options) => task.setOptions({ runningMode: options.runningMode, minDetectionConfidence: options.minDetectionConfidence }),
+  apply: (task, options) =>
+    task.setOptions({
+      runningMode: options.runningMode,
+      minDetectionConfidence: options.minDetectionConfidence,
+      minSuppressionThreshold: options.minSuppressionThreshold,
+    }),
   detect: (task, image, timestamp, mode) =>
     convertFaceDetectorResult(mode === 'IMAGE' ? task.detect(image) : task.detectForVideo(image, timestamp), image.width, image.height),
-  same: (a, b) => a.minDetectionConfidence === b.minDetectionConfidence && a.runningMode === b.runningMode,
+  same: (a, b) =>
+    a.minDetectionConfidence === b.minDetectionConfidence && a.minSuppressionThreshold === b.minSuppressionThreshold && a.runningMode === b.runningMode,
   empty: [],
 };
 

@@ -44,6 +44,9 @@ groups:
   - id: vision
     title: 영상 처리(OpenCV) 오류
     description: cv2 함수가 내는 오류예요. 대부분 "이미지가 비어 있다"거나 "색 채널 수가 다르다"는 뜻이에요.
+  - id: mediapipe
+    title: 손·얼굴·자세 인식(MediaPipe) 오류
+    description: MediaPipe 최신 판(1.1.1, 토니 5.0)에서 나는 오류예요. 옛 사용법(mp.solutions)이 없어졌거나, 모델 파일·실행 모드·사진 형식이 맞지 않을 때 나요.
   - id: modules
     title: 모듈·파일 오류
     description: import할 모듈이나 열 파일이 없을 때 나는 오류예요.
@@ -349,12 +352,12 @@ entries:
     meaning: "목록(리스트·배열·글자)의 칸 수보다 큰 번호를 썼어요. 파이썬 번호는 0부터 시작해서, 칸이 3개면 0·1·2까지만 있어요."
     why:
       - "칸이 n개인 목록의 마지막 번호는 n-1이에요. items[3]은 4번째 칸이라 칸이 3개면 없어요."
-      - "손·얼굴·자세 점(랜드마크) 목록은 정해진 개수만 있어요. 손 21개(0~20), 얼굴 468개(0~467, refine_landmarks=True면 478개), 자세 33개(0~32)예요."
-      - "목록이 비어 있을 때 [0]을 꺼내도 이 오류가 나요. 예: 손이 안 잡힌 장면에서 multi_hand_landmarks[0]"
+      - "손·얼굴·자세 점(랜드마크) 목록은 정해진 개수만 있어요. 손 21개(0~20), 얼굴 478개(0~477 — 얼굴 468점과 눈동자 10점), 자세 33개(0~32)예요."
+      - "목록이 비어 있을 때 [0]을 꺼내도 이 오류가 나요. 예: 손이 안 잡힌 장면에서 result.hand_landmarks[0]"
     fix:
       - "{line}번째 줄에서 쓴 번호가 목록 길이(len(목록))보다 작은지 확인해요. 마지막 칸은 목록[-1]로도 꺼낼 수 있어요."
       - "장면마다 개수가 달라지는 목록(검출 결과)은 꺼내기 전에 if len(목록) > 0: 또는 if 결과:로 확인해요."
-      - "얼굴 점 468·473번(눈동자)은 FaceMesh(refine_landmarks=True)일 때만 있어요. 옵션을 켜거나 다른 번호를 써요."
+      - "손이 몇 개 잡혔는지는 len(result.hand_landmarks)로 알 수 있어요. 둘째 손(result.hand_landmarks[1])은 손이 2개 잡혔을 때만 있어요."
     mistakes:
       - "칸이 3개인 목록에서 items[3]을 꺼내는 것(마지막은 items[2])"
       - "카메라에 손이 없을 때 landmark[8]을 바로 읽는 것"
@@ -364,8 +367,8 @@ entries:
         print(items[3])
       error: "IndexError: list index out of range"
     cases:
-      - "교과서 4-1-1 심화(p219, 눈·코 특징점): 468·473번 점은 refine_landmarks=True일 때만 있어요. 그 옵션 없이 쓰면 이 오류가 나요."
-      - "손 인식 예제 전반: 손이 잡히지 않은 장면에서 multi_hand_landmarks[0]을 읽으면 이 오류(또는 None 오류)가 나요. if results.multi_hand_landmarks: 안에서만 읽어요."
+      - "교과서 4-1-1 심화(p219, 눈·코 특징점): 옛 MediaPipe(FaceMesh)에서는 468·473번 눈동자 점이 refine_landmarks=True일 때만 있었어요. 최신 판(FaceLandmarker)은 늘 478점이라 이 오류가 나지 않아요."
+      - "손 인식 예제 전반: 손이 잡히지 않은 장면에서 result.hand_landmarks[0]을 읽으면 이 오류가 나요. for hand in result.hand_landmarks: 안에서 읽거나 if result.hand_landmarks:로 확인해요."
 
   - id: key-error
     group: names
@@ -505,15 +508,15 @@ entries:
     why:
       - "None은 '결과가 없다'는 뜻의 특별한 값이에요. 함수가 실패했거나 return을 빼먹었을 때 나와요."
       - "영상 코드에서는 cap.read()가 프레임을 못 읽었을 때(ok가 False), cv2.imread('경로')가 파일을 못 찾았을 때 None이 돼요."
-      - "결과 목록도 마찬가지예요. 손·얼굴이 안 잡힌 장면에서 results.multi_hand_landmarks는 None이라 for로 돌릴 수 없어요."
+      - "옛 MediaPipe(mp.solutions)는 손·얼굴이 안 잡힌 장면에서 결과가 None이었어요. 최신 판(1.x)은 빈 리스트([])라 for로 돌려도 이 오류가 나지 않아요."
     fix:
       - "{line}번째 줄에서 쓴 변수를 바로 앞에서 print로 찍어 None인지 확인해요."
-      - "None이 될 수 있는 값은 쓰기 전에 확인해요: if frame is None: continue / if results.multi_hand_landmarks:"
+      - "None이 될 수 있는 값은 쓰기 전에 확인해요: if frame is None: continue"
       - "직접 만든 함수라면 끝에 return 값을 빼먹지 않았는지 봐요."
     mistakes:
       - "ok, frame = cap.read() 뒤에 ok를 확인하지 않고 frame을 쓰는 것"
       - "cv2.imread('mask.png')의 결과를 확인하지 않는 것(파일이 없으면 None)"
-      - "for hand in results.multi_hand_landmarks:를 if로 감싸지 않는 것"
+      - "cv2.imread·cap.read의 결과를 확인하지 않고 바로 쓰는 것"
     example:
       code: |
         frame = None
@@ -583,14 +586,14 @@ entries:
     meaning: "어떤 변수가 None(값 없음)인데 .{attr}를 읽으려 했어요. 영상 코드에서는 이미지가 비어 있다는 뜻일 때가 많아요."
     why:
       - "cap.read()가 실패하면 frame이 None이고, cv2.imread('경로')가 파일을 못 찾으면 결과가 None이에요. 그 None에 .shape나 .copy()를 붙이면 이 오류가 나요."
-      - "손·얼굴 검출 결과도 아무것도 안 잡히면 None이라 .landmark를 읽을 수 없어요."
+      - "옛 MediaPipe(mp.solutions)에서는 손·얼굴이 안 잡히면 결과가 None이라 .landmark를 읽을 수 없었어요. 최신 판은 빈 리스트를 돌려줘요."
     fix:
       - "{line}번째 줄 앞에서 그 변수가 None인지 확인하고 건너뛰어요: if frame is None: continue"
       - "cv2.imread를 썼다면 파일 이름·경로를 확인해요(이 실습실의 가상 폴더에 파일이 있어야 해요)."
       - "cap.read()가 계속 실패하면 화면의 입력 소스(웹캠·샘플 입력)가 열려 있는지 보고 다시 [실행]해요."
     mistakes:
       - "ok, frame = cap.read() 다음에 if not ok: break를 빼먹는 것"
-      - "results.multi_hand_landmarks가 None인데 [0].landmark를 읽는 것"
+      - "프레임을 읽었는지(ok) 확인하기 전에 frame.shape를 읽는 것"
     example:
       code: |
         import cv2
@@ -624,7 +627,7 @@ entries:
         cv2.destoyAllWindows()
       error: "AttributeError: module 'cv2' has no attribute 'destoyAllWindows'"
     cases:
-      - "교안(opmp) 15번 자세 랜드마크 예제의 마지막 줄 cv2.destoyAllWindows()는 오타예요. ESC로 끝낼 때만 이 오류가 나요. destroyAllWindows로 고쳐요."
+      - "교안(opmp) 15번 자세 랜드마크 코드의 마지막 줄 cv2.destoyAllWindows()는 오타예요. 교안 코드를 그대로 돌리면 ESC로 끝낼 때만 이 오류가 나요. destroyAllWindows로 고쳐요(사이트 예제는 고쳐 두었어요)."
       - "PyAutoGUI 수업 슬라이드의 웹 검색 자동화 예제에 있는 pyautogui.enter()는 없는 함수예요. pyautogui.press('enter')로 고쳐요."
 
   - id: attribute-error
@@ -899,6 +902,241 @@ entries:
         cap = cv2.VideoCapture(0)
         ok, frame = cap.read()
       error: "AttributeError: 'JsNull' object has no attribute 'width'"
+
+  # ── 손·얼굴·자세 인식(MediaPipe 1.1.1 — 판 1.8.0) ──
+  - id: mediapipe-no-solutions
+    group: mediapipe
+    title: "mp.solutions(옛 사용법)는 최신 MediaPipe에 없어요"
+    types: [AttributeError, ImportError, ModuleNotFoundError]
+    patterns:
+      - "module 'mediapipe' has no attribute 'solutions'"
+      - "cannot import name 'solutions' from 'mediapipe'"
+      - "No module named 'mediapipe\\.solutions"
+    priority: 6
+    meaning: "교과서 코드처럼 mp.solutions로 손·얼굴·자세를 찾으려 했는데, MediaPipe 0.10.30부터 이 이름이 없어졌어요."
+    why:
+      - "토니 5.0(파이썬 3.14)에 설치되는 최신 mediapipe(1.x)에는 새 사용법(Tasks API — vision.HandLandmarker 같은 이름)만 있어요."
+      - "이 사이트의 실습실도 같은 최신 판 기준이라 진짜 컴퓨터와 같은 오류가 나요."
+    fix:
+      - "예제 목록에서 같은 차시의 예제를 열어 새 사용법을 봐요. 이 사이트의 예제는 모두 최신 판으로 다시 썼어요."
+      - "손: mp.solutions.hands.Hands() 대신 vision.HandLandmarker.create_from_options(…)를 쓰고, 결과는 result.multi_hand_landmarks 대신 result.hand_landmarks예요."
+      - "얼굴: FaceMesh() 대신 vision.FaceLandmarker, 자세: Pose() 대신 vision.PoseLandmarker, 얼굴 상자: FaceDetection() 대신 vision.FaceDetector를 써요."
+      - "코드 맨 위에 from mediapipe.tasks.python import vision 줄이 있어야 해요."
+    mistakes:
+      - "교과서나 인터넷의 옛 코드(2025년 이전)를 그대로 붙여 넣는 것"
+      - "mp.solutions.drawing_utils를 쓰는 것 — 새 이름은 vision.drawing_utils예요."
+    example:
+      code: |
+        import mediapipe as mp
+        hands = mp.solutions.hands.Hands()
+      error: "AttributeError: module 'mediapipe' has no attribute 'solutions'"
+      line: 2
+    cases:
+      - "교과서 1단원·3단원·4단원의 손·얼굴·자세 코드는 모두 옛 사용법이라 최신 mediapipe에서 이 오류가 나요. 교과서 코드를 그대로 돌려야 하면 컴퓨터에 파이썬 3.12와 mediapipe 0.10.21을 설치해요(선생님 자료실 '진짜 PC에서 돌리기')."
+
+  - id: mediapipe-model-file
+    group: mediapipe
+    title: "MediaPipe 모델 파일을 찾지 못했어요"
+    types: [FileNotFoundError, RuntimeError]
+    patterns:
+      - "Unable to open file at (?<path>[^ (]+)"
+    priority: 5
+    meaning: "model_asset_path에 적은 모델 파일({path})을 열지 못했어요. 이름이 틀렸거나, 그 파일이 코드와 같은 폴더에 없어요."
+    why:
+      - "최신 MediaPipe는 인식에 쓰는 모델 파일(손은 hand_landmarker.task)을 따로 받아 두어야 해요. 코드는 그 파일을 열어 인식을 준비해요."
+      - "실습실에는 모델 파일 네 개가 들어 있어요: hand_landmarker.task, face_landmarker.task, pose_landmarker_lite.task(또는 pose_landmarker_full.task), blaze_face_short_range.tflite."
+    fix:
+      - "{line}번째 줄의 모델 파일 이름을 위 네 이름 가운데 하나와 한 글자도 다르지 않게 고쳐요(대소문자·밑줄·확장자 .task까지)."
+      - "토니(진짜 컴퓨터)에서 돌릴 때는 모델 파일을 내려받아 코드 파일과 같은 폴더에 둬요(선생님 자료실 '진짜 PC에서 돌리기'의 '모델 파일 받기')."
+      - "다른 폴더에 두었다면 model_asset_path='C:/models/hand_landmarker.task'처럼 전체 경로를 적어요."
+    mistakes:
+      - "hand_landmarker.task를 hand_landmark.task처럼 줄여 쓰는 것"
+      - "모델 파일을 바탕 화면에 두고 코드는 다른 폴더에서 실행하는 것"
+    example:
+      code: |
+        import mediapipe as mp
+        from mediapipe.tasks.python import vision
+        hands = vision.HandLandmarker.create_from_model_path('hand.task')
+      error: "FileNotFoundError: Unable to open file at hand.task"
+      line: 3
+
+  - id: mediapipe-wrong-model
+    group: mediapipe
+    title: "인식 종류와 모델 파일이 맞지 않아요"
+    types: [FileNotFoundError, ValueError]
+    patterns:
+      - "No file with name: (?<inner>\\S+)\\. All files in the model asset bundle are"
+      - "The model is not a valid Flatbuffer buffer"
+    priority: 5
+    meaning: "손·얼굴·자세 인식마다 쓰는 모델 파일이 따로 있는데, 다른 인식의 모델 파일을 넣었어요."
+    why:
+      - "HandLandmarker는 hand_landmarker.task, FaceLandmarker는 face_landmarker.task, PoseLandmarker는 pose_landmarker_lite.task, FaceDetector는 blaze_face_short_range.tflite를 써요."
+      - "모델 파일 안에는 그 인식에 필요한 작은 모델들이 들어 있어서, 다른 파일을 넣으면 필요한 것을 찾지 못해요."
+    fix:
+      - "{line}번째 줄 근처의 model_asset_path를 인식 종류에 맞는 모델 파일 이름으로 고쳐요."
+    mistakes:
+      - "손 인식 코드를 얼굴 인식으로 고치면서 모델 파일 이름은 그대로 두는 것"
+    example:
+      code: |
+        from mediapipe.tasks.python import vision
+        hands = vision.HandLandmarker.create_from_model_path('face_landmarker.task')
+      error: "FileNotFoundError: No file with name: hand_detector.tflite. All files in the model asset bundle are: face_landmarks_detector.tflite, face_detector.tflite, geometry_pipeline_metadata_landmarks.binarypb, face_blendshapes.tflite."
+      line: 2
+
+  - id: mediapipe-timestamp
+    group: mediapipe
+    title: "영상 모드에서는 부를 때마다 시각이 늘어나야 해요"
+    types: [ValueError]
+    patterns:
+      - "Input timestamp must be monotonically increasing"
+    priority: 5
+    meaning: "detect_for_video(사진, 시각)에 넣은 시각(밀리초)이 지난번보다 크지 않아요. 영상 모드는 프레임을 시간 순서대로 받아야 해요."
+    why:
+      - "영상 모드(RunningMode.VIDEO)는 앞 프레임에서 찾은 손을 다음 프레임에서 따라가서(추적) 빠르고 매끄러워요. 그래서 시각이 꼭 앞으로만 가야 해요."
+      - "한 반복 안에서 같은 인식기를 두 번 부르거나, 시각을 0처럼 같은 숫자로 넣으면 이 오류가 나요."
+    fix:
+      - "시각은 int(time.time() * 1000)처럼 지금 시각(밀리초)으로 넣어요(코드 위에 import time)."
+      - "한 프레임에서 같은 인식기(예: hands)는 detect_for_video를 한 번만 불러요. 두 번 써야 하면 결과(result)를 변수에 담아 다시 써요."
+      - "사진 한 장씩 따로 인식하려면 RunningMode.IMAGE로 만들고 detect(사진)을 써요(시각이 필요 없어요)."
+    mistakes:
+      - "detect_for_video(mp_img, 0)처럼 시각을 고정된 숫자로 넣는 것"
+    example:
+      code: |
+        result1 = hands.detect_for_video(mp_img, 1000)
+        result2 = hands.detect_for_video(mp_img, 1000)
+      error: "ValueError: Input timestamp must be monotonically increasing."
+      line: 2
+
+  - id: mediapipe-running-mode
+    group: mediapipe
+    title: "실행 모드와 detect 함수가 맞지 않아요"
+    types: [ValueError]
+    patterns:
+      - "Task is not initialized with the (?<want>image|video|live stream) mode"
+    priority: 5
+    meaning: "인식기를 만들 때 정한 실행 모드(running_mode)와 다른 모드의 함수를 불렀어요."
+    why:
+      - "IMAGE 모드는 detect(사진), VIDEO 모드는 detect_for_video(사진, 시각), LIVE_STREAM 모드는 detect_async(사진, 시각)만 쓸 수 있어요."
+      - "running_mode를 적지 않으면 IMAGE 모드예요."
+    fix:
+      - "웹캠 영상이면 옵션에 running_mode=vision.RunningMode.VIDEO를 적고 detect_for_video(mp_img, int(time.time() * 1000))를 써요."
+      - "사진 한 장이면 running_mode를 빼고(IMAGE) detect(mp_img)를 써요."
+    mistakes:
+      - "create_from_model_path('hand_landmarker.task')로 만들고(IMAGE 모드) detect_for_video를 부르는 것"
+    example:
+      code: |
+        from mediapipe.tasks.python import vision
+        hands = vision.HandLandmarker.create_from_model_path('hand_landmarker.task')
+        result = hands.detect_for_video(mp_img, 1000)
+      error: "ValueError: Task is not initialized with the video mode. Current running mode:image mode"
+      line: 3
+
+  - id: mediapipe-live-callback
+    group: mediapipe
+    title: "LIVE_STREAM 모드에만 result_callback을 적어요"
+    types: [ValueError]
+    patterns:
+      - "a user-defined result callback must be provided"
+      - "a user-defined result callback should not be provided"
+    priority: 5
+    meaning: "실시간 모드(LIVE_STREAM)는 결과를 받을 함수(result_callback)가 꼭 있어야 하고, 다른 모드에는 넣으면 안 돼요."
+    fix:
+      - "LIVE_STREAM이면 옵션에 result_callback=결과를_받을_함수를 적어요. 그 함수는 (result, image, timestamp_ms) 세 값을 받아요."
+      - "VIDEO나 IMAGE 모드면 result_callback 줄을 지워요. 결과는 detect_for_video나 detect가 돌려줘요."
+    example:
+      code: |
+        options = vision.HandLandmarkerOptions(base_options=base, running_mode=vision.RunningMode.LIVE_STREAM)
+        hands = vision.HandLandmarker.create_from_options(options)
+      error: "ValueError: The vision task is in live stream mode, a user-defined result callback must be provided."
+      line: 2
+
+  - id: mediapipe-image-ptr
+    group: mediapipe
+    title: "detect에는 mp.Image로 감싼 사진을 넣어요"
+    types: [AttributeError]
+    patterns:
+      - "object has no attribute '_image_ptr'"
+    priority: 5
+    meaning: "detect·detect_for_video에 numpy 배열(카메라 프레임)을 그대로 넣었어요. 최신 MediaPipe는 mp.Image로 감싼 사진만 받아요."
+    fix:
+      - "먼저 색 순서를 바꾸고(rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)) mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)로 감싼 뒤 mp_img를 넣어요."
+    mistakes:
+      - "옛 코드의 hands.process(rgb)를 hands.detect_for_video(rgb, …)로 이름만 바꾸는 것"
+    example:
+      code: |
+        result = hands.detect_for_video(rgb, int(time.time() * 1000))
+      error: "AttributeError: 'numpy.ndarray' object has no attribute '_image_ptr'"
+      line: 1
+
+  - id: mediapipe-draw-list
+    group: mediapipe
+    title: "draw_landmarks에는 손(얼굴) 하나의 점 목록을 넣어요"
+    types: [AttributeError]
+    patterns:
+      - "'list' object has no attribute '(?<attr>visibility|presence|x|y)'"
+    priority: 4
+    meaning: "점 목록 하나(손 하나) 대신 손 여러 개가 든 목록 전체(result.hand_landmarks)를 넣었어요."
+    why:
+      - "result.hand_landmarks는 '손들의 목록'이고, 그 안의 하나하나가 점 21개짜리 목록이에요. draw_landmarks는 점 목록 하나를 받아요."
+    fix:
+      - "for hand in result.hand_landmarks: 안에서 draw_landmarks(img, hand, …)처럼 손 하나씩 넣어요."
+      - "점 하나를 읽을 때도 result.hand_landmarks[0][8].x처럼 [손 번호][점 번호] 순서로 써요."
+    example:
+      code: |
+        vision.drawing_utils.draw_landmarks(img, result.hand_landmarks, vision.HandLandmarksConnections.HAND_CONNECTIONS)
+      error: "AttributeError: 'list' object has no attribute 'visibility'"
+      line: 1
+
+  - id: mediapipe-connection-tuple
+    group: mediapipe
+    title: "연결표는 vision이 주는 Connection 목록을 써요"
+    types: [AttributeError]
+    patterns:
+      - "'tuple' object has no attribute '(?<attr>start|end)'"
+    priority: 4
+    meaning: "draw_landmarks의 연결표 자리에 (0, 1)처럼 숫자 짝(튜플)을 넣었어요. 최신 MediaPipe는 connection.start·connection.end를 읽어요."
+    fix:
+      - "vision.HandLandmarksConnections.HAND_CONNECTIONS처럼 vision이 주는 연결표를 써요(얼굴은 vision.FaceLandmarksConnections, 자세는 vision.PoseLandmarksConnections)."
+      - "직접 정한 선을 그리고 싶으면 cv2.line(img, 점1, 점2, 색, 두께)로 그려요."
+    example:
+      code: |
+        vision.drawing_utils.draw_landmarks(img, hand, [(0, 1), (1, 2)])
+      error: "AttributeError: 'tuple' object has no attribute 'start'"
+      line: 1
+
+  - id: mediapipe-running-mode-type
+    group: mediapipe
+    title: "running_mode에는 vision.RunningMode의 값을 적어요"
+    types: [AttributeError]
+    patterns:
+      - "object has no attribute 'ctype'"
+    priority: 4
+    meaning: "running_mode에 'VIDEO' 같은 글자를 적었어요. vision.RunningMode.VIDEO처럼 정해진 값을 써야 해요."
+    fix:
+      - "running_mode='VIDEO'를 running_mode=vision.RunningMode.VIDEO로 고쳐요(IMAGE·LIVE_STREAM도 같아요)."
+    example:
+      code: |
+        options = vision.HandLandmarkerOptions(base_options=base, running_mode='VIDEO')
+        hands = vision.HandLandmarker.create_from_options(options)
+      error: "AttributeError: 'str' object has no attribute 'ctype'"
+      line: 2
+
+  - id: mediapipe-timestamp-int
+    group: mediapipe
+    title: "시각(timestamp_ms)은 정수로 넣어요"
+    types: [TypeError, ArgumentError]
+    patterns:
+      - "argument \\d+: TypeError: 'float' object cannot be interpreted as an integer"
+      - "timestamp_ms에는 정수"
+    priority: 5
+    meaning: "detect_for_video의 시각에 1000.5 같은 소수를 넣었어요. 시각은 밀리초 단위 정수예요."
+    fix:
+      - "int()로 감싸요: hands.detect_for_video(mp_img, int(time.time() * 1000))"
+    example:
+      code: |
+        result = hands.detect_for_video(mp_img, time.time() * 1000)
+      error: "ctypes.ArgumentError: argument 4: TypeError: 'float' object cannot be interpreted as an integer"
+      line: 1
 
   # ── 모듈·파일 ──
   - id: module-not-found-site

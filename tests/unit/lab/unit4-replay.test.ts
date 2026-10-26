@@ -4,11 +4,17 @@ import { replaySolutionOfCode, UNIT4_TEXT } from '../../../src/lab/unit4/unit4-p
 
 describe('4단원 재생 동작 고르기', () => {
   it('얼굴 solution을 쓰는 코드는 얼굴 고개 돌리기를 고른다(기본 손 동작이 아니다)', () => {
+    // 판 1.8.0부터 예제는 mediapipe 1.1.1 Tasks API(vision.FaceLandmarker·FaceDetector)를 쓴다
+    expect(replaySolutionOfCode('face_mesh = vision.FaceLandmarker.create_from_options(options)')).toEqual({ kind: 'face', sequence: 'face-turn' });
+    expect(replaySolutionOfCode('detector = vision.FaceDetector.create_from_options(options)')).toEqual({ kind: 'face', sequence: 'face-turn' });
+    // 옛 이름(mp.solutions)을 붙여 넣은 코드도 같은 동작을 고른다(실행하면 진짜 1.x처럼 AttributeError 안내가 나온다)
     expect(replaySolutionOfCode('mp.solutions.face_mesh.FaceMesh()')).toEqual({ kind: 'face', sequence: 'face-turn' });
     expect(replaySolutionOfCode('detector = mp.solutions.face_detection.FaceDetection()')).toEqual({ kind: 'face', sequence: 'face-turn' });
   });
 
   it('손 solution이거나 모르는 코드는 손 동작을, 자세 solution은 자세 동작을 고른다', () => {
+    expect(replaySolutionOfCode('hands = vision.HandLandmarker.create_from_options(options)')).toEqual({ kind: 'hands', sequence: 'count' });
+    expect(replaySolutionOfCode('pose = vision.PoseLandmarker.create_from_options(options)')).toEqual({ kind: 'pose', sequence: 'pose-raise' });
     expect(replaySolutionOfCode('mp.solutions.hands.Hands()')).toEqual({ kind: 'hands', sequence: 'count' });
     expect(replaySolutionOfCode('print(1)')).toEqual({ kind: 'hands', sequence: 'count' });
     expect(replaySolutionOfCode('mp.solutions.pose.Pose()')).toEqual({ kind: 'pose', sequence: 'pose-raise' });

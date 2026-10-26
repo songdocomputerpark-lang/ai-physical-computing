@@ -253,7 +253,7 @@ describe('흉내 모듈 패널은 쓸 때만 연다(panel-when-used.ts)', () => 
     showPanelWhenUsed(edge.context, MEDIAPIPE);
     expect(edge.state.visible).toBe(false);
 
-    const hands = fakeContext('import mediapipe as mp\nhands = mp.solutions.hands.Hands()\n');
+    const hands = fakeContext('import mediapipe as mp\nfrom mediapipe.tasks.python import vision\nhands = vision.HandLandmarker.create_from_options(options)\n');
     showPanelWhenUsed(hands.context, MEDIAPIPE);
     expect(hands.state.visible).toBe(true);
   });

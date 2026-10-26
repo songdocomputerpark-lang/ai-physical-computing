@@ -1,13 +1,14 @@
 /**
  * 자세(포즈) 인식 엔진(PLAN §8.2 P2-09, CODE_MAPPING §3.2.5, PD-20) — 공통 뼈대는 task-engine.ts.
  *
- * 레거시 Pose(...)의 model_complexity를 Tasks 모델 파일로 옮긴다(PD-20):
+ * 파이썬 쪽이 모델 파일 이름(pose_landmarker_lite·full·heavy.task — 판 1.8.0 전에는 레거시 Pose(...)의 model_complexity)을
+ * model_complexity 칸(0·1·2)으로 옮겨 보내면, 그것을 Tasks 모델 파일로 옮긴다(PD-20):
  *   0 → pose_landmarker_lite.task(5.78MB), 1·2 → pose_landmarker_full.task(9.40MB).
  *   2(heavy, 30.7MB)는 사이트에 두지 않고 full로 돌린다(파이썬 쪽이 콘솔로 한 번 알린다).
  *   조절 패널의 **저사양 모드**를 켜면 코드가 무엇을 적었든 lite를 쓴다 — 모델 파일이 바뀌면 엔진이 스스로 다시 받는다(TaskEngine.configure).
  *
- * 레거시는 사람 한 명(pose_landmarks 단수)만 주므로 numPoses는 1로 고정하고, 결과에는 visibility를 함께 넘긴다
- * (draw_landmarks가 visibility < 0.5인 점을 건너뛰는 레거시 규칙을 파이썬 쪽이 그대로 쓴다 — 화면 밖 다리가 그려지지 않는다).
+ * 사람 수(numPoses)는 파이썬 PoseLandmarkerOptions.num_poses(기본 1, 판 1.8.0 — 그전 레거시는 늘 1)를 따르고, 결과에는 visibility를 함께 넘긴다
+ * (draw_landmarks가 visibility < 0.5인 점을 건너뛰는 규칙을 파이썬 쪽이 그대로 쓴다 — 화면 밖 다리가 그려지지 않는다).
  */
 import type { PoseLandmarker, PoseLandmarkerResult } from '@mediapipe/tasks-vision';
 import {
@@ -38,7 +39,12 @@ export interface PoseTaskOptions {
   readonly modelComplexity: number;
   /** 저사양 모드(조절 패널) — 켜면 늘 lite */
   readonly lowSpec: boolean;
+  /** 찾을 사람 수(1~MAX_NUM_POSES) */
+  readonly numPoses: number;
 }
+
+/** 한 화면에서 찾을 사람 수 상한(성능) */
+export const MAX_NUM_POSES = 4;
 
 /** 레거시 Pose(...) 인자(파이썬이 mediapipe.open payload.options로 보낸다) */
 export interface LegacyPoseOptions {
@@ -47,6 +53,9 @@ export interface LegacyPoseOptions {
   readonly smoothLandmarks?: unknown;
   readonly enableSegmentation?: unknown;
   readonly minDetectionConfidence?: unknown;
+  /** 판 1.8.0: 파이썬 PoseLandmarkerOptions.min_pose_presence_confidence·num_poses */
+  readonly minPresenceConfidence?: unknown;
+  readonly maxNumPoses?: unknown;
   readonly minTrackingConfidence?: unknown;
 }
 
@@ -58,6 +67,7 @@ export const DEFAULT_POSE_TASK_OPTIONS: PoseTaskOptions = Object.freeze({
   runningMode: 'VIDEO',
   modelComplexity: 1,
   lowSpec: false,
+  numPoses: 1,
 });
 
 /** 화면이 파이썬에 주는 사람 하나 */
@@ -76,11 +86,12 @@ export function taskOptionsFromLegacyPose(legacy: LegacyPoseOptions | null | und
   const source = legacy ?? {};
   return {
     minPoseDetectionConfidence: clampNumber(source.minDetectionConfidence, 0, 1, DEFAULT_POSE_TASK_OPTIONS.minPoseDetectionConfidence),
-    minPosePresenceConfidence: DEFAULT_POSE_TASK_OPTIONS.minPosePresenceConfidence,
+    minPosePresenceConfidence: clampNumber(source.minPresenceConfidence, 0, 1, DEFAULT_POSE_TASK_OPTIONS.minPosePresenceConfidence),
     minTrackingConfidence: clampNumber(source.minTrackingConfidence, 0, 1, DEFAULT_POSE_TASK_OPTIONS.minTrackingConfidence),
     runningMode: asBoolean(source.staticImageMode) ? 'IMAGE' : 'VIDEO',
     modelComplexity: Math.round(clampNumber(source.modelComplexity, 0, 2, DEFAULT_POSE_TASK_OPTIONS.modelComplexity)),
     lowSpec,
+    numPoses: Math.round(clampNumber(source.maxNumPoses, 1, MAX_NUM_POSES, DEFAULT_POSE_TASK_OPTIONS.numPoses)),
   };
 }
 
@@ -90,6 +101,7 @@ export function samePoseOptions(a: PoseTaskOptions, b: PoseTaskOptions): boolean
     a.minPosePresenceConfidence === b.minPosePresenceConfidence &&
     a.minTrackingConfidence === b.minTrackingConfidence &&
     a.runningMode === b.runningMode &&
+    a.numPoses === b.numPoses &&
     poseModelFile(a) === poseModelFile(b)
   );
 }
@@ -117,7 +129,7 @@ const POSE_SPEC: TaskEngineSpec<PoseTaskOptions, PoseLandmarker, DetectedPose[]>
     vision.PoseLandmarker.createFromOptions(fileset, {
       baseOptions: { modelAssetBuffer: model, delegate },
       runningMode: options.runningMode,
-      numPoses: 1,
+      numPoses: options.numPoses,
       minPoseDetectionConfidence: options.minPoseDetectionConfidence,
       minPosePresenceConfidence: options.minPosePresenceConfidence,
       minTrackingConfidence: options.minTrackingConfidence,
@@ -126,7 +138,7 @@ const POSE_SPEC: TaskEngineSpec<PoseTaskOptions, PoseLandmarker, DetectedPose[]>
   apply: (task, options) =>
     task.setOptions({
       runningMode: options.runningMode,
-      numPoses: 1,
+      numPoses: options.numPoses,
       minPoseDetectionConfidence: options.minPoseDetectionConfidence,
       minPosePresenceConfidence: options.minPosePresenceConfidence,
       minTrackingConfidence: options.minTrackingConfidence,
