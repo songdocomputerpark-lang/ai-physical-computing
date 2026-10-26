@@ -2,7 +2,7 @@
  * 통로 약속 — "토픽에 바이트를 보내고, 토픽을 받기로 하고, 오면 알려 준다"만 있는 작은 약속(P4-06).
  *
  * 구현이 둘이다.
- *   broker-transport.ts  진짜 공개 중계 서버(MQTT.js 5.15.2, WebSocket)
+ *   broker-transport.ts  진짜 공개 중계 서버(MQTT.js 5.16.1, WebSocket)
  *   tab-transport.ts     같은 컴퓨터의 다른 탭(BroadcastChannel, PD-17 — 학교망이 막아도 된다)
  *
  * 두 구현이 같은 약속을 따르므로 `connection.ts`가 **연결이 안 되면 탭 통로로 스스로 바꾼다**. 화면·파이썬 흉내

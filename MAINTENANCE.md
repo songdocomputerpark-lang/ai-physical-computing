@@ -58,7 +58,7 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 
 - **웹 화면만(설치 없음):** GitHub 계정으로 저장소에 들어가 파일을 올리고 고쳐요(1-8 방법 B). 차시 글·예제·그림을 더하는 일은 이 방법으로 충분해요. 다만 커밋 전 검사가 돌지 않아서, 올리기 전에 눈으로 한 번 더 봐요. 쓰기 권한이 있어야 바로 올라가요(아래 "쓰기 권한").
 - **내 컴퓨터에서(검사를 먼저 돌려 보고 올림):** 처음 한 번만 아래 다섯 단계를 해요.
-  1. **설치:** Node.js 공식 사이트(https://nodejs.org)에서 LTS 판(22.12.0 이상, 권장 24)을, Git 공식 사이트(https://git-scm.com)에서 Windows용 Git을 받아 기본 선택 그대로 설치해요.
+  1. **설치:** Node.js 공식 사이트(https://nodejs.org)에서 LTS 판(22.22.0 이상, 권장 24)을, Git 공식 사이트(https://git-scm.com)에서 Windows용 Git을 받아 기본 선택 그대로 설치해요.
   2. **터미널 열기:** 저장소를 둘 폴더(예: 문서 폴더)를 파일 탐색기로 열고 위쪽 주소 칸에 `powershell`을 쳐서 Enter를 누르면 그 폴더에서 PowerShell 창이 열려요(Windows 11은 폴더 빈 곳을 오른쪽 클릭 → [터미널에서 열기]도 돼요).
   3. **저장소 내려받기(clone):** `git clone https://github.com/songdocomputerpark-lang/ai-physical-computing.git` — 같은 이름의 폴더가 생겨요.
   4. **설치 한 번:** `cd ai-physical-computing` 다음 `npm ci`. `npm ci`는 `package-lock.json` 그대로 설치하고 커밋 전 저장소 검사 훅도 켜요(확인: `git config --get core.hooksPath` → `.githooks`).
@@ -1012,7 +1012,7 @@ Result (3 files):
 6. **확인 차례:** `npm run check`(타입) → `npm test`(단위) → `npm run build`(출처·번들 검사 — 새로 묶인 패키지를 알려 줘요) → `npm run check:links` → `npm run test:e2e -- --workers=2`(브라우저 전체) → 그 기능을 브라우저에서 직접 → push 뒤 실사이트(5절).
 7. CHANGELOG.md "다음 판"에 한 줄 적어요(10절).
 
-지금 판은 CLAUDE.md "기술 스택"과 `package.json`에 있어요(2026-09-26: Pyodide 314.0.7, MediaPipe Tasks Vision 0.10.35, Blockly 13.3.0, MQTT.js 5.15.2, esptool-js 0.6.1, MicroPython ESP32_GENERIC v1.29.0, Astro 7.3.2). 한꺼번에 뒤처진 판을 보려면 `npm outdated`.
+지금 판은 CLAUDE.md "기술 스택"과 `package.json`에 있어요(2026-10-26 판 1.8.0: Pyodide 314.0.7, MediaPipe Tasks Vision 0.10.35, Blockly 13.4.0, MQTT.js 5.16.1, esptool-js 0.6.1, MicroPython ESP32_GENERIC v1.29.0, Astro 7.4.1 — 일부러 올리지 않은 것과 까닭은 DECISIONS C228·C232). 한 번에 최신 판으로 올린 기록은 판 1.8.0(CHANGELOG·PLAN §8.18)이 본보기예요 — 학생 코드 쪽 라이브러리(토니·mediapipe 등)가 바뀌면 예제를 다시 쓰고 `scripts/examples-manifest.yaml`에 `rewritten`을 적어요(`src/lab/README.md` 6절). 한꺼번에 뒤처진 판을 보려면 `npm outdated`.
 
 ### 8-1. Pyodide(브라우저 파이썬 엔진)
 
@@ -1094,10 +1094,10 @@ Result (3 files):
 
 | 고칠 곳 | 무엇을 |
 |---|---|
-| `package.json` `astro`·`@astrojs/markdown-remark`(Astro와 같은 판대, 지금 7.3.1)·`@astrojs/check`·`typescript` | 함께 맞춰 올려요. `@astrojs/check` 0.9.10은 TypeScript 7을 받지 않아 TypeScript는 6.0.3에 두고 있어요 |
+| `package.json` `astro`·`@astrojs/markdown-remark`(Astro와 같은 판대, 지금 7.3.4)·`@astrojs/check`·`typescript` | 함께 맞춰 올려요. `@astrojs/check` 0.9.12도 TypeScript 7을 받지 않아(peer `^5 \|\| ^6`) TypeScript는 6.0.3에 두고 있어요. Astro 7.4.1은 Node.js 22.22.0 이상을 요구해요(`engines`) |
 | `astro.config.mjs` | 마크다운 처리기(unified)·`trailingSlash`·`vite` 설정 — Astro 공식 업그레이드 안내(docs.astro.build의 "Upgrade to …")와 대조해요 |
 | `scripts/lib/bundle-license.mjs` | 번들 의존성 목록(`dist/bundle-licenses.json`)을 Vite의 라이선스 출력으로 만드는 곳 — Vite 판이 바뀌면 빌드 뒤 출처 검사가 도는지 봐요 |
-| `sources.yaml` "Astro …" 항목과 `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.3.2'`을 기대) | 판 이름 |
+| `sources.yaml` "Astro …"·"Vite …·Rolldown …" 항목, `public/licenses/build-runtime.txt`, `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.4.1'`을 기대) | 판 이름 |
 
 - 확인: 먼저 콘텐츠 캐시를 지워요(`node_modules/.astro/` 폴더와, 개발 서버를 끈 뒤 `.astro/` 폴더 — 옛 판이 만든 캐시가 섞이지 않게) → `npm run check` → `npm test` → `npm run build` → `npm run check:lessons -- --complete` → `npm run check:links` → `npm run test:e2e -- --workers=2`. `.astro` 파일의 띄어쓰기(CLAUDE.md "`.astro` 띄어쓰기 주의")처럼 출력이 달라진 곳이 없는지 차시·실습실 몇 쪽을 눈으로 봐요.
 - 띄어쓰기 함정은 `npm test`의 `tests/unit/astro-line-break-spaces.test.ts`가 지켜요. 이 파일의 첫 검사("이 검사의 전제")는 Astro가 쓰는 .astro 변환기(`@astrojs/compiler-rs` — Astro가 함께 설치해요)로 줄바꿈 공백이 지워지는 모습을 직접 확인해요. 판을 올린 뒤 이 첫 검사만 실패하면 공백 규칙이 바뀐 것이니, 검사가 찾는 모양(파일 머리말의 ①②③)과 `.astro` 파일들을 함께 다시 봐요(2026-09-30 최종 점검).
@@ -1120,7 +1120,7 @@ Result (3 files):
 
 ### 8-10. Node.js
 
-- 사이트는 Node.js 22.12.0 이상에서 돌아요(`package.json` `engines`). 운영자 PC와 워크플로(`node-version: '24'`)는 Node 24 LTS를 써요 — 지원은 2028-04-30까지예요(PLAN §3.1).
+- 사이트는 Node.js 22.22.0 이상에서 돌아요(`package.json` `engines` — 판 1.8.0에서 Astro 7.4.1이 요구해 22.12.0에서 올림). 운영자 PC와 워크플로(`node-version: '24'`)는 Node 24 LTS를 써요 — 지원은 2028-04-30까지예요(PLAN §3.1).
 - 다음 LTS로 옮길 때는 세 워크플로의 `node-version`, 필요하면 `engines`를 바꾸고 8-0의 확인 차례를 모두 돌려요.
 
 ### 8-11. 마크다운 처리·차시 규칙을 고칠 때(개발자용)

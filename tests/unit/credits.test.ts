@@ -96,7 +96,7 @@ describe('출처 페이지 데이터(src/lib/credits.ts)', () => {
     const text = fs.readFileSync(new URL('../../sources.yaml', import.meta.url), 'utf8');
     const view = buildCreditsView(text);
     expect(view.entryCount).toBeGreaterThanOrEqual(6);
-    expect(view.licenseGroups.flatMap((group) => group.entries.map((entry) => entry.name))).toContain('Astro 7.3.2');
+    expect(view.licenseGroups.flatMap((group) => group.entries.map((entry) => entry.name))).toContain('Astro 7.4.1');
   });
 
   it('출처 페이지에 글자 그대로 보이는 칸(이름·저작자·라이선스·쓰는 곳·권리 표기)에는 마크다운 굵게(**)를 쓰지 않는다', () => {

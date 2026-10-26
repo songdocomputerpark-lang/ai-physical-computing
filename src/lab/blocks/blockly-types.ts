@@ -1,5 +1,5 @@
 /**
- * 블록 모드가 쓰는 Blockly 13.3.0 모듈의 모양(타입만 — 실행 코드 없음, PLAN §3.1 "Blockly 13.3.0 + 한국어 메시지 + Python 코드 생성기").
+ * 블록 모드가 쓰는 Blockly 13.4.0 모듈의 모양(타입만 — 실행 코드 없음, PLAN §3.1 "Blockly 13.4.0 + 한국어 메시지 + Python 코드 생성기").
  *
  * 왜 import 대신 넘겨받나: 브라우저는 `import('blockly/core')`로 ES 모듈(blockly.mjs, 이름 있는 내보내기)을 받고, Node 단위 테스트는
  * package.json exports의 "node" 조건으로 CommonJS판(core-node.js — jsdom으로 XML 처리)을 받는다. 같은 파일에서 `import * as Blockly`를 쓰면

@@ -55,7 +55,7 @@ function mqttSenderCode(text: string): string {
   ].join('\n');
 }
 
-/** 통신 블록 예시 → MicroPython 코드(단위 테스트와 같은 길: Node의 Blockly 13.3.0) */
+/** 통신 블록 예시 → MicroPython 코드(단위 테스트와 같은 길: Node의 Blockly 13.4.0) */
 function blockCode(presetId: string): string {
   const Blockly = require('blockly/core') as BlocklyApi;
   const libraryBlocks = require('blockly/blocks') as BlocklyBlocksApi;

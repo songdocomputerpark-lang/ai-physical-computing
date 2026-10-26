@@ -1,5 +1,5 @@
 /**
- * 공개 중계 서버(브로커) 통로 — MQTT.js 5.15.2를 WebSocket(wss://)으로 쓴다(PLAN §7.3·§7.4, P4-06).
+ * 공개 중계 서버(브로커) 통로 — MQTT.js 5.16.1을 WebSocket(wss://)으로 쓴다(PLAN §7.3·§7.4, P4-06).
  *
  * 확인한 것(설치된 패키지의 공식 타입 선언 `node_modules/mqtt/build/lib/client.d.ts`, 2026-09-18)
  * - `mqtt.connect(url, options)` → `MqttClient`. 옵션 `clientId`·`clean`·`keepalive`·`reconnectPeriod`·`connectTimeout`·
@@ -69,7 +69,8 @@ async function defaultConnect(url: string, options: Record<string, unknown>): Pr
 }
 
 /**
- * MQTT.js가 내는 영어 오류 문구 → 학생에게 보일 짧은 한국어 까닭(설치된 mqtt 5.15.2의 build/lib 원문에서 찾은 것, 2026-09-30).
+ * MQTT.js가 내는 영어 오류 문구 → 학생에게 보일 짧은 한국어 까닭(설치된 mqtt 5.15.2의 build/lib 원문에서 찾은 것, 2026-09-30 —
+ * 판 1.8.0에서 5.16.1로 올리며 일곱 문구가 build/lib·dist/mqtt.esm.js에 그대로 있는지 다시 확인, 2026-10-26).
  * 판 1.1.1 최종 점검: 연결 실패 안내에 영어 "(connack timeout)"가 그대로 보였다.
  */
 const KNOWN_REASONS: readonly (readonly [RegExp, string])[] = Object.freeze([
@@ -235,7 +236,7 @@ function browserSocketFactory(): WebSocketFactory | null {
  * 중계 서버에 연결한다. 연결될 때까지 기다렸다가 통로를 돌려주고, 실패하면 `MqttConnectError`(한국어)를 던진다.
  * 처음 연결에 실패하면 클라이언트를 닫아 뒤에서 몰래 다시 붙지 않게 한다(학생이 "연결 안 됨"을 보고 탭 통로로 바꾸게).
  *
- * 실패 까닭 고르기(미해결 221 — 판 1.1.5 뒤): MQTT.js 5.15.2는 브라우저 WebSocket 오류를 'error'로 내지 않는다(code가 없는 오류는
+ * 실패 까닭 고르기(미해결 221 — 판 1.1.5 뒤): MQTT.js 5.15.2(5.16.1도 connect/ws.js가 같음)는 브라우저 WebSocket 오류를 'error'로 내지 않는다(code가 없는 오류는
  * 삼킨다 — `node_modules/mqtt/build/lib/client.js`의 `streamErrorHandler`). 소켓이 닫히면 'close' 뒤 `reconnectPeriod`(3초)마다 다시
  * 붙으므로, 받자마자 닫는 서버도 닿지 못하는 서버도 우리 타이머가 끝날 때 "N초 동안 답이 없음"이 됐다. 그래서 MQTT.js의 문서화된 선택
  * `createWebsocket`(README "Customize Websockets with createWebsocket")으로 **우리가 WebSocket을 만들어** 열렸는지·닫혔는지를 보고

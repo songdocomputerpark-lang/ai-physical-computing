@@ -8,7 +8,7 @@
 import { withBase } from '../lib/url.ts';
 
 /** npm 패키지 blockly의 판(package.json과 같아야 한다) */
-export const BLOCKLY_VERSION = '13.3.0';
+export const BLOCKLY_VERSION = '13.4.0';
 
 /**
  * Blockly.inject(div, { media: blocklyMediaPath() })에 넘길 주소(끝이 /). 효과음·커서·아이콘을 같은 사이트에서 받는다.

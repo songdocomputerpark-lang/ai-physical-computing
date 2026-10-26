@@ -1,4 +1,4 @@
-// 블록 모드 단위 테스트 도구: Node에서 Blockly 13.3.0(CommonJS판 — core-node.js가 jsdom으로 XML을 처리)을 불러 블록 모드 한 벌을 만든다.
+// 블록 모드 단위 테스트 도구: Node에서 Blockly 13.4.0(CommonJS판 — core-node.js가 jsdom으로 XML을 처리)을 불러 블록 모드 한 벌을 만든다.
 // 브라우저는 src/lab/blocks/loader.ts가 ES 모듈판을 늦게 받는다. 두 곳이 같은 kit.ts·generator.ts·codegen.ts를 쓴다.
 import { createRequire } from 'node:module';
 import type { BlocklyApi, BlocklyBlocksApi, BlocklyPythonApi, Workspace } from '../../../../src/lab/blocks/blockly-types.ts';

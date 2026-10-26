@@ -51,7 +51,7 @@
 //      - 코드 블록·인라인 코드 안의 따옴표, 곧은 따옴표는 건드리지 않는다. 바꾸는 것은 따옴표 방향뿐이라 글자 수·
 //        제목 id·주소는 그대로다. 차시 md에는 둥근 따옴표를 쓰지 않는다(곧은 따옴표로 쓰면 된다 — 유지보수 쉬움).
 //
-// 어디서 도나(@astrojs/markdown-remark 7.3.1 dist/index.js의 순서, 2026-09-26 확인)
+// 어디서 도나(@astrojs/markdown-remark 7.3.1 dist/index.js의 순서, 2026-09-26 확인 — 7.3.4도 같음, 2026-10-26)
 //   remark 플러그인(src/lib/markdown-plugins.mjs) → remark-rehype → Shiki 코드 색 → **이 플러그인** → Astro 그림 처리(rehypeImages)
 //   → 제목 id(rehypeHeadingIds) → rehype-raw → HTML 글자
 //   - 빌드(astro.config.mjs)와 차시 틀 검사(npm run check:lessons — scripts/lib/check-lessons.mjs, 코드 색은 끔)가 **같은 목록**으로 부른다.

@@ -1,8 +1,8 @@
-﻿MQTT.js 5.15.2와 브라우저 번들(dist/mqtt.esm.js)에 함께 묶이는 구성요소의 라이선스 고지
+﻿MQTT.js 5.16.1과 브라우저 번들(dist/mqtt.esm.js)에 함께 묶이는 구성요소의 라이선스 고지
 ==============================================================================
 
-이 파일은 사이트가 배포하는 MQTT 클라이언트(MQTT.js 5.15.2)와 그 의존성의 저작권·라이선스 표기를 모은 것입니다.
-각 원문은 npm 패키지에 들어 있는 LICENSE 파일을 그대로 옮겼습니다(2026-09-18 확인).
+이 파일은 사이트가 배포하는 MQTT 클라이언트(MQTT.js 5.16.1)와 그 의존성의 저작권·라이선스 표기를 모은 것입니다.
+각 원문은 npm 패키지에 들어 있는 LICENSE 파일을 그대로 옮겼습니다(2026-09-18 확인, 판 1.8.0에서 MQTT.js 5.16.1로 올리며 2026-10-26 다시 확인 — 판이 바뀐 구성요소만 새 원문으로).
 
 번들에 함께 묶인 구성요소는 설치한 패키지 목록이 아니라 **번들 파일 자체**로 확인합니다(2026-09-25 Phase 4 검토 반영):
 node_modules/mqtt/dist/mqtt.js(사이트가 받는 dist/mqtt.esm.js와 같은 묶음의 풀어 쓴 판)의 원본 표시 줄
@@ -391,7 +391,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 ------------------------------------------------------------------------------
-ip-address 10.7.2  —  MIT
+ip-address 10.7.5  —  MIT
 ------------------------------------------------------------------------------
 Copyright (C) 2011 by Beau Gunderson
 
@@ -414,88 +414,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ------------------------------------------------------------------------------
-js-sdsl 4.3.0  —  MIT
+lru-cache 10.4.3  —  ISC
 ------------------------------------------------------------------------------
-MIT License
+The ISC License
 
-Copyright (c) 2021 Zilong Yao
+Copyright (c) 2010-2023 Isaac Z. Schlueter and Contributors
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-------------------------------------------------------------------------------
-lru-cache 11.5.2  —  BlueOak-1.0.0
-------------------------------------------------------------------------------
-# Blue Oak Model License
-
-Version 1.0.0
-
-## Purpose
-
-This license gives everyone as much permission to work with
-this software as possible, while protecting contributors
-from liability.
-
-## Acceptance
-
-In order to receive this license, you must agree to its
-rules.  The rules of this license are both obligations
-under that agreement and conditions to your license.
-You must not do anything with this software that triggers
-a rule that you cannot or will not follow.
-
-## Copyright
-
-Each contributor licenses you to do everything with this
-software that would otherwise infringe that contributor's
-copyright in it.
-
-## Notices
-
-You must ensure that everyone who gets a copy of
-any part of this software from you, with or without
-changes, also gets the text of this license or a link to
-<https://blueoakcouncil.org/license/1.0.0>.
-
-## Excuse
-
-If anyone notifies you in writing that you have not
-complied with [Notices](#notices), you can keep your
-license by taking all practical steps to comply within 30
-days after the notice.  If you do not do so, your license
-ends immediately.
-
-## Patent
-
-Each contributor licenses you to do everything with this
-software that would otherwise infringe any patent claims
-they can license or become able to license.
-
-## Reliability
-
-No contributor can revoke this license.
-
-## No Liability
-
-***As far as the law allows, this software comes as is,
-without any warranty or condition, and no contributor
-will be liable to anyone for any damages related to this
-software or this license, under any kind of legal claim.***
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ------------------------------------------------------------------------------
 minimist 1.2.8  —  MIT
@@ -520,7 +455,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ------------------------------------------------------------------------------
-mqtt 5.15.2  —  MIT
+mqtt 5.16.1  —  MIT
 ------------------------------------------------------------------------------
 The MIT License (MIT)
 =====================
@@ -561,31 +496,6 @@ ms 2.1.3  —  MIT
 The MIT License (MIT)
 
 Copyright (c) 2020 Vercel, Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-------------------------------------------------------------------------------
-number-allocator 1.0.14  —  MIT
-------------------------------------------------------------------------------
-MIT License
-
-Copyright (c) 2021 Takatoshi Kondo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -921,6 +831,34 @@ typedarray 0.0.6  —  MIT
 //  * Allows typed_array.get/set() as alias for subscripts (typed_array[])
 
 ------------------------------------------------------------------------------
+util-deprecate 1.0.2  —  MIT
+------------------------------------------------------------------------------
+(The MIT License)
+
+Copyright (c) 2014 Nathan Rajlich <nathan@tootallnate.net>
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+------------------------------------------------------------------------------
 worker-factory 7.0.50  —  MIT
 ------------------------------------------------------------------------------
 MIT License
@@ -1047,9 +985,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 @jspm/core 2.1.0(nodelibs/browser — process·buffer·events·punycode·url·net의 브라우저 대체 코드)  —  Apache-2.0(+ 안에 든 MIT 코드)
 ------------------------------------------------------------------------------
-MQTT.js 5.15.2의 브라우저 번들을 만들 때(esbuild-plugin-polyfill-node) Node.js 내장 모듈 대신 묶인 코드예요.
+MQTT.js 5.16.1의 브라우저 번들을 만들 때(esbuild-plugin-polyfill-node) Node.js 내장 모듈 대신 묶인 코드예요.
 번들 안 원본 표시: node_modules/@jspm/core/nodelibs/browser/{process,buffer,events,punycode,url,net,chunk-*}.js.
-판: MQTT.js v5.15.2 태그의 package-lock.json이 적은 @jspm/core 2.1.0(esbuild-plugin-polyfill-node 0.3.0의 의존성).
+판: MQTT.js v5.16.1 태그의 package-lock.json이 적은 @jspm/core 2.1.0(esbuild-plugin-polyfill-node 0.3.0의 의존성).
 아래는 jspm/jspm-core 저장소 태그 2.1.0의 LICENSE 파일 원문 전체예요(https://github.com/jspm/jspm-core/blob/2.1.0/LICENSE,
 2026-09-26 옮김 — git blob SHA-1 4d5df25b83474f041c313babb0286a3ac5e0cf5a로 원본과 같음을 대조). 저작권 표기 "Copyright 2018-2021 Guy Bedford"와
 함께, 브라우저 대체 코드 각각의 원래 라이선스(Node.js·buffer·events 등 MIT)가 "### 이름" 칸으로 들어 있어요.
@@ -1884,7 +1822,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 esbuild-plugin-polyfill-node 0.3.0(MQTT.js 빌드 도구, polyfills/__dirname·process·buffer·empty)  —  MIT
 ------------------------------------------------------------------------------
 MQTT.js 번들을 만들 때 Node.js 전역 이름(process·Buffer·__dirname)을 채우려고 끼운 몇 줄짜리 코드예요.
-판: MQTT.js v5.15.2 태그의 package-lock.json이 적은 0.3.0. 아래는 원 저장소 LICENSE 원문 전체예요
+판: MQTT.js v5.16.1 태그의 package-lock.json이 적은 0.3.0. 아래는 원 저장소 LICENSE 원문 전체예요
 (https://github.com/cyco130/esbuild-plugin-polyfill-node/blob/81a9469959bdd3c9c275db4ca5d8b0aa4e291608/LICENSE — "release: 0.3.0" 커밋,
 2026-09-26 옮김, git blob SHA-1 e9b5565378cf37fdd4e71838fa9870d054756aea로 대조. 이 파일은 저장소 첫 커밋 뒤로 바뀐 적이 없어요).
 (운영자 할 일 22번을 이 옮김으로 끝냈어요.)

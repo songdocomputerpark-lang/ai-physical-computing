@@ -35,7 +35,7 @@ export function createBlocksKit(modules: BlocklyModules): BlocksKit {
   const GeneratorClass = createGeneratorClass(python);
   const generator = new GeneratorClass();
   // forBlock의 함수 타입이 생성기 자신(this)을 받게 적혀 있어 PythonGenerator용 함수를 하위 클래스 표에 바로 넣으면 타입이 맞지 않는다
-  // (Blockly 13.3.0 d.ts의 this 타입). 실행에서는 하위 클래스가 PythonGenerator의 모든 것을 가지므로 표를 넓혀 넣는다.
+  // (Blockly 13.4.0 d.ts의 this 타입). 실행에서는 하위 클래스가 PythonGenerator의 모든 것을 가지므로 표를 넓혀 넣는다.
   const table = generator.forBlock as Record<string, unknown>;
   for (const type of STANDARD_BLOCK_TYPES) {
     const code = python.pythonGenerator.forBlock[type];

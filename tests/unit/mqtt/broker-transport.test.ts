@@ -1,4 +1,4 @@
-// 공개 중계 서버 통로(MQTT.js 5.15.2를 감싼 부분) 단위 테스트 — 구역 D(P4-06).
+// 공개 중계 서버 통로(MQTT.js 5.16.1을 감싼 부분) 단위 테스트 — 구역 D(P4-06).
 // 진짜 브로커에 붙지 않고 **MQTT.js와 같은 모양의 가짜 클라이언트**로 규칙을 확인한다
 // (공식 타입 선언 node_modules/mqtt/build/lib/client.d.ts의 이벤트·함수 이름을 그대로 쓴다).
 import { describe, expect, it, vi } from 'vitest';
@@ -184,7 +184,7 @@ class FakeSocket implements WebSocketLike {
 }
 
 /**
- * MQTT.js 5.15.2가 브라우저에서 하는 대로 흉내 낸 연결 함수: `createWebsocket`(우리가 넘긴 선택)으로 소켓을 만들고, 소켓이 닫히면
+ * MQTT.js 5.15.2·5.16.1이 브라우저에서 하는 대로 흉내 낸 연결 함수: `createWebsocket`(우리가 넘긴 선택)으로 소켓을 만들고, 소켓이 닫히면
  * 'error'는 내지 않고(브라우저 WebSocket 오류는 code가 없어 삼킨다 — build/lib/client.js streamErrorHandler) 'close' 뒤
  * reconnectPeriod(3초)마다 다시 붙는다. 클라이언트를 end()하면 그만 붙는다.
  */

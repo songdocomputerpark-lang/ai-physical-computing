@@ -1,7 +1,7 @@
 /**
  * 블록 → MicroPython 코드 생성기(PLAN §8.3 P3-06 "블록 → MicroPython 코드 실시간 보기", PD-27 블록 전용 호환 모드).
  *
- * Blockly 13.3.0의 PythonGenerator를 이어받아 두 가지 코드를 **같은 줄 수로** 만든다.
+ * Blockly 13.4.0의 PythonGenerator를 이어받아 두 가지 코드를 **같은 줄 수로** 만든다.
  *   code      화면(편집칸)·실제 보드·[공유 링크]·[.py 내려받기]에 쓰는 보통 MicroPython 코드(교과서 예제 모양, 들여쓰기 4칸)
  *   execCode  JSPI가 없는 브라우저(Android Chrome·옛 브라우저 등)에서 가상 보드가 돌리는 실행판 — 기다리는 줄과 반복문 머리만 다르다:
  *               sleep(0.5)            → await __import__('apc_blocks').sleep(0.5)
@@ -16,7 +16,7 @@
  * import → 부품 준비 줄 → 변수(0으로 시작) → 함수(MP3 명령·Blockly 도우미) → 블록 코드.
  *
  * 금지: 여기서 DOM을 쓰지 않는다(Node 단위 테스트가 jsdom판 Blockly로 돌린다). 블록 정의는 blocks.ts, 블록별 코드는 codegen.ts.
- * 라이선스: 사이트 소프트웨어(MIT). Blockly(Apache-2.0)의 generators/python/loops.ts(v13.3.0)를 참고해 반복문 코드만 다시 썼다.
+ * 라이선스: 사이트 소프트웨어(MIT). Blockly(Apache-2.0)의 generators/python/loops.ts(v13.3.0 — 13.4.0에서도 같은 파일 목록·LICENSE)를 참고해 반복문 코드만 다시 썼다.
  */
 import type { WiringEntry } from '../modules/board/part-types.ts';
 import type { Names } from 'blockly/core';

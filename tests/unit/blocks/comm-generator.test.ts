@@ -1,4 +1,4 @@
-// 통신 블록(P4-10) → MicroPython 코드. Node의 Blockly 13.3.0(jsdom판)으로 화면 없는 작업판을 만들어 코드를 확인한다.
+// 통신 블록(P4-10) → MicroPython 코드. Node의 Blockly 13.4.0(jsdom판)으로 화면 없는 작업판을 만들어 코드를 확인한다.
 // 확인하는 것: 예시 세 개(통신 템플릿과 같은 동작)가 만드는 코드 글자, 화면 코드와 실행판의 줄 수, 파이썬 문법, 배선·머리말,
 // 블록 글·툴팁·색, 도구 상자 칸.
 import { spawnSync } from 'node:child_process';

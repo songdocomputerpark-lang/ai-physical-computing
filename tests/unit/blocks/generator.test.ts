@@ -1,4 +1,4 @@
-// 블록 → MicroPython 코드 생성기(PLAN §8.3 P3-06) — Node의 Blockly 13.3.0(jsdom판)으로 화면 없는 작업판을 만들어 코드를 확인한다.
+// 블록 → MicroPython 코드 생성기(PLAN §8.3 P3-06) — Node의 Blockly 13.4.0(jsdom판)으로 화면 없는 작업판을 만들어 코드를 확인한다.
 // 확인하는 것: 예시·시나리오 B 코드가 교과서 모양 그대로인지, 도구 상자의 모든 블록이 코드를 만들고 화면 코드와 실행판(블록 전용 호환 모드)의
 // 줄 수가 같으며 두 판 모두 파이썬 문법에 맞는지(이 컴퓨터에 파이썬 3이 있으면), 부품 이름·import·배선·핀 겹침·한글 변수 이름.
 import { spawnSync } from 'node:child_process';

@@ -73,7 +73,7 @@
 
 ## 명령어
 
-Node.js 22.12.0 이상이 필요해요(권장: 24 LTS). 프로젝트 폴더에서 실행해요. 처음이면 설치와 저장소 내려받기(clone)부터 [MAINTENANCE.md](MAINTENANCE.md) 0절을 따라요.
+Node.js 22.22.0 이상이 필요해요(권장: 24 LTS). 프로젝트 폴더에서 실행해요. 처음이면 설치와 저장소 내려받기(clone)부터 [MAINTENANCE.md](MAINTENANCE.md) 0절을 따라요.
 
 | 하는 일 | 명령 |
 |---|---|

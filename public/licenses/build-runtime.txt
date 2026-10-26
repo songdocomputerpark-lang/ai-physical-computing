@@ -1,7 +1,7 @@
 ﻿빌드 도구(Astro·Vite·Rolldown)가 사이트 스크립트에 넣는 실행 도우미 — 라이선스 고지 원문
 ==========================================================================
 
-사이트는 Astro 7.3.2로 만들고, Astro는 번들러 Vite 8.3.0과 Rolldown 1.2.8로 스크립트를 묶어요. 이때 번들러가 사이트 스크립트에 작은 실행
+사이트는 Astro 7.4.1로 만들고, Astro는 번들러 Vite 8.3.5와 Rolldown 1.2.15로 스크립트를 묶어요. 이때 번들러가 사이트 스크립트에 작은 실행
 도우미 두 개를 넣어 함께 배포돼요(2026-09-26 Phase 6 안전 검토 지적 8 — 빌드 결과 dist/_astro/에서 확인).
   - _astro/preload-helper.<해시>.js — 나중에 받는 스크립트를 미리 받아 두는 도우미(Vite 코드, vite:preloadError·modulepreload)
   - _astro/rolldown-runtime.<해시>.js — CommonJS 모양 모듈을 잇는 도우미(Rolldown 코드)
@@ -9,8 +9,8 @@
 node_modules/astro/LICENSE, node_modules/vite/LICENSE.md의 "Vite core license" 부분, node_modules/rolldown/LICENSE).
 
 ------------------------------------------------------------------------------
-1. Astro 7.3.2 — MIT(SvelteKit·Vite에서 온 부분의 고지 포함)
-   원문: https://github.com/withastro/astro/blob/astro%407.3.2/LICENSE (git blob b3cd0c0f0e01d20109fc8660a4d6b7dc9a22bc49 — npm 패키지의 파일과 같음)
+1. Astro 7.4.1 — MIT(SvelteKit·Vite에서 온 부분의 고지 포함)
+   원문: https://github.com/withastro/astro/blob/astro%407.4.1/LICENSE (git blob b3cd0c0f0e01d20109fc8660a4d6b7dc9a22bc49 — npm 패키지의 파일과 같음, 7.3.2와 같은 글)
 ------------------------------------------------------------------------------
 
 MIT License
@@ -74,8 +74,8 @@ SOFTWARE.
 """
 
 ------------------------------------------------------------------------------
-2. Vite 8.3.0 — MIT(Vite core license)
-   원문: https://github.com/vitejs/vite/blob/v8.3.0/packages/vite/LICENSE.md 맨 앞 "Vite core license" 절(git blob 6d24a5e9c7c10da3b9b1936656f04d8e76f89911)
+2. Vite 8.3.5 — MIT(Vite core license)
+   원문: https://github.com/vitejs/vite/blob/v8.3.5/packages/vite/LICENSE.md 맨 앞 "Vite core license" 절(npm 패키지 파일의 git blob 06481aa9d21aa40e438c0d263dc9df80eaaad717 — 이 절의 글은 8.3.0과 같음)
 ------------------------------------------------------------------------------
 
 # Vite core license
@@ -104,8 +104,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ------------------------------------------------------------------------------
-3. Rolldown 1.2.8 — MIT
-   원문: https://github.com/rolldown/rolldown/blob/v1.2.8/LICENSE (git blob afc0cdbabfb99ed4030bf9be2b852977f1ed72a0 — npm 패키지의 파일과 같음)
+3. Rolldown 1.2.15 — MIT
+   원문: https://github.com/rolldown/rolldown/blob/v1.2.15/LICENSE (git blob afc0cdbabfb99ed4030bf9be2b852977f1ed72a0 — npm 패키지의 파일과 같음)
 ------------------------------------------------------------------------------
 
 MIT License
