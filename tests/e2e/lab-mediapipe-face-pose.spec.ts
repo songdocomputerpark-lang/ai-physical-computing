@@ -167,7 +167,10 @@ test.describe('얼굴·자세 인식(mediapipe 흉내) — 재생 입력', () =>
     await chooseSource(page, 'replay');
     await chooseSequence(page, 'face-blink');
     // 원본은 putText로만 상태를 보여 주므로, 판정이 바뀌는 것을 콘솔에서도 볼 수 있게 한 줄만 덧붙여 확인한다(원본 코드는 그대로 둔다).
-    await setEditorCode(page, `${EYE_CLOSED}\n    print(eye_status)\n`);
+    // 판 1.8.0: 다시 쓴 예제는 반복문 뒤에 face.close()가 있어 끝에 덧붙이면 들여쓰기 오류 — 판정한 바로 뒤(얼굴을 찾은 묶음 안)에 넣는다
+    const marker = '                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255),2)\n';
+    expect(EYE_CLOSED).toContain(marker);
+    await setEditorCode(page, EYE_CLOSED.replace(marker, `${marker}        print(eye_status)\n`));
     await page.getByRole('button', { name: '실행', exact: true }).click();
     await waitFrames(page, 'Face', 3);
 
