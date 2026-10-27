@@ -36,6 +36,8 @@
 라이선스: 사이트 소프트웨어(MIT, PD-26). 원본 SpeechRecognition(BSD-3-Clause) 코드는 쓰지 않고 API 이름만 맞췄다.
 """
 
+import numbers
+
 import apc_runtime
 
 #: 화면에 "한 마디 받아 주세요"라고 부탁하는 요청 이름(manifest.ts의 requestKinds와 같아야 한다)
@@ -88,17 +90,18 @@ class AudioData:
         if frame_data is not None and text is None and failure is None:
             if not isinstance(frame_data, (bytes, bytearray)):
                 raise TypeError("AudioData의 첫 값은 녹음한 소리 바이트예요. 예: sr.AudioData(recording.tobytes(), 16000, 2)")
-            if not (isinstance(sample_rate, int) and sample_rate > 0):
+            # 원본처럼 숫자 모양만 본다 — sd.query_devices()의 16000.0(float)·numpy 정수도 받는다
+            if not (isinstance(sample_rate, numbers.Real) and sample_rate > 0):
                 raise AssertionError("Sample rate must be a positive integer")
-            if not (isinstance(sample_width, int) and 1 <= sample_width <= 4):
+            if not (isinstance(sample_width, numbers.Real) and sample_width % 1 == 0 and 1 <= sample_width <= 4):
                 raise AssertionError("Sample width must be between 1 and 4 inclusive")
             recorded = _state["last_recording"]
             if recorded is None:
                 text, failure, message, mode = "", "unknown", "녹음한 소리가 없어요. 먼저 sd.rec(…)와 sd.wait()로 녹음해요.", "text"
             else:
                 text, failure, message, mode = recorded.text, recorded.failure, recorded.message, recorded.mode
-        self.sample_rate = sample_rate if isinstance(sample_rate, int) else 16000
-        self.sample_width = sample_width if isinstance(sample_width, int) else 2
+        self.sample_rate = sample_rate if isinstance(sample_rate, numbers.Real) else 16000
+        self.sample_width = int(sample_width) if isinstance(sample_width, numbers.Real) else 2
         self.text = "" if text is None else str(text)
         #: None(성공) · "unknown"(못 알아들음) · "request"(권한·네트워크·미지원)
         self.failure = failure

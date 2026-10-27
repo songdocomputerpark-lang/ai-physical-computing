@@ -53,6 +53,16 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파�
   const out = run();
 
   const skipped = Boolean(out.skipped);
+  // 휠을 받지 못한 컴퓨터(jsDelivr가 막힘)에서는 단계를 건너뛰되 소리 없이 지나가지 않게 알리고,
+  // CI(GitHub Actions — 이 시험을 실제로 돌리는 유일한 곳)에서는 건너뛰기를 실패로 본다(판 1.8.0 검토 반영).
+  if (skipped) {
+    console.warn(`[pyodide-speech] 건너뜀: ${out.skipped}`);
+  }
+  it('CI에서는 휠을 받아 모든 단계를 실제로 돌린다(건너뛰지 않는다)', () => {
+    if (process.env.CI === 'true') {
+      expect(out.skipped).toBeUndefined();
+    }
+  });
 
   it('speech_recognition.py·sounddevice.py가 /apc에 들어가 학생 코드의 import가 바로 된다(내려받기 없음)', () => {
     expect(out.duplicate).toBeUndefined();

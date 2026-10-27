@@ -163,7 +163,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('패키지를 받는 동안�
     expect(helperNp.outcome).toBe('ok');
     expect(helperNp.plan?.startNow).toBe(true);
     expect(helperNp.value).toBe(6);
-    expect(helperNp.stdout).toBe('합 6 0.10.35-apc\n');
+    expect(helperNp.stdout).toBe('합 6 1.1.1-apc\n');
     const npWaits = helperNp.posted.filter((message) => message.type === 'package-wait');
     expect(npWaits.map((message) => [message.phase, message.waiting])).toEqual([
       ['import', true],

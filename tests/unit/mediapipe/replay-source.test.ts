@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { storageKey } from '../../../src/lib/storage.ts';
 import { validateManifests } from '../../../src/lab/modules/manifests.ts';
 import manifest from '../../../src/lab/modules/mediapipe/manifest.ts';
-import { detectedFromSynthetic, SEQUENCE_STORAGE_NAME, REQUEST_DETECT, REQUEST_OPEN, SUPPORTED_SOLUTIONS } from '../../../src/lab/modules/mediapipe/index.ts';
+import { detectedFromSynthetic, posesFromSynthetic, SEQUENCE_STORAGE_NAME, REQUEST_DETECT, REQUEST_OPEN, SUPPORTED_SOLUTIONS } from '../../../src/lab/modules/mediapipe/index.ts';
 import {
   DEFAULT_SEQUENCE_ID,
   REPLAY_SOURCE_ID,
@@ -96,6 +96,17 @@ describe('합성 손 → 파이썬에 주는 답', () => {
     expect(copy[0]!.landmarks[8]).toEqual([...frame.hands[0]!.landmarks[8]!]);
     copy[0]!.landmarks[8]![0] = 9;
     expect(frame.hands[0]!.landmarks[8]![0]).not.toBe(9);
+  });
+});
+
+describe('합성 자세 → 파이썬에 주는 답(판 1.8.0 num_poses)', () => {
+  const body = (shift: number) => ({ landmarks: Array.from({ length: 33 }, (_, i) => [0.5 + shift, i / 40, 0, 0.9] as [number, number, number, number]) });
+  it('사람 수는 num_poses까지 — 기본 1, 2면 두 사람, 0이나 음수여도 한 사람', () => {
+    const two = [body(0), body(0.1)] as unknown as Parameters<typeof posesFromSynthetic>[0];
+    expect(posesFromSynthetic(two)).toHaveLength(1);
+    expect(posesFromSynthetic(two, 2)).toHaveLength(2);
+    expect(posesFromSynthetic(two, 0)).toHaveLength(1);
+    expect(posesFromSynthetic(two, 2)[1]![0]).toEqual([0.6, 0, 0, 0.9]);
   });
 });
 

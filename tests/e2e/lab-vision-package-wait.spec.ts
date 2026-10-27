@@ -84,7 +84,7 @@ test.describe('영상 처리 실습실 — 패키지를 받는 동안의 [실행
     releaseNumpy();
     releaseOpencv();
     expect(await waitDone(page, PACKAGES_TIMEOUT)).toBe('ok');
-    await expect(consoleBox).toContainText('mediapipe 0.10.35-apc');
+    await expect(consoleBox).toContainText('mediapipe 1.1.1-apc');
     await expect(root).toHaveAttribute('data-vision-package-wait', 'no');
     await expect(root).toHaveAttribute('data-vision-packages', 'ready', { timeout: PACKAGES_TIMEOUT });
     await expect(consoleBox).not.toContainText('Loading');

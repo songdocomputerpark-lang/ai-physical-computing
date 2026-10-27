@@ -82,6 +82,16 @@ function run(jspi: boolean): Result {
 describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 흉내 모듈의 파이썬 쪽(실제 Pyodide + OpenCV)', () => {
   const out = run(true);
   const skipped = Boolean(out.skipped);
+  // 휠을 받지 못한 컴퓨터(jsDelivr가 막힘)에서는 단계를 건너뛰되 소리 없이 지나가지 않게 알리고,
+  // CI(GitHub Actions — 이 시험을 실제로 돌리는 유일한 곳)에서는 건너뛰기를 실패로 본다(판 1.8.0 검토 반영).
+  if (skipped) {
+    console.warn(`[pyodide-mediapipe] 건너뜀: ${out.skipped}`);
+  }
+  it('CI에서는 휠을 받아 모든 단계를 실제로 돌린다(건너뛰지 않는다)', () => {
+    if (process.env.CI === 'true') {
+      expect(out.skipped).toBeUndefined();
+    }
+  });
   const value = (name: string) => out.steps[name]!.value as unknown[];
   const opensOf = (solution: string) => out.requests.filter((request) => request.kind === 'mediapipe.open' && request.solution === solution);
 

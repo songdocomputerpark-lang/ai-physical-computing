@@ -60,6 +60,7 @@ import collections.abc
 import dataclasses
 import enum
 import math
+import ntpath
 import operator
 import os
 import types
@@ -715,7 +716,8 @@ def _resolve_model(solution, base_options):
             f"model_asset_buffer로 넘긴 모델 대신 사이트에 있는 모델 파일({_SITE_MODEL[solution]})로 {_TASK_LABELS[solution]}을 해요.",
         )
         return None
-    name = os.path.basename(os.fspath(path)).lower()
+    # 윈도우 경로(C:\Users\…\hand_landmarker.task)도 파일 이름을 찾게 ntpath로 — 역슬래시와 / 둘 다 나눈다(판 1.8.0 검토 반영)
+    name = ntpath.basename(os.fspath(path)).lower()
     known = _MODEL_FILES.get(name)
     if known is not None and known[0] != solution:
         other = known[0]
@@ -1024,9 +1026,14 @@ class _VisionTask:
             raise ValueError(TIMESTAMP_MESSAGE + f" (지난번 {self._last_timestamp} → 이번 {timestamp_ms}: 시각이 늘어나야 해요)")
         self._last_timestamp = timestamp_ms
 
-    def _run(self, image, image_processing_options):
+    @staticmethod
+    def _check_image(image):
+        # 진짜는 image._image_ptr를 먼저 읽으므로 mp.Image가 아니면 시각을 기록하기 전에 멈춘다(판 1.8.0 검토 반영)
         if not isinstance(image, Image):
             raise AttributeError(IMAGE_PTR_MESSAGE.format(name=_type_name(image)))
+
+    def _run(self, image, image_processing_options):
+        self._check_image(image)
         if image_processing_options is not None:
             _notice_once("image-processing-options", "image_processing_options(사진 돌리기·관심 영역)는 이 실습실에서 쓰지 않고 그대로 인식해요.", "info")
         rgb = image._rgb()
@@ -1047,12 +1054,14 @@ class _VisionTask:
     def detect_for_video(self, image, timestamp_ms, image_processing_options=None):
         """영상 프레임 한 장(VIDEO 모드). timestamp_ms(밀리초 정수)는 부를 때마다 늘어나야 한다."""
         self._check_mode(VisionTaskRunningMode.VIDEO)
+        self._check_image(image)
         self._check_timestamp(timestamp_ms)
         return self._run(image, image_processing_options)
 
     def detect_async(self, image, timestamp_ms, image_processing_options=None):
         """실시간 한 장(LIVE_STREAM 모드). 결과는 result_callback(result, image, timestamp_ms)으로 — 실습실에서는 곧바로 부른다."""
         self._check_mode(VisionTaskRunningMode.LIVE_STREAM)
+        self._check_image(image)
         self._check_timestamp(timestamp_ms)
         result = self._run(image, image_processing_options)
         self._options.result_callback(result, image, timestamp_ms)

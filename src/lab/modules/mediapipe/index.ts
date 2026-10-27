@@ -111,9 +111,9 @@ export function facesFromSynthetic(faces: readonly SyntheticFace[], limit: numbe
   return faces.slice(0, Math.max(1, limit)).map((face) => face.landmarks.map(([x, y, z]) => [x, y, z]));
 }
 
-/** 합성 자세(재생 입력) → 파이썬에 주는 점 목록(33개, visibility 포함) */
-export function posesFromSynthetic(poses: readonly SyntheticPose[]): number[][][] {
-  return poses.slice(0, 1).map((body) => body.landmarks.map(([x, y, z, visibility]) => [x, y, z, visibility]));
+/** 합성 자세(재생 입력) → 파이썬에 주는 점 목록(33개, visibility 포함) — 사람 수는 num_poses까지(판 1.8.0) */
+export function posesFromSynthetic(poses: readonly SyntheticPose[], limit = 1): number[][][] {
+  return poses.slice(0, Math.max(1, limit)).map((body) => body.landmarks.map(([x, y, z, visibility]) => [x, y, z, visibility]));
 }
 
 /**
@@ -463,7 +463,7 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
       return;
     }
     const poseList = mirrored ? mirrorPoses(frame.poses) : frame.poses;
-    request.reply({ ok: true, poses: posesFromSynthetic(poseList), source: 'replay' });
+    request.reply({ ok: true, poses: posesFromSynthetic(poseList, poses.options.numPoses), source: 'replay' });
   };
 
   /** 엔진 추론 결과로 답을 만든다. */
@@ -484,8 +484,9 @@ async function mount(context: LabModuleContext): Promise<LabModuleHandle | void>
     const found: DetectedPose[] = poses.detect(frame, now);
     request.reply({
       ok: true,
-      poses: found.slice(0, 1).map((body) => body.landmarks),
-      poseWorlds: found[0]?.worldLandmarks ? [found[0].worldLandmarks] : null,
+      // 판 1.8.0: num_poses만큼(엔진이 이미 그 수까지만 찾는다) — 진짜 PoseLandmarker처럼 사람마다 한 칸
+      poses: found.map((body) => body.landmarks),
+      poseWorlds: found.map((body) => body.worldLandmarks),
       source: 'tasks',
     });
   };
