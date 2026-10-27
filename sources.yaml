@@ -160,7 +160,7 @@ sources:
     fetched: 2026-09-16
 
   # ── 실행 구성요소 ──
-  - name: Astro 7.4.1
+  - name: Astro 7.4.2
     category: stack
     author: "Fred K. Schott와 withastro(Astro 기여자). 일부 코드: SvelteKit 기여자, Yuxi (Evan) You와 Vite 기여자"
     license: MIT
