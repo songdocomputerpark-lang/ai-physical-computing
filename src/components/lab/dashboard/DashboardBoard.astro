@@ -536,6 +536,11 @@ const checkHref = getPage('start-check').href;
     transition: background var(--duration-base) var(--ease-standard);
   }
 
+  /* 상태 글은 data-state에서(widgets.ts — 단추 이름을 위젯 제목으로 고정, 판 1.8.0) */
+  .dash-switch__label::after {
+    content: attr(data-state);
+  }
+
   .dash-switch[aria-pressed='true'] {
     border-color: var(--color-accent);
     background: var(--color-accent-soft);

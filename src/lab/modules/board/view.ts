@@ -108,6 +108,35 @@ function visualChanged(before: PartVisual | undefined, after: PartVisual): boole
 }
 
 /** 출력 부품의 화면 낭독기 이름: "진동 모터(GPIO19): 진동 중 — 설명" */
+/**
+ * 그림 안에 보이는 글자(SVG <text>를 DOM 차례대로 띄어 이음 — 예: "BOOT IO0 뗌").
+ * 누르는 부품(role=button)의 이름이 보이는 글자를 품게 쓴다(WCAG 2.5.3 — axe 4.14 label-content-name-mismatch, 판 1.8.0).
+ */
+export function visibleSvgText(element: Element): string {
+  return Array.from(element.querySelectorAll('text'))
+    .map((text) => (text.textContent ?? '').replace(/\s+/gu, ' ').trim())
+    .filter((text) => text.length > 0)
+    .join(' ');
+}
+
+/**
+ * 둘째 <text>부터 글 앞에 빈칸 하나를 둔다 — axe는 SVG 글자 조각을 띄우지 않고 이어 읽어("BOOT IO0뗌") 이름과 맞지 않게 본다.
+ * SVG는 글 앞 빈칸을 그리지 않으므로 그림은 그대로다(부품 apply가 글을 바꿀 때마다 다시 부른다).
+ */
+export function spaceSvgTexts(element: Element): void {
+  for (const text of Array.from(element.querySelectorAll('text')).slice(1)) {
+    const first = text.firstChild;
+    if (first?.nodeType === Node.TEXT_NODE && !/^\s/u.test(first.nodeValue ?? '')) {
+      first.nodeValue = ` ${first.nodeValue ?? ''}`;
+    }
+  }
+}
+
+/** 누르는 부품의 이름 = 보이는 글자 + 설명(보이는 글자가 이미 들어 있으면 설명만) */
+export function interactiveLabel(visible: string, description: string): string {
+  return visible.length === 0 || description.includes(visible) ? description : `${visible} — ${description}`;
+}
+
 export function visualSummary(definition: PartDefinition, instance: PartInstance, visual: PartVisual): string {
   const pins = Object.values(instance.pins)
     .map((gpio) => `GPIO${gpio}`)
@@ -552,7 +581,8 @@ export function createBoardView(elements: BoardViewElements, options: BoardViewO
           .join('·');
         if (part.definition.interaction) {
           const how = part.definition.interaction.kind === 'toggle' ? '누를 때마다 켜짐과 꺼짐이 바뀌어요' : '누르고 있는 동안 눌려요';
-          part.element.setAttribute('aria-label', `${part.definition.interaction.label}(${pins}) — ${how}`);
+          spaceSvgTexts(part.element);
+          part.element.setAttribute('aria-label', interactiveLabel(visibleSvgText(part.element), `${part.definition.interaction.label}(${pins}) — ${how}`));
         } else {
           part.element.setAttribute('aria-label', visualSummary(part.definition, part.instance, visual));
         }

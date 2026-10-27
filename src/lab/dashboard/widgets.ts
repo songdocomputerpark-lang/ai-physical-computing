@@ -204,7 +204,10 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     switchButton.setAttribute('aria-label', widget.title);
     const knob = el('span', 'dash-switch__knob');
     knob.setAttribute('aria-hidden', 'true');
-    const label = el('span', 'dash-switch__label', '꺼짐');
+    // 보이는 상태 글(켜짐·꺼짐)은 CSS ::after(data-state)로 그린다 — 단추 안 글자는 이름에 들어 있어야 해서
+    // (axe 4.14 label-content-name-mismatch) 이름을 위젯 제목으로 고정하려면 글자를 DOM 글로 두지 않는다(판 1.8.0).
+    const label = el('span', 'dash-switch__label');
+    label.dataset.state = '꺼짐';
     label.setAttribute('aria-hidden', 'true');
     switchButton.append(knob, label);
     switchState = el('p', 'dash-widget__hint', `${widget.topic} → ${widget.onText} / ${widget.offText}`);
@@ -455,8 +458,8 @@ export function createWidgetView(widget: DashboardWidget, handlers: WidgetHandle
     }
     switchButton.setAttribute('aria-pressed', switchOn ? 'true' : 'false');
     const label = switchButton.querySelector('.dash-switch__label');
-    if (label !== null) {
-      label.textContent = switchOn ? '켜짐' : '꺼짐';
+    if (label instanceof HTMLElement) {
+      label.dataset.state = switchOn ? '켜짐' : '꺼짐';
     }
     root.dataset.dashOn = switchOn ? 'true' : 'false';
   }
