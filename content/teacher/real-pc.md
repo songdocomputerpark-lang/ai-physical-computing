@@ -104,6 +104,7 @@ mediapipe 1.x는 인식을 하는 동안 사용 기록을 구글 서버(play.goo
 | `hand_landmarker.task` | 손 인식(`vision.HandLandmarker`) | 7.8MB | [공식](https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task), [사이트](/models/hand_landmarker.task) |
 | `face_landmarker.task` | 얼굴 그물(`vision.FaceLandmarker`) | 3.8MB | [공식](https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task), [사이트](/models/face_landmarker.task) |
 | `pose_landmarker_lite.task` | 자세 인식(`vision.PoseLandmarker`) | 5.8MB | [공식](https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task), [사이트](/models/pose_landmarker_lite.task) |
+| `pose_landmarker_full.task` | 자세 인식을 더 정확하게(lite 대신 쓸 때 — 코드의 파일 이름만 바꿔요, 컴퓨터가 더 느려져요) | 9.4MB | [공식](https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task), [사이트](/models/pose_landmarker_full.task) |
 | `blaze_face_short_range.tflite` | 얼굴 상자(`vision.FaceDetector`) | 0.2MB | [공식](https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite), [사이트](/models/blaze_face_short_range.tflite) |
 
 - 모델 파일의 출처와 라이선스(Apache-2.0)는 [MediaPipe 공식 안내](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker)와 사이트의 [출처와 라이선스](/credits/)에 있어요.
@@ -183,4 +184,4 @@ mediapipe 1.x는 인식을 하는 동안 사용 기록을 구글 서버(play.goo
 
 ## 이 안내를 확인한 방법
 
-판 번호는 2026-10-26에 각 공식 누리집(PyPI, 토니)에서 확인했어요. mediapipe 0.10.21·0.10.30·1.1.1 설치 파일을 받아 열어 보고 `mp.solutions`가 0.10.30부터 없다는 것을 확인했고, 파이썬 3.14.6에 mediapipe 1.1.1·OpenCV 5.0.0.93·numpy 2.5.4·Pillow 13.0.0을 설치해 사이트 예제를 실제로 돌렸어요(카메라 대신 계산으로 만든 좌표, 인식은 MediaPipe 공식 예시 사진으로). 토니 5.0의 한국어 메뉴 이름은 토니 5.0 설치 꾸러미 안의 한국어 번역 파일에서 확인했어요. Windows 컴퓨터에서 토니 화면을 직접 눌러 보지는 못했어요. 설치하다 막히는 곳이 있으면 [기여·문의](/contribute/)로 알려 주세요.
+판 번호는 2026-10-26에 각 공식 누리집(PyPI, 토니)에서 확인했어요. mediapipe 0.10.21·0.10.30·1.1.1 설치 파일을 받아 열어 보고 `mp.solutions`가 0.10.30부터 없다는 것을 확인했고, 파이썬 3.14.6에 mediapipe 1.1.1·OpenCV 5.0.0.93·numpy 2.5.4·Pillow 13.0.0을 설치해 사이트 예제를 실제로 돌렸어요(카메라 대신 계산으로 만든 좌표, 인식은 MediaPipe 공식 예시 사진으로). 토니 5.0의 한국어 메뉴 이름은 토니 5.0 설치 꾸러미 안의 한국어 번역 파일에서 확인했어요. 2026-10-27에 판 번호를 다시 확인해 토니 5.0.1(2026-10-26 — 파이썬 3.14.10 동봉)이 나온 것을 반영했고, 5.0.1의 한국어 번역 파일에서도 메뉴 이름이 같았어요. 이날 사이트 예제 76개(컴퓨터 쪽)를 파이썬 3.14로 다시 검사했고, MediaPipe를 쓰지 않는 영상 처리 예제는 OpenCV 5.0.0.93으로 실제 실행해 오류가 없었어요. Windows 컴퓨터에서 토니 화면을 직접 눌러 보지는 못했어요. 설치하다 막히는 곳이 있으면 [기여·문의](/contribute/)로 알려 주세요.

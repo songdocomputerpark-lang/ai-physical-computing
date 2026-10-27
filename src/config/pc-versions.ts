@@ -2,7 +2,7 @@
  * 진짜 PC 쪽 라이브러리 판을 마지막으로 확인한 날(판 1.8.0 — DECISIONS O22·C234).
  *
  * 교사용 "진짜 PC에서 돌리기"(content/teacher/real-pc.md)의 frontmatter `checked`와 같은 날이어야 한다
- * (tests/unit/pc-versions.test.ts가 대조). 판 번호를 다시 확인하면 두 곳을 함께 고친다.
+ * (tests/unit/lab/example-revisions.test.ts가 대조). 판 번호를 다시 확인하면 두 곳을 함께 고친다.
  * 차시 위 "교과서와 다른 곳" 상자(LessonRevisions.astro)가 이 날짜와 그 쪽 링크를 보인다.
  */
 export const PC_VERSIONS_CHECKED = '2026-10-27';
