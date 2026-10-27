@@ -58,7 +58,7 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 
 - **웹 화면만(설치 없음):** GitHub 계정으로 저장소에 들어가 파일을 올리고 고쳐요(1-8 방법 B). 차시 글·예제·그림을 더하는 일은 이 방법으로 충분해요. 다만 커밋 전 검사가 돌지 않아서, 올리기 전에 눈으로 한 번 더 봐요. 쓰기 권한이 있어야 바로 올라가요(아래 "쓰기 권한").
 - **내 컴퓨터에서(검사를 먼저 돌려 보고 올림):** 처음 한 번만 아래 다섯 단계를 해요.
-  1. **설치:** Node.js 공식 사이트(https://nodejs.org)에서 LTS 판(22.22.0 이상, 권장 24)을, Git 공식 사이트(https://git-scm.com)에서 Windows용 Git을 받아 기본 선택 그대로 설치해요.
+  1. **설치:** Node.js 공식 사이트(https://nodejs.org)에서 LTS 판(22.23.4 이상, 권장 24)을, Git 공식 사이트(https://git-scm.com)에서 Windows용 Git을 받아 기본 선택 그대로 설치해요.
   2. **터미널 열기:** 저장소를 둘 폴더(예: 문서 폴더)를 파일 탐색기로 열고 위쪽 주소 칸에 `powershell`을 쳐서 Enter를 누르면 그 폴더에서 PowerShell 창이 열려요(Windows 11은 폴더 빈 곳을 오른쪽 클릭 → [터미널에서 열기]도 돼요).
   3. **저장소 내려받기(clone):** `git clone https://github.com/songdocomputerpark-lang/ai-physical-computing.git` — 같은 이름의 폴더가 생겨요.
   4. **설치 한 번:** `cd ai-physical-computing` 다음 `npm ci`. `npm ci`는 `package-lock.json` 그대로 설치하고 커밋 전 저장소 검사 훅도 켜요(확인: `git config --get core.hooksPath` → `.githooks`).
@@ -154,6 +154,7 @@ handouts:                            # (선택) 이어지는 가린 편집본 �
 | `materials` | | 준비물 목록. 비우면 "따로 준비할 것 없음" |
 | `source` | 차례표에 없는 차시만 | 원천: `manuscript-code`(원고+코드)·`manuscript`(원고만)·`code-only`(원고 없음)·`supplement`(보충). 차례표에 있으면 차례표 값이 쓰여요 |
 | `handouts` | | 가린 편집본 교안의 쪽: `{ doc: bt 또는 ppt, pages: "41~47", note: 짧은 설명 }` |
+| `revisions` | 예제를 원본과 다르게 다시 썼으면 꼭 | 교과서와 달라진 곳을 고친 날과 함께 학생에게 알려요: `- { date: 2026-10-26, version: 1.8.0, summary: "교과서의 mp.solutions 코드를 최신 mediapipe 1.1.1 사용법으로 다시 써서 줄 번호가 달라요." }`. 차시 머리 끝에 "교과서와 다른 곳 — 최신 판으로 고쳤어요" 상자가 새것부터 보이고, 요약 속 `` `…` ``은 코드 글꼴이 돼요(`src/components/lesson/LessonRevisions.astro`, 결정 C234). 상자 끝의 "판 번호를 다시 확인한 날"은 `src/config/pc-versions.ts`의 `PC_VERSIONS_CHECKED` 한 곳이에요(8절) |
 | `comm`·`tags` | | 예제 갤러리 태그(통신 방식 `uart`·`ble`·`wifi`·`mqtt`·`tab`, 자유 낱말) — 모르면 적지 않아요 |
 | `draft` | | 아직 공개하지 않을 초안이면 `true`(목록·검사에서 빠져요). 차례표에 있는 차시를 초안으로 돌리면 CI "테스트"의 차시 틀 검사가 실패로 알려요(배포는 돼요 — 1-6) |
 
@@ -478,7 +479,7 @@ git push
 
 - 교과서·수업 자료의 예제는 원본 압축 파일에서 줄 끝만 바꿔 그대로 옮기고, 원본과 줄 수·문법을 대조해요(`docs/PLAN.md` PD-33). 코드 추출 사본은 줄 끝이 망가져 있어 쓰지 않아요.
 - **옮기는 도구:** `scripts/examples-manifest.yaml`의 `examples:`에 항목(코드 id, zip 이름, zip 안 경로, 대상 경로 `examples/…py`, 저작자 `operator`/`third_party`, 사이드카 씨앗 `meta`)을 적고 `npm run examples:import`(운영자 PC — 원본 폴더가 저장소 뿌리에 있음. 다른 컴퓨터는 `npm run examples:import -- --materials <원본 폴더>`)를 실행해요. 줄 끝을 LF로 바꿔 쓰고, 파이썬 3의 `ast.parse`로 문법을 확인하고, 줄 수·SHA-256을 목록에 기록해요. 원본 결함으로 문법 오류가 나는 파일(f074)은 `expect_syntax_error: true`. `npm run examples:verify`(원본 없이 기록과 대조)는 `npm test`에 들어 있어 기록과 다르게 고친 파일을 잡아요. 자세한 규칙은 `src/lab/README.md` 6절.
-- **옮긴 예제의 제목·설명:** 코드 파일에는 머리말을 넣지 않고(줄 번호 보존) 옆의 **사이드카** `<이름>.meta.yaml`에 적어요(`title`·`description`·`lesson`·`page`·`tags`·`packages`, 갤러리 난이도 `difficulty`). **난이도(`difficulty` 1~3)는 모든 예제에 있어야 해요** — 차시(frontmatter `examples`)에 실린 예제는 차시의 난이도가 쓰이고, 차시에 싣지 않은 예제(사이드카 `lesson`으로 가리키기만 한 예제 포함)는 사이드카의 `difficulty`가 쓰여요. 매기는 기준: 1 한 가지 동작을 차례대로 해 보는 짧은 코드(창 띄우기·값 하나 보이기·부품 하나 켜고 끄기), 2 읽은 값으로 계산하거나 판단하는 코드(조건문 여러 개·좌표·거리·각도·콜백·통신 짝의 한쪽), 3 인식 결과로 마우스나 다른 장치를 움직이는 여러 단계 프로젝트 코드(`src/lab/gallery/facets.ts` 주석, 결정 C53). 빠지면 `npm test`의 `tests/unit/gallery/repo-facets.test.ts`가 파일 이름과 함께 알려 줘요. 이관 목록 `meta`에 `difficulty`를 적어 두면 도구가 사이드카로 옮겨요. 처음 한 번은 도구가 만들고 그 뒤로는 손으로 고쳐요(도구가 덮어쓰지 않아요). 다른 저작자의 파일은 `third-party/` 폴더 아래에만 두고 `sources.yaml`에 항목을 따로 만들어요.
+- **옮긴 예제의 제목·설명:** 코드 파일에는 머리말을 넣지 않고(줄 번호 보존) 옆의 **사이드카** `<이름>.meta.yaml`에 적어요(`title`·`description`·`lesson`·`page`·`tags`·`packages`, 갤러리 난이도 `difficulty`). **난이도(`difficulty` 1~3)는 모든 예제에 있어야 해요** — 차시(frontmatter `examples`)에 실린 예제는 차시의 난이도가 쓰이고, 차시에 싣지 않은 예제(사이드카 `lesson`으로 가리키기만 한 예제 포함)는 사이드카의 `difficulty`가 쓰여요. 매기는 기준: 1 한 가지 동작을 차례대로 해 보는 짧은 코드(창 띄우기·값 하나 보이기·부품 하나 켜고 끄기), 2 읽은 값으로 계산하거나 판단하는 코드(조건문 여러 개·좌표·거리·각도·콜백·통신 짝의 한쪽), 3 인식 결과로 마우스나 다른 장치를 움직이는 여러 단계 프로젝트 코드(`src/lab/gallery/facets.ts` 주석, 결정 C53). 빠지면 `npm test`의 `tests/unit/gallery/repo-facets.test.ts`가 파일 이름과 함께 알려 줘요. 이관 목록 `meta`에 `difficulty`를 적어 두면 도구가 사이드카로 옮겨요. 처음 한 번은 도구가 만들고 그 뒤로는 손으로 고쳐요(도구가 덮어쓰지 않아요). **최신 판에 맞춰 예제를 다시 썼으면**(이관 목록의 `rewritten`, 8절) 사이드카 끝에 `revised: { date: 2026-10-26, version: 1.8.0, note: "…" }`를 적어요 — 실습실 예제 설명 아래에 "원본 코드와 달라요 — 2026년 10월 26일 고침(사이트 판 1.8.0). …"으로 보여요. 수업 교안에서 온 예제(`opmp`·`bt`)는 note에 "교과서"라고 쓰지 않고 "수업 교안 코드는"이라고 써요(결정 C234, `tests/unit/lab/example-revisions.test.ts`가 지켜요). 다른 저작자의 파일은 `third-party/` 폴더 아래에만 두고 `sources.yaml`에 항목을 따로 만들어요.
 - 옮긴 코드 파일은 고치지 않아요. 사이트판이 필요하면 파일을 따로 두고(`…-site.py`, PD-10), 한 줄 안에서 고칠 때는 끝에 `# [사이트판] 고친 이유` 주석을 붙여 줄 번호가 밀리지 않게 해요.
 - **도구가 원본을 바꾸는 예외 두 가지**(목록 항목에 적을 때만): ① `privacy: [mac]` — 기기 주소(MAC·블루투스 주소)를 같은 글자 수의 `XX:XX:XX:XX:XX:XX`로 가려요. ② `notice:` — 다른 저작자의 파일에 라이선스 고지를 붙여야 할 때, 모든 줄이 `#`로 시작하는 주석 머리말을 원본 **앞에** 붙여요(결정 C12 — `examples/esp32/lib/third-party/ESP32BLE.py`는 26줄 고지 + 원본 79줄 = 105줄). 줄 수는 "원본 + 머리말"로, SHA-256은 붙인 뒤의 파일로 기록돼요. 머리말만큼 줄 번호가 밀리니 차시·사이드카에서 줄 번호를 말할 때 확인해요.
 - **라이선스:** `examples/`의 예제 코드는 MIT예요(결정 O13 — 사이트 프로그램과 같음, `LICENSE`). `third-party/` 폴더의 파일만 원래 저작자의 라이선스를 따르고 `sources.yaml`에 항목이 따로 있어요. 차시 글·그림·교안 편집본은 CC BY-NC-SA 4.0(`LICENSE-CONTENT.md`).
@@ -1012,7 +1013,7 @@ Result (3 files):
 6. **확인 차례:** `npm run check`(타입) → `npm test`(단위) → `npm run build`(출처·번들 검사 — 새로 묶인 패키지를 알려 줘요) → `npm run check:links` → `npm run test:e2e -- --workers=2`(브라우저 전체) → 그 기능을 브라우저에서 직접 → push 뒤 실사이트(5절).
 7. CHANGELOG.md "다음 판"에 한 줄 적어요(10절).
 
-지금 판은 CLAUDE.md "기술 스택"과 `package.json`에 있어요(2026-10-26 판 1.8.0: Pyodide 314.0.7, MediaPipe Tasks Vision 0.10.35, Blockly 13.4.0, MQTT.js 5.16.1, esptool-js 0.6.1, MicroPython ESP32_GENERIC v1.29.0, Astro 7.4.1 — 일부러 올리지 않은 것과 까닭은 DECISIONS C228·C232). 한 번에 최신 판으로 올린 기록은 판 1.8.0(CHANGELOG·PLAN §8.18)이 본보기예요 — 학생 코드 쪽 라이브러리(토니·mediapipe 등)가 바뀌면 예제를 다시 쓰고 `scripts/examples-manifest.yaml`에 `rewritten`을 적어요(`src/lab/README.md` 6절). 한꺼번에 뒤처진 판을 보려면 `npm outdated`.
+지금 판은 CLAUDE.md "기술 스택"과 `package.json`에 있어요(2026-10-27 판 1.8.0: Pyodide 314.0.7, MediaPipe Tasks Vision 0.10.35, Blockly 13.4.0, MQTT.js 5.16.1, esptool-js 0.6.1, MicroPython ESP32_GENERIC v1.29.0, Astro 7.4.2 — 일부러 올리지 않은 것과 까닭은 DECISIONS C228·C232). 한 번에 최신 판으로 올린 기록은 판 1.8.0(CHANGELOG·PLAN §8.18)이 본보기예요 — 학생 코드 쪽 라이브러리(토니·mediapipe 등)가 바뀌면 예제를 다시 쓰고 `scripts/examples-manifest.yaml`에 `rewritten`을 적어요(`src/lab/README.md` 6절). 한꺼번에 뒤처진 판을 보려면 `npm outdated`. **판을 다시 확인한 날은 두 곳을 함께 고쳐요:** 교사용 `content/teacher/real-pc.md` 설정 칸의 `checked`와 `src/config/pc-versions.ts`의 `PC_VERSIONS_CHECKED`(차시의 "교과서와 다른 곳" 상자가 이 날을 보여요 — 둘이 다르면 `npm test`가 알려요). 예제를 또 다시 쓰면 그 판의 날짜로 ① 차시 `revisions`(1-2절) ② 사이드카 `revised`(2절) ③ 교과서 원문 쪽 `:::웹안내` 제목 끝 "— 2026년 10월 26일 고침"처럼 세 곳에 새 날을 더해요.
 
 ### 8-1. Pyodide(브라우저 파이썬 엔진)
 
@@ -1094,10 +1095,10 @@ Result (3 files):
 
 | 고칠 곳 | 무엇을 |
 |---|---|
-| `package.json` `astro`·`@astrojs/markdown-remark`(Astro와 같은 판대, 지금 7.3.4)·`@astrojs/check`·`typescript` | 함께 맞춰 올려요. `@astrojs/check` 0.9.12도 TypeScript 7을 받지 않아(peer `^5 \|\| ^6`) TypeScript는 6.0.3에 두고 있어요. Astro 7.4.1은 Node.js 22.22.0 이상을 요구해요(`engines`) |
+| `package.json` `astro`·`@astrojs/markdown-remark`(Astro와 같은 판대, 지금 7.3.4)·`@astrojs/check`·`typescript` | 함께 맞춰 올려요. `@astrojs/check` 0.9.12도 TypeScript 7을 받지 않아(peer `^5 \|\| ^6`) TypeScript는 6.0.3에 두고 있어요. Astro 7.4.2는 Node.js 22.23.4 이상을 요구해요(`engines`) |
 | `astro.config.mjs` | 마크다운 처리기(unified)·`trailingSlash`·`vite` 설정 — Astro 공식 업그레이드 안내(docs.astro.build의 "Upgrade to …")와 대조해요 |
 | `scripts/lib/bundle-license.mjs` | 번들 의존성 목록(`dist/bundle-licenses.json`)을 Vite의 라이선스 출력으로 만드는 곳 — Vite 판이 바뀌면 빌드 뒤 출처 검사가 도는지 봐요 |
-| `sources.yaml` "Astro …"·"Vite …·Rolldown …" 항목, `public/licenses/build-runtime.txt`, `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.4.1'`을 기대) | 판 이름 |
+| `sources.yaml` "Astro …"·"Vite …·Rolldown …" 항목, `public/licenses/build-runtime.txt`, `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.4.2'`을 기대) | 판 이름 |
 
 - 확인: 먼저 콘텐츠 캐시를 지워요(`node_modules/.astro/` 폴더와, 개발 서버를 끈 뒤 `.astro/` 폴더 — 옛 판이 만든 캐시가 섞이지 않게) → `npm run check` → `npm test` → `npm run build` → `npm run check:lessons -- --complete` → `npm run check:links` → `npm run test:e2e -- --workers=2`. `.astro` 파일의 띄어쓰기(CLAUDE.md "`.astro` 띄어쓰기 주의")처럼 출력이 달라진 곳이 없는지 차시·실습실 몇 쪽을 눈으로 봐요.
 - 띄어쓰기 함정은 `npm test`의 `tests/unit/astro-line-break-spaces.test.ts`가 지켜요. 이 파일의 첫 검사("이 검사의 전제")는 Astro가 쓰는 .astro 변환기(`@astrojs/compiler-rs` — Astro가 함께 설치해요)로 줄바꿈 공백이 지워지는 모습을 직접 확인해요. 판을 올린 뒤 이 첫 검사만 실패하면 공백 규칙이 바뀐 것이니, 검사가 찾는 모양(파일 머리말의 ①②③)과 `.astro` 파일들을 함께 다시 봐요(2026-09-30 최종 점검).
@@ -1120,7 +1121,7 @@ Result (3 files):
 
 ### 8-10. Node.js
 
-- 사이트는 Node.js 22.22.0 이상에서 돌아요(`package.json` `engines` — 판 1.8.0에서 Astro 7.4.1이 요구해 22.12.0에서 올림). 운영자 PC와 워크플로(`node-version: '24'`)는 Node 24 LTS를 써요 — 지원은 2028-04-30까지예요(PLAN §3.1).
+- 사이트는 Node.js 22.23.4 이상에서 돌아요(`package.json` `engines` — 판 1.8.0에서 Astro 7.4.2가 요구해 22.12.0에서 올림). 운영자 PC와 워크플로(`node-version: '24'`)는 Node 24 LTS를 써요 — 지원은 2028-04-30까지예요(PLAN §3.1).
 - 다음 LTS로 옮길 때는 세 워크플로의 `node-version`, 필요하면 `engines`를 바꾸고 8-0의 확인 차례를 모두 돌려요.
 
 ### 8-11. 마크다운 처리·차시 규칙을 고칠 때(개발자용)

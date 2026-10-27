@@ -106,6 +106,12 @@ smoke: { outcome: error, error: ImportError }
 practice:
   - "[실행]을 누르면 콘솔에 Touch value: 0이 0.2초마다 나와요."
   - "보드 아래 터치 센서를 마우스나 손가락으로 누르고 있어요."
+# (최신 판으로 다시 쓴 예제만 — 6절 rewritten) 원본과 달라진 기록. 실습실 예제 설명 아래 줄에
+# "원본 코드와 달라요 — 2026년 10월 26일 고침(사이트 판 1.8.0). <note>"로 보여요(controls/examples.ts exampleRevisionText, 결정 C234)
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 … 다시 써서 줄 번호도 교과서와 달라요."
 ```
 
 - 읽기: `controls/example-sidecar.ts`의 `readExampleSidecars(import.meta.glob('/examples/**/*.meta.yaml', { query: '?raw', eager: true, import: 'default' }))` → `{ '/examples/vision/u1/a.py': ExampleSidecar }`. **빌드 전용**이에요(YAML 파서 `yaml`을 쓰므로 `.astro` 프런트매터·Node 테스트에서만 import, 브라우저 코드에서는 금지 — 번들에 들어가면 출처 검사가 실패해요).
@@ -580,7 +586,7 @@ npm run examples:verify              # 원본 없이 기록과 대조(sha256·�
 - 새 항목은 `scripts/examples-manifest.yaml`의 `examples:`에 `id`(CODE_MAPPING 코드 id)·`source`(zip 이름)·`member`(zip 안 경로)·`target`(`examples/…py`)·`author`(`operator` | `third_party`)·`meta`(사이드카 씨앗 — ESP32 예제는 배선 `parts`와 스모크 기대 `smoke`도 씨앗에 적으면 사이드카로 옮겨요)를 적고 스크립트를 돌려요. 다른 저작자 파일은 `third-party/` 폴더 아래로만(PD-26). 원본 결함으로 구문 오류가 나는 파일(f074)은 `expect_syntax_error: true`.
 - 구문 검사는 이 컴퓨터의 파이썬 3(`python`·`python3`·`py -3`)의 `ast.parse`로 하고, 없으면 Node의 가벼운 검사만 해요(기록에 `syntax_checker`로 남아요).
 - 옮긴 파일은 고치지 않아요. 사이트판 수정이 필요하면 파일을 따로 두고(PD-10) 차시 md·사이드카에 적어요.
-- **최신 판으로 다시 쓴 파일(판 1.8.0 — DECISIONS O22·C226):** 라이브러리 판이 바뀌어 원본 사용법이 더는 돌지 않는 예제(mediapipe 1.1.1의 Tasks API·sounddevice 녹음·bleak 3.0 — 49개)는 같은 파일 이름 그대로 다시 쓰고, 이관 목록 항목에 `rewritten { version, reason, lines, sha256 }`을 적어요: `node scripts/import-examples.mjs --rewritten f026 f029 --version 1.8.0 --reason "까닭"`(지금 파일의 줄 수·SHA-256을 적음 — 이미 있으면 그 둘만 고침). `examples:verify`는 그 기록과 대조하고, 이관(`examples:import`)은 그 파일을 원본으로 덮어쓰지 않고 건너뛰어요. 다시 쓴 파일의 사이드카 첫 줄 주석은 "이 코드 파일은 판 1.8.0에서 … 다시 썼어요".
+- **최신 판으로 다시 쓴 파일(판 1.8.0 — DECISIONS O22·C226):** 라이브러리 판이 바뀌어 원본 사용법이 더는 돌지 않는 예제(mediapipe 1.1.1의 Tasks API·sounddevice 녹음·bleak 3.0 — 49개)는 같은 파일 이름 그대로 다시 쓰고, 이관 목록 항목에 `rewritten { version, reason, lines, sha256 }`을 적어요: `node scripts/import-examples.mjs --rewritten f026 f029 --version 1.8.0 --reason "까닭"`(지금 파일의 줄 수·SHA-256을 적음 — 이미 있으면 그 둘만 고침). `examples:verify`는 그 기록과 대조하고, 이관(`examples:import`)은 그 파일을 원본으로 덮어쓰지 않고 건너뛰어요. 다시 쓴 파일의 사이드카 첫 줄 주석은 "이 코드 파일은 판 1.8.0에서 … 다시 썼어요". 사이드카 끝에는 `revised { date, version, note }`(3절)를, 그 예제를 싣는 차시 frontmatter에는 `revisions [{ date, version, summary }]`를 함께 적어요 — 실습실 설명 아래 줄과 차시 머리 끝 "교과서와 다른 곳" 상자가 고친 날을 보여요(결정 C234). 셋이 어긋나면 `tests/unit/lab/example-revisions.test.ts`가 알려요(rewritten 예제 ↔ 사이드카 `revised`의 판 ↔ 차시 `revisions`의 판, 교안 예제 note에 "교과서" 없음).
 
 ---
 
