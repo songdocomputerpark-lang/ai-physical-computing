@@ -15,3 +15,9 @@ packages:
 # 필요한 입력: '재생 입력'(얼굴 동작으로 알아서 바뀌어요).
 # 출력 창 'Face' · ESC로 끝내요(창을 닫아도 끝나요).
 # 주의: FACE_LANDMARKS_TESSELATION은 선이 2,556개라 한 장 그리는 데 시간이 걸려요 — 영상이 조금 뚝뚝 끊겨 보여요(원본 그대로).
+
+# 판 1.8.0: 원본(교안) 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "수업 교안 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교안과 달라요."

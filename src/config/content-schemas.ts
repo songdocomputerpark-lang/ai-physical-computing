@@ -127,6 +127,19 @@ const nationalRefSchema = z.object({
   note: z.string().min(1).optional(),
 });
 
+/**
+ * 교과서 원고와 달라진 곳의 기록 한 줄(판 1.8.0 — DECISIONS C234). 차시 위 "교과서와 다른 곳" 상자에 날짜·판과 함께 보인다.
+ * date는 2026-10-26 모양(따옴표가 없어 YAML이 날짜로 읽어도 받는다), version은 사이트 판(예: 1.8.0), summary는 학생이 읽는 한두 문장.
+ */
+const revisionSchema = z.object({
+  date: z.preprocess(
+    (value) => (value instanceof Date ? value.toISOString().slice(0, 10) : value),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/u, { error: '고친 날(revisions의 date)은 2026-10-26처럼 적어요.' }),
+  ),
+  version: z.string().min(1, { error: '고친 사이트 판(revisions의 version)을 적어요. 예: 1.8.0' }),
+  summary: z.string().min(1, { error: '무엇이 교과서와 다른지(revisions의 summary)를 한두 문장으로 적어요.' }),
+});
+
 /** 차시(content/lessons/) frontmatter */
 export const lessonSchema = z.looseObject({
   /** 차시 제목 */
@@ -153,6 +166,8 @@ export const lessonSchema = z.looseObject({
     .optional(),
   /** 이 차시와 이어지는 가린 편집본 교안의 쪽(PD-31) */
   handouts: z.array(handoutSchema).default([]),
+  /** 교과서 원고와 달라진 곳(판 1.8.0 — 최신 판 라이브러리로 다시 쓴 예제 등). 차시 위 상자에 날짜와 함께 보인다 */
+  revisions: z.array(revisionSchema).default([]),
   /** 성취기준 코드 목록(PLAN §2.2 대응표). 비우거나(standards: 또는 []) 적지 않아도 된다 → 화면은 "성취기준 코드 확인 중"(C8) */
   standards: z
     .array(

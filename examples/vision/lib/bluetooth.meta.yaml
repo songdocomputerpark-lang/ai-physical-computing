@@ -9,3 +9,9 @@ tags:
   - 라이브러리
   - PC
 packages: []
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "블루투스 라이브러리 bleak 3.0에 맞춰 연결을 기다리는 시간(timeout)을 넣는 자리를 고쳤어요."

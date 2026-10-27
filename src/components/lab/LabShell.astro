@@ -283,6 +283,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     하나도 없었다(2026-09-18 검토 반영 — 원본 파일 쪽은 일부러 틀린 결과가 나오는 예제라 자기 실수로 오해한다).
   */}
   <p class="lab__example-desc" data-lab-example-description hidden></p>
+  <p class="lab__example-revised" data-lab-example-revised hidden></p>
 
   <div data-lab-limited hidden>
     <Callout type="주의" title="제한 모드로 실행해요">
@@ -304,10 +305,11 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     <section class="lab__editor" {...regionName(ids.editorHeading, editorTitle)}>
       <div class="lab__section-head">
         <Heading id={ids.editorHeading} class="lab__heading">{editorTitle}</Heading>
+        {/* 단추 이름에 보이는 글자(A−·A+)를 넣는다 — 말로 누르는 사람이 화면 글자 그대로 부를 수 있게(WCAG 2.5.3, axe 4.14 label-content-name-mismatch — 판 1.8.0) */}
         <div class="lab__font" role="group" aria-label="글자 크기">
-          <button type="button" class="lab-button lab-button--small" data-lab-font-smaller aria-label="글자 작게">A−</button>
+          <button type="button" class="lab-button lab-button--small" data-lab-font-smaller aria-label="A− 글자 작게">A−</button>
           <span class="lab__font-size" data-lab-font-size aria-live="polite">15px</span>
-          <button type="button" class="lab-button lab-button--small" data-lab-font-larger aria-label="글자 크게">A+</button>
+          <button type="button" class="lab-button lab-button--small" data-lab-font-larger aria-label="A+ 글자 크게">A+</button>
         </div>
         <span class="lab__save" data-lab-save aria-live="polite"></span>
       </div>
@@ -1052,8 +1054,19 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
     line-height: var(--leading-snug);
   }
 
-  .lab__example-desc[hidden] {
+  .lab__example-desc[hidden],
+  .lab__example-revised[hidden] {
     display: none;
+  }
+
+  /* 교과서 코드와 달라진 예제(판 1.8.0 — C234): 설명 아래 한 줄, 왼쪽 띠로 눈에 띄게 */
+  .lab__example-revised {
+    margin: 0;
+    padding-inline-start: var(--space-2);
+    border-inline-start: 3px solid var(--color-accent-border);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
   }
 
   .lab__grid {

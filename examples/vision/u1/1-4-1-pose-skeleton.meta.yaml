@@ -16,3 +16,9 @@ packages:
 # 코드가 고른 모델 파일 이름(pose_landmarker_lite.task)대로 public/models/의 모델을 써요(full로 바꾸면 pose_landmarker_full.task).
 # 출력 창 'Pose Tracking' · q로 끝내요.
 # 주의: 화면 밖 다리(무릎·발목)는 visibility가 낮아 그려지지 않아요 — mediapipe 1.1.1 draw_landmarks가 0.5보다 작은 점을 건너뛰어요.
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."

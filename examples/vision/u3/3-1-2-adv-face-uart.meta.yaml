@@ -27,3 +27,9 @@ practice:
   - 카메라가 없으면 입력 소스를 "재생 입력"으로 골라요(사람을 찍은 자료가 아니라 계산으로 만든 얼굴이에요).
   - '이 화면에서 [실행]을 누르면 얼굴이 보일 때 a, 사라질 때 b가 한 번씩 나가요. 콘솔의 Sent: 줄과 가상 보드의 레이저를 함께 봐요.'
   - 매 프레임 보내지 않고 "상태가 바뀔 때만" 보내는 것이 원고 187쪽 규칙이에요. detected != face_present 줄을 지우면 어떻게 되는지 이야기해 봐요.
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."

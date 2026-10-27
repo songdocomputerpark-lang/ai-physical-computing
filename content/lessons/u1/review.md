@@ -6,6 +6,10 @@ kind: review
 label: I-마무리
 description: 1단원 영상 처리 인공지능에서 배운 인공지능 응용 프로그램, 영상 인식, 핸드 트래킹, 페이스 메시, 포즈 트래킹과 음성 인식을 교과서 112~113쪽 문제로 점검해요.
 pages: "112~113"
+revisions:
+  - date: 2026-10-26
+    version: 1.8.0
+    summary: "10번 문제의 코드는 교과서에서 옛 사용법(`mp.solutions.pose.Pose()`)을 썼는데, 최신 mediapipe 1.1.1 사용법(`vision.PoseLandmarker`)으로 다시 썼어요. 묻는 빈칸과 정답 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`는 그대로예요."
 standards: []
 quiz:
   - q: 다음 가운데 인공지능 응용 프로그램이 기존 응용 프로그램과 가장 뚜렷하게 다른 특징은 무엇일까요?

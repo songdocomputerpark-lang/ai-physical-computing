@@ -20,3 +20,9 @@ practice:
 # 필요한 입력: '재생 입력' + 재생 동작 '어깨 기울이기'. 출력 창 'Posture Warning System' · q로 끝내요.
 # 한글 글꼴 경로(C:/Windows/Fonts/malgun.ttf)는 브라우저에 없어서, 실습실이 사이트 글꼴 Pretendard로 바꿔 그리고 콘솔에 한 줄 알려요(러너 공통 P2-10).
 # [파일 넣기]로 다른 한글 글꼴 파일(.ttf·.otf)을 넣고 코드의 fontpath를 그 이름으로 바꾸면 그 글꼴로 그려요.
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."

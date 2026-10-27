@@ -64,7 +64,7 @@ import { endLoadingIntro } from '../modules/loading/intro.ts';
 import { Autosave, editorStorageName, lastExampleStorageName, type AutosaveStatus } from './autosave.ts';
 import { downloadTextFile } from './download.ts';
 import { exampleVersionNote } from './example-names.ts';
-import { DEFAULT_SCRATCH_CODE, exampleFileName, findExample, findExampleByFile, type LabExample } from './examples.ts';
+import { DEFAULT_SCRATCH_CODE, exampleFileName, exampleRevisionText, findExample, findExampleByFile, type LabExample } from './examples.ts';
 import {
   LAZY_FAILED_CODE,
   LAZY_PENDING_CODE,
@@ -303,6 +303,8 @@ interface ShellElements {
   nextLink: HTMLAnchorElement | null;
   /** 예제 한 줄 설명(사이드카 description) 자리 */
   exampleDescription: HTMLElement | null;
+  /** 교과서 코드와 달라진 예제의 한 줄(판 1.8.0 — 사이드카 revised) 자리 */
+  exampleRevised: HTMLElement | null;
   /** (판 1.6.0) 이 예제가 가상 보드에서 되는 정도 안내 줄과 그 안의 글 두 가지(real-only·partial) */
   runNote: HTMLElement | null;
   runNoteTexts: HTMLElement[];
@@ -1779,6 +1781,13 @@ class LabShellController implements LabController {
     const description = [this.#example?.description?.trim() ?? '', note].filter((part) => part !== '').join(' ');
     box.textContent = description;
     box.hidden = description === '';
+    // 교과서 코드와 달라진 예제(판 1.8.0 — C234): 고친 날·판과 무엇이 달라졌는지 한 줄
+    const revisedBox = this.#elements.exampleRevised;
+    if (revisedBox) {
+      const revised = exampleRevisionText(this.#example?.revised);
+      revisedBox.textContent = revised;
+      revisedBox.hidden = revised === '';
+    }
   }
 
   /**
@@ -2370,6 +2379,7 @@ export function mountLabShell(root: HTMLElement): LabController | null {
     nextBox: query(root, '[data-lab-next]'),
     nextLink: query(root, '[data-lab-next-link]'),
     exampleDescription: query(root, '[data-lab-example-description]'),
+    exampleRevised: query(root, '[data-lab-example-revised]'),
     runNote: query(root, '[data-lab-run-note]'),
     runNoteTexts: [...root.querySelectorAll<HTMLElement>('[data-lab-run-note-text]')],
     limitedNotice: query(root, '[data-lab-limited]'),

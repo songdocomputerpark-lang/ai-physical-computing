@@ -20,3 +20,9 @@ practice:
 # 필요한 입력: '재생 입력' + 재생 동작 '윙크·두 눈 감기(클릭)'(한쪽 눈 → "더블클릭 실행!", 두 눈 → "우클릭 실행!"). '눈 깜빡이기'는 두 눈을 함께 감아 "우클릭 실행!"만 나와요. 클릭은 가상 데스크톱에서만 일어나요.
 # 출력 창 'Nose Mouse Control + Eye Blink Detection' · r·q.
 # 주의: 한 장 사이의 변화로 깜빡임을 판정해 초당 장 수가 낮으면 짧은 깜빡임을 놓칠 수 있어요. 진짜 PC에서 돌리면 의도하지 않은 클릭이 날 수 있어요.
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."

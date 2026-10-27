@@ -1,0 +1,78 @@
+---
+/**
+ * 차시 위 "교과서와 다른 곳" 상자(판 1.8.0 — DECISIONS C234).
+ *
+ * 차시 frontmatter `revisions`(날짜·사이트 판·요약)를 고친 날 차례로 보이고, 진짜 PC 라이브러리 판을 마지막으로 확인한 날
+ * (src/config/pc-versions.ts)과 판 번호 표로 가는 링크를 붙인다. 기록이 없으면 아무것도 그리지 않는다.
+ * 수업 화면에서는 숨고(data-present-hide) 검색 색인에서도 빠진다(차시 본문과 겹치는 안내라서).
+ * 자세히 바꾼 줄은 교사용 접기의 "원고에서 바꾼 곳"에 있다.
+ */
+import Callout from '../common/Callout.astro';
+import { PC_VERSIONS_CHECKED, PC_VERSIONS_PATH, koreanDate } from '../../config/pc-versions.ts';
+import { withBase } from '../../lib/url.ts';
+
+interface Revision {
+  readonly date: string;
+  readonly version: string;
+  readonly summary: string;
+}
+
+interface Props {
+  revisions: readonly Revision[];
+}
+
+const { revisions } = Astro.props;
+const sorted = [...revisions].sort((a, b) => b.date.localeCompare(a.date));
+
+/** 요약 글의 `…`(백틱) 구간을 코드 조각으로 나눈다 — 차시 md의 인라인 코드와 같은 모양으로 보이게 */
+function summaryParts(summary: string): { code: boolean; text: string }[] {
+  return summary.split('`').map((text, index) => ({ code: index % 2 === 1, text })).filter((part) => part.text !== '');
+}
+---
+
+{
+  sorted.length > 0 && (
+    <div class="lesson-revisions" data-lesson-revisions data-present-hide data-pagefind-ignore>
+      <Callout type="참고" title="교과서와 다른 곳 — 최신 판으로 고쳤어요">
+        <ul class="lesson-revisions__list">
+          {sorted.map((revision) => (
+            <li data-revision-date={revision.date}>
+              <span class="lesson-revisions__when">
+                <time datetime={revision.date}>{koreanDate(revision.date)}</time> 고침 · 사이트 판 {revision.version}
+              </span>{' '}
+              {summaryParts(revision.summary).map((part) => (part.code ? <code>{part.text}</code> : part.text))}
+            </li>
+          ))}
+        </ul>
+        <p class="lesson-revisions__checked">
+          라이브러리 판 번호는 <time datetime={PC_VERSIONS_CHECKED}>{koreanDate(PC_VERSIONS_CHECKED)}</time>에 다시 확인했어요.{' '}
+          <a href={withBase(PC_VERSIONS_PATH)}>지금 판 번호 보기</a>
+        </p>
+      </Callout>
+    </div>
+  )
+}
+
+<style>
+  .lesson-revisions {
+    margin-block: var(--space-4) 0;
+  }
+
+  .lesson-revisions__list {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+
+  .lesson-revisions__list li + li {
+    margin-block-start: var(--space-2);
+  }
+
+  .lesson-revisions__when {
+    font-weight: 700;
+  }
+
+  .lesson-revisions__checked {
+    margin-block: var(--space-2) 0;
+    font-size: var(--text-sm, 0.9375rem);
+  }
+</style>

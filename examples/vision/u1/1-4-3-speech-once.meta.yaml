@@ -10,3 +10,9 @@ tags:
   - speech_recognition
   - 글자 입력
 packages: [numpy]
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "토니 5.0(파이썬 3.14)에는 PyAudio 설치 파일이 없어 sr.Microphone() 대신 sounddevice로 5초 녹음해 인식하게 다시 썼어요."

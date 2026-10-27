@@ -42,6 +42,7 @@ import LessonPresent from '../../../components/lesson/LessonPresent.astro';
 import LessonSidebar from '../../../components/lesson/LessonSidebar.astro';
 import PresentButton from '../../../components/lesson/PresentButton.astro';
 import LessonTasks from '../../../components/lesson/LessonTasks.astro';
+import LessonRevisions from '../../../components/lesson/LessonRevisions.astro';
 import LessonToc from '../../../components/lesson/LessonToc.astro';
 import TeacherButton from '../../../components/lesson/TeacherButton.astro';
 import {
@@ -198,6 +199,8 @@ const position = lessonPosition(lessons, lesson);
           <PartPhotoStrip parts={partRefs} label="준비물 사진" />
           <CircuitDetails label={lesson.label} />
         </div>
+        {/* 교과서 원고와 달라진 곳(판 1.8.0 — C234): 고친 날·판과 함께. 머리 끝에 두어 [수업 화면]까지의 Tab 차례는 그대로 */}
+        <LessonRevisions revisions={entry.data.revisions ?? []} />
       </header>
       <LessonToc sections={tocSections} />
       <GlossaryScope id="lesson">

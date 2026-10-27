@@ -16,3 +16,9 @@ packages:
 # 출력 창 'Hand' · q 키로 끝내요(출력 창을 한 번 눌러 초점을 준 뒤).
 # 주의: 손 인식 모델 파일 hand_landmarker.task를 써요(실습실에 들어 있어요). 색 순서를 RGB로 바꾸고 mp.Image로 감싸 detect_for_video()에 넣어요.
 # 주의: 새 손 인식 모델은 손 개수 기본값이 1이라, 교과서 코드(옛 Hands()는 2개까지)와 같게 num_hands=2를 적었어요.
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."

@@ -23,12 +23,14 @@
  *   unit·difficulty·virtual_ok·comm   예제 갤러리(P4-11) 태그 — 단원 1~4, 난이도 1~3, 하드웨어 없이 되나, 통신 방식 목록.
  *                규약과 합치는 규칙은 src/lab/gallery/facets.ts(차시가 싣는 예제는 차시가 먼저, 가리키기만 한 예제는 사이드카가 먼저). 모르면 적지 않는다 — 단 difficulty는 차시에 싣지 않은 예제면 꼭
  *   smoke        예제 스모크 테스트(tests/e2e/examples-smoke.spec.ts)가 기대하는 결과. 이 파서는 읽지 않고 그 테스트만 본다.
+ *   revised      (선택, 판 1.8.0 — DECISIONS C234) 교과서 코드와 달라진 기록 { date: 2026-10-26, version: 1.8.0, note: "…" }.
+ *                실습실이 예제 한 줄 설명 아래에 "원본 코드와 달라요 — 고친 날"로 보인다. 셋 가운데 하나라도 모양이 틀리면 칸이 없다.
  *                input(sample|replay|webcam)·outcome(ok|stopped|error)·error(오류 이름)·seconds(지켜보는 시간)·skip(건너뛰는 이유)
  */
 import YAML from 'yaml';
 import { normalizeCommKinds } from '../gallery/facets.ts';
 import type { WiringEntry } from '../modules/board/part-types.ts';
-import { exampleVirtualOf, type ExampleVirtual } from './examples.ts';
+import { exampleVirtualOf, type ExampleRevision, type ExampleVirtual } from './examples.ts';
 import { normalizeWiringSpecs } from '../modules/board/wiring-spec.ts';
 
 export const SIDECAR_SUFFIX = '.meta.yaml';
@@ -55,6 +57,23 @@ export interface ExampleSidecar {
   readonly comm: readonly string[];
   /** (판 1.6.0) 가상 보드에서 되는 정도 — partial·real-only만 이 칸이 있다(적지 않았거나 full이면 끝까지 되는 예제라 칸이 없다) */
   readonly virtual?: ExampleVirtual;
+  /** (판 1.8.0) 교과서 코드와 달라진 기록 — 적지 않았거나 모양이 틀리면 칸이 없다 */
+  readonly revised?: ExampleRevision;
+}
+
+/** revised 칸 읽기(날짜는 YAML이 글자·Date 어느 쪽으로 읽어도 받는다) */
+function revisionOf(value: unknown): ExampleRevision | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const date = record.date instanceof Date ? record.date.toISOString().slice(0, 10) : text(record.date);
+  const version = typeof record.version === 'number' ? String(record.version) : text(record.version);
+  const note = text(record.note);
+  if (date === null || !/^\d{4}-\d{2}-\d{2}$/u.test(date) || version === null || note === null) {
+    return null;
+  }
+  return { date, version, note };
 }
 
 /** 정수 칸 읽기(범위 밖·정수가 아니면 null) */
@@ -104,6 +123,7 @@ export function parseExampleSidecar(source: string): ExampleSidecar {
     virtualOk: typeof data.virtual_ok === 'boolean' ? data.virtual_ok : null,
     comm: normalizeCommKinds(data.comm),
     ...(exampleVirtualOf(data.virtual) === undefined ? {} : { virtual: exampleVirtualOf(data.virtual) }),
+    ...(revisionOf(data.revised) === null ? {} : { revised: revisionOf(data.revised)! }),
   };
 }
 

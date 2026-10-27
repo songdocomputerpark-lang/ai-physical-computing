@@ -16,3 +16,9 @@ packages:
 # 출력 창 'Face' · ESC로 끝내요.
 # 주의: cam.set(FRAME_WIDTH, 1080)을 실습실이 받아 들여 가로로 긴 1080×480 창으로 열려요(상태 줄 "Face 1080×480"). 재생 입력의 얼굴도 그 폭에 맞춰
 #       가로로 늘어나 보여요. cam.get이 돌려주는 실제 값을 쓰니 번호는 제자리에 찍혀요(2026-09-25 Phase 5 확인).
+
+# 판 1.8.0: 원본(교안) 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "수업 교안 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교안과 달라요."

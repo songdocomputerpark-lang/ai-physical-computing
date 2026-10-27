@@ -77,7 +77,7 @@ test.describe('코드 에디터(개발용 시험 페이지)', () => {
 
   test('[이 컴퓨터에서 내 기록 지우기] 뒤에는 이 사이트 머리말의 저장값이 0개이고 편집칸이 예제 원래 코드로 돌아간다', async ({ page }) => {
     await page.goto(DEV_LAB_PATH);
-    await page.getByRole('button', { name: '글자 크게', exact: true }).click();
+    await page.getByRole('button', { name: 'A+ 글자 크게', exact: true }).click();
     await setEditorCode(page, "print('지울 코드')\n");
     await expect(labRoot(page)).toHaveAttribute('data-save-state', 'saved', { timeout: SAVE_TIMEOUT });
     await page.evaluate((prefix) => window.sessionStorage.setItem(`${prefix}mqtt:prefix`, 'abc'), STORAGE_KEY_PREFIX);
@@ -105,12 +105,12 @@ test.describe('코드 에디터(개발용 시험 페이지)', () => {
     await page.goto(DEV_LAB_PATH);
     const editor = page.locator('[data-lab-editor] .cm-editor');
     await expect(labRoot(page)).toHaveAttribute('data-font-size', '15');
-    await page.getByRole('button', { name: '글자 크게', exact: true }).click();
+    await page.getByRole('button', { name: 'A+ 글자 크게', exact: true }).click();
     await expect(labRoot(page)).toHaveAttribute('data-font-size', '17');
     expect(await editor.evaluate((element) => getComputedStyle(element).fontSize)).toBe('17px');
     await page.reload();
     await expect(labRoot(page)).toHaveAttribute('data-font-size', '17');
-    await page.getByRole('button', { name: '글자 작게', exact: true }).click();
+    await page.getByRole('button', { name: 'A− 글자 작게', exact: true }).click();
     await expect(labRoot(page)).toHaveAttribute('data-font-size', '15');
 
     // 키보드로 끝(24px)까지 누르면 단추는 aria-disabled로 꺼지지만 초점은 그 단추에 남는다(판 1.1.1 최종 점검 — 전에는 disabled가 되며 body로 사라졌다)

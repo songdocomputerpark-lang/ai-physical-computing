@@ -96,7 +96,7 @@ while True:
 
 [Tip] OpenCV는 영상을 BGR 형식으로 읽어오지만, MediaPipe Pose는 RGB 영상을 사용한다. 따라서 BGR → RGB 변환이 필요하다.
 
-:::웹안내[이 사이트에서는 최신 MediaPipe(1.1.1)로]
+:::웹안내[이 사이트에서는 최신 MediaPipe(1.1.1)로 — 2026년 10월 26일 고침]
 이 문제의 코드는 옛 MediaPipe 사용법(`mp.solutions`)이에요. 토니 5.0에 설치되는 최신 mediapipe에서는 `vision.PoseLandmarker`로 자세를 찾지만, 색 순서를 RGB로 바꿔 넣어야 한다는 점은 같아요. 최신 코드는 [1-4-1 따라 하기](/learn/u1/1-4-1/)의 실습실 예제에서 볼 수 있어요.
 :::
 
@@ -114,7 +114,7 @@ with sr.Microphone() as source:
 
 [Tip] Google Web Speech API를 이용하며, 한국어 인식을 위해 language=’ko-KR’를 지정한다.
 
-:::웹안내[이 사이트에서는 sounddevice로 녹음해요]
+:::웹안내[이 사이트에서는 sounddevice로 녹음해요 — 2026년 10월 26일 고침]
 토니 5.0(파이썬 3.14)에는 `sr.Microphone()`이 쓰는 PyAudio가 없어서, 사이트 예제는 sounddevice로 녹음해요. 녹음한 소리를 글자로 바꾸는 부분은 이 문제와 같아요. [1-4-3 따라 하기](/learn/u1/1-4-3/)의 실습실 예제에서 볼 수 있어요.
 :::
 

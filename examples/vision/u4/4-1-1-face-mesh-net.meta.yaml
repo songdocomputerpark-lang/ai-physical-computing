@@ -18,3 +18,9 @@ practice:
 # ── 실습실에서 돌릴 때(2026-09-17 이관, 브라우저로 확인 — tests/e2e/lab-textbook-u3-u4.spec.ts) ──
 # 필요한 입력: '재생 입력' + 재생 동작 '고개 돌리기'. 출력 창 'Camera Feed' · q로 끝내요.
 # 실습실 실측: 초록 그물 선 약 11,700픽셀. 좌우 반전 없이 그리므로 opmp 계단 11(f119)과 결과가 거울처럼 달라요.
+
+# 판 1.8.0: 교과서 코드와 달라진 기록 — 실습실이 예제 설명 아래에 보여요(src/lab/controls/example-sidecar.ts의 revised).
+revised:
+  date: 2026-10-26
+  version: 1.8.0
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."

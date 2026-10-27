@@ -161,6 +161,7 @@ export function visionExamplesFromFiles(
       group: exampleGroupLabel(exampleGroupKey(file)),
       ...(lesson ? { lesson } : {}),
       ...(practice.length > 0 ? { practice } : {}),
+      ...(sidecar?.revised ? { revised: sidecar.revised } : {}),
     });
   }
   examples.sort((a, b) => {

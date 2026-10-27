@@ -14,6 +14,26 @@
  */
 import type { WiringEntry } from '../modules/board/part-types.ts';
 
+/** 교과서 코드와 달라진 기록(판 1.8.0 — 최신 판 라이브러리로 다시 쓴 예제, 사이드카 revised) */
+export interface ExampleRevision {
+  /** 고친 날(2026-10-26 모양) */
+  readonly date: string;
+  /** 고친 사이트 판(예: 1.8.0) */
+  readonly version: string;
+  /** 무엇이 달라졌는지 한 문장 */
+  readonly note: string;
+}
+
+/** 실습실 예제 설명 아래 줄의 글: "원본 코드와 달라요 — 2026년 10월 26일 고침(사이트 판 1.8.0). …"(원본이 교과서인지 교안인지는 note가 말한다) */
+export function exampleRevisionText(revision: ExampleRevision | undefined): string {
+  if (!revision) {
+    return '';
+  }
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(revision.date);
+  const when = match ? `${match[1]}년 ${Number(match[2])}월 ${Number(match[3])}일` : revision.date;
+  return `원본 코드와 달라요 — ${when} 고침(사이트 판 ${revision.version}). ${revision.note}`;
+}
+
 export interface LabExample {
   /** 영문 소문자·숫자·하이픈 식별자. 저장 이름·공유 링크(ex=)에 쓴다. */
   readonly id: string;
@@ -52,6 +72,8 @@ export interface LabExample {
   readonly parts?: readonly WiringEntry[];
   /** 실습 방법 단계(선택, P3-02): 사이드카 practice → 머리말 "실습 방법" 상자. ESP32 실습실이 보드 그림 위에 보인다 */
   readonly practice?: readonly string[];
+  /** (판 1.8.0 — C234) 원본(교과서·교안) 코드와 달라진 기록: 사이드카 revised. 한 줄 설명 아래에 "원본 코드와 달라요 — 고친 날"로 보인다 */
+  readonly revised?: ExampleRevision;
   /**
    * (판 1.5.0) 고를 때 받는 예제: code는 빈 글자이고 코드·설명·배선은 이 주소의 JSON에서 받는다(src/lab/controls/lazy-examples.ts).
    * 키트 장치 도감 예제가 ESP32 실습실 HTML을 키우지 않게 한다(DECISIONS C15·C151). 받은 뒤에는 이 칸이 없는 보통 예제로 바뀐다.
