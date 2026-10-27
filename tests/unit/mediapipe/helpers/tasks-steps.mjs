@@ -196,6 +196,23 @@ export async function loadSteps(rootDir) {
       code: [VIDEO_HANDS(2), 'result = hands.detect_for_video(frame_of(), 1000)', '[result.hand_landmarks == [], result.handedness == [], result.hand_world_landmarks == [], bool(result.hand_landmarks)]'].join('\n'),
     },
     { name: 'num_hands_one', jspi: 'only', code: [VIDEO_HANDS(1), 'len(hands.detect_for_video(frame_of(), 1000).hand_landmarks)'].join('\n') },
+    // 판 1.8.0 검토 반영: mp.Image가 아닌 것을 넣은 실패는 시각을 쓰지 않는다(진짜는 image._image_ptr를 먼저 읽음) — 같은 시각으로 다시 부르면 된다
+    {
+      name: 'bad_image_keeps_timestamp',
+      jspi: 'only',
+      code: [VIDEO_HANDS(2), 'try:', '    hands.detect_for_video([1, 2], 1000)', 'except AttributeError:', '    pass', 'len(hands.detect_for_video(frame_of(), 1000).hand_landmarks)'].join('\n'),
+    },
+    // 판 1.8.0 검토 반영: 윈도우 경로(역슬래시)로 적은 모델도 파일 이름으로 사이트 모델을 고른다(ntpath)
+    {
+      name: 'windows_model_path',
+      jspi: 'only',
+      code: [
+        'import mediapipe as mp',
+        'from mediapipe.tasks.python import vision',
+        "hands = vision.HandLandmarker.create_from_options(vision.HandLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path=r'D:\\class\\models\\hand_landmarker.task')))",
+        'hands.engine',
+      ].join('\n'),
+    },
     {
       name: 'result_repr',
       jspi: 'only',

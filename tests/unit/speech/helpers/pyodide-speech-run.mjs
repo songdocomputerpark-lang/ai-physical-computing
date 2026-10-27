@@ -160,6 +160,21 @@ if (jspi) {
       { ok: true, text: '종료', mode: 'text' },
     ],
   });
+  // ④-2 판 1.8.0 검토 반영: 표본 빠르기를 sd.query_devices()의 소수(16000.0)나 numpy 정수로 줘도 진짜처럼 받는다
+  await step(
+    'audio_data_float_rate',
+    [
+      'import numpy as np, sounddevice as sd, speech_recognition as sr',
+      "fs = sd.query_devices(kind='input')['default_samplerate']",
+      'rec = sd.rec(int(2 * fs), samplerate=int(fs), channels=1, dtype="int16")',
+      'sd.wait()',
+      'r = sr.Recognizer()',
+      'a = sr.AudioData(rec.tobytes(), fs, 2)',
+      'b = sr.AudioData(rec.tobytes(), np.int64(16000), np.int64(2))',
+      '[type(fs).__name__, r.recognize_google(a, language="ko-KR"), b.sample_width]',
+    ].join('\n'),
+    { answers: [{ ok: true, text: '소수 빠르기', mode: 'text' }] },
+  );
   // ⑤ 요청에 담기는 값(phrase_time_limit)과 timeout → WaitTimeoutError
   await step('timeout', 'import speech_recognition as sr\nr = sr.Recognizer()\nwith sr.Microphone() as source:\n    r.listen(source, timeout=3)\n', {
     answers: [{ ok: false, failure: 'timeout', message: '말이 시작되지 않았어요.', mode: 'text' }],

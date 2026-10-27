@@ -716,7 +716,7 @@ def _resolve_model(solution, base_options):
             f"model_asset_buffer로 넘긴 모델 대신 사이트에 있는 모델 파일({_SITE_MODEL[solution]})로 {_TASK_LABELS[solution]}을 해요.",
         )
         return None
-    # 윈도우 경로(C:\Users\…\hand_landmarker.task)도 파일 이름을 찾게 ntpath로 — 역슬래시와 / 둘 다 나눈다(판 1.8.0 검토 반영)
+    # 윈도우 경로(D:\수업\hand_landmarker.task)도 파일 이름을 찾게 ntpath로 — 역슬래시와 / 둘 다 나눈다(판 1.8.0 검토 반영)
     name = ntpath.basename(os.fspath(path)).lower()
     known = _MODEL_FILES.get(name)
     if known is not None and known[0] != solution:

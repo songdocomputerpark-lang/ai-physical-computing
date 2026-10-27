@@ -103,6 +103,13 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi)('음성 인식 흉내의 파�
     expect(step.leftoverReplies).toBe(0);
   });
 
+  it('판 1.8.0 검토 반영: sr.AudioData가 소수(16000.0)·numpy 정수 표본 빠르기도 받는다(진짜와 같은 검사)', () => {
+    if (skipped) return;
+    const step = out.steps.audio_data_float_rate!;
+    expect(step.errorType, step.errorMessage).toBeUndefined();
+    expect(step.value).toEqual(['float', '소수 빠르기', 2]);
+  });
+
   it('timeout을 주면 원본처럼 WaitTimeoutError가 난다', () => {
     if (skipped) return;
     expect(out.steps.timeout.errorType).toBe('WaitTimeoutError');

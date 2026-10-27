@@ -241,6 +241,13 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 
     expectError('err_task_for_detector', 'ValueError', 'The model is not a valid Flatbuffer buffer');
   });
 
+  it('판 1.8.0 검토 반영: mp.Image가 아닌 것으로 실패해도 시각을 쓰지 않고, 윈도우 경로의 모델 이름도 알아본다', () => {
+    if (skipped) return;
+    expect(out.steps.bad_image_keeps_timestamp).toMatchObject({ value: 2 });
+    expect(out.steps.windows_model_path!.errorType).toBeUndefined();
+    expect(out.steps.windows_model_path!.value).not.toBe('missing-model');
+  });
+
   it('닫은 뒤에는 빈 결과(진짜와 같음), with 문으로 닫히고, LIVE_STREAM은 result_callback으로 결과를 준다', () => {
     if (skipped) return;
     expect(out.steps.after_close!.value).toBe(0);

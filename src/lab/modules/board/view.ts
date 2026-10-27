@@ -107,7 +107,6 @@ function visualChanged(before: PartVisual | undefined, after: PartVisual): boole
   return false;
 }
 
-/** 출력 부품의 화면 낭독기 이름: "진동 모터(GPIO19): 진동 중 — 설명" */
 /**
  * 그림 안에 보이는 글자(SVG <text>를 DOM 차례대로 띄어 이음 — 예: "BOOT IO0 뗌").
  * 누르는 부품(role=button)의 이름이 보이는 글자를 품게 쓴다(WCAG 2.5.3 — axe 4.14 label-content-name-mismatch, 판 1.8.0).
@@ -137,6 +136,7 @@ export function interactiveLabel(visible: string, description: string): string {
   return visible.length === 0 || description.includes(visible) ? description : `${visible} — ${description}`;
 }
 
+/** 출력 부품의 화면 낭독기 이름: "진동 모터(GPIO19): 진동 중 — 설명" */
 export function visualSummary(definition: PartDefinition, instance: PartInstance, visual: PartVisual): string {
   const pins = Object.values(instance.pins)
     .map((gpio) => `GPIO${gpio}`)
