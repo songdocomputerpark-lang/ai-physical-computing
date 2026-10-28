@@ -16,6 +16,7 @@
 |---|---|
 | `content/` | 차시 본문·용어사전 같은 학습 자료. 교과서 원고와 수업 교안에서 옮긴 글·그림을 포함해요. |
 | `public/images/` | 차시 그림(`public/images/lessons/` — 교과서 원고에서 꺼낸 그림과 출판사가 조판 때 넣은 삽화·컷(운영자 결정 O10) 포함)과 사이트가 직접 그린 그림 파일(`public/images/site/`). `src/` 컴포넌트 안에 코드(인라인 SVG)로 그린 그림은 사이트 프로그램에 속해 MIT를 따라요. |
+| `public/ml/` | 인공지능 원리 체험 쪽(K-평균·딥러닝)의 글과 그림. 쪽 안의 프로그램과 파이썬 예제 코드는 MIT를 따라요. |
 | `public/teacher/handouts/` | 교사용 자료실의 가린 편집본 교안(PDF). 블루투스 통신 수업 교안과 PyAutoGUI 수업 슬라이드에서 개인정보를 지운 판이에요. |
 | 안내 문서 | `README.md`, `MAINTENANCE.md`, `CONTRIBUTING.md`, `docs/` 폴더의 문서 |
 

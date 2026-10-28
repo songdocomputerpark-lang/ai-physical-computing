@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인공지능 원리 체험 | AI 피지컬 컴퓨팅 오픈랩</title>
+<meta name="description" content="K-평균 알고리즘과 딥러닝의 원리를 브라우저에서 직접 움직여 보며 배우는 고등학생용 실습 자료예요.">
+<link rel="stylesheet" href="../fonts/pretendard/pretendardvariable-dynamic-subset.css">
+<style>
+:root{--page:#f4f3fb;--bg:#fff;--text:#17191c;--muted:#4a5361;--border:#d6dde6;--accent:#1f5bd6;--accent-hover:#1a4cb4;--accent-soft:#eaf1fe;--focus:#0b50c8;--shadow:0 1px 2px rgb(37 33 74/.06),0 8px 22px rgb(37 33 74/.08)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:'Pretendard Variable',Pretendard,system-ui,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;font-size:1.0625rem;line-height:1.75;word-break:keep-all;overflow-wrap:break-word}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:.5rem 1rem;z-index:10}.skip:focus{left:1rem}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border)}
+.topbar__inner{width:min(100% - 2rem,64rem);margin:auto;display:flex;flex-wrap:wrap;gap:.25rem 1rem;align-items:center;min-height:3.5rem;padding:.25rem 0}
+.brand{display:inline-flex;gap:.5rem;align-items:center;font-weight:700;color:var(--text);text-decoration:none;min-height:2.75rem}
+.brand svg{width:2rem;height:2rem}
+.crumb{color:var(--muted);font-size:.9375rem}
+main{width:min(100% - 2rem,64rem);margin:2rem auto 3rem}
+h1{font-size:clamp(2rem,1.6rem + 1.4vw,2.5rem);line-height:1.3;margin:0 0 .5rem;letter-spacing:-.01em}
+.lead{color:var(--muted);font-size:1.15rem;margin:0 0 2rem;max-width:44rem}
+.cards{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr))}
+.card{background:var(--bg);border-radius:1rem;box-shadow:var(--shadow);padding:1.5rem;display:flex;flex-direction:column}
+.card svg.fig{width:100%;height:auto;background:#f6f8fb;border-radius:.625rem;margin-bottom:1rem}
+.card h2{margin:0 0 .25rem;font-size:1.5rem;line-height:1.3}
+.tag{display:inline-block;font-size:.8125rem;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:.1rem .7rem;margin-bottom:.5rem}
+.card p{margin:.25rem 0 1rem;flex:1}
+.go{display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;padding:.5rem 1.25rem;border-radius:.625rem;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;align-self:flex-start}
+.go:hover{background:var(--accent-hover);color:#fff}
+section.box{background:var(--bg);border-radius:1rem;box-shadow:var(--shadow);padding:1.5rem;margin-top:1.5rem}
+section.box h2{margin:0 0 .75rem;font-size:1.25rem}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:30rem;font-size:.9375rem}
+th,td{border-bottom:1px solid var(--border);padding:.6rem .5rem;text-align:left;vertical-align:top}
+th{background:#edf1f6}
+footer{text-align:center;color:var(--muted);font-size:.875rem;padding:1.5rem 1rem 2.5rem}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="topbar"><div class="topbar__inner">
+<a class="brand" href="../"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1f5bd6"/><circle cx="22" cy="32" r="10" fill="none" stroke="#fff" stroke-width="5"/><circle cx="22" cy="32" r="3.5" fill="#fff"/><path d="M34 32h8" stroke="#fff" stroke-width="5" stroke-linecap="round"/><rect x="43" y="22" width="11" height="20" rx="3" fill="#fff"/></svg>AI 피지컬 컴퓨팅 오픈랩</a>
+<span class="crumb">인공지능 원리 체험</span>
+</div></header>
+<main id="main">
+<h1>인공지능 원리 체험</h1>
+<p class="lead">공식을 외우기보다 직접 움직여 보며 인공지능이 배우는 원리를 익혀요. 설치할 것 없이 브라우저에서 모두 해 볼 수 있어요.</p>
+<div class="cards">
+<article class="card">
+<svg class="fig" viewBox="0 0 320 160" role="img" aria-label="세 무리로 모인 점들과 무리마다 한가운데 놓인 중심점"><g fill="#0072B2"><circle cx="60" cy="110" r="5"/><circle cx="78" cy="96" r="5"/><circle cx="90" cy="118" r="5"/><circle cx="70" cy="128" r="5"/><circle cx="96" cy="100" r="5"/></g><g fill="#D55E00"><rect x="215" y="100" width="10" height="10"/><rect x="236" y="88" width="10" height="10"/><rect x="246" y="112" width="10" height="10"/><rect x="224" y="120" width="10" height="10"/></g><g fill="#00845F"><path d="M150 52l6 10h-12z"/><path d="M170 40l6 10h-12z"/><path d="M178 64l6 10h-12z"/><path d="M155 72l6 10h-12z"/></g><g stroke="#fff" stroke-width="3"><circle cx="79" cy="110" r="10" fill="#0072B2"/><circle cx="237" cy="110" r="10" fill="#D55E00"/><circle cx="165" cy="60" r="10" fill="#00845F"/></g></svg>
+<span class="tag">비지도 학습 · 약 45분</span>
+<h2>K-평균 알고리즘</h2>
+<p>정답 이름표 없이, 비슷한 데이터끼리 K개의 무리로 묶어요. 중심점을 놓고 옮기며 무리가 찾아지는 과정을 한 단계씩 지켜봐요.</p>
+<a class="go" href="kmeans/">K-평균 체험하기</a>
+</article>
+<article class="card">
+<svg class="fig" viewBox="0 0 320 160" role="img" aria-label="입력 두 개, 은닉층 뉴런 세 개, 출력 하나가 선으로 이어진 신경망 그림"><g stroke="#7b8594" stroke-width="2"><path d="M70 55L160 35M70 55L160 80M70 55L160 125M70 105L160 35M70 105L160 80M70 105L160 125M160 35L250 80M160 80L250 80M160 125L250 80"/></g><g fill="#fff" stroke="#1f5bd6" stroke-width="3"><circle cx="70" cy="55" r="14"/><circle cx="70" cy="105" r="14"/><circle cx="160" cy="35" r="14"/><circle cx="160" cy="80" r="14"/><circle cx="160" cy="125" r="14"/></g><circle cx="250" cy="80" r="16" fill="#1f5bd6"/></svg>
+<span class="tag">지도 학습 · 약 50분</span>
+<h2>딥러닝</h2>
+<p>뉴런 하나의 계산부터 층을 쌓은 신경망까지, 오차를 줄이며 스스로 배우는 과정을 직접 조절하고 학습시켜 봐요.</p>
+<a class="go" href="deep-learning/">딥러닝 체험하기</a>
+</article>
+</div>
+<section class="box" aria-labelledby="cmp">
+<h2 id="cmp">두 방법 한눈에 견주기</h2>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col"></th><th scope="col">K-평균</th><th scope="col">딥러닝(신경망)</th></tr></thead>
+<tbody>
+<tr><th scope="row">학습 종류</th><td>비지도 학습 — 정답 없이 데이터만</td><td>여기서는 지도 학습 — 데이터와 정답</td></tr>
+<tr><th scope="row">하는 일</th><td>비슷한 것끼리 K개의 무리로 묶기</td><td>새 데이터의 답(분류·예측)을 맞히기</td></tr>
+<tr><th scope="row">사람이 정할 것</th><td>무리 개수 K</td><td>층 수, 뉴런 수, 학습률 등</td></tr>
+<tr><th scope="row">배우며 바뀌는 것</th><td>중심점의 위치</td><td>가중치와 편향</td></tr>
+</tbody></table></div>
+<p>두 방법 모두 기계학습이에요. 컴퓨터가 사람이 짜 준 규칙이 아니라 데이터에서 규칙을 찾아요. 영상 인식에 쓰이는 합성곱 신경망은 <a href="../learn/u1/1-1-2/">1-1-2 차시</a>에서 이어서 볼 수 있어요.</p>
+</section>
+</main>
+<footer>AI 피지컬 컴퓨팅 오픈랩 · 학습 자료 CC BY-NC-SA 4.0 · 쪽 안의 코드 MIT · <a href="../credits/">출처와 라이선스</a></footer>
+</body>
+</html>
