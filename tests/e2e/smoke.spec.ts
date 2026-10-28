@@ -286,6 +286,14 @@ test.describe('왼쪽 메뉴판 — 좁은 화면 동작', () => {
     await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeHidden();
   });
 
+  test('차시 쪽에서 메뉴를 열어도 차시 목록은 메뉴 안에 없다(본문 위 접힌 목록이 같은 일 — 판 1.9.0 검토)', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-2/');
+    await page.getByRole('button', { name: '메뉴' }).click();
+    await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeVisible();
+    await expect(page.locator('#site-menu [data-side-menu-outline]')).toBeHidden();
+    await expect(page.locator('a[aria-current="page"]:visible')).toHaveCount(0);
+  });
+
   test('메뉴 안 링크를 누르면 메뉴가 닫힌다(같은 쪽에 머무는 이동도)', async ({ page }) => {
     await page.goto('./start/');
     const button = page.getByRole('button', { name: '메뉴' });

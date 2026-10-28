@@ -71,6 +71,23 @@ describe('지금 쪽 표시(sideMenuGroups)', () => {
     expect(links.find((link) => link.id === 'labs')?.label).toBe('실습실 모아 보기');
   });
 
+  it('지금 있는 곳은 가장 꼭 맞는 줄 하나와 그 메뉴판 위 줄뿐이다(키트 장치 쪽·부품 사전·실물 점검 도우미)', () => {
+    const marked = (path: string) => flat(path).filter((link) => link.current || link.active).map((link) => link.id);
+    // 키트 장치 쪽: 주소가 /labs/·/labs/esp32/로도 시작하지만 키트 장치 도감 줄 하나만
+    expect(marked(`${BASE}labs/esp32/kit/d-3-11/`)).toEqual(['labs-esp32-kit']);
+    // 부품 사전(/start/parts/)은 실습하기 묶음의 줄 — 시작하기는 칠하지 않고 그 아래 줄도 펼치지 않는다
+    expect(marked(`${BASE}start/parts/`)).toEqual(['start-parts']);
+    expect(flat(`${BASE}start/parts/`).map((link) => link.id)).not.toContain('start-student');
+    expect(marked(`${BASE}start/teacher/`)).toEqual(['start-teacher']);
+    // 메뉴판에 없는 아래 쪽(실물 점검 도우미)은 가장 가까운 줄(ESP32 실습실)과 그 위 줄
+    expect(marked(`${BASE}labs/esp32/check/`)).toEqual(['labs', 'labs-esp32']);
+    expect(flat(`${BASE}labs/esp32/check/`).find((link) => link.id === 'labs-esp32')?.active).toBe(true);
+    // 오류 사전은 문제 해결 줄과 따로다
+    expect(marked(`${BASE}help/errors/`)).toEqual(['help-errors']);
+    // 메뉴판에 없는 쪽(설정)은 아무 줄도 칠하지 않는다
+    expect(marked(`${BASE}settings/`)).toEqual([]);
+  });
+
   it('시작하기 아래 줄(학생용·보호자 안내·보드 준비·내 컴퓨터 점검)은 시작하기 안에 있을 때만 펼친다', () => {
     const ids = flat(`${BASE}start/board/`).map((link) => link.id);
     expect(ids).toEqual(expect.arrayContaining(['start-student', 'start-parent', 'start-board', 'start-check']));

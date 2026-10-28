@@ -4,12 +4,6 @@
  * 좁은 화면(75rem 미만)에서는 메뉴판 안 차례를 숨긴다 — 그 폭에서는 본문 위의 접힌 목록(LessonSidebar "이 단원 차시 목록 펼치기")이 같은 일을 하고,
  * [메뉴]를 연 칸이 휴대폰 화면 여러 장만큼 길어지지 않게.
  */
-@media (max-width: 74.99rem) {
-  .side-menu__outline {
-    display: none;
-  }
-}
-
 .side-menu__outline {
   display: grid;
   gap: var(--space-3);
@@ -125,7 +119,7 @@
 }
 
 @media (forced-colors: active) {
-  .side-menu__step-link[aria-current='page'] {
+  .side-menu__step-link[aria-current='page']:not(:focus-visible) {
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
@@ -136,5 +130,12 @@
 
   .side-menu__step[data-progress-state='done']::before {
     background: CanvasText;
+  }
+}
+
+/* 좁은 화면에서 숨기기 — 위의 display: grid보다 뒤에 둔다(같은 무게라 나중 규칙이 이긴다, 판 1.9.0 검토) */
+@media (max-width: 74.99rem) {
+  .side-menu__outline {
+    display: none;
   }
 }

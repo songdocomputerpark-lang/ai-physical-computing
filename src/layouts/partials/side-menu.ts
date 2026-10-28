@@ -10,9 +10,10 @@
  * 새 쪽을 메뉴판에 보이려면 nav.ts에 쪽을 두고 아래 SIDE_MENU_PLAN의 묶음에 id 한 줄을 더한다(tests/unit/side-menu.test.ts가 id를 대조).
  *
  * 줄 규칙
- * - 묶음 제목은 낱말(처음이라면·배우기·실습하기·도움받기·선생님)로, 줄마다 아이콘 + 낱말. 지금 쪽은 aria-current="page",
- *   지금 쪽이 그 아래에 있으면 data-active — 둘 다 색·왼쪽 막대·굵은 글자를 함께 써서 색만으로 알리지 않는다.
- * - 아래 줄(depth 1)은 'always'면 늘, 'active'면 그 줄이 지금 쪽이거나 지금 쪽이 그 아래에 있을 때만 보인다(시작하기의 학생용·보호자 안내 등).
+ * - 묶음 제목은 낱말(처음이라면·배우기·실습하기·도움받기·선생님)로, 줄마다 아이콘 + 낱말. 지금 주소에 가장 꼭 맞는 줄 하나(sideMenuBestMatch)만
+ *   지금 쪽이면 aria-current="page", 지금 쪽이 그 아래에 있으면 data-active이고, 그 줄의 메뉴판 위 줄이 함께 data-active다 — 둘 다 색·왼쪽 막대·
+ *   굵은 글자를 함께 써서 색만으로 알리지 않는다.
+ * - 아래 줄(depth 1)은 'always'면 늘, 'active'면 그 줄이나 그 아래 줄이 가장 꼭 맞는 줄일 때만 보인다(시작하기의 학생용·보호자 안내 등).
  *   한 쪽은 메뉴판에 한 번만 나온다(같은 링크 두 벌 없음) — 시작하기 아래의 부품 사전·교사용 시작하기는 실습하기·선생님 묶음에 있어 빠진다.
  * - 따라 하기 아래 단원 넷은 "1단원 영상 처리 인공지능" 꼴(src/lib/display-names.ts unitName)과 단원 진도("3/18")를 함께 보인다.
  */
@@ -103,18 +104,18 @@ function unitOf(id: string): 1 | 2 | 3 | 4 | undefined {
   return index < 0 ? undefined : ((index + 1) as 1 | 2 | 3 | 4);
 }
 
-function toLink(page: NavPage, pathname: string, depth: 0 | 1, label?: string, children: readonly SideMenuLink[] = []): SideMenuLink {
+function toLink(page: NavPage, depth: 0 | 1, mark: { current: boolean; active: boolean }, label?: string): SideMenuLink {
   const unit = unitOf(page.id);
   return Object.freeze({
     id: page.id,
     label: label ?? (unit ? unitName(unit) : page.label),
     href: page.href,
     icon: page.icon,
-    current: isCurrentPage(page, pathname),
-    active: isInSection(page, pathname),
+    current: mark.current,
+    active: mark.active,
     ...(unit ? { unit } : {}),
     depth,
-    children: Object.freeze([...children]),
+    children: Object.freeze([]),
   });
 }
 
@@ -124,17 +125,46 @@ function pageOf(id: string): NavPage {
 }
 
 /**
- * 지금 주소(base가 붙어 있어도 됨)에 맞춘 메뉴판 묶음. 'active' 아래 줄은 그 줄이 지금 쪽이거나 지금 쪽이 그 아래일 때만 넣는다.
+ * 지금 주소에 가장 꼭 맞는 메뉴판 줄의 id: 지금 쪽 그 자체가 있으면 그 줄, 없으면 지금 주소를 품는 줄 가운데 주소가 가장 긴 줄.
+ * 그 줄만 "지금 쪽"(aria-current) 또는 "이 아래에 있어요"(data-active)이고, 그 줄의 메뉴판 위 줄(depth 0)만 함께 "이 아래"다.
+ * 예전처럼 주소가 앞부분만 겹치는 줄을 모두 표시하면 키트 장치 쪽에서 실습실 모아 보기·ESP32 실습실·키트 장치 도감 셋이,
+ * 부품 사전 쪽에서 시작하기와 부품 사전이 함께 칠해졌다(판 1.9.0 검토).
+ */
+export function sideMenuBestMatch(pathname: string): string | undefined {
+  const ids = sideMenuPageIds();
+  const pages = ids.map(pageOf);
+  const exact = pages.find((page) => isCurrentPage(page, pathname));
+  if (exact) {
+    return exact.id;
+  }
+  return pages
+    .filter((page) => isInSection(page, pathname))
+    .sort((a, b) => b.path.length - a.path.length)[0]?.id;
+}
+
+/**
+ * 지금 주소(base가 붙어 있어도 됨)에 맞춘 메뉴판 묶음. 'active' 아래 줄은 그 줄이 가장 꼭 맞는 줄이거나 아래 줄 가운데 하나가 그럴 때만 넣는다.
  */
 export function sideMenuGroups(pathname: string): SideMenuGroup[] {
+  const best = sideMenuBestMatch(pathname);
+  const markOf = (page: NavPage): { current: boolean; active: boolean } => {
+    if (page.id !== best) {
+      return { current: false, active: false };
+    }
+    const current = isCurrentPage(page, pathname);
+    return { current, active: !current };
+  };
   return SIDE_MENU_PLAN.map((group) => ({
     key: group.key,
     title: group.title,
     links: group.items.map((item) => {
       const page = pageOf(item.id);
-      const parent = toLink(page, pathname, 0, item.label);
-      const open = item.show === 'always' || parent.current || parent.active;
-      const children = open ? (item.children ?? []).map((id) => toLink(pageOf(id), pathname, 1)) : [];
+      const childIds = item.children ?? [];
+      const holdsBest = best !== undefined && childIds.includes(best);
+      const own = markOf(page);
+      const parent = toLink(page, 0, holdsBest ? { current: false, active: true } : own, item.label);
+      const open = item.show === 'always' || page.id === best || holdsBest;
+      const children = open ? childIds.map((id) => toLink(pageOf(id), 1, markOf(pageOf(id)))) : [];
       return children.length > 0 ? { ...parent, children: Object.freeze(children) } : parent;
     }),
   }));

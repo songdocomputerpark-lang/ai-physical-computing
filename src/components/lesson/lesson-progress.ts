@@ -11,6 +11,7 @@
 import { markSeen, readProgress, setDone, type ProgressState } from '../../lib/progress.ts';
 import { installProgressPaint, watchProgress } from '../progress/progress-paint.ts';
 import { QUIZ_COMPLETE_EVENT } from './quiz.ts';
+import { SIDE_MENU_TOGGLE_EVENT } from '../../layouts/partials/side-menu-events.ts';
 
 /** 단원 차시 목록을 옆에 붙여 보이는 화면 너비(rem) — LessonSidebar.astro·lesson-layout CSS와 같은 값 */
 export const WIDE_QUERY = '(min-width: 64rem)';
@@ -140,5 +141,13 @@ export function installLessonNav(doc: Document = document): () => void {
   };
   apply();
   query.addEventListener('change', apply);
-  return () => query.removeEventListener('change', apply);
+  // 왼쪽 메뉴판을 접으면(판 1.9.0) 숨어 있던 이 목록이 다시 보인다 — 그때 지금 차시로 다시 굴린다(숨어 있을 때는 잴 수 없었다)
+  const onMenuToggle = (): void => {
+    win.requestAnimationFrame(apply);
+  };
+  doc.addEventListener(SIDE_MENU_TOGGLE_EVENT, onMenuToggle);
+  return () => {
+    query.removeEventListener('change', apply);
+    doc.removeEventListener(SIDE_MENU_TOGGLE_EVENT, onMenuToggle);
+  };
 }

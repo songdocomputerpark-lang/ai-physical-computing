@@ -55,8 +55,8 @@ export interface GlossaryRegistry {
   draftIdOf(reference: { readonly id?: string | undefined; readonly name?: string | undefined }): string | undefined;
 }
 
-/** 용어사전 페이지와 공통 레이아웃이 이미 쓰는 id라서 항목 파일 이름으로 쓸 수 없는 것 */
-const RESERVED_ID_PATTERN = /^(?:index|glossary)-/u;
+/** 용어사전 페이지와 공통 레이아웃이 이미 쓰는 id라서 항목 파일 이름으로 쓸 수 없는 것(side-menu-는 왼쪽 메뉴판의 묶음·차례 제목 id — 판 1.9.0) */
+const RESERVED_ID_PATTERN = /^(?:index|glossary|side-menu)-/u;
 const LAYOUT_IDS: ReadonlySet<string> = new Set(['main-content', 'site-menu']);
 
 /**

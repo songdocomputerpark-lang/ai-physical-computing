@@ -219,6 +219,23 @@ test.describe('차례: 왼쪽 교과서 차례(좁은 화면은 접힘) · /book
     await expect(outline.getByRole('link', { name: /2-1-2 LCD 제어하기/u })).toBeInViewport();
   });
 
+  test('넓은 화면에서 [메뉴]로 메뉴판을 접으면 본문 칸 차례가 나타나고 지금 쪽까지 굴러가 있다(판 1.9.0 검토)', async ({ page, isMobile }) => {
+    test.skip(isMobile, '넓은 화면의 왼쪽 메뉴판');
+    await page.goto('./book/u4-review/');
+    const nav = page.locator('details[data-lesson-nav]');
+    await expect(nav).toBeHidden();
+    await page.getByRole('button', { name: '메뉴' }).click();
+    await expect(nav).toBeVisible();
+    const scroller = nav.locator('[data-lesson-nav-scroll]');
+    const current = scroller.locator('[aria-current="page"]');
+    await expect(async () => {
+      const box = (await scroller.boundingBox())!;
+      const item = (await current.boundingBox())!;
+      expect(item.y).toBeGreaterThanOrEqual(box.y - 1);
+      expect(item.y + item.height).toBeLessThanOrEqual(box.y + box.height + 1);
+    }).toPass({ timeout: 5_000 });
+  });
+
   test('메뉴판을 접은 넓은 화면은 본문 칸에 차례가 펼쳐져 있고 지금 쪽이 표시되며, 좁은 화면은 <details>로 접혀 있다', async ({ page }) => {
     await closeSideMenuBeforeLoad(page);
     await page.goto('./book/2-1-2/');

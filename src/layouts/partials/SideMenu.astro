@@ -372,14 +372,6 @@ const paths = (name: IconName) => ICONS[name] ?? [];
     }
   }
 
-  /* 강제 색(고대비) 모드는 바탕색·안쪽 막대를 지운다 — 지금 쪽·그 위 줄을 테두리로도 보인다(LessonSidebar와 같다) */
-  @media (forced-colors: active) {
-    .side-menu__link[aria-current='page'],
-    .side-menu__link[data-active] {
-      outline: 2px solid Highlight;
-      outline-offset: -2px;
-    }
-  }
 
   @media print {
     .side-menu {

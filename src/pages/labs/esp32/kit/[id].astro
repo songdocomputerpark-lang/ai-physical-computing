@@ -301,6 +301,7 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
 <script>
   import { kitNavScrollTop } from '../../../../components/kit/kit-nav-scroll.ts';
   import { installLessonNav, retargetSkipLink, WIDE_QUERY } from '../../../../components/lesson/lesson-progress.ts';
+  import { SIDE_MENU_TOGGLE_EVENT } from '../../../../layouts/partials/side-menu-events.ts';
 
   // 왼쪽 장치 목록: 넓은 화면에서는 펼치고 좁은 화면에서는 접는다. [본문으로 건너뛰기]는 목록 대신 본문 글로 간다.
   installLessonNav();
@@ -328,6 +329,8 @@ const description = `${title}의 사진, 배선표, 회로 그림과 기본·심
   if (typeof window.matchMedia === 'function') {
     window.matchMedia(WIDE_QUERY).addEventListener('change', () => requestAnimationFrame(alignKitNav));
   }
+  // 왼쪽 메뉴판을 접으면(판 1.9.0) 이 목록이 다시 보인다 — installLessonNav가 가운데로 맞춘 다음 장 제목 기준으로 다시 맞춘다
+  document.addEventListener(SIDE_MENU_TOGGLE_EVENT, () => requestAnimationFrame(() => requestAnimationFrame(alignKitNav)));
 </script>
 
 <style>

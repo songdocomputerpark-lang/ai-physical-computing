@@ -175,13 +175,12 @@ const hasNotice = Astro.slots.has('notice');
     <script is:inline>
       document.documentElement.classList.add('js');
       try {
-        var root = document.documentElement;
-        if (root.dataset.pageWidth === 'wide') {
+        if (document.documentElement.dataset.pageWidth === 'wide') {
           if (localStorage.getItem('ai-physical-computing:ui:side-menu-wide') !== 'open') {
-            root.dataset.sideMenu = 'closed';
+            document.documentElement.dataset.sideMenu = 'closed';
           }
         } else if (localStorage.getItem('ai-physical-computing:ui:side-menu') === 'closed') {
-          root.dataset.sideMenu = 'closed';
+          document.documentElement.dataset.sideMenu = 'closed';
         }
       } catch {
         // 저장 공간을 못 읽으면 메뉴판은 펴진 채로 보인다.

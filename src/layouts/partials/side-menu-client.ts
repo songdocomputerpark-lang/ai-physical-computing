@@ -12,6 +12,7 @@
  * ② "내 학습" 칸: 진도가 있으면 [이어서 하기 — 지난번 차시], 없으면 [처음이라면 여기부터 — 1-1-1 …]. 그 링크가 지금 쪽이면 링크를 숨긴다
  *    (차시 쪽은 열자마자 "지난번 차시"가 그 쪽이 된다 — 같은 쪽으로 가는 큰 단추는 쓸모가 없다).
  *    전체·단원 진도 글과 막대는 progress-paint.ts가 칠하고, 단원 줄 끝의 "3/18"([data-progress-fraction])은 여기서 칠한다(다 한 차시가 있을 때만).
+ *    넓은 화면에서 접거나 펴면 document로 apc:side-menu-toggle(side-menu-events.ts)을 보낸다 — 다시 보이는 본문 칸 차례가 지금 줄로 굴러간다.
  * ③ 넓은 화면에서 지금 쪽 줄이 칸 아래쪽에 있으면(선생님 묶음 등) 칸 안에서만 굴려 보이게 한다(창은 굴리지 않는다).
  *
  * 글은 모두 textContent로만 넣는다(저장소 값이 마크업으로 해석되지 않게). 실습실 라이브러리를 import하지 않는다(모든 쪽에 실린다).
@@ -21,6 +22,7 @@ import { unitSummary, type ProgressState } from '../../lib/progress.ts';
 import { readItem, writeItem } from '../../lib/storage.ts';
 import { normalizePagePath } from '../../lib/url.ts';
 import { SIDE_MENU_STORAGE_NAME, SIDE_MENU_WIDE_STORAGE_NAME, type SideMenuSaved } from './side-menu.ts';
+import { SIDE_MENU_TOGGLE_EVENT } from './side-menu-events.ts';
 
 /** SideMenu.astro·SiteHeader.astro의 75rem 기준과 같다 */
 export const SIDE_MENU_WIDE_QUERY = '(min-width: 75rem)';
@@ -147,6 +149,7 @@ export function installSideMenu(): void {
     }
     writeItem(storageName, open ? 'open' : 'closed');
     sync();
+    document.dispatchEvent(new CustomEvent(SIDE_MENU_TOGGLE_EVENT, { detail: { open } }));
   };
   const setNarrowOpen = (open: boolean): void => {
     menu.dataset.open = String(open);
