@@ -1363,6 +1363,7 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 - **한 칸으로:** 차시·교과서·키트 장치 쪽은 BaseLayout `menuOutline`으로 같은 `SidebarOutline`을 메뉴판에 넘기고, 넓은 화면에서 메뉴판이 펴져 있으면 본문 칸 LessonSidebar(`inMenu`)를 숨겨 2열 → 1열(`[data-outline-layout]`). 메뉴판을 접으면 예전 2열 그대로(그 상태를 보는 시험은 `tests/e2e/helpers/side-menu.ts closeSideMenuBeforeLoad`).
 - **크기 한도:** 메뉴판을 Icon.astro로 그리자 홈 HTML 157KB(사전 캐시 파일 한도 160KB, C151) → 아이콘을 icons.ts 표로 속성 없이 그리고(선 모양은 CSS) 차례 모양 CSS를 세 쪽에만 실어 153.8KB.
 - **글자:** tokens.css 끝 덮기 블록(`--text-xs` 14px·`--text-sm` 16px·보조 글 #3e4654), 목록 줄 사이, [수업 화면] 안내 한 줄. 어긋난 곳 둘만 따로: 수업 화면의 표 15px(present.ts 맞춤 하한), 홈 표지 단추 줄 `@container`와 휴대폰 알약 14px.
+- **검토 반영(따로 띄운 검토 한 번):** 지금 위치는 가장 꼭 맞는 줄 하나만(`sideMenuBestMatch`), 좁은 화면에서 메뉴판 안 차례를 숨기는 규칙을 기본 규칙 뒤로(같은 무게라 앞에 두면 무시됐다), 강제 색 테두리는 `:not(:focus-visible)`, 접기·펴기 이벤트로 본문 칸 차례 다시 맞춤, 첫 그리기 전 스크립트의 전역 변수 없앰, 용어 항목 id에서 `side-menu-` 머리말 막기. 전체 시험에서: 메뉴판을 접으면 머리글을 본문 칸에 맞춤(1920 실습실 줄 맞춤), 진도 시험은 main 안에서 찾기, 가상 데스크톱 시험은 캔버스를 가운데로 옮긴 뒤 누르기, 보드 준비 쪽 높이 한도 5,600px.
 - **시험:** 새 단위 `tests/unit/side-menu.test.ts`(묶음·지금 쪽·저장 키 대조·이어서 하기 거르기). 바뀐 브라우저 시험: `smoke.spec.ts`(메뉴판 넓은·좁은 화면, 접기 기억), `a11y-keyboard.spec.ts`(휴대폰 Tab 차례 [메뉴] → 검색 → [검색] → 메뉴판, 홈 Tab 정류장 95), `book.spec.ts`·`kit.spec.ts`(메뉴판 안 차례 + 메뉴판을 접은 예전 2열), `learn.spec.ts`(같은 이름 링크는 main 안에서), `footer-columns.test.ts`(머리글 원문 약속).
 
 ## 9. 저작권·출처 계획
