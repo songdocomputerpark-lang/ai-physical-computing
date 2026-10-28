@@ -1,8 +1,8 @@
 /**
  * 사이트 지도 한 곳(PLAN §2.1).
  *
- * 머리글 주 메뉴·좁은 화면 메뉴, 바닥글 사이트 지도, 현재 위치(빵부스러기), 자리 페이지, 메뉴 링크 검사(Playwright)가
- * 모두 이 목록을 읽는다. 메뉴 이름·순서·주소를 바꿀 때는 이 파일만 고친다.
+ * 왼쪽 메뉴판(src/layouts/partials/side-menu.ts — 판 1.9.0, C238), 바닥글 사이트 지도, 현재 위치(빵부스러기), 자리 페이지, 메뉴 링크 검사(Playwright)가
+ * 모두 이 목록을 읽는다. 메뉴 이름·주소를 바꿀 때는 이 파일만 고친다(메뉴판의 묶음·차례만 side-menu.ts에서 정한다).
  *
  * 약속
  * - path: 사이트 안 경로. base 없이 /로 시작하고 /로 끝나며 영문 소문자·숫자·하이픈만 쓴다(PD-09). 예: '/start/student/'
@@ -56,7 +56,7 @@ export interface NavPage {
   readonly description: string;
   /** 주 메뉴·링크 카드에 글자와 함께 그리는 아이콘 이름(꾸밈 — 글자가 뜻을 전한다) */
   readonly icon: IconName;
-  /** 머리글 주 메뉴에 보이는지 */
+  /** 주요 일곱 곳인지(판 1.8.0까지 머리글 주 메뉴, 판 1.9.0부터 왼쪽 메뉴판의 큰 줄) */
   readonly inHeader: boolean;
   /** 아래 페이지 */
   readonly children: readonly NavPage[];
@@ -373,7 +373,9 @@ export const learnUnits: readonly LearnUnit[] = Object.freeze(
   LEARN_UNIT_INPUT.map(({ unit, numeral, ...input }) => Object.freeze({ ...buildPage(input), unit, numeral })),
 );
 
-/** 머리글 주 메뉴에 보이는 페이지 */
+/**
+ * 주요 일곱 곳(inHeader). 판 1.8.0까지 머리글 주 메뉴였고, 판 1.9.0부터는 왼쪽 메뉴판의 큰 줄로 모두 들어 있다(tests/unit/side-menu.test.ts가 대조).
+ */
 export const headerNav: readonly NavPage[] = Object.freeze(siteMap.filter((page) => page.inHeader));
 
 /** 페이지 나무를 한 줄로 편다(위 페이지 → 아래 페이지 순서). 기본은 사이트 지도 전체(대단원 제외). */

@@ -10,6 +10,7 @@ import { KIT_FILE, parseKitYaml } from '../../src/components/kit/kit-schema.ts';
 import { chapterGroups, deviceTitle, kitCodeLines, kitDeviceHref, kitIndexHref, stepLabHref } from '../../src/components/kit/kit-view.ts';
 import { PARTS_FILE, parsePartsYaml } from '../../src/components/parts/parts-schema.ts';
 import { getPage } from '../../src/config/nav.ts';
+import { closeSideMenuBeforeLoad, menuOutline } from './helpers/side-menu.ts';
 
 const data = parseKitYaml(fs.readFileSync(KIT_FILE, 'utf8'));
 const parts = parsePartsYaml(fs.readFileSync(PARTS_FILE, 'utf8'));
@@ -435,8 +436,23 @@ test.describe('장치 쪽 — 코드가 위, 배선은 아래 · LCD 줄 · 회�
     await expectNoHorizontalOverflow(page);
   });
 
-  test('왼쪽 장치 목록은 맨 위가 잘리지 않고 시작한다: 지금 장치가 든 장 제목이 칸 안에 보인다(판 1.7.0, 미해결 264 #20)', async ({ page }, testInfo) => {
+  test('메뉴판 안 장치 목록: 지금 장치가 메뉴판 칸 안에 보이고, 본문 칸의 같은 목록은 숨는다(판 1.9.0)', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', '넓은 화면의 왼쪽 메뉴판');
+    await page.goto(deviceUrl('d-3-11'));
+    await expect(page.locator('[data-lesson-nav]')).toBeHidden();
+    const menu = page.locator('#site-menu');
+    const current = menuOutline(page).locator('[aria-current="page"]');
+    await expect(current).toBeVisible();
+    await expect(current).toHaveText(deviceTitle(device('d-3-11')));
+    const menuBox = (await menu.boundingBox())!;
+    const currentBox = (await current.boundingBox())!;
+    expect(currentBox.y).toBeGreaterThanOrEqual(menuBox.y - 1);
+    expect(currentBox.y + currentBox.height).toBeLessThanOrEqual(Math.min(menuBox.y + menuBox.height, page.viewportSize()!.height) + 1);
+  });
+
+  test('왼쪽 장치 목록은 맨 위가 잘리지 않고 시작한다: 지금 장치가 든 장 제목이 칸 안에 보인다(판 1.7.0, 미해결 264 #20 — 메뉴판을 접은 넓은 화면)', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'mobile', '넓은 화면(64rem 이상)의 왼쪽 목록만');
+    await closeSideMenuBeforeLoad(page);
     await page.goto(deviceUrl('d-3-11'));
     const scroller = page.locator('[data-lesson-nav-scroll]');
     await expect(scroller).toBeVisible();
@@ -476,7 +492,8 @@ test.describe('장치 쪽 — 일부만 가상인 장치(2.14 RGB 매트릭스)'
 });
 
 test.describe('장치 쪽 — 왼쪽 장치 목록', () => {
-  test('넓은 화면은 왼쪽에 펼쳐 있고 지금 장치를 가리킨다. 좁은 화면은 접힌 상자(Tab 정지점 하나)이고 펼치면 같은 목록이다', async ({ page, isMobile }) => {
+  test('메뉴판을 접은 넓은 화면은 왼쪽에 펼쳐 있고 지금 장치를 가리킨다. 좁은 화면은 접힌 상자(Tab 정지점 하나)이고 펼치면 같은 목록이다', async ({ page, isMobile }) => {
+    await closeSideMenuBeforeLoad(page);
     await page.goto(deviceUrl('d-3-11'));
     const nav = page.locator('[data-lesson-nav]');
     const list = page.getByRole('navigation', { name: '키트 장치 목록' });

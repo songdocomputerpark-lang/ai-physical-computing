@@ -1,0 +1,44 @@
+---
+/**
+ * 왼쪽 메뉴판 안의 "이 쪽의 차례"(판 1.9.0, DECISIONS C238) — 차시 쪽은 지금 단원의 차시들, 교과서 쪽은 교과서 차례, 키트 장치 쪽은 지금 장의 장치들.
+ * 값은 본문 칸의 LessonSidebar와 같은 SidebarOutline(src/components/lesson/sidebar-outline.ts)이라 링크·이름·진도 표시가 어긋나지 않는다.
+ * 넓은 화면에서 메뉴판이 펴져 있으면 본문 칸의 같은 차례는 숨는다(global.css [data-in-menu]) — 화면에는 늘 한 벌만 보인다.
+ * 진도 표시 모양(빈 동그라미·가운데 점·채운 동그라미 + 체크)은 LessonSidebar와 같고, 진도 글은 링크 밖 [data-progress-badge](화면 낭독기용)다.
+ * 모양은 src/styles/side-menu-outline.css — 이 차례를 넘기는 쪽(차시·교과서·키트 장치)만 불러온다. 모든 쪽에 실리는 메뉴판 CSS에 두면
+ * 홈 HTML이 사전 캐시 한도(160KB, C151)에 4KB까지 다가갔다.
+ */
+import type { SidebarOutline } from '../../components/lesson/sidebar-outline.ts';
+
+interface Props {
+  outline: SidebarOutline;
+}
+
+const { outline } = Astro.props;
+const groups = outline.groups.filter((group) => group.items.length > 0);
+---
+
+<div class:list={['side-menu__outline', `card--u${outline.unit}`]} data-side-menu-outline>
+  {
+    groups.map((group) => (
+      <div class="side-menu__outline-group">
+        <p class="side-menu__outline-title" id={`side-menu-outline-${group.key}`}>
+          {group.title}
+        </p>
+        <ul class="side-menu__outline-list" aria-labelledby={`side-menu-outline-${group.key}`}>
+          {group.items.map((item) => (
+            <li class="side-menu__step" data-progress-lesson={item.progressId}>
+              <a class="side-menu__step-link" href={item.href} aria-current={item.id === outline.currentId ? 'page' : undefined}>
+                {item.label && <span class="side-menu__step-label">{item.label}</span>}
+                {item.label && ' '}
+                {item.badge && <span class="side-menu__step-kind">{item.badge}</span>}
+                {item.badge && ' '}
+                <span>{item.title}</span>
+              </a>
+              {item.progressId && <span class="visually-hidden" data-progress-badge />}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</div>

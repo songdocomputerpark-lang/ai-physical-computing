@@ -326,6 +326,11 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     await page.keyboard.press('Enter');
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeVisible();
+    // 판 1.9.0(C238): 메뉴판은 머리글(이름·[메뉴]·검색 상자·[검색]) 바로 뒤라 [메뉴] → 검색 상자 → [검색] → 메뉴판 첫 줄(보이는 차례와 같다)
+    await page.keyboard.press('Tab');
+    await expect(page.locator('#header-search-input')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.header-search__button')).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link').first()).toBeFocused();
     await page.keyboard.press('Escape');
@@ -333,7 +338,7 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     await expect(button).toBeFocused();
   });
 
-  test('휴대폰 폭 머리글(판 1.3.0): 메뉴를 연 채 Tab은 메뉴 줄을 지나 검색 상자로 가고, 닫으면 [메뉴] 바로 다음이 검색 상자다', async ({ page }) => {
+  test('휴대폰 폭 머리글(판 1.9.0): [메뉴] 다음은 늘 검색 상자이고, 메뉴를 연 채면 그다음 메뉴판 줄을 차례로 지나 본문으로 간다', async ({ page }) => {
     await freezeDevReloads(page);
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto(withBase('learn/'));
@@ -341,32 +346,25 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     const searchInput = page.locator('#header-search-input');
     const menuLinks = page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link');
 
-    // 닫힌 채: [메뉴] → 검색 상자(검색 상자는 메뉴 밖에 있어 접혀도 Tab에 든다)
+    // 닫힌 채: [메뉴] → 검색 상자(검색 상자는 머리글 안이라 메뉴가 접혀도 Tab에 든다)
     await button.focus();
     await page.keyboard.press('Tab');
     await expect(searchInput).toBeFocused();
 
-    // 열린 채: [메뉴] → 메뉴 줄 전부 → 검색 상자(보이는 차례와 같다)
+    // 열린 채: [메뉴] → 검색 상자 → [검색] → 메뉴판 줄 전부(보이는 차례와 같다 — 메뉴판은 머리글 아래에 펼쳐진다)
     await button.focus();
     await page.keyboard.press('Enter');
     await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Tab');
+    await expect(searchInput).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.header-search__button')).toBeFocused();
     const count = await menuLinks.count();
     expect(count).toBeGreaterThan(headerNav.length);
     for (let index = 0; index < count; index += 1) {
       await page.keyboard.press('Tab');
       await expect(menuLinks.nth(index)).toBeFocused();
     }
-    await page.keyboard.press('Tab');
-    await expect(searchInput).toBeFocused();
-    // 검색 상자 안의 Esc는 검색 자동 완성이 맡는다(목록 닫기) — 메뉴는 닫지 않고 초점도 검색 상자에 그대로 둔다
-    await page.keyboard.press('Escape');
-    await expect(button).toHaveAttribute('aria-expanded', 'true');
-    await expect(searchInput).toBeFocused();
-    // 메뉴 줄이나 [메뉴]에서 Esc는 메뉴를 닫고 초점을 [메뉴]로 돌린다
-    await menuLinks.first().focus();
-    await page.keyboard.press('Escape');
-    await expect(button).toHaveAttribute('aria-expanded', 'false');
-    await expect(button).toBeFocused();
   });
 
   test('실습실: [공유 링크] 대화 상자가 열린 동안 뒤쪽 쪽으로 초점이 가지 않고 Esc로 닫으면 [공유 링크]로 돌아온다, 편집칸은 Tab으로 지나간다', async ({ page }) => {
@@ -835,19 +833,20 @@ test.describe('키보드만으로 — 건너뛰기와 홈의 Tab 정류장(판 1
     await expect(page.locator('a.skip-link')).toBeHidden();
   });
 
-  test('홈: 본문 Tab 정류장이 40곳 안(전체 80곳 안)이고, 차례 그림 위 링크 32개는 한 곳도 Tab 차례에 없다', async ({ page }) => {
+  test('홈: 본문 Tab 정류장이 40곳 안(전체 95곳 안 — 판 1.9.0 메뉴판 포함)이고, 차례 그림 위 링크 32개는 한 곳도 Tab 차례에 없다', async ({ page }) => {
     await freezeDevReloads(page);
     await page.goto(withBase(''));
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
     const walk = await tabWalk(page, 120);
     expect(walk.problems, walk.problems.join('\n')).toEqual([]);
     expect(walk.finished, '홈 끝까지 걸어 봤다').toBe(true);
-    // 머리글(10곳)과 바닥글(36곳)은 모든 쪽이 같다 — [본문으로 건너뛰기]가 머리글을 넘기고, 본문 정류장만 40곳 안으로 센다.
-    // 쪽 전체는 옛 142곳(그림 위 링크 32 + 차시 카드 47 + …)에서 줄었는지 80곳 안으로 지킨다.
+    // 머리글·왼쪽 메뉴판과 바닥글은 모든 쪽이 같다 — [본문으로 건너뛰기]가 그 둘을 넘기고, 본문 정류장만 40곳 안으로 센다.
+    // 쪽 전체는 옛 142곳(그림 위 링크 32 + 차시 카드 47 + …)에서 줄었는지 지킨다. 판 1.9.0(C238)부터 머리글 주 메뉴 7곳 대신
+    // 왼쪽 메뉴판 19곳(묶음 다섯 — 홈에는 "이어서 하기" 링크가 없다)이라 한도를 80 → 95로 올렸다(본문 40곳 한도는 그대로).
     const inMain = walk.steps.filter((step) => step.inMain);
     test.info().annotations.push({ type: 'Tab 정류장', description: `홈 전체 ${walk.steps.length}곳 · 본문 ${inMain.length}곳` });
     expect(inMain.length, `홈 본문 Tab 정류장 ${inMain.length}곳 — ${inMain.map((step) => step.label).join(' / ')}`).toBeLessThanOrEqual(40);
-    expect(walk.steps.length, `홈 전체 Tab 정류장 ${walk.steps.length}곳`).toBeLessThanOrEqual(80);
+    expect(walk.steps.length, `홈 전체 Tab 정류장 ${walk.steps.length}곳`).toBeLessThanOrEqual(95);
     // 걸으면서 한 번도 그림 위 링크를 지나지 않았다
     expect(walk.steps.filter((step) => step.label.includes('toc-spot'))).toEqual([]);
     const spots = page.locator('[data-toc-spot]');

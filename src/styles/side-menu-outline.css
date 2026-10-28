@@ -1,0 +1,140 @@
+/*
+ * 왼쪽 메뉴판 안 "이 쪽의 차례"의 모양(판 1.9.0, DECISIONS C238 — 마크업 src/layouts/partials/SideMenuOutline.astro).
+ * 차례를 메뉴판에 넘기는 쪽(src/pages/learn/[unit]/[lesson].astro · src/pages/book/[id].astro · src/pages/labs/esp32/kit/[id].astro)만 불러온다.
+ * 좁은 화면(75rem 미만)에서는 메뉴판 안 차례를 숨긴다 — 그 폭에서는 본문 위의 접힌 목록(LessonSidebar "이 단원 차시 목록 펼치기")이 같은 일을 하고,
+ * [메뉴]를 연 칸이 휴대폰 화면 여러 장만큼 길어지지 않게.
+ */
+@media (max-width: 74.99rem) {
+  .side-menu__outline {
+    display: none;
+  }
+}
+
+.side-menu__outline {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-2) var(--space-2);
+  margin-inline-start: var(--space-3);
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.side-menu__outline-group {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.side-menu__outline-title {
+  padding-inline: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+}
+
+.side-menu__outline-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.side-menu__step {
+  position: relative;
+}
+
+/* 진도 표시(모양으로도 구별 — LessonSidebar와 같다): 안 봄 = 빈 동그라미, 봤어요 = 가운데 점, 다 했어요 = 채운 동그라미 + 체크 */
+.side-menu__step[data-progress-lesson]::before {
+  position: absolute;
+  inset-block-start: 0.7em;
+  inset-inline-start: var(--space-2);
+  box-sizing: border-box;
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  content: '';
+}
+
+.side-menu__step[data-progress-state='seen']::before {
+  border-color: var(--card-unit);
+  background: radial-gradient(circle, var(--card-unit) 0 28%, var(--color-bg) 32%);
+}
+
+.side-menu__step[data-progress-state='done']::before {
+  border-color: var(--color-success-text);
+  background: var(--color-success-text);
+}
+
+.side-menu__step[data-progress-state='done']::after {
+  position: absolute;
+  inset-block-start: calc(0.7em + 0.17rem);
+  inset-inline-start: calc(var(--space-2) + 0.29rem);
+  inline-size: 0.25rem;
+  block-size: 0.45rem;
+  border: solid var(--color-bg);
+  border-width: 0 2px 2px 0;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.side-menu__step-link {
+  display: block;
+  padding: var(--space-2) var(--space-2) var(--space-2) calc(var(--space-2) + 1.375rem);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.side-menu__step:not([data-progress-lesson]) > .side-menu__step-link {
+  padding-inline-start: var(--space-2);
+}
+
+.side-menu__step-link:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+
+.side-menu__step-link[aria-current='page'] {
+  background: var(--card-unit-soft);
+  box-shadow: inset 4px 0 0 var(--card-unit);
+  font-weight: var(--weight-bold);
+}
+
+.side-menu__step-label {
+  color: var(--card-unit);
+  font-weight: var(--weight-bold);
+}
+
+.side-menu__step-kind {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.25rem;
+}
+
+@media (forced-colors: active) {
+  .side-menu__step-link[aria-current='page'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .side-menu__step[data-progress-lesson]::before {
+    border-color: CanvasText;
+  }
+
+  .side-menu__step[data-progress-state='done']::before {
+    background: CanvasText;
+  }
+}

@@ -43,7 +43,8 @@ test.describe('따라 하기 목록', () => {
     await expect(page.getByRole('heading', { level: 3, name: '01 인공지능과 인식' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 3, name: '보충: 영상 처리 기초' })).toBeVisible();
 
-    await expect(page.getByRole('link', { name: '1-1-1 인공지능 응용 프로그램과 에이전트' })).toHaveAttribute(
+    // 본문 안에서 찾는다 — 왼쪽 메뉴판(판 1.9.0)의 [처음이라면 여기부터 1-1-1 …]도 같은 이름을 품는다
+    await expect(page.getByRole('main').getByRole('link', { name: '1-1-1 인공지능 응용 프로그램과 에이전트' })).toHaveAttribute(
       'href',
       withBase('learn/u1/1-1-1/'),
     );
@@ -133,7 +134,7 @@ test.describe('따라 하기 목록', () => {
 test.describe('차시 페이지', () => {
   test('목록에서 1-1-1로 가면 제목·성취기준·뱃지·8칸·예제·실습실 링크·이전/다음이 보인다', async ({ page }) => {
     await page.goto('./learn/');
-    await page.getByRole('link', { name: '1-1-1 인공지능 응용 프로그램과 에이전트' }).click();
+    await page.getByRole('main').getByRole('link', { name: '1-1-1 인공지능 응용 프로그램과 에이전트' }).click();
     await expect(page).toHaveURL(new RegExp(`${withBase('learn/u1/1-1-1/')}$`, 'u'));
     await expect(page).toHaveTitle(/^1-1-1 인공지능 응용 프로그램과 에이전트 \| /u);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/1-1-1\s+인공지능 응용 프로그램과 에이전트/u);

@@ -49,7 +49,7 @@ describe('사이트 지도의 아이콘(nav.ts icon)', () => {
     }
   });
 
-  it('머리글 주 메뉴 일곱 곳의 아이콘은 서로 다르다(아이콘만 봐도 구분 — 판 1.4.0: 교과서는 닫힌 책 textbook)', () => {
+  it('주요 일곱 곳(headerNav — 판 1.9.0부터 왼쪽 메뉴판의 큰 줄)의 아이콘은 서로 다르다(아이콘만 봐도 구분 — 판 1.4.0: 교과서는 닫힌 책 textbook)', () => {
     const icons = headerNav.map((page) => page.icon);
     expect(new Set(icons).size).toBe(icons.length);
     expect(icons).toEqual(['flag', 'textbook', 'book', 'flask', 'teacher', 'lifebuoy', 'glossary']);
@@ -59,22 +59,23 @@ describe('사이트 지도의 아이콘(nav.ts icon)', () => {
 describe('머리글·바닥글 마크업 약속(원문)', () => {
   const header = readFileSync('src/layouts/partials/SiteHeader.astro', 'utf8');
 
-  it('검색 상자는 메뉴 상자(#site-menu) 밖, 메뉴 바로 뒤에 있다(좁은 화면에서도 메뉴를 열지 않고 보이고, 보이는 차례 = Tab 차례)', () => {
-    const menuStart = header.indexOf('id="site-menu"');
-    const searchStart = header.indexOf('<div class="site-header__search">');
-    expect(menuStart).toBeGreaterThan(0);
-    expect(searchStart).toBeGreaterThan(menuStart);
-    // 메뉴 상자는 </nav> 뒤 </div>로 닫히고, 그 다음에 검색 상자가 온다.
-    const between = header.slice(menuStart, searchStart);
-    expect(between).toMatch(/<\/nav>\s*<\/div>\s*$/u);
+  it('머리글 차례는 이름 → [메뉴] → 검색 상자이고, 주 메뉴(링크 목록)는 머리글에 없다(판 1.9.0 — 왼쪽 메뉴판 SideMenu.astro로 옮김, C238)', () => {
+    const brand = header.indexOf('class="site-header__brand"');
+    const button = header.indexOf('data-menu-button');
+    const search = header.indexOf('<div class="site-header__search">');
+    expect(brand).toBeGreaterThan(0);
+    expect(button).toBeGreaterThan(brand);
+    expect(search).toBeGreaterThan(button);
+    expect(header).not.toMatch(/id="site-menu"/u);
   });
 
   it('머리글은 화면에 붙지 않는다(sticky 없음 — 초점 가림·좁은 화면 공간 때문)', () => {
     expect(header).not.toMatch(/position:\s*sticky/u);
   });
 
-  it('주 메뉴 단추 이름은 "메뉴" 그대로고 aria-controls로 메뉴 상자와 이어진다', () => {
+  it('주 메뉴 단추 이름은 "메뉴" 그대로고 aria-controls로 메뉴판(#site-menu)과 이어진다', () => {
     expect(header).toMatch(/aria-controls="site-menu"/u);
-    expect(header).toMatch(/aria-label="주 메뉴"/u);
+    expect(header).toMatch(/<span class="site-header__menu-label">메뉴<\/span>/u);
+    expect(readFileSync('src/layouts/partials/SideMenu.astro', 'utf8')).toMatch(/id="site-menu" aria-label="주 메뉴"/u);
   });
 });

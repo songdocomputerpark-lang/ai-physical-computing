@@ -37,6 +37,7 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 | 부품 사진을 더해요(부품 사전 — `content/parts/parts.yaml` 한 줄) | [14절](#14-부품-사진-더하기-판-140) |
 | 회로 그림을 다시 만들거나 더해요(`circuits:build`·`export`·`import`, 교과서 쪽 `::회로`) | [15절](#15-회로-그림-다시-만들기-판-140) |
 | 키트 장치 도감(`/labs/esp32/kit/`)의 장치·코드·회로 그림·라이브러리를 더하거나 브릭셀 쪽에서 다시 뽑아요, 가상 보드에서 안 되는 까닭 글을 써요 | [16절](#16-키트-장치-도감-고치기더하기-판-150) |
+| 왼쪽 메뉴판(모든 쪽의 "주 메뉴")에 쪽을 더하거나 묶음·차례를 바꿔요, 글자 크기 단계를 고쳐요 | [17절](#17-왼쪽-메뉴판과-글자-크기-판-190) |
 
 **처음 보는 낱말** — 이 문서에 자주 나오는 말이에요.
 
@@ -1511,3 +1512,27 @@ npm run images:check               # 그림 목록·눈 확인 기록(원본 없
 2. `npm run check:sources`(출처) → `npm run check:repo -- --worktree`(저장소 검사 — 그림 눈 확인 기록·개인정보 모양·이메일).
 3. `npm run build` → `npm run check:links`(키트 예제의 받을 주소 212개도 봐요). 브라우저로 쪽을 볼 때는 `npx playwright test tests/e2e/kit.spec.ts tests/e2e/lab-esp32-kit.spec.ts`. 같은 폴더에서 Playwright를 둘 이상 동시에 돌리지 않아요(`test-results/`를 서로 지워 무너져요 — 꼭 나눠 돌릴 때는 `--output`을 다르게).
 4. 판을 올리기 전에 ESP32 실습실 HTML(`dist/labs/esp32/index.html`)이 지난 판보다 gzip으로 15KB 넘게 늘지 않았는지, 홈 HTML이 사전 캐시 한도 160KB 안인지(C151) 확인해요.
+
+## 17. 왼쪽 메뉴판과 글자 크기 (판 1.9.0)
+
+모든 쪽 왼쪽(휴대폰은 [메뉴])에 있는 메뉴판은 사이트 지도(`src/config/nav.ts`)의 쪽을 묶음 다섯으로 보여 줘요(DECISIONS C238).
+
+### 17-1. 메뉴판에 쪽을 더하거나 차례를 바꾸기
+
+1. 쪽 이름·주소·아이콘은 `src/config/nav.ts` 한 곳이에요. 새 쪽이면 먼저 거기에 더해요.
+2. 어느 묶음에 어떤 차례로 보일지는 `src/layouts/partials/side-menu.ts`의 `SIDE_MENU_PLAN` 표 한 곳이에요. 묶음의 `items`에 `{ id: '새 쪽 id' }` 한 줄을 더해요.
+   - 아래 줄로 두려면 위 줄에 `children: ['아래 쪽 id', …]`와 `show`를 적어요 — `'always'`는 늘, `'active'`는 그 줄 안에 있을 때만 보여요.
+   - 메뉴판에서만 다른 이름을 쓰려면 `label: '…'`(예: 실습실 첫 쪽은 "실습실 모아 보기").
+   - 한 쪽은 메뉴판에 한 번만 나와요(`tests/unit/side-menu.test.ts`가 겹침을 막아요).
+3. `npx vitest run tests/unit/side-menu.test.ts` → `npm run build` → 화면에서 확인해요.
+
+### 17-2. 접힘·펴짐과 실습실
+
+- 넓은 화면(1200px 이상)에서 머리글 [메뉴]로 접고 펴면 이 브라우저가 기억해요(저장 이름 `ui:side-menu`). 실습실처럼 `BaseLayout width="wide"`인 쪽은 처음에 접혀 있고 선택을 따로 기억해요(`ui:side-menu-wide`).
+- 차시·교과서 원문·키트 장치 쪽은 지금 단원(차례·장)의 목록이 메뉴판의 그 줄 아래에 펼쳐지고 본문 칸의 같은 목록은 숨어요. 새 쪽 종류가 같은 일을 하려면 쪽에서 `BaseLayout`에 `menuOutline={{ anchor: '<메뉴판 줄 id>', outline }}`을 넘기고, 본문 칸 `LessonSidebar`에 `inMenu`, 2열 칸에 `data-outline-layout`을 붙이고 `src/styles/side-menu-outline.css`를 불러와요.
+
+### 17-3. 글자 크기·색 단계
+
+- 글자 크기·보조 글 색은 `src/styles/tokens.css` 한 곳이에요(판 1.9.0 블록이 맨 끝에 있어요 — 작은 글 14px·16px, 본문 17px). 단계를 바꾸면 홈 표지(휴대폰 375에서 "누가 만들었나"가 첫 화면 안), 수업 화면 150% 시험, 홈 HTML 크기(사전 캐시 한도 160KB, C151)를 함께 확인해요: `npx playwright test tests/e2e/home.spec.ts tests/e2e/book.spec.ts tests/e2e/lesson-template.spec.ts`.
+- 색을 바꾸면 tokens.css 주석의 대비 값을 다시 계산해 고쳐요(본문 글자 4.5 이상).
+

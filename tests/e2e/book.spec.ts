@@ -3,6 +3,7 @@
 // 데스크톱·휴대폰 두 프로젝트에서 돈다. 글자가 출판본과 같은지는 npm run book:fidelity(원본 PDF가 있는 운영자 PC)가 본다.
 import { expect, test, type Page } from '@playwright/test';
 import { ZOOM_150, openPresentationByButton, walkAllSteps } from './helpers/present.ts';
+import { closeSideMenuBeforeLoad, menuOutline } from './helpers/side-menu.ts';
 
 async function hideDevToolbar(page: Page) {
   // 개발 서버에만 있는 Astro 개발 도구 막대가 아래쪽 단추를 가리는 것을 막는다(빌드 결과에는 없다 — lesson-template.spec.ts와 같은 까닭)
@@ -208,7 +209,18 @@ test.describe('?view=slide·#slide=N 수업 화면', () => {
 });
 
 test.describe('차례: 왼쪽 교과서 차례(좁은 화면은 접힘) · /book/ 첫 화면', () => {
-  test('넓은 화면은 차례가 펼쳐져 있고 지금 쪽이 표시되며, 좁은 화면은 <details>로 접혀 있다', async ({ page }) => {
+  test('넓은 화면은 메뉴판 안 "교과서 원문" 아래에 차례가 있고 지금 쪽이 표시된다(판 1.9.0 — 본문 칸의 같은 차례는 숨는다)', async ({ page, isMobile }) => {
+    test.skip(isMobile, '넓은 화면의 왼쪽 메뉴판');
+    await page.goto('./book/2-1-2/');
+    await expect(page.locator('details[data-lesson-nav]')).toBeHidden();
+    const outline = menuOutline(page);
+    await expect(outline).toBeVisible();
+    await expect(outline.getByRole('link', { name: /2-1-2 LCD 제어하기/u })).toHaveAttribute('aria-current', 'page');
+    await expect(outline.getByRole('link', { name: /2-1-2 LCD 제어하기/u })).toBeInViewport();
+  });
+
+  test('메뉴판을 접은 넓은 화면은 본문 칸에 차례가 펼쳐져 있고 지금 쪽이 표시되며, 좁은 화면은 <details>로 접혀 있다', async ({ page }) => {
+    await closeSideMenuBeforeLoad(page);
     await page.goto('./book/2-1-2/');
     const nav = page.locator('details[data-lesson-nav]');
     const width = page.viewportSize()?.width ?? 0;
@@ -234,9 +246,9 @@ test.describe('차례: 왼쪽 교과서 차례(좁은 화면은 접힘) · /book
     await expect(page.locator('#unit-2-part-1')).toBeAttached();
   });
 
-  test('머리글 메뉴에 "교과서 원문"이 "따라 하기" 앞에 있다(판 1.6.0 이름 — C173)', async ({ page }) => {
+  test('메뉴판에 "교과서 원문"이 "따라 하기" 앞에 있다(판 1.6.0 이름 — C173, 판 1.9.0부터 왼쪽 메뉴판)', async ({ page }) => {
     await page.goto('./book/');
-    const labels = await page.locator('.site-header nav a').allTextContents();
+    const labels = await page.locator('#site-menu a').allTextContents();
     const compact = labels.map((label) => label.replace(/\s+/gu, ' ').trim());
     const book = compact.indexOf('교과서 원문');
     expect(book).toBeGreaterThanOrEqual(0);

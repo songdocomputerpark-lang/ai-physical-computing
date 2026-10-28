@@ -171,6 +171,74 @@ textarea {
 }
 
 /* ── 페이지 틀(BaseLayout) ── */
+
+/*
+ * 왼쪽 메뉴판 + 본문 칸(판 1.9.0, DECISIONS C238). 넓은 화면(75rem 이상)은 두 칸: 메뉴판(src/layouts/partials/SideMenu.astro) 18rem(--side-menu-width) + 본문.
+ * 머리글 [메뉴]로 접으면(<html data-side-menu="closed">) 본문 한 칸 — 예전처럼 쪽 칸(76rem)이 가운데에 온다.
+ * 좁은 화면은 한 칸이고 메뉴판은 머리글 바로 아래에 접혀 있다([메뉴]로 연다).
+ * 수업 화면·차시 안 실습실(?embed=1)·인쇄에서는 메뉴판을 숨기고 한 칸으로.
+ */
+.site-body__main {
+  min-width: 0;
+}
+
+@media (min-width: 75rem) {
+  /* 왼쪽 칸 흰 바탕과 오른쪽 선은 바탕 그림으로 — 메뉴판(sticky, 화면 높이)보다 긴 쪽에서도 바닥글까지 이어진다 */
+  .site-body {
+    display: grid;
+    grid-template-columns: var(--side-menu-width) minmax(0, 1fr);
+    align-items: start;
+    background: linear-gradient(
+      to right,
+      var(--color-bg) calc(var(--side-menu-width) - 1px),
+      var(--color-border) calc(var(--side-menu-width) - 1px) var(--side-menu-width),
+      transparent var(--side-menu-width)
+    );
+  }
+
+  :root[data-side-menu='closed'] .site-body {
+    grid-template-columns: minmax(0, 1fr);
+    background: none;
+  }
+
+  :root[data-side-menu='closed'] .side-menu {
+    display: none;
+  }
+}
+
+:root[data-embed] .site-body,
+:root[data-presenting] .site-body {
+  display: block;
+  background: none;
+}
+
+:root[data-embed] .side-menu,
+:root[data-presenting] .side-menu {
+  display: none;
+}
+
+@media print {
+  .site-body {
+    display: block;
+    background: none;
+  }
+}
+
+/*
+ * 이 쪽의 차례가 메뉴판 안에 있을 때(차시·교과서·키트 장치 쪽 — BaseLayout menuOutline, SideMenuOutline.astro):
+ * 넓은 화면에서 메뉴판이 펴져 있으면 본문 칸의 같은 차례(LessonSidebar inMenu → [data-in-menu])를 숨기고 쪽을 한 칸으로 한다
+ * ([data-outline-layout]의 2열 규칙은 각 쪽의 범위 스타일 — 이 선택자가 한 단계 무겁다). 본문 칸 폭은 --outline-main(기본 글 읽기 폭 44rem, 키트 52rem).
+ */
+@media (min-width: 75rem) {
+  :root:not([data-side-menu='closed']) [data-lesson-nav][data-in-menu] {
+    display: none;
+  }
+
+  :root:not([data-side-menu='closed']) [data-outline-layout] {
+    grid-template-columns: minmax(0, var(--outline-main, var(--width-prose)));
+  }
+}
+
 .page {
   padding-block: var(--space-4) var(--space-16);
 }
@@ -495,8 +563,9 @@ textarea {
   padding-inline-start: 1.5em;
 }
 
+/* 목록 줄 사이(판 1.9.0 C239 — 0.25rem이던 것을 0.5rem으로: 학습목표·순서 목록이 한 덩어리로 붙어 보였다) */
 .prose li + li {
-  margin-block-start: var(--space-1);
+  margin-block-start: var(--space-2);
 }
 
 .prose blockquote {

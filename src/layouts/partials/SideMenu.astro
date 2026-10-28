@@ -1,0 +1,389 @@
+---
+/**
+ * 왼쪽 메뉴판(판 1.9.0, DECISIONS C238) — 모든 쪽의 사이트 전체 길잡이. 묶음·차례는 ./side-menu.ts(이름·주소는 src/config/nav.ts).
+ *
+ * 한 요소가 두 얼굴이다(링크를 두 벌 만들지 않는다 — LessonSidebar와 같은 약속):
+ *   넓은 화면(75rem 이상) — 머리글 아래 왼쪽 칸(18rem — tokens.css --side-menu-width)에 붙어 따라온다(sticky, 칸이 화면보다 길면 칸 안에서 굴러감).
+ *                           머리글 [메뉴]로 접고 펼 수 있고, 고른 것은 이 브라우저에 남는다(<html data-side-menu="closed"> — BaseLayout의 첫 그리기 전 스크립트).
+ *                           실습실처럼 화면을 넓게 쓰는 쪽(width="wide")은 처음에 접혀 있다(그 쪽들의 선택은 따로 기억 — side-menu.ts).
+ *   좁은 화면 — 머리글 [메뉴]를 누르면 머리글 바로 아래에 펼쳐진다(side-menu-client.ts가 data-open을 바꾼다).
+ *   자바스크립트가 꺼져 있으면 넓은 화면은 늘 펼쳐져 있고, 좁은 화면은 머리글 아래에 늘 보인다.
+ * 맨 위 "내 학습" 칸: 처음 온 사람에게는 [처음이라면 여기부터 — 1-1-1 …], 진도가 있으면 [이어서 하기 — 지난번 차시]와 전체 진도 글·막대
+ *   (진도는 HTML에 굽지 않고 브라우저가 칠한다 — side-menu-client.ts, src/components/progress/progress-paint.ts).
+ * 이 쪽의 차례(BaseLayout menuOutline — 차시·교과서·키트 장치 쪽)는 그 줄(anchor) 바로 아래에 SideMenuOutline으로 펼친다.
+ * 이름 "주 메뉴"·id site-menu는 예전 머리글 메뉴와 같다(머리글 [메뉴]의 aria-controls, 용어 문법의 layout id 표).
+ * 수업 화면·차시 안 실습실(?embed=1)·인쇄에서는 숨는다(global.css의 .site-body 규칙).
+ * 스타일은 is:global(모든 쪽에 실리는 부품이라 범위 속성이 HTML을 부풀리지 않게 — 홈 HTML 사전 캐시 한도 160KB, C151). 클래스는 side-menu__ 접두어.
+ */
+import { getCollection } from 'astro:content';
+import { ICONS, type IconName } from '../../components/common/icons.ts';
+import { publishedLessons } from '../../components/lesson/lesson-data.ts';
+import type { SidebarOutline } from '../../components/lesson/sidebar-outline.ts';
+import { progressIds } from '../../components/lesson/unit-style.ts';
+import { normalizePagePath } from '../../lib/url.ts';
+import { sideMenuGroups } from './side-menu.ts';
+import SideMenuOutline from './SideMenuOutline.astro';
+
+interface Props {
+  outline?: { readonly anchor: string; readonly outline: SidebarOutline };
+}
+
+const { outline } = Astro.props;
+const pathname = Astro.url.pathname;
+const groups = sideMenuGroups(pathname);
+const lessons = publishedLessons(await getCollection('lessons'));
+const first = lessons[0];
+// 홈은 표지의 큰 단추와 "이어서 하기" 띠가 같은 일을 한다 — 같은 안내가 두 번 보이지 않게(판 1.7.0 미해결 264 #22) 홈에서는 링크를 두지 않고 진도 글·막대만
+const isHome = normalizePagePath(pathname) === '/';
+const allIds = progressIds(lessons.map((lesson) => lesson.id));
+const unitIds = (unit: number): string => progressIds(lessons.filter((lesson) => lesson.unit === unit).map((lesson) => lesson.id));
+/**
+ * 아이콘은 Icon.astro와 같은 모양 표(icons.ts)를 쓰되 속성을 줄여 그린다 — 선 색·굵기·끝 모양은 아래 CSS(.side-menu__svg)가 정한다.
+ * 모든 쪽에 실리는 21개라 Icon.astro(범위 속성·선 속성 포함)로 그리면 홈 HTML이 사전 캐시 한도(160KB, C151)에 3KB까지 다가갔다.
+ */
+const paths = (name: IconName) => ICONS[name] ?? [];
+---
+
+<nav class="side-menu" id="site-menu" aria-label="주 메뉴" data-menu data-side-menu data-present-hide data-embed-hide data-pagefind-ignore>
+  {
+    first && (
+      <div class="side-menu__me" data-progress-unit={allIds} data-progress-label="전체 진도" data-home={isHome ? '' : undefined}>
+        <p class="side-menu__me-title">내 학습</p>
+        {
+          !isHome && (
+            <a class="side-menu__resume" href={first.href} data-side-resume data-first-href={first.href}>
+              <span class="side-menu__resume-top">
+                <span class="side-menu__resume-go" data-side-resume-go data-first-label="처음이라면 여기부터" data-resume-label="이어서 하기">
+                  처음이라면 여기부터
+                </span>
+                <span aria-hidden="true">→</span>
+              </span>
+              <span class="side-menu__resume-name" data-side-resume-name data-first-name={`${first.label} ${first.title}`}>
+                {first.label} {first.title}
+              </span>
+            </a>
+          )
+        }
+        <p class="side-menu__count" data-progress-count />
+        <div class="progress-bar side-menu__bar" data-progress-bar aria-hidden="true" />
+      </div>
+    )
+  }
+  {
+    groups.map((group) => (
+      <div class="side-menu__group">
+        <p class="side-menu__group-title" id={`side-menu-${group.key}`}>
+          {group.title}
+        </p>
+        <ul class="side-menu__list" aria-labelledby={`side-menu-${group.key}`}>
+          {group.links.map((link) => (
+            <li class="side-menu__item">
+              <a
+                class="side-menu__link"
+                href={link.href}
+                aria-current={link.current ? 'page' : undefined}
+                data-active={link.active ? 'true' : undefined}
+              >
+                <span class="side-menu__icon">
+                  <svg class="side-menu__svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    {paths(link.icon).map((part) => (typeof part === 'string' ? <path d={part} /> : <path class="icon__solid" d={part.solid} />))}
+                  </svg>
+                </span>
+                <span class="side-menu__label">{link.label}</span>
+              </a>
+              {outline?.anchor === link.id && <SideMenuOutline outline={outline.outline} />}
+              {link.children.length > 0 && (
+                <ul class="side-menu__sublist">
+                  {link.children.map((child) => (
+                    <li
+                      class:list={['side-menu__item', child.unit && `card--u${child.unit}`]}
+                      data-progress-unit={child.unit ? unitIds(child.unit) : undefined}
+                      data-progress-label={child.unit ? `${child.unit}단원 진도` : undefined}
+                    >
+                      <a
+                        class="side-menu__link side-menu__link--sub"
+                        href={child.href}
+                        aria-current={child.current ? 'page' : undefined}
+                        data-active={child.active ? 'true' : undefined}
+                      >
+                        <span class="side-menu__icon">
+                          <svg class="side-menu__svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            {paths(child.icon).map((part) => (typeof part === 'string' ? <path d={part} /> : <path class="icon__solid" d={part.solid} />))}
+                          </svg>
+                        </span>
+                        <span class="side-menu__label">{child.label}</span>
+                        {child.unit && <span class="side-menu__fraction" data-progress-fraction aria-hidden="true" />}
+                      </a>
+                      {child.unit && <span class="visually-hidden" data-progress-count />}
+                      {outline?.anchor === child.id && <SideMenuOutline outline={outline.outline} />}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>
+
+<script>
+  import { installSideMenu } from './side-menu-client.ts';
+
+  installSideMenu();
+</script>
+
+<style is:global>
+  .side-menu {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+    padding: var(--space-4) var(--space-3) var(--space-8);
+    background: var(--color-bg);
+  }
+
+  /* ── 내 학습 ── */
+  .side-menu__me {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-accent-soft);
+  }
+
+  .side-menu__me-title,
+  .side-menu__group-title {
+    padding-inline: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+  }
+
+  .side-menu__me-title {
+    padding-inline: 0;
+  }
+
+  .side-menu__resume {
+    display: grid;
+    gap: 0.125rem;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+  }
+
+  .side-menu__resume:hover {
+    background: var(--color-accent-hover);
+    color: var(--color-on-accent);
+  }
+
+  .side-menu__resume-top {
+    display: flex;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .side-menu__resume-name {
+    font-weight: var(--weight-bold);
+  }
+
+  .side-menu__count {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* 홈(이어서 하기 링크 없음)에서 진도가 아직 없으면 칸 전체를 숨긴다 — 제목만 남은 빈 칸이 되지 않게 */
+  .side-menu__me[data-home]:is([data-progress-empty], :not([data-progress-ready])) {
+    display: none;
+  }
+
+  /* 처음 온 사람에게는 진도 글·막대 자리를 남기지 않는다(넣은 칸이 짧게 — 공용 규칙은 자리를 남긴다) */
+  .side-menu__me[data-progress-empty] :is(.side-menu__count, .side-menu__bar),
+  .side-menu__me:not([data-progress-ready]) :is(.side-menu__count, .side-menu__bar) {
+    display: none;
+  }
+
+  /* ── 묶음 ── */
+  .side-menu__group {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .side-menu__list,
+  .side-menu__sublist {
+    display: grid;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .side-menu__sublist {
+    margin-block-start: 0.125rem;
+    margin-inline-start: var(--space-5);
+    padding-inline-start: var(--space-1);
+    border-inline-start: 2px solid var(--color-border);
+  }
+
+  .side-menu__link--sub {
+    gap: var(--space-2);
+  }
+
+  .side-menu__link--sub .side-menu__icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .side-menu__item {
+    position: relative;
+  }
+
+  .side-menu__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    text-decoration: none;
+  }
+
+  .side-menu__link--sub {
+    font-weight: var(--weight-medium);
+  }
+
+  .side-menu__icon {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-muted);
+    color: var(--color-accent);
+  }
+
+  .side-menu__svg {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .side-menu__svg .icon__solid {
+    fill: currentColor;
+  }
+
+  .side-menu__item[data-progress-unit] .side-menu__icon {
+    background: var(--card-unit-soft);
+    color: var(--card-unit);
+  }
+
+  .side-menu__link:hover {
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+  }
+
+  /* 지금 쪽·지금 쪽이 든 묶음: 바탕색 + 왼쪽 막대 + 굵은 글자(색만으로 알리지 않는다) */
+  .side-menu__link[aria-current='page'],
+  .side-menu__link[data-active] {
+    background: var(--color-accent-soft);
+    box-shadow: inset 4px 0 0 var(--color-accent);
+    color: var(--color-accent-hover);
+  }
+
+  .side-menu__link[aria-current='page'] .side-menu__label {
+    font-weight: var(--weight-extrabold);
+  }
+
+  .side-menu__link[aria-current='page'] .side-menu__icon,
+  .side-menu__link[data-active] .side-menu__icon {
+    background: var(--color-bg);
+  }
+
+  /* 단원 줄 끝의 진도("3/18" — 다 한 차시가 있을 때만, 화면 낭독기는 링크 밖 진도 글을 읽는다) */
+  .side-menu__fraction {
+    flex: none;
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-1);
+    color: var(--card-unit, var(--color-text-muted));
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+  }
+
+  .side-menu__fraction:empty {
+    display: none;
+  }
+
+  /* ── 넓은 화면: 머리글 아래 왼쪽 칸 ── */
+  /*
+   * 칸 높이는 "화면 높이 − 머리글 높이" — 쪽 맨 위에서도 칸 전체가 화면 안이라, Tab으로 아래쪽 줄에 가도 창은 굴러가지 않고 칸 안에서만 굴러간다
+   * (100vh면 쪽 맨 위에서 칸 끝 4rem이 화면 밖이라 초점이 창을 밀었다 — tests/e2e/home.spec.ts "Tab 키만으로 큰 단추 3개"). 흰 바탕·오른쪽 선은
+   * 칸보다 긴 쪽에서도 왼쪽 끝까지 이어지게 global.css의 .site-body 바탕 그림이 그린다.
+   */
+  @media (min-width: 75rem) {
+    .side-menu {
+      position: sticky;
+      top: 0;
+      /* 머리글 아래 선 1px까지 뺀다 */
+      max-height: calc(100vh - var(--header-height) - 1px);
+      max-height: calc(100dvh - var(--header-height) - 1px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+  }
+
+  /* ── 좁은 화면: [메뉴]로 여는 칸(머리글 바로 아래) ── */
+  @media (max-width: 74.99rem) {
+    .side-menu {
+      padding-inline: var(--gutter);
+      border-block-end: 1px solid var(--color-border);
+    }
+
+    .js .side-menu:not([data-open='true']) {
+      display: none;
+    }
+
+    /* 넉넉한 휴대폰 가로·태블릿에서는 묶음을 두 칸으로 */
+    @media (min-width: 40rem) {
+      .side-menu {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        column-gap: var(--space-6);
+      }
+
+      .side-menu__me {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  /* 강제 색(고대비) 모드는 바탕색·안쪽 막대를 지운다 — 지금 쪽·그 위 줄을 테두리로도 보인다(LessonSidebar와 같다) */
+  @media (forced-colors: active) {
+    .side-menu__link[aria-current='page'],
+    .side-menu__link[data-active] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+
+  @media print {
+    .side-menu {
+      display: none !important;
+    }
+  }
+</style>

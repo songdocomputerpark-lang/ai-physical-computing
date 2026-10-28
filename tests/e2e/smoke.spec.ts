@@ -98,7 +98,7 @@ test.describe('좁은 화면 메뉴', () => {
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: headerNav[0].label, exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: '학생용' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: '영상 처리 실습실', exact: true })).toBeVisible();
 
     await page.keyboard.press('Escape');
     await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -114,17 +114,40 @@ test.describe('좁은 화면 메뉴', () => {
 test.describe('넓은 화면 메뉴', () => {
   test.skip(({ isMobile }) => isMobile, '데스크톱 화면(1366px)에서만 확인한다');
 
-  test('주 메뉴가 버튼 없이 보이고 지금 페이지를 표시한다', async ({ page }) => {
+  test('왼쪽 메뉴판이 처음부터 보이고 지금 페이지를 표시한다(판 1.9.0, C238)', async ({ page }) => {
     await page.goto('./glossary/');
-    await expect(page.getByRole('button', { name: '메뉴' })).toBeHidden();
+    const button = page.getByRole('button', { name: '메뉴' });
+    await expect(button).toBeVisible();
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
     const nav = page.getByRole('navigation', { name: '주 메뉴' });
     for (const item of headerNav) {
-      await expect(nav.getByRole('link', { name: item.label, exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: item.id === 'labs' ? '실습실 모아 보기' : item.label, exact: true })).toBeVisible();
     }
     await expect(nav.getByRole('link', { name: '용어사전', exact: true })).toHaveAttribute('aria-current', 'page');
+    // 메뉴판은 본문 왼쪽에 있다
+    const navBox = await nav.boundingBox();
+    const mainBox = await page.locator('main').boundingBox();
+    expect((navBox?.x ?? 0) + (navBox?.width ?? 0)).toBeLessThanOrEqual((mainBox?.x ?? 0) + 1);
+  });
+
+  test('[메뉴]로 접으면 쪽을 옮겨도 접힌 채이고, 다시 누르면 펼친다(이 브라우저에 기억)', async ({ page }) => {
+    await page.goto('./glossary/');
+    const button = page.getByRole('button', { name: '메뉴' });
+    const nav = page.getByRole('navigation', { name: '주 메뉴' });
+    await button.click();
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(nav).toBeHidden();
+    await page.goto('./labs/');
+    await expect(page.locator('html')).toHaveAttribute('data-side-menu', 'closed');
+    await expect(nav).toBeHidden();
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await button.click();
+    await expect(nav).toBeVisible();
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await page.reload();
+    await expect(nav).toBeVisible();
   });
 });
-
 // ── 판 1.3.0 공통 틀(구역 A): 머리글 검색·아이콘 메뉴·바닥글 다섯 묶음·404 주 경로 카드 ──
 
 test.describe('머리글 — 어느 화면에서나 검색 상자가 보인다', () => {
@@ -181,18 +204,22 @@ test.describe('머리글 — 어느 화면에서나 검색 상자가 보인다',
   });
 });
 
-test.describe('머리글 주 메뉴 — 아이콘과 낱말(넓은 화면)', () => {
+test.describe('왼쪽 메뉴판 — 묶음·아이콘·지금 있는 곳(넓은 화면)', () => {
   test.skip(({ isMobile }) => isMobile, '데스크톱 화면(1366px)에서만 확인한다');
 
-  test('메뉴 칸마다 꾸밈 아이콘이 있고, 이름은 낱말 그대로이며, 머리글은 한 줄이다', async ({ page }) => {
+  test('묶음 제목 다섯 개, 줄마다 꾸밈 아이콘과 낱말, 머리글은 한 줄이다', async ({ page }) => {
     await page.goto('./');
     const nav = page.getByRole('navigation', { name: '주 메뉴' });
-    await expect(nav.locator('a.site-nav__link svg[aria-hidden="true"]')).toHaveCount(headerNav.length);
-    for (const item of headerNav) {
-      await expect(nav.getByRole('link', { name: item.label, exact: true })).toBeVisible();
+    for (const title of ['처음이라면', '배우기', '실습하기', '도움받기', '선생님']) {
+      await expect(nav.getByText(title, { exact: true })).toBeVisible();
     }
-    // 하위 메뉴(학생용 등)는 넓은 화면에서 숨는다 — 드롭다운 없음(Tab 정지점이 늘지 않게)
-    await expect(nav.getByRole('link', { name: '학생용' })).toBeHidden();
+    const links = nav.locator('a.side-menu__link');
+    const count = await links.count();
+    expect(count).toBeGreaterThanOrEqual(15);
+    await expect(nav.locator('a.side-menu__link svg[aria-hidden="true"]')).toHaveCount(count);
+    // 줄 글자는 16px 이상(작은 아이콘 칸의 15px 낱말이던 예전 머리글보다 크게)
+    const size = await links.first().evaluate((link) => Number.parseFloat(getComputedStyle(link).fontSize));
+    expect(size).toBeGreaterThanOrEqual(16);
     const height = await page.locator('.site-header').evaluate((header) => header.getBoundingClientRect().height);
     expect(height, '머리글 한 줄 높이').toBeLessThanOrEqual(80);
   });
@@ -200,37 +227,47 @@ test.describe('머리글 주 메뉴 — 아이콘과 낱말(넓은 화면)', () 
   test('지금 있는 곳은 data-active와 막대로 표시한다(색만으로 알리지 않는다)', async ({ page }) => {
     await page.goto('./labs/gallery/');
     const nav = page.getByRole('navigation', { name: '주 메뉴' });
-    const labs = nav.getByRole('link', { name: '실습실', exact: true });
+    const labs = nav.getByRole('link', { name: '실습실 모아 보기', exact: true });
     await expect(labs).toHaveAttribute('data-active', 'true');
     await expect(labs).not.toHaveAttribute('aria-current', 'page');
+    await expect(nav.getByRole('link', { name: '예제 갤러리', exact: true })).toHaveAttribute('aria-current', 'page');
     const shadow = await labs.evaluate((link) => getComputedStyle(link).boxShadow);
     expect(shadow, '지금 있는 곳 막대').not.toBe('none');
   });
+
+  test('차시 쪽에서는 지금 단원 아래에 차시 목록이 펼쳐지고, 본문 칸의 같은 목록은 숨어 쪽이 한 칸이다', async ({ page }) => {
+    await page.goto('./learn/u1/1-1-2/');
+    const nav = page.getByRole('navigation', { name: '주 메뉴' });
+    const current = nav.locator('[data-side-menu-outline] a[aria-current="page"]');
+    await expect(current).toBeVisible();
+    await expect(current).toContainText('1-1-2');
+    await expect(page.locator('[data-lesson-nav][data-in-menu]')).toBeHidden();
+  });
 });
 
-test.describe('머리글 주 메뉴 — 좁은 화면 동작', () => {
+test.describe('왼쪽 메뉴판 — 좁은 화면 동작', () => {
   test.skip(({ isMobile }) => !isMobile, '모바일 화면(375px)에서만 확인한다');
 
-  test('메뉴 줄은 아이콘 + 낱말이고 누르기 쉬운 높이(44px 이상)이며, 하위 메뉴가 함께 보인다', async ({ page }) => {
+  test('메뉴 줄은 아이콘 + 낱말이고 누르기 쉬운 높이(44px 이상)이며, 실습실 줄이 함께 보인다', async ({ page }) => {
     await page.goto('./');
     await page.getByRole('button', { name: '메뉴' }).click();
     const nav = page.getByRole('navigation', { name: '주 메뉴' });
     for (const item of headerNav) {
-      const link = nav.getByRole('link', { name: item.label, exact: true });
+      const link = nav.getByRole('link', { name: item.id === 'labs' ? '실습실 모아 보기' : item.label, exact: true });
       await expect(link).toBeVisible();
       await expect(link.locator('svg[aria-hidden="true"]')).toHaveCount(1);
       const box = await link.boundingBox();
       expect(box?.height ?? 0, item.label).toBeGreaterThanOrEqual(44);
     }
-    for (const label of ['학생용', '보드 준비', '영상 처리 실습실', '파이썬 오류 사전']) {
+    for (const label of ['영상 처리 실습실', 'ESP32 실습실', '키트 장치 도감', '파이썬 오류 사전']) {
       const box = await nav.getByRole('link', { name: label, exact: true }).boundingBox();
       expect(box?.height ?? 0, label).toBeGreaterThanOrEqual(44);
     }
-    // 열린 메뉴 아래에도 검색 상자가 있다(DOM·보이는 차례가 같다)
+    // 열린 메뉴 위에도 검색 상자가 있다(머리글 안 — DOM·보이는 차례가 같다)
     await expect(page.getByRole('search', { name: '사이트 검색', exact: true })).toBeVisible();
   });
 
-  test('머리글 바깥을 누르면 닫히고, 화면이 넓어지면 닫힌 상태로 돌아간다', async ({ page }) => {
+  test('메뉴 바깥을 누르면 닫히고, 화면이 넓어지면 왼쪽 칸으로 보였다가 다시 좁아지면 닫힌 상태로 돌아간다', async ({ page }) => {
     await page.goto('./start/');
     const button = page.getByRole('button', { name: '메뉴' });
     await button.click();
@@ -242,7 +279,7 @@ test.describe('머리글 주 메뉴 — 좁은 화면 동작', () => {
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await page.setViewportSize({ width: 1366, height: 768 });
-    await expect(button).toBeHidden();
+    await expect(button).toBeVisible();
     await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeVisible();
     await page.setViewportSize({ width: 375, height: 812 });
     await expect(button).toHaveAttribute('aria-expanded', 'false');

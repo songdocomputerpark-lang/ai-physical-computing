@@ -21,6 +21,8 @@
  *   noindex      검색 엔진에 올리지 않을 페이지(404 등).
  *   searchIndex  사이트 검색(Pagefind) 색인에 넣을지. 기본 true → <main>에 data-pagefind-body를 붙인다.
  *   ogType       공유 미리보기 종류: 'website'(기본) · 'article'(글).
+ *   menuOutline  왼쪽 메뉴판의 한 줄(anchor = side-menu.ts의 사이트 지도 id) 아래에 넣을 이 쪽의 차례(판 1.9.0, C238 — 차시·교과서·키트 장치 쪽).
+ *                넓은 화면에서 메뉴판이 펴져 있으면 본문 칸의 같은 차례(LessonSidebar inMenu)는 숨고 쪽이 한 칸이 된다.
  *
  * slots
  *   (기본)   본문. 페이지 제목 <h1>은 페이지가 직접 한 번 쓴다(class="page-title" 권장).
@@ -30,9 +32,11 @@
  */
 import '../styles/global.css';
 import Breadcrumb from '../components/common/Breadcrumb.astro';
+import type { SidebarOutline } from '../components/lesson/sidebar-outline.ts';
 import type { BreadcrumbItem } from '../config/nav.ts';
 import { siteConfig } from '../config/site.ts';
 import { absoluteUrl, stripBase, withBase } from '../lib/url.ts';
+import SideMenu from './partials/SideMenu.astro';
 import SiteFooter from './partials/SiteFooter.astro';
 import SiteHeader from './partials/SiteHeader.astro';
 
@@ -50,6 +54,7 @@ interface Props {
    * (판 1.3.0 검수 R1-080 — 목록 앞에서 멈춰 Tab을 34번 눌러야 했다). JS가 없어도 같다.
    */
   skipTarget?: string;
+  menuOutline?: { readonly anchor: string; readonly outline: SidebarOutline };
 }
 
 const {
@@ -62,6 +67,7 @@ const {
   searchIndex = true,
   ogType = 'website',
   skipTarget = 'main-content',
+  menuOutline,
 } = Astro.props;
 
 const documentTitle = isHome ? siteConfig.name : `${title} | ${siteConfig.name}`;
@@ -72,7 +78,7 @@ const hasNotice = Astro.slots.has('notice');
 ---
 
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-page-width={width}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -163,8 +169,23 @@ const hasNotice = Astro.slots.has('notice');
     <!-- 주소에 ?embed=1이 있으면 차시 페이지 안(iframe)에 넣은 것이다 — 머리글·바닥글·소개 글을 숨긴다(P2-14, global.css의 html[data-embed]). -->
     <!-- 그때 이 문서의 main에 이름을 붙인다: 차시 페이지의 main과 이름이 같으면 화면 낭독기의 영역 목록에 "기본 영역"이 둘 들린다 -->
     <!-- (axe landmark-unique — 2026-09-26 Phase 6 검토 지적). -->
+    <!-- 왼쪽 메뉴판(판 1.9.0, C238)을 접어 두었으면 첫 그리기 전에 접는다 — 쪽을 옮길 때 칸이 펴졌다 접히며 흔들리지 않게. -->
+    <!-- 화면을 넓게 쓰는 쪽(width="wide" — 실습실)은 처음에 접혀 있고, 거기서 [메뉴]로 펼친 것만 따로 기억한다(보드 그림·편집칸·결과 칸 자리). -->
+    <!-- 저장 이름은 src/layouts/partials/side-menu.ts SIDE_MENU_STORAGE_NAME·SIDE_MENU_WIDE_STORAGE_NAME에 머리말(src/lib/storage.ts)을 붙인 것(tests/unit/side-menu.test.ts가 대조). -->
     <script is:inline>
       document.documentElement.classList.add('js');
+      try {
+        var root = document.documentElement;
+        if (root.dataset.pageWidth === 'wide') {
+          if (localStorage.getItem('ai-physical-computing:ui:side-menu-wide') !== 'open') {
+            root.dataset.sideMenu = 'closed';
+          }
+        } else if (localStorage.getItem('ai-physical-computing:ui:side-menu') === 'closed') {
+          root.dataset.sideMenu = 'closed';
+        }
+      } catch {
+        // 저장 공간을 못 읽으면 메뉴판은 펴진 채로 보인다.
+      }
       try {
         if (new URLSearchParams(location.search).get('embed') === '1') {
           document.documentElement.dataset.embed = '1';
@@ -184,21 +205,27 @@ const hasNotice = Astro.slots.has('notice');
   <body>
     <a class="skip-link" href={`#${skipTarget}`}>본문으로 건너뛰기</a>
     <SiteHeader />
-    {
-      hasNotice && (
-        <div class="page-notice">
-          <div class="page-notice__inner">
-            <slot name="notice" />
+    {/* 왼쪽 메뉴판 + 본문 칸(판 1.9.0, C238): 넓은 화면은 두 칸(global.css .site-body), 좁은 화면은 메뉴판이 머리글 바로 아래에 접혀 있다. */}
+    <div class="site-body">
+      <SideMenu outline={menuOutline} />
+      <div class="site-body__main">
+        {
+          hasNotice && (
+            <div class="page-notice">
+              <div class="page-notice__inner">
+                <slot name="notice" />
+              </div>
+            </div>
+          )
+        }
+        <div class:list={['page', `page--${width}`]}>
+          <div class="page__inner">
+            {showBreadcrumb && <Breadcrumb items={Array.isArray(breadcrumb) ? breadcrumb : undefined} />}
+            <main id="main-content" class="page__main" tabindex="-1" data-pagefind-body={searchIndex ? true : undefined}>
+              <slot />
+            </main>
           </div>
         </div>
-      )
-    }
-    <div class:list={['page', `page--${width}`]}>
-      <div class="page__inner">
-        {showBreadcrumb && <Breadcrumb items={Array.isArray(breadcrumb) ? breadcrumb : undefined} />}
-        <main id="main-content" class="page__main" tabindex="-1" data-pagefind-body={searchIndex ? true : undefined}>
-          <slot />
-        </main>
       </div>
     </div>
     <SiteFooter />

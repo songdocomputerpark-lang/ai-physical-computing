@@ -120,6 +120,15 @@ import Icon from '../common/Icon.astro';
   }
 
   /*
+   * 발표 중 표 글자는 판 1.8.0까지의 15px(판 1.9.0 C239): 보통 쪽의 표는 16px로 키웠지만, 수업 화면은 단계마다 표를 줄여 막대 위에 맞추고
+   * (present.ts fitSingle·joinTail — TAIL_MIN_ZOOM) 그 하한이 15px 표로 정해져 있다. 16px이면 150% 확대에서 그림이 든 표의 마지막 줄과
+   * 그림 설명이 한 화면에 들어가지 않아 설명 한 줄만 따로 한 단계가 됐다(tests/e2e/book.spec.ts 150% /book/1-1-1/). 프로젝터에서는 화면 전체가 커서 읽기에 지장이 없다.
+   */
+  html[data-presenting] .prose table {
+    font-size: 0.9375rem;
+  }
+
+  /*
    * 핵심 개념의 접힌 상자(details[data-concepts-fold], 판 1.6.0 C174)는 발표 중 펼친 채 모양만 없앤다 — 안의 블록은 present.ts가 바깥 블록처럼
    * 한 단계씩 나눈다. 제목 줄(summary)은 숨기고, 상자의 테두리·배경·안쪽 여백(.more)도 없앤다.
    */

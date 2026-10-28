@@ -9,6 +9,8 @@
  * - 주소 ?view=slide로 열어도 같다(C133). 단계 주소 #slide=N은 present.ts 머리말.
  * - 자리는 두 쪽 모두 전환 줄 바로 아래다(판 1.7.0, 미해결 259 — 보드 차시에서 준비물 사진 뒤라 첫 화면 밖이었다). 그래서 예전의 tight(칩 줄 아래에 붙이기)는 없다.
  * - 막대의 단계 이름을 누르면 큰 제목(##)으로 고르는 단계 목록이 열린다(판 1.7.0, 미해결 271) — 안내 끝 한 문장.
+ * - 판 1.9.0(C239 읽기 쉽게): 화면에는 첫 문장 한 줄만 보이고, 키·터치·단계 목록 안내(.lesson__tools-more)는 화면 낭독기만 읽는다
+ *   (단추의 aria-describedby 그대로 — 차시 머리에 회색 작은 글 세 줄이 끼어 제목·할 일 칸을 읽기 어려웠다). 같은 안내는 수업 화면 막대에도 있다.
  */
 ---
 
@@ -17,9 +19,11 @@
   {/* 키보드 문구는 키보드 쓰는 넓은 화면에만, 터치·좁은 화면에는 [앞]·[다음] 단추 안내(R3-004). 보이지 않는 쪽은 display:none이라 낭독기도 읽지 않는다. */}
   <span class="lesson__tools-note" id="lesson-present-note">
     수업 중 프로젝터로 크게, 한 단계씩 보여 줘요.{' '}
-    <span class="lesson__tools-keys">오른쪽·왼쪽 화살표 키로 넘기고 Esc로 끝내요. 내용이 길면 아래 화살표 키나 Space로 내려요.</span>
-    <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>{' '}
-    <span class="lesson__tools-list">아래 막대의 단계 이름을 누르면 큰 제목 목록에서 골라 갈 수 있어요.</span>
+    <span class="lesson__tools-more">
+      <span class="lesson__tools-keys">오른쪽·왼쪽 화살표 키로 넘기고 Esc로 끝내요. 내용이 길면 아래 화살표 키나 Space로 내려요.</span>
+      <span class="lesson__tools-touch">주로 선생님이 수업에서 쓰고, [앞]·[다음] 단추로 넘겨요.</span>{' '}
+      <span class="lesson__tools-list">아래 막대의 단계 이름을 누르면 큰 제목 목록에서 골라 갈 수 있어요.</span>
+    </span>
   </span>
 </p>
 
@@ -36,6 +40,19 @@
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+
+  /* 화면 낭독기만 읽는 자세한 안내(global.css .visually-hidden과 같은 방법) */
+  .lesson__tools-more {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
   }
 
   /* 키보드 안내는 터치 기기·좁은 화면(휴대폰)에서 [앞]·[다음] 단추 안내로 바꾼다(R3-004) */

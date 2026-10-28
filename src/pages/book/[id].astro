@@ -17,6 +17,7 @@
  * 엄격하게(오류면 실패) 돌리는 것은 npm run check:book, 출판본 글자와의 같음은 npm run book:fidelity.
  * 새 절 = content/book/<id>.md 하나(와 그 절의 그림 목록)를 넣으면 쪽이 생긴다. 코드는 고치지 않는다.
  */
+import '../../styles/side-menu-outline.css';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getCollection, type CollectionEntry } from 'astro:content';
@@ -163,9 +164,10 @@ const mediaInfos = book.media.map((key) => ({ key, ...BOOK_MEDIA_INFO[key] }));
   breadcrumb={bookBreadcrumb(book, toc)}
   ogType="article"
   skipTarget="lesson-article"
+  menuOutline={{ anchor: 'book', outline }}
 >
-  <div class="book-layout">
-    <LessonSidebar outline={outline} />
+  <div class="book-layout" data-outline-layout>
+    <LessonSidebar outline={outline} inMenu />
     <article class="lesson book-page" id="lesson-article" tabindex="-1" data-book-id={book.id}>
       <header class="lesson__header book-header">
         <p class:list={['book-header__where', unitClass]} data-present-hide data-pagefind-ignore>
