@@ -56,7 +56,7 @@
 import Callout from '../common/Callout.astro';
 import { assertValidExamples, type LabExample } from '../../lab/controls/examples.ts';
 import { embeddedExampleJson } from '../../lab/controls/lazy-examples.ts';
-import { TAB_HINT } from '../../lab/editor/python-editor.ts';
+import { TAB_HINT, TAB_HINT_SHORT } from '../../lab/editor/python-editor.ts';
 import { folderNameOf, modulesForLab } from '../../lab/modules/manifests.ts';
 import type { ModulePlacement } from '../../lab/modules/types.ts';
 import { STOP_GRACE_MS } from '../../lab/runtime/config.ts';
@@ -317,7 +317,9 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
         Tab 안내는 편집칸 **위**에 둔다. 아래에 있으면 키보드만 쓰는 학생이 편집칸에 들어간 뒤에야 읽게 된다(2026-09-17 검토 반영).
         Tab으로 막 들어온 편집칸은 Tab 한 번으로 지나가고, 글을 쓰기 시작하면 Tab이 들여쓰기다(python-editor.ts 머리말).
       */}
-      <p id={ids.editorHint} class="lab__hint lab__hint--before" data-lab-editor-hint>{TAB_HINT}</p>
+      <p id={ids.editorHint} class="lab__hint lab__hint--before" data-lab-editor-hint>
+        <span class="lab__hint-long">{TAB_HINT}</span><span class="lab__hint-short">{TAB_HINT_SHORT}</span>
+      </p>
       <div class="lab__editor-host" data-lab-editor data-label="파이썬 코드"></div>
     </section>
 
@@ -1264,6 +1266,33 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   /* 편집칸 위에 두는 안내(Tab 키) — 아래 여백만 준다 */
   .lab__hint--before {
     margin: 0 0 var(--space-2);
+  }
+
+  /*
+   * 휴대폰 폭의 실습실 안에서는 작은 글 두 단계를 판 1.8.0 크기(13·15px)로 둔다(판 1.9.0 C239의 예외): 사이트 전체에서 14·16px로 키우자
+   * 375 차시 안 실습실에서 [실행] 뒤 조작 줄·결과 알림·실습 방법·안내 글이 길어져 코드 칸이 화면 밖으로 밀렸다
+   * (tests/e2e/lesson-embed.spec.ts — 미해결 261 #14 "[실행]해도 [실행] 단추와 코드가 화면에 남는다"). 휴대폰 실습실은 한 화면에 조작 줄·결과·코드가 함께 보이는 것이 먼저다.
+   */
+  @media (max-width: 40rem) {
+    .lab {
+      --text-xs: 0.8125rem;
+      --text-sm: 0.9375rem;
+    }
+  }
+
+  /* 편집칸 키보드 안내: 터치 휴대폰 폭에서는 짧은 판(python-editor.ts TAB_HINT_SHORT), 그 밖에서는 긴 판. 안 보이는 쪽은 display:none이라 설명(aria-describedby)에도 빠진다 */
+  .lab__hint-short {
+    display: none;
+  }
+
+  @media (max-width: 40rem) and (pointer: coarse) {
+    .lab__hint-long {
+      display: none;
+    }
+
+    .lab__hint-short {
+      display: inline;
+    }
   }
 
   /*

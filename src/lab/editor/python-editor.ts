@@ -43,6 +43,12 @@ import { editorTheme, pythonHighlightStyle } from './theme.ts';
 export const TAB_HINT =
   'Tab 키는 들여쓰기예요. 다른 칸으로 가려면 Esc를 누른 뒤 Tab을 눌러요(Tab으로 막 들어왔을 때는 Tab만 눌러도 지나가요). Ctrl+Enter로 실행해요.';
 
+/**
+ * 같은 안내의 짧은 판(판 1.9.0) — 터치 휴대폰 폭(LabShell.astro `.lab__hint-short`)에서만 긴 판 대신 보인다. 휴대폰에서는 Tab 키를 거의 쓰지 않아
+ * 긴 안내 네 줄이 [실행] 뒤 코드 칸을 화면 밖으로 밀었다(tests/e2e/lesson-embed.spec.ts). 키보드를 이어 쓴 사람을 위해 빠져나가는 방법은 남긴다(WCAG 2.1.2).
+ */
+export const TAB_HINT_SHORT = '키보드: Tab은 들여쓰기, 칸을 나가려면 Esc 다음 Tab.';
+
 /** 이 시간 안에 Tab 키가 눌린 뒤 편집칸이 초점을 받으면 "Tab으로 들어왔다"로 본다(밀리초) */
 export const TAB_ENTRY_WINDOW_MS = 1_000;
 
