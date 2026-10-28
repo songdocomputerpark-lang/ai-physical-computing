@@ -3,7 +3,7 @@
 // ② f024 마지막 줄 pyautogui.enter는 AttributeError + 한국어 설명으로 끝난다 ③ press('space')가 미니게임에 들어가 점수가 오른다(f121)
 // ④ 저장한 그림이 미리보기·[내려받기]로 나온다(f016·f025·f090) ⑤ 사이트·jsDelivr 밖 요청이 0건이다(진짜 인터넷에 가지 않는다).
 // P2-11의 기본 동작(커서·클릭·끌기·메모장·FAILSAFE)은 tests/e2e/lab-desktop.spec.ts가 본다.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { labRoot, runCode, waitDone } from './helpers/lab.ts';
 import { collectRequests, openVisionLab } from './helpers/vision.ts';
 
@@ -126,6 +126,7 @@ test.describe('가상 데스크톱 ②(가상 브라우저·미니게임·내 �
 
     // 학생이 캔버스에 초점을 두고 직접 스페이스를 누른다(게임 창이 열려 있으므로 게임으로 간다)
     const canvas = page.locator('[data-desktop-canvas]');
+    await centerCanvas(canvas);
     await canvas.click({ position: { x: 5, y: 5 } });
     await canvas.press('Space');
     // 누른 횟수는 키 처리 뒤에 표시가 바뀌므로 기다리며 확인한다(바로 한 번 읽으면 CI 모바일에서 가끔 0이었다 — 2026-09-17 1 flaky의 원인).
@@ -208,6 +209,7 @@ test.describe('가상 데스크톱 ②(가상 브라우저·미니게임·내 �
     // 캔버스에 초점을 두고 글자를 친다(검색창이 처음부터 초점이다).
     // 한글은 키 하나가 아니라 입력기(IME)가 조합해 보내므로 가상 데스크톱에 들어가지 않는다(알려진 한계 — 패널 안내 글 참고).
     const canvas = page.locator('[data-desktop-canvas]');
+    await centerCanvas(canvas);
     await canvas.click({ position: { x: 5, y: 5 } });
     await canvas.pressSequentially('vision');
     await expect(desktop).toHaveAttribute('data-desktop-browser-query', 'vision');
@@ -217,3 +219,11 @@ test.describe('가상 데스크톱 ②(가상 브라우저·미니게임·내 �
     await expect(page.locator('[data-desktop-action]')).toContainText('사이트');
   });
 });
+
+/**
+ * 캔버스를 화면 가운데로 옮긴다 — 화면 위에 붙어 따라오는 실습실 조작 줄([data-lab-bar])이 캔버스 왼쪽 위 모서리를 가리지 않게.
+ * Playwright는 "보이게만" 굴려 캔버스 위 끝이 조작 줄 밑에 걸릴 수 있다(판 1.9.0에서 글자가 커져 배치가 내려가자 (5,5) 누르기가 막혔다).
+ */
+async function centerCanvas(canvas: Locator): Promise<void> {
+  await canvas.evaluate((element) => element.scrollIntoView({ block: 'center', inline: 'nearest' }));
+}
