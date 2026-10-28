@@ -132,6 +132,14 @@ sources:
       - public/images/site/**/third-party/**
       - public/images/lessons/**/third-party/**
 
+  - name: 인공지능 원리 체험 쪽(K-평균·딥러닝)
+    category: self
+    author: 박상진·김석전
+    license: CC BY-NC-SA 4.0
+    used_in: "인공지능 원리 체험 안내·K-평균·딥러닝 쪽(public/ml/ — DECISIONS O23·C238). 글과 쪽 안의 SVG·캔버스 그림은 사이트가 직접 만든 것이고, 쪽 안의 프로그램과 파이썬 예제 코드는 MIT예요. 바깥 라이브러리·그림을 쓰지 않아요."
+    paths:
+      - public/ml/**
+
   # ── 교육과정 인용(reference) ──
   # 차시 머리의 성취기준 코드와 교사용 접기의 성취기준 요약(src/config/standards.ts)이 이 문서를 인용해요(PLAN §2.2·§9.4 C, PD-21, DECISIONS C8).
   # 사이트 파일(public·examples·content)이 아니라 코드 안 표에 들어가서 paths가 없어요. 요약 문장은 사이트가 줄인 것이고 원문은 게시물에 있어요.
