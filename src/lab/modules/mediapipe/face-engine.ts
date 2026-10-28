@@ -2,7 +2,7 @@
  * 얼굴 인식 엔진 두 가지(PLAN §8.2 P2-09, CODE_MAPPING §3.2.3·§3.2.4) — 공통 뼈대는 task-engine.ts.
  *
  * 1. FaceEngine — Tasks FaceLandmarker(얼굴 그물 478점). 파이썬이 보낸 설정(mediapipe.open options)을 Tasks 옵션으로 옮긴다.
- *    Tasks는 늘 478점(눈동자 포함)을 주고, 판 1.8.0부터 파이썬 쪽(mediapipe 1.1.1 모양)도 늘 478점을 그대로 쓴다.
+ *    Tasks는 늘 478점(눈동자 포함)을 주고, 판 1.8.0부터 파이썬 쪽(mediapipe 1.x(1.1.1·1.2.0) 모양)도 늘 478점을 그대로 쓴다.
  * 2. FaceDetectionEngine — Tasks FaceDetector(얼굴 상자). Tasks 상자는 픽셀이라 여기서 0~1로 바꿔 넘기고(재생 입력과 같은 모양),
  *    파이썬 쪽이 프레임 크기를 곱해 진짜 1.1.1처럼 픽셀 정수 bounding_box로 되돌린다.
  *

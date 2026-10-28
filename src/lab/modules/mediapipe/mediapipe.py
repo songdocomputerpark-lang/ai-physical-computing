@@ -2,7 +2,7 @@
 알맹이는 같은 폴더의 apc_mediapipe.py.
 
 진짜 mediapipe 패키지는 Pyodide(브라우저 파이썬)에 없어서, 워커가 이 파일을 가상 파일시스템 /apc/mediapipe.py에 두고 sys.path 맨 앞에서
-찾게 한다(학생이 mediapipe.py 파일을 만들어도 가리지 못한다). 진짜 1.1.1처럼 맨 위에는 Image·ImageFormat·tasks 셋만 있고,
+찾게 한다(학생이 mediapipe.py 파일을 만들어도 가리지 못한다). 진짜 1.1.1·1.2.0처럼 맨 위에는 Image·ImageFormat·tasks 셋만 있고,
 추론은 브라우저의 MediaPipe Tasks Vision이 한다.
 
     import mediapipe as mp

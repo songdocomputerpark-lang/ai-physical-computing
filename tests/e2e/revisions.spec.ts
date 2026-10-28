@@ -13,7 +13,10 @@ test.describe('교과서와 다른 곳 — 고친 날', () => {
     await expect(box).toContainText('사이트 판 1.8.0');
     // 요약 속 `…`은 코드 모양으로
     await expect(box.locator('li code').first()).toBeVisible();
-    await expect(box.locator(`time[datetime="${PC_VERSIONS_CHECKED}"]`)).toHaveText(koreanDate(PC_VERSIONS_CHECKED));
+    // 새 기록이 먼저(2026-10-28 mediapipe 1.2.0 다시 확인), 상자 끝에는 판 번호를 다시 확인한 날
+    await expect(box.locator('li').first()).toHaveAttribute('data-revision-date', '2026-10-28');
+    await expect(box.locator('li').first()).toContainText('mediapipe 1.2.0');
+    await expect(box.locator(`.lesson-revisions__checked time[datetime="${PC_VERSIONS_CHECKED}"]`)).toHaveText(koreanDate(PC_VERSIONS_CHECKED));
     const link = box.getByRole('link', { name: '지금 판 번호 보기' });
     await link.click();
     await expect(page).toHaveURL(/\/teacher\/real-pc\/#/u);
@@ -31,7 +34,7 @@ test.describe('교과서와 다른 곳 — 고친 날', () => {
     const revised = page.locator('[data-lab-example-revised]');
     await expect(revised).toBeVisible();
     await expect(revised).toContainText('원본 코드와 달라요 — 2026년 10월 26일 고침(사이트 판 1.8.0)');
-    await expect(revised).toContainText('mediapipe 1.1.1');
+    await expect(revised).toContainText('mediapipe 1.2.0');
 
     await page.goto('./labs/vision/?example=vision/first-edge.py');
     await expect(page.locator('[data-lab-example-description]')).toBeVisible();
@@ -47,6 +50,6 @@ test.describe('교과서와 다른 곳 — 고친 날', () => {
 
   test('교과서 원문 쪽(1-1-2)의 안내 상자 제목에 고친 날이 있다', async ({ page }) => {
     await page.goto('./book/1-1-2/');
-    await expect(page.getByText('이 사이트에서는 최신 MediaPipe(1.1.1)로 — 2026년 10월 26일 고침').first()).toBeVisible();
+    await expect(page.getByText('이 사이트에서는 최신 MediaPipe(1.2.0)로 — 2026년 10월 28일 고침').first()).toBeVisible();
   });
 });

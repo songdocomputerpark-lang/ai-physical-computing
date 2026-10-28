@@ -296,8 +296,8 @@ test.describe('교사용 자료실', () => {
     for (const href of external) {
       expect(href, href).toMatch(official);
     }
-    // 판 1.8.0: 토니 5.0 + mediapipe 1.1.1 기준(모델 파일 받는 절이 있다)
-    await expect(page.getByRole('main')).toContainText('mediapipe 1.1.1');
+    // 판 1.8.0: 토니 5.0 + mediapipe 1.2.0 기준(모델 파일 받는 절이 있다)
+    await expect(page.getByRole('main')).toContainText('mediapipe 1.2.0');
     await expect(page.locator('h3[id="모델-파일-받기"]')).toHaveText('모델 파일 받기');
   });
 

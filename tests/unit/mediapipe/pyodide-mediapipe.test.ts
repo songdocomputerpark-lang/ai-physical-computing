@@ -107,7 +107,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 
     if (skipped) return;
     const [version, indexTip, thumbTip, connections, firstThree, sameDrawing, sameTasks, sameStyles, styleType, topNames, connectionRepr, baseRepr, landmarkRepr, mode, srgb] =
       value('import');
-    expect(version).toBe('1.1.1-apc');
+    expect(version).toBe('1.2.0-apc');
     expect(indexTip).toBe(8);
     expect(thumbTip).toBe(4);
     expect(connections).toBe(21);
@@ -290,7 +290,7 @@ describe.skipIf(!pyodideInstalled || !nodeHasJspi || !fixtureExists)('mediapipe 
 
   it('numpy를 아직 받지 않은 순간에도 import·install()이 된다(install은 패키지 받기 전에도 불린다)', () => {
     if (skipped) return;
-    expect(out.importsWithoutNumpy).toBe('1.1.1-apc');
+    expect(out.importsWithoutNumpy).toBe('1.2.0-apc');
   });
 
   // ── 얼굴 그물(FaceLandmarker) ──

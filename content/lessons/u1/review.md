@@ -7,9 +7,12 @@ label: I-마무리
 description: 1단원 영상 처리 인공지능에서 배운 인공지능 응용 프로그램, 영상 인식, 핸드 트래킹, 페이스 메시, 포즈 트래킹과 음성 인식을 교과서 112~113쪽 문제로 점검해요.
 pages: "112~113"
 revisions:
+  - date: 2026-10-28
+    version: 1.8.0
+    summary: "mediapipe 1.2.0(2026년 10월 27일)이 나와 다시 확인했어요. 손·얼굴·자세를 찾는 사용법이 1.1.1과 같아 예제 코드는 그대로이고, 글에 적은 판 번호만 1.2.0으로 바꿨어요."
   - date: 2026-10-26
     version: 1.8.0
-    summary: "10번 문제의 코드는 교과서에서 옛 사용법(`mp.solutions.pose.Pose()`)을 썼는데, 최신 mediapipe 1.1.1 사용법(`vision.PoseLandmarker`)으로 다시 썼어요. 묻는 빈칸과 정답 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`는 그대로예요."
+    summary: "10번 문제의 코드는 교과서에서 옛 사용법(`mp.solutions.pose.Pose()`)을 썼는데, 최신 mediapipe 1.2.0 사용법(`vision.PoseLandmarker`)으로 다시 썼어요. 묻는 빈칸과 정답 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`는 그대로예요."
 standards: []
 quiz:
   - q: 다음 가운데 인공지능 응용 프로그램이 기존 응용 프로그램과 가장 뚜렷하게 다른 특징은 무엇일까요?
@@ -180,7 +183,7 @@ SpeechRecognition 라이브러리는 마이크로 들은 말을 `listen()`으로
 - 문장 끝을 해요체로 바꾸고, 보기의 "엑추에이터"는 사이트 전체에서 쓰는 "액추에이터"로 맞췄어요.
 - 2번 해설의 "기본적으로 환경, 센서, 지능적 처리, 엑추에이터 네 가지 구성 요소"는 1-1-1(원고 011쪽)이 목표까지 다섯 가지로 적은 것과 부딪혀서, "목표를 이루려고 … 움직이는 시스템"으로 다듬었어요.
 - 8번 예시 답안의 `cv2.fiip()`는 `cv2.flip()`의 오타라 바로잡았어요.
-- 10번 코드는 원고에서 옛 MediaPipe(0.10.21 이하)의 `mp.solutions.pose.Pose()`와 `pose.process()`를 썼어요. 이 사이트는 토니 5.0(파이썬 3.14)과 mediapipe 1.1.1 기준이라 같은 빈칸(BGR → RGB 변환)을 묻도록 Tasks API(`vision.PoseLandmarker`, `detect_for_video()`)로 다시 썼어요(판 1.8.0 — 운영자 결정). 원고 코드는 mediapipe 0.10.30부터 `AttributeError: module 'mediapipe' has no attribute 'solutions'`로 멈춰요. 정답 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`는 그대로예요.
+- 10번 코드는 원고에서 옛 MediaPipe(0.10.21 이하)의 `mp.solutions.pose.Pose()`와 `pose.process()`를 썼어요. 이 사이트는 토니 5.0(파이썬 3.14)과 mediapipe 1.2.0 기준이라 같은 빈칸(BGR → RGB 변환)을 묻도록 Tasks API(`vision.PoseLandmarker`, `detect_for_video()`)로 다시 썼어요(판 1.8.0 — 운영자 결정). 원고 코드는 mediapipe 0.10.30부터 `AttributeError: module 'mediapipe' has no attribute 'solutions'`로 멈춰요. 정답 `cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)`는 그대로예요.
 - 11번 코드의 6행은 원고에서 5행보다 한 칸 더 들여 써 있어 그대로 옮기면 파이썬 들여쓰기 오류(IndentationError)가 나요. 5행과 같게 맞췄어요.
 - 9번 해설에 사이트가 그린 EAR 그림을 더하고, 1-3-2의 입 모양 비율(MAR)과 이어 주는 문장을 보탰어요. 11번 해설에는 목소리가 서버로 간다는 것과 사이트의 글자 입력 방법을 보탰어요.
 :::

@@ -1,6 +1,6 @@
 """mediapipe 흉내 모듈의 파이썬 쪽(PLAN §8.2 P2-08 손 / P2-09 얼굴·자세, 판 1.8.0 — mediapipe 1.x 파이썬 판의 Tasks API 모양).
 
-학생 코드는 토니 5.0(파이썬 3.14) + mediapipe 1.1.1에서 쓰는 그대로 쓴다(같은 폴더의 mediapipe.py가 이 모듈을 `mediapipe`라는 이름으로 내보낸다):
+학생 코드는 토니 5.0(파이썬 3.14) + mediapipe 1.2.0(영상 인식 파이썬 코드는 1.1.1과 같음 — 2026-10-28 휠 비교)에서 쓰는 그대로 쓴다(같은 폴더의 mediapipe.py가 이 모듈을 `mediapipe`라는 이름으로 내보낸다):
 
     import time
     import cv2
@@ -35,7 +35,7 @@
   연결표는 Connection(start, end) 목록이라 draw_landmarks가 connection.start·connection.end를 읽는다(진짜와 같음).
 - 제한 모드(JSPI 없음): 기다릴 수 없어 아무것도 못 찾은 결과(빈 리스트)를 돌려주고 한 번 안내한다.
 
-PC의 mediapipe 1.1.1과 다른 점(화면 쪽 hands-engine.ts 머리말과 같은 내용):
+PC의 mediapipe 1.x(1.1.1·1.2.0)와 다른 점(화면 쪽 hands-engine.ts 머리말과 같은 내용):
 - 추론 엔진이 브라우저의 MediaPipe Tasks Vision 0.10.35다(PD-03 — 1.x JS는 사용 기록을 Google로 보내 쓰지 않는다). 모델 파일은 같은 종류라
   같은 사진에서 결과가 거의 같지만 조금 다를 수 있다(임계값은 조절 패널·@slider로).
 - 손 좌우(handedness)의 index는 진짜 파이썬 판처럼 Right=0·Left=1이다(2026-10-26 실제 1.1.1로 확인).
@@ -114,7 +114,7 @@ __all__ = [
 ]
 
 # 학생이 mp.__version__으로 볼 값(흉내 내는 파이썬 판 + 사이트 표시)
-VERSION = "1.1.1-apc"
+VERSION = "1.2.0-apc"
 
 REQUEST_OPEN = "mediapipe.open"
 REQUEST_DETECT = "mediapipe.detect"
@@ -134,7 +134,7 @@ NO_NUMPY_MESSAGE = (
 #: mediapipe.py의 __getattr__이 쓰는 문구(진짜 mediapipe 1.x와 같은 AttributeError — 오류 사전 'mediapipe-no-solutions'가 풀이한다)
 LEGACY_SOLUTIONS_MESSAGE = "module 'mediapipe' has no attribute 'solutions'"
 LEGACY_SOLUTIONS_NOTICE = (
-    "mp.solutions(옛 사용법)는 mediapipe 0.10.30부터 없어졌어요. 이 사이트는 토니 5.0 + mediapipe 1.1.1 기준이라 "
+    "mp.solutions(옛 사용법)는 mediapipe 0.10.30부터 없어졌어요. 이 사이트는 토니 5.0 + mediapipe 1.2.0 기준이라 "
     "손은 vision.HandLandmarker, 얼굴은 vision.FaceLandmarker, 자세는 vision.PoseLandmarker를 써요. 예제 목록의 같은 차시 예제를 열어 보세요."
 )
 IMAGE_PTR_MESSAGE = (

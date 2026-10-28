@@ -11,7 +11,7 @@
  *   (b') 모듈 워커 + 모듈 글루(forVisionTasks(base, true)): 뜬다(165ms). 다만 공유 파일 두 개(scripts/vendor-assets.mjs의 복사 목록 +11.2MB,
  *       src/lab/runtime/worker.ts의 모듈 확장 자리)를 고쳐야 해서 병렬 제작 단계에서는 못 한다.
  *
- * 판 1.8.0부터 파이썬 쪽은 mediapipe 1.1.1 Tasks 모양(HandLandmarkerOptions — num_hands 기본 1)이고 그 값을 아래 옛 이름 칸으로 옮겨 보낸다.
+ * 판 1.8.0부터 파이썬 쪽은 mediapipe 1.x(1.1.1·1.2.0) Tasks 모양(HandLandmarkerOptions — num_hands 기본 1)이고 그 값을 아래 옛 이름 칸으로 옮겨 보낸다.
  * 아래는 옛 레거시 형식과 Tasks의 차이(이 칸 이름이 생긴 까닭): Tasks numHands 기본 1 → 레거시 max_num_hands 기본 2를 이 모듈이 맞춘다,
  * 레거시 min_detection_confidence → minHandDetectionConfidence, min_tracking_confidence → minTrackingConfidence, 레거시에 없는
  * minHandPresenceConfidence는 0.5(Tasks 기본) 고정, model_complexity는 무시(Tasks 손 모델은 한 종류). 좌표계(0~1, z는 손목 기준)와

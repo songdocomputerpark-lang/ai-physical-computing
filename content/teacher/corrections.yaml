@@ -582,7 +582,7 @@ code_files:
     problem: >-
       39행 `cv2.destoyAllWindows()` 오타 — ESC로 끝낼 때 `AttributeError`가 나요.
     site: >-
-      판 1.8.0에서 최신 mediapipe(1.1.1) 사용법으로 다시 쓰면서 `cv2.destroyAllWindows()`로 고쳤어요(그전에는 오류 읽기 연습으로 그대로 두었어요).
+      판 1.8.0에서 최신 mediapipe(1.2.0) 사용법으로 다시 쓰면서 `cv2.destroyAllWindows()`로 고쳤어요(그전에는 오류 읽기 연습으로 그대로 두었어요).
   - code: f022
     lesson: P1
     problem: >-

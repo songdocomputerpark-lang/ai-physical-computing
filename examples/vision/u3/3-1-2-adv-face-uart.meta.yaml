@@ -1,7 +1,7 @@
 # 예제 설명(사이드카). 이 코드 파일은 판 1.8.0에서 최신 판 라이브러리에 맞게 다시 썼어요(기록: scripts/examples-manifest.yaml의 rewritten). 제목·설명은 여기에 적어요(src/lab/README.md 3절).
 # 처음 한 번은 scripts/import-examples.mjs가 만들고, 그 뒤로는 사람이 고쳐요(스크립트가 덮어쓰지 않아요).
 title: "3-1-2 심화: 얼굴이 보이면 a, 사라지면 b를 시리얼로 보내기"
-description: 컴퓨터 쪽 코드예요. 카메라에서 얼굴을 찾아 상태가 바뀔 때만 a·b를 보드에 보내요(원고 187쪽의 "값이 바뀔 때만" 규칙을 지키는 예제예요). 아래 [보내기] 패널에서 가상 보드를 먼저 열어야 이어지고, 열지 않고 [실행]하면 7번 줄에서 SerialException으로 멈춰요. 카메라가 없으면 입력 소스를 "재생 입력"으로 골라도 똑같이 실습할 수 있어요. 교과서 코드를 최신 MediaPipe(1.1.1)의 얼굴 찾기(vision.FaceDetector)로 다시 썼고, 얼굴 찾기 모델 파일(blaze_face_short_range.tflite)은 실습실에 들어 있어요. 원본 맨 끝 줄의 ser.close() 오타도 uart.close()로 고쳤어요.
+description: 컴퓨터 쪽 코드예요. 카메라에서 얼굴을 찾아 상태가 바뀔 때만 a·b를 보드에 보내요(원고 187쪽의 "값이 바뀔 때만" 규칙을 지키는 예제예요). 아래 [보내기] 패널에서 가상 보드를 먼저 열어야 이어지고, 열지 않고 [실행]하면 7번 줄에서 SerialException으로 멈춰요. 카메라가 없으면 입력 소스를 "재생 입력"으로 골라도 똑같이 실습할 수 있어요. 교과서 코드를 최신 MediaPipe(1.2.0)의 얼굴 찾기(vision.FaceDetector)로 다시 썼고, 얼굴 찾기 모델 파일(blaze_face_short_range.tflite)은 실습실에 들어 있어요. 원본 맨 끝 줄의 ser.close() 오타도 uart.close()로 고쳤어요.
 lesson: 3-1-2
 page: 193
 source_id: f085
@@ -32,4 +32,4 @@ practice:
 revised:
   date: 2026-10-26
   version: 1.8.0
-  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.1.1에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."
+  note: "교과서 코드는 옛 MediaPipe 사용법(mp.solutions)이라 토니 5.0의 최신 mediapipe 1.2.0에서 돌지 않아요. 같은 일을 하는 최신 사용법(vision의 Landmarker)으로 다시 써서 줄 번호도 교과서와 달라요."
