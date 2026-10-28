@@ -154,7 +154,7 @@ handouts:                            # (선택) 이어지는 가린 편집본 �
 | `materials` | | 준비물 목록. 비우면 "따로 준비할 것 없음" |
 | `source` | 차례표에 없는 차시만 | 원천: `manuscript-code`(원고+코드)·`manuscript`(원고만)·`code-only`(원고 없음)·`supplement`(보충). 차례표에 있으면 차례표 값이 쓰여요 |
 | `handouts` | | 가린 편집본 교안의 쪽: `{ doc: bt 또는 ppt, pages: "41~47", note: 짧은 설명 }` |
-| `revisions` | 예제를 원본과 다르게 다시 썼으면 꼭 | 교과서와 달라진 곳을 고친 날과 함께 학생에게 알려요: `- { date: 2026-10-26, version: 1.8.0, summary: "교과서의 mp.solutions 코드를 최신 mediapipe 1.1.1 사용법으로 다시 써서 줄 번호가 달라요." }`. 차시 머리 끝에 "교과서와 다른 곳 — 최신 판으로 고쳤어요" 상자가 새것부터 보이고, 요약 속 `` `…` ``은 코드 글꼴이 돼요(`src/components/lesson/LessonRevisions.astro`, 결정 C234). 상자 끝의 "판 번호를 다시 확인한 날"은 `src/config/pc-versions.ts`의 `PC_VERSIONS_CHECKED` 한 곳이에요(8절) |
+| `revisions` | 예제를 원본과 다르게 다시 썼으면 꼭 | 교과서와 달라진 곳을 고친 날과 함께 학생에게 알려요: `- { date: 2026-10-26, version: 1.8.0, summary: "교과서의 mp.solutions 코드를 최신 mediapipe 1.2.0 사용법으로 다시 써서 줄 번호가 달라요." }`. 차시 머리 끝에 "교과서와 다른 곳 — 최신 판으로 고쳤어요" 상자가 새것부터 보이고, 요약 속 `` `…` ``은 코드 글꼴이 돼요(`src/components/lesson/LessonRevisions.astro`, 결정 C234). 상자 끝의 "판 번호를 다시 확인한 날"은 `src/config/pc-versions.ts`의 `PC_VERSIONS_CHECKED` 한 곳이에요(8절) |
 | `comm`·`tags` | | 예제 갤러리 태그(통신 방식 `uart`·`ble`·`wifi`·`mqtt`·`tab`, 자유 낱말) — 모르면 적지 않아요 |
 | `draft` | | 아직 공개하지 않을 초안이면 `true`(목록·검사에서 빠져요). 차례표에 있는 차시를 초안으로 돌리면 CI "테스트"의 차시 틀 검사가 실패로 알려요(배포는 돼요 — 1-6) |
 
