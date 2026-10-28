@@ -8,6 +8,7 @@ import { REFLOW_VIEWPORT, expectNoHorizontalOverflow } from './helpers/reflow.ts
 import { PROGRESS_STORAGE_NAME } from '../../src/lib/progress.ts';
 import { storageKey, STORAGE_KEY_PREFIX } from '../../src/lib/storage.ts';
 import { withBase } from '../../src/lib/url.ts';
+import { closeSideMenuBeforeLoad } from './helpers/side-menu.ts';
 
 const KEY = storageKey(PROGRESS_STORAGE_NAME);
 
@@ -86,7 +87,8 @@ test.describe('차시를 열고 닫는 흐름', () => {
     expect(state.last?.id).toBe(LESSON_2);
 
     await page.goto('./learn/');
-    const resume = page.getByRole('link', { name: '이어서 하기' });
+    // 본문 안에서 찾는다 — 왼쪽 메뉴판(판 1.9.0)의 [이어서 하기 → …]와 메뉴판 "내 학습"의 전체 진도 글도 같은 말을 쓴다
+    const resume = page.getByRole('main').getByRole('link', { name: '이어서 하기' });
     await expect(resume).toHaveAttribute('href', withBase('learn/u1/1-1-2/'));
     // 링크 이름에 가는 차시가 들어간다(R1-092) — 보이는 글 "이어서 하기"가 이름 끝에 그대로 든다
     await expect(resume).toHaveAccessibleName(/^1-1-2 .+ 이어서 하기$/u);
@@ -98,7 +100,7 @@ test.describe('차시를 열고 닫는 흐름', () => {
     // 링크 접근 이름은 진도 글 때문에 바뀌지 않는다
     await expect(card.getByRole('link')).toHaveAccessibleName('1-1-2 인공지능 영상 인식 기술의 원리');
     // 단원 진도 글·막대가 나타난다
-    const unit = page.locator('[data-progress-unit]').first();
+    const unit = page.locator('main [data-progress-unit]').first();
     await expect(unit.locator('[data-progress-count]')).toHaveText('18차시 중 1차시를 열어 봤어요');
     // 막대는 글(위 줄)과 같은 말이라 화면 낭독기에서는 숨기고(aria-hidden), 이름만 달아 둔다
     await expect(unit.locator('[data-progress-bar]')).toHaveAttribute('aria-hidden', 'true');
@@ -123,7 +125,7 @@ test.describe('차시를 열고 닫는 흐름', () => {
     await page.goto(`.${learnUnits[0]!.path}`);
     const card = page.locator(`[data-progress-lesson="${LESSON_2}"]`);
     await expect(card.locator('[data-progress-badge]')).toHaveText('다 했어요');
-    await expect(page.locator('[data-progress-unit] [data-progress-count]').first()).toHaveText('18차시 중 1차시를 다 했어요');
+    await expect(page.locator('main [data-progress-unit] [data-progress-count]').first()).toHaveText('18차시 중 1차시를 다 했어요');
 
     await page.goBack();
     await page.getByRole('button', { name: '이 차시 다 했어요' }).click();
@@ -195,7 +197,8 @@ test.describe('대단원 쪽: 다음에 볼 차시', () => {
 });
 
 test.describe('차시 쪽 단원 차시 목록', () => {
-  test('넓은 화면은 옆에 펼쳐져 있고 지금 차시가 aria-current이며, 좁은 화면은 접힌 details이다', async ({ page, isMobile }) => {
+  test('메뉴판을 접은 넓은 화면은 옆에 펼쳐져 있고 지금 차시가 aria-current이며, 좁은 화면은 접힌 details이다', async ({ page, isMobile }) => {
+    await closeSideMenuBeforeLoad(page);
     await seed(page, { version: 1, seen: [LESSON_1], done: [LESSON_1], last: null, lastLab: null });
     await page.goto('./learn/u1/1-1-2/');
     const nav = page.getByRole('navigation', { name: '단원 차시 목록' });
@@ -237,6 +240,7 @@ test.describe('차시 쪽 단원 차시 목록', () => {
   });
 
   test('목록에서 다른 차시로 가면 그 차시가 aria-current이고 본 차시가 늘어난다', async ({ page, isMobile }) => {
+    await closeSideMenuBeforeLoad(page);
     await page.goto('./learn/u1/1-1-2/');
     if (isMobile) {
       await page.getByText('이 단원 차시 목록 펼치기').click();
@@ -263,6 +267,7 @@ test.describe('차시 쪽 단원 차시 목록', () => {
 
   test('수업 화면에서는 단원 차시 목록·위쪽 줄·다 했어요 상자가 숨고, 끝내면 돌아온다', async ({ page, isMobile }) => {
     test.skip(isMobile, '수업 화면은 데스크톱에서 본다(휴대폰은 lesson-template.spec이 본다)');
+    await closeSideMenuBeforeLoad(page);
     await page.goto('./learn/u1/1-1-2/');
     await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
     await expect(page.getByRole('navigation', { name: '단원 차시 목록' })).toBeVisible();
@@ -358,6 +363,7 @@ test.describe('판 1.3.0 검수 R1 — 다 했어요 뒤 다음 할 일 · 건�
   test('보충 차시는 묶음 제목에 "(선택)"이, 차시 목록에 "보충" 칩이 붙는다(R1-086)', async ({ page, isMobile }) => {
     await page.goto(`.${learnUnits[0]!.path}`);
     await expect(page.getByRole('heading', { level: 2, name: '보충: 영상 처리 기초 (선택)' })).toBeVisible();
+    await closeSideMenuBeforeLoad(page);
     await page.goto('./learn/u1/1-1-3/');
     if (isMobile) {
       await page.getByText('이 단원 차시 목록 펼치기').click();
@@ -407,15 +413,19 @@ test.describe('저장이 막히거나 깨진 값이어도 쪽은 멀쩡하다', 
   });
 
   test('자바스크립트가 꺼져 있으면 시작 카드는 처음 상태, 다 했어요 상자는 숨고, 차시 목록은 접힌 details로 쓸 수 있다', async ({ browser, baseURL }) => {
-    const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+    // 좁은 화면: 본문 위의 접힌 목록(넓은 화면은 메뉴판 안에 같은 목록이 늘 보인다 — 아래)
+    const context = await browser.newContext({ javaScriptEnabled: false, baseURL, viewport: { width: 375, height: 812 } });
     const page = await context.newPage();
     await page.goto('./learn/');
-    await expect(page.getByRole('link', { name: '처음이면 1단원 1-1-1부터' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('link', { name: '처음이면 1단원 1-1-1부터' })).toBeVisible();
     await page.goto('./learn/u1/1-1-2/');
     await expect(page.locator('[data-lesson-done]')).toBeHidden();
     await expect(page.getByText('이 단원 차시 목록 펼치기')).toBeVisible();
     await page.getByText('이 단원 차시 목록 펼치기').click();
     await expect(page.getByRole('navigation', { name: '단원 차시 목록' })).toBeVisible();
+    // 넓은 화면(판 1.9.0): 자바스크립트 없이도 왼쪽 메뉴판이 펴져 있고 그 안에 이 단원 차시 목록이 있다
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await expect(page.locator('#site-menu [data-side-menu-outline] a[aria-current="page"]')).toContainText('1-1-2');
     await context.close();
   });
 });

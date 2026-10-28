@@ -536,9 +536,10 @@ test.describe('보드 준비 페이지(P3-10)', () => {
     await expect(flow.getByRole('link', { name: '안전하게 쓰기' })).toHaveAttribute('href', '#safety');
     // 키트 장치 도감 링크(미해결 265)
     await expect(page.locator('[data-board-kit-link]').getByRole('link', { name: getPage('labs-esp32-kit').title })).toHaveAttribute('href', getPage('labs-esp32-kit').href);
-    // 쪽 높이: 접기 전 6,054px(1.6.0 걷기)보다 눈에 띄게 줄었다
+    // 쪽 높이: 접기 전 6,054px(1.6.0 걷기)보다 눈에 띄게 줄었다. 판 1.9.0부터 1366에서는 왼쪽 메뉴판(18rem)이 펴져 본문 칸이 좁아
+    // 약 60px 늘었다(5,462px) — 한도 5,400 → 5,600(여전히 접기 전보다 400px 넘게 짧다)
     const height = await page.evaluate(() => document.documentElement.scrollHeight);
-    expect(height).toBeLessThan(5400);
+    expect(height).toBeLessThan(5600);
     expect(errors).toEqual([]);
   });
 

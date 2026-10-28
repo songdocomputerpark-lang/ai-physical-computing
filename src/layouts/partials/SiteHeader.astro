@@ -199,6 +199,15 @@ const isHome = normalizePagePath(pathname) === '/';
       display: none;
     }
 
+    /*
+     * 메뉴판을 접은 넓은 화면(실습실은 처음부터)은 예전처럼 머리글 칸을 본문 칸(76rem)에 맞춘다 — 사이트 이름이 빵부스러기·쪽 제목과 같은 왼쪽 선에서
+     * 시작한다(R1-102, tests/e2e/labs-ui.spec.ts 1920 폭). 메뉴판이 펴져 있으면 이름은 메뉴판 위 왼쪽 끝이다.
+     */
+    :global(:root[data-side-menu='closed']) .site-header__inner {
+      width: min(100% - 2 * var(--gutter), var(--width-page));
+      padding-inline: 0;
+    }
+
     /* 검색 칸: 오른쪽 끝, 22rem까지 자라는 상자. 안의 검색 폼(HeaderSearch.astro)이 flex 항목으로 자라 이 칸을 채운다. */
     .site-header__search {
       display: flex;
