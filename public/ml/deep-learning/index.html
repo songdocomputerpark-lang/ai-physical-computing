@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>딥러닝 — 인공 신경망이 스스로 배우는 법</title>
+<meta name="description" content="뉴런 하나부터 시작해 층을 쌓고, 경사 하강법과 역전파로 신경망이 스스로 배우는 과정을 직접 만져 보며 익히는 고등학생용 체험 자료예요.">
+<link rel="stylesheet" href="../../fonts/pretendard/pretendardvariable-dynamic-subset.css">
+<style>
+:root{
+  --bg:#f4f3fb; --card:#fff; --text:#17191c; --muted:#4a5361; --border:#d6dde6; --strong:#7b8594;
+  --accent:#1f5bd6; --accent-h:#1a4cb4; --soft:#eaf1fe; --focus:#0b50c8;
+  --ok:#15653a; --ok-bg:#e8f6ee; --warn:#7a4a00; --warn-bg:#fff4d8; --bad:#a3232a; --bad-bg:#fdecec;
+  --c0:#0072B2; --c1:#D55E00;
+  --shadow:0 1px 2px rgb(37 33 74/.06),0 8px 22px rgb(37 33 74/.08);
+  --code-bg:#f1f3f8;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:400 17px/1.75 'Pretendard Variable',Pretendard,system-ui,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;word-break:keep-all;overflow-wrap:break-word}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{color:var(--accent-h)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.skip{position:absolute;left:8px;top:-60px;background:#fff;border:2px solid var(--focus);padding:.5rem 1rem;border-radius:.5rem;z-index:10;font-weight:700}
+.skip:focus{top:8px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+header.site{background:#fff;border-bottom:1px solid var(--border)}
+.site-in{max-width:960px;margin:0 auto;padding:.6rem 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.25rem 1rem}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:800;color:var(--text);text-decoration:none;min-height:44px}
+.brand svg{width:34px;height:34px;flex:none}
+.crumb{font-size:.9rem;color:var(--muted)}
+.crumb ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.35rem}
+.crumb li+li::before{content:"›";margin-right:.35rem;color:var(--strong)}
+.crumb a{color:var(--muted)}
+main{max-width:960px;margin:0 auto;padding:1.5rem 16px 3rem}
+.hero{padding:1.2rem 0 .6rem}
+.eyebrow{font-size:.85rem;font-weight:700;color:var(--accent);letter-spacing:.04em;margin:0}
+h1{font-size:clamp(1.65rem,5.4vw,2.35rem);line-height:1.3;margin:.3rem 0 .8rem;font-weight:800;letter-spacing:-.01em}
+.lead{font-size:1.08rem;color:var(--muted);margin:0 0 1rem;max-width:44em}
+.meta{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;margin:0;padding:.7rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:.95rem}
+.meta div{display:flex;gap:.5rem}.meta dt{color:var(--muted)}.meta dd{margin:0;font-weight:700}
+.toc{margin:1.2rem 0;background:var(--card);border-radius:1rem;box-shadow:var(--shadow);padding:1rem 1.25rem}
+.toc h2{font-size:1rem;margin:0 0 .4rem}
+.toc ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:0 1.5rem;counter-reset:t}
+.toc li{counter-increment:t;border-bottom:1px solid var(--border)}
+.toc a{display:block;padding:.4rem 0;text-decoration:none;color:var(--text);font-size:.97rem;min-height:44px;line-height:1.6;display:flex;align-items:center;gap:.6rem}
+.toc a::before{content:counter(t,decimal-leading-zero);color:var(--accent);font-weight:800;font-size:.85rem;min-width:1.5rem}
+.toc a:hover{color:var(--accent)}
+section.card{background:var(--card);border-radius:1rem;box-shadow:var(--shadow);padding:1.5rem 1.25rem;margin:1.25rem 0;scroll-margin-top:12px}
+@media(min-width:700px){section.card{padding:2rem 2.25rem}}
+section.card>.no{font-size:.85rem;font-weight:800;color:var(--accent);letter-spacing:.06em;margin:0}
+h2.t{font-size:clamp(1.3rem,3.6vw,1.65rem);line-height:1.4;margin:.1rem 0 .8rem;font-weight:800}
+h3{font-size:1.1rem;margin:1.6rem 0 .5rem;font-weight:800}
+p{margin:.6rem 0}
+ul,ol{padding-left:1.3rem}li{margin:.25rem 0}
+.callout{border-radius:.625rem;padding:.8rem 1rem;margin:1rem 0;border:1px solid;font-size:.97rem}
+.callout p{margin:.3rem 0}
+.callout.info{background:var(--soft);border-color:#b9cdf5}
+.callout.warn{background:var(--warn-bg);border-color:#e6c97a;color:var(--warn)}
+.callout.ok{background:var(--ok-bg);border-color:#a8d9bc;color:var(--ok)}
+.callout.task{background:#fff;border:1px solid var(--strong);border-left:5px solid var(--accent)}
+.callout b.k{display:block;font-size:.85rem;letter-spacing:.04em}
+.fig{margin:1rem 0;text-align:center}
+.fig svg{max-width:100%;height:auto}
+.fig figcaption{font-size:.88rem;color:var(--muted);margin-top:.3rem}
+svg text{font-family:inherit}
+.sb{font-size:.7em}
+.two{display:grid;gap:.9rem;grid-template-columns:minmax(0,1fr)}
+@media(min-width:700px){.two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.box{border:1px solid var(--border);border-radius:.625rem;padding:.9rem 1rem;background:#fff}
+.box h4{margin:0 0 .4rem;font-size:1rem}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;font-size:.92rem;margin:.4rem 0}
+.flow span.n{border:1px solid var(--strong);border-radius:.5rem;padding:.25rem .6rem;background:#fff}
+.flow span.n.hl{background:var(--soft);border-color:var(--accent);font-weight:700}
+.flow i{font-style:normal;color:var(--strong)}
+.panel{border:1px solid var(--border);border-radius:.8rem;padding:1rem;background:#fbfbfe;margin:1rem 0}
+.split{display:grid;gap:1.2rem;grid-template-columns:minmax(0,1fr)}
+@media(min-width:780px){.split{grid-template-columns:minmax(0,430px) minmax(0,1fr)}}
+.split>*{min-width:0}
+canvas{display:block;max-width:100%;border:1px solid var(--border);border-radius:.5rem;background:#fff}
+.btn{min-height:44px;padding:.45rem 1rem;border:1px solid var(--strong);border-radius:.625rem;background:#fff;color:var(--text);font:inherit;font-size:.97rem;font-weight:700;cursor:pointer;line-height:1.3}
+.btn:hover{border-color:var(--accent);background:var(--soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-h);border-color:var(--accent-h)}
+.btn[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.sm{padding:.3rem .7rem;font-size:.9rem}
+.btn.sq{min-width:44px;padding:.3rem}
+.row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.5rem 0}
+.row>.lab{font-weight:700;font-size:.95rem;min-width:5.5rem}
+.slider{display:grid;grid-template-columns:3.2rem minmax(0,1fr) 3.6rem;gap:.5rem;align-items:center;margin:.1rem 0}
+.slider label{font-weight:700;font-size:.95rem}
+.slider output{font-variant-numeric:tabular-nums;text-align:right;font-weight:700;font-size:.95rem}
+input[type=range]{width:100%;min-height:44px;accent-color:var(--accent);margin:0}
+select{min-height:44px;font:inherit;font-size:.95rem;padding:.2rem .5rem;border:1px solid var(--strong);border-radius:.625rem;background:#fff;color:var(--text)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.2rem,1fr));gap:.5rem;margin:.6rem 0}
+.stat{border:1px solid var(--border);border-radius:.5rem;padding:.4rem .7rem;background:#fff}
+.stat small{display:block;color:var(--muted);font-size:.8rem;line-height:1.4}
+.stat b{font-size:1.1rem;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.88rem;color:var(--muted);margin:.5rem 0}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.legend svg{width:16px;height:16px}
+.formula{font-size:1.05rem;padding:.7rem .9rem;border-radius:.625rem;background:var(--soft);border:1px solid #b9cdf5;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.formula strong{color:var(--accent)}
+table.t{border-collapse:collapse;width:100%;font-size:.93rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border:1px solid var(--border);padding:.35rem .5rem;text-align:left}
+table.t th{background:#f1f3f8}
+.scroll{overflow-x:auto;max-width:100%}
+.scroll:focus-visible{outline-offset:0}
+pre{margin:0;padding:.9rem 1rem;background:var(--code-bg);border:1px solid var(--border);border-radius:0 0 .625rem .625rem;overflow-x:auto;font:400 .86rem/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,'D2Coding','Noto Sans Mono CJK KR',monospace;word-break:normal;tab-size:4}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:.5rem;background:#e3e7f0;border:1px solid var(--border);border-bottom:0;border-radius:.625rem .625rem 0 0;padding:.25rem .5rem .25rem .9rem;font-size:.88rem;font-weight:700}
+.out pre{background:#fff;border-radius:0 0 .625rem .625rem}
+.out .codehead{background:var(--ok-bg);color:var(--ok)}
+details{border:1px solid var(--border);border-radius:.625rem;padding:.2rem 1rem;margin:1rem 0;background:#fff}
+details>summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+details.teacher{background:var(--warn-bg);border-color:#e6c97a}
+.q{border:1px solid var(--border);border-radius:.8rem;padding:.8rem 1rem;margin:.9rem 0;min-width:0}
+.q legend{font-weight:800;padding:0 .4rem}
+.q label{display:flex;gap:.6rem;align-items:flex-start;padding:.45rem .5rem;border-radius:.5rem;min-height:44px;cursor:pointer}
+.q label:hover{background:var(--soft)}
+.q input{width:20px;height:20px;margin-top:.3rem;accent-color:var(--accent);flex:none}
+.fb{margin:.5rem 0 0;padding:.5rem .8rem;border-radius:.5rem;font-size:.95rem}
+.fb.good{background:var(--ok-bg);color:var(--ok)}.fb.bad{background:var(--bad-bg);color:var(--bad)}
+.score{font-weight:800;font-size:1.1rem}
+footer.site{max-width:960px;margin:0 auto;padding:1.2rem 16px 2.5rem;font-size:.88rem;color:var(--muted);border-top:1px solid var(--border)}
+.tag{display:inline-block;font-size:.78rem;font-weight:800;padding:0 .5rem;border-radius:99px;background:var(--soft);color:var(--accent);margin-right:.3rem}
+.nets{display:flex;flex-wrap:wrap;gap:.6rem 1.2rem;align-items:center}
+.stepper{display:inline-flex;align-items:center;gap:.25rem;border:1px solid var(--border);border-radius:.625rem;padding:.15rem .3rem;background:#fff}
+.stepper b{min-width:1.4rem;text-align:center;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site">
+  <div class="site-in">
+    <a class="brand" href="../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="14" fill="#1f5bd6"/><circle cx="22" cy="32" r="10" stroke="#fff" stroke-width="5" fill="none"/><circle cx="22" cy="32" r="3.5" fill="#fff"/><path d="M34 32h8" stroke="#fff" stroke-width="5" stroke-linecap="round"/><rect x="43" y="22" width="11" height="20" rx="3" fill="#fff"/></svg>
+      <span>AI 피지컬 컴퓨팅 오픈랩</span>
+    </a>
+    <nav class="crumb" aria-label="현재 위치">
+      <ol><li><a href="../">인공지능 원리 체험</a></li><li aria-current="page">딥러닝</li></ol>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="hero">
+  <p class="eyebrow">인공지능 원리 체험</p>
+  <h1>딥러닝 — 인공 신경망이 스스로 배우는 법</h1>
+  <p class="lead">뉴런 하나로 선을 긋는 일부터 시작해요. 그다음 오차를 줄이며 배우는 방법, 층을 쌓는 이유, 역전파까지 직접 만져 보면서 알아봐요.</p>
+  <dl class="meta">
+    <div><dt>대상</dt><dd>고등학생</dd></div>
+    <div><dt>시간</dt><dd>약 50분(두 차시로 나눠도 됨)</dd></div>
+    <div><dt>준비물</dt><dd>브라우저</dd></div>
+  </dl>
+</div>
+
+<nav class="toc" aria-label="차례">
+  <h2>차례</h2>
+  <ol>
+    <li><a href="#s1">딥러닝은 어디쯤?</a></li>
+    <li><a href="#s2">인공 뉴런 하나</a></li>
+    <li><a href="#s3">실습 1 · 내 손으로 선 긋기</a></li>
+    <li><a href="#s4">학습 · 오차를 줄이는 방향으로</a></li>
+    <li><a href="#s5">층을 쌓으면 · 신경망 놀이터</a></li>
+    <li><a href="#s6">역전파</a></li>
+    <li><a href="#s7">조심할 점과 쓰이는 곳</a></li>
+    <li><a href="#s8">파이썬으로 확인하기</a></li>
+    <li><a href="#s9">확인 문제</a></li>
+    <li><a href="#s10">정리</a></li>
+  </ol>
+</nav>
+
+<!-- 1 -->
+<section class="card" id="s1" aria-labelledby="h1">
+  <p class="no">01</p>
+  <h2 class="t" id="h1">딥러닝은 어디쯤?</h2>
+  <p>뉴스에서 인공지능, 기계학습, 딥러닝이라는 말을 모두 들어 봤을 거예요. 셋은 서로 포함하는 관계예요.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 480 310" width="480" role="img" aria-label="가장 큰 상자는 인공지능, 그 안에 기계학습, 그 안에 딥러닝이 들어 있는 포함 관계 그림">
+      <rect x="6" y="6" width="468" height="298" rx="18" fill="#f1f3f8" stroke="#7b8594" stroke-width="1.5"/>
+      <text x="22" y="36" font-size="17" font-weight="800" fill="#17191c">인공지능</text>
+      <text x="22" y="58" font-size="14" fill="#4a5361">사람처럼 똑똑한 일을 하는 컴퓨터 기술 전체</text>
+      <rect x="34" y="76" width="412" height="214" rx="16" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="1.5"/>
+      <text x="50" y="106" font-size="17" font-weight="800" fill="#17191c">기계학습</text>
+      <text x="50" y="128" font-size="14" fill="#4a5361">데이터에서 규칙을 스스로 찾아요</text>
+      <text x="50" y="148" font-size="14" fill="#4a5361">예: K-평균 · 결정 트리 · 신경망</text>
+      <rect x="62" y="164" width="356" height="112" rx="14" fill="#fff" stroke="#1a4cb4" stroke-width="2.5"/>
+      <text x="78" y="194" font-size="17" font-weight="800" fill="#1f5bd6">딥러닝</text>
+      <text x="78" y="218" font-size="14" fill="#17191c">인공 신경망을 여러 층으로</text>
+      <text x="78" y="238" font-size="14" fill="#17191c">깊게 쌓아서 배우는 기계학습</text>
+    </svg>
+    <figcaption>딥러닝은 기계학습의 한 종류이고, 기계학습은 인공지능의 한 갈래예요.</figcaption>
+  </figure>
+
+  <h3>규칙을 짜는 프로그램 vs 데이터로 배우는 프로그램</h3>
+  <p>사진 속에서 고양이를 찾는 프로그램을 만든다고 해 봐요.</p>
+  <div class="two">
+    <div class="box">
+      <h4>규칙을 짜는 프로그램</h4>
+      <p>사람이 규칙을 하나하나 적어요. “귀가 뾰족하면 고양이, 수염이 있으면 고양이…”</p>
+      <div class="flow"><span class="n">사진</span><i>→</i><span class="n hl">사람이 쓴 규칙</span><i>→</i><span class="n">고양이? 아니야</span></div>
+      <p>규칙 때문에 털 색이 다른 고양이나 옆모습에서 쉽게 틀려요.</p>
+    </div>
+    <div class="box">
+      <h4>데이터로 배우는 프로그램</h4>
+      <p>정답이 붙은 사진을 많이 보여 줘요. 프로그램이 스스로 규칙(숫자)을 찾아요.</p>
+      <div class="flow"><span class="n">사진 + 정답</span><i>→</i><span class="n hl">배우기</span><i>→</i><span class="n">규칙(숫자들)</span></div>
+      <p>사진이 늘수록 규칙이 다듬어져요.</p>
+    </div>
+  </div>
+  <div class="callout info">
+    <p>이 쪽에서는 <b>정답이 있는 데이터로 배우는 지도 학습</b>을 다뤄요. K-평균은 정답 없이 무리를 찾는 비지도 학습이었어요. 딥러닝에도 정답 없이 배우는 방법이 있어요.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="card" id="s2" aria-labelledby="h2">
+  <p class="no">02</p>
+  <h2 class="t" id="h2">인공 뉴런 하나</h2>
+  <p>신경망의 가장 작은 부품은 <b>인공 뉴런</b>이에요. 하는 일은 단순해요. 숫자를 받아서, 중요도를 곱하고, 모두 더한 뒤, 출력 숫자 하나를 내보내요.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 420 270" width="460" role="img" aria-label="입력 x1과 x2에 가중치 w1과 w2를 곱하고, 편향 b와 함께 더한 뒤, 활성화 함수를 거쳐 출력이 나오는 뉴런 그림">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4a5361"/></marker></defs>
+      <g stroke="#4a5361" stroke-width="2" fill="none" marker-end="url(#ar)">
+        <path d="M78 80 L142 125"/><path d="M78 205 L142 160"/><path d="M200 66 L200 106"/>
+        <path d="M232 142 L258 142"/><path d="M330 142 L350 142"/>
+      </g>
+      <circle cx="52" cy="76" r="26" fill="#fff" stroke="#17191c" stroke-width="2"/>
+      <text x="52" y="82" text-anchor="middle" font-size="17" font-weight="700">x<tspan class="sb" dy="4">1</tspan></text>
+      <circle cx="52" cy="206" r="26" fill="#fff" stroke="#17191c" stroke-width="2"/>
+      <text x="52" y="212" text-anchor="middle" font-size="17" font-weight="700">x<tspan class="sb" dy="4">2</tspan></text>
+      <text x="52" y="30" text-anchor="middle" font-size="13" fill="#4a5361">입력</text>
+      <text x="100" y="86" font-size="15" font-weight="700" fill="#1f5bd6">× w<tspan class="sb" dy="4">1</tspan></text>
+      <text x="100" y="206" font-size="15" font-weight="700" fill="#1f5bd6">× w<tspan class="sb" dy="4">2</tspan></text>
+      <rect x="170" y="30" width="60" height="36" rx="8" fill="#fff4d8" stroke="#7a4a00" stroke-width="1.5"/>
+      <text x="200" y="54" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4a00">+ b</text>
+      <text x="246" y="52" font-size="12.5" fill="#4a5361">편향</text>
+      <circle cx="200" cy="142" r="34" fill="#eaf1fe" stroke="#1f5bd6" stroke-width="2.5"/>
+      <text x="200" y="152" text-anchor="middle" font-size="28" font-weight="700" fill="#1f5bd6">Σ</text>
+      <text x="200" y="196" text-anchor="middle" font-size="12.5" fill="#4a5361">모두 더하기</text>
+      <rect x="260" y="112" width="70" height="60" rx="10" fill="#fff" stroke="#17191c" stroke-width="2"/>
+      <text x="295" y="138" text-anchor="middle" font-size="13.5" font-weight="700">활성화</text>
+      <text x="295" y="158" text-anchor="middle" font-size="13.5" font-weight="700">함수</text>
+      <circle cx="378" cy="142" r="28" fill="#fff" stroke="#17191c" stroke-width="2.5"/>
+      <text x="378" y="148" text-anchor="middle" font-size="16" font-weight="700">출력</text>
+    </svg>
+    <figcaption>입력 × 가중치를 모두 더하고 편향을 더한 값을 활성화 함수에 넣으면 출력이 나와요.</figcaption>
+  </figure>
+
+  <h3>예: 운동장에서 축구를 할까?</h3>
+  <ul>
+    <li>x<sub>1</sub> = 날씨가 맑으면 1, 아니면 0</li>
+    <li>x<sub>2</sub> = 남은 숙제가 있으면 1, 없으면 0</li>
+    <li>가중치 w<sub>1</sub> = 3(맑으면 찬성), w<sub>2</sub> = −2(숙제는 반대), 편향 b = −1</li>
+    <li>활성화 함수는 <b>계단 함수</b>예요. 합이 0보다 크면 1(한다), 아니면 0(안 한다).</li>
+  </ul>
+  <div class="scroll" role="region" aria-label="축구 예시 계산표" tabindex="0">
+  <table class="t">
+    <thead><tr><th>상황</th><th>계산</th><th>합</th><th>결과</th></tr></thead>
+    <tbody>
+      <tr><td>맑음 · 숙제 없음</td><td>3×1 + (−2)×0 + (−1)</td><td>2</td><td>1 → 한다</td></tr>
+      <tr><td>맑음 · 숙제 있음</td><td>3×1 + (−2)×1 + (−1)</td><td>0</td><td>0보다 크지 않아 0 → 안 한다</td></tr>
+      <tr><td>비 · 숙제 없음</td><td>3×0 + (−2)×0 + (−1)</td><td>−1</td><td>0 → 안 한다</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>뉴런 계산기</h3>
+  <p>스위치와 슬라이더를 바꿔 보세요. 어떤 값을 바꾸면 결과가 뒤집힐까요?</p>
+  <div class="panel">
+    <div class="row"><span class="lab">x<sub>1</sub> 날씨</span>
+      <button type="button" class="btn sm" id="n-x1" aria-pressed="true">맑음 (1)</button></div>
+    <div class="row"><span class="lab">x<sub>2</sub> 숙제</span>
+      <button type="button" class="btn sm" id="n-x2" aria-pressed="false">숙제 있음 (1)</button></div>
+    <div class="slider"><label for="n-w1">w<sub>1</sub></label><input type="range" id="n-w1" min="-5" max="5" step="0.5" value="3"><output id="n-w1o" for="n-w1">3</output></div>
+    <div class="slider"><label for="n-w2">w<sub>2</sub></label><input type="range" id="n-w2" min="-5" max="5" step="0.5" value="-2"><output id="n-w2o" for="n-w2">−2</output></div>
+    <div class="slider"><label for="n-b">b</label><input type="range" id="n-b" min="-5" max="5" step="0.5" value="-1"><output id="n-bo" for="n-b">−1</output></div>
+    <p class="formula" id="n-formula" role="status" aria-live="polite"></p>
+  </div>
+
+  <h3>활성화 함수는 왜 필요할까요?</h3>
+  <p>계단 함수는 이해하기 쉬워요. 하지만 0과 1 사이를 갑자기 뛰어요. 그러면 숫자를 조금 고쳤을 때 결과가 얼마나 나아졌는지 알기 어려워요. 그래서 실제로는 부드럽게 변하는 함수를 써요.</p>
+  <div class="two" style="grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))">
+    <figure class="fig box" style="margin:0"><svg id="pl-step" viewBox="0 0 160 120" role="img" aria-label="계단 함수 그래프: 0 이하는 0, 0보다 크면 1"></svg><figcaption><b>계단</b> · 0보다 크면 1</figcaption></figure>
+    <figure class="fig box" style="margin:0"><svg id="pl-sig" viewBox="0 0 160 120" role="img" aria-label="시그모이드 그래프: 0에서 1 사이로 부드럽게 올라가는 S자 곡선"></svg><figcaption><b>시그모이드</b> · 0~1 사이 부드럽게</figcaption></figure>
+    <figure class="fig box" style="margin:0"><svg id="pl-relu" viewBox="0 0 160 120" role="img" aria-label="ReLU 그래프: 음수는 0, 양수는 그대로"></svg><figcaption><b>ReLU</b> · 음수는 0, 양수는 그대로</figcaption></figure>
+  </div>
+  <p>시그모이드는 σ(z) = 1 ÷ (1 + e<sup>−z</sup>)예요. 아주 작은 수는 0에 가깝게, 아주 큰 수는 1에 가깝게 눌러 줘요. 그래서 “1일 확률”처럼 읽을 수 있어요.</p>
+  <div class="callout info">
+    <p><b>가중치</b>는 입력의 중요도(그리고 찬성·반대)예요. <b>편향</b>은 입력과 상관없이 가진 기본 성향이에요.</p>
+    <p>그러니까 <b>“배운다” = 이 숫자들(가중치와 편향)을 고치는 것</b>이에요.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="card" id="s3" aria-labelledby="h3t">
+  <p class="no">03</p>
+  <h2 class="t" id="h3t">실습 1 · 내 손으로 선 긋기</h2>
+  <p>뉴런 하나가 점 (x, y)를 보고 “1일 확률” p를 내놓아요.</p>
+  <p class="formula" style="font-size:1rem">p = σ( w<sub>1</sub>·x + w<sub>2</sub>·y + b )</p>
+  <p>p가 0.5인 곳이 파랑과 주황이 갈리는 <b>경계선</b>이에요. 슬라이더로 w<sub>1</sub>, w<sub>2</sub>, b를 돌려서 모든 점을 맞혀 보세요.</p>
+
+  <div class="panel">
+    <div class="row" role="group" aria-label="데이터 고르기">
+      <span class="lab">데이터</span>
+      <button type="button" class="btn sm" data-s3ds="line" aria-pressed="true">선으로 나뉘는 데이터</button>
+      <button type="button" class="btn sm" data-s3ds="xor" aria-pressed="false">XOR</button>
+      <button type="button" class="btn sm" data-s3ds="circle" aria-pressed="false">원 안과 밖</button>
+    </div>
+    <div class="split">
+      <div>
+        <canvas id="s3-cv" role="img" aria-label="점들과 뉴런 하나가 만든 경계선 그림"></canvas>
+        <div class="legend" aria-hidden="false">
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="#0072B2"/></svg>정답 0 (파랑 원)</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L14.5 13.5H1.5z" fill="#D55E00"/></svg>정답 1 (주황 삼각형)</span>
+        </div>
+        <p style="font-size:.88rem;color:var(--muted);margin:.2rem 0">배경색은 뉴런의 생각이에요. 주황은 “1일 것 같아”, 파랑은 “0일 것 같아”, 흰색은 “반반”이에요. 검은 선이 경계(p = 0.5)예요.</p>
+      </div>
+      <div>
+        <div class="slider"><label for="s3-w1">w<sub>1</sub></label><input type="range" id="s3-w1" min="-8" max="8" step="0.1" value="1"><output id="s3-w1o" for="s3-w1">1.0</output></div>
+        <div class="slider"><label for="s3-w2">w<sub>2</sub></label><input type="range" id="s3-w2" min="-8" max="8" step="0.1" value="-1"><output id="s3-w2o" for="s3-w2">−1.0</output></div>
+        <div class="slider"><label for="s3-b">b</label><input type="range" id="s3-b" min="-8" max="8" step="0.1" value="0"><output id="s3-bo" for="s3-b">0.0</output></div>
+        <div class="stats">
+          <div class="stat"><small>맞힌 점</small><b id="s3-acc">–</b></div>
+          <div class="stat"><small>오차(평균 교차 엔트로피)</small><b id="s3-loss">–</b></div>
+        </div>
+        <p class="formula" id="s3-line" style="font-size:.95rem"></p>
+        <div class="row">
+          <button type="button" class="btn" id="s3-reset">처음 값으로</button>
+        </div>
+        <hr style="border:0;border-top:1px solid var(--border);margin:.8rem 0">
+        <p style="margin:.2rem 0;font-weight:700">자동 학습 <span style="font-weight:400;color:var(--muted);font-size:.9rem">(4절에서 원리를 배워요)</span></p>
+        <div class="row">
+          <label for="s3-lr" style="font-weight:700;font-size:.95rem">학습률</label>
+          <select id="s3-lr"><option>0.1</option><option selected>0.5</option><option>1</option><option>3</option></select>
+          <button type="button" class="btn primary" id="s3-auto">자동 학습 시작</button>
+        </div>
+        <canvas id="s3-ch" role="img" aria-label="자동 학습 중 오차가 줄어드는 그래프" style="margin-top:.4rem"></canvas>
+        <p style="font-size:.85rem;color:var(--muted);margin:.2rem 0">위 그래프는 걸음마다의 오차예요. 최대 400걸음까지 해요.</p>
+      </div>
+    </div>
+    <p class="sr-only" id="s3-live" role="status" aria-live="polite"></p>
+    <p id="s3-msg" class="callout ok" style="display:none"></p>
+  </div>
+
+  <div class="callout task"><b class="k">해 보기</b>
+    <p>1. <b>선으로 나뉘는 데이터</b>에서 점을 모두 맞혀 보세요.</p>
+    <p>2. <b>XOR</b>과 <b>원 안과 밖</b>에서도 해 보세요. 아무리 돌려도 다 맞히기 어려워요.</p>
+  </div>
+  <div class="callout info">
+    <p>왜 그럴까요? 뉴런 하나의 경계는 <b>늘 직선</b>이에요. 경계는 w<sub>1</sub>x + w<sub>2</sub>y + b = 0이라는 직선 식이거든요. XOR이나 원 모양은 선 하나로 나눌 수 없어요.</p>
+    <p>1969년에 뉴런 하나(퍼셉트론)의 이런 한계가 널리 알려졌어요. 그 영향 등으로 신경망 연구가 한동안 주춤했다고 해요.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="card" id="s4" aria-labelledby="h4">
+  <p class="no">04</p>
+  <h2 class="t" id="h4">학습 · 오차를 줄이는 방향으로 조금씩</h2>
+  <p>슬라이더를 손으로 돌리는 대신, 컴퓨터가 스스로 돌리게 할 수는 없을까요? 방법이 있어요. 안개 낀 산을 떠올려 봐요.</p>
+  <div class="callout info">
+    <p>안개 때문에 앞이 안 보여요. 그래도 <b>발밑의 기울기</b>는 느낄 수 있어요. 내리막 쪽으로 한 걸음씩 가면 결국 골짜기 바닥에 닿아요.</p>
+    <p>이것이 <b>경사 하강법</b>이에요. 한 걸음의 크기가 <b>학습률</b>(η, “에타”)이에요. 산의 높이가 오차이고, 골짜기 바닥이 오차가 가장 작은 곳이에요.</p>
+  </div>
+
+  <h3>숫자 하나로 해 보기</h3>
+  <p>오차가 L(w) = (w − 3)² + 1이라고 해 봐요. 바닥은 w = 3일 때 L = 1이에요. 기울기(미분)는 L′(w) = 2(w − 3)이에요. 규칙은 이거예요.</p>
+  <p class="formula" style="font-size:1rem">w ← w − η · L′(w)</p>
+  <p>w = −2에서 출발해요. 학습률 η를 골라 [한 걸음]을 눌러 보세요. 학습률을 바꾸면 처음으로 돌아가요.</p>
+  <div class="panel">
+    <div class="row" role="group" aria-label="학습률 고르기"><span class="lab">학습률 η</span>
+      <button type="button" class="btn sm" data-eta="0.05" aria-pressed="false">0.05</button>
+      <button type="button" class="btn sm" data-eta="0.1" aria-pressed="true">0.1</button>
+      <button type="button" class="btn sm" data-eta="0.3" aria-pressed="false">0.3</button>
+      <button type="button" class="btn sm" data-eta="0.5" aria-pressed="false">0.5</button>
+      <button type="button" class="btn sm" data-eta="0.9" aria-pressed="false">0.9</button>
+      <button type="button" class="btn sm" data-eta="1.05" aria-pressed="false">1.05</button>
+    </div>
+    <figure class="fig" style="margin:.4rem 0">
+      <svg id="gd-svg" viewBox="0 0 460 270" width="560" role="img" aria-label="오차 곡선 L(w)=(w−3)²+1 위에서 점이 내려가는 모습"></svg>
+    </figure>
+    <div class="row">
+      <button type="button" class="btn primary" id="gd-1">한 걸음</button>
+      <button type="button" class="btn" id="gd-10">10걸음</button>
+      <button type="button" class="btn" id="gd-0">처음으로</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><small>걸음 수</small><b id="gd-n">0</b></div>
+      <div class="stat"><small>w</small><b id="gd-w">−2.000</b></div>
+      <div class="stat"><small>오차 L(w)</small><b id="gd-L">26.000</b></div>
+      <div class="stat"><small>기울기 L′(w)</small><b id="gd-g">−10.000</b></div>
+    </div>
+    <p class="fb" id="gd-note" role="status" aria-live="polite" style="background:var(--soft)"></p>
+  </div>
+  <ul>
+    <li><b>η = 0.5</b>: 한 걸음에 바닥(w = 3)으로 가요. 새 w = w − 0.5·2(w − 3) = 3이거든요.</li>
+    <li><b>η = 0.9</b>: 바닥을 지나쳐서 양쪽을 오가요. 그래도 오가는 폭이 줄어서 결국 모여요.</li>
+    <li><b>η = 1.05</b>: 오갈 때마다 폭이 커져요. 바닥에서 점점 멀어져요(발산).</li>
+    <li><b>η가 작을 때</b>(0.05): 방향은 맞지만 아주 느려요.</li>
+  </ul>
+
+  <h3>한 걸음을 손으로 계산해 보기</h3>
+  <p>뉴런 하나, 입력 x = 2, 정답 1, 처음 w = 0.5, b = 0, η = 0.5예요. 교차 엔트로피 오차를 쓰면 w의 기울기는 <b>(p − 정답) × x</b>예요.</p>
+  <p class="formula" style="font-size:1rem">σ(z) = 1 ÷ (1 + e<sup>−z</sup>)</p>
+  <ol>
+    <li>z = w·x = 0.5 × 2 = 1</li>
+    <li>p = σ(1) = 0.731 (정답 1에 아직 못 미쳐요)</li>
+    <li>기울기 = (0.731 − 1) × 2 = −0.538</li>
+    <li>새 w = 0.5 − 0.5 × (−0.538) = 0.769</li>
+    <li>새 p = σ(0.769 × 2) = σ(1.538) = 0.823 (정답에 가까워졌어요)</li>
+  </ol>
+  <p>아래 버튼을 계속 눌러 같은 계산을 반복해 보세요.</p>
+  <div class="panel">
+    <div class="row"><button type="button" class="btn primary" id="hs-go">한 걸음 더</button><button type="button" class="btn" id="hs-reset">처음으로</button></div>
+    <div class="scroll" role="region" aria-label="한 걸음씩 계산한 표" tabindex="0">
+      <table class="t"><thead><tr><th>걸음</th><th>w</th><th>p</th><th>기울기</th><th>새 w</th><th>새 p</th></tr></thead><tbody id="hs-body"></tbody></table>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted);margin:.4rem 0 0">p가 1에 가까워질수록 기울기가 작아져서, 걸음도 점점 짧아져요.</p>
+  </div>
+
+  <h3>우리 놀이터에서 자동 학습</h3>
+  <p>3절의 놀이터에서 같은 방법을 써요. 전체 점의 오차를 계산해서 w<sub>1</sub>, w<sub>2</sub>, b를 한 걸음씩 고쳐요. 기울기는 점마다 구한 값의 평균이에요.</p>
+  <div class="row"><button type="button" class="btn primary" id="s4-go">3절로 가서 자동 학습 하기</button></div>
+  <div class="callout task"><b class="k">해 보기</b>
+    <p>“선으로 나뉘는 데이터”에서 자동 학습을 해 보세요. 오차가 줄고 맞힌 점이 늘어요. 이번엔 XOR에서 해 보세요. 정확도가 50~75% 근처에서 멈추고 더 오르지 않아요. 선 하나로는 안 되니까요.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="card" id="s5" aria-labelledby="h5">
+  <p class="no">05</p>
+  <h2 class="t" id="h5">층을 쌓으면 · 신경망 놀이터</h2>
+  <p>뉴런 하나로는 직선밖에 못 그려요. 그래서 뉴런을 여러 개, 여러 층으로 이어 붙여요.</p>
+  <ul>
+    <li><b>입력층</b>: 데이터가 들어오는 곳이에요. 여기서는 x, y 두 개예요.</li>
+    <li><b>은닉층</b>: 입력과 출력 사이의 층이에요. 뉴런들이 숨어서 중간 계산을 해요.</li>
+    <li><b>출력층</b>: 마지막 답이에요. 여기서는 “1일 확률” 하나예요.</li>
+  </ul>
+  <p>은닉층이 여러 개인 신경망을 <b>깊은 신경망</b>이라고 해요. 그래서 이름이 <b>딥러닝</b>이에요.</p>
+  <div class="callout warn"><p>층 사이에 활성화 함수가 없으면, 층을 아무리 쌓아도 결국 직선 하나로 나누는 것과 같아져요. 곡선을 만드는 힘은 활성화 함수에서 나와요.</p></div>
+
+  <div class="panel">
+    <div class="row" role="group" aria-label="데이터 고르기">
+      <span class="lab">데이터</span>
+      <button type="button" class="btn sm" data-pgds="circle" aria-pressed="true">원</button>
+      <button type="button" class="btn sm" data-pgds="xor" aria-pressed="false">XOR</button>
+      <button type="button" class="btn sm" data-pgds="line" aria-pressed="false">선</button>
+      <button type="button" class="btn sm" data-pgds="spiral" aria-pressed="false">나선 (도전)</button>
+    </div>
+    <div class="slider" style="grid-template-columns:5rem minmax(0,1fr) 3.6rem"><label for="pg-noise">노이즈</label><input type="range" id="pg-noise" min="0" max="0.3" step="0.01" value="0.05"><output id="pg-noiseo" for="pg-noise">0.05</output></div>
+    <div class="nets">
+      <div class="row" role="group" aria-label="은닉층 개수" style="margin:.2rem 0"><span class="lab" style="min-width:0">은닉층</span>
+        <button type="button" class="btn sm" data-pgk="0" aria-pressed="false">0개</button>
+        <button type="button" class="btn sm" data-pgk="1" aria-pressed="false">1개</button>
+        <button type="button" class="btn sm" data-pgk="2" aria-pressed="true">2개</button></div>
+      <div id="pg-steppers" class="row" style="margin:.2rem 0"></div>
+    </div>
+    <div class="nets">
+      <div class="row" role="group" aria-label="활성화 함수" style="margin:.2rem 0"><span class="lab" style="min-width:0">활성화</span>
+        <button type="button" class="btn sm" data-pgact="tanh" aria-pressed="true">tanh</button>
+        <button type="button" class="btn sm" data-pgact="relu" aria-pressed="false">ReLU</button>
+        <button type="button" class="btn sm" data-pgact="sigmoid" aria-pressed="false">시그모이드</button></div>
+      <div class="row" style="margin:.2rem 0"><label for="pg-lr" class="lab" style="min-width:0">학습률</label>
+        <select id="pg-lr"><option>0.003</option><option>0.01</option><option selected>0.03</option><option>0.1</option><option>0.3</option><option>1</option></select></div>
+    </div>
+    <div class="row">
+      <button type="button" class="btn primary" id="pg-run" aria-pressed="false">학습 시작</button>
+      <button type="button" class="btn" id="pg-one">한 에포크</button>
+      <button type="button" class="btn" id="pg-reinit">가중치 새로 시작</button>
+      <button type="button" class="btn" id="pg-newdata">데이터 다시 만들기</button>
+    </div>
+    <div class="row" style="font-size:.9rem"><span class="lab" style="min-width:0">과제 설정</span>
+      <button type="button" class="btn sm" id="pg-t1">과제 1</button>
+      <button type="button" class="btn sm" id="pg-t2">과제 2</button>
+      <button type="button" class="btn sm" id="pg-t3">과제 3</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><small>에포크</small><b id="pg-ep">0</b></div>
+      <div class="stat"><small>학습 오차 / 정확도</small><b id="pg-tr">–</b></div>
+      <div class="stat"><small>시험 오차 / 정확도</small><b id="pg-te">–</b></div>
+    </div>
+    <div class="split">
+      <div>
+        <canvas id="pg-cv" role="img" aria-label="신경망이 만든 결정 경계 그림"></canvas>
+        <div class="legend">
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="#0072B2"/></svg>정답 0</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L14.5 13.5H1.5z" fill="#D55E00"/></svg>정답 1</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="#17191c" stroke-width="2"/></svg>빈 모양 = 시험 데이터</span>
+        </div>
+      </div>
+      <div>
+        <canvas id="pg-ch" role="img" aria-label="에포크에 따른 학습 오차와 시험 오차 그래프"></canvas>
+        <div class="legend"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8H15" stroke="#1f5bd6" stroke-width="3"/></svg>학습 오차</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8H15" stroke="#7a4a00" stroke-width="3" stroke-dasharray="3 2"/></svg>시험 오차</span></div>
+        <p style="font-size:.88rem;color:var(--muted);margin:.2rem 0">점 240개 중 반은 배우는 데(채운 모양), 반은 시험 보는 데(빈 모양) 써요. 시험 데이터는 학습에 쓰지 않아요.</p>
+      </div>
+    </div>
+    <p style="margin:.8rem 0 .2rem;font-weight:700">신경망 그림</p>
+    <canvas id="pg-net" role="img" aria-label="신경망 구조 그림: 뉴런마다 작은 색 타일이 있고, 파란 선은 양의 가중치, 주황 선은 음의 가중치"></canvas>
+    <p style="font-size:.88rem;color:var(--muted);margin:.3rem 0">연결선: 파랑 = 양수 가중치, 주황 = 음수 가중치, 굵을수록 절댓값이 커요. 타일은 그 뉴런이 평면 위에서 어떤 값을 내는지 보여 줘요(어두울수록 값이 커요).</p>
+    <p class="sr-only" id="pg-live" role="status" aria-live="polite"></p>
+  </div>
+
+  <div class="callout task"><b class="k">안내 과제</b>
+    <p><b>과제 1</b>: 데이터 “원”, 은닉층 0개로 학습해 보세요. 뉴런 하나라서 정확도가 높아지지 않아요.</p>
+    <p><b>과제 2</b>: 같은 데이터에서 은닉층 1개, 뉴런 4개로 학습해 보세요. 정확도가 크게 올라요.</p>
+    <p><b>과제 3</b>: [과제 3]을 누르면 노이즈 0.30, 은닉층 8·8, 학습률 0.3으로 맞춰져요. 학습을 1,000에포크 넘게 돌리며 두 정확도를 견줘 보세요. 학습 정확도는 90%를 넘는데 시험 정확도는 70% 안팎에 머물러요. 학습 데이터의 우연한 흔들림까지 외운 것이 <b>과대적합</b>이에요. 점이 달라지면 숫자는 조금씩 달라져요.</p>
+    <p style="font-size:.9rem;color:var(--muted)">위의 [과제 1~3] 버튼을 누르면 설정이 한 번에 바뀌어요.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="card" id="s6" aria-labelledby="h6">
+  <p class="no">06</p>
+  <h2 class="t" id="h6">역전파 · 오차를 거꾸로 나눠 주기</h2>
+  <p>층이 많으면 가중치도 많아요. 놀이터의 신경망도 수십 개예요. 가중치마다 “오차를 줄이려면 어느 쪽으로 고쳐야 하지?”를 어떻게 알까요? 그 답이 <b>역전파</b>예요.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 440 270" width="520" role="img" aria-label="입력에서 은닉층, 출력으로 앞으로 계산하고, 오차에서 거꾸로 뒤로 전달하는 흐름 그림">
+      <defs>
+        <marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1f5bd6"/></marker>
+        <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#D55E00"/></marker>
+      </defs>
+      <g stroke="#7b8594" stroke-width="1.2">
+        <path d="M62 100L170 80M62 100L170 130M62 100L170 180M62 160L170 80M62 160L170 130M62 160L170 180"/>
+        <path d="M170 80L282 130M170 130L282 130M170 180L282 130"/>
+      </g>
+      <g fill="#fff" stroke="#17191c" stroke-width="2">
+        <circle cx="52" cy="100" r="14"/><circle cx="52" cy="160" r="14"/>
+        <circle cx="180" cy="80" r="14"/><circle cx="180" cy="130" r="14"/><circle cx="180" cy="180" r="14"/>
+        <circle cx="292" cy="130" r="14"/>
+      </g>
+      <rect x="338" y="104" width="86" height="52" rx="10" fill="#fdecec" stroke="#a3232a" stroke-width="2"/>
+      <text x="381" y="126" text-anchor="middle" font-size="14" font-weight="800" fill="#a3232a">오차</text>
+      <text x="381" y="145" text-anchor="middle" font-size="12" fill="#a3232a">예측 vs 정답</text>
+      <path d="M308 130L334 130" stroke="#1f5bd6" stroke-width="2.5" fill="none" marker-end="url(#af)"/>
+      <text x="52" y="204" text-anchor="middle" font-size="13" fill="#4a5361">입력</text>
+      <text x="180" y="218" text-anchor="middle" font-size="13" fill="#4a5361">은닉층</text>
+      <text x="292" y="166" text-anchor="middle" font-size="13" fill="#4a5361">출력</text>
+      <path d="M40 30 L300 30" stroke="#1f5bd6" stroke-width="3" fill="none" marker-end="url(#af)"/>
+      <text x="40" y="22" font-size="14" font-weight="800" fill="#1f5bd6">① 앞으로 계산 → 예측</text>
+      <path d="M390 250 L60 250" stroke="#D55E00" stroke-width="3" fill="none" marker-end="url(#ab)"/>
+      <text x="390" y="243" text-anchor="end" font-size="14" font-weight="800" fill="#D55E00">③ 뒤로 전달 → 가중치마다 책임(기울기)</text>
+    </svg>
+    <figcaption>파랑은 값이 가는 길, 주황은 오차의 책임이 거꾸로 전해지는 길이에요.</figcaption>
+  </figure>
+  <ol>
+    <li><b>앞으로 계산(순전파)</b>: 입력을 넣고 층마다 계산해서 예측을 얻어요.</li>
+    <li><b>오차</b>: 예측과 정답이 얼마나 다른지 재요.</li>
+    <li><b>뒤로 전달(역전파)</b>: 출력의 오차를 거꾸로 나눠 줘요. “이 가중치가 오차에 얼마나 책임이 있나?”, 곧 가중치마다의 기울기를 구해요. 수학의 <b>미분의 연쇄 법칙</b>(겹쳐진 함수의 미분은 구간마다의 기울기를 곱한다)을 써요.</li>
+    <li><b>경사 하강법으로 고치기</b>: 구한 기울기의 반대쪽으로 가중치를 조금씩 고쳐요.</li>
+  </ol>
+  <div class="callout info">
+    <p>비유를 하나 들어 볼게요. 릴레이 경주에서 기록이 나쁘게 나왔어요. 마지막 주자부터 거꾸로 “각자 기록에 얼마나 영향을 줬지?” 하고 따져 보는 거예요. 영향이 큰 사람이 더 많이 고쳐요.</p>
+    <p>다만 비유일 뿐이에요. 실제로는 사람 탓을 나누는 게 아니라, 기울기 곱셈으로 정확히 계산해요.</p>
+  </div>
+  <p>8절의 파이썬 코드에서 “뒤로 계산(역전파)” 부분이 바로 이 단계예요. <code>dz2</code>가 출력의 오차이고, <code>dz1</code>은 그 오차를 은닉층으로 거꾸로 보낸 값이에요.</p>
+</section>
+
+<!-- 7 -->
+<section class="card" id="s7" aria-labelledby="h7">
+  <p class="no">07</p>
+  <h2 class="t" id="h7">조심할 점과 쓰이는 곳</h2>
+  <h3>조심할 점</h3>
+  <ul>
+    <li><b>과대적합</b>: 학습 데이터는 잘 맞히는데 새 데이터(시험)에서 틀려요. 문제집 답만 외운 것과 비슷해요. 해결: 데이터를 더 모으기, 모델을 더 단순하게 하기, 시험 오차가 오르기 시작하면 일찍 멈추기.</li>
+    <li><b>데이터와 계산이 많이 필요해요</b>: 큰 모델은 GPU 같은 장치로 오래 계산해야 해요.</li>
+    <li><b>데이터 편향</b>: 배운 데이터가 치우쳐 있으면 결과도 치우쳐요.</li>
+    <li><b>설명하기 어려워요</b>: 가중치가 수없이 많아서 “왜 이렇게 판단했는지” 말하기 어려워요.</li>
+  </ul>
+  <h3>쓰이는 곳</h3>
+  <ul>
+    <li><b>사진 속 물체 찾기</b>: 합성곱 신경망(CNN)을 써요. <a href="../../learn/u1/1-1-2/">이미지 인식 수업</a>에서 만나요.</li>
+    <li><b>음성 인식</b>, <b>번역</b></li>
+    <li><b>챗GPT 같은 대화형 AI</b>도 아주 큰 심층 신경망(트랜스포머)을 바탕으로 해요.</li>
+  </ul>
+</section>
+
+<!-- 8 -->
+<section class="card" id="s8" aria-labelledby="h8">
+  <p class="no">08</p>
+  <h2 class="t" id="h8">파이썬으로 확인하기</h2>
+  <h3>A. numpy로 XOR 배우기</h3>
+  <p>5절에서 본 과정을 코드로 옮겼어요. 순전파, 역전파, 경사 하강법이 차례로 나와요. 뉴런 하나로는 못 풀던 XOR을 은닉층 하나로 풀어요.</p>
+  <div class="codehead"><span>numpy · XOR</span><button type="button" class="btn sm" data-copy="codeA">코드 복사</button></div>
+<pre><code id="codeA"># 신경망으로 XOR 배우기: 입력 2개 → 은닉층 뉴런 4개(tanh) → 출력 1개(시그모이드)
+import numpy as np
+
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)  # 입력
+y = np.array([[0], [1], [1], [0]], dtype=float)              # 정답(XOR)
+
+# 처음 가중치: 작은 수(늘 같은 결과가 나오게 직접 적었어요)
+W1 = np.array([[0.5, -0.6, 0.3, -0.2],
+               [-0.4, 0.7, 0.2, 0.6]])
+b1 = np.zeros(4)
+W2 = np.array([[0.6], [0.5], [-0.4], [0.3]])
+b2 = np.zeros(1)
+lr = 0.5  # 학습률: 한 걸음의 크기
+
+for epoch in range(1, 2001):
+    # 1) 앞으로 계산(순전파)
+    h = np.tanh(X @ W1 + b1)              # 은닉층의 출력
+    p = 1 / (1 + np.exp(-(h @ W2 + b2)))  # 예측(0~1)
+    loss = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))  # 오차(교차 엔트로피)
+
+    # 2) 뒤로 계산(역전파): 가중치마다 오차를 줄이는 방향 구하기
+    dz2 = (p - y) / len(X)
+    dW2 = h.T @ dz2
+    db2 = dz2.sum(axis=0)
+    dz1 = (dz2 @ W2.T) * (1 - h ** 2)     # tanh의 기울기를 곱해요
+    dW1 = X.T @ dz1
+    db1 = dz1.sum(axis=0)
+
+    # 3) 경사 하강법: 기울기의 반대쪽으로 조금씩 고치기
+    W1 -= lr * dW1
+    b1 -= lr * db1
+    W2 -= lr * dW2
+    b2 -= lr * db2
+
+    if epoch % 400 == 0:
+        print(f"에포크 {epoch}: 오차 {loss:.4f}")
+
+print("예측:", p.ravel().round(3))
+print("정답:", y.ravel())</code></pre>
+  <div class="out" style="margin-top:.6rem">
+    <div class="codehead"><span>실행 결과</span></div>
+<pre><code>에포크 400: 오차 0.0156
+에포크 800: 오차 0.0067
+에포크 1200: 오차 0.0042
+에포크 1600: 오차 0.0031
+에포크 2000: 오차 0.0024
+예측: [0.001 0.997 0.997 0.004]
+정답: [0. 1. 1. 0.]</code></pre>
+  </div>
+  <p style="font-size:.9rem;color:var(--muted)">숫자 끝자리는 환경에 따라 조금 다를 수 있어요.</p>
+  <p><a class="btn primary" href="../../labs/vision/#code=MQAkB0OL01i7nYPOODodIAaB5ASiQDD2AaxwDHUC4RBQ8cFIOkAJkBwakQJMIRABccEmmwVjmRAXJsAf2kAFgoAoAXAIYA7ABYBKGiEA5s6QCMfQDtDgD9rAFV2AXccA7LeIBQASwC2ABwD2AJ34hhAV2MBPEIIDOVozp2IQAXlcA6QWZmgna8ANqhAAwANCARALoxkTFyCSChcjHxiRkgKakAJvx2RgCmXgBmADYmgvySIKAkOg4+wkb+gcFhkanpvSmJ8QVFpRXVtfUgU9MzU6CAqBOAr028KKi6OqCAGTOAMuMggAA1gIiTgBpzBICJ43QggBhDvIAZTSCAmDUXgA01gD81eyCAGQ2AJGOAMTUggIOTgEQJkCAQAnABOjgBbRwApY7oAOpybx+AJBELhCK+ACsMQAtOiAGyZXwAZhx6LICR0sypM1CuN8XEJAHZCWRCXi4nFdAAjBGtdoALxKZhMTl4XDhZERbQ6KO6+N66IxvTpXAVxI53MlfN8guForkukqZkRirmIEAmquAVqHAAadBEAOqsgQAeNdtABrjIEANgs4dzlcwgEqmADGohAemEICCwgA5iVeDkyBEIga8JTpqADSBAHqj8BAgBGawANA7xADhDgBAJwAwy7oZsHtUIxCsQAABEDwkAAahAPMm1JmoEYTDdshTUyMiIRAHoQLHW34SgAPIy8bG8YON2GSttcsjiLdmwAQY4BCOd4EQAfgbByBqk4XD5sdKDCURLwHAAqPzVSO8IySNuT7EgOySF9pTfH8QE-epQC+QAKGd4QAFWsgkBABXRwAOpbgQAeVfWbtyEkQASloQfNeEAW9Gy3EAhDiOQAJzsAE6aQCgwAfTpAQAQSfUQAUppAQBKHsAUtWQEAG1rAA1Vr0ZnyfktQnYdf3-EBx0qEphBWCtpnyVdEVEXwABUGxAISyDPfIN0RLTfCcWxeEEGc9CcLwInkqYhN5CctI01c1IAicEV-YMnxfTdZlAGtRDdHBAA6xnB6MAR5rABdVqEdObHxEDUjTbJ0nl9P5ORDOM0zzMsjDUxAIlJAgQAagZAXjAFQawBUnoIIKcDdQAMHsAAGbAF6p7NAAcJwAIOsASlGQEAA5qjgE6Zm2xHwjRAF9FLkM9kqG89jTGnkzyU6aRrG1dJslJbZs0jd3BmPRyj9QNgwAUm4BNvB8CJky7IwzFDfheHKAAiQAF0cAG+X3RAABvf0TCDABfAgoK+i8nDwelyj+x71huu7eEe-c8EemJ2iCAA3EpKl4cRfGFaxhHyXh8t0GHhHux6lkRmI7BxwR0cxrcdCAA&amp;lab=vision" style="display:inline-flex;align-items:center;text-decoration:none">사이트 실습실에서 바로 실행</a></p>
+  <div class="callout task"><b class="k">바꿔 보기</b>
+    <p>은닉층 없이 뉴런 하나로만 학습하면 오차가 0.6931에서 멈추고, 예측이 모두 0.5가 돼요. 선 하나로는 XOR을 나눌 수 없다는 뜻이에요.</p>
+  </div>
+
+  <h3>B. scikit-learn으로 원 데이터 비교 (코랩)</h3>
+  <p>은닉층이 없을 때, 1개일 때, 2개일 때를 비교해요. 학습에 쓰지 않은 시험 데이터로도 점수를 매겨요.</p>
+  <div class="codehead"><span>scikit-learn · 원 데이터</span><button type="button" class="btn sm" data-copy="codeB">코드 복사</button></div>
+<pre><code id="codeB">from sklearn.datasets import make_circles
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+
+# 원 안(1)과 원 밖(0) 점 400개 — 60%로 배우고 40%로 시험
+X, y = make_circles(n_samples=400, noise=0.1, factor=0.4, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=0)
+
+for hidden in [(), (8,), (8, 8)]:   # 은닉층 없음 / 1개(뉴런 8) / 2개(뉴런 8, 8)
+    model = MLPClassifier(hidden_layer_sizes=hidden, activation="tanh",
+                          max_iter=2000, random_state=0)
+    model.fit(X_train, y_train)
+    print(f"은닉층 {hidden}: 학습 정확도 {model.score(X_train, y_train):.2f}, "
+          f"시험 정확도 {model.score(X_test, y_test):.2f}")</code></pre>
+  <div class="out" style="margin-top:.6rem">
+    <div class="codehead"><span>실행 결과 (scikit-learn 1.9)</span></div>
+<pre><code>은닉층 (): 학습 정확도 0.65, 시험 정확도 0.63
+은닉층 (8,): 학습 정확도 1.00, 시험 정확도 1.00
+은닉층 (8, 8): 학습 정확도 1.00, 시험 정확도 1.00</code></pre>
+  </div>
+  <p style="font-size:.9rem;color:var(--muted)">버전에 따라 조금 다를 수 있어요. 은닉층이 없으면 직선 하나뿐이라 65% 근처에 머물러요.</p>
+
+  <details>
+    <summary>코랩에서 케라스로</summary>
+    <p>같은 XOR을 케라스(Keras)로 풀어요. 실행 결과는 적지 않았어요. 대부분 0과 1에 가까워져요. 아니면 한 번 더 실행해 보세요.</p>
+    <div class="codehead"><span>keras · XOR</span><button type="button" class="btn sm" data-copy="codeC">코드 복사</button></div>
+<pre><code id="codeC">import numpy as np
+import keras
+
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype="float32")
+y = np.array([0, 1, 1, 0], dtype="float32")
+
+model = keras.Sequential([
+    keras.Input(shape=(2,)),
+    keras.layers.Dense(8, activation="tanh"),
+    keras.layers.Dense(1, activation="sigmoid"),
+])
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.05),
+              loss="binary_crossentropy", metrics=["accuracy"])
+model.fit(X, y, epochs=300, verbose=0)
+print(model.predict(X, verbose=0).round(3))</code></pre>
+  </details>
+  <p class="sr-only" id="copy-live" role="status" aria-live="polite"></p>
+</section>
+
+<!-- 9 -->
+<section class="card" id="s9" aria-labelledby="h9">
+  <p class="no">09</p>
+  <h2 class="t" id="h9">확인 문제</h2>
+  <div id="quiz"></div>
+  <p class="score" id="quiz-score" role="status" aria-live="polite">점수: 0 / 6</p>
+</section>
+
+<!-- 10 -->
+<section class="card" id="s10" aria-labelledby="h10">
+  <p class="no">10</p>
+  <h2 class="t" id="h10">정리</h2>
+  <ul>
+    <li>딥러닝 ⊂ 기계학습 ⊂ 인공지능이에요.</li>
+    <li>뉴런 하나는 입력 × 가중치를 더하고 편향을 더해서 활성화 함수에 넣어요. 경계는 늘 직선이에요.</li>
+    <li>배운다는 건 오차를 줄이는 방향으로 가중치와 편향을 조금씩 고치는 일이에요(경사 하강법). 학습률이 너무 크면 오가거나 발산해요.</li>
+    <li>은닉층과 활성화 함수를 쌓으면 곡선 경계도 만들 수 있어요.</li>
+    <li>역전파는 출력의 오차를 거꾸로 나눠 가중치마다 기울기를 구하는 방법이에요.</li>
+    <li>학습 데이터만 잘 맞히면 안 돼요. 시험 데이터로 확인해야 해요.</li>
+  </ul>
+  <p>정답 없이 비슷한 데이터끼리 묶는 방법이 궁금하다면 <a href="../kmeans/">K-평균 군집화</a>도 살펴보세요.</p>
+  <details class="teacher">
+    <summary>선생님용</summary>
+    <h3 style="margin-top:.4rem">수업 흐름</h3>
+    <ul>
+      <li>1차시(약 25분): 1~4절. 뉴런 계산기 → 선 긋기 → 경사 하강법 미니 체험(학습률 0.5, 0.9, 1.05를 꼭 비교).</li>
+      <li>2차시(약 25분): 5~9절. 신경망 놀이터 → 역전파 설명 → 코드 확인 → 확인 문제.</li>
+    </ul>
+    <h3>탐구 과제</h3>
+    <ul>
+      <li>나선 데이터를 풀려면 층과 뉴런을 얼마나 써야 할까요? 활성화 함수를 바꾸면 어떨까요?</li>
+      <li>학습률 1에서 학습이 불안정해지는 모습을 관찰하고, 4절의 η=1.05와 연결해 설명해 보기.</li>
+      <li>같은 설정으로 “가중치 새로 시작”을 여러 번 눌러 결과가 얼마나 달라지는지 기록하기.</li>
+    </ul>
+    <h3>자주 하는 오해</h3>
+    <ul>
+      <li>“인공 신경망은 사람 뇌와 똑같이 생각해요.” → 뇌에서 이름과 아이디어를 빌렸을 뿐, 수학적인 계산 구조예요.</li>
+      <li>“오차가 0이면 무조건 좋은 모델이에요.” → 학습 데이터에만 맞은 과대적합일 수 있어요. 시험 데이터를 꼭 봐요.</li>
+      <li>“층이 많을수록 늘 좋아요.” → 데이터가 적으면 과대적합, 학습이 어려워지는 문제도 생겨요.</li>
+      <li>“한 번에 정답을 찾아요.” → 조금씩 여러 번 고치며 가까워지는 과정이에요.</li>
+    </ul>
+    <h3>평가 포인트</h3>
+    <ul>
+      <li>뉴런 하나의 계산(가중합과 활성화)을 손으로 할 수 있는가.</li>
+      <li>학습률에 따른 경사 하강법의 모습을 설명할 수 있는가.</li>
+      <li>은닉층과 활성화 함수가 필요한 이유를 XOR·원 데이터로 설명할 수 있는가.</li>
+      <li>학습 정확도와 시험 정확도를 비교해 과대적합을 판단할 수 있는가.</li>
+    </ul>
+  </details>
+</section>
+</main>
+
+<footer class="site">
+  <p>AI 피지컬 컴퓨팅 오픈랩 · 학습 자료 CC BY-NC-SA 4.0 · 쪽 안의 코드 MIT · <a href="../../credits/">출처와 라이선스</a></p>
+</footer>
+
+<noscript><p style="max-width:960px;margin:0 auto;padding:0 16px 2rem">이 쪽의 체험 기능은 자바스크립트가 필요해요.</p></noscript>
+
+<script>
+(function(){
+'use strict';
+/* ================= 핵심 계산 (window.__DL__) ================= */
+function sigmoid(z){return 1/(1+Math.exp(-z));}
+function neuronForward(w1,w2,b,x,y){return sigmoid(w1*x+w2*y+b);}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){var u=r()||1e-9,v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function actF(n,z){return n==='relu'?(z>0?z:0):n==='sigmoid'?sigmoid(z):Math.tanh(z);}
+function actD(n,a,z){return n==='relu'?(z>0?1:0):n==='sigmoid'?a*(1-a):1-a*a;}
+/* layers: 전체 [2, ..., 1] 또는 은닉층 크기 목록. 앞뒤가 2와 1이 아니면 은닉층 목록으로 보고 감싸요. */
+function createNet(layers,activation,seed){
+  var L=layers.slice();
+  if(L.length<2||L[0]!==2||L[L.length-1]!==1)L=[2].concat(L,[1]);
+  var rng=mulberry32(seed|0),W=[],b=[];
+  for(var l=0;l<L.length-1;l++){
+    var fi=L[l],fo=L[l+1],lim=Math.sqrt(6/(fi+fo)),M=[];
+    for(var j=0;j<fo;j++){var row=[];for(var i=0;i<fi;i++)row.push((rng()*2-1)*lim);M.push(row);}
+    W.push(M);b.push(new Array(fo).fill(0));
+  }
+  return {layers:L,activation:activation||'tanh',W:W,b:b};
+}
+function run(net,x,y){
+  var a=[x,y],as=[a],zs=[],n=net.W.length;
+  for(var l=0;l<n;l++){
+    var z=[],o=[];
+    for(var j=0;j<net.W[l].length;j++){
+      var s=net.b[l][j],row=net.W[l][j];
+      for(var i=0;i<row.length;i++)s+=row[i]*a[i];
+      z.push(s);o.push(l===n-1?sigmoid(s):actF(net.activation,s));
+    }
+    zs.push(z);as.push(o);a=o;
+  }
+  return {as:as,zs:zs};
+}
+function forward(net,x,y){var r=run(net,x,y);return r.as[r.as.length-1][0];}
+function pt(s){return Array.isArray(s)?{x:s[0],y:s[1],t:s[2]}:{x:s.x,y:s.y,t:(s.t!==undefined?s.t:s.c)};}
+function softplus(z){return z>0?z+Math.log1p(Math.exp(-z)):Math.log1p(Math.exp(z));}
+function lossAndGrads(net,batch){
+  var n=batch.length,N=net.W.length,gW=[],gb=[],loss=0,l,j,i;
+  for(l=0;l<N;l++){gW.push(net.W[l].map(function(r){return r.map(function(){return 0;});}));gb.push(net.b[l].map(function(){return 0;}));}
+  for(var s=0;s<n;s++){
+    var q=pt(batch[s]),r=run(net,q.x,q.y),as=r.as,zs=r.zs,p=as[N][0];
+    loss+=softplus(zs[N-1][0])-q.t*zs[N-1][0];
+    var d=[p-q.t];
+    for(l=N-1;l>=0;l--){
+      for(j=0;j<d.length;j++){gb[l][j]+=d[j];for(i=0;i<as[l].length;i++)gW[l][j][i]+=d[j]*as[l][i];}
+      if(l>0){
+        var nd=[];
+        for(i=0;i<as[l].length;i++){var t=0;for(j=0;j<d.length;j++)t+=net.W[l][j][i]*d[j];nd.push(t*actD(net.activation,as[l][i],zs[l-1][i]));}
+        d=nd;
+      }
+    }
+  }
+  for(l=0;l<N;l++){for(j=0;j<gW[l].length;j++){gb[l][j]/=n;for(i=0;i<gW[l][j].length;i++)gW[l][j][i]/=n;}}
+  return {loss:loss/n,grads:{W:gW,b:gb}};
+}
+function trainStep(net,batch,lr){
+  var r=lossAndGrads(net,batch);
+  for(var l=0;l<net.W.length;l++)for(var j=0;j<net.W[l].length;j++){
+    net.b[l][j]-=lr*r.grads.b[l][j];
+    for(var i=0;i<net.W[l][j].length;i++)net.W[l][j][i]-=lr*r.grads.W[l][j][i];
+  }
+  return r.loss;
+}
+function gdStep(w,lr){return w-lr*2*(w-3);}
+
+/* ================= 데이터 ================= */
+function genData(kind,noise,seed,n){
+  var rng=mulberry32(seed),pts=[],g=function(){return gauss(rng);};
+  var cl=function(v){return Math.max(-1,Math.min(1,v));};
+  for(var i=0;i<n;i++){
+    var c=i%2,x,y,r,a,t;
+    if(kind==='line'){
+      do{var m=c?0.45:-0.45;x=m+g()*0.25;y=m+g()*0.25;}
+      while(Math.abs(x+y)/Math.SQRT2<0.12||((x+y>0)!==(c===1))||Math.abs(x)>0.98||Math.abs(y)>0.98);
+    }else if(kind==='xor'){
+      do{x=(rng()*2-1)*0.98;y=(rng()*2-1)*0.98;}
+      while(Math.abs(x)<0.08||Math.abs(y)<0.08||((x*y>0)!==(c===1)));
+    }else if(kind==='circle'){
+      r=c?Math.sqrt(rng())*0.5:Math.sqrt(0.49+rng()*0.51);a=rng()*2*Math.PI;
+      x=r*Math.cos(a);y=r*Math.sin(a);
+    }else{
+      t=0.08+0.92*(Math.floor(i/2)/(n/2))+rng()*0.02;a=t*1.75*2*Math.PI+c*Math.PI;r=t*0.92;
+      x=r*Math.cos(a);y=r*Math.sin(a);
+    }
+    if(noise>0){x=cl(x+g()*noise);y=cl(y+g()*noise);}
+    pts.push({x:x,y:y,c:c});
+  }
+  return pts;
+}
+
+window.__DL__={sigmoid:sigmoid,neuronForward:neuronForward,createNet:createNet,forward:forward,lossAndGrads:lossAndGrads,trainStep:trainStep,gdStep:gdStep,genData:genData};
+
+/* ================= 공통 도우미 ================= */
+var $=function(s){return document.querySelector(s);};
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fmt(v,d){var s=(+v).toFixed(d===undefined?1:d);if(/^-0(\.0+)?$/.test(s))s=s.slice(1);return s.replace('-','−');}
+function fit(cv,hFn,maxW){
+  var par=cv.parentElement,w=Math.max(220,Math.min(maxW||9999,Math.floor(par.clientWidth)));
+  var h=Math.round(hFn?hFn(w):w),dpr=Math.min(window.devicePixelRatio||1,3);
+  if(cv._w!==w||cv._h!==h||cv._d!==dpr){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.width=w+'px';cv.style.height=h+'px';cv._w=w;cv._h=h;cv._d=dpr;}
+  var ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx:ctx,w:w,h:h};
+}
+var FONT="'Pretendard Variable',Pretendard,system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+function tint(p){
+  var s=Math.abs(2*p-1),base=p<0.5?[0,114,178]:[213,94,0],a=0.5*s;
+  return [255+(base[0]-255)*a,255+(base[1]-255)*a,255+(base[2]-255)*a];
+}
+var LIM=1.08,off=document.createElement('canvas');
+function paintField(ctx,w,h,pFn,res){
+  off.width=res;off.height=res;var oc=off.getContext('2d'),id=oc.createImageData(res,res),d=id.data;
+  for(var r=0;r<res;r++)for(var c=0;c<res;c++){
+    var x=-LIM+2*LIM*(c+0.5)/res,y=LIM-2*LIM*(r+0.5)/res,col=tint(pFn(x,y)),k=(r*res+c)*4;
+    d[k]=col[0];d[k+1]=col[1];d[k+2]=col[2];d[k+3]=255;
+  }
+  oc.putImageData(id,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,w,h);
+}
+function X2P(x,w){return (x+LIM)/(2*LIM)*w;}
+function Y2P(y,h){return (LIM-y)/(2*LIM)*h;}
+function frame(ctx,w,h){
+  ctx.strokeStyle='rgba(23,25,28,.28)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(X2P(0,w),0);ctx.lineTo(X2P(0,w),h);ctx.moveTo(0,Y2P(0,h));ctx.lineTo(w,Y2P(0,h));ctx.stroke();
+  ctx.setLineDash([4,4]);ctx.strokeRect(X2P(-1,w),Y2P(1,h),X2P(1,w)-X2P(-1,w),Y2P(-1,h)-Y2P(1,h));ctx.setLineDash([]);
+}
+function marker(ctx,px,py,c,filled){
+  var s=4.8;ctx.beginPath();
+  if(c===0)ctx.arc(px,py,s,0,Math.PI*2);
+  else{ctx.moveTo(px,py-s*1.25);ctx.lineTo(px+s*1.15,py+s*0.85);ctx.lineTo(px-s*1.15,py+s*0.85);ctx.closePath();}
+  var col=c?'#D55E00':'#0072B2';
+  if(filled){ctx.fillStyle=col;ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle='#fff';ctx.stroke();}
+  else{ctx.lineWidth=3.8;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.9;ctx.strokeStyle=col;ctx.stroke();}
+}
+function drawPoints(ctx,w,h,pts,filled){pts.forEach(function(p){marker(ctx,X2P(p.x,w),Y2P(p.y,h),p.c,filled);});}
+function evalSet(net,pts){
+  var loss=0,ok=0;
+  pts.forEach(function(p){var q=forward(net,p.x,p.y);loss+=-(p.c*Math.log(Math.max(q,1e-12))+(1-p.c)*Math.log(Math.max(1-q,1e-12)));if((q>=0.5?1:0)===p.c)ok++;});
+  return {loss:loss/pts.length,acc:ok/pts.length};
+}
+var raf=function(f){return requestAnimationFrame(f);};
+function lineChart(cv,series,opt){
+  var o=fit(cv,function(w){return Math.max(150,Math.min(210,w*0.5));},opt.maxW),ctx=o.ctx,w=o.w,h=o.h;
+  var pl=44,pr=10,pt=10,pb=26;ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+  var xmax=Math.max(opt.xmin||10,opt.xmax),ymax=opt.ymax;
+  ctx.font='12px '+FONT;ctx.fillStyle='#4a5361';ctx.strokeStyle='#d6dde6';ctx.lineWidth=1;ctx.textAlign='right';
+  for(var k=0;k<=4;k++){var v=ymax*k/4,yy=pt+(h-pt-pb)*(1-k/4);ctx.beginPath();ctx.moveTo(pl,yy);ctx.lineTo(w-pr,yy);ctx.stroke();ctx.fillText(v.toFixed(2),pl-5,yy+4);}
+  ctx.textAlign='center';ctx.fillText('0',pl,h-9);ctx.fillText(String(Math.round(xmax)),w-pr-8,h-9);ctx.fillText(opt.xlabel,(pl+w-pr)/2,h-9);
+  series.forEach(function(s){
+    ctx.beginPath();ctx.strokeStyle=s.color;ctx.lineWidth=2;ctx.setLineDash(s.dash||[]);
+    s.data.forEach(function(v,i){var X=pl+(w-pl-pr)*i/xmax,Y=pt+(h-pt-pb)*(1-Math.min(v,ymax)/ymax);if(i)ctx.lineTo(X,Y);else ctx.moveTo(X,Y);});
+    ctx.stroke();ctx.setLineDash([]);
+  });
+}
+
+/* ================= 2절: 뉴런 계산기 + 그래프 ================= */
+(function(){
+  var x1=1,x2=0;
+  function neg(v){return v<0?'(−'+Math.abs(v)+')':String(v);}
+  function upd(){
+    var w1=+$('#n-w1').value,w2=+$('#n-w2').value,b=+$('#n-b').value;
+    $('#n-w1o').textContent=fmt(w1);$('#n-w2o').textContent=fmt(w2);$('#n-bo').textContent=fmt(b);
+    var s=w1*x1+w2*x2+b,out=s>0?1:0;
+    $('#n-formula').innerHTML='w₁ × x₁ + w₂ × x₂ + b<br>= '+neg(w1)+' × '+x1+' + '+neg(w2)+' × '+x2+' + '+neg(b)+' = <strong>'+fmt(s)+'</strong><br>→ '+(s>0?'0보다 크므로':'0보다 크지 않으므로')+' <strong>출력 '+out+'</strong> ('+(out?'축구를 해요':'축구를 안 해요')+')';
+  }
+  $('#n-x1').addEventListener('click',function(){x1=1-x1;this.setAttribute('aria-pressed',x1?'true':'false');this.textContent=x1?'맑음 (1)':'비 (0)';upd();});
+  $('#n-x2').addEventListener('click',function(){x2=1-x2;this.setAttribute('aria-pressed',x2?'true':'false');this.textContent=x2?'숙제 있음 (1)':'숙제 없음 (0)';upd();});
+  ['#n-w1','#n-w2','#n-b'].forEach(function(s){$(s).addEventListener('input',upd);});
+  upd();
+  function plot(id,f,xmin,xmax,ymin,ymax){
+    var svg=$(id),W=160,H=120,L=18,R=150,T=12,B=104,ns='http://www.w3.org/2000/svg',pts=[];
+    for(var i=0;i<=80;i++){var x=xmin+(xmax-xmin)*i/80,y=f(x);pts.push((L+(R-L)*(x-xmin)/(xmax-xmin)).toFixed(1)+','+(B-(B-T)*(y-ymin)/(ymax-ymin)).toFixed(1));}
+    var zx=L+(R-L)*(0-xmin)/(xmax-xmin),zy=B-(B-T)*(0-ymin)/(ymax-ymin);
+    svg.innerHTML='<path d="M'+L+' '+zy+'H'+R+'M'+zx+' '+T+'V'+B+'" stroke="#7b8594" stroke-width="1.2" fill="none"/><polyline points="'+pts.join(' ')+'" fill="none" stroke="#1f5bd6" stroke-width="3" stroke-linejoin="round"/>';
+  }
+  plot('#pl-step',function(x){return x>0?1:0;},-4,4,-0.1,1.2);
+  plot('#pl-sig',sigmoid,-6,6,-0.1,1.2);
+  plot('#pl-relu',function(x){return x>0?x:0;},-4,4,-0.4,4);
+})();
+
+/* ================= 3절: 선 긋기 + 자동 학습 ================= */
+var S3={ds:'line',pts:[],w:[1,-1,0],hist:[],auto:false,steps:0,raf:0,seeds:{line:11,xor:12,circle:13}};
+var S3init=[1,-1,0];
+function s3Make(){S3.pts=genData(S3.ds,0,S3.seeds[S3.ds],60);}
+function s3Stats(){
+  var ok=0,loss=0,w=S3.w;
+  S3.pts.forEach(function(p){var q=neuronForward(w[0],w[1],w[2],p.x,p.y);loss+=-(p.c*Math.log(Math.max(q,1e-12))+(1-p.c)*Math.log(Math.max(1-q,1e-12)));if((q>=0.5?1:0)===p.c)ok++;});
+  return {ok:ok,n:S3.pts.length,loss:loss/S3.pts.length};
+}
+function s3Draw(){
+  var cv=$('#s3-cv'),o=fit(cv,function(w){return w;},430),ctx=o.ctx,w=o.w,h=o.h,a=S3.w;
+  paintField(ctx,w,h,function(x,y){return neuronForward(a[0],a[1],a[2],x,y);},60);
+  frame(ctx,w,h);
+  // 경계선
+  var pts=[],eps=1e-9;
+  if(Math.abs(a[0])<eps&&Math.abs(a[1])<eps){}
+  else{
+    ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
+    var p1,p2;
+    if(Math.abs(a[1])>=Math.abs(a[0])){p1=[-LIM*2,-(a[0]*-LIM*2+a[2])/a[1]];p2=[LIM*2,-(a[0]*LIM*2+a[2])/a[1]];}
+    else{p1=[-(a[1]*-LIM*2+a[2])/a[0],-LIM*2];p2=[-(a[1]*LIM*2+a[2])/a[0],LIM*2];}
+    ctx.beginPath();ctx.moveTo(X2P(p1[0],w),Y2P(p1[1],h));ctx.lineTo(X2P(p2[0],w),Y2P(p2[1],h));
+    ctx.strokeStyle='#fff';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#17191c';ctx.lineWidth=2.5;ctx.stroke();ctx.restore();
+  }
+  drawPoints(ctx,w,h,S3.pts,true);
+  var st=s3Stats();
+  $('#s3-acc').textContent=st.ok+' / '+st.n;$('#s3-loss').textContent=st.loss.toFixed(3);
+  $('#s3-line').innerHTML='경계선: '+fmt(a[0],2)+'·x + '+fmt(a[1],2)+'·y + '+fmt(a[2],2)+' = 0';
+  cv.setAttribute('aria-label','점 '+st.n+'개 중 '+st.ok+'개를 맞힌 뉴런 하나의 경계선 그림. 데이터: '+({line:'선으로 나뉘는 데이터',xor:'XOR',circle:'원 안과 밖'}[S3.ds]));
+  var m=$('#s3-msg');
+  if(st.ok===st.n){m.style.display='block';m.textContent='모두 맞혔어요! 점 '+st.n+'개 전부 맞혔어요.';}
+  else if(S3.ds!=='line'&&st.ok/st.n>=0.7&&st.ok<st.n){m.style.display='none';}
+  else m.style.display='none';
+  return st;
+}
+function s3Chart(){
+  var d=S3.hist;lineChart($('#s3-ch'),[{data:d,color:'#1f5bd6'}],{xmax:400,xmin:400,ymax:Math.max(0.8,Math.ceil((d[0]||0.8)*10)/10),xlabel:'걸음',maxW:430});
+}
+function s3Sync(){
+  ['w1','w2','b'].forEach(function(k,i){var el=$('#s3-'+k);el.value=S3.w[i];$('#s3-'+k+'o').textContent=fmt(S3.w[i],S3.w[i]===Math.round(S3.w[i]*10)/10?1:2);});
+}
+function s3Say(t){$('#s3-live').textContent=t;}
+['w1','w2','b'].forEach(function(k,i){
+  var el=$('#s3-'+k);
+  el.addEventListener('input',function(){if(S3.auto)s3Stop('');S3.w[i]=+el.value;$('#s3-'+k+'o').textContent=fmt(S3.w[i]);s3Draw();});
+  el.addEventListener('change',function(){var st=s3Stats();s3Say('맞힌 점 '+st.ok+' / '+st.n+', 오차 '+st.loss.toFixed(3));});
+});
+document.querySelectorAll('[data-s3ds]').forEach(function(b){b.addEventListener('click',function(){
+  s3Stop('');S3.ds=b.dataset.s3ds;document.querySelectorAll('[data-s3ds]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+  s3Make();S3.hist=[];s3Draw();s3Chart();var st=s3Stats();s3Say(b.textContent+' 데이터로 바꿨어요. 맞힌 점 '+st.ok+' / '+st.n);
+});});
+$('#s3-reset').addEventListener('click',function(){s3Stop('');S3.w=S3init.slice();S3.hist=[];s3Sync();s3Draw();s3Chart();s3Say('처음 값으로 돌렸어요.');});
+function s3Step(lr){
+  var gw1=0,gw2=0,gb=0,n=S3.pts.length,a=S3.w;
+  S3.pts.forEach(function(p){var e=neuronForward(a[0],a[1],a[2],p.x,p.y)-p.c;gw1+=e*p.x;gw2+=e*p.y;gb+=e;});
+  a[0]-=lr*gw1/n;a[1]-=lr*gw2/n;a[2]-=lr*gb/n;
+}
+function s3Stop(msg){
+  S3.auto=false;cancelAnimationFrame(S3.raf);$('#s3-auto').textContent='자동 학습 시작';$('#s3-auto').setAttribute('aria-pressed','false');
+  if(msg){var st=s3Stats();s3Say(msg+' 맞힌 점 '+st.ok+' / '+st.n+', 오차 '+st.loss.toFixed(3));}
+}
+function s3Start(){
+  if(S3.auto)return;
+  var lr=+$('#s3-lr').value;S3.auto=true;S3.steps=0;S3.hist=[s3Stats().loss];S3.small=0;
+  $('#s3-auto').textContent='멈추기';$('#s3-auto').setAttribute('aria-pressed','true');
+  function finish(why){s3Sync();s3Draw();s3Chart();s3Stop(why);}
+  function tick(){
+    if(!S3.auto)return;
+    var per=reduce?400:3;
+    for(var k=0;k<per&&S3.steps<400;k++){
+      var before=S3.hist[S3.hist.length-1];s3Step(lr);S3.steps++;var L=s3Stats().loss;S3.hist.push(L);
+      if(Math.abs(before-L)<1e-7)S3.small++;else S3.small=0;
+      if(S3.small>=10)break;
+    }
+    s3Sync();s3Draw();s3Chart();
+    if(S3.steps>=400)return finish('400걸음에서 멈췄어요.');
+    if(S3.small>=10)return finish('더 이상 오차가 줄지 않아 멈췄어요.');
+    S3.raf=raf(tick);
+  }
+  tick();
+}
+$('#s3-auto').addEventListener('click',function(){if(S3.auto)s3Stop('멈췄어요.');else s3Start();});
+$('#s3-lr').addEventListener('change',function(){if(S3.auto)s3Stop('');});
+$('#s4-go').addEventListener('click',function(){
+  var t=$('#s3');t.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+  if(S3.auto)s3Stop('');S3.w=S3init.slice();s3Sync();setTimeout(s3Start,reduce?0:350);
+});
+s3Make();s3Sync();
+
+/* ================= 4절: 경사 하강법 미니 ================= */
+(function(){
+  var eta=0.1,w=-2,n=0,path=[];
+  var L=function(v){return (v-3)*(v-3)+1;},G=function(v){return 2*(v-3);};
+  var X0=-4,X1=10,Y0=0,Y1=60,PL=40,PR=440,PT=30,PB=226;
+  var px=function(v){return PL+(PR-PL)*(Math.max(X0,Math.min(X1,v))-X0)/(X1-X0);};
+  var py=function(v){return PB-(PB-PT)*(Math.max(Y0,Math.min(Y1,v))-Y0)/(Y1-Y0);};
+  function draw(){
+    var svg=$('#gd-svg'),c=[],i;
+    for(i=0;i<=60;i++){var v=X0+(X1-X0)*i/60;c.push(px(v).toFixed(1)+','+py(L(v)).toFixed(1));}
+    var s='<path d="M'+PL+' '+PB+'H'+PR+'M'+PL+' '+PT+'V'+PB+'" stroke="#7b8594" stroke-width="1.5" fill="none"/>';
+    [-4,0,3,6,10].forEach(function(t){s+='<path d="M'+px(t)+' '+PB+'v5" stroke="#7b8594"/><text x="'+px(t)+'" y="'+(PB+22)+'" text-anchor="middle" font-size="14" fill="#4a5361">'+(t<0?'−'+Math.abs(t):t)+'</text>';});
+    s+='<text x="'+PR+'" y="'+(PB+40)+'" text-anchor="end" font-size="14" fill="#4a5361">w</text><text x="'+(PL+6)+'" y="14" font-size="14" fill="#4a5361">오차 L</text>';
+    s+='<path d="M'+px(3)+' '+PB+'V'+py(1)+'" stroke="#15653a" stroke-width="1.5" stroke-dasharray="4 4"/><text x="'+(px(3)+6)+'" y="'+(PB-8)+'" font-size="13.5" fill="#15653a" font-weight="700">바닥 w=3</text>';
+    s+='<polyline points="'+c.join(' ')+'" fill="none" stroke="#17191c" stroke-width="2.5"/>';
+    if(path.length>1)s+='<polyline points="'+path.map(function(p){return px(p).toFixed(1)+','+py(L(p)).toFixed(1);}).join(' ')+'" fill="none" stroke="#D55E00" stroke-width="2" stroke-dasharray="5 3"/>';
+    path.forEach(function(p,k){s+='<circle cx="'+px(p)+'" cy="'+py(L(p))+'" r="'+(k===path.length-1?8:4)+'" fill="'+(k===path.length-1?'#1f5bd6':'#fff')+'" stroke="'+(k===path.length-1?'#fff':'#D55E00')+'" stroke-width="2.5"/>';});
+    svg.innerHTML=s;
+    svg.setAttribute('aria-label','오차 곡선 위의 점. 걸음 수 '+n+', w는 '+fmt(w,3)+', 오차는 '+fmt(L(w),3));
+    $('#gd-n').textContent=n;$('#gd-w').textContent=fmt(w,3);$('#gd-L').textContent=Math.abs(L(w))>1e5?L(w).toExponential(2).replace('+',''):fmt(L(w),3);$('#gd-g').textContent=Math.abs(G(w))>1e5?G(w).toExponential(2).replace('+',''):fmt(G(w),3);
+    var note;
+    if(n===0)note='출발점이에요. 기울기가 음수(−10)라서 오른쪽(w가 커지는 쪽)이 내리막이에요.';
+    else if(w<X0||w>X1||L(w)>Y1)note='점이 그래프 밖으로 나갔어요. 걸음을 할수록 바닥에서 멀어지고 있어요(발산).';
+    else if(Math.abs(w-3)<0.0005)note='바닥(w=3)에 닿았어요.';
+    else if(eta>1)note='오갈 때마다 폭이 커져요. 학습률이 너무 커요.';
+    else if(eta>0.5)note='바닥을 지나쳐 양쪽을 오가요. 폭은 줄어드는 중이에요.';
+    else note='바닥을 향해 내려가는 중이에요.';
+    $('#gd-note').textContent=note;
+  }
+  function reset(){w=-2;n=0;path=[w];draw();}
+  function step(){w=gdStep(w,eta);n++;path.push(w);}
+  $('#gd-1').addEventListener('click',function(){step();draw();});
+  $('#gd-10').addEventListener('click',function(){for(var i=0;i<10;i++)step();draw();});
+  $('#gd-0').addEventListener('click',reset);
+  document.querySelectorAll('[data-eta]').forEach(function(b){b.addEventListener('click',function(){eta=+b.dataset.eta;document.querySelectorAll('[data-eta]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});reset();});});
+  reset();
+  // 손계산 표
+  var hs;
+  function row(){
+    var x=2,wv=hs.w,z=wv*x,p=sigmoid(z),g=(p-1)*x,nw=wv-0.5*g,np=sigmoid(nw*x);
+    hs.n++;hs.w=nw;
+    var tr=document.createElement('tr');
+    [hs.n,fmt(wv,3),fmt(p,3),fmt(g,3),fmt(nw,3),fmt(np,3)].forEach(function(v){var td=document.createElement('td');td.textContent=v;tr.appendChild(td);});
+    $('#hs-body').appendChild(tr);
+  }
+  function hsReset(){hs={w:0.5,n:0};$('#hs-body').innerHTML='';row();}
+  $('#hs-go').addEventListener('click',row);$('#hs-reset').addEventListener('click',hsReset);hsReset();
+  window.addEventListener('resize',function(){});
+})();
+
+/* ================= 5절: 신경망 놀이터 ================= */
+var PG={ds:'circle',noise:0.05,k:2,sizes:[4,2],act:'tanh',lr:0.03,dataSeed:7,netSeed:1,running:false,epoch:0,hist:{tr:[],te:[]},train:[],test:[],net:null,rng:null,raf:0,maxEpoch:5000,last:null};
+function pgData(){
+  var all=genData(PG.ds,PG.noise,PG.dataSeed,240);
+  PG.train=all.filter(function(_,i){return Math.floor(i/2)%2===0;});PG.test=all.filter(function(_,i){return Math.floor(i/2)%2===1;});
+}
+function pgRecord(){
+  var a=evalSet(PG.net,PG.train),b=evalSet(PG.net,PG.test);PG.last={tr:a,te:b};PG.hist.tr.push(a.loss);PG.hist.te.push(b.loss);
+}
+function pgInit(){
+  PG.stop&&PG.stop(true);
+  PG.net=createNet([2].concat(PG.sizes.slice(0,PG.k),[1]),PG.act,PG.netSeed*7919+13);
+  PG.rng=mulberry32(PG.netSeed*31+5);PG.epoch=0;PG.hist={tr:[],te:[]};pgRecord();pgDraw();
+}
+function pgEpoch(){
+  var idx=PG.train.map(function(_,i){return i;}),i,j,t;
+  for(i=idx.length-1;i>0;i--){j=Math.floor(PG.rng()*(i+1));t=idx[i];idx[i]=idx[j];idx[j]=t;}
+  for(i=0;i<idx.length;i+=10)trainStep(PG.net,idx.slice(i,i+10).map(function(q){return PG.train[q];}),PG.lr);
+  PG.epoch++;pgRecord();
+}
+function pct(v){return (v*100).toFixed(1)+'%';}
+function pgDraw(){
+  var net=PG.net,cv=$('#pg-cv'),o=fit(cv,function(w){return w;},430),ctx=o.ctx,w=o.w,h=o.h;
+  paintField(ctx,w,h,function(x,y){return forward(net,x,y);},56);
+  frame(ctx,w,h);drawPoints(ctx,w,h,PG.train,true);drawPoints(ctx,w,h,PG.test,false);
+  var L=PG.last;
+  $('#pg-ep').textContent=PG.epoch;
+  $('#pg-tr').textContent=L.tr.loss.toFixed(3)+' / '+pct(L.tr.acc);
+  $('#pg-te').textContent=L.te.loss.toFixed(3)+' / '+pct(L.te.acc);
+  cv.setAttribute('aria-label','신경망이 만든 결정 경계. 에포크 '+PG.epoch+', 학습 정확도 '+pct(L.tr.acc)+', 시험 정확도 '+pct(L.te.acc));
+  var mx=Math.max.apply(null,PG.hist.tr.concat(PG.hist.te));
+  lineChart($('#pg-ch'),[{data:PG.hist.tr,color:'#1f5bd6'},{data:PG.hist.te,color:'#7a4a00',dash:[5,3]}],{xmax:PG.epoch,xmin:50,ymax:Math.max(0.8,Math.ceil(mx*10)/10),xlabel:'에포크'});
+  drawNet();
+}
+function drawNet(){
+  var net=PG.net,cv=$('#pg-net'),Ls=net.layers,maxN=Math.max.apply(null,Ls);
+  var o=fit(cv,function(w){return Math.max(190,Math.min(400,maxN*40+56));}),ctx=o.ctx,w=o.w,h=o.h;
+  ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+  var ts=Math.max(18,Math.min(36,(h-50)/maxN-6)),padX=ts/2+10,G=14,res=G*G;
+  var cols=Ls.length,xs=Ls.map(function(_,i){return cols===1?w/2:padX+(w-2*padX)*i/(cols-1);});
+  var top=40,ys=Ls.map(function(n){var tot=n*ts+(n-1)*6,y0=top+(h-top-8-tot)/2;return Array.from({length:n},function(_,j){return y0+j*(ts+6)+ts/2;});});
+  // 타일 값 계산
+  var vals=Ls.map(function(n){return Array.from({length:n},function(){return new Float32Array(res);});});
+  for(var r=0;r<G;r++)for(var c=0;c<G;c++){
+    var x=-1+2*(c+0.5)/G,y=1-2*(r+0.5)/G,rr=run(net,x,y);
+    rr.as.forEach(function(a,l){a.forEach(function(v,j){vals[l][j][r*G+c]=v;});});
+  }
+  // 연결선
+  net.W.forEach(function(M,l){M.forEach(function(row,j){row.forEach(function(wt,i){
+    ctx.beginPath();ctx.moveTo(xs[l]+ts/2,ys[l][i]);ctx.lineTo(xs[l+1]-ts/2,ys[l+1][j]);
+    ctx.strokeStyle=wt>=0?'rgba(0,114,178,.55)':'rgba(213,94,0,.55)';ctx.lineWidth=0.5+Math.min(5,Math.abs(wt)*1.5);ctx.stroke();
+  });});});
+  // 타일
+  var tc=document.createElement('canvas');tc.width=G;tc.height=G;var tx=tc.getContext('2d');
+  Ls.forEach(function(n,l){
+    for(var j=0;j<n;j++){
+      var id=tx.createImageData(G,G),v=vals[l][j],mxv=1;
+      if(l>0&&l<Ls.length-1&&net.activation==='relu'){mxv=Math.max(1,Math.max.apply(null,Array.from(v)));}
+      for(var q=0;q<res;q++){
+        var col;
+        if(l===Ls.length-1)col=tint(v[q]);
+        else{var t=l===0||net.activation==='tanh'?(v[q]+1)/2:v[q]/mxv;t=Math.max(0,Math.min(1,t));col=[245-185*t,244-186*t,251-141*t];}
+        id.data[q*4]=col[0];id.data[q*4+1]=col[1];id.data[q*4+2]=col[2];id.data[q*4+3]=255;
+      }
+      tx.putImageData(id,0,0);ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(tc,xs[l]-ts/2,ys[l][j]-ts/2,ts,ts);
+      ctx.lineWidth=1.5;ctx.strokeStyle='#17191c';ctx.strokeRect(xs[l]-ts/2,ys[l][j]-ts/2,ts,ts);
+    }
+  });
+  ctx.font='700 12.5px '+FONT;ctx.fillStyle='#17191c';ctx.textAlign='center';
+  Ls.forEach(function(n,l){ctx.fillText(l===0?'입력(x, y)':l===Ls.length-1?'출력':'은닉층 '+l,xs[l],20);});
+  ctx.font='12px '+FONT;ctx.fillStyle='#4a5361';
+  ctx.fillText(Ls.slice(1,-1).length?'':'은닉층 없음: 뉴런 하나',w/2,h-6);
+}
+function pgSteppers(){
+  var box=$('#pg-steppers');box.innerHTML='';
+  for(var i=0;i<PG.k;i++){(function(i){
+    var d=document.createElement('span');d.className='stepper';
+    d.innerHTML='<span style="font-size:.88rem">층'+(i+1)+'</span><button type="button" class="btn sm sq" aria-label="은닉층 '+(i+1)+' 뉴런 줄이기">−</button><b aria-label="은닉층 '+(i+1)+' 뉴런 수">'+PG.sizes[i]+'</b><button type="button" class="btn sm sq" aria-label="은닉층 '+(i+1)+' 뉴런 늘리기">+</button>';
+    var bs=d.querySelectorAll('button');
+    bs[0].onclick=function(){if(PG.sizes[i]>1){PG.sizes[i]--;pgSteppers();pgInit();}};
+    bs[1].onclick=function(){if(PG.sizes[i]<8){PG.sizes[i]++;pgSteppers();pgInit();}};
+    box.appendChild(d);
+  })(i);}
+}
+function pgUI(){
+  document.querySelectorAll('[data-pgds]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.pgds===PG.ds?'true':'false');});
+  document.querySelectorAll('[data-pgk]').forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.pgk===PG.k?'true':'false');});
+  document.querySelectorAll('[data-pgact]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.pgact===PG.act?'true':'false');});
+  $('#pg-noise').value=PG.noise;$('#pg-noiseo').textContent=PG.noise.toFixed(2);$('#pg-lr').value=String(PG.lr);pgSteppers();
+}
+function pgSay(){var L=PG.last;$('#pg-live').textContent='에포크 '+PG.epoch+': 학습 정확도 '+pct(L.tr.acc)+', 시험 정확도 '+pct(L.te.acc);}
+PG.stop=function(silent){
+  PG.running=false;cancelAnimationFrame(PG.raf);var b=$('#pg-run');b.textContent='학습 시작';b.setAttribute('aria-pressed','false');
+  if(!silent&&PG.last)pgSay();
+};
+function pgStart(){
+  if(PG.running)return;PG.running=true;var b=$('#pg-run');b.textContent='멈추기';b.setAttribute('aria-pressed','true');
+  (function tick(){
+    if(!PG.running)return;pgEpoch();pgDraw();
+    if(PG.epoch>=PG.maxEpoch){PG.stop();return;}
+    PG.raf=raf(tick);
+  })();
+}
+$('#pg-run').addEventListener('click',function(){PG.running?PG.stop():pgStart();});
+$('#pg-one').addEventListener('click',function(){PG.stop(true);pgEpoch();pgDraw();pgSay();});
+$('#pg-reinit').addEventListener('click',function(){PG.netSeed++;pgInit();});
+$('#pg-newdata').addEventListener('click',function(){PG.dataSeed++;pgData();pgInit();});
+document.querySelectorAll('[data-pgds]').forEach(function(b){b.addEventListener('click',function(){PG.ds=b.dataset.pgds;pgData();pgUI();pgInit();});});
+document.querySelectorAll('[data-pgk]').forEach(function(b){b.addEventListener('click',function(){PG.k=+b.dataset.pgk;pgUI();pgInit();});});
+document.querySelectorAll('[data-pgact]').forEach(function(b){b.addEventListener('click',function(){PG.act=b.dataset.pgact;pgUI();pgInit();});});
+$('#pg-noise').addEventListener('input',function(){PG.noise=+this.value;$('#pg-noiseo').textContent=PG.noise.toFixed(2);});
+$('#pg-noise').addEventListener('change',function(){pgData();pgInit();});
+$('#pg-lr').addEventListener('change',function(){PG.lr=+this.value;});
+function pgTask(ds,k,sizes,noise,go,lr){
+  PG.stop(true);PG.ds=ds;PG.k=k;PG.sizes=sizes;PG.noise=noise;PG.act='tanh';PG.lr=lr||0.03;pgData();pgUI();pgInit();if(go)pgStart();
+  $('#pg-live').textContent='과제 설정으로 바꿨어요. 학습을 시작해 보세요.';
+}
+$('#pg-t1').addEventListener('click',function(){pgTask('circle',0,[4,2],0.05,false);});
+$('#pg-t2').addEventListener('click',function(){pgTask('circle',1,[4,2],0.05,false);});
+$('#pg-t3').addEventListener('click',function(){pgTask('circle',2,[8,8],0.3,false,0.3);});
+pgData();pgUI();pgInit();
+
+/* ================= 8절: 코드 복사 ================= */
+document.querySelectorAll('[data-copy]').forEach(function(b){b.addEventListener('click',function(){
+  var txt=document.getElementById(b.dataset.copy).textContent;
+  function done(ok){var o=b.textContent;b.textContent=ok?'복사했어요':'직접 선택해 복사해요';$('#copy-live').textContent=ok?'코드를 복사했어요.':'복사하지 못했어요. 코드를 직접 선택해 복사해 주세요.';setTimeout(function(){b.textContent='코드 복사';},1800);}
+  function fallback(){try{var t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();var ok=document.execCommand('copy');document.body.removeChild(t);done(ok);}catch(e){done(false);}}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){done(true);},fallback);else fallback();}catch(e){fallback();}
+});});
+
+/* ================= 9절: 확인 문제 ================= */
+(function(){
+  var Q=[
+    {q:'인공지능, 기계학습, 딥러닝의 관계로 맞는 것은?',o:['딥러닝 ⊂ 기계학습 ⊂ 인공지능','인공지능 ⊂ 기계학습 ⊂ 딥러닝','기계학습 ⊂ 딥러닝 ⊂ 인공지능','셋은 서로 아무 관계가 없다'],a:0,e:'딥러닝은 기계학습의 한 종류이고, 기계학습은 인공지능의 한 갈래예요.'},
+    {q:'x₁ = 1, x₂ = 0, w₁ = 2, w₂ = 3, b = −1인 뉴런(계단 함수, 합이 0보다 크면 1)의 출력은?',o:['0','1','2','−1'],a:1,e:'합 = 2×1 + 3×0 + (−1) = 1이에요. 1은 0보다 크므로 출력은 1이에요. (2는 합이 아니라 w₁이에요.)'},
+    {q:'경사 하강법에서 학습률(한 걸음의 크기)을 너무 크게 하면 어떻게 될 수 있나요?',o:['항상 가장 빨리 바닥에 도착한다','오차가 줄지 않고 양쪽을 오가거나 오히려 커질 수 있다','기울기가 저절로 0이 된다','가중치가 변하지 않는다'],a:1,e:'4절에서 본 것처럼 η = 0.9는 양쪽을 오가고, η = 1.05는 점점 멀어져요. 바닥을 지나쳐 버리기 때문이에요.'},
+    {q:'뉴런 하나로는 XOR 문제를 풀 수 없는 까닭은?',o:['뉴런 하나는 계산이 너무 느려서','뉴런 하나가 만드는 경계는 직선 하나뿐이라서','XOR은 점이 너무 많아서','뉴런에는 편향이 없어서'],a:1,e:'경계가 w₁x + w₂y + b = 0이라는 직선 하나뿐이라서, XOR처럼 직선으로 나눌 수 없는 데이터는 풀 수 없어요.'},
+    {q:'은닉층 사이에 활성화 함수가 없다면 어떻게 되나요?',o:['층을 쌓을수록 곡선 경계가 더 잘 만들어진다','층을 쌓아도 직선 하나로 나누는 것과 같다','학습이 더 빨라지고 정확해진다','역전파를 할 수 없다'],a:1,e:'직선 같은 계산을 여러 번 이어도 결국 하나의 직선 같은 계산이 돼요. 곡선을 만드는 힘은 활성화 함수에서 나와요.'},
+    {q:'학습 정확도는 계속 오르는데 시험 정확도가 내려가기 시작했어요. 무슨 일일까요?',o:['과대적합이 일어나고 있다','학습률이 0이 되었다','데이터가 모두 같은 클래스이다','모델이 너무 단순하다'],a:0,e:'학습 데이터만 외우듯 맞히고 새 데이터에는 약해지는 과대적합이에요. 데이터를 늘리거나 모델을 단순하게 하거나 일찍 멈춰요.'}
+  ];
+  var wrap=$('#quiz'),done={},score=0;
+  Q.forEach(function(it,qi){
+    var f=document.createElement('fieldset');f.className='q';
+    var h='<legend>문제 '+(qi+1)+'</legend><p style="margin:.2rem 0 .4rem">'+it.q+'</p>';
+    it.o.forEach(function(t,oi){h+='<label><input type="radio" name="q'+qi+'" value="'+oi+'"><span>'+t+'</span></label>';});
+    h+='<button type="button" class="btn" style="margin-top:.4rem">확인</button><p class="fb" role="status" aria-live="polite" hidden></p>';
+    f.innerHTML=h;wrap.appendChild(f);
+    var btn=f.querySelector('button'),fb=f.querySelector('.fb');
+    btn.addEventListener('click',function(){
+      var sel=f.querySelector('input:checked');
+      fb.hidden=false;
+      if(!sel){fb.className='fb bad';fb.textContent='먼저 답을 골라 주세요.';return;}
+      var ok=+sel.value===it.a;
+      if(!done[qi]){done[qi]=true;if(ok)score++;}
+      fb.className='fb '+(ok?'good':'bad');
+      fb.textContent=(ok?'정답이에요. ':'아쉬워요. 정답은 “'+it.o[it.a]+'”예요. ')+it.e;
+      $('#quiz-score').textContent='점수: '+score+' / '+Q.length+' (푼 문제 '+Object.keys(done).length+'개)';
+    });
+  });
+})();
+
+/* ================= 크기 변화 ================= */
+var rz=0;
+window.addEventListener('resize',function(){cancelAnimationFrame(rz);rz=raf(function(){s3Draw();s3Chart();pgDraw();});});
+s3Draw();s3Chart();pgDraw();
+})();
+</script>
+</body>
+</html>
