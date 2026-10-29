@@ -6,7 +6,7 @@
 //   사이트 주소로 시작하는 공유 미리보기 meta(og:url·og:image·twitter:image)의 content,
 //   실습실 예제 목록 JSON(<script data-lab-examples>)의 codeUrl — 고를 때 받는 예제의 코드 파일(판 1.5.0, extractLabExampleCodeUrls)
 // - CSS: url(…)과 @import
-// - #위치: 가리키는 페이지에 그 id(또는 a 요소의 name)가 있는지
+// - #위치: 가리키는 페이지에 그 id(또는 a 요소의 name)가 있는지. 실습실 공유 링크의 # 뒤(#code=…)는 id가 아니라 코드라 따로 본다(share-link-invalid)
 //
 // 문제로 보는 것(kind)
 // - base-missing       사이트 뿌리 주소(/credits/ 등)인데 base(/ai-physical-computing/)가 빠졌다 → GitHub Pages에서 404
@@ -19,6 +19,9 @@
 // - example-not-found  실습실 주소의 ?example=<examples/ 아래 경로> 값이 실제 예제 파일이 아니다(실습실이 조용히 다른 예제를 연다)
 // - example-wrong-lab  ?example= 파일은 있는데 그 예제를 싣지 않는 실습실로 연다(영상 처리 실습실에 esp32/ 예제, ESP32 실습실에 vision/ 예제 —
 //                      실습실은 목록에서 못 찾아 조용히 첫 예제를 연다. 통신 차시의 컴퓨터 쪽·보드 쪽 한 쌍에서 생기기 쉽다, P4-08·2026-09-24 통합)
+// - share-link-invalid 실습실 공유 링크(#code=<압축값>&ex=…&lab=… — src/lab/controls/share-link.ts)가 실습실이 아닌 쪽을 가리키거나, code= 값에
+//                      압축 글자(A-Z a-z 0-9 + - $) 밖의 글자가 있거나, lab= 값이 그 쪽의 실습실 id(data-lab-id)가 아니다
+//                      (원리 체험 쪽 public/ml/의 "실습실에서 열기" 링크 — 판 1.9.0. 압축을 풀어 보는 것은 외부 패키지가 있어야 해서 하지 않는다)
 // 건너뛰는 것: 다른 사이트 주소, mailto:·tel:·javascript:·data:·blob:, 자바스크립트가 실행 중에 만드는 주소(검색 결과 등),
 // <script>·<style> 안의 글자와 HTML 주석
 //
@@ -35,7 +38,7 @@ import path from 'node:path';
  */
 
 /**
- * @typedef {'base-missing' | 'not-found' | 'no-trailing-slash' | 'anchor-not-found' | 'relative-in-404' | 'example-not-found' | 'example-wrong-lab'} LinkProblemKind
+ * @typedef {'base-missing' | 'not-found' | 'no-trailing-slash' | 'anchor-not-found' | 'relative-in-404' | 'example-not-found' | 'example-wrong-lab' | 'share-link-invalid'} LinkProblemKind
  */
 
 /**
@@ -65,6 +68,13 @@ const LAB_EXAMPLE_ROOTS = new Map([
   ['labs/vision/index.html', ['vision', 'desktop']],
   ['labs/esp32/index.html', ['esp32']],
 ]);
+
+/** 실습실 공유 링크의 # 뒤는 늘 code=로 시작한다(share-link.ts SHARE_CODE_KEY — 옛 링크 모양과 같게 맨 앞) */
+const SHARE_HASH_PREFIX = 'code=';
+/** lz-string compressToEncodedURIComponent가 쓰는 글자(src/lab/controls/compress.ts) */
+const SHARE_CODE_PATTERN = /^[A-Za-z0-9+$-]+$/u;
+/** 실습실 틀의 실습실 id(LabShell.astro data-lab-id) */
+const LAB_ID_ATTRIBUTE_PATTERN = /\sdata-lab-id="([^"]*)"/gu;
 
 /** 404 페이지로 쓰이는 파일(GitHub Pages는 사이트 뿌리의 404.html을 없는 주소마다 보여 준다) */
 const NOT_FOUND_PAGE = '404.html';
@@ -315,6 +325,47 @@ export function checkLinks(distDir, site, options = {}) {
   /** @type {LinkReport} */
   const report = { pages: 0, stylesheets: 0, internal: 0, anchors: 0, examples: 0, external: 0, problems: [] };
 
+  /** @type {Map<string, Set<string>>} */
+  const labIdCache = new Map();
+  /**
+   * 그 쪽에 있는 실습실 틀의 실습실 id(없으면 빈 모음 — 실습실이 아닌 쪽)
+   * @param {string} file
+   */
+  const labIdsOf = (file) => {
+    let ids = labIdCache.get(file);
+    if (!ids) {
+      const html = fs.readFileSync(path.join(distDir, ...file.split('/')), 'utf8');
+      ids = new Set(Array.from(html.matchAll(LAB_ID_ATTRIBUTE_PATTERN), (match) => match[1] ?? ''));
+      labIdCache.set(file, ids);
+    }
+    return ids;
+  };
+
+  /**
+   * 실습실 공유 링크(#code=…&ex=…&lab=…)가 맞는지: 실습실 쪽이고, code= 값이 압축 글자뿐이고, lab=이 있으면 그 쪽의 실습실 id다.
+   * @param {string} hash # 뒤 글자(풀지 않은 그대로 — +가 빈칸으로 바뀌지 않게)
+   * @param {string} target
+   */
+  const isValidShareHash = (hash, target) => {
+    const labs = labIdsOf(target);
+    if (labs.size === 0) {
+      return false;
+    }
+    /** @type {Map<string, string>} */
+    const values = new Map();
+    for (const part of hash.split('&')) {
+      const separator = part.indexOf('=');
+      if (separator > 0) {
+        values.set(part.slice(0, separator), part.slice(separator + 1));
+      }
+    }
+    if (!SHARE_CODE_PATTERN.test(values.get('code') ?? '')) {
+      return false;
+    }
+    const lab = values.get('lab');
+    return lab === undefined || labs.has(safeDecode(lab));
+  };
+
   /** @param {string} file */
   const idsOf = (file) => {
     let ids = idCache.get(file);
@@ -407,6 +458,12 @@ export function checkLinks(distDir, site, options = {}) {
       return;
     }
     report.anchors += 1;
+    if (url.hash.startsWith(`#${SHARE_HASH_PREFIX}`)) {
+      if (!isValidShareHash(url.hash.slice(1), target)) {
+        report.problems.push({ file, ref, kind: 'share-link-invalid', target });
+      }
+      return;
+    }
     if (!idsOf(target).has(anchor)) {
       report.problems.push({ file, ref, kind: 'anchor-not-found', target });
     }
@@ -446,6 +503,8 @@ const PROBLEM_MESSAGES = {
   'example-not-found': () => '실습실 주소의 ?example= 값이 examples/ 아래에 없는 파일이에요. 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 파일 경로를 고쳐요.',
   'example-wrong-lab': () =>
     '?example= 예제를 싣지 않는 실습실로 열어요(esp32/ 예제는 ESP32 실습실, vision/·desktop/ 예제는 영상 처리 실습실). 그대로 두면 실습실이 조용히 첫 예제를 열어요 — 링크의 실습실 주소를 고쳐요(차시는 LessonExamples가 예제 경로로 실습실을 고른다).',
+  'share-link-invalid': () =>
+    '실습실 공유 링크(#code=…)가 맞지 않아요. 실습실 쪽 주소이고, code= 값은 실습실의 [공유 링크]가 만든 글자 그대로이고, lab= 값은 그 쪽의 실습실 id(vision·esp32 등)인지 확인해요.',
 };
 
 /**

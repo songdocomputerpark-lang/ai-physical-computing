@@ -205,6 +205,37 @@ describe('링크 검사(checkLinks)', () => {
     expect(formatLinkReport(report, site)).toContain('예제를 싣지 않는 실습실로 열어요');
   });
 
+  it('실습실 공유 링크(#code=…)는 #위치가 아니라 코드로 본다: 실습실 쪽이고 압축 글자뿐이고 lab=이 그 쪽 실습실이면 통과(원리 체험 쪽 — 판 1.9.0)', () => {
+    const lab = (id: string) => page(`<div data-lab data-lab-id="${id}"><h1 id="lab-title">실습실</h1></div>`);
+    const dist = makeDist({
+      'ml/kmeans/index.html': page(
+        [
+          '<a href="../../labs/vision/#code=MQAg0gtIk8u+Ai1g-i4yAd$gV&lab=vision">상대 주소·lab=</a>',
+          '<a href="/demo/labs/esp32/#code=BYGw&ex=01-first-blink">옛 링크(lab= 없음)</a>',
+          '<a href="/demo/labs/unit4/#code=BYGw&lab=esp32">두 칸 화면의 보드 칸</a>',
+          '<a href="/demo/labs/vision/#lab-title">보통 #위치</a>',
+          '<a href="/demo/labs/vision/#code=BYGw&lab=esp32">다른 실습실 id</a>',
+          '<a href="/demo/labs/vision/#code=%ED%95%9C%EA%B8%80&lab=vision">압축 글자가 아닌 값</a>',
+          '<a href="/demo/labs/vision/#code=&lab=vision">빈 code=</a>',
+          '<a href="/demo/credits/#code=BYGw">실습실이 아닌 쪽</a>',
+        ].join(''),
+      ),
+      'labs/vision/index.html': lab('vision'),
+      'labs/esp32/index.html': lab('esp32'),
+      'labs/unit4/index.html': page('<div data-lab-id="vision"></div><div data-lab-id="esp32"></div>'),
+      'credits/index.html': page('<h1 id="code=BYGw">출처</h1>'),
+    });
+    const report = checkLinks(dist, site, { examplesDir: dist });
+    expect(report.anchors).toBe(8);
+    expect(report.problems.map((problem) => [problem.ref, problem.kind, problem.target])).toEqual([
+      ['/demo/labs/vision/#code=BYGw&lab=esp32', 'share-link-invalid', 'labs/vision/index.html'],
+      ['/demo/labs/vision/#code=%ED%95%9C%EA%B8%80&lab=vision', 'share-link-invalid', 'labs/vision/index.html'],
+      ['/demo/labs/vision/#code=&lab=vision', 'share-link-invalid', 'labs/vision/index.html'],
+      ['/demo/credits/#code=BYGw', 'share-link-invalid', 'credits/index.html'],
+    ]);
+    expect(formatLinkReport(report, site)).toContain('실습실 공유 링크(#code=…)가 맞지 않아요');
+  });
+
   it('실습실 예제 목록 JSON의 codeUrl(고를 때 받는 키트 예제 — 판 1.5.0)이 빌드 결과의 파일을 가리키는지 본다', () => {
     const examples = [
       { id: 'first', title: '첫 예제', code: 'print(1)\n', file: 'esp32/first.py' },
