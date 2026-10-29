@@ -1,4 +1,4 @@
-// 왼쪽 메뉴판(판 1.9.0, DECISIONS C238) — 묶음 자료(src/layouts/partials/side-menu.ts)와 브라우저 쪽 순수 함수(side-menu-client.ts) 검사.
+// 왼쪽 메뉴판(판 1.9.0, DECISIONS C239) — 묶음 자료(src/layouts/partials/side-menu.ts)와 브라우저 쪽 순수 함수(side-menu-client.ts) 검사.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { getPage, headerNav } from '../../src/config/nav.ts';

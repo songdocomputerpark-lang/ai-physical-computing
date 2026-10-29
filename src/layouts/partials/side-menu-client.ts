@@ -1,5 +1,5 @@
 /**
- * 왼쪽 메뉴판의 브라우저 쪽(판 1.9.0, DECISIONS C238) — 마크업은 SideMenu.astro, 머리글 [메뉴] 단추는 SiteHeader.astro.
+ * 왼쪽 메뉴판의 브라우저 쪽(판 1.9.0, DECISIONS C239) — 마크업은 SideMenu.astro, 머리글 [메뉴] 단추는 SiteHeader.astro.
  *
  * ① [메뉴] 단추(aria-controls="site-menu")
  *    넓은 화면(75rem 이상): 왼쪽 칸을 접고 편다. 고른 것은 이 브라우저에 남긴다(storage 이름 ui:side-menu — 'closed'|'open').

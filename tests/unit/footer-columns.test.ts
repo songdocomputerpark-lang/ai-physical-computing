@@ -59,7 +59,7 @@ describe('사이트 지도의 아이콘(nav.ts icon)', () => {
 describe('머리글·바닥글 마크업 약속(원문)', () => {
   const header = readFileSync('src/layouts/partials/SiteHeader.astro', 'utf8');
 
-  it('머리글 차례는 이름 → [메뉴] → 검색 상자이고, 주 메뉴(링크 목록)는 머리글에 없다(판 1.9.0 — 왼쪽 메뉴판 SideMenu.astro로 옮김, C238)', () => {
+  it('머리글 차례는 이름 → [메뉴] → 검색 상자이고, 주 메뉴(링크 목록)는 머리글에 없다(판 1.9.0 — 왼쪽 메뉴판 SideMenu.astro로 옮김, C239)', () => {
     const brand = header.indexOf('class="site-header__brand"');
     const button = header.indexOf('data-menu-button');
     const search = header.indexOf('<div class="site-header__search">');

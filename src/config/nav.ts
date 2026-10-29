@@ -1,7 +1,7 @@
 /**
  * 사이트 지도 한 곳(PLAN §2.1).
  *
- * 왼쪽 메뉴판(src/layouts/partials/side-menu.ts — 판 1.9.0, C238), 바닥글 사이트 지도, 현재 위치(빵부스러기), 자리 페이지, 메뉴 링크 검사(Playwright)가
+ * 왼쪽 메뉴판(src/layouts/partials/side-menu.ts — 판 1.9.0, C239), 바닥글 사이트 지도, 현재 위치(빵부스러기), 자리 페이지, 메뉴 링크 검사(Playwright)가
  * 모두 이 목록을 읽는다. 메뉴 이름·주소를 바꿀 때는 이 파일만 고친다(메뉴판의 묶음·차례만 side-menu.ts에서 정한다).
  *
  * 약속

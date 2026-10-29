@@ -1,5 +1,5 @@
 /*
- * 왼쪽 메뉴판 안 "이 쪽의 차례"의 모양(판 1.9.0, DECISIONS C238 — 마크업 src/layouts/partials/SideMenuOutline.astro).
+ * 왼쪽 메뉴판 안 "이 쪽의 차례"의 모양(판 1.9.0, DECISIONS C239 — 마크업 src/layouts/partials/SideMenuOutline.astro).
  * 차례를 메뉴판에 넘기는 쪽(src/pages/learn/[unit]/[lesson].astro · src/pages/book/[id].astro · src/pages/labs/esp32/kit/[id].astro)만 불러온다.
  * 좁은 화면(75rem 미만)에서는 메뉴판 안 차례를 숨긴다 — 그 폭에서는 본문 위의 접힌 목록(LessonSidebar "이 단원 차시 목록 펼치기")이 같은 일을 하고,
  * [메뉴]를 연 칸이 휴대폰 화면 여러 장만큼 길어지지 않게.

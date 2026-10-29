@@ -173,7 +173,7 @@ textarea {
 /* ── 페이지 틀(BaseLayout) ── */
 
 /*
- * 왼쪽 메뉴판 + 본문 칸(판 1.9.0, DECISIONS C238). 넓은 화면(75rem 이상)은 두 칸: 메뉴판(src/layouts/partials/SideMenu.astro) 18rem(--side-menu-width) + 본문.
+ * 왼쪽 메뉴판 + 본문 칸(판 1.9.0, DECISIONS C239). 넓은 화면(75rem 이상)은 두 칸: 메뉴판(src/layouts/partials/SideMenu.astro) 18rem(--side-menu-width) + 본문.
  * 머리글 [메뉴]로 접으면(<html data-side-menu="closed">) 본문 한 칸 — 예전처럼 쪽 칸(76rem)이 가운데에 온다.
  * 좁은 화면은 한 칸이고 메뉴판은 머리글 바로 아래에 접혀 있다([메뉴]로 연다).
  * 수업 화면·차시 안 실습실(?embed=1)·인쇄에서는 메뉴판을 숨기고 한 칸으로.
@@ -563,7 +563,7 @@ textarea {
   padding-inline-start: 1.5em;
 }
 
-/* 목록 줄 사이(판 1.9.0 C239 — 0.25rem이던 것을 0.5rem으로: 학습목표·순서 목록이 한 덩어리로 붙어 보였다) */
+/* 목록 줄 사이(판 1.9.0 C240 — 0.25rem이던 것을 0.5rem으로: 학습목표·순서 목록이 한 덩어리로 붙어 보였다) */
 .prose li + li {
   margin-block-start: var(--space-2);
 }

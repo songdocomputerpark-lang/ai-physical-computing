@@ -114,7 +114,7 @@ test.describe('좁은 화면 메뉴', () => {
 test.describe('넓은 화면 메뉴', () => {
   test.skip(({ isMobile }) => isMobile, '데스크톱 화면(1366px)에서만 확인한다');
 
-  test('왼쪽 메뉴판이 처음부터 보이고 지금 페이지를 표시한다(판 1.9.0, C238)', async ({ page }) => {
+  test('왼쪽 메뉴판이 처음부터 보이고 지금 페이지를 표시한다(판 1.9.0, C239)', async ({ page }) => {
     await page.goto('./glossary/');
     const button = page.getByRole('button', { name: '메뉴' });
     await expect(button).toBeVisible();

@@ -129,7 +129,7 @@ const { previous, next } = findNeighbors(lessons, lesson.id);
 // [이 차시 다 했어요] 뒤에 권하는 다음 차시는 선택 보충(V1 등)을 건너뛴다. 아래 이전·다음 카드는 차례 그대로(보충에는 "선택" 표시)(R2-020).
 const recommendedNext = findRecommendedNext(lessons, lesson.id);
 const position = lessonPosition(lessons, lesson);
-// 왼쪽 메뉴판의 "N단원" 줄 아래에 이 단원 차시 목록을 넣는다(판 1.9.0, C238) — 본문 칸의 LessonSidebar와 같은 값
+// 왼쪽 메뉴판의 "N단원" 줄 아래에 이 단원 차시 목록을 넣는다(판 1.9.0, C239) — 본문 칸의 LessonSidebar와 같은 값
 const outline = unitSidebarOutline(unit, lessons, lesson.id);
 ---
 
