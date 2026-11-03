@@ -75,7 +75,7 @@ import {
   type LazyExampleEntry,
 } from './lazy-examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
-import { isEmbedFit, isMostlyVisible, revealElement, revealTogether, revealWhole, stickyBarInset } from './reveal.ts';
+import { isEmbedFit, isMostlyVisible, keepRevealedWhole, revealElement, revealTogether, revealWhole, stickyBarInset } from './reveal.ts';
 import { finishedStatusText } from './finished-status.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickExampleLab, pickShareLab, type LabOnPage } from './share-link.ts';
 
@@ -1559,6 +1559,7 @@ class LabShellController implements LabController {
        * ① 알림을 먼저 걷는다 — 알림은 조작 줄 아래(콘솔보다 위)라 걷으면 콘솔이 그만큼 올라간다. 재고 나서 걷으면 그만큼 빗나갔다.
        * ② 틀 높이 맞춤(차시 쪽 ResizeObserver)이 따라온 뒤(두 번째 화면 그리기)에 콘솔 칸 전체가 화면에 들어오게 바깥 쪽을 굴린다(제목부터).
        * ③ 콘솔 상자 안은 이번 실행의 첫 줄이 맨 위에 오게.
+       * ④ 맞춘 뒤 2초 동안 둘레 칸이 접혀(준비 칸이 저절로 접힘 등) 틀이 줄면 다시 맞춘다 — 학생이 화면을 다루면 그만둔다(판 1.9.1, 미해결 292).
        */
       this.#resetConsoleOutputNotice();
       this.#scrollConsoleToRunStart();
@@ -1568,7 +1569,12 @@ class LabShellController implements LabController {
         box.focus();
       }
       const section = box.closest('.lab__console') ?? box;
-      requestFrame(() => requestFrame(() => revealWhole(section, { margin: 12 })));
+      requestFrame(() =>
+        requestFrame(() => {
+          revealWhole(section, { margin: 12 });
+          keepRevealedWhole(section, { margin: 12 });
+        }),
+      );
       return;
     }
     revealElement(box.closest('.lab__console') ?? box, { block: 'start' });

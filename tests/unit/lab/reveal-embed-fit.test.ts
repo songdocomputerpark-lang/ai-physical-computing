@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { EMBED_FIT_ATTRIBUTE, embedFitView, isEmbedFit, isMostlyVisible, revealElement, revealTogether, revealWhole } from '../../../src/lab/controls/reveal.ts';
+import { EMBED_FIT_ATTRIBUTE, embedFitView, isEmbedFit, isMostlyVisible, keepRevealedWhole, revealElement, revealTogether, revealWhole } from '../../../src/lab/controls/reveal.ts';
 
 function box(top: number, height: number, width = 300) {
   return { top, bottom: top + height, height, width, left: 0, right: width, x: 0, y: top, toJSON: () => ({}) };
@@ -220,5 +220,91 @@ describe('높이 맞춤 이름·값 대조(판 1.7.0 — 세 파일이 같은 �
       const fitted = value.replace(/(\d+)vh/u, 'calc(var(--embed-vh, 1vh) * $1)');
       expect(css, `global.css 높이 맞춤 ${fitted}`).toContain(fitted);
     }
+  });
+});
+
+// 판 1.9.1(PROGRESS 미해결 292): [콘솔 보기 ↓] 직후 저절로 접히는 준비 칸(약 430px)이 틀을 줄여 막 맞춘 콘솔을 화면 위로 밀어냈다.
+describe('keepRevealedWhole — 맞춘 뒤 잠깐 둘레가 접혀도 다시 맞춘다', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  /** 높이 맞춤 틀 대역 + 이벤트·화면 그리기·ResizeObserver 대역. 칸의 위치(top)는 바꿀 수 있다 */
+  function setup() {
+    vi.useFakeTimers();
+    const state = { top: 1012 };
+    const outerScrolls: ScrollToOptions[] = [];
+    const listeners = new Map<string, Set<() => void>>();
+    const target = () => ({
+      addEventListener: (type: string, fn: () => void) => {
+        (listeners.get(type) ?? listeners.set(type, new Set()).get(type)!).add(fn);
+      },
+      removeEventListener: (type: string, fn: () => void) => {
+        listeners.get(type)?.delete(fn);
+      },
+    });
+    const frames: (() => void)[] = [];
+    const outer = { ...target(), innerHeight: 812, scrollY: 6000, scrollTo: (options: ScrollToOptions) => outerScrolls.push(options) };
+    vi.stubGlobal('window', {
+      ...target(),
+      innerHeight: 3146,
+      scrollY: 0,
+      matchMedia: () => ({ matches: true }),
+      requestAnimationFrame: (fn: () => void) => frames.push(fn),
+      frameElement: { getBoundingClientRect: () => box(-1000, 3146, 700), clientTop: 0 },
+      parent: outer,
+    });
+    vi.stubGlobal('document', { documentElement: { clientHeight: 3146, hasAttribute: (name: string) => name === 'data-embed-fit' } });
+    let resize: () => void = () => undefined;
+    let disconnected = false;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          resize = callback;
+        }
+        observe() {}
+        disconnect() {
+          disconnected = true;
+        }
+      },
+    );
+    const element = { getBoundingClientRect: () => box(state.top, 450) } as unknown as Element;
+    const flushFrames = () => {
+      while (frames.length > 0) frames.shift()!();
+    };
+    return { state, outerScrolls, element, fire: (type: string) => listeners.get(type)?.forEach((fn) => fn()), resize: () => resize(), flushFrames, disconnected: () => disconnected };
+  }
+
+  it('문서 높이가 바뀌어 칸이 화면 위로 밀려나면 두 번째 화면 그리기 뒤 다시 맞춘다', () => {
+    const t = setup();
+    keepRevealedWhole(t.element, { margin: 12 });
+    // 처음엔 화면 띠(1,000~1,812) 위 끝 + 12에 있다 → 할 일 없음
+    t.resize();
+    t.flushFrames();
+    expect(t.outerScrolls).toEqual([]);
+    // 준비 칸이 접혀 콘솔이 426px 위로(틀 안 좌표 586) — 화면 띠 밖
+    t.state.top = 586;
+    t.resize();
+    expect(t.outerScrolls).toEqual([]); // 차시 쪽이 틀 높이를 맞출 때까지 기다린다
+    t.flushFrames();
+    expect(t.outerScrolls).toEqual([{ top: 6000 + (586 - 1012), behavior: 'auto' }]);
+  });
+
+  it('학생이 화면을 굴리거나 누르면 그만두고, 2초가 지나도 그만둔다', () => {
+    const t = setup();
+    keepRevealedWhole(t.element, { margin: 12 });
+    t.fire('wheel');
+    expect(t.disconnected()).toBe(true);
+    t.state.top = 586;
+    t.resize();
+    t.flushFrames();
+    expect(t.outerScrolls).toEqual([]);
+
+    const u = setup();
+    keepRevealedWhole(u.element, { margin: 12, durationMs: 2_000 });
+    vi.advanceTimersByTime(2_000);
+    expect(u.disconnected()).toBe(true);
   });
 });

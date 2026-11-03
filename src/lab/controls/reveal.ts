@@ -246,6 +246,61 @@ export function revealWhole(element: Element | null | undefined, options: { marg
   return scrollByDelta(delta, fit);
 }
 
+/** 학생이 스스로 화면을 다루는 신호 — keepRevealedWhole은 이 가운데 하나가 오면 그만둔다 */
+const USER_SCROLL_EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
+
+/**
+ * revealWhole로 칸을 화면에 맞춘 뒤 잠깐(기본 2초) 문서 높이가 바뀌면 다시 맞춘다. 학생이 화면을 직접 다루면(굴림·터치·누름·키) 곧바로 그만둔다.
+ * 판 1.9.1(PROGRESS 미해결 292): 차시 안 실습실에서 [콘솔 보기 ↓]를 누른 직후, 준비가 끝나고 1.5초 뒤 저절로 접히는 준비 칸
+ * (PANEL_COLLAPSE_DELAY_MS — 1분 개념 카드 등 약 430px)이 접히며 틀이 줄어, 막 맞춘 콘솔이 화면 위로 밀려 나갔다(브라우저 시험이 셋에 하나꼴로 실패).
+ * 문서 높이는 ResizeObserver로 보고, 차시 쪽이 틀 높이를 따라 맞춘 뒤(두 번째 화면 그리기) 잰다. 돌려주는 함수로 일찍 그만둘 수 있다.
+ */
+export function keepRevealedWhole(element: Element | null | undefined, options: { margin?: number; durationMs?: number } = {}): () => void {
+  if (!element || typeof window === 'undefined' || typeof document === 'undefined' || typeof ResizeObserver !== 'function') {
+    return () => undefined;
+  }
+  const fit = embedFitView();
+  const views: Window[] = fit && fit.outer !== window ? [window, fit.outer] : [window];
+  let stopped = false;
+  let pending = 0;
+  const raf = (callback: () => void): number =>
+    typeof window.requestAnimationFrame === 'function' ? window.requestAnimationFrame(callback) : (setTimeout(callback, 16) as unknown as number);
+  const recheck = (): void => {
+    pending = 0;
+    if (!stopped) {
+      revealWhole(element, { margin: options.margin });
+    }
+  };
+  const observer = new ResizeObserver(() => {
+    if (!stopped && pending === 0) {
+      pending = raf(() => {
+        pending = raf(recheck);
+      });
+    }
+  });
+  const stop = (): void => {
+    if (stopped) {
+      return;
+    }
+    stopped = true;
+    observer.disconnect();
+    clearTimeout(timer);
+    for (const view of views) {
+      for (const type of USER_SCROLL_EVENTS) {
+        view.removeEventListener(type, stop, true);
+      }
+    }
+  };
+  observer.observe(document.documentElement);
+  for (const view of views) {
+    for (const type of USER_SCROLL_EVENTS) {
+      view.addEventListener(type, stop, { capture: true, passive: true });
+    }
+  }
+  const timer = setTimeout(stop, options.durationMs ?? 2_000);
+  return stop;
+}
+
 export interface RevealTogetherOptions {
   /** 화면 위쪽에 남길 여백(px, 기본 8) */
   margin?: number;
