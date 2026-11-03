@@ -842,7 +842,7 @@ test.describe('키보드만으로 — 건너뛰기와 홈의 Tab 정류장(판 1
     expect(walk.finished, '홈 끝까지 걸어 봤다').toBe(true);
     // 머리글·왼쪽 메뉴판과 바닥글은 모든 쪽이 같다 — [본문으로 건너뛰기]가 그 둘을 넘기고, 본문 정류장만 40곳 안으로 센다.
     // 쪽 전체는 옛 142곳(그림 위 링크 32 + 차시 카드 47 + …)에서 줄었는지 지킨다. 판 1.9.0(C239)부터 머리글 주 메뉴 7곳 대신
-    // 왼쪽 메뉴판 19곳(묶음 다섯 — 홈에는 "이어서 하기" 링크가 없다)이라 한도를 80 → 95로 올렸다(본문 40곳 한도는 그대로).
+    // 왼쪽 메뉴판 19곳(묶음 다섯 — 메뉴판 "내 학습" 칸은 판 1.9.2에서 뺐다, C243)이라 한도를 80 → 95로 올렸다(본문 40곳 한도는 그대로).
     const inMain = walk.steps.filter((step) => step.inMain);
     test.info().annotations.push({ type: 'Tab 정류장', description: `홈 전체 ${walk.steps.length}곳 · 본문 ${inMain.length}곳` });
     expect(inMain.length, `홈 본문 Tab 정류장 ${inMain.length}곳 — ${inMain.map((step) => step.label).join(' / ')}`).toBeLessThanOrEqual(40);

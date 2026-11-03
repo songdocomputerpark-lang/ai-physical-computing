@@ -9,10 +9,9 @@
  *      열린 채 Esc를 누르면 닫히고 초점이 [메뉴]로 돌아온다(검색 상자 안의 Esc는 검색 자동 완성이 맡는다). 칸 안 링크·머리글과 칸 바깥을 누르면 닫힌다.
  *    화면 폭이 기준을 넘나들면 그 폭의 상태로 다시 맞춘다(좁은 화면의 열림은 닫힌 상태로 돌아간다).
  *    aria-expanded는 늘 "지금 보이는지"다.
- * ② "내 학습" 칸: 진도가 있으면 [이어서 하기 — 지난번 차시], 없으면 [처음이라면 여기부터 — 1-1-1 …]. 그 링크가 지금 쪽이면 링크를 숨긴다
- *    (차시 쪽은 열자마자 "지난번 차시"가 그 쪽이 된다 — 같은 쪽으로 가는 큰 단추는 쓸모가 없다).
- *    전체·단원 진도 글과 막대는 progress-paint.ts가 칠하고, 단원 줄 끝의 "3/18"([data-progress-fraction])은 여기서 칠한다(다 한 차시가 있을 때만).
  *    넓은 화면에서 접거나 펴면 document로 apc:side-menu-toggle(side-menu-events.ts)을 보낸다 — 다시 보이는 본문 칸 차례가 지금 줄로 굴러간다.
+ * ② 단원 줄 끝의 "3/18"([data-progress-fraction])은 여기서 칠한다(다 한 차시가 있을 때만). 화면 낭독기용 단원 진도 글은 progress-paint.ts가 칠한다.
+ *    판 1.9.0의 맨 위 "내 학습" 칸(이어서 하기 링크·전체 진도)은 판 1.9.2에서 뺐다(운영자 요청 — DECISIONS C243).
  * ③ 넓은 화면에서 지금 쪽 줄이 칸 아래쪽에 있으면(선생님 묶음 등) 칸 안에서만 굴려 보이게 한다(창은 굴리지 않는다).
  *
  * 글은 모두 textContent로만 넣는다(저장소 값이 마크업으로 해석되지 않게). 실습실 라이브러리를 import하지 않는다(모든 쪽에 실린다).
@@ -20,7 +19,6 @@
 import { installProgressPaint, parseLessonIds, watchProgress } from '../../components/progress/progress-paint.ts';
 import { unitSummary, type ProgressState } from '../../lib/progress.ts';
 import { readItem, writeItem } from '../../lib/storage.ts';
-import { normalizePagePath } from '../../lib/url.ts';
 import { SIDE_MENU_STORAGE_NAME, SIDE_MENU_WIDE_STORAGE_NAME, type SideMenuSaved } from './side-menu.ts';
 import { SIDE_MENU_TOGGLE_EVENT } from './side-menu-events.ts';
 
@@ -52,30 +50,6 @@ export function fractionText(summary: { total: number; done: number }): string {
   return summary.total > 0 && summary.done > 0 ? `${summary.done}/${summary.total}` : '';
 }
 
-/** 짝 웹 차시가 없는 교과서 쪽의 진도 id(book-data.ts bookAsLesson — "u1/book-front" 꼴) */
-const BOOK_ONLY_ID = /^u[1-4]\/book-[a-z0-9-]+$/u;
-
-/**
- * 이어서 하기 링크에 쓸 지난번 차시. 주소가 이 사이트의 따라 하기·교과서 쪽(base 포함)이고, 차시 id가 지금 사이트에 있는 차시(known — 메뉴판 "내 학습" 칸의
- * data-progress-unit 목록)이거나 교과서 쪽 id일 때만 쓴다 — 저장소에 남은 낡은 값(지운 차시 등)이 없는 쪽으로 보내지 않게(홈의 R1-031과 같은 규칙).
- */
-export function resumeTarget(state: ProgressState, base: string, known?: readonly string[]): { href: string; name: string } | null {
-  const last = state.last;
-  if (!last) {
-    return null;
-  }
-  const root = base.endsWith('/') ? base : `${base}/`;
-  const isLearn = last.href.startsWith(`${root}learn/`);
-  const isBook = last.href.startsWith(`${root}book/`);
-  if (!isLearn && !isBook) {
-    return null;
-  }
-  if (known && !known.includes(last.id) && !(isBook && BOOK_ONLY_ID.test(last.id))) {
-    return null;
-  }
-  return { href: last.href, name: `${last.label} ${last.title}`.trim() };
-}
-
 function setText(element: Element | null, text: string): void {
   if (element && element.textContent !== text) {
     element.textContent = text;
@@ -83,19 +57,6 @@ function setText(element: Element | null, text: string): void {
 }
 
 function paintMenu(menu: HTMLElement, state: ProgressState): void {
-  const resume = menu.querySelector<HTMLAnchorElement>('[data-side-resume]');
-  if (resume) {
-    const go = resume.querySelector<HTMLElement>('[data-side-resume-go]');
-    const name = resume.querySelector<HTMLElement>('[data-side-resume-name]');
-    const base = import.meta.env.BASE_URL;
-    const known = parseLessonIds(menu.querySelector('.side-menu__me')?.getAttribute('data-progress-unit'));
-    const target = resumeTarget(state, base, known);
-    const href = target?.href ?? resume.dataset.firstHref ?? resume.href;
-    resume.setAttribute('href', href);
-    setText(go, (target ? go?.dataset.resumeLabel : go?.dataset.firstLabel) ?? '');
-    setText(name, target?.name ?? name?.dataset.firstName ?? '');
-    resume.hidden = normalizePagePath(href) === normalizePagePath(location.pathname);
-  }
   for (const unit of menu.querySelectorAll<HTMLElement>('[data-progress-fraction]')) {
     const holder = unit.closest<HTMLElement>('[data-progress-unit]');
     const ids = parseLessonIds(holder?.getAttribute('data-progress-unit'));

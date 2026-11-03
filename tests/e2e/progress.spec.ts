@@ -87,7 +87,7 @@ test.describe('차시를 열고 닫는 흐름', () => {
     expect(state.last?.id).toBe(LESSON_2);
 
     await page.goto('./learn/');
-    // 본문 안에서 찾는다 — 왼쪽 메뉴판(판 1.9.0)의 [이어서 하기 → …]와 메뉴판 "내 학습"의 전체 진도 글도 같은 말을 쓴다
+    // 본문 안에서 찾는다 — 판 1.9.0~1.9.1의 왼쪽 메뉴판 "내 학습" 칸이 같은 말을 썼다(판 1.9.2에서 뺌, C243)
     const resume = page.getByRole('main').getByRole('link', { name: '이어서 하기' });
     await expect(resume).toHaveAttribute('href', withBase('learn/u1/1-1-2/'));
     // 링크 이름에 가는 차시가 들어간다(R1-092) — 보이는 글 "이어서 하기"가 이름 끝에 그대로 든다

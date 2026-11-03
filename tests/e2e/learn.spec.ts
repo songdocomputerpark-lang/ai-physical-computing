@@ -43,7 +43,7 @@ test.describe('따라 하기 목록', () => {
     await expect(page.getByRole('heading', { level: 3, name: '01 인공지능과 인식' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 3, name: '보충: 영상 처리 기초' })).toBeVisible();
 
-    // 본문 안에서 찾는다 — 왼쪽 메뉴판(판 1.9.0)의 [처음이라면 여기부터 1-1-1 …]도 같은 이름을 품는다
+    // 본문 안에서 찾는다 — 판 1.9.0~1.9.1의 왼쪽 메뉴판 "내 학습" 칸의 [처음이라면 여기부터 1-1-1 …]도 같은 이름을 품었다(판 1.9.2에서 뺌, C243)
     await expect(page.getByRole('main').getByRole('link', { name: '1-1-1 인공지능 응용 프로그램과 에이전트' })).toHaveAttribute(
       'href',
       withBase('learn/u1/1-1-1/'),

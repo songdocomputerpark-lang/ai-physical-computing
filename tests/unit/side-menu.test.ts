@@ -9,8 +9,7 @@ import {
   sideMenuGroups,
   sideMenuPageIds,
 } from '../../src/layouts/partials/side-menu.ts';
-import { fractionText, resumeTarget, sideMenuStartsOpen, sideMenuStorageName } from '../../src/layouts/partials/side-menu-client.ts';
-import { emptyProgress } from '../../src/lib/progress.ts';
+import { fractionText, sideMenuStartsOpen, sideMenuStorageName } from '../../src/layouts/partials/side-menu-client.ts';
 import { STORAGE_KEY_PREFIX, isValidStorageName } from '../../src/lib/storage.ts';
 
 const BASE = '/ai-physical-computing/';
@@ -133,23 +132,11 @@ describe('브라우저 쪽 순수 함수', () => {
     expect(fractionText({ total: 0, done: 0 })).toBe('');
   });
 
-  it('이어서 하기: 지난번 차시가 이 사이트의 따라 하기·교과서 쪽일 때만', () => {
-    const state = emptyProgress();
-    expect(resumeTarget(state, BASE)).toBeNull();
-    const last = { id: 'u1/1-1-3', href: `${BASE}learn/u1/1-1-3/`, label: '1-1-3', title: '인공지능 인식 개발 환경', at: 1 };
-    expect(resumeTarget({ ...state, last }, BASE)).toEqual({ href: last.href, name: '1-1-3 인공지능 인식 개발 환경' });
-    expect(resumeTarget({ ...state, last: { ...last, href: `${BASE}book/1-1-3/` } }, BASE)?.href).toBe(`${BASE}book/1-1-3/`);
-    expect(resumeTarget({ ...state, last: { ...last, href: 'https://example.com/learn/' } }, BASE)).toBeNull();
-    expect(resumeTarget({ ...state, last: { ...last, href: `${BASE}labs/vision/` } }, BASE)).toBeNull();
-  });
-
-  it('이어서 하기: 지금 사이트에 없는 차시 id(지운 차시)는 쓰지 않고, 짝 없는 교과서 쪽 id는 쓴다', () => {
-    const state = emptyProgress();
-    const known = ['u1/1-1-1', 'u1/1-1-3'];
-    const last = { id: 'u1/1-1-3', href: `${BASE}learn/u1/1-1-3/`, label: '1-1-3', title: '인공지능 인식 개발 환경', at: 1 };
-    expect(resumeTarget({ ...state, last }, BASE, known)?.href).toBe(last.href);
-    expect(resumeTarget({ ...state, last: { ...last, id: 'u1/9-9-9', href: `${BASE}learn/u1/9-9-9/` } }, BASE, known)).toBeNull();
-    expect(resumeTarget({ ...state, last: { ...last, id: 'u1/book-front', href: `${BASE}book/front/` } }, BASE, known)?.href).toBe(`${BASE}book/front/`);
-    expect(resumeTarget({ ...state, last: { ...last, id: 'u1/book-front', href: `${BASE}learn/u1/front/` } }, BASE, known)).toBeNull();
+  it('맨 위 "내 학습" 칸(이어서 하기 링크·전체 진도)은 판 1.9.2에서 뺐다(운영자 요청 — DECISIONS C243)', () => {
+    const menu = readFileSync('src/layouts/partials/SideMenu.astro', 'utf8');
+    const markup = menu.slice(menu.indexOf('<nav'), menu.indexOf('</nav>'));
+    expect(markup).not.toMatch(/내 학습|data-side-resume|side-menu__me/u);
+    // 단원 줄 끝 "3/18"은 그대로 둔다
+    expect(markup).toMatch(/data-progress-fraction/u);
   });
 });
