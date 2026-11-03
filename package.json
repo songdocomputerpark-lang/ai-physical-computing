@@ -52,7 +52,7 @@
     "prepare": "node scripts/setup-git-hooks.mjs"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "7.3.4",
+    "@astrojs/markdown-remark": "7.3.5",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-python": "6.2.1",
     "@codemirror/language": "6.13.1",
@@ -60,7 +60,7 @@
     "@codemirror/view": "6.43.15",
     "@lezer/highlight": "1.2.5",
     "@mediapipe/tasks-vision": "0.10.35",
-    "astro": "7.4.2",
+    "astro": "7.4.5",
     "blockly": "13.4.0",
     "esptool-js": "0.6.1",
     "lz-string": "1.5.0",

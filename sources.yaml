@@ -168,7 +168,7 @@ sources:
     fetched: 2026-09-16
 
   # ── 실행 구성요소 ──
-  - name: Astro 7.4.2
+  - name: Astro 7.4.5
     category: stack
     author: "Fred K. Schott와 withastro(Astro 기여자). 일부 코드: SvelteKit 기여자, Yuxi (Evan) You와 Vite 기여자"
     license: MIT
@@ -176,7 +176,7 @@ sources:
     used_in: 사이트를 만드는 틀. 마크다운과 컴포넌트를 HTML 페이지로 바꿔요.
     npm:
       - astro
-    fetched: 2026-09-15
+    fetched: 2026-11-03
 
   - name: Vite 8.3.5·Rolldown 1.2.15 실행 도우미(빌드 결과 안)
     category: stack
@@ -189,7 +189,7 @@ sources:
     notice: public/licenses/build-runtime.txt
     fetched: 2026-09-26
 
-  - name: "@astrojs/markdown-remark 7.3.4"
+  - name: "@astrojs/markdown-remark 7.3.5"
     category: stack
     author: Fred K. Schott와 withastro(Astro 기여자)
     license: MIT
@@ -197,7 +197,7 @@ sources:
     used_in: "차시·용어사전 마크다운을 HTML로 바꾸는 처리기(unified). 빌드할 때만 돌고, 만든 HTML이 배포돼요."
     npm:
       - "@astrojs/markdown-remark"
-    fetched: 2026-09-16
+    fetched: 2026-11-03
 
   - name: remark-directive 4.0.0
     category: stack

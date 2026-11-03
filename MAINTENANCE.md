@@ -1096,10 +1096,10 @@ Result (3 files):
 
 | 고칠 곳 | 무엇을 |
 |---|---|
-| `package.json` `astro`·`@astrojs/markdown-remark`(Astro와 같은 판대, 지금 7.3.4)·`@astrojs/check`·`typescript` | 함께 맞춰 올려요. `@astrojs/check` 0.9.12도 TypeScript 7을 받지 않아(peer `^5 \|\| ^6`) TypeScript는 6.0.3에 두고 있어요. Astro 7.4.2는 Node.js 22.23.4 이상을 요구해요(`engines`) |
+| `package.json` `astro`·`@astrojs/markdown-remark`(Astro와 같은 판대, 지금 7.3.5)·`@astrojs/check`·`typescript` | 함께 맞춰 올려요. `@astrojs/check` 0.9.12도 TypeScript 7을 받지 않아(peer `^5 \|\| ^6`) TypeScript는 6.0.3에 두고 있어요. Astro 7.4.2~7.4.5는 Node.js 22.23.4 이상을 요구해요(`engines`) |
 | `astro.config.mjs` | 마크다운 처리기(unified)·`trailingSlash`·`vite` 설정 — Astro 공식 업그레이드 안내(docs.astro.build의 "Upgrade to …")와 대조해요 |
 | `scripts/lib/bundle-license.mjs` | 번들 의존성 목록(`dist/bundle-licenses.json`)을 Vite의 라이선스 출력으로 만드는 곳 — Vite 판이 바뀌면 빌드 뒤 출처 검사가 도는지 봐요 |
-| `sources.yaml` "Astro …"·"Vite …·Rolldown …" 항목, `public/licenses/build-runtime.txt`, `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.4.2'`을 기대) | 판 이름 |
+| `sources.yaml` "Astro …"·"Vite …·Rolldown …" 항목, `public/licenses/build-runtime.txt`, `tests/unit/credits.test.ts`(항목 이름 `'Astro 7.4.5'`를 기대) | 판 이름 |
 
 - 확인: 먼저 콘텐츠 캐시를 지워요(`node_modules/.astro/` 폴더와, 개발 서버를 끈 뒤 `.astro/` 폴더 — 옛 판이 만든 캐시가 섞이지 않게) → `npm run check` → `npm test` → `npm run build` → `npm run check:lessons -- --complete` → `npm run check:links` → `npm run test:e2e -- --workers=2`. `.astro` 파일의 띄어쓰기(CLAUDE.md "`.astro` 띄어쓰기 주의")처럼 출력이 달라진 곳이 없는지 차시·실습실 몇 쪽을 눈으로 봐요.
 - 띄어쓰기 함정은 `npm test`의 `tests/unit/astro-line-break-spaces.test.ts`가 지켜요. 이 파일의 첫 검사("이 검사의 전제")는 Astro가 쓰는 .astro 변환기(`@astrojs/compiler-rs` — Astro가 함께 설치해요)로 줄바꿈 공백이 지워지는 모습을 직접 확인해요. 판을 올린 뒤 이 첫 검사만 실패하면 공백 규칙이 바뀐 것이니, 검사가 찾는 모양(파일 머리말의 ①②③)과 `.astro` 파일들을 함께 다시 봐요(2026-09-30 최종 점검).
