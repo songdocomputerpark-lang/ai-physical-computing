@@ -5,6 +5,8 @@ import {
   REDISTRIBUTION_NOTICES,
   SOURCE_OFFER,
   SOURCE_OFFER_EN,
+  PAGEFIND_PAST_OFFER,
+  PAGEFIND_PAST_OFFER_EN,
   buildCreditsView,
   categoryLabel,
   formatKoreanDate,
@@ -176,19 +178,26 @@ describe('고지 전문 파일(2026-09-26 P6-04)', () => {
     }
   });
 
-  it('대응 소스 서면 제안(LGPL-2.1 6조 c·GPL-3.0 6조 b)이 고지 파일 두 개와 출처 페이지 알림에 같은 글자로 있다(2026-09-26 Phase 6 안전 검토 지적 3·4)', () => {
-    for (const file of ['pyodide-wheels-3rd-party.txt', 'pagefind-wasm-3rd-party.txt']) {
-      const text = fs.readFileSync(new URL(`../../public/licenses/${file}`, import.meta.url), 'utf8');
-      expect(text, file).toContain(SOURCE_OFFER);
-      expect(text, file).toContain(SOURCE_OFFER_EN);
-    }
+  it('대응 소스 서면 제안(LGPL-2.1 6조 c·GPL-3.0 6조 b)이 고지 파일과 출처 페이지 알림에 같은 글자로 있다(2026-09-26 Phase 6 안전 검토 지적 3·4)', () => {
+    const wheels = fs.readFileSync(new URL('../../public/licenses/pyodide-wheels-3rd-party.txt', import.meta.url), 'utf8');
+    expect(wheels).toContain(SOURCE_OFFER);
+    expect(wheels).toContain(SOURCE_OFFER_EN);
+    // 검색 엔진은 판 1.9.1(Pagefind 1.6.0)부터 GPL 크레이트가 없어, 판 1.9.0까지 나눈 1.5.2에 대한 제안만 남는다(DECISIONS C241)
+    const pagefind = fs.readFileSync(new URL('../../public/licenses/pagefind-wasm-3rd-party.txt', import.meta.url), 'utf8');
+    expect(pagefind).toContain(PAGEFIND_PAST_OFFER);
+    expect(pagefind).toContain(PAGEFIND_PAST_OFFER_EN);
+    expect(pagefind).not.toContain(SOURCE_OFFER);
     const byId = new Map(REDISTRIBUTION_NOTICES.map((notice) => [notice.id, notice]));
     expect(byId.get('ffmpeg-lgpl')?.text).toContain(SOURCE_OFFER);
-    expect(byId.get('pagefind-gpl')?.text).toContain(SOURCE_OFFER);
+    expect(byId.get('pagefind-gpl')?.text).toContain(PAGEFIND_PAST_OFFER);
     // 제안에는 기간(3년)·값(무료)·요청 창구가 들어 있어야 한다
-    expect(SOURCE_OFFER).toMatch(/적어도 3년/u);
-    expect(SOURCE_OFFER).toMatch(/무료/u);
-    expect(SOURCE_OFFER).toContain('/issues');
+    for (const offer of [SOURCE_OFFER, PAGEFIND_PAST_OFFER]) {
+      expect(offer).toMatch(/적어도 3년/u);
+      expect(offer).toMatch(/무료/u);
+      expect(offer).toContain('/issues');
+    }
+    expect(PAGEFIND_PAST_OFFER).toContain('판 1.9.0까지');
+    expect(PAGEFIND_PAST_OFFER_EN).toContain('up to site version 1.9.0');
   });
 });
 

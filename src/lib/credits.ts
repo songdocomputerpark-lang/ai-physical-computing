@@ -44,7 +44,8 @@ export interface RedistributionNotice {
 /**
  * 대응 소스 서면 제안(LGPL-2.1 6조 c, GPL-3.0 6조 b — 2026-09-26 Phase 6 안전 검토 지적 3·4, DECISIONS C36).
  * 공식 주소만 알리면 "같은 곳에서" 받게 하라는 LGPL 6조 d의 글자와 맞지 않고, 오프라인판을 USB로 나눌 때는 어느 조항도 채우지 못했다.
- * 이 문장을 고지 파일 두 개(pyodide-wheels 1절·pagefind-wasm 머리 상자)와 출처 페이지에 같은 글자로 싣는다(단위 테스트가 대조).
+ * 이 문장을 고지 파일(pyodide-wheels 1절)과 출처 페이지에 같은 글자로 싣는다(단위 테스트가 대조).
+ * 검색 엔진(Pagefind)은 판 1.9.1의 1.6.0부터 GPL 크레이트가 없어, 판 1.9.0까지 나눈 1.5.2에 대한 제안만 PAGEFIND_PAST_OFFER로 남긴다(DECISIONS C241).
  */
 export const SOURCE_OFFER =
   '서면 제안: 이 사이트나 오프라인판에서 이 파일을 받은 사람은 누구나, 받은 날부터 적어도 3년 동안, 고지 파일에 적힌 대응 소스의 사본을 무료로 받을 수 있어요. ' +
@@ -54,6 +55,20 @@ export const SOURCE_OFFER =
 export const SOURCE_OFFER_EN =
   'Written offer: for at least three years from the date you received this file from this site or its offline edition, anyone may obtain, ' +
   'free of charge, a complete copy of the corresponding source listed in this notice by opening an issue at https://github.com/songdocomputerpark-lang/ai-physical-computing/issues .';
+
+/**
+ * 판 1.9.0까지 나눈 검색 엔진(Pagefind 1.5.2 — GPL-3.0-only 크레이트 pagefind_microjson 0.1.4가 든 wasm)에 대한 서면 제안(GPL-3.0 6조 b).
+ * 고지 파일 pagefind-wasm-3rd-party.txt 머리 상자와 출처 페이지에 같은 글자로 싣는다(단위 테스트가 대조).
+ */
+export const PAGEFIND_PAST_OFFER =
+  '서면 제안(GPL-3.0 6조 b): 판 1.9.0까지 이 사이트나 오프라인판에서 그 검색 엔진을 받은 사람은 누구나, 받은 날부터 적어도 3년 동안, ' +
+  '위 대응 소스의 사본을 무료로 받을 수 있어요. 요청은 저장소 이슈(https://github.com/songdocomputerpark-lang/ai-physical-computing/issues)로 해 주세요.';
+
+/** PAGEFIND_PAST_OFFER의 영어 원문(고지 파일에 한국어와 함께 싣는다) */
+export const PAGEFIND_PAST_OFFER_EN =
+  'Written offer (GPL-3.0 section 6b): anyone who received that search engine from this site or its offline edition up to site version 1.9.0 may, ' +
+  'for at least three years from the date they received it, obtain a copy of the corresponding source above free of charge by opening an issue at ' +
+  'https://github.com/songdocomputerpark-lang/ai-physical-computing/issues .';
 
 export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.freeze([
   {
@@ -68,11 +83,12 @@ export const REDISTRIBUTION_NOTICES: readonly RedistributionNotice[] = Object.fr
   },
   {
     id: 'pagefind-gpl',
-    title: '사이트 검색 엔진(GPL-3.0 크레이트 포함)',
+    title: '사이트 검색 엔진(판 1.9.0까지의 GPL-3.0 크레이트)',
     text:
-      '사이트 검색의 WebAssembly 파일(pagefind/wasm.unknown.pagefind)에는 GPL-3.0-only인 pagefind_microjson 0.1.4가 함께 들어 있어, 이 파일은 GPL-3.0 조건으로 받는 프로그램이에요. ' +
-      '사이트는 Pagefind가 만든 파일을 고치지 않고 나눠요. GPL-3.0 전문과 대응 소스(Pagefind v1.5.2 소스와 pagefind_web/Cargo.lock의 크레이트 21개 — 만들 때만 쓰는 매크로 포함)를 받는 곳은 고지 파일에 있어요. ' +
-      SOURCE_OFFER,
+      '판 1.9.1부터 사이트 검색의 WebAssembly 파일(pagefind/wasm.unknown.pagefind — Pagefind 1.6.0)에는 GPL 크레이트가 없어요(함께 든 크레이트는 모두 MIT·Apache-2.0 같은 허용 라이선스 — 고지 파일). ' +
+      '판 1.9.0까지 나눈 검색 엔진(Pagefind 1.5.2)의 WebAssembly 파일에는 GPL-3.0-only인 pagefind_microjson 0.1.4가 함께 들어 있었어요. ' +
+      '그 파일의 대응 소스(Pagefind v1.5.2 소스와 pagefind_web/Cargo.lock의 크레이트 21개 — 만들 때만 쓰는 매크로 포함 — 와 GPL-3.0 전문)는 저장소 릴리스 license-sources-2026-09에 그대로 두어요(주소는 고지 파일). ' +
+      PAGEFIND_PAST_OFFER,
     noticePath: 'public/licenses/pagefind-wasm-3rd-party.txt',
   },
   {

@@ -7,7 +7,10 @@
 | 사이트가 나누는 파일 | 안에 든 것 | 라이선스 |
 |---|---|---|
 | OpenCV 휠(영상 처리 실습의 파이썬 라이브러리)의 `cv2.so` | FFmpeg 4.4.1 | GNU LGPL 2.1 이상 |
-| 사이트 검색 엔진 파일 `pagefind/wasm.unknown.pagefind` | pagefind_microjson 0.1.4 | GNU GPL 3.0 |
+| 사이트 검색 엔진 파일 `pagefind/wasm.unknown.pagefind`(판 1.9.0까지 — Pagefind 1.5.2) | pagefind_microjson 0.1.4 | GNU GPL 3.0 |
+
+판 1.9.1(Pagefind 1.6.0)부터 검색 엔진에는 GPL 크레이트가 없어서(JSON 크레이트가 hifijson 0.5.0(MIT)으로 바뀜) 목록(`sources-manifest.json`)에서
+검색 엔진 묶음을 뺐어요. 지난 판을 받은 사람을 위한 그 소스 22개는 이미 올린 릴리스 `license-sources-2026-09`에 그대로 두어요(DECISIONS C241).
 
 두 라이선스는 "이 파일을 받은 사람이 **소스(프로그램을 만든 원래 글)**도 받을 수 있게 해 달라"고 해요. 지금은 고지 파일에 적은
 **서면 제안**("3년 동안 무료로 드려요, 요청은 저장소 이슈로")으로 대신하고 있어요(DECISIONS C36). 공식 주소에서 소스를 받아
@@ -50,8 +53,8 @@ pythonhosted.org·storage.googleapis.com·download.osgeo.org를 막으면 집 �
 | FFmpeg를 쓰는 쪽(cv2.so)의 소스: OpenCV·파이썬 연결, 빌드 때 받는 ADE, 함께 연결된 libwebp·libtiff | `opencv-python-4.11.0.86.tar.gz`, `ade-0.1.2e.zip`, `libwebp-1.2.2.tar.gz`, `tiff-4.4.0.tar.gz` | PyPI·레시피의 SHA-256, OpenCV CMake의 MD5 |
 | 컴파일러(Emscripten 5.0.3)가 포트로 만들어 cv2.so에 넣은 zlib·libjpeg·libpng | `zlib-1.3.1.tar.gz`, `jpegsrc.v9f.tar.gz`, `libpng-1.6.55.tar.gz` | Emscripten 포트 파일의 SHA-512 |
 | 휠을 만든 방법: Pyodide 레시피 커밋과 그 하위 모듈(빌드 도구) | `pyodide-recipes-fc85872….tar.gz`, `pyodide-build-26a30ea….tar.gz` | 공식 값 없음 → 압축 안 git 커밋 확인 후 RECORD |
-| 검색 엔진 소스: Pagefind v1.5.2(태그가 아니라 커밋 bf17396 주소로 받아요 — 태그는 옮겨질 수 있어서) | `pagefind-1.5.2.tar.gz` | 공식 값 없음 → 압축 안 git 커밋 확인 후 RECORD |
-| 검색 엔진이 쓰는 크레이트 21개(GPL 크레이트 포함, `Cargo.lock` 전부) | `pagefind_microjson-0.1.4.crate` 등 `.crate` 21개 | `Cargo.lock`의 체크섬(= crates.io) |
+| (판 1.9.0까지 — 지금 목록에는 없고 이미 올린 릴리스에 있음) 검색 엔진 소스: Pagefind v1.5.2(커밋 bf17396 주소) | `pagefind-1.5.2.tar.gz` | 공식 값 없음 → 압축 안 git 커밋 확인 후 RECORD |
+| (판 1.9.0까지 — 위와 같음) 검색 엔진이 쓰는 크레이트 21개(GPL 크레이트 포함, `Cargo.lock` 전부) | `pagefind_microjson-0.1.4.crate` 등 `.crate` 21개 | `Cargo.lock`의 체크섬(= crates.io) |
 
 넣지 않은 것과 까닭: 컴파일러 자체와 그와 함께 나오는 것(Emscripten 5.0.3 본체, Rust nightly와 표준 라이브러리)은 라이선스가 요구하지
 않아서 이름과 판만 적어요(목록의 `tools`). Emscripten이 빌드 때 밖에서 받아 cv2.so에 넣는 포트(zlib·libjpeg·libpng)는 "컴파일러와 함께
@@ -98,8 +101,8 @@ pythonhosted.org·storage.googleapis.com·download.osgeo.org를 막으면 집 �
 
 ## 4. 오프라인판 zip(운영자 할 일 28)을 같은 릴리스에 넣을까요?
 
-**권장: 28번 답이 "예"면 같은 릴리스에 넣어요.** LGPL-2.1 6조 d와 GPL-3.0 6조 d는 "실행 파일을 받는 곳에서 소스도 받게"를
-요구해요. 같은 릴리스면 zip과 그 안 휠·검색 엔진의 소스가 한 쪽에 있어 가장 곧이곧대로예요(DECISIONS C33).
+**권장: 28번 답이 "예"면 같은 릴리스에 넣어요.** LGPL-2.1 6조 d는 "실행 파일을 받는 곳에서 소스도 받게"를
+요구해요. 같은 릴리스면 zip과 그 안 휠의 소스가 한 쪽에 있어 가장 곧이곧대로예요(DECISIONS C33 — 판 1.9.1부터 검색 엔진은 GPL이 아니에요, C241).
 
 - 소스와 zip을 한 번에: 3번에 `--offline-zip .cache/offline/apc-offline-<판>.zip`을 붙여요. zip의 SHA-256을 빌드 요약
   (`.cache/offline/apc-offline-<판>.json`)과 대조한 뒤 설명과 명령에 함께 넣어요.

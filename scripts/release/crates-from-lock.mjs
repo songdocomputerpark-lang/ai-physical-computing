@@ -8,6 +8,7 @@
 //
 // 쓰는 법
 //   node scripts/release/crates-from-lock.mjs <Cargo.lock 파일> [--source "<어디서 받은 잠금 파일인지>"] [--group gpl-pagefind]
+//   (판 1.9.1의 Pagefind 1.6.0부터 검색 엔진에 GPL 크레이트가 없어 목록에 이 묶음이 없다 — 판을 올려 GPL 크레이트가 다시 들어오면 묶음을 되살려 쓴다, DECISIONS C241)
 //   → 표준 출력에 JSON 배열(목록 items에 붙여 넣을 것)
 import fs from 'node:fs';
 import { crateSourceItem, cratesFromCargoLock } from '../lib/offline-sources.mjs';

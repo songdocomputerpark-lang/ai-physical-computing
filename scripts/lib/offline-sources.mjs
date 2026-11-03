@@ -1,8 +1,9 @@
 // 대응 소스 사본(운영자 할 일 26·미해결 211) — 목록 읽기·검사, 받은 폴더 확인, 오프라인판 zip의 sources/ 만들기.
 //
-// 사이트는 고치지 않은 실행 파일 두 가지를 다시 나눈다: OpenCV 휠의 cv2.so(FFmpeg 4.4.1이 정적으로 들어 있음 — LGPL-2.1 이상)와
-// 사이트 검색 엔진 wasm(pagefind_microjson 0.1.4가 들어 있음 — GPL-3.0-only). 두 라이선스는 실행 파일을 받은 사람이 대응 소스도 받을 수
-// 있게 하라고 한다(DECISIONS C22·C23·C36). 그 소스 파일 목록을 scripts/release/sources-manifest.json 한 곳에 두고 셋이 같이 읽는다.
+// 사이트는 고치지 않은 실행 파일을 다시 나눈다. 그 가운데 OpenCV 휠의 cv2.so(FFmpeg 4.4.1이 정적으로 들어 있음 — LGPL-2.1 이상)는
+// 실행 파일을 받은 사람이 대응 소스도 받을 수 있게 하라고 한다(DECISIONS C22·C36). 사이트 검색 엔진 wasm은 판 1.9.0까지(Pagefind 1.5.2)
+// GPL-3.0-only 크레이트 pagefind_microjson이 들어 있어 같은 목록에 묶음이 있었지만, 판 1.9.1의 1.6.0부터는 GPL 크레이트가 없어 뺐다
+// (C23·C241 — 지난 판의 소스는 릴리스 license-sources-2026-09에 남음). 그 소스 파일 목록을 scripts/release/sources-manifest.json 한 곳에 두고 셋이 같이 읽는다.
 //   - scripts/release/fetch-sources.ps1 — 운영자 PC에서 공식 주소로 받아 크기·해시를 대조한다(공식 값과 같으면 PASS, 다르면 FAIL,
 //     공식 값이 없으면 SHA-256을 적어 두는 RECORD). 받은 폴더에 SHA256SUMS.txt·fetch-result.json을 쓴다.
 //     (Claude는 소스 압축을 내려받지 않는다 — 내려받기는 운영자 몫.)

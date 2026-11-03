@@ -5,9 +5,11 @@
 .DESCRIPTION
   AI Physical Computing Open Lab - operator task 26 (PROGRESS.md). Guide in Korean: scripts\release\README.md.
 
-  The site redistributes two unmodified binaries whose licenses ask that their source can be obtained:
-    - cv2.so in the OpenCV wheel, which contains FFmpeg 4.4.1 (LGPL-2.1-or-later),
-    - the search engine wasm, which contains the GPL-3.0-only crate pagefind_microjson 0.1.4.
+  The site redistributes an unmodified binary whose license asks that its source can be obtained:
+    - cv2.so in the OpenCV wheel, which contains FFmpeg 4.4.1 (LGPL-2.1-or-later).
+  (Up to site version 1.9.0 the search engine wasm (Pagefind 1.5.2) also held the GPL-3.0-only crate
+  pagefind_microjson 0.1.4; Pagefind 1.6.0 dropped it, so that group left the list. Its source stays in the
+  release license-sources-2026-09.)
   This script downloads every file of the list from its official address into .cache\release-sources\
   (a folder git ignores), checks the size and SHA-256 (or MD5) against the official values written in the
   list, and writes SHA256SUMS.txt, fetch-result.json and fetch-result.txt next to the files.

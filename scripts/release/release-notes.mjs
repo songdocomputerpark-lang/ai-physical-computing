@@ -125,9 +125,11 @@ export function buildReleaseNotes({ manifest, files, fetchedOn = null, offlineZi
     return out;
   };
 
+  // 라이선스 이름은 목록의 묶음에서(판 1.9.1부터 검색 엔진 GPL 묶음이 빠져 LGPL만 — DECISIONS C241)
+  const groupLicenses = [...new Set(manifest.groups.map((group) => group.license))];
   const lines = [
     `[AI 피지컬 컴퓨팅 오픈랩](${SITE_URL})이 고치지 않고 다시 나누는 실행 파일의 **대응 소스 사본**이에요.`,
-    '라이선스(LGPL-2.1·GPL-3.0)가 실행 파일을 받은 사람이 그 소스도 받을 수 있게 하라고 해서, 공식 주소에서 받은 파일을 하나도 고치지 않고 올려 두었어요.',
+    `라이선스(${groupLicenses.join('·')})가 실행 파일을 받은 사람이 그 소스도 받을 수 있게 하라고 해서, 공식 주소에서 받은 파일을 하나도 고치지 않고 올려 두었어요.`,
     '고지 전문과 서면 제안(3년 동안 무료로 드림)은 아래 고지 파일에 있어요.',
     '',
   ];
@@ -177,7 +179,7 @@ export function buildReleaseNotes({ manifest, files, fetchedOn = null, offlineZi
     '### English',
     '',
     `Corresponding source for the unmodified binaries that [AI Physical Computing Open Lab](${SITE_URL}) redistributes.`,
-    'Their licenses (LGPL-2.1, GPL-3.0) ask that whoever receives the binaries can also get the source, so the files below were downloaded from their official addresses and uploaded unchanged.',
+    `Their licenses (${groupLicenses.join(', ')}) ask that whoever receives the binaries can also get the source, so the files below were downloaded from their official addresses and uploaded unchanged.`,
     'The full notices and the written offer (source free of charge for three years) are in the notice files.',
     '',
   );

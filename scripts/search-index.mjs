@@ -59,8 +59,9 @@ if (!prunePagefindAndReport(rootDir, path.relative(rootDir, siteDir))) {
   process.exit(1);
 }
 
-// 검색 엔진 wasm(wasm.*.pagefind)에는 GPL-3.0-only 크레이트 pagefind_microjson이 함께 들어 있어, 같은 폴더에 고지와 대응 소스 안내를 둔다
-// (GPL-3.0 6조 d "object code 옆에 대응 소스가 어디 있는지 분명한 안내" — Phase 6 P6-04 구역 C 요청 C-4). 원문은 public/licenses/pagefind-wasm-3rd-party.txt 한 곳에서
+// 검색 엔진 wasm(wasm.*.pagefind) 옆에 그 안에 함께 컴파일된 크레이트의 고지를 둔다(Phase 6 P6-04 구역 C 요청 C-4 — 판 1.9.0까지의 Pagefind 1.5.2에는
+// GPL-3.0-only 크레이트가 있어 GPL-3.0 6조 d의 "object code 옆 대응 소스 안내"였고, 판 1.9.1의 1.6.0부터는 허용 라이선스 고지와 지난 판의
+// 대응 소스 안내다 — DECISIONS C241). 원문은 public/licenses/pagefind-wasm-3rd-party.txt 한 곳에서
 // 복사하므로 두 벌이 어긋나지 않는다. 파일 이름을 NOTICE로 시작하게 한 것은 빌드 결과 개인정보 훑기(npm run check:repo -- --dist)가
 // 고지 파일(LICENSE·NOTICE·COPYING으로 시작하는 이름)의 저작자 이메일을 건너뛰는 규칙과 맞추려는 것이다(scripts/lib/repo-check.mjs runBuildOutputCheck).
 const WASM_NOTICE_SOURCE = path.join(rootDir, 'public', 'licenses', 'pagefind-wasm-3rd-party.txt');

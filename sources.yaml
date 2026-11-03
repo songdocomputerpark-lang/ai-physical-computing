@@ -216,35 +216,38 @@ sources:
   # (2026-09-16 검토 반영 — 이전에는 pagefind-highlight.js 속 mark.js가 등록 없이 배포됐어요).
   # 남는 pagefind.js·pagefind-worker.js에는 다른 라이브러리 표시가 없고(grep으로 확인), wasm 파일에 든 Rust 크레이트 고지는 P6-04에서 확인해요.
   # → 2026-09-26(P6-04) 확인: wasm(wasm.unknown.pagefind)에 든 크레이트는 아래 "Pagefind 검색 엔진(wasm)에 함께 든 Rust 크레이트" 항목과
-  #   고지 파일 public/licenses/pagefind-wasm-3rd-party.txt에 있어요. 그 가운데 pagefind_microjson 0.1.4는 GPL-3.0-only예요.
-  # MIT 고지 전문(notice)은 npm 패키지 pagefind@1.5.2의 LICENSE/LICENSE 파일을 옮긴 것이에요.
-  - name: Pagefind 1.5.2
+  #   고지 파일 public/licenses/pagefind-wasm-3rd-party.txt에 있어요. 그 가운데 pagefind_microjson 0.1.4는 GPL-3.0-only였어요.
+  # → 2026-11-03(판 1.9.1) Pagefind 1.6.0으로 올림: pagefind_web이 JSON 크레이트를 hifijson 0.5.0(MIT)으로 바꿔 GPL 크레이트가 없어졌어요(DECISIONS C241).
+  # MIT 고지 전문(notice)은 npm 패키지 pagefind@1.6.0의 LICENSE/LICENSE 파일을 옮긴 것이에요(1.5.2와 같은 파일).
+  - name: Pagefind 1.6.0
     category: stack
     author: Pagefind
     license: MIT
     url: https://github.com/Pagefind/pagefind
-    used_in: "사이트 검색. 빌드 뒤 dist/pagefind/에 검색 색인과 검색 프로그램(pagefind.js, pagefind-worker.js, WebAssembly 파일)을 만들어 함께 배포해요. 기본 검색 화면 파일은 쓰지 않아 지워요. WebAssembly 검색 파일 안에 함께 든 크레이트(GPL-3.0-only인 pagefind_microjson 포함)는 아래 따로 둔 항목을 봐요."
+    used_in: "사이트 검색. 빌드 뒤 dist/pagefind/에 검색 색인과 검색 프로그램(pagefind.js, pagefind-worker.js, WebAssembly 파일)을 만들어 함께 배포해요. 기본 검색 화면 파일은 쓰지 않아 지워요. WebAssembly 검색 파일 안에 함께 든 크레이트는 아래 따로 둔 항목을 봐요."
     paths:
       - public/licenses/pagefind.txt
     npm:
       - pagefind
     notice: public/licenses/pagefind.txt
-    fetched: 2026-09-16
+    fetched: 2026-11-03
 
   # Pagefind WebAssembly 안의 Rust 크레이트(2026-09-26 P6-04). pagefind_web/Cargo.lock(v1.5.2)의 런타임 의존성과 crates.io 라이선스 표기,
   # wasm 안의 글자(minicbor-2.2.1, wasm-bindgen-0.2.117, rustc 1.97.0-nightly)로 확인했어요. pagefind_microjson 0.1.4(Robert Spencer의 microjson을
   # Pagefind 관리자가 올린 판)는 GPL-3.0-only라 wasm 파일은 GPL-3.0 조건으로 받는 프로그램이에요 — 고치지 않고 나누고, GPL-3.0 전문과
   # 대응 소스 주소(Pagefind v1.5.2 태그·crates.io 크레이트)를 고지 파일에 적었어요. 결정은 보고서 "결정 제안"(DECISIONS에 C 번호로).
+  # → 2026-11-03(판 1.9.1, DECISIONS C241): Pagefind 1.6.0(pagefind_web/Cargo.toml·Cargo.lock v1.6.0, wasm 안의 글자 minicbor-2.3.1·rustc 1.101.0-nightly·
+  #   wasm-bindgen 0.2.129)의 크레이트는 모두 허용 라이선스예요. 판 1.9.0까지 나눈 1.5.2 wasm의 대응 소스는 릴리스 license-sources-2026-09에 그대로 두어요.
   - name: Pagefind 검색 엔진(wasm)에 함께 든 Rust 크레이트
     category: stack
-    author: "크레이트마다 다름 — Robert Spencer(microjson), Toralf Wittner(minicbor), The Rust Project Developers·Alex Crichton·Aleksey Kladov 등(고지 파일)"
-    license: GPL-3.0-only AND BlueOak-1.0.0 AND MIT
-    url: https://github.com/Pagefind/pagefind/tree/v1.5.2/pagefind_web
-    used_in: "사이트 검색의 WebAssembly 파일(dist/pagefind/wasm.unknown.pagefind — 빌드 때 Pagefind가 만들어 그대로 배포)에 함께 컴파일된 크레이트: pagefind_microjson 0.1.4(GPL-3.0-only — 검색 조건·가중치 JSON을 읽음), minicbor 2.2.1(BlueOak-1.0.0), bit-set·bit-vec·write-json·wasm-bindgen·once_cell·cfg-if·serde·Rust 표준 라이브러리·dlmalloc·hashbrown(MIT 또는 Apache-2.0 — MIT를 따름). GPL-3.0 전문과 대응 소스 받는 곳은 고지 파일에 있어요."
+    author: "크레이트마다 다름 — Michael Färber(hifijson), Toralf Wittner(minicbor), The Rust Project Developers·Alex Crichton·Aleksey Kladov 등(고지 파일)"
+    license: BlueOak-1.0.0 AND MIT
+    url: https://github.com/Pagefind/pagefind/tree/v1.6.0/pagefind_web
+    used_in: "사이트 검색의 WebAssembly 파일(dist/pagefind/wasm.unknown.pagefind — 빌드 때 Pagefind가 만들어 그대로 배포)에 함께 컴파일된 크레이트: hifijson 0.5.0(MIT — 검색 조건·가중치 JSON을 읽음), minicbor 2.3.1(BlueOak-1.0.0), bit-set·bit-vec·write-json·wasm-bindgen·once_cell·cfg-if·serde·borsh·bytes·Rust 표준 라이브러리·dlmalloc·hashbrown(MIT 또는 Apache-2.0 — MIT를 따름). 판 1.9.0까지의 1.5.2에 들어 있던 GPL-3.0 크레이트의 대응 소스 안내도 고지 파일에 있어요."
     paths:
       - public/licenses/pagefind-wasm-3rd-party.txt
     notice: public/licenses/pagefind-wasm-3rd-party.txt
-    fetched: 2026-09-26
+    fetched: 2026-11-03
 
   # 글꼴(P1-05, 자체 호스팅). 공식 배포 파일을 한 바이트도 고치지 않고 그대로 둬요.
   # OFL 1.1에서는 글꼴 파일을 고치면 예약 글꼴 이름 "Pretendard"를 쓸 수 없어요.

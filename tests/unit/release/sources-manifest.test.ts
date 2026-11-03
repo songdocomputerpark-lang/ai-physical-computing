@@ -3,7 +3,8 @@
 // (다른 판의 소스를 릴리스·오프라인판에 싣지 않게 — scripts/release/README.md 5절 "판을 올릴 때").
 // 1.1.0 안전 검토 반영(DECISIONS C60·C61): 서면 제안은 "고지 파일에 적힌 대응 소스"를 약속하므로 목록의 모든 파일이 고지 두 파일에 있어야 하고,
 // 공식 해시가 없는 파일은 커밋 주소(태그 주소는 옮겨질 수 있음)와 commit 칸이 있어야 한다.
-import { REDISTRIBUTION_NOTICES } from '../../../src/lib/credits.ts';
+// 판 1.9.1(DECISIONS C241): Pagefind 1.6.0 검색 엔진에는 GPL 크레이트가 없어 목록에서 검색 엔진 묶음을 뺐다 — 판 1.9.0까지의 1.5.2 소스는 같은 릴리스에 남는다.
+import { PAGEFIND_PAST_OFFER, REDISTRIBUTION_NOTICES } from '../../../src/lib/credits.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -63,8 +64,8 @@ describe(`대응 소스 목록(${SOURCES_MANIFEST_FILE})`, () => {
     // opencv 휠과 소스 묶음의 판이 같다
     const wheelVersion = /^opencv_python-(\d+\.\d+\.\d+\.\d+)-/u.exec(list.site.opencvWheel)?.[1];
     expect(itemById('opencv-python-4.11.0.86').file).toBe(`opencv-python-${wheelVersion}.tar.gz`);
-    // Pagefind 소스 묶음의 판이 site 칸과 같다
-    expect(itemById('pagefind-1.5.2').file).toBe(`pagefind-${list.site.pagefindVersion}.tar.gz`);
+    // Pagefind는 site 칸의 판으로 고지 파일을 다시 확인했다(판을 올리면 GPL 크레이트가 다시 들어왔는지 보게 — 위 sourcesSiteMismatches가 멈춤)
+    expect(pagefindNotice).toContain(`Pagefind ${list.site.pagefindVersion} 검색 엔진(WebAssembly)`);
   });
 
   it('FFmpeg 쪽 공식 값이 고지 파일(pyodide-wheels-3rd-party.txt 1절)과 같다', () => {
@@ -94,36 +95,29 @@ describe(`대응 소스 목록(${SOURCES_MANIFEST_FILE})`, () => {
     }
   });
 
-  it('검색 엔진 쪽: GPL 크레이트·Pagefind 커밋·wasm에 든 크레이트 표가 고지 파일(pagefind-wasm-3rd-party.txt)과 같다', () => {
+  it('검색 엔진 쪽(판 1.9.1 Pagefind 1.6.0): GPL 크레이트가 없어 목록에 검색 엔진 묶음이 없고, 지난 판(1.5.2)의 대응 소스 안내가 고지 파일·출처 페이지에 같은 글자로 있다', () => {
     const list = loaded();
-    const microjson = itemById('crate-pagefind_microjson-0.1.4');
-    expect(microjson.license).toBe('GPL-3.0-only');
-    expect(pagefindNotice).toContain(microjson.sha256!);
-    expect(pagefindNotice).toContain(microjson.urls[1]);
-    const pagefind = itemById('pagefind-1.5.2');
-    expect(pagefindNotice).toContain(pagefind.urls[0]);
-    expect(pagefindNotice).toContain(/[0-9a-f]{40}/u.exec(pagefind.what)![0]);
-    const gpl = list.groups.find((group) => group.id === 'gpl-pagefind')!;
-    expect(pagefindNotice).toContain('bf4fbfb7a 2026-04-11');
-    expect(gpl.tools).toContain('bf4fbfb7a 2026-04-11');
-
-    const crates = list.items.filter((item) => item.file.endsWith('.crate'));
-    const wasm = crates.filter((item) => item.use === 'wasm');
-    const build = crates.filter((item) => item.use === 'build');
-    expect(wasm.length + build.length).toBe(crates.length);
-    // wasm에 든 크레이트 = 고지 표(이름·판)
-    expect(wasm.map((item) => item.file.replace(/-(\d[^-]*)\.crate$/u, ' $1')).sort()).toEqual(noticeWasmCrates(pagefindNotice));
-    // 만들 때만 쓰는 크레이트는 고지의 "wasm에 들어가지 않아서 뺐어요" 문장에 이름이 있다
-    const excluded = /proc-macro 크레이트 (.+?)는 wasm에 들어가지 않아서/su.exec(pagefindNotice)?.[1].replace(/\s+/gu, '') ?? '';
-    expect(excluded).toContain('proc-macro2');
-    for (const item of build) {
-      const name = item.file.replace(/-\d[^-]*\.crate$/u, '');
-      const mentioned = excluded.includes(name) || excluded.includes(name.replace(/-(support|shared)$/u, '(-$1)'));
-      expect(mentioned, name).toBe(true);
-    }
-    // 묶음 설명의 개수가 실제 개수와 같다
-    expect(gpl.why).toContain(`${wasm.length} compiled into the wasm, ${build.length} used only while building`);
-    expect(gpl.whyKo).toContain(`wasm에 든 ${wasm.length}개, 만들 때만 쓰는 ${build.length}개`);
+    // 목록에는 FFmpeg 묶음만 — 검색 엔진(Pagefind) 소스·크레이트가 없다
+    expect(list.groups.map((group) => group.id)).toEqual(['lgpl-ffmpeg']);
+    expect(list.items.some((item) => /pagefind|\.crate$/u.test(item.file))).toBe(false);
+    // 고지 표(wasm에 들어가는 크레이트)에 GPL이 없고, JSON 크레이트가 hifijson으로 바뀌었다
+    const table = pagefindNotice.split(/\r?\n/u).filter((line) => /^ {2}[a-z0-9_-]+(?:\([a-z0-9_-]+\))?\s+v?\d+\.\d+\.\d+\s/u.test(line));
+    expect(table.length).toBeGreaterThan(10);
+    expect(table.some((line) => /GPL/u.test(line))).toBe(false);
+    expect(noticeWasmCrates(pagefindNotice)).toContain('hifijson 0.5.0');
+    expect(noticeWasmCrates(pagefindNotice).some((entry) => entry.startsWith('pagefind_microjson'))).toBe(false);
+    expect(pagefindNotice).not.toContain('GNU GENERAL PUBLIC LICENSE');
+    // wasm 안의 빌드 도구 표기(rustc·wasm-bindgen)와 Pagefind 커밋
+    expect(pagefindNotice).toContain('f9ceb4a4d 2026-10-31');
+    expect(pagefindNotice).toContain('860a4ea87e7a52379520f9eaefd0f8a6b23eb462');
+    // 판 1.9.0까지 나눈 1.5.2의 대응 소스: 같은 릴리스 + 서면 제안(출처 페이지와 같은 글자)
+    const release = `https://github.com/songdocomputerpark-lang/ai-physical-computing/releases/tag/${list.releaseTag}`;
+    expect(pagefindNotice).toContain(release);
+    expect(pagefindNotice).toContain(PAGEFIND_PAST_OFFER);
+    const credits = REDISTRIBUTION_NOTICES.find((entry) => entry.id === 'pagefind-gpl')?.text ?? '';
+    expect(credits).toContain(list.releaseTag);
+    expect(credits).toContain(PAGEFIND_PAST_OFFER);
+    expect(credits).toContain('판 1.9.1부터');
   });
 
   it('크레이트는 모두 crates.io 공식 체크섬이 있고, 공식 값이 없는 파일은 커밋 주소로 받는 GitHub 압축(+ commit 칸)뿐이다', () => {
@@ -138,8 +132,8 @@ describe(`대응 소스 목록(${SOURCES_MANIFEST_FILE})`, () => {
         expect(item.urls, item.id).toEqual([`https://github.com/${/^https:\/\/github\.com\/([^/]+\/[^/]+)\//u.exec(item.urls[0])?.[1]}/archive/${item.commit}.tar.gz`]);
       }
     }
-    // 공식 값이 없는 파일은 셋(레시피·그 하위 모듈·Pagefind)
-    expect(list.items.filter((item) => item.commit !== undefined).map((item) => item.id)).toEqual(['pyodide-recipes-fc85872', 'pyodide-build-26a30ea', 'pagefind-1.5.2']);
+    // 공식 값이 없는 파일은 둘(레시피·그 하위 모듈 — 판 1.9.0까지는 Pagefind 소스도)
+    expect(list.items.filter((item) => item.commit !== undefined).map((item) => item.id)).toEqual(['pyodide-recipes-fc85872', 'pyodide-build-26a30ea']);
   });
 
   it('Emscripten 포트(zlib·libjpeg·libpng — cv2.so에 정적으로 들어감)도 목록에 있고 공식 SHA-512(포트 파일의 값)로 확인한다', () => {
@@ -160,17 +154,13 @@ describe(`대응 소스 목록(${SOURCES_MANIFEST_FILE})`, () => {
     expect(lgpl.toolsKo).toContain('소스를 이 목록에 넣었어요');
   });
 
-  it('서면 제안의 범위 = 목록 전체: 목록의 모든 파일이 고지 두 파일에 있다(주소·커밋·크레이트 이름과 판)', () => {
+  it('서면 제안의 범위 = 목록 전체: 목록의 모든 파일이 고지 파일에 있다(주소·커밋)', () => {
     const list = loaded();
-    const wasmListed = new Set(noticeWasmCrates(pagefindNotice));
     for (const item of list.items) {
       const group = list.groups.find((entry) => entry.id === item.group)!;
-      const notice = group.notice.endsWith('pagefind-wasm-3rd-party.txt') ? pagefindNotice : wheelsNotice;
-      if (item.file.endsWith('.crate')) {
-        const [, name, version] = /^(.+)-(\d[^-]*)\.crate$/u.exec(item.file)!;
-        const listed = item.use === 'wasm' ? wasmListed.has(`${name} ${version}`) : notice.includes(`${name} ${version}`);
-        expect(listed, `${item.file}이(가) ${group.notice}에 있다`).toBe(true);
-      } else if (item.commit !== undefined) {
+      const notice = wheelsNotice;
+      expect(group.notice, item.id).toBe('licenses/pyodide-wheels-3rd-party.txt');
+      if (item.commit !== undefined) {
         expect(notice, `${item.id}의 커밋이 ${group.notice}에 있다`).toContain(item.commit);
       } else {
         expect(item.urls.some((url) => notice.includes(url)), `${item.id}의 받는 곳이 ${group.notice}에 있다`).toBe(true);
@@ -179,15 +169,11 @@ describe(`대응 소스 목록(${SOURCES_MANIFEST_FILE})`, () => {
     // 범위를 못 박는 문장도 목록 전체를 가리킨다
     expect(wheelsNotice).toContain('여기서 대응 소스는 위 목록 전부');
     expect(wheelsNotice).not.toContain('위 세 가지');
-    expect(pagefindNotice).toContain('crates.io 크레이트 전부 21개');
-    for (const notice of [wheelsNotice, pagefindNotice]) {
-      expect(notice).toContain('scripts/release/sources-manifest.json');
-    }
+    expect(wheelsNotice).toContain('scripts/release/sources-manifest.json');
     // 출처 페이지 글(/credits/ "다시 나누는 파일에 꼭 함께 알리는 것")도 목록을 가리킨다
     const creditsText = (id: string) => REDISTRIBUTION_NOTICES.find((entry) => entry.id === id)?.text ?? '';
     expect(creditsText('ffmpeg-lgpl')).toContain('scripts/release/sources-manifest.json');
     expect(creditsText('ffmpeg-lgpl')).toContain('ADE·libwebp·libtiff·zlib·libjpeg·libpng');
-    expect(creditsText('pagefind-gpl')).toContain('크레이트 21개');
   });
 
   it('운영자 안내(scripts/release/README.md)가 같은 릴리스 태그와 명령을 쓴다', () => {

@@ -31,8 +31,8 @@
 //                                                 대응 소스 사본을 zip 안 sources/에 함께 넣는다(아래 "대응 소스")
 // 확인: node scripts/offline/verify-offline.mjs(zip을 풀어 시작하기.bat로 서버를 띄우고, 인터넷을 막은 Edge로 tests/e2e/offline.spec.ts)
 //
-// 대응 소스(--sources <폴더> — 미해결 211, 운영자 할 일 26): 이 묶음이 고치지 않고 나누는 실행 파일 가운데 OpenCV 휠(FFmpeg — LGPL-2.1)과
-// 검색 엔진 wasm(GPL-3.0 크레이트)의 소스를 USB로 나눌 때 함께 주려는 선택이다. 폴더는 운영자가 scripts/release/fetch-sources.ps1로 받은 곳
+// 대응 소스(--sources <폴더> — 미해결 211, 운영자 할 일 26): 이 묶음이 고치지 않고 나누는 실행 파일 가운데 OpenCV 휠(FFmpeg — LGPL-2.1)의
+// 소스를 USB로 나눌 때 함께 주려는 선택이다(검색 엔진 wasm은 판 1.9.1의 Pagefind 1.6.0부터 GPL 크레이트가 없어 목록에서 빠졌다 — DECISIONS C241). 폴더는 운영자가 scripts/release/fetch-sources.ps1로 받은 곳
 // (보통 .cache/release-sources)이고, 목록(scripts/release/sources-manifest.json)의 파일이 모두 있고 크기·공식 해시·받을 때 잰 값
 // (SHA256SUMS.txt)이 맞을 때만 빌드를 시작한다 — 하나라도 없거나 틀리면, 또는 목록이 이 사이트가 나누는 판(Pyodide·opencv 휠·Pagefind)과
 // 다르면 빌드 전에 멈춘다(scripts/lib/offline-sources.mjs). 목록 밖 파일은 넣지 않는다. zip 안에는 sources/<파일>(저장 방식 — 이미 압축된
