@@ -1,4 +1,4 @@
-// 사이트 검색 화면 확인(PLAN §8.1 P1-11). 검색 색인은 빌드 뒤 Pagefind 1.5.2가 만든다(npm run build의 postbuild).
+// 사이트 검색 화면 확인(PLAN §8.1 P1-11). 검색 색인은 빌드 뒤 Pagefind 1.6.0이 만든다(npm run build의 postbuild).
 // 화면 상태는 [data-search-root]의 data-state(idle·loading·results·empty·error)로 기다린다.
 //
 // 브라우저에서 확인한 한국어 검색 동작(2026-09-16) — 테스트가 이 사실에 기대고 있다.

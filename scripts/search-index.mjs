@@ -1,7 +1,7 @@
 // 사이트 검색 색인 만들기(npm run build의 postbuild, npm run search:index) — Phase 6 병렬 제작 준비(2026-09-26).
 //
 // 하는 일
-//   1. Pagefind 1.5.2 명령(`pagefind --site <빌드 결과 폴더>`)을 돌려 <빌드 결과 폴더>/pagefind/에 검색 색인을 만든다.
+//   1. Pagefind 1.6.0 명령(`pagefind --site <빌드 결과 폴더>`)을 돌려 <빌드 결과 폴더>/pagefind/에 검색 색인을 만든다.
 //   2. 쓰지 않는 Pagefind 화면 파일을 지운다(scripts/prune-pagefind.mjs — 까닭은 그 머리말).
 //   3. 검색 엔진 wasm 옆에 제3자 고지를 둔다(<빌드 결과 폴더>/pagefind/NOTICE-THIRD-PARTY.txt — 아래 끝 부분, Phase 6 P6-04 요청 C-4).
 // 빌드 결과 폴더는 이번 빌드와 같은 환경 변수 APC_OUT_DIR(기본 dist — src/config/site.ts)를 따른다.

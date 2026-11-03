@@ -1366,6 +1366,18 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 - **검토 반영(따로 띄운 검토 한 번):** 지금 위치는 가장 꼭 맞는 줄 하나만(`sideMenuBestMatch`), 좁은 화면에서 메뉴판 안 차례를 숨기는 규칙을 기본 규칙 뒤로(같은 무게라 앞에 두면 무시됐다), 강제 색 테두리는 `:not(:focus-visible)`, 접기·펴기 이벤트로 본문 칸 차례 다시 맞춤, 첫 그리기 전 스크립트의 전역 변수 없앰, 용어 항목 id에서 `side-menu-` 머리말 막기. 전체 시험에서: 메뉴판을 접으면 머리글을 본문 칸에 맞춤(1920 실습실 줄 맞춤), 진도 시험은 main 안에서 찾기, 가상 데스크톱 시험은 캔버스를 가운데로 옮긴 뒤 누르기, 보드 준비 쪽 높이 한도 5,600px.
 - **시험:** 새 단위 `tests/unit/side-menu.test.ts`(묶음·지금 쪽·저장 키 대조·이어서 하기 거르기). 바뀐 브라우저 시험: `smoke.spec.ts`(메뉴판 넓은·좁은 화면, 접기 기억), `a11y-keyboard.spec.ts`(휴대폰 Tab 차례 [메뉴] → 검색 → [검색] → 메뉴판, 홈 Tab 정류장 95), `book.spec.ts`·`kit.spec.ts`(메뉴판 안 차례 + 메뉴판을 접은 예전 2열), `learn.spec.ts`(같은 이름 링크는 main 안에서), `footer-columns.test.ts`(머리글 원문 약속).
 
+### 8.20 판 1.9.1 구현 메모(사이트를 만드는 도구와 검색 엔진을 최신 판으로, 2026-11-03)
+
+운영자 질문 "지금 최신 버전 토니랑 각 모듈들 최신 버전으로 깔린 거임?" → 답 "진행해 끝까지 알아서 해". 결정은 DECISIONS C241.
+
+- **다시 확인(PyPI·npm 공식 기록, 2026-11-03):** 학생 PC 쪽 10개는 모두 그대로 최신. npm은 `npm outdated`로 astro 7.4.5·@astrojs/markdown-remark 7.3.5·vitest 5.1.0·pagefind 1.6.0·esptool-js 0.7.1이 새로 나왔고, @mediapipe/tasks-vision 1.2.0·typescript 7·@types/node 26은 이전 까닭 그대로(C228·C232).
+- **한 번에 하나씩(MAINTENANCE 8-0):** Astro(+ markdown-remark) → Vitest → Pagefind → esptool-js 차례로 올리고 커밋을 나눴다. Astro는 콘텐츠 캐시(`node_modules/.astro`·`.astro`)를 지우고 빌드해 옛 dist(1.9.0)와 쪽 HTML 232개를 해시 이름만 맞춰 대조 — 출처 쪽의 판 이름·확인 날짜 말고는 같았다. 7.3.5는 dist를 7.3.4 압축과 견줘 `rehype-prism.js` 한 곳(속성 이스케이프)만 달랐다.
+- **Pagefind 1.6.0 라이선스 확인 방법(다음 판에 그대로):** ① `git ls-remote`로 태그의 커밋을 찾고 그 커밋 주소로 `pagefind_web/Cargo.toml`·`Cargo.lock`을 받는다(raw.githubusercontent.com) ② 잠금 파일의 크레이트마다 crates.io API로 라이선스 ③ 실제로 wasm에 들어가는 것만 고른다 — pagefind_web의 의존과 기능 설정(bit-vec의 serde·borsh는 잠금 파일에만 있는 선택 기능이라 "함께 적음"), proc-macro와 그 의존(toml_*·winnow·indexmap 등)은 뺀다 ④ static.crates.io에서 받은 .crate의 SHA-256을 잠금 파일 체크섬과 대조하고 라이선스 파일 원문을 옮긴다 ⑤ 빌드한 `dist/pagefind/wasm.unknown.pagefind`(gzip)를 풀어 wasm의 `producers` 칸에서 rustc·wasm-bindgen 판을 읽고, 그 rustc 커밋의 `library/Cargo.lock`에서 표준 라이브러리 쪽 dlmalloc·hashbrown 판을 찾는다(옛 판으로 같은 방법을 되풀이해 1.5.2 고지의 0.2.11·0.16.1이 나오는 것으로 방법을 확인). 고지 파일은 스크립트로 만들되 바뀌지 않은 원문은 옛 파일에서 옮기고 크레이트 원문과 같은지 먼저 대조했다.
+- **GPL이 빠진 뒤의 의무:** 판 1.0.0~1.9.0으로 GPL 크레이트가 든 wasm을 이미 나눴으므로 그 서면 제안(받은 날부터 3년)은 남는다 — 소스 22개는 이미 공개한 릴리스 `license-sources-2026-09`에 그대로 있다. 다음 릴리스·오프라인판 `--sources`는 목록(FFmpeg 12개)만 싣는다. 출처 쪽 알림 id `pagefind-gpl`은 링크가 깨지지 않게 그대로 두고 글만 바꿨다.
+- **esptool-js 0.7.1:** 임시 폴더에서 0.6.1과 압축을 풀어 비교 — 사이트가 쓰는 선언(d.ts)은 `changeBaudrate`가 더해진 것 말고 같고, 구현은 `connect`(GET_SECURITY_INFO → 실패하면 다시 연결)·`changeBaud`(실패하면 115200으로 다시 연결 + `runStub()`)·`writeFlash`(Uint8Array 검사·flashSize detect)·`readPacket`(모르는 명령 뒤 drainInput)이 바뀜. 설치해 보니 스텁 빼기 시험은 규칙을 넓힌 뒤 통과했지만 flasher 단위 시험 2개가 포트를 115200으로 두 번 여는 것으로 실패 — 모의 ROM이 모르는 명령에 같은 op로 답해 0.7.1이 그 답을 "모르는 명령"으로 알아보지 못하고 다시 연결한다. 실물 ROM이 어떤 모양으로 답하는지는 esptool.py와 esptool-js의 처리가 달라 정할 수 없어 0.6.1로 되돌렸다(`npm ci`). MAINTENANCE 8-5에 실물 확인 차례를 적었다.
+- **흔들리던 시험(미해결 292 → C242):** 대상 브라우저 시험에서 `lesson-embed`(차시 안 실습실 [콘솔 보기 ↓])가 실패해, `--repeat-each`로 판 1.9.0 빌드(파이썬 `http.server`로 따로 띄움)와 1.9.1 빌드를 같은 횟수로 돌려 둘 다 8번 중 3번 실패 — 이번 판 탓이 아님을 먼저 가렸다. 진단 시험(커밋 안 함)으로 콘솔 상자 안 스크롤과 바깥 쪽 위치를 시각별로 적어, 실패한 경우만 누르기 전 틀이 426px 더 높고 누른 뒤 150~300ms에 준비 칸이 접히며 콘솔이 화면 위로 밀려남을 찾았다. `keepRevealedWhole`로 고친 뒤 16번 모두 통과.
+- **확인:** 단위 전체(Vitest 5.1.0)·타입·차시 45·교과서 41·예제 대조·빌드·링크·빌드 결과 개인정보 훑기·출처 검사, 검색·검색 색인·출처·홈·404 브라우저 시험(1.6.0 색인), 펌웨어·스텁 빼기 시험(0.6.1).
+
 ## 9. 저작권·출처 계획
 
 ### 9.1 원칙 (DECISIONS 그대로)

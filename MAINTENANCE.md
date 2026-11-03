@@ -1014,7 +1014,7 @@ Result (3 files):
 6. **확인 차례:** `npm run check`(타입) → `npm test`(단위) → `npm run build`(출처·번들 검사 — 새로 묶인 패키지를 알려 줘요) → `npm run check:links` → `npm run test:e2e -- --workers=2`(브라우저 전체) → 그 기능을 브라우저에서 직접 → push 뒤 실사이트(5절).
 7. CHANGELOG.md "다음 판"에 한 줄 적어요(10절).
 
-지금 판은 CLAUDE.md "기술 스택"과 `package.json`에 있어요(2026-10-27 판 1.8.0: Pyodide 314.0.7, MediaPipe Tasks Vision 0.10.35, Blockly 13.4.0, MQTT.js 5.16.1, esptool-js 0.6.1, MicroPython ESP32_GENERIC v1.29.0, Astro 7.4.2 — 일부러 올리지 않은 것과 까닭은 DECISIONS C228·C232). 한 번에 최신 판으로 올린 기록은 판 1.8.0(CHANGELOG·PLAN §8.18)이 본보기예요 — 학생 코드 쪽 라이브러리(토니·mediapipe 등)가 바뀌면 예제를 다시 쓰고 `scripts/examples-manifest.yaml`에 `rewritten`을 적어요(`src/lab/README.md` 6절). 한꺼번에 뒤처진 판을 보려면 `npm outdated`. **판을 다시 확인한 날은 두 곳을 함께 고쳐요:** 교사용 `content/teacher/real-pc.md` 설정 칸의 `checked`와 `src/config/pc-versions.ts`의 `PC_VERSIONS_CHECKED`(차시의 "교과서와 다른 곳" 상자가 이 날을 보여요 — 둘이 다르면 `npm test`가 알려요). 예제를 또 다시 쓰면 그 판의 날짜로 ① 차시 `revisions`(1-2절) ② 사이드카 `revised`(2절) ③ 교과서 원문 쪽 `:::웹안내` 제목 끝 "— 2026년 10월 26일 고침"처럼 세 곳에 새 날을 더해요.
+지금 판은 CLAUDE.md "기술 스택"과 `package.json`에 있어요(2026-11-03 판 1.9.1: Pyodide 314.0.7, MediaPipe Tasks Vision 0.10.35, Blockly 13.4.0, MQTT.js 5.16.1, esptool-js 0.6.1, MicroPython ESP32_GENERIC v1.29.0, Astro 7.4.5, Pagefind 1.6.0 — 일부러 올리지 않은 것과 까닭은 DECISIONS C228·C232·C241). 한 번에 최신 판으로 올린 기록은 판 1.8.0(CHANGELOG·PLAN §8.18)이 본보기예요 — 학생 코드 쪽 라이브러리(토니·mediapipe 등)가 바뀌면 예제를 다시 쓰고 `scripts/examples-manifest.yaml`에 `rewritten`을 적어요(`src/lab/README.md` 6절). 한꺼번에 뒤처진 판을 보려면 `npm outdated`. **판을 다시 확인한 날은 두 곳을 함께 고쳐요:** 교사용 `content/teacher/real-pc.md` 설정 칸의 `checked`와 `src/config/pc-versions.ts`의 `PC_VERSIONS_CHECKED`(차시의 "교과서와 다른 곳" 상자가 이 날을 보여요 — 둘이 다르면 `npm test`가 알려요). 예제를 또 다시 쓰면 그 판의 날짜로 ① 차시 `revisions`(1-2절) ② 사이드카 `revised`(2절) ③ 교과서 원문 쪽 `:::웹안내` 제목 끝 "— 2026년 10월 26일 고침"처럼 세 곳에 새 날을 더해요.
 
 ### 8-1. Pyodide(브라우저 파이썬 엔진)
 
@@ -1125,7 +1125,7 @@ Result (3 files):
 
 ### 8-10. Node.js
 
-- 사이트는 Node.js 22.23.4 이상에서 돌아요(`package.json` `engines` — 판 1.8.0에서 Astro 7.4.2가 요구해 22.12.0에서 올림). 운영자 PC와 워크플로(`node-version: '24'`)는 Node 24 LTS를 써요 — 지원은 2028-04-30까지예요(PLAN §3.1).
+- 사이트는 Node.js 22.23.4 이상에서 돌아요(`package.json` `engines` — 판 1.8.0에서 Astro 7.4.2가 요구해 22.12.0에서 올림, 7.4.5도 같음). 운영자 PC와 워크플로(`node-version: '24'`)는 Node 24 LTS를 써요 — 지원은 2028-04-30까지예요(PLAN §3.1).
 - 다음 LTS로 옮길 때는 세 워크플로의 `node-version`, 필요하면 `engines`를 바꾸고 8-0의 확인 차례를 모두 돌려요.
 
 ### 8-11. 마크다운 처리·차시 규칙을 고칠 때(개발자용)

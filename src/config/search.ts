@@ -1,7 +1,7 @@
 /**
  * 사이트 검색 설정(PLAN §8.1 P1-11).
  *
- * Pagefind 1.5.2가 빌드 뒤(npm run build의 postbuild) dist/를 읽어 dist/pagefind/에 검색 색인과 검색 코드를 만든다.
+ * Pagefind 1.6.0이 빌드 뒤(npm run build의 postbuild) dist/를 읽어 dist/pagefind/에 검색 색인과 검색 코드를 만든다.
  * 검색 화면(/search/)과 머리글 검색 상자(src/components/search/HeaderSearch.astro)는 이 값을 쓴다.
  * 검색 화면 구현: src/components/search/SearchPage.astro(화면)와 search-page.ts(Pagefind API로 찾고 결과 그리기),
  * 두 곳이 함께 쓰는 부분은 search-core.ts, 검색칸 자동 완성은 search-suggest.ts(판 1.3.0).
@@ -29,8 +29,8 @@ export const searchConfig = {
   bundlePath: withBase('pagefind/'),
   /**
    * 검색 결과 주소 앞에 붙일 값(Pagefind의 baseUrl 옵션).
-   * 색인에는 base 없는 주소(예: /credits/)가 들어간다. Pagefind 1.5.2는 pagefind.js를 불러온 주소(bundlePath)에서
-   * base를 알아내 결과를 /ai-physical-computing/credits/로 준다(2026-09-16 브라우저로 확인, tests/e2e/search-index.spec.ts).
+   * 색인에는 base 없는 주소(예: /credits/)가 들어간다. Pagefind(1.5.2·1.6.0)는 pagefind.js를 불러온 주소(bundlePath)에서
+   * base를 알아내 결과를 /ai-physical-computing/credits/로 준다(2026-09-16·2026-11-03 브라우저로 확인, tests/e2e/search-index.spec.ts).
    * 불러오는 방식이 달라져도 주소가 틀리지 않게 검색 화면에서는 이 값을 넘겨 둔다.
    * 예: await pagefind.options({ baseUrl: searchConfig.baseUrl })
    */

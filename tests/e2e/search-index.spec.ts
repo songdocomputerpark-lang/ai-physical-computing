@@ -1,4 +1,4 @@
-// 사이트 검색 색인(Pagefind 1.5.2) 기반 확인(PLAN §8.1 P1-11).
+// 사이트 검색 색인(Pagefind 1.6.0) 기반 확인(PLAN §8.1 P1-11).
 // 검색 화면은 검색 담당이 만든다. 여기서는 빌드 뒤 색인이 생기고, 하위 경로(base)에 올린 사이트에서
 // 검색 결과 주소가 base가 붙은 실제 페이지 주소로 나오는지 확인한다.
 // 확인한 사실(2026-09-16): Pagefind는 pagefind.js를 불러온 주소(/ai-physical-computing/pagefind/)에서 base를 알아낸다.
