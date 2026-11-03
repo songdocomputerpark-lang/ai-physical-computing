@@ -1076,15 +1076,18 @@ Result (3 files):
 
 ### 8-5. esptool-js(펌웨어 굽기)
 
-**먼저:** 패키지 안의 플래셔 스텁은 GPL-2.0-or-later라 사이트에 싣지 않아요(PD-38). **새 판에서도 스텁이 빠지는 것이 올릴 조건이에요.**
+**먼저:** 사이트는 ROM 부트로더로만 굽고 플래셔 스텁은 싣지 않아요(PD-38). 0.6.1의 스텁은 GPL-2.0-or-later였고, 0.7.x의 스텁(esp-flasher-stub)은 Apache-2.0 또는 MIT예요(2026-11-03 확인). 어느 쪽이든 **새 판에서도 스텁이 빠지는 것이 올릴 조건이에요.**
+
+**0.7.x를 아직 올리지 않은 까닭(판 1.9.1, DECISIONS C241):** 0.7.x는 연결할 때 칩 확인 명령 GET_SECURITY_INFO를 먼저 보내요. 원래 ESP32 ROM은 이 명령을 모르는데, 공식 esptool.py는 그 뒤 보드를 다시 연결하고 esptool-js 0.7.1은 받은 응답을 비우고 넘어가요. 모의 ROM 시험에서는 0.7.1이 보드를 한 번 더 리셋해 다시 연결했고(포트를 115200으로 두 번 엶), 속도 바꾸기에 실패하면 스텁을 올리려고 해요(사이트에는 스텁이 없음). 실제 ESP32로 굽기를 확인할 수 있을 때(운영자 할 일 2) 0.6.1 흐름을 먼저 확인하고, 이어서 0.7.x를 올려 같은 보드로 다시 구워 보세요.
 
 | 고칠 곳 | 무엇을 |
 |---|---|
 | `package.json` `esptool-js` | `npm install esptool-js@<판>` |
-| `scripts/lib/esptool-stub-guard.mjs` `ESPTOOL_STUB_PATTERN` | 스텁 JSON 경로(`lib/targets/stub_flasher/stub_flasher_*.json`)가 새 판에서도 같은지 — 다르면 이 패턴을 고쳐요 |
+| `scripts/lib/esptool-stub-guard.mjs` `ESPTOOL_STUB_PATTERN` | 스텁 폴더(`lib/targets/stub_flasher/` 안의 모든 `.json` — 0.6.1 `stub_flasher_32.json`·0.7.x `esp32.json`)가 새 판에서도 같은지 — 폴더가 바뀌면 이 패턴을 고쳐요 |
 | `astro.config.mjs` `optimizeDeps` | 개발 서버 미리 묶기(esptool-js 빼기, atob-lite 넣기) |
-| `sources.yaml` esptool-js 항목(+ 함께 묶이는 atob-lite·pako·tslib), `public/licenses/esptool-js.txt` | 판·고지 |
-| `src/lab/firmware/flasher.ts`·`rom.ts`·`errors.ts` | esptool-js의 동작과 오류 글에 기대는 곳(ROM 부트로더로만 굽는 보충 명령, 오류 풀이) |
+| `sources.yaml` esptool-js 항목(+ 함께 묶이는 atob-lite·pako·tslib — 0.7.x는 tslib를 쓰지 않아요), `public/licenses/esptool-js.txt` | 판·고지 |
+| `src/lab/firmware/flasher.ts`·`rom.ts`·`errors.ts` | esptool-js의 동작과 오류 글에 기대는 곳(ROM 부트로더로만 굽는 보충 명령, 오류 풀이). 0.7.x의 `changeBaud`는 실패하면 `runStub()`을 부르니 그 오류를 '속도 바꾸기 실패'로 풀어야 해요 |
+| `src/lab/firmware/mock/esp32-rom.ts` | 모의 ROM — 모르는 명령(GET_SECURITY_INFO 등)에 답하는 모양이 실물과 같은지(실물 확인 뒤) |
 
 - 확인: `npx vitest run tests/unit/esptool-stub-guard.test.ts`(설치된 esptool-js를 실제로 묶어 스텁 프로그램이 빠지는지 봐요 — 실패하면 올리지 않아요) → `npx vitest run tests/unit/firmware/` → `npm run build` → `npx playwright test tests/e2e/esp32-firmware.spec.ts tests/e2e/start-board.spec.ts --project=desktop` → 보드 한 대로 실제 굽기(운영자).
 

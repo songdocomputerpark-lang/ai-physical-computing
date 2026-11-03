@@ -1,4 +1,5 @@
-// esptool-js 플래셔 스텁(GPL-2.0-or-later)을 배포 번들에서 빼는 Vite 플러그인 검사(PLAN PD-38, scripts/lib/esptool-stub-guard.mjs).
+// esptool-js 플래셔 스텁을 배포 번들에서 빼는 Vite 플러그인 검사(PLAN PD-38 — 0.6.1의 GPL 스텁, 0.7.x는 Apache/MIT지만 ROM 흐름만 쓰므로 계속 뺌 — DECISIONS C241,
+// scripts/lib/esptool-stub-guard.mjs).
 // 마지막 검사는 설치된 Vite로 esptool-js를 실제로 묶어 스텁 내용이 결과에 없는지 본다(사이트 빌드와 같은 플러그인·같은 패키지).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,6 +20,10 @@ describe('esptool 플래셔 스텁 빼기 플러그인', () => {
   it('esptool-js 패키지 안의 스텁 JSON 경로만 알아본다', () => {
     expect(isEsptoolStubId('C:\\repo\\node_modules\\esptool-js\\lib\\targets\\stub_flasher\\stub_flasher_32.json')).toBe(true);
     expect(isEsptoolStubId('/repo/node_modules/esptool-js/lib/targets/stub_flasher/stub_flasher_32c61.json?import')).toBe(true);
+    // 0.7.x의 이름(esp-flasher-stub — <칩>.json)도 같은 폴더면 잡는다(판 1.9.1)
+    expect(isEsptoolStubId('/repo/node_modules/esptool-js/lib/targets/stub_flasher/esp32.json')).toBe(true);
+    expect(isEsptoolStubId('C:\\repo\\node_modules\\esptool-js\\lib\\targets\\stub_flasher\\esp32p4-rev1.json?import')).toBe(true);
+    expect(isEsptoolStubId('/repo/node_modules/esptool-js/lib/targets/esp32.js')).toBe(false);
     expect(isEsptoolStubId('/repo/node_modules/esptool-js/lib/targets/esp32.js')).toBe(false);
     expect(isEsptoolStubId('/repo/src/stub_flasher/stub_flasher_32.json')).toBe(false);
   });
@@ -30,6 +35,8 @@ describe('esptool 플래셔 스텁 빼기 플러그인', () => {
     };
     const id = await plugin.resolveId.call(context, './targets/stub_flasher/stub_flasher_32.json', '/repo/node_modules/esptool-js/lib/stubFlasher.js');
     expect(id).toBe(`${ESPTOOL_STUB_VIRTUAL_PREFIX}stub_flasher_32.js`);
+    const newId = await plugin.resolveId.call(context, './targets/stub_flasher/esp32.json', '/repo/node_modules/esptool-js/lib/stubFlasher.js');
+    expect(newId).toBe(`${ESPTOOL_STUB_VIRTUAL_PREFIX}esp32.js`);
     expect(await plugin.resolveId.call(context, './targets/esp32.js', '/repo/node_modules/esptool-js/lib/esploader.js')).toBeNull();
     const code = plugin.load(id ?? '');
     expect(code).toBe(excludedStubModuleCode('stub_flasher_32.json'));
@@ -38,7 +45,11 @@ describe('esptool 플래셔 스텁 빼기 플러그인', () => {
   });
 
   it('설치된 Vite로 esptool-js를 묶으면 스텁 프로그램이 결과에 없고 오류 모듈만 남는다', async () => {
-    const stubJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'node_modules', 'esptool-js', 'lib', 'targets', 'stub_flasher', 'stub_flasher_32.json'), 'utf8')) as {
+    // 설치된 판의 ESP32 스텁(0.6.1 stub_flasher_32.json · 0.7.x esp32.json)
+    const stubDir = path.join(ROOT, 'node_modules', 'esptool-js', 'lib', 'targets', 'stub_flasher');
+    const stubFile = ['esp32.json', 'stub_flasher_32.json'].find((name) => fs.existsSync(path.join(stubDir, name)));
+    expect(stubFile, '설치된 esptool-js에서 ESP32 스텁 파일을 찾지 못했어요 — 스텁 폴더나 이름이 바뀌었으면 esptool-stub-guard.mjs를 함께 봐요').toBeDefined();
+    const stubJson = JSON.parse(fs.readFileSync(path.join(stubDir, stubFile!), 'utf8')) as {
       text: string;
     };
     const dir = makeTempDir('apc-esptool-guard-');
@@ -57,7 +68,7 @@ describe('esptool 플래셔 스텁 빼기 플러그인', () => {
       const outputs = (Array.isArray(result) ? result : [result]).flatMap((item) => ('output' in item ? item.output : []));
       const code = outputs.map((chunk) => ('code' in chunk ? chunk.code : String((chunk as { source?: unknown }).source ?? ''))).join('\n');
       expect(code).toContain('ESPLoader');
-      expect(code).toContain('esptool-js의 플래셔 스텁(GPL-2.0-or-later)은 이 사이트에 싣지 않아요');
+      expect(code).toContain('esptool-js의 플래셔 스텁은 이 사이트에 싣지 않아요');
       // 스텁 프로그램 본문(base64)이 한 조각도 들어가지 않았다
       expect(code).not.toContain(stubJson.text.slice(0, 64));
     } finally {
