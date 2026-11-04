@@ -250,8 +250,17 @@ async function runSmoke(page: Page, context: BrowserContext, lab: SmokeLab, item
         )
         .catch(() => false);
 
-      if (!finished) {
-        await stopButton.click({ timeout: ACTION_TIMEOUT });
+      if (!finished && (await root.getAttribute('data-state')) !== 'idle') {
+        // 지켜보는 시간이 끝나는 바로 그때 예제가 스스로 끝나면 [정지]가 꺼져 click이 켜지기를 기다리다 실패한다
+        // (2026-11-04 GitHub CI — desktop/02 마우스 예제가 3.5초 언저리에 끝남). 그사이 실행이 끝났으면 멈출 것이 없으니 넘어간다.
+        // 클릭을 기다리는 동안 다음 예제를 시작하면 남은 click이 다음 실행의 [정지]를 누를 수 있어 경주(race)로 두지 않는다.
+        try {
+          await stopButton.click({ timeout: ACTION_TIMEOUT });
+        } catch (error) {
+          if ((await root.getAttribute('data-state')) !== 'idle') {
+            throw error;
+          }
+        }
       }
       await expect(root).toHaveAttribute('data-state', 'idle', { timeout: 30_000 });
       const outcome = (await root.getAttribute('data-outcome')) ?? '';
