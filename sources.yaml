@@ -49,6 +49,8 @@ sources:
       - public/images/lessons/**
       # 출판본 교과서의 표지·차례 그림(판 1.4.0, 운영자 결정 O17 — 도구 원본 약칭 BOOK, 그림 목록 content/book/*.images.yaml)
       - public/images/book/**
+      # 카카오톡·SNS 링크 미리 보기 그림(판 1.9.4, DECISIONS C246) — 위 교과서 표지 + 사이트가 쓴 글자, scripts/make-share-card.mjs가 그림
+      - public/images/share/**
       - public/teacher/handouts/*.pdf
     exclude_paths:
       - content/**/third-party/**

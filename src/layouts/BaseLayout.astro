@@ -159,12 +159,18 @@ const hasNotice = Astro.slots.has('notice');
     <noscript><link rel="stylesheet" href={withBase('fonts/pretendard/pretendardvariable-dynamic-subset.css')} /></noscript>
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={siteConfig.name} />
-    <meta property="og:title" content={isHome ? siteConfig.name : title} />
-    <meta property="og:description" content={description} />
+    {/* 판 1.9.4(C246): 홈의 미리 보기 제목·설명은 교과서 이름으로, 그림은 모든 쪽이 교과서 표지 카드(site.ts share — 카카오톡·SNS 링크 미리 보기). */}
+    <meta property="og:title" content={isHome ? siteConfig.share.homeTitle : title} />
+    <meta property="og:description" content={isHome ? siteConfig.share.homeDescription : description} />
+    <meta property="og:image" content={absoluteUrl(siteConfig.share.image)} />
+    <meta property="og:image:type" content={siteConfig.share.imageType} />
+    <meta property="og:image:width" content={String(siteConfig.share.imageWidth)} />
+    <meta property="og:image:height" content={String(siteConfig.share.imageHeight)} />
+    <meta property="og:image:alt" content={siteConfig.share.imageAlt} />
     {/* 검색 엔진에 올리지 않는 페이지(404 등)는 주소가 정해져 있지 않아 대표 주소를 적지 않는다(npm run check:links가 찾아낸 문제). */}
     {!noindex && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:locale" content="ko_KR" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <!-- 자바스크립트가 되면 html에 js 클래스를 붙인다. 좁은 화면 메뉴를 처음부터 접어 두어 화면이 흔들리지 않게 한다. -->
     <!-- 주소에 ?embed=1이 있으면 차시 페이지 안(iframe)에 넣은 것이다 — 머리글·바닥글·소개 글을 숨긴다(P2-14, global.css의 html[data-embed]). -->
     <!-- 그때 이 문서의 main에 이름을 붙인다: 차시 페이지의 main과 이름이 같으면 화면 낭독기의 영역 목록에 "기본 영역"이 둘 들린다 -->

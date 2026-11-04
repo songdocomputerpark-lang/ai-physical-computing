@@ -38,6 +38,7 @@ Phase 5에서 차시 45편(교과서·보충 40편, 읽기 자료 2편, 대단�
 | 회로 그림을 다시 만들거나 더해요(`circuits:build`·`export`·`import`, 교과서 쪽 `::회로`) | [15절](#15-회로-그림-다시-만들기-판-140) |
 | 키트 장치 도감(`/labs/esp32/kit/`)의 장치·코드·회로 그림·라이브러리를 더하거나 브릭셀 쪽에서 다시 뽑아요, 가상 보드에서 안 되는 까닭 글을 써요 | [16절](#16-키트-장치-도감-고치기더하기-판-150) |
 | 왼쪽 메뉴판(모든 쪽의 "주 메뉴")에 쪽을 더하거나 묶음·차례를 바꿔요, 글자 크기 단계를 고쳐요 | [17절](#17-왼쪽-메뉴판과-글자-크기-판-190) |
+| 카카오톡·SNS에 링크를 보낼 때 보이는 미리 보기(제목·설명·그림)를 바꿔요 | [18절](#18-공유-미리-보기-판-194) |
 
 **처음 보는 낱말** — 이 문서에 자주 나오는 말이에요.
 
@@ -1540,3 +1541,13 @@ npm run images:check               # 그림 목록·눈 확인 기록(원본 없
 - 글자 크기·보조 글 색은 `src/styles/tokens.css` 한 곳이에요(판 1.9.0 블록이 맨 끝에 있어요 — 작은 글 14px·16px, 본문 17px). 단계를 바꾸면 홈 표지(휴대폰 375에서 "누가 만들었나"가 첫 화면 안), 수업 화면 150% 시험, 홈 HTML 크기(사전 캐시 한도 160KB, C151)를 함께 확인해요: `npx playwright test tests/e2e/home.spec.ts tests/e2e/book.spec.ts tests/e2e/lesson-template.spec.ts`.
 - 색을 바꾸면 tokens.css 주석의 대비 값을 다시 계산해 고쳐요(본문 글자 4.5 이상).
 
+## 18. 공유 미리 보기 (판 1.9.4)
+
+카카오톡·SNS에 사이트 링크를 보내면 미리 보기(제목·설명·그림)가 떠요. 메신저는 쪽 머리의 Open Graph 정보(`og:title`·`og:description`·`og:image`)를 읽어요(DECISIONS C246).
+
+- **글:** `src/config/site.ts`의 `share` 한 곳이에요. 홈은 `homeTitle`·`homeDescription`(교과서 이름이 보이게), 다른 쪽은 그 쪽 제목·설명을 그대로 써요(`src/layouts/BaseLayout.astro`).
+- **그림:** `public/images/share/share-card.jpg`(1200×630) 한 장을 모든 쪽이 써요. 교과서 표지(`public/images/book/cover.webp`) + 글자로 `scripts/make-share-card.mjs`가 그려요.
+  1. 그림 속 글을 바꾸려면 스크립트 맨 위 `SHARE_CARD_TEXT`를 고쳐요(교과서 이름·출판사·저자·사이트 이름은 `site.ts`와 같아야 해요 — `tests/unit/share-card.test.ts`가 대조).
+  2. `node scripts/make-share-card.mjs`(Playwright 브라우저가 있어야 해요 — 빌드·CI에서는 돌지 않아요). 색 프로필(ICC) 같은 메타데이터 조각은 스크립트가 떼어 내요.
+  3. 그림을 열어 보고 얼굴·이름·경로가 없는지 확인한 뒤 `scripts/image-allowlist.yaml`의 `share-card.jpg` 기록(`sha256`·`reviewed.date`)을 고쳐요. 기록이 그림과 다르면 커밋이 막혀요.
+- **바꾼 뒤 메신저에 보이기:** 카카오톡은 한 번 읽은 미리 보기를 한동안 저장해 둬요. 바로 바꿔 보려면 카카오 개발자 사이트의 "카카오톡 공유 디버거"(developers.kakao.com → 도구 → 공유 디버거)에 사이트 주소를 넣고 [캐시 초기화]를 눌러요(카카오 계정 로그인 필요). 페이스북은 "공유 디버거"(developers.facebook.com/tools/debug)에서 [다시 스크랩]이에요.

@@ -13,6 +13,7 @@ import { BOOK_OUTLINE_SECTIONS, bookSectionCount } from '../../src/config/book-o
 import { homeCover, homePrinciples, homeResume, homeSearch, homeShortcuts, homeToc, homeTrust, homeUnits } from '../../src/components/home/home-content.ts';
 import { unitTitleOf } from '../../src/components/home/home-lessons.ts';
 import { learnUnits } from '../../src/config/nav.ts';
+import { siteConfig } from '../../src/config/site.ts';
 import { PROGRESS_STORAGE_NAME } from '../../src/lib/progress.ts';
 import { storageKey } from '../../src/lib/storage.ts';
 
@@ -65,6 +66,36 @@ async function seedProgress(page: Page, state: unknown): Promise<void> {
 function unitCard(page: Page, unit: number) {
   return page.locator('[data-home-unit]').nth(unit - 1);
 }
+
+// 판 1.9.4(C246): 카카오톡·SNS에 링크를 보내면 홈은 교과서 이름과 교과서 표지 카드로 보인다(다른 쪽은 그 쪽 제목 + 같은 그림).
+test.describe('공유 미리 보기(Open Graph)', () => {
+  test.skip(({ isMobile }) => isMobile, '쪽 머리 글이라 데스크톱에서만 본다');
+
+  test('홈은 교과서 이름·설명과 교과서 표지 그림을, 다른 쪽은 그 쪽 제목과 같은 그림을 알린다', async ({ page, request }) => {
+    await page.goto('./');
+    const meta = (property: string) => page.locator(`meta[property="${property}"]`).getAttribute('content');
+    expect(await meta('og:title')).toBe(siteConfig.share.homeTitle);
+    expect(await meta('og:title')).toContain('인공지능과 피지컬 컴퓨팅');
+    expect(await meta('og:description')).toBe(siteConfig.share.homeDescription);
+    const image = (await meta('og:image')) ?? '';
+    // 메신저가 읽는 그림 주소는 늘 공개 사이트의 전체 주소다
+    expect(image).toBe(`${siteConfig.origin}${siteConfig.publicBase}/${siteConfig.share.image}`);
+    expect(await meta('og:image:width')).toBe('1200');
+    expect(await meta('og:image:height')).toBe('630');
+    expect(await meta('og:image:type')).toBe('image/jpeg');
+    expect(await meta('og:image:alt')).toContain('인공지능과 피지컬 컴퓨팅');
+    expect(await page.locator('meta[name="twitter:card"]').getAttribute('content')).toBe('summary_large_image');
+    // 이 빌드에도 그림이 실려 있다(시험 서버 주소로 받아 본다)
+    const local = new URL(siteConfig.share.image, page.url()).href;
+    const response = await request.get(local);
+    expect(response.status(), local).toBe(200);
+    expect(response.headers()['content-type'] ?? '').toContain('image/jpeg');
+
+    await page.goto('./glossary/');
+    expect(await meta('og:title')).toBe('용어사전');
+    expect(await meta('og:image')).toBe(image);
+  });
+});
 
 test.describe('홈 안심 띠(맨 위)', () => {
   test('설치 없음 · 무료 · 보드 없어도 됨 · 카메라 영상은 내 컴퓨터 밖으로 안 나감 — 네 칸이 이 순서로 첫 화면에 보인다', async ({ page }, testInfo) => {

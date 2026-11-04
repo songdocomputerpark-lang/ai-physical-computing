@@ -23,12 +23,24 @@
 # 도구가 생기기 전에 손으로 꺼낸 이미지는 use(쓰는 곳)·source(꺼낸 곳)·processing(다시 저장한 방법)을 함께 적어요.
 # 그림 안의 메타데이터(EXIF·XMP·ICC·글 조각)도 저장소 검사가 막아요.
 
+# 공유 미리 보기 그림(판 1.9.4, DECISIONS C246): 카카오톡·SNS 링크 미리 보기(og:image). scripts/make-share-card.mjs가 교과서 표지(public/images/book/cover.webp —
+# content/book/front.images.yaml에서 눈 확인을 마친 그림)와 사이트가 쓴 글자로 그린 1200×630 JPEG예요. 다시 만들면 열어 보고 sha256·날짜를 고쳐요.
+
 # 부품 사전 사진(판 1.4.0, DECISIONS O17·C136): content/parts/parts.yaml이 쓰는 public/images/parts/third-party/kit-vendor/의 사진 한 장씩이에요.
 # 키트 업체(고릴라셀·브릭셀)가 제공하고 운영자가 사용 허락을 받은 사진이고(sources.yaml 키트 업체 항목), 원본 폴더(입출력장치이미지/, 운영자 PC, git 제외)에서
 # Pillow로 다시 인코딩했어요(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 없음). 접촉 시트로 한 장씩 열어 얼굴·이름·경로·기기 주소·학교명이 없는지 봤어요.
 # 새 부품 사진을 더하면 같은 모양으로 한 장씩 적어요(content/parts/parts.yaml 머리말).
 # 그 밖의 차시 밖 래스터 그림이 생기면 위의 "적는 모양"대로 한 장씩 적어요.
 images:
+  - path: public/images/share/share-card.jpg
+    sha256: "eed8cd061cbbf86aa541420ae27f00e1260e684bee9f592a7acc2448facd63ad"
+    use: 카카오톡·SNS 링크 미리 보기 그림(og:image — 모든 쪽, 판 1.9.4·C246)
+    source: 교과서 표지 public/images/book/cover.webp(출판본 1쪽, content/book/front.images.yaml 눈 확인 2026-10-16) + 사이트가 쓴 글자(Pretendard)
+    processing: scripts/make-share-card.mjs — Playwright Chromium으로 1200×630을 그려 JPEG 품질 86, APP0(JFIF) 말고 다른 조각(ICC 등)은 떼어 냄
+    reviewed:
+      by: claude
+      date: 2026-11-04
+      result: "통과 — 왼쪽은 교과서 표지(남색 세로 제목·저자 이름 다섯 명·손을 뻗은 학생 일러스트 — 사진이 아니라 그린 그림), 오른쪽은 '고등학교 교과서'·'인공지능과 피지컬 컴퓨팅'·'금성출판사'·저자 다섯 명(책에 인쇄된 공개 이름)·안내 한 줄·사이트 이름. 사진 속 얼굴·학생 이름·화면 속 경로·파일명·기기 주소·학교명 없음"
   - path: public/images/parts/third-party/kit-vendor/a-001-high-temperature-sensor.webp
     sha256: "5b252347d5b106eee206faf8a9436574c3f268b58a7bc65ae4fa83805e561b99"
     source: "입출력장치이미지/A_001_High_Temperature_Sensor.webp → Pillow로 다시 인코딩(WebP, 긴 변 800px 이하, EXIF·XMP·ICC 제거)"

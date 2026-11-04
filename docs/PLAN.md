@@ -1394,6 +1394,14 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 - **지울 때:** `HomeHero`·`FlowIllustration`·`flow-motion`·`homeHero`·`homeActions`·`flowFigure`·`COMING_SOON_BADGE`를 저장소 전체에서 찾아 홈 폴더 밖·쪽에서 쓰는 곳이 없음을 확인했다. e2e `a11y-keyboard.spec.ts`의 `[data-flow]` 0개 검사는 그대로 맞다.
 - **확인 중 찾은 결함(C245):** 로컬 브라우저 시험에서 `a11y-keyboard.spec.ts:475`(ESP32 [블록] 키보드)가 8번 중 2번 실패. 진단 스크립트로 1366×768에서 붙은 조작 줄 높이 120px·`scroll-padding-block-start` 96px·[블록] 누른 뒤 scrollY 529를 재고, 첫 준비 칸 접힘(약 430px)이 [코드]를 화면 위로 밀어 Tab이 96px 자리로 굴린다는 것을 확인했다. 줄 높이를 따르는 변수로 고친 뒤 12번 모두 통과. 이 컨테이너에서는 CDN 대역 서버가 세션 재시작으로 꺼져 있어 다시 켰다(꺼진 채로도 6번 중 1번 실패 — 원인과 무관).
 
+### 8.23 판 1.9.4 구현 메모(카카오톡·SNS 링크 미리 보기, 2026-11-04)
+
+운영자가 카카오톡 미리 보기 화면을 보여 주며 "SNS 링크 보낼 때 인공지능과 피지컬 컴퓨팅 교과서가 나오도록". 결정은 DECISIONS C246, 고치는 법은 MAINTENANCE 18절.
+
+- **본 것:** BaseLayout 머리에 `og:title`(홈은 사이트 이름)·`og:description`·`og:url`만 있고 `og:image`가 없어 미리 보기가 글뿐이었다.
+- **그림 그리기:** Playwright `page.route`로 가짜 주소(`https://share-card.invalid/`)에 HTML·표지·Pretendard 정적 OTF(`node_modules/pretendard`)를 내주고 1200×630 JPEG 스크린숏(품질 86). 처음 그림에 APP2(ICC)가 들어 있어 `stripJpegMetadata`로 APP1~APP15·COM 조각을 떼었다(다시 인코딩하지 않음 — Pillow로 열어 1200×630 RGB·`jfif`만 남은 것 확인).
+- **확인:** 단위 4개, 브라우저 "공유 미리 보기"(홈 og 값·그림 200 image/jpeg·용어사전 쪽 제목), 홈 HTML 크기(사전 캐시 한도 160KB 안).
+
 ## 9. 저작권·출처 계획
 
 ### 9.1 원칙 (DECISIONS 그대로)

@@ -177,6 +177,21 @@ export const siteConfig = {
     publisher: '금성출판사',
     authors: ['김석전', '박상진', '김승현', '김영준', '육동건'],
   },
+  /**
+   * 카카오톡·SNS에 링크를 보낼 때 보이는 미리 보기(Open Graph — 판 1.9.4, DECISIONS C246). BaseLayout이 모든 쪽 머리에 그림을 적고,
+   * 홈의 미리 보기 제목·설명은 교과서 이름으로 보인다(다른 쪽은 그 쪽 제목·설명 그대로).
+   * 그림은 scripts/make-share-card.mjs가 교과서 표지(public/images/book/cover.webp)로 만든다 — 글을 바꾸면 그 스크립트의 SHARE_CARD_TEXT도(시험이 대조).
+   */
+  share: {
+    image: 'images/share/share-card.jpg',
+    imageType: 'image/jpeg',
+    imageWidth: 1200,
+    imageHeight: 630,
+    imageAlt: '교과서 「인공지능과 피지컬 컴퓨팅」(금성출판사)의 표지와 제목, 저자 이름, 사이트 이름 AI 피지컬 컴퓨팅 오픈랩',
+    homeTitle: '인공지능과 피지컬 컴퓨팅 교과서 — AI 피지컬 컴퓨팅 오픈랩',
+    homeDescription:
+      '금성출판사 고등학교 「인공지능과 피지컬 컴퓨팅」 교과서를 웹에서 읽고, 설치 없이 브라우저로 영상 처리 인공지능과 ESP32 보드를 실습하는 무료 사이트예요.',
+  },
   /** 부품 사진·회로 그림을 허락받아 쓰는 곳(DECISIONS C136). 바닥글 출처 줄의 "제공, 허락받아 사용" 앞에 붙는다. */
   partsProvider: '고릴라셀(브릭셀)',
   /**
