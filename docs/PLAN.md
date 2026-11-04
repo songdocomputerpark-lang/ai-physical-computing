@@ -1400,6 +1400,7 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 
 - **본 것:** BaseLayout 머리에 `og:title`(홈은 사이트 이름)·`og:description`·`og:url`만 있고 `og:image`가 없어 미리 보기가 글뿐이었다.
 - **그림 그리기:** Playwright `page.route`로 가짜 주소(`https://share-card.invalid/`)에 HTML·표지·Pretendard 정적 OTF(`node_modules/pretendard`)를 내주고 1200×630 JPEG 스크린숏(품질 86). 처음 그림에 APP2(ICC)가 들어 있어 `stripJpegMetadata`로 APP1~APP15·COM 조각을 떼었다(다시 인코딩하지 않음 — Pillow로 열어 1200×630 RGB·`jfif`만 남은 것 확인).
+- **마지막 점검(공개 전):** 빌드 결과 232쪽의 `og:image`를 셌더니 원리 체험 쪽 셋(`public/ml/` — BaseLayout 밖 정적 HTML, C238)만 빠져 있어 쪽 머리에 같은 줄을 직접 적고 단위 시험 한 건으로 지킨다(229 → 232쪽). 가지 CI 단위 1건(서보 f078 — `board.state` 16ms 병합이 부하에서 나뉨, 미해결 142와 같은 결)은 시험이 서보를 만드는 순간의 상태를 빼게 고쳤다(`819ce99`).
 - **확인:** 단위 4개, 브라우저 "공유 미리 보기"(홈 og 값·그림 200 image/jpeg·용어사전 쪽 제목), 홈 HTML 크기(사전 캐시 한도 160KB 안).
 
 ## 9. 저작권·출처 계획

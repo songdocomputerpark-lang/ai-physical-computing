@@ -1550,4 +1550,5 @@ npm run images:check               # 그림 목록·눈 확인 기록(원본 없
   1. 그림 속 글을 바꾸려면 스크립트 맨 위 `SHARE_CARD_TEXT`를 고쳐요(교과서 이름·출판사·저자·사이트 이름은 `site.ts`와 같아야 해요 — `tests/unit/share-card.test.ts`가 대조).
   2. `node scripts/make-share-card.mjs`(Playwright 브라우저가 있어야 해요 — 빌드·CI에서는 돌지 않아요). 색 프로필(ICC) 같은 메타데이터 조각은 스크립트가 떼어 내요.
   3. 그림을 열어 보고 얼굴·이름·경로가 없는지 확인한 뒤 `scripts/image-allowlist.yaml`의 `share-card.jpg` 기록(`sha256`·`reviewed.date`)을 고쳐요. 기록이 그림과 다르면 커밋이 막혀요.
+- **사이트 틀 밖의 정적 쪽:** 원리 체험 쪽(`public/ml/`)처럼 `BaseLayout`을 쓰지 않는 HTML은 쪽 머리에 `og:*` 줄을 직접 적어요(그림 주소·크기·대체 글은 `site.ts` `share`와 같게, `og:url`은 그 쪽 전체 주소). 새 정적 쪽을 더하면 `tests/unit/share-card.test.ts`의 `STATIC_PAGES`에도 한 줄 더해요. 그림을 다시 만들어 대체 글이 바뀌면 이 쪽들도 함께 고쳐요.
 - **바꾼 뒤 메신저에 보이기:** 카카오톡은 한 번 읽은 미리 보기를 한동안 저장해 둬요. 바로 바꿔 보려면 카카오 개발자 사이트의 "카카오톡 공유 디버거"(developers.kakao.com → 도구 → 공유 디버거)에 사이트 주소를 넣고 [캐시 초기화]를 눌러요(카카오 계정 로그인 필요). 페이스북은 "공유 디버거"(developers.facebook.com/tools/debug)에서 [다시 스크랩]이에요.

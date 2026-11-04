@@ -4,8 +4,21 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SHARE_CARD_SIZE, SHARE_CARD_TEXT, stripJpegMetadata } from '../../scripts/make-share-card.mjs';
 import { siteConfig } from '../../src/config/site.ts';
+import { absoluteUrl } from '../../src/lib/url.ts';
 
 const IMAGE = `public/${siteConfig.share.image}`;
+
+/** BaseLayout을 쓰지 않는 정적 쪽(원리 체험 public/ml/ — C238)과 그 공개 주소 */
+const STATIC_PAGES = [
+  ['public/ml/index.html', 'ml/'],
+  ['public/ml/kmeans/index.html', 'ml/kmeans/'],
+  ['public/ml/deep-learning/index.html', 'ml/deep-learning/'],
+] as const;
+
+function metaContent(html: string, key: string): string | undefined {
+  const attr = key.startsWith('twitter:') ? 'name' : 'property';
+  return new RegExp(`<meta ${attr}="${key}" content="([^"]*)">`, 'u').exec(html)?.[1];
+}
 
 /** JPEG 조각 표시 목록과 SOF의 크기 */
 function readJpeg(buf: Buffer): { markers: number[]; width: number; height: number } {
@@ -70,5 +83,22 @@ describe('공유 미리 보기 그림(share-card.jpg)', () => {
     expect(readJpeg(out).markers).toEqual([0xe0, 0xdb, 0xda]);
     expect(out.subarray(-4).toString('hex')).toBe('0909ffd9');
     expect(() => stripJpegMetadata(Buffer.from([0x89, 0x50]))).toThrow(/JPEG가 아니에요/u);
+  });
+
+  it('BaseLayout 밖의 정적 쪽(원리 체험 /ml/ 셋)도 같은 미리 보기 그림·설명·자기 주소를 적는다', () => {
+    for (const [file, sub] of STATIC_PAGES) {
+      const html = readFileSync(file, 'utf8');
+      const description = /<meta name="description" content="([^"]*)">/u.exec(html)?.[1];
+      expect(metaContent(html, 'og:image'), file).toBe(absoluteUrl(siteConfig.share.image));
+      expect(metaContent(html, 'og:image:type'), file).toBe(siteConfig.share.imageType);
+      expect(metaContent(html, 'og:image:width'), file).toBe(String(siteConfig.share.imageWidth));
+      expect(metaContent(html, 'og:image:height'), file).toBe(String(siteConfig.share.imageHeight));
+      expect(metaContent(html, 'og:image:alt'), file).toBe(siteConfig.share.imageAlt);
+      expect(metaContent(html, 'og:site_name'), file).toBe(siteConfig.name);
+      expect(metaContent(html, 'og:url'), file).toBe(absoluteUrl(sub));
+      expect(metaContent(html, 'og:description'), file).toBe(description);
+      expect(metaContent(html, 'og:title'), file).toBeTruthy();
+      expect(metaContent(html, 'twitter:card'), file).toBe('summary_large_image');
+    }
   });
 });
