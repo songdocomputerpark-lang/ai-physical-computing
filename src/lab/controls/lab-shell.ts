@@ -75,7 +75,7 @@ import {
   type LazyExampleEntry,
 } from './lazy-examples.ts';
 import { RECORDS_CLEARED_EVENT } from './records.ts';
-import { isEmbedFit, isMostlyVisible, keepRevealedWhole, revealElement, revealTogether, revealWhole, stickyBarInset } from './reveal.ts';
+import { isEmbedFit, isMostlyVisible, keepRevealedWhole, revealElement, revealTogether, revealWhole, stickyBarInset, syncStickyBarHeight } from './reveal.ts';
 import { finishedStatusText } from './finished-status.ts';
 import { ShareTooLongError, buildShareLink, hasShareHash, parseShareHash, pickExampleLab, pickShareLab, type LabOnPage } from './share-link.ts';
 
@@ -688,6 +688,7 @@ class LabShellController implements LabController {
     this.#wireDialogs();
     this.#wireRecordsCleared();
     this.#wirePageLifecycle();
+    this.#watchStickyBar();
     // 휴대폰·데이터 절약 모드에서는 [실행]을 누를 때까지 받지 않는다(R1-097). 컴퓨터는 열자마자 받는다(지금처럼).
     if (shouldDeferEngineLoad(readDeferEnv())) {
       root.dataset.loadDeferred = 'yes';
@@ -717,6 +718,25 @@ class LabShellController implements LabController {
     this.runtime.load().catch(() => {
       // 실패 안내는 notice 이벤트와 상태 글이 보여 준다.
     });
+  }
+
+  /**
+   * 붙은 조작 줄의 높이가 바뀔 때마다(예제 설명 줄·상태 줄·글자 크기·창 크기) 문서 뿌리 CSS 변수로 알린다 — 키보드 초점이 줄 밑에 숨지 않게
+   * scroll-padding이 그 높이를 따른다(판 1.9.3, C245). 붙느냐 마느냐는 창 높이로도 바뀌어 창 크기 변화도 본다.
+   */
+  #watchStickyBar(): void {
+    const bar = this.root.querySelector<HTMLElement>('[data-lab-bar]');
+    if (!bar || typeof window === 'undefined') {
+      return;
+    }
+    const sync = (): void => {
+      syncStickyBarHeight(document);
+    };
+    if (typeof ResizeObserver === 'function') {
+      new ResizeObserver(sync).observe(bar);
+    }
+    window.addEventListener('resize', sync);
+    sync();
   }
 
   /** 화면 위에 붙은 조작 줄 묶음의 높이(붙어 있지 않으면 0) — [실행] 뒤 화면을 옮길 때 칸을 그 아래에 놓는다(R1-096) */

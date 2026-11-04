@@ -110,9 +110,11 @@ export function isMostlyVisible(element: Element, viewportHeight: number, inset 
 /** 이 칸(root) 안의 조작 줄 묶음이 화면 위에 붙어 있으면 그 높이(px), 아니면 0 */
 export function stickyBarInset(root: ParentNode): number {
   const bar = root.querySelector<HTMLElement>('[data-lab-bar]');
-  if (!bar) {
-    return 0;
-  }
+  return bar ? stickyHeightOf(bar) : 0;
+}
+
+/** 이 조작 줄이 화면 위에 붙어 있으면 그 높이(px), 아니면 0 */
+function stickyHeightOf(bar: HTMLElement): number {
   try {
     if (getComputedStyle(bar).position !== 'sticky') {
       return 0;
@@ -121,6 +123,40 @@ export function stickyBarInset(root: ParentNode): number {
     return 0;
   }
   return Math.ceil(bar.getBoundingClientRect().height);
+}
+
+/** 문서 뿌리에 붙은 줄 높이를 알리는 CSS 변수 — LabShell.astro의 scroll-padding-block-start가 읽는다(판 1.9.3, C245) */
+export const STICKY_BAR_HEIGHT_VAR = '--lab-bar-sticky-h';
+
+/**
+ * 문서 안 실습실 조작 줄 묶음 가운데 화면 위에 붙어 있는 것의 가장 큰 높이(px, 없으면 0).
+ * 한 쪽에 실습실 틀이 둘(4단원)이어도 하나만 붙으면 그 높이를 쓴다.
+ */
+export function stickyBarsHeight(doc: ParentNode): number {
+  let height = 0;
+  for (const bar of doc.querySelectorAll<HTMLElement>('[data-lab-bar]')) {
+    height = Math.max(height, stickyHeightOf(bar));
+  }
+  return height;
+}
+
+/**
+ * 붙은 조작 줄의 높이를 문서 뿌리의 CSS 변수로 알린다(판 1.9.3, C245 — WCAG 2.4.11).
+ * scroll-padding을 6rem으로 고정했더니 ESP32 실습실처럼 조작 줄이 두 줄(약 120px)인 쪽에서 Tab으로 옮긴 초점이 줄 밑 24px에 가렸다.
+ * 붙은 줄이 없으면 변수를 지워 CSS의 기본값(6rem)으로 돌아간다.
+ */
+export function syncStickyBarHeight(doc: Document = document): number {
+  const height = stickyBarsHeight(doc);
+  const html = doc.documentElement;
+  if (height > 0) {
+    const value = `${height}px`;
+    if (html.style.getPropertyValue(STICKY_BAR_HEIGHT_VAR) !== value) {
+      html.style.setProperty(STICKY_BAR_HEIGHT_VAR, value);
+    }
+  } else if (html.style.getPropertyValue(STICKY_BAR_HEIGHT_VAR) !== '') {
+    html.style.removeProperty(STICKY_BAR_HEIGHT_VAR);
+  }
+  return height;
 }
 
 export function prefersReducedMotion(): boolean {

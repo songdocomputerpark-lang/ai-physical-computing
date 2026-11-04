@@ -668,6 +668,8 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
    * - 차시 안 임베드(?embed=1)는 iframe이 낮아 붙이지 않는다. 다만 수업 화면 속 실습실(data-embed-compact — 틀 한 장이 화면 한 쪽)은 아래 따로 둔 규칙으로 붙인다.
    * - z-index: 아래 칸(.lab__grid)은 isolation으로 자기 안에 가둔다(CodeMirror 줄 번호 칸이 z-index 200이라 밑에서 올라와 줄을 덮는다).
    * 붙는 동안 키보드 초점이 이 줄 밑에 숨지 않게 scroll-padding-top을 준다(WCAG 2.4.11 — 4단원 떠 있는 줄과 같은 방식). 그만큼은 reveal.ts에도 알린다(lab-shell.ts).
+   * 판 1.9.3(C245): 여백은 붙은 줄의 실제 높이 + 0.5rem — lab-shell.ts가 높이를 재서 문서 뿌리 변수 --lab-bar-sticky-h로 알린다(없으면 6rem).
+   *   ESP32 실습실처럼 줄이 두 줄(약 120px)이면 고정 6rem(96px)으로는 Tab으로 옮긴 초점이 줄 밑에 24px 가렸다.
    */
   @container lab (min-width: 72rem) {
     :global(:root:not([data-embed])) .lab__bar {
@@ -693,7 +695,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
   /* 붙는 동안 Tab으로 옮겨 간 초점이 붙은 줄 밑(화면 맨 위)에 숨지 않게 그만큼 아래에서 멈춘다(WCAG 2.4.11). 틀 폭 72rem ≈ 화면 76rem. */
   @media (min-width: 76rem) and (min-height: 40rem) {
     :global(html:not([data-embed]):has(.lab__bar)) {
-      scroll-padding-block-start: 6rem;
+      scroll-padding-block-start: calc(var(--lab-bar-sticky-h, 5.5rem) + 0.5rem);
     }
   }
 
@@ -725,7 +727,7 @@ const widePanels = modulePanels.filter((panel) => panel.placement === 'wide');
 
   @media (min-width: 30rem) and (min-height: 22rem) {
     :global(html[data-embed-compact]:has(.lab__bar)) {
-      scroll-padding-block-start: 6rem;
+      scroll-padding-block-start: calc(var(--lab-bar-sticky-h, 5.5rem) + 0.5rem);
     }
   }
 

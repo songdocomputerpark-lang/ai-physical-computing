@@ -482,6 +482,19 @@ test.describe('키보드만으로 — 여닫는 것', () => {
     await page.keyboard.press('Enter');
     await waitBlocksReady(page);
     await expect(blocksButton).toHaveAttribute('aria-pressed', 'true');
+    // 판 1.9.3(C245): 붙은 조작 줄이 두 줄(약 120px)이어도 Tab으로 옮긴 초점이 그 밑에 숨지 않게 scroll-padding이 줄 높이를 따른다
+    // (고정 6rem이던 때는 첫 준비 칸이 늦게 접혀 화면이 올라간 경우 [코드]가 줄 밑에 24px 가려 이 걷기가 가끔 실패했다).
+    const stuck = await page.evaluate(() => {
+      const bar = document.querySelector<HTMLElement>('[data-lab-bar]');
+      return {
+        sticky: bar ? getComputedStyle(bar).position === 'sticky' : false,
+        bar: bar ? bar.getBoundingClientRect().height : 0,
+        pad: Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
+      };
+    });
+    if (stuck.sticky) {
+      expect(stuck.pad, `붙은 줄 ${stuck.bar}px · 여백 ${stuck.pad}px`).toBeGreaterThanOrEqual(stuck.bar);
+    }
     const walk = await tabWalk(page, 250);
     expect(walk.problems, walk.problems.join('\n')).toEqual([]);
     const codeButton = page.getByRole('button', { name: '코드', exact: true });
