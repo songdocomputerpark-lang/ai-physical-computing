@@ -15,48 +15,12 @@
  * 차례 그림의 링크 자리·카드 자료는 home-lessons.ts가 교과서 쪽(content/book)·웹 차시(content/lessons)에서 만든다.
  *
  * 판 1.3.0 홈 순서(옛): 첫 화면(hero) → 이어서 하기 띠 → 큰 검색 → 배움 지도(대단원 4장) → 바로 가기 타일 → 원칙.
- * 옛 첫 화면(HomeHero·FlowIllustration)은 홈이 더 쓰지 않지만 아직 지우지 않았고 아래 homeHero·homeActions·flowFigure도 그대로 둔다(옛 시험이 이 글을 지킨다).
+ *   판 1.9.3: 옛 첫 화면 부품(HomeHero.astro·FlowIllustration.astro·flow-motion.ts)과 그 글(homeHero·homeActions·flowFigure·"준비 중" 표시)을 지웠다(미해결 291).
  */
 import { getPage } from '../../config/nav.ts';
 import { CAMERA_PRIVACY_BRIEF } from '../../config/privacy-text.ts';
 import { siteConfig } from '../../config/site.ts';
 import type { IconName } from '../common/icons.ts';
-
-/** 첫 화면의 큰 버튼 하나 */
-export interface HomeAction {
-  /** 식별자(테스트·스타일용) */
-  readonly id: string;
-  /** 버튼 이름(SPEC §5 그대로) */
-  readonly label: string;
-  /** 버튼 안의 작은 설명 한 줄 */
-  readonly hint: string;
-  /** 가는 곳: 사이트 지도의 페이지 id */
-  readonly pageId: string;
-  /** 가는 곳 주소(base 포함). getPage()가 만든다. */
-  readonly href: string;
-  readonly icon: IconName;
-  /** primary = 파랑으로 채운 버튼(처음 온 학생에게 가장 먼저 권하는 길), secondary = 테두리 버튼 */
-  readonly variant: 'primary' | 'secondary';
-  /**
-   * 가는 곳이 아직 자리 페이지면 'coming-soon' — 버튼에 "준비 중" 표시가 붙는다(누르기 전에 알 수 있게, 2026-09-16 검토 반영).
-   * 실습실이 실제로 생기는 묶음에서 지운다(영상 처리는 P2-04에서 지움 — 홈 → 실습실 → 슬라이더까지 이어짐, ESP32는 P3).
-   */
-  readonly status?: 'coming-soon';
-}
-
-/** "준비 중" 표시 글자(HomeHero.astro와 테스트가 함께 쓴다) */
-export const COMING_SOON_BADGE = '준비 중';
-
-/** 흐름 그림 아래 단계 설명 하나 */
-export interface FlowStep {
-  readonly id: 'see' | 'judge' | 'act';
-  /** 단계 이름. 세 개를 이어 읽으면 "보고, 판단하고, 움직여요"가 된다. */
-  readonly label: string;
-  /** 그림에서 일어나는 일 한 줄 */
-  readonly detail: string;
-  /** 이 단계를 배우는 대단원 번호 — 그림의 단계 글이 배움 지도의 길잡이가 되도록 그 단원 쪽으로 이어 준다(R1-025) */
-  readonly unit: 1 | 2 | 3 | 4;
-}
 
 /** 바로 가기 타일 하나(아이콘 위, 낱말 아래) */
 export interface HomeShortcut {
@@ -74,10 +38,6 @@ export interface HomePrinciple {
   readonly icon: IconName;
   readonly title: string;
   readonly body: string;
-}
-
-function action(input: Omit<HomeAction, 'href'>): HomeAction {
-  return Object.freeze({ ...input, href: getPage(input.pageId).href });
 }
 
 function shortcut(pageId: string, icon: IconName, options: { label?: string; unit?: 1 | 2 | 3 | 4 } = {}): HomeShortcut {
@@ -217,71 +177,6 @@ export const homeToc = Object.freeze({
   keyboardGo: '절 목록으로',
   /** 넓은 화면에서 그림 아래 목록을 알리는 한 줄(좁은 화면은 목록이 바로 첫머리라 필요 없다) */
   listLead: '그림 대신 목록에서 골라도 돼요.',
-});
-
-/** 첫 화면 제목과 한 문장 소개(SPEC §5: 스크롤 없이 30초 안에 "이 사이트가 뭔지" 알게) */
-export const homeHero = Object.freeze({
-  /** 페이지 제목(h1). 줄로 나눠 두면 넓은 화면에서 이 자리에서 줄이 바뀐다. 이어 읽으면 한 문장이다. */
-  titleLines: Object.freeze(['보고, 판단하고, 움직이는', '인공지능을 만들어요']),
-  /**
-   * 두 문장 소개(한 문장에 꾸밈이 많으면 한 번에 안 읽혀 둘로 나눴다, 판 1.3.0 검수 R1-029). 어떤 과목의 사이트인지 첫 화면에서 알 수 있게 과목 이름(교육감 승인 과목 "인공지능과 피지컬 컴퓨팅")을 넣는다.
-   * ESP32는 이 페이지에서 처음 나오는 전문용어라 괄호로 풀이한다.
-   */
-  lead: '고등학교 "인공지능과 피지컬 컴퓨팅" 교과서 순서대로 배우는 무료 사이트예요. 설치 없이 브라우저만으로 인공지능과 ESP32 보드(LED·모터를 움직이는 작은 컴퓨터)를 배우고 바로 실습해요.',
-  /**
-   * 큰 버튼 아래 한 줄 길잡이. 어느 것을 먼저 누를지 알려 준다. 버튼 이름을 다시 쓰지 않는다(같은 이름의 글이 둘이 되면 안 됨).
-   * 색·모양이 아니라 순서("첫 번째")로 말한다(WCAG 1.3.3).
-   */
-  guide: '처음이라면 첫 번째 단추부터 눌러 보세요.',
-});
-
-/**
- * 큰 버튼 3개(SPEC §5). 순서와 이름을 바꾸지 않는다.
- * 아직 준비 중인 곳은 버튼에 "준비 중" 표시를 붙이고(status), 그 페이지가 "준비 중" 틀을 보여 준다(ComingSoon).
- * ESP32 실습실이 생겨 가상 보드 탭을 따로 열 주소(예: #virtual)가 생기면 두 번째 버튼만 고친다.
- */
-export const homeActions: readonly HomeAction[] = Object.freeze([
-  action({
-    id: 'camera',
-    label: '카메라로 바로 해 보기',
-    hint: '웹캠 영상을 코드로 바꿔 봐요',
-    pageId: 'labs-vision',
-    icon: 'camera',
-    variant: 'primary',
-  }),
-  action({
-    // 2026-09-17 P3-01에서 ESP32 실습실(가상 보드)이 열려 "준비 중" 표시를 뗐다.
-    id: 'virtual-board',
-    label: '가상 ESP32 켜 보기',
-    hint: '보드가 없어도 화면에서 해요',
-    pageId: 'labs-esp32',
-    icon: 'chip',
-    variant: 'secondary',
-  }),
-  action({
-    id: 'real-board',
-    label: '내 보드 연결하기',
-    hint: 'USB 케이블로 보드를 이어요',
-    pageId: 'start-board',
-    icon: 'plug',
-    variant: 'secondary',
-  }),
-]);
-
-/** 흐름 그림(SPEC §5 "AI가 보고 → 판단하고 → 움직인다"). 그림 속 글자는 쓰지 않고 이 글을 그림 밖 HTML로 보인다. */
-export const flowFigure = Object.freeze({
-  /** 화면 낭독기가 읽는 그림 이름(svg title) */
-  title: '인공지능이 보고, 판단하고, 움직이는 흐름 그림',
-  /** 화면 낭독기가 읽는 그림 설명(svg desc) */
-  description:
-    '카메라 화면에 손가락 두 개를 편 손이 보여요. 인공지능이 손가락 끝을 찾아 두 개라고 세고, 그 결과를 케이블로 받은 ESP32 보드가 LED 다섯 개 가운데 두 개를 켜요.',
-  steps: Object.freeze<FlowStep[]>([
-    { id: 'see', label: '보고', detail: '카메라로 손을 봐요', unit: 1 },
-    { id: 'judge', label: '판단하고', detail: '손가락 수를 세요', unit: 1 },
-    { id: 'act', label: '움직여요', detail: '보드가 LED를 켜요', unit: 2 },
-  ]),
-  /** 단계 아래 링크 글. "{1}단원 알아보기" — 단원 카드 단추([1단원 열기])와 이름이 겹치지 않게 다른 동사를 쓴다. */
-  unitLinkLabel: '알아보기',
 });
 
 /** 이어서 하기 띠(진도가 있을 때만 보인다 — home-resume.ts가 채운다). 처음 온 사람에게는 아무것도 보이지 않는다. */

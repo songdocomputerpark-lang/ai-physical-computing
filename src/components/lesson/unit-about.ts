@@ -20,7 +20,7 @@ export const FLOW_STAGES: readonly { readonly id: FlowStage; readonly label: str
 export interface UnitAbout {
   /** 이 단원이 맡은 큰 그림 단계 */
   readonly stages: readonly FlowStage[];
-  /** 단원 몫을 '-기' 꼴 한두 낱말로("보고 판단하기") — 홈 배움 지도 칩(home-content.ts homeMap.stages)과 같은 글 */
+  /** 단원 몫을 '-기' 꼴 한두 낱말로("보고 판단하기") — home-content.ts homeMap.stages(옛 홈 배움 지도 칩 글)와 같은 글 */
   readonly role: string;
   /** 이 단원을 마치면 할 수 있는 것(3줄) */
   readonly outcomes: readonly string[];

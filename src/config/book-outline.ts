@@ -2,7 +2,7 @@
  * 출판본 교과서의 차례(판 1.4.0 — DECISIONS C131·C132) — 중단원 9개·절 32개·대단원 마무리 4개의 이름과 쪽.
  *
  * 왜 이 파일이 따로 있나
- * - 홈의 "교과서 32절"·차례 그림(book-toc-spots.ts)·차시 카드는 **교과서 쪽(content/book/<id>.md)이 아직 없는 절도** 이름과 쪽을 보여야 한다.
+ * - 홈 알약의 "교과서 원문 32절"·차례 그림(book-toc-spots.ts)·차시 카드는 **교과서 쪽(content/book/<id>.md)이 아직 없는 절도** 이름과 쪽을 보여야 한다.
  *   쪽 파일은 한 절씩 늘어나므로, 차례 자체는 출판본 4~5쪽 차례와 같은 값을 여기 한 곳에 둔다(순수 데이터 — 화면·빌드 어디서든 읽는다).
  * - 쪽 파일이 생기면 홈 카드는 **저절로** 그 쪽으로 이어진다(이름·쪽·매체는 쪽 파일 값이 먼저). 이 파일을 고칠 일은 출판본 차례가 바뀔 때뿐이다.
  * - 쪽 파일의 제목·쪽 범위가 이 파일과 어긋나면 tests/unit/home/book-outline.test.ts가 잡는다.
@@ -119,7 +119,7 @@ export const BOOK_OUTLINE_REVIEWS: readonly BookOutlineReview[] = Object.freeze(
   review(4, '290~291'),
 ]);
 
-/** 출판본이 가진 절의 수(홈 알약 "교과서 32절") */
+/** 출판본이 가진 절의 수(홈 알약 "교과서 원문 32절") */
 export function bookSectionCount(): number {
   return BOOK_OUTLINE_SECTIONS.length;
 }

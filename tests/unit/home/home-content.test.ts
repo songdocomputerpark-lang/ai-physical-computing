@@ -1,18 +1,10 @@
-// 홈 화면 글·링크(src/components/home/home-content.ts)와 흐름 그림 움직임 규칙(flow-motion.ts) 단위 테스트.
+// 홈 화면 글·링크(src/components/home/home-content.ts) 단위 테스트.
+// 판 1.9.3: 옛 첫 화면(HomeHero·흐름 그림·flow-motion.ts)을 지우며 그 글을 지키던 앞 절반 시험도 걷었다(미해결 291).
 // 화면에 실제로 보이는지는 브라우저 테스트(tests/e2e/home.spec.ts)가 확인한다.
 import { describe, expect, it } from 'vitest';
 import {
-  canAnimate,
-  FLOW_TOGGLE_LABELS,
-  nextStateOnToggle,
-  parseFlowState,
-  toggleLabel,
-} from '../../../src/components/home/flow-motion.ts';
-import {
-  COMING_SOON_BADGE,
-  flowFigure,
-  homeActions,
-  homeHero,
+  homeCover,
+  homeCoverActions,
   homeMap,
   homePrinciples,
   homeResume,
@@ -22,7 +14,6 @@ import {
 } from '../../../src/components/home/home-content.ts';
 import { ICON_NAMES } from '../../../src/components/common/icons.ts';
 import { flattenPages, getPage } from '../../../src/config/nav.ts';
-import { siteConfig } from '../../../src/config/site.ts';
 
 /** 문장 수: 마침표·물음표·느낌표 뒤 띄어쓰기로 나눈 덩어리 수 */
 function countSentences(text: string): number {
@@ -33,120 +24,6 @@ function countSentences(text: string): number {
 }
 
 const SITE_PATHS = new Set(flattenPages().map((page) => page.href));
-
-describe('홈 첫 화면 글과 큰 버튼(home-content.ts)', () => {
-  it('큰 버튼은 SPEC §5의 이름 그대로 3개이고 순서도 같다', () => {
-    expect(homeActions.map((action) => action.label)).toEqual(['카메라로 바로 해 보기', '가상 ESP32 켜 보기', '내 보드 연결하기']);
-  });
-
-  it('버튼은 영상 처리 실습실, ESP32 실습실, 보드 준비 페이지로 간다', () => {
-    expect(homeActions.map((action) => action.pageId)).toEqual(['labs-vision', 'labs-esp32', 'start-board']);
-    for (const action of homeActions) {
-      expect(action.href).toBe(getPage(action.pageId).href);
-      expect(SITE_PATHS.has(action.href), action.href).toBe(true);
-    }
-  });
-
-  it('주소는 사이트 지도가 만든 것이라 base가 한 번만 붙고 /로 끝난다', () => {
-    const base = `${siteConfig.base}/`;
-    for (const action of homeActions) {
-      expect(action.href.startsWith(base), action.href).toBe(true);
-      expect(action.href.indexOf(base, 1), action.href).toBe(-1);
-      expect(action.href.endsWith('/'), action.href).toBe(true);
-    }
-  });
-
-  it('처음 온 학생에게 먼저 권하는 [카메라로 바로 해 보기]만 주요 버튼이다', () => {
-    expect(homeActions.map((action) => action.variant)).toEqual(['primary', 'secondary', 'secondary']);
-  });
-
-  it('자리 페이지로 가는 버튼이 없어 "준비 중" 표시가 붙은 버튼이 없다(영상 처리 실습실은 P2-04, ESP32 실습실은 P3-01부터 열림, 보드 준비는 안내 페이지)', () => {
-    expect(homeActions.filter((action) => action.status === 'coming-soon').map((action) => action.id)).toEqual([]);
-    expect(homeActions.find((action) => action.id === 'camera')?.status).toBeUndefined();
-    expect(homeActions.find((action) => action.id === 'virtual-board')?.status).toBeUndefined();
-    expect(COMING_SOON_BADGE).toBe('준비 중');
-  });
-
-  it('버튼 식별자가 겹치지 않고, 버튼 설명은 좁은 휴대폰에서도 한 줄에 들어갈 만큼 짧다', () => {
-    /**
-     * 글자 폭 어림값: 한글 한 글자 = 1, 영문·숫자 = 0.75, 띄어쓰기·문장 부호 = 0.3.
-     * 2026-09-16 측정(Pretendard 15px): 한글 약 13.0px, 영문 대문자 약 9.7px, 띄어쓰기 약 3.7px.
-     * 버튼 설명 칸 폭은 화면 폭 − 160px(360px 화면에서 200px)이고, 21rem(336px)보다 좁은 화면에서는 설명 줄을 숨긴다
-     * (HomeHero.astro). 그래서 336px 화면의 칸 176px ÷ 13.0px ≈ 13.5를 한도로 둔다.
-     * 실제로 "보드가 없어도 화면 속 보드로 해요"(어림값 15.5, 측정 200.3px)는 360px 화면에서 두 줄로 넘쳤다.
-     */
-    const estimateTextWidth = (text: string): number =>
-      [...text].reduce((width, char) => {
-        if (/\p{Script=Hangul}/u.test(char)) {
-          return width + 1;
-        }
-        return width + (/[A-Za-z0-9]/u.test(char) ? 0.75 : 0.3);
-      }, 0);
-
-    expect(new Set(homeActions.map((action) => action.id)).size).toBe(homeActions.length);
-    expect(estimateTextWidth('보드가 없어도 화면 속 보드로 해요')).toBeGreaterThan(13.5);
-    for (const action of homeActions) {
-      expect(action.hint.length, action.label).toBeGreaterThan(0);
-      expect(estimateTextWidth(action.hint), action.hint).toBeLessThanOrEqual(13.5);
-    }
-  });
-
-  it('제목은 "보고, 판단하고, 움직이는"으로 시작하고, 소개는 두 문장이며 과목 이름과 ESP32 풀이가 있다(R1-029: 한 문장에 꾸밈 7개는 한 번에 안 읽혔다)', () => {
-    expect(homeHero.titleLines.join(' ')).toBe('보고, 판단하고, 움직이는 인공지능을 만들어요');
-    expect(countSentences(homeHero.lead)).toBe(2);
-    expect(homeHero.lead.endsWith('.')).toBe(true);
-    // 첫 문장은 과목과 "무료 사이트"만, 둘째 문장이 설치·ESP32 풀이를 맡는다
-    const [first, second] = homeHero.lead.split(/(?<=[.!?])\s+/u);
-    expect(first).toContain('인공지능과 피지컬 컴퓨팅');
-    expect(second).toContain('설치 없이');
-    expect(second).toMatch(/ESP32 보드\([^)]+\)/u);
-    expect(homeHero.lead).toMatch(/ESP32 보드\([^)]+\)/u);
-    expect(homeHero.lead).toContain('설치 없이');
-    // 첫 화면에서 어떤 과목의 사이트인지 알 수 있게(SPEC §5 "30초 안에 이해", 2026-09-16 검토 반영)
-    expect(homeHero.lead).toContain('인공지능과 피지컬 컴퓨팅');
-  });
-});
-
-describe('흐름 그림 글(home-content.ts)', () => {
-  it('단계 글이 단원 쪽으로 이어진다: 보고·판단하고는 1단원, 움직여요는 2단원(R1-025)', () => {
-    expect(flowFigure.steps.map((step) => step.unit)).toEqual([1, 1, 2]);
-    expect(flowFigure.unitLinkLabel.length).toBeGreaterThan(0);
-    // 단원 카드 단추([1단원 열기])와 링크 이름이 같으면 같은 이름이 서로 다른 곳으로 가게 된다
-    expect(flowFigure.unitLinkLabel).not.toBe(homeUnits.openLabel);
-    expect(flowFigure.unitLinkLabel).not.toBe(homeUnits.resumeLabel);
-    expect(flowFigure.unitLinkLabel).not.toBe(homeUnits.replayLabel);
-  });
-
-  it('단계는 보고 → 판단하고 → 움직여요 3개이고 설명이 있다', () => {
-    expect(flowFigure.steps.map((step) => step.label)).toEqual(['보고', '판단하고', '움직여요']);
-    expect(flowFigure.steps.map((step) => step.id)).toEqual(['see', 'judge', 'act']);
-    for (const step of flowFigure.steps) {
-      expect(step.detail.length, step.label).toBeGreaterThan(0);
-    }
-  });
-
-  it('화면 낭독기용 이름이 있고 설명은 3문장 이내다', () => {
-    expect(flowFigure.title.length).toBeGreaterThan(0);
-    expect(countSentences(flowFigure.description)).toBeLessThanOrEqual(3);
-  });
-});
-
-describe('큰 버튼 아래 길잡이와 아이콘', () => {
-  it('길잡이는 한 문장이고 버튼 이름을 다시 쓰지 않으며 색이 아니라 순서로 말한다', () => {
-    expect(countSentences(homeHero.guide)).toBe(1);
-    expect(homeHero.guide.endsWith('.')).toBe(true);
-    for (const action of homeActions) {
-      expect(homeHero.guide, action.label).not.toContain(action.label);
-    }
-    expect(homeHero.guide).not.toMatch(/파란|파랑|빨간|초록|색/u);
-  });
-
-  it('큰 버튼 아이콘은 모두 공용 아이콘 표(Icon.astro)에 있다', () => {
-    for (const action of homeActions) {
-      expect(ICON_NAMES as readonly string[], action.label).toContain(action.icon);
-    }
-  });
-});
 
 describe('이어서 하기·큰 검색·단원 글(home-content.ts)', () => {
   it('이어서 하기 띠 글: 머리는 "지난번 이어서", 차시 칸(이어서 하기, 끝낸 차시면 다시 보기), 다음 차시 칸(시작하기), 실습실 칸(다시 열기)', () => {
@@ -204,8 +81,8 @@ describe('바로 가기 타일과 원칙(home-content.ts)', () => {
     expect(new Set(homeShortcuts.items.map((item) => item.label)).size).toBe(homeShortcuts.items.length);
   });
 
-  it('타일 이름이 큰 버튼 이름과 겹치지 않는다(홈에서 같은 이름의 링크가 둘이 되지 않게)', () => {
-    const buttonNames = homeActions.map((action) => action.label);
+  it('타일 이름이 표지 큰 단추 이름과 겹치지 않는다(홈에서 같은 이름의 링크가 둘이 되지 않게)', () => {
+    const buttonNames = [...homeCoverActions('/learn/u1/1-1-1/').map((action) => action.label), homeCover.resumeLabel];
     for (const item of homeShortcuts.items) {
       for (const name of buttonNames) {
         expect(item.label.includes(name) || name.includes(item.label), `${item.label} / ${name}`).toBe(false);
@@ -231,38 +108,5 @@ describe('바로 가기 타일과 원칙(home-content.ts)', () => {
     expect(homePrinciples.browserNote.text).toContain('읽기는 휴대폰도 돼요');
     expect(homePrinciples.browserNote.text).toContain('실습은 컴퓨터');
     expect(homePrinciples.browserNote.text).not.toContain('권장');
-  });
-});
-
-describe('흐름 그림 움직임 규칙(flow-motion.ts)', () => {
-  it('움직이는 중에는 [그림 멈추기], 그 밖의 상태에서는 [그림 다시 보기]를 보인다', () => {
-    expect(toggleLabel('playing')).toBe(FLOW_TOGGLE_LABELS.pause);
-    for (const state of ['static', 'paused', 'ended'] as const) {
-      expect(toggleLabel(state), state).toBe(FLOW_TOGGLE_LABELS.replay);
-    }
-    expect(FLOW_TOGGLE_LABELS).toEqual({ pause: '그림 멈추기', replay: '그림 다시 보기' });
-  });
-
-  it('버튼을 누르면 움직이는 중은 멈추고, 멈춘 그림은 처음부터 다시 움직인다', () => {
-    expect(nextStateOnToggle('playing')).toBe('paused');
-    for (const state of ['static', 'paused', 'ended'] as const) {
-      expect(nextStateOnToggle(state), state).toBe('playing');
-    }
-  });
-
-  it('운영체제나 사이트에서 움직임을 줄이면 저절로 움직이지 않는다', () => {
-    expect(canAnimate({ prefersReducedMotion: false })).toBe(true);
-    expect(canAnimate({ prefersReducedMotion: false, siteMotion: null })).toBe(true);
-    expect(canAnimate({ prefersReducedMotion: true })).toBe(false);
-    expect(canAnimate({ prefersReducedMotion: false, siteMotion: 'reduce' })).toBe(false);
-  });
-
-  it('모르는 상태 글자는 움직이지 않는 완성 그림(static)으로 본다', () => {
-    expect(parseFlowState('playing')).toBe('playing');
-    expect(parseFlowState('paused')).toBe('paused');
-    expect(parseFlowState('ended')).toBe('ended');
-    expect(parseFlowState('static')).toBe('static');
-    expect(parseFlowState(undefined)).toBe('static');
-    expect(parseFlowState('running')).toBe('static');
   });
 });
