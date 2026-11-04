@@ -313,7 +313,13 @@ describe.skipIf(!boardPyodideReady)('가상 ESP32 보드 — machine.PWM·machin
   it('서보 라이브러리(원고 174쪽 복원본)로 f078 원본 그대로: 25번 핀 50Hz에 duty 40·77·115를 1.5초 간격으로, 화면에 프로필 servo40을 알린다', () => {
     const record = stepOf(out, 'servo_library_f078');
     expect(record.errorType).toBeUndefined();
-    const trail = pinTrail(record.events, 25).filter((pin) => pin.reason === 'change');
+    const changes = pinTrail(record.events, 25).filter((pin) => pin.reason === 'change');
+    // ServoMotor()를 만드는 순간의 상태(새 PWM 기본 50% = 512 → 라이브러리 __init__의 duty(0))는 보통 첫 rotate와 한 메시지로 합쳐지지만,
+    // 병합이 실제 시간 16ms 기준이라 부하가 걸린 CI에서는 따로 보일 수 있다(2026-11-04 CI에서 [50, 0]이 앞에 붙음 — 미해결 142와 같은 결).
+    // 그래서 첫 rotate 앞의 이 두 값만 빼고 각도 차례를 본다.
+    const startup = new Set([512, 0]);
+    const first = changes.findIndex((pin) => !startup.has(Math.round((pin.duty as number) * 1024)));
+    const trail = first < 0 ? [] : changes.slice(first);
     expect(trail.map((pin) => [pin.freq, Math.round((pin.duty as number) * 1024)])).toEqual([
       [50, 40],
       [50, 77],
