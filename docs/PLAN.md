@@ -1385,6 +1385,15 @@ INVENTORY §4.4의 판단을 이 절에서 확정한다. 흉내 모듈(mock: 진
 - **뺀 것:** `src/layouts/partials/SideMenu.astro`의 `.side-menu__me` 마크업(제목·이어서 하기 링크·전체 진도 글·막대)과 그 스타일, `side-menu-client.ts`의 `resumeTarget`·`BOOK_ONLY_ID`·이어서 하기 칠하기. `paintMenu`는 단원 줄 끝 "3/18"(`fractionText`)만 칠하고, 화면 낭독기용 단원 진도 글은 그대로 `progress-paint.ts`가 칠한다.
 - **시험:** `tests/unit/side-menu.test.ts`의 `resumeTarget` 시험 두 개를 "메뉴판 마크업에 내 학습·`data-side-resume`·`side-menu__me`가 없고 `data-progress-fraction`은 있다"로 바꿨다. 브라우저 시험은 메뉴판과 같은 이름의 링크를 이미 `main` 안에서 찾고 있어 주석만 고쳤다.
 
+### 8.22 판 1.9.3 구현 메모(차시 링크 글·옛 홈 부품 정리, 2026-11-04)
+
+운영자 "사이트 작업 재개". 결정은 DECISIONS C244.
+
+- **고를 때:** PROGRESS 미해결 가운데 운영자 확인이 필요 없고 학생 화면이나 유지보수에 남는 것 — 239(옛 제목 링크 글)·291(쓰지 않는 홈 부품). 실물·사실 확인이 필요한 것(운영자 할 일 2·20·23·40·41, 미해결 286·287 등)과 화면 설계를 바꾸는 큰 것(277·278·280 등)은 고르지 않았다.
+- **찾는 법:** 차시 md의 `[<번호> <글>](/learn/uN/<slug>/…)` 링크마다 가리키는 차시 frontmatter의 `label`·`title`과 대조(시험과 같은 규칙). 고치기 전 판에서 12곳(1-4-3 "(선택 차시)" 덧말을 뺀 넷은 그대로 둠).
+- **지울 때:** `HomeHero`·`FlowIllustration`·`flow-motion`·`homeHero`·`homeActions`·`flowFigure`·`COMING_SOON_BADGE`를 저장소 전체에서 찾아 홈 폴더 밖·쪽에서 쓰는 곳이 없음을 확인했다. e2e `a11y-keyboard.spec.ts`의 `[data-flow]` 0개 검사는 그대로 맞다.
+- **확인 중 찾은 결함(C245):** 로컬 브라우저 시험에서 `a11y-keyboard.spec.ts:475`(ESP32 [블록] 키보드)가 8번 중 2번 실패. 진단 스크립트로 1366×768에서 붙은 조작 줄 높이 120px·`scroll-padding-block-start` 96px·[블록] 누른 뒤 scrollY 529를 재고, 첫 준비 칸 접힘(약 430px)이 [코드]를 화면 위로 밀어 Tab이 96px 자리로 굴린다는 것을 확인했다. 줄 높이를 따르는 변수로 고친 뒤 12번 모두 통과. 이 컨테이너에서는 CDN 대역 서버가 세션 재시작으로 꺼져 있어 다시 켰다(꺼진 채로도 6번 중 1번 실패 — 원인과 무관).
+
 ## 9. 저작권·출처 계획
 
 ### 9.1 원칙 (DECISIONS 그대로)
